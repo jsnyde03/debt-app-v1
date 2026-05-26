@@ -28,13 +28,6 @@ workflows:
       - name: Sync Capacitor
         script: npx cap sync
 
-      - name: Install CocoaPods
-        script: |
-          find ios -name Podfile -print
-          cd ios/App
-          ls
-          pod install
-
       - name: Initialize keychain
         script: keychain initialize
 
@@ -44,7 +37,7 @@ workflows:
       - name: Build iOS IPA
         script: |
           xcode-project build-ipa \
-            --workspace "ios/App/App.xcworkspace" \
+            --workspace "ios/App/App.xcodeproj" \
             --scheme "App"
 
       - name: Build Android APK
