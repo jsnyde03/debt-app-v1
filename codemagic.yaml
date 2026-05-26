@@ -33,7 +33,7 @@ workflows:
       
       - name: Fetch iOS signing files
         script: |
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+          app-store-connect fetch-signing-files "com.jasonsnyder.debtplanner" \
             --type IOS_APP_STORE \
             --create
       
