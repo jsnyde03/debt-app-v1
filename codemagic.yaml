@@ -4,6 +4,8 @@ name: iOS Android Release
 
 environment:
 node: 22
+groups:
+  - Android KeyStore
 
 scripts:
 install_dependencies:
