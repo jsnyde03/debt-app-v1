@@ -1,0 +1,20 @@
+workflow:
+  ios-android-relase:
+    name: iOS Android Release
+
+    environment:
+      node: 20
+
+    scripts:
+      - name: Install dependencies
+        script: npm Install
+      
+      - name: Build Next.js app
+        script: npm run Build
+      
+      - name: Sync Capacitor
+        script: npx cap Sync
+    
+    artifacts:
+      - android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/**/*.aab
