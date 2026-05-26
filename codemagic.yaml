@@ -1,79 +1,73 @@
 workflows:
   ios-android-release:
-     name: iOS Android Release
+    name: iOS Android Release
 
-environment:
-  node: 22
+    environment:
+      node: 22
 
-  groups:
-    - AndroidKeyStore
-    - AppleConnect
+      groups:
+        - AndroidKeyStore
+        - AppleConnect
 
-  vars:
-    BUNDLE_ID: com.jasonsnyder.debtplanner
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.jasonsnyder.debtplanner
 
-  integrations:
-     app_store_connect: AppleConnect
+    scripts:
+      - name: Install dependencies
+        script: npm install
 
-  ios_signing:
-    distribution_type: app_store
-    bundle_identifier: com.jasonsnyder.debtplanner
+      - name: Build Next.js app
+        script: npm run build
 
-scripts:
-  - name: Install dependencies
-    script: npm install
+      - name: Decode Android keystore
+        script: |
+          echo "$CM_KEYSTORE_BASE64" | base64 --decode > "$HOME/keystore.jks"
+          ls -lh "$HOME/keystore.jks"
 
-  - name: Build Next.js app
-    script: npm run build
+      - name: Sync Capacitor
+        script: npx cap sync
 
-  - name: Decode Android keystore
-    script: |
-      echo "$CM_KEYSTORE_BASE64" | base64 --decode > $HOME/keystore.jks
-      ls -lh $HOME/keystore.jks
+      - name: Install CocoaPods
+        script: |
+          cd ios/App
+          pod install
 
-  - name: Sync Capacitor
-    script: npx cap sync
+      - name: Initialize keychain
+        script: keychain initialize
 
-  - name: Install CocoaPods
-    script: |
-      cd ios/App
-      pod install
-  
-  - name: Initialize keychain
-    script: keychain initialize
+      - name: Apply iOS signing profiles
+        script: xcode-project use-profiles
 
-  - name: Apply iOS signing profiles
-    script: xcode-project use-profiles
- 
-  - name: Build iOS IPA
-    script: |
-      xcode-project build-ipa \
-      --workspace "ios/App/App.xcworkspace" \
-      --scheme "App"
+      - name: Build iOS IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "ios/App/App.xcworkspace" \
+            --scheme "App"
 
-  - name: Build Android APK
-    script: |
-      cd android
-      chmod +x gradlew
-      ./gradlew assembleRelease \
-      -Pandroid.injected.signing.store.file=$HOME/keystore.jks \
-      -Pandroid.injected.signing.store.password=$CM_KEYSTORE_PASSWORD \
-      -Pandroid.injected.signing.key.alias=$CM_KEY_ALIAS \
-      -Pandroid.injected.signing.key.password=$CM_KEY_PASSWORD
+      - name: Build Android APK
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file="$HOME/keystore.jks" \
+            -Pandroid.injected.signing.store.password="$CM_KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$CM_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$CM_KEY_PASSWORD"
 
-  - name: List build outputs
-    script: |
-      find ios -type f | grep ipa || true
-      find android/app/build/outputs -type f || true
+      - name: List build outputs
+        script: |
+          find ios -type f | grep ipa || true
+          find android/app/build/outputs -type f || true
 
-artifacts:
-  - ios/App/build/ios/ipa/*.ipa
-  - build/ios/ipa/*.ipa
-  - android/app/build/outputs/**/*.apk
-  - android/app/build/outputs/**/*.aab
+    artifacts:
+      - ios/App/build/ios/ipa/*.ipa
+      - build/ios/ipa/*.ipa
+      - android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/**/*.aab
 
-publishing:
-  app_store_connect:
-    api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-    key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-    issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
