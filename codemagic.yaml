@@ -34,9 +34,9 @@ workflows:
       - name: Apply iOS signing profiles
         script: xcode-project use-profiles
 
-      - name: List iOS project schemas
+      - name: List iOS project schemes
         script: |
-          xcodebuild-list -project ios/App/App.xcodeproj
+          xcodebuild -list -project ios/App/App.xcodeproj
 
       - name: Build iOS IPA
         script: |
