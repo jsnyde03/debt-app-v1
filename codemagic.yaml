@@ -1,22 +1,28 @@
 workflows:
   ios-android-release:
-    name: iOS Android Release
+     name: iOS Android Release
 
 environment:
   node: 22
 
-groups:
-  - Android KeyStore
-  - AppleConnect
+  groups:
+    - AndroidKeyStore
+    - AppleConnect
 
-ios_signing:
-  distribution_type: app_store
-  bundle_identifier: com.jasonsnyder.debtplanner
+  vars:
+    BUNDLE_ID: com.jasonsnyder.debtplanner
+
+  integrations:
+     app_store_connect: AppleConnect
+
+  ios_signing:
+    distribution_type: app_store
+    bundle_identifier: com.jasonsnyder.debtplanner
 
 scripts:
   - name: Install dependencies
     script: npm install
-  
+
   - name: Build Next.js app
     script: npm run build
 
@@ -33,9 +39,12 @@ scripts:
       cd ios/App
       pod install
   
+  - name: Initialize keychain
+    script: keychain initialize
+
   - name: Apply iOS signing profiles
     script: xcode-project use-profiles
-
+ 
   - name: Build iOS IPA
     script: |
       xcode-project build-ipa \
