@@ -18,6 +18,7 @@ scripts:
   - name: Decode Android keystore
     script: |
       echo "$CM_KEYSTORE_BASE64" | base64 --decode > $HOME/keystore.jks
+      ls -lh $HOME/keystore.jks
 
   - name: Sync Capacitor
     script: npx cap sync
@@ -25,19 +26,18 @@ scripts:
   - name: Build Android APK
     script: |
       cd android
+      chmod +x gradlew
       ./gradlew assembleRelease \
       -Pandroid.injected.signing.store.file=$HOME/keystore.jks \
       -Pandroid.injected.signing.store.password=$CM_KEYSTORE_PASSWORD \
       -Pandroid.injected.signing.key.alias=$CM_KEY_ALIAS \
       -Pandroid.injected.signing.key.password=$CM_KEY_PASSWORD
+
+  - name: List Android outputs
+    script: |
+      find android/app/build/outputs -type f || true
+
 artifacts:
   - android/app/build/outputs/apk/release/*.apk
   - android/app/build/outputs/**/*.apk
   - android/app/build/outputs/**/*.aab
-  - build/**/*
-
-publishing:
-  app_store_connect:
-    api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-    key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-    issuer_id: $APP_STORE_CONNECT_ISSUER_ID
