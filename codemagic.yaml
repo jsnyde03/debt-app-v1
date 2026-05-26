@@ -1,31 +1,37 @@
 workflows:
-  ios-android-release:
-    name: iOS Android release
-  
-  environment:
-    node: 22
-  
-  scripts:
-    - name: Install dependencies
-      script: npm install
-    
-    - name: Build Next.js app
-      script: npm run Build
-    
-    - name: Decode Android keystore
-      script: |
-        echo $CM_KEYSTORE_BASE64 | base64 --decode > $HOME/keystore.jks
-    
-    - name: Sync Capacitor
-      script: npx cap Sync
-    
-    - name: Build Android APK
-      script: |
-        cd android
-        ./gradlew assembleRelease \
-          -Pandroid.injected.signing.store.file=$HOME/keystore.jks \
-          -Pandroid.injected.signing.store.password=$CM_KEYSTORE_PASSWORD \
-          -Pandroid.injected.signing.store.alis=$CM+KEY_ALIAS
+ios-android-release:
+name: iOS Android Release
+
+environment:
+node: 22
+
+scripts:
+install_dependencies:
+name: Install dependencies
+script: npm install
+
+build_next:
+name: Build Next.js app
+script: npm run build
+
+decode_android_keystore:
+name: Decode Android keystore
+script: |
+echo $CM_KEYSTORE_BASE64 | base64 --decode > $HOME/keystore.jks
+
+sync_capacitor:
+name: Sync Capacitor
+script: npx cap sync
+
+build_android_apk:
+name: Build Android APK
+script: |
+cd android
+./gradlew assembleRelease \
+-Pandroid.injected.signing.store.file=$HOME/keystore.jks \
+-Pandroid.injected.signing.store.password=$CM_KEYSTORE_PASSWORD \
+-Pandroid.injected.signing.key.alias=$CM_KEY_ALIAS \
+-Pandroid.injected.signing.key.password=$CM_KEY_PASSWORD
 
 artifacts:
-  - android/app/build/outputs/**/*.apk
+- android/app/build/outputs/**/*.apk
