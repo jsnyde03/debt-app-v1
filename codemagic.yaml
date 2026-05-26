@@ -1,4 +1,4 @@
-workflow:
+workflows:
   ios-android-release:
     name: iOS Android Release
 
