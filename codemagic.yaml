@@ -8,6 +8,10 @@ environment:
     - AndroidKeyStore
     - AppleConnect
 
+ios_signing:
+  distribution_type: app_store
+  bundle_identifier: com.jasonsnyder.debtplanner
+
 scripts:
   - name: Install dependencies
     script: npm install
@@ -18,10 +22,20 @@ scripts:
   - name: Decode Android keystore
     script: |
       echo "$CM_KEYSTORE_BASE64" | base64 --decode > $HOME/keystore.jks
-      ls -lh $HOME/keystore.jks
 
   - name: Sync Capacitor
     script: npx cap sync
+
+  - name: Install CocoaPods
+    script: |
+      cd ios/App
+      pod install
+
+  - name: Build iOS IPA
+    script: |
+      xcode-project build-ipa \
+      --workspace "ios/App/App.xcworkspace" \
+      --scheme "App"
 
   - name: Build Android APK
     script: |
@@ -33,11 +47,12 @@ scripts:
       -Pandroid.injected.signing.key.alias=$CM_KEY_ALIAS \
       -Pandroid.injected.signing.key.password=$CM_KEY_PASSWORD
 
-  - name: List Android outputs
-    script: |
-      find android/app/build/outputs -type f || true
-
 artifacts:
-  - android/app/build/outputs/apk/release/*.apk
+  - build/ios/ipa/*.ipa
   - android/app/build/outputs/**/*.apk
-  - android/app/build/outputs/**/*.aab
+
+publishing:
+  app_store_connect:
+  api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+  key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+  issuer_id: $APP_STORE_CONNECT_ISSUER_ID
