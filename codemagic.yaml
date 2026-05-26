@@ -7,13 +7,13 @@ workflows:
 
     scripts:
       - name: Install dependencies
-        script: npm Install
+        script: npm install
       
       - name: Build Next.js app
-        script: npm run Build
+        script: npm run build
       
       - name: Sync Capacitor
-        script: npx cap Sync
+        script: npx cap sync
     
     artifacts:
       - android/app/build/outputs/**/*.apk
