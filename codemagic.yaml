@@ -1,5 +1,5 @@
 workflow:
-  ios-android-relase:
+  ios-android-release:
     name: iOS Android Release
 
     environment:
