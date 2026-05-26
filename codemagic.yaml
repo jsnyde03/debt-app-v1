@@ -34,19 +34,12 @@ workflows:
       - name: Apply iOS signing profiles
         script: xcode-project use-profiles
 
-      - name: List iOS project schemes
-        script: |
-          xcodebuild -list -project ios/App/App.xcodeproj
-
       - name: Build iOS IPA
         script: |
-          set -o pipefail
-          xcodebuild archive \
-            -project ios/App/App.xcodeproj \
-            -scheme App \
-            -configuration Release \
-            -archivePath "$CM_BUILD_DIR/build/App.xcarchive" \
-            | tee xcodebuild-archive.log
+          xcode-project buil-ipa \
+            --project "ios/App/App.xcodeproj*"" \
+            --scheme "App"
+
 
       - name: Build Android APK
         script: |
