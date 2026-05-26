@@ -5,7 +5,7 @@ name: iOS Android Release
 environment:
 node: 22
 groups:
-  - Android KeyStore
+- Android KeyStore
 
 scripts:
 install_dependencies:
@@ -19,7 +19,7 @@ script: npm run build
 decode_android_keystore:
 name: Decode Android keystore
 script: |
-echo $CM_KEYSTORE_BASE64 | base64 --decode > $HOME/keystore.jks
+echo "$CM_KEYSTORE_BASE64" | base64 --decode > "$HOME/keystore.jks"
 
 sync_capacitor:
 name: Sync Capacitor
@@ -30,10 +30,10 @@ name: Build Android APK
 script: |
 cd android
 ./gradlew assembleRelease \
--Pandroid.injected.signing.store.file=$HOME/keystore.jks \
--Pandroid.injected.signing.store.password=$CM_KEYSTORE_PASSWORD \
--Pandroid.injected.signing.key.alias=$CM_KEY_ALIAS \
--Pandroid.injected.signing.key.password=$CM_KEY_PASSWORD
+-Pandroid.injected.signing.store.file="$HOME/keystore.jks" \
+-Pandroid.injected.signing.store.password="$CM_KEYSTORE_PASSWORD" \
+-Pandroid.injected.signing.key.alias="$CM_KEY_ALIAS" \
+-Pandroid.injected.signing.key.password="$CM_KEY_PASSWORD"
 
 artifacts:
 - android/app/build/outputs/**/*.apk
