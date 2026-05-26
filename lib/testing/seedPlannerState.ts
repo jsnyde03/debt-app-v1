@@ -1,0 +1,238 @@
+import type { PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
+import type { LivingExpense } from "@/lib/types/livingExpense";
+import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+
+export type DemoPlannerGoal = {
+    id: string;
+    name: string;
+    targetAmount: number;
+    currentAmount: number;
+    originalCurrentAmount?: number;
+    type: "emergency" | "savings";
+};
+
+export type DemoCompletedRecommendedAction = {
+    targetId: string;
+    label: string;
+    category: "emergency" | "snowball" | "optional_goal";
+    recommendedAmount: number;
+    actualAmount: number;
+};
+
+export type DemoPlannerState = {
+    amount: string;
+    payCycle: PayCycle;
+    currentDate: string;
+    nextPaycheckDate: string;
+    semiMonthlyFirstDay: string;
+    semiMonthlySecondDay: string;
+    monthlyPayDay: string;
+    requiredExpenses: RequiredExpense[];
+    livingExpenses: LivingExpense[];
+    debts: Debt[];
+    goals: DemoPlannerGoal[];
+    completedRecommendedActions: DemoCompletedRecommendedAction[];
+    payoffStrategy: "snowball" | "avalanche";
+    darkMode: boolean;
+};
+
+export const demoPlannerState: DemoPlannerState = {
+    amount: "1950",
+    payCycle: "biweekly",
+    currentDate: "2026-05-23",
+    nextPaycheckDate: "2026-06-06",
+    semiMonthlyFirstDay: "1",
+    semiMonthlySecondDay: "15",
+    monthlyPayDay: "1",
+
+    requiredExpenses: [
+        {
+            id: "expense-cell-phone",
+            name: "Cell Phone",
+            amount: 330.41,
+            dueDate: "2026-05-22",
+            originalDueDate: "2026-05-22",
+            recurrence: "monthly",
+            expenseType: "fixed",
+            isPaidThisCycle: false,
+        },
+        {
+            id: "expense-capcut",
+            name: "CapCut",
+            amount: 20,
+            dueDate: "2026-05-26",
+            originalDueDate: "2026-05-26",
+            recurrence: "monthly",
+            expenseType: "fixed",
+            isPaidThisCycle: false,
+        },
+        {
+            id: "expense-electric",
+            name: "Electric",
+            amount: 145.32,
+            dueDate: "2026-05-30",
+            originalDueDate: "2026-05-30",
+            recurrence: "monthly",
+            expenseType: "variable",
+            isPaidThisCycle: true,
+        },
+        {
+            id: "expense-internet",
+            name: "Internet",
+            amount: 89.99,
+            dueDate: "2026-06-03",
+            originalDueDate: "2026-06-03",
+            recurrence: "monthly",
+            expenseType: "fixed",
+            isPaidThisCycle: false,
+        },
+    ],
+
+    livingExpenses: [
+        {
+            id: "living-groceries",
+            name: "Groceries",
+            amount: 250,
+            enabled: true,
+        },
+        {
+            id: "living-transportation",
+            name: "Gas / Transportation",
+            amount: 120,
+            enabled: true,
+        },
+        {
+            id: "living-dining",
+            name: "Dining / Takeout",
+            amount: 80,
+            enabled: false,
+        },
+        {
+            id: "living-household",
+            name: "Household",
+            amount: 60,
+            enabled: true,
+        },
+        {
+            id: "living-misc",
+            name: "Misc Spending",
+            amount: 100,
+            enabled: false,
+        },
+    ],
+
+    debts: [
+        {
+            id: "debt-paypal-underground",
+            name: "PayPal - Underground Figures",
+            balance: 600,
+            originalBalance: 600,
+            minimumPayment: 30.15,
+            apr: 24.99,
+            dueDate: "2026-05-19",
+            originalDueDate: "2026-05-19",
+            type: "debt",
+            recurrence: "monthly",
+            isPaidThisCycle: false,
+            minimumPaidThisCycle: false,
+            snowballPaidThisCycle: false,
+        },
+        {
+            id: "debt-klarna-arbys",
+            name: "Klarna - Arby's",
+            balance: 56.09,
+            originalBalance: 56.09,
+            minimumPayment: 18.7,
+            apr: 0,
+            dueDate: "2026-05-28",
+            originalDueDate: "2026-05-28",
+            type: "bnpl",
+            recurrence: "monthly",
+            isPaidThisCycle: false,
+            minimumPaidThisCycle: false,
+            snowballPaidThisCycle: false,
+        },
+        {
+            id: "debt-capital-one",
+            name: "Capital One Platinum",
+            balance: 1420,
+            originalBalance: 1420,
+            minimumPayment: 75,
+            apr: 29.99,
+            dueDate: "2026-05-31",
+            originalDueDate: "2026-05-31",
+            type: "debt",
+            recurrence: "monthly",
+            isPaidThisCycle: false,
+            minimumPaidThisCycle: false,
+            snowballPaidThisCycle: false,
+        },
+        {
+            id: "debt-affirm-long-name",
+            name: "Affirm - Very Long Mobile Wrapping Test Purchase",
+            balance: 315.44,
+            originalBalance: 315.44,
+            minimumPayment: 42.5,
+            apr: 15.99,
+            dueDate: "2026-06-02",
+            originalDueDate: "2026-06-02",
+            type: "bnpl",
+            recurrence: "monthly",
+            isPaidThisCycle: false,
+            minimumPaidThisCycle: false,
+            snowballPaidThisCycle: false,
+        },
+    ],
+
+    goals: [
+        {
+            id: "goal-emergency",
+            name: "Emergency Fund",
+            targetAmount: 1000,
+            currentAmount: 325,
+            originalCurrentAmount: 250,
+            type: "emergency",
+        },
+        {
+            id: "goal-car-repair",
+            name: "Car Repair Buffer",
+            targetAmount: 750,
+            currentAmount: 100,
+            originalCurrentAmount: 100,
+            type: "savings",
+        },
+    ],
+
+    completedRecommendedActions: [
+        {
+            targetId: "goal-emergency",
+            label: "Add to Emergency Fund",
+            category: "emergency",
+            recommendedAmount: 75,
+            actualAmount: 75,
+        },
+    ],
+
+    payoffStrategy: "snowball",
+    darkMode: false,
+};
+
+export function applyDemoPlannerStateToStorage(storage: Storage) {
+    storage.clear();
+
+    storage.setItem("debtPlanner.amount", JSON.stringify(demoPlannerState.amount));
+    storage.setItem("debtPlanner.payCycle", JSON.stringify(demoPlannerState.payCycle));
+    storage.setItem("debtPlanner.currentDate", JSON.stringify(demoPlannerState.currentDate));
+    storage.setItem("debtPlanner.nextPaycheckDate", JSON.stringify(demoPlannerState.nextPaycheckDate));
+    storage.setItem("debtPlanner.semiMonthlyFirstDay", JSON.stringify(demoPlannerState.semiMonthlyFirstDay));
+    storage.setItem("debtPlanner.semiMonthlySecondDay", JSON.stringify(demoPlannerState.semiMonthlySecondDay));
+    storage.setItem("debtPlanner.monthlyPayDay", JSON.stringify(demoPlannerState.monthlyPayDay));
+
+    storage.setItem("debtPlanner.requiredExpenses", JSON.stringify(demoPlannerState.requiredExpenses));
+    storage.setItem("debtPlanner.livingExpenses", JSON.stringify(demoPlannerState.livingExpenses));
+    storage.setItem("debtPlanner.debts", JSON.stringify(demoPlannerState.debts));
+    storage.setItem("debtPlanner.goals", JSON.stringify(demoPlannerState.goals));
+    storage.setItem("debtPlanner.completedRecommendedActions", JSON.stringify(demoPlannerState.completedRecommendedActions));
+    storage.setItem("debtPlanner.payoffStrategy", JSON.stringify(demoPlannerState.payoffStrategy));
+    storage.setItem("debtPlanner.darkMode", JSON.stringify(demoPlannerState.darkMode));
+}

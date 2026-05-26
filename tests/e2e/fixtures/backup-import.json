@@ -1,0 +1,44 @@
+{
+  "amount": "2100",
+  "payCycle": "biweekly",
+  "semiMonthlyFirstDay": "1",
+  "semiMonthlySecondDay": "15",
+  "monthlyPayDay": "1",
+  "currentDate": "2026-05-23",
+  "requiredExpenses": [
+    {
+      "id": "backup-phone",
+      "name": "Phone",
+      "amount": 90,
+      "dueDate": "2026-05-28",
+      "recurrence": "monthly",
+      "isPaidThisCycle": false
+    }
+  ],
+  "debts": [
+    {
+      "id": "backup-visa",
+      "name": "Backup Visa",
+      "balance": 700,
+      "minimumPayment": 70,
+      "apr": 19,
+      "dueDate": "2026-05-29",
+      "type": "debt",
+      "recurrence": "monthly",
+      "isPaidThisCycle": false,
+      "minimumPaidThisCycle": false,
+      "snowballPaidThisCycle": false
+    }
+  ],
+  "goals": [
+    {
+      "id": "backup-goal",
+      "name": "Backup Goal",
+      "targetAmount": 1000,
+      "currentAmount": 250,
+      "type": "emergency"
+    }
+  ],
+  "completedRecommendedActions": [],
+  "payoffStrategy": "snowball"
+}
