@@ -40,9 +40,16 @@ workflows:
 
       - name: Build iOS IPA
         script: |
-          xcode-project build-ipa \
-            --project "ios/App/App.xcodeproj" \
-            --scheme "App"
+          set -o pipefail
+          xcodebuild archive \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -archivePath "$CM_BUILD_DIR/build/App.xcarchive" \
+            DEVELOPMENT_TEAM=CVCY985YCD \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            | tee xcodebuild-archive.log
 
       - name: Build Android APK
         script: |
@@ -64,6 +71,8 @@ workflows:
       - build/ios/ipa/*.ipa
       - android/app/build/outputs/**/*.apk
       - android/app/build/outputs/**/*.aab
+      - xcodebuild-archive.log
+      - build/**/*.xcarchive
 
     publishing:
       app_store_connect:
