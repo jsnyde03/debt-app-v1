@@ -6,7 +6,7 @@ environment:
   node: 22
 
 groups:
-  - AndroidKeyStore
+  - Android KeyStore
   - AppleConnect
 
 ios_signing:
