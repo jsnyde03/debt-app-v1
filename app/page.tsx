@@ -896,240 +896,242 @@ export default function Home() {
 
     return (
         <main className={`app ${darkMode ? "dark-theme" : ""}`}>
-            {process.env.NODE_ENV === "development" && (
+            <div className="app-content">
+                {process.env.NODE_ENV === "development" && (
+                    <button
+                        type="button"
+                        className="dev-populate-button"
+                        onClick={handlePopulateDemoData}
+                    >
+                        Populate Demo Data
+                    </button>
+                )}
+                <section className="hero">
+                    <h1>Debt Planner</h1>
+                    <p>Enter a paycheck and see exactly what to do next.</p>
+
+                    <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => setDarkMode((current) => !current)}
+                    >
+                        {darkMode ? "Light Mode" : "Dark Mode"}
+                    </button>
+                </section>
+
+                {activeTab === "plan" && (
+                    <>
+                        <div className="plan-toolbar">
+                            <button
+                                type="button"
+                                className="secondary-button"
+                                onClick={() => setShowPlanSettings(true)}
+                            >
+                                Plan Settings
+                            </button>
+                        </div>
+
+                        <ResultsSection
+                            result={result}
+                            requiredExpenses={requiredExpenses}
+                            debts={debts}
+                            goals={goals}
+                            completedRecommendedActions={
+                                completedRecommendedActions
+                            }
+                            currentDate={currentDate}
+                            onMarkExpensePaid={handleMarkExpensePaid}
+                            onMarkDebtMinimumPaid={handleMarkDebtMinimumPaid}
+                            onMarkDebtSnowballPaid={handleMarkDebtSnowballPaid}
+                            onMarkRecommendedAction={handleMarkRecommendedAction}
+                        />
+                    </>
+                )}
+
+                {activeTab === "snowball" && (
+                    <SnowballSection
+                        debts={debts}
+                        result={result}
+                        completedRecommendedActions={completedRecommendedActions}
+                        payoffStrategy={payoffStrategy}
+                        currentDate={currentDate}
+                        setPayoffStrategy={setPayoffStrategy}
+                    />
+                )}
+
+                {activeTab === "bills" && billsView === "expenses" && (
+                    <>
+                        <RequiredExpensesSection
+                            expenses={requiredExpenses}
+                            expenseName={expenseName}
+                            expenseAmount={expenseAmount}
+                            expenseDueDate={expenseDueDate}
+                            expenseRecurrence={expenseRecurrence}
+                            expenseType={expenseType}
+                            formatRecurrence={formatRecurrence}
+                            onExpenseNameChange={setExpenseName}
+                            onExpenseAmountChange={setExpenseAmount}
+                            onExpenseDueDateChange={setExpenseDueDate}
+                            onExpenseRecurrenceChange={setExpenseRecurrence}
+                            onExpenseTypeChange={setExpenseType}
+                            onAddExpense={handleAddExpense}
+                            onRemoveExpense={handleRemoveExpense}
+                            onUpdateExpense={handleUpdateExpense}
+                            expenseErrors={expenseErrors}
+                        />
+
+                        <LivingExpensesSection
+                            livingExpenses={livingExpenses}
+                            onLivingExpensesChange={setLivingExpenses}
+                        />
+                    </>
+                )}
+
+                {activeTab === "bills" && billsView === "debts" && (
+                    <DebtsSection
+                        activeDebts={activeDebts}
+                        paidOffDebts={paidOffDebts}
+                        debtName={debtName}
+                        debtBalance={debtBalance}
+                        debtMinimumPayment={debtMinimumPayment}
+                        debtApr={debtApr}
+                        debtDueDate={debtDueDate}
+                        debtType={debtType}
+                        debtRecurrence={debtRecurrence}
+                        formatRecurrence={formatRecurrence}
+                        debtRemainingPayments={debtRemainingPayments}
+                        debtScheduledPaymentAmount={debtScheduledPaymentAmount}
+                        onDebtRemainingPaymentsChange={
+                            setDebtRemainingPayments
+                        }
+                        onDebtScheduledPaymentAmountChange={
+                            setDebtScheduledPaymentAmount
+                        }
+                        onDebtNameChange={setDebtName}
+                        onDebtBalanceChange={setDebtBalance}
+                        onDebtMinimumPaymentChange={setDebtMinimumPayment}
+                        onDebtAprChange={setDebtApr}
+                        onDebtDueDateChange={setDebtDueDate}
+                        onDebtTypeChange={setDebtType}
+                        onDebtRecurrenceChange={setDebtRecurrence}
+                        onImportDebtsCsv={handleImportDebtsCsv}
+                        onAddDebt={handleAddDebt}
+                        onRemoveDebt={handleRemoveDebt}
+                        onUpdateDebt={handleUpdateDebt}
+                        debtErrors={debtErrors}
+                        debtWarnings={debtWarnings}
+                    />
+                )}
+
+                {activeTab === "goals" && (
+                    <GoalsSection
+                        goals={goals}
+                        goalName={goalName}
+                        goalTargetAmount={goalTargetAmount}
+                        goalCurrentAmount={goalCurrentAmount}
+                        goalType={goalType}
+                        goalErrors={goalErrors}
+                        onGoalNameChange={setGoalName}
+                        onGoalTargetAmountChange={setGoalTargetAmount}
+                        onGoalCurrentAmountChange={setGoalCurrentAmount}
+                        onGoalTypeChange={setGoalType}
+                        onAddGoal={handleAddGoal}
+                        onRemoveGoal={handleRemoveGoal}
+                        onUpdateGoal={handleUpdateGoal}
+                    />
+                )}
+            </div>
+
+            <nav className="bottom-nav">
                 <button
                     type="button"
-                    className="dev-populate-button"
-                    onClick={handlePopulateDemoData}
+                    className={
+                        activeTab === "plan"
+                            ? "bottom-nav-item active"
+                            : "bottom-nav-item"
+                    }
+                    onClick={() => setActiveTab("plan")}
                 >
-                    Populate Demo Data
+                    <span>🏠</span>
+                    <small>Plan</small>
                 </button>
-            )}
-            <section className="hero">
-                <h1>Debt Planner</h1>
-                <p>Enter a paycheck and see exactly what to do next.</p>
 
                 <button
                     type="button"
-                    className="secondary-button"
-                    onClick={() => setDarkMode((current) => !current)}
+                    className={
+                        activeTab === "bills"
+                            ? "bottom-nav-item active"
+                            : "bottom-nav-item"
+                    }
+                    onClick={() => setShowBillsMenu((current) => !current)}
                 >
-                    {darkMode ? "Light Mode" : "Dark Mode"}
+                    <span>💳</span>
+                    <small>Bills</small>
                 </button>
 
-                <nav className="bottom-nav">
+                <button
+                    type="button"
+                    className={
+                        activeTab === "snowball"
+                            ? "bottom-nav-item active"
+                            : "bottom-nav-item"
+                    }
+                    onClick={() => setActiveTab("snowball")}
+                >
+                    <span>📈</span>
+                    <small>Payoff</small>
+                </button>
+
+                <button
+                    type="button"
+                    className={
+                        activeTab === "goals"
+                            ? "bottom-nav-item active"
+                            : "bottom-nav-item"
+                    }
+                    onClick={() => setActiveTab("goals")}
+                >
+                    <span>🎯</span>
+                    <small>Goals</small>
+                </button>
+            </nav>
+
+            {showBillsMenu && (
+                <div className="bottom-sheet-menu">
                     <button
                         type="button"
                         className={
-                            activeTab === "plan"
-                                ? "bottom-nav-item active"
-                                : "bottom-nav-item"
+                            billsView === "expenses"
+                                ? "bottom-sheet-option active"
+                                : "bottom-sheet-option"
                         }
-                        onClick={() => setActiveTab("plan")}
+                        onClick={() => {
+                            setActiveTab("bills");
+                            setBillsView("expenses");
+                            setShowBillsMenu(false);
+                        }}
                     >
-                        <span>🏠</span>
-                        <small>Plan</small>
+                        <span>💷</span>
+                        <small>Expenses</small>
                     </button>
 
                     <button
                         type="button"
                         className={
-                            activeTab === "bills"
-                                ? "bottom-nav-item active"
-                                : "bottom-nav-item"
+                            billsView === "debts"
+                                ? "bottom-sheet-option active"
+                                : "bottom-sheet-option"
                         }
-                        onClick={() => setShowBillsMenu((current) => !current)}
+                        onClick={() => {
+                            setActiveTab("bills");
+                            setBillsView("debts");
+                            setShowBillsMenu(false);
+                        }}
                     >
                         <span>💳</span>
-                        <small>Bills</small>
+                        <small>Debts</small>
                     </button>
-
-                    <button
-                        type="button"
-                        className={
-                            activeTab === "snowball"
-                                ? "bottom-nav-item active"
-                                : "bottom-nav-item"
-                        }
-                        onClick={() => setActiveTab("snowball")}
-                    >
-                        <span>📈</span>
-                        <small>Payoff</small>
-                    </button>
-
-                    <button
-                        type="button"
-                        className={
-                            activeTab === "goals"
-                                ? "bottom-nav-item active"
-                                : "bottom-nav-item"
-                        }
-                        onClick={() => setActiveTab("goals")}
-                    >
-                        <span>🎯</span>
-                        <small>Goals</small>
-                    </button>
-                </nav>
-
-                {showBillsMenu && (
-                    <div className="bottom-sheet-menu">
-                        <button
-                            type="button"
-                            className={
-                                billsView === "expenses"
-                                    ? "bottom-sheet-option active"
-                                    : "bottom-sheet-option"
-                            }
-                            onClick={() => {
-                                setActiveTab("bills");
-                                setBillsView("expenses");
-                                setShowBillsMenu(false);
-                            }}
-                        >
-                            <span>💷</span>
-                            <small>Expenses</small>
-                        </button>
-
-                        <button
-                            type="button"
-                            className={
-                                billsView === "debts"
-                                    ? "bottom-sheet-option active"
-                                    : "bottom-sheet-option"
-                            }
-                            onClick={() => {
-                                setActiveTab("bills");
-                                setBillsView("debts");
-                                setShowBillsMenu(false);
-                            }}
-                        >
-                            <span>💳</span>
-                            <small>Debts</small>
-                        </button>
-                    </div>
-                )}
-            </section>
-
-            {activeTab === "plan" && (
-                <>
-                    <div className="plan-toolbar">
-                        <button
-                            type="button"
-                            className="secondary-button"
-                            onClick={() => setShowPlanSettings(true)}
-                        >
-                            Plan Settings
-                        </button>
-                    </div>
-
-                    <ResultsSection
-                        result={result}
-                        requiredExpenses={requiredExpenses}
-                        debts={debts}
-                        goals={goals}
-                        completedRecommendedActions={
-                            completedRecommendedActions
-                        }
-                        currentDate={currentDate}
-                        onMarkExpensePaid={handleMarkExpensePaid}
-                        onMarkDebtMinimumPaid={handleMarkDebtMinimumPaid}
-                        onMarkDebtSnowballPaid={handleMarkDebtSnowballPaid}
-                        onMarkRecommendedAction={handleMarkRecommendedAction}
-                    />
-                </>
-            )}
-
-            {activeTab === "snowball" && (
-                <SnowballSection
-                    debts={debts}
-                    result={result}
-                    completedRecommendedActions={completedRecommendedActions}
-                    payoffStrategy={payoffStrategy}
-                    currentDate={currentDate}
-                    setPayoffStrategy={setPayoffStrategy}
-                />
-            )}
-
-            {activeTab === "bills" && billsView === "expenses" && (
-                <>
-                    <RequiredExpensesSection
-                        expenses={requiredExpenses}
-                        expenseName={expenseName}
-                        expenseAmount={expenseAmount}
-                        expenseDueDate={expenseDueDate}
-                        expenseRecurrence={expenseRecurrence}
-                        expenseType={expenseType}
-                        formatRecurrence={formatRecurrence}
-                        onExpenseNameChange={setExpenseName}
-                        onExpenseAmountChange={setExpenseAmount}
-                        onExpenseDueDateChange={setExpenseDueDate}
-                        onExpenseRecurrenceChange={setExpenseRecurrence}
-                        onExpenseTypeChange={setExpenseType}
-                        onAddExpense={handleAddExpense}
-                        onRemoveExpense={handleRemoveExpense}
-                        onUpdateExpense={handleUpdateExpense}
-                        expenseErrors={expenseErrors}
-                    />
-
-                    <LivingExpensesSection
-                        livingExpenses={livingExpenses}
-                        onLivingExpensesChange={setLivingExpenses}
-                    />
-                </>
-            )}
-
-            {activeTab === "bills" && billsView === "debts" && (
-                <DebtsSection
-                    activeDebts={activeDebts}
-                    paidOffDebts={paidOffDebts}
-                    debtName={debtName}
-                    debtBalance={debtBalance}
-                    debtMinimumPayment={debtMinimumPayment}
-                    debtApr={debtApr}
-                    debtDueDate={debtDueDate}
-                    debtType={debtType}
-                    debtRecurrence={debtRecurrence}
-                    formatRecurrence={formatRecurrence}
-                    debtRemainingPayments={debtRemainingPayments}
-                    debtScheduledPaymentAmount={debtScheduledPaymentAmount}
-                    onDebtRemainingPaymentsChange={
-                        setDebtRemainingPayments
-                    }
-                    onDebtScheduledPaymentAmountChange={
-                        setDebtScheduledPaymentAmount
-                    }
-                    onDebtNameChange={setDebtName}
-                    onDebtBalanceChange={setDebtBalance}
-                    onDebtMinimumPaymentChange={setDebtMinimumPayment}
-                    onDebtAprChange={setDebtApr}
-                    onDebtDueDateChange={setDebtDueDate}
-                    onDebtTypeChange={setDebtType}
-                    onDebtRecurrenceChange={setDebtRecurrence}
-                    onImportDebtsCsv={handleImportDebtsCsv}
-                    onAddDebt={handleAddDebt}
-                    onRemoveDebt={handleRemoveDebt}
-                    onUpdateDebt={handleUpdateDebt}
-                    debtErrors={debtErrors}
-                    debtWarnings={debtWarnings}
-                />
-            )}
-
-            {activeTab === "goals" && (
-                <GoalsSection
-                    goals={goals}
-                    goalName={goalName}
-                    goalTargetAmount={goalTargetAmount}
-                    goalCurrentAmount={goalCurrentAmount}
-                    goalType={goalType}
-                    goalErrors={goalErrors}
-                    onGoalNameChange={setGoalName}
-                    onGoalTargetAmountChange={setGoalTargetAmount}
-                    onGoalCurrentAmountChange={setGoalCurrentAmount}
-                    onGoalTypeChange={setGoalType}
-                    onAddGoal={handleAddGoal}
-                    onRemoveGoal={handleRemoveGoal}
-                    onUpdateGoal={handleUpdateGoal}
-                />
+                </div>
             )}
 
             {showPlanSettings && (
