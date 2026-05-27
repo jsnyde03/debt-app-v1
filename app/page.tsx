@@ -29,6 +29,7 @@ import type { LivingExpense } from "@/lib/types/livingExpense";
 import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
+import { StatusBar, Style } from "@capacitor/status-bar";
 
 type Goal = {
     id: string;
@@ -364,6 +365,16 @@ export default function Home() {
             JSON.stringify(payoffStrategy)
         );
     }, [payoffStrategy]);
+
+    useEffect(() => {
+        StatusBar.setOverlaysWebView({ overlay: false }).catch(() => undefined);
+
+        StatusBar.setStyle({
+            style: darkMode ? Style.Dark : Style.Light,
+        }).catch(() => undefined);
+
+        StatusBar.setBackgroundColor({ color: darkMode ? "#07111f" : "#eef3f8",}).catch(() => undefined);
+    }, [darkMode]);
 
     function buildBackupData() {
         return {
