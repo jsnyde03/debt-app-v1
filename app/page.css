@@ -1550,6 +1550,11 @@ button:active {
 	color: #ffffff !important;
 	box-shadow: var(--shadow-soft) !important;
 }
+
+.mobile-section-switcher > button.mobile-section-switcher-button:not(.active) {
+	background: transparent !important;
+	color: var(--text-secondary) !important;
+}
 @keyframes centerModalIn {
 	from {
 		opacity: 0;
