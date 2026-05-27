@@ -15,7 +15,7 @@ type RequiredExpensesSectionProps = {
         name?: string;
         amount?: string;
         dueDate?: string;
-    }
+    };
 
     formatRecurrence: (recurrence: Recurrence) => string;
 
@@ -24,16 +24,13 @@ type RequiredExpensesSectionProps = {
     onExpenseDueDateChange: (value: string) => void;
     onExpenseRecurrenceChange: (value: Recurrence) => void;
     onExpenseTypeChange: (value: "fixed" | "variable") => void;
-
     onAddExpense: () => void;
-
     onRemoveExpense: (id: string) => void;
-
     onUpdateExpense: (
         id: string,
-        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate">>
-    ) => void;
+        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate">>) => void;
 };
+
 
 export function RequiredExpensesSection({
     expenses,
@@ -57,13 +54,13 @@ export function RequiredExpensesSection({
     const [editAmount, setEditAmount] = useState("");
     const [editDueDate, setEditDueDate] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
-    const [showAddExpenseForm, setShowAddExpenseForm] = useState(false);
+    const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
     const [expensePage, setExpensePage] = useState(1);
     const filteredExpenses = expenses.filter((expense) => expense.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
     const pageSize = 10;
     const totalPages = Math.max(1, Math.ceil(filteredExpenses.length / pageSize));
-    const visibleExpenses = filteredExpenses.slice((expensePage - 1) * pageSize, expensePage * pageSize); 
+    const visibleExpenses = filteredExpenses.slice((expensePage - 1) * pageSize, expensePage + pageSize);
+    const editingExpense = expenses.find((expense) => expense.id === editingExpenseId);
 
     function startEditing(expense: RequiredExpense) {
         setEditingExpenseId(expense.id);
@@ -92,108 +89,30 @@ export function RequiredExpensesSection({
         cancelEditing();
     }
 
+    function handleAddExpense() {
+        onAddExpense();
+        setShowAddExpenseModal(false);
+    }
+
     return (
         <section className="card">
-            <h2>Required Expenses</h2>
+            <div className="section-heading-row">
+                <div>
+                    <h2>Required Expenses</h2>
 
-            <button
-                type="button"
-                className="collapsible-header"
-                onClick={() => setShowAddExpenseForm((current) => !current)}
-            >
-                <span>{showAddExpenseForm ? "- Add Expense" : "+ Add Expense"}</span>
-            </button>
-
-            {showAddExpenseForm && (
-                <div className="form-grid">
-                    <div className="field">
-                        <label>Common Bills</label>
-
-                        <div className="preset-grid">
-                            {requiredExpensePresets.map((preset) => (
-                                <button
-                                    key={preset.name}
-                                    type="button"
-                                    className="preset-pill"
-                                    onClick={() => {
-                                        onExpenseNameChange(preset.name);
-                                        onExpenseTypeChange(preset.expenseType);
-                                        onExpenseRecurrenceChange(preset.recurrence);
-                                    }}
-                                >
-                                    {preset.name}
-                                </button>
-                                )
-                            )}
-                        </div>
-                    </div>
-                    <div className="field">
-                        <label>Expense name</label>
-
-                        <input
-                            type="text"
-                            placeholder="Rent, phone, utilities"
-                            value={expenseName}
-                            onChange={(e) => onExpenseNameChange(e.target.value)}
-                        />
-                        {expenseErrors.name && (<p className="validation-error">{expenseErrors.name}</p>)}
-                    </div>
-
-                    <div className="field">
-                        <label>Amount due</label>
-
-                        <input
-                            type="number"
-                            placeholder="Amount due"
-                            value={expenseAmount}
-                            onChange={(e) => onExpenseAmountChange(e.target.value)}
-                        />
-                        {expenseErrors.amount && (<p className="validation-error">{expenseErrors.amount}</p>)}
-                    </div>
-
-                    <div className="field">
-                        <label>Due date</label>
-
-                        <input
-                            type="date"
-                            value={expenseDueDate}
-                            onChange={(e) => onExpenseDueDateChange(e.target.value)}
-                        />
-                        {expenseErrors.dueDate && (<p className="validation-error">{expenseErrors.dueDate}</p>)}
-                    </div>
-
-                    <div className="field">
-                        <label>Recurrence</label>
-
-                        <select
-                            value={expenseRecurrence}
-                            onChange={(e) =>
-                                onExpenseRecurrenceChange(e.target.value as Recurrence)
-                            }
-                        >
-                            <option value="monthly">Monthly</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="biweekly">Every 2 weeks</option>
-                            <option value="per-paycheck">Every paycheck</option>
-                            <option value="one-time">One-time</option>
-                        </select>
-                    </div>
-
-                    <div className="field">
-                        <label>Expense Type</label>
-
-                        <select value={expenseType} onChange={(e) => onExpenseTypeChange(e.target.value as "fixed" | "variable")}>
-                            <option value="fixed">Fixed</option>
-                            <option value="variable">Variable</option>
-                        </select>
-                    </div>
-
-
-                    <button className="add-button" onClick={onAddExpense}>
-                        Add Required Expense
-                    </button>
+                    <p className="section-collapse-subtitle">
+                        Bills and required payments due each cycle.
+                    </p>
                 </div>
-            )}
+
+                <button
+                    type="button"
+                    className="add-button compact-add-button"
+                    onClick={() => setShowAddExpenseModal(true)}
+                >
+                    + Add
+                </button>
+            </div>
 
             <div className="expense-controls">
                 <input
@@ -204,120 +123,307 @@ export function RequiredExpensesSection({
                         setSearchTerm(event.target.value);
                         setExpensePage(1);
                     }}
-                    
                 />
             </div>
 
             {filteredExpenses.length === 0 ? (
-                <p className="empty-state">No required expenses added yet.</p>
+                <p className="empty-state">
+                    No required expenses added yet.
+                </p>
             ) : (
-                visibleExpenses.map((expense) => {
-                    const isEditing = editingExpenseId === expense.id;
+                visibleExpenses.map((expense) => (
+                    <button
+                        key={expense.id}
+                        type="button"
+                        className="saved-item saved-item-button"
+                        onClick={() => startEditing(expense)}
+                    >
+                        <div className="saved-item-left">
+                            <div className="saved-title">
+                               {expense.name}
+                               {expense.isPaidThisCycle ? "✔" : ""}
+                            </div>
 
-                    return (
-                        <div key={expense.id} className="saved-item">
-                            {isEditing ? (
-                                <>
-                                    <div className="field">
-                                        <label>Amount due</label>
+                            <div className="saved-meta">
+                                Due {expense.dueDate} ·{" "}
+                                {formatRecurrence(expense.recurrence)} ·{" "}
+                                {(expense.expenseType ?? "fixed") === "fixed"
+                                    ? "Fixed"
+                                    : "Variable"}
+                            </div>
+                        </div>
 
-                                        <input
-                                            type="number"
-                                            value={editAmount}
-                                            onChange={(e) => setEditAmount(e.target.value)}
-                                        />
-                                    </div>
+                        <div className="saved-item-right">
+                            <strong className="saved-amount">
+                                {formatCurrency(expense.amount)}
+                            </strong>
 
-                                    <div className="field">
-                                        <label>Due date</label>
+                            <span className="row-chevron">›</span>
+                        </div>
+                    </button>
+                ))
+            )}
 
-                                        <input
-                                            type="date"
-                                            value={editDueDate}
-                                            onChange={(e) => setEditDueDate(e.target.value)}
-                                        />
-                                    </div>
+            {filteredExpenses.length > pageSize && (
+                <div className="pagination-actions">
+                    <button
+                        type="button"
+                        className="secondary-button"
+                        disabled={expensePage === 1}
+                        onClick={() => setExpensePage((current) => Math.max(1, current - 1))}
+                    >
+                        Previous
+                    </button>
 
+                    <span className="pagination-status">
+                        Page {expensePage} of {totalPages}
+                    </span>
+
+                    <button
+                        type="button"
+                        className="secondary-button"
+                        disabled={expensePage === totalPages}
+                        onClick={() => setExpensePage((current) => Math.min(totalPages, current + 1))}
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
+
+            {showAddExpenseModal && (
+                <div
+                    className="center-modal-overlay"
+                    onClick={() => setShowAddExpenseModal(false)}
+                >
+                    <div
+                        className="center-modal"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <div className="center-modal-header">
+                            <div>
+                                <h2>Add Expense</h2>
+
+                                <p>Add a required bill or payment.</p>
+                            </div>
+
+                            <button
+                                type="button"
+                                className="text-action-button"
+                                onClick={() => setShowAddExpenseModal(false)}
+                            >
+                                Close
+                            </button>
+                        </div>
+
+                        <div className="form-grid">
+                            <div className="field">
+                                <label>Common Bills</label>
+
+                                <div className="preset-grid">
+                                    {requiredExpensePresets.map((preset) => (
+                                        <button
+                                            key={preset.name}
+                                            type="button"
+                                            className="preset-pill"
+                                            onClick={() => {
+                                                onExpenseNameChange(preset.name);
+                                                onExpenseTypeChange(preset.expenseType);
+                                                onExpenseRecurrenceChange(preset.recurrence);
+                                            }}
+                                        >
+                                            {preset.name}
+                                        </button>
+
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="field">
+                                <label>Expense Name</label>
+
+                                <input
+                                    type="text"
+                                    placeholder="Rent, phone, utilities"
+                                    value={expenseName}
+                                    onChange={(event) => onExpenseNameChange(event.target.value)}
+                                />
+
+                                {expenseErrors.name && (
+                                    <p className="validation-error">
+                                        {expenseErrors.name}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="field">
+                                <label>Amount Due</label>
+
+                                <input
+                                    type="number"
+                                    placeholder="Amount Due"
+                                    value={expenseAmount}
+                                    onChange={(event) => onExpenseAmountChange(event.target.value)}
+                                />
+
+                                {expenseErrors.amount && (
+                                    <p className="validation-error">
+                                        {expenseErrors.amount}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="field">
+                                <label>Due Date</label>
+
+                                <input
+                                    type="date"
+                                    value={expenseDueDate}
+                                    onChange={(event) => onExpenseDueDateChange(event.target.value)}
+                                />
+
+                                {expenseErrors.dueDate && (
+                                    <p className="validation-error">
+                                        {expenseErrors.dueDate}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="field">
+                                <label>Recurrence</label>
+
+                                <select
+                                    value={expenseRecurrence}
+                                    onChange={(event) => onExpenseRecurrenceChange(event.target.value as Recurrence)}
+                                >
+                                    <option value="monthly">
+                                        Monthly
+                                    </option>
+                                    <option value="weekly">
+                                        Weekly
+                                    </option>
+                                    <option value="biweekly">
+                                        Every 2 Weeks
+                                    </option>
+                                    <option value="per-paycheck">
+                                        Every Paycheck
+                                    </option>
+                                    <option value="one-time">
+                                        One-Time
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div className="field">
+                                <label>Expense Type</label>
+
+                                <select
+                                    value={expenseType}
+                                    onChange={(event) => onExpenseTypeChange(event.target.value as | "fixed" | "variable")}
+                                >
+                                    <option value="fixed">
+                                        Fixed
+                                    </option>
+                                    <option value="variable">
+                                        Variable
+                                    </option>
+                                </select>
+                            </div>
+
+                            <button
+                                type="button"
+                                className="add-button modal-primary-action"
+                                onClick={handleAddExpense}
+                            >
+                                Add Required Expense
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {editingExpense && (
+                <div
+                    className="center-modal-overly"
+                    onClick={cancelEditing}
+                >
+                    <div
+                        className="center-modal"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <div className="center-modal-header">
+                            <div>
+                                <h2>Expense Details</h2>
+
+                                <p>{editingExpense.name}</p>
+                            </div>
+
+                            <button
+                                type="button"
+                                className="text-action-button"
+                                onClick={cancelEditing}
+                            >
+                                Close
+                            </button>
+                        </div>
+
+                        <div className="form-grid">
+                            <div className="field">
+                                <label> Amount Due</label>
+
+                                <input
+                                    type="number"
+                                    value={editAmount}
+                                    onChange={(event) => setEditAmount(event.target.value)}
+                                />
+                            </div>
+
+                            <div className="field">
+                                <label>Due Date</label>
+
+                                <input
+                                    type="date"
+                                    value={editDueDate}
+                                    onChange={(event) => setEditDueDate(event.target.value)}
+                                />
+                            </div>
+
+                            <div className="modal-action-row">
+                                <button
+                                    type="button"
+                                    className="text-action-button danger-action"
+                                    onClick={() => {
+                                        onRemoveExpense(editingExpense.id);
+
+                                        cancelEditing();
+                                    }}
+                                >
+                                    Remove
+                                </button>
+
+                                <div className="modal-action-row-right">
                                     <button
-                                        className="secondary-button"
-                                        onClick={() => saveEditing(expense.id)}
-                                    >
-                                        Save
-                                    </button>
-
-                                    <button
+                                        type="button"
                                         className="secondary-button"
                                         onClick={cancelEditing}
                                     >
                                         Cancel
                                     </button>
-                                </>
-                            ) : (
-                                <>
-                                    <div>
-                                        <div className="saved-title">
-                                            {expense.name}
-                                            {expense.isPaidThisCycle ? " ✓" : ""}
-                                        </div>
 
-                                        <div className="saved-meta">
-                                            Due {expense.dueDate} ·{" "}
-                                            {formatRecurrence(expense.recurrence)} ·{" "}
-                                            {(expense.expenseType ?? "fixed") === "fixed" ? "Fixed" : "Variable"}
-                                        </div>
-                                    </div>
+                                    <button
+                                        type="button"
+                                        className="add-button"
+                                        onClick={() => saveEditing(editingExpense.id)}
+                                    >
+                                        Save
+                                    </button>
+                                </div>
 
-                                    <div className="saved-amount">{formatCurrency(expense.amount)}</div>
-
-                                    <div className="saved-actions">
-                                        <button
-                                            className="text-action-button"
-                                            onClick={() => startEditing(expense)}
-                                        >
-                                            Edit
-                                        </button>
-
-                                        <button
-                                            className="text-action-button danger-action"
-                                            onClick={() => onRemoveExpense(expense.id)}
-                                        >
-                                            Remove
-                                        </button>
-
-                                    </div>
-
-                                </>
-                            )}
+                            </div>
                         </div>
-                    );
-                })
-            )}
-
-            {filteredExpenses.length > pageSize && (
-                    <div className="pagination-actions">
-                        <button
-                            type="button"
-                            className="secondary-button"
-                            disabled={expensePage === 1}
-                            onClick={() => setExpensePage((current) => Math.max(1, current - 1))}
-                        >
-                            Previous
-                        </button>
-
-                        <span className="pagination-status">
-                            Page {expensePage} of {totalPages}
-                        </span>
-
-                        <button
-                            type="button"
-                            className="secondary-button"
-                            disabled={expensePage === totalPages}
-                            onClick={() => setExpensePage((current) => Math.min(totalPages, current + 1))}
-                        >
-                            Next
-                        </button>
                     </div>
-                )}
+                </div>
+            )}
         </section>
     );
+
 }
