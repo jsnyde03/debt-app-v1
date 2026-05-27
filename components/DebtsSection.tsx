@@ -118,6 +118,7 @@ export function DebtsSection({
     });
 
     const [showAddDebtForm, setShowAddDebtForm] = useState(false);
+    const [showAddDebtModal, setShowAddDebtModal] = useState(false);
 
     const allDebts = useMemo(() => {
         const map = new Map<string, Debt>();
@@ -132,7 +133,7 @@ export function DebtsSection({
     const filteredActiveDebts = sortDebts(activeDebts.filter((debt) => debt.name.toLowerCase().includes(searchTerm.toLowerCase())),
         sortBy
     );
-    
+
     const filteredPaidOffDebts = sortDebts(
         paidOffDebts.filter((debt) => debt.name.toLowerCase().includes(searchTerm.toLowerCase())),
         sortBy
@@ -158,7 +159,7 @@ export function DebtsSection({
         setEditApr(String(debt.apr));
         setEditDueDate(debt.dueDate);
     }
-    
+
     function cancelEditing() {
         setEditingDebtId(null);
         setEditBalance("");
@@ -174,7 +175,7 @@ export function DebtsSection({
 
         if (!balance || balance < 0 || minimumPayment < 0 || minimumPayment > balance || apr < 0 || !editDueDate) {
             return;
-        } 
+        }
 
         onUpdateDebt(id, {
             balance,
@@ -301,7 +302,7 @@ export function DebtsSection({
         );
     }
 
-    function renderPagination( sectionKey: keyof typeof debtPages, totalItems: number ) {
+    function renderPagination(sectionKey: keyof typeof debtPages, totalItems: number) {
         const pageSize = 10;
         const currentPage = debtPages[sectionKey];
         const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -337,8 +338,8 @@ export function DebtsSection({
                         ...current,
                         [sectionKey]: Math.min(totalPages, current[sectionKey] + 1),
                     }))}
-                    >
-                        Next
+                >
+                    Next
                 </button>
             </div>
         );
@@ -362,7 +363,7 @@ export function DebtsSection({
                     <span>{expandedSections[sectionKey] ? "-" : "+"}</span>
                 </button>
 
-                {expandedSections[sectionKey] && 
+                {expandedSections[sectionKey] &&
                     (debts.length === 0 ? (
                         <p className="empty-state">{emptyText}</p>
                     ) : (
@@ -416,7 +417,7 @@ export function DebtsSection({
                     value={sortBy}
                     onChange={(event) => {
                         setSortBy(event.target.value as DebtSortOption);
-                        setDebtPages({ active: 1, paidOff: 1});
+                        setDebtPages({ active: 1, paidOff: 1 });
                     }}
                 >
                     <option value="dueDate">Sort By Due Date</option>
@@ -427,168 +428,188 @@ export function DebtsSection({
                 </select>
             </div>
 
-            {onImportDebtsCsv && (
+            {/*onImportDebtsCsv && (
                 <div className="debt-import-actions">
-                <label className="secondary-button import-button">
-                    Import Debts CSV
+                    <label className="secondary-button import-button">
+                        Import Debts CSV
 
-                    <input
-                        type="file"
-                        accept=".csv"
-                        onChange={onImportDebtsCsv}
-                        hidden
-                    />
-                </label>
-            </div>
-            )}
+                        <input
+                            type="file"
+                            accept=".csv"
+                            onChange={onImportDebtsCsv}
+                            hidden
+                        />
+                    </label>
+                </div>
+            )*/}
 
-            
+
 
             <button
                 type="button"
-                className="collapsible-header"
-                onClick={() => setShowAddDebtForm((current) => !current)}
+                className="compact-action-button"
+                onClick={() => setShowAddDebtModal(true)}
             >
-                <span>{showAddDebtForm ? "- Add Debt" : "+ Add Debt"}</span>
+                + Add Debt
             </button>
 
-            {showAddDebtForm && (
-                <div className="form-grid">
-                    <div className="field">
-                        <label>Debt Name</label>
-                        <input
-                            type="text"
-                            placeholder="Debt Name"
-                            value={debtName}
-                            onChange={(event) => onDebtNameChange(event.target.value)}
-                        />
+            {showAddDebtModal && (
+                <div
+                    className="center-modal-overlay"
+                    onClick={() => setShowAddDebtModal(false)}
+                >
+                    <div
+                        className="center-modal"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <div className="center-modal-header">
+                            <div>
+                                <h2>Add Debt</h2>
+                                <p>Track a loan, credit card, or BNPL balance.</p>
+                            </div>
 
-                        {debtErrors.name && (
-                            <p className="validation-error">{debtErrors.name}</p>
-                        )}
-                    </div>
+                            <button
+                                type="button"
+                                className="text-action-button"
+                                onClick={() => setShowAddDebtModal(false)}
+                            >
+                                Close
+                            </button>
+                        </div>
 
-                    <div className="field">
-                        <label>Current Balance</label>
-                        <input
-                            type="text"
-                            inputMode="decimal"
-                            placeholder="Total Balance Owed"
-                            value={debtBalance}
-                            onChange={(event) => onDebtBalanceChange(event.target.value)}
-                        />
-
-                        {debtErrors.balance && (
-                            <p className="validation-error">{debtErrors.balance}</p>
-                        )}
-                    </div>
-
-                    <div className="field">
-                        <label>Minimum Payment</label>
-                        <input
-                            type="text"
-                            inputMode="decimal"
-                            placeholder="Minimum Payment"
-                            value={debtMinimumPayment}
-                            onChange={(event) => onDebtMinimumPaymentChange(event.target.value)}
-                        />
-
-                        {debtErrors.minimumPayment && (
-                            <p className="validation-error">{debtErrors.minimumPayment}</p>
-                        )}
-
-                        {debtWarnings.minimumPayment && (
-                            <p className="validation-error">{debtWarnings.minimumPayment}</p>
-                        )} 
-                    </div>
-
-                    <div className="field">
-                        <label>APR (%)</label>
-                        <input
-                            type="text"
-                            inputMode="decimal"
-                            placeholder="Example: 24.99"
-                            value={debtApr}
-                            onChange={(event) => onDebtAprChange(event.target.value)}
-                        />
-
-                        {debtErrors.apr && (
-                            <p className="validation-error">{debtErrors.apr}</p>
-                        )}
-                    </div>
-
-                    <div className="field">
-                        <label>Due Date</label>
-                        <input
-                            type="date"
-                            value={debtDueDate}
-                            onChange={(event) => onDebtDueDateChange(event.target.value)}
-                        />
-
-                        {debtErrors.dueDate && (
-                            <p className="validation-error">{debtErrors.dueDate}</p>
-                        )}
-                    </div>
-
-                    <div className="field">
-                        <label>Type</label>
-                        <select
-                            value={debtType}
-                            onChange={(event) => onDebtTypeChange(event.target.value as "debt" | "bnpl")}
-                        >
-                            <option value="debt">Debt</option>
-                            <option value="bnpl">BNPL</option>
-                        </select>
-                    </div>
-
-                    {debtType === "bnpl" && (
-                        <>
+                        <div className="form-grid">
                             <div className="field">
-                                <label>Remaining Payments</label>
+                                <label>Debt Name</label>
                                 <input
                                     type="text"
-                                    inputMode="numeric"
-                                    placeholder="Example: 4"
-                                    value={debtRemainingPayments}
-                                    onChange={(event) => onDebtRemainingPaymentsChange(event.target.value)}
+                                    placeholder="Debt Name"
+                                    value={debtName}
+                                    onChange={(event) => onDebtNameChange(event.target.value)}
                                 />
+
+                                {debtErrors.name && (
+                                    <p className="validation-error">{debtErrors.name}</p>
+                                )}
                             </div>
 
                             <div className="field">
-                                <label>Scheduled Payment Amount</label>
+                                <label>Current Balance</label>
                                 <input
                                     type="text"
                                     inputMode="decimal"
-                                    placeholder="Example: 125"
-                                    value={debtScheduledPaymentAmount}
-                                    onChange={(event) => onDebtScheduledPaymentAmountChange(event.target.value)}
+                                    placeholder="Total Balance Owed"
+                                    value={debtBalance}
+                                    onChange={(event) => onDebtBalanceChange(event.target.value)}
                                 />
+
+                                {debtErrors.balance && (
+                                    <p className="validation-error">{debtErrors.balance}</p>
+                                )}
                             </div>
-                        </>
-                    )}
 
-                    <div className="field">
-                        <label>Recurrence</label>
-                        <select
-                            value={debtRecurrence}
-                            onChange={(event) => onDebtRecurrenceChange(event.target.value as Recurrence)}
-                        >
-                            <option value="monthly">Monthly</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="biweekly">Every 2 Weeks</option>
-                            <option value="per-paycheck">Per Paycheck</option>
-                            <option value="one-time">One Time</option>
-                        </select>
+                            <div className="field">
+                                <label>Minimum Payment</label>
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    placeholder="Minimum Payment"
+                                    value={debtMinimumPayment}
+                                    onChange={(event) => onDebtMinimumPaymentChange(event.target.value)}
+                                />
+
+                                {debtErrors.minimumPayment && (
+                                    <p className="validation-error">{debtErrors.minimumPayment}</p>
+                                )}
+
+                                {debtWarnings.minimumPayment && (
+                                    <p className="validation-error">{debtWarnings.minimumPayment}</p>
+                                )}
+                            </div>
+
+                            <div className="field">
+                                <label>APR (%)</label>
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    placeholder="Example: 24.99"
+                                    value={debtApr}
+                                    onChange={(event) => onDebtAprChange(event.target.value)}
+                                />
+
+                                {debtErrors.apr && (
+                                    <p className="validation-error">{debtErrors.apr}</p>
+                                )}
+                            </div>
+
+                            <div className="field">
+                                <label>Due Date</label>
+                                <input
+                                    type="date"
+                                    value={debtDueDate}
+                                    onChange={(event) => onDebtDueDateChange(event.target.value)}
+                                />
+
+                                {debtErrors.dueDate && (
+                                    <p className="validation-error">{debtErrors.dueDate}</p>
+                                )}
+                            </div>
+
+                            <div className="field">
+                                <label>Type</label>
+                                <select
+                                    value={debtType}
+                                    onChange={(event) => onDebtTypeChange(event.target.value as "debt" | "bnpl")}
+                                >
+                                    <option value="debt">Debt</option>
+                                    <option value="bnpl">BNPL</option>
+                                </select>
+                            </div>
+
+                            {debtType === "bnpl" && (
+                                <>
+                                    <div className="field">
+                                        <label>Remaining Payments</label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="Example: 4"
+                                            value={debtRemainingPayments}
+                                            onChange={(event) => onDebtRemainingPaymentsChange(event.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="field">
+                                        <label>Scheduled Payment Amount</label>
+                                        <input
+                                            type="text"
+                                            inputMode="decimal"
+                                            placeholder="Example: 125"
+                                            value={debtScheduledPaymentAmount}
+                                            onChange={(event) => onDebtScheduledPaymentAmountChange(event.target.value)}
+                                        />
+                                    </div>
+                                </>
+                            )}
+
+                            <div className="field">
+                                <label>Recurrence</label>
+                                <select
+                                    value={debtRecurrence}
+                                    onChange={(event) => onDebtRecurrenceChange(event.target.value as Recurrence)}
+                                >
+                                    <option value="monthly">Monthly</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="biweekly">Every 2 Weeks</option>
+                                    <option value="per-paycheck">Per Paycheck</option>
+                                    <option value="one-time">One Time</option>
+                                </select>
+                            </div>
+
+
+                        </div>
                     </div>
-
-                    <button
-                        type="button"
-                        className="add-button"
-                        onClick={onAddDebt}
-                    >
-                        Add Debt
-                    </button>
                 </div>
+
             )}
 
             {renderDebtGroup(
