@@ -990,7 +990,7 @@ export default function Home() {
                             className={
                                 billsView === "debts"
                                     ? "mobile-section-switcher-button active"
-                                    : "mobile-section-swticher-button"
+                                    : "mobile-section-switcher-button"
                             }
                             onClick={() => setBillsView("debts")}
                         >
