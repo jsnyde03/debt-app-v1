@@ -3,38 +3,38 @@ import type { LivingExpense } from "../types/livingExpense";
 export const livingExpensePresets: Omit<LivingExpense, "id">[] = [
     {
         name: "Groceries",
-        amount: 256,
-        enabled: true,
+        amount: 0,
+        enabled: false,
     },
     {
         name: "Gas / Transportation",
-        amount: 120,
-        enabled: true,
+        amount: 0,
+        enabled: false,
     },
     {
         name: "Dining / Takeout",
-        amount: 80,
+        amount: 0,
         enabled: false,
     },
     {
         name: "Household",
-        amount: 60,
+        amount: 0,
         enabled: false,
     },
     {
         name: "Pets",
-        amount: 40,
+        amount: ,
         enabled: false,
     },
     {
         name: "Childcare",
-        amount: 200,
+        amount: 0,
         enabled: false,
 
     },
     {
         name: "Misc Spending",
-        amount: 100,
+        amount: 0,
         enabled: false,
     },
 ];

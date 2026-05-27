@@ -185,7 +185,6 @@ export default function Home() {
         null
     );
 
-    const [showBillsMenu, setShowBillsMenu] = useState(false);
     const [showPlanSettings, setShowPlanSettings] = useState(
         () => !hasConfiguredPaycheck
     );
@@ -970,6 +969,36 @@ export default function Home() {
                     />
                 )}
 
+                {activeTab === "bills" && (
+                    <div className="mobile-section-switcher">
+                        <button
+                            type="button"
+                            className={
+                                billsView === "expenses"
+                                    ? "mobile-section-switcher-button active"
+                                    : "mobile-section-switcher-button"
+                            }
+                            onClick={() => setBillsView("expenses")}
+                        >
+                            <span>💴</span>
+                            Expenses
+                        </button>
+
+                        <button
+                            type="button"
+                            className={
+                                billsView === "debts"
+                                    ? "mobile-section-switcher-button active"
+                                    : "mobile-section-swticher-button"
+                            }
+                            onClick={() => setBillsView("debts")}
+                        >
+                            <span>💳</span>
+                            Debts
+                        </button>
+                    </div>
+                )}
+
                 {activeTab === "bills" && billsView === "expenses" && (
                     <>
                         <RequiredExpensesSection
@@ -1074,7 +1103,10 @@ export default function Home() {
                             ? "bottom-nav-item active"
                             : "bottom-nav-item"
                     }
-                    onClick={() => setShowBillsMenu((current) => !current)}
+                    onClick={() => {
+                        setActiveTab("bills");
+                        setBillsView((current) => current ?? "expenses");
+                    }}
                 >
                     <span>💳</span>
                     <small>Bills</small>
@@ -1106,44 +1138,6 @@ export default function Home() {
                     <small>Goals</small>
                 </button>
             </nav>
-
-            {showBillsMenu && (
-                <div className="bottom-sheet-menu">
-                    <button
-                        type="button"
-                        className={
-                            billsView === "expenses"
-                                ? "bottom-sheet-option active"
-                                : "bottom-sheet-option"
-                        }
-                        onClick={() => {
-                            setActiveTab("bills");
-                            setBillsView("expenses");
-                            setShowBillsMenu(false);
-                        }}
-                    >
-                        <span>💷</span>
-                        <small>Expenses</small>
-                    </button>
-
-                    <button
-                        type="button"
-                        className={
-                            billsView === "debts"
-                                ? "bottom-sheet-option active"
-                                : "bottom-sheet-option"
-                        }
-                        onClick={() => {
-                            setActiveTab("bills");
-                            setBillsView("debts");
-                            setShowBillsMenu(false);
-                        }}
-                    >
-                        <span>💳</span>
-                        <small>Debts</small>
-                    </button>
-                </div>
-            )}
 
             {showPlanSettings && (
                 <div
