@@ -922,10 +922,11 @@ export default function Home() {
 
                     <button
                         type="button"
-                        className="secondary-button"
+                        className="theme-toggle"
+                        aria-label={darkMode ? "Switch To Light Mode" : "Switch To Dark Mode"}
                         onClick={() => setDarkMode((current) => !current)}
                     >
-                        {darkMode ? "Light Mode" : "Dark Mode"}
+                        {darkMode ? "☀" : "🌙"}
                     </button>
                 </section>
 

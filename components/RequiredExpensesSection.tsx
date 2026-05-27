@@ -56,6 +56,7 @@ export function RequiredExpensesSection({
     const [searchTerm, setSearchTerm] = useState("");
     const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
     const [expensePage, setExpensePage] = useState(1);
+    const [showExpensePresets, setShowExpensePresets] = useState(false);
     const filteredExpenses = expenses.filter((expense) => expense.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const pageSize = 10;
     const totalPages = Math.max(1, Math.ceil(filteredExpenses.length / pageSize));
@@ -219,25 +220,37 @@ export function RequiredExpensesSection({
 
                         <div className="form-grid">
                             <div className="field">
-                                <label>Common Bills</label>
+                                <button
+                                    type="button"
+                                    className="secondary-button preset-toggle-button"
+                                    onClick={() => setShowExpensePresets((current) => !current)}
+                                >
+                                    {showExpensePresets ? "Hide Common Expenses" : "Choose A Common Expense"}
+                                </button>
 
-                                <div className="preset-grid">
-                                    {requiredExpensePresets.map((preset) => (
-                                        <button
-                                            key={preset.name}
-                                            type="button"
-                                            className="preset-pill"
-                                            onClick={() => {
-                                                onExpenseNameChange(preset.name);
-                                                onExpenseTypeChange(preset.expenseType);
-                                                onExpenseRecurrenceChange(preset.recurrence);
-                                            }}
-                                        >
-                                            {preset.name}
-                                        </button>
+                                {showExpensePresets && (
+                                    <div className="preset-grid compact-preset-grid">
+                                        {requiredExpensePresets.map((preset) => (
+                                            <button
+                                                key={preset.name}
+                                                type="button"
+                                                className="preset-pill compact-preset-pill"
+                                                onClick={() => {
+                                                    onExpenseNameChange(preset.name);
+                                                    onExpenseTypeChange(preset.expenseType);
+                                                    onExpenseRecurrenceChange(preset.recurrence);
+                                                    setShowExpensePresets(false);
+                                                }}
+                                            >
+                                                {preset.name}
+                                            </button>
 
-                                    ))}
-                                </div>
+                                        ))}
+                                    </div>
+
+                                )}
+
+
                             </div>
 
                             <div className="field">
@@ -347,7 +360,7 @@ export function RequiredExpensesSection({
             {
                 editingExpense && (
                     <div
-                        className="center-modal-overly"
+                        className="center-modal-overlay"
                         onClick={cancelEditing}
                     >
                         <div

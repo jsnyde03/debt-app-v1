@@ -107,6 +107,7 @@
 .hero {
 	margin-bottom: 10px;
 	padding: 0;
+	position: relative;
 }
 
 .hero h1 {
@@ -1469,6 +1470,36 @@ button:active {
 	display: flex;
 	align-items: center;
 	gap: 10px;
+}
+
+.preset-toggle-button {
+	width: 100%;
+	min-height: 46px;
+	font-weight: 800;
+}
+
+.compact-preset-grid {
+	margin-top: 8px;
+	gap: 6px;
+}
+
+.compact-preset-pill {
+	padding: 7px 10px;
+	font-size: 0.78rem;
+}
+
+.theme-toggle {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	border-radius: var(--radius-pill);
+	background: var(--surface-muted);
+	color: var(--text-primary);
+	border: 1px solid var(--border-color);
+	font-size: 1.1rem;
 }
 
 @keyframes centerModalIn {
