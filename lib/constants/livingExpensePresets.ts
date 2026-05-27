@@ -23,7 +23,7 @@ export const livingExpensePresets: Omit<LivingExpense, "id">[] = [
     },
     {
         name: "Pets",
-        amount: ,
+        amount: 0,
         enabled: false,
     },
     {
