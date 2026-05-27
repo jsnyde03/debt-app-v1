@@ -1344,35 +1344,6 @@ button:active {
 	border: 1px solid var(--border-color);
 }
 
-.mobile-section-switcher-button {
-	min-height: 46px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	gap: 8px;
-	border-radius: var(--radius-pill);
-	background: transparent;
-	color: var(--text-secondary);
-	font-size: 0.9rem;
-	font-weight: 800;
-}
-
-.mobile-section-switcher-button:hover {
-	background: transparent;
-}
-
-.mobile-section-switcher-button.active {
-	background: var(--accent-color);
-	color: #ffffff;
-	box-shadow: var(--shadow-soft);
-}
-
-.mobile-section-switcher-button:not(.active) {
-	background: transparent;
-	color: var(--text-secondary);
-	box-shadow: none;
-}
-
 .compact-action-button {
 	min-height: 40px;
 	padding: 0 14px;
@@ -1546,14 +1517,35 @@ button:active {
 	text-align: center;
 }
 
-.mobile-section-switcher button.mobile-section-switcher-button {
+.mobile-section-switcher {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 6px;
+	width: 100%;
+	max-width: 420px;
+	margin: 4px auto 14px;
+	padding: 6px;
+	border-radius: var(--radius-pill);
+	background: var(--surface-muted);
+	border: 1px solid var(--border-color);
+}
+
+.mobile-section-switcher > button.mobile-section-switcher-button {
+	min-height: 46px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	border-radius: var(--radius-pill);
 	background: transparent !important;
 	color: var(--text-secondary) !important;
 	box-shadow: none !important;
 	border: none !important;
+	font-size: 0.9rem;
+	font-weight: 800;
 }
 
-.mobile-section-switcher button.mobile-section-switcher-button.active {
+.mobile-section-switcher > button.mobile-section-switcher-button.active {
 	background: var(--accent-color) !important;
 	color: #ffffff !important;
 	box-shadow: var(--shadow-soft) !important;
