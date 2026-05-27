@@ -95,100 +95,102 @@ export function RequiredExpensesSection({
     }
 
     return (
-        <section className="card">
-            <div className="section-heading-row">
-                <div>
-                    <h2>Required Expenses</h2>
+        <>
+            <section className="card">
+                <div className="section-heading-row">
+                    <div>
+                        <h2>Required Expenses</h2>
 
-                    <p className="section-collapse-subtitle">
-                        Bills and required payments due each cycle.
+                        <p className="section-collapse-subtitle">
+                            Bills and required payments due each cycle.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="add-button compact-add-button"
+                        onClick={() => setShowAddExpenseModal(true)}
+                    >
+                        + Add
+                    </button>
+                </div>
+
+                <div className="expense-controls">
+                    <input
+                        type="text"
+                        placeholder="Search expenses..."
+                        value={searchTerm}
+                        onChange={(event) => {
+                            setSearchTerm(event.target.value);
+                            setExpensePage(1);
+                        }}
+                    />
+                </div>
+
+                {filteredExpenses.length === 0 ? (
+                    <p className="empty-state">
+                        No required expenses added yet.
                     </p>
-                </div>
+                ) : (
+                    visibleExpenses.map((expense) => (
+                        <button
+                            key={expense.id}
+                            type="button"
+                            className="saved-item saved-item-button"
+                            onClick={() => startEditing(expense)}
+                        >
+                            <div className="saved-item-left">
+                                <div className="saved-title">
+                                    {expense.name}
+                                    {expense.isPaidThisCycle ? "✔" : ""}
+                                </div>
 
-                <button
-                    type="button"
-                    className="add-button compact-add-button"
-                    onClick={() => setShowAddExpenseModal(true)}
-                >
-                    + Add
-                </button>
-            </div>
-
-            <div className="expense-controls">
-                <input
-                    type="text"
-                    placeholder="Search expenses..."
-                    value={searchTerm}
-                    onChange={(event) => {
-                        setSearchTerm(event.target.value);
-                        setExpensePage(1);
-                    }}
-                />
-            </div>
-
-            {filteredExpenses.length === 0 ? (
-                <p className="empty-state">
-                    No required expenses added yet.
-                </p>
-            ) : (
-                visibleExpenses.map((expense) => (
-                    <button
-                        key={expense.id}
-                        type="button"
-                        className="saved-item saved-item-button"
-                        onClick={() => startEditing(expense)}
-                    >
-                        <div className="saved-item-left">
-                            <div className="saved-title">
-                               {expense.name}
-                               {expense.isPaidThisCycle ? "✔" : ""}
+                                <div className="saved-meta">
+                                    Due {expense.dueDate} ·{" "}
+                                    {formatRecurrence(expense.recurrence)} ·{" "}
+                                    {(expense.expenseType ?? "fixed") === "fixed"
+                                        ? "Fixed"
+                                        : "Variable"}
+                                </div>
                             </div>
 
-                            <div className="saved-meta">
-                                Due {expense.dueDate} ·{" "}
-                                {formatRecurrence(expense.recurrence)} ·{" "}
-                                {(expense.expenseType ?? "fixed") === "fixed"
-                                    ? "Fixed"
-                                    : "Variable"}
+                            <div className="saved-item-right">
+                                <strong className="saved-amount">
+                                    {formatCurrency(expense.amount)}
+                                </strong>
+
+                                <span className="row-chevron">›</span>
                             </div>
-                        </div>
+                        </button>
+                    ))
+                )}
 
-                        <div className="saved-item-right">
-                            <strong className="saved-amount">
-                                {formatCurrency(expense.amount)}
-                            </strong>
+                {filteredExpenses.length > pageSize && (
+                    <div className="pagination-actions">
+                        <button
+                            type="button"
+                            className="secondary-button"
+                            disabled={expensePage === 1}
+                            onClick={() => setExpensePage((current) => Math.max(1, current - 1))}
+                        >
+                            Previous
+                        </button>
 
-                            <span className="row-chevron">›</span>
-                        </div>
-                    </button>
-                ))
-            )}
+                        <span className="pagination-status">
+                            Page {expensePage} of {totalPages}
+                        </span>
 
-            {filteredExpenses.length > pageSize && (
-                <div className="pagination-actions">
-                    <button
-                        type="button"
-                        className="secondary-button"
-                        disabled={expensePage === 1}
-                        onClick={() => setExpensePage((current) => Math.max(1, current - 1))}
-                    >
-                        Previous
-                    </button>
-
-                    <span className="pagination-status">
-                        Page {expensePage} of {totalPages}
-                    </span>
-
-                    <button
-                        type="button"
-                        className="secondary-button"
-                        disabled={expensePage === totalPages}
-                        onClick={() => setExpensePage((current) => Math.min(totalPages, current + 1))}
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
+                        <button
+                            type="button"
+                            className="secondary-button"
+                            disabled={expensePage === totalPages}
+                            onClick={() => setExpensePage((current) => Math.min(totalPages, current + 1))}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
+            </section>
 
             {showAddExpenseModal && (
                 <div
@@ -339,91 +341,95 @@ export function RequiredExpensesSection({
                         </div>
                     </div>
                 </div>
-            )}
+            )
+            }
 
-            {editingExpense && (
-                <div
-                    className="center-modal-overly"
-                    onClick={cancelEditing}
-                >
+            {
+                editingExpense && (
                     <div
-                        className="center-modal"
-                        onClick={(event) => event.stopPropagation()}
+                        className="center-modal-overly"
+                        onClick={cancelEditing}
                     >
-                        <div className="center-modal-header">
-                            <div>
-                                <h2>Expense Details</h2>
+                        <div
+                            className="center-modal"
+                            onClick={(event) => event.stopPropagation()}
+                        >
+                            <div className="center-modal-header">
+                                <div>
+                                    <h2>Expense Details</h2>
 
-                                <p>{editingExpense.name}</p>
-                            </div>
-
-                            <button
-                                type="button"
-                                className="text-action-button"
-                                onClick={cancelEditing}
-                            >
-                                Close
-                            </button>
-                        </div>
-
-                        <div className="form-grid">
-                            <div className="field">
-                                <label> Amount Due</label>
-
-                                <input
-                                    type="number"
-                                    value={editAmount}
-                                    onChange={(event) => setEditAmount(event.target.value)}
-                                />
-                            </div>
-
-                            <div className="field">
-                                <label>Due Date</label>
-
-                                <input
-                                    type="date"
-                                    value={editDueDate}
-                                    onChange={(event) => setEditDueDate(event.target.value)}
-                                />
-                            </div>
-
-                            <div className="modal-action-row">
-                                <button
-                                    type="button"
-                                    className="text-action-button danger-action"
-                                    onClick={() => {
-                                        onRemoveExpense(editingExpense.id);
-
-                                        cancelEditing();
-                                    }}
-                                >
-                                    Remove
-                                </button>
-
-                                <div className="modal-action-row-right">
-                                    <button
-                                        type="button"
-                                        className="secondary-button"
-                                        onClick={cancelEditing}
-                                    >
-                                        Cancel
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        className="add-button"
-                                        onClick={() => saveEditing(editingExpense.id)}
-                                    >
-                                        Save
-                                    </button>
+                                    <p>{editingExpense.name}</p>
                                 </div>
 
+                                <button
+                                    type="button"
+                                    className="text-action-button"
+                                    onClick={cancelEditing}
+                                >
+                                    Close
+                                </button>
+                            </div>
+
+                            <div className="form-grid">
+                                <div className="field">
+                                    <label> Amount Due</label>
+
+                                    <input
+                                        type="number"
+                                        value={editAmount}
+                                        onChange={(event) => setEditAmount(event.target.value)}
+                                    />
+                                </div>
+
+                                <div className="field">
+                                    <label>Due Date</label>
+
+                                    <input
+                                        type="date"
+                                        value={editDueDate}
+                                        onChange={(event) => setEditDueDate(event.target.value)}
+                                    />
+                                </div>
+
+                                <div className="modal-action-row">
+                                    <button
+                                        type="button"
+                                        className="text-action-button danger-action"
+                                        onClick={() => {
+                                            onRemoveExpense(editingExpense.id);
+
+                                            cancelEditing();
+                                        }}
+                                    >
+                                        Remove
+                                    </button>
+
+                                    <div className="modal-action-row-right">
+                                        <button
+                                            type="button"
+                                            className="secondary-button"
+                                            onClick={cancelEditing}
+                                        >
+                                            Cancel
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className="add-button"
+                                            onClick={() => saveEditing(editingExpense.id)}
+                                        >
+                                            Save
+                                        </button>
+                                    </div>
+
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </section>
+                )
+            }
+        </>
+
     );
 
 }
