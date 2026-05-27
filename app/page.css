@@ -1397,21 +1397,21 @@ button:active {
 .center-modal-overlay {
 	position: fixed;
 	inset: 0;
-	z-index: 9999;
+	z-index: 99999;
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	justify-content: center;
 	padding:
-		calc(env(safe-area-inset-top) + 28px)
+		calc(env(safe-area-inset-top) + 72px)
 		18px
 		calc(env(safe-area-inset-bottom) + 28px);
-	background: rgba(2, 6, 23, 0.72);
-	backdrop-filter: blur(18px);
+	background: rgba(2, 6, 23, 0.86);
+	backdrop-filter: blur(22px);
 }
 
 .center-modal {
 	width: min(520px, 100%);
-	max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 72px);
+	max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 116px);
 	overflow-y: auto;
 	-webkit-overflow-scrolling: touch;
 	padding: 18px;
@@ -1419,8 +1419,10 @@ button:active {
 	background: var(--bg-elevated);
 	color: var(--text-primary);
 	border: 1px solid var(--border-color);
-	box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
-	animation: centerModalIn 160ms ease;
+	box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+
+.center-modal {
 	scrollbar-width: none;
 }
 
