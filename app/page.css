@@ -1397,25 +1397,21 @@ button:active {
 .center-modal-overlay {
 	position: fixed;
 	inset: 0;
-	z-index: 130;
+	z-index: 9999;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	padding:
-		calc(env(safe-area-inset-top) + 18px)
-		16px
-		calc(env(safe-area-inset-bottom) + 18px);
-	background: rgba(2, 6, 23, 0.58);
-	backdrop-filter: blur(16px);
-}
-
-.center-modal-overlay .app-background-orb {
-	opacity: 0.18;
+		calc(env(safe-area-inset-top) + 28px)
+		18px
+		calc(env(safe-area-inset-bottom) + 28px);
+	background: rgba(2, 6, 23, 0.72);
+	backdrop-filter: blur(18px);
 }
 
 .center-modal {
 	width: min(520px, 100%);
-	max-height: min(760px, 86dvh);
+	max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 72px);
 	overflow-y: auto;
 	-webkit-overflow-scrolling: touch;
 	padding: 18px;
@@ -1423,7 +1419,7 @@ button:active {
 	background: var(--bg-elevated);
 	color: var(--text-primary);
 	border: 1px solid var(--border-color);
-	box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+	box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
 	animation: centerModalIn 160ms ease;
 	scrollbar-width: none;
 }
