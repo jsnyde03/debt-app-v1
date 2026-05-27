@@ -1545,6 +1545,19 @@ button:active {
 	min-height: 48px;
 	text-align: center;
 }
+
+.mobile-section-switcher button.mobile-section-switcher-button {
+	background: transparent !important;
+	color: var(--text-secondary) !important;
+	box-shadow: none !important;
+	border: none !important;
+}
+
+.mobile-section-switcher button.mobile-section-switcher-button.active {
+	background: var(--accent-color) !important;
+	color: #ffffff !important;
+	box-shadow: var(--shadow-soft) !important;
+}
 @keyframes centerModalIn {
 	from {
 		opacity: 0;
