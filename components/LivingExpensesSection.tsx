@@ -122,14 +122,6 @@ export function LivingExpensesSection({ livingExpenses, onLivingExpensesChange }
                                 </div>          
                             ))}
                         </div>
-
-                        <button
-                            type="button"
-                            className="add-button modal-primary-action"
-                            onClick={() => setShowManageModal(false)}
-                        >
-                            Done
-                        </button>
                     </div>
                 </div>
             )}

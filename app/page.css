@@ -1362,9 +1362,15 @@ button:active {
 }
 
 .mobile-section-switcher-button.active {
-	background: var(--button-primary-bg);
-	color: var(--button-primary-text);
+	background: var(--accent-color);
+	color: #ffffff;
 	box-shadow: var(--shadow-soft);
+}
+
+.mobile-section-switcher-button:not(.active) {
+	background: transparent;
+	color: var(--text-secondary);
+	box-shadow: none;
 }
 
 .compact-action-button {
