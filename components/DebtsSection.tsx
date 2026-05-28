@@ -466,6 +466,7 @@ export function DebtsSection({
                         >
                             + Add First Debt
                         </button>
+                    </div>
                 )}
 
                 {allDebts.length > 0 && (
