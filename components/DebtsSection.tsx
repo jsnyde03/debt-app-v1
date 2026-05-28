@@ -111,8 +111,8 @@ export function DebtsSection({
     const [showAddDebtModal, setShowAddDebtModal] = useState(false);
 
     const [expandedSections, setExpandedSections] = useState({
-        active: 1,
-        paidOff: 1,
+        active: false,
+        paidOff: false,
     });
 
     const [debtPages, setDebtPages] = useState({
@@ -214,7 +214,7 @@ export function DebtsSection({
                         <div className="field">
                             <label>APR (%)</label>
                             <input
-                                type="label"
+                                type="text"
                                 inputMode="decimal"
                                 value={editApr}
                                 onChange={(event) => setEditApr(event.target.value)}
@@ -254,8 +254,8 @@ export function DebtsSection({
                             </div>
 
                             <div className="saved-meta">
-                                {formatCurrency(debt.balance)}
-                                {formatCurrency(debt.minimumPayment)}
+                                {formatCurrency(debt.balance)} balance ·(" ")
+                                {formatCurrency(debt.minimumPayment)} min ·{" "}
                                 {debt.apr}% APR · Due {debt.dueDate} ·{" "}
                                 {formatRecurrence(debt.recurrence)}
                                 {debt.type === "bnpl" &&
@@ -456,9 +456,16 @@ export function DebtsSection({
                 </div>
 
                 {allDebts.length == 0 && (
-                    <p className="empty-state">
-                        No Debts Yet.  Add Your First Debt To Start Tracking Payoff Progress.
-                    </p>
+                    <div className="empty-debt-state">
+                        <strong>No Debts Added Yet.</strong>
+                        <p>Add Loans, Credit Cards, Or BNPL Balances To Start Tracking Payoff Progress.</p>
+                        <button
+                            type="button"
+                            className="add-button compact-add-button"
+                            onClick={() => setShowAddDebtModal(true)}
+                        >
+                            + Add First Debt
+                        </button>
                 )}
 
                 {allDebts.length > 0 && (

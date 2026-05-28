@@ -227,6 +227,23 @@ button:active {
 	font-size: 14px;
 }
 
+.empty-debt-state {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 18px;
+	border-radius: var(--radius-lg);
+	background: var(--surface-muted);
+	border: 1px solid var(--border-color);
+	margin-top: 12px;
+}
+
+.empty-debt-state p {
+	margin: 0;
+	color: var(--text-secondary);
+	line-height: 1.35;
+}
+
 .status-warning {
 	color: var(--warning-color);
 	font-weight: 700;
@@ -1563,12 +1580,12 @@ button:active {
 .debt-add-modal:after {
 	content: "";
 	display: block;
-	height: calc(env(safe-area-inset-bottom) + 110px)
+	height: calc(env(safe-area-inset-bottom) + 110px);
 }
 
 .compact-debt-summary-grid .summary-card {
-	min-height: 82px;
-	padding: 14px;
+	min-height: 64px;
+	padding: 12px;
 }
 
 @keyframes centerModalIn {
