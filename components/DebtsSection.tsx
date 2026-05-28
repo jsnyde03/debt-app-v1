@@ -407,26 +407,12 @@ export function DebtsSection({
                     </button>
                 </div>
 
-                <div className="debt-summary-grid compact-debt-summary-grid">
-                    <div className="summary-card">
-                        <span>Total Debt</span>
-                        <strong>{formatCurrency(totalDebt)}</strong>
-                    </div>
-
-                    <div className="summary-card">
-                        <span>Total Minimums</span>
-                        <strong>{formatCurrency(totalMinimums)}</strong>
-                    </div>
-
-                    <div className="summary-card">
-                        <span>Active Debts</span>
-                        <strong>{activeDebts.length}</strong>
-                    </div>
-
-                    <div className="summary-card">
-                        <span>Highest APR</span>
-                        <strong>{highestApr}</strong>
-                    </div>
+                <div className="debt-summary-strip">
+                    <strong>{formatCurrency(totalDebt)} debt</strong>
+                    <span>·</span>
+                    <strong>{formatCurrency(totalMinimums)} minimums</strong>
+                    <span>·</span>
+                    <strong>{activeDebts.length} active</strong>
                 </div>
 
                 <div className="debt-controls">
