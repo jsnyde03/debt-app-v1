@@ -189,18 +189,18 @@ export function DebtsSection({
 
         if (isEditing) {
             return (
-                <div key={debt.id} className="saved-item debt-edit-card">
+                <div key={debt.id} className="saved-item debt-edit-card compact-debt-edit-card">
                     <div className="saved-item-left">
                         <div className="saved-title">{debt.name}</div>
 
                         <div className="saved-meta">
-                            Edit balance, minimum payment, APR, or due date.
+                            Quick edit balance and minimum payment.
                         </div>
                     </div>
 
-                    <div className="debt-edit-grid">
+                    <div className="compact-debt-edit-grid">
                         <div className="field">
-                            <label>Current Balance</label>
+                            <label>Balance</label>
                             <input
                                 type="text"
                                 inputMode="decimal"
@@ -210,7 +210,7 @@ export function DebtsSection({
                         </div>
 
                         <div className="field">
-                            <label>Minimum Payment</label>
+                            <label>Minimum</label>
                             <input
                                 type="text"
                                 inputMode="decimal"
@@ -220,26 +220,32 @@ export function DebtsSection({
                                 }
                             />
                         </div>
-
-                        <div className="field">
-                            <label>APR (%)</label>
-                            <input
-                                type="text"
-                                inputMode="decimal"
-                                value={editApr}
-                                onChange={(event) => setEditApr(event.target.value)}
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label>Due Date</label>
-                            <input
-                                type="date"
-                                value={editDueDate}
-                                onChange={(event) => setEditDueDate(event.target.value)}
-                            />
-                        </div>
                     </div>
+
+                    <details className="debt-advanced-edit">
+                        <summary>Advanced</summary>
+
+                        <div className="compact-debt-edit-grid advanced-grid">
+                            <div className="field">
+                                <label>APR (%)</label>
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={editApr}
+                                    onChange={(event) => setEditApr(event.target.value)}
+                                />
+                            </div>
+
+                            <div className="field">
+                                <label>Due Date</label>
+                                <input
+                                    type="date"
+                                    value={editDueDate}
+                                    onChange={(event) => setEditDueDate(event.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </details>
 
                     <div className="debt-edit-actions">
                         <button
