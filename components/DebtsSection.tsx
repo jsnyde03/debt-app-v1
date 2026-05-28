@@ -8,7 +8,7 @@ type DebtSortOption = "dueDate" | "balance" | "apr" | "minimumPayment" | "name";
 type DebtSectionProps = {
     activeDebts: Debt[];
     paidOffDebts: Debt[];
-    
+
     debtName: string;
     debtBalance: string;
     debtMinimumPayment: string;
@@ -67,7 +67,7 @@ function sortDebts(debts: Debt[], sortBy: DebtSortOption) {
                 return (
                     new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
                 );
-            
+
         }
     });
 }
@@ -187,49 +187,53 @@ export function DebtsSection({
     function renderDebt(debt: Debt) {
         const isEditing = editingDebtId === debt.id;
 
-        return (
-            <div key={debt.id} className="saved-item debt-list-item">
-                {isEditing ? (
-                    <>
-                        <div className="field">
-                            <label>Current Balance</label>
-                            <input
-                                type="text"
-                                inputMode="decimal"
-                                value={editBalance}
-                                onChange={(event) => setEditBalance(event.target.value)}
-                            />
-                        </div>
+        if (isEditing) {
+            return (
+                <div key={debt.id} className="saved-item debt-list-item editing">
+                    <div className="field">
+                        <label>Current Balance</label>
 
-                        <div className="field">
-                            <label>Minimum Payment</label>
-                            <input
-                                type="text"
-                                inputMode="decimal"
-                                value={editMinimumPayment}
-                                onChange={(event) => setEditMinimumPayment(event.target.value)}
-                            />
-                        </div>
+                        <input
+                            type="text"
+                            inputMode="decimal"
+                            value={editBalance}
+                            onChange={(event) => setEditBalance(event.target.value)}
+                        />
+                    </div>
 
-                        <div className="field">
-                            <label>APR (%)</label>
-                            <input
-                                type="text"
-                                inputMode="decimal"
-                                value={editApr}
-                                onChange={(event) => setEditApr(event.target.value)}
-                            />
-                        </div>
+                    <div className="field">
+                        <label>Minimum Payment</label>
 
-                        <div className="field">
-                            <label>Due Date</label>
-                            <input
-                                type="date"
-                                value={editDueDate}
-                                onChange={(event) => setEditDueDate(event.target.value)}
-                            />
-                        </div>
+                        <input
+                            type="text"
+                            inputMode="decimal"
+                            value={editMinimumPayment}
+                            onChange={(event) => setEditMinimumPayment(event.target.value)}
+                        />
+                    </div>
 
+                    <div className="field">
+                        <label>APR (%)</label>
+
+                        <input
+                            type="text"
+                            inputMode="decimal"
+                            value={editApr}
+                            onChange={(event) => setEditApr(event.target.value)}
+                        />
+                    </div>
+
+                    <div className="field">
+                        <label>Due Date</label>
+
+                        <input
+                            type="date"
+                            value={editDueDate}
+                            onChange={(event) => setEditDueDate(event.target.value)}
+                        />
+                    </div>
+
+                    <div className="saved-actions">
                         <button
                             type="button"
                             className="secondary-button"
@@ -245,61 +249,48 @@ export function DebtsSection({
                         >
                             Cancel
                         </button>
-                    </>
-                ) : (
-                    <>
-                        <div className="saved-item-left">
-                            <div className="saved-title">
-                                {debt.name} {debt.balance <= 0 ? "✔" : ""}
-                            </div>
 
-                            <div className="saved-meta">
-                                {formatCurrency(debt.balance)} balance ·{" "}
-                                {formatCurrency(debt.minimumPayment)} min ·{" "}
-                                {debt.apr}% APR · Due {debt.dueDate} ·{" "}
-                                {formatRecurrence(debt.recurrence)}
-                                {debt.type === "bnpl" &&
-                                debt.remainingPayments ? (
-                                    <> · {debt.remainingPayments} payments left</>
-                                ) : null}
-                                {debt.type === "bnpl" &&
-                                debt.scheduledPaymentAmount ? (
-                                    <>
-                                        {" "}
-                                        ·{" "}
-                                        {formatCurrency(debt.scheduledPaymentAmount)}
-                                        /payment
-                                    </>
-                                ) : null}
-                            </div>
-                        </div>
+                        <button
+                            type="button"
+                            className="text-action-button danger-action"
+                            onClick={() => onRemoveDebt(debt.id)}
+                        >
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            );
+        }
 
-                        <div className="saved-item-right">
-                            <strong className="saved-amount">
-                                {formatCurrency(debt.minimumPayment)}
-                            </strong>
+        return (
+            <button
+                key={debt.id}
+                type="button"
+                className="saved-item saved-item-button debt-list-item"
+                onClick={() => startEditing(debt)}
+            >
+                <div className="saved-item-left">
+                    <div className="saved-title">
+                        {debt.name} {debt.balance <= 0 ? "✔" : ""}
+                    </div>
 
-                            <button
-                                type="button"
-                                className="text-action-button"
-                                onClick={() => startEditing(debt)}
-                            >
-                                Edit
-                            </button>
+                    <div className="saved-meta">
+                        {formatCurrency(debt.balance)} balance ·{" "}
+                        {debt.apr}% APR · Due {debt.dueDate}
+                    </div>
+                </div>
 
-                            <button
-                                type="button"
-                                className="text-action-button danger-action"
-                                onClick={() => onRemoveDebt(debt.id)}
-                            >
-                                Remove
-                            </button>
-                        </div>
-                    </>
-                )}
-            </div>
+                <div className="saved-item-right">
+                    <strong className="saved-amount">
+                        {formatCurrency(debt.minimumPayment)}
+                    </strong>
+
+                    <span className="row-chevron">›</span>
+                </div>
+            </button>
         );
     }
+
 
     function renderPagination(sectionKey: keyof typeof debtPages, totalItems: number) {
         const pageSize = 10;
@@ -422,7 +413,7 @@ export function DebtsSection({
                         value={searchTerm}
                         onChange={(event) => {
                             setSearchTerm(event.target.value)
-                            setDebtPages({ active: 1, paidOff: 1});
+                            setDebtPages({ active: 1, paidOff: 1 });
                         }}
                     />
 
@@ -430,7 +421,7 @@ export function DebtsSection({
                         value={sortBy}
                         onChange={(event) => {
                             setSortBy(event?.target.value as DebtSortOption);
-                            setDebtPages({ active: 1, paidOff: 1});
+                            setDebtPages({ active: 1, paidOff: 1 });
                         }}
                     >
                         <option value="dueDate">Sort By Due Date</option>
@@ -441,17 +432,10 @@ export function DebtsSection({
                     </select>
                 </div>
 
-                {allDebts.length == 0 && (
+                {allDebts.length === 0 && (
                     <div className="empty-debt-state">
                         <strong>No Debts Added Yet.</strong>
                         <p>Add Loans, Credit Cards, Or BNPL Balances To Start Tracking Payoff Progress.</p>
-                        <button
-                            type="button"
-                            className="add-button compact-add-button"
-                            onClick={() => setShowAddDebtModal(true)}
-                        >
-                            + Add First Debt
-                        </button>
                     </div>
                 )}
 
