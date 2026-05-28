@@ -1,20 +1,32 @@
-export function downloadBackup(date: unknown) {
-    const blob = new Blob(
-        [JSON.stringify(date, null, 2)],
-        { type: "application/json"}
-    );
+export function downloadBackup(data: unknown) {
+    const backupText = JSON.stringify(data, null, 2);
+    const fileName = `debt-planner-backup-${new Date().toISOString().slice(0, 10)}.json`;
+
+    const file = new File([backupText], fileName, {
+        type: "application/json",
+    });
+
+    if (navigator.canShare?.({ files: [file] })) {
+        navigator.share({
+            title: "Debt Planner Backup",
+            text: "Debt Planner Backup File",
+            files: [file],
+        });
+
+        return;
+    }
+
+    const blob = new Blob([backupText], {
+        type: "application/json",
+    });
 
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = `debt-app-backup-${new Date().toISOString().slice(0, 10)}.json`;
-
+    link.download = fileName;
     document.body.appendChild(link);
-
     link.click();
-
     document.body.removeChild(link);
 
     URL.revokeObjectURL(url);
