@@ -1608,7 +1608,7 @@ button:active {
 }
 
 .compact-empty-state {
-	padding: 14px;
+	padding: 14px 16px;
 }
 
 .compact-empty-state strong {
@@ -1617,6 +1617,35 @@ button:active {
 
 .compact-empty-state p {
 	font-size: 0.9rem;
+}
+
+.debt-edit-card {
+display: flex;
+flex-direction: column;
+align-items: stretch;
+gap: 14px;
+}
+
+.debt-edit-grid {
+display: grid;
+grid-template-columns: 1fr;
+gap: 12px;
+}
+
+.debt-edit-actions {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+}
+
+.debt-edit-actions-right {
+display: flex;
+gap: 10px;
+}
+
+.debt-edit-actions-right button {
+min-width: 96px;
 }
 
 @keyframes centerModalIn {

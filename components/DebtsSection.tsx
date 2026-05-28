@@ -189,67 +189,59 @@ export function DebtsSection({
 
         if (isEditing) {
             return (
-                <div key={debt.id} className="saved-item debt-list-item editing">
-                    <div className="field">
-                        <label>Current Balance</label>
+                <div key={debt.id} className="saved-item debt-edit-card">
+                    <div className="saved-item-left">
+                        <div className="saved-title">{debt.name}</div>
 
-                        <input
-                            type="text"
-                            inputMode="decimal"
-                            value={editBalance}
-                            onChange={(event) => setEditBalance(event.target.value)}
-                        />
+                        <div className="saved-meta">
+                            Edit balance, minimum payment, APR, or due date.
+                        </div>
                     </div>
 
-                    <div className="field">
-                        <label>Minimum Payment</label>
+                    <div className="debt-edit-grid">
+                        <div className="field">
+                            <label>Current Balance</label>
+                            <input
+                                type="text"
+                                inputMode="decimal"
+                                value={editBalance}
+                                onChange={(event) => setEditBalance(event.target.value)}
+                            />
+                        </div>
 
-                        <input
-                            type="text"
-                            inputMode="decimal"
-                            value={editMinimumPayment}
-                            onChange={(event) => setEditMinimumPayment(event.target.value)}
-                        />
+                        <div className="field">
+                            <label>Minimum Payment</label>
+                            <input
+                                type="text"
+                                inputMode="decimal"
+                                value={editMinimumPayment}
+                                onChange={(event) =>
+                                    setEditMinimumPayment(event.target.value)
+                                }
+                            />
+                        </div>
+
+                        <div className="field">
+                            <label>APR (%)</label>
+                            <input
+                                type="text"
+                                inputMode="decimal"
+                                value={editApr}
+                                onChange={(event) => setEditApr(event.target.value)}
+                            />
+                        </div>
+
+                        <div className="field">
+                            <label>Due Date</label>
+                            <input
+                                type="date"
+                                value={editDueDate}
+                                onChange={(event) => setEditDueDate(event.target.value)}
+                            />
+                        </div>
                     </div>
 
-                    <div className="field">
-                        <label>APR (%)</label>
-
-                        <input
-                            type="text"
-                            inputMode="decimal"
-                            value={editApr}
-                            onChange={(event) => setEditApr(event.target.value)}
-                        />
-                    </div>
-
-                    <div className="field">
-                        <label>Due Date</label>
-
-                        <input
-                            type="date"
-                            value={editDueDate}
-                            onChange={(event) => setEditDueDate(event.target.value)}
-                        />
-                    </div>
-
-                    <div className="saved-actions">
-                        <button
-                            type="button"
-                            className="secondary-button"
-                            onClick={() => saveEditing(debt.id)}
-                        >
-                            Save
-                        </button>
-
-                        <button
-                            type="button"
-                            className="secondary-button"
-                            onClick={cancelEditing}
-                        >
-                            Cancel
-                        </button>
-
+                    <div className="debt-edit-actions">
                         <button
                             type="button"
                             className="text-action-button danger-action"
@@ -257,10 +249,29 @@ export function DebtsSection({
                         >
                             Remove
                         </button>
+
+                        <div className="debt-edit-actions-right">
+                            <button
+                                type="button"
+                                className="secondary-button"
+                                onClick={cancelEditing}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                className="add-button"
+                                onClick={() => saveEditing(debt.id)}
+                            >
+                                Save
+                            </button>
+                        </div>
                     </div>
                 </div>
             );
         }
+
 
         return (
             <button
