@@ -254,7 +254,7 @@ export function DebtsSection({
                             </div>
 
                             <div className="saved-meta">
-                                {formatCurrency(debt.balance)} balance ·(" ")
+                                {formatCurrency(debt.balance)} balance ·{" "}
                                 {formatCurrency(debt.minimumPayment)} min ·{" "}
                                 {debt.apr}% APR · Due {debt.dueDate} ·{" "}
                                 {formatRecurrence(debt.recurrence)}
@@ -394,7 +394,7 @@ export function DebtsSection({
                         <h2>Debts</h2>
 
                         <p className="section-collapse-subtitle">
-                            Track Balances, Minimum Payments, APRs and Payoff Order.
+                            Track Balances, APRs and Payoff Order.
                         </p>
                     </div>
 
