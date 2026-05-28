@@ -1555,6 +1555,22 @@ button:active {
 	background: transparent !important;
 	color: var(--text-secondary) !important;
 }
+
+.debt-add-modal {
+	padding-bottom: calc(env(safe-area-inset-bottom) + 120px);
+}
+
+.debt-add-modal:after {
+	content: "";
+	display: block;
+	height: calc(env(safe-area-inset-bottom) + 110px)
+}
+
+.compact-debt-summary-grid .summary-card {
+	min-height: 82px;
+	padding: 14px;
+}
+
 @keyframes centerModalIn {
 	from {
 		opacity: 0;
