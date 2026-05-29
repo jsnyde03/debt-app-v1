@@ -15,7 +15,7 @@ type RequiredExpensesSectionProps = {
         name?: string;
         amount?: string;
         dueDate?: string;
-    };
+    }
 
     formatRecurrence: (recurrence: Recurrence) => string;
 
@@ -28,9 +28,9 @@ type RequiredExpensesSectionProps = {
     onRemoveExpense: (id: string) => void;
     onUpdateExpense: (
         id: string,
-        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate">>) => void;
-};
-
+        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate">>
+    ) => void;
+}
 
 export function RequiredExpensesSection({
     expenses,
@@ -57,11 +57,11 @@ export function RequiredExpensesSection({
     const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
     const [expensePage, setExpensePage] = useState(1);
     const [showExpensePresets, setShowExpensePresets] = useState(false);
-    const filteredExpenses = expenses.filter((expense) => expense.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const filteredExpenses = expenses.filter((expense) => expense.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
     const pageSize = 10;
     const totalPages = Math.max(1, Math.ceil(filteredExpenses.length / pageSize));
-    const visibleExpenses = filteredExpenses.slice((expensePage - 1) * pageSize, expensePage + pageSize);
-    const editingExpense = expenses.find((expense) => expense.id === editingExpenseId);
+    const visibleExpenses = filteredExpenses.slice((expensePage - 1) * pageSize, expensePage * pageSize);
 
     function startEditing(expense: RequiredExpense) {
         setEditingExpenseId(expense.id);
@@ -95,6 +95,105 @@ export function RequiredExpensesSection({
         setShowAddExpenseModal(false);
     }
 
+    function renderExpense(expense: RequiredExpense) {
+        const isEditing = editingExpenseId === expense.id;
+
+        if (isEditing) {
+            return (
+                <div
+                    key={expense.id}
+                    className="saved-item expense-edit-card compact-expense-edit-card"
+                >
+                    <div className="saved-title">{expense.name}</div>
+
+                    <div className="compact-expense-edit-grid">
+                        <div className="field">
+                            <label>Amount</label>
+
+                            <input
+                                type="number"
+                                value={editAmount}
+                                onChange={(event) => setEditAmount(event.target.value)}
+                            />
+                        </div>
+
+                        <div className="field">
+                            <label>Due Date</label>
+
+                            <input
+                                type="date"
+                                value={editDueDate}
+                                onChange={(event) => setEditDueDate(event.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="debt-edit-actions">
+                        <button
+                            type="button"
+                            className="text-action-button danger-action"
+                            onClick={() => {
+                                onRemoveExpense(expense.id);
+                                cancelEditing();
+                            }}
+                        >
+                            Remove
+                        </button>
+
+                        <div className="debt-edit-actions-right">
+                            <button
+                                type="button"
+                                className="secondary-button"
+                                onClick={cancelEditing}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                className="add-button debt-save-button"
+                                onClick={() => saveEditing(expense.id)}
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <button
+                key={expense.id}
+                type="button"
+                className="saved-item saved-item-button"
+                onClick={() => startEditing(expense)}
+            >
+                <div className="saved-item-left">
+                    <div className="saved-title">
+                        {expense.name}
+                        {expense.isPaidThisCycle ? "✔" : ""}
+                    </div>
+
+                    <div className="saved-meta">
+                        Due {expense.dueDate} · {formatRecurrence(expense.recurrence)} ·{" "}
+                        {(expense.expenseType ?? "fixed") === "fixed"
+                            ? "Fixed"
+                            : "Variable"}
+                    </div>
+                </div>
+
+                <div className="saved-item-right">
+                    <strong className="saved-amount">
+                        {formatCurrency(expense.amount)}
+                    </strong>
+
+                    <span className="row-chevron">›</span>
+                </div>
+            </button>
+        );
+    }
+
     return (
         <>
             <section className="card">
@@ -103,7 +202,7 @@ export function RequiredExpensesSection({
                         <h2>Required Expenses</h2>
 
                         <p className="section-collapse-subtitle">
-                            Bills and required payments due each cycle.
+                            Bills and required expenses due each cycle.
                         </p>
                     </div>
 
@@ -129,52 +228,20 @@ export function RequiredExpensesSection({
                 </div>
 
                 {filteredExpenses.length === 0 ? (
-                    <p className="empty-state">
-                        No required expenses added yet.
-                    </p>
+                    <p className="empty-state">No required expenses added yet.</p>
                 ) : (
-                    visibleExpenses.map((expense) => (
-                        <button
-                            key={expense.id}
-                            type="button"
-                            className="saved-item saved-item-button"
-                            onClick={() => startEditing(expense)}
-                        >
-                            <div className="saved-item-left">
-                                <div className="saved-title">
-                                    {expense.name}
-                                    {expense.isPaidThisCycle ? "✔" : ""}
-                                </div>
-
-                                <div className="saved-meta">
-                                    Due {expense.dueDate} ·{" "}
-                                    {formatRecurrence(expense.recurrence)} ·{" "}
-                                    {(expense.expenseType ?? "fixed") === "fixed"
-                                        ? "Fixed"
-                                        : "Variable"}
-                                </div>
-                            </div>
-
-                            <div className="saved-item-right">
-                                <strong className="saved-amount">
-                                    {formatCurrency(expense.amount)}
-                                </strong>
-
-                                <span className="row-chevron">›</span>
-                            </div>
-                        </button>
-                    ))
+                    visibleExpenses.map(renderExpense)
                 )}
 
                 {filteredExpenses.length > pageSize && (
-                    <div className="pagination-actions">
+                    <div className="pagination-actions pagination-compact">
                         <button
                             type="button"
-                            className="secondary-button"
-                            disabled={expensePage === 1}
+                            className="text-action-button"
+                            disabled={expensePage <= 1}
                             onClick={() => setExpensePage((current) => Math.max(1, current - 1))}
                         >
-                            Previous
+                            ‹
                         </button>
 
                         <span className="pagination-status">
@@ -183,11 +250,11 @@ export function RequiredExpensesSection({
 
                         <button
                             type="button"
-                            className="secondary-button"
-                            disabled={expensePage === totalPages}
+                            className="text-action-button"
+                            disabled={expensePage >= totalPages}
                             onClick={() => setExpensePage((current) => Math.min(totalPages, current + 1))}
                         >
-                            Next
+                            ›
                         </button>
                     </div>
                 )}
@@ -205,7 +272,6 @@ export function RequiredExpensesSection({
                         <div className="center-modal-header">
                             <div>
                                 <h2>Add Expense</h2>
-
                                 <p>Add a required bill or payment.</p>
                             </div>
 
@@ -225,7 +291,9 @@ export function RequiredExpensesSection({
                                     className="secondary-button preset-toggle-button"
                                     onClick={() => setShowExpensePresets((current) => !current)}
                                 >
-                                    {showExpensePresets ? "Hide Common Expenses" : "Choose A Common Expense"}
+                                    {showExpensePresets
+                                        ? "Hide Common Expenses"
+                                        : "Choose A Common Expense"}
                                 </button>
 
                                 {showExpensePresets && (
@@ -244,13 +312,9 @@ export function RequiredExpensesSection({
                                             >
                                                 {preset.name}
                                             </button>
-
                                         ))}
                                     </div>
-
                                 )}
-
-
                             </div>
 
                             <div className="field">
@@ -292,11 +356,12 @@ export function RequiredExpensesSection({
 
                                 <input
                                     type="date"
+                                    placeholder="Ex. 01/01/2026"
                                     value={expenseDueDate}
                                     onChange={(event) => onExpenseDueDateChange(event.target.value)}
                                 />
 
-                                {expenseErrors.dueDate && (
+                                {expenseErrors.amount && (
                                     <p className="validation-error">
                                         {expenseErrors.dueDate}
                                     </p>
@@ -310,21 +375,11 @@ export function RequiredExpensesSection({
                                     value={expenseRecurrence}
                                     onChange={(event) => onExpenseRecurrenceChange(event.target.value as Recurrence)}
                                 >
-                                    <option value="monthly">
-                                        Monthly
-                                    </option>
-                                    <option value="weekly">
-                                        Weekly
-                                    </option>
-                                    <option value="biweekly">
-                                        Every 2 Weeks
-                                    </option>
-                                    <option value="per-paycheck">
-                                        Every Paycheck
-                                    </option>
-                                    <option value="one-time">
-                                        One-Time
-                                    </option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="biweekly">Every 2 Weeks</option>
+                                    <option value="per-paycheck">Every Paycheck</option>
+                                    <option value="one-time">One Time</option>
                                 </select>
                             </div>
 
@@ -333,14 +388,10 @@ export function RequiredExpensesSection({
 
                                 <select
                                     value={expenseType}
-                                    onChange={(event) => onExpenseTypeChange(event.target.value as | "fixed" | "variable")}
+                                    onChange={(event) => onExpenseTypeChange(event.target.value as "fixed" | "variable")}
                                 >
-                                    <option value="fixed">
-                                        Fixed
-                                    </option>
-                                    <option value="variable">
-                                        Variable
-                                    </option>
+                                    <option value="fixed">Fixed</option>
+                                    <option value="variable">Variable</option>
                                 </select>
                             </div>
 
@@ -354,95 +405,7 @@ export function RequiredExpensesSection({
                         </div>
                     </div>
                 </div>
-            )
-            }
-
-            {
-                editingExpense && (
-                    <div
-                        className="center-modal-overlay"
-                        onClick={cancelEditing}
-                    >
-                        <div
-                            className="center-modal"
-                            onClick={(event) => event.stopPropagation()}
-                        >
-                            <div className="center-modal-header">
-                                <div>
-                                    <h2>Expense Details</h2>
-
-                                    <p>{editingExpense.name}</p>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    className="text-action-button"
-                                    onClick={cancelEditing}
-                                >
-                                    Close
-                                </button>
-                            </div>
-
-                            <div className="form-grid">
-                                <div className="field">
-                                    <label> Amount Due</label>
-
-                                    <input
-                                        type="number"
-                                        value={editAmount}
-                                        onChange={(event) => setEditAmount(event.target.value)}
-                                    />
-                                </div>
-
-                                <div className="field">
-                                    <label>Due Date</label>
-
-                                    <input
-                                        type="date"
-                                        value={editDueDate}
-                                        onChange={(event) => setEditDueDate(event.target.value)}
-                                    />
-                                </div>
-
-                                <div className="modal-action-row">
-                                    <button
-                                        type="button"
-                                        className="text-action-button danger-action"
-                                        onClick={() => {
-                                            onRemoveExpense(editingExpense.id);
-
-                                            cancelEditing();
-                                        }}
-                                    >
-                                        Remove
-                                    </button>
-
-                                    <div className="modal-action-row-right">
-                                        <button
-                                            type="button"
-                                            className="secondary-button"
-                                            onClick={cancelEditing}
-                                        >
-                                            Cancel
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            className="add-button"
-                                            onClick={() => saveEditing(editingExpense.id)}
-                                        >
-                                            Save
-                                        </button>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            )}
         </>
-
     );
-
 }

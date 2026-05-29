@@ -1680,6 +1680,33 @@ button:active {
 	color: #ffffff;
 }
 
+.compact-expense-edit-card {
+	padding: 12px 14px;
+	gap: 8px;
+	background: var(--surface-muted);
+}
+
+.compact-expense-edit-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+
+.compact-expense-edit-card .field {
+	gap: 2px;
+}
+
+.compact-expense-edit-card label {
+	font-size: 0.82rem;
+	opacity: 0.82;
+}
+
+.compact-expense-edit-card input {
+	min-height: 40px;
+	padding: 7px 12px;
+	border-radius: 14px;
+}
+
 .compact-debt-edit-card {
 	gap: 6px;
 	padding: 12px 14px;
