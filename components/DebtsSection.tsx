@@ -328,7 +328,7 @@ export function DebtsSection({
                 <button
                     type="button"
                     className="text-action-button"
-                    disabled={currentPage === 1}
+                    disabled={currentPage <= 1}
                     onClick={() => setDebtPages((current) => ({
                         ...current,
                         [sectionKey]: Math.max(1, current[sectionKey] - 1),
@@ -344,10 +344,10 @@ export function DebtsSection({
                 <button
                     type="button"
                     className="text-action-button"
-                    disabled={currentPage === totalPages}
+                    disabled={currentPage >= totalPages}
                     onClick={() => setDebtPages((current) => ({
                         ...current,
-                        [sectionKey]: Math.min(totalPages, current[sectionKey] - 1)
+                        [sectionKey]: Math.min(totalPages, current[sectionKey] + 1)
                     }))}
                 >
                     ›
@@ -543,7 +543,7 @@ export function DebtsSection({
                             </div>
 
                             <div className="field">
-                                <label>Minimum Payment</label>
+                                <label>Minimum</label>
                                 <input
                                     type="text"
                                     inputMode="decimal"

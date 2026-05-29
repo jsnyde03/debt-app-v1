@@ -1670,13 +1670,18 @@ button:active {
 	border-radius: 14px;
 }
 
+.debt-edit-actions > .danger-action {
+	font-size: 0.9rem;
+	opacity: 0.75;
+}
+
 .debt-save-button {
 	background: var(--accent-color);
 	color: #ffffff;
 }
 
 .compact-debt-edit-card {
-	gap: 8px;
+	gap: 6px;
 	padding: 12px 14px;
 	background: var(--surface-muted);
 }
@@ -1699,7 +1704,12 @@ button:active {
 }
 
 .compact-debt-edit-card .field {
-	gap: 3px;
+	gap: 2px;
+}
+
+.compact-debt-edit-card label {
+	font-size: 0.82rem;
+	opacity: 0.82;
 }
 
 .compact-debt-edit-grid .field label {
@@ -1709,10 +1719,14 @@ button:active {
 }
 
 .compact-debt-edit-card input {
-	height: 52px;
-	padding: 0 16px;
+	min-height: 40px;
+	padding: 7px 12px;
 	font-size: 1rem;
 	border-radius: 14px;
+}
+
+.debt-advanced-edit {
+	margin-top: 2px;
 }
 
 .debt-advanced-edit summary {
