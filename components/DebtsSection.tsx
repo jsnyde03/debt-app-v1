@@ -147,7 +147,7 @@ export function DebtsSection({
     function startEditing(debt: Debt) {
         setEditingDebtId(debt.id);
         setEditBalance(String(debt.balance));
-        setEditDueDate(String(debt.minimumPayment));
+        setEditMinimumPayment(String(debt.minimumPayment));
         setEditApr(String(debt.apr));
         setEditDueDate(debt.dueDate);
     }
@@ -155,7 +155,7 @@ export function DebtsSection({
     function cancelEditing() {
         setEditingDebtId(null);
         setEditBalance("");
-        setEditDueDate("");
+        setEditMinimumPayment("");
         setEditApr("");
         setEditDueDate("");
     }
@@ -210,7 +210,7 @@ export function DebtsSection({
                         </div>
 
                         <div className="field">
-                            <label>Minimum</label>
+                            <label>Minimum Payment</label>
                             <input
                                 type="text"
                                 inputMode="decimal"
