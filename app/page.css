@@ -1734,9 +1734,12 @@ button:active {
 	max-width: 100%;
 	min-width: 0;
 	min-height: 40px;
-	padding: 7px 12px;
-	border-radius: 14px;
 	box-sizing: border-box;
+}
+
+.compact-expense-edit-card input[type="date"] {
+	font-size: 0.9rem;
+	padding-inline: 10px;
 }
 
 .compact-debt-edit-card {
