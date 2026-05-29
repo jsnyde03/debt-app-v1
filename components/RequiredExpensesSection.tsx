@@ -128,7 +128,7 @@ export function RequiredExpensesSection({
                         </div>
                     </div>
 
-                    <div className="debt-edit-actions">
+                    <div className="expense-edit-actions">
                         <button
                             type="button"
                             className="text-action-button danger-action"
@@ -140,7 +140,7 @@ export function RequiredExpensesSection({
                             Remove
                         </button>
 
-                        <div className="debt-edit-actions-right">
+                        <div className="expense-edit-actions-right">
                             <button
                                 type="button"
                                 className="secondary-button"
