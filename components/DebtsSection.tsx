@@ -324,17 +324,17 @@ export function DebtsSection({
         }
 
         return (
-            <div className="pagination-actions">
+            <div className="pagination-actions pagination-compact">
                 <button
                     type="button"
-                    className="secondary-button"
+                    className="text-action-button"
                     disabled={currentPage === 1}
                     onClick={() => setDebtPages((current) => ({
                         ...current,
                         [sectionKey]: Math.max(1, current[sectionKey] - 1),
                     }))}
                 >
-                    Previous
+                    ‹
                 </button>
 
                 <span className="pagination-status">
@@ -343,17 +343,17 @@ export function DebtsSection({
 
                 <button
                     type="button"
-                    className="secondary-button"
+                    className="text-action-button"
                     disabled={currentPage === totalPages}
                     onClick={() => setDebtPages((current) => ({
                         ...current,
-                        [sectionKey]: Math.min(totalPages, current[sectionKey] + 1),
+                        [sectionKey]: Math.min(totalPages, current[sectionKey] - 1)
                     }))}
                 >
-                    Next
+                    ›
                 </button>
             </div>
-        );
+        )
     }
 
     function renderDebtGroup(title: string, count: number, sectionKey: keyof typeof expandedSections, pageKey: keyof typeof debtPages, debts: Debt[], emptyText: string) {
