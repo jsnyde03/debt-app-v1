@@ -1631,11 +1631,11 @@ button:active {
 }
 
 .debt-edit-actions {
-	margin-top: 4px;
+	margin-top: 2px;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: 12px;
+	gap: 10px;
 }
 
 .debt-edit-actions-right {
@@ -1644,16 +1644,26 @@ button:active {
 }
 
 .debt-edit-actions-right button {
-	min-width: 40px;
-	min-width: 82px;
+	min-width: 38px;
+	min-width: 78px;
 	padding: 0 14px;
 	border-radius: 14px;
 }
 
+.debt-save-button {
+	background: var(--accent-color);
+	color: #ffffff;
+}
+
 .compact-debt-edit-card {
 	gap: 8px;
-	padding: 14px 16px;
+	padding: 12px 14px;
 	background: var(--surface-muted);
+}
+
+.compact-debt-edit-card .saved-title {
+	margin-bottom: 2px;
+	font-size: 1.1rem;
 }
 
 .compact-debt-edit-card .saved-meta {
@@ -1665,7 +1675,7 @@ button:active {
 .compact-debt-edit-grid {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: 10px;
+	gap: 8px;
 }
 
 .compact-debt-edit-card .field {
@@ -1674,11 +1684,12 @@ button:active {
 
 .compact-debt-edit-grid .field label {
 	font-size: 0.72rem;
-	margin-bottom: 3px;
+	margin-bottom: 2px;
+	line-height: 1.1;
 }
 
 .compact-debt-edit-card input {
-	min-height: 42px;
+	min-height: 44px;
 	padding: 8px 12px;
 	font-size: 1rem;
 	border-radius: 14px;
@@ -1687,9 +1698,10 @@ button:active {
 .debt-advanced-edit summary {
 	cursor: pointer;
 	color: var(--text-secondary);
-	font-size: 0.84rem;
+	font-size: 0.82rem;
 	font-weight: 800;
 	list-style: none;
+	opacity: 0.82;
 }
 
 .debt-advanced-edit summary::-webkit-details-marker {

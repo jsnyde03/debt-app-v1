@@ -192,10 +192,6 @@ export function DebtsSection({
                 <div key={debt.id} className="saved-item debt-edit-card compact-debt-edit-card">
                     <div className="saved-item-left">
                         <div className="saved-title">{debt.name}</div>
-
-                        <div className="saved-meta">
-                            Quick edit balance and minimum payment.
-                        </div>
                     </div>
 
                     <div className="compact-debt-edit-grid">
@@ -267,7 +263,7 @@ export function DebtsSection({
 
                             <button
                                 type="button"
-                                className="add-button"
+                                className="add-button debt-save-button"
                                 onClick={() => saveEditing(debt.id)}
                             >
                                 Save
