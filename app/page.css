@@ -1691,9 +1691,13 @@ button:active {
 
 .compact-expense-edit-grid {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
 	gap: 8px;
 	width: 100%;
+}
+
+.compact-expense-edit-grid .field {
+	mid-width: 0;
 }
 
 .expense-edit-actions {
@@ -1727,10 +1731,12 @@ button:active {
 
 .compact-expense-edit-card input {
 	width: 100%;
+	max-width: 100%;
 	min-width: 0;
 	min-height: 40px;
 	padding: 7px 12px;
 	border-radius: 14px;
+	box-sizing: border-box;
 }
 
 .compact-debt-edit-card {
