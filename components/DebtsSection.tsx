@@ -291,15 +291,24 @@ export function DebtsSection({
                         {debt.name} {debt.balance <= 0 ? "✔" : ""}
                     </div>
 
-                    <div className="saved-meta">
-                        {formatCurrency(debt.balance)} balance ·{" "}
-                        {debt.apr}% APR · Due {debt.dueDate}
+                    <div className="saved-meta debt-card-meta">
+                        <span>Balance: {formatCurrency(debt.balance)}</span>
+
+                        <span>APR {debt.apr}%</span>
+
+                        <span>
+                            Due: {new Date(debt.dueDate).toLocaleDateString(undefined, {
+                                month: "short",
+                                day: "numeric"
+                            })}
+                        </span>
                     </div>
                 </div>
 
                 <div className="saved-item-right">
                     <strong className="saved-amount">
                         {formatCurrency(debt.minimumPayment)}
+                        <span className="amount-suffix">/mo</span>
                     </strong>
 
                     <span className="row-chevron">›</span>
