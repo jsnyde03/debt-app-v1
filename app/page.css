@@ -467,6 +467,30 @@ button:active {
 	color: var(--accent-color);
 }
 
+.goal-add-card {
+	padding: 12px;
+	margin: 12px 0;
+	border-radius: var(--radius-md);
+	background-color: var(--surface-muted);
+	border: 1px solid var(--border-color);
+}
+
+.goal-list-item {
+	align-items: center;
+}
+
+.goal-list-item .saved-item-right {
+	flex-shrink: 0;
+}
+
+.goal-list-item .saved-amount {
+	min-width: 112px;
+}
+
+.goal-list-item .goal-progress-track {
+	max-width: 100%;
+}
+
 .goal-card-content {
 	gap: 6px;
 }
