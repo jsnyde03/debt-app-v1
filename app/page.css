@@ -1684,58 +1684,10 @@ button:active {
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
-	padding: 12px;
-	gap: 8px;
+	padding: 12px 14px;
+	gap: 6px;
 	background: var(--surface-muted);
 	overflow: hidden;
-}
-
-.compact-expense-edit-grid {
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: 8px;
-	width: 100%;
-}
-
-.compact-expense-edit-grid .field {
-	min-width: 0;
-	width: 100%;
-}
-
-.compact-expense-edit-grid input {
-	width: 100%;
-	max-width: 100%;
-	min-width: 0;
-	box-sizing: border-box;
-}
-
-.compact-expense-edit-grid input[type="date"] {
-	font-size: 0.85rem;
-	padding-inline: 6px;
-}
-
-.expense-edit-actions {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 10px;
-	width: 100%;
-}
-
-.expense-edit-actions-right {
-	display: flex;
-	gap: 8px;
-}
-
-.expense-edit-actions-right button {
-	min-height: 38px;
-	min-width: 78px;
-	padding: 0 14px;
-	border-radius: 14px;
-}
-
-.compact-expense-edit-card .field {
-	gap: 2px;
 }
 
 .compact-expense-edit-card label {
@@ -1748,12 +1700,43 @@ button:active {
 	max-width: 100%;
 	min-width: 0;
 	min-height: 40px;
+	padding: 7px 12px;
 	box-sizing: border-box;
+	border-radius: 14px;
 }
 
-.compact-expense-edit-card input[type="date"] {
-	font-size: 0.9rem;
-	padding-inline: 10px;
+.compact-expense-edit-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 6px;
+	width: 100%;
+}
+
+.compact-expense-edit-grid .field {
+	min-width: 0;
+	width: 100%;
+	gap: 2px;
+}
+
+.expense-edit-actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	width: 100%;
+	margin-top: 2px;
+}
+
+.expense-edit-actions-right {
+	display: flex;
+	gap: 8px;
+}
+
+.expense-edit-actions-right button {
+	min-height: 38px;
+	min-width: 78px;
+	padding: 0 14px;
+	border-radius: 14px;
 }
 
 .compact-debt-edit-card {
@@ -1773,32 +1756,10 @@ button:active {
 	opacity: 0.82;
 }
 
-.compact-debt-edit-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 8px;
-}
-
-.compact-debt-edit-card .field {
-	gap: 2px;
-}
-
-.compact-debt-edit-card label {
-	font-size: 0.82rem;
-	opacity: 0.82;
-}
-
 .compact-debt-edit-grid .field label {
 	font-size: 0.72rem;
 	margin-bottom: 2px;
 	line-height: 1.1;
-}
-
-.compact-debt-edit-card input {
-	min-height: 40px;
-	padding: 7px 12px;
-	font-size: 1rem;
-	border-radius: 14px;
 }
 
 .debt-advanced-edit {
@@ -1843,11 +1804,6 @@ button:active {
 	opacity: 0.7;
 	margin-left: 2px;
 }
-
-
-
-
-
 
 @keyframes centerModalIn {
 	from {
