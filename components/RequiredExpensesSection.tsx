@@ -102,11 +102,11 @@ export function RequiredExpensesSection({
             return (
                 <div
                     key={expense.id}
-                    className="expense-edit-card compact-expense-edit-card"
+                    className="saved-item compact-debt-edit-card compact-debt-edit-card"
                 >
                     <div className="saved-title">{expense.name}</div>
 
-                    <div className="compact-expense-edit-grid">
+                    <div className="compact-debt-edit-grid">
                         <div className="field">
                             <label>Amount</label>
 
@@ -128,7 +128,7 @@ export function RequiredExpensesSection({
                         </div>
                     </div>
 
-                    <div className="expense-edit-actions">
+                    <div className="debt-edit-actions">
                         <button
                             type="button"
                             className="text-action-button danger-action"
@@ -140,7 +140,7 @@ export function RequiredExpensesSection({
                             Remove
                         </button>
 
-                        <div className="expense-edit-actions-right">
+                        <div className="debt-edit-actions-right">
                             <button
                                 type="button"
                                 className="secondary-button"
