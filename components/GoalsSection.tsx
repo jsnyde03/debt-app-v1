@@ -183,7 +183,7 @@ export function GoalsSection({
                     <h2>Goals</h2>
 
                     <p className="secton-collapse-subtitle">
-                        Track Savings Targets and Emergency Fund.
+                        Track Savings and Emergency Fund.
                     </p>
                 </div>
 
