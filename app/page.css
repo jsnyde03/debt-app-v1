@@ -1681,13 +1681,17 @@ button:active {
 }
 
 .compact-expense-edit-card {
+	width: 100%;
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
 	padding: 12px 14px;
 	gap: 6px;
 	background: var(--surface-muted);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-md);
 	overflow: hidden;
+	box-shadow: border-box;
 }
 
 .compact-expense-edit-card label {

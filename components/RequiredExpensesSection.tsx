@@ -102,7 +102,7 @@ export function RequiredExpensesSection({
             return (
                 <div
                     key={expense.id}
-                    className="saved-item expense-edit-card compact-expense-edit-card"
+                    className="expense-edit-card compact-expense-edit-card"
                 >
                     <div className="saved-title">{expense.name}</div>
 
