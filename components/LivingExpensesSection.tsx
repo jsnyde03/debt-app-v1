@@ -90,7 +90,12 @@ export function LivingExpensesSection({ livingExpenses, onLivingExpensesChange }
                                             {expense.name}
                                         </div>
 
-                                        <div className="saved-meta">
+                                        <div className={
+                                            expense.enabled
+                                                ? "saved-meta living-status-enabled"
+                                                : "saved-meta living-status-disabled"
+                                        }
+                                        >
                                             {expense.enabled
                                                 ? "Reserved From Flexible Cash"
                                                 : "Not Included"}
@@ -119,7 +124,7 @@ export function LivingExpensesSection({ livingExpenses, onLivingExpensesChange }
                                             {expense.enabled ? "On" : "Off"}
                                         </button>
                                     </div>
-                                </div>          
+                                </div>
                             ))}
                         </div>
                     </div>

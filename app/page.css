@@ -901,6 +901,21 @@ button:active {
 	border: 1px solid transparent;
 }
 
+.action-pill-completed {
+	height: 36px;
+	padding: 0 12px;
+	border-radius: var(--radius-pill);
+	font-size: 0.74rem;
+	font-weight: 800;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	white-space: nowrap;
+	background: var(--accent-color);
+	color: #ffffff;
+	border: 1px solid vari(--border-color);
+}
+
 .status-chip {
 	display: inline-flex;
 	align-items: center;
@@ -1539,17 +1554,44 @@ button:active {
 }
 
 .living-expense-editor-row {
-	min-height: 72px;
+	min-height: 62px;
+	padding: 10px 12px;
 }
 
-.living-expense-editor-row .saed-item-right {
+.living-expense-editor-row .saved-item-left {
+	gap: 1px;
+}
+
+.living-expense-editor-row .saved-title {
+	font-size: 0.9rem;
+}
+
+.living-expense-editor-row .saved-meta {
+	font-size: 0.72rem;
+}
+
+.living-expense-editor-row .saved-item-right {
 	flex-shrink: 0;
+	gap: 8px;
 }
 
 .living-expense-amount-input {
-	width: 96px;
+	width: 82px;
 	min-height: 48px;
+	padding: 7px 10px;
 	text-align: center;
+	border-radius: 14px;
+}
+
+.living-status-enabled {
+	color: var(--success-color);
+	opacity: 0.95;
+	font-weight: 700;
+}
+
+.living-status-disabled {
+	color: var(--text-secondary);
+	opacity: 0.72;
 }
 
 .mobile-section-switcher {
@@ -1903,6 +1945,8 @@ button:active {
 		padding: 0 11px;
 		font-size: 0.76rem;
 	}
+
+	
 
 	.import-button,
 	.backup-actions button {
