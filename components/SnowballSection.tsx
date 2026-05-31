@@ -157,7 +157,7 @@ export function SnowballSection({
                 <>
                     <div className="payoff-focus-strip">
                         <div>
-                            <span>Current Target</span>
+                            <span>Focus Debt</span>
                             <strong>{currentTarget.name}</strong>
                         </div>
 
@@ -269,8 +269,8 @@ export function SnowballSection({
                                             </div>
 
                                             <div className="saved-meta">
-                                                Min {formatCurrency(debt.minimumPayment)} · APR{" "}
-                                                {debt.apr}%
+                                                Min {formatCurrency(debt.minimumPayment)}
+                                                {debt.apr > 0 ? ` · APR ${debt.apr}%` : ""}
                                             </div>
                                         </div>
 
