@@ -35,7 +35,6 @@ export function SnowballSection({
 }: SnowballSectionProps) {
     const [showPayoffOrder, setShowPayoffOrder] = useState(false);
     const [payoffOrderPage, setPayoffOrderPage] = useState(1);
-    const [showAdvancedProjection, setShowAdvancedProjection] = useState(false);
 
     const debtsAfterCompletedPayments = debts.map((debt) => {
         const completedAmountForDebt = completedRecommendedActions
@@ -63,17 +62,19 @@ export function SnowballSection({
         });
 
     const payoffOrderPageSize = 10;
-    const totalPayoffPages = Math.max(1, Math.ceil(payoffOrder.length / payoffOrderPageSize));
-    const visiblePayoffOrder = payoffOrder.slice((payoffOrderPage - 1) * payoffOrderPageSize, payoffOrderPage * payoffOrderPageSize);
+    const totalPayoffPages = Math.max(
+        1,
+        Math.ceil(payoffOrder.length / payoffOrderPageSize)
+    );
+    const visiblePayoffOrder = payoffOrder.slice(
+        (payoffOrderPage - 1) * payoffOrderPageSize,
+        payoffOrderPage * payoffOrderPageSize
+    );
 
     const snowballAllocations =
         result?.allocations.filter((item) => item.category === "snowball") ?? [];
 
     const currentTarget = payoffOrder[0];
-
-    const completedSnowballExtra = completedRecommendedActions
-        .filter((action) => action.category === "snowball")
-        .reduce((sum, action) => sum + action.actualAmount, 0);
 
     const remainingSnowballExtra = snowballAllocations.reduce((sum, item) => {
         const completedForItem = completedRecommendedActions
@@ -92,8 +93,6 @@ export function SnowballSection({
     }, 0);
 
     const hasCalculatedPlan = result !== null;
-
-    
 
     const baselineProjection = projectDebtPayoff({
         debts,
@@ -117,14 +116,16 @@ export function SnowballSection({
     });
 
     const baselineCanBeEstimated =
-        hasCalculatedPlan && baselineProjection.estimatedDebtFreeDate !== "Unable to estimate";
+        hasCalculatedPlan &&
+        baselineProjection.estimatedDebtFreeDate !== "Unable to estimate";
 
     const actualCanBeEstimated =
-        hasCalculatedPlan && actualProjection.estimatedDebtFreeDate !== "Unable to estimate";
+        hasCalculatedPlan &&
+        actualProjection.estimatedDebtFreeDate !== "Unable to estimate";
 
     const recommendedCanBeEstimated =
-        hasCalculatedPlan && recommendedProjection.estimatedDebtFreeDate !== "Unable to estimate";
-
+        hasCalculatedPlan &&
+        recommendedProjection.estimatedDebtFreeDate !== "Unable to estimate";
 
     const actualInterestSaved =
         baselineCanBeEstimated && actualCanBeEstimated
@@ -135,35 +136,35 @@ export function SnowballSection({
             )
             : null;
 
-    const additionalRecommendedInterestSavings =
-        actualCanBeEstimated && recommendedCanBeEstimated
-            ? Math.max(
-                0,
-                actualProjection.totalInterestPaid -
-                recommendedProjection.totalInterestPaid
-            )
-            : null;
-
     return (
         <section className="card">
-            <h2>Debt Payoff Plan</h2>
+            <div className="section-heading-row">
+                <div>
+                    <h2>Payoff</h2>
+
+                    <p className="section-collapse-subtitle">
+                        Debt-free timeline and order.
+                    </p>
+                </div>
+            </div>
 
             {!currentTarget ? (
-                <p className="empty-state">No active debts added yet.</p>
+                <div className="empty-debt-state compact-empty-state">
+                    <strong>No Active Debts Yet.</strong>
+                    <p>Add debts to see your payoff order and projected timeline.</p>
+                </div>
             ) : (
                 <>
-                    <div className="snowball-target">
-                        <p className="empty-state">Current Target</p>
-                        <h3>{currentTarget.name}</h3>
-                        <p>
-                            Balance:{" "}
-                            <strong>{formatCurrency(currentTarget.balance)}</strong>
-                        </p>
+                    <div className="payoff-focus-strip">
+                        <div>
+                            <span>Current Target</span>
+                            <strong>{currentTarget.name}</strong>
+                        </div>
+
+                        <strong>{formatCurrency(currentTarget.balance)} left</strong>
                     </div>
 
-                    <div className="payoff-strategy-selector">
-                        <label>Payoff Strategy</label>
-
+                    <div className="payoff-strategy-selector compact-payoff-strategy">
                         <div className="strategy-buttons">
                             <button
                                 type="button"
@@ -192,140 +193,125 @@ export function SnowballSection({
 
                         <p className="strategy-description">
                             {payoffStrategy === "snowball"
-                                ? "Snowball prioritizes the smallest balance first for faster psychological wins."
-                                : "Avalanche prioritizes the highest APR debts first to reduce long-term interest paid."}
+                                ? "Smallest balance first."
+                                : "Highest APR first."}
                         </p>
                     </div>
-            
-                <div className="debt-group">
-                        <h3>Projected Payoff</h3>
 
-                        <div className="debt-summary-grid">
-                            <div className="summary-card payoff-date-card">
-                                <span>Debt Free</span>
-
-                                <strong className="payoff-date-value">{actualProjection.estimatedDebtFreeDate}</strong>
-                            </div>
-
-                            <div className="summary-card payoff-date-card">
-                                <span>With Recommendation</span>
-
-                                <strong className="payoff-date-value">{recommendedProjection.estimatedDebtFreeDate}</strong>
-                            </div>
-
-                            <div className="summary-card">
-                                <span>Interest Paid</span>
-                                <strong>{hasCalculatedPlan && actualCanBeEstimated
-                                            ? formatCurrency(actualProjection.totalInterestPaid)
-                                            : "—"}
-                                </strong>
-                            </div>
-
-                            <div className="summary-card">
-                                <span>Interest Saved</span>
-                                <strong>{actualInterestSaved === null ? "—" : formatCurrency(actualInterestSaved)}</strong>
-                            </div>
+                    <div className="payoff-summary-strip">
+                        <div>
+                            <span>Debt Free</span>
+                            <strong>
+                                {actualCanBeEstimated
+                                    ? actualProjection.estimatedDebtFreeDate
+                                    : "—"}
+                            </strong>
                         </div>
+
+                        {/*          
+                        <div>
+                            <span>Interest</span>
+                            <strong>
+                                {hasCalculatedPlan && actualCanBeEstimated
+                                    ? formatCurrency(actualProjection.totalInterestPaid)
+                                    : "—"}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Saved</span>
+                            <strong>
+                                {actualInterestSaved === null
+                                    ? "—"
+                                    : formatCurrency(actualInterestSaved)}
+                            </strong>
+                        </div>
+                        */}
                     </div>
 
-                {/*    <button
-                        type="button"
-                        className="collapsible-header"
-                        onClick={() => setShowAdvancedProjection((current) => !current)}
-                    >
-                        <span>Advanced Projection Details</span>
+                    {recommendedCanBeEstimated && remainingSnowballExtra > 0 && (
+                        <div className="payoff-recommendation-strip">
+                            <span>With current recommendation</span>
+                            <strong>{recommendedProjection.estimatedDebtFreeDate}</strong>
+                        </div>
+                    )}
 
-                        <span>{showAdvancedProjection ? "-" : "+"}</span>
-                    </button>
-
-                    {showAdvancedProjection && (
-                        <>
-                            <div className="saved-item">
-                                <div>
-                                    <div className="saved-title">
-                                        Completed Extra Debt Payments
-                                    </div>
-
-                                    <div className="saved-meta">
-                                        Extra payments already marked paid this cycle.
-                                    </div>
-
-                                    <div className="saved-amount">
-                                        {formatCurrency(completedSnowballExtra)}
-                                    </div>
-                                </div>
-
-                                <div className="saved-item">
-                                    <div>
-                                        <div className="saved-title">
-                                            Additional Interest Savings Available
-                                        </div>
-
-                                        <div className="saved-meta">
-                                            Extra interest savings if you pay the current recommendation.
-                                        </div>
-
-                                        <div className="saved-amount">
-                                            {additionalRecommendedInterestSavings === null ? "—" : formatCurrency(additionalRecommendedInterestSavings)}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </>
-                    )} */}
                     <div className="debt-group">
                         <button
                             type="button"
-                            className="collapsible-header"
+                            className="section-collapse-button"
                             onClick={() => setShowPayoffOrder((current) => !current)}
                         >
-                            <span>Payoff Order ({payoffOrder.length})</span>
-                            <span>{showPayoffOrder ? "-" : "+"}</span>
+                            <div className="section-collapse-left">
+                                <h2>Payoff Order</h2>
+                                <span className="section-count-pill">
+                                    {payoffOrder.length}
+                                </span>
+                            </div>
+
+                            <span className="collapse-chevron">
+                                {showPayoffOrder ? "▲" : "▼"}
+                            </span>
                         </button>
 
                         {showPayoffOrder && (
                             <>
                                 {visiblePayoffOrder.map((debt, index) => (
-                                    <div key={debt.id} className="saved-item">
-                                        <div>
+                                    <div key={debt.id} className="saved-item debt-list-item">
+                                        <div className="saved-item-left">
                                             <div className="saved-title">
                                                 #
-                                                {(payoffOrderPage - 1) * payoffOrderPageSize + index + 1}{" "}
+                                                {(payoffOrderPage - 1) *
+                                                    payoffOrderPageSize +
+                                                    index +
+                                                    1}{" "}
                                                 {debt.name}
                                             </div>
+
                                             <div className="saved-meta">
-                                                Balance {formatCurrency(debt.balance)} · Min{" "}
-                                                {formatCurrency(debt.minimumPayment)} · APR{" "}
+                                                Min {formatCurrency(debt.minimumPayment)} · APR{" "}
                                                 {debt.apr}%
                                             </div>
                                         </div>
 
-                                        <div className="saved-amount">
-                                            {formatCurrency(debt.balance)}
+                                        <div className="saved-item-right">
+                                            <strong className="saved-amount">
+                                                {formatCurrency(debt.balance)}
+                                            </strong>
                                         </div>
                                     </div>
                                 ))}
 
                                 {payoffOrder.length > payoffOrderPageSize && (
-                                    <div className="pagination-actions">
+                                    <div className="pagination-actions pagination-compact">
                                         <button
                                             type="button"
-                                            className="secondary-button"
-                                            disabled={payoffOrderPage === 1}
-                                            onClick={() => setPayoffOrderPage((current) => Math.max(1, current - 1))}
+                                            className="text-action-button"
+                                            disabled={payoffOrderPage <= 1}
+                                            onClick={() =>
+                                                setPayoffOrderPage((current) =>
+                                                    Math.max(1, current - 1)
+                                                )
+                                            }
                                         >
-                                            Previous
+                                            ‹
                                         </button>
 
-                                        <span className="pagination-status">Page {payoffOrderPage} of {totalPayoffPages}</span>
+                                        <span className="pagination-status">
+                                            Page {payoffOrderPage} of {totalPayoffPages}
+                                        </span>
 
                                         <button
                                             type="button"
-                                            className="secondary-button"
-                                            disabled={payoffOrderPage === totalPayoffPages}
-                                            onClick={() => setPayoffOrderPage((current) => Math.min(totalPayoffPages, current + 1))}
+                                            className="text-action-button"
+                                            disabled={payoffOrderPage >= totalPayoffPages}
+                                            onClick={() =>
+                                                setPayoffOrderPage((current) =>
+                                                    Math.min(totalPayoffPages, current + 1)
+                                                )
+                                            }
                                         >
-                                            Next
+                                            ›
                                         </button>
                                     </div>
                                 )}
