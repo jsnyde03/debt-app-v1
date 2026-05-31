@@ -1025,6 +1025,17 @@ button:active {
 	align-self: flex-start;
 }
 
+.recommended-edit-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.recommended-edit-actions .text-action-button:last-child {
+	color: var(--accent-color);
+	font-weight: 800;
+}
+
 .dark-theme .recommended-card {
 	background: rgba(30, 41, 59, 0.42);
 	border-color: rgba(96, 165, 250, 0.10);
@@ -2000,6 +2011,8 @@ button:active {
 	min-height: 48px;
 	font-weight: 800;
 }
+
+
 
 @keyframes centerModalIn {
 	from {

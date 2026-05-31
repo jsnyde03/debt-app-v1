@@ -754,7 +754,6 @@ export default function Home() {
             current.map((expense) => ({
                 ...expense,
                 dueDate: expense.originalDueDate ?? expense.dueDate,
-                isPaidThisCycle: false,
             }))
         );
 
@@ -763,9 +762,6 @@ export default function Home() {
                 ...debt,
                 balance: debt.originalBalance ?? debt.balance,
                 dueDate: debt.originalDueDate ?? debt.dueDate,
-                minimumPaidThisCycle: false,
-                snowballPaidThisCycle: false,
-                isPaidThisCycle: false,
             }))
         );
 
@@ -775,8 +771,6 @@ export default function Home() {
                 currentAmount: goal.originalCurrentAmount ?? goal.currentAmount,
             }))
         );
-
-        setCompletedRecommendedActions([]);
     }
 
     function handleExportBackup() {

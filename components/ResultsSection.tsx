@@ -85,6 +85,7 @@ export function ResultsSection({
     result,
     requiredExpenses,
     debts,
+    goals,
     completedRecommendedActions,
     currentDate,
     onMarkExpensePaid,
@@ -109,6 +110,8 @@ export function ResultsSection({
     const [editedRecommendedAmounts, setEditedRecommendedAmounts] = useState<
         Record<string, string>
     >({});
+
+    const [savedRecommendedAmounts, setSavedRecommendedAmounts] = useState<Record<string, number>>({});
 
     const [recommendedAmountErrors, setRecommendedAmountErrors] = useState<
         Record<string, string>
@@ -217,6 +220,34 @@ export function ResultsSection({
         )
     );
 
+    function getRecommendationMaxAmount(item: AllocationResult["allocations"][number]) {
+        if(!item.targetId) {
+            return item.amount;
+        }
+
+        if (item.category === "snowball") {
+            const debt = debts.find((debtItem) => debtItem.id === item.targetId);
+
+            if (!debt) {
+                return item.amount;
+            }
+
+            return roundMoney(Math.max(0, debt.balance));
+        }
+
+        if (item.category === "emergency" || item.category === "optional_goal") {
+            const goal = goals.find((goalItem) => goalItem.id === item.targetId);
+
+            if (!goal) {
+                return item.amount;
+            }
+
+            return roundMoney(Math.max(0, goal.targetAmount - goal.currentAmount));
+        }
+
+        return item.amount;
+    }
+
     let remainingRecommendationCapacity = flexibleCashAvailable;
 
     const activeRecommendedDisplayActions: RecommendedDisplayAction[] = [];
@@ -230,23 +261,25 @@ export function ResultsSection({
             continue;
         }
 
-        const amount = roundMoney(
-            Math.min(item.amount, remainingRecommendationCapacity)
-        );
+        const key = `active-${getRecommendedKey(item)}`;
+        const maxAmount = getRecommendationMaxAmount(item);
+        const savedAmount = savedRecommendedAmounts[key];
+        
+        const amount = roundMoney(Math.min(savedAmount ?? maxAmount, maxAmount, remainingRecommendationCapacity));
 
         if (amount <= 0) {
             continue;
         }
 
         activeRecommendedDisplayActions.push({
-            key: `active-${getRecommendedKey(item)}`,
+            key,
             label: item.label,
             category: item.category,
             targetId: item.targetId,
-            recommendedAmount: item.amount,
+            recommendedAmount: maxAmount,
             actualAmount: amount,
             isCompleted: false,
-        });
+        })
 
         remainingRecommendationCapacity = roundMoney(
             remainingRecommendationCapacity - amount
@@ -433,22 +466,28 @@ export function ResultsSection({
                 return;
             }
 
-            if (amount > action.actualAmount) {
+            if (amount > flexibleCashAvailable) {
                 setRecommendedAmountErrors((current) => ({
                     ...current,
-                    [action.key]: "Amount cannot exceed the recommendation.",
+                    [action.key]: "Amount cannot exceed available flexible cash.",
                 }));
 
                 return;
             }
 
-            onMarkRecommendedAction(
-                action.targetId,
-                action.label,
-                action.category,
-                action.recommendedAmount,
-                roundMoney(amount)
-            );
+            if (amount > action.recommendedAmount) {
+                setRecommendedAmountErrors((current) => ({
+                    ...current,
+                    [action.key]: "Amount cannot exceed this target.",
+                }));
+
+                return;
+            }
+
+            setSavedRecommendedAmounts((current) => ({
+                ...current,
+                [action.key]: roundMoney(amount),
+            }));
 
             setEditingRecommendedKey(null);
         }
@@ -490,6 +529,38 @@ export function ResultsSection({
                                 }
                                 className="recommended-edit-input"
                             />
+                        </div>
+                    )}
+
+                    {!action.isCompleted && isEditing && (
+                        <div className="recommended-edit-actions">
+                            <button
+                                type="button"
+                                className="text-action-button"
+                                onClick={() => {
+                                    setEditingRecommendedKey(null);
+                                    setEditedRecommendedAmounts((current) => {
+                                        const next = { ...current };
+                                        delete next[action.key];
+                                        return next;
+                                    });
+                                    setRecommendedAmountErrors((current) => {
+                                        const next = { ...current };
+                                        delete next[action.key];
+                                        return next;
+                                    });
+                                }}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                className="text-action-button"
+                                onClick={handleSubmitRecommendedAction}
+                            >
+                                Save
+                            </button>
                         </div>
                     )}
 
@@ -545,7 +616,13 @@ export function ResultsSection({
                                 return;
                             }
 
-                            handleSubmitRecommendedAction();
+                            onMarkRecommendedAction(
+                                action.targetId,
+                                action.label,
+                                action.category,
+                                action.recommendedAmount,
+                                roundMoney(action.actualAmount)
+                            )
                         }}
                     >
                         {action.isCompleted
