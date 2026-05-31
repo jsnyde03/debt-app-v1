@@ -177,7 +177,7 @@ export function PaycheckSection({
                     {onImportBackup && (
                         <label className="secondary-button import-button">
                             Import Backup
-                            <input type="File" accept=".json" onChange={onImportBackup} hidden />
+                            <input type="file" accept=".json,application/json" onChange={onImportBackup} hidden />
                         </label>
                     )}
                         

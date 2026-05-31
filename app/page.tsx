@@ -91,7 +91,6 @@ function roundMoney(amount: number) {
 
 export default function Home() {
 
-    const importEnabled = process.env.NODE_ENV === "development";
     const [amount, setAmount] = useState(() =>
         loadStoredState("debtPlanner.amount", "")
     );
@@ -1190,7 +1189,7 @@ export default function Home() {
                             currentDate={currentDate}
                             showAdminActions={!isFirstRunSetup}
                             onExportBackup={handleExportBackup}
-                            onImportBackup={importEnabled ? handleImportBackup : undefined}
+                            onImportBackup={handleImportBackup}
                             onAmountChange={setAmount}
                             onPayCycleChange={setPayCycle}
                             onNextPayCheckDateChange={setNextPaycheckDate}
