@@ -1153,7 +1153,7 @@ export default function Home() {
                         onClick={(event) => event.stopPropagation()}
                     >
                         <div className="settings-sheet-header">
-                            <h2>Plan Settings</h2>
+                            <h2>{isFirstRunSetup ? "Create Your First Plan" : "Plan Settings"}</h2>
 
                             {!isFirstRunSetup && (
                                 <button
@@ -1168,7 +1168,7 @@ export default function Home() {
 
                         {isFirstRunSetup && (
                             <p className="setup-hint">
-                                Enter your paycheck amount to create your first
+                                Enter your paycheck to create your first
                                 plan.
                             </p>
                         )}
@@ -1187,7 +1187,7 @@ export default function Home() {
                             monthlyPayDay={monthlyPayDay}
                             nextPaycheckDate={nextPaycheckDate}
                             currentDate={currentDate}
-                            showAdminActions={!isFirstRunSetup}
+                            showAdminActions
                             onExportBackup={handleExportBackup}
                             onImportBackup={handleImportBackup}
                             onAmountChange={setAmount}

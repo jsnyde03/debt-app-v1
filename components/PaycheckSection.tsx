@@ -139,7 +139,7 @@ export function PaycheckSection({
                     Current plan date: {currentDate}
                     <br />
                     {nextPaycheckDate
-                        ? `Plan covers items due before ${nextPaycheckDate}.`
+                        ? `Planning through ${nextPaycheckDate}.`
                         : "Enter valid payday settings to calculate your pay period."}
                 </p>
 
