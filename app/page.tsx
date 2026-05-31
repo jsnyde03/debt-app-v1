@@ -753,9 +753,9 @@ export default function Home() {
         const recalculatedNextPaycheckDate = getNextPaycheckDate({
             payCycle,
             currentDate: today,
-            semiMonthlyFirstDay: Number(semiMonthlyFirstDay);
-            semiMonthlySecondDay: Number(semiMonthlySecondDay);
-            monthlyPayDay: Number(monthlyPayDay);
+            semiMonthlyFirstDay: Number(semiMonthlyFirstDay),
+            semiMonthlySecondDay: Number(semiMonthlySecondDay),
+            monthlyPayDay: Number(monthlyPayDay),
         });
 
         setCurrentDate(today);
