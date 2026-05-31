@@ -748,29 +748,18 @@ export default function Home() {
     }
 
     function handleResetToToday() {
-        setCurrentDate(getCurrentDate());
+        const today = getCurrentDate();
 
-        setRequiredExpenses((current) =>
-            current.map((expense) => ({
-                ...expense,
-                dueDate: expense.originalDueDate ?? expense.dueDate,
-            }))
-        );
+        const recalculatedNextPaycheckDate = getNextPaycheckDate({
+            payCycle,
+            currentDate: today,
+            semiMonthlyFirstDay: Number(semiMonthlyFirstDay);
+            semiMonthlySecondDay: Number(semiMonthlySecondDay);
+            monthlyPayDay: Number(monthlyPayDay);
+        });
 
-        setDebts((current) =>
-            current.map((debt) => ({
-                ...debt,
-                balance: debt.originalBalance ?? debt.balance,
-                dueDate: debt.originalDueDate ?? debt.dueDate,
-            }))
-        );
-
-        setGoals((current) =>
-            current.map((goal) => ({
-                ...goal,
-                currentAmount: goal.originalCurrentAmount ?? goal.currentAmount,
-            }))
-        );
+        setCurrentDate(today);
+        setNextPaycheckDate(recalculatedNextPaycheckDate);
     }
 
     function handleExportBackup() {
