@@ -136,8 +136,6 @@ export function PaycheckSection({
                 )}
 
                 <p className="empty-state summary-text">
-                    Current plan date: {currentDate}
-                    <br />
                     {nextPaycheckDate
                         ? `Planning through ${nextPaycheckDate}.`
                         : "Enter valid payday settings to calculate your pay period."}

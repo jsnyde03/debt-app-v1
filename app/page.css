@@ -1991,6 +1991,16 @@ button:active {
 	font-weight: 900;
 }
 
+.first-run-import-row {
+	margin-top: 14px;
+}
+
+.first-run-import-row .import-button {
+	width: 100%;
+	min-height: 48px;
+	font-weight: 800;
+}
+
 @keyframes centerModalIn {
 	from {
 		opacity: 0;

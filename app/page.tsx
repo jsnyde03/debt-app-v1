@@ -1179,6 +1179,20 @@ export default function Home() {
                             </div>
                         )}
 
+                        {isFirstRunSetup && (
+                            <div className="firt-run-import-row">
+                                <label className="secondary-button import-button">
+                                    Import Backup
+                                    <input
+                                        type="file"
+                                        accept="json,application/json"
+                                        onChange={handleImportBackup}
+                                        hidden
+                                    />
+                                </label>
+                            </div>
+                        )}
+
                         <PaycheckSection
                             amount={amount}
                             payCycle={payCycle}
@@ -1187,7 +1201,7 @@ export default function Home() {
                             monthlyPayDay={monthlyPayDay}
                             nextPaycheckDate={nextPaycheckDate}
                             currentDate={currentDate}
-                            showAdminActions
+                            showAdminActions={!isFirstRunSetup}
                             onExportBackup={handleExportBackup}
                             onImportBackup={handleImportBackup}
                             onAmountChange={setAmount}
