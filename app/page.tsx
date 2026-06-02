@@ -748,18 +748,7 @@ export default function Home() {
     }
 
     function handleResetToToday() {
-        const today = getCurrentDate();
-
-        const recalculatedNextPaycheckDate = getNextPaycheckDate({
-            payCycle,
-            currentDate: today,
-            semiMonthlyFirstDay: Number(semiMonthlyFirstDay),
-            semiMonthlySecondDay: Number(semiMonthlySecondDay),
-            monthlyPayDay: Number(monthlyPayDay),
-        });
-
-        setCurrentDate(today);
-        setNextPaycheckDate(recalculatedNextPaycheckDate);
+        setCurrentDate(getCurrentDate());
     }
 
     function handleExportBackup() {
@@ -929,6 +918,7 @@ export default function Home() {
                             requiredExpenses={requiredExpenses}
                             debts={debts}
                             goals={goals}
+                            payoffStrategy={payoffStrategy}
                             completedRecommendedActions={
                                 completedRecommendedActions
                             }

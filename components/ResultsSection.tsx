@@ -30,6 +30,7 @@ type ResultsSectionProps = {
     goals: Goal[];
     completedRecommendedActions: CompletedRecommendedAction[];
     currentDate: string;
+    payoffStrategy: "snowball" | "avalanche";
     onMarkExpensePaid: (id: string) => void;
     onMarkDebtMinimumPaid: (id: string) => void;
     onMarkDebtSnowballPaid: (id: string) => void;
@@ -88,6 +89,7 @@ export function ResultsSection({
     goals,
     completedRecommendedActions,
     currentDate,
+    payoffStrategy,
     onMarkExpensePaid,
     onMarkDebtMinimumPaid,
     onMarkRecommendedAction,
@@ -126,9 +128,42 @@ export function ResultsSection({
             item.category === "expense" || item.category === "minimum_debt"
     );
 
-    const recommendedActions = result.allocations.filter(
-        (item) => item.category === "emergency" || item.category === "snowball"
-    );
+    const completedSnowballAmountsByDebtId = completedRecommendedActions
+        .filter((action) => action.category === "snowball")
+        .reduce<Record<string, number>>((map, action) => {
+            map[action.targetId] = roundMoney((map[action.targetId] ?? 0) + action.actualAmount);
+
+            return map;
+        }, {});
+    
+    const adjustedActiveDebts = debts.map((debt) => ({
+        ...debt,
+        balance: roundMoney(Math.max(0, debt.balance - (completedSnowballAmountsByDebtId[debt.id] ?? 0))),
+    })).filter((debt) => debt.balance > 0).sort((a, b) => {
+        if (payoffStrategy === "avalanche") {
+            if (b.apr !== a.apr) {
+                return b.apr - a.apr;
+            }
+
+            return a.balance - b.balance;
+        }
+
+        return a.balance - b.balance;
+    });
+
+    const activeSnowballRecommendationActions = adjustedActiveDebts.map((debt) => ({
+        category: "snowball" as const,
+        targetId: debt.id,
+        debtId: debt.id,
+        label: `Extra payment to ${debt.name}`,
+        amount: debt.balance,
+    }));
+
+    const recommendedActions = [
+        ...result.allocations.filter((item) => item.category === "emergency"),
+        ...activeSnowballRecommendationActions,
+    ];
+
 
     const optionalGoalActions = result.allocations.filter(
         (item) => item.category === "optional_goal"
