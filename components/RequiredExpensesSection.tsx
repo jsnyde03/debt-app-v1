@@ -28,7 +28,7 @@ type RequiredExpensesSectionProps = {
     onRemoveExpense: (id: string) => void;
     onUpdateExpense: (
         id: string,
-        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate">>
+        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate" | "recurrence" | "expenseType">>
     ) => void;
 }
 
@@ -53,6 +53,8 @@ export function RequiredExpensesSection({
     const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
     const [editAmount, setEditAmount] = useState("");
     const [editDueDate, setEditDueDate] = useState("");
+    const [editRecurrence, setEditRecurrence] = useState<Recurrence>("monthly");
+    const [editExpenseType, setEditExpenseType] = useState<"fixed" | "variable">("fixed");
     const [searchTerm, setSearchTerm] = useState("");
     const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
     const [expensePage, setExpensePage] = useState(1);
@@ -85,6 +87,8 @@ export function RequiredExpensesSection({
         onUpdateExpense(id, {
             amount,
             dueDate: editDueDate,
+            recurrence: editRecurrence,
+            expenseType: editExpenseType,
         });
 
         cancelEditing();
@@ -127,6 +131,47 @@ export function RequiredExpensesSection({
                             />
                         </div>
                     </div>
+
+                    <details className="debt-advanced-edit">
+                        <summary>Advanced</summary>
+
+                        <div className="compact-expense-edit-grid advanced-grid">
+                            <div className="field">
+                                <label>Due Date</label>
+                                <input
+                                    type="date"
+                                    value={editDueDate}
+                                    onChange={(event) => setEditDueDate(event.target.value)}
+                                />
+                            </div>
+
+                            <div className="field">
+                                <label>Recurrence</label>
+                                <select
+                                    value={editRecurrence}
+                                    onChange={(event) => setEditRecurrence(event.target.value as Recurrence)}
+                                >
+                                    <option value="monthly">Monthly</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="biweekly">Every 2 Weeks</option>
+                                    <option value="per-paycheck">Every Paycheck</option>
+                                    <option value="one-time">One Time</option>
+                                </select>
+                            </div>
+
+                            <div className="field">
+                                <label>Type</label>
+                                <select
+                                    value={editExpenseType}
+                                    onChange={(event) => setEditExpenseType(event.target.value as "fixed" | "variable")}
+                                >
+                                    <option value="fixed">Fixed</option>
+                                    <option value="variable">Variable</option>
+                                </select>
+
+                            </div>
+                        </div>
+                    </details>
 
                     <div className="debt-edit-actions">
                         <button

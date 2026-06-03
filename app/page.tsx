@@ -89,6 +89,19 @@ function roundMoney(amount: number) {
     return Math.round(amount * 100) / 100;
 }
 
+function formatLastSaved(value: string) {
+    const savedAt = new Date(value);
+
+    if (Number.isNaN(savedAt.getTime())) {
+        return "Saved locally";
+    }
+
+    return `Saved locally · ${savedAt.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+    })}`;
+}
+
 export default function Home() {
 
     const [amount, setAmount] = useState(() =>
@@ -220,6 +233,11 @@ export default function Home() {
 
     const [darkMode, setDarkMode] = useState(() => loadStoredState("debtPlanner.darkMode", false));
 
+    const [lastSavedAt, setLastSavedAt] = useState(() =>
+        loadStoredState("debtPlanner.lastSavedAt", "")
+    );
+    const [statusMessage, setStatusMessage] = useState("");
+
     const [isMounted, setIsMounted] = useState(false);
 
     function hasValidPayCycleInputs() {
@@ -290,6 +308,16 @@ export default function Home() {
 
         return () => window.clearTimeout(timeout);
     }, []);
+
+    useEffect(() => {
+        if (!statusMessage) return;
+
+        const timeout = window.setTimeout(() => {
+            setStatusMessage("");
+        }, 2200);
+
+        return () => window.clearTimeout(timeout);
+    }, [statusMessage]);
 
     useEffect(() => {
         localStorage.setItem(
@@ -365,6 +393,30 @@ export default function Home() {
     }, [payoffStrategy]);
 
     useEffect(() => {
+        if (!isMounted) return;
+
+        const savedAt = new Date().toISOString();
+        setLastSavedAt(savedAt);
+        localStorage.setItem("debtPlanner.lastSavedAt", JSON.stringify(savedAt));
+    }, [
+        isMounted,
+        amount,
+        payCycle,
+        semiMonthlyFirstDay,
+        semiMonthlySecondDay,
+        monthlyPayDay,
+        currentDate,
+        nextPaycheckDate,
+        requiredExpenses,
+        livingExpenses,
+        debts,
+        goals,
+        completedRecommendedActions,
+        payoffStrategy,
+        darkMode,
+    ]);
+
+    useEffect(() => {
         StatusBar.setOverlaysWebView({ overlay: false }).catch(() => undefined);
 
         StatusBar.setStyle({
@@ -395,6 +447,7 @@ export default function Home() {
 
             completedRecommendedActions,
             payoffStrategy,
+            lastSavedAt,
         };
     }
 
@@ -421,6 +474,7 @@ export default function Home() {
             completedRecommendedActions:
                 overrides?.completedRecommendedActions ?? completedRecommendedActions,
             payoffStrategy,
+            lastSavedAt,
         };
 
         window.localStorage.setItem(
@@ -469,6 +523,7 @@ export default function Home() {
         setIsFirstRunSetup(false);
         setShowPlanSettings(false);
         setActiveTab("plan");
+        setStatusMessage("Plan updated");
     }
 
     function handleAddExpense() {
@@ -821,6 +876,7 @@ export default function Home() {
 
         if (!backup) {
             setCurrentDate(today);
+            setStatusMessage("Reset to today");
             return;
         }
 
@@ -849,6 +905,7 @@ export default function Home() {
         setPayoffStrategy(backup.payoffStrategy ?? payoffStrategy);
         setCurrentDate(today);
         setNextPaycheckDate(nextDate);
+        setStatusMessage("Restored last safe snapshot");
     }
 
     function handleExportBackup() {
@@ -888,7 +945,7 @@ export default function Home() {
             );
             setPayoffStrategy(backup.payoffStrategy ?? "snowball");
 
-            alert("Backup imported successfully.");
+            setStatusMessage("Backup imported successfully");
         } catch {
             alert("Unable to import backup file.");
         }
@@ -991,6 +1048,16 @@ export default function Home() {
                 <section className="hero">
                     <h1>Debt Planner</h1>
                     <p>Enter a paycheck and see exactly what to do next.</p>
+                    {lastSavedAt && (
+                        <p className="last-saved-indicator">
+                            {formatLastSaved(lastSavedAt)}
+                        </p>
+                    )}
+                    {statusMessage && (
+                        <div className="save-status-toast" role="status" aria-live="polite">
+                            {statusMessage}
+                        </div>
+                    )}
 
                     <button
                         type="button"
@@ -1254,7 +1321,7 @@ export default function Home() {
                         )}
 
                         {isFirstRunSetup && (
-                            <div className="firt-run-import-row">
+                            <div className="first-run-import-row">
                                 <label className="secondary-button import-button">
                                     Import Backup
                                     <input
