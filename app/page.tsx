@@ -398,6 +398,37 @@ export default function Home() {
         };
     }
 
+    function saveResetSnapshot(overrides?: {
+        requiredExpenses?: RequiredExpense[];
+        debts?: Debt[];
+        goals?: Goal[];
+        completedRecommendedActions?: CompletedRecommendedAction[];
+    }) {
+        if (typeof window === "undefined") return;
+
+        const snapshot = {
+            amount,
+            payCycle,
+            semiMonthlyFirstDay,
+            semiMonthlySecondDay,
+            monthlyPayDay,
+            currentDate,
+            nextPaycheckDate,
+            requiredExpenses: overrides?.requiredExpenses ?? requiredExpenses,
+            livingExpenses,
+            debts: overrides?.debts ?? debts,
+            goals: overrides?.goals ?? goals,
+            completedRecommendedActions:
+                overrides?.completedRecommendedActions ?? completedRecommendedActions,
+            payoffStrategy,
+        };
+
+        window.localStorage.setItem(
+            "debtPlanner.resetSnapshot",
+            JSON.stringify(snapshot)
+        );
+    }
+
     async function handleImportDebtsCsv(event: ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
 
@@ -650,21 +681,25 @@ export default function Home() {
     }
 
     function handleMarkExpensePaid(id: string) {
-        setRequiredExpenses((current) =>
-            current.map((expense) =>
+        setRequiredExpenses((current) => {
+            const nextRequiredExpenses = current.map((expense) =>
                 expense.id === id
                     ? {
                         ...expense,
                         isPaidThisCycle: !expense.isPaidThisCycle,
                     }
                     : expense
-            )
-        );
+            );
+
+            saveResetSnapshot({ requiredExpenses: nextRequiredExpenses });
+
+            return nextRequiredExpenses;
+        });
     }
 
     function handleMarkDebtMinimumPaid(id: string) {
-        setDebts((current) =>
-            current.map((debt) => {
+        setDebts((current) => {
+            const nextDebts = current.map((debt) => {
                 const currentlyPaid =
                     debt.minimumPaidThisCycle ?? debt.isPaidThisCycle ?? false;
 
@@ -675,8 +710,12 @@ export default function Home() {
                         isPaidThisCycle: !currentlyPaid,
                     }
                     : debt;
-            })
-        );
+            });
+
+            saveResetSnapshot({ debts: nextDebts });
+
+            return nextDebts;
+        });
     }
 
     function handleMarkDebtSnowballPaid(id: string) {
@@ -696,19 +735,37 @@ export default function Home() {
         const existingAction = completedRecommendedActions.find((action) => action.targetId === targetId && action.label === label && action.category === category);
 
         if (existingAction) {
-            if (category === "emergency" || category === "optional_goal") {
-                setGoals((current) => current.map((goal) => goal.id === targetId ? {
-                    ...goal,
-                    currentAmount: roundMoney(Math.max(0, goal.currentAmount - existingAction.actualAmount)),
-                } : goal));
-            }
+            const nextGoals =
+                category === "emergency" || category === "optional_goal"
+                    ? goals.map((goal) =>
+                        goal.id === targetId
+                            ? {
+                                ...goal,
+                                currentAmount: roundMoney(
+                                    Math.max(0, goal.currentAmount - existingAction.actualAmount)
+                                ),
+                            }
+                            : goal
+                    )
+                    : goals;
 
-            setCompletedRecommendedActions((current) => current.filter((action) => !(action.targetId === targetId && action.label === label && action.category === category)));
+            const nextCompletedRecommendedActions = completedRecommendedActions.filter(
+                (action) => !(action.targetId === targetId && action.label === label && action.category === category)
+            );
+
+            setGoals(nextGoals);
+            setCompletedRecommendedActions(nextCompletedRecommendedActions);
+
+            saveResetSnapshot({
+                goals: nextGoals,
+                completedRecommendedActions: nextCompletedRecommendedActions,
+            });
 
             return;
         }
 
         let safeActualAmount = roundMoney(actualAmount);
+        let nextGoals = goals;
 
         if (category === "emergency" || category === "optional_goal") {
             const goal = goals.find((item) => item.id === targetId);
@@ -718,15 +775,15 @@ export default function Home() {
 
                 safeActualAmount = roundMoney(Math.min(safeActualAmount, remainingGoalAmount));
 
-                setGoals((current) => current.map((item) => item.id === targetId ? {
+                nextGoals = goals.map((item) => item.id === targetId ? {
                     ...item,
                     currentAmount: roundMoney(Math.min(item.targetAmount, item.currentAmount + safeActualAmount)),
-                } : item));
+                } : item);
             }
         }
 
-        setCompletedRecommendedActions((current) => [
-            ...current,
+        const nextCompletedRecommendedActions = [
+            ...completedRecommendedActions,
             {
                 targetId,
                 label,
@@ -734,8 +791,15 @@ export default function Home() {
                 recommendedAmount,
                 actualAmount: safeActualAmount,
             },
-        ]);
+        ];
 
+        setGoals(nextGoals);
+        setCompletedRecommendedActions(nextCompletedRecommendedActions);
+
+        saveResetSnapshot({
+            goals: nextGoals,
+            completedRecommendedActions: nextCompletedRecommendedActions,
+        });
     }
 
     function getCompletedRecommendedAmountForDebt(debtId: string) {
@@ -748,7 +812,43 @@ export default function Home() {
     }
 
     function handleResetToToday() {
-        setCurrentDate(getCurrentDate());
+        const backup = loadStoredState<ReturnType<typeof buildBackupData> | null>(
+            "debtPlanner.resetSnapshot",
+            null
+        );
+
+        const today = getCurrentDate();
+
+        if (!backup) {
+            setCurrentDate(today);
+            return;
+        }
+
+        const nextDate = getNextPaycheckDate({
+            payCycle: backup.payCycle ?? payCycle,
+            currentDate: today,
+            semiMonthlyFirstDay: Number(
+                backup.semiMonthlyFirstDay ?? semiMonthlyFirstDay
+            ),
+            semiMonthlySecondDay: Number(
+                backup.semiMonthlySecondDay ?? semiMonthlySecondDay
+            ),
+            monthlyPayDay: Number(backup.monthlyPayDay ?? monthlyPayDay),
+        });
+
+        setAmount(String(backup.amount ?? ""));
+        setPayCycle(backup.payCycle ?? payCycle);
+        setSemiMonthlyFirstDay(String(backup.semiMonthlyFirstDay ?? semiMonthlyFirstDay));
+        setSemiMonthlySecondDay(String(backup.semiMonthlySecondDay ?? semiMonthlySecondDay));
+        setMonthlyPayDay(String(backup.monthlyPayDay ?? monthlyPayDay));
+        setRequiredExpenses(backup.requiredExpenses ?? []);
+        setLivingExpenses(backup.livingExpenses ?? livingExpenses);
+        setDebts(backup.debts ?? []);
+        setGoals(backup.goals ?? []);
+        setCompletedRecommendedActions(backup.completedRecommendedActions ?? []);
+        setPayoffStrategy(backup.payoffStrategy ?? payoffStrategy);
+        setCurrentDate(today);
+        setNextPaycheckDate(nextDate);
     }
 
     function handleExportBackup() {
@@ -797,6 +897,7 @@ export default function Home() {
     }
 
     function handleRolloverPayCycle() {
+        saveResetSnapshot();
 
         setDebts((current) =>
             rolloverDebts(
