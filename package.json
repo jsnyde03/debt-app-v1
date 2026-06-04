@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test",
-    "validate:release": "npm run lint && npx tsx lib/testing/runRegressionTests.ts && npm run test:e2e && npm run build"
+    "validate:release": "npm run lint && npx tsx lib/testing/runRegressionTests.ts && npm run test:e2e && npm run build",
+    "test:regression": "tsx lib/testing/runRegressionTests"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
@@ -31,6 +32,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5"
   }
 }

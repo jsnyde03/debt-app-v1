@@ -32,6 +32,10 @@ function advanceDueDateOnce(date: string, recurrence: RequiredExpense["recurrenc
             return addDays(date, 14);
         case "monthly":
             return addMonths(date, 1);
+        case "quarterly":
+            return addMonths(date, 3);
+        case "annually":
+            return addMonths(date, 12);
         case "per-paycheck":
         case "one-time":
         default:

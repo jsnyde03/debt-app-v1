@@ -151,11 +151,13 @@ export function RequiredExpensesSection({
                                     value={editRecurrence}
                                     onChange={(event) => setEditRecurrence(event.target.value as Recurrence)}
                                 >
-                                    <option value="monthly">Monthly</option>
+                                    <option value="one-time">One Time</option>
+                                    <option value="per-paycheck">Every Paycheck</option>
                                     <option value="weekly">Weekly</option>
                                     <option value="biweekly">Every 2 Weeks</option>
-                                    <option value="per-paycheck">Every Paycheck</option>
-                                    <option value="one-time">One Time</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="quarterly">Quarterly</option>
+                                    <option value="annually">Yearly</option>
                                 </select>
                             </div>
 

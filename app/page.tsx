@@ -67,6 +67,10 @@ function formatRecurrence(recurrence: Recurrence) {
             return "Every 2 weeks";
         case "per-paycheck":
             return "Every paycheck";
+        case "quarterly":
+            return "Quarterly";
+        case "annually":
+            return "Yearly";
         case "monthly":
         default:
             return "Monthly";

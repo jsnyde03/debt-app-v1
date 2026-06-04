@@ -4,3 +4,5 @@ export type Recurrence =
 	| "weekly"
 	| "biweekly"
 	| "per-paycheck"
+	| "quarterly"
+	| "annually"
