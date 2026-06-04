@@ -248,28 +248,7 @@ export function ResultsSection({
             isCompleted: true,
         }));
 
-    const activeRecommendedDisplayActions: RecommendedDisplayAction[] = [];
-
-
-    const displayedRecommendedActions = [
-        ...completedRecommendedDisplayActions,
-        ...activeRecommendedDisplayActions,
-    ];
-
-    const visibleRecommendedActions = showAllRecommendedActions
-        ? displayedRecommendedActions
-        : displayedRecommendedActions.slice(0, 5);
-
-    const hiddenRecommendedCount = Math.max(
-        0,
-        displayedRecommendedActions.length - visibleRecommendedActions.length
-    );
-
-    const displayedRecommendedTotal = displayedRecommendedActions.reduce(
-        (sum, action) => sum + action.actualAmount,
-        0
-    );
-
+    
     const requiredTotal = unpaidRequiredActions.reduce((sum, item) => sum + item.amount, 0);
     const completedRequiredTotal = completedRequiredActions.reduce((sum, item) => sum + item.amount, 0);
 
@@ -289,7 +268,7 @@ export function ResultsSection({
         )
     );
 
-    const remaningCashToComeOut = roundMoney(Math.max(0, requiredTotal + displayedRecommendedTotal));
+    
 
     function getRecommendationMaxAmount(item: AllocationResult["allocations"][number]) {
         if(!item.targetId) {
@@ -319,9 +298,11 @@ export function ResultsSection({
         return item.amount;
     }
 
-    let remainingRecommendationCapacity = flexibleCashAvailable;
+
+    const activeRecommendedDisplayActions: RecommendedDisplayAction[] = [];
 
     
+    let remainingRecommendationCapacity = flexibleCashAvailable;
 
     for (const item of recommendedActions) {
         if (remainingRecommendationCapacity <= 0) {
@@ -356,6 +337,28 @@ export function ResultsSection({
             remainingRecommendationCapacity - amount
         );
     }
+    
+    const displayedRecommendedActions = [
+        ...completedRecommendedDisplayActions,
+        ...activeRecommendedDisplayActions,
+    ];
+
+    const visibleRecommendedActions = showAllRecommendedActions
+        ? displayedRecommendedActions
+        : displayedRecommendedActions.slice(0, 5);
+
+    const hiddenRecommendedCount = Math.max(
+        0,
+        displayedRecommendedActions.length - visibleRecommendedActions.length
+    );
+
+    const displayedRecommendedTotal = displayedRecommendedActions.reduce(
+        (sum, action) => sum + action.actualAmount,
+        0
+    );
+
+    const remainingCashToComeOut = roundMoney(Math.max(0, requiredTotal + displayedRecommendedTotal));
+
 
     
     
@@ -725,7 +728,7 @@ export function ResultsSection({
 
                 <div>
                     <span>Flexible Cash</span>
-                    <strong>{formatCurrency(remaningCashToComeOut)}</strong>
+                    <strong>{formatCurrency(remainingCashToComeOut)}</strong>
                 </div>
 
                 <div>
