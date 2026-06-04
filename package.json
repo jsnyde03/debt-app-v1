@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
+    "@capacitor/assets": "^3.0.5",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/gensync": "^1.0.5",
