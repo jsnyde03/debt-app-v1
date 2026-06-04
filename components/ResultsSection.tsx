@@ -237,7 +237,41 @@ export function ResultsSection({
         0
     );
 
-    const requiredTotal = result.totalRequired;
+    const completedRecommendedDisplayActions: RecommendedDisplayAction[] =
+        completedRecommendedActions.map((action) => ({
+            key: `completed-${action.category}-${action.targetId}-${action.label}`,
+            label: action.label,
+            category: action.category,
+            targetId: action.targetId,
+            recommendedAmount: action.recommendedAmount,
+            actualAmount: action.actualAmount,
+            isCompleted: true,
+        }));
+
+    const activeRecommendedDisplayActions: RecommendedDisplayAction[] = [];
+
+
+    const displayedRecommendedActions = [
+        ...completedRecommendedDisplayActions,
+        ...activeRecommendedDisplayActions,
+    ];
+
+    const visibleRecommendedActions = showAllRecommendedActions
+        ? displayedRecommendedActions
+        : displayedRecommendedActions.slice(0, 5);
+
+    const hiddenRecommendedCount = Math.max(
+        0,
+        displayedRecommendedActions.length - visibleRecommendedActions.length
+    );
+
+    const displayedRecommendedTotal = displayedRecommendedActions.reduce(
+        (sum, action) => sum + action.actualAmount,
+        0
+    );
+
+    const requiredTotal = unpaidRequiredActions.reduce((sum, item) => sum + item.amount, 0);
+    const completedRequiredTotal = completedRequiredActions.reduce((sum, item) => sum + item.amount, 0);
 
     const completedRecommendedTotal = completedRecommendedActions.reduce(
         (sum, action) => sum + action.actualAmount,
@@ -248,12 +282,14 @@ export function ResultsSection({
         Math.max(
             0,
             result.paycheckAmount -
-            requiredTotal -
+            result.totalRequired -
             result.livingExpenseReserve -
             bufferTotal -
             completedRecommendedTotal
         )
     );
+
+    const remaningCashToComeOut = roundMoney(Math.max(0, requiredTotal + displayedRecommendedTotal));
 
     function getRecommendationMaxAmount(item: AllocationResult["allocations"][number]) {
         if(!item.targetId) {
@@ -285,7 +321,7 @@ export function ResultsSection({
 
     let remainingRecommendationCapacity = flexibleCashAvailable;
 
-    const activeRecommendedDisplayActions: RecommendedDisplayAction[] = [];
+    
 
     for (const item of recommendedActions) {
         if (remainingRecommendationCapacity <= 0) {
@@ -321,35 +357,8 @@ export function ResultsSection({
         );
     }
 
-    const completedRecommendedDisplayActions: RecommendedDisplayAction[] =
-        completedRecommendedActions.map((action) => ({
-            key: `completed-${action.category}-${action.targetId}-${action.label}`,
-            label: action.label,
-            category: action.category,
-            targetId: action.targetId,
-            recommendedAmount: action.recommendedAmount,
-            actualAmount: action.actualAmount,
-            isCompleted: true,
-        }));
-
-    const displayedRecommendedActions = [
-        ...completedRecommendedDisplayActions,
-        ...activeRecommendedDisplayActions,
-    ];
-
-    const visibleRecommendedActions = showAllRecommendedActions
-        ? displayedRecommendedActions
-        : displayedRecommendedActions.slice(0, 5);
-
-    const hiddenRecommendedCount = Math.max(
-        0,
-        displayedRecommendedActions.length - visibleRecommendedActions.length
-    );
-
-    const displayedRecommendedTotal = displayedRecommendedActions.reduce(
-        (sum, action) => sum + action.actualAmount,
-        0
-    );
+    
+    
 
     const hasOverdueItems = requiredActions.some((item) => {
         const expense = requiredExpenses.find(
@@ -716,7 +725,7 @@ export function ResultsSection({
 
                 <div>
                     <span>Flexible Cash</span>
-                    <strong>{formatCurrency(flexibleCashAvailable)}</strong>
+                    <strong>{formatCurrency(remaningCashToComeOut)}</strong>
                 </div>
 
                 <div>
