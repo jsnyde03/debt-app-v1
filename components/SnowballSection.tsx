@@ -51,7 +51,7 @@ export function SnowballSection({
 
         return {
             ...debt,
-            balance: Math.max(0, (debt.displayBalance ?? debt.balance - completedAmountForDebt),
+            balance: Math.max(0, (debt.displayBalance ?? debt.balance) - completedAmountForDebt),
         };
     });
 
