@@ -6,6 +6,10 @@ import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 
+type DebtWithDisplayBalance = Debt & {
+    displayBalance?: number;
+}
+
 type CompletedRecommendedAction = {
     targetId: string;
     label: string;
@@ -15,7 +19,7 @@ type CompletedRecommendedAction = {
 };
 
 type SnowballSectionProps = {
-    debts: Debt[];
+    debts: DebtWithDisplayBalance[];
     result: AllocationResult | null;
     completedRecommendedActions: CompletedRecommendedAction[];
     payoffStrategy: "snowball" | "avalanche";
@@ -47,7 +51,7 @@ export function SnowballSection({
 
         return {
             ...debt,
-            balance: Math.max(0, debt.balance - completedAmountForDebt),
+            balance: Math.max(0, (debt.displayBalance ?? debt.balance - completedAmountForDebt),
         };
     });
 
@@ -161,7 +165,7 @@ export function SnowballSection({
                             <strong>{currentTarget.name}</strong>
                         </div>
 
-                        <strong>{formatCurrency(currentTarget.balance)} left</strong>
+                        <strong>{formatCurrency(currentTarget.displayBalance ?? currentTarget.balance)} left</strong>
                     </div>
 
                     <div className="payoff-strategy-selector compact-payoff-strategy">
@@ -276,7 +280,7 @@ export function SnowballSection({
 
                                         <div className="saved-item-right">
                                             <strong className="saved-amount">
-                                                {formatCurrency(debt.balance)}
+                                                {formatCurrency(debt.displayBalance ?? debt.balance)}
                                             </strong>
                                         </div>
                                     </div>

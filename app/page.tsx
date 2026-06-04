@@ -30,6 +30,7 @@ import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
 import { StatusBar, Style } from "@capacitor/status-bar";
+import { detectConflictingPaths } from "next/dist/build/utils";
 
 type Goal = {
     id: string;
@@ -87,6 +88,14 @@ function loadStoredState<T>(key: string, fallback: T): T {
 
 function roundMoney(amount: number) {
     return Math.round(amount * 100) / 100;
+}
+
+function getDebtDisplayBalance(debt: Debt, completedSnowballAmount: number) {
+    const paidMinimumAmount = debt.minimumPaidThisCycle || debt.isPaidThisCycle
+        ? Math.min(debt.minimumPayment, debt.balance)
+        : 0;
+
+    return roundMoney(Math.max(0, debt.balance - paidMinimumAmount - completedSnowballAmount));
 }
 
 function formatLastSaved(value: string) {
@@ -291,8 +300,14 @@ export default function Home() {
         payoffStrategy,
     ]);
 
-    const activeDebts = debts.filter((debt) => debt.balance > 0);
-    const paidOffDebts = debts.filter((debt) => debt.balance <= 0);
+    const debtsWithDisplayBalances = debts.map((debt) => ({
+
+        ...debt,
+        displayBalance: getDebtDisplayBalance(debt, getCompletedRecommendedAmountForDebt(debt.id)),
+    }));
+
+    const activeDebts = debtsWithDisplayBalances.filter((debt) => debt.displayBalance > 0);
+    const paidOffDebts = debtsWithDisplayBalances.filter((debt) => debt.displayBalance <= 0);
 
     useEffect(() => {
         localStorage.setItem("debtPlanner.livingExpenses", JSON.stringify(livingExpenses));
@@ -1019,8 +1034,6 @@ export default function Home() {
             setCurrentDate(nextCycleStart);
             setNextPaycheckDate(followingPaycheckDate);
         }
-
-
     }
 
     function handlePopulateDemoData() {
@@ -1101,7 +1114,7 @@ export default function Home() {
 
                 {activeTab === "snowball" && (
                     <SnowballSection
-                        debts={debts}
+                        debts={debtsWithDisplayBalances}
                         result={result}
                         completedRecommendedActions={completedRecommendedActions}
                         payoffStrategy={payoffStrategy}

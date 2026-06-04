@@ -5,9 +5,13 @@ import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 type DebtSortOption = "dueDate" | "balance" | "apr" | "minimumPayment" | "name";
 
+type DebtWithDisplayBalance = Debt & {
+    displayBalance?: number;
+};
+
 type DebtSectionProps = {
-    activeDebts: Debt[];
-    paidOffDebts: Debt[];
+    activeDebts: DebtWithDisplayBalance[];
+    paidOffDebts: DebtWithDisplayBalance[];
 
     debtName: string;
     debtBalance: string;
@@ -51,7 +55,7 @@ type DebtSectionProps = {
         updates: Partial<Pick<Debt, "balance" | "minimumPayment" | "dueDate" | "apr">>) => void;
 };
 
-function sortDebts(debts: Debt[], sortBy: DebtSortOption) {
+function sortDebts(debts: DebtWithDisplayBalance[], sortBy: DebtSortOption) {
     return [...debts].sort((a, b) => {
         switch (sortBy) {
             case "balance":
@@ -133,7 +137,7 @@ export function DebtsSection({
     const filteredActiveDebts = sortDebts(activeDebts.filter((debt) => debt.name.toLowerCase().includes(searchTerm.toLowerCase())), sortBy);
     const filteredPaidOffDebts = sortDebts(paidOffDebts.filter((debt) => debt.name.toLowerCase().includes(searchTerm.toLowerCase())), sortBy);
 
-    const totalDebt = activeDebts.reduce((sum, debt) => sum + debt.balance, 0);
+    const totalDebt = activeDebts.reduce((sum, debt) => sum + (debt.displayBalance ?? debt.balance), 0);
     const totalMinimums = activeDebts.reduce((sum, debt) => sum + debt.minimumPayment, 0);
     const highestApr = activeDebts.reduce((highest, debt) => Math.max(highest, debt.apr), 0);
 
@@ -184,7 +188,7 @@ export function DebtsSection({
         setShowAddDebtModal(false);
     }
 
-    function renderDebt(debt: Debt) {
+    function renderDebt(debt: DebtWithDisplayBalance) {
         const isEditing = editingDebtId === debt.id;
 
         if (isEditing) {
@@ -284,11 +288,11 @@ export function DebtsSection({
             >
                 <div className="saved-item-left">
                     <div className="saved-title">
-                        {debt.name} {debt.balance <= 0 ? "✔" : ""}
+                        {debt.name} {(debt.displayBalance ?? debt.balance) <= 0 ? "✔" : ""}
                     </div>
 
                     <div className="saved-meta debt-card-meta">
-                        <span>Balance: {formatCurrency(debt.balance)}</span>
+                        <span>Balance: {formatCurrency(debt.displayBalance ?? debt.balance)}</span>
 
                         <span>APR {debt.apr}%</span>
 
