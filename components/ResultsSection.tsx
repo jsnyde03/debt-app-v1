@@ -337,7 +337,7 @@ export function ResultsSection({
             remainingRecommendationCapacity - amount
         );
     }
-    
+
     const displayedRecommendedActions = [
         ...completedRecommendedDisplayActions,
         ...activeRecommendedDisplayActions,
@@ -728,6 +728,11 @@ export function ResultsSection({
 
                 <div>
                     <span>Flexible Cash</span>
+                    <strong>{formatCurrency(flexibleCashAvailable)}</strong>
+                </div>
+
+                <div>
+                    <span>Still To Pay</span>
                     <strong>{formatCurrency(remainingCashToComeOut)}</strong>
                 </div>
 
