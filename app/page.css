@@ -1298,32 +1298,43 @@ button:active {
 
 .execution-summary-strip {
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: var(--space-1);
-	padding: 10px;
-	border-radius: 18px;
-	background: var(--surface-muted);
-	border: 1px solid var(--border-soft);
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 16px;
+	padding: 18px 20px;
+	border-radius: 22px;
+	background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(37, 99, 235, 0.1));
+	border: 1px solid rgba(148, 163, 184, 0.14);
+	backdrop-filter: blur(18px);
 }
 
 .execution-summary-strip div {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: center;
 	min-width: 0;
 }
 
 .execution-summary-strip span {
-	display: block;
-	font-size: 0.68rem;
+	font-size: 0.72rem;
 	font-weight: 700;
-	color: var(--text-secondary);
-	margin-bottom: 2px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: rgba(226, 232, 240, 0.7);
+	margin-bottom: 6px;
 }
 
 .execution-summary-strip strong {
-	display: block;
-	font-size: 0.92rem;
+	font-size: 1.15rem;
 	font-weight: 900;
-	letter-spacing: -0.02em;
-	white-space: nowrap;
+	color: #f8fafc;
+	line-height: 1;
+}
+
+@media (max-width: 768px) {
+	.execution-summary-strip {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
 }
 
 .section-collapse-button {
@@ -2079,6 +2090,24 @@ button:active {
 	border: 1px solid rgba(59, 130, 246, 0.24);
 }
 
+.category-pill {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 8px;
+	padding: 2px 8px;
+	border-radius: var(--radius-pill);
+	font-size: 0.72rem;
+	font-weight: 800;
+	background: rgba(148, 163, 184, 0.14);
+	color: var(--text-secondary);
+	border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.category-pill-icon {
+	display: inline-flex;
+	margin-right: 6px;
+}
+
 .timeline-card {
 	margin-top: 20px;
 }
@@ -2120,6 +2149,54 @@ button:active {
 	font-weight: 700;
 }
 
+.timeline-icon {
+	margin-right: 8px;
+}
+
+.timeline-status-pill {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 8px;
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: 0.72rem;
+	font-weight: 800;
+	background: rgba(148, 163, 184, 0.14);
+	color: var(--text-secondary);
+	border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.timeline-label .category-pill {
+	margin-left: 8px;
+}
+
+.timeline-recommended-pill {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 8px;
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: 0.72rem;
+	font-weight: 800;
+	background: rgba(59, 130, 246, 0.12);
+	color: #93c5fd;
+	border: 1px solid rgba(59, 130, 246, 0.48);
+}
+
+.timeline-paid {
+	opacity: 0.78;
+}
+
+.timeline-paid .timeline-label {
+	text-decoration: none;
+}
+
+.timeline-paid .timeline-status-pill {
+	background: rgba(34, 197, 94, 0.14);
+	color: #86efac;
+	border-color: rgba(34, 197, 94, 0.28);
+}
+
 .timeline-right {
 	text-align: right;
 }
@@ -2136,6 +2213,11 @@ button:active {
 	font-size: 0.8rem;
 	opacity: 0.7;
 	margin-top: 4px;
+}
+
+.timeline-cash-warning {
+	color: #f87171;
+	font-weight: 900;
 }
 
 .timeline-next-paycheck {

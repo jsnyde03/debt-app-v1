@@ -1,6 +1,14 @@
 import type { PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
 import type { Recurrence } from "@/lib/types/recurrence";
 
+export type RequiredExpenseCategory = 
+	| "housing"
+	| "utilities"
+	| "insurance"
+	| "subscriptions"
+	| "medical"
+	| "other";
+
 export type RequiredExpense = {
 	id: string;
 	name: string;
@@ -11,6 +19,7 @@ export type RequiredExpense = {
 	isPaidThisCycle?: boolean;
 	isAutopay?: boolean;
 	expenseType?: "fixed" | "variable";
+	category?: RequiredExpenseCategory;
 };
 
 export type Debt = {

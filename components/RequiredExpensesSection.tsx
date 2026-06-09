@@ -1,8 +1,42 @@
 import { useState } from "react";
-import type { RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { requiredExpensePresets } from "@/lib/constants/requiredExpensePresets";
+
+const requiredExpenseCategoryOptions: {
+    value: RequiredExpenseCategory;
+    label: string;
+}[] = [
+        { value: "housing", label: "Housing" },
+        { value: "utilities", label: "Utilities" },
+        { value: "insurance", label: "Insurance" },
+        { value: "subscriptions", label: "Subscriptions" },
+        { value: "medical", label: "Medical" },
+        { value: "other", label: "Other" },
+    ];
+
+function formatRequiredExpenseCategory(category?: RequiredExpenseCategory) {
+    return (
+        requiredExpenseCategoryOptions.find((option) => option.value === (category ?? "other"))?.label ?? "Other");
+}
+
+function getRequiredExpenseCategoryIcon(category?: RequiredExpenseCategory) {
+    switch (category) {
+        case "housing":
+            return "🏠";
+        case "utilities":
+            return "💡";
+        case "insurance":
+            return "🩺";
+        case "subscriptions":
+            return "📺";
+        case "medical":
+            return "💊";
+        default:
+            return "📌";
+    }
+}
 
 type RequiredExpensesSectionProps = {
     expenses: RequiredExpense[];
@@ -11,6 +45,7 @@ type RequiredExpensesSectionProps = {
     expenseDueDate: string;
     expenseRecurrence: Recurrence;
     expenseType: "fixed" | "variable";
+    expenseCategory: RequiredExpenseCategory;
     expenseIsAutopay: boolean;
     expenseErrors: {
         name?: string;
@@ -25,12 +60,13 @@ type RequiredExpensesSectionProps = {
     onExpenseDueDateChange: (value: string) => void;
     onExpenseRecurrenceChange: (value: Recurrence) => void;
     onExpenseTypeChange: (value: "fixed" | "variable") => void;
+    onExpenseCategoryChange: (value: RequiredExpenseCategory) => void;
     onExpenseIsAutopayChange: (value: boolean) => void;
     onAddExpense: () => void;
     onRemoveExpense: (id: string) => void;
     onUpdateExpense: (
         id: string,
-        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate" | "recurrence" | "expenseType" | "isAutopay">>
+        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate" | "recurrence" | "expenseType" | "category" | "isAutopay">>
     ) => void;
 }
 
@@ -41,6 +77,7 @@ export function RequiredExpensesSection({
     expenseDueDate,
     expenseRecurrence,
     expenseType,
+    expenseCategory,
     expenseIsAutopay,
     expenseErrors,
     formatRecurrence,
@@ -49,6 +86,7 @@ export function RequiredExpensesSection({
     onExpenseDueDateChange,
     onExpenseRecurrenceChange,
     onExpenseTypeChange,
+    onExpenseCategoryChange,
     onExpenseIsAutopayChange,
     onAddExpense,
     onRemoveExpense,
@@ -59,6 +97,7 @@ export function RequiredExpensesSection({
     const [editDueDate, setEditDueDate] = useState("");
     const [editRecurrence, setEditRecurrence] = useState<Recurrence>("monthly");
     const [editExpenseType, setEditExpenseType] = useState<"fixed" | "variable">("fixed");
+    const [editCategory, setEditCategory] = useState<RequiredExpenseCategory>("other");
     const [editIsAutopay, setEditIsAutopay] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
@@ -76,6 +115,7 @@ export function RequiredExpensesSection({
         setEditDueDate(expense.dueDate);
         setEditRecurrence(expense.recurrence);
         setEditExpenseType(expense.expenseType ?? "fixed");
+        setEditCategory(expense.category ?? "other");
         setEditIsAutopay(expense.isAutopay ?? false);
     }
 
@@ -85,6 +125,7 @@ export function RequiredExpensesSection({
         setEditDueDate("");
         setEditRecurrence("monthly");
         setEditExpenseType("fixed");
+        setEditCategory("other");
         setEditIsAutopay(false);
     }
 
@@ -100,6 +141,7 @@ export function RequiredExpensesSection({
             dueDate: editDueDate,
             recurrence: editRecurrence,
             expenseType: editExpenseType,
+            category: editCategory,
             isAutopay: editIsAutopay,
         });
 
@@ -184,6 +226,20 @@ export function RequiredExpensesSection({
                                 </select>
                             </div>
 
+                            <div className="field">
+                                <label>Category</label>
+                                <select
+                                    value={editCategory}
+                                    onChange={(event) => setEditCategory(event.target.value as RequiredExpenseCategory)}
+                                >
+                                    {requiredExpenseCategoryOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
                             <div className="field checkbox-field">
                                 <label className="checkbox-label">
                                     <input
@@ -243,13 +299,21 @@ export function RequiredExpensesSection({
                         {expense.name}
                         {expense.isPaidThisCycle ? "✔" : ""}
                         {expense.isAutopay && <span className="autopay-pill">Autopay</span>}
+                        <span className="category-pill">
+                            <span className="category-pill-icon">
+                                {getRequiredExpenseCategoryIcon(expense.category)}
+                            </span>
+
+                            {formatRequiredExpenseCategory(expense.category)}
+                        </span>
                     </div>
 
                     <div className="saved-meta">
                         Due {expense.dueDate} · {formatRecurrence(expense.recurrence)} ·{" "}
                         {(expense.expenseType ?? "fixed") === "fixed"
                             ? "Fixed"
-                            : "Variable"}
+                            : "Variable"}{" "}
+                        · {formatRequiredExpenseCategory(expense.category)}
                     </div>
                 </div>
 
@@ -462,6 +526,21 @@ export function RequiredExpensesSection({
                                 >
                                     <option value="fixed">Fixed</option>
                                     <option value="variable">Variable</option>
+                                </select>
+                            </div>
+
+                            <div className="field">
+                                <label>Category</label>
+
+                                <select
+                                    value={expenseCategory}
+                                    onChange={(event) => onExpenseCategoryChange(event.target.value)}
+                                >
+                                    {requiredExpenseCategoryOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 

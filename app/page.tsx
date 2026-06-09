@@ -21,7 +21,7 @@ import {
     rolloverRequiredExpenses,
 } from "@/lib/recurrence/rolloverPayCycle";
 
-import { type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+import { type RecommendationOverride, type Debt, type RequiredExpense, type RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import { calculateMonthlyInterest } from "@/lib/debt/calculateMonthlyInterest";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { parseDebtCsv } from "@/lib/imports/debtCsv";
@@ -169,6 +169,7 @@ export default function Home() {
     const [expenseRecurrence, setExpenseRecurrence] =
         useState<Recurrence>("monthly");
     const [expenseType, setExpenseType] = useState<"fixed" | "variable">("fixed");
+    const [expenseCategory, setExpenseCategory] = useState<RequiredExpenseCategory>("other");
     const [expenseIsAutopay, setExpenseIsAutopay] = useState(false);
     const [debts, setDebts] = useState<Debt[]>(() =>
         loadStoredState("debtPlanner.debts", [])
@@ -579,6 +580,7 @@ export default function Home() {
                 originalDueDate: expenseDueDate,
                 recurrence: expenseRecurrence,
                 expenseType,
+                category: expenseCategory,
                 isAutopay: expenseIsAutopay,
                 isPaidThisCycle: false,
             },
@@ -589,12 +591,13 @@ export default function Home() {
         setExpenseDueDate("");
         setExpenseRecurrence("monthly");
         setExpenseType("fixed");
+        setExpenseCategory("other");
         setExpenseIsAutopay(false);
     }
 
     function handleUpdateExpense(
         id: string,
-        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate" | "recurrence" | "expenseType" | "isAutopay">>
+        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate" | "recurrence" | "expenseType" | "category" | "isAutopay">>
     ) {
         setRequiredExpenses((current) =>
             current.map((expense) =>
@@ -1206,6 +1209,7 @@ export default function Home() {
                             expenseDueDate={expenseDueDate}
                             expenseRecurrence={expenseRecurrence}
                             expenseType={expenseType}
+                            expenseCategory={expenseCategory}
                             expenseIsAutopay={expenseIsAutopay}
                             formatRecurrence={formatRecurrence}
                             onExpenseNameChange={setExpenseName}
@@ -1213,6 +1217,7 @@ export default function Home() {
                             onExpenseDueDateChange={setExpenseDueDate}
                             onExpenseRecurrenceChange={setExpenseRecurrence}
                             onExpenseTypeChange={setExpenseType}
+                            onExpenseCategoryChange={setExpenseCategory}
                             onExpenseIsAutopayChange={setExpenseIsAutopay}
                             onAddExpense={handleAddExpense}
                             onRemoveExpense={handleRemoveExpense}

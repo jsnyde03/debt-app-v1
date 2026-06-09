@@ -826,13 +826,6 @@ export function ResultsSection({
                 </div>
 
                 <div>
-                    <span>Living Reserve</span>
-                    <strong>
-                        {formatCurrency(result.livingExpenseReserve)}
-                    </strong>
-                </div>
-
-                <div>
                     <span>Recommended</span>
                     <strong>
                         {formatCurrency(displayedRecommendedTotal)}
@@ -840,13 +833,8 @@ export function ResultsSection({
                 </div>
 
                 <div>
-                    <span>Flexible Cash</span>
+                    <span>Safe Cash</span>
                     <strong>{formatCurrency(flexibleCashAvailable)}</strong>
-                </div>
-
-                <div>
-                    <span>Still To Pay</span>
-                    <strong>{formatCurrency(remainingCashToComeOut)}</strong>
                 </div>
 
                 <div>

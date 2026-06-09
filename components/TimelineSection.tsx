@@ -2,6 +2,7 @@ import { formatCurrency } from "@/lib/utils/formatCurrency";
 import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import { buildTimelineItems } from "@/lib/timeline/buildTimelineItems";
+import { isPagesAPIRouteMatch } from "next/dist/server/route-matches/pages-api-route-match";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 
@@ -22,6 +23,93 @@ type TimelineSectionProps = {
     nextPaycheckDate: string;
     completedRecommendedActions: TimelineRecommendedAction[];
 };
+
+function formatTimelineDate(date: string) {
+    return new Date(`${date}T00:00:00`).toLocaleDateString(
+        "en-US",
+        {
+            month: "short",
+            day: "numeric",
+        }
+    );
+}
+
+function getTimelineIcon(type: string) {
+    if (type === "paycheck") {
+        return "💵";
+    }
+
+    if (type === "living_reserve") {
+        return "🛒"
+    }
+
+    if (type.includes("autopay")) {
+        return "⚡";
+    }
+
+    if (type.includes("debt") || type === "snowball") {
+        return "💳";
+    }
+
+    if (type === "emergency") {
+        return "📞";
+    }
+
+    if (type === "optional_goal") {
+        return "🎯";
+    }
+
+    return "📌";
+}
+
+function getTimelineCategoryIcon(category?: string) {
+    switch (category) {
+        case "housing":
+            return "🏠";
+
+        case "utilities":
+            return "💡";
+
+        case "insurance":
+            return "🩺";
+
+        case "subscriptions":
+            return "📺";
+
+        case "medical":
+            return "💊";
+
+        default:
+            return "📌";
+    }
+}
+
+function getTimelineStatusLabel(item: { type: string; status?: "planned" | "paid" | "external"; isExternal?: boolean, isPaid?: boolean;}) {
+    if (item.isExternal) {
+        return "Outside Money";
+    }
+
+    if (item.status === "paid" || item.isPaid) {
+        if ( item.type === "snowball" || item.type === "emergency" || item.type === "optional_goal") {
+            return "Committed";
+        }
+        return "Paid";
+    }
+
+    if (item.type.includes("autopay")) {
+        return "Autopay";
+    }
+
+    if (item.type === "paycheck") {
+        return "Income";
+    }
+
+    if (item.type === "living_reserve") {
+        return "Reserve";
+    }
+
+    return "Planned";
+}
 
 export function TimelineSection({
     result,
@@ -67,15 +155,41 @@ export function TimelineSection({
                                 item.type.includes("autopay")
                                     ? "timeline-autopay"
                                     : "",
+                                item.isPaid ? "timeline-paid" : "",
                             ].filter(Boolean).join(" ")}
                         >
                             <div className="timeline-left">
                                 <div className="timeline-date">
-                                    {item.date}
+                                    {formatTimelineDate(item.date)}
                                 </div>
 
                                 <div className="timeline-label">
+
+                                    <span className="timeline-icon">
+                                        {getTimelineIcon(item.type)}
+                                    </span>
+
                                     {item.label}
+
+                                    {item.category && (
+                                        <span className="category-pill">
+                                            <span className="category-pill-icon">
+                                                {getTimelineCategoryIcon(item.category)}
+                                            </span>
+
+                                            {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+                                        </span>
+                                    )}
+
+                                    {(
+                                        item.type === "snowball" ||
+                                        item.type === "emergency" ||
+                                        item.type === "optional_goal"
+                                    ) && (
+                                        <span className="timeline-recommended-pill">
+                                            Recommended
+                                        </span>
+                                    )}
 
                                     {item.type.includes("autopay") && (
                                         <span className="autopay-pill">
@@ -88,6 +202,10 @@ export function TimelineSection({
                                             Outside Money
                                         </span>
                                     )}
+
+                                    <span className="timeline-status-pill">
+                                        {getTimelineStatusLabel(item)}
+                                    </span>
                                 </div>
                             </div>
 
@@ -103,7 +221,13 @@ export function TimelineSection({
                                     {formatCurrency(item.amount)}
                                 </strong>
 
-                                <div className="timeline-running-cash">
+                                <div
+                                    className={
+                                        item.runningCash < 100
+                                            ? "timeline-running-cash timeline-cash-warning"
+                                            : "timeline-running-cash"
+                                    }
+                                >
                                     Safe Cash:{" "}
                                     {formatCurrency(item.runningCash)}
                                 </div>
