@@ -534,7 +534,7 @@ export function RequiredExpensesSection({
 
                                 <select
                                     value={expenseCategory}
-                                    onChange={(event) => onExpenseCategoryChange(event.target.value)}
+                                    onChange={(event) => onExpenseCategoryChange(event.target.value as RequiredExpenseCategory)}
                                 >
                                     {requiredExpenseCategoryOptions.map((option) => (
                                         <option key={option.value} value={option.value}>
