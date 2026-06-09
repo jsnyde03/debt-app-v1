@@ -21,7 +21,7 @@ import {
     rolloverRequiredExpenses,
 } from "@/lib/recurrence/rolloverPayCycle";
 
-import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+import { type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 import { calculateMonthlyInterest } from "@/lib/debt/calculateMonthlyInterest";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { parseDebtCsv } from "@/lib/imports/debtCsv";
@@ -30,7 +30,7 @@ import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
 import { StatusBar, Style } from "@capacitor/status-bar";
-import { detectConflictingPaths } from "next/dist/build/utils";
+import { TimelineSection } from "@/components/TimelineSection";
 
 type Goal = {
     id: string;
@@ -47,6 +47,7 @@ type CompletedRecommendedAction = {
     category: "emergency" | "snowball" | "optional_goal";
     recommendedAmount: number;
     actualAmount: number;
+    paymentSource?: "paycheck" | "external";
 };
 
 function getCurrentDate() {
@@ -168,7 +169,7 @@ export default function Home() {
     const [expenseRecurrence, setExpenseRecurrence] =
         useState<Recurrence>("monthly");
     const [expenseType, setExpenseType] = useState<"fixed" | "variable">("fixed");
-
+    const [expenseIsAutopay, setExpenseIsAutopay] = useState(false);
     const [debts, setDebts] = useState<Debt[]>(() =>
         loadStoredState("debtPlanner.debts", [])
     );
@@ -181,6 +182,8 @@ export default function Home() {
     const [debtType, setDebtType] = useState<"debt" | "bnpl">("debt");
     const [debtRecurrence, setDebtRecurrence] =
         useState<Recurrence>("monthly");
+    
+    const [debtIsAutopay, setDebtIsAutopay] = useState(false);
 
     const [debtRemainingPayments, setDebtRemainingPayments] = useState("");
     const [debtScheduledPaymentAmount, setDebtScheduledPaymentAmount] =
@@ -200,7 +203,9 @@ export default function Home() {
     const [completedRecommendedActions, setCompletedRecommendedActions] =
         useState<CompletedRecommendedAction[]>(() =>
             loadStoredState("debtPlanner.completedRecommendedActions", [])
-        );
+    );
+
+    const [recommendationOverrides, setRecommendationOverrides] = useState<RecommendationOverride[]>([]);
 
     const [activeTab, setActiveTab] = useState<
         "plan" | "bills" | "snowball" | "goals"
@@ -574,6 +579,7 @@ export default function Home() {
                 originalDueDate: expenseDueDate,
                 recurrence: expenseRecurrence,
                 expenseType,
+                isAutopay: expenseIsAutopay,
                 isPaidThisCycle: false,
             },
         ]);
@@ -583,11 +589,12 @@ export default function Home() {
         setExpenseDueDate("");
         setExpenseRecurrence("monthly");
         setExpenseType("fixed");
+        setExpenseIsAutopay(false);
     }
 
     function handleUpdateExpense(
         id: string,
-        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate">>
+        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate" | "recurrence" | "expenseType" | "isAutopay">>
     ) {
         setRequiredExpenses((current) =>
             current.map((expense) =>
@@ -664,6 +671,7 @@ export default function Home() {
                         : undefined,
                 minimumPaidThisCycle: false,
                 snowballPaidThisCycle: false,
+                isAutopay: debtIsAutopay,
             },
         ]);
 
@@ -676,12 +684,13 @@ export default function Home() {
         setDebtRecurrence("monthly");
         setDebtRemainingPayments("");
         setDebtScheduledPaymentAmount("");
+        setDebtIsAutopay(false);
     }
 
     function handleUpdateDebt(
         id: string,
         updates: Partial<
-            Pick<Debt, "balance" | "minimumPayment" | "dueDate" | "apr">
+            Pick<Debt, "balance" | "minimumPayment" | "dueDate" | "apr" | "isAutopay">
         >
     ) {
         setDebts((current) =>
@@ -805,7 +814,7 @@ export default function Home() {
         );
     }
 
-    function handleMarkRecommendedAction(targetId: string, label: string, category: "emergency" | "snowball" | "optional_goal", recommendedAmount: number, actualAmount: number) {
+    function handleMarkRecommendedAction(targetId: string, label: string, category: "emergency" | "snowball" | "optional_goal", recommendedAmount: number, actualAmount: number, paymentSource: "paycheck" | "external" = "paycheck") {
         const existingAction = completedRecommendedActions.find((action) => action.targetId === targetId && action.label === label && action.category === category);
 
         if (existingAction) {
@@ -864,6 +873,7 @@ export default function Home() {
                 category,
                 recommendedAmount,
                 actualAmount: safeActualAmount,
+                paymentSource,
             },
         ];
 
@@ -1112,6 +1122,36 @@ export default function Home() {
                             onMarkDebtMinimumPaid={handleMarkDebtMinimumPaid}
                             onMarkDebtSnowballPaid={handleMarkDebtSnowballPaid}
                             onMarkRecommendedAction={handleMarkRecommendedAction}
+                            recommendationOverrides={recommendationOverrides}
+                            onRecommendationOverrideChange={(
+                                targetId,
+                                category,
+                                amount
+                            ) => {
+                                setRecommendationOverrides((current) => {
+                                    const filtered = current.filter((override) => !(override.targetId === targetId && override.category === category));
+
+                                    return [
+                                        ...filtered,
+                                        {
+                                            targetId,
+                                            category,
+                                            amount,
+                                        },
+                                    ];
+                                });
+                            }}
+
+                           
+                        />
+
+                        <TimelineSection
+                            result={result}
+                            requiredExpenses={requiredExpenses}
+                            debts={debts}
+                            currentDate={currentDate}
+                            nextPaycheckDate={nextPaycheckDate}
+                            completedRecommendedActions={completedRecommendedActions}
                         />
                     </>
                 )}
@@ -1166,12 +1206,14 @@ export default function Home() {
                             expenseDueDate={expenseDueDate}
                             expenseRecurrence={expenseRecurrence}
                             expenseType={expenseType}
+                            expenseIsAutopay={expenseIsAutopay}
                             formatRecurrence={formatRecurrence}
                             onExpenseNameChange={setExpenseName}
                             onExpenseAmountChange={setExpenseAmount}
                             onExpenseDueDateChange={setExpenseDueDate}
                             onExpenseRecurrenceChange={setExpenseRecurrence}
                             onExpenseTypeChange={setExpenseType}
+                            onExpenseIsAutopayChange={setExpenseIsAutopay}
                             onAddExpense={handleAddExpense}
                             onRemoveExpense={handleRemoveExpense}
                             onUpdateExpense={handleUpdateExpense}
@@ -1196,6 +1238,7 @@ export default function Home() {
                         debtDueDate={debtDueDate}
                         debtType={debtType}
                         debtRecurrence={debtRecurrence}
+                        debtIsAutopay={debtIsAutopay}
                         formatRecurrence={formatRecurrence}
                         debtRemainingPayments={debtRemainingPayments}
                         debtScheduledPaymentAmount={debtScheduledPaymentAmount}
@@ -1212,6 +1255,7 @@ export default function Home() {
                         onDebtDueDateChange={setDebtDueDate}
                         onDebtTypeChange={setDebtType}
                         onDebtRecurrenceChange={setDebtRecurrence}
+                        onDebtIsAutopayChange={setDebtIsAutopay}
                         onImportDebtsCsv={handleImportDebtsCsv}
                         onAddDebt={handleAddDebt}
                         onRemoveDebt={handleRemoveDebt}

@@ -20,6 +20,7 @@ type DebtSectionProps = {
     debtDueDate: string;
     debtType: "debt" | "bnpl";
     debtRecurrence: Recurrence;
+    debtIsAutopay: boolean;
     debtRemainingPayments: string;
     debtScheduledPaymentAmount: string;
 
@@ -44,6 +45,7 @@ type DebtSectionProps = {
     onDebtDueDateChange: (value: string) => void;
     onDebtTypeChange: (value: "debt" | "bnpl") => void;
     onDebtRecurrenceChange: (value: Recurrence) => void;
+    onDebtIsAutopayChange: (value: boolean) => void;
     onDebtRemainingPaymentsChange: (value: string) => void;
     onDebtScheduledPaymentAmountChange: (value: string) => void;
     onImportDebtsCsv?: (vent: React.ChangeEvent<HTMLInputElement>) => void;
@@ -52,7 +54,7 @@ type DebtSectionProps = {
     onRemoveDebt: (id: string) => void;
     onUpdateDebt: (
         id: string,
-        updates: Partial<Pick<Debt, "balance" | "minimumPayment" | "dueDate" | "apr">>) => void;
+        updates: Partial<Pick<Debt, "balance" | "minimumPayment" | "dueDate" | "apr" | "isAutopay">>) => void;
 };
 
 function sortDebts(debts: DebtWithDisplayBalance[], sortBy: DebtSortOption) {
@@ -86,6 +88,7 @@ export function DebtsSection({
     debtDueDate,
     debtType,
     debtRecurrence,
+    debtIsAutopay,
     debtErrors,
     debtWarnings,
     formatRecurrence,
@@ -95,6 +98,7 @@ export function DebtsSection({
     onDebtMinimumPaymentChange,
     onDebtDueDateChange,
     onDebtRecurrenceChange,
+    onDebtIsAutopayChange,
     onDebtTypeChange,
     onAddDebt,
     onRemoveDebt,
@@ -109,7 +113,7 @@ export function DebtsSection({
     const [editMinimumPayment, setEditMinimumPayment] = useState("");
     const [editApr, setEditApr] = useState("");
     const [editDueDate, setEditDueDate] = useState("");
-
+    const [editIsAutopay, setEditIsAutopay] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [sortBy, setSortBy] = useState<DebtSortOption>("dueDate");
     const [showAddDebtModal, setShowAddDebtModal] = useState(false);
@@ -154,6 +158,7 @@ export function DebtsSection({
         setEditMinimumPayment(String(debt.minimumPayment));
         setEditApr(String(debt.apr));
         setEditDueDate(debt.dueDate);
+        setEditIsAutopay(debt.isAutopay ?? false);
     }
 
     function cancelEditing() {
@@ -162,6 +167,7 @@ export function DebtsSection({
         setEditMinimumPayment("");
         setEditApr("");
         setEditDueDate("");
+        setEditIsAutopay(false);
     }
 
     function saveEditing(id: string) {
@@ -178,6 +184,7 @@ export function DebtsSection({
             minimumPayment,
             apr,
             dueDate: editDueDate,
+            isAutopay: editIsAutopay,
         });
 
         cancelEditing();
@@ -244,6 +251,17 @@ export function DebtsSection({
                                     onChange={(event) => setEditDueDate(event.target.value)}
                                 />
                             </div>
+
+                            <div className="field checkbox-field">
+                                <label className="checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={editIsAutopay}
+                                        onChange={(event) => setEditIsAutopay(event.target.checked)}
+                                    />
+                                    Autopay
+                                </label>
+                            </div>
                         </div>
                     </details>
 
@@ -289,6 +307,7 @@ export function DebtsSection({
                 <div className="saved-item-left">
                     <div className="saved-title">
                         {debt.name} {(debt.displayBalance ?? debt.balance) <= 0 ? "✔" : ""}
+                        {debt.isAutopay && <span className="autopay-pill">Autopay</span>}
                     </div>
 
                     <div className="saved-meta debt-card-meta">
@@ -652,6 +671,17 @@ export function DebtsSection({
                                     <option value="quarterly">Quarterly</option>
                                     <option value="annually">Yearly</option>
                                 </select>
+                            </div>
+
+                            <div className="field checkbox-field">
+                                <label className="checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={debtIsAutopay}
+                                        onChange={(event) => onDebtIsAutopayChange(event.target.checked)}
+                                        />
+                                    Autopay
+                                </label>
                             </div>
 
                             <button

@@ -1,9 +1,15 @@
 import { useState } from "react";
 import type { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
-import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+import type {
+    Debt,
+    RequiredExpense,
+    RecommendationOverride,
+} from "@/lib/storage/debtPlannerStorage";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
+
+type RecommendedCategory = "emergency" | "snowball" | "optional_goal";
 
 type Goal = {
     id: string;
@@ -13,14 +19,13 @@ type Goal = {
     type: "emergency" | "savings";
 };
 
-type RecommendedCategory = "emergency" | "snowball" | "optional_goal";
-
 type CompletedRecommendedAction = {
     targetId: string;
     label: string;
     category: RecommendedCategory;
     recommendedAmount: number;
     actualAmount: number;
+    paymentSource?: "paycheck" | "external";
 };
 
 type ResultsSectionProps = {
@@ -29,17 +34,24 @@ type ResultsSectionProps = {
     debts: Debt[];
     goals: Goal[];
     completedRecommendedActions: CompletedRecommendedAction[];
+    recommendationOverrides: RecommendationOverride[];
     currentDate: string;
     payoffStrategy: "snowball" | "avalanche";
     onMarkExpensePaid: (id: string) => void;
     onMarkDebtMinimumPaid: (id: string) => void;
     onMarkDebtSnowballPaid: (id: string) => void;
+    onRecommendationOverrideChange: (
+        targetId: string,
+        category: "emergency" | "snowball",
+        amount: number
+    ) => void;
     onMarkRecommendedAction: (
         targetId: string,
         label: string,
         category: RecommendedCategory,
         recommendedAmount: number,
-        actualAmount: number
+        actualAmount: number,
+        paymentSource?: "paycheck" | "external"
     ) => void;
 };
 
@@ -51,6 +63,7 @@ type RecommendedDisplayAction = {
     recommendedAmount: number;
     actualAmount: number;
     isCompleted: boolean;
+    paymentSource?: "paycheck" | "external";
 };
 
 function roundMoney(amount: number) {
@@ -88,11 +101,13 @@ export function ResultsSection({
     debts,
     goals,
     completedRecommendedActions,
+    recommendationOverrides,
     currentDate,
     payoffStrategy,
     onMarkExpensePaid,
     onMarkDebtMinimumPaid,
     onMarkRecommendedAction,
+    onRecommendationOverrideChange,
 }: ResultsSectionProps) {
     const [showAllRequiredActions, setShowAllRequiredActions] =
         useState(false);
@@ -113,8 +128,6 @@ export function ResultsSection({
         Record<string, string>
     >({});
 
-    const [savedRecommendedAmounts, setSavedRecommendedAmounts] = useState<Record<string, number>>({});
-
     const [recommendedAmountErrors, setRecommendedAmountErrors] = useState<
         Record<string, string>
     >({});
@@ -125,45 +138,60 @@ export function ResultsSection({
 
     const requiredActions = result.allocations.filter(
         (item) =>
-            item.category === "expense" || item.category === "minimum_debt"
+            item.category === "expense" ||
+            item.category === "minimum_debt" ||
+            item.category === "autopay_expense" ||
+            item.category === "autopay_debt"
     );
 
     const completedSnowballAmountsByDebtId = completedRecommendedActions
         .filter((action) => action.category === "snowball")
         .reduce<Record<string, number>>((map, action) => {
-            map[action.targetId] = roundMoney((map[action.targetId] ?? 0) + action.actualAmount);
+            map[action.targetId] = roundMoney(
+                (map[action.targetId] ?? 0) + action.actualAmount
+            );
 
             return map;
         }, {});
-    
-    const adjustedActiveDebts = debts.map((debt) => ({
-        ...debt,
-        balance: roundMoney(Math.max(0, debt.balance - (completedSnowballAmountsByDebtId[debt.id] ?? 0))),
-    })).filter((debt) => debt.balance > 0).sort((a, b) => {
-        if (payoffStrategy === "avalanche") {
-            if (b.apr !== a.apr) {
-                return b.apr - a.apr;
+
+    const adjustedActiveDebts = debts
+        .map((debt) => ({
+            ...debt,
+            balance: roundMoney(
+                Math.max(
+                    0,
+                    debt.balance -
+                    (completedSnowballAmountsByDebtId[debt.id] ?? 0)
+                )
+            ),
+        }))
+        .filter((debt) => debt.balance > 0)
+        .sort((a, b) => {
+            if (payoffStrategy === "avalanche") {
+                if (b.apr !== a.apr) {
+                    return b.apr - a.apr;
+                }
+
+                return a.balance - b.balance;
             }
 
             return a.balance - b.balance;
-        }
+        });
 
-        return a.balance - b.balance;
-    });
-
-    const activeSnowballRecommendationActions = adjustedActiveDebts.map((debt) => ({
-        category: "snowball" as const,
-        targetId: debt.id,
-        debtId: debt.id,
-        label: `Extra payment to ${debt.name}`,
-        amount: debt.balance,
-    }));
+    const activeSnowballRecommendationActions = adjustedActiveDebts.map(
+        (debt) => ({
+            category: "snowball" as const,
+            targetId: debt.id,
+            debtId: debt.id,
+            label: `Extra payment to ${debt.name}`,
+            amount: debt.balance,
+        })
+    );
 
     const recommendedActions = [
         ...result.allocations.filter((item) => item.category === "emergency"),
         ...activeSnowballRecommendationActions,
     ];
-
 
     const optionalGoalActions = result.allocations.filter(
         (item) => item.category === "optional_goal"
@@ -171,14 +199,15 @@ export function ResultsSection({
 
     const unpaidRequiredActions = requiredActions.filter((item) => {
         const expense =
-            item.category === "expense"
+            item.category === "expense" || item.category === "autopay_expense"
                 ? requiredExpenses.find(
                     (expenseItem) => expenseItem.id === item.targetId
                 )
                 : undefined;
 
         const debt =
-            item.category === "minimum_debt"
+            item.category === "minimum_debt" ||
+                item.category === "autopay_debt"
                 ? debts.find(
                     (debtItem) =>
                         debtItem.id === (item.debtId ?? item.targetId)
@@ -186,7 +215,7 @@ export function ResultsSection({
                 : undefined;
 
         const isPaid =
-            item.category === "expense"
+            item.category === "expense" || item.category === "autopay_expense"
                 ? expense?.isPaidThisCycle ?? false
                 : debt?.minimumPaidThisCycle ??
                 debt?.isPaidThisCycle ??
@@ -201,7 +230,9 @@ export function ResultsSection({
             .map((expense) => ({
                 label: `Pay ${expense.name}`,
                 amount: expense.amount,
-                category: "expense" as const,
+                category: expense.isAutopay
+                    ? ("autopay_expense" as const)
+                    : ("expense" as const),
                 targetId: expense.id,
             })),
 
@@ -212,7 +243,9 @@ export function ResultsSection({
             .map((debt) => ({
                 label: `Pay minimum on ${debt.name}`,
                 amount: debt.minimumPayment,
-                category: "minimum_debt" as const,
+                category: debt.isAutopay
+                    ? ("autopay_debt" as const)
+                    : ("minimum_debt" as const),
                 targetId: debt.id,
                 debtId: debt.id,
             })),
@@ -246,16 +279,15 @@ export function ResultsSection({
             recommendedAmount: action.recommendedAmount,
             actualAmount: action.actualAmount,
             isCompleted: true,
+            paymentSource: action.paymentSource,
         }));
 
-    
-    const requiredTotal = unpaidRequiredActions.reduce((sum, item) => sum + item.amount, 0);
-    const completedRequiredTotal = completedRequiredActions.reduce((sum, item) => sum + item.amount, 0);
-
-    const completedRecommendedTotal = completedRecommendedActions.reduce(
-        (sum, action) => sum + action.actualAmount,
+    const requiredTotal = unpaidRequiredActions.reduce(
+        (sum, item) => sum + item.amount,
         0
     );
+
+    const completedRecommendedTotal = completedRecommendedActions.filter((action) => action.paymentSource !== "external").reduce((sum, action) => sum + action.actualAmount, 0);
 
     const flexibleCashAvailable = roundMoney(
         Math.max(
@@ -268,15 +300,17 @@ export function ResultsSection({
         )
     );
 
-    
-
-    function getRecommendationMaxAmount(item: AllocationResult["allocations"][number]) {
-        if(!item.targetId) {
+    function getRecommendationMaxAmount(
+        item: AllocationResult["allocations"][number]
+    ) {
+        if (!item.targetId) {
             return item.amount;
         }
 
         if (item.category === "snowball") {
-            const debt = debts.find((debtItem) => debtItem.id === item.targetId);
+            const debt = debts.find(
+                (debtItem) => debtItem.id === item.targetId
+            );
 
             if (!debt) {
                 return item.amount;
@@ -286,22 +320,39 @@ export function ResultsSection({
         }
 
         if (item.category === "emergency" || item.category === "optional_goal") {
-            const goal = goals.find((goalItem) => goalItem.id === item.targetId);
+            const goal = goals.find(
+                (goalItem) => goalItem.id === item.targetId
+            );
 
             if (!goal) {
                 return item.amount;
             }
 
-            return roundMoney(Math.max(0, goal.targetAmount - goal.currentAmount));
+            return roundMoney(
+                Math.max(0, goal.targetAmount - goal.currentAmount)
+            );
         }
 
         return item.amount;
     }
 
+    function getRecommendationOverrideAmount(
+        targetId: string,
+        category: RecommendedCategory
+    ) {
+        if (category !== "emergency" && category !== "snowball") {
+            return undefined;
+        }
+
+        return recommendationOverrides.find(
+            (override) =>
+                override.targetId === targetId &&
+                override.category === category
+        )?.amount;
+    }
 
     const activeRecommendedDisplayActions: RecommendedDisplayAction[] = [];
 
-    
     let remainingRecommendationCapacity = flexibleCashAvailable;
 
     for (const item of recommendedActions) {
@@ -315,9 +366,19 @@ export function ResultsSection({
 
         const key = `active-${getRecommendedKey(item)}`;
         const maxAmount = getRecommendationMaxAmount(item);
-        const savedAmount = savedRecommendedAmounts[key];
-        
-        const amount = roundMoney(Math.min(savedAmount ?? maxAmount, maxAmount, remainingRecommendationCapacity));
+
+        const overrideAmount = getRecommendationOverrideAmount(
+            item.targetId,
+            item.category
+        );
+
+        const amount = roundMoney(
+            Math.min(
+                overrideAmount ?? maxAmount,
+                maxAmount,
+                remainingRecommendationCapacity
+            )
+        );
 
         if (amount <= 0) {
             continue;
@@ -331,7 +392,7 @@ export function ResultsSection({
             recommendedAmount: maxAmount,
             actualAmount: amount,
             isCompleted: false,
-        })
+        });
 
         remainingRecommendationCapacity = roundMoney(
             remainingRecommendationCapacity - amount
@@ -357,23 +418,28 @@ export function ResultsSection({
         0
     );
 
-    const remainingCashToComeOut = roundMoney(Math.max(0, requiredTotal + displayedRecommendedTotal));
-
-
-    
-    
+    const remainingCashToComeOut = roundMoney(
+        Math.max(0, requiredTotal + displayedRecommendedTotal)
+    );
 
     const hasOverdueItems = requiredActions.some((item) => {
-        const expense = requiredExpenses.find(
-            (expense) => expense.id === item.targetId
-        );
+        const expense =
+            item.category === "expense" || item.category === "autopay_expense"
+                ? requiredExpenses.find(
+                    (expense) => expense.id === item.targetId
+                )
+                : undefined;
 
-        const debt = debts.find((debt) => debt.id === item.targetId);
+        const debt =
+            item.category === "minimum_debt" ||
+                item.category === "autopay_debt"
+                ? debts.find((debt) => debt.id === item.targetId)
+                : undefined;
 
         const dueDate = expense?.dueDate ?? debt?.dueDate;
 
         const isPaid =
-            item.category === "expense"
+            item.category === "expense" || item.category === "autopay_expense"
                 ? expense?.isPaidThisCycle ?? false
                 : debt?.minimumPaidThisCycle ??
                 debt?.isPaidThisCycle ??
@@ -387,14 +453,15 @@ export function ResultsSection({
         index: number
     ) {
         const expense =
-            item.category === "expense"
+            item.category === "expense" || item.category === "autopay_expense"
                 ? requiredExpenses.find(
                     (expenseItem) => expenseItem.id === item.targetId
                 )
                 : undefined;
 
         const debt =
-            item.category === "minimum_debt"
+            item.category === "minimum_debt" ||
+                item.category === "autopay_debt"
                 ? debts.find(
                     (debtItem) =>
                         debtItem.id === (item.debtId ?? item.targetId)
@@ -402,7 +469,7 @@ export function ResultsSection({
                 : undefined;
 
         const isPaid =
-            item.category === "expense"
+            item.category === "expense" || item.category === "autopay_expense"
                 ? expense?.isPaidThisCycle ?? false
                 : debt?.minimumPaidThisCycle ??
                 debt?.isPaidThisCycle ??
@@ -412,6 +479,10 @@ export function ResultsSection({
 
         const overdue =
             dueDate && !isPaid ? isOverdue(dueDate, currentDate) : false;
+
+        const isAutopay =
+            item.category === "autopay_expense" ||
+            item.category === "autopay_debt";
 
         return (
             <div
@@ -425,7 +496,12 @@ export function ResultsSection({
                     .join(" ")}
             >
                 <div className="saved-item-left">
-                    <div className="saved-title">{item.label}</div>
+                    <div className="saved-title">
+                        {item.label}
+                        {isAutopay && (
+                            <span className="autopay-pill">Autopay</span>
+                        )}
+                    </div>
 
                     {overdue && (
                         <div className="status-chip overdue">Overdue</div>
@@ -447,7 +523,10 @@ export function ResultsSection({
                             isPaid ? "action-pill completed" : "action-pill"
                         }
                         onClick={() => {
-                            if (item.category === "expense") {
+                            if (
+                                item.category === "expense" ||
+                                item.category === "autopay_expense"
+                            ) {
                                 if (item.targetId) {
                                     onMarkExpensePaid(item.targetId);
                                 }
@@ -455,7 +534,10 @@ export function ResultsSection({
                                 return;
                             }
 
-                            if (item.category === "minimum_debt") {
+                            if (
+                                item.category === "minimum_debt" ||
+                                item.category === "autopay_debt"
+                            ) {
                                 const debtId = item.debtId ?? item.targetId;
 
                                 if (debtId) {
@@ -516,7 +598,8 @@ export function ResultsSection({
             if (amount > flexibleCashAvailable) {
                 setRecommendedAmountErrors((current) => ({
                     ...current,
-                    [action.key]: "Amount cannot exceed available flexible cash.",
+                    [action.key]:
+                        "Amount cannot exceed available flexible cash.",
                 }));
 
                 return;
@@ -531,10 +614,16 @@ export function ResultsSection({
                 return;
             }
 
-            setSavedRecommendedAmounts((current) => ({
-                ...current,
-                [action.key]: roundMoney(amount),
-            }));
+            if (
+                action.category === "emergency" ||
+                action.category === "snowball"
+            ) {
+                onRecommendationOverrideChange(
+                    action.targetId,
+                    action.category,
+                    roundMoney(amount)
+                );
+            }
 
             setEditingRecommendedKey(null);
         }
@@ -556,7 +645,9 @@ export function ResultsSection({
 
                     <div className="saved-meta">
                         {action.isCompleted
-                            ? "Completed this cycle"
+                            ? action.paymentSource === "external"
+                                ? "Completed with outside money"
+                                : "Completed this cycle"
                             : "Suggested for this cycle"}
                     </div>
 
@@ -565,7 +656,7 @@ export function ResultsSection({
                             <input
                                 type="number"
                                 min="0"
-                                max={action.actualAmount}
+                                max={action.recommendedAmount}
                                 step="0.01"
                                 value={
                                     editedRecommendedAmounts[action.key] ??
@@ -669,7 +760,7 @@ export function ResultsSection({
                                 action.category,
                                 action.recommendedAmount,
                                 roundMoney(action.actualAmount)
-                            )
+                            );
                         }}
                     >
                         {action.isCompleted
@@ -677,8 +768,28 @@ export function ResultsSection({
                             : action.category === "emergency" ||
                                 action.category === "optional_goal"
                                 ? "Mark Saved"
-                                : "Mark Paid"}
+                                : "Mark Paid"
+                        }
                     </button>
+
+                    {!action.isCompleted && (
+                        <button
+                            type="button"
+                            className="text-action-button"
+                            onClick={() => {
+                                onMarkRecommendedAction(
+                                    action.targetId,
+                                    action.label,
+                                    action.category,
+                                    action.recommendedAmount,
+                                    roundMoney(action.actualAmount),
+                                    "external"
+                                );
+                            }}
+                        >
+                            Paid Outside Paycheck
+                        </button>
+                    )}
                 </div>
             </div>
         );
@@ -700,7 +811,9 @@ export function ResultsSection({
                         {hasOverdueItems
                             ? "You have overdue payments requiring attention."
                             : result.shortfall > 0
-                                ? `You're short ${formatCurrency(result.shortfall)} this cycle.`
+                                ? `You're short ${formatCurrency(
+                                    result.shortfall
+                                )} this cycle.`
                                 : "You're on track this cycle."}
                     </p>
                 </div>

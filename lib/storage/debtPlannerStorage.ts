@@ -9,6 +9,7 @@ export type RequiredExpense = {
 	originalDueDate?: string;
 	recurrence: Recurrence;
 	isPaidThisCycle?: boolean;
+	isAutopay?: boolean;
 	expenseType?: "fixed" | "variable";
 };
 
@@ -31,6 +32,7 @@ export type Debt = {
 
 	minimumPaidThisCycle?: boolean;
 	snowballPaidThisCycle?: boolean;
+	isAutopay?: boolean;
 };
 
 export type Goal = {
@@ -50,6 +52,12 @@ export type SavedDebtPlannerState = {
 	expenses: RequiredExpense[];
 	debt: Debt[];
 	goals: Goal[];
+};
+
+export type RecommendationOverride = {
+	targetId: string;
+	category: "emergency" | "snowball";
+	amount: number;
 };
 
 const STORAGE_KEY = "debt-planner-v1";

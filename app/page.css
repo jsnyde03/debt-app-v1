@@ -2047,6 +2047,104 @@ button:active {
 	font-weight: 800;
 }
 
+.checkbox-field {
+	justify-content: center;
+}
+
+.checkbox-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 14px;
+	font-weight: 800;
+	color: var(--text-primary);
+}
+
+.checkbox-label input {
+	width: 18px;
+	height: 18px;
+	accent-color: var(--accent-color);
+}
+
+.autopay-pill {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 8px;
+	padding: 2px 8px;
+	border-radius: var(--radius-pill);
+	font-size: 0.72rem;
+	font-weight: 800;
+	background: rgba(59, 130, 246, 0.14);
+	color: #60a5fa;
+	border: 1px solid rgba(59, 130, 246, 0.24);
+}
+
+.timeline-card {
+	margin-top: 20px;
+}
+
+.timeline-list {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.timeline-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+	padding: 14px;
+	border-radius: var(--radius-lg);
+	background: var(--bg-secondary);
+	border: 1px solid var(--border-color);
+}
+
+.timeline-autopay {
+	border-color: rgba(59, 130, 246, 0.3);
+}
+
+.timeline-left {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.timeline-date {
+	font-size: 0.8rem;
+	opacity: 0.7;
+	font-weight: 700;
+}
+
+.timeline-label {
+	font-weight: 700;
+}
+
+.timeline-right {
+	text-align: right;
+}
+
+.timeline-positive {
+	color: #22c55e;
+}
+
+.timeline-negative {
+	color: #f87171;
+}
+
+.timeline-running-cash {
+	font-size: 0.8rem;
+	opacity: 0.7;
+	margin-top: 4px;
+}
+
+.timeline-next-paycheck {
+	text-align: center;
+	padding-top: 8px;
+	font-size: 0.85rem;
+	font-weight: 700;
+	opacity: 0.7;
+}
 
 
 @keyframes toastIn {

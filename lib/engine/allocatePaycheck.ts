@@ -8,6 +8,7 @@ export type Expense = {
 	dueDate: string;
 	recurrence: Recurrence;
 	isPaidThisCycle?: boolean;
+	isAutopay?: boolean;
 };
 
 export type Debt = {
@@ -22,6 +23,7 @@ export type Debt = {
 	isPaidThisCycle?: boolean;
 	minimumPaidThisCycle?: boolean;
 	snowballPaidThisCycle?: boolean;
+	isAutopay?: boolean;
 };
 
 export type Goal = {
@@ -38,6 +40,8 @@ export type AllocationItem = {
 	category:
 	| "expense"
 	| "minimum_debt"
+	| "autopay_expense"
+	| "autopay_debt"
 	| "emergency"
 	| "snowball"
 	| "optional_goal"
@@ -50,7 +54,7 @@ export type AllocationItem = {
 export type UnfundedRequiredItem = {
 	label: string;
 	amount: number;
-	category: "expense" | "minimum_debt";
+	category: "expense" | "minimum_debt" | "autopay_expense" | "autopay_debt";
 	debtId?: string;
 };
 
@@ -179,6 +183,7 @@ export function allocatePaycheck({
 				(item) =>
 					item.debtId === debtId &&
 					(item.category === "minimum_debt" ||
+						item.category === "autopay_debt" ||
 						item.category === "snowball")
 			)
 			.reduce((sum, item) => sum + item.amount, 0);
@@ -194,10 +199,14 @@ export function allocatePaycheck({
 			allocations.push({
 				label:
 					coveredAmount === expense.amount
-						? `Pay ${expense.name}`
-						: `Pay ${expense.name} (partial)`,
+						? expense.isAutopay
+							? `Reserve autopay for ${expense.name}`
+							: `Pay ${expense.name}`
+						: expense.isAutopay
+							? `Reserve autopay for ${expense.name} (partial)`
+							: `Pay ${expense.name} (partial)`,
 				amount: coveredAmount,
-				category: "expense",
+				category: expense.isAutopay ? "autopay_expense" : "expense",
 				targetId: expense.id,
 			});
 
@@ -208,10 +217,14 @@ export function allocatePaycheck({
 			unfundedRequiredItems.push({
 				label:
 					coveredAmount > 0
-						? `Finish ${expense.name}`
-						: `Pay ${expense.name}`,
+						? expense.isAutopay
+							? `Finish autopay reserve for ${expense.name}`
+							: `Finish ${expense.name}`
+						: expense.isAutopay
+							? `Reserve autopay for ${expense.name}`
+							: `Pay ${expense.name}`,
 				amount: unfundedAmount,
-				category: "expense",
+				category: expense.isAutopay ? "autopay_expense" : "expense",
 			});
 		}
 	}
@@ -232,10 +245,14 @@ export function allocatePaycheck({
 			allocations.push({
 				label:
 					coveredAmount === requiredMinimum
-						? `Pay minimum on ${debt.name}`
-						: `Pay minimum on ${debt.name} (partial)`,
+						? debt.isAutopay
+							? `Reserve autopay minimum for ${debt.name}`
+							: `Pay minimum on ${debt.name}`
+						: debt.isAutopay
+							? `Reserve autopay minimum for ${debt.name} (partial)`
+							: `Pay minimum on ${debt.name} (partial)`,
 				amount: coveredAmount,
-				category: "minimum_debt",
+				category: debt.isAutopay ? "autopay_debt" : "minimum_debt",
 				targetId: debt.id,
 				debtId: debt.id,
 			});
@@ -247,10 +264,14 @@ export function allocatePaycheck({
 			unfundedRequiredItems.push({
 				label:
 					coveredAmount > 0
-						? `Pay remaining minimum on ${debt.name}`
-						: `Pay minimum on ${debt.name}`,
+						? debt.isAutopay
+							? `Reserve remaining autopay minimum for ${debt.name}`
+							: `Pay remaining minimum on ${debt.name}`
+						: debt.isAutopay
+							? `Reserve autopay minimum for ${debt.name}`
+							: `Pay minimum on ${debt.name}`,
 				amount: unfundedAmount,
-				category: "minimum_debt",
+				category: debt.isAutopay ? "autopay_debt" : "minimum_debt",
 				debtId: debt.id,
 			});
 		}

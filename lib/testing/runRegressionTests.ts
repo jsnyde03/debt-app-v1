@@ -7,5 +7,6 @@ import "./testAprMath";
 import "../payCycle/testPayCycle";
 import "../debt/testProjectionAccuracy";
 import "./testFinalLaunchRegression";
+import "./testV11Regression";
 
 console.log("✅ All regression tests passed.");

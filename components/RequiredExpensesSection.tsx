@@ -11,6 +11,7 @@ type RequiredExpensesSectionProps = {
     expenseDueDate: string;
     expenseRecurrence: Recurrence;
     expenseType: "fixed" | "variable";
+    expenseIsAutopay: boolean;
     expenseErrors: {
         name?: string;
         amount?: string;
@@ -24,11 +25,12 @@ type RequiredExpensesSectionProps = {
     onExpenseDueDateChange: (value: string) => void;
     onExpenseRecurrenceChange: (value: Recurrence) => void;
     onExpenseTypeChange: (value: "fixed" | "variable") => void;
+    onExpenseIsAutopayChange: (value: boolean) => void;
     onAddExpense: () => void;
     onRemoveExpense: (id: string) => void;
     onUpdateExpense: (
         id: string,
-        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate" | "recurrence" | "expenseType">>
+        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate" | "recurrence" | "expenseType" | "isAutopay">>
     ) => void;
 }
 
@@ -39,6 +41,7 @@ export function RequiredExpensesSection({
     expenseDueDate,
     expenseRecurrence,
     expenseType,
+    expenseIsAutopay,
     expenseErrors,
     formatRecurrence,
     onExpenseNameChange,
@@ -46,6 +49,7 @@ export function RequiredExpensesSection({
     onExpenseDueDateChange,
     onExpenseRecurrenceChange,
     onExpenseTypeChange,
+    onExpenseIsAutopayChange,
     onAddExpense,
     onRemoveExpense,
     onUpdateExpense,
@@ -55,6 +59,7 @@ export function RequiredExpensesSection({
     const [editDueDate, setEditDueDate] = useState("");
     const [editRecurrence, setEditRecurrence] = useState<Recurrence>("monthly");
     const [editExpenseType, setEditExpenseType] = useState<"fixed" | "variable">("fixed");
+    const [editIsAutopay, setEditIsAutopay] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
     const [expensePage, setExpensePage] = useState(1);
@@ -69,12 +74,18 @@ export function RequiredExpensesSection({
         setEditingExpenseId(expense.id);
         setEditAmount(String(expense.amount));
         setEditDueDate(expense.dueDate);
+        setEditRecurrence(expense.recurrence);
+        setEditExpenseType(expense.expenseType ?? "fixed");
+        setEditIsAutopay(expense.isAutopay ?? false);
     }
 
     function cancelEditing() {
         setEditingExpenseId(null);
         setEditAmount("");
         setEditDueDate("");
+        setEditRecurrence("monthly");
+        setEditExpenseType("fixed");
+        setEditIsAutopay(false);
     }
 
     function saveEditing(id: string) {
@@ -89,6 +100,7 @@ export function RequiredExpensesSection({
             dueDate: editDueDate,
             recurrence: editRecurrence,
             expenseType: editExpenseType,
+            isAutopay: editIsAutopay,
         });
 
         cancelEditing();
@@ -170,7 +182,17 @@ export function RequiredExpensesSection({
                                     <option value="fixed">Fixed</option>
                                     <option value="variable">Variable</option>
                                 </select>
+                            </div>
 
+                            <div className="field checkbox-field">
+                                <label className="checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={editIsAutopay}
+                                        onChange={(event) => setEditIsAutopay(event.target.checked)}
+                                    />
+                                    Autopay
+                                </label>
                             </div>
                         </div>
                     </details>
@@ -220,6 +242,7 @@ export function RequiredExpensesSection({
                     <div className="saved-title">
                         {expense.name}
                         {expense.isPaidThisCycle ? "✔" : ""}
+                        {expense.isAutopay && <span className="autopay-pill">Autopay</span>}
                     </div>
 
                     <div className="saved-meta">
@@ -440,6 +463,17 @@ export function RequiredExpensesSection({
                                     <option value="fixed">Fixed</option>
                                     <option value="variable">Variable</option>
                                 </select>
+                            </div>
+
+                            <div className="field checkbox-field">
+                                <label className="checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={expenseIsAutopay}
+                                        onChange={(event) => onExpenseIsAutopayChange(event.target.checked)}
+                                    />
+                                    Autopay
+                                </label>
                             </div>
 
                             <button
