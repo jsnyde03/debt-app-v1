@@ -787,7 +787,7 @@ export function ResultsSection({
                                 );
                             }}
                         >
-                            Paid Outside Paycheck
+                            Outside Paycheck
                         </button>
                     )}
                 </div>

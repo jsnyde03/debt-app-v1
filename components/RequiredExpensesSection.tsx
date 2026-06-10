@@ -100,11 +100,18 @@ export function RequiredExpensesSection({
     const [editCategory, setEditCategory] = useState<RequiredExpenseCategory>("other");
     const [editIsAutopay, setEditIsAutopay] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState<RequiredExpenseCategory | "all">("all");
     const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
     const [expensePage, setExpensePage] = useState(1);
     const [showExpensePresets, setShowExpensePresets] = useState(false);
 
-    const filteredExpenses = expenses.filter((expense) => expense.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
+    const filteredExpenses = expenses.filter((expense) => {
+        const matchesSearch = expense.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase());
+        const matchesCategory = selectedCategory === "all" || (expense.category ?? "other") === selectedCategory;
+
+        return matchesSearch && matchesCategory;
+    });
+
     const pageSize = 10;
     const totalPages = Math.max(1, Math.ceil(filteredExpenses.length / pageSize));
     const visibleExpenses = filteredExpenses.slice((expensePage - 1) * pageSize, expensePage * pageSize);
@@ -359,6 +366,41 @@ export function RequiredExpensesSection({
                             setExpensePage(1);
                         }}
                     />
+
+                    <div className="category-filter-row">
+                        <button
+                            type="button"
+                            className={
+                                selectedCategory === "all"
+                                    ? "category-filter-pill active"
+                                    : "category-filter-pill"
+                            }
+                            onClick={() => {
+                                setSelectedCategory("all");
+                                setExpensePage(1);
+                            }}
+                        >
+                            All
+                        </button>
+
+                        {requiredExpenseCategoryOptions.map((option) => (
+                            <button
+                                key={option.value}
+                                type="button"
+                                className={
+                                    selectedCategory === option.value
+                                        ? "category-filter-pill active"
+                                        : "category-filter-pill"
+                                }
+                                onClick={() => {
+                                    setSelectedCategory(option.value);
+                                    setExpensePage(1);
+                                }}
+                            >
+                                {option.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {filteredExpenses.length === 0 ? (

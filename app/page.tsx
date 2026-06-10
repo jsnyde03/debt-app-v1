@@ -31,6 +31,8 @@ import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { TimelineSection } from "@/components/TimelineSection";
+import type { SubscriptionPlan } from "@/lib/subscription/plans";
+import { UpgradeSection } from "@/components/UpgradeSection";
 
 type Goal = {
     id: string;
@@ -183,7 +185,7 @@ export default function Home() {
     const [debtType, setDebtType] = useState<"debt" | "bnpl">("debt");
     const [debtRecurrence, setDebtRecurrence] =
         useState<Recurrence>("monthly");
-    
+
     const [debtIsAutopay, setDebtIsAutopay] = useState(false);
 
     const [debtRemainingPayments, setDebtRemainingPayments] = useState("");
@@ -204,7 +206,7 @@ export default function Home() {
     const [completedRecommendedActions, setCompletedRecommendedActions] =
         useState<CompletedRecommendedAction[]>(() =>
             loadStoredState("debtPlanner.completedRecommendedActions", [])
-    );
+        );
 
     const [recommendationOverrides, setRecommendationOverrides] = useState<RecommendationOverride[]>([]);
 
@@ -258,6 +260,8 @@ export default function Home() {
     const [statusMessage, setStatusMessage] = useState("");
 
     const [isMounted, setIsMounted] = useState(false);
+    const [subscriptionPlan] = useState<SubscriptionPlan>("free");
+    const [showUpgrade, setShowUpgrade] = useState(false);
 
     function hasValidPayCycleInputs() {
         if (payCycle === "semimonthly") {
@@ -448,7 +452,7 @@ export default function Home() {
             style: darkMode ? Style.Dark : Style.Light,
         }).catch(() => undefined);
 
-        StatusBar.setBackgroundColor({ color: darkMode ? "#07111f" : "#eef3f8",}).catch(() => undefined);
+        StatusBar.setBackgroundColor({ color: darkMode ? "#07111f" : "#eef3f8", }).catch(() => undefined);
     }, [darkMode]);
 
     function buildBackupData() {
@@ -1145,7 +1149,7 @@ export default function Home() {
                                 });
                             }}
 
-                           
+
                         />
 
                         <TimelineSection
@@ -1160,14 +1164,34 @@ export default function Home() {
                 )}
 
                 {activeTab === "snowball" && (
-                    <SnowballSection
-                        debts={debtsWithDisplayBalances}
-                        result={result}
-                        completedRecommendedActions={completedRecommendedActions}
-                        payoffStrategy={payoffStrategy}
-                        currentDate={currentDate}
-                        setPayoffStrategy={setPayoffStrategy}
-                    />
+
+                    <>
+                        <SnowballSection
+                            debts={debtsWithDisplayBalances}
+                            result={result}
+                            completedRecommendedActions={completedRecommendedActions}
+                            payoffStrategy={payoffStrategy}
+                            currentDate={currentDate}
+                            subscriptionPlan={subscriptionPlan}
+                            onUpgradeClick={() => {
+                                setShowUpgrade(true);
+
+                                window.setTimeout(() => {
+                                    document.getElementById("upgrade-section")?.scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "start",
+                                    });
+                                }, 50);
+                            }}
+                            setPayoffStrategy={setPayoffStrategy}
+                        />
+
+                        {showUpgrade && (
+                            <UpgradeSection
+                                onClose={() => setShowUpgrade(false)}
+                            />
+                        )}
+                    </>
                 )}
 
                 {activeTab === "bills" && (

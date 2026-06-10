@@ -1,5 +1,6 @@
 import { allocatePaycheck } from "../engine/allocatePaycheck";
 import { buildTimelineItems } from "../timeline/buildTimelineItems";
+import { projectForecast } from "../forecast/projectForecast";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
 	if (actual !== expected) {
@@ -260,6 +261,74 @@ function testExternalRecommendedPaymentDoesNotCountAgainstFlexibleCash() {
 	assertEqual(paycheckFundedTotal, 0, "External recommended payment should not reduce paycheck flexible cash");
 }
 
+function testForecastKeepsSafeCashStable() {
+	const forecast = projectForecast({
+		startingSafeCash: 500,
+		startingDebtBalance: 3000,
+		monthlyDebtReduction: 250,
+		months: 3,
+	});
+
+	assertEqual(forecast.length, 3, "Forecast month count");
+	assertEqual(forecast[0].projectedSafeCash, 500, "Month 1 safe cash");
+	assertEqual(forecast[1].projectedSafeCash, 500, "Month 2 safe cash");
+	assertEqual(forecast[2].projectedSafeCash, 500, "Month 3 safe cash");
+}
+
+function testForecastReducesDebtBalance() {
+	const forecast = projectForecast({
+		startingSafeCash: 500,
+		startingDebtBalance: 3000,
+		monthlyDebtReduction: 250,
+		months: 3,
+	});
+
+	assertEqual(forecast[0].projectedDebtBalance, 2750, "Month 1 debt balance");
+	assertEqual(forecast[1].projectedDebtBalance, 2500, "Month 2 debt balance");
+	assertEqual(forecast[2].projectedDebtBalance, 2250, "Month 3 debt balance");
+}
+
+function testForecastNeverGoesBelowZeroDebt() {
+	const forecast = projectForecast({
+		startingSafeCash: 500,
+		startingDebtBalance: 300,
+		monthlyDebtReduction: 250,
+		months: 3,
+	});
+
+	assertEqual(forecast[0].projectedDebtBalance, 50, "Month 1 capped debt");
+	assertEqual(forecast[1].projectedDebtBalance, 0, "Month 2 capped debt");
+	assertEqual(forecast[2].projectedDebtBalance, 0, "Month 3 capped debt");
+}
+
+function testForecastStatusThresholds() {
+	const stable = projectForecast({
+		startingSafeCash: 500,
+		startingDebtBalance: 1000,
+		monthlyDebtReduction: 100,
+		months: 1,
+	});
+
+	const warning = projectForecast({
+		startingSafeCash: 150,
+		startingDebtBalance: 1000,
+		monthlyDebtReduction: 100,
+		months: 1,
+	});
+
+	const risk = projectForecast({
+		startingSafeCash: -1,
+		startingDebtBalance: 1000,
+		monthlyDebtReduction: 100,
+		months: 1,
+	});
+
+	assertEqual(stable[0].status, "stable", "Stable forecast status");
+	assertEqual(warning[0].status, "warning", "Warning forecast status");
+	assertEqual(risk[0].status, "risk", "Risk forecast status");
+}
+
+
 
 function runV11RegressionTests() {
 	testAutopayExpenseIsReserved();
@@ -268,6 +337,10 @@ function runV11RegressionTests() {
 	testTimelineIncludesAutopayItemsInDateOrder();
 	testTimelineRunningCash();
 	testExternalRecommendedPaymentDoesNotCountAgainstFlexibleCash();
+	testForecastKeepsSafeCashStable();
+	testForecastNeverGoesBelowZeroDebt();
+	testForecastReducesDebtBalance();
+	testForecastStatusThresholds();
 
 	console.log("✅ V1.1 regression tests passed.");
 }
