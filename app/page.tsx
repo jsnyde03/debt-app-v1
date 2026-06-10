@@ -33,6 +33,8 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { TimelineSection } from "@/components/TimelineSection";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
+import { initializeRevenueCat, getSubscriptionPlan } from "@/lib/subscription/revenueCat";
+import { purchasePremium } from "@/lib/subscription/revenueCat";
 
 type Goal = {
     id: string;
@@ -260,7 +262,7 @@ export default function Home() {
     const [statusMessage, setStatusMessage] = useState("");
 
     const [isMounted, setIsMounted] = useState(false);
-    const [subscriptionPlan] = useState<SubscriptionPlan>("free");
+    const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>("free");
     const [showUpgrade, setShowUpgrade] = useState(false);
 
     function hasValidPayCycleInputs() {
@@ -332,6 +334,12 @@ export default function Home() {
         const timeout = window.setTimeout(() => {
             setIsMounted(true);
         }, 0);
+
+        void initializeRevenueCat();
+
+        void getSubscriptionPlan().then((plan) => {
+            setSubscriptionPlan(plan);
+        });
 
 
 
@@ -1189,6 +1197,14 @@ export default function Home() {
                         {showUpgrade && (
                             <UpgradeSection
                                 onClose={() => setShowUpgrade(false)}
+                                onUpgradeClick={async () => {
+                                    const plan = await purchasePremium();
+                                    setSubscriptionPlan(plan);
+
+                                    if (plan === "premium") {
+                                        setShowUpgrade(false);
+                                    }
+                                }}
                             />
                         )}
                     </>
