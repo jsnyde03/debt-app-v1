@@ -826,14 +826,14 @@ export function ResultsSection({
                 </div>
 
                 <div>
-                    <span>Recommended</span>
+                    <span>Extra Payoff</span>
                     <strong>
                         {formatCurrency(displayedRecommendedTotal)}
                     </strong>
                 </div>
 
                 <div>
-                    <span>Safe Cash</span>
+                    <span>Remaining Cushion</span>
                     <strong>{formatCurrency(flexibleCashAvailable)}</strong>
                 </div>
 
@@ -897,8 +897,7 @@ export function ResultsSection({
                                     setShowAllRequiredActions(true)
                                 }
                             >
-                                View {hiddenRequiredCount} more required
-                                actions.
+                                Show {hiddenRequiredCount} More
                             </button>
                         )}
 
@@ -992,8 +991,7 @@ export function ResultsSection({
                                             setShowAllRecommendedActions(true)
                                         }
                                     >
-                                        View {hiddenRecommendedCount} more
-                                        recommended actions.
+                                        Show {hiddenRecommendedCount} More
                                     </button>
                                 )}
 
