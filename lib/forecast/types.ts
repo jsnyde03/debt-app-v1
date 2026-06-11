@@ -13,5 +13,6 @@ export type ForecastMonth = {
     recommendedAction: string;
     riskDrivers: string[];
     recoveryMonth?: string;
+    recoveryTrend?: string;
     reliefPoint?: string;
 };

@@ -17,18 +17,15 @@ export function projectForecast({ startingSafeCash, startingDebtBalance, monthly
     const results: ForecastMonth[] = [];
 
     let currentDebtBalance = startingDebtBalance;
-
     let recoveryMonth: string | undefined;
 
     for (let index = 0; index < months; index++) {
-        currentDebtBalance  = Math.max(0, currentDebtBalance - monthlyDebtReduction);
+        currentDebtBalance = Math.max(0, currentDebtBalance - monthlyDebtReduction);
 
         const projectedSafeCash = roundMoney(startingSafeCash + bufferTrendPerMonth * index);
 
         const monthDate = new Date();
-
-        monthDate.setMonth(monthDate.getMonth() + index);
-        
+        monthDate.setMonth(monthDate.getMonth() * index);
         const monthLabel = monthDate.toLocaleString("default", {
             month: "long",
             year: "numeric",
@@ -45,56 +42,71 @@ export function projectForecast({ startingSafeCash, startingDebtBalance, monthly
             projectedSafeCash,
             projectedDebtBalance: roundMoney(currentDebtBalance),
             status,
-            recommendedAction: getRecommendedAction(status),
+            recommendedAction: getRecommendedAction(status, projectedSafeCash),
             riskDrivers: buildRiskDrivers({
                 projectedSafeCash,
                 requiredPaymentCount,
                 monthlyMinimumTotal,
+                index,
             }),
             recoveryMonth,
-            reliefPoint: nextDebtName && nextDebtMinimum ? `${nextDebtName} payoff may free ${formatForecastCurrency(nextDebtMinimum)}/month` : undefined
+            recoveryTrend: 
+                projectedSafeCash < 200
+                    ? index === months - 1
+                        ? "Recovery is not currently projected within the visible forecast window."
+                        : "Cash pressure is projected to gradually improve across upcoming cycles."
+                    : "Project cushion remains within a healthier range.",
+            reliefPoint: nextDebtName && nextDebtMinimum
+                ? `${nextDebtName} payoff may free ${formatForecastCurrency(nextDebtMinimum)}/month` : undefined,
         });
     }
 
     return results;
 }
 
-function buildRiskDrivers({ projectedSafeCash, requiredPaymentCount, monthlyMinimumTotal}: { projectedSafeCash: number; requiredPaymentCount: number; monthlyMinimumTotal: number}) {
+
+function buildRiskDrivers({ projectedSafeCash, requiredPaymentCount, monthlyMinimumTotal, index,}: { projectedSafeCash: number; requiredPaymentCount: number; monthlyMinimumTotal: number; index: number}) {
     const drivers: string[] = [];
 
     if (projectedSafeCash < 200) {
-        drivers.push("Projected cushion remains below target");
+        const lowCushionDrivers = [
+            "Projected cushion remains below target",
+            "Available cushion stays under the recommended safety threshold",
+            "Cash reserve remains tighter than recommended",
+        ];
+        
+        drivers.push(lowCushionDrivers[index % lowCushionDrivers.length]);
     }
 
     if (requiredPaymentCount >= 4) {
         drivers.push(`${requiredPaymentCount} required payments occur before the next paycheck`);
     }
 
-    if (monthlyMinimumTotal >= 400) {
+    if (monthlyMinimumTotal >= 100) {
         drivers.push("Debt minimum obligations remain elevated");
     }
 
     return drivers;
 }
 
-function getRecommendedAction(status: ForecastStatus) {
+function getRecommendedAction(status: ForecastStatus, projectedSafeCash: number) {
     if (status === "recovery") {
         return "Pause aggressive payoff and protect required payments first.";
     }
 
     if (status === "pressure") {
-        return "Run a minimum-only cycle until cushion improves.";
+        return `Run minimum-only until cushion improves above ${formatForecastCurrency(100)}.`;
     }
 
     if (status === "tight") {
-        return "Limit extra payoff until projected cushion improves.";
+        return `Limit extra payoff until cushion inproves above ${formatForecastCurrency(200)}.`;
     }
 
     return "Current payoff pace appears sustainable.";
 }
 
 function roundMoney(amount: number) {
-    return (Math.round(amount * 100) / 100);
+    return Math.round(amount * 100) / 100;
 }
 
 function formatForecastCurrency(amount: number) {

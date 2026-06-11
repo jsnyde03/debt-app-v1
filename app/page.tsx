@@ -33,7 +33,7 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { TimelineSection } from "@/components/TimelineSection";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
-import { initializeRevenueCat, getSubscriptionPlan } from "@/lib/subscription/revenueCat";
+import { initializeRevenueCat, getSubscriptionPlan, restorePurchases } from "@/lib/subscription/revenueCat";
 import { purchasePremium } from "@/lib/subscription/revenueCat";
 
 type Goal = {
@@ -1220,6 +1220,23 @@ export default function Home() {
                                             }
                                         } catch (error) {
                                             setPurchaseStatus(error instanceof Error ? error.message : "Purchase failed.");
+                                        }
+                                    }}
+
+                                    onRestoreClick={async () => {
+                                        try {
+                                            const plan = await restorePurchases();
+
+                                            setSubscriptionPlan(plan);
+
+                                            if (plan === "premium") {
+                                                setPurchaseStatus("Purchases restored.");
+                                                setShowUpgrade(false);
+                                            } else {
+                                                setPurchaseStatus("No purchases found.");
+                                            }
+                                        } catch (error) {
+                                            setPurchaseStatus(error instanceof Error ? error.message : "Restore failed");
                                         }
                                     }}
 

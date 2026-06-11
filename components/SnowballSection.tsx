@@ -11,334 +11,382 @@ import { buildSmartInsights } from "@/lib/insights/buildSmartInsights";
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 
 type DebtWithDisplayBalance = Debt & {
-    displayBalance?: number;
+	displayBalance?: number;
 }
 
 type CompletedRecommendedAction = {
-    targetId: string;
-    label: string;
-    category: "emergency" | "snowball" | "optional_goal";
-    recommendedAmount: number;
-    actualAmount: number;
+	targetId: string;
+	label: string;
+	category: "emergency" | "snowball" | "optional_goal";
+	recommendedAmount: number;
+	actualAmount: number;
 };
 
 type SnowballSectionProps = {
-    debts: DebtWithDisplayBalance[];
-    result: AllocationResult | null;
-    completedRecommendedActions: CompletedRecommendedAction[];
-    payoffStrategy: "snowball" | "avalanche";
-    currentDate: string;
-    subscriptionPlan: SubscriptionPlan;
-    onUpgradeClick: () => void;
-    setPayoffStrategy: React.Dispatch<
-        React.SetStateAction<"snowball" | "avalanche">
-    >;
+	debts: DebtWithDisplayBalance[];
+	result: AllocationResult | null;
+	completedRecommendedActions: CompletedRecommendedAction[];
+	payoffStrategy: "snowball" | "avalanche";
+	currentDate: string;
+	subscriptionPlan: SubscriptionPlan;
+	onUpgradeClick: () => void;
+	setPayoffStrategy: React.Dispatch<
+		React.SetStateAction<"snowball" | "avalanche">
+	>;
 };
 
 export function SnowballSection({
-    debts,
-    result,
-    completedRecommendedActions,
-    payoffStrategy,
-    currentDate,
-    subscriptionPlan,
-    onUpgradeClick,
-    setPayoffStrategy,
+	debts,
+	result,
+	completedRecommendedActions,
+	payoffStrategy,
+	currentDate,
+	subscriptionPlan,
+	onUpgradeClick,
+	setPayoffStrategy,
 }: SnowballSectionProps) {
-    const [showPayoffOrder, setShowPayoffOrder] = useState(false);
-    const [payoffOrderPage, setPayoffOrderPage] = useState(1);
-    const [simulationExtraPayment, setSimulationExtraPayment] = useState("100");
-    const [simulationStrategy, setSimulationStrategy] = useState<"recommended" | "snowball" | "avalanche">("recommended")
+	const [showPayoffOrder, setShowPayoffOrder] = useState(false);
+	const [payoffOrderPage, setPayoffOrderPage] = useState(1);
+	const [simulationExtraPayment, setSimulationExtraPayment] = useState("100");
+	const [simulationStrategy, setSimulationStrategy] = useState<"recommended" | "snowball" | "avalanche">("recommended")
 
-    const canViewStrategyComparison = hasFeatureAccess(subscriptionPlan, "strategy_comparison");
-    const canViewWhatIfScenarios = hasFeatureAccess(subscriptionPlan, "what_if_scenarios");
-    const canViewForecasting = hasFeatureAccess(subscriptionPlan, "forecasting");
-    const canViewSmartInsights = hasFeatureAccess(subscriptionPlan, "smart_insights");
+	const canViewStrategyComparison = hasFeatureAccess(subscriptionPlan, "strategy_comparison");
+	const canViewWhatIfScenarios = hasFeatureAccess(subscriptionPlan, "what_if_scenarios");
+	const canViewForecasting = hasFeatureAccess(subscriptionPlan, "forecasting");
+	const canViewSmartInsights = hasFeatureAccess(subscriptionPlan, "smart_insights");
 
-    const debtsAfterCompletedPayments = debts.map((debt) => {
-        const completedAmountForDebt = completedRecommendedActions
-            .filter(
-                (action) =>
-                    action.category === "snowball" &&
-                    action.targetId === debt.id
-            )
-            .reduce((sum, action) => sum + action.actualAmount, 0);
+	const debtsAfterCompletedPayments = debts.map((debt) => {
+		const completedAmountForDebt = completedRecommendedActions
+			.filter(
+				(action) =>
+					action.category === "snowball" &&
+					action.targetId === debt.id
+			)
+			.reduce((sum, action) => sum + action.actualAmount, 0);
 
-        return {
-            ...debt,
-            balance: Math.max(0, (debt.displayBalance ?? debt.balance) - completedAmountForDebt),
-        };
-    });
+		return {
+			...debt,
+			balance: Math.max(0, (debt.displayBalance ?? debt.balance) - completedAmountForDebt),
+		};
+	});
 
-    const payoffOrder = [...debtsAfterCompletedPayments]
-        .filter((debt) => debt.balance > 0)
-        .sort((a, b) => {
-            if (payoffStrategy === "avalanche") {
-                return b.apr - a.apr;
-            }
+	const payoffOrder = [...debtsAfterCompletedPayments]
+		.filter((debt) => debt.balance > 0)
+		.sort((a, b) => {
+			if (payoffStrategy === "avalanche") {
+				return b.apr - a.apr;
+			}
 
-            return a.balance - b.balance;
-        });
+			return a.balance - b.balance;
+		});
 
-    const payoffOrderPageSize = 10;
-    const totalPayoffPages = Math.max(
-        1,
-        Math.ceil(payoffOrder.length / payoffOrderPageSize)
-    );
-    const visiblePayoffOrder = payoffOrder.slice(
-        (payoffOrderPage - 1) * payoffOrderPageSize,
-        payoffOrderPage * payoffOrderPageSize
-    );
+	const payoffOrderPageSize = 10;
+	const totalPayoffPages = Math.max(
+		1,
+		Math.ceil(payoffOrder.length / payoffOrderPageSize)
+	);
+	const visiblePayoffOrder = payoffOrder.slice(
+		(payoffOrderPage - 1) * payoffOrderPageSize,
+		payoffOrderPage * payoffOrderPageSize
+	);
 
-    const snowballAllocations =
-        result?.allocations.filter((item) => item.category === "snowball") ?? [];
+	const snowballAllocations =
+		result?.allocations.filter((item) => item.category === "snowball") ?? [];
 
-    const currentTarget = payoffOrder[0];
+	const currentTarget = payoffOrder[0];
 
-    const remainingSnowballExtra = snowballAllocations.reduce((sum, item) => {
-        const completedForItem = completedRecommendedActions
-            .filter(
-                (action) =>
-                    action.category === "snowball" &&
-                    action.targetId === item.targetId &&
-                    action.label === item.label
-            )
-            .reduce(
-                (completedSum, action) => completedSum + action.actualAmount,
-                0
-            );
+	const remainingSnowballExtra = snowballAllocations.reduce((sum, item) => {
+		const completedForItem = completedRecommendedActions
+			.filter(
+				(action) =>
+					action.category === "snowball" &&
+					action.targetId === item.targetId &&
+					action.label === item.label
+			)
+			.reduce(
+				(completedSum, action) => completedSum + action.actualAmount,
+				0
+			);
 
-        return sum + Math.max(0, item.amount - completedForItem);
-    }, 0);
+		return sum + Math.max(0, item.amount - completedForItem);
+	}, 0);
 
-    const hasCalculatedPlan = result !== null;
+	const hasCalculatedPlan = result !== null;
 
-    const baselineProjection = projectDebtPayoff({
-        debts,
-        monthlyExtraPayment: 0,
-        strategy: payoffStrategy,
-        startDate: currentDate,
-    });
+	const baselineProjection = projectDebtPayoff({
+		debts,
+		monthlyExtraPayment: 0,
+		strategy: payoffStrategy,
+		startDate: currentDate,
+	});
 
-    const actualProjection = projectDebtPayoff({
-        debts: debtsAfterCompletedPayments,
-        monthlyExtraPayment: 0,
-        strategy: payoffStrategy,
-        startDate: currentDate,
-    });
+	const actualProjection = projectDebtPayoff({
+		debts: debtsAfterCompletedPayments,
+		monthlyExtraPayment: 0,
+		strategy: payoffStrategy,
+		startDate: currentDate,
+	});
 
-    const recommendedProjection = projectDebtPayoff({
-        debts: debtsAfterCompletedPayments,
-        monthlyExtraPayment: remainingSnowballExtra,
-        strategy: payoffStrategy,
-        startDate: currentDate,
-    });
+	const recommendedProjection = projectDebtPayoff({
+		debts: debtsAfterCompletedPayments,
+		monthlyExtraPayment: remainingSnowballExtra,
+		strategy: payoffStrategy,
+		startDate: currentDate,
+	});
 
-    const baselineCanBeEstimated =
-        hasCalculatedPlan &&
-        baselineProjection.estimatedDebtFreeDate !== "Unable to estimate";
+	const baselineCanBeEstimated =
+		hasCalculatedPlan &&
+		baselineProjection.estimatedDebtFreeDate !== "Unable to estimate";
 
-    const actualCanBeEstimated =
-        hasCalculatedPlan &&
-        actualProjection.estimatedDebtFreeDate !== "Unable to estimate";
+	const actualCanBeEstimated =
+		hasCalculatedPlan &&
+		actualProjection.estimatedDebtFreeDate !== "Unable to estimate";
 
-    const recommendedCanBeEstimated =
-        hasCalculatedPlan &&
-        recommendedProjection.estimatedDebtFreeDate !== "Unable to estimate";
+	const recommendedCanBeEstimated =
+		hasCalculatedPlan &&
+		recommendedProjection.estimatedDebtFreeDate !== "Unable to estimate";
 
-    const parsedSimulationExtraPayment = Number(simulationExtraPayment) || 0;
+	const parsedSimulationExtraPayment = Number(simulationExtraPayment) || 0;
 
-    const actualInterestSaved =
-        baselineCanBeEstimated && actualCanBeEstimated
-            ? Math.max(
-                0,
-                baselineProjection.totalInterestPaid -
-                actualProjection.totalInterestPaid
-            )
-            : null;
+	const actualInterestSaved =
+		baselineCanBeEstimated && actualCanBeEstimated
+			? Math.max(
+				0,
+				baselineProjection.totalInterestPaid -
+				actualProjection.totalInterestPaid
+			)
+			: null;
 
-    const snowballComparisonProjection = projectDebtPayoff({
-        debts: debtsAfterCompletedPayments,
-        monthlyExtraPayment: remainingSnowballExtra,
-        strategy: "snowball",
-        startDate: currentDate,
-    });
+	const snowballComparisonProjection = projectDebtPayoff({
+		debts: debtsAfterCompletedPayments,
+		monthlyExtraPayment: remainingSnowballExtra,
+		strategy: "snowball",
+		startDate: currentDate,
+	});
 
-    const avalancheComparisonProjection = projectDebtPayoff({
-        debts: debtsAfterCompletedPayments,
-        monthlyExtraPayment: remainingSnowballExtra,
-        strategy: "avalanche",
-        startDate: currentDate,
-    });
+	const avalancheComparisonProjection = projectDebtPayoff({
+		debts: debtsAfterCompletedPayments,
+		monthlyExtraPayment: remainingSnowballExtra,
+		strategy: "avalanche",
+		startDate: currentDate,
+	});
 
-    const comparisonCanBeEstimated = hasCalculatedPlan && snowballComparisonProjection.estimatedDebtFreeDate !== "Unable to estimate" && avalancheComparisonProjection.estimatedDebtFreeDate !== "Unable to estimate";
+	const comparisonCanBeEstimated = hasCalculatedPlan && snowballComparisonProjection.estimatedDebtFreeDate !== "Unable to estimate" && avalancheComparisonProjection.estimatedDebtFreeDate !== "Unable to estimate";
 
-    const fasterStrategy =
-        comparisonCanBeEstimated && snowballComparisonProjection.monthsToDebtFree !== avalancheComparisonProjection.monthsToDebtFree
-            ? snowballComparisonProjection.monthsToDebtFree < avalancheComparisonProjection.monthsToDebtFree
-                ? "snowball"
-                : "avalanche"
-            : null;
+	const fasterStrategy =
+		comparisonCanBeEstimated && snowballComparisonProjection.monthsToDebtFree !== avalancheComparisonProjection.monthsToDebtFree
+			? snowballComparisonProjection.monthsToDebtFree < avalancheComparisonProjection.monthsToDebtFree
+				? "snowball"
+				: "avalanche"
+			: null;
 
-    const lowerInterestStrategy =
-        comparisonCanBeEstimated && snowballComparisonProjection.totalInterestPaid !== avalancheComparisonProjection.totalInterestPaid
-            ? snowballComparisonProjection.totalInterestPaid < avalancheComparisonProjection.totalInterestPaid
-                ? "snowball"
-                : "avalanche"
-            : null;
+	const lowerInterestStrategy =
+		comparisonCanBeEstimated && snowballComparisonProjection.totalInterestPaid !== avalancheComparisonProjection.totalInterestPaid
+			? snowballComparisonProjection.totalInterestPaid < avalancheComparisonProjection.totalInterestPaid
+				? "snowball"
+				: "avalanche"
+			: null;
 
-    const recommendedSimulationStrategy = lowerInterestStrategy ?? fasterStrategy ?? payoffStrategy;
+	const projectedInterestSavings = Math.max(0, snowballComparisonProjection.totalInterestPaid - avalancheComparisonProjection.totalInterestPaid);
+	const projectedMonthDifference = Math.abs(snowballComparisonProjection.monthsToDebtFree - avalancheComparisonProjection.monthsToDebtFree);
+	const recommendedStrategy = 
+		projectedInterestSavings >= 75 || fasterStrategy === "avalanche"
+			? "avalanche"
+			: "snowball";
 
-    const effectiveSimulationStrategy =
-        simulationStrategy === "recommended"
-            ? recommendedSimulationStrategy
-            : simulationStrategy;
-    
-    const totalMinimumPayment = debtsAfterCompletedPayments.reduce((sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance), 0);
-    const projectedBufferLift = Math.min(75, Math.max(0, totalMinimumPayment * 0.05));
-    
-    const smartInsights = buildSmartInsights({
-        safeExtraPayment: remainingSnowballExtra,
-        projectedBuffer: remainingSnowballExtra,
-        debts: debtsAfterCompletedPayments,
-        requiredTotal: result?.totalRequired ?? 0,
-        snowballDebtFreeDate: snowballComparisonProjection.estimatedDebtFreeDate,
-        avalancheDebtFreeDate: avalancheComparisonProjection.estimatedDebtFreeDate,
-        snowballInterest: snowballComparisonProjection.totalInterestPaid,
-        avalancheInterest: avalancheComparisonProjection.totalInterestPaid,
-    });
+	const recommendedSimulationStrategy = lowerInterestStrategy ?? fasterStrategy ?? payoffStrategy;
 
-    const whatIfBaselineProjection = projectDebtPayoff({
-        debts: debtsAfterCompletedPayments,
-        monthlyExtraPayment: remainingSnowballExtra,
-        strategy: effectiveSimulationStrategy,
-        startDate: currentDate,
-    });
+	const effectiveSimulationStrategy =
+		simulationStrategy === "recommended"
+			? recommendedSimulationStrategy
+			: simulationStrategy;
 
-    const simulatedSnowballProjection =
-        projectDebtPayoff({
-            debts: debtsAfterCompletedPayments,
-            monthlyExtraPayment: remainingSnowballExtra + parsedSimulationExtraPayment,
-            strategy: effectiveSimulationStrategy,
-            startDate: currentDate,
-        });
 
-    const simulationCanBeEstimated = hasCalculatedPlan && simulatedSnowballProjection.estimatedDebtFreeDate !== "Unable to estimate" && whatIfBaselineProjection.estimatedDebtFreeDate !== "Unable to estimate";
 
-    const simulatedInterestSaved =
-        simulationCanBeEstimated
-            ? Math.max(0, whatIfBaselineProjection.totalInterestPaid - simulatedSnowballProjection.totalInterestPaid)
-            : 0;
+	const smartInsights = buildSmartInsights({
+		safeExtraPayment: remainingSnowballExtra,
+		projectedBuffer: remainingSnowballExtra,
+		debts: debtsAfterCompletedPayments,
+		requiredTotal: result?.totalRequired ?? 0,
+		snowballDebtFreeDate: snowballComparisonProjection.estimatedDebtFreeDate,
+		avalancheDebtFreeDate: avalancheComparisonProjection.estimatedDebtFreeDate,
+		snowballInterest: snowballComparisonProjection.totalInterestPaid,
+		avalancheInterest: avalancheComparisonProjection.totalInterestPaid,
+	});
 
-    const comparisonSimulationProjection = projectDebtPayoff({
-        debts: debtsAfterCompletedPayments,
-        monthlyExtraPayment: remainingSnowballExtra + parsedSimulationExtraPayment,
-        strategy: effectiveSimulationStrategy === "snowball" ? "avalanche" : "snowball",
-        startDate: currentDate,
-    });
+	const whatIfBaselineProjection = projectDebtPayoff({
+		debts: debtsAfterCompletedPayments,
+		monthlyExtraPayment: remainingSnowballExtra,
+		strategy: effectiveSimulationStrategy,
+		startDate: currentDate,
+	});
 
-    const comparisonMonthsDifference = comparisonSimulationProjection.monthsToDebtFree - simulatedSnowballProjection.monthsToDebtFree;
-    const comparisonStrategyName =
-        effectiveSimulationStrategy === "snowball"
-            ? "Avalanche"
-            : "Snowball";
-    const isSimulationFaster = comparisonMonthsDifference > 0;
-    const totalDebtBalance = debtsAfterCompletedPayments.reduce((sum, debt) => sum + debt.balance, 0);
-    const forecastMonths = projectForecast({
-        startingSafeCash: remainingSnowballExtra,
-        startingDebtBalance: totalDebtBalance,
-        monthlyDebtReduction: remainingSnowballExtra,
-        months: 3,
-        bufferTrendPerMonth: projectedBufferLift,
-        requiredPaymentCount: result?.allocations.filter((item) => item.category === "expense" || item.category === "minimum_debt").length ?? 0,
-        monthlyMinimumTotal: debtsAfterCompletedPayments.reduce((sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance), 0),
-        nextDebtName: payoffOrder[0]?.name,
-        nextDebtMinimum: payoffOrder[0]?.minimumPayment,
-    })
-    const simulationTargetDebt =
-        effectiveSimulationStrategy === "avalanche"
-            ? [...debtsAfterCompletedPayments].sort((a, b) => {
-                if (b.apr !== a.apr) {
-                    return b.apr - a.apr;
-                }
+	const simulatedSnowballProjection =
+		projectDebtPayoff({
+			debts: debtsAfterCompletedPayments,
+			monthlyExtraPayment: remainingSnowballExtra + parsedSimulationExtraPayment,
+			strategy: effectiveSimulationStrategy,
+			startDate: currentDate,
+		});
 
-                return a.balance - b.balance;
-            })[0]
-            : [...debtsAfterCompletedPayments].sort((a, b) => a.balance - b.balance)[0];
+	const simulationCanBeEstimated = hasCalculatedPlan && simulatedSnowballProjection.estimatedDebtFreeDate !== "Unable to estimate" && whatIfBaselineProjection.estimatedDebtFreeDate !== "Unable to estimate";
 
-    return (
-        <section className="card">
-            <div className="section-heading-row">
-                <div>
-                    <h2>Payoff</h2>
+	const simulatedInterestSaved =
+		simulationCanBeEstimated
+			? Math.max(0, whatIfBaselineProjection.totalInterestPaid - simulatedSnowballProjection.totalInterestPaid)
+			: 0;
 
-                    <p className="section-collapse-subtitle">
-                        Debt-free timeline and order.
-                    </p>
-                </div>
-            </div>
+	const comparisonSimulationProjection = projectDebtPayoff({
+		debts: debtsAfterCompletedPayments,
+		monthlyExtraPayment: remainingSnowballExtra + parsedSimulationExtraPayment,
+		strategy: effectiveSimulationStrategy === "snowball" ? "avalanche" : "snowball",
+		startDate: currentDate,
+	});
 
-            {!currentTarget ? (
-                <div className="empty-debt-state compact-empty-state">
-                    <strong>No Active Debts Yet.</strong>
-                    <p>Add debts to see your payoff order and projected timeline.</p>
-                </div>
-            ) : (
-                <>
-                    <div className="payoff-focus-strip">
-                        <div>
-                            <span>Focus Debt</span>
-                            <strong>{currentTarget.name}</strong>
-                        </div>
+	const comparisonMonthsDifference = comparisonSimulationProjection.monthsToDebtFree - simulatedSnowballProjection.monthsToDebtFree;
+	const comparisonStrategyName =
+		effectiveSimulationStrategy === "snowball"
+			? "Avalanche"
+			: "Snowball";
+	const isSimulationFaster = comparisonMonthsDifference > 0;
+	const totalDebtBalance = debtsAfterCompletedPayments.reduce((sum, debt) => sum + debt.balance, 0);
 
-                        <strong>{formatCurrency(currentTarget.displayBalance ?? currentTarget.balance)} left</strong>
-                    </div>
+	const totalMinimumPayment = debtsAfterCompletedPayments.reduce((sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance), 0);
+	const projectedBufferLift = Math.min(75, Math.max(0, totalMinimumPayment * 0.05));
+	const forecastMonths = projectForecast({
+		startingSafeCash: remainingSnowballExtra,
+		startingDebtBalance: totalDebtBalance,
+		monthlyDebtReduction: remainingSnowballExtra,
+		months: 3,
+		bufferTrendPerMonth: projectedBufferLift,
+		requiredPaymentCount: result?.allocations.filter((item) => item.category === "expense" || item.category === "minimum_debt").length ?? 0,
+		monthlyMinimumTotal: debtsAfterCompletedPayments.reduce((sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance), 0),
+		nextDebtName: payoffOrder[0]?.name,
+		nextDebtMinimum: payoffOrder[0]?.minimumPayment,
+	})
+	const simulationTargetDebt =
+		effectiveSimulationStrategy === "avalanche"
+			? [...debtsAfterCompletedPayments].sort((a, b) => {
+				if (b.apr !== a.apr) {
+					return b.apr - a.apr;
+				}
 
-                    <div className="payoff-strategy-selector compact-payoff-strategy">
-                        <div className="strategy-buttons">
-                            <button
-                                type="button"
-                                className={
-                                    payoffStrategy === "snowball"
-                                        ? "strategy-button-active"
-                                        : "strategy-button"
-                                }
-                                onClick={() => setPayoffStrategy("snowball")}
-                            >
-                                Snowball
-                            </button>
+				return a.balance - b.balance;
+			})[0]
+			: [...debtsAfterCompletedPayments].sort((a, b) => a.balance - b.balance)[0];
 
-                            <button
-                                type="button"
-                                className={
-                                    payoffStrategy === "avalanche"
-                                        ? "strategy-button-active"
-                                        : "strategy-button"
-                                }
-                                onClick={() => setPayoffStrategy("avalanche")}
-                            >
-                                Avalanche
-                            </button>
-                        </div>
+	const simulationExtraAllocationPlan = buildExtraPaymentAllocationPlan({
+		debts: debtsAfterCompletedPayments,
+		amount: parsedSimulationExtraPayment,
+		strategy: effectiveSimulationStrategy,
+	});
 
-                        <p className="strategy-description">
-                            {payoffStrategy === "snowball"
-                                ? "Smallest balance first."
-                                : "Highest APR first."}
-                        </p>
-                    </div>
+	function buildExtraPaymentAllocationPlan({ debts, amount, strategy}: {debts: DebtWithDisplayBalance[]; amount: number; strategy: "snowball" | "avalanche"}) {
+		let remainingAmount = Math.max(0, amount);
 
-                    <div className="payoff-summary-strip">
-                        <div>
-                            <span>Debt Free</span>
-                            <strong>
-                                {actualCanBeEstimated
-                                    ? actualProjection.estimatedDebtFreeDate
-                                    : "—"}
-                            </strong>
-                        </div>
+		const orderedDebts = [...debts].filter((debt) => debt.balance > 0).sort((a, b) => {
+			if (strategy === "avalanche") {
+				if (b.apr !== a.apr) {
+					return b.apr - a.apr;
+				}
 
-                        {/*          
+				return a.balance - b.balance;
+			}
+
+			return a.balance - b.balance;
+		});
+
+		return orderedDebts.map((debt) => {
+			if (remainingAmount <= 0) {
+				return null;
+			}
+
+			const amountToApply = Math.min(remainingAmount, debt.balance);
+			remainingAmount -= amountToApply;
+
+			return {
+				debtId: debt.id,
+				debtName: debt.name,
+				amount: amountToApply,
+				remainingBalanceAfterPayment: Math.max(0, debt.balance - amountToApply),
+				isPaidOff: amountToApply >= debt.balance,
+			};
+		}).filter((item): item is NonNullable<typeof item> => item !== null);
+	}
+
+	return (
+		<section className="card">
+			<div className="section-heading-row">
+				<div>
+					<h2>Payoff</h2>
+
+					<p className="section-collapse-subtitle">
+						Debt-free timeline and order.
+					</p>
+				</div>
+			</div>
+
+			{!currentTarget ? (
+				<div className="empty-debt-state compact-empty-state">
+					<strong>No Active Debts Yet.</strong>
+					<p>Add debts to see your payoff order and projected timeline.</p>
+				</div>
+			) : (
+				<>
+					<div className="payoff-focus-strip">
+						<div>
+							<span>Focus Debt</span>
+							<strong>{currentTarget.name}</strong>
+						</div>
+
+						<strong>{formatCurrency(currentTarget.displayBalance ?? currentTarget.balance)} left</strong>
+					</div>
+
+					<div className="payoff-strategy-selector compact-payoff-strategy">
+						<div className="strategy-buttons">
+							<button
+								type="button"
+								className={
+									payoffStrategy === "snowball"
+										? "strategy-button-active"
+										: "strategy-button"
+								}
+								onClick={() => setPayoffStrategy("snowball")}
+							>
+								Snowball
+							</button>
+
+							<button
+								type="button"
+								className={
+									payoffStrategy === "avalanche"
+										? "strategy-button-active"
+										: "strategy-button"
+								}
+								onClick={() => setPayoffStrategy("avalanche")}
+							>
+								Avalanche
+							</button>
+						</div>
+
+						<p className="strategy-description">
+							{payoffStrategy === "snowball"
+								? "Smallest balance first."
+								: "Highest APR first."}
+						</p>
+					</div>
+
+					<div className="payoff-summary-strip">
+						<div>
+							<span>Debt Free</span>
+							<strong>
+								{actualCanBeEstimated
+									? actualProjection.estimatedDebtFreeDate
+									: "—"}
+							</strong>
+						</div>
+
+						{/*          
                         <div>
                             <span>Interest</span>
                             <strong>
@@ -357,478 +405,563 @@ export function SnowballSection({
                             </strong>
                         </div>
                         */}
-                    </div>
+					</div>
 
-                    {recommendedCanBeEstimated && remainingSnowballExtra > 0 && (
-                        <div className="payoff-recommendation-strip">
-                            <span>With current recommendation</span>
-                            <strong>{recommendedProjection.estimatedDebtFreeDate}</strong>
-                        </div>
-                    )}
+					{recommendedCanBeEstimated && remainingSnowballExtra > 0 && (
+						<div className="payoff-recommendation-strip">
+							<span>With current recommendation</span>
+							<strong>{recommendedProjection.estimatedDebtFreeDate}</strong>
+						</div>
+					)}
 
-                    <div className="strategy-comparison-card">
-                        <div className="strategy-comparison-header">
-                            <div>
-                                <h3>Smart Insights</h3>
-                            </div>
-                        {!canViewSmartInsights && (
-                            
-                            <span className="premium-pill">Premium</span>
-                        )}
-                        </div>
-                        {canViewSmartInsights ? (
-                        <div className="smart-insight-list">
-                            {smartInsights.map((insight) => (
-                                <div
-                                    key={insight.title}
-                                    className={`smart-insight-card ${insight.severity}`}
-                                >
-                                    <strong>{insight.title}</strong>
-                                    <p>{insight.message}</p>
-                                    {insight.action && <small>{insight.action}</small>}
-                                </div>
-                            ))}
-                        </div>
-                        ): (
-                           <div className="premium-locked-preview">
-                                <strong>Unlock Smart Insights.</strong>
-                                <p>
-                                    Premium will provide guidance based on your current paycheck plan, cash pressure, and payoff strategy.
-                                </p>
+					<div className="strategy-comparison-card">
+						<div className="strategy-comparison-header">
+							<div>
+								<h3>Smart Insights</h3>
+							</div>
+							{!canViewSmartInsights && (
 
-                                <button
-                                    type="button"
-                                    className="primary-button upgrade-preview-button"
-                                    onClick={onUpgradeClick}
-                                >
-                                    View Premium
-                                </button>
-                            </div>
-                        )}
-                        
-                    </div>
+								<span className="premium-pill">Premium</span>
+							)}
+						</div>
+						{canViewSmartInsights ? (
+							<div className="smart-insight-list">
+								{smartInsights.map((insight) => (
+									<div
+										key={insight.title}
+										className={`smart-insight-card ${insight.severity}`}
+									>
+										<strong>{insight.title}</strong>
+										<p>{insight.message}</p>
+										{insight.action && <small>{insight.action}</small>}
+									</div>
+								))}
+							</div>
+						) : (
+							<div className="premium-locked-preview">
+								<strong>Unlock Smart Insights.</strong>
+								<p>
+									Premium will provide guidance based on your current paycheck plan, cash pressure, and payoff strategy.
+								</p>
 
-                    <div className="strategy-comparison-card">
-                        <div className="strategy-comparison-header">
-                            <div>
-                                <h3>Strategy Comparison</h3>
+								<button
+									type="button"
+									className="primary-button upgrade-preview-button"
+									onClick={onUpgradeClick}
+								>
+									View Premium
+								</button>
+							</div>
+						)}
 
-                                <p>Compare snowball and avalanche outcomes using your current plan.</p>
-                            </div>
+					</div>
 
-                            {!canViewStrategyComparison && (
-                                <span className="premium-pill">Premium</span>
-                            )}
-                        </div>
-                        {canViewStrategyComparison ? (
-                            comparisonCanBeEstimated ? (
-                                <>
-                                    <div className="strategy-comparison-grid">
-                                        <div className="strategy-comparison-option">
-                                            <span>Snowball</span>
-                                            <strong>
-                                                {snowballComparisonProjection.estimatedDebtFreeDate}
-                                            </strong>
-                                            <small>
-                                                Interest:{" "}
-                                                {formatCurrency(snowballComparisonProjection.totalInterestPaid)}
-                                            </small>
-                                        </div>
+					<div className="strategy-comparison-card">
+						<div className="strategy-comparison-header">
+							<div>
+								<h3>Strategy Comparison</h3>
 
-                                        <div className="strategy-comparison-option">
-                                            <span>
-                                                Avalanche
-                                            </span>
-                                            <strong>
-                                                {avalancheComparisonProjection.estimatedDebtFreeDate}
-                                            </strong>
-                                            <small>
-                                                Interest:{" "}
-                                                {formatCurrency(avalancheComparisonProjection.totalInterestPaid)}
-                                            </small>
-                                        </div>
-                                    </div>
+								<p>Compare snowball and avalanche outcomes using your current plan.</p>
+							</div>
 
-                                    <div className="strategy-comparison-callout">
-                                        {fasterStrategy ? (
-                                            <span>
-                                                Faster Payoff:{" "}
-                                                <strong>
-                                                    {fasterStrategy === "snowball" ? "Snowball" : "Avalanche"}
-                                                </strong>
-                                            </span>
-                                        ) : (
-                                            <span>Both strategies project the same payoff month.</span>
-                                        )}
+							{!canViewStrategyComparison && (
+								<span className="premium-pill">Premium</span>
+							)}
+						</div>
+						{canViewStrategyComparison ? (
+							comparisonCanBeEstimated ? (
+								<>
+									<div className="strategy-comparison-grid">
+										<div className="strategy-comparison-option">
+											<span>Snowball</span>
+											<strong>
+												{snowballComparisonProjection.estimatedDebtFreeDate}
+											</strong>
+											<small>
+												Interest:{" "}
+												{formatCurrency(snowballComparisonProjection.totalInterestPaid)}
+											</small>
+										</div>
 
-                                        {lowerInterestStrategy && (
-                                            <span>
-                                                Lower Interest:{" "}
-                                                <strong>
-                                                    {lowerInterestStrategy === "snowball" ? "Snowball" : "Avalanche"}
-                                                </strong>
-                                            </span>
-                                        )}
-                                    </div>
-                                </>
-                            ) : (
-                                <p className="empty-state">
-                                    Strategy comparison is unavailable until your debts can be estimated from the current plan.
-                                </p>
-                            )
-                        ) : (
-                            <div className="premium-locked-preview">
-                                <strong>Unlock strategy comparison.</strong>
-                                <p>
-                                    Premium will compare snowball and avalanche side-by-side, including payoff timing and estimated interest.
-                                </p>
+										<div className="strategy-comparison-option">
+											<span>
+												Avalanche
+											</span>
+											<strong>
+												{avalancheComparisonProjection.estimatedDebtFreeDate}
+											</strong>
+											<small>
+												Interest:{" "}
+												{formatCurrency(avalancheComparisonProjection.totalInterestPaid)}
+											</small>
+										</div>
+									</div>
 
-                                <button
-                                    type="button"
-                                    className="primary-button upgrade-preview-button"
-                                    onClick={onUpgradeClick}
-                                >
-                                    View Premium
-                                </button>
-                            </div>
-                        )}
-                    </div>
+									<div className="strategy-comparison-callout">
+										{fasterStrategy ? (
+											<span>
+												Faster Payoff:{" "}
+												<strong>
+													{fasterStrategy === "snowball" ? "Snowball" : "Avalanche"}
+												</strong>
+											</span>
+										) : (
+											<span>Both strategies project the same payoff month.</span>
+										)}
 
-                    <div className="strategy-comparison-card">
-                        <div className="strategy-comparison-header">
-                            <div>
-                                <h3>What-If Simulation</h3>
+										{lowerInterestStrategy && (
+											<span>
+												Lower Interest:{" "}
+												<strong>
+													{lowerInterestStrategy === "snowball" ? "Snowball" : "Avalanche"}
+												</strong>
+											</span>
+										)}
+									</div>
 
-                                <p>
-                                    See how extra monthly payments could accelerate debt payoff.
-                                </p>
-                            </div>
+									<div className="strategy-guidance-card">
+										<h4>
+											Recommended Strategy:{" "}
+											{recommendedStrategy === "avalanche" ? "Avalanche" : "Snowball"}
+										</h4>
 
-                            {!canViewWhatIfScenarios && (
-                                <span className="premium-pill">
-                                    Premium
-                                </span>
-                            )}
-                        </div>
+										<p>
+											{recommendedStrategy === "avalanche"
+												? `Avalanche currently appears stronger because it could save about ${formatCurrency(projectedInterestSavings)} in projected interest${projectedMonthDifference > 0 ? ` and improve the payout timeline by about ${projectedMonthDifference} month${projectedMonthDifference === 1 ? "" : "s"}` : ""}.`
+												: "Snowball may currently be easier to sustain because the projected interest difference is relatively small and quicker wins can help maintain momentum."}
+										</p>
 
-                        {canViewWhatIfScenarios ? (
-                            <>
-                                <div className="simulation-strategy-row">
-                                    <button
-                                        type="button"
-                                        className={
-                                            simulationStrategy === "recommended"
-                                                ? "simulation-strategy-pill active"
-                                                : "simulation-strategy-pill"
-                                        }
-                                        onClick={() => setSimulationStrategy("recommended")}
-                                    >
-                                        Recommended
-                                    </button>
+										<p>
+											{recommendedStrategy === "avalanche"
+												? "Reducing high APR balances first may improve long-term financial stability."
+												: "Use snowball when motivation and visible progress matter more than interest optimization."}
+										</p>
+									</div>
+								</>
+							) : (
+								<p className="empty-state">
+									Strategy comparison is unavailable until your debts can be estimated from the current plan.
+								</p>
+							)
+						) : (
+							<div className="premium-locked-preview">
+								<strong>Unlock strategy comparison.</strong>
+								<p>
+									Premium will compare snowball and avalanche side-by-side, including payoff timing and estimated interest.
+								</p>
 
-                                    <button
-                                        type="button"
-                                        className={
-                                            simulationStrategy === "snowball"
-                                                ? "simulation-strategy-pill active"
-                                                : "simulation-strategy-pill"
-                                        }
-                                        onClick={() => setSimulationStrategy("snowball")}
-                                    >
-                                        Snowball
-                                    </button>
+								<button
+									type="button"
+									className="primary-button upgrade-preview-button"
+									onClick={onUpgradeClick}
+								>
+									View Premium
+								</button>
+							</div>
+						)}
+					</div>
 
-                                    <button
-                                        type="button"
-                                        className={
-                                            simulationStrategy === "avalanche"
-                                                ? "simulation-strategy-pill active"
-                                                : "simulation-strategy-pill"
-                                        }
-                                        onClick={() => setSimulationStrategy("avalanche")}
-                                    >
-                                        Avalanche
-                                    </button>
-                                </div>
-                                <div className="what-if-input-row">
-                                    <label>
-                                        Extra Monthly Payment
-                                    </label>
+					<div className="strategy-comparison-card">
+						<div className="strategy-comparison-header">
+							<div>
+								<h3>What-If Simulation</h3>
 
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        value={
-                                            simulationExtraPayment
-                                        }
-                                        onChange={(event) => setSimulationExtraPayment(event.target.value)}
-                                    />
-                                </div>
+								<p>
+									See how extra monthly payments could accelerate debt payoff.
+								</p>
+							</div>
 
-                                {simulationCanBeEstimated ? (
-                                    <>
-                                        <div className="strategy-comparison-grid">
-                                            <div className="strategy-comparison-option">
-                                                <span>
-                                                    New Debt-Free Date
-                                                </span>
+							{!canViewWhatIfScenarios && (
+								<span className="premium-pill">
+									Premium
+								</span>
+							)}
+						</div>
 
-                                                <strong>
-                                                    {
-                                                        simulatedSnowballProjection.estimatedDebtFreeDate
-                                                    }
-                                                </strong>
-                                            </div>
-                                            {parsedSimulationExtraPayment > 0 && (
-                                                <div className="strategy-comparison-option">
-                                                    <span>
-                                                        {isSimulationFaster
-                                                            ? `Advantage over ${comparisonStrategyName}`
-                                                            : `Compared to ${comparisonStrategyName}`}
-                                                    </span>
+						{canViewWhatIfScenarios ? (
+							<>
+								<div className="simulation-strategy-row">
+									<button
+										type="button"
+										className={
+											simulationStrategy === "recommended"
+												? "simulation-strategy-pill active"
+												: "simulation-strategy-pill"
+										}
+										onClick={() => setSimulationStrategy("recommended")}
+									>
+										Recommended
+									</button>
 
-                                                    <strong>
-                                                        {comparisonMonthsDifference === 0
-                                                            ? "No Timing Advantage"
-                                                            : `${Math.abs(comparisonMonthsDifference)} Month${Math.abs(comparisonMonthsDifference) === 1 ? "" : "s"} ${isSimulationFaster ? "Faster" : "Slower"}`}
-                                                    </strong>
-                                                </div>
-                                            )}
-                                        </div>
+									<button
+										type="button"
+										className={
+											simulationStrategy === "snowball"
+												? "simulation-strategy-pill active"
+												: "simulation-strategy-pill"
+										}
+										onClick={() => setSimulationStrategy("snowball")}
+									>
+										Snowball
+									</button>
 
-                                        {parsedSimulationExtraPayment <= 0 && (
-                                            <p className="empty-state">
-                                                Enter an extra monthly payment to simulate payoff acceleration.
-                                            </p>
-                                        )}
+									<button
+										type="button"
+										className={
+											simulationStrategy === "avalanche"
+												? "simulation-strategy-pill active"
+												: "simulation-strategy-pill"
+										}
+										onClick={() => setSimulationStrategy("avalanche")}
+									>
+										Avalanche
+									</button>
+								</div>
+								<div className="what-if-input-row">
+									<label>
+										Extra Monthly Payment
+									</label>
 
-                                        {simulationTargetDebt && (
-                                            <div className="simulation-target-card">
-                                                <strong>
-                                                    Apply extra to:
-                                                </strong>
+									<input
+										type="number"
+										min="0"
+										step="1"
+										value={
+											simulationExtraPayment
+										}
+										onChange={(event) => setSimulationExtraPayment(event.target.value)}
+									/>
+								</div>
 
-                                                <div className="simulation-target-name">
-                                                    {simulationTargetDebt.name}
-                                                </div>
+								{simulationCanBeEstimated ? (
+									<>
+										<div className="strategy-comparison-grid">
+											<div className="strategy-comparison-option">
+												<span>
+													New Debt-Free Date
+												</span>
 
-                                                <div className="simulation-target-meta">
-                                                    Balance:{" "}
-                                                    {formatCurrency(simulationTargetDebt.balance)}
-                                                </div>
+												<strong>
+													{
+														simulatedSnowballProjection.estimatedDebtFreeDate
+													}
+												</strong>
+											</div>
+											{parsedSimulationExtraPayment > 0 && (
+												<>
+													<div className="strategy-comparison-callout">
+														<span>
+															Projected interest saved:{" "}
+															<strong>
+																{formatCurrency(simulatedInterestSaved)}
+															</strong>
+														</span>
+													</div>
 
-                                                <div className="simulation-target-meta">
-                                                    APR: {simulationTargetDebt.apr}%
-                                                </div>
+													<div className="what-if-guidance">
+														<p>
+															{parsedSimulationExtraPayment >= 100
+																? `An extra ${formatCurrency(parsedSimulationExtraPayment)}/month could meaningfully accelerate debt payoff and reduce long-term interest pressure.`
+																: "Smaller extra payments still improve payoff momentum over time."}
+														</p>
 
-                                                <p className="simulation-target-reason">
-                                                    {effectiveSimulationStrategy === "avalanche"
-                                                        ? "Avalanche prioritizes the highest APR debt to reduce interest."
-                                                        : "Snowball prioritizes the smallest balance debt to build momentum"}
-                                                </p>
-                                            </div>
-                                        )}
-                                        {parsedSimulationExtraPayment > 0 && (
-                                            <div className="strategy-comparison-callout">
-                                                <span>
-                                                    Projected interest saved:{" "}
-                                                    <strong>
-                                                        {formatCurrency(simulatedInterestSaved)}
-                                                    </strong>
-                                                </span>
-                                            </div>
-                                        )}
-                                    </>
-                                ) : (
-                                    <p className="empty-state">
-                                        Simulation unavailable until payoff projections can be estimated.
-                                    </p>
-                                )}
-                            </>
-                        ) : (
-                            <div className="premium-locked-preview">
-                                <strong>
-                                    Unlock what-if scenarios
-                                </strong>
+														{remainingSnowballExtra < 100 && (
+															<p>
+																Current projections still show tighter-than-recommended cash reserves during upcoming cycles.
+															</p>
+														)}
+													</div>
+												</>
+											)}
+										</div>
 
-                                <p>
-                                    Premium simulations show how extra monthly payments could reduce payoff time and estimated interest.
-                                </p>
+										{parsedSimulationExtraPayment <= 0 && (
+											<p className="empty-state">
+												Enter an extra monthly payment to simulate payoff acceleration.
+											</p>
+										)}
 
-                                <button
-                                    type="button"
-                                    className="primary-button upgrade-preview-button"
-                                    onClick={onUpgradeClick}
-                                >
-                                    View Premium
-                                </button>
-                            </div>
-                        )}
-                    </div>
+										{simulationTargetDebt && (
+											<div className="simulation-target-card">
+												<strong>
+													Apply extra to:
+												</strong>
 
-                    <div className="strategy-comparison-card">
-                        <div className="strategy-comparison-header">
-                            <div>
-                                <h3>Forecast</h3>
-                                <p>Projected payoff progress and safe cash outlook over the next few months.</p>
-                            </div>
+												<div className="simulation-allocation-list">
+													{simulationExtraAllocationPlan.map((item) => (
+														<div
+															key={item.debtId}
+															className="simulation-allocation-item"
+														>
+															<div>
+																<div className="simulation-target-name">
+																	{item.debtName}
+																</div>
 
-                            {!canViewForecasting && (
-                                <span className="premium-pill">
-                                    Premium
-                                </span>
-                            )}
-                        </div>
+																<div className="simulation-target-meta">
+																	{item.isPaidOff
+																		? "Paid off by this extra payment"
+																		: `${formatCurrency(item.remainingBalanceAfterPayment)} remaining after payment`}
+																</div>
+															</div>
 
-                        {canViewForecasting ? (
-                            <div className="forecast-list">
-                                {forecastMonths.map((month) => (
-                                    <div
-                                        key={month.monthLabel}
-                                        className="forecast-card"
-                                    >
-                                        <div className="forecast-card-header">
-                                            <strong>
-                                                {month.monthLabel}
-                                            </strong>
+															<strong>
+																{formatCurrency(item.amount)}
+															</strong>
+														</div>
+													))}
+												</div>
 
-                                           
-                                        </div>
+												<p className="simulation-target-reason">
+													{effectiveSimulationStrategy === "avalanche"
+														? "Avalanche applies extra money to highest APR debt first, then rolls any leftover amount to the next highest APR balance."
+														: "Snowball applies extra money to the smallest balance first, then rolls any leftover amount to the next smallest balance."}
+												</p>
+											</div>
+										)}
+										{parsedSimulationExtraPayment > 0 && (
+											<div className="strategy-comparison-callout">
+												<span>
+													Projected interest saved:{" "}
+													<strong>
+														{formatCurrency(simulatedInterestSaved)}
+													</strong>
+												</span>
+											</div>
+										)}
+									</>
+								) : (
+									<p className="empty-state">
+										Simulation unavailable until payoff projections can be estimated.
+									</p>
+								)}
+							</>
+						) : (
+							<div className="premium-locked-preview">
+								<strong>
+									Unlock what-if scenarios
+								</strong>
 
-                                        <div className="forecast-metrics">
-                                            <div>
-                                                <span>
-                                                    Projected Cushion
-                                                </span>
+								<p>
+									Premium simulations show how extra monthly payments could reduce payoff time and estimated interest.
+								</p>
 
-                                                <strong>
-                                                    {formatCurrency(month.projectedSafeCash)}
-                                                </strong>
-                                            </div>
+								<button
+									type="button"
+									className="primary-button upgrade-preview-button"
+									onClick={onUpgradeClick}
+								>
+									View Premium
+								</button>
+							</div>
+						)}
+					</div>
 
-                                            <div>
-                                                <span>
-                                                    Debt Balance
-                                                </span>
+					<div className="strategy-comparison-card">
+						<div className="strategy-comparison-header">
+							<div>
+								<h3>Forecast</h3>
+								<p>Projected payoff progress and safe cash outlook over the next few months.</p>
+							</div>
 
-                                                <strong>
-                                                    {formatCurrency(month.projectedDebtBalance)}
-                                                </strong>
-                                            </div>
-                                        </div>
+							{!canViewForecasting && (
+								<span className="premium-pill">
+									Premium
+								</span>
+							)}
+						</div>
 
-                                        <p className="forecast-action">
-                                            {month.recommendedAction}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="premium-locked-preview">
-                                <strong>
-                                    Unlock forecasting
-                                </strong>
+						{canViewForecasting ? (
+							<div className="forecast-list">
+								{forecastMonths.map((month) => (
+									<div
+										key={month.monthLabel}
+										className="forecast-card"
+									>
+										<div className="forecast-card-header">
+											<strong>
+												{month.monthLabel}
+											</strong>
 
-                                <p>
-                                    Premium forecasting projects future debt payoff progress, reserve stability, and risk periods.
-                                </p>
+											<span
+												className={`forecast-status ${month.status}`}
+											>
+												{month.status === "stable"
+													? "Stable"
+													: month.status === "tight"
+														? "Tight Cycle"
+														: month.status === "pressure"
+															? "High Pressure"
+															: "Recovery Needed"}
+											</span>
+										</div>
 
-                                <button
-                                    type="button"
-                                    className="primary-button upgrade-preview-button"
-                                    onClick={onUpgradeClick}
-                                >
-                                    View Premium
-                                </button>
-                            </div>
-                        )}
-                    </div>
+										<div className="forecast-metrics">
+											<div>
+												<span>
+													Projected Cushion
+												</span>
 
-                    <div className="debt-group">
-                        <button
-                            type="button"
-                            className="section-collapse-button"
-                            onClick={() => setShowPayoffOrder((current) => !current)}
-                        >
-                            <div className="section-collapse-left">
-                                <h2>Payoff Order</h2>
-                                <span className="section-count-pill">
-                                    {payoffOrder.length}
-                                </span>
-                            </div>
+												<strong>
+													{formatCurrency(month.projectedSafeCash)}
+												</strong>
+											</div>
 
-                            <span className="collapse-chevron">
-                                {showPayoffOrder ? "▲" : "▼"}
-                            </span>
-                        </button>
+											<div>
+												<span>
+													Debt Balance
+												</span>
 
-                        {showPayoffOrder && (
-                            <>
-                                {visiblePayoffOrder.map((debt, index) => (
-                                    <div key={debt.id} className="saved-item debt-list-item">
-                                        <div className="saved-item-left">
-                                            <div className="saved-title">
-                                                #
-                                                {(payoffOrderPage - 1) *
-                                                    payoffOrderPageSize +
-                                                    index +
-                                                    1}{" "}
-                                                {debt.name}
-                                            </div>
+												<strong>
+													{formatCurrency(month.projectedDebtBalance)}
+												</strong>
+											</div>
+										</div>
 
-                                            <div className="saved-meta">
-                                                Min {formatCurrency(debt.minimumPayment)}
-                                                {debt.apr > 0 ? ` · APR ${debt.apr}%` : ""}
-                                            </div>
-                                        </div>
+										<p className="forecast-action">
+											{month.recommendedAction}
+										</p>
 
-                                        <div className="saved-item-right">
-                                            <strong className="saved-amount">
-                                                {formatCurrency(debt.displayBalance ?? debt.balance)}
-                                            </strong>
-                                        </div>
-                                    </div>
-                                ))}
+										{month.riskDrivers.length > 0 && (
+											<div className="forecast-drivers">
+												<h5>
+													Risk Drivers
+												</h5>
 
-                                {payoffOrder.length > payoffOrderPageSize && (
-                                    <div className="pagination-actions pagination-compact">
-                                        <button
-                                            type="button"
-                                            className="text-action-button"
-                                            disabled={payoffOrderPage <= 1}
-                                            onClick={() =>
-                                                setPayoffOrderPage((current) =>
-                                                    Math.max(1, current - 1)
-                                                )
-                                            }
-                                        >
-                                            ‹
-                                        </button>
+												<ul>
+													{month.riskDrivers.map((driver) => <li key={driver}>{driver}</li>)}
+												</ul>
+											</div>
+										)}
+										
+										{month.recoveryMonth && (
+											<p className="forecast-recovery">
+												Cushion recovery projected by{" "}
+												<strong>
+													{month.recoveryMonth}
+												</strong>
+											</p>
+										)}
 
-                                        <span className="pagination-status">
-                                            Page {payoffOrderPage} of {totalPayoffPages}
-                                        </span>
+										{month.recoveryTrend && (
+											<p className="forecast-recovery">
+												{month.recoveryTrend}
+											</p>
+										)}
 
-                                        <button
-                                            type="button"
-                                            className="text-action-button"
-                                            disabled={payoffOrderPage >= totalPayoffPages}
-                                            onClick={() =>
-                                                setPayoffOrderPage((current) =>
-                                                    Math.min(totalPayoffPages, current + 1)
-                                                )
-                                            }
-                                        >
-                                            ›
-                                        </button>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </div>
-                </>
-            )}
-        </section>
-    );
+										{month.reliefPoint && (
+											<p className="forecast-relief">
+												{month.reliefPoint}
+											</p>
+										)}
+									</div>
+								))}
+							</div>
+						) : (
+							<div className="premium-locked-preview">
+								<strong>
+									Unlock forecasting
+								</strong>
+
+								<p>
+									Premium forecasting explains upcoming cash pressure, risk drivers, recovery timing, and future payoff relief.
+								</p>
+
+								<button
+									type="button"
+									className="primary-button upgrade-preview-button"
+									onClick={onUpgradeClick}
+								>
+									View Premium
+								</button>
+							</div>
+						)}
+					</div>
+
+					<div className="debt-group">
+						<button
+							type="button"
+							className="section-collapse-button"
+							onClick={() => setShowPayoffOrder((current) => !current)}
+						>
+							<div className="section-collapse-left">
+								<h2>Payoff Order</h2>
+								<span className="section-count-pill">
+									{payoffOrder.length}
+								</span>
+							</div>
+
+							<span className="collapse-chevron">
+								{showPayoffOrder ? "▲" : "▼"}
+							</span>
+						</button>
+
+						{showPayoffOrder && (
+							<>
+								{visiblePayoffOrder.map((debt, index) => (
+									<div key={debt.id} className="saved-item debt-list-item">
+										<div className="saved-item-left">
+											<div className="saved-title">
+												#
+												{(payoffOrderPage - 1) *
+													payoffOrderPageSize +
+													index +
+													1}{" "}
+												{debt.name}
+											</div>
+
+											<div className="saved-meta">
+												Min {formatCurrency(debt.minimumPayment)}
+												{debt.apr > 0 ? ` · APR ${debt.apr}%` : ""}
+											</div>
+										</div>
+
+										<div className="saved-item-right">
+											<strong className="saved-amount">
+												{formatCurrency(debt.displayBalance ?? debt.balance)}
+											</strong>
+										</div>
+									</div>
+								))}
+
+								{payoffOrder.length > payoffOrderPageSize && (
+									<div className="pagination-actions pagination-compact">
+										<button
+											type="button"
+											className="text-action-button"
+											disabled={payoffOrderPage <= 1}
+											onClick={() =>
+												setPayoffOrderPage((current) =>
+													Math.max(1, current - 1)
+												)
+											}
+										>
+											‹
+										</button>
+
+										<span className="pagination-status">
+											Page {payoffOrderPage} of {totalPayoffPages}
+										</span>
+
+										<button
+											type="button"
+											className="text-action-button"
+											disabled={payoffOrderPage >= totalPayoffPages}
+											onClick={() =>
+												setPayoffOrderPage((current) =>
+													Math.min(totalPayoffPages, current + 1)
+												)
+											}
+										>
+											›
+										</button>
+									</div>
+								)}
+							</>
+						)}
+					</div>
+				</>
+			)}
+		</section>
+	);
 }

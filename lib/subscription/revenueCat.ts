@@ -2,10 +2,16 @@ import { Purchases, LOG_LEVEL } from "@revenuecat/purchases-capacitor";
 
 const REVENUECAT_API_KEY = "appl_XUWODZnbbJFPbdMTgBTyKNAGGyp";
 const PREMIUM_ENTITLEMENT_ID = "premium";
+const BYPASS_REVENUECAT = process.env.NODE_ENV === "development";
 
 let hasConfiguredRevenueCat = false;
 
 export async function initializeRevenueCat() {
+
+    if(BYPASS_REVENUECAT) {
+        return;
+    }
+
     if (hasConfiguredRevenueCat) {
         return;
     }
@@ -26,6 +32,11 @@ export async function initializeRevenueCat() {
 }
 
 export async function getSubscriptionPlan(): Promise<"free" | "premium"> {
+
+    if(BYPASS_REVENUECAT) {
+        return "premium";
+    }
+
     try {
         const customerInfo = await Purchases.getCustomerInfo();
         const isPremiumActive = customerInfo.customerInfo.entitlements.active[PREMIUM_ENTITLEMENT_ID];
@@ -37,7 +48,26 @@ export async function getSubscriptionPlan(): Promise<"free" | "premium"> {
     }
 }
 
+export async function restorePurchases(): Promise<"free" | "premium"> {
+
+    if (BYPASS_REVENUECAT) {
+        return "premium";
+    }
+
+    await initializeRevenueCat();
+
+    const customerInfo = await Purchases.restorePurchases();
+
+    const isPremiumActive = Boolean(customerInfo.customerInfo.entitlements.active[PREMIUM_ENTITLEMENT_ID]);
+
+    return isPremiumActive ? "premium" : "free";
+}
+
 export async function purchasePremium(): Promise<"free" | "premium"> {
+
+    if (BYPASS_REVENUECAT) {
+        return "premium";
+    }
 
     await initializeRevenueCat();
 

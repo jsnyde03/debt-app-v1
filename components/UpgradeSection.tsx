@@ -3,9 +3,10 @@ import { premiumFeatureLabels } from "@/lib/subscription/features";
 type UpgradeSectionProps = {
     onClose?: () => void;
     onUpgradeClick?: () => void;
+    onRestoreClick?: () => void;
 };
 
-export function UpgradeSection({ onClose, onUpgradeClick }: UpgradeSectionProps) {
+export function UpgradeSection({ onClose, onUpgradeClick, onRestoreClick }: UpgradeSectionProps) {
     return (
         <section id="upgrade-section" className="card upgrade-card">
             <div className="upgrade-header">
@@ -40,6 +41,15 @@ export function UpgradeSection({ onClose, onUpgradeClick }: UpgradeSectionProps)
             <button type="button" className="primary-button upgrade-button" onClick={onUpgradeClick}>
                 Upgrade to Premium
             </button>
+
+            <button
+                className="restore-button"
+                onClick={onRestoreClick}
+            >
+                Restore Purchases
+            </button>
         </section>
+
+        
     );
 }
