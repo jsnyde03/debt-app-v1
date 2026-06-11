@@ -331,15 +331,16 @@ button:active {
 
 .saved-meta {
 	margin-top: 0;
-	font-size: 0.74rem;
-	line-height: 1.2;
+	font-size: 0.82rem;
+	line-height: 1.16;
 	color: var(--text-secondary);
+	opacity: 0.62;
 }
 
 .saved-amount {
-	font-size: 1rem;
-	font-weight: 900;
-	letter-spacing: -0.02em;
+	font-size: 1.55rem;
+	font-weight: 800;
+	letter-spacing: -0.03em;
 	white-space: nowrap;
 }
 
@@ -389,17 +390,18 @@ button:active {
 	text-decoration: line-through;
 	text-decoration-thickness: 1.5px;
 	text-decoration-color: rgba(34, 197, 94, 0.58);
+	font-weight: 650;
 }
 
 .completed-item .saved-meta,
 .completed-row .saved-meta {
 	color: var(--success-color);
-	opacity: 0.8;
+	opacity: 0.62;
 }
 
 .completed-item .saved-amount,
 .completed-row .saved-amount {
-	color: var(--success-color);
+	color: rgba(74, 222, 128, 0.82);
 }
 
 .completed-action {
@@ -1036,9 +1038,9 @@ button:active {
 	align-items: center;
 	justify-content: center;
 	white-space: nowrap;
-	background: transparent;
+	background: rgba(255, 255, 255, 0.02);
 	color: var(--text-primary);
-	border: 1px solid var(--border-color);
+	border: 1px solid rgba(255, 255, 255, 0.08);
 	transition: all 0.18s ease;
 }
 
@@ -1137,6 +1139,15 @@ button:active {
 
 }
 
+.recommended-inline-amount {
+	margin-top: 14px;
+	display: block;
+	font-size: 1.2rem;
+	font-weight: 900;
+	letter-spacing: -.0.03rem;
+	color: var(--accent-color);
+}
+
 .recommended-card .saved-amount {
 	color: var(--accent-color);
 }
@@ -1192,21 +1203,7 @@ button:active {
 }
 
 .focus-card {
-	margin-top: 1rem;
-}
-
-.focus-badge {
-	display: inline-flex;
-	align-items: center;
-	width: fit-content;
-	padding: 0.35rem 0.65rem;
-	border-radius: var(--radius-pill);
-	background: rgba(37, 99, 235, 0.12);
-	color: var(--accent-color);
-	font-size: 0.72rem;
-	font-weight: 800;
-	letter-spacing: 0.02em;
-	margin-bottom: 0.75rem;
+	margin-top: 0.85rem;
 }
 
 .focus-card .saved-item.recommended-card.focus-target-card {
@@ -1220,12 +1217,8 @@ button:active {
 .focus-card .saved-title {
 	font-size: 1rem;
 	font-weight: 800;
-}
-
-.focus-card .saved-amount {
-	font-size: 1.16rem;
-	font-weight: 900;
-	color: var(--accent-color);
+	line-height: 1.05;
+	max-width: 80%;
 }
 
 .secondary-recommendations {
@@ -1253,18 +1246,19 @@ button:active {
 .plan-toolbar {
 	display: flex;
 	justify-content: flex-end;
-	margin-bottom: 1rem;
+	margin-bottom: 0.75rem;
+	padding-right: 4px;
 }
 
 .settings-icon-button {
-	width: 44px;
-	height: 44px;
+	width: 48px;
+	height: 48px;
 	padding: 0;
 	border-radius: var(--radius-pill);
 	background: var(--surface-muted);
 	color: var(--text-primary);
 	border: 1px solid var(--border-color);
-	font-size: 1.05rem;
+	font-size: 1.08rem;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -1423,7 +1417,7 @@ button:active {
 	gap: 16px;
 	padding: 16px 18px;
 	border-radius: 22px;
-	background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(37, 99, 235, 0.1));
+	background: rgba(255, 255, 255, 0.045);
 	border: 1px solid rgba(148, 163, 184, 0.14);
 	backdrop-filter: blur(18px);
 }
@@ -1476,6 +1470,19 @@ button:active {
 	.recommended-card .action-pill,
 	.recommended-card .text-action-button {
 		min-height: 36px;
+	}
+
+	.recommended-card .saved-item-right {
+		margin-top: 14px;
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 10px;
+	}
+
+	.recommended-card .action-pill,
+	.recommended-card .text-action-button {
+		width: 100%;
+		justify-content: center;
 	}
 
 
@@ -1753,8 +1760,9 @@ button:active {
 	position: absolute;
 	top: 0;
 	right: 0;
-	width: 44px;
-	height: 44px;
+	width: 48px;
+	height: 48px;
+	right: 4px;
 	padding: 0;
 	border-radius: var(--radius-pill);
 	background: var(--surface-muted);
@@ -2305,7 +2313,7 @@ button:active {
 	gap: 16px;
 	padding: 10px 14px 10px 20px;
 	border-radius: 22px;
-	background: var(--bg-secondary);
+	background: rgba(255, 255, 255, 0.025);
 	border: 1px solid var(--border-color);
 }
 
@@ -2402,8 +2410,8 @@ button:active {
 }
 
 .timeline-running-cash {
-	font-size: 0.8rem;
-	opacity: 0.7;
+	font-size: 0.92rem;
+	opacity: 0.75;
 	margin-top: 4px;
 }
 

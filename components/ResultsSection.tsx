@@ -651,6 +651,13 @@ export function ResultsSection({
                             : "Suggested for this cycle"}
                     </div>
 
+                    <strong className="recommended-inline-amount">
+                        {formatCurrency(action.isCompleted
+                                ? action.actualAmount
+                                : getEditedActualAmount()
+                        )}
+                    </strong>
+
                     {!action.isCompleted && isEditing && (
                         <div className="recommended-edit-row">
                             <input
@@ -710,13 +717,6 @@ export function ResultsSection({
                 </div>
 
                 <div className="saved-item-right">
-                    <strong className="saved-amount recommended-amount">
-                        {formatCurrency(
-                            action.isCompleted
-                                ? action.actualAmount
-                                : getEditedActualAmount()
-                        )}
-                    </strong>
 
                     {!action.isCompleted && !isEditing && (
                         <button
@@ -961,10 +961,6 @@ export function ResultsSection({
                         ) : (
                             <>
                                 <div className="focus-card">
-                                    <div className="focus-badge">
-                                        Focus Target
-                                    </div>
-
                                     {renderRecommendedAction(
                                         visibleRecommendedActions[0],
                                         {

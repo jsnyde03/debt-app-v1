@@ -249,7 +249,7 @@ export function TimelineSection({
                                                 : "timeline-running-cash"
                                         }
                                     >
-                                        Safe Cash:{" "}
+                                        Balance{" "}
                                         {formatCurrency(item.runningCash)}
                                     </div>
                                 </div>
