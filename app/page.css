@@ -375,9 +375,9 @@ button:active {
 
 .completed-row,
 .completed-item {
-	opacity: 0.88;
-	background: rgba(34, 197, 94, 0.045);
-	border-color: rgba(34, 197, 94, 0.12);
+	opacity: 0.9;
+	background: rgba(34, 197, 94, 0.038);
+	border-color: rgba(34, 197, 94, 0.10);
 }
 
 .completed-item {
@@ -1174,9 +1174,16 @@ button:active {
 	justify-content: center;
 	min-height: 36px;
 	border-radius: var(--radius-pill);
-	background: rgba(255, 255, 255, 0.02);
-	border: 1px solid rgba(255, 255, 255, 0.08);
+	background: transparent;
+	border: none;
 	white-space: nowrap;
+	opacity: 0.78;
+}
+
+.recommended-card .saved-action-button {
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	font-weight: 700;
 }
 
 .recommended-edit-actions {
@@ -1197,6 +1204,19 @@ button:active {
 
 .dark-theme .recommended-card .saved-amount {
 	color: #60a5fa;
+}
+
+.dark-theme .execution-summary-strip {
+	background: rgba(255, 255, 255, 0.045);
+	border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.dark-them .execution-summary-strip span {
+	color: rgba(226, 232, 250, 0.7);
+}
+
+.dark-theme .execution-summary-strip strong {
+	color: #f8fafc;
 }
 
 .dark-theme .goal-card-content {
@@ -1256,6 +1276,8 @@ button:active {
 }
 
 .settings-icon-button {
+	position: relative;
+	right: 0;
 	width: 48px;
 	height: 48px;
 	padding: 0;
@@ -1267,6 +1289,7 @@ button:active {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+	transform: none;
 }
 
 .settings-overlay {
@@ -1422,8 +1445,8 @@ button:active {
 	gap: 16px;
 	padding: 16px 18px;
 	border-radius: 22px;
-	background: rgba(255, 255, 255, 0.045);
-	border: 1px solid rgba(148, 163, 184, 0.14);
+	background: var(--bg-secondary);
+	border: 1px solid var(--border-color);
 	backdrop-filter: blur(18px);
 }
 
@@ -1440,58 +1463,18 @@ button:active {
 	font-weight: 700;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
-	color: rgba(226, 232, 240, 0.7);
+	color: var(--text-secondary);
 	margin-bottom: 6px;
 }
 
 .execution-summary-strip strong {
 	font-size: 1.08rem;
 	font-weight: 900;
-	color: #f8fafc;
+	color: var(--text-primary);
 	line-height: 1;
 }
 
-@media (max-width: 768px) {
-	.execution-summary-strip {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
 
-	.recommended-card {
-		flex-direction: column;
-		align-items: stretch;
-	}
-
-	.recommended-card .saved-item-right {
-		width: 100%;
-		justify-content: flex-start;
-		flex-wrap: wrap;
-	}
-
-	.recommended-card .saved-amount {
-		width: 100%;
-		text-align: left;
-	}
-
-	.recommended-card .action-pill,
-	.recommended-card .text-action-button {
-		min-height: 36px;
-	}
-
-	.recommended-card .saved-item-right {
-		margin-top: 10px;
-		display: grid;
-		grid-template-columns: 1fr;
-		gap: 8px;
-	}
-
-	.recommended-card .action-pill,
-	.recommended-card .text-action-button {
-		width: 100%;
-		justify-content: center;
-	}
-
-
-}
 
 .section-collapse-button {
 	width: 100%;
@@ -1764,16 +1747,16 @@ button:active {
 .theme-toggle {
 	position: absolute;
 	top: 0;
-	right: 0;
+	right: 4px;
 	width: 48px;
 	height: 48px;
-	right: 4px;
 	padding: 0;
 	border-radius: var(--radius-pill);
 	background: var(--surface-muted);
 	color: var(--text-primary);
 	border: 1px solid var(--border-color);
 	font-size: 1.1rem;
+	transform: none;
 }
 
 .living-expenses-summary-card {
@@ -2434,37 +2417,6 @@ button:active {
 	opacity: 0.7;
 }
 
-.timeline-list {
-	position: relative;
-}
-
-.timeline-list::before {
-	content: "";
-	position: absolute;
-	top: 18px;
-	bottom: 18px;
-	left: 15px;
-	width: 2px;
-	background: rgba(148, 163, 184, 0.12);
-}
-
-.timeline-item {
-	position: relative;
-	padding-left: 20px;
-}
-
-.timeline-item::before {
-	content: "";
-	position: absolute;
-	left: 10px;
-	top: 22px;
-	width: 10px;
-	height: 10px;
-	border-radius: 999px;
-	background: rgba(96, 165, 250, 0.7);
-	box-shadow: 0 0 0 4px rbga(96, 165, 250, 0.1);
-}
-
 .what-if-input-row {
 	display: flex;
 	flex-direction: column;
@@ -2765,6 +2717,24 @@ button:active {
 	color: var(--text-primary);
 }
 
+button,
+.saved-item,
+.section-collapse-button,
+.bottom-nav button {
+	transition:
+		transform 120ms ease,
+		background 180ms ease,
+		border-color 180ms ease,
+		opacity 180ms ease;
+}
+
+button:active,
+.saved-item:active,
+.section-collapse-button:active,
+.bottom-nav button:active {
+	transform: scale(0.97);
+}
+
 
 
 @keyframes toastIn {
@@ -2821,6 +2791,48 @@ button:active {
 		transform: translateY(0);
 		opacity: 1;
 	}
+
+}
+
+@media (max-width: 768px) {
+	.execution-summary-strip {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.recommended-card {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.recommended-card .saved-item-right {
+		width: 100%;
+		justify-content: flex-start;
+		flex-wrap: wrap;
+	}
+
+	.recommended-card .saved-amount {
+		width: 100%;
+		text-align: left;
+	}
+
+	.recommended-card .action-pill,
+	.recommended-card .text-action-button {
+		min-height: 36px;
+	}
+
+	.recommended-card .saved-item-right {
+		margin-top: 10px;
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+
+	.recommended-card .action-pill,
+	.recommended-card .text-action-button {
+		width: 100%;
+		justify-content: center;
+	}
+
 
 }
 
