@@ -100,7 +100,7 @@
 }
 
 .hero {
-	margin-bottom: 8px;
+	margin-bottom: 2px;
 	padding: 0;
 	position: relative;
 }
@@ -147,10 +147,10 @@
 
 .card {
 	border: 1px solid rgba(148, 163, 184, 0.12);
-	border-radius: 28px;
+	border-radius: 18px;
 	padding: 16px;
 	margin-bottom: 16px;
-	margin-top: 18px;
+	margin-top: 12px;
 	background: var(--bg-secondary);
 	box-shadow:
 		0 12px 32px rgba(15, 23, 42, 0.07) 0 2px 8px rgba(15, 23, 42, 0.04);
@@ -317,7 +317,7 @@ button:active {
 
 .saved-title {
 	font-size: 0.88rem;
-	line-height: 1.14;
+	line-height: 1.1;
 	font-weight: 700;
 	color: var(--text-primary);
 }
@@ -346,7 +346,7 @@ button:active {
 .required-actions-list {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-1);
+	gap: 10px;
 
 }
 
@@ -375,8 +375,8 @@ button:active {
 .completed-row,
 .completed-item {
 	opacity: 0.88;
-	background: rgba(34, 197, 94, 0.09);
-	border-color: rgba(34, 197, 94, 0.2);
+	background: rgba(34, 197, 94, 0.06);
+	border-color: rgba(34, 197, 94, 0.16);
 }
 
 .completed-item {
@@ -1256,6 +1256,20 @@ button:active {
 	margin-bottom: 1rem;
 }
 
+.settings-icon-button {
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	border-radius: var(--radius-pill);
+	background: var(--surface-muted);
+	color: var(--text-primary);
+	border: 1px solid var(--border-color);
+	font-size: 1.05rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
 .settings-overlay {
 	position: fixed;
 	inset: 0;
@@ -1442,6 +1456,29 @@ button:active {
 	.execution-summary-strip {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
+
+	.recommended-card {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.recommended-card .saved-item-right {
+		width: 100%;
+		justify-content: flex-start;
+		flex-wrap: wrap;
+	}
+
+	.recommended-card .saved-amount {
+		width: 100%;
+		text-align: left;
+	}
+
+	.recommended-card .action-pill,
+	.recommended-card .text-action-button {
+		min-height: 36px;
+	}
+
+
 }
 
 .section-collapse-button {

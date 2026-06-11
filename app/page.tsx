@@ -1123,10 +1123,11 @@ export default function Home() {
                         <div className="plan-toolbar">
                             <button
                                 type="button"
-                                className="secondary-button"
+                                className="settings-icon-button"
+                                aria-label="Open Plan Settings"
                                 onClick={() => setShowPlanSettings(true)}
                             >
-                                Plan Settings
+                                ⚙
                             </button>
                         </div>
 
