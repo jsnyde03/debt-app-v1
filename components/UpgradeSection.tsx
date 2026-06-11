@@ -11,9 +11,10 @@ export function UpgradeSection({ onClose, onUpgradeClick }: UpgradeSectionProps)
             <div className="upgrade-header">
                 <div>
                     <span className="premium-pill">Premium</span>
-                    <h2>Unlock Premium Planning</h2>
+                    <h2>Unlock Smart Forecasting</h2>
+                        Stay ahead of tight pay cycles, forecast upcoming cash pressure, and get adaptive payoff guidance before problems happen.
                     <p>
-                        Go beyond tracking.  Compare strategies, simulate extra payments, and forecast future debt progress.
+                       
                     </p>
                 </div>
 

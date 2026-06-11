@@ -6,6 +6,7 @@ import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { hasFeatureAccess } from "@/lib/subscription/hasFeatureAccess";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { projectForecast } from "@/lib/forecast/projectForecast";
+import { buildSmartInsights } from "@/lib/insights/buildSmartInsights";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 
@@ -52,6 +53,7 @@ export function SnowballSection({
     const canViewStrategyComparison = hasFeatureAccess(subscriptionPlan, "strategy_comparison");
     const canViewWhatIfScenarios = hasFeatureAccess(subscriptionPlan, "what_if_scenarios");
     const canViewForecasting = hasFeatureAccess(subscriptionPlan, "forecasting");
+    const canViewSmartInsights = hasFeatureAccess(subscriptionPlan, "smart_insights");
 
     const debtsAfterCompletedPayments = debts.map((debt) => {
         const completedAmountForDebt = completedRecommendedActions
@@ -191,6 +193,20 @@ export function SnowballSection({
         simulationStrategy === "recommended"
             ? recommendedSimulationStrategy
             : simulationStrategy;
+    
+    const totalMinimumPayment = debtsAfterCompletedPayments.reduce((sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance), 0);
+    const projectedBufferLift = Math.min(75, Math.max(0, totalMinimumPayment * 0.05));
+    
+    const smartInsights = buildSmartInsights({
+        safeExtraPayment: remainingSnowballExtra,
+        projectedBuffer: remainingSnowballExtra,
+        debts: debtsAfterCompletedPayments,
+        requiredTotal: result?.totalRequired ?? 0,
+        snowballDebtFreeDate: snowballComparisonProjection.estimatedDebtFreeDate,
+        avalancheDebtFreeDate: avalancheComparisonProjection.estimatedDebtFreeDate,
+        snowballInterest: snowballComparisonProjection.totalInterestPaid,
+        avalancheInterest: avalancheComparisonProjection.totalInterestPaid,
+    });
 
     const whatIfBaselineProjection = projectDebtPayoff({
         debts: debtsAfterCompletedPayments,
@@ -233,6 +249,11 @@ export function SnowballSection({
         startingDebtBalance: totalDebtBalance,
         monthlyDebtReduction: remainingSnowballExtra,
         months: 3,
+        bufferTrendPerMonth: projectedBufferLift,
+        requiredPaymentCount: result?.allocations.filter((item) => item.category === "expense" || item.category === "minimum_debt").length ?? 0,
+        monthlyMinimumTotal: debtsAfterCompletedPayments.reduce((sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance), 0),
+        nextDebtName: payoffOrder[0]?.name,
+        nextDebtMinimum: payoffOrder[0]?.minimumPayment,
     })
     const simulationTargetDebt =
         effectiveSimulationStrategy === "avalanche"
@@ -344,6 +365,48 @@ export function SnowballSection({
                             <strong>{recommendedProjection.estimatedDebtFreeDate}</strong>
                         </div>
                     )}
+
+                    <div className="strategy-comparison-card">
+                        <div className="strategy-comparison-header">
+                            <div>
+                                <h3>Smart Insights</h3>
+                            </div>
+                        {!canViewSmartInsights && (
+                            
+                            <span className="premium-pill">Premium</span>
+                        )}
+                        </div>
+                        {canViewSmartInsights ? (
+                        <div className="smart-insight-list">
+                            {smartInsights.map((insight) => (
+                                <div
+                                    key={insight.title}
+                                    className={`smart-insight-card ${insight.severity}`}
+                                >
+                                    <strong>{insight.title}</strong>
+                                    <p>{insight.message}</p>
+                                    {insight.action && <small>{insight.action}</small>}
+                                </div>
+                            ))}
+                        </div>
+                        ): (
+                           <div className="premium-locked-preview">
+                                <strong>Unlock Smart Insights.</strong>
+                                <p>
+                                    Premium will provide guidance based on your current paycheck plan, cash pressure, and payoff strategy.
+                                </p>
+
+                                <button
+                                    type="button"
+                                    className="primary-button upgrade-preview-button"
+                                    onClick={onUpgradeClick}
+                                >
+                                    View Premium
+                                </button>
+                            </div>
+                        )}
+                        
+                    </div>
 
                     <div className="strategy-comparison-card">
                         <div className="strategy-comparison-header">
@@ -630,21 +693,13 @@ export function SnowballSection({
                                                 {month.monthLabel}
                                             </strong>
 
-                                            <span
-                                                className={`forecast-status ${month.status}`}
-                                            >
-                                                {month.status === "stable"
-                                                    ? "Stable"
-                                                    : month.status === "warning"
-                                                        ? "Low Reserve"
-                                                        : "Risk"}
-                                            </span>
+                                           
                                         </div>
 
                                         <div className="forecast-metrics">
                                             <div>
                                                 <span>
-                                                    Safe Cash
+                                                    Projected Cushion
                                                 </span>
 
                                                 <strong>
@@ -662,6 +717,10 @@ export function SnowballSection({
                                                 </strong>
                                             </div>
                                         </div>
+
+                                        <p className="forecast-action">
+                                            {month.recommendedAction}
+                                        </p>
                                     </div>
                                 ))}
                             </div>

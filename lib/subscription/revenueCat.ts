@@ -38,24 +38,34 @@ export async function getSubscriptionPlan(): Promise<"free" | "premium"> {
 }
 
 export async function purchasePremium(): Promise<"free" | "premium"> {
-    try {
-        const offerings = await Purchases.getOfferings();
-        const currentOffering = offerings.current;
-        const monthlyPackage = currentOffering?.monthly ?? currentOffering?.availablePackages[0];
 
-        if (!monthlyPackage) {
-            throw new Error("No RevenueCat monthly package found");
-        }
+    await initializeRevenueCat();
 
-        const purchaseResult = await Purchases.purchasePackage({
-            aPackage: monthlyPackage,
-        });
+    const offerings = await Purchases.getOfferings();
+    console.log("Revenue offerings", offerings);
 
-        const isPremiumActive = Boolean(purchaseResult.customerInfo.entitlements.active[PREMIUM_ENTITLEMENT_ID]);
+    const currentOffering = offerings.current;
+    const monthlyPackage = currentOffering?.monthly ?? currentOffering?.availablePackages?.[0];
 
-        return isPremiumActive ? "premium" : "free";
-    } catch (error) {
-        console.error("Purchase failed", error);
-        return "free";
+    if (!currentOffering) {
+        throw new Error("No current RevenueCat offering found.");
     }
+
+    if (!monthlyPackage) {
+        throw new Error("No RevenueCat monthly package found");
+    }
+
+    const purchaseResult = await Purchases.purchasePackage({
+        aPackage: monthlyPackage,
+    });
+
+    console.log("Revenue purchase result", purchaseResult);
+
+    const isPremiumActive = Boolean(purchaseResult.customerInfo.entitlements.active[PREMIUM_ENTITLEMENT_ID]);
+
+    if (!isPremiumActive) {
+        throw new Error("Purchase completed, but premium entitlement is not active.");
+    }
+
+    return "premium";
 }

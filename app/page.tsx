@@ -264,6 +264,7 @@ export default function Home() {
     const [isMounted, setIsMounted] = useState(false);
     const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>("free");
     const [showUpgrade, setShowUpgrade] = useState(false);
+    const [purchaseStatus, setPurchaseStatus] = useState("");
 
     function hasValidPayCycleInputs() {
         if (payCycle === "semimonthly") {
@@ -335,13 +336,19 @@ export default function Home() {
             setIsMounted(true);
         }, 0);
 
-        void initializeRevenueCat();
+        async function loadSubscription() {
+            try {
+                await initializeRevenueCat();
 
-        void getSubscriptionPlan().then((plan) => {
-            setSubscriptionPlan(plan);
-        });
+                const plan = await getSubscriptionPlan();
+                setSubscriptionPlan(plan);
+                console.log("Loaded subscription plan:", plan);
+            } catch (error) {
+                console.log("RevenueCat init failed", error)
+            }
+        }
 
-
+        void loadSubscription();
 
         return () => window.clearTimeout(timeout);
     }, []);
@@ -1195,17 +1202,35 @@ export default function Home() {
                         />
 
                         {showUpgrade && (
-                            <UpgradeSection
-                                onClose={() => setShowUpgrade(false)}
-                                onUpgradeClick={async () => {
-                                    const plan = await purchasePremium();
-                                    setSubscriptionPlan(plan);
+                            <>
+                                <UpgradeSection
 
-                                    if (plan === "premium") {
-                                        setShowUpgrade(false);
-                                    }
-                                }}
-                            />
+                                    onClose={() => setShowUpgrade(false)}
+                                    onUpgradeClick={async () => {
+                                        setPurchaseStatus("Starting purchase...");
+                                        try {
+                                            const plan = await purchasePremium();
+                                            setSubscriptionPlan(plan);
+
+                                            if (plan === "premium") {
+                                                setPurchaseStatus("Premium unlocked.");
+                                                setShowUpgrade(false);
+                                            } else {
+                                                setPurchaseStatus("Premium did not unlock.");
+                                            }
+                                        } catch (error) {
+                                            setPurchaseStatus(error instanceof Error ? error.message : "Purchase failed.");
+                                        }
+                                    }}
+
+
+                                />
+                                {purchaseStatus && (
+                                    <p className="status-message">
+                                        {purchaseStatus}
+                                    </p>
+                                )}
+                            </>
                         )}
                     </>
                 )}

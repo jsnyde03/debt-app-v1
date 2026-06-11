@@ -1,12 +1,16 @@
 import type { ForecastStatus } from "./types";
 
-export function getForecastStatus(safeCash: number): ForecastStatus {
-    if (safeCash < 0) {
-        return "risk";
+export function getForecastStatus(projectedSafeCash: number) : ForecastStatus {
+    if (projectedSafeCash < 0) {
+        return "recovery";
     }
 
-    if (safeCash < 200) {
-        return "warning"
+    if (projectedSafeCash < 100) {
+        return "pressure";
+    }
+
+    if (projectedSafeCash < 200) {
+        return "tight";
     }
 
     return "stable";

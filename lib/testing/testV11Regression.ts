@@ -330,6 +330,7 @@ function testForecastStatusThresholds() {
 
 
 
+
 function runV11RegressionTests() {
 	testAutopayExpenseIsReserved();
 	testAutopayDebtMinimumIsReserved();
@@ -341,6 +342,7 @@ function runV11RegressionTests() {
 	testForecastNeverGoesBelowZeroDebt();
 	testForecastReducesDebtBalance();
 	testForecastStatusThresholds();
+	
 
 	console.log("✅ V1.1 regression tests passed.");
 }
