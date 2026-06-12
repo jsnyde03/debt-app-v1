@@ -758,8 +758,9 @@ button:active {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: 10px;
+	gap: 8px;
 	margin-bottom: 8px;
+	flex-wrap: wrap;
 }
 
 .strategy-option-topline span {
@@ -770,9 +771,9 @@ button:active {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	padding: 5px 8px;
+	padding: 4px 7px;
 	border-radius: 999px;
-	font-size: 0.64rem;
+	font-size: 0.6rem;
 	font-style: normal;
 	font-weight: 900;
 	line-height: 1;
@@ -785,13 +786,14 @@ button:active {
 .premium-strategy-guidance {
 	position: relative;
 	overflow: hidden;
-	border-color: rgba(168, 85, 247, 0.42);
+	border-color: rgba(168, 85, 247, 0.54);
 	background:
-		radial-gradient(circle at top right, rgba(168, 85, 247, 0.18), transparent 32%),
+		radial-gradient(circle at top right, rgba(168, 85, 247, 0.26), transparent 34%),
 		linear-gradient(180deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 1));
 	box-shadow:
-		0 20px 38px rgba(88, 28, 135, 0.16),
-		inset 0 1px 0 rgba(255, 255, 255, 0.06);
+		0 22px 44px rgba(88, 28, 135, 0.22),
+		0 0 28px rgba(168, 85, 247, 0.08),
+		inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .premium-strategy-guidance::before {
