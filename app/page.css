@@ -1,9 +1,9 @@
 :root {
-	--bg-primary: #eef3f8;
-	--bg-secondary: rgba(255, 255, 255, 0.86);
+	--bg-primary: #e9eef5;
+	--bg-secondary: rgba(255, 255, 255, 0.92);
 	--bg-elevated: #ffffff;
 
-	--surface-muted: #eef2f7;
+	--surface-muted: #e8edf5;
 	--surface-muted-hover: #e2e8f0;
 	--surface-active: #e8ecff;
 
@@ -375,7 +375,7 @@ button:active {
 
 .completed-row,
 .completed-item {
-	opacity: 0.9;
+	opacity: 0.96;
 	background: rgba(34, 197, 94, 0.038);
 	border-color: rgba(34, 197, 94, 0.10);
 }
@@ -1116,7 +1116,7 @@ button:active {
 	background: linear-gradient(135deg, var(--surface-active), var(--surface-muted));
 	border: 1px solid rgba(37, 99, 234, 0.18);
 	border-left: 3px solid var(--accent-color);
-	padding: 12px 14px;
+	padding: 12px 14px 10px;
 }
 
 .recommended-card .saved-title {
@@ -1124,7 +1124,7 @@ button:active {
 }
 
 .recommended-action-row {
-	margin-top: 8px;
+	margin-top: 4px;
 }
 
 .recommended-edit-input {
@@ -2290,7 +2290,7 @@ button:active {
 	bottom: 18px;
 	left: 15px;
 	width: 2px;
-	background: rgba(148, 163, 184, 0.12);
+	background: rgba(148, 163, 184, 0.08);
 }
 
 .timeline-item {
@@ -2314,7 +2314,7 @@ button:active {
 	height: 10px;
 	border-radius: 999px;
 	background: rgba(96, 165, 250, 0.7);
-	box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.1);
+	box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.08);
 }
 
 .timeline-autopay {
