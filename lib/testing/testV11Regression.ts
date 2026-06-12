@@ -1,12 +1,10 @@
 import { allocatePaycheck } from "../engine/allocatePaycheck";
-import { buildTimelineItems } from "../timeline/buildTimelineItems";
 import { projectForecast } from "../forecast/projectForecast";
+import { buildTimelineItems } from "../timeline/buildTimelineItems";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
 	if (actual !== expected) {
-		throw new Error(
-			`${label} failed. Expected ${expected}, received ${actual}`
-		);
+		throw new Error(`${label} failed. Expected ${expected}, received ${actual}`);
 	}
 }
 
@@ -18,7 +16,7 @@ function assertExists<T>(value: T | undefined | null, label: string): T {
 	return value;
 }
 
-function testAutopayExpenseIsReserved() {
+function testPaidRequiredExpenseStaysInTimelineAndStillReducesCash() {
 	const result = allocatePaycheck({
 		paycheckAmount: 1000,
 		currentDate: "2026-06-01",
@@ -27,31 +25,46 @@ function testAutopayExpenseIsReserved() {
 			{
 				id: "rent",
 				name: "Rent",
-				amount: 500,
-				dueDate: "2026-06-03",
+				amount: 400,
+				dueDate: "2026-06-05",
 				recurrence: "monthly",
-				isAutopay: true,
+				isPaidThisCycle: true,
 			},
 		],
 		debts: [],
 		goals: [],
 		strategy: "snowball",
+		paycheckBuffer: 0,
 	});
 
-	const autopayItem = assertExists(
-		result.allocations.find((item) => item.category === "autopay_expense"),
-		"Autopay expense allocation"
+	const timeline = buildTimelineItems({
+		result,
+		requiredExpenses: [
+			{
+				id: "rent",
+				name: "Rent",
+				amount: 400,
+				dueDate: "2026-06-05",
+				recurrence: "monthly",
+				isPaidThisCycle: true,
+			},
+		],
+		debts: [],
+		currentDate: "2026-06-01",
+		nextPaycheckDate: "2026-06-15",
+		completedRecommendedActions: [],
+	});
+
+	const rentItem = assertExists(
+		timeline.find((item) => item.label === "Pay Rent"),
+		"Paid required expense timeline item"
 	);
 
-	assertEqual(autopayItem.amount, 500, "Autopay expense amount");
-	assertEqual(
-		autopayItem.label,
-		"Reserve autopay for Rent",
-		"Autopay expense label"
-	);
+	assertEqual(rentItem.status, "paid", "Paid required expense status");
+	assertEqual(rentItem.runningCash, 600, "Paid required expense still reduces timeline cash");
 }
 
-function testAutopayDebtMinimumIsReserved() {
+function testPaidDebtMinimumStaysInTimelineAndUsesPlannedMinimum() {
 	const result = allocatePaycheck({
 		paycheckAmount: 1000,
 		currentDate: "2026-06-01",
@@ -61,89 +74,140 @@ function testAutopayDebtMinimumIsReserved() {
 			{
 				id: "visa",
 				name: "Visa",
-				balance: 900,
+				balance: 20,
 				minimumPayment: 75,
 				apr: 24.99,
-				dueDate: "2026-06-04",
+				dueDate: "2026-06-06",
 				type: "debt",
 				recurrence: "monthly",
-				isAutopay: true,
+				minimumPaidThisCycle: true,
 			},
 		],
 		goals: [],
 		strategy: "snowball",
+		paycheckBuffer: 0,
 	});
 
-	const autopayItem = assertExists(
-		result.allocations.find((item) => item.category === "autopay_debt"),
-		"Autopay debt allocation"
+	const timeline = buildTimelineItems({
+		result,
+		requiredExpenses: [],
+		debts: [
+			{
+				id: "visa",
+				name: "Visa",
+				balance: 20,
+				minimumPayment: 75,
+				apr: 24.99,
+				dueDate: "2026-06-06",
+				type: "debt",
+				recurrence: "monthly",
+				minimumPaidThisCycle: true,
+			},
+		],
+		currentDate: "2026-06-01",
+		nextPaycheckDate: "2026-06-15",
+		completedRecommendedActions: [],
+	});
+
+	const visaItem = assertExists(
+		timeline.find((item) => item.label === "Pay minimum on Visa"),
+		"Paid debt minimum timeline item"
 	);
 
-	assertEqual(autopayItem.amount, 75, "Autopay debt amount");
-	assertEqual(
-		autopayItem.label,
-		"Reserve autopay minimum for Visa",
-		"Autopay debt label"
-	);
+	assertEqual(visaItem.amount, 75, "Timeline uses planned minimum instead of reduced balance");
+	assertEqual(visaItem.status, "paid", "Paid debt minimum status");
+	assertEqual(visaItem.runningCash, 925, "Paid debt minimum still reduces timeline cash");
 }
 
-function testAutopayStillCountsTowardSnowballBalance() {
+function testOutsideRecommendedActionDoesNotReduceTimelineCash() {
 	const result = allocatePaycheck({
 		paycheckAmount: 1000,
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
 		expenses: [],
-		debts: [
-			{
-				id: "small-loan",
-				name: "Small Loan",
-				balance: 100,
-				minimumPayment: 40,
-				apr: 10,
-				dueDate: "2026-06-04",
-				type: "debt",
-				recurrence: "monthly",
-				isAutopay: true,
-			},
-		],
+		debts: [],
 		goals: [],
 		strategy: "snowball",
 		paycheckBuffer: 0,
 	});
 
-	const autopayItem = assertExists(
-		result.allocations.find((item) => item.category === "autopay_debt"),
-		"Autopay minimum allocation before snowball"
+	const timeline = buildTimelineItems({
+		result,
+		requiredExpenses: [],
+		debts: [],
+		currentDate: "2026-06-01",
+		nextPaycheckDate: "2026-06-15",
+		completedRecommendedActions: [
+			{
+				targetId: "visa",
+				label: "Extra payment to Visa",
+				category: "snowball",
+				recommendedAmount: 100,
+				actualAmount: 100,
+				paymentSource: "external",
+			},
+		],
+	});
+
+	const externalItem = assertExists(
+		timeline.find((item) => item.label === "Extra payment to Visa"),
+		"External recommended timeline item"
 	);
 
-	const snowballItem = assertExists(
-		result.allocations.find((item) => item.category === "snowball"),
-		"Snowball allocation after autopay minimum"
-	);
-
-	assertEqual(autopayItem.amount, 40, "Autopay minimum amount");
-	assertEqual(snowballItem.amount, 60, "Snowball uses remaining debt balance");
+	assertEqual(externalItem.status, "external", "External recommended status");
+	assertEqual(externalItem.runningCash, 1000, "External recommended action does not reduce paycheck timeline cash");
 }
 
-/*function testTimelineIncludesAutopayItemsInDateOrder() {
+function testPaycheckRecommendedActionDoesReduceTimelineCash() {
+	const result = allocatePaycheck({
+		paycheckAmount: 1000,
+		currentDate: "2026-06-01",
+		nextPaycheckDate: "2026-06-15",
+		expenses: [],
+		debts: [],
+		goals: [],
+		strategy: "snowball",
+		paycheckBuffer: 0,
+	});
+
+	const timeline = buildTimelineItems({
+		result,
+		requiredExpenses: [],
+		debts: [],
+		currentDate: "2026-06-01",
+		nextPaycheckDate: "2026-06-15",
+		completedRecommendedActions: [
+			{
+				targetId: "visa",
+				label: "Extra payment to Visa",
+				category: "snowball",
+				recommendedAmount: 100,
+				actualAmount: 100,
+				paymentSource: "paycheck",
+			},
+		],
+	});
+
+	const paycheckItem = assertExists(
+		timeline.find((item) => item.label === "Extra payment to Visa"),
+		"Paycheck-funded recommended timeline item"
+	);
+
+	assertEqual(paycheckItem.status, "paid", "Paycheck-funded recommended status");
+	assertEqual(paycheckItem.runningCash, 900, "Paycheck-funded recommended action reduces timeline cash");
+}
+
+function testTimelineExcludesItemsAfterNextPaycheck() {
 	const result = allocatePaycheck({
 		paycheckAmount: 1000,
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
 		expenses: [
 			{
-				id: "rent",
-				name: "Rent",
-				amount: 500,
-				dueDate: "2026-06-10",
-				recurrence: "monthly",
-				isAutopay: true,
-			},
-			{
-				id: "utilities",
-				name: "Utilities",
-				amount: 100,
-				dueDate: "2026-06-03",
+				id: "future-bill",
+				name: "Future Bill",
+				amount: 200,
+				dueDate: "2026-06-20",
 				recurrence: "monthly",
 			},
 		],
@@ -157,122 +221,73 @@ function testAutopayStillCountsTowardSnowballBalance() {
 		result,
 		requiredExpenses: [
 			{
-				id: "rent",
-				name: "Rent",
-				amount: 500,
-				dueDate: "2026-06-10",
-				recurrence: "monthly",
-				isAutopay: true,
-			},
-			{
-				id: "utilities",
-				name: "Utilities",
-				amount: 100,
-				dueDate: "2026-06-03",
+				id: "future-bill",
+				name: "Future Bill",
+				amount: 200,
+				dueDate: "2026-06-20",
 				recurrence: "monthly",
 			},
 		],
 		debts: [],
 		currentDate: "2026-06-01",
-	});
-
-	assertEqual(timeline[0].type, "paycheck", "Timeline starts with paycheck");
-	assertEqual(timeline[1].label, "Pay Utilities", "Timeline sorts earlier expense first");
-	assertEqual(timeline[2].type, "autopay_expense", "Timeline includes autopay expense");
-	assertEqual(timeline[2].label, "Reserve autopay for Rent", "Timeline autopay label");
-}
-
-/*function testTimelineRunningCash() {
-	const result = allocatePaycheck({
-		paycheckAmount: 1000,
-		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
-		expenses: [
-			{
-				id: "rent",
-				name: "Rent",
-				amount: 500,
-				dueDate: "2026-06-03",
-				recurrence: "monthly",
-			},
-		],
-		debts: [
-			{
-				id: "visa",
-				name: "Visa",
-				balance: 300,
-				minimumPayment: 75,
-				apr: 20,
-				dueDate: "2026-06-04",
-				type: "debt",
-				recurrence: "monthly",
-			},
-		],
-		goals: [],
-		strategy: "snowball",
-		paycheckBuffer: 0,
+		completedRecommendedActions: [],
 	});
 
-	const timeline = buildTimelineItems({
-		result,
-		requiredExpenses: [
-			{
-				id: "rent",
-				name: "Rent",
-				amount: 500,
-				dueDate: "2026-06-03",
-				recurrence: "monthly",
-			},
-		],
-		debts: [
-			{
-				id: "visa",
-				name: "Visa",
-				balance: 300,
-				minimumPayment: 75,
-				apr: 20,
-				dueDate: "2026-06-04",
-				type: "debt",
-				recurrence: "monthly",
-			},
-		],
-		currentDate: "2026-06-01",
-	});
-
-	assertEqual(timeline[0].runningCash, 1000, "Timeline paycheck running cash");
-	assertEqual(timeline[1].runningCash, 500, "Timeline after expense");
-	assertEqual(timeline[2].runningCash, 425, "Timeline after minimum debt");
-} */
-
-function testExternalRecommendedPaymentDoesNotCountAgainstFlexibleCash() {
-	const completedActions = [
-		{
-			targetId: "visa",
-			label: "Extra payment to Visa",
-			category: "snowball" as const,
-			recommendedAmount: 200,
-			actualAmount: 200,
-			paymentSource: "external" as const,
-		},
-	];
-
-	const paycheckFundedTotal = completedActions.filter((action) => action.paymentSource !== "external").reduce((sum, action) => sum + action.actualAmount, 0);
-
-	assertEqual(paycheckFundedTotal, 0, "External recommended payment should not reduce paycheck flexible cash");
+	assertEqual(
+		timeline.some((item) => item.label === "Pay Future Bill"),
+		false,
+		"Timeline excludes bills after next paycheck"
+	);
 }
 
-function testForecastKeepsSafeCashStable() {
+function testForecastStatusThresholds() {
+	const stable = projectForecast({
+		startingSafeCash: 500,
+		startingDebtBalance: 1000,
+		monthlyDebtReduction: 100,
+		months: 1,
+	});
+
+	const tight = projectForecast({
+		startingSafeCash: 150,
+		startingDebtBalance: 1000,
+		monthlyDebtReduction: 100,
+		months: 1,
+	});
+
+	const pressure = projectForecast({
+		startingSafeCash: 50,
+		startingDebtBalance: 1000,
+		monthlyDebtReduction: 100,
+		months: 1,
+	});
+
+	const recovery = projectForecast({
+		startingSafeCash: -1,
+		startingDebtBalance: 1000,
+		monthlyDebtReduction: 100,
+		months: 1,
+	});
+
+	assertEqual(stable[0].status, "stable", "Stable forecast status");
+	assertEqual(tight[0].status, "tight", "Tight forecast status");
+	assertEqual(pressure[0].status, "pressure", "Pressure forecast status");
+	assertEqual(recovery[0].status, "recovery", "Recovery forecast status");
+}
+
+function testForecastCanApplyBufferTrend() {
 	const forecast = projectForecast({
 		startingSafeCash: 500,
 		startingDebtBalance: 3000,
 		monthlyDebtReduction: 250,
 		months: 3,
+		bufferTrendPerMonth: 25,
 	});
 
-	assertEqual(forecast.length, 3, "Forecast month count");
-	assertEqual(forecast[0].projectedSafeCash, 500, "Month 1 safe cash");
-	assertEqual(forecast[1].projectedSafeCash, 500, "Month 2 safe cash");
-	assertEqual(forecast[2].projectedSafeCash, 500, "Month 3 safe cash");
+	assertEqual(forecast[0].projectedSafeCash, 500, "Month 1 trended safe cash");
+	assertEqual(forecast[1].projectedSafeCash, 525, "Month 2 trended safe cash");
+	assertEqual(forecast[2].projectedSafeCash, 550, "Month 3 trended safe cash");
 }
 
 function testForecastReducesDebtBalance() {
@@ -301,48 +316,18 @@ function testForecastNeverGoesBelowZeroDebt() {
 	assertEqual(forecast[2].projectedDebtBalance, 0, "Month 3 capped debt");
 }
 
-function testForecastStatusThresholds() {
-	const stable = projectForecast({
-		startingSafeCash: 500,
-		startingDebtBalance: 1000,
-		monthlyDebtReduction: 100,
-		months: 1,
-	});
-
-	const warning = projectForecast({
-		startingSafeCash: 150,
-		startingDebtBalance: 1000,
-		monthlyDebtReduction: 100,
-		months: 1,
-	});
-
-	const risk = projectForecast({
-		startingSafeCash: -1,
-		startingDebtBalance: 1000,
-		monthlyDebtReduction: 100,
-		months: 1,
-	});
-
-	assertEqual(stable[0].status, "stable", "Stable forecast status");
-	assertEqual(warning[0].status, "warning", "Warning forecast status");
-	assertEqual(risk[0].status, "risk", "Risk forecast status");
-}
-
-
-
-
 function runV11RegressionTests() {
-	testAutopayExpenseIsReserved();
-	testAutopayDebtMinimumIsReserved();
-	testAutopayStillCountsTowardSnowballBalance();
-	testExternalRecommendedPaymentDoesNotCountAgainstFlexibleCash();
-	testForecastKeepsSafeCashStable();
-	testForecastNeverGoesBelowZeroDebt();
-	testForecastReducesDebtBalance();
+	testPaidRequiredExpenseStaysInTimelineAndStillReducesCash();
+	testPaidDebtMinimumStaysInTimelineAndUsesPlannedMinimum();
+	testOutsideRecommendedActionDoesNotReduceTimelineCash();
+	testPaycheckRecommendedActionDoesReduceTimelineCash();
+	testTimelineExcludesItemsAfterNextPaycheck();
 	testForecastStatusThresholds();
-	
+	testForecastCanApplyBufferTrend();
+	testForecastReducesDebtBalance();
+	testForecastNeverGoesBelowZeroDebt();
 
-	console.log("✅ V1.1 regression tests passed.");
+	console.log("✅ V1.1 Plan regression tests passed.");
 }
 
 runV11RegressionTests();

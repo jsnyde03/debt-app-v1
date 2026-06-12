@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
@@ -117,6 +118,7 @@ export function RequiredExpensesSection({
     const visibleExpenses = filteredExpenses.slice((expensePage - 1) * pageSize, expensePage * pageSize);
 
     function startEditing(expense: RequiredExpense) {
+        triggerLightHaptic();
         setEditingExpenseId(expense.id);
         setEditAmount(String(expense.amount));
         setEditDueDate(expense.dueDate);
@@ -127,6 +129,7 @@ export function RequiredExpensesSection({
     }
 
     function cancelEditing() {
+        triggerLightHaptic();
         setEditingExpenseId(null);
         setEditAmount("");
         setEditDueDate("");
@@ -152,6 +155,7 @@ export function RequiredExpensesSection({
             isAutopay: editIsAutopay,
         });
 
+        triggerMediumHaptic();
         cancelEditing();
     }
 
@@ -350,7 +354,10 @@ export function RequiredExpensesSection({
                     <button
                         type="button"
                         className="add-button compact-add-button"
-                        onClick={() => setShowAddExpenseModal(true)}
+                        onClick={() => {
+                            triggerLightHaptic();
+                            setShowAddExpenseModal(true);
+                        }}
                     >
                         + Add
                     </button>
@@ -376,6 +383,7 @@ export function RequiredExpensesSection({
                                     : "category-filter-pill"
                             }
                             onClick={() => {
+                                triggerLightHaptic();
                                 setSelectedCategory("all");
                                 setExpensePage(1);
                             }}
@@ -393,6 +401,7 @@ export function RequiredExpensesSection({
                                         : "category-filter-pill"
                                 }
                                 onClick={() => {
+                                    triggerLightHaptic();
                                     setSelectedCategory(option.value);
                                     setExpensePage(1);
                                 }}
@@ -439,7 +448,10 @@ export function RequiredExpensesSection({
             {showAddExpenseModal && (
                 <div
                     className="center-modal-overlay"
-                    onClick={() => setShowAddExpenseModal(false)}
+                    onClick={() => {
+                        triggerLightHaptic();
+                        setShowAddExpenseModal(false);
+                    }}
                 >
                     <div
                         className="center-modal"
@@ -454,7 +466,10 @@ export function RequiredExpensesSection({
                             <button
                                 type="button"
                                 className="text-action-button"
-                                onClick={() => setShowAddExpenseModal(false)}
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    setShowAddExpenseModal(false);
+                                }}
                             >
                                 Close
                             </button>
@@ -465,7 +480,9 @@ export function RequiredExpensesSection({
                                 <button
                                     type="button"
                                     className="secondary-button preset-toggle-button"
-                                    onClick={() => setShowExpensePresets((current) => !current)}
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        setShowExpensePresets((current) => !current)}}
                                 >
                                     {showExpensePresets
                                         ? "Hide Common Expenses"
@@ -480,6 +497,7 @@ export function RequiredExpensesSection({
                                                 type="button"
                                                 className="preset-pill compact-preset-pill"
                                                 onClick={() => {
+                                                    triggerLightHaptic();
                                                     onExpenseNameChange(preset.name);
                                                     onExpenseTypeChange(preset.expenseType);
                                                     onExpenseRecurrenceChange(preset.recurrence);
@@ -600,7 +618,9 @@ export function RequiredExpensesSection({
                             <button
                                 type="button"
                                 className="add-button modal-primary-action"
-                                onClick={handleAddExpense}
+                                onClick={() => {
+                                    triggerMediumHaptic();
+                                    handleAddExpense();}}
                             >
                                 Add Required Expense
                             </button>

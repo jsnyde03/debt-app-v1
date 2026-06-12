@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { LivingExpense } from "@/lib/types/livingExpense";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 
 type LivingExpensesSectionProps = {
     livingExpenses: LivingExpense[];
@@ -31,7 +32,9 @@ export function LivingExpensesSection({ livingExpenses, onLivingExpensesChange }
                     <button
                         type="button"
                         className="add-button compact-add-button"
-                        onClick={() => setShowManageModal(true)}
+                        onClick={() => {
+                            triggerLightHaptic();
+                            setShowManageModal(true);}}
                     >
                         Manage
                     </button>
@@ -73,7 +76,9 @@ export function LivingExpensesSection({ livingExpenses, onLivingExpensesChange }
                             <button
                                 type="button"
                                 className="text-action-list"
-                                onClick={() => setShowManageModal(false)}
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    setShowManageModal(false);}}
                             >
                                 Close
                             </button>
@@ -117,9 +122,12 @@ export function LivingExpensesSection({ livingExpenses, onLivingExpensesChange }
                                         <button
                                             type="button"
                                             className={expense.enabled ? "action-pill-completed" : "action-pill"}
-                                            onClick={() => updateExpense(expense.id, {
+                                            onClick={() => {
+                                                triggerMediumHaptic();
+                                                updateExpense(expense.id, {
                                                 enabled: !expense.enabled,
-                                            })}
+                                            });
+                                        }}
                                         >
                                             {expense.enabled ? "On" : "Off"}
                                         </button>

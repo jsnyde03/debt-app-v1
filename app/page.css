@@ -1684,6 +1684,8 @@ button:active {
 	pointer-events: auto;
 }
 
+
+
 .center-modal {
 	width: min(520px, 100%);
 	max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 116px);
@@ -1729,7 +1731,7 @@ button:active {
 .center-modal::after {
 	content: "";
 	display: block;
-	height: calc(env(safe-area-inset-bottom) + 110px);
+	height: calc(env(safe-area-inset-bottom) + 140px);
 }
 
 
@@ -1753,6 +1755,48 @@ button:active {
 	align-items: center;
 	gap: 10px;
 }
+
+.center-modal-overlay {
+	animation: modelBackdropIn 180ms ease both;
+}
+
+.center-modal {
+	animation: centerModalIn 220ms ease both;
+}
+
+.saved-item-button,
+.category-filter-pill,
+.compact-add-button,
+.living-expense-editor-row {
+	will-change: transform;
+}
+
+.saved-action-button:active,
+.category-filter-pill:active,
+.compact-add-button:active,
+.living-expense-editor-row:active {
+	transform: scale(0.985);
+}
+
+.saved-item.debt-edit-card {
+	background: var(--surface-muted-hover);
+	border: 1px solid rgba(96, 165, 250, 0.28);
+	box-shadow: 0 18px 42px rgba(15, 23, 42, 0.18);
+}
+
+.dark-theme .saved-item.debt-edit-card {
+	background: rgba(51, 65, 85, 0.72);
+	border-color: rgba(147, 197, 253, 0.3);
+	box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+}
+
+.expense-controls input:focus {
+	border-color: rgba(96, 165, 250, 0.65);
+	box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);
+	background: var(--bg-elevated);
+}
+
+
 
 .preset-toggle-button {
 	width: 100%;
@@ -1940,7 +1984,8 @@ button:active {
 }
 
 .debt-edit-actions {
-	margin-top: 2px;
+	margin-top: 16px;
+	padding-top: 8px;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -2056,7 +2101,7 @@ button:active {
 }
 
 .debt-advanced-edit {
-	margin-top: 2px;
+	margin-top: 14px;
 }
 
 .debt-advanced-edit summary {
@@ -2081,7 +2126,8 @@ button:active {
 }
 
 .advanced-grid {
-	margin-top: 8px;
+	margin-top: 14px;
+	gap: 12px;
 }
 
 .debt-card-meta {
@@ -2793,6 +2839,16 @@ button:active,
 	animation-delay: 80ms;
 }
 
+@keyframes modalBackdropIn {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
 @keyframes planSectionReveal {
 	from {
 		opacity: 0;
@@ -2965,8 +3021,8 @@ button:active,
 		background: rgba(239, 68, 68, 0.92);
 		color: white;
 	}
-	
-	.dark-them .swipe-action-positive {
+
+	.dark-theme .swipe-action-positive {
 		background: rgba(34, 197, 94, 0.2);
 		color: #86efac;
 	}
@@ -3131,6 +3187,7 @@ button:active,
 		grid-template-columns: 1fr 1fr;
 		width: 100%;
 	}
+	
 
 	.compact-debt-edit-grid {
 		grid-template-columns: 1fr;
