@@ -282,6 +282,11 @@ export function SnowballSection({
 		strategy: effectiveSimulationStrategy,
 	});
 
+	const snowballIsFaster = fasterStrategy === "snowball";
+	const avalancheIsFaster = fasterStrategy === "avalanche";
+	const snowballHasLowerInterest = lowerInterestStrategy === "snowball";
+	const avalancheHasLowerInterest = lowerInterestStrategy === "avalanche";
+
 	function buildExtraPaymentAllocationPlan({ debts, amount, strategy}: {debts: DebtWithDisplayBalance[]; amount: number; strategy: "snowball" | "avalanche"}) {
 		let remainingAmount = Math.max(0, amount);
 
@@ -554,25 +559,51 @@ export function SnowballSection({
 						{canViewStrategyComparison ? (
 							comparisonCanBeEstimated ? (
 								<>
-									<div className="strategy-comparison-grid">
-										<div className="strategy-comparison-option">
-											<span>Snowball</span>
+									<div className="strategy-comparison-grid premium-strategy-grid">
+										<div
+											className={`strategy-comparison-option premium-strategy-option ${snowballIsFaster || snowballHasLowerInterest ? "winner" : ""}`}
+										>
+											<div className="stategy-option-topline">
+												<span>Snowball</span>
+
+												{snowballIsFaster && (
+													<em>Faster</em>
+												)}
+
+												{!snowballIsFaster && snowballHasLowerInterest && (
+													<em>Lower Interest</em>
+												)}
+											</div>
+
 											<strong>
 												{snowballComparisonProjection.estimatedDebtFreeDate}
 											</strong>
+
 											<small>
 												Interest:{" "}
 												{formatCurrency(snowballComparisonProjection.totalInterestPaid)}
 											</small>
 										</div>
 
-										<div className="strategy-comparison-option">
-											<span>
-												Avalanche
-											</span>
+										<div
+											className={`strategy-comparison-option premium-strategy-option ${avalancheIsFaster || avalancheHasLowerInterest ? "winner" : ""}`}
+										>
+											<div className="strategy-option-topline">
+												<span>Avalanche</span>
+
+												{avalancheIsFaster && (
+													<em>Faster</em>
+												)}
+
+												{avalancheIsFaster && avalancheHasLowerInterest && (
+													<em>Lower Interest</em>
+												)}
+											</div>
+
 											<strong>
 												{avalancheComparisonProjection.estimatedDebtFreeDate}
 											</strong>
+
 											<small>
 												Interest:{" "}
 												{formatCurrency(avalancheComparisonProjection.totalInterestPaid)}
@@ -602,7 +633,7 @@ export function SnowballSection({
 										)}
 									</div>
 
-									<div className="strategy-guidance-card">
+									<div className="strategy-guidance-card premium-strategy-guidance">
 										<h4>
 											Recommended Strategy:{" "}
 											{recommendedStrategy === "avalanche" ? "Avalanche" : "Snowball"}
