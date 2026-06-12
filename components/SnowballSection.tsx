@@ -315,6 +315,49 @@ export function SnowballSection({
 		}).filter((item): item is NonNullable<typeof item> => item !== null);
 	}
 
+	function getInsightMeta(severity: "good" | "warning" | "risk", title: string) {
+		if (severity === "risk") {
+			return {
+				icon: "⚠",
+				label: "Risk",
+			};
+		}
+
+		if (severity === "warning") {
+			return {
+				icon: "🎯",
+				label: "Warning",
+			};
+		}
+
+		if (title.toLowerCase().includes("interest")) {
+			return {
+				icon: "📈",
+				label: "Impact",
+			};
+		}
+
+		 if (title.toLowerCase().includes("extra")) {
+			return {
+				icon: "💵",
+				label: "Opportunity",
+			};
+		 }
+
+		 if (title.toLowerCase().includes("progress")) {
+			return {
+				icon: "🛡",
+				label: "On Track",
+			};
+		 }
+
+		 return {
+			icon: "✅",
+			label: "Good",
+		 };
+	}
+
+
 	return (
 		<section className="card">
 			<div className="section-heading-row">
@@ -334,6 +377,7 @@ export function SnowballSection({
 				</div>
 			) : (
 				<>
+					
 					<div className="payoff-focus-strip">
 						<div>
 							<span>Focus Debt</span>
@@ -415,7 +459,17 @@ export function SnowballSection({
 							<strong>{recommendedProjection.estimatedDebtFreeDate}</strong>
 						</div>
 					)}
-
+					{canViewForecasting && canViewSmartInsights && canViewForecasting && canViewWhatIfScenarios && (
+						<div className="premium-payoff-hero">
+							<div>
+								<span className="premium-eyebrow">👑 Premium</span>
+								<h3>Smart insights. Stronger outcomes.</h3>
+								<p>
+									Guidance to help you protect cash flow, compare payoff strategies, and accelerate debt freedom.
+								</p>
+							</div>
+						</div>
+					)}
 					<div className="strategy-comparison-card">
 						<div className="strategy-comparison-header">
 							<div>
@@ -428,16 +482,43 @@ export function SnowballSection({
 						</div>
 						{canViewSmartInsights ? (
 							<div className="smart-insight-list">
-								{smartInsights.map((insight) => (
-									<div
-										key={insight.title}
-										className={`smart-insight-card ${insight.severity}`}
-									>
-										<strong>{insight.title}</strong>
-										<p>{insight.message}</p>
-										{insight.action && <small>{insight.action}</small>}
+								{smartInsights.map((insight) => {
+									const meta = getInsightMeta(insight.severity, insight.title);
+
+									return (
+										<div 
+											key={insight.title}
+											className={`smart-insight-card ${insight.severity}`}
+										>
+											<div className="smart-insight-topline">
+												<span className="smart-insight-icon">
+													{meta.icon}
+												</span>
+												<div>
+													<strong>{insight.title}</strong>
+													<span className={`insight-chip ${insight.severity}`}>
+														{meta.label}
+													</span>
+												</div>
+											</div>
+
+											<p>{insight.message}</p>
+
+											{insight.action && (
+												<small>{insight.action}</small>
+											)}
+										</div>
+									);
+								})}
+								<div className="premium-momentum-card">
+									<span>👑</span>
+									<div>
+										<strong>Keep going - consistency wins</strong>
+										<p>
+											Your plan is built to protect today and improve your tomorrow.
+										</p>
 									</div>
-								))}
+								</div>
 							</div>
 						) : (
 							<div className="premium-locked-preview">
