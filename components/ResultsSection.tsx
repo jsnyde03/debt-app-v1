@@ -7,6 +7,7 @@ import type {
     RecommendationOverride,
 } from "@/lib/storage/debtPlannerStorage";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { SwipeActionCard } from "./SwipeActionCard";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 
@@ -485,16 +486,53 @@ export function ResultsSection({
             item.category === "autopay_expense" ||
             item.category === "autopay_debt";
 
+        function handleRequiredActionToggle() {
+            if (item.category === "expense" || item.category === "autopay_expense") {
+                if (item.targetId) {
+                    onMarkExpensePaid(item.targetId);
+                }
+
+                return;
+            }
+
+            if (item.category === "minimum_debt" || item.category === "autopay_debt") {
+                const debtId = item.debtId ?? item.targetId;
+
+                if (debtId) {
+                    onMarkDebtMinimumPaid(debtId);
+                }
+            }
+        }
+
         return (
-            <div
+            <SwipeActionCard
                 key={`${item.category}-${item.targetId ?? index}`}
                 className={[
                     "saved-item",
                     isPaid ? "completed-item" : "",
                     overdue ? "overdue-item" : "",
-                ]
-                    .filter(Boolean)
-                    .join(" ")}
+                ].filter(Boolean).join(" ")}
+
+                leftAction={
+                    !isPaid
+                        ? {
+                            label: "Mark Paid",
+                            tone: "positive",
+                            onTrigger: handleRequiredActionToggle,
+                        }
+                        : undefined
+                }
+
+                rightAction={
+                    isPaid
+                        ? {
+                            label: "Undo",
+                            tone: "warning",
+                            onTrigger: handleRequiredActionToggle,
+                        }
+                        : undefined
+                }
+
             >
                 <div className="saved-item-left">
                     <div className="saved-title">
@@ -525,34 +563,13 @@ export function ResultsSection({
                         }
                         onClick={() => {
                             triggerMediumHaptic();
-
-                            if (
-                                item.category === "expense" ||
-                                item.category === "autopay_expense"
-                            ) {
-                                if (item.targetId) {
-                                    onMarkExpensePaid(item.targetId);
-                                }
-
-                                return;
-                            }
-
-                            if (
-                                item.category === "minimum_debt" ||
-                                item.category === "autopay_debt"
-                            ) {
-                                const debtId = item.debtId ?? item.targetId;
-
-                                if (debtId) {
-                                    onMarkDebtMinimumPaid(debtId);
-                                }
-                            }
+                            handleRequiredActionToggle();
                         }}
                     >
                         {isPaid ? "Undo" : "Mark Paid"}
                     </button>
                 </div>
-            </div>
+            </SwipeActionCard>
         );
     }
 
@@ -631,17 +648,71 @@ export function ResultsSection({
             setEditingRecommendedKey(null);
         }
 
+        function handleRecommendedPrimaryAction() {
+            if (action.isCompleted) {
+                onMarkRecommendedAction(
+                    action.targetId,
+                    action.label,
+                    action.category,
+                    action.recommendedAmount,
+                    action.actualAmount
+                );
+
+                return;
+            }
+
+            onMarkRecommendedAction(
+                action.targetId,
+                action.label,
+                action.category,
+                action.recommendedAmount,
+                roundMoney(action.actualAmount)
+            );
+        }
+
+        function handleRecommendedOutsidePaycheck() {
+            onMarkRecommendedAction(
+                action.targetId,
+                action.label,
+                action.category,
+                action.recommendedAmount,
+                roundMoney(action.actualAmount),
+                "external"
+            );
+        }
+
         return (
-            <div
+            <SwipeActionCard
                 key={action.key}
                 className={[
                     "saved-item",
                     "recommended-card",
                     options?.isFocusTarget ? "focus-target-card" : "",
                     action.isCompleted ? "completed-action completed-item" : "",
-                ]
-                    .filter(Boolean)
-                    .join(" ")}
+                ].filter(Boolean).join(" ")}
+                disabled={isEditing}
+                leftAction={!action.isCompleted
+                    ? {
+                        label: action.category === "emergency" || action.category === "optional_goal"
+                            ? "Mark Saved"
+                            : "Mark Paid",
+                        tone: "positive",
+                        onTrigger: handleRecommendedPrimaryAction,
+                    }
+                    : undefined
+                }
+                rightAction={action.isCompleted
+                    ? {
+                        label: "Undo",
+                        tone: "warning",
+                        onTrigger: handleRecommendedPrimaryAction,
+                    }
+                    : {
+                        label: "Outside",
+                        tone: "warning",
+                        onTrigger: handleRecommendedOutsidePaycheck,
+                    }   
+                }
             >
                 <div className="saved-item-left">
                     <div className="saved-title">{action.label}</div>
@@ -747,25 +818,7 @@ export function ResultsSection({
                         }
                         onClick={() => {
                             triggerMediumHaptic();
-                            if (action.isCompleted) {
-                                onMarkRecommendedAction(
-                                    action.targetId,
-                                    action.label,
-                                    action.category,
-                                    action.recommendedAmount,
-                                    action.actualAmount
-                                );
-
-                                return;
-                            }
-
-                            onMarkRecommendedAction(
-                                action.targetId,
-                                action.label,
-                                action.category,
-                                action.recommendedAmount,
-                                roundMoney(action.actualAmount)
-                            );
+                            handleRecommendedPrimaryAction();
                         }}
                     >
                         {action.isCompleted
@@ -783,21 +836,15 @@ export function ResultsSection({
                             className="text-action-button"
                             onClick={() => {
                                 triggerMediumHaptic();
-                                onMarkRecommendedAction(
-                                    action.targetId,
-                                    action.label,
-                                    action.category,
-                                    action.recommendedAmount,
-                                    roundMoney(action.actualAmount),
-                                    "external"
-                                );
+                                handleRecommendedOutsidePaycheck();
+                                
                             }}
                         >
                             Outside Paycheck
                         </button>
                     )}
                 </div>
-            </div>
+            </SwipeActionCard>
         );
     }
 
@@ -897,7 +944,7 @@ export function ResultsSection({
                             You&apos;re caught up for this paycheck. No unpaid required actions remain.
                         </p>
                     ) : (
-                       visibleRequiredActions.map((item, index) => renderRequiredAction(item, index))
+                        visibleRequiredActions.map((item, index) => renderRequiredAction(item, index))
                     )}
 
                     {hiddenRequiredCount > 0 && (

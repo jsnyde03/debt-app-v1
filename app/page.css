@@ -2874,6 +2874,74 @@ button:active,
 
 }
 
+.swipe-action-shell {
+		position: relative;
+		overflow: hidden;
+		border-radius: var(--radius-md);
+		touch-action: pan-y;
+	}
+
+	.swipe-action-background {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		padding: 0 18px;
+		font-size: 0.82rem;
+		font-weight: 800;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 120ms ease;
+	}
+
+	.swipe-action-shell.is-swiping .swipe-action-background {
+		opacity: 0.92;
+	}
+
+	.swipe-action-background span {
+		transform: translateY(-1px);
+	}
+
+	.swipe-action-left {
+		justify-content: flex-start;
+	}
+
+	.swipe-action-right {
+		justify-content: flex-end;
+	}
+
+	.swipe-action-positive {
+		background: rgba(34, 197, 94, 0.16);
+		color: var(--success-color);
+	}
+
+	.swipe-action-warning {
+		background: rgba(245, 158, 11, 0.14);
+		color: #f59e0b;
+	}
+
+	.swipe-action-danger {
+		background: rgba(239, 68, 68, 0.14);
+		color: var(--danger-color);
+	}
+
+	.swipe-action-foreground {
+		position: relative;
+		z-index: 2;
+		transform: translateX(var(--swipe-x, 0));
+		transition:
+			transform 100ms ease,
+			background 180ms ease,
+			border-color 180ms ease,
+			opacity 180ms ease;
+		will-change: transform;
+	}
+
+	.swipe-action-foreground.active {
+		transform: translateX(var(--swipe-x, 0)) scale(0.995);
+	}
+
 @media (max-width: 768px) {
 	.execution-summary-strip {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
