@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import type { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import type {
     Debt,
@@ -523,6 +524,8 @@ export function ResultsSection({
                             isPaid ? "action-pill completed" : "action-pill"
                         }
                         onClick={() => {
+                            triggerMediumHaptic();
+
                             if (
                                 item.category === "expense" ||
                                 item.category === "autopay_expense"
@@ -653,8 +656,8 @@ export function ResultsSection({
 
                     <strong className="recommended-inline-amount">
                         {formatCurrency(action.isCompleted
-                                ? action.actualAmount
-                                : getEditedActualAmount()
+                            ? action.actualAmount
+                            : getEditedActualAmount()
                         )}
                     </strong>
 
@@ -723,6 +726,7 @@ export function ResultsSection({
                             type="button"
                             className="text-action-button"
                             onClick={() => {
+                                triggerLightHaptic();
                                 setEditingRecommendedKey(action.key);
                                 setEditedRecommendedAmounts((current) => ({
                                     ...current,
@@ -742,6 +746,7 @@ export function ResultsSection({
                                 : "action-pill"
                         }
                         onClick={() => {
+                            triggerMediumHaptic();
                             if (action.isCompleted) {
                                 onMarkRecommendedAction(
                                     action.targetId,
@@ -777,6 +782,7 @@ export function ResultsSection({
                             type="button"
                             className="text-action-button"
                             onClick={() => {
+                                triggerMediumHaptic();
                                 onMarkRecommendedAction(
                                     action.targetId,
                                     action.label,
@@ -853,9 +859,11 @@ export function ResultsSection({
                 <button
                     type="button"
                     className="section-collapse-button"
-                    onClick={() =>
-                        setRequiredExpanded((current) => !current)
-                    }
+                    onClick={() => {
+                        triggerLightHaptic();
+                        setRequiredExpanded((current) => !current);
+                    }}
+
                 >
                     <div className="section-collapse-left">
                         <h2>Required Actions</h2>
@@ -893,8 +901,11 @@ export function ResultsSection({
                             <button
                                 type="button"
                                 className="text-action-button show-more-inline"
-                                onClick={() =>
-                                    setShowAllRequiredActions(true)
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    setShowAllRequiredActions(true);
+                                }
+
                                 }
                             >
                                 Show {hiddenRequiredCount} More
@@ -906,9 +917,12 @@ export function ResultsSection({
                                 <button
                                     type="button"
                                     className="text-action-button show-more-inline"
-                                    onClick={() =>
-                                        setShowAllRequiredActions(false)
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                         setShowAllRequiredActions(false);
                                     }
+                                    }
+                                       
                                 >
                                     Show fewer required actions.
                                 </button>
@@ -921,9 +935,10 @@ export function ResultsSection({
                 <button
                     type="button"
                     className="section-collapse-button recommended-collapse"
-                    onClick={() =>
-                        setRecommendedExpanded((current) => !current)
-                    }
+                    onClick={() => {
+                        triggerLightHaptic();
+                        setRecommendedExpanded((current) => !current);
+                    }}
                 >
                     <div className="section-collapse-left">
                         <div>
@@ -983,8 +998,11 @@ export function ResultsSection({
                                     <button
                                         type="button"
                                         className="text-action-button show-more-inline"
-                                        onClick={() =>
-                                            setShowAllRecommendedActions(true)
+                                        onClick={() => {
+                                            triggerLightHaptic();
+                                            setShowAllRecommendedActions(true);
+                                        }
+                                            
                                         }
                                     >
                                         Show {hiddenRecommendedCount} More
@@ -996,10 +1014,13 @@ export function ResultsSection({
                                         <button
                                             type="button"
                                             className="text-action-button show-more-inline"
-                                            onClick={() =>
+                                            onClick={() => {
+                                                triggerLightHaptic();
                                                 setShowAllRecommendedActions(
                                                     false
-                                                )
+                                                );
+                                            }
+                                                
                                             }
                                         >
                                             Show fewer recommended actions.
@@ -1016,9 +1037,10 @@ export function ResultsSection({
                     <button
                         type="button"
                         className="section-collapse-button"
-                        onClick={() =>
-                            setCompletedExpanded((current) => !current)
-                        }
+                        onClick={() => {
+                            triggerLightHaptic();
+                            setCompletedExpanded((current) => !current);
+                        }}
                     >
                         <div className="section-collapse-left">
                             <h2>Completed This Cycle</h2>

@@ -3,6 +3,7 @@ import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import { buildTimelineItems } from "@/lib/timeline/buildTimelineItems";
 import { useState } from "react";
+import { triggerLightHaptic } from "@/lib/mobile/haptics";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 
@@ -140,7 +141,7 @@ export function TimelineSection({
             <button
                 type="button"
                 className="section-collapse-button timeline-collapse-button"
-                onClick={() => setTimelineExpanded((current) => !current)}
+                onClick={() => { triggerLightHaptic(); setTimelineExpanded((current) => !current);}}
             >
                 <div className="section-collapse-left">
                     <div>

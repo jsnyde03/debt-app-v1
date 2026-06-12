@@ -1116,7 +1116,7 @@ button:active {
 	background: linear-gradient(135deg, var(--surface-active), var(--surface-muted));
 	border: 1px solid rgba(37, 99, 234, 0.18);
 	border-left: 3px solid var(--accent-color);
-	padding: 12px 14px 10px;
+	padding: 10px 12px 10px;
 }
 
 .recommended-card .saved-title {
@@ -1140,7 +1140,7 @@ button:active {
 }
 
 .recommended-inline-amount {
-	margin-top: 10px;
+	margin-top: 6px;
 	display: block;
 	font-size: 1.2rem;
 	font-weight: 900;
@@ -1161,7 +1161,7 @@ button:active {
 	flex-wrap: wrap;
 	justify-content: flex-end;
 	align-items: center;
-	gap: 8px;
+	gap: 6px;
 }
 
 .recommended-card .saved-meta {
@@ -2736,7 +2736,59 @@ button:active,
 }
 
 
+.plan-dashboard-section > .empty-state,
+.plan-dashboard-section > .focus-card,
+.plan-dashboard-section > .secondary-recommendations,
+.plan-dashboard-section > .required-actions-list,
+.plan-dashboard-section > .show-more-inline,
+.timeline-list {
+	animation: planSectionReveal 180ms ease both;
+}
 
+.timeline-item {
+	animation: planItemReveal 180ms ease both;
+}
+
+.timeline-item:nth-child(2) {
+	animation-delay: 20ms;
+}
+
+.timeline-item:nth-child(3) {
+	animation-delay: 40ms;
+}
+
+.timeline-item:nth-child(4) {
+	animation-delay: 60ms;
+}
+
+.timeline-item:nth-child(5) {
+	animation-delay: 80ms;
+}
+
+@keyframes planSectionReveal {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes planItemReveal {
+	from {
+		opacity: 0;
+		transform: translateY(8px) scale(0.99);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+ 
 @keyframes toastIn {
 	from {
 		opacity: 0;

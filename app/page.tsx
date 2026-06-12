@@ -35,6 +35,7 @@ import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
 import { initializeRevenueCat, getSubscriptionPlan, restorePurchases } from "@/lib/subscription/revenueCat";
 import { purchasePremium } from "@/lib/subscription/revenueCat";
+import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 
 type Goal = {
     id: string;
@@ -1112,7 +1113,10 @@ export default function Home() {
                         type="button"
                         className="theme-toggle"
                         aria-label={darkMode ? "Switch To Light Mode" : "Switch To Dark Mode"}
-                        onClick={() => setDarkMode((current) => !current)}
+                        onClick={() => {
+                            triggerLightHaptic();
+                            setDarkMode((current) => !current);}
+                        }
                     >
                         {darkMode ? "☀" : "🌙"}
                     </button>
@@ -1125,7 +1129,10 @@ export default function Home() {
                                 type="button"
                                 className="settings-icon-button"
                                 aria-label="Open Plan Settings"
-                                onClick={() => setShowPlanSettings(true)}
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    setShowPlanSettings(true);
+                                }}
                             >
                                 ⚙
                             </button>
@@ -1380,7 +1387,10 @@ export default function Home() {
                             ? "bottom-nav-item active"
                             : "bottom-nav-item"
                     }
-                    onClick={() => setActiveTab("plan")}
+                    onClick={() => {
+                        triggerLightHaptic();
+                        setActiveTab("plan");
+                    }} 
                 >
                     <span>🏠</span>
                     <small>Plan</small>
@@ -1394,6 +1404,7 @@ export default function Home() {
                             : "bottom-nav-item"
                     }
                     onClick={() => {
+                        triggerLightHaptic();
                         setActiveTab("bills");
                         setBillsView((current) => current ?? "expenses");
                     }}
@@ -1409,7 +1420,10 @@ export default function Home() {
                             ? "bottom-nav-item active"
                             : "bottom-nav-item"
                     }
-                    onClick={() => setActiveTab("snowball")}
+                    onClick={() => {
+                        triggerLightHaptic();
+                        setActiveTab("snowball");
+                    }}
                 >
                     <span>📈</span>
                     <small>Payoff</small>
@@ -1422,7 +1436,10 @@ export default function Home() {
                             ? "bottom-nav-item active"
                             : "bottom-nav-item"
                     }
-                    onClick={() => setActiveTab("goals")}
+                    onClick={() => {
+                        triggerLightHaptic();
+                        setActiveTab("goals");
+                    }}
                 >
                     <span>🎯</span>
                     <small>Goals</small>
