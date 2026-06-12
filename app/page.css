@@ -90,7 +90,10 @@
 	overflow-y: auto;
 	-webkit-overflow-scrolling: touch;
 	padding:
-		calc(env(safe-area-inset-top) + 18px) max(16px, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 112px) max(16px, env(safe-area-inset-left));
+		calc(env(safe-area-inset-top) + 18px)
+		max(16px, env(safe-area-inset-right))
+		calc(env(safe-area-inset-bottom) + 148px)
+		max(16px, env(safe-area-inset-left));
 }
 
 .app-content:after {
@@ -213,9 +216,12 @@ button {
 	color: var(--button-primary-text);
 	cursor: pointer;
 	transition:
-		transform 0.15s ease,
+		transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
 		background 0.2s ease,
-		border-color 0.2s ease;
+		border-color 0.2s ease,
+		box-shadow 0.2s ease,
+		opacity 0.2s ease;
+	-webkit-tap-highlight-color: transparent;
 }
 
 button:hover {
@@ -223,7 +229,7 @@ button:hover {
 }
 
 button:active {
-	transform: scale(0.98);
+	transform: scale(0.965);
 }
 
 .secondary-button,
@@ -238,6 +244,35 @@ button:active {
 .add-button:hover,
 .collapsible-header:hover {
 	background: var(--surface-muted-hover);
+}
+
+.primary-button,
+.secondary-button,
+.add-button,
+.text-action-button,
+.saved-action-button,
+.compact-action-button,
+.strategy-button,
+.category-filter-pill,
+.section-collapse-button,
+.saved-item-button,
+.saved-item-inner-button {
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+}
+
+.primary-button:active,
+.secondary-button:active,
+.add-button:active,
+.text-action-button:active,
+.saved-action-button:active,
+.compact-action-button:active,
+.strategy-button:active,
+.category-filter-pill:active,
+.section-collapse-button:active,
+.saved-item-button:active,
+.saved-item-inner-button:active {
+	transform: scale(0.965);
 }
 
 .empty-state {
@@ -288,9 +323,11 @@ button:active {
 	background: var(--surface-muted);
 	border: 1px solid transparent;
 	transition:
-		transform 0.18s ease,
+		transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
 		background 0.18s ease,
-		border-color 0.18s ease;
+		border-color 0.18s ease,
+		box-shadow 0.18s ease;
+	-webkit-tap-highlight-color: transparent;
 }
 
 .saved-item:hover {
@@ -312,7 +349,7 @@ button:active {
 }
 
 .saved-item:active {
-	transform: scale(0.995);
+	transform: scale(0.982);
 }
 
 .saved-title {
@@ -1545,9 +1582,9 @@ button:active {
 .plan-section-body {
 	overflow: hidden;
 	transition:
-		max-height 240ms ease,
+		max-height 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
 		opacity 180ms ease,
-		transform 200ms ease,
+		transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
 		visibility 200ms ease;
 	will-change: max-height, opacity, transform;
 }
@@ -3042,10 +3079,11 @@ button:active,
 		z-index: 2;
 		transform: translateX(var(--swipe-x, 0));
 		transition:
-			transform 100ms ease,
+			transform 100ms cubic-bezier(0.2, 0.9, 0.2, 1),
 			background 180ms ease,
 			border-color 180ms ease,
-			opacity 180ms ease;
+			opacity 180ms ease,
+			box-shadow 180ms ease;
 		will-change: transform;
 	}
 

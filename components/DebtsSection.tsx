@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { SwipeActionCard } from "./SwipeActionCard";
 
 type DebtSortOption = "dueDate" | "balance" | "apr" | "minimumPayment" | "name";
 
@@ -146,6 +148,7 @@ export function DebtsSection({
     const highestApr = activeDebts.reduce((highest, debt) => Math.max(highest, debt.apr), 0);
 
     function toggleSection(section: keyof typeof expandedSections) {
+        triggerLightHaptic();
         setExpandedSections((current) => ({
             ...current,
             [section]: !current[section],
@@ -153,6 +156,7 @@ export function DebtsSection({
     }
 
     function startEditing(debt: Debt) {
+        triggerLightHaptic();
         setEditingDebtId(debt.id);
         setEditBalance(String(debt.balance));
         setEditMinimumPayment(String(debt.minimumPayment));
@@ -162,6 +166,7 @@ export function DebtsSection({
     }
 
     function cancelEditing() {
+        triggerLightHaptic();
         setEditingDebtId(null);
         setEditBalance("");
         setEditMinimumPayment("");
@@ -179,6 +184,8 @@ export function DebtsSection({
             return;
         }
 
+        triggerMediumHaptic();
+
         onUpdateDebt(id, {
             balance,
             minimumPayment,
@@ -191,6 +198,7 @@ export function DebtsSection({
     }
 
     function handleAddDebt() {
+        triggerMediumHaptic();
         onAddDebt();
         setShowAddDebtModal(false);
     }
@@ -257,7 +265,10 @@ export function DebtsSection({
                                     <input
                                         type="checkbox"
                                         checked={editIsAutopay}
-                                        onChange={(event) => setEditIsAutopay(event.target.checked)}
+                                        onChange={(event) => {
+                                            triggerLightHaptic();
+                                            setEditIsAutopay(event.target.checked);
+                                        }}
                                     />
                                     Autopay
                                 </label>
@@ -269,7 +280,10 @@ export function DebtsSection({
                         <button
                             type="button"
                             className="text-action-button danger-action"
-                            onClick={() => onRemoveDebt(debt.id)}
+                            onClick={() => {
+                                triggerMediumHaptic();
+                                onRemoveDebt(debt.id);
+                            }}
                         >
                             Remove
                         </button>
@@ -298,41 +312,66 @@ export function DebtsSection({
 
 
         return (
-            <button
+            <SwipeActionCard
                 key={debt.id}
-                type="button"
                 className="saved-item saved-item-button debt-list-item"
-                onClick={() => startEditing(debt)}
+                leftAction={{
+                    label: "Edit",
+                    tone: "warning",
+                    onTrigger: () => {
+                        triggerLightHaptic();
+                        startEditing(debt);
+                    },
+
+                }}
+
+                rightAction={{
+                    label: "Remove",
+                    tone: "danger",
+                    onTrigger: () => {
+                        triggerLightHaptic();
+                        onRemoveDebt(debt.id);
+                    },
+                }}
             >
-                <div className="saved-item-left">
-                    <div className="saved-title">
-                        {debt.name} {(debt.displayBalance ?? debt.balance) <= 0 ? "✔" : ""}
-                        {debt.isAutopay && <span className="autopay-pill">Autopay</span>}
+                <button
+                    type="button"
+                    className="saved-item-inner-button"
+                    onClick={() => {
+                        triggerLightHaptic();
+                        startEditing(debt);
+                    }}
+                >
+                    <div className="saved-item-left">
+                        <div className="saved-title">
+                            {debt.name} {(debt.displayBalance ?? debt.balance) <= 0 ? "✔" : ""}
+                            {debt.isAutopay && <span className="autopay-pill">Autopay</span>}
+                        </div>
+
+                        <div className="saved-meta debt-card-meta">
+                            <span>Balance: {formatCurrency(debt.displayBalance ?? debt.balance)}</span>
+
+                            <span>APR {debt.apr}%</span>
+
+                            <span>
+                                Due: {new Date(debt.dueDate).toLocaleDateString(undefined, {
+                                    month: "short",
+                                    day: "numeric"
+                                })}
+                            </span>
+                        </div>
                     </div>
 
-                    <div className="saved-meta debt-card-meta">
-                        <span>Balance: {formatCurrency(debt.displayBalance ?? debt.balance)}</span>
+                    <div className="saved-item-right">
+                        <strong className="saved-amount">
+                            {formatCurrency(debt.minimumPayment)}
+                            <span className="amount-suffix">/mo</span>
+                        </strong>
 
-                        <span>APR {debt.apr}%</span>
-
-                        <span>
-                            Due: {new Date(debt.dueDate).toLocaleDateString(undefined, {
-                                month: "short",
-                                day: "numeric"
-                            })}
-                        </span>
+                        <span className="row-chevron">›</span>
                     </div>
-                </div>
-
-                <div className="saved-item-right">
-                    <strong className="saved-amount">
-                        {formatCurrency(debt.minimumPayment)}
-                        <span className="amount-suffix">/mo</span>
-                    </strong>
-
-                    <span className="row-chevron">›</span>
-                </div>
-            </button>
+                </button>
+            </SwipeActionCard>
         );
     }
 
@@ -352,10 +391,12 @@ export function DebtsSection({
                     type="button"
                     className="text-action-button"
                     disabled={currentPage <= 1}
-                    onClick={() => setDebtPages((current) => ({
-                        ...current,
-                        [sectionKey]: Math.max(1, current[sectionKey] - 1),
-                    }))}
+                    onClick={() => {
+                        triggerLightHaptic(), setDebtPages((current) => ({
+                            ...current,
+                            [sectionKey]: Math.max(1, current[sectionKey] - 1),
+                        }))
+                    }}
                 >
                     ‹
                 </button>
@@ -368,10 +409,12 @@ export function DebtsSection({
                     type="button"
                     className="text-action-button"
                     disabled={currentPage >= totalPages}
-                    onClick={() => setDebtPages((current) => ({
-                        ...current,
-                        [sectionKey]: Math.min(totalPages, current[sectionKey] + 1)
-                    }))}
+                    onClick={() => {
+                        triggerLightHaptic(), setDebtPages((current) => ({
+                            ...current,
+                            [sectionKey]: Math.min(totalPages, current[sectionKey] + 1)
+                        }))
+                    }}
                 >
                     ›
                 </button>
@@ -437,7 +480,7 @@ export function DebtsSection({
                     <button
                         type="button"
                         className="add-button compact-add-button"
-                        onClick={() => setShowAddDebtModal(true)}
+                        onClick={() => { triggerLightHaptic(); setShowAddDebtModal(true); }}
                     >
                         + Add
                     </button>
@@ -510,7 +553,7 @@ export function DebtsSection({
             {showAddDebtModal && (
                 <div
                     className="center-modal-overlay"
-                    onClick={() => setShowAddDebtModal(false)}
+                    onClick={() => { triggerLightHaptic(); setShowAddDebtModal(false); }}
                 >
                     <div
                         className="center-modal debt-add-modal"
@@ -624,7 +667,7 @@ export function DebtsSection({
                                 <label>Type</label>
                                 <select
                                     value={debtType}
-                                    onChange={(event) => onDebtTypeChange(event.target.value as | "debt" | "bnpl")}
+                                    onChange={(event) => { triggerLightHaptic(); onDebtTypeChange(event.target.value as | "debt" | "bnpl"); }}
                                 >
                                     <option value="debt">Debt</option>
                                     <option value="bnpl">BNPL</option>
@@ -661,7 +704,7 @@ export function DebtsSection({
                                 <label>Recurrence</label>
                                 <select
                                     value={debtRecurrence}
-                                    onChange={(event) => onDebtRecurrenceChange(event.target.value as Recurrence)}
+                                    onChange={(event) => { triggerLightHaptic(); onDebtRecurrenceChange(event.target.value as Recurrence); }}
                                 >
                                     <option value="one-time">One Time</option>
                                     <option value="per-paycheck">Every Paycheck</option>
@@ -678,8 +721,8 @@ export function DebtsSection({
                                     <input
                                         type="checkbox"
                                         checked={debtIsAutopay}
-                                        onChange={(event) => onDebtIsAutopayChange(event.target.checked)}
-                                        />
+                                        onChange={(event) => { triggerLightHaptic(); onDebtIsAutopayChange(event.target.checked); }}
+                                    />
                                     Autopay
                                 </label>
                             </div>

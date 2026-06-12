@@ -1,6 +1,7 @@
 import type { Goal } from "@/lib/storage/debtPlannerStorage";
 import { useState } from "react";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 
 type GoalsSectionProps = {
     goals: Goal[];
@@ -51,6 +52,7 @@ export function GoalsSection({
     const visibleGoals = filteredGoals.slice((goalPage - 1) * pageSize, goalPage * pageSize);
 
     function startEditing(goal: Goal) {
+        triggerLightHaptic();
         setEditingGoalId(goal.id);
         setEditTargetAmount(String(goal.targetAmount));
         setEditCurrentAmount(String(goal.currentAmount));
@@ -69,6 +71,8 @@ export function GoalsSection({
         if (!targetAmount || targetAmount < 0 || currentAmount < 0 || currentAmount > targetAmount) {
             return;
         }
+        
+        triggerMediumHaptic();
 
         onUpdateGoal(id, {
             targetAmount,
@@ -79,6 +83,7 @@ export function GoalsSection({
     }
 
     function handleAddGoal() {
+        triggerMediumHaptic();
         onAddGoal();
         setShowAddGoalForm(false);
     }

@@ -17,6 +17,7 @@ type SwipeActionCardProps = {
 
 const SWIPE_THRESHOLD = 82;
 const MAX_SWIPE = 112;
+const SWIPE_RESISTANCE = 0.82;
 
 export function SwipeActionCard({ className, children, leftAction, rightAction, disabled = false, }: SwipeActionCardProps) {
     const [startX, setStartX] = useState<number | null>(null);
@@ -48,8 +49,8 @@ export function SwipeActionCard({ className, children, leftAction, rightAction, 
         }
 
         const rawOffset = event.clientX - startX;
-
-        const nextOffset = Math.max(-MAX_SWIPE, Math.min(MAX_SWIPE, rawOffset));
+        const resistedOffset = rawOffset * SWIPE_RESISTANCE;
+        const nextOffset = Math.max(-MAX_SWIPE, Math.min(MAX_SWIPE, resistedOffset));
 
         if (nextOffset > 0 && !leftAction) {
             setOffsetX(0);

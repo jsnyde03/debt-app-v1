@@ -7,6 +7,7 @@ import { hasFeatureAccess } from "@/lib/subscription/hasFeatureAccess";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { projectForecast } from "@/lib/forecast/projectForecast";
 import { buildSmartInsights } from "@/lib/insights/buildSmartInsights";
+import { triggerLightHaptic } from "@/lib/mobile/haptics";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 
@@ -351,7 +352,8 @@ export function SnowballSection({
 										? "strategy-button-active"
 										: "strategy-button"
 								}
-								onClick={() => setPayoffStrategy("snowball")}
+								onClick={() => {
+									triggerLightHaptic(); setPayoffStrategy("snowball");}}
 							>
 								Snowball
 							</button>
@@ -363,7 +365,7 @@ export function SnowballSection({
 										? "strategy-button-active"
 										: "strategy-button"
 								}
-								onClick={() => setPayoffStrategy("avalanche")}
+								onClick={() => { triggerLightHaptic(); setPayoffStrategy("avalanche");}}
 							>
 								Avalanche
 							</button>
@@ -588,7 +590,7 @@ export function SnowballSection({
 												? "simulation-strategy-pill active"
 												: "simulation-strategy-pill"
 										}
-										onClick={() => setSimulationStrategy("recommended")}
+										onClick={() => { triggerLightHaptic(); setSimulationStrategy("recommended");}}
 									>
 										Recommended
 									</button>
@@ -600,7 +602,7 @@ export function SnowballSection({
 												? "simulation-strategy-pill active"
 												: "simulation-strategy-pill"
 										}
-										onClick={() => setSimulationStrategy("snowball")}
+										onClick={() => { triggerLightHaptic(); setSimulationStrategy("snowball");}}
 									>
 										Snowball
 									</button>
@@ -612,7 +614,7 @@ export function SnowballSection({
 												? "simulation-strategy-pill active"
 												: "simulation-strategy-pill"
 										}
-										onClick={() => setSimulationStrategy("avalanche")}
+										onClick={() => { triggerLightHaptic(); setSimulationStrategy("avalanche");}}
 									>
 										Avalanche
 									</button>
@@ -749,7 +751,7 @@ export function SnowballSection({
 								<button
 									type="button"
 									className="primary-button upgrade-preview-button"
-									onClick={onUpgradeClick}
+									onClick={() => { triggerLightHaptic(); onUpgradeClick();}}
 								>
 									View Premium
 								</button>
@@ -882,7 +884,7 @@ export function SnowballSection({
 						<button
 							type="button"
 							className="section-collapse-button"
-							onClick={() => setShowPayoffOrder((current) => !current)}
+							onClick={() => { triggerLightHaptic(); setShowPayoffOrder((current) => !current);}}
 						>
 							<div className="section-collapse-left">
 								<h2>Payoff Order</h2>
@@ -930,11 +932,11 @@ export function SnowballSection({
 											type="button"
 											className="text-action-button"
 											disabled={payoffOrderPage <= 1}
-											onClick={() =>
+											onClick={() => { triggerLightHaptic();
 												setPayoffOrderPage((current) =>
 													Math.max(1, current - 1)
-												)
-											}
+												);
+											}}
 										>
 											‹
 										</button>
@@ -947,11 +949,11 @@ export function SnowballSection({
 											type="button"
 											className="text-action-button"
 											disabled={payoffOrderPage >= totalPayoffPages}
-											onClick={() =>
+											onClick={() => { triggerLightHaptic();
 												setPayoffOrderPage((current) =>
 													Math.min(totalPayoffPages, current + 1)
-												)
-											}
+												);
+											}}
 										>
 											›
 										</button>
