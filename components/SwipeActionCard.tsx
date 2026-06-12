@@ -99,6 +99,8 @@ export function SwipeActionCard({ className, children, leftAction, rightAction, 
         setOffsetX(0);
     }
 
+    const activeAction = offsetX > 0 ? leftAction: offsetX < 0 ? rightAction : undefined;
+
     return (
         <div 
             className={[
@@ -107,6 +109,23 @@ export function SwipeActionCard({ className, children, leftAction, rightAction, 
                 offsetX < 0 ? "is-swiping-right" : "",
             ].filter(Boolean).join(" ")}
         >
+
+            {activeAction && (
+                <div
+                    className={[
+                        "swipe-action-hint",
+                        offsetX > 0 ? "swipe-action-hint-left" : "",
+                        offsetX < 0 ? "swipe-action-hint-right" : "",
+                        activeAction.tone
+                            ? `swipe-action-hint-${activeAction.tone}`
+                            : "",
+                    ].filter(Boolean).join(" ")}
+                >
+                    {offsetX > 0 ? "→ " : ""}
+                    {activeAction.label}
+                    {offsetX < 0 ? " ←" : ""}
+                </div>
+            )}
             {leftAction && (
                 <div
                     className={[
