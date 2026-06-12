@@ -310,15 +310,7 @@ export function ResultsSection({
         }
 
         if (item.category === "snowball") {
-            const debt = debts.find(
-                (debtItem) => debtItem.id === item.targetId
-            );
-
-            if (!debt) {
-                return item.amount;
-            }
-
-            return roundMoney(Math.max(0, debt.balance));
+            return roundMoney(Math.max(0, item.amount));
         }
 
         if (item.category === "emergency" || item.category === "optional_goal") {

@@ -103,7 +103,8 @@ export function SwipeActionCard({ className, children, leftAction, rightAction, 
         <div 
             className={[
                 "swipe-action-shell",
-                offsetX !== 0 ? "is-swiping" : "",
+                offsetX > 0 ? "is-swiping-left" : "",
+                offsetX < 0 ? "is-swiping-right" : "",
             ].filter(Boolean).join(" ")}
         >
             {leftAction && (

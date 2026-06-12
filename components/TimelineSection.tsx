@@ -132,6 +132,7 @@ export function TimelineSection({
         requiredExpenses,
         debts,
         currentDate,
+        nextPaycheckDate,
         completedRecommendedActions,
     });
 

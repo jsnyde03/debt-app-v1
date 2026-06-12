@@ -1,4 +1,5 @@
 import { allocatePaycheck } from "../engine/allocatePaycheck";
+import { getNextPaycheckDate } from "../payCycle/getNextPaycheckDate";
 import type { Debt, RequiredExpense } from "../storage/debtPlannerStorage";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
@@ -33,7 +34,20 @@ export type TimelineRecommendedAction = {
     paymentSource?: "paycheck" | "external";
 }
 
-export function buildTimelineItems({ result, requiredExpenses, debts, currentDate, completedRecommendedActions = []}: { result: AllocationResult; requiredExpenses: RequiredExpense[]; debts: Debt[]; currentDate: string; completedRecommendedActions?: TimelineRecommendedAction[]}) {
+export function buildTimelineItems({ 
+    result,
+    requiredExpenses, 
+    debts, 
+    currentDate, 
+    nextPaycheckDate,
+    completedRecommendedActions = [],
+}: { 
+    result: AllocationResult; 
+    requiredExpenses: RequiredExpense[]; 
+    debts: Debt[]; currentDate: string; 
+    nextPaycheckDate: string;
+    completedRecommendedActions?: TimelineRecommendedAction[];
+}) {
     const items: Omit<TimelineItem, "runningCash">[] = [
         {
             date: currentDate,
@@ -53,82 +67,41 @@ export function buildTimelineItems({ result, requiredExpenses, debts, currentDat
         })
     }
 
-    for (const allocation of result.allocations) {
-        if (
-            allocation.category !== "expense" &&
-            allocation.category !== "autopay_expense" &&
-            allocation.category !== "minimum_debt" &&
-            allocation.category !== "autopay_debt"
-        ) {
-            continue;
-        }
+    const isDueBeforeNextPaycheck = (dueDate: string) => {
+        const due = new Date(`${dueDate}T00:00:00`);
+        const next = new Date(`${nextPaycheckDate}T00:00:00`);
 
-        const expense =
-            allocation.category === "expense" ||
-            allocation.category === "autopay_expense"
-                ? requiredExpenses.find((item) => item.id === allocation.targetId)
-                : undefined;
-        
-        const debt =
-            allocation.category === "minimum_debt" || 
-            allocation.category === "autopay_debt"
-                ? debts.find((item) => item.id === (allocation.debtId ?? allocation.targetId))
-                : undefined;
-
-        const isPaid = allocation.category === "expense" || allocation.category === "autopay_expense" ? expense?.isPaidThisCycle ?? false : debt?.minimumPaidThisCycle ?? debt?.isPaidThisCycle ?? false;
-
-        items.push({
-            date: expense?.dueDate ?? debt?.dueDate ?? currentDate,
-            label: allocation.label,
-            amount: allocation.amount,
-            type: allocation.category,
-            status: isPaid ? "paid" : "planned",
-            isPaid,
-            category: expense?.category,
-        });
+        return due < next;
     }
 
-    for (const expense of requiredExpenses) {
-        if (!expense.isPaidThisCycle) {
-            continue;
-        }
-
-        const alreadyIncluded = items.some((item) => item.type === (expense.isAutopay ? "autopay_expense" : "expense") && item.label === `Pay ${expense.name}`);
-
-        if (alreadyIncluded) {
-            continue;
-        }
-
+    for (const expense of requiredExpenses.filter((item) => isDueBeforeNextPaycheck(item.dueDate))) {
         items.push({
             date: expense.dueDate,
-            label: `Pay ${expense.name}`,
+            label: expense.isAutopay
+                ? `Reserve autopay for ${expense.name}`
+                : `Pay ${expense.name}`,
             amount: expense.amount,
             type: expense.isAutopay ? "autopay_expense" : "expense",
-            status: "paid",
-            isPaid: true,
+            status: expense.isPaidThisCycle ? "paid" : "planned",
+            isPaid: expense.isPaidThisCycle,
             category: expense.category,
         });
     }
 
-    for (const debt of debts) {
-        if (!debt.isPaidThisCycle) {
-            continue;
-        }
-
-        const alreadyIncluded = items.some((item) => item.type === (debt.isAutopay ? "autopay_debt" : "minimum_debt") && item.label === `Pay minimum on ${debt.name}`);
-
-        if (alreadyIncluded) {
-            continue;
-        }
+    for (const debt of debts.filter((item) =>  isDueBeforeNextPaycheck(item.dueDate))) {
+        const minimumAmount = debt.minimumPayment;
+        const isPaid = debt.minimumPaidThisCycle ?? debt.isPaidThisCycle ?? false;
 
         items.push({
             date: debt.dueDate,
-            label: `Pay minimum on ${debt.name}`,
-            amount: debt.minimumPayment,
+            label: debt.isAutopay
+                ? `Reserve minimum for ${debt.name}`
+                : `Pay minimum on ${debt.name}`,
+            amount: minimumAmount,
             type: debt.isAutopay ? "autopay_debt" : "minimum_debt",
-            status: "paid",
-            isPaid: true,
-        });
+            status: isPaid ? "paid" : "planned",
+            isPaid,
+        })
     }
 
 
