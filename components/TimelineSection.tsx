@@ -141,7 +141,7 @@ export function TimelineSection({
             <button
                 type="button"
                 className="section-collapse-button timeline-collapse-button"
-                onClick={() => { triggerLightHaptic(); setTimelineExpanded((current) => !current);}}
+                onClick={() => { triggerLightHaptic(); setTimelineExpanded((current) => !current); }}
             >
                 <div className="section-collapse-left">
                     <div>
@@ -164,105 +164,110 @@ export function TimelineSection({
                 </span>
             </button>
 
-            {timelineExpanded && (
-                <div className="timeline-list">
-                    {sortedItems.map((item, index) => {
-                        const isPositive = item.type === "paycheck";
+            <div
+                className={
+                    timelineExpanded
+                        ? "timeline-list plan-section-body expanded"
+                        : "timeline-list plan-section-body collapsed"
+                }
+                aria-hidden={!timelineExpanded}
+            >
+                {sortedItems.map((item, index) => {
+                    const isPositive = item.type === "paycheck";
 
-                        return (
-                            <div
-                                key={`${item.date}-${item.label}-${index}`}
-                                className={[
-                                    "timeline-item",
-                                    item.type.includes("autopay")
-                                        ? "timeline-autopay"
-                                        : "",
-                                    item.isPaid ? "timeline-paid" : "",
-                                ].filter(Boolean).join(" ")}
-                            >
-                                <div className="timeline-left">
-                                    <div className="timeline-date">
-                                        {formatTimelineDate(item.date)}
-                                    </div>
-
-                                    <div className="timeline-label">
-
-                                        <span className="timeline-icon">
-                                            {getTimelineIcon(item.type)}
-                                        </span>
-
-                                        {item.label}
-
-                                        {item.category && (
-                                            <span className="category-pill">
-                                                <span className="category-pill-icon">
-                                                    {getTimelineCategoryIcon(item.category)}
-                                                </span>
-
-                                                {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
-                                            </span>
-                                        )}
-
-                                        {(
-                                            item.type === "snowball" ||
-                                            item.type === "emergency" ||
-                                            item.type === "optional_goal"
-                                        ) && (
-                                                <span className="timeline-recommended-pill">
-                                                    Recommended
-                                                </span>
-                                            )}
-
-                                        {item.type.includes("autopay") && (
-                                            <span className="autopay-pill">
-                                                Autopay
-                                            </span>
-                                        )}
-
-                                        {item.isExternal && (
-                                            <span className="autopay-pill">
-                                                Outside Money
-                                            </span>
-                                        )}
-
-                                        <span className="timeline-status-pill">
-                                            {getTimelineStatusLabel(item)}
-                                        </span>
-                                    </div>
+                    return (
+                        <div
+                            key={`${item.date}-${item.label}-${index}`}
+                            className={[
+                                "timeline-item",
+                                item.type.includes("autopay")
+                                    ? "timeline-autopay"
+                                    : "",
+                                item.isPaid ? "timeline-paid" : "",
+                            ].filter(Boolean).join(" ")}
+                        >
+                            <div className="timeline-left">
+                                <div className="timeline-date">
+                                    {formatTimelineDate(item.date)}
                                 </div>
 
-                                <div className="timeline-right">
-                                    <strong
-                                        className={
-                                            isPositive
-                                                ? "timeline-positive"
-                                                : "timeline-negative"
-                                        }
-                                    >
-                                        {isPositive ? "+" : "-"}
-                                        {formatCurrency(item.amount)}
-                                    </strong>
+                                <div className="timeline-label">
 
-                                    <div
-                                        className={
-                                            item.runningCash < 100
-                                                ? "timeline-running-cash timeline-cash-warning"
-                                                : "timeline-running-cash"
-                                        }
-                                    >
-                                        Balance{" "}
-                                        {formatCurrency(item.runningCash)}
-                                    </div>
+                                    <span className="timeline-icon">
+                                        {getTimelineIcon(item.type)}
+                                    </span>
+
+                                    {item.label}
+
+                                    {item.category && (
+                                        <span className="category-pill">
+                                            <span className="category-pill-icon">
+                                                {getTimelineCategoryIcon(item.category)}
+                                            </span>
+
+                                            {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+                                        </span>
+                                    )}
+
+                                    {(
+                                        item.type === "snowball" ||
+                                        item.type === "emergency" ||
+                                        item.type === "optional_goal"
+                                    ) && (
+                                            <span className="timeline-recommended-pill">
+                                                Recommended
+                                            </span>
+                                        )}
+
+                                    {item.type.includes("autopay") && (
+                                        <span className="autopay-pill">
+                                            Autopay
+                                        </span>
+                                    )}
+
+                                    {item.isExternal && (
+                                        <span className="autopay-pill">
+                                            Outside Money
+                                        </span>
+                                    )}
+
+                                    <span className="timeline-status-pill">
+                                        {getTimelineStatusLabel(item)}
+                                    </span>
                                 </div>
                             </div>
-                        );
-                    })}
 
-                    <div className="timeline-next-paycheck">
-                        Next Paycheck: {nextPaycheckDate}
-                    </div>
+                            <div className="timeline-right">
+                                <strong
+                                    className={
+                                        isPositive
+                                            ? "timeline-positive"
+                                            : "timeline-negative"
+                                    }
+                                >
+                                    {isPositive ? "+" : "-"}
+                                    {formatCurrency(item.amount)}
+                                </strong>
+
+                                <div
+                                    className={
+                                        item.runningCash < 100
+                                            ? "timeline-running-cash timeline-cash-warning"
+                                            : "timeline-running-cash"
+                                    }
+                                >
+                                    Balance{" "}
+                                    {formatCurrency(item.runningCash)}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+
+                <div className="timeline-next-paycheck">
+                    Next Paycheck: {nextPaycheckDate}
                 </div>
-            )}
+            </div>
         </section>
     );
 }

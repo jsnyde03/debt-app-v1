@@ -884,51 +884,48 @@ export function ResultsSection({
                     </span>
                 </button>
 
-                {requiredExpanded && (
-                    <>
-                        {unpaidRequiredActions.length === 0 ? (
-                            <p className="empty-state success-empty-state">
-                                You&apos;re caught up for this paycheck. No
-                                unpaid required actions remain.
-                            </p>
-                        ) : (
-                            visibleRequiredActions.map((item, index) =>
-                                renderRequiredAction(item, index)
-                            )
-                        )}
+                <div
+                    className={
+                        requiredExpanded
+                            ? "plan-section-body expanded"
+                            : "plan-section-body collapsed"
+                    }
+                    aria-hidden={!requiredExpanded}
+                >
+                    {unpaidRequiredActions.length === 0 ? (
+                        <p className="empty-state success-empty-state">
+                            You&apos;re caught up for this paycheck. No unpaid required actions remain.
+                        </p>
+                    ) : (
+                       visibleRequiredActions.map((item, index) => renderRequiredAction(item, index))
+                    )}
 
-                        {hiddenRequiredCount > 0 && (
-                            <button
-                                type="button"
-                                className="text-action-button show-more-inline"
-                                onClick={() => {
-                                    triggerLightHaptic();
-                                    setShowAllRequiredActions(true);
-                                }
+                    {hiddenRequiredCount > 0 && (
+                        <button
+                            type="button"
+                            className="text-action-button show-more-inline"
+                            onClick={() => {
+                                triggerLightHaptic();
+                                setShowAllRequiredActions(true);
+                            }}
+                        >
+                            Show {hiddenRecommendedCount} More
+                        </button>
+                    )}
 
-                                }
-                            >
-                                Show {hiddenRequiredCount} More
-                            </button>
-                        )}
-
-                        {showAllRequiredActions &&
-                            unpaidRequiredActions.length > 6 && (
-                                <button
-                                    type="button"
-                                    className="text-action-button show-more-inline"
-                                    onClick={() => {
-                                        triggerLightHaptic();
-                                         setShowAllRequiredActions(false);
-                                    }
-                                    }
-                                       
-                                >
-                                    Show fewer required actions.
-                                </button>
-                            )}
-                    </>
-                )}
+                    {showAllRequiredActions && unpaidRequiredActions.length > 6 && (
+                        <button
+                            type="button"
+                            className="text-action-button show-more-inline"
+                            onClick={() => {
+                                triggerLightHaptic();
+                                setShowAllRequiredActions(false);
+                            }}
+                        >
+                            Show fewer required actions.
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="plan-dashboard-section recommended-section">
@@ -966,70 +963,60 @@ export function ResultsSection({
                     </span>
                 </button>
 
-                {recommendedExpanded && (
-                    <>
-                        {displayedRecommendedActions.length === 0 ? (
-                            <p className="empty-state">
-                                No emergency fund or extra debt payment
-                                recommendation available this pay cycle.
-                            </p>
-                        ) : (
-                            <>
-                                <div className="focus-card">
-                                    {renderRecommendedAction(
-                                        visibleRecommendedActions[0],
-                                        {
-                                            isFocusTarget: true,
-                                        }
-                                    )}
+                <div
+                    className={
+                        recommendedExpanded
+                            ? "plan-section-body expanded"
+                            : "plan-section-body collapsed"
+                    }
+                    aria-hidden={recommendedExpanded}
+                >
+                    {displayedRecommendedActions.length === 0 ? (
+                        <p className="empty-state">
+                            No emergency fund or extra debt payment recommendation available this pay cycle.
+                        </p>
+                    ) : (
+                        <>
+                            <div className="focus-card">
+                                {renderRecommendedAction(visibleRecommendedActions[0], {
+                                    isFocusTarget: true,
+                                })}
+                            </div>
+
+                            {visibleRecommendedActions.length > 1 && (
+                                <div className="secondary-recommendations">
+                                    {visibleRecommendedActions.slice(1).map((item) => renderRecommendedAction(item))}
                                 </div>
+                            )}
 
-                                {visibleRecommendedActions.length > 1 && (
-                                    <div className="secondary-recommendations">
-                                        {visibleRecommendedActions
-                                            .slice(1)
-                                            .map((item) =>
-                                                renderRecommendedAction(item)
-                                            )}
-                                    </div>
-                                )}
+                            {hiddenRecommendedCount > 0 && (
+                                <button
+                                    type="button"
+                                    className="text-action=button show-more-inline"
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        setShowAllRecommendedActions(true);
+                                    }}
+                                >
+                                    Show {hiddenRequiredCount} More
+                                </button>
+                            )}
 
-                                {hiddenRecommendedCount > 0 && (
-                                    <button
-                                        type="button"
-                                        className="text-action-button show-more-inline"
-                                        onClick={() => {
-                                            triggerLightHaptic();
-                                            setShowAllRecommendedActions(true);
-                                        }
-                                            
-                                        }
-                                    >
-                                        Show {hiddenRecommendedCount} More
-                                    </button>
-                                )}
-
-                                {showAllRecommendedActions &&
-                                    displayedRecommendedActions.length > 5 && (
-                                        <button
-                                            type="button"
-                                            className="text-action-button show-more-inline"
-                                            onClick={() => {
-                                                triggerLightHaptic();
-                                                setShowAllRecommendedActions(
-                                                    false
-                                                );
-                                            }
-                                                
-                                            }
-                                        >
-                                            Show fewer recommended actions.
-                                        </button>
-                                    )}
-                            </>
-                        )}
-                    </>
-                )}
+                            {showAllRecommendedActions && displayedRecommendedActions.length > 5 && (
+                                <button
+                                    type="button"
+                                    className="text-action-button show-more-inline"
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        setShowAllRecommendedActions(false);
+                                    }}
+                                >
+                                    Show fewer recommended actions.
+                                </button>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
 
             {completedRequiredActions.length > 0 && (
@@ -1061,13 +1048,18 @@ export function ResultsSection({
                         </span>
                     </button>
 
-                    {completedExpanded && (
+                    <div
+                        className={
+                            completedExpanded
+                                ? "plan-section-body expanded"
+                                : "plan-section-body collapsed"
+                        }
+                        aria-hidden={!completedExpanded}
+                    >
                         <div className="required-actions-list">
-                            {completedRequiredActions.map((item, index) =>
-                                renderRequiredAction(item, index)
-                            )}
+                            {completedRequiredActions.map((item, index) => renderRequiredAction(item, index))}
                         </div>
-                    )}
+                    </div>
                 </div>
             )}
 
