@@ -190,7 +190,7 @@ export function SnowballSection({
 
 	const projectedInterestSavings = Math.max(0, snowballComparisonProjection.totalInterestPaid - avalancheComparisonProjection.totalInterestPaid);
 	const projectedMonthDifference = Math.abs(snowballComparisonProjection.monthsToDebtFree - avalancheComparisonProjection.monthsToDebtFree);
-	const recommendedStrategy = 
+	const recommendedStrategy =
 		projectedInterestSavings >= 75 || fasterStrategy === "avalanche"
 			? "avalanche"
 			: "snowball";
@@ -287,7 +287,7 @@ export function SnowballSection({
 	const snowballHasLowerInterest = lowerInterestStrategy === "snowball";
 	const avalancheHasLowerInterest = lowerInterestStrategy === "avalanche";
 
-	function buildExtraPaymentAllocationPlan({ debts, amount, strategy}: {debts: DebtWithDisplayBalance[]; amount: number; strategy: "snowball" | "avalanche"}) {
+	function buildExtraPaymentAllocationPlan({ debts, amount, strategy }: { debts: DebtWithDisplayBalance[]; amount: number; strategy: "snowball" | "avalanche" }) {
 		let remainingAmount = Math.max(0, amount);
 
 		const orderedDebts = [...debts].filter((debt) => debt.balance > 0).sort((a, b) => {
@@ -342,24 +342,24 @@ export function SnowballSection({
 			};
 		}
 
-		 if (title.toLowerCase().includes("extra")) {
+		if (title.toLowerCase().includes("extra")) {
 			return {
 				icon: "💵",
 				label: "Opportunity",
 			};
-		 }
+		}
 
-		 if (title.toLowerCase().includes("progress")) {
+		if (title.toLowerCase().includes("progress")) {
 			return {
 				icon: "🛡",
 				label: "On Track",
 			};
-		 }
+		}
 
-		 return {
+		return {
 			icon: "✅",
 			label: "Good",
-		 };
+		};
 	}
 
 
@@ -382,7 +382,7 @@ export function SnowballSection({
 				</div>
 			) : (
 				<>
-					
+
 					<div className="payoff-focus-strip">
 						<div>
 							<span>Focus Debt</span>
@@ -402,7 +402,8 @@ export function SnowballSection({
 										: "strategy-button"
 								}
 								onClick={() => {
-									triggerLightHaptic(); setPayoffStrategy("snowball");}}
+									triggerLightHaptic(); setPayoffStrategy("snowball");
+								}}
 							>
 								Snowball
 							</button>
@@ -414,7 +415,7 @@ export function SnowballSection({
 										? "strategy-button-active"
 										: "strategy-button"
 								}
-								onClick={() => { triggerLightHaptic(); setPayoffStrategy("avalanche");}}
+								onClick={() => { triggerLightHaptic(); setPayoffStrategy("avalanche"); }}
 							>
 								Avalanche
 							</button>
@@ -491,7 +492,7 @@ export function SnowballSection({
 									const meta = getInsightMeta(insight.severity, insight.title);
 
 									return (
-										<div 
+										<div
 											key={insight.title}
 											className={`smart-insight-card ${insight.severity}`}
 										>
@@ -566,12 +567,8 @@ export function SnowballSection({
 											<div className="stategy-option-topline">
 												<span>Snowball</span>
 
-												{snowballIsFaster && (
-													<em>Faster</em>
-												)}
-
-												{!snowballIsFaster && snowballHasLowerInterest && (
-													<em>Lower Interest</em>
+												{(snowballIsFaster || snowballHasLowerInterest) && (
+													<em>Winner</em>
 												)}
 											</div>
 
@@ -591,13 +588,10 @@ export function SnowballSection({
 											<div className="strategy-option-topline">
 												<span>Avalanche</span>
 
-												{avalancheIsFaster && (
-													<em>Faster</em>
+												{(avalancheIsFaster || avalancheHasLowerInterest) && (
+													<em>Winner</em>
 												)}
 
-												{avalancheIsFaster && avalancheHasLowerInterest && (
-													<em>Lower Interest</em>
-												)}
 											</div>
 
 											<strong>
@@ -702,7 +696,7 @@ export function SnowballSection({
 												? "simulation-strategy-pill active"
 												: "simulation-strategy-pill"
 										}
-										onClick={() => { triggerLightHaptic(); setSimulationStrategy("recommended");}}
+										onClick={() => { triggerLightHaptic(); setSimulationStrategy("recommended"); }}
 									>
 										Recommended
 									</button>
@@ -714,7 +708,7 @@ export function SnowballSection({
 												? "simulation-strategy-pill active"
 												: "simulation-strategy-pill"
 										}
-										onClick={() => { triggerLightHaptic(); setSimulationStrategy("snowball");}}
+										onClick={() => { triggerLightHaptic(); setSimulationStrategy("snowball"); }}
 									>
 										Snowball
 									</button>
@@ -726,7 +720,7 @@ export function SnowballSection({
 												? "simulation-strategy-pill active"
 												: "simulation-strategy-pill"
 										}
-										onClick={() => { triggerLightHaptic(); setSimulationStrategy("avalanche");}}
+										onClick={() => { triggerLightHaptic(); setSimulationStrategy("avalanche"); }}
 									>
 										Avalanche
 									</button>
@@ -749,8 +743,8 @@ export function SnowballSection({
 
 								{simulationCanBeEstimated ? (
 									<>
-										<div className="strategy-comparison-grid">
-											<div className="strategy-comparison-option">
+										<div className="strategy-comparison-grid premium-what-if-grid">
+											<div className="strategy-comparison-option premium-what-if-result-card">
 												<span>
 													New Debt-Free Date
 												</span>
@@ -763,7 +757,7 @@ export function SnowballSection({
 											</div>
 											{parsedSimulationExtraPayment > 0 && (
 												<>
-													<div className="strategy-comparison-callout">
+													<div className="strategy-comparison-callout premium-what-if-callout">
 														<span>
 															Projected interest saved:{" "}
 															<strong>
@@ -772,7 +766,7 @@ export function SnowballSection({
 														</span>
 													</div>
 
-													<div className="what-if-guidance">
+													<div className="what-if-guidance premium-what-if-guidance">
 														<p>
 															{parsedSimulationExtraPayment >= 100
 																? `An extra ${formatCurrency(parsedSimulationExtraPayment)}/month could meaningfully accelerate debt payoff and reduce long-term interest pressure.`
@@ -796,10 +790,16 @@ export function SnowballSection({
 										)}
 
 										{simulationTargetDebt && (
-											<div className="simulation-target-card">
-												<strong>
-													Apply extra to:
-												</strong>
+											<div className="simulation-target-card premium-simulation-card">
+												<div className="simulation-target-header">
+													<strong>
+														Appy extra to:
+													</strong>
+
+													<span className="simulation-strategy-chip">
+														{effectiveSimulationStrategy === "avalanche" ? "Highest APR" : "Smallest Balance"}
+													</span>
+												</div>
 
 												<div className="simulation-allocation-list">
 													{simulationExtraAllocationPlan.map((item) => (
@@ -834,7 +834,7 @@ export function SnowballSection({
 											</div>
 										)}
 										{parsedSimulationExtraPayment > 0 && (
-											<div className="strategy-comparison-callout">
+											<div className="strategy-comparison-callout premium-what-if-callout">
 												<span>
 													Projected interest saved:{" "}
 													<strong>
@@ -863,7 +863,7 @@ export function SnowballSection({
 								<button
 									type="button"
 									className="primary-button upgrade-preview-button"
-									onClick={() => { triggerLightHaptic(); onUpgradeClick();}}
+									onClick={() => { triggerLightHaptic(); onUpgradeClick(); }}
 								>
 									View Premium
 								</button>
@@ -947,7 +947,7 @@ export function SnowballSection({
 												</ul>
 											</div>
 										)}
-										
+
 										{month.recoveryMonth && (
 											<p className="forecast-recovery">
 												Cushion recovery projected by{" "}
@@ -996,7 +996,7 @@ export function SnowballSection({
 						<button
 							type="button"
 							className="section-collapse-button"
-							onClick={() => { triggerLightHaptic(); setShowPayoffOrder((current) => !current);}}
+							onClick={() => { triggerLightHaptic(); setShowPayoffOrder((current) => !current); }}
 						>
 							<div className="section-collapse-left">
 								<h2>Payoff Order</h2>
@@ -1044,7 +1044,8 @@ export function SnowballSection({
 											type="button"
 											className="text-action-button"
 											disabled={payoffOrderPage <= 1}
-											onClick={() => { triggerLightHaptic();
+											onClick={() => {
+												triggerLightHaptic();
 												setPayoffOrderPage((current) =>
 													Math.max(1, current - 1)
 												);
@@ -1061,7 +1062,8 @@ export function SnowballSection({
 											type="button"
 											className="text-action-button"
 											disabled={payoffOrderPage >= totalPayoffPages}
-											onClick={() => { triggerLightHaptic();
+											onClick={() => {
+												triggerLightHaptic();
 												setPayoffOrderPage((current) =>
 													Math.min(totalPayoffPages, current + 1)
 												);
