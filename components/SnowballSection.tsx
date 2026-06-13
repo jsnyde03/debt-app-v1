@@ -833,16 +833,7 @@ export function SnowballSection({
 												</p>
 											</div>
 										)}
-										{parsedSimulationExtraPayment > 0 && (
-											<div className="strategy-comparison-callout premium-what-if-callout">
-												<span>
-													Projected interest saved:{" "}
-													<strong>
-														{formatCurrency(simulatedInterestSaved)}
-													</strong>
-												</span>
-											</div>
-										)}
+										
 									</>
 								) : (
 									<p className="empty-state">
