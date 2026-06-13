@@ -669,7 +669,7 @@ export function SnowballSection({
 						)}
 					</div>
 
-					<div className="strategy-comparison-card">
+					<div className="strategy-comparison-card what-if-premium-shell">
 						<div className="strategy-comparison-header">
 							<div>
 								<h3>What-If Simulation</h3>
@@ -743,7 +743,7 @@ export function SnowballSection({
 
 								{simulationCanBeEstimated ? (
 									<>
-										<div className="strategy-comparison-grid premium-what-if-grid">
+										<div className="premium-what-if-result-stack">
 											<div className="strategy-comparison-option premium-what-if-result-card">
 												<span>
 													New Debt-Free Date
@@ -757,13 +757,11 @@ export function SnowballSection({
 											</div>
 											{parsedSimulationExtraPayment > 0 && (
 												<>
-													<div className="strategy-comparison-callout premium-what-if-callout">
-														<span>
+													<div className="premium-what-if-savings-chip">
 															Projected interest saved:{" "}
 															<strong>
 																{formatCurrency(simulatedInterestSaved)}
 															</strong>
-														</span>
 													</div>
 
 													<div className="what-if-guidance premium-what-if-guidance">
