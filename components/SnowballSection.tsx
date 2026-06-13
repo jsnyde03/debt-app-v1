@@ -863,7 +863,7 @@ export function SnowballSection({
 															</div>
 
 															<div className="simulation-extra-payment">
-																+{formatCurrency(item.amount)} this month
+																+{formatCurrency(item.amount)}
 															</div>
 														</div>
 													))}

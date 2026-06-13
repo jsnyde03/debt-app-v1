@@ -2974,8 +2974,8 @@ button:active {
 .premium-what-if-result-card {
 	position: relative;
 	overflow: hidden;
-	padding: 2.4rem !important;
-	min-height: 240px;
+	padding: 2rem !important;
+	min-height: 210px;
 	justify-content: center;
 }
 
@@ -3053,16 +3053,18 @@ button:active {
 }
 
 .simulation-target-heading {
-	font-size: 1.4rem;
-	font-weight: 700;
+	font-size: 1.25rem;
+	font-weight: 850;
 	color: white;
 }
 
 .simulation-extra-payment {
-	margin-top: 10px;
-	font-size: 1.1rem;
-	font-weight: 700;
+	margin-top: 4px;
+	font-size: 1.15rem;
+	font-weight: 900;
 	color: #34D399;
+	text-align: right;
+	white-space: nowrap;
 }
 
 .recommended-active {
