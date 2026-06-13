@@ -2950,7 +2950,7 @@ button:active {
 .simulation-quick-actions {
 	display: flex;
 	gap: 10px;
-	flex-wrap: flex;
+	flex-wrap: wrap;
 	margin-top: 14px;
 }
 
@@ -2974,7 +2974,9 @@ button:active {
 .premium-what-if-result-card {
 	position: relative;
 	overflow: hidden;
-	padding: 2rem !important;
+	padding: 2.4rem !important;
+	min-height: 240px;
+	justify-content: center;
 }
 
 .premium-what-if-glow {
@@ -2984,7 +2986,8 @@ button:active {
 	width: 240px;
 	height: 240px;
 	border-radius: 999px;
-	background: radial-gradient(circle, rgba(168, 85, 247, 0.28) 0%, rgba(59, 130, 246, 0.16) 45%, transparent 75%);
+	background: radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, rgba(59, 130, 246, 0.13) 45%, transparent 75%);
+	pointer-events: none;
 }
 
 .premium-what-if-date-label {
@@ -2999,10 +3002,10 @@ button:active {
 	z-index: 2;
 	display: block;
 	margin-top: 12px;
-	font-size: clamp(2.8rem, 5vw, 4.5rem);
+	font-size: clamp(2.8rem, 5vw, 4.5rem) !important;
 	line-height: 1;
 	letter-spacing: -2px;
-	font-weight: 800;
+	font-weight: 900;
 	color: white;
 }
 
@@ -3013,6 +3016,15 @@ button:active {
 	font-size: 1rem;
 	font-weight: 700;
 	color: #AB55F7;
+}
+
+.premium-what-if-days-saved {
+	position: relative;
+	z-index: 2;
+	margin-top: 6px;
+	font-size: 0.9rem;
+	font-weight: 700;
+	color: rgba(255, 255, 255, 0.62);
 }
 
 .premium-what-if-savings-row {
@@ -3028,7 +3040,7 @@ button:active {
 }
 
 .premium-what-if-savings-value {
-	color: #4ADE80;
+	color: #34D399;
 	font-size: 1.2rem;
 	font-weight: 700;
 }
@@ -3050,13 +3062,14 @@ button:active {
 	margin-top: 10px;
 	font-size: 1.1rem;
 	font-weight: 700;
-	color: #4ADE80;
+	color: #34D399;
 }
 
 .recommended-active {
 	background: linear-gradient(135deg, rgba(59, 130, 246, 0.28), rgba(168, 85, 247, 0.22));
 	border-color: rgba(96, 165, 250, 0.45);
-	box-shadow: 0 0 0 1px rbga(255, 255, 255, 0.04), 0 0 24px rgba(59, 130, 246, 0.22);
+	transform: translateY(-1px);
+	box-shadow: 0 0 0 32px rgba(59, 130, 246, 0.28);
 }
 
 .forecast-list {

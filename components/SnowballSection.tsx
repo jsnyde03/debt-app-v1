@@ -237,6 +237,12 @@ export function SnowballSection({
 			? Math.max(0, whatIfBaselineProjection.totalInterestPaid - simulatedSnowballProjection.totalInterestPaid)
 			: 0;
 
+	const simulatedMonthsSaved =
+		simulationCanBeEstimated
+			? Math.max(0, whatIfBaselineProjection.monthsToDebtFree - simulatedSnowballProjection.monthsToDebtFree)
+			: 0;
+
+	const simulatedDaysSaved = simulatedMonthsSaved * 30;
 	const comparisonSimulationProjection = projectDebtPayoff({
 		debts: debtsAfterCompletedPayments,
 		monthlyExtraPayment: remainingSnowballExtra + parsedSimulationExtraPayment,
@@ -744,6 +750,7 @@ export function SnowballSection({
 										{[25, 50, 100, 250].map((amount) => (
 											<button
 												key={amount}
+												type="button"
 												className="simulation-quick-chip"
 												onClick={() => {
 													triggerLightHaptic();
@@ -773,10 +780,15 @@ export function SnowballSection({
 													}
 												</strong>
 
-												{projectedMonthDifference > 0 && (
-													<div className="premium-what-if-months-saved">
-														{projectedMonthDifference} month{projectedMonthDifference === 1 ? "" : "s"} earlier
-													</div>
+												{simulatedMonthsSaved > 0 && (
+													<>
+														<div className="premium-what-if-months-saved">
+															{simulatedMonthsSaved} month{simulatedMonthsSaved === 1 ? "" : "s"} earlier
+														</div>
+														<div className="premium-what-if-days-saved">
+															Estimated {simulatedDaysSaved} days faster
+														</div>
+													</>
 												)}
 											</div>
 											{parsedSimulationExtraPayment > 0 && (
@@ -785,7 +797,7 @@ export function SnowballSection({
 														<span className="premium-what-if-savings-label">
 															Projected Interest saved:
 														</span>
-														
+
 														<strong className="premium-what-if-savings-value">
 															{formatCurrency(simulatedInterestSaved)}
 														</strong>
@@ -826,7 +838,7 @@ export function SnowballSection({
 													<div className="simulation-target-heading">
 														Apply extra to:
 													</div>
-												
+
 													<span className="simulation-strategy-chip">
 														{effectiveSimulationStrategy === "avalanche" ? "Highest APR" : "Smallest Balance"}
 													</span>
@@ -851,7 +863,7 @@ export function SnowballSection({
 															</div>
 
 															<div className="simulation-extra-payment">
-																{formatCurrency(item.amount)}
+																+{formatCurrency(item.amount)} this month
 															</div>
 														</div>
 													))}
