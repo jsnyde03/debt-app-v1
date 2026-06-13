@@ -693,7 +693,7 @@ export function SnowballSection({
 										type="button"
 										className={
 											simulationStrategy === "recommended"
-												? "simulation-strategy-pill active"
+												? "simulation-strategy-pill active recommended-active"
 												: "simulation-strategy-pill"
 										}
 										onClick={() => { triggerLightHaptic(); setSimulationStrategy("recommended"); }}
@@ -739,29 +739,56 @@ export function SnowballSection({
 										}
 										onChange={(event) => setSimulationExtraPayment(event.target.value)}
 									/>
+
+									<div className="simulation-quick-actions">
+										{[25, 50, 100, 250].map((amount) => (
+											<button
+												key={amount}
+												className="simulation-quick-chip"
+												onClick={() => {
+													triggerLightHaptic();
+													setSimulationExtraPayment(amount.toString());
+												}}
+											>
+												+${amount}
+											</button>
+										))}
+
+									</div>
 								</div>
 
 								{simulationCanBeEstimated ? (
 									<>
 										<div className="premium-what-if-result-stack">
 											<div className="strategy-comparison-option premium-what-if-result-card">
-												<span>
+												<div className="premium-what-if-glow" />
+
+												<span className="premium-what-if-date-label">
 													New Debt-Free Date
 												</span>
 
-												<strong>
+												<strong className="premium-what-if-date">
 													{
 														simulatedSnowballProjection.estimatedDebtFreeDate
 													}
 												</strong>
+
+												{projectedMonthDifference > 0 && (
+													<div className="premium-what-if-months-saved">
+														{projectedMonthDifference} month{projectedMonthDifference === 1 ? "" : "s"} earlier
+													</div>
+												)}
 											</div>
 											{parsedSimulationExtraPayment > 0 && (
 												<>
-													<div className="premium-what-if-savings-chip">
-															Projected interest saved:{" "}
-															<strong>
-																{formatCurrency(simulatedInterestSaved)}
-															</strong>
+													<div className="premium-what-if-savings-row">
+														<span className="premium-what-if-savings-label">
+															Projected Interest saved:
+														</span>
+														
+														<strong className="premium-what-if-savings-value">
+															{formatCurrency(simulatedInterestSaved)}
+														</strong>
 													</div>
 
 													<div className="what-if-guidance premium-what-if-guidance">
@@ -769,6 +796,12 @@ export function SnowballSection({
 															{parsedSimulationExtraPayment >= 100
 																? `An extra ${formatCurrency(parsedSimulationExtraPayment)}/month could meaningfully accelerate debt payoff and reduce long-term interest pressure.`
 																: "Smaller extra payments still improve payoff momentum over time."}
+														</p>
+
+														<p className="premium-ai-insight">
+															{effectiveSimulationStrategy === "avalanche"
+																? "Your highest APR debt is currently creating the most long-term interest pressure."
+																: "Faster small wins may improve motivation and payment consistency."}
 														</p>
 
 														{remainingSnowballExtra < 100 && (
@@ -790,10 +823,10 @@ export function SnowballSection({
 										{simulationTargetDebt && (
 											<div className="simulation-target-card premium-simulation-card">
 												<div className="simulation-target-header">
-													<strong>
-														Appy extra to:
-													</strong>
-
+													<div className="simulation-target-heading">
+														Apply extra to:
+													</div>
+												
 													<span className="simulation-strategy-chip">
 														{effectiveSimulationStrategy === "avalanche" ? "Highest APR" : "Smallest Balance"}
 													</span>
@@ -817,21 +850,21 @@ export function SnowballSection({
 																</div>
 															</div>
 
-															<strong>
+															<div className="simulation-extra-payment">
 																{formatCurrency(item.amount)}
-															</strong>
+															</div>
 														</div>
 													))}
 												</div>
 
 												<p className="simulation-target-reason">
 													{effectiveSimulationStrategy === "avalanche"
-														? "Avalanche applies extra money to highest APR debt first, then rolls any leftover amount to the next highest APR balance."
-														: "Snowball applies extra money to the smallest balance first, then rolls any leftover amount to the next smallest balance."}
+														? "Highest APR balances are prioritized first to reduce long-term interest costs faster."
+														: "Smallest balances are prioritized first to create faster visible progress."}
 												</p>
 											</div>
 										)}
-										
+
 									</>
 								) : (
 									<p className="empty-state">

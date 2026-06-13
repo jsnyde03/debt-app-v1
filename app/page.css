@@ -2947,6 +2947,118 @@ button:active {
 	box-shadow: 0 0 20px rgba(168, 85, 247, 0.12);
 }
 
+.simulation-quick-actions {
+	display: flex;
+	gap: 10px;
+	flex-wrap: flex;
+	margin-top: 14px;
+}
+
+.simulation-quick-chip {
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	background: rgba(255, 255, 255, 0.05);
+	color: white;
+	padding: 10px 16px;
+	border-radius: 16px;
+	font-size: 0.9rem;
+	font-weight: 600;
+	transition: all 0.2s ease;
+}
+
+.simulation-quick-chip:hover {
+	background: rgba(168, 85, 247, 0.16);
+	border-color: rgba(168, 85, 247, 0.32);
+	transform: translateY(-1px);
+}
+
+.premium-what-if-result-card {
+	position: relative;
+	overflow: hidden;
+	padding: 2rem !important;
+}
+
+.premium-what-if-glow {
+	position: absolute;
+	top: -80px;
+	right: -40px;
+	width: 240px;
+	height: 240px;
+	border-radius: 999px;
+	background: radial-gradient(circle, rgba(168, 85, 247, 0.28) 0%, rgba(59, 130, 246, 0.16) 45%, transparent 75%);
+}
+
+.premium-what-if-date-label {
+	position: relative;
+	z-index: 2;
+	font-size: 1rem;
+	color: rgba(255, 255, 255, 0.72);
+}
+
+.premium-what-if-date {
+	position: relative;
+	z-index: 2;
+	display: block;
+	margin-top: 12px;
+	font-size: clamp(2.8rem, 5vw, 4.5rem);
+	line-height: 1;
+	letter-spacing: -2px;
+	font-weight: 800;
+	color: white;
+}
+
+.premium-what-if-months-saved {
+	position: relative;
+	z-index: 2;
+	margin-top: 14px;
+	font-size: 1rem;
+	font-weight: 700;
+	color: #AB55F7;
+}
+
+.premium-what-if-savings-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 20px;
+}
+
+.premium-what-if-savings-label {
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 1rem;
+}
+
+.premium-what-if-savings-value {
+	color: #4ADE80;
+	font-size: 1.2rem;
+	font-weight: 700;
+}
+
+.premium-ai-insight {
+	margin-top: 14px;
+	color: rgba(255, 255, 255, 0.78);
+	line-height: 1.7;
+	font-size: 0.98rem;
+}
+
+.simulation-target-heading {
+	font-size: 1.4rem;
+	font-weight: 700;
+	color: white;
+}
+
+.simulation-extra-payment {
+	margin-top: 10px;
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: #4ADE80;
+}
+
+.recommended-active {
+	background: linear-gradient(135deg, rgba(59, 130, 246, 0.28), rgba(168, 85, 247, 0.22));
+	border-color: rgba(96, 165, 250, 0.45);
+	box-shadow: 0 0 0 1px rbga(255, 255, 255, 0.04), 0 0 24px rgba(59, 130, 246, 0.22);
+}
+
 .forecast-list {
 	display: flex;
 	flex-direction: column;
