@@ -3628,7 +3628,8 @@ button:active,
 .forecast-summary-status {
 	display: inline-flex;
 	align-items: center;
-	padding: 0.55rem 0.85rem;
+	width: fit-content;
+	padding: 0.5rem 0.75rem;
 	border-radius: 999px;
 	background: rgba(16, 185, 129, 0.14);
 	border: 1px solid rgba(52, 211, 153, 0.22);
@@ -3636,6 +3637,144 @@ button:active,
 	font-size: 0.82rem;
 	font-weight: 800;
 	box-shadow: 0 0 18px rgba(16, 185, 129, 0.14);
+}
+
+.payoff-shell {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 32%), radial-gradient(circle at 20% 45%, rgba(168, 85, 247, 0.08), transparent 34%);
+}
+
+.payoff-focus-premium-lite {
+	position: relative;
+	overflow: hidden;
+	padding: 18px;
+	border-radius: 24px;
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.88), rgba(15, 23, 42, 0.72));
+	border: 1px solid rgba(148, 163, 184, 0.18);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 34px rgba(15, 23, 42, 0.24);
+}
+
+.payoff-focus-premium-lite::before {
+	content: "";
+	position: absolute;
+	top: -80px;
+	right: -70px;
+	width: 190px;
+	height: 190px;
+	border-radius: 999px;
+	background: radial-gradient(circle, rgba(96, 165, 250, 0.18), transparent 70%);
+	pointer-events: none;
+}
+
+.payoff-focus-copy,
+.payoff-focus-amount {
+	position: relative;
+	z-index: 2;
+}
+
+.payoff-focus-copy small {
+	display: block;
+	margin-top: 4px;
+	color: rgba(255, 255, 255, 0.5);
+	font-size: 0.78rem;
+	font-weight: 700;
+}
+
+.payoff-focus-amount {
+	text-align: right;
+}
+
+.payoff-focus-amount span {
+	margin-top: 4px;
+	font-size: 0.72rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+}
+
+.payoff-focus-amount strong {
+	color: #60A5FA;
+	font-size: 1rem;
+}
+
+.payoff-summary-strip {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.78), rgba(15, 23, 42, 0.68));
+	border-color: rgba(148, 163, 184, 0.16);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.payoff-recommendation-strip {
+	background: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(14, 165, 233, 0.08));
+	border-color: rgba(96, 165, 250, 0.22);
+	box-shadow: 0 0 24px rgba(59, 130, 246, 0.08);
+}
+
+.payoff-order-toggle {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.88), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.18);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.payoff-order-item {
+	position: relative;
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	align-items: center;
+	gap: 12px;
+	padding: 14px 16px;
+	border-radius: 20px;
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.72));
+	border: 1px solid rgba(148, 163, 184, 0.08);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.payoff-order-focus {
+	border-color: rgba(96, 165, 250, 0.26);
+	background: linear-gradient(145deg, rgba(59, 130, 246, 0.18), rgba(15, 23, 42, 0.76));
+	box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 14px 34px rgba(59, 130, 246, 0.1);
+}
+
+.payoff-order-rank {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 38px;
+	height: 38px;
+	border-radius: 999px;
+	background: rgba(96, 165, 250, 0.12);
+	border: 1px solid rgba(96, 165, 250, 0.18);
+	color: #93C5FD;
+	font-size: 0.82rem;
+	font-weight: 900;
+}
+
+.payoff-order-main .saved-title {
+	font-size: 0.98rem;
+	font-weight: 900;
+	line-height: 1.1;
+}
+
+.payoff-order-meta-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 5px;
+}
+
+.payoff-order-meta-row span {
+	padding: 3px 7px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.045);
+	color: rgba(255, 255, 255, 0.62);
+	font-size: 0.72rem;
+	font-weight: 700;
+}
+
+.payoff-order-balance .saved-amount {
+	color: rgba(255, 255, 255, 0.92);
+	font-size: 0.96rem;
+	font-weight: 900;
+	white-space: nowrap;
 }
 
 @keyframes forecastPulse {

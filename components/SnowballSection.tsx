@@ -370,7 +370,7 @@ export function SnowballSection({
 
 
 	return (
-		<section className="card">
+		<section className="card payoff-shell">
 			<div className="section-heading-row">
 				<div>
 					<h2>Payoff</h2>
@@ -389,13 +389,17 @@ export function SnowballSection({
 			) : (
 				<>
 
-					<div className="payoff-focus-strip">
-						<div>
+					<div className="payoff-focus-strip payoff-focus-premium-lite">
+						<div className="payoff-focus-copy">
 							<span>Focus Debt</span>
 							<strong>{currentTarget.name}</strong>
+							<small>Highest Priority Target</small>
 						</div>
 
-						<strong>{formatCurrency(currentTarget.displayBalance ?? currentTarget.balance)} left</strong>
+						<div className="payoff-focus-amount">
+							<span>Remaining</span>
+							<strong>{formatCurrency(currentTarget.displayBalance ?? currentTarget.balance)}</strong>
+						</div>
 					</div>
 
 					<div className="payoff-strategy-selector compact-payoff-strategy">
@@ -1073,7 +1077,7 @@ export function SnowballSection({
 					<div className="debt-group">
 						<button
 							type="button"
-							className="section-collapse-button"
+							className="section-collapse-button payoff-order-toggle"
 							onClick={() => { triggerLightHaptic(); setShowPayoffOrder((current) => !current); }}
 						>
 							<div className="section-collapse-left">
@@ -1091,24 +1095,29 @@ export function SnowballSection({
 						{showPayoffOrder && (
 							<>
 								{visiblePayoffOrder.map((debt, index) => (
-									<div key={debt.id} className="saved-item debt-list-item">
-										<div className="saved-item-left">
+									<div
+										key={debt.id}
+										className={`saved-item debt-list-item payoff-order-item ${payoffOrderPage === 1 && index === 0 ? "payoff-order-focus" : ""}`}
+									>
+										<div className="payoff-order-rank">
+											#{(payoffOrderPage - 1) * payoffOrderPageSize + index + 1}
+										</div>
+
+										<div className="saved-item-left payoff-order-main">
 											<div className="saved-title">
-												#
-												{(payoffOrderPage - 1) *
-													payoffOrderPageSize +
-													index +
-													1}{" "}
 												{debt.name}
 											</div>
 
-											<div className="saved-meta">
-												Min {formatCurrency(debt.minimumPayment)}
-												{debt.apr > 0 ? ` · APR ${debt.apr}%` : ""}
+											<div className="payoff-order-meta-row">
+												<span>Min {formatCurrency(debt.minimumPayment)}</span>
+
+												{debt.apr > 0 && (
+													<span>APR {debt.apr}%</span>
+												)}
 											</div>
 										</div>
 
-										<div className="saved-item-right">
+										<div className="saved-item-right payoff-order-balance">
 											<strong className="saved-amount">
 												{formatCurrency(debt.displayBalance ?? debt.balance)}
 											</strong>
