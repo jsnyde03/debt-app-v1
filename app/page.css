@@ -3826,6 +3826,22 @@ button:active,
 	box-shadow: 0 0 24px rgba(59, 130, 246, 0.18); 
 }
 
+.rc-reset-button {
+	position: absolute;
+	right: 0;
+	top: 4.4rem;
+	z-index: 50;
+	border: 1px solid rgba(239, 68, 68, 0.34);
+	background: rgba(127, 29, 29, 0.72);
+	color: white;
+	padding: 0.45rem 0.7rem;
+	border-radius: 999px;
+	font-size: 0.72rem;
+	font-weight: 900;
+	letter-spacing: 0.03em;
+	box-shadow: 0 0 18px rgba(239, 68, 68, 0.18);
+}
+
 @keyframes forecastPulse {
 	0% {
 		transform: scale(1);

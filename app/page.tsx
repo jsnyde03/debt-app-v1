@@ -33,8 +33,7 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { TimelineSection } from "@/components/TimelineSection";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
-import { initializeRevenueCat, getSubscriptionPlan, restorePurchases } from "@/lib/subscription/revenueCat";
-import { purchasePremium } from "@/lib/subscription/revenueCat";
+import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting } from "@/lib/subscription/revenueCat";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 
 type Goal = {
@@ -1119,6 +1118,26 @@ export default function Home() {
                         }
                     >
                         {darkMode ? "☀" : "🌙"}
+                    </button>
+
+                    <button
+                        type="button"
+                        className="rc-reset-button"
+                        onClick={async () => {
+                            try {
+                                triggerLightHaptic();
+
+                                const plan = await resetRevenueCatUserForTesting();
+
+                                setSubscriptionPlan(plan);
+                                setPurchaseStatus(`RevenueCat reset.  Current plan: ${plan}`);
+                                setShowUpgrade(false);
+                            } catch (error) {
+                                setPurchaseStatus(error instanceof Error ? error.message : "RevenueCat reset failed.");
+                            }
+                        }}
+                    >
+                        RC Reset
                     </button>
                 </section>
 

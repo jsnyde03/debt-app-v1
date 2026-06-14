@@ -34,7 +34,7 @@ export async function initializeRevenueCat() {
 export async function getSubscriptionPlan(): Promise<"free" | "premium"> {
 
     if(BYPASS_REVENUECAT) {
-        return "premium";
+        return "free";
     }
 
     try {
@@ -51,7 +51,7 @@ export async function getSubscriptionPlan(): Promise<"free" | "premium"> {
 export async function restorePurchases(): Promise<"free" | "premium"> {
 
     if (BYPASS_REVENUECAT) {
-        return "premium";
+        return "free";
     }
 
     await initializeRevenueCat();
@@ -66,7 +66,7 @@ export async function restorePurchases(): Promise<"free" | "premium"> {
 export async function purchasePremium(): Promise<"free" | "premium"> {
 
     if (BYPASS_REVENUECAT) {
-        return "premium";
+        return "free";
     }
 
     await initializeRevenueCat();
@@ -98,4 +98,22 @@ export async function purchasePremium(): Promise<"free" | "premium"> {
     }
 
     return "premium";
+}
+
+export async function resetRevenueCatUserForTesting(): Promise<"free" | "premium"> {
+    if (BYPASS_REVENUECAT) {
+        return "free";
+    }
+
+    await initializeRevenueCat();
+
+    await Purchases.logOut();
+
+    const customerInfo = await Purchases.getCustomerInfo();
+
+    const isPremiumActive = Boolean(customerInfo.customerInfo.entitlements.active[PREMIUM_ENTITLEMENT_ID]);
+
+    console.log("RevenueCat reet customer info", customerInfo);
+
+    return isPremiumActive ? "premium" : "free";
 }
