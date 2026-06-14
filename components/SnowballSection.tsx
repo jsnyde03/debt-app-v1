@@ -905,7 +905,8 @@ export function SnowballSection({
 						)}
 					</div>
 
-					<div className="strategy-comparison-card">
+					<div className="strategy-comparison-card premium-forecast-section">
+						<div className="premium-forecast-orb" />
 						<div className="strategy-comparison-header">
 							<div>
 								<h3>Forecast</h3>
@@ -921,10 +922,10 @@ export function SnowballSection({
 
 						{canViewForecasting ? (
 							<div className="forecast-list">
-								{forecastMonths.map((month) => (
+								{forecastMonths.map((month, index) => (
 									<div
 										key={month.monthLabel}
-										className="forecast-card"
+										className={`forecast-card forecast-card-${month.status} ${index === 0 ? "forecast-card-featured" : ""}`}
 									>
 										<div className={`forecast-card-header forecast-${month.status}`}>
 											<strong>
@@ -969,9 +970,11 @@ export function SnowballSection({
 										<div className={`forecast-mood forecast-mood-${month.status}`}>
 											{month.status === "stable"
 												? "You are projected to maintain a safe financial buffer."
-												: month.status === "pressure"
-													? "Debt and expense pressure are increasing noticeably."
-													: "Immediate spending adjustments are strongly recommended."}
+												: month.status === "tight"
+													? "This cycle may require tighter spending control."
+													: month.status === "pressure"
+														? "Debt and expense pressure are increasing noticeably."
+														: "Immediate spending adjustments are strongly recommended."}
 										</div>
 
 										<div className="forecast-intelligence">
@@ -984,7 +987,7 @@ export function SnowballSection({
 											</p>
 										</div>
 
-										{month.riskDrivers.length > 0 && (
+										{month.status !== "stable" && month.riskDrivers.length > 0 && (
 											<div className="forecast-drivers">
 												<h5>
 													Pressure Drivers
@@ -1011,7 +1014,7 @@ export function SnowballSection({
 											</p>
 										)}
 
-										{month.reliefPoint && (
+										{month.status !== "stable" && month.reliefPoint && (
 											<div className="forecast-relief">
 												<div className="forecast-relief-label">
 													Upcoming Relief
