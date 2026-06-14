@@ -3376,6 +3376,7 @@ button:active,
 	background: rgba(16, 185, 129, 0.14);
 	color: #34D399;
 	border: 1px solid rgba(52, 211, 153, 0.24);
+	box-shadow: 0 0 18px rgba(16, 185, 129, 0.18);
 }
 
 .forecast-tight .forecast-status,
@@ -3383,6 +3384,7 @@ button:active,
 	background: rgba(245, 158, 11, 0.14);
 	color: #FBBF24;
 	border: 1px solid rgba(251, 191, 36, 0.24);
+	box-shadow: 0 0 18px rgba(245, 158, 11, 0.18);
 }
 
 .forecast-pressure .forecast-status,
@@ -3392,6 +3394,7 @@ button:active,
 	background: rgba(239, 68, 68, 0.14);
 	color: #F87171;
 	border: 1px solid rgba(248, 113, 113, 0.24);
+	box-shadow: 0 0 18px rgba(239, 68, 68, 0.2);
 }
 
 .forecast-metrics strong {
@@ -3410,17 +3413,20 @@ button:active,
 }
 
 .forecast-mood-stable {
-	background: rgba(16, 185, 129, 0.08);
+	background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 182, 212, 0.08));
+	border-color: rgba(16, 185, 129, 0.16);
 }
 
 .forecast-mood-tight {
-	background: rgba(245, 158, 11, 0.08);
+	background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(249, 115, 22, 0.08));
+	border-color: rgba(245, 158, 11, 0.16);
 }
 
 .forecast-mood-pressure,
 .forecast-mood-recovery,
 .forecast-mood-critical {
-	background: rgba(239, 68, 68, 0.08);
+	background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(190, 24, 93, 0.08));
+	border-color: rgba(239, 68, 68, 0.16);
 }
 
 .forecast-intelligence {
@@ -3482,6 +3488,7 @@ button:active,
 .premium-forecast-section {
 	position: relative;
 	overflow: hidden;
+	background: radial-gradient(circle at top left, rgba(168, 85, 247, 0.12), transparent 30%), radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.1), transparent 32%);
 }
 
 .premium-forecast-orb {
@@ -3515,6 +3522,8 @@ button:active,
 }
 
 .forecast-card-featured {
+	position: relative;
+	isolation: isolate;
 	border-color: rgba(96, 165, 250, 0.24);
 	box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 18px 42px rgba(59, 130, 246, 0.1);
 }
@@ -3530,6 +3539,53 @@ button:active,
 	background: radial-gradient(circle, rgba(96, 165, 250, 0.12), transparent 70%);
 	pointer-events: none;
 }
+
+.forecast-card::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	opacity: 0.75;
+	z-index: -1;
+	filter: blur(32px);
+}
+
+.forecast-card-stable::after {
+	background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.18), transparent 65%);
+}
+
+.forecast-card-tight::after {
+	background: radial-gradient(circle at top right, rgba(245, 158, 11, 0.18), transparent 65%);
+}
+
+.forecast-card-pressure::after,
+.forecast-card-recovery::after {
+	background: radial-gradient(circle at top right, rgba(239, 68, 68, 0.2), transparent 65%);
+}
+
+.forecast-card-featured::before {
+	animation: forecastPulse 6s ease-in-out infinite;
+}
+
+@keyframes forecastPulse {
+	0% {
+		transform: scale(1);
+		opacity: 0.7
+	}
+
+	50% {
+		transform: scale(1.08);
+		opacity: 1;
+	}
+
+	100% {
+		transform: scale(1);
+		opacity: 0.7;
+	}
+	
+}
+
+
 
 @keyframes modalBackdropIn {
 	from {
