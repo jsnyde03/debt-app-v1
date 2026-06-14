@@ -50,6 +50,7 @@ export function SnowballSection({
 	const [payoffOrderPage, setPayoffOrderPage] = useState(1);
 	const [simulationExtraPayment, setSimulationExtraPayment] = useState("100");
 	const [simulationStrategy, setSimulationStrategy] = useState<"recommended" | "snowball" | "avalanche">("recommended")
+	const [expandedPremiumSection, setExpandedPremiumSection] = useState<"insights" | "comparison" | "simulation" | "forecast">("insights");
 
 	const canViewStrategyComparison = hasFeatureAccess(subscriptionPlan, "strategy_comparison");
 	const canViewWhatIfScenarios = hasFeatureAccess(subscriptionPlan, "what_if_scenarios");
@@ -486,7 +487,13 @@ export function SnowballSection({
 							</div>
 						</div>
 					)}
-					<div className="strategy-comparison-card">
+					<div
+						className="strategy-comparison-card premium-collapsible-header"
+						onClick={() => {
+							triggerLightHaptic();
+							setExpandedPremiumSection(expandedPremiumSection === "insights" ? "comparison" : "insights");
+						}}
+					>
 						<div className="strategy-comparison-header">
 							<div>
 								<h3>Smart Insights</h3>
@@ -496,67 +503,83 @@ export function SnowballSection({
 								<span className="premium-pill">Premium</span>
 							)}
 						</div>
-						{canViewSmartInsights ? (
-							<div className="smart-insight-list">
-								{smartInsights.map((insight) => {
-									const meta = getInsightMeta(insight.severity, insight.title);
+						{expandedPremiumSection === "insights" && (
+							<>
 
-									return (
-										<div
-											key={insight.title}
-											className={`smart-insight-card ${insight.severity}`}
-										>
-											<div className="smart-insight-topline">
-												<span className="smart-insight-icon">
-													{meta.icon}
-												</span>
-												<div>
-													<strong>{insight.title}</strong>
-													<span className={`insight-chip ${insight.severity}`}>
-														{meta.label}
-													</span>
+								{canViewSmartInsights ? (
+									<div className="smart-insight-list">
+										{smartInsights.map((insight) => {
+											const meta = getInsightMeta(insight.severity, insight.title);
+
+											return (
+												<div
+													key={insight.title}
+													className={`smart-insight-card ${insight.severity}`}
+												>
+													<div className="smart-insight-topline">
+														<span className="smart-insight-icon">
+															{meta.icon}
+														</span>
+														<div>
+															<strong>{insight.title}</strong>
+															<span className={`insight-chip ${insight.severity}`}>
+																{meta.label}
+															</span>
+														</div>
+													</div>
+
+													<p>{insight.message}</p>
+
+													{insight.action && (
+														<small>{insight.action}</small>
+													)}
 												</div>
+											);
+										})}
+										<div className="premium-momentum-card">
+											<span>👑</span>
+											<div>
+												<strong>Keep going - consistency wins</strong>
+												<p>
+													Your plan is built to protect today and improve your tomorrow.
+												</p>
 											</div>
-
-											<p>{insight.message}</p>
-
-											{insight.action && (
-												<small>{insight.action}</small>
-											)}
 										</div>
-									);
-								})}
-								<div className="premium-momentum-card">
-									<span>👑</span>
-									<div>
-										<strong>Keep going - consistency wins</strong>
-										<p>
-											Your plan is built to protect today and improve your tomorrow.
-										</p>
 									</div>
-								</div>
-							</div>
-						) : (
-							<div className="premium-locked-preview">
-								<strong>Unlock Smart Insights.</strong>
-								<p>
-									Premium will provide guidance based on your current paycheck plan, cash pressure, and payoff strategy.
-								</p>
+								) : (
+									<div className="premium-locked-preview premium-blur-preview">
+										<strong>Unlock Smart Insights.</strong>
+										<p>
+											Premium will provide guidance based on your current paycheck plan, cash pressure, and payoff strategy.
+										</p>
 
-								<button
-									type="button"
-									className="primary-button upgrade-preview-button"
-									onClick={onUpgradeClick}
-								>
-									View Premium
-								</button>
-							</div>
+										<button
+											type="button"
+											className="primary-button upgrade-preview-button"
+											onClick={onUpgradeClick}
+										>
+											View Premium
+										</button>
+									</div>
+								)}
+
+							</>
 						)}
 
 					</div>
 
-					<div className="strategy-comparison-card">
-						<div className="strategy-comparison-header">
+					<div className="strategy-comparison-card premium-module-shell">
+						<div
+							className="strategy-comparison-header premium-collapsible-header"
+							onClick={() => {
+								triggerLightHaptic();
+								setExpandedPremiumSection(
+									expandedPremiumSection === "comparison"
+										? "simulation"
+										: "comparison"
+								);
+							}}
+						>
 							<div>
 								<h3>Strategy Comparison</h3>
 
@@ -567,120 +590,135 @@ export function SnowballSection({
 								<span className="premium-pill">Premium</span>
 							)}
 						</div>
-						{canViewStrategyComparison ? (
-							comparisonCanBeEstimated ? (
-								<>
-									<div className="strategy-comparison-grid premium-strategy-grid">
-										<div
-											className={`strategy-comparison-option premium-strategy-option ${snowballIsFaster || snowballHasLowerInterest ? "winner" : ""}`}
-										>
-											<div className="stategy-option-topline">
-												<span>Snowball</span>
+						{expandedPremiumSection === "comparison" && (
+							<>
 
-												{(snowballIsFaster || snowballHasLowerInterest) && (
-													<em>Winner</em>
+								{canViewStrategyComparison ? (
+									comparisonCanBeEstimated ? (
+										<>
+											<div className="strategy-comparison-grid premium-strategy-grid">
+												<div
+													className={`strategy-comparison-option premium-strategy-option ${snowballIsFaster || snowballHasLowerInterest ? "winner" : ""}`}
+												>
+													<div className="stategy-option-topline">
+														<span>Snowball</span>
+
+														{(snowballIsFaster || snowballHasLowerInterest) && (
+															<em>Winner</em>
+														)}
+													</div>
+
+													<strong>
+														{snowballComparisonProjection.estimatedDebtFreeDate}
+													</strong>
+
+													<small>
+														Interest:{" "}
+														{formatCurrency(snowballComparisonProjection.totalInterestPaid)}
+													</small>
+												</div>
+
+												<div
+													className={`strategy-comparison-option premium-strategy-option ${avalancheIsFaster || avalancheHasLowerInterest ? "winner" : ""}`}
+												>
+													<div className="strategy-option-topline">
+														<span>Avalanche</span>
+
+														{(avalancheIsFaster || avalancheHasLowerInterest) && (
+															<em>Winner</em>
+														)}
+
+													</div>
+
+													<strong>
+														{avalancheComparisonProjection.estimatedDebtFreeDate}
+													</strong>
+
+													<small>
+														Interest:{" "}
+														{formatCurrency(avalancheComparisonProjection.totalInterestPaid)}
+													</small>
+												</div>
+											</div>
+
+											<div className="strategy-comparison-callout">
+												{fasterStrategy ? (
+													<span>
+														Faster Payoff:{" "}
+														<strong>
+															{fasterStrategy === "snowball" ? "Snowball" : "Avalanche"}
+														</strong>
+													</span>
+												) : (
+													<span>Both strategies project the same payoff month.</span>
+												)}
+
+												{lowerInterestStrategy && (
+													<span>
+														Lower Interest:{" "}
+														<strong>
+															{lowerInterestStrategy === "snowball" ? "Snowball" : "Avalanche"}
+														</strong>
+													</span>
 												)}
 											</div>
 
-											<strong>
-												{snowballComparisonProjection.estimatedDebtFreeDate}
-											</strong>
+											<div className="strategy-guidance-card premium-strategy-guidance">
+												<h4>
+													Recommended Strategy:{" "}
+													{recommendedStrategy === "avalanche" ? "Avalanche" : "Snowball"}
+												</h4>
 
-											<small>
-												Interest:{" "}
-												{formatCurrency(snowballComparisonProjection.totalInterestPaid)}
-											</small>
-										</div>
+												<p>
+													{recommendedStrategy === "avalanche"
+														? `Avalanche currently appears stronger because it could save about ${formatCurrency(projectedInterestSavings)} in projected interest${projectedMonthDifference > 0 ? ` and improve the payout timeline by about ${projectedMonthDifference} month${projectedMonthDifference === 1 ? "" : "s"}` : ""}.`
+														: "Snowball may currently be easier to sustain because the projected interest difference is relatively small and quicker wins can help maintain momentum."}
+												</p>
 
-										<div
-											className={`strategy-comparison-option premium-strategy-option ${avalancheIsFaster || avalancheHasLowerInterest ? "winner" : ""}`}
-										>
-											<div className="strategy-option-topline">
-												<span>Avalanche</span>
-
-												{(avalancheIsFaster || avalancheHasLowerInterest) && (
-													<em>Winner</em>
-												)}
-
+												<p>
+													{recommendedStrategy === "avalanche"
+														? "Reducing high APR balances first may improve long-term financial stability."
+														: "Use snowball when motivation and visible progress matter more than interest optimization."}
+												</p>
 											</div>
-
-											<strong>
-												{avalancheComparisonProjection.estimatedDebtFreeDate}
-											</strong>
-
-											<small>
-												Interest:{" "}
-												{formatCurrency(avalancheComparisonProjection.totalInterestPaid)}
-											</small>
-										</div>
-									</div>
-
-									<div className="strategy-comparison-callout">
-										{fasterStrategy ? (
-											<span>
-												Faster Payoff:{" "}
-												<strong>
-													{fasterStrategy === "snowball" ? "Snowball" : "Avalanche"}
-												</strong>
-											</span>
-										) : (
-											<span>Both strategies project the same payoff month.</span>
-										)}
-
-										{lowerInterestStrategy && (
-											<span>
-												Lower Interest:{" "}
-												<strong>
-													{lowerInterestStrategy === "snowball" ? "Snowball" : "Avalanche"}
-												</strong>
-											</span>
-										)}
-									</div>
-
-									<div className="strategy-guidance-card premium-strategy-guidance">
-										<h4>
-											Recommended Strategy:{" "}
-											{recommendedStrategy === "avalanche" ? "Avalanche" : "Snowball"}
-										</h4>
-
+										</>
+									) : (
+										<p className="empty-state">
+											Strategy comparison is unavailable until your debts can be estimated from the current plan.
+										</p>
+									)
+								) : (
+									<div className="premium-locked-preview">
+										<strong>Unlock strategy comparison.</strong>
 										<p>
-											{recommendedStrategy === "avalanche"
-												? `Avalanche currently appears stronger because it could save about ${formatCurrency(projectedInterestSavings)} in projected interest${projectedMonthDifference > 0 ? ` and improve the payout timeline by about ${projectedMonthDifference} month${projectedMonthDifference === 1 ? "" : "s"}` : ""}.`
-												: "Snowball may currently be easier to sustain because the projected interest difference is relatively small and quicker wins can help maintain momentum."}
+											Premium will compare snowball and avalanche side-by-side, including payoff timing and estimated interest.
 										</p>
 
-										<p>
-											{recommendedStrategy === "avalanche"
-												? "Reducing high APR balances first may improve long-term financial stability."
-												: "Use snowball when motivation and visible progress matter more than interest optimization."}
-										</p>
+										<button
+											type="button"
+											className="primary-button upgrade-preview-button"
+											onClick={onUpgradeClick}
+										>
+											View Premium
+										</button>
 									</div>
-								</>
-							) : (
-								<p className="empty-state">
-									Strategy comparison is unavailable until your debts can be estimated from the current plan.
-								</p>
-							)
-						) : (
-							<div className="premium-locked-preview">
-								<strong>Unlock strategy comparison.</strong>
-								<p>
-									Premium will compare snowball and avalanche side-by-side, including payoff timing and estimated interest.
-								</p>
-
-								<button
-									type="button"
-									className="primary-button upgrade-preview-button"
-									onClick={onUpgradeClick}
-								>
-									View Premium
-								</button>
-							</div>
+								)}
+							</>
 						)}
 					</div>
 
-					<div className="strategy-comparison-card what-if-premium-shell">
-						<div className="strategy-comparison-header">
+					<div className="strategy-comparison-card what-if-premium-shell premium-module-shell">
+						<div
+							className="strategy-comparison-header premium-collapsible-header"
+							onClick={() => {
+								triggerLightHaptic();
+								setExpandedPremiumSection(
+									expandedPremiumSection === "simulation"
+										? "forecast"
+										: "simulation"
+								);
+							}}
+						>
 							<div>
 								<h3>What-If Simulation</h3>
 
@@ -696,222 +734,237 @@ export function SnowballSection({
 							)}
 						</div>
 
-						{canViewWhatIfScenarios ? (
+						{expandedPremiumSection === "simulation" && (
 							<>
-								<div className="simulation-strategy-row">
-									<button
-										type="button"
-										className={
-											simulationStrategy === "recommended"
-												? "simulation-strategy-pill active recommended-active"
-												: "simulation-strategy-pill"
-										}
-										onClick={() => { triggerLightHaptic(); setSimulationStrategy("recommended"); }}
-									>
-										Recommended
-									</button>
 
-									<button
-										type="button"
-										className={
-											simulationStrategy === "snowball"
-												? "simulation-strategy-pill active"
-												: "simulation-strategy-pill"
-										}
-										onClick={() => { triggerLightHaptic(); setSimulationStrategy("snowball"); }}
-									>
-										Snowball
-									</button>
-
-									<button
-										type="button"
-										className={
-											simulationStrategy === "avalanche"
-												? "simulation-strategy-pill active"
-												: "simulation-strategy-pill"
-										}
-										onClick={() => { triggerLightHaptic(); setSimulationStrategy("avalanche"); }}
-									>
-										Avalanche
-									</button>
-								</div>
-								<div className="what-if-input-row">
-									<label>
-										Extra Monthly Payment
-									</label>
-
-									<input
-										type="number"
-										min="0"
-										step="1"
-										value={
-											simulationExtraPayment
-										}
-										onChange={(event) => setSimulationExtraPayment(event.target.value)}
-									/>
-
-									<div className="simulation-quick-actions">
-										{[25, 50, 100, 250].map((amount) => (
-											<button
-												key={amount}
-												type="button"
-												className="simulation-quick-chip"
-												onClick={() => {
-													triggerLightHaptic();
-													setSimulationExtraPayment(amount.toString());
-												}}
-											>
-												+${amount}
-											</button>
-										))}
-
-									</div>
-								</div>
-
-								{simulationCanBeEstimated ? (
+								{canViewWhatIfScenarios ? (
 									<>
-										<div className="premium-what-if-result-stack">
-											<div className="strategy-comparison-option premium-what-if-result-card">
-												<div className="premium-what-if-glow" />
+										<div className="simulation-strategy-row">
+											<button
+												type="button"
+												className={
+													simulationStrategy === "recommended"
+														? "simulation-strategy-pill active recommended-active"
+														: "simulation-strategy-pill"
+												}
+												onClick={() => { triggerLightHaptic(); setSimulationStrategy("recommended"); }}
+											>
+												Recommended
+											</button>
 
-												<span className="premium-what-if-date-label">
-													New Debt-Free Date
-												</span>
+											<button
+												type="button"
+												className={
+													simulationStrategy === "snowball"
+														? "simulation-strategy-pill active"
+														: "simulation-strategy-pill"
+												}
+												onClick={() => { triggerLightHaptic(); setSimulationStrategy("snowball"); }}
+											>
+												Snowball
+											</button>
 
-												<strong className="premium-what-if-date">
-													{
-														simulatedSnowballProjection.estimatedDebtFreeDate
-													}
-												</strong>
+											<button
+												type="button"
+												className={
+													simulationStrategy === "avalanche"
+														? "simulation-strategy-pill active"
+														: "simulation-strategy-pill"
+												}
+												onClick={() => { triggerLightHaptic(); setSimulationStrategy("avalanche"); }}
+											>
+												Avalanche
+											</button>
+										</div>
+										<div className="what-if-input-row">
+											<label>
+												Extra Monthly Payment
+											</label>
 
-												{simulatedMonthsSaved > 0 && (
-													<>
-														<div className="premium-what-if-months-saved">
-															{simulatedMonthsSaved} month{simulatedMonthsSaved === 1 ? "" : "s"} earlier
-														</div>
-														<div className="premium-what-if-days-saved">
-															Estimated {simulatedDaysSaved} days faster
-														</div>
-													</>
-												)}
+											<input
+												type="number"
+												min="0"
+												step="1"
+												value={
+													simulationExtraPayment
+												}
+												onChange={(event) => setSimulationExtraPayment(event.target.value)}
+											/>
+
+											<div className="simulation-quick-actions">
+												{[25, 50, 100, 250].map((amount) => (
+													<button
+														key={amount}
+														type="button"
+														className="simulation-quick-chip"
+														onClick={() => {
+															triggerLightHaptic();
+															setSimulationExtraPayment(amount.toString());
+														}}
+													>
+														+${amount}
+													</button>
+												))}
+
 											</div>
-											{parsedSimulationExtraPayment > 0 && (
-												<>
-													<div className="premium-what-if-savings-row">
-														<span className="premium-what-if-savings-label">
-															Projected Interest saved:
-														</span>
-
-														<strong className="premium-what-if-savings-value">
-															{formatCurrency(simulatedInterestSaved)}
-														</strong>
-													</div>
-
-													<div className="what-if-guidance premium-what-if-guidance">
-														<p>
-															{parsedSimulationExtraPayment >= 100
-																? `An extra ${formatCurrency(parsedSimulationExtraPayment)}/month could meaningfully accelerate debt payoff and reduce long-term interest pressure.`
-																: "Smaller extra payments still improve payoff momentum over time."}
-														</p>
-
-														<p className="premium-ai-insight">
-															{effectiveSimulationStrategy === "avalanche"
-																? "Your highest APR debt is currently creating the most long-term interest pressure."
-																: "Faster small wins may improve motivation and payment consistency."}
-														</p>
-
-														{remainingSnowballExtra < 100 && (
-															<p>
-																Current projections still show tighter-than-recommended cash reserves during upcoming cycles.
-															</p>
-														)}
-													</div>
-												</>
-											)}
 										</div>
 
-										{parsedSimulationExtraPayment <= 0 && (
+										{simulationCanBeEstimated ? (
+											<>
+												<div className="premium-what-if-result-stack">
+													<div className="strategy-comparison-option premium-what-if-result-card">
+														<div className="premium-what-if-glow" />
+
+														<span className="premium-what-if-date-label">
+															New Debt-Free Date
+														</span>
+
+														<strong className="premium-what-if-date">
+															{
+																simulatedSnowballProjection.estimatedDebtFreeDate
+															}
+														</strong>
+
+														{simulatedMonthsSaved > 0 && (
+															<>
+																<div className="premium-what-if-months-saved">
+																	{simulatedMonthsSaved} month{simulatedMonthsSaved === 1 ? "" : "s"} earlier
+																</div>
+																<div className="premium-what-if-days-saved">
+																	Estimated {simulatedDaysSaved} days faster
+																</div>
+															</>
+														)}
+													</div>
+													{parsedSimulationExtraPayment > 0 && (
+														<>
+															<div className="premium-what-if-savings-row">
+																<span className="premium-what-if-savings-label">
+																	Projected Interest saved:
+																</span>
+
+																<strong className="premium-what-if-savings-value">
+																	{formatCurrency(simulatedInterestSaved)}
+																</strong>
+															</div>
+
+															<div className="what-if-guidance premium-what-if-guidance">
+																<p>
+																	{parsedSimulationExtraPayment >= 100
+																		? `An extra ${formatCurrency(parsedSimulationExtraPayment)}/month could meaningfully accelerate debt payoff and reduce long-term interest pressure.`
+																		: "Smaller extra payments still improve payoff momentum over time."}
+																</p>
+
+																<p className="premium-ai-insight">
+																	{effectiveSimulationStrategy === "avalanche"
+																		? "Your highest APR debt is currently creating the most long-term interest pressure."
+																		: "Faster small wins may improve motivation and payment consistency."}
+																</p>
+
+																{remainingSnowballExtra < 100 && (
+																	<p>
+																		Current projections still show tighter-than-recommended cash reserves during upcoming cycles.
+																	</p>
+																)}
+															</div>
+														</>
+													)}
+												</div>
+
+												{parsedSimulationExtraPayment <= 0 && (
+													<p className="empty-state">
+														Enter an extra monthly payment to simulate payoff acceleration.
+													</p>
+												)}
+
+												{simulationTargetDebt && (
+													<div className="simulation-target-card premium-simulation-card">
+														<div className="simulation-target-header">
+															<div className="simulation-target-heading">
+																Apply extra to:
+															</div>
+
+															<span className="simulation-strategy-chip">
+																{effectiveSimulationStrategy === "avalanche" ? "Highest APR" : "Smallest Balance"}
+															</span>
+														</div>
+
+														<div className="simulation-allocation-list">
+															{simulationExtraAllocationPlan.map((item) => (
+																<div
+																	key={item.debtId}
+																	className="simulation-allocation-item"
+																>
+																	<div>
+																		<div className="simulation-target-name">
+																			{item.debtName}
+																		</div>
+
+																		<div className="simulation-target-meta">
+																			{item.isPaidOff
+																				? "Paid off by this extra payment"
+																				: `${formatCurrency(item.remainingBalanceAfterPayment)} remaining after payment`}
+																		</div>
+																	</div>
+
+																	<div className="simulation-extra-payment">
+																		+{formatCurrency(item.amount)}
+																	</div>
+																</div>
+															))}
+														</div>
+
+														<p className="simulation-target-reason">
+															{effectiveSimulationStrategy === "avalanche"
+																? "Highest APR balances are prioritized first to reduce long-term interest costs faster."
+																: "Smallest balances are prioritized first to create faster visible progress."}
+														</p>
+													</div>
+												)}
+
+											</>
+										) : (
 											<p className="empty-state">
-												Enter an extra monthly payment to simulate payoff acceleration.
+												Simulation unavailable until payoff projections can be estimated.
 											</p>
 										)}
-
-										{simulationTargetDebt && (
-											<div className="simulation-target-card premium-simulation-card">
-												<div className="simulation-target-header">
-													<div className="simulation-target-heading">
-														Apply extra to:
-													</div>
-
-													<span className="simulation-strategy-chip">
-														{effectiveSimulationStrategy === "avalanche" ? "Highest APR" : "Smallest Balance"}
-													</span>
-												</div>
-
-												<div className="simulation-allocation-list">
-													{simulationExtraAllocationPlan.map((item) => (
-														<div
-															key={item.debtId}
-															className="simulation-allocation-item"
-														>
-															<div>
-																<div className="simulation-target-name">
-																	{item.debtName}
-																</div>
-
-																<div className="simulation-target-meta">
-																	{item.isPaidOff
-																		? "Paid off by this extra payment"
-																		: `${formatCurrency(item.remainingBalanceAfterPayment)} remaining after payment`}
-																</div>
-															</div>
-
-															<div className="simulation-extra-payment">
-																+{formatCurrency(item.amount)}
-															</div>
-														</div>
-													))}
-												</div>
-
-												<p className="simulation-target-reason">
-													{effectiveSimulationStrategy === "avalanche"
-														? "Highest APR balances are prioritized first to reduce long-term interest costs faster."
-														: "Smallest balances are prioritized first to create faster visible progress."}
-												</p>
-											</div>
-										)}
-
 									</>
 								) : (
-									<p className="empty-state">
-										Simulation unavailable until payoff projections can be estimated.
-									</p>
+									<div className="premium-locked-preview">
+										<strong>
+											Unlock what-if scenarios
+										</strong>
+
+										<p>
+											Premium simulations show how extra monthly payments could reduce payoff time and estimated interest.
+										</p>
+
+										<button
+											type="button"
+											className="primary-button upgrade-preview-button"
+											onClick={() => { triggerLightHaptic(); onUpgradeClick(); }}
+										>
+											View Premium
+										</button>
+									</div>
 								)}
 							</>
-						) : (
-							<div className="premium-locked-preview">
-								<strong>
-									Unlock what-if scenarios
-								</strong>
-
-								<p>
-									Premium simulations show how extra monthly payments could reduce payoff time and estimated interest.
-								</p>
-
-								<button
-									type="button"
-									className="primary-button upgrade-preview-button"
-									onClick={() => { triggerLightHaptic(); onUpgradeClick(); }}
-								>
-									View Premium
-								</button>
-							</div>
 						)}
 					</div>
 
-					<div className="strategy-comparison-card premium-forecast-section">
+					<div className="strategy-comparison-card premium-forecast-section premium-module-shell">
 						<div className="premium-forecast-orb" />
-						<div className="strategy-comparison-header">
+						<div
+							className="strategy-comparison-header premium-collapsible-header"
+							onClick={() => {
+								triggerLightHaptic();
+								setExpandedPremiumSection(
+									expandedPremiumSection === "forecast"
+										? "insights"
+										: "forecast"
+								);
+							}}
+						>
 							<div>
 								<h3>Forecast</h3>
 								<p>See upcoming financial pressure, recovery timing, and recommended actions before problems compound.</p>
@@ -924,153 +977,158 @@ export function SnowballSection({
 							)}
 						</div>
 
-						{canViewForecasting ? (
-							<div className="forecast-list">
-								<div className="forecast-summary-strip">
-									<div className="forecast-summary-label">
-									3-Month Outlook
-								</div>
+						{expandedPremiumSection === "forecast" && (
+							<>
 
-								<div className="forecast-summary-grid">
-									<div className="forecast-summary-item">
-										<span>Cushion Trend</span>
-
-										<strong>+{formatCurrency(forecastMonths[forecastMonths.length - 1].projectedSafeCash - forecastMonths[0].projectedSafeCash)}</strong>
-									</div>
-
-									<div className="forecast-summary-item">
-										<span>Debt Reduction</span>
-										<strong>-{formatCurrency(forecastMonths[0].projectedDebtBalance - forecastMonths[forecastMonths.length - 1].projectedDebtBalance)}</strong>
-									</div>
-								</div>
-
-								<div className="forecast-summary-status">
-									Healthy payoff momentum projected
-								</div>
-							</div>
-								{forecastMonths.map((month, index) => (
-									<div
-										key={month.monthLabel}
-										className={`forecast-card forecast-card-${month.status} ${index === 0 ? "forecast-card-featured" : ""}`}
-									>
-										<div className={`forecast-card-header forecast-${month.status}`}>
-											<strong>
-												{month.monthLabel}
-											</strong>
-
-											<span
-												className={`forecast-status ${month.status}`}
-											>
-												{month.status === "stable"
-													? "Healthy Outlook"
-													: month.status === "tight"
-														? "Cash Tightness"
-														: month.status === "pressure"
-															? "High Risk"
-															: "Critical Pressure"}
-											</span>
-										</div>
-
-										<div className="forecast-metrics">
-											<div>
-												<span>
-													Projected Cushion
-												</span>
-
-												<strong>
-													{formatCurrency(month.projectedSafeCash)}
-												</strong>
+								{canViewForecasting ? (
+									<div className="forecast-list">
+										<div className="forecast-summary-strip">
+											<div className="forecast-summary-label">
+												3-Month Outlook
 											</div>
 
-											<div>
-												<span>
-													Debt Balance
-												</span>
+											<div className="forecast-summary-grid">
+												<div className="forecast-summary-item">
+													<span>Cushion Trend</span>
 
-												<strong>
-													{formatCurrency(month.projectedDebtBalance)}
-												</strong>
-											</div>
-										</div>
-
-										<div className={`forecast-mood forecast-mood-${month.status}`}>
-											{month.status === "stable"
-												? "You are projected to maintain a safe financial buffer."
-												: month.status === "tight"
-													? "This cycle may require tighter spending control."
-													: month.status === "pressure"
-														? "Debt and expense pressure are increasing noticeably."
-														: "Immediate spending adjustments are strongly recommended."}
-										</div>
-
-										<div className="forecast-intelligence">
-											<div className="forecast-intelligence-label">
-												Recommended Action
-											</div>
-
-											<p className="forecast-action">
-												{month.recommendedAction}
-											</p>
-										</div>
-
-										{month.status !== "stable" && month.riskDrivers.length > 0 && (
-											<div className="forecast-drivers">
-												<h5>
-													Pressure Drivers
-												</h5>
-
-												<ul>
-													{month.riskDrivers.map((driver) => <li key={driver}>{driver}</li>)}
-												</ul>
-											</div>
-										)}
-
-										{month.recoveryMonth && month.status !== "stable" && (
-											<p className="forecast-recovery">
-												Safer cash flow expected by{" "}
-												<strong>
-													{month.recoveryMonth}
-												</strong>
-											</p>
-										)}
-
-										{month.recoveryTrend && month.status !== "stable" && (
-											<p className="forecast-recovery">
-												{month.recoveryTrend}
-											</p>
-										)}
-
-										{month.status !== "stable" && month.reliefPoint && (
-											<div className="forecast-relief">
-												<div className="forecast-relief-label">
-													Upcoming Relief
+													<strong>+{formatCurrency(forecastMonths[forecastMonths.length - 1].projectedSafeCash - forecastMonths[0].projectedSafeCash)}</strong>
 												</div>
-												<p>
-													{month.reliefPoint}
-												</p>
+
+												<div className="forecast-summary-item">
+													<span>Debt Reduction</span>
+													<strong>-{formatCurrency(forecastMonths[0].projectedDebtBalance - forecastMonths[forecastMonths.length - 1].projectedDebtBalance)}</strong>
+												</div>
 											</div>
-										)}
+
+											<div className="forecast-summary-status">
+												Healthy payoff momentum projected
+											</div>
+										</div>
+										{forecastMonths.map((month, index) => (
+											<div
+												key={month.monthLabel}
+												className={`forecast-card forecast-card-${month.status} ${index === 0 ? "forecast-card-featured" : ""}`}
+											>
+												<div className={`forecast-card-header forecast-${month.status}`}>
+													<strong>
+														{month.monthLabel}
+													</strong>
+
+													<span
+														className={`forecast-status ${month.status}`}
+													>
+														{month.status === "stable"
+															? "Healthy Outlook"
+															: month.status === "tight"
+																? "Cash Tightness"
+																: month.status === "pressure"
+																	? "High Risk"
+																	: "Critical Pressure"}
+													</span>
+												</div>
+
+												<div className="forecast-metrics">
+													<div>
+														<span>
+															Projected Cushion
+														</span>
+
+														<strong>
+															{formatCurrency(month.projectedSafeCash)}
+														</strong>
+													</div>
+
+													<div>
+														<span>
+															Debt Balance
+														</span>
+
+														<strong>
+															{formatCurrency(month.projectedDebtBalance)}
+														</strong>
+													</div>
+												</div>
+
+												<div className={`forecast-mood forecast-mood-${month.status}`}>
+													{month.status === "stable"
+														? "You are projected to maintain a safe financial buffer."
+														: month.status === "tight"
+															? "This cycle may require tighter spending control."
+															: month.status === "pressure"
+																? "Debt and expense pressure are increasing noticeably."
+																: "Immediate spending adjustments are strongly recommended."}
+												</div>
+
+												<div className="forecast-intelligence">
+													<div className="forecast-intelligence-label">
+														Recommended Action
+													</div>
+
+													<p className="forecast-action">
+														{month.recommendedAction}
+													</p>
+												</div>
+
+												{month.status !== "stable" && month.riskDrivers.length > 0 && (
+													<div className="forecast-drivers">
+														<h5>
+															Pressure Drivers
+														</h5>
+
+														<ul>
+															{month.riskDrivers.map((driver) => <li key={driver}>{driver}</li>)}
+														</ul>
+													</div>
+												)}
+
+												{month.recoveryMonth && month.status !== "stable" && (
+													<p className="forecast-recovery">
+														Safer cash flow expected by{" "}
+														<strong>
+															{month.recoveryMonth}
+														</strong>
+													</p>
+												)}
+
+												{month.recoveryTrend && month.status !== "stable" && (
+													<p className="forecast-recovery">
+														{month.recoveryTrend}
+													</p>
+												)}
+
+												{month.status !== "stable" && month.reliefPoint && (
+													<div className="forecast-relief">
+														<div className="forecast-relief-label">
+															Upcoming Relief
+														</div>
+														<p>
+															{month.reliefPoint}
+														</p>
+													</div>
+												)}
+											</div>
+										))}
 									</div>
-								))}
-							</div>
-						) : (
-							<div className="premium-locked-preview">
-								<strong>
-									Unlock forecasting
-								</strong>
+								) : (
+									<div className="premium-locked-preview">
+										<strong>
+											Unlock forecasting
+										</strong>
 
-								<p>
-									Premium forecasting explains upcoming cash pressure, risk drivers, recovery timing, and future payoff relief.
-								</p>
+										<p>
+											Premium forecasting explains upcoming cash pressure, risk drivers, recovery timing, and future payoff relief.
+										</p>
 
-								<button
-									type="button"
-									className="primary-button upgrade-preview-button"
-									onClick={onUpgradeClick}
-								>
-									View Premium
-								</button>
-							</div>
+										<button
+											type="button"
+											className="primary-button upgrade-preview-button"
+											onClick={onUpgradeClick}
+										>
+											View Premium
+										</button>
+									</div>
+								)}
+							</>
 						)}
 					</div>
 
