@@ -922,6 +922,28 @@ export function SnowballSection({
 
 						{canViewForecasting ? (
 							<div className="forecast-list">
+								<div className="forecast-summary-strip">
+									<div className="forecast-summary-label">
+									3-Month Outlook
+								</div>
+
+								<div className="forecast-summary-grid">
+									<div className="forecast-summary-item">
+										<span>Cushion Trend</span>
+
+										<strong>+{formatCurrency(forecastMonths[forecastMonths.length - 1].projectedSafeCash - forecastMonths[0].projectedSafeCash)}</strong>
+									</div>
+
+									<div className="forecast-summary-item">
+										<span>Debt Reduction</span>
+										<strong>-{formatCurrency(forecastMonths[0].projectedDebtBalance - forecastMonths[forecastMonths.length - 1].projectedDebtBalance)}</strong>
+									</div>
+								</div>
+
+								<div className="forecast-summary-status">
+									Healthy payoff momentum projected
+								</div>
+							</div>
 								{forecastMonths.map((month, index) => (
 									<div
 										key={month.monthLabel}

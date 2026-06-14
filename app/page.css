@@ -3519,6 +3519,7 @@ button:active,
 	background: linear-gradient(145deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.58));
 	border: 1px solid rgba(148, 163, 184, 0.16);
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+	backdrop-filter: blur(18px);
 }
 
 .forecast-card-featured {
@@ -3536,7 +3537,7 @@ button:active,
 	width: 220px;
 	height: 220px;
 	border-radius: 999px;
-	background: radial-gradient(circle, rgba(96, 165, 250, 0.12), transparent 70%);
+	background: radial-gradient(circle, rgba(96, 165, 250, 0.16), transparent 70%);
 	pointer-events: none;
 }
 
@@ -3565,6 +3566,76 @@ button:active,
 
 .forecast-card-featured::before {
 	animation: forecastPulse 6s ease-in-out infinite;
+}
+
+.forecast-summary-strip {
+	position: relative;
+	overflow: hidden;
+	padding: 1.1rem 1.2rem;
+	border-radius: 22px;
+	background: linear-gradient(145deg, rgba(16, 185, 129, 0.12), rgba(59, 130, 246, 0.12));
+	border: 1px solid rgba(96, 165, 250, 0.18);
+	box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 18px 42px rgba(59, 130, 246, 0.08);
+	backdrop-filter: blur(18px);
+}
+
+.forecast-summary-strip::before {
+	content: "";
+	position: absolute;
+	top: -60px;
+	right: -50px;
+	width: 180px;
+	height: 180px;
+	border-radius: 999px;
+	background: radial-gradient(circle, rgba(96, 165, 250, 0.22), transparent 70%);
+	pointer-events: none;
+}
+
+.forecast-summary-label {
+	font-size: 0.78rem;
+	font-weight: 900;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.58);
+	margin-bottom: 0.9rem;
+}
+
+.forecast-summary-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px;
+	margin-bottom: 0.9rem;
+}
+
+.forecast-summary-item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.forecast-summary-item span {
+	font-size: 0.78rem;
+	color: rgba(255, 255, 255, 0.64);
+}
+
+.forecast-summary-item strong {
+	font-size: 1.25rem;
+	font-weight: 900;
+	letter-spacing: -0.02em;
+	color: white;
+}
+
+.forecast-summary-status {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.55rem 0.85rem;
+	border-radius: 999px;
+	background: rgba(16, 185, 129, 0.14);
+	border: 1px solid rgba(52, 211, 153, 0.22);
+	color: #34D399;
+	font-size: 0.82rem;
+	font-weight: 800;
+	box-shadow: 0 0 18px rgba(16, 185, 129, 0.14);
 }
 
 @keyframes forecastPulse {
