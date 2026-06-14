@@ -909,7 +909,7 @@ export function SnowballSection({
 						<div className="strategy-comparison-header">
 							<div>
 								<h3>Forecast</h3>
-								<p>Projected payoff progress and safe cash outlook over the next few months.</p>
+								<p>See upcoming financial pressure, recovery timing, and recommended actions before problems compound.</p>
 							</div>
 
 							{!canViewForecasting && (
@@ -926,7 +926,7 @@ export function SnowballSection({
 										key={month.monthLabel}
 										className="forecast-card"
 									>
-										<div className="forecast-card-header">
+										<div className={`forecast-card-header forecast-${month.status}`}>
 											<strong>
 												{month.monthLabel}
 											</strong>
@@ -935,12 +935,12 @@ export function SnowballSection({
 												className={`forecast-status ${month.status}`}
 											>
 												{month.status === "stable"
-													? "Stable"
+													? "Healthy Outlook"
 													: month.status === "tight"
-														? "Tight Cycle"
+														? "Cash Tightness"
 														: month.status === "pressure"
-															? "High Pressure"
-															: "Recovery Needed"}
+															? "High Risk"
+															: "Critical Pressure"}
 											</span>
 										</div>
 
@@ -966,14 +966,28 @@ export function SnowballSection({
 											</div>
 										</div>
 
-										<p className="forecast-action">
-											{month.recommendedAction}
-										</p>
+										<div className={`forecast-mood forecast-mood-${month.status}`}>
+											{month.status === "stable"
+												? "You are projected to maintain a safe financial buffer."
+												: month.status === "pressure"
+													? "Debt and expense pressure are increasing noticeably."
+													: "Immediate spending adjustments are strongly recommended."}
+										</div>
+
+										<div className="forecast-intelligence">
+											<div className="forecast-intelligence-label">
+												Recommended Action
+											</div>
+
+											<p className="forecast-action">
+												{month.recommendedAction}
+											</p>
+										</div>
 
 										{month.riskDrivers.length > 0 && (
 											<div className="forecast-drivers">
 												<h5>
-													Risk Drivers
+													Pressure Drivers
 												</h5>
 
 												<ul>
@@ -984,7 +998,7 @@ export function SnowballSection({
 
 										{month.recoveryMonth && (
 											<p className="forecast-recovery">
-												Cushion recovery projected by{" "}
+												Safer cash flow expected by{" "}
 												<strong>
 													{month.recoveryMonth}
 												</strong>
@@ -998,9 +1012,14 @@ export function SnowballSection({
 										)}
 
 										{month.reliefPoint && (
-											<p className="forecast-relief">
-												{month.reliefPoint}
-											</p>
+											<div className="forecast-relief">
+												<div className="forecast-relief-label">
+													Upcoming Relief
+												</div>
+												<p>
+													{month.reliefPoint}
+												</p>
+											</div>
 										)}
 									</div>
 								))}
