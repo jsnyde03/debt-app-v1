@@ -996,7 +996,7 @@ export function SnowballSection({
 											</div>
 										)}
 
-										{month.recoveryMonth && (
+										{month.recoveryMonth && month.status !== "stable" && (
 											<p className="forecast-recovery">
 												Safer cash flow expected by{" "}
 												<strong>
@@ -1005,7 +1005,7 @@ export function SnowballSection({
 											</p>
 										)}
 
-										{month.recoveryTrend && (
+										{month.recoveryTrend && month.status !== "stable" && (
 											<p className="forecast-recovery">
 												{month.recoveryTrend}
 											</p>

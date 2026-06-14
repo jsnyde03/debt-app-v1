@@ -25,7 +25,7 @@ export function projectForecast({ startingSafeCash, startingDebtBalance, monthly
         const projectedSafeCash = roundMoney(startingSafeCash + bufferTrendPerMonth * index);
 
         const monthDate = new Date();
-        monthDate.setMonth(monthDate.getMonth() * index);
+        monthDate.setMonth(monthDate.getMonth() + index);
         const monthLabel = monthDate.toLocaleString("default", {
             month: "long",
             year: "numeric",
