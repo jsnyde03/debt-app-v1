@@ -4207,6 +4207,12 @@ button:active,
 	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.18), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent 38%), linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
 	border-color: rgba(255, 255, 255, 0.08);
 	box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48), 0 0 42px rgba(59, 130, 246, 0.14);
+	padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
+}
+
+.center-modal.bills-modal {
+	max-height: calc(100vh - 2rem);
+	overflow-y: auto;
 }
 
 .dark-theme .bills-modal .center-modal-header {
@@ -4333,6 +4339,151 @@ button:active,
 	border-color: rgba(255, 255, 255, 0.08);
 	color: rgba(255, 255, 255, 0.82);
 }
+
+.dark-theme .debt-add-modal {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.18), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent 38%), linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
+	border-color: rgba(255, 255, 255, 0.08);
+	box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48), 0 0 42px rgba(59, 130, 246, 0.14);
+	padding-bottom: calc(env(safe-area-inset-bottom) +7rem);
+}
+
+.center-modal.debt-add-modal {
+	max-height: calc(100vh - 2rem);
+	overflow-y: auto;
+}
+
+.dark-theme .debt-add-modal input,
+.dark-theme .debt-add-modal select {
+	min-height: 54px;
+	background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.16);
+	border-radius: 18px;
+	color: rgba(255, 255, 255, 0.94);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .debt-add-modal input:focus,
+.dark-theme .debt-add-modal select:focus {
+	border-color: rgba(96, 165, 250, 0.55);
+	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+	outline: none;
+}
+
+.dark-theme .debt-add-modal .field label {
+	color: rgba(255, 255, 255, 0.78);
+	font-size: 0.82rem;
+	font-weight: 800;
+	letter-spacing: 0.01em;
+}
+
+.dark-theme .debt-add-modal select option {
+	background: #0f172a;
+	color: rgba(255, 255, 255, 0.94);
+}
+
+.dark-theme .debt-add-modal select {
+	appearance: none;
+	-webkit-appearance: none;
+	background-image: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72)), url("data:image/sva+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='MS 7.5L10 12.5L15 7.5' stroke='%23CBD5E1' stroke-width='2' stroke-linecap='round' stroke-linejoin'round'/%3E%3C/svg%3E");
+	background-repeat: no-repeat, no-repeat;
+	background-position: cetner, right 1rem center;
+	background-size: auto, 18px;
+	padding-right: 3rem;
+}
+
+.dark-theme .debt-list-item {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.10);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025), 0 10px 24px rgba(0, 0, 0, 0.16);
+}
+
+.dark-theme .debt-list-item:nth-child(3n) {
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.10), transparent 42%), linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.72));
+}
+
+.dark-theme .debt-summary-strip {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.72), rgba(15, 23, 42, 0.68));
+	border: 1px solid rgba(148, 163, 184, 0.10);
+	border-radius: 18px;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .debt-controls input,
+.dark-theme .debt-controls select {
+	min-height: 52px;
+	border-radius: 18px;
+	background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.16);
+}
+
+.dark-theme .autopay-pill {
+	background: linear-gradient(135deg, rgba(59, 130, 246, 0.22), rgba(124, 58, 237, 0.18));
+	border: 1px solid rgba(96, 165, 250, 0.24);
+	color: #93c5fd;
+	box-shadow: 0 0 14px rgba(59, 130, 246, 0.14);
+}
+
+.dark-theme .empty-debt-state {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.72), rgba(15, 23, 42, 0.68));
+	border: 1px solid rgba(148, 163, 184, 0.10);
+	border-radius: 24px;
+	box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.debt-list-item {
+	width: 100%;
+	padding: 0;
+}
+
+
+.debt-list-item .saved-item-inner-button {
+	width: 100%;
+	min-height: 76px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 14px;
+	padding: 14px 16px;
+	border: 0;
+	border-radius: inherit;
+	background: transparent;
+	color: inherit;
+	text-align: left;
+}
+
+.debt-list-item .saved-item-left {
+	flex: 1;
+	min-width: 0;
+}
+
+.debt-list-item .saved-item-right {
+	flex-shrink: 0;
+	align-items: center;
+}
+
+.debt-list-item .saved-title {
+	font-size: 1rem;
+	font-weight: 850;
+	line-height: 1.12;
+}
+
+.debt-list-item .saved-amount {
+	font-size: 1.05rem;
+	font-weight: 900;
+	white-space: nowrap;
+}
+
+.debt-list-item .row-chevron {
+	flex-shrink: 0;
+}
+
+.debt-group .swipe-action-shell {
+	width: 100%;
+}
+
+
 
 @keyframes modalUp {
 	from {
