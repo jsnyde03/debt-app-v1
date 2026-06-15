@@ -1114,31 +1114,34 @@ export default function Home() {
                         aria-label={darkMode ? "Switch To Light Mode" : "Switch To Dark Mode"}
                         onClick={() => {
                             triggerLightHaptic();
-                            setDarkMode((current) => !current);}
+                            setDarkMode((current) => !current);
+                        }
                         }
                     >
                         {darkMode ? "☀" : "🌙"}
                     </button>
 
-                    <button
-                        type="button"
-                        className="rc-reset-button"
-                        onClick={async () => {
-                            try {
-                                triggerLightHaptic();
+                    {process.env.NEXT_PUBLIC_DEV_MODE === "true" && (
+                        <button
+                            type="button"
+                            className="rc-reset-button"
+                            onClick={async () => {
+                                try {
+                                    triggerLightHaptic();
 
-                                const plan = await resetRevenueCatUserForTesting();
+                                    const plan = await resetRevenueCatUserForTesting();
 
-                                setSubscriptionPlan(plan);
-                                setPurchaseStatus(`RevenueCat reset.  Current plan: ${plan}`);
-                                setShowUpgrade(false);
-                            } catch (error) {
-                                setPurchaseStatus(error instanceof Error ? error.message : "RevenueCat reset failed.");
-                            }
-                        }}
-                    >
-                        RC Reset
-                    </button>
+                                    setSubscriptionPlan(plan);
+                                    setPurchaseStatus(`RevenueCat reset.  Current plan: ${plan}`);
+                                    setShowUpgrade(false);
+                                } catch (error) {
+                                    setPurchaseStatus(error instanceof Error ? error.message : "RevenueCat reset failed.");
+                                }
+                            }}
+                        >
+                            RC Reset
+                        </button>
+                    )}
                 </section>
 
                 {activeTab === "plan" && (
@@ -1403,7 +1406,7 @@ export default function Home() {
                     onClick={() => {
                         triggerLightHaptic();
                         setActiveTab("plan");
-                    }} 
+                    }}
                 >
                     <span>🏠</span>
                     <small>Plan</small>

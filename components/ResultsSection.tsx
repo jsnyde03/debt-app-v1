@@ -948,7 +948,7 @@ export function ResultsSection({
                                 setShowAllRequiredActions(true);
                             }}
                         >
-                            Show {hiddenRecommendedCount} More
+                            Show {hiddenRequiredCount} More
                         </button>
                     )}
 
@@ -1008,7 +1008,7 @@ export function ResultsSection({
                             ? "plan-section-body expanded"
                             : "plan-section-body collapsed"
                     }
-                    aria-hidden={recommendedExpanded}
+                    aria-hidden={!recommendedExpanded}
                 >
                     {displayedRecommendedActions.length === 0 ? (
                         <p className="empty-state">
@@ -1037,7 +1037,7 @@ export function ResultsSection({
                                         setShowAllRecommendedActions(true);
                                     }}
                                 >
-                                    Show {hiddenRequiredCount} More
+                                    Show {hiddenRecommendedCount} More
                                 </button>
                             )}
 

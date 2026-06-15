@@ -3946,7 +3946,7 @@ button:active,
 .dark-theme .plan-dark-polish {
 	position: relative;
 	overflow: hidden;
-	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), trasparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.08), transparent 38%), rgba(15, 23, 42, 0.88);
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.08), transparent 38%), rgba(15, 23, 42, 0.88);
 	border-color: rgba(120, 140, 255, 0.16);
 }
 
@@ -3978,7 +3978,9 @@ button:active,
 .dark-theme .section-collapse-button {
 	background: linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.72));
 	border-color: rgba(148, 163, 184, 0.16);
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+	box-shadow: inset  0 1px 0 rgba(255, 255, 255, 0.03), 0 0 16px rgba(88, 166, 255, 0.05);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
 }
 
 .dark-theme .saved-item {
@@ -3995,7 +3997,7 @@ button:active,
 .dark-theme .action-pill {
 	background: rgba(255, 255, 255, 0.045);
 	border: 1px solid rgba(255, 255, 255, 0.08);
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 20px rgba(0, 0, 0, 0.18);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .dark-theme .recommended-card {
@@ -4022,8 +4024,8 @@ button:active,
 .dark-theme .completed-row {
 	opacity: 0.78;
 	filter: saturate(0.82);
-	background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.12), transparent 42%), rgba(8, 24, 28, 0.88);
-	border-color: rgba(34, 197, 94, 0.14);
+	background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.10), transparent 42%), rgba(8, 24, 28, 0.84);
+	border-color: rgba(34, 197, 94, 0.12);
 }
 
 .dark-theme .completed-item .saved-title,
@@ -4040,13 +4042,13 @@ button:active,
 }
 
 .dark-theme .timeline-list::before {
-	background: linear-gradient(to bottom, rgba(96, 165, 250, 0.45), rgba(168, 85, 247, 0.22));
-	box-shadow: 0 0 18px rgba(96, 165, 250, 0.22);
+	background: linear-gradient(to bottom, rgba(88, 166, 255, 0.12), rgba(88, 166, 255, 0.45), rgba(168, 85, 247, 0.22));
+	box-shadow: 0 0 12px rgba(88, 166, 255, 0.18);
 }
 
 .dark-theme .timeline-item {
-	background: linear-gradient(145deg, rgba(30, 41, 59, 0.78), rgba(15, 23, 42, 0.68));
-	border-color: rgba(148, 163, 184, 0.12);
+	background: linear-gradient(145deg, rgba(20, 28, 48, 0.92), rgba(11, 18, 35, 0.96));
+	border-color: rgba(255, 255, 255, 0.05);
 	backdrop-filter: blur(14px);
 	-webkit-backdrop-filter: blur(14px);
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
