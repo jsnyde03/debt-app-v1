@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";
 import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
@@ -104,6 +105,7 @@ export function RequiredExpensesSection({
     const [selectedCategory, setSelectedCategory] = useState<RequiredExpenseCategory | "all">("all");
     const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
     const [expensePage, setExpensePage] = useState(1);
+    const showFab = useScrollFabVisible();
     const [showExpensePresets, setShowExpensePresets] = useState(false);
 
     const filteredExpenses = expenses.filter((expense) => {
@@ -627,6 +629,20 @@ export function RequiredExpensesSection({
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showFab && !showAddExpenseModal && (
+                <button
+                    type="button"
+                    className="add-button floating-add-button bills-add-button"
+                    onClick={() => {
+                        triggerLightHaptic();
+                        setShowAddExpenseModal(true);
+                    }}
+                    aria-label="Add Required Expense"
+                >
+                    + Add
+                </button>
             )}
         </>
     );

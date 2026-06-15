@@ -35,6 +35,8 @@ import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
 import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting } from "@/lib/subscription/revenueCat";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { AppSkeleton } from "@/components/AppSkeleton";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 type Goal = {
     id: string;
@@ -570,6 +572,15 @@ export default function Home() {
         setStatusMessage("Plan updated");
     }
 
+    async function handlePullToRefresh() {
+        await new Promise((resolve) => window.setTimeout(resolve, 450));
+
+        const savedAt = new Date().toISOString();
+        setLastSavedAt(savedAt);
+        localStorage.setItem("debtPlanner.lastSavedAt", JSON.stringify(savedAt));
+        setStatusMessage("Up to date");
+    }
+
     function handleAddExpense() {
         const nextAmount = Number(expenseAmount);
         const trimmedName = expenseName.trim();
@@ -982,7 +993,7 @@ export default function Home() {
                 currentDate: backup.currentDate ?? getCurrentDate(),
                 semiMonthlyFirstDay: Number(backup.semiMonthlyFirstDay ?? 1),
                 semiMonthlySecondDay: Number(backup.semiMonthlySecondDay ?? 15),
-                monthlyPayDay: Number(monthlyPayDay ?? 1),
+                monthlyPayDay: Number(backup.monthlyPayDay ?? 1),
             }));
             setRequiredExpenses(backup.requiredExpenses ?? []);
             setLivingExpenses(backup.livingExpenses ?? livingExpensePresets.map((expense, index) => ({
@@ -1078,13 +1089,13 @@ export default function Home() {
     }
 
     if (!isMounted) {
-        return null;
+        return <AppSkeleton darkMode={darkMode} />;
     }
 
 
     return (
-        <main className={`app ${darkMode ? "dark-theme" : ""}`}>
-            <div className="app-content">
+        <main className={`app ${darkMode ? "dark-theme" : "light-theme"}`}>
+            <PullToRefresh className="app-content" onRefresh={handlePullToRefresh}>
                 {process.env.NODE_ENV === "development" && (
                     <button
                         type="button"
@@ -1393,7 +1404,7 @@ export default function Home() {
                         onUpdateGoal={handleUpdateGoal}
                     />
                 )}
-            </div>
+            </PullToRefresh>
 
             <nav className="bottom-nav">
                 <button

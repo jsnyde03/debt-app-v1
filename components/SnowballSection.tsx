@@ -205,9 +205,11 @@ export function SnowballSection({
 
 
 
+	const projectedBuffer = remainingSnowballExtra - (result?.shortfall ?? 0);
+
 	const smartInsights = buildSmartInsights({
 		safeExtraPayment: remainingSnowballExtra,
-		projectedBuffer: remainingSnowballExtra,
+		projectedBuffer,
 		debts: debtsAfterCompletedPayments,
 		requiredTotal: result?.totalRequired ?? 0,
 		snowballDebtFreeDate: snowballComparisonProjection.estimatedDebtFreeDate,
@@ -262,7 +264,7 @@ export function SnowballSection({
 	const totalMinimumPayment = debtsAfterCompletedPayments.reduce((sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance), 0);
 	const projectedBufferLift = Math.min(75, Math.max(0, totalMinimumPayment * 0.05));
 	const forecastMonths = projectForecast({
-		startingSafeCash: remainingSnowballExtra,
+		startingSafeCash: projectedBuffer,
 		startingDebtBalance: totalDebtBalance,
 		monthlyDebtReduction: remainingSnowballExtra,
 		months: 3,

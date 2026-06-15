@@ -2,6 +2,7 @@ import type { Goal } from "@/lib/storage/debtPlannerStorage";
 import { useState } from "react";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";
 
 type GoalsSectionProps = {
     goals: Goal[];
@@ -43,13 +44,19 @@ export function GoalsSection({
     const [editTargetAmount, setEditTargetAmount] = useState("");
     const [editCurrentAmount, setEditCurrentAmount] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
-    const [showAddGoalForm, setShowAddGoalForm] = useState(false);
+    const [showAddGoalModal, setShowAddGoalModal] = useState(false);
     const [goalPage, setGoalPage] = useState(1);
+    const showFab = useScrollFabVisible();
 
     const filteredGoals = goals.filter((goal) => goal.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const pageSize = 10;
     const totalPages = Math.max(1, Math.ceil(filteredGoals.length / pageSize));
     const visibleGoals = filteredGoals.slice((goalPage - 1) * pageSize, goalPage * pageSize);
+
+    const totalSaved = goals.reduce((sum, goal) => sum + goal.currentAmount, 0);
+    const totalTarget = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
+    const overallProgress = totalTarget > 0 ? Math.min(100, Math.max(0, (totalSaved / totalTarget) * 100)) : 0;
+    const fundedGoalsCount = goals.filter((goal) => goal.targetAmount > 0 && goal.currentAmount >= goal.targetAmount).length;
 
     function startEditing(goal: Goal) {
         triggerLightHaptic();
@@ -85,13 +92,15 @@ export function GoalsSection({
     function handleAddGoal() {
         triggerMediumHaptic();
         onAddGoal();
-        setShowAddGoalForm(false);
+        setShowAddGoalModal(false);
     }
 
     function renderGoal(goal: Goal) {
         const isEditing = editingGoalId === goal.id;
         const remainingAmount = Math.max(0, goal.targetAmount - goal.currentAmount);
         const progressPercent = goal.targetAmount > 0 ? Math.min(100, Math.max(0, (goal.currentAmount / goal.targetAmount) * 100)) : 0;
+        const isComplete = goal.targetAmount > 0 && goal.currentAmount >= goal.targetAmount;
+        const goalIcon = goal.type === "emergency" ? "🛡️" : "🎯";
 
         if (isEditing) {
             return (
@@ -157,7 +166,16 @@ export function GoalsSection({
         return (
             <button key={goal.id} type="button" className="saved-item saved-item-button goal-list-item" onClick={() => startEditing(goal)}>
                 <div className="saved-item-left goal-card-content">
-                    <div className="saved-title">{goal.name}</div>
+                    <div className="goal-title-row">
+                        <span className="goal-type-icon">{goalIcon}</span>
+                        <div className="saved-title">{goal.name}</div>
+
+                        {isComplete && (
+                            <span className="insight-chip good goal-complete-chip">
+                                Funded
+                            </span>
+                        )}
+                    </div>
 
                     <div className="saved-meta">
                         {goal.type === "emergency" ? "Emergency Fund" : "Savings"} ·
@@ -165,14 +183,23 @@ export function GoalsSection({
                         {formatCurrency(goal.targetAmount)}
                     </div>
 
-                    <div className="goal-progress-track">
-                        <div className="goal-progress-fill" style={{ width: `${progressPercent}%` }} />
+                    <div className="goal-progress-row">
+                        <div className="goal-progress-track">
+                            <div
+                                className={`goal-progress-fill ${isComplete ? "complete" : ""}`}
+                                style={{ width: `${progressPercent}%` }}
+                            />
+                        </div>
+
+                        <span className="goal-progress-percent">
+                            {Math.round(progressPercent)}%
+                        </span>
                     </div>
                 </div>
 
                 <div className="saved-item-right">
                     <strong className="saved-amount">
-                        {formatCurrency(remainingAmount)} left
+                        {isComplete ? "Goal met" : `${formatCurrency(remainingAmount)} left`}
                     </strong>
 
                     <span className="row-chevron">›</span>
@@ -182,7 +209,8 @@ export function GoalsSection({
     }
 
     return (
-        <section className="card">
+        <>
+        <section className="card goals-polish-card">
             <div className="section-heading-row">
                 <div>
                     <h2>Goals</h2>
@@ -194,15 +222,131 @@ export function GoalsSection({
 
                 <button
                     type="button"
-                    className="add-button compact-add-button"
-                    onClick={() => setShowAddGoalForm((current) => !current)}
+                    className="add-button compact-add-button goals-add-button"
+                    onClick={() => {
+                        triggerLightHaptic();
+                        setShowAddGoalModal(true);
+                    }}
                 >
-                    {showAddGoalForm ? "Close" : "+ Add"}
+                    + Add
                 </button>
             </div>
 
-            {showAddGoalForm && (
-                <div className="goal-add-card">
+            {goals.length > 0 && (
+                <div className="goal-summary-strip">
+                    <div>
+                        <span>Total Saved</span>
+                        <strong>{formatCurrency(totalSaved)}</strong>
+                    </div>
+
+                    <div>
+                        <span>Total Goal</span>
+                        <strong>{formatCurrency(totalTarget)}</strong>
+                    </div>
+
+                    <div>
+                        <span>Overall Progress</span>
+                        <strong>{Math.round(overallProgress)}%</strong>
+                    </div>
+                </div>
+            )}
+
+            <div className="goal-controls">
+                <input
+                    type="text"
+                    placeholder="Search goals..."
+                    value={searchTerm}
+                    onChange={(event) => {
+                        setSearchTerm(event.target.value)
+                        setGoalPage(1);
+                    }}
+                />
+            </div>
+
+            {filteredGoals.length === 0 ? (
+                <div className="empty-debt-state compact-empty-state">
+                    <strong>No Goals Added Yet.</strong>
+                    <p>Add an emergency fund or savings goal to start tracking progress.</p>
+                </div>
+            ) : (
+                visibleGoals.map(renderGoal)
+            )}
+
+            {filteredGoals.length > pageSize && (
+                <div className="pagination-actions pagination-compact">
+                    <button
+                        type="button"
+                        className="text-action-button"
+                        disabled={goalPage <= 1}
+                        onClick={() => setGoalPage((current) => Math.max(1, current - 1))}
+                    >
+                        ‹
+                    </button>
+
+                    <span className="pagination-status">
+                        Page {goalPage} of {totalPages}
+                    </span>
+
+                    <button
+                        type="button"
+                        className="text-action-button"
+                        disabled={goalPage >= totalPages}
+                        onClick={() => setGoalPage((current) => Math.min(totalPages, current + 1))}
+                    >
+                        ›
+                    </button>
+                </div>
+            )}
+
+            {goals.length > 0 && (
+                <div className="premium-momentum-card">
+                    <span>{fundedGoalsCount > 0 ? "🎉" : "👑"}</span>
+                    <div>
+                        <strong>
+                            {fundedGoalsCount > 0
+                                ? `${fundedGoalsCount} goal${fundedGoalsCount === 1 ? "" : "s"} fully funded`
+                                : "Every contribution moves you closer"}
+                        </strong>
+                        <p>
+                            {fundedGoalsCount > 0
+                                ? "Great work staying consistent. Keep building toward what's next."
+                                : "Small, steady deposits add up faster than they feel like they do."}
+                        </p>
+                    </div>
+                </div>
+            )}
+        </section>
+
+        {showAddGoalModal && (
+            <div
+                className="center-modal-overlay"
+                onClick={() => {
+                    triggerLightHaptic();
+                    setShowAddGoalModal(false);
+                }}
+            >
+                <div
+                    className="center-modal goal-add-modal"
+                    onClick={(event) => event.stopPropagation()}
+                >
+                    <div className="center-modal-header">
+                        <div>
+                            <h2>Add Goal</h2>
+                            <p>Track A Savings Or Emergency Fund Target.</p>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="text-action-button"
+                            onClick={() => {
+                                triggerLightHaptic();
+                                setShowAddGoalModal(false);
+                            }}
+                        >
+                            Close
+                        </button>
+                    </div>
+
                     <div className="form-grid">
                         <div className="field">
                             <label>Goal Name</label>
@@ -270,53 +414,22 @@ export function GoalsSection({
                         </button>
                     </div>
                 </div>
-            )}
-
-            <div className="goal-controls">
-                <input
-                    type="text"
-                    placeholder="Search goals..."
-                    value={searchTerm}
-                    onChange={(event) => {
-                        setSearchTerm(event.target.value)
-                        setGoalPage(1);
-                    }}
-                />
             </div>
+        )}
 
-            {filteredGoals.length === 0 ? (
-                <div className="empty-debt-state compact-empty-state">
-                    <strong>No Goals Added Yet.</strong>
-                    <p>Add an emergency fund or savings goal to start tracking progress.</p>
-                </div>
-            ) : (
-                visibleGoals.map(renderGoal)
-            )}
-
-            {filteredGoals.length > pageSize && (
-                <div className="pagination-actions pagination-compact">
-                    <button
-                        type="button"
-                        className="text-action-button"
-                        disabled={goalPage >= 1}
-                        onClick={() => setGoalPage((current) => Math.max(1, current - 1))}
-                    >
-                        ‹
-                    </button>
-
-                    <span className="pagination-status">
-                        Page {goalPage} of {totalPages}
-                    </span>
-
-                    <button
-                        type="button"
-                        className="text-action-button"
-                        onClick={() => setGoalPage((current) => Math.min(totalPages, current + 1))}
-                    >
-                        ›
-                    </button>
-                </div>
-            )}
-        </section>
+        {showFab && !showAddGoalModal && (
+            <button
+                type="button"
+                className="add-button floating-add-button goals-add-button"
+                onClick={() => {
+                    triggerLightHaptic();
+                    setShowAddGoalModal(true);
+                }}
+                aria-label="Add Goal"
+            >
+                + Add
+            </button>
+        )}
+        </>
     );
 }

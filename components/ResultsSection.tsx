@@ -784,7 +784,7 @@ export function ResultsSection({
 
                 <div className="saved-item-right">
 
-                    {!action.isCompleted && !isEditing && (
+                    {!action.isCompleted && !isEditing && (action.category === "emergency" || action.category === "snowball") && (
                         <button
                             type="button"
                             className="text-action-button"

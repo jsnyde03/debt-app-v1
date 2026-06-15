@@ -79,7 +79,7 @@ export function buildSmartInsights({ safeExtraPayment, projectedBuffer, required
     }
 
     if (bestCashFlowUnlockDebt && bestCashFlowUnlockDebt.balance <= safeExtraPayment + 100) {
-        const gap = bestCashFlowUnlockDebt.balance - safeExtraPayment;
+        const gap = Math.max(0, bestCashFlowUnlockDebt.balance - safeExtraPayment);
 
         insights.push({
             title: "Near Payoff Opportunity",

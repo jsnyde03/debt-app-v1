@@ -3,6 +3,7 @@ import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";
 import { SwipeActionCard } from "./SwipeActionCard";
 
 type DebtSortOption = "dueDate" | "balance" | "apr" | "minimumPayment" | "name";
@@ -119,6 +120,7 @@ export function DebtsSection({
     const [searchTerm, setSearchTerm] = useState("");
     const [sortBy, setSortBy] = useState<DebtSortOption>("dueDate");
     const [showAddDebtModal, setShowAddDebtModal] = useState(false);
+    const showFab = useScrollFabVisible();
 
     const [expandedSections, setExpandedSections] = useState({
         active: false,
@@ -740,6 +742,20 @@ export function DebtsSection({
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showFab && !showAddDebtModal && (
+                <button
+                    type="button"
+                    className="add-button floating-add-button debts-add-button"
+                    onClick={() => {
+                        triggerLightHaptic();
+                        setShowAddDebtModal(true);
+                    }}
+                    aria-label="Add Debt"
+                >
+                    + Add
+                </button>
             )}
         </>
     );
