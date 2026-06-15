@@ -4064,6 +4064,79 @@ button:active,
 	text-shadow: 0 0 12px rgba(248, 113, 113, 0.32);
 }
 
+.timeline-label {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.timeline-title-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	min-width: 0;
+}
+
+.timeline-title-text {
+	min-width: 0;
+	line-height: 1.2;
+}
+
+.timeline-icon {
+	flex-shrink: 0;
+	margin-right: 0;
+}
+
+.timeline-pill-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	max-width: 100%;
+}
+
+.timeline-pill-row::-webkit-scrollbar {
+	display: none;
+}
+
+.timeline-pill {
+	flex: 0 0 auto;
+	white-space: nowrap;
+	margin-left: 0 !important;
+}
+
+.timeline-label .category-pill,
+.timeline-recommended-pill,
+.timeline-status-pill {
+	margin-left: 0;
+}
+
+.timeline-collapse-button {
+	justify-content: space-between;
+	text-align: left;
+}
+
+.timeline-collapse-button .section-collapse-left {
+	justify-content: flex-start;
+	text-align: left;
+}
+
+.timeline-collapse-copy {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	text-align: left;
+}
+
+.timeline-collapse-copy h2,
+.timeline-collapse-copy p {
+	text-align: left;
+}
+
 @keyframes modalUp {
 	from {
 		opacity: 0;

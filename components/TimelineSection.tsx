@@ -145,7 +145,7 @@ export function TimelineSection({
                 onClick={() => { triggerLightHaptic(); setTimelineExpanded((current) => !current); }}
             >
                 <div className="section-collapse-left">
-                    <div>
+                    <div className="timeline-collapse-copy">
                         <h2>Timeline</h2>
 
                         <p className="section-collapse-subtitle">
@@ -193,48 +193,53 @@ export function TimelineSection({
                                 </div>
 
                                 <div className="timeline-label">
-
-                                    <span className="timeline-icon">
-                                        {getTimelineIcon(item.type)}
-                                    </span>
-
-                                    {item.label}
-
-                                    {item.category && (
-                                        <span className="category-pill">
-                                            <span className="category-pill-icon">
-                                                {getTimelineCategoryIcon(item.category)}
-                                            </span>
-
-                                            {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+                                    <div className="timeline-title-row">
+                                        <span className="timeline-icon">
+                                            {getTimelineIcon(item.type)}
                                         </span>
-                                    )}
 
-                                    {(
-                                        item.type === "snowball" ||
-                                        item.type === "emergency" ||
-                                        item.type === "optional_goal"
-                                    ) && (
-                                            <span className="timeline-recommended-pill">
-                                                Recommended
+                                        <span className="timeline-title-text">
+                                            {item.label}
+                                        </span>
+                                    </div>
+
+                                    <div className="timeline-pill-row">
+                                        {item.category && (
+                                            <span className="category-pill timeline-pill">
+                                                <span className="category-pill-icon">
+                                                    {getTimelineCategoryIcon(item.category)}
+                                                </span>
+
+                                                {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
                                             </span>
                                         )}
 
-                                    {item.type.includes("autopay") && (
-                                        <span className="autopay-pill">
-                                            Autopay
-                                        </span>
-                                    )}
+                                        {(
+                                            item.type === "snowball" ||
+                                            item.type === "emergency" ||
+                                            item.type === "optional_goal"
+                                        ) && (
+                                                <span className="timeline-recommended-pill timeline-pill">
+                                                    Recommended
+                                                </span>
+                                            )}
 
-                                    {item.isExternal && (
-                                        <span className="autopay-pill">
-                                            Outside Money
-                                        </span>
-                                    )}
+                                        {item.type.includes("autopay") && (
+                                            <span className="autopay-pill timeline-pill">
+                                                Autopay
+                                            </span>
+                                        )}
 
-                                    <span className="timeline-status-pill">
-                                        {getTimelineStatusLabel(item)}
-                                    </span>
+                                        {item.isExternal && (
+                                            <span className="autopay-pill timeline-pill">
+                                                Outside Money
+                                            </span>
+                                        )}
+
+                                        <span className="timeline-status-pill timeline-pill">
+                                            {getTimelineStatusLabel(item)}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
