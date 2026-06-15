@@ -1218,12 +1218,6 @@ export default function Home() {
                             onUpgradeClick={() => {
                                 setShowUpgrade(true);
 
-                                window.setTimeout(() => {
-                                    document.getElementById("upgrade-section")?.scrollIntoView({
-                                        behavior: "smooth",
-                                        block: "start",
-                                    });
-                                }, 50);
                             }}
                             setPayoffStrategy={setPayoffStrategy}
                         />

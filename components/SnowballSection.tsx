@@ -491,6 +491,12 @@ export function SnowballSection({
 						className="strategy-comparison-card premium-collapsible-header"
 						onClick={() => {
 							triggerLightHaptic();
+
+							if (!canViewSmartInsights) {
+								onUpgradeClick();
+								return;
+							}
+
 							setExpandedPremiumSection(expandedPremiumSection === "insights" ? "comparison" : "insights");
 						}}
 					>
@@ -573,6 +579,12 @@ export function SnowballSection({
 							className="strategy-comparison-header premium-collapsible-header"
 							onClick={() => {
 								triggerLightHaptic();
+
+								if (!canViewStrategyComparison) {
+									onUpgradeClick();
+									return;
+								}
+
 								setExpandedPremiumSection(
 									expandedPremiumSection === "comparison"
 										? "simulation"
@@ -712,6 +724,12 @@ export function SnowballSection({
 							className="strategy-comparison-header premium-collapsible-header"
 							onClick={() => {
 								triggerLightHaptic();
+
+								if (!canViewWhatIfScenarios) {
+									onUpgradeClick();
+									return;
+								}
+
 								setExpandedPremiumSection(
 									expandedPremiumSection === "simulation"
 										? "forecast"
@@ -958,6 +976,12 @@ export function SnowballSection({
 							className="strategy-comparison-header premium-collapsible-header"
 							onClick={() => {
 								triggerLightHaptic();
+
+								if (!canViewForecasting) {
+									onUpgradeClick();
+									return;
+								}
+
 								setExpandedPremiumSection(
 									expandedPremiumSection === "forecast"
 										? "insights"
