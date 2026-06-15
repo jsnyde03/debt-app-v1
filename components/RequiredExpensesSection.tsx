@@ -302,7 +302,7 @@ export function RequiredExpensesSection({
             <button
                 key={expense.id}
                 type="button"
-                className="saved-item saved-item-button"
+                className={`saved-item saved-item-button required-expense-row ${expense.isPaidThisCycle ? "required-expense-row-paid" : ""}`}
                 onClick={() => startEditing(expense)}
             >
                 <div className="saved-item-left">
@@ -341,7 +341,7 @@ export function RequiredExpensesSection({
 
     return (
         <>
-            <section className="card">
+            <section className="card required-expenses-card bills-polish-card">
                 <div className="section-heading-row">
                     <div>
                         <h2>Required Expenses</h2>
@@ -353,7 +353,7 @@ export function RequiredExpensesSection({
 
                     <button
                         type="button"
-                        className="add-button compact-add-button"
+                        className="add-button compact-add-button bills-add-button"
                         onClick={() => {
                             triggerLightHaptic();
                             setShowAddExpenseModal(true);
@@ -454,7 +454,7 @@ export function RequiredExpensesSection({
                     }}
                 >
                     <div
-                        className="center-modal"
+                        className="center-modal bills-modal"
                         onClick={(event) => event.stopPropagation()}
                     >
                         <div className="center-modal-header">

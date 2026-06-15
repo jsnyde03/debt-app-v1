@@ -4137,6 +4137,76 @@ button:active,
 	text-align: left;
 }
 
+.dark-theme .bills-polish-card {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.13), transparent 36%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.08), transparent 40%), rgba(15, 23, 42, 0.88);
+	border-color: rgba(120, 140, 255, 0.16);
+}
+
+.dark-theme .required-expense-row {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.68));
+	border-color: rgba(148, 163, 184, 0.08);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .required-expense-row:nth-child(3n) {
+	background: radial-gradient(circle at top right, rgba(34, 197, 94, 0.10), transparent 42%), rgba(8, 24, 28, 0.84);
+	border-color: rgba(34, 197, 94, 0.12);
+}
+
+.dark-theme .required-expense-row-paid {
+	background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.10), transparent 42%), rgba(8, 24, 28, 0.84);
+	border-color: rgba(34, 197, 94, 0.12);
+}
+
+.dark-theme .required-expense-row .saved-amount {
+	color: rgba(255, 255, 255, 0.94);
+	font-weight: 900;
+}
+
+.dark-theme .required-expense-row-paid .saved-title,
+.dark-theme .required-expense-row-paid .saved-amount {
+	color: #4ade80;
+}
+
+.dark-theme .bills-add-button {
+	background: linear-gradient(135deg, #3b82f6, #7c3aed);
+	border-color: rgba(255, 255, 255, 0.12);
+	box-shadow: 0 14px 30px rgba(59, 130, 246, 0.24), 0 0 34px rgba(124, 58, 237, 0.14);
+}
+
+.dark-theme .expense-controls input {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.70));
+	border-color: rgba(148, 163, 184, 0.14);
+	color: var(--text-primary);
+}
+
+.dark-theme .category-filter-pill {
+	background: rgba(255, 255, 255, 0.045);
+	border-color: rgba(255, 255, 255, 0.08);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.dark-theme .category-filter-pill.active {
+	background: linear-gradient(135deg, rgba(59, 130, 246, 0.28), rgba(124, 58, 237, 0.16));
+	border-color: rgba(96, 165, 250, 0.42);
+	color: #bfdbfe;
+	box-shadow: 0 0 18px rgba(59, 130, 246, 0.14);
+}
+
+.dark-theme .living-summary-card {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.70));
+	border: 1px solid rgba(148, 163, 184, 0.14);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 14px 34px rgba(15, 23, 42, 0.22);
+}
+
+.dark-theme .bills-modal {
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.10), transparent 38%), linear-gradient(180deg, rgba(15, 23, 42, 0.98), rbga(2, 6, 23, 0.98));
+	border-color: rgba(255, 255, 255, 0.08);
+	box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48), 0 0 42px rgba(59, 130, 246, 0.14);
+}
+
 @keyframes modalUp {
 	from {
 		opacity: 0;

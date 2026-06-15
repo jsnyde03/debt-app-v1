@@ -20,7 +20,7 @@ export function LivingExpensesSection({ livingExpenses, onLivingExpensesChange }
 
     return (
         <>
-            <section className="card living-expenses-summary-card">
+            <section className="card living-expenses-summary-card bills-polish-card">
                 <div className="section-heading-row">
                     <div>
                         <h2>Living Expenses</h2>
@@ -31,7 +31,7 @@ export function LivingExpensesSection({ livingExpenses, onLivingExpensesChange }
 
                     <button
                         type="button"
-                        className="add-button compact-add-button"
+                        className="add-button compact-add-button bills-add-button"
                         onClick={() => {
                             triggerLightHaptic();
                             setShowManageModal(true);}}
@@ -63,7 +63,7 @@ export function LivingExpensesSection({ livingExpenses, onLivingExpensesChange }
                     onClick={() => setShowManageModal(false)}
                 >
                     <div
-                        className="center-modal"
+                        className="center-modal bills-modal"
                         onClick={(event) => event.stopPropagation()}
                     >
                         <div className="center-modal-header">
