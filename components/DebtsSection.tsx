@@ -205,6 +205,9 @@ export function DebtsSection({
 
     function renderDebt(debt: DebtWithDisplayBalance) {
         const isEditing = editingDebtId === debt.id;
+        const displayBalance = debt.displayBalance ?? debt.balance;
+        const isPaidOff = displayBalance <= 0;
+        const isHighApr = debt.apr >= 20;
 
         if (isEditing) {
             return (
@@ -314,7 +317,7 @@ export function DebtsSection({
         return (
             <SwipeActionCard
                 key={debt.id}
-                className="saved-item saved-item-button debt-list-item"
+                className={`saved-item saved-item-button debt-list-item ${isPaidOff ? "debt-list-item-paid" : ""} ${isHighApr && !isPaidOff ? "debt-list-item-priority" : ""} ${debt.type === "bnpl" ? "debt-list-item-bnpl" : ""}`}
                 leftAction={{
                     label: "Edit",
                     tone: "warning",
@@ -344,12 +347,12 @@ export function DebtsSection({
                 >
                     <div className="saved-item-left">
                         <div className="saved-title">
-                            {debt.name} {(debt.displayBalance ?? debt.balance) <= 0 ? "✔" : ""}
+                            {debt.name} {isPaidOff ? "✔" : ""}
                             {debt.isAutopay && <span className="autopay-pill">Autopay</span>}
                         </div>
 
                         <div className="saved-meta debt-card-meta">
-                            <span>Balance: {formatCurrency(debt.displayBalance ?? debt.balance)}</span>
+                            <span>Balance: {formatCurrency(displayBalance)}</span>
 
                             <span>APR {debt.apr}%</span>
 
@@ -467,7 +470,7 @@ export function DebtsSection({
 
     return (
         <>
-            <section className="card">
+            <section className="card debts-polish-card">
                 <div className="section-heading-row">
                     <div>
                         <h2>Debts</h2>
@@ -479,7 +482,7 @@ export function DebtsSection({
 
                     <button
                         type="button"
-                        className="add-button compact-add-button"
+                        className="add-button compact-add-button debts-add-button"
                         onClick={() => { triggerLightHaptic(); setShowAddDebtModal(true); }}
                     >
                         + Add
