@@ -99,7 +99,7 @@ function getRecommendedAction(status: ForecastStatus, projectedSafeCash: number)
     }
 
     if (status === "tight") {
-        return `Limit extra payoff until cushion inproves above ${formatForecastCurrency(200)}.`;
+        return `Limit extra payoff until cushion improves above ${formatForecastCurrency(200)}.`;
     }
 
     return "Current payoff pace appears sustainable.";

@@ -841,7 +841,7 @@ export function ResultsSection({
     }
 
     return (
-        <section className="card plan-dashboard">
+        <section className="card plan-dashboard plan-dark-polish">
             <div className="plan-dashboard-header">
                 <div>
                     <h2>This Paycheck</h2>
@@ -1031,7 +1031,7 @@ export function ResultsSection({
                             {hiddenRecommendedCount > 0 && (
                                 <button
                                     type="button"
-                                    className="text-action=button show-more-inline"
+                                    className="text-action-button show-more-inline"
                                     onClick={() => {
                                         triggerLightHaptic();
                                         setShowAllRecommendedActions(true);

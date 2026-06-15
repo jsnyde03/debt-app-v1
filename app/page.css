@@ -3943,6 +3943,125 @@ button:active,
 	gap:  0.58rem;
 }
 
+.dark-theme .plan-dark-polish {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), trasparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.08), transparent 38%), rgba(15, 23, 42, 0.88);
+	border-color: rgba(120, 140, 255, 0.16);
+}
+
+.dark-theme .plan-dashboard-header p.status-good {
+	color: #4ade80;
+	text-shadow: 0 0 18px rgba(74, 222, 128, 0.32);
+}
+
+.dark-theme .execution-summary-strip {
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.7));
+	border: 1px solid rgba(148, 163, 184, 0.16);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 34px rgba(15, 23, 42, 0.22);
+}
+
+.dark-theme .execution-summary-strip::before {
+	content: "";
+	position: absolute;
+	top: -70px;
+	right: -60px;
+	width: 180px;
+	height: 180px;
+	border-radius: 999px;
+	background: radial-gradient(circle, rgba(96, 165, 250, 0.16), transparent 70%);
+	pointer-events: none;
+}
+
+.dark-theme .section-collapse-button {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.16);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.dark-theme .saved-item {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.68));
+	border-color: rgba(148, 163, 184, 0.08);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .required-actions-list .saved-item:nth-child(3n) {
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 44%), linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.71));
+}
+
+.dark-theme .saved-action-button,
+.dark-theme .action-pill {
+	background: rgba(255, 255, 255, 0.045);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.dark-theme .recommended-card {
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.7));
+	border-color: rgba(96, 165, 250, 0.18);
+	border-left: none;
+}
+
+.dark-theme .recommended-card::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 18px;
+	bottom: 18px;
+	width: 4px;
+	border-radius: 999px;
+	background: linear-gradient(to bottom, #60a5fa, #a855f7);
+	box-shadow: 0 0 12px rgba(96, 165, 250, 0.45);
+}
+
+.dark-theme .completed-item,
+.dark-theme .completed-row {
+	opacity: 0.78;
+	filter: saturate(0.82);
+	background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.12), transparent 42%), rgba(8, 24, 28, 0.88);
+	border-color: rgba(34, 197, 94, 0.14);
+}
+
+.dark-theme .completed-item .saved-title,
+.dark-theme .completed-row .saved-title {
+	text-decoration: none;
+	color: #4ade80;
+}
+
+.dark-theme .timeline-card {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 36%), rgba(15, 23, 42, 0.86);
+	border-color: rgba(120, 140, 255, 0.14);
+}
+
+.dark-theme .timeline-list::before {
+	background: linear-gradient(to bottom, rgba(96, 165, 250, 0.45), rgba(168, 85, 247, 0.22));
+	box-shadow: 0 0 18px rgba(96, 165, 250, 0.22);
+}
+
+.dark-theme .timeline-item {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.78), rgba(15, 23, 42, 0.68));
+	border-color: rgba(148, 163, 184, 0.12);
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.dark-theme .timeline-positive {
+	color: #4ade80;
+	text-shadow: 0 0 12px rgba(74, 222, 128, 0.36);
+}
+
+.dark-theme .timeline-negative {
+	color: #f87171;
+	text-shadow: 0 0 12px rgba(248, 113, 113, 0.32);
+}
+
 @keyframes modalUp {
 	from {
 		opacity: 0;
