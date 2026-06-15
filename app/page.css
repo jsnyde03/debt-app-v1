@@ -4202,9 +4202,136 @@ button:active,
 }
 
 .dark-theme .bills-modal {
-	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.10), transparent 38%), linear-gradient(180deg, rgba(15, 23, 42, 0.98), rbga(2, 6, 23, 0.98));
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.18), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent 38%), linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
 	border-color: rgba(255, 255, 255, 0.08);
 	box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48), 0 0 42px rgba(59, 130, 246, 0.14);
+}
+
+.dark-theme .bills-modal .center-modal-header {
+	padding-bottom: 1rem;
+	margin-bottom: 1rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.dark-theme .bills-modal .center-modal-header h2 {
+	font-size: 1.45rem;
+	font-weight: 800;
+	letter-spacing: -0.035em;
+}
+
+.dark-theme .bills-modal .center-modal-header p {
+	margin-top: 0.35rem;
+	font-size: 0.95rem;
+	line-height: 1.4;
+	color: rgba(255, 255, 255, 0.68);
+}
+
+.dark-theme .bills-modal input,
+.dark-theme .bills-modal select {
+	min-height: 54px;
+	background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.16);
+	border-radius: 18px;
+	color: rgba(255, 255, 255, 0.94);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .bills-modal input:focus,
+.dark-theme .bills-modal select:focus {
+	border-color: rgba(96, 165, 250, 0.55);
+	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+	outline: none;
+}
+
+.dark-theme .bills-modal .field label {
+	color: rgba(255, 255, 255, 0.78);
+	font-size: 0.82rem;
+	font-weight: 800;
+	letter-spacing: 0.01em;
+}
+
+.dark-theme .bills-modal .preset-toggle-button {
+	min-height: 54px;
+	border-radius: 18px;
+	background: radial-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.72));
+	border: 1px solid rgba(148, 163, 184, 0.16);
+	color: rgba(255, 255, 255, 0.92);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.dark-theme .bills-modal .preset-pill {
+	border-radius: 16px;
+	background: rgba(255, 255, 255, 0.045);
+	border-color: rgba(255, 255, 255, 0.08);
+	color: rgba(255, 255, 255, 0.82);
+}
+
+.dark-theme .bills-modal .modal-primary-action {
+	min-height: 56px;
+	border-radius: 18px;
+	background: linear-gradient(135deg, #3b82f6, #7c3aed);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	box-shadow: 0 14px 30px rgba(59, 130, 246, 0.24), 0 0 34px rgba(124, 38, 237, 0.14);
+}
+
+.dark-theme .bills-modal .text-action-button,
+.dark-theme .bills-modal .text-action-list {
+	background: rgba(255, 255, 255, 0.045);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	color: rgba(255, 255, 255, 0.82);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.dark-theme .bills-modal select option {
+	background: #0f172a;
+	color: rgba(255, 255, 255, 0.94);
+}
+
+.dark-theme .bills-modal select {
+	appearance: none;
+	-webkit-appearance: none;
+	background-image: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72)), url("data:image/svg+xml,%3Csvg xmlns-'http://www.w3.org/2000/svg' width='20' height-'20' viewBox-'0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%23CBD5E1' stroke-width='2' stroke-linecap-'round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	background-repeat: no-repeat, no-repeat;
+	background-position: center, right 1rem center;
+	background-size: auto, 18px;
+	padding-right: 3rem;
+
+}
+
+.dark-theme .bills-modal .living-expense-editor-row {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.70));
+	border-color: rgba(148, 163, 184, 0.10);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .bills-modal .living-expense-editor-row:nth-child(3n) {
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.10), transparent 42%), linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.70));
+}
+
+.dark-theme .bills-modal .living-status-enabled {
+	color: #4ade80;
+	text-shadow: 0 0 12px rgba(74, 22, 128, 0.18);
+}
+
+.dark-theme .bills-modal .living-expense-amount-input {
+	width: 92px;
+	min-height: 48px;
+	border-radius: 16px;
+	text-align: center;
+}
+
+.dark-theme .bills-modal .action-pill-completed {
+	background: linear-gradient(135deg, #3b82f6, #60a5fa);
+	border-color: rgba(255, 255, 255, 0.12);
+	box-shadow: 0 0 18px rgba(59, 130, 246, 0.18);
+}
+
+.dark-theme .bills-modal .action-pill {
+	background: rgba(255, 255, 255, 0.045);
+	border-color: rgba(255, 255, 255, 0.08);
+	color: rgba(255, 255, 255, 0.82);
 }
 
 @keyframes modalUp {
