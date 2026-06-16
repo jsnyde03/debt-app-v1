@@ -1,5 +1,4 @@
 import { allocatePaycheck } from "../engine/allocatePaycheck";
-import { getNextPaycheckDate } from "../payCycle/getNextPaycheckDate";
 import type { Debt, RequiredExpense } from "../storage/debtPlannerStorage";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
@@ -25,28 +24,18 @@ export type TimelineItem = {
     category?: string;
 }
 
-export type TimelineRecommendedAction = {
-    targetId: string;
-    label: string;
-    category: "emergency" | "snowball" | "optional_goal";
-    recommendedAmount: number;
-    actualAmount: number;
-    paymentSource?: "paycheck" | "external";
-}
-
-export function buildTimelineItems({ 
+export function buildTimelineItems({
     result,
-    requiredExpenses, 
-    debts, 
-    currentDate, 
+    requiredExpenses,
+    debts,
+    currentDate,
     nextPaycheckDate,
-    completedRecommendedActions = [],
-}: { 
-    result: AllocationResult; 
-    requiredExpenses: RequiredExpense[]; 
-    debts: Debt[]; currentDate: string; 
+}: {
+    result: AllocationResult;
+    requiredExpenses: RequiredExpense[];
+    debts: Debt[];
+    currentDate: string;
     nextPaycheckDate: string;
-    completedRecommendedActions?: TimelineRecommendedAction[];
 }) {
     const items: Omit<TimelineItem, "runningCash">[] = [
         {
@@ -63,8 +52,7 @@ export function buildTimelineItems({
             label: "Living Reserve",
             amount: result.livingExpenseReserve,
             type: "living_reserve",
-            status: "planned",
-        })
+        });
     }
 
     const isDueBeforeNextPaycheck = (dueDate: string) => {
@@ -72,7 +60,7 @@ export function buildTimelineItems({
         const next = new Date(`${nextPaycheckDate}T00:00:00`);
 
         return due < next;
-    }
+    };
 
     for (const expense of requiredExpenses.filter((item) => isDueBeforeNextPaycheck(item.dueDate))) {
         items.push({
@@ -82,40 +70,32 @@ export function buildTimelineItems({
                 : `Pay ${expense.name}`,
             amount: expense.amount,
             type: expense.isAutopay ? "autopay_expense" : "expense",
-            status: expense.isPaidThisCycle ? "paid" : "planned",
-            isPaid: expense.isPaidThisCycle,
             category: expense.category,
         });
     }
 
-    for (const debt of debts.filter((item) =>  isDueBeforeNextPaycheck(item.dueDate))) {
-        const minimumAmount = debt.minimumPayment;
-        const isPaid = debt.minimumPaidThisCycle ?? debt.isPaidThisCycle ?? false;
+    for (const debt of debts.filter((item) => isDueBeforeNextPaycheck(item.dueDate))) {
+        if (debt.balance <= 0) continue;
 
         items.push({
             date: debt.dueDate,
             label: debt.isAutopay
                 ? `Reserve minimum for ${debt.name}`
                 : `Pay minimum on ${debt.name}`,
-            amount: minimumAmount,
+            amount: debt.minimumPayment,
             type: debt.isAutopay ? "autopay_debt" : "minimum_debt",
-            status: isPaid ? "paid" : "planned",
-            isPaid,
-        })
+        });
     }
 
-
-
-    for (const action of completedRecommendedActions) {
-
+    const allocationCategories = new Set(["emergency", "snowball", "optional_goal"]);
+    for (const allocation of result.allocations) {
+        if (!allocationCategories.has(allocation.category)) continue;
         items.push({
-            date: currentDate,
-            label: action.label,
-            amount: action.actualAmount,
-            type: action.category,
-            isExternal: action.paymentSource === "external",
-            status: action.paymentSource === "external" ? "external" : "paid",
-        })
+            date: nextPaycheckDate,
+            label: allocation.label,
+            amount: allocation.amount,
+            type: allocation.category as "emergency" | "snowball" | "optional_goal",
+        });
     }
 
     const sortedItems = [...items].sort((a, b) => {

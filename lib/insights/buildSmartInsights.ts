@@ -62,7 +62,7 @@ export function buildSmartInsights({ safeExtraPayment, projectedBuffer, required
         insights.push({
             title: "Buffer looks stable",
             message: `Your projected cushion is ${formatInsightCurrency(projectedBuffer)} after required payments and planned payoff activity.`,
-            action: "You can continue the current plan without needing a stablization adjustment.",
+            action: "You can continue the current plan without needing a stabilization adjustment.",
             severity: "good",
         });
     }
@@ -84,7 +84,7 @@ export function buildSmartInsights({ safeExtraPayment, projectedBuffer, required
         insights.push({
             title: "Near Payoff Opportunity",
             message: `${bestCashFlowUnlockDebt.name} is within ${formatInsightCurrency(gap)} of what your current extra payoff can cover. Paying it off would free ${formatInsightCurrency(bestCashFlowUnlockDebt.minimumPayment)} in future minimums.`,
-            action: projectedBuffer < 200 ? "Focus on restoring cushion first, then target this payoff opportunity once cash pressure inmproves" : "Consider targeting this once the extra amount is available without weakening your buffer.",
+            action: projectedBuffer < 200 ? "Focus on restoring cushion first, then target this payoff opportunity once cash pressure improves" : "Consider targeting this once the extra amount is available without weakening your buffer.",
             severity: projectedBuffer < 200 ? "warning" : "good",
         });
     }

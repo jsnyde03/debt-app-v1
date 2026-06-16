@@ -7,22 +7,12 @@ import { triggerLightHaptic } from "@/lib/mobile/haptics";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 
-type TimelineRecommendedAction = {
-    targetId: string;
-    label: string;
-    category: "emergency" | "snowball" | "optional_goal";
-    recommendedAmount: number;
-    actualAmount: number;
-    paymentSource?: "paycheck" | "external";
-}
-
 type TimelineSectionProps = {
     result: AllocationResult | null;
     requiredExpenses: RequiredExpense[];
     debts: Debt[];
     currentDate: string;
     nextPaycheckDate: string;
-    completedRecommendedActions: TimelineRecommendedAction[];
 };
 
 function formatTimelineDate(date: string) {
@@ -118,7 +108,6 @@ export function TimelineSection({
     debts,
     currentDate,
     nextPaycheckDate,
-    completedRecommendedActions,
 }: TimelineSectionProps) {
 
     const [timelineExpanded, setTimelineExpanded] = useState(false);
@@ -133,7 +122,6 @@ export function TimelineSection({
         debts,
         currentDate,
         nextPaycheckDate,
-        completedRecommendedActions,
     });
 
 

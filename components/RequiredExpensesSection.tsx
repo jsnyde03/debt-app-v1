@@ -204,15 +204,6 @@ export function RequiredExpensesSection({
 
                         <div className="compact-expense-edit-grid advanced-grid">
                             <div className="field">
-                                <label>Due Date</label>
-                                <input
-                                    type="date"
-                                    value={editDueDate}
-                                    onChange={(event) => setEditDueDate(event.target.value)}
-                                />
-                            </div>
-
-                            <div className="field">
                                 <label>Recurrence</label>
                                 <select
                                     value={editRecurrence}
@@ -557,7 +548,7 @@ export function RequiredExpensesSection({
                                     onChange={(event) => onExpenseDueDateChange(event.target.value)}
                                 />
 
-                                {expenseErrors.amount && (
+                                {expenseErrors.dueDate && (
                                     <p className="validation-error">
                                         {expenseErrors.dueDate}
                                     </p>

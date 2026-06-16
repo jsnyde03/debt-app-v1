@@ -16,7 +16,7 @@ function assertExists<T>(value: T | undefined | null, label: string): T {
 	return value;
 }
 
-function testPaidRequiredExpenseStaysInTimelineAndStillReducesCash() {
+function testRequiredExpenseAppearsInTimelineRegardlessOfPaidStatus() {
 	const result = allocatePaycheck({
 		paycheckAmount: 1000,
 		currentDate: "2026-06-01",
@@ -52,19 +52,17 @@ function testPaidRequiredExpenseStaysInTimelineAndStillReducesCash() {
 		debts: [],
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
-		completedRecommendedActions: [],
 	});
 
 	const rentItem = assertExists(
 		timeline.find((item) => item.label === "Pay Rent"),
-		"Paid required expense timeline item"
+		"Required expense appears in timeline snapshot"
 	);
 
-	assertEqual(rentItem.status, "paid", "Paid required expense status");
-	assertEqual(rentItem.runningCash, 600, "Paid required expense still reduces timeline cash");
+	assertEqual(rentItem.runningCash, 600, "Required expense reduces timeline cash regardless of paid status");
 }
 
-function testPaidDebtMinimumStaysInTimelineAndUsesPlannedMinimum() {
+function testDebtMinimumAppearsInTimelineWithFullMinimumAmount() {
 	const result = allocatePaycheck({
 		paycheckAmount: 1000,
 		currentDate: "2026-06-01",
@@ -106,26 +104,35 @@ function testPaidDebtMinimumStaysInTimelineAndUsesPlannedMinimum() {
 		],
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
-		completedRecommendedActions: [],
 	});
 
 	const visaItem = assertExists(
 		timeline.find((item) => item.label === "Pay minimum on Visa"),
-		"Paid debt minimum timeline item"
+		"Debt minimum appears in timeline snapshot"
 	);
 
-	assertEqual(visaItem.amount, 75, "Timeline uses planned minimum instead of reduced balance");
-	assertEqual(visaItem.status, "paid", "Paid debt minimum status");
-	assertEqual(visaItem.runningCash, 925, "Paid debt minimum still reduces timeline cash");
+	assertEqual(visaItem.amount, 75, "Timeline shows the full planned minimum payment amount");
+	assertEqual(visaItem.runningCash, 925, "Debt minimum reduces timeline cash regardless of paid status");
 }
 
-function testOutsideRecommendedActionDoesNotReduceTimelineCash() {
+function testPaidOffDebtDoesNotAppearInTimeline() {
 	const result = allocatePaycheck({
 		paycheckAmount: 1000,
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
 		expenses: [],
-		debts: [],
+		debts: [
+			{
+				id: "visa",
+				name: "Visa",
+				balance: 0,
+				minimumPayment: 75,
+				apr: 24.99,
+				dueDate: "2026-06-06",
+				type: "debt",
+				recurrence: "monthly",
+			},
+		],
 		goals: [],
 		strategy: "snowball",
 		paycheckBuffer: 0,
@@ -134,37 +141,49 @@ function testOutsideRecommendedActionDoesNotReduceTimelineCash() {
 	const timeline = buildTimelineItems({
 		result,
 		requiredExpenses: [],
-		debts: [],
-		currentDate: "2026-06-01",
-		nextPaycheckDate: "2026-06-15",
-		completedRecommendedActions: [
+		debts: [
 			{
-				targetId: "visa",
-				label: "Extra payment to Visa",
-				category: "snowball",
-				recommendedAmount: 100,
-				actualAmount: 100,
-				paymentSource: "external",
+				id: "visa",
+				name: "Visa",
+				balance: 0,
+				minimumPayment: 75,
+				apr: 24.99,
+				dueDate: "2026-06-06",
+				type: "debt",
+				recurrence: "monthly",
 			},
 		],
+		currentDate: "2026-06-01",
+		nextPaycheckDate: "2026-06-15",
 	});
 
-	const externalItem = assertExists(
-		timeline.find((item) => item.label === "Extra payment to Visa"),
-		"External recommended timeline item"
+	assertEqual(
+		timeline.some((item) => item.label === "Pay minimum on Visa"),
+		false,
+		"Paid off debt (balance=0) does not appear in timeline"
 	);
-
-	assertEqual(externalItem.status, "external", "External recommended status");
-	assertEqual(externalItem.runningCash, 1000, "External recommended action does not reduce paycheck timeline cash");
 }
 
-function testPaycheckRecommendedActionDoesReduceTimelineCash() {
+function testResultAllocationsAppearInTimeline() {
+	const debts = [
+		{
+			id: "visa",
+			name: "Visa",
+			balance: 200,
+			minimumPayment: 25,
+			apr: 24.99,
+			dueDate: "2026-06-06",
+			type: "debt" as const,
+			recurrence: "monthly" as const,
+		},
+	];
+
 	const result = allocatePaycheck({
 		paycheckAmount: 1000,
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
 		expenses: [],
-		debts: [],
+		debts,
 		goals: [],
 		strategy: "snowball",
 		paycheckBuffer: 0,
@@ -173,28 +192,17 @@ function testPaycheckRecommendedActionDoesReduceTimelineCash() {
 	const timeline = buildTimelineItems({
 		result,
 		requiredExpenses: [],
-		debts: [],
+		debts,
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
-		completedRecommendedActions: [
-			{
-				targetId: "visa",
-				label: "Extra payment to Visa",
-				category: "snowball",
-				recommendedAmount: 100,
-				actualAmount: 100,
-				paymentSource: "paycheck",
-			},
-		],
 	});
 
-	const paycheckItem = assertExists(
+	const snowballItem = assertExists(
 		timeline.find((item) => item.label === "Extra payment to Visa"),
-		"Paycheck-funded recommended timeline item"
+		"Snowball allocation from result.allocations appears in timeline"
 	);
 
-	assertEqual(paycheckItem.status, "paid", "Paycheck-funded recommended status");
-	assertEqual(paycheckItem.runningCash, 900, "Paycheck-funded recommended action reduces timeline cash");
+	assertEqual(snowballItem.amount, 175, "Snowball allocation amount is correct");
 }
 
 function testTimelineExcludesItemsAfterNextPaycheck() {
@@ -231,7 +239,6 @@ function testTimelineExcludesItemsAfterNextPaycheck() {
 		debts: [],
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
-		completedRecommendedActions: [],
 	});
 
 	assertEqual(
@@ -317,10 +324,10 @@ function testForecastNeverGoesBelowZeroDebt() {
 }
 
 function runV11RegressionTests() {
-	testPaidRequiredExpenseStaysInTimelineAndStillReducesCash();
-	testPaidDebtMinimumStaysInTimelineAndUsesPlannedMinimum();
-	testOutsideRecommendedActionDoesNotReduceTimelineCash();
-	testPaycheckRecommendedActionDoesReduceTimelineCash();
+	testRequiredExpenseAppearsInTimelineRegardlessOfPaidStatus();
+	testDebtMinimumAppearsInTimelineWithFullMinimumAmount();
+	testPaidOffDebtDoesNotAppearInTimeline();
+	testResultAllocationsAppearInTimeline();
 	testTimelineExcludesItemsAfterNextPaycheck();
 	testForecastStatusThresholds();
 	testForecastCanApplyBufferTrend();

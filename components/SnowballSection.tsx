@@ -478,7 +478,7 @@ export function SnowballSection({
 							<strong>{recommendedProjection.estimatedDebtFreeDate}</strong>
 						</div>
 					)}
-					{canViewForecasting && canViewSmartInsights && canViewForecasting && canViewWhatIfScenarios && (
+					{canViewForecasting && canViewSmartInsights && canViewWhatIfScenarios && (
 						<div className="premium-payoff-hero">
 							<div>
 								<span className="premium-eyebrow">👑 Premium</span>
@@ -505,6 +505,7 @@ export function SnowballSection({
 						<div className="strategy-comparison-header">
 							<div>
 								<h3>Smart Insights</h3>
+								<p>Personalized guidance based on your cash flow and payoff activity.</p>
 							</div>
 							{!canViewSmartInsights && (
 
@@ -1165,7 +1166,10 @@ export function SnowballSection({
 							onClick={() => { triggerLightHaptic(); setShowPayoffOrder((current) => !current); }}
 						>
 							<div className="section-collapse-left">
-								<h2>Payoff Order</h2>
+								<div>
+									<h2>Payoff Order</h2>
+									<p className="section-collapse-subtitle">Debts ranked by your chosen strategy.</p>
+								</div>
 								<span className="section-count-pill">
 									{payoffOrder.length}
 								</span>

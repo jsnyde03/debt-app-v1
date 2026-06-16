@@ -105,6 +105,9 @@
 	--status-good-strong: #15803d;
 	--status-warn-strong: #b45309;
 	--status-bad-strong: #b91c1c;
+
+	--overlay-bg: rgba(15, 23, 42, 0.45);
+	--sheet-shadow: 0 -12px 40px rgba(0, 0, 0, 0.18);
 }
 
 .dark-theme {
@@ -202,6 +205,9 @@
 	--status-good-strong: #34D399;
 	--status-warn-strong: #FBBF24;
 	--status-bad-strong: #F87171;
+
+	--overlay-bg: rgba(0, 0, 0, 0.65);
+	--sheet-shadow: 0 -12px 40px rgba(0, 0, 0, 0.55);
 }
 
 .app {
@@ -1814,7 +1820,7 @@ button:active {
 	position: fixed;
 	inset: 0;
 	z-index: 100;
-	background: rgba(15, 23, 42, 0.45);
+	background: var(--overlay-bg);
 	backdrop-filter: blur(8px);
 	display: flex;
 	align-items: flex-end;
@@ -1830,8 +1836,18 @@ button:active {
 	background: var(--bg-elevated);
 	border: 1px solid var(--border-color);
 	padding: 1rem;
-	box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.18);
+	box-shadow: var(--sheet-shadow);
 	animation: slideUpSheet 0.22s ease;
+}
+
+.settings-sheet input,
+.settings-sheet select {
+	background: var(--surface-muted);
+	border-color: var(--border-color);
+}
+
+.settings-sheet .settings-sheet-content > h2 {
+	display: none;
 }
 
 .settings-sheet .field label {
@@ -1924,13 +1940,13 @@ button:active {
 	align-items: center;
 	padding: 0.38rem 0.7rem;
 	border-radius: var(--radius-pill);
-	background: rgba(37, 99, 235, 0.01);
+	background: var(--accent-soft);
 	color: var(--accent-color);
+	border: 1px solid var(--accent-color);
 	font-size: 0.72rem;
 	font-weight: 800;
 	letter-spacing: 0.02em;
 	margin-bottom: 0.75rem;
-
 }
 
 .section-collapse-subtitle {
@@ -4161,6 +4177,57 @@ button:active,
 	font-size: 1rem;
 	font-weight: 900;
 	box-shadow: 0 0 32px rgba(59, 130, 246, 0.22);
+}
+
+.restore-button {
+	background: transparent;
+	color: var(--text-secondary);
+	border: 1px solid var(--border-color);
+	font-size: 0.88rem;
+	font-weight: 600;
+	min-height: 44px;
+	border-radius: 14px;
+}
+
+.restore-button:hover {
+	background: var(--surface-muted);
+	color: var(--text-primary);
+}
+
+.upgrade-legal-row,
+.settings-legal-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding-top: 4px;
+}
+
+.settings-legal-row {
+	padding-top: 16px;
+	border-top: 1px solid var(--border-soft);
+	margin-top: 8px;
+}
+
+.legal-link {
+	font-size: 0.76rem;
+	color: var(--text-tertiary);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+}
+
+.legal-link:hover {
+	color: var(--text-secondary);
+}
+
+.legal-separator {
+	color: var(--text-tertiary);
+	font-size: 0.76rem;
+	line-height: 1;
 }
 
 .upgrade-title-stack {

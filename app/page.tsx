@@ -340,6 +340,14 @@ export default function Home() {
 
         async function loadSubscription() {
             try {
+                if (process.env.NODE_ENV === "development") {
+                    const mock = localStorage.getItem("debtPlanner.mockSubscription");
+                    if (mock === "premium") {
+                        setSubscriptionPlan("premium");
+                        return;
+                    }
+                }
+
                 await initializeRevenueCat();
 
                 const plan = await getSubscriptionPlan();
@@ -1214,7 +1222,6 @@ export default function Home() {
                             debts={debts}
                             currentDate={currentDate}
                             nextPaycheckDate={nextPaycheckDate}
-                            completedRecommendedActions={completedRecommendedActions}
                         />
                     </>
                 )}
@@ -1487,7 +1494,14 @@ export default function Home() {
                         onClick={(event) => event.stopPropagation()}
                     >
                         <div className="settings-sheet-header">
-                            <h2>{isFirstRunSetup ? "Create Your First Plan" : "Plan Settings"}</h2>
+                            <div>
+                                <h2>{isFirstRunSetup ? "Create Your First Plan" : "Plan Settings"}</h2>
+                                {!isFirstRunSetup && (
+                                    <p className="section-collapse-subtitle">
+                                        Adjust paycheck, pay cycle, and plan settings.
+                                    </p>
+                                )}
+                            </div>
 
                             {!isFirstRunSetup && (
                                 <button
@@ -1552,6 +1566,26 @@ export default function Home() {
                             onRolloverPayCycle={handleRolloverPayCycle}
                             onResetToToday={handleResetToToday}
                         />
+
+                        <div className="settings-legal-row">
+                            <a
+                                href="https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="legal-link"
+                            >
+                                Privacy Policy
+                            </a>
+                            <span className="legal-separator">·</span>
+                            <a
+                                href="https://github.com/jsnyde03/debt-planner-stie/blob/main/Paycheck%20Debt%20Planner%20Support"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="legal-link"
+                            >
+                                Support
+                            </a>
+                        </div>
                     </div>
                 </div>
             )}

@@ -905,7 +905,10 @@ export function ResultsSection({
 
                 >
                     <div className="section-collapse-left">
-                        <h2>Required Actions</h2>
+                        <div>
+                            <h2>Required Actions</h2>
+                            <p className="section-collapse-subtitle">Bills and minimums due this paycheck.</p>
+                        </div>
 
                         <span className="section-count-pill">
                             {unpaidRequiredActions.length}
@@ -1069,7 +1072,10 @@ export function ResultsSection({
                         }}
                     >
                         <div className="section-collapse-left">
-                            <h2>Completed This Cycle</h2>
+                            <div>
+                                <h2>Completed This Cycle</h2>
+                                <p className="section-collapse-subtitle">Payments confirmed for this pay cycle.</p>
+                            </div>
 
                             <span className="section-count-pill">
                                 {completedRequiredActions.length}
@@ -1106,9 +1112,8 @@ export function ResultsSection({
                 <div className="plan-dashboard-section">
                     <h2>Optional Goals</h2>
 
-                    <p className="empty-state">
-                        These are optional savings contributions after required
-                        payments and debt payoff recommendations.
+                    <p className="section-collapse-subtitle">
+                        Optional savings contributions after required payments and debt payoff.
                     </p>
 
                     {optionalGoalActions.map((item) => {

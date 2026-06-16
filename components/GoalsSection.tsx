@@ -215,7 +215,7 @@ export function GoalsSection({
                 <div>
                     <h2>Goals</h2>
 
-                    <p className="secton-collapse-subtitle">
+                    <p className="section-collapse-subtitle">
                         Track Savings and Emergency Fund.
                     </p>
                 </div>
@@ -375,7 +375,7 @@ export function GoalsSection({
                                 onChange={(event) => onGoalTargetAmountChange(event.target.value)}
                             />
 
-                            {goalErrors.name && (
+                            {goalErrors.targetAmount && (
                                 <p className="validation-error">
                                     {goalErrors.targetAmount}
                                 </p>
