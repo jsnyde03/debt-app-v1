@@ -105,28 +105,8 @@ export function buildTimelineItems({
         });
     }
 
-    // Build a set of targetId:category keys that have already been completed from paycheck funds.
-    // Planned allocations for these targets are suppressed — the completed entry replaces them.
-    const completedKeys = new Set(
-        completedRecommendedActions
-            .filter((a) => a.paymentSource !== "external")
-            .map((a) => `${a.targetId}:${a.category}`)
-    );
-
-    // Planned recommended allocations — skip any whose target was already completed this cycle
-    const allocationCategories = new Set(["emergency", "snowball", "optional_goal"]);
-    for (const allocation of result.allocations) {
-        if (!allocationCategories.has(allocation.category)) continue;
-        if (completedKeys.has(`${allocation.targetId}:${allocation.category}`)) continue;
-        items.push({
-            date: nextPaycheckDate,
-            label: allocation.label,
-            amount: allocation.amount,
-            type: allocation.category as "emergency" | "snowball" | "optional_goal",
-        });
-    }
-
-    // Completed recommended actions (snowball payments and emergency contributions already marked paid)
+    // Only show extra payments (snowball/emergency/optional_goal) when the user has actually
+    // marked them paid — they are optional and should not appear as planned items.
     for (const action of completedRecommendedActions) {
         if (action.paymentSource === "external") continue;
         items.push({
