@@ -387,7 +387,7 @@ function makeBaseInsightParams(overrides: Partial<Parameters<typeof buildSmartIn
 	return {
 		safeExtraPayment: 200,
 		projectedBuffer: 300,
-		requiredTotal: 800,
+
 		snowballDebtFreeDate: "June 2028",
 		avalancheDebtFreeDate: "June 2028",
 		snowballInterest: 1500,

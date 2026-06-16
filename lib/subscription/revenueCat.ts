@@ -2,7 +2,7 @@ import { Purchases, LOG_LEVEL } from "@revenuecat/purchases-capacitor";
 
 const REVENUECAT_API_KEY = "appl_XUWODZnbbJFPbdMTgBTyKNAGGyp";
 const PREMIUM_ENTITLEMENT_ID = "premium";
-const BYPASS_REVENUECAT = process.env.NEXT_PUBLIC_BYPASS_REVENUECAT === "true";
+const BYPASS_REVENUECAT = process.env.NEXT_PUBLIC_BYPASS_REVENUECAT === "";
 
 let hasConfiguredRevenueCat = false;
 

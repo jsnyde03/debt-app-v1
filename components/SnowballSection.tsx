@@ -211,7 +211,6 @@ export function SnowballSection({
 		safeExtraPayment: remainingSnowballExtra,
 		projectedBuffer,
 		debts: debtsAfterCompletedPayments,
-		requiredTotal: result?.totalRequired ?? 0,
 		snowballDebtFreeDate: snowballComparisonProjection.estimatedDebtFreeDate,
 		avalancheDebtFreeDate: avalancheComparisonProjection.estimatedDebtFreeDate,
 		snowballInterest: snowballComparisonProjection.totalInterestPaid,
@@ -686,7 +685,7 @@ export function SnowballSection({
 
 												<p>
 													{recommendedStrategy === "avalanche"
-														? `Avalanche currently appears stronger because it could save about ${formatCurrency(projectedInterestSavings)} in projected interest${projectedMonthDifference > 0 ? ` and improve the payout timeline by about ${projectedMonthDifference} month${projectedMonthDifference === 1 ? "" : "s"}` : ""}.`
+														? `Avalanche currently appears stronger because it could save about ${formatCurrency(projectedInterestSavings)} in projected interest${fasterStrategy === "avalanche" && projectedMonthDifference > 0 ? ` and reduce the payoff timeline by about ${projectedMonthDifference} month${projectedMonthDifference === 1 ? "" : "s"}` : ""}.`
 														: "Snowball may currently be easier to sustain because the projected interest difference is relatively small and quicker wins can help maintain momentum."}
 												</p>
 
@@ -813,7 +812,7 @@ export function SnowballSection({
 											/>
 
 											<div className="simulation-quick-actions">
-												{[25, 50, 100, 250].map((amount) => (
+												{[50, 100, 500, 1000].map((amount) => (
 													<button
 														key={amount}
 														type="button"
@@ -1023,12 +1022,18 @@ export function SnowballSection({
 
 												<div className="forecast-summary-item">
 													<span>Debt Reduction</span>
-													<strong>-{formatCurrency(forecastMonths[0].projectedDebtBalance - forecastMonths[forecastMonths.length - 1].projectedDebtBalance)}</strong>
+													<strong>-{formatCurrency(totalDebtBalance - forecastMonths[forecastMonths.length - 1].projectedDebtBalance)}</strong>
 												</div>
 											</div>
 
 											<div className="forecast-summary-status">
-												Healthy payoff momentum projected
+												{forecastMonths.some((m) => m.status === "recovery")
+													? "Cash recovery required in upcoming cycles"
+													: forecastMonths.some((m) => m.status === "pressure")
+													? "Elevated cash pressure projected ahead"
+													: forecastMonths.some((m) => m.status === "tight")
+													? "Cash flow may be tight in upcoming cycles"
+													: "Healthy payoff momentum projected"}
 											</div>
 										</div>
 										{forecastMonths.map((month, index) => (

@@ -731,7 +731,7 @@ export default function Home() {
     function handleUpdateDebt(
         id: string,
         updates: Partial<
-            Pick<Debt, "balance" | "minimumPayment" | "dueDate" | "apr" | "isAutopay">
+            Pick<Debt, "balance" | "minimumPayment" | "dueDate" | "apr" | "isAutopay" | "recurrence">
         >
     ) {
         setDebts((current) =>

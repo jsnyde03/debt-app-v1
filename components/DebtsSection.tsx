@@ -57,7 +57,7 @@ type DebtSectionProps = {
     onRemoveDebt: (id: string) => void;
     onUpdateDebt: (
         id: string,
-        updates: Partial<Pick<Debt, "balance" | "minimumPayment" | "dueDate" | "apr" | "isAutopay">>) => void;
+        updates: Partial<Pick<Debt, "balance" | "minimumPayment" | "dueDate" | "apr" | "isAutopay" | "recurrence">>) => void;
 };
 
 function sortDebts(debts: DebtWithDisplayBalance[], sortBy: DebtSortOption, direction: "asc" | "desc") {
@@ -115,6 +115,7 @@ export function DebtsSection({
     const [editApr, setEditApr] = useState("");
     const [editDueDate, setEditDueDate] = useState("");
     const [editIsAutopay, setEditIsAutopay] = useState(false);
+    const [editRecurrence, setEditRecurrence] = useState<Recurrence>("monthly");
     const [searchTerm, setSearchTerm] = useState("");
     const [sortBy, setSortBy] = useState<DebtSortOption>("dueDate");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -164,6 +165,7 @@ export function DebtsSection({
         setEditApr(String(debt.apr));
         setEditDueDate(debt.dueDate);
         setEditIsAutopay(debt.isAutopay ?? false);
+        setEditRecurrence(debt.recurrence ?? "monthly");
     }
 
     function cancelEditing() {
@@ -174,6 +176,7 @@ export function DebtsSection({
         setEditApr("");
         setEditDueDate("");
         setEditIsAutopay(false);
+        setEditRecurrence("monthly");
     }
 
     function saveEditing(id: string) {
@@ -193,6 +196,7 @@ export function DebtsSection({
             apr,
             dueDate: editDueDate,
             isAutopay: editIsAutopay,
+            recurrence: editRecurrence,
         });
 
         cancelEditing();
@@ -262,6 +266,22 @@ export function DebtsSection({
                                     value={editDueDate}
                                     onChange={(event) => setEditDueDate(event.target.value)}
                                 />
+                            </div>
+
+                            <div className="field">
+                                <label>Recurrence</label>
+                                <select
+                                    value={editRecurrence}
+                                    onChange={(event) => { triggerLightHaptic(); setEditRecurrence(event.target.value as Recurrence); }}
+                                >
+                                    <option value="one-time">One Time</option>
+                                    <option value="per-paycheck">Every Paycheck</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="biweekly">Every 2 Weeks</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="quarterly">Quarterly</option>
+                                    <option value="annually">Yearly</option>
+                                </select>
                             </div>
 
                             <div className="field checkbox-field">

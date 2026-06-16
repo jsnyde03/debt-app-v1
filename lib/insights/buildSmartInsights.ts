@@ -12,7 +12,6 @@ export type SmartInsight = {
 type BuildSmartInsightParams = {
     safeExtraPayment: number;
     projectedBuffer: number;
-    requiredTotal: number;
     snowballDebtFreeDate: string;
     avalancheDebtFreeDate: string;
     snowballInterest: number;
@@ -20,7 +19,7 @@ type BuildSmartInsightParams = {
     debts: Debt[];
 };
 
-export function buildSmartInsights({ safeExtraPayment, projectedBuffer, requiredTotal, snowballDebtFreeDate, avalancheDebtFreeDate, snowballInterest, avalancheInterest, debts}: BuildSmartInsightParams): SmartInsight[] {
+export function buildSmartInsights({ safeExtraPayment, projectedBuffer, snowballDebtFreeDate, avalancheDebtFreeDate, snowballInterest, avalancheInterest, debts}: BuildSmartInsightParams): SmartInsight[] {
     const insights: SmartInsight[] = [];
 
     const activeDebts = debts.filter((debt) => debt.balance > 0);
@@ -69,22 +68,35 @@ export function buildSmartInsights({ safeExtraPayment, projectedBuffer, required
 
     if (safeExtraPayment > 0 && projectedBuffer >= 200) {
         const payoffTarget = smallestDebt ?? highestAprDebt;
+        const targetAmount = payoffTarget ? Math.min(safeExtraPayment, payoffTarget.balance) : safeExtraPayment;
+        const coversFullBalance = payoffTarget ? safeExtraPayment >= payoffTarget.balance : false;
 
         insights.push({
             title: "Safe Extra Payment",
-            message: payoffTarget ? `You can safely apply ${formatInsightCurrency(safeExtraPayment)} toward ${payoffTarget.name} this cycle without touching required payments or your protected cushion.` : `You can safely apply ${formatInsightCurrency(safeExtraPayment)} toward debt this cycle without touching required payments or your protected cushion.`,
-            action: projectedBuffer < 200 ? "Because the cycle is tight, use the reduced amount above before making the full extra payment." : "Make this payment only after required bills and minimums are handled.",
-            severity: projectedBuffer < 200 ? "warning" : "good",
+            message: payoffTarget
+                ? coversFullBalance
+                    ? `You can safely pay off ${payoffTarget.name} completely this cycle (${formatInsightCurrency(targetAmount)}) without touching required payments or your protected cushion.`
+                    : `You can safely apply ${formatInsightCurrency(targetAmount)} toward ${payoffTarget.name} this cycle without touching required payments or your protected cushion.`
+                : `You can safely apply ${formatInsightCurrency(safeExtraPayment)} toward debt this cycle without touching required payments or your protected cushion.`,
+            action: "Make this payment only after required bills and minimums are handled.",
+            severity: "good",
         });
     }
 
     if (bestCashFlowUnlockDebt && bestCashFlowUnlockDebt.balance <= safeExtraPayment + 100) {
         const gap = Math.max(0, bestCashFlowUnlockDebt.balance - safeExtraPayment);
+        const canFullyCover = gap === 0;
 
         insights.push({
             title: "Near Payoff Opportunity",
-            message: `${bestCashFlowUnlockDebt.name} is within ${formatInsightCurrency(gap)} of what your current extra payoff can cover. Paying it off would free ${formatInsightCurrency(bestCashFlowUnlockDebt.minimumPayment)} in future minimums.`,
-            action: projectedBuffer < 200 ? "Focus on restoring cushion first, then target this payoff opportunity once cash pressure improves" : "Consider targeting this once the extra amount is available without weakening your buffer.",
+            message: canFullyCover
+                ? `${bestCashFlowUnlockDebt.name} can be fully paid off this cycle. Eliminating it would free ${formatInsightCurrency(bestCashFlowUnlockDebt.minimumPayment)} in future minimums.`
+                : `${bestCashFlowUnlockDebt.name} is just ${formatInsightCurrency(gap)} beyond what your current extra payoff can cover. Paying it off would free ${formatInsightCurrency(bestCashFlowUnlockDebt.minimumPayment)} in future minimums.`,
+            action: projectedBuffer < 200
+                ? "Focus on restoring cushion first, then target this payoff opportunity once cash pressure improves."
+                : canFullyCover
+                    ? "Make this payment after handling required bills and minimums to immediately free up that monthly minimum."
+                    : `Find ${formatInsightCurrency(gap)} more this cycle to completely eliminate this debt and unlock that minimum payment.`,
             severity: projectedBuffer < 200 ? "warning" : "good",
         });
     }
@@ -107,10 +119,10 @@ export function buildSmartInsights({ safeExtraPayment, projectedBuffer, required
         });
     }
 
-    if (requiredTotal > projectedBuffer && projectedBuffer < 200) {
+    if (projectedBuffer >= 0 && projectedBuffer < 100) {
         insights.push({
             title: "Stability First",
-            message: "This cycle shows elevated cash pressure after required payments and minimums.",
+            message: "Your buffer is critically low this cycle. A single unexpected expense could put required payments at risk.",
             action: "Treat staying current as the win for this cycle and avoid aggressive extra payoff until cushion improves.",
             severity: "warning",
         });

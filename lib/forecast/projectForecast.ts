@@ -17,7 +17,18 @@ export function projectForecast({ startingSafeCash, startingDebtBalance, monthly
     const results: ForecastMonth[] = [];
 
     let currentDebtBalance = startingDebtBalance;
+
+    // Pre-calculate the first month where cash recovers to >= $200 so non-stable
+    // months earlier in the loop can reference it.
     let recoveryMonth: string | undefined;
+    for (let i = 0; i < months; i++) {
+        if (roundMoney(startingSafeCash + bufferTrendPerMonth * i) >= 200) {
+            const d = new Date();
+            d.setMonth(d.getMonth() + i);
+            recoveryMonth = d.toLocaleString("default", { month: "long", year: "numeric" });
+            break;
+        }
+    }
 
     for (let index = 0; index < months; index++) {
         currentDebtBalance = Math.max(0, currentDebtBalance - monthlyDebtReduction);
@@ -33,16 +44,12 @@ export function projectForecast({ startingSafeCash, startingDebtBalance, monthly
 
         const status = getForecastStatus(projectedSafeCash);
 
-        if (!recoveryMonth && projectedSafeCash >= 200) {
-            recoveryMonth = monthLabel;
-        }
-
         results.push({
             monthLabel,
             projectedSafeCash,
             projectedDebtBalance: roundMoney(currentDebtBalance),
             status,
-            recommendedAction: getRecommendedAction(status, projectedSafeCash),
+            recommendedAction: getRecommendedAction(status),
             riskDrivers: buildRiskDrivers({
                 projectedSafeCash,
                 requiredPaymentCount,
@@ -55,7 +62,7 @@ export function projectForecast({ startingSafeCash, startingDebtBalance, monthly
                     ? index === months - 1
                         ? "Recovery is not currently projected within the visible forecast window."
                         : "Cash pressure is projected to gradually improve across upcoming cycles."
-                    : "Project cushion remains within a healthier range.",
+                    : "Projected cushion remains within a healthier range.",
             reliefPoint: nextDebtName && nextDebtMinimum
                 ? `${nextDebtName} payoff may free ${formatForecastCurrency(nextDebtMinimum)}/month` : undefined,
         });
@@ -89,7 +96,7 @@ function buildRiskDrivers({ projectedSafeCash, requiredPaymentCount, monthlyMini
     return drivers;
 }
 
-function getRecommendedAction(status: ForecastStatus, projectedSafeCash: number) {
+function getRecommendedAction(status: ForecastStatus) {
     if (status === "recovery") {
         return "Pause aggressive payoff and protect required payments first.";
     }
