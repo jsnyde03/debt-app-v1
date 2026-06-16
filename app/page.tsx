@@ -35,6 +35,8 @@ import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
 import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting } from "@/lib/subscription/revenueCat";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { scheduleNotifications, cancelAllNotifications, requestNotificationPermission, hasNotificationPermission } from "@/lib/notifications/scheduleNotifications";
+import { incrementRolloverCount, maybeRequestAppReview } from "@/lib/review/requestAppReview";
 import { AppSkeleton } from "@/components/AppSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
 
@@ -267,6 +269,9 @@ export default function Home() {
     const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>("free");
     const [showUpgrade, setShowUpgrade] = useState(false);
     const [purchaseStatus, setPurchaseStatus] = useState("");
+    const [notificationsEnabled, setNotificationsEnabled] = useState(() =>
+        loadStoredState("debtPlanner.notificationsEnabled", false)
+    );
 
     function hasValidPayCycleInputs() {
         if (payCycle === "semimonthly") {
@@ -344,6 +349,16 @@ export default function Home() {
                     const mock = localStorage.getItem("debtPlanner.mockSubscription");
                     if (mock === "premium") {
                         setSubscriptionPlan("premium");
+
+                        if (notificationsEnabled && nextPaycheckDate) {
+                            const permitted = await hasNotificationPermission();
+                            if (permitted) {
+                                void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
+                            } else {
+                                setNotificationsEnabled(false);
+                            }
+                        }
+
                         return;
                     }
                 }
@@ -353,6 +368,15 @@ export default function Home() {
                 const plan = await getSubscriptionPlan();
                 setSubscriptionPlan(plan);
                 console.log("Loaded subscription plan:", plan);
+
+                if (plan === "premium" && notificationsEnabled && nextPaycheckDate) {
+                    const permitted = await hasNotificationPermission();
+                    if (permitted) {
+                        void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
+                    } else {
+                        setNotificationsEnabled(false);
+                    }
+                }
             } catch (error) {
                 console.log("RevenueCat init failed", error)
             }
@@ -383,6 +407,10 @@ export default function Home() {
     useEffect(() => {
         localStorage.setItem("debtPlanner.darkMode", JSON.stringify(darkMode));
     }, [darkMode]);
+
+    useEffect(() => {
+        localStorage.setItem("debtPlanner.notificationsEnabled", JSON.stringify(notificationsEnabled));
+    }, [notificationsEnabled]);
 
     useEffect(() => {
         localStorage.setItem("debtPlanner.amount", JSON.stringify(amount));
@@ -573,11 +601,31 @@ export default function Home() {
             return;
         }
 
-
         setIsFirstRunSetup(false);
         setShowPlanSettings(false);
         setActiveTab("plan");
         setStatusMessage("Plan updated");
+
+        if (notificationsEnabled && subscriptionPlan === "premium") {
+            void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
+        }
+    }
+
+    async function handleNotificationsToggle() {
+        triggerLightHaptic();
+
+        if (notificationsEnabled) {
+            await cancelAllNotifications();
+            setNotificationsEnabled(false);
+        } else {
+            const granted = await requestNotificationPermission();
+            if (granted) {
+                setNotificationsEnabled(true);
+                if (nextPaycheckDate) {
+                    void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
+                }
+            }
+        }
     }
 
     async function handlePullToRefresh() {
@@ -1023,7 +1071,7 @@ export default function Home() {
         event.target.value = "";
     }
 
-    function handleRolloverPayCycle() {
+    async function handleRolloverPayCycle() {
         saveResetSnapshot();
 
         setDebts((current) =>
@@ -1088,7 +1136,15 @@ export default function Home() {
 
             setCurrentDate(nextCycleStart);
             setNextPaycheckDate(followingPaycheckDate);
+
+            if (notificationsEnabled && subscriptionPlan === "premium") {
+                const rolledExpenses = rolloverRequiredExpenses(requiredExpenses, nextPaycheckDate);
+                void scheduleNotifications({ nextPaycheckDate: followingPaycheckDate, requiredExpenses: rolledExpenses });
+            }
         }
+
+        incrementRolloverCount();
+        void maybeRequestAppReview();
     }
 
     function handlePopulateDemoData() {
@@ -1567,6 +1623,38 @@ export default function Home() {
                             onRolloverPayCycle={handleRolloverPayCycle}
                             onResetToToday={handleResetToToday}
                         />
+
+                        {!isFirstRunSetup && (
+                            <div className="card notifications-settings-card">
+                                <div className="notifications-settings-row">
+                                    <div>
+                                        <h3>Notifications</h3>
+                                        <p className="section-collapse-subtitle">
+                                            Paycheck-eve reminder and upcoming bill alerts.
+                                        </p>
+                                    </div>
+
+                                    {subscriptionPlan === "premium" ? (
+                                        <button
+                                            type="button"
+                                            className={notificationsEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
+                                            onClick={handleNotificationsToggle}
+                                            aria-label={notificationsEnabled ? "Disable notifications" : "Enable notifications"}
+                                        >
+                                            {notificationsEnabled ? "On" : "Off"}
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className="premium-pill"
+                                            onClick={() => setShowUpgrade(true)}
+                                        >
+                                            Premium
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         <div className="settings-legal-row">
                             <a
