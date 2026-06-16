@@ -60,23 +60,21 @@ type DebtSectionProps = {
         updates: Partial<Pick<Debt, "balance" | "minimumPayment" | "dueDate" | "apr" | "isAutopay">>) => void;
 };
 
-function sortDebts(debts: DebtWithDisplayBalance[], sortBy: DebtSortOption) {
+function sortDebts(debts: DebtWithDisplayBalance[], sortBy: DebtSortOption, direction: "asc" | "desc") {
+    const dir = direction === "asc" ? 1 : -1;
     return [...debts].sort((a, b) => {
         switch (sortBy) {
             case "balance":
-                return b.balance - a.balance;
+                return (a.balance - b.balance) * dir;
             case "apr":
-                return b.apr - a.apr;
+                return (a.apr - b.apr) * dir;
             case "minimumPayment":
-                return b.minimumPayment - a.minimumPayment;
+                return (a.minimumPayment - b.minimumPayment) * dir;
             case "name":
-                return a.name.localeCompare(b.name);
+                return a.name.localeCompare(b.name) * dir;
             case "dueDate":
             default:
-                return (
-                    new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
-                );
-
+                return (new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()) * dir;
         }
     });
 }
@@ -119,6 +117,7 @@ export function DebtsSection({
     const [editIsAutopay, setEditIsAutopay] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [sortBy, setSortBy] = useState<DebtSortOption>("dueDate");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const [showAddDebtModal, setShowAddDebtModal] = useState(false);
     const showFab = useScrollFabVisible();
 
@@ -142,8 +141,8 @@ export function DebtsSection({
         return Array.from(map.values());
     }, [activeDebts, paidOffDebts]);
 
-    const filteredActiveDebts = sortDebts(activeDebts.filter((debt) => debt.name.toLowerCase().includes(searchTerm.toLowerCase())), sortBy);
-    const filteredPaidOffDebts = sortDebts(paidOffDebts.filter((debt) => debt.name.toLowerCase().includes(searchTerm.toLowerCase())), sortBy);
+    const filteredActiveDebts = sortDebts(activeDebts.filter((debt) => debt.name.toLowerCase().includes(searchTerm.toLowerCase())), sortBy, sortDirection);
+    const filteredPaidOffDebts = sortDebts(paidOffDebts.filter((debt) => debt.name.toLowerCase().includes(searchTerm.toLowerCase())), sortBy, sortDirection);
 
     const totalDebt = activeDebts.reduce((sum, debt) => sum + (debt.displayBalance ?? debt.balance), 0);
     const totalMinimums = activeDebts.reduce((sum, debt) => sum + debt.minimumPayment, 0);
@@ -510,19 +509,34 @@ export function DebtsSection({
                         }}
                     />
 
-                    <select
-                        value={sortBy}
-                        onChange={(event) => {
-                            setSortBy(event?.target.value as DebtSortOption);
-                            setDebtPages({ active: 1, paidOff: 1 });
-                        }}
-                    >
-                        <option value="dueDate">Sort By Due Date</option>
-                        <option value="balance">Sort By Balance</option>
-                        <option value="apr">Sort By APR</option>
-                        <option value="minimumPayment">Sort By Minimum Payment</option>
-                        <option value="name">Sort By Name</option>
-                    </select>
+                    <div className="sort-row">
+                        <select
+                            value={sortBy}
+                            onChange={(event) => {
+                                setSortBy(event?.target.value as DebtSortOption);
+                                setSortDirection("asc");
+                                setDebtPages({ active: 1, paidOff: 1 });
+                            }}
+                        >
+                            <option value="dueDate">Sort By Due Date</option>
+                            <option value="balance">Sort By Balance</option>
+                            <option value="apr">Sort By APR</option>
+                            <option value="minimumPayment">Sort By Minimum Payment</option>
+                            <option value="name">Sort By Name</option>
+                        </select>
+                        <button
+                            className="sort-direction-btn"
+                            onClick={() => {
+                                triggerLightHaptic();
+                                setSortDirection((d) => d === "asc" ? "desc" : "asc");
+                                setDebtPages({ active: 1, paidOff: 1 });
+                            }}
+                            aria-label={sortDirection === "asc" ? "Sort descending" : "Sort ascending"}
+                            title={sortDirection === "asc" ? "Sort descending" : "Sort ascending"}
+                        >
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                        </button>
+                    </div>
                 </div>
 
                 {allDebts.length === 0 && (
@@ -655,11 +669,16 @@ export function DebtsSection({
 
                             <div className="field">
                                 <label>Due Date</label>
-                                <input
-                                    type="date"
-                                    value={debtDueDate}
-                                    onChange={(event) => onDebtDueDateChange(event.target.value)}
-                                />
+                                <div className="date-input-wrapper">
+                                    <input
+                                        type="date"
+                                        value={debtDueDate}
+                                        onChange={(event) => onDebtDueDateChange(event.target.value)}
+                                    />
+                                    {!debtDueDate && (
+                                        <span className="date-input-placeholder">MM/DD/YYYY</span>
+                                    )}
+                                </div>
 
                                 {debtErrors.dueDate && (
                                     <p className="validation-error">

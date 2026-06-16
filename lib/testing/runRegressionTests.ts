@@ -9,5 +9,9 @@ import "../debt/testProjectionAccuracy";
 import "./testFinalLaunchRegression";
 import "./testV11Regression";
 import "./testFullAppRegression";
+import "./testTimelineRegression";
+import "./testRecommendedActionsRegression";
+import "./testForecastRegression";
+import "./testDebtMathRegression";
 
 console.log("✅ All regression tests passed.");

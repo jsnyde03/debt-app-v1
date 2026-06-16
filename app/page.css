@@ -335,6 +335,26 @@
 	color: var(--text-secondary);
 }
 
+.date-input-wrapper {
+	position: relative;
+}
+
+.date-input-wrapper input[type="date"] {
+	width: 100%;
+}
+
+.date-input-placeholder {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	padding: 0 14px;
+	color: var(--text-secondary);
+	font-size: 16px;
+	pointer-events: none;
+	opacity: 0.6;
+}
+
 input,
 select {
 	padding: 13px 14px;
@@ -1306,6 +1326,47 @@ button:active {
 	display: flex;
 	gap: 0.75rem;
 	margin-bottom: 1rem;
+}
+
+.sort-row {
+	display: flex;
+	gap: 0.5rem;
+	flex: 1;
+	min-width: 0;
+}
+
+.sort-row select {
+	flex: 1;
+	min-width: 0;
+}
+
+.sort-direction-btn {
+	flex-shrink: 0;
+	width: 44px;
+	min-height: 44px;
+	border-radius: 12px;
+	border: 1px solid var(--border-color);
+	background: var(--card-bg);
+	color: var(--text-primary);
+	font-size: 1.1rem;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.15s, border-color 0.15s;
+}
+
+.sort-direction-btn:active {
+	background: var(--accent-color);
+	color: #fff;
+	border-color: var(--accent-color);
+}
+
+.dark-theme .sort-direction-btn {
+	background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.16);
+	min-height: 52px;
+	border-radius: 18px;
 }
 
 .section-count {
@@ -4704,11 +4765,19 @@ button:active,
 }
 
 .dark-theme .debt-controls input,
-.dark-theme .debt-controls select {
+.dark-theme .debt-controls select,
+.dark-theme .debt-controls .sort-row select {
 	min-height: 52px;
 	border-radius: 18px;
 	background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
 	border-color: rgba(148, 163, 184, 0.16);
+	color: var(--text-primary);
+}
+
+.dark-theme .debt-controls select option,
+.dark-theme .debt-controls .sort-row select option {
+	background: #0f172a;
+	color: rgba(255, 255, 255, 0.94);
 }
 
 .dark-theme .autopay-pill {
@@ -5260,11 +5329,17 @@ button:active,
 
 	.debt-controls input,
 	.debt-controls select,
+	.debt-controls .sort-row,
 	.expense-controls input,
 	.expense-controls select,
 	.goal-controls input,
 	.goal-controls select {
 		width: 100%;
+	}
+
+	.debt-controls .sort-row select {
+		width: auto;
+		flex: 1;
 	}
 
 	.saved-item {

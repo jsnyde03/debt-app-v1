@@ -1220,6 +1220,7 @@ export default function Home() {
                             result={result}
                             requiredExpenses={requiredExpenses}
                             debts={debts}
+                            completedRecommendedActions={completedRecommendedActions}
                             currentDate={currentDate}
                             nextPaycheckDate={nextPaycheckDate}
                         />

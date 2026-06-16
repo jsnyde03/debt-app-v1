@@ -3,6 +3,14 @@ import type { Debt, RequiredExpense } from "../storage/debtPlannerStorage";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 
+export type CompletedRecommendedAction = {
+    targetId: string;
+    label: string;
+    category: "emergency" | "snowball" | "optional_goal";
+    actualAmount: number;
+    paymentSource?: "paycheck" | "external";
+};
+
 export type TimelineItem = {
     date: string;
     label: string;
@@ -28,12 +36,14 @@ export function buildTimelineItems({
     result,
     requiredExpenses,
     debts,
+    completedRecommendedActions = [],
     currentDate,
     nextPaycheckDate,
 }: {
     result: AllocationResult;
     requiredExpenses: RequiredExpense[];
     debts: Debt[];
+    completedRecommendedActions?: CompletedRecommendedAction[];
     currentDate: string;
     nextPaycheckDate: string;
 }) {
@@ -55,14 +65,17 @@ export function buildTimelineItems({
         });
     }
 
-    const isDueBeforeNextPaycheck = (dueDate: string) => {
+    const isDueInCycle = (dueDate: string) => {
         const due = new Date(`${dueDate}T00:00:00`);
         const next = new Date(`${nextPaycheckDate}T00:00:00`);
-
         return due < next;
     };
 
-    for (const expense of requiredExpenses.filter((item) => isDueBeforeNextPaycheck(item.dueDate))) {
+    // Include expenses due this cycle OR already paid this cycle
+    for (const expense of requiredExpenses) {
+        const paidThisCycle = expense.isPaidThisCycle ?? false;
+        if (!isDueInCycle(expense.dueDate) && !paidThisCycle) continue;
+
         items.push({
             date: expense.dueDate,
             label: expense.isAutopay
@@ -71,11 +84,15 @@ export function buildTimelineItems({
             amount: expense.amount,
             type: expense.isAutopay ? "autopay_expense" : "expense",
             category: expense.category,
+            isPaid: paidThisCycle,
         });
     }
 
-    for (const debt of debts.filter((item) => isDueBeforeNextPaycheck(item.dueDate))) {
-        if (debt.balance <= 0) continue;
+    // Include debt minimums due this cycle OR already paid this cycle
+    for (const debt of debts) {
+        const paidThisCycle = debt.minimumPaidThisCycle ?? debt.isPaidThisCycle ?? false;
+        if (!isDueInCycle(debt.dueDate) && !paidThisCycle) continue;
+        if (debt.balance <= 0 && !paidThisCycle) continue;
 
         items.push({
             date: debt.dueDate,
@@ -84,17 +101,40 @@ export function buildTimelineItems({
                 : `Pay minimum on ${debt.name}`,
             amount: debt.minimumPayment,
             type: debt.isAutopay ? "autopay_debt" : "minimum_debt",
+            isPaid: paidThisCycle,
         });
     }
 
+    // Build a set of targetId:category keys that have already been completed from paycheck funds.
+    // Planned allocations for these targets are suppressed — the completed entry replaces them.
+    const completedKeys = new Set(
+        completedRecommendedActions
+            .filter((a) => a.paymentSource !== "external")
+            .map((a) => `${a.targetId}:${a.category}`)
+    );
+
+    // Planned recommended allocations — skip any whose target was already completed this cycle
     const allocationCategories = new Set(["emergency", "snowball", "optional_goal"]);
     for (const allocation of result.allocations) {
         if (!allocationCategories.has(allocation.category)) continue;
+        if (completedKeys.has(`${allocation.targetId}:${allocation.category}`)) continue;
         items.push({
             date: nextPaycheckDate,
             label: allocation.label,
             amount: allocation.amount,
             type: allocation.category as "emergency" | "snowball" | "optional_goal",
+        });
+    }
+
+    // Completed recommended actions (snowball payments and emergency contributions already marked paid)
+    for (const action of completedRecommendedActions) {
+        if (action.paymentSource === "external") continue;
+        items.push({
+            date: nextPaycheckDate,
+            label: action.label,
+            amount: action.actualAmount,
+            type: action.category as "emergency" | "snowball" | "optional_goal",
+            isPaid: true,
         });
     }
 

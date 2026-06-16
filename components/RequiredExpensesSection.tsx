@@ -541,12 +541,16 @@ export function RequiredExpensesSection({
                             <div className="field">
                                 <label>Due Date</label>
 
-                                <input
-                                    type="date"
-                                    placeholder="Ex. 01/01/2026"
-                                    value={expenseDueDate}
-                                    onChange={(event) => onExpenseDueDateChange(event.target.value)}
-                                />
+                                <div className="date-input-wrapper">
+                                    <input
+                                        type="date"
+                                        value={expenseDueDate}
+                                        onChange={(event) => onExpenseDueDateChange(event.target.value)}
+                                    />
+                                    {!expenseDueDate && (
+                                        <span className="date-input-placeholder">MM/DD/YYYY</span>
+                                    )}
+                                </div>
 
                                 {expenseErrors.dueDate && (
                                     <p className="validation-error">

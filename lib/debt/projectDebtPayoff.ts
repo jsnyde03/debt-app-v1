@@ -35,7 +35,10 @@ function sortDebts(debts: ProjectedDebt[], strategy: PayoffStrategy) {
         .filter((debt) => debt.balance > 0)
         .sort((a, b) => {
             if (strategy === "avalanche") {
-                return b.apr - a.apr;
+                if (b.apr !== a.apr) {
+                    return b.apr - a.apr;
+                }
+                return a.balance - b.balance;
             }
 
             return a.balance - b.balance;

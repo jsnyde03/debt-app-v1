@@ -1,7 +1,7 @@
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
-import { buildTimelineItems } from "@/lib/timeline/buildTimelineItems";
+import { buildTimelineItems, type CompletedRecommendedAction } from "@/lib/timeline/buildTimelineItems";
 import { useState } from "react";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 
@@ -11,6 +11,7 @@ type TimelineSectionProps = {
     result: AllocationResult | null;
     requiredExpenses: RequiredExpense[];
     debts: Debt[];
+    completedRecommendedActions: CompletedRecommendedAction[];
     currentDate: string;
     nextPaycheckDate: string;
 };
@@ -106,6 +107,7 @@ export function TimelineSection({
     result,
     requiredExpenses,
     debts,
+    completedRecommendedActions,
     currentDate,
     nextPaycheckDate,
 }: TimelineSectionProps) {
@@ -120,6 +122,7 @@ export function TimelineSection({
         result,
         requiredExpenses,
         debts,
+        completedRecommendedActions,
         currentDate,
         nextPaycheckDate,
     });
