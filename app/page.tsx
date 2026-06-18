@@ -50,6 +50,8 @@ import { useGoals, type Goal } from "@/lib/hooks/useGoals";
 import { useRequiredExpenses } from "@/lib/hooks/useRequiredExpenses";
 import { useDebts } from "@/lib/hooks/useDebts";
 import { usePayCycleSettings, getCurrentDate } from "@/lib/hooks/usePayCycleSettings";
+import { useSubscription } from "@/lib/hooks/useSubscription";
+import { useNotificationsSetting } from "@/lib/hooks/useNotificationsSetting";
 
 type CompletedRecommendedAction = {
     targetId: string;
@@ -173,12 +175,6 @@ export default function Home() {
     const [statusMessage, setStatusMessage] = useState("");
 
     const [isMounted, setIsMounted] = useState(false);
-    const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>("free");
-    const [showUpgrade, setShowUpgrade] = useState(false);
-    const [purchaseStatus, setPurchaseStatus] = useState("");
-    const [notificationsEnabled, setNotificationsEnabled] = useState(() =>
-        loadStoredState("debtPlanner.notificationsEnabled", false)
-    );
 
     const {
         requiredExpenses, setRequiredExpenses,
@@ -216,6 +212,17 @@ export default function Home() {
         handleMarkDebtMinimumPaid,
         handleMarkDebtSnowballPaid,
     } = useDebts(saveResetSnapshot);
+
+    const {
+        notificationsEnabled, setNotificationsEnabled,
+        handleNotificationsToggle,
+    } = useNotificationsSetting(nextPaycheckDate, requiredExpenses);
+
+    const {
+        subscriptionPlan, setSubscriptionPlan,
+        showUpgrade, setShowUpgrade,
+        purchaseStatus, setPurchaseStatus,
+    } = useSubscription(notificationsEnabled, nextPaycheckDate, requiredExpenses, setNotificationsEnabled);
 
     function saveResetSnapshot(overrides?: {
         requiredExpenses?: RequiredExpense[];
@@ -297,47 +304,6 @@ export default function Home() {
             setIsMounted(true);
         }, 0);
 
-        async function loadSubscription() {
-            try {
-                if (process.env.NODE_ENV === "development") {
-                    const mock = localStorage.getItem("debtPlanner.mockSubscription");
-                    if (mock === "premium") {
-                        setSubscriptionPlan("premium");
-
-                        if (notificationsEnabled && nextPaycheckDate) {
-                            const permitted = await hasNotificationPermission();
-                            if (permitted) {
-                                void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
-                            } else {
-                                setNotificationsEnabled(false);
-                            }
-                        }
-
-                        return;
-                    }
-                }
-
-                await initializeRevenueCat();
-
-                const plan = await getSubscriptionPlan();
-                setSubscriptionPlan(plan);
-                console.log("Loaded subscription plan:", plan);
-
-                if (plan === "premium" && notificationsEnabled && nextPaycheckDate) {
-                    const permitted = await hasNotificationPermission();
-                    if (permitted) {
-                        void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
-                    } else {
-                        setNotificationsEnabled(false);
-                    }
-                }
-            } catch (error) {
-                console.log("RevenueCat init failed", error)
-            }
-        }
-
-        void loadSubscription();
-
         return () => window.clearTimeout(timeout);
     }, []);
 
@@ -357,65 +323,6 @@ export default function Home() {
             JSON.stringify(completedRecommendedActions)
         );
     }, [completedRecommendedActions]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.notificationsEnabled", JSON.stringify(notificationsEnabled));
-    }, [notificationsEnabled]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.amount", JSON.stringify(amount));
-    }, [amount]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.payCycle", JSON.stringify(payCycle));
-    }, [payCycle]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.semiMonthlyFirstDay",
-            JSON.stringify(semiMonthlyFirstDay)
-        );
-    }, [semiMonthlyFirstDay]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.semiMonthlySecondDay",
-            JSON.stringify(semiMonthlySecondDay)
-        );
-    }, [semiMonthlySecondDay]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.monthlyPayDay",
-            JSON.stringify(monthlyPayDay)
-        );
-    }, [monthlyPayDay]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.currentDate",
-            JSON.stringify(currentDate)
-        );
-    }, [currentDate]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.nextPaycheckDate", JSON.stringify(nextPaycheckDate));
-    }, [nextPaycheckDate]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.requiredExpenses",
-            JSON.stringify(requiredExpenses)
-        );
-    }, [requiredExpenses]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.debts", JSON.stringify(debts));
-    }, [debts]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.goals", JSON.stringify(goals));
-    }, [goals]);
 
     useEffect(() => {
         localStorage.setItem(
@@ -516,23 +423,6 @@ export default function Home() {
 
         if (notificationsEnabled && subscriptionPlan === "premium") {
             void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
-        }
-    }
-
-    async function handleNotificationsToggle() {
-        triggerLightHaptic();
-
-        if (notificationsEnabled) {
-            await cancelAllNotifications();
-            setNotificationsEnabled(false);
-        } else {
-            const granted = await requestNotificationPermission();
-            if (granted) {
-                setNotificationsEnabled(true);
-                if (nextPaycheckDate) {
-                    void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
-                }
-            }
         }
     }
 
