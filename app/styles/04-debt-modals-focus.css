@@ -1,0 +1,420 @@
+.debt-add-modal {
+	padding-bottom: calc(env(safe-area-inset-bottom) + 120px);
+}
+
+.debt-add-modal:after {
+	content: "";
+	display: block;
+	height: calc(env(safe-area-inset-bottom) + 110px);
+}
+
+.compact-debt-summary-grid .summary-card {
+	min-height: 64px;
+	padding: 12px;
+}
+
+.debt-summary-strip {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 14px 0;
+	padding: 14px 16px;
+	border-radius: var(--radius-lg);
+	background: var(--surface-muted);
+	border: 1px solid var(--border-color);
+	color: var(--text-secondary);
+}
+
+.debt-summary-strip strong {
+	color: var(--text-primary);
+	font-size: 0.95rem;
+	font-weight: 800;
+}
+
+.compact-empty-state {
+	padding: 14px 16px;
+}
+
+.compact-empty-state strong {
+	font-size: 1rem;
+}
+
+.compact-empty-state p {
+	font-size: 0.9rem;
+}
+
+.debt-edit-card {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 14px;
+}
+
+.debt-edit-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 12px;
+}
+
+.debt-edit-actions {
+	margin-top: 16px;
+	padding-top: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.debt-edit-actions-right {
+	display: flex;
+	gap: 8px;
+}
+
+.debt-edit-actions-right button {
+	min-width: 38px;
+	min-width: 78px;
+	padding: 0 14px;
+	border-radius: 14px;
+}
+
+.debt-edit-actions > .danger-action {
+	font-size: 0.9rem;
+	opacity: 0.75;
+}
+
+.debt-save-button {
+	background: var(--accent-color);
+	color: #ffffff;
+}
+
+.compact-expense-edit-card {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	padding: 12px 14px;
+	gap: 6px;
+	background: var(--surface-muted);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-md);
+	overflow: hidden;
+	box-shadow: border-box;
+}
+
+.compact-expense-edit-card label {
+	font-size: 0.82rem;
+	opacity: 0.82;
+}
+
+.compact-expense-edit-card input {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	min-height: 40px;
+	padding: 7px 12px;
+	box-sizing: border-box;
+	border-radius: 14px;
+}
+
+.compact-expense-edit-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 6px;
+	width: 100%;
+}
+
+.compact-expense-edit-grid .field {
+	min-width: 0;
+	width: 100%;
+	gap: 2px;
+}
+
+.expense-edit-actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	width: 100%;
+	margin-top: 2px;
+}
+
+.expense-edit-actions-right {
+	display: flex;
+	gap: 8px;
+}
+
+.expense-edit-actions-right button {
+	min-height: 38px;
+	min-width: 78px;
+	padding: 0 14px;
+	border-radius: 14px;
+}
+
+.compact-debt-edit-card {
+	gap: 6px;
+	padding: 12px 14px;
+	background: var(--surface-muted);
+}
+
+.compact-debt-edit-card .saved-title {
+	margin-bottom: 2px;
+	font-size: 1.1rem;
+}
+
+.compact-debt-edit-card .saved-meta {
+	margin-top: 0;
+	font-size: 0.78rem;
+	opacity: 0.82;
+}
+
+.compact-debt-edit-grid .field label {
+	font-size: 0.72rem;
+	margin-bottom: 2px;
+	line-height: 1.1;
+}
+
+.debt-advanced-edit {
+	margin-top: 14px;
+}
+
+.debt-advanced-edit summary {
+	cursor: pointer;
+	color: var(--text-secondary);
+	font-size: 0.95rem;
+	font-weight: 800;
+	list-style: none;
+	opacity: 0.8;
+}
+
+.debt-advanced-edit summary::-webkit-details-marker {
+	display: none;
+}
+
+.debt-advanced-edit summary::before {
+	content: "► ";
+}
+
+.debt-advanced-edit[open] summary::before {
+	content:"▼ ";
+}
+
+.advanced-grid {
+	margin-top: 14px;
+	gap: 12px;
+}
+
+.debt-card-meta {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	font-size: 0.82rem;
+	opacity: 0.85;
+}
+
+.amount-suffix {
+	font-size: 0.75rem;
+	opacity: 0.7;
+	margin-left: 2px;
+}
+
+.payoff-focus-strip {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin: 14px 0;
+	padding: 14px 16px;
+	border-radius: var(--radius-lg);
+	background: var(--surface-muted);
+	border: 1px solid var(--border-color);
+}
+
+.payoff-focus-strip div {
+	min-width: 0;
+}
+
+.payoff-focus-strip span {
+	display: block;
+	margin-bottom: 3px;
+	color: var(--text-secondary);
+	font-size: 0.74rem;
+	font-weight: 700;
+}
+
+.payoff-focus-strip strong {
+	color: var(--text-primary);
+	font-size: 0.95rem;
+	font-weight: 900;
+}
+
+.payoff-focus-strip > strong {
+	flex-shrink: 0;
+	color: var(--accent-color);
+	text-align: right;
+}
+
+.compact-payoff-strategy {
+	gap: 8px;
+	margin-bottom: 14px;
+}
+
+.compact-payoff-strategy .strategy-buttons {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+
+.compact-payoff-strategy .strategy-button,
+.compact-payoff-strategy .strategy-button-active {
+	min-height: 42px;
+	padding: 0 12px;
+}
+
+.compact-payoff-strategy .strategy-description {
+	margin: 0;
+	font-size: 0.82rem;
+}
+
+.payoff-summary-strip {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 8px;
+	margin: 14px 0;
+	padding: 10px;
+	border-radius: var(--radius-lg);
+	background: var(--surface-muted);
+	border: 1px solid var(--border-color);
+}
+
+.payoff-summary-strip div {
+	min-width: 0;
+}
+
+.payoff-summary-strip span {
+	display: block;
+	margin-bottom: 3px;
+	color: var(--text-secondary);
+	font-size: 0.68rem;
+	font-weight: 700;
+}
+
+.payoff-summary-strip strong {
+	display: block;
+	color: var(--text-primary);
+	font-size: 0.86rem;
+	font-weight: 900;
+	line-height: 1.12;
+}
+
+.payoff-summary-strip div:first-child strong {
+	color: var(--accent-color);
+}
+
+.payoff-recommendation-strip {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+	margin: 10px 0 14px;
+	padding: 10px 12px;
+	border-radius: var(--radius-md);
+	background: var(--surface-active);
+	border: 1px solid var(--border-color);
+}
+
+.payoff-recommendation-strip span {
+	color: var(--text-secondary);
+	font-size: 0.78rem;
+	font-weight: 700;
+}
+
+.payoff-recommendation-strip strong {
+	color: var(--accent-color);
+	font-size: 0.88rem;
+	font-weight: 900;
+}
+
+.first-run-import-row {
+	margin-top: 14px;
+}
+
+.first-run-import-row .import-button {
+	width: 100%;
+	min-height: 48px;
+	font-weight: 800;
+}
+
+.checkbox-field {
+	justify-content: center;
+}
+
+.checkbox-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 14px;
+	font-weight: 800;
+	color: var(--text-primary);
+}
+
+.checkbox-label input {
+	width: 18px;
+	height: 18px;
+	accent-color: var(--accent-color);
+}
+
+.autopay-pill {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 8px;
+	padding: 2px 8px;
+	border-radius: var(--radius-pill);
+	font-size: 0.72rem;
+	font-weight: 800;
+	background: rgba(59, 130, 246, 0.14);
+	color: var(--badge-blue-color);
+	border: 1px solid rgba(59, 130, 246, 0.24);
+}
+
+.category-pill {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 8px;
+	padding: 2px 8px;
+	border-radius: var(--radius-pill);
+	font-size: 0.72rem;
+	font-weight: 800;
+	background: rgba(148, 163, 184, 0.14);
+	color: var(--text-secondary);
+	border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.category-pill-icon {
+	display: inline-flex;
+	margin-right: 6px;
+}
+
+.category-filter-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.category-filter-pill {
+	border: 1px solid rgba(148, 163, 184, 0.22);
+	background: rgba(148, 163, 184, 0.08);
+	color: var(--text-secondary);
+	border-radius: var(--radius-pill);
+	padding: 7px 11px;
+	font-size: 0.78rem;
+	font-weight: 800;
+	cursor: pointer;
+}
+
+.category-filter-pill.active {
+	background: rgba(59, 130, 246, 0.18);
+	color: var(--badge-blue-color);
+	border-color: rgba(96, 165, 250, 0.45);
+}
+

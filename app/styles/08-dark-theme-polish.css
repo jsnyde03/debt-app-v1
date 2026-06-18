@@ -1,0 +1,694 @@
+.dark-theme .plan-dark-polish {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.08), transparent 38%), rgba(15, 23, 42, 0.88);
+	border-color: rgba(120, 140, 255, 0.16);
+}
+
+.dark-theme .plan-dashboard-header p.status-good {
+	color: #4ade80;
+	text-shadow: 0 0 18px rgba(74, 222, 128, 0.32);
+}
+
+.dark-theme .execution-summary-strip {
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.7));
+	border: 1px solid rgba(148, 163, 184, 0.16);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 34px rgba(15, 23, 42, 0.22);
+}
+
+.dark-theme .execution-summary-strip::before {
+	content: "";
+	position: absolute;
+	top: -70px;
+	right: -60px;
+	width: 180px;
+	height: 180px;
+	border-radius: 999px;
+	background: radial-gradient(circle, rgba(96, 165, 250, 0.16), transparent 70%);
+	pointer-events: none;
+}
+
+.dark-theme .section-collapse-button {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.16);
+	box-shadow: inset  0 1px 0 rgba(255, 255, 255, 0.03), 0 0 16px rgba(88, 166, 255, 0.05);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}
+
+.dark-theme .saved-item {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.68));
+	border-color: rgba(148, 163, 184, 0.08);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .required-actions-list .saved-item:nth-child(3n) {
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 44%), linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.71));
+}
+
+.dark-theme .saved-action-button,
+.dark-theme .action-pill {
+	background: rgba(255, 255, 255, 0.045);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.dark-theme .recommended-card {
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.7));
+	border-color: rgba(96, 165, 250, 0.18);
+	border-left: none;
+}
+
+.dark-theme .recommended-card::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 18px;
+	bottom: 18px;
+	width: 4px;
+	border-radius: 999px;
+	background: linear-gradient(to bottom, #60a5fa, #a855f7);
+	box-shadow: 0 0 12px rgba(96, 165, 250, 0.45);
+}
+
+.dark-theme .completed-item,
+.dark-theme .completed-row {
+	opacity: 0.78;
+	filter: saturate(0.82);
+	background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.10), transparent 42%), rgba(8, 24, 28, 0.84);
+	border-color: rgba(34, 197, 94, 0.12);
+}
+
+.dark-theme .completed-item .saved-title,
+.dark-theme .completed-row .saved-title {
+	text-decoration: none;
+	color: #4ade80;
+}
+
+.dark-theme .timeline-card {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 36%), rgba(15, 23, 42, 0.86);
+	border-color: rgba(120, 140, 255, 0.14);
+}
+
+.dark-theme .timeline-list::before {
+	background: linear-gradient(to bottom, rgba(88, 166, 255, 0.12), rgba(88, 166, 255, 0.45), rgba(168, 85, 247, 0.22));
+	box-shadow: 0 0 12px rgba(88, 166, 255, 0.18);
+}
+
+.dark-theme .timeline-item {
+	background: linear-gradient(145deg, rgba(20, 28, 48, 0.92), rgba(11, 18, 35, 0.96));
+	border-color: rgba(255, 255, 255, 0.05);
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.dark-theme .timeline-positive {
+	color: #4ade80;
+	text-shadow: 0 0 12px rgba(74, 222, 128, 0.36);
+}
+
+.dark-theme .timeline-negative {
+	color: #f87171;
+	text-shadow: 0 0 12px rgba(248, 113, 113, 0.32);
+}
+
+.timeline-label {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.timeline-title-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	min-width: 0;
+}
+
+.timeline-title-text {
+	min-width: 0;
+	line-height: 1.2;
+}
+
+.timeline-icon {
+	flex-shrink: 0;
+	margin-right: 0;
+}
+
+.timeline-pill-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	max-width: 100%;
+}
+
+.timeline-pill-row::-webkit-scrollbar {
+	display: none;
+}
+
+.timeline-pill {
+	flex: 0 0 auto;
+	white-space: nowrap;
+	margin-left: 0 !important;
+}
+
+.timeline-label .category-pill,
+.timeline-recommended-pill,
+.timeline-status-pill {
+	margin-left: 0;
+}
+
+.timeline-collapse-button {
+	justify-content: space-between;
+	text-align: left;
+}
+
+.timeline-collapse-button .section-collapse-left {
+	justify-content: flex-start;
+	text-align: left;
+}
+
+.timeline-collapse-copy {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	text-align: left;
+}
+
+.timeline-collapse-copy h2,
+.timeline-collapse-copy p {
+	text-align: left;
+}
+
+.dark-theme .bills-polish-card {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.13), transparent 36%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.08), transparent 40%), rgba(15, 23, 42, 0.88);
+	border-color: rgba(120, 140, 255, 0.16);
+}
+
+.dark-theme .required-expense-row {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.68));
+	border-color: rgba(148, 163, 184, 0.08);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .required-expense-row:nth-child(3n) {
+	background: radial-gradient(circle at top right, rgba(34, 197, 94, 0.10), transparent 42%), rgba(8, 24, 28, 0.84);
+	border-color: rgba(34, 197, 94, 0.12);
+}
+
+.dark-theme .required-expense-row-paid {
+	background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.10), transparent 42%), rgba(8, 24, 28, 0.84);
+	border-color: rgba(34, 197, 94, 0.12);
+}
+
+.dark-theme .required-expense-row .saved-amount {
+	color: rgba(255, 255, 255, 0.94);
+	font-weight: 900;
+}
+
+.dark-theme .required-expense-row-paid .saved-title,
+.dark-theme .required-expense-row-paid .saved-amount {
+	color: #4ade80;
+}
+
+.dark-theme .bills-add-button {
+	background: linear-gradient(135deg, #3b82f6, #7c3aed);
+	border-color: rgba(255, 255, 255, 0.12);
+	box-shadow: 0 14px 30px rgba(59, 130, 246, 0.24), 0 0 34px rgba(124, 58, 237, 0.14);
+}
+
+.dark-theme .expense-controls input {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.70));
+	border-color: rgba(148, 163, 184, 0.14);
+	color: var(--text-primary);
+}
+
+.dark-theme .category-filter-pill {
+	background: rgba(255, 255, 255, 0.045);
+	border-color: rgba(255, 255, 255, 0.08);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.dark-theme .category-filter-pill.active {
+	background: linear-gradient(135deg, rgba(59, 130, 246, 0.28), rgba(124, 58, 237, 0.16));
+	border-color: rgba(96, 165, 250, 0.42);
+	color: #bfdbfe;
+	box-shadow: 0 0 18px rgba(59, 130, 246, 0.14);
+}
+
+.dark-theme .living-summary-card {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.70));
+	border: 1px solid rgba(148, 163, 184, 0.14);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 14px 34px rgba(15, 23, 42, 0.22);
+}
+
+.dark-theme .bills-modal {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.18), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent 38%), linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
+	border-color: rgba(255, 255, 255, 0.08);
+	box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48), 0 0 42px rgba(59, 130, 246, 0.14);
+	padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
+}
+
+.center-modal.bills-modal {
+	max-height: calc(100vh - 2rem);
+	overflow-y: auto;
+}
+
+.dark-theme .bills-modal .center-modal-header {
+	padding-bottom: 1rem;
+	margin-bottom: 1rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.dark-theme .bills-modal .center-modal-header h2 {
+	font-size: 1.45rem;
+	font-weight: 800;
+	letter-spacing: -0.035em;
+}
+
+.dark-theme .bills-modal .center-modal-header p {
+	margin-top: 0.35rem;
+	font-size: 0.95rem;
+	line-height: 1.4;
+	color: rgba(255, 255, 255, 0.68);
+}
+
+.dark-theme .bills-modal input,
+.dark-theme .bills-modal select {
+	min-height: 54px;
+	background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.16);
+	border-radius: 18px;
+	color: rgba(255, 255, 255, 0.94);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .bills-modal input:focus,
+.dark-theme .bills-modal select:focus {
+	border-color: rgba(96, 165, 250, 0.55);
+	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+	outline: none;
+}
+
+.dark-theme .bills-modal .field label {
+	color: rgba(255, 255, 255, 0.78);
+	font-size: 0.82rem;
+	font-weight: 800;
+	letter-spacing: 0.01em;
+}
+
+.dark-theme .bills-modal .preset-toggle-button {
+	min-height: 54px;
+	border-radius: 18px;
+	background: radial-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.72));
+	border: 1px solid rgba(148, 163, 184, 0.16);
+	color: rgba(255, 255, 255, 0.92);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.dark-theme .bills-modal .preset-pill {
+	border-radius: 16px;
+	background: rgba(255, 255, 255, 0.045);
+	border-color: rgba(255, 255, 255, 0.08);
+	color: rgba(255, 255, 255, 0.82);
+}
+
+.dark-theme .bills-modal .modal-primary-action {
+	min-height: 56px;
+	border-radius: 18px;
+	background: linear-gradient(135deg, #3b82f6, #7c3aed);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	box-shadow: 0 14px 30px rgba(59, 130, 246, 0.24), 0 0 34px rgba(124, 38, 237, 0.14);
+}
+
+.dark-theme .bills-modal .text-action-button,
+.dark-theme .bills-modal .text-action-list {
+	background: rgba(255, 255, 255, 0.045);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	color: rgba(255, 255, 255, 0.82);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.dark-theme .bills-modal select option {
+	background: #0f172a;
+	color: rgba(255, 255, 255, 0.94);
+}
+
+.dark-theme .bills-modal select {
+	appearance: none;
+	-webkit-appearance: none;
+	background-image: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72)), url("data:image/svg+xml,%3Csvg xmlns-'http://www.w3.org/2000/svg' width='20' height-'20' viewBox-'0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%23CBD5E1' stroke-width='2' stroke-linecap-'round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	background-repeat: no-repeat, no-repeat;
+	background-position: center, right 1rem center;
+	background-size: auto, 18px;
+	padding-right: 3rem;
+
+}
+
+.dark-theme .bills-modal .living-expense-editor-row {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.70));
+	border-color: rgba(148, 163, 184, 0.10);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .bills-modal .living-expense-editor-row:nth-child(3n) {
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.10), transparent 42%), linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.70));
+}
+
+.dark-theme .bills-modal .living-status-enabled {
+	color: #4ade80;
+	text-shadow: 0 0 12px rgba(74, 22, 128, 0.18);
+}
+
+.dark-theme .bills-modal .living-expense-amount-input {
+	width: 92px;
+	min-height: 48px;
+	border-radius: 16px;
+	text-align: center;
+}
+
+.dark-theme .bills-modal .action-pill-completed {
+	background: linear-gradient(135deg, #3b82f6, #60a5fa);
+	border-color: rgba(255, 255, 255, 0.12);
+	box-shadow: 0 0 18px rgba(59, 130, 246, 0.18);
+}
+
+.dark-theme .bills-modal .action-pill {
+	background: rgba(255, 255, 255, 0.045);
+	border-color: rgba(255, 255, 255, 0.08);
+	color: rgba(255, 255, 255, 0.82);
+}
+
+.dark-theme .debt-add-modal {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.18), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent 38%), linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
+	border-color: rgba(255, 255, 255, 0.08);
+	box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48), 0 0 42px rgba(59, 130, 246, 0.14);
+	padding-bottom: calc(env(safe-area-inset-bottom) +7rem);
+}
+
+.center-modal.debt-add-modal {
+	max-height: calc(100vh - 2rem);
+	overflow-y: auto;
+}
+
+.dark-theme .debt-add-modal input,
+.dark-theme .debt-add-modal select {
+	min-height: 54px;
+	background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.16);
+	border-radius: 18px;
+	color: rgba(255, 255, 255, 0.94);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .debt-add-modal input:focus,
+.dark-theme .debt-add-modal select:focus {
+	border-color: rgba(96, 165, 250, 0.55);
+	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+	outline: none;
+}
+
+.dark-theme .debt-add-modal .field label {
+	color: rgba(255, 255, 255, 0.78);
+	font-size: 0.82rem;
+	font-weight: 800;
+	letter-spacing: 0.01em;
+}
+
+.dark-theme .debt-add-modal select option {
+	background: #0f172a;
+	color: rgba(255, 255, 255, 0.94);
+}
+
+.dark-theme .debt-add-modal select {
+	appearance: none;
+	-webkit-appearance: none;
+	background-image: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72)), url("data:image/sva+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='MS 7.5L10 12.5L15 7.5' stroke='%23CBD5E1' stroke-width='2' stroke-linecap='round' stroke-linejoin'round'/%3E%3C/svg%3E");
+	background-repeat: no-repeat, no-repeat;
+	background-position: cetner, right 1rem center;
+	background-size: auto, 18px;
+	padding-right: 3rem;
+}
+
+.dark-theme .debt-list-item {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.10);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025), 0 10px 24px rgba(0, 0, 0, 0.16);
+}
+
+.dark-theme .debt-list-item:nth-child(3n) {
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.10), transparent 42%), linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.72));
+}
+
+.dark-theme .debt-summary-strip {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.72), rgba(15, 23, 42, 0.68));
+	border: 1px solid rgba(148, 163, 184, 0.10);
+	border-radius: 18px;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .debt-controls input,
+.dark-theme .debt-controls select,
+.dark-theme .debt-controls .sort-row select {
+	min-height: 52px;
+	border-radius: 18px;
+	background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.16);
+	color: var(--text-primary);
+}
+
+.dark-theme .debt-controls select option,
+.dark-theme .debt-controls .sort-row select option {
+	background: #0f172a;
+	color: rgba(255, 255, 255, 0.94);
+}
+
+.dark-theme .autopay-pill {
+	background: linear-gradient(135deg, rgba(59, 130, 246, 0.22), rgba(124, 58, 237, 0.18));
+	border: 1px solid rgba(96, 165, 250, 0.24);
+	color: #93c5fd;
+	box-shadow: 0 0 14px rgba(59, 130, 246, 0.14);
+}
+
+.dark-theme .empty-debt-state {
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.72), rgba(15, 23, 42, 0.68));
+	border: 1px solid rgba(148, 163, 184, 0.10);
+	border-radius: 24px;
+	box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.debt-list-item {
+	width: 100%;
+	padding: 0;
+}
+
+
+.debt-list-item .saved-item-inner-button {
+	width: 100%;
+	min-height: 76px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 14px;
+	padding: 14px 16px;
+	border: 0;
+	border-radius: inherit;
+	background: transparent;
+	color: inherit;
+	text-align: left;
+}
+
+.debt-list-item .saved-item-left {
+	flex: 1;
+	min-width: 0;
+}
+
+.debt-list-item .saved-item-right {
+	flex-shrink: 0;
+	align-items: center;
+}
+
+.debt-list-item .saved-title {
+	font-size: 1rem;
+	font-weight: 850;
+	line-height: 1.12;
+}
+
+.debt-list-item .saved-amount {
+	font-size: 1.05rem;
+	font-weight: 900;
+	white-space: nowrap;
+}
+
+.debt-list-item .row-chevron {
+	flex-shrink: 0;
+}
+
+.debt-group .swipe-action-shell {
+	width: 100%;
+}
+
+.dark-theme .debts-polish-card {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 36%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.09), transparent 40%), rgba(15, 23, 42, 0.88);
+	border-color: rgba(120, 140, 255, 0.16);
+}
+
+.dark-theme .goals-polish-card {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 36%), radial-gradient(circle at 15% 45%, rgba(168, 85, 247, 0.10), transparent 40%), rgba(15, 23, 42, 0.88);
+	border-color: rgba(120, 140, 255, 0.16);
+}
+
+.dark-theme .goals-add-button {
+	background: linear-gradient(135deg, #3b82f6, #7c3aed);
+	border-color: rgba(255, 255, 255, 0.12);
+	box-shadow: 0 14px 30px rgba(59, 130, 246, 0.24), 0 0 34px rgba(124, 58, 237, 0.14);
+}
+
+.dark-theme .goal-add-modal {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.18), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent 38%), linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
+	border-color: rgba(255, 255, 255, 0.08);
+	box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48), 0 0 42px rgba(59, 130, 246, 0.14);
+	padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
+}
+
+.dark-theme .goal-add-modal input,
+.dark-theme .goal-add-modal select {
+	min-height: 54px;
+	background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.16);
+	border-radius: 18px;
+	color: rgba(255, 255, 255, 0.94);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark-theme .goal-add-modal input:focus,
+.dark-theme .goal-add-modal select:focus {
+	border-color: rgba(96, 165, 250, 0.55);
+	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+	outline: none;
+}
+
+.dark-theme .goal-add-modal .field label {
+	color: rgba(255, 255, 255, 0.78);
+	font-size: 0.82rem;
+	font-weight: 800;
+	letter-spacing: 0.01em;
+}
+
+.dark-theme .goal-add-modal select option {
+	background: #0f172a;
+	color: rgba(255, 255, 255, 0.94);
+}
+
+.dark-theme .goal-add-modal select {
+	appearance: none;
+	-webkit-appearance: none;
+	background-image: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%23CBD5E1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	background-repeat: no-repeat, no-repeat;
+	background-position: center, right 1rem center;
+	background-size: auto, 18px;
+	padding-right: 3rem;
+}
+
+.dark-theme .debts-add-button {
+	background: linear-gradient(135deg, #3b82f6, #7c3aed);
+	border-color: rgba(255, 255, 255, 0.12);
+	box-shadow: 0 14px 30px rgba(59, 130, 246, 0.24), 0 0 3px rgba(124, 58, 237, 0.14);
+}
+
+.dark-theme .debt-list-item {
+	position: relative;
+	overflow: hidden;
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.10), transparent 42%), linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.12);
+	box-shadow: inset 0 1px rgba(255, 255, 255, 0.025), 0 10px 24px rgba(0, 0, 0, 0.16);
+}
+
+.dark-theme .debt-list-item::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 18px;
+	bottom: 18px;
+	width: 4px;
+	border-radius: 999px;
+	background: linear-gradient(to bottom, #60a5fa, #3b82f6);
+	box-shadow: 0 0 12px rgba(96, 165, 250, 0.32);
+}
+
+.dark-theme .debt-list-item-priority::before {
+	background: linear-gradient(to bottom, #f97316, #a855f7);
+	box-shadow: 0 0 14px rgba(249, 115, 22, 0.28);
+}
+
+.dark-theme .debt-list-item-bnpl::before {
+	background: linear-gradient(to bottom, #22c55e, #60a5fa);
+	box-shadow: 0 0 14px rgba(34, 197, 94, 0.22);
+}
+
+.dark-theme .debt-list-item-paid {
+	background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.10), transparent 42%),
+	linear-gradient(145deg, rgba(8, 24, 28, 0.88), rgba(6, 18, 24, 0.92)); 
+}
+
+.dark-theme .debt-list-item-paid::before {
+	background: linear-gradient(to bottom, #4ade80, #22c55e);
+	box-shadow: 0 0 14px rgba(74, 222, 128, 0.22);
+}
+
+.dark-theme .debt-list-item-paid .saved-title,
+.dark-theme .debt-list-item-paid .saved-amount {
+	color: #4ade80;
+}
+
+.dark-theme .debt-list-item .saved-item-inner-button {
+	padding-left: 20px;
+}
+
+.dark-theme .debt-list-item .saved-amount:not(.debt-list-item-paid .saved-amount) {
+	color: rgba(255, 255, 255, 0.96);
+	text-shadow: 0 0 12px rgba(96, 165, 250, 0.12);
+}
+
+.dark-theme .debt-summary-strip {
+	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 42%), linear-gradient(145deg, rgba(30, 41, 59, 0.76), rgba(15, 23, 42, 0.68));
+	border-color: rgba(148, 163, 184, 0.12);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025), 0 14px 34px rgba(15, 23, 42, 0.18);
+
+}
+
+.center-modal.debt-add-modal {
+	max-height: calc(100vh - 2rem);
+	overflow-y: auto;
+	padding-bottom: calc(evn(safe-area-inset-bottom) + 8.5rem);
+}
+
+.debts-polish-card {
+	padding-bottom: calc(env(safe-area-inset-bottom) + 8rem);
+}
+
+

@@ -7,7 +7,16 @@ import {
     type PayCycle,
 } from "@/lib/payCycle/getNextPaycheckDate";
 import type { Recurrence } from "@/lib/types/recurrence";
-import "./page.css";
+import "./styles/00-theme-and-base.css";
+import "./styles/01-payoff-goals.css";
+import "./styles/02-overdue-pagination-nav.css";
+import "./styles/03-nav-results-modals.css";
+import "./styles/04-debt-modals-focus.css";
+import "./styles/05-timeline-whatif.css";
+import "./styles/06-forecast-and-payoff-shell.css";
+import "./styles/07-premium-upgrade.css";
+import "./styles/08-dark-theme-polish.css";
+import "./styles/09-anim-swipe-media-misc.css";
 
 import { ResultsSection } from "@/components/ResultsSection";
 import { GoalsSection } from "@/components/GoalsSection";

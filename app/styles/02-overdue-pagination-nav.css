@@ -1,0 +1,218 @@
+.overdue-item {
+	position: relative;
+	overflow: hidden;
+	border-color: var(--border-color);
+	background: var(--surface-muted);
+}
+
+.overdue-item::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 12px;
+	bottom: 12px;
+	width: 3px;
+	border-radius: var(--radius-pill);
+	background: var(--danger-color);
+	opacity: 0.9;
+}
+
+.dark-theme .overdue-item {
+	background: #151c28;
+	border-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .overdue-item .saved-title,
+.dark-theme .overdue-item .saved-meta,
+.dark-theme .overdue-item .saved-amount {
+	color: var(--text-primary);
+}
+
+.dark-theme .status-chip.overdue {
+	background: rgba(239, 68, 68, 0.18);
+	color: #fca5a5;
+}
+
+.dark-theme .overdue-item .action-pill {
+	color: var(--text-primary);
+	border-color: rgba(255, 255, 255, 0.16);
+}
+
+.dark-theme .bottom-nav-item.active {
+	background: rgba(96, 165, 250, 0.18);
+	color: #bfdbfe;
+	border: 1px solid rgba(96, 165, 250, 0.25);
+}
+
+.backup-actions {
+	display: flex;
+	gap: 0.75rem;
+	margin-top: 1rem;
+}
+
+.import-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	min-width: 160px;
+}
+
+.backup-actions button {
+	min-width: 160px;
+}
+
+.debt-summary-grid,
+.plan-snapshot-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.75rem;
+	margin-bottom: 1rem;
+}
+
+.summary-card {
+	border: 1px solid var(--border-soft);
+	border-radius: var(--radius-md);
+	padding: 13px;
+	background: rgba(255, 255, 255, 0.34);
+	box-shadow: 0 4px 14px rgba(15, 23, 42, 0.035);
+}
+
+.dark-theme .summary-card {
+	background: rgba(255, 255, 255, 0.045);
+	border-color: rgba(255, 255, 255, 0.08);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.summary-card span {
+	display: block;
+	font-size: 0.75rem;
+	color: var(--text-secondary);
+	margin-bottom: 0.25rem;
+}
+
+.summary-card strong {
+	font-size: 1rem;
+}
+
+.debt-group .summary-card strong {
+	font-size: 1.08rem;
+	letter-spacing: -0.03em;
+}
+
+.debt-group .summary-card:nth-child(1) strong,
+.debt-group .summary-card:nth-child(2) strong {
+	font-size: 1.18rem;
+	color: var(--accent-color);
+}
+
+.debt-controls,
+.expense-controls,
+.goal-controls {
+	width: 100%;
+	display: flex;
+	gap: 0.75rem;
+	margin-bottom: 1rem;
+}
+
+.sort-row {
+	display: flex;
+	gap: 0.5rem;
+	flex: 1;
+	min-width: 0;
+}
+
+.sort-row select {
+	flex: 1;
+	min-width: 0;
+}
+
+.sort-direction-btn {
+	flex-shrink: 0;
+	width: 44px;
+	min-height: 44px;
+	border-radius: 12px;
+	border: 1px solid var(--border-color);
+	background: var(--card-bg);
+	color: var(--text-primary);
+	font-size: 1.1rem;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.15s, border-color 0.15s;
+}
+
+.sort-direction-btn:active {
+	background: var(--accent-color);
+	color: #fff;
+	border-color: var(--accent-color);
+}
+
+.dark-theme .sort-direction-btn {
+	background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
+	border-color: rgba(148, 163, 184, 0.16);
+	min-height: 52px;
+	border-radius: 18px;
+}
+
+.section-count {
+	color: var(--success-color);
+	font-weight: 700;
+}
+
+.debt-list-item {
+	align-items: flex-start;
+}
+
+.debt-list-item .saved-meta,
+.saved-item .saved-meta {
+	line-height: 1.18;
+}
+
+.debt-list-item .saved-meta,
+.required-actions-list .saved-meta {
+	opacity: 0.72;
+}
+
+.debt-import-actions {
+	display: flex;
+	justify-content: flex-start;
+	margin-bottom: 12px;
+}
+
+.load-more-actions,
+.pagination-actions,
+.plan-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin-top: 1rem;
+}
+
+.pagination-compact {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	margin: 14px auto 0;
+	padding: 6px 12px;
+	border-radius: var(--radius-pill);
+	background: var(--surface-muted);
+	border: 1px solid var(--border-color);
+}
+
+.pagination-compact .text-action-button {
+	min-width: 32px;
+	min-height: 32px;
+	padding: 0;
+	border-radius: 999px;
+}
+
+.pagination-status {
+	color: var(--text-secondary);
+	font-size: 0.9rem;
+	white-space: nowrap;
+	font-weight: 700;
+}
+
