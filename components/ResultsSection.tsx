@@ -8,6 +8,8 @@ import type {
 } from "@/lib/storage/debtPlannerStorage";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { SwipeActionCard } from "./SwipeActionCard";
+import { CompletedActionsList } from "./Results/CompletedActionsList";
+import { OptionalGoalsList } from "./Results/OptionalGoalsList";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 
@@ -1062,60 +1064,17 @@ export function ResultsSection({
             </div>
 
             {completedRequiredActions.length > 0 && (
-                <div className="plan-dashboard-section completed-section">
-                    <button
-                        type="button"
-                        className="section-collapse-button"
-                        onClick={() => {
-                            triggerLightHaptic();
-                            setCompletedExpanded((current) => !current);
-                        }}
-                    >
-                        <div className="section-collapse-left">
-                            <div>
-                                <h2>Completed This Cycle</h2>
-                                <p className="section-collapse-subtitle">Payments confirmed for this pay cycle.</p>
-                            </div>
-
-                            <span className="section-count-pill">
-                                {completedRequiredActions.length}
-                            </span>
-                        </div>
-
-                        <span
-                            className={
-                                completedExpanded
-                                    ? "collapse-chevron expanded"
-                                    : "collapse-chevron"
-                            }
-                        >
-                            ▼
-                        </span>
-                    </button>
-
-                    <div
-                        className={
-                            completedExpanded
-                                ? "plan-section-body expanded"
-                                : "plan-section-body collapsed"
-                        }
-                        aria-hidden={!completedExpanded}
-                    >
-                        <div className="required-actions-list">
-                            {completedRequiredActions.map((item, index) => renderRequiredAction(item, index))}
-                        </div>
-                    </div>
-                </div>
+                <CompletedActionsList
+                    count={completedRequiredActions.length}
+                    isExpanded={completedExpanded}
+                    onToggleExpanded={() => setCompletedExpanded((current) => !current)}
+                >
+                    {completedRequiredActions.map((item, index) => renderRequiredAction(item, index))}
+                </CompletedActionsList>
             )}
 
             {optionalGoalActions.length > 0 && (
-                <div className="plan-dashboard-section">
-                    <h2>Optional Goals</h2>
-
-                    <p className="section-collapse-subtitle">
-                        Optional savings contributions after required payments and debt payoff.
-                    </p>
-
+                <OptionalGoalsList>
                     {optionalGoalActions.map((item) => {
                         if (
                             !isRecommendedCategory(item.category) ||
@@ -1134,7 +1093,7 @@ export function ResultsSection({
                             isCompleted: false,
                         });
                     })}
-                </div>
+                </OptionalGoalsList>
             )}
         </section>
     );
