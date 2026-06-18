@@ -3,42 +3,8 @@ import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";
 import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
-import { formatCurrency } from "@/lib/utils/formatCurrency";
-import { requiredExpensePresets } from "@/lib/constants/requiredExpensePresets";
-
-const requiredExpenseCategoryOptions: {
-    value: RequiredExpenseCategory;
-    label: string;
-}[] = [
-        { value: "housing", label: "Housing" },
-        { value: "utilities", label: "Utilities" },
-        { value: "insurance", label: "Insurance" },
-        { value: "subscriptions", label: "Subscriptions" },
-        { value: "medical", label: "Medical" },
-        { value: "other", label: "Other" },
-    ];
-
-function formatRequiredExpenseCategory(category?: RequiredExpenseCategory) {
-    return (
-        requiredExpenseCategoryOptions.find((option) => option.value === (category ?? "other"))?.label ?? "Other");
-}
-
-function getRequiredExpenseCategoryIcon(category?: RequiredExpenseCategory) {
-    switch (category) {
-        case "housing":
-            return "🏠";
-        case "utilities":
-            return "💡";
-        case "insurance":
-            return "🩺";
-        case "subscriptions":
-            return "📺";
-        case "medical":
-            return "💊";
-        default:
-            return "📌";
-    }
-}
+import { ExpenseListItem, requiredExpenseCategoryOptions } from "./RequiredExpenses/ExpenseListItem";
+import { AddExpenseModal } from "./RequiredExpenses/AddExpenseModal";
 
 type RequiredExpensesSectionProps = {
     expenses: RequiredExpense[];
@@ -106,7 +72,6 @@ export function RequiredExpensesSection({
     const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
     const [expensePage, setExpensePage] = useState(1);
     const showFab = useScrollFabVisible();
-    const [showExpensePresets, setShowExpensePresets] = useState(false);
 
     const filteredExpenses = expenses.filter((expense) => {
         const matchesSearch = expense.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase());
@@ -164,172 +129,6 @@ export function RequiredExpensesSection({
     function handleAddExpense() {
         onAddExpense();
         setShowAddExpenseModal(false);
-    }
-
-    function renderExpense(expense: RequiredExpense) {
-        const isEditing = editingExpenseId === expense.id;
-
-        if (isEditing) {
-            return (
-                <div
-                    key={expense.id}
-                    className="saved-item debt-edit-card compact-debt-edit-card"
-                >
-                    <div className="saved-title">{expense.name}</div>
-
-                    <div className="compact-debt-edit-grid">
-                        <div className="field">
-                            <label>Amount</label>
-
-                            <input
-                                type="number"
-                                value={editAmount}
-                                onChange={(event) => setEditAmount(event.target.value)}
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label>Due Date</label>
-
-                            <input
-                                type="date"
-                                value={editDueDate}
-                                onChange={(event) => setEditDueDate(event.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    <details className="debt-advanced-edit">
-                        <summary>Advanced</summary>
-
-                        <div className="compact-expense-edit-grid advanced-grid">
-                            <div className="field">
-                                <label>Recurrence</label>
-                                <select
-                                    value={editRecurrence}
-                                    onChange={(event) => setEditRecurrence(event.target.value as Recurrence)}
-                                >
-                                    <option value="one-time">One Time</option>
-                                    <option value="per-paycheck">Every Paycheck</option>
-                                    <option value="weekly">Weekly</option>
-                                    <option value="biweekly">Every 2 Weeks</option>
-                                    <option value="monthly">Monthly</option>
-                                    <option value="quarterly">Quarterly</option>
-                                    <option value="annually">Yearly</option>
-                                </select>
-                            </div>
-
-                            <div className="field">
-                                <label>Type</label>
-                                <select
-                                    value={editExpenseType}
-                                    onChange={(event) => setEditExpenseType(event.target.value as "fixed" | "variable")}
-                                >
-                                    <option value="fixed">Fixed</option>
-                                    <option value="variable">Variable</option>
-                                </select>
-                            </div>
-
-                            <div className="field">
-                                <label>Category</label>
-                                <select
-                                    value={editCategory}
-                                    onChange={(event) => setEditCategory(event.target.value as RequiredExpenseCategory)}
-                                >
-                                    {requiredExpenseCategoryOptions.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="field checkbox-field">
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        checked={editIsAutopay}
-                                        onChange={(event) => setEditIsAutopay(event.target.checked)}
-                                    />
-                                    Autopay
-                                </label>
-                            </div>
-                        </div>
-                    </details>
-
-                    <div className="debt-edit-actions">
-                        <button
-                            type="button"
-                            className="text-action-button danger-action"
-                            onClick={() => {
-                                onRemoveExpense(expense.id);
-                                cancelEditing();
-                            }}
-                        >
-                            Remove
-                        </button>
-
-                        <div className="debt-edit-actions-right">
-                            <button
-                                type="button"
-                                className="secondary-button"
-                                onClick={cancelEditing}
-                            >
-                                Cancel
-                            </button>
-
-                            <button
-                                type="button"
-                                className="add-button debt-save-button"
-                                onClick={() => saveEditing(expense.id)}
-                            >
-                                Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <button
-                key={expense.id}
-                type="button"
-                className={`saved-item saved-item-button required-expense-row ${expense.isPaidThisCycle ? "required-expense-row-paid" : ""}`}
-                onClick={() => startEditing(expense)}
-            >
-                <div className="saved-item-left">
-                    <div className="saved-title">
-                        {expense.name}
-                        {expense.isPaidThisCycle ? "✔" : ""}
-                        {expense.isAutopay && <span className="autopay-pill">Autopay</span>}
-                        <span className="category-pill">
-                            <span className="category-pill-icon">
-                                {getRequiredExpenseCategoryIcon(expense.category)}
-                            </span>
-
-                            {formatRequiredExpenseCategory(expense.category)}
-                        </span>
-                    </div>
-
-                    <div className="saved-meta">
-                        Due {expense.dueDate} · {formatRecurrence(expense.recurrence)} ·{" "}
-                        {(expense.expenseType ?? "fixed") === "fixed"
-                            ? "Fixed"
-                            : "Variable"}{" "}
-                        · {formatRequiredExpenseCategory(expense.category)}
-                    </div>
-                </div>
-
-                <div className="saved-item-right">
-                    <strong className="saved-amount">
-                        {formatCurrency(expense.amount)}
-                    </strong>
-
-                    <span className="row-chevron">›</span>
-                </div>
-            </button>
-        );
     }
 
     return (
@@ -408,7 +207,30 @@ export function RequiredExpensesSection({
                 {filteredExpenses.length === 0 ? (
                     <p className="empty-state">No required expenses added yet.</p>
                 ) : (
-                    visibleExpenses.map(renderExpense)
+                    visibleExpenses.map((expense) => (
+                        <ExpenseListItem
+                            key={expense.id}
+                            expense={expense}
+                            isEditing={editingExpenseId === expense.id}
+                            formatRecurrence={formatRecurrence}
+                            editAmount={editAmount}
+                            editDueDate={editDueDate}
+                            editRecurrence={editRecurrence}
+                            editExpenseType={editExpenseType}
+                            editCategory={editCategory}
+                            editIsAutopay={editIsAutopay}
+                            onEditAmountChange={setEditAmount}
+                            onEditDueDateChange={setEditDueDate}
+                            onEditRecurrenceChange={setEditRecurrence}
+                            onEditExpenseTypeChange={setEditExpenseType}
+                            onEditCategoryChange={setEditCategory}
+                            onEditIsAutopayChange={setEditIsAutopay}
+                            onStartEditing={startEditing}
+                            onCancelEditing={cancelEditing}
+                            onSaveEditing={saveEditing}
+                            onRemoveExpense={onRemoveExpense}
+                        />
+                    ))
                 )}
 
                 {filteredExpenses.length > pageSize && (
@@ -439,191 +261,25 @@ export function RequiredExpensesSection({
             </section>
 
             {showAddExpenseModal && (
-                <div
-                    className="center-modal-overlay"
-                    onClick={() => {
-                        triggerLightHaptic();
-                        setShowAddExpenseModal(false);
-                    }}
-                >
-                    <div
-                        className="center-modal bills-modal"
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        <div className="center-modal-header">
-                            <div>
-                                <h2>Add Expense</h2>
-                                <p>Add a required bill or payment.</p>
-                            </div>
-
-                            <button
-                                type="button"
-                                className="text-action-button"
-                                onClick={() => {
-                                    triggerLightHaptic();
-                                    setShowAddExpenseModal(false);
-                                }}
-                            >
-                                Close
-                            </button>
-                        </div>
-
-                        <div className="form-grid">
-                            <div className="field">
-                                <button
-                                    type="button"
-                                    className="secondary-button preset-toggle-button"
-                                    onClick={() => {
-                                        triggerLightHaptic();
-                                        setShowExpensePresets((current) => !current)}}
-                                >
-                                    {showExpensePresets
-                                        ? "Hide Common Expenses"
-                                        : "Choose A Common Expense"}
-                                </button>
-
-                                {showExpensePresets && (
-                                    <div className="preset-grid compact-preset-grid">
-                                        {requiredExpensePresets.map((preset) => (
-                                            <button
-                                                key={preset.name}
-                                                type="button"
-                                                className="preset-pill compact-preset-pill"
-                                                onClick={() => {
-                                                    triggerLightHaptic();
-                                                    onExpenseNameChange(preset.name);
-                                                    onExpenseTypeChange(preset.expenseType);
-                                                    onExpenseRecurrenceChange(preset.recurrence);
-                                                    setShowExpensePresets(false);
-                                                }}
-                                            >
-                                                {preset.name}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="field">
-                                <label>Expense Name</label>
-
-                                <input
-                                    type="text"
-                                    placeholder="Rent, phone, utilities"
-                                    value={expenseName}
-                                    onChange={(event) => onExpenseNameChange(event.target.value)}
-                                />
-
-                                {expenseErrors.name && (
-                                    <p className="validation-error">
-                                        {expenseErrors.name}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className="field">
-                                <label>Amount Due</label>
-
-                                <input
-                                    type="number"
-                                    placeholder="Amount Due"
-                                    value={expenseAmount}
-                                    onChange={(event) => onExpenseAmountChange(event.target.value)}
-                                />
-
-                                {expenseErrors.amount && (
-                                    <p className="validation-error">
-                                        {expenseErrors.amount}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className="field">
-                                <label>Due Date</label>
-
-                                <div className="date-input-wrapper">
-                                    <input
-                                        type="date"
-                                        value={expenseDueDate}
-                                        onChange={(event) => onExpenseDueDateChange(event.target.value)}
-                                    />
-                                    {!expenseDueDate && (
-                                        <span className="date-input-placeholder">MM/DD/YYYY</span>
-                                    )}
-                                </div>
-
-                                {expenseErrors.dueDate && (
-                                    <p className="validation-error">
-                                        {expenseErrors.dueDate}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className="field">
-                                <label>Recurrence</label>
-
-                                <select
-                                    value={expenseRecurrence}
-                                    onChange={(event) => onExpenseRecurrenceChange(event.target.value as Recurrence)}
-                                >
-                                    <option value="monthly">Monthly</option>
-                                    <option value="weekly">Weekly</option>
-                                    <option value="biweekly">Every 2 Weeks</option>
-                                    <option value="per-paycheck">Every Paycheck</option>
-                                    <option value="one-time">One Time</option>
-                                </select>
-                            </div>
-
-                            <div className="field">
-                                <label>Expense Type</label>
-
-                                <select
-                                    value={expenseType}
-                                    onChange={(event) => onExpenseTypeChange(event.target.value as "fixed" | "variable")}
-                                >
-                                    <option value="fixed">Fixed</option>
-                                    <option value="variable">Variable</option>
-                                </select>
-                            </div>
-
-                            <div className="field">
-                                <label>Category</label>
-
-                                <select
-                                    value={expenseCategory}
-                                    onChange={(event) => onExpenseCategoryChange(event.target.value as RequiredExpenseCategory)}
-                                >
-                                    {requiredExpenseCategoryOptions.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="field checkbox-field">
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        checked={expenseIsAutopay}
-                                        onChange={(event) => onExpenseIsAutopayChange(event.target.checked)}
-                                    />
-                                    Autopay
-                                </label>
-                            </div>
-
-                            <button
-                                type="button"
-                                className="add-button modal-primary-action"
-                                onClick={() => {
-                                    triggerMediumHaptic();
-                                    handleAddExpense();}}
-                            >
-                                Add Required Expense
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <AddExpenseModal
+                    expenseName={expenseName}
+                    expenseAmount={expenseAmount}
+                    expenseDueDate={expenseDueDate}
+                    expenseRecurrence={expenseRecurrence}
+                    expenseType={expenseType}
+                    expenseCategory={expenseCategory}
+                    expenseIsAutopay={expenseIsAutopay}
+                    expenseErrors={expenseErrors}
+                    onExpenseNameChange={onExpenseNameChange}
+                    onExpenseAmountChange={onExpenseAmountChange}
+                    onExpenseDueDateChange={onExpenseDueDateChange}
+                    onExpenseRecurrenceChange={onExpenseRecurrenceChange}
+                    onExpenseTypeChange={onExpenseTypeChange}
+                    onExpenseCategoryChange={onExpenseCategoryChange}
+                    onExpenseIsAutopayChange={onExpenseIsAutopayChange}
+                    onAdd={handleAddExpense}
+                    onClose={() => setShowAddExpenseModal(false)}
+                />
             )}
 
             {showFab && !showAddExpenseModal && (
