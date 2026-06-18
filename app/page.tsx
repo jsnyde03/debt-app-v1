@@ -2,10 +2,7 @@
 
 import { useMemo, useEffect, useState, type ChangeEvent } from "react";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
-import {
-    getNextPaycheckDate,
-    type PayCycle,
-} from "@/lib/payCycle/getNextPaycheckDate";
+import { getNextPaycheckDate } from "@/lib/payCycle/getNextPaycheckDate";
 import type { Recurrence } from "@/lib/types/recurrence";
 import "./styles/00-theme-and-base.css";
 import "./styles/01-payoff-goals.css";
@@ -30,7 +27,7 @@ import {
     rolloverRequiredExpenses,
 } from "@/lib/recurrence/rolloverPayCycle";
 
-import { type RecommendationOverride, type Debt, type RequiredExpense, type RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
+import { type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 import { calculateMonthlyInterest } from "@/lib/debt/calculateMonthlyInterest";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { parseDebtCsv } from "@/lib/imports/debtCsv";
@@ -38,25 +35,21 @@ import type { LivingExpense } from "@/lib/types/livingExpense";
 import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
-import { StatusBar, Style } from "@capacitor/status-bar";
 import { TimelineSection } from "@/components/TimelineSection";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
 import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting } from "@/lib/subscription/revenueCat";
-import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { triggerLightHaptic } from "@/lib/mobile/haptics";
 import { scheduleNotifications, cancelAllNotifications, requestNotificationPermission, hasNotificationPermission } from "@/lib/notifications/scheduleNotifications";
 import { incrementRolloverCount, maybeRequestAppReview } from "@/lib/review/requestAppReview";
 import { AppSkeleton } from "@/components/AppSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
-
-type Goal = {
-    id: string;
-    name: string;
-    targetAmount: number;
-    currentAmount: number;
-    originalCurrentAmount?: number;
-    type: "emergency" | "savings";
-};
+import { loadStoredState } from "@/lib/storage/loadStoredState";
+import { useDarkMode } from "@/lib/hooks/useDarkMode";
+import { useGoals, type Goal } from "@/lib/hooks/useGoals";
+import { useRequiredExpenses } from "@/lib/hooks/useRequiredExpenses";
+import { useDebts } from "@/lib/hooks/useDebts";
+import { usePayCycleSettings, getCurrentDate } from "@/lib/hooks/usePayCycleSettings";
 
 type CompletedRecommendedAction = {
     targetId: string;
@@ -66,14 +59,6 @@ type CompletedRecommendedAction = {
     actualAmount: number;
     paymentSource?: "paycheck" | "external";
 };
-
-function getCurrentDate() {
-    const today = new Date();
-
-    return new Date(today.getFullYear(), today.getMonth(), today.getDate())
-        .toISOString()
-        .slice(0, 10);
-}
 
 function formatRecurrence(recurrence: Recurrence) {
     switch (recurrence) {
@@ -92,19 +77,6 @@ function formatRecurrence(recurrence: Recurrence) {
         case "monthly":
         default:
             return "Monthly";
-    }
-}
-
-function loadStoredState<T>(key: string, fallback: T): T {
-    if (typeof window === "undefined") return fallback;
-
-    const stored = window.localStorage.getItem(key);
-    if (!stored) return fallback;
-
-    try {
-        return JSON.parse(stored) as T;
-    } catch {
-        return fallback;
     }
 }
 
@@ -135,9 +107,15 @@ function formatLastSaved(value: string) {
 
 export default function Home() {
 
-    const [amount, setAmount] = useState(() =>
-        loadStoredState("debtPlanner.amount", "")
-    );
+    const {
+        amount, setAmount,
+        currentDate, setCurrentDate,
+        nextPaycheckDate, setNextPaycheckDate,
+        payCycle, setPayCycle,
+        semiMonthlyFirstDay, setSemiMonthlyFirstDay,
+        semiMonthlySecondDay, setSemiMonthlySecondDay,
+        monthlyPayDay, setMonthlyPayDay,
+    } = usePayCycleSettings();
 
     const [livingExpenses, setLivingExpenses] = useState<LivingExpense[]>(() =>
         loadStoredState("debtPlanner.livingExpenses", livingExpensePresets.map((expense, index) => ({
@@ -149,74 +127,19 @@ export default function Home() {
 
     const hasConfiguredPaycheck = amount !== "" && Number(amount) > 0;
 
+    const {
+        goals, setGoals,
+        goalName, setGoalName,
+        goalTargetAmount, setGoalTargetAmount,
+        goalCurrentAmount, setGoalCurrentAmount,
+        goalType, setGoalType,
+        goalErrors,
+        handleAddGoal,
+        handleUpdateGoal,
+        handleRemoveGoal,
+    } = useGoals();
 
-    const [currentDate, setCurrentDate] = useState(() =>
-        loadStoredState("debtPlanner.currentDate", getCurrentDate())
-    );
-
-    const [nextPaycheckDate, setNextPaycheckDate] = useState(() =>
-        loadStoredState("debtPlanner.nextPaycheckDate", getNextPaycheckDate({
-            payCycle: "biweekly",
-            currentDate: getCurrentDate(),
-        })));
-
-    const [payCycle, setPayCycle] = useState<PayCycle>(() =>
-        loadStoredState("debtPlanner.payCycle", "biweekly")
-    );
-
-    const [semiMonthlyFirstDay, setSemiMonthlyFirstDay] = useState(() =>
-        loadStoredState("debtPlanner.semiMonthlyFirstDay", "1")
-    );
-
-    const [semiMonthlySecondDay, setSemiMonthlySecondDay] = useState(() =>
-        loadStoredState("debtPlanner.semiMonthlySecondDay", "15")
-    );
-
-    const [monthlyPayDay, setMonthlyPayDay] = useState(() =>
-        loadStoredState("debtPlanner.monthlyPayDay", "1")
-    );
-
-    const [requiredExpenses, setRequiredExpenses] = useState<RequiredExpense[]>(
-        () => loadStoredState("debtPlanner.requiredExpenses", [])
-    );
-
-    const [expenseName, setExpenseName] = useState("");
-    const [expenseAmount, setExpenseAmount] = useState("");
-    const [expenseDueDate, setExpenseDueDate] = useState("");
-    const [expenseRecurrence, setExpenseRecurrence] =
-        useState<Recurrence>("monthly");
-    const [expenseType, setExpenseType] = useState<"fixed" | "variable">("fixed");
-    const [expenseCategory, setExpenseCategory] = useState<RequiredExpenseCategory>("other");
-    const [expenseIsAutopay, setExpenseIsAutopay] = useState(false);
-    const [debts, setDebts] = useState<Debt[]>(() =>
-        loadStoredState("debtPlanner.debts", [])
-    );
-
-    const [debtName, setDebtName] = useState("");
-    const [debtBalance, setDebtBalance] = useState("");
-    const [debtMinimumPayment, setDebtMinimumPayment] = useState("");
-    const [debtDueDate, setDebtDueDate] = useState("");
-    const [debtApr, setDebtApr] = useState("");
-    const [debtType, setDebtType] = useState<"debt" | "bnpl">("debt");
-    const [debtRecurrence, setDebtRecurrence] =
-        useState<Recurrence>("monthly");
-
-    const [debtIsAutopay, setDebtIsAutopay] = useState(false);
-
-    const [debtRemainingPayments, setDebtRemainingPayments] = useState("");
-    const [debtScheduledPaymentAmount, setDebtScheduledPaymentAmount] =
-        useState("");
-
-    const [goals, setGoals] = useState<Goal[]>(() =>
-        loadStoredState("debtPlanner.goals", [])
-    );
-
-    const [goalName, setGoalName] = useState("Starter Emergency Fund");
-    const [goalTargetAmount, setGoalTargetAmount] = useState("1000");
-    const [goalCurrentAmount, setGoalCurrentAmount] = useState("");
-    const [goalType, setGoalType] = useState<"emergency" | "savings">(
-        "emergency"
-    );
+    const { darkMode, setDarkMode } = useDarkMode();
 
     const [completedRecommendedActions, setCompletedRecommendedActions] =
         useState<CompletedRecommendedAction[]>(() =>
@@ -240,34 +163,9 @@ export default function Home() {
         () => !hasConfiguredPaycheck
     );
 
-    const [debtErrors, setDebtErrors] = useState<{
-        name?: string;
-        balance?: string;
-        minimumPayment?: string;
-        dueDate?: string;
-        apr?: string;
-    }>({});
-
-    const [debtWarnings, setDebtWarnings] = useState<{
-        minimumPayment?: string;
-    }>({});
-
-    const [expenseErrors, setExpenseErrors] = useState<{
-        name?: string;
-        amount?: string;
-        dueDate?: string;
-    }>({});
-
-    const [goalErrors, setGoalErrors] = useState<{
-        name?: string;
-        targetAmount?: string;
-    }>({});
-
     const [payoffStrategy, setPayoffStrategy] = useState<
         "snowball" | "avalanche"
     >(() => loadStoredState("debtPlanner.payoffStrategy", "snowball"));
-
-    const [darkMode, setDarkMode] = useState(() => loadStoredState("debtPlanner.darkMode", false));
 
     const [lastSavedAt, setLastSavedAt] = useState(() =>
         loadStoredState("debtPlanner.lastSavedAt", "")
@@ -282,26 +180,73 @@ export default function Home() {
         loadStoredState("debtPlanner.notificationsEnabled", false)
     );
 
-    function hasValidPayCycleInputs() {
-        if (payCycle === "semimonthly") {
-            const first = Number(semiMonthlyFirstDay);
-            const second = Number(semiMonthlySecondDay);
+    const {
+        requiredExpenses, setRequiredExpenses,
+        expenseName, setExpenseName,
+        expenseAmount, setExpenseAmount,
+        expenseDueDate, setExpenseDueDate,
+        expenseRecurrence, setExpenseRecurrence,
+        expenseType, setExpenseType,
+        expenseCategory, setExpenseCategory,
+        expenseIsAutopay, setExpenseIsAutopay,
+        expenseErrors,
+        handleAddExpense,
+        handleUpdateExpense,
+        handleRemoveExpense,
+        handleMarkExpensePaid,
+    } = useRequiredExpenses(saveResetSnapshot);
 
-            return (
-                first >= 1 &&
-                first <= 31 &&
-                second >= 1 &&
-                second <= 31 &&
-                first !== second
-            );
-        }
+    const {
+        debts, setDebts,
+        debtName, setDebtName,
+        debtBalance, setDebtBalance,
+        debtMinimumPayment, setDebtMinimumPayment,
+        debtDueDate, setDebtDueDate,
+        debtApr, setDebtApr,
+        debtType, setDebtType,
+        debtRecurrence, setDebtRecurrence,
+        debtIsAutopay, setDebtIsAutopay,
+        debtRemainingPayments, setDebtRemainingPayments,
+        debtScheduledPaymentAmount, setDebtScheduledPaymentAmount,
+        debtErrors,
+        debtWarnings,
+        handleAddDebt,
+        handleUpdateDebt,
+        handleRemoveDebt,
+        handleMarkDebtMinimumPaid,
+        handleMarkDebtSnowballPaid,
+    } = useDebts(saveResetSnapshot);
 
-        if (payCycle === "monthly") {
-            const day = Number(monthlyPayDay);
-            return day >= 1 && day <= 31;
-        }
+    function saveResetSnapshot(overrides?: {
+        requiredExpenses?: RequiredExpense[];
+        debts?: Debt[];
+        goals?: Goal[];
+        completedRecommendedActions?: CompletedRecommendedAction[];
+    }) {
+        if (typeof window === "undefined") return;
 
-        return true;
+        const snapshot = {
+            amount,
+            payCycle,
+            semiMonthlyFirstDay,
+            semiMonthlySecondDay,
+            monthlyPayDay,
+            currentDate,
+            nextPaycheckDate,
+            requiredExpenses: overrides?.requiredExpenses ?? requiredExpenses,
+            livingExpenses,
+            debts: overrides?.debts ?? debts,
+            goals: overrides?.goals ?? goals,
+            completedRecommendedActions:
+                overrides?.completedRecommendedActions ?? completedRecommendedActions,
+            payoffStrategy,
+            lastSavedAt,
+        };
+
+        window.localStorage.setItem(
+            "debtPlanner.resetSnapshot",
+            JSON.stringify(snapshot)
+        );
     }
 
     const result = useMemo(() => {
@@ -414,10 +359,6 @@ export default function Home() {
     }, [completedRecommendedActions]);
 
     useEffect(() => {
-        localStorage.setItem("debtPlanner.darkMode", JSON.stringify(darkMode));
-    }, [darkMode]);
-
-    useEffect(() => {
         localStorage.setItem("debtPlanner.notificationsEnabled", JSON.stringify(notificationsEnabled));
     }, [notificationsEnabled]);
 
@@ -507,16 +448,6 @@ export default function Home() {
         darkMode,
     ]);
 
-    useEffect(() => {
-        StatusBar.setOverlaysWebView({ overlay: false }).catch(() => undefined);
-
-        StatusBar.setStyle({
-            style: darkMode ? Style.Dark : Style.Light,
-        }).catch(() => undefined);
-
-        StatusBar.setBackgroundColor({ color: darkMode ? "#07111f" : "#eef3f8", }).catch(() => undefined);
-    }, [darkMode]);
-
     function buildBackupData() {
         return {
             version: 1,
@@ -540,38 +471,6 @@ export default function Home() {
             payoffStrategy,
             lastSavedAt,
         };
-    }
-
-    function saveResetSnapshot(overrides?: {
-        requiredExpenses?: RequiredExpense[];
-        debts?: Debt[];
-        goals?: Goal[];
-        completedRecommendedActions?: CompletedRecommendedAction[];
-    }) {
-        if (typeof window === "undefined") return;
-
-        const snapshot = {
-            amount,
-            payCycle,
-            semiMonthlyFirstDay,
-            semiMonthlySecondDay,
-            monthlyPayDay,
-            currentDate,
-            nextPaycheckDate,
-            requiredExpenses: overrides?.requiredExpenses ?? requiredExpenses,
-            livingExpenses,
-            debts: overrides?.debts ?? debts,
-            goals: overrides?.goals ?? goals,
-            completedRecommendedActions:
-                overrides?.completedRecommendedActions ?? completedRecommendedActions,
-            payoffStrategy,
-            lastSavedAt,
-        };
-
-        window.localStorage.setItem(
-            "debtPlanner.resetSnapshot",
-            JSON.stringify(snapshot)
-        );
     }
 
     async function handleImportDebtsCsv(event: ChangeEvent<HTMLInputElement>) {
@@ -644,272 +543,6 @@ export default function Home() {
         setLastSavedAt(savedAt);
         localStorage.setItem("debtPlanner.lastSavedAt", JSON.stringify(savedAt));
         setStatusMessage("Up to date");
-    }
-
-    function handleAddExpense() {
-        const nextAmount = Number(expenseAmount);
-        const trimmedName = expenseName.trim();
-
-        const nextErrors: typeof expenseErrors = {};
-
-        if (!trimmedName) nextErrors.name = "Expense name is required.";
-        if (!nextAmount || nextAmount <= 0) {
-            nextErrors.amount = "Amount must be greater than 0.";
-        }
-        if (!expenseDueDate) nextErrors.dueDate = "Due date is required.";
-
-        if (Object.keys(nextErrors).length > 0) {
-            setExpenseErrors(nextErrors);
-            return;
-        }
-
-        setExpenseErrors({});
-
-        setRequiredExpenses((current) => [
-            ...current,
-            {
-                id: crypto.randomUUID(),
-                name: trimmedName,
-                amount: nextAmount,
-                dueDate: expenseDueDate,
-                originalDueDate: expenseDueDate,
-                recurrence: expenseRecurrence,
-                expenseType,
-                category: expenseCategory,
-                isAutopay: expenseIsAutopay,
-                isPaidThisCycle: false,
-            },
-        ]);
-
-        setExpenseName("");
-        setExpenseAmount("");
-        setExpenseDueDate("");
-        setExpenseRecurrence("monthly");
-        setExpenseType("fixed");
-        setExpenseCategory("other");
-        setExpenseIsAutopay(false);
-    }
-
-    function handleUpdateExpense(
-        id: string,
-        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate" | "recurrence" | "expenseType" | "category" | "isAutopay">>
-    ) {
-        setRequiredExpenses((current) =>
-            current.map((expense) =>
-                expense.id === id ? { ...expense, ...updates } : expense
-            )
-        );
-    }
-
-    function handleAddDebt() {
-        const balance = Number(debtBalance);
-        const minimumPayment = Number(debtMinimumPayment);
-        const apr = Number(debtApr || 0);
-        const trimmedName = debtName.trim();
-
-        const nextErrors: typeof debtErrors = {};
-        const nextWarnings: typeof debtWarnings = {};
-
-        if (!trimmedName) nextErrors.name = "Debt name is required.";
-        if (!balance || balance <= 0) {
-            nextErrors.balance = "Balance must be greater than zero.";
-        }
-
-        if (!minimumPayment || minimumPayment <= 0) {
-            nextErrors.minimumPayment =
-                "Minimum payment must be greater than zero.";
-        }
-
-        if (balance > 0 && minimumPayment > balance) {
-            nextErrors.minimumPayment = "Minimum payment must not exceed balance.";
-        }
-
-        if (!debtDueDate) nextErrors.dueDate = "Due date is required.";
-
-        if (apr < 0 || apr > 100) {
-            nextErrors.apr = "APR must be between 0 and 100.";
-        }
-
-        const estimatedMonthlyInterest = (balance * (apr / 100)) / 12;
-
-        if (apr > 0 && minimumPayment <= estimatedMonthlyInterest) {
-            nextWarnings.minimumPayment =
-                "Minimum payment may not cover monthly interest. Balance may increase unless extra is paid.";
-        }
-
-        if (Object.keys(nextErrors).length > 0) {
-            setDebtErrors(nextErrors);
-            setDebtWarnings(nextWarnings);
-            return;
-        }
-
-        setDebtErrors({});
-        setDebtWarnings(nextWarnings);
-
-        setDebts((current) => [
-            ...current,
-            {
-                id: crypto.randomUUID(),
-                name: trimmedName,
-                balance,
-                originalBalance: balance,
-                minimumPayment,
-                dueDate: debtDueDate,
-                originalDueDate: debtDueDate,
-                apr,
-                type: debtType,
-                recurrence: debtRecurrence,
-                remainingPayments:
-                    debtType === "bnpl" && debtRemainingPayments
-                        ? Number(debtRemainingPayments)
-                        : undefined,
-                scheduledPaymentAmount:
-                    debtType === "bnpl" && debtScheduledPaymentAmount
-                        ? Number(debtScheduledPaymentAmount)
-                        : undefined,
-                minimumPaidThisCycle: false,
-                snowballPaidThisCycle: false,
-                isAutopay: debtIsAutopay,
-            },
-        ]);
-
-        setDebtName("");
-        setDebtBalance("");
-        setDebtMinimumPayment("");
-        setDebtDueDate("");
-        setDebtApr("");
-        setDebtType("debt");
-        setDebtRecurrence("monthly");
-        setDebtRemainingPayments("");
-        setDebtScheduledPaymentAmount("");
-        setDebtIsAutopay(false);
-    }
-
-    function handleUpdateDebt(
-        id: string,
-        updates: Partial<
-            Pick<Debt, "balance" | "minimumPayment" | "dueDate" | "apr" | "isAutopay" | "recurrence">
-        >
-    ) {
-        setDebts((current) =>
-            current.map((debt) =>
-                debt.id === id ? { ...debt, ...updates } : debt
-            )
-        );
-    }
-
-    function handleAddGoal() {
-        const targetAmount = Number(goalTargetAmount);
-        const currentAmount = Number(goalCurrentAmount || 0);
-        const trimmedName = goalName.trim();
-
-        const nextErrors: typeof goalErrors = {};
-
-        if (!trimmedName) nextErrors.name = "Goal name is required.";
-
-        if (!targetAmount || targetAmount <= 0) {
-            nextErrors.targetAmount = "Target amount must be greater than 0.";
-        }
-
-        if (Object.keys(nextErrors).length > 0) {
-            setGoalErrors(nextErrors);
-            return;
-        }
-
-        setGoalErrors({});
-
-        setGoals((current) => [
-            ...current,
-            {
-                id: crypto.randomUUID(),
-                name: trimmedName,
-                targetAmount,
-                currentAmount,
-                originalCurrentAmount: currentAmount,
-                type: goalType,
-            },
-        ]);
-
-        setGoalName("");
-        setGoalTargetAmount("");
-        setGoalCurrentAmount("");
-        setGoalType("savings");
-    }
-
-    function handleUpdateGoal(
-        id: string,
-        updates: Partial<Pick<Goal, "targetAmount" | "currentAmount">>
-    ) {
-        setGoals((current) =>
-            current.map((goal) =>
-                goal.id === id ? { ...goal, ...updates } : goal
-            )
-        );
-    }
-
-    function handleRemoveExpense(id: string) {
-        setRequiredExpenses((current) =>
-            current.filter((expense) => expense.id !== id)
-        );
-    }
-
-    function handleRemoveDebt(id: string) {
-        setDebts((current) => current.filter((debt) => debt.id !== id));
-    }
-
-    function handleRemoveGoal(id: string) {
-        setGoals((current) => current.filter((goal) => goal.id !== id));
-    }
-
-    function handleMarkExpensePaid(id: string) {
-        setRequiredExpenses((current) => {
-            const nextRequiredExpenses = current.map((expense) =>
-                expense.id === id
-                    ? {
-                        ...expense,
-                        isPaidThisCycle: !expense.isPaidThisCycle,
-                    }
-                    : expense
-            );
-
-            saveResetSnapshot({ requiredExpenses: nextRequiredExpenses });
-
-            return nextRequiredExpenses;
-        });
-    }
-
-    function handleMarkDebtMinimumPaid(id: string) {
-        setDebts((current) => {
-            const nextDebts = current.map((debt) => {
-                const currentlyPaid =
-                    debt.minimumPaidThisCycle ?? debt.isPaidThisCycle ?? false;
-
-                return debt.id === id
-                    ? {
-                        ...debt,
-                        minimumPaidThisCycle: !currentlyPaid,
-                        isPaidThisCycle: !currentlyPaid,
-                    }
-                    : debt;
-            });
-
-            saveResetSnapshot({ debts: nextDebts });
-
-            return nextDebts;
-        });
-    }
-
-    function handleMarkDebtSnowballPaid(id: string) {
-        setDebts((current) =>
-            current.map((debt) =>
-                debt.id === id
-                    ? {
-                        ...debt,
-                        snowballPaidThisCycle: !debt.snowballPaidThisCycle,
-                    }
-                    : debt
-            )
-        );
     }
 
     function handleMarkRecommendedAction(targetId: string, label: string, category: "emergency" | "snowball" | "optional_goal", recommendedAmount: number, actualAmount: number, paymentSource: "paycheck" | "external" = "paycheck") {
