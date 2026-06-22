@@ -27,7 +27,7 @@ export async function initializeRevenueCat() {
 
         hasConfiguredRevenueCat = true;
     } catch (error) {
-        console.error("RevenueCat init failed", error);
+        console.warn("RevenueCat init failed", error);
     }
 }
 
@@ -43,7 +43,7 @@ export async function getSubscriptionPlan(): Promise<"free" | "premium"> {
 
         return isPremiumActive ? "premium" : "free";
     } catch (error) {
-        console.error("Failed to fetch subscription status", error);
+        console.warn("Failed to fetch subscription status", error);
         return "free";
     }
 }
