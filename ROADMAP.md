@@ -18,6 +18,7 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 - Dark mode, swipe gestures, pull-to-refresh
 - Local notifications (paycheck-eve + bills-due), App Store review prompt
 - 2-tier (Free/Premium) RevenueCat subscription gate
+- App Lock (Face ID/Touch ID + device passcode fallback) — added to v1.2 before launch, see note in §4
 
 **Known half-built things already in the code, worth closing before piling on new features:**
 - BNPL debts store `remainingPayments`/`scheduledPaymentAmount` but the engine ignores them — BNPL is calculated exactly like a regular debt today.
@@ -43,6 +44,7 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 - CSV import, manual JSON backup/export
 - Basic debt milestone badges (25/50/75/100% paid off) — no calendar, no push
 - Windfall/bonus one-time allocator (small, fits the free engine as-is)
+- **App Lock (Face ID/Touch ID with device passcode fallback)** — shipping in v1.2, before the app has even launched. Security is table stakes for a finance app, not a monetization lever — every tier gets this.
 
 ### Premium ($4.99)
 - Smart Insights (already built)
@@ -119,12 +121,12 @@ This is the brainstorm with nothing filtered out. Items already slotted into the
 
 **Data, sync & security**
 - Backlog: cloud sync / multi-device (needs an account system — currently zero auth)
-- [v1.10] Biometric app lock (Face ID/Touch ID)
+- [v1.2] App Lock — Face ID/Touch ID with device passcode fallback (Free, all tiers — see §4 note)
 - [v1.10] Schema versioning + migration path
 - [v1.13] PDF/CSV reporting, scheduled automatic backups
 
 **Platform & accessibility**
-- [v1.3, in progress] iPad layout
+- [v1.3, done] iPad layout
 - [v1.12] Android build
 - [v1.12] Accessibility audit (VoiceOver/TalkBack)
 - Backlog: localization / multi-currency (currently USD-only, hardcoded `$`)
@@ -148,14 +150,15 @@ Per the established cadence philosophy: **v1.x stays quick-turnaround** (days/we
 
 | Version | Focus | Tier | Size |
 |---|---|---|---|
-| v1.3 | iPad Support *(in progress)* | All | Small |
+| v1.2 | Local Notifications + App Store review prompt + **App Lock** *(not yet launched — see note below)* | Notifications/Lock: Free; review prompt: all tiers | Small |
+| v1.3 | iPad Support *(done)* | All | Small |
 | v1.4 | Onboarding flow | All | Small |
 | v1.5 | Pay Cycle History | Premium (6 cycles) / Premium+ (unlimited) | Small |
 | v1.6 | Debt Milestones + Amortization Calendar + streaks | Premium+ | Medium |
 | v1.7 | Home Screen Widget + custom app icons | Premium | Small |
 | v1.8 | Multi-Scenario Planning | Premium+ | Medium |
 | v1.9 | 3-Tier subscription infra + Export/Backup automation + external-payment logging UI | Infra / Premium+ | Medium |
-| v1.10 | BNPL real calculations + biometric app lock + storage schema versioning | Infra / cleanup | Medium |
+| v1.10 | BNPL real calculations + storage schema versioning | Infra / cleanup | Medium |
 | v1.11 | Analytics (Amplitude/PostHog) + crash reporting (Sentry) | Infra | Medium — **breaks small-release pattern, but needed before scaling further** |
 | v1.12 | Android build + accessibility audit | Infra / Platform | Large — **breaks small-release pattern; treat as its own milestone, not a quick release** |
 | v1.13 | Net worth tracker + debt consolidation/refinance calculator | Premium+ | Medium |
@@ -166,6 +169,8 @@ Per the established cadence philosophy: **v1.x stays quick-turnaround** (days/we
 | v3.0 | AI Chat / conversational interface | Ultimate | Large |
 | v3.1 | Apple Watch app + Siri Shortcuts | Premium+/Ultimate | Medium |
 | v3.x | Localization/multi-currency, Web/PWA companion | All | Backlog, unscheduled |
+
+**Why App Lock is going into v1.2 instead of its own version:** v1.2 (notifications + review prompt) is locked but hasn't launched yet — no users depend on its current exact scope. App Lock has zero dependencies on anything else in this roadmap, is quick to build, and fits the same "trust/engagement" theme as what's already there. Free for all tiers — see §2. Implement on `v1.2-dev` and merge/rebase forward into `v1.3-dev`, which already branched off v1.2.
 
 ## 5. The one decision that reshapes everything downstream
 

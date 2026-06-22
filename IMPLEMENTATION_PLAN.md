@@ -2,7 +2,7 @@
 
 _Companion to `ROADMAP.md`, which defines the **what/why/tier**. This document defines the **how**: data model changes, files touched, sequencing, and testing per version. Last updated 2026-06-22._
 
-## Critical path dependency — read this before sequencing anything past v1.13
+## Critical path dependency — read this before sequencing anything past v1.14
 
 Three separate roadmap items independently require a **backend** that does not exist today (the app is 100% client-side, `localStorage`-only, no accounts, no server):
 
@@ -17,7 +17,30 @@ This single decision is the most important thing in this document. Everything be
 
 ---
 
-## v1.3 — iPad Support *(in progress)*
+## v1.2 addendum — App Lock (Biometric + Device Passcode Fallback)
+
+**Why this is going into v1.2, not its own version:** v1.2 (notifications + App Store review prompt) is locked but hasn't been submitted/launched yet. App Lock has zero dependencies on anything else in this plan, is quick to build, and thematically belongs with notifications/review as a "trust" feature — not worth spinning up a separate release for. Since v1.3 (iPad) already branched off v1.2-dev, implement this on `v1.2-dev` and merge/rebase those commits forward into `v1.3-dev` afterward.
+
+**Scope:** Gate the app behind the device's native authentication on launch and on resume from background, before any debt/financial data renders.
+
+**Key architectural recommendation: do not build a custom in-app PIN system.** Use iOS `LocalAuthentication` with `LAPolicy.deviceOwnerAuthentication` (not `...WithBiometrics`) — this policy gives Face ID/Touch ID *and* automatically falls back to the device's own passcode if biometrics fail or aren't enrolled. This means zero custom secret storage, zero risk of a weak homegrown PIN implementation, and matches the unlock behavior users already expect from every other secure app on their phone.
+
+**Implementation steps:**
+1. Add a Capacitor biometric plugin (community-maintained `LocalAuthentication` wrapper — evaluate options at implementation time) configured for `deviceOwnerAuthentication`, not biometrics-only.
+2. New `lib/hooks/useAppLock.ts` — tracks `isUnlocked` state, exposes `requestUnlock()`. Re-locks on background via Capacitor's `App` plugin `appStateChange` listener, not just on cold launch — a lock that only triggers on full app restart isn't a real lock.
+3. In `app/page.tsx`, gate the `<main>` render behind `isUnlocked`: render a minimal lock screen (icon + "Unlock" button calling `requestUnlock()`) when locked, following the same pre-render-gating pattern `AppSkeleton` already uses for the mount check.
+4. Settings toggle: "Require Face ID to open." **Default ON for new installs** — security should be opt-out, not opt-in, for an app holding debt balances — with clear copy if a user turns it off.
+5. **Tier: Free, all tiers.** Gating basic security behind a paywall is a trust/reputation risk in a finance app, not a real monetization lever — no competitor charges for this.
+
+**Data model changes:** none. Purely a render-gating concern, no new storage keys beyond the one settings toggle.
+
+**Testing:** native biometric prompts can't be driven by Playwright (same limitation as v1.7's widget, see below). Manual on-device verification is the primary gate. Add one regression-adjacent unit check: with `useAppLock` mocked to always-locked, confirm no debt/balance data is present in the rendered output before unlock — guards against a future change accidentally rendering sensitive content ahead of the lock check.
+
+**Risk:** Low. Single new dependency (the biometric plugin), no interaction with any other feature, no data model changes.
+
+---
+
+## v1.3 — iPad Support *(done)*
 
 **Scope:** Make the app a genuine iPad experience, not a stretched iPhone layout.
 
@@ -190,9 +213,9 @@ This single decision is the most important thing in this document. Everything be
 
 ---
 
-## v1.10 — BNPL Real Calculations + Biometric App Lock + Schema Versioning
+## v1.10 — BNPL Real Calculations + Schema Versioning
 
-**Scope:** Three independent cleanup items bundled for efficiency — none depend on each other.
+**Scope:** Two independent cleanup items bundled for efficiency — biometric app lock was originally slotted here too but moved up to ship as part of v1.2 instead (see the v1.2 addendum at the top of this document).
 
 ### BNPL real calculations
 **Current state (verified):** `Debt.remainingPayments`/`Debt.scheduledPaymentAmount` are populated by `lib/imports/debtCsv.ts` when `type === "bnpl"`, but `lib/engine/allocatePaycheck.ts` and `lib/debt/projectDebtPayoff.ts` treat every debt identically regardless of type — BNPL installments are typically fixed, interest-free, fixed-count payments (e.g., "4 payments of $87.50"), fundamentally different math from a revolving, interest-accruing credit card.
@@ -201,17 +224,12 @@ This single decision is the most important thing in this document. Everything be
 2. Same branch needed in `lib/engine/allocatePaycheck.ts`'s minimum-payment logic — a BNPL "minimum" each cycle IS the `scheduledPaymentAmount`, not a flexible minimum.
 3. Decide: can a user apply extra/snowball payments to a BNPL debt to pay it off early? Realistically most BNPL providers don't allow early payoff to reduce remaining installment count — recommend **excluding BNPL debts from snowball/avalanche extra-payment targeting** (they get paid their fixed schedule and nothing more), which is both more realistic and less work.
 
-### Biometric App Lock (Premium+)
-1. Add a Capacitor biometric plugin (community-maintained Face ID/Touch ID wrapper — evaluate options at implementation time).
-2. New `lib/hooks/useAppLock.ts` — gates rendering of `<main>` in `app/page.tsx` behind a lock screen on launch and on resume-from-background, checked via the plugin.
-3. Setting toggle in Plan Settings, gated by `hasFeatureAccess`.
-
 ### Schema versioning
 1. Add a `version: number` field written alongside the existing `debtPlanner.*` keys (or a single new `debtPlanner.schemaVersion` key).
 2. New `lib/storage/migrateState.ts` — a migration runner that checks the stored version against the current code's expected version and applies migration functions in sequence. **No migrations needed yet** since this is the first version to track it — this step is purely about having the *mechanism* in place before it's actually needed, so the next schema-breaking change (likely v2.1's household model) doesn't repeat today's "parse error silently wipes everything" problem.
 3. Change `loadStoredState`'s silent-fallback-on-parse-error behavior to at least log/flag a corrupted-state event (ties into v1.11's analytics, sequence-dependent — if v1.11 ships first, instrument this then; if this ships first, add a placeholder hook).
 
-**Risk:** Low-medium per item; bundle risk is mainly about scope creep — keep these three strictly independent in implementation so one slipping doesn't block the others.
+**Risk:** Low-medium per item; bundle risk is mainly about scope creep — keep these two strictly independent in implementation so one slipping doesn't block the other.
 
 ---
 
