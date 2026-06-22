@@ -189,7 +189,7 @@ function testResultAllocationsAppearInTimeline() {
 		paycheckBuffer: 0,
 	});
 
-	const timeline = buildTimelineItems({
+	const plannedTimeline = buildTimelineItems({
 		result,
 		requiredExpenses: [],
 		debts,
@@ -197,12 +197,34 @@ function testResultAllocationsAppearInTimeline() {
 		nextPaycheckDate: "2026-06-15",
 	});
 
-	const snowballItem = assertExists(
-		timeline.find((item) => item.label === "Extra payment to Visa"),
-		"Snowball allocation from result.allocations appears in timeline"
+	assertEqual(
+		plannedTimeline.some((item) => item.label === "Extra payment to Visa"),
+		false,
+		"Unconfirmed snowball allocation does not appear in timeline (optional until marked paid)"
 	);
 
-	assertEqual(snowballItem.amount, 175, "Snowball allocation amount is correct");
+	const timelineWithCompletedAction = buildTimelineItems({
+		result,
+		requiredExpenses: [],
+		debts,
+		completedRecommendedActions: [
+			{
+				targetId: "visa",
+				label: "Extra payment to Visa",
+				category: "snowball",
+				actualAmount: 175,
+			},
+		],
+		currentDate: "2026-06-01",
+		nextPaycheckDate: "2026-06-15",
+	});
+
+	const snowballItem = assertExists(
+		timelineWithCompletedAction.find((item) => item.label === "Extra payment to Visa"),
+		"Completed snowball action appears in timeline"
+	);
+
+	assertEqual(snowballItem.amount, 175, "Completed snowball action amount is correct");
 }
 
 function testTimelineExcludesItemsAfterNextPaycheck() {

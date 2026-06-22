@@ -62,7 +62,7 @@ test("planner empty state renders on mobile", async ({ page }) => {
 
 
 test("bottom navigation switches sections", async ({ page }) => {
-    await page.getByRole("button", { name: /Bills/i }).click();
+    await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
 
     await expect(
         page.getByRole("button", { name: /Expenses/i })

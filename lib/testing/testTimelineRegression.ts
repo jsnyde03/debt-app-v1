@@ -265,8 +265,9 @@ function testCompletedEmergencySuppressesPlannedAllocation() {
 	assertEqual(emergencyItems[0].isPaid, true, "The single emergency entry is the completed one");
 }
 
-function testUnrelatedPlannedAllocationNotSuppressed() {
-	// Completing a snowball for Visa must NOT suppress the planned snowball for a different debt.
+function testCompletedActionsForDifferentTargetsBothAppear() {
+	// Completing a snowball for Visa and a separate snowball for Medical must both
+	// show up independently - completing one target's action must not affect another's.
 	const debts: Debt[] = [
 		{ id: "d1", name: "Visa", balance: 200, minimumPayment: 20, apr: 22, dueDate: "2026-06-06", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
 		{ id: "d2", name: "Medical", balance: 300, minimumPayment: 10, apr: 0, dueDate: "2026-06-09", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
@@ -274,14 +275,20 @@ function testUnrelatedPlannedAllocationNotSuppressed() {
 	const result = buildResult(1000, [], debts);
 	const completedRecommendedActions = [
 		{ targetId: "d1", label: "Extra payment to Visa", category: "snowball" as const, actualAmount: 200, paymentSource: "paycheck" as const },
+		{ targetId: "d2", label: "Extra payment to Medical", category: "snowball" as const, actualAmount: 50, paymentSource: "paycheck" as const },
 	];
 	const timeline = buildTimelineItems({ result, requiredExpenses: [], debts, completedRecommendedActions, currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15" });
 
-	const completedVisa = timeline.find((i) => i.type === "snowball" && i.isPaid);
-	const plannedMedical = timeline.find((i) => i.type === "snowball" && !i.isPaid);
-
-	assertExists(completedVisa, "Completed Visa snowball appears");
-	assertExists(plannedMedical, "Planned Medical snowball still appears (different target)");
+	const completedVisa = assertExists(
+		timeline.find((i) => i.type === "snowball" && i.label === "Extra payment to Visa"),
+		"Completed Visa snowball appears"
+	);
+	const completedMedical = assertExists(
+		timeline.find((i) => i.type === "snowball" && i.label === "Extra payment to Medical"),
+		"Completed Medical snowball also appears (different target)"
+	);
+	assertMoney(completedVisa.amount, 200, "Visa snowball amount is correct");
+	assertMoney(completedMedical.amount, 50, "Medical snowball amount is correct");
 }
 
 // ─── 3. RUNNING CASH INVARIANTS ─────────────────────────────────────────────
@@ -506,7 +513,7 @@ export function runTimelineRegressionTests() {
 	testNoCompletedActionsProducesNoExtraItems();
 	testCompletedSnowballSuppressesPlannedAllocation();
 	testCompletedEmergencySuppressesPlannedAllocation();
-	testUnrelatedPlannedAllocationNotSuppressed();
+	testCompletedActionsForDifferentTargetsBothAppear();
 
 	// Running cash invariants
 	testRunningCashNeverGoesNegative();
