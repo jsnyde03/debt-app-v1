@@ -767,51 +767,53 @@ export default function Home() {
                             </button>
                         </div>
 
-                        <ResultsSection
-                            result={result}
-                            requiredExpenses={requiredExpenses}
-                            debts={debts}
-                            goals={goals}
-                            payoffStrategy={payoffStrategy}
-                            completedRecommendedActions={
-                                completedRecommendedActions
-                            }
-                            currentDate={currentDate}
-                            onMarkExpensePaid={handleMarkExpensePaid}
-                            onMarkDebtMinimumPaid={handleMarkDebtMinimumPaid}
-                            onMarkDebtSnowballPaid={handleMarkDebtSnowballPaid}
-                            onMarkRecommendedAction={handleMarkRecommendedAction}
-                            recommendationOverrides={recommendationOverrides}
-                            onRecommendationOverrideChange={(
-                                targetId,
-                                category,
-                                amount
-                            ) => {
-                                setRecommendationOverrides((current) => {
-                                    const filtered = current.filter((override) => !(override.targetId === targetId && override.category === category));
+                        <div className="plan-tab-grid">
+                            <ResultsSection
+                                result={result}
+                                requiredExpenses={requiredExpenses}
+                                debts={debts}
+                                goals={goals}
+                                payoffStrategy={payoffStrategy}
+                                completedRecommendedActions={
+                                    completedRecommendedActions
+                                }
+                                currentDate={currentDate}
+                                onMarkExpensePaid={handleMarkExpensePaid}
+                                onMarkDebtMinimumPaid={handleMarkDebtMinimumPaid}
+                                onMarkDebtSnowballPaid={handleMarkDebtSnowballPaid}
+                                onMarkRecommendedAction={handleMarkRecommendedAction}
+                                recommendationOverrides={recommendationOverrides}
+                                onRecommendationOverrideChange={(
+                                    targetId,
+                                    category,
+                                    amount
+                                ) => {
+                                    setRecommendationOverrides((current) => {
+                                        const filtered = current.filter((override) => !(override.targetId === targetId && override.category === category));
 
-                                    return [
-                                        ...filtered,
-                                        {
-                                            targetId,
-                                            category,
-                                            amount,
-                                        },
-                                    ];
-                                });
-                            }}
+                                        return [
+                                            ...filtered,
+                                            {
+                                                targetId,
+                                                category,
+                                                amount,
+                                            },
+                                        ];
+                                    });
+                                }}
 
 
-                        />
+                            />
 
-                        <TimelineSection
-                            result={result}
-                            requiredExpenses={requiredExpenses}
-                            debts={debts}
-                            completedRecommendedActions={completedRecommendedActions}
-                            currentDate={currentDate}
-                            nextPaycheckDate={nextPaycheckDate}
-                        />
+                            <TimelineSection
+                                result={result}
+                                requiredExpenses={requiredExpenses}
+                                debts={debts}
+                                completedRecommendedActions={completedRecommendedActions}
+                                currentDate={currentDate}
+                                nextPaycheckDate={nextPaycheckDate}
+                            />
+                        </div>
                     </>
                 )}
 

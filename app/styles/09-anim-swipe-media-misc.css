@@ -540,3 +540,28 @@
 		background-position: -200% 0;
 	}
 }
+
+/* iPad / tablet layout (v1.3) - everything below here only applies at
+   tablet widths and up. Single-column sections get a comfortable centered
+   reading width instead of stretching edge-to-edge; the Plan tab's
+   Results + Timeline cards become a two-column grid. */
+@media (min-width: 834px) {
+	.card {
+		max-width: 640px;
+		margin-inline: auto;
+	}
+
+	.plan-tab-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		align-items: stretch;
+		gap: var(--space-3);
+		max-width: 1300px;
+		margin-inline: auto;
+	}
+
+	.plan-tab-grid > .card {
+		max-width: none;
+		margin-inline: 0;
+	}
+}
