@@ -52,6 +52,8 @@ import { useDebts } from "@/lib/hooks/useDebts";
 import { usePayCycleSettings, getCurrentDate } from "@/lib/hooks/usePayCycleSettings";
 import { useSubscription } from "@/lib/hooks/useSubscription";
 import { useNotificationsSetting } from "@/lib/hooks/useNotificationsSetting";
+import { AppLockScreen } from "@/components/AppLockScreen";
+import { useAppLock } from "@/lib/hooks/useAppLock";
 
 type CompletedRecommendedAction = {
     targetId: string;
@@ -168,6 +170,8 @@ export default function Home() {
     const [payoffStrategy, setPayoffStrategy] = useState<
         "snowball" | "avalanche"
     >(() => loadStoredState("debtPlanner.payoffStrategy", "snowball"));
+
+    const { appLockEnabled, setAppLockEnabled, isUnlocked, requestUnlock } = useAppLock();
 
     const [lastSavedAt, setLastSavedAt] = useState(() =>
         loadStoredState("debtPlanner.lastSavedAt", "")
@@ -688,6 +692,10 @@ export default function Home() {
         return <AppSkeleton darkMode={darkMode} />;
     }
 
+    if (!isUnlocked) {
+        return <AppLockScreen darkMode={darkMode} onUnlock={requestUnlock} />;
+    }
+
 
     return (
         <main className={`app ${darkMode ? "dark-theme" : "light-theme"}`}>
@@ -1186,6 +1194,31 @@ export default function Home() {
                                             Premium
                                         </button>
                                     )}
+                                </div>
+                            </div>
+                        )}
+
+                        {!isFirstRunSetup && (
+                            <div className="card notifications-settings-card">
+                                <div className="notifications-settings-row">
+                                    <div>
+                                        <h3>App Lock</h3>
+                                        <p className="section-collapse-subtitle">
+                                            Require Face ID or Touch ID to open the app.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className={appLockEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
+                                        onClick={() => {
+                                            triggerLightHaptic();
+                                            setAppLockEnabled(!appLockEnabled);
+                                        }}
+                                        aria-label={appLockEnabled ? "Disable app lock" : "Enable app lock"}
+                                    >
+                                        {appLockEnabled ? "On" : "Off"}
+                                    </button>
                                 </div>
                             </div>
                         )}

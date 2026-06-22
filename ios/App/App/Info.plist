@@ -54,5 +54,7 @@
 		<integer>1</integer>
 		<integer>2</integer>
 	</array>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Debt Planner uses Face ID to keep your paycheck and debt details private.</string>
 </dict>
 </plist>
