@@ -265,6 +265,10 @@ export default function Home() {
 
     const { appLockEnabled, setAppLockEnabled, isUnlocked, requestUnlock } = useAppLock();
 
+    const [isDemoMode] = useState(() =>
+        loadStoredState("debtPlanner.isDemoMode", false)
+    );
+
     const [lastSavedAt, setLastSavedAt] = useState(() =>
         loadStoredState("debtPlanner.lastSavedAt", "")
     );
@@ -1157,6 +1161,11 @@ export default function Home() {
         window.location.reload();
     }
 
+    function handleExitDemoMode() {
+        window.localStorage.clear();
+        window.location.reload();
+    }
+
     if (!isMounted) {
         return <AppSkeleton darkMode={darkMode} />;
     }
@@ -1177,6 +1186,21 @@ export default function Home() {
                     >
                         Populate Demo Data
                     </button>
+                )}
+                {isDemoMode && (
+                    <div className="demo-mode-banner" role="status">
+                        <span>Demo Mode — viewing sample data</span>
+                        <button
+                            type="button"
+                            className="demo-mode-exit-button"
+                            onClick={() => {
+                                triggerLightHaptic();
+                                handleExitDemoMode();
+                            }}
+                        >
+                            Start My Own Plan
+                        </button>
+                    </div>
                 )}
                 <section className="hero">
                     <h1>Debt Planner</h1>
@@ -1604,6 +1628,17 @@ export default function Home() {
 
                         {isFirstRunSetup && (
                             <div className="first-run-import-row">
+                                <button
+                                    type="button"
+                                    className="secondary-button"
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        handlePopulateDemoData();
+                                    }}
+                                >
+                                    Try with Sample Data
+                                </button>
+
                                 <label className="secondary-button import-button">
                                     Import Backup
                                     <input
@@ -1655,11 +1690,13 @@ export default function Home() {
                                     {subscriptionPlan === "premium" ? (
                                         <button
                                             type="button"
+                                            role="switch"
+                                            aria-checked={notificationsEnabled}
                                             className={notificationsEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
                                             onClick={handleNotificationsToggle}
                                             aria-label={notificationsEnabled ? "Disable notifications" : "Enable notifications"}
                                         >
-                                            {notificationsEnabled ? "On" : "Off"}
+                                            <span className="toggle-thumb" />
                                         </button>
                                     ) : (
                                         <button
@@ -1691,6 +1728,8 @@ export default function Home() {
 
                                     <button
                                         type="button"
+                                        role="switch"
+                                        aria-checked={appLockEnabled}
                                         className={appLockEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
                                         onClick={() => {
                                             triggerLightHaptic();
@@ -1698,7 +1737,7 @@ export default function Home() {
                                         }}
                                         aria-label={appLockEnabled ? "Disable app lock" : "Enable app lock"}
                                     >
-                                        {appLockEnabled ? "On" : "Off"}
+                                        <span className="toggle-thumb" />
                                     </button>
                                 </div>
                             </div>
@@ -1715,12 +1754,30 @@ export default function Home() {
                             </a>
                             <span className="legal-separator">·</span>
                             <a
+                                href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="legal-link"
+                            >
+                                Terms of Use
+                            </a>
+                            <span className="legal-separator">·</span>
+                            <a
                                 href="https://github.com/jsnyde03/debt-planner-stie/blob/main/Paycheck%20Debt%20Planner%20Support"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="legal-link"
                             >
                                 Support
+                            </a>
+                            <span className="legal-separator">·</span>
+                            <a
+                                href="https://apps.apple.com/account/subscriptions"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="legal-link"
+                            >
+                                Manage Subscription
                             </a>
                         </div>
                     </div>

@@ -52,6 +52,7 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 - Basic debt milestone badges (25/50/75/100% paid off) — no calendar, no push
 - Windfall/bonus one-time allocator (small, fits the free engine as-is)
 - **App Lock (Face ID/Touch ID with device passcode fallback)** — shipping in v1.2, before the app has even launched. Security is table stakes for a finance app, not a monetization lever — every tier gets this.
+- **"Try with Sample Data" demo mode** — shipping in v1.2. Lets a brand-new user (or App Review) preview the app populated with realistic debts/bills/goals before entering their own numbers, with a clear "Demo Mode" banner and one-tap exit to start fresh. Doesn't unlock Premium — real subscription state still applies, so the upgrade flow is experienced honestly, not faked.
 
 ### Premium ($4.99)
 - Smart Insights (already built)

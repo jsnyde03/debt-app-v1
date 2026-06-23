@@ -93,6 +93,15 @@ export function UpgradeSection({ onClose, onUpgradeClick, onRestoreClick, }: Upg
                         </a>
                         <span className="legal-separator">·</span>
                         <a
+                            href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="legal-link"
+                        >
+                            Terms of Use
+                        </a>
+                        <span className="legal-separator">·</span>
+                        <a
                             href="https://github.com/jsnyde03/debt-planner-stie/blob/main/Paycheck%20Debt%20Planner%20Support"
                             target="_blank"
                             rel="noopener noreferrer"

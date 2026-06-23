@@ -732,6 +732,65 @@ button:active {
 	border: 1px solid var(--badge-gold-border);
 }
 
+.notifications-settings-card {
+	padding: 14px 16px;
+}
+
+.notifications-settings-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.notifications-settings-row h3 {
+	margin: 0 0 2px;
+	font-size: 0.92rem;
+}
+
+.notifications-settings-row .section-collapse-subtitle {
+	margin: 0;
+	font-size: 0.78rem;
+}
+
+.toggle-button {
+	position: relative;
+	flex: 0 0 auto;
+	width: 51px;
+	height: 31px;
+	padding: 0;
+	border: none;
+	border-radius: var(--radius-pill);
+	background: var(--surface-muted);
+	box-shadow: inset 0 0 0 1px var(--border-color);
+	transition: background-color 200ms ease, box-shadow 200ms ease;
+}
+
+.toggle-button.toggle-on {
+	background: var(--accent-color);
+	box-shadow: none;
+}
+
+.toggle-button:active {
+	transform: none;
+}
+
+.toggle-thumb {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 27px;
+	height: 27px;
+	border-radius: 50%;
+	background: #ffffff;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 1px rgba(0, 0, 0, 0.12);
+	transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.toggle-button.toggle-on .toggle-thumb {
+	transform: translateX(20px);
+}
+
 .premium-payoff-hero {
 	position: relative;
 	overflow: hidden;
@@ -2219,6 +2278,32 @@ button:active {
 	background: var(--button-primary-hover);
 }
 
+.demo-mode-banner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 10px 14px;
+	margin-bottom: 12px;
+	border-radius: var(--radius-lg);
+	background: var(--badge-gold-bg);
+	border: 1px solid var(--badge-gold-border);
+	color: var(--badge-gold-color);
+	font-size: 0.82rem;
+	font-weight: 800;
+}
+
+.demo-mode-exit-button {
+	min-height: 32px;
+	padding: 0 12px;
+	border-radius: var(--radius-pill);
+	background: var(--badge-gold-color);
+	color: #ffffff;
+	font-size: 0.74rem;
+	font-weight: 800;
+}
+
 .mobile-section-switcher {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2854,10 +2939,14 @@ button:active {
 }
 
 .first-run-import-row {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 	margin-top: 14px;
 }
 
-.first-run-import-row .import-button {
+.first-run-import-row .import-button,
+.first-run-import-row button {
 	width: 100%;
 	min-height: 48px;
 	font-weight: 800;
@@ -4256,9 +4345,10 @@ button:active,
 .upgrade-legal-row,
 .settings-legal-row {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	justify-content: center;
-	gap: 8px;
+	gap: 8px 8px;
 	padding-top: 4px;
 }
 
