@@ -40,6 +40,22 @@ This single decision is the most important thing in this document. Everything be
 
 ---
 
+## v1.2 addendum — Mobile Polish: Icon Foundation, Haptics, Touch-Target Fixes
+
+_Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md` (phases P1a, P2, P9a). Summarized here for single-source version sequencing._
+
+**P1a — Icon system foundation:** Stand up `lib/icons/index.ts` (lucide-react re-exports), replace emoji/Unicode glyphs in the chrome used every session — bottom nav, primary buttons, settings sheet, `AppLockScreen.tsx`. `aria-label` pass on every icon-only button touched. Establishes the size/stroke convention P1b reuses in v1.3.
+
+**P2 — Haptic coverage completion:** Audit every `onClick` app-wide; add `triggerLightHaptic()` to tab switches, primary buttons, and list-item taps not already covered. Keep medium/success tiers reserved for commit-level actions as today.
+
+**P9a — Tap targets, grid breakpoint, keyboard hints:** Bump `.smart-insight-icon` (34×34) and `.pagination-compact .text-action-button` (32×32) to 44×44pt hit areas; fix the execution-summary 4-column grid's breakpoint so real phone widths get 2 columns; add `enterKeyHint="done"` to the paycheck amount input.
+
+**Files touched:** `lib/icons/index.ts` (new), `app/page.tsx`, `AppLockScreen.tsx`, `app/styles/01-payoff-goals.css`, `app/styles/02-overdue-pagination-nav.css`, `app/styles/03-nav-results-modals.css`, `PaycheckSection.tsx`.
+
+**Risk:** Low-medium. Mechanical, scoped to a handful of files this version — see the polish implementation plan for the full file-by-file breakdown.
+
+---
+
 ## v1.3 — iPad Support *(done)*
 
 **Scope:** Make the app a genuine iPad experience, not a stretched iPhone layout.
@@ -68,6 +84,22 @@ This single decision is the most important thing in this document. Everything be
 
 ---
 
+## v1.3 addendum — Mobile Polish: Icon Completion, Tab Transitions, Pagination
+
+_Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md` (phases P1b, P3, P9b)._
+
+**P1b — Icon system completion:** Finish the migration started in v1.2 — `AddDebtModal.tsx`, `AddExpenseModal.tsx`, `DebtRow.tsx`, `DebtGroup.tsx`, `ExpenseListItem.tsx`, `GoalsSection.tsx`, `SwipeActionCard.tsx`, sort/filter chevrons. Confirm icon sizing holds at the iPad two-column breakpoint already being built this version. Zero emoji/Unicode UI glyphs should remain anywhere after this lands.
+
+**P3 — Tab-switch transitions:** Add a 150-200ms cross-fade between bottom-nav tab changes, reusing the existing `cubic-bezier(0.2, 0.9, 0.2, 1)` curve. Verify against the new iPad two-column layout.
+
+**P9b — Pagination → mobile-native list pattern:** Replace `DebtGroup.tsx`'s numbered click-pagination (`PAGE_SIZE = 10`, prev/next + "Page X of Y") with a "Load More" control or infinite scroll, removing the desktop-table framing. Sequenced here specifically because P1b already touches this same file for icons — one visit, not two.
+
+**Files touched:** `AddDebtModal.tsx`, `AddExpenseModal.tsx`, `DebtRow.tsx`, `DebtGroup.tsx`, `ExpenseListItem.tsx`, `GoalsSection.tsx`, `SwipeActionCard.tsx`, `app/page.tsx`, `app/styles/09-anim-swipe-media-misc.css`, `app/styles/02-overdue-pagination-nav.css`.
+
+**Risk:** Low-medium. Mechanical icon swaps and an isolated CSS transition; the pagination boundary logic (which items are visible after N "Load More" taps) is the one spot needing care to avoid off-by-one errors.
+
+---
+
 ## v1.4 — Onboarding Flow
 
 **Scope:** Replace the bare "enter paycheck amount" first-run sheet with a guided multi-step flow.
@@ -90,6 +122,20 @@ This single decision is the most important thing in this document. Everything be
 **Testing:** New Playwright spec `tests/e2e/onboarding-flow.spec.ts` covering: fresh install → complete all steps → lands on Plan tab; fresh install → skip everything → still lands in app correctly with empty state.
 
 **Risk:** Low. Pure UI addition, no engine/data changes.
+
+---
+
+## v1.4 addendum — Mobile Polish: Empty-State Illustrations, Hover Audit
+
+_Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md` (phases P4, P9c)._
+
+**P4 — Empty-state illustrations:** Small inline SVG illustration above the existing text for each of the three empty states (debts, expenses, goals), themed to match the icon system completed in v1.2/v1.3. Depends on P1a+P1b being done — don't start before then.
+
+**P9c — Hover-only feedback audit:** Every `:hover`-only CSS rule (`app/styles/00-theme-and-base.css` lines 385/401-405/491/646/651, `app/styles/03-nav-results-modals.css` lines 201/716, `app/styles/09-anim-swipe-media-misc.css` line 369) gets an equivalent `:active`/touch-triggered state, using the touch-active visual language already established by the icon work. **Must be tested on an actual touch device/simulator, not a mouse-equipped browser** — a mouse still triggers the `:hover` rules being audited, which would mask whether the fix worked.
+
+**Files touched:** `DebtsSection.tsx`/`DebtGroup.tsx`, `RequiredExpensesSection.tsx`, `GoalsSection.tsx`, `app/styles/00-theme-and-base.css`, `app/styles/03-nav-results-modals.css`, `app/styles/09-anim-swipe-media-misc.css`.
+
+**Risk:** Low-medium. Additive markup (P4) plus mechanical CSS additions (P9c); the only real risk is skipping touch-device verification on P9c and shipping an untested fix.
 
 ---
 
@@ -125,6 +171,32 @@ This single decision is the most important thing in this document. Everything be
 
 ---
 
+## v1.5 addendum — Mobile Polish: Skeleton Loading
+
+_Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md` (phase P5)._
+
+**P5 — Context-aware skeleton loading:** Split `components/AppSkeleton.tsx` into shape-specific skeleton pieces (debt-row-shaped, plan-summary-shaped) reusing the existing `skeletonShimmer` keyframe, composed based on which tab would be active on load.
+
+**Files touched:** `components/AppSkeleton.tsx` (split into a new `components/Skeleton/` subfolder, following this codebase's established split-into-subdirectory pattern).
+
+**Risk:** Low. Purely presentational, shown only during the brief initial-mount window.
+
+---
+
+## v1.5 addendum — Page Orchestrator Refactor, Phase 1 (Mechanical Relocations)
+
+_Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. This is the first of five phases moving `app/page.tsx` from "main brain" to orchestrator; sequenced to start here since v1.5's own feature scope (pay cycle history) is small and doesn't touch the same surface area, minimizing merge risk._
+
+**Scope:** Move `handleImportDebtsCsv` into `lib/hooks/useDebts.ts` as `handleImportCsv`; give `livingExpenses` its own `lib/hooks/useLivingExpenses.ts` (one state, one effect, closing the last inconsistency with the other domain hooks); extract `getDebtDisplayBalance` + the `debtsWithDisplayBalances`/`activeDebts`/`paidOffDebts` derivation into a pure `lib/debt/getDebtsWithDisplayBalances.ts`.
+
+**Files touched:** `lib/hooks/useDebts.ts`, new `lib/hooks/useLivingExpenses.ts`, new `lib/debt/getDebtsWithDisplayBalances.ts`, `app/page.tsx`.
+
+**Testing:** `npx tsc --noEmit`, `npm run lint`, manual dev-server check (all 4 tabs, both themes) — pure relocation, no regression-test need.
+
+**Risk:** Low. No logic change, only relocation.
+
+---
+
 ## v1.6 — Debt Milestones + Amortization Calendar + Streaks
 
 **Scope:** Three related but separable features — ship as one version since they share the "celebrate progress" theme, but implement independently.
@@ -150,6 +222,32 @@ This single decision is the most important thing in this document. Everything be
 
 ---
 
+## v1.6 addendum — Mobile Polish: Micro-Interaction Pass
+
+_Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md` (phase P6)._
+
+**P6 — Micro-interaction pass:** Audit every button variant's `:active` scale transform for consistency; apply the existing `planItemReveal` keyframe to newly-added list items on Bills/Debts/Goals tabs, not just Plan (must only animate genuinely new items, not re-trigger on unrelated re-renders — the one real correctness risk in this phase); give this version's own milestone badges a celebratory entrance reusing existing easing curves.
+
+**Files touched:** `app/styles/09-anim-swipe-media-misc.css`, list-rendering components (`DebtGroup.tsx`, expense list parent, `GoalsSection.tsx`), `components/MilestoneBadge.tsx` (new this version per the feature plan above).
+
+**Risk:** Low-medium. The "only animate new items" requirement needs a stable per-item `key` and a mount-scoped animation trigger, not a re-triggerable class toggle.
+
+---
+
+## v1.6 addendum — Page Orchestrator Refactor, Phase 2 (JSX Componentization)
+
+_Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. Presentation-only relocation, no logic change — reasonable to bundle alongside this version's milestone/amortization feature work since it touches a different layer (JSX structure, not calculation logic)._
+
+**Scope:** Extract `components/AppHeader.tsx` (hero block: title, last-saved indicator, status toast, theme toggle, dev-only buttons), `components/BottomNav.tsx` (4-button nav), and `components/PlanSettings/PlanSettingsSheet.tsx` (the entire settings overlay, preserving its onboarding-vs-settings branch) with `NotificationsCard.tsx`/`AppLockCard.tsx`/`LegalLinks.tsx` split out the same way `AddDebtModal`/`AddExpenseModal` were split from their parents. Mirrors the existing `components/Debts/`, `components/RequiredExpenses/`, `components/Onboarding/` folder convention.
+
+**Files touched:** new `components/AppHeader.tsx`, `components/BottomNav.tsx`, `components/PlanSettings/` (4 new files), `app/page.tsx`.
+
+**Testing:** `npx tsc --noEmit`, `npm run lint`, manual dev-server check (all 4 tabs, settings sheet, both themes).
+
+**Risk:** Low. Relocation + prop-drilling only; `PlanSettingsSheet` will take many props by necessity (same accepted pattern as `OnboardingFlow`'s ~30 props today).
+
+---
+
 ## v1.7 — Home Screen Widget + Custom App Icons
 
 **Scope:** Native iOS features outside the Capacitor/JS layer entirely.
@@ -170,6 +268,20 @@ This single decision is the most important thing in this document. Everything be
 
 ---
 
+## v1.7 addendum — Page Orchestrator Refactor, Phase 3 (Backup/Snapshot Hook)
+
+_Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. Pure JS/TS work, independent of this version's native Swift widget work — safe to run in parallel since neither touches the other's files._
+
+**Scope:** New `DebtPlannerBackup` type in `lib/storage/debtPlannerStorage.ts` matching `buildBackupData`'s current shape (currently untyped). New `lib/hooks/usePlannerBackup.ts` owning `buildBackupData`, `saveResetSnapshot`, `handleExportBackup`, `handleImportBackup`, `handleResetToToday` — takes every domain value/setter it currently closes over as parameters, same pattern as `useSubscription`/`useNotificationsSetting`. `useDebts`/`useRequiredExpenses`'s existing `saveResetSnapshot` constructor parameter switches to come from this hook's return value instead of being defined inline in `page.tsx` — verify hook initialization order still resolves.
+
+**Files touched:** `lib/storage/debtPlannerStorage.ts`, new `lib/hooks/usePlannerBackup.ts`, `app/page.tsx`, `lib/hooks/useDebts.ts`, `lib/hooks/useRequiredExpenses.ts`.
+
+**Testing:** `npx tsc --noEmit`, `npm run lint`, manual export → import round trip, one "Reset to Today" exercise.
+
+**Risk:** Low-medium. Wide-signature hook by necessity, not a design flaw; the hook-initialization-order dependency (backup hook's output feeds into `useDebts`/`useRequiredExpenses`) is the one thing to verify carefully.
+
+---
+
 ## v1.8 — Multi-Scenario Planning
 
 **Scope:** Let users save and compare multiple named what-if scenarios instead of one ephemeral simulation.
@@ -187,6 +299,20 @@ This single decision is the most important thing in this document. Everything be
 **Testing:** regression test confirming running the same inputs through the saved-scenario path and the existing ephemeral simulator path produce identical projections (they should call the same underlying `projectDebtPayoff`, just with different state management around it — this test guards against the new code accidentally diverging from the existing simulator's logic).
 
 **Risk:** Low-medium. Mostly UI/state-management work layered on an already-correct calculation engine.
+
+---
+
+## v1.8 addendum — Page Orchestrator Refactor, Phase 4 (Plan-Execution Hook)
+
+_Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. Thematically paired with this version's own scenario-planning feature — both are about how the user's plan-execution state is tracked and presented._
+
+**Scope:** New `lib/hooks/usePlanExecution.ts` owning `payoffStrategy` state+persistence, `completedRecommendedActions` state+persistence, `recommendationOverrides` state (stays unpersisted, matching today's behavior), `handleMarkRecommendedAction` (the goal-balance reconciliation math), `getCompletedRecommendedAmountForDebt`. Takes `goals`/`setGoals` and `saveResetSnapshot` (from v1.7's `usePlannerBackup`) as parameters.
+
+**Files touched:** new `lib/hooks/usePlanExecution.ts`, `app/page.tsx`.
+
+**Testing:** `npx tsc --noEmit`, `npm run lint`, manual check — mark and un-mark a recommended action against a goal, confirm the reconciliation math still nets to zero.
+
+**Risk:** Low-medium. The goal-balance reconciliation math is the one piece of real logic moving here (not just relocation) — verify it behaves identically pre/post move with the manual check above.
 
 ---
 
@@ -230,6 +356,24 @@ This single decision is the most important thing in this document. Everything be
 3. Change `loadStoredState`'s silent-fallback-on-parse-error behavior to at least log/flag a corrupted-state event (ties into v1.11's analytics, sequence-dependent — if v1.11 ships first, instrument this then; if this ships first, add a placeholder hook).
 
 **Risk:** Low-medium per item; bundle risk is mainly about scope creep — keep these two strictly independent in implementation so one slipping doesn't block the other.
+
+---
+
+## v1.10 addendum — Page Orchestrator Refactor, Phase 5 (Rollover Engine — final phase)
+
+_Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. This is the highest-risk phase of the orchestrator refactor, deliberately paired with v1.10 since this version is already doing deep debt-math surgery (BNPL real calculations) with its own reconciliation-test requirement — better to take on all the "scary debt math" risk in one carefully-tested version than spread it across two._
+
+**Scope:** Add a new pure function (`lib/recurrence/rolloverPayCycle.ts` or a sibling `lib/debt/applyRolloverPayments.ts`) taking `(debts, completedRecommendedActions)` and returning debts with interest applied and minimum+snowball payments deducted — extracting the math currently inline in `handleRolloverPayCycle`'s `.map()`, reusing `calculateMonthlyInterest`. `handleRolloverPayCycle` itself moves into `usePlanExecution.ts` (from v1.8) or a dedicated `useCycleRollover.ts` if that hook is getting too wide by this point — decide based on actual line count at implementation time.
+
+**Mandatory reconciliation test:** a regression test in `lib/testing/` asserting the new pure rollover-payment function produces identical output to the pre-refactor inline logic for a representative case (debt with interest + partial minimum + snowball spillover). Pair this test alongside this version's own BNPL reconciliation test — both exist for the same reason (silent math drift in a finance app is the worst bug class).
+
+**Files touched:** `lib/recurrence/rolloverPayCycle.ts` (or new `lib/debt/applyRolloverPayments.ts`), `lib/hooks/usePlanExecution.ts`, `app/page.tsx`, new regression test in `lib/testing/`.
+
+**Testing:** `npx tsc --noEmit`, `npm run lint`, the new reconciliation regression test, full `npm run test:regression`, one real "Start Next Pay Cycle" exercise with a debt carrying interest + a partial minimum + a snowball payment, checked against the pre-refactor balance by hand.
+
+**Risk:** Medium. The one phase across the whole orchestrator refactor where "looks the same" isn't enough without a test backing it — do not skip the reconciliation test for schedule pressure.
+
+**With this phase complete, `app/page.tsx` reaches its target end state: ~400-500 lines of hook composition, the `result` useMemo, mount/lock gates, nav state, and section-component rendering — no backup logic, no rollover math, no goal-reconciliation math, no CSV parsing, no hand-written settings-sheet markup. See `PAGE_ORCHESTRATOR_PLAN.md` for the full before/after picture.**
 
 ---
 
@@ -381,3 +525,5 @@ Builds directly on v2.0's backend + Claude integration.
 2. **v1.14's leaderboard half doesn't ship until v2.0's backend exists** — don't build against an assumed backend shape before v2.0 designs it for real.
 3. **v2.0 is the hinge point of the entire roadmap** — first server, first external data leaving the device, first AI dependency. Everything after it (v2.1, v2.2, v3.0) builds on decisions made there. Get v2.0's backend foundation right; don't rush it to hit a version-number cadence.
 4. **The engine (`lib/engine/allocatePaycheck.ts`) and projection math (`lib/debt/`) are the most load-bearing, best-tested code in the app.** Every version that touches them (v1.6's amortization, v1.10's BNPL, v2.1's multi-income) should reuse existing functions rather than duplicating math, and should include a reconciliation test against the existing engine's output — this is a finance app; silent math disagreements between features are the worst possible bug class.
+5. **Mobile polish (`MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md`) and the `app/page.tsx` orchestrator refactor (`PAGE_ORCHESTRATOR_PLAN.md`) now ride alongside v1.2-v1.10 above as version addenda** — see each version's addendum section for what lands. Two polish items remain deliberately unscheduled and are **not** mapped to a version: **P7 (list virtualization)**, trigger-based — only build once a real user reports lag with a large list; and **P8 (modal transition audit)** — backlog until there's a concrete HIG-compliance push. Don't pull these into a version ahead of that trigger.
+6. **The orchestrator refactor's Phase 5 (v1.10) is gated on Phases 1-4 (v1.5-v1.8) shipping first** — each phase's hook depends on the previous one's output (e.g. Phase 4's `usePlanExecution` needs Phase 3's `usePlannerBackup` for `saveResetSnapshot`). If any of v1.5-v1.8 slip or get reordered, the orchestrator phases must move with them, not stay pinned to the original version number.
