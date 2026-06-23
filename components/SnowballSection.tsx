@@ -387,6 +387,19 @@ export function SnowballSection({
 				<div className="empty-debt-state compact-empty-state">
 					<strong>No Active Debts Yet.</strong>
 					<p>Add debts to see your payoff order and projected timeline.</p>
+
+					{subscriptionPlan !== "premium" && (
+						<button
+							type="button"
+							className="primary-button upgrade-preview-button"
+							onClick={() => {
+								triggerLightHaptic();
+								onUpgradeClick();
+							}}
+						>
+							View Premium
+						</button>
+					)}
 				</div>
 			) : (
 				<>

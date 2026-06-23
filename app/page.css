@@ -1460,11 +1460,6 @@ button:active {
 	color: var(--text-secondary);
 }
 
-.bottom-nav-item span {
-	font-size: 1.05rem;
-	line-height: 1;
-}
-
 .bottom-nav-item small {
 	font-size: 0.72rem;
 	font-weight: 700;
@@ -2421,6 +2416,9 @@ button:active {
 	color: var(--text-primary);
 	border: 1px solid var(--border-color);
 	font-size: 1.1rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	transform: none;
 }
 
@@ -5546,7 +5544,8 @@ button:active,
 }
 
 .app-lock-icon {
-	font-size: 2.5rem;
+	display: inline-flex;
+	color: var(--text-primary);
 	margin-bottom: var(--space-2);
 }
 

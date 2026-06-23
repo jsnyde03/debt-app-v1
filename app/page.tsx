@@ -41,6 +41,7 @@ import { AppSkeleton } from "@/components/AppSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { AppLockScreen } from "@/components/AppLockScreen";
 import { useAppLock } from "@/lib/hooks/useAppLock";
+import { Home as HomeIcon, CreditCard, TrendingUp, Target, Sun, Moon, Settings, Wallet } from "@/lib/icons";
 
 type Goal = {
     id: string;
@@ -1201,7 +1202,7 @@ export default function Home() {
                         }
                         }
                     >
-                        {darkMode ? "☀" : "🌙"}
+                        {darkMode ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
                     </button>
 
                     {process.env.NEXT_PUBLIC_DEV_MODE === "true" && (
@@ -1239,7 +1240,7 @@ export default function Home() {
                                     setShowPlanSettings(true);
                                 }}
                             >
-                                ⚙
+                                <Settings size={20} aria-hidden="true" />
                             </button>
                         </div>
 
@@ -1370,7 +1371,7 @@ export default function Home() {
                             }
                             onClick={() => setBillsView("expenses")}
                         >
-                            <span>💴</span>
+                            <Wallet size={18} aria-hidden="true" />
                             Expenses
                         </button>
 
@@ -1383,7 +1384,7 @@ export default function Home() {
                             }
                             onClick={() => setBillsView("debts")}
                         >
-                            <span>💳</span>
+                            <CreditCard size={18} aria-hidden="true" />
                             Debts
                         </button>
                     </div>
@@ -1491,7 +1492,7 @@ export default function Home() {
                         setActiveTab("plan");
                     }}
                 >
-                    <span>🏠</span>
+                    <HomeIcon size={20} aria-hidden="true" />
                     <small>Plan</small>
                 </button>
 
@@ -1508,7 +1509,7 @@ export default function Home() {
                         setBillsView((current) => current ?? "expenses");
                     }}
                 >
-                    <span>💳</span>
+                    <CreditCard size={20} aria-hidden="true" />
                     <small>Bills</small>
                 </button>
 
@@ -1524,7 +1525,7 @@ export default function Home() {
                         setActiveTab("snowball");
                     }}
                 >
-                    <span>📈</span>
+                    <TrendingUp size={20} aria-hidden="true" />
                     <small>Payoff</small>
                 </button>
 
@@ -1540,7 +1541,7 @@ export default function Home() {
                         setActiveTab("goals");
                     }}
                 >
-                    <span>🎯</span>
+                    <Target size={20} aria-hidden="true" />
                     <small>Goals</small>
                 </button>
             </nav>
@@ -1655,7 +1656,12 @@ export default function Home() {
                                         <button
                                             type="button"
                                             className="premium-pill"
-                                            onClick={() => setShowUpgrade(true)}
+                                            onClick={() => {
+                                                triggerLightHaptic();
+                                                setShowUpgrade(true);
+                                                setActiveTab("snowball");
+                                                setShowPlanSettings(false);
+                                            }}
                                         >
                                             Premium
                                         </button>
