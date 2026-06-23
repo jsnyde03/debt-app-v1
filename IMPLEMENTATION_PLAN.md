@@ -1,6 +1,8 @@
 # Implementation Plan — v1.3 onward
 
-_Companion to `ROADMAP.md`, which defines the **what/why/tier**. This document defines the **how**: data model changes, files touched, sequencing, and testing per version. Last updated 2026-06-22._
+_Companion to `ROADMAP.md`, which defines the **what/why/tier**. This document defines the **how**: data model changes, files touched, sequencing, and testing per version. Last updated 2026-06-23._
+
+**Note on v1.2's base scope:** Local Notifications and the App Store review prompt (the two features v1.2 originally shipped to fix) predate this document — they were built before "v1.3 onward" planning began and have no implementation section here. App Lock and Mobile Polish were added to v1.2 *after the fact* (before launch), which is why those two have addenda below.
 
 ## Critical path dependency — read this before sequencing anything past v1.14
 
@@ -17,7 +19,9 @@ This single decision is the most important thing in this document. Everything be
 
 ---
 
-## v1.2 addendum — App Lock (Biometric + Device Passcode Fallback)
+## v1.2 addendum — App Lock (Biometric + Device Passcode Fallback) — done
+
+**Status: shipped, with one correction to this plan.** The original plan below called for App Lock to default ON for new installs. Once built, this was found to block onboarding entirely — a brand-new user with no biometrics/passcode enrollment context would hit a lock screen before ever reaching the welcome flow, and it broke every fresh-install e2e test across all device projects. Fixed in commit `926ebd6` ("Fix App Lock defaulting to enabled for new installs") to **default OFF**, opt-in from Plan Settings instead. Step 4 below is kept for history; the shipped behavior is the opposite of what it says.
 
 **Why this is going into v1.2, not its own version:** v1.2 (notifications + App Store review prompt) is locked but hasn't been submitted/launched yet. App Lock has zero dependencies on anything else in this plan, is quick to build, and thematically belongs with notifications/review as a "trust" feature — not worth spinning up a separate release for. Since v1.3 (iPad) already branched off v1.2-dev, implement this on `v1.2-dev` and merge/rebase those commits forward into `v1.3-dev` afterward.
 
@@ -40,17 +44,17 @@ This single decision is the most important thing in this document. Everything be
 
 ---
 
-## v1.2 addendum — Mobile Polish: Icon Foundation, Haptics, Touch-Target Fixes
+## v1.2 addendum — Mobile Polish: Icon Foundation, Haptics, Touch-Target Fixes — done
 
 _Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md` (phases P1a, P2, P9a). Summarized here for single-source version sequencing._
 
-**P1a — Icon system foundation:** Stand up `lib/icons/index.ts` (lucide-react re-exports), replace emoji/Unicode glyphs in the chrome used every session — bottom nav, primary buttons, settings sheet, `AppLockScreen.tsx`. `aria-label` pass on every icon-only button touched. Establishes the size/stroke convention P1b reuses in v1.3.
+**P1a — Icon system foundation:** Done. Stood up `lib/icons/index.ts` (lucide-react re-exports), replaced emoji/Unicode glyphs in the chrome used every session — bottom nav, theme toggle, settings gear, section switcher, `AppLockScreen.tsx`. All icon-only buttons in scope already had `aria-label`s from prior work. Establishes the size/stroke convention P1b reuses in v1.3.
 
-**P2 — Haptic coverage completion:** Audit every `onClick` app-wide; add `triggerLightHaptic()` to tab switches, primary buttons, and list-item taps not already covered. Keep medium/success tiers reserved for commit-level actions as today.
+**P2 — Haptic coverage completion:** Done. Audited every `onClick` across `app/page.tsx`, `PaycheckSection.tsx`, `GoalsSection.tsx`, `DebtsSection.tsx`, `RequiredExpensesSection.tsx`, `LivingExpensesSection.tsx`. Added light haptic to tab switches, the Bills section switcher, and previously-uncovered close/cancel/pagination buttons; added medium haptic to commit-level actions (Calculate plan, Start Next Pay Cycle, goal Save/Remove, expense Remove). Several handlers already had haptics built in (`startEditing`, `saveEditing`, `handleAddDebt`, `handleAddGoal`) — left untouched to avoid double-firing.
 
-**P9a — Tap targets, grid breakpoint, keyboard hints:** Bump `.smart-insight-icon` (34×34) and `.pagination-compact .text-action-button` (32×32) to 44×44pt hit areas; fix the execution-summary 4-column grid's breakpoint so real phone widths get 2 columns; add `enterKeyHint="done"` to the paycheck amount input.
+**P9a — Tap targets, keyboard hints:** Done. Bumped `.smart-insight-icon` (34×34→44×44) and `.pagination-compact .text-action-button` (32×32→44×44); added `enterKeyHint="done"` to the paycheck amount input. **Correction:** the execution-summary 4-column grid's breakpoint was investigated and found to already work correctly at real phone widths (verified via Playwright at 390px: computed `grid-template-columns` was `139px 139px`, rendered cleanly) — the original audit's claim that this needed fixing was a misdiagnosis. No CSS change was made for this item.
 
-**Files touched:** `lib/icons/index.ts` (new), `app/page.tsx`, `AppLockScreen.tsx`, `app/styles/01-payoff-goals.css`, `app/styles/02-overdue-pagination-nav.css`, `app/styles/03-nav-results-modals.css`, `PaycheckSection.tsx`.
+**Files touched:** `lib/icons/index.ts` (new), `app/page.tsx`, `AppLockScreen.tsx`, `PaycheckSection.tsx`, `GoalsSection.tsx`, `DebtsSection.tsx`, `RequiredExpensesSection.tsx`, `app/page.css`.
 
 **Risk:** Low-medium. Mechanical, scoped to a handful of files this version — see the polish implementation plan for the full file-by-file breakdown.
 
@@ -168,6 +172,27 @@ _Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md
 **Testing:** regression test in `lib/testing/` verifying a rollover produces exactly one new snapshot with correct totals; e2e test verifying the History view shows capped vs. uncapped results per mocked tier.
 
 **Risk:** Low. Additive, no existing behavior changes except adding one snapshot-write call inside an existing handler.
+
+---
+
+## v1.5 addendum — Windfall/Bonus One-Time Allocator (Free)
+
+_Previously listed in `ROADMAP.md` §3 as `[Free, small]` but never assigned a version slot — added here since it has zero dependencies and v1.5 is otherwise a small release with room for it._
+
+**Scope:** Let a user enter a one-time extra amount (a bonus, tax refund, etc.) and run it through the existing allocation engine as an immediate extra payment, without it needing to be a recurring paycheck.
+
+**Implementation steps:**
+1. New UI entry point — a "Got a windfall?" action on the Plan tab (or inside Plan Settings), opening a small form: one amount input.
+2. Reuse the existing snowball/avalanche extra-payment path in `lib/engine/allocatePaycheck.ts` — a windfall is just a one-time extra-payment amount fed through the same allocation logic already used for the recurring snowball/avalanche extra, not a new calculation. Do not duplicate the allocation math.
+3. Apply the result via the existing `handleMarkRecommendedAction`/debt-payment flow so it's tracked consistently with regular recommended actions (same `completedRecommendedActions` ledger, `paymentSource: "paycheck"`).
+
+**Data model changes:** none — reuses existing types and the existing allocation engine.
+
+**Tier:** Free, all tiers — per `ROADMAP.md` §2, this is explicitly called out as fitting the free engine as-is, not a Premium hook.
+
+**Testing:** regression test confirming a windfall amount run through the engine produces identical allocation behavior to an equivalent recurring extra-payment amount (same engine, same math — this test guards against the UI accidentally diverging from the existing allocation logic).
+
+**Risk:** Low. Thin UI layer over an already-correct, already-tested engine path.
 
 ---
 
@@ -328,7 +353,7 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. Thematically paired with this versi
 3. Rewrite `hasFeatureAccess(plan, feature)` as a tier-ordinal comparison (`free=0, premium=1, premium_plus=2, ultimate=3`) against each feature's `minimumTier`, rather than the current single boolean branch.
 4. RevenueCat: configure 3 additional entitlement IDs (or one entitlement with tiered product IDs — decide based on what RevenueCat's dashboard supports cleanly for the product catalog) and update `getSubscriptionPlan()`/`purchasePremium()` to map products → the new 4-value type.
 5. **Audit every existing call site** of `hasFeatureAccess` (currently in `SnowballSection.tsx`, and the v1.5-v1.8 components if built first) to confirm they pass the right feature key and get correct tier gating under the new system — this is the actual risk of this version, not the type change itself.
-6. Export/backup automation: extend `lib/storage/backup.ts` with a scheduled trigger (e.g., a periodic check on app foreground — "if last backup > 7 days ago, auto-export to... " — note: without cloud storage, "automatic backup" on iOS realistically means writing to the Files app via the share sheet's "Save to Files" target, or iCloud Drive if accessible from a sandboxed Capacitor app. Verify iCloud Drive write access is feasible from the WKWebView/Capacitor sandbox before committing to this UX — if not feasible, scope this down to "more prominent backup reminders" rather than true automation).
+6. Export/backup automation: extend `lib/storage/backup.ts` with a scheduled trigger (e.g., a periodic check on app foreground — "if last backup > 7 days ago, auto-export to... " — note: without cloud storage, "automatic backup" on iOS realistically means writing to the Files app via the share sheet's "Save to Files" target, or iCloud Drive if accessible from a sandboxed Capacitor app. Verify iCloud Drive write access is feasible from the WKWebView/Capacitor sandbox before committing to this UX — if not feasible, scope this down to "more prominent backup reminders" rather than true automation). This covers the "scheduled automatic backups" half of `ROADMAP.md` §3's v1.13 tag; the other half (PDF/CSV reporting) ships later at v1.13 itself, see that section.
 7. External payment logging UI: add a "Log Payment Made Outside the App" action (likely in `DebtRow`/`ExpenseListItem`'s swipe actions or edit mode) that calls `onMarkRecommendedAction(..., paymentSource: "external")` — the handler already supports this exact parameter, this is purely a missing UI entry point, not new logic.
 
 **Data model changes:** `SubscriptionPlan` type widened (breaking-ish — anything doing exact equality checks like `plan === "premium"` instead of using `hasFeatureAccess` needs auditing too).
@@ -415,7 +440,9 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. This is the highest-risk phase of t
 
 ---
 
-## v1.13 — Net Worth Tracker + Debt Consolidation/Refinance Calculator
+## v1.13 — Net Worth Tracker + Debt Consolidation/Refinance Calculator + PDF/CSV Reporting
+
+**Note on scope vs. `ROADMAP.md`:** §3 tags "scheduled automatic backups + PDF/CSV reporting" together at `[v1.13]`, but scheduled backup automation already shipped as part of v1.9 (see that section's step 6) — only PDF/CSV reporting remained unimplemented, so it's added here as its own subsection rather than duplicating backup work already covered upstream.
 
 ### Net Worth Tracker (Premium+)
 1. New minimal `Asset = { id: string; name: string; value: number }` type — deliberately simple (no asset categories/appreciation modeling) for v1, matching the project's "no premature abstraction" pattern.
@@ -428,7 +455,13 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. This is the highest-risk phase of t
 2. New `components/ConsolidationCalculator.tsx` — input the hypothetical loan terms, side-by-side comparison (same visual pattern as Strategy Comparison in `SnowballSection`).
 3. Explicitly **does not initiate any real loan** — this is a what-if calculator only, no lending partner integration. Keep the copy clear that this is illustrative, not an offer, to avoid any regulatory implication of operating as a loan originator/broker.
 
-**Risk:** Low-medium for net worth (simple, additive). Low technical risk for the calculator, but **flag the regulatory copy point above as a hard requirement**, not a nice-to-have — a finance app suggesting specific loan terms without the right disclaimers is a real compliance risk.
+### PDF/CSV Reporting (Premium+)
+1. New `lib/storage/exportReport.ts` — builds a structured report (current debts, payoff projections, pay cycle history from v1.5, net worth from this version) into CSV first (simplest, no new dependency — reuses the same shape as the existing JSON backup, just flattened to rows).
+2. PDF: evaluate a lightweight client-side PDF library at implementation time (this app keeps its dependency footprint deliberately small — don't reach for a heavy PDF engine if a simpler "print to PDF" via the system share sheet/native print API gets the same result with zero new dependencies).
+3. Entry point: a "Export Report" action in Plan Settings, alongside the existing Export/Import Backup actions (reuse that section's UI pattern, don't invent a new one).
+4. This is explicitly a different artifact from the JSON backup (`lib/storage/backup.ts`) — the JSON backup is for restoring app state; this report is for reading/sharing a summary outside the app. Keep the two code paths separate; don't try to unify them.
+
+**Risk:** Low-medium for net worth (simple, additive). Low technical risk for the calculator, but **flag the regulatory copy point above as a hard requirement**, not a nice-to-have — a finance app suggesting specific loan terms without the right disclaimers is a real compliance risk. Reporting risk is low — read-only, additive, no data model changes.
 
 ---
 
@@ -527,3 +560,4 @@ Builds directly on v2.0's backend + Claude integration.
 4. **The engine (`lib/engine/allocatePaycheck.ts`) and projection math (`lib/debt/`) are the most load-bearing, best-tested code in the app.** Every version that touches them (v1.6's amortization, v1.10's BNPL, v2.1's multi-income) should reuse existing functions rather than duplicating math, and should include a reconciliation test against the existing engine's output — this is a finance app; silent math disagreements between features are the worst possible bug class.
 5. **Mobile polish (`MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md`) and the `app/page.tsx` orchestrator refactor (`PAGE_ORCHESTRATOR_PLAN.md`) now ride alongside v1.2-v1.10 above as version addenda** — see each version's addendum section for what lands. Two polish items remain deliberately unscheduled and are **not** mapped to a version: **P7 (list virtualization)**, trigger-based — only build once a real user reports lag with a large list; and **P8 (modal transition audit)** — backlog until there's a concrete HIG-compliance push. Don't pull these into a version ahead of that trigger.
 6. **The orchestrator refactor's Phase 5 (v1.10) is gated on Phases 1-4 (v1.5-v1.8) shipping first** — each phase's hook depends on the previous one's output (e.g. Phase 4's `usePlanExecution` needs Phase 3's `usePlannerBackup` for `saveResetSnapshot`). If any of v1.5-v1.8 slip or get reordered, the orchestrator phases must move with them, not stay pinned to the original version number.
+7. **Full cross-reference audit completed 2026-06-23** against `ROADMAP.md` §3/§4, both mobile-polish docs, and `PAGE_ORCHESTRATOR_PLAN.md` — every `[vX.X]`-tagged feature now has matching implementation coverage at the correct version. Fixes made: added the previously-unscheduled Windfall/Bonus Allocator to v1.5; added PDF/CSV Reporting to v1.13 (was tagged in `ROADMAP.md` but had no implementation section); corrected `ROADMAP.md`'s Apple Watch/Siri tag from `[v1.9 / v3.x]` to `[v3.1]` to match the table and this doc; updated the v1.2 App Lock and Mobile Polish addenda to reflect what actually shipped (App Lock default flipped to OFF, P9a's grid-breakpoint item found to need no fix).

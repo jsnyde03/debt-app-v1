@@ -98,7 +98,7 @@ This is the brainstorm with nothing filtered out. Items already slotted into the
 **Income & cash flow**
 - [v2.1] Multiple income sources / household merge
 - Backlog: variable/irregular (freelance/gig) income support
-- [Free, small] Windfall/bonus one-time allocator
+- [v1.5, Free] Windfall/bonus one-time allocator
 - Backlog: pay-raise impact simulator
 
 **Savings & goals**
@@ -117,13 +117,13 @@ This is the brainstorm with nothing filtered out. Items already slotted into the
 - [v1.14] Shareable milestone cards (social export)
 - Backlog: opt-in anonymized debt-free leaderboard
 - [v1.7] Home screen widget
-- [v1.9 / v3.x] Apple Watch app, Siri Shortcuts
+- [v3.1] Apple Watch app, Siri Shortcuts
 
 **Data, sync & security**
 - Backlog: cloud sync / multi-device (needs an account system — currently zero auth)
 - [v1.2] App Lock — Face ID/Touch ID with device passcode fallback (Free, all tiers — see §4 note)
 - [v1.10] Schema versioning + migration path
-- [v1.13] PDF/CSV reporting, scheduled automatic backups
+- [v1.9] Scheduled automatic backups / [v1.13] PDF/CSV reporting
 
 **Platform & accessibility**
 - [v1.3, done] iPad layout
@@ -153,7 +153,7 @@ Per the established cadence philosophy: **v1.x stays quick-turnaround** (days/we
 | v1.2 | Local Notifications + App Store review prompt + **App Lock** *(not yet launched — see note below)* | Notifications/Lock: Free; review prompt: all tiers | Small |
 | v1.3 | iPad Support *(done)* | All | Small |
 | v1.4 | Onboarding flow | All | Small |
-| v1.5 | Pay Cycle History | Premium (6 cycles) / Premium+ (unlimited) | Small |
+| v1.5 | Pay Cycle History + Windfall/Bonus Allocator | Premium (6 cycles) / Premium+ (unlimited); Windfall: Free | Small |
 | v1.6 | Debt Milestones + Amortization Calendar + streaks | Premium+ | Medium |
 | v1.7 | Home Screen Widget + custom app icons | Premium | Small |
 | v1.8 | Multi-Scenario Planning | Premium+ | Medium |
@@ -161,7 +161,7 @@ Per the established cadence philosophy: **v1.x stays quick-turnaround** (days/we
 | v1.10 | BNPL real calculations + storage schema versioning | Infra / cleanup | Medium |
 | v1.11 | Analytics (Amplitude/PostHog) + crash reporting (Sentry) | Infra | Medium — **breaks small-release pattern, but needed before scaling further** |
 | v1.12 | Android build + accessibility audit | Infra / Platform | Large — **breaks small-release pattern; treat as its own milestone, not a quick release** |
-| v1.13 | Net worth tracker + debt consolidation/refinance calculator | Premium+ | Medium |
+| v1.13 | Net worth tracker + debt consolidation/refinance calculator + PDF/CSV reporting | Premium+ | Medium |
 | v1.14 | Shareable milestone cards + opt-in leaderboard | Free hook / Premium+ depth | Small-Medium |
 | v2.0 | AI Recommendations (Claude API, replaces rule engine) | Ultimate | Large |
 | v2.1 | Household / Multi-Income support | Ultimate | Large |
@@ -187,3 +187,4 @@ Recommendation carried over from earlier planning: **don't gate v2.0/v2.1/v3.0 o
 - AI Recommendations (v2.0) replace/supercharge the rule-based Smart Insights engine behind the same card UI — not a new surface.
 - v2.0's AI needs pay-cycle history (v1.5) to have something to reason about — don't skip v1.5.
 - No account/auth system exists at all today. Cloud sync and multi-device are blocked on this — not currently scheduled, would need its own infra version if prioritized.
+- `IMPLEMENTATION_PLAN.md`'s v2.0 section specifies a "Phase 0: backend foundation" (server, anonymous device ID, server-side API key handling) that doesn't appear as its own line item here — it's the technical prerequisite for v1.14's leaderboard half, v2.0's AI calls, v2.1's household sync, and v2.2's bank-token storage, all of which *are* listed above. Treat it as shared infrastructure underlying those four items, not a separate feature.
