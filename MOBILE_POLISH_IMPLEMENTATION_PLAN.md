@@ -6,9 +6,9 @@ _Companion to `MOBILE_POLISH_ROADMAP.md`, which defines the **what/why/sequencin
 
 | Version | Phases shipping | What lands |
 |---|---|---|
-| **v1.2** | P1a, P2 | Icon foundation + nav/buttons/settings/lock screen icons; full haptic coverage |
-| **v1.3** | P1b, P3 | Remaining icons (modals/rows/swipe actions/goals); tab-switch transitions |
-| **v1.4** | P4 | Empty-state illustrations |
+| **v1.2** | P1a, P2, P9a | Icon foundation + nav/buttons/settings/lock screen icons; full haptic coverage; tap-target/grid-breakpoint/keyboard-hint fixes |
+| **v1.3** | P1b, P3, P9b | Remaining icons (modals/rows/swipe actions/goals); tab-switch transitions; pagination → mobile-native list pattern |
+| **v1.4** | P4, P9c | Empty-state illustrations; hover-only feedback audit |
 | **v1.5** | P5 | Context-aware skeleton loading |
 | **v1.6** | P6 | Micro-interaction pass + milestone celebration motion |
 | **Backlog, pre-v2.0** | P7 | List virtualization (trigger-based, not scheduled to a version) |
@@ -59,6 +59,25 @@ Every phase below carries its own **Ships in: vX.X** line so there's no ambiguit
 
 ---
 
+## P9a — Tap targets, grid breakpoint, keyboard hints
+
+**Ships in: v1.2**, alongside P1a/P2.
+
+**Current state (verified):** `.smart-insight-icon` (`app/styles/01-payoff-goals.css:119-120`) is 34×34px; the pagination buttons in `.pagination-compact .text-action-button` (`app/styles/02-overdue-pagination-nav.css:206`) are 32×32px — both below Apple's 44×44pt HIG minimum tap target. The Plan tab's execution summary strip (`components/ResultsSection.tsx:869-897`, grid CSS in `app/styles/03-nav-results-modals.css:665`) uses `grid-template-columns: repeat(4, minmax(0, 1fr))` with a collapse-to-2-column breakpoint at 768px that doesn't reliably apply at real phone widths. `components/PaycheckSection.tsx:61-65` submits on Enter keydown with no `enterKeyHint` set on the input.
+
+**Implementation steps:**
+1. Increase `.smart-insight-icon` and `.pagination-compact .text-action-button` to a 44×44px minimum *hit area* — use padding/invisible hit-slop to expand the tappable region without necessarily growing the visible icon/glyph size if 44px would look oversized in context.
+2. Audit the execution-summary grid's breakpoint logic in `app/styles/03-nav-results-modals.css`/`09-anim-swipe-media-misc.css` and fix it so phone widths (anything under ~480px, covering the whole real-device range) consistently get the 2-column layout, not the 4-column one.
+3. Add `enterKeyHint="done"` to the paycheck amount input in `PaycheckSection.tsx` so the virtual keyboard's return key visibly reflects the existing Enter-to-submit behavior.
+
+**Files touched:** `app/styles/01-payoff-goals.css`, `app/styles/02-overdue-pagination-nav.css`, `app/styles/03-nav-results-modals.css` (or wherever the grid breakpoint actually lives once traced), `components/PaycheckSection.tsx`.
+
+**Testing:** Visual check on a real phone-width viewport (375px and 428px) confirming the execution summary renders 2 columns, not 4. Tap-target sizes can be confirmed via browser devtools box model on the built output. No regression test needed — CSS/attribute-only.
+
+**Risk:** Low. Isolated, mechanical, no logic changes.
+
+---
+
 ## P1b — Icon system completion
 
 **Ships in: v1.3**, alongside iPad support.
@@ -100,6 +119,26 @@ Every phase below carries its own **Ships in: vX.X** line so there's no ambiguit
 
 ---
 
+## P9b — Pagination → mobile-native list pattern
+
+**Ships in: v1.3**, alongside P1b (both already touch `DebtGroup.tsx`).
+
+**Current state (verified):** `components/Debts/DebtGroup.tsx` implements numbered click-pagination (`PAGE_SIZE = 10`, lines 43, 72-75, 130-162) — prev/next arrow buttons plus "Page X of Y" text. No swipe or scroll-based alternative exists. This is the only confirmed pagination instance in the app (the `RequiredExpenses` list doesn't paginate the same way — verify at implementation time whether it shares the same `pagination-compact` CSS class for any reason before assuming it's debt-list-only).
+
+**Implementation steps:**
+1. Replace the numbered page buttons with a single "Load More" control at the end of the visible list — tapping it reveals the next `PAGE_SIZE` items, appended rather than replacing the page (standard mobile list pattern, e.g. App Store/Mail).
+2. Evaluate true infinite scroll (auto-load on scroll-near-bottom) as an alternative if the "Load More" tap feels like an unnecessary extra step once built — decide based on feel, not in advance.
+3. Remove the "Page X of Y" text entirely — it's a desktop-table framing with no equivalent need once paging is replaced by progressive reveal.
+4. Confirm `DebtRow.tsx`'s existing swipe actions and the new load-more control don't visually compete for the same screen space at the bottom of the list.
+
+**Files touched:** `components/Debts/DebtGroup.tsx`, `app/styles/02-overdue-pagination-nav.css` (pagination styles replaced with load-more styling).
+
+**Testing:** Manual check with a debt list over `PAGE_SIZE` items — confirm Load More reveals the next batch correctly and no items are duplicated/dropped at the boundary. No regression test needed (pure UI/rendering change, no data mutation).
+
+**Risk:** Low-medium. The boundary logic (which items are visible after N taps of "Load More") needs care to avoid off-by-one errors, but this is presentation-layer only — no debt data or math is touched.
+
+---
+
 ## P4 — Empty-state illustrations
 
 **Ships in: v1.4**, alongside the onboarding flow.
@@ -117,6 +156,25 @@ Every phase below carries its own **Ships in: vX.X** line so there's no ambiguit
 **Testing:** Visual check per empty state, both themes. No logic risk — purely additive markup.
 
 **Risk:** Low. Sequenced after P1a/P1b to avoid rework; otherwise isolated and additive.
+
+---
+
+## P9c — Hover-only feedback audit
+
+**Ships in: v1.4**, alongside P4.
+
+**Current state (verified):** 15+ `:hover`-only rules exist with no touch equivalent: `app/styles/00-theme-and-base.css` (lines 385, 401-405, 491, 646, 651 — primary/secondary buttons, saved-item rows, collapsible headers), `app/styles/03-nav-results-modals.css` (lines 201, 716 — action pills, section-collapse buttons), `app/styles/09-anim-swipe-media-misc.css` (line 369 — saved-item lift effect). None of these ever fire on a touch device, so any feedback or affordance conveyed only through them is currently invisible to every mobile user.
+
+**Implementation steps:**
+1. Grep every `:hover` rule across `app/styles/*.css` and classify each as: (a) purely decorative (fine to leave hover-only, degrades gracefully to "nothing happens," no information lost) vs. (b) conveys real feedback a touch user needs (background change confirming tap registered, elevation indicating interactivity).
+2. For category (b), add an equivalent `:active` rule (or extend an existing one) using the touch-active visual language already established by P1a/P1b's icon work — don't invent a third visual treatment for "pressed" state.
+3. Leave category (a) as-is — desktop/trackpad users still benefit, and removing them serves no mobile purpose.
+
+**Files touched:** `app/styles/00-theme-and-base.css`, `app/styles/03-nav-results-modals.css`, `app/styles/09-anim-swipe-media-misc.css` — likely others once the full grep is run.
+
+**Testing:** Manual check on an actual touch device/simulator (not a mouse-equipped browser, which would still trigger `:hover` and mask the gap) — tap every button/row/pill category and confirm visible feedback appears.
+
+**Risk:** Low-medium. Mechanical CSS additions, but requires touch-device testing specifically — testing in a desktop browser with a mouse won't reveal whether the fix actually worked, since the mouse will trigger the very `:hover` rules being audited.
 
 ---
 
@@ -188,3 +246,6 @@ Every phase below carries its own **Ships in: vX.X** line so there's no ambiguit
 2. **P4 (v1.4) depends on P1a+P1b being fully done (v1.2+v1.3)** — don't start empty-state illustrations before the icon system is complete, or you'll redo the visual language twice.
 3. **P6's "only animate new items" requirement is the one real correctness risk in this whole plan** — get the keyed-animation-on-mount pattern right, or list re-renders will look worse than today's instant-appear baseline.
 4. **None of P1-P6 require new dependencies except P1a's icon library** (introduced once in v1.2, reused unchanged in P1b/v1.3) — keep it that way; this app's small dependency footprint is a deliberate strength, don't reach for an animation library for what CSS keyframes already handle.
+5. **P9c (v1.4) should reuse P1a/P1b's touch-active visual language rather than inventing a new "pressed" treatment** — same rationale as P4 depending on P1, just applied to interaction states instead of iconography.
+6. **P9c specifically requires touch-device testing, not desktop-browser-with-mouse testing** — a mouse will still trigger the `:hover` rules being audited, which would mask whether the fix actually worked. This is the one phase in the whole plan where the standard "check in a browser" verification habit doesn't suffice on its own.
+7. **P9b (v1.3) and P1b both touch `DebtGroup.tsx`** — do them in the same pass within that version rather than two separate visits to the file.
