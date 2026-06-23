@@ -119,18 +119,21 @@ Full regression suite with 11 test suites covering allocation math, timeline acc
 
 ## What's New — Version 1.2 (App Store Release Notes, ~500 chars)
 
-**App Lock, Smart Reminders, and Polish**
+**App Lock, Smart Reminders, Demo Mode, and a Visual Refresh**
 
-This release adds App Lock — secure the app with Face ID, Touch ID, or your device passcode, free for everyone. Premium subscribers also get local reminders: a paycheck-eve nudge to run your plan, and a heads-up before bills come due.
+This release adds App Lock — secure the app with Face ID, Touch ID, or your device passcode, free for everyone, off by default. Premium subscribers also get local reminders: a paycheck-eve nudge and a heads-up before bills come due.
 
-Also new: a prompt to leave a review after a few pay cycles, plus under-the-hood fixes and test coverage improvements.
+New "Try with Sample Data" lets you explore the full app before entering your own numbers. Also new: a refreshed icon system, haptic feedback throughout, and easier subscription management.
 
 ---
 
 ## What's New — Version 1.2 (Longer version for release notes / blog)
 
 ### App Lock
-Secure Paycheck Debt Planner with Face ID, Touch ID, or your device passcode — free for everyone, no subscription required. Turn it on or off anytime in Plan Settings; new installs have it on by default. Authentication happens entirely through Apple's on-device system: we never receive, store, or have access to your biometric data, only a yes/no confirmation that you unlocked successfully.
+Secure Paycheck Debt Planner with Face ID, Touch ID, or your device passcode — free for everyone, no subscription required. A toggle in Plan Settings, off by default — turn it on whenever you're ready. Authentication happens entirely through Apple's on-device system: we never receive, store, or have access to your biometric data, only a yes/no confirmation that you unlocked successfully.
+
+### Try with Sample Data
+New users can explore the full app populated with realistic sample bills, debts, and goals before entering their own numbers. A persistent "Demo Mode" indicator makes it clear you're viewing sample data, with a one-tap "Start My Own Plan" action to clear it and begin fresh. Sample data never affects your real subscription status — the upgrade flow works exactly as it would with your own numbers.
 
 ### Local Notifications (Premium)
 Two reminders, both opt-in: a paycheck-eve nudge the evening before your next payday, and a heads-up a couple of days before your earliest unpaid bill is due. Notifications reschedule automatically whenever you recalculate your plan or roll over to the next pay cycle.
@@ -138,5 +141,11 @@ Two reminders, both opt-in: a paycheck-eve nudge the evening before your next pa
 ### App Store Review Prompt
 After a few completed pay cycles, you may see Apple's native prompt asking if you'd like to leave a review. It only asks once, and whether (or how) it appears is entirely controlled by Apple.
 
+### Visual Refresh
+Replaced emoji-based icons throughout the bottom navigation, settings, and section switchers with a consistent icon set. Redesigned the Notifications and App Lock toggles as proper sliding switches. Added haptic feedback across tab switches, primary buttons, and previously-silent interactions.
+
+### Easier Subscription Management
+Added direct links to manage your subscription and view Terms of Use, alongside the existing Privacy Policy and Support links — both in Plan Settings and on the upgrade screen.
+
 ### Engine & Reliability
-Fixed a forecast display bug where the "recovery month" was calculated but never shown to users. Closed a gap in premium feature-gating logic. Rewrote several regression tests that had been silently failing against outdated assumptions, and expanded end-to-end test coverage across the core paycheck flow.
+Fixed a forecast display bug where the "recovery month" was calculated but never shown to users. Closed a gap in premium feature-gating logic. Fixed App Lock defaulting to enabled for new installs. Rewrote several regression tests that had been silently failing against outdated assumptions, and expanded end-to-end test coverage across the core paycheck flow and the new demo-mode path.
