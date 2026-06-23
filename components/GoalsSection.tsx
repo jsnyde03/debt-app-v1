@@ -134,6 +134,7 @@ export function GoalsSection({
                             type="button"
                             className="text-action-button danger-action"
                             onClick={() => {
+                                triggerMediumHaptic();
                                 onRemoveGoal(goal.id);
                                 cancelEditing();
                             }}
@@ -145,7 +146,10 @@ export function GoalsSection({
                             <button
                                 type="button"
                                 className="secondary-button"
-                                onClick={cancelEditing}
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    cancelEditing();
+                                }}
                             >
                                 Cancel
                             </button>
@@ -153,7 +157,10 @@ export function GoalsSection({
                             <button
                                 type="button"
                                 className="add-button debt-save-button"
-                                onClick={() => saveEditing(goal.id)}
+                                onClick={() => {
+                                    triggerMediumHaptic();
+                                    saveEditing(goal.id);
+                                }}
                             >
                                 Save
                             </button>
@@ -164,7 +171,12 @@ export function GoalsSection({
         }
 
         return (
-            <button key={goal.id} type="button" className="saved-item saved-item-button goal-list-item" onClick={() => startEditing(goal)}>
+            <button
+                key={goal.id}
+                type="button"
+                className="saved-item saved-item-button goal-list-item"
+                onClick={() => startEditing(goal)}
+            >
                 <div className="saved-item-left goal-card-content">
                     <div className="goal-title-row">
                         <span className="goal-type-icon">{goalIcon}</span>
@@ -278,7 +290,10 @@ export function GoalsSection({
                         type="button"
                         className="text-action-button"
                         disabled={goalPage <= 1}
-                        onClick={() => setGoalPage((current) => Math.max(1, current - 1))}
+                        onClick={() => {
+                            triggerLightHaptic();
+                            setGoalPage((current) => Math.max(1, current - 1));
+                        }}
                     >
                         ‹
                     </button>
@@ -291,7 +306,10 @@ export function GoalsSection({
                         type="button"
                         className="text-action-button"
                         disabled={goalPage >= totalPages}
-                        onClick={() => setGoalPage((current) => Math.min(totalPages, current + 1))}
+                        onClick={() => {
+                            triggerLightHaptic();
+                            setGoalPage((current) => Math.min(totalPages, current + 1));
+                        }}
                     >
                         ›
                     </button>

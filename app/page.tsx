@@ -1369,7 +1369,10 @@ export default function Home() {
                                     ? "mobile-section-switcher-button active"
                                     : "mobile-section-switcher-button"
                             }
-                            onClick={() => setBillsView("expenses")}
+                            onClick={() => {
+                                triggerLightHaptic();
+                                setBillsView("expenses");
+                            }}
                         >
                             <Wallet size={18} aria-hidden="true" />
                             Expenses
@@ -1382,7 +1385,10 @@ export default function Home() {
                                     ? "mobile-section-switcher-button active"
                                     : "mobile-section-switcher-button"
                             }
-                            onClick={() => setBillsView("debts")}
+                            onClick={() => {
+                                triggerLightHaptic();
+                                setBillsView("debts");
+                            }}
                         >
                             <CreditCard size={18} aria-hidden="true" />
                             Debts
@@ -1573,7 +1579,10 @@ export default function Home() {
                                 <button
                                     type="button"
                                     className="text-action-button"
-                                    onClick={() => setShowPlanSettings(false)}
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        setShowPlanSettings(false);
+                                    }}
                                 >
                                     Close
                                 </button>

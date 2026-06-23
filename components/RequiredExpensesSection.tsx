@@ -262,6 +262,7 @@ export function RequiredExpensesSection({
                             type="button"
                             className="text-action-button danger-action"
                             onClick={() => {
+                                triggerMediumHaptic();
                                 onRemoveExpense(expense.id);
                                 cancelEditing();
                             }}
@@ -417,7 +418,10 @@ export function RequiredExpensesSection({
                             type="button"
                             className="text-action-button"
                             disabled={expensePage <= 1}
-                            onClick={() => setExpensePage((current) => Math.max(1, current - 1))}
+                            onClick={() => {
+                                triggerLightHaptic();
+                                setExpensePage((current) => Math.max(1, current - 1));
+                            }}
                         >
                             ‹
                         </button>
@@ -430,7 +434,10 @@ export function RequiredExpensesSection({
                             type="button"
                             className="text-action-button"
                             disabled={expensePage >= totalPages}
-                            onClick={() => setExpensePage((current) => Math.min(totalPages, current + 1))}
+                            onClick={() => {
+                                triggerLightHaptic();
+                                setExpensePage((current) => Math.min(totalPages, current + 1));
+                            }}
                         >
                             ›
                         </button>
