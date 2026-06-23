@@ -17,11 +17,11 @@ function loadStoredState<T>(key: string, fallback: T): T {
 
 export function useAppLock() {
     const [appLockEnabled, setAppLockEnabledState] = useState(() =>
-        loadStoredState("debtPlanner.appLockEnabled", true)
+        loadStoredState("debtPlanner.appLockEnabled", false)
     );
 
     const [isUnlocked, setIsUnlocked] = useState(
-        () => !loadStoredState("debtPlanner.appLockEnabled", true)
+        () => !loadStoredState("debtPlanner.appLockEnabled", false)
     );
 
     useEffect(() => {
