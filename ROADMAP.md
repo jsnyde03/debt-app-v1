@@ -128,11 +128,12 @@ This is the brainstorm with nothing filtered out. Items already slotted into the
 **Platform & accessibility**
 - [v1.3, done] iPad layout
 - [v1.12] Android build
-- [v1.12] Accessibility audit (VoiceOver/TalkBack)
+- [v1.12] Accessibility audit (VoiceOver/TalkBack, Dynamic Type, `prefers-reduced-motion`)
 - Backlog: localization / multi-currency (currently USD-only, hardcoded `$`)
 - Backlog: Web/PWA desktop companion
 
 **Monetization & growth infra**
+- [v1.2] Manage Subscription + Terms of Use links — verified gap, currently zero entry points for either; closing preemptively given the App Review history
 - [v1.9] 3-tier subscription infrastructure (`hasFeatureAccess()` is free/premium-only today)
 - [v1.11] Product analytics (Amplitude/PostHog) + crash reporting (Sentry) — currently zero instrumentation
 - Backlog: free trial flow, promo codes, Family Sharing support

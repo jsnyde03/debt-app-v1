@@ -29,7 +29,7 @@ A survey of the current codebase found a mixed picture — some areas are alread
 **Desktop-ported patterns — verified via codebase audit, these feel like a responsive desktop layout rather than mobile-first design:**
 - **Numbered click-pagination** in the debt list (`components/Debts/DebtGroup.tsx:43,72-75,130-162` — `PAGE_SIZE = 10`, prev/next arrow buttons + "Page X of Y" text). This is a desktop-table pattern; nothing on a phone-sized list of bills/debts should require clicking a page number.
 - **Pervasive `:hover`-only feedback** — 15+ `:hover` rules across `app/styles/00-theme-and-base.css` (lines 385, 401-405, 491, 646, 651), `app/styles/03-nav-results-modals.css` (lines 201, 716), `app/styles/09-anim-swipe-media-misc.css` (line 369) on buttons, list rows, action pills, and collapse controls. None of these ever fire on a touch device — any information or affordance conveyed *only* via hover is invisible to every mobile user, every time.
-- **4-column grid crammed onto phone width** — the Plan tab's execution summary strip (`components/ResultsSection.tsx:869-897`, grid CSS in `app/styles/03-nav-results-modals.css:665`) is `repeat(4, minmax(0, 1fr))`. A breakpoint at 768px collapses it to 2 columns, but real phone widths (375-428px) are well under that threshold and the current cascade still leaves text wrapping tightly in 4 cramped columns rather than reliably getting the 2-column treatment.
+- ~~4-column grid crammed onto phone width~~ — **verified non-issue (v1.2).** The Plan tab's execution summary strip uses `repeat(4, minmax(0, 1fr))` at base, but the existing `@media (max-width: 768px)` breakpoint correctly collapses it to 2 columns and nothing downstream overrides that. Confirmed via Playwright at a 390px viewport: computed `grid-template-columns` was `139px 139px`, rendering cleanly with no cramping. This item in the original audit was a misdiagnosis — no fix was needed.
 - **Tap targets below Apple's 44×44pt HIG minimum** — `.smart-insight-icon` (`app/styles/01-payoff-goals.css:119-120`, 34×34) and the pagination buttons themselves (`.pagination-compact .text-action-button`, `app/styles/02-overdue-pagination-nav.css:206`, 32×32).
 - **Enter-to-submit with no mobile affordance** — `components/PaycheckSection.tsx:61-65` listens for a literal Enter keydown to submit, with no `enterKeyHint` set on the underlying input, so the virtual keyboard shows a generic "return" key instead of a "Go"/"Done" key that would make the shortcut discoverable on a touch keyboard.
 
@@ -58,11 +58,11 @@ The desktop-pattern fixes (P9a-c) slot in alongside the work already happening e
 
 ## 3. Phase details (what "done" looks like)
 
-### P1a — Icon system foundation (v1.2)
-Stand up the icon library/wrapper module and replace icons in the chrome a user sees every session: bottom nav, primary buttons, settings sheet, App Lock screen. Target for this slice: those surfaces have zero emoji/Unicode UI glyphs left.
+### P1a — Icon system foundation (v1.2) — done
+Stood up `lib/icons/index.ts` (lucide-react) and replaced icons in the chrome used every session: bottom nav, theme toggle, settings gear, section switcher, App Lock screen.
 
-### P2 — Haptic coverage completion (v1.2)
-Audit every `onClick`/`onTouchEnd` handler app-wide. Add light haptic to: tab switches, primary button taps, list-item taps that open a detail/edit view. Keep medium/success haptics reserved for commit-level actions (already correct today — don't widen that). Goal: a user should be able to predict "did that work?" from feel alone on every interactive surface, not just swipes.
+### P2 — Haptic coverage completion (v1.2) — done
+Audited every `onClick` handler across `app/page.tsx`, `PaycheckSection.tsx`, `GoalsSection.tsx`, `DebtsSection.tsx`, `RequiredExpensesSection.tsx`, and `LivingExpensesSection.tsx`. Added light haptic to tab switches, the Bills section switcher, and previously-uncovered close/cancel/pagination buttons; added medium haptic to "Calculate plan," "Start Next Pay Cycle," "Add Goal," and "Remove" actions. Several handlers (`startEditing`, `saveEditing`, `handleAddDebt`, etc.) already had haptics built in — those were left untouched to avoid double-firing.
 
 ### P1b — Icon system completion (v1.3)
 Finish the migration: modals (Add Debt/Add Expense), debt/expense rows, swipe actions, goals. Target: zero `aria-label`-less icon-only buttons remain anywhere in the app, and every icon shares stroke weight/scale.
@@ -85,8 +85,8 @@ Only build this once there's a concrete need signal (real user with a large list
 ### P8 — Modal transition audit (backlog, unscheduled)
 Survey every modal/sheet in the app and classify each as "should be a bottom sheet" vs. "should be a centered modal" per iOS HIG conventions, then make the transition style match the classification consistently (today's `.settings-overlay` pattern is reused for several different modal *kinds* with one transition style).
 
-### P9a — Tap targets, grid breakpoint, keyboard hints (v1.2)
-Bump `.smart-insight-icon` and the pagination buttons to a 44×44pt minimum hit area (visual size can stay smaller via padding if 44px looks oversized — the *tappable* area is what matters). Fix the execution-summary grid's breakpoint so real phone widths reliably get 2 columns, not a cramped 4. Add `enterKeyHint="done"` (or `"go"`, whichever reads better) to the paycheck amount input so the virtual keyboard surfaces the existing Enter-to-submit behavior as a visible, tappable key instead of a hidden shortcut.
+### P9a — Tap targets, grid breakpoint, keyboard hints (v1.2) — done
+Bumped `.smart-insight-icon` and the pagination buttons to a 44×44pt minimum hit area. Added `enterKeyHint="done"` to the paycheck amount input. The execution-summary grid breakpoint was investigated and verified already correct — no fix needed (see §1 above).
 
 ### P9b — Pagination → mobile-native list pattern (v1.3)
 Replace `DebtGroup.tsx`'s numbered click-pagination with a mobile-standard pattern — most likely a "Load More" tap target at the list's end, or true infinite scroll if the gesture/scroll-listener cost is low; either removes the "Page X of Y" desktop-table framing entirely. Land alongside P1b since both already touch this file.
@@ -99,3 +99,5 @@ Every `:hover`-only rule across the CSS (buttons, list rows, action pills, colla
 - Any new feature, data model change, or tier gating — that's `ROADMAP.md`'s job.
 - Android-specific polish — covered under v1.12 in `ROADMAP.md` once the Android build exists; revisit this document's icon/haptic/motion work for Android parity at that point, don't duplicate effort now.
 - Accessibility audit — that's its own explicit roadmap item (v1.12 in `ROADMAP.md`); some of this work (icon `aria-label`s in P1, color-not-as-only-signal in empty states P4) overlaps and should be done with that audit in mind, but a full audit is a separate effort.
+
+**One standing rule that isn't its own phase:** starting with P3 (v1.3, the first phase to add real motion), every new animation must ship with a `prefers-reduced-motion` fallback — verified zero such media queries exist anywhere in the CSS today. This was folded into P3 and P6's implementation steps directly rather than getting its own phase number, but it applies to any future motion work too, not just those two.
