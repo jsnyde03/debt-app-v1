@@ -2,28 +2,46 @@
 
 _Companion to `MOBILE_POLISH_ROADMAP.md`, which defines the **what/why/sequencing**. This document defines the **how**: files touched, concrete steps, and verification per phase. Last updated 2026-06-23._
 
+## Version assignment at a glance
+
+| Version | Phases shipping | What lands |
+|---|---|---|
+| **v1.2** | P1a, P2 | Icon foundation + nav/buttons/settings/lock screen icons; full haptic coverage |
+| **v1.3** | P1b, P3 | Remaining icons (modals/rows/swipe actions/goals); tab-switch transitions |
+| **v1.4** | P4 | Empty-state illustrations |
+| **v1.5** | P5 | Context-aware skeleton loading |
+| **v1.6** | P6 | Micro-interaction pass + milestone celebration motion |
+| **Backlog, pre-v2.0** | P7 | List virtualization (trigger-based, not scheduled to a version) |
+| **Backlog, unscheduled** | P8 | Modal transition audit |
+
+Every phase below carries its own **Ships in: vX.X** line so there's no ambiguity about where a given piece of work lands. None of this changes the size classification of the version it rides alongside in `ROADMAP.md` — each phase is scoped small enough to fit beside that version's existing feature work, not to replace or expand it.
+
 ---
 
-## P1 — Icon system migration
+## P1a — Icon system foundation
+
+**Ships in: v1.2**, alongside notifications/App Store review/App Lock.
 
 **Current state (verified):** Every icon in the app is an emoji or Unicode glyph, inline in JSX (e.g. `components/GoalsSection.tsx`, `components/DebtRow.tsx`, `components/AppLockScreen.tsx`). No icon library is installed.
 
 **Implementation steps:**
 1. Pick a small, tree-shakeable SVG icon set — `lucide-react` is the recommended default (consistent 24x24 stroke-based icons, actively maintained, no large bundle cost since it's per-icon imports). Evaluate at implementation time but don't over-deliberate; this app already keeps its dependency footprint deliberately small, and lucide is a single well-scoped addition.
 2. New `lib/icons/index.ts` — re-export the small subset of icons actually used (lock, shield, target, check, chevron-down/up/right, arrow-up/down, settings/gear, plus/add, etc.), so call sites import from one internal module rather than directly from the library. This keeps a future icon-library swap to one file.
-3. Grep every component for emoji/Unicode glyphs used as UI icons (not celebratory/decorative emoji in copy — e.g. the 🎉 in `CompletionStep.tsx` stays, that's content, not a UI control). Replace icon-only buttons' glyphs with the matching SVG icon component.
-4. Every icon-only button gets an explicit `aria-label` if it doesn't already have one — this phase is a natural place to close that gap since you're touching every one anyway (gets ahead of v1.12's accessibility audit in `ROADMAP.md`, doesn't replace it).
-5. Size/stroke consistency: standardize on one icon size per context (e.g. 18px inline, 24px standalone button) via a CSS class or the icon component's `size` prop — don't let call sites pick arbitrary sizes.
+3. Replace icons in this version's scope only: bottom nav (`app/page.tsx`), primary buttons app-wide (`.primary-button`/`.secondary-button` icon usage), the settings sheet, and `AppLockScreen.tsx` (🔒/🛡️). Leave modals, debt/expense rows, swipe actions, and goals for P1b (v1.3) — don't scope-creep into those files this version.
+4. Every icon-only button touched in this slice gets an explicit `aria-label` if it doesn't already have one (gets ahead of v1.12's accessibility audit in `ROADMAP.md`, doesn't replace it).
+5. Size/stroke consistency: standardize on one icon size per context (e.g. 18px inline, 24px standalone button) via a CSS class or the icon component's `size` prop — don't let call sites pick arbitrary sizes. This convention, once set here, carries forward unchanged into P1b.
 
-**Files touched:** new `lib/icons/index.ts`; every component currently using emoji as a UI glyph — expect this to touch most files under `components/` (`DebtRow.tsx`, `DebtGroup.tsx`, `ExpenseListItem.tsx`, `GoalsSection.tsx`, `AppLockScreen.tsx`, `SwipeActionCard.tsx`, bottom nav in `app/page.tsx`, settings sheet rows, etc.) — this is the widest-reaching phase in the whole polish plan, do it first while the codebase is smallest.
+**Files touched:** new `lib/icons/index.ts`; `app/page.tsx` (bottom nav, settings sheet), `AppLockScreen.tsx`, shared button styles/components.
 
-**Testing:** Visual regression via Playwright screenshots — capture every tab + the settings sheet + onboarding (if v1.4 has landed) before and after, diff manually (no automated visual-diff tooling exists yet; same manual-screenshot-review pattern already used for the component-split refactor and onboarding work this session). `npm run lint` will catch unused emoji-string leftovers if any component still imports them.
+**Testing:** Visual regression via Playwright screenshots — capture every tab + the settings sheet + lock screen before and after, diff manually (no automated visual-diff tooling exists yet; same manual-screenshot-review pattern already used for the component-split refactor and onboarding work this session). `npm run lint` will catch unused emoji-string leftovers if any component still imports them.
 
-**Risk:** Medium — wide surface area (many files touched), but each individual change is mechanical (swap a glyph for a component) and low-logic-risk. The risk is missing a spot, not breaking behavior. Do it file-by-file with a visual check per file, not as one giant find-replace.
+**Risk:** Low-medium — scoped to a handful of files this version, each change mechanical (swap a glyph for a component) and low-logic-risk. The risk is missing a spot, not breaking behavior.
 
 ---
 
 ## P2 — Haptic coverage completion
+
+**Ships in: v1.2**, alongside P1a.
 
 **Current state (verified):** `lib/mobile/haptics.ts` exposes light/medium/success haptic triggers. Used in ~40 call sites today, concentrated in `SwipeActionCard.tsx`, `PullToRefresh.tsx`, and form-toggle handlers in `app/page.tsx`/`DebtGroup.tsx`/`DebtRow.tsx`/`DebtsSection.tsx`. Ordinary buttons and tab switches currently have no haptic feedback.
 
@@ -41,7 +59,30 @@ _Companion to `MOBILE_POLISH_ROADMAP.md`, which defines the **what/why/sequencin
 
 ---
 
+## P1b — Icon system completion
+
+**Ships in: v1.3**, alongside iPad support.
+
+**Current state (verified):** Same icon inventory as P1a's "Current state," minus whatever P1a already converted. By the time this phase starts, the icon library (`lib/icons/index.ts`) and sizing convention from P1a already exist — this phase only extends usage, it doesn't re-decide the system.
+
+**Implementation steps:**
+1. Replace remaining emoji/Unicode UI glyphs in: `AddDebtModal.tsx`, `AddExpenseModal.tsx`, `DebtRow.tsx`, `DebtGroup.tsx`, `ExpenseListItem.tsx`, `GoalsSection.tsx`, `SwipeActionCard.tsx`, and any sort/filter chevrons (↑↓) still remaining in list headers.
+2. Do not touch celebratory/decorative emoji used as content (e.g. the 🎉 in `CompletionStep.tsx` once v1.4 onboarding lands, or milestone celebration copy later) — only UI-control glyphs are in scope, same rule as P1a.
+3. `aria-label` pass on every icon-only button touched in this slice, same as P1a.
+4. Since v1.3 is already touching layout broadly for iPad (per `IMPLEMENTATION_PLAN.md`'s v1.3 section), do a quick check that icon sizing holds up at the iPad two-column breakpoint — no separate icon sizing system for iPad, just confirm the existing convention scales acceptably.
+5. After this phase, zero emoji/Unicode UI glyphs should remain anywhere in the app — confirm with a final grep pass before calling P1 (both halves) done.
+
+**Files touched:** `AddDebtModal.tsx`, `AddExpenseModal.tsx`, `DebtRow.tsx`, `DebtGroup.tsx`, `ExpenseListItem.tsx`, `GoalsSection.tsx`, `SwipeActionCard.tsx`.
+
+**Testing:** Same visual-regression-via-screenshot approach as P1a, covering the modals/rows/swipe actions specifically. Final grep for emoji/Unicode glyph patterns across `components/` as a completion check.
+
+**Risk:** Low-medium, same profile as P1a — mechanical swaps, risk is missing a spot rather than breaking behavior.
+
+---
+
 ## P3 — Tab-switch transitions
+
+**Ships in: v1.3**, alongside P1b.
 
 **Current state (verified):** Bottom-nav tab switching in `app/page.tsx` swaps `activeTab` state with zero transition — the new tab's content appears instantly. Existing motion in the app uses `cubic-bezier(0.2, 0.9, 0.2, 1)` for swipe responsiveness and a separate `cubic-bezier(0.2, 0.8, 0.2, 1)` for button/list-item transforms, both in `app/styles/09-anim-swipe-media-misc.css`.
 
@@ -61,10 +102,12 @@ _Companion to `MOBILE_POLISH_ROADMAP.md`, which defines the **what/why/sequencin
 
 ## P4 — Empty-state illustrations
 
+**Ships in: v1.4**, alongside the onboarding flow.
+
 **Current state (verified):** Empty states for debts/expenses/goals are text-only — bold heading + one descriptive sentence inside a styled background card (`.empty-debt-state` and equivalents in `app/styles/00-theme-and-base.css:441-450`, dark-mode variant in `app/styles/08-dark-theme-polish.css:491-496`).
 
 **Implementation steps:**
-1. Depends on P1 landing first (reuses the same icon/illustration visual language) — sequence accordingly.
+1. Depends on P1a+P1b landing first (v1.2/v1.3, reuses the same icon/illustration visual language) — sequence accordingly.
 2. Three small inline SVG illustrations (or large single-icon-as-illustration treatments, simpler than full custom art — evaluate effort vs. payoff at implementation time, a oversized line-icon in a circle is a legitimate "illustration" for this scope) for: no debts, no expenses, no goals.
 3. Add the illustration above the existing heading/text in each empty-state render location — likely within `DebtsSection.tsx`/`DebtGroup.tsx`, `RequiredExpensesSection.tsx`/its split children, `GoalsSection.tsx`.
 4. No copy changes needed — existing text stays, this is additive visual anchoring only.
@@ -73,11 +116,13 @@ _Companion to `MOBILE_POLISH_ROADMAP.md`, which defines the **what/why/sequencin
 
 **Testing:** Visual check per empty state, both themes. No logic risk — purely additive markup.
 
-**Risk:** Low. Sequenced after P1 to avoid rework; otherwise isolated and additive.
+**Risk:** Low. Sequenced after P1a/P1b to avoid rework; otherwise isolated and additive.
 
 ---
 
 ## P5 — Context-aware skeleton loading
+
+**Ships in: v1.5**, alongside Pay Cycle History.
 
 **Current state (verified):** `components/AppSkeleton.tsx` renders one generic shimmer pattern (placeholder cards + nav items) regardless of what's actually loading, using the `skeletonShimmer` keyframe in `app/styles/09-anim-swipe-media-misc.css:535-542`.
 
@@ -94,6 +139,8 @@ _Companion to `MOBILE_POLISH_ROADMAP.md`, which defines the **what/why/sequencin
 ---
 
 ## P6 — Micro-interaction pass
+
+**Ships in: v1.6**, alongside Debt Milestones + Amortization Calendar + streaks.
 
 **Current state (verified):** `:active` scale transforms (`scale(0.965-0.992)`) exist on buttons already. `planSectionReveal`/`planItemReveal` keyframes exist for list entrance animation but are confirmed only on the Plan tab — not verified elsewhere lists grow (e.g. adding a new debt/expense/goal).
 
@@ -112,11 +159,13 @@ _Companion to `MOBILE_POLISH_ROADMAP.md`, which defines the **what/why/sequencin
 
 ## P7 — List virtualization
 
-**Not scheduled.** No implementation plan written yet — revisit only once there's a concrete trigger (real user report of lag with a large list, or a profiling result). If/when triggered: `react-window` or `@tanstack/react-virtual` are the standard low-dependency-footprint options; evaluate at that time rather than pre-selecting now.
+**Ships in: backlog, pre-v2.0 — not yet scheduled to a specific version.** No implementation plan written yet — revisit only once there's a concrete trigger (real user report of lag with a large list, or a profiling result). If/when triggered: `react-window` or `@tanstack/react-virtual` are the standard low-dependency-footprint options; evaluate at that time rather than pre-selecting now.
 
 ---
 
 ## P8 — Modal transition audit
+
+**Ships in: backlog, unscheduled.**
 
 **Current state (verified):** `.settings-overlay` pattern (and its `modalUp`/`slideUpSheet`/`centerModalIn` keyframes, already present in `app/styles/09-anim-swipe-media-misc.css`) is reused across several different modal *kinds* — plan settings, add-debt/add-expense modals, onboarding (once v1.4 lands), upgrade paywall — with inconsistent application of which keyframe each uses.
 
@@ -135,7 +184,7 @@ _Companion to `MOBILE_POLISH_ROADMAP.md`, which defines the **what/why/sequencin
 
 ## Summary: sequencing risks to watch
 
-1. **P1 (icons) touches the most files of any phase** — do it first while the codebase is smallest, and do it incrementally (file-by-file with a visual check), not as one sweeping change.
-2. **P4 depends on P1** — don't start empty-state illustrations before the icon system exists, or you'll redo the visual language twice.
+1. **P1 (icons) touches the most files of any phase, which is why it's split across v1.2 (P1a) and v1.3 (P1b)** rather than bundled into one version — do it incrementally (file-by-file with a visual check) within each slice, not as one sweeping change.
+2. **P4 (v1.4) depends on P1a+P1b being fully done (v1.2+v1.3)** — don't start empty-state illustrations before the icon system is complete, or you'll redo the visual language twice.
 3. **P6's "only animate new items" requirement is the one real correctness risk in this whole plan** — get the keyed-animation-on-mount pattern right, or list re-renders will look worse than today's instant-appear baseline.
-4. **None of P1-P6 require new dependencies except P1's icon library** — keep it that way; this app's small dependency footprint is a deliberate strength, don't reach for an animation library for what CSS keyframes already handle.
+4. **None of P1-P6 require new dependencies except P1a's icon library** (introduced once in v1.2, reused unchanged in P1b/v1.3) — keep it that way; this app's small dependency footprint is a deliberate strength, don't reach for an animation library for what CSS keyframes already handle.

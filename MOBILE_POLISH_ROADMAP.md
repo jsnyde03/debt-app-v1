@@ -28,43 +28,49 @@ A survey of the current codebase found a mixed picture — some areas are alread
 
 ## 2. Sequencing — fold into existing version slots
 
-| Phase | Pairs with | Focus | Size |
+| Phase | Ships in | Focus | Size |
 |---|---|---|---|
-| P1 | v1.2 | Icon system migration (emoji → SVG icon set) | Medium |
-| P2 | v1.2/v1.3 | Haptic coverage audit + completion | Small |
-| P3 | v1.3 | Tab-switch transitions + iPad-aware motion | Small |
-| P4 | v1.4 | Empty-state illustrations (pairs naturally with onboarding's new visual language) | Small-Medium |
-| P5 | v1.5 | Context-aware skeleton loading | Small |
-| P6 | v1.6 | Micro-interaction pass (button press states, list-item entrance, milestone celebration motion — pairs with v1.6's milestones feature) | Small |
-| P7 | Backlog, pre-v2.0 | List virtualization for large debt/expense lists | Small |
-| P8 | Backlog | Custom modal transitions per context (sheet vs. centered, matching iOS HIG) | Medium |
+| P1a | **v1.2** | Icon system foundation + highest-visibility chrome (bottom nav, primary buttons, settings sheet, App Lock screen) | Small-Medium |
+| P2 | **v1.2** | Haptic coverage audit + completion | Small |
+| P1b | **v1.3** | Icon system completion (modals, debt/expense rows, swipe actions, goals) | Small-Medium |
+| P3 | **v1.3** | Tab-switch transitions + iPad-aware motion | Small |
+| P4 | **v1.4** | Empty-state illustrations (pairs naturally with onboarding's new visual language) | Small-Medium |
+| P5 | **v1.5** | Context-aware skeleton loading | Small |
+| P6 | **v1.6** | Micro-interaction pass (button press states, list-item entrance, milestone celebration motion — pairs with v1.6's milestones feature) | Small |
+| P7 | **Backlog, pre-v2.0** | List virtualization for large debt/expense lists | Small |
+| P8 | **Backlog, unscheduled** | Custom modal transitions per context (sheet vs. centered, matching iOS HIG) | Medium |
 
-**Why this order:** Icons (P1) are the highest-visibility fix and touch the most surface area, so they go first while the codebase is still small. Haptics (P2) and tab transitions (P3) are cheap, isolated, and compound with each other — once both exist, the app's general "responsiveness" jumps noticeably for low effort. Empty states (P4) are timed to land with onboarding (v1.4) since onboarding is already introducing new first-run visual language — reuse that work rather than doing empty-state illustration twice. P5-P6 are timed to pair with features that naturally need them (history view, milestones). P7-P8 are real but not urgent — backlog until there's a concrete trigger (a user with 50+ debts, or a specific HIG-compliance push).
+Every phase above is sized to ride alongside that version's existing feature scope without changing its size classification in `ROADMAP.md` — none of these are large enough on their own to justify inserting a new version number into the existing v1.2-v3.1 sequence, which would force renumbering everything downstream.
+
+**Why this order:** Icons are the highest-visibility fix and touch the most surface area, so the work starts immediately (v1.2) rather than waiting — but it's split across two versions (P1a in v1.2, P1b in v1.3) since "replace every icon in the app" is too large to bundle into one version alongside that version's other scope without risking it becoming a "big bet," which this app's release philosophy explicitly avoids for v1.x. P1a covers the chrome a user sees in every session (nav, primary buttons, settings, lock screen); P1b mops up the rest (modals, rows, swipe actions) once v1.3's broader layout work is already touching many of those same files for iPad support — sequencing them together avoids touching the same components twice in adjacent versions. Haptics (P2) is small enough to finish entirely within v1.2 alongside P1a. Tab transitions (P3) lands in v1.3 alongside P1b for the same reason — both are quick, isolated, and compound with each other once both exist. Empty states (P4) are timed to land with onboarding (v1.4) since onboarding is already introducing new first-run visual language, and depends on P1 being fully complete (v1.3) so it can reuse that icon language rather than doing illustration twice. P5-P6 are timed to pair with features that naturally need them (history view, milestones). P7-P8 are real but not urgent — backlog until there's a concrete trigger (a user with 50+ debts, or a specific HIG-compliance push).
 
 ## 3. Phase details (what "done" looks like)
 
-### P1 — Icon system migration
-Replace every emoji/Unicode glyph used as a UI icon (not emoji used as actual content, like a celebration 🎉 in a completion message — that's fine) with a consistent SVG icon set. Target: zero `aria-label`-less icon-only buttons remain, and every icon shares stroke weight/scale.
+### P1a — Icon system foundation (v1.2)
+Stand up the icon library/wrapper module and replace icons in the chrome a user sees every session: bottom nav, primary buttons, settings sheet, App Lock screen. Target for this slice: those surfaces have zero emoji/Unicode UI glyphs left.
 
-### P2 — Haptic coverage completion
+### P2 — Haptic coverage completion (v1.2)
 Audit every `onClick`/`onTouchEnd` handler app-wide. Add light haptic to: tab switches, primary button taps, list-item taps that open a detail/edit view. Keep medium/success haptics reserved for commit-level actions (already correct today — don't widen that). Goal: a user should be able to predict "did that work?" from feel alone on every interactive surface, not just swipes.
 
-### P3 — Tab-switch transitions
+### P1b — Icon system completion (v1.3)
+Finish the migration: modals (Add Debt/Add Expense), debt/expense rows, swipe actions, goals. Target: zero `aria-label`-less icon-only buttons remain anywhere in the app, and every icon shares stroke weight/scale.
+
+### P3 — Tab-switch transitions (v1.3)
 Add a short (150-200ms) cross-fade or slide between bottom-nav tab changes, consistent with the existing `cubic-bezier(0.2, 0.9, 0.2, 1)` easing already used for swipe responsiveness elsewhere in the app — reuse that curve rather than inventing a second one. Verify it doesn't conflict with iPad's two-column layout (v1.3) before/while building this.
 
-### P4 — Empty-state illustrations
-Each of the three empty states (debts, expenses, goals) gets a small inline SVG illustration above the existing text, themed to match the icon system from P1. No new copy needed — the existing text is fine, it's the visual anchor that's missing.
+### P4 — Empty-state illustrations (v1.4)
+Each of the three empty states (debts, expenses, goals) gets a small inline SVG illustration above the existing text, themed to match the icon system from P1a/P1b. No new copy needed — the existing text is fine, it's the visual anchor that's missing.
 
-### P5 — Context-aware skeleton loading
+### P5 — Context-aware skeleton loading (v1.5)
 Replace the single generic shimmer with shapes that match what they're standing in for (a debt-row skeleton looks like a debt row, not a generic card).
 
-### P6 — Micro-interaction pass
+### P6 — Micro-interaction pass (v1.6)
 Button press states (the existing `:active` scale transforms are a good foundation — audit for consistency across all button variants), list-item entrance animation reuse (the existing `planItemReveal`/`planSectionReveal` keyframes are good — confirm they're applied everywhere a list grows, not just on the Plan tab), and milestone celebration motion timed with v1.6.
 
-### P7 — List virtualization
+### P7 — List virtualization (backlog, pre-v2.0)
 Only build this once there's a concrete need signal (real user with a large list, or a profiling result showing jank) — don't build ahead of evidence.
 
-### P8 — Modal transition audit
+### P8 — Modal transition audit (backlog, unscheduled)
 Survey every modal/sheet in the app and classify each as "should be a bottom sheet" vs. "should be a centered modal" per iOS HIG conventions, then make the transition style match the classification consistently (today's `.settings-overlay` pattern is reused for several different modal *kinds* with one transition style).
 
 ## 4. What's explicitly out of scope here
