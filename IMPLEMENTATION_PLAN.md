@@ -292,7 +292,7 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. Presentation-only relocation, no lo
 
 ---
 
-## v1.7 — Home Screen Widget + Custom App Icons
+## v1.7 — Home Screen Widget + Live Activities/Dynamic Island + Custom App Icons
 
 **Scope:** Native iOS features outside the Capacitor/JS layer entirely.
 
@@ -301,14 +301,21 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. Presentation-only relocation, no lo
    - An **App Group** (e.g., `group.com.jasonsnyder.debtplanner`) shared between the main app and the widget extension
    - The main app must write a small summary blob (days to next paycheck, total debt remaining, debt-free date) to the shared App Group container — likely via a tiny Capacitor plugin call or a `UserDefaults(suiteName:)` write triggered from JS on each relevant state change (paycheck date change, debt balance change)
    - Widget reads that shared blob on its own refresh timeline (WidgetKit manages refresh, app doesn't push to it directly)
-2. **Custom icons**: iOS supports alternate app icons natively (`UIApplication.shared.setAlternateIconName`), but Capacitor has no built-in bridge for this. Either write a tiny custom Capacitor plugin (a few lines of Swift) or use a community plugin if one exists and is well-maintained — evaluate at implementation time rather than committing to a specific package now.
-3. Both features are **Premium-gated in the JS layer** (show/hide the "Choose Icon" and "Add Widget" entry points in settings based on `hasFeatureAccess`), but the underlying OS capability isn't something the JS layer can truly lock — acceptable since this matches how the rest of the app's premium gating already works (client-side only, no DRM).
+2. **Live Activities / Dynamic Island**: built on top of the exact same App Group + summary-blob infrastructure as the widget — this is why it's sequenced into v1.7 rather than its own version. Needs:
+   - `ActivityKit` (iOS 16.1+) integration in the widget extension target — a Live Activity is a special kind of widget, not a separate Xcode target.
+   - Start/update/end the activity from the main app (via the same small native plugin used for the App Group write) at the natural trigger points: starting a Live Activity when the user has an active payoff plan, updating it on each relevant state change, ending it if the user disables the feature or pays off all debts.
+   - Dynamic Island support comes largely "for free" once the Live Activity exists — iOS renders the same activity in the Island automatically; the main design work is the compact/minimal/expanded view layouts ActivityKit requires.
+   - Content: "Debt-free in 14 months" or "Payday in 3 days" — reuse the same summary data already being computed for the widget, don't build a second data pipeline.
+3. **Custom icons**: iOS supports alternate app icons natively (`UIApplication.shared.setAlternateIconName`), but Capacitor has no built-in bridge for this. Either write a tiny custom Capacitor plugin (a few lines of Swift) or use a community plugin if one exists and is well-maintained — evaluate at implementation time rather than committing to a specific package now.
+4. All three features are **Premium-gated in the JS layer** (show/hide entry points in settings based on `hasFeatureAccess`), but the underlying OS capability isn't something the JS layer can truly lock — acceptable since this matches how the rest of the app's premium gating already works (client-side only, no DRM).
 
 **Files touched:** new Xcode target + Swift files (outside `lib/`/`components/`), a new small native plugin if going that route, `components/PaycheckSection.tsx` or a new Settings subsection for icon picker UI.
 
-**Testing:** manual on-device only — widgets and alternate icons cannot be meaningfully tested in CI/Playwright since they're native OS surfaces.
+**Testing:** manual on-device only — widgets, Live Activities, and alternate icons cannot be meaningfully tested in CI/Playwright since they're native OS surfaces. Live Activities specifically need testing on a physical device with Dynamic Island hardware (iPhone 14 Pro or later) to verify the compact/expanded Island states, not just the lock-screen presentation.
 
-**Risk:** Medium-high relative to its size — this is the first version requiring native Swift work beyond Capacitor's JS bridge. Recommend timeboxing exploration before committing the version slot; if the App Group + widget plumbing proves heavier than expected, ship custom icons alone first and slip the widget to the next slot rather than letting one feature block the other.
+**Risk:** Medium-high relative to its size — this is the first version requiring native Swift work beyond Capacitor's JS bridge, and Live Activities add a second ActivityKit-specific learning curve on top of WidgetKit. Recommend timeboxing exploration before committing the version slot; if the App Group + widget plumbing proves heavier than expected, ship custom icons alone first, then the widget, then Live Activities last (in that order of increasing native complexity) rather than letting any one feature block the others.
+
+**Business note:** per `ROADMAP.md` §2, this is the activation point for **Premium's annual pricing** ($39.99/yr) — a RevenueCat/App Store Connect product-configuration task, not code, but sequence it alongside this version's launch since this is when Premium's feature set becomes stable enough to sell a year-long commitment against.
 
 ---
 
@@ -346,6 +353,28 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. Pure JS/TS work, independent of thi
 
 ---
 
+## v1.8 addendum — Probabilistic Payoff Projections (Variable/Gig Income)
+
+**Scope:** Instead of one deterministic debt-free date, run the existing projection engine across a distribution of possible paycheck amounts and show a date range with confidence bands — for users whose income isn't a fixed, predictable number every cycle.
+
+**Why this pairs with Multi-Scenario Planning, not its own version:** Both features are "run the existing projection engine multiple times and compare results" — multi-scenario varies the strategy/extra-payment inputs, this varies the income input. Same underlying math, same UI pattern (comparison view), same version.
+
+**Implementation steps:**
+1. New income-variance input: instead of (or in addition to) a single paycheck amount, let the user enter a range (min/typical/max) or recent-history-based variance for gig/freelance income. Keep this opt-in — fixed-income users should see zero change to today's single-number flow.
+2. New `lib/forecast/projectPayoffDistribution.ts` — runs `projectDebtPayoff` (the same function already used everywhere else, not a new calculation) N times (e.g. 200-500 simulated paycheck sequences sampled from the entered variance) and aggregates the resulting payoff dates into percentile bands (e.g. "50% chance debt-free by X, 90% chance by Y"). This is a sampling/aggregation layer on top of the existing engine, not new financial math — the reconciliation-test discipline from `ROADMAP.md` §6 still applies: verify the median outcome of the distribution matches a single deterministic run at the average income.
+3. New `components/Payoff/ProjectionDistributionChart.tsx` — visualizes the range (a simple band chart: earliest/median/latest debt-free date), reusing `SnowballSection`'s existing chart/visual patterns rather than introducing a new charting approach.
+4. Surface this as an alternative view within the existing Multi-Scenario comparison UI (a toggle: "Fixed income" vs. "Variable income" mode) rather than a fully separate screen.
+
+**Data model changes:** new optional income-variance fields on the paycheck settings (additive, fixed-income users are unaffected).
+
+**Tier:** Premium+, matching Multi-Scenario Planning.
+
+**Testing:** regression test verifying the distribution's median outcome matches the deterministic `projectDebtPayoff` result for the average income value in the entered range — this is the critical correctness check, since a probabilistic feature that quietly disagrees with the app's own deterministic math everywhere else would be a trust-breaking bug in a finance app.
+
+**Risk:** Medium. The sampling/aggregation logic is new (even though it's built on the existing, already-correct engine), and presenting probability ranges clearly without confusing or alarming users takes real UX care — a "you might not be debt-free until 2 years later than expected" framing needs to be handled thoughtfully, not just mathematically correctly.
+
+---
+
 ## v1.8 addendum — Page Orchestrator Refactor, Phase 4 (Plan-Execution Hook)
 
 _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. Thematically paired with this version's own scenario-planning feature — both are about how the user's plan-execution state is tracked and presented._
@@ -380,6 +409,8 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. Thematically paired with this versi
 **Testing:** this is the highest-test-value version in the whole v1.x sequence — write a regression test matrix: every `PremiumFeature` × every tier → expected boolean, to lock in correct gating before it ships. Re-run the full e2e suite with each of the 4 tiers mocked via `debtPlanner.mockSubscription`.
 
 **Risk:** Medium-high. Not technically hard, but it's the version most likely to introduce a silent "wrong tier got access" bug if the call-site audit (step 5) is rushed.
+
+**Business note:** per `ROADMAP.md` §2, this is the activation point for **Premium+'s annual pricing** ($79.99/yr) — once the 3-tier model is formalized and Premium+ is a real, distinct tier rather than "Premium plus extras."
 
 ---
 
@@ -486,25 +517,36 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. This is the highest-risk phase of t
 
 ---
 
-## v1.14 — Shareable Milestone Cards (ships now) + Opt-In Leaderboard (deferred)
+## v1.14 — Shareable Milestone Cards + Animated Year in Review (ships now) + Opt-In Leaderboard (deferred)
 
-**Resequencing note:** per the critical-path dependency at the top of this document, only the shareable-card half of this version ships at v1.14. The leaderboard half moves to ship alongside or just after v2.0's backend foundation.
+**Resequencing note:** per the critical-path dependency at the top of this document, only the shareable-card and Year-in-Review halves of this version ship at v1.14. The leaderboard half moves to ship alongside or just after v2.0's backend foundation.
 
 ### Shareable cards (ships at v1.14, no backend needed)
 1. Add `@capacitor/share` (not currently installed) for the native share sheet.
 2. New `components/ShareableMilestoneCard.tsx` — renders a styled summary (debt-free date, % paid off, current streak) to an offscreen DOM node, captured to an image via a DOM-to-image library (evaluate options at implementation time — keep the dependency footprint small, this app currently has almost no heavy dependencies and that's a deliberate strength worth preserving) or, if simpler, a native screenshot of a dedicated share-preview screen.
 3. Trigger from the existing milestone-badge moment (v1.6) — "Share this milestone" action.
 
+### Animated "Year in Review" recap (Premium+ depth, free hook teaser — ships at v1.14, no backend needed)
+1. New `components/YearInReview/YearInReviewFlow.tsx` — a full-screen, multi-slide animated recap (Spotify-Wrapped-style: total paid off, debt-free progress, best month, current streak, milestones hit), built from the same `cycleHistory` data already collected by v1.5's Pay Cycle History — no new data collection needed, this is a presentation layer over existing data.
+2. Free tier gets a single teaser slide (e.g., total paid off this year) as a hook; Premium+ unlocks the full multi-slide animated recap — matches the "Free hook / Premium+ depth" tier note already in `ROADMAP.md` §4 for this version.
+3. Reuse the shareable-card infrastructure above (`@capacitor/share`, the same image-capture approach) so each slide is independently shareable — the sharing mechanic doubles as organic marketing, which is the actual strategic point of building this, not just a nice-to-have.
+4. Trigger: a "Your Year in Review" entry point surfaced once per year (or per N completed pay cycles for users without a full year of history yet — don't gate this purely on calendar-year boundaries given how recently the app will have launched).
+5. Animation work here should follow the `prefers-reduced-motion` standing rule established in v1.3/v1.6 — this is the most animation-heavy feature in the whole app, so it's the most important place to get that fallback right.
+
+**Data model changes:** none — pure presentation over v1.5's existing `cycleHistory`.
+
+**Testing:** manual visual check across a range of history lengths (1 cycle, a few months, a full year+) to confirm the recap degrades gracefully with partial data rather than assuming a full year always exists.
+
 ### Leaderboard (deferred until backend exists)
 - Needs: an account/anonymous-ID system, a server endpoint to submit a percentile-relevant stat (e.g., "% of debt paid off," never raw dollar amounts) and retrieve an aggregate comparison, and real thought about what's worth comparing without being either discouraging or privacy-invasive. Revisit scope entirely once the v2.0 backend exists — don't pre-build against assumptions made today.
 
 ---
 
-## v2.0 — AI Recommendations (Claude API)
+## v2.0 — AI Recommendations (Claude API) + Statement Auto-Import (OCR + AI)
 
-**Scope:** The biggest architectural shift in the roadmap — first version requiring a server.
+**Scope:** The biggest architectural shift in the roadmap — first version requiring a server. Two AI-dependent features land here since both need the same backend foundation and neither can ship before it exists.
 
-### Phase 0: Backend foundation (do this first, unblocks v1.14's leaderboard, v2.1, v2.2 too)
+### Phase 0: Backend foundation (do this first, unblocks Phase 2 below, v1.14's leaderboard, v2.1, v2.2 too)
 1. Stand up a minimal backend — a Next.js API route layer is the path of least resistance given the app is already Next.js, but note **the current app is statically exported** (`capacitor.config.ts: webDir: 'out'`, implying `next build` with static export for the Capacitor WebView). API routes need a server runtime, which static export doesn't provide. Decide between: (a) a *separate* small backend service (e.g., a lightweight Node/Express or serverless function deployment, decoupled from the statically-exported client app) or (b) restructuring the Next.js app to support both a static client export and server-rendered API routes via a different deployment target. **Recommend (a)** — keep the existing client app's build/deploy story untouched, stand up a thin separate API service the client calls over HTTPS. Lower risk, smaller blast radius on a working app.
 2. This backend needs, at minimum: a way to identify a client without full accounts yet (an anonymous device-bound ID is enough for v2.0; full accounts only become necessary at v2.1's household sharing) — store this ID locally, send it with requests for rate-limiting/abuse prevention, nothing else.
 3. Set up the Anthropic API key **server-side only**, never shipped in the client bundle.
@@ -520,6 +562,25 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. This is the highest-risk phase of t
 **Testing:** mock the backend response shape in regression tests to verify the rendering layer handles both AI-sourced and rule-based `SmartInsight[]` identically (since they share a type, this should mostly be free, but verify explicitly). Add a chaos test: backend returns malformed/empty response → fallback triggers correctly.
 
 **Risk:** High. First server, first time financial data leaves the device, first external AI dependency with real latency/cost/failure modes. This is the version to be most conservative and most tested on the whole roadmap.
+
+### Phase 2: Statement Auto-Import (OCR + AI extraction)
+
+**Scope:** Let a user photograph or upload a credit card/loan statement and have AI extract the debt's name, balance, APR, minimum payment, and due date automatically, instead of typing each field by hand. The single biggest friction-reduction opportunity in the app — manual debt entry today is a real onboarding drop-off risk.
+
+**Implementation steps:**
+1. Capacitor Camera plugin (`@capacitor/camera`, not currently installed) for photo capture, or a standard file input for uploading an existing image/PDF.
+2. New backend endpoint — receives the image, sends it to Claude (which has native vision/document understanding) with a prompt requesting structured extraction in the exact shape of the existing `Debt` type's input fields (`name`, `balance`, `apr`, `minimumPayment`, `dueDate`). Reuses the same backend service stood up in Phase 0 — no second server.
+3. New `components/ImportFromStatement/StatementScanFlow.tsx` — capture/upload → loading state → pre-filled review form (always show the extracted values for user confirmation/correction before saving, never auto-save unreviewed AI output directly into the debt list — a misread APR or balance is a real-money mistake, not a cosmetic one).
+4. On confirm, route through the existing `handleAddDebt` validation path unchanged — extracted data is just pre-filled form input, not a new data path into the engine.
+5. **Cost/tier note:** each scan is a real Claude API cost (image + vision processing). Tier-gated Premium+ to start, but watch usage once shipped — if cost-per-scan is meaningfully higher than the rest of Premium+'s feature set justifies, revisit whether this needs its own rate limit (e.g. N scans/month) or an Ultimate-only gate. Don't pre-build a complex quota system speculatively; add one if real usage data shows it's needed.
+
+**Data sent to the backend:** the statement image itself, which may contain more information than just the four extracted fields (account numbers, full name, address). **Do not log or retain the raw image server-side beyond the request lifecycle** — process and discard. This is more sensitive than the numeric snapshot already flagged in Phase 1's privacy note above; treat it with at least that level of care, arguably more.
+
+**Testing:** can't meaningfully unit-test OCR/AI extraction accuracy in CI — budget real manual testing against a variety of real-world statement formats (different banks/card issuers format statements very differently) before shipping. Regression test the deterministic part only: confirm the review-form-to-`handleAddDebt` path behaves identically to manual entry once values are confirmed.
+
+**Risk:** High. Real-money accuracy risk (a misextracted APR or balance silently corrupts a user's plan) mitigated only by the mandatory review-before-save step in implementation step 3 — do not skip or weaken that step under schedule pressure. Also inherits all of Phase 1's first-AI-dependency risk profile (latency, cost, failure modes).
+
+**Business note:** per `ROADMAP.md` §2, this is the activation point for **Ultimate** as a sellable tier at all (monthly first; introduce **Ultimate annual** at $119.99/yr a few weeks after monthly launch, once some retention data exists) — not before. Don't expose Ultimate as purchasable in RevenueCat/App Store Connect until Phase 1 (AI Recommendations) has actually shipped; selling a tier with no deliverable value, even briefly, repeats the same category of trust problem as this app's prior App Review rejections.
 
 ---
 
@@ -551,16 +612,23 @@ Per `ROADMAP.md` §5, this is explicitly a **decision point**, not a guaranteed 
 
 ---
 
-## v3.0 — AI Chat / Conversational Interface
+## v3.0 — AI Chat / Conversational Interface + AI Negotiation Coach
 
 Builds directly on v2.0's backend + Claude integration.
 
+### AI Chat
 1. New backend endpoint supporting multi-turn conversation (maintains message history server-side per session, doesn't trust the client to replay full history).
 2. Tool use: give Claude function-calling access to query the user's *actual* current plan data server-side (debt list, next paycheck, goals) rather than relying on the user to describe their situation in the chat — this is what makes it actually useful vs. a generic finance chatbot.
 3. New `components/AIChat/` — chat UI, likely a new tab or a modal accessible from the Payoff tab.
 4. Same fallback philosophy as v2.0: if the AI is unavailable, the chat surface should say so clearly rather than silently failing — unlike the insights fallback (which can silently degrade to rules), a chat interface with no AI behind it doesn't have a meaningful non-AI fallback, so this needs honest unavailability messaging instead.
 
-**Risk:** Medium-high, but lower than v2.0 since the hard architectural problems (backend, AI integration, fallback philosophy) were already solved there.
+### AI Negotiation Coach (elevated from a one-line backlog idea — see `ROADMAP.md` §2 Ultimate tier)
+1. Reuses the exact same multi-turn conversation infrastructure built for AI Chat above — this is a second *use case* for that surface, not a second conversational AI system. Don't build parallel chat plumbing.
+2. Two output modes from one underlying conversation: (a) a generated artifact — a written negotiation letter and a phone-call script, both grounded in the user's actual debt data (current APR, balance, payment history) via the same tool-use access as AI Chat; (b) an interactive coaching mode — the user tells the AI how the call is going turn-by-turn ("they offered 18%, what do I say?") and the AI responds with the next thing to say, genuinely coaching through the live call rather than just handing over a static script upfront.
+3. New entry point from each debt's detail/edit view ("Negotiate this rate") — surfaces the letter/script generation immediately, with the live-coaching mode as a secondary "Get live help during the call" action for users who want it.
+4. Same fallback philosophy as AI Chat: if the AI is unavailable, say so clearly — there's no meaningful non-AI version of "coach me through this negotiation call" to fall back to.
+
+**Risk:** Medium-high, but lower than v2.0 since the hard architectural problems (backend, AI integration, fallback philosophy) were already solved there. The negotiation coach's main risk is content quality, not technical risk — a bad negotiation script actively damages user trust in a way a mediocre insight card doesn't. Budget real review time for prompt quality before shipping, not just functional testing.
 
 ---
 
@@ -582,3 +650,6 @@ Builds directly on v2.0's backend + Claude integration.
 5. **Mobile polish (`MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md`) and the `app/page.tsx` orchestrator refactor (`PAGE_ORCHESTRATOR_PLAN.md`) now ride alongside v1.2-v1.10 above as version addenda** — see each version's addendum section for what lands. Two polish items remain deliberately unscheduled and are **not** mapped to a version: **P7 (list virtualization)**, trigger-based — only build once a real user reports lag with a large list; and **P8 (modal transition audit)** — backlog until there's a concrete HIG-compliance push. Don't pull these into a version ahead of that trigger.
 6. **The orchestrator refactor's Phase 5 (v1.10) is gated on Phases 1-4 (v1.5-v1.8) shipping first** — each phase's hook depends on the previous one's output (e.g. Phase 4's `usePlanExecution` needs Phase 3's `usePlannerBackup` for `saveResetSnapshot`). If any of v1.5-v1.8 slip or get reordered, the orchestrator phases must move with them, not stay pinned to the original version number.
 7. **Full cross-reference audit completed 2026-06-23** against `ROADMAP.md` §3/§4, both mobile-polish docs, and `PAGE_ORCHESTRATOR_PLAN.md` — every `[vX.X]`-tagged feature now has matching implementation coverage at the correct version. Fixes made: added the previously-unscheduled Windfall/Bonus Allocator to v1.5; added PDF/CSV Reporting to v1.13 (was tagged in `ROADMAP.md` but had no implementation section); corrected `ROADMAP.md`'s Apple Watch/Siri tag from `[v1.9 / v3.x]` to `[v3.1]` to match the table and this doc; updated the v1.2 App Lock and Mobile Polish addenda to reflect what actually shipped (App Lock default flipped to OFF, P9a's grid-breakpoint item found to need no fix).
+8. **Do not expose the Ultimate tier as purchasable until v2.0 actually ships** (see `ROADMAP.md` §2.5's tier-value audit) — every Ultimate feature, including the new negotiation coach, depends on the v2.0 backend, which is itself gated behind v1.5-v1.10. Selling a tier with no deliverable value for an extended stretch is a trust risk, the same category of problem as the App Store rejection this app already worked through once.
+9. **Statement Auto-Import's mandatory review-before-save step (v2.0 Phase 2) is a hard requirement, not a nice-to-have** — a misextracted APR or balance silently corrupts a user's real financial plan. Never auto-save AI-extracted statement data without explicit user confirmation first.
+10. **v1.7's three native features (widget, Live Activities, custom icons) should ship in increasing order of native complexity** — icons first, widget second, Live Activities last — since Live Activities builds on ActivityKit on top of the WidgetKit foundation the widget already establishes.
