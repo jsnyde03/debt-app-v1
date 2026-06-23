@@ -99,3 +99,5 @@ Every `:hover`-only rule across the CSS (buttons, list rows, action pills, colla
 - Any new feature, data model change, or tier gating — that's `ROADMAP.md`'s job.
 - Android-specific polish — covered under v1.12 in `ROADMAP.md` once the Android build exists; revisit this document's icon/haptic/motion work for Android parity at that point, don't duplicate effort now.
 - Accessibility audit — that's its own explicit roadmap item (v1.12 in `ROADMAP.md`); some of this work (icon `aria-label`s in P1, color-not-as-only-signal in empty states P4) overlaps and should be done with that audit in mind, but a full audit is a separate effort.
+
+**One standing rule that isn't its own phase:** starting with P3 (v1.3, the first phase to add real motion), every new animation must ship with a `prefers-reduced-motion` fallback — verified zero such media queries exist anywhere in the CSS today. This was folded into P3 and P6's implementation steps directly rather than getting its own phase number, but it applies to any future motion work too, not just those two.

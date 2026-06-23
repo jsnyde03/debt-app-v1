@@ -44,6 +44,25 @@ This single decision is the most important thing in this document. Everything be
 
 ---
 
+## v1.2 addendum — App Store Compliance: Manage Subscription + Terms of Use Links
+
+_Verified gap, not in any prior version of this doc: the app has zero "Manage Subscription" entry point and zero Terms of Use/EULA link anywhere — only Privacy Policy and Support exist in Plan Settings. Given two prior App Review rejections under Guideline 2.1.1, closing this preemptively (rather than waiting for Apple to flag it under Guideline 3.1.2) is cheap insurance worth doing now rather than reactively later._
+
+**Scope:** Two small additions, both purely link-outs, no new logic.
+
+**Implementation steps:**
+1. **Manage Subscription link** — add a row to the Settings legal-links area (alongside Privacy Policy/Support) that opens the native subscription management URL. On iOS this is `https://apps.apple.com/account/subscriptions` (or the `manageSubscriptionsRouteURL` available via RevenueCat's `Purchases.getCustomerInfo()`/native sheet if exposed — check RevenueCat's SDK for a direct "show manage subscriptions" call before hand-rolling the URL, since it's a known wrapper around this exact flow).
+2. **Terms of Use link** — add alongside Privacy Policy/Support. If a Terms of Use page doesn't exist yet in the `debt-planner-stie` site repo, that's the actual blocker — flag to get one drafted (a standard subscription EULA, often Apple's own boilerplate Terms of Use is acceptable per Apple's own documentation if you don't need a custom one).
+3. Add both links to the upgrade/paywall screen itself (`UpgradeSection.tsx`) alongside the existing Privacy Policy/Restore Purchases — subscription terms should be visible at the point of purchase, not just buried in Settings.
+
+**Files touched:** `app/page.tsx` (Settings legal-links row), `components/UpgradeSection.tsx`.
+
+**Testing:** Manual — confirm both links open correctly on-device (the subscription management URL only resolves meaningfully on a real device signed into the App Store, not the simulator).
+
+**Risk:** Low. Pure link-outs, no logic, no data model changes — the only real work is sourcing/drafting the Terms of Use content if it doesn't already exist.
+
+---
+
 ## v1.2 addendum — Mobile Polish: Icon Foundation, Haptics, Touch-Target Fixes — done
 
 _Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md` (phases P1a, P2, P9a). Summarized here for single-source version sequencing._
@@ -94,7 +113,7 @@ _Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md
 
 **P1b — Icon system completion:** Finish the migration started in v1.2 — `AddDebtModal.tsx`, `AddExpenseModal.tsx`, `DebtRow.tsx`, `DebtGroup.tsx`, `ExpenseListItem.tsx`, `GoalsSection.tsx`, `SwipeActionCard.tsx`, sort/filter chevrons. Confirm icon sizing holds at the iPad two-column breakpoint already being built this version. Zero emoji/Unicode UI glyphs should remain anywhere after this lands.
 
-**P3 — Tab-switch transitions:** Add a 150-200ms cross-fade between bottom-nav tab changes, reusing the existing `cubic-bezier(0.2, 0.9, 0.2, 1)` curve. Verify against the new iPad two-column layout.
+**P3 — Tab-switch transitions:** Add a 150-200ms cross-fade between bottom-nav tab changes, reusing the existing `cubic-bezier(0.2, 0.9, 0.2, 1)` curve. Verify against the new iPad two-column layout. **Accessibility gap closed here:** verified zero `prefers-reduced-motion` media query exists anywhere in the CSS today — wrap this new transition (and any other motion added from this version forward) in `@media (prefers-reduced-motion: reduce) { ... }` to disable/shorten it for users with that system setting enabled. Establish this as a standing rule for every subsequent motion addition (P6 in v1.6, any future animation work), not just this one transition.
 
 **P9b — Pagination → mobile-native list pattern:** Replace `DebtGroup.tsx`'s numbered click-pagination (`PAGE_SIZE = 10`, prev/next + "Page X of Y") with a "Load More" control or infinite scroll, removing the desktop-table framing. Sequenced here specifically because P1b already touches this same file for icons — one visit, not two.
 
@@ -251,7 +270,7 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. This is the first of five phases mo
 
 _Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md` (phase P6)._
 
-**P6 — Micro-interaction pass:** Audit every button variant's `:active` scale transform for consistency; apply the existing `planItemReveal` keyframe to newly-added list items on Bills/Debts/Goals tabs, not just Plan (must only animate genuinely new items, not re-trigger on unrelated re-renders — the one real correctness risk in this phase); give this version's own milestone badges a celebratory entrance reusing existing easing curves.
+**P6 — Micro-interaction pass:** Audit every button variant's `:active` scale transform for consistency; apply the existing `planItemReveal` keyframe to newly-added list items on Bills/Debts/Goals tabs, not just Plan (must only animate genuinely new items, not re-trigger on unrelated re-renders — the one real correctness risk in this phase); give this version's own milestone badges a celebratory entrance reusing existing easing curves. Per the standing rule established in v1.3's addendum, every new animation here also needs a `prefers-reduced-motion` fallback — don't skip it because it feels like "just a small bounce."
 
 **Files touched:** `app/styles/09-anim-swipe-media-misc.css`, list-rendering components (`DebtGroup.tsx`, expense list parent, `GoalsSection.tsx`), `components/MilestoneBadge.tsx` (new this version per the feature plan above).
 
@@ -435,6 +454,8 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. This is the highest-risk phase of t
 1. Systematic pass over every interactive element for `aria-label`/accessible names — some already exist (`settings-icon-button` has one), many don't (icon-only buttons across `DebtRow`, `ExpenseListItem`, swipe actions).
 2. VoiceOver (iOS) and TalkBack (Android, once the build exists) manual pass through every tab and modal.
 3. Color contrast check for both themes — particularly the status pills (`overdue`, `warning`, etc.) which use color as the primary signal; verify they also convey status via text/icon, not color alone.
+4. **Dynamic Type support (verified gap):** `app/page.css` has 826 `px`-based size declarations vs. 250 `rem`-based — heavily fixed-pixel sizing means iOS's text-size accessibility setting likely doesn't scale most of the UI today. Audit and convert font-size (and ideally spacing) declarations to `rem` so they scale with the system text-size setting; test at the largest Dynamic Type sizes specifically, since that's where fixed-px layouts visually break first (text clipping/overlap).
+5. **`prefers-reduced-motion` audit (verified gap, partially closed in v1.3/v1.6):** confirm every animation added across the whole app — not just the ones explicitly flagged in v1.3/v1.6's polish addenda — has a `prefers-reduced-motion` fallback, including the swipe-action and pull-to-refresh gesture animations that predate this rule being established.
 
 **Risk:** High relative to effort estimate — first-time Android builds reliably surface platform-specific surprises (notification permissions flow differs from iOS, back-button handling, different WebView quirks). Treat the size estimate in `ROADMAP.md` ("Large") as a floor, not a ceiling.
 
