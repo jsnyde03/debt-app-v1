@@ -33,7 +33,7 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { TimelineSection } from "@/components/TimelineSection";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
-import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting } from "@/lib/subscription/revenueCat";
+import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { AppSkeleton } from "@/components/AppSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
@@ -266,6 +266,7 @@ export default function Home() {
     const [isMounted, setIsMounted] = useState(false);
     const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>("free");
     const [showUpgrade, setShowUpgrade] = useState(false);
+    const [premiumPackageInfo, setPremiumPackageInfo] = useState<PremiumPackageInfo | null>(null);
     const [purchaseStatus, setPurchaseStatus] = useState("");
 
     function hasValidPayCycleInputs() {
@@ -331,6 +332,12 @@ export default function Home() {
     useEffect(() => {
         localStorage.setItem("debtPlanner.livingExpenses", JSON.stringify(livingExpenses));
     }, [livingExpenses]);
+
+    useEffect(() => {
+        if (!showUpgrade || premiumPackageInfo) return;
+
+        void getPremiumPackageInfo().then(setPremiumPackageInfo);
+    }, [showUpgrade, premiumPackageInfo]);
 
 
     useEffect(() => {
@@ -1247,7 +1254,7 @@ export default function Home() {
                         {showUpgrade && (
                             <>
                                 <UpgradeSection
-
+                                    packageInfo={premiumPackageInfo}
                                     onClose={() => setShowUpgrade(false)}
                                     onUpgradeClick={async () => {
                                         setPurchaseStatus("Starting purchase...");
@@ -1579,12 +1586,30 @@ export default function Home() {
                             </a>
                             <span className="legal-separator">·</span>
                             <a
+                                href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="legal-link"
+                            >
+                                Terms of Use
+                            </a>
+                            <span className="legal-separator">·</span>
+                            <a
                                 href="https://github.com/jsnyde03/debt-planner-stie/blob/main/Paycheck%20Debt%20Planner%20Support"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="legal-link"
                             >
                                 Support
+                            </a>
+                            <span className="legal-separator">·</span>
+                            <a
+                                href="https://apps.apple.com/account/subscriptions"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="legal-link"
+                            >
+                                Manage Subscription
                             </a>
                         </div>
                     </div>
