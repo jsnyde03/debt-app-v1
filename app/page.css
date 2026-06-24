@@ -390,6 +390,12 @@ button:active {
 	transform: scale(0.965);
 }
 
+button:disabled {
+	opacity: 0.55;
+	cursor: default;
+	pointer-events: none;
+}
+
 .secondary-button,
 .add-button,
 .collapsible-header {
@@ -4296,6 +4302,44 @@ button:active,
 	margin-top: 0.8rem;
 	line-height: 1.65;
 	color: var(--premium-text-soft);
+}
+
+.upgrade-price-block {
+	margin-top: 1.1rem;
+	padding: 16px 18px;
+	border-radius: var(--radius-lg);
+	background: var(--surface-muted);
+	border: 1px solid var(--border-color);
+	text-align: center;
+}
+
+.upgrade-price-amount {
+	font-size: 2.5rem;
+	font-weight: 900;
+	line-height: 1.1;
+	letter-spacing: -0.02rem;
+	color: var(--accent-color);
+}
+
+.upgrade-price-period {
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: var(--text-secondary);
+	margin-left: 2px;
+}
+
+.upgrade-price-subtext {
+	margin-top: 6px;
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: var(--text-secondary);
+}
+
+.upgrade-price-loading {
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: var(--text-secondary);
+	padding: 10px 0;
 }
 
 .upgrade-feature-list {

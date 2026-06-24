@@ -59,6 +59,9 @@ Unlock deeper analysis and guidance with a Premium subscription:
 - **What-If Simulation** — Model the impact of extra monthly payments before you commit. See the exact new debt-free date and projected interest saved.
 - **3-Month Forecast** — Projected cash cushion, debt balance, and risk levels for the next three pay cycles. Spot pressure before it becomes a problem.
 
+**Subscription Details**
+Premium Monthly is an auto-renewing subscription billed at $4.99/month. Payment is charged through your Apple ID account. Your subscription automatically renews for the same price and duration unless cancelled at least 24 hours before the end of the current period. Manage or cancel anytime in your device's Settings > [your name] > Subscriptions. Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/ · Privacy Policy: https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html
+
 ---
 
 **BUILT FOR PRIVACY**
