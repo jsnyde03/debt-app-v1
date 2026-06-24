@@ -130,6 +130,15 @@ export function UpgradeSection({ packageInfo, onClose, onUpgradeClick, onRestore
                         >
                             Support
                         </a>
+                        <span className="legal-separator">·</span>
+                        <a
+                            href="https://apps.apple.com/account/subscriptions"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="legal-link"
+                        >
+                            Manage Subscription
+                        </a>
                     </div>
                 </div>
             </section>
