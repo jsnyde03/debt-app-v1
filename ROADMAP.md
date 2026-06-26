@@ -33,12 +33,12 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 | Tier | Monthly | Annual | Positioning |
 |---|---|---|---|
 | **Free** | $0 | — | Full manual debt/budget tracking — no caps on bills, debts, or goals. The hook is utility, not nagging. |
-| **Premium** | $4.99/mo | $39.99/yr (33% off, ~$3.33/mo equivalent) | Smart guidance layer: insights, forecasting, strategy comparison, simulation, notifications. |
+| **Premium** | $4.99/mo | $39.99/yr (33% off, ~$3.33/mo equivalent) | Smart guidance layer: insights, forecasting, strategy comparison, simulation. |
 | **Premium+** | $9.99/mo | $79.99/yr (33% off, ~$6.67/mo equivalent) | Power-user layer: unlimited history, full amortization, multi-scenario planning, net worth, consolidation tools, reporting. |
 | **Ultimate (AI)** | $14.99/mo | $119.99/yr (33% off, ~$10/mo equivalent) | AI-driven layer: Claude-powered recommendations, conversational assistant, household support, and (pending a separate infra decision) bank-linked automation. |
 
 **Annual pricing activation timing — don't launch all three at once:**
-- **Premium annual ($39.99/yr): activate at v1.7.** By then Premium's core value prop (Smart Insights, Forecasting, Strategy Comparison, Simulation, notifications, widget, Live Activities, custom icons) is feature-complete and won't shift dramatically right after — the worst time to sell an annual commitment is right before the thing someone's committing to changes shape. Locking in annual pricing on a stable, complete tier reduces refund/chargeback risk and gives a real year of value to point to.
+- **Premium annual ($39.99/yr): activate at v1.7.** By then Premium's core value prop (Smart Insights, Forecasting, Strategy Comparison, Simulation, widget, Live Activities, custom icons) is feature-complete and won't shift dramatically right after — the worst time to sell an annual commitment is right before the thing someone's committing to changes shape. Locking in annual pricing on a stable, complete tier reduces refund/chargeback risk and gives a real year of value to point to.
 - **Premium+ annual ($79.99/yr): activate at v1.9**, once the 3-tier infrastructure formalizes Premium+ as a real, distinct tier (not just "Premium with extra stuff loosely bolted on") and the bulk of its differentiating features (v1.5-v1.8: history, amortization, multi-scenario, probabilistic projections) already exist. v1.13's later additions (net worth, consolidation, reporting) become "more value added to an existing subscription" rather than something worth delaying annual pricing for.
 - **Ultimate annual ($119.99/yr): do not activate — or even sell *any* Ultimate plan, monthly or annual — until v2.0 ships.** Per the tier-value note above, Ultimate has zero deliverable value until AI Recommendations exists. Annual pricing on an empty tier compounds that risk: a year-long commitment to nothing is a much worse trust problem than a month-long one. Activate Ultimate (monthly first, annual shortly after once a few weeks of monthly retention data exists) only once v2.0's AI Recommendations has actually shipped.
 
@@ -53,13 +53,13 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 - Windfall/bonus one-time allocator (small, fits the free engine as-is)
 - **App Lock (Face ID/Touch ID with device passcode fallback)** — shipping in v1.2, before the app has even launched. Security is table stakes for a finance app, not a monetization lever — every tier gets this.
 - **"Try with Sample Data" demo mode** — shipping in v1.2. Lets a brand-new user (or App Review) preview the app populated with realistic debts/bills/goals before entering their own numbers, with a clear "Demo Mode" banner and one-tap exit to start fresh. Doesn't unlock Premium — real subscription state still applies, so the upgrade flow is experienced honestly, not faked.
+- **Local notifications (paycheck-eve + bills-due)** — shipping free in v1.2. Reminders are a retention/engagement feature, not an analytical insight, so they stay free at every tier; customizable lead time / per-bill targeting remains a real candidate for a future premium tier once that customization actually exists.
 
 ### Premium ($4.99)
 - Smart Insights (already built)
 - Strategy Comparison (already built)
 - What-If Simulation (already built)
 - 3-Month Forecast (already built)
-- Local notifications (already built)
 - Home screen widget (iOS WidgetKit — days to paycheck, debt remaining)
 - **Live Activities / Dynamic Island** — "Debt-free in 14 months" or "Payday in 3 days" surfaced live on the lock screen/Dynamic Island, reusing the same App Group plumbing as the widget. Ships alongside the widget at v1.7 since both need identical native infra — building it as a separate effort later would mean redoing that plumbing twice.
 - Custom app icons
@@ -91,7 +91,7 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 
 ## 2.5. Tier-value audit (added 2026-06-23)
 
-**Premium ($4.99):** Justified, possibly even generous for the price — Smart Insights + Forecasting + Strategy Comparison + Simulation + notifications + widget is a meaningfully bigger jump from Free than $4.99 implies. No changes recommended; if anything, slight underpricing here is fine since premium *conversion volume* matters more than per-user extraction at this entry tier.
+**Premium ($4.99):** Justified, possibly even generous for the price — Smart Insights + Forecasting + Strategy Comparison + Simulation + widget is a meaningfully bigger jump from Free than $4.99 implies. (Notifications moved to Free in v1.2 — a retention feature, not an analytical insight — so it no longer counts toward this tier's value stack.) No changes recommended; if anything, slight underpricing here is fine since premium *conversion volume* matters more than per-user extraction at this entry tier.
 
 **Premium+ ($9.99):** Justified, and gets meaningfully stronger with this round's additions (Statement Auto-Import, Probabilistic Projections) on top of the already-substantial existing bundle (full amortization, multi-scenario, net worth, consolidation calculator). The $5 jump over Premium now buys clearly power-user-tier depth, not just "more of the same."
 
