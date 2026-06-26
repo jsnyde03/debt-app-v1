@@ -73,7 +73,7 @@ export function buildDemoPlannerState(today: Date = new Date()): DemoPlannerStat
             },
             {
                 id: "expense-capcut",
-                name: "CapCut",
+                name: "Streaming Subscription",
                 amount: 20,
                 dueDate: addDays(anchor, 3),
                 originalDueDate: addDays(anchor, 3),
@@ -139,7 +139,7 @@ export function buildDemoPlannerState(today: Date = new Date()): DemoPlannerStat
         debts: [
             {
                 id: "debt-paypal-underground",
-                name: "PayPal - Underground Figures",
+                name: "PayPal Credit - Electronics",
                 balance: 600,
                 originalBalance: 600,
                 minimumPayment: 30.15,
@@ -154,7 +154,7 @@ export function buildDemoPlannerState(today: Date = new Date()): DemoPlannerStat
             },
             {
                 id: "debt-klarna-arbys",
-                name: "Klarna - Arby's",
+                name: "Klarna - Online Order",
                 balance: 56.09,
                 originalBalance: 56.09,
                 minimumPayment: 18.7,
@@ -184,7 +184,7 @@ export function buildDemoPlannerState(today: Date = new Date()): DemoPlannerStat
             },
             {
                 id: "debt-affirm-long-name",
-                name: "Affirm - Very Long Mobile Wrapping Test Purchase",
+                name: "Affirm - Furniture & Home Office Setup",
                 balance: 315.44,
                 originalBalance: 315.44,
                 minimumPayment: 42.5,
