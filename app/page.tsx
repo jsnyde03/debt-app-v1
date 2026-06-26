@@ -1699,7 +1699,7 @@ export default function Home() {
                                     <div>
                                         <h3>App Lock</h3>
                                         <p className="section-collapse-subtitle">
-                                            Require Face ID or Touch ID to open the app.
+                                            Require Face ID, Touch ID, or your device passcode to open the app.
                                         </p>
                                     </div>
 
