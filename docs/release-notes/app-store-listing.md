@@ -1,78 +1,82 @@
 # App Store Listing Copy — Paycheck Debt Planner
 
+_ASO pass for v1.2. App Name unchanged (renaming a live app resets keyword history and is high-risk for low reward) — everything else rewritten for conversion and search coverage now that the app has real premium depth (Smart Insights, Forecasting, Strategy Comparison), a trust layer (App Lock, on-device-only data), and a zero-friction entry point (Demo Mode)._
+
 ---
 
 ## App Name
 Paycheck Debt Planner
 
-## Subtitle (30 chars max)
-Paycheck Plan. Debt Freedom.
+## Subtitle (30 chars max — 27 used)
+Budget, Bills & Debt Payoff
 
-## Keywords (100 chars max)
-debt payoff,budget,snowball,paycheck,bills,finance,planner,avalanche,debt tracker,money manager
+_Why this change:_ the old subtitle ("Paycheck Plan. Debt Freedom.") was branding language with one weak keyword ("plan"). Apple's search algorithm weights Name + Subtitle highest of any field. The Name already owns "paycheck," "debt," and "planner" — this subtitle adds three more high-volume, high-intent search terms ("budget," "bills," "payoff") that weren't covered anywhere, rather than repeating what Name already covers.
+
+## Keywords (100 chars max — 96 used)
+snowball,avalanche,finance,tracker,savings,goals,expense,income,cashflow,money manager,debt free
+
+_Why this change:_ the old keyword field repeated "debt payoff," "budget," "paycheck," and "planner" — all already indexed via Name/Subtitle, wasting roughly 40 of 100 characters on duplicate coverage. This version keeps the genuinely additive terms ("snowball," "avalanche," "finance," "tracker," "money manager") and adds terms with real search volume that were missing entirely ("savings," "goals," "expense," "income," "cashflow," "debt free").
+
+## Promotional Text (170 chars max — can be updated anytime without a new app version)
+See exactly where every paycheck goes. Try it instantly with sample data — no signup, no bank link. Smart forecasting and payoff guidance with Premium.
+
+_This field didn't exist in the listing before — it's the one piece of App Store metadata Apple lets you change without a review cycle, so it's worth treating as a rotating hook (seasonal, feature-launch, or urgency messaging) rather than setting once and forgetting._
 
 ---
 
-## Description (App Store — up to 4000 chars)
+## Description (App Store — up to 4000 chars, ~3700 used)
 
 **Know exactly where every dollar goes — before you spend it.**
 
-Paycheck Debt Planner is built around one simple idea: the moment you get paid, you should know exactly what every dollar is doing. Which bills are due. Which debt gets the next attack. How much cushion you'll have left.
+The moment you get paid, you should know exactly what every dollar is doing: which bills are due, which debt gets the next attack, how much cushion you'll have left. No spreadsheets, no guessing.
 
-No bank connections. No accounts. No subscriptions required to get started. Just your paycheck and a clear plan.
+Curious before you commit? Tap "Try with Sample Data" and explore a fully populated plan instantly — real debts, real bills, real numbers — with nothing of yours entered yet. No bank connections. No accounts. No sign-up required.
 
 ---
 
 **HOW IT WORKS**
 
-Enter your paycheck amount and due dates for your bills and debts. Paycheck Debt Planner does the rest — it calculates your required payments, finds extra cash, and recommends where to put it for maximum debt progress.
-
-Mark bills paid with a swipe as you go through your cycle. The plan updates in real time.
+Enter your paycheck amount and the due dates for your bills and debts. Paycheck Debt Planner calculates your required payments, finds whatever extra cash is left, and tells you exactly where to put it. Mark bills paid with a swipe as you go — the plan updates in real time.
 
 ---
 
-**WHAT YOU GET**
+**WHAT YOU GET, FREE**
 
-**Paycheck Plan**
-See required payments and recommended actions the moment your paycheck lands. The plan separates what you must pay from what you should pay, so you always know what's non-negotiable.
-
-**Timeline View**
-A chronological view of your full pay cycle — paycheck in, bills out, debt minimums, and extra payoff — with a running safe-cash balance so you can see exactly where the money goes.
-
-**Debt Payoff Engine**
-Choose snowball (smallest balance first) or avalanche (highest APR first). The engine tracks your focus debt, projected payoff date, and recommends extra payments based on what's actually left after your bills.
-
-**Goals**
-Track your emergency fund and savings goals alongside debt payoff. The engine funds emergencies before snowball, so your safety net builds while your debt shrinks.
-
-**Autopay Support**
-Mark bills and debts as autopay. They're flagged throughout the plan so you always know what hits automatically and what needs a manual payment.
+- **Paycheck Plan** — Required payments and recommended actions the moment your paycheck lands, separating what you must pay from what you should pay.
+- **Timeline View** — A chronological view of your full pay cycle with a running safe-cash balance, so you always see where the money goes.
+- **Debt Payoff Engine** — Snowball or avalanche, your choice. Tracks your focus debt, projects your payoff date, and recommends extra payments from what's left after bills.
+- **Goals** — Emergency fund and savings goals tracked alongside debt payoff, funded before snowball so your safety net builds while debt shrinks.
+- **Autopay Support** — Flag bills and debts as autopay so you always know what hits automatically.
+- **Swipe-to-Pay** — Mark anything paid with one swipe. Swipe back to undo.
+- **App Lock** — Face ID, Touch ID, or device passcode. Free for everyone, off by default, on whenever you want it.
+- **Backup & CSV Import** — Export a full backup anytime; import existing debts straight from a CSV.
 
 ---
 
 **PREMIUM — SMART FORECASTING**
 
-Unlock deeper analysis and guidance with a Premium subscription:
+Free gets you a complete, accurate plan. Premium gets you a plan that thinks ahead:
 
-- **Smart Insights** — Adaptive recommendations based on your actual cash pressure, cushion, and payoff pace. Know when to push harder and when to hold back.
-- **Strategy Comparison** — Side-by-side snowball vs. avalanche analysis with your real numbers. See which strategy saves more interest and which gets you debt-free faster.
-- **What-If Simulation** — Model the impact of extra monthly payments before you commit. See the exact new debt-free date and projected interest saved.
-- **3-Month Forecast** — Projected cash cushion, debt balance, and risk levels for the next three pay cycles. Spot pressure before it becomes a problem.
+- **Smart Insights** — Adaptive recommendations based on your actual cash pressure, cushion, and payoff pace, every cycle.
+- **Strategy Comparison** — Snowball vs. avalanche, side-by-side, using your real balances and APRs — not a generic rule of thumb.
+- **What-If Simulation** — Model an extra monthly payment before committing. See the new debt-free date and exact interest saved.
+- **3-Month Forecast** — Projected cushion, debt balance, and risk level three cycles out. Spot pressure before it's a missed payment.
+- **Local Reminders** — A paycheck-eve nudge and a heads-up before your earliest unpaid bill. Opt-in, quiet, and only when useful.
 
 **Subscription Details**
-Premium Monthly is an auto-renewing subscription billed at $4.99/month. Payment is charged through your Apple ID account. Your subscription automatically renews for the same price and duration unless cancelled at least 24 hours before the end of the current period. Manage or cancel anytime in your device's Settings > [your name] > Subscriptions. Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/ · Privacy Policy: https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html
+Premium Monthly is an auto-renewing subscription billed at $4.99/month through your Apple ID account. It renews automatically for the same price and duration unless cancelled at least 24 hours before the period ends. Manage or cancel anytime in Settings > [your name] > Subscriptions. Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/ · Privacy Policy: https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html
 
 ---
 
-**BUILT FOR PRIVACY**
+**BUILT FOR PRIVACY, NOT YOUR DATA**
 
-All your data stays on your device. No accounts. No cloud sync. No bank connections. Export a backup anytime and import it on a new device whenever you need. Lock the app with Face ID, Touch ID, or your device passcode — authentication happens entirely on-device through Apple's system; we never see your biometric data.
+Everything stays on your device — no accounts, no cloud sync, no bank connections, no trackers reading your balances. App Lock authentication happens entirely through Apple's on-device Face ID/Touch ID system; we never receive or store your biometric data, only a yes-or-no confirmation that you unlocked successfully.
 
 ---
 
 **WORKS WITH YOUR PAY SCHEDULE**
 
-Weekly, bi-weekly, semi-monthly, and monthly pay cycles all supported. The engine automatically projects your next paycheck date and adjusts the plan.
+Weekly, bi-weekly, semi-monthly, and monthly pay cycles all supported — the engine projects your next paycheck date automatically and adjusts the plan around it.
 
 ---
 
