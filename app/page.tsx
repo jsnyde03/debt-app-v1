@@ -32,7 +32,6 @@ import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { TimelineSection } from "@/components/TimelineSection";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
-import { hasFeatureAccess } from "@/lib/subscription/hasFeatureAccess";
 import { UpgradeSection } from "@/components/UpgradeSection";
 import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
@@ -386,7 +385,7 @@ export default function Home() {
                 setSubscriptionPlan(plan);
                 console.log("Loaded subscription plan:", plan);
 
-                if (hasFeatureAccess(plan, "notifications") && notificationsEnabled && nextPaycheckDate) {
+                if (notificationsEnabled && nextPaycheckDate) {
                     const permitted = await hasNotificationPermission();
                     if (permitted) {
                         void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
@@ -623,7 +622,7 @@ export default function Home() {
         setActiveTab("plan");
         setStatusMessage("Plan updated");
 
-        if (notificationsEnabled && hasFeatureAccess(subscriptionPlan, "notifications")) {
+        if (notificationsEnabled) {
             void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
         }
     }
@@ -1123,7 +1122,7 @@ export default function Home() {
             setCurrentDate(nextCycleStart);
             setNextPaycheckDate(followingPaycheckDate);
 
-            if (notificationsEnabled && hasFeatureAccess(subscriptionPlan, "notifications")) {
+            if (notificationsEnabled) {
                 const rolledExpenses = rolloverRequiredExpenses(requiredExpenses, nextPaycheckDate);
                 void scheduleNotifications({ nextPaycheckDate: followingPaycheckDate, requiredExpenses: rolledExpenses });
             }
@@ -1664,31 +1663,16 @@ export default function Home() {
                                         </p>
                                     </div>
 
-                                    {hasFeatureAccess(subscriptionPlan, "notifications") ? (
-                                        <button
-                                            type="button"
-                                            role="switch"
-                                            aria-checked={notificationsEnabled}
-                                            className={notificationsEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
-                                            onClick={handleNotificationsToggle}
-                                            aria-label={notificationsEnabled ? "Disable notifications" : "Enable notifications"}
-                                        >
-                                            <span className="toggle-thumb" />
-                                        </button>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            className="premium-pill"
-                                            onClick={() => {
-                                                triggerLightHaptic();
-                                                setShowUpgrade(true);
-                                                setActiveTab("snowball");
-                                                setShowPlanSettings(false);
-                                            }}
-                                        >
-                                            Premium
-                                        </button>
-                                    )}
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={notificationsEnabled}
+                                        className={notificationsEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
+                                        onClick={handleNotificationsToggle}
+                                        aria-label={notificationsEnabled ? "Disable notifications" : "Enable notifications"}
+                                    >
+                                        <span className="toggle-thumb" />
+                                    </button>
                                 </div>
                             </div>
                         )}

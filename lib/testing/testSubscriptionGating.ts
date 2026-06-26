@@ -17,7 +17,6 @@ const ALL_PREMIUM_FEATURES: PremiumFeature[] = [
     "strategy_comparison",
     "what_if_scenarios",
     "smart_insights",
-    "notifications",
 ];
 
 function testHasFeatureAccess_freeDeniedForEveryFeature() {

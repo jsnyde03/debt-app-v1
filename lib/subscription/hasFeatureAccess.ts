@@ -11,7 +11,6 @@ export function hasFeatureAccess(plan: SubscriptionPlan, feature: PremiumFeature
         case "strategy_comparison":
         case "what_if_scenarios":
         case "smart_insights":
-        case "notifications":
             return false;
 
         default:

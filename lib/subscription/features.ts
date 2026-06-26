@@ -6,15 +6,13 @@ export type PremiumFeature =
     | "forecasting"
     | "strategy_comparison"
     | "what_if_scenarios"
-    | "smart_insights"
-    | "notifications";
+    | "smart_insights";
 
 export const premiumFeatureLabels: Record<PremiumFeature, string> = {
     forecasting: "Smart Forecasting",
     strategy_comparison: "Payoff Guidance",
     what_if_scenarios: "What Changes If...",
     smart_insights: "Adaptive Recommendations",
-    notifications: "Local Reminders",
 };
 
 // Marketing copy for the upgrade screen. "Interest Reduction Insights"

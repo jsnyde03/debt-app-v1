@@ -49,6 +49,7 @@ Enter your paycheck amount and the due dates for your bills and debts. Paycheck 
 - **Autopay Support** — Flag bills and debts as autopay so you always know what hits automatically.
 - **Swipe-to-Pay** — Mark anything paid with one swipe. Swipe back to undo.
 - **App Lock** — Face ID, Touch ID, or device passcode. Free for everyone, off by default, on whenever you want it.
+- **Local Reminders** — A paycheck-eve nudge and a heads-up before your earliest unpaid bill. Opt-in, quiet, and only when useful.
 - **Backup & CSV Import** — Export a full backup anytime; import existing debts straight from a CSV.
 
 ---
@@ -61,7 +62,6 @@ Free gets you a complete, accurate plan. Premium gets you a plan that thinks ahe
 - **Strategy Comparison** — Snowball vs. avalanche, side-by-side, using your real balances and APRs — not a generic rule of thumb.
 - **What-If Simulation** — Model an extra monthly payment before committing. See the new debt-free date and exact interest saved.
 - **3-Month Forecast** — Projected cushion, debt balance, and risk level three cycles out. Spot pressure before it's a missed payment.
-- **Local Reminders** — A paycheck-eve nudge and a heads-up before your earliest unpaid bill. Opt-in, quiet, and only when useful.
 
 **Subscription Details**
 Premium Monthly is an auto-renewing subscription billed at $4.99/month through your Apple ID account. It renews automatically for the same price and duration unless cancelled at least 24 hours before the period ends. Manage or cancel anytime in Settings > [your name] > Subscriptions. Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/ · Privacy Policy: https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html
@@ -128,7 +128,7 @@ Full regression suite with 11 test suites covering allocation math, timeline acc
 
 **App Lock, Smart Reminders, Demo Mode, and a Visual Refresh**
 
-This release adds App Lock — secure the app with Face ID, Touch ID, or your device passcode, free for everyone, off by default. Premium subscribers also get local reminders: a paycheck-eve nudge and a heads-up before bills come due.
+This release adds App Lock — secure the app with Face ID, Touch ID, or your device passcode, free for everyone, off by default. Also new: free local reminders for payday and upcoming bills.
 
 New "Try with Sample Data" lets you explore the full app before entering your own numbers. Also new: a refreshed icon system, haptic feedback throughout, and easier subscription management.
 
@@ -142,8 +142,8 @@ Secure Paycheck Debt Planner with Face ID, Touch ID, or your device passcode —
 ### Try with Sample Data
 New users can explore the full app populated with realistic sample bills, debts, and goals before entering their own numbers. A persistent "Demo Mode" indicator makes it clear you're viewing sample data, with a one-tap "Start My Own Plan" action to clear it and begin fresh. Sample data never affects your real subscription status — the upgrade flow works exactly as it would with your own numbers.
 
-### Local Notifications (Premium)
-Two reminders, both opt-in: a paycheck-eve nudge the evening before your next payday, and a heads-up a couple of days before your earliest unpaid bill is due. Notifications reschedule automatically whenever you recalculate your plan or roll over to the next pay cycle.
+### Local Notifications
+Two reminders, both opt-in and free for everyone: a paycheck-eve nudge the evening before your next payday, and a heads-up a couple of days before your earliest unpaid bill is due. Notifications reschedule automatically whenever you recalculate your plan or roll over to the next pay cycle.
 
 ### App Store Review Prompt
 After a few completed pay cycles, you may see Apple's native prompt asking if you'd like to leave a review. It only asks once, and whether (or how) it appears is entirely controlled by Apple.
