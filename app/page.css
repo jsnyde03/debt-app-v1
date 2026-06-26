@@ -774,6 +774,13 @@ button:disabled {
 	transition: background-color 200ms ease, box-shadow 200ms ease;
 }
 
+/* .settings-sheet button's 44px min-height (touch-target accessibility rule)
+   outranks .toggle-button alone on specificity (class+element beats class) -
+   override it explicitly here so the switch keeps its compact pill shape. */
+.settings-sheet .toggle-button {
+	min-height: 0;
+}
+
 .toggle-button.toggle-on {
 	background: var(--accent-color);
 	box-shadow: none;
