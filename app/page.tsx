@@ -22,7 +22,7 @@ import {
 } from "@/lib/recurrence/rolloverPayCycle";
 
 import { type RecommendationOverride, type Debt, type RequiredExpense, type RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
-import { calculateMonthlyInterest } from "@/lib/debt/calculateMonthlyInterest";
+import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { parseDebtCsv } from "@/lib/imports/debtCsv";
 import type { LivingExpense } from "@/lib/types/livingExpense";
@@ -32,6 +32,7 @@ import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { TimelineSection } from "@/components/TimelineSection";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
+import { hasFeatureAccess } from "@/lib/subscription/hasFeatureAccess";
 import { UpgradeSection } from "@/components/UpgradeSection";
 import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
@@ -385,7 +386,7 @@ export default function Home() {
                 setSubscriptionPlan(plan);
                 console.log("Loaded subscription plan:", plan);
 
-                if (plan === "premium" && notificationsEnabled && nextPaycheckDate) {
+                if (hasFeatureAccess(plan, "notifications") && notificationsEnabled && nextPaycheckDate) {
                     const permitted = await hasNotificationPermission();
                     if (permitted) {
                         void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
@@ -622,7 +623,7 @@ export default function Home() {
         setActiveTab("plan");
         setStatusMessage("Plan updated");
 
-        if (notificationsEnabled && subscriptionPlan === "premium") {
+        if (notificationsEnabled && hasFeatureAccess(subscriptionPlan, "notifications")) {
             void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
         }
     }
@@ -1092,43 +1093,12 @@ export default function Home() {
 
         setDebts((current) =>
             rolloverDebts(
-                current.map((debt) => {
-                    if (debt.balance <= 0) {
-                        return debt;
-                    }
-
-                    const minimumWasPaid =
-                        debt.minimumPaidThisCycle ??
-                        debt.isPaidThisCycle ??
-                        false;
-
-                    const completedSnowballAmount =
-                        getCompletedRecommendedAmountForDebt(debt.id);
-
-                    const interest = calculateMonthlyInterest(
-                        debt.balance,
-                        debt.apr
-                    );
-
-                    const balanceWithInterest = roundMoney(
-                        debt.balance + interest
-                    );
-
-                    const minimumPaymentAmount = minimumWasPaid
-                        ? Math.min(debt.minimumPayment, balanceWithInterest)
-                        : 0;
-
-                    const totalPayment = roundMoney(
-                        minimumPaymentAmount + completedSnowballAmount
-                    );
-
-                    return {
-                        ...debt,
-                        balance: roundMoney(
-                            Math.max(0, balanceWithInterest - totalPayment)
-                        ),
-                    };
-                }),
+                current.map((debt) =>
+                    applyRolloverPayment(
+                        debt,
+                        getCompletedRecommendedAmountForDebt(debt.id)
+                    )
+                ),
                 nextPaycheckDate
             )
         );
@@ -1153,7 +1123,7 @@ export default function Home() {
             setCurrentDate(nextCycleStart);
             setNextPaycheckDate(followingPaycheckDate);
 
-            if (notificationsEnabled && subscriptionPlan === "premium") {
+            if (notificationsEnabled && hasFeatureAccess(subscriptionPlan, "notifications")) {
                 const rolledExpenses = rolloverRequiredExpenses(requiredExpenses, nextPaycheckDate);
                 void scheduleNotifications({ nextPaycheckDate: followingPaycheckDate, requiredExpenses: rolledExpenses });
             }
@@ -1694,7 +1664,7 @@ export default function Home() {
                                         </p>
                                     </div>
 
-                                    {subscriptionPlan === "premium" ? (
+                                    {hasFeatureAccess(subscriptionPlan, "notifications") ? (
                                         <button
                                             type="button"
                                             role="switch"

@@ -181,6 +181,46 @@ function testProjectForecast_eachMonthHasRequiredFields() {
     console.log("  ✓ every forecast month has all required fields");
 }
 
+function testProjectForecast_recoveryMonthMatchesTheMonthThatActuallyCrosses200() {
+    // 50 + 100*index crosses 200 at index 2 (50, 150, 250) - recoveryMonth
+    // should equal index 2's own monthLabel, on every month object since
+    // it's the same pre-calculated value attached everywhere.
+    const result = projectForecast({
+        startingSafeCash: 50,
+        startingDebtBalance: 3000,
+        monthlyDebtReduction: 100,
+        months: 3,
+        bufferTrendPerMonth: 100,
+    });
+    assertEqual(result[2].recoveryMonth, result[2].monthLabel, "recoveryMonth equals the label of the month that actually crosses $200");
+    assertEqual(result[0].recoveryMonth, result[2].monthLabel, "recoveryMonth is the same precomputed value on an earlier month too");
+}
+
+function testProjectForecast_recoveryMonthUndefinedWhenNeverRecovers() {
+    // Flat trend, never reaches $200 within the window.
+    const result = projectForecast({
+        startingSafeCash: 50,
+        startingDebtBalance: 3000,
+        monthlyDebtReduction: 100,
+        months: 3,
+        bufferTrendPerMonth: 0,
+    });
+    assertEqual(result[0].recoveryMonth, undefined, "recoveryMonth is undefined when cash never recovers within the forecast window");
+    assertEqual(result[2].recoveryMonth, undefined, "recoveryMonth stays undefined on the last month too");
+}
+
+function testProjectForecast_recoveryMonthConsistentAcrossAllMonths() {
+    const result = projectForecast({
+        startingSafeCash: -50,
+        startingDebtBalance: 3000,
+        monthlyDebtReduction: 100,
+        months: 4,
+        bufferTrendPerMonth: 75,
+    });
+    const recoveryValues = new Set(result.map((month) => month.recoveryMonth));
+    assertEqual(recoveryValues.size, 1, "recoveryMonth is identical across every month in the result, not recalculated per-iteration");
+}
+
 export function runForecastRegressionTests() {
     console.log("Running forecast regression tests...");
 
@@ -201,6 +241,9 @@ export function runForecastRegressionTests() {
     testProjectForecast_statusReflectsSafeCashThresholds();
     testProjectForecast_stableStatus();
     testProjectForecast_eachMonthHasRequiredFields();
+    testProjectForecast_recoveryMonthMatchesTheMonthThatActuallyCrosses200();
+    testProjectForecast_recoveryMonthUndefinedWhenNeverRecovers();
+    testProjectForecast_recoveryMonthConsistentAcrossAllMonths();
 
     console.log("✅ All forecast regression tests passed.");
 }

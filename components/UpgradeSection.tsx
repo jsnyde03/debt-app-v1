@@ -1,4 +1,4 @@
-import { premiumFeatureLabels } from "@/lib/subscription/features";
+import { premiumMarketingHighlights } from "@/lib/subscription/features";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import type { PremiumPackageInfo } from "@/lib/subscription/revenueCat";
 
@@ -67,7 +67,7 @@ export function UpgradeSection({ packageInfo, onClose, onUpgradeClick, onRestore
                 </div>
 
                 <div className="upgrade-feature-list">
-                    {Object.values(premiumFeatureLabels).map((label) => (
+                    {premiumMarketingHighlights.map((label) => (
                         <div
                             key={label}
                             className="upgrade-features-item"

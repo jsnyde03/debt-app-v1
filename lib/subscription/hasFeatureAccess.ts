@@ -9,9 +9,9 @@ export function hasFeatureAccess(plan: SubscriptionPlan, feature: PremiumFeature
     switch (feature) {
         case "forecasting":
         case "strategy_comparison":
-        case "interest_savings":
         case "what_if_scenarios":
         case "smart_insights":
+        case "notifications":
             return false;
 
         default:
