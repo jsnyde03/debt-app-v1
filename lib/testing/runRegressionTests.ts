@@ -10,6 +10,7 @@ import "./testFinalLaunchRegression";
 import "./testV11Regression";
 import "./testFullAppRegression";
 import "./testTimelineRegression";
+import "./testMultiCycleTimelineRegression";
 import "./testRecommendedActionsRegression";
 import "./testForecastRegression";
 import "./testDebtMathRegression";

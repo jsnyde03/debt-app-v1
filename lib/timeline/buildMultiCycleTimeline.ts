@@ -77,10 +77,15 @@ export function buildMultiCycleTimeline({
         isProjected: false,
     });
 
-    // Project future cycles so the user can see their full bill schedule
+    // Project future cycles so the user can see their full bill schedule.
+    // For the initial rollover, treat all in-cycle bills as paid so that recurring
+    // items advance their due dates and one-time items are not carried forward.
     let projCurrentDate = nextPaycheckDate;
-    let projExpenses = rolloverRequiredExpenses(requiredExpenses, nextPaycheckDate);
-    let projDebts = rolloverDebts(debts, nextPaycheckDate);
+    const initialPaid = markInCycleBillsAsPaid(requiredExpenses, debts, nextPaycheckDate);
+    let projExpenses = rolloverRequiredExpenses(initialPaid.expenses, nextPaycheckDate)
+        .filter((e) => e.recurrence !== "one-time" || !isPastDue(e.dueDate, nextPaycheckDate));
+    let projDebts = rolloverDebts(initialPaid.debts, nextPaycheckDate)
+        .filter((d) => d.recurrence !== "one-time" || !isPastDue(d.dueDate, nextPaycheckDate));
     const projGoals = [...goals];
 
     for (let i = 1; i < maxCycles; i++) {
@@ -131,11 +136,43 @@ export function buildMultiCycleTimeline({
         });
 
         projCurrentDate = projNextDate;
-        projExpenses = rolloverRequiredExpenses(projExpenses, projNextDate);
-        projDebts = rolloverDebts(projDebts, projNextDate);
+
+        // For projected cycles, simulate that in-cycle bills were paid so that rollover
+        // advances their due dates correctly and the same bill doesn't appear in every
+        // subsequent cycle.
+        const paidForRollover = markInCycleBillsAsPaid(projExpenses, projDebts, projNextDate);
+        projExpenses = rolloverRequiredExpenses(paidForRollover.expenses, projNextDate)
+            .filter((e) => e.recurrence !== "one-time" || !isPastDue(e.dueDate, projNextDate));
+        projDebts = rolloverDebts(paidForRollover.debts, projNextDate)
+            .filter((d) => d.recurrence !== "one-time" || !isPastDue(d.dueDate, projNextDate));
     }
 
     return cycles;
+}
+
+function isPastDue(dueDate: string, cycleStart: string): boolean {
+    return new Date(`${dueDate}T00:00:00`) < new Date(`${cycleStart}T00:00:00`);
+}
+
+function markInCycleBillsAsPaid(
+    expenses: RequiredExpense[],
+    debts: Debt[],
+    cycleEnd: string,
+): { expenses: RequiredExpense[]; debts: Debt[] } {
+    const cycleEndDate = new Date(`${cycleEnd}T00:00:00`);
+    const dueBeforeCycleEnd = (dueDate: string) =>
+        new Date(`${dueDate}T00:00:00`) < cycleEndDate;
+
+    return {
+        expenses: expenses.map((e) => ({
+            ...e,
+            isPaidThisCycle: dueBeforeCycleEnd(e.dueDate) ? true : (e.isPaidThisCycle ?? false),
+        })),
+        debts: debts.map((d) => ({
+            ...d,
+            minimumPaidThisCycle: dueBeforeCycleEnd(d.dueDate) ? true : (d.minimumPaidThisCycle ?? false),
+        })),
+    };
 }
 
 function getEndingBalance(items: TimelineItem[], fallback: number): number {
