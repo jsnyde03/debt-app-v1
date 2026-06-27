@@ -60,6 +60,18 @@ Four features independently require a **backend** that doesn't exist today (the 
 
 **Risk:** Low. The current-cycle items are identical to before; the only addition is projected future cycles. Projected cycles show only mandatory outflows (no completed actions), so they err on the side of showing less rather than more.
 
+### v1.4 addendum — Cash buffer + debt math fixes (2026-06-27)
+
+**Cash buffer as timeline item:** The `$50 paycheckBuffer` was allocated by the engine but invisible in the timeline, creating a gap between the timeline's ending balance and the plan view's `flexibleCashAvailable`. `buildTimelineItems` now emits a `"buffer"` type item ("Cash Buffer 🔒", status "Reserved") dated `nextPaycheckDate` so it sorts after required bills. Item only appears when the engine actually allocated a buffer (shortfall = 0, remaining > 0). Cycle ending balance now equals `flexibleCashAvailable` exactly.
+
+**Debt interest accumulation:** `projectDebtPayoff` called `roundMoney()` after each monthly interest addition, accumulating up to ~$3 of drift over long projections. Changed to raw accumulation with a single `roundMoney()` at the return. Affects display-only `totalInterestPaid` (Smart Insights, Strategy Comparison) — no impact on debt balances or payoff dates.
+
+**Files touched:**
+- `lib/timeline/buildTimelineItems.ts` — added `"buffer"` to `TimelineItem.type`, buffer item emission
+- `components/TimelineSection.tsx` — icon (🔒) and status label ("Reserved") for buffer type
+- `lib/debt/projectDebtPayoff.ts` — removed intermediate `roundMoney` on interest accumulation
+- `lib/testing/testMultiCycleTimelineRegression.ts` — 3 new buffer regression tests
+
 ---
 
 ## v1.5 — Pay Cycle History
