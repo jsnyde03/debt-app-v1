@@ -337,7 +337,7 @@ Without adjustment, the sidebar overlaps the content on iPad since `.app-content
 
 ---
 
-## v1.3 addendum — Critical Immediate Fixes (Second Audit Pass)
+## v1.3 addendum — Critical Immediate Fixes (Second Audit Pass) *(done, 2026-06-27)*
 
 **Scope:** Two code-verified gaps found during a second audit pass that are P0 and require fewer than 10 lines of code each. Ship immediately to `v1.3-dev` before cutting the v1.4 branch — these are the kind of bugs that, once you know about them, feel embarrassing to leave in.
 
@@ -370,7 +370,7 @@ Change every `type="number"` on a currency/amount field to `type="text" inputmod
 
 ---
 
-## v1.3 addendum — UX Quick Wins (from Premium Audit)
+## v1.3 addendum — UX Quick Wins (from Premium Audit) *(done, 2026-06-27)*
 
 **Scope:** Two trivial changes identified in `docs/premium-ux-audit.md` that are zero-risk, zero-dependency, and too small to block on a dedicated version. Ship as a standalone push to `v1.3-dev` before cutting the v1.4 branch.
 
@@ -420,7 +420,7 @@ The `::before` line requires `position: relative` on `.bottom-nav-item` (verify 
 
 ---
 
-## Pre-v1.4 — Foundation Fix: Storage Error Handling (from Premium Audit #16)
+## Pre-v1.4 — Foundation Fix: Storage Error Handling (from Premium Audit #16) *(done, 2026-06-27)*
 
 **Scope:** `docs/premium-ux-audit.md` #16 flags that `loadStoredState` silently returns defaults on any JSON parse error, meaning corrupted localStorage silently wipes user data. The full schema versioning + migration solution is planned for v1.10 — but a minimal try/catch fix should ship before v1.4 onboarding goes out, since onboarding is the moment new users will first have real data that could be lost.
 
