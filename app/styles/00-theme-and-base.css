@@ -390,6 +390,12 @@ button:active {
 	transform: scale(0.965);
 }
 
+button:disabled {
+	opacity: 0.55;
+	cursor: default;
+	pointer-events: none;
+}
+
 .secondary-button,
 .add-button,
 .collapsible-header {

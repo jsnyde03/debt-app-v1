@@ -44,7 +44,9 @@ This single decision is the most important thing in this document. Everything be
 
 ---
 
-## v1.2 addendum — App Store Compliance: Manage Subscription + Terms of Use Links
+## v1.2 addendum — App Store Compliance: Manage Subscription + Terms of Use Links — done
+
+**Status: shipped.** Added "Terms of Use" (linking Apple's Standard EULA — no custom page needed) and "Manage Subscription" (linking `https://apps.apple.com/account/subscriptions`) to the Settings legal-links row, and "Terms of Use" to the upgrade/paywall screen alongside Privacy Policy/Support. `.settings-legal-row`/`.upgrade-legal-row` CSS gained `flex-wrap: wrap` to handle the now-longer link list cleanly at narrow phone widths (verified via Playwright at 375px).
 
 _Verified gap, not in any prior version of this doc: the app has zero "Manage Subscription" entry point and zero Terms of Use/EULA link anywhere — only Privacy Policy and Support exist in Plan Settings. Given two prior App Review rejections under Guideline 2.1.1, closing this preemptively (rather than waiting for Apple to flag it under Guideline 3.1.2) is cheap insurance worth doing now rather than reactively later._
 
@@ -60,6 +62,35 @@ _Verified gap, not in any prior version of this doc: the app has zero "Manage Su
 **Testing:** Manual — confirm both links open correctly on-device (the subscription management URL only resolves meaningfully on a real device signed into the App Store, not the simulator).
 
 **Risk:** Low. Pure link-outs, no logic, no data model changes — the only real work is sourcing/drafting the Terms of Use content if it doesn't already exist.
+
+---
+
+## v1.2 addendum — Demo Mode ("Try with Sample Data") — done
+
+**Status: shipped.** The original "Populate Demo Data" seed function existed only as a dev-only debug button (`process.env.NODE_ENV === "development"`), invisible in production — meaning App Review and real users alike had no way to preview the app with realistic data. Turned it into a real, user-facing feature instead of a reviewer-specific backdoor, since Apple's guidelines frown on apps behaving differently for reviewers than real users.
+
+**Implementation:**
+1. `lib/testing/seedPlannerState.ts` — converted the hardcoded-calendar-date demo dataset (`demoPlannerState` constant, dated May/June 2026) into `buildDemoPlannerState(today)`, computing every date as an offset from "today" at the moment it's applied. Hardcoded dates would have looked stale/broken the moment "today" moved past them — now the seeded data always looks current. `applyDemoPlannerStateToStorage` also now sets a new `debtPlanner.isDemoMode` flag.
+2. New "Try with Sample Data" button on the first-run setup sheet, alongside the existing "Import Backup" — calls the same seed function + reload, now exposed in production.
+3. New `isDemoMode` state in `app/page.tsx` (read once via `loadStoredState`) drives a persistent banner ("Demo Mode — viewing sample data") with a "Start My Own Plan" action that clears all storage and reloads back to a clean first-run state.
+4. **Deliberately does not mock or unlock Premium entitlements.** Demo data populates debts/bills/goals only — the real subscription state (free, unless actually purchased) still applies, so the paywall triggers exactly as it would for any real user. This keeps the reviewer/user experience honest: they see real premium feature *previews* backed by realistic data, not a faked-unlocked tier.
+5. `tests/e2e/planner-visual-state-shots.spec.ts` updated to call `buildDemoPlannerState()` instead of importing the now-removed static `demoPlannerState` export.
+
+**Files touched:** `lib/testing/seedPlannerState.ts`, `app/page.tsx`, `app/page.css` (`.demo-mode-banner`, `.demo-mode-exit-button`, `.first-run-import-row` layout), `tests/e2e/planner-visual-state-shots.spec.ts`.
+
+**Risk:** Low. Additive, and the date-offset refactor was verified to reproduce the exact same relative spacing (overdue/upcoming bills) as the original hardcoded dataset — just anchored to "today" instead of a fixed calendar date.
+
+---
+
+## v1.2 addendum — Settings Toggle Redesign — done
+
+**Status: shipped.** `.toggle-button`/`.toggle-on`/`.toggle-off` (used by the Notifications and App Lock toggles) had zero dedicated CSS — they were rendering as the generic block-button base style with "On"/"Off" text, not a toggle control. Replaced with a proper iOS-style sliding switch (51×31pt track, 27pt thumb, `role="switch"`/`aria-checked` for correct accessibility semantics). Also fixed `.notifications-settings-row`, which had zero CSS and was stacking the toggle below the header text instead of right-aligning it on the same row — added `display: flex; justify-content: space-between` so the toggle now sits compactly beside its label, matching standard iOS settings-row layout.
+
+**Standing rule going forward:** any future toggle/switch control in this app must use this same iOS-style sliding-switch pattern (`.toggle-button`/`.toggle-thumb`), not a generic on/off button. Don't introduce a second toggle visual language.
+
+**Files touched:** `app/page.tsx` (both toggle usages), `app/page.css` (`.toggle-button`, `.toggle-thumb`, `.notifications-settings-row`, `.notifications-settings-card`).
+
+**Risk:** Low. Pure presentation, no behavior change — verified visually in both light/dark themes and both on/off states.
 
 ---
 

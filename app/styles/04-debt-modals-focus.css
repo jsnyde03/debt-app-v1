@@ -335,10 +335,14 @@
 }
 
 .first-run-import-row {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 	margin-top: 14px;
 }
 
-.first-run-import-row .import-button {
+.first-run-import-row .import-button,
+.first-run-import-row button {
 	width: 100%;
 	min-height: 48px;
 	font-weight: 800;

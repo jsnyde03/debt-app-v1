@@ -20,6 +20,8 @@ Every phase below carries its own **Ships in: vX.X** line so there's no ambiguit
 
 ## P1a — Icon system foundation
 
+**Status: done.** Installed `lucide-react`, added `lib/icons/index.ts`, replaced icons in bottom nav, theme toggle, settings gear, the Bills section switcher, and `AppLockScreen.tsx`. All icon-only buttons in scope already had `aria-label`s from prior work — no gaps found.
+
 **Ships in: v1.2**, alongside notifications/App Store review/App Lock.
 
 **Current state (verified):** Every icon in the app is an emoji or Unicode glyph, inline in JSX (e.g. `components/GoalsSection.tsx`, `components/DebtRow.tsx`, `components/AppLockScreen.tsx`). No icon library is installed.
@@ -41,6 +43,8 @@ Every phase below carries its own **Ships in: vX.X** line so there's no ambiguit
 
 ## P2 — Haptic coverage completion
 
+**Status: done.** Audited every `onClick` across `app/page.tsx`, `PaycheckSection.tsx`, `GoalsSection.tsx`, `DebtsSection.tsx`, `RequiredExpensesSection.tsx`, and `LivingExpensesSection.tsx`. Added light haptic to: tab switches, the Bills section switcher, the Settings "Close" button, the Add Debt modal's "Close," goal pagination, and expense pagination. Added medium haptic to: "Calculate plan," "Start Next Pay Cycle," the goal "Save" and "Remove" actions, and the expense "Remove" action. Found several handlers that already had haptics built in (`startEditing`, `saveEditing` in DebtsSection, `handleAddDebt`, `handleAddGoal`) — left those untouched to avoid double-firing.
+
 **Ships in: v1.2**, alongside P1a.
 
 **Current state (verified):** `lib/mobile/haptics.ts` exposes light/medium/success haptic triggers. Used in ~40 call sites today, concentrated in `SwipeActionCard.tsx`, `PullToRefresh.tsx`, and form-toggle handlers in `app/page.tsx`/`DebtGroup.tsx`/`DebtRow.tsx`/`DebtsSection.tsx`. Ordinary buttons and tab switches currently have no haptic feedback.
@@ -61,20 +65,11 @@ Every phase below carries its own **Ships in: vX.X** line so there's no ambiguit
 
 ## P9a — Tap targets, grid breakpoint, keyboard hints
 
+**Status: done — with one correction.** Bumped `.smart-insight-icon` (`app/page.css`, was 34×34) and `.pagination-compact .text-action-button` (was 32×32) to 44×44. Added `enterKeyHint="done"` to the paycheck amount input in `PaycheckSection.tsx`.
+
+The execution-summary grid breakpoint was investigated and **found to already work correctly** — verified via Playwright at a 390px viewport (iPhone 14 width): computed `grid-template-columns` was `139px 139px` (2 columns), and the rendered screenshot showed a clean layout with no cramping. The `@media (max-width: 768px)` rule already collapses the grid correctly and nothing downstream overrides it. The original audit's claim here was a misdiagnosis — no CSS change was made for this item.
+
 **Ships in: v1.2**, alongside P1a/P2.
-
-**Current state (verified):** `.smart-insight-icon` (`app/styles/01-payoff-goals.css:119-120`) is 34×34px; the pagination buttons in `.pagination-compact .text-action-button` (`app/styles/02-overdue-pagination-nav.css:206`) are 32×32px — both below Apple's 44×44pt HIG minimum tap target. The Plan tab's execution summary strip (`components/ResultsSection.tsx:869-897`, grid CSS in `app/styles/03-nav-results-modals.css:665`) uses `grid-template-columns: repeat(4, minmax(0, 1fr))` with a collapse-to-2-column breakpoint at 768px that doesn't reliably apply at real phone widths. `components/PaycheckSection.tsx:61-65` submits on Enter keydown with no `enterKeyHint` set on the input.
-
-**Implementation steps:**
-1. Increase `.smart-insight-icon` and `.pagination-compact .text-action-button` to a 44×44px minimum *hit area* — use padding/invisible hit-slop to expand the tappable region without necessarily growing the visible icon/glyph size if 44px would look oversized in context.
-2. Audit the execution-summary grid's breakpoint logic in `app/styles/03-nav-results-modals.css`/`09-anim-swipe-media-misc.css` and fix it so phone widths (anything under ~480px, covering the whole real-device range) consistently get the 2-column layout, not the 4-column one.
-3. Add `enterKeyHint="done"` to the paycheck amount input in `PaycheckSection.tsx` so the virtual keyboard's return key visibly reflects the existing Enter-to-submit behavior.
-
-**Files touched:** `app/styles/01-payoff-goals.css`, `app/styles/02-overdue-pagination-nav.css`, `app/styles/03-nav-results-modals.css` (or wherever the grid breakpoint actually lives once traced), `components/PaycheckSection.tsx`.
-
-**Testing:** Visual check on a real phone-width viewport (375px and 428px) confirming the execution summary renders 2 columns, not 4. Tap-target sizes can be confirmed via browser devtools box model on the built output. No regression test needed — CSS/attribute-only.
-
-**Risk:** Low. Isolated, mechanical, no logic changes.
 
 ---
 

@@ -510,6 +510,59 @@ function testInsightsRecoveryNeededNotReturnedWhenHealthy() {
 	assertEqual(recovery === undefined, true, "Recovery Needed not returned when buffer is healthy");
 }
 
+function testInsightsSafeExtraPaymentWhenBufferHealthyAndExtraAvailable() {
+	const insights = buildSmartInsights(makeBaseInsightParams({
+		safeExtraPayment: 150,
+		projectedBuffer: 250,
+	}));
+	const safeExtra = assertExists(
+		insights.find((i) => i.title === "Safe Extra Payment"),
+		"Safe Extra Payment insight"
+	);
+	assertEqual(safeExtra.severity, "good", "Safe Extra Payment is good severity");
+}
+
+function testInsightsSafeExtraPaymentNotReturnedWhenBufferTooLow() {
+	const insights = buildSmartInsights(makeBaseInsightParams({
+		safeExtraPayment: 150,
+		projectedBuffer: 150, // below the 200 threshold
+	}));
+	const safeExtra = insights.find((i) => i.title === "Safe Extra Payment");
+	assertEqual(safeExtra === undefined, true, "Safe Extra Payment not returned when buffer is below 200");
+}
+
+function testInsightsPayoffTimingDifferenceWhenDatesDifferButInterestTied() {
+	// avalancheInterest >= snowballInterest (so "Interest Reduction" doesn't
+	// fire) but the two strategies still land on different payoff dates.
+	const insights = buildSmartInsights(makeBaseInsightParams({
+		snowballInterest: 1500,
+		avalancheInterest: 1500,
+		snowballDebtFreeDate: "June 2028",
+		avalancheDebtFreeDate: "August 2028",
+		projectedBuffer: 300,
+	}));
+	const timing = assertExists(
+		insights.find((i) => i.title === "Payoff Timing Difference"),
+		"Payoff Timing Difference insight"
+	);
+	assertEqual(timing.severity, "warning", "Payoff Timing Difference is warning severity");
+}
+
+function testInsightsStabilityFirstWhenBufferCriticallyLow() {
+	const insights = buildSmartInsights(makeBaseInsightParams({ projectedBuffer: 50 }));
+	const stability = assertExists(
+		insights.find((i) => i.title === "Stability First"),
+		"Stability First insight"
+	);
+	assertEqual(stability.severity, "warning", "Stability First is warning severity");
+}
+
+function testInsightsStabilityFirstNotReturnedWhenBufferHealthy() {
+	const insights = buildSmartInsights(makeBaseInsightParams({ projectedBuffer: 300 }));
+	const stability = insights.find((i) => i.title === "Stability First");
+	assertEqual(stability === undefined, true, "Stability First not returned once buffer clears 100");
+}
+
 // ─── 4. ROLLOVER PAY CYCLE ──────────────────────────────────────────────────
 
 function testRolloverExpenseResetsIsPaidThisCycle() {
@@ -733,6 +786,11 @@ function runFullAppRegressionTests() {
 	testInsightsAvalancheInterestReductionInsight();
 	testInsightsAlwaysReturnsAtLeastOne();
 	testInsightsRecoveryNeededNotReturnedWhenHealthy();
+	testInsightsSafeExtraPaymentWhenBufferHealthyAndExtraAvailable();
+	testInsightsSafeExtraPaymentNotReturnedWhenBufferTooLow();
+	testInsightsPayoffTimingDifferenceWhenDatesDifferButInterestTied();
+	testInsightsStabilityFirstWhenBufferCriticallyLow();
+	testInsightsStabilityFirstNotReturnedWhenBufferHealthy();
 
 	// Rollover pay cycle
 	testRolloverExpenseResetsIsPaidThisCycle();

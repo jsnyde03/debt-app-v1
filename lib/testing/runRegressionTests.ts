@@ -13,5 +13,6 @@ import "./testTimelineRegression";
 import "./testRecommendedActionsRegression";
 import "./testForecastRegression";
 import "./testDebtMathRegression";
+import "./testSubscriptionGating";
 
 console.log("✅ All regression tests passed.");

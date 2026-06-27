@@ -76,7 +76,9 @@ export function projectDebtPayoff({
             name: debt.name,
             balance: debt.balance,
             minimumPayment: debt.minimumPayment,
-            apr: debt.apr,
+            // BNPL is fixed-installment, interest-free by definition - never
+            // accrue interest on it even if a nonzero APR was entered/defaulted.
+            apr: debt.type === "bnpl" ? 0 : debt.apr,
         }));
 
     let months = 0;

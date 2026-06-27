@@ -27,8 +27,8 @@ import {
     rolloverRequiredExpenses,
 } from "@/lib/recurrence/rolloverPayCycle";
 
-import { type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
-import { calculateMonthlyInterest } from "@/lib/debt/calculateMonthlyInterest";
+import { type RecommendationOverride, type Debt, type RequiredExpense, type RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
+import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { parseDebtCsv } from "@/lib/imports/debtCsv";
 import type { LivingExpense } from "@/lib/types/livingExpense";
@@ -38,8 +38,8 @@ import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
 import { TimelineSection } from "@/components/TimelineSection";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
-import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting } from "@/lib/subscription/revenueCat";
-import { triggerLightHaptic } from "@/lib/mobile/haptics";
+import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";
+import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { scheduleNotifications, cancelAllNotifications, requestNotificationPermission, hasNotificationPermission } from "@/lib/notifications/scheduleNotifications";
 import { incrementRolloverCount, maybeRequestAppReview } from "@/lib/review/requestAppReview";
 import { AppSkeleton } from "@/components/AppSkeleton";
@@ -54,6 +54,7 @@ import { useSubscription } from "@/lib/hooks/useSubscription";
 import { useNotificationsSetting } from "@/lib/hooks/useNotificationsSetting";
 import { AppLockScreen } from "@/components/AppLockScreen";
 import { useAppLock } from "@/lib/hooks/useAppLock";
+import { Home as HomeIcon, CreditCard, TrendingUp, Target, Sun, Moon, Settings, Wallet } from "@/lib/icons";
 
 type CompletedRecommendedAction = {
     targetId: string;
@@ -173,6 +174,10 @@ export default function Home() {
 
     const { appLockEnabled, setAppLockEnabled, isUnlocked, requestUnlock } = useAppLock();
 
+    const [isDemoMode] = useState(() =>
+        loadStoredState("debtPlanner.isDemoMode", false)
+    );
+
     const [lastSavedAt, setLastSavedAt] = useState(() =>
         loadStoredState("debtPlanner.lastSavedAt", "")
     );
@@ -227,6 +232,8 @@ export default function Home() {
         showUpgrade, setShowUpgrade,
         purchaseStatus, setPurchaseStatus,
     } = useSubscription(notificationsEnabled, nextPaycheckDate, requiredExpenses, setNotificationsEnabled);
+
+    const [premiumPackageInfo, setPremiumPackageInfo] = useState<PremiumPackageInfo | null>(null);
 
     function saveResetSnapshot(overrides?: {
         requiredExpenses?: RequiredExpense[];
@@ -301,6 +308,12 @@ export default function Home() {
     useEffect(() => {
         localStorage.setItem("debtPlanner.livingExpenses", JSON.stringify(livingExpenses));
     }, [livingExpenses]);
+
+    useEffect(() => {
+        if (!showUpgrade || premiumPackageInfo) return;
+
+        void getPremiumPackageInfo().then(setPremiumPackageInfo);
+    }, [showUpgrade, premiumPackageInfo]);
 
 
     useEffect(() => {
@@ -425,7 +438,7 @@ export default function Home() {
         setActiveTab("plan");
         setStatusMessage("Plan updated");
 
-        if (notificationsEnabled && subscriptionPlan === "premium") {
+        if (notificationsEnabled) {
             void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
         }
     }
@@ -612,43 +625,12 @@ export default function Home() {
 
         setDebts((current) =>
             rolloverDebts(
-                current.map((debt) => {
-                    if (debt.balance <= 0) {
-                        return debt;
-                    }
-
-                    const minimumWasPaid =
-                        debt.minimumPaidThisCycle ??
-                        debt.isPaidThisCycle ??
-                        false;
-
-                    const completedSnowballAmount =
-                        getCompletedRecommendedAmountForDebt(debt.id);
-
-                    const interest = calculateMonthlyInterest(
-                        debt.balance,
-                        debt.apr
-                    );
-
-                    const balanceWithInterest = roundMoney(
-                        debt.balance + interest
-                    );
-
-                    const minimumPaymentAmount = minimumWasPaid
-                        ? Math.min(debt.minimumPayment, balanceWithInterest)
-                        : 0;
-
-                    const totalPayment = roundMoney(
-                        minimumPaymentAmount + completedSnowballAmount
-                    );
-
-                    return {
-                        ...debt,
-                        balance: roundMoney(
-                            Math.max(0, balanceWithInterest - totalPayment)
-                        ),
-                    };
-                }),
+                current.map((debt) =>
+                    applyRolloverPayment(
+                        debt,
+                        getCompletedRecommendedAmountForDebt(debt.id)
+                    )
+                ),
                 nextPaycheckDate
             )
         );
@@ -673,7 +655,7 @@ export default function Home() {
             setCurrentDate(nextCycleStart);
             setNextPaycheckDate(followingPaycheckDate);
 
-            if (notificationsEnabled && subscriptionPlan === "premium") {
+            if (notificationsEnabled) {
                 const rolledExpenses = rolloverRequiredExpenses(requiredExpenses, nextPaycheckDate);
                 void scheduleNotifications({ nextPaycheckDate: followingPaycheckDate, requiredExpenses: rolledExpenses });
             }
@@ -685,6 +667,11 @@ export default function Home() {
 
     function handlePopulateDemoData() {
         applyDemoPlannerStateToStorage(window.localStorage);
+        window.location.reload();
+    }
+
+    function handleExitDemoMode() {
+        window.localStorage.clear();
         window.location.reload();
     }
 
@@ -708,6 +695,21 @@ export default function Home() {
                     >
                         Populate Demo Data
                     </button>
+                )}
+                {isDemoMode && (
+                    <div className="demo-mode-banner" role="status">
+                        <span>Demo Mode — viewing sample data</span>
+                        <button
+                            type="button"
+                            className="demo-mode-exit-button"
+                            onClick={() => {
+                                triggerLightHaptic();
+                                handleExitDemoMode();
+                            }}
+                        >
+                            Start My Own Plan
+                        </button>
+                    </div>
                 )}
                 <section className="hero">
                     <h1>Debt Planner</h1>
@@ -733,7 +735,7 @@ export default function Home() {
                         }
                         }
                     >
-                        {darkMode ? "☀" : "🌙"}
+                        {darkMode ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
                     </button>
 
                     {process.env.NEXT_PUBLIC_DEV_MODE === "true" && (
@@ -771,7 +773,7 @@ export default function Home() {
                                     setShowPlanSettings(true);
                                 }}
                             >
-                                ⚙
+                                <Settings size={20} aria-hidden="true" />
                             </button>
                         </div>
 
@@ -845,7 +847,7 @@ export default function Home() {
                         {showUpgrade && (
                             <>
                                 <UpgradeSection
-
+                                    packageInfo={premiumPackageInfo}
                                     onClose={() => setShowUpgrade(false)}
                                     onUpgradeClick={async () => {
                                         setPurchaseStatus("Starting purchase...");
@@ -902,9 +904,12 @@ export default function Home() {
                                     ? "mobile-section-switcher-button active"
                                     : "mobile-section-switcher-button"
                             }
-                            onClick={() => setBillsView("expenses")}
+                            onClick={() => {
+                                triggerLightHaptic();
+                                setBillsView("expenses");
+                            }}
                         >
-                            <span>💴</span>
+                            <Wallet size={18} aria-hidden="true" />
                             Expenses
                         </button>
 
@@ -915,9 +920,12 @@ export default function Home() {
                                     ? "mobile-section-switcher-button active"
                                     : "mobile-section-switcher-button"
                             }
-                            onClick={() => setBillsView("debts")}
+                            onClick={() => {
+                                triggerLightHaptic();
+                                setBillsView("debts");
+                            }}
                         >
-                            <span>💳</span>
+                            <CreditCard size={18} aria-hidden="true" />
                             Debts
                         </button>
                     </div>
@@ -1025,7 +1033,7 @@ export default function Home() {
                         setActiveTab("plan");
                     }}
                 >
-                    <span>🏠</span>
+                    <HomeIcon size={20} aria-hidden="true" />
                     <small>Plan</small>
                 </button>
 
@@ -1042,7 +1050,7 @@ export default function Home() {
                         setBillsView((current) => current ?? "expenses");
                     }}
                 >
-                    <span>💳</span>
+                    <CreditCard size={20} aria-hidden="true" />
                     <small>Bills</small>
                 </button>
 
@@ -1058,7 +1066,7 @@ export default function Home() {
                         setActiveTab("snowball");
                     }}
                 >
-                    <span>📈</span>
+                    <TrendingUp size={20} aria-hidden="true" />
                     <small>Payoff</small>
                 </button>
 
@@ -1074,7 +1082,7 @@ export default function Home() {
                         setActiveTab("goals");
                     }}
                 >
-                    <span>🎯</span>
+                    <Target size={20} aria-hidden="true" />
                     <small>Goals</small>
                 </button>
             </nav>
@@ -1106,7 +1114,10 @@ export default function Home() {
                                 <button
                                     type="button"
                                     className="text-action-button"
-                                    onClick={() => setShowPlanSettings(false)}
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        setShowPlanSettings(false);
+                                    }}
                                 >
                                     Close
                                 </button>
@@ -1128,6 +1139,17 @@ export default function Home() {
 
                         {isFirstRunSetup && (
                             <div className="first-run-import-row">
+                                <button
+                                    type="button"
+                                    className="secondary-button"
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        handlePopulateDemoData();
+                                    }}
+                                >
+                                    Try with Sample Data
+                                </button>
+
                                 <label className="secondary-button import-button">
                                     Import Backup
                                     <input
@@ -1176,24 +1198,16 @@ export default function Home() {
                                         </p>
                                     </div>
 
-                                    {subscriptionPlan === "premium" ? (
-                                        <button
-                                            type="button"
-                                            className={notificationsEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
-                                            onClick={handleNotificationsToggle}
-                                            aria-label={notificationsEnabled ? "Disable notifications" : "Enable notifications"}
-                                        >
-                                            {notificationsEnabled ? "On" : "Off"}
-                                        </button>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            className="premium-pill"
-                                            onClick={() => setShowUpgrade(true)}
-                                        >
-                                            Premium
-                                        </button>
-                                    )}
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={notificationsEnabled}
+                                        className={notificationsEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
+                                        onClick={handleNotificationsToggle}
+                                        aria-label={notificationsEnabled ? "Disable notifications" : "Enable notifications"}
+                                    >
+                                        <span className="toggle-thumb" />
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -1204,12 +1218,14 @@ export default function Home() {
                                     <div>
                                         <h3>App Lock</h3>
                                         <p className="section-collapse-subtitle">
-                                            Require Face ID or Touch ID to open the app.
+                                            Require Face ID, Touch ID, or your device passcode to open the app.
                                         </p>
                                     </div>
 
                                     <button
                                         type="button"
+                                        role="switch"
+                                        aria-checked={appLockEnabled}
                                         className={appLockEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
                                         onClick={() => {
                                             triggerLightHaptic();
@@ -1217,7 +1233,7 @@ export default function Home() {
                                         }}
                                         aria-label={appLockEnabled ? "Disable app lock" : "Enable app lock"}
                                     >
-                                        {appLockEnabled ? "On" : "Off"}
+                                        <span className="toggle-thumb" />
                                     </button>
                                 </div>
                             </div>
@@ -1234,12 +1250,30 @@ export default function Home() {
                             </a>
                             <span className="legal-separator">·</span>
                             <a
+                                href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="legal-link"
+                            >
+                                Terms of Use
+                            </a>
+                            <span className="legal-separator">·</span>
+                            <a
                                 href="https://github.com/jsnyde03/debt-planner-stie/blob/main/Paycheck%20Debt%20Planner%20Support"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="legal-link"
                             >
                                 Support
+                            </a>
+                            <span className="legal-separator">·</span>
+                            <a
+                                href="https://apps.apple.com/account/subscriptions"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="legal-link"
+                            >
+                                Manage Subscription
                             </a>
                         </div>
                     </div>

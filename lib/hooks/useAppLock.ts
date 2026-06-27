@@ -1,6 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { App } from "@capacitor/app";
 import { BiometricAuth } from "@aparajita/capacitor-biometric-auth";
+
+// Only lock after the app has sat in the background this long - a brief
+// switch to another app (notification, copy/paste, etc.) shouldn't force
+// re-authentication every time.
+const LOCK_GRACE_PERIOD_MS = 30_000;
 
 function loadStoredState<T>(key: string, fallback: T): T {
     if (typeof window === "undefined") return fallback;
@@ -58,21 +63,35 @@ export function useAppLock() {
         setIsUnlocked(!enabled);
     }
 
+    const lockTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
     useEffect(() => {
         if (!appLockEnabled) return;
 
         let handle: { remove: () => void } | undefined;
 
         void App.addListener("appStateChange", ({ isActive }) => {
-            if (!isActive) {
-                setIsUnlocked(false);
+            if (isActive) {
+                if (lockTimeoutRef.current) {
+                    clearTimeout(lockTimeoutRef.current);
+                    lockTimeoutRef.current = undefined;
+                }
+                return;
             }
+
+            lockTimeoutRef.current = setTimeout(() => {
+                setIsUnlocked(false);
+            }, LOCK_GRACE_PERIOD_MS);
         }).then((created) => {
             handle = created;
         });
 
         return () => {
             handle?.remove();
+            if (lockTimeoutRef.current) {
+                clearTimeout(lockTimeoutRef.current);
+                lockTimeoutRef.current = undefined;
+            }
         };
     }, [appLockEnabled]);
 

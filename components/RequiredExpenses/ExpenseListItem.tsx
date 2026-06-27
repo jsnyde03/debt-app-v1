@@ -1,6 +1,7 @@
 import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { triggerMediumHaptic } from "@/lib/mobile/haptics";
 
 export const requiredExpenseCategoryOptions: {
     value: RequiredExpenseCategory;
@@ -175,6 +176,7 @@ export function ExpenseListItem({
                         type="button"
                         className="text-action-button danger-action"
                         onClick={() => {
+                            triggerMediumHaptic();
                             onRemoveExpense(expense.id);
                             onCancelEditing();
                         }}

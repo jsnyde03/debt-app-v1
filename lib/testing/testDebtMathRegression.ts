@@ -2,6 +2,7 @@ import { calculateMonthlyInterest } from "../debt/calculateMonthlyInterest";
 import { applyDebtPaymentProjection } from "../debt/applyDebtPaymentProjection";
 import { projectDebtPayoff } from "../debt/projectDebtPayoff";
 import { buildExtraPaymentAllocationPlan } from "../debt/extraPaymentPlan";
+import { applyRolloverPayment } from "../debt/applyRolloverPayment";
 
 function assertEqual<T>(actual: T, expected: T, msg: string) {
     if (actual !== expected) {
@@ -96,6 +97,7 @@ function makeDebt(overrides: {
     balance: number;
     apr: number;
     minimumPayment: number;
+    type?: "debt" | "bnpl";
 }) {
     return {
         id: overrides.id,
@@ -104,7 +106,7 @@ function makeDebt(overrides: {
         minimumPayment: overrides.minimumPayment,
         apr: overrides.apr,
         dueDate: "2026-06-10",
-        type: "debt" as const,
+        type: overrides.type ?? ("debt" as const),
         recurrence: "monthly" as const,
         isAutopay: false,
         isPaidThisCycle: false,
@@ -206,6 +208,22 @@ function testProjectDebtPayoff_singleDebtPayoffDate() {
     assertEqual(result.totalInterestPaid, 0, "zero interest paid on 0% APR debt");
 }
 
+function testProjectDebtPayoff_bnplNeverAccruesInterestEvenWithNonzeroApr() {
+    // A BNPL debt with a mistakenly-entered/defaulted nonzero APR must never
+    // accrue interest - real BNPL plans are fixed-installment, interest-free.
+    const debts = [
+        makeDebt({ id: "d1", name: "BnplPlan", balance: 400, apr: 24.99, minimumPayment: 100, type: "bnpl" }),
+    ];
+    const result = projectDebtPayoff({
+        debts,
+        monthlyExtraPayment: 0,
+        strategy: "snowball",
+        startDate: "2026-06-01",
+    });
+    assertEqual(result.totalInterestPaid, 0, "BNPL debt accrues zero interest despite nonzero APR");
+    assertEqual(result.monthsToDebtFree, 4, "BNPL payoff is pure principal: $400 at $100/month = 4 months");
+}
+
 function testProjectDebtPayoff_payoffOrderContainsAllDebts() {
     const debts = [
         makeDebt({ id: "d1", name: "DebtA", balance: 1000, apr: 10, minimumPayment: 50 }),
@@ -220,6 +238,43 @@ function testProjectDebtPayoff_payoffOrderContainsAllDebts() {
     });
     if (result.payoffOrder.length !== 3) throw new Error(`FAIL: all 3 debts should appear in payoff order, got ${result.payoffOrder.length}`);
     console.log("  ✓ all debts appear in payoff order");
+}
+
+// --- applyRolloverPayment (pay-cycle rollover balance math) ---
+
+function testRollover_interestPlusMinimumPlusSnowball() {
+    // $1000 balance, 12% APR -> $10 interest -> $1010. Minimum $50 paid,
+    // snowball $100 completed this cycle -> new balance should be $860.
+    const debt = makeDebt({ id: "d1", name: "RolloverDebt", balance: 1000, apr: 12, minimumPayment: 50 });
+    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: true }, 100);
+    assertApprox(result.balance, 860, "rollover: interest + minimum + snowball nets to expected balance");
+}
+
+function testRollover_minimumNotPaidStillAccruesInterestOnly() {
+    // Minimum NOT paid this cycle -> only interest accrues, no payment deducted.
+    const debt = makeDebt({ id: "d1", name: "UnpaidDebt", balance: 1000, apr: 12, minimumPayment: 50 });
+    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: false }, 0);
+    assertApprox(result.balance, 1010, "rollover: unpaid minimum leaves balance at interest-only increase");
+}
+
+function testRollover_bnplNeverAccruesInterestOnRollover() {
+    const debt = makeDebt({ id: "d1", name: "BnplRollover", balance: 400, apr: 24.99, minimumPayment: 100, type: "bnpl" });
+    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: true }, 0);
+    assertApprox(result.balance, 300, "rollover: BNPL deducts payment with zero interest despite nonzero APR");
+}
+
+function testRollover_zeroBalanceDebtUnchanged() {
+    const debt = makeDebt({ id: "d1", name: "PaidOffDebt", balance: 0, apr: 22.99, minimumPayment: 50 });
+    const result = applyRolloverPayment(debt, 0);
+    assertEqual(result.balance, 0, "rollover: zero-balance debt stays at zero, no math applied");
+}
+
+function testRollover_paymentNeverDrivesBalanceNegative() {
+    // Snowball amount larger than the remaining balance after interest -
+    // balance must floor at zero, never go negative.
+    const debt = makeDebt({ id: "d1", name: "OverpaidDebt", balance: 50, apr: 0, minimumPayment: 50 });
+    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: true }, 200);
+    assertEqual(result.balance, 0, "rollover: overpayment floors balance at zero, never negative");
 }
 
 // --- buildExtraPaymentAllocationPlan ---
@@ -315,7 +370,14 @@ export function runDebtMathRegressionTests() {
     testProjectDebtPayoff_avalancheTiebreakerUsesSmallestBalance();
     testProjectDebtPayoff_cannotAmortize();
     testProjectDebtPayoff_singleDebtPayoffDate();
+    testProjectDebtPayoff_bnplNeverAccruesInterestEvenWithNonzeroApr();
     testProjectDebtPayoff_payoffOrderContainsAllDebts();
+
+    testRollover_interestPlusMinimumPlusSnowball();
+    testRollover_minimumNotPaidStillAccruesInterestOnly();
+    testRollover_bnplNeverAccruesInterestOnRollover();
+    testRollover_zeroBalanceDebtUnchanged();
+    testRollover_paymentNeverDrivesBalanceNegative();
 
     testExtraPaymentPlan_snowballTargetsSmallestBalance();
     testExtraPaymentPlan_avalancheTargetsHighestApr();

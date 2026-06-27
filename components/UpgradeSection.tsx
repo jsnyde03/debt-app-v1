@@ -1,13 +1,15 @@
-import { premiumFeatureLabels } from "@/lib/subscription/features";
+import { premiumMarketingHighlights } from "@/lib/subscription/features";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
+import type { PremiumPackageInfo } from "@/lib/subscription/revenueCat";
 
 type UpgradeSectionProps = {
+    packageInfo?: PremiumPackageInfo | null;
     onClose?: () => void;
     onUpgradeClick?: () => void;
     onRestoreClick?: () => void;
 };
 
-export function UpgradeSection({ onClose, onUpgradeClick, onRestoreClick, }: UpgradeSectionProps) {
+export function UpgradeSection({ packageInfo, onClose, onUpgradeClick, onRestoreClick, }: UpgradeSectionProps) {
     return (
         <div
             className="upgrade-modal-backdrop"
@@ -48,8 +50,24 @@ export function UpgradeSection({ onClose, onUpgradeClick, onRestoreClick, }: Upg
                     )}
                 </div>
 
+                <div className="upgrade-price-block" aria-live="polite">
+                    {packageInfo ? (
+                        <>
+                            <div className="upgrade-price-amount">
+                                {packageInfo.priceString}
+                                <span className="upgrade-price-period">/{packageInfo.periodLabel}</span>
+                            </div>
+                            <div className="upgrade-price-subtext">
+                                {packageInfo.title} · billed every {packageInfo.periodLabel}, auto-renews until cancelled
+                            </div>
+                        </>
+                    ) : (
+                        <div className="upgrade-price-loading">Loading price…</div>
+                    )}
+                </div>
+
                 <div className="upgrade-feature-list">
-                    {Object.values(premiumFeatureLabels).map((label) => (
+                    {premiumMarketingHighlights.map((label) => (
                         <div
                             key={label}
                             className="upgrade-features-item"
@@ -63,12 +81,15 @@ export function UpgradeSection({ onClose, onUpgradeClick, onRestoreClick, }: Upg
                     <button
                         type="button"
                         className="primary-button upgrade-button"
+                        disabled={!packageInfo}
                         onClick={() => {
                             triggerMediumHaptic();
                             onUpgradeClick?.();
                         }}
                     >
-                        Upgrade to Premium
+                        {packageInfo
+                            ? `Upgrade to Premium — ${packageInfo.priceString}/${packageInfo.periodLabel}`
+                            : "Upgrade to Premium"}
                     </button>
 
                     <button
@@ -93,12 +114,30 @@ export function UpgradeSection({ onClose, onUpgradeClick, onRestoreClick, }: Upg
                         </a>
                         <span className="legal-separator">·</span>
                         <a
+                            href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="legal-link"
+                        >
+                            Terms of Use
+                        </a>
+                        <span className="legal-separator">·</span>
+                        <a
                             href="https://github.com/jsnyde03/debt-planner-stie/blob/main/Paycheck%20Debt%20Planner%20Support"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="legal-link"
                         >
                             Support
+                        </a>
+                        <span className="legal-separator">·</span>
+                        <a
+                            href="https://apps.apple.com/account/subscriptions"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="legal-link"
+                        >
+                            Manage Subscription
                         </a>
                     </div>
                 </div>

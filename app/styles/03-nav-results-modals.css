@@ -29,11 +29,6 @@
 	color: var(--text-secondary);
 }
 
-.bottom-nav-item span {
-	font-size: 1.05rem;
-	line-height: 1;
-}
-
 .bottom-nav-item small {
 	font-size: 0.72rem;
 	font-weight: 700;
@@ -791,6 +786,32 @@
 
 .dev-populate-button:hover {
 	background: var(--button-primary-hover);
+}
+
+.demo-mode-banner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 10px 14px;
+	margin-bottom: 12px;
+	border-radius: var(--radius-lg);
+	background: var(--badge-gold-bg);
+	border: 1px solid var(--badge-gold-border);
+	color: var(--badge-gold-color);
+	font-size: 0.82rem;
+	font-weight: 800;
+}
+
+.demo-mode-exit-button {
+	min-height: 32px;
+	padding: 0 12px;
+	border-radius: var(--radius-pill);
+	background: var(--badge-gold-color);
+	color: #ffffff;
+	font-size: 0.74rem;
+	font-weight: 800;
 }
 
 .mobile-section-switcher {

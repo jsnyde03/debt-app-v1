@@ -41,7 +41,7 @@ export function useSubscription(
                 setSubscriptionPlan(plan);
                 console.log("Loaded subscription plan:", plan);
 
-                if (plan === "premium" && notificationsEnabled && nextPaycheckDate) {
+                if (notificationsEnabled && nextPaycheckDate) {
                     const permitted = await hasNotificationPermission();
                     if (permitted) {
                         void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
