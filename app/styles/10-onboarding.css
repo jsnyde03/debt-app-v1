@@ -43,7 +43,7 @@
 .onboarding-dot {
 	height: 5px;
 	border-radius: var(--radius-pill);
-	background: var(--border-color);
+	background: rgba(100, 116, 139, 0.3);
 	transition: width 200ms ease, background 200ms ease;
 	width: 5px;
 }
