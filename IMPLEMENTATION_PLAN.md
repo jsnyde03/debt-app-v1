@@ -337,6 +337,71 @@ Without adjustment, the sidebar overlaps the content on iPad since `.app-content
 
 ---
 
+## v1.3 addendum — UX Quick Wins (from Premium Audit)
+
+**Scope:** Two trivial changes identified in `docs/premium-ux-audit.md` that are zero-risk, zero-dependency, and too small to block on a dedicated version. Ship as a standalone push to `v1.3-dev` before cutting the v1.4 branch.
+
+### Dark Mode Follows System Setting (audit #18) — 2-line change
+
+**The gap.** First-time users always land in light mode; iOS users who've set system dark mode expect apps to respect `prefers-color-scheme: dark` on first launch. The current `useDarkMode` hook initializes without reading the system preference.
+
+**Implementation:**
+```ts
+// lib/hooks/useDarkMode.ts — in the useState initializer
+const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const stored = loadStoredState("debtPlanner.darkMode", null);
+    if (stored !== null) return stored;
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+});
+```
+The user's explicit toggle remains the override for all subsequent launches. No other changes needed.
+
+**Files touched:** `lib/hooks/useDarkMode.ts`.
+**Risk:** Minimal. Read-only `matchMedia` call with a null-safe fallback; no side effects.
+
+### Bottom Nav Active State — Glow + Indicator (audit #6)
+
+**The gap.** The active nav item uses a flat blue pill background. Premium fintech apps typically layer: pill fill + subtle icon glow + thin top-edge indicator line.
+
+**What to add:**
+```css
+/* 08-dark-theme-polish.css — enhance .dark-theme .bottom-nav-item.active */
+.dark-theme .bottom-nav-item.active {
+    box-shadow: 0 0 18px rgba(96, 165, 250, 0.28), inset 0 0 0 0 transparent;
+}
+/* 00-theme-and-base.css (or 09-anim-swipe-media-misc.css) */
+.bottom-nav-item.active::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 16px; right: 16px;
+    height: 2px;
+    border-radius: 0 0 2px 2px;
+    background: var(--accent-color);
+    opacity: 0.85;
+}
+```
+The `::before` line requires `position: relative` on `.bottom-nav-item` (verify it already has this from the icon work in v1.2/v1.3).
+
+**Files touched:** `app/styles/00-theme-and-base.css` or `app/styles/08-dark-theme-polish.css`.
+**Risk:** Minimal. CSS-only.
+
+---
+
+## Pre-v1.4 — Foundation Fix: Storage Error Handling (from Premium Audit #16)
+
+**Scope:** `docs/premium-ux-audit.md` #16 flags that `loadStoredState` silently returns defaults on any JSON parse error, meaning corrupted localStorage silently wipes user data. The full schema versioning + migration solution is planned for v1.10 — but a minimal try/catch fix should ship before v1.4 onboarding goes out, since onboarding is the moment new users will first have real data that could be lost.
+
+**What v1.10 plans (full solution):** `schemaVersion` key, migration runner in `lib/storage/migrateState.ts`, error instrumentation tied to v1.11's analytics.
+
+**Minimal fix to ship now:**
+1. In `lib/storage/loadStoredState.ts`, wrap the `JSON.parse` call in a try/catch that logs a `console.warn` with the key name and error message, then returns the default — the existing fallback behavior, but no longer silent.
+2. Add a `debtPlanner.schemaVersion` key written on every save (value: `1` for now). When loading, if the key is missing it's fine (old data); if it's present and mismatches the code constant, log an additional warning so it's visible in crash reports once v1.11 analytics ships.
+
+**Files touched:** `lib/storage/loadStoredState.ts`, and the save-state path in `app/page.tsx` (wherever `localStorage.setItem` is called for debt planner state — add the version write alongside existing saves).
+**Risk:** Very low. No behavior change — just adds logging to the existing error path and a version key that currently does nothing on load.
+
+---
+
 ## v1.4 — Onboarding Flow
 
 **Scope:** Replace the bare "enter paycheck amount" first-run sheet with a guided multi-step flow.
@@ -353,6 +418,7 @@ Without adjustment, the sidebar overlaps the content on iPad since `.app-content
 2. New `lib/hooks/useOnboarding.ts` — step state + a `debtPlanner.hasCompletedOnboarding` localStorage flag so it never shows again.
 3. In `app/page.tsx`, swap the `isFirstRunSetup` branch's `<PaycheckSection>` render for `<OnboardingFlow>` when `!hasCompletedOnboarding`.
 4. Decide: should onboarding require completing all steps, or allow skip-to-end at any point? Recommend allow-skip throughout — this is a planner app, not a game, and forcing steps risks abandonment.
+5. **First-launch empty state (audit #2):** After completing onboarding, a new user with zero debts still sees a blank Plan tab. Replace the blank card stubs with a single "welcome to your plan" card: *"Your debt-free date is waiting. Add your first debt to see exactly what to do this paycheck."* This is one conditional render in the Plan tab's `ResultsSection` area — no new routing or architecture. It bridges the gap between onboarding completion and the user's first meaningful plan output.
 
 **Data model changes:** none beyond the one new localStorage flag.
 
@@ -373,6 +439,171 @@ _Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md
 **Files touched:** `DebtsSection.tsx`/`DebtGroup.tsx`, `RequiredExpensesSection.tsx`, `GoalsSection.tsx`, `app/styles/00-theme-and-base.css`, `app/styles/03-nav-results-modals.css`, `app/styles/09-anim-swipe-media-misc.css`.
 
 **Risk:** Low-medium. Additive markup (P4) plus mechanical CSS additions (P9c); the only real risk is skipping touch-device verification on P9c and shipping an untested fix.
+
+---
+
+## v1.4 addendum — UX Polish + Paywall Improvements (from Premium Audit)
+
+**Scope:** The 11 items below come from `docs/premium-ux-audit.md` and are appropriately sequenced here — alongside onboarding, which is the version where users first experience the app's value and the paywall's conversion matters most. All are CSS/JSX-only changes; none touch business logic, calculations, or data models. The windfall allocator (#12) was originally planned for v1.5 but is pulled forward here since it has zero dependencies on v1.5's cycle-history work.
+
+Bundle into a single PR, shipped alongside the v1.4 onboarding work. Each item below is independently implementable — if time is short, cut from the bottom of the list first (priority order: #3 → #4 → #5 → #8 → #12 → #7 → #9 → #10 → #11 → #14 → #17).
+
+### #3 — Debt-Free Date in Execution Summary Strip
+
+The execution-summary-strip on the Plan tab currently shows: Paycheck / Bills / Minimums / Extra. The "Extra" cell (leftover snowball extra payment) is the least emotionally resonant. Replace it — or add a 5th cell at a narrower column width — with a **"Debt-Free"** cell showing the computed payoff date (e.g., "Apr 2028").
+
+- The date is already computed in `buildSmartInsights` as `snowballDebtFreeDate` — make it available to the Plan tab's render (likely pass it down through `ResultsSection` props or compute it inline from the same projection values already available on the Plan tab).
+- Styled with `font-variant-numeric: tabular-nums` and `font-weight: 900`, same as the other `strong` elements in the strip.
+- Show "Add debts" or `—` when no debts exist.
+
+**Files touched:** `components/ResultsSection.tsx` (or wherever the strip renders), `app/styles/03-nav-results-modals.css`.
+
+### #4 — Mark-Paid Transition Animation
+
+When a debt or required expense item changes to its paid state (after `handleMarkDebtMinimumPaid`, `handleMarkDebtSnowballPaid`, `handleMarkExpensePaid`), there is no visual acknowledgement beyond the state change. Add two animations:
+
+1. `@keyframes cardExit` — companion to the existing `cardReveal`: `from { opacity: 1; transform: scale(1); } to { opacity: 0.72; transform: scale(0.99); }`, 200ms, plays once when the paid state is first applied (via a conditional class `animating-paid` applied for one render, then removed).
+2. `@keyframes checkPulse` — a green checkmark overlay that appears on the amount cell and fades out over 400ms: `from { opacity: 1; transform: scale(1.2); } to { opacity: 0; transform: scale(0.8); }`.
+
+The haptic feedback already fires (correct) — these animations complete the feedback loop visually.
+
+**Files touched:** `app/styles/09-anim-swipe-media-misc.css` (keyframes), whichever component renders the paid-state class on debt/expense rows (likely `components/Debts/DebtRow.tsx` and `RequiredExpensesSection.tsx` or similar).
+
+### #5 — Smart Insights Card Typography
+
+The premium Smart Insights cards have excellent content but flat visual hierarchy — title, body, and action line are too similar in weight for the eye to know where to start. Three CSS-only improvements:
+
+1. `.insight-title` (or equivalent class): `font-size: 1.12rem; font-weight: 900;` (up from current ~1.05rem/700)
+2. `.insight-action` (or equivalent): add a `→ ` bold prefix OR a faint chip background (`background: rgba(148, 163, 184, 0.08); border-radius: 8px; padding: 4px 8px;`) to visually separate it from body text
+3. Severity left-border: widen from ~2px to 3–4px; add a matching very-low-opacity tinted background wash on the card (e.g., `background: rgba(34, 197, 94, 0.04)` for "good" severity) so severity is scannable at a glance without reading the border width.
+
+**Files touched:** Find the Smart Insights card CSS classes in `07-premium-upgrade.css` or `06-forecast-and-payoff-shell.css` — grep for `insight` class names to locate.
+
+### #8 — Plan Tab Hero Personalization
+
+Once a user has debt data (`activeDebts.length > 0`), replace the static subtitle *"Enter a paycheck and see exactly what to do next."* with a contextual line derived from already-computed values:
+
+- If debt-free date is known: *"You're on track to be debt-free in [N] months."*
+- If `projectedBuffer < 200`: *"Tight cycle — protect your minimums first."*
+- Default (data exists but no special state): *"Here's what to do this paycheck."*
+
+This is a conditional JSX expression in `app/page.tsx`'s hero render block, using values already in scope. No new computation needed.
+
+**Files touched:** `app/page.tsx`.
+
+### #12 — Windfall/Bonus Allocator (pulled from v1.5)
+
+_(Moved here from the v1.5 addendum — has no dependency on v1.5's cycle-history work and is high enough impact to ship sooner. The v1.5 addendum is updated to reflect this.)_
+
+See the original spec in the v1.5 addendum section below — implementation steps, data model changes, testing, and risk notes are preserved there for reference and should be treated as canonical even though the implementation ships here.
+
+**Short summary:** A "Got extra money?" button in Plan Settings opens a single-input form. The windfall amount is added to the current `amount` for that one run — no new allocation logic, just a UI shortcut that pre-populates the paycheck field with `currentPaycheck + windfall`. Tier: Free.
+
+### #7 — Category Icons on Bills and Debts
+
+The `RequiredExpenseCategory` type already has 6 values (`housing`, `utilities`, `insurance`, `subscriptions`, `medical`, `other`). Map them to Lucide icon components (already imported via `lib/icons/index.ts`) rendered as small 14px icons inside a color-tinted chip badge:
+
+| Category | Icon | Color |
+|---|---|---|
+| housing | `Home` | blue |
+| utilities | `Zap` | amber |
+| insurance | `Shield` | green |
+| subscriptions | `RefreshCw` | purple |
+| medical | `Heart` | red |
+| other | `MoreHorizontal` | gray |
+
+For debts: `type === "bnpl"` gets a distinct "BNPL" text badge (see #14 below); `type === "debt"` gets a credit card icon.
+
+**Files touched:** `components/RequiredExpensesSection.tsx` (or its sub-components), `components/DebtsSection.tsx` (or `DebtRow.tsx`), `app/styles/00-theme-and-base.css` (new `.category-icon-chip` class).
+
+### #9 — Display Amount Styling ($ + Cents Split)
+
+For the largest financial numbers in the app (hero card totals, recommended payment amounts, execution strip figures), style the dollar sign at ~60% of the number's `font-size` and the cents at ~70%, matching the "tabular split" treatment used by Copilot, Robinhood, and Credit Karma.
+
+**Approach:**
+```tsx
+// New helper: formatDisplayAmount(amount) → { dollars: string, cents: string }
+// Renders as:
+<span className="display-amount">
+    <span className="display-amount-symbol">$</span>
+    {dollars}
+    <span className="display-amount-cents">.{cents}</span>
+</span>
+```
+```css
+.display-amount-symbol { font-size: 0.6em; vertical-align: super; font-weight: 700; }
+.display-amount-cents  { font-size: 0.7em; vertical-align: super; font-weight: 700; }
+```
+
+Apply only to the Plan tab's largest hero numbers — not to every currency string in the app (which would add noise rather than premium feel). Identify target call sites by searching for the `formatCurrency` helper's usage in hero-visible components.
+
+**Files touched:** New `lib/utils/formatDisplayAmount.ts`, `app/styles/00-theme-and-base.css`, 2–4 component call sites.
+
+### #10 — Directional Tab Transitions
+
+The current `tab-content-transition` fades content in. Extend this to a directional slide that mirrors tab order (Plan=0, Bills=1, Payoff=2, Goals=3) — forward tabs slide from right, backward tabs slide from left.
+
+**Approach:**
+```tsx
+// app/page.tsx — track direction alongside activeTab
+const prevTabRef = useRef(tabOrder[activeTab]);
+const direction = tabOrder[activeTab] >= prevTabRef.current ? "forward" : "backward";
+// Pass as data-direction attribute on the transition wrapper
+<div key={activeTab} className="tab-content-transition" data-direction={direction}>
+```
+```css
+.tab-content-transition[data-direction="forward"]  { animation: tabSlideInRight 180ms cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+.tab-content-transition[data-direction="backward"] { animation: tabSlideInLeft  180ms cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+@keyframes tabSlideInRight { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
+@keyframes tabSlideInLeft  { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+    .tab-content-transition[data-direction] { animation: tabFade 150ms ease both; }
+    @keyframes tabFade { from { opacity: 0; } to { opacity: 1; } }
+}
+```
+
+**Files touched:** `app/page.tsx`, `app/styles/09-anim-swipe-media-misc.css`.
+
+### #11 — Upgrade Screen Preview Card
+
+The paywall lists feature names but doesn't show what they look like. Add a frosted-glass preview card beneath the feature list containing a **static mock** of one premium card (e.g., a grayed/blurred version of the "Buffer looks stable" Smart Insights card layout with sample data). This is pure HTML/CSS — no live data, no logic.
+
+```html
+<div class="upgrade-preview-card">
+    <div class="upgrade-preview-label">Smart Insights preview</div>
+    <div class="upgrade-preview-insight-mock" aria-hidden="true">
+        <!-- Static HTML mock of an insight card -->
+    </div>
+    <div class="upgrade-preview-blur-overlay">Unlock with Premium</div>
+</div>
+```
+
+The blur overlay uses `backdrop-filter: blur(4px)` on an absolutely positioned element over the mock, with a "Unlock with Premium" label in the center. This makes the abstract feature list concrete and visually demonstrates what the user is buying.
+
+**Files touched:** `components/UpgradeSection.tsx`, `app/styles/07-premium-upgrade.css`.
+
+### #14 — BNPL Visual Differentiation (pre-cursor to v1.10)
+
+The `debt.type === "bnpl"` field is stored but never surfaced in the Bills tab debt list. Before v1.10 fixes the underlying BNPL calculations, at least make BNPL debts visually distinct:
+
+- Add a `BNPL` badge (small pill, e.g., purple) on BNPL debt rows
+- If `remainingPayments` is present, show *"X payments left"* instead of the APR field (BNPL is effectively 0% APR — showing APR for a BNPL debt is misleading)
+- If `scheduledPaymentAmount` is present, show it as the fixed payment amount
+
+Pure render change in `DebtRow.tsx` or wherever individual debt items render.
+
+**Files touched:** `components/DebtsSection.tsx` (or `DebtRow.tsx`), `app/styles/` (new `.bnpl-badge` style).
+
+### #17 — Basic Aria-Label Audit
+
+Before v1.12's full accessibility audit, close the most obvious gaps that could trigger App Store accessibility rejections:
+
+1. Grep for all `<button>` elements in `components/` — verify each has either a visible text label or an `aria-label` attribute. The icon-only buttons (theme toggle, settings gear, sort direction, swipe-action delete) are the most likely to be missing labels.
+2. Add `role="region"` + `aria-label` to major content sections (debt list, expenses list, plan results) so screen reader users can navigate between them.
+3. Verify swipe-to-pay items have a tap/button fallback visible to VoiceOver — the swipe gesture alone is inaccessible. The existing "Mark Paid" button (if it exists in the item's non-swiped UI) may already cover this; if not, add one.
+4. `aria-live="polite"` is already on the save-status toast (correct) — check for any other dynamic numeric regions that update without user action (running balance, buffer amount after marking paid) and add `aria-live="polite"` there too.
+
+**Files touched:** Various `components/*.tsx` files (additive `aria-label` props only), possibly `app/page.tsx`.
 
 ---
 
@@ -410,7 +641,7 @@ _Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md
 
 ## v1.5 addendum — Windfall/Bonus One-Time Allocator (Free)
 
-_Previously listed in `ROADMAP.md` §3 as `[Free, small]` but never assigned a version slot — added here since it has zero dependencies and v1.5 is otherwise a small release with room for it._
+_**Implementation moved to v1.4 addendum** (see "UX Polish + Paywall Improvements" above) — the feature has no dependency on v1.5's cycle-history work and is high enough impact to ship sooner. The full implementation spec is preserved here as canonical reference._
 
 **Scope:** Let a user enter a one-time extra amount (a bonus, tax refund, etc.) and run it through the existing allocation engine as an immediate extra payment, without it needing to be a recurring paycheck.
 
@@ -455,6 +686,57 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. This is the first of five phases mo
 
 ---
 
+## v1.5 addendum — Data Visualizations + Since-Last-Cycle Delta (from Premium Audit)
+
+**Scope:** Two related items from `docs/premium-ux-audit.md` sequenced here because both depend on data that v1.5 establishes: the payoff trajectory chart needs `projectDebtPayoff` to run across multiple months (same data v1.5's history snapshots capture), and the delta indicator needs a previous-cycle snapshot to diff against (v1.5 is the first version that stores one).
+
+### #1 — Debt Payoff Trajectory Chart (audit #1 — highest-impact item in the entire audit)
+
+**The gap.** The app is all numbers and text. Every premium fintech competitor shows charts. The emotional core of a debt payoff app is *seeing the finish line* — a visual line descending toward zero over time. The data is already computed; the chart is missing.
+
+**SVG only — no chart library.** The data sets are tiny (≤10 debts, ≤36 months). A library adds bundle weight and a style integration cost that isn't worth it at this scale.
+
+**Three visualizations, in priority order:**
+
+**1a. Debt Payoff Trajectory** (Payoff/Snowball tab) — the primary and most impactful chart. Two lines: snowball balance over time, avalanche balance over time, both plotted monthly until $0. Built from the existing `projectDebtPayoff` function — call it for each strategy and collect the `projectedDebtBalance` array, then render as a two-line SVG path.
+
+```tsx
+// Pseudocode — exact values TBD during implementation
+const snowballPoints = projectDebtPayoff({ debts, strategy: "snowball", extraPayment }).map(
+    (m, i) => ({ x: (i / totalMonths) * chartWidth, y: chartHeight - (m.balance / maxBalance) * chartHeight })
+);
+// Render as <polyline points={snowballPoints.map(p => `${p.x},${p.y}`).join(" ")} />
+```
+
+Label the point where each line hits zero with the payoff date. This is the most emotionally compelling screen in the app once built.
+
+**1b. 3-Month Cash Flow Status Bars** (Plan tab, inside Forecast card) — replace the current `ForecastMonth` text-list rows with 3 horizontal status bars, color-coded by `ForecastStatus` (`stable`=green, `tight`=amber, `pressure`=orange, `recovery`=red). The month label and description text remain beneath each bar. The bar adds a "how healthy is this month?" at-a-glance read without replacing the explanatory text.
+
+**1c. Per-Debt Progress Bar** (Bills tab, debt list items) — a thin horizontal bar beneath each debt's name showing `(originalBalance - balance) / originalBalance` percent paid off. `originalBalance` already exists on the `Debt` type. CSS-only bar (no SVG), styled similarly to the goal progress bars in the Goals tab. Makes the debt list feel like a progress dashboard, not a spreadsheet.
+
+**Files touched:** `components/SnowballSection.tsx` (1a), `components/ResultsSection.tsx` or wherever the Forecast card renders (1b), `components/DebtsSection.tsx` or `DebtRow.tsx` (1c), `app/styles/` (new chart and progress-bar styles), possibly new `components/Charts/PayoffChart.tsx`.
+
+**Risk:** Low-medium. SVG coordinate math is straightforward but requires care around edge cases (zero debts, single debt, debts with zero APR). The payoff trajectory needs to handle the case where snowball and avalanche produce identical results (don't show duplicate lines — show one, label it as "Both strategies"). Test against the demo dataset.
+
+### #13 — Since-Last-Cycle Delta Indicator (audit #13)
+
+Once v1.5's cycle history stores snapshots, the execution-summary-strip can show progress relative to the previous cycle.
+
+**What to add:**
+```
+Total Debt  $18,420  ↓ $342 since last paycheck
+```
+
+Implementation:
+1. In `usePayCycleHistory.ts` (new hook from v1.5), add a `previousSnapshot` getter that returns the most recent completed snapshot (or `null` if no history yet).
+2. In the execution-summary-strip, compute `delta = previousSnapshot.totalDebtBalance - currentTotalDebt`. If `delta > 0` (debt reduced), render a green `↓ $X` sub-line. If `delta < 0` (debt added), render amber `↑ $X`. If no previous snapshot, render nothing (first cycle, no comparison available yet).
+3. Apply `font-variant-numeric: tabular-nums` to the delta value for alignment.
+
+**Files touched:** `lib/hooks/usePayCycleHistory.ts` (getter), `components/ResultsSection.tsx` (or wherever the strip renders), `app/styles/03-nav-results-modals.css` (new `.summary-strip-delta` style).
+**Risk:** Low. Purely additive display; the snapshot is already written by v1.5's rollover work.
+
+---
+
 ## v1.6 — Debt Milestones + Amortization Calendar + Streaks
 
 **Scope:** Three related but separable features — ship as one version since they share the "celebrate progress" theme, but implement independently.
@@ -477,6 +759,23 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. This is the first of five phases mo
 **Testing:** regression tests for `computeMilestones` (threshold-crossing edge cases — e.g., paying off a debt in one lump sum should report ALL crossed thresholds, not just 100%) and `buildAmortizationSchedule` (verify final month's `endingBalance` is exactly 0, verify total interest matches `projectDebtPayoff`'s existing `totalInterestPaid` for the same inputs — these two functions must agree).
 
 **Risk:** Medium. The amortization schedule must mathematically reconcile with the existing payoff projection engine — if they disagree, that's a trust-breaking bug in a finance app. Budget time for a reconciliation test, not just unit tests in isolation.
+
+---
+
+## v1.6 addendum — Settings UX Rework (from Premium Audit #15)
+
+**Scope:** The Plan Settings is currently a modal (slide-up sheet). For returning users adjusting a single setting, opening a modal to change one field feels heavy. `docs/premium-ux-audit.md` #15 recommends converting it.
+
+**Decision required before implementation:** Two viable approaches:
+1. **Accordion/in-place expansion** — the settings gear + theme toggle expand into a settings panel below the hero heading, in-line with the page content, without a modal overlay. Feels native on mobile, avoids navigation complexity, keeps the 4-tab constraint intact. Recommended.
+2. **Dedicated Settings tab** — 5th tab in the bottom nav. Simpler to implement but crowding 5 items in the bottom nav may feel cluttered on 375px-wide phones.
+
+Recommend **Option 1 (accordion)** — align with the existing `plan-section-body` expand/collapse pattern already in the codebase. The settings gear becomes a toggle that expands the settings block in-place, using the same `max-height`/`opacity`/`transform` transition pattern already present.
+
+**Note on theme toggle relocation:** If this accordion ships, relocate the theme toggle from the hero header (where it's currently an icon button that can be missed) into the Settings accordion as a proper 3-way selector (System / Light / Dark) — see the related discussion below. The hero's floating icon button can then be removed.
+
+**Files touched:** `app/page.tsx`, `components/PlanSettings/PlanSettingsSheet.tsx` (or its successor from the v1.6 Page Orchestrator Phase 2 work), `app/styles/03-nav-results-modals.css`.
+**Risk:** Medium. The settings modal is used during first-run onboarding (v1.4) — verify the accordion approach still works correctly in the `isFirstRunSetup` branch, or keep the modal form for first-run only and switch to the accordion for returning-user settings.
 
 ---
 
