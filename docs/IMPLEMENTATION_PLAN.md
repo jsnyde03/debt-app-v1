@@ -326,10 +326,10 @@ Without adjustment, the sidebar overlaps the content on iPad since `.app-content
 **Dark theme polish** (`08-dark-theme-polish.css`):
 - `.dark-theme .living-summary-card` gradient glass background with inset highlight
 
-**Premium UX audit** (`docs/premium-ux-audit.md`):
+**Premium UX audit** (`premium-ux-audit.md`):
 - Full audit of current product quality: 4 current strengths, 5 critical UX gaps, 6 visual/interaction polish items, 4 feature enhancements, 2 foundation quality items — with priority matrix. Written as input for future planning, nothing implemented from it.
 
-**Files touched:** `app/page.tsx`, `app/styles/00-theme-and-base.css`, `app/styles/01-payoff-goals.css`, `app/styles/02-overdue-pagination-nav.css`, `app/styles/03-nav-results-modals.css`, `app/styles/05-timeline-whatif.css`, `app/styles/07-premium-upgrade.css`, `app/styles/08-dark-theme-polish.css`, `app/styles/09-anim-swipe-media-misc.css`, `docs/premium-ux-audit.md` (new).
+**Files touched:** `app/page.tsx`, `app/styles/00-theme-and-base.css`, `app/styles/01-payoff-goals.css`, `app/styles/02-overdue-pagination-nav.css`, `app/styles/03-nav-results-modals.css`, `app/styles/05-timeline-whatif.css`, `app/styles/07-premium-upgrade.css`, `app/styles/08-dark-theme-polish.css`, `app/styles/09-anim-swipe-media-misc.css`, `premium-ux-audit.md` (new).
 
 **Testing:** No regression tests needed — zero logic changes. Visual pass on Plan/Bills/Payoff/Goals tabs in both light and dark themes sufficient. Existing Playwright spec suite unchanged.
 
@@ -372,7 +372,7 @@ Change every `type="number"` on a currency/amount field to `type="text" inputmod
 
 ## v1.3 addendum — UX Quick Wins (from Premium Audit) *(done, 2026-06-27)*
 
-**Scope:** Two trivial changes identified in `docs/premium-ux-audit.md` that are zero-risk, zero-dependency, and too small to block on a dedicated version. Ship as a standalone push to `v1.3-dev` before cutting the v1.4 branch.
+**Scope:** Two trivial changes identified in `premium-ux-audit.md` that are zero-risk, zero-dependency, and too small to block on a dedicated version. Ship as a standalone push to `v1.3-dev` before cutting the v1.4 branch.
 
 ### Dark Mode Follows System Setting (audit #18) — 2-line change
 
@@ -422,7 +422,7 @@ The `::before` line requires `position: relative` on `.bottom-nav-item` (verify 
 
 ## Pre-v1.4 — Foundation Fix: Storage Error Handling (from Premium Audit #16) *(done, 2026-06-27)*
 
-**Scope:** `docs/premium-ux-audit.md` #16 flags that `loadStoredState` silently returns defaults on any JSON parse error, meaning corrupted localStorage silently wipes user data. The full schema versioning + migration solution is planned for v1.10 — but a minimal try/catch fix should ship before v1.4 onboarding goes out, since onboarding is the moment new users will first have real data that could be lost.
+**Scope:** `premium-ux-audit.md` #16 flags that `loadStoredState` silently returns defaults on any JSON parse error, meaning corrupted localStorage silently wipes user data. The full schema versioning + migration solution is planned for v1.10 — but a minimal try/catch fix should ship before v1.4 onboarding goes out, since onboarding is the moment new users will first have real data that could be lost.
 
 **What v1.10 plans (full solution):** `schemaVersion` key, migration runner in `lib/storage/migrateState.ts`, error instrumentation tied to v1.11's analytics.
 
@@ -477,7 +477,7 @@ _Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md
 
 ## v1.4 addendum — UX Polish + Paywall Improvements (from Premium Audit)
 
-**Scope:** The 11 items below come from `docs/premium-ux-audit.md` and are appropriately sequenced here — alongside onboarding, which is the version where users first experience the app's value and the paywall's conversion matters most. All are CSS/JSX-only changes; none touch business logic, calculations, or data models. The windfall allocator (#12) was originally planned for v1.5 but is pulled forward here since it has zero dependencies on v1.5's cycle-history work.
+**Scope:** The 11 items below come from `premium-ux-audit.md` and are appropriately sequenced here — alongside onboarding, which is the version where users first experience the app's value and the paywall's conversion matters most. All are CSS/JSX-only changes; none touch business logic, calculations, or data models. The windfall allocator (#12) was originally planned for v1.5 but is pulled forward here since it has zero dependencies on v1.5's cycle-history work.
 
 Bundle into a single PR, shipped alongside the v1.4 onboarding work. Each item below is independently implementable — if time is short, cut from the bottom of the list first (priority order: #3 → #4 → #5 → #8 → #12 → #7 → #9 → #10 → #11 → #14 → #17).
 
@@ -908,7 +908,7 @@ _Full detail in `PAGE_ORCHESTRATOR_PLAN.md`. This is the first of five phases mo
 
 ## v1.5 addendum — Data Visualizations + Since-Last-Cycle Delta (from Premium Audit)
 
-**Scope:** Two related items from `docs/premium-ux-audit.md` sequenced here because both depend on data that v1.5 establishes: the payoff trajectory chart needs `projectDebtPayoff` to run across multiple months (same data v1.5's history snapshots capture), and the delta indicator needs a previous-cycle snapshot to diff against (v1.5 is the first version that stores one).
+**Scope:** Two related items from `premium-ux-audit.md` sequenced here because both depend on data that v1.5 establishes: the payoff trajectory chart needs `projectDebtPayoff` to run across multiple months (same data v1.5's history snapshots capture), and the delta indicator needs a previous-cycle snapshot to diff against (v1.5 is the first version that stores one).
 
 ### #1 — Debt Payoff Trajectory Chart (audit #1 — highest-impact item in the entire audit)
 
@@ -985,7 +985,7 @@ Implementation:
 
 ## v1.6 addendum — Settings UX Rework (from Premium Audit #15)
 
-**Scope:** The Plan Settings is currently a modal (slide-up sheet). For returning users adjusting a single setting, opening a modal to change one field feels heavy. `docs/premium-ux-audit.md` #15 recommends converting it.
+**Scope:** The Plan Settings is currently a modal (slide-up sheet). For returning users adjusting a single setting, opening a modal to change one field feels heavy. `premium-ux-audit.md` #15 recommends converting it.
 
 **Decision required before implementation:** Two viable approaches:
 1. **Accordion/in-place expansion** — the settings gear + theme toggle expand into a settings panel below the hero heading, in-line with the page content, without a modal overlay. Feels native on mobile, avoids navigation complexity, keeps the 4-tab constraint intact. Recommended.
