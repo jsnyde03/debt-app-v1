@@ -623,6 +623,7 @@ export default function Home() {
     }
 
     async function handleRolloverPayCycle() {
+        triggerMediumHaptic();
         saveResetSnapshot();
 
         setDebts((current) =>
@@ -665,6 +666,7 @@ export default function Home() {
 
         incrementRolloverCount();
         void maybeRequestAppReview();
+        setStatusMessage("Cycle complete — great work!");
     }
 
     function handlePopulateDemoData() {

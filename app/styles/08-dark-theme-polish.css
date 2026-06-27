@@ -769,4 +769,10 @@
 	padding-bottom: calc(env(safe-area-inset-bottom) + 8rem);
 }
 
+.dark-theme .bottom-nav-item.active {
+	box-shadow:
+		0 0 14px rgba(96, 165, 250, 0.28),
+		0 0 28px rgba(96, 165, 250, 0.14);
+}
+
 

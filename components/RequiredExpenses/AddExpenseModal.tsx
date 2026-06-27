@@ -139,7 +139,8 @@ export function AddExpenseModal({
                         <label>Amount Due</label>
 
                         <input
-                            type="number"
+                            type="text"
+                            inputMode="decimal"
                             placeholder="Amount Due"
                             value={expenseAmount}
                             onChange={(event) => onExpenseAmountChange(event.target.value)}

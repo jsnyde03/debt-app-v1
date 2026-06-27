@@ -112,7 +112,8 @@ export function GoalsSection({
                             <label>Target</label>
 
                             <input
-                                type="number"
+                                type="text"
+                                inputMode="decimal"
                                 value={editTargetAmount}
                                 onChange={(event) => setEditTargetAmount(event.target.value)}
                             />
@@ -122,7 +123,8 @@ export function GoalsSection({
                             <label>Saved</label>
 
                             <input
-                                type="number"
+                                type="text"
+                                inputMode="decimal"
                                 value={editCurrentAmount}
                                 onChange={(event) => setEditCurrentAmount(event.target.value)}
                             />
@@ -395,7 +397,8 @@ export function GoalsSection({
                             <label>Target Amount</label>
 
                             <input
-                                type="number"
+                                type="text"
+                                inputMode="decimal"
                                 placeholder="1000"
                                 value={goalTargetAmount}
                                 onChange={(event) => onGoalTargetAmountChange(event.target.value)}
@@ -412,7 +415,8 @@ export function GoalsSection({
                             <label>Current Amount Saved</label>
 
                             <input
-                                type="number"
+                                type="text"
+                                inputMode="decimal"
                                 placeholder="0"
                                 value={goalCurrentAmount}
                                 onChange={(event) => onGoalCurrentAmountChange(event.target.value)}

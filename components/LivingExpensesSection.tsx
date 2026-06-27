@@ -109,9 +109,9 @@ export function LivingExpensesSection({ livingExpenses, onLivingExpensesChange }
 
                                     <div className="saved-item-right">
                                         <input
-                                            type="number"
+                                            type="text"
+                                            inputMode="decimal"
                                             value={expense.amount === 0 ? "" : expense.amount}
-                                            min="0"
                                             placeholder="0"
                                             onChange={(event) => updateExpense(expense.id, {
                                                 amount: Number(event.target.value || 0),

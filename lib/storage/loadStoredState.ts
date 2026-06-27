@@ -6,7 +6,8 @@ export function loadStoredState<T>(key: string, fallback: T): T {
 
     try {
         return JSON.parse(stored) as T;
-    } catch {
+    } catch (e) {
+        console.warn(`loadStoredState: corrupted "${key}", using default`, e);
         return fallback;
     }
 }

@@ -97,9 +97,9 @@ export function PaycheckSection({
                         <div className="field">
                             <label>First pay day of month</label>
                             <input
-                                type="number"
-                                min="1"
-                                max="31"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 value={semiMonthlyFirstDay}
                                 onChange={(event) =>
                                     onSemiMonthlyFirstDayChange(event.target.value)
@@ -110,9 +110,9 @@ export function PaycheckSection({
                         <div className="field">
                             <label>Second pay day of month</label>
                             <input
-                                type="number"
-                                min="1"
-                                max="31"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 value={semiMonthlySecondDay}
                                 onChange={(event) =>
                                     onSemiMonthlySecondDayChange(event.target.value)
@@ -126,9 +126,9 @@ export function PaycheckSection({
                     <div className="field">
                         <label>Pay day of month</label>
                         <input
-                            type="number"
-                            min="1"
-                            max="31"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={monthlyPayDay}
                             onChange={(event) =>
                                 onMonthlyPayDayChange(event.target.value)
