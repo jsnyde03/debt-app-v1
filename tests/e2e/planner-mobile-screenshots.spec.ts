@@ -109,22 +109,25 @@ path: "test-results/mobile-plan.png",
 fullPage: true,
 });
 
-await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
-await page.getByRole("button", { name: /Debts/i }).click();
+await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
+const debtsBtn = page.locator(".mobile-section-switcher-button").filter({ hasText: /Debts/i });
+if (await debtsBtn.isVisible()) await debtsBtn.click();
 
 await page.screenshot({
 path: "test-results/mobile-debts.png",
 fullPage: true,
 });
 
-await page.getByRole("button", { name: /Payoff/i }).click();
+await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
+await expect(page.getByRole("heading", { name: /^Payoff$/i }).first()).toBeVisible();
 
 await page.screenshot({
 path: "test-results/mobile-payoff.png",
 fullPage: true,
 });
 
-await page.getByRole("button", { name: /Goals/i }).click();
+await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Goals/i }).click();
+await expect(page.getByRole("heading", { name: /^Goals$/i }).first()).toBeVisible();
 
 await page.screenshot({
 path: "test-results/mobile-goals.png",

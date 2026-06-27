@@ -216,7 +216,7 @@
 	height: 100dvh;
 	overflow: hidden;
 	margin: 0;
-	font-family: Arial, sans-serif;
+	font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
 	color: var(--text-primary);
 	background: var(--bg-primary);
 }
@@ -363,6 +363,14 @@ select {
 	border-radius: var(--radius-sm);
 	background: var(--bg-elevated);
 	color: var(--text-primary);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus-visible,
+select:focus-visible {
+	outline: none;
+	border-color: var(--accent-color);
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
 }
 
 button {
@@ -535,7 +543,7 @@ button:disabled {
 	font-size: 0.82rem;
 	line-height: 1.16;
 	color: var(--text-secondary);
-	opacity: 0.62;
+	opacity: 0.78;
 }
 
 .saved-amount {
@@ -543,6 +551,7 @@ button:disabled {
 	font-weight: 800;
 	letter-spacing: -0.03em;
 	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
 }
 
 .required-actions-list {

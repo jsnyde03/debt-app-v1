@@ -3,6 +3,7 @@ import { useState } from "react";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";
+import { Shield, Target, ChevronRight } from "@/lib/icons";
 
 type GoalsSectionProps = {
     goals: Goal[];
@@ -99,7 +100,7 @@ export function GoalsSection({
         const remainingAmount = Math.max(0, goal.targetAmount - goal.currentAmount);
         const progressPercent = goal.targetAmount > 0 ? Math.min(100, Math.max(0, (goal.currentAmount / goal.targetAmount) * 100)) : 0;
         const isComplete = goal.targetAmount > 0 && goal.currentAmount >= goal.targetAmount;
-        const goalIcon = goal.type === "emergency" ? "🛡️" : "🎯";
+        const GoalIcon = goal.type === "emergency" ? Shield : Target;
 
         if (isEditing) {
             return (
@@ -178,7 +179,7 @@ export function GoalsSection({
             >
                 <div className="saved-item-left goal-card-content">
                     <div className="goal-title-row">
-                        <span className="goal-type-icon">{goalIcon}</span>
+                        <span className="goal-type-icon"><GoalIcon size={14} aria-hidden="true" /></span>
                         <div className="saved-title">{goal.name}</div>
 
                         {isComplete && (
@@ -213,7 +214,7 @@ export function GoalsSection({
                         {isComplete ? "Goal met" : `${formatCurrency(remainingAmount)} left`}
                     </strong>
 
-                    <span className="row-chevron">›</span>
+                    <ChevronRight size={18} className="row-chevron" aria-hidden="true" />
                 </div>
             </button>
         );
@@ -280,7 +281,9 @@ export function GoalsSection({
                     <p>Add an emergency fund or savings goal to start tracking progress.</p>
                 </div>
             ) : (
-                visibleGoals.map(renderGoal)
+                <div className="goals-list">
+                    {visibleGoals.map(renderGoal)}
+                </div>
             )}
 
             {filteredGoals.length > goalVisibleCount && (

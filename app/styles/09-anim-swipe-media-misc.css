@@ -107,6 +107,28 @@
 	animation: softReveal 160ms ease;
 }
 
+@keyframes tabContentIn {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.tab-content-transition {
+	animation: tabContentIn 160ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tab-content-transition {
+		animation: none;
+	}
+}
+
 @keyframes centerModalIn {
 	from {
 		opacity: 0;
@@ -578,7 +600,7 @@
    Results + Timeline cards become a two-column grid. */
 @media (min-width: 834px) {
 	.card {
-		max-width: 640px;
+		max-width: 860px;
 		margin-inline: auto;
 	}
 
@@ -594,5 +616,76 @@
 	.plan-tab-grid > .card {
 		max-width: none;
 		margin-inline: 0;
+	}
+
+	/* ── Navigation: sidebar on, bottom nav off ── */
+	.bottom-nav { display: none; }
+	.sidebar-nav { display: flex; }
+
+	/* Settings gear lives in sidebar on iPad — hide the floating plan-toolbar */
+	.plan-toolbar { display: none; }
+
+	/* ── App content: shift right to clear 80px sidebar; trim bottom (no floating nav) ── */
+	.app-content {
+		padding-left: calc(80px + max(16px, env(safe-area-inset-left)));
+		padding-bottom: calc(env(safe-area-inset-bottom) + 32px);
+	}
+
+	.app-content:after {
+		height: calc(env(safe-area-inset-bottom) + 32px);
+	}
+
+	/* ── Bills tab: two-column layout ── */
+	.mobile-section-switcher { display: none; }
+
+	.bills-tab-content {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 20px;
+		align-items: start;
+		max-width: 1300px;
+		margin-inline: auto;
+	}
+
+	/* Show both columns regardless of billsView state */
+	.bills-expenses-col,
+	.bills-debts-col {
+		display: block !important;
+	}
+
+	/* Cards inside bills columns: fill column width */
+	.bills-expenses-col .card,
+	.bills-debts-col .card {
+		max-width: none;
+		margin-inline: 0;
+	}
+
+	/* ── Goals tab: two-column goal card grid ── */
+	.goals-list {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 6px;
+	}
+
+	/* Edit form spans both columns */
+	.goals-list .compact-debt-edit-card {
+		grid-column: 1 / -1;
+	}
+
+	/* ── Modals: centered dialog instead of bottom sheet ── */
+	.settings-overlay {
+		align-items: center;
+	}
+
+	.settings-sheet,
+	.bills-modal,
+	.debt-add-modal,
+	.goal-add-modal,
+	.sort-sheet {
+		border-radius: 24px;
+		max-height: 80vh;
+		max-width: 520px;
+		width: calc(100% - 48px);
+		animation: centerModalIn 0.2s ease both;
 	}
 }

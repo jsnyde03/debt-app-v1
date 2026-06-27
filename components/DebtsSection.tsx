@@ -6,8 +6,17 @@ import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";
 import { DebtGroup } from "./Debts/DebtGroup";
 import { AddDebtModal } from "./Debts/AddDebtModal";
+import { ArrowUp, ArrowDown, SlidersHorizontal, Check } from "@/lib/icons";
 
 type DebtSortOption = "dueDate" | "balance" | "apr" | "minimumPayment" | "name";
+
+const SORT_OPTIONS: { value: DebtSortOption; label: string }[] = [
+    { value: "dueDate", label: "Due Date" },
+    { value: "balance", label: "Balance" },
+    { value: "apr", label: "APR" },
+    { value: "minimumPayment", label: "Min. Payment" },
+    { value: "name", label: "Name" },
+];
 
 type DebtWithDisplayBalance = Debt & {
     displayBalance?: number;
@@ -120,6 +129,7 @@ export function DebtsSection({
     const [sortBy, setSortBy] = useState<DebtSortOption>("dueDate");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const [showAddDebtModal, setShowAddDebtModal] = useState(false);
+    const [showSortSheet, setShowSortSheet] = useState(false);
     const showFab = useScrollFabVisible();
 
     const [expandedSections, setExpandedSections] = useState({
@@ -236,39 +246,18 @@ export function DebtsSection({
                         placeholder="Search debts..."
                         value={searchTerm}
                         onChange={(event) => {
-                            setSearchTerm(event.target.value)
+                            setSearchTerm(event.target.value);
                             setDebtVisibleCounts({ active: DEBT_PAGE_SIZE, paidOff: DEBT_PAGE_SIZE });
                         }}
                     />
-
-                    <div className="sort-row">
-                        <select
-                            value={sortBy}
-                            onChange={(event) => {
-                                setSortBy(event?.target.value as DebtSortOption);
-                                setSortDirection("asc");
-                                setDebtVisibleCounts({ active: DEBT_PAGE_SIZE, paidOff: DEBT_PAGE_SIZE });
-                            }}
-                        >
-                            <option value="dueDate">Sort By Due Date</option>
-                            <option value="balance">Sort By Balance</option>
-                            <option value="apr">Sort By APR</option>
-                            <option value="minimumPayment">Sort By Minimum Payment</option>
-                            <option value="name">Sort By Name</option>
-                        </select>
-                        <button
-                            className="sort-direction-btn"
-                            onClick={() => {
-                                triggerLightHaptic();
-                                setSortDirection((d) => d === "asc" ? "desc" : "asc");
-                                setDebtVisibleCounts({ active: DEBT_PAGE_SIZE, paidOff: DEBT_PAGE_SIZE });
-                            }}
-                            aria-label={sortDirection === "asc" ? "Sort descending" : "Sort ascending"}
-                            title={sortDirection === "asc" ? "Sort descending" : "Sort ascending"}
-                        >
-                            {sortDirection === "asc" ? "↑" : "↓"}
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        className={`debt-sort-btn${sortBy !== "dueDate" || sortDirection !== "asc" ? " debt-sort-btn-active" : ""}`}
+                        aria-label="Sort options"
+                        onClick={() => { triggerLightHaptic(); setShowSortSheet(true); }}
+                    >
+                        <SlidersHorizontal size={16} aria-hidden="true" />
+                    </button>
                 </div>
 
                 {allDebts.length === 0 && (
@@ -338,6 +327,74 @@ export function DebtsSection({
                     </>
                 )}
             </section>
+
+            {showSortSheet && (
+                <div
+                    className="settings-overlay"
+                    onClick={() => setShowSortSheet(false)}
+                    role="dialog"
+                    aria-label="Sort debts"
+                >
+                    <div
+                        className="settings-sheet sort-sheet"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="sort-sheet-handle" aria-hidden="true" />
+                        <h3 className="sort-sheet-title">Sort Debts</h3>
+
+                        <div className="sort-sheet-options">
+                            {SORT_OPTIONS.map(({ value, label }) => (
+                                <button
+                                    key={value}
+                                    type="button"
+                                    className={`sort-sheet-option${sortBy === value ? " active" : ""}`}
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        setSortBy(value);
+                                        setDebtVisibleCounts({ active: DEBT_PAGE_SIZE, paidOff: DEBT_PAGE_SIZE });
+                                    }}
+                                >
+                                    <span>{label}</span>
+                                    {sortBy === value && <Check size={16} aria-hidden="true" />}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="sort-direction-group">
+                            <button
+                                type="button"
+                                className={`sort-dir-btn${sortDirection === "asc" ? " active" : ""}`}
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    setSortDirection("asc");
+                                    setDebtVisibleCounts({ active: DEBT_PAGE_SIZE, paidOff: DEBT_PAGE_SIZE });
+                                }}
+                            >
+                                <ArrowUp size={14} aria-hidden="true" /> Ascending
+                            </button>
+                            <button
+                                type="button"
+                                className={`sort-dir-btn${sortDirection === "desc" ? " active" : ""}`}
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    setSortDirection("desc");
+                                    setDebtVisibleCounts({ active: DEBT_PAGE_SIZE, paidOff: DEBT_PAGE_SIZE });
+                                }}
+                            >
+                                <ArrowDown size={14} aria-hidden="true" /> Descending
+                            </button>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="primary-button sort-sheet-done"
+                            onClick={() => { triggerLightHaptic(); setShowSortSheet(false); }}
+                        >
+                            Done
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {showAddDebtModal && (
                 <AddDebtModal

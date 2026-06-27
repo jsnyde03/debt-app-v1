@@ -179,7 +179,7 @@ Per the established cadence philosophy: **v1.x stays quick-turnaround** (days/we
 | Version | Focus | Tier | Size |
 |---|---|---|---|
 | v1.2 | Local Notifications + App Store review prompt + **App Lock** *(not yet launched — see note below)* | Notifications/Lock: Free; review prompt: all tiers | Small |
-| v1.3 | iPad Support *(done)* | All | Small |
+| v1.3 | iPad Support + iPad Native Polish — sidebar nav, two-column Bills, centered modals *(done)* | All | Small |
 | v1.4 | Onboarding flow | All | Small |
 | v1.5 | Pay Cycle History + Windfall/Bonus Allocator | Premium (6 cycles) / Premium+ (unlimited); Windfall: Free | Small |
 | v1.6 | Debt Milestones + Amortization Calendar + streaks | Premium+ | Medium |

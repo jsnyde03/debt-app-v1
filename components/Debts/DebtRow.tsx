@@ -3,6 +3,7 @@ import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { SwipeActionCard } from "../SwipeActionCard";
+import { Check, ChevronRight } from "@/lib/icons";
 
 type DebtWithDisplayBalance = Debt & {
     displayBalance?: number;
@@ -209,7 +210,7 @@ export function DebtRow({
             >
                 <div className="saved-item-left">
                     <div className="saved-title">
-                        {debt.name} {isPaidOff ? "✔" : ""}
+                        {debt.name} {isPaidOff && <Check size={14} className="paid-off-icon" aria-hidden="true" />}
                         {debt.isAutopay && <span className="autopay-pill">Autopay</span>}
                     </div>
 
@@ -233,7 +234,7 @@ export function DebtRow({
                         <span className="amount-suffix">/mo</span>
                     </strong>
 
-                    <span className="row-chevron">›</span>
+                    <ChevronRight size={18} className="row-chevron" aria-hidden="true" />
                 </div>
             </button>
         </SwipeActionCard>

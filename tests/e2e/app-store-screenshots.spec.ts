@@ -191,7 +191,7 @@ test("01 — Plan overview (dark)", async ({ page }) => {
     await seedAndCalculate(page);
 
     // Navigate to Plan tab
-    await page.locator(".bottom-nav-item").filter({ hasText: /Plan/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Plan/i }).click();
     await page.waitForTimeout(300);
 
     // Ensure Required Actions is expanded (it should be by default)
@@ -212,7 +212,7 @@ test("01 — Plan overview (dark)", async ({ page }) => {
 test("02 — Timeline (dark)", async ({ page }) => {
     await seedAndCalculate(page);
 
-    await page.locator(".bottom-nav-item").filter({ hasText: /Plan/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Plan/i }).click();
     await page.waitForTimeout(300);
 
     // Expand the timeline
@@ -231,7 +231,7 @@ test("03 — Smart Insights premium (dark)", async ({ page }) => {
     await seedAndCalculate(page);
 
     // Navigate to Payoff tab
-    await page.locator(".bottom-nav-item").filter({ hasText: /Payoff/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
     await page.waitForTimeout(300);
 
     // Smart Insights is expanded by default (expandedPremiumSection === "insights")
@@ -249,7 +249,7 @@ test("03 — Smart Insights premium (dark)", async ({ page }) => {
 test("04 — Forecasting premium (dark)", async ({ page }) => {
     await seedAndCalculate(page);
 
-    await page.locator(".bottom-nav-item").filter({ hasText: /Payoff/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
     await page.waitForTimeout(300);
 
     // Click the Forecast section header to expand it
@@ -268,7 +268,7 @@ test("04 — Forecasting premium (dark)", async ({ page }) => {
 test("05 — Strategy Comparison premium (dark)", async ({ page }) => {
     await seedAndCalculate(page);
 
-    await page.locator(".bottom-nav-item").filter({ hasText: /Payoff/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
     await page.waitForTimeout(300);
 
     // Click Strategy Comparison header to expand it
@@ -316,7 +316,7 @@ test("06 — Mark paid interaction (light)", async ({ page }) => {
     await page.getByRole("heading", { name: "Debt Planner" }).waitFor({ state: "visible" });
     await page.waitForTimeout(400);
 
-    await page.locator(".bottom-nav-item").filter({ hasText: /Plan/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Plan/i }).click();
     await page.waitForTimeout(300);
 
     // Ensure Required Actions is expanded
@@ -380,7 +380,7 @@ test("07 — Goals (light)", async ({ page }) => {
     await page.getByRole("heading", { name: "Debt Planner" }).waitFor({ state: "visible" });
     await page.waitForTimeout(400);
 
-    await page.locator(".bottom-nav-item").filter({ hasText: /Goals/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Goals/i }).click();
     await page.waitForTimeout(400);
 
     await shot(page, "07-goals-light");
@@ -418,7 +418,7 @@ test("08 — Upgrade paywall (dark)", async ({ page }) => {
     await page.waitForTimeout(400);
 
     // Navigate to Payoff tab and click a locked premium section to trigger upgrade modal
-    await page.locator(".bottom-nav-item").filter({ hasText: /Payoff/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
     await page.waitForTimeout(300);
 
     // Click Smart Insights header — on free plan this opens the upgrade modal
@@ -435,7 +435,7 @@ test("08 — Upgrade paywall (dark)", async ({ page }) => {
         await shot(page, "08-upgrade-paywall-dark");
     } else {
         // Fallback: try clicking the upgrade tab directly
-        await page.locator(".bottom-nav-item").filter({ hasText: /Premium/i }).click().catch(() => undefined);
+        await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Premium/i }).click().catch(() => undefined);
         await page.waitForTimeout(400);
         await shot(page, "08-upgrade-paywall-dark");
     }

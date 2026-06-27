@@ -2,6 +2,8 @@ import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/deb
 import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { Home, Zap, Shield, Tv, Pill, Bookmark, Check, ChevronRight } from "@/lib/icons";
+import type { ReactNode } from "react";
 
 export const requiredExpenseCategoryOptions: {
     value: RequiredExpenseCategory;
@@ -20,20 +22,20 @@ export function formatRequiredExpenseCategory(category?: RequiredExpenseCategory
         requiredExpenseCategoryOptions.find((option) => option.value === (category ?? "other"))?.label ?? "Other");
 }
 
-export function getRequiredExpenseCategoryIcon(category?: RequiredExpenseCategory) {
+export function getRequiredExpenseCategoryIcon(category?: RequiredExpenseCategory): ReactNode {
     switch (category) {
         case "housing":
-            return "🏠";
+            return <Home size={12} aria-hidden="true" />;
         case "utilities":
-            return "💡";
+            return <Zap size={12} aria-hidden="true" />;
         case "insurance":
-            return "🩺";
+            return <Shield size={12} aria-hidden="true" />;
         case "subscriptions":
-            return "📺";
+            return <Tv size={12} aria-hidden="true" />;
         case "medical":
-            return "💊";
+            return <Pill size={12} aria-hidden="true" />;
         default:
-            return "📌";
+            return <Bookmark size={12} aria-hidden="true" />;
     }
 }
 
@@ -216,7 +218,7 @@ export function ExpenseListItem({
             <div className="saved-item-left">
                 <div className="saved-title">
                     {expense.name}
-                    {expense.isPaidThisCycle ? "✔" : ""}
+                    {expense.isPaidThisCycle && <Check size={14} className="paid-off-icon" aria-hidden="true" />}
                     {expense.isAutopay && <span className="autopay-pill">Autopay</span>}
                     <span className="category-pill">
                         <span className="category-pill-icon">
@@ -241,7 +243,7 @@ export function ExpenseListItem({
                     {formatCurrency(expense.amount)}
                 </strong>
 
-                <span className="row-chevron">›</span>
+                <ChevronRight size={18} className="row-chevron" aria-hidden="true" />
             </div>
         </button>
     );

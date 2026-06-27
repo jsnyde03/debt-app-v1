@@ -687,15 +687,7 @@ export default function Home() {
     return (
         <main className={`app ${darkMode ? "dark-theme" : "light-theme"}`}>
             <PullToRefresh className="app-content" onRefresh={handlePullToRefresh}>
-                {process.env.NODE_ENV === "development" && (
-                    <button
-                        type="button"
-                        className="dev-populate-button"
-                        onClick={handlePopulateDemoData}
-                    >
-                        Populate Demo Data
-                    </button>
-                )}
+
                 {isDemoMode && (
                     <div className="demo-mode-banner" role="status">
                         <span>Demo Mode — viewing sample data</span>
@@ -761,6 +753,7 @@ export default function Home() {
                     )}
                 </section>
 
+                <div key={activeTab} className="tab-content-transition">
                 {activeTab === "plan" && (
                     <>
                         <div className="plan-toolbar">
@@ -896,43 +889,42 @@ export default function Home() {
                 )}
 
                 {activeTab === "bills" && (
-                    <div className="mobile-section-switcher">
-                        <button
-                            type="button"
-                            className={
-                                billsView === "expenses"
-                                    ? "mobile-section-switcher-button active"
-                                    : "mobile-section-switcher-button"
-                            }
-                            onClick={() => {
-                                triggerLightHaptic();
-                                setBillsView("expenses");
-                            }}
-                        >
-                            <Wallet size={18} aria-hidden="true" />
-                            Expenses
-                        </button>
+                    <div className="bills-tab-content" data-bills-view={billsView ?? "expenses"}>
+                        <div className="mobile-section-switcher">
+                            <button
+                                type="button"
+                                className={
+                                    billsView === "expenses"
+                                        ? "mobile-section-switcher-button active"
+                                        : "mobile-section-switcher-button"
+                                }
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    setBillsView("expenses");
+                                }}
+                            >
+                                <Wallet size={18} aria-hidden="true" />
+                                Expenses
+                            </button>
 
-                        <button
-                            type="button"
-                            className={
-                                billsView === "debts"
-                                    ? "mobile-section-switcher-button active"
-                                    : "mobile-section-switcher-button"
-                            }
-                            onClick={() => {
-                                triggerLightHaptic();
-                                setBillsView("debts");
-                            }}
-                        >
-                            <CreditCard size={18} aria-hidden="true" />
-                            Debts
-                        </button>
-                    </div>
-                )}
+                            <button
+                                type="button"
+                                className={
+                                    billsView === "debts"
+                                        ? "mobile-section-switcher-button active"
+                                        : "mobile-section-switcher-button"
+                                }
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    setBillsView("debts");
+                                }}
+                            >
+                                <CreditCard size={18} aria-hidden="true" />
+                                Debts
+                            </button>
+                        </div>
 
-                {activeTab === "bills" && billsView === "expenses" && (
-                    <>
+                        <div className="bills-expenses-col">
                         <RequiredExpensesSection
                             expenses={requiredExpenses}
                             expenseName={expenseName}
@@ -960,45 +952,46 @@ export default function Home() {
                             livingExpenses={livingExpenses}
                             onLivingExpensesChange={setLivingExpenses}
                         />
-                    </>
-                )}
+                        </div>
 
-                {activeTab === "bills" && billsView === "debts" && (
-                    <DebtsSection
-                        activeDebts={activeDebts}
-                        paidOffDebts={paidOffDebts}
-                        debtName={debtName}
-                        debtBalance={debtBalance}
-                        debtMinimumPayment={debtMinimumPayment}
-                        debtApr={debtApr}
-                        debtDueDate={debtDueDate}
-                        debtType={debtType}
-                        debtRecurrence={debtRecurrence}
-                        debtIsAutopay={debtIsAutopay}
-                        formatRecurrence={formatRecurrence}
-                        debtRemainingPayments={debtRemainingPayments}
-                        debtScheduledPaymentAmount={debtScheduledPaymentAmount}
-                        onDebtRemainingPaymentsChange={
-                            setDebtRemainingPayments
-                        }
-                        onDebtScheduledPaymentAmountChange={
-                            setDebtScheduledPaymentAmount
-                        }
-                        onDebtNameChange={setDebtName}
-                        onDebtBalanceChange={setDebtBalance}
-                        onDebtMinimumPaymentChange={setDebtMinimumPayment}
-                        onDebtAprChange={setDebtApr}
-                        onDebtDueDateChange={setDebtDueDate}
-                        onDebtTypeChange={setDebtType}
-                        onDebtRecurrenceChange={setDebtRecurrence}
-                        onDebtIsAutopayChange={setDebtIsAutopay}
-                        onImportDebtsCsv={handleImportDebtsCsv}
-                        onAddDebt={handleAddDebt}
-                        onRemoveDebt={handleRemoveDebt}
-                        onUpdateDebt={handleUpdateDebt}
-                        debtErrors={debtErrors}
-                        debtWarnings={debtWarnings}
-                    />
+                        <div className="bills-debts-col">
+                        <DebtsSection
+                            activeDebts={activeDebts}
+                            paidOffDebts={paidOffDebts}
+                            debtName={debtName}
+                            debtBalance={debtBalance}
+                            debtMinimumPayment={debtMinimumPayment}
+                            debtApr={debtApr}
+                            debtDueDate={debtDueDate}
+                            debtType={debtType}
+                            debtRecurrence={debtRecurrence}
+                            debtIsAutopay={debtIsAutopay}
+                            formatRecurrence={formatRecurrence}
+                            debtRemainingPayments={debtRemainingPayments}
+                            debtScheduledPaymentAmount={debtScheduledPaymentAmount}
+                            onDebtRemainingPaymentsChange={
+                                setDebtRemainingPayments
+                            }
+                            onDebtScheduledPaymentAmountChange={
+                                setDebtScheduledPaymentAmount
+                            }
+                            onDebtNameChange={setDebtName}
+                            onDebtBalanceChange={setDebtBalance}
+                            onDebtMinimumPaymentChange={setDebtMinimumPayment}
+                            onDebtAprChange={setDebtApr}
+                            onDebtDueDateChange={setDebtDueDate}
+                            onDebtTypeChange={setDebtType}
+                            onDebtRecurrenceChange={setDebtRecurrence}
+                            onDebtIsAutopayChange={setDebtIsAutopay}
+                            onImportDebtsCsv={handleImportDebtsCsv}
+                            onAddDebt={handleAddDebt}
+                            onRemoveDebt={handleRemoveDebt}
+                            onUpdateDebt={handleUpdateDebt}
+                            debtErrors={debtErrors}
+                            debtWarnings={debtWarnings}
+                        />
+                        </div>
+                    </div>
                 )}
 
                 {activeTab === "goals" && (
@@ -1018,6 +1011,7 @@ export default function Home() {
                         onUpdateGoal={handleUpdateGoal}
                     />
                 )}
+                </div>
             </PullToRefresh>
 
             <nav className="bottom-nav">
@@ -1084,6 +1078,53 @@ export default function Home() {
                 >
                     <Target size={20} aria-hidden="true" />
                     <small>Goals</small>
+                </button>
+            </nav>
+
+            <nav className="sidebar-nav">
+                <div className="sidebar-logo" aria-hidden="true">
+                    <TrendingUp size={20} />
+                </div>
+                <button
+                    type="button"
+                    className={activeTab === "plan" ? "sidebar-nav-item active" : "sidebar-nav-item"}
+                    onClick={() => { triggerLightHaptic(); setActiveTab("plan"); }}
+                >
+                    <HomeIcon size={22} aria-hidden="true" />
+                    <small>Plan</small>
+                </button>
+                <button
+                    type="button"
+                    className={activeTab === "bills" ? "sidebar-nav-item active" : "sidebar-nav-item"}
+                    onClick={() => { triggerLightHaptic(); setActiveTab("bills"); setBillsView((c) => c ?? "expenses"); }}
+                >
+                    <CreditCard size={22} aria-hidden="true" />
+                    <small>Bills</small>
+                </button>
+                <button
+                    type="button"
+                    className={activeTab === "snowball" ? "sidebar-nav-item active" : "sidebar-nav-item"}
+                    onClick={() => { triggerLightHaptic(); setActiveTab("snowball"); }}
+                >
+                    <TrendingUp size={22} aria-hidden="true" />
+                    <small>Payoff</small>
+                </button>
+                <button
+                    type="button"
+                    className={activeTab === "goals" ? "sidebar-nav-item active" : "sidebar-nav-item"}
+                    onClick={() => { triggerLightHaptic(); setActiveTab("goals"); }}
+                >
+                    <Target size={22} aria-hidden="true" />
+                    <small>Goals</small>
+                </button>
+                <button
+                    type="button"
+                    className="sidebar-nav-item sidebar-settings-btn"
+                    aria-label="Open Plan Settings"
+                    onClick={() => { triggerLightHaptic(); setShowPlanSettings(true); }}
+                >
+                    <Settings size={22} aria-hidden="true" />
+                    <small>Settings</small>
                 </button>
             </nav>
 

@@ -66,23 +66,27 @@ await firstMarkPaid.click();
 await page.getByText("Completed This Cycle").first().click();
 await screenshot(page, "03-plan-completed-expanded");
 
-await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
-await page.getByRole("button", { name: /Expenses/i }).click();
+await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
+const expensesBtn = page.locator(".mobile-section-switcher-button").filter({ hasText: /Expenses/i });
+if (await expensesBtn.isVisible()) await expensesBtn.click();
 await screenshot(page, "04-bills-expenses-populated");
 
-await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
-await page.getByRole("button", { name: /Debts/i }).click();
+await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
+const debtsBtn = page.locator(".mobile-section-switcher-button").filter({ hasText: /Debts/i });
+if (await debtsBtn.isVisible()) await debtsBtn.click();
 await screenshot(page, "05-bills-debts-populated");
 
-await page.getByRole("button", { name: /Payoff/i }).click();
+await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
+await expect(page.getByRole("heading", { name: /^Payoff$/i }).first()).toBeVisible();
 await screenshot(page, "06-payoff-populated");
 
-await page.getByRole("button", { name: /Goals/i }).click();
+await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Goals/i }).click();
+await expect(page.getByRole("heading", { name: /^Goals$/i }).first()).toBeVisible();
 await screenshot(page, "07-goals-populated");
 
 await page.getByRole("button", { name: /Dark Mode/i }).click();
 await screenshot(page, "08-dark-mode-current-tab");
 
-await page.locator(".bottom-nav-item").filter({ hasText: "Plan" }).click();
+await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: "Plan" }).click();
 await screenshot(page, "09-dark-mode-plan-populated");
 });

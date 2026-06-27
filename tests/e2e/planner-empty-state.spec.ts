@@ -62,7 +62,7 @@ test("planner empty state renders on mobile", async ({ page }) => {
 
 
 test("bottom navigation switches sections", async ({ page }) => {
-    await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
 
     await expect(
         page.getByRole("button", { name: /Expenses/i })
@@ -74,13 +74,13 @@ test("bottom navigation switches sections", async ({ page }) => {
         page.getByRole("heading", { name: "Required Expenses" })
     ).toBeVisible();
 
-    await page.getByRole("button", { name: /Payoff/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
 
     await expect(
         page.getByRole("heading", { name: "Debt Payoff Plan" })
     ).toBeVisible();
 
-    await page.getByRole("button", { name: /Goals/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Goals/i }).click();
 
     await expect(
         page.getByRole("heading", { name: "Goals" })

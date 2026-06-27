@@ -138,19 +138,96 @@ _Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md
 
 ---
 
-## v1.3 addendum — Mobile Polish: Icon Completion, Tab Transitions, Pagination
+## v1.3 addendum — Mobile Polish: Icon Completion, Tab Transitions, Pagination *(done)*
 
 _Full detail in `MOBILE_POLISH_ROADMAP.md`/`MOBILE_POLISH_IMPLEMENTATION_PLAN.md` (phases P1b, P3, P9b)._
 
-**P1b — Icon system completion:** Finish the migration started in v1.2 — `AddDebtModal.tsx`, `AddExpenseModal.tsx`, `DebtRow.tsx`, `DebtGroup.tsx`, `ExpenseListItem.tsx`, `GoalsSection.tsx`, `SwipeActionCard.tsx`, sort/filter chevrons. Confirm icon sizing holds at the iPad two-column breakpoint already being built this version. Zero emoji/Unicode UI glyphs should remain anywhere after this lands.
+**P1b — Icon system completion — done.** Replaced all remaining emoji/Unicode UI glyphs: `DebtRow.tsx` (`✔` → `Check`, `›` → `ChevronRight`), `ExpenseListItem.tsx` (category icons via `getRequiredExpenseCategoryIcon` → lucide icons; `✔` → `Check`; `›` → `ChevronRight`), `GoalsSection.tsx` (`🛡️` → `Shield`, `🎯` → `Target`, `›` → `ChevronRight` — decorative `🎉`/`👑` in the momentum card intentionally kept), `DebtsSection.tsx` (`↑`/`↓` sort arrows → `ArrowUp`/`ArrowDown`). Added `Check`, `ChevronRight`, `ArrowUp`, `ArrowDown`, `Shield`, `Zap`, `Tv`, `Pill`, `Bookmark` to `lib/icons/index.ts`. Added `.paid-off-icon` CSS class (`--success-color`, `inline-flex`, `vertical-align: middle`). Updated `.row-chevron` to `inline-flex`/`align-items: center` for SVG. `AddDebtModal.tsx`, `AddExpenseModal.tsx`, `DebtGroup.tsx`, `SwipeActionCard.tsx` had no emoji to replace.
 
-**P3 — Tab-switch transitions:** Add a 150-200ms cross-fade between bottom-nav tab changes, reusing the existing `cubic-bezier(0.2, 0.9, 0.2, 1)` curve. Verify against the new iPad two-column layout. **Accessibility gap closed here:** verified zero `prefers-reduced-motion` media query exists anywhere in the CSS today — wrap this new transition (and any other motion added from this version forward) in `@media (prefers-reduced-motion: reduce) { ... }` to disable/shorten it for users with that system setting enabled. Establish this as a standing rule for every subsequent motion addition (P6 in v1.6, any future animation work), not just this one transition.
+**P3 — Tab-switch transitions — done.** Added `@keyframes tabContentIn` (opacity 0→1, translateY 8px→0, 160ms `cubic-bezier(0.2, 0.9, 0.2, 1)`) and `.tab-content-transition` class to `09-anim-swipe-media-misc.css`, with `@media (prefers-reduced-motion: reduce)` disabling it. Wired with `<div key={activeTab} className="tab-content-transition">` wrapping all per-tab conditional blocks in `app/page.tsx` — key-based remount fires the animation on every tab switch without extra JS state. First `prefers-reduced-motion` usage in the codebase; standing rule going forward: every new animation must include this guard.
 
 **P9b — Pagination → mobile-native list pattern — done.** The "current state" claim that `DebtGroup.tsx` was the only pagination instance turned out to be wrong — `GoalsSection.tsx`, `RequiredExpensesSection.tsx`, and `SnowballSection.tsx`'s payoff-order list shared the exact same `pagination-actions pagination-compact`/`pagination-status` markup and CSS. Converted all four to a single "Load More" button (`visibleCount` state replacing the 1-based page number, slicing `items.slice(0, visibleCount)`, incrementing by the page size on tap) rather than leaving three call sites on stale numbered pagination while one moved on. Removed `.pagination-compact`/`.pagination-status` CSS entirely; repurposed the already-present-but-unused `.load-more-actions` class plus a new `.load-more-button` style. Verified via Playwright against a seeded 15-item debt list: Load More reveals the next batch with no duplicates/drops at the boundary.
 
-**Files touched:** `AddDebtModal.tsx`, `AddExpenseModal.tsx`, `DebtRow.tsx`, `DebtGroup.tsx`, `ExpenseListItem.tsx`, `GoalsSection.tsx`, `SwipeActionCard.tsx`, `app/page.tsx`, `app/styles/09-anim-swipe-media-misc.css`, `app/styles/02-overdue-pagination-nav.css`.
+**Files touched:** `lib/icons/index.ts`, `DebtRow.tsx`, `ExpenseListItem.tsx`, `GoalsSection.tsx`, `DebtsSection.tsx`, `app/page.tsx`, `app/styles/03-nav-results-modals.css` (`.row-chevron` update, `.paid-off-icon` new), `app/styles/09-anim-swipe-media-misc.css` (`tabContentIn` keyframe + `.tab-content-transition`), `app/styles/02-overdue-pagination-nav.css`.
 
-**Risk:** Low-medium. Mechanical icon swaps and an isolated CSS transition; the pagination boundary logic (which items are visible after N "Load More" taps) is the one spot needing care to avoid off-by-one errors.
+---
+
+## v1.3 addendum — iPad Native Polish *(done)*
+
+**Scope:** Elevate the iPad experience from "universal binary with one two-column breakpoint" to a genuinely native iPad layout — sidebar navigation, side-by-side Bills columns, and centered modals/sheets. Nothing in this version adds features or changes data; it is pure layout and navigation chrome. Shipped as part of v1.3 rather than a separate release because v1.3 already establishes iPad support; completing the native feel in the same release avoids shipping a half-finished iPad experience.
+
+**Why merged into v1.3, not deferred:** Onboarding (next release) introduces new first-run UI that must look correct on iPad from day one. Building the sidebar nav and two-column Bills *before* onboarding means onboarding is built against the real iPad chrome rather than the phone-style bottom nav. Doing it after would mean fixing onboarding's iPad layout twice.
+
+**Current state (post-v1.3):**
+- Single `@media (min-width: 834px)` block in `09-anim-swipe-media-misc.css` with three rules: `.card { max-width: 640px; margin-inline: auto }` and `.plan-tab-grid { display: grid; grid-template-columns: 1fr 1fr }`.
+- Bottom nav still fixed to the bottom on iPad — no sidebar alternative.
+- Bills tab still uses a section-switcher toggle on iPad — no side-by-side columns.
+- Settings sheet and all add-item modals are full-bleed bottom sheets on iPad.
+
+**Implementation steps:**
+
+### Step 1 — Sidebar navigation on iPad
+
+Replace the floating bottom tab bar with a left sidebar on iPad (834px+). CSS-only approach — render both navs in JSX, hide the correct one per breakpoint.
+
+1. In `app/page.tsx`, add a `<nav className="sidebar-nav">` alongside the existing `<nav className="bottom-nav">` (same four tab buttons, identical `activeTab` state — no new state or handlers needed). The sidebar renders `aria-hidden="true"` on small screens and the bottom nav renders `aria-hidden="true"` on large screens, both controlled via CSS `display` rules.
+2. In `app/styles/03-nav-results-modals.css`, add inside the existing `@media (min-width: 834px)` block (or extend it in `09-anim-swipe-media-misc.css` where the other breakpoint lives — keep all 834px rules together):
+   - `.bottom-nav { display: none }` — hides bottom nav on iPad
+   - `.sidebar-nav` — `position: fixed; left: 0; top: 0; bottom: 0; width: 80px; display: flex; flex-direction: column; align-items: center; padding: 24px 0; gap: 8px; background: var(--bg-secondary); border-right: 1px solid var(--border-color); z-index: 50`
+   - `.sidebar-nav-item` — vertical stack of icon + label, `width: 100%; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 12px 0; color: var(--text-secondary)`
+   - `.sidebar-nav-item.active` — `color: var(--accent-color); background: rgba(37,99,235,0.08); border-radius: 12px; margin: 0 8px; width: calc(100% - 16px)`
+3. Adjust `.app-content` padding-left at 834px+ to account for the 80px sidebar: `padding-left: calc(80px + 16px)`.
+4. The sidebar icon size can be `size={22}` (slightly larger than bottom nav's 20 — sidebar icons benefit from breathing room).
+
+**Sidebar nav label consideration:** Bottom nav uses `<small>` for labels. Keep labels on the sidebar (rotated? below icon? beside icon?). Recommend **icon + label stacked** (same as bottom nav) at `font-size: 0.66rem` — the sidebar is narrow (80px) so labels must be short. "Payoff" becomes the constraint word — it fits at this size.
+
+### Step 2 — Two-column Bills on iPad
+
+On iPad, eliminate the Expenses/Debts toggle and render both sections as persistent side-by-side columns.
+
+1. In `app/page.tsx`, the bills section currently renders three conditional blocks gated on `activeTab === "bills"` and `billsView`. At 834px+ we want to show both simultaneously. Cleanest approach without a new hook: add a CSS class `bills-two-column` on a wrapper div that contains all three bills blocks, and use CSS to:
+   - Hide `.mobile-section-switcher` at 834px+ (the toggle is not needed)
+   - Display `RequiredExpensesSection` and `DebtsSection` as a two-column grid instead of stacking
+2. Wrap the three bills conditional blocks in `<div className="bills-tab-content">`. At 834px+ via CSS: `display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start`. The switcher block (`mobile-section-switcher`) gets `display: none` at 834px+. Both sections are now always visible.
+3. Because both sections render simultaneously at 834px+, the `billsView` state no longer matters on iPad — both are visible regardless. No `billsView` state change needed; CSS handles it.
+4. **Edge case:** When both sections render at once on iPad, the `{activeTab === "bills" && billsView === "expenses"}` and `{activeTab === "bills" && billsView === "debts"}` conditionals mean on iPad (where no switcher exists) one section is always hidden. Fix: on iPad both conditions must render. Approach: at 834px+ use `:not(.mobile-section-switcher)` visibility trick OR change the conditions to render both `RequiredExpensesSection` and `DebtsSection` unconditionally when on the bills tab, regardless of `billsView`. The latter is simpler — no CSS trick needed, and `billsView` state naturally becomes inert on iPad since CSS handles layout. This does mean a small JSX change: render both bills components on the bills tab always, not conditionally on `billsView`. The `mobile-section-switcher` and its `billsView` state still exist for phone but do nothing on iPad.
+
+### Step 3 — Centered modals and sheets on iPad
+
+At 834px+, all bottom sheets (settings, add-item modals) should appear as centered modals — not full-bleed sheets from the bottom.
+
+1. Add to the 834px+ media query:
+   ```css
+   .settings-overlay {
+       align-items: center;  /* overrides align-items: flex-end */
+   }
+   .settings-sheet,
+   .bills-modal,
+   .debt-add-modal,
+   .goal-add-modal,
+   .sort-sheet {
+       border-radius: 24px;  /* all four corners rounded, not just top */
+       max-height: 80vh;
+       animation: centerModalIn 0.2s ease;  /* use centered animation, not slideUpSheet */
+   }
+   ```
+2. This is purely CSS — no JSX changes. The `.settings-overlay` `align-items: center` moves the sheet to the center of the screen; the border-radius change makes all corners rounded (not just the top two). `centerModalIn` already exists in the animation library.
+3. Verify the `backdrop-filter: blur(8px)` on `.settings-overlay` still looks correct when centered — it should, since it's on the overlay, not the sheet.
+
+### Step 4 — `.app-content` padding adjustment for sidebar
+
+Without adjustment, the sidebar overlaps the content on iPad since `.app-content` doesn't know about it.
+
+1. In the 834px+ breakpoint, add `padding-left: calc(80px + max(16px, env(safe-area-inset-left)))` to `.app-content`, matching the sidebar width + the existing left safe-area inset already applied.
+2. This is the same pattern already used for notch/home-indicator insets — just extending it to account for the sidebar.
+
+**Files touched:** `app/page.tsx` (add sidebar nav JSX, adjust bills conditionals), `app/styles/03-nav-results-modals.css` (sidebar nav classes) OR `app/styles/09-anim-swipe-media-misc.css` (extend 834px breakpoint — prefer keeping all 834px rules in one place), `app/styles/08-dark-theme-polish.css` (dark theme sidebar background if needed).
+
+**Testing:** Manual Simulator pass at iPad mini (1024×768pt landscape, 768×1024pt portrait), iPad Air, iPad Pro 13" — confirm sidebar appears, Bills two columns, modals centered. Also verify phone breakpoint unchanged (sidebar hidden, bottom nav visible, bills switcher works). Playwright screenshots at iPad Pro 11 viewport (already added in v1.3) before/after.
+
+**Risk:** Low-medium. The most complex piece is the bills tab conditional change (Step 2 JSX) — requires care to avoid showing both RequiredExpensesSection and DebtsSection on phone, where only one should show at a time. Keep the `billsView` conditional intact for phone; only strip it for iPad via the CSS rendering approach or a width-aware state.
+
+**Dependency note for v1.4 (Onboarding):** The onboarding flow (`OnboardingFlow.tsx`, `components/Onboarding/`) will be a full-screen overlay when triggered. It must be built to render correctly in the sidebar-aware layout — specifically, the sidebar should not be visible during onboarding (the onboarding overlay sits above it at `z-index` above 50, so this is automatic as long as onboarding's overlay uses `z-index: 100`+). No additional work needed in v1.4 Onboarding for this, just verify during testing.
 
 ---
 

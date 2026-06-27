@@ -63,7 +63,7 @@ test.beforeEach(async ({ page }) => {
 test("recommended payoff date is exact and paid extra debt payment persists after reload", async ({
     page,
 }) => {
-    await page.getByRole("button", { name: /Payoff/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
 
     const debtFreeCard = page.locator(".summary-card").filter({
         hasText: "Debt Free",
@@ -105,7 +105,7 @@ test("recommended payoff date is exact and paid extra debt payment persists afte
         await expect(overlay).not.toBeVisible();
     }
 
-    await page.getByRole("button", { name: /Payoff/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
 
     const updatedDebtFreeCard = page.locator(".summary-card").filter({
         hasText: "Debt Free",
