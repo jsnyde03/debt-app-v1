@@ -17,7 +17,7 @@ _Standing rule, effective 2026-06-25: every calculation, feature, and user-facin
 
 **Low confidence** — no automated test exists, OR a known-incorrect behavior exists and is undocumented to the user. **Must be fixed or explicitly disclosed before release**, not silently shipped.
 
-## Current baseline audit (2026-06-25, v1.2-dev)
+## Current baseline audit (2026-06-25, v1.2-dev — ratings carry forward to v1.3, no calculation changes in v1.3)
 
 | Area | Rating | Why |
 |---|---|---|
