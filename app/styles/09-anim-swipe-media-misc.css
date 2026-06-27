@@ -699,11 +699,6 @@
 		margin-inline: auto;
 	}
 
-	/* Living Expenses sits above the two-column layout, spanning both columns */
-	.bills-tab-content > .living-expenses-summary-card {
-		grid-column: 1 / -1;
-	}
-
 	/* Show both columns regardless of billsView state */
 	.bills-expenses-col,
 	.bills-debts-col {
