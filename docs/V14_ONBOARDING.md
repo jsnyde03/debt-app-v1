@@ -85,6 +85,24 @@ Low. Pure UI addition, no engine or data changes. The demo mode gate condition (
 
 ---
 
+## Status: SHIPPED (2026-06-27, commit e9e8a32)
+
+**Files created:**
+- `lib/hooks/useOnboarding.ts` — flag + migration safety (existing users with amount set → treated as onboarded)
+- `components/Onboarding/OnboardingFlow.tsx` — step container, step 0–3
+- `components/Onboarding/WelcomeStep.tsx` — app pitch, Get Started / Try with Sample Data
+- `components/Onboarding/PaycheckStep.tsx` — amount + pay cycle + next date, saves to localStorage on Continue
+- `components/Onboarding/FirstDebtOrBillStep.tsx` — optional quick-add debt or expense
+- `components/Onboarding/CompletionStep.tsx` — sets hasCompletedOnboarding flag, reloads
+- `app/styles/10-onboarding.css` — onboarding-specific styles
+
+**Files modified:**
+- `app/page.tsx` — imports useOnboarding + OnboardingFlow; gate `!hasCompletedOnboarding && !isDemoMode` renders OnboardingFlow before main app
+
+**Migration:** `useOnboarding` returns `true` (skips onboarding) if `debtPlanner.amount` is already set — protects all existing v1.3 users from seeing the new flow on upgrade.
+
+---
+
 ## Addendum — Mobile Polish P4 and P9c
 
 _See [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) for full detail. Summary for version-sequencing reference only._
