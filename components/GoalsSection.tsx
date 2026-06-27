@@ -45,13 +45,12 @@ export function GoalsSection({
     const [editCurrentAmount, setEditCurrentAmount] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [showAddGoalModal, setShowAddGoalModal] = useState(false);
-    const [goalPage, setGoalPage] = useState(1);
+    const pageSize = 10;
+    const [goalVisibleCount, setGoalVisibleCount] = useState(pageSize);
     const showFab = useScrollFabVisible();
 
     const filteredGoals = goals.filter((goal) => goal.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    const pageSize = 10;
-    const totalPages = Math.max(1, Math.ceil(filteredGoals.length / pageSize));
-    const visibleGoals = filteredGoals.slice((goalPage - 1) * pageSize, goalPage * pageSize);
+    const visibleGoals = filteredGoals.slice(0, goalVisibleCount);
 
     const totalSaved = goals.reduce((sum, goal) => sum + goal.currentAmount, 0);
     const totalTarget = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
@@ -270,7 +269,7 @@ export function GoalsSection({
                     value={searchTerm}
                     onChange={(event) => {
                         setSearchTerm(event.target.value)
-                        setGoalPage(1);
+                        setGoalVisibleCount(pageSize);
                     }}
                 />
             </div>
@@ -284,34 +283,17 @@ export function GoalsSection({
                 visibleGoals.map(renderGoal)
             )}
 
-            {filteredGoals.length > pageSize && (
-                <div className="pagination-actions pagination-compact">
+            {filteredGoals.length > goalVisibleCount && (
+                <div className="load-more-actions">
                     <button
                         type="button"
-                        className="text-action-button"
-                        disabled={goalPage <= 1}
+                        className="load-more-button"
                         onClick={() => {
                             triggerLightHaptic();
-                            setGoalPage((current) => Math.max(1, current - 1));
+                            setGoalVisibleCount((current) => current + pageSize);
                         }}
                     >
-                        ‹
-                    </button>
-
-                    <span className="pagination-status">
-                        Page {goalPage} of {totalPages}
-                    </span>
-
-                    <button
-                        type="button"
-                        className="text-action-button"
-                        disabled={goalPage >= totalPages}
-                        onClick={() => {
-                            triggerLightHaptic();
-                            setGoalPage((current) => Math.min(totalPages, current + 1));
-                        }}
-                    >
-                        ›
+                        Load More
                     </button>
                 </div>
             )}

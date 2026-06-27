@@ -127,9 +127,11 @@ export function DebtsSection({
         paidOff: false,
     });
 
-    const [debtPages, setDebtPages] = useState({
-        active: 1,
-        paidOff: 1,
+    const DEBT_PAGE_SIZE = 10;
+
+    const [debtVisibleCounts, setDebtVisibleCounts] = useState({
+        active: DEBT_PAGE_SIZE,
+        paidOff: DEBT_PAGE_SIZE,
     });
 
     const allDebts = useMemo(() => {
@@ -235,7 +237,7 @@ export function DebtsSection({
                         value={searchTerm}
                         onChange={(event) => {
                             setSearchTerm(event.target.value)
-                            setDebtPages({ active: 1, paidOff: 1 });
+                            setDebtVisibleCounts({ active: DEBT_PAGE_SIZE, paidOff: DEBT_PAGE_SIZE });
                         }}
                     />
 
@@ -245,7 +247,7 @@ export function DebtsSection({
                             onChange={(event) => {
                                 setSortBy(event?.target.value as DebtSortOption);
                                 setSortDirection("asc");
-                                setDebtPages({ active: 1, paidOff: 1 });
+                                setDebtVisibleCounts({ active: DEBT_PAGE_SIZE, paidOff: DEBT_PAGE_SIZE });
                             }}
                         >
                             <option value="dueDate">Sort By Due Date</option>
@@ -259,7 +261,7 @@ export function DebtsSection({
                             onClick={() => {
                                 triggerLightHaptic();
                                 setSortDirection((d) => d === "asc" ? "desc" : "asc");
-                                setDebtPages({ active: 1, paidOff: 1 });
+                                setDebtVisibleCounts({ active: DEBT_PAGE_SIZE, paidOff: DEBT_PAGE_SIZE });
                             }}
                             aria-label={sortDirection === "asc" ? "Sort descending" : "Sort ascending"}
                             title={sortDirection === "asc" ? "Sort descending" : "Sort ascending"}
@@ -285,8 +287,8 @@ export function DebtsSection({
                             emptyText="No Active Debts."
                             isExpanded={expandedSections.active}
                             onToggleExpanded={() => setExpandedSections((current) => ({ ...current, active: !current.active }))}
-                            currentPage={debtPages.active}
-                            onPageChange={(page) => setDebtPages((current) => ({ ...current, active: page }))}
+                            visibleCount={debtVisibleCounts.active}
+                            onLoadMore={() => setDebtVisibleCounts((current) => ({ ...current, active: current.active + DEBT_PAGE_SIZE }))}
                             editingDebtId={editingDebtId}
                             editBalance={editBalance}
                             editMinimumPayment={editMinimumPayment}
@@ -313,8 +315,8 @@ export function DebtsSection({
                             emptyText="No Paid Off Debts."
                             isExpanded={expandedSections.paidOff}
                             onToggleExpanded={() => setExpandedSections((current) => ({ ...current, paidOff: !current.paidOff }))}
-                            currentPage={debtPages.paidOff}
-                            onPageChange={(page) => setDebtPages((current) => ({ ...current, paidOff: page }))}
+                            visibleCount={debtVisibleCounts.paidOff}
+                            onLoadMore={() => setDebtVisibleCounts((current) => ({ ...current, paidOff: current.paidOff + DEBT_PAGE_SIZE }))}
                             editingDebtId={editingDebtId}
                             editBalance={editBalance}
                             editMinimumPayment={editMinimumPayment}

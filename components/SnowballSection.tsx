@@ -47,7 +47,8 @@ export function SnowballSection({
 	setPayoffStrategy,
 }: SnowballSectionProps) {
 	const [showPayoffOrder, setShowPayoffOrder] = useState(false);
-	const [payoffOrderPage, setPayoffOrderPage] = useState(1);
+	const payoffOrderPageSize = 10;
+	const [payoffOrderVisibleCount, setPayoffOrderVisibleCount] = useState(payoffOrderPageSize);
 	const [simulationExtraPayment, setSimulationExtraPayment] = useState("100");
 	const [simulationStrategy, setSimulationStrategy] = useState<"recommended" | "snowball" | "avalanche">("recommended")
 	const [expandedPremiumSection, setExpandedPremiumSection] = useState<"insights" | "comparison" | "simulation" | "forecast">("insights");
@@ -82,15 +83,7 @@ export function SnowballSection({
 			return a.balance - b.balance;
 		});
 
-	const payoffOrderPageSize = 10;
-	const totalPayoffPages = Math.max(
-		1,
-		Math.ceil(payoffOrder.length / payoffOrderPageSize)
-	);
-	const visiblePayoffOrder = payoffOrder.slice(
-		(payoffOrderPage - 1) * payoffOrderPageSize,
-		payoffOrderPage * payoffOrderPageSize
-	);
+	const visiblePayoffOrder = payoffOrder.slice(0, payoffOrderVisibleCount);
 
 	const snowballAllocations =
 		result?.allocations.filter((item) => item.category === "snowball") ?? [];
@@ -1203,10 +1196,10 @@ export function SnowballSection({
 								{visiblePayoffOrder.map((debt, index) => (
 									<div
 										key={debt.id}
-										className={`saved-item debt-list-item payoff-order-item ${payoffOrderPage === 1 && index === 0 ? "payoff-order-focus" : ""}`}
+										className={`saved-item debt-list-item payoff-order-item ${index === 0 ? "payoff-order-focus" : ""}`}
 									>
 										<div className="payoff-order-rank">
-											#{(payoffOrderPage - 1) * payoffOrderPageSize + index + 1}
+											#{index + 1}
 										</div>
 
 										<div className="saved-item-left payoff-order-main">
@@ -1231,38 +1224,19 @@ export function SnowballSection({
 									</div>
 								))}
 
-								{payoffOrder.length > payoffOrderPageSize && (
-									<div className="pagination-actions pagination-compact">
+								{payoffOrder.length > payoffOrderVisibleCount && (
+									<div className="load-more-actions">
 										<button
 											type="button"
-											className="text-action-button"
-											disabled={payoffOrderPage <= 1}
+											className="load-more-button"
 											onClick={() => {
 												triggerLightHaptic();
-												setPayoffOrderPage((current) =>
-													Math.max(1, current - 1)
+												setPayoffOrderVisibleCount((current) =>
+													current + payoffOrderPageSize
 												);
 											}}
 										>
-											‹
-										</button>
-
-										<span className="pagination-status">
-											Page {payoffOrderPage} of {totalPayoffPages}
-										</span>
-
-										<button
-											type="button"
-											className="text-action-button"
-											disabled={payoffOrderPage >= totalPayoffPages}
-											onClick={() => {
-												triggerLightHaptic();
-												setPayoffOrderPage((current) =>
-													Math.min(totalPayoffPages, current + 1)
-												);
-											}}
-										>
-											›
+											Load More
 										</button>
 									</div>
 								)}

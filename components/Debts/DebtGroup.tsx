@@ -16,8 +16,8 @@ type DebtGroupProps = {
     isExpanded: boolean;
     onToggleExpanded: () => void;
 
-    currentPage: number;
-    onPageChange: (page: number) => void;
+    visibleCount: number;
+    onLoadMore: () => void;
 
     editingDebtId: string | null;
     editBalance: string;
@@ -40,8 +40,6 @@ type DebtGroupProps = {
     onRemoveDebt: (id: string) => void;
 };
 
-const PAGE_SIZE = 10;
-
 export function DebtGroup({
     title,
     count,
@@ -49,8 +47,8 @@ export function DebtGroup({
     emptyText,
     isExpanded,
     onToggleExpanded,
-    currentPage,
-    onPageChange,
+    visibleCount,
+    onLoadMore,
     editingDebtId,
     editBalance,
     editMinimumPayment,
@@ -69,9 +67,7 @@ export function DebtGroup({
     onSaveEditing,
     onRemoveDebt,
 }: DebtGroupProps) {
-    const totalPages = Math.max(1, Math.ceil(debts.length / PAGE_SIZE));
-    const startIndex = (currentPage - 1) * PAGE_SIZE;
-    const visibleDebts = debts.slice(startIndex, startIndex + PAGE_SIZE);
+    const visibleDebts = debts.slice(0, visibleCount);
 
     return (
         <div className="debt-group collapsible-group">
@@ -129,34 +125,17 @@ export function DebtGroup({
                             />
                         ))}
 
-                        {debts.length > PAGE_SIZE && (
-                            <div className="pagination-actions pagination-compact">
+                        {debts.length > visibleCount && (
+                            <div className="load-more-actions">
                                 <button
                                     type="button"
-                                    className="text-action-button"
-                                    disabled={currentPage <= 1}
+                                    className="load-more-button"
                                     onClick={() => {
                                         triggerLightHaptic();
-                                        onPageChange(Math.max(1, currentPage - 1));
+                                        onLoadMore();
                                     }}
                                 >
-                                    ‹
-                                </button>
-
-                                <span className="pagination-status">
-                                    Page {currentPage} of {totalPages}
-                                </span>
-
-                                <button
-                                    type="button"
-                                    className="text-action-button"
-                                    disabled={currentPage >= totalPages}
-                                    onClick={() => {
-                                        triggerLightHaptic();
-                                        onPageChange(Math.min(totalPages, currentPage + 1));
-                                    }}
-                                >
-                                    ›
+                                    Load More
                                 </button>
                             </div>
                         )}

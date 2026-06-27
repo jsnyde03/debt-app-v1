@@ -70,7 +70,8 @@ export function RequiredExpensesSection({
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<RequiredExpenseCategory | "all">("all");
     const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
-    const [expensePage, setExpensePage] = useState(1);
+    const pageSize = 10;
+    const [expenseVisibleCount, setExpenseVisibleCount] = useState(pageSize);
     const showFab = useScrollFabVisible();
 
     const filteredExpenses = expenses.filter((expense) => {
@@ -80,9 +81,7 @@ export function RequiredExpensesSection({
         return matchesSearch && matchesCategory;
     });
 
-    const pageSize = 10;
-    const totalPages = Math.max(1, Math.ceil(filteredExpenses.length / pageSize));
-    const visibleExpenses = filteredExpenses.slice((expensePage - 1) * pageSize, expensePage * pageSize);
+    const visibleExpenses = filteredExpenses.slice(0, expenseVisibleCount);
 
     function startEditing(expense: RequiredExpense) {
         triggerLightHaptic();
@@ -162,7 +161,7 @@ export function RequiredExpensesSection({
                         value={searchTerm}
                         onChange={(event) => {
                             setSearchTerm(event.target.value);
-                            setExpensePage(1);
+                            setExpenseVisibleCount(pageSize);
                         }}
                     />
 
@@ -177,7 +176,7 @@ export function RequiredExpensesSection({
                             onClick={() => {
                                 triggerLightHaptic();
                                 setSelectedCategory("all");
-                                setExpensePage(1);
+                                setExpenseVisibleCount(pageSize);
                             }}
                         >
                             All
@@ -195,7 +194,7 @@ export function RequiredExpensesSection({
                                 onClick={() => {
                                     triggerLightHaptic();
                                     setSelectedCategory(option.value);
-                                    setExpensePage(1);
+                                    setExpenseVisibleCount(pageSize);
                                 }}
                             >
                                 {option.label}
@@ -233,34 +232,17 @@ export function RequiredExpensesSection({
                     ))
                 )}
 
-                {filteredExpenses.length > pageSize && (
-                    <div className="pagination-actions pagination-compact">
+                {filteredExpenses.length > expenseVisibleCount && (
+                    <div className="load-more-actions">
                         <button
                             type="button"
-                            className="text-action-button"
-                            disabled={expensePage <= 1}
+                            className="load-more-button"
                             onClick={() => {
                                 triggerLightHaptic();
-                                setExpensePage((current) => Math.max(1, current - 1));
+                                setExpenseVisibleCount((current) => current + pageSize);
                             }}
                         >
-                            ‹
-                        </button>
-
-                        <span className="pagination-status">
-                            Page {expensePage} of {totalPages}
-                        </span>
-
-                        <button
-                            type="button"
-                            className="text-action-button"
-                            disabled={expensePage >= totalPages}
-                            onClick={() => {
-                                triggerLightHaptic();
-                                setExpensePage((current) => Math.min(totalPages, current + 1));
-                            }}
-                        >
-                            ›
+                            Load More
                         </button>
                     </div>
                 )}

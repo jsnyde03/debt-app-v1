@@ -181,7 +181,6 @@
 	margin-bottom: 12px;
 }
 
-.load-more-actions,
 .pagination-actions,
 .plan-actions {
 	display: flex;
@@ -190,29 +189,20 @@
 	margin-top: 1rem;
 }
 
-.pagination-compact {
-	display: inline-flex;
-	align-items: center;
+.load-more-actions {
+	display: flex;
 	justify-content: center;
-	gap: 10px;
-	margin: 14px auto 0;
-	padding: 6px 12px;
+	margin-top: 1rem;
+}
+
+.load-more-button {
+	min-height: 44px;
+	padding: 0 20px;
 	border-radius: var(--radius-pill);
 	background: var(--surface-muted);
 	border: 1px solid var(--border-color);
-}
-
-.pagination-compact .text-action-button {
-	min-width: 44px;
-	min-height: 44px;
-	padding: 0;
-	border-radius: 999px;
-}
-
-.pagination-status {
-	color: var(--text-secondary);
-	font-size: 0.9rem;
-	white-space: nowrap;
+	color: var(--text-primary);
+	font-size: 0.88rem;
 	font-weight: 700;
 }
 
