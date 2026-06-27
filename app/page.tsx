@@ -835,9 +835,18 @@ export default function Home() {
                                 result={result}
                                 requiredExpenses={requiredExpenses}
                                 debts={debts}
+                                goals={goals}
+                                livingExpenses={livingExpenses}
                                 completedRecommendedActions={completedRecommendedActions}
                                 currentDate={currentDate}
                                 nextPaycheckDate={nextPaycheckDate}
+                                payCycleConfig={{
+                                    payCycle,
+                                    semiMonthlyFirstDay: semiMonthlyFirstDay ? Number(semiMonthlyFirstDay) : undefined,
+                                    semiMonthlySecondDay: semiMonthlySecondDay ? Number(semiMonthlySecondDay) : undefined,
+                                    monthlyPayDay: monthlyPayDay ? Number(monthlyPayDay) : undefined,
+                                }}
+                                strategy={payoffStrategy}
                             />
                         </div>
                     </>
