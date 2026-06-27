@@ -4,11 +4,28 @@
 	box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.16);
 }
 
+.dark-theme .card {
+	border-color: rgba(255, 255, 255, 0.07);
+	box-shadow:
+		0 2px 4px rgba(0, 0, 0, 0.22),
+		0 8px 28px rgba(0, 0, 0, 0.26),
+		0 22px 52px rgba(0, 0, 0, 0.18),
+		inset 0 1px 0 rgba(255, 255, 255, 0.06),
+		inset 0 -1px 0 rgba(0, 0, 0, 0.14);
+}
+
 .dark-theme .plan-dark-polish {
 	position: relative;
 	overflow: hidden;
-	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.08), transparent 38%), rgba(15, 23, 42, 0.88);
-	border-color: rgba(120, 140, 255, 0.16);
+	background:
+		radial-gradient(circle at 88% 12%, rgba(59, 130, 246, 0.20), transparent 34%),
+		radial-gradient(circle at 12% 88%, rgba(168, 85, 247, 0.14), transparent 38%),
+		radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.06), transparent 60%),
+		rgba(13, 21, 38, 0.92);
+	border-color: rgba(120, 140, 255, 0.20);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.05),
+		0 20px 52px rgba(0, 0, 0, 0.28);
 }
 
 .dark-theme .plan-dashboard-header p.status-good {
@@ -19,9 +36,12 @@
 .dark-theme .execution-summary-strip {
 	position: relative;
 	overflow: hidden;
-	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.7));
-	border: 1px solid rgba(148, 163, 184, 0.16);
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 34px rgba(15, 23, 42, 0.22);
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.76));
+	border: 1px solid rgba(148, 163, 184, 0.18);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.05),
+		0 8px 24px rgba(15, 23, 42, 0.18),
+		0 20px 48px rgba(0, 0, 0, 0.24);
 }
 
 .dark-theme .execution-summary-strip::before {
@@ -42,6 +62,14 @@
 	box-shadow: inset  0 1px 0 rgba(255, 255, 255, 0.03), 0 0 16px rgba(88, 166, 255, 0.05);
 	backdrop-filter: blur(10px);
 	-webkit-backdrop-filter: blur(10px);
+}
+
+.dark-theme .card {
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.05),
+		0 1px 3px rgba(0, 0, 0, 0.12),
+		0 12px 32px rgba(0, 0, 0, 0.24),
+		0 24px 56px rgba(0, 0, 0, 0.18);
 }
 
 .dark-theme .saved-item {
@@ -201,8 +229,14 @@
 .dark-theme .bills-polish-card {
 	position: relative;
 	overflow: hidden;
-	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.13), transparent 36%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.08), transparent 40%), rgba(15, 23, 42, 0.88);
-	border-color: rgba(120, 140, 255, 0.16);
+	background:
+		radial-gradient(circle at top right, rgba(59, 130, 246, 0.18), transparent 36%),
+		radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent 40%),
+		rgba(13, 21, 38, 0.92);
+	border-color: rgba(120, 140, 255, 0.20);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.05),
+		0 20px 52px rgba(0, 0, 0, 0.28);
 }
 
 .dark-theme .required-expense-row {
@@ -257,9 +291,11 @@
 }
 
 .dark-theme .living-summary-card {
-	background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.70));
-	border: 1px solid rgba(148, 163, 184, 0.14);
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 14px 34px rgba(15, 23, 42, 0.22);
+	background: linear-gradient(145deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.74));
+	border: 1px solid rgba(148, 163, 184, 0.12);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.05),
+		0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
 .dark-theme .bills-modal {
@@ -474,7 +510,7 @@
 .dark-theme .debt-controls input,
 .dark-theme .debt-controls select,
 .dark-theme .debt-controls .sort-row select {
-	min-height: 52px;
+	min-height: 46px;
 	border-radius: 18px;
 	background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
 	border-color: rgba(148, 163, 184, 0.16);
@@ -482,7 +518,7 @@
 }
 
 .dark-theme .debt-sort-btn {
-	min-height: 52px;
+	min-height: 46px;
 	border-radius: 18px;
 	background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
 	border-color: rgba(148, 163, 184, 0.16);
@@ -579,15 +615,27 @@
 .dark-theme .debts-polish-card {
 	position: relative;
 	overflow: hidden;
-	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 36%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.09), transparent 40%), rgba(15, 23, 42, 0.88);
-	border-color: rgba(120, 140, 255, 0.16);
+	background:
+		radial-gradient(circle at top right, rgba(59, 130, 246, 0.20), transparent 36%),
+		radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent 40%),
+		rgba(13, 21, 38, 0.92);
+	border-color: rgba(120, 140, 255, 0.20);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.05),
+		0 20px 52px rgba(0, 0, 0, 0.28);
 }
 
 .dark-theme .goals-polish-card {
 	position: relative;
 	overflow: hidden;
-	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 36%), radial-gradient(circle at 15% 45%, rgba(168, 85, 247, 0.10), transparent 40%), rgba(15, 23, 42, 0.88);
-	border-color: rgba(120, 140, 255, 0.16);
+	background:
+		radial-gradient(circle at top right, rgba(59, 130, 246, 0.20), transparent 36%),
+		radial-gradient(circle at 15% 45%, rgba(168, 85, 247, 0.14), transparent 40%),
+		rgba(13, 21, 38, 0.92);
+	border-color: rgba(120, 140, 255, 0.20);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.05),
+		0 20px 52px rgba(0, 0, 0, 0.28);
 }
 
 .dark-theme .goals-add-button {

@@ -705,10 +705,29 @@ export default function Home() {
                         </button>
                     </div>
                 )}
-                <section className="hero">
-                    <h1>Debt Planner</h1>
-                    <p>Enter a paycheck and see exactly what to do next.</p>
-                    {lastSavedAt && (
+                <section className={activeTab === "plan" ? "hero" : "hero hero-page"}>
+                    {activeTab === "plan" ? (
+                        <>
+                            <h1>Debt Planner</h1>
+                            <p>Enter a paycheck and see exactly what to do next.</p>
+                        </>
+                    ) : activeTab === "bills" ? (
+                        <>
+                            <h1 className="page-heading">Bills</h1>
+                            <p className="page-subheading">Manage recurring expenses and debts.</p>
+                        </>
+                    ) : activeTab === "snowball" ? (
+                        <>
+                            <h1 className="page-heading">Payoff</h1>
+                            <p className="page-subheading">Optimize your debt payoff strategy.</p>
+                        </>
+                    ) : activeTab === "goals" ? (
+                        <>
+                            <h1 className="page-heading">Goals</h1>
+                            <p className="page-subheading">Track savings goals and emergency funds.</p>
+                        </>
+                    ) : null}
+                    {lastSavedAt && activeTab === "plan" && (
                         <p className="last-saved-indicator">
                             {formatLastSaved(lastSavedAt)}
                         </p>

@@ -129,6 +129,32 @@
 	}
 }
 
+@keyframes cardReveal {
+	from {
+		opacity: 0;
+		transform: translateY(10px) scale(0.99);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.goal-list-item {
+	animation: cardReveal 200ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.goal-list-item:nth-child(2) { animation-delay: 30ms; }
+.goal-list-item:nth-child(3) { animation-delay: 60ms; }
+.goal-list-item:nth-child(4) { animation-delay: 90ms; }
+.goal-list-item:nth-child(5) { animation-delay: 120ms; }
+
+@media (prefers-reduced-motion: reduce) {
+	.goal-list-item {
+		animation: none;
+	}
+}
+
 @keyframes centerModalIn {
 	from {
 		opacity: 0;
@@ -325,6 +351,32 @@
 	}
 
 
+}
+
+/* Search field height reduction — 10-15% shorter than base input padding */
+.expense-controls input,
+.debt-controls input,
+.goal-controls input {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+/* Goal progress bar entrance animation — fires once on mount */
+@keyframes progressReveal {
+	from { opacity: 0; transform: scaleX(0.5); }
+	to   { opacity: 1; transform: scaleX(1); }
+}
+
+.goal-progress-fill {
+	transform-origin: left;
+	animation: progressReveal 500ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+	animation-delay: 100ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.goal-progress-fill {
+		animation: none;
+	}
 }
 
 @media (max-width: 640px) {
