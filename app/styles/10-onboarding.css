@@ -1,0 +1,291 @@
+/* ── Onboarding flow ─────────────────────────────────────────────────────── */
+
+.onboarding-root {
+	display: flex;
+	flex-direction: column;
+	min-height: 100dvh;
+	padding-top: env(safe-area-inset-top, 0px);
+	padding-bottom: env(safe-area-inset-bottom, 0px);
+	background: var(--bg-primary);
+}
+
+.onboarding-scroll {
+	flex: 1;
+	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
+	display: flex;
+	flex-direction: column;
+	padding: 32px 24px 40px;
+	gap: 20px;
+	max-width: 480px;
+	width: 100%;
+	margin: 0 auto;
+	box-sizing: border-box;
+}
+
+/* Center vertically on tall screens */
+@media (min-height: 700px) {
+	.onboarding-scroll {
+		justify-content: center;
+	}
+}
+
+/* ── Progress dots ─────────────────────────────────────────────────────────── */
+
+.onboarding-progress {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 6px;
+	padding-bottom: 4px;
+}
+
+.onboarding-dot {
+	height: 5px;
+	border-radius: var(--radius-pill);
+	background: var(--border-color);
+	transition: width 200ms ease, background 200ms ease;
+	width: 5px;
+}
+
+.onboarding-dot.active {
+	width: 18px;
+	background: var(--accent-color);
+}
+
+/* ── Illustration / icon ────────────────────────────────────────────────────── */
+
+.onboarding-icon {
+	font-size: 3.5rem;
+	line-height: 1;
+	text-align: center;
+}
+
+/* ── Copy ───────────────────────────────────────────────────────────────────── */
+
+.onboarding-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	text-align: center;
+}
+
+.onboarding-title {
+	font-size: clamp(1.7rem, 8vw, 2.4rem);
+	font-weight: 900;
+	letter-spacing: -0.04em;
+	line-height: 1.08;
+	color: var(--text-primary);
+}
+
+.onboarding-subtitle {
+	font-size: 1rem;
+	color: var(--text-secondary);
+	line-height: 1.55;
+}
+
+/* ── Feature bullets (WelcomeStep) ─────────────────────────────────────────── */
+
+.onboarding-features {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.onboarding-feature {
+	display: flex;
+	align-items: flex-start;
+	gap: 11px;
+	padding: 12px 14px;
+	border-radius: var(--radius-md);
+	background: var(--bg-secondary);
+	border: 1px solid var(--border-color);
+}
+
+.onboarding-feature-icon {
+	font-size: 1.2rem;
+	flex-shrink: 0;
+	line-height: 1.4;
+}
+
+.onboarding-feature-text {
+	font-size: 0.9rem;
+	color: var(--text-secondary);
+	line-height: 1.45;
+}
+
+.onboarding-feature-text strong {
+	display: block;
+	font-size: 0.88rem;
+	font-weight: 800;
+	color: var(--text-primary);
+	margin-bottom: 1px;
+}
+
+/* ── Form fields ────────────────────────────────────────────────────────────── */
+
+.onboarding-fields {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.onboarding-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.onboarding-field label {
+	font-size: 0.78rem;
+	font-weight: 800;
+	color: var(--text-secondary);
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+}
+
+/* Semi-monthly day pair */
+.onboarding-day-pair {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+}
+
+/* Optional debt type toggle */
+.onboarding-type-toggle {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+
+.onboarding-type-btn {
+	padding: 11px 8px;
+	border-radius: var(--radius-md);
+	font-size: 0.88rem;
+	font-weight: 700;
+	border: 1.5px solid var(--border-color);
+	background: var(--bg-secondary);
+	color: var(--text-secondary);
+	cursor: pointer;
+	transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.onboarding-type-btn.selected {
+	border-color: var(--accent-color);
+	background: rgba(37, 99, 235, 0.08);
+	color: var(--accent-color);
+}
+
+/* ── CTA stack ──────────────────────────────────────────────────────────────── */
+
+.onboarding-cta-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 4px;
+}
+
+.onboarding-primary-btn {
+	width: 100%;
+	padding: 16px;
+	border-radius: var(--radius-pill);
+	font-size: 1rem;
+	font-weight: 800;
+	background: var(--button-primary-bg);
+	color: var(--button-primary-text);
+	border: none;
+	cursor: pointer;
+	transition: opacity 100ms ease, transform 80ms ease;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.onboarding-primary-btn:active {
+	opacity: 0.82;
+	transform: scale(0.98);
+}
+
+.onboarding-secondary-btn {
+	width: 100%;
+	padding: 14px;
+	border-radius: var(--radius-pill);
+	font-size: 0.92rem;
+	font-weight: 700;
+	background: var(--bg-secondary);
+	color: var(--text-secondary);
+	border: 1.5px solid var(--border-color);
+	cursor: pointer;
+	transition: opacity 100ms ease;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.onboarding-secondary-btn:active {
+	opacity: 0.72;
+}
+
+.onboarding-skip-btn {
+	background: transparent;
+	border: none;
+	color: var(--text-secondary);
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	text-align: center;
+	padding: 10px;
+	opacity: 0.65;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.onboarding-skip-btn:active {
+	opacity: 0.4;
+}
+
+/* ── Completion ─────────────────────────────────────────────────────────────── */
+
+.onboarding-completion-icon {
+	font-size: 4.5rem;
+	line-height: 1;
+	text-align: center;
+}
+
+.onboarding-completion-stats {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.onboarding-stat-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 14px;
+	border-radius: var(--radius-md);
+	background: var(--bg-secondary);
+	border: 1px solid var(--border-color);
+	font-size: 0.88rem;
+	color: var(--text-secondary);
+}
+
+.onboarding-stat-icon {
+	font-size: 1rem;
+	flex-shrink: 0;
+}
+
+.onboarding-stat-label {
+	font-weight: 700;
+	color: var(--text-primary);
+}
+
+/* ── Dark theme overrides ───────────────────────────────────────────────────── */
+
+.dark-theme .onboarding-root {
+	background: var(--bg-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.onboarding-dot,
+	.onboarding-primary-btn,
+	.onboarding-secondary-btn {
+		transition: none;
+	}
+}

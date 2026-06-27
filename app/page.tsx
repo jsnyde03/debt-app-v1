@@ -14,6 +14,7 @@ import "./styles/06-forecast-and-payoff-shell.css";
 import "./styles/07-premium-upgrade.css";
 import "./styles/08-dark-theme-polish.css";
 import "./styles/09-anim-swipe-media-misc.css";
+import "./styles/10-onboarding.css";
 
 import { ResultsSection } from "@/components/ResultsSection";
 import { GoalsSection } from "@/components/GoalsSection";
@@ -54,6 +55,8 @@ import { useSubscription } from "@/lib/hooks/useSubscription";
 import { useNotificationsSetting } from "@/lib/hooks/useNotificationsSetting";
 import { AppLockScreen } from "@/components/AppLockScreen";
 import { useAppLock } from "@/lib/hooks/useAppLock";
+import { useOnboarding } from "@/lib/hooks/useOnboarding";
+import { OnboardingFlow } from "@/components/Onboarding/OnboardingFlow";
 import { Home as HomeIcon, CreditCard, TrendingUp, Target, Sun, Moon, Settings, Wallet } from "@/lib/icons";
 
 type CompletedRecommendedAction = {
@@ -174,6 +177,7 @@ export default function Home() {
     >(() => loadStoredState("debtPlanner.payoffStrategy", "snowball"));
 
     const { appLockEnabled, setAppLockEnabled, isUnlocked, requestUnlock } = useAppLock();
+    const { hasCompletedOnboarding } = useOnboarding();
 
     const [isDemoMode] = useState(() =>
         loadStoredState("debtPlanner.isDemoMode", false)
@@ -687,6 +691,13 @@ export default function Home() {
         return <AppLockScreen darkMode={darkMode} onUnlock={requestUnlock} />;
     }
 
+    if (!hasCompletedOnboarding && !isDemoMode) {
+        return (
+            <main className={`app ${darkMode ? "dark-theme" : "light-theme"}`}>
+                <OnboardingFlow />
+            </main>
+        );
+    }
 
     return (
         <main className={`app ${darkMode ? "dark-theme" : "light-theme"}`}>
