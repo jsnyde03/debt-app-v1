@@ -244,79 +244,102 @@ export function GoalsSection({
                 </button>
             </div>
 
-            {goals.length > 0 && (
-                <div className="goal-summary-strip">
-                    <div>
-                        <span>Total Saved</span>
-                        <strong>{formatCurrency(totalSaved)}</strong>
+            {goals.length > 0 ? (
+                <div className="goals-tab-layout">
+                    <div className="goals-summary-col">
+                        <div className="goal-summary-strip">
+                            <div>
+                                <span>Total Saved</span>
+                                <strong>{formatCurrency(totalSaved)}</strong>
+                            </div>
+
+                            <div>
+                                <span>Total Goal</span>
+                                <strong>{formatCurrency(totalTarget)}</strong>
+                            </div>
+
+                            <div>
+                                <span>Overall Progress</span>
+                                <strong>{Math.round(overallProgress)}%</strong>
+                            </div>
+                        </div>
+
+                        <div className="goal-controls">
+                            <input
+                                type="text"
+                                placeholder="Search goals..."
+                                value={searchTerm}
+                                onChange={(event) => {
+                                    setSearchTerm(event.target.value);
+                                    setGoalVisibleCount(pageSize);
+                                }}
+                            />
+                        </div>
+
+                        <div className="premium-momentum-card">
+                            <span>{fundedGoalsCount > 0 ? "🎉" : "👑"}</span>
+                            <div>
+                                <strong>
+                                    {fundedGoalsCount > 0
+                                        ? `${fundedGoalsCount} goal${fundedGoalsCount === 1 ? "" : "s"} fully funded`
+                                        : "Every contribution moves you closer"}
+                                </strong>
+                                <p>
+                                    {fundedGoalsCount > 0
+                                        ? "Great work staying consistent. Keep building toward what's next."
+                                        : "Small, steady deposits add up faster than they feel like they do."}
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <span>Total Goal</span>
-                        <strong>{formatCurrency(totalTarget)}</strong>
+                    <div className="goals-main-col">
+                        {filteredGoals.length === 0 ? (
+                            <div className="empty-debt-state compact-empty-state">
+                                <strong>No matching goals.</strong>
+                                <p>Try a different search term.</p>
+                            </div>
+                        ) : (
+                            <div className="goals-list">
+                                {visibleGoals.map(renderGoal)}
+                            </div>
+                        )}
+
+                        {filteredGoals.length > goalVisibleCount && (
+                            <div className="load-more-actions">
+                                <button
+                                    type="button"
+                                    className="load-more-button"
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        setGoalVisibleCount((current) => current + pageSize);
+                                    }}
+                                >
+                                    Load More
+                                </button>
+                            </div>
+                        )}
                     </div>
-
-                    <div>
-                        <span>Overall Progress</span>
-                        <strong>{Math.round(overallProgress)}%</strong>
-                    </div>
-                </div>
-            )}
-
-            <div className="goal-controls">
-                <input
-                    type="text"
-                    placeholder="Search goals..."
-                    value={searchTerm}
-                    onChange={(event) => {
-                        setSearchTerm(event.target.value)
-                        setGoalVisibleCount(pageSize);
-                    }}
-                />
-            </div>
-
-            {filteredGoals.length === 0 ? (
-                <div className="empty-debt-state compact-empty-state">
-                    <strong>No Goals Added Yet.</strong>
-                    <p>Add an emergency fund or savings goal to start tracking progress.</p>
                 </div>
             ) : (
-                <div className="goals-list">
-                    {visibleGoals.map(renderGoal)}
-                </div>
-            )}
-
-            {filteredGoals.length > goalVisibleCount && (
-                <div className="load-more-actions">
-                    <button
-                        type="button"
-                        className="load-more-button"
-                        onClick={() => {
-                            triggerLightHaptic();
-                            setGoalVisibleCount((current) => current + pageSize);
-                        }}
-                    >
-                        Load More
-                    </button>
-                </div>
-            )}
-
-            {goals.length > 0 && (
-                <div className="premium-momentum-card">
-                    <span>{fundedGoalsCount > 0 ? "🎉" : "👑"}</span>
-                    <div>
-                        <strong>
-                            {fundedGoalsCount > 0
-                                ? `${fundedGoalsCount} goal${fundedGoalsCount === 1 ? "" : "s"} fully funded`
-                                : "Every contribution moves you closer"}
-                        </strong>
-                        <p>
-                            {fundedGoalsCount > 0
-                                ? "Great work staying consistent. Keep building toward what's next."
-                                : "Small, steady deposits add up faster than they feel like they do."}
-                        </p>
+                <>
+                    <div className="goal-controls">
+                        <input
+                            type="text"
+                            placeholder="Search goals..."
+                            value={searchTerm}
+                            onChange={(event) => {
+                                setSearchTerm(event.target.value);
+                                setGoalVisibleCount(pageSize);
+                            }}
+                        />
                     </div>
-                </div>
+
+                    <div className="empty-debt-state compact-empty-state">
+                        <strong>No Goals Added Yet.</strong>
+                        <p>Add an emergency fund or savings goal to start tracking progress.</p>
+                    </div>
+                </>
             )}
         </section>
 

@@ -167,6 +167,7 @@ export default function Home() {
     const [isFirstRunSetup, setIsFirstRunSetup] = useState(
         () => !hasConfiguredPaycheck
     );
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const [payoffStrategy, setPayoffStrategy] = useState<
         "snowball" | "avalanche"
@@ -435,6 +436,7 @@ export default function Home() {
 
         setIsFirstRunSetup(false);
         setShowPlanSettings(false);
+        setShowDeleteConfirm(false);
         setActiveTab("plan");
         setStatusMessage("Plan updated");
 
@@ -1134,6 +1136,7 @@ export default function Home() {
                     onClick={() => {
                         if (!isFirstRunSetup) {
                             setShowPlanSettings(false);
+                                setShowDeleteConfirm(false);
                         }
                     }}
                 >
@@ -1158,6 +1161,7 @@ export default function Home() {
                                     onClick={() => {
                                         triggerLightHaptic();
                                         setShowPlanSettings(false);
+                                        setShowDeleteConfirm(false);
                                     }}
                                 >
                                     Close
@@ -1277,6 +1281,48 @@ export default function Home() {
                                         <span className="toggle-thumb" />
                                     </button>
                                 </div>
+                            </div>
+                        )}
+
+                        {!isFirstRunSetup && (
+                            <div className="settings-danger-zone">
+                                {showDeleteConfirm ? (
+                                    <div className="delete-confirm-row">
+                                        <p className="delete-confirm-text">
+                                            This will permanently erase all your debts, expenses, goals, and settings. It cannot be undone.
+                                        </p>
+                                        <div className="delete-confirm-actions">
+                                            <button
+                                                type="button"
+                                                className="secondary-button"
+                                                onClick={() => setShowDeleteConfirm(false)}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="danger-destructive-button"
+                                                onClick={() => {
+                                                    triggerMediumHaptic();
+                                                    handleExitDemoMode();
+                                                }}
+                                            >
+                                                Delete Everything
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="danger-text-button"
+                                        onClick={() => {
+                                            triggerLightHaptic();
+                                            setShowDeleteConfirm(true);
+                                        }}
+                                    >
+                                        Delete All Data
+                                    </button>
+                                )}
                             </div>
                         )}
 
