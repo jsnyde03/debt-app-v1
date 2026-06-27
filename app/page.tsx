@@ -947,6 +947,11 @@ export default function Home() {
                             </button>
                         </div>
 
+                        <LivingExpensesSection
+                            livingExpenses={livingExpenses}
+                            onLivingExpensesChange={setLivingExpenses}
+                        />
+
                         <div className="bills-expenses-col">
                         <RequiredExpensesSection
                             expenses={requiredExpenses}
@@ -969,11 +974,6 @@ export default function Home() {
                             onRemoveExpense={handleRemoveExpense}
                             onUpdateExpense={handleUpdateExpense}
                             expenseErrors={expenseErrors}
-                        />
-
-                        <LivingExpensesSection
-                            livingExpenses={livingExpenses}
-                            onLivingExpensesChange={setLivingExpenses}
                         />
                         </div>
 
