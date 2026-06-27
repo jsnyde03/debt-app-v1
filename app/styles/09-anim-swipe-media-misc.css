@@ -742,4 +742,11 @@
 	.goals-main-col .compact-debt-edit-card {
 		grid-column: 1 / -1;
 	}
+
+	.payoff-tab-layout {
+		display: grid;
+		grid-template-columns: 300px 1fr;
+		gap: 24px;
+		align-items: start;
+	}
 }

@@ -395,7 +395,8 @@ export function SnowballSection({
 					)}
 				</div>
 			) : (
-				<>
+				<div className="payoff-tab-layout">
+					<div className="payoff-summary-col">
 
 					<div className="payoff-focus-strip payoff-focus-premium-lite">
 						<div className="payoff-focus-copy">
@@ -494,6 +495,9 @@ export function SnowballSection({
 							</div>
 						</div>
 					)}
+					</div>
+
+					<div className="payoff-detail-col">
 					<div
 						className="strategy-comparison-card premium-collapsible-header"
 						onClick={() => {
@@ -1243,7 +1247,8 @@ export function SnowballSection({
 							</>
 						)}
 					</div>
-				</>
+					</div>{/* end payoff-detail-col */}
+				</div>
 			)}
 		</section>
 	);

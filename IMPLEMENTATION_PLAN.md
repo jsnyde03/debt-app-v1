@@ -231,6 +231,56 @@ Without adjustment, the sidebar overlaps the content on iPad since `.app-content
 
 ---
 
+## v1.3 addendum — Landscape Two-Column Layouts (Goals + Payoff) *(done)*
+
+**Scope:** Goals and Payoff tabs looked centered/narrow in iPad landscape (1024px+), unlike Bills which had a native two-column feel from the 834px+ work above. Added a second breakpoint at 1024px+ giving both tabs an interior two-column grid layout.
+
+**Goals (`components/GoalsSection.tsx`, `app/styles/09-anim-swipe-media-misc.css`):**
+- Added `.goals-tab-layout` grid wrapper (`240px | 1fr`) around the has-goals path: left column (`.goals-summary-col`) holds the summary strip, search input, and motivation card; right column (`.goals-main-col`) holds the goal cards and Load More.
+- The empty-state path (no goals yet) renders full-width without the wrapper — no layout change for new users.
+- At 1024px+: `.goals-main-col .goals-list` keeps its `1fr 1fr` grid (cards stay two-column within the right col); `.goals-main-col .compact-debt-edit-card` spans both columns.
+
+**Payoff (`components/SnowballSection.tsx`, `app/styles/09-anim-swipe-media-misc.css`):**
+- Added `.payoff-tab-layout` grid wrapper (`300px | 1fr`) around the has-debts ternary branch: left column (`.payoff-summary-col`) holds Focus Debt strip, Strategy Selector, Summary cards (Debt Free date, With Recommendation), and Premium Payoff Hero; right column (`.payoff-detail-col`) holds Smart Insights, Strategy Comparison, What-If Simulation, and Payoff Order collapsible.
+- The empty-debts path (no current target) renders the existing `empty-debt-state` card full-width — no change.
+- **TypeScript note:** JSX `{/* comment */}` placed immediately after a ternary branch's root closing tag is invalid — the parser is back in JS expression context after the `</div>`, so `{...}` is interpreted as a block statement. Fixed by removing inline comments from the two closing div tags (`</div>{/* end payoff-tab-layout */}` → `</div>`).
+
+**Files touched:** `components/GoalsSection.tsx`, `components/SnowballSection.tsx`, `app/styles/09-anim-swipe-media-misc.css` (new `@media (min-width: 1024px)` block).
+
+**Risk:** Low. CSS-only breakpoint (both wrapper divs are always rendered, single-column on mobile via block default — no mobile regression). TypeScript error was caught pre-push by `npx tsc --noEmit`.
+
+---
+
+## v1.3 addendum — Delete All Data + Settings Polish *(done)*
+
+**Scope:** Destructive reset action accessible from Settings; settings sheet iOS-native sizing and feel on iPad; upgrade modal overflow fix.
+
+**Delete All Data:**
+- Two-tap confirmation pattern in the settings sheet: "Delete All Data" text button → warning paragraph + "Cancel" / "Delete Everything" inline. State: `showDeleteConfirm` (boolean) in `app/page.tsx`, reset to `false` on settings sheet close and on Calculate.
+- Only shown outside first-run setup (`!isFirstRunSetup` gate) — no reason to expose this on a brand-new plan.
+- The confirmed action reuses the existing `handleExitDemoMode()` (which does `localStorage.clear(); window.location.reload()`) — no new reset logic needed.
+- Haptics: light on first tap ("Delete All Data"), medium on second tap ("Delete Everything").
+- CSS added: `.settings-danger-zone`, `.danger-text-button`, `.delete-confirm-row`, `.delete-confirm-text`, `.delete-confirm-actions`, `.danger-destructive-button` (in `app/styles/03-nav-results-modals.css`).
+
+**Settings sheet iPad sizing:**
+- At 834px+, `.settings-sheet` gets `max-width: 600px; padding: 1.75rem 2rem; max-height: 88vh` — renders as a centered modal-sized sheet rather than a full-width bottom sheet, matching native iOS Settings presentation.
+- `.settings-overlay` gets `padding-left: 80px` to offset the sidebar so the sheet visually centers in the visible content area (not the full screen width including sidebar).
+
+**Upgrade modal overflow fix:**
+- `.upgrade-modal-card`: changed `overflow: hidden` → `overflow-x: hidden; overflow-y: auto` so content scrolls on shorter viewports (the decorative orb is clipped by `overflow-x: hidden` as before, but content is no longer clipped when the card is taller than the screen).
+
+**Dev-only "Populate Demo Data" button removed:**
+- The dev-only `process.env.NODE_ENV === "development"` populate button in `app/page.tsx` was removed (and its CSS in `03-nav-results-modals.css`). The `handlePopulateDemoData` function itself is kept — still called by "Try with Sample Data" in first-run setup. See the Demo Mode addendum for context.
+
+**Playwright nav selector fixes:**
+- All nav-click selectors across 7 spec files replaced with `.bottom-nav-item:visible, .sidebar-nav-item:visible` pattern — the prior `getByRole("button", { name: /Goals/i })` matched both sidebar and bottom nav simultaneously on iPad viewports, causing Playwright strict-mode violations.
+- Added `expect(heading).toBeVisible()` guards after each Payoff/Goals nav click before screenshotting — ensures React has flushed state before `page.screenshot()`.
+- Global test timeout raised from 30s to 60s in `playwright.config.ts` (screenshot-heavy spec was hitting the 30s ceiling at 9 screenshots per test).
+
+**Files touched:** `app/page.tsx`, `app/styles/03-nav-results-modals.css`, `app/styles/07-premium-upgrade.css`, `app/styles/09-anim-swipe-media-misc.css`, `playwright.config.ts`, all 7 `tests/e2e/planner-*.spec.ts` files.
+
+---
+
 ## v1.4 — Onboarding Flow
 
 **Scope:** Replace the bare "enter paycheck amount" first-run sheet with a guided multi-step flow.
