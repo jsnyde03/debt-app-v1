@@ -261,7 +261,201 @@ Currently dark mode is a user-toggled preference (stored in `useDarkMode` hook).
 
 ---
 
-## Summary Priority Matrix
+## Part 5: Code-Verified Quality Gaps (Second Audit Pass — 2026-06-27)
+
+The following items were identified through direct code inspection of `app/page.tsx`, component files, and CSS. Unlike Part 1–4 which were visual/design observations, every item here has a specific verified location in the source.
+
+---
+
+### 19. Rollover Action is Completely Silent — No Haptic, No Feedback
+
+**The gap (verified in `app/page.tsx:625`).** `handleRolloverPayCycle()` — the single most emotionally significant action in the entire app, marking one complete pay cycle — fires no haptic feedback and shows no status message. After rollover, the UI updates and nothing else happens. A user just completed a pay period of financial discipline and receives zero acknowledgement.
+
+Compare to what the function *does*: applies payments to all debts, calculates interest, advances the paycheck date, reschedules notifications, and requests an App Store review if warranted. This is significant work on the user's behalf. The feedback should match.
+
+**What to add:**
+1. `triggerMediumHaptic()` at the top of `handleRolloverPayCycle` (immediately — 2-line fix)
+2. `setStatusMessage("Cycle complete — great work!")` at the end (same 2-line fix)
+3. Longer-term: detect whether any debt's balance crossed $0 during rollover (compare pre/post balances), and show a dedicated celebration card if so (see #23 below)
+
+---
+
+### 20. Swipe-to-Delete Has No Confirmation or Undo
+
+**The gap (verified in `components/Debts/DebtRow.tsx:197-199` and `components/RequiredExpenses/ExpenseListItem.tsx:181`).** The swipe-left "Remove" action on debts and expenses calls `onRemoveDebt(debt.id)` immediately with no confirmation and no undo. This is the only irreversible per-item action in the app with no guard — and it deletes financial data the user may have taken minutes to enter.
+
+The "Delete All Data" action correctly uses a two-tap confirmation (`showDeleteConfirm` state). Individual item deletion deserves the same respect.
+
+**Two viable fixes:**
+1. **Undo toast (recommended):** After deletion, show a 5-second toast: "Debt removed. [Undo]" — tapping Undo re-inserts the deleted item at its original position. This matches the standard iOS Mail/Safari "undo swipe" pattern. Requires storing the deleted item temporarily in state until the toast expires.
+2. **Two-tap confirm on the swipe button:** Instead of immediate action, the first tap shows "Are you sure?" in the swipe button label (changes color/text), a second tap within 3 seconds confirms. No state needed beyond a `pendingDeleteId`.
+
+The undo toast (option 1) is more forgiving and more standard for item lists — recommend it.
+
+---
+
+### 21. Currency Inputs Use Wrong Keyboard Type on iOS
+
+**The gap (verified in `components/PaycheckSection.tsx:100`, `components/Debts/AddDebtModal.tsx`, `components/GoalsSection.tsx:115`, `components/RequiredExpenses/AddExpenseModal.tsx:142`).** All currency/number fields use `type="number"`. On iOS, `type="number"` triggers a numeric keypad that **omits the decimal point** — the worst possible choice for currency entry. Users entering "$1,234.56" can't type the cents.
+
+**The fix:** `type="text" inputmode="decimal"` — the `inputmode` attribute tells iOS to show the decimal keypad (same numbers, but with the period/comma key), while `type="text"` avoids the `type="number"` quirks (spin arrows on desktop, no formatting, no leading-zero stripping). Apply to every currency and number field in the app.
+
+This is a one-line change per field, ~8 fields total. It's the most common oversight in web-wrapped iOS apps and instantly signals "built by someone who tested on a real iPhone" when it's correct.
+
+---
+
+### 22. No Sheet Grabber Handle on Any Modal
+
+**The gap.** None of the modal bottom sheets (Settings, Add Debt, Add Expense, Add Goal, Upgrade) have a visual grabber handle. On iOS, a grabber (a ~36×4px rounded pill at the top center of the sheet) is the universal signal that a sheet is dismissible by swiping down. Without it, users don't know the sheet can be swiped — they'll only find the close button.
+
+**CSS-only fix:**
+```css
+.settings-sheet::before,
+.add-modal::before,
+.upgrade-modal-card::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(148, 163, 184, 0.38);
+    margin: 0 auto 16px;
+    flex-shrink: 0;
+}
+```
+
+The grabber should render inside the sheet at the very top, before any content. Combined with swipe-down-to-dismiss (a Capacitor gesture or CSS scroll trick), this completes the native sheet feel.
+
+---
+
+### 23. Status Toast Has No Animation
+
+**The gap.** The `.save-status-toast` (which shows "Plan updated", "Saved", etc.) appears and disappears instantly — a jarring flash. It's the same "appears from nothing" problem as any unceremonious state change.
+
+**Fix:**
+```css
+.save-status-toast {
+    animation: toastEnter 200ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+@keyframes toastEnter {
+    from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .save-status-toast { animation: none; } }
+```
+
+Exit animation requires either JS-driven class toggling or CSS `animation-direction: reverse` on the auto-clear timeout — the JS-driven approach (add `.toast-exiting` class 200ms before clearing `statusMessage`) is more reliable.
+
+---
+
+### 24. Staggered List Animations Applied Only to Goals — Not Debts or Expenses
+
+**The gap (verified in `app/styles/09-anim-swipe-media-misc.css`).** The `cardReveal` + staggered delay animation was added to `.goal-list-item` (1st through 5th child). The identical `.debt-list-item` and `.saved-item` (expense items) classes have no entrance animation. The inconsistency is visible on first load — goals animate in, debts don't.
+
+**Fix:** Apply the same staggered `cardReveal` pattern to `.debt-list-item` and the required expenses list items. The CSS is already written — it's a copy-paste of the nth-child delay chain with the correct class names. Add `prefers-reduced-motion` fallback for each (already present for goals — same pattern).
+
+---
+
+### 25. No Interest Cost Per Debt on Debt Cards
+
+**The gap.** Each debt card shows balance, APR, and minimum payment — but not what the debt is actively costing in interest each month. This is the single most motivating number for a user deciding which debt to prioritize: seeing "this card is costing you $67/month in interest" is an immediate call to action.
+
+**The data is already computed:** `lib/debt/calculateMonthlyInterest.ts` exists and computes exactly this. The result just isn't shown anywhere on the debt card.
+
+**What to add:** A subtle secondary line on each non-BNPL debt card row: *"~$47/mo in interest"* in `var(--status-bad-strong)` color at `font-size: 0.78rem`. The `~` prefix is important — the actual monthly interest varies with balance, so it's approximate. For paid-off debts or debts with APR=0, this line is hidden.
+
+---
+
+### 26. Haptic Grammar Is Inconsistent
+
+**The gap (verified by grepping all `triggerLightHaptic` / `triggerMediumHaptic` call sites).** The current haptic coverage:
+- Light: all navigation taps, settings opens, theme toggle, mark-expense-paid (should be Medium)
+- Medium: debt minimum paid (DebtRow:151), debt removed (DebtRow:152), expense mark paid (ExpenseListItem:181), purchase confirmed (page.tsx:1325)
+- Missing entirely: rollover completion, successful backup import, successful CSV import, validation error
+
+**The rule that should govern this:**
+- `Light` → navigation, opening/closing panels, non-consequential taps
+- `Medium` → completing meaningful actions (paid, saved, rollover)
+- `Error` (via Capacitor `ImpactStyle.Light` repeated twice, or a dedicated error haptic) → validation failures, failed purchases
+- Nothing → passive UI updates, list items rendering
+
+`triggerLightHaptic` on "mark expense paid" is wrong — that's a meaningful financial action, same weight as "mark debt minimum paid" which already correctly uses Medium. The swipe-to-mark-paid on expenses should use Medium.
+
+---
+
+### 27. 3-Way Theme Selector (System / Light / Dark)
+
+**The gap.** The current dark mode is a binary toggle button floating in the app header — an icon button that's easy to miss, hard to discover, and doesn't handle the "respect my phone's setting" case. Premium apps (Notion, Things, Bear, Fantastical) all use a 3-way segmented control in Settings.
+
+**What to build:**
+```ts
+// lib/hooks/useDarkMode.ts — new type
+type ThemePreference = "system" | "light" | "dark";
+
+// Initialize:
+// 1. Read stored preference (default: "system")
+// 2. If "system": read matchMedia and add change listener for real-time OS theme changes
+// 3. If "light" or "dark": apply directly
+```
+
+UI: a segmented control (3 buttons in a pill group: `System | Light | Dark`) rendered inside the Settings sheet/accordion, replacing the floating icon toggle in the hero header entirely. The header icon button is removed — Settings is where this belongs.
+
+The `matchMedia` change listener ensures the app responds in real-time when the user changes their OS theme while the app is open (e.g., during the evening as they switch to dark mode).
+
+**Files touched:** `lib/hooks/useDarkMode.ts`, `app/page.tsx` (remove hero toggle button), Settings UI component.
+
+---
+
+### 28. No Privacy/Local-Storage Trust Messaging
+
+**The gap.** The app stores sensitive financial data (balances, due dates, income) in `localStorage`. Users have no way of knowing this. In a post-Cambridge-Analytica world, people worry about their financial data being harvested — and for a local-only app, the truth is highly reassuring: *nothing leaves the device*.
+
+**What to add:** A single line in the Settings sheet, near the backup/restore section:
+> "🔒 Your data stays on this device. Nothing is uploaded or shared."
+
+This is one `<p>` tag. The impact on user trust, especially for users considering upgrading to Premium, is disproportionate to its implementation cost.
+
+---
+
+## Updated Summary Priority Matrix
+
+_Items 1–18 from the original audit plus items 19–28 from the second pass, ranked by impact × effort._
+
+| # | Item | Impact | Effort | Priority |
+|---|---|---|---|---|
+| 19a | Rollover haptic + status message | Very High | Very Low | P0 — do now |
+| 21 | Currency input `inputmode="decimal"` | High | Very Low | P0 — do now |
+| 1 | Debt payoff trajectory chart | Very High | Medium | P0 |
+| 3 | Debt-free date in execution strip | Very High | Low | P0 |
+| 18 | Dark mode follows system setting | High | Very Low | P0 |
+| 27 | 3-way theme selector (System/Light/Dark) | High | Low | P1 |
+| 25 | Interest cost per debt callout | High | Very Low | P1 |
+| 20 | Swipe-delete with undo toast | High | Low | P1 |
+| 4 | Mark-paid animation feedback | High | Low | P1 |
+| 5 | Smart Insights card typography | High | Low | P1 |
+| 8 | Plan tab hero personalization | High | Low | P1 |
+| 12 | Windfall allocator (pull forward from v1.5) | High | Low | P1 |
+| 2 | First-launch empty state | Medium | Low | P1 |
+| 22 | Sheet grabber handles | Medium | Very Low | P2 |
+| 23 | Toast enter/exit animation | Medium | Low | P2 |
+| 24 | Staggered animations on debt/expense lists | Medium | Very Low | P2 |
+| 26 | Haptic grammar audit + completion | Medium | Low | P2 |
+| 28 | Privacy/local-storage messaging | Medium | Very Low | P2 |
+| 7 | Category icons on bills/debts | Medium | Low | P2 |
+| 9 | Display amount styling ($ + cents split) | Medium | Low | P2 |
+| 11 | Upgrade screen preview card | Medium | Medium | P2 |
+| 13 | "Since last cycle" delta indicator | Medium | Medium | P2 |
+| 6 | Bottom nav glow on active | Low | Very Low | P3 |
+| 10 | Directional tab transitions | Low | Low | P3 |
+| 14 | BNPL visual differentiation | Low | Low | P3 |
+| 15 | Settings as accordion vs modal | Low | Medium | P3 |
+| 19b | Rollover celebration / debt payoff moment | High | Medium | P3 — v1.6 |
+| 16 | Storage schema versioning | Infra | Low | Before v1.4 |
+| 17 | Basic accessibility (aria-labels) | Trust | Medium | Before v1.4 |
+
+---
+
+_This audit was last updated 2026-06-27, v1.3 branch. All suggestions are additive to the current feature set and do not require backend infrastructure, account systems, or new subscription tiers._
 
 | # | Item | Impact | Effort | Priority |
 |---|---|---|---|---|

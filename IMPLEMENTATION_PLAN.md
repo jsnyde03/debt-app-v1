@@ -337,6 +337,39 @@ Without adjustment, the sidebar overlaps the content on iPad since `.app-content
 
 ---
 
+## v1.3 addendum — Critical Immediate Fixes (Second Audit Pass)
+
+**Scope:** Two code-verified gaps found during a second audit pass that are P0 and require fewer than 10 lines of code each. Ship immediately to `v1.3-dev` before cutting the v1.4 branch — these are the kind of bugs that, once you know about them, feel embarrassing to leave in.
+
+### Rollover Haptic + Status Message (audit #19a) — 2 lines
+
+**The gap (verified `app/page.tsx:625`).** `handleRolloverPayCycle()` — the most emotionally significant action in the entire app — fires no haptic and shows no status message. A user just completed a full pay cycle of financial discipline and receives zero acknowledgement. Every other major action in the app has at least a light haptic; this one has nothing.
+
+```ts
+// app/page.tsx — handleRolloverPayCycle()
+async function handleRolloverPayCycle() {
+    triggerMediumHaptic();           // ← add this (top of function)
+    saveResetSnapshot();
+    // ... existing rollover logic ...
+    incrementRolloverCount();
+    void maybeRequestAppReview();
+    setStatusMessage("Cycle complete — great work!"); // ← add this (bottom)
+}
+```
+
+**Files touched:** `app/page.tsx`. **Risk:** Zero.
+
+### Currency Input Keyboard Type (audit #21) — 1 line per field, ~8 fields
+
+**The gap (verified in `PaycheckSection.tsx`, `AddDebtModal.tsx`, `GoalsSection.tsx`, `AddExpenseModal.tsx`).** All currency fields use `type="number"` which on iOS shows a number pad *without a decimal point*. Users can't enter cents. The correct approach for currency on iOS is `type="text" inputmode="decimal"`.
+
+Change every `type="number"` on a currency/amount field to `type="text" inputmode="decimal" pattern="[0-9]*"`. The `pattern` attribute prevents non-numeric characters from being submitted on mobile browsers that validate it.
+
+**Files touched:** `components/PaycheckSection.tsx`, `components/Debts/AddDebtModal.tsx`, `components/GoalsSection.tsx`, `components/RequiredExpenses/AddExpenseModal.tsx`, `components/LivingExpensesSection.tsx` (if it has number inputs).
+**Risk:** Very low. Verify that existing number-parsing logic (`parseFloat(value)`, `Number(value)`) still works with the new field type — it should, since the value attribute returns the string content regardless of `type`.
+
+---
+
 ## v1.3 addendum — UX Quick Wins (from Premium Audit)
 
 **Scope:** Two trivial changes identified in `docs/premium-ux-audit.md` that are zero-risk, zero-dependency, and too small to block on a dedicated version. Ship as a standalone push to `v1.3-dev` before cutting the v1.4 branch.
@@ -605,6 +638,193 @@ Before v1.12's full accessibility audit, close the most obvious gaps that could 
 
 **Files touched:** Various `components/*.tsx` files (additive `aria-label` props only), possibly `app/page.tsx`.
 
+### #27 — 3-Way Theme Selector: System / Light / Dark
+
+Replace the floating icon button in the hero header with a proper 3-way segmented control in Settings. This was explicitly requested as a quality/professionalism improvement and is the correct iOS convention.
+
+**`lib/hooks/useDarkMode.ts` — new 3-state type:**
+```ts
+export type ThemePreference = "system" | "light" | "dark";
+
+export function useDarkMode() {
+    const [theme, setTheme] = useState<ThemePreference>(() =>
+        loadStoredState("debtPlanner.theme", "system")
+    );
+
+    useEffect(() => {
+        localStorage.setItem("debtPlanner.theme", JSON.stringify(theme));
+
+        const resolvedDark =
+            theme === "dark" ? true :
+            theme === "light" ? false :
+            window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+        // Apply dark class, StatusBar.setStyle, etc. using resolvedDark
+        applyDarkMode(resolvedDark);
+    }, [theme]);
+
+    // Add matchMedia listener when theme === "system" so the app
+    // responds in real-time to OS theme changes without a reload
+    useEffect(() => {
+        if (theme !== "system") return;
+        const mq = window.matchMedia("(prefers-color-scheme: dark)");
+        const handler = (e: MediaQueryListEvent) => applyDarkMode(e.matches);
+        mq.addEventListener("change", handler);
+        return () => mq.removeEventListener("change", handler);
+    }, [theme]);
+
+    return { theme, setTheme };
+}
+```
+
+**Settings UI:** A segmented control (3 pill-buttons in a row: `System | Light | Dark`) inside the Settings sheet. The active option has the accent color background; inactive are ghost/muted. This replaces the floating icon toggle in `app/page.tsx`'s hero header — remove that button entirely once the Settings control exists.
+
+**Files touched:** `lib/hooks/useDarkMode.ts`, `app/page.tsx` (remove hero toggle, update call sites from `setDarkMode(bool)` to `setTheme(preference)`), Settings UI component.
+
+### #20 — Swipe-Delete Undo Toast
+
+**The gap (verified `components/Debts/DebtRow.tsx:197`).** Swipe-left → Remove calls `onRemoveDebt` immediately with no confirmation and no undo. This is the only irreversible per-item action with no guard. Implement an undo toast pattern.
+
+**Implementation:**
+1. In the parent list state (e.g., `useDebts`), instead of removing immediately, move the deleted item to a `pendingDelete: { item: Debt; timeout: number } | null` state.
+2. `setDebts(current => current.filter(d => d.id !== id))` still runs — the item disappears from the list.
+3. Simultaneously show a toast: "Debt removed. [Undo]". The "Undo" button calls `setDebts(current => [...current, pendingDelete.item])` and clears `pendingDelete`.
+4. After 5 seconds, the timeout fires: `pendingDelete` is cleared and the deletion is final (nothing more to do — it was already removed from state).
+5. Same pattern for expense deletion.
+
+**Files touched:** `lib/hooks/useDebts.ts`, `lib/hooks/useRequiredExpenses.ts`, a new `UndoToast.tsx` component or extended `statusMessage` system in `app/page.tsx`, `app/styles/` (toast styling).
+
+### #22 — Sheet Grabber Handles
+
+CSS-only addition to all bottom sheets. The grabber is a visual affordance that the sheet is draggable/dismissible.
+
+```css
+/* app/styles/03-nav-results-modals.css */
+.settings-sheet::before,
+.upgrade-modal-card::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(148, 163, 184, 0.32);
+    margin: 0 auto 16px;
+    flex-shrink: 0;
+}
+.dark-theme .settings-sheet::before,
+.dark-theme .upgrade-modal-card::before {
+    background: rgba(255, 255, 255, 0.18);
+}
+```
+
+Apply to Add Debt modal, Add Expense modal, and the Goals edit modal as well — grep for all `position: fixed` bottom-anchored containers.
+
+**Files touched:** `app/styles/03-nav-results-modals.css`, `app/styles/04-debt-modals-focus.css` (if modals are styled there).
+
+### #23 — Toast Animation (Save-Status-Toast)
+
+```css
+/* app/styles/09-anim-swipe-media-misc.css */
+.save-status-toast {
+    animation: toastEnter 200ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+@keyframes toastEnter {
+    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.save-status-toast.exiting {
+    animation: toastExit 180ms ease both;
+}
+@keyframes toastExit {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .save-status-toast, .save-status-toast.exiting { animation: none; }
+}
+```
+
+The `.exiting` class requires a small JS change: instead of clearing `statusMessage` directly on the timeout, set an `isToastExiting` flag for 180ms (the exit animation duration), then clear `statusMessage` after that delay.
+
+**Files touched:** `app/styles/09-anim-swipe-media-misc.css`, `app/page.tsx` (statusMessage timeout logic).
+
+### #24 — Staggered Animations on Debt and Expense Lists
+
+Apply the identical `cardReveal` + staggered nth-child delay pattern already used on `.goal-list-item` to `.debt-list-item` and the required-expenses list items.
+
+```css
+/* app/styles/09-anim-swipe-media-misc.css — add alongside existing goal-list-item rules */
+.debt-list-item {
+    animation: cardReveal 200ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+.debt-list-item:nth-child(2) { animation-delay: 30ms; }
+.debt-list-item:nth-child(3) { animation-delay: 60ms; }
+.debt-list-item:nth-child(4) { animation-delay: 90ms; }
+.debt-list-item:nth-child(5) { animation-delay: 120ms; }
+/* Same pattern for the expense list item class — identify the correct class name in RequiredExpensesSection */
+@media (prefers-reduced-motion: reduce) {
+    .debt-list-item { animation: none; }
+}
+```
+
+**Files touched:** `app/styles/09-anim-swipe-media-misc.css`. **Risk:** Minimal — uses the existing `cardReveal` keyframe already present in the file.
+
+### #25 — Interest Cost Per Debt Callout
+
+Display the monthly interest cost on each non-BNPL debt card row. The function `lib/debt/calculateMonthlyInterest.ts` already computes this exactly — it just isn't shown.
+
+```tsx
+// In DebtRow.tsx or wherever debt balance is displayed:
+import { calculateMonthlyInterest } from "@/lib/debt/calculateMonthlyInterest";
+
+const monthlyInterest = debt.apr > 0 && !debt.isPaidOff
+    ? calculateMonthlyInterest(debt.balance, debt.apr)
+    : 0;
+
+// Render (only when monthlyInterest > 0):
+{monthlyInterest > 0 && (
+    <span className="debt-interest-callout">
+        ~{formatCurrency(monthlyInterest)}/mo in interest
+    </span>
+)}
+```
+
+Style `.debt-interest-callout` as `font-size: 0.75rem; color: var(--status-bad-strong); opacity: 0.85` — noticeable but not alarming, purely informational.
+
+**Files touched:** `components/Debts/DebtRow.tsx` (or wherever balance renders), `app/styles/`.
+
+### #26 — Haptic Grammar Completion
+
+Audit and fix the haptic grammar for all significant actions. Verified gaps:
+
+| Action | Current | Should be |
+|---|---|---|
+| Mark expense paid (swipe) | Medium ✓ (ExpenseListItem:181) | Medium ✓ |
+| Mark debt minimum paid | Medium ✓ (DebtRow:151) | Medium ✓ |
+| Rollover (Start Next Cycle) | **None** ✗ | Medium |
+| Successful backup import | **None** ✗ | Medium |
+| Successful CSV import | **None** ✗ | Medium |
+| Validation error (empty required field) | **None** ✗ | Error (see below) |
+| Delete debt/expense (swipe) | Light (DebtRow:198) | Medium |
+
+Capacitor doesn't expose a dedicated "error" haptic style through `@capacitor/haptics` at the `ImpactStyle` level, but can be approximated via `Haptics.notification({ type: NotificationType.Error })` — check whether this is already imported in `lib/mobile/haptics.ts` and add a `triggerErrorHaptic()` export if not.
+
+**Files touched:** `lib/mobile/haptics.ts` (add `triggerErrorHaptic` if needed), `app/page.tsx` (rollover + import handlers), `components/Debts/AddDebtModal.tsx` + `components/RequiredExpenses/AddExpenseModal.tsx` (error state), `components/Debts/DebtRow.tsx` (delete swipe action).
+
+### #28 — Privacy/Local-Storage Trust Messaging
+
+Add one line to the Settings sheet, near the Backup & Restore section:
+
+```tsx
+<p className="settings-privacy-note">
+    Your data stays on this device — nothing is uploaded or shared.
+</p>
+```
+
+Style: `font-size: 0.78rem; color: var(--text-secondary); text-align: center; margin-top: 8px`. No icon needed — the text alone is sufficient and avoids the "too much marketing" feel.
+
+**Files touched:** Settings sheet JSX (in `app/page.tsx` or `components/PlanSettings/PlanSettingsSheet.tsx` once that refactor ships).
+
 ---
 
 ## v1.5 — Pay Cycle History
@@ -745,6 +965,7 @@ Implementation:
 1. New `lib/debt/computeMilestones.ts` — pure function comparing `debt.balance` against `debt.originalBalance` per debt, returning crossed thresholds (25/50/75/100%) plus an "all debts paid off" check across the whole list.
 2. New `components/MilestoneBadge.tsx` — small celebratory card/toast, triggered when a rollover crosses a threshold (compare pre/post rollover milestone state in `handleRolloverPayCycle`).
 3. Free tier gets badges with no calendar; Premium+ unlocks the full calendar (below) which puts milestones in context.
+4. **Debt payoff celebration moment (audit #19b):** When `computeMilestones` detects a debt crossed the 100% threshold (balance === 0 after rollover), trigger a distinct "debt paid off" experience beyond a standard milestone badge — this is the emotional peak of the entire app. Specifics TBD at implementation time, but should include at minimum: a `triggerMediumHaptic()`, a full-width celebration card (`MilestoneBadge` variant with confetti-style CSS animation), and the debt's name displayed prominently ("Credit Card — PAID OFF"). This is the moment users screenshot and tell friends about; it should feel earned.
 
 ### Amortization Calendar (Premium+)
 1. New `lib/debt/buildAmortizationSchedule.ts` — given one debt + its minimum payment (and optional extra payment), produce a month-by-month `{ month, startingBalance, interest, principal, endingBalance }[]` until payoff. This is structurally similar to the existing `lib/debt/applyDebtPaymentProjection.ts` (single-month step) — likely just loops that function and collects results, reusing it rather than duplicating the math.
