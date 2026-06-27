@@ -281,6 +281,62 @@ Without adjustment, the sidebar overlaps the content on iPad since `.app-content
 
 ---
 
+## v1.3 addendum — UI/UX Polish Pass *(done, 2026-06-27)*
+
+**Scope:** CSS-only visual polish pass across all app stylesheets. No business logic, state, routing, or data model changes. Goal: premium fintech feel with refined spacing, depth, and motion.
+
+**Card visual depth** (`00-theme-and-base.css`, `08-dark-theme-polish.css`):
+- `.card` border opacity raised from `0.12` → `0.14`; layered box-shadow with inset top highlight and inset bottom shadow line
+- `.dark-theme .card` explicit shadow stack (22/28/18% opacity layers) so dark cards read as floating surfaces rather than flat tiles
+- `.compact-add-button` base style added (`padding: 9px 14px; font-size: 0.88rem`)
+
+**Summary card depth** (`02-overdue-pagination-nav.css`):
+- `.summary-card` layered box-shadow with inset top highlight; `.dark-theme .summary-card` glass treatment with inset highlight and depth shadow
+
+**Living summary card** (`03-nav-results-modals.css`):
+- `.living-summary-card` padding reduced to `11px 13px` (from inherited `13px`), glass background and subtle shadow — rule placed in `03-nav-results-modals.css` to correctly override the earlier `.summary-card` rule from `02-overdue-pagination-nav.css`
+
+**Goal card spacing** (`01-payoff-goals.css`):
+- `.goal-card-content` gap: `4px` → `5px`
+- `.goal-type-icon` size: `26px` → `28px`
+- `.goal-progress-track` height: `6px` → `7px`
+
+**Premium hero inner shine** (`01-payoff-goals.css`):
+- `.premium-payoff-hero::before` pseudo-element adds a 45%-height top-to-transparent gradient at 9% white opacity. Used `::before` not `::after` since `::after` already renders the "+" character.
+
+**Upgrade button** (`07-premium-upgrade.css`):
+- Blue-to-purple gradient background with glow shadow and inset highlight; first feature item gets `--premium-featured-border` treatment
+
+**Timeline** (`05-timeline-whatif.css`):
+- List gap: `6px` → `14px` (further increased by linter)
+- Item vertical padding: `11px` → `12px`
+- Right column min-width: `112px` → `116px`
+- `.timeline-running-cash`: `font-size: 0.84rem; opacity: 0.62; margin-top: 4px; font-variant-numeric: tabular-nums`
+- Connector line: `border-radius: 999px`, richer blue/purple gradient stops
+
+**Motion** (`09-anim-swipe-media-misc.css`):
+- `@keyframes cardReveal` (opacity + translateY + scale) added
+- `.goal-list-item` staggered entrance: 200ms cubic-bezier, 5-item nth-child delay chain (0/30/60/90/120ms)
+- `prefers-reduced-motion` fallback guard on all new animations
+
+**Page-specific headings** (`app/page.tsx`):
+- Hero `<section>` now conditionally applies `hero hero-page` class on non-Plan tabs
+- Bills/Payoff/Goals each render a distinct `page-heading`/`page-subheading` pair instead of the repeated "Debt Planner" title
+
+**Dark theme polish** (`08-dark-theme-polish.css`):
+- `.dark-theme .living-summary-card` gradient glass background with inset highlight
+
+**Premium UX audit** (`docs/premium-ux-audit.md`):
+- Full audit of current product quality: 4 current strengths, 5 critical UX gaps, 6 visual/interaction polish items, 4 feature enhancements, 2 foundation quality items — with priority matrix. Written as input for future planning, nothing implemented from it.
+
+**Files touched:** `app/page.tsx`, `app/styles/00-theme-and-base.css`, `app/styles/01-payoff-goals.css`, `app/styles/02-overdue-pagination-nav.css`, `app/styles/03-nav-results-modals.css`, `app/styles/05-timeline-whatif.css`, `app/styles/07-premium-upgrade.css`, `app/styles/08-dark-theme-polish.css`, `app/styles/09-anim-swipe-media-misc.css`, `docs/premium-ux-audit.md` (new).
+
+**Testing:** No regression tests needed — zero logic changes. Visual pass on Plan/Bills/Payoff/Goals tabs in both light and dark themes sufficient. Existing Playwright spec suite unchanged.
+
+**Risk:** Low. CSS-only, no logic changes. Cascade was carefully managed — the `living-summary-card` rule consolidation required moving the rule to `03-nav-results-modals.css` to correctly win over the `.summary-card` base rule from `02-overdue-pagination-nav.css`; light-mode rule in `00-theme-and-base.css` was removed to avoid the higher-specificity file overriding it.
+
+---
+
 ## v1.4 — Onboarding Flow
 
 **Scope:** Replace the bare "enter paycheck amount" first-run sheet with a guided multi-step flow.
