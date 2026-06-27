@@ -32,8 +32,33 @@ export function downloadBackup(data: unknown) {
     URL.revokeObjectURL(url);
 }
 
+const BACKUP_ARRAY_FIELDS = [
+    "requiredExpenses",
+    "livingExpenses",
+    "debts",
+    "goals",
+    "completedRecommendedActions",
+] as const;
+
+function assertValidBackupShape(data: unknown): void {
+    if (typeof data !== "object" || data === null) {
+        throw new Error("Backup file is not a valid backup (not an object).");
+    }
+
+    const record = data as Record<string, unknown>;
+
+    for (const field of BACKUP_ARRAY_FIELDS) {
+        if (field in record && !Array.isArray(record[field])) {
+            throw new Error(`Backup file is malformed: "${field}" should be a list.`);
+        }
+    }
+}
+
 export async function readBackupFile(file: File) {
     const text = await file.text();
+    const data = JSON.parse(text);
 
-    return JSON.parse(text);
+    assertValidBackupShape(data);
+
+    return data;
 }

@@ -1,7 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
-import { demoPlannerState } from "../../lib/testing/seedPlannerState";
+import { buildDemoPlannerState } from "../../lib/testing/seedPlannerState";
 
 async function seedPopulatedPlanner(page: Page) {
+const demoPlannerState = buildDemoPlannerState();
+
 await page.goto("/");
 
 await page.evaluate((state) => {
@@ -64,11 +66,11 @@ await firstMarkPaid.click();
 await page.getByText("Completed This Cycle").first().click();
 await screenshot(page, "03-plan-completed-expanded");
 
-await page.getByRole("button", { name: /Bills/i }).click();
+await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
 await page.getByRole("button", { name: /Expenses/i }).click();
 await screenshot(page, "04-bills-expenses-populated");
 
-await page.getByRole("button", { name: /Bills/i }).click();
+await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
 await page.getByRole("button", { name: /Debts/i }).click();
 await screenshot(page, "05-bills-debts-populated");
 

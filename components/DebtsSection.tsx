@@ -607,7 +607,10 @@ export function DebtsSection({
                             <button
                                 type="button"
                                 className="text-action-button"
-                                onClick={() => setShowAddDebtModal(false)}
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    setShowAddDebtModal(false);
+                                }}
                             >
                                 Close
                             </button>

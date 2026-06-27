@@ -1,4 +1,5 @@
 import type { PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
+import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 
 type PaycheckSectionProps = {
     amount: string;
@@ -55,6 +56,7 @@ export function PaycheckSection({
                     <input
                         type="text"
                         inputMode="decimal"
+                        enterKeyHint="done"
                         placeholder="Example: 1000"
                         value={amount}
                         onChange={(event) => onAmountChange(event.target.value)}
@@ -141,7 +143,14 @@ export function PaycheckSection({
                         : "Enter valid payday settings to calculate your pay period."}
                 </p>
 
-                <button type="button" className="primary-plan-button" onClick={onCalculate}>
+                <button
+                    type="button"
+                    className="primary-plan-button"
+                    onClick={() => {
+                        triggerMediumHaptic();
+                        onCalculate();
+                    }}
+                >
                     Calculate plan
                 </button>
             </div>
@@ -151,7 +160,10 @@ export function PaycheckSection({
                         <button
                             type="button"
                             className="secondary-button"
-                            onClick={onRolloverPayCycle}
+                            onClick={() => {
+                                triggerMediumHaptic();
+                                onRolloverPayCycle();
+                            }}
                         >
                             Start Next Pay Cycle
                         </button>
@@ -159,7 +171,10 @@ export function PaycheckSection({
                         <button
                             type="button"
                             className="secondary-button"
-                            onClick={onResetToToday}
+                            onClick={() => {
+                                triggerLightHaptic();
+                                onResetToToday();
+                            }}
                         >
                             Reset To Today
                         </button>
@@ -169,7 +184,10 @@ export function PaycheckSection({
                         <button
                             type="button"
                             className="secondary-button"
-                            onClick={onExportBackup}>
+                            onClick={() => {
+                                triggerLightHaptic();
+                                onExportBackup();
+                            }}>
                             Export Backup
                         </button>
                     {onImportBackup && (

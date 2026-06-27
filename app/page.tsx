@@ -22,7 +22,7 @@ import {
 } from "@/lib/recurrence/rolloverPayCycle";
 
 import { type RecommendationOverride, type Debt, type RequiredExpense, type RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
-import { calculateMonthlyInterest } from "@/lib/debt/calculateMonthlyInterest";
+import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { parseDebtCsv } from "@/lib/imports/debtCsv";
 import type { LivingExpense } from "@/lib/types/livingExpense";
@@ -35,8 +35,13 @@ import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
 import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { scheduleNotifications, cancelAllNotifications, requestNotificationPermission, hasNotificationPermission } from "@/lib/notifications/scheduleNotifications";
+import { incrementRolloverCount, maybeRequestAppReview } from "@/lib/review/requestAppReview";
 import { AppSkeleton } from "@/components/AppSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { AppLockScreen } from "@/components/AppLockScreen";
+import { useAppLock } from "@/lib/hooks/useAppLock";
+import { Home as HomeIcon, CreditCard, TrendingUp, Target, Sun, Moon, Settings, Wallet } from "@/lib/icons";
 
 type Goal = {
     id: string;
@@ -258,6 +263,12 @@ export default function Home() {
 
     const [darkMode, setDarkMode] = useState(() => loadStoredState("debtPlanner.darkMode", false));
 
+    const { appLockEnabled, setAppLockEnabled, isUnlocked, requestUnlock } = useAppLock();
+
+    const [isDemoMode] = useState(() =>
+        loadStoredState("debtPlanner.isDemoMode", false)
+    );
+
     const [lastSavedAt, setLastSavedAt] = useState(() =>
         loadStoredState("debtPlanner.lastSavedAt", "")
     );
@@ -268,6 +279,9 @@ export default function Home() {
     const [showUpgrade, setShowUpgrade] = useState(false);
     const [premiumPackageInfo, setPremiumPackageInfo] = useState<PremiumPackageInfo | null>(null);
     const [purchaseStatus, setPurchaseStatus] = useState("");
+    const [notificationsEnabled, setNotificationsEnabled] = useState(() =>
+        loadStoredState("debtPlanner.notificationsEnabled", false)
+    );
 
     function hasValidPayCycleInputs() {
         if (payCycle === "semimonthly") {
@@ -351,6 +365,16 @@ export default function Home() {
                     const mock = localStorage.getItem("debtPlanner.mockSubscription");
                     if (mock === "premium") {
                         setSubscriptionPlan("premium");
+
+                        if (notificationsEnabled && nextPaycheckDate) {
+                            const permitted = await hasNotificationPermission();
+                            if (permitted) {
+                                void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
+                            } else {
+                                setNotificationsEnabled(false);
+                            }
+                        }
+
                         return;
                     }
                 }
@@ -360,6 +384,15 @@ export default function Home() {
                 const plan = await getSubscriptionPlan();
                 setSubscriptionPlan(plan);
                 console.log("Loaded subscription plan:", plan);
+
+                if (notificationsEnabled && nextPaycheckDate) {
+                    const permitted = await hasNotificationPermission();
+                    if (permitted) {
+                        void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
+                    } else {
+                        setNotificationsEnabled(false);
+                    }
+                }
             } catch (error) {
                 console.log("RevenueCat init failed", error)
             }
@@ -390,6 +423,10 @@ export default function Home() {
     useEffect(() => {
         localStorage.setItem("debtPlanner.darkMode", JSON.stringify(darkMode));
     }, [darkMode]);
+
+    useEffect(() => {
+        localStorage.setItem("debtPlanner.notificationsEnabled", JSON.stringify(notificationsEnabled));
+    }, [notificationsEnabled]);
 
     useEffect(() => {
         localStorage.setItem("debtPlanner.amount", JSON.stringify(amount));
@@ -580,11 +617,31 @@ export default function Home() {
             return;
         }
 
-
         setIsFirstRunSetup(false);
         setShowPlanSettings(false);
         setActiveTab("plan");
         setStatusMessage("Plan updated");
+
+        if (notificationsEnabled) {
+            void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
+        }
+    }
+
+    async function handleNotificationsToggle() {
+        triggerLightHaptic();
+
+        if (notificationsEnabled) {
+            await cancelAllNotifications();
+            setNotificationsEnabled(false);
+        } else {
+            const granted = await requestNotificationPermission();
+            if (granted) {
+                setNotificationsEnabled(true);
+                if (nextPaycheckDate) {
+                    void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
+                }
+            }
+        }
     }
 
     async function handlePullToRefresh() {
@@ -1030,48 +1087,17 @@ export default function Home() {
         event.target.value = "";
     }
 
-    function handleRolloverPayCycle() {
+    async function handleRolloverPayCycle() {
         saveResetSnapshot();
 
         setDebts((current) =>
             rolloverDebts(
-                current.map((debt) => {
-                    if (debt.balance <= 0) {
-                        return debt;
-                    }
-
-                    const minimumWasPaid =
-                        debt.minimumPaidThisCycle ??
-                        debt.isPaidThisCycle ??
-                        false;
-
-                    const completedSnowballAmount =
-                        getCompletedRecommendedAmountForDebt(debt.id);
-
-                    const interest = calculateMonthlyInterest(
-                        debt.balance,
-                        debt.apr
-                    );
-
-                    const balanceWithInterest = roundMoney(
-                        debt.balance + interest
-                    );
-
-                    const minimumPaymentAmount = minimumWasPaid
-                        ? Math.min(debt.minimumPayment, balanceWithInterest)
-                        : 0;
-
-                    const totalPayment = roundMoney(
-                        minimumPaymentAmount + completedSnowballAmount
-                    );
-
-                    return {
-                        ...debt,
-                        balance: roundMoney(
-                            Math.max(0, balanceWithInterest - totalPayment)
-                        ),
-                    };
-                }),
+                current.map((debt) =>
+                    applyRolloverPayment(
+                        debt,
+                        getCompletedRecommendedAmountForDebt(debt.id)
+                    )
+                ),
                 nextPaycheckDate
             )
         );
@@ -1095,7 +1121,15 @@ export default function Home() {
 
             setCurrentDate(nextCycleStart);
             setNextPaycheckDate(followingPaycheckDate);
+
+            if (notificationsEnabled) {
+                const rolledExpenses = rolloverRequiredExpenses(requiredExpenses, nextPaycheckDate);
+                void scheduleNotifications({ nextPaycheckDate: followingPaycheckDate, requiredExpenses: rolledExpenses });
+            }
         }
+
+        incrementRolloverCount();
+        void maybeRequestAppReview();
     }
 
     function handlePopulateDemoData() {
@@ -1103,8 +1137,17 @@ export default function Home() {
         window.location.reload();
     }
 
+    function handleExitDemoMode() {
+        window.localStorage.clear();
+        window.location.reload();
+    }
+
     if (!isMounted) {
         return <AppSkeleton darkMode={darkMode} />;
+    }
+
+    if (!isUnlocked) {
+        return <AppLockScreen darkMode={darkMode} onUnlock={requestUnlock} />;
     }
 
 
@@ -1119,6 +1162,21 @@ export default function Home() {
                     >
                         Populate Demo Data
                     </button>
+                )}
+                {isDemoMode && (
+                    <div className="demo-mode-banner" role="status">
+                        <span>Demo Mode — viewing sample data</span>
+                        <button
+                            type="button"
+                            className="demo-mode-exit-button"
+                            onClick={() => {
+                                triggerLightHaptic();
+                                handleExitDemoMode();
+                            }}
+                        >
+                            Start My Own Plan
+                        </button>
+                    </div>
                 )}
                 <section className="hero">
                     <h1>Debt Planner</h1>
@@ -1144,7 +1202,7 @@ export default function Home() {
                         }
                         }
                     >
-                        {darkMode ? "☀" : "🌙"}
+                        {darkMode ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
                     </button>
 
                     {process.env.NEXT_PUBLIC_DEV_MODE === "true" && (
@@ -1182,7 +1240,7 @@ export default function Home() {
                                     setShowPlanSettings(true);
                                 }}
                             >
-                                ⚙
+                                <Settings size={20} aria-hidden="true" />
                             </button>
                         </div>
 
@@ -1311,9 +1369,12 @@ export default function Home() {
                                     ? "mobile-section-switcher-button active"
                                     : "mobile-section-switcher-button"
                             }
-                            onClick={() => setBillsView("expenses")}
+                            onClick={() => {
+                                triggerLightHaptic();
+                                setBillsView("expenses");
+                            }}
                         >
-                            <span>💴</span>
+                            <Wallet size={18} aria-hidden="true" />
                             Expenses
                         </button>
 
@@ -1324,9 +1385,12 @@ export default function Home() {
                                     ? "mobile-section-switcher-button active"
                                     : "mobile-section-switcher-button"
                             }
-                            onClick={() => setBillsView("debts")}
+                            onClick={() => {
+                                triggerLightHaptic();
+                                setBillsView("debts");
+                            }}
                         >
-                            <span>💳</span>
+                            <CreditCard size={18} aria-hidden="true" />
                             Debts
                         </button>
                     </div>
@@ -1434,7 +1498,7 @@ export default function Home() {
                         setActiveTab("plan");
                     }}
                 >
-                    <span>🏠</span>
+                    <HomeIcon size={20} aria-hidden="true" />
                     <small>Plan</small>
                 </button>
 
@@ -1451,7 +1515,7 @@ export default function Home() {
                         setBillsView((current) => current ?? "expenses");
                     }}
                 >
-                    <span>💳</span>
+                    <CreditCard size={20} aria-hidden="true" />
                     <small>Bills</small>
                 </button>
 
@@ -1467,7 +1531,7 @@ export default function Home() {
                         setActiveTab("snowball");
                     }}
                 >
-                    <span>📈</span>
+                    <TrendingUp size={20} aria-hidden="true" />
                     <small>Payoff</small>
                 </button>
 
@@ -1483,7 +1547,7 @@ export default function Home() {
                         setActiveTab("goals");
                     }}
                 >
-                    <span>🎯</span>
+                    <Target size={20} aria-hidden="true" />
                     <small>Goals</small>
                 </button>
             </nav>
@@ -1515,7 +1579,10 @@ export default function Home() {
                                 <button
                                     type="button"
                                     className="text-action-button"
-                                    onClick={() => setShowPlanSettings(false)}
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        setShowPlanSettings(false);
+                                    }}
                                 >
                                     Close
                                 </button>
@@ -1537,6 +1604,17 @@ export default function Home() {
 
                         {isFirstRunSetup && (
                             <div className="first-run-import-row">
+                                <button
+                                    type="button"
+                                    className="secondary-button"
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        handlePopulateDemoData();
+                                    }}
+                                >
+                                    Try with Sample Data
+                                </button>
+
                                 <label className="secondary-button import-button">
                                     Import Backup
                                     <input
@@ -1574,6 +1652,57 @@ export default function Home() {
                             onRolloverPayCycle={handleRolloverPayCycle}
                             onResetToToday={handleResetToToday}
                         />
+
+                        {!isFirstRunSetup && (
+                            <div className="card notifications-settings-card">
+                                <div className="notifications-settings-row">
+                                    <div>
+                                        <h3>Notifications</h3>
+                                        <p className="section-collapse-subtitle">
+                                            Paycheck-eve reminder and upcoming bill alerts.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={notificationsEnabled}
+                                        className={notificationsEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
+                                        onClick={handleNotificationsToggle}
+                                        aria-label={notificationsEnabled ? "Disable notifications" : "Enable notifications"}
+                                    >
+                                        <span className="toggle-thumb" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {!isFirstRunSetup && (
+                            <div className="card notifications-settings-card">
+                                <div className="notifications-settings-row">
+                                    <div>
+                                        <h3>App Lock</h3>
+                                        <p className="section-collapse-subtitle">
+                                            Require Face ID, Touch ID, or your device passcode to open the app.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={appLockEnabled}
+                                        className={appLockEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
+                                        onClick={() => {
+                                            triggerLightHaptic();
+                                            setAppLockEnabled(!appLockEnabled);
+                                        }}
+                                        aria-label={appLockEnabled ? "Disable app lock" : "Enable app lock"}
+                                    >
+                                        <span className="toggle-thumb" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="settings-legal-row">
                             <a

@@ -109,7 +109,7 @@ path: "test-results/mobile-plan.png",
 fullPage: true,
 });
 
-await page.getByRole("button", { name: /Bills/i }).click();
+await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
 await page.getByRole("button", { name: /Debts/i }).click();
 
 await page.screenshot({

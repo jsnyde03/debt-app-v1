@@ -282,7 +282,9 @@ function testTimelineRunningCashEndToEnd() {
 }
 
 function testTimelineAllocationItemsAllPresent() {
-	// Emergency, snowball, and optional_goal allocations all appear in timeline.
+	// Emergency, snowball, and optional_goal allocations are optional and only appear in the
+	// timeline once the user has actually marked them paid via completedRecommendedActions -
+	// they should not appear as planned items just because allocatePaycheck recommended them.
 	const result = allocatePaycheck({
 		paycheckAmount: 2000,
 		currentDate: "2026-06-01",
@@ -299,20 +301,40 @@ function testTimelineAllocationItemsAllPresent() {
 		paycheckBuffer: 0,
 	});
 
-	const timeline = buildTimelineItems({
+	const debts = [
+		{ id: "visa", name: "Visa", balance: 200, minimumPayment: 25, apr: 22, dueDate: "2026-06-08", type: "debt" as const, recurrence: "monthly" as const },
+	];
+
+	const plannedTimeline = buildTimelineItems({
 		result,
 		requiredExpenses: [],
-		debts: [
-			{ id: "visa", name: "Visa", balance: 200, minimumPayment: 25, apr: 22, dueDate: "2026-06-08", type: "debt", recurrence: "monthly" },
+		debts,
+		currentDate: "2026-06-01",
+		nextPaycheckDate: "2026-06-15",
+	});
+
+	const plannedTypes = new Set(plannedTimeline.map((i) => i.type));
+	assertEqual(plannedTypes.has("emergency"), false, "Unconfirmed emergency allocation does not appear in timeline");
+	assertEqual(plannedTypes.has("snowball"), false, "Unconfirmed snowball allocation does not appear in timeline");
+	assertEqual(plannedTypes.has("optional_goal"), false, "Unconfirmed optional goal allocation does not appear in timeline");
+
+	const timelineWithCompletedActions = buildTimelineItems({
+		result,
+		requiredExpenses: [],
+		debts,
+		completedRecommendedActions: [
+			{ targetId: "emg", label: "Add to Emergency Fund", category: "emergency", actualAmount: 100 },
+			{ targetId: "visa", label: "Extra payment to Visa", category: "snowball", actualAmount: 175 },
+			{ targetId: "vac", label: "Add to Vacation", category: "optional_goal", actualAmount: 50 },
 		],
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
 	});
 
-	const types = new Set(timeline.map((i) => i.type));
-	assertEqual(types.has("emergency"), true, "Emergency allocation in timeline");
-	assertEqual(types.has("snowball"), true, "Snowball allocation in timeline");
-	assertEqual(types.has("optional_goal"), true, "Optional goal allocation in timeline");
+	const completedTypes = new Set(timelineWithCompletedActions.map((i) => i.type));
+	assertEqual(completedTypes.has("emergency"), true, "Completed emergency allocation appears in timeline");
+	assertEqual(completedTypes.has("snowball"), true, "Completed snowball allocation appears in timeline");
+	assertEqual(completedTypes.has("optional_goal"), true, "Completed optional goal allocation appears in timeline");
 }
 
 function testTimelineLivingReserveReducesCash() {
@@ -362,10 +384,15 @@ function testTimelineAllocationsAppearAfterExpenses() {
 		paycheckBuffer: 0,
 	});
 
+	// Snowball/emergency/optional_goal items only appear once marked paid via
+	// completedRecommendedActions - simulate that here to check ordering.
 	const timeline = buildTimelineItems({
 		result,
 		requiredExpenses: [],
 		debts,
+		completedRecommendedActions: [
+			{ targetId: "visa", label: "Extra payment to Visa", category: "snowball", actualAmount: 100 },
+		],
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
 	});
@@ -481,6 +508,59 @@ function testInsightsRecoveryNeededNotReturnedWhenHealthy() {
 	const insights = buildSmartInsights(makeBaseInsightParams({ projectedBuffer: 500 }));
 	const recovery = insights.find((i) => i.title === "Recovery Needed");
 	assertEqual(recovery === undefined, true, "Recovery Needed not returned when buffer is healthy");
+}
+
+function testInsightsSafeExtraPaymentWhenBufferHealthyAndExtraAvailable() {
+	const insights = buildSmartInsights(makeBaseInsightParams({
+		safeExtraPayment: 150,
+		projectedBuffer: 250,
+	}));
+	const safeExtra = assertExists(
+		insights.find((i) => i.title === "Safe Extra Payment"),
+		"Safe Extra Payment insight"
+	);
+	assertEqual(safeExtra.severity, "good", "Safe Extra Payment is good severity");
+}
+
+function testInsightsSafeExtraPaymentNotReturnedWhenBufferTooLow() {
+	const insights = buildSmartInsights(makeBaseInsightParams({
+		safeExtraPayment: 150,
+		projectedBuffer: 150, // below the 200 threshold
+	}));
+	const safeExtra = insights.find((i) => i.title === "Safe Extra Payment");
+	assertEqual(safeExtra === undefined, true, "Safe Extra Payment not returned when buffer is below 200");
+}
+
+function testInsightsPayoffTimingDifferenceWhenDatesDifferButInterestTied() {
+	// avalancheInterest >= snowballInterest (so "Interest Reduction" doesn't
+	// fire) but the two strategies still land on different payoff dates.
+	const insights = buildSmartInsights(makeBaseInsightParams({
+		snowballInterest: 1500,
+		avalancheInterest: 1500,
+		snowballDebtFreeDate: "June 2028",
+		avalancheDebtFreeDate: "August 2028",
+		projectedBuffer: 300,
+	}));
+	const timing = assertExists(
+		insights.find((i) => i.title === "Payoff Timing Difference"),
+		"Payoff Timing Difference insight"
+	);
+	assertEqual(timing.severity, "warning", "Payoff Timing Difference is warning severity");
+}
+
+function testInsightsStabilityFirstWhenBufferCriticallyLow() {
+	const insights = buildSmartInsights(makeBaseInsightParams({ projectedBuffer: 50 }));
+	const stability = assertExists(
+		insights.find((i) => i.title === "Stability First"),
+		"Stability First insight"
+	);
+	assertEqual(stability.severity, "warning", "Stability First is warning severity");
+}
+
+function testInsightsStabilityFirstNotReturnedWhenBufferHealthy() {
+	const insights = buildSmartInsights(makeBaseInsightParams({ projectedBuffer: 300 }));
+	const stability = insights.find((i) => i.title === "Stability First");
+	assertEqual(stability === undefined, true, "Stability First not returned once buffer clears 100");
 }
 
 // ─── 4. ROLLOVER PAY CYCLE ──────────────────────────────────────────────────
@@ -611,10 +691,25 @@ function testAllocationAndTimelineCashAreConsistentForSimpleCase() {
 		paycheckBuffer: 0,
 	});
 
+	// Snowball items only appear in the timeline once marked paid via
+	// completedRecommendedActions - mirror the engine's own recommendation here.
+	const snowballAllocation = assertExists(
+		result.allocations.find((item) => item.category === "snowball" && item.targetId),
+		"Engine recommends a snowball allocation for this scenario"
+	);
+
 	const timeline = buildTimelineItems({
 		result,
 		requiredExpenses: [],
 		debts,
+		completedRecommendedActions: [
+			{
+				targetId: snowballAllocation.targetId as string,
+				label: snowballAllocation.label,
+				category: "snowball",
+				actualAmount: snowballAllocation.amount,
+			},
+		],
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
 	});
@@ -691,6 +786,11 @@ function runFullAppRegressionTests() {
 	testInsightsAvalancheInterestReductionInsight();
 	testInsightsAlwaysReturnsAtLeastOne();
 	testInsightsRecoveryNeededNotReturnedWhenHealthy();
+	testInsightsSafeExtraPaymentWhenBufferHealthyAndExtraAvailable();
+	testInsightsSafeExtraPaymentNotReturnedWhenBufferTooLow();
+	testInsightsPayoffTimingDifferenceWhenDatesDifferButInterestTied();
+	testInsightsStabilityFirstWhenBufferCriticallyLow();
+	testInsightsStabilityFirstNotReturnedWhenBufferHealthy();
 
 	// Rollover pay cycle
 	testRolloverExpenseResetsIsPaidThisCycle();
