@@ -368,7 +368,47 @@ function testCycleEndingBalanceMatchesPaycheckMinusDeductions() {
     }
 }
 
-// ─── 8. ITEM DATES IN PROJECTED CYCLES ───────────────────────────────────────
+// ─── 8. CASH BUFFER IN TIMELINE ─────────────────────────────────────────────
+
+function testBufferAppearsAsTimelineItemWhenNoShortfall() {
+    // When the engine allocates a $50 buffer (no shortfall, remaining > 0), it must
+    // appear as a "buffer" item in the timeline so the ending balance matches
+    // flexible-cash-available.
+    const expenses: RequiredExpense[] = [
+        { id: "e1", name: "Rent", amount: 400, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: false },
+    ];
+    const cycles = buildTimeline({ paycheckAmount: 1000, expenses, paycheckBuffer: 50 });
+    const cycle0 = cycles[0];
+
+    const bufferItem = cycle0.items.find((i) => i.type === "buffer");
+    assertExists(bufferItem, "Buffer item appears when engine allocates a buffer");
+    assertMoney(bufferItem!.amount, 50, "Buffer item has correct amount ($50)");
+}
+
+function testBufferDoesNotAppearWhenShortfallExists() {
+    // If required bills exceed the paycheck, there is no buffer allocation and
+    // no buffer item should appear in the timeline.
+    const expenses: RequiredExpense[] = [
+        { id: "e1", name: "Rent", amount: 900, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: false },
+    ];
+    // $500 paycheck, $900 rent → shortfall → no buffer
+    const cycles = buildTimeline({ paycheckAmount: 500, expenses, paycheckBuffer: 50 });
+    const cycle0 = cycles[0];
+
+    assertNotExists(cycle0.items.find((i) => i.type === "buffer"), "Buffer item absent when shortfall exists");
+}
+
+function testBufferEndingBalanceIsFlexibleCash() {
+    // With a buffer allocated, endingBalance = paycheckAmount - totalRequired - buffer
+    const expenses: RequiredExpense[] = [
+        { id: "e1", name: "Rent", amount: 600, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: false },
+    ];
+    const cycles = buildTimeline({ paycheckAmount: 1000, expenses, paycheckBuffer: 50 });
+    // Expected: 1000 - 600 - 50 = 350
+    assertMoney(cycles[0].endingBalance, 350, "endingBalance = paycheck - required - buffer");
+}
+
+// ─── 9. ITEM DATES IN PROJECTED CYCLES ───────────────────────────────────────
 
 function testProjectedCycleItemsHaveCorrectDates() {
     // An expense due Jun 22 should appear in cycle 1 with date "2026-06-22"
@@ -418,6 +458,11 @@ export function runMultiCycleTimelineRegressionTests() {
     // Dollar invariants
     testRunningCashNeverGoesNegativeInAnyProjectedCycle();
     testCycleEndingBalanceMatchesPaycheckMinusDeductions();
+
+    // Cash buffer
+    testBufferAppearsAsTimelineItemWhenNoShortfall();
+    testBufferDoesNotAppearWhenShortfallExists();
+    testBufferEndingBalanceIsFlexibleCash();
 
     // Item dates
     testProjectedCycleItemsHaveCorrectDates();

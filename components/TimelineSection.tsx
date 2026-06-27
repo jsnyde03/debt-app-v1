@@ -35,6 +35,7 @@ function formatCycleDate(date: string) {
 function getTimelineIcon(type: string) {
     if (type === "paycheck") return "💵";
     if (type === "living_reserve") return "🛒";
+    if (type === "buffer") return "🔒";
     if (type.includes("autopay")) return "⚡";
     if (type.includes("debt") || type === "snowball") return "💳";
     if (type === "emergency") return "📞";
@@ -69,6 +70,7 @@ function getTimelineStatusLabel(item: {
     if (item.type.includes("autopay")) return "Autopay";
     if (item.type === "paycheck") return "Income";
     if (item.type === "living_reserve") return "Reserve";
+    if (item.type === "buffer") return "Reserved";
     return "Planned";
 }
 
