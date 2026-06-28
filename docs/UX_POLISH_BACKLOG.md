@@ -511,3 +511,23 @@ At minimum:
 Specifics TBD at implementation time. Don't ship a subdued version of this — it should feel earned.
 
 **Files touched:** `components/MilestoneBadge.tsx` (new this version), `lib/debt/computeMilestones.ts` (new this version), `app/page.tsx` (`handleRolloverPayCycle`).
+
+---
+
+### P10 — Timeline Cycle Item Overflow (better approach)
+
+**Current state (shipped v1.4):** Cycles with more than 8 items show a "Show X more" button using the same `show-more-inline` pattern as `ResultsSection`. This works but is a blunt instrument for a date-ordered list — users lose temporal context when items are hidden.
+
+**Better approaches to evaluate:**
+
+1. **Fixed-height scrollable window** — `.timeline-cycle-body` becomes a bounded scrollable container (e.g., `max-height: 480px; overflow-y: auto`) with a fade-out gradient at the bottom edge indicating more content below. Scroll is within the card, not the page. Preserves all items in view without a separate "Show more" tap.
+
+2. **Virtual rendering** — only render items within the viewport using a lightweight virtualizer (or a manually managed render window via `IntersectionObserver`). Appropriate if a user ever has 50+ transactions in a cycle (e.g., weekly recurrences + one-time bills). No cap; no "Show more." Higher implementation complexity.
+
+3. **Date-grouped days** — collapse items by day into sub-accordions ("Jul 4 · 2 transactions → expand"). Reduces visual noise for dense cycles while keeping the full date structure navigable.
+
+**Recommendation when revisiting:** option 1 (scrollable window + fade gradient) is the best effort-to-quality ratio. Option 3 is appropriate only if multiple-items-per-day becomes common in user data.
+
+**Do not ship option 1 before:** confirming iOS scroll-within-scroll behavior in a Capacitor WebView — overscroll events need testing to ensure the inner scroll doesn't fight the outer page scroll.
+
+**Files to touch:** `app/styles/05-timeline-whatif.css` (`.timeline-cycle-body` sizing), `components/TimelineSection.tsx` (remove `showAllItems` state + `ITEMS_INITIAL` + Show More button).
