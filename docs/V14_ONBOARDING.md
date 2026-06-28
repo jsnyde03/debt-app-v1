@@ -65,7 +65,7 @@ In v1.4, the gate becomes `!hasCompletedOnboarding`. A user who clicks "Try with
 
 4. ✅ **DONE** — Allow skip throughout — this is a planner app, not a game. Forcing steps risks abandonment.
 
-5. ⏳ **Pending** — **First-launch empty state (audit #2):** After onboarding, a user with zero debts sees blank card stubs. Replace with a single card: _"Your debt-free date is waiting. Add your first debt to see exactly what to do this paycheck."_ One conditional render in the Plan tab's results area — no new routing or architecture.
+5. ✅ **DONE** — **First-launch empty state (audit #2):** "Your debt-free date is waiting. Add your first debt to see exactly what to do this paycheck." card renders in the Plan tab when paycheck is set but no debts exist. "Add First Debt" navigates to Bills tab.
 
 ---
 

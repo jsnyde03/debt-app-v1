@@ -169,12 +169,21 @@
 	cursor: pointer;
 	transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
 	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+}
+
+.onboarding-type-btn:hover {
+	background: var(--surface-muted);
 }
 
 .onboarding-type-btn.selected {
 	border-color: var(--accent-color);
 	background: rgba(37, 99, 235, 0.08);
 	color: var(--accent-color);
+}
+
+.onboarding-type-btn.selected:hover {
+	background: rgba(37, 99, 235, 0.12);
 }
 
 /* ── CTA stack ──────────────────────────────────────────────────────────────── */
@@ -234,6 +243,12 @@
 	padding: 10px;
 	opacity: 0.65;
 	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+}
+
+.onboarding-skip-btn:hover {
+	background: transparent;
+	opacity: 0.85;
 }
 
 .onboarding-skip-btn:active {

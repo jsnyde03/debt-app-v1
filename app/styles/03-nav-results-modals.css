@@ -195,12 +195,22 @@
 	background: transparent;
 	color: var(--text-secondary);
 	font-weight: 700;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+}
+
+.segment:hover {
+	background: var(--surface-muted);
 }
 
 .segment.active {
 	background: var(--bg-elevated);
 	color: var(--text-primary);
 	box-shadow: var(--shadow-soft);
+}
+
+.segment.active:hover {
+	background: var(--bg-elevated);
 }
 
 .plan-dashboard {

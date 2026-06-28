@@ -195,6 +195,13 @@
 	cursor: pointer;
 	text-align: left;
 	color: inherit;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+}
+
+.timeline-cycle-header:hover {
+	background: var(--surface-muted);
+	border-radius: 12px;
 }
 
 .timeline-cycle-header-left {
@@ -350,12 +357,22 @@
 	font-size: 0.78rem;
 	font-weight: 800;
 	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+}
+
+.simulation-strategy-pill:hover {
+	background: rgba(148, 163, 184, 0.16);
 }
 
 .simulation-strategy-pill.active {
 	background: rgba(59, 130, 246, 0.18);
 	color: var(--badge-blue-color);
 	border-color: rgba(96, 165, 250, 0.45);
+}
+
+.simulation-strategy-pill.active:hover {
+	background: rgba(59, 130, 246, 0.18);
 }
 
 .simulation-target-card {
