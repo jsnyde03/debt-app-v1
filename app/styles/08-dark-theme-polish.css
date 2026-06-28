@@ -181,15 +181,7 @@
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	flex-wrap: nowrap;
-	overflow-x: auto;
-	scrollbar-width: none;
-	-ms-overflow-style: none;
-	max-width: 100%;
-}
-
-.timeline-pill-row::-webkit-scrollbar {
-	display: none;
+	flex-wrap: wrap;
 }
 
 .timeline-pill {

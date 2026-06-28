@@ -91,7 +91,7 @@ export function allocatePaycheck({
 		const due = new Date(`${dueDate}T00:00:00`);
 		const next = new Date(`${nextPaycheckDate}T00:00:00`);
 
-		return due < next;
+		return due <= next;
 	};
 
 	const upcomingExpenses = expenses

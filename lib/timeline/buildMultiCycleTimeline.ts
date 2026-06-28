@@ -161,7 +161,7 @@ function markInCycleBillsAsPaid(
 ): { expenses: RequiredExpense[]; debts: Debt[] } {
     const cycleEndDate = new Date(`${cycleEnd}T00:00:00`);
     const dueBeforeCycleEnd = (dueDate: string) =>
-        new Date(`${dueDate}T00:00:00`) < cycleEndDate;
+        new Date(`${dueDate}T00:00:00`) <= cycleEndDate;
 
     return {
         expenses: expenses.map((e) => ({

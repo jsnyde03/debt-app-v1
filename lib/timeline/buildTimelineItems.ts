@@ -69,7 +69,7 @@ export function buildTimelineItems({
     const isDueInCycle = (dueDate: string) => {
         const due = new Date(`${dueDate}T00:00:00`);
         const next = new Date(`${nextPaycheckDate}T00:00:00`);
-        return due < next;
+        return due <= next;
     };
 
     // Include expenses due this cycle OR already paid this cycle
