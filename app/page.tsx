@@ -1494,7 +1494,7 @@ export default function Home() {
                                 {showDeleteConfirm ? (
                                     <div className="delete-confirm-row">
                                         <p className="delete-confirm-text">
-                                            This will permanently erase all your debts, expenses, goals, and settings. It cannot be undone.
+                                            All debts, bills, goals, and settings will be permanently erased. This cannot be undone.
                                         </p>
                                         <div className="delete-confirm-actions">
                                             <button
@@ -1520,6 +1520,7 @@ export default function Home() {
                                     <button
                                         type="button"
                                         className="danger-text-button"
+                                        aria-label="Delete all data — permanently erase all debts, bills, goals, and settings"
                                         onClick={() => {
                                             triggerLightHaptic();
                                             setShowDeleteConfirm(true);
