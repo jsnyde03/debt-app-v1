@@ -160,11 +160,8 @@ export function TimelineSection({
     payCycleConfig,
     strategy,
 }: TimelineSectionProps) {
-    const ITEMS_INITIAL = 8;
-
     const [timelineExpanded, setTimelineExpanded] = useState(false);
     const [expandedCycles, setExpandedCycles] = useState<Record<number, boolean>>({ 0: true });
-    const [showAllItems, setShowAllItems] = useState<Record<number, boolean>>({});
 
     if (!result) return null;
 
@@ -258,28 +255,13 @@ export function TimelineSection({
                                 }
                                 aria-hidden={!isCycleExpanded}
                             >
-                                {(showAllItems[cycleIndex]
-                                    ? cycle.items
-                                    : cycle.items.slice(0, ITEMS_INITIAL)
-                                ).map((item, itemIndex) => (
+                                {cycle.items.map((item, itemIndex) => (
                                     <TimelineItemRow
                                         key={`${item.date}-${item.label}-${itemIndex}`}
                                         item={item}
                                         isProjected={cycle.isProjected}
                                     />
                                 ))}
-                                {!showAllItems[cycleIndex] && cycle.items.length > ITEMS_INITIAL && (
-                                    <button
-                                        type="button"
-                                        className="text-action-button show-more-inline"
-                                        onClick={() => {
-                                            triggerLightHaptic();
-                                            setShowAllItems((prev) => ({ ...prev, [cycleIndex]: true }));
-                                        }}
-                                    >
-                                        Show {cycle.items.length - ITEMS_INITIAL} more
-                                    </button>
-                                )}
                             </div>
                         </div>
                     );

@@ -514,11 +514,13 @@ Specifics TBD at implementation time. Don't ship a subdued version of this — i
 
 ---
 
-### P10 — Timeline Cycle Item Overflow (better approach) ⬜ v1.6
+### P10 — Timeline Cycle Item Overflow (extreme list lengths) ⬜ v1.6
 
-**Current state (shipped v1.4):** Cycles with more than 8 items show a "Show X more" button using the same `show-more-inline` pattern as `ResultsSection`. This works but is a blunt instrument for a date-ordered list — users lose temporal context when items are hidden.
+**Current state:** All cycle items render unconditionally. The CSS collapse animation uses `max-height: 9999px` so content is never clipped. This is correct for realistic pay cycles (10–25 items). A previous workaround using a Show More button was removed — it was masking a CSS bug, not solving a real UX problem.
 
-**Better approaches to evaluate:**
+**When this matters:** If a user has weekly-recurring bills across a 4-week cycle, or manually adds many one-time items, a single cycle could approach 30–40+ items. At that scale a scrollable window is friendlier than an infinitely tall list. This item is purely proactive — do not implement until real usage data shows cycles growing that large.
+
+**Approaches to evaluate:**
 
 1. **Fixed-height scrollable window** — `.timeline-cycle-body` becomes a bounded scrollable container (e.g., `max-height: 480px; overflow-y: auto`) with a fade-out gradient at the bottom edge indicating more content below. Scroll is within the card, not the page. Preserves all items in view without a separate "Show more" tap.
 
