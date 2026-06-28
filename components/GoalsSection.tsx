@@ -338,6 +338,7 @@ export function GoalsSection({
                     </div>
 
                     <div className="empty-debt-state compact-empty-state">
+                        <Target size={48} className="empty-state-icon" aria-hidden="true" />
                         <strong>No Goals Added Yet.</strong>
                         <p>Add an emergency fund or savings goal to start tracking progress.</p>
                     </div>

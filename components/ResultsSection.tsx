@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { formatDisplayAmount } from "@/lib/utils/formatDisplayAmount";
 import type { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import type {
     Debt,
@@ -41,6 +42,7 @@ type ResultsSectionProps = {
     recommendationOverrides: RecommendationOverride[];
     currentDate: string;
     payoffStrategy: "snowball" | "avalanche";
+    debtFreeDate?: string | null;
     onMarkExpensePaid: (id: string) => void;
     onMarkDebtMinimumPaid: (id: string) => void;
     onMarkDebtSnowballPaid: (id: string) => void;
@@ -108,6 +110,7 @@ export function ResultsSection({
     recommendationOverrides,
     currentDate,
     payoffStrategy,
+    debtFreeDate,
     onMarkExpensePaid,
     onMarkDebtMinimumPaid,
     onMarkRecommendedAction,
@@ -866,32 +869,32 @@ export function ResultsSection({
                 </div>
             </div>
 
-            <div className="execution-summary-strip">
+            <div className="execution-summary-strip" aria-live="polite" aria-label="Paycheck summary">
                 <div>
                     <span>Required</span>
-                    <strong>{formatCurrency(requiredTotal)}</strong>
+                    <strong>
+                        {(() => { const { dollars, cents } = formatDisplayAmount(requiredTotal); return <><span className="display-amount-symbol">$</span>{dollars}<span className="display-amount-cents">.{cents}</span></>; })()}
+                    </strong>
                 </div>
 
                 <div>
                     <span>Extra Payoff</span>
                     <strong>
-                        {formatCurrency(displayedRecommendedTotal)}
+                        {(() => { const { dollars, cents } = formatDisplayAmount(displayedRecommendedTotal); return <><span className="display-amount-symbol">$</span>{dollars}<span className="display-amount-cents">.{cents}</span></>; })()}
                     </strong>
                 </div>
 
                 <div>
                     <span>Remaining Cushion</span>
-                    <strong>{formatCurrency(flexibleCashAvailable)}</strong>
+                    <strong>
+                        {(() => { const { dollars, cents } = formatDisplayAmount(flexibleCashAvailable); return <><span className="display-amount-symbol">$</span>{dollars}<span className="display-amount-cents">.{cents}</span></>; })()}
+                    </strong>
                 </div>
 
-                <div>
-                    <span>Status</span>
+                <div className="strip-cell-debt-free">
+                    <span>Debt-Free</span>
                     <strong>
-                        {hasOverdueItems
-                            ? "Overdue"
-                            : result.shortfall > 0
-                                ? "Short"
-                                : "On Track"}
+                        {debtFreeDate ?? (debts.some(d => d.balance > 0) ? "—" : "Add debts")}
                     </strong>
                 </div>
             </div>

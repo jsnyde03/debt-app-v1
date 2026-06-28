@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
@@ -85,6 +86,20 @@ export function ExpenseListItem({
     onSaveEditing,
     onRemoveExpense,
 }: ExpenseListItemProps) {
+    const [isAnimatingPaid, setIsAnimatingPaid] = useState(false);
+    const prevIsPaid = useRef(expense.isPaidThisCycle ?? false);
+
+    useEffect(() => {
+        const isPaid = expense.isPaidThisCycle ?? false;
+        const wasUnpaid = !prevIsPaid.current;
+        prevIsPaid.current = isPaid;
+        if (isPaid && wasUnpaid) {
+            setIsAnimatingPaid(true);
+            const t = window.setTimeout(() => setIsAnimatingPaid(false), 400);
+            return () => window.clearTimeout(t);
+        }
+    }, [expense.isPaidThisCycle]);
+
     if (isEditing) {
         return (
             <div
@@ -212,7 +227,7 @@ export function ExpenseListItem({
         <button
             key={expense.id}
             type="button"
-            className={`saved-item saved-item-button required-expense-row ${expense.isPaidThisCycle ? "required-expense-row-paid" : ""}`}
+            className={`saved-item saved-item-button required-expense-row ${expense.isPaidThisCycle ? "required-expense-row-paid" : ""} ${isAnimatingPaid ? "animating-paid" : ""}`}
             onClick={() => onStartEditing(expense)}
         >
             <div className="saved-item-left">

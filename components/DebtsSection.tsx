@@ -6,7 +6,7 @@ import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";
 import { DebtGroup } from "./Debts/DebtGroup";
 import { AddDebtModal } from "./Debts/AddDebtModal";
-import { ArrowUp, ArrowDown, SlidersHorizontal, Check } from "@/lib/icons";
+import { ArrowUp, ArrowDown, SlidersHorizontal, Check, CreditCard } from "@/lib/icons";
 
 type DebtSortOption = "dueDate" | "balance" | "apr" | "minimumPayment" | "name";
 
@@ -262,6 +262,7 @@ export function DebtsSection({
 
                 {allDebts.length === 0 && (
                     <div className="empty-debt-state">
+                        <CreditCard size={48} className="empty-state-icon" aria-hidden="true" />
                         <strong>No Debts Added Yet.</strong>
                         <p>Add Loans, Credit Cards, Or BNPL Balances To Start Tracking Payoff Progress.</p>
                     </div>

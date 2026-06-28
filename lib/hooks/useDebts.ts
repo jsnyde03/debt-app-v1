@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { loadStoredState } from "@/lib/storage/loadStoredState";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
+import { triggerErrorHaptic } from "@/lib/mobile/haptics";
 
 export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => void) {
     const [debts, setDebts] = useState<Debt[]>(() =>
@@ -78,6 +79,7 @@ export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => 
         if (Object.keys(nextErrors).length > 0) {
             setDebtErrors(nextErrors);
             setDebtWarnings(nextWarnings);
+            void triggerErrorHaptic();
             return;
         }
 
@@ -138,6 +140,10 @@ export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => 
 
     function handleRemoveDebt(id: string) {
         setDebts((current) => current.filter((debt) => debt.id !== id));
+    }
+
+    function restoreDebt(debt: Debt) {
+        setDebts((current) => [...current, debt]);
     }
 
     function handleMarkDebtMinimumPaid(id: string) {
@@ -202,6 +208,7 @@ export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => 
         handleAddDebt,
         handleUpdateDebt,
         handleRemoveDebt,
+        restoreDebt,
         handleMarkDebtMinimumPaid,
         handleMarkDebtSnowballPaid,
     };

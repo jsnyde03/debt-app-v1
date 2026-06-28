@@ -2,6 +2,18 @@
 
 _Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). This is the active next version after v1.3._
 
+## Overall status
+
+| Item | Status |
+|---|---|
+| Onboarding flow (4 steps) | ✅ DONE — shipped 2026-06-27, commit e9e8a32 |
+| Cash buffer + debt math fixes | ✅ DONE — shipped 2026-06-27 |
+| E2E Playwright spec | ✅ DONE — 5 tests, 20 runs, all green |
+| Mobile Polish P4 (empty-state SVG) | ✅ DONE — 2026-06-27 |
+| Mobile Polish P9c (hover → active audit) | ✅ DONE — 2026-06-27 |
+| UX Polish #2, #5, #8, #22, #23, #24, #28 | ✅ DONE — 2026-06-27 |
+| UX Polish #3, #4, #7, #9–#12, #14, #17, #20, #25–#27 | ✅ DONE — 2026-06-27 |
+
 ---
 
 ## Scope
@@ -40,20 +52,20 @@ In v1.4, the gate becomes `!hasCompletedOnboarding`. A user who clicks "Try with
 
 ## Implementation steps
 
-1. New `components/Onboarding/` directory:
+1. ✅ **DONE** — New `components/Onboarding/` directory:
    - `OnboardingFlow.tsx` — step-state container (`useState<number>` for step index)
    - `WelcomeStep.tsx` — what the app does, 1 screen. Secondary CTA: "Try with Sample Data" (calls `applyDemoPlannerStateToStorage` + reload, same as the button it replaces)
    - `PaycheckStep.tsx` — reuses the existing paycheck amount/cycle fields (duplication is fine — avoid premature abstraction here)
    - `FirstDebtOrBillStep.tsx` — optional quick-add of one debt or bill so the user sees a populated plan immediately; "Skip, I'll add later" exits the step
    - `CompletionStep.tsx` — "Here's your plan" handoff into the main app
 
-2. New `lib/hooks/useOnboarding.ts` — step state + `debtPlanner.hasCompletedOnboarding` localStorage flag.
+2. ✅ **DONE** — New `lib/hooks/useOnboarding.ts` — step state + `debtPlanner.hasCompletedOnboarding` localStorage flag.
 
-3. In `app/page.tsx`, replace the `isFirstRunSetup` branch's `<PaycheckSection>` render with `<OnboardingFlow>` when `!hasCompletedOnboarding && !isDemoMode`.
+3. ✅ **DONE** — In `app/page.tsx`, replaced the `isFirstRunSetup` branch's `<PaycheckSection>` render with `<OnboardingFlow>` when `!hasCompletedOnboarding && !isDemoMode`.
 
-4. Allow skip throughout — this is a planner app, not a game. Forcing steps risks abandonment.
+4. ✅ **DONE** — Allow skip throughout — this is a planner app, not a game. Forcing steps risks abandonment.
 
-5. **First-launch empty state (audit #2):** After onboarding, a user with zero debts sees blank card stubs. Replace with a single card: _"Your debt-free date is waiting. Add your first debt to see exactly what to do this paycheck."_ One conditional render in the Plan tab's results area — no new routing or architecture.
+5. ⏳ **Pending** — **First-launch empty state (audit #2):** After onboarding, a user with zero debts sees blank card stubs. Replace with a single card: _"Your debt-free date is waiting. Add your first debt to see exactly what to do this paycheck."_ One conditional render in the Plan tab's results area — no new routing or architecture.
 
 ---
 
@@ -69,13 +81,17 @@ New `debtPlanner.hasCompletedOnboarding` localStorage flag. No other changes.
 
 ---
 
-## Testing
+## Testing ✅ DONE
 
-New Playwright spec `tests/e2e/onboarding-flow.spec.ts`:
-- Fresh install → complete all steps → lands on Plan tab with correct empty state
-- Fresh install → skip everything → still lands in app correctly
-- Fresh install → "Try with Sample Data" → demo mode loads; onboarding does **not** reappear on next load
-- Exit demo ("Start My Own Plan") → onboarding appears (not skipped)
+Playwright spec `tests/e2e/onboarding-flow.spec.ts` — 5 tests across 4 projects (mobile-chrome, iphone-pro-max, ipad-pro-11, ipad-pro-11-landscape), all green:
+
+1. **Complete all steps** — fills amount + debt, completes CompletionStep, verifies `hasCompletedOnboarding=true`, amount persisted, debt persisted; confirms no reappearance on reload
+2. **Skip paycheck step** — "Skip for now" jumps to CompletionStep; flag still set
+3. **Skip first-debt step** — fills amount, skips debt; no debts saved, flag set
+4. **Try with Sample Data** — demo mode loads, demo banner visible; onboarding does not reappear on reload
+5. **Exit demo → onboarding reappears** — "Start My Own Plan" clears localStorage; WelcomeStep visible again
+
+Implementation note: `waitForMainApp` uses `.filter({ visible: true }).first()` on the combined `.bottom-nav, .sidebar-nav` selector — required because iPad hides `.bottom-nav` via `@media (min-width: 834px)` and shows `.sidebar-nav` instead.
 
 ---
 
@@ -85,7 +101,7 @@ Low. Pure UI addition, no engine or data changes. The demo mode gate condition (
 
 ---
 
-## Status: SHIPPED (2026-06-27, commit e9e8a32)
+## ✅ DONE — Shipped 2026-06-27, commit e9e8a32
 
 **Files created:**
 - `lib/hooks/useOnboarding.ts` — flag + migration safety (existing users with amount set → treated as onboarded)
@@ -103,7 +119,7 @@ Low. Pure UI addition, no engine or data changes. The demo mode gate condition (
 
 ---
 
-## Addendum — Mobile Polish P4 and P9c
+## Addendum — Mobile Polish P4 and P9c ⏳ Pending
 
 _See [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) for full detail. Summary for version-sequencing reference only._
 
@@ -121,24 +137,31 @@ _See [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md
 
 ## Addendum — UX polish items assigned to v1.4
 
-See [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) for full implementation detail on each item. Priority order (cut from the bottom if time is short):
+See [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) for full implementation detail on each item.
 
-1. **#3** — Debt-Free Date in Execution Summary Strip
-2. **#4** — Mark-Paid Transition Animation
-3. **#5** — Smart Insights Card Typography
-4. **#8** — Plan Tab Hero Personalization
-5. **#12** — Windfall/Bonus Allocator (Free tier, pulled from v1.5)
-6. **#7** — Category Icons on Bills and Debts
-7. **#9** — Display Amount Styling ($ + Cents Split)
-8. **#10** — Directional Tab Transitions
-9. **#11** — Upgrade Screen Preview Card
-10. **#14** — BNPL Visual Differentiation
-11. **#17** — Basic Aria-Label Audit
-12. **#26** — Haptic Grammar Completion
-13. **#27** — 3-Way Theme Selector (System / Light / Dark)
-14. **#20** — Swipe-Delete Undo Toast
-15. **#22** — Sheet Grabber Handles
-16. **#23** — Toast Animation
-17. **#24** — Staggered Animations on Debt and Expense Lists
-18. **#25** — Interest Cost Per Debt Callout
-19. **#28** — Privacy/Local-Storage Trust Messaging
+### ✅ DONE (2026-06-27, sessions 1–3)
+
+- **#2** — First-launch empty state: "Your debt-free date is waiting" card in Plan tab when paycheck set + no debts; "Add First Debt" → Bills tab.
+- **#3** — Debt-Free Date in Execution Summary Strip: replaced "Status" cell with "Debt-Free" date, computed via shared `debtFreeDate` useMemo in page.tsx; passed as prop to ResultsSection; `.strip-cell-debt-free strong` uses smaller font.
+- **#4** — Mark-Paid Transition Animation: `cardExit` (200ms dim+scale) + `checkPulse` (400ms ✓ overlay via `::after`) applied in DebtRow and ExpenseListItem via `animating-paid` class; triggered by useEffect tracking paid-state transition.
+- **#5** — Smart Insights Card Typography: title font-size 0.92→1.12rem; action `<small>` chip styling; 4px colored left-border per severity.
+- **#7** — Category Icons on Bills and Debts: expense rows already had category chips; debt rows now show `<CreditCard>` icon chip for `type === "debt"`, `.bnpl-badge` for BNPL.
+- **#8** — Plan Tab Hero Personalization: contextual subtitle (shortfall/debt-free date/default).
+- **#9** — Display Amount Styling: `formatDisplayAmount` helper; `.display-amount-symbol/.display-amount-cents` CSS; applied to 3 execution strip currency cells in ResultsSection.
+- **#10** — Directional Tab Transitions: `prevTabRef` + `tabDirection` in page.tsx; `data-direction="forward|backward"` on content wrapper; `tabSlideInRight/Left` CSS keyframes with `prefers-reduced-motion` fallback.
+- **#11** — Upgrade Screen Preview Card: frosted-glass mock showing 2 blurred insight rows with "Unlock with Premium" overlay above the action buttons.
+- **#12** — Windfall/Bonus Allocator: "Got extra money?" card in Plan Settings; inline form adds windfall to `amount` state, closes sheet, shows status toast.
+- **#14** — BNPL Visual Differentiation: `.bnpl-badge` purple pill; "X payments left" replaces APR for BNPL debts with `remainingPayments`.
+- **#17** — Basic Aria-Label Audit: `aria-label` on hero `<section>` + both `<nav>`s; `role="region"` + dynamic `aria-label` on tab content wrapper; `aria-live="polite"` + `aria-label` on execution summary strip.
+- **#20** — Swipe-Delete Undo Toast: `restoreDebt`/`restoreExpense` in hooks; `handleRemoveDebtWithUndo`/`handleRemoveExpenseWithUndo` in page.tsx with 5s timer; `.undo-toast` + `.undo-toast-button` CSS.
+- **#22** — Sheet Grabber Handles: `::before` pill on `.settings-sheet` + `.upgrade-modal-card`.
+- **#23** — Toast Animation: `toastEnter`/`toastExit` keyframes; `.exiting` class + two-timer exit pattern in page.tsx.
+- **#24** — Staggered Animations: `debt-list-item` + `required-expense-row` use `cardReveal` + nth-child delays.
+- **#25** — Interest Cost Per Debt Callout: `calculateMonthlyInterest` per debt row; red `.debt-interest-callout` span for debts with APR > 0.
+- **#26** — Haptic Grammar Completion: `triggerErrorHaptic` added to haptics.ts; error haptic on validation failure in useGoals/useDebts/useRequiredExpenses; medium haptic on backup + CSV import success; swipe-delete Light → Medium in DebtRow.
+- **#27** — 3-Way Theme Selector: `useDarkMode` now supports `ThemePreference = "system" | "light" | "dark"` with OS media query listener; floating icon toggle removed; segmented control (Auto / Light / Dark) added to Plan Settings; migration: stored boolean → enum.
+- **#28** — Privacy/Local-Storage Trust Messaging: "Your data stays on this device" above legal links.
+- **P4** — Empty-state SVG illustrations: 48px `CreditCard` / `Wallet` / `Target` icons above empty-state text in DebtsSection, RequiredExpensesSection, GoalsSection via `.empty-state-icon` CSS.
+- **P9c** — Hover → active CSS audit: `:active` equivalents added for all `:hover`-only rules across 00-theme-and-base.css, 03-nav-results-modals.css, 09-anim-swipe-media-misc.css. Note: touch-device verification still recommended before final QA.
+
+### All v1.4 UX polish items complete ✅

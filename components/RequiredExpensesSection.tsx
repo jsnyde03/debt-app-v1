@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";
+import { Wallet } from "@/lib/icons";
 import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { ExpenseListItem, requiredExpenseCategoryOptions } from "./RequiredExpenses/ExpenseListItem";
@@ -204,7 +205,11 @@ export function RequiredExpensesSection({
                 </div>
 
                 {filteredExpenses.length === 0 ? (
-                    <p className="empty-state">No required expenses added yet.</p>
+                    <div className="empty-debt-state compact-empty-state">
+                        <Wallet size={48} className="empty-state-icon" aria-hidden="true" />
+                        <strong>No Bills Added Yet.</strong>
+                        <p>No required expenses added yet.</p>
+                    </div>
                 ) : (
                     visibleExpenses.map((expense) => (
                         <ExpenseListItem

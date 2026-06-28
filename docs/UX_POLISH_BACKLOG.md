@@ -18,11 +18,32 @@ See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for version context and seq
 
 ---
 
-## v1.4 items
+## Shipped (v1.4)
 
-See [V14_ONBOARDING.md](V14_ONBOARDING.md) for version context. Bundle into a single PR alongside onboarding work. Each item is independently implementable.
-
-**Priority order:** #3 → #4 → #5 → #8 → #12 → #7 → #9 → #10 → #11 → #14 → #17 → #26 → #27 → #20 → #22 → #23 → #24 → #25 → #28
+| # | Item | Notes |
+|---|---|---|
+| #2 | First-Launch Empty State | `page.tsx`: card when paycheck set + no debts; "Add First Debt" → Bills tab |
+| #3 | Debt-Free Date in Execution Summary Strip | Replaced "Status" cell; `debtFreeDate` useMemo in page.tsx, prop to ResultsSection |
+| #4 | Mark-Paid Transition Animation | `cardExit` + `checkPulse::after` in DebtRow + ExpenseListItem via `animating-paid` |
+| #5 | Smart Insights Card Typography | Title 0.92→1.12rem; action chip; 4px severity left-border |
+| #7 | Category Icons on Bills and Debts | Expense rows already had chips; debt rows: `CreditCard` icon chip / BNPL badge |
+| #8 | Plan Tab Hero Personalization | Contextual subtitle: shortfall / debt-free date / default |
+| #9 | Display Amount Styling | `formatDisplayAmount` + `.display-amount-symbol/cents` CSS; applied to strip cells |
+| #10 | Directional Tab Transitions | `tabSlideInRight/Left` + `data-direction` on content wrapper |
+| #11 | Upgrade Screen Preview Card | Frosted-glass blurred mock with "Unlock with Premium" overlay |
+| #12 | Windfall/Bonus Allocator | "Got extra money?" card in Plan Settings; adds to `amount` state |
+| #14 | BNPL Visual Differentiation | Purple `.bnpl-badge`; "X payments left" replaces APR for BNPL |
+| #22 | Sheet Grabber Handles | `::before` pill on `.settings-sheet` + `.upgrade-modal-card` |
+| #23 | Toast Animation | `toastEnter/Exit` keyframes; `.exiting` class + two-timer exit pattern |
+| #24 | Staggered Animations | `debt-list-item` + `required-expense-row` use `cardReveal` + nth-child delays |
+| #17 | Basic Aria-Label Audit | `aria-label` on hero section + both navs; `role="region"` on tab wrapper; `aria-live` on execution strip |
+| #20 | Swipe-Delete Undo Toast | `restoreDebt`/`restoreExpense` in hooks; 5s undo with `.undo-toast` CSS |
+| #25 | Interest Cost Per Debt Callout | `calculateMonthlyInterest` per row; red `.debt-interest-callout` span |
+| #26 | Haptic Grammar Completion | `triggerErrorHaptic`; validation error + import success + swipe-delete haptics |
+| #27 | 3-Way Theme Selector | `ThemePreference = system/light/dark`; segmented control in Settings; floating toggle removed |
+| #28 | Privacy/Local-Storage Trust Messaging | "Your data stays on this device" above legal links in Settings |
+| P4 | Empty-state SVG illustrations | 48px Lucide icons above empty-state text in Debts, Expenses, Goals sections |
+| P9c | Hover → active CSS audit | `:active` equivalents for all `:hover`-only rules across 3 CSS files |
 
 ---
 

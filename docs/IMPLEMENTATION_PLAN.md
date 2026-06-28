@@ -6,7 +6,7 @@ _Technical companion to `ROADMAP.md`. Defines how each version is built: data mo
 
 | Topic | Document |
 |---|---|
-| Active work — v1.4 Onboarding | [V14_ONBOARDING.md](V14_ONBOARDING.md) |
+| v1.4 Onboarding (core ✅ DONE, polish ⏳ pending) | [V14_ONBOARDING.md](V14_ONBOARDING.md) |
 | UX polish backlog (28 audit items, versioned) | [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) |
 | v1.7 and beyond | [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |
 | Mobile polish (P1–P9) | [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) |
@@ -35,7 +35,7 @@ Four features independently require a **backend** that doesn't exist today (the 
 |---|---|---|
 | v1.2 | ✅ Shipped | Notifications, App Lock, Demo Mode, App Store compliance, Mobile Polish P1a/P2/P9a |
 | v1.3 | ✅ Shipped | iPad support + native polish, landscape layouts, Delete All Data, UI/UX Polish Pass |
-| v1.4 | 🔵 Active | Timeline multi-cycle fix + Onboarding — see [V14_ONBOARDING.md](V14_ONBOARDING.md) |
+| v1.4 | ✅ Shipped | Core onboarding + timeline fix + all 22 UX/Mobile polish items DONE — see [V14_ONBOARDING.md](V14_ONBOARDING.md) |
 | v1.5 | ⬜ Next | Pay Cycle History |
 | v1.6 | ⬜ Planned | Debt Milestones + Amortization Calendar + Streaks |
 | v1.7+ | ⬜ Long-term | Widget, AI, Android, ... — see [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |
@@ -71,6 +71,10 @@ Four features independently require a **backend** that doesn't exist today (the 
 - `components/TimelineSection.tsx` — icon (🔒) and status label ("Reserved") for buffer type
 - `lib/debt/projectDebtPayoff.ts` — removed intermediate `roundMoney` on interest accumulation
 - `lib/testing/testMultiCycleTimelineRegression.ts` — 3 new buffer regression tests
+
+### v1.4 addendum — Onboarding E2E spec (2026-06-27)
+
+`tests/e2e/onboarding-flow.spec.ts` — 5 tests, 20 runs (4 projects), all green. Covers: complete flow with data persistence, skip paycheck, skip first debt, demo mode gate, and exit-demo re-trigger. Key fix in spec: `.filter({ visible: true })` on the nav selector, required because iPad hides `.bottom-nav` at 834px+ breakpoint.
 
 ---
 

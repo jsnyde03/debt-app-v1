@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useEffect, useState, type ChangeEvent } from "react";
+import { useMemo, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import { getNextPaycheckDate } from "@/lib/payCycle/getNextPaycheckDate";
 import type { Recurrence } from "@/lib/types/recurrence";
@@ -30,6 +30,7 @@ import {
 
 import { type RecommendationOverride, type Debt, type RequiredExpense, type RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
+import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { parseDebtCsv } from "@/lib/imports/debtCsv";
 import type { LivingExpense } from "@/lib/types/livingExpense";
@@ -46,7 +47,7 @@ import { incrementRolloverCount, maybeRequestAppReview } from "@/lib/review/requ
 import { AppSkeleton } from "@/components/AppSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { loadStoredState } from "@/lib/storage/loadStoredState";
-import { useDarkMode } from "@/lib/hooks/useDarkMode";
+import { useDarkMode, type ThemePreference } from "@/lib/hooks/useDarkMode";
 import { useGoals, type Goal } from "@/lib/hooks/useGoals";
 import { useRequiredExpenses } from "@/lib/hooks/useRequiredExpenses";
 import { useDebts } from "@/lib/hooks/useDebts";
@@ -57,7 +58,7 @@ import { AppLockScreen } from "@/components/AppLockScreen";
 import { useAppLock } from "@/lib/hooks/useAppLock";
 import { useOnboarding } from "@/lib/hooks/useOnboarding";
 import { OnboardingFlow } from "@/components/Onboarding/OnboardingFlow";
-import { Home as HomeIcon, CreditCard, TrendingUp, Target, Sun, Moon, Settings, Wallet } from "@/lib/icons";
+import { Home as HomeIcon, CreditCard, TrendingUp, Target, Settings, Wallet } from "@/lib/icons";
 
 type CompletedRecommendedAction = {
     targetId: string;
@@ -147,7 +148,7 @@ export default function Home() {
         handleRemoveGoal,
     } = useGoals();
 
-    const { darkMode, setDarkMode } = useDarkMode();
+    const { darkMode, themePreference, setThemePreference } = useDarkMode();
 
     const [completedRecommendedActions, setCompletedRecommendedActions] =
         useState<CompletedRecommendedAction[]>(() =>
@@ -159,6 +160,10 @@ export default function Home() {
     const [activeTab, setActiveTab] = useState<
         "plan" | "bills" | "snowball" | "goals"
     >("plan");
+    const tabOrder = { plan: 0, bills: 1, snowball: 2, goals: 3 } as const;
+    const prevTabRef = useRef<"plan" | "bills" | "snowball" | "goals">("plan");
+    const tabDirection = tabOrder[activeTab] >= tabOrder[prevTabRef.current] ? "forward" : "backward";
+    prevTabRef.current = activeTab;
 
     const [billsView, setBillsView] = useState<"expenses" | "debts" | null>(
         null
@@ -171,6 +176,11 @@ export default function Home() {
         () => !hasConfiguredPaycheck
     );
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isToastExiting, setIsToastExiting] = useState(false);
+    const [showWindfall, setShowWindfall] = useState(false);
+    const [windfallInput, setWindfallInput] = useState("");
+    const [pendingUndo, setPendingUndo] = useState<{ type: "debt"; item: Debt } | { type: "expense"; item: RequiredExpense } | null>(null);
+    const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const [payoffStrategy, setPayoffStrategy] = useState<
         "snowball" | "avalanche"
@@ -203,6 +213,7 @@ export default function Home() {
         handleAddExpense,
         handleUpdateExpense,
         handleRemoveExpense,
+        restoreExpense,
         handleMarkExpensePaid,
     } = useRequiredExpenses(saveResetSnapshot);
 
@@ -223,6 +234,7 @@ export default function Home() {
         handleAddDebt,
         handleUpdateDebt,
         handleRemoveDebt,
+        restoreDebt,
         handleMarkDebtMinimumPaid,
         handleMarkDebtSnowballPaid,
     } = useDebts(saveResetSnapshot);
@@ -310,6 +322,35 @@ export default function Home() {
     const activeDebts = debtsWithDisplayBalances.filter((debt) => debt.displayBalance > 0);
     const paidOffDebts = debtsWithDisplayBalances.filter((debt) => debt.displayBalance <= 0);
 
+    const debtFreeDate = useMemo(() => {
+        const liveDebts = debts.filter(d => d.balance > 0);
+        if (!result || liveDebts.length === 0) return null;
+        const snowballTotal = result.allocations
+            .filter(a => a.category === "snowball")
+            .reduce((sum, a) => sum + a.amount, 0);
+        const cycleMultiplier = payCycle === "weekly" ? 4 : payCycle === "monthly" ? 1 : 2;
+        const { estimatedDebtFreeDate } = projectDebtPayoff({
+            debts: liveDebts,
+            monthlyExtraPayment: snowballTotal * cycleMultiplier,
+            strategy: payoffStrategy,
+            startDate: currentDate,
+        });
+        return estimatedDebtFreeDate === "Unable to estimate" ? null : estimatedDebtFreeDate;
+    }, [result, debts, payoffStrategy, currentDate, payCycle]);
+
+    const heroSubtitle = useMemo(() => {
+        if (!result || debts.filter(d => d.balance > 0).length === 0) {
+            return "Enter a paycheck and see exactly what to do next.";
+        }
+        if (result.shortfall > 0) {
+            return "Tight cycle — protect your minimums first.";
+        }
+        if (debtFreeDate) {
+            return `You're on track to be debt-free by ${debtFreeDate}.`;
+        }
+        return "Here's what to do this paycheck.";
+    }, [result, debts, debtFreeDate]);
+
     useEffect(() => {
         localStorage.setItem("debtPlanner.livingExpenses", JSON.stringify(livingExpenses));
     }, [livingExpenses]);
@@ -332,11 +373,16 @@ export default function Home() {
     useEffect(() => {
         if (!statusMessage) return;
 
-        const timeout = window.setTimeout(() => {
+        const exitTimer = window.setTimeout(() => setIsToastExiting(true), 2020);
+        const clearTimer = window.setTimeout(() => {
             setStatusMessage("");
+            setIsToastExiting(false);
         }, 2200);
 
-        return () => window.clearTimeout(timeout);
+        return () => {
+            window.clearTimeout(exitTimer);
+            window.clearTimeout(clearTimer);
+        };
     }, [statusMessage]);
 
     useEffect(() => {
@@ -422,6 +468,7 @@ export default function Home() {
                         .join("\n")}`
                 );
             } else {
+                void triggerMediumHaptic();
                 alert(`Imported ${importResult.debts.length} debts.`);
             }
         } catch {
@@ -618,12 +665,39 @@ export default function Home() {
             );
             setPayoffStrategy(backup.payoffStrategy ?? "snowball");
 
+            void triggerMediumHaptic();
             setStatusMessage("Backup imported successfully");
         } catch {
             alert("Unable to import backup file.");
         }
 
         event.target.value = "";
+    }
+
+    function handleRemoveDebtWithUndo(id: string) {
+        const debt = debts.find((d) => d.id === id);
+        if (!debt) { handleRemoveDebt(id); return; }
+        handleRemoveDebt(id);
+        if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+        setPendingUndo({ type: "debt", item: debt });
+        undoTimerRef.current = setTimeout(() => setPendingUndo(null), 5000);
+    }
+
+    function handleRemoveExpenseWithUndo(id: string) {
+        const expense = requiredExpenses.find((e) => e.id === id);
+        if (!expense) { handleRemoveExpense(id); return; }
+        handleRemoveExpense(id);
+        if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+        setPendingUndo({ type: "expense", item: expense });
+        undoTimerRef.current = setTimeout(() => setPendingUndo(null), 5000);
+    }
+
+    function handleUndo() {
+        if (!pendingUndo) return;
+        if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+        if (pendingUndo.type === "debt") restoreDebt(pendingUndo.item);
+        else restoreExpense(pendingUndo.item);
+        setPendingUndo(null);
     }
 
     async function handleRolloverPayCycle() {
@@ -718,11 +792,11 @@ export default function Home() {
                         </button>
                     </div>
                 )}
-                <section className={activeTab === "plan" ? "hero" : "hero hero-page"}>
+                <section className={activeTab === "plan" ? "hero" : "hero hero-page"} aria-label="Page header">
                     {activeTab === "plan" ? (
                         <>
                             <h1>Debt Planner</h1>
-                            <p>Enter a paycheck and see exactly what to do next.</p>
+                            <p>{heroSubtitle}</p>
                         </>
                     ) : activeTab === "bills" ? (
                         <>
@@ -746,23 +820,10 @@ export default function Home() {
                         </p>
                     )}
                     {statusMessage && (
-                        <div className="save-status-toast" role="status" aria-live="polite">
+                        <div className={`save-status-toast${isToastExiting ? " exiting" : ""}`} role="status" aria-live="polite">
                             {statusMessage}
                         </div>
                     )}
-
-                    <button
-                        type="button"
-                        className="theme-toggle"
-                        aria-label={darkMode ? "Switch To Light Mode" : "Switch To Dark Mode"}
-                        onClick={() => {
-                            triggerLightHaptic();
-                            setDarkMode((current) => !current);
-                        }
-                        }
-                    >
-                        {darkMode ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
-                    </button>
 
                     {process.env.NEXT_PUBLIC_DEV_MODE === "true" && (
                         <button
@@ -787,7 +848,7 @@ export default function Home() {
                     )}
                 </section>
 
-                <div key={activeTab} className="tab-content-transition">
+                <div key={activeTab} className="tab-content-transition" data-direction={tabDirection} role="region" aria-label={activeTab === "plan" ? "Plan" : activeTab === "bills" ? "Bills" : activeTab === "snowball" ? "Payoff" : "Goals"}>
                 {activeTab === "plan" && (
                     <>
                         <div className="plan-toolbar">
@@ -805,12 +866,31 @@ export default function Home() {
                         </div>
 
                         <div className="plan-tab-grid">
+                            {result !== null && activeDebts.length === 0 && (
+                                <div className="card first-debt-prompt">
+                                    <p className="first-debt-prompt-text">
+                                        Your debt-free date is waiting. Add your first debt to see exactly what to do this paycheck.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className="primary-plan-button"
+                                        onClick={() => {
+                                            triggerLightHaptic();
+                                            setActiveTab("bills");
+                                        }}
+                                    >
+                                        Add First Debt
+                                    </button>
+                                </div>
+                            )}
+
                             <ResultsSection
                                 result={result}
                                 requiredExpenses={requiredExpenses}
                                 debts={debts}
                                 goals={goals}
                                 payoffStrategy={payoffStrategy}
+                                debtFreeDate={debtFreeDate}
                                 completedRecommendedActions={
                                     completedRecommendedActions
                                 }
@@ -986,7 +1066,7 @@ export default function Home() {
                             onExpenseCategoryChange={setExpenseCategory}
                             onExpenseIsAutopayChange={setExpenseIsAutopay}
                             onAddExpense={handleAddExpense}
-                            onRemoveExpense={handleRemoveExpense}
+                            onRemoveExpense={handleRemoveExpenseWithUndo}
                             onUpdateExpense={handleUpdateExpense}
                             expenseErrors={expenseErrors}
                         />
@@ -1027,7 +1107,7 @@ export default function Home() {
                             onDebtIsAutopayChange={setDebtIsAutopay}
                             onImportDebtsCsv={handleImportDebtsCsv}
                             onAddDebt={handleAddDebt}
-                            onRemoveDebt={handleRemoveDebt}
+                            onRemoveDebt={handleRemoveDebtWithUndo}
                             onUpdateDebt={handleUpdateDebt}
                             debtErrors={debtErrors}
                             debtWarnings={debtWarnings}
@@ -1056,7 +1136,16 @@ export default function Home() {
                 </div>
             </PullToRefresh>
 
-            <nav className="bottom-nav">
+            {pendingUndo && (
+                <div className="undo-toast" role="status" aria-live="polite">
+                    <span>{pendingUndo.type === "debt" ? "Debt removed." : "Bill removed."}</span>
+                    <button type="button" className="undo-toast-button" onClick={handleUndo}>
+                        Undo
+                    </button>
+                </div>
+            )}
+
+            <nav className="bottom-nav" aria-label="Main navigation">
                 <button
                     type="button"
                     className={
@@ -1123,7 +1212,7 @@ export default function Home() {
                 </button>
             </nav>
 
-            <nav className="sidebar-nav">
+            <nav className="sidebar-nav" aria-label="Main navigation">
                 <div className="sidebar-logo" aria-hidden="true">
                     <TrendingUp size={20} />
                 </div>
@@ -1274,6 +1363,82 @@ export default function Home() {
                         />
 
                         {!isFirstRunSetup && (
+                            <div className="card windfall-card">
+                                {showWindfall ? (
+                                    <div className="windfall-form">
+                                        <p className="windfall-label">Got a bonus or extra cash? Add it to this paycheck.</p>
+                                        <div className="windfall-input-row">
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                className="windfall-input"
+                                                placeholder="0.00"
+                                                value={windfallInput}
+                                                onChange={e => setWindfallInput(e.target.value)}
+                                                autoFocus
+                                            />
+                                            <button
+                                                type="button"
+                                                className="primary-plan-button"
+                                                onClick={() => {
+                                                    const extra = parseFloat(windfallInput);
+                                                    if (!extra || extra <= 0) return;
+                                                    triggerMediumHaptic();
+                                                    setAmount(prev => String(Math.round((Number(prev) + extra) * 100) / 100));
+                                                    setWindfallInput("");
+                                                    setShowWindfall(false);
+                                                    setShowPlanSettings(false);
+                                                    setStatusMessage(`Added $${extra.toFixed(2)} windfall to this paycheck.`);
+                                                }}
+                                            >
+                                                Apply
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="secondary-button"
+                                                onClick={() => { setShowWindfall(false); setWindfallInput(""); }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="windfall-trigger-button"
+                                        onClick={() => { triggerLightHaptic(); setShowWindfall(true); }}
+                                    >
+                                        <span className="windfall-trigger-icon">💰</span>
+                                        <span>Got extra money this paycheck?</span>
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        {!isFirstRunSetup && (
+                            <div className="card notifications-settings-card">
+                                <div className="notifications-settings-row">
+                                    <div>
+                                        <h3>Appearance</h3>
+                                    </div>
+                                    <div className="theme-selector" role="group" aria-label="Theme preference">
+                                        {(["system", "light", "dark"] as ThemePreference[]).map((pref) => (
+                                            <button
+                                                key={pref}
+                                                type="button"
+                                                className={`theme-selector-pill${themePreference === pref ? " theme-selector-pill-active" : ""}`}
+                                                onClick={() => { triggerLightHaptic(); setThemePreference(pref); }}
+                                                aria-pressed={themePreference === pref}
+                                            >
+                                                {pref === "system" ? "Auto" : pref === "light" ? "Light" : "Dark"}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {!isFirstRunSetup && (
                             <div className="card notifications-settings-card">
                                 <div className="notifications-settings-row">
                                     <div>
@@ -1365,6 +1530,10 @@ export default function Home() {
                                 )}
                             </div>
                         )}
+
+                        <p className="settings-privacy-note">
+                            Your data stays on this device — nothing is uploaded or shared.
+                        </p>
 
                         <div className="settings-legal-row">
                             <a

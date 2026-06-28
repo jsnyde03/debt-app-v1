@@ -18,6 +18,18 @@ export async function triggerSuccessHaptic() {
     }
 }
 
+export async function triggerErrorHaptic() {
+    try {
+        const { Haptics, NotificationType } = await import("@capacitor/haptics");
+
+        await Haptics.notification({
+            type: NotificationType.Error,
+        });
+    } catch {
+
+    }
+}
+
 async function triggerImpact(styleName: "Light" | "Medium") {
     try {
         const { Haptics, ImpactStyle } = await import("@capacitor/haptics");

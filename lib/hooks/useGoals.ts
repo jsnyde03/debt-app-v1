@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { loadStoredState } from "@/lib/storage/loadStoredState";
+import { triggerErrorHaptic } from "@/lib/mobile/haptics";
 
 export type Goal = {
     id: string;
@@ -46,6 +47,7 @@ export function useGoals() {
 
         if (Object.keys(nextErrors).length > 0) {
             setGoalErrors(nextErrors);
+            void triggerErrorHaptic();
             return;
         }
 

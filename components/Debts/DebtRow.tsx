@@ -1,9 +1,11 @@
+import { useEffect, useRef, useState } from "react";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { calculateMonthlyInterest } from "@/lib/debt/calculateMonthlyInterest";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { SwipeActionCard } from "../SwipeActionCard";
-import { Check, ChevronRight } from "@/lib/icons";
+import { Check, ChevronRight, CreditCard } from "@/lib/icons";
 
 type DebtWithDisplayBalance = Debt & {
     displayBalance?: number;
@@ -56,6 +58,19 @@ export function DebtRow({
     const displayBalance = debt.displayBalance ?? debt.balance;
     const isPaidOff = displayBalance <= 0;
     const isHighApr = debt.apr >= 20;
+
+    const [isAnimatingPaid, setIsAnimatingPaid] = useState(false);
+    const prevIsPaidOff = useRef(isPaidOff);
+
+    useEffect(() => {
+        const wasUnpaid = !prevIsPaidOff.current;
+        prevIsPaidOff.current = isPaidOff;
+        if (isPaidOff && wasUnpaid) {
+            setIsAnimatingPaid(true);
+            const t = window.setTimeout(() => setIsAnimatingPaid(false), 400);
+            return () => window.clearTimeout(t);
+        }
+    }, [isPaidOff]);
 
     if (isEditing) {
         return (
@@ -180,7 +195,7 @@ export function DebtRow({
     return (
         <SwipeActionCard
             key={debt.id}
-            className={`saved-item saved-item-button debt-list-item ${isPaidOff ? "debt-list-item-paid" : ""} ${isHighApr && !isPaidOff ? "debt-list-item-priority" : ""} ${debt.type === "bnpl" ? "debt-list-item-bnpl" : ""}`}
+            className={`saved-item saved-item-button debt-list-item ${isPaidOff ? "debt-list-item-paid" : ""} ${isHighApr && !isPaidOff ? "debt-list-item-priority" : ""} ${debt.type === "bnpl" ? "debt-list-item-bnpl" : ""} ${isAnimatingPaid ? "animating-paid" : ""}`}
             leftAction={{
                 label: "Edit",
                 tone: "warning",
@@ -195,7 +210,7 @@ export function DebtRow({
                 label: "Remove",
                 tone: "danger",
                 onTrigger: () => {
-                    triggerLightHaptic();
+                    triggerMediumHaptic();
                     onRemoveDebt(debt.id);
                 },
             }}
@@ -212,12 +227,20 @@ export function DebtRow({
                     <div className="saved-title">
                         {debt.name} {isPaidOff && <Check size={14} className="paid-off-icon" aria-hidden="true" />}
                         {debt.isAutopay && <span className="autopay-pill">Autopay</span>}
+                        {debt.type === "bnpl"
+                            ? <span className="bnpl-badge">BNPL</span>
+                            : <span className="debt-type-icon" aria-label="Credit card debt"><CreditCard size={12} aria-hidden="true" /></span>
+                        }
                     </div>
 
                     <div className="saved-meta debt-card-meta">
                         <span>Balance: {formatCurrency(displayBalance)}</span>
 
-                        <span>APR {debt.apr}%</span>
+                        {debt.type === "bnpl" && debt.remainingPayments != null ? (
+                            <span>{debt.remainingPayments} payments left</span>
+                        ) : (
+                            <span>APR {debt.apr}%</span>
+                        )}
 
                         <span>
                             Due: {new Date(debt.dueDate).toLocaleDateString(undefined, {
@@ -226,6 +249,17 @@ export function DebtRow({
                             })}
                         </span>
                     </div>
+
+                    {(() => {
+                        const monthlyInterest = !isPaidOff && debt.apr > 0 && debt.type !== "bnpl"
+                            ? calculateMonthlyInterest(displayBalance, debt.apr)
+                            : 0;
+                        return monthlyInterest > 0 ? (
+                            <span className="debt-interest-callout">
+                                ~{formatCurrency(monthlyInterest)}/mo in interest
+                            </span>
+                        ) : null;
+                    })()}
                 </div>
 
                 <div className="saved-item-right">

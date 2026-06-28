@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { loadStoredState } from "@/lib/storage/loadStoredState";
 import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
+import { triggerErrorHaptic } from "@/lib/mobile/haptics";
 
 export function useRequiredExpenses(saveResetSnapshot: (overrides?: { requiredExpenses?: RequiredExpense[] }) => void) {
     const [requiredExpenses, setRequiredExpenses] = useState<RequiredExpense[]>(
@@ -44,6 +45,7 @@ export function useRequiredExpenses(saveResetSnapshot: (overrides?: { requiredEx
 
         if (Object.keys(nextErrors).length > 0) {
             setExpenseErrors(nextErrors);
+            void triggerErrorHaptic();
             return;
         }
 
@@ -91,6 +93,10 @@ export function useRequiredExpenses(saveResetSnapshot: (overrides?: { requiredEx
         );
     }
 
+    function restoreExpense(expense: RequiredExpense) {
+        setRequiredExpenses((current) => [...current, expense]);
+    }
+
     function handleMarkExpensePaid(id: string) {
         setRequiredExpenses((current) => {
             const nextRequiredExpenses = current.map((expense) =>
@@ -129,6 +135,7 @@ export function useRequiredExpenses(saveResetSnapshot: (overrides?: { requiredEx
         handleAddExpense,
         handleUpdateExpense,
         handleRemoveExpense,
+        restoreExpense,
         handleMarkExpensePaid,
     };
 }

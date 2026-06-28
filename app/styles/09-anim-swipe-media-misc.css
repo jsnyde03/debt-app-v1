@@ -76,15 +76,27 @@
 	}
 }
  
-@keyframes toastIn {
+@keyframes toastEnter {
 	from {
 		opacity: 0;
-		transform: translateY(-4px) scale(0.98);
+		transform: translateY(-8px) scale(0.97);
 	}
 
 	to {
 		opacity: 1;
 		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes toastExit {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	to {
+		opacity: 0;
+		transform: translateY(-6px);
 	}
 }
 
@@ -119,14 +131,69 @@
 	}
 }
 
-.tab-content-transition {
+@keyframes tabSlideInRight {
+	from { opacity: 0; transform: translateX(10px); }
+	to   { opacity: 1; transform: none; }
+}
+
+@keyframes tabSlideInLeft {
+	from { opacity: 0; transform: translateX(-10px); }
+	to   { opacity: 1; transform: none; }
+}
+
+.tab-content-transition[data-direction="forward"] {
+	animation: tabSlideInRight 180ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.tab-content-transition[data-direction="backward"] {
+	animation: tabSlideInLeft 180ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.tab-content-transition:not([data-direction]) {
 	animation: tabContentIn 160ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.tab-content-transition {
+	.tab-content-transition,
+	.tab-content-transition[data-direction] {
 		animation: none;
 	}
+}
+
+@keyframes cardExit {
+	from { opacity: 1; transform: scale(1); }
+	to   { opacity: 0.72; transform: scale(0.99); }
+}
+
+@keyframes checkPulse {
+	from { opacity: 1; transform: scale(1.2); }
+	to   { opacity: 0; transform: scale(0.8); }
+}
+
+.animating-paid {
+	animation: cardExit 200ms ease both;
+	position: relative;
+}
+
+.animating-paid::after {
+	content: "✓";
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.4rem;
+	color: #22c55e;
+	background: rgba(34, 197, 94, 0.08);
+	border-radius: inherit;
+	animation: checkPulse 400ms ease both;
+	pointer-events: none;
+	z-index: 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.animating-paid { animation: none; }
+	.animating-paid::after { animation: none; display: none; }
 }
 
 @keyframes cardReveal {
@@ -149,8 +216,28 @@
 .goal-list-item:nth-child(4) { animation-delay: 90ms; }
 .goal-list-item:nth-child(5) { animation-delay: 120ms; }
 
+.debt-list-item {
+	animation: cardReveal 200ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.debt-list-item:nth-child(2) { animation-delay: 30ms; }
+.debt-list-item:nth-child(3) { animation-delay: 60ms; }
+.debt-list-item:nth-child(4) { animation-delay: 90ms; }
+.debt-list-item:nth-child(5) { animation-delay: 120ms; }
+
+.required-expense-row {
+	animation: cardReveal 200ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.required-expense-row:nth-child(2) { animation-delay: 30ms; }
+.required-expense-row:nth-child(3) { animation-delay: 60ms; }
+.required-expense-row:nth-child(4) { animation-delay: 90ms; }
+.required-expense-row:nth-child(5) { animation-delay: 120ms; }
+
 @media (prefers-reduced-motion: reduce) {
-	.goal-list-item {
+	.goal-list-item,
+	.debt-list-item,
+	.required-expense-row {
 		animation: none;
 	}
 }
@@ -442,6 +529,10 @@
 
 	.saved-item:not(.completed-item):hover {
 		transform: translateY(-1px);
+	}
+
+	.saved-item:not(.completed-item):active {
+		transform: scale(0.982);
 	}
 
 	.saved-amount {
