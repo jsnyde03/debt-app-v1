@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support — Paycheck Debt Planner</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.65;
+            color: #1a2332;
+            background: #f5f8fc;
+        }
+
+        header {
+            background: #0f1f35;
+            color: #fff;
+            padding: 48px 24px 40px;
+            text-align: center;
+        }
+
+        header .wordmark {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.6;
+            margin-bottom: 12px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 0.92rem;
+            opacity: 0.65;
+        }
+
+        header .contact-chip {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 100px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        header .contact-chip:hover { background: rgba(255,255,255,0.16); }
+
+        main {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        .toc {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e4eaf2;
+            padding: 24px 28px;
+            margin-bottom: 28px;
+        }
+
+        .toc h2 {
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #7a8fa8;
+            margin-bottom: 12px;
+            border: none;
+        }
+
+        .toc ul { list-style: none; padding: 0; margin: 0; }
+        .toc li { margin-bottom: 4px; }
+        .toc a { color: #2563eb; font-size: 0.92rem; text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+
+        section {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e4eaf2;
+            padding: 32px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #0f1f35;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8eef6;
+        }
+
+        h3 {
+            font-size: 0.97rem;
+            font-weight: 700;
+            color: #0f1f35;
+            margin: 22px 0 8px;
+        }
+
+        h3:first-of-type { margin-top: 4px; }
+
+        p { margin-bottom: 12px; color: #2e3f54; }
+        p:last-child { margin-bottom: 0; }
+
+        ul {
+            margin: 8px 0 14px 0;
+            padding-left: 20px;
+        }
+
+        li { margin-bottom: 7px; color: #2e3f54; }
+
+        strong { color: #0f1f35; }
+
+        .highlight {
+            background: #eef5ff;
+            border-left: 4px solid #2563eb;
+            border-radius: 0 8px 8px 0;
+            padding: 14px 18px;
+            margin: 14px 0;
+        }
+
+        .highlight p { color: #1a3a6e; margin-bottom: 0; font-weight: 600; }
+
+        .warning {
+            background: #fff8ec;
+            border-left: 4px solid #f59e0b;
+            border-radius: 0 8px 8px 0;
+            padding: 14px 18px;
+            margin: 14px 0;
+        }
+
+        .warning p { color: #7c4a0a; margin-bottom: 0; }
+
+        a { color: #2563eb; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        footer {
+            text-align: center;
+            padding: 32px 24px;
+            font-size: 0.82rem;
+            color: #7a8fa8;
+        }
+
+        footer a { color: #7a8fa8; }
+        footer a:hover { color: #2563eb; }
+
+        .disclaimer {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e4eaf2;
+            padding: 24px 28px;
+            margin-top: 8px;
+        }
+
+        .disclaimer p {
+            font-size: 0.82rem;
+            color: #7a8fa8;
+            line-height: 1.5;
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.5rem; }
+            section { padding: 22px 18px; }
+            .toc { padding: 18px; }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body { background: #0b1523; color: #c8d8ea; }
+            header { background: #07111f; }
+            section, .toc, .disclaimer { background: #111e2e; border-color: #1e3044; }
+            h2 { color: #e2eaf4; border-bottom-color: #1e3044; }
+            h3 { color: #e2eaf4; }
+            p, li { color: #a8bdd4; }
+            strong { color: #e2eaf4; }
+            .highlight { background: #0d2040; border-color: #3b82f6; }
+            .highlight p { color: #93bbf7; }
+            .warning { background: #1e1600; border-color: #d97706; }
+            .warning p { color: #fbbf24; }
+            .toc h2 { color: #4a6580; }
+            .toc a { color: #60a5fa; }
+            .disclaimer p { color: #4a6580; }
+            footer { color: #4a6580; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="wordmark">Paycheck Debt Planner</div>
+    <h1>Support</h1>
+    <p>Questions, troubleshooting, and common answers.</p>
+    <a href="mailto:jason.snyder1984@gmail.com" class="contact-chip">jason.snyder1984@gmail.com</a>
+</header>
+
+<main>
+
+    <div class="toc">
+        <h2>Jump to a topic</h2>
+        <ul>
+            <li><a href="#getting-started">Getting started</a></li>
+            <li><a href="#app-lock">App Lock (Face ID / Touch ID)</a></li>
+            <li><a href="#demo-mode">Try with Sample Data (Demo Mode)</a></li>
+            <li><a href="#backup">Backup and restore</a></li>
+            <li><a href="#premium">Premium subscriptions</a></li>
+            <li><a href="#data">Your data and privacy</a></li>
+            <li><a href="#troubleshooting">Troubleshooting</a></li>
+            <li><a href="#disclaimer">Disclaimer</a></li>
+        </ul>
+    </div>
+
+    <section id="getting-started">
+        <h2>Getting started</h2>
+        <h3>How does the app work?</h3>
+        <p>Enter your paycheck amount and the due dates for your bills and debts. Paycheck Debt Planner calculates your required payments, finds whatever extra cash is left after minimums, and tells you exactly where to put it each pay cycle.</p>
+        <p>As you pay bills, swipe them to mark them done. When your next paycheck arrives, tap <strong>Start Next Cycle</strong> to roll everything forward automatically.</p>
+
+        <h3>What's the onboarding flow?</h3>
+        <p>New users see a guided 4-step setup: paycheck amount → pay cycle → first debt or bill → your plan. You can skip any step and fill things in later — nothing is required to see how the app works.</p>
+
+        <h3>What is a "pay cycle"?</h3>
+        <p>A pay cycle is the period between paychecks. The app supports weekly, biweekly (every two weeks), twice monthly (1st and 15th, or custom days), and monthly pay schedules. Set your cycle when you set up your paycheck and the app will project dates automatically.</p>
+
+        <h3>What's the difference between Required Expenses and Living Expenses?</h3>
+        <p><strong>Required Expenses</strong> are fixed obligations due on specific dates — rent, car payment, minimum credit card payments. The app tells you exactly which ones to pay this paycheck.<br><br><strong>Living Expenses</strong> are recurring but flexible costs — groceries, gas, subscriptions — that you set a reserve for each cycle. The app holds that amount back from your available cash so it's not accidentally allocated to debt payoff.</p>
+    </section>
+
+    <section id="app-lock">
+        <h2>App Lock (Face ID / Touch ID)</h2>
+
+        <h3>How do I turn App Lock on or off?</h3>
+        <p>Open <strong>Plan Settings</strong> (the gear icon on the Plan tab) and toggle the App Lock switch. App Lock is off by default.</p>
+
+        <h3>I turned on App Lock and now I can't get in</h3>
+        <ul>
+            <li>Confirm Face ID or Touch ID is enabled for Paycheck Debt Planner in your device's <strong>Settings app → Face ID &amp; Passcode</strong> (or Touch ID &amp; Passcode).</li>
+            <li>If biometric authentication isn't available, you can always unlock with your <strong>device passcode</strong> instead — App Lock uses the same credential your phone uses to wake up.</li>
+            <li>If you can unlock your phone at all, you can unlock the app the same way. App Lock relies entirely on your device's own security, not a separate password.</li>
+        </ul>
+
+        <h3>Does App Lock protect my data if someone steals my phone?</h3>
+        <p>App Lock prevents casual access within the app, but it's not a substitute for a device-level passcode. If your device has no passcode at all, App Lock won't stop someone with physical access to your unlocked phone. We recommend always having a device passcode enabled.</p>
+    </section>
+
+    <section id="demo-mode">
+        <h2>Try with Sample Data (Demo Mode)</h2>
+
+        <h3>What is Demo Mode?</h3>
+        <p>On the Welcome screen, tapping <strong>Try with Sample Data</strong> loads the app with a realistic set of debts, bills, and goals so you can explore the full experience before entering your own information. A blue "Demo Mode" banner stays visible at the top of the app the entire time.</p>
+
+        <h3>How do I exit Demo Mode and start my own plan?</h3>
+        <p>Tap <strong>Start My Own Plan</strong> on the Demo Mode banner at any time. This clears the sample data and shows you the onboarding flow so you can set up your real plan from scratch.</p>
+        <div class="warning">
+            <p><strong>This cannot be undone.</strong> Make sure you're ready to switch before tapping — the sample data will be permanently erased.</p>
+        </div>
+
+        <h3>Can I buy Premium while in Demo Mode?</h3>
+        <p>No. Premium features require your own plan. Demo Mode shows the same paywall and upgrade screen as a real plan, but purchases are not processed while demo data is active. Exit Demo Mode first, then upgrade.</p>
+    </section>
+
+    <section id="backup">
+        <h2>Backup and restore</h2>
+
+        <h3>How do I back up my data?</h3>
+        <p>Open <strong>Plan Settings</strong> and scroll down to find the <strong>Export Backup</strong> button. This creates a JSON file containing all your debts, bills, goals, and settings. Save it to Files, email it to yourself, or store it anywhere you like.</p>
+
+        <h3>How do I restore from a backup?</h3>
+        <p>In Plan Settings, tap <strong>Import Backup</strong> and select your backup file. Your current data will be replaced with the backup's contents.</p>
+        <div class="highlight">
+            <p>Your data is stored only on your device — it does not sync to iCloud automatically. If you get a new phone, export a backup first, then import it on the new device.</p>
+        </div>
+
+        <h3>Can I import debts from a CSV file?</h3>
+        <p>Yes. In the Debts section, tap the import button to load a CSV file. The CSV should have columns for name, balance, minimum payment, APR, and due date. Any rows with missing required fields will be skipped with a count shown after import.</p>
+    </section>
+
+    <section id="premium">
+        <h2>Premium subscriptions</h2>
+
+        <h3>What's included in the free version?</h3>
+        <p>The free version includes unlimited bills, debts, and goals; the full plan calculator; timeline view; swipe-to-pay; debt payoff ordering (snowball and avalanche); backup and restore; Demo Mode; and App Lock.</p>
+
+        <h3>What does Premium add?</h3>
+        <p>Premium ($4.99/month or annual) unlocks Smart Insights, Forecast, Strategy Comparison, and What-If Scenarios — the analytical tools that go beyond a single paycheck and project your trajectory forward.</p>
+
+        <h3>How do I restore a previous purchase?</h3>
+        <p>Open Plan Settings and tap <strong>Restore Purchases</strong>. Make sure you're signed in with the same Apple ID you used when you originally subscribed. If restoring doesn't work, contact us at <a href="mailto:jason.snyder1984@gmail.com">jason.snyder1984@gmail.com</a>.</p>
+
+        <h3>How do I cancel my subscription?</h3>
+        <p>Subscriptions are managed through the App Store. Go to <strong>Settings → [your name] → Subscriptions</strong> on your iPhone or iPad and cancel from there. Cancellation takes effect at the end of the current billing period — you keep Premium access until then.</p>
+
+        <h3>I was charged but the app still shows the free version</h3>
+        <p>Try tapping <strong>Restore Purchases</strong> in Plan Settings. If that doesn't resolve it within a few minutes, contact us and include your Apple ID email so we can investigate.</p>
+    </section>
+
+    <section id="data">
+        <h2>Your data and privacy</h2>
+
+        <h3>Where is my data stored?</h3>
+        <p>All your financial information is stored locally on your device using the browser's <code>localStorage</code> system. It never leaves your device and is never uploaded to any server.</p>
+
+        <h3>Is my data backed up to iCloud?</h3>
+        <p>No. The app uses localStorage, which is not part of iCloud's automatic backup. Use the <strong>Export Backup</strong> feature in Plan Settings to create your own backup file.</p>
+
+        <h3>What happens to my data if I uninstall the app?</h3>
+        <p>It's deleted permanently. Export a backup before uninstalling if you want to keep your data.</p>
+
+        <h3>How do I delete all my data?</h3>
+        <p>Open Plan Settings and scroll to the bottom. Tap <strong>Delete All Data</strong> and confirm. This permanently erases everything — debts, bills, goals, and settings.</p>
+
+        <p>See our full <a href="privacy.html">Privacy Policy</a> for complete details.</p>
+    </section>
+
+    <section id="troubleshooting">
+        <h2>Troubleshooting</h2>
+
+        <h3>The app isn't saving my changes</h3>
+        <p>The app saves automatically after every change. If you're not seeing updates persist after reloading, your browser or device may have localStorage disabled or restricted. Check your device's privacy settings and make sure the app has permission to store data locally.</p>
+
+        <h3>The numbers look wrong</h3>
+        <p>Make sure your <strong>pay cycle</strong> is set correctly in Plan Settings — biweekly vs. twice-monthly have different effects on how the allocation engine distributes monthly obligations. Also verify that bill and debt <strong>due dates</strong> fall within the current pay cycle period.</p>
+
+        <h3>My debt-free date seems too far away</h3>
+        <p>The projection uses your current extra payment allocation each cycle. The more you can put toward the snowball, the earlier the date. Check the Payoff tab for a breakdown of how each debt is being addressed.</p>
+
+        <h3>Notifications aren't appearing</h3>
+        <ul>
+            <li>Confirm notifications are enabled for Paycheck Debt Planner in <strong>Settings → Notifications</strong> on your device.</li>
+            <li>In the app, open Plan Settings and confirm the Notifications toggle is on.</li>
+            <li>Notifications are scheduled locally — they require a current paycheck date to be set. Make sure your next paycheck date is configured.</li>
+        </ul>
+
+        <h3>Something else is wrong</h3>
+        <p>Email us at <a href="mailto:jason.snyder1984@gmail.com">jason.snyder1984@gmail.com</a> with a description of what you're seeing and which version of the app you're running (visible in Plan Settings at the bottom). We'll get back to you as quickly as we can.</p>
+    </section>
+
+    <div class="disclaimer" id="disclaimer">
+        <p><strong>IMPORTANT DISCLAIMER:</strong> Paycheck Debt Planner is a personal finance planning tool intended for informational and organizational purposes only. It does not provide financial, legal, tax, or investment advice. The projections and recommendations shown are estimates based on the information you enter and are not guarantees of any financial outcome. Always consult a qualified financial professional before making significant financial decisions. The app developer assumes no liability for financial decisions made based on information provided by this app.</p>
+    </div>
+
+</main>
+
+<footer>
+    <p>
+        <a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp;
+        <a href="support.html">Support</a>
+    </p>
+    <p style="margin-top: 8px;">© 2026 Paycheck Debt Planner &nbsp;·&nbsp; Version 1.4</p>
+</footer>
+
+</body>
+</html>
