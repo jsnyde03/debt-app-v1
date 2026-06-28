@@ -269,7 +269,7 @@
 }
 
 .timeline-cycle-body.expanded {
-	max-height: 4000px;
+	max-height: 9999px;
 	opacity: 1;
 	visibility: visible;
 	pointer-events: auto;
