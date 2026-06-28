@@ -514,7 +514,7 @@ Specifics TBD at implementation time. Don't ship a subdued version of this — i
 
 ---
 
-### P10 — Timeline Cycle Item Overflow (better approach)
+### P10 — Timeline Cycle Item Overflow (better approach) ⬜ v1.6
 
 **Current state (shipped v1.4):** Cycles with more than 8 items show a "Show X more" button using the same `show-more-inline` pattern as `ResultsSection`. This works but is a blunt instrument for a date-ordered list — users lose temporal context when items are hidden.
 

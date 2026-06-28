@@ -146,6 +146,7 @@ export type PayCycleSnapshot = {
 **Also shipping in v1.6:**
 - Settings UX Rework (#15) — see [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md)
 - Mobile Polish P6 (Micro-Interaction Pass) — see [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md)
+- Mobile Polish P10 (Timeline cycle item overflow — scrollable window + fade gradient) — see [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md)
 - Page Orchestrator Phase 2 (JSX Componentization) — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md)
 
 **Testing:** Regression tests for `computeMilestones` (threshold crossing in a lump-sum payoff) and `buildAmortizationSchedule` (total interest reconciliation with `projectDebtPayoff`).
