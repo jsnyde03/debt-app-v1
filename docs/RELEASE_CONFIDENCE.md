@@ -17,7 +17,19 @@ _Standing rule, effective 2026-06-25: every calculation, feature, and user-facin
 
 **Low confidence** — no automated test exists, OR a known-incorrect behavior exists and is undocumented to the user. **Must be fixed or explicitly disclosed before release**, not silently shipped.
 
-## Current baseline audit (2026-06-25, v1.2-dev — ratings carry forward to v1.3, no calculation changes in v1.3)
+## v1.4 addendum (2026-06-27)
+
+No engine or calculation changes in v1.4. All changes are UI polish, onboarding flow, and the multi-cycle timeline fix. Confidence ratings from v1.3 carry forward unchanged.
+
+**Timeline fix** (`buildMultiCycleTimeline`, `buildTimelineItems` buffer item): 3 regression tests added in commit `3edf9d1`. High confidence — the existing single-cycle path is identical; the multi-cycle projection only adds future cycles computed from the same allocation engine.
+
+**Onboarding flow**: E2E Playwright spec added (`tests/e2e/onboarding-flow.spec.ts`) — 5 tests across 4 device profiles, all green. No financial logic involved.
+
+**Haptics / CSS / animations**: No testable logic. Confidence not applicable.
+
+---
+
+## Current baseline audit (2026-06-25, v1.2-dev — ratings carry forward to v1.3 and v1.4, no calculation changes)
 
 | Area | Rating | Why |
 |---|---|---|
