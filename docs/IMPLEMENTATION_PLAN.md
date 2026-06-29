@@ -35,7 +35,7 @@ Four features independently require a **backend** that doesn't exist today (the 
 |---|---|---|
 | v1.2 | ✅ Shipped | Notifications, App Lock, Demo Mode, App Store compliance, Mobile Polish P1a/P2/P9a |
 | v1.3 | ✅ Shipped | iPad support + native polish, landscape layouts, Delete All Data, UI/UX Polish Pass |
-| v1.4 | ✅ Shipped | Core onboarding + timeline fix + 22 UX/Mobile polish items + Payoff Trajectory Chart (#1a) + Cash Flow Status Bars (#1b) + Per-Debt Progress Bars (#1c) |
+| v1.4 | ⏳ In Review | Core onboarding + timeline fix + 22 UX/Mobile polish items + Payoff Trajectory Chart (#1a) + Cash Flow Status Bars (#1b) + Per-Debt Progress Bars (#1c) |
 | v1.5 | ⬜ Next | Pay Cycle History + Debt Milestones + Amortization Calendar + Streaks + remaining UX polish (#13, #15) |
 | v1.6 | ⬜ Planned | Foundation: 3-tier subscription infra + analytics + crash reporting + schema versioning + backup automation + external-payment logging |
 | v1.7+ | ⬜ Long-term | Android, Multi-Scenario Planning, Widget, AI, ... — see [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |
