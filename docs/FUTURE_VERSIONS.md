@@ -60,29 +60,30 @@ Add "Log Payment Made Outside the App" action in `DebtRow`/`ExpenseListItem` swi
 
 ---
 
-## v1.7 — Android Build + Accessibility Audit
+## v1.7 — Android Build
 
-**Scope:** Two unrelated large efforts bundled as "platform parity" work.
+**Scope:** First Android release. The web app ships effectively free (static export — Capacitor serves the same `out/` bundle to both platforms); the real work is native-project setup, CI/Gradle wiring, plugin verification, and Google Play / billing setup.
 
-### Android
+**Accessibility audit moved out of this version (now v1.9)** so Android doesn't compete with a second Large effort in one release — see the timing rationale in [ANDROID_READINESS.md](ANDROID_READINESS.md).
 
-**Current state (verified):** `@capacitor/android` is an installed dependency but no `/android` directory exists — Android has never been built.
+**Full audit:** See **[ANDROID_READINESS.md](ANDROID_READINESS.md)** for blockers, the plugin verification matrix, CI gaps, external-account dependencies, and the Maestro testing strategy.
 
+**Prerequisites landed earlier (do NOT wait for v1.7):**
+- **v1.5:** kick off Google Play Console signup — identity/D-U-N-S verification can take weeks and has zero code dependency, so it's the slowest gate; stand up Maestro native smoke tests on an emulator/simulator.
+- **v1.6:** crash reporting (Sentry) must be live *before* launching a brand-new, surprise-prone platform; the 3-tier billing structure must be finalized so Google Play products get configured once (against the final tiers), not torn down and rebuilt.
+- **Small code fixes (land in v1.5/v1.6 window):** **B1** — `lib/subscription/revenueCat.ts` hardcodes the Apple key (`appl_...`); add a `Capacitor.getPlatform()` branch to select the `goog_...` key (no platform branching exists anywhere today). **B2** — replace the placeholder `smallIcon: "ic_stat_icon_config_sample"` in `capacitor.config.ts` with a real Android drawable.
+
+**Current state (verified):** `@capacitor/android` is installed but no `/android` directory exists — Android has never been built. `codemagic.yaml` is half-wired (named `ios-android-release`, decodes an Android keystore via `CM_KEYSTORE_BASE64`, lists `.apk`/`.aab` artifact paths) but has no Gradle build step and no Google Play publish block — it builds iOS only today.
+
+**Implementation steps:**
 1. `npx cap add android` to generate the project.
-2. Android-specific plugin config: the existing `capacitor.config.ts` already has Android-flavored `LocalNotifications` icon config — verify it resolves correctly once the Android project exists.
-3. RevenueCat: configure Google Play product IDs (separate from App Store product IDs) — RevenueCat dashboard + Google Play Console task.
-4. In-app review: `@capacitor-community/in-app-review` supports both platforms — verify `lib/review/requestAppReview.ts` works unmodified on Android. Google Play's review API has stricter quota/eligibility rules than Apple's — test on a real device.
-5. Test back-button behavior (Android hardware/gesture back, no iOS equivalent) — verify it doesn't unexpectedly exit the app from a modal.
+2. Gradle signing config — wire the CI-decoded keystore into `build.gradle`'s `signingConfigs`.
+3. Add `./gradlew bundleRelease` + a `google_play` block to `codemagic.yaml`'s `publishing:` (needs a Play service-account JSON credential).
+4. RevenueCat: configure Google Play product IDs + Play Billing (separate from App Store products); verify offerings resolve on Android (**B3** — `getOfferings()` returns nothing until products exist, so `getMonthlyPackage()` throws).
+5. Plugin verification (readiness doc §4): notification icon, biometric (`@aparajita` → `androidx.biometric`, used in `lib/hooks/useAppLock.ts`), in-app review (stricter Google quota), hardware/gesture back button (no iOS equivalent — must not exit the app from a modal).
+6. Verify every native flow via Maestro on an Android emulator — no physical device required.
 
-### Accessibility Audit
-
-1. Systematic pass over every interactive element for `aria-label`/accessible names — icon-only buttons across `DebtRow`, `ExpenseListItem`, swipe actions are the most likely gaps.
-2. VoiceOver (iOS) and TalkBack (Android) manual pass through every tab and modal.
-3. Color contrast check for both themes — status pills (`overdue`, `warning`, etc.) use color as the primary signal; verify they also convey status via text/icon, not color alone.
-4. **Dynamic Type support (verified gap):** `app/page.css` has 826 `px`-based size declarations vs. 250 `rem`-based. iOS's text-size accessibility setting likely doesn't scale most of the UI. Audit and convert `font-size` (and ideally spacing) declarations to `rem`; test at the largest Dynamic Type sizes.
-5. **`prefers-reduced-motion` audit:** Confirm every animation added across the whole app — not just those explicitly flagged in v1.3/v1.5 — has a `prefers-reduced-motion` fallback, including swipe-action and pull-to-refresh gesture animations that predate this rule.
-
-**Risk:** High relative to estimate — first-time Android builds reliably surface platform-specific surprises. Treat the ROADMAP.md size estimate ("Large") as a floor.
+**Risk:** High relative to estimate — first-time Android builds reliably surface platform-specific surprises. Treat the ROADMAP.md "Large" estimate as a floor. The external-account long-poles are mitigated by starting them in v1.5.
 
 ---
 
@@ -134,9 +135,19 @@ Instead of one deterministic debt-free date, run the existing projection engine 
 
 ---
 
-## v1.9 — Home Screen Widget + Live Activities/Dynamic Island + Custom App Icons
+## v1.9 — Home Screen Widget + Live Activities/Dynamic Island + Custom App Icons + Accessibility Audit
 
-**Scope:** Native iOS features outside the Capacitor/JS layer entirely. Shipped after Android (v1.7) so the App Group plumbing built here doesn't need to work on a platform that's still being bootstrapped.
+**Scope:** Native iOS features outside the Capacitor/JS layer entirely, plus the accessibility audit (moved here from v1.7 so Android shipped as a clean standalone milestone). Shipped after Android (v1.7) so the App Group plumbing built here doesn't need to work on a platform that's still being bootstrapped, and so the accessibility pass covers both platforms (VoiceOver + TalkBack) at once.
+
+### Accessibility Audit (moved from v1.7)
+
+1. Systematic pass over every interactive element for `aria-label`/accessible names — icon-only buttons across `DebtRow`, `ExpenseListItem`, swipe actions are the most likely gaps.
+2. VoiceOver (iOS) and TalkBack (Android) manual pass through every tab and modal — now genuinely cross-platform since Android exists by this point.
+3. Color contrast check for both themes — status pills (`overdue`, `warning`, etc.) use color as the primary signal; verify they also convey status via text/icon, not color alone.
+4. **Dynamic Type support (verified gap):** `app/page.css` has 826 `px`-based size declarations vs. 250 `rem`-based. iOS's text-size accessibility setting likely doesn't scale most of the UI. Audit and convert `font-size` (and ideally spacing) declarations to `rem`; test at the largest Dynamic Type sizes.
+5. **`prefers-reduced-motion` audit:** Confirm every animation added across the whole app — not just those explicitly flagged in v1.3/v1.5 — has a `prefers-reduced-motion` fallback, including swipe-action and pull-to-refresh gesture animations that predate this rule.
+
+### Native iOS features
 
 **Activate Premium annual pricing ($39.99/yr) at this release.** Premium's core value prop (Smart Insights, Forecasting, Strategy Comparison, Simulation, widget, Live Activities, custom icons) is now feature-complete.
 

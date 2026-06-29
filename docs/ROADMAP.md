@@ -1,6 +1,6 @@
 # Paycheck Debt Planner — Product Roadmap
 
-_Last updated: 2026-06-28. This document is the living source of truth for tiering and feature sequencing. Update it whenever scope changes._
+_Last updated: 2026-06-29. This document is the living source of truth for tiering and feature sequencing. Update it whenever scope changes._
 
 ## 1. Where the app stands today
 
@@ -154,8 +154,8 @@ This is the brainstorm with nothing filtered out. Items already slotted into the
 
 **Platform & accessibility**
 - [v1.3, done] iPad layout
-- [v1.7] Android build
-- [v1.7] Accessibility audit (VoiceOver/TalkBack, Dynamic Type, `prefers-reduced-motion`)
+- [v1.7] Android build — prep (Play Console signup, Maestro harness, RevenueCat per-platform key, notification icon) starts in v1.5/v1.6; see [ANDROID_READINESS.md](ANDROID_READINESS.md)
+- [v1.9] Accessibility audit (VoiceOver/TalkBack, Dynamic Type, `prefers-reduced-motion`) — split out of v1.7 so Android ships clean; now covers both platforms at once
 - Backlog: localization / multi-currency (currently USD-only, hardcoded `$`)
 - Backlog: Web/PWA desktop companion
 
@@ -183,9 +183,9 @@ Per the established cadence philosophy: **v1.x stays quick-turnaround** (days/we
 | v1.4 | Onboarding flow | All | Small |
 | v1.5 | **Track Your Journey:** Pay Cycle History + Debt Milestones + Amortization Calendar + Streaks + Payoff Trajectory Chart + Settings UX rework + progress polish | Free (milestones, streak count, progress bars) / Premium (6-cycle history) / Premium+ (unlimited history, full amortization, streak chart) | Medium |
 | v1.6 | **Foundation:** 3-tier subscription infra + storage schema versioning + analytics + crash reporting + backup automation + external-payment logging | Infra / Premium+ | Medium |
-| v1.7 | **Android build + accessibility audit** *(moved up — opens second revenue channel ahead of iOS-only native features)* | Infra / Platform | Large — **breaks small-release pattern; treat as its own milestone** |
+| v1.7 | **Android build** *(opens second revenue channel ahead of iOS-only native features; accessibility audit split out to v1.9 so Android ships as a clean standalone milestone — prep starts in v1.5, see [ANDROID_READINESS.md](ANDROID_READINESS.md))* | Infra / Platform | Large — **breaks small-release pattern; treat as its own milestone** |
 | v1.8 | Multi-Scenario Planning + Probabilistic Payoff Projections (variable income) + BNPL real calculations — **activate Premium+ annual pricing here** | Premium+ | Medium |
-| v1.9 | Home Screen Widget + Live Activities/Dynamic Island + custom app icons — **activate Premium annual pricing here** | Premium | Medium — *iOS-only, deferred to after Android* |
+| v1.9 | Home Screen Widget + Live Activities/Dynamic Island + custom app icons + **accessibility audit** (VoiceOver/TalkBack, Dynamic Type, `prefers-reduced-motion` — moved from v1.7) — **activate Premium annual pricing here** | Premium / Platform | Medium — *iOS native features deferred to after Android; a11y now covers both platforms at once* |
 | v1.10 | Net worth tracker + debt consolidation/refinance calculator + PDF/CSV reporting | Premium+ | Medium |
 | v1.11 | Shareable milestone cards + animated Year in Review recap + opt-in leaderboard (deferred half) | Free hook / Premium+ depth | Medium |
 | v2.0 | AI Recommendations (Claude API, replaces rule engine) + Statement Auto-Import (OCR+AI) | Ultimate / Premium+ — **do not sell Ultimate until this ships, see §2.5** | Large |

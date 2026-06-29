@@ -1,6 +1,6 @@
 # Implementation Plan
 
-_Technical companion to `ROADMAP.md`. Defines how each version is built: data model changes, files touched, sequencing, and testing. Last updated: 2026-06-28._
+_Technical companion to `ROADMAP.md`. Defines how each version is built: data model changes, files touched, sequencing, and testing. Last updated: 2026-06-29._
 
 ## Document map
 
@@ -9,6 +9,7 @@ _Technical companion to `ROADMAP.md`. Defines how each version is built: data mo
 | v1.4 Onboarding (core ✅ DONE, polish ⏳ pending) | [V14_ONBOARDING.md](V14_ONBOARDING.md) |
 | UX polish backlog (28 audit items, versioned) | [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) |
 | v1.7 and beyond | [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |
+| Android readiness audit (blockers, CI, plugins, testing) | [ANDROID_READINESS.md](ANDROID_READINESS.md) |
 | Mobile polish (P1–P9) | [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) |
 | Page orchestrator refactor (Phases 1–5) | [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md) |
 | Product roadmap, tier definitions, version table | [ROADMAP.md](ROADMAP.md) |
@@ -36,9 +37,10 @@ Four features independently require a **backend** that doesn't exist today (the 
 | v1.2 | ✅ Shipped | Notifications, App Lock, Demo Mode, App Store compliance, Mobile Polish P1a/P2/P9a |
 | v1.3 | ✅ Shipped | iPad support + native polish, landscape layouts, Delete All Data, UI/UX Polish Pass |
 | v1.4 | ⏳ In Review | Core onboarding + timeline fix + 22 UX/Mobile polish items + Payoff Trajectory Chart (#1a) + Cash Flow Status Bars (#1b) + Per-Debt Progress Bars (#1c) |
-| v1.5 | ⬜ Next | Pay Cycle History + Debt Milestones + Amortization Calendar + Streaks + remaining UX polish (#13, #15) |
-| v1.6 | ⬜ Planned | Foundation: 3-tier subscription infra + analytics + crash reporting + schema versioning + backup automation + external-payment logging |
-| v1.7+ | ⬜ Long-term | Android, Multi-Scenario Planning, Widget, AI, ... — see [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |
+| v1.5 | ⬜ Next | Pay Cycle History + Debt Milestones + Amortization Calendar + Streaks + remaining UX polish (#13, #15) + **Android prep** (Play Console signup, Maestro harness) |
+| v1.6 | ⬜ Planned | Foundation: 3-tier subscription infra + analytics + crash reporting + schema versioning + backup automation + external-payment logging + **Android prep** (RevenueCat per-platform key, notification icon) |
+| v1.7 | ⬜ Long-term | **Android build** (clean standalone milestone) — see [ANDROID_READINESS.md](ANDROID_READINESS.md) |
+| v1.8+ | ⬜ Long-term | Multi-Scenario Planning, Widget + accessibility audit (v1.9), AI, ... — see [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |
 
 ---
 
@@ -139,6 +141,13 @@ Derived from `cycleHistory`. Count consecutive snapshots where `totalPaidThisCyc
 - **P6 — Micro-Interaction Pass** — pairs naturally with milestone celebration motion; see [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md).
 - **P10 — Timeline Cycle Item Overflow** — implement only once real usage data shows cycles consistently reaching 30+ items; see [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md).
 
+### Android prep (starts here — does not block v1.5 shipping)
+
+The Android build itself is v1.7, but its slowest dependencies have zero code coupling and should start now. See [ANDROID_READINESS.md](ANDROID_READINESS.md) for the full audit.
+
+1. **Kick off Google Play Console signup** — $25 + identity/D-U-N-S verification can take weeks. This is the single slowest gate to an Android launch and blocks nothing in v1.5.
+2. **Stand up Maestro** native smoke tests (`.maestro/*.yaml`) on an Android emulator + iOS simulator. Playwright only exercises the web bundle in a browser — it can't see native-shell behavior (back button, biometric prompt, notification permission, IAP sheet), a gap that exists on iOS today too. Smoke flows: launch → onboarding → add a debt → see the plan → open paywall → toggle app lock. Keep `NEXT_PUBLIC_BYPASS_REVENUECAT` for emulator runs since IAP can't complete in CI.
+
 ### Internal: Page Orchestrator Phases 1–2
 
 No user-visible change — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md).
@@ -202,6 +211,15 @@ Add "Log Payment Made Outside App" to `DebtRow`/`ExpenseListItem` swipe actions,
 
 **Risk:** Medium-high on the call-site audit. Not technically hard, but the audit is where "wrong tier got access" bugs hide if rushed.
 
+### Android prep (continues here — finishes the groundwork before v1.7)
+
+Two v1.6 deliverables are hard prerequisites for the Android launch, and two small code fixes ride along. See [ANDROID_READINESS.md](ANDROID_READINESS.md).
+
+1. **Crash reporting (Sentry) must be live before Android ships** — Android is the most surprise-prone version on the roadmap; launching a brand-new platform without crash reporting is flying blind. This is a reason the Android build follows v1.6, not precedes it.
+2. **Finalize the 3-tier structure before configuring Google Play products** — set up Play billing once against the final tiers (`free`/`premium`/`premium_plus`/`ultimate`) rather than building single-tier products at v1.7 and tearing them down. This is the other reason Android follows v1.6.
+3. **B1 — RevenueCat per-platform key:** `lib/subscription/revenueCat.ts` hardcodes the Apple key (`appl_...`). Add a `Capacitor.getPlatform()` branch to select the `goog_...` key on Android. No platform branching exists anywhere in the codebase today. Fold this into the v1.6 `revenueCat.ts` rework (already touched for 3-tier).
+4. **B2 — notification icon:** replace the placeholder `smallIcon: "ic_stat_icon_config_sample"` in `capacitor.config.ts` with a real Android monochrome drawable.
+
 **Also shipping in v1.6:**
 - Page Orchestrator Phase 3 (Backup/Snapshot Hook) — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md).
 
@@ -218,4 +236,5 @@ Add "Log Payment Made Outside App" to `DebtRow`/`ExpenseListItem` swipe actions,
 7. **Do not expose Ultimate tier as purchasable until v2.0 ships** — every Ultimate feature depends on the v2.0 backend, which itself requires v1.5–v1.8 to be in place first.
 8. **Statement Auto-Import mandatory review-before-save (v2.0) is a hard requirement** — never auto-save AI-extracted statement data without explicit user confirmation. A misextracted APR or balance corrupts a user's real financial plan.
 9. **v1.9 native features ship in order of increasing complexity:** custom icons → widget → Live Activities.
-10. **Cross-reference audit (2026-06-28):** all `[vX.X]`-tagged features in `ROADMAP.md` now have matching implementation coverage in this doc set.
+10. **Android (v1.7) deliberately follows v1.6, and its prep starts at v1.5.** Two v1.6 deliverables gate it: crash reporting must precede a surprise-prone new platform, and the final 3-tier structure must exist before Google Play products are configured once (not twice). Independently, the slowest dependency — Google Play Console identity verification — has zero code coupling and starts at v1.5. Accessibility was split out of v1.7 to v1.9 so Android ships as a clean standalone milestone. Full rationale in [ANDROID_READINESS.md](ANDROID_READINESS.md).
+11. **Cross-reference audit (2026-06-28):** all `[vX.X]`-tagged features in `ROADMAP.md` now have matching implementation coverage in this doc set.
