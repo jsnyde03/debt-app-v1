@@ -1,50 +1,96 @@
 # Future Versions — Implementation Detail
 
-_Long-horizon plan for v1.7 through v3.1. Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md)._
+_Long-horizon plan for v1.6 through v3.1. Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md)._
 
-_v1.4–v1.6 detail lives in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). UX polish items live in [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md). Mobile polish lives in [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md). Page orchestrator refactor lives in [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md)._
+_v1.4–v1.5 detail lives in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). UX polish items live in [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md). Mobile polish lives in [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md). Page orchestrator refactor lives in [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md)._
 
 ---
 
-## v1.7 — Home Screen Widget + Live Activities/Dynamic Island + Custom App Icons
+## v1.6 — Foundation: Infrastructure & Instrumentation
 
-**Scope:** Native iOS features outside the Capacitor/JS layer entirely.
+**Scope:** Formalize the 3-tier subscription model, add schema versioning, instrument the app with analytics and crash reporting, automate backups, and close the external-payment logging gap. Primarily infrastructure, with three user-visible additions: a proper Premium+/Ultimate distinction in the UI, backup reminders, and a new swipe action on debt rows.
+
+**Annual pricing note:** Premium+ annual pricing ($79.99/yr) activates at v1.8, not here — see [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) v1.6 section for rationale.
+
+### 3-Tier Subscription Infrastructure
+
+**Current state (verified):** `lib/subscription/plans.ts` → `SubscriptionPlan = "free" | "premium"`. `lib/subscription/hasFeatureAccess.ts` → binary, `plan === "premium"` grants everything. RevenueCat integration (`lib/subscription/revenueCat.ts`) reads a single `"premium"` entitlement ID.
 
 **Implementation steps:**
 
-1. **Widget** — requires a new Widget Extension target in the Xcode project (SwiftUI `WidgetKit`):
-   - An **App Group** (e.g., `group.com.jasonsnyder.debtplanner`) shared between the main app and the widget extension.
-   - The main app writes a small summary blob (days to next paycheck, total debt remaining, debt-free date) to the shared App Group container — via a tiny Capacitor plugin call or `UserDefaults(suiteName:)` write triggered from JS on each relevant state change.
-   - Widget reads that shared blob on its own WidgetKit refresh timeline.
+1. Expand `SubscriptionPlan` to `"free" | "premium" | "premium_plus" | "ultimate"`.
+2. Expand `lib/subscription/features.ts`'s `PremiumFeature` union to include all Premium+/Ultimate features built in v1.5 onward, plus a `minimumTier` mapping per feature.
+3. Rewrite `hasFeatureAccess(plan, feature)` as a tier-ordinal comparison (`free=0, premium=1, premium_plus=2, ultimate=3`) against each feature's `minimumTier`.
+4. RevenueCat: configure 3 additional entitlement IDs (or one entitlement with tiered product IDs — decide based on what RevenueCat's dashboard supports cleanly) and update `getSubscriptionPlan()`/`purchasePremium()` to map products → the new 4-value type.
+5. **Audit every existing `hasFeatureAccess` call site** — this is the actual risk of this version. Any call site using exact equality (`plan === "premium"`) instead of `hasFeatureAccess` also needs auditing.
 
-2. **Live Activities / Dynamic Island** — built on the same App Group + summary-blob infrastructure as the widget:
-   - `ActivityKit` (iOS 16.1+) integration in the widget extension target — a Live Activity is a special kind of widget, not a separate Xcode target.
-   - Start/update/end the activity from the main app via the same small native plugin used for the App Group write.
-   - Dynamic Island support comes largely for free once the Live Activity exists — iOS renders it in the Island automatically; the main design work is the compact/minimal/expanded view layouts.
-   - Content: "Debt-free in 14 months" or "Payday in 3 days" — reuse the summary data already being computed for the widget.
+**Data model changes:** `SubscriptionPlan` type widened (breaking at call sites using exact equality checks).
 
-3. **Custom icons** — iOS supports alternate app icons natively (`UIApplication.shared.setAlternateIconName`), but Capacitor has no built-in bridge. Either write a tiny custom Capacitor plugin or use a community plugin — evaluate at implementation time.
+**Testing:** Highest-test-value version in the v1.x sequence — write a regression test matrix: every `PremiumFeature` × every tier → expected boolean. Re-run the full e2e suite with each of the 4 tiers mocked via `debtPlanner.mockSubscription`.
 
-4. All three features are **Premium-gated in the JS layer** (show/hide entry points based on `hasFeatureAccess`). The underlying OS capability isn't truly lockable from JS — acceptable; matches how the rest of the app's premium gating works.
+**Risk:** Medium-high. Not technically hard, but the call-site audit (step 5) is where "wrong tier got access" bugs hide if rushed.
 
-**Recommended ship order (increasing native complexity):** custom icons → widget → Live Activities.
+### Storage Schema Versioning
 
-**Files touched:** new Xcode target + Swift files (outside `lib/`/`components/`), a new small native plugin if going that route.
+1. Add a `version: number` field written alongside existing `debtPlanner.*` keys (or a single `debtPlanner.schemaVersion` key).
+2. New `lib/storage/migrateState.ts` — a migration runner checking stored version against the current code's expected version, applying migration functions in sequence. **No migrations needed yet** — this step is purely about having the mechanism in place before the first schema-breaking change (likely v2.1's household model).
+3. Change `loadStoredState`'s silent-fallback-on-parse-error to at least log/flag a corrupted-state event (ties into analytics below).
 
-**Testing:** Manual on-device only — widgets, Live Activities, and alternate icons cannot be tested in CI/Playwright. Live Activities need a physical device with Dynamic Island hardware (iPhone 14 Pro+) to verify compact/expanded Island states.
+### Analytics + Crash Reporting
 
-**Risk:** Medium-high — this is the first version requiring native Swift work beyond Capacitor's JS bridge. Timebox exploration before committing; if App Group + widget plumbing proves heavier than expected, ship icons first, then widget, then Live Activities last rather than letting any one feature block the others.
+**Recommendation:** **PostHog** for product analytics (generous free tier, strong privacy controls, self-host option — matters for a personal-finance app) and **Sentry** for crash reporting (industry standard, good Capacitor support).
 
-**Business note:** Activation point for **Premium's annual pricing** ($39.99/yr) — a RevenueCat/App Store Connect task, not code, but sequence it alongside this version's launch since this is when Premium's feature set is stable enough to sell a year-long commitment.
+1. New `lib/analytics/track.ts` — thin wrapper (`track(event, properties)`) so the codebase never imports PostHog directly; makes swapping providers later a one-file change.
+2. Instrument key funnels: onboarding step completion, paywall view → purchase conversion, feature-gate hit (free user taps a locked feature), rollover completion, backup export/import.
+3. Sentry: initialize in `app/layout.tsx` for web-rendered errors, plus native-side initialization in the Xcode project for crashes outside the WebView.
+4. **Hard privacy rule:** Never send debt amounts, balances, names, or any financial figures as event properties — track *that* an action happened, never *what the numbers were*. Write this constraint in `lib/analytics/track.ts` as a comment so future work doesn't accidentally leak financial data.
 
-**Also shipping in v1.7:**
+### Export/Backup Automation
+
+Extend `lib/storage/backup.ts` with a scheduled trigger on app foreground ("if last backup > 7 days ago, prompt to export"). Note: true automatic backup on iOS means writing to the Files app via the share sheet or iCloud Drive — verify iCloud Drive write access is feasible from the WKWebView/Capacitor sandbox before committing to this UX. If not feasible, scope down to "more prominent backup reminders."
+
+### External Payment Logging
+
+Add "Log Payment Made Outside the App" action in `DebtRow`/`ExpenseListItem` swipe actions, calling `onMarkRecommendedAction(..., paymentSource: "external")` — the handler already supports this parameter; this is purely a missing UI entry point.
+
+**Files touched:** `lib/subscription/plans.ts`, `lib/subscription/features.ts`, `lib/subscription/hasFeatureAccess.ts`, `lib/subscription/revenueCat.ts`, `lib/storage/migrateState.ts` (new), `lib/storage/debtPlannerStorage.ts`, `lib/storage/backup.ts`, `lib/analytics/track.ts` (new), `app/layout.tsx`, Xcode project (Sentry native), `components/Debts/DebtRow.tsx`.
+
+**Also shipping in v1.6:**
 - Page Orchestrator Phase 3 (Backup/Snapshot Hook) — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md)
 
 ---
 
-## v1.8 — Multi-Scenario Planning + Probabilistic Payoff Projections
+## v1.7 — Android Build + Accessibility Audit
 
-**Scope:** Two "run the existing engine multiple times and compare results" features shipped together — they share the same underlying math pattern and UI approach.
+**Scope:** Two unrelated large efforts bundled as "platform parity" work.
+
+### Android
+
+**Current state (verified):** `@capacitor/android` is an installed dependency but no `/android` directory exists — Android has never been built.
+
+1. `npx cap add android` to generate the project.
+2. Android-specific plugin config: the existing `capacitor.config.ts` already has Android-flavored `LocalNotifications` icon config — verify it resolves correctly once the Android project exists.
+3. RevenueCat: configure Google Play product IDs (separate from App Store product IDs) — RevenueCat dashboard + Google Play Console task.
+4. In-app review: `@capacitor-community/in-app-review` supports both platforms — verify `lib/review/requestAppReview.ts` works unmodified on Android. Google Play's review API has stricter quota/eligibility rules than Apple's — test on a real device.
+5. Test back-button behavior (Android hardware/gesture back, no iOS equivalent) — verify it doesn't unexpectedly exit the app from a modal.
+
+### Accessibility Audit
+
+1. Systematic pass over every interactive element for `aria-label`/accessible names — icon-only buttons across `DebtRow`, `ExpenseListItem`, swipe actions are the most likely gaps.
+2. VoiceOver (iOS) and TalkBack (Android) manual pass through every tab and modal.
+3. Color contrast check for both themes — status pills (`overdue`, `warning`, etc.) use color as the primary signal; verify they also convey status via text/icon, not color alone.
+4. **Dynamic Type support (verified gap):** `app/page.css` has 826 `px`-based size declarations vs. 250 `rem`-based. iOS's text-size accessibility setting likely doesn't scale most of the UI. Audit and convert `font-size` (and ideally spacing) declarations to `rem`; test at the largest Dynamic Type sizes.
+5. **`prefers-reduced-motion` audit:** Confirm every animation added across the whole app — not just those explicitly flagged in v1.3/v1.5 — has a `prefers-reduced-motion` fallback, including swipe-action and pull-to-refresh gesture animations that predate this rule.
+
+**Risk:** High relative to estimate — first-time Android builds reliably surface platform-specific surprises. Treat the ROADMAP.md size estimate ("Large") as a floor.
+
+---
+
+## v1.8 — Multi-Scenario Planning + Probabilistic Payoff Projections + BNPL Real Calculations
+
+**Scope:** Three "analytical depth" features shipped together. Multi-Scenario and Probabilistic Projections share the same projection engine and UI pattern. BNPL real calculations closes a data-model gap that has been present since launch. Page Orchestrator Phases 4–5 also ship here (final two phases of the internal refactor — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md)).
+
+**Activate Premium+ annual pricing ($79.99/yr) at this release.** The 3-tier infra (v1.6) is already in place; by v1.8, Premium+'s core value stack (v1.5 history/amortization + v1.8 multi-scenario/projections) is complete.
 
 ### Multi-Scenario Planning (Premium+)
 
@@ -73,108 +119,57 @@ Instead of one deterministic debt-free date, run the existing projection engine 
 
 **Risk:** Medium. Sampling/aggregation logic is new even though it's built on the existing engine. Presenting probability ranges without alarming users takes real UX care — "you might not be debt-free until 2 years later than expected" framing needs thoughtful handling.
 
-**Also shipping in v1.8:**
-- Page Orchestrator Phase 4 (Plan-Execution Hook) — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md)
-
----
-
-## v1.9 — 3-Tier Subscription Infrastructure + Export/Backup Automation + External Payment Logging
-
-**Scope:** Formalize the tier model that v1.5–v1.8 use loosely. Should conceptually start at v1.5 — every version from v1.5 onward should use `hasFeatureAccess` correctly to avoid retrofitting all call sites at v1.9.
-
-**Current state (verified):** `lib/subscription/plans.ts` → `SubscriptionPlan = "free" | "premium"`. `lib/subscription/hasFeatureAccess.ts` → binary, `plan === "premium"` grants everything. RevenueCat integration (`lib/subscription/revenueCat.ts`) reads a single `"premium"` entitlement ID.
-
-**Implementation steps:**
-
-1. Expand `SubscriptionPlan` to `"free" | "premium" | "premium_plus" | "ultimate"`.
-2. Expand `lib/subscription/features.ts`'s `PremiumFeature` union to include all Premium+/Ultimate features built in v1.5–v1.8, plus a `minimumTier` mapping per feature.
-3. Rewrite `hasFeatureAccess(plan, feature)` as a tier-ordinal comparison (`free=0, premium=1, premium_plus=2, ultimate=3`) against each feature's `minimumTier`.
-4. RevenueCat: configure 3 additional entitlement IDs (or one entitlement with tiered product IDs — decide based on what RevenueCat's dashboard supports cleanly) and update `getSubscriptionPlan()`/`purchasePremium()` to map products → the new 4-value type.
-5. **Audit every existing `hasFeatureAccess` call site** — this is the actual risk of this version. Any call site using exact equality (`plan === "premium"`) instead of `hasFeatureAccess` also needs auditing.
-6. Export/backup automation: extend `lib/storage/backup.ts` with a scheduled trigger on app foreground ("if last backup > 7 days ago, prompt to export"). Note: true automatic backup on iOS means writing to the Files app via the share sheet or iCloud Drive — verify iCloud Drive write access is feasible from the WKWebView/Capacitor sandbox before committing to this UX. If not feasible, scope down to "more prominent backup reminders."
-7. External payment logging UI: add "Log Payment Made Outside the App" action in `DebtRow`/`ExpenseListItem` swipe actions, calling `onMarkRecommendedAction(..., paymentSource: "external")` — the handler already supports this parameter; this is purely a missing UI entry point.
-
-**Data model changes:** `SubscriptionPlan` type widened (breaking at call sites using exact equality checks).
-
-**Testing:** Highest-test-value version in the v1.x sequence — write a regression test matrix: every `PremiumFeature` × every tier → expected boolean. Re-run the full e2e suite with each of the 4 tiers mocked via `debtPlanner.mockSubscription`.
-
-**Risk:** Medium-high. Not technically hard, but the call-site audit (step 5) is where "wrong tier got access" bugs hide if rushed.
-
-**Business note:** Activation point for **Premium+'s annual pricing** ($79.99/yr) — once the 3-tier model is formalized and Premium+ is a real, distinct tier.
-
----
-
-## v1.10 — BNPL Real Calculations + Schema Versioning
-
-**Scope:** Two independent cleanup items bundled for efficiency.
-
-### BNPL real calculations
+### BNPL Real Calculations
 
 **Current state (verified):** `Debt.remainingPayments`/`Debt.scheduledPaymentAmount` are populated by `lib/imports/debtCsv.ts` for `type === "bnpl"`, but `lib/engine/allocatePaycheck.ts` and `lib/debt/projectDebtPayoff.ts` treat every debt identically — BNPL is typically fixed, interest-free, fixed-count payments, fundamentally different math from a revolving credit card.
 
 1. In `lib/debt/projectDebtPayoff.ts`, branch on `debt.type === "bnpl"`: decrement `remainingPayments` by 1 and reduce `balance` by `scheduledPaymentAmount` each cycle, with zero interest accrual. Payoff date = `currentDate + remainingPayments * cycle length`.
 2. Same branch in `lib/engine/allocatePaycheck.ts`'s minimum-payment logic — a BNPL "minimum" IS the `scheduledPaymentAmount`.
-3. **Exclude BNPL debts from snowball/avalanche extra-payment targeting** — most BNPL providers don't allow early payoff to reduce remaining installments; treating them as fixed-schedule is more realistic and less work.
+3. **Exclude BNPL debts from snowball/avalanche extra-payment targeting** — most BNPL providers don't allow early payoff to reduce remaining installments; treating them as fixed-schedule is more realistic.
 
-### Schema versioning
+**Also shipping in v1.8:**
+- Page Orchestrator Phases 4–5 (Plan-Execution Hook + Rollover Engine — the two highest-risk phases; mandatory reconciliation test before shipping) — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md).
 
-1. Add a `version: number` field written alongside existing `debtPlanner.*` keys (or a single `debtPlanner.schemaVersion` key).
-2. New `lib/storage/migrateState.ts` — a migration runner checking stored version against the current code's expected version, applying migration functions in sequence. **No migrations needed yet** — this step is purely about having the mechanism in place before the first schema-breaking change (likely v2.1's household model).
-3. Change `loadStoredState`'s silent-fallback-on-parse-error to at least log/flag a corrupted-state event (ties into v1.11's analytics; if v1.11 ships first, instrument there; if this ships first, add a placeholder hook).
-
-**Risk:** Low-medium per item. Keep the two items strictly independent in implementation so one slipping doesn't block the other.
-
-**Also shipping in v1.10:**
-- Page Orchestrator Phase 5 (Rollover Engine — final phase) — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md). **Highest-risk phase of the orchestrator refactor; mandatory reconciliation test before shipping.**
+**Risk:** Low-medium per item. Keep the three items strictly independent in implementation so one slipping doesn't block the others.
 
 ---
 
-## v1.11 — Analytics + Crash Reporting
+## v1.9 — Home Screen Widget + Live Activities/Dynamic Island + Custom App Icons
 
-**Scope:** Zero instrumentation exists today. This version doesn't ship user-facing features — it makes every future version measurable.
+**Scope:** Native iOS features outside the Capacitor/JS layer entirely. Shipped after Android (v1.7) so the App Group plumbing built here doesn't need to work on a platform that's still being bootstrapped.
 
-**Recommendation:** **PostHog** for product analytics (generous free tier, strong privacy controls, self-host option — matters for a personal-finance app) and **Sentry** for crash reporting (industry standard, good Capacitor support).
+**Activate Premium annual pricing ($39.99/yr) at this release.** Premium's core value prop (Smart Insights, Forecasting, Strategy Comparison, Simulation, widget, Live Activities, custom icons) is now feature-complete.
 
 **Implementation steps:**
 
-1. New `lib/analytics/track.ts` — thin wrapper (`track(event, properties)`) so the codebase never imports PostHog directly; makes swapping providers later a one-file change.
-2. Instrument key funnels: onboarding step completion, paywall view → purchase conversion, feature-gate hit (free user taps a locked feature), rollover completion, backup export/import.
-3. Sentry: initialize in `app/layout.tsx` for web-rendered errors, plus native-side initialization in the Xcode project for crashes outside the WebView.
-4. **Hard privacy rule:** Never send debt amounts, balances, names, or any financial figures as event properties — track *that* an action happened, never *what the numbers were*. Write this constraint in `lib/analytics/track.ts` as a comment so future work doesn't accidentally leak financial data.
+1. **Widget** — requires a new Widget Extension target in the Xcode project (SwiftUI `WidgetKit`):
+   - An **App Group** (e.g., `group.com.jasonsnyder.debtplanner`) shared between the main app and the widget extension.
+   - The main app writes a small summary blob (days to next paycheck, total debt remaining, debt-free date) to the shared App Group container — via a tiny Capacitor plugin call or `UserDefaults(suiteName:)` write triggered from JS on each relevant state change.
+   - Widget reads that shared blob on its own WidgetKit refresh timeline.
 
-**Risk:** Low technically. The privacy constraint is the one thing that must not be gotten wrong — leaking even aggregate balance data to a third-party analytics vendor is a real trust/legal exposure.
+2. **Live Activities / Dynamic Island** — built on the same App Group + summary-blob infrastructure as the widget:
+   - `ActivityKit` (iOS 16.1+) integration in the widget extension target — a Live Activity is a special kind of widget, not a separate Xcode target.
+   - Start/update/end the activity from the main app via the same small native plugin used for the App Group write.
+   - Dynamic Island support comes largely for free once the Live Activity exists — iOS renders it in the Island automatically; the main design work is the compact/minimal/expanded view layouts.
+   - Content: "Debt-free in 14 months" or "Payday in 3 days" — reuse the summary data already being computed for the widget.
 
----
+3. **Custom icons** — iOS supports alternate app icons natively (`UIApplication.shared.setAlternateIconName`), but Capacitor has no built-in bridge. Either write a tiny custom Capacitor plugin or use a community plugin — evaluate at implementation time.
 
-## v1.12 — Android Build + Accessibility Audit
+4. All three features are **Premium-gated in the JS layer** (show/hide entry points based on `hasFeatureAccess`). The underlying OS capability isn't truly lockable from JS — acceptable; matches how the rest of the app's premium gating works.
 
-**Scope:** Two unrelated large efforts bundled as "platform parity" work.
+**Recommended ship order (increasing native complexity):** custom icons → widget → Live Activities.
 
-### Android
+**Files touched:** new Xcode target + Swift files (outside `lib/`/`components/`), a new small native plugin if going that route.
 
-**Current state (verified):** `@capacitor/android` is an installed dependency but no `/android` directory exists — Android has never been built.
+**Testing:** Manual on-device only — widgets, Live Activities, and alternate icons cannot be tested in CI/Playwright. Live Activities need a physical device with Dynamic Island hardware (iPhone 14 Pro+) to verify compact/expanded Island states.
 
-1. `npx cap add android` to generate the project.
-2. Android-specific plugin config: the existing `capacitor.config.ts` already has Android-flavored `LocalNotifications` icon config — verify it resolves correctly once the Android project exists.
-3. RevenueCat: configure Google Play product IDs (separate from App Store product IDs) — RevenueCat dashboard + Google Play Console task.
-4. In-app review: `@capacitor-community/in-app-review` supports both platforms — verify `lib/review/requestAppReview.ts` works unmodified on Android. Google Play's review API has stricter quota/eligibility rules than Apple's — test on a real device.
-5. Test back-button behavior (Android hardware/gesture back, no iOS equivalent) — verify it doesn't unexpectedly exit the app from a modal.
-
-### Accessibility audit
-
-1. Systematic pass over every interactive element for `aria-label`/accessible names — icon-only buttons across `DebtRow`, `ExpenseListItem`, swipe actions are the most likely gaps.
-2. VoiceOver (iOS) and TalkBack (Android) manual pass through every tab and modal.
-3. Color contrast check for both themes — status pills (`overdue`, `warning`, etc.) use color as the primary signal; verify they also convey status via text/icon, not color alone.
-4. **Dynamic Type support (verified gap):** `app/page.css` has 826 `px`-based size declarations vs. 250 `rem`-based. iOS's text-size accessibility setting likely doesn't scale most of the UI. Audit and convert `font-size` (and ideally spacing) declarations to `rem`; test at the largest Dynamic Type sizes.
-5. **`prefers-reduced-motion` audit:** Confirm every animation added across the whole app — not just those explicitly flagged in v1.3/v1.6 — has a `prefers-reduced-motion` fallback, including swipe-action and pull-to-refresh gesture animations that predate this rule.
-
-**Risk:** High relative to estimate — first-time Android builds reliably surface platform-specific surprises. Treat the ROADMAP.md size estimate ("Large") as a floor.
+**Risk:** Medium-high — this is the first version requiring native Swift work beyond Capacitor's JS bridge. Timebox exploration before committing; if App Group + widget plumbing proves heavier than expected, ship icons first, then widget, then Live Activities last rather than letting any one feature block the others.
 
 ---
 
-## v1.13 — Net Worth Tracker + Debt Consolidation/Refinance Calculator + PDF/CSV Reporting
+## v1.10 — Net Worth Tracker + Debt Consolidation/Refinance Calculator + PDF/CSV Reporting
 
-_Note: scheduled automatic backup automation shipped in v1.9 (step 6). Only PDF/CSV reporting remains here._
+_Note: scheduled automatic backup automation shipped in v1.6. Only PDF/CSV reporting remains here._
 
 ### Net Worth Tracker (Premium+)
 
@@ -200,17 +195,17 @@ _Note: scheduled automatic backup automation shipped in v1.9 (step 6). Only PDF/
 
 ---
 
-## v1.14 — Shareable Milestone Cards + Animated Year in Review + Opt-In Leaderboard (deferred)
+## v1.11 — Shareable Milestone Cards + Animated Year in Review + Opt-In Leaderboard (deferred)
 
-_The leaderboard half of this version does not ship at v1.14 — it requires a backend that doesn't exist until v2.0._
+_The leaderboard half of this version does not ship at v1.11 — it requires a backend that doesn't exist until v2.0._
 
-### Shareable Milestone Cards (ships at v1.14)
+### Shareable Milestone Cards (ships at v1.11)
 
 1. Add `@capacitor/share` (not currently installed) for the native share sheet.
 2. New `components/ShareableMilestoneCard.tsx` — renders a styled summary (debt-free date, % paid off, current streak) to an offscreen DOM node, captured to an image via a DOM-to-image library (evaluate options — keep dependency footprint small) or a dedicated share-preview screen screenshot.
-3. Trigger from the existing milestone-badge moment (v1.6) — "Share this milestone" action.
+3. Trigger from the existing milestone-badge moment (v1.5) — "Share this milestone" action.
 
-### Animated "Year in Review" Recap (ships at v1.14)
+### Animated "Year in Review" Recap (ships at v1.11)
 
 1. New `components/YearInReview/YearInReviewFlow.tsx` — full-screen, multi-slide animated recap (Spotify Wrapped-style: total paid off, debt-free progress, best month, streak, milestones hit). Built from `cycleHistory` data already collected by v1.5 — no new data collection.
 2. Free tier: a single teaser slide (e.g., total paid off this year). Premium+: full multi-slide animated recap.
@@ -239,7 +234,7 @@ Needs: an account/anonymous-ID system, a server endpoint, and real thought about
 2. Anonymous device-bound ID for rate-limiting/abuse prevention (no full accounts yet — that's v2.1). Store locally, send with requests.
 3. Anthropic API key **server-side only** — never shipped in the client bundle.
 
-This backend also unblocks v1.14's leaderboard, v2.1's household sharing, and v2.2's Plaid integration.
+This backend also unblocks v1.11's leaderboard, v2.1's household sharing, and v2.2's Plaid integration.
 
 ### Phase 1: AI Insights (Ultimate tier)
 
@@ -326,7 +321,7 @@ Entry point: "Negotiate this rate" from each debt's detail/edit view — surface
 
 ## v3.1 — Apple Watch + Siri Shortcuts
 
-1. New Watch App target in Xcode, sharing the same App Group set up in v1.7 for the widget — reuse that plumbing.
+1. New Watch App target in Xcode, sharing the same App Group set up in v1.9 for the widget — reuse that plumbing.
 2. SiriKit/App Intents for shortcuts like "what's my debt-free date" — read-only queries against the shared App Group data, no new backend dependency.
 
-**Risk:** Medium. Native-only work, but builds on v1.7's already-solved data-sharing pattern.
+**Risk:** Medium. Native-only work, but builds on v1.9's already-solved data-sharing pattern.

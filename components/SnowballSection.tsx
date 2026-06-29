@@ -7,6 +7,7 @@ import { hasFeatureAccess } from "@/lib/subscription/hasFeatureAccess";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { projectForecast } from "@/lib/forecast/projectForecast";
 import { buildSmartInsights } from "@/lib/insights/buildSmartInsights";
+import { buildPayoffTrajectory } from "@/lib/debt/buildPayoffTrajectory";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
@@ -184,6 +185,27 @@ export function SnowballSection({
 
 	const projectedInterestSavings = Math.max(0, snowballComparisonProjection.totalInterestPaid - avalancheComparisonProjection.totalInterestPaid);
 	const projectedMonthDifference = Math.abs(snowballComparisonProjection.monthsToDebtFree - avalancheComparisonProjection.monthsToDebtFree);
+
+	const snowballTrajectory = comparisonCanBeEstimated
+		? buildPayoffTrajectory({ debts: debtsAfterCompletedPayments, monthlyExtraPayment: remainingSnowballExtra, strategy: "snowball" })
+		: [];
+	const avalancheTrajectory = comparisonCanBeEstimated
+		? buildPayoffTrajectory({ debts: debtsAfterCompletedPayments, monthlyExtraPayment: remainingSnowballExtra, strategy: "avalanche" })
+		: [];
+	const showTrajectoryChart = comparisonCanBeEstimated && snowballTrajectory.length > 1;
+	const trajectoryMaxMonth = showTrajectoryChart
+		? Math.max(snowballTrajectory[snowballTrajectory.length - 1].month, avalancheTrajectory.length > 0 ? avalancheTrajectory[avalancheTrajectory.length - 1].month : 0, 1)
+		: 1;
+	const trajectoryMaxBalance = showTrajectoryChart ? Math.max(snowballTrajectory[0].balance, 1) : 1;
+	const trajectoryToX = (m: number) => 10 + (m / trajectoryMaxMonth) * 280;
+	const trajectoryToY = (b: number) => 10 + (1 - Math.max(0, b) / trajectoryMaxBalance) * 78;
+	const snowballSvgPoints = showTrajectoryChart
+		? snowballTrajectory.map(p => `${trajectoryToX(p.month).toFixed(1)},${trajectoryToY(p.balance).toFixed(1)}`).join(" ")
+		: "";
+	const avalancheSvgPoints = showTrajectoryChart && avalancheTrajectory.length > 0
+		? avalancheTrajectory.map(p => `${trajectoryToX(p.month).toFixed(1)},${trajectoryToY(p.balance).toFixed(1)}`).join(" ")
+		: "";
+
 	const recommendedStrategy =
 		projectedInterestSavings >= 75 || fasterStrategy === "avalanche"
 			? "avalanche"
@@ -484,6 +506,46 @@ export function SnowballSection({
 							<strong>{recommendedProjection.estimatedDebtFreeDate}</strong>
 						</div>
 					)}
+					{showTrajectoryChart && (
+						<div className="trajectory-chart-card">
+							<div className="trajectory-chart-header">
+								<span>Payoff Trajectory</span>
+								<div className="trajectory-legend">
+									<span className="trajectory-legend-item">
+										<span className="trajectory-legend-dot trajectory-legend-dot-snowball" />
+										Snowball
+									</span>
+									<span className="trajectory-legend-item">
+										<span className="trajectory-legend-dot trajectory-legend-dot-avalanche" />
+										Avalanche
+									</span>
+								</div>
+							</div>
+							<svg viewBox="0 0 300 98" width="100%" aria-label="Debt payoff trajectory" role="img" className="trajectory-svg">
+								<line x1="10" y1="88" x2="290" y2="88" stroke="rgba(148,163,184,0.18)" strokeWidth="1" />
+								{avalancheSvgPoints && (
+									<polyline
+										points={avalancheSvgPoints}
+										fill="none"
+										stroke="#a855f7"
+										strokeWidth="2"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										opacity="0.7"
+									/>
+								)}
+								<polyline
+									points={snowballSvgPoints}
+									fill="none"
+									stroke="#2563eb"
+									strokeWidth="2.5"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+						</div>
+					)}
+
 					{canViewForecasting && canViewSmartInsights && canViewWhatIfScenarios && (
 						<div className="premium-payoff-hero">
 							<div>
@@ -1046,6 +1108,23 @@ export function SnowballSection({
 													: "Healthy payoff momentum projected"}
 											</div>
 										</div>
+										<div className="forecast-status-bars">
+											{forecastMonths.map((month) => (
+												<div key={month.monthLabel} className="forecast-status-bar-item">
+													<span className="forecast-status-bar-month">{month.monthLabel}</span>
+													<div className="forecast-status-bar-track">
+														<div
+															className={`forecast-status-bar-fill forecast-status-bar-fill-${month.status}`}
+															style={{ width: `${Math.min(100, Math.max(0, (month.projectedSafeCash / 400) * 100))}%` }}
+														/>
+													</div>
+													<span className={`forecast-status-bar-label forecast-status-bar-label-${month.status}`}>
+														{month.status === "stable" ? "Stable" : month.status === "tight" ? "Tight" : month.status === "pressure" ? "Pressure" : "Critical"}
+													</span>
+												</div>
+											))}
+										</div>
+
 										{forecastMonths.map((month, index) => (
 											<div
 												key={month.monthLabel}

@@ -9,8 +9,7 @@ _Companion to `MOBILE_POLISH_ROADMAP.md`, which defines the **what/why/sequencin
 | **v1.2** | P1a, P2, P9a | Icon foundation + nav/buttons/settings/lock screen icons; full haptic coverage; tap-target/grid-breakpoint/keyboard-hint fixes |
 | **v1.3** | P1b, P3, P9b | Remaining icons (modals/rows/swipe actions/goals); tab-switch transitions; pagination → mobile-native list pattern |
 | **v1.4** | P4, P9c | Empty-state illustrations; hover-only feedback audit |
-| **v1.5** | P5 | Context-aware skeleton loading |
-| **v1.6** | P6 | Micro-interaction pass + milestone celebration motion |
+| **v1.5** | P5, P6 | Context-aware skeleton loading; micro-interaction pass + milestone celebration motion |
 | **Backlog, pre-v2.0** | P7 | List virtualization (trigger-based, not scheduled to a version) |
 | **Backlog, unscheduled** | P8 | Modal transition audit |
 
@@ -30,7 +29,7 @@ Every phase below carries its own **Ships in: vX.X** line so there's no ambiguit
 1. Pick a small, tree-shakeable SVG icon set — `lucide-react` is the recommended default (consistent 24x24 stroke-based icons, actively maintained, no large bundle cost since it's per-icon imports). Evaluate at implementation time but don't over-deliberate; this app already keeps its dependency footprint deliberately small, and lucide is a single well-scoped addition.
 2. New `lib/icons/index.ts` — re-export the small subset of icons actually used (lock, shield, target, check, chevron-down/up/right, arrow-up/down, settings/gear, plus/add, etc.), so call sites import from one internal module rather than directly from the library. This keeps a future icon-library swap to one file.
 3. Replace icons in this version's scope only: bottom nav (`app/page.tsx`), primary buttons app-wide (`.primary-button`/`.secondary-button` icon usage), the settings sheet, and `AppLockScreen.tsx` (🔒/🛡️). Leave modals, debt/expense rows, swipe actions, and goals for P1b (v1.3) — don't scope-creep into those files this version.
-4. Every icon-only button touched in this slice gets an explicit `aria-label` if it doesn't already have one (gets ahead of v1.12's accessibility audit in `ROADMAP.md`, doesn't replace it).
+4. Every icon-only button touched in this slice gets an explicit `aria-label` if it doesn't already have one (gets ahead of v1.7's accessibility audit in `ROADMAP.md`, doesn't replace it).
 5. Size/stroke consistency: standardize on one icon size per context (e.g. 18px inline, 24px standalone button) via a CSS class or the icon component's `size` prop — don't let call sites pick arbitrary sizes. This convention, once set here, carries forward unchanged into P1b.
 
 **Files touched:** new `lib/icons/index.ts`; `app/page.tsx` (bottom nav, settings sheet), `AppLockScreen.tsx`, shared button styles/components.
@@ -193,7 +192,7 @@ The execution-summary grid breakpoint was investigated and **found to already wo
 
 ## P6 — Micro-interaction pass
 
-**Ships in: v1.6**, alongside Debt Milestones + Amortization Calendar + streaks.
+**Ships in: v1.5**, alongside Debt Milestones + Amortization Calendar + streaks (merged into v1.5 scope).
 
 **Current state (verified):** `:active` scale transforms (`scale(0.965-0.992)`) exist on buttons already. `planSectionReveal`/`planItemReveal` keyframes exist for list entrance animation but are confirmed only on the Plan tab — not verified elsewhere lists grow (e.g. adding a new debt/expense/goal).
 

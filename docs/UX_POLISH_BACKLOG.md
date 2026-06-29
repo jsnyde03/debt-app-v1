@@ -224,7 +224,7 @@ The `debt.type === "bnpl"` field is stored but never surfaced. Before v1.10 fixe
 
 ### #17 — Basic Aria-Label Audit
 
-Before v1.12's full accessibility audit, close the most obvious gaps:
+Before v1.7's full accessibility audit, close the most obvious gaps:
 
 1. Grep all `<button>` elements in `components/` — verify each has a visible text label or `aria-label`. Icon-only buttons (theme toggle, settings gear, sort direction, swipe-action delete) are the most likely to be missing.
 2. Add `role="region"` + `aria-label` to major content sections (debt list, expenses list, plan results) for screen reader navigation.
@@ -431,13 +431,13 @@ Style: `font-size: 0.78rem; color: var(--text-secondary); text-align: center; ma
 
 ## v1.5 items
 
-These items require Pay Cycle History data (v1.5) — do not implement before that version.
+These items ship in v1.5 alongside Pay Cycle History — #13 requires cycle history data and must not be implemented before that feature lands. #1 was pulled into v1.4 (see below).
 
 ---
 
-### #1 — Debt Payoff Trajectory Chart
+### #1 — Debt Payoff Trajectory Chart ✅ DONE in v1.4
 
-_Highest-impact item in the entire audit._
+_Highest-impact item in the entire audit. Shipped ahead of schedule — no cycle history dependency after all._
 
 **SVG only — no chart library.** Data sets are tiny (≤10 debts, ≤36 months); a library adds bundle weight not worth it at this scale.
 
@@ -480,7 +480,7 @@ Total Debt  $18,420  ↓ $342 since last paycheck
 
 ---
 
-## v1.6 items
+## v1.5 items (continued)
 
 ---
 
@@ -514,7 +514,7 @@ Specifics TBD at implementation time. Don't ship a subdued version of this — i
 
 ---
 
-### P10 — Timeline Cycle Item Overflow (extreme list lengths) ⬜ v1.6
+### P10 — Timeline Cycle Item Overflow (extreme list lengths) ⬜ v1.5 (trigger-based)
 
 **Current state:** All cycle items render unconditionally. The CSS collapse animation uses `max-height: 9999px` so content is never clipped. This is correct for realistic pay cycles (10–25 items). A previous workaround using a Show More button was removed — it was masking a CSS bug, not solving a real UX problem.
 

@@ -260,6 +260,17 @@ export function DebtRow({
                             </span>
                         ) : null;
                     })()}
+
+                    {debt.originalBalance && debt.originalBalance > 0 && displayBalance > 0 && displayBalance < debt.originalBalance && (
+                        <div className="debt-progress-track">
+                            <div
+                                className="debt-progress-fill"
+                                style={{
+                                    width: `${Math.min(100, Math.max(0, ((debt.originalBalance - displayBalance) / debt.originalBalance) * 100))}%`,
+                                }}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <div className="saved-item-right">

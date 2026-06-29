@@ -43,7 +43,7 @@ A survey of the current codebase found a mixed picture — some areas are alread
 | P3 | **v1.3** | Tab-switch transitions + iPad-aware motion | Small |
 | P4 | **v1.4** | Empty-state illustrations (pairs naturally with onboarding's new visual language) | Small-Medium |
 | P5 | **v1.5** | Context-aware skeleton loading | Small |
-| P6 | **v1.6** | Micro-interaction pass (button press states, list-item entrance, milestone celebration motion — pairs with v1.6's milestones feature) | Small |
+| P6 | **v1.5** | Micro-interaction pass (button press states, list-item entrance, milestone celebration motion — pairs with v1.5's milestones feature) | Small |
 | P7 | **Backlog, pre-v2.0** | List virtualization for large debt/expense lists | Small |
 | P8 | **Backlog, unscheduled** | Custom modal transitions per context (sheet vs. centered, matching iOS HIG) | Medium |
 | P9a | **v1.2** | Tap-target sizing fixes + execution-summary grid breakpoint + `enterKeyHint` pass | Small |

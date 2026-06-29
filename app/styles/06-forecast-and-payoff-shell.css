@@ -677,3 +677,110 @@ button:active,
 	font-size: 0.82rem;
 	font-weight: 900;
 }
+
+/* ── Payoff Trajectory Chart ── */
+
+.trajectory-chart-card {
+	padding: 14px 16px;
+	border-radius: 16px;
+	background: var(--premium-soft-bg);
+	border: 1px solid var(--premium-soft-border);
+}
+
+.trajectory-chart-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
+	font-size: 0.75rem;
+	font-weight: 800;
+	color: var(--text-secondary);
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+}
+
+.trajectory-legend {
+	display: flex;
+	gap: 12px;
+}
+
+.trajectory-legend-item {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 0.72rem;
+	font-weight: 700;
+	color: var(--text-secondary);
+	text-transform: none;
+	letter-spacing: 0;
+}
+
+.trajectory-legend-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.trajectory-legend-dot-snowball { background: #2563eb; }
+.trajectory-legend-dot-avalanche { background: #a855f7; }
+
+.trajectory-svg {
+	display: block;
+	overflow: visible;
+}
+
+/* ── Forecast 3-Month Status Bars ── */
+
+.forecast-status-bars {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 8px;
+	margin-bottom: 14px;
+}
+
+.forecast-status-bar-item {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.forecast-status-bar-month {
+	font-size: 0.72rem;
+	font-weight: 800;
+	color: var(--premium-text-soft);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.forecast-status-bar-track {
+	height: 6px;
+	border-radius: var(--radius-pill);
+	background: rgba(148, 163, 184, 0.15);
+	overflow: hidden;
+}
+
+.forecast-status-bar-fill {
+	height: 100%;
+	border-radius: var(--radius-pill);
+	transition: width 600ms cubic-bezier(0.2, 0.9, 0.2, 1);
+	will-change: width;
+}
+
+.forecast-status-bar-fill-stable   { background: #22c55e; }
+.forecast-status-bar-fill-tight    { background: #f59e0b; }
+.forecast-status-bar-fill-pressure { background: #f97316; }
+.forecast-status-bar-fill-recovery { background: #ef4444; }
+
+.forecast-status-bar-label {
+	font-size: 0.68rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.forecast-status-bar-label-stable   { color: var(--status-good-strong); }
+.forecast-status-bar-label-tight    { color: var(--status-warn-strong); }
+.forecast-status-bar-label-pressure { color: #fb923c; }
+.forecast-status-bar-label-recovery { color: var(--status-bad-strong); }
