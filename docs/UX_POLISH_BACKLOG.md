@@ -1,6 +1,6 @@
 # UX Polish Backlog
 
-_Items sourced from `premium-ux-audit.md`. Each item retains its original audit number. Organized by version assignment; items within each version are listed in priority order._
+_Items sourced from `archive/premium-ux-audit.md`. Each item retains its original audit number. Organized by version assignment; items within each version are listed in priority order._
 
 See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for version context and sequencing.
 
@@ -49,7 +49,7 @@ See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for version context and seq
 
 ### #2 — First-Launch Empty State
 
-Covered in the v1.4 onboarding implementation steps (step 5 of [V14_ONBOARDING.md](V14_ONBOARDING.md)) — not a standalone polish item. After completing onboarding with zero debts, replace blank card stubs with a single card: _"Your debt-free date is waiting. Add your first debt to see exactly what to do this paycheck."_ One conditional render in the Plan tab's results area.
+Covered in the v1.4 onboarding implementation steps (step 5 of [archive/V14_ONBOARDING.md](archive/V14_ONBOARDING.md)) — not a standalone polish item. After completing onboarding with zero debts, replace blank card stubs with a single card: _"Your debt-free date is waiting. Add your first debt to see exactly what to do this paycheck."_ One conditional render in the Plan tab's results area.
 
 **Files touched:** `app/page.tsx` or `components/ResultsSection.tsx`.
 

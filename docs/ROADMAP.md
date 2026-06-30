@@ -180,7 +180,7 @@ Per the established cadence philosophy: **v1.x stays quick-turnaround** (days/we
 |---|---|---|---|
 | v1.2 | Local Notifications + App Store review prompt + **App Lock** *(not yet launched — see note below)* | Notifications/Lock: Free; review prompt: all tiers | Small |
 | v1.3 | iPad Support + iPad Native Polish — sidebar nav, two-column Bills, centered modals, landscape two-column Goals/Payoff, Delete All Data *(done)* | All | Small |
-| v1.4 | Onboarding flow | All | Small |
+| v1.4 | Onboarding flow + timeline fix + UX/mobile polish + payoff trajectory chart *(done — shipped)* | All | Small |
 | v1.5 | **Track Your Journey:** Pay Cycle History + Debt Milestones + Amortization Calendar + Streaks + Payoff Trajectory Chart + Settings UX rework + progress polish | Free (milestones, streak count, progress bars) / Premium (6-cycle history) / Premium+ (unlimited history, full amortization, streak chart) | Medium |
 | v1.6 | **Foundation:** 3-tier subscription infra + storage schema versioning + analytics + crash reporting + backup automation + external-payment logging | Infra / Premium+ | Medium |
 | v1.7 | **Android build** *(opens second revenue channel ahead of iOS-only native features; accessibility audit split out to v1.9 so Android ships as a clean standalone milestone — prep starts in v1.5, see [ANDROID_READINESS.md](ANDROID_READINESS.md))* | Infra / Platform | Large — **breaks small-release pattern; treat as its own milestone** |

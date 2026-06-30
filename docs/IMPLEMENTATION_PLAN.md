@@ -6,14 +6,15 @@ _Technical companion to `ROADMAP.md`. Defines how each version is built: data mo
 
 | Topic | Document |
 |---|---|
-| v1.4 Onboarding (core ✅ DONE, polish ⏳ pending) | [V14_ONBOARDING.md](V14_ONBOARDING.md) |
+| v1.4 Onboarding (✅ shipped) | [archive/V14_ONBOARDING.md](archive/V14_ONBOARDING.md) |
+| v1.5 Track Your Journey (⬜ next — full build + release checklist) | [V15_TRACK_YOUR_JOURNEY.md](V15_TRACK_YOUR_JOURNEY.md) |
 | UX polish backlog (28 audit items, versioned) | [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) |
 | v1.7 and beyond | [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |
 | Android readiness audit (blockers, CI, plugins, testing) | [ANDROID_READINESS.md](ANDROID_READINESS.md) |
 | Mobile polish (P1–P9) | [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) |
 | Page orchestrator refactor (Phases 1–5) | [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md) |
 | Product roadmap, tier definitions, version table | [ROADMAP.md](ROADMAP.md) |
-| Original UX audit findings | [premium-ux-audit.md](premium-ux-audit.md) |
+| Original UX audit findings (archived) | [archive/premium-ux-audit.md](archive/premium-ux-audit.md) |
 
 ---
 
@@ -36,7 +37,7 @@ Four features independently require a **backend** that doesn't exist today (the 
 |---|---|---|
 | v1.2 | ✅ Shipped | Notifications, App Lock, Demo Mode, App Store compliance, Mobile Polish P1a/P2/P9a |
 | v1.3 | ✅ Shipped | iPad support + native polish, landscape layouts, Delete All Data, UI/UX Polish Pass |
-| v1.4 | ⏳ In Review | Core onboarding + timeline fix + 22 UX/Mobile polish items + Payoff Trajectory Chart (#1a) + Cash Flow Status Bars (#1b) + Per-Debt Progress Bars (#1c) |
+| v1.4 | ✅ Shipped | Core onboarding + timeline fix + 22 UX/Mobile polish items + Payoff Trajectory Chart (#1a) + Cash Flow Status Bars (#1b) + Per-Debt Progress Bars (#1c) |
 | v1.5 | ⬜ Next | Pay Cycle History + Debt Milestones + Amortization Calendar + Streaks + remaining UX polish (#13, #15) + **Android prep** (Play Console signup, Maestro harness) |
 | v1.6 | ⬜ Planned | Foundation: 3-tier subscription infra + analytics + crash reporting + schema versioning + backup automation + external-payment logging + **Android prep** (RevenueCat per-platform key, notification icon) |
 | v1.7 | ⬜ Long-term | **Android build** (clean standalone milestone) — see [ANDROID_READINESS.md](ANDROID_READINESS.md) |
@@ -82,85 +83,25 @@ Four features independently require a **backend** that doesn't exist today (the 
 
 ## v1.5 — Track Your Journey: History, Milestones, Charts & Progress Polish
 
-**Theme:** Everything that helps users understand where they've been and celebrate how far they've come. Pay Cycle History is the data foundation; milestones, streaks, amortization, and charts are what make that data meaningful. Combining these in one release gives the version a clear, coherent story for the App Store.
+**Theme:** Everything that helps users understand where they've been and celebrate how far they've come. Pay Cycle History is the data foundation; milestones, streaks, amortization, and charts make that data meaningful.
 
-### Pay Cycle History
+> **📋 v1.5 is a Large release with its own build + release checklist: [V15_TRACK_YOUR_JOURNEY.md](V15_TRACK_YOUR_JOURNEY.md).**
+> That doc is the single source of truth for v1.5 — per-workstream steps, tier gating, required tests, QA checklist, release gate, and Definition of Done. The summary below is for roadmap context only; do not duplicate detail here.
 
-**Current state:** `handleRolloverPayCycle` in `app/page.tsx` advances dates and recalculates debt balances but discards the prior cycle's state entirely.
+**Workstreams** (full detail in the v1.5 doc):
+1. **Pay Cycle History** *(build first — data foundation)* — `usePayCycleHistory.ts` + `PayCycleSnapshot` type + `HistorySection.tsx`. Premium = 6 cycles, Premium+ = unlimited.
+2. **Debt Milestones + Payoff Celebration (#19b)** — `computeMilestones.ts` + `MilestoneBadge.tsx`. Free (badges) / Premium+ (calendar context).
+3. **Amortization Calendar** — `buildAmortizationSchedule.ts` + `AmortizationCalendar.tsx`. Premium+. **Mandatory reconciliation test vs. `projectDebtPayoff`.**
+4. **Streaks** — derived from `cycleHistory`. Free (count) / Premium+ (chart).
+5. **UX #13** — Since-Last-Cycle Delta (needs cycle history first).
+6. **UX #15** — Settings UX Rework (decision required before build).
+7. **Mobile P5 / P6** — context-aware skeletons + micro-interaction pass. *(P10 timeline overflow: conditional, only if usage shows 30+ item cycles.)*
+8. **Page Orchestrator Phases 1–2** — internal refactor, zero behavior change ([PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md)).
+9. **Android prep** — Google Play Console signup + Maestro harness ([ANDROID_READINESS.md](ANDROID_READINESS.md)). Groundwork; does not block the v1.5 ship.
 
-**New type:**
-```ts
-export type PayCycleSnapshot = {
-    cycleEndDate: string;
-    totalDebtBalance: number;
-    totalPaidThisCycle: number;
-    completedRecommendedActions: CompletedRecommendedAction[];
-    payoffStrategy: "snowball" | "avalanche";
-};
-```
-
-**Implementation steps:**
-1. New `lib/hooks/usePayCycleHistory.ts` — owns `cycleHistory: PayCycleSnapshot[]` state + `debtPlanner.cycleHistory` persistence, exposes `recordCycleSnapshot(snapshot)` and a tier-aware `visibleHistory` getter (6 cycles for Premium, full array for Premium+).
-2. In `handleRolloverPayCycle`, call `recordCycleSnapshot(...)` with pre-rollover state **before** mutating debts or clearing completed actions.
-3. New `components/HistorySection.tsx` — list/chart of past cycles, gated via `hasFeatureAccess` (Premium = capped list with upsell row at cap, Premium+ = full list).
-4. New nav entry point: "View Pay Cycle History" row inside Plan Settings — not a 5th bottom-nav tab.
-
-**Files touched:** `lib/storage/debtPlannerStorage.ts`, `lib/hooks/usePayCycleHistory.ts` (new), `app/page.tsx`, `components/HistorySection.tsx` (new).
-
-**Tier:** Premium = last 6 cycles; Premium+ = unlimited.
-
-**Risk:** Low. Additive, one snapshot-write call inside an existing handler.
-
-### Debt Milestones + Payoff Celebration
-
-1. New `lib/debt/computeMilestones.ts` — pure function comparing `debt.balance` against `debt.originalBalance` per debt; returns crossed thresholds (25/50/75/100%) plus an "all debts paid off" check.
-2. New `components/MilestoneBadge.tsx` — celebration card/toast triggered when a rollover crosses a threshold.
-3. **Debt payoff celebration (#19b):** When a debt crosses 100% on rollover, trigger a distinct paid-off experience — `triggerMediumHaptic()`, full-width celebration card with confetti-style animation, debt's name prominently displayed. This is the emotional peak of the app — don't ship a subdued version. See [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) (#19b).
-
-**Tier:** Free (badges); Premium+ (calendar context on the celebration card).
-
-### Amortization Calendar (Premium+)
-
-1. New `lib/debt/buildAmortizationSchedule.ts` — loops `lib/debt/applyDebtPaymentProjection.ts` (single-month step, already exists) to produce a month-by-month schedule until payoff. Reuse, don't reinvent.
-2. New `components/AmortizationCalendar.tsx` — per-debt table/calendar view, accessible from each debt row via "View Schedule", gated via `hasFeatureAccess`.
-3. **Mandatory reconciliation test:** verify `buildAmortizationSchedule`'s total interest matches `projectDebtPayoff`'s `totalInterestPaid` for identical inputs. Silent math disagreement in a finance app is the worst bug class.
-
-### Streaks
-
-Derived from `cycleHistory`. Count consecutive snapshots where `totalPaidThisCycle >= totalRequired`. Surface as a small stat near the Plan tab top — Free tier gets the count; Premium+ gets the historical chart (reuses History view).
-
-### UX polish shipping in v1.5
-
-- **#1 — Debt Payoff Trajectory Chart** ✅ DONE in v1.4 — `buildPayoffTrajectory.ts` + SVG chart in `SnowballSection.tsx` + Cash Flow Status Bars in Forecast card + per-debt progress bars in `DebtRow.tsx`.
-- **#13 — Since-Last-Cycle Delta Indicator** — requires v1.5 cycle history to be in place; see [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md).
-- **#15 — Settings UX Rework** — accordion/in-place expansion; see [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md).
-
-### Mobile polish shipping in v1.5
-
-- **P5 — Context-Aware Skeleton Loading** — see [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md).
-- **P6 — Micro-Interaction Pass** — pairs naturally with milestone celebration motion; see [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md).
-- **P10 — Timeline Cycle Item Overflow** — implement only once real usage data shows cycles consistently reaching 30+ items; see [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md).
-
-### Android prep (starts here — does not block v1.5 shipping)
-
-The Android build itself is v1.7, but its slowest dependencies have zero code coupling and should start now. See [ANDROID_READINESS.md](ANDROID_READINESS.md) for the full audit.
-
-1. **Kick off Google Play Console signup** — $25 + identity/D-U-N-S verification can take weeks. This is the single slowest gate to an Android launch and blocks nothing in v1.5.
-2. **Stand up Maestro** native smoke tests (`.maestro/*.yaml`) on an Android emulator + iOS simulator. Playwright only exercises the web bundle in a browser — it can't see native-shell behavior (back button, biometric prompt, notification permission, IAP sheet), a gap that exists on iOS today too. Smoke flows: launch → onboarding → add a debt → see the plan → open paywall → toggle app lock. Keep `NEXT_PUBLIC_BYPASS_REVENUECAT` for emulator runs since IAP can't complete in CI.
-
-### Internal: Page Orchestrator Phases 1–2
-
-No user-visible change — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md).
-
-**Files touched (net new):** `lib/debt/computeMilestones.ts`, `components/MilestoneBadge.tsx`, `lib/debt/buildAmortizationSchedule.ts`, `components/AmortizationCalendar.tsx`, `lib/hooks/usePayCycleHistory.ts`, `components/HistorySection.tsx`, `lib/storage/debtPlannerStorage.ts`.
-
-**Data model changes:** New `PayCycleSnapshot` type + `debtPlanner.cycleHistory` storage key. Milestones and streaks are computed from existing data — no additional model changes.
-
-**Tier:** Pay Cycle History: Premium = last 6 cycles; Premium+ = unlimited. Milestones: Free (badges) + Premium+ (calendar context). Amortization Calendar: Premium+. Streaks: Free (count) + Premium+ (chart).
+**Data model changes:** New `PayCycleSnapshot` type + `debtPlanner.cycleHistory` storage key. Milestones and streaks compute from existing data.
 
 **Risk:** Medium — amortization math must reconcile with the existing projection engine. Budget time for the reconciliation test.
-
-**Testing:** Regression: rollover produces exactly one snapshot with correct totals. Reconciliation: `buildAmortizationSchedule` total interest matches `projectDebtPayoff`. E2E: History view shows capped vs. uncapped per mocked tier.
 
 ---
 

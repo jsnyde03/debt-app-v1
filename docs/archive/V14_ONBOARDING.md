@@ -1,6 +1,6 @@
 # v1.4 — Onboarding Flow
 
-_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). This is the active next version after v1.3._
+_Part of the [Implementation Plan](../IMPLEMENTATION_PLAN.md). ✅ Shipped — v1.4 was approved and released. Archived doc; kept for historical reference. Next version is v1.5._
 
 ## Overall status
 
@@ -119,9 +119,9 @@ Low. Pure UI addition, no engine or data changes. The demo mode gate condition (
 
 ---
 
-## Addendum — Mobile Polish P4 and P9c ⏳ Pending
+## Addendum — Mobile Polish P4 and P9c ✅ DONE
 
-_See [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) for full detail. Summary for version-sequencing reference only._
+_See [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](../MOBILE_POLISH_IMPLEMENTATION_PLAN.md) for full detail. Summary for version-sequencing reference only._
 
 **P4 — Empty-state illustrations:** Small inline SVG illustration above the existing empty-state text for debts, expenses, and goals — themed to match the icon system completed in P1a/P1b (done as of v1.3).
 
@@ -137,7 +137,7 @@ _See [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md
 
 ## Addendum — UX polish items assigned to v1.4
 
-See [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) for full implementation detail on each item.
+See [UX_POLISH_BACKLOG.md](../UX_POLISH_BACKLOG.md) for full implementation detail on each item.
 
 ### ✅ DONE (2026-06-27, sessions 1–3)
 
