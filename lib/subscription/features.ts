@@ -6,13 +6,24 @@ export type PremiumFeature =
     | "forecasting"
     | "strategy_comparison"
     | "what_if_scenarios"
-    | "smart_insights";
+    | "smart_insights"
+    | "pay_cycle_history"
+    | "unlimited_history";
+
+// Premium+-exclusive features. Premium gets everything EXCEPT these;
+// they require the top tier. hasFeatureAccess is the single source of
+// truth for this split - keep this list in sync with the logic there.
+export const premiumPlusOnlyFeatures: PremiumFeature[] = [
+    "unlimited_history",
+];
 
 export const premiumFeatureLabels: Record<PremiumFeature, string> = {
     forecasting: "Smart Forecasting",
     strategy_comparison: "Payoff Guidance",
     what_if_scenarios: "What Changes If...",
     smart_insights: "Adaptive Recommendations",
+    pay_cycle_history: "Pay Cycle History",
+    unlimited_history: "Unlimited History",
 };
 
 // Marketing copy for the upgrade screen. "Interest Reduction Insights"

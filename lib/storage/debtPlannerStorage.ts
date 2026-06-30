@@ -69,6 +69,34 @@ export type RecommendationOverride = {
 	amount: number;
 };
 
+// A completed plan action the user marked done during a pay cycle.
+// Mirrors the local type in app/page.tsx; declared here so it can be
+// persisted inside a PayCycleSnapshot. Structurally identical, so the
+// page can pass its array straight through.
+export type CompletedRecommendedAction = {
+	targetId: string;
+	label: string;
+	category: "emergency" | "snowball" | "optional_goal";
+	recommendedAmount: number;
+	actualAmount: number;
+	paymentSource?: "paycheck" | "external";
+};
+
+// One frozen record of a pay cycle at the moment it rolled over.
+// Written pre-rollover (before debts mutate / actions clear) so it
+// captures where the user actually was when the cycle ended. Feeds Pay
+// Cycle History, Streaks, and the Since-Last-Cycle delta indicator.
+export type PayCycleSnapshot = {
+	cycleEndDate: string;
+	totalDebtBalance: number;
+	totalPaidThisCycle: number;
+	completedRecommendedActions: CompletedRecommendedAction[];
+	payoffStrategy: "snowball" | "avalanche";
+};
+
+// localStorage key for the appended cycle-history array.
+export const CYCLE_HISTORY_STORAGE_KEY = "debtPlanner.cycleHistory";
+
 const STORAGE_KEY = "debt-planner-v1";
 
 export function loadDebtPlannerState(): SavedDebtPlannerState | null {

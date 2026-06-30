@@ -57,8 +57,11 @@ import { useNotificationsSetting } from "@/lib/hooks/useNotificationsSetting";
 import { AppLockScreen } from "@/components/AppLockScreen";
 import { useAppLock } from "@/lib/hooks/useAppLock";
 import { useOnboarding } from "@/lib/hooks/useOnboarding";
+import { usePayCycleHistory } from "@/lib/hooks/usePayCycleHistory";
+import { buildCycleSnapshot } from "@/lib/history/buildCycleSnapshot";
+import { HistorySection } from "@/components/HistorySection";
 import { OnboardingFlow } from "@/components/Onboarding/OnboardingFlow";
-import { Home as HomeIcon, CreditCard, TrendingUp, Target, Settings, Wallet } from "@/lib/icons";
+import { Home as HomeIcon, CreditCard, TrendingUp, Target, Settings, Wallet, ChevronRight } from "@/lib/icons";
 
 type CompletedRecommendedAction = {
     targetId: string;
@@ -176,6 +179,7 @@ export default function Home() {
         () => !hasConfiguredPaycheck
     );
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
     const [isToastExiting, setIsToastExiting] = useState(false);
     const [showWindfall, setShowWindfall] = useState(false);
     const [windfallInput, setWindfallInput] = useState("");
@@ -249,6 +253,13 @@ export default function Home() {
         showUpgrade, setShowUpgrade,
         purchaseStatus, setPurchaseStatus,
     } = useSubscription(notificationsEnabled, nextPaycheckDate, requiredExpenses, setNotificationsEnabled);
+
+    const {
+        recordCycleSnapshot,
+        visibleHistory,
+        canAccessHistory,
+        isHistoryCapped,
+    } = usePayCycleHistory(subscriptionPlan);
 
     const [premiumPackageInfo, setPremiumPackageInfo] = useState<PremiumPackageInfo | null>(null);
 
@@ -703,6 +714,18 @@ export default function Home() {
     async function handleRolloverPayCycle() {
         triggerMediumHaptic();
         saveResetSnapshot();
+
+        // Record the cycle that's ending BEFORE any mutation - capture
+        // pre-rollover debts and completed actions so the snapshot reflects
+        // where the user actually was when this cycle closed.
+        recordCycleSnapshot(
+            buildCycleSnapshot({
+                cycleEndDate: nextPaycheckDate,
+                debts,
+                completedRecommendedActions,
+                payoffStrategy,
+            })
+        );
 
         setDebts((current) =>
             rolloverDebts(
@@ -1416,6 +1439,27 @@ export default function Home() {
                         )}
 
                         {!isFirstRunSetup && (
+                            <button
+                                type="button"
+                                className="card settings-nav-row"
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    setShowPlanSettings(false);
+                                    setShowHistory(true);
+                                }}
+                                aria-label="View Pay Cycle History"
+                            >
+                                <div>
+                                    <h3>Pay Cycle History</h3>
+                                    <p className="section-collapse-subtitle">
+                                        Look back at your finished pay cycles.
+                                    </p>
+                                </div>
+                                <ChevronRight size={20} aria-hidden="true" />
+                            </button>
+                        )}
+
+                        {!isFirstRunSetup && (
                             <div className="card notifications-settings-card">
                                 <div className="notifications-settings-row">
                                     <div>
@@ -1575,6 +1619,19 @@ export default function Home() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showHistory && (
+                <HistorySection
+                    visibleHistory={visibleHistory}
+                    canAccessHistory={canAccessHistory}
+                    isHistoryCapped={isHistoryCapped}
+                    onUpgrade={() => {
+                        setShowHistory(false);
+                        setShowUpgrade(true);
+                    }}
+                    onClose={() => setShowHistory(false)}
+                />
             )}
         </main>
     );

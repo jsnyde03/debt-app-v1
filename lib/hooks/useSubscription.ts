@@ -19,8 +19,8 @@ export function useSubscription(
             try {
                 if (process.env.NODE_ENV === "development") {
                     const mock = localStorage.getItem("debtPlanner.mockSubscription");
-                    if (mock === "premium") {
-                        setSubscriptionPlan("premium");
+                    if (mock === "premium" || mock === "premium_plus") {
+                        setSubscriptionPlan(mock);
 
                         if (notificationsEnabled && nextPaycheckDate) {
                             const permitted = await hasNotificationPermission();

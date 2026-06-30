@@ -15,5 +15,6 @@ import "./testRecommendedActionsRegression";
 import "./testForecastRegression";
 import "./testDebtMathRegression";
 import "./testSubscriptionGating";
+import "./testPayCycleHistoryRegression";
 
 console.log("✅ All regression tests passed.");

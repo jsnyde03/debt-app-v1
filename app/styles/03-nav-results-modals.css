@@ -1339,3 +1339,165 @@
 	color: var(--text-secondary) !important;
 }
 
+/* ── Pay Cycle History (v1.5) ───────────────────────────────── */
+
+/* Tappable "View Pay Cycle History" row in Plan Settings. The
+   .settings-sheet .card rule strips card styling, so style it explicitly. */
+.settings-nav-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+	text-align: left;
+	padding: 16px 18px !important;
+	background: var(--surface-muted) !important;
+	border: 1px solid var(--border-color) !important;
+	border-radius: 18px !important;
+	color: var(--text-primary);
+	cursor: pointer;
+}
+
+.settings-nav-row h3 {
+	margin: 0;
+}
+
+.settings-nav-row:active {
+	transform: scale(0.99);
+}
+
+.settings-nav-row svg {
+	color: var(--text-secondary);
+	flex-shrink: 0;
+}
+
+.history-sheet .history-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+/* Override the transparent .settings-sheet .card so rows read as cards. */
+.history-sheet .history-row.card {
+	padding: 14px 16px !important;
+	background: var(--surface-muted) !important;
+	border: 1px solid var(--border-color) !important;
+	border-radius: 16px !important;
+	margin-bottom: 0;
+}
+
+.history-row-main {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.history-row-date {
+	font-weight: 600;
+	color: var(--text-primary);
+}
+
+.history-row-balance {
+	font-weight: 700;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.history-row-meta {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-top: 6px;
+}
+
+.history-row-paid {
+	font-size: 0.8rem;
+	color: var(--text-secondary);
+	font-variant-numeric: tabular-nums;
+}
+
+.history-row-delta {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 0.8rem;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.history-row-delta-down {
+	color: var(--success-color);
+}
+
+.history-row-delta-up {
+	color: var(--warning-color);
+}
+
+.history-upsell-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+	text-align: left;
+	padding: 14px 16px;
+	background: var(--accent-soft);
+	border: 1px solid var(--accent-color);
+	border-radius: 16px;
+	color: var(--accent-color);
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.history-upsell-row svg {
+	flex-shrink: 0;
+}
+
+.history-locked-card,
+.history-empty-card {
+	display: flex !important;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	gap: 12px;
+	padding: 28px 20px !important;
+	background: var(--surface-muted) !important;
+	border: 1px solid var(--border-color) !important;
+	border-radius: 18px !important;
+}
+
+.history-locked-icon,
+.history-empty-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 56px;
+	height: 56px;
+	border-radius: 50%;
+	background: var(--accent-soft);
+	color: var(--accent-color);
+}
+
+.history-locked-card h3 {
+	margin: 0;
+}
+
+.history-locked-text,
+.history-empty-text {
+	margin: 0;
+	color: var(--text-secondary);
+	font-size: 0.9rem;
+	line-height: 1.45;
+	max-width: 36ch;
+}
+
+.history-locked-card .primary-plan-button {
+	width: 100%;
+}
+

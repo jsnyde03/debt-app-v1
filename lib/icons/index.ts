@@ -2,6 +2,8 @@ export {
     Home,
     CreditCard,
     TrendingUp,
+    TrendingDown,
+    History,
     Target,
     Sun,
     Moon,
