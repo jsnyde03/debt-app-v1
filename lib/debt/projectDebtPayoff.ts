@@ -107,7 +107,7 @@ export function projectDebtPayoff({
             }
 
             const interest = calculateMonthlyInterest(debt.balance, debt.apr);
-            totalInterestPaid = roundMoney(totalInterestPaid + interest);
+            totalInterestPaid += interest;
 
             return {
                 ...debt,

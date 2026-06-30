@@ -18,9 +18,9 @@ snowball,avalanche,finance,tracker,savings,goals,expense,income,cashflow,money m
 _Why this change:_ the old keyword field repeated "debt payoff," "budget," "paycheck," and "planner" — all already indexed via Name/Subtitle, wasting roughly 40 of 100 characters on duplicate coverage. This version keeps the genuinely additive terms ("snowball," "avalanche," "finance," "tracker," "money manager") and adds terms with real search volume that were missing entirely ("savings," "goals," "expense," "income," "cashflow," "debt free").
 
 ## Promotional Text (170 chars max — can be updated anytime without a new app version)
-See exactly where every paycheck goes. Try it instantly with sample data — no signup, no bank link. Smart forecasting and payoff guidance with Premium.
+A guided setup gets your first plan built in under two minutes. No signup, no bank link, no blank screen. Smart forecasting and payoff guidance with Premium.
 
-_This field didn't exist in the listing before — it's the one piece of App Store metadata Apple lets you change without a review cycle, so it's worth treating as a rotating hook (seasonal, feature-launch, or urgency messaging) rather than setting once and forgetting._
+_(157 chars. Updated for v1.4. This field can be rotated anytime — treat it as a seasonal/feature-launch hook, not set-and-forget.)_
 
 ---
 
@@ -36,7 +36,7 @@ Curious before you commit? Tap "Try with Sample Data" and explore a fully popula
 
 **HOW IT WORKS**
 
-Enter your paycheck amount and the due dates for your bills and debts. Paycheck Debt Planner calculates your required payments, finds whatever extra cash is left, and tells you exactly where to put it. Mark bills paid with a swipe as you go — the plan updates in real time.
+A guided setup walks new users through their first plan in under two minutes. Enter your paycheck amount and the due dates for your bills and debts. Paycheck Debt Planner calculates your required payments, finds whatever extra cash is left, and tells you exactly where to put it. Mark bills paid with a swipe as you go — the plan updates in real time.
 
 ---
 
@@ -48,6 +48,8 @@ Enter your paycheck amount and the due dates for your bills and debts. Paycheck 
 - **Goals** — Emergency fund and savings goals tracked alongside debt payoff, funded before snowball so your safety net builds while debt shrinks.
 - **Autopay Support** — Flag bills and debts as autopay so you always know what hits automatically.
 - **Swipe-to-Pay** — Mark anything paid with one swipe. Swipe back to undo.
+- **Undo on Delete** — Accidentally swiped away a debt or bill? A 5-second undo toast brings it back.
+- **Appearance** — Choose Auto (follows your device), Light, or Dark theme in Settings.
 - **App Lock** — Face ID, Touch ID, or device passcode. Free for everyone, off by default, on whenever you want it.
 - **Local Reminders** — A paycheck-eve nudge and a heads-up before your earliest unpaid bill. Opt-in, quiet, and only when useful.
 - **Backup & CSV Import** — Export a full backup anytime; import existing debts straight from a CSV.
@@ -159,3 +161,38 @@ Added direct links to manage your subscription and view Terms of Use, alongside 
 
 ### Engine & Reliability
 Fixed a forecast display bug where the "recovery month" was calculated but never shown to users. Closed a gap in premium feature-gating logic. Fixed App Lock defaulting to enabled for new installs. Rewrote several regression tests that had been silently failing against outdated assumptions, and expanded end-to-end test coverage across the core paycheck flow and the new demo-mode path.
+
+---
+
+## What's New — Version 1.4 (App Store Release Notes, ~500 chars)
+
+**Guided Setup, Timeline Fix, and a Smarter-Looking App**
+
+New users now get a guided setup that builds their first plan in under two minutes — no blank screen, no confusion.
+
+The timeline now projects up to three pay cycles forward and shows your cash buffer as a visible line item. A new theme selector lets you choose Auto, Light, or Dark in Settings. Accidentally deleted a debt or bill? A 5-second undo toast brings it back. Plus: your projected debt-free date now appears directly in the plan summary.
+
+---
+
+## What's New — Version 1.4 (Longer version for release notes / blog)
+
+### Guided Onboarding
+New users now see a four-step guided setup — paycheck amount, pay cycle, first debt or bill, then straight into their plan. No blank-screen paralysis, no guessing what to enter first. Existing users with a paycheck already set skip it automatically.
+
+### Timeline: Multi-Cycle View and Cash Buffer
+The timeline previously dropped bills that fell past the end of the current pay cycle. It now projects up to three cycles forward, with future cycles collapsed under a date-range header. Cash buffer is now visible as an explicit line item, so the ending balance matches what you actually have.
+
+### Swipe-Delete Undo
+Swipe away a debt or bill and a toast appears with a 5-second undo window. Tap Undo to restore it in place. For the mistake you realize half a second too late.
+
+### Theme Selector
+The floating light/dark toggle is gone. In its place: a three-way segmented control in Settings — Auto (follows your device), Light, or Dark. Existing preferences migrate automatically.
+
+### Debt-Free Date in Plan Summary
+Your projected payoff date now appears directly in the plan summary strip at the top of every plan, updated in real time as you run allocations.
+
+### Polish Throughout
+Debt cards now show monthly interest cost so the price of inaction is visible at a glance. Empty sections show an icon instead of a blank screen. Animations on tab switches and list loads. Error haptic on failed validation. Accessibility improvements across navs, regions, and the execution strip. Hover → active states audited across every tappable element.
+
+### Settings: Delete All Data
+Restyled from a bare text link to a full-width outlined button inside a clearly-labeled danger zone container. Confirmation copy leads with what gets deleted.

@@ -25,7 +25,8 @@ export type TimelineItem = {
         | "autopay_debt"
         | "emergency"
         | "snowball"
-        | "optional_goal";
+        | "optional_goal"
+        | "buffer";
     isExternal?: boolean;
     status?: "planned" | "paid" | "external";
     isPaid?: boolean;
@@ -68,7 +69,7 @@ export function buildTimelineItems({
     const isDueInCycle = (dueDate: string) => {
         const due = new Date(`${dueDate}T00:00:00`);
         const next = new Date(`${nextPaycheckDate}T00:00:00`);
-        return due < next;
+        return due <= next;
     };
 
     // Include expenses due this cycle OR already paid this cycle
@@ -102,6 +103,20 @@ export function buildTimelineItems({
             amount: debt.minimumPayment,
             type: debt.isAutopay ? "autopay_debt" : "minimum_debt",
             isPaid: paidThisCycle,
+        });
+    }
+
+    // Show the cash buffer reserve when the engine allocated one (shortfall = 0 and buffer > 0).
+    // This makes the ending balance match the flexible-cash-available figure in the plan view.
+    const bufferAllocation = result.allocations.find(
+        (item) => item.category === "leftover" && item.label === "Keep cash buffer"
+    );
+    if (bufferAllocation) {
+        items.push({
+            date: nextPaycheckDate,
+            label: "Cash Buffer",
+            amount: bufferAllocation.amount,
+            type: "buffer",
         });
     }
 

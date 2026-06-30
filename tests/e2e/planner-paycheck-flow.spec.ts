@@ -90,7 +90,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("required actions can be completed and undone", async ({ page }) => {
-    await page.locator(".bottom-nav-item").filter({ hasText: "Plan" }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: "Plan" }).click();
 
     await expect(page.locator(".saved-title").filter({ hasText: "Pay Rent" })).toBeVisible();
 
@@ -119,7 +119,7 @@ test("required actions can be completed and undone", async ({ page }) => {
 });
 
 test("recommended actions render", async ({ page }) => {
-    await page.locator(".bottom-nav-item").filter({ hasText: "Plan" }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: "Plan" }).click();
 
     await page.getByText("Recommended Actions").first().click();
 
@@ -129,14 +129,14 @@ test("recommended actions render", async ({ page }) => {
 });
 
 test("payoff section renders seeded debt", async ({ page }) => {
-    await page.getByRole("button", { name: /Payoff/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
 
     await expect(page.getByText("Visa")).toBeVisible();
     await expect(page.getByText("$500.00")).toBeVisible();
 });
 
 test("goals section renders seeded goal", async ({ page }) => {
-    await page.getByRole("button", { name: /Goals/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Goals/i }).click();
 
     await expect(
         page.locator(".saved-title").filter({ hasText: "Emergency Fund" })

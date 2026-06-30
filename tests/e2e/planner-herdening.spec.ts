@@ -80,7 +80,7 @@ test("debt search accepts input and seeded debts persist", async ({ page }) => {
 
     await page.reload();
 
-    await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
     await page.getByRole("button", { name: /Debts/i }).click();
 
     const searchInput = page.getByPlaceholder("Search debts...");

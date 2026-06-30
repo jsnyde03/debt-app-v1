@@ -38,7 +38,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("can add an expense and persist after reload", async ({ page }) => {
-    await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
     await page.getByRole("button", { name: /Expenses/i }).click();
 
     await page.getByRole("button", { name: /\+ Add Expense/i }).click();
@@ -53,14 +53,14 @@ test("can add an expense and persist after reload", async ({ page }) => {
 
     await page.reload();
 
-    await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
     await page.getByRole("button", { name: /Expenses/i }).click();
 
     await expect(page.getByText("Internet")).toBeVisible();
 });
 
 test("can add a debt and persist after reload", async ({ page }) => {
-    await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
     await page.getByRole("button", { name: /Debts/i }).click();
 
     await page.getByRole("button", { name: /\+ Add Debt/i }).click();
@@ -86,7 +86,7 @@ test("can add a debt and persist after reload", async ({ page }) => {
 
     await page.reload();
 
-    await page.locator(".bottom-nav-item").filter({ hasText: /Bills/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
     await page.getByRole("button", { name: /Debts/i }).click();
 
     await expect(page.getByText("$500.00")).toBeVisible();
@@ -94,7 +94,7 @@ test("can add a debt and persist after reload", async ({ page }) => {
 });
 
 test("can add a goal and persist after reload", async ({ page }) => {
-    await page.getByRole("button", { name: /Goals/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Goals/i }).click();
 
     await page.getByRole("button", { name: /\+ Add Goal/i }).click();
 
@@ -108,7 +108,7 @@ test("can add a goal and persist after reload", async ({ page }) => {
 
     await page.reload();
 
-    await page.getByRole("button", { name: /Goals/i }).click();
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Goals/i }).click();
 
     await expect(page.getByText("Vacation Fund")).toBeVisible();
 });

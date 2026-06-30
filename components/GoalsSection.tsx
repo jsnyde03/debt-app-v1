@@ -3,6 +3,7 @@ import { useState } from "react";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";
+import { Shield, Target, ChevronRight } from "@/lib/icons";
 
 type GoalsSectionProps = {
     goals: Goal[];
@@ -45,13 +46,12 @@ export function GoalsSection({
     const [editCurrentAmount, setEditCurrentAmount] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [showAddGoalModal, setShowAddGoalModal] = useState(false);
-    const [goalPage, setGoalPage] = useState(1);
+    const pageSize = 10;
+    const [goalVisibleCount, setGoalVisibleCount] = useState(pageSize);
     const showFab = useScrollFabVisible();
 
     const filteredGoals = goals.filter((goal) => goal.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    const pageSize = 10;
-    const totalPages = Math.max(1, Math.ceil(filteredGoals.length / pageSize));
-    const visibleGoals = filteredGoals.slice((goalPage - 1) * pageSize, goalPage * pageSize);
+    const visibleGoals = filteredGoals.slice(0, goalVisibleCount);
 
     const totalSaved = goals.reduce((sum, goal) => sum + goal.currentAmount, 0);
     const totalTarget = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
@@ -100,7 +100,7 @@ export function GoalsSection({
         const remainingAmount = Math.max(0, goal.targetAmount - goal.currentAmount);
         const progressPercent = goal.targetAmount > 0 ? Math.min(100, Math.max(0, (goal.currentAmount / goal.targetAmount) * 100)) : 0;
         const isComplete = goal.targetAmount > 0 && goal.currentAmount >= goal.targetAmount;
-        const goalIcon = goal.type === "emergency" ? "🛡️" : "🎯";
+        const GoalIcon = goal.type === "emergency" ? Shield : Target;
 
         if (isEditing) {
             return (
@@ -112,7 +112,8 @@ export function GoalsSection({
                             <label>Target</label>
 
                             <input
-                                type="number"
+                                type="text"
+                                inputMode="decimal"
                                 value={editTargetAmount}
                                 onChange={(event) => setEditTargetAmount(event.target.value)}
                             />
@@ -122,7 +123,8 @@ export function GoalsSection({
                             <label>Saved</label>
 
                             <input
-                                type="number"
+                                type="text"
+                                inputMode="decimal"
                                 value={editCurrentAmount}
                                 onChange={(event) => setEditCurrentAmount(event.target.value)}
                             />
@@ -179,7 +181,7 @@ export function GoalsSection({
             >
                 <div className="saved-item-left goal-card-content">
                     <div className="goal-title-row">
-                        <span className="goal-type-icon">{goalIcon}</span>
+                        <span className="goal-type-icon"><GoalIcon size={14} aria-hidden="true" /></span>
                         <div className="saved-title">{goal.name}</div>
 
                         {isComplete && (
@@ -214,7 +216,7 @@ export function GoalsSection({
                         {isComplete ? "Goal met" : `${formatCurrency(remainingAmount)} left`}
                     </strong>
 
-                    <span className="row-chevron">›</span>
+                    <ChevronRight size={18} className="row-chevron" aria-hidden="true" />
                 </div>
             </button>
         );
@@ -244,94 +246,103 @@ export function GoalsSection({
                 </button>
             </div>
 
-            {goals.length > 0 && (
-                <div className="goal-summary-strip">
-                    <div>
-                        <span>Total Saved</span>
-                        <strong>{formatCurrency(totalSaved)}</strong>
+            {goals.length > 0 ? (
+                <div className="goals-tab-layout">
+                    <div className="goals-summary-col">
+                        <div className="goal-summary-strip">
+                            <div>
+                                <span>Total Saved</span>
+                                <strong>{formatCurrency(totalSaved)}</strong>
+                            </div>
+
+                            <div>
+                                <span>Total Goal</span>
+                                <strong>{formatCurrency(totalTarget)}</strong>
+                            </div>
+
+                            <div>
+                                <span>Overall Progress</span>
+                                <strong>{Math.round(overallProgress)}%</strong>
+                            </div>
+                        </div>
+
+                        <div className="goal-controls">
+                            <input
+                                type="text"
+                                placeholder="Search goals..."
+                                value={searchTerm}
+                                onChange={(event) => {
+                                    setSearchTerm(event.target.value);
+                                    setGoalVisibleCount(pageSize);
+                                }}
+                            />
+                        </div>
+
+                        <div className="premium-momentum-card">
+                            <span>{fundedGoalsCount > 0 ? "🎉" : "👑"}</span>
+                            <div>
+                                <strong>
+                                    {fundedGoalsCount > 0
+                                        ? `${fundedGoalsCount} goal${fundedGoalsCount === 1 ? "" : "s"} fully funded`
+                                        : "Every contribution moves you closer"}
+                                </strong>
+                                <p>
+                                    {fundedGoalsCount > 0
+                                        ? "Great work staying consistent. Keep building toward what's next."
+                                        : "Small, steady deposits add up faster than they feel like they do."}
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <span>Total Goal</span>
-                        <strong>{formatCurrency(totalTarget)}</strong>
+                    <div className="goals-main-col">
+                        {filteredGoals.length === 0 ? (
+                            <div className="empty-debt-state compact-empty-state">
+                                <strong>No matching goals.</strong>
+                                <p>Try a different search term.</p>
+                            </div>
+                        ) : (
+                            <div className="goals-list">
+                                {visibleGoals.map(renderGoal)}
+                            </div>
+                        )}
+
+                        {filteredGoals.length > goalVisibleCount && (
+                            <div className="load-more-actions">
+                                <button
+                                    type="button"
+                                    className="load-more-button"
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        setGoalVisibleCount((current) => current + pageSize);
+                                    }}
+                                >
+                                    Load More
+                                </button>
+                            </div>
+                        )}
                     </div>
-
-                    <div>
-                        <span>Overall Progress</span>
-                        <strong>{Math.round(overallProgress)}%</strong>
-                    </div>
-                </div>
-            )}
-
-            <div className="goal-controls">
-                <input
-                    type="text"
-                    placeholder="Search goals..."
-                    value={searchTerm}
-                    onChange={(event) => {
-                        setSearchTerm(event.target.value)
-                        setGoalPage(1);
-                    }}
-                />
-            </div>
-
-            {filteredGoals.length === 0 ? (
-                <div className="empty-debt-state compact-empty-state">
-                    <strong>No Goals Added Yet.</strong>
-                    <p>Add an emergency fund or savings goal to start tracking progress.</p>
                 </div>
             ) : (
-                visibleGoals.map(renderGoal)
-            )}
-
-            {filteredGoals.length > pageSize && (
-                <div className="pagination-actions pagination-compact">
-                    <button
-                        type="button"
-                        className="text-action-button"
-                        disabled={goalPage <= 1}
-                        onClick={() => {
-                            triggerLightHaptic();
-                            setGoalPage((current) => Math.max(1, current - 1));
-                        }}
-                    >
-                        ‹
-                    </button>
-
-                    <span className="pagination-status">
-                        Page {goalPage} of {totalPages}
-                    </span>
-
-                    <button
-                        type="button"
-                        className="text-action-button"
-                        disabled={goalPage >= totalPages}
-                        onClick={() => {
-                            triggerLightHaptic();
-                            setGoalPage((current) => Math.min(totalPages, current + 1));
-                        }}
-                    >
-                        ›
-                    </button>
-                </div>
-            )}
-
-            {goals.length > 0 && (
-                <div className="premium-momentum-card">
-                    <span>{fundedGoalsCount > 0 ? "🎉" : "👑"}</span>
-                    <div>
-                        <strong>
-                            {fundedGoalsCount > 0
-                                ? `${fundedGoalsCount} goal${fundedGoalsCount === 1 ? "" : "s"} fully funded`
-                                : "Every contribution moves you closer"}
-                        </strong>
-                        <p>
-                            {fundedGoalsCount > 0
-                                ? "Great work staying consistent. Keep building toward what's next."
-                                : "Small, steady deposits add up faster than they feel like they do."}
-                        </p>
+                <>
+                    <div className="goal-controls">
+                        <input
+                            type="text"
+                            placeholder="Search goals..."
+                            value={searchTerm}
+                            onChange={(event) => {
+                                setSearchTerm(event.target.value);
+                                setGoalVisibleCount(pageSize);
+                            }}
+                        />
                     </div>
-                </div>
+
+                    <div className="empty-debt-state compact-empty-state">
+                        <Target size={48} className="empty-state-icon" aria-hidden="true" />
+                        <strong>No Goals Added Yet.</strong>
+                        <p>Add an emergency fund or savings goal to start tracking progress.</p>
+                    </div>
+                </>
             )}
         </section>
 
@@ -387,7 +398,8 @@ export function GoalsSection({
                             <label>Target Amount</label>
 
                             <input
-                                type="number"
+                                type="text"
+                                inputMode="decimal"
                                 placeholder="1000"
                                 value={goalTargetAmount}
                                 onChange={(event) => onGoalTargetAmountChange(event.target.value)}
@@ -404,7 +416,8 @@ export function GoalsSection({
                             <label>Current Amount Saved</label>
 
                             <input
-                                type="number"
+                                type="text"
+                                inputMode="decimal"
                                 placeholder="0"
                                 value={goalCurrentAmount}
                                 onChange={(event) => onGoalCurrentAmountChange(event.target.value)}

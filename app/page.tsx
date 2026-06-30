@@ -1,13 +1,20 @@
 "use client";
 
-import { useMemo, useEffect, useState, type ChangeEvent } from "react";
+import { useMemo, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
-import {
-    getNextPaycheckDate,
-    type PayCycle,
-} from "@/lib/payCycle/getNextPaycheckDate";
+import { getNextPaycheckDate } from "@/lib/payCycle/getNextPaycheckDate";
 import type { Recurrence } from "@/lib/types/recurrence";
-import "./page.css";
+import "./styles/00-theme-and-base.css";
+import "./styles/01-payoff-goals.css";
+import "./styles/02-overdue-pagination-nav.css";
+import "./styles/03-nav-results-modals.css";
+import "./styles/04-debt-modals-focus.css";
+import "./styles/05-timeline-whatif.css";
+import "./styles/06-forecast-and-payoff-shell.css";
+import "./styles/07-premium-upgrade.css";
+import "./styles/08-dark-theme-polish.css";
+import "./styles/09-anim-swipe-media-misc.css";
+import "./styles/10-onboarding.css";
 
 import { ResultsSection } from "@/components/ResultsSection";
 import { GoalsSection } from "@/components/GoalsSection";
@@ -23,13 +30,13 @@ import {
 
 import { type RecommendationOverride, type Debt, type RequiredExpense, type RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
+import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { parseDebtCsv } from "@/lib/imports/debtCsv";
 import type { LivingExpense } from "@/lib/types/livingExpense";
 import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
-import { StatusBar, Style } from "@capacitor/status-bar";
 import { TimelineSection } from "@/components/TimelineSection";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
@@ -39,18 +46,19 @@ import { scheduleNotifications, cancelAllNotifications, requestNotificationPermi
 import { incrementRolloverCount, maybeRequestAppReview } from "@/lib/review/requestAppReview";
 import { AppSkeleton } from "@/components/AppSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { loadStoredState } from "@/lib/storage/loadStoredState";
+import { useDarkMode, type ThemePreference } from "@/lib/hooks/useDarkMode";
+import { useGoals, type Goal } from "@/lib/hooks/useGoals";
+import { useRequiredExpenses } from "@/lib/hooks/useRequiredExpenses";
+import { useDebts } from "@/lib/hooks/useDebts";
+import { usePayCycleSettings, getCurrentDate } from "@/lib/hooks/usePayCycleSettings";
+import { useSubscription } from "@/lib/hooks/useSubscription";
+import { useNotificationsSetting } from "@/lib/hooks/useNotificationsSetting";
 import { AppLockScreen } from "@/components/AppLockScreen";
 import { useAppLock } from "@/lib/hooks/useAppLock";
-import { Home as HomeIcon, CreditCard, TrendingUp, Target, Sun, Moon, Settings, Wallet } from "@/lib/icons";
-
-type Goal = {
-    id: string;
-    name: string;
-    targetAmount: number;
-    currentAmount: number;
-    originalCurrentAmount?: number;
-    type: "emergency" | "savings";
-};
+import { useOnboarding } from "@/lib/hooks/useOnboarding";
+import { OnboardingFlow } from "@/components/Onboarding/OnboardingFlow";
+import { Home as HomeIcon, CreditCard, TrendingUp, Target, Settings, Wallet } from "@/lib/icons";
 
 type CompletedRecommendedAction = {
     targetId: string;
@@ -60,14 +68,6 @@ type CompletedRecommendedAction = {
     actualAmount: number;
     paymentSource?: "paycheck" | "external";
 };
-
-function getCurrentDate() {
-    const today = new Date();
-
-    return new Date(today.getFullYear(), today.getMonth(), today.getDate())
-        .toISOString()
-        .slice(0, 10);
-}
 
 function formatRecurrence(recurrence: Recurrence) {
     switch (recurrence) {
@@ -86,19 +86,6 @@ function formatRecurrence(recurrence: Recurrence) {
         case "monthly":
         default:
             return "Monthly";
-    }
-}
-
-function loadStoredState<T>(key: string, fallback: T): T {
-    if (typeof window === "undefined") return fallback;
-
-    const stored = window.localStorage.getItem(key);
-    if (!stored) return fallback;
-
-    try {
-        return JSON.parse(stored) as T;
-    } catch {
-        return fallback;
     }
 }
 
@@ -129,9 +116,15 @@ function formatLastSaved(value: string) {
 
 export default function Home() {
 
-    const [amount, setAmount] = useState(() =>
-        loadStoredState("debtPlanner.amount", "")
-    );
+    const {
+        amount, setAmount,
+        currentDate, setCurrentDate,
+        nextPaycheckDate, setNextPaycheckDate,
+        payCycle, setPayCycle,
+        semiMonthlyFirstDay, setSemiMonthlyFirstDay,
+        semiMonthlySecondDay, setSemiMonthlySecondDay,
+        monthlyPayDay, setMonthlyPayDay,
+    } = usePayCycleSettings();
 
     const [livingExpenses, setLivingExpenses] = useState<LivingExpense[]>(() =>
         loadStoredState("debtPlanner.livingExpenses", livingExpensePresets.map((expense, index) => ({
@@ -143,74 +136,19 @@ export default function Home() {
 
     const hasConfiguredPaycheck = amount !== "" && Number(amount) > 0;
 
+    const {
+        goals, setGoals,
+        goalName, setGoalName,
+        goalTargetAmount, setGoalTargetAmount,
+        goalCurrentAmount, setGoalCurrentAmount,
+        goalType, setGoalType,
+        goalErrors,
+        handleAddGoal,
+        handleUpdateGoal,
+        handleRemoveGoal,
+    } = useGoals();
 
-    const [currentDate, setCurrentDate] = useState(() =>
-        loadStoredState("debtPlanner.currentDate", getCurrentDate())
-    );
-
-    const [nextPaycheckDate, setNextPaycheckDate] = useState(() =>
-        loadStoredState("debtPlanner.nextPaycheckDate", getNextPaycheckDate({
-            payCycle: "biweekly",
-            currentDate: getCurrentDate(),
-        })));
-
-    const [payCycle, setPayCycle] = useState<PayCycle>(() =>
-        loadStoredState("debtPlanner.payCycle", "biweekly")
-    );
-
-    const [semiMonthlyFirstDay, setSemiMonthlyFirstDay] = useState(() =>
-        loadStoredState("debtPlanner.semiMonthlyFirstDay", "1")
-    );
-
-    const [semiMonthlySecondDay, setSemiMonthlySecondDay] = useState(() =>
-        loadStoredState("debtPlanner.semiMonthlySecondDay", "15")
-    );
-
-    const [monthlyPayDay, setMonthlyPayDay] = useState(() =>
-        loadStoredState("debtPlanner.monthlyPayDay", "1")
-    );
-
-    const [requiredExpenses, setRequiredExpenses] = useState<RequiredExpense[]>(
-        () => loadStoredState("debtPlanner.requiredExpenses", [])
-    );
-
-    const [expenseName, setExpenseName] = useState("");
-    const [expenseAmount, setExpenseAmount] = useState("");
-    const [expenseDueDate, setExpenseDueDate] = useState("");
-    const [expenseRecurrence, setExpenseRecurrence] =
-        useState<Recurrence>("monthly");
-    const [expenseType, setExpenseType] = useState<"fixed" | "variable">("fixed");
-    const [expenseCategory, setExpenseCategory] = useState<RequiredExpenseCategory>("other");
-    const [expenseIsAutopay, setExpenseIsAutopay] = useState(false);
-    const [debts, setDebts] = useState<Debt[]>(() =>
-        loadStoredState("debtPlanner.debts", [])
-    );
-
-    const [debtName, setDebtName] = useState("");
-    const [debtBalance, setDebtBalance] = useState("");
-    const [debtMinimumPayment, setDebtMinimumPayment] = useState("");
-    const [debtDueDate, setDebtDueDate] = useState("");
-    const [debtApr, setDebtApr] = useState("");
-    const [debtType, setDebtType] = useState<"debt" | "bnpl">("debt");
-    const [debtRecurrence, setDebtRecurrence] =
-        useState<Recurrence>("monthly");
-
-    const [debtIsAutopay, setDebtIsAutopay] = useState(false);
-
-    const [debtRemainingPayments, setDebtRemainingPayments] = useState("");
-    const [debtScheduledPaymentAmount, setDebtScheduledPaymentAmount] =
-        useState("");
-
-    const [goals, setGoals] = useState<Goal[]>(() =>
-        loadStoredState("debtPlanner.goals", [])
-    );
-
-    const [goalName, setGoalName] = useState("Starter Emergency Fund");
-    const [goalTargetAmount, setGoalTargetAmount] = useState("1000");
-    const [goalCurrentAmount, setGoalCurrentAmount] = useState("");
-    const [goalType, setGoalType] = useState<"emergency" | "savings">(
-        "emergency"
-    );
+    const { darkMode, themePreference, setThemePreference } = useDarkMode();
 
     const [completedRecommendedActions, setCompletedRecommendedActions] =
         useState<CompletedRecommendedAction[]>(() =>
@@ -222,6 +160,10 @@ export default function Home() {
     const [activeTab, setActiveTab] = useState<
         "plan" | "bills" | "snowball" | "goals"
     >("plan");
+    const tabOrder = { plan: 0, bills: 1, snowball: 2, goals: 3 } as const;
+    const prevTabRef = useRef<"plan" | "bills" | "snowball" | "goals">("plan");
+    const tabDirection = tabOrder[activeTab] >= tabOrder[prevTabRef.current] ? "forward" : "backward";
+    prevTabRef.current = activeTab;
 
     const [billsView, setBillsView] = useState<"expenses" | "debts" | null>(
         null
@@ -233,37 +175,19 @@ export default function Home() {
     const [isFirstRunSetup, setIsFirstRunSetup] = useState(
         () => !hasConfiguredPaycheck
     );
-
-    const [debtErrors, setDebtErrors] = useState<{
-        name?: string;
-        balance?: string;
-        minimumPayment?: string;
-        dueDate?: string;
-        apr?: string;
-    }>({});
-
-    const [debtWarnings, setDebtWarnings] = useState<{
-        minimumPayment?: string;
-    }>({});
-
-    const [expenseErrors, setExpenseErrors] = useState<{
-        name?: string;
-        amount?: string;
-        dueDate?: string;
-    }>({});
-
-    const [goalErrors, setGoalErrors] = useState<{
-        name?: string;
-        targetAmount?: string;
-    }>({});
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isToastExiting, setIsToastExiting] = useState(false);
+    const [showWindfall, setShowWindfall] = useState(false);
+    const [windfallInput, setWindfallInput] = useState("");
+    const [pendingUndo, setPendingUndo] = useState<{ type: "debt"; item: Debt } | { type: "expense"; item: RequiredExpense } | null>(null);
+    const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const [payoffStrategy, setPayoffStrategy] = useState<
         "snowball" | "avalanche"
     >(() => loadStoredState("debtPlanner.payoffStrategy", "snowball"));
 
-    const [darkMode, setDarkMode] = useState(() => loadStoredState("debtPlanner.darkMode", false));
-
     const { appLockEnabled, setAppLockEnabled, isUnlocked, requestUnlock } = useAppLock();
+    const { hasCompletedOnboarding } = useOnboarding();
 
     const [isDemoMode] = useState(() =>
         loadStoredState("debtPlanner.isDemoMode", false)
@@ -275,34 +199,89 @@ export default function Home() {
     const [statusMessage, setStatusMessage] = useState("");
 
     const [isMounted, setIsMounted] = useState(false);
-    const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>("free");
-    const [showUpgrade, setShowUpgrade] = useState(false);
+
+    const {
+        requiredExpenses, setRequiredExpenses,
+        expenseName, setExpenseName,
+        expenseAmount, setExpenseAmount,
+        expenseDueDate, setExpenseDueDate,
+        expenseRecurrence, setExpenseRecurrence,
+        expenseType, setExpenseType,
+        expenseCategory, setExpenseCategory,
+        expenseIsAutopay, setExpenseIsAutopay,
+        expenseErrors,
+        handleAddExpense,
+        handleUpdateExpense,
+        handleRemoveExpense,
+        restoreExpense,
+        handleMarkExpensePaid,
+    } = useRequiredExpenses(saveResetSnapshot);
+
+    const {
+        debts, setDebts,
+        debtName, setDebtName,
+        debtBalance, setDebtBalance,
+        debtMinimumPayment, setDebtMinimumPayment,
+        debtDueDate, setDebtDueDate,
+        debtApr, setDebtApr,
+        debtType, setDebtType,
+        debtRecurrence, setDebtRecurrence,
+        debtIsAutopay, setDebtIsAutopay,
+        debtRemainingPayments, setDebtRemainingPayments,
+        debtScheduledPaymentAmount, setDebtScheduledPaymentAmount,
+        debtErrors,
+        debtWarnings,
+        handleAddDebt,
+        handleUpdateDebt,
+        handleRemoveDebt,
+        restoreDebt,
+        handleMarkDebtMinimumPaid,
+        handleMarkDebtSnowballPaid,
+    } = useDebts(saveResetSnapshot);
+
+    const {
+        notificationsEnabled, setNotificationsEnabled,
+        handleNotificationsToggle,
+    } = useNotificationsSetting(nextPaycheckDate, requiredExpenses);
+
+    const {
+        subscriptionPlan, setSubscriptionPlan,
+        showUpgrade, setShowUpgrade,
+        purchaseStatus, setPurchaseStatus,
+    } = useSubscription(notificationsEnabled, nextPaycheckDate, requiredExpenses, setNotificationsEnabled);
+
     const [premiumPackageInfo, setPremiumPackageInfo] = useState<PremiumPackageInfo | null>(null);
-    const [purchaseStatus, setPurchaseStatus] = useState("");
-    const [notificationsEnabled, setNotificationsEnabled] = useState(() =>
-        loadStoredState("debtPlanner.notificationsEnabled", false)
-    );
 
-    function hasValidPayCycleInputs() {
-        if (payCycle === "semimonthly") {
-            const first = Number(semiMonthlyFirstDay);
-            const second = Number(semiMonthlySecondDay);
+    function saveResetSnapshot(overrides?: {
+        requiredExpenses?: RequiredExpense[];
+        debts?: Debt[];
+        goals?: Goal[];
+        completedRecommendedActions?: CompletedRecommendedAction[];
+    }) {
+        if (typeof window === "undefined") return;
 
-            return (
-                first >= 1 &&
-                first <= 31 &&
-                second >= 1 &&
-                second <= 31 &&
-                first !== second
-            );
-        }
+        const snapshot = {
+            amount,
+            payCycle,
+            semiMonthlyFirstDay,
+            semiMonthlySecondDay,
+            monthlyPayDay,
+            currentDate,
+            nextPaycheckDate,
+            requiredExpenses: overrides?.requiredExpenses ?? requiredExpenses,
+            livingExpenses,
+            debts: overrides?.debts ?? debts,
+            goals: overrides?.goals ?? goals,
+            completedRecommendedActions:
+                overrides?.completedRecommendedActions ?? completedRecommendedActions,
+            payoffStrategy,
+            lastSavedAt,
+        };
 
-        if (payCycle === "monthly") {
-            const day = Number(monthlyPayDay);
-            return day >= 1 && day <= 31;
-        }
-
-        return true;
+        window.localStorage.setItem(
+            "debtPlanner.resetSnapshot",
+            JSON.stringify(snapshot)
+        );
     }
 
     const result = useMemo(() => {
@@ -343,6 +322,35 @@ export default function Home() {
     const activeDebts = debtsWithDisplayBalances.filter((debt) => debt.displayBalance > 0);
     const paidOffDebts = debtsWithDisplayBalances.filter((debt) => debt.displayBalance <= 0);
 
+    const debtFreeDate = useMemo(() => {
+        const liveDebts = debts.filter(d => d.balance > 0);
+        if (!result || liveDebts.length === 0) return null;
+        const snowballTotal = result.allocations
+            .filter(a => a.category === "snowball")
+            .reduce((sum, a) => sum + a.amount, 0);
+        const cycleMultiplier = payCycle === "weekly" ? 4 : payCycle === "monthly" ? 1 : 2;
+        const { estimatedDebtFreeDate } = projectDebtPayoff({
+            debts: liveDebts,
+            monthlyExtraPayment: snowballTotal * cycleMultiplier,
+            strategy: payoffStrategy,
+            startDate: currentDate,
+        });
+        return estimatedDebtFreeDate === "Unable to estimate" ? null : estimatedDebtFreeDate;
+    }, [result, debts, payoffStrategy, currentDate, payCycle]);
+
+    const heroSubtitle = useMemo(() => {
+        if (!result || debts.filter(d => d.balance > 0).length === 0) {
+            return "Enter a paycheck and see exactly what to do next.";
+        }
+        if (result.shortfall > 0) {
+            return "Tight cycle — protect your minimums first.";
+        }
+        if (debtFreeDate) {
+            return `You're on track to be debt-free by ${debtFreeDate}.`;
+        }
+        return "Here's what to do this paycheck.";
+    }, [result, debts, debtFreeDate]);
+
     useEffect(() => {
         localStorage.setItem("debtPlanner.livingExpenses", JSON.stringify(livingExpenses));
     }, [livingExpenses]);
@@ -359,58 +367,22 @@ export default function Home() {
             setIsMounted(true);
         }, 0);
 
-        async function loadSubscription() {
-            try {
-                if (process.env.NODE_ENV === "development") {
-                    const mock = localStorage.getItem("debtPlanner.mockSubscription");
-                    if (mock === "premium") {
-                        setSubscriptionPlan("premium");
-
-                        if (notificationsEnabled && nextPaycheckDate) {
-                            const permitted = await hasNotificationPermission();
-                            if (permitted) {
-                                void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
-                            } else {
-                                setNotificationsEnabled(false);
-                            }
-                        }
-
-                        return;
-                    }
-                }
-
-                await initializeRevenueCat();
-
-                const plan = await getSubscriptionPlan();
-                setSubscriptionPlan(plan);
-                console.log("Loaded subscription plan:", plan);
-
-                if (notificationsEnabled && nextPaycheckDate) {
-                    const permitted = await hasNotificationPermission();
-                    if (permitted) {
-                        void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
-                    } else {
-                        setNotificationsEnabled(false);
-                    }
-                }
-            } catch (error) {
-                console.log("RevenueCat init failed", error)
-            }
-        }
-
-        void loadSubscription();
-
         return () => window.clearTimeout(timeout);
     }, []);
 
     useEffect(() => {
         if (!statusMessage) return;
 
-        const timeout = window.setTimeout(() => {
+        const exitTimer = window.setTimeout(() => setIsToastExiting(true), 2020);
+        const clearTimer = window.setTimeout(() => {
             setStatusMessage("");
+            setIsToastExiting(false);
         }, 2200);
 
-        return () => window.clearTimeout(timeout);
+        return () => {
+            window.clearTimeout(exitTimer);
+            window.clearTimeout(clearTimer);
+        };
     }, [statusMessage]);
 
     useEffect(() => {
@@ -419,69 +391,6 @@ export default function Home() {
             JSON.stringify(completedRecommendedActions)
         );
     }, [completedRecommendedActions]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.darkMode", JSON.stringify(darkMode));
-    }, [darkMode]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.notificationsEnabled", JSON.stringify(notificationsEnabled));
-    }, [notificationsEnabled]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.amount", JSON.stringify(amount));
-    }, [amount]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.payCycle", JSON.stringify(payCycle));
-    }, [payCycle]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.semiMonthlyFirstDay",
-            JSON.stringify(semiMonthlyFirstDay)
-        );
-    }, [semiMonthlyFirstDay]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.semiMonthlySecondDay",
-            JSON.stringify(semiMonthlySecondDay)
-        );
-    }, [semiMonthlySecondDay]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.monthlyPayDay",
-            JSON.stringify(monthlyPayDay)
-        );
-    }, [monthlyPayDay]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.currentDate",
-            JSON.stringify(currentDate)
-        );
-    }, [currentDate]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.nextPaycheckDate", JSON.stringify(nextPaycheckDate));
-    }, [nextPaycheckDate]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.requiredExpenses",
-            JSON.stringify(requiredExpenses)
-        );
-    }, [requiredExpenses]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.debts", JSON.stringify(debts));
-    }, [debts]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.goals", JSON.stringify(goals));
-    }, [goals]);
 
     useEffect(() => {
         localStorage.setItem(
@@ -514,16 +423,6 @@ export default function Home() {
         darkMode,
     ]);
 
-    useEffect(() => {
-        StatusBar.setOverlaysWebView({ overlay: false }).catch(() => undefined);
-
-        StatusBar.setStyle({
-            style: darkMode ? Style.Dark : Style.Light,
-        }).catch(() => undefined);
-
-        StatusBar.setBackgroundColor({ color: darkMode ? "#07111f" : "#eef3f8", }).catch(() => undefined);
-    }, [darkMode]);
-
     function buildBackupData() {
         return {
             version: 1,
@@ -549,38 +448,6 @@ export default function Home() {
         };
     }
 
-    function saveResetSnapshot(overrides?: {
-        requiredExpenses?: RequiredExpense[];
-        debts?: Debt[];
-        goals?: Goal[];
-        completedRecommendedActions?: CompletedRecommendedAction[];
-    }) {
-        if (typeof window === "undefined") return;
-
-        const snapshot = {
-            amount,
-            payCycle,
-            semiMonthlyFirstDay,
-            semiMonthlySecondDay,
-            monthlyPayDay,
-            currentDate,
-            nextPaycheckDate,
-            requiredExpenses: overrides?.requiredExpenses ?? requiredExpenses,
-            livingExpenses,
-            debts: overrides?.debts ?? debts,
-            goals: overrides?.goals ?? goals,
-            completedRecommendedActions:
-                overrides?.completedRecommendedActions ?? completedRecommendedActions,
-            payoffStrategy,
-            lastSavedAt,
-        };
-
-        window.localStorage.setItem(
-            "debtPlanner.resetSnapshot",
-            JSON.stringify(snapshot)
-        );
-    }
-
     async function handleImportDebtsCsv(event: ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
 
@@ -601,6 +468,7 @@ export default function Home() {
                         .join("\n")}`
                 );
             } else {
+                void triggerMediumHaptic();
                 alert(`Imported ${importResult.debts.length} debts.`);
             }
         } catch {
@@ -619,28 +487,12 @@ export default function Home() {
 
         setIsFirstRunSetup(false);
         setShowPlanSettings(false);
+        setShowDeleteConfirm(false);
         setActiveTab("plan");
         setStatusMessage("Plan updated");
 
         if (notificationsEnabled) {
             void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
-        }
-    }
-
-    async function handleNotificationsToggle() {
-        triggerLightHaptic();
-
-        if (notificationsEnabled) {
-            await cancelAllNotifications();
-            setNotificationsEnabled(false);
-        } else {
-            const granted = await requestNotificationPermission();
-            if (granted) {
-                setNotificationsEnabled(true);
-                if (nextPaycheckDate) {
-                    void scheduleNotifications({ nextPaycheckDate, requiredExpenses });
-                }
-            }
         }
     }
 
@@ -651,272 +503,6 @@ export default function Home() {
         setLastSavedAt(savedAt);
         localStorage.setItem("debtPlanner.lastSavedAt", JSON.stringify(savedAt));
         setStatusMessage("Up to date");
-    }
-
-    function handleAddExpense() {
-        const nextAmount = Number(expenseAmount);
-        const trimmedName = expenseName.trim();
-
-        const nextErrors: typeof expenseErrors = {};
-
-        if (!trimmedName) nextErrors.name = "Expense name is required.";
-        if (!nextAmount || nextAmount <= 0) {
-            nextErrors.amount = "Amount must be greater than 0.";
-        }
-        if (!expenseDueDate) nextErrors.dueDate = "Due date is required.";
-
-        if (Object.keys(nextErrors).length > 0) {
-            setExpenseErrors(nextErrors);
-            return;
-        }
-
-        setExpenseErrors({});
-
-        setRequiredExpenses((current) => [
-            ...current,
-            {
-                id: crypto.randomUUID(),
-                name: trimmedName,
-                amount: nextAmount,
-                dueDate: expenseDueDate,
-                originalDueDate: expenseDueDate,
-                recurrence: expenseRecurrence,
-                expenseType,
-                category: expenseCategory,
-                isAutopay: expenseIsAutopay,
-                isPaidThisCycle: false,
-            },
-        ]);
-
-        setExpenseName("");
-        setExpenseAmount("");
-        setExpenseDueDate("");
-        setExpenseRecurrence("monthly");
-        setExpenseType("fixed");
-        setExpenseCategory("other");
-        setExpenseIsAutopay(false);
-    }
-
-    function handleUpdateExpense(
-        id: string,
-        updates: Partial<Pick<RequiredExpense, "amount" | "dueDate" | "recurrence" | "expenseType" | "category" | "isAutopay">>
-    ) {
-        setRequiredExpenses((current) =>
-            current.map((expense) =>
-                expense.id === id ? { ...expense, ...updates } : expense
-            )
-        );
-    }
-
-    function handleAddDebt() {
-        const balance = Number(debtBalance);
-        const minimumPayment = Number(debtMinimumPayment);
-        const apr = Number(debtApr || 0);
-        const trimmedName = debtName.trim();
-
-        const nextErrors: typeof debtErrors = {};
-        const nextWarnings: typeof debtWarnings = {};
-
-        if (!trimmedName) nextErrors.name = "Debt name is required.";
-        if (!balance || balance <= 0) {
-            nextErrors.balance = "Balance must be greater than zero.";
-        }
-
-        if (!minimumPayment || minimumPayment <= 0) {
-            nextErrors.minimumPayment =
-                "Minimum payment must be greater than zero.";
-        }
-
-        if (balance > 0 && minimumPayment > balance) {
-            nextErrors.minimumPayment = "Minimum payment must not exceed balance.";
-        }
-
-        if (!debtDueDate) nextErrors.dueDate = "Due date is required.";
-
-        if (apr < 0 || apr > 100) {
-            nextErrors.apr = "APR must be between 0 and 100.";
-        }
-
-        const estimatedMonthlyInterest = (balance * (apr / 100)) / 12;
-
-        if (apr > 0 && minimumPayment <= estimatedMonthlyInterest) {
-            nextWarnings.minimumPayment =
-                "Minimum payment may not cover monthly interest. Balance may increase unless extra is paid.";
-        }
-
-        if (Object.keys(nextErrors).length > 0) {
-            setDebtErrors(nextErrors);
-            setDebtWarnings(nextWarnings);
-            return;
-        }
-
-        setDebtErrors({});
-        setDebtWarnings(nextWarnings);
-
-        setDebts((current) => [
-            ...current,
-            {
-                id: crypto.randomUUID(),
-                name: trimmedName,
-                balance,
-                originalBalance: balance,
-                minimumPayment,
-                dueDate: debtDueDate,
-                originalDueDate: debtDueDate,
-                apr,
-                type: debtType,
-                recurrence: debtRecurrence,
-                remainingPayments:
-                    debtType === "bnpl" && debtRemainingPayments
-                        ? Number(debtRemainingPayments)
-                        : undefined,
-                scheduledPaymentAmount:
-                    debtType === "bnpl" && debtScheduledPaymentAmount
-                        ? Number(debtScheduledPaymentAmount)
-                        : undefined,
-                minimumPaidThisCycle: false,
-                snowballPaidThisCycle: false,
-                isAutopay: debtIsAutopay,
-            },
-        ]);
-
-        setDebtName("");
-        setDebtBalance("");
-        setDebtMinimumPayment("");
-        setDebtDueDate("");
-        setDebtApr("");
-        setDebtType("debt");
-        setDebtRecurrence("monthly");
-        setDebtRemainingPayments("");
-        setDebtScheduledPaymentAmount("");
-        setDebtIsAutopay(false);
-    }
-
-    function handleUpdateDebt(
-        id: string,
-        updates: Partial<
-            Pick<Debt, "balance" | "minimumPayment" | "dueDate" | "apr" | "isAutopay" | "recurrence">
-        >
-    ) {
-        setDebts((current) =>
-            current.map((debt) =>
-                debt.id === id ? { ...debt, ...updates } : debt
-            )
-        );
-    }
-
-    function handleAddGoal() {
-        const targetAmount = Number(goalTargetAmount);
-        const currentAmount = Number(goalCurrentAmount || 0);
-        const trimmedName = goalName.trim();
-
-        const nextErrors: typeof goalErrors = {};
-
-        if (!trimmedName) nextErrors.name = "Goal name is required.";
-
-        if (!targetAmount || targetAmount <= 0) {
-            nextErrors.targetAmount = "Target amount must be greater than 0.";
-        }
-
-        if (Object.keys(nextErrors).length > 0) {
-            setGoalErrors(nextErrors);
-            return;
-        }
-
-        setGoalErrors({});
-
-        setGoals((current) => [
-            ...current,
-            {
-                id: crypto.randomUUID(),
-                name: trimmedName,
-                targetAmount,
-                currentAmount,
-                originalCurrentAmount: currentAmount,
-                type: goalType,
-            },
-        ]);
-
-        setGoalName("");
-        setGoalTargetAmount("");
-        setGoalCurrentAmount("");
-        setGoalType("savings");
-    }
-
-    function handleUpdateGoal(
-        id: string,
-        updates: Partial<Pick<Goal, "targetAmount" | "currentAmount">>
-    ) {
-        setGoals((current) =>
-            current.map((goal) =>
-                goal.id === id ? { ...goal, ...updates } : goal
-            )
-        );
-    }
-
-    function handleRemoveExpense(id: string) {
-        setRequiredExpenses((current) =>
-            current.filter((expense) => expense.id !== id)
-        );
-    }
-
-    function handleRemoveDebt(id: string) {
-        setDebts((current) => current.filter((debt) => debt.id !== id));
-    }
-
-    function handleRemoveGoal(id: string) {
-        setGoals((current) => current.filter((goal) => goal.id !== id));
-    }
-
-    function handleMarkExpensePaid(id: string) {
-        setRequiredExpenses((current) => {
-            const nextRequiredExpenses = current.map((expense) =>
-                expense.id === id
-                    ? {
-                        ...expense,
-                        isPaidThisCycle: !expense.isPaidThisCycle,
-                    }
-                    : expense
-            );
-
-            saveResetSnapshot({ requiredExpenses: nextRequiredExpenses });
-
-            return nextRequiredExpenses;
-        });
-    }
-
-    function handleMarkDebtMinimumPaid(id: string) {
-        setDebts((current) => {
-            const nextDebts = current.map((debt) => {
-                const currentlyPaid =
-                    debt.minimumPaidThisCycle ?? debt.isPaidThisCycle ?? false;
-
-                return debt.id === id
-                    ? {
-                        ...debt,
-                        minimumPaidThisCycle: !currentlyPaid,
-                        isPaidThisCycle: !currentlyPaid,
-                    }
-                    : debt;
-            });
-
-            saveResetSnapshot({ debts: nextDebts });
-
-            return nextDebts;
-        });
-    }
-
-    function handleMarkDebtSnowballPaid(id: string) {
-        setDebts((current) =>
-            current.map((debt) =>
-                debt.id === id
-                    ? {
-                        ...debt,
-                        snowballPaidThisCycle: !debt.snowballPaidThisCycle,
-                    }
-                    : debt
-            )
-        );
     }
 
     function handleMarkRecommendedAction(targetId: string, label: string, category: "emergency" | "snowball" | "optional_goal", recommendedAmount: number, actualAmount: number, paymentSource: "paycheck" | "external" = "paycheck") {
@@ -1079,6 +665,7 @@ export default function Home() {
             );
             setPayoffStrategy(backup.payoffStrategy ?? "snowball");
 
+            void triggerMediumHaptic();
             setStatusMessage("Backup imported successfully");
         } catch {
             alert("Unable to import backup file.");
@@ -1087,7 +674,34 @@ export default function Home() {
         event.target.value = "";
     }
 
+    function handleRemoveDebtWithUndo(id: string) {
+        const debt = debts.find((d) => d.id === id);
+        if (!debt) { handleRemoveDebt(id); return; }
+        handleRemoveDebt(id);
+        if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+        setPendingUndo({ type: "debt", item: debt });
+        undoTimerRef.current = setTimeout(() => setPendingUndo(null), 5000);
+    }
+
+    function handleRemoveExpenseWithUndo(id: string) {
+        const expense = requiredExpenses.find((e) => e.id === id);
+        if (!expense) { handleRemoveExpense(id); return; }
+        handleRemoveExpense(id);
+        if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+        setPendingUndo({ type: "expense", item: expense });
+        undoTimerRef.current = setTimeout(() => setPendingUndo(null), 5000);
+    }
+
+    function handleUndo() {
+        if (!pendingUndo) return;
+        if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+        if (pendingUndo.type === "debt") restoreDebt(pendingUndo.item);
+        else restoreExpense(pendingUndo.item);
+        setPendingUndo(null);
+    }
+
     async function handleRolloverPayCycle() {
+        triggerMediumHaptic();
         saveResetSnapshot();
 
         setDebts((current) =>
@@ -1130,6 +744,7 @@ export default function Home() {
 
         incrementRolloverCount();
         void maybeRequestAppReview();
+        setStatusMessage("Cycle complete — great work!");
     }
 
     function handlePopulateDemoData() {
@@ -1150,19 +765,18 @@ export default function Home() {
         return <AppLockScreen darkMode={darkMode} onUnlock={requestUnlock} />;
     }
 
+    if (!hasCompletedOnboarding && !isDemoMode) {
+        return (
+            <main className={`app ${darkMode ? "dark-theme" : "light-theme"}`}>
+                <OnboardingFlow />
+            </main>
+        );
+    }
 
     return (
         <main className={`app ${darkMode ? "dark-theme" : "light-theme"}`}>
             <PullToRefresh className="app-content" onRefresh={handlePullToRefresh}>
-                {process.env.NODE_ENV === "development" && (
-                    <button
-                        type="button"
-                        className="dev-populate-button"
-                        onClick={handlePopulateDemoData}
-                    >
-                        Populate Demo Data
-                    </button>
-                )}
+
                 {isDemoMode && (
                     <div className="demo-mode-banner" role="status">
                         <span>Demo Mode — viewing sample data</span>
@@ -1178,32 +792,38 @@ export default function Home() {
                         </button>
                     </div>
                 )}
-                <section className="hero">
-                    <h1>Debt Planner</h1>
-                    <p>Enter a paycheck and see exactly what to do next.</p>
-                    {lastSavedAt && (
+                <section className={activeTab === "plan" ? "hero" : "hero hero-page"} aria-label="Page header">
+                    {activeTab === "plan" ? (
+                        <>
+                            <h1>Debt Planner</h1>
+                            <p>{heroSubtitle}</p>
+                        </>
+                    ) : activeTab === "bills" ? (
+                        <>
+                            <h1 className="page-heading">Bills</h1>
+                            <p className="page-subheading">Manage recurring expenses and debts.</p>
+                        </>
+                    ) : activeTab === "snowball" ? (
+                        <>
+                            <h1 className="page-heading">Payoff</h1>
+                            <p className="page-subheading">Optimize your debt payoff strategy.</p>
+                        </>
+                    ) : activeTab === "goals" ? (
+                        <>
+                            <h1 className="page-heading">Goals</h1>
+                            <p className="page-subheading">Track savings goals and emergency funds.</p>
+                        </>
+                    ) : null}
+                    {lastSavedAt && activeTab === "plan" && (
                         <p className="last-saved-indicator">
                             {formatLastSaved(lastSavedAt)}
                         </p>
                     )}
                     {statusMessage && (
-                        <div className="save-status-toast" role="status" aria-live="polite">
+                        <div className={`save-status-toast${isToastExiting ? " exiting" : ""}`} role="status" aria-live="polite">
                             {statusMessage}
                         </div>
                     )}
-
-                    <button
-                        type="button"
-                        className="theme-toggle"
-                        aria-label={darkMode ? "Switch To Light Mode" : "Switch To Dark Mode"}
-                        onClick={() => {
-                            triggerLightHaptic();
-                            setDarkMode((current) => !current);
-                        }
-                        }
-                    >
-                        {darkMode ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
-                    </button>
 
                     {process.env.NEXT_PUBLIC_DEV_MODE === "true" && (
                         <button
@@ -1228,6 +848,7 @@ export default function Home() {
                     )}
                 </section>
 
+                <div key={activeTab} className="tab-content-transition" data-direction={tabDirection} role="region" aria-label={activeTab === "plan" ? "Plan" : activeTab === "bills" ? "Bills" : activeTab === "snowball" ? "Payoff" : "Goals"}>
                 {activeTab === "plan" && (
                     <>
                         <div className="plan-toolbar">
@@ -1244,51 +865,81 @@ export default function Home() {
                             </button>
                         </div>
 
-                        <ResultsSection
-                            result={result}
-                            requiredExpenses={requiredExpenses}
-                            debts={debts}
-                            goals={goals}
-                            payoffStrategy={payoffStrategy}
-                            completedRecommendedActions={
-                                completedRecommendedActions
-                            }
-                            currentDate={currentDate}
-                            onMarkExpensePaid={handleMarkExpensePaid}
-                            onMarkDebtMinimumPaid={handleMarkDebtMinimumPaid}
-                            onMarkDebtSnowballPaid={handleMarkDebtSnowballPaid}
-                            onMarkRecommendedAction={handleMarkRecommendedAction}
-                            recommendationOverrides={recommendationOverrides}
-                            onRecommendationOverrideChange={(
-                                targetId,
-                                category,
-                                amount
-                            ) => {
-                                setRecommendationOverrides((current) => {
-                                    const filtered = current.filter((override) => !(override.targetId === targetId && override.category === category));
+                        <div className="plan-tab-grid">
+                            {result !== null && activeDebts.length === 0 && (
+                                <div className="card first-debt-prompt">
+                                    <p className="first-debt-prompt-text">
+                                        Your debt-free date is waiting. Add your first debt to see exactly what to do this paycheck.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className="primary-plan-button"
+                                        onClick={() => {
+                                            triggerLightHaptic();
+                                            setActiveTab("bills");
+                                        }}
+                                    >
+                                        Add First Debt
+                                    </button>
+                                </div>
+                            )}
 
-                                    return [
-                                        ...filtered,
-                                        {
-                                            targetId,
-                                            category,
-                                            amount,
-                                        },
-                                    ];
-                                });
-                            }}
+                            <ResultsSection
+                                result={result}
+                                requiredExpenses={requiredExpenses}
+                                debts={debts}
+                                goals={goals}
+                                payoffStrategy={payoffStrategy}
+                                debtFreeDate={debtFreeDate}
+                                completedRecommendedActions={
+                                    completedRecommendedActions
+                                }
+                                currentDate={currentDate}
+                                onMarkExpensePaid={handleMarkExpensePaid}
+                                onMarkDebtMinimumPaid={handleMarkDebtMinimumPaid}
+                                onMarkDebtSnowballPaid={handleMarkDebtSnowballPaid}
+                                onMarkRecommendedAction={handleMarkRecommendedAction}
+                                recommendationOverrides={recommendationOverrides}
+                                onRecommendationOverrideChange={(
+                                    targetId,
+                                    category,
+                                    amount
+                                ) => {
+                                    setRecommendationOverrides((current) => {
+                                        const filtered = current.filter((override) => !(override.targetId === targetId && override.category === category));
+
+                                        return [
+                                            ...filtered,
+                                            {
+                                                targetId,
+                                                category,
+                                                amount,
+                                            },
+                                        ];
+                                    });
+                                }}
 
 
-                        />
+                            />
 
-                        <TimelineSection
-                            result={result}
-                            requiredExpenses={requiredExpenses}
-                            debts={debts}
-                            completedRecommendedActions={completedRecommendedActions}
-                            currentDate={currentDate}
-                            nextPaycheckDate={nextPaycheckDate}
-                        />
+                            <TimelineSection
+                                result={result}
+                                requiredExpenses={requiredExpenses}
+                                debts={debts}
+                                goals={goals}
+                                livingExpenses={livingExpenses}
+                                completedRecommendedActions={completedRecommendedActions}
+                                currentDate={currentDate}
+                                nextPaycheckDate={nextPaycheckDate}
+                                payCycleConfig={{
+                                    payCycle,
+                                    semiMonthlyFirstDay: semiMonthlyFirstDay ? Number(semiMonthlyFirstDay) : undefined,
+                                    semiMonthlySecondDay: semiMonthlySecondDay ? Number(semiMonthlySecondDay) : undefined,
+                                    monthlyPayDay: monthlyPayDay ? Number(monthlyPayDay) : undefined,
+                                }}
+                                strategy={payoffStrategy}
+                            />
+                        </div>
                     </>
                 )}
 
@@ -1361,43 +1012,42 @@ export default function Home() {
                 )}
 
                 {activeTab === "bills" && (
-                    <div className="mobile-section-switcher">
-                        <button
-                            type="button"
-                            className={
-                                billsView === "expenses"
-                                    ? "mobile-section-switcher-button active"
-                                    : "mobile-section-switcher-button"
-                            }
-                            onClick={() => {
-                                triggerLightHaptic();
-                                setBillsView("expenses");
-                            }}
-                        >
-                            <Wallet size={18} aria-hidden="true" />
-                            Expenses
-                        </button>
+                    <div className="bills-tab-content" data-bills-view={billsView ?? "expenses"}>
+                        <div className="mobile-section-switcher">
+                            <button
+                                type="button"
+                                className={
+                                    billsView === "expenses"
+                                        ? "mobile-section-switcher-button active"
+                                        : "mobile-section-switcher-button"
+                                }
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    setBillsView("expenses");
+                                }}
+                            >
+                                <Wallet size={18} aria-hidden="true" />
+                                Expenses
+                            </button>
 
-                        <button
-                            type="button"
-                            className={
-                                billsView === "debts"
-                                    ? "mobile-section-switcher-button active"
-                                    : "mobile-section-switcher-button"
-                            }
-                            onClick={() => {
-                                triggerLightHaptic();
-                                setBillsView("debts");
-                            }}
-                        >
-                            <CreditCard size={18} aria-hidden="true" />
-                            Debts
-                        </button>
-                    </div>
-                )}
+                            <button
+                                type="button"
+                                className={
+                                    billsView === "debts"
+                                        ? "mobile-section-switcher-button active"
+                                        : "mobile-section-switcher-button"
+                                }
+                                onClick={() => {
+                                    triggerLightHaptic();
+                                    setBillsView("debts");
+                                }}
+                            >
+                                <CreditCard size={18} aria-hidden="true" />
+                                Debts
+                            </button>
+                        </div>
 
-                {activeTab === "bills" && billsView === "expenses" && (
-                    <>
+                        <div className="bills-expenses-col">
                         <RequiredExpensesSection
                             expenses={requiredExpenses}
                             expenseName={expenseName}
@@ -1416,54 +1066,54 @@ export default function Home() {
                             onExpenseCategoryChange={setExpenseCategory}
                             onExpenseIsAutopayChange={setExpenseIsAutopay}
                             onAddExpense={handleAddExpense}
-                            onRemoveExpense={handleRemoveExpense}
+                            onRemoveExpense={handleRemoveExpenseWithUndo}
                             onUpdateExpense={handleUpdateExpense}
                             expenseErrors={expenseErrors}
                         />
-
                         <LivingExpensesSection
                             livingExpenses={livingExpenses}
                             onLivingExpensesChange={setLivingExpenses}
                         />
-                    </>
-                )}
+                        </div>
 
-                {activeTab === "bills" && billsView === "debts" && (
-                    <DebtsSection
-                        activeDebts={activeDebts}
-                        paidOffDebts={paidOffDebts}
-                        debtName={debtName}
-                        debtBalance={debtBalance}
-                        debtMinimumPayment={debtMinimumPayment}
-                        debtApr={debtApr}
-                        debtDueDate={debtDueDate}
-                        debtType={debtType}
-                        debtRecurrence={debtRecurrence}
-                        debtIsAutopay={debtIsAutopay}
-                        formatRecurrence={formatRecurrence}
-                        debtRemainingPayments={debtRemainingPayments}
-                        debtScheduledPaymentAmount={debtScheduledPaymentAmount}
-                        onDebtRemainingPaymentsChange={
-                            setDebtRemainingPayments
-                        }
-                        onDebtScheduledPaymentAmountChange={
-                            setDebtScheduledPaymentAmount
-                        }
-                        onDebtNameChange={setDebtName}
-                        onDebtBalanceChange={setDebtBalance}
-                        onDebtMinimumPaymentChange={setDebtMinimumPayment}
-                        onDebtAprChange={setDebtApr}
-                        onDebtDueDateChange={setDebtDueDate}
-                        onDebtTypeChange={setDebtType}
-                        onDebtRecurrenceChange={setDebtRecurrence}
-                        onDebtIsAutopayChange={setDebtIsAutopay}
-                        onImportDebtsCsv={handleImportDebtsCsv}
-                        onAddDebt={handleAddDebt}
-                        onRemoveDebt={handleRemoveDebt}
-                        onUpdateDebt={handleUpdateDebt}
-                        debtErrors={debtErrors}
-                        debtWarnings={debtWarnings}
-                    />
+                        <div className="bills-debts-col">
+                        <DebtsSection
+                            activeDebts={activeDebts}
+                            paidOffDebts={paidOffDebts}
+                            debtName={debtName}
+                            debtBalance={debtBalance}
+                            debtMinimumPayment={debtMinimumPayment}
+                            debtApr={debtApr}
+                            debtDueDate={debtDueDate}
+                            debtType={debtType}
+                            debtRecurrence={debtRecurrence}
+                            debtIsAutopay={debtIsAutopay}
+                            formatRecurrence={formatRecurrence}
+                            debtRemainingPayments={debtRemainingPayments}
+                            debtScheduledPaymentAmount={debtScheduledPaymentAmount}
+                            onDebtRemainingPaymentsChange={
+                                setDebtRemainingPayments
+                            }
+                            onDebtScheduledPaymentAmountChange={
+                                setDebtScheduledPaymentAmount
+                            }
+                            onDebtNameChange={setDebtName}
+                            onDebtBalanceChange={setDebtBalance}
+                            onDebtMinimumPaymentChange={setDebtMinimumPayment}
+                            onDebtAprChange={setDebtApr}
+                            onDebtDueDateChange={setDebtDueDate}
+                            onDebtTypeChange={setDebtType}
+                            onDebtRecurrenceChange={setDebtRecurrence}
+                            onDebtIsAutopayChange={setDebtIsAutopay}
+                            onImportDebtsCsv={handleImportDebtsCsv}
+                            onAddDebt={handleAddDebt}
+                            onRemoveDebt={handleRemoveDebtWithUndo}
+                            onUpdateDebt={handleUpdateDebt}
+                            debtErrors={debtErrors}
+                            debtWarnings={debtWarnings}
+                        />
+                        </div>
+                    </div>
                 )}
 
                 {activeTab === "goals" && (
@@ -1483,9 +1133,19 @@ export default function Home() {
                         onUpdateGoal={handleUpdateGoal}
                     />
                 )}
+                </div>
             </PullToRefresh>
 
-            <nav className="bottom-nav">
+            {pendingUndo && (
+                <div className="undo-toast" role="status" aria-live="polite">
+                    <span>{pendingUndo.type === "debt" ? "Debt removed." : "Bill removed."}</span>
+                    <button type="button" className="undo-toast-button" onClick={handleUndo}>
+                        Undo
+                    </button>
+                </div>
+            )}
+
+            <nav className="bottom-nav" aria-label="Main navigation">
                 <button
                     type="button"
                     className={
@@ -1552,12 +1212,60 @@ export default function Home() {
                 </button>
             </nav>
 
+            <nav className="sidebar-nav" aria-label="Main navigation">
+                <div className="sidebar-logo" aria-hidden="true">
+                    <TrendingUp size={20} />
+                </div>
+                <button
+                    type="button"
+                    className={activeTab === "plan" ? "sidebar-nav-item active" : "sidebar-nav-item"}
+                    onClick={() => { triggerLightHaptic(); setActiveTab("plan"); }}
+                >
+                    <HomeIcon size={22} aria-hidden="true" />
+                    <small>Plan</small>
+                </button>
+                <button
+                    type="button"
+                    className={activeTab === "bills" ? "sidebar-nav-item active" : "sidebar-nav-item"}
+                    onClick={() => { triggerLightHaptic(); setActiveTab("bills"); setBillsView((c) => c ?? "expenses"); }}
+                >
+                    <CreditCard size={22} aria-hidden="true" />
+                    <small>Bills</small>
+                </button>
+                <button
+                    type="button"
+                    className={activeTab === "snowball" ? "sidebar-nav-item active" : "sidebar-nav-item"}
+                    onClick={() => { triggerLightHaptic(); setActiveTab("snowball"); }}
+                >
+                    <TrendingUp size={22} aria-hidden="true" />
+                    <small>Payoff</small>
+                </button>
+                <button
+                    type="button"
+                    className={activeTab === "goals" ? "sidebar-nav-item active" : "sidebar-nav-item"}
+                    onClick={() => { triggerLightHaptic(); setActiveTab("goals"); }}
+                >
+                    <Target size={22} aria-hidden="true" />
+                    <small>Goals</small>
+                </button>
+                <button
+                    type="button"
+                    className="sidebar-nav-item sidebar-settings-btn"
+                    aria-label="Open Plan Settings"
+                    onClick={() => { triggerLightHaptic(); setShowPlanSettings(true); }}
+                >
+                    <Settings size={22} aria-hidden="true" />
+                    <small>Settings</small>
+                </button>
+            </nav>
+
             {showPlanSettings && (
                 <div
                     className="settings-overlay"
                     onClick={() => {
                         if (!isFirstRunSetup) {
                             setShowPlanSettings(false);
+                                setShowDeleteConfirm(false);
                         }
                     }}
                 >
@@ -1582,6 +1290,7 @@ export default function Home() {
                                     onClick={() => {
                                         triggerLightHaptic();
                                         setShowPlanSettings(false);
+                                        setShowDeleteConfirm(false);
                                     }}
                                 >
                                     Close
@@ -1654,6 +1363,82 @@ export default function Home() {
                         />
 
                         {!isFirstRunSetup && (
+                            <div className="card windfall-card">
+                                {showWindfall ? (
+                                    <div className="windfall-form">
+                                        <p className="windfall-label">Got a bonus or extra cash? Add it to this paycheck.</p>
+                                        <div className="windfall-input-row">
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                className="windfall-input"
+                                                placeholder="0.00"
+                                                value={windfallInput}
+                                                onChange={e => setWindfallInput(e.target.value)}
+                                                autoFocus
+                                            />
+                                            <button
+                                                type="button"
+                                                className="primary-plan-button"
+                                                onClick={() => {
+                                                    const extra = parseFloat(windfallInput);
+                                                    if (!extra || extra <= 0) return;
+                                                    triggerMediumHaptic();
+                                                    setAmount(prev => String(Math.round((Number(prev) + extra) * 100) / 100));
+                                                    setWindfallInput("");
+                                                    setShowWindfall(false);
+                                                    setShowPlanSettings(false);
+                                                    setStatusMessage(`Added $${extra.toFixed(2)} windfall to this paycheck.`);
+                                                }}
+                                            >
+                                                Apply
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="secondary-button"
+                                                onClick={() => { setShowWindfall(false); setWindfallInput(""); }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="windfall-trigger-button"
+                                        onClick={() => { triggerLightHaptic(); setShowWindfall(true); }}
+                                    >
+                                        <span className="windfall-trigger-icon">💰</span>
+                                        <span>Got extra money this paycheck?</span>
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        {!isFirstRunSetup && (
+                            <div className="card notifications-settings-card">
+                                <div className="notifications-settings-row">
+                                    <div>
+                                        <h3>Appearance</h3>
+                                    </div>
+                                    <div className="theme-selector" role="group" aria-label="Theme preference">
+                                        {(["system", "light", "dark"] as ThemePreference[]).map((pref) => (
+                                            <button
+                                                key={pref}
+                                                type="button"
+                                                className={`theme-selector-pill${themePreference === pref ? " theme-selector-pill-active" : ""}`}
+                                                onClick={() => { triggerLightHaptic(); setThemePreference(pref); }}
+                                                aria-pressed={themePreference === pref}
+                                            >
+                                                {pref === "system" ? "Auto" : pref === "light" ? "Light" : "Dark"}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {!isFirstRunSetup && (
                             <div className="card notifications-settings-card">
                                 <div className="notifications-settings-row">
                                     <div>
@@ -1703,6 +1488,53 @@ export default function Home() {
                                 </div>
                             </div>
                         )}
+
+                        {!isFirstRunSetup && (
+                            <div className="settings-danger-zone">
+                                {showDeleteConfirm ? (
+                                    <div className="delete-confirm-row">
+                                        <p className="delete-confirm-text">
+                                            All debts, bills, goals, and settings will be permanently erased. This cannot be undone.
+                                        </p>
+                                        <div className="delete-confirm-actions">
+                                            <button
+                                                type="button"
+                                                className="secondary-button"
+                                                onClick={() => setShowDeleteConfirm(false)}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="danger-destructive-button"
+                                                onClick={() => {
+                                                    triggerMediumHaptic();
+                                                    handleExitDemoMode();
+                                                }}
+                                            >
+                                                Delete Everything
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="danger-text-button"
+                                        aria-label="Delete all data — permanently erase all debts, bills, goals, and settings"
+                                        onClick={() => {
+                                            triggerLightHaptic();
+                                            setShowDeleteConfirm(true);
+                                        }}
+                                    >
+                                        Delete All Data
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        <p className="settings-privacy-note">
+                            Your data stays on this device — nothing is uploaded or shared.
+                        </p>
 
                         <div className="settings-legal-row">
                             <a

@@ -1,0 +1,895 @@
+@keyframes modalUp {
+	from {
+		opacity: 0;
+		transform: translateY(18px) scale(0.98);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+
+
+@keyframes forecastPulse {
+	0% {
+		transform: scale(1);
+		opacity: 0.7
+	}
+
+	50% {
+		transform: scale(1.08);
+		opacity: 1;
+	}
+
+	100% {
+		transform: scale(1);
+		opacity: 0.7;
+	}
+	
+}
+
+
+
+@keyframes modalBackdropIn {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes planSectionReveal {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes planItemReveal {
+	from {
+		opacity: 0;
+		transform: translateY(8px) scale(0.99);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+ 
+@keyframes toastEnter {
+	from {
+		opacity: 0;
+		transform: translateY(-8px) scale(0.97);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes toastExit {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	to {
+		opacity: 0;
+		transform: translateY(-6px);
+	}
+}
+
+@keyframes softReveal {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.required-actions-list,
+.secondary-recommendations,
+.payoff-order-list,
+.text-action-list {
+	animation: softReveal 160ms ease;
+}
+
+@keyframes tabContentIn {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes tabSlideInRight {
+	from { opacity: 0; transform: translateX(10px); }
+	to   { opacity: 1; transform: none; }
+}
+
+@keyframes tabSlideInLeft {
+	from { opacity: 0; transform: translateX(-10px); }
+	to   { opacity: 1; transform: none; }
+}
+
+.tab-content-transition[data-direction="forward"] {
+	animation: tabSlideInRight 180ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.tab-content-transition[data-direction="backward"] {
+	animation: tabSlideInLeft 180ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.tab-content-transition:not([data-direction]) {
+	animation: tabContentIn 160ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tab-content-transition,
+	.tab-content-transition[data-direction] {
+		animation: none;
+	}
+}
+
+@keyframes cardExit {
+	from { opacity: 1; transform: scale(1); }
+	to   { opacity: 0.72; transform: scale(0.99); }
+}
+
+@keyframes checkPulse {
+	from { opacity: 1; transform: scale(1.2); }
+	to   { opacity: 0; transform: scale(0.8); }
+}
+
+.animating-paid {
+	animation: cardExit 200ms ease both;
+	position: relative;
+}
+
+.animating-paid::after {
+	content: "✓";
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.4rem;
+	color: #22c55e;
+	background: rgba(34, 197, 94, 0.08);
+	border-radius: inherit;
+	animation: checkPulse 400ms ease both;
+	pointer-events: none;
+	z-index: 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.animating-paid { animation: none; }
+	.animating-paid::after { animation: none; display: none; }
+}
+
+@keyframes cardReveal {
+	from {
+		opacity: 0;
+		transform: translateY(10px) scale(0.99);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.goal-list-item {
+	animation: cardReveal 200ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.goal-list-item:nth-child(2) { animation-delay: 30ms; }
+.goal-list-item:nth-child(3) { animation-delay: 60ms; }
+.goal-list-item:nth-child(4) { animation-delay: 90ms; }
+.goal-list-item:nth-child(5) { animation-delay: 120ms; }
+
+.debt-list-item {
+	animation: cardReveal 200ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.debt-list-item:nth-child(2) { animation-delay: 30ms; }
+.debt-list-item:nth-child(3) { animation-delay: 60ms; }
+.debt-list-item:nth-child(4) { animation-delay: 90ms; }
+.debt-list-item:nth-child(5) { animation-delay: 120ms; }
+
+.required-expense-row {
+	animation: cardReveal 200ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.required-expense-row:nth-child(2) { animation-delay: 30ms; }
+.required-expense-row:nth-child(3) { animation-delay: 60ms; }
+.required-expense-row:nth-child(4) { animation-delay: 90ms; }
+.required-expense-row:nth-child(5) { animation-delay: 120ms; }
+
+@media (prefers-reduced-motion: reduce) {
+	.goal-list-item,
+	.debt-list-item,
+	.required-expense-row {
+		animation: none;
+	}
+}
+
+@keyframes centerModalIn {
+	from {
+		opacity: 0;
+		transform: scale(0.96) translateY(6px);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+
+@keyframes slideUpSheet {
+	from {
+		transform: translateY(24px);
+		opacity: 0;
+	}
+
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+
+}
+
+.swipe-action-shell {
+		position: relative;
+		overflow: hidden;
+		border-radius: var(--radius-md);
+		touch-action: pan-y;
+	}
+
+	.swipe-action-background {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		padding: 0 18px;
+		font-size: 0.82rem;
+		font-weight: 800;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 120ms ease;
+	}
+
+	.swipe-action-shell.is-swiping-left .swipe-action-left,
+	.swipe-action-shell.is-swiping-right .swipe-action-right {
+		opacity: 0.96;
+	}
+
+	.swipe-action-left span::before {
+		content: "→ ";
+	}
+
+	.swipe-action-right span::after {
+		content: " ←";
+	}
+
+	.swipe-action-foreground {
+		box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+	}
+
+	.swipe-action-background span {
+		transform: translateY(-1px);
+	}
+
+	.swipe-action-left {
+		justify-content: flex-start;
+	}
+
+	.swipe-action-right {
+		justify-content: flex-end;
+	}
+
+	.swipe-action-positive {
+		background: rgba(34, 197, 94, 0.22);
+		color: #16a34a;
+	}
+
+	.swipe-action-hint {
+		position: absolute;
+		top: 50%;
+		z-index: 3;
+		transform: translateY(-50%);
+		padding: 7px 12px;
+		border-radius: var(--radius-pill);
+		font-size: 0.78rem;
+		font-weight: 900;
+		pointer-events: none;
+		backdrop-filter: blur(12px);
+		box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+	}
+
+	.swipe-action-hint-left {
+		left: 14px;
+	}
+
+	.swipe-action-hint-right {
+		right: 14px;
+	}
+
+	.swipe-action-hint-positive {
+		background: rgba(34, 197, 94, 0.92);
+		color: white;
+	}
+
+	.swipe-action-hint-warning {
+		background: rgba(245, 158, 11, 0.92);
+		color: white;
+	}
+
+	.swipe-action-hint-danger {
+		background: rgba(239, 68, 68, 0.92);
+		color: white;
+	}
+
+	.dark-theme .swipe-action-positive {
+		background: rgba(34, 197, 94, 0.2);
+		color: #86efac;
+	}
+
+	.swipe-action-warning {
+		background: rgba(245, 158, 11, 0.14);
+		color: #f59e0b;
+	}
+
+	.swipe-action-danger {
+		background: rgba(239, 68, 68, 0.14);
+		color: var(--danger-color);
+	}
+
+	.swipe-action-foreground {
+		position: relative;
+		z-index: 2;
+		transform: translateX(var(--swipe-x, 0));
+		transition:
+			transform 100ms cubic-bezier(0.2, 0.9, 0.2, 1),
+			background 180ms ease,
+			border-color 180ms ease,
+			opacity 180ms ease,
+			box-shadow 180ms ease;
+		will-change: transform;
+	}
+
+	.swipe-action-foreground.active {
+		transform: translateX(var(--swipe-x, 0)) scale(0.995);
+	}
+
+
+
+@media (max-width: 768px) {
+	.execution-summary-strip {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.recommended-card {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.recommended-card .saved-item-right {
+		width: 100%;
+		justify-content: flex-start;
+		flex-wrap: wrap;
+	}
+
+	.recommended-card .saved-amount {
+		width: 100%;
+		text-align: left;
+	}
+
+	.recommended-card .action-pill,
+	.recommended-card .text-action-button {
+		min-height: 36px;
+	}
+
+	.recommended-card .saved-item-right {
+		margin-top: 10px;
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+
+	.recommended-card .action-pill,
+	.recommended-card .text-action-button {
+		width: 100%;
+		justify-content: center;
+	}
+
+	.premium-what-if-grid {
+		grid-template-columns: 1fr;
+	}
+
+
+}
+
+/* Search field height reduction — 10-15% shorter than base input padding */
+.expense-controls input,
+.debt-controls input,
+.goal-controls input {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+/* Goal progress bar entrance animation — fires once on mount */
+@keyframes progressReveal {
+	from { opacity: 0; transform: scaleX(0.5); }
+	to   { opacity: 1; transform: scaleX(1); }
+}
+
+.goal-progress-fill {
+	transform-origin: left;
+	animation: progressReveal 500ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+	animation-delay: 100ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.goal-progress-fill {
+		animation: none;
+	}
+}
+
+@media (max-width: 640px) {
+	.app-content {
+		padding:
+			calc(env(safe-area-inset-top) + 14px) max(14px, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 190px) max(14px, env(safe-area-inset-left))
+	}
+
+	.hero {
+		gap: var(--space-3);
+	}
+
+	.card {
+		padding: 14px;
+	}
+
+	.debt-summary-grid,
+	.plan-snapshot-grid {
+		grid-template-columns: 1fr 1fr;
+		gap: var(--space-2);
+	}
+
+	.debt-controls,
+	.expense-controls,
+	.goal-controls,
+	.plan-actions,
+	.backup-actions {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.debt-controls input,
+	.debt-controls select,
+	.debt-controls .sort-row,
+	.expense-controls input,
+	.expense-controls select,
+	.goal-controls input,
+	.goal-controls select {
+		width: 100%;
+	}
+
+	.debt-controls .sort-row select {
+		width: auto;
+		flex: 1;
+	}
+
+	.saved-item {
+		padding: 10px 11px;
+		gap: 9px;
+	}
+
+	.saved-item-right {
+		gap: 8px;
+	}
+
+	.saved-item:not(.completed-item) {
+		transition:
+			transform 140ms ease,
+			background 180ms ease,
+			border-color 180ms ease;
+
+	}
+
+	.saved-item:not(.completed-item):hover {
+		transform: translateY(-1px);
+	}
+
+	.saved-item:not(.completed-item):active {
+		transform: scale(0.982);
+	}
+
+	.saved-amount {
+		font-size: 1rem;
+	}
+
+	.action-pill {
+		height: 36px;
+		padding: 0 11px;
+		font-size: 0.76rem;
+	}
+
+	
+
+	.import-button,
+	.backup-actions button {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.center-modal {
+		padding: 16px;
+		border-radius: 26px;
+	}
+
+	.modal-action-row {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.modal-action-row-right {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		width: 100%;
+	}
+	
+
+	.compact-debt-edit-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.recommended-card {
+		align-items: stretch;
+	}
+
+	.recommended-card .saved-item-right {
+		justify-content: flex-start;
+		width: 100%;
+	}
+
+	.recommended-card .saved-amount {
+		width: 100%;
+	}
+
+	.recommended-card .action-pill,
+	.recommended-card .text-action-button {
+		font-size: 0.8rem;
+		padding: 8px 12px;
+	}
+	
+	.strategy-comparison-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.floating-add-button {
+	position: fixed;
+	right: max(16px, env(safe-area-inset-right));
+	bottom: calc(env(safe-area-inset-bottom) + 96px);
+	z-index: 45;
+	padding: 14px 22px;
+	border-radius: var(--radius-pill);
+	font-weight: 800;
+	font-size: 0.92rem;
+	box-shadow: var(--shadow-nav);
+	animation: fabIn 200ms ease;
+}
+
+@keyframes fabIn {
+	from {
+		opacity: 0;
+		transform: translateY(14px) scale(0.92);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.pull-refresh-zone {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 0;
+	overflow: hidden;
+}
+
+.pull-refresh-zone:not(.dragging) {
+	transition: height 220ms ease;
+}
+
+.pull-refresh-spinner {
+	width: 22px;
+	height: 22px;
+	flex-shrink: 0;
+	border-radius: 999px;
+	border: 2.5px solid var(--border-color);
+	border-top-color: var(--accent-color);
+}
+
+.pull-refresh-zone.refreshing .pull-refresh-spinner {
+	opacity: 1;
+	animation: pullSpin 700ms linear infinite;
+}
+
+@keyframes pullSpin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.skeleton-hero {
+	margin-bottom: 12px;
+}
+
+.skeleton-line,
+.skeleton-card,
+.skeleton-nav-item {
+	border-radius: 14px;
+	background: linear-gradient(90deg, var(--surface-muted) 25%, var(--surface-muted-hover) 50%, var(--surface-muted) 75%);
+	background-size: 200% 100%;
+	animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-line {
+	border-radius: 8px;
+}
+
+.skeleton-title {
+	height: 28px;
+	width: 60%;
+	margin-bottom: 8px;
+}
+
+.skeleton-subtitle {
+	height: 14px;
+	width: 85%;
+}
+
+.skeleton-card {
+	height: 96px;
+	margin: 12px 0;
+}
+
+.skeleton-card-tall {
+	height: 220px;
+}
+
+.skeleton-nav-item {
+	height: 48px;
+	margin: 0;
+	border-radius: var(--radius-pill);
+}
+
+@keyframes skeletonShimmer {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+.app-lock-screen {
+	height: 100dvh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	gap: var(--space-2);
+	padding: var(--space-5);
+}
+
+.app-lock-icon {
+	display: inline-flex;
+	color: var(--text-primary);
+	margin-bottom: var(--space-2);
+}
+
+.app-lock-screen h1 {
+	font-size: 1.3rem;
+	margin: 0;
+}
+
+.app-lock-screen p {
+	color: var(--text-secondary);
+	margin: 0 0 var(--space-3);
+}
+
+.app-lock-unlock-button {
+	min-width: 160px;
+}
+
+/* iPad / tablet layout (v1.3) - everything below here only applies at
+   tablet widths and up. Single-column sections get a comfortable centered
+   reading width instead of stretching edge-to-edge; the Plan tab's
+   Results + Timeline cards become a two-column grid. */
+@media (min-width: 834px) {
+	.card {
+		max-width: 860px;
+		margin-inline: auto;
+	}
+
+	.plan-tab-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		align-items: stretch;
+		gap: var(--space-3);
+		max-width: 1300px;
+		margin-inline: auto;
+	}
+
+	.plan-tab-grid > .card {
+		max-width: none;
+		margin-inline: 0;
+	}
+
+	/* ── Navigation: sidebar on, bottom nav off ── */
+	.bottom-nav { display: none; }
+	.sidebar-nav { display: flex; }
+
+	/* Settings gear lives in sidebar on iPad — hide the floating plan-toolbar */
+	.plan-toolbar { display: none; }
+
+	/* ── App content: shift right to clear 80px sidebar; trim bottom (no floating nav) ── */
+	.app-content {
+		padding-left: calc(80px + max(16px, env(safe-area-inset-left)));
+		padding-bottom: calc(env(safe-area-inset-bottom) + 32px);
+	}
+
+	.app-content:after {
+		height: calc(env(safe-area-inset-bottom) + 32px);
+	}
+
+	/* ── Bills tab: two-column layout ── */
+	.mobile-section-switcher { display: none; }
+
+	.bills-tab-content {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 20px;
+		align-items: start;
+		max-width: 1300px;
+		margin-inline: auto;
+	}
+
+	/* Show both columns regardless of billsView state */
+	.bills-expenses-col,
+	.bills-debts-col {
+		display: block !important;
+	}
+
+	/* Cards inside bills columns: fill column width */
+	.bills-expenses-col .card,
+	.bills-debts-col .card {
+		max-width: none;
+		margin-inline: 0;
+	}
+
+	/* ── Goals tab: two-column goal card grid ── */
+	.goals-list {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 6px;
+	}
+
+	/* Edit form spans both columns */
+	.goals-list .compact-debt-edit-card {
+		grid-column: 1 / -1;
+	}
+
+	/* ── Modals: centered dialog instead of bottom sheet ── */
+
+	/* Settings overlay: center in the content area, offset for sidebar */
+	.settings-overlay {
+		align-items: center;
+		padding-left: 80px;
+	}
+
+	.settings-sheet {
+		border-radius: 24px;
+		max-height: 88vh;
+		max-width: 600px;
+		width: calc(100% - 48px);
+		padding: 1.75rem 2rem;
+		animation: centerModalIn 0.2s ease both;
+	}
+
+	.bills-modal,
+	.debt-add-modal,
+	.goal-add-modal,
+	.sort-sheet {
+		border-radius: 24px;
+		max-height: 80vh;
+		max-width: 520px;
+		width: calc(100% - 48px);
+		animation: centerModalIn 0.2s ease both;
+	}
+
+	/* center-modal-overlay (bills/expense/goal editors): center vertically,
+	   clear sidebar, remove bottom-nav scroll spacer */
+	.center-modal-overlay {
+		align-items: center;
+		padding: max(env(safe-area-inset-top), 1.5rem) 1.5rem
+			max(env(safe-area-inset-bottom), 1.5rem)
+			calc(80px + 1.5rem);
+	}
+
+	.center-modal::after {
+		height: 0;
+	}
+
+	/* Floating add button: no bottom-nav clearance needed on iPad */
+	.floating-add-button {
+		bottom: max(calc(env(safe-area-inset-bottom) + 20px), 32px);
+	}
+
+	/* ── Goals & Payoff: allow wider card on iPad ── */
+	.goals-polish-card,
+	.payoff-shell {
+		max-width: 1300px;
+	}
+}
+
+/* Landscape iPad (1024px+): Goals and Payoff get a two-column interior layout */
+@media (min-width: 1024px) {
+	.goals-tab-layout {
+		display: grid;
+		grid-template-columns: 240px 1fr;
+		gap: 24px;
+		align-items: start;
+	}
+
+	/* goals-list inside right col stays two-column */
+	.goals-main-col .goals-list {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	.goals-main-col .compact-debt-edit-card {
+		grid-column: 1 / -1;
+	}
+
+	.payoff-tab-layout {
+		display: grid;
+		grid-template-columns: 300px 1fr;
+		gap: 24px;
+		align-items: start;
+	}
+}

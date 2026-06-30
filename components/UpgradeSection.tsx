@@ -77,6 +77,27 @@ export function UpgradeSection({ packageInfo, onClose, onUpgradeClick, onRestore
                     ))}
                 </div>
 
+                <div className="upgrade-preview-card" aria-hidden="true">
+                    <div className="upgrade-preview-label">Smart Insights preview</div>
+                    <div className="upgrade-preview-insight-mock">
+                        <div className="upgrade-preview-insight-row good">
+                            <span className="upgrade-preview-insight-icon">🎯</span>
+                            <div>
+                                <strong>Extra $42 available this cycle</strong>
+                                <p>Apply to highest-rate debt to save ~$18/mo in interest.</p>
+                            </div>
+                        </div>
+                        <div className="upgrade-preview-insight-row warning">
+                            <span className="upgrade-preview-insight-icon">⚠</span>
+                            <div>
+                                <strong>Tight cycle ahead</strong>
+                                <p>Next paycheck covers minimums with $28 cushion.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="upgrade-preview-blur-overlay">Unlock with Premium</div>
+                </div>
+
                 <div className="upgrade-action-stack">
                     <button
                         type="button"

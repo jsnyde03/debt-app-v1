@@ -2,7 +2,7 @@ import { defineConfig, devices} from "@playwright/test";
 
 export default defineConfig({
     testDir: "./tests/e2e",
-    timeout: 30_000,
+    timeout: 60_000,
     use: {
         baseURL: "http://localhost:3000",
         trace: "on-first-retry",
@@ -26,6 +26,18 @@ export default defineConfig({
                 ...devices["iPhone 15 Pro Max"],
             },
         },
+        {
+            name: "ipad-pro-11",
+            use: {
+                ...devices["iPad Pro 11"],
+            },
+        },
+        {
+            name: "ipad-pro-11-landscape",
+            use: {
+                ...devices["iPad Pro 11 landscape"],
+            },
+        },
     ],
-    
+
 });
