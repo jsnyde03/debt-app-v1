@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { StatusBar, Style } from "@capacitor/status-bar";
-import { loadStoredState } from "@/lib/storage/loadStoredState";
+import { readKeyValue, writeKey } from "@/lib/storage/safeStorage";
 
 export type ThemePreference = "system" | "light" | "dark";
 
 export function useDarkMode() {
     const [themePreference, setThemePreference] = useState<ThemePreference>(() => {
-        const stored = loadStoredState<ThemePreference | boolean | null>("debtPlanner.darkMode", null);
+        const stored = readKeyValue<ThemePreference | boolean | null>("debtPlanner.darkMode", null);
         if (stored === null) return "system";
         if (typeof stored === "boolean") return stored ? "dark" : "light";
         return stored;
@@ -31,7 +31,7 @@ export function useDarkMode() {
     const darkMode = themePreference === "dark" || (themePreference === "system" && systemDark);
 
     useEffect(() => {
-        localStorage.setItem("debtPlanner.darkMode", JSON.stringify(themePreference));
+        writeKey("debtPlanner.darkMode", themePreference);
     }, [themePreference]);
 
     useEffect(() => {

@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { loadStoredState } from "@/lib/storage/loadStoredState";
+import { usePersistedState } from "@/lib/storage/usePersistedState";
 import {
     CYCLE_HISTORY_STORAGE_KEY,
     type PayCycleSnapshot,
@@ -15,16 +14,10 @@ import {
 // tier-aware views over it. Snapshots are recorded by the rollover
 // handler in app/page.tsx via recordCycleSnapshot.
 export function usePayCycleHistory(subscriptionPlan: SubscriptionPlan) {
-    const [cycleHistory, setCycleHistory] = useState<PayCycleSnapshot[]>(() =>
-        loadStoredState(CYCLE_HISTORY_STORAGE_KEY, [])
+    const [cycleHistory, setCycleHistory] = usePersistedState<PayCycleSnapshot[]>(
+        CYCLE_HISTORY_STORAGE_KEY,
+        []
     );
-
-    useEffect(() => {
-        localStorage.setItem(
-            CYCLE_HISTORY_STORAGE_KEY,
-            JSON.stringify(cycleHistory)
-        );
-    }, [cycleHistory]);
 
     function recordCycleSnapshot(snapshot: PayCycleSnapshot) {
         setCycleHistory((current) => [...current, snapshot]);

@@ -1,17 +1,13 @@
-import { useEffect, useState } from "react";
-import { loadStoredState } from "@/lib/storage/loadStoredState";
+import { usePersistedState } from "@/lib/storage/usePersistedState";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 import { scheduleNotifications, cancelAllNotifications, requestNotificationPermission } from "@/lib/notifications/scheduleNotifications";
 import type { RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 
 export function useNotificationsSetting(nextPaycheckDate: string, requiredExpenses: RequiredExpense[]) {
-    const [notificationsEnabled, setNotificationsEnabled] = useState(() =>
-        loadStoredState("debtPlanner.notificationsEnabled", false)
+    const [notificationsEnabled, setNotificationsEnabled] = usePersistedState(
+        "debtPlanner.notificationsEnabled",
+        false
     );
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.notificationsEnabled", JSON.stringify(notificationsEnabled));
-    }, [notificationsEnabled]);
 
     async function handleNotificationsToggle() {
         triggerLightHaptic();

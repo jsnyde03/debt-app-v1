@@ -1,13 +1,11 @@
-import { useEffect, useState } from "react";
-import { loadStoredState } from "@/lib/storage/loadStoredState";
+import { useState } from "react";
+import { usePersistedState } from "@/lib/storage/usePersistedState";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { triggerErrorHaptic } from "@/lib/mobile/haptics";
 
 export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => void) {
-    const [debts, setDebts] = useState<Debt[]>(() =>
-        loadStoredState("debtPlanner.debts", [])
-    );
+    const [debts, setDebts] = usePersistedState<Debt[]>("debtPlanner.debts", []);
 
     const [debtName, setDebtName] = useState("");
     const [debtBalance, setDebtBalance] = useState("");
@@ -35,10 +33,6 @@ export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => 
     const [debtWarnings, setDebtWarnings] = useState<{
         minimumPayment?: string;
     }>({});
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.debts", JSON.stringify(debts));
-    }, [debts]);
 
     function handleAddDebt() {
         const balance = Number(debtBalance);

@@ -46,7 +46,10 @@ import { scheduleNotifications, cancelAllNotifications, requestNotificationPermi
 import { incrementRolloverCount, maybeRequestAppReview } from "@/lib/review/requestAppReview";
 import { AppSkeleton } from "@/components/AppSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
-import { loadStoredState } from "@/lib/storage/loadStoredState";
+import { readKeyValue, writeKey } from "@/lib/storage/safeStorage";
+import { usePersistedState } from "@/lib/storage/usePersistedState";
+import { migrateState } from "@/lib/storage/migrateState";
+import { StorageCorruptionBanner } from "@/components/StorageCorruptionBanner";
 import { useDarkMode, type ThemePreference } from "@/lib/hooks/useDarkMode";
 import { useGoals, type Goal } from "@/lib/hooks/useGoals";
 import { useRequiredExpenses } from "@/lib/hooks/useRequiredExpenses";
@@ -62,6 +65,10 @@ import { buildCycleSnapshot } from "@/lib/history/buildCycleSnapshot";
 import { HistorySection } from "@/components/HistorySection";
 import { OnboardingFlow } from "@/components/Onboarding/OnboardingFlow";
 import { Home as HomeIcon, CreditCard, TrendingUp, Target, Settings, Wallet, ChevronRight } from "@/lib/icons";
+
+// Run storage schema migrations once, at module load, before any hook reads a
+// persisted key. No-op under SSR (no localStorage) and idempotent.
+migrateState();
 
 type CompletedRecommendedAction = {
     targetId: string;
@@ -129,12 +136,12 @@ export default function Home() {
         monthlyPayDay, setMonthlyPayDay,
     } = usePayCycleSettings();
 
-    const [livingExpenses, setLivingExpenses] = useState<LivingExpense[]>(() =>
-        loadStoredState("debtPlanner.livingExpenses", livingExpensePresets.map((expense, index) => ({
+    const [livingExpenses, setLivingExpenses] = usePersistedState<LivingExpense[]>(
+        "debtPlanner.livingExpenses",
+        livingExpensePresets.map((expense, index) => ({
             ...expense,
             id: `living-${index}`,
         }))
-        )
     );
 
     const hasConfiguredPaycheck = amount !== "" && Number(amount) > 0;
@@ -154,8 +161,9 @@ export default function Home() {
     const { darkMode, themePreference, setThemePreference } = useDarkMode();
 
     const [completedRecommendedActions, setCompletedRecommendedActions] =
-        useState<CompletedRecommendedAction[]>(() =>
-            loadStoredState("debtPlanner.completedRecommendedActions", [])
+        usePersistedState<CompletedRecommendedAction[]>(
+            "debtPlanner.completedRecommendedActions",
+            []
         );
 
     const [recommendationOverrides, setRecommendationOverrides] = useState<RecommendationOverride[]>([]);
@@ -186,19 +194,19 @@ export default function Home() {
     const [pendingUndo, setPendingUndo] = useState<{ type: "debt"; item: Debt } | { type: "expense"; item: RequiredExpense } | null>(null);
     const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const [payoffStrategy, setPayoffStrategy] = useState<
+    const [payoffStrategy, setPayoffStrategy] = usePersistedState<
         "snowball" | "avalanche"
-    >(() => loadStoredState("debtPlanner.payoffStrategy", "snowball"));
+    >("debtPlanner.payoffStrategy", "snowball");
 
     const { appLockEnabled, setAppLockEnabled, isUnlocked, requestUnlock } = useAppLock();
     const { hasCompletedOnboarding } = useOnboarding();
 
     const [isDemoMode] = useState(() =>
-        loadStoredState("debtPlanner.isDemoMode", false)
+        readKeyValue("debtPlanner.isDemoMode", false)
     );
 
     const [lastSavedAt, setLastSavedAt] = useState(() =>
-        loadStoredState("debtPlanner.lastSavedAt", "")
+        readKeyValue("debtPlanner.lastSavedAt", "")
     );
     const [statusMessage, setStatusMessage] = useState("");
 
@@ -289,10 +297,7 @@ export default function Home() {
             lastSavedAt,
         };
 
-        window.localStorage.setItem(
-            "debtPlanner.resetSnapshot",
-            JSON.stringify(snapshot)
-        );
+        writeKey("debtPlanner.resetSnapshot", snapshot);
     }
 
     const result = useMemo(() => {
@@ -363,10 +368,6 @@ export default function Home() {
     }, [result, debts, debtFreeDate]);
 
     useEffect(() => {
-        localStorage.setItem("debtPlanner.livingExpenses", JSON.stringify(livingExpenses));
-    }, [livingExpenses]);
-
-    useEffect(() => {
         if (!showUpgrade || premiumPackageInfo) return;
 
         void getPremiumPackageInfo().then(setPremiumPackageInfo);
@@ -397,25 +398,11 @@ export default function Home() {
     }, [statusMessage]);
 
     useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.completedRecommendedActions",
-            JSON.stringify(completedRecommendedActions)
-        );
-    }, [completedRecommendedActions]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.payoffStrategy",
-            JSON.stringify(payoffStrategy)
-        );
-    }, [payoffStrategy]);
-
-    useEffect(() => {
         if (!isMounted) return;
 
         const savedAt = new Date().toISOString();
         setLastSavedAt(savedAt);
-        localStorage.setItem("debtPlanner.lastSavedAt", JSON.stringify(savedAt));
+        writeKey("debtPlanner.lastSavedAt", savedAt);
     }, [
         isMounted,
         amount,
@@ -512,7 +499,7 @@ export default function Home() {
 
         const savedAt = new Date().toISOString();
         setLastSavedAt(savedAt);
-        localStorage.setItem("debtPlanner.lastSavedAt", JSON.stringify(savedAt));
+        writeKey("debtPlanner.lastSavedAt", savedAt);
         setStatusMessage("Up to date");
     }
 
@@ -598,7 +585,7 @@ export default function Home() {
     }
 
     function handleResetToToday() {
-        const backup = loadStoredState<ReturnType<typeof buildBackupData> | null>(
+        const backup = readKeyValue<ReturnType<typeof buildBackupData> | null>(
             "debtPlanner.resetSnapshot",
             null
         );
@@ -799,6 +786,8 @@ export default function Home() {
     return (
         <main className={`app ${darkMode ? "dark-theme" : "light-theme"}`}>
             <PullToRefresh className="app-content" onRefresh={handlePullToRefresh}>
+
+                <StorageCorruptionBanner />
 
                 {isDemoMode && (
                     <div className="demo-mode-banner" role="status">

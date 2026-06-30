@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { loadStoredState } from "@/lib/storage/loadStoredState";
+import { readKeyValue, writeKey } from "@/lib/storage/safeStorage";
 import { getCurrentDate } from "@/lib/hooks/usePayCycleSettings";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
@@ -43,7 +43,7 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: FirstDebtOrBillStepProps
         const today = getCurrentDate();
 
         if (type === "debt") {
-            const existing = loadStoredState<Debt[]>("debtPlanner.debts", []);
+            const existing = readKeyValue<Debt[]>("debtPlanner.debts", []);
             const newDebt: Debt = {
                 id: `debt-${Date.now()}`,
                 name: name.trim(),
@@ -57,9 +57,9 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: FirstDebtOrBillStepProps
                 minimumPaidThisCycle: false,
                 isAutopay: false,
             };
-            localStorage.setItem("debtPlanner.debts", JSON.stringify([...existing, newDebt]));
+            writeKey("debtPlanner.debts", [...existing, newDebt]);
         } else {
-            const existing = loadStoredState<RequiredExpense[]>("debtPlanner.requiredExpenses", []);
+            const existing = readKeyValue<RequiredExpense[]>("debtPlanner.requiredExpenses", []);
             const newExpense: RequiredExpense = {
                 id: `expense-${Date.now()}`,
                 name: name.trim(),
@@ -70,7 +70,7 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: FirstDebtOrBillStepProps
                 isAutopay: false,
                 category: "other",
             };
-            localStorage.setItem("debtPlanner.requiredExpenses", JSON.stringify([...existing, newExpense]));
+            writeKey("debtPlanner.requiredExpenses", [...existing, newExpense]);
         }
 
         triggerLightHaptic();

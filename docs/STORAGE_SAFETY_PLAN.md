@@ -2,6 +2,25 @@
 
 _Created 2026-06-30. A between-versions (post-v1.4, pre-v1.5) safety pass. Pulls the storage-versioning + safe-load work **forward from v1.6** because it must land **before v1.5 adds pay-cycle/journey data structures** — you want the versioning + corruption-handling mechanism in place before the next schema-affecting change, not after. Scope is deliberately small and contained; this is not a re-architecture._
 
+## ✅ Implementation status (2026-06-30, branch `storage-safety` off the v1.5 checkpoint)
+
+All six deliverables landed; the in-flight `cycleHistory` key was integrated through the new path (the "do it first, then integrate" sequencing).
+
+| # | Deliverable | Status |
+|---|---|---|
+| 1 | `lib/storage/safeStorage.ts` — `readKey`/`readKeyValue`/`writeKey`, status `ok`/`absent`/`corrupt` | ✅ |
+| 2 | Quarantine corrupt bytes to `debtPlanner.__corrupt__.<key>.<ISO>` before any fallback (deduped) | ✅ |
+| 3 | `lib/storage/migrateState.ts` + `debtPlanner.schemaVersion` (mechanism only, no migrations yet) | ✅ |
+| 4 | Surfaced signal: corruption registry + `StorageCorruptionBanner` + `track('storage_corruption')` seam (`lib/analytics/track.ts`, no-op until v1.6) | ✅ |
+| 5 | All JSON `debtPlanner.*` readers/writers routed through `safeStorage`/`usePersistedState`; dead `debt-planner-v1` blob **and** the unsafe `loadStoredState.ts` removed | ✅ |
+| 6 | Rolling pre-rollover snapshot | ⏳ Deferred (optional fast-follow; the existing `resetSnapshot` already gives a one-slot restore) |
+
+**The headline fix** lives in `usePersistedState`: on a corrupt mount-read it skips the first persist, so the fallback is never written back over the quarantined original.
+
+**Verification:** `tsc --noEmit` clean project-wide · new `lib/testing/testSafeStorage.ts` (status matrix + quarantine dedupe + headline "corrupt debts not wiped" + migration) green · grep-gate clean (no raw JSON `localStorage.setItem("debtPlanner.*")` outside `safeStorage`; the primitive `rolloverCount`/`reviewRequested` counters are out of scope — not JSON-parsed). The primitive `mockSubscription` dev read is also left as-is.
+
+> Not yet covered: a Playwright e2e that seeds a corrupt `debtPlanner.debts` and asserts the banner + non-wipe in a real browser (the Node test proves the storage-layer invariant; the hook's skip-persist is best confirmed end-to-end). Worth adding when the v1.5 e2e harness is next touched.
+
 ---
 
 ## Why now (the sequencing argument)
