@@ -1,6 +1,6 @@
 # v1.5 — Track Your Journey
 
-_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In progress — active build on `v1.5-dev`; Pay Cycle History (1), Amortization Premium lite (3), Debt Milestones + celebration (2), Streaks (4), and UX #13 Since-Last-Cycle Delta (5) all done 2026-07-01. Next: UX #15 Settings UX Rework (6) — needs the accordion-vs-tab decision first.** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-07-01._
+_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In progress — active build on `v1.5-dev`; workstreams 1–6 all done 2026-07-01 (Pay Cycle History, Milestones, Amortization lite, Streaks, #13 Delta, #15 Settings UX rework). Next: Mobile P5 skeletons (7) + P6 micro-interactions (8), Page Orchestrator (10), Android prep (11).** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-07-01._
 
 **Theme:** Everything that helps users understand where they've been and celebrate how far they've come. Pay Cycle History is the data foundation; milestones, streaks, amortization, and charts make that data meaningful.
 
@@ -17,7 +17,7 @@ _Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In pr
 | 3 | Amortization — Premium *lite* view (focus debt); full calendar → v1.6 | Premium | ✅ Done (2026-07-01) |
 | 4 | Streaks | Free / Premium+ | ✅ Done (2026-07-01, Free count; Premium+ chart → v1.6) |
 | 5 | UX #13 — Since-Last-Cycle Delta | All | ✅ Done (2026-07-01) |
-| 6 | UX #15 — Settings UX Rework | All | ⬜ Not started |
+| 6 | UX #15 — Settings UX Rework | All | ✅ Done (2026-07-01, accordion + first-run modal) |
 | 7 | Mobile P5 — Context-aware skeletons | All | ⬜ Not started |
 | 8 | Mobile P6 — Micro-interaction pass | All | ⬜ Not started |
 | 9 | Mobile P10 — Timeline overflow *(conditional)* | All | ⬜ Deferred unless triggered |
@@ -147,11 +147,11 @@ _Depends on #1 cycle history. Must not be built before it lands._
 
 **✅ DECIDED 2026-07-01 (Jason): Accordion / in-place expansion for returning users; keep the focused modal for first-run onboarding.** Rationale: the 4 bottom-nav tabs (Plan/Bills/Payoff/Goals) are all frequent *task* destinations — infrequent config doesn't earn a permanent nav slot, and 5 items at 375px crowds touch targets (premium-bar concern). The accordion matches the existing `plan-section-body` collapse pattern already in the codebase and kills the "open a whole modal to change one field" friction. First-run genuinely wants a focused, non-dismissible surface, so the modal stays there (`isFirstRunSetup`). _(Rejected: the 5th-nav-tab option — simpler but crowds the nav and prime-slots rarely-used config.)_
 
-**Build steps:**
+**Build steps:** ✅ **Done 2026-07-01.**
 - [x] Pick the approach — **accordion (returning) + modal (first-run).**
-- [ ] **Extract the settings body into one shared component** (dovetails with the Page-Orchestrator Phase-2 `PlanSettingsSheet` extraction) so the first-run modal and the returning-user accordion render the *same* fields without duplication.
-- [ ] Implement the accordion: the plan-tab gear becomes a toggle expanding the shared settings body inline under the hero, using the existing `plan-section-body` `max-height`/`opacity`/`transform` transition. Relocate the theme toggle into the accordion as the 3-way selector (#27); the hero's floating icon button folds into the toggle.
-- [ ] **Verify first-run onboarding still uses the focused modal** (`isFirstRunSetup`) with the shared body — non-dismissible, "Create Your First Plan".
+- [x] **Extracted the settings body into one shared `components/PlanSettings/PlanSettingsBody.tsx`** (dovetails with the Page-Orchestrator Phase-2 `PlanSettingsSheet` extraction — credit it there) so the first-run modal and the returning-user accordion render the *same* fields without duplication. Container-agnostic via `onClose` / `onOpenHistory`. Zero-behavior-change refactor, modal verified identical (step 8.1).
+- [x] Accordion: both settings gears (plan-toolbar + sidebar) now **toggle** `showPlanSettings` (aria-expanded); for returning users it expands `<PlanSettingsBody>` inline **under the hero** (between hero and tab content, so it shows on any tab) via a `.plan-settings-accordion` max-height/opacity/visibility transition (mirrors `plan-section-body`, taller cap for the long body). The theme 3-way (#27 Auto/Light/Dark) already lived in the body, so it rides along — no separate hero theme button to remove.
+- [x] **First-run onboarding still uses the focused modal** — modal gated to `showPlanSettings && isFirstRunSetup`, non-dismissible, "Create Your First Plan", now rendering the shared body. Screenshot-verified: first-run modal + returning accordion, both light + dark.
 
 **Files:** `app/page.tsx`, `components/PlanSettings/PlanSettingsSheet.tsx` (or its Page-Orchestrator-Phase-2 successor), `app/styles/03-nav-results-modals.css`.
 
