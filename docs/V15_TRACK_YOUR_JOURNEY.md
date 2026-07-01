@@ -145,14 +145,13 @@ _Depends on #1 cycle history. Must not be built before it lands._
 
 ## 6 — UX #15: Settings UX Rework
 
-**⚠️ Decision required before any code.** Two viable approaches (see [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) #15):
-1. **Accordion / in-place expansion** in the existing settings surface (lighter for one-field tweaks).
-2. **Dedicated Settings tab** — 5th bottom-nav item (simpler, but 5 items at 375px may crowd).
+**✅ DECIDED 2026-07-01 (Jason): Accordion / in-place expansion for returning users; keep the focused modal for first-run onboarding.** Rationale: the 4 bottom-nav tabs (Plan/Bills/Payoff/Goals) are all frequent *task* destinations — infrequent config doesn't earn a permanent nav slot, and 5 items at 375px crowds touch targets (premium-bar concern). The accordion matches the existing `plan-section-body` collapse pattern already in the codebase and kills the "open a whole modal to change one field" friction. First-run genuinely wants a focused, non-dismissible surface, so the modal stays there (`isFirstRunSetup`). _(Rejected: the 5th-nav-tab option — simpler but crowds the nav and prime-slots rarely-used config.)_
 
 **Build steps:**
-- [ ] Pick the approach (record the decision in this section before building).
-- [ ] Implement the chosen pattern.
-- [ ] **Verify it works in first-run onboarding context** — the settings modal is reused there (v1.4). Either confirm the accordion works first-run, or keep the modal form for first-run only and switch to the accordion for returning-user settings.
+- [x] Pick the approach — **accordion (returning) + modal (first-run).**
+- [ ] **Extract the settings body into one shared component** (dovetails with the Page-Orchestrator Phase-2 `PlanSettingsSheet` extraction) so the first-run modal and the returning-user accordion render the *same* fields without duplication.
+- [ ] Implement the accordion: the plan-tab gear becomes a toggle expanding the shared settings body inline under the hero, using the existing `plan-section-body` `max-height`/`opacity`/`transform` transition. Relocate the theme toggle into the accordion as the 3-way selector (#27); the hero's floating icon button folds into the toggle.
+- [ ] **Verify first-run onboarding still uses the focused modal** (`isFirstRunSetup`) with the shared body — non-dismissible, "Create Your First Plan".
 
 **Files:** `app/page.tsx`, `components/PlanSettings/PlanSettingsSheet.tsx` (or its Page-Orchestrator-Phase-2 successor), `app/styles/03-nav-results-modals.css`.
 
