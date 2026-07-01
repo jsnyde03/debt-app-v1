@@ -78,6 +78,12 @@ export type PayCycleSnapshot = {
 	cycleEndDate: string;
 	totalDebtBalance: number;
 	totalPaidThisCycle: number;
+	// What the plan recommended the user contribute this cycle (snowball +
+	// emergency + optional-goal allocations). Drives the Streak: a cycle is
+	// "on plan" when totalPaidThisCycle >= recommendedThisCycle. Optional so
+	// snapshots persisted before v1.5 shipped this field still load (treated
+	// as 0 required → on-plan).
+	recommendedThisCycle?: number;
 	completedRecommendedActions: CompletedRecommendedAction[];
 	payoffStrategy: "snowball" | "avalanche";
 };

@@ -15,14 +15,22 @@ function roundMoney(amount: number) {
 // totalDebtBalance = sum of every debt's current balance.
 // totalPaidThisCycle = sum of every completed recommended action's actual
 //   amount - the app's existing "what you put toward the plan this cycle".
+// recommendedThisCycle = what the plan asked for (snowball + emergency +
+//   optional-goal); the Streak counts cycles where paid >= recommended.
 export function buildCycleSnapshot(input: {
     cycleEndDate: string;
     debts: Debt[];
     completedRecommendedActions: CompletedRecommendedAction[];
     payoffStrategy: "snowball" | "avalanche";
+    recommendedThisCycle: number;
 }): PayCycleSnapshot {
-    const { cycleEndDate, debts, completedRecommendedActions, payoffStrategy } =
-        input;
+    const {
+        cycleEndDate,
+        debts,
+        completedRecommendedActions,
+        payoffStrategy,
+        recommendedThisCycle,
+    } = input;
 
     return {
         cycleEndDate,
@@ -35,6 +43,7 @@ export function buildCycleSnapshot(input: {
                 0
             )
         ),
+        recommendedThisCycle: roundMoney(Math.max(0, recommendedThisCycle)),
         completedRecommendedActions,
         payoffStrategy,
     };

@@ -57,11 +57,13 @@ function testBuildSnapshot_correctTotals() {
         debts: [debt("a", 500), debt("b", 900.5)],
         completedRecommendedActions: [action(100), action(50.25)],
         payoffStrategy: "avalanche",
+        recommendedThisCycle: 200,
     });
 
     assertEqual(result.cycleEndDate, "2026-06-15", "snapshot carries cycleEndDate");
     assertEqual(result.totalDebtBalance, 1400.5, "totalDebtBalance sums all debt balances");
     assertEqual(result.totalPaidThisCycle, 150.25, "totalPaidThisCycle sums completed action amounts");
+    assertEqual(result.recommendedThisCycle, 200, "snapshot carries recommendedThisCycle");
     assertEqual(result.payoffStrategy, "avalanche", "snapshot carries payoffStrategy");
     assertEqual(result.completedRecommendedActions.length, 2, "snapshot keeps the completed actions");
 }
@@ -72,6 +74,7 @@ function testBuildSnapshot_emptyState() {
         debts: [],
         completedRecommendedActions: [],
         payoffStrategy: "snowball",
+        recommendedThisCycle: 0,
     });
 
     assertEqual(result.totalDebtBalance, 0, "no debts → 0 balance");

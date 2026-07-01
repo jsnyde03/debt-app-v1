@@ -526,6 +526,36 @@
 	padding-right: 4px;
 }
 
+/* Streak stat (v1.5): consecutive on-plan cycles, near the plan-tab top. */
+.streak-stat {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: var(--space-3, 12px);
+	padding: 10px 14px;
+	border-radius: var(--radius-pill, 999px);
+	background: linear-gradient(135deg, rgba(249, 115, 22, 0.14), rgba(234, 179, 8, 0.08));
+	border: 1px solid rgba(249, 115, 22, 0.28);
+}
+
+.streak-stat-flame {
+	font-size: 1.15rem;
+	line-height: 1;
+}
+
+.streak-stat-count {
+	font-size: 1.15rem;
+	font-weight: 900;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.streak-stat-label {
+	font-size: 0.85rem;
+	font-weight: 700;
+	color: var(--text-secondary);
+}
+
 .settings-icon-button {
 	position: relative;
 	right: 0;

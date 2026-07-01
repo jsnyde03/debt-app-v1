@@ -31,6 +31,7 @@ import {
 import { type RecommendationOverride, type Debt, type RequiredExpense, type RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
 import { computeMilestones } from "@/lib/debt/computeMilestones";
+import { computeStreak } from "@/lib/debt/computeStreak";
 import { MilestoneBadge, type MilestoneCelebration } from "@/components/MilestoneBadge";
 import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
@@ -266,11 +267,14 @@ export default function Home() {
     } = useSubscription(notificationsEnabled, nextPaycheckDate, requiredExpenses, setNotificationsEnabled);
 
     const {
+        cycleHistory,
         recordCycleSnapshot,
         visibleHistory,
         canAccessHistory,
         isHistoryCapped,
     } = usePayCycleHistory(subscriptionPlan);
+
+    const currentStreak = computeStreak(cycleHistory);
 
     const [premiumPackageInfo, setPremiumPackageInfo] = useState<PremiumPackageInfo | null>(null);
 
@@ -708,12 +712,25 @@ export default function Home() {
         // Record the cycle that's ending BEFORE any mutation - capture
         // pre-rollover debts and completed actions so the snapshot reflects
         // where the user actually was when this cycle closed.
+        // What the plan asked the user to contribute this cycle (snowball +
+        // emergency + optional-goal allocations) - the Streak's "did you stay
+        // on plan" bar against totalPaidThisCycle.
+        const recommendedThisCycle = (result?.allocations ?? [])
+            .filter(
+                (allocation) =>
+                    allocation.category === "snowball" ||
+                    allocation.category === "emergency" ||
+                    allocation.category === "optional_goal"
+            )
+            .reduce((sum, allocation) => sum + allocation.amount, 0);
+
         recordCycleSnapshot(
             buildCycleSnapshot({
                 cycleEndDate: nextPaycheckDate,
                 debts,
                 completedRecommendedActions,
                 payoffStrategy,
+                recommendedThisCycle,
             })
         );
 
@@ -925,6 +942,20 @@ export default function Home() {
                         </div>
 
                         <div className="plan-tab-grid">
+                            {currentStreak > 0 && (
+                                <div
+                                    className="streak-stat"
+                                    role="status"
+                                    aria-label={`On-plan streak: ${currentStreak} ${currentStreak === 1 ? "cycle" : "cycles"} in a row`}
+                                >
+                                    <span className="streak-stat-flame" aria-hidden="true">🔥</span>
+                                    <span className="streak-stat-count">{currentStreak}</span>
+                                    <span className="streak-stat-label">
+                                        {currentStreak === 1 ? "cycle" : "cycles"} on plan in a row
+                                    </span>
+                                </div>
+                            )}
+
                             {result !== null && activeDebts.length === 0 && (
                                 <div className="card first-debt-prompt">
                                     <p className="first-debt-prompt-text">

@@ -761,6 +761,12 @@
 		margin-inline: 0;
 	}
 
+	/* Streak stat spans both columns so it reads as a header, not a tile. */
+	.plan-tab-grid > .streak-stat {
+		grid-column: 1 / -1;
+		justify-self: start;
+	}
+
 	/* ── Navigation: sidebar on, bottom nav off ── */
 	.bottom-nav { display: none; }
 	.sidebar-nav { display: flex; }

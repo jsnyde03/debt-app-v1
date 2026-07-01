@@ -1,6 +1,6 @@
 # v1.5 — Track Your Journey
 
-_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In progress — active build on `v1.5-dev`; Pay Cycle History (1), Amortization Premium lite (3), and Debt Milestones + celebration (2) all done 2026-07-01. Next: Streaks (4).** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-07-01._
+_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In progress — active build on `v1.5-dev`; Pay Cycle History (1), Amortization Premium lite (3), Debt Milestones + celebration (2), and Streaks (4) all done 2026-07-01. Next: UX #13 Since-Last-Cycle Delta (5).** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-07-01._
 
 **Theme:** Everything that helps users understand where they've been and celebrate how far they've come. Pay Cycle History is the data foundation; milestones, streaks, amortization, and charts make that data meaningful.
 
@@ -15,7 +15,7 @@ _Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In pr
 | 1 | Pay Cycle History (data foundation) | Premium / Premium+ | ✅ Done (2026-07-01) |
 | 2 | Debt Milestones + Payoff Celebration | Free / Premium+ | ✅ Done (2026-07-01) |
 | 3 | Amortization — Premium *lite* view (focus debt); full calendar → v1.6 | Premium | ✅ Done (2026-07-01) |
-| 4 | Streaks | Free / Premium+ | ⬜ Not started |
+| 4 | Streaks | Free / Premium+ | ✅ Done (2026-07-01, Free count; Premium+ chart → v1.6) |
 | 5 | UX #13 — Since-Last-Cycle Delta | All | ⬜ Not started |
 | 6 | UX #15 — Settings UX Rework | All | ⬜ Not started |
 | 7 | Mobile P5 — Context-aware skeletons | All | ⬜ Not started |
@@ -115,16 +115,17 @@ export type PayCycleSnapshot = {
 
 ## 4 — Streaks
 
-**Build steps:**
-- [ ] Derive from `cycleHistory`: count consecutive snapshots where `totalPaidThisCycle >= totalRequired`.
-- [ ] Surface as a small stat near the Plan tab top — Free gets the count; Premium+ gets the historical chart (reuse the History view).
+**Build steps:** ✅ **Done 2026-07-01 (Free count; Premium+ chart deferred to v1.6 with the tier).**
+- [x] Derive from `cycleHistory`: consecutive most-recent snapshots where `totalPaidThisCycle >= recommendedThisCycle` ("stayed on plan"). **Data-model note:** the snapshot didn't carry a "required" total, and comparing paid against only the *completed* actions' amounts is trivially always-true — so this added an optional `recommendedThisCycle` to `PayCycleSnapshot` (sum of the plan's snowball + emergency + optional-goal allocations for the cycle), set in `buildCycleSnapshot`, computed at rollover from `result.allocations`. Optional field → snapshots persisted before it (and cycles the plan asked nothing extra of) count as on-plan (`required` 0). This *refines* the spec's loose `totalRequired` to a concrete, honest, interest-immune "did you do your part" bar.
+- [x] New pure `lib/debt/computeStreak.ts` (`computeStreak` + `isCycleOnPlan`) — counts backward from the latest cycle (history is oldest-first), stops at the first break.
+- [x] Surfaced as a small `🔥 N cycles on plan in a row` stat at the **Plan-tab top** (first child of `plan-tab-grid`, spans both columns on wide layouts; hidden at streak 0 so a new user never sees "0"). **Free** — always visible, no gate. _Premium+ historical chart reuses the existing History view → deferred to v1.6 with the tier, like the amortization full calendar + milestone calendar-context._
 
-**Tier:** Free (count) + Premium+ (chart).
+**Tier:** Free (count) + Premium+ (chart → v1.6).
 
-**Tests required:**
-- [ ] Regression: streak count for a run of qualifying snapshots, a broken streak, and an empty history (→ 0).
+**Tests required:** ✅
+- [x] Regression (`lib/debt/testComputeStreak.ts`): full qualifying run, a broken streak (only the most-recent run counts), a broken *most-recent* cycle (→ 0), empty history (→ 0), exact-meet (`>=`), zero-required cycle, and a legacy snapshot missing `recommendedThisCycle`. Plus a new `buildCycleSnapshot` assertion that it carries `recommendedThisCycle`.
 
-**Files:** streak derivation (likely in `usePayCycleHistory.ts` or a small `lib/debt/computeStreak.ts`), Plan-tab stat render.
+**Files:** `lib/debt/computeStreak.ts` (new), `lib/debt/testComputeStreak.ts` (new), `lib/storage/debtPlannerStorage.ts` (+ `recommendedThisCycle`), `lib/history/buildCycleSnapshot.ts`, `app/page.tsx` (rollover wiring + Plan-tab stat), streak CSS in `03-nav-results-modals.css` + `09-anim-swipe-media-misc.css`.
 
 ---
 

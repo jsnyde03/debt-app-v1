@@ -8,6 +8,7 @@ import "../payCycle/testPayCycle";
 import "../debt/testProjectionAccuracy";
 import "../debt/testAmortizationSchedule";
 import "../debt/testComputeMilestones";
+import "../debt/testComputeStreak";
 import "./testFinalLaunchRegression";
 import "./testV11Regression";
 import "./testFullAppRegression";
