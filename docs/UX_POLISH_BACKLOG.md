@@ -435,9 +435,9 @@ These items ship in v1.5 alongside Pay Cycle History — #13 requires cycle hist
 
 ---
 
-### #1 — Debt Payoff Trajectory Chart ✅ DONE in v1.4
+### #1 — Debt Payoff Trajectory Chart ✅ DONE in v1.4 (motion polish v1.5)
 
-_Highest-impact item in the entire audit. Shipped ahead of schedule — no cycle history dependency after all._
+_Highest-impact item in the entire audit. Shipped ahead of schedule — no cycle history dependency after all. **v1.5 (step 2.9) added the premium motion pass:** the trajectory lines now draw themselves in (`pathLength=1` + `stroke-dashoffset`), and all three visualizations (1a trajectory, 1b forecast bars, 1c per-debt bar) share one `progressReveal`/`drawLine` motion standard; the per-debt bar gained a "N% paid" label. Deferred v1.6 add: a milestone-linked bar pulse (see MASTER_PLAN Deferred backlog)._
 
 **SVG only — no chart library.** Data sets are tiny (≤10 debts, ≤36 months); a library adds bundle weight not worth it at this scale.
 
