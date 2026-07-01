@@ -30,6 +30,8 @@ import {
 
 import { type RecommendationOverride, type Debt, type RequiredExpense, type RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
 import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
+import { computeMilestones } from "@/lib/debt/computeMilestones";
+import { MilestoneBadge, type MilestoneCelebration } from "@/components/MilestoneBadge";
 import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { parseDebtCsv } from "@/lib/imports/debtCsv";
@@ -188,6 +190,7 @@ export default function Home() {
     );
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
+    const [milestoneCelebration, setMilestoneCelebration] = useState<MilestoneCelebration | null>(null);
     const [isToastExiting, setIsToastExiting] = useState(false);
     const [showWindfall, setShowWindfall] = useState(false);
     const [windfallInput, setWindfallInput] = useState("");
@@ -714,17 +717,61 @@ export default function Home() {
             })
         );
 
-        setDebts((current) =>
+        // Apply this cycle's payments once, so we can both persist the new
+        // balances AND detect any milestone thresholds crossed by them.
+        const debtsAfterPayment = debts.map((debt) => ({
+            before: debt,
+            after: applyRolloverPayment(
+                debt,
+                getCompletedRecommendedAmountForDebt(debt.id)
+            ),
+        }));
+
+        const milestoneResult = computeMilestones({
+            debts: debtsAfterPayment.map(({ before, after }) => ({
+                id: before.id,
+                name: before.name,
+                originalBalance: before.originalBalance,
+                previousBalance: before.balance,
+                currentBalance: after.balance,
+            })),
+        });
+
+        setDebts(
             rolloverDebts(
-                current.map((debt) =>
-                    applyRolloverPayment(
-                        debt,
-                        getCompletedRecommendedAmountForDebt(debt.id)
-                    )
-                ),
+                debtsAfterPayment.map(({ after }) => after),
                 nextPaycheckDate
             )
         );
+
+        // Surface the single most significant celebration this rollover earned:
+        // debt-free > a debt fully paid > the highest progress threshold.
+        const paidOffMilestone = milestoneResult.milestones.find(
+            (milestone) => milestone.isPaidOff
+        );
+        const topProgressMilestone = milestoneResult.milestones
+            .filter((milestone) => !milestone.isPaidOff)
+            .reduce<(typeof milestoneResult.milestones)[number] | null>(
+                (best, milestone) =>
+                    !best || milestone.threshold > best.threshold ? milestone : best,
+                null
+            );
+
+        if (milestoneResult.newlyAllPaidOff) {
+            setMilestoneCelebration({ kind: "debt-free" });
+        } else if (paidOffMilestone) {
+            setMilestoneCelebration({
+                kind: "paid-off",
+                debtName: paidOffMilestone.debtName,
+            });
+        } else if (topProgressMilestone) {
+            setMilestoneCelebration({
+                kind: "progress",
+                debtName: topProgressMilestone.debtName,
+                threshold: topProgressMilestone.threshold as 25 | 50 | 75,
+                progressPercent: topProgressMilestone.progressPercent,
+            });
+        }
 
         setRequiredExpenses((current) =>
             rolloverRequiredExpenses(current, nextPaycheckDate)
@@ -1620,6 +1667,13 @@ export default function Home() {
                         setShowUpgrade(true);
                     }}
                     onClose={() => setShowHistory(false)}
+                />
+            )}
+
+            {milestoneCelebration && (
+                <MilestoneBadge
+                    celebration={milestoneCelebration}
+                    onDismiss={() => setMilestoneCelebration(null)}
                 />
             )}
         </main>

@@ -7,6 +7,7 @@ import "./testAprMath";
 import "../payCycle/testPayCycle";
 import "../debt/testProjectionAccuracy";
 import "../debt/testAmortizationSchedule";
+import "../debt/testComputeMilestones";
 import "./testFinalLaunchRegression";
 import "./testV11Regression";
 import "./testFullAppRegression";

@@ -1,6 +1,6 @@
 # v1.5 — Track Your Journey
 
-_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In progress — active build on `v1.5-dev`; Pay Cycle History (1) done 2026-07-01, Amortization Premium lite (3) done 2026-07-01. Next: Debt Milestones + celebration (2).** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-07-01._
+_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In progress — active build on `v1.5-dev`; Pay Cycle History (1), Amortization Premium lite (3), and Debt Milestones + celebration (2) all done 2026-07-01. Next: Streaks (4).** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-07-01._
 
 **Theme:** Everything that helps users understand where they've been and celebrate how far they've come. Pay Cycle History is the data foundation; milestones, streaks, amortization, and charts make that data meaningful.
 
@@ -13,7 +13,7 @@ _Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In pr
 | # | Workstream | Tier | Status |
 |---|---|---|---|
 | 1 | Pay Cycle History (data foundation) | Premium / Premium+ | ✅ Done (2026-07-01) |
-| 2 | Debt Milestones + Payoff Celebration | Free / Premium+ | ⬜ Not started |
+| 2 | Debt Milestones + Payoff Celebration | Free / Premium+ | ✅ Done (2026-07-01) |
 | 3 | Amortization — Premium *lite* view (focus debt); full calendar → v1.6 | Premium | ✅ Done (2026-07-01) |
 | 4 | Streaks | Free / Premium+ | ⬜ Not started |
 | 5 | UX #13 — Since-Last-Cycle Delta | All | ⬜ Not started |
@@ -78,18 +78,18 @@ export type PayCycleSnapshot = {
 
 ## 2 — Debt Milestones + Payoff Celebration
 
-**Build steps:**
-- [ ] New `lib/debt/computeMilestones.ts` — pure function comparing `debt.balance` against `debt.originalBalance` per debt; returns crossed thresholds (25/50/75/100%) plus an "all debts paid off" check.
-- [ ] New `components/MilestoneBadge.tsx` — celebration card/toast triggered when a rollover crosses a threshold.
-- [ ] **Debt payoff celebration (UX #19b):** when a debt crosses 100% on rollover, trigger a distinct paid-off experience — `triggerMediumHaptic()`, full-width celebration card with confetti-style animation, debt's name prominently displayed. This is the emotional peak of the app — **do not ship a subdued version.** See [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) (#19b).
-- [ ] Wire the celebratory entrance through Mobile P6's motion (see §8) rather than an instant appear.
+**Build steps:** ✅ **Done 2026-07-01.**
+- [x] New `lib/debt/computeMilestones.ts` — pure function comparing each debt's **pre- vs post-rollover** balance against `originalBalance`; returns the thresholds **newly crossed this cycle** (25/50/75/100%, highest wins on a big jump), plus `allDebtsPaidOff` / `newlyAllPaidOff`. Needs both balances (not just current) so a threshold fires exactly once, on the cycle it's crossed — never re-firing on later rollovers.
+- [x] New `components/MilestoneBadge.tsx` — a full-screen celebration overlay with three tiers: **progress** (25/50/75% — ✨/🔥, success haptic, no confetti), **paid-off** (100% — 🏆, medium haptic, confetti), **debt-free** (all paid — 🎉, medium haptic, heavier confetti). Deterministic seeded confetti (render-pure, SSR-safe — no `Math.random` during render). Both themes verified.
+- [x] **Debt payoff celebration (UX #19b):** a debt crossing 100% on rollover triggers the distinct paid-off experience — `triggerMediumHaptic()`, full-width confetti celebration card, debt's name prominent. **Not subdued** — screenshot-verified premium in light + dark.
+- [x] Wired into `handleRolloverPayCycle`: payments applied once, milestones computed from before/after, then the single most-significant celebration is surfaced (debt-free > paid-off > highest progress threshold). _(Mobile P6 motion is §8, later; entrance uses the existing `centerModalIn`/pop easing meanwhile.)_
 
-**Tier:** Free (badges); Premium+ (calendar context on the celebration card).
+**Tier:** Free (badges); Premium+ (calendar context on the celebration card — deferred with the v1.6 tier, like amortization's full calendar).
 
-**Tests required:**
-- [ ] Regression: `computeMilestones` returns correct crossed thresholds for 0/25/50/75/100% and the all-paid-off case; edge cases — `originalBalance` unset, balance increased.
+**Tests required:** ✅
+- [x] Regression (`lib/debt/testComputeMilestones.ts`, 12 assertions): each of 25/50/75/100% detected once on its crossing; no re-fire past a crossed threshold; big-jump reports the highest; all-paid-off + newly-vs-already distinction; edge cases — `originalBalance` unset, balance increased, sub-25% progress, mixed paid/owing.
 
-**Files:** `lib/debt/computeMilestones.ts` (new), `components/MilestoneBadge.tsx` (new), rollover handler wiring in `app/page.tsx`.
+**Files:** `lib/debt/computeMilestones.ts` (new), `lib/debt/testComputeMilestones.ts` (new), `components/MilestoneBadge.tsx` (new), rollover wiring in `app/page.tsx`, celebration CSS in `09-anim-swipe-media-misc.css`.
 
 ---
 
@@ -247,7 +247,7 @@ _Extends [release-qa-checklist.md](release-qa-checklist.md) with v1.5-specific f
 
 ## Release gate (must all pass)
 
-- [ ] `npm run lint` passes
+- [ ] `npm run lint` passes — **fully clean (0 errors, 0 warnings).** As of 2026-07-01 it reports ~2,020 problems, but **~1,994 are in `ios/App/App/public/_next/static/chunks/*.js`** — Capacitor's copy of the compiled/minified Next.js bundle, which must not be linted. Fix = ignore the Capacitor web-copy (`ios/App/App/public/`) in eslint config, then clear the small handful of real source issues (4 errors + ~13 warnings across `app/page.tsx`, `WelcomeStep.tsx`, `SnowballSection.tsx`, `FirstDebtOrBillStep.tsx`, `PaycheckSection.tsx`, `ResultsSection.tsx`). Tracked as its own v1.5 step in the master-plan queue.
 - [ ] `npm run test:regression` passes — **including** every new test listed above and the Amortization reconciliation test
 - [ ] E2E (`tests/e2e/`) passes, including new History/tier specs
 - [ ] `npm run build` (production) clean
