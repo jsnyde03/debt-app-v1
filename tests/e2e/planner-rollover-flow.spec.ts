@@ -1,5 +1,4 @@
 import { expect, test, type Page } from "@playwright/test";
-import { timeStamp } from "console";
 
 async function seedRolloverPlanner(page: Page) {
     await page.goto("/");
@@ -189,4 +188,40 @@ test("after rollover, previously paid required items reset in persisted state", 
     expect(rent.isPaidThisCycle).toBe(false);
     expect(visa.isPaidThisCycle).toBe(false);
     expect(visa.minimumPaidThisCycle).toBe(false);
+});
+
+test("a live rollover records one correctly-populated Pay Cycle History snapshot", async ({
+    page,
+}) => {
+    // The tier-visibility tests (planner-history-flow) seed cycleHistory directly.
+    // This exercises the REAL rollover path (handleRolloverPayCycle -> recordCycleSnapshot),
+    // proving a live rollover appends a snapshot built from PRE-rollover state. Recording
+    // is tier-independent, so no subscription is mocked.
+    const before = await page.evaluate(() =>
+        JSON.parse(localStorage.getItem("debtPlanner.cycleHistory") ?? "[]")
+    );
+    expect(before).toHaveLength(0);
+
+    await page.getByRole("button", { name: "Plan Settings" }).click();
+    await page.getByRole("button", { name: "Start Next Pay Cycle" }).click();
+
+    const after = await page.evaluate(() => ({
+        history: JSON.parse(localStorage.getItem("debtPlanner.cycleHistory") ?? "[]"),
+        currentDate: JSON.parse(localStorage.getItem("debtPlanner.currentDate") ?? "null"),
+    }));
+
+    expect(after.history).toHaveLength(1);
+    const snapshot = after.history[0];
+    // PRE-rollover debt balances captured (Visa 500 + Discover 900), not the
+    // post-payment balances - the snapshot reflects where the cycle closed.
+    expect(snapshot.totalDebtBalance).toBe(1400);
+    // Sum of completed recommended actions' actual amounts (the $100 to Emergency Fund).
+    expect(snapshot.totalPaidThisCycle).toBe(100);
+    expect(snapshot.payoffStrategy).toBe("snowball");
+    expect(snapshot.completedRecommendedActions).toHaveLength(1);
+    // cycleEndDate = the payday the cycle rolled over to. The rollover advances
+    // currentDate to that same nextPaycheckDate, so the snapshot's cycle-end must
+    // equal the new current date — asserted as an invariant, not a hardcoded date.
+    expect(snapshot.cycleEndDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(snapshot.cycleEndDate).toBe(after.currentDate);
 });
