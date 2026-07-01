@@ -105,7 +105,7 @@ This is the brainstorm with nothing filtered out. Items already slotted into the
 
 **Debt & payoff**
 - [v1.8] BNPL real calculations (use `remainingPayments`/`scheduledPaymentAmount` instead of treating as a regular debt)
-- [v1.5] Amortization calendar (full schedule per debt)
+- [v1.5] Amortization — Premium *lite* view (focus debt) · [v1.6] full calendar (all debts, Premium+ — deferred to align with the sellable tier; Premium+ isn't purchasable until v1.6)
 - [v1.10] Debt consolidation / balance-transfer calculator
 - [v1.5] Payoff milestones + celebrations
 - [v1.8] Probabilistic payoff projections (Monte Carlo-style date range/confidence bands for variable income, ships alongside Multi-Scenario Planning)
@@ -181,8 +181,8 @@ Per the established cadence philosophy: **v1.x stays quick-turnaround** (days/we
 | v1.2 | Local Notifications + App Store review prompt + **App Lock** *(not yet launched — see note below)* | Notifications/Lock: Free; review prompt: all tiers | Small |
 | v1.3 | iPad Support + iPad Native Polish — sidebar nav, two-column Bills, centered modals, landscape two-column Goals/Payoff, Delete All Data *(done)* | All | Small |
 | v1.4 | Onboarding flow + timeline fix + UX/mobile polish + payoff trajectory chart *(done — shipped)* | All | Small |
-| v1.5 | **Track Your Journey:** Pay Cycle History + Debt Milestones + Amortization Calendar + Streaks + Payoff Trajectory Chart + Settings UX rework + progress polish | Free (milestones, streak count, progress bars) / Premium (6-cycle history) / Premium+ (unlimited history, full amortization, streak chart) | Medium |
-| v1.6 | **Foundation:** 3-tier subscription infra + storage schema versioning + analytics + crash reporting + backup automation + external-payment logging | Infra / Premium+ | Medium |
+| v1.5 | **Track Your Journey:** Pay Cycle History + Debt Milestones + Amortization *(Premium lite — focus debt only; full calendar → v1.6)* + Streaks + Payoff Trajectory Chart + Settings UX rework + progress polish | Free (milestones, streak count, progress bars) / Premium (6-cycle history, lite amortization) / Premium+ gating exists in code but **not purchasable until v1.6** | Medium |
+| v1.6 | **Foundation:** 3-tier subscription infra (makes Premium+ purchasable) + **full amortization calendar (all debts, Premium+ — deferred from v1.5)** + storage schema versioning + analytics + crash reporting + backup automation + external-payment logging | Infra / Premium+ | Medium |
 | v1.7 | **Android build** *(opens second revenue channel ahead of iOS-only native features; accessibility audit split out to v1.9 so Android ships as a clean standalone milestone — prep starts in v1.5, see [ANDROID_READINESS.md](ANDROID_READINESS.md))* | Infra / Platform | Large — **breaks small-release pattern; treat as its own milestone** |
 | v1.8 | Multi-Scenario Planning + Probabilistic Payoff Projections (variable income) + BNPL real calculations — **activate Premium+ annual pricing here** | Premium+ | Medium |
 | v1.9 | Home Screen Widget + Live Activities/Dynamic Island + custom app icons + **accessibility audit** (VoiceOver/TalkBack, Dynamic Type, `prefers-reduced-motion` — moved from v1.7) — **activate Premium annual pricing here** | Premium / Platform | Medium — *iOS native features deferred to after Android; a11y now covers both platforms at once* |

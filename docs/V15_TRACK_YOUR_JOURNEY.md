@@ -14,7 +14,7 @@ _Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In pr
 |---|---|---|---|
 | 1 | Pay Cycle History (data foundation) | Premium / Premium+ | ✅ Done (2026-07-01) |
 | 2 | Debt Milestones + Payoff Celebration | Free / Premium+ | ⬜ Not started |
-| 3 | Amortization Calendar | Premium+ | ⬜ Not started |
+| 3 | Amortization — Premium *lite* view (focus debt); full calendar → v1.6 | Premium | ⬜ Not started |
 | 4 | Streaks | Free / Premium+ | ⬜ Not started |
 | 5 | UX #13 — Since-Last-Cycle Delta | All | ⬜ Not started |
 | 6 | UX #15 — Settings UX Rework | All | ⬜ Not started |
@@ -93,13 +93,15 @@ export type PayCycleSnapshot = {
 
 ---
 
-## 3 — Amortization Calendar (Premium+)
+## 3 — Amortization (v1.5: Premium *lite* view; Premium+ full calendar → v1.6)
 
-**Build steps:**
-- [ ] New `lib/debt/buildAmortizationSchedule.ts` — loops the existing `lib/debt/applyDebtPaymentProjection.ts` (single-month step) to produce a month-by-month schedule until payoff. **Reuse, don't reinvent.**
-- [ ] New `components/AmortizationCalendar.tsx` — per-debt table/calendar view, reachable from each debt row via "View Schedule", gated via `hasFeatureAccess`.
+**Scope decision (2026-07-01):** Premium+ isn't purchasable until v1.6 (3-tier infra), so v1.5 builds **only the Premium *lite* view** — a per-debt schedule for the user's **current/focus debt** — plus the shared engine + reconciliation test. The **Premium+ full / all-debts calendar defers to v1.6**, bundled with the tier that makes it sellable (no point gating a feature behind a tier no one can buy). Build the lite as focus-debt-only from the start so v1.6 doesn't have to claw back an all-debts view from Premium.
 
-**Tier:** Premium+.
+**Build steps (v1.5 — lite):**
+- [ ] New `lib/debt/buildAmortizationSchedule.ts` — loops the existing `lib/debt/applyDebtPaymentProjection.ts` (single-month step) to produce a month-by-month schedule until payoff. **Reuse, don't reinvent.** (Engine is tier-agnostic; both lite and the future full calendar consume it.)
+- [ ] New `components/AmortizationCalendar.tsx` — per-debt table view for the **focus debt**, reachable via "View Schedule", gated via `hasFeatureAccess` to **Premium**.
+
+**Tier (v1.5):** Premium (lite — focus debt only). _Premium+ full calendar (all debts) → v1.6, with the 3-tier infra._
 
 **Tests required (mandatory — finance math):**
 - [ ] **Reconciliation test:** `buildAmortizationSchedule`'s total interest must equal `projectDebtPayoff`'s `totalInterestPaid` for identical inputs. Silent math disagreement in a finance app is the worst bug class — this test is non-negotiable.
