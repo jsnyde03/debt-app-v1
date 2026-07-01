@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import fs from "fs";
 import path from "path";
+import { billsSection } from "./helpers/nav";
 
 async function seedBase(page: Page) {
     await page.goto("/");
@@ -82,10 +83,9 @@ test("debt search accepts input and seeded debts persist", async ({ page }) => {
 
     await page.reload();
 
-    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
-    await page.getByRole("button", { name: /Debts/i }).click();
+    const debtsCol = await billsSection(page, "debts");
 
-    const searchInput = page.getByPlaceholder("Search debts...");
+    const searchInput = debtsCol.getByPlaceholder("Search debts...");
 
     await searchInput.fill("Visa");
 

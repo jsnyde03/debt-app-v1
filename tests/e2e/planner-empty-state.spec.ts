@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { billsSection } from "./helpers/nav";
 
 async function resetApp(page: Page) {
     await page.goto("/");
@@ -60,20 +61,19 @@ test("planner empty state renders on mobile", async ({ page }) => {
         page.getByRole("heading", { name: "Debt Planner" })
     ).toBeVisible();
 
+    // Phone renders .bottom-nav; iPad (≥834px) hides it and shows .sidebar-nav.
+    // Assert whichever primary nav is actually visible for this layout.
     await expect(
-        page.locator(".bottom-nav")
+        page.locator(".bottom-nav:visible, .sidebar-nav:visible").first()
     ).toBeVisible();
 });
 
 
 test("bottom navigation switches sections", async ({ page }) => {
-    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
-
-    await expect(
-        page.getByRole("button", { name: /Expenses/i })
-    ).toBeVisible();
-
-    await page.getByRole("button", { name: /Expenses/i }).click();
+    // Bills → Expenses. Phone has a sub-tab switcher; iPad shows both columns
+    // (no switcher), so billsSection handles both. Assert the section heading
+    // rather than the phone-only switcher button.
+    await billsSection(page, "expenses");
 
     await expect(
         page.getByRole("heading", { name: "Required Expenses" })
@@ -91,7 +91,9 @@ test("bottom navigation switches sections", async ({ page }) => {
         page.getByRole("heading", { name: "Goals" }).first()
     ).toBeVisible();
 
-    await page.getByRole("button", { name: /Plan/i }).click();
+    // Scope to the visible nav: a bare /Plan/i button-role match also hits the
+    // "Open Plan Settings" button on iPad's sidebar (strict-mode violation).
+    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Plan/i }).click();
 
     await expect(
         page.getByRole("button", { name: /Recommended Actions/i })

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { seedLocalStorage } from "./helpers/seed";
+import { billsSection } from "./helpers/nav";
 
 async function resetApp(page: Page) {
     await seedLocalStorage(page, {
@@ -22,10 +23,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("can add an expense and persist after reload", async ({ page }) => {
-    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
-    await page.getByRole("button", { name: /Expenses/i }).click();
-
-    await page.getByRole("button", { name: "+ Add", exact: true }).click();
+    const expensesCol = await billsSection(page, "expenses");
+    await expensesCol.getByRole("button", { name: "+ Add", exact: true }).click();
 
     await page.getByPlaceholder("Rent, phone, utilities").fill("Internet");
     await page.getByPlaceholder("Amount due").fill("89.99");
@@ -37,17 +36,14 @@ test("can add an expense and persist after reload", async ({ page }) => {
 
     await page.reload();
 
-    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
-    await page.getByRole("button", { name: /Expenses/i }).click();
+    await billsSection(page, "expenses");
 
     await expect(page.getByText("Internet")).toBeVisible();
 });
 
 test("can add a debt and persist after reload", async ({ page }) => {
-    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
-    await page.getByRole("button", { name: /Debts/i }).click();
-
-    await page.getByRole("button", { name: "+ Add", exact: true }).click();
+    const debtsCol = await billsSection(page, "debts");
+    await debtsCol.getByRole("button", { name: "+ Add", exact: true }).click();
 
     await page.getByPlaceholder("Debt Name").fill("Test Visa");
     await page.getByPlaceholder("Total Balance Owed").fill("500");
@@ -60,7 +56,7 @@ test("can add a debt and persist after reload", async ({ page }) => {
     await expect(page.getByText("$500.00")).toBeVisible();
     await expect(page.getByText("$50.00")).toBeVisible();
     // Debts now live in a collapsible "Active Debts" group — expand it to see the row detail.
-    await page.getByRole("button", { name: /Active Debts/i }).click();
+    await debtsCol.getByRole("button", { name: /Active Debts/i }).click();
     await expect(page.getByText("APR 22%")).toBeVisible();
 
     const storedDebtName = await page.evaluate(() => {
@@ -72,8 +68,7 @@ test("can add a debt and persist after reload", async ({ page }) => {
 
     await page.reload();
 
-    await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Bills/i }).click();
-    await page.getByRole("button", { name: /Debts/i }).click();
+    await billsSection(page, "debts");
 
     await expect(page.getByText("$500.00")).toBeVisible();
     await expect(page.getByText("$50.00")).toBeVisible();
