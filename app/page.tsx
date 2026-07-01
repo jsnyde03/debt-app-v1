@@ -270,6 +270,7 @@ export default function Home() {
         cycleHistory,
         recordCycleSnapshot,
         visibleHistory,
+        previousSnapshot,
         canAccessHistory,
         isHistoryCapped,
     } = usePayCycleHistory(subscriptionPlan);
@@ -981,6 +982,7 @@ export default function Home() {
                                 goals={goals}
                                 payoffStrategy={payoffStrategy}
                                 debtFreeDate={debtFreeDate}
+                                previousSnapshot={previousSnapshot}
                                 completedRecommendedActions={
                                     completedRecommendedActions
                                 }

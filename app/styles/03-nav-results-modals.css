@@ -872,6 +872,39 @@
 	font-size: 0.88rem;
 }
 
+/* Since-Last-Cycle delta (#13): a small progress line under the strip. */
+.summary-strip-delta {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 8px;
+	padding-left: 2px;
+	font-size: 0.82rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+.summary-strip-delta svg {
+	flex-shrink: 0;
+}
+
+.summary-strip-delta-amount {
+	font-weight: 900;
+}
+
+.summary-strip-delta-label {
+	font-weight: 600;
+	color: var(--text-secondary);
+}
+
+.summary-strip-delta-down {
+	color: var(--success-color);
+}
+
+.summary-strip-delta-up {
+	color: var(--warning-color);
+}
+
 
 
 .section-collapse-button {

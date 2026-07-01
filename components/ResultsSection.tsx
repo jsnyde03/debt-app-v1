@@ -8,6 +8,9 @@ import type {
     RecommendationOverride,
 } from "@/lib/storage/debtPlannerStorage";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { computeCycleDelta } from "@/lib/debt/computeCycleDelta";
+import type { PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
+import { TrendingDown, TrendingUp } from "@/lib/icons";
 import { SwipeActionCard } from "./SwipeActionCard";
 import { CompletedActionsList } from "./Results/CompletedActionsList";
 import { OptionalGoalsList } from "./Results/OptionalGoalsList";
@@ -43,6 +46,7 @@ type ResultsSectionProps = {
     currentDate: string;
     payoffStrategy: "snowball" | "avalanche";
     debtFreeDate?: string | null;
+    previousSnapshot?: PayCycleSnapshot | null;
     onMarkExpensePaid: (id: string) => void;
     onMarkDebtMinimumPaid: (id: string) => void;
     onMarkDebtSnowballPaid: (id: string) => void;
@@ -111,6 +115,7 @@ export function ResultsSection({
     currentDate,
     payoffStrategy,
     debtFreeDate,
+    previousSnapshot,
     onMarkExpensePaid,
     onMarkDebtMinimumPaid,
     onMarkRecommendedAction,
@@ -898,6 +903,45 @@ export function ResultsSection({
                     </strong>
                 </div>
             </div>
+
+            {(() => {
+                // Since-Last-Cycle delta (#13): how total debt moved vs the
+                // last recorded cycle. Nothing shown until a cycle exists.
+                const currentTotalDebt = debts.reduce(
+                    (sum, debt) => sum + debt.balance,
+                    0
+                );
+                const cycleDelta = computeCycleDelta(
+                    previousSnapshot,
+                    currentTotalDebt
+                );
+
+                if (!cycleDelta) {
+                    return null;
+                }
+
+                const fell = cycleDelta.direction === "down";
+
+                return (
+                    <div
+                        className={`summary-strip-delta summary-strip-delta-${cycleDelta.direction}`}
+                        role="status"
+                        aria-label={`Since your last cycle, total debt ${fell ? "fell" : "rose"} by ${formatCurrency(cycleDelta.amount)}`}
+                    >
+                        {fell ? (
+                            <TrendingDown size={15} aria-hidden="true" />
+                        ) : (
+                            <TrendingUp size={15} aria-hidden="true" />
+                        )}
+                        <span className="summary-strip-delta-amount">
+                            {formatCurrency(cycleDelta.amount)}
+                        </span>
+                        <span className="summary-strip-delta-label">
+                            {fell ? "paid down since last cycle" : "since last cycle"}
+                        </span>
+                    </div>
+                );
+            })()}
 
             <div className="plan-dashboard-section">
                 <button

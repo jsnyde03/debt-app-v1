@@ -1,6 +1,6 @@
 # v1.5 — Track Your Journey
 
-_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In progress — active build on `v1.5-dev`; Pay Cycle History (1), Amortization Premium lite (3), Debt Milestones + celebration (2), and Streaks (4) all done 2026-07-01. Next: UX #13 Since-Last-Cycle Delta (5).** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-07-01._
+_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In progress — active build on `v1.5-dev`; Pay Cycle History (1), Amortization Premium lite (3), Debt Milestones + celebration (2), Streaks (4), and UX #13 Since-Last-Cycle Delta (5) all done 2026-07-01. Next: UX #15 Settings UX Rework (6) — needs the accordion-vs-tab decision first.** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-07-01._
 
 **Theme:** Everything that helps users understand where they've been and celebrate how far they've come. Pay Cycle History is the data foundation; milestones, streaks, amortization, and charts make that data meaningful.
 
@@ -16,7 +16,7 @@ _Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In pr
 | 2 | Debt Milestones + Payoff Celebration | Free / Premium+ | ✅ Done (2026-07-01) |
 | 3 | Amortization — Premium *lite* view (focus debt); full calendar → v1.6 | Premium | ✅ Done (2026-07-01) |
 | 4 | Streaks | Free / Premium+ | ✅ Done (2026-07-01, Free count; Premium+ chart → v1.6) |
-| 5 | UX #13 — Since-Last-Cycle Delta | All | ⬜ Not started |
+| 5 | UX #13 — Since-Last-Cycle Delta | All | ✅ Done (2026-07-01) |
 | 6 | UX #15 — Settings UX Rework | All | ⬜ Not started |
 | 7 | Mobile P5 — Context-aware skeletons | All | ⬜ Not started |
 | 8 | Mobile P6 — Micro-interaction pass | All | ⬜ Not started |
@@ -133,12 +133,13 @@ export type PayCycleSnapshot = {
 
 _Depends on #1 cycle history. Must not be built before it lands._
 
-**Build steps:**
-- [ ] Use `usePayCycleHistory.ts`'s `previousSnapshot` getter.
-- [ ] Compute `delta = previousSnapshot.totalDebtBalance - currentTotalDebt`. `delta > 0` (debt reduced) → green `↓ $X`; `delta < 0` → amber `↑ $X`; no previous snapshot → render nothing.
-- [ ] Apply `font-variant-numeric: tabular-nums` to the delta value.
+**Build steps:** ✅ **Done 2026-07-01.**
+- [x] Uses `usePayCycleHistory`'s existing `previousSnapshot` getter (no hook change needed).
+- [x] New pure `lib/debt/computeCycleDelta.ts` — `delta = previousSnapshot.totalDebtBalance − currentTotalDebt` (current = sum of live `debt.balance`, matching how the snapshot was recorded → the number reflects what the last rollover actually moved). `> 0` → green `↓ $X` "paid down since last cycle"; `< 0` → amber `↑ $X` "since last cycle"; no previous snapshot **or** a $0/sub-cent change → render nothing (no clutter). Returns `{direction, amount}` or `null`.
+- [x] Rendered as `.summary-strip-delta` directly under the `execution-summary-strip` in `ResultsSection`, `tabular-nums`, with `TrendingDown`/`TrendingUp` icons and an `aria-label`. **Interest honesty:** because it's measured on total balance (incl. accrued interest), a tight cycle can show amber ↑ even if the user paid — deliberately kept neutral ("since last cycle"), not scolding; the interest-immune "did you do your part" signal is the Streak, so the two complement rather than contradict.
+- [x] Regression `lib/debt/testComputeCycleDelta.ts`: down, up, no-previous (null + undefined), no-change → null, sub-cent → null, cents preserved.
 
-**Files:** `lib/hooks/usePayCycleHistory.ts`, `components/ResultsSection.tsx`, `app/styles/03-nav-results-modals.css` (new `.summary-strip-delta`). See [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) #13.
+**Files:** `lib/debt/computeCycleDelta.ts` (new), `lib/debt/testComputeCycleDelta.ts` (new), `components/ResultsSection.tsx` (+ `previousSnapshot` prop), `app/page.tsx` (passes `previousSnapshot`), `app/styles/03-nav-results-modals.css` (`.summary-strip-delta`). See [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) #13.
 
 ---
 
