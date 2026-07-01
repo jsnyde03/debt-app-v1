@@ -159,18 +159,23 @@ function markInCycleBillsAsPaid(
     debts: Debt[],
     cycleEnd: string,
 ): { expenses: RequiredExpense[]; debts: Debt[] } {
-    const cycleEndDate = new Date(`${cycleEnd}T00:00:00`);
-    const dueBeforeCycleEnd = (dueDate: string) =>
-        new Date(`${dueDate}T00:00:00`) <= cycleEndDate;
+    // `cycleEnd` here is the next payday. A cycle runs [payday, next payday), so a
+    // bill due strictly before the next payday belongs to this cycle (mark it paid so
+    // rollover advances it); one due exactly on the next payday belongs to the next
+    // cycle and must NOT be advanced past it. Hence `<`, consistent with the boundary
+    // used in allocatePaycheck and buildTimelineItems.
+    const nextPayday = new Date(`${cycleEnd}T00:00:00`);
+    const dueBeforeNextPayday = (dueDate: string) =>
+        new Date(`${dueDate}T00:00:00`) < nextPayday;
 
     return {
         expenses: expenses.map((e) => ({
             ...e,
-            isPaidThisCycle: dueBeforeCycleEnd(e.dueDate) ? true : (e.isPaidThisCycle ?? false),
+            isPaidThisCycle: dueBeforeNextPayday(e.dueDate) ? true : (e.isPaidThisCycle ?? false),
         })),
         debts: debts.map((d) => ({
             ...d,
-            minimumPaidThisCycle: dueBeforeCycleEnd(d.dueDate) ? true : (d.minimumPaidThisCycle ?? false),
+            minimumPaidThisCycle: dueBeforeNextPayday(d.dueDate) ? true : (d.minimumPaidThisCycle ?? false),
         })),
     };
 }
