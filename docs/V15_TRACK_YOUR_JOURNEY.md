@@ -1,6 +1,6 @@
 # v1.5 — Track Your Journey
 
-_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: ⬜ Not started — active next version after v1.4.** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-06-29._
+_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In progress — active build on `v1.5-dev`; Pay Cycle History (1) done 2026-07-01, next is the Amortization tiering decision + build (3).** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-07-01._
 
 **Theme:** Everything that helps users understand where they've been and celebrate how far they've come. Pay Cycle History is the data foundation; milestones, streaks, amortization, and charts make that data meaningful.
 
@@ -12,7 +12,7 @@ _Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: ⬜ Not st
 
 | # | Workstream | Tier | Status |
 |---|---|---|---|
-| 1 | Pay Cycle History (data foundation) | Premium / Premium+ | ⬜ Not started |
+| 1 | Pay Cycle History (data foundation) | Premium / Premium+ | ✅ Done (2026-07-01) |
 | 2 | Debt Milestones + Payoff Celebration | Free / Premium+ | ⬜ Not started |
 | 3 | Amortization Calendar | Premium+ | ⬜ Not started |
 | 4 | Streaks | Free / Premium+ | ⬜ Not started |
