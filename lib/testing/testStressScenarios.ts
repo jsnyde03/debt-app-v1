@@ -207,7 +207,7 @@ function runStressScenarioTests() {
     assertMoney(
         boundaryDate.totalRequired,
         0,
-        "debt due on next paycheck date is included"
+        "debt due on next paycheck date belongs to the next cycle (excluded)"
     );
 
     // Scenario 5: Very high APR projection should not silently claim success.

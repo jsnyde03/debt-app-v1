@@ -91,7 +91,9 @@ export function allocatePaycheck({
 		const due = new Date(`${dueDate}T00:00:00`);
 		const next = new Date(`${nextPaycheckDate}T00:00:00`);
 
-		return due <= next;
+		// A pay cycle runs [payday, next payday): a bill due on the next payday is
+		// covered by that paycheck, so it belongs to the next cycle, not this one.
+		return due < next;
 	};
 
 	const upcomingExpenses = expenses

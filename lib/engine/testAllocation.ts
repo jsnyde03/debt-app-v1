@@ -192,7 +192,7 @@ function runAllocationRegressionTests() {
         "emergency goal receives remaining cash after buffer"
     );
 
-    const futureDueDatesIgnored = allocatePaycheck({
+    const dueOnPaycheckDateExcluded = allocatePaycheck({
         paycheckAmount: 500,
         currentDate: "2026-05-04",
         nextPaycheckDate: "2026-05-15",
@@ -213,9 +213,9 @@ function runAllocationRegressionTests() {
     });
 
     assertMoney(
-        futureDueDatesIgnored.totalRequired,
+        dueOnPaycheckDateExcluded.totalRequired,
         0,
-        "items due exactly on next paycheck date should are included this cycle"
+        "items due exactly on next paycheck date belong to the next cycle (excluded)"
     );
 
     console.log("✅ Allocation regression tests passed.");
