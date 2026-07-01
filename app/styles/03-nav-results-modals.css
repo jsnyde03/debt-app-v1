@@ -1532,3 +1532,108 @@
 	width: 100%;
 }
 
+/* --- Amortization schedule (v1.5 Premium lite: focus-debt payoff table) --- */
+.amortization-summary-strip {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 10px;
+	margin-bottom: 12px;
+	padding: 14px 16px;
+	border-radius: 16px;
+	background: var(--surface-muted);
+	border: 1px solid var(--border-color);
+}
+
+.amortization-summary-strip > div {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+.amortization-summary-strip span {
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--text-secondary);
+}
+
+.amortization-summary-strip strong {
+	font-size: 0.95rem;
+	font-weight: 900;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.amortization-assumption {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 12px;
+	color: var(--text-secondary);
+	font-size: 0.82rem;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.amortization-assumption svg {
+	flex-shrink: 0;
+	color: var(--success-color);
+}
+
+.amortization-table {
+	display: flex;
+	flex-direction: column;
+	border-radius: 16px;
+	overflow: hidden;
+	border: 1px solid var(--border-color);
+}
+
+.amortization-row {
+	display: grid;
+	grid-template-columns: 1.2fr 1fr 1fr 1.1fr;
+	gap: 8px;
+	padding: 10px 14px;
+	font-size: 0.84rem;
+	font-variant-numeric: tabular-nums;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.amortization-row:last-child {
+	border-bottom: none;
+}
+
+.amortization-row span:not(.amortization-month) {
+	text-align: right;
+}
+
+.amortization-row-head {
+	background: var(--surface-muted);
+	color: var(--text-secondary);
+	font-size: 0.72rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	position: sticky;
+	top: 0;
+}
+
+.amortization-month {
+	color: var(--text-primary);
+	font-weight: 700;
+}
+
+.amortization-interest {
+	color: var(--warning-color);
+}
+
+.amortization-principal {
+	color: var(--success-color);
+}
+
+.amortization-balance {
+	color: var(--text-primary);
+	font-weight: 700;
+}
+

@@ -8,7 +8,8 @@ export type PremiumFeature =
     | "what_if_scenarios"
     | "smart_insights"
     | "pay_cycle_history"
-    | "unlimited_history";
+    | "unlimited_history"
+    | "amortization_schedule";
 
 // Premium+-exclusive features. Premium gets everything EXCEPT these;
 // they require the top tier. hasFeatureAccess is the single source of
@@ -24,6 +25,7 @@ export const premiumFeatureLabels: Record<PremiumFeature, string> = {
     smart_insights: "Adaptive Recommendations",
     pay_cycle_history: "Pay Cycle History",
     unlimited_history: "Unlimited History",
+    amortization_schedule: "Amortization Schedule",
 };
 
 // Marketing copy for the upgrade screen. "Interest Reduction Insights"

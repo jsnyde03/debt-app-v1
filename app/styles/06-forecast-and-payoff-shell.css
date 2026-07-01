@@ -578,11 +578,48 @@ button:active,
 .payoff-focus-premium-lite {
 	position: relative;
 	overflow: hidden;
+	flex-wrap: wrap;
 	padding: 18px;
 	border-radius: 24px;
 	background: var(--premium-soft-bg);
 	border: 1px solid var(--premium-soft-border);
 	box-shadow: var(--premium-soft-shadow);
+}
+
+.payoff-focus-schedule-button {
+	position: relative;
+	z-index: 2;
+	flex-basis: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	margin-top: 4px;
+	padding: 10px 14px;
+	border-radius: 14px;
+	border: 1px solid var(--premium-soft-border);
+	background: var(--surface-elevated, rgba(148, 163, 184, 0.08));
+	color: var(--badge-blue-color);
+	font-size: 0.85rem;
+	font-weight: 800;
+	cursor: pointer;
+	transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.payoff-focus-schedule-button span {
+	display: inline;
+	margin: 0;
+	color: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+}
+
+.payoff-focus-schedule-button:active {
+	transform: scale(0.98);
+}
+
+.payoff-focus-schedule-button .premium-pill {
+	color: var(--premium-text-faint);
 }
 
 .payoff-focus-premium-lite::before {

@@ -8,6 +8,8 @@ import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { projectForecast } from "@/lib/forecast/projectForecast";
 import { buildSmartInsights } from "@/lib/insights/buildSmartInsights";
 import { buildPayoffTrajectory } from "@/lib/debt/buildPayoffTrajectory";
+import { buildAmortizationSchedule } from "@/lib/debt/buildAmortizationSchedule";
+import { AmortizationCalendar } from "./AmortizationCalendar";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
@@ -53,7 +55,9 @@ export function SnowballSection({
 	const [simulationExtraPayment, setSimulationExtraPayment] = useState("100");
 	const [simulationStrategy, setSimulationStrategy] = useState<"recommended" | "snowball" | "avalanche">("recommended")
 	const [expandedPremiumSection, setExpandedPremiumSection] = useState<"insights" | "comparison" | "simulation" | "forecast">("insights");
+	const [showSchedule, setShowSchedule] = useState(false);
 
+	const canViewAmortization = hasFeatureAccess(subscriptionPlan, "amortization_schedule");
 	const canViewStrategyComparison = hasFeatureAccess(subscriptionPlan, "strategy_comparison");
 	const canViewWhatIfScenarios = hasFeatureAccess(subscriptionPlan, "what_if_scenarios");
 	const canViewForecasting = hasFeatureAccess(subscriptionPlan, "forecasting");
@@ -108,6 +112,24 @@ export function SnowballSection({
 	}, 0);
 
 	const hasCalculatedPlan = result !== null;
+
+	// Amortization "lite" (v1.5): a month-by-month schedule for the FOCUS debt
+	// only, paid at its minimum + the recommended snowball extra. Built on the
+	// shared engine so it reconciles with projectDebtPayoff. The full/all-debts
+	// calendar lands with the Premium+ tier in v1.6.
+	const focusDebtStartingBalance = currentTarget
+		? currentTarget.displayBalance ?? currentTarget.balance
+		: 0;
+	const focusDebtMonthlyPayment = currentTarget
+		? currentTarget.minimumPayment + remainingSnowballExtra
+		: 0;
+	const focusDebtSchedule = currentTarget
+		? buildAmortizationSchedule({
+			balance: focusDebtStartingBalance,
+			apr: currentTarget.type === "bnpl" ? 0 : currentTarget.apr,
+			monthlyPayment: focusDebtMonthlyPayment,
+		})
+		: null;
 
 	const baselineProjection = projectDebtPayoff({
 		debts,
@@ -431,7 +453,43 @@ export function SnowballSection({
 							<span>Remaining</span>
 							<strong>{formatCurrency(currentTarget.displayBalance ?? currentTarget.balance)}</strong>
 						</div>
+
+						<button
+							type="button"
+							className="payoff-focus-schedule-button"
+							onClick={() => {
+								triggerLightHaptic();
+
+								if (!canViewAmortization) {
+									onUpgradeClick();
+									return;
+								}
+
+								setShowSchedule(true);
+							}}
+						>
+							<span>View Schedule</span>
+							{!canViewAmortization && (
+								<span className="premium-pill">Premium</span>
+							)}
+						</button>
 					</div>
+
+					{showSchedule && focusDebtSchedule && (
+						<AmortizationCalendar
+							debtName={currentTarget.name}
+							startingBalance={focusDebtStartingBalance}
+							monthlyPayment={focusDebtMonthlyPayment}
+							startDate={currentDate}
+							schedule={focusDebtSchedule}
+							canAccess={canViewAmortization}
+							onUpgrade={() => {
+								setShowSchedule(false);
+								onUpgradeClick();
+							}}
+							onClose={() => setShowSchedule(false)}
+						/>
+					)}
 
 					<div className="payoff-strategy-selector compact-payoff-strategy">
 						<div className="strategy-buttons">

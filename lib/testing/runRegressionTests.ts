@@ -6,6 +6,7 @@ import "./testAbuseScenarios";
 import "./testAprMath";
 import "../payCycle/testPayCycle";
 import "../debt/testProjectionAccuracy";
+import "../debt/testAmortizationSchedule";
 import "./testFinalLaunchRegression";
 import "./testV11Regression";
 import "./testFullAppRegression";

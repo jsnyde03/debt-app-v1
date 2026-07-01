@@ -1,6 +1,6 @@
 # v1.5 — Track Your Journey
 
-_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In progress — active build on `v1.5-dev`; Pay Cycle History (1) done 2026-07-01, next is the Amortization tiering decision + build (3).** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-07-01._
+_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In progress — active build on `v1.5-dev`; Pay Cycle History (1) done 2026-07-01, Amortization Premium lite (3) done 2026-07-01. Next: Debt Milestones + celebration (2).** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-07-01._
 
 **Theme:** Everything that helps users understand where they've been and celebrate how far they've come. Pay Cycle History is the data foundation; milestones, streaks, amortization, and charts make that data meaningful.
 
@@ -14,7 +14,7 @@ _Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In pr
 |---|---|---|---|
 | 1 | Pay Cycle History (data foundation) | Premium / Premium+ | ✅ Done (2026-07-01) |
 | 2 | Debt Milestones + Payoff Celebration | Free / Premium+ | ⬜ Not started |
-| 3 | Amortization — Premium *lite* view (focus debt); full calendar → v1.6 | Premium | ⬜ Not started |
+| 3 | Amortization — Premium *lite* view (focus debt); full calendar → v1.6 | Premium | ✅ Done (2026-07-01) |
 | 4 | Streaks | Free / Premium+ | ⬜ Not started |
 | 5 | UX #13 — Since-Last-Cycle Delta | All | ⬜ Not started |
 | 6 | UX #15 — Settings UX Rework | All | ⬜ Not started |
@@ -97,17 +97,17 @@ export type PayCycleSnapshot = {
 
 **Scope decision (2026-07-01):** Premium+ isn't purchasable until v1.6 (3-tier infra), so v1.5 builds **only the Premium *lite* view** — a per-debt schedule for the user's **current/focus debt** — plus the shared engine + reconciliation test. The **Premium+ full / all-debts calendar defers to v1.6**, bundled with the tier that makes it sellable (no point gating a feature behind a tier no one can buy). Build the lite as focus-debt-only from the start so v1.6 doesn't have to claw back an all-debts view from Premium.
 
-**Build steps (v1.5 — lite):**
-- [ ] New `lib/debt/buildAmortizationSchedule.ts` — loops the existing `lib/debt/applyDebtPaymentProjection.ts` (single-month step) to produce a month-by-month schedule until payoff. **Reuse, don't reinvent.** (Engine is tier-agnostic; both lite and the future full calendar consume it.)
-- [ ] New `components/AmortizationCalendar.tsx` — per-debt table view for the **focus debt**, reachable via "View Schedule", gated via `hasFeatureAccess` to **Premium**.
+**Build steps (v1.5 — lite):** ✅ **Done 2026-07-01.**
+- [x] New `lib/debt/buildAmortizationSchedule.ts` — loops the existing `lib/debt/applyDebtPaymentProjection.ts` (single-month step) to produce a month-by-month schedule until payoff. **Reuse, don't reinvent.** Returns `{ rows, totalInterest, totalPaid, monthsToPayoff, payoffPossible }`; mirrors `projectDebtPayoff`'s `MAX_MONTHS` (600) + `cannotAmortize` negative-amortization early-out. (Engine is tier-agnostic; both lite and the future full calendar consume it.)
+- [x] New `components/AmortizationCalendar.tsx` — per-debt table view (Month · Interest · Principal · Balance) for the **focus debt** (`payoffOrder[0]`), reachable via a **"View Schedule"** button on the focus strip in `SnowballSection`, gated via `hasFeatureAccess(plan, "amortization_schedule")` to **Premium** (new `PremiumFeature`, not Premium+-only). Free users route straight to the paywall; premium sees the schedule paid at the debt's minimum + recommended snowball extra. Both themes verified.
 
 **Tier (v1.5):** Premium (lite — focus debt only). _Premium+ full calendar (all debts) → v1.6, with the 3-tier infra._
 
-**Tests required (mandatory — finance math):**
-- [ ] **Reconciliation test:** `buildAmortizationSchedule`'s total interest must equal `projectDebtPayoff`'s `totalInterestPaid` for identical inputs. Silent math disagreement in a finance app is the worst bug class — this test is non-negotiable.
-- [ ] Regression: schedule terminates at payoff; final balance is exactly 0; zero-APR and already-paid-off debts handled.
+**Tests required (mandatory — finance math):** ✅
+- [x] **Reconciliation test:** `buildAmortizationSchedule`'s total interest equals `projectDebtPayoff`'s `totalInterestPaid` for identical single-debt inputs — 5 cases across APRs/payments in `lib/debt/testAmortizationSchedule.ts`. (Exact: interest on sub-cent residuals rounds to 0, so the normalize-vs-round endgame difference never touches the interest total.)
+- [x] Regression: schedule terminates at payoff; final balance is exactly 0; row-to-row balance continuity; zero-APR, already-paid-off, and negative-amortization debts handled. Plus e2e (`tests/e2e/planner-amortization-flow.spec.ts`): premium opens the schedule → lands at $0; free sees the Premium pill → paywall. Green on all 4 device profiles.
 
-**Files:** `lib/debt/buildAmortizationSchedule.ts` (new), `components/AmortizationCalendar.tsx` (new), debt-row entry point.
+**Files:** `lib/debt/buildAmortizationSchedule.ts` (new), `lib/debt/testAmortizationSchedule.ts` (new), `components/AmortizationCalendar.tsx` (new), `components/SnowballSection.tsx` (entry point), `lib/subscription/features.ts` (+ `testSubscriptionGating.ts`), `tests/e2e/planner-amortization-flow.spec.ts` (new), CSS in `03-nav-results-modals.css` + `06-forecast-and-payoff-shell.css`.
 
 **Risk:** Medium — the reconciliation test is where the time goes. Budget for it.
 

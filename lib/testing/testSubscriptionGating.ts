@@ -19,6 +19,7 @@ const ALL_PREMIUM_FEATURES: PremiumFeature[] = [
     "smart_insights",
     "pay_cycle_history",
     "unlimited_history",
+    "amortization_schedule",
 ];
 
 // Free gets nothing.
