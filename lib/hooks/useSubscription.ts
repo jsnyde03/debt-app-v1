@@ -17,7 +17,12 @@ export function useSubscription(
     useEffect(() => {
         async function loadSubscription() {
             try {
-                if (process.env.NODE_ENV === "development") {
+                // Dev-only test seam for simulating a paid plan. Also enabled when
+                // NEXT_PUBLIC_E2E=1 so the e2e harness (which runs against a *production*
+                // build — see playwright.config.ts) can exercise premium flows. The real
+                // shipped build (codemagic `npm run build`, no flag) sets neither, so this
+                // whole branch compiles out — users can never fake premium via localStorage.
+                if (process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_E2E === "1") {
                     const mock = localStorage.getItem("debtPlanner.mockSubscription");
                     if (mock === "premium" || mock === "premium_plus") {
                         setSubscriptionPlan(mock);

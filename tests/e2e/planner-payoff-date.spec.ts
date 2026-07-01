@@ -1,59 +1,29 @@
 import { expect, test, type Page } from "@playwright/test";
+import { seedLocalStorage } from "./helpers/seed";
 
 async function seedPayoffDatePlanner(page: Page) {
-    await page.goto("/");
-
-    await page.evaluate(() => {
-        localStorage.clear();
-
-        localStorage.setItem("debtPlanner.amount", JSON.stringify("150"));
-        localStorage.setItem("debtPlanner.payCycle", JSON.stringify("biweekly"));
-        localStorage.setItem("debtPlanner.currentDate", JSON.stringify("2026-05-01"));
-        localStorage.setItem("debtPlanner.nextPaycheckDate", JSON.stringify("2026-05-15"));
-
-        localStorage.setItem("debtPlanner.requiredExpenses", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.livingExpenses", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.goals", JSON.stringify([]));
-
-        localStorage.setItem(
-            "debtPlanner.debts",
-            JSON.stringify([
-                {
-                    id: "test-debt",
-                    name: "Test Debt",
-                    balance: 100,
-                    originalBalance: 100,
-                    minimumPayment: 50,
-                    apr: 0,
-                    dueDate: "2026-05-10",
-                    originalDueDate: "2026-05-10",
-                    type: "debt",
-                    recurrence: "monthly",
-                    isPaidThisCycle: false,
-                    minimumPaidThisCycle: false,
-                    snowballPaidThisCycle: false,
-                },
-            ])
-        );
-
-        localStorage.setItem("debtPlanner.completedRecommendedActions", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.payoffStrategy", JSON.stringify("snowball"));
-        localStorage.setItem("debtPlanner.darkMode", JSON.stringify(false));
+    await seedLocalStorage(page, {
+        amount: "150",
+        hasCompletedOnboarding: true,
+        hasConfiguredPaycheck: true,
+        payCycle: "biweekly",
+        currentDate: "2026-05-01",
+        nextPaycheckDate: "2026-05-15",
+        requiredExpenses: [],
+        livingExpenses: [],
+        goals: [],
+        debts: [
+            {
+                id: "test-debt", name: "Test Debt", balance: 100, originalBalance: 100,
+                minimumPayment: 50, apr: 0, dueDate: "2026-05-10", originalDueDate: "2026-05-10",
+                type: "debt", recurrence: "monthly",
+                isPaidThisCycle: false, minimumPaidThisCycle: false, snowballPaidThisCycle: false,
+            },
+        ],
+        completedRecommendedActions: [],
+        payoffStrategy: "snowball",
+        darkMode: false,
     });
-
-    await page.reload();
-
-    const overlay = page.locator(".settings-overlay");
-
-    if (await overlay.isVisible().catch(() => false)) {
-        const calculateButton = page.getByRole("button", {
-            name: /Calculate plan/i,
-        });
-
-        await expect(calculateButton).toBeVisible();
-        await calculateButton.click();
-        await expect(overlay).not.toBeVisible();
-    }
 }
 
 test.beforeEach(async ({ page }) => {
@@ -65,16 +35,11 @@ test("recommended payoff date is exact and paid extra debt payment persists afte
 }) => {
     await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
 
-    const debtFreeCard = page.locator(".summary-card").filter({
-        hasText: "Debt Free",
-    });
+    const debtFreeStrip = page.locator(".payoff-summary-strip");
+    const recommendationStrip = page.locator(".payoff-recommendation-strip");
 
-    const recommendationCard = page.locator(".summary-card").filter({
-        hasText: "With Recommendation",
-    });
-
-    await expect(debtFreeCard.getByText("July 2026")).toBeVisible();
-    await expect(recommendationCard.getByText("June 2026")).toBeVisible();
+    await expect(debtFreeStrip.getByText("July 2026")).toBeVisible();
+    await expect(recommendationStrip.getByText("June 2026")).toBeVisible();
 
     await page.evaluate(() => {
         localStorage.setItem(
@@ -107,16 +72,9 @@ test("recommended payoff date is exact and paid extra debt payment persists afte
 
     await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
 
-    const updatedDebtFreeCard = page.locator(".summary-card").filter({
-        hasText: "Debt Free",
-    });
-
-    const updatedRecommendationCard = page.locator(".summary-card").filter({
-        hasText: "With Recommendation",
-    });
-
-    await expect(updatedDebtFreeCard.getByText("June 2026")).toBeVisible();
-    await expect(updatedRecommendationCard.getByText("June 2026")).toBeVisible();
+    // The recorded extra payment ($50) fully clears the $100 debt (min $50 +
+    // extra $50), so the payoff view now shows no active debts.
+    await expect(page.getByText("No Active Debts Yet.")).toBeVisible();
 
     const persistedActions = await page.evaluate(() => {
         return JSON.parse(

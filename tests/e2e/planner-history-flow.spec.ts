@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { seedLocalStorage } from "./helpers/seed";
 
 type SeedOptions = {
     mockSubscription?: "premium" | "premium_plus" | null;
@@ -18,44 +19,19 @@ function buildCycleHistory(count: number) {
 }
 
 async function seedHistoryPlanner(page: Page, options: SeedOptions) {
-    await page.goto("/");
-
-    await page.evaluate(
-        ({ mockSubscription, cycleCount, history }) => {
-            localStorage.clear();
-
-            localStorage.setItem("debtPlanner.amount", JSON.stringify("2000"));
-            localStorage.setItem("debtPlanner.payCycle", JSON.stringify("biweekly"));
-            localStorage.setItem("debtPlanner.currentDate", JSON.stringify("2026-05-23"));
-            localStorage.setItem("debtPlanner.hasConfiguredPaycheck", JSON.stringify(true));
-            localStorage.setItem("debtPlanner.hasCompletedOnboarding", JSON.stringify(true));
-
-            localStorage.setItem("debtPlanner.cycleHistory", JSON.stringify(history));
-
-            // useSubscription reads this as a bare string (not JSON).
-            if (mockSubscription) {
-                localStorage.setItem("debtPlanner.mockSubscription", mockSubscription);
-            }
-
-            void cycleCount;
-        },
+    await seedLocalStorage(
+        page,
         {
-            mockSubscription: options.mockSubscription ?? null,
-            cycleCount: options.cycleCount,
-            history: buildCycleHistory(options.cycleCount),
-        }
+            amount: "2000",
+            payCycle: "biweekly",
+            currentDate: "2026-05-23",
+            hasConfiguredPaycheck: true,
+            hasCompletedOnboarding: true,
+            cycleHistory: buildCycleHistory(options.cycleCount),
+        },
+        // mockSubscription is read as a bare string (not JSON) by useSubscription.
+        options.mockSubscription ? { mockSubscription: options.mockSubscription } : {}
     );
-
-    await page.reload();
-
-    const overlay = page.locator(".settings-overlay");
-    if (await overlay.isVisible().catch(() => false)) {
-        await page.getByRole("button", { name: /Calculate plan/i }).click();
-        await page.evaluate(() => {
-            localStorage.setItem("debtPlanner.hasConfiguredPaycheck", JSON.stringify(true));
-        });
-        await page.reload();
-    }
 }
 
 async function openHistory(page: Page) {

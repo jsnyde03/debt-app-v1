@@ -9,6 +9,8 @@ async function seedBase(page: Page) {
         localStorage.clear();
 
         localStorage.setItem("debtPlanner.amount", JSON.stringify("1950"));
+        localStorage.setItem("debtPlanner.hasCompletedOnboarding", JSON.stringify(true));
+        localStorage.setItem("debtPlanner.hasConfiguredPaycheck", JSON.stringify(true));
         localStorage.setItem("debtPlanner.payCycle", JSON.stringify("biweekly"));
         localStorage.setItem("debtPlanner.currentDate", JSON.stringify("2026-05-23"));
         localStorage.setItem("debtPlanner.requiredExpenses", JSON.stringify([]));
@@ -161,9 +163,17 @@ test("backup import restores planner data", async ({ page }) => {
         await dialog.accept();
     });
 
-    await page.getByRole("button", { name: "Plan Settings" }).click();
+    // "Import Backup" lives in the first-run setup panel, so establish that state:
+    // onboarded (no onboarding flow) but no paycheck configured → the setup panel
+    // is shown and its Import Backup control is available.
+    await page.goto("/");
+    await page.evaluate(() => {
+        localStorage.clear();
+        localStorage.setItem("debtPlanner.hasCompletedOnboarding", JSON.stringify(true));
+    });
+    await page.reload();
 
-    await page.locator('input[accept=".json"]').setInputFiles(fixturePath);
+    await page.locator(".import-button input[type='file']").setInputFiles(fixturePath);
 
     await page.waitForTimeout(500);
 

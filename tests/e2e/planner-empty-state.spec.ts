@@ -7,6 +7,8 @@ async function resetApp(page: Page) {
         localStorage.clear();
 
         localStorage.setItem("debtPlanner.amount", JSON.stringify("1950"));
+        localStorage.setItem("debtPlanner.hasCompletedOnboarding", JSON.stringify(true));
+        localStorage.setItem("debtPlanner.hasConfiguredPaycheck", JSON.stringify(true));
         localStorage.setItem("debtPlanner.payCycle", JSON.stringify("biweekly"));
         localStorage.setItem("debtPlanner.currentDate", JSON.stringify("2026-05-23"));
         localStorage.setItem("debtPlanner.requiredExpenses", JSON.stringify([]));
@@ -35,6 +37,9 @@ test("planner empty state renders on mobile", async ({ page }) => {
 
     await page.evaluate(() => {
         localStorage.clear();
+        // Empty *data*, but a returning (onboarded) user — we're asserting the
+        // empty main-app state, not the first-run onboarding flow.
+        localStorage.setItem("debtPlanner.hasCompletedOnboarding", JSON.stringify(true));
     });
 
     await page.reload();
@@ -77,13 +82,13 @@ test("bottom navigation switches sections", async ({ page }) => {
     await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
 
     await expect(
-        page.getByRole("heading", { name: "Debt Payoff Plan" })
+        page.getByRole("heading", { name: "Payoff", exact: true }).first()
     ).toBeVisible();
 
     await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Goals/i }).click();
 
     await expect(
-        page.getByRole("heading", { name: "Goals" })
+        page.getByRole("heading", { name: "Goals" }).first()
     ).toBeVisible();
 
     await page.getByRole("button", { name: /Plan/i }).click();
@@ -94,25 +99,12 @@ test("bottom navigation switches sections", async ({ page }) => {
 });
 
 test("plan settings opens", async ({ page }) => {
-    await page.goto("/");
+    // resetApp (beforeEach) already left us on the main app with the plan
+    // configured — no extra goto(), which would re-trigger the first-run overlay.
+    await page.getByRole("button", { name: /Plan Settings/i }).click();
 
-    const overlay = page.locator(".settings-overlay");
-
-    if (await overlay.isVisible().catch(() => false)) {
-        await expect(
-            page.getByRole("heading", { name: /Plan Settings/i })
-        ).toBeVisible();
-
-        return;
-    }
-
-    await page.getByRole("button", {
-        name: /Plan Settings/i,
-    }).click();
-
+    // The opened settings panel renders these stable sections (PlanSettingsBody).
     await expect(
-        page.getByRole("heading", {
-            name: /Plan Settings/i,
-        })
+        page.getByRole("heading", { name: "Appearance" })
     ).toBeVisible();
 });

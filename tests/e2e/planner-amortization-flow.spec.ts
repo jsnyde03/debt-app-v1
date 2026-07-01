@@ -13,6 +13,7 @@ async function seedAmortizationPlanner(
         localStorage.clear();
 
         localStorage.setItem("debtPlanner.amount", JSON.stringify("2000"));
+        localStorage.setItem("debtPlanner.hasCompletedOnboarding", JSON.stringify(true));
         localStorage.setItem("debtPlanner.payCycle", JSON.stringify("biweekly"));
         localStorage.setItem("debtPlanner.currentDate", JSON.stringify("2026-05-01"));
         localStorage.setItem("debtPlanner.nextPaycheckDate", JSON.stringify("2026-05-15"));
