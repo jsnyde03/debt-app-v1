@@ -583,6 +583,8 @@ export function SnowballSection({
 								<line x1="10" y1="88" x2="290" y2="88" stroke="rgba(148,163,184,0.18)" strokeWidth="1" />
 								{avalancheSvgPoints && (
 									<polyline
+										className="trajectory-line trajectory-line-avalanche"
+										pathLength={1}
 										points={avalancheSvgPoints}
 										fill="none"
 										stroke="#a855f7"
@@ -593,6 +595,8 @@ export function SnowballSection({
 									/>
 								)}
 								<polyline
+									className="trajectory-line trajectory-line-snowball"
+									pathLength={1}
 									points={snowballSvgPoints}
 									fill="none"
 									stroke="#2563eb"

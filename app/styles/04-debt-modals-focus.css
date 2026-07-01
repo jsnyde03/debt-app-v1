@@ -414,6 +414,13 @@
 	opacity: 0.85;
 }
 
+.debt-progress-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 8px;
+}
+
 .debt-progress-track {
 	width: 100%;
 	height: 5px;
@@ -422,6 +429,21 @@
 	overflow: hidden;
 	border: 1px solid rgba(148, 163, 184, 0.14);
 	margin-top: 8px;
+}
+
+/* Inside the labeled row the track fills the remaining width; the row owns
+   the top margin. */
+.debt-progress-row .debt-progress-track {
+	flex: 1;
+	margin-top: 0;
+}
+
+.debt-progress-percent {
+	flex-shrink: 0;
+	font-size: 0.72rem;
+	font-weight: 700;
+	color: var(--text-secondary);
+	font-variant-numeric: tabular-nums;
 }
 
 .debt-progress-fill {

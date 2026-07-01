@@ -805,10 +805,10 @@ button:active,
 	will-change: width;
 }
 
-.forecast-status-bar-fill-stable   { background: #22c55e; }
-.forecast-status-bar-fill-tight    { background: #f59e0b; }
-.forecast-status-bar-fill-pressure { background: #f97316; }
-.forecast-status-bar-fill-recovery { background: #ef4444; }
+.forecast-status-bar-fill-stable   { background: linear-gradient(90deg, #16a34a, #22c55e); }
+.forecast-status-bar-fill-tight    { background: linear-gradient(90deg, #d97706, #f59e0b); }
+.forecast-status-bar-fill-pressure { background: linear-gradient(90deg, #ea580c, #f97316); }
+.forecast-status-bar-fill-recovery { background: linear-gradient(90deg, #dc2626, #ef4444); }
 
 .forecast-status-bar-label {
 	font-size: 0.68rem;
