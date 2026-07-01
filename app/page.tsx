@@ -21,6 +21,7 @@ import { GoalsSection } from "@/components/GoalsSection";
 import { RequiredExpensesSection } from "@/components/RequiredExpensesSection";
 import { DebtsSection } from "@/components/DebtsSection";
 import { PaycheckSection } from "@/components/PaycheckSection";
+import { PlanSettingsBody } from "@/components/PlanSettings/PlanSettingsBody";
 import { SnowballSection } from "@/components/SnowballSection";
 
 import {
@@ -1390,45 +1391,13 @@ export default function Home() {
                             )}
                         </div>
 
-                        {isFirstRunSetup && (
-                            <p className="setup-hint">
-                                Enter your paycheck to create your first
-                                plan.
-                            </p>
-                        )}
-
-                        {isFirstRunSetup && (
-                            <div className="setup-badge">
-                                First Time Setup
-                            </div>
-                        )}
-
-                        {isFirstRunSetup && (
-                            <div className="first-run-import-row">
-                                <button
-                                    type="button"
-                                    className="secondary-button"
-                                    onClick={() => {
-                                        triggerLightHaptic();
-                                        handlePopulateDemoData();
-                                    }}
-                                >
-                                    Try with Sample Data
-                                </button>
-
-                                <label className="secondary-button import-button">
-                                    Import Backup
-                                    <input
-                                        type="file"
-                                        accept="json,application/json"
-                                        onChange={handleImportBackup}
-                                        hidden
-                                    />
-                                </label>
-                            </div>
-                        )}
-
-                        <PaycheckSection
+                        <PlanSettingsBody
+                            isFirstRunSetup={isFirstRunSetup}
+                            onClose={() => setShowPlanSettings(false)}
+                            onOpenHistory={() => {
+                                setShowPlanSettings(false);
+                                setShowHistory(true);
+                            }}
                             amount={amount}
                             payCycle={payCycle}
                             semiMonthlyFirstDay={semiMonthlyFirstDay}
@@ -1436,256 +1405,34 @@ export default function Home() {
                             monthlyPayDay={monthlyPayDay}
                             nextPaycheckDate={nextPaycheckDate}
                             currentDate={currentDate}
-                            showAdminActions={!isFirstRunSetup}
-                            onExportBackup={handleExportBackup}
-                            onImportBackup={handleImportBackup}
                             onAmountChange={setAmount}
                             onPayCycleChange={setPayCycle}
-                            onNextPayCheckDateChange={setNextPaycheckDate}
-                            onSemiMonthlyFirstDayChange={
-                                setSemiMonthlyFirstDay
-                            }
-                            onSemiMonthlySecondDayChange={
-                                setSemiMonthlySecondDay
-                            }
+                            onNextPaycheckDateChange={setNextPaycheckDate}
+                            onSemiMonthlyFirstDayChange={setSemiMonthlyFirstDay}
+                            onSemiMonthlySecondDayChange={setSemiMonthlySecondDay}
                             onMonthlyPayDayChange={setMonthlyPayDay}
                             onCalculate={handleCalculate}
                             onRolloverPayCycle={handleRolloverPayCycle}
                             onResetToToday={handleResetToToday}
+                            onExportBackup={handleExportBackup}
+                            onImportBackup={handleImportBackup}
+                            onPopulateDemoData={handlePopulateDemoData}
+                            showWindfall={showWindfall}
+                            setShowWindfall={setShowWindfall}
+                            windfallInput={windfallInput}
+                            setWindfallInput={setWindfallInput}
+                            setAmount={setAmount}
+                            setStatusMessage={setStatusMessage}
+                            themePreference={themePreference}
+                            setThemePreference={setThemePreference}
+                            notificationsEnabled={notificationsEnabled}
+                            onNotificationsToggle={handleNotificationsToggle}
+                            appLockEnabled={appLockEnabled}
+                            setAppLockEnabled={setAppLockEnabled}
+                            showDeleteConfirm={showDeleteConfirm}
+                            setShowDeleteConfirm={setShowDeleteConfirm}
+                            onDeleteAll={handleExitDemoMode}
                         />
-
-                        {!isFirstRunSetup && (
-                            <div className="card windfall-card">
-                                {showWindfall ? (
-                                    <div className="windfall-form">
-                                        <p className="windfall-label">Got a bonus or extra cash? Add it to this paycheck.</p>
-                                        <div className="windfall-input-row">
-                                            <input
-                                                type="text"
-                                                inputMode="decimal"
-                                                className="windfall-input"
-                                                placeholder="0.00"
-                                                value={windfallInput}
-                                                onChange={e => setWindfallInput(e.target.value)}
-                                                autoFocus
-                                            />
-                                            <button
-                                                type="button"
-                                                className="primary-plan-button"
-                                                onClick={() => {
-                                                    const extra = parseFloat(windfallInput);
-                                                    if (!extra || extra <= 0) return;
-                                                    triggerMediumHaptic();
-                                                    setAmount(prev => String(Math.round((Number(prev) + extra) * 100) / 100));
-                                                    setWindfallInput("");
-                                                    setShowWindfall(false);
-                                                    setShowPlanSettings(false);
-                                                    setStatusMessage(`Added $${extra.toFixed(2)} windfall to this paycheck.`);
-                                                }}
-                                            >
-                                                Apply
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="secondary-button"
-                                                onClick={() => { setShowWindfall(false); setWindfallInput(""); }}
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        className="windfall-trigger-button"
-                                        onClick={() => { triggerLightHaptic(); setShowWindfall(true); }}
-                                    >
-                                        <span className="windfall-trigger-icon">💰</span>
-                                        <span>Got extra money this paycheck?</span>
-                                    </button>
-                                )}
-                            </div>
-                        )}
-
-                        {!isFirstRunSetup && (
-                            <button
-                                type="button"
-                                className="card settings-nav-row"
-                                onClick={() => {
-                                    triggerLightHaptic();
-                                    setShowPlanSettings(false);
-                                    setShowHistory(true);
-                                }}
-                                aria-label="View Pay Cycle History"
-                            >
-                                <div>
-                                    <h3>Pay Cycle History</h3>
-                                    <p className="section-collapse-subtitle">
-                                        Look back at your finished pay cycles.
-                                    </p>
-                                </div>
-                                <ChevronRight size={20} aria-hidden="true" />
-                            </button>
-                        )}
-
-                        {!isFirstRunSetup && (
-                            <div className="card notifications-settings-card">
-                                <div className="notifications-settings-row">
-                                    <div>
-                                        <h3>Appearance</h3>
-                                    </div>
-                                    <div className="theme-selector" role="group" aria-label="Theme preference">
-                                        {(["system", "light", "dark"] as ThemePreference[]).map((pref) => (
-                                            <button
-                                                key={pref}
-                                                type="button"
-                                                className={`theme-selector-pill${themePreference === pref ? " theme-selector-pill-active" : ""}`}
-                                                onClick={() => { triggerLightHaptic(); setThemePreference(pref); }}
-                                                aria-pressed={themePreference === pref}
-                                            >
-                                                {pref === "system" ? "Auto" : pref === "light" ? "Light" : "Dark"}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {!isFirstRunSetup && (
-                            <div className="card notifications-settings-card">
-                                <div className="notifications-settings-row">
-                                    <div>
-                                        <h3>Notifications</h3>
-                                        <p className="section-collapse-subtitle">
-                                            Paycheck-eve reminder and upcoming bill alerts.
-                                        </p>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        role="switch"
-                                        aria-checked={notificationsEnabled}
-                                        className={notificationsEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
-                                        onClick={handleNotificationsToggle}
-                                        aria-label={notificationsEnabled ? "Disable notifications" : "Enable notifications"}
-                                    >
-                                        <span className="toggle-thumb" />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {!isFirstRunSetup && (
-                            <div className="card notifications-settings-card">
-                                <div className="notifications-settings-row">
-                                    <div>
-                                        <h3>App Lock</h3>
-                                        <p className="section-collapse-subtitle">
-                                            Require Face ID, Touch ID, or your device passcode to open the app.
-                                        </p>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        role="switch"
-                                        aria-checked={appLockEnabled}
-                                        className={appLockEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
-                                        onClick={() => {
-                                            triggerLightHaptic();
-                                            setAppLockEnabled(!appLockEnabled);
-                                        }}
-                                        aria-label={appLockEnabled ? "Disable app lock" : "Enable app lock"}
-                                    >
-                                        <span className="toggle-thumb" />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {!isFirstRunSetup && (
-                            <div className="settings-danger-zone">
-                                {showDeleteConfirm ? (
-                                    <div className="delete-confirm-row">
-                                        <p className="delete-confirm-text">
-                                            All debts, bills, goals, and settings will be permanently erased. This cannot be undone.
-                                        </p>
-                                        <div className="delete-confirm-actions">
-                                            <button
-                                                type="button"
-                                                className="secondary-button"
-                                                onClick={() => setShowDeleteConfirm(false)}
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="danger-destructive-button"
-                                                onClick={() => {
-                                                    triggerMediumHaptic();
-                                                    handleExitDemoMode();
-                                                }}
-                                            >
-                                                Delete Everything
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        className="danger-text-button"
-                                        aria-label="Delete all data — permanently erase all debts, bills, goals, and settings"
-                                        onClick={() => {
-                                            triggerLightHaptic();
-                                            setShowDeleteConfirm(true);
-                                        }}
-                                    >
-                                        Delete All Data
-                                    </button>
-                                )}
-                            </div>
-                        )}
-
-                        <p className="settings-privacy-note">
-                            Your data stays on this device — nothing is uploaded or shared.
-                        </p>
-
-                        <div className="settings-legal-row">
-                            <a
-                                href="https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="legal-link"
-                            >
-                                Privacy Policy
-                            </a>
-                            <span className="legal-separator">·</span>
-                            <a
-                                href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="legal-link"
-                            >
-                                Terms of Use
-                            </a>
-                            <span className="legal-separator">·</span>
-                            <a
-                                href="https://github.com/jsnyde03/debt-planner-stie/blob/main/Paycheck%20Debt%20Planner%20Support"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="legal-link"
-                            >
-                                Support
-                            </a>
-                            <span className="legal-separator">·</span>
-                            <a
-                                href="https://apps.apple.com/account/subscriptions"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="legal-link"
-                            >
-                                Manage Subscription
-                            </a>
-                        </div>
                     </div>
                 </div>
             )}
