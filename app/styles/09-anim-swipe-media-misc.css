@@ -775,24 +775,15 @@
 		margin-inline: auto;
 	}
 
-	.plan-tab-grid {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		align-items: stretch;
-		gap: var(--space-3);
-		max-width: 1300px;
-		margin-inline: auto;
-	}
+	/* .plan-tab-grid two-column layout lives in the ≥1024px block below. At 834px
+	   portrait it stays default single-column flow (cards centered) — a grid there
+	   made columns too narrow and left an empty stretched card. */
 
-	.plan-tab-grid > .card {
-		max-width: none;
-		margin-inline: 0;
-	}
-
-	/* Streak stat spans both columns so it reads as a header, not a tile. */
-	.plan-tab-grid > .streak-stat {
-		grid-column: 1 / -1;
-		justify-self: start;
+	/* The plan dashboard carries a 15rem padding-bottom on phone as scroll runway
+	   below the floating bottom nav. iPad uses the sidebar (no floating nav), so
+	   that runway is just dead space at the card's bottom — trim it. */
+	.plan-dashboard {
+		padding-bottom: 2rem;
 	}
 
 	/* ── Navigation: sidebar on, bottom nav off ── */
@@ -904,6 +895,27 @@
 
 /* Landscape iPad (1024px+): Goals and Payoff get a two-column interior layout */
 @media (min-width: 1024px) {
+	/* Plan tab: two columns only at landscape/wide widths (≥1024). At 834px portrait
+	   the columns are too narrow (~377px) and cram the content, so it stays single-column. */
+	.plan-tab-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		align-items: start; /* don't stretch a shorter column into a tall empty card */
+		gap: var(--space-3);
+		max-width: 1300px;
+		margin-inline: auto;
+	}
+
+	.plan-tab-grid > .card {
+		max-width: none;
+		margin-inline: 0;
+	}
+
+	.plan-tab-grid > .streak-stat {
+		grid-column: 1 / -1;
+		justify-self: start;
+	}
+
 	.goals-tab-layout {
 		display: grid;
 		grid-template-columns: 240px 1fr;

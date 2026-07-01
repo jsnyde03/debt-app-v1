@@ -8,7 +8,7 @@ import {
 } from "@/lib/timeline/buildMultiCycleTimeline";
 import type { CompletedRecommendedAction, TimelineItem } from "@/lib/timeline/buildTimelineItems";
 import type { LivingExpense } from "@/lib/types/livingExpense";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
@@ -163,6 +163,17 @@ export function TimelineSection({
 }: TimelineSectionProps) {
     const [timelineExpanded, setTimelineExpanded] = useState(false);
     const [expandedCycles, setExpandedCycles] = useState<Record<number, boolean>>({ 0: true });
+
+    // On the wide iPad layout (≥1024px) the Plan tab is a two-column grid, so the
+    // Timeline reads better open by default — otherwise it leaves the right column
+    // empty. Phones and iPad portrait (single column) stay collapsed for a manageable
+    // scroll. Done post-mount (not in initial state) to match the static build — no
+    // hydration mismatch.
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) {
+            setTimelineExpanded(true);
+        }
+    }, []);
 
     if (!result) return null;
 
