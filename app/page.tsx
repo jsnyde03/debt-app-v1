@@ -926,6 +926,77 @@ export default function Home() {
                     )}
                 </section>
 
+                {!isFirstRunSetup && (
+                    <div
+                        className={`plan-settings-accordion ${showPlanSettings ? "expanded" : "collapsed"}`}
+                        aria-hidden={!showPlanSettings}
+                    >
+                        <div className="plan-settings-accordion-inner">
+                            <div className="settings-sheet-header">
+                                <div>
+                                    <h2>Plan Settings</h2>
+                                    <p className="section-collapse-subtitle">
+                                        Adjust paycheck, pay cycle, and plan settings.
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="text-action-button"
+                                    onClick={() => {
+                                        triggerLightHaptic();
+                                        setShowPlanSettings(false);
+                                        setShowDeleteConfirm(false);
+                                    }}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                            <PlanSettingsBody
+                                isFirstRunSetup={false}
+                                onClose={() => setShowPlanSettings(false)}
+                                onOpenHistory={() => {
+                                    setShowPlanSettings(false);
+                                    setShowHistory(true);
+                                }}
+                                amount={amount}
+                                payCycle={payCycle}
+                                semiMonthlyFirstDay={semiMonthlyFirstDay}
+                                semiMonthlySecondDay={semiMonthlySecondDay}
+                                monthlyPayDay={monthlyPayDay}
+                                nextPaycheckDate={nextPaycheckDate}
+                                currentDate={currentDate}
+                                onAmountChange={setAmount}
+                                onPayCycleChange={setPayCycle}
+                                onNextPaycheckDateChange={setNextPaycheckDate}
+                                onSemiMonthlyFirstDayChange={setSemiMonthlyFirstDay}
+                                onSemiMonthlySecondDayChange={setSemiMonthlySecondDay}
+                                onMonthlyPayDayChange={setMonthlyPayDay}
+                                onCalculate={handleCalculate}
+                                onRolloverPayCycle={handleRolloverPayCycle}
+                                onResetToToday={handleResetToToday}
+                                onExportBackup={handleExportBackup}
+                                onImportBackup={handleImportBackup}
+                                onPopulateDemoData={handlePopulateDemoData}
+                                showWindfall={showWindfall}
+                                setShowWindfall={setShowWindfall}
+                                windfallInput={windfallInput}
+                                setWindfallInput={setWindfallInput}
+                                setAmount={setAmount}
+                                setStatusMessage={setStatusMessage}
+                                themePreference={themePreference}
+                                setThemePreference={setThemePreference}
+                                notificationsEnabled={notificationsEnabled}
+                                onNotificationsToggle={handleNotificationsToggle}
+                                appLockEnabled={appLockEnabled}
+                                setAppLockEnabled={setAppLockEnabled}
+                                showDeleteConfirm={showDeleteConfirm}
+                                setShowDeleteConfirm={setShowDeleteConfirm}
+                                onDeleteAll={handleExitDemoMode}
+                            />
+                        </div>
+                    </div>
+                )}
+
                 <div key={activeTab} className="tab-content-transition" data-direction={tabDirection} role="region" aria-label={activeTab === "plan" ? "Plan" : activeTab === "bills" ? "Bills" : activeTab === "snowball" ? "Payoff" : "Goals"}>
                 {activeTab === "plan" && (
                     <>
@@ -934,9 +1005,10 @@ export default function Home() {
                                 type="button"
                                 className="settings-icon-button"
                                 aria-label="Open Plan Settings"
+                                aria-expanded={showPlanSettings}
                                 onClick={() => {
                                     triggerLightHaptic();
-                                    setShowPlanSettings(true);
+                                    setShowPlanSettings((open) => !open);
                                 }}
                             >
                                 <Settings size={20} aria-hidden="true" />
@@ -1345,14 +1417,15 @@ export default function Home() {
                     type="button"
                     className="sidebar-nav-item sidebar-settings-btn"
                     aria-label="Open Plan Settings"
-                    onClick={() => { triggerLightHaptic(); setShowPlanSettings(true); }}
+                    aria-expanded={showPlanSettings}
+                    onClick={() => { triggerLightHaptic(); setShowPlanSettings((open) => !open); }}
                 >
                     <Settings size={22} aria-hidden="true" />
                     <small>Settings</small>
                 </button>
             </nav>
 
-            {showPlanSettings && (
+            {showPlanSettings && isFirstRunSetup && (
                 <div
                     className="settings-overlay"
                     onClick={() => {

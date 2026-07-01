@@ -526,6 +526,42 @@
 	padding-right: 4px;
 }
 
+/* Returning-user Plan Settings accordion (v1.5 #15): expands inline under the
+   hero instead of a modal. Mirrors the plan-section-body collapse pattern. */
+.plan-settings-accordion {
+	overflow: hidden;
+	transition:
+		max-height 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+		opacity 200ms ease,
+		visibility 260ms ease;
+	will-change: max-height, opacity;
+}
+
+.plan-settings-accordion.collapsed {
+	max-height: 0;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.plan-settings-accordion.expanded {
+	/* Generous — the settings body (paycheck + cards + legal) is tall. */
+	max-height: 3000px;
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+}
+
+.plan-settings-accordion-inner {
+	padding: 4px 2px 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.plan-settings-accordion {
+		transition: visibility 0ms, max-height 0ms;
+	}
+}
+
 /* Streak stat (v1.5): consecutive on-plan cycles, near the plan-tab top. */
 .streak-stat {
 	display: flex;
