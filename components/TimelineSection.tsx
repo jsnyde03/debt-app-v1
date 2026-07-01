@@ -1,4 +1,5 @@
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { dayBefore } from "@/lib/utils/dayBefore";
 import type { Debt, RequiredExpense, Goal } from "@/lib/storage/debtPlannerStorage";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import {
@@ -231,7 +232,7 @@ export function TimelineSection({
                             >
                                 <div className="timeline-cycle-header-left">
                                     <span className="timeline-cycle-range">
-                                        {formatCycleDate(cycle.cycleStart)} – {formatCycleDate(cycle.cycleEnd)}
+                                        {formatCycleDate(cycle.cycleStart)} – {formatCycleDate(dayBefore(cycle.cycleEnd))}
                                     </span>
                                     <span className="timeline-cycle-meta">
                                         {cycleIndex === 0 ? "This cycle" : "Projected"} · {cycle.items.length} transactions

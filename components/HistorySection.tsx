@@ -1,5 +1,6 @@
 import type { PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { dayBefore } from "@/lib/utils/dayBefore";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 import { History, ChevronRight, TrendingDown, TrendingUp } from "@/lib/icons";
 
@@ -106,7 +107,7 @@ export function HistorySection({
                                     <div className="history-row-main">
                                         <span className="history-row-date">
                                             {formatCycleDate(
-                                                snapshot.cycleEndDate
+                                                dayBefore(snapshot.cycleEndDate)
                                             )}
                                         </span>
                                         <span className="history-row-balance">
