@@ -27,6 +27,18 @@ No engine or calculation changes in v1.4. All changes are UI polish, onboarding 
 
 **Haptics / CSS / animations**: No testable logic. Confidence not applicable.
 
+## v1.5 addendum (2026-07-01) — e2e harness + suite health
+
+No engine/calculation changes in the harness work; this addendum records **test-infrastructure** confidence, which had silently degraded.
+
+**e2e harness hardened + drifted suite repaired** (steps 2.10–2.11, commit `524d6c0`). The suite had rotted unmaintained across v1.1→v1.5 (UI renames, the onboarding gate, a first-run-overlay hydration flash, the premium seam compiled out of prod builds, date-brittle assertions) and was substantially red — the v1.4 note above ("5 tests across 4 device profiles, all green") **no longer held** and is superseded by this. Now:
+- e2e runs against a **production static build** (`serve out`, not `next dev`) with `retries:1` and a shared warm server; state is seeded before first paint via `tests/e2e/helpers/seed.ts` (`addInitScript`).
+- Premium flows are exercisable against the prod build via the `NEXT_PUBLIC_E2E` seam (set only by the e2e webServer — the shipped build never sets it, so the paywall is unaffected).
+- **Functional suite: green on the phone form factors** — mobile-chrome + iphone-pro-max, 29/29.
+- **Known gaps (tracked, not silently shipped):** the iPad projects' specs still assume the phone single-column layout (iPad's two-column Bills has no sub-tabs) — **test-drift, not an app bug** — and the 3 screenshot/asset specs remain on the old seed pattern. Both are filed as v1.6 test follow-ons; the CI gate being wired in (step 2.13) is scoped to the phone functional specs until they land.
+
+**Standing rule reinforced:** committed suites must be **kept green via checkpoints** (per-feature run · full-suite-green at version lock · CI-gate) so this doesn't recur — the reason step 2.13 pulls CI-gating forward.
+
 ---
 
 ## Current baseline audit (2026-06-25, v1.2-dev — ratings carry forward to v1.3 and v1.4, no calculation changes)
