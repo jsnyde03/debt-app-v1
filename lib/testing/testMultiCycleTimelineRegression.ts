@@ -439,6 +439,7 @@ export function runMultiCycleTimelineRegressionTests() {
     testCycleStartAndEndAreContinuous();
 
     // Current cycle fidelity
+    testCycle0ItemsMatchSingleCycleOutput();
     testCycle0AlwaysHasPaycheckItem();
     testProjectedCyclesAlsoHavePaycheckItem();
 

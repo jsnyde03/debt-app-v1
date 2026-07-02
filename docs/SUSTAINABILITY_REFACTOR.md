@@ -56,6 +56,15 @@ Rules that apply to every slice:
   `livingExpensePresets.map((e, i) => ({ ...e, id: ` + "`living-${i}`" + ` }))` now lives in both
   `useLivingExpenses.ts` and the backup-restore fallback in `page.tsx` (~:607). Extract to one
   shared constant. Tiny; fold into a nearby slice.
+- **Viewport media-query check triplication** _(surfaced 2.19)_ — the lazy-init idiom
+  `typeof window !== "undefined" && window.matchMedia("(min-width: Npx)").matches` is now inlined
+  in three components (`ResultsSection` 834px, `TimelineSection` 1024px, `DebtsSection` 834px) as
+  `useState` initializers (was a post-mount effect before 2.19). A shared `lib/utils` helper
+  (`matchesMinWidth(px)` or a `useIsViewportAtLeast(px)` hook) would DRY it. Fits audit decision #4.
+- **Dead `currentDate` prop on `PaycheckSection`** _(surfaced 2.19)_ — removed from the destructure
+  to clear the lint warning, but it's still declared in the props type and passed by
+  `PlanSettingsBody` (`currentDate={currentDate}`). Fully remove it from the type + caller. Tiny;
+  fits audit decision #8 (dead-code hygiene).
 - **File-structure orientation** — the folder layout grew by accretion; a deliberate pass over
   `lib/` and `components/` grouping/naming once the above land (to be inventoried when scheduled).
 

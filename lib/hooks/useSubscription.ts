@@ -60,6 +60,11 @@ export function useSubscription(
         }
 
         void loadSubscription();
+        // Mount-only init: RevenueCat setup + one initial notification-permission
+        // check. Intentionally runs once — re-running whenever notificationsEnabled /
+        // nextPaycheckDate / requiredExpenses change would re-initialize RevenueCat
+        // on every data change.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return {

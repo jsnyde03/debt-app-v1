@@ -1,5 +1,3 @@
-import next from "next";
-
 export type PayCycle = "weekly" | "biweekly" | "semimonthly" | "monthly";
 
 export type PayCycleConfig = {

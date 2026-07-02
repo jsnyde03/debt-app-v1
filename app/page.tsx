@@ -20,7 +20,6 @@ import { ResultsSection } from "@/components/ResultsSection";
 import { GoalsSection } from "@/components/GoalsSection";
 import { RequiredExpensesSection } from "@/components/RequiredExpensesSection";
 import { DebtsSection } from "@/components/DebtsSection";
-import { PaycheckSection } from "@/components/PaycheckSection";
 import { PlanSettingsSheet } from "@/components/PlanSettings/PlanSettingsSheet";
 import { SnowballSection } from "@/components/SnowballSection";
 
@@ -29,7 +28,7 @@ import {
     rolloverRequiredExpenses,
 } from "@/lib/recurrence/rolloverPayCycle";
 
-import { type RecommendationOverride, type Debt, type RequiredExpense, type RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
+import { type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
 import { computeMilestones } from "@/lib/debt/computeMilestones";
 import { computeStreak } from "@/lib/debt/computeStreak";
@@ -42,11 +41,10 @@ import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
 import { TimelineSection } from "@/components/TimelineSection";
-import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
-import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";
+import { restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
-import { scheduleNotifications, cancelAllNotifications, requestNotificationPermission, hasNotificationPermission } from "@/lib/notifications/scheduleNotifications";
+import { scheduleNotifications } from "@/lib/notifications/scheduleNotifications";
 import { incrementRolloverCount, maybeRequestAppReview } from "@/lib/review/requestAppReview";
 import { AppSkeleton } from "@/components/AppSkeleton";
 import { AppHeader } from "@/components/AppHeader";
@@ -56,7 +54,7 @@ import { readKeyValue, writeKey } from "@/lib/storage/safeStorage";
 import { usePersistedState } from "@/lib/storage/usePersistedState";
 import { migrateState } from "@/lib/storage/migrateState";
 import { StorageCorruptionBanner } from "@/components/StorageCorruptionBanner";
-import { useDarkMode, type ThemePreference } from "@/lib/hooks/useDarkMode";
+import { useDarkMode } from "@/lib/hooks/useDarkMode";
 import { useGoals, type Goal } from "@/lib/hooks/useGoals";
 import { useRequiredExpenses } from "@/lib/hooks/useRequiredExpenses";
 import { useDebts } from "@/lib/hooks/useDebts";
@@ -151,9 +149,15 @@ export default function Home() {
         "plan" | "bills" | "snowball" | "goals"
     >("plan");
     const tabOrder = { plan: 0, bills: 1, snowball: 2, goals: 3 } as const;
-    const prevTabRef = useRef<"plan" | "bills" | "snowball" | "goals">("plan");
-    const tabDirection = tabOrder[activeTab] >= tabOrder[prevTabRef.current] ? "forward" : "backward";
-    prevTabRef.current = activeTab;
+    // Track the tab-switch direction for the slide transition. Uses the React
+    // "store info from previous renders" pattern (a guarded setState during
+    // render) rather than a ref read/written mid-render — same result, no ref.
+    const [prevTab, setPrevTab] = useState<"plan" | "bills" | "snowball" | "goals">("plan");
+    const [tabDirection, setTabDirection] = useState<"forward" | "backward">("forward");
+    if (prevTab !== activeTab) {
+        setTabDirection(tabOrder[activeTab] >= tabOrder[prevTab] ? "forward" : "backward");
+        setPrevTab(activeTab);
+    }
 
     const [billsView, setBillsView] = useState<"expenses" | "debts" | null>(
         null
@@ -380,6 +384,12 @@ export default function Home() {
         if (!isMounted) return;
 
         const savedAt = new Date().toISOString();
+        // Autosave-timestamp side-effect: this effect's job is to persist the
+        // "last saved" time to localStorage (an external system — the rule's
+        // first sanctioned use) whenever tracked data changes; setLastSavedAt
+        // only mirrors that write into the indicator, and lastSavedAt is not in
+        // the dep array, so there is no cascading re-render.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLastSavedAt(savedAt);
         writeKey("debtPlanner.lastSavedAt", savedAt);
     }, [

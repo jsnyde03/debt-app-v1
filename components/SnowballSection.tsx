@@ -131,13 +131,6 @@ export function SnowballSection({
 		})
 		: null;
 
-	const baselineProjection = projectDebtPayoff({
-		debts,
-		monthlyExtraPayment: 0,
-		strategy: payoffStrategy,
-		startDate: currentDate,
-	});
-
 	const actualProjection = projectDebtPayoff({
 		debts: debtsAfterCompletedPayments,
 		monthlyExtraPayment: 0,
@@ -152,10 +145,6 @@ export function SnowballSection({
 		startDate: currentDate,
 	});
 
-	const baselineCanBeEstimated =
-		hasCalculatedPlan &&
-		baselineProjection.estimatedDebtFreeDate !== "Unable to estimate";
-
 	const actualCanBeEstimated =
 		hasCalculatedPlan &&
 		actualProjection.estimatedDebtFreeDate !== "Unable to estimate";
@@ -165,15 +154,6 @@ export function SnowballSection({
 		recommendedProjection.estimatedDebtFreeDate !== "Unable to estimate";
 
 	const parsedSimulationExtraPayment = Number(simulationExtraPayment) || 0;
-
-	const actualInterestSaved =
-		baselineCanBeEstimated && actualCanBeEstimated
-			? Math.max(
-				0,
-				baselineProjection.totalInterestPaid -
-				actualProjection.totalInterestPaid
-			)
-			: null;
 
 	const snowballComparisonProjection = projectDebtPayoff({
 		debts: debtsAfterCompletedPayments,
@@ -282,19 +262,7 @@ export function SnowballSection({
 			: 0;
 
 	const simulatedDaysSaved = simulatedMonthsSaved * 30;
-	const comparisonSimulationProjection = projectDebtPayoff({
-		debts: debtsAfterCompletedPayments,
-		monthlyExtraPayment: remainingSnowballExtra + parsedSimulationExtraPayment,
-		strategy: effectiveSimulationStrategy === "snowball" ? "avalanche" : "snowball",
-		startDate: currentDate,
-	});
 
-	const comparisonMonthsDifference = comparisonSimulationProjection.monthsToDebtFree - simulatedSnowballProjection.monthsToDebtFree;
-	const comparisonStrategyName =
-		effectiveSimulationStrategy === "snowball"
-			? "Avalanche"
-			: "Snowball";
-	const isSimulationFaster = comparisonMonthsDifference > 0;
 	const totalDebtBalance = debtsAfterCompletedPayments.reduce((sum, debt) => sum + debt.balance, 0);
 
 	const totalMinimumPayment = debtsAfterCompletedPayments.reduce((sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance), 0);

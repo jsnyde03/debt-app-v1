@@ -32,7 +32,6 @@ export function PaycheckSection({
     semiMonthlySecondDay,
     monthlyPayDay,
     nextPaycheckDate,
-    currentDate,
     showAdminActions,
     onImportBackup,
     onExportBackup,

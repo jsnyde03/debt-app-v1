@@ -5,6 +5,11 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  // CommonJS build/tooling scripts (`.cjs`) legitimately use `require()`.
+  {
+    files: ["**/*.cjs"],
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
@@ -12,6 +17,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Capacitor native project — `ios/App/App/public/` is a build-time copy of
+    // `out/` (the exported web bundle), not source; linting it just duplicates
+    // every `out/`-style problem. Ignore the whole native project.
+    "ios/**",
   ]),
 ]);
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { formatDisplayAmount } from "@/lib/utils/formatDisplayAmount";
 import type { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
@@ -121,8 +121,14 @@ export function ResultsSection({
     onMarkRecommendedAction,
     onRecommendationOverrideChange,
 }: ResultsSectionProps) {
-    const [showAllRequiredActions, setShowAllRequiredActions] =
-        useState(false);
+    // On iPad (≥834px) the tall canvas has room, so show the full action lists
+    // instead of the phone's "Show N More" cap — a dead click where there's space
+    // (2.15.2). Read at init (not via a post-mount effect): this component mounts
+    // client-only, behind the app's isMounted/AppSkeleton gate, so reading
+    // matchMedia in the initializer is hydration-safe on the static export.
+    const [showAllRequiredActions, setShowAllRequiredActions] = useState(
+        () => typeof window !== "undefined" && window.matchMedia("(min-width: 834px)").matches
+    );
 
     const [requiredExpanded, setRequiredExpanded] = useState(true);
 
@@ -130,18 +136,9 @@ export function ResultsSection({
 
     const [completedExpanded, setCompletedExpanded] = useState(false);
 
-    const [showAllRecommendedActions, setShowAllRecommendedActions] =
-        useState(false);
-
-    // On iPad (≥834px) the tall canvas has room, so show the full action lists instead of the phone's
-    // "Show N More" cap — a dead click where there's space (2.15.2). Post-mount, mirroring the
-    // TimelineSection / DebtsSection auto-expand (hydration-safe on the static export).
-    useEffect(() => {
-        if (typeof window !== "undefined" && window.matchMedia("(min-width: 834px)").matches) {
-            setShowAllRequiredActions(true);
-            setShowAllRecommendedActions(true);
-        }
-    }, []);
+    const [showAllRecommendedActions, setShowAllRecommendedActions] = useState(
+        () => typeof window !== "undefined" && window.matchMedia("(min-width: 834px)").matches
+    );
 
     const [editingRecommendedKey, setEditingRecommendedKey] =
         useState<string | null>(null);
@@ -430,10 +427,6 @@ export function ResultsSection({
     const displayedRecommendedTotal = displayedRecommendedActions.reduce(
         (sum, action) => sum + action.actualAmount,
         0
-    );
-
-    const remainingCashToComeOut = roundMoney(
-        Math.max(0, requiredTotal + displayedRecommendedTotal)
     );
 
     const hasOverdueItems = requiredActions.some((item) => {

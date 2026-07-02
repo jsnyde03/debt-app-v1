@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { readKeyValue, writeKey } from "@/lib/storage/safeStorage";
-import { getCurrentDate } from "@/lib/hooks/usePayCycleSettings";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 
@@ -39,8 +38,6 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: FirstDebtOrBillStepProps
             if (!amount || Number(amount) <= 0) { setError("Enter the amount."); return; }
         }
         setError("");
-
-        const today = getCurrentDate();
 
         if (type === "debt") {
             const existing = readKeyValue<Debt[]>("debtPlanner.debts", []);
