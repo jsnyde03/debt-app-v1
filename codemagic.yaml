@@ -2,6 +2,21 @@ workflows:
   ios-android-release:
     name: iOS Android Release
 
+    # Apple Silicon instance — faster compile/archive than the default mac, so fewer minutes/build.
+    instance_type: mac_mini_m2
+
+    # Fail fast instead of silently burning the whole minute budget on a hung build.
+    max_build_duration: 45
+
+    # Cache the slow-to-rebuild dirs so build #2+ is much faster. NOTE: the FIRST build after this
+    # change is a cold cache (no speedup) — the wins start on the next build. Capacitor's `cap sync`
+    # runs `pod install`, so the CocoaPods cache applies here.
+    cache:
+      cache_paths:
+        - $HOME/.npm                                 # npm download cache → faster install
+        - $HOME/Library/Caches/CocoaPods             # CocoaPods spec/pod cache → faster pod install
+        - $HOME/Library/Developer/Xcode/DerivedData  # incremental Xcode build artifacts
+
     environment:
       node: 22
 
@@ -15,7 +30,9 @@ workflows:
 
     scripts:
       - name: Install dependencies
-        script: npm install
+        # --prefer-offline pulls from the cached $HOME/.npm (fast on a warm cache); --no-audit/--no-fund
+        # skip network/work CI doesn't need.
+        script: npm install --prefer-offline --no-audit --no-fund
 
       - name: Build Next.js app
         script: npm run build
@@ -67,3 +84,17 @@ workflows:
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
+      email:
+        recipients:
+          - jason.snyder1984@gmail.com
+        notify:
+          success: true
+          failure: true
+
+# Post-v1.5-build follow-ups (deferred so a working-step change can't jeopardize this release build):
+#   • Remove the redundant "Initialize keychain" + "Add signing certificates" steps — Codemagic does
+#     both automatically once `ios_signing` is configured (proven in the Gig codemagic.yaml).
+#   • Scope signing: `xcode-project use-profiles --project ios/App/App.xcodeproj --warn-only` so it
+#     doesn't glob a foreign **/*.xcodeproj if a future Capacitor plugin ships one.
+#   • Android is v1.7, not v1.5: the Android keystore-decode step + APK/AAB artifacts are inert here.
+#     Trim them (and `npx cap sync ios`) for a clean iOS-only release, or leave as harmless scaffold.
