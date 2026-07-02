@@ -2,6 +2,17 @@ import { defineConfig, devices} from "@playwright/test";
 
 export default defineConfig({
     testDir: "./tests/e2e",
+    // CI gate = functional regression only. The screenshot/asset-generation specs still ride the
+    // old pre-seed-helper pattern and reference pre-2.8 UI (e.g. a "Dark Mode" button the settings
+    // rework replaced with a 3-way selector), so they fail as automated gates — tracked for the v1.6
+    // seed migration. Exclude them from CI only; they still run locally for asset regeneration.
+    testIgnore: process.env.CI
+        ? [
+              "**/app-store-screenshots.spec.ts",
+              "**/planner-mobile-screenshots.spec.ts",
+              "**/planner-visual-state-shots.spec.ts",
+          ]
+        : [],
     timeout: 60_000,
     // Retry once so a genuinely flaky step gets a second chance without masking
     // a hard failure (a test that only passes on retry still surfaces as flaky).

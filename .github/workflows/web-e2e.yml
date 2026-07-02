@@ -1,0 +1,53 @@
+name: web-e2e
+
+# Gates the Playwright e2e suite (the "keep suites green" CI backstop — v1.5 step 2.14).
+# Runs the functional specs against the PRODUCTION static build: playwright.config.ts's
+# webServer does `npm run build && serve out` with NEXT_PUBLIC_E2E=1, and reuseExistingServer
+# is off under CI so every run builds fresh. Kept on GitHub Actions (not Codemagic) to conserve
+# Codemagic minutes for native builds.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+# A newer push to the same ref cancels an in-progress run — don't stack builds.
+concurrency:
+  group: web-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Pixel 7 → Chromium; iPhone/iPad devices → WebKit. Both needed for the 4 projects.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      # webServer (build + serve out, NEXT_PUBLIC_E2E=1) is launched by Playwright itself.
+      - name: Run e2e suite
+        run: npx playwright test
+
+      # Surface the HTML report + traces on failure so a red gate is debuggable.
+      - name: Upload Playwright report
+        if: ${{ !cancelled() && failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
