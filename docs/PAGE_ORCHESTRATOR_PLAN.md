@@ -1,6 +1,6 @@
 # `app/page.tsx` — From Brain to Orchestrator
 
-_Planning document only — no implementation has started. Last updated 2026-06-23._
+_**Status (2026-07-02):** v1.5 (step 2.18) executes **Phases 1–2 only**. **Phase 1 DONE** (commit `e40a260`): the debt display-balance derivation → pure `lib/debt/getDebtsWithDisplayBalances.ts` (which also exports `getCompletedSnowballAmount`, now shared with the rollover — removing a duplicate); `livingExpenses` → `lib/hooks/useLivingExpenses.ts`; `handleImportDebtsCsv` → `useDebts.handleImportCsv`. **Phase 2** (JSX componentization) next. **Phases 3–5** (backup hook, plan-exec hook, rollover engine — math-risk) are deferred beyond v1.5 → tracked in [SUSTAINABILITY_REFACTOR.md](SUSTAINABILITY_REFACTOR.md), of which this is one workstream. Last updated 2026-07-02._
 
 ## Context
 
