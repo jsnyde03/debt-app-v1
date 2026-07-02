@@ -704,6 +704,14 @@
 	border: none;
 	margin-bottom: 0;
 	box-shadow: none;
+	/* Cards inside a sheet fill the sheet's own width. Neutralize the global
+	   iPad `.card { max-width: 860px; margin-inline: auto }` centering rule,
+	   which otherwise shrink-centers narrow-content sheet cards (e.g. history
+	   rows collapse to their ~212px min-content, floating with dead-space
+	   gutters) while wide-content cards (amortization table) fill — an
+	   inconsistency. Sheets are already width-capped, so they don't need it. */
+	max-width: none;
+	margin-inline: 0;
 }
 
 .settings-sheet-content {
