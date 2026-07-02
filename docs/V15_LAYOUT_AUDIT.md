@@ -64,7 +64,7 @@ _Genuine premium opportunities surfaced during the audit. **Fold** = low-risk po
 pass; **Backlog** = filed to MASTER_PLAN §9 (v1.6+). Only real, observed opportunities — no invented filler._
 
 **Plan (2.15.2):**
-- **Fold** — on iPad's tall canvas, expand the Required-Actions list fully instead of "Show 1 More" (dead clicks + hidden content where there's room). _(Also applies to the Bills accordion pattern below.)_
+- **✅ Folded (done 2026-07-02, Jason-approved)** — required + recommended action lists **auto-show-all on iPad** (≥834px), removing the "Show N More" dead click where there's vertical room (`ResultsSection.tsx`, post-mount `matchMedia`, mirroring the Timeline/Active-Debts pattern). Screenshot-verified iPad (all 7 required actions show); keep-green paycheck-flow 10/10.
 - **Backlog** — a subtle progress indicator toward the "debt-free by {date}" headline (ring/bar) on the Plan hero; leading-fintech apps make the payoff-date the emotional anchor. _(v1.6 — pairs with the Premium+ history chart.)_
 
 **Payoff (2.15.4):**
