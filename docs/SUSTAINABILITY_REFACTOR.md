@@ -34,7 +34,9 @@ Rules that apply to every slice:
 - **`page.tsx` → orchestrator** — extract the five non-orchestration jobs (plan-exec math, backup
   system, rollover engine, CSV wiring, ~250 lines of inline chrome JSX) into hooks / pure fns /
   components. Full plan + phasing in [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md).
-  **v1.5 does Phases 1–2 only (2.18)**; Phases 3–5 (math-risk) are a future slice.
+  **v1.5 Phases 1–2 DONE (2.18.1 `e40a260` · 2.18.2 `7cae993`)** — CSV/livingExpenses/display-balance
+  relocations + `AppHeader`/`AppNav`/`PlanSettingsSheet` extraction. **Phases 3–5 (backup hook,
+  plan-exec hook, rollover engine — math-risk) remain a future slice**, sequenced by the audit below.
 
 ### Queued (surfaced during 2.18, not yet scheduled — pull into a future version)
 - **Duplicate `roundMoney` (×12) + `clampMoney`** — the same `Math.round(x*100)/100` is
@@ -56,6 +58,53 @@ Rules that apply to every slice:
   shared constant. Tiny; fold into a nearby slice.
 - **File-structure orientation** — the folder layout grew by accretion; a deliberate pass over
   `lib/` and `components/` grouping/naming once the above land (to be inventoried when scheduled).
+
+## Scheduled — Comprehensive Sustainability Audit (target: open of v1.6)
+
+_Requested by Jason 2026-07-02. A **dedicated planning session** (audit, not build) that inventories
+the accumulated debt against the CURRENT code, makes the cross-cutting decisions below, and emits an
+ordered, per-version **refactor slice plan** for v1.6+. It respects "not all at once" — the audit's
+job is to decide the sequence and the per-version bite size, not to do everything. Recommended slot:
+the **opening item of v1.6** (v1.6 already aggregates deferred debt + the e2e screenshot-seed
+migration, so the audit's output drives its slices). The audit itself may conclude the inventory is
+large enough to warrant a dedicated sustainability version — that call is made **in** the session._
+
+**Before-scan rule applies:** every premise below is a hypothesis about code that has moved since it
+was noted — verify each against current source at session start (see the pre-authored-audit rule).
+
+### Audit agenda — decisions to make (each → an ordered, versioned slice plan)
+
+1. **Refactoring priorities & sequencing** _(Jason #1)_ — take the Queued inventory above + orchestrator
+   Phases 3–5 and decide the **order** and **per-version slice size**. Classify each item
+   behavior-preserving-safe (mechanical) vs. **math-risk** (needs a reconciliation test in the same
+   commit). Output: a numbered slice list mapped to versions.
+2. **File-structure orientation** _(Jason #2)_ — the `lib/` and `components/` trees grew by accretion
+   (mixed flat files + domain folders; e.g. `ResultsSection.tsx` flat vs. `Debts/`, `PlanSettings/`
+   foldered). Decide a **target tree** + **naming conventions** + a low-risk migration approach
+   (the `@/` alias makes moves cheap but touches many imports — batch + verify per move).
+3. **Type consolidation** — one canonical source per domain type. Anchor case: `CompletedRecommendedAction`
+   defined **4 ways** (storage / engine / timeline / page) — persisted storage shape = source of truth.
+   Decide the import policy; pairs with orchestrator Phase 3/4 typing.
+4. **Shared-utility dedup policy** — `roundMoney` ×12 + `clampMoney` + the `livingExpenses` preset-default
+   dup → shared `lib/utils/*`. Decide the module boundaries and whether a lint rule can forbid local
+   re-declaration going forward.
+5. **Orchestrator finish (Phases 3–5)** — backup hook · plan-exec hook · rollover engine (all math-adjacent).
+   Decide sequencing + the **mandatory reconciliation-test** gate per phase, and which version each lands in.
+6. **Test & keep-green infrastructure** — fold in the deferred test-hardening bundle (e2e screenshot-seed
+   migration, onboarding-landscape flake, Windows worker-teardown hang, root-lockfile warning,
+   `validate:release`-in-CI). Decide what test-infra hardening pairs with the refactor so each slice stays
+   bisectable and green (the 2.14 CI gate must stay green across every slice).
+7. **React-pattern / render hygiene** — the standing lint **errors** (refs-during-render ×2,
+   setState-in-effect) are genuine React anti-patterns, not noise. Decide whether to adopt the newer
+   patterns as part of the refactor and whether a `react-hooks` gate belongs here (ties into 2.19).
+8. **Dead-code & config hygiene** — unused exports/imports (the ~13 warnings), the "additional lockfiles"
+   warning (duplicate root `package-lock.json`), Next 16 turbopack config, and the Capacitor
+   `ios/App/App/public/` bundle polluting lint. Decide a bounded hygiene-pass scope.
+9. **CSS architecture** _(lower priority — decide if in-scope)_ — the 10-file global split (`00-10-*.css`):
+   keep global-split, or move toward co-located / CSS-module styles as components get extracted. Likely a
+   later slice; the audit just decides whether it's on the roadmap.
+
+_Decisions 1–2 are Jason's named priorities; 3–8 are the recommended core additions; 9 is optional/deferred._
 
 ## How to use this doc
 
