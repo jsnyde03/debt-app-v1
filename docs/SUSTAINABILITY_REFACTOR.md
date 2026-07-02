@@ -50,6 +50,10 @@ Rules that apply to every slice:
   `lib/timeline/buildTimelineItems.ts`, and `app/page.tsx`. Consolidate to one canonical type
   (the persisted storage shape is the source of truth) and import it everywhere. _Pairs naturally
   with the orchestrator's Phase 3/4 typing work._
+- **`livingExpenses` preset-default duplicated** _(surfaced 2.18 Phase 1)_ — the seed default
+  `livingExpensePresets.map((e, i) => ({ ...e, id: ` + "`living-${i}`" + ` }))` now lives in both
+  `useLivingExpenses.ts` and the backup-restore fallback in `page.tsx` (~:607). Extract to one
+  shared constant. Tiny; fold into a nearby slice.
 - **File-structure orientation** — the folder layout grew by accretion; a deliberate pass over
   `lib/` and `components/` grouping/naming once the above land (to be inventoried when scheduled).
 
