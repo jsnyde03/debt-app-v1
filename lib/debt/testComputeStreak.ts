@@ -1,4 +1,4 @@
-import { computeStreak } from "./computeStreak";
+import { computeStreak, isCycleOnPlan } from "./computeStreak";
 import type { PayCycleSnapshot } from "../storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
@@ -9,13 +9,13 @@ function assertEqual<T>(actual: T, expected: T, label: string) {
     }
 }
 
-// paid/required -> a snapshot; other fields don't affect the streak.
-function cycle(paid: number, required: number): PayCycleSnapshot {
+// allRequiredMet -> a snapshot; other fields don't affect the streak.
+function cycle(allRequiredMet: boolean): PayCycleSnapshot {
     return {
         cycleEndDate: "2026-01-15",
         totalDebtBalance: 1000,
-        totalPaidThisCycle: paid,
-        recommendedThisCycle: required,
+        totalPaidThisCycle: 0,
+        allRequiredMet,
         completedRecommendedActions: [],
         payoffStrategy: "snowball",
     };
@@ -25,35 +25,44 @@ function runComputeStreakTests() {
     // Empty history -> 0.
     assertEqual(computeStreak([]), 0, "empty history streak is 0");
 
-    // A run of qualifying cycles -> full count.
+    // A run of on-plan cycles -> full count.
     assertEqual(
-        computeStreak([cycle(200, 150), cycle(200, 200), cycle(300, 250)]),
+        computeStreak([cycle(true), cycle(true), cycle(true)]),
         3,
-        "all-qualifying run counts every cycle"
+        "all-on-plan run counts every cycle"
     );
 
     // A broken streak: only the most-recent consecutive run counts.
     // [ok, MISS, ok, ok] (oldest-first) -> most recent two qualify -> 2.
     assertEqual(
-        computeStreak([cycle(200, 150), cycle(100, 200), cycle(200, 200), cycle(300, 250)]),
+        computeStreak([cycle(true), cycle(false), cycle(true), cycle(true)]),
         2,
         "streak counts only the most-recent consecutive run"
     );
 
     // Most recent cycle broke the streak -> 0 even if older ones qualified.
     assertEqual(
-        computeStreak([cycle(200, 150), cycle(200, 150), cycle(100, 200)]),
+        computeStreak([cycle(true), cycle(true), cycle(false)]),
         0,
         "a broken most-recent cycle resets the streak to 0"
     );
 
-    // Exactly meeting the requirement qualifies (>=, not >).
-    assertEqual(computeStreak([cycle(150, 150)]), 1, "paying exactly the required amount qualifies");
+    // On-plan = completed everything required and affordable.
+    assertEqual(isCycleOnPlan(cycle(true)), true, "all affordable required met is on plan");
 
-    // Plan asked for nothing extra -> qualifies even with 0 paid.
-    assertEqual(computeStreak([cycle(0, 0)]), 1, "a zero-required cycle qualifies");
+    // Leaving an affordable required action unpaid breaks the streak.
+    assertEqual(isCycleOnPlan(cycle(false)), false, "an affordable required action skipped is off plan");
 
-    // Legacy snapshot missing recommendedThisCycle (undefined -> 0) qualifies.
+    // Recommended extras have ZERO bearing: an on-plan cycle with no extra paid
+    // still counts (the whole point of the v1.5 rewrite).
+    assertEqual(
+        isCycleOnPlan({ ...cycle(true), totalPaidThisCycle: 0 }),
+        true,
+        "recommended extras do not affect the on-plan determination"
+    );
+
+    // Legacy snapshot (pre-v1.5, no allRequiredMet) defaults to on-plan so a fix
+    // never retroactively zeroes an existing user's streak.
     const legacy: PayCycleSnapshot = {
         cycleEndDate: "2026-01-15",
         totalDebtBalance: 1000,
@@ -61,7 +70,7 @@ function runComputeStreakTests() {
         completedRecommendedActions: [],
         payoffStrategy: "snowball",
     };
-    assertEqual(computeStreak([legacy]), 1, "legacy snapshot without required field qualifies");
+    assertEqual(computeStreak([legacy]), 1, "legacy snapshot without allRequiredMet qualifies (on-plan default)");
 
     console.log("✅ Streak regression tests passed.");
 }

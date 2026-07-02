@@ -87,6 +87,14 @@ export function allocatePaycheck({
 	const allocations: AllocationItem[] = [];
 	const unfundedRequiredItems: UnfundedRequiredItem[] = [];
 
+	// Count required actions the paycheck could FULLY cover but that are still
+	// unpaid — i.e. affordable and skipped. Drives the Streak: "on plan" means
+	// the user completed everything they could afford. Autopay items are excluded
+	// (they pay automatically, so a missing manual tap isn't a skip). A partially
+	// covered item is NOT counted (a binary bill can't be half-paid, so it's
+	// forgiven as unaffordable).
+	let affordableUnpaidRequiredCount = 0;
+
 	const isDueBeforeNextPaycheck = (dueDate: string) => {
 		const due = new Date(`${dueDate}T00:00:00`);
 		const next = new Date(`${nextPaycheckDate}T00:00:00`);
@@ -197,6 +205,10 @@ export function allocatePaycheck({
 		const coveredAmount = roundMoney(Math.min(expense.amount, remaining));
 		const unfundedAmount = roundMoney(expense.amount - coveredAmount);
 
+		if (!expense.isAutopay && coveredAmount > 0 && unfundedAmount <= 0) {
+			affordableUnpaidRequiredCount += 1;
+		}
+
 		if (coveredAmount > 0) {
 			allocations.push({
 				label:
@@ -242,6 +254,10 @@ export function allocatePaycheck({
 
 		const coveredAmount = roundMoney(Math.min(requiredMinimum, remaining));
 		const unfundedAmount = roundMoney(requiredMinimum - coveredAmount);
+
+		if (!debt.isAutopay && coveredAmount > 0 && unfundedAmount <= 0) {
+			affordableUnpaidRequiredCount += 1;
+		}
 
 		if (coveredAmount > 0) {
 			allocations.push({
@@ -391,5 +407,6 @@ export function allocatePaycheck({
 		totalRequired,
 		livingExpenseReserve,
 		shortfall,
+		affordableUnpaidRequiredCount,
 	};
 }

@@ -218,6 +218,42 @@ function runAllocationRegressionTests() {
         "items due exactly on next paycheck date belong to the next cycle (excluded)"
     );
 
+    // --- affordableUnpaidRequiredCount (drives the required-based Streak) ---
+
+    const affordableInputs = {
+        paycheckAmount: 1000,
+        currentDate: "2026-05-04",
+        nextPaycheckDate: "2026-05-15",
+        strategy: "snowball" as const,
+        debts: [],
+        goals: [],
+        paycheckBuffer: 0,
+    };
+
+    // A comfortably-covered required bill left UNPAID = affordable and skipped.
+    const affordableSkipped = allocatePaycheck({
+        ...affordableInputs,
+        expenses: [{ id: "e1", name: "Internet", amount: 80, dueDate: "2026-05-08", recurrence: "monthly", isPaidThisCycle: false }],
+    });
+    assertEqual(affordableSkipped.affordableUnpaidRequiredCount, 1, "an affordable unpaid required bill counts as skipped");
+
+    // Same bill marked paid -> not counted.
+    const affordablePaid = allocatePaycheck({
+        ...affordableInputs,
+        expenses: [{ id: "e1", name: "Internet", amount: 80, dueDate: "2026-05-08", recurrence: "monthly", isPaidThisCycle: true }],
+    });
+    assertEqual(affordablePaid.affordableUnpaidRequiredCount, 0, "a paid required bill is not counted as skipped");
+
+    // Autopay required item -> excluded (it pays automatically; no manual tap needed).
+    const autopayUnpaid = allocatePaycheck({
+        ...affordableInputs,
+        expenses: [{ id: "e1", name: "Internet", amount: 80, dueDate: "2026-05-08", recurrence: "monthly", isPaidThisCycle: false, isAutopay: true }],
+    });
+    assertEqual(autopayUnpaid.affordableUnpaidRequiredCount, 0, "autopay required items are not counted as skipped");
+
+    // Shortfall / unaffordable required items are forgiven (partial + unfunded, none fully covered).
+    assertEqual(basicShortfall.affordableUnpaidRequiredCount, 0, "unaffordable (shortfall) required items are forgiven");
+
     console.log("✅ Allocation regression tests passed.");
 }
 

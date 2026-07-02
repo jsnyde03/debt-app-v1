@@ -663,17 +663,10 @@ export default function Home() {
         // Record the cycle that's ending BEFORE any mutation - capture
         // pre-rollover debts and completed actions so the snapshot reflects
         // where the user actually was when this cycle closed.
-        // What the plan asked the user to contribute this cycle (snowball +
-        // emergency + optional-goal allocations) - the Streak's "did you stay
-        // on plan" bar against totalPaidThisCycle.
-        const recommendedThisCycle = (result?.allocations ?? [])
-            .filter(
-                (allocation) =>
-                    allocation.category === "snowball" ||
-                    allocation.category === "emergency" ||
-                    allocation.category === "optional_goal"
-            )
-            .reduce((sum, allocation) => sum + allocation.amount, 0);
+        // On plan = the user left no AFFORDABLE required action unpaid (the
+        // engine counts fully-coverable-but-unpaid required items). If result is
+        // unavailable, don't punish the streak (default on-plan).
+        const allRequiredMet = (result?.affordableUnpaidRequiredCount ?? 0) === 0;
 
         recordCycleSnapshot(
             buildCycleSnapshot({
@@ -681,7 +674,7 @@ export default function Home() {
                 debts,
                 completedRecommendedActions,
                 payoffStrategy,
-                recommendedThisCycle,
+                allRequiredMet,
             })
         );
 

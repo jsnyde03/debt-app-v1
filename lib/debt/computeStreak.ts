@@ -1,12 +1,15 @@
 import type { PayCycleSnapshot } from "../storage/debtPlannerStorage";
 
-// A cycle counts toward the streak when the user paid at least what the plan
-// recommended that cycle - i.e. they stayed on plan. Cycles where the plan
-// asked for nothing extra (recommendedThisCycle 0), and snapshots persisted
-// before the field existed (undefined -> 0), qualify trivially.
+// A cycle counts toward the streak when the user completed every REQUIRED action
+// (bills + debt minimums) they could afford that cycle - i.e. they stayed on
+// plan. A genuine shortfall (a required item the paycheck couldn't fully cover)
+// is forgiven; skipping something affordable is not. Recommended extras
+// (snowball/emergency/optional-goal) have no bearing.
+//
+// Legacy snapshots (written before the required-based streak) lack allRequiredMet
+// -> default to on-plan so a fix never retroactively zeroes an existing streak.
 export function isCycleOnPlan(snapshot: PayCycleSnapshot): boolean {
-    const required = snapshot.recommendedThisCycle ?? 0;
-    return snapshot.totalPaidThisCycle >= required;
+    return snapshot.allRequiredMet ?? true;
 }
 
 // The current on-plan streak: consecutive most-recent cycles the user stayed

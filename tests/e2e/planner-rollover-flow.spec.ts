@@ -142,8 +142,10 @@ test("a live rollover records one correctly-populated Pay Cycle History snapshot
     // PRE-rollover debt balances captured (Visa 500 + Discover 900), not the
     // post-payment balances - the snapshot reflects where the cycle closed.
     expect(snapshot.totalDebtBalance).toBe(1400);
-    // Sum of completed recommended actions' actual amounts (the $100 to Emergency Fund).
-    expect(snapshot.totalPaidThisCycle).toBe(100);
+    // "Paid this cycle" now means money toward DEBT (minimums + snowball extras).
+    // The only completed action here was a $100 Emergency Fund contribution —
+    // savings, not a debt payment — so paid-toward-debt is 0 (F5 reconcile).
+    expect(snapshot.totalPaidThisCycle).toBe(0);
     expect(snapshot.payoffStrategy).toBe("snowball");
     expect(snapshot.completedRecommendedActions).toHaveLength(1);
     // cycleEndDate = the payday the cycle rolled over to. The rollover advances

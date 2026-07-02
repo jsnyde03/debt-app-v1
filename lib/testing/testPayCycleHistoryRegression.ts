@@ -57,15 +57,35 @@ function testBuildSnapshot_correctTotals() {
         debts: [debt("a", 500), debt("b", 900.5)],
         completedRecommendedActions: [action(100), action(50.25)],
         payoffStrategy: "avalanche",
-        recommendedThisCycle: 200,
+        allRequiredMet: true,
     });
 
     assertEqual(result.cycleEndDate, "2026-06-15", "snapshot carries cycleEndDate");
     assertEqual(result.totalDebtBalance, 1400.5, "totalDebtBalance sums all debt balances");
-    assertEqual(result.totalPaidThisCycle, 150.25, "totalPaidThisCycle sums completed action amounts");
-    assertEqual(result.recommendedThisCycle, 200, "snapshot carries recommendedThisCycle");
+    // No minimums marked paid here, so paid-toward-debt = the snowball extras.
+    assertEqual(result.totalPaidThisCycle, 150.25, "totalPaidThisCycle = paid minimums + snowball extras");
+    assertEqual(result.allRequiredMet, true, "snapshot carries allRequiredMet");
     assertEqual(result.payoffStrategy, "avalanche", "snapshot carries payoffStrategy");
     assertEqual(result.completedRecommendedActions.length, 2, "snapshot keeps the completed actions");
+}
+
+function testBuildSnapshot_paidTowardDebtExcludesSavings() {
+    // A paid minimum ($25) + a snowball extra ($100) count toward debt; an
+    // emergency-fund contribution ($200) is savings and must NOT (the F5 fix).
+    const paidDebt: Debt = { ...debt("a", 500), minimumPaidThisCycle: true };
+    const result = buildCycleSnapshot({
+        cycleEndDate: "2026-06-15",
+        debts: [paidDebt, debt("b", 900)],
+        completedRecommendedActions: [
+            { targetId: "a", label: "Extra", category: "snowball", recommendedAmount: 100, actualAmount: 100 },
+            { targetId: "ef", label: "Emergency", category: "emergency", recommendedAmount: 200, actualAmount: 200 },
+        ],
+        payoffStrategy: "snowball",
+        allRequiredMet: false,
+    });
+
+    assertEqual(result.totalPaidThisCycle, 125, "paid = minimum (25) + snowball (100); emergency savings excluded");
+    assertEqual(result.allRequiredMet, false, "carries allRequiredMet=false when an affordable required item was skipped");
 }
 
 function testBuildSnapshot_emptyState() {
@@ -74,7 +94,7 @@ function testBuildSnapshot_emptyState() {
         debts: [],
         completedRecommendedActions: [],
         payoffStrategy: "snowball",
-        recommendedThisCycle: 0,
+        allRequiredMet: true,
     });
 
     assertEqual(result.totalDebtBalance, 0, "no debts → 0 balance");
@@ -118,6 +138,7 @@ export function runPayCycleHistoryRegressionTests() {
     console.log("Running pay cycle history regression tests...");
 
     testBuildSnapshot_correctTotals();
+    testBuildSnapshot_paidTowardDebtExcludesSavings();
     testBuildSnapshot_emptyState();
     testVisibleHistory_premiumCapsAtSix();
     testVisibleHistory_premiumPlusUncapped();

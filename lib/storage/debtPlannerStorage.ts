@@ -77,12 +77,17 @@ export type CompletedRecommendedAction = {
 export type PayCycleSnapshot = {
 	cycleEndDate: string;
 	totalDebtBalance: number;
+	// Total paid toward DEBT this cycle: required minimums paid + snowball extras.
+	// (Formerly only the recommended-extras total, which excluded minimums and
+	// included non-debt savings — a misleading "$X paid" in History.)
 	totalPaidThisCycle: number;
-	// What the plan recommended the user contribute this cycle (snowball +
-	// emergency + optional-goal allocations). Drives the Streak: a cycle is
-	// "on plan" when totalPaidThisCycle >= recommendedThisCycle. Optional so
-	// snapshots persisted before v1.5 shipped this field still load (treated
-	// as 0 required → on-plan).
+	// Whether the user completed every required action they could AFFORD this
+	// cycle — the Streak's "on plan" signal. Optional so snapshots persisted
+	// before v1.5's required-based streak still load (default: on-plan, so a fix
+	// never retroactively zeroes an existing streak).
+	allRequiredMet?: boolean;
+	// LEGACY (pre-v1.5 required-based streak): the recommended-contribution total.
+	// No longer written or read; retained so old snapshots still parse.
 	recommendedThisCycle?: number;
 	completedRecommendedActions: CompletedRecommendedAction[];
 	payoffStrategy: "snowball" | "avalanche";

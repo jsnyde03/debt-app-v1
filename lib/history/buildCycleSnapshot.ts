@@ -13,37 +13,41 @@ function roundMoney(amount: number) {
 // so the snapshot reflects where the user actually was when the cycle ended.
 //
 // totalDebtBalance = sum of every debt's current balance.
-// totalPaidThisCycle = sum of every completed recommended action's actual
-//   amount - the app's existing "what you put toward the plan this cycle".
-// recommendedThisCycle = what the plan asked for (snowball + emergency +
-//   optional-goal); the Streak counts cycles where paid >= recommended.
+// totalPaidThisCycle = money put toward DEBT this cycle = required minimums paid
+//   + snowball extras (excludes non-debt savings; includes the minimums that the
+//   old recommended-only total wrongly omitted).
+// allRequiredMet = did the user complete every required action they could
+//   afford this cycle (the Streak's "on plan" signal, computed by the caller).
 export function buildCycleSnapshot(input: {
     cycleEndDate: string;
     debts: Debt[];
     completedRecommendedActions: CompletedRecommendedAction[];
     payoffStrategy: "snowball" | "avalanche";
-    recommendedThisCycle: number;
+    allRequiredMet: boolean;
 }): PayCycleSnapshot {
     const {
         cycleEndDate,
         debts,
         completedRecommendedActions,
         payoffStrategy,
-        recommendedThisCycle,
+        allRequiredMet,
     } = input;
+
+    const paidMinimums = debts
+        .filter((debt) => debt.minimumPaidThisCycle ?? debt.isPaidThisCycle)
+        .reduce((sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance), 0);
+
+    const snowballExtras = completedRecommendedActions
+        .filter((action) => action.category === "snowball")
+        .reduce((sum, action) => sum + action.actualAmount, 0);
 
     return {
         cycleEndDate,
         totalDebtBalance: roundMoney(
             debts.reduce((sum, debt) => sum + debt.balance, 0)
         ),
-        totalPaidThisCycle: roundMoney(
-            completedRecommendedActions.reduce(
-                (sum, action) => sum + action.actualAmount,
-                0
-            )
-        ),
-        recommendedThisCycle: roundMoney(Math.max(0, recommendedThisCycle)),
+        totalPaidThisCycle: roundMoney(paidMinimums + snowballExtras),
+        allRequiredMet,
         completedRecommendedActions,
         payoffStrategy,
     };
