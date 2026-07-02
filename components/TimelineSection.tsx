@@ -207,7 +207,7 @@ export function TimelineSection({
                     <div className="timeline-collapse-copy">
                         <h2>Timeline</h2>
                         <p className="section-collapse-subtitle">
-                            All bills across upcoming pay cycles.
+                            Where your money goes each paycheck — and your cash cushion.
                         </p>
                     </div>
                 </div>
