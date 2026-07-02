@@ -438,11 +438,10 @@
 	padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
 }
 
-.center-modal.debt-add-modal {
-	max-height: calc(100vh - 2rem);
-	overflow-y: auto;
-}
-
+/* (debt-add-modal sizing/runway is consolidated in the single
+   `.center-modal.debt-add-modal` rule later in this file — max-height +
+   overflow-y + the theme-agnostic bottom-runway; the earlier duplicate was
+   removed in 2.15.8.) */
 .dark-theme .debt-add-modal input,
 .dark-theme .debt-add-modal select {
 	min-height: 54px;

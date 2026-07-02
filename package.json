@@ -9,6 +9,7 @@
     "serve:export": "serve out",
     "lint": "eslint",
     "test:e2e": "playwright test",
+    "e2e:fresh": "node scripts/e2e-fresh.cjs",
     "validate:release": "npm run lint && npm run test:regression && npm run test:e2e",
     "test:regression": "tsx lib/testing/runRegressionTests"
   },
