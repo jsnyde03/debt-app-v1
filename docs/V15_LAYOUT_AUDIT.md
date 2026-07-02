@@ -16,16 +16,16 @@ judge against "would a paid, design-led app ship this?" Record findings + fixes 
 
 ## Decomposition (ordered sub-steps → mirrored terse in MASTER_PLAN §9 item 2)
 
-- **2.15.1 — Cross-cutting CSS correctness (do first; clears noise before per-surface work).**
-  - Fix the two silently-dropped `calc()` paddings in `08-dark-theme-polish.css`: `evn(`→`env(` (:757) and the missing space `+7rem`→`+ 7rem` (:438). ⚠️ **Corrected scope (2026-07-01):** both are on the **add-debt modal** (`.debt-add-modal` / `.center-modal.debt-add-modal`), i.e. the modal's *internal* bottom padding (currently dropped) — NOT a page scroll-runway. Fixing them applies 7–8.5rem to the modal, a **visual change** → verify the dark add-debt modal (phone + iPad) before/after and keep only if it reads better; don't blind-fix. _(The separate page scroll-runway trim on iPad is the next bullet.)_
-  - Systematically audit the phone scroll-runway `padding-bottom` hack (7–15rem across `01-payoff-goals.css`, `04-debt-modals-focus.css`, several `08-dark-theme-polish.css` blocks) → trim on iPad where there's no floating nav (Plan's was fixed in 2.12.3; generalize).
+- **2.15.1 — Cross-cutting CSS correctness. ✅ DONE + verified (2026-07-02).**
+  - ✅ Fixed the two silently-dropped `calc()` paddings in `08-dark-theme-polish.css` (`+7rem`→`+ 7rem` :438; `evn(`→`env(` :757 → both `+ 7rem`, matching the bills/goal sibling modals). Both were on the **add-debt modal**, whose dark bottom-runway was dropped → its "Add Debt" button was overlapped by the floating bottom nav. **Screenshot-verified before/after (dark, phone + iPad):** button now clears the nav on phone; clean/balanced on iPad. Widened before-scan grep confirmed these were the **only** invalid `calc()`/`env()` in the styles.
+  - ↳ The phone scroll-runway `padding-bottom` hack (7–15rem across `01-payoff-goals.css`, `04-debt-modals-focus.css`, `08-dark-theme-polish.css`) → **dead space on iPad (no floating nav)** → **moved to the per-tab iPad audits (2.15.2–2.15.5)** — safer to trim each page's runway while viewing it on iPad, in context, than a blind cross-cutting sweep.
 - **2.15.2 — Plan tab** — hero/header, streak stat, settings accordion, results/summary strip + since-last-cycle delta.
 - **2.15.3 — Bills tab** — debts + expenses + timeline; iPad two-column (dead-space on the Debts column; expand-collapsibles where the taller canvas has room).
 - **2.15.4 — Payoff tab** — payoff summary/recommendation strips, trajectory chart, forecast bars, amortization "View Schedule" entry.
 - **2.15.5 — Goals tab** — goals list, progress bars, empty state.
 - **2.15.6 — Settings + onboarding** — returning-user accordion + first-run modal (shared `PlanSettingsBody`), notifications/app-lock/legal cards, `OnboardingFlow`.
-- **2.15.7 — Modals / overlays** — add debt/expense/goal, Pay Cycle History, Amortization Calendar, upgrade paywall, milestone celebration, delete-confirm, windfall.
-- **2.15.8 — Final consistency sweep + regression** — spacing/typography/density token consistency across surfaces; full e2e green; screenshot review light+dark × phone+iPad.
+- **2.15.7 — Modals / overlays** — add debt/expense/goal, Pay Cycle History, Amortization Calendar, upgrade paywall, milestone celebration, delete-confirm, windfall. **↳ finding (from 2.15.1):** modal bottom-runway (`+7rem` to clear the floating nav) is applied **dark-theme only** (`.dark-theme .bills-modal`/`.goal-add-modal`; debt-add's is now theme-agnostic after the 2.15.1 fix) → **light-theme** add-modals lack the runway (button cramped under the nav). Make the runway **theme-agnostic** across bills/debt/goal for parity.
+- **2.15.8 — Final consistency sweep + regression** — spacing/typography/density token consistency across surfaces; full e2e green; screenshot review light+dark × phone+iPad. **↳ finding (from 2.15.1):** duplicate `.center-modal.debt-add-modal` selector blocks in `08-dark-theme-polish.css` (`:441` + `:754`) — dedupe.
 
 ---
 
@@ -41,7 +41,7 @@ judge against "would a paid, design-led app ship this?" Record findings + fixes 
 
 | Surface | Phone L/D | iPad L/D | Findings | Status |
 |---|---|---|---|---|
-| Cross-cutting CSS (2.15.1) | — | — | 2 calc bugs + runway hack | ⬜ |
+| Cross-cutting CSS (2.15.1) | ✅ (dark) | ✅ (dark) | 2 calc bugs fixed (add-debt runway); iPad runway trim → per-tab; light-modal runway → 2.15.7; dup selector → 2.15.8 | ✅ |
 | Plan (2.15.2) | ⬜ | ⬜ | | ⬜ |
 | Bills (2.15.3) | ⬜ | ⬜ | | ⬜ |
 | Payoff (2.15.4) | ⬜ | ⬜ | | ⬜ |
