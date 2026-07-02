@@ -1,13 +1,13 @@
 # Implementation Plan
 
-_Technical companion to `ROADMAP.md`. Defines how each version is built: data model changes, files touched, sequencing, and testing. Last updated: 2026-06-29._
+_Technical companion to `ROADMAP.md`. Defines how each version is built: data model changes, files touched, sequencing, and testing. Last updated: 2026-07-02._
 
 ## Document map
 
 | Topic | Document |
 |---|---|
 | v1.4 Onboarding (✅ shipped) | [archive/V14_ONBOARDING.md](archive/V14_ONBOARDING.md) |
-| v1.5 Track Your Journey (⬜ next — full build + release checklist) | [V15_TRACK_YOUR_JOURNEY.md](V15_TRACK_YOUR_JOURNEY.md) |
+| v1.5 Track Your Journey (✅ feature-locked 2026-07-02) | [V15_TRACK_YOUR_JOURNEY.md](V15_TRACK_YOUR_JOURNEY.md) |
 | UX polish backlog (28 audit items, versioned) | [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) |
 | v1.7 and beyond | [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |
 | Android readiness audit (blockers, CI, plugins, testing) | [ANDROID_READINESS.md](ANDROID_READINESS.md) |
@@ -38,7 +38,7 @@ Four features independently require a **backend** that doesn't exist today (the 
 | v1.2 | ✅ Shipped | Notifications, App Lock, Demo Mode, App Store compliance, Mobile Polish P1a/P2/P9a |
 | v1.3 | ✅ Shipped | iPad support + native polish, landscape layouts, Delete All Data, UI/UX Polish Pass |
 | v1.4 | ✅ Shipped | Core onboarding + timeline fix + 22 UX/Mobile polish items + Payoff Trajectory Chart (#1a) + Cash Flow Status Bars (#1b) + Per-Debt Progress Bars (#1c) |
-| v1.5 | ⬜ Next | Pay Cycle History + Debt Milestones + Amortization Calendar + Streaks + remaining UX polish (#13, #15) + **Android prep** (Play Console signup, Maestro harness) |
+| v1.5 | ✅ Feature-locked (2026-07-02) | Pay Cycle History · Debt Milestones + celebration · Amortization *lite* · Streaks · Since-last-cycle delta · Settings UX rework — **plus a large quality/testing-hardening wave**: e2e harness rebuild + CI gate, full-app layout & premium-UX pass, context-aware skeletons, micro-interaction audit, Page Orchestrator Phases 1–2 (the sustainability-refactor opener), lint 0/0, storage-safety e2e. Android prep (Play Console signup) remains a background task. |
 | v1.6 | ⬜ Planned | Foundation: 3-tier subscription infra + analytics + crash reporting + schema versioning + backup automation + external-payment logging + **Android prep** (RevenueCat per-platform key, notification icon) |
 | v1.7 | ⬜ Long-term | **Android build** (clean standalone milestone) — see [ANDROID_READINESS.md](ANDROID_READINESS.md) |
 | v1.8+ | ⬜ Long-term | Multi-Scenario Planning, Widget + accessibility audit (v1.9), AI, ... — see [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |

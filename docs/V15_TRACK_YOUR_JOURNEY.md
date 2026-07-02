@@ -1,6 +1,6 @@
 # v1.5 — Track Your Journey
 
-_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In progress — active build on `v1.5-dev`; workstreams 1–6 all done 2026-07-01 (Pay Cycle History, Milestones, Amortization lite, Streaks, #13 Delta, #15 Settings UX rework). Next: Mobile P5 skeletons (7) + P6 micro-interactions (8), Page Orchestrator (10), Android prep (11).** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-07-01._
+_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: ✅ Feature-locked 2026-07-02 on `v1.5-dev`.** All user-facing workstreams (1–8) + the internal Page Orchestrator (10) are done; #9 was conditional and not triggered; #11 Android prep is a background task (Play Console identity verification), not a feature-lock blocker. Beyond the original workstream list, v1.5 also absorbed a large **quality/testing-hardening wave** (tracked in the portfolio MASTER_PLAN): e2e harness rebuild + CI gate (2.13/2.14), full-app layout & premium-UX pass (2.15), lint 0/0 (2.19), storage-safety e2e (2.20), and a pre-lock regression-coverage audit. This is the dedicated build + release checklist for v1.5. Last updated: 2026-07-02._
 
 **Theme:** Everything that helps users understand where they've been and celebrate how far they've come. Pay Cycle History is the data foundation; milestones, streaks, amortization, and charts make that data meaningful.
 
@@ -21,8 +21,8 @@ _Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In pr
 | 7 | Mobile P5 — Context-aware skeletons | All | ✅ Done (2026-07-02) |
 | 8 | Mobile P6 — Micro-interaction pass | All | ✅ Done (2026-07-02, audit — already in place) |
 | 9 | Mobile P10 — Timeline overflow *(conditional)* | All | ⬜ Deferred unless triggered |
-| 10 | Page Orchestrator Phases 1–2 (internal) | — | ⬜ Not started |
-| 11 | Android prep (Play Console + Maestro) | Infra | ⬜ Not started |
+| 10 | Page Orchestrator Phases 1–2 (internal) | — | ✅ Done (2026-07-02, `e40a260`+`7cae993`; Phases 3–5 → sustainability track) |
+| 11 | Android prep (Play Console signup) | Infra | ⬜ Background (Play Console identity verification — weeks of waiting, zero code; not a feature-lock blocker) |
 
 **Build order:** Pay Cycle History (1) is the data dependency for Milestones (2), Streaks (4), and the Delta indicator (5) — build it first. Amortization (3) is independent. Mobile polish (7, 8) and Android prep (11) can run in parallel anytime. Settings rework (6) needs a decision before code (see §6). Page Orchestrator (10) is internal and can interleave.
 
