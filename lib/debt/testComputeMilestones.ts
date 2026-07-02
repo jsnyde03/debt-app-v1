@@ -72,7 +72,9 @@ function runComputeMilestonesTests() {
         ],
     });
     assertEqual(noOriginal.milestones.length, 0, "no originalBalance -> no milestone");
-    assertEqual(noOriginal.allDebtsPaidOff, false, "no trackable debts -> not all paid off");
+    // Debt-free is a balance fact, independent of originalBalance: the only debt
+    // is at 0, so the user IS debt-free even though we can't compute its progress.
+    assertEqual(noOriginal.allDebtsPaidOff, true, "a paid-off debt counts as debt-free even without originalBalance");
 
     // --- Edge: balance increased -> no crossing. ---
     const increased = computeMilestones({
@@ -114,6 +116,24 @@ function runComputeMilestonesTests() {
     assertEqual(mixed.allDebtsPaidOff, false, "one debt still owed -> not all paid off");
     assertEqual(mixed.milestones.length, 1, "only the paid-off debt reports a milestone");
     assertEqual(mixed.milestones[0].debtId, "a", "the paid-off debt is the one reported");
+
+    // --- F6: a legacy debt lacking originalBalance that is STILL OWED must block
+    // debt-free. Previously it was excluded from the check, so paying off a newer
+    // (trackable) debt fired a false "Debt free!" while the legacy debt was owed. ---
+    const legacyStillOwed = computeMilestones({
+        debts: [
+            debt({ id: "new", previousBalance: 300, currentBalance: 0 }), // new debt, paid off
+            {
+                id: "legacy",
+                name: "Old Card",
+                originalBalance: undefined,
+                previousBalance: 800,
+                currentBalance: 800,
+            }, // legacy, no originalBalance, still owed
+        ],
+    });
+    assertEqual(legacyStillOwed.allDebtsPaidOff, false, "a still-owed legacy debt (no originalBalance) blocks debt-free");
+    assertEqual(legacyStillOwed.newlyAllPaidOff, false, "no false 'Debt free!' while a legacy debt is owed");
 
     console.log("✅ Milestone regression tests passed.");
 }

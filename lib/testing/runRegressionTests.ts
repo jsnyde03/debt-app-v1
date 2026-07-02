@@ -12,6 +12,7 @@ import "../debt/testComputeStreak";
 import "../debt/testComputeCycleDelta";
 import "../debt/testGetDebtsWithDisplayBalances";
 import "../debt/testParseDebtFormValues";
+import "../storage/testMigrateOriginalBalance";
 import "../debt/testBuildPayoffTrajectory";
 import "./testFinalLaunchRegression";
 import "./testV11Regression";

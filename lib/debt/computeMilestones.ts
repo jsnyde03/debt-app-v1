@@ -81,11 +81,15 @@ export function computeMilestones(params: {
         });
     }
 
+    // Debt-free is about EVERY debt, not just the trackable (originalBalance>0)
+    // ones. Basing this on `trackable` let a debt lacking originalBalance be
+    // ignored, firing a false "Debt free!" while it was still owed. currentBalance
+    // / previousBalance exist on all debts regardless of originalBalance.
     const allDebtsPaidOff =
-        trackable.length > 0 &&
-        trackable.every((debt) => debt.currentBalance <= 0);
+        params.debts.length > 0 &&
+        params.debts.every((debt) => debt.currentBalance <= 0);
 
-    const someOwedBefore = trackable.some((debt) => debt.previousBalance > 0);
+    const someOwedBefore = params.debts.some((debt) => debt.previousBalance > 0);
 
     return {
         milestones,
