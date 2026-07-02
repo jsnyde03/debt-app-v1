@@ -535,6 +535,10 @@ export default function Home() {
     }
 
     function handleResetToToday() {
+        // Close settings so you land on the freshly reset plan (matches Calculate Plan).
+        setShowPlanSettings(false);
+        setShowDeleteConfirm(false);
+
         const backup = readKeyValue<ReturnType<typeof buildBackupData> | null>(
             "debtPlanner.resetSnapshot",
             null
@@ -650,6 +654,10 @@ export default function Home() {
 
     async function handleRolloverPayCycle() {
         triggerMediumHaptic();
+        // Close settings so you land on the new cycle's plan (and any milestone
+        // celebration shows over the plan, not the settings sheet).
+        setShowPlanSettings(false);
+        setShowDeleteConfirm(false);
         saveResetSnapshot();
 
         // Record the cycle that's ending BEFORE any mutation - capture
@@ -771,6 +779,9 @@ export default function Home() {
 
     function handleSelectTab(tab: "plan" | "bills" | "snowball" | "goals") {
         triggerLightHaptic();
+        // Leaving via the nav closes the settings panel, so you land on the tab
+        // (not back inside the focused settings view).
+        setShowPlanSettings(false);
         setActiveTab(tab);
         if (tab === "bills") setBillsView((current) => current ?? "expenses");
     }
@@ -896,7 +907,7 @@ export default function Home() {
                     onDeleteAll={handleExitDemoMode}
                 />
 
-                <div key={activeTab} className="tab-content-transition" data-direction={tabDirection} role="region" aria-label={activeTab === "plan" ? "Plan" : activeTab === "bills" ? "Bills" : activeTab === "snowball" ? "Payoff" : "Goals"}>
+                <div key={activeTab} className="tab-content-transition" data-direction={tabDirection} style={showPlanSettings ? { display: "none" } : undefined} role="region" aria-label={activeTab === "plan" ? "Plan" : activeTab === "bills" ? "Bills" : activeTab === "snowball" ? "Payoff" : "Goals"}>
                 {activeTab === "plan" && (
                     <>
                         <div className="plan-toolbar">
