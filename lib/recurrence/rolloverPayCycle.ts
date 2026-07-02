@@ -91,26 +91,28 @@ function advanceDueDateToPlanDate(
 }
 
 export function rolloverRequiredExpenses(expenses: RequiredExpense[], nextPlanDate: string) {
-    return expenses.map((expense) => {
+    return expenses.flatMap((expense) => {
+        // Unpaid obligations carry into the new cycle unchanged (still owed).
         if (!expense.isPaidThisCycle) {
-            return {
-                ...expense,
-                isPaidThisCycle: false,
-            };
+            return [{ ...expense, isPaidThisCycle: false }];
         }
 
+        // A PAID one-time expense is done - drop it. Previously it was reset to
+        // unpaid with its original (now past) due date, so next cycle it
+        // reappeared as an overdue required expense and re-consumed the budget
+        // every cycle forever. The projection timeline already drops it.
         if (expense.recurrence === "one-time") {
-            return {
-                ...expense,
-                isPaidThisCycle: false,
-            };
+            return [];
         }
-        
-        return {
-            ...expense,
-            dueDate: advanceDueDateToPlanDate(expense.dueDate, expense.recurrence, nextPlanDate, expense.originalDueDate),
-            isPaidThisCycle: false,
-        };
+
+        // Recurring: advance to the next occurrence and reset for the new cycle.
+        return [
+            {
+                ...expense,
+                dueDate: advanceDueDateToPlanDate(expense.dueDate, expense.recurrence, nextPlanDate, expense.originalDueDate),
+                isPaidThisCycle: false,
+            },
+        ];
     });
 }
 

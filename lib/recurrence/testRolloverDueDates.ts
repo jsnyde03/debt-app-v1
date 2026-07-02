@@ -81,7 +81,27 @@ function runRolloverDueDateTests() {
     );
     assertEqual(unpaid[0].dueDate, "2026-01-31", "unpaid expense retains its overdue due date");
 
-    console.log("✅ Rollover due-date (EOM clamp) regression tests passed.");
+    // F2: a PAID one-time expense is done and must be dropped, not resurrected.
+    const paidOneTime = rolloverRequiredExpenses(
+        [
+            expense({ id: "reg", name: "Registration", recurrence: "one-time", dueDate: "2026-01-10", isPaidThisCycle: true }),
+            expense({ id: "rent", name: "Rent", recurrence: "monthly", dueDate: "2026-01-15", originalDueDate: "2026-01-15", isPaidThisCycle: true }),
+        ],
+        "2026-02-13"
+    );
+    assertEqual(paidOneTime.length, 1, "paid one-time expense is dropped on rollover");
+    assertEqual(paidOneTime[0].id, "rent", "the recurring expense survives the rollover");
+    assertEqual(paidOneTime[0].dueDate, "2026-02-15", "the recurring expense advances to the next cycle");
+
+    // F2: an UNPAID one-time expense is still owed and must carry over.
+    const unpaidOneTime = rolloverRequiredExpenses(
+        [expense({ id: "med", name: "Medical bill", recurrence: "one-time", dueDate: "2026-01-10", isPaidThisCycle: false })],
+        "2026-02-13"
+    );
+    assertEqual(unpaidOneTime.length, 1, "unpaid one-time expense carries over (still owed)");
+    assertEqual(unpaidOneTime[0].dueDate, "2026-01-10", "unpaid one-time keeps its due date");
+
+    console.log("✅ Rollover due-date (EOM clamp) + one-time drop regression tests passed.");
 }
 
 runRolloverDueDateTests();
