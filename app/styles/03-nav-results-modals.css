@@ -556,6 +556,16 @@
 	padding: 4px 2px 8px;
 }
 
+/* On the wide iPad two-column layout (≥834px), keep the settings form a comfortable centered column
+   instead of a full-bleed ~1200px stretch — full-width paycheck/date inputs read as unrefined at that
+   width (2.15.6). Phone stays full-width. */
+@media (min-width: 834px) {
+	.plan-settings-accordion-inner {
+		max-width: 640px;
+		margin-inline: auto;
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.plan-settings-accordion {
 		transition: visibility 0ms, max-height 0ms;
