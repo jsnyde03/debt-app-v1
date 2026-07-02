@@ -37,7 +37,9 @@ No engine/calculation changes in the harness work; this addendum records **test-
 - **Functional suite: green on the phone form factors** — mobile-chrome + iphone-pro-max, 29/29.
 - **Known gaps (tracked, not silently shipped):** the iPad projects' specs still assume the phone single-column layout (iPad's two-column Bills has no sub-tabs) — **test-drift, not an app bug** — and the 3 screenshot/asset specs remain on the old seed pattern. Both are filed as v1.6 test follow-ons; the CI gate being wired in (step 2.13) is scoped to the phone functional specs until they land.
 
-**Standing rule reinforced:** committed suites must be **kept green via checkpoints** (per-feature run · full-suite-green at version lock · CI-gate) so this doesn't recur — the reason step 2.13 pulls CI-gating forward.
+**Standing rule reinforced:** committed suites must be **kept green via checkpoints** (per-feature run · full-suite-green at version lock · CI-gate) so this doesn't recur — the reason CI-gating is pulled forward.
+
+**First-run-overlay hydration flash — verified NOT user-visible (2026-07-01).** Measured on the production static build (`serve out`) with a returning-user seed and a first-run seed, under 1× and 6× CPU throttle: returning users see the plan immediately (SSG shell === hydrated state, zero flash); first-run users see the onboarding flow immediately (screenshots at 200/500 ms under 6× show clean onboarding, never the plan). The SSG pre-renders the plan shell, but because state is read **synchronously in lazy `useState` initializers** (not in `useEffect`), the client's hydration render is already correct and reconciles the shell **before the first visible paint**. Benign — no code change. The `addInitScript`-before-paint seed (§2.11) independently keeps this from flaking the e2e suite. _(Repo step numbers here lag the portfolio queue — the CI gate is queue item 2.14, this verification was 2.13; reconcile in the doc-drift pass.)_
 
 ---
 
