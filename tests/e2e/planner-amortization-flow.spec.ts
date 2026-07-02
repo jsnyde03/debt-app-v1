@@ -1,30 +1,26 @@
 import { expect, test, type Page } from "@playwright/test";
+import { seedLocalStorage } from "./helpers/seed";
 
 // Seeds a planner with one active, interest-bearing focus debt and a
 // configured paycheck so the Payoff tab's focus strip (and its "View
-// Schedule" entry point) renders.
+// Schedule" entry point) renders. Seeds via addInitScript (seedLocalStorage)
+// so state lands before first paint — no goto->evaluate->reload race.
 async function seedAmortizationPlanner(
     page: Page,
     mockSubscription: "premium" | "premium_plus" | null
 ) {
-    await page.goto("/");
-
-    await page.evaluate((plan) => {
-        localStorage.clear();
-
-        localStorage.setItem("debtPlanner.amount", JSON.stringify("2000"));
-        localStorage.setItem("debtPlanner.hasCompletedOnboarding", JSON.stringify(true));
-        localStorage.setItem("debtPlanner.payCycle", JSON.stringify("biweekly"));
-        localStorage.setItem("debtPlanner.currentDate", JSON.stringify("2026-05-01"));
-        localStorage.setItem("debtPlanner.nextPaycheckDate", JSON.stringify("2026-05-15"));
-
-        localStorage.setItem("debtPlanner.requiredExpenses", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.livingExpenses", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.goals", JSON.stringify([]));
-
-        localStorage.setItem(
-            "debtPlanner.debts",
-            JSON.stringify([
+    await seedLocalStorage(
+        page,
+        {
+            amount: "2000",
+            hasCompletedOnboarding: true,
+            payCycle: "biweekly",
+            currentDate: "2026-05-01",
+            nextPaycheckDate: "2026-05-15",
+            requiredExpenses: [],
+            livingExpenses: [],
+            goals: [],
+            debts: [
                 {
                     id: "focus-debt",
                     name: "Focus Card",
@@ -40,20 +36,14 @@ async function seedAmortizationPlanner(
                     minimumPaidThisCycle: false,
                     snowballPaidThisCycle: false,
                 },
-            ])
-        );
-
-        localStorage.setItem("debtPlanner.completedRecommendedActions", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.payoffStrategy", JSON.stringify("snowball"));
-        localStorage.setItem("debtPlanner.darkMode", JSON.stringify(false));
-
+            ],
+            completedRecommendedActions: [],
+            payoffStrategy: "snowball",
+            darkMode: false,
+        },
         // useSubscription reads this as a bare string (not JSON).
-        if (plan) {
-            localStorage.setItem("debtPlanner.mockSubscription", plan);
-        }
-    }, mockSubscription);
-
-    await page.reload();
+        mockSubscription ? { mockSubscription } : {}
+    );
 
     const overlay = page.locator(".settings-overlay");
     if (await overlay.isVisible().catch(() => false)) {

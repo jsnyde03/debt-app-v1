@@ -1,42 +1,37 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import fs from "fs";
 import path from "path";
+import { seedLocalStorage } from "./helpers/seed";
 import { billsSection } from "./helpers/nav";
 
-async function seedBase(page: Page) {
-    await page.goto("/");
-
-    await page.evaluate(() => {
-        localStorage.clear();
-
-        localStorage.setItem("debtPlanner.amount", JSON.stringify("1950"));
-        localStorage.setItem("debtPlanner.hasCompletedOnboarding", JSON.stringify(true));
-        localStorage.setItem("debtPlanner.hasConfiguredPaycheck", JSON.stringify(true));
-        localStorage.setItem("debtPlanner.payCycle", JSON.stringify("biweekly"));
-        localStorage.setItem("debtPlanner.currentDate", JSON.stringify("2026-05-23"));
-        localStorage.setItem("debtPlanner.requiredExpenses", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.debts", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.goals", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.completedRecommendedActions", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.payoffStrategy", JSON.stringify("snowball"));
-        localStorage.setItem("debtPlanner.darkMode", JSON.stringify(false));
-    });
-
-    await page.reload();
-}
-
-test.beforeEach(async ({ page }) => {
-    await seedBase(page);
-});
+// A configured, onboarded planner with empty collections — the base every
+// hardening test starts from. Per-test data is folded into the seed (below) so
+// it's present at first paint; the old goto()->evaluate(setItem)->reload() dance
+// let the app's first render race the seed and clobber it back to [] (the
+// long-standing `storedDebtNames: []` flake that RED-ed the CI gate).
+const BASE = {
+    amount: "1950",
+    hasCompletedOnboarding: true,
+    hasConfiguredPaycheck: true,
+    payCycle: "biweekly",
+    currentDate: "2026-05-23",
+    requiredExpenses: [],
+    debts: [],
+    goals: [],
+    completedRecommendedActions: [],
+    payoffStrategy: "snowball",
+    darkMode: false,
+};
 
 test("corrupted localStorage does not crash the planner", async ({ page }) => {
-    await page.evaluate(() => {
-        localStorage.setItem("debtPlanner.requiredExpenses", "{broken");
-        localStorage.setItem("debtPlanner.debts", "{broken");
-        localStorage.setItem("debtPlanner.goals", "{broken");
+    // Seed the collections as raw, un-parseable garbage so the app hits its
+    // JSON.parse guards on the very first render (rawState is written after the
+    // JSON seed, so it overrides the empty arrays in BASE).
+    await seedLocalStorage(page, BASE, {
+        requiredExpenses: "{broken",
+        debts: "{broken",
+        goals: "{broken",
     });
-
-    await page.reload();
 
     await expect(
         page.getByRole("heading", { name: "Debt Planner" })
@@ -46,42 +41,39 @@ test("corrupted localStorage does not crash the planner", async ({ page }) => {
         page.getByText("Required Actions").first()
     ).toBeVisible();
 });
-test("debt search accepts input and seeded debts persist", async ({ page }) => {
-    await page.evaluate(() => {
-        localStorage.setItem(
-            "debtPlanner.debts",
-            JSON.stringify([
-                {
-                    id: "visa-1",
-                    name: "Visa Card",
-                    balance: 500,
-                    minimumPayment: 50,
-                    apr: 22,
-                    dueDate: "2026-05-29",
-                    type: "debt",   
-                    recurrence: "monthly",
-                    isPaidThisCycle: false,
-                    minimumPaidThisCycle: false,
-                    snowballPaidThisCycle: false,
-                },
-                {
-                    id: "discover-1",
-                    name: "Discover Card",
-                    balance: 900,
-                    minimumPayment: 75,
-                    apr: 18,
-                    dueDate: "2026-05-30",
-                    type: "debt",
-                    recurrence: "monthly",
-                    isPaidThisCycle: false,
-                    minimumPaidThisCycle: false,
-                    snowballPaidThisCycle: false,
-                },
-            ])
-        );
-    });
 
-    await page.reload();
+test("debt search accepts input and seeded debts persist", async ({ page }) => {
+    await seedLocalStorage(page, {
+        ...BASE,
+        debts: [
+            {
+                id: "visa-1",
+                name: "Visa Card",
+                balance: 500,
+                minimumPayment: 50,
+                apr: 22,
+                dueDate: "2026-05-29",
+                type: "debt",
+                recurrence: "monthly",
+                isPaidThisCycle: false,
+                minimumPaidThisCycle: false,
+                snowballPaidThisCycle: false,
+            },
+            {
+                id: "discover-1",
+                name: "Discover Card",
+                balance: 900,
+                minimumPayment: 75,
+                apr: 18,
+                dueDate: "2026-05-30",
+                type: "debt",
+                recurrence: "monthly",
+                isPaidThisCycle: false,
+                minimumPaidThisCycle: false,
+                snowballPaidThisCycle: false,
+            },
+        ],
+    });
 
     const debtsCol = await billsSection(page, "debts");
 
@@ -163,15 +155,9 @@ test("backup import restores planner data", async ({ page }) => {
         await dialog.accept();
     });
 
-    // "Import Backup" lives in the first-run setup panel, so establish that state:
-    // onboarded (no onboarding flow) but no paycheck configured → the setup panel
-    // is shown and its Import Backup control is available.
-    await page.goto("/");
-    await page.evaluate(() => {
-        localStorage.clear();
-        localStorage.setItem("debtPlanner.hasCompletedOnboarding", JSON.stringify(true));
-    });
-    await page.reload();
+    // "Import Backup" lives in the first-run setup panel, so seed the state that
+    // shows it: onboarded (no onboarding flow) but no paycheck configured.
+    await seedLocalStorage(page, { hasCompletedOnboarding: true });
 
     await page.locator(".import-button input[type='file']").setInputFiles(fixturePath);
 
