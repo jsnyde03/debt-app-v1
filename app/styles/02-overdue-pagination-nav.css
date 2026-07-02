@@ -120,6 +120,15 @@
 	margin-bottom: 1rem;
 }
 
+/* Expense/goal controls stack the search above the wrapping filter pills at ALL widths. The shared
+   base above is an implicit flex-row (align-items:stretch), which on wide/iPad screens stretched the
+   search input to the tall filter-pills column's height (2.15.3 fix). Debt controls stay a row
+   (search + a single sort button, similar heights → no stretch). Phone already forced column. */
+.expense-controls,
+.goal-controls {
+	flex-direction: column;
+}
+
 .sort-row {
 	display: flex;
 	gap: 0.5rem;
