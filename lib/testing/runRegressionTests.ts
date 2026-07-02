@@ -10,6 +10,8 @@ import "../debt/testAmortizationSchedule";
 import "../debt/testComputeMilestones";
 import "../debt/testComputeStreak";
 import "../debt/testComputeCycleDelta";
+import "../debt/testGetDebtsWithDisplayBalances";
+import "../debt/testBuildPayoffTrajectory";
 import "./testFinalLaunchRegression";
 import "./testV11Regression";
 import "./testFullAppRegression";
