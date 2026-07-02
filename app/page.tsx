@@ -691,7 +691,8 @@ export default function Home() {
             before: debt,
             after: applyRolloverPayment(
                 debt,
-                getCompletedSnowballAmount(debt.id, completedRecommendedActions)
+                getCompletedSnowballAmount(debt.id, completedRecommendedActions),
+                payCycle
             ),
         }));
 

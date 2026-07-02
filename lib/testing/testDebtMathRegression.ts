@@ -3,6 +3,7 @@ import { applyDebtPaymentProjection } from "../debt/applyDebtPaymentProjection";
 import { projectDebtPayoff } from "../debt/projectDebtPayoff";
 import { buildExtraPaymentAllocationPlan } from "../debt/extraPaymentPlan";
 import { applyRolloverPayment } from "../debt/applyRolloverPayment";
+import type { Debt } from "../storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, msg: string) {
     if (actual !== expected) {
@@ -246,26 +247,26 @@ function testRollover_interestPlusMinimumPlusSnowball() {
     // $1000 balance, 12% APR -> $10 interest -> $1010. Minimum $50 paid,
     // snowball $100 completed this cycle -> new balance should be $860.
     const debt = makeDebt({ id: "d1", name: "RolloverDebt", balance: 1000, apr: 12, minimumPayment: 50 });
-    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: true }, 100);
+    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: true }, 100, "monthly");
     assertApprox(result.balance, 860, "rollover: interest + minimum + snowball nets to expected balance");
 }
 
 function testRollover_minimumNotPaidStillAccruesInterestOnly() {
     // Minimum NOT paid this cycle -> only interest accrues, no payment deducted.
     const debt = makeDebt({ id: "d1", name: "UnpaidDebt", balance: 1000, apr: 12, minimumPayment: 50 });
-    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: false }, 0);
+    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: false }, 0, "monthly");
     assertApprox(result.balance, 1010, "rollover: unpaid minimum leaves balance at interest-only increase");
 }
 
 function testRollover_bnplNeverAccruesInterestOnRollover() {
     const debt = makeDebt({ id: "d1", name: "BnplRollover", balance: 400, apr: 24.99, minimumPayment: 100, type: "bnpl" });
-    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: true }, 0);
+    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: true }, 0, "monthly");
     assertApprox(result.balance, 300, "rollover: BNPL deducts payment with zero interest despite nonzero APR");
 }
 
 function testRollover_zeroBalanceDebtUnchanged() {
     const debt = makeDebt({ id: "d1", name: "PaidOffDebt", balance: 0, apr: 22.99, minimumPayment: 50 });
-    const result = applyRolloverPayment(debt, 0);
+    const result = applyRolloverPayment(debt, 0, "monthly");
     assertEqual(result.balance, 0, "rollover: zero-balance debt stays at zero, no math applied");
 }
 
@@ -273,8 +274,33 @@ function testRollover_paymentNeverDrivesBalanceNegative() {
     // Snowball amount larger than the remaining balance after interest -
     // balance must floor at zero, never go negative.
     const debt = makeDebt({ id: "d1", name: "OverpaidDebt", balance: 50, apr: 0, minimumPayment: 50 });
-    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: true }, 200);
+    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: true }, 200, "monthly");
     assertEqual(result.balance, 0, "rollover: overpayment floors balance at zero, never negative");
+}
+
+function testRollover_perCycleInterestByCadence() {
+    // $1000 @ 12% APR, no payment. Monthly interest is $10. A rollover is one
+    // PAYCHECK, so a biweekly user must accrue one biweekly period of interest
+    // (1000*0.12/26 ≈ $4.62), not a full month — the S1 fix.
+    const debt = makeDebt({ id: "d1", name: "CadenceDebt", balance: 1000, apr: 12, minimumPayment: 0 });
+    const base = { ...debt, minimumPaidThisCycle: false as const };
+
+    assertApprox(applyRolloverPayment(base, 0, "monthly").balance, 1010, "monthly rollover accrues a full month of interest");
+    assertApprox(applyRolloverPayment(base, 0, "biweekly").balance, 1004.62, "biweekly rollover accrues one biweekly period (~half a month)");
+    assertApprox(applyRolloverPayment(base, 0, "weekly").balance, 1002.31, "weekly rollover accrues one weekly period (~quarter month)");
+    assertApprox(applyRolloverPayment(base, 0, "semimonthly").balance, 1005, "semimonthly rollover accrues half a month");
+}
+
+function testRollover_yearOfBiweeklyRollsUpToAnnualInterest() {
+    // 26 biweekly rollovers with no payment should land near ONE year of interest
+    // (~$1127 at 12% biweekly-compounded), NOT the ~$1295 the old full-month-per-
+    // rollover bug produced. This is the reconciliation with the monthly projection.
+    const debt = makeDebt({ id: "d1", name: "YearDebt", balance: 1000, apr: 12, minimumPayment: 0 });
+    let d: Debt = { ...debt, minimumPaidThisCycle: false };
+    for (let i = 0; i < 26; i += 1) {
+        d = applyRolloverPayment(d, 0, "biweekly");
+    }
+    assertApprox(d.balance, 1127.2, "a year of biweekly rollovers accrues ~one year of interest, not ~2.17x", 1);
 }
 
 // --- buildExtraPaymentAllocationPlan ---
@@ -378,6 +404,8 @@ export function runDebtMathRegressionTests() {
     testRollover_bnplNeverAccruesInterestOnRollover();
     testRollover_zeroBalanceDebtUnchanged();
     testRollover_paymentNeverDrivesBalanceNegative();
+    testRollover_perCycleInterestByCadence();
+    testRollover_yearOfBiweeklyRollsUpToAnnualInterest();
 
     testExtraPaymentPlan_snowballTargetsSmallestBalance();
     testExtraPaymentPlan_avalancheTargetsHighestApr();
