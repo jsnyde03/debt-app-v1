@@ -94,12 +94,14 @@ _Titles carry the OCR-indexed keywords (payday, debt-free, private, streak). Kee
 
 The backup restores your **plan** but not pay-cycle history (that's built by living the app), so after the A–H shots:
 
-1. On the Plan tab, **mark the recommended actions complete** (so the cycle counts as "on plan"), then Settings → **Start Next Pay Cycle**.
+1. On the Plan tab, **mark the Required Actions complete** — every bill and debt minimum. In v1.5 the streak tracks whether you completed the **required** actions you could afford (not the recommended extras), so this is what makes the cycle count as "on plan." Marking the recommended snowball/emergency actions too is fine and looks good in the shot, but it's the required ones that keep the streak alive. Then Settings → **Start Next Pay Cycle**.
 2. Repeat **3–4 times**. Each rollover appends a history snapshot and grows the streak.
    - When a rollover **clears a debt** (Store Card is small and will pay off quickly), the **🏆 Milestone Celebration overlay fires — capture it (J) right then.**
 3. After the rollovers: the Plan hero now shows **🔥 N cycles on plan in a row** + the since-last-cycle delta → capture **I**. Then Settings → **Pay Cycle History** → capture **K**.
 
 _(The reference frames for I/J/K used a seeded shortcut to pre-fill history; on device, the rollovers above reproduce them.)_
+
+_**Note on payoff/amortization numbers (C, D):** the v1.5 accuracy fixes — interest accrued per pay cycle (not a full month per rollover) and a true snowball that rolls a paid-off debt's freed minimum onto the next — make the live debt-free date sooner and total interest lower than the older reference PNGs show. That's expected; capture the **live** numbers (they're the correct, more impressive ones)._
 
 ---
 

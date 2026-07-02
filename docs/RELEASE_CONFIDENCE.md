@@ -41,6 +41,14 @@ No engine/calculation changes in the harness work; this addendum records **test-
 
 **First-run-overlay hydration flash — verified NOT user-visible (2026-07-01).** Measured on the production static build (`serve out`) with a returning-user seed and a first-run seed, under 1× and 6× CPU throttle: returning users see the plan immediately (SSG shell === hydrated state, zero flash); first-run users see the onboarding flow immediately (screenshots at 200/500 ms under 6× show clean onboarding, never the plan). The SSG pre-renders the plan shell, but because state is read **synchronously in lazy `useState` initializers** (not in `useEffect`), the client's hydration render is already correct and reconciles the shell **before the first visible paint**. Benign — no code change. The `addInitScript`-before-paint seed (§2.11) independently keeps this from flaking the e2e suite. _(Step numbers map to the portfolio MASTER_PLAN queue: this verification = 2.13, the CI gate = 2.14.)_
 
+## v1.5 functional-correctness audit — remediation sign-off (2026-07-02)
+
+A pre-submit **whole-surface functional audit** (5 parallel auditors, real-user lens — "does it do what it SHOULD, not what the spec says") found 4 ship-blockers + 6 should-fixes that **passed the existing tests but were behaviorally wrong**. All 10 fixed, each with a regression test encoding the corrected behavior; **final e2e gate 120/120 green**. Full findings + commit log → [`V15_FUNCTIONAL_AUDIT.md`](V15_FUNCTIONAL_AUDIT.md).
+
+**Confidence held at High.** Money-touching fixes carry reconciliation checks: S1 (per-cycle interest) is pinned by a 26-rollover ≈ one-year-interest reconciliation against the monthly projection; F3 (freed-minimum roll) by a hand-verified 2-vs-3-month payoff on both projection engines.
+
+**⚠️ Supersedes the `computeStreak` note in the feature-lock addendum below:** the streak is now **required-based** (on plan = completed every *affordable required* action; genuine shortfall forgiven; recommended extras have no bearing), backed by the snapshot field `allRequiredMet`; `testComputeStreak` was rewritten accordingly. History "$X paid" now means money toward debt (minimums + snowball), not the old recommended-only total. See audit S4+F5.
+
 ## v1.5 feature-lock addendum (2026-07-02) — confidence sign-off
 
 Per the process rule below ("before any version is locked, re-run this audit's checklist"), this records the v1.5-lock confidence pass. **Verdict: v1.5 is High confidence.**

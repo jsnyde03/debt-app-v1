@@ -2,7 +2,22 @@
 
 **Date:** 2026-07-02
 **Branch:** `v1.5-dev`
-**Status:** Complete — all 5 auditors reported.
+**Status:** Complete — all 5 auditors reported. **Remediation COMPLETE (2026-07-02)** — all 4 ship-blockers + all 6 should-fixes fixed with regression tests; final e2e gate **120/120 green**. v1.5 is code-ship-eligible (device QA is the remaining gate).
+
+## Remediation log
+
+| ID | Fix | Commit |
+|----|-----|--------|
+| S1 | Interest accrues per pay cycle, not a full month per rollover | `5c35272` |
+| S2 | Reject non-finite debt-edit input (no NaN corruption) | `8e0a667` |
+| S3+F4 | Surface unaffordable required bills; gate "caught up"; full required total | `c74bfdb` |
+| S4+F5 | Required-based streak (shortfall-forgiving); honest "$X paid" | `83fadcd` |
+| F1 | Clamp end-of-month due dates (no skipped month/drift) | `74b0ad2` |
+| F2 | Drop paid one-time expenses on rollover | `20f6838` |
+| F3 | Roll freed minimums into the next debt (real snowball) | `4f09305` |
+| F6 | No false "Debt free!" for legacy debts (backfill + hardening) | `68cd116` |
+
+**Suspected (Q1–Q10) disposition:** Q3, Q7 resolved by the fixes · Q4 resolved (Timeline reframed as cash-cushion; per-cycle payment accuracy → v1.6) · Q10 verified non-issue (`result` is a fresh memo at rollover) · Q6 keep as-is (survival-first) · Q8 no action (empty-app edge) · **Q1 defer v1.6 — v1.5 ships US-only** · Q2, Q5, Q9 defer v1.6. Minors M1–M8 → v1.6 backlog.
 
 ## What this is
 
