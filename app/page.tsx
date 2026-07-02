@@ -36,8 +36,8 @@ import { computeStreak } from "@/lib/debt/computeStreak";
 import { MilestoneBadge, type MilestoneCelebration } from "@/components/MilestoneBadge";
 import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
-import { parseDebtCsv } from "@/lib/imports/debtCsv";
-import type { LivingExpense } from "@/lib/types/livingExpense";
+import { getDebtsWithDisplayBalances, getCompletedSnowballAmount } from "@/lib/debt/getDebtsWithDisplayBalances";
+import { useLivingExpenses } from "@/lib/hooks/useLivingExpenses";
 import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
@@ -107,14 +107,6 @@ function roundMoney(amount: number) {
     return Math.round(amount * 100) / 100;
 }
 
-function getDebtDisplayBalance(debt: Debt, completedSnowballAmount: number) {
-    const paidMinimumAmount = debt.minimumPaidThisCycle || debt.isPaidThisCycle
-        ? Math.min(debt.minimumPayment, debt.balance)
-        : 0;
-
-    return roundMoney(Math.max(0, debt.balance - paidMinimumAmount - completedSnowballAmount));
-}
-
 function formatLastSaved(value: string) {
     const savedAt = new Date(value);
 
@@ -140,13 +132,7 @@ export default function Home() {
         monthlyPayDay, setMonthlyPayDay,
     } = usePayCycleSettings();
 
-    const [livingExpenses, setLivingExpenses] = usePersistedState<LivingExpense[]>(
-        "debtPlanner.livingExpenses",
-        livingExpensePresets.map((expense, index) => ({
-            ...expense,
-            id: `living-${index}`,
-        }))
-    );
+    const { livingExpenses, setLivingExpenses } = useLivingExpenses();
 
     const hasConfiguredPaycheck = amount !== "" && Number(amount) > 0;
 
@@ -254,6 +240,7 @@ export default function Home() {
         restoreDebt,
         handleMarkDebtMinimumPaid,
         handleMarkDebtSnowballPaid,
+        handleImportCsv,
     } = useDebts(saveResetSnapshot);
 
     const {
@@ -338,14 +325,8 @@ export default function Home() {
         payoffStrategy,
     ]);
 
-    const debtsWithDisplayBalances = debts.map((debt) => ({
-
-        ...debt,
-        displayBalance: getDebtDisplayBalance(debt, getCompletedRecommendedAmountForDebt(debt.id)),
-    }));
-
-    const activeDebts = debtsWithDisplayBalances.filter((debt) => debt.displayBalance > 0);
-    const paidOffDebts = debtsWithDisplayBalances.filter((debt) => debt.displayBalance <= 0);
+    const { debtsWithDisplayBalances, activeDebts, paidOffDebts } =
+        getDebtsWithDisplayBalances(debts, completedRecommendedActions);
 
     const debtFreeDate = useMemo(() => {
         const liveDebts = debts.filter(d => d.balance > 0);
@@ -455,36 +436,6 @@ export default function Home() {
         };
     }
 
-    async function handleImportDebtsCsv(event: ChangeEvent<HTMLInputElement>) {
-        const file = event.target.files?.[0];
-
-        if (!file) return;
-
-        try {
-            const importResult = await parseDebtCsv(file);
-
-            if (importResult.debts.length > 0) {
-                setDebts((current) => [...current, ...importResult.debts]);
-            }
-
-            if (importResult.errors.length > 0) {
-                alert(
-                    `Imported ${importResult.debts.length} debts with ${importResult.errors.length
-                    } skipped rows.\n\n${importResult.errors
-                        .slice(0, 5)
-                        .join("\n")}`
-                );
-            } else {
-                void triggerMediumHaptic();
-                alert(`Imported ${importResult.debts.length} debts.`);
-            }
-        } catch {
-            alert("Unable to import debt CSV.");
-        }
-
-        event.target.value = "";
-    }
-
     function handleCalculate() {
         const value = Number(amount);
 
@@ -582,15 +533,6 @@ export default function Home() {
             goals: nextGoals,
             completedRecommendedActions: nextCompletedRecommendedActions,
         });
-    }
-
-    function getCompletedRecommendedAmountForDebt(debtId: string) {
-        return completedRecommendedActions
-            .filter(
-                (action) =>
-                    action.category === "snowball" && action.targetId === debtId
-            )
-            .reduce((sum, action) => sum + action.actualAmount, 0);
     }
 
     function handleResetToToday() {
@@ -742,7 +684,7 @@ export default function Home() {
             before: debt,
             after: applyRolloverPayment(
                 debt,
-                getCompletedRecommendedAmountForDebt(debt.id)
+                getCompletedSnowballAmount(debt.id, completedRecommendedActions)
             ),
         }));
 
@@ -1270,7 +1212,7 @@ export default function Home() {
                             onDebtTypeChange={setDebtType}
                             onDebtRecurrenceChange={setDebtRecurrence}
                             onDebtIsAutopayChange={setDebtIsAutopay}
-                            onImportDebtsCsv={handleImportDebtsCsv}
+                            onImportDebtsCsv={handleImportCsv}
                             onAddDebt={handleAddDebt}
                             onRemoveDebt={handleRemoveDebtWithUndo}
                             onUpdateDebt={handleUpdateDebt}

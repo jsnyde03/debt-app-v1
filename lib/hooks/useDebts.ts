@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import { usePersistedState } from "@/lib/storage/usePersistedState";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
-import { triggerErrorHaptic } from "@/lib/mobile/haptics";
+import { triggerErrorHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { parseDebtCsv } from "@/lib/imports/debtCsv";
 
 export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => void) {
     const [debts, setDebts] = usePersistedState<Debt[]>("debtPlanner.debts", []);
@@ -174,6 +175,36 @@ export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => 
         );
     }
 
+    async function handleImportCsv(event: ChangeEvent<HTMLInputElement>) {
+        const file = event.target.files?.[0];
+
+        if (!file) return;
+
+        try {
+            const importResult = await parseDebtCsv(file);
+
+            if (importResult.debts.length > 0) {
+                setDebts((current) => [...current, ...importResult.debts]);
+            }
+
+            if (importResult.errors.length > 0) {
+                alert(
+                    `Imported ${importResult.debts.length} debts with ${importResult.errors.length
+                    } skipped rows.\n\n${importResult.errors
+                        .slice(0, 5)
+                        .join("\n")}`
+                );
+            } else {
+                void triggerMediumHaptic();
+                alert(`Imported ${importResult.debts.length} debts.`);
+            }
+        } catch {
+            alert("Unable to import debt CSV.");
+        }
+
+        event.target.value = "";
+    }
+
     return {
         debts,
         setDebts,
@@ -205,5 +236,6 @@ export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => 
         restoreDebt,
         handleMarkDebtMinimumPaid,
         handleMarkDebtSnowballPaid,
+        handleImportCsv,
     };
 }
