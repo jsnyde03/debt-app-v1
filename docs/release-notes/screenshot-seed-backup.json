@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "exportedAt": "2026-06-13T14:00:00.000Z",
+  "amount": "2200",
+  "payCycle": "biweekly",
+  "semiMonthlyFirstDay": "1",
+  "semiMonthlySecondDay": "15",
+  "monthlyPayDay": "1",
+  "currentDate": "2026-06-13",
+  "nextPaycheckDate": "2026-06-27",
+  "requiredExpenses": [
+    { "id": "e-phone", "name": "Cell Phone", "amount": 85, "dueDate": "2026-06-16", "originalDueDate": "2026-06-16", "recurrence": "monthly", "expenseType": "fixed", "isPaidThisCycle": false },
+    { "id": "e-elec", "name": "Electric", "amount": 120, "dueDate": "2026-06-17", "originalDueDate": "2026-06-17", "recurrence": "monthly", "expenseType": "variable", "isPaidThisCycle": false },
+    { "id": "e-net", "name": "Internet", "amount": 70, "dueDate": "2026-06-19", "originalDueDate": "2026-06-19", "recurrence": "monthly", "expenseType": "fixed", "isPaidThisCycle": false },
+    { "id": "e-ins", "name": "Car Insurance", "amount": 140, "dueDate": "2026-06-24", "originalDueDate": "2026-06-24", "recurrence": "monthly", "expenseType": "fixed", "isPaidThisCycle": false }
+  ],
+  "livingExpenses": [
+    { "id": "living-groceries", "name": "Groceries", "amount": 260, "enabled": true },
+    { "id": "living-gas", "name": "Gas / Transportation", "amount": 110, "enabled": true },
+    { "id": "living-household", "name": "Household", "amount": 70, "enabled": true },
+    { "id": "living-dining", "name": "Dining / Takeout", "amount": 80, "enabled": false }
+  ],
+  "debts": [
+    { "id": "d-store", "name": "Store Card", "balance": 180, "originalBalance": 500, "minimumPayment": 30, "apr": 26.99, "dueDate": "2026-06-15", "originalDueDate": "2026-06-15", "type": "debt", "recurrence": "monthly", "isPaidThisCycle": false, "minimumPaidThisCycle": false, "snowballPaidThisCycle": false },
+    { "id": "d-klarna", "name": "Klarna - Furniture", "balance": 220, "originalBalance": 400, "minimumPayment": 55, "apr": 0, "dueDate": "2026-06-18", "originalDueDate": "2026-06-18", "type": "bnpl", "recurrence": "monthly", "isPaidThisCycle": false, "minimumPaidThisCycle": false, "snowballPaidThisCycle": false },
+    { "id": "d-cc", "name": "Capital One Platinum", "balance": 1240, "originalBalance": 2000, "minimumPayment": 45, "apr": 22.99, "dueDate": "2026-06-20", "originalDueDate": "2026-06-20", "type": "debt", "recurrence": "monthly", "isPaidThisCycle": false, "minimumPaidThisCycle": false, "snowballPaidThisCycle": false },
+    { "id": "d-auto", "name": "Auto Loan", "balance": 2600, "originalBalance": 3500, "minimumPayment": 95, "apr": 6.49, "dueDate": "2026-06-22", "originalDueDate": "2026-06-22", "type": "debt", "recurrence": "monthly", "isPaidThisCycle": false, "minimumPaidThisCycle": false, "snowballPaidThisCycle": false }
+  ],
+  "goals": [
+    { "id": "g-emerg", "name": "Emergency Fund", "targetAmount": 1000, "currentAmount": 420, "type": "emergency" },
+    { "id": "g-vac", "name": "Vacation Fund", "targetAmount": 1500, "currentAmount": 300, "type": "savings" }
+  ],
+  "completedRecommendedActions": [
+    { "targetId": "g-emerg", "label": "Add to Emergency Fund", "category": "emergency", "recommendedAmount": 75, "actualAmount": 75 }
+  ],
+  "payoffStrategy": "snowball"
+}
