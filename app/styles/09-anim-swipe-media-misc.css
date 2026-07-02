@@ -688,7 +688,9 @@
 
 .skeleton-line,
 .skeleton-card,
-.skeleton-nav-item {
+.skeleton-nav-item,
+.skeleton-stat,
+.skeleton-row {
 	border-radius: 14px;
 	background: linear-gradient(90deg, var(--surface-muted) 25%, var(--surface-muted-hover) 50%, var(--surface-muted) 75%);
 	background-size: 200% 100%;
@@ -717,6 +719,51 @@
 
 .skeleton-card-tall {
 	height: 220px;
+}
+
+/* Plan-tab silhouette pieces (2.16): rough shapes of the real Plan layout — the
+   "This Paycheck" summary panel (a status line + the adaptive metric grid inside
+   it, mirroring the real card) followed by the action-section rows. */
+.skeleton-panel {
+	border-radius: 18px;
+	border: 1px solid var(--border-color);
+	background: var(--surface-muted);
+	padding: 16px;
+	margin: 12px 0;
+}
+
+.skeleton-panel-label {
+	height: 18px;
+	width: 45%;
+	margin-bottom: 14px;
+}
+
+.skeleton-stat-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+
+.skeleton-stat {
+	height: 72px;
+}
+
+.skeleton-row-group {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 12px;
+}
+
+.skeleton-row {
+	height: 56px;
+}
+
+/* Mirror the real Plan metric grid, which goes 2×2 on phone → one row on iPad. */
+@media (min-width: 834px) {
+	.skeleton-stat-grid {
+		grid-template-columns: repeat(4, 1fr);
+	}
 }
 
 .skeleton-nav-item {

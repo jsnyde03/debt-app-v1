@@ -18,7 +18,7 @@ _Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In pr
 | 4 | Streaks | Free / Premium+ | ✅ Done (2026-07-01, Free count; Premium+ chart → v1.6) |
 | 5 | UX #13 — Since-Last-Cycle Delta | All | ✅ Done (2026-07-01) |
 | 6 | UX #15 — Settings UX Rework | All | ✅ Done (2026-07-01, accordion + first-run modal) |
-| 7 | Mobile P5 — Context-aware skeletons | All | ⬜ Not started |
+| 7 | Mobile P5 — Context-aware skeletons | All | ✅ Done (2026-07-02) |
 | 8 | Mobile P6 — Micro-interaction pass | All | ⬜ Not started |
 | 9 | Mobile P10 — Timeline overflow *(conditional)* | All | ⬜ Deferred unless triggered |
 | 10 | Page Orchestrator Phases 1–2 (internal) | — | ⬜ Not started |
@@ -160,12 +160,14 @@ _Depends on #1 cycle history. Must not be built before it lands._
 ## 7 — Mobile P5: Context-Aware Skeleton Loading
 
 **Build steps:**
-- [ ] Split `components/AppSkeleton.tsx` into shape-specific pieces (debt-row-shaped, plan-summary-shaped) composing the same loading screen — reuse the existing `skeletonShimmer` keyframe; this is a structure change, not a new animation.
-- [ ] Render the composed skeleton matching whichever tab would be active on load.
+- [x] Split `components/AppSkeleton.tsx` into shape-specific pieces composing the loading screen — new `components/Skeleton/PlanSkeleton.tsx` (the Plan silhouette: hero + a "This Paycheck" summary panel holding a status line + the adaptive 2×2→4-col metric grid + action-row bars). `AppSkeleton` is now the shell (app frame + nav) that renders it. Reuses the `skeletonShimmer` base (no new animation).
+- [x] Render the composed skeleton matching the tab active on load. **Before-scan finding:** `activeTab` is `useState("plan")` — **not persisted** — so the app always opens on Plan; the Plan silhouette is the only one needed today. Per-tab (debt-row-shaped) skeletons would be speculative dead code until the tab is persisted → deferred with the "persist the active tab" backlog item (MASTER_PLAN §9 v1.6). Added `aria-busy`/`aria-label` for real loading semantics.
 
-**Files:** `components/AppSkeleton.tsx` → likely a new `components/Skeleton/` directory. See [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) P5.
+**Shipped/verified (2026-07-02):** silhouette matches the real Plan tab, screenshot + DOM-measured across light/dark × phone/iPad (iPad metric grid correctly goes 4-across; rows full-width — an early "narrow rows" read was just the faint light-theme shimmer, disproven by `boundingBox` = 722px). Keep-green: empty-state + onboarding specs pass. **After-scan → backlog (v1.6):** slightly higher light-theme skeleton contrast + an iPad sidebar-rail silhouette (the skeleton currently shows no nav on iPad).
 
-**Verification:** Visual only — silhouette roughly matches real content per tab. **Risk:** Low.
+**Files:** `components/AppSkeleton.tsx`, `components/Skeleton/PlanSkeleton.tsx`, `app/styles/09-anim-swipe-media-misc.css`. See [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) P5.
+
+**Verification:** Visual only — silhouette roughly matches real content per tab. **Risk:** Low. ✅ Done.
 
 ---
 
