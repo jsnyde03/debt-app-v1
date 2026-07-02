@@ -757,6 +757,15 @@
 	padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
 }
 
+/* Theme-agnostic bottom-runway for the bills/goal add-modals so their submit button clears the
+   floating bottom nav in BOTH themes. Previously only `.dark-theme .bills-modal`/`.goal-add-modal`
+   carried the runway, so the LIGHT-theme add-expense/add-goal buttons sat under the nav (2.15.7).
+   (debt-add already gets it above.) */
+.center-modal.bills-modal,
+.center-modal.goal-add-modal {
+	padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
+}
+
 .debts-polish-card {
 	padding-bottom: calc(env(safe-area-inset-bottom) + 8rem);
 }
