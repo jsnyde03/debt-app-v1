@@ -1,42 +1,55 @@
 # App Store Listing Copy — Paycheck Debt Planner
 
-_ASO pass for v1.2. App Name unchanged (renaming a live app resets keyword history and is high-risk for low reward) — everything else rewritten for conversion and search coverage now that the app has real premium depth (Smart Insights, Forecasting, Strategy Comparison), a trust layer (App Lock, on-device-only data), and a zero-friction entry point (Demo Mode)._
+_**v1.5 "Track Your Journey" ASO pass** (2026-07-02). App Name unchanged (renaming a live app resets keyword history — high-risk, low-reward). Subtitle + keyword field re-optimized against a live 2026 competitor teardown, and the description now folds in the v1.5 journey layer (Pay Cycle History, Milestones + celebration, Streaks, Amortization). Full rationale + competitor research → [V15_ASO_STRATEGY.md](V15_ASO_STRATEGY.md)._
+
+**Positioning (lead the creative with this):** _the moment you get paid, it tells you exactly which bill and which debt to hit this paycheck — then celebrates every streak and milestone to debt-free, 100% private on your phone._ The open market gap is the four-way intersection no competitor occupies: paycheck-cycle "what to pay this payday" + a real snowball/avalanche engine + the motivational journey (streaks/milestones/history) + on-device/no-bank-login.
 
 ---
 
 ## App Name
 Paycheck Debt Planner
 
-## Subtitle (30 chars max — 27 used)
-Budget, Bills & Debt Payoff
+## Subtitle (30 chars max — 29 used)
+Snowball Budget & Bill Payoff
 
-_Why this change:_ the old subtitle ("Paycheck Plan. Debt Freedom.") was branding language with one weak keyword ("plan"). Apple's search algorithm weights Name + Subtitle highest of any field. The Name already owns "paycheck," "debt," and "planner" — this subtitle adds three more high-volume, high-intent search terms ("budget," "bills," "payoff") that weren't covered anywhere, rather than repeating what Name already covers.
+_Why this change (v1.5):_ the old subtitle ("Budget, Bills & Debt Payoff") wasted an indexed slot repeating **Debt** (already in the Name). This adds four *new* indexed words — **snowball, budget, bill, payoff** — and unlocks the name-combos "debt snowball," "paycheck budget," "bill payoff," and "budget/payoff planner." Name + Subtitle are the highest-weighted search fields.
 
-## Keywords (100 chars max — 96 used)
-snowball,avalanche,finance,tracker,savings,goals,expense,income,cashflow,money manager,debt free
+## Keywords (100 chars max — 99 used)
+avalanche,calculator,biweekly,milestone,streak,tracker,loan,credit,card,expense,income,savings,goal
 
-_Why this change:_ the old keyword field repeated "debt payoff," "budget," "paycheck," and "planner" — all already indexed via Name/Subtitle, wasting roughly 40 of 100 characters on duplicate coverage. This version keeps the genuinely additive terms ("snowball," "avalanche," "finance," "tracker," "money manager") and adds terms with real search volume that were missing entirely ("savings," "goals," "expense," "income," "cashflow," "debt free").
+_Why this change (v1.5):_ drops `snowball` (now in the Subtitle — never duplicate), `debt free` (*debt* is in the Name), and the saturated `finance`/`money manager` heads, freeing room for the higher-intent, more-winnable cluster: **avalanche, calculator, biweekly** (the pay-cycle wedge no debt app targets) and **milestone, streak** (the v1.5 journey differentiators, near-unclaimed in debt search). Singular, no spaces, no Name/Subtitle repeats — Apple auto-combines words into phrases.
 
-## Promotional Text (170 chars max — can be updated anytime without a new app version)
-A guided setup gets your first plan built in under two minutes. No signup, no bank link, no blank screen. Smart forecasting and payoff guidance with Premium.
+## Promotional Text (170 chars max — not search-indexed; rotate anytime, no build needed)
+Payday? See exactly which bill and which debt to hit — then watch your streaks and milestones stack up to debt-free. 100% on your device. No bank login, no sign-up.
 
-_(157 chars. Updated for v1.4. This field can be rotated anytime — treat it as a seasonal/feature-launch hook, not set-and-forget.)_
+_(166 chars. v1.5 hook, leading with the "this payday, do this" + journey angle. Rotatable as a seasonal/feature-launch hook.)_
 
 ---
 
-## Description (App Store — up to 4000 chars, ~3700 used)
+## Description (App Store — up to 4000 chars; NOT search-indexed on iOS — pure conversion copy)
 
-**Know exactly where every dollar goes — before you spend it.**
+**The moment you get paid, know exactly which bill and which debt to hit.**
 
-The moment you get paid, you should know exactly what every dollar is doing: which bills are due, which debt gets the next attack, how much cushion you'll have left. No spreadsheets, no guessing.
+Payday shouldn't start with a spreadsheet. Enter your paycheck and your due dates, and Paycheck Debt Planner tells you exactly what to do this cycle: which bills are due, which debt gets the next attack, and how much cushion you'll have left. Then it turns the long grind to debt-free into something you can actually feel — streaks, milestones, and a history of every cycle you stayed on plan.
 
-Curious before you commit? Tap "Try with Sample Data" and explore a fully populated plan instantly — real debts, real bills, real numbers — with nothing of yours entered yet. No bank connections. No accounts. No sign-up required.
+Curious before you commit? Tap "Try with Sample Data" and explore a fully populated plan instantly — real debts, real bills, real numbers — with nothing of yours entered yet. No bank connections. No accounts. No sign-up.
 
 ---
 
 **HOW IT WORKS**
 
 A guided setup walks new users through their first plan in under two minutes. Enter your paycheck amount and the due dates for your bills and debts. Paycheck Debt Planner calculates your required payments, finds whatever extra cash is left, and tells you exactly where to put it. Mark bills paid with a swipe as you go — the plan updates in real time.
+
+---
+
+**TRACK YOUR JOURNEY**
+
+Paying off debt is a marathon — this makes the progress visible every single paycheck:
+
+- **Milestones & Celebrations** — Cross 25%, 50%, 75%, or fully clear a debt and the app celebrates the moment. Free for everyone.
+- **On-Plan Streaks** — Stay on plan and your streak grows, cycle after cycle — the small win that keeps the big goal moving. Free.
+- **Since Last Cycle** — See exactly how much you paid down since your last paycheck, every time you roll forward. Free.
+- **Pay Cycle History** *(Premium)* — Look back at every finished pay cycle and how far you've come.
 
 ---
 
@@ -64,12 +77,11 @@ Free gets you a complete, accurate plan. Premium gets you a plan that thinks ahe
 - **Strategy Comparison** — Snowball vs. avalanche, side-by-side, using your real balances and APRs — not a generic rule of thumb.
 - **What-If Simulation** — Model an extra monthly payment before committing. See the new debt-free date and exact interest saved.
 - **3-Month Forecast** — Projected cushion, debt balance, and risk level three cycles out. Spot pressure before it's a missed payment.
+- **Amortization Schedule** — A month-by-month payoff schedule for your focus debt: interest, principal, and balance to $0.
+- **Pay Cycle History** — Your full history of finished cycles, so progress is never out of sight.
 
 **Subscription Details**
 Premium Monthly is an auto-renewing subscription billed at $4.99/month through your Apple ID account. It renews automatically for the same price and duration unless cancelled at least 24 hours before the period ends. Manage or cancel anytime in Settings > [your name] > Subscriptions. Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/ · Privacy Policy: https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html
-
-**Subscription Details**
-Premium Monthly is an auto-renewing subscription billed at $4.99/month. Payment is charged through your Apple ID account. Your subscription automatically renews for the same price and duration unless cancelled at least 24 hours before the end of the current period. Manage or cancel anytime in your device's Settings > [your name] > Subscriptions. Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/ · Privacy Policy: https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html
 
 ---
 
@@ -86,6 +98,33 @@ Weekly, bi-weekly, semi-monthly, and monthly pay cycles all supported — the en
 ---
 
 *Paycheck Debt Planner provides budgeting and organizational tools only and does not provide financial advice.*
+
+---
+
+## What's New — Version 1.5 (App Store Release Notes, ~500 chars)
+
+**Track Your Journey — Milestones, Streaks & Pay Cycle History**
+
+Debt payoff is a marathon — now you can feel the progress every paycheck. Cross 25/50/75% or clear a debt and the app celebrates the moment. Keep an on-plan streak going cycle after cycle, and see exactly how much you paid down since last time.
+
+New in Premium: a month-by-month Amortization schedule for your focus debt, and Pay Cycle History to look back at every finished cycle. Plus a big round of layout, performance, and reliability polish across the app.
+
+---
+
+## What's New — Version 1.5 (Longer version for release notes / blog)
+
+### Track Your Journey
+The v1.5 theme is momentum. Paying off debt takes months or years, so v1.5 makes the progress visible on every paycheck:
+- **Debt Milestones + Celebration** — Crossing 25%, 50%, 75%, or fully paying off a debt now triggers a full-screen celebration (with a bigger moment for debt-free). Free for everyone.
+- **On-Plan Streaks** — A running count of how many pay cycles in a row you stayed on plan, shown right at the top of your plan. Free.
+- **Since-Last-Cycle Delta** — Every time you start a new pay cycle, see how much total debt you knocked down since the last one.
+- **Pay Cycle History (Premium)** — A browsable record of your finished pay cycles.
+
+### Amortization Schedule (Premium)
+A month-by-month schedule for your focus debt — interest, principal, and remaining balance, all the way to $0 — reconciled against your projected payoff date.
+
+### Polish & Reliability
+A full-app layout and premium-UX pass across iPhone and iPad in light and dark; context-aware loading skeletons; audited micro-interactions; and hardened data safety (a corrupt saved value is now preserved and flagged, never silently wiped). Under the hood: a large internal refactor, a rebuilt end-to-end test suite gated in CI, and a complete regression-coverage pass on the money math.
 
 ---
 
