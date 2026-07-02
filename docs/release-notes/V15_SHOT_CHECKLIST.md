@@ -40,6 +40,56 @@ Shoot **A → H first (fresh import)**, then do the rollovers for **I–K** (the
 
 ---
 
+## Overlay copy — title + subtitle per shot (paste straight into AppScreens)
+
+_Titles carry the OCR-indexed keywords (payday, debt-free, private, streak). Keep the title 1-2 lines, the subtitle 1-2 lines._
+
+**A · Plan hero**
+- **Title:** Payday? Here's exactly what to pay.
+- **Subtitle:** Which bills, which debt, how much cushion — the moment you get paid.
+
+**B · Timeline**
+- **Title:** See your whole paycheck, step by step.
+- **Subtitle:** Every payment mapped out, with your safe-cash balance at each step.
+
+**C · Payoff / Strategy**
+- **Title:** Pick your strategy. See the difference.
+- **Subtitle:** Snowball vs. avalanche — your real payoff date and interest, side by side.
+
+**D · Amortization** _(Premium)_
+- **Title:** Watch your balance fall to $0.
+- **Subtitle:** A month-by-month payoff schedule for your focus debt.
+
+**E · Goals**
+- **Title:** Build savings while you kill debt.
+- **Subtitle:** Emergency funds and goals, funded alongside every payoff plan.
+
+**F · Smart Insights** _(Premium)_
+- **Title:** Smart guidance, every pay cycle.
+- **Subtitle:** Adaptive insights based on your real cash pressure and momentum.
+
+**G · Forecast** _(Premium)_
+- **Title:** See pressure coming before it hits.
+- **Subtitle:** A 3-month outlook on your cushion, debt, and risk.
+
+**H · App Lock / Privacy**
+- **Title:** 100% private — no bank login.
+- **Subtitle:** Face ID or your passcode. Your numbers never leave your device.
+
+**I · Streak**
+- **Title:** Keep your on-plan streak alive.
+- **Subtitle:** Every cycle on plan grows your streak — and shrinks your debt.
+
+**J · Milestone Celebration** ⭐
+- **Title:** Debt-free journey, milestone by milestone.
+- **Subtitle:** Cross 25/50/75% or clear a debt — and actually feel the win.
+
+**K · Pay Cycle History** _(Premium)_
+- **Title:** Look back at every cycle you conquered.
+- **Subtitle:** Your full history of finished pay cycles — see how far you've come.
+
+---
+
 ## Getting the streak / history / celebration (I, J, K)
 
 The backup restores your **plan** but not pay-cycle history (that's built by living the app), so after the A–H shots:
