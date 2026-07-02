@@ -19,7 +19,7 @@ _Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: 🔄 In pr
 | 5 | UX #13 — Since-Last-Cycle Delta | All | ✅ Done (2026-07-01) |
 | 6 | UX #15 — Settings UX Rework | All | ✅ Done (2026-07-01, accordion + first-run modal) |
 | 7 | Mobile P5 — Context-aware skeletons | All | ✅ Done (2026-07-02) |
-| 8 | Mobile P6 — Micro-interaction pass | All | ⬜ Not started |
+| 8 | Mobile P6 — Micro-interaction pass | All | ✅ Done (2026-07-02, audit — already in place) |
 | 9 | Mobile P10 — Timeline overflow *(conditional)* | All | ⬜ Deferred unless triggered |
 | 10 | Page Orchestrator Phases 1–2 (internal) | — | ⬜ Not started |
 | 11 | Android prep (Play Console + Maestro) | Infra | ⬜ Not started |
@@ -173,16 +173,12 @@ _Depends on #1 cycle history. Must not be built before it lands._
 
 ## 8 — Mobile P6: Micro-Interaction Pass
 
-**Build steps:**
-- [ ] Audit every button variant (`.primary-button`, `.secondary-button`, icon-only, swipe-action) for consistent `:active` treatment; fix gaps rather than inventing new treatments.
-- [ ] Apply the existing `planItemReveal` keyframe to newly-added items on Bills/Debts/Goals tabs (not just Plan).
-- [ ] Give the milestone badge (§2) a celebratory entrance (scale+fade, existing easing).
+**Outcome (2026-07-02 audit): all three already in place — no code change needed.** The before-scan showed prior versions already shipped this polish; verified rather than rebuilt (fixing gaps, not inventing).
+- [x] **Button `:active` consistency** — a catch-all `button:active { scale(0.965) }` covers every `<button>` (no `role="button"` div-buttons exist; swipe-actions are gestures, not tap targets), plus a coherent **size-tiered** system: icon buttons `0.90`, standard buttons `0.965`, large rows/cards `0.98–0.992`, nav/list-options use background feedback, segmented toggles intentionally `transform:none`. The base `button` transitions `transform` over 140ms with a spring easing, so presses animate smoothly. Micro-diffs (0.96 vs 0.965) are imperceptible — no gaps, no changes.
+- [x] **New-items-only reveal on Bills/Debts/Goals** — already implemented: `.debt-list-item` / `.required-expense-row` / `.goal-list-item` run `cardReveal` on mount (staggered via nth-child), and every list uses **stable `id` keys** (`key={debt.id}` etc.), so adding an item mounts only the new node (only it animates), re-renders keep nodes (no re-anim), and tab re-entry gives the intentional staggered reveal (consistent with the Timeline). **Empirically verified** via `getAnimations()`: after adding a debt, the existing rows stayed `playState: "finished"` while only the new row was `"running"`.
+- [x] **Milestone badge entrance** — already celebratory: `.milestone-card` uses `centerModalIn` (scale+fade), the emoji `milestonePop`, and major milestones add confetti; overlay fades via `modalBackdropIn`. All have `prefers-reduced-motion` fallbacks.
 
-**⚠️ The one real correctness risk:** animations must fire **only on genuinely new items**, not the whole list on every re-render. Use stable per-item `key`s + animation-on-mount scoped to new DOM nodes, not a re-triggerable class toggle.
-
-**Files:** `app/styles/09-anim-swipe-media-misc.css`, list-rendering components (`DebtGroup.tsx`, expense list parent, `GoalsSection.tsx`), `components/MilestoneBadge.tsx`. See [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) P6.
-
-**Verification:** Add a debt/expense/goal → confirm only the new item animates. **Risk:** Low-medium (the new-items-only requirement).
+**Files audited:** `app/styles/00-theme-and-base.css` + `03-nav-results-modals.css` (:active), `app/styles/09-anim-swipe-media-misc.css` (cardReveal / milestone), list components (`DebtRow.tsx`, `ExpenseListItem.tsx`, `GoalsSection.tsx`), `components/MilestoneBadge.tsx`. **Risk:** Low. ✅ Done.
 
 ---
 
