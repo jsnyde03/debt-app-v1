@@ -1068,6 +1068,49 @@
 	line-height: 1.4;
 }
 
+/* Required obligations this paycheck can't cover — shown so "You're caught up"
+   can never falsely appear while bills are still owed. */
+.unfunded-required-block {
+	margin-top: 10px;
+	padding: 12px 14px;
+	border-radius: 16px;
+	background: rgba(217, 119, 6, 0.08);
+	border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+.unfunded-required-note {
+	margin: 0 0 8px;
+	color: var(--warning-color);
+	font-size: 0.82rem;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.required-shortfall-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 0;
+	border-top: 1px solid rgba(217, 119, 6, 0.15);
+}
+
+.required-shortfall-row:first-of-type {
+	border-top: none;
+}
+
+.required-shortfall-label {
+	font-size: 0.9rem;
+	font-weight: 600;
+}
+
+.required-shortfall-amount {
+	color: var(--warning-color);
+	font-size: 0.9rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
 .completed-section {
 	padding-top: 1.25rem;
 	border-top: 1px solid var(--border-soft);
