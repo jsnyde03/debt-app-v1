@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { parseDebtFormValues } from "@/lib/debt/parseDebtFormValues";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";
 import { DebtGroup } from "./Debts/DebtGroup";
@@ -187,20 +188,26 @@ export function DebtsSection({
     }
 
     function saveEditing(id: string) {
-        const balance = Number(editBalance);
-        const minimumPayment = Number(editMinimumPayment);
-        const apr = Number(editApr || 0);
+        // Reject non-finite / negative input BEFORE persisting. Number("12,000")
+        // is NaN and NaN < 0 is false, so the old `balance < 0` guard let NaN
+        // through and corrupted every total. parseDebtFormValues tolerates comma
+        // grouping and rejects garbage wholesale.
+        const parsed = parseDebtFormValues({
+            balance: editBalance,
+            minimumPayment: editMinimumPayment,
+            apr: editApr,
+        });
 
-        if (balance < 0 || minimumPayment < 0 || apr < 0 || !editDueDate) {
+        if (!parsed || !editDueDate) {
             return;
         }
 
         triggerMediumHaptic();
 
         onUpdateDebt(id, {
-            balance,
-            minimumPayment,
-            apr,
+            balance: parsed.balance,
+            minimumPayment: parsed.minimumPayment,
+            apr: parsed.apr,
             dueDate: editDueDate,
             isAutopay: editIsAutopay,
             recurrence: editRecurrence,

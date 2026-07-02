@@ -60,7 +60,7 @@ export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => 
 
         if (!debtDueDate) nextErrors.dueDate = "Due date is required.";
 
-        if (apr < 0 || apr > 100) {
+        if (!Number.isFinite(apr) || apr < 0 || apr > 100) {
             nextErrors.apr = "APR must be between 0 and 100.";
         }
 
