@@ -9,7 +9,7 @@ import type { ThemePreference } from "@/lib/hooks/useDarkMode";
 // first-run modal (isFirstRunSetup) AND the returning-user accordion, so both
 // surfaces stay in sync (v1.5 #15 decision). onClose collapses whichever
 // container it lives in; onOpenHistory opens Pay Cycle History.
-type PlanSettingsBodyProps = {
+export type PlanSettingsBodyProps = {
     isFirstRunSetup: boolean;
     onClose: () => void;
     onOpenHistory: () => void;

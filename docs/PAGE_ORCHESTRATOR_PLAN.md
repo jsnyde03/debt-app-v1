@@ -1,6 +1,6 @@
 # `app/page.tsx` — From Brain to Orchestrator
 
-_**Status (2026-07-02):** v1.5 (step 2.18) executes **Phases 1–2 only**. **Phase 1 DONE** (commit `e40a260`): the debt display-balance derivation → pure `lib/debt/getDebtsWithDisplayBalances.ts` (which also exports `getCompletedSnowballAmount`, now shared with the rollover — removing a duplicate); `livingExpenses` → `lib/hooks/useLivingExpenses.ts`; `handleImportDebtsCsv` → `useDebts.handleImportCsv`. **Phase 2** (JSX componentization) next. **Phases 3–5** (backup hook, plan-exec hook, rollover engine — math-risk) are deferred beyond v1.5 → tracked in [SUSTAINABILITY_REFACTOR.md](SUSTAINABILITY_REFACTOR.md), of which this is one workstream. Last updated 2026-07-02._
+_**Status (2026-07-02):** v1.5 (step 2.18) executes **Phases 1–2 only**. **Phase 1 DONE** (commit `e40a260`): the debt display-balance derivation → pure `lib/debt/getDebtsWithDisplayBalances.ts` (which also exports `getCompletedSnowballAmount`, now shared with the rollover — removing a duplicate); `livingExpenses` → `lib/hooks/useLivingExpenses.ts`; `handleImportDebtsCsv` → `useDebts.handleImportCsv`. **Phase 2** (JSX componentization) IN PROGRESS — scope corrected below after a before-scan found the original wording stale (much was already extracted in 2.15). **Phases 3–5** (backup hook, plan-exec hook, rollover engine — math-risk) are deferred beyond v1.5 → tracked in [SUSTAINABILITY_REFACTOR.md](SUSTAINABILITY_REFACTOR.md), of which this is one workstream. Last updated 2026-07-02._
 
 ## Context
 
@@ -34,14 +34,16 @@ Also still inline but judged **fine to leave**: `debtsWithDisplayBalances`/`acti
 - Extract `getDebtDisplayBalance` + the `debtsWithDisplayBalances`/`activeDebts`/`paidOffDebts` derivation into a new pure function `lib/debt/getDebtsWithDisplayBalances.ts` taking `(debts, completedRecommendedActions)` → `{ activeDebts, paidOffDebts }`. Pure, testable in isolation, removes ~15 lines of inline derivation.
 
 ### Phase 2 — JSX componentization (no logic change, just relocation + prop-drilling)
-Mirrors the existing `components/Debts/`, `components/RequiredExpenses/`, `components/Onboarding/` folder convention:
-- `components/AppHeader.tsx` — hero block: title, last-saved indicator, status toast, theme toggle button, the two dev-only buttons (`Populate Demo Data`, `RC Reset`).
-- `components/BottomNav.tsx` — the 4-button nav, takes `activeTab`/`onTabChange`.
-- `components/PlanSettings/PlanSettingsSheet.tsx` — wraps the entire `showPlanSettings && (...)` overlay, preserving the existing onboarding-vs-settings-sheet branch internally.
-  - `components/PlanSettings/NotificationsCard.tsx` and `components/PlanSettings/AppLockCard.tsx` — the two toggle cards, split out the same way `AddDebtModal`/`AddExpenseModal` were split from their parents.
-  - `components/PlanSettings/LegalLinks.tsx` — the privacy/support links row.
 
-These components will take a lot of props (`PlanSettingsSheet` touches nearly every domain) — that's already the accepted pattern in this codebase (`OnboardingFlow` takes ~30 props today); not a reason to avoid the split.
+**Scope corrected 2026-07-02 after a before-scan against current `page.tsx`** (the original Phase 2 wording predated the 2.15 Settings UX rework and the iPad sidebar work, and had gone stale — see below). Mirrors the existing `components/Debts/`, `components/RequiredExpenses/`, `components/Onboarding/` folder convention:
+
+- `components/AppHeader.tsx` — the **tab-aware hero** (per-tab h1/subtitle for Plan/Bills/Payoff/Goals), the last-saved indicator, the status toast, and the dev-only **RC Reset** button. Moves `formatLastSaved` with it. _(The theme toggle and Populate-Demo-Data buttons the original plan listed here are no longer in the hero — they moved into `PlanSettingsBody` during 2.15.)_
+- `components/AppNav.tsx` — **both** the `.bottom-nav` (phone) **and** the `.sidebar-nav` (iPad, incl. its Settings button). Renamed from the original plan's `BottomNav` because it's really the responsive app nav; takes `activeTab` + `onSelectTab` + `onToggleSettings` + `showPlanSettings`.
+- `components/PlanSettings/PlanSettingsSheet.tsx` — unifies the **two** shells that currently wrap `<PlanSettingsBody>` (the returning-user `.plan-settings-accordion` and the first-run `.settings-overlay > .settings-sheet`), collapsing the duplicated ~40-prop pass-through into a single call site. Takes `PlanSettingsBodyProps` + `showPlanSettings` + `onCloseSheet`.
+
+**Already done before this phase (drift the original plan didn't reflect):** `components/PlanSettings/PlanSettingsBody.tsx` was extracted in 2.15 and already contains the Notifications card, App Lock card, Appearance/theme card, danger zone, and legal-links row. So the original plan's `NotificationsCard.tsx` / `AppLockCard.tsx` / `LegalLinks.tsx` splits are **moot** — those are cohesive blocks inside one focused component. Splitting them into separate files is deferred to the file-structure sustainability slice (no behavior gain, would churn a focused file).
+
+These components take a lot of props (`PlanSettingsSheet` touches nearly every domain) — that's the accepted pattern in this codebase (`OnboardingFlow` takes ~30 props today); not a reason to avoid the split.
 
 ### Phase 3 — Backup/snapshot domain → `lib/hooks/usePlannerBackup.ts`
 - New `DebtPlannerBackup` type in `lib/storage/debtPlannerStorage.ts`, matching `buildBackupData`'s current shape — replaces the untyped object and types `readBackupFile`'s result properly.

@@ -21,7 +21,7 @@ import { GoalsSection } from "@/components/GoalsSection";
 import { RequiredExpensesSection } from "@/components/RequiredExpensesSection";
 import { DebtsSection } from "@/components/DebtsSection";
 import { PaycheckSection } from "@/components/PaycheckSection";
-import { PlanSettingsBody } from "@/components/PlanSettings/PlanSettingsBody";
+import { PlanSettingsSheet } from "@/components/PlanSettings/PlanSettingsSheet";
 import { SnowballSection } from "@/components/SnowballSection";
 
 import {
@@ -49,6 +49,8 @@ import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { scheduleNotifications, cancelAllNotifications, requestNotificationPermission, hasNotificationPermission } from "@/lib/notifications/scheduleNotifications";
 import { incrementRolloverCount, maybeRequestAppReview } from "@/lib/review/requestAppReview";
 import { AppSkeleton } from "@/components/AppSkeleton";
+import { AppHeader } from "@/components/AppHeader";
+import { AppNav } from "@/components/AppNav";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { readKeyValue, writeKey } from "@/lib/storage/safeStorage";
 import { usePersistedState } from "@/lib/storage/usePersistedState";
@@ -68,7 +70,7 @@ import { usePayCycleHistory } from "@/lib/hooks/usePayCycleHistory";
 import { buildCycleSnapshot } from "@/lib/history/buildCycleSnapshot";
 import { HistorySection } from "@/components/HistorySection";
 import { OnboardingFlow } from "@/components/Onboarding/OnboardingFlow";
-import { Home as HomeIcon, CreditCard, TrendingUp, Target, Settings, Wallet, ChevronRight } from "@/lib/icons";
+import { CreditCard, Settings, Wallet } from "@/lib/icons";
 
 // Run storage schema migrations once, at module load, before any hook reads a
 // persisted key. No-op under SSR (no localStorage) and idempotent.
@@ -105,19 +107,6 @@ function formatRecurrence(recurrence: Recurrence) {
 
 function roundMoney(amount: number) {
     return Math.round(amount * 100) / 100;
-}
-
-function formatLastSaved(value: string) {
-    const savedAt = new Date(value);
-
-    if (Number.isNaN(savedAt.getTime())) {
-        return "Saved locally";
-    }
-
-    return `Saved locally · ${savedAt.toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit",
-    })}`;
 }
 
 export default function Home() {
@@ -770,6 +759,37 @@ export default function Home() {
         window.location.reload();
     }
 
+    function handleSelectTab(tab: "plan" | "bills" | "snowball" | "goals") {
+        triggerLightHaptic();
+        setActiveTab(tab);
+        if (tab === "bills") setBillsView((current) => current ?? "expenses");
+    }
+
+    function handleToggleSettings() {
+        triggerLightHaptic();
+        setShowPlanSettings((open) => !open);
+    }
+
+    function handleCloseSheet() {
+        triggerLightHaptic();
+        setShowPlanSettings(false);
+        setShowDeleteConfirm(false);
+    }
+
+    async function handleDevRcReset() {
+        try {
+            triggerLightHaptic();
+
+            const plan = await resetRevenueCatUserForTesting();
+
+            setSubscriptionPlan(plan);
+            setPurchaseStatus(`RevenueCat reset.  Current plan: ${plan}`);
+            setShowUpgrade(false);
+        } catch (error) {
+            setPurchaseStatus(error instanceof Error ? error.message : "RevenueCat reset failed.");
+        }
+    }
+
     function handleExitDemoMode() {
         window.localStorage.clear();
         window.location.reload();
@@ -812,132 +832,59 @@ export default function Home() {
                         </button>
                     </div>
                 )}
-                <section className={activeTab === "plan" ? "hero" : "hero hero-page"} aria-label="Page header">
-                    {activeTab === "plan" ? (
-                        <>
-                            <h1>Debt Planner</h1>
-                            <p>{heroSubtitle}</p>
-                        </>
-                    ) : activeTab === "bills" ? (
-                        <>
-                            <h1 className="page-heading">Bills</h1>
-                            <p className="page-subheading">Manage recurring expenses and debts.</p>
-                        </>
-                    ) : activeTab === "snowball" ? (
-                        <>
-                            <h1 className="page-heading">Payoff</h1>
-                            <p className="page-subheading">Optimize your debt payoff strategy.</p>
-                        </>
-                    ) : activeTab === "goals" ? (
-                        <>
-                            <h1 className="page-heading">Goals</h1>
-                            <p className="page-subheading">Track savings goals and emergency funds.</p>
-                        </>
-                    ) : null}
-                    {lastSavedAt && activeTab === "plan" && (
-                        <p className="last-saved-indicator">
-                            {formatLastSaved(lastSavedAt)}
-                        </p>
-                    )}
-                    {statusMessage && (
-                        <div className={`save-status-toast${isToastExiting ? " exiting" : ""}`} role="status" aria-live="polite">
-                            {statusMessage}
-                        </div>
-                    )}
+                <AppHeader
+                    activeTab={activeTab}
+                    heroSubtitle={heroSubtitle}
+                    lastSavedAt={lastSavedAt}
+                    statusMessage={statusMessage}
+                    isToastExiting={isToastExiting}
+                    onDevRcReset={handleDevRcReset}
+                />
 
-                    {process.env.NEXT_PUBLIC_DEV_MODE === "true" && (
-                        <button
-                            type="button"
-                            className="rc-reset-button"
-                            onClick={async () => {
-                                try {
-                                    triggerLightHaptic();
-
-                                    const plan = await resetRevenueCatUserForTesting();
-
-                                    setSubscriptionPlan(plan);
-                                    setPurchaseStatus(`RevenueCat reset.  Current plan: ${plan}`);
-                                    setShowUpgrade(false);
-                                } catch (error) {
-                                    setPurchaseStatus(error instanceof Error ? error.message : "RevenueCat reset failed.");
-                                }
-                            }}
-                        >
-                            RC Reset
-                        </button>
-                    )}
-                </section>
-
-                {!isFirstRunSetup && (
-                    <div
-                        className={`plan-settings-accordion ${showPlanSettings ? "expanded" : "collapsed"}`}
-                        aria-hidden={!showPlanSettings}
-                    >
-                        <div className="plan-settings-accordion-inner">
-                            <div className="settings-sheet-header">
-                                <div>
-                                    <h2>Plan Settings</h2>
-                                    <p className="section-collapse-subtitle">
-                                        Adjust paycheck, pay cycle, and plan settings.
-                                    </p>
-                                </div>
-                                <button
-                                    type="button"
-                                    className="text-action-button"
-                                    onClick={() => {
-                                        triggerLightHaptic();
-                                        setShowPlanSettings(false);
-                                        setShowDeleteConfirm(false);
-                                    }}
-                                >
-                                    Close
-                                </button>
-                            </div>
-                            <PlanSettingsBody
-                                isFirstRunSetup={false}
-                                onClose={() => setShowPlanSettings(false)}
-                                onOpenHistory={() => {
-                                    setShowPlanSettings(false);
-                                    setShowHistory(true);
-                                }}
-                                amount={amount}
-                                payCycle={payCycle}
-                                semiMonthlyFirstDay={semiMonthlyFirstDay}
-                                semiMonthlySecondDay={semiMonthlySecondDay}
-                                monthlyPayDay={monthlyPayDay}
-                                nextPaycheckDate={nextPaycheckDate}
-                                currentDate={currentDate}
-                                onAmountChange={setAmount}
-                                onPayCycleChange={setPayCycle}
-                                onNextPaycheckDateChange={setNextPaycheckDate}
-                                onSemiMonthlyFirstDayChange={setSemiMonthlyFirstDay}
-                                onSemiMonthlySecondDayChange={setSemiMonthlySecondDay}
-                                onMonthlyPayDayChange={setMonthlyPayDay}
-                                onCalculate={handleCalculate}
-                                onRolloverPayCycle={handleRolloverPayCycle}
-                                onResetToToday={handleResetToToday}
-                                onExportBackup={handleExportBackup}
-                                onImportBackup={handleImportBackup}
-                                onPopulateDemoData={handlePopulateDemoData}
-                                showWindfall={showWindfall}
-                                setShowWindfall={setShowWindfall}
-                                windfallInput={windfallInput}
-                                setWindfallInput={setWindfallInput}
-                                setAmount={setAmount}
-                                setStatusMessage={setStatusMessage}
-                                themePreference={themePreference}
-                                setThemePreference={setThemePreference}
-                                notificationsEnabled={notificationsEnabled}
-                                onNotificationsToggle={handleNotificationsToggle}
-                                appLockEnabled={appLockEnabled}
-                                setAppLockEnabled={setAppLockEnabled}
-                                showDeleteConfirm={showDeleteConfirm}
-                                setShowDeleteConfirm={setShowDeleteConfirm}
-                                onDeleteAll={handleExitDemoMode}
-                            />
-                        </div>
-                    </div>
-                )}
+                <PlanSettingsSheet
+                    showPlanSettings={showPlanSettings}
+                    onCloseSheet={handleCloseSheet}
+                    isFirstRunSetup={isFirstRunSetup}
+                    onClose={() => setShowPlanSettings(false)}
+                    onOpenHistory={() => {
+                        setShowPlanSettings(false);
+                        setShowHistory(true);
+                    }}
+                    amount={amount}
+                    payCycle={payCycle}
+                    semiMonthlyFirstDay={semiMonthlyFirstDay}
+                    semiMonthlySecondDay={semiMonthlySecondDay}
+                    monthlyPayDay={monthlyPayDay}
+                    nextPaycheckDate={nextPaycheckDate}
+                    currentDate={currentDate}
+                    onAmountChange={setAmount}
+                    onPayCycleChange={setPayCycle}
+                    onNextPaycheckDateChange={setNextPaycheckDate}
+                    onSemiMonthlyFirstDayChange={setSemiMonthlyFirstDay}
+                    onSemiMonthlySecondDayChange={setSemiMonthlySecondDay}
+                    onMonthlyPayDayChange={setMonthlyPayDay}
+                    onCalculate={handleCalculate}
+                    onRolloverPayCycle={handleRolloverPayCycle}
+                    onResetToToday={handleResetToToday}
+                    onExportBackup={handleExportBackup}
+                    onImportBackup={handleImportBackup}
+                    onPopulateDemoData={handlePopulateDemoData}
+                    showWindfall={showWindfall}
+                    setShowWindfall={setShowWindfall}
+                    windfallInput={windfallInput}
+                    setWindfallInput={setWindfallInput}
+                    setAmount={setAmount}
+                    setStatusMessage={setStatusMessage}
+                    themePreference={themePreference}
+                    setThemePreference={setThemePreference}
+                    notificationsEnabled={notificationsEnabled}
+                    onNotificationsToggle={handleNotificationsToggle}
+                    appLockEnabled={appLockEnabled}
+                    setAppLockEnabled={setAppLockEnabled}
+                    showDeleteConfirm={showDeleteConfirm}
+                    setShowDeleteConfirm={setShowDeleteConfirm}
+                    onDeleteAll={handleExitDemoMode}
+                />
 
                 <div key={activeTab} className="tab-content-transition" data-direction={tabDirection} role="region" aria-label={activeTab === "plan" ? "Plan" : activeTab === "bills" ? "Bills" : activeTab === "snowball" ? "Payoff" : "Goals"}>
                 {activeTab === "plan" && (
@@ -1252,205 +1199,12 @@ export default function Home() {
                 </div>
             )}
 
-            <nav className="bottom-nav" aria-label="Main navigation">
-                <button
-                    type="button"
-                    className={
-                        activeTab === "plan"
-                            ? "bottom-nav-item active"
-                            : "bottom-nav-item"
-                    }
-                    onClick={() => {
-                        triggerLightHaptic();
-                        setActiveTab("plan");
-                    }}
-                >
-                    <HomeIcon size={20} aria-hidden="true" />
-                    <small>Plan</small>
-                </button>
-
-                <button
-                    type="button"
-                    className={
-                        activeTab === "bills"
-                            ? "bottom-nav-item active"
-                            : "bottom-nav-item"
-                    }
-                    onClick={() => {
-                        triggerLightHaptic();
-                        setActiveTab("bills");
-                        setBillsView((current) => current ?? "expenses");
-                    }}
-                >
-                    <CreditCard size={20} aria-hidden="true" />
-                    <small>Bills</small>
-                </button>
-
-                <button
-                    type="button"
-                    className={
-                        activeTab === "snowball"
-                            ? "bottom-nav-item active"
-                            : "bottom-nav-item"
-                    }
-                    onClick={() => {
-                        triggerLightHaptic();
-                        setActiveTab("snowball");
-                    }}
-                >
-                    <TrendingUp size={20} aria-hidden="true" />
-                    <small>Payoff</small>
-                </button>
-
-                <button
-                    type="button"
-                    className={
-                        activeTab === "goals"
-                            ? "bottom-nav-item active"
-                            : "bottom-nav-item"
-                    }
-                    onClick={() => {
-                        triggerLightHaptic();
-                        setActiveTab("goals");
-                    }}
-                >
-                    <Target size={20} aria-hidden="true" />
-                    <small>Goals</small>
-                </button>
-            </nav>
-
-            <nav className="sidebar-nav" aria-label="Main navigation">
-                <div className="sidebar-logo" aria-hidden="true">
-                    <TrendingUp size={20} />
-                </div>
-                <button
-                    type="button"
-                    className={activeTab === "plan" ? "sidebar-nav-item active" : "sidebar-nav-item"}
-                    onClick={() => { triggerLightHaptic(); setActiveTab("plan"); }}
-                >
-                    <HomeIcon size={22} aria-hidden="true" />
-                    <small>Plan</small>
-                </button>
-                <button
-                    type="button"
-                    className={activeTab === "bills" ? "sidebar-nav-item active" : "sidebar-nav-item"}
-                    onClick={() => { triggerLightHaptic(); setActiveTab("bills"); setBillsView((c) => c ?? "expenses"); }}
-                >
-                    <CreditCard size={22} aria-hidden="true" />
-                    <small>Bills</small>
-                </button>
-                <button
-                    type="button"
-                    className={activeTab === "snowball" ? "sidebar-nav-item active" : "sidebar-nav-item"}
-                    onClick={() => { triggerLightHaptic(); setActiveTab("snowball"); }}
-                >
-                    <TrendingUp size={22} aria-hidden="true" />
-                    <small>Payoff</small>
-                </button>
-                <button
-                    type="button"
-                    className={activeTab === "goals" ? "sidebar-nav-item active" : "sidebar-nav-item"}
-                    onClick={() => { triggerLightHaptic(); setActiveTab("goals"); }}
-                >
-                    <Target size={22} aria-hidden="true" />
-                    <small>Goals</small>
-                </button>
-                <button
-                    type="button"
-                    className="sidebar-nav-item sidebar-settings-btn"
-                    aria-label="Open Plan Settings"
-                    aria-expanded={showPlanSettings}
-                    onClick={() => { triggerLightHaptic(); setShowPlanSettings((open) => !open); }}
-                >
-                    <Settings size={22} aria-hidden="true" />
-                    <small>Settings</small>
-                </button>
-            </nav>
-
-            {showPlanSettings && isFirstRunSetup && (
-                <div
-                    className="settings-overlay"
-                    onClick={() => {
-                        if (!isFirstRunSetup) {
-                            setShowPlanSettings(false);
-                                setShowDeleteConfirm(false);
-                        }
-                    }}
-                >
-                    <div
-                        className="settings-sheet"
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        <div className="settings-sheet-header">
-                            <div>
-                                <h2>{isFirstRunSetup ? "Create Your First Plan" : "Plan Settings"}</h2>
-                                {!isFirstRunSetup && (
-                                    <p className="section-collapse-subtitle">
-                                        Adjust paycheck, pay cycle, and plan settings.
-                                    </p>
-                                )}
-                            </div>
-
-                            {!isFirstRunSetup && (
-                                <button
-                                    type="button"
-                                    className="text-action-button"
-                                    onClick={() => {
-                                        triggerLightHaptic();
-                                        setShowPlanSettings(false);
-                                        setShowDeleteConfirm(false);
-                                    }}
-                                >
-                                    Close
-                                </button>
-                            )}
-                        </div>
-
-                        <PlanSettingsBody
-                            isFirstRunSetup={isFirstRunSetup}
-                            onClose={() => setShowPlanSettings(false)}
-                            onOpenHistory={() => {
-                                setShowPlanSettings(false);
-                                setShowHistory(true);
-                            }}
-                            amount={amount}
-                            payCycle={payCycle}
-                            semiMonthlyFirstDay={semiMonthlyFirstDay}
-                            semiMonthlySecondDay={semiMonthlySecondDay}
-                            monthlyPayDay={monthlyPayDay}
-                            nextPaycheckDate={nextPaycheckDate}
-                            currentDate={currentDate}
-                            onAmountChange={setAmount}
-                            onPayCycleChange={setPayCycle}
-                            onNextPaycheckDateChange={setNextPaycheckDate}
-                            onSemiMonthlyFirstDayChange={setSemiMonthlyFirstDay}
-                            onSemiMonthlySecondDayChange={setSemiMonthlySecondDay}
-                            onMonthlyPayDayChange={setMonthlyPayDay}
-                            onCalculate={handleCalculate}
-                            onRolloverPayCycle={handleRolloverPayCycle}
-                            onResetToToday={handleResetToToday}
-                            onExportBackup={handleExportBackup}
-                            onImportBackup={handleImportBackup}
-                            onPopulateDemoData={handlePopulateDemoData}
-                            showWindfall={showWindfall}
-                            setShowWindfall={setShowWindfall}
-                            windfallInput={windfallInput}
-                            setWindfallInput={setWindfallInput}
-                            setAmount={setAmount}
-                            setStatusMessage={setStatusMessage}
-                            themePreference={themePreference}
-                            setThemePreference={setThemePreference}
-                            notificationsEnabled={notificationsEnabled}
-                            onNotificationsToggle={handleNotificationsToggle}
-                            appLockEnabled={appLockEnabled}
-                            setAppLockEnabled={setAppLockEnabled}
-                            showDeleteConfirm={showDeleteConfirm}
-                            setShowDeleteConfirm={setShowDeleteConfirm}
-                            onDeleteAll={handleExitDemoMode}
-                        />
-                    </div>
-                </div>
-            )}
+            <AppNav
+                activeTab={activeTab}
+                showPlanSettings={showPlanSettings}
+                onSelectTab={handleSelectTab}
+                onToggleSettings={handleToggleSettings}
+            />
 
             {showHistory && (
                 <HistorySection
