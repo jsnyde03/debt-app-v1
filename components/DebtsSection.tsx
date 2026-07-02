@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
@@ -136,6 +136,16 @@ export function DebtsSection({
         active: false,
         paidOff: false,
     });
+
+    // On the iPad two-column Bills layout (≥834px, matching the layout breakpoint) the Debts column
+    // would otherwise leave a long void below the collapsed groups — so expand Active Debts by
+    // default there (2.15.3). Post-mount (not in the initial state) to match the static export and
+    // avoid a hydration mismatch — mirrors the Timeline auto-expand (TimelineSection.tsx).
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.matchMedia("(min-width: 834px)").matches) {
+            setExpandedSections((current) => ({ ...current, active: true }));
+        }
+    }, []);
 
     const DEBT_PAGE_SIZE = 10;
 

@@ -53,10 +53,15 @@ test("can add a debt and persist after reload", async ({ page }) => {
 
     await page.getByRole("button", { name: "Add Debt", exact: true }).click();
 
-    await expect(page.getByText("$500.00")).toBeVisible();
-    await expect(page.getByText("$50.00")).toBeVisible();
-    // Debts now live in a collapsible "Active Debts" group — expand it to see the row detail.
-    await debtsCol.getByRole("button", { name: /Active Debts/i }).click();
+    // Target the debts summary strip unambiguously — the debt row (Balance: $500.00) is now also
+    // visible when Active Debts auto-expands on iPad, so a bare "$500.00" matches two elements.
+    await expect(page.getByText(/\$500\.00 debt/)).toBeVisible();
+    await expect(page.getByText(/\$50\.00 minimum/)).toBeVisible();
+    // Debts live in a collapsible "Active Debts" group. It auto-expands on the iPad two-column
+    // layout (≥834px) but stays collapsed on phones — expand only if the row detail isn't showing.
+    if (!(await page.getByText("APR 22%").isVisible().catch(() => false))) {
+        await debtsCol.getByRole("button", { name: /Active Debts/i }).click();
+    }
     await expect(page.getByText("APR 22%")).toBeVisible();
 
     const storedDebtName = await page.evaluate(() => {
@@ -70,8 +75,10 @@ test("can add a debt and persist after reload", async ({ page }) => {
 
     await billsSection(page, "debts");
 
-    await expect(page.getByText("$500.00")).toBeVisible();
-    await expect(page.getByText("$50.00")).toBeVisible();
+    // Target the debts summary strip unambiguously — the debt row (Balance: $500.00) is now also
+    // visible when Active Debts auto-expands on iPad, so a bare "$500.00" matches two elements.
+    await expect(page.getByText(/\$500\.00 debt/)).toBeVisible();
+    await expect(page.getByText(/\$50\.00 minimum/)).toBeVisible();
 });
 
 test("can add a goal and persist after reload", async ({ page }) => {

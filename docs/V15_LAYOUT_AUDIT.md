@@ -49,7 +49,7 @@ Deferred backlog** (v1.6+) so nothing's lost. Log every one in the **Enhancement
 |---|---|---|---|---|
 | Cross-cutting CSS (2.15.1) | ✅ (dark) | ✅ (dark) | 2 calc bugs fixed (add-debt runway); iPad runway trim → per-tab; light-modal runway → 2.15.7; dup selector → 2.15.8 | ✅ |
 | Plan (2.15.2) | ✅ L/D | ✅ L/D | **Premium, no fixes.** Metric grid adapts 2×2 (phone)→1-row (iPad); on-track card, actions list, dark banner all clean. Soft note: iPad "Show 1 More" hides 1 action on the tall canvas (could expand) — low-pri, → 2.15.8. Plan iPad runway already trimmed (2.12.3). | ✅ |
-| Bills (2.15.3) | ✅ L/D | 🔄 | ✅ **FIXED: iPad search-input stretched vertically** (`.expense-controls`/`.goal-controls` were an implicit flex-row → search stretched to the tall filter-pills column; scoped to column, `02-overdue-pagination-nav.css`). 🔄 **Remaining (iPad two-column):** Debts column ~500px dead-space; "Active Debts" collapsed by default; column imbalance (Living Expenses under Required Expenses on the left while the right Debts column is short). → see Enhancements. | 🔄 |
+| Bills (2.15.3) | ✅ L/D | ✅ L/D | ✅ **iPad search-input stretch** fixed (`.expense-controls`/`.goal-controls` → column). ✅ **iPad Debts-column dead-space** fixed — "Active Debts" now auto-expands on the ≥834px two-column layout (post-mount `matchMedia`, mirroring TimelineSection; `DebtsSection.tsx`), so the column fills with the rich debt detail (balance/APR/interest/BNPL) and the two columns balance. e2e: made data-entry's expand-click + asserts robust to the auto-expanded row; keep-green 9/9 across phone + both iPads. Minor: Living-Expenses column placement (left vs right) → 2.15.8 sweep. | ✅ |
 | Payoff (2.15.4) | ⬜ | ⬜ | | ⬜ |
 | Goals (2.15.5) | ⬜ | ⬜ | | ⬜ |
 | Settings + onboarding (2.15.6) | ⬜ | ⬜ | | ⬜ |
@@ -68,6 +68,6 @@ pass; **Backlog** = filed to MASTER_PLAN §9 (v1.6+). Only real, observed opport
 - **Backlog** — a subtle progress indicator toward the "debt-free by {date}" headline (ring/bar) on the Plan hero; leading-fintech apps make the payoff-date the emotional anchor. _(v1.6 — pairs with the Premium+ history chart.)_
 
 **Bills (2.15.3):**
-- **Fold (pending decision)** — iPad Debts-column dead-space: expand "Active Debts" by default on iPad (fills the column + surfaces the 4 debts) and rebalance the two columns (move Living Expenses under Debts on the right, or masonry-balance) so neither column is a long void. _(Behavioral — needs a responsive default + e2e care; recommend doing in 2.15.3, flagged to Jason.)_
+- **✅ Folded (done 2.15.3)** — iPad Debts-column dead-space: "Active Debts" now auto-expands on the ≥834px two-column layout (post-mount `matchMedia`), filling the column + surfacing the 4 debts. The optional Living-Expenses column-rebalance (masonry-balance of the two columns) was left as a smaller polish → **2.15.8 sweep** (or backlog if it needs a grid-structure change).
 - **Backlog** — category filter pills show per-category counts (e.g. "Utilities · 2") — a standard fintech nicety that also signals filter value. _(v1.6.)_
 - **Backlog** — the Debts summary card ("$2,391.53 debt · 4 active") gains a slim payoff-progress bar (paid vs original across all debts) — glanceable debt-reduction, on par with Rocket Money / Monarch. _(v1.6 — pairs with Premium+ history.)_
