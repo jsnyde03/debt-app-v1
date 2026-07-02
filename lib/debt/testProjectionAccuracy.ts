@@ -157,15 +157,17 @@ function runProjectionAccuracyTests() {
         startDate: "2026-01-01",
     });
 
+    // Freed minimum rolls: Small's $50 joins the attack on Large from the month
+    // after Small is cleared, finishing in 4 months instead of 5.
     assertEqual(
         snowballTwoDebts.monthsToDebtFree,
-        5,
-        "snowball two-debt payoff months"
+        4,
+        "snowball two-debt payoff months (freed minimum rolls)"
     );
 
     assertEqual(
         snowballTwoDebts.estimatedDebtFreeDate,
-        "June 2026",
+        "May 2026",
         "snowball two-debt payoff date"
     );
 
