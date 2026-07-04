@@ -26,6 +26,12 @@ Payday? See exactly which bill and which debt to hit — then watch your streaks
 
 _(166 chars. v1.5 hook, leading with the "this payday, do this" + journey angle. Rotatable as a seasonal/feature-launch hook.)_
 
+## URLs (App Store Connect metadata fields)
+Served as real webpages via GitHub Pages from the `jsnyde03/debt-planner-site` repo (source of truth: `debt-app-v1/site/`). _Superseded the old `github.com/.../blob/main/privacy.html` blob link, which rendered raw HTML source instead of a page (2026-07-03)._
+- **Privacy Policy URL:** `https://jsnyde03.github.io/debt-planner-site/privacy.html`
+- **Support URL:** `https://jsnyde03.github.io/debt-planner-site/support.html`
+- **Marketing URL (optional):** `https://jsnyde03.github.io/debt-planner-site/`
+
 ---
 
 ## Description (App Store — up to 4000 chars; NOT search-indexed on iOS — pure conversion copy)
@@ -75,7 +81,7 @@ Free gets you a complete, accurate plan. Premium gets you a plan that thinks ahe
 - **Pay Cycle History** — Look back at your recent finished cycles, so progress is never out of sight.
 
 **Subscription Details**
-Premium Monthly is an auto-renewing subscription billed at $4.99/month through your Apple ID account. It renews automatically for the same price and duration unless cancelled at least 24 hours before the period ends. Manage or cancel anytime in Settings > [your name] > Subscriptions. Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/ · Privacy Policy: https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html
+Premium Monthly is an auto-renewing subscription billed at $4.99/month through your Apple ID account. It renews automatically for the same price and duration unless cancelled at least 24 hours before the period ends. Manage or cancel anytime in Settings > [your name] > Subscriptions. Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/ · Privacy Policy: https://jsnyde03.github.io/debt-planner-site/privacy.html
 
 ---
 
