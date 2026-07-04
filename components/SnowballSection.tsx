@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
+import { createPortal } from "react-dom";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
@@ -56,19 +57,6 @@ export function SnowballSection({
 	const [simulationStrategy, setSimulationStrategy] = useState<"recommended" | "snowball" | "avalanche">("recommended")
 	const [expandedPremiumSection, setExpandedPremiumSection] = useState<"insights" | "comparison" | "simulation" | "forecast">("insights");
 	const [showSchedule, setShowSchedule] = useState(false);
-	const scheduleRef = useRef<HTMLDivElement>(null);
-
-	// The amortization schedule renders inline below the "View Schedule" button,
-	// so opening it left the user scrolled at the button with the card off-screen
-	// below. Bring the card to the top of the view the moment it opens.
-	useEffect(() => {
-		if (showSchedule) {
-			// Instant (not smooth) so the card is deterministically at the top the
-			// moment it opens — smooth-scroll animation timing made the e2e
-			// in-viewport assertion flaky, and instant reads as snappier here anyway.
-			scheduleRef.current?.scrollIntoView({ block: "start" });
-		}
-	}, [showSchedule]);
 
 	const canViewAmortization = hasFeatureAccess(subscriptionPlan, "amortization_schedule");
 	const canViewStrategyComparison = hasFeatureAccess(subscriptionPlan, "strategy_comparison");
@@ -456,8 +444,13 @@ export function SnowballSection({
 						</button>
 					</div>
 
-					{showSchedule && focusDebtSchedule && (
-						<div ref={scheduleRef} style={{ scrollMarginTop: "1rem" }}>
+					{showSchedule && focusDebtSchedule && typeof document !== "undefined" &&
+						createPortal(
+							// Portal to <body> so the fixed-position overlay escapes the
+							// Payoff tab's transformed ancestor (.tab-content-transition),
+							// which otherwise anchors position:fixed to itself and pushes
+							// the sheet off-screen on phones. Mirrors how HistorySection
+							// (rendered at the page root) already works.
 							<AmortizationCalendar
 								debtName={currentTarget.name}
 								startingBalance={focusDebtStartingBalance}
@@ -470,9 +463,9 @@ export function SnowballSection({
 									onUpgradeClick();
 								}}
 								onClose={() => setShowSchedule(false)}
-							/>
-						</div>
-					)}
+							/>,
+							document.body
+						)}
 
 					<div className="payoff-strategy-selector compact-payoff-strategy">
 						<div className="strategy-buttons">
