@@ -111,6 +111,8 @@ _New screenshot — App Lock didn't exist when this brief was last written. For 
 
 _The single strongest **emotional** shot in the set and the heart of the v1.5 "Track Your Journey" theme — it's what no debt-calculator competitor shows. Place it early (slot 2-3): it's a scroll-stopper in search results and it owns the wedge (motivation + progress), which one competitor is only just starting to contest._
 
+> **⭐ 2026-07-03 ASO re-audit — the #1 Debt recommendation:** make THIS the priority in-search shot (**slot 2**, moving Smart Insights → 3). Live-verified reasoning: every competitor is either a payoff *calculator* (no journey layer) or a paycheck *budgeter* (no debt engine), so the milestone-celebration is the **one visual neither lane can reproduce**. In a look-alike category, a differentiated hero shot beats a strong-but-ordinary premium pitch for the first frames Apple surfaces in search. Capture this first and lead with it. Rationale → `app-portfolio/content/ASO_REAUDIT_2026-07-03.md`.
+
 **Headline:** Debt-free journey — every milestone celebrated. _(OCR keyword: "debt-free")_
 **Subhead:** Cross 25%, 50%, 75%, or clear a debt — and feel it.
 **Theme:** Dark (the celebration's gradient + confetti reads best on dark)
