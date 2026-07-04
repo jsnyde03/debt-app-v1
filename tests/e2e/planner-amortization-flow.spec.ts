@@ -71,6 +71,11 @@ test("premium opens the focus-debt schedule and it lands at exactly $0", async (
     await expect(dialog).toBeVisible();
     await expect(dialog.locator(".amortization-table")).toBeVisible();
 
+    // v1.5 QA fix: the schedule renders inline below the button, so opening it
+    // must bring the card into view — it previously stayed off-screen below,
+    // forcing the user to scroll down to find it.
+    await expect(dialog).toBeInViewport();
+
     // Reveal every month, then assert the final balance is exactly $0.00.
     const showMore = page.getByRole("button", { name: "Show More Months" });
     while (await showMore.isVisible().catch(() => false)) {

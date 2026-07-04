@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
@@ -56,6 +56,16 @@ export function SnowballSection({
 	const [simulationStrategy, setSimulationStrategy] = useState<"recommended" | "snowball" | "avalanche">("recommended")
 	const [expandedPremiumSection, setExpandedPremiumSection] = useState<"insights" | "comparison" | "simulation" | "forecast">("insights");
 	const [showSchedule, setShowSchedule] = useState(false);
+	const scheduleRef = useRef<HTMLDivElement>(null);
+
+	// The amortization schedule renders inline below the "View Schedule" button,
+	// so opening it left the user scrolled at the button with the card off-screen
+	// below. Bring the card to the top of the view the moment it opens.
+	useEffect(() => {
+		if (showSchedule) {
+			scheduleRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+		}
+	}, [showSchedule]);
 
 	const canViewAmortization = hasFeatureAccess(subscriptionPlan, "amortization_schedule");
 	const canViewStrategyComparison = hasFeatureAccess(subscriptionPlan, "strategy_comparison");
@@ -444,19 +454,21 @@ export function SnowballSection({
 					</div>
 
 					{showSchedule && focusDebtSchedule && (
-						<AmortizationCalendar
-							debtName={currentTarget.name}
-							startingBalance={focusDebtStartingBalance}
-							monthlyPayment={focusDebtMonthlyPayment}
-							startDate={currentDate}
-							schedule={focusDebtSchedule}
-							canAccess={canViewAmortization}
-							onUpgrade={() => {
-								setShowSchedule(false);
-								onUpgradeClick();
-							}}
-							onClose={() => setShowSchedule(false)}
-						/>
+						<div ref={scheduleRef} style={{ scrollMarginTop: "1rem" }}>
+							<AmortizationCalendar
+								debtName={currentTarget.name}
+								startingBalance={focusDebtStartingBalance}
+								monthlyPayment={focusDebtMonthlyPayment}
+								startDate={currentDate}
+								schedule={focusDebtSchedule}
+								canAccess={canViewAmortization}
+								onUpgrade={() => {
+									setShowSchedule(false);
+									onUpgradeClick();
+								}}
+								onClose={() => setShowSchedule(false)}
+							/>
+						</div>
 					)}
 
 					<div className="payoff-strategy-selector compact-payoff-strategy">
