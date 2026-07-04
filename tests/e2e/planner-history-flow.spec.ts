@@ -40,12 +40,14 @@ async function openHistory(page: Page) {
     await expect(page.getByRole("dialog", { name: "Pay Cycle History" })).toBeVisible();
 }
 
-test("premium sees the 6 most recent cycles plus an upgrade row", async ({ page }) => {
+test("premium sees the 6 most recent cycles, no Premium+ upsell (tier not sold in v1.5)", async ({ page }) => {
     await seedHistoryPlanner(page, { mockSubscription: "premium", cycleCount: 8 });
     await openHistory(page);
 
     await expect(page.locator(".history-row")).toHaveCount(6);
-    await expect(page.locator(".history-upsell-row")).toBeVisible();
+    // Premium+ is not sold in v1.5, so the "upgrade to Premium+" upsell is hidden
+    // (PREMIUM_PLUS_AVAILABLE=false). The 6-cycle cap itself still applies.
+    await expect(page.locator(".history-upsell-row")).toHaveCount(0);
 });
 
 test("premium plus sees the full uncapped history with no upgrade row", async ({ page }) => {

@@ -3,6 +3,7 @@ import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { dayBefore } from "@/lib/utils/dayBefore";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 import { History, ChevronRight, TrendingDown, TrendingUp } from "@/lib/icons";
+import { PREMIUM_PLUS_AVAILABLE } from "@/lib/subscription/plans";
 
 type HistorySectionProps = {
     visibleHistory: PayCycleSnapshot[];
@@ -146,7 +147,7 @@ export function HistorySection({
                             );
                         })}
 
-                        {isHistoryCapped && (
+                        {isHistoryCapped && PREMIUM_PLUS_AVAILABLE && (
                             <li>
                                 <button
                                     type="button"
