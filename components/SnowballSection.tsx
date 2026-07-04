@@ -446,11 +446,13 @@ export function SnowballSection({
 
 					{showSchedule && focusDebtSchedule && typeof document !== "undefined" &&
 						createPortal(
-							// Portal to <body> so the fixed-position overlay escapes the
-							// Payoff tab's transformed ancestor (.tab-content-transition),
-							// which otherwise anchors position:fixed to itself and pushes
-							// the sheet off-screen on phones. Mirrors how HistorySection
-							// (rendered at the page root) already works.
+							// Portal OUT of the Payoff tab's transformed ancestor
+							// (.tab-content-transition) so the position:fixed overlay is
+							// viewport-relative (fixes the off-screen sheet on phones) —
+							// but into <main class="app dark-theme"> rather than <body>, so
+							// it stays inside the theme scope (the .dark-theme CSS is
+							// descendant-scoped; portaling to <body> escaped it and rendered
+							// light). Mirrors where HistorySection already renders.
 							<AmortizationCalendar
 								debtName={currentTarget.name}
 								startingBalance={focusDebtStartingBalance}
@@ -464,7 +466,7 @@ export function SnowballSection({
 								}}
 								onClose={() => setShowSchedule(false)}
 							/>,
-							document.body
+							document.querySelector("main.app") ?? document.body
 						)}
 
 					<div className="payoff-strategy-selector compact-payoff-strategy">
