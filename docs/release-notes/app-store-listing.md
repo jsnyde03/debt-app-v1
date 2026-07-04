@@ -14,10 +14,12 @@ Snowball Budget & Bill Payoff
 
 _Why this change (v1.5):_ the old subtitle ("Budget, Bills & Debt Payoff") wasted an indexed slot repeating **Debt** (already in the Name). This adds four *new* indexed words — **snowball, budget, bill, payoff** — and unlocks the name-combos "debt snowball," "paycheck budget," "bill payoff," and "budget/payoff planner." Name + Subtitle are the highest-weighted search fields.
 
-## Keywords (100 chars max — 99 used)
-avalanche,calculator,biweekly,milestone,streak,tracker,loan,credit,card,expense,income,savings,goal
+## Keywords (100 chars max — 96 used)
+avalanche,calculator,biweekly,reminder,milestone,streak,tracker,loan,credit,card,expense,savings
 
 _Why this change (v1.5):_ drops `snowball` (now in the Subtitle — never duplicate), `debt free` (*debt* is in the Name), and the saturated `finance`/`money manager` heads, freeing room for the higher-intent, more-winnable cluster: **avalanche, calculator, biweekly** (the pay-cycle wedge no debt app targets) and **milestone, streak** (the v1.5 journey differentiators, near-unclaimed in debt search). Singular, no spaces, no Name/Subtitle repeats — Apple auto-combines words into phrases.
+
+_2026-07-03 ASO re-audit update:_ **added `reminder`** (high-volume, winnable "bill reminder" — feature-backed by the paycheck-eve + bill-due local reminders), **dropped `income`** (weak standalone intent; "income tracker" is saturated) **and `goal`** (≈ covered by `savings` → "savings goal"). If ASC Search Ads popularity shows `payment` beats `expense`, swap `expense`→`payment`. Full rationale + competitor landscape → `app-portfolio/content/ASO_REAUDIT_2026-07-03.md`.
 
 ## Promotional Text (170 chars max — not search-indexed; rotate anytime, no build needed)
 Payday? See exactly which bill and which debt to hit — then watch your streaks and milestones stack up to debt-free. 100% on your device. No bank login, no sign-up.
@@ -36,12 +38,6 @@ Curious before you commit? Tap "Try with Sample Data" and explore a fully popula
 
 ---
 
-**HOW IT WORKS**
-
-A guided setup walks new users through their first plan in under two minutes. Enter your paycheck amount and the due dates for your bills and debts. Paycheck Debt Planner calculates your required payments, finds whatever extra cash is left, and tells you exactly where to put it. Mark bills paid with a swipe as you go — the plan updates in real time.
-
----
-
 **TRACK YOUR JOURNEY**
 
 Paying off debt is a marathon — this makes the progress visible every single paycheck:
@@ -49,23 +45,21 @@ Paying off debt is a marathon — this makes the progress visible every single p
 - **Milestones & Celebrations** — Cross 25%, 50%, 75%, or fully clear a debt and the app celebrates the moment. Free for everyone.
 - **On-Plan Streaks** — Stay on plan and your streak grows, cycle after cycle — the small win that keeps the big goal moving. Free.
 - **Since Last Cycle** — See exactly how much you paid down since your last paycheck, every time you roll forward. Free.
-- **Pay Cycle History** *(Premium)* — Look back at every finished pay cycle and how far you've come.
+- **Pay Cycle History** *(Premium)* — Look back at your recent finished cycles and how far you've come.
 
 ---
 
 **WHAT YOU GET, FREE**
 
-- **Paycheck Plan** — Required payments and recommended actions the moment your paycheck lands, separating what you must pay from what you should pay.
-- **Timeline View** — A chronological view of your full pay cycle with a running safe-cash balance, so you always see where the money goes.
-- **Debt Payoff Engine** — Snowball or avalanche, your choice. Tracks your focus debt, projects your payoff date, and recommends extra payments from what's left after bills.
-- **Goals** — Emergency fund and savings goals tracked alongside debt payoff, funded before snowball so your safety net builds while debt shrinks.
-- **Autopay Support** — Flag bills and debts as autopay so you always know what hits automatically.
-- **Swipe-to-Pay** — Mark anything paid with one swipe. Swipe back to undo.
-- **Undo on Delete** — Accidentally swiped away a debt or bill? A 5-second undo toast brings it back.
-- **Appearance** — Choose Auto (follows your device), Light, or Dark theme in Settings.
-- **App Lock** — Face ID, Touch ID, or device passcode. Free for everyone, off by default, on whenever you want it.
-- **Local Reminders** — A paycheck-eve nudge and a heads-up before your earliest unpaid bill. Opt-in, quiet, and only when useful.
-- **Backup & CSV Import** — Export a full backup anytime; import existing debts straight from a CSV.
+- **Paycheck Plan** — Required payments and recommended actions the moment your paycheck lands — what you must pay vs. what you should.
+- **Debt Payoff Engine** — Snowball or avalanche, your choice. Tracks your focus debt, projects your payoff date, and puts the extra to work.
+- **Timeline View** — Your full pay cycle with a running safe-cash balance, so you always see where the money goes.
+- **Goals** — Emergency fund and savings funded before snowball, so your safety net builds while debt shrinks.
+- **Swipe-to-Pay** — Mark anything paid with one swipe; swipe back to undo.
+- **App Lock** — Face ID, Touch ID, or passcode. Off by default, on whenever you want it.
+- **Local Reminders** — A paycheck-eve nudge and a heads-up before your earliest unpaid bill. Opt-in and quiet.
+
+Also free: autopay flags, Auto/Light/Dark themes, undo-on-delete, and full backup + CSV import.
 
 ---
 
@@ -78,22 +72,16 @@ Free gets you a complete, accurate plan. Premium gets you a plan that thinks ahe
 - **What-If Simulation** — Model an extra monthly payment before committing. See the new debt-free date and exact interest saved.
 - **3-Month Forecast** — Projected cushion, debt balance, and risk level three cycles out. Spot pressure before it's a missed payment.
 - **Amortization Schedule** — A month-by-month payoff schedule for your focus debt: interest, principal, and balance to $0.
-- **Pay Cycle History** — Your full history of finished cycles, so progress is never out of sight.
+- **Pay Cycle History** — Look back at your recent finished cycles, so progress is never out of sight.
 
 **Subscription Details**
 Premium Monthly is an auto-renewing subscription billed at $4.99/month through your Apple ID account. It renews automatically for the same price and duration unless cancelled at least 24 hours before the period ends. Manage or cancel anytime in Settings > [your name] > Subscriptions. Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/ · Privacy Policy: https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html
 
 ---
 
-**BUILT FOR PRIVACY, NOT YOUR DATA**
+**BUILT FOR PRIVACY**
 
-Everything stays on your device — no accounts, no cloud sync, no bank connections, no trackers reading your balances. App Lock authentication happens entirely through Apple's on-device Face ID/Touch ID system; we never receive or store your biometric data, only a yes-or-no confirmation that you unlocked successfully.
-
----
-
-**WORKS WITH YOUR PAY SCHEDULE**
-
-Weekly, bi-weekly, semi-monthly, and monthly pay cycles all supported — the engine projects your next paycheck date automatically and adjusts the plan around it.
+Everything stays on your device — no accounts, no cloud, no bank connections, no trackers. App Lock uses Apple's on-device Face ID/Touch ID; we never receive your biometric data, only a yes-or-no that you unlocked. Weekly, bi-weekly, semi-monthly, and monthly pay schedules all supported.
 
 ---
 
@@ -107,7 +95,7 @@ Weekly, bi-weekly, semi-monthly, and monthly pay cycles all supported — the en
 
 Debt payoff is a marathon — now you can feel the progress every paycheck. Cross 25/50/75% or clear a debt and the app celebrates the moment. Keep an on-plan streak going cycle after cycle, and see exactly how much you paid down since last time.
 
-New in Premium: a month-by-month Amortization schedule for your focus debt, and Pay Cycle History to look back at every finished cycle. Plus a big round of layout, performance, and reliability polish across the app.
+New in Premium: a month-by-month Amortization schedule for your focus debt, and Pay Cycle History to look back at your recent finished cycles. Plus a big round of layout, performance, and reliability polish across the app.
 
 ---
 
