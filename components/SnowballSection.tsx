@@ -63,7 +63,10 @@ export function SnowballSection({
 	// below. Bring the card to the top of the view the moment it opens.
 	useEffect(() => {
 		if (showSchedule) {
-			scheduleRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+			// Instant (not smooth) so the card is deterministically at the top the
+			// moment it opens — smooth-scroll animation timing made the e2e
+			// in-viewport assertion flaky, and instant reads as snappier here anyway.
+			scheduleRef.current?.scrollIntoView({ block: "start" });
 		}
 	}, [showSchedule]);
 
