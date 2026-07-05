@@ -15,6 +15,25 @@ next change slower and riskier than it should be.
 decision). Refactoring toward sustainability now is a deliberate investment that keeps later
 versions — and the eventual Android build and Freedom port — from fighting the same messes.
 
+## ⚠️ v1.6 Opening Audit — verified corrections (2026-07-05)
+
+_A 9-agent audit verified this inventory against current code. Corrections + the v1.6/v1.7 split of items. Full plan → `V16_PLAN.md §Opening Audit`._
+
+**Inventory corrections (stale claims fixed):**
+- **`roundMoney` is 12, not 13** — 11 byte-identical `function` decls + 1 inline arrow (`allocatePaycheck.ts:83`). Any ESLint no-re-declaration guard must match **both** the function-decl AND arrow-const forms.
+- **`clampMoney` is a DEAD export, not a dup** — used nowhere. Don't "dedup" it; **wire it in** at v1.7 (`formatCurrency(clampMoney(x))` in the forecast + insights formatters, which currently lack a NaN-guard) so it earns its place.
+- **`getDebtsWithDisplayBalances` is already migrated** to the shared `money`/`formatCurrency` utils — one site already done; the roundMoney dedup just finishes the pattern.
+- **`CompletedRecommendedAction` is worse than "4 defs"** — 4 under that name (storage[canonical/exported] · page.tsx[identical] · timeline[subset] · engine[subset]) + a 5th structural cousin `CompletedSnowballAction` + local redeclares in `ResultsSection`/`SnowballSection` + a `DemoCompletedRecommendedAction`. They are **nested subsets, not conflicting** → consolidation is low-risk/mechanical. **Nail the exact set before starting.**
+- **Bigger, previously-unlisted type drift:** `Debt` defined 2× (engine vs storage-**superset**) and `Goal` 3× (engine=storage + `useGoals` adds `originalCurrentAmount?`) — **engine-math-adjacent**, compatible today only by subset luck. Higher-stakes than `CompletedRecommendedAction`. **→ v1.7, reconciliation-test-gated** (~31 `@/` import sites). Also: `AllocationResult = ReturnType<typeof allocatePaycheck>` re-declared 6×; the `"emergency"|"snowball"|"optional_goal"` union inlined ~8× (only engine exports the named `RecommendedCategory`).
+- **🔴 LATENT BUG found (not just debt):** `handleMarkRecommendedAction` (`page.tsx:465`, the sole write path into `completedRecommendedActions`) — mark stores the *clamped* `safeActualAmount` but unmark subtracts the stored `actualAmount`, so **if a goal's `targetAmount` is edited while an action is marked, unmark under/over-restores `currentAmount`.** It's the one untested money path in the orchestrator. → v1.6 gets a **mark→unmark reconciliation test incl. target-edited-while-marked**, BEFORE Payday Autopilot writes to this path.
+- **Orchestrator phases reclassified:** Phase 4 (`handleMarkRecommendedAction` goal-reconciliation) is the math-risk one (untested today) → v1.7, test-first. Phase 5 (`handleRolloverPayCycle`) is now **LOW-risk** — the interest/payment math is already extracted to the pure, 7-test-covered `applyRolloverPayment.ts`; only glue remains. Phase 3 (`usePlannerBackup`) is coupling-risk, not math-risk.
+- **`page.tsx` is 1245 lines** (inventory said 1,255/400-500-target). The audit resets the extraction target to **~700 lines** (legitimate cross-domain glue — undo/windfall/milestone/streak — has accreted), **paired with a hard rule: new cross-cutting capture state goes into ONE narrow purpose-built hook, NOT page.tsx** (or ~700 becomes ~850).
+- **Dead deps to purge (v1.6):** `expo`, `react-native`, `@babel/core`, `@types/gensync` — imported nowhere; misrepresent the Next+Capacitor stack. Plus a dead `currentDate` prop threaded page→PlanSettingsBody→PaycheckSection.
+
+**Structural verdict: KEEP everything, zero pivots** (pure-TS engine, Next+Capacitor, bottom-tab nav, class-scoped `.dark-theme`, two-layer test infra all correct for the most-volatile app). Only the `page.tsx` orchestrator *evolves* (bounded Phases 3-5 + the narrow capture hook). Nav re-eval flag → **resolved KEEP.** Tailwind v4 → **drop in v1.7** (100% hand-written global CSS).
+
+**v1.6 refactor slice (bounded to 3 spine-dependent items):** CI keep-green gate (+ Windows exit-code trap) · `getPortalTarget()` theme-safety · `CompletedRecommendedAction` canonicalization. **Everything else → v1.7** (orchestrator 3-5, Debt/Goal unification, `lib/types/` relocation, seed unification + screenshot re-baseline, Tailwind drop, dead-dep purge if not folded in, component God-file extraction, CSS co-location).
+
 ## The one hard principle: **not all at once**
 
 Take a **bounded slice per version**. A big-bang refactor on a volatile app is how you destabilize

@@ -17,21 +17,43 @@ Why Debt, why now (all four audits agree):
 
 ---
 
-## ⚠️ First decision (opening planning session): scope — is v1.6 too big?
+## ✅ Opening Audit — Results & Adjusted Plan (2026-07-05)
 
-v1.6 now carries **three** heavy agendas: (A) the differentiation spine, (B) the Foundation monetization/infra, (C) the Sustainability Audit + refactor. That's likely too much for one version. The opening session must decide:
+_The Comprehensive Sustainability Audit + per-app structural (keep-vs-pivot) audit ran as a 9-agent workflow (7 dimension inventories → synthesis → adversarial critique) against the real code. Full raw output archived; verdicts below. **The critique flagged 2 real defects in the synthesis's own plan — this section presents the ADJUSTED plan that fixes them.**_
 
-- **Recommended: split.** Ship the **differentiation spine as v1.6** (cheap, high-ROI, fast, gets the moat live), and move the heavy **Foundation infra to v1.7** (3-tier subs, analytics, schema versioning, backups — real but slower, and Premium+ isn't contested right now). The Sustainability Audit runs first regardless and sequences its refactor slice across both.
-- _Alternative:_ keep v1.6 whole (one big version) — but that delays the cheap differentiation behind heavy infra, which is the opposite of what the audits advise.
+### Verdict 1 — SPLIT = YES (spine → v1.6, Foundation infra → v1.7)
+Confirmed by the inventories: Debt is the portfolio's most volatile app; the spine's shared **capture state** (actuals + payment history feeding Interest-Saved Ledger, Payday Autopilot, Drift Tracker) already pressures the **1245-line `page.tsx`** — piling Foundation infra (RevenueCat purchase-wiring, PostHog activation, schema-versioning, backups, full amort calendar) on top would blow the bounded-slice discipline. Capture-before-analytics is structural (analytics has no value until capture generates events; the `track()` no-op seam + `premium_plus` gating are already staged for a clean v1.7 lift). → **v1.6 = differentiation spine + a *tightly* bounded refactor slice; v1.7 = Foundation infra + the math-risk orchestrator phases.**
 
-_(The v1.5 "keep whole" decision does NOT bind here — v1.6's split was always flagged as an in-session call. Governed by [[project_debt_app_roadmap_philosophy]] scope-discipline.)_
+### Verdict 2 — KEEP across the board, zero pivots (the structural / keep-vs-pivot audit)
+Every finding is hygiene/debt, not an approach problem. **KEEP + PROTECT:** the pure-TS engine (92 `.ts` files, zero react/capacitor/next imports — the single best decision in the app, what makes v1.6 features cheap; **any engine-adjacent change carries math-risk → reconciliation test in the SAME commit**) · Next 16 static-export + Capacitor 8 (iOS now, Android nearly free) · **bottom-tab + iPad-sidebar nav** (resolves the standing "nav vs command-bar" flag as KEEP — the hero reposition is IA/content on the existing Plan tab, not a nav restructure) · TypeScript structural types · the shared money utils · the two-layer test infra (Playwright e2e + tsx reconciliation) · class-scoped `.dark-theme` CSS (deliberate fix for the light-in-dark portal bug — do NOT migrate to CSS-modules). **The ONE pattern to *evolve* (not pivot):** the `page.tsx` orchestrator God-component — continue Phases 3-5 as bounded per-version slices, and **introduce ONE narrow purpose-built hook/context for the captured-actuals+history state at v1.6 *design* time** (it's cross-tab by construction — decide proactively, don't wait-and-see) — explicitly **NOT** a global store (Redux/Zustand). New cross-cutting capture state goes in the hook, **not** into `page.tsx`.
 
-**This plan assumes the split** and describes the **differentiation-spine v1.6**; the Foundation infra is captured in §D as the v1.7 candidate.
+### ⚠️ Verdict 3 — the critique's two fixes (why the raw synthesis was ADJUSTED)
+1. **Sequencing inversion — the #1 fix.** Payday Autopilot (the capture keystone) routes through `handleMarkRecommendedAction` (`app/page.tsx:465`) — verified as the **only** write path into `completedRecommendedActions`, and it mutates `goal.currentAmount` with clamp/floor math. It's the **one untested money-adjacent path in the orchestrator**, and the synthesis deferred its test to v1.7 while building the feature that exercises it in v1.6. **→ Pull the `handleMarkRecommendedAction` mark→unmark reconciliation test INTO v1.6 as a hard gate BEFORE Payday Autopilot** (the extraction can stay v1.7; the TEST cannot). **It MUST include a `targetAmount`-edited-while-marked case** — a *latent bug the audit found*: mark stores the clamped `safeActualAmount` but unmark subtracts the stored `actualAmount`, so if a goal's target is edited while an action is marked, unmark under/over-restores `currentAmount`.
+2. **The "bounded slice" wasn't bounded.** The synthesis's slice was ~5 refactor workstreams stacked under 5 features ("cheap per item" ≠ "bounded scope" — the classic tell). **→ Cut the v1.6 refactor slice to the THREE items with a genuine spine dependency**, push the rest to v1.7. Plus: **every spine feature that computes money ships its OWN reconciliation test** (Drift Tracker computes new drift math — gate it too), and **the Windows Playwright worker-teardown hang** (poisons local exit codes → red can read green) must be pulled forward **or** local slice-verification must not trust the exit code.
 
----
+### The ADJUSTED v1.6 build order (authoritative — supersedes §A's raw ordering)
+> Refactor prerequisites first, then spine (capture-before-analytics). Only the **3 spine-dependent** refactors are in v1.6; the rest → v1.7 (§D + SUSTAINABILITY_REFACTOR).
 
-## Opening planning session (unchanged trigger, widened remit)
-The **Comprehensive Sustainability Audit** still opens v1.6 (a planning session, not a build) — but its remit widens from "sequence the refactor" to **"sequence the whole version, differentiation spine included."** It also satisfies the scheduled **per-app structural audit** (audit-cadence #4). Agenda = the split decision above, then the existing 9-point refactor agenda (`SUSTAINABILITY_REFACTOR.md §Scheduled`), then ratify the build order below.
+1. **[refactor] Keep-green CI gate** — add `lint` + `test:regression` (the tsx reconciliation suite — the math backstop) to `web-e2e.yml` before playwright; today CI runs *only* playwright, so the math suite is ungated. Fix the silent false-green no-op `.toBeVisible;` at `planner-data-entry.spec.ts:35`; rename `planner-herdening`→`planner-hardening`. **Address the Windows local-exit-code trap here.** _(Prerequisite for every slice — a broken-math refactor wouldn't turn CI red without it.)_
+2. **[refactor] `getPortalTarget()` theme-safety** — add a `main.app`-scoped portal helper + route the SnowballSection portal (and any new sheet) through it; fix the `.dark-them` typo (`03-nav-results-modals.css:465`); single-source theming (drop `globals.css`'s conflicting `prefers-color-scheme` block). **Must precede any new overlay** (payday overlay / Live Activity) or they re-break light-in-dark. Visual-verify BOTH themes.
+3. **[refactor] `CompletedRecommendedAction` canonicalization** — one canonical (storage's exported def), delete the local copies; **nail the exact set first** (inventories disagree 4×/6×/+demo — incl. `ResultsSection`/`SnowballSection` redeclares + `DemoCompletedRecommendedAction`). Do BEFORE capture writes richer actuals into the shape.
+4. **[test-gate] `handleMarkRecommendedAction` mark→unmark reconciliation test** (incl. target-edited-while-marked) — HARD GATE before step 5.
+5. **[positioning] Hero reposition** → payday-allocation engine + radical-trust (IA/content on the existing Plan tab; no nav restructure).
+6. **[feature] Payday Autopilot** (capture keystone; on the canonicalized types + theme-safe overlay; local-notifications already wired). _Wire capture into the new narrow hook, not page.tsx._
+7. **[feature] Interest-Saved Momentum Ledger** (S; reads captured actuals; ships its own reconciliation test).
+8. **[feature] Payoff Live Activity** — **hand-written Swift widget/ActivityKit target under `ios/App`** (real native workstream — new Xcode target, signing, the Codemagic xcodeproj-glob/native-module CI gotchas). Its own TestFlight/device gate; **last among the spine; first to cut if v1.6 runs hot.**
+9. **[feature] Plan-vs-Actual Drift Tracker** (needs #6's capture; new money math → own reconciliation test).
+10. **[refactor] release gate + after-scan** — full `validate:release` green, visual-verify all theme changes, correct SUSTAINABILITY_REFACTOR inventory, log to MASTER_PLAN.
+
+### 🟢 Decisions for Jason (the calls that are yours — recommendation each)
+- [ ] **Split the release?** → **REC: YES** (spine=v1.6, infra=v1.7). _(Or ship both together as one large v1.6.)_
+- [ ] **Refactor depth?** → **REC: bounded 3-item slice only** (CI gate · getPortalTarget · CompletedRecommendedAction) + the reconciliation test; defer orchestrator Phases 3-5 to v1.7. _(Or start orchestrator extraction now.)_
+- [ ] **Pull the `handleMarkRecommendedAction` reconciliation test into v1.6 (before Payday Autopilot)?** → **REC: YES** — this is the single most important call; it guards a verified latent balance-drift path.
+- [ ] **Canonical type home?** → **REC: consolidate onto existing storage exports now**; defer the `lib/types/` neutral-layer relocation to a later structural slice.
+- [ ] **`components/` folder-structure migration?** → **REC: defer to v1.7** (one section per commit; high churn, zero user payoff).
+- [ ] **Standing nav re-eval?** → **REC: KEEP bottom-tab + iPad sidebar** (record it so it stops recurring).
+- [ ] **Tailwind v4 pipeline?** → **REC: drop in v1.7** (app is 100% hand-written global CSS; Tailwind pays build cost for ~zero use).
+- [ ] **`tests/visual/` + `clampMoney`?** → **REC: keep tests/visual manual for now** (unify all 3 seed systems + re-baseline screenshots in v1.7); **wire `clampMoney` into the forecast/insights formatters in v1.7** (adds the missing NaN-guard) rather than delete.
 
 ---
 
