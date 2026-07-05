@@ -59,8 +59,11 @@ The **Comprehensive Sustainability Audit** still opens v1.6 (a planning session,
 - **Layout-audit premium polish** (`V15_LAYOUT_AUDIT.md §Enhancements`) — Plan-hero progress ring · Bills category pills · Debts all-debts payoff bar · Payoff-chart axis+tooltip · amortization alignment · Pay-Cycle-History lifetime header · Bills iPad two-column.
 - **Small journey enhancements** — milestone-linked progress-bar pulse · share-the-celebration · best-streak record + 5/10/25-cycle milestones · amortization milestone markers + CSV/PDF export · bills overdue urgency · batch "mark all paid" · paywall previews the gated output.
 
-## C. Market / ASO (post-launch, market-audit-armed)
-- Two Custom Product Pages (paycheck-budget vs. debt-payoff searchers) · "Track Your Journey" In-App Event · competitor watch on "Debt Free – Pay Off your Debt" (contesting the journey wedge). Detail → `release-notes/V15_ASO_STRATEGY.md`.
+## C. Market / ASO — rebuilt around v1.6's repositioning
+**Because v1.6 ships quickly after v1.5, the marketing effort focuses on v1.6, not a standalone v1.5 ASO push (Jason 2026-07-05).** The hero reposition (§A.1) *is* a positioning change, so the store presence gets **rebuilt around the new identity** rather than executing v1.5's "Track Your Journey" plan:
+- **Rebuild the store listing + keyword field + screenshots around the payday-allocation wedge** ("what to pay with THIS paycheck") + **radical-trust** (on-device, no bank login, honest cancel) + the new anti-LLM features (Interest-Saved counter, payoff Live Activity). This is where the audits' **discovery = make-or-break** gets addressed head-on: the payday-allocation engine is the sharpest differentiator but the *least searchable* today — the ASO job is to make that wedge findable (and to test-and-learn which framing converts).
+- **Carry the still-good v1.5 ASO mechanics forward, repurposed for the new hero:** two Custom Product Pages (paycheck-budget vs. debt-payoff searchers), an In-App Event, competitor watch on "Debt Free – Pay Off your Debt" (contesting the journey wedge). _Source mechanics in `release-notes/V15_ASO_STRATEGY.md`, but **re-authored** around v1.6 positioning — don't just ship the v1.5 copy._
+- **Author `V16_ASO_STRATEGY.md` at v1.6 feature-lock** (mirroring how V15's was authored at lock), informed by the **market audit** (armed, pending v1.5 conversion data — which now doubles as the read on whether the repositioning is landing). Promotion is first-class work ([[feedback_promotion_first_class_work]]) — treat the v1.6 ASO rebuild with the same rigor as a build feature.
 
 ## D. Foundation infra — the v1.7 candidate (if split)
 The heavy monetization/infra that *was* v1.6's core, now recommended to follow the differentiation spine:
