@@ -454,14 +454,42 @@
 	to   { opacity: 1; transform: scaleX(1); }
 }
 
-.goal-progress-fill {
+/* Payoff trajectory lines draw themselves in (pathLength=1 normalizes each
+   polyline to length 1, so dashoffset 1 -> 0 reveals it left-to-right). */
+@keyframes drawLine {
+	from { stroke-dashoffset: 1; }
+	to   { stroke-dashoffset: 0; }
+}
+
+.trajectory-line {
+	stroke-dasharray: 1;
+	stroke-dashoffset: 1;
+	animation: drawLine 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.trajectory-line-snowball {
+	animation-delay: 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.trajectory-line {
+		animation: none;
+		stroke-dashoffset: 0;
+	}
+}
+
+.goal-progress-fill,
+.debt-progress-fill,
+.forecast-status-bar-fill {
 	transform-origin: left;
 	animation: progressReveal 500ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
 	animation-delay: 100ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.goal-progress-fill {
+	.goal-progress-fill,
+	.debt-progress-fill,
+	.forecast-status-bar-fill {
 		animation: none;
 	}
 }
@@ -660,7 +688,9 @@
 
 .skeleton-line,
 .skeleton-card,
-.skeleton-nav-item {
+.skeleton-nav-item,
+.skeleton-stat,
+.skeleton-row {
 	border-radius: 14px;
 	background: linear-gradient(90deg, var(--surface-muted) 25%, var(--surface-muted-hover) 50%, var(--surface-muted) 75%);
 	background-size: 200% 100%;
@@ -689,6 +719,51 @@
 
 .skeleton-card-tall {
 	height: 220px;
+}
+
+/* Plan-tab silhouette pieces (2.16): rough shapes of the real Plan layout — the
+   "This Paycheck" summary panel (a status line + the adaptive metric grid inside
+   it, mirroring the real card) followed by the action-section rows. */
+.skeleton-panel {
+	border-radius: 18px;
+	border: 1px solid var(--border-color);
+	background: var(--surface-muted);
+	padding: 16px;
+	margin: 12px 0;
+}
+
+.skeleton-panel-label {
+	height: 18px;
+	width: 45%;
+	margin-bottom: 14px;
+}
+
+.skeleton-stat-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+
+.skeleton-stat {
+	height: 72px;
+}
+
+.skeleton-row-group {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 12px;
+}
+
+.skeleton-row {
+	height: 56px;
+}
+
+/* Mirror the real Plan metric grid, which goes 2×2 on phone → one row on iPad. */
+@media (min-width: 834px) {
+	.skeleton-stat-grid {
+		grid-template-columns: repeat(4, 1fr);
+	}
 }
 
 .skeleton-nav-item {
@@ -747,18 +822,15 @@
 		margin-inline: auto;
 	}
 
-	.plan-tab-grid {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		align-items: stretch;
-		gap: var(--space-3);
-		max-width: 1300px;
-		margin-inline: auto;
-	}
+	/* .plan-tab-grid two-column layout lives in the ≥1024px block below. At 834px
+	   portrait it stays default single-column flow (cards centered) — a grid there
+	   made columns too narrow and left an empty stretched card. */
 
-	.plan-tab-grid > .card {
-		max-width: none;
-		margin-inline: 0;
+	/* The plan dashboard carries a 15rem padding-bottom on phone as scroll runway
+	   below the floating bottom nav. iPad uses the sidebar (no floating nav), so
+	   that runway is just dead space at the card's bottom — trim it. */
+	.plan-dashboard {
+		padding-bottom: 2rem;
 	}
 
 	/* ── Navigation: sidebar on, bottom nav off ── */
@@ -870,6 +942,27 @@
 
 /* Landscape iPad (1024px+): Goals and Payoff get a two-column interior layout */
 @media (min-width: 1024px) {
+	/* Plan tab: two columns only at landscape/wide widths (≥1024). At 834px portrait
+	   the columns are too narrow (~377px) and cram the content, so it stays single-column. */
+	.plan-tab-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		align-items: start; /* don't stretch a shorter column into a tall empty card */
+		gap: var(--space-3);
+		max-width: 1300px;
+		margin-inline: auto;
+	}
+
+	.plan-tab-grid > .card {
+		max-width: none;
+		margin-inline: 0;
+	}
+
+	.plan-tab-grid > .streak-stat {
+		grid-column: 1 / -1;
+		justify-self: start;
+	}
+
 	.goals-tab-layout {
 		display: grid;
 		grid-template-columns: 240px 1fr;
@@ -891,5 +984,146 @@
 		grid-template-columns: 300px 1fr;
 		gap: 24px;
 		align-items: start;
+	}
+}
+
+/* --- Milestone celebration (v1.5: rollover payoff / progress moments) --- */
+.milestone-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 24px);
+	background: rgba(2, 6, 23, 0.82);
+	backdrop-filter: blur(20px);
+	animation: modalBackdropIn 0.25s ease both;
+}
+
+.milestone-card {
+	position: relative;
+	overflow: hidden;
+	width: min(400px, 100%);
+	padding: 30px 26px 26px;
+	border-radius: 28px;
+	text-align: center;
+	background: var(--bg-elevated);
+	border: 1px solid var(--border-color);
+	box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+	animation: centerModalIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.milestone-card-major {
+	background:
+		radial-gradient(circle at 50% -10%, rgba(96, 165, 250, 0.28), transparent 60%),
+		var(--bg-elevated);
+	border-color: rgba(96, 165, 250, 0.35);
+	box-shadow: 0 24px 80px rgba(37, 99, 235, 0.35);
+}
+
+.milestone-emoji {
+	font-size: 3.2rem;
+	line-height: 1;
+	animation: milestonePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s both;
+}
+
+@keyframes milestonePop {
+	0% {
+		opacity: 0;
+		transform: scale(0.3);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.milestone-eyebrow {
+	display: block;
+	margin-top: 14px;
+	font-size: 0.72rem;
+	font-weight: 800;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--accent-color);
+}
+
+.milestone-title {
+	margin: 6px 0 2px;
+	font-size: 1.5rem;
+	font-weight: 900;
+	letter-spacing: -0.02em;
+	color: var(--text-primary);
+}
+
+.milestone-highlight {
+	display: block;
+	margin-bottom: 10px;
+	font-size: 1.05rem;
+	font-weight: 800;
+	color: var(--badge-blue-color);
+}
+
+.milestone-body {
+	margin: 0 auto 20px;
+	max-width: 32ch;
+	color: var(--text-secondary);
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+
+.milestone-cta {
+	width: 100%;
+}
+
+.milestone-confetti {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	pointer-events: none;
+	border-radius: inherit;
+}
+
+.milestone-confetti-piece {
+	position: absolute;
+	top: -12px;
+	width: 8px;
+	height: 14px;
+	border-radius: 2px;
+	opacity: 0;
+	animation-name: confettiFall;
+	animation-timing-function: ease-in;
+	animation-iteration-count: 1;
+	animation-fill-mode: both;
+}
+
+.milestone-confetti-piece.round {
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+}
+
+@keyframes confettiFall {
+	0% {
+		opacity: 0;
+		transform: translateY(-12px) rotate(0deg);
+	}
+	10% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(320px) rotate(540deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.milestone-card,
+	.milestone-emoji {
+		animation: none;
+	}
+	.milestone-confetti {
+		display: none;
 	}
 }

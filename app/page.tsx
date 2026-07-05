@@ -20,7 +20,7 @@ import { ResultsSection } from "@/components/ResultsSection";
 import { GoalsSection } from "@/components/GoalsSection";
 import { RequiredExpensesSection } from "@/components/RequiredExpensesSection";
 import { DebtsSection } from "@/components/DebtsSection";
-import { PaycheckSection } from "@/components/PaycheckSection";
+import { PlanSettingsSheet } from "@/components/PlanSettings/PlanSettingsSheet";
 import { SnowballSection } from "@/components/SnowballSection";
 
 import {
@@ -28,26 +28,33 @@ import {
     rolloverRequiredExpenses,
 } from "@/lib/recurrence/rolloverPayCycle";
 
-import { type RecommendationOverride, type Debt, type RequiredExpense, type RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
+import { type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
+import { computeMilestones } from "@/lib/debt/computeMilestones";
+import { computeStreak } from "@/lib/debt/computeStreak";
+import { MilestoneBadge, type MilestoneCelebration } from "@/components/MilestoneBadge";
 import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
-import { parseDebtCsv } from "@/lib/imports/debtCsv";
-import type { LivingExpense } from "@/lib/types/livingExpense";
+import { getDebtsWithDisplayBalances, getCompletedSnowballAmount } from "@/lib/debt/getDebtsWithDisplayBalances";
+import { useLivingExpenses } from "@/lib/hooks/useLivingExpenses";
 import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
 import { TimelineSection } from "@/components/TimelineSection";
-import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { UpgradeSection } from "@/components/UpgradeSection";
-import { initializeRevenueCat, getSubscriptionPlan, restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";
+import { restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
-import { scheduleNotifications, cancelAllNotifications, requestNotificationPermission, hasNotificationPermission } from "@/lib/notifications/scheduleNotifications";
+import { scheduleNotifications } from "@/lib/notifications/scheduleNotifications";
 import { incrementRolloverCount, maybeRequestAppReview } from "@/lib/review/requestAppReview";
 import { AppSkeleton } from "@/components/AppSkeleton";
+import { AppHeader } from "@/components/AppHeader";
+import { AppNav } from "@/components/AppNav";
 import { PullToRefresh } from "@/components/PullToRefresh";
-import { loadStoredState } from "@/lib/storage/loadStoredState";
-import { useDarkMode, type ThemePreference } from "@/lib/hooks/useDarkMode";
+import { readKeyValue, writeKey } from "@/lib/storage/safeStorage";
+import { usePersistedState } from "@/lib/storage/usePersistedState";
+import { migrateState } from "@/lib/storage/migrateState";
+import { StorageCorruptionBanner } from "@/components/StorageCorruptionBanner";
+import { useDarkMode } from "@/lib/hooks/useDarkMode";
 import { useGoals, type Goal } from "@/lib/hooks/useGoals";
 import { useRequiredExpenses } from "@/lib/hooks/useRequiredExpenses";
 import { useDebts } from "@/lib/hooks/useDebts";
@@ -57,8 +64,15 @@ import { useNotificationsSetting } from "@/lib/hooks/useNotificationsSetting";
 import { AppLockScreen } from "@/components/AppLockScreen";
 import { useAppLock } from "@/lib/hooks/useAppLock";
 import { useOnboarding } from "@/lib/hooks/useOnboarding";
+import { usePayCycleHistory } from "@/lib/hooks/usePayCycleHistory";
+import { buildCycleSnapshot } from "@/lib/history/buildCycleSnapshot";
+import { HistorySection } from "@/components/HistorySection";
 import { OnboardingFlow } from "@/components/Onboarding/OnboardingFlow";
-import { Home as HomeIcon, CreditCard, TrendingUp, Target, Settings, Wallet } from "@/lib/icons";
+import { CreditCard, Settings, Wallet } from "@/lib/icons";
+
+// Run storage schema migrations once, at module load, before any hook reads a
+// persisted key. No-op under SSR (no localStorage) and idempotent.
+migrateState();
 
 type CompletedRecommendedAction = {
     targetId: string;
@@ -93,27 +107,6 @@ function roundMoney(amount: number) {
     return Math.round(amount * 100) / 100;
 }
 
-function getDebtDisplayBalance(debt: Debt, completedSnowballAmount: number) {
-    const paidMinimumAmount = debt.minimumPaidThisCycle || debt.isPaidThisCycle
-        ? Math.min(debt.minimumPayment, debt.balance)
-        : 0;
-
-    return roundMoney(Math.max(0, debt.balance - paidMinimumAmount - completedSnowballAmount));
-}
-
-function formatLastSaved(value: string) {
-    const savedAt = new Date(value);
-
-    if (Number.isNaN(savedAt.getTime())) {
-        return "Saved locally";
-    }
-
-    return `Saved locally · ${savedAt.toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit",
-    })}`;
-}
-
 export default function Home() {
 
     const {
@@ -126,13 +119,7 @@ export default function Home() {
         monthlyPayDay, setMonthlyPayDay,
     } = usePayCycleSettings();
 
-    const [livingExpenses, setLivingExpenses] = useState<LivingExpense[]>(() =>
-        loadStoredState("debtPlanner.livingExpenses", livingExpensePresets.map((expense, index) => ({
-            ...expense,
-            id: `living-${index}`,
-        }))
-        )
-    );
+    const { livingExpenses, setLivingExpenses } = useLivingExpenses();
 
     const hasConfiguredPaycheck = amount !== "" && Number(amount) > 0;
 
@@ -151,8 +138,9 @@ export default function Home() {
     const { darkMode, themePreference, setThemePreference } = useDarkMode();
 
     const [completedRecommendedActions, setCompletedRecommendedActions] =
-        useState<CompletedRecommendedAction[]>(() =>
-            loadStoredState("debtPlanner.completedRecommendedActions", [])
+        usePersistedState<CompletedRecommendedAction[]>(
+            "debtPlanner.completedRecommendedActions",
+            []
         );
 
     const [recommendationOverrides, setRecommendationOverrides] = useState<RecommendationOverride[]>([]);
@@ -161,9 +149,15 @@ export default function Home() {
         "plan" | "bills" | "snowball" | "goals"
     >("plan");
     const tabOrder = { plan: 0, bills: 1, snowball: 2, goals: 3 } as const;
-    const prevTabRef = useRef<"plan" | "bills" | "snowball" | "goals">("plan");
-    const tabDirection = tabOrder[activeTab] >= tabOrder[prevTabRef.current] ? "forward" : "backward";
-    prevTabRef.current = activeTab;
+    // Track the tab-switch direction for the slide transition. Uses the React
+    // "store info from previous renders" pattern (a guarded setState during
+    // render) rather than a ref read/written mid-render — same result, no ref.
+    const [prevTab, setPrevTab] = useState<"plan" | "bills" | "snowball" | "goals">("plan");
+    const [tabDirection, setTabDirection] = useState<"forward" | "backward">("forward");
+    if (prevTab !== activeTab) {
+        setTabDirection(tabOrder[activeTab] >= tabOrder[prevTab] ? "forward" : "backward");
+        setPrevTab(activeTab);
+    }
 
     const [billsView, setBillsView] = useState<"expenses" | "debts" | null>(
         null
@@ -176,25 +170,27 @@ export default function Home() {
         () => !hasConfiguredPaycheck
     );
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
+    const [milestoneCelebration, setMilestoneCelebration] = useState<MilestoneCelebration | null>(null);
     const [isToastExiting, setIsToastExiting] = useState(false);
     const [showWindfall, setShowWindfall] = useState(false);
     const [windfallInput, setWindfallInput] = useState("");
     const [pendingUndo, setPendingUndo] = useState<{ type: "debt"; item: Debt } | { type: "expense"; item: RequiredExpense } | null>(null);
     const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const [payoffStrategy, setPayoffStrategy] = useState<
+    const [payoffStrategy, setPayoffStrategy] = usePersistedState<
         "snowball" | "avalanche"
-    >(() => loadStoredState("debtPlanner.payoffStrategy", "snowball"));
+    >("debtPlanner.payoffStrategy", "snowball");
 
     const { appLockEnabled, setAppLockEnabled, isUnlocked, requestUnlock } = useAppLock();
     const { hasCompletedOnboarding } = useOnboarding();
 
     const [isDemoMode] = useState(() =>
-        loadStoredState("debtPlanner.isDemoMode", false)
+        readKeyValue("debtPlanner.isDemoMode", false)
     );
 
     const [lastSavedAt, setLastSavedAt] = useState(() =>
-        loadStoredState("debtPlanner.lastSavedAt", "")
+        readKeyValue("debtPlanner.lastSavedAt", "")
     );
     const [statusMessage, setStatusMessage] = useState("");
 
@@ -237,6 +233,7 @@ export default function Home() {
         restoreDebt,
         handleMarkDebtMinimumPaid,
         handleMarkDebtSnowballPaid,
+        handleImportCsv,
     } = useDebts(saveResetSnapshot);
 
     const {
@@ -249,6 +246,17 @@ export default function Home() {
         showUpgrade, setShowUpgrade,
         purchaseStatus, setPurchaseStatus,
     } = useSubscription(notificationsEnabled, nextPaycheckDate, requiredExpenses, setNotificationsEnabled);
+
+    const {
+        cycleHistory,
+        recordCycleSnapshot,
+        visibleHistory,
+        previousSnapshot,
+        canAccessHistory,
+        isHistoryCapped,
+    } = usePayCycleHistory(subscriptionPlan);
+
+    const currentStreak = computeStreak(cycleHistory);
 
     const [premiumPackageInfo, setPremiumPackageInfo] = useState<PremiumPackageInfo | null>(null);
 
@@ -278,10 +286,7 @@ export default function Home() {
             lastSavedAt,
         };
 
-        window.localStorage.setItem(
-            "debtPlanner.resetSnapshot",
-            JSON.stringify(snapshot)
-        );
+        writeKey("debtPlanner.resetSnapshot", snapshot);
     }
 
     const result = useMemo(() => {
@@ -313,14 +318,8 @@ export default function Home() {
         payoffStrategy,
     ]);
 
-    const debtsWithDisplayBalances = debts.map((debt) => ({
-
-        ...debt,
-        displayBalance: getDebtDisplayBalance(debt, getCompletedRecommendedAmountForDebt(debt.id)),
-    }));
-
-    const activeDebts = debtsWithDisplayBalances.filter((debt) => debt.displayBalance > 0);
-    const paidOffDebts = debtsWithDisplayBalances.filter((debt) => debt.displayBalance <= 0);
+    const { debtsWithDisplayBalances, activeDebts, paidOffDebts } =
+        getDebtsWithDisplayBalances(debts, completedRecommendedActions);
 
     const debtFreeDate = useMemo(() => {
         const liveDebts = debts.filter(d => d.balance > 0);
@@ -350,10 +349,6 @@ export default function Home() {
         }
         return "Here's what to do this paycheck.";
     }, [result, debts, debtFreeDate]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.livingExpenses", JSON.stringify(livingExpenses));
-    }, [livingExpenses]);
 
     useEffect(() => {
         if (!showUpgrade || premiumPackageInfo) return;
@@ -386,25 +381,17 @@ export default function Home() {
     }, [statusMessage]);
 
     useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.completedRecommendedActions",
-            JSON.stringify(completedRecommendedActions)
-        );
-    }, [completedRecommendedActions]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.payoffStrategy",
-            JSON.stringify(payoffStrategy)
-        );
-    }, [payoffStrategy]);
-
-    useEffect(() => {
         if (!isMounted) return;
 
         const savedAt = new Date().toISOString();
+        // Autosave-timestamp side-effect: this effect's job is to persist the
+        // "last saved" time to localStorage (an external system — the rule's
+        // first sanctioned use) whenever tracked data changes; setLastSavedAt
+        // only mirrors that write into the indicator, and lastSavedAt is not in
+        // the dep array, so there is no cascading re-render.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLastSavedAt(savedAt);
-        localStorage.setItem("debtPlanner.lastSavedAt", JSON.stringify(savedAt));
+        writeKey("debtPlanner.lastSavedAt", savedAt);
     }, [
         isMounted,
         amount,
@@ -448,36 +435,6 @@ export default function Home() {
         };
     }
 
-    async function handleImportDebtsCsv(event: ChangeEvent<HTMLInputElement>) {
-        const file = event.target.files?.[0];
-
-        if (!file) return;
-
-        try {
-            const importResult = await parseDebtCsv(file);
-
-            if (importResult.debts.length > 0) {
-                setDebts((current) => [...current, ...importResult.debts]);
-            }
-
-            if (importResult.errors.length > 0) {
-                alert(
-                    `Imported ${importResult.debts.length} debts with ${importResult.errors.length
-                    } skipped rows.\n\n${importResult.errors
-                        .slice(0, 5)
-                        .join("\n")}`
-                );
-            } else {
-                void triggerMediumHaptic();
-                alert(`Imported ${importResult.debts.length} debts.`);
-            }
-        } catch {
-            alert("Unable to import debt CSV.");
-        }
-
-        event.target.value = "";
-    }
-
     function handleCalculate() {
         const value = Number(amount);
 
@@ -501,7 +458,7 @@ export default function Home() {
 
         const savedAt = new Date().toISOString();
         setLastSavedAt(savedAt);
-        localStorage.setItem("debtPlanner.lastSavedAt", JSON.stringify(savedAt));
+        writeKey("debtPlanner.lastSavedAt", savedAt);
         setStatusMessage("Up to date");
     }
 
@@ -577,17 +534,12 @@ export default function Home() {
         });
     }
 
-    function getCompletedRecommendedAmountForDebt(debtId: string) {
-        return completedRecommendedActions
-            .filter(
-                (action) =>
-                    action.category === "snowball" && action.targetId === debtId
-            )
-            .reduce((sum, action) => sum + action.actualAmount, 0);
-    }
-
     function handleResetToToday() {
-        const backup = loadStoredState<ReturnType<typeof buildBackupData> | null>(
+        // Close settings so you land on the freshly reset plan (matches Calculate Plan).
+        setShowPlanSettings(false);
+        setShowDeleteConfirm(false);
+
+        const backup = readKeyValue<ReturnType<typeof buildBackupData> | null>(
             "debtPlanner.resetSnapshot",
             null
         );
@@ -702,19 +654,86 @@ export default function Home() {
 
     async function handleRolloverPayCycle() {
         triggerMediumHaptic();
+        // Close settings so you land on the new cycle's plan (and any milestone
+        // celebration shows over the plan, not the settings sheet).
+        setShowPlanSettings(false);
+        setShowDeleteConfirm(false);
         saveResetSnapshot();
 
-        setDebts((current) =>
+        // Record the cycle that's ending BEFORE any mutation - capture
+        // pre-rollover debts and completed actions so the snapshot reflects
+        // where the user actually was when this cycle closed.
+        // On plan = the user left no AFFORDABLE required action unpaid (the
+        // engine counts fully-coverable-but-unpaid required items). If result is
+        // unavailable, don't punish the streak (default on-plan).
+        const allRequiredMet = (result?.affordableUnpaidRequiredCount ?? 0) === 0;
+
+        recordCycleSnapshot(
+            buildCycleSnapshot({
+                cycleEndDate: nextPaycheckDate,
+                debts,
+                completedRecommendedActions,
+                payoffStrategy,
+                allRequiredMet,
+            })
+        );
+
+        // Apply this cycle's payments once, so we can both persist the new
+        // balances AND detect any milestone thresholds crossed by them.
+        const debtsAfterPayment = debts.map((debt) => ({
+            before: debt,
+            after: applyRolloverPayment(
+                debt,
+                getCompletedSnowballAmount(debt.id, completedRecommendedActions),
+                payCycle
+            ),
+        }));
+
+        const milestoneResult = computeMilestones({
+            debts: debtsAfterPayment.map(({ before, after }) => ({
+                id: before.id,
+                name: before.name,
+                originalBalance: before.originalBalance,
+                previousBalance: before.balance,
+                currentBalance: after.balance,
+            })),
+        });
+
+        setDebts(
             rolloverDebts(
-                current.map((debt) =>
-                    applyRolloverPayment(
-                        debt,
-                        getCompletedRecommendedAmountForDebt(debt.id)
-                    )
-                ),
+                debtsAfterPayment.map(({ after }) => after),
                 nextPaycheckDate
             )
         );
+
+        // Surface the single most significant celebration this rollover earned:
+        // debt-free > a debt fully paid > the highest progress threshold.
+        const paidOffMilestone = milestoneResult.milestones.find(
+            (milestone) => milestone.isPaidOff
+        );
+        const topProgressMilestone = milestoneResult.milestones
+            .filter((milestone) => !milestone.isPaidOff)
+            .reduce<(typeof milestoneResult.milestones)[number] | null>(
+                (best, milestone) =>
+                    !best || milestone.threshold > best.threshold ? milestone : best,
+                null
+            );
+
+        if (milestoneResult.newlyAllPaidOff) {
+            setMilestoneCelebration({ kind: "debt-free" });
+        } else if (paidOffMilestone) {
+            setMilestoneCelebration({
+                kind: "paid-off",
+                debtName: paidOffMilestone.debtName,
+            });
+        } else if (topProgressMilestone) {
+            setMilestoneCelebration({
+                kind: "progress",
+                debtName: topProgressMilestone.debtName,
+                threshold: topProgressMilestone.threshold as 25 | 50 | 75,
+                progressPercent: topProgressMilestone.progressPercent,
+            });
+        }
 
         setRequiredExpenses((current) =>
             rolloverRequiredExpenses(current, nextPaycheckDate)
@@ -752,6 +771,40 @@ export default function Home() {
         window.location.reload();
     }
 
+    function handleSelectTab(tab: "plan" | "bills" | "snowball" | "goals") {
+        triggerLightHaptic();
+        // Leaving via the nav closes the settings panel, so you land on the tab
+        // (not back inside the focused settings view).
+        setShowPlanSettings(false);
+        setActiveTab(tab);
+        if (tab === "bills") setBillsView((current) => current ?? "expenses");
+    }
+
+    function handleToggleSettings() {
+        triggerLightHaptic();
+        setShowPlanSettings((open) => !open);
+    }
+
+    function handleCloseSheet() {
+        triggerLightHaptic();
+        setShowPlanSettings(false);
+        setShowDeleteConfirm(false);
+    }
+
+    async function handleDevRcReset() {
+        try {
+            triggerLightHaptic();
+
+            const plan = await resetRevenueCatUserForTesting();
+
+            setSubscriptionPlan(plan);
+            setPurchaseStatus(`RevenueCat reset.  Current plan: ${plan}`);
+            setShowUpgrade(false);
+        } catch (error) {
+            setPurchaseStatus(error instanceof Error ? error.message : "RevenueCat reset failed.");
+        }
+    }
+
     function handleExitDemoMode() {
         window.localStorage.clear();
         window.location.reload();
@@ -777,6 +830,8 @@ export default function Home() {
         <main className={`app ${darkMode ? "dark-theme" : "light-theme"}`}>
             <PullToRefresh className="app-content" onRefresh={handlePullToRefresh}>
 
+                <StorageCorruptionBanner />
+
                 {isDemoMode && (
                     <div className="demo-mode-banner" role="status">
                         <span>Demo Mode — viewing sample data</span>
@@ -792,63 +847,61 @@ export default function Home() {
                         </button>
                     </div>
                 )}
-                <section className={activeTab === "plan" ? "hero" : "hero hero-page"} aria-label="Page header">
-                    {activeTab === "plan" ? (
-                        <>
-                            <h1>Debt Planner</h1>
-                            <p>{heroSubtitle}</p>
-                        </>
-                    ) : activeTab === "bills" ? (
-                        <>
-                            <h1 className="page-heading">Bills</h1>
-                            <p className="page-subheading">Manage recurring expenses and debts.</p>
-                        </>
-                    ) : activeTab === "snowball" ? (
-                        <>
-                            <h1 className="page-heading">Payoff</h1>
-                            <p className="page-subheading">Optimize your debt payoff strategy.</p>
-                        </>
-                    ) : activeTab === "goals" ? (
-                        <>
-                            <h1 className="page-heading">Goals</h1>
-                            <p className="page-subheading">Track savings goals and emergency funds.</p>
-                        </>
-                    ) : null}
-                    {lastSavedAt && activeTab === "plan" && (
-                        <p className="last-saved-indicator">
-                            {formatLastSaved(lastSavedAt)}
-                        </p>
-                    )}
-                    {statusMessage && (
-                        <div className={`save-status-toast${isToastExiting ? " exiting" : ""}`} role="status" aria-live="polite">
-                            {statusMessage}
-                        </div>
-                    )}
+                <AppHeader
+                    activeTab={activeTab}
+                    heroSubtitle={heroSubtitle}
+                    lastSavedAt={lastSavedAt}
+                    statusMessage={statusMessage}
+                    isToastExiting={isToastExiting}
+                    onDevRcReset={handleDevRcReset}
+                />
 
-                    {process.env.NEXT_PUBLIC_DEV_MODE === "true" && (
-                        <button
-                            type="button"
-                            className="rc-reset-button"
-                            onClick={async () => {
-                                try {
-                                    triggerLightHaptic();
+                <PlanSettingsSheet
+                    showPlanSettings={showPlanSettings}
+                    onCloseSheet={handleCloseSheet}
+                    isFirstRunSetup={isFirstRunSetup}
+                    onClose={() => setShowPlanSettings(false)}
+                    onOpenHistory={() => {
+                        setShowPlanSettings(false);
+                        setShowHistory(true);
+                    }}
+                    amount={amount}
+                    payCycle={payCycle}
+                    semiMonthlyFirstDay={semiMonthlyFirstDay}
+                    semiMonthlySecondDay={semiMonthlySecondDay}
+                    monthlyPayDay={monthlyPayDay}
+                    nextPaycheckDate={nextPaycheckDate}
+                    currentDate={currentDate}
+                    onAmountChange={setAmount}
+                    onPayCycleChange={setPayCycle}
+                    onNextPaycheckDateChange={setNextPaycheckDate}
+                    onSemiMonthlyFirstDayChange={setSemiMonthlyFirstDay}
+                    onSemiMonthlySecondDayChange={setSemiMonthlySecondDay}
+                    onMonthlyPayDayChange={setMonthlyPayDay}
+                    onCalculate={handleCalculate}
+                    onRolloverPayCycle={handleRolloverPayCycle}
+                    onResetToToday={handleResetToToday}
+                    onExportBackup={handleExportBackup}
+                    onImportBackup={handleImportBackup}
+                    onPopulateDemoData={handlePopulateDemoData}
+                    showWindfall={showWindfall}
+                    setShowWindfall={setShowWindfall}
+                    windfallInput={windfallInput}
+                    setWindfallInput={setWindfallInput}
+                    setAmount={setAmount}
+                    setStatusMessage={setStatusMessage}
+                    themePreference={themePreference}
+                    setThemePreference={setThemePreference}
+                    notificationsEnabled={notificationsEnabled}
+                    onNotificationsToggle={handleNotificationsToggle}
+                    appLockEnabled={appLockEnabled}
+                    setAppLockEnabled={setAppLockEnabled}
+                    showDeleteConfirm={showDeleteConfirm}
+                    setShowDeleteConfirm={setShowDeleteConfirm}
+                    onDeleteAll={handleExitDemoMode}
+                />
 
-                                    const plan = await resetRevenueCatUserForTesting();
-
-                                    setSubscriptionPlan(plan);
-                                    setPurchaseStatus(`RevenueCat reset.  Current plan: ${plan}`);
-                                    setShowUpgrade(false);
-                                } catch (error) {
-                                    setPurchaseStatus(error instanceof Error ? error.message : "RevenueCat reset failed.");
-                                }
-                            }}
-                        >
-                            RC Reset
-                        </button>
-                    )}
-                </section>
-
-                <div key={activeTab} className="tab-content-transition" data-direction={tabDirection} role="region" aria-label={activeTab === "plan" ? "Plan" : activeTab === "bills" ? "Bills" : activeTab === "snowball" ? "Payoff" : "Goals"}>
+                <div key={activeTab} className="tab-content-transition" data-direction={tabDirection} style={showPlanSettings ? { display: "none" } : undefined} role="region" aria-label={activeTab === "plan" ? "Plan" : activeTab === "bills" ? "Bills" : activeTab === "snowball" ? "Payoff" : "Goals"}>
                 {activeTab === "plan" && (
                     <>
                         <div className="plan-toolbar">
@@ -856,9 +909,10 @@ export default function Home() {
                                 type="button"
                                 className="settings-icon-button"
                                 aria-label="Open Plan Settings"
+                                aria-expanded={showPlanSettings}
                                 onClick={() => {
                                     triggerLightHaptic();
-                                    setShowPlanSettings(true);
+                                    setShowPlanSettings((open) => !open);
                                 }}
                             >
                                 <Settings size={20} aria-hidden="true" />
@@ -866,6 +920,20 @@ export default function Home() {
                         </div>
 
                         <div className="plan-tab-grid">
+                            {currentStreak > 0 && (
+                                <div
+                                    className="streak-stat"
+                                    role="status"
+                                    aria-label={`On-plan streak: ${currentStreak} ${currentStreak === 1 ? "cycle" : "cycles"} in a row`}
+                                >
+                                    <span className="streak-stat-flame" aria-hidden="true">🔥</span>
+                                    <span className="streak-stat-count">{currentStreak}</span>
+                                    <span className="streak-stat-label">
+                                        {currentStreak === 1 ? "cycle" : "cycles"} on plan in a row
+                                    </span>
+                                </div>
+                            )}
+
                             {result !== null && activeDebts.length === 0 && (
                                 <div className="card first-debt-prompt">
                                     <p className="first-debt-prompt-text">
@@ -891,6 +959,7 @@ export default function Home() {
                                 goals={goals}
                                 payoffStrategy={payoffStrategy}
                                 debtFreeDate={debtFreeDate}
+                                previousSnapshot={previousSnapshot}
                                 completedRecommendedActions={
                                     completedRecommendedActions
                                 }
@@ -1105,7 +1174,7 @@ export default function Home() {
                             onDebtTypeChange={setDebtType}
                             onDebtRecurrenceChange={setDebtRecurrence}
                             onDebtIsAutopayChange={setDebtIsAutopay}
-                            onImportDebtsCsv={handleImportDebtsCsv}
+                            onImportDebtsCsv={handleImportCsv}
                             onAddDebt={handleAddDebt}
                             onRemoveDebt={handleRemoveDebtWithUndo}
                             onUpdateDebt={handleUpdateDebt}
@@ -1145,436 +1214,31 @@ export default function Home() {
                 </div>
             )}
 
-            <nav className="bottom-nav" aria-label="Main navigation">
-                <button
-                    type="button"
-                    className={
-                        activeTab === "plan"
-                            ? "bottom-nav-item active"
-                            : "bottom-nav-item"
-                    }
-                    onClick={() => {
-                        triggerLightHaptic();
-                        setActiveTab("plan");
+            <AppNav
+                activeTab={activeTab}
+                showPlanSettings={showPlanSettings}
+                onSelectTab={handleSelectTab}
+                onToggleSettings={handleToggleSettings}
+            />
+
+            {showHistory && (
+                <HistorySection
+                    visibleHistory={visibleHistory}
+                    canAccessHistory={canAccessHistory}
+                    isHistoryCapped={isHistoryCapped}
+                    onUpgrade={() => {
+                        setShowHistory(false);
+                        setShowUpgrade(true);
                     }}
-                >
-                    <HomeIcon size={20} aria-hidden="true" />
-                    <small>Plan</small>
-                </button>
+                    onClose={() => setShowHistory(false)}
+                />
+            )}
 
-                <button
-                    type="button"
-                    className={
-                        activeTab === "bills"
-                            ? "bottom-nav-item active"
-                            : "bottom-nav-item"
-                    }
-                    onClick={() => {
-                        triggerLightHaptic();
-                        setActiveTab("bills");
-                        setBillsView((current) => current ?? "expenses");
-                    }}
-                >
-                    <CreditCard size={20} aria-hidden="true" />
-                    <small>Bills</small>
-                </button>
-
-                <button
-                    type="button"
-                    className={
-                        activeTab === "snowball"
-                            ? "bottom-nav-item active"
-                            : "bottom-nav-item"
-                    }
-                    onClick={() => {
-                        triggerLightHaptic();
-                        setActiveTab("snowball");
-                    }}
-                >
-                    <TrendingUp size={20} aria-hidden="true" />
-                    <small>Payoff</small>
-                </button>
-
-                <button
-                    type="button"
-                    className={
-                        activeTab === "goals"
-                            ? "bottom-nav-item active"
-                            : "bottom-nav-item"
-                    }
-                    onClick={() => {
-                        triggerLightHaptic();
-                        setActiveTab("goals");
-                    }}
-                >
-                    <Target size={20} aria-hidden="true" />
-                    <small>Goals</small>
-                </button>
-            </nav>
-
-            <nav className="sidebar-nav" aria-label="Main navigation">
-                <div className="sidebar-logo" aria-hidden="true">
-                    <TrendingUp size={20} />
-                </div>
-                <button
-                    type="button"
-                    className={activeTab === "plan" ? "sidebar-nav-item active" : "sidebar-nav-item"}
-                    onClick={() => { triggerLightHaptic(); setActiveTab("plan"); }}
-                >
-                    <HomeIcon size={22} aria-hidden="true" />
-                    <small>Plan</small>
-                </button>
-                <button
-                    type="button"
-                    className={activeTab === "bills" ? "sidebar-nav-item active" : "sidebar-nav-item"}
-                    onClick={() => { triggerLightHaptic(); setActiveTab("bills"); setBillsView((c) => c ?? "expenses"); }}
-                >
-                    <CreditCard size={22} aria-hidden="true" />
-                    <small>Bills</small>
-                </button>
-                <button
-                    type="button"
-                    className={activeTab === "snowball" ? "sidebar-nav-item active" : "sidebar-nav-item"}
-                    onClick={() => { triggerLightHaptic(); setActiveTab("snowball"); }}
-                >
-                    <TrendingUp size={22} aria-hidden="true" />
-                    <small>Payoff</small>
-                </button>
-                <button
-                    type="button"
-                    className={activeTab === "goals" ? "sidebar-nav-item active" : "sidebar-nav-item"}
-                    onClick={() => { triggerLightHaptic(); setActiveTab("goals"); }}
-                >
-                    <Target size={22} aria-hidden="true" />
-                    <small>Goals</small>
-                </button>
-                <button
-                    type="button"
-                    className="sidebar-nav-item sidebar-settings-btn"
-                    aria-label="Open Plan Settings"
-                    onClick={() => { triggerLightHaptic(); setShowPlanSettings(true); }}
-                >
-                    <Settings size={22} aria-hidden="true" />
-                    <small>Settings</small>
-                </button>
-            </nav>
-
-            {showPlanSettings && (
-                <div
-                    className="settings-overlay"
-                    onClick={() => {
-                        if (!isFirstRunSetup) {
-                            setShowPlanSettings(false);
-                                setShowDeleteConfirm(false);
-                        }
-                    }}
-                >
-                    <div
-                        className="settings-sheet"
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        <div className="settings-sheet-header">
-                            <div>
-                                <h2>{isFirstRunSetup ? "Create Your First Plan" : "Plan Settings"}</h2>
-                                {!isFirstRunSetup && (
-                                    <p className="section-collapse-subtitle">
-                                        Adjust paycheck, pay cycle, and plan settings.
-                                    </p>
-                                )}
-                            </div>
-
-                            {!isFirstRunSetup && (
-                                <button
-                                    type="button"
-                                    className="text-action-button"
-                                    onClick={() => {
-                                        triggerLightHaptic();
-                                        setShowPlanSettings(false);
-                                        setShowDeleteConfirm(false);
-                                    }}
-                                >
-                                    Close
-                                </button>
-                            )}
-                        </div>
-
-                        {isFirstRunSetup && (
-                            <p className="setup-hint">
-                                Enter your paycheck to create your first
-                                plan.
-                            </p>
-                        )}
-
-                        {isFirstRunSetup && (
-                            <div className="setup-badge">
-                                First Time Setup
-                            </div>
-                        )}
-
-                        {isFirstRunSetup && (
-                            <div className="first-run-import-row">
-                                <button
-                                    type="button"
-                                    className="secondary-button"
-                                    onClick={() => {
-                                        triggerLightHaptic();
-                                        handlePopulateDemoData();
-                                    }}
-                                >
-                                    Try with Sample Data
-                                </button>
-
-                                <label className="secondary-button import-button">
-                                    Import Backup
-                                    <input
-                                        type="file"
-                                        accept="json,application/json"
-                                        onChange={handleImportBackup}
-                                        hidden
-                                    />
-                                </label>
-                            </div>
-                        )}
-
-                        <PaycheckSection
-                            amount={amount}
-                            payCycle={payCycle}
-                            semiMonthlyFirstDay={semiMonthlyFirstDay}
-                            semiMonthlySecondDay={semiMonthlySecondDay}
-                            monthlyPayDay={monthlyPayDay}
-                            nextPaycheckDate={nextPaycheckDate}
-                            currentDate={currentDate}
-                            showAdminActions={!isFirstRunSetup}
-                            onExportBackup={handleExportBackup}
-                            onImportBackup={handleImportBackup}
-                            onAmountChange={setAmount}
-                            onPayCycleChange={setPayCycle}
-                            onNextPayCheckDateChange={setNextPaycheckDate}
-                            onSemiMonthlyFirstDayChange={
-                                setSemiMonthlyFirstDay
-                            }
-                            onSemiMonthlySecondDayChange={
-                                setSemiMonthlySecondDay
-                            }
-                            onMonthlyPayDayChange={setMonthlyPayDay}
-                            onCalculate={handleCalculate}
-                            onRolloverPayCycle={handleRolloverPayCycle}
-                            onResetToToday={handleResetToToday}
-                        />
-
-                        {!isFirstRunSetup && (
-                            <div className="card windfall-card">
-                                {showWindfall ? (
-                                    <div className="windfall-form">
-                                        <p className="windfall-label">Got a bonus or extra cash? Add it to this paycheck.</p>
-                                        <div className="windfall-input-row">
-                                            <input
-                                                type="text"
-                                                inputMode="decimal"
-                                                className="windfall-input"
-                                                placeholder="0.00"
-                                                value={windfallInput}
-                                                onChange={e => setWindfallInput(e.target.value)}
-                                                autoFocus
-                                            />
-                                            <button
-                                                type="button"
-                                                className="primary-plan-button"
-                                                onClick={() => {
-                                                    const extra = parseFloat(windfallInput);
-                                                    if (!extra || extra <= 0) return;
-                                                    triggerMediumHaptic();
-                                                    setAmount(prev => String(Math.round((Number(prev) + extra) * 100) / 100));
-                                                    setWindfallInput("");
-                                                    setShowWindfall(false);
-                                                    setShowPlanSettings(false);
-                                                    setStatusMessage(`Added $${extra.toFixed(2)} windfall to this paycheck.`);
-                                                }}
-                                            >
-                                                Apply
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="secondary-button"
-                                                onClick={() => { setShowWindfall(false); setWindfallInput(""); }}
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        className="windfall-trigger-button"
-                                        onClick={() => { triggerLightHaptic(); setShowWindfall(true); }}
-                                    >
-                                        <span className="windfall-trigger-icon">💰</span>
-                                        <span>Got extra money this paycheck?</span>
-                                    </button>
-                                )}
-                            </div>
-                        )}
-
-                        {!isFirstRunSetup && (
-                            <div className="card notifications-settings-card">
-                                <div className="notifications-settings-row">
-                                    <div>
-                                        <h3>Appearance</h3>
-                                    </div>
-                                    <div className="theme-selector" role="group" aria-label="Theme preference">
-                                        {(["system", "light", "dark"] as ThemePreference[]).map((pref) => (
-                                            <button
-                                                key={pref}
-                                                type="button"
-                                                className={`theme-selector-pill${themePreference === pref ? " theme-selector-pill-active" : ""}`}
-                                                onClick={() => { triggerLightHaptic(); setThemePreference(pref); }}
-                                                aria-pressed={themePreference === pref}
-                                            >
-                                                {pref === "system" ? "Auto" : pref === "light" ? "Light" : "Dark"}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {!isFirstRunSetup && (
-                            <div className="card notifications-settings-card">
-                                <div className="notifications-settings-row">
-                                    <div>
-                                        <h3>Notifications</h3>
-                                        <p className="section-collapse-subtitle">
-                                            Paycheck-eve reminder and upcoming bill alerts.
-                                        </p>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        role="switch"
-                                        aria-checked={notificationsEnabled}
-                                        className={notificationsEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
-                                        onClick={handleNotificationsToggle}
-                                        aria-label={notificationsEnabled ? "Disable notifications" : "Enable notifications"}
-                                    >
-                                        <span className="toggle-thumb" />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {!isFirstRunSetup && (
-                            <div className="card notifications-settings-card">
-                                <div className="notifications-settings-row">
-                                    <div>
-                                        <h3>App Lock</h3>
-                                        <p className="section-collapse-subtitle">
-                                            Require Face ID, Touch ID, or your device passcode to open the app.
-                                        </p>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        role="switch"
-                                        aria-checked={appLockEnabled}
-                                        className={appLockEnabled ? "toggle-button toggle-on" : "toggle-button toggle-off"}
-                                        onClick={() => {
-                                            triggerLightHaptic();
-                                            setAppLockEnabled(!appLockEnabled);
-                                        }}
-                                        aria-label={appLockEnabled ? "Disable app lock" : "Enable app lock"}
-                                    >
-                                        <span className="toggle-thumb" />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {!isFirstRunSetup && (
-                            <div className="settings-danger-zone">
-                                {showDeleteConfirm ? (
-                                    <div className="delete-confirm-row">
-                                        <p className="delete-confirm-text">
-                                            All debts, bills, goals, and settings will be permanently erased. This cannot be undone.
-                                        </p>
-                                        <div className="delete-confirm-actions">
-                                            <button
-                                                type="button"
-                                                className="secondary-button"
-                                                onClick={() => setShowDeleteConfirm(false)}
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="danger-destructive-button"
-                                                onClick={() => {
-                                                    triggerMediumHaptic();
-                                                    handleExitDemoMode();
-                                                }}
-                                            >
-                                                Delete Everything
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        className="danger-text-button"
-                                        aria-label="Delete all data — permanently erase all debts, bills, goals, and settings"
-                                        onClick={() => {
-                                            triggerLightHaptic();
-                                            setShowDeleteConfirm(true);
-                                        }}
-                                    >
-                                        Delete All Data
-                                    </button>
-                                )}
-                            </div>
-                        )}
-
-                        <p className="settings-privacy-note">
-                            Your data stays on this device — nothing is uploaded or shared.
-                        </p>
-
-                        <div className="settings-legal-row">
-                            <a
-                                href="https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="legal-link"
-                            >
-                                Privacy Policy
-                            </a>
-                            <span className="legal-separator">·</span>
-                            <a
-                                href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="legal-link"
-                            >
-                                Terms of Use
-                            </a>
-                            <span className="legal-separator">·</span>
-                            <a
-                                href="https://github.com/jsnyde03/debt-planner-stie/blob/main/Paycheck%20Debt%20Planner%20Support"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="legal-link"
-                            >
-                                Support
-                            </a>
-                            <span className="legal-separator">·</span>
-                            <a
-                                href="https://apps.apple.com/account/subscriptions"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="legal-link"
-                            >
-                                Manage Subscription
-                            </a>
-                        </div>
-                    </div>
-                </div>
+            {milestoneCelebration && (
+                <MilestoneBadge
+                    celebration={milestoneCelebration}
+                    onDismiss={() => setMilestoneCelebration(null)}
+                />
             )}
         </main>
     );

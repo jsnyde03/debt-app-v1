@@ -435,14 +435,13 @@
 	background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.18), transparent 34%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent 38%), linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
 	border-color: rgba(255, 255, 255, 0.08);
 	box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48), 0 0 42px rgba(59, 130, 246, 0.14);
-	padding-bottom: calc(env(safe-area-inset-bottom) +7rem);
+	padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
 }
 
-.center-modal.debt-add-modal {
-	max-height: calc(100vh - 2rem);
-	overflow-y: auto;
-}
-
+/* (debt-add-modal sizing/runway is consolidated in the single
+   `.center-modal.debt-add-modal` rule later in this file — max-height +
+   overflow-y + the theme-agnostic bottom-runway; the earlier duplicate was
+   removed in 2.15.8.) */
 .dark-theme .debt-add-modal input,
 .dark-theme .debt-add-modal select {
 	min-height: 54px;
@@ -754,7 +753,16 @@
 .center-modal.debt-add-modal {
 	max-height: calc(100vh - 2rem);
 	overflow-y: auto;
-	padding-bottom: calc(evn(safe-area-inset-bottom) + 8.5rem);
+	padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
+}
+
+/* Theme-agnostic bottom-runway for the bills/goal add-modals so their submit button clears the
+   floating bottom nav in BOTH themes. Previously only `.dark-theme .bills-modal`/`.goal-add-modal`
+   carried the runway, so the LIGHT-theme add-expense/add-goal buttons sat under the nav (2.15.7).
+   (debt-add already gets it above.) */
+.center-modal.bills-modal,
+.center-modal.goal-add-modal {
+	padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
 }
 
 .debts-polish-card {

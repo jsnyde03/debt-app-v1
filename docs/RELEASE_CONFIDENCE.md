@@ -27,6 +27,48 @@ No engine or calculation changes in v1.4. All changes are UI polish, onboarding 
 
 **Haptics / CSS / animations**: No testable logic. Confidence not applicable.
 
+## v1.5 addendum (2026-07-01) — e2e harness + suite health
+
+No engine/calculation changes in the harness work; this addendum records **test-infrastructure** confidence, which had silently degraded.
+
+**e2e harness hardened + drifted suite repaired** (steps 2.10–2.11, commit `524d6c0`). The suite had rotted unmaintained across v1.1→v1.5 (UI renames, the onboarding gate, a first-run-overlay hydration flash, the premium seam compiled out of prod builds, date-brittle assertions) and was substantially red — the v1.4 note above ("5 tests across 4 device profiles, all green") **no longer held** and is superseded by this. Now:
+- e2e runs against a **production static build** (`serve out`, not `next dev`) with `retries:1` and a shared warm server; state is seeded before first paint via `tests/e2e/helpers/seed.ts` (`addInitScript`).
+- Premium flows are exercisable against the prod build via the `NEXT_PUBLIC_E2E` seam (set only by the e2e webServer — the shipped build never sets it, so the paywall is unaffected).
+- **Functional suite: green on the phone form factors** — mobile-chrome + iphone-pro-max, 29/29.
+- **Known gaps (tracked, not silently shipped):** the iPad projects' specs still assume the phone single-column layout (iPad's two-column Bills has no sub-tabs) — **test-drift, not an app bug** — and the 3 screenshot/asset specs remain on the old seed pattern. Both are filed as v1.6 test follow-ons; the CI gate being wired in (step 2.13) is scoped to the phone functional specs until they land.
+
+**Standing rule reinforced:** committed suites must be **kept green via checkpoints** (per-feature run · full-suite-green at version lock · CI-gate) so this doesn't recur — the reason CI-gating is pulled forward.
+
+**First-run-overlay hydration flash — verified NOT user-visible (2026-07-01).** Measured on the production static build (`serve out`) with a returning-user seed and a first-run seed, under 1× and 6× CPU throttle: returning users see the plan immediately (SSG shell === hydrated state, zero flash); first-run users see the onboarding flow immediately (screenshots at 200/500 ms under 6× show clean onboarding, never the plan). The SSG pre-renders the plan shell, but because state is read **synchronously in lazy `useState` initializers** (not in `useEffect`), the client's hydration render is already correct and reconciles the shell **before the first visible paint**. Benign — no code change. The `addInitScript`-before-paint seed (§2.11) independently keeps this from flaking the e2e suite. _(Step numbers map to the portfolio MASTER_PLAN queue: this verification = 2.13, the CI gate = 2.14.)_
+
+## v1.5 functional-correctness audit — remediation sign-off (2026-07-02)
+
+A pre-submit **whole-surface functional audit** (5 parallel auditors, real-user lens — "does it do what it SHOULD, not what the spec says") found 4 ship-blockers + 6 should-fixes that **passed the existing tests but were behaviorally wrong**. All 10 fixed, each with a regression test encoding the corrected behavior; **final e2e gate 120/120 green**. Full findings + commit log → [`V15_FUNCTIONAL_AUDIT.md`](V15_FUNCTIONAL_AUDIT.md).
+
+**Confidence held at High.** Money-touching fixes carry reconciliation checks: S1 (per-cycle interest) is pinned by a 26-rollover ≈ one-year-interest reconciliation against the monthly projection; F3 (freed-minimum roll) by a hand-verified 2-vs-3-month payoff on both projection engines.
+
+**⚠️ Supersedes the `computeStreak` note in the feature-lock addendum below:** the streak is now **required-based** (on plan = completed every *affordable required* action; genuine shortfall forgiven; recommended extras have no bearing), backed by the snapshot field `allRequiredMet`; `testComputeStreak` was rewritten accordingly. History "$X paid" now means money toward debt (minimums + snowball), not the old recommended-only total. See audit S4+F5.
+
+## v1.5 feature-lock addendum (2026-07-02) — confidence sign-off
+
+Per the process rule below ("before any version is locked, re-run this audit's checklist"), this records the v1.5-lock confidence pass. **Verdict: v1.5 is High confidence.**
+
+**New v1.5 calculations — each shipped with a dedicated regression test in its own commit (the "test in the same commit" rule), all High:**
+- `computeMilestones` (`testComputeMilestones`) — each threshold fires once on crossing, no re-fire, big-jump→highest, all-paid newly-vs-already, + edges.
+- `computeStreak` (`testComputeStreak`) — most-recent-run counting, broken-streak reset, exact-meet `>=`, zero-required, legacy-missing-field.
+- `computeCycleDelta` (`testComputeCycleDelta`) — down/up/no-previous/no-change/sub-cent.
+- `buildAmortizationSchedule` (`testAmortizationSchedule`) — **reconciles exactly** with `projectDebtPayoff`'s total interest (the money rule) + terminate-at-0, continuity, zero-APR, unpayable.
+- `buildCycleSnapshot` / pay-cycle history visibility (`testPayCycleHistoryRegression`, `selectVisibleHistory`).
+
+**Pre-lock coverage audit (step 2.21, `52f678a`) closed the last 3 untested v1.5 modules** — every v1.5 pure-logic module now has coverage:
+- `getCompletedSnowballAmount` — category+targetId filtering; it feeds `applyRolloverPayment`, so a leak would corrupt the **persisted rollover balance**.
+- `getDebtsWithDisplayBalances` — display-balance derivation (paid-min gating, min-capped-at-balance, snowball stacking, clamp-at-0) + active/paid-off split.
+- `buildPayoffTrajectory` — the Payoff-chart simulator (a *separate* engine from the tested `projectDebtPayoff`): start balance, monotonic-non-increasing, reaches-0-when-payable, extra-payment acceleration, snowball-vs-avalanche divergence, negative-amortization break, BNPL→0%-APR.
+
+**Rollover math** (`applyRolloverPayment`) — High; the interest+minimum+snowball balance mutation is pinned by `testDebtMathRegression` (the safety net added earlier; full Phase-5 extraction still deferred to the sustainability track).
+
+**Test infrastructure — High:** `test:regression` = **25 modules, all green**; the e2e functional suite is **116/116 across all 4 device projects and CI-gated** (`.github/workflows/web-e2e.yml`), superseding the older "phone-only / pre-existing gaps" notes above. A dedicated **storage-safety** spec asserts a corrupt key is preserved + quarantined + surfaced (`planner-storage-safety.spec.ts`). **Lint is 0/0** (step 2.19). tsc + `npm run build` clean.
+
 ---
 
 ## Current baseline audit (2026-06-25, v1.2-dev — ratings carry forward to v1.3 and v1.4, no calculation changes)
@@ -41,9 +83,11 @@ No engine or calculation changes in v1.4. All changes are UI polish, onboarding 
 | Smart Insights (`lib/insights/buildSmartInsights.ts`) | **Fixed this pass** (was Medium) | 5 of 8 branches were tested. Added coverage for the three that weren't: Safe Extra Payment, Payoff Timing Difference, Stability First. |
 | Subscription/tier gating (`lib/subscription/hasFeatureAccess.ts`) | **High** | Zero tests existed anywhere for this function before this pass. Notifications gating in `app/page.tsx` originally bypassed `hasFeatureAccess` via raw `subscriptionPlan === "premium"` string checks; the `interest_savings` `PremiumFeature` was declared but never actually gated anywhere. Both fixed: notifications were briefly routed through `hasFeatureAccess`, then — as a deliberate product decision, not a confidence gap — made free for everyone (reminders are a retention/engagement feature, not an analytical insight; the four remaining gated features — forecasting, strategy comparison, what-if scenarios, smart insights — are the actual premium value). `interest_savings` removed for the same "nothing gates on it" reason. Regression test matrix in `testSubscriptionGating.ts` now covers exactly the 4 features that are actually gated. |
 | Storage/persistence (`lib/storage/backup.ts`) | **Fixed this pass** (was Medium) | `readBackupFile()` did a bare `JSON.parse` with no try/catch and no shape validation — a malformed or wrong-shape backup file would throw uncaught or silently corrupt state. Fixed: wrapped in try/catch with a user-facing error, added minimal required-key validation before accepting an import. |
-| Test harness itself | **High** | `npm run test:regression` runs 15 modules, 150+ assertions, all passing. `tests/e2e/` covers data entry, empty state, hardening, rollover, paycheck flow, payoff date — solid flow coverage. |
+| Test harness itself | **High** | `npm run test:regression` runs 25 modules (grown across v1.5, +2 at the lock — see the v1.5 feature-lock addendum), all passing. `tests/e2e/` (12 functional specs) covers data entry, empty state, hardening, rollover, paycheck flow, payoff date, amortization, history, storage-safety — CI-gated across 4 device projects. |
 
 ## Pre-existing e2e gaps (confirmed not caused by this audit)
+
+> **⚠️ SUPERSEDED at the v1.5 lock (2026-07-02).** The 6 failures below were repaired in the v1.5 e2e rebuild (steps 2.10–2.11) and the suite migration; the full functional suite is now **116/116 green across all 4 device projects, CI-gated**. Kept for history — see the v1.5 feature-lock addendum for current status.
 
 Before committing this pass's fixes, `tests/e2e/planner-data-entry.spec.ts`, `planner-paycheck-flow.spec.ts`, and `planner-rollover-flow.spec.ts` were run against this branch's pre-audit baseline (via `git stash`) to rule out a regression from the changes above. The same 6 failures reproduce on the clean baseline:
 

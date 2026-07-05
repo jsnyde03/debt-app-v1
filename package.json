@@ -1,14 +1,16 @@
 {
   "name": "debt-app-v1",
-  "version": "0.1.0",
+  "version": "1.5.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "serve:export": "serve out",
     "lint": "eslint",
     "test:e2e": "playwright test",
-    "validate:release": "npm run lint && npx tsx lib/testing/runRegressionTests.ts && npm run test:e2e && npm run build",
+    "e2e:fresh": "node scripts/e2e-fresh.cjs",
+    "validate:release": "npm run lint && npm run test:regression && npm run test:e2e",
     "test:regression": "tsx lib/testing/runRegressionTests"
   },
   "dependencies": {
@@ -41,6 +43,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "serve": "^14.2.6",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^5"

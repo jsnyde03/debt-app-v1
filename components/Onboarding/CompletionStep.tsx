@@ -1,9 +1,10 @@
 import { triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { writeKey } from "@/lib/storage/safeStorage";
 
 export function CompletionStep() {
     function handleComplete() {
         triggerMediumHaptic();
-        localStorage.setItem("debtPlanner.hasCompletedOnboarding", JSON.stringify(true));
+        writeKey("debtPlanner.hasCompletedOnboarding", true);
         window.location.reload();
     }
 

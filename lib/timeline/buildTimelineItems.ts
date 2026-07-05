@@ -69,7 +69,9 @@ export function buildTimelineItems({
     const isDueInCycle = (dueDate: string) => {
         const due = new Date(`${dueDate}T00:00:00`);
         const next = new Date(`${nextPaycheckDate}T00:00:00`);
-        return due <= next;
+        // A pay cycle runs [payday, next payday) — it ends the day BEFORE the next
+        // payday, so an item due exactly on the next payday belongs to the next cycle.
+        return due < next;
     };
 
     // Include expenses due this cycle OR already paid this cycle

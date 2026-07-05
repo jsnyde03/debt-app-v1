@@ -1,6 +1,6 @@
 # v1.5 — Track Your Journey
 
-_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: ⬜ Not started — active next version after v1.4.** This is the dedicated build + release checklist for v1.5. Every box below must be checked to qualify for release. Last updated: 2026-06-29._
+_Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: ✅ Feature-locked 2026-07-02 on `v1.5-dev`.** All user-facing workstreams (1–8) + the internal Page Orchestrator (10) are done; #9 was conditional and not triggered; #11 Android prep is a background task (Play Console identity verification), not a feature-lock blocker. Beyond the original workstream list, v1.5 also absorbed a large **quality/testing-hardening wave** (tracked in the portfolio MASTER_PLAN): e2e harness rebuild + CI gate (2.13/2.14), full-app layout & premium-UX pass (2.15), lint 0/0 (2.19), storage-safety e2e (2.20), and a pre-lock regression-coverage audit. This is the dedicated build + release checklist for v1.5. Last updated: 2026-07-02._
 
 **Theme:** Everything that helps users understand where they've been and celebrate how far they've come. Pay Cycle History is the data foundation; milestones, streaks, amortization, and charts make that data meaningful.
 
@@ -12,17 +12,17 @@ _Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). **Status: ⬜ Not st
 
 | # | Workstream | Tier | Status |
 |---|---|---|---|
-| 1 | Pay Cycle History (data foundation) | Premium / Premium+ | ⬜ Not started |
-| 2 | Debt Milestones + Payoff Celebration | Free / Premium+ | ⬜ Not started |
-| 3 | Amortization Calendar | Premium+ | ⬜ Not started |
-| 4 | Streaks | Free / Premium+ | ⬜ Not started |
-| 5 | UX #13 — Since-Last-Cycle Delta | All | ⬜ Not started |
-| 6 | UX #15 — Settings UX Rework | All | ⬜ Not started |
-| 7 | Mobile P5 — Context-aware skeletons | All | ⬜ Not started |
-| 8 | Mobile P6 — Micro-interaction pass | All | ⬜ Not started |
+| 1 | Pay Cycle History (data foundation) | Premium / Premium+ | ✅ Done (2026-07-01) |
+| 2 | Debt Milestones + Payoff Celebration | Free / Premium+ | ✅ Done (2026-07-01) |
+| 3 | Amortization — Premium *lite* view (focus debt); full calendar → v1.6 | Premium | ✅ Done (2026-07-01) |
+| 4 | Streaks | Free / Premium+ | ✅ Done (2026-07-01, Free count; Premium+ chart → v1.6) |
+| 5 | UX #13 — Since-Last-Cycle Delta | All | ✅ Done (2026-07-01) |
+| 6 | UX #15 — Settings UX Rework | All | ✅ Done (2026-07-01, accordion + first-run modal) |
+| 7 | Mobile P5 — Context-aware skeletons | All | ✅ Done (2026-07-02) |
+| 8 | Mobile P6 — Micro-interaction pass | All | ✅ Done (2026-07-02, audit — already in place) |
 | 9 | Mobile P10 — Timeline overflow *(conditional)* | All | ⬜ Deferred unless triggered |
-| 10 | Page Orchestrator Phases 1–2 (internal) | — | ⬜ Not started |
-| 11 | Android prep (Play Console + Maestro) | Infra | ⬜ Not started |
+| 10 | Page Orchestrator Phases 1–2 (internal) | — | ✅ Done (2026-07-02, `e40a260`+`7cae993`; Phases 3–5 → sustainability track) |
+| 11 | Android prep (Play Console signup) | Infra | ⬜ Background (Play Console identity verification — weeks of waiting, zero code; not a feature-lock blocker) |
 
 **Build order:** Pay Cycle History (1) is the data dependency for Milestones (2), Streaks (4), and the Delta indicator (5) — build it first. Amortization (3) is independent. Mobile polish (7, 8) and Android prep (11) can run in parallel anytime. Settings rework (6) needs a decision before code (see §6). Page Orchestrator (10) is internal and can interleave.
 
@@ -78,34 +78,36 @@ export type PayCycleSnapshot = {
 
 ## 2 — Debt Milestones + Payoff Celebration
 
-**Build steps:**
-- [ ] New `lib/debt/computeMilestones.ts` — pure function comparing `debt.balance` against `debt.originalBalance` per debt; returns crossed thresholds (25/50/75/100%) plus an "all debts paid off" check.
-- [ ] New `components/MilestoneBadge.tsx` — celebration card/toast triggered when a rollover crosses a threshold.
-- [ ] **Debt payoff celebration (UX #19b):** when a debt crosses 100% on rollover, trigger a distinct paid-off experience — `triggerMediumHaptic()`, full-width celebration card with confetti-style animation, debt's name prominently displayed. This is the emotional peak of the app — **do not ship a subdued version.** See [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) (#19b).
-- [ ] Wire the celebratory entrance through Mobile P6's motion (see §8) rather than an instant appear.
+**Build steps:** ✅ **Done 2026-07-01.**
+- [x] New `lib/debt/computeMilestones.ts` — pure function comparing each debt's **pre- vs post-rollover** balance against `originalBalance`; returns the thresholds **newly crossed this cycle** (25/50/75/100%, highest wins on a big jump), plus `allDebtsPaidOff` / `newlyAllPaidOff`. Needs both balances (not just current) so a threshold fires exactly once, on the cycle it's crossed — never re-firing on later rollovers.
+- [x] New `components/MilestoneBadge.tsx` — a full-screen celebration overlay with three tiers: **progress** (25/50/75% — ✨/🔥, success haptic, no confetti), **paid-off** (100% — 🏆, medium haptic, confetti), **debt-free** (all paid — 🎉, medium haptic, heavier confetti). Deterministic seeded confetti (render-pure, SSR-safe — no `Math.random` during render). Both themes verified.
+- [x] **Debt payoff celebration (UX #19b):** a debt crossing 100% on rollover triggers the distinct paid-off experience — `triggerMediumHaptic()`, full-width confetti celebration card, debt's name prominent. **Not subdued** — screenshot-verified premium in light + dark.
+- [x] Wired into `handleRolloverPayCycle`: payments applied once, milestones computed from before/after, then the single most-significant celebration is surfaced (debt-free > paid-off > highest progress threshold). _(Mobile P6 motion is §8, later; entrance uses the existing `centerModalIn`/pop easing meanwhile.)_
 
-**Tier:** Free (badges); Premium+ (calendar context on the celebration card).
+**Tier:** Free (badges); Premium+ (calendar context on the celebration card — deferred with the v1.6 tier, like amortization's full calendar).
 
-**Tests required:**
-- [ ] Regression: `computeMilestones` returns correct crossed thresholds for 0/25/50/75/100% and the all-paid-off case; edge cases — `originalBalance` unset, balance increased.
+**Tests required:** ✅
+- [x] Regression (`lib/debt/testComputeMilestones.ts`, 12 assertions): each of 25/50/75/100% detected once on its crossing; no re-fire past a crossed threshold; big-jump reports the highest; all-paid-off + newly-vs-already distinction; edge cases — `originalBalance` unset, balance increased, sub-25% progress, mixed paid/owing.
 
-**Files:** `lib/debt/computeMilestones.ts` (new), `components/MilestoneBadge.tsx` (new), rollover handler wiring in `app/page.tsx`.
+**Files:** `lib/debt/computeMilestones.ts` (new), `lib/debt/testComputeMilestones.ts` (new), `components/MilestoneBadge.tsx` (new), rollover wiring in `app/page.tsx`, celebration CSS in `09-anim-swipe-media-misc.css`.
 
 ---
 
-## 3 — Amortization Calendar (Premium+)
+## 3 — Amortization (v1.5: Premium *lite* view; Premium+ full calendar → v1.6)
 
-**Build steps:**
-- [ ] New `lib/debt/buildAmortizationSchedule.ts` — loops the existing `lib/debt/applyDebtPaymentProjection.ts` (single-month step) to produce a month-by-month schedule until payoff. **Reuse, don't reinvent.**
-- [ ] New `components/AmortizationCalendar.tsx` — per-debt table/calendar view, reachable from each debt row via "View Schedule", gated via `hasFeatureAccess`.
+**Scope decision (2026-07-01):** Premium+ isn't purchasable until v1.6 (3-tier infra), so v1.5 builds **only the Premium *lite* view** — a per-debt schedule for the user's **current/focus debt** — plus the shared engine + reconciliation test. The **Premium+ full / all-debts calendar defers to v1.6**, bundled with the tier that makes it sellable (no point gating a feature behind a tier no one can buy). Build the lite as focus-debt-only from the start so v1.6 doesn't have to claw back an all-debts view from Premium.
 
-**Tier:** Premium+.
+**Build steps (v1.5 — lite):** ✅ **Done 2026-07-01.**
+- [x] New `lib/debt/buildAmortizationSchedule.ts` — loops the existing `lib/debt/applyDebtPaymentProjection.ts` (single-month step) to produce a month-by-month schedule until payoff. **Reuse, don't reinvent.** Returns `{ rows, totalInterest, totalPaid, monthsToPayoff, payoffPossible }`; mirrors `projectDebtPayoff`'s `MAX_MONTHS` (600) + `cannotAmortize` negative-amortization early-out. (Engine is tier-agnostic; both lite and the future full calendar consume it.)
+- [x] New `components/AmortizationCalendar.tsx` — per-debt table view (Month · Interest · Principal · Balance) for the **focus debt** (`payoffOrder[0]`), reachable via a **"View Schedule"** button on the focus strip in `SnowballSection`, gated via `hasFeatureAccess(plan, "amortization_schedule")` to **Premium** (new `PremiumFeature`, not Premium+-only). Free users route straight to the paywall; premium sees the schedule paid at the debt's minimum + recommended snowball extra. Both themes verified.
 
-**Tests required (mandatory — finance math):**
-- [ ] **Reconciliation test:** `buildAmortizationSchedule`'s total interest must equal `projectDebtPayoff`'s `totalInterestPaid` for identical inputs. Silent math disagreement in a finance app is the worst bug class — this test is non-negotiable.
-- [ ] Regression: schedule terminates at payoff; final balance is exactly 0; zero-APR and already-paid-off debts handled.
+**Tier (v1.5):** Premium (lite — focus debt only). _Premium+ full calendar (all debts) → v1.6, with the 3-tier infra._
 
-**Files:** `lib/debt/buildAmortizationSchedule.ts` (new), `components/AmortizationCalendar.tsx` (new), debt-row entry point.
+**Tests required (mandatory — finance math):** ✅
+- [x] **Reconciliation test:** `buildAmortizationSchedule`'s total interest equals `projectDebtPayoff`'s `totalInterestPaid` for identical single-debt inputs — 5 cases across APRs/payments in `lib/debt/testAmortizationSchedule.ts`. (Exact: interest on sub-cent residuals rounds to 0, so the normalize-vs-round endgame difference never touches the interest total.)
+- [x] Regression: schedule terminates at payoff; final balance is exactly 0; row-to-row balance continuity; zero-APR, already-paid-off, and negative-amortization debts handled. Plus e2e (`tests/e2e/planner-amortization-flow.spec.ts`): premium opens the schedule → lands at $0; free sees the Premium pill → paywall. Green on all 4 device profiles.
+
+**Files:** `lib/debt/buildAmortizationSchedule.ts` (new), `lib/debt/testAmortizationSchedule.ts` (new), `components/AmortizationCalendar.tsx` (new), `components/SnowballSection.tsx` (entry point), `lib/subscription/features.ts` (+ `testSubscriptionGating.ts`), `tests/e2e/planner-amortization-flow.spec.ts` (new), CSS in `03-nav-results-modals.css` + `06-forecast-and-payoff-shell.css`.
 
 **Risk:** Medium — the reconciliation test is where the time goes. Budget for it.
 
@@ -113,16 +115,17 @@ export type PayCycleSnapshot = {
 
 ## 4 — Streaks
 
-**Build steps:**
-- [ ] Derive from `cycleHistory`: count consecutive snapshots where `totalPaidThisCycle >= totalRequired`.
-- [ ] Surface as a small stat near the Plan tab top — Free gets the count; Premium+ gets the historical chart (reuse the History view).
+**Build steps:** ✅ **Done 2026-07-01 (Free count; Premium+ chart deferred to v1.6 with the tier).**
+- [x] Derive from `cycleHistory`: consecutive most-recent snapshots where `totalPaidThisCycle >= recommendedThisCycle` ("stayed on plan"). **Data-model note:** the snapshot didn't carry a "required" total, and comparing paid against only the *completed* actions' amounts is trivially always-true — so this added an optional `recommendedThisCycle` to `PayCycleSnapshot` (sum of the plan's snowball + emergency + optional-goal allocations for the cycle), set in `buildCycleSnapshot`, computed at rollover from `result.allocations`. Optional field → snapshots persisted before it (and cycles the plan asked nothing extra of) count as on-plan (`required` 0). This *refines* the spec's loose `totalRequired` to a concrete, honest, interest-immune "did you do your part" bar.
+- [x] New pure `lib/debt/computeStreak.ts` (`computeStreak` + `isCycleOnPlan`) — counts backward from the latest cycle (history is oldest-first), stops at the first break.
+- [x] Surfaced as a small `🔥 N cycles on plan in a row` stat at the **Plan-tab top** (first child of `plan-tab-grid`, spans both columns on wide layouts; hidden at streak 0 so a new user never sees "0"). **Free** — always visible, no gate. _Premium+ historical chart reuses the existing History view → deferred to v1.6 with the tier, like the amortization full calendar + milestone calendar-context._
 
-**Tier:** Free (count) + Premium+ (chart).
+**Tier:** Free (count) + Premium+ (chart → v1.6).
 
-**Tests required:**
-- [ ] Regression: streak count for a run of qualifying snapshots, a broken streak, and an empty history (→ 0).
+**Tests required:** ✅
+- [x] Regression (`lib/debt/testComputeStreak.ts`): full qualifying run, a broken streak (only the most-recent run counts), a broken *most-recent* cycle (→ 0), empty history (→ 0), exact-meet (`>=`), zero-required cycle, and a legacy snapshot missing `recommendedThisCycle`. Plus a new `buildCycleSnapshot` assertion that it carries `recommendedThisCycle`.
 
-**Files:** streak derivation (likely in `usePayCycleHistory.ts` or a small `lib/debt/computeStreak.ts`), Plan-tab stat render.
+**Files:** `lib/debt/computeStreak.ts` (new), `lib/debt/testComputeStreak.ts` (new), `lib/storage/debtPlannerStorage.ts` (+ `recommendedThisCycle`), `lib/history/buildCycleSnapshot.ts`, `app/page.tsx` (rollover wiring + Plan-tab stat), streak CSS in `03-nav-results-modals.css` + `09-anim-swipe-media-misc.css`.
 
 ---
 
@@ -130,25 +133,25 @@ export type PayCycleSnapshot = {
 
 _Depends on #1 cycle history. Must not be built before it lands._
 
-**Build steps:**
-- [ ] Use `usePayCycleHistory.ts`'s `previousSnapshot` getter.
-- [ ] Compute `delta = previousSnapshot.totalDebtBalance - currentTotalDebt`. `delta > 0` (debt reduced) → green `↓ $X`; `delta < 0` → amber `↑ $X`; no previous snapshot → render nothing.
-- [ ] Apply `font-variant-numeric: tabular-nums` to the delta value.
+**Build steps:** ✅ **Done 2026-07-01.**
+- [x] Uses `usePayCycleHistory`'s existing `previousSnapshot` getter (no hook change needed).
+- [x] New pure `lib/debt/computeCycleDelta.ts` — `delta = previousSnapshot.totalDebtBalance − currentTotalDebt` (current = sum of live `debt.balance`, matching how the snapshot was recorded → the number reflects what the last rollover actually moved). `> 0` → green `↓ $X` "paid down since last cycle"; `< 0` → amber `↑ $X` "since last cycle"; no previous snapshot **or** a $0/sub-cent change → render nothing (no clutter). Returns `{direction, amount}` or `null`.
+- [x] Rendered as `.summary-strip-delta` directly under the `execution-summary-strip` in `ResultsSection`, `tabular-nums`, with `TrendingDown`/`TrendingUp` icons and an `aria-label`. **Interest honesty:** because it's measured on total balance (incl. accrued interest), a tight cycle can show amber ↑ even if the user paid — deliberately kept neutral ("since last cycle"), not scolding; the interest-immune "did you do your part" signal is the Streak, so the two complement rather than contradict.
+- [x] Regression `lib/debt/testComputeCycleDelta.ts`: down, up, no-previous (null + undefined), no-change → null, sub-cent → null, cents preserved.
 
-**Files:** `lib/hooks/usePayCycleHistory.ts`, `components/ResultsSection.tsx`, `app/styles/03-nav-results-modals.css` (new `.summary-strip-delta`). See [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) #13.
+**Files:** `lib/debt/computeCycleDelta.ts` (new), `lib/debt/testComputeCycleDelta.ts` (new), `components/ResultsSection.tsx` (+ `previousSnapshot` prop), `app/page.tsx` (passes `previousSnapshot`), `app/styles/03-nav-results-modals.css` (`.summary-strip-delta`). See [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) #13.
 
 ---
 
 ## 6 — UX #15: Settings UX Rework
 
-**⚠️ Decision required before any code.** Two viable approaches (see [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) #15):
-1. **Accordion / in-place expansion** in the existing settings surface (lighter for one-field tweaks).
-2. **Dedicated Settings tab** — 5th bottom-nav item (simpler, but 5 items at 375px may crowd).
+**✅ DECIDED 2026-07-01 (Jason): Accordion / in-place expansion for returning users; keep the focused modal for first-run onboarding.** Rationale: the 4 bottom-nav tabs (Plan/Bills/Payoff/Goals) are all frequent *task* destinations — infrequent config doesn't earn a permanent nav slot, and 5 items at 375px crowds touch targets (premium-bar concern). The accordion matches the existing `plan-section-body` collapse pattern already in the codebase and kills the "open a whole modal to change one field" friction. First-run genuinely wants a focused, non-dismissible surface, so the modal stays there (`isFirstRunSetup`). _(Rejected: the 5th-nav-tab option — simpler but crowds the nav and prime-slots rarely-used config.)_
 
-**Build steps:**
-- [ ] Pick the approach (record the decision in this section before building).
-- [ ] Implement the chosen pattern.
-- [ ] **Verify it works in first-run onboarding context** — the settings modal is reused there (v1.4). Either confirm the accordion works first-run, or keep the modal form for first-run only and switch to the accordion for returning-user settings.
+**Build steps:** ✅ **Done 2026-07-01.**
+- [x] Pick the approach — **accordion (returning) + modal (first-run).**
+- [x] **Extracted the settings body into one shared `components/PlanSettings/PlanSettingsBody.tsx`** (dovetails with the Page-Orchestrator Phase-2 `PlanSettingsSheet` extraction — credit it there) so the first-run modal and the returning-user accordion render the *same* fields without duplication. Container-agnostic via `onClose` / `onOpenHistory`. Zero-behavior-change refactor, modal verified identical (step 8.1).
+- [x] Accordion: both settings gears (plan-toolbar + sidebar) now **toggle** `showPlanSettings` (aria-expanded); for returning users it expands `<PlanSettingsBody>` inline **under the hero** (between hero and tab content, so it shows on any tab) via a `.plan-settings-accordion` max-height/opacity/visibility transition (mirrors `plan-section-body`, taller cap for the long body). The theme 3-way (#27 Auto/Light/Dark) already lived in the body, so it rides along — no separate hero theme button to remove.
+- [x] **First-run onboarding still uses the focused modal** — modal gated to `showPlanSettings && isFirstRunSetup`, non-dismissible, "Create Your First Plan", now rendering the shared body. Screenshot-verified: first-run modal + returning accordion, both light + dark.
 
 **Files:** `app/page.tsx`, `components/PlanSettings/PlanSettingsSheet.tsx` (or its Page-Orchestrator-Phase-2 successor), `app/styles/03-nav-results-modals.css`.
 
@@ -157,27 +160,25 @@ _Depends on #1 cycle history. Must not be built before it lands._
 ## 7 — Mobile P5: Context-Aware Skeleton Loading
 
 **Build steps:**
-- [ ] Split `components/AppSkeleton.tsx` into shape-specific pieces (debt-row-shaped, plan-summary-shaped) composing the same loading screen — reuse the existing `skeletonShimmer` keyframe; this is a structure change, not a new animation.
-- [ ] Render the composed skeleton matching whichever tab would be active on load.
+- [x] Split `components/AppSkeleton.tsx` into shape-specific pieces composing the loading screen — new `components/Skeleton/PlanSkeleton.tsx` (the Plan silhouette: hero + a "This Paycheck" summary panel holding a status line + the adaptive 2×2→4-col metric grid + action-row bars). `AppSkeleton` is now the shell (app frame + nav) that renders it. Reuses the `skeletonShimmer` base (no new animation).
+- [x] Render the composed skeleton matching the tab active on load. **Before-scan finding:** `activeTab` is `useState("plan")` — **not persisted** — so the app always opens on Plan; the Plan silhouette is the only one needed today. Per-tab (debt-row-shaped) skeletons would be speculative dead code until the tab is persisted → deferred with the "persist the active tab" backlog item (MASTER_PLAN §9 v1.6). Added `aria-busy`/`aria-label` for real loading semantics.
 
-**Files:** `components/AppSkeleton.tsx` → likely a new `components/Skeleton/` directory. See [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) P5.
+**Shipped/verified (2026-07-02):** silhouette matches the real Plan tab, screenshot + DOM-measured across light/dark × phone/iPad (iPad metric grid correctly goes 4-across; rows full-width — an early "narrow rows" read was just the faint light-theme shimmer, disproven by `boundingBox` = 722px). Keep-green: empty-state + onboarding specs pass. **After-scan → backlog (v1.6):** slightly higher light-theme skeleton contrast + an iPad sidebar-rail silhouette (the skeleton currently shows no nav on iPad).
 
-**Verification:** Visual only — silhouette roughly matches real content per tab. **Risk:** Low.
+**Files:** `components/AppSkeleton.tsx`, `components/Skeleton/PlanSkeleton.tsx`, `app/styles/09-anim-swipe-media-misc.css`. See [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) P5.
+
+**Verification:** Visual only — silhouette roughly matches real content per tab. **Risk:** Low. ✅ Done.
 
 ---
 
 ## 8 — Mobile P6: Micro-Interaction Pass
 
-**Build steps:**
-- [ ] Audit every button variant (`.primary-button`, `.secondary-button`, icon-only, swipe-action) for consistent `:active` treatment; fix gaps rather than inventing new treatments.
-- [ ] Apply the existing `planItemReveal` keyframe to newly-added items on Bills/Debts/Goals tabs (not just Plan).
-- [ ] Give the milestone badge (§2) a celebratory entrance (scale+fade, existing easing).
+**Outcome (2026-07-02 audit): all three already in place — no code change needed.** The before-scan showed prior versions already shipped this polish; verified rather than rebuilt (fixing gaps, not inventing).
+- [x] **Button `:active` consistency** — a catch-all `button:active { scale(0.965) }` covers every `<button>` (no `role="button"` div-buttons exist; swipe-actions are gestures, not tap targets), plus a coherent **size-tiered** system: icon buttons `0.90`, standard buttons `0.965`, large rows/cards `0.98–0.992`, nav/list-options use background feedback, segmented toggles intentionally `transform:none`. The base `button` transitions `transform` over 140ms with a spring easing, so presses animate smoothly. Micro-diffs (0.96 vs 0.965) are imperceptible — no gaps, no changes.
+- [x] **New-items-only reveal on Bills/Debts/Goals** — already implemented: `.debt-list-item` / `.required-expense-row` / `.goal-list-item` run `cardReveal` on mount (staggered via nth-child), and every list uses **stable `id` keys** (`key={debt.id}` etc.), so adding an item mounts only the new node (only it animates), re-renders keep nodes (no re-anim), and tab re-entry gives the intentional staggered reveal (consistent with the Timeline). **Empirically verified** via `getAnimations()`: after adding a debt, the existing rows stayed `playState: "finished"` while only the new row was `"running"`.
+- [x] **Milestone badge entrance** — already celebratory: `.milestone-card` uses `centerModalIn` (scale+fade), the emoji `milestonePop`, and major milestones add confetti; overlay fades via `modalBackdropIn`. All have `prefers-reduced-motion` fallbacks.
 
-**⚠️ The one real correctness risk:** animations must fire **only on genuinely new items**, not the whole list on every re-render. Use stable per-item `key`s + animation-on-mount scoped to new DOM nodes, not a re-triggerable class toggle.
-
-**Files:** `app/styles/09-anim-swipe-media-misc.css`, list-rendering components (`DebtGroup.tsx`, expense list parent, `GoalsSection.tsx`), `components/MilestoneBadge.tsx`. See [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) P6.
-
-**Verification:** Add a debt/expense/goal → confirm only the new item animates. **Risk:** Low-medium (the new-items-only requirement).
+**Files audited:** `app/styles/00-theme-and-base.css` + `03-nav-results-modals.css` (:active), `app/styles/09-anim-swipe-media-misc.css` (cardReveal / milestone), list components (`DebtRow.tsx`, `ExpenseListItem.tsx`, `GoalsSection.tsx`), `components/MilestoneBadge.tsx`. **Risk:** Low. ✅ Done.
 
 ---
 
@@ -245,7 +246,7 @@ _Extends [release-qa-checklist.md](release-qa-checklist.md) with v1.5-specific f
 
 ## Release gate (must all pass)
 
-- [ ] `npm run lint` passes
+- [ ] `npm run lint` passes — **fully clean (0 errors, 0 warnings).** As of 2026-07-01 it reports ~2,020 problems, but **~1,994 are in `ios/App/App/public/_next/static/chunks/*.js`** — Capacitor's copy of the compiled/minified Next.js bundle, which must not be linted. Fix = ignore the Capacitor web-copy (`ios/App/App/public/`) in eslint config, then clear the small handful of real source issues (4 errors + ~13 warnings across `app/page.tsx`, `WelcomeStep.tsx`, `SnowballSection.tsx`, `FirstDebtOrBillStep.tsx`, `PaycheckSection.tsx`, `ResultsSection.tsx`). Tracked as its own v1.5 step in the master-plan queue.
 - [ ] `npm run test:regression` passes — **including** every new test listed above and the Amortization reconciliation test
 - [ ] E2E (`tests/e2e/`) passes, including new History/tier specs
 - [ ] `npm run build` (production) clean

@@ -584,13 +584,17 @@ function testRolloverMonthlyExpenseAdvancesDueDate() {
 	assertEqual(rolled[0].dueDate, "2026-07-05", "Monthly expense advances due date by 1 month");
 }
 
-function testRolloverOneTimeExpenseKeepsDueDate() {
+function testRolloverDropsPaidOneTimeExpense() {
+	// A PAID one-time expense is done - it must be DROPPED on rollover, not
+	// reset to unpaid with its old due date (which would resurrect it as an
+	// overdue required expense that re-consumes the budget every cycle).
 	const expenses: RequiredExpense[] = [
 		{ id: "fee", name: "One-time Fee", amount: 50, dueDate: "2026-06-20", recurrence: "one-time", isPaidThisCycle: true },
+		{ id: "rent", name: "Rent", amount: 1000, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: true },
 	];
 	const rolled = rolloverRequiredExpenses(expenses, "2026-07-01");
-	assertEqual(rolled[0].dueDate, "2026-06-20", "One-time expense keeps original due date");
-	assertEqual(rolled[0].isPaidThisCycle, false, "One-time expense resets paid status");
+	assertEqual(rolled.length, 1, "paid one-time expense is dropped on rollover");
+	assertEqual(rolled[0].id, "rent", "the recurring expense survives the rollover");
 }
 
 function testRolloverPerPaycheckExpenseAdvancesToPlanDate() {
@@ -795,7 +799,7 @@ function runFullAppRegressionTests() {
 	// Rollover pay cycle
 	testRolloverExpenseResetsIsPaidThisCycle();
 	testRolloverMonthlyExpenseAdvancesDueDate();
-	testRolloverOneTimeExpenseKeepsDueDate();
+	testRolloverDropsPaidOneTimeExpense();
 	testRolloverPerPaycheckExpenseAdvancesToPlanDate();
 	testRolloverUnpaidExpenseDoesNotAdvanceDueDate();
 	testRolloverDebtResetsPaidFlags();

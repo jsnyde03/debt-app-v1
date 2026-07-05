@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { loadStoredState } from "@/lib/storage/loadStoredState";
+import { usePersistedState } from "@/lib/storage/usePersistedState";
 import { getNextPaycheckDate, type PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
 
 export function getCurrentDate() {
@@ -11,34 +10,36 @@ export function getCurrentDate() {
 }
 
 export function usePayCycleSettings() {
-    const [amount, setAmount] = useState(() =>
-        loadStoredState("debtPlanner.amount", "")
+    const [amount, setAmount] = usePersistedState("debtPlanner.amount", "");
+
+    const [currentDate, setCurrentDate] = usePersistedState(
+        "debtPlanner.currentDate",
+        getCurrentDate()
     );
 
-    const [currentDate, setCurrentDate] = useState(() =>
-        loadStoredState("debtPlanner.currentDate", getCurrentDate())
+    const [nextPaycheckDate, setNextPaycheckDate] = usePersistedState(
+        "debtPlanner.nextPaycheckDate",
+        getNextPaycheckDate({ payCycle: "biweekly", currentDate: getCurrentDate() })
     );
 
-    const [nextPaycheckDate, setNextPaycheckDate] = useState(() =>
-        loadStoredState("debtPlanner.nextPaycheckDate", getNextPaycheckDate({
-            payCycle: "biweekly",
-            currentDate: getCurrentDate(),
-        })));
-
-    const [payCycle, setPayCycle] = useState<PayCycle>(() =>
-        loadStoredState("debtPlanner.payCycle", "biweekly")
+    const [payCycle, setPayCycle] = usePersistedState<PayCycle>(
+        "debtPlanner.payCycle",
+        "biweekly"
     );
 
-    const [semiMonthlyFirstDay, setSemiMonthlyFirstDay] = useState(() =>
-        loadStoredState("debtPlanner.semiMonthlyFirstDay", "1")
+    const [semiMonthlyFirstDay, setSemiMonthlyFirstDay] = usePersistedState(
+        "debtPlanner.semiMonthlyFirstDay",
+        "1"
     );
 
-    const [semiMonthlySecondDay, setSemiMonthlySecondDay] = useState(() =>
-        loadStoredState("debtPlanner.semiMonthlySecondDay", "15")
+    const [semiMonthlySecondDay, setSemiMonthlySecondDay] = usePersistedState(
+        "debtPlanner.semiMonthlySecondDay",
+        "15"
     );
 
-    const [monthlyPayDay, setMonthlyPayDay] = useState(() =>
-        loadStoredState("debtPlanner.monthlyPayDay", "1")
+    const [monthlyPayDay, setMonthlyPayDay] = usePersistedState(
+        "debtPlanner.monthlyPayDay",
+        "1"
     );
 
     function hasValidPayCycleInputs() {
@@ -62,46 +63,6 @@ export function usePayCycleSettings() {
 
         return true;
     }
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.amount", JSON.stringify(amount));
-    }, [amount]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.payCycle", JSON.stringify(payCycle));
-    }, [payCycle]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.semiMonthlyFirstDay",
-            JSON.stringify(semiMonthlyFirstDay)
-        );
-    }, [semiMonthlyFirstDay]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.semiMonthlySecondDay",
-            JSON.stringify(semiMonthlySecondDay)
-        );
-    }, [semiMonthlySecondDay]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.monthlyPayDay",
-            JSON.stringify(monthlyPayDay)
-        );
-    }, [monthlyPayDay]);
-
-    useEffect(() => {
-        localStorage.setItem(
-            "debtPlanner.currentDate",
-            JSON.stringify(currentDate)
-        );
-    }, [currentDate]);
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.nextPaycheckDate", JSON.stringify(nextPaycheckDate));
-    }, [nextPaycheckDate]);
 
     return {
         amount,

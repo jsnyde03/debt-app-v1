@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { loadStoredState } from "@/lib/storage/loadStoredState";
+import { useState } from "react";
+import { usePersistedState } from "@/lib/storage/usePersistedState";
 import { triggerErrorHaptic } from "@/lib/mobile/haptics";
 
 export type Goal = {
@@ -12,9 +12,7 @@ export type Goal = {
 };
 
 export function useGoals() {
-    const [goals, setGoals] = useState<Goal[]>(() =>
-        loadStoredState("debtPlanner.goals", [])
-    );
+    const [goals, setGoals] = usePersistedState<Goal[]>("debtPlanner.goals", []);
 
     const [goalName, setGoalName] = useState("Starter Emergency Fund");
     const [goalTargetAmount, setGoalTargetAmount] = useState("1000");
@@ -27,10 +25,6 @@ export function useGoals() {
         name?: string;
         targetAmount?: string;
     }>({});
-
-    useEffect(() => {
-        localStorage.setItem("debtPlanner.goals", JSON.stringify(goals));
-    }, [goals]);
 
     function handleAddGoal() {
         const targetAmount = Number(goalTargetAmount);

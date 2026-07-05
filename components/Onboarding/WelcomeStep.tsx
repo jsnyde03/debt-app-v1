@@ -20,7 +20,7 @@ export function WelcomeStep({ onNext, onDemoMode }: WelcomeStepProps) {
             <div className="onboarding-copy">
                 <h1 className="onboarding-title">Your paycheck,<br />organized.</h1>
                 <p className="onboarding-subtitle">
-                    Know exactly where every dollar goes and when you'll be debt-free.
+                    Know exactly where every dollar goes and when you&apos;ll be debt-free.
                 </p>
             </div>
 

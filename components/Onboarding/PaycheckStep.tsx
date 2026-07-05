@@ -2,6 +2,7 @@ import { useState } from "react";
 import { getNextPaycheckDate, type PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
 import { getCurrentDate } from "@/lib/hooks/usePayCycleSettings";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
+import { writeKey } from "@/lib/storage/safeStorage";
 
 type PaycheckStepProps = {
     onNext: () => void;
@@ -44,16 +45,16 @@ export function PaycheckStep({ onNext, onSkip }: PaycheckStepProps) {
         }
         setError("");
         const today = getCurrentDate();
-        localStorage.setItem("debtPlanner.amount", JSON.stringify(amount));
-        localStorage.setItem("debtPlanner.payCycle", JSON.stringify(payCycle));
-        localStorage.setItem("debtPlanner.currentDate", JSON.stringify(today));
-        localStorage.setItem("debtPlanner.nextPaycheckDate", JSON.stringify(nextDate));
+        writeKey("debtPlanner.amount", amount);
+        writeKey("debtPlanner.payCycle", payCycle);
+        writeKey("debtPlanner.currentDate", today);
+        writeKey("debtPlanner.nextPaycheckDate", nextDate);
         if (payCycle === "semimonthly") {
-            localStorage.setItem("debtPlanner.semiMonthlyFirstDay", JSON.stringify(firstDay));
-            localStorage.setItem("debtPlanner.semiMonthlySecondDay", JSON.stringify(secondDay));
+            writeKey("debtPlanner.semiMonthlyFirstDay", firstDay);
+            writeKey("debtPlanner.semiMonthlySecondDay", secondDay);
         }
         if (payCycle === "monthly") {
-            localStorage.setItem("debtPlanner.monthlyPayDay", JSON.stringify(payDay));
+            writeKey("debtPlanner.monthlyPayDay", payDay);
         }
         triggerLightHaptic();
         onNext();

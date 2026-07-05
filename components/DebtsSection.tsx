@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@/lib/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { parseDebtFormValues } from "@/lib/debt/parseDebtFormValues";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";
 import { DebtGroup } from "./Debts/DebtGroup";
@@ -132,10 +133,14 @@ export function DebtsSection({
     const [showSortSheet, setShowSortSheet] = useState(false);
     const showFab = useScrollFabVisible();
 
-    const [expandedSections, setExpandedSections] = useState({
-        active: false,
+    // On the iPad two-column Bills layout (≥834px) the Debts column would otherwise
+    // leave a long void below the collapsed groups — so expand Active Debts by
+    // default there (2.15.3). Read at init: this mounts client-only behind the app's
+    // isMounted gate, so matchMedia is hydration-safe on the static export.
+    const [expandedSections, setExpandedSections] = useState(() => ({
+        active: typeof window !== "undefined" && window.matchMedia("(min-width: 834px)").matches,
         paidOff: false,
-    });
+    }));
 
     const DEBT_PAGE_SIZE = 10;
 
@@ -183,20 +188,26 @@ export function DebtsSection({
     }
 
     function saveEditing(id: string) {
-        const balance = Number(editBalance);
-        const minimumPayment = Number(editMinimumPayment);
-        const apr = Number(editApr || 0);
+        // Reject non-finite / negative input BEFORE persisting. Number("12,000")
+        // is NaN and NaN < 0 is false, so the old `balance < 0` guard let NaN
+        // through and corrupted every total. parseDebtFormValues tolerates comma
+        // grouping and rejects garbage wholesale.
+        const parsed = parseDebtFormValues({
+            balance: editBalance,
+            minimumPayment: editMinimumPayment,
+            apr: editApr,
+        });
 
-        if (balance < 0 || minimumPayment < 0 || apr < 0 || !editDueDate) {
+        if (!parsed || !editDueDate) {
             return;
         }
 
         triggerMediumHaptic();
 
         onUpdateDebt(id, {
-            balance,
-            minimumPayment,
-            apr,
+            balance: parsed.balance,
+            minimumPayment: parsed.minimumPayment,
+            apr: parsed.apr,
             dueDate: editDueDate,
             isAutopay: editIsAutopay,
             recurrence: editRecurrence,

@@ -261,16 +261,26 @@ export function DebtRow({
                         ) : null;
                     })()}
 
-                    {debt.originalBalance && debt.originalBalance > 0 && displayBalance > 0 && displayBalance < debt.originalBalance && (
-                        <div className="debt-progress-track">
-                            <div
-                                className="debt-progress-fill"
-                                style={{
-                                    width: `${Math.min(100, Math.max(0, ((debt.originalBalance - displayBalance) / debt.originalBalance) * 100))}%`,
-                                }}
-                            />
-                        </div>
-                    )}
+                    {(() => {
+                        const orig = debt.originalBalance;
+                        if (!orig || orig <= 0 || displayBalance <= 0 || displayBalance >= orig) {
+                            return null;
+                        }
+                        const paidPercent = Math.round(
+                            Math.min(100, Math.max(0, ((orig - displayBalance) / orig) * 100))
+                        );
+                        return (
+                            <div className="debt-progress-row">
+                                <div className="debt-progress-track">
+                                    <div
+                                        className="debt-progress-fill"
+                                        style={{ width: `${paidPercent}%` }}
+                                    />
+                                </div>
+                                <span className="debt-progress-percent">{paidPercent}% paid</span>
+                            </div>
+                        );
+                    })()}
                 </div>
 
                 <div className="saved-item-right">

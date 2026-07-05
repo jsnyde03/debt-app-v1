@@ -1,88 +1,31 @@
 import { expect, test, type Page } from "@playwright/test";
+import { seedLocalStorage } from "./helpers/seed";
 
 async function seedPlanner(page: Page) {
-    await page.goto("/");
-
-    await page.evaluate(() => {
-        localStorage.clear();
-
-        localStorage.setItem("debtPlanner.amount", JSON.stringify("2000"));
-        localStorage.setItem("debtPlanner.payCycle", JSON.stringify("biweekly"));
-        localStorage.setItem("debtPlanner.currentDate", JSON.stringify("2026-05-23"));
-        localStorage.setItem("debtPlanner.hasConfiguredPaycheck", JSON.stringify(true));
-
-        localStorage.setItem(
-            "debtPlanner.requiredExpenses",
-            JSON.stringify([
-                {
-                    id: "rent",
-                    name: "Rent",
-                    amount: 1200,
-                    dueDate: "2026-05-28",
-                    recurrence: "monthly",
-                    isPaidThisCycle: false,
-                },
-                {
-                    id: "electric",
-                    name: "Electric",
-                    amount: 150,
-                    dueDate: "2026-05-30",
-                    recurrence: "monthly",
-                    isPaidThisCycle: false,
-                },
-            ])
-        );
-
-        localStorage.setItem(
-            "debtPlanner.debts",
-            JSON.stringify([
-                {
-                    id: "visa",
-                    name: "Visa",
-                    balance: 500,
-                    minimumPayment: 50,
-                    apr: 22,
-                    dueDate: "2026-05-29",
-                    type: "debt",
-                    recurrence: "monthly",
-                    isPaidThisCycle: false,
-                    minimumPaidThisCycle: false,
-                    snowballPaidThisCycle: false,
-                },
-            ])
-        );
-
-        localStorage.setItem(
-            "debtPlanner.goals",
-            JSON.stringify([
-                {
-                    id: "emergency",
-                    name: "Emergency Fund",
-                    targetAmount: 1000,
-                    currentAmount: 200,
-                    type: "emergency",
-                },
-            ])
-        );
-
-        localStorage.setItem("debtPlanner.completedRecommendedActions", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.payoffStrategy", JSON.stringify("snowball"));
-        localStorage.setItem("debtPlanner.darkMode", JSON.stringify(false));
+    await seedLocalStorage(page, {
+        amount: "2000",
+        hasCompletedOnboarding: true,
+        hasConfiguredPaycheck: true,
+        payCycle: "biweekly",
+        currentDate: "2026-05-23",
+        requiredExpenses: [
+            { id: "rent", name: "Rent", amount: 1200, dueDate: "2026-05-28", recurrence: "monthly", isPaidThisCycle: false },
+            { id: "electric", name: "Electric", amount: 150, dueDate: "2026-05-30", recurrence: "monthly", isPaidThisCycle: false },
+        ],
+        debts: [
+            {
+                id: "visa", name: "Visa", balance: 500, minimumPayment: 50, apr: 22,
+                dueDate: "2026-05-29", type: "debt", recurrence: "monthly",
+                isPaidThisCycle: false, minimumPaidThisCycle: false, snowballPaidThisCycle: false,
+            },
+        ],
+        goals: [
+            { id: "emergency", name: "Emergency Fund", targetAmount: 1000, currentAmount: 200, type: "emergency" },
+        ],
+        completedRecommendedActions: [],
+        payoffStrategy: "snowball",
+        darkMode: false,
     });
-
-    await page.reload();
-
-    const overlay = page.locator(".settings-overlay");
-
-    if (await overlay.isVisible().catch(() => false)) {
-        await page.getByRole("button", { name: /Calculate plan/i }).click();
-
-        await page.evaluate(() => {
-            localStorage.setItem("debtPlanner.hasConfiguredPaycheck", JSON.stringify(true));
-        });
-
-        await page.reload();
-    }
 }
 
 test.beforeEach(async ({ page }) => {
@@ -146,7 +89,10 @@ test("goals section renders seeded goal", async ({ page }) => {
 });
 
 test("dark mode persists", async ({ page }) => {
-    await page.getByRole("button", { name: /Dark Mode/i }).click();
+    // Theme is now a 3-way Auto/Light/Dark selector inside Plan Settings, and
+    // debtPlanner.darkMode stores the preference string (not a boolean).
+    await page.getByRole("button", { name: /Plan Settings/i }).click();
+    await page.getByRole("button", { name: "Dark", exact: true }).click();
 
     await page.waitForTimeout(300);
 
@@ -154,7 +100,7 @@ test("dark mode persists", async ({ page }) => {
         return localStorage.getItem("debtPlanner.darkMode");
     });
 
-    expect(storedValue).toBe("true");
+    expect(storedValue).toBe('"dark"');
 
     await page.reload();
 
@@ -164,6 +110,6 @@ test("dark mode persists", async ({ page }) => {
         return localStorage.getItem("debtPlanner.darkMode");
     });
 
-    expect(restoredValue).toBe("true");
+    expect(restoredValue).toBe('"dark"');
 });
 

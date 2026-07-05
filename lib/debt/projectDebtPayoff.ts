@@ -87,6 +87,18 @@ export function projectDebtPayoff({
     const payoffOrder: string[] = [];
     const maxMonths = 600;
 
+    // The defining mechanic of snowball/avalanche: total monthly outflow stays
+    // constant, so when a debt is paid off its freed minimum rolls onto the next
+    // target. Budget = every debt's minimum + the extra; each month the extra
+    // pool is whatever the budget covers beyond the minimums actually paid, which
+    // grows automatically as debts are cleared. (First months are unchanged:
+    // nothing is freed yet, so the pool equals monthlyExtraPayment.)
+    const totalMinimums = projectedDebts.reduce(
+        (sum, debt) => sum + debt.minimumPayment,
+        0
+    );
+    const monthlyBudget = roundMoney(totalMinimums + Math.max(0, monthlyExtraPayment));
+
     while (
         projectedDebts.some((debt) => debt.balance > 0) &&
         months < maxMonths
@@ -115,12 +127,15 @@ export function projectDebtPayoff({
             };
         });
 
+        let minimumsPaidThisMonth = 0;
+
         projectedDebts = projectedDebts.map((debt) => {
             if (debt.balance <= 0) {
                 return debt;
             }
 
             const payment = Math.min(debt.minimumPayment, debt.balance);
+            minimumsPaidThisMonth += payment;
             const newBalance = normalizeBalance(debt.balance - payment);
 
             if (newBalance === 0 && !payoffOrder.includes(debt.name)) {
@@ -133,7 +148,11 @@ export function projectDebtPayoff({
             };
         });
 
-        let availableExtra = Math.max(0, monthlyExtraPayment);
+        // Freed minimums (from already-paid-off debts) plus the extra all roll
+        // onto the target: budget minus the minimums actually paid this month.
+        let availableExtra = roundMoney(
+            Math.max(0, monthlyBudget - minimumsPaidThisMonth)
+        );
 
         while (
             availableExtra > 0 &&

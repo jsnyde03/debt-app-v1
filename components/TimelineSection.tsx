@@ -1,4 +1,5 @@
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { dayBefore } from "@/lib/utils/dayBefore";
 import type { Debt, RequiredExpense, Goal } from "@/lib/storage/debtPlannerStorage";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import {
@@ -160,7 +161,14 @@ export function TimelineSection({
     payCycleConfig,
     strategy,
 }: TimelineSectionProps) {
-    const [timelineExpanded, setTimelineExpanded] = useState(false);
+    // On the wide iPad layout (≥1024px) the Plan tab is a two-column grid, so the
+    // Timeline reads better open by default (otherwise the right column looks empty).
+    // Phones and iPad portrait (single column) stay collapsed. Read at init — this
+    // component mounts client-only behind the app's isMounted gate, so matchMedia is
+    // hydration-safe on the static export.
+    const [timelineExpanded, setTimelineExpanded] = useState(
+        () => typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
+    );
     const [expandedCycles, setExpandedCycles] = useState<Record<number, boolean>>({ 0: true });
 
     if (!result) return null;
@@ -199,7 +207,7 @@ export function TimelineSection({
                     <div className="timeline-collapse-copy">
                         <h2>Timeline</h2>
                         <p className="section-collapse-subtitle">
-                            All bills across upcoming pay cycles.
+                            Where your money goes each paycheck — and your cash cushion.
                         </p>
                     </div>
                 </div>
@@ -231,7 +239,7 @@ export function TimelineSection({
                             >
                                 <div className="timeline-cycle-header-left">
                                     <span className="timeline-cycle-range">
-                                        {formatCycleDate(cycle.cycleStart)} – {formatCycleDate(cycle.cycleEnd)}
+                                        {formatCycleDate(cycle.cycleStart)} – {formatCycleDate(dayBefore(cycle.cycleEnd))}
                                     </span>
                                     <span className="timeline-cycle-meta">
                                         {cycleIndex === 0 ? "This cycle" : "Projected"} · {cycle.items.length} transactions

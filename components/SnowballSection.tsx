@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
@@ -8,6 +9,8 @@ import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { projectForecast } from "@/lib/forecast/projectForecast";
 import { buildSmartInsights } from "@/lib/insights/buildSmartInsights";
 import { buildPayoffTrajectory } from "@/lib/debt/buildPayoffTrajectory";
+import { buildAmortizationSchedule } from "@/lib/debt/buildAmortizationSchedule";
+import { AmortizationCalendar } from "./AmortizationCalendar";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
@@ -53,7 +56,9 @@ export function SnowballSection({
 	const [simulationExtraPayment, setSimulationExtraPayment] = useState("100");
 	const [simulationStrategy, setSimulationStrategy] = useState<"recommended" | "snowball" | "avalanche">("recommended")
 	const [expandedPremiumSection, setExpandedPremiumSection] = useState<"insights" | "comparison" | "simulation" | "forecast">("insights");
+	const [showSchedule, setShowSchedule] = useState(false);
 
+	const canViewAmortization = hasFeatureAccess(subscriptionPlan, "amortization_schedule");
 	const canViewStrategyComparison = hasFeatureAccess(subscriptionPlan, "strategy_comparison");
 	const canViewWhatIfScenarios = hasFeatureAccess(subscriptionPlan, "what_if_scenarios");
 	const canViewForecasting = hasFeatureAccess(subscriptionPlan, "forecasting");
@@ -109,12 +114,23 @@ export function SnowballSection({
 
 	const hasCalculatedPlan = result !== null;
 
-	const baselineProjection = projectDebtPayoff({
-		debts,
-		monthlyExtraPayment: 0,
-		strategy: payoffStrategy,
-		startDate: currentDate,
-	});
+	// Amortization "lite" (v1.5): a month-by-month schedule for the FOCUS debt
+	// only, paid at its minimum + the recommended snowball extra. Built on the
+	// shared engine so it reconciles with projectDebtPayoff. The full/all-debts
+	// calendar lands with the Premium+ tier in v1.6.
+	const focusDebtStartingBalance = currentTarget
+		? currentTarget.displayBalance ?? currentTarget.balance
+		: 0;
+	const focusDebtMonthlyPayment = currentTarget
+		? currentTarget.minimumPayment + remainingSnowballExtra
+		: 0;
+	const focusDebtSchedule = currentTarget
+		? buildAmortizationSchedule({
+			balance: focusDebtStartingBalance,
+			apr: currentTarget.type === "bnpl" ? 0 : currentTarget.apr,
+			monthlyPayment: focusDebtMonthlyPayment,
+		})
+		: null;
 
 	const actualProjection = projectDebtPayoff({
 		debts: debtsAfterCompletedPayments,
@@ -130,10 +146,6 @@ export function SnowballSection({
 		startDate: currentDate,
 	});
 
-	const baselineCanBeEstimated =
-		hasCalculatedPlan &&
-		baselineProjection.estimatedDebtFreeDate !== "Unable to estimate";
-
 	const actualCanBeEstimated =
 		hasCalculatedPlan &&
 		actualProjection.estimatedDebtFreeDate !== "Unable to estimate";
@@ -143,15 +155,6 @@ export function SnowballSection({
 		recommendedProjection.estimatedDebtFreeDate !== "Unable to estimate";
 
 	const parsedSimulationExtraPayment = Number(simulationExtraPayment) || 0;
-
-	const actualInterestSaved =
-		baselineCanBeEstimated && actualCanBeEstimated
-			? Math.max(
-				0,
-				baselineProjection.totalInterestPaid -
-				actualProjection.totalInterestPaid
-			)
-			: null;
 
 	const snowballComparisonProjection = projectDebtPayoff({
 		debts: debtsAfterCompletedPayments,
@@ -260,19 +263,7 @@ export function SnowballSection({
 			: 0;
 
 	const simulatedDaysSaved = simulatedMonthsSaved * 30;
-	const comparisonSimulationProjection = projectDebtPayoff({
-		debts: debtsAfterCompletedPayments,
-		monthlyExtraPayment: remainingSnowballExtra + parsedSimulationExtraPayment,
-		strategy: effectiveSimulationStrategy === "snowball" ? "avalanche" : "snowball",
-		startDate: currentDate,
-	});
 
-	const comparisonMonthsDifference = comparisonSimulationProjection.monthsToDebtFree - simulatedSnowballProjection.monthsToDebtFree;
-	const comparisonStrategyName =
-		effectiveSimulationStrategy === "snowball"
-			? "Avalanche"
-			: "Snowball";
-	const isSimulationFaster = comparisonMonthsDifference > 0;
 	const totalDebtBalance = debtsAfterCompletedPayments.reduce((sum, debt) => sum + debt.balance, 0);
 
 	const totalMinimumPayment = debtsAfterCompletedPayments.reduce((sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance), 0);
@@ -431,7 +422,52 @@ export function SnowballSection({
 							<span>Remaining</span>
 							<strong>{formatCurrency(currentTarget.displayBalance ?? currentTarget.balance)}</strong>
 						</div>
+
+						<button
+							type="button"
+							className="payoff-focus-schedule-button"
+							onClick={() => {
+								triggerLightHaptic();
+
+								if (!canViewAmortization) {
+									onUpgradeClick();
+									return;
+								}
+
+								setShowSchedule(true);
+							}}
+						>
+							<span>View Schedule</span>
+							{!canViewAmortization && (
+								<span className="premium-pill">Premium</span>
+							)}
+						</button>
 					</div>
+
+					{showSchedule && focusDebtSchedule && typeof document !== "undefined" &&
+						createPortal(
+							// Portal OUT of the Payoff tab's transformed ancestor
+							// (.tab-content-transition) so the position:fixed overlay is
+							// viewport-relative (fixes the off-screen sheet on phones) —
+							// but into <main class="app dark-theme"> rather than <body>, so
+							// it stays inside the theme scope (the .dark-theme CSS is
+							// descendant-scoped; portaling to <body> escaped it and rendered
+							// light). Mirrors where HistorySection already renders.
+							<AmortizationCalendar
+								debtName={currentTarget.name}
+								startingBalance={focusDebtStartingBalance}
+								monthlyPayment={focusDebtMonthlyPayment}
+								startDate={currentDate}
+								schedule={focusDebtSchedule}
+								canAccess={canViewAmortization}
+								onUpgrade={() => {
+									setShowSchedule(false);
+									onUpgradeClick();
+								}}
+								onClose={() => setShowSchedule(false)}
+							/>,
+							document.querySelector("main.app") ?? document.body
+						)}
 
 					<div className="payoff-strategy-selector compact-payoff-strategy">
 						<div className="strategy-buttons">
@@ -525,6 +561,8 @@ export function SnowballSection({
 								<line x1="10" y1="88" x2="290" y2="88" stroke="rgba(148,163,184,0.18)" strokeWidth="1" />
 								{avalancheSvgPoints && (
 									<polyline
+										className="trajectory-line trajectory-line-avalanche"
+										pathLength={1}
 										points={avalancheSvgPoints}
 										fill="none"
 										stroke="#a855f7"
@@ -535,6 +573,8 @@ export function SnowballSection({
 									/>
 								)}
 								<polyline
+									className="trajectory-line trajectory-line-snowball"
+									pathLength={1}
 									points={snowballSvgPoints}
 									fill="none"
 									stroke="#2563eb"

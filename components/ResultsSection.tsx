@@ -8,6 +8,9 @@ import type {
     RecommendationOverride,
 } from "@/lib/storage/debtPlannerStorage";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { computeCycleDelta } from "@/lib/debt/computeCycleDelta";
+import type { PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
+import { TrendingDown, TrendingUp } from "@/lib/icons";
 import { SwipeActionCard } from "./SwipeActionCard";
 import { CompletedActionsList } from "./Results/CompletedActionsList";
 import { OptionalGoalsList } from "./Results/OptionalGoalsList";
@@ -43,6 +46,7 @@ type ResultsSectionProps = {
     currentDate: string;
     payoffStrategy: "snowball" | "avalanche";
     debtFreeDate?: string | null;
+    previousSnapshot?: PayCycleSnapshot | null;
     onMarkExpensePaid: (id: string) => void;
     onMarkDebtMinimumPaid: (id: string) => void;
     onMarkDebtSnowballPaid: (id: string) => void;
@@ -111,13 +115,20 @@ export function ResultsSection({
     currentDate,
     payoffStrategy,
     debtFreeDate,
+    previousSnapshot,
     onMarkExpensePaid,
     onMarkDebtMinimumPaid,
     onMarkRecommendedAction,
     onRecommendationOverrideChange,
 }: ResultsSectionProps) {
-    const [showAllRequiredActions, setShowAllRequiredActions] =
-        useState(false);
+    // On iPad (≥834px) the tall canvas has room, so show the full action lists
+    // instead of the phone's "Show N More" cap — a dead click where there's space
+    // (2.15.2). Read at init (not via a post-mount effect): this component mounts
+    // client-only, behind the app's isMounted/AppSkeleton gate, so reading
+    // matchMedia in the initializer is hydration-safe on the static export.
+    const [showAllRequiredActions, setShowAllRequiredActions] = useState(
+        () => typeof window !== "undefined" && window.matchMedia("(min-width: 834px)").matches
+    );
 
     const [requiredExpanded, setRequiredExpanded] = useState(true);
 
@@ -125,8 +136,9 @@ export function ResultsSection({
 
     const [completedExpanded, setCompletedExpanded] = useState(false);
 
-    const [showAllRecommendedActions, setShowAllRecommendedActions] =
-        useState(false);
+    const [showAllRecommendedActions, setShowAllRecommendedActions] = useState(
+        () => typeof window !== "undefined" && window.matchMedia("(min-width: 834px)").matches
+    );
 
     const [editingRecommendedKey, setEditingRecommendedKey] =
         useState<string | null>(null);
@@ -258,6 +270,17 @@ export function ResultsSection({
             })),
     ];
 
+    // Required obligations the paycheck can't cover this cycle. The engine
+    // computes these but they were never rendered, so a cash-strapped user saw
+    // a false "You're caught up" while still owing them. Surface them.
+    const unfundedRequiredItems = result.unfundedRequiredItems ?? [];
+    const unfundedRequiredTotal = unfundedRequiredItems.reduce(
+        (sum, item) => sum + item.amount,
+        0
+    );
+    const hasAnyRequiredOutstanding =
+        unpaidRequiredActions.length > 0 || unfundedRequiredItems.length > 0;
+
     const visibleRequiredActions = showAllRequiredActions
         ? unpaidRequiredActions
         : unpaidRequiredActions.slice(0, 6);
@@ -289,10 +312,12 @@ export function ResultsSection({
             paymentSource: action.paymentSource,
         }));
 
-    const requiredTotal = unpaidRequiredActions.reduce(
-        (sum, item) => sum + item.amount,
-        0
-    );
+    // Full unpaid obligation = the affordable (allocated) portion + the portion
+    // the paycheck can't cover, so the "Required $X" headline reflects the whole
+    // amount owed, not just what fits in this paycheck.
+    const requiredTotal =
+        unpaidRequiredActions.reduce((sum, item) => sum + item.amount, 0) +
+        unfundedRequiredTotal;
 
     const completedRecommendedTotal = completedRecommendedActions.filter((action) => action.paymentSource !== "external").reduce((sum, action) => sum + action.actualAmount, 0);
 
@@ -415,10 +440,6 @@ export function ResultsSection({
     const displayedRecommendedTotal = displayedRecommendedActions.reduce(
         (sum, action) => sum + action.actualAmount,
         0
-    );
-
-    const remainingCashToComeOut = roundMoney(
-        Math.max(0, requiredTotal + displayedRecommendedTotal)
     );
 
     const hasOverdueItems = requiredActions.some((item) => {
@@ -899,6 +920,45 @@ export function ResultsSection({
                 </div>
             </div>
 
+            {(() => {
+                // Since-Last-Cycle delta (#13): how total debt moved vs the
+                // last recorded cycle. Nothing shown until a cycle exists.
+                const currentTotalDebt = debts.reduce(
+                    (sum, debt) => sum + debt.balance,
+                    0
+                );
+                const cycleDelta = computeCycleDelta(
+                    previousSnapshot,
+                    currentTotalDebt
+                );
+
+                if (!cycleDelta) {
+                    return null;
+                }
+
+                const fell = cycleDelta.direction === "down";
+
+                return (
+                    <div
+                        className={`summary-strip-delta summary-strip-delta-${cycleDelta.direction}`}
+                        role="status"
+                        aria-label={`Since your last cycle, total debt ${fell ? "fell" : "rose"} by ${formatCurrency(cycleDelta.amount)}`}
+                    >
+                        {fell ? (
+                            <TrendingDown size={15} aria-hidden="true" />
+                        ) : (
+                            <TrendingUp size={15} aria-hidden="true" />
+                        )}
+                        <span className="summary-strip-delta-amount">
+                            {formatCurrency(cycleDelta.amount)}
+                        </span>
+                        <span className="summary-strip-delta-label">
+                            {fell ? "paid down since last cycle" : "since last cycle"}
+                        </span>
+                    </div>
+                );
+            })()}
+
             <div className="plan-dashboard-section">
                 <button
                     type="button"
@@ -916,7 +976,7 @@ export function ResultsSection({
                         </div>
 
                         <span className="section-count-pill">
-                            {unpaidRequiredActions.length}
+                            {unpaidRequiredActions.length + unfundedRequiredItems.length}
                         </span>
                     </div>
 
@@ -939,7 +999,7 @@ export function ResultsSection({
                     }
                     aria-hidden={!requiredExpanded}
                 >
-                    {unpaidRequiredActions.length === 0 ? (
+                    {!hasAnyRequiredOutstanding ? (
                         <p className="empty-state success-empty-state">
                             You&apos;re caught up for this paycheck. No unpaid required actions remain.
                         </p>
@@ -971,6 +1031,35 @@ export function ResultsSection({
                         >
                             Show fewer required actions.
                         </button>
+                    )}
+
+                    {unfundedRequiredItems.length > 0 && (
+                        <div
+                            className="unfunded-required-block"
+                            role="group"
+                            aria-label="Not covered by this paycheck"
+                        >
+                            <p className="unfunded-required-note">
+                                Your paycheck can&apos;t cover these this cycle
+                                {result.shortfall > 0
+                                    ? ` — you're short ${formatCurrency(result.shortfall)}`
+                                    : ""}
+                                . Cover them from savings or your next paycheck.
+                            </p>
+                            {unfundedRequiredItems.map((item, index) => (
+                                <div
+                                    key={`unfunded-${item.debtId ?? item.label}-${index}`}
+                                    className="required-shortfall-row"
+                                >
+                                    <span className="required-shortfall-label">
+                                        {item.label}
+                                    </span>
+                                    <span className="required-shortfall-amount">
+                                        {formatCurrency(item.amount)}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>
