@@ -1,6 +1,6 @@
 # Payday Autopilot — v1.6 design (step 1.6)
 
-_Status: DESIGN (approved shape A1, 2026-07-05). The capture keystone of the differentiation spine._
+_Status: ✅ BUILT (2026-07-06). Shape A1. The capture keystone of the differentiation spine — all sub-steps 1.6.1–1.6.6 shipped on `v1.6-dev`._
 
 ## Why this is the keystone
 Debt's uncopyable job is the **cycle-keyed payday-allocation** ("what do I pay with THIS paycheck"). Payday Autopilot is what turns that from a calculator into a **decision tool the user returns to every payday** — and, critically, it is the **capture** mechanism that feeds the two analytics features that follow:
@@ -43,7 +43,7 @@ New logic lives in a **`usePaydayCapture` hook** + a presentational **`PaydayCap
 - **1.6.3 — Single-source the plan (`selectActiveRecommendedActions`). ✅ DONE (`af9faaa`).** _Inserted after the switch-in scout: the sheet's plan was computed INLINE in ResultsSection, duplicating the engine's canonical `computeFlexibleCash` + `buildActiveRecommendedActions`. For a money app the sheet MUST match the Plan tab, so (option A) compute it ONCE in page.tsx and feed both._ New tested selector; ResultsSection now consumes it (inline dup removed). Plan tab verified pixel-identical in both themes.
 - **1.6.4 — `PaydayCaptureSheet` UI + theme-safe portal + wire into page.tsx.** Sources 1.6.3's selector. One-tap / adjust / external / dismiss / start-next-cycle. **Visual-verify BOTH themes** ([[feedback_visual_verify_ui_fixes]]) → **review with Jason.**
 - **1.6.5 — Notification upgrade** — plan-bearing payday trigger (carry the allocation summary; prompt capture) in `scheduleNotifications`.
-- **1.6.6 — Integration + release-ready** — full `validate:release` green, e2e for the capture flow, docs flipped (RELEASE_NOTES / V16_PLAN / this doc), MASTER_PLAN + log + memory, before/after enhancement scans.
+- **1.6.6 — Integration + release-ready. ✅ DONE.** Committed capture e2e (`planner-payday-capture.spec.ts`: sheet auto-opens → one-tap capture → handled + no re-prompt; + "Not now" dismiss). **Caught + fixed a regression:** the sheet auto-opens for any past `nextPaycheckDate`, so 3 non-payday specs (rollover/payoff/amort) that seed a past payday + debts were blocked (24 failures) — suppressed via `lastHandledPaydayDate` in their seeds. `validate:release` green. Docs flipped; after-scan filed the recency-window + post-capture-moment enhancements.
 
 ## Test plan
 - **Reconciliation (1.6.1):** bulk-capture correctness; `paymentSource:"external"` excluded from the flex-cash total but counted toward debt/goal progress; capture→unmark reconciles (no balance drift — extends step 1.4).

@@ -39,7 +39,7 @@ Every finding is hygiene/debt, not an approach problem. **KEEP + PROTECT:** the 
 3. **[refactor] `CompletedRecommendedAction` canonicalization** — one canonical (storage's exported def), delete the local copies; **nail the exact set first** (inventories disagree 4×/6×/+demo — incl. `ResultsSection`/`SnowballSection` redeclares + `DemoCompletedRecommendedAction`). Do BEFORE capture writes richer actuals into the shape.
 4. **[test-gate] `handleMarkRecommendedAction` mark→unmark reconciliation test** (incl. target-edited-while-marked) — HARD GATE before step 5.
 5. **[positioning] Hero reposition** → payday-allocation engine + radical-trust (IA/content on the existing Plan tab; no nav restructure).
-6. **[feature] Payday Autopilot** (capture keystone; on the canonicalized types + theme-safe overlay; local-notifications already wired). _Wire capture into the new narrow hook, not page.tsx._
+6. **[feature] Payday Autopilot ✅ DONE (2026-07-06)** — capture keystone shipped (1.6.1–1.6.6): proactive payday sheet (one-tap/adjust/external) on the theme-safe portal + canonical types, in the `usePaydayCapture` hook (not page.tsx), payday-morning notification, single-sourced plan selector, committed e2e. Full design → `V16_PAYDAY_AUTOPILOT.md`.
 7. **[feature] Interest-Saved Momentum Ledger** (S; reads captured actuals; ships its own reconciliation test).
 8. **[feature] Plan-vs-Actual Drift Tracker** (needs #6's capture; new money math → own reconciliation test).
 9. **[refactor] release gate + after-scan** — full `validate:release` green, visual-verify all theme changes, correct SUSTAINABILITY_REFACTOR inventory, log to MASTER_PLAN.
