@@ -337,7 +337,10 @@ export default function Home() {
             return "Tight cycle — protect your minimums first.";
         }
         if (debtFreeDate) {
-            return `You're on track to be debt-free by ${debtFreeDate}.`;
+            // Lead with the uncopyable job — "what to pay THIS paycheck" — and keep the
+            // debt-free date as reassurance, not the headline (v1.6 hero reposition: the
+            // payday-allocation engine is the differentiator, not the generic debt-free date).
+            return `Here's exactly what to pay this paycheck — on track to be debt-free by ${debtFreeDate}.`;
         }
         return "Here's what to do this paycheck.";
     }, [result, debts, debtFreeDate]);
