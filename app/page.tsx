@@ -30,6 +30,7 @@ import {
 
 import { type CompletedRecommendedAction, type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
+import { markGoal, unmarkGoal } from "@/lib/debt/reconcileGoalAmount";
 import { computeMilestones } from "@/lib/debt/computeMilestones";
 import { computeStreak } from "@/lib/debt/computeStreak";
 import { MilestoneBadge, type MilestoneCelebration } from "@/components/MilestoneBadge";
@@ -463,9 +464,7 @@ export default function Home() {
                         goal.id === targetId
                             ? {
                                 ...goal,
-                                currentAmount: roundMoney(
-                                    Math.max(0, goal.currentAmount - existingAction.actualAmount)
-                                ),
+                                currentAmount: unmarkGoal(goal.currentAmount, existingAction.actualAmount),
                             }
                             : goal
                     )
@@ -493,13 +492,22 @@ export default function Home() {
             const goal = goals.find((item) => item.id === targetId);
 
             if (goal) {
-                const remainingGoalAmount = roundMoney(Math.max(0, goal.targetAmount - goal.currentAmount));
+                // markGoal clamps to the goal's remaining room and returns the
+                // exact currentAmount delta; unmark subtracts that same stored
+                // amount, so the two are exact inverses even when the goal is
+                // over-funded (see reconcileGoalAmount.ts — the old inline
+                // `min(targetAmount, …)` here destroyed over-funded excess).
+                const { appliedAmount, nextCurrentAmount } = markGoal(
+                    goal.currentAmount,
+                    goal.targetAmount,
+                    actualAmount
+                );
 
-                safeActualAmount = roundMoney(Math.min(safeActualAmount, remainingGoalAmount));
+                safeActualAmount = appliedAmount;
 
                 nextGoals = goals.map((item) => item.id === targetId ? {
                     ...item,
-                    currentAmount: roundMoney(Math.min(item.targetAmount, item.currentAmount + safeActualAmount)),
+                    currentAmount: nextCurrentAmount,
                 } : item);
             }
         }
