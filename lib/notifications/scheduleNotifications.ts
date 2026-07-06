@@ -3,6 +3,7 @@ import type { RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 
 const ID_PAYCHECK_EVE = 1001;
 const ID_BILLS_ALERT = 1002;
+const ID_PAYDAY_CAPTURE = 1003;
 
 export async function requestNotificationPermission(): Promise<boolean> {
     const { display } = await LocalNotifications.requestPermissions();
@@ -23,7 +24,7 @@ export async function scheduleNotifications({ nextPaycheckDate, requiredExpenses
     if (!nextPaycheckDate) return;
 
     await LocalNotifications.cancel({
-        notifications: [{ id: ID_PAYCHECK_EVE }, { id: ID_BILLS_ALERT }],
+        notifications: [{ id: ID_PAYCHECK_EVE }, { id: ID_BILLS_ALERT }, { id: ID_PAYDAY_CAPTURE }],
     });
 
     const now = new Date();
@@ -42,6 +43,21 @@ export async function scheduleNotifications({ nextPaycheckDate, requiredExpenses
             title: "Paycheck Tomorrow",
             body: "Your paycheck arrives tomorrow — open Debt Planner to run your plan.",
             schedule: { at: paycheckEve },
+        });
+    }
+
+    // Payday-morning capture prompt: 9am ON payday. This is the Payday Autopilot
+    // trigger — the capture sheet auto-opens once today has reached the payday, so
+    // this brings the user in at the right moment to confirm what they paid.
+    const paydayMorning = new Date(paycheckDate);
+    paydayMorning.setHours(9, 0, 0, 0);
+
+    if (paydayMorning > now) {
+        notifications.push({
+            id: ID_PAYDAY_CAPTURE,
+            title: "It's payday 🎉",
+            body: "Open Debt Planner to confirm your plan for this paycheck.",
+            schedule: { at: paydayMorning },
         });
     }
 
@@ -83,6 +99,6 @@ export async function scheduleNotifications({ nextPaycheckDate, requiredExpenses
 
 export async function cancelAllNotifications() {
     await LocalNotifications.cancel({
-        notifications: [{ id: ID_PAYCHECK_EVE }, { id: ID_BILLS_ALERT }],
+        notifications: [{ id: ID_PAYCHECK_EVE }, { id: ID_BILLS_ALERT }, { id: ID_PAYDAY_CAPTURE }],
     });
 }
