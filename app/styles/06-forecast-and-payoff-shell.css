@@ -821,3 +821,52 @@ button:active,
 .forecast-status-bar-label-tight    { color: var(--status-warn-strong); }
 .forecast-status-bar-label-pressure { color: #fb923c; }
 .forecast-status-bar-label-recovery { color: var(--status-bad-strong); }
+
+/* ─── Interest-Saved Momentum Ledger — free headline card (v1.6 1.8) ─── */
+.interest-saved-card {
+	margin: 4px 0 8px;
+	padding: 16px 18px;
+	border-radius: 16px;
+	background: var(--accent-soft);
+	border: 1px solid var(--border-soft);
+	text-align: center;
+}
+
+.interest-saved-eyebrow {
+	display: block;
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--accent-color);
+}
+
+.interest-saved-amount {
+	margin: 4px 0 2px;
+	font-size: 2rem;
+	font-weight: 800;
+	line-height: 1.1;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.interest-saved-sub {
+	font-size: 0.9rem;
+	color: var(--text-secondary);
+}
+
+.interest-saved-sub strong {
+	color: var(--text-primary);
+	font-weight: 700;
+}
+
+.interest-saved-enabling-line {
+	margin-top: 6px;
+	font-size: 0.95rem;
+	line-height: 1.4;
+	color: var(--text-primary);
+}
+
+.interest-saved-enabling-line strong {
+	color: var(--accent-color);
+}

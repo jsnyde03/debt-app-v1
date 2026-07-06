@@ -12,6 +12,8 @@ import { buildPayoffTrajectory } from "@/lib/debt/buildPayoffTrajectory";
 import { buildAmortizationSchedule } from "@/lib/debt/buildAmortizationSchedule";
 import { AmortizationCalendar } from "./AmortizationCalendar";
 import { getPortalTarget } from "@/lib/dom/getPortalTarget";
+import { PayoffInterestSavedCard } from "./PayoffInterestSavedCard";
+import type { InterestSaved } from "@/lib/debt/computeInterestSaved";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
@@ -24,6 +26,7 @@ type SnowballSectionProps = {
 	debts: DebtWithDisplayBalance[];
 	result: AllocationResult | null;
 	completedRecommendedActions: CompletedRecommendedAction[];
+	interestSaved: InterestSaved;
 	payoffStrategy: "snowball" | "avalanche";
 	currentDate: string;
 	subscriptionPlan: SubscriptionPlan;
@@ -37,6 +40,7 @@ export function SnowballSection({
 	debts,
 	result,
 	completedRecommendedActions,
+	interestSaved,
 	payoffStrategy,
 	currentDate,
 	subscriptionPlan,
@@ -381,6 +385,8 @@ export function SnowballSection({
 					</p>
 				</div>
 			</div>
+
+			<PayoffInterestSavedCard interestSaved={interestSaved} />
 
 			{!currentTarget ? (
 				<div className="empty-debt-state compact-empty-state">

@@ -4,6 +4,7 @@ import { useMemo, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import { getNextPaycheckDate } from "@/lib/payCycle/getNextPaycheckDate";
 import { payCyclesPerMonth } from "@/lib/payCycle/payCyclesPerMonth";
+import { computeInterestSaved, type InterestSaved } from "@/lib/debt/computeInterestSaved";
 import type { Recurrence } from "@/lib/types/recurrence";
 import "./styles/00-theme-and-base.css";
 import "./styles/01-payoff-goals.css";
@@ -334,6 +335,22 @@ export default function Home() {
             startDate: currentDate,
         });
         return estimatedDebtFreeDate === "Unable to estimate" ? null : estimatedDebtFreeDate;
+    }, [result, debts, payoffStrategy, currentDate, payCycle]);
+
+    // Interest-Saved Momentum Ledger — what the current plan saves vs. minimums.
+    const interestSaved = useMemo((): InterestSaved => {
+        const liveDebts = debts.filter((d) => d.balance > 0);
+        if (!result || liveDebts.length === 0) return { kind: "none" };
+        const snowballTotal = result.allocations
+            .filter((a) => a.category === "snowball")
+            .reduce((sum, a) => sum + a.amount, 0);
+        const monthlyExtraPayment = snowballTotal * payCyclesPerMonth(payCycle);
+        return computeInterestSaved({
+            debts: liveDebts,
+            monthlyExtraPayment,
+            strategy: payoffStrategy,
+            startDate: currentDate,
+        });
     }, [result, debts, payoffStrategy, currentDate, payCycle]);
 
     const heroSubtitle = useMemo(() => {
@@ -1068,6 +1085,7 @@ export default function Home() {
                             debts={debtsWithDisplayBalances}
                             result={result}
                             completedRecommendedActions={completedRecommendedActions}
+                            interestSaved={interestSaved}
                             payoffStrategy={payoffStrategy}
                             currentDate={currentDate}
                             subscriptionPlan={subscriptionPlan}
