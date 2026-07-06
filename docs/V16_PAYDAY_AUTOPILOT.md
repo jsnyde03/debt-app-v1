@@ -38,11 +38,12 @@ New logic lives in a **`usePaydayCapture` hook** + a presentational **`PaydayCap
 - **Capture write** — reuses `handleMarkRecommendedAction` (reconciliation-safe) per action; external via its `paymentSource` arg. No new money math beyond the bulk loop.
 
 ## Build sub-steps (ordered)
-- **1.6.1 — Capture orchestration + reconciliation test (money path first).** The bulk-capture logic (mark all recommended actual=recommended; per-item override; external) + a reconciliation test: bulk-capture writes correct actuals, external excluded from cash math, capture→unmark reconciles (rides step 1.4's invariant). Logic + test, no UI.
-- **1.6.2 — `usePaydayCapture` hook + `shouldPromptPaydayCapture` (pure) + detection unit test + handled-flag persistence.** No UI.
-- **1.6.3 — `PaydayCaptureSheet` UI + theme-safe portal + wire into page.tsx.** One-tap / adjust / external / dismiss / start-next-cycle. **Visual-verify BOTH themes** ([[feedback_visual_verify_ui_fixes]]).
-- **1.6.4 — Notification upgrade** — plan-bearing payday trigger (carry the allocation summary; prompt capture) in `scheduleNotifications`.
-- **1.6.5 — Integration + release-ready** — full `validate:release` green, e2e for the capture flow, docs flipped (RELEASE_NOTES / V16_PLAN / this doc), MASTER_PLAN + log + memory, before/after enhancement scans.
+- **1.6.1 — Capture orchestration + reconciliation test (money path first). ✅ DONE (`8818d37`).** `buildPaydayCaptureItems` (bulk actual=recommended; per-item override; external; idempotent) + reconciliation test (external excluded from cash math; capture→unmark reconciles). Logic + test, no UI.
+- **1.6.2 — `usePaydayCapture` hook + `shouldPromptPaydayCapture` (pure) + detection unit test + handled-flag persistence. ✅ DONE (`36b3b2f`).** No UI.
+- **1.6.3 — Single-source the plan (`selectActiveRecommendedActions`). ✅ DONE (`af9faaa`).** _Inserted after the switch-in scout: the sheet's plan was computed INLINE in ResultsSection, duplicating the engine's canonical `computeFlexibleCash` + `buildActiveRecommendedActions`. For a money app the sheet MUST match the Plan tab, so (option A) compute it ONCE in page.tsx and feed both._ New tested selector; ResultsSection now consumes it (inline dup removed). Plan tab verified pixel-identical in both themes.
+- **1.6.4 — `PaydayCaptureSheet` UI + theme-safe portal + wire into page.tsx.** Sources 1.6.3's selector. One-tap / adjust / external / dismiss / start-next-cycle. **Visual-verify BOTH themes** ([[feedback_visual_verify_ui_fixes]]) → **review with Jason.**
+- **1.6.5 — Notification upgrade** — plan-bearing payday trigger (carry the allocation summary; prompt capture) in `scheduleNotifications`.
+- **1.6.6 — Integration + release-ready** — full `validate:release` green, e2e for the capture flow, docs flipped (RELEASE_NOTES / V16_PLAN / this doc), MASTER_PLAN + log + memory, before/after enhancement scans.
 
 ## Test plan
 - **Reconciliation (1.6.1):** bulk-capture correctness; `paymentSource:"external"` excluded from the flex-cash total but counted toward debt/goal progress; capture→unmark reconciles (no balance drift — extends step 1.4).
