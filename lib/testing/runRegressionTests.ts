@@ -17,6 +17,7 @@ import "../recurrence/testRolloverDueDates";
 import "../debt/testBuildPayoffTrajectory";
 import "../debt/testFreedMinimumRoll";
 import "../debt/testGoalReconciliation";
+import "../debt/testPaydayCapture";
 import "./testFinalLaunchRegression";
 import "./testV11Regression";
 import "./testFullAppRegression";
