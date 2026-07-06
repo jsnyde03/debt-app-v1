@@ -16,6 +16,7 @@ import "../debt/testParseDebtFormValues";
 import "../storage/testMigrateOriginalBalance";
 import "../recurrence/testRolloverDueDates";
 import "../debt/testBuildPayoffTrajectory";
+import "../debt/testComputeInterestSaved";
 import "../debt/testFreedMinimumRoll";
 import "../debt/testGoalReconciliation";
 import "../debt/testPaydayCapture";
