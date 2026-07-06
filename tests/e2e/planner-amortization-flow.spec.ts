@@ -17,6 +17,8 @@ async function seedAmortizationPlanner(
             payCycle: "biweekly",
             currentDate: "2026-05-01",
             nextPaycheckDate: "2026-05-15",
+            // Suppress the Payday Autopilot capture sheet (past payday; not a payday test).
+            lastHandledPaydayDate: "2026-05-15",
             requiredExpenses: [],
             livingExpenses: [],
             goals: [],

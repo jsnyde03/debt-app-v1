@@ -11,6 +11,9 @@ async function seedRolloverPlanner(page: Page) {
         // Explicit next payday so the rollover target is deterministic — the app
         // otherwise derives it from the real "today", making the assertion flaky.
         nextPaycheckDate: "2026-06-06",
+        // Suppress the Payday Autopilot capture sheet — this seed's payday is past
+        // real "today", but this isn't a payday test. (Handled = no auto-open.)
+        lastHandledPaydayDate: "2026-06-06",
         requiredExpenses: [
             { id: "rent", name: "Rent", amount: 1200, dueDate: "2026-05-28", recurrence: "monthly", isPaidThisCycle: true },
             { id: "internet", name: "Internet", amount: 90, dueDate: "2026-05-29", recurrence: "monthly", isPaidThisCycle: false },
