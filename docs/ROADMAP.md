@@ -22,7 +22,7 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 
 **Known half-built things already in the code, worth closing before piling on new features:**
 - BNPL debts store `remainingPayments`/`scheduledPaymentAmount` but the engine ignores them — BNPL is calculated exactly like a regular debt today.
-- `paymentSource: "external"` / `isExternal` exist in the data model with no UI to actually log an external payment.
+- ~~`paymentSource: "external"` exists in the data model with no UI to log an external payment.~~ **RESOLVED in v1.6** — Payday Autopilot's capture sheet has a "Paid from elsewhere" toggle that writes `paymentSource: "external"` (counts toward debt/goal progress, excluded from paycheck cash math).
 - Required-expense presets are all hardcoded to monthly despite the recurrence system supporting weekly/biweekly/quarterly/annual.
 - Storage has no schema version or migration path (hardcoded `"debt-planner-v1"` key, parse errors silently wipe state).
 - No Android target exists at all (`@capacitor/android` is installed but there's no `/android` directory).
@@ -77,7 +77,7 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 - **Statement auto-import (OCR + AI extraction)** — snap a photo of a credit card/loan statement; AI extracts name, balance, APR, minimum payment, and due date automatically instead of manual entry. The single biggest friction-killer in the whole app, but needs the v2.0 backend (image upload + AI parsing can't run client-side) — ships as Phase 2 of v2.0, right after AI Recommendations. Tier-flagged Premium+ to match the rest of this tier's "power tool" theme, but note the per-scan AI/OCR cost is real — revisit whether this needs its own rate limit or Ultimate-only gating once usage data exists.
 - Scheduled automatic backups + PDF/CSV reporting
 - Apple Watch companion (glance: next paycheck, total debt, debt-free date)
-- External-payment logging UI (closes the existing data-model gap — payments made outside the paycheck flow)
+- ~~External-payment logging UI~~ **✅ SHIPPED in v1.6** as part of Payday Autopilot (the capture sheet's "Paid from elsewhere" toggle).
 
 ### Ultimate / AI ($14.99)
 - AI Recommendations (Claude API) replacing/supercharging the rule-based Smart Insights, same card UI

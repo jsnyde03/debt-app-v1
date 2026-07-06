@@ -1,4 +1,4 @@
-import { shouldPromptPaydayCapture } from "./shouldPromptPaydayCapture";
+import { shouldPromptPaydayCapture, isPaydayAwaitingRollover } from "./shouldPromptPaydayCapture";
 
 function assert(actual: boolean, expected: boolean, label: string) {
     if (actual !== expected) {
@@ -33,6 +33,16 @@ function runShouldPromptPaydayCaptureTests() {
 
     // ─── guards ───
     assert(shouldPromptPaydayCapture("2026-06-15", "", null, WINDOW), false, "no nextPaycheckDate → never prompt");
+
+    // ─── isPaydayAwaitingRollover: handled + payday reached, cycle not advanced ───
+    // The fix for capture-without-rollover silencing: once a handled payday sits in
+    // the past, nudge to roll forward (rollover then advances nextPaycheckDate).
+    assert(isPaydayAwaitingRollover("2026-06-15", PAYDAY, PAYDAY), true, "handled ON payday → awaiting rollover");
+    assert(isPaydayAwaitingRollover("2026-06-30", PAYDAY, PAYDAY), true, "handled, well past payday (stale) → STILL nudged to roll over");
+    assert(isPaydayAwaitingRollover("2026-06-14", PAYDAY, PAYDAY), false, "before payday → not awaiting (shouldn't happen, guard)");
+    assert(isPaydayAwaitingRollover("2026-06-15", PAYDAY, null), false, "unhandled payday → the sheet prompts, not the rollover nudge");
+    assert(isPaydayAwaitingRollover("2026-06-15", PAYDAY, "2026-06-01"), false, "handled a DIFFERENT payday → not awaiting this one");
+    assert(isPaydayAwaitingRollover("2026-06-15", "", PAYDAY), false, "no nextPaycheckDate → never awaiting");
 
     console.log("✅ shouldPromptPaydayCapture regression tests passed.");
 }

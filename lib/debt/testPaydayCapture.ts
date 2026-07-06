@@ -3,8 +3,10 @@ import {
     captureKey,
     type RecommendedActionInput,
 } from "./buildPaydayCaptureItems";
+import { upsertCompletedAction } from "./mergeCompletedAction";
 import { markGoal, unmarkGoal } from "./reconcileGoalAmount";
 import { computeCompletedRecommendedTotal } from "../engine/recommendedActions";
+import type { CompletedRecommendedAction } from "@/lib/storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
     if (actual !== expected) {
@@ -21,8 +23,8 @@ const PLAN: RecommendedActionInput[] = [
 function runPaydayCaptureTests() {
     // ─── one-tap "I followed the plan": actual === recommended, all paycheck ───
     {
-        const items = buildPaydayCaptureItems(PLAN, []);
-        assertEqual(items.length, 3, "one-tap: captures every not-yet-done action");
+        const items = buildPaydayCaptureItems(PLAN);
+        assertEqual(items.length, 3, "one-tap: captures every active action");
         for (const it of items) {
             assertEqual(it.actualAmount, it.recommendedAmount, `one-tap: ${it.label} actual === recommended`);
             assertEqual(it.paymentSource, "paycheck", `one-tap: ${it.label} defaults to paycheck`);
@@ -33,24 +35,52 @@ function runPaydayCaptureTests() {
     //     NOT recommendedAmount (the full payoff room) — matches the Plan tab ───
     {
         const items = buildPaydayCaptureItems(
-            [{ targetId: "visa", label: "Extra to Visa", category: "snowball", recommendedAmount: 500, actualAmount: 200 }],
-            []
+            [{ targetId: "visa", label: "Extra to Visa", category: "snowball", recommendedAmount: 500, actualAmount: 200 }]
         );
         assertEqual(items[0].recommendedAmount, 500, "stores the full payoff room as recommendedAmount");
         assertEqual(items[0].actualAmount, 200, "default paid = the capacity-limited cycle recommendation");
     }
 
-    // ─── idempotent: already-captured actions are skipped (no double count) ───
+    // ─── v1.6 collision regression (the HIGH silent-skip fix): the active list is
+    //     already the net-REMAINING recommendation, so every item is captured — a
+    //     re-recommended remainder is NEVER dropped just because a same-key partial
+    //     was completed earlier. (The old `alreadyCompleted` skip did exactly that.)
     {
-        const alreadyDone = [{ targetId: "visa", label: "Extra to Visa", category: "snowball" as const }];
-        const items = buildPaydayCaptureItems(PLAN, alreadyDone);
-        assertEqual(items.length, 2, "skips the already-captured Visa action");
-        assertEqual(items.some((i) => i.targetId === "visa"), false, "Visa is not re-captured");
+        const remainderItems = buildPaydayCaptureItems(
+            [{ targetId: "visa", label: "Extra to Visa", category: "snowball", recommendedAmount: 300, actualAmount: 200 }]
+        );
+        assertEqual(remainderItems.length, 1, "remainder is captured, not silently skipped");
+
+        // …and it ACCUMULATES into the completed partial rather than colliding:
+        const partial: CompletedRecommendedAction = {
+            targetId: "visa", label: "Extra to Visa", category: "snowball",
+            recommendedAmount: 300, actualAmount: 100, paymentSource: "paycheck",
+        };
+        const merged = upsertCompletedAction([partial], remainderItems[0]);
+        assertEqual(merged.length, 1, "remainder folds into the partial (no colliding duplicate)");
+        assertEqual(merged[0].actualAmount, 300, "actualAmount accumulates (100 partial + 200 remainder)");
+        assertEqual(merged[0].recommendedAmount, 300, "recommendedAmount stays the full payoff room");
+    }
+
+    // ─── a paycheck contribution stays DISTINCT from an external one to the same
+    //     goal (external must remain excluded from the paycheck cash total) ───
+    {
+        const external: CompletedRecommendedAction = {
+            targetId: "emg", label: "Add to Emergency Fund", category: "emergency",
+            recommendedAmount: 500, actualAmount: 75, paymentSource: "external",
+        };
+        const paycheckItem: CompletedRecommendedAction = {
+            targetId: "emg", label: "Add to Emergency Fund", category: "emergency",
+            recommendedAmount: 500, actualAmount: 425, paymentSource: "paycheck",
+        };
+        const merged = upsertCompletedAction([external], paycheckItem);
+        assertEqual(merged.length, 2, "paycheck contribution stays separate from the external one");
+        assertEqual(computeCompletedRecommendedTotal(merged), 425, "only the paycheck 425 counts against cash");
     }
 
     // ─── adjust: per-item real amount override ───
     {
-        const items = buildPaydayCaptureItems(PLAN, [], {
+        const items = buildPaydayCaptureItems(PLAN, {
             [captureKey(PLAN[0])]: { actualAmount: 175 },
         });
         const visa = items.find((i) => i.targetId === "visa")!;
@@ -60,7 +90,7 @@ function runPaydayCaptureTests() {
 
     // ─── external: paid from elsewhere → paymentSource external ───
     {
-        const items = buildPaydayCaptureItems(PLAN, [], {
+        const items = buildPaydayCaptureItems(PLAN, {
             [captureKey(PLAN[1])]: { external: true },
         });
         const emg = items.find((i) => i.targetId === "emg")!;
@@ -70,7 +100,7 @@ function runPaydayCaptureTests() {
     // ─── INTEGRATION: external is excluded from the flex-cash total ───
     {
         // Visa 300 + Emergency 100 (external) + Vacation 50 → cash total excludes the 100.
-        const items = buildPaydayCaptureItems(PLAN, [], {
+        const items = buildPaydayCaptureItems(PLAN, {
             [captureKey(PLAN[1])]: { external: true },
         });
         assertEqual(
@@ -81,7 +111,7 @@ function runPaydayCaptureTests() {
     }
     {
         // one-tap (all paycheck) → full 450 counts against cash.
-        const items = buildPaydayCaptureItems(PLAN, []);
+        const items = buildPaydayCaptureItems(PLAN);
         assertEqual(computeCompletedRecommendedTotal(items), 450, "all-paycheck capture counts the full 450");
     }
 
@@ -90,8 +120,7 @@ function runPaydayCaptureTests() {
     // unmark it — currentAmount must return exactly to 200 (no balance drift).
     {
         const items = buildPaydayCaptureItems(
-            [{ targetId: "emg", label: "Add to Emergency Fund", category: "emergency", recommendedAmount: 100, actualAmount: 100 }],
-            []
+            [{ targetId: "emg", label: "Add to Emergency Fund", category: "emergency", recommendedAmount: 100, actualAmount: 100 }]
         );
         const captured = items[0];
         const { appliedAmount, nextCurrentAmount } = markGoal(200, 1000, captured.actualAmount);

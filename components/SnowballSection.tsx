@@ -14,6 +14,8 @@ import { AmortizationCalendar } from "./AmortizationCalendar";
 import { getPortalTarget } from "@/lib/dom/getPortalTarget";
 import { PayoffInterestSavedCard } from "./PayoffInterestSavedCard";
 import type { InterestSaved } from "@/lib/debt/computeInterestSaved";
+import { payCyclesPerMonth } from "@/lib/payCycle/payCyclesPerMonth";
+import type { PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
@@ -28,6 +30,7 @@ type SnowballSectionProps = {
 	completedRecommendedActions: CompletedRecommendedAction[];
 	interestSaved: InterestSaved;
 	payoffStrategy: "snowball" | "avalanche";
+	payCycle: PayCycle;
 	currentDate: string;
 	subscriptionPlan: SubscriptionPlan;
 	onUpgradeClick: () => void;
@@ -42,6 +45,7 @@ export function SnowballSection({
 	completedRecommendedActions,
 	interestSaved,
 	payoffStrategy,
+	payCycle,
 	currentDate,
 	subscriptionPlan,
 	onUpgradeClick,
@@ -109,6 +113,15 @@ export function SnowballSection({
 		return sum + Math.max(0, item.amount - completedForItem);
 	}, 0);
 
+	// `remainingSnowballExtra` is a PER-PAYCHECK amount (the recommended extra for
+	// one paycheck). All month-stepped projections below (payoff dates, strategy
+	// comparison, trajectory, amortization, forecast, what-if) require a MONTHLY
+	// extra, so convert by the number of pay cycles per month. Per-cycle consumers
+	// (this-cycle buffer, the "apply $X this cycle" insight) keep the raw value.
+	// Completes the M4 pay-cadence fix (page.tsx already converts its hero memos).
+	const monthlySnowballExtra =
+		remainingSnowballExtra * payCyclesPerMonth(payCycle);
+
 	const hasCalculatedPlan = result !== null;
 
 	// Amortization "lite" (v1.5): a month-by-month schedule for the FOCUS debt
@@ -119,7 +132,7 @@ export function SnowballSection({
 		? currentTarget.displayBalance ?? currentTarget.balance
 		: 0;
 	const focusDebtMonthlyPayment = currentTarget
-		? currentTarget.minimumPayment + remainingSnowballExtra
+		? currentTarget.minimumPayment + monthlySnowballExtra
 		: 0;
 	const focusDebtSchedule = currentTarget
 		? buildAmortizationSchedule({
@@ -138,7 +151,7 @@ export function SnowballSection({
 
 	const recommendedProjection = projectDebtPayoff({
 		debts: debtsAfterCompletedPayments,
-		monthlyExtraPayment: remainingSnowballExtra,
+		monthlyExtraPayment: monthlySnowballExtra,
 		strategy: payoffStrategy,
 		startDate: currentDate,
 	});
@@ -155,14 +168,14 @@ export function SnowballSection({
 
 	const snowballComparisonProjection = projectDebtPayoff({
 		debts: debtsAfterCompletedPayments,
-		monthlyExtraPayment: remainingSnowballExtra,
+		monthlyExtraPayment: monthlySnowballExtra,
 		strategy: "snowball",
 		startDate: currentDate,
 	});
 
 	const avalancheComparisonProjection = projectDebtPayoff({
 		debts: debtsAfterCompletedPayments,
-		monthlyExtraPayment: remainingSnowballExtra,
+		monthlyExtraPayment: monthlySnowballExtra,
 		strategy: "avalanche",
 		startDate: currentDate,
 	});
@@ -187,10 +200,10 @@ export function SnowballSection({
 	const projectedMonthDifference = Math.abs(snowballComparisonProjection.monthsToDebtFree - avalancheComparisonProjection.monthsToDebtFree);
 
 	const snowballTrajectory = comparisonCanBeEstimated
-		? buildPayoffTrajectory({ debts: debtsAfterCompletedPayments, monthlyExtraPayment: remainingSnowballExtra, strategy: "snowball" })
+		? buildPayoffTrajectory({ debts: debtsAfterCompletedPayments, monthlyExtraPayment: monthlySnowballExtra, strategy: "snowball" })
 		: [];
 	const avalancheTrajectory = comparisonCanBeEstimated
-		? buildPayoffTrajectory({ debts: debtsAfterCompletedPayments, monthlyExtraPayment: remainingSnowballExtra, strategy: "avalanche" })
+		? buildPayoffTrajectory({ debts: debtsAfterCompletedPayments, monthlyExtraPayment: monthlySnowballExtra, strategy: "avalanche" })
 		: [];
 	const showTrajectoryChart = comparisonCanBeEstimated && snowballTrajectory.length > 1;
 	const trajectoryMaxMonth = showTrajectoryChart
@@ -234,15 +247,17 @@ export function SnowballSection({
 
 	const whatIfBaselineProjection = projectDebtPayoff({
 		debts: debtsAfterCompletedPayments,
-		monthlyExtraPayment: remainingSnowballExtra,
+		monthlyExtraPayment: monthlySnowballExtra,
 		strategy: effectiveSimulationStrategy,
 		startDate: currentDate,
 	});
 
+	// `parsedSimulationExtraPayment` is already MONTHLY (labeled "Extra Monthly
+	// Payment"), so it is added to the monthly base directly — no cadence multiplier.
 	const simulatedSnowballProjection =
 		projectDebtPayoff({
 			debts: debtsAfterCompletedPayments,
-			monthlyExtraPayment: remainingSnowballExtra + parsedSimulationExtraPayment,
+			monthlyExtraPayment: monthlySnowballExtra + parsedSimulationExtraPayment,
 			strategy: effectiveSimulationStrategy,
 			startDate: currentDate,
 		});
@@ -268,7 +283,7 @@ export function SnowballSection({
 	const forecastMonths = projectForecast({
 		startingSafeCash: projectedBuffer,
 		startingDebtBalance: totalDebtBalance,
-		monthlyDebtReduction: remainingSnowballExtra,
+		monthlyDebtReduction: monthlySnowballExtra,
 		months: 3,
 		bufferTrendPerMonth: projectedBufferLift,
 		requiredPaymentCount: result?.allocations.filter((item) => item.category === "expense" || item.category === "minimum_debt").length ?? 0,

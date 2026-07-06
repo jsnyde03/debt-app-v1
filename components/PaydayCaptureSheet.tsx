@@ -12,7 +12,6 @@ import type { CompletedRecommendedAction } from "@/lib/storage/debtPlannerStorag
 type PaydayCaptureSheetProps = {
     /** The cycle's active recommended allocation (from selectActiveRecommendedActions). */
     activeRecommendedActions: ActiveRecommendedAction[];
-    completedRecommendedActions: CompletedRecommendedAction[];
     /** Persist the captured actions (bulk-applied in page.tsx). */
     onCapture: (items: CompletedRecommendedAction[]) => void;
     /** Close + mark this payday handled (no re-prompt). */
@@ -29,7 +28,6 @@ type PaydayCaptureSheetProps = {
  */
 export function PaydayCaptureSheet({
     activeRecommendedActions,
-    completedRecommendedActions,
     onCapture,
     onDismiss,
     onClose,
@@ -56,7 +54,6 @@ export function PaydayCaptureSheet({
                 recommendedAmount: a.recommendedAmount,
                 actualAmount: a.actualAmount,
             })),
-            completedRecommendedActions,
             overrides
         );
         onCapture(items);

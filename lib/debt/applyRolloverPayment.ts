@@ -26,6 +26,21 @@ export function applyRolloverPayment(
     const minimumWasPaid =
         debt.minimumPaidThisCycle ?? debt.isPaidThisCycle ?? false;
 
+    // Honor the DISPLAYED payoff. The app recommends and shows interest-free
+    // balances (getDebtsWithDisplayBalances), so a debt paid down to a $0 display
+    // balance reads as "paid off" to the user. Accruing one final cycle's interest
+    // here would leave a few-dollar residual — the debt reappearing next cycle with
+    // no paid-off celebration (the display↔rollover seam). If this cycle's payment
+    // clears the pre-interest balance, the debt is done. (Making the recommendation
+    // itself interest-aware is the fuller fix, deferred to v1.7.)
+    const paidMinimumPreInterest = minimumWasPaid
+        ? Math.min(debt.minimumPayment, debt.balance)
+        : 0;
+
+    if (roundMoney(paidMinimumPreInterest + completedSnowballAmount) >= debt.balance) {
+        return { ...debt, balance: 0 };
+    }
+
     // BNPL is fixed-installment, interest-free by definition - never accrue
     // interest on it even if a nonzero APR was entered/defaulted. Accrue per
     // pay cycle so biweekly/weekly users don't over-pay a full month each roll.

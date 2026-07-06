@@ -49,7 +49,8 @@ type ResultsSectionProps = {
         category: RecommendedCategory,
         recommendedAmount: number,
         actualAmount: number,
-        paymentSource?: "paycheck" | "external"
+        paymentSource?: "paycheck" | "external",
+        isUnmark?: boolean
     ) => void;
 };
 
@@ -239,7 +240,7 @@ export function ResultsSection({
 
     const completedRecommendedDisplayActions: RecommendedDisplayAction[] =
         completedRecommendedActions.map((action) => ({
-            key: `completed-${action.category}-${action.targetId}-${action.label}`,
+            key: `completed-${action.category}-${action.targetId}-${action.label}-${action.paymentSource ?? "paycheck"}`,
             label: action.label,
             category: action.category,
             targetId: action.targetId,
@@ -525,12 +526,17 @@ export function ResultsSection({
 
         function handleRecommendedPrimaryAction() {
             if (action.isCompleted) {
+                // Un-mark THIS completed row — pass its own payment source so the
+                // right (paycheck vs external) contribution is reversed, and the
+                // explicit unmark intent so it never toggles a same-key remainder.
                 onMarkRecommendedAction(
                     action.targetId,
                     action.label,
                     action.category,
                     action.recommendedAmount,
-                    action.actualAmount
+                    action.actualAmount,
+                    action.paymentSource ?? "paycheck",
+                    true
                 );
 
                 return;

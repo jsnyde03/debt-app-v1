@@ -25,13 +25,21 @@ export function captureKey(a: { targetId: string; label: string; category: strin
 }
 
 /**
- * Pure core of Payday Autopilot capture: map the cycle's recommended actions
- * (+ optional per-item overrides) to the `CompletedRecommendedAction` inputs to
- * mark. Actions ALREADY captured this cycle are skipped — capture is idempotent,
- * never double-counting a goal/debt.
+ * Pure core of Payday Autopilot capture: map the cycle's ACTIVE recommended
+ * actions (+ optional per-item overrides) to the `CompletedRecommendedAction`
+ * inputs to mark.
  *
- * One-tap "I followed the plan" = no overrides → every not-yet-captured action
- * gets `actualAmount = the cycle's recommended payment`, `paymentSource: "paycheck"`
+ * The input is the selector's ACTIVE list, which is already the net-REMAINING
+ * recommendation (it subtracts this cycle's completed snowball from debt balances
+ * and completed cash from capacity). So every active item is a real remaining
+ * contribution and MUST be captured — there is nothing to skip. (The prior
+ * `alreadyCompleted` skip was the v1.6 collision bug: a re-recommended remainder
+ * shares `targetId|label|category` with its completed partial, so the skip
+ * silently dropped a contribution the sheet displayed. Accumulation across the
+ * partial and the remainder now happens downstream via `upsertCompletedAction`.)
+ *
+ * One-tap "I followed the plan" = no overrides → every active action gets
+ * `actualAmount = the cycle's recommended payment`, `paymentSource: "paycheck"`
  * (with `recommendedAmount` = the full payoff room, matching the Plan tab so drift
  * is consistent across capture paths). Adjust overrides the paid amount / marks
  * external. The cash-exclusion of `paymentSource: "external"`
@@ -39,22 +47,18 @@ export function captureKey(a: { targetId: string; label: string; category: strin
  */
 export function buildPaydayCaptureItems(
     recommendedActions: RecommendedActionInput[],
-    alreadyCompleted: Pick<CompletedRecommendedAction, "targetId" | "label" | "category">[],
     overrides: Record<string, PaydayCaptureOverride> = {}
 ): CompletedRecommendedAction[] {
-    const done = new Set(alreadyCompleted.map(captureKey));
-    return recommendedActions
-        .filter((a) => !done.has(captureKey(a)))
-        .map((a) => {
-            const o = overrides[captureKey(a)] ?? {};
-            const paymentSource: "paycheck" | "external" = o.external ? "external" : "paycheck";
-            return {
-                targetId: a.targetId,
-                label: a.label,
-                category: a.category,
-                recommendedAmount: a.recommendedAmount,
-                actualAmount: o.actualAmount ?? a.actualAmount,
-                paymentSource,
-            };
-        });
+    return recommendedActions.map((a) => {
+        const o = overrides[captureKey(a)] ?? {};
+        const paymentSource: "paycheck" | "external" = o.external ? "external" : "paycheck";
+        return {
+            targetId: a.targetId,
+            label: a.label,
+            category: a.category,
+            recommendedAmount: a.recommendedAmount,
+            actualAmount: o.actualAmount ?? a.actualAmount,
+            paymentSource,
+        };
+    });
 }

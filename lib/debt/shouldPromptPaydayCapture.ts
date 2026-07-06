@@ -37,3 +37,25 @@ export function shouldPromptPaydayCapture(
     if (daysAfter(nextPaycheckDate, todayISO) > maxRecencyDays) return false; // stale — don't nag
     return true;
 }
+
+/**
+ * Has the current payday been HANDLED (captured/dismissed) but the pay cycle not
+ * yet rolled over? In that state the app should nudge the user to start the next
+ * cycle — otherwise `nextPaycheckDate` stays frozen and, once it goes stale, the
+ * capture prompt silences PERMANENTLY (capture marks handled; only rollover
+ * advances the date). Rollover stays a separate, user-initiated action; this only
+ * surfaces the nudge at the right moment (the "Start Next Pay Cycle" control is
+ * otherwise buried in settings).
+ *
+ * True once real *today* has reached a payday the user handled this cycle. After
+ * rollover, `nextPaycheckDate` moves to the future (today < it) → false again.
+ */
+export function isPaydayAwaitingRollover(
+    todayISO: string,
+    nextPaycheckDate: string,
+    lastHandledPaydayDate: string | null
+): boolean {
+    if (!nextPaycheckDate) return false;
+    if (todayISO < nextPaycheckDate) return false; // payday hasn't arrived yet
+    return lastHandledPaydayDate === nextPaycheckDate; // handled, awaiting rollover
+}

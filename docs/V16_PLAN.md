@@ -1,6 +1,8 @@
 # Debt Planner v1.6 — Plan
 
-_Rewritten 2026-07-05 after the portfolio audits (differentiation × 2 + greenfield + LLM-proof features). Supersedes the scattered v1.6 notes in `ROADMAP.md`, `SUSTAINABILITY_REFACTOR.md §Scheduled`, and MASTER_PLAN §9. **Not the active build yet** — this is the decomposed plan for when Debt reopens; the opening planning session (below) ratifies scope + order._
+_Rewritten 2026-07-05 after the portfolio audits (differentiation × 2 + greenfield + LLM-proof features). Supersedes the scattered v1.6 notes in `ROADMAP.md`, `SUSTAINABILITY_REFACTOR.md §Scheduled`, and MASTER_PLAN §9._
+
+> **✅ STATUS 2026-07-06 — BUILT & FEATURE-LOCKED; at the release gate.** The differentiation spine shipped (hero reposition · **Payday Autopilot** · **Interest-Saved Momentum Ledger** · M4 payoff-cadence). Passed the pre-submit functional-correctness audit (2 HIGH + 4 MED fixed, each with a regression test; 6 LOWs → backlog); `validate:release` green (128 e2e). Remaining before submit: the **real-device TestFlight pass** (`docs/V16_TESTFLIGHT_CHECKLIST.md`) + the v1.6 ASO rebuild (`V16_ASO_STRATEGY.md`). The **Plan-vs-Actual Drift Tracker** was deferred to v1.7 (needs the now-real captured history). What's New → `docs/release-notes/v1.6.md`.
 
 ---
 
@@ -40,22 +42,22 @@ Every finding is hygiene/debt, not an approach problem. **KEEP + PROTECT:** the 
 4. **[test-gate] `handleMarkRecommendedAction` mark→unmark reconciliation test** (incl. target-edited-while-marked) — HARD GATE before step 5.
 5. **[positioning] Hero reposition** → payday-allocation engine + radical-trust (IA/content on the existing Plan tab; no nav restructure).
 6. **[feature] Payday Autopilot ✅ DONE (2026-07-06)** — capture keystone shipped (1.6.1–1.6.6): proactive payday sheet (one-tap/adjust/external) on the theme-safe portal + canonical types, in the `usePaydayCapture` hook (not page.tsx), payday-morning notification, single-sourced plan selector, committed e2e. Full design → `V16_PAYDAY_AUTOPILOT.md`.
-7. **[feature] Interest-Saved Momentum Ledger** (S; reads captured actuals; ships its own reconciliation test).
-8. **[feature] Plan-vs-Actual Drift Tracker** (needs #6's capture; new money math → own reconciliation test).
+7. **[feature] Interest-Saved Momentum Ledger ✅ DONE (2026-07-06, free headline)** — "Paying extra saves you $X in interest and Y vs. minimum payments" on the Payoff tab (`computeInterestSaved` + reconciliation test). Premium depth (momentum history chart) → deferred to a fast-follow.
+8. **[feature] Plan-vs-Actual Drift Tracker → 🚫 DEFERRED to v1.7** (2026-07-06) — its data (Payday Autopilot's captured cycles) only starts existing now, so it'd be empty at launch; it's the **lead v1.7 feature**.
 9. **[refactor] release gate + after-scan** — full `validate:release` green, visual-verify all theme changes, correct SUSTAINABILITY_REFACTOR inventory, log to MASTER_PLAN.
 
 **🚫 DEFERRED from v1.6 (DECIDED 2026-07-05, Jason):** ~~Payoff Live Activity~~ — it's the one native-Swift workstream (a Widget/ActivityKit Xcode target + App Group plumbing + Dynamic-Island device testing + the Codemagic native-module gotchas). **v1.6 stays the fast, pure-JS/Capacitor strike;** the payoff Live Activity ships **batched with the Home-Screen Widget in the native-surfaces version** (the renumbered v1.9 — cheaper to build the App Group plumbing once, and it aligns with the roadmap's native-features batching). Still a top anti-LLM moat — just not mid-strike native risk. _(Also part of the 2026-07-05 roadmap renumber: v1.6 Differentiation → v1.7 Foundation infra → v1.8 Android → v1.9 native surfaces → rest +1.)_
 
 ### ✅ Decisions — RATIFIED 2026-07-05 (Jason approved ALL 8 per recommendation)
 _Locked: ① SPLIT (spine=v1.6, infra=v1.7) · ② bounded 3-item refactor slice only (defer orchestrator 3-5) · ③ pull the `handleMarkRecommendedAction` reconciliation test into v1.6 · ④ canonical types onto storage exports now · ⑤ defer `components/` folder migration to v1.7 · ⑥ KEEP bottom-tab + iPad sidebar nav · ⑦ drop Tailwind v1.7 · ⑧ keep `tests/visual` manual + wire `clampMoney` at v1.7. Plus the earlier calls: defer payoff Live Activity to the native-surfaces batch; roadmap renumbered. **v1.6 scope is fully locked — build unblocked from step 1.1.**_
-- [ ] **Split the release?** → **REC: YES** (spine=v1.6, infra=v1.7). _(Or ship both together as one large v1.6.)_
-- [ ] **Refactor depth?** → **REC: bounded 3-item slice only** (CI gate · getPortalTarget · CompletedRecommendedAction) + the reconciliation test; defer orchestrator Phases 3-5 to v1.7. _(Or start orchestrator extraction now.)_
-- [ ] **Pull the `handleMarkRecommendedAction` reconciliation test into v1.6 (before Payday Autopilot)?** → **REC: YES** — this is the single most important call; it guards a verified latent balance-drift path.
-- [ ] **Canonical type home?** → **REC: consolidate onto existing storage exports now**; defer the `lib/types/` neutral-layer relocation to a later structural slice.
-- [ ] **`components/` folder-structure migration?** → **REC: defer to v1.7** (one section per commit; high churn, zero user payoff).
-- [ ] **Standing nav re-eval?** → **REC: KEEP bottom-tab + iPad sidebar** (record it so it stops recurring).
-- [ ] **Tailwind v4 pipeline?** → **REC: drop in v1.7** (app is 100% hand-written global CSS; Tailwind pays build cost for ~zero use).
-- [ ] **`tests/visual/` + `clampMoney`?** → **REC: keep tests/visual manual for now** (unify all 3 seed systems + re-baseline screenshots in v1.7); **wire `clampMoney` into the forecast/insights formatters in v1.7** (adds the missing NaN-guard) rather than delete.
+- [x] **Split the release?** → **RATIFIED: YES** (spine=v1.6, infra=v1.7).
+- [x] **Refactor depth?** → **RATIFIED: bounded 3-item slice** (CI gate · getPortalTarget · CompletedRecommendedAction) + the reconciliation test; orchestrator Phases 3-5 → v1.7. _(All 3 slice items shipped.)_
+- [x] **Pull the `handleMarkRecommendedAction` reconciliation test into v1.6?** → **RATIFIED: YES** — shipped as step 1.4 (`reconcileGoalAmount` + teeth-proven test).
+- [x] **Canonical type home?** → **RATIFIED: storage exports now** (shipped 1.3); `lib/types/` relocation → v1.7.
+- [x] **`components/` folder-structure migration?** → **RATIFIED: defer to v1.7.**
+- [x] **Standing nav re-eval?** → **RATIFIED: KEEP bottom-tab + iPad sidebar.**
+- [x] **Tailwind v4 pipeline?** → **RATIFIED: drop in v1.7.**
+- [x] **`tests/visual/` + `clampMoney`?** → **RATIFIED: keep tests/visual manual for now; wire `clampMoney` in v1.7.**
 
 ---
 
@@ -76,7 +78,8 @@ _Locked: ① SPLIT (spine=v1.6, infra=v1.7) · ② bounded 3-item refactor slice
 
 ---
 
-## B. Retained from the original v1.6 (still done, no longer the point)
+## B. Deferred to v1.7 — the robust backlog-paydown build (canonical tracking → MASTER_PLAN §9; this mirrors it)
+_Reconciled 2026-07-06: parts of the below already SHIPPED in v1.6 — `CompletedRecommendedAction` consolidation (step 1.3, it was 6 decls + demo, not "4"), the ResultsSection plan-dedup (1.6.3), and **M4** cycleMultiplier (step 1.7). **Q9** (progress-% clamp) is already handled in `DebtRow.tsx`. **Q1** (UTC date off-by-one) moved to the new "Non-US readiness" item (US-only ships safe). The rest stands, deferred to v1.7._
 - **Sustainability refactor — a bounded slice** (never all at once): `roundMoney`×12 + `clampMoney` → shared `lib/utils/money`; `CompletedRecommendedAction` type consolidation (4 defs); `livingExpenses` preset-default dup; orchestrator Phases 3–5 (math-risk, reconciliation-test-gated); file-structure orientation. Living inventory → `SUSTAINABILITY_REFACTOR.md`.
 - **Test/build-hardening bundle** — shared-seed-helper migration (`empty-state` + 3 CI-ignored screenshot specs, re-baseline) · DRY positional selectors + fix the no-op `…toBeVisible;` · Due-Date `<label>`→input a11y · multiple-lockfiles warning · expand CI gate to full `validate:release` · onboarding ipad-landscape flake · Playwright worker-teardown hang. **Reconcile `tests/visual/` with the screenshot specs** (CI-gated suite vs. manual script — don't drift into two visual systems).
 - **v1.5 pre-submit bug deferrals** (`V15_FUNCTIONAL_AUDIT.md`) — **Q1** timezone/UTC off-by-one (prereq for any non-US launch) · **Q4** Timeline per-cycle payment accuracy · **Q2** Reset-to-Today due-date roll · **Q5** cascade overpaid-snowball excess (+boundary test) · **Q9** clamp per-debt progress 0–100 · minors **M2/M3/M4/M7**.

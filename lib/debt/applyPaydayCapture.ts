@@ -1,4 +1,5 @@
 import { markGoal } from "./reconcileGoalAmount";
+import { upsertCompletedAction } from "./mergeCompletedAction";
 import type { Goal, CompletedRecommendedAction } from "@/lib/storage/debtPlannerStorage";
 
 /**
@@ -39,5 +40,13 @@ export function applyPaydayCapture(
         return item;
     });
 
-    return { nextGoals, nextCompleted: [...completedRecommendedActions, ...captured] };
+    // Accumulate into the completed list by (target|label|category|source) so a
+    // captured REMAINDER folds into its earlier partial rather than colliding with
+    // it (the v1.6 capture-collision fix). External stays distinct from paycheck.
+    let nextCompleted = completedRecommendedActions;
+    for (const c of captured) {
+        nextCompleted = upsertCompletedAction(nextCompleted, c);
+    }
+
+    return { nextGoals, nextCompleted };
 }

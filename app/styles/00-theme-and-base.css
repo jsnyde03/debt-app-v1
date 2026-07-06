@@ -513,6 +513,18 @@
 	line-height: 1.45;
 }
 
+/* Post-capture nudge to start the next pay cycle (mirrors first-debt-prompt,
+   with an accent border to read as the actionable next step). The `.card`
+   compound selector outranks `.card`'s own `border` shorthand so the accent
+   colour actually wins (equal specificity would lose on source order). */
+.card.payday-rollover-nudge {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	text-align: center;
+	border-color: rgba(56, 189, 248, 0.4);
+}
+
 .card {
 	border: 1px solid rgba(148, 163, 184, 0.14);
 	border-radius: 18px;

@@ -41,6 +41,7 @@ import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { getDebtsWithDisplayBalances, getCompletedSnowballAmount } from "@/lib/debt/getDebtsWithDisplayBalances";
 import { selectActiveRecommendedActions } from "@/lib/debt/selectActiveRecommendedActions";
 import { applyPaydayCapture } from "@/lib/debt/applyPaydayCapture";
+import { upsertCompletedAction } from "@/lib/debt/mergeCompletedAction";
 import { usePaydayCapture } from "@/lib/hooks/usePaydayCapture";
 import { getPortalTarget } from "@/lib/dom/getPortalTarget";
 import { PaydayCaptureSheet } from "@/components/PaydayCaptureSheet";
@@ -354,8 +355,17 @@ export default function Home() {
     }, [result, debts, payoffStrategy, currentDate, payCycle]);
 
     const heroSubtitle = useMemo(() => {
-        if (!result || debts.filter(d => d.balance > 0).length === 0) {
+        // No plan yet (no paycheck entered) — the only true "enter a paycheck" state.
+        if (!result) {
             return "Enter a paycheck and see exactly what to do next.";
+        }
+        // Paycheck IS set but nothing is left to pay: debt-free (balances cleared)
+        // or no debts entered yet. Previously both fell through to "Enter a
+        // paycheck…", which was wrong once a paycheck existed.
+        if (debts.filter(d => d.balance > 0).length === 0) {
+            return debts.length > 0
+                ? "You're debt-free — every balance is cleared. Keep the momentum going."
+                : "Add a debt to see exactly what to pay each paycheck.";
         }
         if (result.shortfall > 0) {
             return "Tight cycle — protect your minimums first.";
@@ -523,10 +533,22 @@ export default function Home() {
         setStatusMessage("Up to date");
     }
 
-    function handleMarkRecommendedAction(targetId: string, label: string, category: "emergency" | "snowball" | "optional_goal", recommendedAmount: number, actualAmount: number, paymentSource: "paycheck" | "external" = "paycheck") {
-        const existingAction = completedRecommendedActions.find((action) => action.targetId === targetId && action.label === label && action.category === category);
+    function handleMarkRecommendedAction(targetId: string, label: string, category: "emergency" | "snowball" | "optional_goal", recommendedAmount: number, actualAmount: number, paymentSource: "paycheck" | "external" = "paycheck", isUnmark: boolean = false) {
+        // UNMARK: reverse a specific completed contribution. Matched on
+        // paymentSource too, so un-marking a paycheck row never touches a
+        // same-goal external contribution (or vice-versa). Intent is passed
+        // explicitly (the tapped row's `isCompleted`) rather than inferred from a
+        // key match — inference was the v1.6 collision bug, where tapping a
+        // re-recommended remainder un-marked its completed partial.
+        if (isUnmark) {
+            const existingAction = completedRecommendedActions.find(
+                (action) => action.targetId === targetId && action.label === label && action.category === category && action.paymentSource === paymentSource
+            );
 
-        if (existingAction) {
+            if (!existingAction) {
+                return;
+            }
+
             const nextGoals =
                 category === "emergency" || category === "optional_goal"
                     ? goals.map((goal) =>
@@ -540,7 +562,7 @@ export default function Home() {
                     : goals;
 
             const nextCompletedRecommendedActions = completedRecommendedActions.filter(
-                (action) => !(action.targetId === targetId && action.label === label && action.category === category)
+                (action) => !(action.targetId === targetId && action.label === label && action.category === category && action.paymentSource === paymentSource)
             );
 
             setGoals(nextGoals);
@@ -581,17 +603,18 @@ export default function Home() {
             }
         }
 
-        const nextCompletedRecommendedActions = [
-            ...completedRecommendedActions,
-            {
-                targetId,
-                label,
-                category,
-                recommendedAmount,
-                actualAmount: safeActualAmount,
-                paymentSource,
-            },
-        ];
+        // Accumulate into any existing same-(target|label|category|source)
+        // contribution rather than appending a colliding duplicate, so a partial
+        // and its re-recommended remainder fold into one entry (see
+        // upsertCompletedAction — the v1.6 capture-collision fix).
+        const nextCompletedRecommendedActions = upsertCompletedAction(completedRecommendedActions, {
+            targetId,
+            label,
+            category,
+            recommendedAmount,
+            actualAmount: safeActualAmount,
+            paymentSource,
+        });
 
         setGoals(nextGoals);
         setCompletedRecommendedActions(nextCompletedRecommendedActions);
@@ -988,6 +1011,24 @@ export default function Home() {
                         </div>
 
                         <div className="plan-tab-grid">
+                            {paydayCapture.isAwaitingRollover && (
+                                <div className="card payday-rollover-nudge">
+                                    <p className="first-debt-prompt-text">
+                                        Payday logged. Start your next pay cycle to apply this cycle&apos;s payments and get your next plan.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className="primary-plan-button"
+                                        onClick={() => {
+                                            triggerMediumHaptic();
+                                            handleRolloverPayCycle();
+                                        }}
+                                    >
+                                        Start Next Pay Cycle
+                                    </button>
+                                </div>
+                            )}
+
                             {currentStreak > 0 && (
                                 <div
                                     className="streak-stat"
@@ -1002,7 +1043,7 @@ export default function Home() {
                                 </div>
                             )}
 
-                            {result !== null && activeDebts.length === 0 && (
+                            {result !== null && debts.length === 0 && (
                                 <div className="card first-debt-prompt">
                                     <p className="first-debt-prompt-text">
                                         Your debt-free date is waiting. Add your first debt to see exactly what to do this paycheck.
@@ -1087,6 +1128,7 @@ export default function Home() {
                             completedRecommendedActions={completedRecommendedActions}
                             interestSaved={interestSaved}
                             payoffStrategy={payoffStrategy}
+                            payCycle={payCycle}
                             currentDate={currentDate}
                             subscriptionPlan={subscriptionPlan}
                             onUpgradeClick={() => {
@@ -1312,7 +1354,6 @@ export default function Home() {
                 createPortal(
                     <PaydayCaptureSheet
                         activeRecommendedActions={activeRecommendedActions}
-                        completedRecommendedActions={completedRecommendedActions}
                         onCapture={handlePaydayCapture}
                         onDismiss={paydayCapture.dismiss}
                         onClose={paydayCapture.close}

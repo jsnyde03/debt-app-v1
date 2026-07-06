@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { readKeyValue, writeKey } from "@/lib/storage/safeStorage";
-import { shouldPromptPaydayCapture } from "@/lib/debt/shouldPromptPaydayCapture";
+import { shouldPromptPaydayCapture, isPaydayAwaitingRollover } from "@/lib/debt/shouldPromptPaydayCapture";
 import type { PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
 
 const HANDLED_KEY = "debtPlanner.lastHandledPaydayDate";
@@ -59,6 +59,14 @@ export function usePaydayCapture({ nextPaycheckDate, payCycle, hasCapturablePlan
     const autoOpen = isPaydayPending && closedForPayday !== nextPaycheckDate;
     const isOpen = manualOpen || autoOpen;
 
+    // Payday handled but the cycle hasn't rolled over yet — nudge the user to start
+    // the next cycle so the payday prompt doesn't silence itself (see
+    // isPaydayAwaitingRollover). Gated on a real plan so it never shows on an empty
+    // slate. Mutually exclusive with isPaydayPending (handled vs. not-yet-handled).
+    const isAwaitingRollover =
+        hasCapturablePlan &&
+        isPaydayAwaitingRollover(todayISO(), nextPaycheckDate, lastHandled);
+
     function markHandled() {
         writeKey(HANDLED_KEY, nextPaycheckDate);
         setLastHandled(nextPaycheckDate);
@@ -74,6 +82,8 @@ export function usePaydayCapture({ nextPaycheckDate, payCycle, hasCapturablePlan
         isOpen,
         /** Payday detected & unhandled — for a subtle "review your payday" affordance. */
         isPaydayPending,
+        /** Payday handled but cycle not yet rolled over — surfaces the roll-forward nudge. */
+        isAwaitingRollover,
         /** Manually open the sheet (e.g. from that affordance). */
         open: () => setManualOpen(true),
         /** Close without marking handled — re-offers on the next app open. */
