@@ -61,6 +61,12 @@ export type RecommendationOverride = {
 // Mirrors the local type in app/page.tsx; declared here so it can be
 // persisted inside a PayCycleSnapshot. Structurally identical, so the
 // page can pass its array straight through.
+// THE canonical CompletedRecommendedAction (the persisted shape). Every other
+// module imports this one — do not redeclare a local copy. `page.tsx`
+// (handleMarkRecommendedAction) is the sole write path and always populates the
+// full shape, so `label`/`recommendedAmount` are non-optional invariants that
+// readers can rely on; `paymentSource` is optional (absent = treated as paycheck).
+// (v1.7 will relocate this to a neutral `lib/types/` layer — see decision #4.)
 export type CompletedRecommendedAction = {
 	targetId: string;
 	label: string;

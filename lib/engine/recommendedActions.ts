@@ -1,17 +1,10 @@
 import type { allocatePaycheck } from "./allocatePaycheck";
-import type { Goal } from "../storage/debtPlannerStorage";
+import type { CompletedRecommendedAction, Goal } from "../storage/debtPlannerStorage";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 type AllocationItem = AllocationResult["allocations"][number];
 
 export type RecommendedCategory = "emergency" | "snowball" | "optional_goal";
-
-export type CompletedRecommendedAction = {
-    targetId: string;
-    category: RecommendedCategory;
-    actualAmount: number;
-    paymentSource?: "paycheck" | "external";
-};
 
 export type RecommendationOverride = {
     targetId: string;

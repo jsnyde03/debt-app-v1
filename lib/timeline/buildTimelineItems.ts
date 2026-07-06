@@ -1,15 +1,7 @@
 import { allocatePaycheck } from "../engine/allocatePaycheck";
-import type { Debt, RequiredExpense } from "../storage/debtPlannerStorage";
+import type { CompletedRecommendedAction, Debt, RequiredExpense } from "../storage/debtPlannerStorage";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
-
-export type CompletedRecommendedAction = {
-    targetId: string;
-    label: string;
-    category: "emergency" | "snowball" | "optional_goal";
-    actualAmount: number;
-    paymentSource?: "paycheck" | "external";
-};
 
 export type TimelineItem = {
     date: string;

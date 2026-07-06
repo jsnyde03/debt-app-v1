@@ -28,7 +28,7 @@ import {
     rolloverRequiredExpenses,
 } from "@/lib/recurrence/rolloverPayCycle";
 
-import { type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+import { type CompletedRecommendedAction, type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
 import { computeMilestones } from "@/lib/debt/computeMilestones";
 import { computeStreak } from "@/lib/debt/computeStreak";
@@ -73,15 +73,6 @@ import { CreditCard, Settings, Wallet } from "@/lib/icons";
 // Run storage schema migrations once, at module load, before any hook reads a
 // persisted key. No-op under SSR (no localStorage) and idempotent.
 migrateState();
-
-type CompletedRecommendedAction = {
-    targetId: string;
-    label: string;
-    category: "emergency" | "snowball" | "optional_goal";
-    recommendedAmount: number;
-    actualAmount: number;
-    paymentSource?: "paycheck" | "external";
-};
 
 function formatRecurrence(recurrence: Recurrence) {
     switch (recurrence) {

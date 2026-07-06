@@ -3,9 +3,8 @@ import {
     computeCompletedSnowballByDebt,
     computeCompletedRecommendedTotal,
     buildActiveRecommendedActions,
-    type CompletedRecommendedAction,
 } from "../engine/recommendedActions";
-import type { Goal } from "../storage/debtPlannerStorage";
+import type { CompletedRecommendedAction, Goal } from "../storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, msg: string) {
     if (actual !== expected) {
@@ -117,8 +116,8 @@ function testFlexibleCash_completedActionsReduceCapacity() {
 
 function testCompletedTotal_excludesExternalPayments() {
     const actions: CompletedRecommendedAction[] = [
-        { targetId: "g1", category: "emergency", actualAmount: 100, paymentSource: "paycheck" },
-        { targetId: "g1", category: "emergency", actualAmount: 200, paymentSource: "external" },
+        { targetId: "g1", label: "Emergency Fund", category: "emergency", recommendedAmount: 100, actualAmount: 100, paymentSource: "paycheck" },
+        { targetId: "g1", label: "Emergency Fund", category: "emergency", recommendedAmount: 200, actualAmount: 200, paymentSource: "external" },
     ];
     const total = computeCompletedRecommendedTotal(actions);
     assertEqual(total, 100, "external payments are excluded from total that reduces flex cash");
@@ -126,9 +125,9 @@ function testCompletedTotal_excludesExternalPayments() {
 
 function testCompletedTotal_includesAllNonExternal() {
     const actions: CompletedRecommendedAction[] = [
-        { targetId: "d1", category: "snowball", actualAmount: 150, paymentSource: "paycheck" },
-        { targetId: "g1", category: "emergency", actualAmount: 75, paymentSource: "paycheck" },
-        { targetId: "g2", category: "optional_goal", actualAmount: 50 },
+        { targetId: "d1", label: "Extra to Visa", category: "snowball", recommendedAmount: 150, actualAmount: 150, paymentSource: "paycheck" },
+        { targetId: "g1", label: "Emergency Fund", category: "emergency", recommendedAmount: 75, actualAmount: 75, paymentSource: "paycheck" },
+        { targetId: "g2", label: "Optional Goal", category: "optional_goal", recommendedAmount: 50, actualAmount: 50 },
     ];
     const total = computeCompletedRecommendedTotal(actions);
     assertEqual(total, 275, "all non-external actions sum into the total");
@@ -142,9 +141,9 @@ function testCompletedTotal_emptyArrayIsZero() {
 
 function testSnowballByDebt_groupsMultipleActionsForSameDebt() {
     const actions: CompletedRecommendedAction[] = [
-        { targetId: "d1", category: "snowball", actualAmount: 100, paymentSource: "paycheck" },
-        { targetId: "d1", category: "snowball", actualAmount: 50, paymentSource: "paycheck" },
-        { targetId: "d2", category: "snowball", actualAmount: 200, paymentSource: "paycheck" },
+        { targetId: "d1", label: "Extra to Visa", category: "snowball", recommendedAmount: 100, actualAmount: 100, paymentSource: "paycheck" },
+        { targetId: "d1", label: "Extra to Visa", category: "snowball", recommendedAmount: 50, actualAmount: 50, paymentSource: "paycheck" },
+        { targetId: "d2", label: "Extra to Car", category: "snowball", recommendedAmount: 200, actualAmount: 200, paymentSource: "paycheck" },
     ];
     const map = computeCompletedSnowballByDebt(actions);
     assertEqual(map["d1"], 150, "two snowball payments for d1 are summed");
@@ -153,8 +152,8 @@ function testSnowballByDebt_groupsMultipleActionsForSameDebt() {
 
 function testSnowballByDebt_ignoresNonSnowball() {
     const actions: CompletedRecommendedAction[] = [
-        { targetId: "g1", category: "emergency", actualAmount: 300, paymentSource: "paycheck" },
-        { targetId: "d1", category: "snowball", actualAmount: 100, paymentSource: "paycheck" },
+        { targetId: "g1", label: "Emergency Fund", category: "emergency", recommendedAmount: 300, actualAmount: 300, paymentSource: "paycheck" },
+        { targetId: "d1", label: "Extra to Visa", category: "snowball", recommendedAmount: 100, actualAmount: 100, paymentSource: "paycheck" },
     ];
     const map = computeCompletedSnowballByDebt(actions);
     assertEqual(Object.keys(map).length, 1, "only snowball category creates an entry");

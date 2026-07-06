@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import type { Debt } from "@/lib/storage/debtPlannerStorage";
+import type { CompletedRecommendedAction, Debt } from "@/lib/storage/debtPlannerStorage";
 import type { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
@@ -19,14 +19,6 @@ type AllocationResult = ReturnType<typeof allocatePaycheck>;
 type DebtWithDisplayBalance = Debt & {
 	displayBalance?: number;
 }
-
-type CompletedRecommendedAction = {
-	targetId: string;
-	label: string;
-	category: "emergency" | "snowball" | "optional_goal";
-	recommendedAmount: number;
-	actualAmount: number;
-};
 
 type SnowballSectionProps = {
 	debts: DebtWithDisplayBalance[];

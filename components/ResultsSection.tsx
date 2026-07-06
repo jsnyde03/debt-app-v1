@@ -9,7 +9,7 @@ import type {
 } from "@/lib/storage/debtPlannerStorage";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { computeCycleDelta } from "@/lib/debt/computeCycleDelta";
-import type { PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
+import type { CompletedRecommendedAction, PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
 import { TrendingDown, TrendingUp } from "@/lib/icons";
 import { SwipeActionCard } from "./SwipeActionCard";
 import { CompletedActionsList } from "./Results/CompletedActionsList";
@@ -25,15 +25,6 @@ type Goal = {
     targetAmount: number;
     currentAmount: number;
     type: "emergency" | "savings";
-};
-
-type CompletedRecommendedAction = {
-    targetId: string;
-    label: string;
-    category: RecommendedCategory;
-    recommendedAmount: number;
-    actualAmount: number;
-    paymentSource?: "paycheck" | "external";
 };
 
 type ResultsSectionProps = {

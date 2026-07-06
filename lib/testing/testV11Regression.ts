@@ -212,6 +212,7 @@ function testResultAllocationsAppearInTimeline() {
 				targetId: "visa",
 				label: "Extra payment to Visa",
 				category: "snowball",
+				recommendedAmount: 175,
 				actualAmount: 175,
 			},
 		],

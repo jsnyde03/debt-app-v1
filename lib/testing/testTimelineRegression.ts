@@ -178,7 +178,7 @@ function testCompletedSnowballFromPaycheckAppearsInTimeline() {
 	];
 	const result = buildResult(1000, [], debts);
 	const completedRecommendedActions = [
-		{ targetId: "d1", label: "Extra payment to Visa", category: "snowball" as const, actualAmount: 200, paymentSource: "paycheck" as const },
+		{ targetId: "d1", label: "Extra payment to Visa", category: "snowball" as const, recommendedAmount: 200, actualAmount: 200, paymentSource: "paycheck" as const },
 	];
 	const timeline = buildTimelineItems({ result, requiredExpenses: [], debts, completedRecommendedActions, currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15" });
 
@@ -192,7 +192,7 @@ function testCompletedEmergencyFromPaycheckAppearsInTimeline() {
 	// Completed emergency fund contributions from paycheck must appear in timeline.
 	const result = buildResult(1000, [], []);
 	const completedRecommendedActions = [
-		{ targetId: "g1", label: "Add to Emergency Fund", category: "emergency" as const, actualAmount: 100, paymentSource: "paycheck" as const },
+		{ targetId: "g1", label: "Add to Emergency Fund", category: "emergency" as const, recommendedAmount: 100, actualAmount: 100, paymentSource: "paycheck" as const },
 	];
 	const timeline = buildTimelineItems({ result, requiredExpenses: [], debts: [], completedRecommendedActions, currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15" });
 
@@ -206,7 +206,7 @@ function testCompletedActionFromExternalSourceDoesNotAppear() {
 	// It doesn't affect the paycheck's running cash balance.
 	const result = buildResult(1000, [], []);
 	const completedRecommendedActions = [
-		{ targetId: "d1", label: "Extra payment to Visa", category: "snowball" as const, actualAmount: 300, paymentSource: "external" as const },
+		{ targetId: "d1", label: "Extra payment to Visa", category: "snowball" as const, recommendedAmount: 300, actualAmount: 300, paymentSource: "external" as const },
 	];
 	const timeline = buildTimelineItems({ result, requiredExpenses: [], debts: [], completedRecommendedActions, currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15" });
 
@@ -232,7 +232,7 @@ function testCompletedSnowballSuppressesPlannedAllocation() {
 	];
 	const result = buildResult(1000, [], debts);
 	const completedRecommendedActions = [
-		{ targetId: "d1", label: "Extra payment to Visa", category: "snowball" as const, actualAmount: 150, paymentSource: "paycheck" as const },
+		{ targetId: "d1", label: "Extra payment to Visa", category: "snowball" as const, recommendedAmount: 150, actualAmount: 150, paymentSource: "paycheck" as const },
 	];
 	const timeline = buildTimelineItems({ result, requiredExpenses: [], debts, completedRecommendedActions, currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15" });
 
@@ -256,7 +256,7 @@ function testCompletedEmergencySuppressesPlannedAllocation() {
 		paycheckBuffer: 0,
 	});
 	const completedRecommendedActions = [
-		{ targetId: "g1", label: "Add to Emergency Fund", category: "emergency" as const, actualAmount: 100, paymentSource: "paycheck" as const },
+		{ targetId: "g1", label: "Add to Emergency Fund", category: "emergency" as const, recommendedAmount: 100, actualAmount: 100, paymentSource: "paycheck" as const },
 	];
 	const timeline = buildTimelineItems({ result, requiredExpenses: [], debts: [], completedRecommendedActions, currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15" });
 
@@ -274,8 +274,8 @@ function testCompletedActionsForDifferentTargetsBothAppear() {
 	];
 	const result = buildResult(1000, [], debts);
 	const completedRecommendedActions = [
-		{ targetId: "d1", label: "Extra payment to Visa", category: "snowball" as const, actualAmount: 200, paymentSource: "paycheck" as const },
-		{ targetId: "d2", label: "Extra payment to Medical", category: "snowball" as const, actualAmount: 50, paymentSource: "paycheck" as const },
+		{ targetId: "d1", label: "Extra payment to Visa", category: "snowball" as const, recommendedAmount: 200, actualAmount: 200, paymentSource: "paycheck" as const },
+		{ targetId: "d2", label: "Extra payment to Medical", category: "snowball" as const, recommendedAmount: 50, actualAmount: 50, paymentSource: "paycheck" as const },
 	];
 	const timeline = buildTimelineItems({ result, requiredExpenses: [], debts, completedRecommendedActions, currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15" });
 

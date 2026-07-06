@@ -1,6 +1,6 @@
 import type { PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
 import type { LivingExpense } from "@/lib/types/livingExpense";
-import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+import type { CompletedRecommendedAction, Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 
 export type DemoPlannerGoal = {
     id: string;
@@ -9,14 +9,6 @@ export type DemoPlannerGoal = {
     currentAmount: number;
     originalCurrentAmount?: number;
     type: "emergency" | "savings";
-};
-
-export type DemoCompletedRecommendedAction = {
-    targetId: string;
-    label: string;
-    category: "emergency" | "snowball" | "optional_goal";
-    recommendedAmount: number;
-    actualAmount: number;
 };
 
 export type DemoPlannerState = {
@@ -31,7 +23,7 @@ export type DemoPlannerState = {
     livingExpenses: LivingExpense[];
     debts: Debt[];
     goals: DemoPlannerGoal[];
-    completedRecommendedActions: DemoCompletedRecommendedAction[];
+    completedRecommendedActions: CompletedRecommendedAction[];
     payoffStrategy: "snowball" | "avalanche";
     darkMode: boolean;
 };
