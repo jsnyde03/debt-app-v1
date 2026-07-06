@@ -1,8 +1,22 @@
 import { useState } from "react";
 import { readKeyValue, writeKey } from "@/lib/storage/safeStorage";
 import { shouldPromptPaydayCapture } from "@/lib/debt/shouldPromptPaydayCapture";
+import type { PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
 
 const HANDLED_KEY = "debtPlanner.lastHandledPaydayDate";
+
+const CYCLE_DAYS: Record<PayCycle, number> = {
+    weekly: 7,
+    biweekly: 14,
+    semimonthly: 15,
+    monthly: 31,
+};
+
+// The capture prompt's freshness window: one pay cycle + a week of grace. Beyond
+// it a full cycle has elapsed, so the payday is stale and we don't nag.
+function recencyWindowDays(payCycle: PayCycle): number {
+    return (CYCLE_DAYS[payCycle] ?? 31) + 7;
+}
 
 function todayISO(): string {
     return new Date().toISOString().slice(0, 10);
@@ -11,6 +25,8 @@ function todayISO(): string {
 type UsePaydayCaptureParams = {
     /** The upcoming payday (derived from currentDate + payCycle in page.tsx). */
     nextPaycheckDate: string;
+    /** The pay cycle — sets how long after payday the prompt stays fresh. */
+    payCycle: PayCycle;
     /** Whether there's a plan worth capturing this cycle (>=1 recommended action). */
     hasCapturablePlan: boolean;
 };
@@ -27,7 +43,7 @@ type UsePaydayCaptureParams = {
  * Closing is session-only (resets on next app open → re-offers until handled);
  * dismiss/capture persist `handled` so it stays quiet across sessions.
  */
-export function usePaydayCapture({ nextPaycheckDate, hasCapturablePlan }: UsePaydayCaptureParams) {
+export function usePaydayCapture({ nextPaycheckDate, payCycle, hasCapturablePlan }: UsePaydayCaptureParams) {
     const [lastHandled, setLastHandled] = useState<string | null>(() =>
         readKeyValue<string | null>(HANDLED_KEY, null)
     );
@@ -37,7 +53,8 @@ export function usePaydayCapture({ nextPaycheckDate, hasCapturablePlan }: UsePay
 
     // Payday reached, plan present, not yet handled → offer the sheet.
     const isPaydayPending =
-        hasCapturablePlan && shouldPromptPaydayCapture(todayISO(), nextPaycheckDate, lastHandled);
+        hasCapturablePlan &&
+        shouldPromptPaydayCapture(todayISO(), nextPaycheckDate, lastHandled, recencyWindowDays(payCycle));
 
     const autoOpen = isPaydayPending && closedForPayday !== nextPaycheckDate;
     const isOpen = manualOpen || autoOpen;

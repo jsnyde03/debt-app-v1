@@ -372,6 +372,7 @@ export default function Home() {
     // Payday Autopilot — detection + capture sheet state (the narrow hook).
     const paydayCapture = usePaydayCapture({
         nextPaycheckDate,
+        payCycle,
         hasCapturablePlan: activeRecommendedActions.length > 0,
     });
 

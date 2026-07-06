@@ -1,17 +1,26 @@
 import { expect, test } from "@playwright/test";
 import { seedLocalStorage } from "./helpers/seed";
 
-// A configured planner whose payday has already passed (nextPaycheckDate is in the
-// past relative to real "today", which only moves forward) — so Payday Autopilot's
-// detection fires and the capture sheet auto-surfaces. Seeding nextPaycheckDate is
-// required: it's the payday trigger, and a bare seed leaves it empty.
+// Payday a few days ago → past AND recent (within the freshness window) regardless
+// of when the suite runs, so Payday Autopilot's detection reliably fires. A FIXED
+// past date would eventually fall outside the recency window as real "today"
+// advances, so compute it relative to now. Seeding nextPaycheckDate is required —
+// it's the payday trigger, and a bare seed leaves it empty.
+function isoDaysAgo(days: number): string {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() - days);
+    return d.toISOString().slice(0, 10);
+}
+
+const RECENT_PAYDAY = isoDaysAgo(3);
+
 const PAST_PAYDAY = {
     amount: "1950",
     hasCompletedOnboarding: true,
     hasConfiguredPaycheck: true,
     payCycle: "biweekly",
-    currentDate: "2026-06-06",
-    nextPaycheckDate: "2026-06-20",
+    currentDate: isoDaysAgo(3),
+    nextPaycheckDate: RECENT_PAYDAY,
     requiredExpenses: [],
     debts: [
         {
@@ -55,7 +64,7 @@ test("payday capture: sheet auto-opens, one-tap captures, no re-prompt", async (
     const handled = await page.evaluate(() =>
         JSON.parse(localStorage.getItem("debtPlanner.lastHandledPaydayDate") || "null")
     );
-    expect(handled).toBe("2026-06-20");
+    expect(handled).toBe(RECENT_PAYDAY);
 
     await page.reload();
     await expect(page.getByRole("heading", { name: "Debt Planner" })).toBeVisible();
