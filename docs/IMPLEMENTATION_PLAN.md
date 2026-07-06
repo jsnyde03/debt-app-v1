@@ -9,7 +9,8 @@ _Technical companion to `ROADMAP.md`. Defines how each version is built: data mo
 | v1.4 Onboarding (✅ shipped) | [archive/V14_ONBOARDING.md](archive/V14_ONBOARDING.md) |
 | v1.5 Track Your Journey (✅ feature-locked 2026-07-02) | [V15_TRACK_YOUR_JOURNEY.md](V15_TRACK_YOUR_JOURNEY.md) |
 | UX polish backlog (28 audit items, versioned) | [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) |
-| v1.7 and beyond | [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |
+| v1.6 Differentiation Strike (full plan + opening audit) | [V16_PLAN.md](V16_PLAN.md) |
+| v1.6 (Differentiation Strike) and beyond | [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |
 | Android readiness audit (blockers, CI, plugins, testing) | [ANDROID_READINESS.md](ANDROID_READINESS.md) |
 | Mobile polish (P1–P9) | [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) |
 | Page orchestrator refactor (Phases 1–5) | [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md) |
@@ -22,12 +23,12 @@ _Technical companion to `ROADMAP.md`. Defines how each version is built: data mo
 
 Four features independently require a **backend** that doesn't exist today (the app is 100% client-side, `localStorage`-only):
 
-- **v1.11** — opt-in leaderboard (server needed to aggregate anonymous percentiles)
+- **v1.12** — opt-in leaderboard (server needed to aggregate anonymous percentiles)
 - **v2.0** — AI Recommendations (Anthropic API key must never be client-side)
 - **v2.1** — Household/Multi-Income (accounts + sync, not local storage)
 - **v2.2** — Bank Linking (Plaid tokens must stay server-side)
 
-**Decision: build the backend once as Phase 0 of v2.0.** v1.11's leaderboard ships its non-backend half (shareable cards) at v1.11; the leaderboard half defers until the v2.0 backend exists.
+**Decision: build the backend once as Phase 0 of v2.0.** v1.12's leaderboard ships its non-backend half (shareable cards) at v1.12; the leaderboard half defers until the v2.0 backend exists.
 
 ---
 
@@ -39,9 +40,10 @@ Four features independently require a **backend** that doesn't exist today (the 
 | v1.3 | ✅ Shipped | iPad support + native polish, landscape layouts, Delete All Data, UI/UX Polish Pass |
 | v1.4 | ✅ Shipped | Core onboarding + timeline fix + 22 UX/Mobile polish items + Payoff Trajectory Chart (#1a) + Cash Flow Status Bars (#1b) + Per-Debt Progress Bars (#1c) |
 | v1.5 | ✅ Feature-locked (2026-07-02) | Pay Cycle History · Debt Milestones + celebration · Amortization *lite* · Streaks · Since-last-cycle delta · Settings UX rework — **plus a large quality/testing-hardening wave**: e2e harness rebuild + CI gate, full-app layout & premium-UX pass, context-aware skeletons, micro-interaction audit, Page Orchestrator Phases 1–2 (the sustainability-refactor opener), lint 0/0, storage-safety e2e. Android prep (Play Console signup) remains a background task. |
-| v1.6 | ⬜ Planned | Foundation: 3-tier subscription infra + analytics + crash reporting + schema versioning + backup automation + external-payment logging + **Android prep** (RevenueCat per-platform key, notification icon) |
-| v1.7 | ⬜ Long-term | **Android build** (clean standalone milestone) — see [ANDROID_READINESS.md](ANDROID_READINESS.md) |
-| v1.8+ | ⬜ Long-term | Multi-Scenario Planning, Widget + accessibility audit (v1.9), AI, ... — see [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |
+| v1.6 | ⬜ Planned | **Differentiation Strike**: payday-allocation engine as hero + LLM-proof capture (Payday Autopilot, Interest-Saved Momentum Ledger, Plan-vs-Actual Drift Tracker) + bounded refactor slice + marketing/ASO kickoff — pure-JS/Capacitor — see [V16_PLAN.md](V16_PLAN.md) |
+| v1.7 | ⬜ Planned | Foundation: 3-tier subscription infra + analytics + crash reporting + schema versioning + backup automation + **Android prep** (RevenueCat per-platform key, notification icon) _(external-payment logging shipped in v1.6 as Payday Autopilot)_ |
+| v1.8 | ⬜ Long-term | **Android build** (clean standalone milestone) — see [ANDROID_READINESS.md](ANDROID_READINESS.md) |
+| v1.9+ | ⬜ Long-term | Multi-Scenario Planning, Widget + accessibility audit (v1.10), AI, ... — see [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) |
 
 ---
 
@@ -105,11 +107,11 @@ Four features independently require a **backend** that doesn't exist today (the 
 
 ---
 
-## v1.6 — Foundation: Infrastructure & Instrumentation
+## v1.7 — Foundation: Infrastructure & Instrumentation
 
-**Scope:** Formalize everything under the hood that v1.5–v1.8 depends on working correctly. Three items are directly visible to users: the 3-tier subscription system surfaces Premium+ and Ultimate as real distinct tiers in the UI; backup reminders appear if you haven't exported in 7+ days; and external payment logging adds a new swipe action to debt rows.
+**Scope:** Formalize everything under the hood that v1.5–v1.9 depends on working correctly. Two items are directly visible to users: the 3-tier subscription system surfaces Premium+ and Ultimate as real distinct tiers in the UI; and backup reminders appear if you haven't exported in 7+ days. _(External payment logging is no longer part of this version — it shipped in v1.6 as Payday Autopilot; see the note in the External Payment Logging section below.)_
 
-**Annual pricing note:** Premium+ annual pricing ($79.99/yr) activates at v1.8, not here. The 3-tier infra formalizes the tier at v1.6, but Premium+'s differentiating power features (multi-scenario planning, probabilistic projections) don't land until v1.8. Sell the annual once the full value stack exists.
+**Annual pricing note:** Premium+ annual pricing ($79.99/yr) activates at v1.9, not here. The 3-tier infra formalizes the tier at v1.7, but Premium+'s differentiating power features (multi-scenario planning, probabilistic projections) don't land until v1.9. Sell the annual once the full value stack exists.
 
 ### 3-Tier Subscription Infrastructure
 
@@ -140,9 +142,9 @@ Four features independently require a **backend** that doesn't exist today (the 
 
 Extend `lib/storage/backup.ts` with a scheduled trigger on app foreground: if last backup > 7 days ago, prompt to export. Note: true automatic backup on iOS means writing to Files app or iCloud Drive via share sheet — verify iCloud Drive write access from the Capacitor WKWebView sandbox before committing. If not feasible, scope to more prominent backup reminders.
 
-### External Payment Logging
+### External Payment Logging — ✅ shipped in v1.6 as Payday Autopilot
 
-Add "Log Payment Made Outside App" to `DebtRow`/`ExpenseListItem` swipe actions, calling `onMarkRecommendedAction(..., paymentSource: "external")` — the handler already supports this parameter; this is purely a missing UI entry point.
+_Redundant here. The external-payment logging gap ("Log Payment Made Outside App" via `onMarkRecommendedAction(..., paymentSource: "external")`) is closed by v1.6's **Payday Autopilot** capture feature, which absorbed it. No standalone work remains for v1.7 — see [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) v1.6 and [V16_PLAN.md](V16_PLAN.md)._
 
 **Files touched:** `lib/subscription/plans.ts`, `lib/subscription/features.ts`, `lib/subscription/hasFeatureAccess.ts`, `lib/subscription/revenueCat.ts`, `lib/storage/migrateState.ts` (new), `lib/storage/debtPlannerStorage.ts`, `lib/storage/backup.ts`, `lib/analytics/track.ts` (new), `app/layout.tsx`, Xcode project (Sentry native init), `components/Debts/DebtRow.tsx`.
 
@@ -152,30 +154,30 @@ Add "Log Payment Made Outside App" to `DebtRow`/`ExpenseListItem` swipe actions,
 
 **Risk:** Medium-high on the call-site audit. Not technically hard, but the audit is where "wrong tier got access" bugs hide if rushed.
 
-### Android prep (continues here — finishes the groundwork before v1.7)
+### Android prep (continues here — finishes the groundwork before v1.8)
 
-Two v1.6 deliverables are hard prerequisites for the Android launch, and two small code fixes ride along. See [ANDROID_READINESS.md](ANDROID_READINESS.md).
+Two v1.7 deliverables are hard prerequisites for the Android launch, and two small code fixes ride along. See [ANDROID_READINESS.md](ANDROID_READINESS.md).
 
-1. **Crash reporting (Sentry) must be live before Android ships** — Android is the most surprise-prone version on the roadmap; launching a brand-new platform without crash reporting is flying blind. This is a reason the Android build follows v1.6, not precedes it.
-2. **Finalize the 3-tier structure before configuring Google Play products** — set up Play billing once against the final tiers (`free`/`premium`/`premium_plus`/`ultimate`) rather than building single-tier products at v1.7 and tearing them down. This is the other reason Android follows v1.6.
-3. **B1 — RevenueCat per-platform key:** `lib/subscription/revenueCat.ts` hardcodes the Apple key (`appl_...`). Add a `Capacitor.getPlatform()` branch to select the `goog_...` key on Android. No platform branching exists anywhere in the codebase today. Fold this into the v1.6 `revenueCat.ts` rework (already touched for 3-tier).
+1. **Crash reporting (Sentry) must be live before Android ships** — Android is the most surprise-prone version on the roadmap; launching a brand-new platform without crash reporting is flying blind. This is a reason the Android build follows v1.7, not precedes it.
+2. **Finalize the 3-tier structure before configuring Google Play products** — set up Play billing once against the final tiers (`free`/`premium`/`premium_plus`/`ultimate`) rather than building single-tier products at v1.8 and tearing them down. This is the other reason Android follows v1.7.
+3. **B1 — RevenueCat per-platform key:** `lib/subscription/revenueCat.ts` hardcodes the Apple key (`appl_...`). Add a `Capacitor.getPlatform()` branch to select the `goog_...` key on Android. No platform branching exists anywhere in the codebase today. Fold this into the v1.7 `revenueCat.ts` rework (already touched for 3-tier).
 4. **B2 — notification icon:** replace the placeholder `smallIcon: "ic_stat_icon_config_sample"` in `capacitor.config.ts` with a real Android monochrome drawable.
 
-**Also shipping in v1.6:**
+**Also shipping in v1.7:**
 - Page Orchestrator Phase 3 (Backup/Snapshot Hook) — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md).
 
 ---
 
 ## Sequencing risks
 
-1. **v1.6's 3-tier rework should be designed against from v1.5 onward.** Use `hasFeatureAccess` correctly in every version now, not retrofitted at v1.6 under time pressure.
-2. **v1.11 leaderboard half defers until v2.0 backend exists.** Don't build against an assumed backend shape before v2.0 designs it for real.
+1. **v1.7's 3-tier rework should be designed against from v1.5 onward.** Use `hasFeatureAccess` correctly in every version now, not retrofitted at v1.7 under time pressure.
+2. **v1.12 leaderboard half defers until v2.0 backend exists.** Don't build against an assumed backend shape before v2.0 designs it for real.
 3. **v2.0 is the roadmap's hinge point** — first server, first financial data leaving the device, first AI dependency. Everything after it (v2.1, v2.2, v3.0) builds on decisions made here. Get it right.
-4. **Engine code (`lib/engine/`, `lib/debt/`) is the app's most load-bearing, best-tested code.** Every version touching it (v1.5 amortization, v1.8 BNPL, v2.1 multi-income) must reuse existing functions and include a reconciliation test against current engine output.
+4. **Engine code (`lib/engine/`, `lib/debt/`) is the app's most load-bearing, best-tested code.** Every version touching it (v1.5 amortization, v1.9 BNPL, v2.1 multi-income) must reuse existing functions and include a reconciliation test against current engine output.
 5. **Mobile polish P7 (list virtualization) and P8 (modal transition audit) remain unscheduled.** P7: build only when a real user reports lag with a large list. P8: build only on a concrete HIG-compliance push.
 6. **Page Orchestrator Phases 1–5 must ship in order** — each phase's hook takes the prior phase's output as a parameter.
-7. **Do not expose Ultimate tier as purchasable until v2.0 ships** — every Ultimate feature depends on the v2.0 backend, which itself requires v1.5–v1.8 to be in place first.
+7. **Do not expose Ultimate tier as purchasable until v2.0 ships** — every Ultimate feature depends on the v2.0 backend, which itself requires v1.5–v1.9 to be in place first.
 8. **Statement Auto-Import mandatory review-before-save (v2.0) is a hard requirement** — never auto-save AI-extracted statement data without explicit user confirmation. A misextracted APR or balance corrupts a user's real financial plan.
-9. **v1.9 native features ship in order of increasing complexity:** custom icons → widget → Live Activities.
-10. **Android (v1.7) deliberately follows v1.6, and its prep starts at v1.5.** Two v1.6 deliverables gate it: crash reporting must precede a surprise-prone new platform, and the final 3-tier structure must exist before Google Play products are configured once (not twice). Independently, the slowest dependency — Google Play Console identity verification — has zero code coupling and starts at v1.5. Accessibility was split out of v1.7 to v1.9 so Android ships as a clean standalone milestone. Full rationale in [ANDROID_READINESS.md](ANDROID_READINESS.md).
+9. **v1.10 native features ship in order of increasing complexity:** custom icons → widget → Live Activities.
+10. **Android (v1.8) deliberately follows v1.7, and its prep starts at v1.5.** Two v1.7 deliverables gate it: crash reporting must precede a surprise-prone new platform, and the final 3-tier structure must exist before Google Play products are configured once (not twice). Independently, the slowest dependency — Google Play Console identity verification — has zero code coupling and starts at v1.5. Accessibility was split out of v1.8 to v1.10 so Android ships as a clean standalone milestone. Full rationale in [ANDROID_READINESS.md](ANDROID_READINESS.md).
 11. **Cross-reference audit (2026-06-28):** all `[vX.X]`-tagged features in `ROADMAP.md` now have matching implementation coverage in this doc set.

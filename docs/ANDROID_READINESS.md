@@ -1,6 +1,6 @@
 # Android Readiness Audit
 
-_Assessment of what it takes to ship the app on Android. Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). Android build is slated for v1.7 — see [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md)._
+_Assessment of what it takes to ship the app on Android. Part of the [Implementation Plan](IMPLEMENTATION_PLAN.md). Android build is slated for v1.8 — see [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md)._
 
 _Last updated: 2026-06-29._
 
@@ -76,9 +76,9 @@ Recommended shape:
 
 ## Timing dependencies (why placement matters)
 
-Android has two upstream dependencies in the current roadmap that argue for it landing **after v1.6**, not before:
+Android has two upstream dependencies in the current roadmap that argue for it landing **after v1.7**, not before:
 
-- **v1.6 ships the 3-tier subscription model.** Configuring Google Play billing products before v1.6 means setting up single-tier products, then reconfiguring for 3 tiers immediately after. Doing Android after v1.6 sets up Play billing **once**, for the final tier structure.
-- **v1.6 adds analytics + crash reporting (Sentry).** Launching a brand-new platform — where native surprises are most likely — **without** crash reporting is flying blind. Crash reporting should precede the Android launch.
+- **v1.7 ships the 3-tier subscription model.** Configuring Google Play billing products before v1.7 means setting up single-tier products, then reconfiguring for 3 tiers immediately after. Doing Android after v1.7 sets up Play billing **once**, for the final tier structure.
+- **v1.7 adds analytics + crash reporting (Sentry).** Launching a brand-new platform — where native surprises are most likely — **without** crash reporting is flying blind. Crash reporting should precede the Android launch.
 
-These make v1.7 a well-placed slot for the **build itself**. The caveats: start external accounts (§3) early regardless, and consider splitting the accessibility audit out of v1.7 so Android isn't competing with a second Large effort in one version.
+These make v1.8 a well-placed slot for the **build itself**. The caveats: start external accounts (§3) early regardless, and consider splitting the accessibility audit out of v1.8 so Android isn't competing with a second Large effort in one version.
