@@ -1,6 +1,7 @@
 name: web-e2e
 
-# Gates the Playwright e2e suite (the "keep suites green" CI backstop — v1.5 step 2.14).
+# Gates lint + the tsx regression (money-math) suite + the Playwright e2e suite — the "keep suites
+# green" CI backstop (v1.5 step 2.14 started the e2e gate; v1.6 step 1.1 added lint + regression).
 # Runs the functional specs against the PRODUCTION static build: playwright.config.ts's
 # webServer does `npm run build && serve out` with NEXT_PUBLIC_E2E=1, and reuseExistingServer
 # is off under CI so every run builds fresh. Kept on GitHub Actions (not Codemagic) to conserve
@@ -32,6 +33,16 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      # Fail fast: lint + the tsx reconciliation/regression suite (the money-math backstop for
+      # every refactor) run BEFORE the slow browser install + prod build + e2e. Through v1.5 these
+      # were UNGATED — CI ran only Playwright, so a refactor that broke the engine math wouldn't
+      # turn CI red. Gating them here is the v1.6 keep-green backstop (checkpoint #3).
+      - name: Lint
+        run: npm run lint
+
+      - name: Regression tests (money-math backstop)
+        run: npm run test:regression
 
       # Pixel 7 → Chromium; iPhone/iPad devices → WebKit. Both needed for the 4 projects.
       - name: Install Playwright browsers

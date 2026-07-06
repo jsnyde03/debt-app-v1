@@ -27,7 +27,7 @@ const CORRUPT_DEBTS = "{corrupt-debts-not-json";
 // bytes — never overwrite them with the fallback — (2) QUARANTINE a recoverable
 // copy, and (3) SURFACE the corruption to the user via the banner. debts is the
 // key the original data-destroying bug lived in; the same code path guards every
-// debtPlanner.* key. Complements planner-herdening's "does not crash" smoke test,
+// debtPlanner.* key. Complements planner-hardening's "does not crash" smoke test,
 // which corrupts the collections but doesn't assert the safety guarantees.
 test("corrupt debts is preserved (not wiped), quarantined, and surfaced", async ({ page }) => {
     // rawState is written after the JSON seed, so this overrides BASE.debts=[]
