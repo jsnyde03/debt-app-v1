@@ -11,6 +11,7 @@ import { buildSmartInsights } from "@/lib/insights/buildSmartInsights";
 import { buildPayoffTrajectory } from "@/lib/debt/buildPayoffTrajectory";
 import { buildAmortizationSchedule } from "@/lib/debt/buildAmortizationSchedule";
 import { AmortizationCalendar } from "./AmortizationCalendar";
+import { getPortalTarget } from "@/lib/dom/getPortalTarget";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
@@ -466,7 +467,7 @@ export function SnowballSection({
 								}}
 								onClose={() => setShowSchedule(false)}
 							/>,
-							document.querySelector("main.app") ?? document.body
+							getPortalTarget()
 						)}
 
 					<div className="payoff-strategy-selector compact-payoff-strategy">
