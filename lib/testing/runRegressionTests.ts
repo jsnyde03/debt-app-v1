@@ -19,6 +19,7 @@ import "../debt/testFreedMinimumRoll";
 import "../debt/testGoalReconciliation";
 import "../debt/testPaydayCapture";
 import "../debt/testShouldPromptPaydayCapture";
+import "../debt/testSelectActiveRecommendedActions";
 import "./testFinalLaunchRegression";
 import "./testV11Regression";
 import "./testFullAppRegression";

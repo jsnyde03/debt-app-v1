@@ -5,7 +5,6 @@ import type { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import type {
     Debt,
     RequiredExpense,
-    RecommendationOverride,
 } from "@/lib/storage/debtPlannerStorage";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { computeCycleDelta } from "@/lib/debt/computeCycleDelta";
@@ -14,28 +13,26 @@ import { TrendingDown, TrendingUp } from "@/lib/icons";
 import { SwipeActionCard } from "./SwipeActionCard";
 import { CompletedActionsList } from "./Results/CompletedActionsList";
 import { OptionalGoalsList } from "./Results/OptionalGoalsList";
+import {
+    computeFlexibleCash,
+    computeCompletedRecommendedTotal,
+    type ActiveRecommendedAction,
+} from "@/lib/engine/recommendedActions";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 
 type RecommendedCategory = "emergency" | "snowball" | "optional_goal";
 
-type Goal = {
-    id: string;
-    name: string;
-    targetAmount: number;
-    currentAmount: number;
-    type: "emergency" | "savings";
-};
-
 type ResultsSectionProps = {
     result: AllocationResult | null;
     requiredExpenses: RequiredExpense[];
     debts: Debt[];
-    goals: Goal[];
+    /** The cycle's active recommended actions — computed once in page.tsx via
+     *  selectActiveRecommendedActions so the Plan tab and the payday capture sheet
+     *  share one source of truth. */
+    activeRecommendedActions: ActiveRecommendedAction[];
     completedRecommendedActions: CompletedRecommendedAction[];
-    recommendationOverrides: RecommendationOverride[];
     currentDate: string;
-    payoffStrategy: "snowball" | "avalanche";
     debtFreeDate?: string | null;
     previousSnapshot?: PayCycleSnapshot | null;
     onMarkExpensePaid: (id: string) => void;
@@ -100,11 +97,9 @@ export function ResultsSection({
     result,
     requiredExpenses,
     debts,
-    goals,
+    activeRecommendedActions,
     completedRecommendedActions,
-    recommendationOverrides,
     currentDate,
-    payoffStrategy,
     debtFreeDate,
     previousSnapshot,
     onMarkExpensePaid,
@@ -153,55 +148,6 @@ export function ResultsSection({
             item.category === "autopay_expense" ||
             item.category === "autopay_debt"
     );
-
-    const completedSnowballAmountsByDebtId = completedRecommendedActions
-        .filter((action) => action.category === "snowball")
-        .reduce<Record<string, number>>((map, action) => {
-            map[action.targetId] = roundMoney(
-                (map[action.targetId] ?? 0) + action.actualAmount
-            );
-
-            return map;
-        }, {});
-
-    const adjustedActiveDebts = debts
-        .map((debt) => ({
-            ...debt,
-            balance: roundMoney(
-                Math.max(
-                    0,
-                    debt.balance -
-                    (completedSnowballAmountsByDebtId[debt.id] ?? 0)
-                )
-            ),
-        }))
-        .filter((debt) => debt.balance > 0)
-        .sort((a, b) => {
-            if (payoffStrategy === "avalanche") {
-                if (b.apr !== a.apr) {
-                    return b.apr - a.apr;
-                }
-
-                return a.balance - b.balance;
-            }
-
-            return a.balance - b.balance;
-        });
-
-    const activeSnowballRecommendationActions = adjustedActiveDebts.map(
-        (debt) => ({
-            category: "snowball" as const,
-            targetId: debt.id,
-            debtId: debt.id,
-            label: `Extra payment to ${debt.name}`,
-            amount: debt.balance,
-        })
-    );
-
-    const recommendedActions = [
-        ...result.allocations.filter((item) => item.category === "emergency"),
-        ...activeSnowballRecommendationActions,
-    ];
 
     const optionalGoalActions = result.allocations.filter(
         (item) => item.category === "optional_goal"
@@ -310,109 +256,29 @@ export function ResultsSection({
         unpaidRequiredActions.reduce((sum, item) => sum + item.amount, 0) +
         unfundedRequiredTotal;
 
-    const completedRecommendedTotal = completedRecommendedActions.filter((action) => action.paymentSource !== "external").reduce((sum, action) => sum + action.actualAmount, 0);
+    const completedRecommendedTotal = computeCompletedRecommendedTotal(completedRecommendedActions);
 
-    const flexibleCashAvailable = roundMoney(
-        Math.max(
-            0,
-            result.paycheckAmount -
-            result.totalRequired -
-            result.livingExpenseReserve -
-            bufferTotal -
-            completedRecommendedTotal
-        )
-    );
+    const flexibleCashAvailable = computeFlexibleCash({
+        paycheckAmount: result.paycheckAmount,
+        totalRequired: result.totalRequired,
+        livingExpenseReserve: result.livingExpenseReserve,
+        bufferTotal,
+        completedRecommendedTotal,
+    });
 
-    function getRecommendationMaxAmount(
-        item: AllocationResult["allocations"][number]
-    ) {
-        if (!item.targetId) {
-            return item.amount;
-        }
-
-        if (item.category === "snowball") {
-            return roundMoney(Math.max(0, item.amount));
-        }
-
-        if (item.category === "emergency" || item.category === "optional_goal") {
-            const goal = goals.find(
-                (goalItem) => goalItem.id === item.targetId
-            );
-
-            if (!goal) {
-                return item.amount;
-            }
-
-            return roundMoney(
-                Math.max(0, goal.targetAmount - goal.currentAmount)
-            );
-        }
-
-        return item.amount;
-    }
-
-    function getRecommendationOverrideAmount(
-        targetId: string,
-        category: RecommendedCategory
-    ) {
-        if (category !== "emergency" && category !== "snowball") {
-            return undefined;
-        }
-
-        return recommendationOverrides.find(
-            (override) =>
-                override.targetId === targetId &&
-                override.category === category
-        )?.amount;
-    }
-
-    const activeRecommendedDisplayActions: RecommendedDisplayAction[] = [];
-
-    let remainingRecommendationCapacity = flexibleCashAvailable;
-
-    for (const item of recommendedActions) {
-        if (remainingRecommendationCapacity <= 0) {
-            break;
-        }
-
-        if (!isRecommendedCategory(item.category) || !item.targetId) {
-            continue;
-        }
-
-        const key = `active-${getRecommendedKey(item)}`;
-        const maxAmount = getRecommendationMaxAmount(item);
-
-        const overrideAmount = getRecommendationOverrideAmount(
-            item.targetId,
-            item.category
-        );
-
-        const amount = roundMoney(
-            Math.min(
-                overrideAmount ?? maxAmount,
-                maxAmount,
-                remainingRecommendationCapacity
-            )
-        );
-
-        if (amount <= 0) {
-            continue;
-        }
-
-        activeRecommendedDisplayActions.push({
-            key,
-            label: item.label,
-            category: item.category,
-            targetId: item.targetId,
-            recommendedAmount: maxAmount,
-            actualAmount: amount,
+    // The active recommended actions are computed ONCE in page.tsx
+    // (selectActiveRecommendedActions) and passed in, so the Plan tab and the
+    // payday capture sheet render the identical plan — no drift.
+    const activeRecommendedDisplayActions: RecommendedDisplayAction[] =
+        activeRecommendedActions.map((action) => ({
+            key: action.key,
+            label: action.label,
+            category: action.category,
+            targetId: action.targetId,
+            recommendedAmount: action.recommendedAmount,
+            actualAmount: action.actualAmount,
             isCompleted: false,
-        });
-
-        remainingRecommendationCapacity = roundMoney(
-            remainingRecommendationCapacity - amount
-        );
-    }
+        }));
 
     const displayedRecommendedActions = [
         ...completedRecommendedDisplayActions,

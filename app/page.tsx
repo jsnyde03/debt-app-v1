@@ -37,6 +37,7 @@ import { MilestoneBadge, type MilestoneCelebration } from "@/components/Mileston
 import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { getDebtsWithDisplayBalances, getCompletedSnowballAmount } from "@/lib/debt/getDebtsWithDisplayBalances";
+import { selectActiveRecommendedActions } from "@/lib/debt/selectActiveRecommendedActions";
 import { useLivingExpenses } from "@/lib/hooks/useLivingExpenses";
 import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
@@ -344,6 +345,24 @@ export default function Home() {
         }
         return "Here's what to do this paycheck.";
     }, [result, debts, debtFreeDate]);
+
+    // Single source of truth for the cycle's recommended allocation — fed to both
+    // ResultsSection (the Plan tab) and the Payday Autopilot capture sheet so they
+    // can never drift. Empty until a paycheck/plan exists.
+    const activeRecommendedActions = useMemo(
+        () =>
+            result
+                ? selectActiveRecommendedActions({
+                    result,
+                    debts,
+                    goals,
+                    payoffStrategy,
+                    recommendationOverrides,
+                    completedRecommendedActions,
+                })
+                : [],
+        [result, debts, goals, payoffStrategy, recommendationOverrides, completedRecommendedActions]
+    );
 
     useEffect(() => {
         if (!showUpgrade || premiumPackageInfo) return;
@@ -958,8 +977,7 @@ export default function Home() {
                                 result={result}
                                 requiredExpenses={requiredExpenses}
                                 debts={debts}
-                                goals={goals}
-                                payoffStrategy={payoffStrategy}
+                                activeRecommendedActions={activeRecommendedActions}
                                 debtFreeDate={debtFreeDate}
                                 previousSnapshot={previousSnapshot}
                                 completedRecommendedActions={
@@ -970,7 +988,6 @@ export default function Home() {
                                 onMarkDebtMinimumPaid={handleMarkDebtMinimumPaid}
                                 onMarkDebtSnowballPaid={handleMarkDebtSnowballPaid}
                                 onMarkRecommendedAction={handleMarkRecommendedAction}
-                                recommendationOverrides={recommendationOverrides}
                                 onRecommendationOverrideChange={(
                                     targetId,
                                     category,
