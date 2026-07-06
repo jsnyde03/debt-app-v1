@@ -3,6 +3,7 @@
 import { useMemo, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import { getNextPaycheckDate } from "@/lib/payCycle/getNextPaycheckDate";
+import { payCyclesPerMonth } from "@/lib/payCycle/payCyclesPerMonth";
 import type { Recurrence } from "@/lib/types/recurrence";
 import "./styles/00-theme-and-base.css";
 import "./styles/01-payoff-goals.css";
@@ -325,7 +326,7 @@ export default function Home() {
         const snowballTotal = result.allocations
             .filter(a => a.category === "snowball")
             .reduce((sum, a) => sum + a.amount, 0);
-        const cycleMultiplier = payCycle === "weekly" ? 4 : payCycle === "monthly" ? 1 : 2;
+        const cycleMultiplier = payCyclesPerMonth(payCycle);
         const { estimatedDebtFreeDate } = projectDebtPayoff({
             debts: liveDebts,
             monthlyExtraPayment: snowballTotal * cycleMultiplier,

@@ -5,6 +5,7 @@ import "./testStressScenarios";
 import "./testAbuseScenarios";
 import "./testAprMath";
 import "../payCycle/testPayCycle";
+import "../payCycle/testPayCyclesPerMonth";
 import "../debt/testProjectionAccuracy";
 import "../debt/testAmortizationSchedule";
 import "../debt/testComputeMilestones";
