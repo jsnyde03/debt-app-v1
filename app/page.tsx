@@ -38,6 +38,11 @@ import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { getDebtsWithDisplayBalances, getCompletedSnowballAmount } from "@/lib/debt/getDebtsWithDisplayBalances";
 import { selectActiveRecommendedActions } from "@/lib/debt/selectActiveRecommendedActions";
+import { applyPaydayCapture } from "@/lib/debt/applyPaydayCapture";
+import { usePaydayCapture } from "@/lib/hooks/usePaydayCapture";
+import { getPortalTarget } from "@/lib/dom/getPortalTarget";
+import { PaydayCaptureSheet } from "@/components/PaydayCaptureSheet";
+import { createPortal } from "react-dom";
 import { useLivingExpenses } from "@/lib/hooks/useLivingExpenses";
 import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
@@ -363,6 +368,29 @@ export default function Home() {
                 : [],
         [result, debts, goals, payoffStrategy, recommendationOverrides, completedRecommendedActions]
     );
+
+    // Payday Autopilot — detection + capture sheet state (the narrow hook).
+    const paydayCapture = usePaydayCapture({
+        nextPaycheckDate,
+        hasCapturablePlan: activeRecommendedActions.length > 0,
+    });
+
+    // Bulk-apply a payday capture in ONE state update (looping the single-mark
+    // handler would setState off stale closures), then mark the payday handled.
+    function handlePaydayCapture(items: CompletedRecommendedAction[]) {
+        const { nextGoals, nextCompleted } = applyPaydayCapture(
+            items,
+            goals,
+            completedRecommendedActions
+        );
+        setGoals(nextGoals);
+        setCompletedRecommendedActions(nextCompleted);
+        saveResetSnapshot({
+            goals: nextGoals,
+            completedRecommendedActions: nextCompleted,
+        });
+        paydayCapture.completeCapture();
+    }
 
     useEffect(() => {
         if (!showUpgrade || premiumPackageInfo) return;
@@ -1259,6 +1287,18 @@ export default function Home() {
                     onDismiss={() => setMilestoneCelebration(null)}
                 />
             )}
+
+            {paydayCapture.isOpen && typeof document !== "undefined" &&
+                createPortal(
+                    <PaydayCaptureSheet
+                        activeRecommendedActions={activeRecommendedActions}
+                        completedRecommendedActions={completedRecommendedActions}
+                        onCapture={handlePaydayCapture}
+                        onDismiss={paydayCapture.dismiss}
+                        onClose={paydayCapture.close}
+                    />,
+                    getPortalTarget()
+                )}
         </main>
     );
 }

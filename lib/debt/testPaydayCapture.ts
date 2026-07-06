@@ -13,9 +13,9 @@ function assertEqual<T>(actual: T, expected: T, label: string) {
 }
 
 const PLAN: RecommendedActionInput[] = [
-    { targetId: "visa", label: "Extra to Visa", category: "snowball", recommendedAmount: 300 },
-    { targetId: "emg", label: "Add to Emergency Fund", category: "emergency", recommendedAmount: 100 },
-    { targetId: "vac", label: "Add to Vacation", category: "optional_goal", recommendedAmount: 50 },
+    { targetId: "visa", label: "Extra to Visa", category: "snowball", recommendedAmount: 300, actualAmount: 300 },
+    { targetId: "emg", label: "Add to Emergency Fund", category: "emergency", recommendedAmount: 100, actualAmount: 100 },
+    { targetId: "vac", label: "Add to Vacation", category: "optional_goal", recommendedAmount: 50, actualAmount: 50 },
 ];
 
 function runPaydayCaptureTests() {
@@ -27,6 +27,17 @@ function runPaydayCaptureTests() {
             assertEqual(it.actualAmount, it.recommendedAmount, `one-tap: ${it.label} actual === recommended`);
             assertEqual(it.paymentSource, "paycheck", `one-tap: ${it.label} defaults to paycheck`);
         }
+    }
+
+    // ─── two amounts: default paid = the cycle's actualAmount (capacity-limited),
+    //     NOT recommendedAmount (the full payoff room) — matches the Plan tab ───
+    {
+        const items = buildPaydayCaptureItems(
+            [{ targetId: "visa", label: "Extra to Visa", category: "snowball", recommendedAmount: 500, actualAmount: 200 }],
+            []
+        );
+        assertEqual(items[0].recommendedAmount, 500, "stores the full payoff room as recommendedAmount");
+        assertEqual(items[0].actualAmount, 200, "default paid = the capacity-limited cycle recommendation");
     }
 
     // ─── idempotent: already-captured actions are skipped (no double count) ───
@@ -79,7 +90,7 @@ function runPaydayCaptureTests() {
     // unmark it — currentAmount must return exactly to 200 (no balance drift).
     {
         const items = buildPaydayCaptureItems(
-            [{ targetId: "emg", label: "Add to Emergency Fund", category: "emergency", recommendedAmount: 100 }],
+            [{ targetId: "emg", label: "Add to Emergency Fund", category: "emergency", recommendedAmount: 100, actualAmount: 100 }],
             []
         );
         const captured = items[0];

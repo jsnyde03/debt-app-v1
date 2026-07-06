@@ -1797,3 +1797,133 @@
 	font-weight: 700;
 }
 
+/* ─── Payday Autopilot capture sheet (v1.6) ─── */
+.payday-sheet {
+	max-width: 460px;
+}
+
+.payday-plan-list {
+	display: flex;
+	flex-direction: column;
+	margin: 8px 0 4px;
+}
+
+.payday-plan-row {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 14px 2px;
+	border-bottom: 1px solid var(--border-soft);
+}
+
+.payday-plan-row:last-child {
+	border-bottom: none;
+}
+
+.payday-plan-row-main {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.payday-plan-label {
+	font-size: 0.98rem;
+	font-weight: 600;
+	color: var(--text-primary);
+}
+
+.payday-plan-amount {
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.payday-plan-input {
+	width: 118px;
+	padding: 8px 10px;
+	font-size: 1rem;
+	font-weight: 600;
+	text-align: right;
+	color: var(--text-primary);
+	background: var(--bg-primary);
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	font-variant-numeric: tabular-nums;
+}
+
+.payday-plan-input:focus {
+	outline: none;
+	border-color: var(--accent-color);
+	box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.payday-external-toggle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.85rem;
+	color: var(--text-secondary);
+}
+
+.payday-external-toggle input {
+	width: 16px;
+	height: 16px;
+	accent-color: var(--accent-color);
+}
+
+.payday-plan-total {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 2px 4px;
+	margin-top: 4px;
+	border-top: 1px solid var(--border-color);
+}
+
+.payday-plan-total span {
+	font-size: 0.78rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--text-secondary);
+}
+
+.payday-plan-total strong {
+	font-size: 1.25rem;
+	font-weight: 800;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.payday-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: 18px;
+}
+
+.payday-primary-button {
+	width: 100%;
+	padding: 15px;
+	font-size: 1.02rem;
+	font-weight: 700;
+	color: #ffffff;
+	background: var(--accent-color);
+	border: none;
+	border-radius: 14px;
+	cursor: pointer;
+	box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+	transition: transform 0.08s ease;
+}
+
+.payday-primary-button:active {
+	transform: scale(0.98);
+}
+
+.payday-secondary {
+	align-self: center;
+	padding: 9px;
+}
+

@@ -4,7 +4,11 @@ export type RecommendedActionInput = {
     targetId: string;
     label: string;
     category: "emergency" | "snowball" | "optional_goal";
+    /** The engine's max recommendation (full payoff room) — stored for drift. */
     recommendedAmount: number;
+    /** The amount recommended to pay THIS cycle (capacity-limited) — the default
+     *  "followed the plan" paid amount. Matches what the Plan tab stores. */
+    actualAmount: number;
 };
 
 /** Per-item deviation a user records in the payday sheet's "Adjust" path. */
@@ -27,10 +31,11 @@ export function captureKey(a: { targetId: string; label: string; category: strin
  * never double-counting a goal/debt.
  *
  * One-tap "I followed the plan" = no overrides → every not-yet-captured action
- * gets `actualAmount === recommendedAmount`, `paymentSource: "paycheck"`. The
- * downstream write (`handleMarkRecommendedAction`, reconciliation-safe per step
- * 1.4) and the cash-exclusion of `paymentSource: "external"`
- * (`computeCompletedRecommendedTotal`) are unchanged — this only builds the inputs.
+ * gets `actualAmount = the cycle's recommended payment`, `paymentSource: "paycheck"`
+ * (with `recommendedAmount` = the full payoff room, matching the Plan tab so drift
+ * is consistent across capture paths). Adjust overrides the paid amount / marks
+ * external. The cash-exclusion of `paymentSource: "external"`
+ * (`computeCompletedRecommendedTotal`) is unchanged — this only builds the inputs.
  */
 export function buildPaydayCaptureItems(
     recommendedActions: RecommendedActionInput[],
@@ -48,7 +53,7 @@ export function buildPaydayCaptureItems(
                 label: a.label,
                 category: a.category,
                 recommendedAmount: a.recommendedAmount,
-                actualAmount: o.actualAmount ?? a.recommendedAmount,
+                actualAmount: o.actualAmount ?? a.actualAmount,
                 paymentSource,
             };
         });

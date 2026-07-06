@@ -20,6 +20,7 @@ import "../debt/testGoalReconciliation";
 import "../debt/testPaydayCapture";
 import "../debt/testShouldPromptPaydayCapture";
 import "../debt/testSelectActiveRecommendedActions";
+import "../debt/testApplyPaydayCapture";
 import "./testFinalLaunchRegression";
 import "./testV11Regression";
 import "./testFullAppRegression";
