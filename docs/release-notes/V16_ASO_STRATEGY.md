@@ -17,6 +17,7 @@ _Authored at v1.6 feature-lock (2026-07-06). Builds on the v1.5 ASO pass ([V15_A
 | **Description** (4000) | v1.5 | **2 targeted edits** — add Payday Autopilot + Interest Saved to "WHAT YOU GET, FREE" (trim to stay under 4000) | low |
 | **What's New** | v1.5 | **PASTE v1.6 copy** (already written → `docs/release-notes/v1.6.md`) | none |
 | **Screenshots** | 10-shot v1.5 set | **CREATE 2 NEW** (Payday Autopilot sheet · Interest-Saved card); reuse the rest — see §3 | **the only real production work** |
+| **App preview (video)** | none | **NEW — produce the ~24s preview** per the storyboard in [V16_APP_PREVIEW_BRIEF.md](V16_APP_PREVIEW_BRIEF.md) (autoplays muted in search; the v1.6 motion arc). Non-blocking. | production work (post-launch-ok) |
 | **In-App Event / CPPs** | (v1.5 backlog) | optional — see §5 | defer-ok |
 
 **Bottom line:** the only new *creative production* is **2 screenshots**. Everything else is paste-in metadata Jason can do in ~20 minutes in ASC.
