@@ -3,6 +3,7 @@
 import { useMemo, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import { getNextPaycheckDate } from "@/lib/payCycle/getNextPaycheckDate";
+import { rollPaydayToFuture } from "@/lib/payCycle/rollPaydayToFuture";
 import { payCyclesPerMonth } from "@/lib/payCycle/payCyclesPerMonth";
 import { computeInterestSaved, type InterestSaved } from "@/lib/debt/computeInterestSaved";
 import type { Recurrence } from "@/lib/types/recurrence";
@@ -688,14 +689,24 @@ export default function Home() {
             setSemiMonthlyFirstDay(String(backup.semiMonthlyFirstDay ?? 1));
             setSemiMonthlySecondDay(String(backup.semiMonthlySecondDay ?? 15));
             setMonthlyPayDay(String(backup.monthlyPayDay ?? 1));
-            setCurrentDate(backup.currentDate ?? getCurrentDate());
-            setNextPaycheckDate(backup.nextPaycheckDate ?? getNextPaycheckDate({
+
+            // Resume the imported plan from TODAY with the next REAL upcoming payday.
+            // A backup's `nextPaycheckDate` is a snapshot usually in the PAST, so
+            // restoring it verbatim made the app think payday had just happened and
+            // wrongly popped the Payday Autopilot sheet on load. Anchor currentDate to
+            // today and roll the payday forward (schedule/phase-preserving) to
+            // on-or-after today — so the sheet fires ONLY when today genuinely is payday.
+            const importToday = getCurrentDate();
+            const importCycleConfig = {
                 payCycle: backup.payCycle ?? "biweekly",
-                currentDate: backup.currentDate ?? getCurrentDate(),
                 semiMonthlyFirstDay: Number(backup.semiMonthlyFirstDay ?? 1),
                 semiMonthlySecondDay: Number(backup.semiMonthlySecondDay ?? 15),
                 monthlyPayDay: Number(backup.monthlyPayDay ?? 1),
-            }));
+            } as const;
+            const importedNextPayday = backup.nextPaycheckDate
+                ?? getNextPaycheckDate({ ...importCycleConfig, currentDate: backup.currentDate ?? importToday });
+            setCurrentDate(importToday);
+            setNextPaycheckDate(rollPaydayToFuture(importedNextPayday, importCycleConfig, importToday));
             setRequiredExpenses(backup.requiredExpenses ?? []);
             setLivingExpenses(backup.livingExpenses ?? livingExpensePresets.map((expense, index) => ({
                 ...expense,
@@ -707,6 +718,16 @@ export default function Home() {
                 backup.completedRecommendedActions ?? []
             );
             setPayoffStrategy(backup.payoffStrategy ?? "snowball");
+
+            // A successful import IS the user's plan — transition out of first-run
+            // setup (mirror Calculate) so the imported plan loads immediately.
+            // Without this, importing from the first-run "Create Your First Plan"
+            // overlay left the overlay UP: the plan loaded underneath but stayed
+            // blocked, and any auto-opened payday sheet dismissed back onto the
+            // stuck overlay (the reported onboarding bug).
+            setIsFirstRunSetup(false);
+            setShowPlanSettings(false);
+            setActiveTab("plan");
 
             void triggerMediumHaptic();
             setStatusMessage("Backup imported successfully");
