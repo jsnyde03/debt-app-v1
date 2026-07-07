@@ -161,8 +161,54 @@ Do these in the v1.6 App Store version in ASC, in order:
 
 ---
 
-## 5. Deferred / optional (do NOT block v1.6 submit)
+## 5. Custom Product Pages & In-App Events — step-by-step how-to
 
-- **In-App Event — "Payday Autopilot is live":** an ASC In-App Event could spotlight the new capture loop (extra search surface + a card on the product page). Deferred — it's a separate ASC workflow; file for a post-launch ASO follow-on with its own how-to.
-- **Custom Product Pages (2):** the v1.5 doc already recommended two CPPs (one paycheck-budget-led, one debt-payoff-led). v1.6 adds a natural third angle — a **capture/automation-led** CPP leading with Payday Autopilot for "automatic/one-tap" searchers. Deferred to the post-launch ASO batch.
-- **Reuse-set housekeeping:** if you re-shoot the whole set for consistency, refresh Shot 1's visible hero subtitle to the new "Here's exactly what to pay this paycheck —" copy. Otherwise the old shot is fine.
+**Timing:** both are **post-launch optimizations** — they do NOT block the v1.6 submit and need no new build. Do them once v1.6 is live (a CPP can point Apple Search Ads / marketing links at a tailored page, and now also **surfaces in organic search** for its own keyword selection; an In-App Event gets you an extra card on the product page + a browse/search surface for ~2 weeks). Jason executes these; the exact steps are below. _(Specs verified against Apple's ASC Help, 2026 — the ASC field labels show the live limit next to each field; trust that over any number here.)_
+
+### 5A. Custom Product Pages (CPPs)
+
+**What a CPP is:** an alternate version of your product page with its **own screenshots, app previews, promotional text, and keyword selection** (keywords are chosen from your app's already-approved keyword set — a CPP can't invent new ones). Up to **70 per app**, each localizable, each with an **auto-generated unique URL**. A CPP must be **submitted to App Review** before it's visible. Required ASC role: Account Holder / Admin / App Manager / Marketing.
+
+**Nav path:** App Store Connect → **Apps** → Paycheck Debt Planner → left sidebar → **Custom Product Pages** → **Create Custom Product Page** (or **+**).
+
+**Create-a-CPP steps (repeat per page below):**
+1. **Reference Name** — internal only (shows in App Analytics). Use the names in the table below.
+2. **Start from:** choose **Copy from** your live App Store version (fastest — it clones the full v1.6 screenshot set + promo text; you then reorder/swap). Click **Create**. The **unique URL is generated immediately** — copy it (this is what you put in Apple Search Ads / social links).
+3. **Screenshots (6.7"):** reorder to the CPP's lead shots (below). You're mostly *reordering existing shots* + dropping in the 2 new v1.6 shots — minimal new production.
+4. **Promotional Text:** paste the per-CPP copy below.
+5. **Keywords section:** select the subset (from your approved keyword field) that matches this CPP's audience, per localization. **Publish** the keyword selection.
+6. **Submit to App Review** (top-right). Approved → it publishes automatically; while under review you can't edit its shots/promo/keywords.
+
+**Recommended CPPs for Debt (start with #1 — it's the v1.6 wedge):**
+
+| # | Reference Name | Lead shots (order) | Promotional Text (≤170) | Keyword subset to assign |
+|---|---|---|---|---|
+| 1 | `v16-payday-autopilot` | 🆕 Payday Autopilot → 🆕 Interest Saved → Plan Overview → Milestone | One tap on payday logs your whole plan — no bookkeeping. See exactly what to pay this paycheck, and the interest your extra payments save. | `payday, biweekly, reminder, calculator` |
+| 2 | `v16-debt-payoff` | Milestone → Strategy Comparison → Amortization → Streaks | Snowball or avalanche — see your real payoff date and how much interest you save, then feel every milestone to debt-free. | `avalanche, calculator, milestone, streak` |
+| 3 _(optional)_ | `v16-paycheck-budget` | Plan Overview → Timeline → 🆕 Payday Autopilot | Payday? See exactly which bill and which debt to hit, with your safe-cash cushion at every step. 100% private. | `biweekly, expense, savings, tracker` |
+
+_CPP #1 is the only one needing the 2 new shots up front; #2 and #3 are pure reorders of the reused v1.5 set. Point your first Apple Search Ads campaign (or a social post) at CPP #1's URL to A/B it against the default page in App Analytics → Product Page views/conversion._
+
+### 5B. In-App Event — "Payday Autopilot is here"
+
+**What it is:** a time-boxed event card on your product page (and in search/browse for up to ~2 weeks before + during) — a legitimate way to spotlight the v1.6 capture feature at launch. Must be submitted for review.
+
+**Nav path:** App Store Connect → **Apps** → Paycheck Debt Planner → left sidebar → **In-App Events** → **+**.
+
+**Field-by-field (exact copy to paste; ASC shows each limit inline):**
+- **Reference Name** (internal): `v16-payday-autopilot-launch`
+- **Event Badge** (dropdown — pick one): **Major Update** _(fits a headline new feature; alternatives are Special Event / Challenge / Competition / Live Event / New Season / Premiere)._
+- **Event Name** (≤30): `Payday Autopilot is here`
+- **Short Description** (≤50, shown on the card): `Confirm your payday plan in one tap.`
+- **Long Description** (≤120, details page): `New: on payday, log your whole plan with one tap — and see the interest your extra payments save vs. minimums.`
+- **Event Deep Link:** a **universal link** (recommended over a custom URL scheme for security). If you don't have a universal-link domain wired, use the app's App Store link so Open launches the app; the app opens to the Plan tab where the sheet surfaces on payday.
+- **Event Card Image** (landscape, **16:9, min 1920×1080**, max 3840×2160, .jpg/.png): a framed shot of the **Payday Autopilot sheet** with a "One tap on payday" caption. _(Reuse the new Screenshot A composition, re-laid-out landscape.)_
+- **Event Details Image** (portrait, **9:16, min 1080×1920**): the portrait Payday Autopilot shot.
+- **Time Zone / Start & End:** a ~2-week window opening on your v1.6 public-release day; you may **publish the event up to 2 weeks before** it starts to get the pre-event search/browse surface.
+- **Availability / Regions:** all (matches app availability — US-only today).
+- **Submit for Review** (events review separately from the app version).
+
+### 5C. Reuse-set housekeeping
+If you re-shoot the whole screenshot set for consistency, refresh Screenshot 1's *visible* hero subtitle to the new "Here's exactly what to pay this paycheck —" copy. Otherwise the existing shot is fine (its headline overlay is unchanged).
+
+**Sources:** [Configure multiple product page versions — ASC Help](https://developer.apple.com/help/app-store-connect/create-custom-product-pages/configure-multiple-product-page-versions/) · [Custom Product Pages — Apple Developer](https://developer.apple.com/app-store/custom-product-pages/) · [Offer In-App Events — ASC Help](https://developer.apple.com/help/app-store-connect/offer-in-app-events/offer-in-app-events/) · [In-App Event media & audio specifications — ASC Help](https://developer.apple.com/help/app-store-connect/reference/in-app-events/in-app-event-media-and-audio-specifications/)
