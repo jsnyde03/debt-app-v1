@@ -79,6 +79,32 @@ _Authored at v1.6 feature-lock (2026-07-06) per the portfolio pre-submit-TestFli
 
 ---
 
+## §E — Payday checkpoint + Autopay (NEW in the honest-completion, 2026-07-07)
+_The payday↔autopay↔rollover↔partial-pay seam — the highest-risk new surface. Native-first: run on a real device._
+
+**Autopay on the Plan tab (no-nag):**
+- [ ] Mark a bill AND a debt as **Autopay** (add/edit form). On the Plan tab their Required-Actions rows show an **"Autopay"** status (blue) or **"Auto-paid"** (green, once the due date has passed) — NOT a "Mark Paid" button, and no swipe action.
+- [ ] A past-due autopay bill does NOT show an "Overdue" chip and does NOT flip the hero to "overdue payments requiring attention" (it reads as handled).
+
+**Payday checkpoint — bulk (happy path):**
+- [ ] On payday the sheet shows a **"Required bills & minimums"** card (count + total) above the **Extra payments** list.
+- [ ] Tap **"I followed the plan"** → sheet closes; every required bill + minimum is marked paid (verify on the Plan tab) AND the extras are captured.
+
+**Payday checkpoint — [Adjust] (partial / failure):**
+- [ ] Tap **Adjust** → the sheet swaps to a focused "Which bills got paid?" view (one screen, nothing pushed down / no confusing scroll). Autopay rows open **Paid · ran** (green); manual bills open **Didn't pay** (red).
+- [ ] Tap a manual bill → flips to **Paid**; the "$X carries to next cycle" line updates live.
+- [ ] Tap an autopay row → flips to **Didn't pay** (reporting a failed autopay).
+- [ ] Tap **Done** → the required card self-adjusts ("$X paid · $Y carries") and the primary becomes **"Confirm what I paid"**; tap it → the reconciled state persists (the bill you marked paid is paid; the denied autopay stays owed).
+
+**Rollover (the overdue guarantee — Jason's Option-A gate):**
+- [ ] Leave an autopay bill/minimum **untouched** (dismiss the sheet with "Not now"), then **Start Next Pay Cycle** → the autopay item ADVANCES to next cycle (due date rolls forward; its debt balance pays down); it does NOT appear as false-overdue.
+- [ ] A **failed** (denied) autopay correctly carries into the new cycle as still-owed.
+
+**Demo mode (theme fix):**
+- [ ] Enter Demo Mode with the device set to **Auto/System** appearance → the app opens in the OS-matching theme (was previously forced light).
+
+---
+
 ## Off-device release gate (must be green before shipping the build) — ✅ verified at lock
 
 - [x] `tsc --noEmit` — 0 errors.
