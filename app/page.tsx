@@ -48,6 +48,7 @@ import {
     type RequiredReconciliation,
 } from "@/lib/debt/bulkMarkRequired";
 import { deriveRequiredActionView } from "@/lib/debt/deriveRequiredActionView";
+import { reconcileAutopayForRollover } from "@/lib/debt/reconcileAutopay";
 import { upsertCompletedAction } from "@/lib/debt/mergeCompletedAction";
 import { usePaydayCapture } from "@/lib/hooks/usePaydayCapture";
 import { getPortalTarget } from "@/lib/dom/getPortalTarget";
@@ -873,6 +874,14 @@ export default function Home() {
         setShowDeleteConfirm(false);
         saveResetSnapshot();
 
+        // Autopay left untouched at the checkpoint is presumed to have run by payday,
+        // so reconcile it to explicit paid flags BEFORE any rollover math — it then
+        // pays down + advances instead of rotting into next-cycle false-overdue
+        // (Jason's Option-A gate). A user-flagged FAILED autopay is exempt (stays owed).
+        // As-of the payday (nextPaycheckDate): by cycle close, this-cycle autopay ran.
+        const { expenses: reconciledExpenses, debts: reconciledDebts } =
+            reconcileAutopayForRollover(requiredExpenses, debts, nextPaycheckDate);
+
         // Record the cycle that's ending BEFORE any mutation - capture
         // pre-rollover debts and completed actions so the snapshot reflects
         // where the user actually was when this cycle closed.
@@ -884,7 +893,7 @@ export default function Home() {
         recordCycleSnapshot(
             buildCycleSnapshot({
                 cycleEndDate: nextPaycheckDate,
-                debts,
+                debts: reconciledDebts,
                 completedRecommendedActions,
                 payoffStrategy,
                 allRequiredMet,
@@ -893,7 +902,7 @@ export default function Home() {
 
         // Apply this cycle's payments once, so we can both persist the new
         // balances AND detect any milestone thresholds crossed by them.
-        const debtsAfterPayment = debts.map((debt) => ({
+        const debtsAfterPayment = reconciledDebts.map((debt) => ({
             before: debt,
             after: applyRolloverPayment(
                 debt,
@@ -952,8 +961,8 @@ export default function Home() {
             });
         }
 
-        setRequiredExpenses((current) =>
-            rolloverRequiredExpenses(current, nextPaycheckDate)
+        setRequiredExpenses(
+            rolloverRequiredExpenses(reconciledExpenses, nextPaycheckDate)
         );
 
         setCompletedRecommendedActions([]);
