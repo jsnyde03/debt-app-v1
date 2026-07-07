@@ -12,6 +12,10 @@ import type { CompletedRecommendedAction } from "@/lib/storage/debtPlannerStorag
 type PaydayCaptureSheetProps = {
     /** The cycle's active recommended allocation (from selectActiveRecommendedActions). */
     activeRecommendedActions: ActiveRecommendedAction[];
+    /** Total $ of required bills + minimums due this cycle (the checkpoint section). */
+    requiredTotal: number;
+    /** How many required items are due — drives the section subtitle / visibility. */
+    requiredCount: number;
     /** Persist the captured actions (bulk-applied in page.tsx). */
     onCapture: (items: CompletedRecommendedAction[]) => void;
     /** Close + mark this payday handled (no re-prompt). */
@@ -28,6 +32,8 @@ type PaydayCaptureSheetProps = {
  */
 export function PaydayCaptureSheet({
     activeRecommendedActions,
+    requiredTotal,
+    requiredCount,
     onCapture,
     onDismiss,
     onClose,
@@ -85,6 +91,28 @@ export function PaydayCaptureSheet({
                         Close
                     </button>
                 </div>
+
+                {requiredCount > 0 && (
+                    <div className="payday-required">
+                        <div className="payday-required-main">
+                            <div className="payday-required-text">
+                                <span className="payday-required-label">
+                                    Required bills &amp; minimums
+                                </span>
+                                <span className="payday-required-sub">
+                                    {requiredCount} due this paycheck · confirmed paid
+                                </span>
+                            </div>
+                            <strong className="payday-required-amount">
+                                {formatCurrency(requiredTotal)}
+                            </strong>
+                        </div>
+                    </div>
+                )}
+
+                {activeRecommendedActions.length > 0 && (
+                    <div className="payday-section-label">Extra payments</div>
+                )}
 
                 <div className="payday-plan-list">
                     {activeRecommendedActions.map((action) => {

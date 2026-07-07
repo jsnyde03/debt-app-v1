@@ -1802,6 +1802,57 @@
 	max-width: 460px;
 }
 
+/* Payday checkpoint — the aggregate "Required bills & minimums" section above the
+   itemized extras. Confirmed as a block by the primary action (or itemized via
+   Adjust, step 6). */
+.payday-required {
+	margin: 12px 0 4px;
+	padding: 14px 16px;
+	border-radius: 14px;
+	background: rgba(148, 163, 184, 0.06);
+	border: 1px solid var(--border-color);
+}
+
+.payday-required-main {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.payday-required-text {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.payday-required-label {
+	font-size: 0.98rem;
+	font-weight: 700;
+	color: var(--text-primary);
+}
+
+.payday-required-sub {
+	font-size: 0.78rem;
+	color: var(--text-secondary);
+}
+
+.payday-required-amount {
+	font-size: 1.15rem;
+	font-weight: 800;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.payday-section-label {
+	margin-top: 14px;
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--text-secondary);
+}
+
 .payday-plan-list {
 	display: flex;
 	flex-direction: column;
