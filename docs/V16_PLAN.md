@@ -136,7 +136,7 @@ Payday sheet required section = one aggregate row *"Required bills & minimums �
 - [ ] **6. [ui] Focused reconciliation view** — the in-sheet content SWAP (NOT accordion): rows in EXACT current state, subtractive tap-to-toggle, autopay ⚡ + deny-failure, live carry-forward; CSS web-safe transition. _(biggest single step.)_
 
 **Phase 4 — Make it real**
-- [ ] **7. [wiring] Commit → self-adjust** — apply reconciled paid-state → rollover reconcile → recompute next cycle. Route through hooks (`useRequiredExpenses`/`useDebts`/`usePaydayCapture`), **NOT** page.tsx (Verdict-2 rule).
+- [ ] **7. [wiring] Commit → self-adjust** — apply reconciled paid-state → rollover reconcile → recompute next cycle. Route through hooks (`useRequiredExpenses`/`useDebts`/`usePaydayCapture`), **NOT** page.tsx (Verdict-2 rule). **⚠️ HARD REQUIREMENT (Jason 2026-07-07, Option-A gate):** `handleRolloverPayCycle` MUST call `reconcileAutopayForRollover(expenses, debts, currentDate)` BEFORE `rolloverRequiredExpenses`/`rolloverDebts`/`applyRolloverPayment`, so an autopay item left untouched in the list never carries into the next cycle as false-overdue. Proven at the logic layer (`testReconcileAutopay` reconcile→rollover integration cases); step-9 e2e proves it on-screen.
 - [ ] **8. [copy] Reframe** the sheet so extras read as extras + required framing is clear (folds in the Option-1 reframe).
 
 **Phase 5 — Prove it**

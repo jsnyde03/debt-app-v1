@@ -8,9 +8,11 @@ import type {
 } from "@/lib/storage/debtPlannerStorage";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { computeCycleDelta } from "@/lib/debt/computeCycleDelta";
+import { deriveRequiredActionView } from "@/lib/debt/deriveRequiredActionView";
 import type { CompletedRecommendedAction, PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
 import { TrendingDown, TrendingUp } from "@/lib/icons";
 import { SwipeActionCard } from "./SwipeActionCard";
+import { RequiredActionItem } from "./RequiredActionItem";
 import { CompletedActionsList } from "./Results/CompletedActionsList";
 import { OptionalGoalsList } from "./Results/OptionalGoalsList";
 import {
@@ -67,13 +69,6 @@ type RecommendedDisplayAction = {
 
 function roundMoney(amount: number) {
     return Math.round(amount * 100) / 100;
-}
-
-function isOverdue(dueDate: string, currentDate: string) {
-    return (
-        new Date(`${dueDate}T00:00:00`) <
-        new Date(`${currentDate}T00:00:00`)
-    );
 }
 
 function isRecommendedCategory(
@@ -154,32 +149,11 @@ export function ResultsSection({
         (item) => item.category === "optional_goal"
     );
 
-    const unpaidRequiredActions = requiredActions.filter((item) => {
-        const expense =
-            item.category === "expense" || item.category === "autopay_expense"
-                ? requiredExpenses.find(
-                    (expenseItem) => expenseItem.id === item.targetId
-                )
-                : undefined;
-
-        const debt =
-            item.category === "minimum_debt" ||
-                item.category === "autopay_debt"
-                ? debts.find(
-                    (debtItem) =>
-                        debtItem.id === (item.debtId ?? item.targetId)
-                )
-                : undefined;
-
-        const isPaid =
-            item.category === "expense" || item.category === "autopay_expense"
-                ? expense?.isPaidThisCycle ?? false
-                : debt?.minimumPaidThisCycle ??
-                debt?.isPaidThisCycle ??
-                false;
-
-        return !isPaid;
-    });
+    const unpaidRequiredActions = requiredActions.filter(
+        (item) =>
+            !deriveRequiredActionView(item, requiredExpenses, debts, currentDate)
+                .isPaid
+    );
 
     const completedRequiredActions = [
         ...requiredExpenses
@@ -300,152 +274,31 @@ export function ResultsSection({
         0
     );
 
-    const hasOverdueItems = requiredActions.some((item) => {
-        const expense =
-            item.category === "expense" || item.category === "autopay_expense"
-                ? requiredExpenses.find(
-                    (expense) => expense.id === item.targetId
-                )
-                : undefined;
-
-        const debt =
-            item.category === "minimum_debt" ||
-                item.category === "autopay_debt"
-                ? debts.find((debt) => debt.id === item.targetId)
-                : undefined;
-
-        const dueDate = expense?.dueDate ?? debt?.dueDate;
-
-        const isPaid =
-            item.category === "expense" || item.category === "autopay_expense"
-                ? expense?.isPaidThisCycle ?? false
-                : debt?.minimumPaidThisCycle ??
-                debt?.isPaidThisCycle ??
-                false;
-
-        return dueDate && !isPaid ? isOverdue(dueDate, currentDate) : false;
-    });
+    const hasOverdueItems = requiredActions.some(
+        (item) =>
+            deriveRequiredActionView(item, requiredExpenses, debts, currentDate)
+                .overdue
+    );
 
     function renderRequiredAction(
         item: AllocationResult["allocations"][number],
         index: number
     ) {
-        const expense =
-            item.category === "expense" || item.category === "autopay_expense"
-                ? requiredExpenses.find(
-                    (expenseItem) => expenseItem.id === item.targetId
-                )
-                : undefined;
-
-        const debt =
-            item.category === "minimum_debt" ||
-                item.category === "autopay_debt"
-                ? debts.find(
-                    (debtItem) =>
-                        debtItem.id === (item.debtId ?? item.targetId)
-                )
-                : undefined;
-
-        const isPaid =
-            item.category === "expense" || item.category === "autopay_expense"
-                ? expense?.isPaidThisCycle ?? false
-                : debt?.minimumPaidThisCycle ??
-                debt?.isPaidThisCycle ??
-                false;
-
-        const dueDate = expense?.dueDate ?? debt?.dueDate;
-
-        const overdue =
-            dueDate && !isPaid ? isOverdue(dueDate, currentDate) : false;
-
-        const isAutopay =
-            item.category === "autopay_expense" ||
-            item.category === "autopay_debt";
-
-        function handleRequiredActionToggle() {
-            if (item.category === "expense" || item.category === "autopay_expense") {
-                if (item.targetId) {
-                    onMarkExpensePaid(item.targetId);
-                }
-
-                return;
-            }
-
-            if (item.category === "minimum_debt" || item.category === "autopay_debt") {
-                const debtId = item.debtId ?? item.targetId;
-
-                if (debtId) {
-                    onMarkDebtMinimumPaid(debtId);
-                }
-            }
-        }
+        const view = deriveRequiredActionView(
+            item,
+            requiredExpenses,
+            debts,
+            currentDate
+        );
 
         return (
-            <SwipeActionCard
+            <RequiredActionItem
                 key={`${item.category}-${item.targetId ?? index}`}
-                className={[
-                    "saved-item",
-                    isPaid ? "completed-item" : "",
-                    overdue ? "overdue-item" : "",
-                ].filter(Boolean).join(" ")}
-
-                leftAction={
-                    !isPaid
-                        ? {
-                            label: "Mark Paid",
-                            tone: "positive",
-                            onTrigger: handleRequiredActionToggle,
-                        }
-                        : undefined
-                }
-
-                rightAction={
-                    isPaid
-                        ? {
-                            label: "Undo",
-                            tone: "warning",
-                            onTrigger: handleRequiredActionToggle,
-                        }
-                        : undefined
-                }
-
-            >
-                <div className="saved-item-left">
-                    <div className="saved-title">
-                        {item.label}
-                        {isAutopay && (
-                            <span className="autopay-pill">Autopay</span>
-                        )}
-                    </div>
-
-                    {overdue && (
-                        <div className="status-chip overdue">Overdue</div>
-                    )}
-
-                    <div className="saved-meta">
-                        {dueDate ? `Due ${dueDate}` : "Required Payment"}
-                    </div>
-                </div>
-
-                <div className="saved-item-right">
-                    <strong className="saved-amount">
-                        {formatCurrency(item.amount)}
-                    </strong>
-
-                    <button
-                        type="button"
-                        className={
-                            isPaid ? "action-pill completed" : "action-pill"
-                        }
-                        onClick={() => {
-                            triggerMediumHaptic();
-                            handleRequiredActionToggle();
-                        }}
-                    >
-                        {isPaid ? "Undo" : "Mark Paid"}
-                    </button>
-                </div>
-            </SwipeActionCard>
+                item={item}
+                view={view}
+                onMarkExpensePaid={onMarkExpensePaid}
+                onMarkDebtMinimumPaid={onMarkDebtMinimumPaid}
+            />
         );
     }
 

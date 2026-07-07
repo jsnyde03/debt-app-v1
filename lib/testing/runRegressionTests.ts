@@ -23,6 +23,8 @@ import "../debt/testGoalReconciliation";
 import "../debt/testPaydayCapture";
 import "../debt/testShouldPromptPaydayCapture";
 import "../debt/testReconcileAutopay";
+import "../debt/testBulkMarkRequired";
+import "../debt/testDeriveRequiredActionView";
 import "../debt/testSelectActiveRecommendedActions";
 import "../debt/testApplyPaydayCapture";
 import "./testFinalLaunchRegression";
