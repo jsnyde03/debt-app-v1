@@ -76,7 +76,11 @@ export function SnowballSection({
 
 		return {
 			...debt,
-			balance: Math.max(0, (debt.displayBalance ?? debt.balance) - completedAmountForDebt),
+			// displayBalance already nets this cycle's paid minimum + completed snowball,
+			// so use it directly. Subtracting completedAmountForDebt AGAIN double-counted
+			// the payment and made every Payoff projection over-optimistic (audit #3).
+			// The fallback keeps a single subtraction if displayBalance is ever absent.
+			balance: Math.max(0, debt.displayBalance ?? (debt.balance - completedAmountForDebt)),
 		};
 	});
 
@@ -84,7 +88,11 @@ export function SnowballSection({
 		.filter((debt) => debt.balance > 0)
 		.sort((a, b) => {
 			if (payoffStrategy === "avalanche") {
-				return b.apr - a.apr;
+				// Match projectDebtPayoff's sort exactly: APR desc, then smallest
+				// balance as the tiebreaker — else the highlighted Focus Debt can
+				// differ from the debt the projection actually attacks first (#11).
+				if (b.apr !== a.apr) return b.apr - a.apr;
+				return a.balance - b.balance;
 			}
 
 			return a.balance - b.balance;

@@ -29,6 +29,9 @@ type UsePaydayCaptureParams = {
     payCycle: PayCycle;
     /** Whether there's a plan worth capturing this cycle (>=1 recommended action). */
     hasCapturablePlan: boolean;
+    /** Master switch — false disables all payday detection (e.g. Demo Mode, whose
+     *  seeded payday goes stale and otherwise pops the sheet over sample data). */
+    enabled?: boolean;
 };
 
 /**
@@ -43,7 +46,7 @@ type UsePaydayCaptureParams = {
  * Closing is session-only (resets on next app open → re-offers until handled);
  * dismiss/capture persist `handled` so it stays quiet across sessions.
  */
-export function usePaydayCapture({ nextPaycheckDate, payCycle, hasCapturablePlan }: UsePaydayCaptureParams) {
+export function usePaydayCapture({ nextPaycheckDate, payCycle, hasCapturablePlan, enabled = true }: UsePaydayCaptureParams) {
     const [lastHandled, setLastHandled] = useState<string | null>(() =>
         readKeyValue<string | null>(HANDLED_KEY, null)
     );
@@ -53,6 +56,7 @@ export function usePaydayCapture({ nextPaycheckDate, payCycle, hasCapturablePlan
 
     // Payday reached, plan present, not yet handled → offer the sheet.
     const isPaydayPending =
+        enabled &&
         hasCapturablePlan &&
         shouldPromptPaydayCapture(todayISO(), nextPaycheckDate, lastHandled, recencyWindowDays(payCycle));
 
@@ -61,10 +65,14 @@ export function usePaydayCapture({ nextPaycheckDate, payCycle, hasCapturablePlan
 
     // Payday handled but the cycle hasn't rolled over yet — nudge the user to start
     // the next cycle so the payday prompt doesn't silence itself (see
-    // isPaydayAwaitingRollover). Gated on a real plan so it never shows on an empty
-    // slate. Mutually exclusive with isPaydayPending (handled vs. not-yet-handled).
+    // isPaydayAwaitingRollover). NOT gated on hasCapturablePlan: a full one-tap "I
+    // followed the plan" capture EMPTIES the active list, so gating on it suppressed
+    // the nudge on the most common path and froze the cycle (audit #2). The
+    // handled-flag (lastHandled === nextPaycheckDate) already excludes the empty
+    // slate — a payday can only be "handled" if the sheet opened, which required a
+    // plan. Mutually exclusive with isPaydayPending (handled vs. not-yet-handled).
     const isAwaitingRollover =
-        hasCapturablePlan &&
+        enabled &&
         isPaydayAwaitingRollover(todayISO(), nextPaycheckDate, lastHandled);
 
     function markHandled() {

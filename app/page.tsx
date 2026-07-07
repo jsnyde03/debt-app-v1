@@ -184,10 +184,16 @@ export default function Home() {
         "snowball" | "avalanche"
     >("debtPlanner.payoffStrategy", "snowball");
 
+    // Highest progress % ever reached per debt — so a milestone celebrates at most
+    // once per debt lifetime even across a backslide + re-cross (#10).
+    const [milestoneMaxProgress, setMilestoneMaxProgress] = usePersistedState<Record<string, number>>(
+        "debtPlanner.milestoneMaxProgress", {}
+    );
+
     const { appLockEnabled, setAppLockEnabled, isUnlocked, requestUnlock } = useAppLock();
     const { hasCompletedOnboarding } = useOnboarding();
 
-    const [isDemoMode] = useState(() =>
+    const [isDemoMode, setIsDemoMode] = useState(() =>
         readKeyValue("debtPlanner.isDemoMode", false)
     );
 
@@ -251,6 +257,7 @@ export default function Home() {
 
     const {
         cycleHistory,
+        setCycleHistory,
         recordCycleSnapshot,
         visibleHistory,
         previousSnapshot,
@@ -403,6 +410,7 @@ export default function Home() {
         nextPaycheckDate,
         payCycle,
         hasCapturablePlan: activeRecommendedActions.length > 0,
+        enabled: !isDemoMode, // Demo Mode is a static showcase — no payday capture (#9).
     });
 
     // Bulk-apply a payday capture in ONE state update (looping the single-mark
@@ -504,13 +512,17 @@ export default function Home() {
             completedRecommendedActions,
             payoffStrategy,
             lastSavedAt,
+            cycleHistory,
         };
     }
 
     function handleCalculate() {
         const value = Number(amount);
 
-        if (!value || value <= 0 || !nextPaycheckDate || nextPaycheckDate <= currentDate) {
+        // Allow next payday == today (a natural answer when setting up ON payday);
+        // only reject a payday strictly in the PAST. The result memo handles same-day
+        // fine — the old `<=` silently no-op'd the CTA and stranded first-run (#8).
+        if (!value || value <= 0 || !nextPaycheckDate || nextPaycheckDate < currentDate) {
             return;
         }
 
@@ -705,8 +717,9 @@ export default function Home() {
             } as const;
             const importedNextPayday = backup.nextPaycheckDate
                 ?? getNextPaycheckDate({ ...importCycleConfig, currentDate: backup.currentDate ?? importToday });
+            const rolledImportPayday = rollPaydayToFuture(importedNextPayday, importCycleConfig, importToday);
             setCurrentDate(importToday);
-            setNextPaycheckDate(rollPaydayToFuture(importedNextPayday, importCycleConfig, importToday));
+            setNextPaycheckDate(rolledImportPayday);
             setRequiredExpenses(backup.requiredExpenses ?? []);
             setLivingExpenses(backup.livingExpenses ?? livingExpensePresets.map((expense, index) => ({
                 ...expense,
@@ -718,6 +731,9 @@ export default function Home() {
                 backup.completedRecommendedActions ?? []
             );
             setPayoffStrategy(backup.payoffStrategy ?? "snowball");
+            // Restore pay-cycle history so a backup round-trips faithfully (it drives
+            // the streak + history view); replace to match the imported plan (#5).
+            setCycleHistory(backup.cycleHistory ?? []);
 
             // A successful import IS the user's plan — transition out of first-run
             // setup (mirror Calculate) so the imported plan loads immediately.
@@ -728,6 +744,18 @@ export default function Home() {
             setIsFirstRunSetup(false);
             setShowPlanSettings(false);
             setActiveTab("plan");
+
+            // Import IS the user's real plan — leave Demo Mode, else the demo banner
+            // keeps lying over real data and its "Start My Own Plan" / Delete-All exits
+            // localStorage.clear() the just-imported plan (data loss) (#1).
+            setIsDemoMode(false);
+            writeKey("debtPlanner.isDemoMode", false);
+
+            // Reschedule reminders for the rolled-forward payday (as Calculate/rollover
+            // do); otherwise they keep pointing at the pre-import date (#13).
+            if (notificationsEnabled) {
+                void scheduleNotifications({ nextPaycheckDate: rolledImportPayday, requiredExpenses: backup.requiredExpenses ?? [] });
+            }
 
             void triggerMediumHaptic();
             setStatusMessage("Backup imported successfully");
@@ -809,7 +837,11 @@ export default function Home() {
                 previousBalance: before.balance,
                 currentBalance: after.balance,
             })),
+            maxProgressByDebt: milestoneMaxProgress,
         });
+        // Persist the updated per-debt progress high-water marks so a celebrated
+        // threshold never re-fires on a later re-cross (#10).
+        setMilestoneMaxProgress(milestoneResult.nextMaxProgressByDebt);
 
         setDebts(
             rolloverDebts(

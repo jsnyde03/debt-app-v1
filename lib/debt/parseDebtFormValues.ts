@@ -40,5 +40,13 @@ export function parseDebtFormValues(input: {
         return null;
     }
 
+    // Parity with the ADD path (useDebts): balance & minimum must be > 0, the minimum
+    // can't exceed the balance, and APR is capped at 100 — so an EDIT can't silently
+    // sneak a fat-fingered 250% APR or a min>balance past the guards the add form
+    // enforces, poisoning the interest / debt-free-date math (audit #12).
+    if (balance <= 0 || minimumPayment <= 0 || minimumPayment > balance || apr > 100) {
+        return null;
+    }
+
     return { balance, minimumPayment, apr };
 }

@@ -29,6 +29,11 @@ export type MilestoneResult = {
     // ...and at least one of them was still owed before this rollover, so this
     // is the cycle that finished them - the trigger for the "debt free" moment.
     newlyAllPaidOff: boolean;
+    // The per-debt highest progress % ever reached, updated with this cycle — the
+    // caller persists it and passes it back next cycle so a threshold celebrates at
+    // most ONCE for a debt's lifetime, even if the balance backslides (interest >
+    // minimum) below a celebrated threshold and a later payment re-crosses it (#10).
+    nextMaxProgressByDebt: Record<string, number>;
 };
 
 function progressPercent(originalBalance: number, balance: number) {
@@ -45,8 +50,14 @@ function progressPercent(originalBalance: number, balance: number) {
 // celebration logic has a test surface independent of the rollover handler.
 export function computeMilestones(params: {
     debts: MilestoneDebtInput[];
+    // Highest progress % ever reached per debt (persisted across cycles). Absent →
+    // treated as this cycle's `previous`, so an empty map reproduces the original
+    // behavior exactly (existing callers/tests are unaffected).
+    maxProgressByDebt?: Record<string, number>;
 }): MilestoneResult {
     const milestones: DebtMilestone[] = [];
+    const maxProgressByDebt = params.maxProgressByDebt ?? {};
+    const nextMaxProgressByDebt: Record<string, number> = { ...maxProgressByDebt };
 
     // Only debts with a known, positive starting balance can have progress.
     const trackable = params.debts.filter(
@@ -59,11 +70,14 @@ export function computeMilestones(params: {
         const previous = progressPercent(original, debt.previousBalance);
         const current = progressPercent(original, debt.currentBalance);
 
-        // Newly-crossed thresholds only. A grown balance (current < previous)
-        // never satisfies previous < t <= current, so backslides celebrate
-        // nothing.
+        // Fire a threshold only the FIRST time this debt reaches it. priorMax is the
+        // all-time high (at least this cycle's `previous`), so a threshold already
+        // passed — then backslid below and re-crossed — no longer re-celebrates (#10).
+        const priorMax = Math.max(maxProgressByDebt[debt.id] ?? 0, previous);
+        nextMaxProgressByDebt[debt.id] = Math.max(priorMax, current);
+
         const crossed = MILESTONE_THRESHOLDS.filter(
-            (threshold) => previous < threshold && current >= threshold
+            (threshold) => priorMax < threshold && current >= threshold
         );
 
         if (crossed.length === 0) {
@@ -95,5 +109,6 @@ export function computeMilestones(params: {
         milestones,
         allDebtsPaidOff,
         newlyAllPaidOff: allDebtsPaidOff && someOwedBefore,
+        nextMaxProgressByDebt,
     };
 }

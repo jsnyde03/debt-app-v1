@@ -54,6 +54,16 @@ test("recommended payoff date is exact and paid extra debt payment persists afte
                 },
             ])
         );
+        // Mark the $50 minimum paid too. The $100 debt clears only when BOTH the
+        // minimum AND the $50 recommended extra are paid — the extra alone leaves $50.
+        // (The Payoff projection previously DOUBLE-counted the extra and appeared to
+        // clear the debt on the extra alone; audit #3 fixed that double-subtraction.)
+        const debts = JSON.parse(localStorage.getItem("debtPlanner.debts") || "[]");
+        if (debts[0]) {
+            debts[0].minimumPaidThisCycle = true;
+            debts[0].isPaidThisCycle = true;
+        }
+        localStorage.setItem("debtPlanner.debts", JSON.stringify(debts));
     });
 
     await page.reload();

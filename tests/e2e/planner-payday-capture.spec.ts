@@ -52,6 +52,12 @@ test("payday capture: sheet auto-opens, one-tap captures, no re-prompt", async (
 
     // Sheet closes and the action is persisted (paycheck source).
     await expect(page.locator(".payday-sheet")).toBeHidden();
+
+    // #2 regression: after a FULL one-tap capture (which empties the active list),
+    // the "Start Next Pay Cycle" nudge must still appear so the cycle isn't frozen.
+    await expect(page.locator(".payday-rollover-nudge")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Start Next Pay Cycle" })).toBeVisible();
+
     const completed = await page.evaluate(() =>
         JSON.parse(localStorage.getItem("debtPlanner.completedRecommendedActions") || "[]")
     );

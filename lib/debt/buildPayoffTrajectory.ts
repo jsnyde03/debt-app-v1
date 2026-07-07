@@ -32,7 +32,11 @@ export function buildPayoffTrajectory({
     const totalMinimums = pool.reduce((s, d) => s + d.minimumPayment, 0);
     const monthlyBudget = totalMinimums + Math.max(0, monthlyExtraPayment);
 
-    for (let month = 1; month <= 120; month++) {
+    // Match projectDebtPayoff's 600-month horizon so the chart reaches zero for any
+    // plan that reports an estimable debt-free date. The old 120 cap left long
+    // payoffs (>10yr) flattening above zero, contradicting the date shown (#4). The
+    // loop still breaks early the moment the balance clears, so short plans are unaffected.
+    for (let month = 1; month <= 600; month++) {
         for (let i = 0; i < pool.length; i++) {
             if (pool[i].balance > 0) {
                 pool[i] = {
