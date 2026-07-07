@@ -17,6 +17,9 @@ export type RequiredExpense = {
 	recurrence: Recurrence;
 	isPaidThisCycle?: boolean;
 	isAutopay?: boolean;
+	// Set true when the user reports at the payday check-in that this autopay
+	// did NOT go through. Keeps it owed (not auto-reconciled) until actually paid.
+	autopayFailedThisCycle?: boolean;
 	expenseType?: "fixed" | "variable";
 	category?: RequiredExpenseCategory;
 };
@@ -41,6 +44,8 @@ export type Debt = {
 	minimumPaidThisCycle?: boolean;
 	snowballPaidThisCycle?: boolean;
 	isAutopay?: boolean;
+	// See RequiredExpense.autopayFailedThisCycle.
+	autopayFailedThisCycle?: boolean;
 };
 
 export type Goal = {

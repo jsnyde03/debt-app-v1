@@ -228,6 +228,14 @@ export function buildDemoPlannerState(today: Date = new Date()): DemoPlannerStat
 export function applyDemoPlannerStateToStorage(storage: Storage) {
     const demoPlannerState = buildDemoPlannerState();
 
+    // Demo Mode is a DATA showcase, not a theme override. Capture whatever theme
+    // preference the user already has so it survives the reset below — if they
+    // never chose one, useDarkMode has already persisted "system", so preserving
+    // the key makes demo load on Auto/System (following the OS) instead of being
+    // forced to light. (buildDemoPlannerState().darkMode stays boolean only for
+    // deterministic screenshot seeds; it is intentionally NOT applied here.)
+    const existingTheme = storage.getItem("debtPlanner.darkMode");
+
     storage.clear();
 
     storage.setItem("debtPlanner.amount", JSON.stringify(demoPlannerState.amount));
@@ -244,6 +252,12 @@ export function applyDemoPlannerStateToStorage(storage: Storage) {
     storage.setItem("debtPlanner.goals", JSON.stringify(demoPlannerState.goals));
     storage.setItem("debtPlanner.completedRecommendedActions", JSON.stringify(demoPlannerState.completedRecommendedActions));
     storage.setItem("debtPlanner.payoffStrategy", JSON.stringify(demoPlannerState.payoffStrategy));
-    storage.setItem("debtPlanner.darkMode", JSON.stringify(demoPlannerState.darkMode));
+
+    // Restore the pre-existing theme choice (dark / light / system). Absent ⇒
+    // left unset ⇒ useDarkMode falls back to "system" (Auto).
+    if (existingTheme !== null) {
+        storage.setItem("debtPlanner.darkMode", existingTheme);
+    }
+
     storage.setItem("debtPlanner.isDemoMode", JSON.stringify(true));
 }

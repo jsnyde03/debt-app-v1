@@ -22,6 +22,7 @@ import "../debt/testFreedMinimumRoll";
 import "../debt/testGoalReconciliation";
 import "../debt/testPaydayCapture";
 import "../debt/testShouldPromptPaydayCapture";
+import "../debt/testReconcileAutopay";
 import "../debt/testSelectActiveRecommendedActions";
 import "../debt/testApplyPaydayCapture";
 import "./testFinalLaunchRegression";
@@ -35,5 +36,6 @@ import "./testDebtMathRegression";
 import "./testSubscriptionGating";
 import "./testPayCycleHistoryRegression";
 import "./testSafeStorage";
+import "./testDemoModeSeed";
 
 console.log("✅ All regression tests passed.");

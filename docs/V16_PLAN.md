@@ -2,7 +2,7 @@
 
 _Rewritten 2026-07-05 after the portfolio audits (differentiation × 2 + greenfield + LLM-proof features). Supersedes the scattered v1.6 notes in `ROADMAP.md`, `SUSTAINABILITY_REFACTOR.md §Scheduled`, and MASTER_PLAN §9._
 
-> **✅ STATUS 2026-07-06 — BUILT & FEATURE-LOCKED; at the release gate.** The differentiation spine shipped (hero reposition · **Payday Autopilot** · **Interest-Saved Momentum Ledger** · M4 payoff-cadence). Passed the pre-submit functional-correctness audit (2 HIGH + 4 MED fixed, each with a regression test; 6 LOWs → backlog); `validate:release` green (128 e2e). Remaining before submit: the **real-device TestFlight pass** (`docs/V16_TESTFLIGHT_CHECKLIST.md`) + the v1.6 ASO rebuild (`V16_ASO_STRATEGY.md`). The **Plan-vs-Actual Drift Tracker** was deferred to v1.7 (needs the now-real captured history). What's New → `docs/release-notes/v1.6.md`.
+> **🔧 STATUS 2026-07-07 — REOPENED at the TestFlight gate for the Payday Autopilot + Autopay *honest completion* (§E).** Live device testing surfaced that Payday Autopilot shipped at **~half its intended job**: it captures only the *extra/recommended* allocation, never the required bills/minimums — and **`isAutopay` (live since v1.1, commit `7ec5720`) is a skeleton the rollover ignores**, so autopay bills that pay-and-get-forgotten rot into false-overdue and eat the next cycle's budget. Completing the missing half as ONE coherent feature (§E). **This is not scope creep — it's the exact gap the TestFlight gate exists to catch (the after-scan).** A fresh build + full regression + a real device-QA pass on the payday↔autopay↔rollover↔partial-pay seam are required. _Prior gate state preserved below:_ the differentiation spine shipped (hero reposition · Payday Autopilot · Interest-Saved Ledger · M4 cadence); pre-submit functional audit passed (2 HIGH + 4 MED fixed w/ tests; 6 LOW → backlog); `validate:release` green (128 e2e). Also landed 2026-07-07: **demo-mode now follows the OS Light/Dark (Auto) setting** (was forced light). Still ahead: ASO rebuild (`V16_ASO_STRATEGY.md`); Drift Tracker → v1.7. What's New → `docs/release-notes/v1.6.md`.
 
 ---
 
@@ -101,6 +101,52 @@ The heavy monetization/infra that *was* v1.6's core, now recommended to follow t
 - **Product analytics (PostHog) + crash reporting (Sentry)** — currently zero instrumentation. _(Note: PostHog also lets the **market audit** read real conversion data — a reason not to defer it too far.)_
 - **Scheduled automatic backups.**
 - **Android prep** (Play Console signup, Maestro harness, RevenueCat per-platform key, notification icon) — see `ANDROID_READINESS.md`.
+
+---
+
+## E. Payday Autopilot + Autopay — the *honest completion* (added 2026-07-07; ACTIVE)
+
+_Origin: **live TestFlight testing** surfaced that Payday Autopilot shipped at ~half its job. Decided with Jason 2026-07-07 across a design conversation. **Not scope creep — the after-scan the TestFlight gate exists for** (a gap we didn't consider until it was live-tested)._
+
+### The gap (verified against current code)
+- Payday Autopilot's capture sheet renders **only** the *extra/recommended* allocation (`selectActiveRecommendedActions` → emergency + snowball-extra); **required bills/minimums are absent.** So "confirm what you paid" quietly omits the bills.
+- **`isAutopay` has been a live skeleton since v1.1** (`7ec5720`): settable on bills+debts, labeled in the timeline, excluded from the allocator's "skipped" count — but **rollover ignores it** ([rolloverPayCycle.ts:96](../lib/recurrence/rolloverPayCycle.ts)): an unpaid required item *"carries into the new cycle unchanged"* with its old (now-past) due date → **false-overdue.** Autopay bills pay-and-get-forgotten → they rot into overdue and eat the next cycle's budget. This is the root-cause bug.
+
+### Scope — the complete lifecycle a manual-entry app can honestly own (LOCKED)
+**IN:** ① set (toggle — exists) · ② no-nag: autopay items show an **Autopay** status, not a pending Mark-Paid · ③ presumed-paid once due date passes in-cycle · ④ payday checkpoint reconciles **required** (bulk *or* itemized) · ⑤ **user-reported failure** (deny a failed autopay → stays owed) · ⑥ clean rollover: past-due autopay reconciles as paid, never false-overdue.
+**OUT → v1.7+:** automated failure *detection*/alerts (**impossible without bank connectivity — a capability gap, not a deferral**) · autopay scheduling/calendar precision · per-item autopay history · per-bill *partial-amount* editing (required stays binary paid/unpaid; extras keep amount-adjust).
+
+### Interaction (LOCKED — premium, verified against past pitfalls)
+Payday sheet required section = one aggregate row *"Required bills & minimums — $X"* with **[Paid all]** (bulk happy-path) + **[Adjust]**. "Adjust" does **NOT** accordion-expand and shove content down (the rejected anti-pattern) — it **swaps the sheet's content to a focused reconciliation view** (one screen at a time; extras/summary swapped out, not displaced; "Done" returns). In that view, rows open in the **EXACT current plan state at cycle-end — never an invented optimistic default** (Jason 2026-07-07): manual bills show their real paid/unpaid state; autopay rows show their *true* presumed-paid state (**⚡-badged**, self-explaining *"ran on the 9th"*, derived from `isAutopayPresumedPaid`, not assumed). The user adjusts from truth — mark a manual bill paid, or deny a failed autopay (distinct "didn't go through" state → `autopayFailedThisCycle`). **[Paid all] is the one-tap happy path and NEVER opens this view**; [Adjust] is the honest-precision path. **Live carry-forward** line (*"$140 carries to next cycle"*). Full-row tap targets + haptics. Transition = **CSS slide/cross-fade, web-safe (no native-driver — [[feedback_rn_web_animated_native_driver]])**.
+
+**Execution principle — "make it feel smart" (Jason 2026-07-07):** the app already holds the due dates, cadence, and debt-free date, so it should *talk* like it knows. Every reconciliation surface reasons out loud from data already owned — autopay rows that self-explain (*"⚡ Autopay · ran on the 9th"*), a live carry-forward line that recomputes and reassures (*"$140 carries to next payday — debt-free date holds"*), confident bulk-confirm summaries. This is **copy/reactivity polish of the locked items, not new scope** — genuinely new "smart" features → Deferred backlog.
+
+### Build order — to-do list (ordered; ~2–4 = plumbing, 5–7 = feature, 8–10 = ship-ready)
+
+**Phase 1 — Data layer**
+- [x] **1. [data] Autopay rollover reconcile + presumed-paid** — DONE 2026-07-07. Additive `autopayFailedThisCycle?` on `RequiredExpense`+`Debt`; pure `lib/debt/reconcileAutopay.ts` (`isAutopayPresumedPaid` + `reconcileAutopayForRollover`) resolves the presumption into explicit paid flags in ONE place so BOTH the due-date advance AND balance math read real flags (no silent "advanced-but-never-paid-down" money bug); failed autopay stays owed. **11 tests + full regression + tsc green.** _(The root-cause bug fix.)_
+- [ ] **2. [data] Bulk-mark-required** — pure logic to mark all required (bills + minimums) paid through the same semantics as the existing per-item toggle + tests. _(next)_
+
+**Phase 2 — Reusable list + autopay UI**
+- [ ] **3. [refactor] Extract `RequiredActionsList`/`RequiredActionItem`** out of `ResultsSection.renderRequiredAction` into a reusable component (Plan tab + payday reconcile view share it). Keep ResultsSection green; visual-verify BOTH themes (overlay/portal-adjacent).
+- [ ] **4. [ui] Autopay status / no-nag** in the required list: ⚡ Autopay chip, presumed-paid, no pending Mark-Paid button.
+
+**Phase 3 — The checkpoint**
+- [ ] **5. [ui] Payday checkpoint required section** — aggregate row ($ total) + **[Paid all]** (bulk mark) + **[Adjust]** entry.
+- [ ] **6. [ui] Focused reconciliation view** — the in-sheet content SWAP (NOT accordion): rows in EXACT current state, subtractive tap-to-toggle, autopay ⚡ + deny-failure, live carry-forward; CSS web-safe transition. _(biggest single step.)_
+
+**Phase 4 — Make it real**
+- [ ] **7. [wiring] Commit → self-adjust** — apply reconciled paid-state → rollover reconcile → recompute next cycle. Route through hooks (`useRequiredExpenses`/`useDebts`/`usePaydayCapture`), **NOT** page.tsx (Verdict-2 rule).
+- [ ] **8. [copy] Reframe** the sheet so extras read as extras + required framing is clear (folds in the Option-1 reframe).
+
+**Phase 5 — Prove it**
+- [ ] **9. [test] E2E (Playwright) + Maestro** — bulk path, itemized-adjust path, autopay-deny path; keep the full suite green (3 checkpoints).
+- [ ] **10. [qa] Docs + release gate** — release notes + a `V16_TESTFLIGHT_CHECKLIST` payday↔autopay↔rollover↔partial-pay section; pre-submit functional-audit lens on the seam; `validate:release` green.
+
+_(Demo-mode Auto/System theme fix — DONE 2026-07-07, rides the same build.)_
+
+### Scope note
+This supersedes the current (now-stale) TestFlight build → **fresh build + full regression + real-device QA on the new seam** (~a week, not days). **Scope LOCKED here** — resist further expansion barring a correctness blocker. Also already landed 2026-07-07 (folds into the same build): the **demo-mode Auto/System theme fix** (`testDemoModeSeed` + both-theme screenshot-verified).
 
 ---
 
