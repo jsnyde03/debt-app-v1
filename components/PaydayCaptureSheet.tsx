@@ -7,7 +7,7 @@ import {
     captureKey,
     type PaydayCaptureOverride,
 } from "@/lib/debt/buildPaydayCaptureItems";
-import type { RequiredActionView } from "@/lib/debt/deriveRequiredActionView";
+import { requiredDisplayLabel, type RequiredActionView } from "@/lib/debt/deriveRequiredActionView";
 import type { RequiredReconciliation } from "@/lib/debt/bulkMarkRequired";
 import type { CompletedRecommendedAction } from "@/lib/storage/debtPlannerStorage";
 
@@ -175,7 +175,9 @@ export function PaydayCaptureSheet({
                                     aria-pressed={paid}
                                 >
                                     <div className="payday-reconcile-text">
-                                        <span className="payday-reconcile-label">{row.item.label}</span>
+                                        <span className="payday-reconcile-label">
+                                            {requiredDisplayLabel(row.item, row.view)}
+                                        </span>
                                         <span className="payday-reconcile-meta">
                                             {row.view.isAutopay
                                                 ? row.view.presumedPaid
@@ -225,7 +227,7 @@ export function PaydayCaptureSheet({
         ? carryForward > 0
             ? `${formatCurrency(requiredTotal - carryForward)} paid · ${formatCurrency(carryForward)} carries`
             : "All confirmed paid"
-        : `${requiredCount} due this paycheck · confirmed paid`;
+        : `${requiredCount} bill${requiredCount === 1 ? "" : "s"} & minimums due this paycheck`;
 
     return (
         <div className="settings-overlay" onClick={onClose}>

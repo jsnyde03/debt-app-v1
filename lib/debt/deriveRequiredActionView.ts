@@ -87,3 +87,20 @@ export function deriveRequiredActionView(
 
     return { expense, debt, isPaid, dueDate, overdue, isAutopay, presumedPaid };
 }
+
+/**
+ * A clean display label. Autopay allocation items come through as "Reserve autopay
+ * for X" / "Reserve autopay minimum for X" — but the ⚡ Autopay chip already says
+ * autopay, so show just the bill name (or "{name} minimum" for a debt). Non-autopay
+ * items keep their allocation label ("Pay X" / "Pay minimum on X").
+ */
+export function requiredDisplayLabel(
+    item: RequiredAllocationItem,
+    view: RequiredActionView
+): string {
+    if (view.isAutopay) {
+        const name = view.expense?.name ?? view.debt?.name;
+        if (name) return view.debt ? `${name} minimum` : name;
+    }
+    return item.label;
+}

@@ -1,9 +1,10 @@
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { SwipeActionCard } from "./SwipeActionCard";
-import type {
-    RequiredAllocationItem,
-    RequiredActionView,
+import {
+    requiredDisplayLabel,
+    type RequiredAllocationItem,
+    type RequiredActionView,
 } from "@/lib/debt/deriveRequiredActionView";
 
 type RequiredActionItemProps = {
@@ -70,7 +71,7 @@ export function RequiredActionItem({
             }
         >
             <div className="saved-item-left">
-                <div className="saved-title">{item.label}</div>
+                <div className="saved-title">{requiredDisplayLabel(item, view)}</div>
 
                 {overdue && !isAutopay && (
                     <div className="status-chip overdue">Overdue</div>
