@@ -42,3 +42,57 @@ export function bulkMarkRequiredPaid(
 
     return { expenses: nextExpenses, debts: nextDebts };
 }
+
+/** Per-item paid decision from the payday checkpoint's Adjust view, keyed by the
+ *  underlying expense / debt id. Items NOT in a map are left untouched (they
+ *  weren't part of this cycle's required set). */
+export type RequiredReconciliation = {
+    expensePaid: Record<string, boolean>;
+    debtPaid: Record<string, boolean>;
+};
+
+/**
+ * Apply the itemized [Adjust] decisions to the required bills + debt minimums:
+ *   • paid  → mark paid (same flags as the toggle) and clear any failed flag.
+ *   • unpaid AUTOPAY → mark it failed (`autopayFailedThisCycle`) so it stays owed
+ *     AND is exempt from the rollover auto-reconcile (the user reported it didn't run).
+ *   • unpaid MANUAL → left unpaid/owed, no flags.
+ * Pure + immutable; items outside the decision maps pass through by reference.
+ */
+export function applyRequiredReconciliation(
+    expenses: RequiredExpense[],
+    debts: Debt[],
+    decisions: RequiredReconciliation
+): { expenses: RequiredExpense[]; debts: Debt[] } {
+    const nextExpenses = expenses.map((expense) => {
+        if (!(expense.id in decisions.expensePaid)) return expense;
+        if (decisions.expensePaid[expense.id]) {
+            return { ...expense, isPaidThisCycle: true, autopayFailedThisCycle: false };
+        }
+        return expense.isAutopay
+            ? { ...expense, isPaidThisCycle: false, autopayFailedThisCycle: true }
+            : { ...expense, isPaidThisCycle: false };
+    });
+
+    const nextDebts = debts.map((debt) => {
+        if (!(debt.id in decisions.debtPaid)) return debt;
+        if (decisions.debtPaid[debt.id]) {
+            return {
+                ...debt,
+                minimumPaidThisCycle: true,
+                isPaidThisCycle: true,
+                autopayFailedThisCycle: false,
+            };
+        }
+        return debt.isAutopay
+            ? {
+                  ...debt,
+                  minimumPaidThisCycle: false,
+                  isPaidThisCycle: false,
+                  autopayFailedThisCycle: true,
+              }
+            : { ...debt, minimumPaidThisCycle: false, isPaidThisCycle: false };
+    });
+
+    return { expenses: nextExpenses, debts: nextDebts };
+}

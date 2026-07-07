@@ -42,7 +42,12 @@ import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { getDebtsWithDisplayBalances, getCompletedSnowballAmount } from "@/lib/debt/getDebtsWithDisplayBalances";
 import { selectActiveRecommendedActions } from "@/lib/debt/selectActiveRecommendedActions";
 import { applyPaydayCapture } from "@/lib/debt/applyPaydayCapture";
-import { bulkMarkRequiredPaid } from "@/lib/debt/bulkMarkRequired";
+import {
+    bulkMarkRequiredPaid,
+    applyRequiredReconciliation,
+    type RequiredReconciliation,
+} from "@/lib/debt/bulkMarkRequired";
+import { deriveRequiredActionView } from "@/lib/debt/deriveRequiredActionView";
 import { upsertCompletedAction } from "@/lib/debt/mergeCompletedAction";
 import { usePaydayCapture } from "@/lib/hooks/usePaydayCapture";
 import { getPortalTarget } from "@/lib/dom/getPortalTarget";
@@ -428,6 +433,19 @@ export default function Home() {
         [requiredCaptureItems]
     );
 
+    // Enriched rows (item + derived current state) for the checkpoint's [Adjust]
+    // reconciliation view. Derived as-of the PAYDAY (cycle close), not currentDate:
+    // by payday every this-cycle autopay has run, so autopay rows open presumed-paid
+    // while manual bills reflect their real (usually unmarked) state.
+    const requiredCaptureRows = useMemo(
+        () =>
+            requiredCaptureItems.map((item) => ({
+                item,
+                view: deriveRequiredActionView(item, requiredExpenses, debts, nextPaycheckDate),
+            })),
+        [requiredCaptureItems, requiredExpenses, debts, nextPaycheckDate]
+    );
+
     // Payday Autopilot — detection + capture sheet state (the narrow hook).
     const paydayCapture = usePaydayCapture({
         nextPaycheckDate,
@@ -438,29 +456,39 @@ export default function Home() {
 
     // Bulk-apply a payday capture in ONE state update (looping the single-mark
     // handler would setState off stale closures), then mark the payday handled.
-    function handlePaydayCapture(items: CompletedRecommendedAction[]) {
+    function handlePaydayCapture(
+        items: CompletedRecommendedAction[],
+        requiredDecisions?: RequiredReconciliation
+    ) {
         const { nextGoals, nextCompleted } = applyPaydayCapture(
             items,
             goals,
             completedRecommendedActions
         );
 
-        // The payday check-in confirms the WHOLE paycheck: mark every required bill
-        // + minimum paid too (the "Paid all" happy path), not just the extras. The
-        // itemized-adjust exception path (step 6) will pass a reconciled set instead.
-        const expenseIds = requiredCaptureItems
-            .filter((i) => i.category === "expense" || i.category === "autopay_expense")
-            .map((i) => i.targetId)
-            .filter((id): id is string => !!id);
-        const debtIds = requiredCaptureItems
-            .filter((i) => i.category === "minimum_debt" || i.category === "autopay_debt")
-            .map((i) => i.debtId ?? i.targetId)
-            .filter((id): id is string => !!id);
-        const { expenses: nextRequiredExpenses, debts: nextDebts } = bulkMarkRequiredPaid(
-            requiredExpenses,
-            debts,
-            { expenseIds, debtIds }
-        );
+        // The payday check-in confirms the WHOLE paycheck (required + extras). If the
+        // user used [Adjust], honor their per-item paid/failed decisions; otherwise
+        // mark every required bill + minimum paid (the "Paid all" happy path).
+        let nextRequiredExpenses: RequiredExpense[];
+        let nextDebts: Debt[];
+        if (requiredDecisions) {
+            ({ expenses: nextRequiredExpenses, debts: nextDebts } =
+                applyRequiredReconciliation(requiredExpenses, debts, requiredDecisions));
+        } else {
+            const expenseIds = requiredCaptureItems
+                .filter((i) => i.category === "expense" || i.category === "autopay_expense")
+                .map((i) => i.targetId)
+                .filter((id): id is string => !!id);
+            const debtIds = requiredCaptureItems
+                .filter((i) => i.category === "minimum_debt" || i.category === "autopay_debt")
+                .map((i) => i.debtId ?? i.targetId)
+                .filter((id): id is string => !!id);
+            ({ expenses: nextRequiredExpenses, debts: nextDebts } = bulkMarkRequiredPaid(
+                requiredExpenses,
+                debts,
+                { expenseIds, debtIds }
+            ));
+        }
 
         setGoals(nextGoals);
         setCompletedRecommendedActions(nextCompleted);
@@ -1452,8 +1480,8 @@ export default function Home() {
                 createPortal(
                     <PaydayCaptureSheet
                         activeRecommendedActions={activeRecommendedActions}
+                        requiredRows={requiredCaptureRows}
                         requiredTotal={requiredCaptureTotal}
-                        requiredCount={requiredCaptureItems.length}
                         onCapture={handlePaydayCapture}
                         onDismiss={paydayCapture.dismiss}
                         onClose={paydayCapture.close}

@@ -1853,6 +1853,117 @@
 	color: var(--text-secondary);
 }
 
+.payday-required-adjust {
+	display: block;
+	margin: 10px 0 0 auto;
+	padding: 2px 0;
+	font-size: 0.82rem;
+	font-weight: 700;
+	color: var(--accent-color);
+	background: none;
+	border: none;
+}
+
+/* The focused reconciliation view (in-sheet content swap). The list mounts fresh
+   on the swap, so its entrance animation gives the cross-fade — CSS only, no
+   native driver. */
+.payday-back {
+	display: inline-block;
+	margin-bottom: 8px;
+	padding: 0;
+	font-size: 0.86rem;
+	font-weight: 600;
+	color: var(--text-secondary);
+}
+
+.payday-reconcile-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 10px 0 4px;
+	max-height: 46vh;
+	overflow-y: auto;
+	animation: paydayReconcileIn 0.2s ease;
+}
+
+@keyframes paydayReconcileIn {
+	from {
+		opacity: 0;
+		transform: translateX(14px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+.payday-reconcile-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 12px 14px;
+	border-radius: 12px;
+	background: rgba(148, 163, 184, 0.06);
+	border: 1px solid var(--border-color);
+	text-align: left;
+	transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.payday-reconcile-row.unpaid {
+	background: rgba(239, 68, 68, 0.08);
+	border-color: rgba(239, 68, 68, 0.28);
+}
+
+.payday-reconcile-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+	min-width: 0;
+}
+
+.payday-reconcile-label {
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: var(--text-primary);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.payday-reconcile-meta {
+	font-size: 0.74rem;
+	color: var(--text-secondary);
+}
+
+.payday-reconcile-amount {
+	font-size: 0.98rem;
+	font-weight: 700;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.payday-reconcile-state {
+	min-width: 72px;
+	text-align: right;
+	font-size: 0.78rem;
+	font-weight: 700;
+	color: var(--success-color);
+}
+
+.payday-reconcile-row.unpaid .payday-reconcile-state {
+	color: #ef4444;
+}
+
+.payday-reconcile-carry {
+	padding: 12px 2px 4px;
+	margin-top: 4px;
+	border-top: 1px solid var(--border-color);
+	font-size: 0.86rem;
+	color: var(--text-secondary);
+}
+
 .payday-plan-list {
 	display: flex;
 	flex-direction: column;

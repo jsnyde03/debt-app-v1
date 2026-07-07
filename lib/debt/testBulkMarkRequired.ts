@@ -1,4 +1,4 @@
-import { bulkMarkRequiredPaid } from "./bulkMarkRequired";
+import { bulkMarkRequiredPaid, applyRequiredReconciliation } from "./bulkMarkRequired";
 import type { RequiredExpense, Debt } from "../storage/debtPlannerStorage";
 
 function assert(condition: boolean, msg: string) {
@@ -82,6 +82,43 @@ function testDoesNotMutateInput() {
     assert(input.isPaidThisCycle === false, "input object is not mutated (pure)");
 }
 
+// ── applyRequiredReconciliation (the itemized [Adjust] path) ──
+
+function testReconcilePaidMarksPaid() {
+    const { expenses, debts } = applyRequiredReconciliation(
+        [expense({ id: "e1", isAutopay: true, autopayFailedThisCycle: true })],
+        [debtItem({ id: "d1" })],
+        { expensePaid: { e1: true }, debtPaid: { d1: true } }
+    );
+    assert(expenses[0].isPaidThisCycle === true && expenses[0].autopayFailedThisCycle === false, "paid expense → marked paid + failed flag cleared");
+    assert(debts[0].minimumPaidThisCycle === true && debts[0].isPaidThisCycle === true, "paid debt → both flags set");
+}
+
+function testReconcileUnpaidAutopayFlagsFailed() {
+    const { expenses, debts } = applyRequiredReconciliation(
+        [expense({ id: "e1", isAutopay: true })],
+        [debtItem({ id: "d1", isAutopay: true })],
+        { expensePaid: { e1: false }, debtPaid: { d1: false } }
+    );
+    assert(expenses[0].autopayFailedThisCycle === true && expenses[0].isPaidThisCycle === false, "unpaid AUTOPAY expense → flagged failed, stays owed");
+    assert(debts[0].autopayFailedThisCycle === true && debts[0].minimumPaidThisCycle === false, "unpaid AUTOPAY debt → flagged failed, stays owed");
+}
+
+function testReconcileUnpaidManualJustUnpaid() {
+    const { expenses } = applyRequiredReconciliation(
+        [expense({ id: "e1", isAutopay: false })],
+        [],
+        { expensePaid: { e1: false }, debtPaid: {} }
+    );
+    assert(expenses[0].isPaidThisCycle === false && expenses[0].autopayFailedThisCycle === undefined, "unpaid MANUAL expense → just unpaid, no failed flag");
+}
+
+function testReconcileUntouchedByReference() {
+    const orig = expense({ id: "e1" });
+    const { expenses } = applyRequiredReconciliation([orig], [], { expensePaid: {}, debtPaid: {} });
+    assert(expenses[0] === orig, "item not in the decision map passes through by reference");
+}
+
 export function runBulkMarkRequiredTests() {
     console.log("Running bulk-mark-required tests...");
 
@@ -91,6 +128,11 @@ export function runBulkMarkRequiredTests() {
     testIdempotentOnAlreadyPaid();
     testEmptySetIsNoOpByReference();
     testDoesNotMutateInput();
+
+    testReconcilePaidMarksPaid();
+    testReconcileUnpaidAutopayFlagsFailed();
+    testReconcileUnpaidManualJustUnpaid();
+    testReconcileUntouchedByReference();
 
     console.log("✅ All bulk-mark-required tests passed.");
 }
