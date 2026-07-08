@@ -53,7 +53,7 @@ _This is the "robust" core. Do before Phase 2 because Drift Tracker adds new mon
 ## Phase 6 — Polish clusters (last; scope per the 0.2 verdict; cuttable seam)
 - **6.1 Layout premium polish** (V15_LAYOUT_AUDIT §Enhancements) — Plan-hero progress ring · Bills category-count pills · Debts all-debts payoff bar · Payoff-chart axis+tooltip · amortization stat-value alignment · Pay-Cycle-History lifetime-summary header · Bills iPad two-column.
 - **6.2 Journey enhancements** — milestone-linked progress-bar pulse · share-the-celebration · best-streak record + 5/10/25-cycle milestones · amortization milestone markers + CSV/PDF export · bills overdue urgency · lifetime "total paid" stat.
-- **6.3 Payday/keystone follow-ons** — plan-bearing payday notification · payday-sheet cosmetics · over-funded-goal UX decision · Milestones "trophies" view · Pay-Cycle-History drill-down · named goal templates · manual/deferred rollover date · iPad genuinely-native polish.
+- **6.3 Payday/keystone follow-ons** — plan-bearing payday notification · payday-sheet cosmetics · **reconcile-row label verbosity** (shows full "Pay minimum on Klarna - Apple Watch" → wraps to 3 lines on-device; strip to the bare name / "{name} minimum" like the Plan tab does, per the iOS sim-smoke screenshots 2026-07-08) · over-funded-goal UX decision · Milestones "trophies" view · Pay-Cycle-History drill-down · named goal templates · manual/deferred rollover date · iPad genuinely-native polish.
 
 ## Phase 7 — Release gate
 - **7.1 Pre-submit functional-correctness audit** (whole-surface, adversarial; [[feedback_presubmit_functional_audit]]) — bugs live at the new/old seam, and v1.7 touches a LOT.
