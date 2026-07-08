@@ -19,18 +19,25 @@
  * `new Date(x)` still parses normally. Call BEFORE seeding. SIM_SMOKE builds only.
  */
 export function freezeClockForSimSmoke() {
-    const FIXED = Date.UTC(2026, 6, 15, 16, 41, 0); // 2026-07-15, 9:41 local-ish
+    const FIXED = Date.UTC(2026, 6, 15, 16, 41, 0); // 2026-07-15, 9:41
     const RealDate = Date;
-    function FakeDate(this: unknown, ...args: unknown[]) {
-        return args.length
-            ? new (RealDate as unknown as { new (...a: unknown[]): Date })(...args)
-            : new (RealDate as unknown as { new (...a: unknown[]): Date })(FIXED);
+    // A real `class extends Date` (not a hand-rolled function) — the spec-correct,
+    // engine-safe way to subclass a built-in, so it behaves identically on WebKit's
+    // JavaScriptCore (iOS) as in V8. Argless `new Date()` → FIXED; `Date.now()` →
+    // FIXED; all other forms and statics forward to the real Date.
+    class FrozenDate extends RealDate {
+        constructor(...args: unknown[]) {
+            if (args.length === 0) {
+                super(FIXED);
+            } else {
+                super(...(args as [number])); // forward any Date(...) form unchanged
+            }
+        }
+        static now() {
+            return FIXED;
+        }
     }
-    FakeDate.now = () => FIXED;
-    FakeDate.parse = RealDate.parse;
-    FakeDate.UTC = RealDate.UTC;
-    FakeDate.prototype = RealDate.prototype;
-    globalThis.Date = FakeDate as unknown as DateConstructor;
+    globalThis.Date = FrozenDate as DateConstructor;
 }
 
 function iso(daysFromNow: number): string {
