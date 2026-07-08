@@ -38,7 +38,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Capacitor CLI (npx cap sync) requires Node >=22 — higher than web-e2e's
+          # Node 20 (which doesn't run cap sync, so it's fine there).
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
