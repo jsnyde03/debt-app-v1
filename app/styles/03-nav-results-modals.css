@@ -1897,25 +1897,21 @@
 	}
 }
 
+/* A <div role="button">, not a <button> — iOS WKWebView won't grow a native
+   <button> box to fit multi-line content (it renders at ~min-height), so the meta
+   line spilled over the next card. A plain <div> grows to content on-device. */
 .payday-reconcile-row {
-	display: block;
+	display: flex;
+	align-items: center;
+	gap: 10px;
 	width: 100%;
 	padding: 12px 14px;
 	border-radius: 12px;
 	background: rgba(148, 163, 184, 0.06);
 	border: 1px solid var(--border-color);
 	text-align: left;
+	cursor: pointer;
 	transition: background 0.16s ease, border-color 0.16s ease;
-}
-
-/* Flex lives here, not on the <button> — iOS WKWebView mis-sizes a flex-container
-   <button> with wrapping content (box draws too short → meta spills onto the next
-   row). A <span> flex container renders correctly on-device. */
-.payday-reconcile-inner {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	width: 100%;
 }
 
 .payday-reconcile-row.unpaid {

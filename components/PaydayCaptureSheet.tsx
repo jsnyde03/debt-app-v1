@@ -247,40 +247,46 @@ export function PaydayCaptureSheet({
                             const id = rowId(row);
                             const paid = id ? requiredPaid[id] ?? true : true;
                             return (
-                                <button
-                                    type="button"
+                                // A <div role="button">, NOT a <button>: iOS WKWebView renders a
+                                // native <button> at ~its min-height and will not grow the box to
+                                // fit multi-line content, so a two-line bill label spilled its
+                                // "Due …" meta down over the next card. A plain <div> grows to its
+                                // content in every engine. Keyboard a11y kept via role + onKeyDown.
+                                <div
+                                    role="button"
+                                    tabIndex={0}
                                     key={id ?? row.item.label}
                                     className={`payday-reconcile-row ${paid ? "paid" : "unpaid"}`}
                                     onClick={() => toggleRequired(id)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault();
+                                            toggleRequired(id);
+                                        }
+                                    }}
                                     aria-pressed={paid}
                                 >
-                                    {/* Flex lives on this inner wrapper, NOT the <button> — iOS
-                                        WKWebView mis-sizes a flex <button> with wrapping content
-                                        (the box draws too short → the meta line spills onto the
-                                        next row). A <span> flex container renders correctly. */}
-                                    <span className="payday-reconcile-inner">
-                                        <span className="payday-reconcile-text">
-                                            <span className="payday-reconcile-label">
-                                                {requiredDisplayLabel(row.item, row.view)}
-                                            </span>
-                                            <span className="payday-reconcile-meta">
-                                                {row.view.isAutopay
-                                                    ? row.view.presumedPaid
-                                                        ? "⚡ Autopay · ran"
-                                                        : "⚡ Autopay"
-                                                    : row.view.dueDate
-                                                        ? `Due ${row.view.dueDate}`
-                                                        : "Required"}
-                                            </span>
+                                    <span className="payday-reconcile-text">
+                                        <span className="payday-reconcile-label">
+                                            {requiredDisplayLabel(row.item, row.view)}
                                         </span>
-                                        <span className="payday-reconcile-amount">
-                                            {formatCurrency(row.item.amount)}
-                                        </span>
-                                        <span className="payday-reconcile-state">
-                                            {paid ? "Paid" : "Didn’t pay"}
+                                        <span className="payday-reconcile-meta">
+                                            {row.view.isAutopay
+                                                ? row.view.presumedPaid
+                                                    ? "⚡ Autopay · ran"
+                                                    : "⚡ Autopay"
+                                                : row.view.dueDate
+                                                    ? `Due ${row.view.dueDate}`
+                                                    : "Required"}
                                         </span>
                                     </span>
-                                </button>
+                                    <span className="payday-reconcile-amount">
+                                        {formatCurrency(row.item.amount)}
+                                    </span>
+                                    <span className="payday-reconcile-state">
+                                        {paid ? "Paid" : "Didn’t pay"}
+                                    </span>
+                                </div>
                             );
                         })}
                     </div>
