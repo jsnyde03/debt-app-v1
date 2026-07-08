@@ -62,6 +62,8 @@ export function PaydayCaptureSheet({
 }: PaydayCaptureSheetProps) {
     const [editingExtraKey, setEditingExtraKey] = useState<string | null>(null);
     const [overrides, setOverrides] = useState<Record<string, PaydayCaptureOverride>>({});
+    // Brief "Payday captured ✓" success beat before the sheet commits + closes.
+    const [captured, setCaptured] = useState(false);
 
     // Reconciliation view state. requiredPaid opens in each item's EXACT current
     // state (manual → real paid flag, autopay → presumed-paid) — never an invented
@@ -136,6 +138,7 @@ export function PaydayCaptureSheet({
     }
 
     function handleCapture() {
+        if (captured) return;
         triggerMediumHaptic();
         const items = buildPaydayCaptureItems(
             activeRecommendedActions
@@ -149,7 +152,10 @@ export function PaydayCaptureSheet({
                 })),
             overrides
         );
-        onCapture(items, hasAdjustedRequired ? buildRequiredDecisions() : undefined);
+        const decisions = hasAdjustedRequired ? buildRequiredDecisions() : undefined;
+        // Show the success beat, then commit the capture + close the sheet.
+        setCaptured(true);
+        setTimeout(() => onCapture(items, decisions), 850);
     }
 
     // Closing the reconcile view does NOT itself count as an adjustment — only an
@@ -158,6 +164,27 @@ export function PaydayCaptureSheet({
     // "mark everything paid" intact instead of silently flipping bills to unpaid.
     function closeReconcile() {
         setAdjustingRequired(false);
+    }
+
+    // ── Success beat after confirming (before the sheet commits + closes) ──
+    if (captured) {
+        return (
+            <div className="settings-overlay">
+                <div
+                    className="settings-sheet payday-sheet payday-captured"
+                    role="dialog"
+                    aria-label="Payday captured"
+                >
+                    <div className="payday-captured-check" aria-hidden="true">
+                        ✓
+                    </div>
+                    <h2>Payday captured</h2>
+                    <p className="section-collapse-subtitle">
+                        Nice work — your plan&rsquo;s up to date.
+                    </p>
+                </div>
+            </div>
+        );
     }
 
     // ── The focused reconciliation view (content SWAP — one screen at a time) ──
@@ -264,7 +291,7 @@ export function PaydayCaptureSheet({
         ? carryForward > 0
             ? `${formatCurrency(requiredTotal - carryForward)} paid · ${formatCurrency(carryForward)} carries`
             : "All confirmed paid"
-        : `${requiredCount} bill${requiredCount === 1 ? "" : "s"} & minimums due this paycheck`;
+        : `${requiredCount} due this paycheck`;
 
     return (
         <div className="settings-overlay" onClick={onClose}>
@@ -409,7 +436,7 @@ export function PaydayCaptureSheet({
                             : "I followed the plan"}
                     </button>
                     <button type="button" className="text-action-button payday-secondary" onClick={onDismiss}>
-                        Not now
+                        Skip this payday
                     </button>
                 </div>
             </div>

@@ -77,11 +77,11 @@ test("payday capture: sheet auto-opens, one-tap captures, no re-prompt", async (
     await expect(page.locator(".payday-sheet")).toHaveCount(0);
 });
 
-test("payday capture: 'Not now' dismisses without capturing, no re-prompt", async ({ page }) => {
+test("payday capture: 'Skip this payday' dismisses without capturing, no re-prompt", async ({ page }) => {
     await seedLocalStorage(page, PAST_PAYDAY);
 
     await expect(page.locator(".payday-sheet")).toBeVisible();
-    await page.getByRole("button", { name: "Not now" }).click();
+    await page.getByRole("button", { name: "Skip this payday" }).click();
 
     // Dismissed: nothing captured, but the payday is marked handled (no nagging).
     await expect(page.locator(".payday-sheet")).toBeHidden();
