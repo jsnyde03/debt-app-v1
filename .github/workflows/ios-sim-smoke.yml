@@ -37,6 +37,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Pin Xcode 16 explicitly so a runner-image update can't silently drop us onto
+      # an Xcode that fails to compile Capacitor 8 (falls back to the image default
+      # if no Xcode 16.x is found).
+      - name: Pin Xcode 16
+        run: |
+          XC=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1)
+          echo "Selecting ${XC:-/Applications/Xcode.app}"
+          sudo xcode-select -s "${XC:-/Applications/Xcode.app}"
+          xcodebuild -version
+
       - uses: actions/setup-node@v4
         with:
           # Capacitor CLI (npx cap sync) requires Node >=22 — higher than web-e2e's
@@ -59,6 +69,20 @@ jobs:
       - name: List Xcode schemes
         run: xcodebuild -list -project ios/App/App.xcodeproj || true
 
+      # Cache compiled plugins + resolved SPM packages so subsequent runs skip the
+      # ~10-min from-scratch plugin compile. The web bundle is re-synced (cap sync,
+      # uncached) each run, so app CONTENT stays fresh — only Swift compilation is
+      # reused. Busts on a plugin/version change via the lockfile + pbxproj hash.
+      - name: Cache Xcode build (DerivedData + SPM)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/build
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-xcode-${{ hashFiles('package-lock.json', 'ios/App/App.xcodeproj/project.pbxproj') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-
+
       - name: Build the app for the iOS Simulator (unsigned)
         run: |
           xcodebuild \
@@ -78,7 +102,7 @@ jobs:
           # the smoke test just needs an iPhone-sized screen.
           UDID=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name|startswith("iPhone"))][-1].udid')
           echo "Booting $UDID"
-          xcrun simctl boot "$UDID"
+          for i in 1 2 3; do xcrun simctl boot "$UDID" && break || { echo "boot retry $i"; sleep 5; }; done
           xcrun simctl bootstatus "$UDID" -b
 
       - name: Install the app
@@ -91,6 +115,17 @@ jobs:
         run: |
           curl -fsSL "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      # Freeze the status bar to Apple's canonical 9:41 / full signal / full battery —
+      # so screenshots are DETERMINISTIC (the live clock would otherwise change every
+      # run and defeat the golden-image diff) and marketing-clean.
+      - name: Freeze the status bar
+        run: |
+          xcrun simctl status_bar booted override \
+            --time "9:41" \
+            --dataNetwork wifi --wifiMode active --wifiBars 3 \
+            --cellularMode active --cellularBars 4 \
+            --batteryState charged --batteryLevel 100
 
       - name: Smoke test — dark theme
         run: |
