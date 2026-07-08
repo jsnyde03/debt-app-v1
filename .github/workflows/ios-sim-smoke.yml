@@ -24,6 +24,11 @@ on:
       - ".maestro/**"
       - ".github/workflows/ios-sim-smoke.yml"
 
+# A newer push to the same ref cancels an in-progress run — don't stack macOS jobs.
+concurrency:
+  group: ios-sim-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
 # Sim builds are unsigned; no code-signing secrets needed.
 env:
   APP_ID: "com.jasonsnyder.debtplanner" # matches .maestro/reconcile-smoke.yaml
@@ -34,6 +39,9 @@ jobs:
     # Xcode 15 fails to compile the plugins' Swift).
     runs-on: macos-15
     timeout-minutes: 40
+    # Write access so the first run can auto-commit the golden baselines it captures.
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -140,6 +148,27 @@ jobs:
           maestro test .maestro/reconcile-smoke.yaml
           mkdir -p artifacts/light
           mv reconcile-*.png artifacts/light/ 2>/dev/null || true
+
+      # Golden-image gate: diff the true-WKWebView screenshots against committed
+      # baselines. Missing baselines are captured (bootstraps on first run); a real
+      # layout regression writes a diff image + FAILS the job.
+      - name: Visual regression (golden-image)
+        run: node scripts/compare-ios-screenshots.mjs artifacts tests/ios-baselines
+
+      # Persist any newly-captured baselines back to the branch (tests/** isn't in
+      # the push path filter, so this doesn't re-trigger the workflow).
+      - name: Commit new golden baselines
+        if: ${{ !cancelled() }}
+        run: |
+          if [ -n "$(git status --porcelain tests/ios-baselines)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add tests/ios-baselines
+            git commit -m "chore(ios-sim-smoke): capture golden baselines [skip ci]"
+            git push origin "HEAD:${GITHUB_REF_NAME}" || echo "baseline push skipped"
+          else
+            echo "no baseline changes"
+          fi
 
       - name: Upload WKWebView screenshots
         if: ${{ !cancelled() }}
