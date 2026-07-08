@@ -84,6 +84,31 @@ test("payday checkpoint: [Adjust] marks a manual bill paid AND denies a failed a
     expect(phone.isPaidThisCycle).toBe(false);
 });
 
+test("payday checkpoint: 'Mark all paid' toggles to 'Undo' and restores the prior state (truth preserved)", async ({ page }) => {
+    await seedLocalStorage(page, paydayState());
+    await page.locator(".payday-sheet").waitFor({ timeout: 10000 });
+
+    await page.getByRole("button", { name: "Adjust", exact: true }).click();
+    await page.locator(".payday-reconcile-list").waitFor();
+
+    // Mark all paid → the button flips to Undo.
+    await page.getByRole("button", { name: "Mark all paid" }).click();
+    await expect(page.getByRole("button", { name: "Undo" })).toBeVisible();
+
+    // Undo → restores the exact prior state; the button flips back.
+    await page.getByRole("button", { name: "Undo" }).click();
+    await expect(page.getByRole("button", { name: "Mark all paid" })).toBeVisible();
+
+    // Confirm → the manual bill (Internet) is still UNPAID — the bulk-mark was
+    // truly undone, not silently confirmed.
+    await page.getByRole("button", { name: "Done", exact: true }).click();
+    await page.getByRole("button", { name: /Confirm what I paid|I followed the plan/ }).click();
+    await expect(page.locator(".payday-sheet")).toBeHidden();
+
+    const state = await readState(page);
+    expect(state.expenses.find((e: { id: string }) => e.id === "internet").isPaidThisCycle).toBe(false);
+});
+
 test("payday checkpoint: opening Adjust and backing out UNCHANGED keeps the happy path (no silent un-pay)", async ({ page }) => {
     await seedLocalStorage(page, paydayState());
     await page.locator(".payday-sheet").waitFor({ timeout: 10000 });

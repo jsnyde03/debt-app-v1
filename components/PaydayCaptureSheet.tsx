@@ -79,6 +79,10 @@ export function PaydayCaptureSheet({
         }
         return init;
     });
+    // Snapshot of requiredPaid taken right before "Mark all paid" — non-null means
+    // the bulk action is active and the button reads "Undo", restoring this exact
+    // prior state (preserving the truth). Cleared by any manual row toggle.
+    const [preMarkAllPaid, setPreMarkAllPaid] = useState<Record<string, boolean> | null>(null);
 
     const requiredCount = requiredRows.length;
 
@@ -109,10 +113,22 @@ export function PaydayCaptureSheet({
         triggerLightHaptic();
         setRequiredPaid((cur) => ({ ...cur, [id]: !(cur[id] ?? true) }));
         setHasAdjustedRequired(true);
+        // A manual edit ends the bulk-mark session — "Undo" no longer cleanly
+        // applies, so the button reverts to "Mark all paid".
+        setPreMarkAllPaid(null);
     }
 
-    function markAllRequiredPaid() {
+    // "Mark all paid" ⇄ "Undo": the first press snapshots the current per-row state
+    // and marks everything paid; pressing "Undo" restores that exact snapshot
+    // (preserving the truth). A manual toggle (above) ends the session.
+    function toggleMarkAllRequired() {
         triggerLightHaptic();
+        if (preMarkAllPaid) {
+            setRequiredPaid(preMarkAllPaid);
+            setPreMarkAllPaid(null);
+            return;
+        }
+        setPreMarkAllPaid(requiredPaid);
         setRequiredPaid(() => {
             const next: Record<string, boolean> = {};
             for (const row of requiredRows) {
@@ -220,9 +236,9 @@ export function PaydayCaptureSheet({
                         <button
                             type="button"
                             className="text-action-button payday-mark-all"
-                            onClick={markAllRequiredPaid}
+                            onClick={toggleMarkAllRequired}
                         >
-                            Mark all paid
+                            {preMarkAllPaid ? "Undo" : "Mark all paid"}
                         </button>
                     </div>
 
@@ -238,25 +254,31 @@ export function PaydayCaptureSheet({
                                     onClick={() => toggleRequired(id)}
                                     aria-pressed={paid}
                                 >
-                                    <div className="payday-reconcile-text">
-                                        <span className="payday-reconcile-label">
-                                            {requiredDisplayLabel(row.item, row.view)}
+                                    {/* Flex lives on this inner wrapper, NOT the <button> — iOS
+                                        WKWebView mis-sizes a flex <button> with wrapping content
+                                        (the box draws too short → the meta line spills onto the
+                                        next row). A <span> flex container renders correctly. */}
+                                    <span className="payday-reconcile-inner">
+                                        <span className="payday-reconcile-text">
+                                            <span className="payday-reconcile-label">
+                                                {requiredDisplayLabel(row.item, row.view)}
+                                            </span>
+                                            <span className="payday-reconcile-meta">
+                                                {row.view.isAutopay
+                                                    ? row.view.presumedPaid
+                                                        ? "⚡ Autopay · ran"
+                                                        : "⚡ Autopay"
+                                                    : row.view.dueDate
+                                                        ? `Due ${row.view.dueDate}`
+                                                        : "Required"}
+                                            </span>
                                         </span>
-                                        <span className="payday-reconcile-meta">
-                                            {row.view.isAutopay
-                                                ? row.view.presumedPaid
-                                                    ? "⚡ Autopay · ran"
-                                                    : "⚡ Autopay"
-                                                : row.view.dueDate
-                                                    ? `Due ${row.view.dueDate}`
-                                                    : "Required"}
+                                        <span className="payday-reconcile-amount">
+                                            {formatCurrency(row.item.amount)}
                                         </span>
-                                    </div>
-                                    <span className="payday-reconcile-amount">
-                                        {formatCurrency(row.item.amount)}
-                                    </span>
-                                    <span className="payday-reconcile-state">
-                                        {paid ? "Paid" : "Didn’t pay"}
+                                        <span className="payday-reconcile-state">
+                                            {paid ? "Paid" : "Didn’t pay"}
+                                        </span>
                                     </span>
                                 </button>
                             );
