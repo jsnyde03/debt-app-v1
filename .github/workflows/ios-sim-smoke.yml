@@ -12,12 +12,17 @@ name: ios-sim-smoke
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches: ["**"]
-  #   paths:
-  #     - "components/**"
-  #     - "app/**"
-  #     - "lib/**"
+  # workflow_dispatch's "Run workflow" button only appears once this file is on the
+  # DEFAULT branch (release/v1). Until then, a path-filtered push trigger on the
+  # active branch runs it automatically — and won't fire on doc-only commits.
+  push:
+    branches: ["v1.6-dev"]
+    paths:
+      - "components/**"
+      - "app/**"
+      - "lib/**"
+      - ".maestro/**"
+      - ".github/workflows/ios-sim-smoke.yml"
 
 # Sim builds are unsigned; no code-signing secrets needed.
 env:
