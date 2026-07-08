@@ -59,6 +59,16 @@ jobs:
           node-version: 22
           cache: npm
 
+      # Kick the ~60s simulator boot off HERE so it runs in parallel with npm ci +
+      # the app build (we only WAIT for it just before install). Reclaims ~1 min.
+      - name: Boot a simulator (start)
+        run: |
+          xcrun simctl list devices available
+          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name|startswith("iPhone"))][-1].udid')
+          echo "Booting $UDID"
+          for i in 1 2 3; do xcrun simctl boot "$UDID" && break || { echo "boot retry $i"; sleep 5; }; done
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+
       - name: Install dependencies
         run: npm ci
 
@@ -96,15 +106,10 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Boot a simulator
-        run: |
-          xcrun simctl list devices available
-          # Pick any available iPhone by UDID (device names vary by runner image);
-          # the smoke test just needs an iPhone-sized screen.
-          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name|startswith("iPhone"))][-1].udid')
-          echo "Booting $UDID"
-          for i in 1 2 3; do xcrun simctl boot "$UDID" && break || { echo "boot retry $i"; sleep 5; }; done
-          xcrun simctl bootstatus "$UDID" -b
+      # The sim has been booting since right after node setup; block only now (it's
+      # usually already up, so this returns fast).
+      - name: Wait for simulator boot
+        run: xcrun simctl bootstatus "$SIM_UDID" -b
 
       - name: Install the app
         run: |
