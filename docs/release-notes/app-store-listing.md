@@ -58,7 +58,7 @@ Paying off debt is a marathon — this makes the progress visible every single p
 
 **WHAT YOU GET, FREE**
 
-- **Payday Autopilot** — On payday, confirm your whole plan in one tap — or adjust an amount, or mark it paid from savings. Zero bookkeeping.
+- **Payday Autopilot** — On payday, confirm your whole plan — required bills, minimums, and extras — in one tap, or adjust any item. Bills on autopay handle themselves. Zero bookkeeping.
 - **Interest Saved** — See how much interest your extra payments save, and how much sooner you're debt-free, vs. paying minimums only.
 - **Paycheck Plan** — Required payments and recommended actions the moment your paycheck lands — what you must pay vs. what you should.
 - **Debt Payoff Engine** — Snowball or avalanche, your choice. Tracks your focus debt, projects your payoff date, and puts the extra to work.
@@ -100,15 +100,18 @@ Everything stays on your device — no accounts, no cloud, no bank connections, 
 
 ## What's New — Version 1.6 (App Store Release Notes)
 
-**Payday Autopilot + See What Your Extra Payments Are Worth**
+**Payday Autopilot — your whole paycheck, confirmed in one tap.**
+On payday, Debt Planner surfaces everything this paycheck covers — your required bills and minimums *plus* your extra payments — and lets you confirm it all in a single tap. Paid a bill differently, or one didn't go through? Tap Adjust to reconcile just that item; the rest stays one-tap. Your progress stays accurate with zero bookkeeping.
 
-On payday, Debt Planner now surfaces the plan you set for this paycheck and lets you confirm it in one tap — or adjust an amount, or mark it paid from savings. Your progress stays accurate with zero bookkeeping.
+**Autopay, handled.**
+Mark a bill or debt minimum as autopay and Debt Planner stops nagging you to check it off — it shows an "Autopay" status, assumes it ran once due, and never lets a paid-by-autopay bill pile up as falsely overdue next paycheck. If an autopay didn't go through, report it at payday and it becomes a clear Overdue item you can pay off right from your plan.
 
-New on the Payoff tab: an Interest-Saved card showing exactly how much interest your extra payments save, and how much sooner you'll be debt-free, versus minimums only. Free.
+**See what your extra payments are worth.**
+A new Interest-Saved card on the Payoff tab shows exactly how much interest your plan saves you — and how much sooner you'll be debt-free — versus minimums only. Free, updated every time you run your plan.
 
-Plus: more accurate payoff dates for weekly and biweekly plans, a start-next-cycle prompt after each payday, and fixes so paid-off debts clear cleanly.
+Plus: the Plan hero now leads with exactly what to pay this paycheck; more accurate payoff dates for weekly and biweekly plans; a touch-first payday check-in; demo mode follows your Light/Dark setting; and fixes so paid-off debts clear cleanly.
 
-_(Full copy + review notes → `docs/release-notes/v1.6.md`.)_
+_(Source of truth for this copy + review notes → `docs/release-notes/v1.6.md` — keep the two in sync.)_
 
 ---
 
