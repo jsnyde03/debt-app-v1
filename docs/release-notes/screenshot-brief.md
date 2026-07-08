@@ -1,7 +1,7 @@
 # Screenshot Brief — Paycheck Debt Planner
 # App Store (6.7" iPhone) + Subscription Paywall
 
-_**Revised for v1.5 "Track Your Journey"** (2026-07-02). Two things drive this revision: (1) the v1.5 emotional layer — **Milestone celebration, Streaks, Pay Cycle History, Amortization** — gives us far stronger conversion shots than a static plan alone, so a celebration shot now leads early; (2) **screenshot caption OCR is indexed by Apple (2025+)**, so every caption below is written to carry a real search keyword the 160-char metadata fields couldn't fit (payday, debt-free, private, what-if, forecast). Apple shows your first 2-3 shots in search results before a user taps in, so the strongest value + trust signals lead. Full ASO rationale → [V15_ASO_STRATEGY.md](V15_ASO_STRATEGY.md)._
+_**Revised for v1.6 "Differentiation Strike"** (2026-07-08). **Two NEW hero shots** added and moved to the front — **Payday Autopilot** (the one-tap payday checkpoint, this version's headline feature and the portfolio's most-uncopyable wedge) and **Interest Saved** (the free Payoff-tab card). Those two are the only shots that must be freshly captured; the v1.5 set below carries forward. Order revised so the payday-allocation job leads (per `app-portfolio/DIFFERENTIATION_STRATEGY.md`). — Prior **v1.5 "Track Your Journey"** revision (2026-07-02): the emotional layer (Milestone celebration, Streaks, Pay Cycle History, Amortization) gives stronger conversion shots than a static plan, so a celebration shot leads early; and **screenshot caption OCR is indexed by Apple (2025+)**, so every caption carries a real search keyword the 160-char fields can't fit (payday, debt-free, private, what-if). Apple shows the first 2-3 shots in search before a tap, so the strongest value + trust signals lead. Full ASO rationale → [V16_ASO_STRATEGY.md](V16_ASO_STRATEGY.md) · [V15_ASO_STRATEGY.md](V15_ASO_STRATEGY.md)._
 
 Apple requires: up to 10 screenshots, 6.7" display (1290 × 2796px).
 Recommended: 6–8 screenshots, portrait orientation.
@@ -22,6 +22,7 @@ This is realistic but slightly cluttered for hero shots — feel free to trim a 
 - Dark theme for most shots (higher contrast, premium feel, and this app's dark mode is genuinely polished — gradient depth, not just inverted colors)
 - Light theme for 1–2 shots to show both themes exist
 - Capture with a Premium-subscribed sandbox account (via `debtPlanner.mockSubscription` in dev, or a real sandbox purchase) for every screenshot marked **Premium**
+- **To trigger the Payday Autopilot sheet (for the NEW shot):** in Plan Settings, set a paycheck whose next payday is **today or 1–3 days ago**, tap Calculate, then relaunch — the "It's payday" sheet auto-opens. (Same trigger the reviewer notes use.) For a clean hero frame, trim the sample data to ~2 required bills + 1–2 extras so the sheet isn't crowded.
 
 ---
 
@@ -31,6 +32,24 @@ This is realistic but slightly cluttered for hero shots — feel free to trim a 
 
 **Headline:** Payday? Here's exactly what to pay. _(OCR keyword: "payday")_
 **Subhead:** Which bills, which debt, how much cushion — the moment you get paid.
+**Theme:** Dark
+
+---
+
+## SCREENSHOT — Payday Autopilot (v1.6, NEW) ⭐
+**What to show:** The **"It's payday" bottom sheet** open over the Plan tab — the aggregate **"Required bills & minimums"** card (count + total) above the **"Extra payments"** list, with the big blue **"I followed the plan"** primary button. This is the one-tap capture moment — the version's headline feature and the wedge no competitor occupies. Trigger it per the SETUP note; trim the sample data to ~2 required bills + 1–2 extras so the sheet reads clean, not crowded.
+
+**Title (headline):** Payday? Confirm your whole plan in one tap. _(OCR keyword: "payday")_
+**Subtitle (subhead):** Required bills, minimums, and extra payments — logged in a single tap. Zero bookkeeping.
+**Theme:** Dark
+
+---
+
+## SCREENSHOT — Interest Saved (v1.6, NEW)
+**What to show:** The **Payoff tab** with the free **Interest-Saved card** near the top — the large "**$X interest saved**" figure and the "**debt-free N months sooner** vs. minimums only" line. A clean, single-number proof shot; keep the card as the focal point.
+
+**Title (headline):** See what your extra payments are worth. _(OCR keyword: "interest")_
+**Subtitle (subhead):** Exactly how much interest you save — and how much sooner you're debt-free — versus paying minimums only.
 **Theme:** Dark
 
 ---
@@ -185,17 +204,19 @@ Used inside the app's upgrade modal and/or for the App Store's in-app purchase p
 
 ---
 
-## RECOMMENDED SCREENSHOT ORDER FOR APP STORE (v1.5 — max 10 slots)
+## RECOMMENDED SCREENSHOT ORDER FOR APP STORE (v1.6 — max 10 slots)
+
+_Revised so the payday-allocation job (the wedge) leads and the two NEW v1.6 shots land in the first-shown group Apple surfaces in search._
 
 1. **Plan Overview (hero)** — "Payday? Here's exactly what to pay." _(the core job; OCR: payday)_
-2. **Milestone Celebration (v1.5)** ⭐ — "Debt-free journey" _(emotional scroll-stopper + the wedge; shown in search results; OCR: debt-free)_
-3. **Smart Insights (Premium)** — strongest premium-conversion shot
-4. **Streaks & Progress (v1.5)** — "Keep your on-plan streak alive" _(OCR: streak)_
-5. **Timeline**
-6. **Strategy Comparison (Premium)** — "what-if" / snowball vs avalanche
-7. **Amortization (Premium, v1.5)** — balance to $0, month by month
+2. **Payday Autopilot (v1.6)** ⭐ — "Confirm your whole plan in one tap" _(the headline feature + the uncopyable wedge; must be in the first frames; OCR: payday)_
+3. **Milestone Celebration (v1.5)** ⭐ — "Debt-free journey" _(emotional scroll-stopper; OCR: debt-free)_
+4. **Interest Saved (v1.6)** — "See what your extra payments are worth" _(free proof shot; OCR: interest)_
+5. **Smart Insights (Premium)** — strongest premium-conversion shot
+6. **Streaks & Progress (v1.5)** — "Keep your on-plan streak alive" _(OCR: streak)_
+7. **Strategy Comparison (Premium)** — "what-if" / snowball vs avalanche
 8. **App Lock & Privacy** — trust signal _(OCR: private, no bank login)_
-9. **Pay Cycle History (Premium, v1.5)** — look back at every cycle
-10. **Swipe to Pay** _(or swap in Goals / Forecasting / Demo Mode as an alternate)_
+9. **Amortization (Premium, v1.5)** — balance to $0, month by month
+10. **Timeline** _(or swap in Pay Cycle History / Swipe to Pay / Goals as an alternate)_
 
-_We now have more strong shots than the 10 App Store slots — that's a good problem. Consider **two Custom Product Pages** (see [V15_ASO_STRATEGY.md](V15_ASO_STRATEGY.md) §3): one leading with the paycheck/plan shots for "paycheck budget" searchers, one leading with the celebration/streak shots for "debt payoff" searchers._
+_We have more strong shots than the 10 App Store slots — a good problem. Consider **two Custom Product Pages** (see [V16_ASO_STRATEGY.md](V16_ASO_STRATEGY.md) / [V15_ASO_STRATEGY.md](V15_ASO_STRATEGY.md) §3): one leading with Payday Autopilot + plan shots for "paycheck budget" searchers, one leading with the celebration/streak shots for "debt payoff" searchers._
