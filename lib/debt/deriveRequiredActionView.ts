@@ -24,6 +24,10 @@ export type RequiredActionView = {
     /** Autopay whose due date has passed (and not user-flagged failed) — presumed
      *  to have run. Drives the "Auto-paid" vs "Autopay" (upcoming) status. */
     presumedPaid: boolean;
+    /** Autopay the user reported FAILED at the payday check-in. It stops presenting
+     *  as autopay and behaves like a manual owed bill (Overdue + Mark-Paid) until
+     *  resolved — but keeps `isAutopay`, so autopay resumes next cycle once paid. */
+    autopayFailed: boolean;
 };
 
 export function isOverdue(dueDate: string, currentDate: string): boolean {
@@ -85,7 +89,12 @@ export function deriveRequiredActionView(
     const overdue =
         !!dueDate && !isPaid && !presumedPaid && isOverdue(dueDate, currentDate);
 
-    return { expense, debt, isPaid, dueDate, overdue, isAutopay, presumedPaid };
+    // A reported-failed autopay: the user said it didn't run. It presents as a
+    // manual owed bill (the render layer drops the autopay treatment), while
+    // `isAutopay` stays true so the bill returns to autopay next cycle once paid.
+    const autopayFailed = isAutopay && source?.autopayFailedThisCycle === true;
+
+    return { expense, debt, isPaid, dueDate, overdue, isAutopay, presumedPaid, autopayFailed };
 }
 
 /**

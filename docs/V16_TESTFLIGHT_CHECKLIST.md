@@ -85,6 +85,7 @@ _The payday↔autopay↔rollover↔partial-pay seam — the highest-risk new sur
 **Autopay on the Plan tab (no-nag):**
 - [ ] Mark a bill AND a debt as **Autopay** (add/edit form). On the Plan tab their Required-Actions rows show an **"Autopay"** status (blue) or **"Auto-paid"** (green, once the due date has passed) — NOT a "Mark Paid" button, and no swipe action.
 - [ ] A past-due autopay bill does NOT show an "Overdue" chip and does NOT flip the hero to "overdue payments requiring attention" (it reads as handled).
+- [ ] A **reported-failed** autopay (deny it at a payday checkpoint, then return to the Plan tab) reads as a manual owed bill — **"Overdue"** chip + a **"Mark Paid"** button (no "Autopay" status). Tapping **Mark Paid** clears it; it must NOT re-surface as failed after the next Start-Next-Pay-Cycle (autopay resumes).
 
 **Payday checkpoint — bulk (happy path):**
 - [ ] On payday the sheet shows a **"Required bills & minimums"** card (count + total) above the **Extra payments** list.

@@ -27,11 +27,16 @@ export function RequiredActionItem({
     onMarkExpensePaid,
     onMarkDebtMinimumPaid,
 }: RequiredActionItemProps) {
-    const { isPaid, dueDate, overdue, isAutopay, presumedPaid } = view;
+    const { isPaid, dueDate, overdue, isAutopay, presumedPaid, autopayFailed } = view;
     // Autopay pays itself — once due it's presumed run. Either way the Plan tab
     // shows a status, never a Mark-Paid nag (Option A). Failure reporting lives
     // in the payday checkpoint, not here.
     const autopayHandled = isAutopay && (isPaid || presumedPaid);
+    // A reported-failed autopay stops presenting as autopay and behaves like a
+    // manual owed bill (Overdue chip + Mark-Paid pill + swipe), so the user can
+    // both SEE it needs them and RESOLVE it right here — the one autopay case the
+    // frictionless status treatment would otherwise trap.
+    const presentAsAutopay = isAutopay && !autopayFailed;
 
     function handleToggle() {
         if (item.category === "expense" || item.category === "autopay_expense") {
@@ -54,18 +59,18 @@ export function RequiredActionItem({
             className={[
                 "saved-item",
                 isPaid ? "completed-item" : "",
-                overdue && !isAutopay ? "overdue-item" : "",
-                isAutopay ? "autopay-item" : "",
+                overdue && !presentAsAutopay ? "overdue-item" : "",
+                presentAsAutopay ? "autopay-item" : "",
             ]
                 .filter(Boolean)
                 .join(" ")}
             leftAction={
-                !isAutopay && !isPaid
+                !presentAsAutopay && !isPaid
                     ? { label: "Mark Paid", tone: "positive", onTrigger: handleToggle }
                     : undefined
             }
             rightAction={
-                !isAutopay && isPaid
+                !presentAsAutopay && isPaid
                     ? { label: "Undo", tone: "warning", onTrigger: handleToggle }
                     : undefined
             }
@@ -73,7 +78,7 @@ export function RequiredActionItem({
             <div className="saved-item-left">
                 <div className="saved-title">{requiredDisplayLabel(item, view)}</div>
 
-                {overdue && !isAutopay && (
+                {overdue && !presentAsAutopay && (
                     <div className="status-chip overdue">Overdue</div>
                 )}
 
@@ -85,7 +90,7 @@ export function RequiredActionItem({
             <div className="saved-item-right">
                 <strong className="saved-amount">{formatCurrency(item.amount)}</strong>
 
-                {isAutopay ? (
+                {presentAsAutopay ? (
                     <span
                         className={`autopay-status${autopayHandled ? " paid" : ""}`}
                         aria-label={

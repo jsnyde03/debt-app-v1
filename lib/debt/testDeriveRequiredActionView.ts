@@ -137,6 +137,7 @@ function testPresumedPaidAutopayNotOverdue() {
         NOW
     );
     assert(presumed.overdue === false, "presumed-paid autopay (past due) is NOT overdue — hero won't false-alarm");
+    assert(presumed.autopayFailed === false, "a healthy autopay is NOT flagged failed (still presents as autopay)");
 
     const failed = deriveRequiredActionView(
         { category: "autopay_expense", targetId: "e1", label: "x", amount: 80 },
@@ -145,6 +146,7 @@ function testPresumedPaidAutopayNotOverdue() {
         NOW
     );
     assert(failed.overdue === true, "a FAILED autopay past due IS overdue (correctly needs attention)");
+    assert(failed.autopayFailed === true && failed.isAutopay === true, "a FAILED autopay is flagged failed BUT keeps isAutopay (resumes autopay next cycle)");
 }
 
 function testMissingItemDoesNotCrash() {
