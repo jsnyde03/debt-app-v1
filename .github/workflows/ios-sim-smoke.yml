@@ -45,15 +45,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Pin Xcode 16 explicitly so a runner-image update can't silently drop us onto
-      # an Xcode that fails to compile Capacitor 8 (falls back to the image default
-      # if no Xcode 16.x is found).
-      - name: Pin Xcode 16
-        run: |
-          XC=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1)
-          echo "Selecting ${XC:-/Applications/Xcode.app}"
-          sudo xcode-select -s "${XC:-/Applications/Xcode.app}"
-          xcodebuild -version
+      # (No explicit Xcode pin: the macos-15 default Xcode compiles Capacitor 8 and
+      # runs Maestro's iOS driver — pinning to the highest Xcode_16*.app risked a
+      # sim-runtime the driver couldn't attach to. `xcodebuild -version` is logged
+      # below for the record.)
+      - name: Log Xcode version
+        run: xcodebuild -version
 
       - uses: actions/setup-node@v4
         with:
@@ -138,14 +135,19 @@ jobs:
       - name: Smoke test — dark theme
         run: |
           xcrun simctl ui booted appearance dark
-          maestro test .maestro/reconcile-smoke.yaml
+          # Retry: Maestro's iOS driver startup is a known CI flake ("driver timed out").
+          n=0; until maestro test .maestro/reconcile-smoke.yaml; do
+            n=$((n+1)); [ $n -ge 3 ] && exit 1; echo "maestro retry $n"; sleep 15;
+          done
           mkdir -p artifacts/dark
           mv reconcile-*.png artifacts/dark/ 2>/dev/null || true
 
       - name: Smoke test — light theme
         run: |
           xcrun simctl ui booted appearance light
-          maestro test .maestro/reconcile-smoke.yaml
+          n=0; until maestro test .maestro/reconcile-smoke.yaml; do
+            n=$((n+1)); [ $n -ge 3 ] && exit 1; echo "maestro retry $n"; sleep 15;
+          done
           mkdir -p artifacts/light
           mv reconcile-*.png artifacts/light/ 2>/dev/null || true
 
