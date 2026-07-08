@@ -70,10 +70,6 @@ jobs:
       - name: Sync web assets into the iOS project
         run: npx cap sync ios
 
-      # Diagnostics — if the scheme name ever changes, this surfaces it in the log.
-      - name: List Xcode schemes
-        run: xcodebuild -list -project ios/App/App.xcodeproj || true
-
       # Cache compiled plugins + resolved SPM packages so subsequent runs skip the
       # ~10-min from-scratch plugin compile. The web bundle is re-synced (cap sync,
       # uncached) each run, so app CONTENT stays fresh — only Swift compilation is
@@ -116,10 +112,21 @@ jobs:
           echo "Installing $APP_PATH"
           xcrun simctl install booted "$APP_PATH"
 
+      # Cache the Maestro install (~71s otherwise). Static key → hits every run after
+      # the first; bump -v1 to force a Maestro upgrade.
+      - name: Cache Maestro
+        id: maestro-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.maestro
+          key: maestro-${{ runner.os }}-v1
+
       - name: Install Maestro
-        run: |
-          curl -fsSL "https://get.maestro.mobile.dev" | bash
-          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+        if: steps.maestro-cache.outputs.cache-hit != 'true'
+        run: curl -fsSL "https://get.maestro.mobile.dev" | bash
+
+      - name: Maestro on PATH
+        run: echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
       # Freeze the status bar to Apple's canonical 9:41 / full signal / full battery —
       # so screenshots are DETERMINISTIC (the live clock would otherwise change every

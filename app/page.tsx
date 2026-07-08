@@ -58,7 +58,7 @@ import { useLivingExpenses } from "@/lib/hooks/useLivingExpenses";
 import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
-import { applySimSmokeSeedToStorage } from "@/lib/testing/simSmokeSeed";
+import { applySimSmokeSeedToStorage, freezeClockForSimSmoke } from "@/lib/testing/simSmokeSeed";
 import { TimelineSection } from "@/components/TimelineSection";
 import { UpgradeSection } from "@/components/UpgradeSection";
 import { restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";
@@ -95,6 +95,7 @@ import { CreditCard, Settings, Wallet } from "@/lib/icons";
 // in a NEXT_PUBLIC_SIM_SMOKE build (the flag is inlined → tree-shaken from
 // production); SSR-safe via the window guard.
 if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_SIM_SMOKE === "1") {
+    freezeClockForSimSmoke(); // deterministic dates → stable golden-image baselines
     applySimSmokeSeedToStorage(window.localStorage);
 }
 

@@ -11,6 +11,28 @@
  * Dates are relative to now (like the demo seed), so the payday sheet reliably
  * detects a recent payday whenever the smoke test runs.
  */
+/**
+ * Freeze "now" to a fixed instant so the smoke test's rendered dates (due dates,
+ * debt-free date, "saved at" time) are BYTE-IDENTICAL across calendar days —
+ * otherwise the relative seed dates below shift daily and the golden-image gate
+ * flakes. Only argless `new Date()` / `Date.now()` (i.e. "now") are frozen; explicit
+ * `new Date(x)` still parses normally. Call BEFORE seeding. SIM_SMOKE builds only.
+ */
+export function freezeClockForSimSmoke() {
+    const FIXED = Date.UTC(2026, 6, 15, 16, 41, 0); // 2026-07-15, 9:41 local-ish
+    const RealDate = Date;
+    function FakeDate(this: unknown, ...args: unknown[]) {
+        return args.length
+            ? new (RealDate as unknown as { new (...a: unknown[]): Date })(...args)
+            : new (RealDate as unknown as { new (...a: unknown[]): Date })(FIXED);
+    }
+    FakeDate.now = () => FIXED;
+    FakeDate.parse = RealDate.parse;
+    FakeDate.UTC = RealDate.UTC;
+    FakeDate.prototype = RealDate.prototype;
+    globalThis.Date = FakeDate as unknown as DateConstructor;
+}
+
 function iso(daysFromNow: number): string {
     const d = new Date();
     d.setDate(d.getDate() + daysFromNow);
