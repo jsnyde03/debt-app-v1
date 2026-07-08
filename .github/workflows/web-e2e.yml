@@ -44,9 +44,30 @@ jobs:
       - name: Regression tests (money-math backstop)
         run: npm run test:regression
 
+      # Cache the downloaded browser binaries (~/.cache/ms-playwright), keyed on the
+      # Playwright version pinned in package-lock. A cold Chromium+WebKit download runs
+      # several minutes on a good day and has hung >20min on a bad-CDN day; caching skips
+      # it entirely on every subsequent run. (v1.7 CI-hygiene, folded in early after a hang.)
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+
       # Pixel 7 → Chromium; iPhone/iPad devices → WebKit. Both needed for the 4 projects.
-      - name: Install Playwright browsers
+      # Cache MISS → full binary download + OS deps. Cache HIT → only the apt-level libs
+      # (not stored in the browser cache). The per-step timeout turns a hung CDN download
+      # into a fast, retryable failure instead of a 30-min job stall.
+      - name: Install Playwright browsers (cache miss)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 12
         run: npx playwright install --with-deps chromium webkit
+
+      - name: Install Playwright system deps (cache hit)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        timeout-minutes: 8
+        run: npx playwright install-deps chromium webkit
 
       # webServer (build + serve out, NEXT_PUBLIC_E2E=1) is launched by Playwright itself.
       - name: Run e2e suite
