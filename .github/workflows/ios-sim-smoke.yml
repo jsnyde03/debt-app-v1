@@ -32,6 +32,9 @@ concurrency:
 # Sim builds are unsigned; no code-signing secrets needed.
 env:
   APP_ID: "com.jasonsnyder.debtplanner" # matches .maestro/reconcile-smoke.yaml
+  # Maestro's iOS driver often exceeds its default startup timeout on a cold CI sim
+  # ("iOS driver timed out"). Give it 4 minutes to attach.
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: "240000"
 
 jobs:
   ios-sim-smoke:
@@ -115,6 +118,7 @@ jobs:
           echo "Booting $UDID"
           for i in 1 2 3; do xcrun simctl boot "$UDID" && break || { echo "boot retry $i"; sleep 5; }; done
           xcrun simctl bootstatus "$UDID" -b
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
 
       - name: Install the app
         run: |
@@ -138,23 +142,25 @@ jobs:
       - name: Maestro on PATH
         run: echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
-      # Freeze the status bar to Apple's canonical 9:41 / full signal / full battery —
-      # so screenshots are DETERMINISTIC (the live clock would otherwise change every
-      # run and defeat the golden-image diff) and marketing-clean.
-      - name: Freeze the status bar
-        run: |
-          xcrun simctl status_bar booted override \
-            --time "9:41" \
-            --dataNetwork wifi --wifiMode active --wifiBars 3 \
-            --cellularMode active --cellularBars 4 \
-            --batteryState charged --batteryLevel 100
-
       - name: Smoke test — dark theme
         run: |
-          xcrun simctl ui booted appearance dark
-          # Retry: Maestro's iOS driver startup is a known CI flake ("driver timed out").
-          n=0; until maestro test .maestro/reconcile-smoke.yaml; do
-            n=$((n+1)); [ $n -ge 3 ] && exit 1; echo "maestro retry $n"; sleep 15;
+          # Re-applies theme + the frozen status bar (9:41 / full signal / battery — for
+          # deterministic, marketing-clean shots). Called before each attempt AND after a
+          # reboot, since a reboot resets both.
+          prep() {
+            xcrun simctl ui "$SIM_UDID" appearance dark
+            xcrun simctl status_bar "$SIM_UDID" override --time "9:41" \
+              --dataNetwork wifi --wifiMode active --wifiBars 3 \
+              --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
+          }
+          prep
+          n=0
+          until maestro test .maestro/reconcile-smoke.yaml; do
+            n=$((n+1)); [ "$n" -ge 3 ] && exit 1
+            echo "::warning::maestro attempt $n failed (iOS driver) — rebooting sim + retrying"
+            xcrun simctl shutdown "$SIM_UDID" || true; sleep 3
+            xcrun simctl boot "$SIM_UDID"; xcrun simctl bootstatus "$SIM_UDID" -b
+            prep; sleep 5
           done
           mkdir -p artifacts/dark diagnostics/dark
           mv 00-launch.png diagnostics/dark/ 2>/dev/null || true  # diagnostic, not a baseline
@@ -162,9 +168,20 @@ jobs:
 
       - name: Smoke test — light theme
         run: |
-          xcrun simctl ui booted appearance light
-          n=0; until maestro test .maestro/reconcile-smoke.yaml; do
-            n=$((n+1)); [ $n -ge 3 ] && exit 1; echo "maestro retry $n"; sleep 15;
+          prep() {
+            xcrun simctl ui "$SIM_UDID" appearance light
+            xcrun simctl status_bar "$SIM_UDID" override --time "9:41" \
+              --dataNetwork wifi --wifiMode active --wifiBars 3 \
+              --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
+          }
+          prep
+          n=0
+          until maestro test .maestro/reconcile-smoke.yaml; do
+            n=$((n+1)); [ "$n" -ge 3 ] && exit 1
+            echo "::warning::maestro attempt $n failed (iOS driver) — rebooting sim + retrying"
+            xcrun simctl shutdown "$SIM_UDID" || true; sleep 3
+            xcrun simctl boot "$SIM_UDID"; xcrun simctl bootstatus "$SIM_UDID" -b
+            prep; sleep 5
           done
           mkdir -p artifacts/light diagnostics/light
           mv 00-launch.png diagnostics/light/ 2>/dev/null || true  # diagnostic, not a baseline
