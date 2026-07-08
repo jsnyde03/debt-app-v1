@@ -83,3 +83,55 @@ test("payday checkpoint: [Adjust] marks a manual bill paid AND denies a failed a
     expect(phone.autopayFailedThisCycle).toBe(true);
     expect(phone.isPaidThisCycle).toBe(false);
 });
+
+test("payday checkpoint: opening Adjust and backing out UNCHANGED keeps the happy path (no silent un-pay)", async ({ page }) => {
+    await seedLocalStorage(page, paydayState());
+    await page.locator(".payday-sheet").waitFor({ timeout: 10000 });
+
+    // Open Adjust out of curiosity, then back out WITHOUT toggling anything.
+    await page.getByRole("button", { name: "Adjust", exact: true }).click();
+    await page.locator(".payday-reconcile-list").waitFor();
+    await page.getByRole("button", { name: /Back/ }).click();
+
+    // The primary stays the happy path — merely visiting Adjust didn't commit us.
+    await page.getByRole("button", { name: "I followed the plan" }).click();
+    await expect(page.locator(".payday-sheet")).toBeHidden();
+
+    const state = await readState(page);
+    // Everything is still marked paid — the curious tap did NOT flip bills to unpaid.
+    expect(state.expenses.find((e: { id: string }) => e.id === "phone").isPaidThisCycle).toBe(true);
+    expect(state.expenses.find((e: { id: string }) => e.id === "internet").isPaidThisCycle).toBe(true);
+    expect(state.debts.find((d: { id: string }) => d.id === "visa").minimumPaidThisCycle).toBe(true);
+});
+
+test("payday checkpoint: Adjust → 'Mark all paid' marks every required item paid", async ({ page }) => {
+    await seedLocalStorage(page, paydayState());
+    await page.locator(".payday-sheet").waitFor({ timeout: 10000 });
+
+    await page.getByRole("button", { name: "Adjust", exact: true }).click();
+    await page.locator(".payday-reconcile-list").waitFor();
+    await page.getByRole("button", { name: "Mark all paid" }).click();
+    await page.getByRole("button", { name: "Done", exact: true }).click();
+    await page.getByRole("button", { name: "Confirm what I paid" }).click();
+    await expect(page.locator(".payday-sheet")).toBeHidden();
+
+    const state = await readState(page);
+    expect(state.expenses.find((e: { id: string }) => e.id === "internet").isPaidThisCycle).toBe(true);
+    expect(state.debts.find((d: { id: string }) => d.id === "visa").minimumPaidThisCycle).toBe(true);
+});
+
+test("payday checkpoint: skipping a recommended extra excludes it from capture", async ({ page }) => {
+    await seedLocalStorage(page, paydayState());
+    await page.locator(".payday-sheet").waitFor({ timeout: 10000 });
+
+    // Tap the extra's state pill (Paid → Skipped).
+    await page.locator(".payday-extra-state").first().click();
+    await page.getByRole("button", { name: "Confirm what I paid" }).click();
+    await expect(page.locator(".payday-sheet")).toBeHidden();
+
+    // The skipped extra was NOT recorded as a completed recommended action.
+    const completed = await page.evaluate(() =>
+        JSON.parse(localStorage.getItem("debtPlanner.completedRecommendedActions") ?? "[]")
+    );
+    expect(completed.length).toBe(0);
+});

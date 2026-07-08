@@ -1964,6 +1964,136 @@
 	color: var(--text-secondary);
 }
 
+.payday-reconcile-toolbar {
+	display: flex;
+	justify-content: flex-end;
+	margin: 6px 0 -2px;
+}
+
+.payday-mark-all {
+	font-size: 0.82rem;
+	font-weight: 700;
+	color: var(--accent-color);
+	padding: 4px 2px;
+}
+
+/* Recommended/extras — touch-first rows (tap the state to mark made/skipped, tap
+   the amount to edit) replacing the old number-input + checkbox form. */
+.payday-extras-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 8px 0 4px;
+}
+
+.payday-extra-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 12px 14px;
+	border-radius: 12px;
+	background: rgba(148, 163, 184, 0.06);
+	border: 1px solid var(--border-color);
+	transition: opacity 0.16s ease;
+}
+
+.payday-extra-row.skipped {
+	opacity: 0.6;
+}
+
+.payday-extra-text {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	min-width: 0;
+	flex: 1;
+}
+
+.payday-extra-label {
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: var(--text-primary);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.payday-extra-chip {
+	align-self: flex-start;
+	font-size: 0.7rem;
+	font-weight: 700;
+	padding: 3px 9px;
+	border-radius: var(--radius-pill);
+	background: rgba(148, 163, 184, 0.10);
+	color: var(--text-secondary);
+	border: 1px solid var(--border-color);
+}
+
+.payday-extra-chip.on {
+	background: rgba(59, 130, 246, 0.12);
+	color: var(--badge-blue-color);
+	border-color: rgba(59, 130, 246, 0.28);
+}
+
+.payday-extra-right {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.payday-extra-amount {
+	font-size: 1rem;
+	font-weight: 700;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+	padding: 2px 1px;
+	background: none;
+	border: none;
+	border-bottom: 1px dashed var(--text-secondary);
+}
+
+.payday-extra-amount:disabled {
+	border-bottom-color: transparent;
+}
+
+.payday-extra-row.skipped .payday-extra-amount {
+	text-decoration: line-through;
+	color: var(--text-secondary);
+}
+
+.payday-extra-input {
+	width: 96px;
+	font-size: 1rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	padding: 4px 8px;
+	border-radius: 8px;
+	background: rgba(148, 163, 184, 0.10);
+	border: 1px solid var(--accent-color);
+	color: var(--text-primary);
+	text-align: right;
+}
+
+.payday-extra-state {
+	min-width: 66px;
+	text-align: center;
+	font-size: 0.76rem;
+	font-weight: 700;
+	padding: 6px 10px;
+	border-radius: var(--radius-pill);
+	background: rgba(34, 197, 94, 0.09);
+	color: var(--success-color);
+	border: 1px solid rgba(34, 197, 94, 0.18);
+}
+
+.payday-extra-state.skipped {
+	background: rgba(239, 68, 68, 0.08);
+	color: #ef4444;
+	border: 1px solid rgba(239, 68, 68, 0.24);
+}
+
 .payday-plan-list {
 	display: flex;
 	flex-direction: column;

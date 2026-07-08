@@ -45,7 +45,7 @@ test("payday capture: sheet auto-opens, one-tap captures, no re-prompt", async (
 
     // The capture sheet proactively surfaces on payday.
     await expect(page.locator(".payday-sheet")).toBeVisible();
-    await expect(page.locator(".payday-plan-row")).toHaveCount(1);
+    await expect(page.locator(".payday-extra-row")).toHaveCount(1);
 
     // One-tap "I followed the plan" captures the recommended allocation.
     await page.getByRole("button", { name: "I followed the plan" }).click();

@@ -95,6 +95,12 @@ _The payday↔autopay↔rollover↔partial-pay seam — the highest-risk new sur
 - [ ] Tap a manual bill → flips to **Paid**; the "$X carries to next cycle" line updates live.
 - [ ] Tap an autopay row → flips to **Didn't pay** (reporting a failed autopay).
 - [ ] Tap **Done** → the required card self-adjusts ("$X paid · $Y carries") and the primary becomes **"Confirm what I paid"**; tap it → the reconciled state persists (the bill you marked paid is paid; the denied autopay stays owed).
+- [ ] **Curious-tap safety:** open **Adjust**, then **Back** without toggling anything → the primary is still **"I followed the plan"** and confirming marks all bills paid (opening Adjust didn't silently flip them to unpaid).
+- [ ] **Mark all paid:** in Adjust, tap **"Mark all paid"** → all rows flip to Paid, carry-forward goes to $0.
+
+**Recommended / extras (touch-first redesign):**
+- [ ] Each extra row: tap the **Paid** pill → **Skipped** (row dims, amount strikes through, "You paid" total drops, that extra is excluded from capture). Tap again → back to Paid.
+- [ ] Tap an **amount** → inline editor; change it → the total updates. Tap **From savings** → chip highlights (marks it paid from outside this paycheck).
 
 **Rollover (the overdue guarantee — Jason's Option-A gate):**
 - [ ] Leave an autopay bill/minimum **untouched** (dismiss the sheet with "Not now"), then **Start Next Pay Cycle** → the autopay item ADVANCES to next cycle (due date rolls forward; its debt balance pays down); it does NOT appear as false-overdue.

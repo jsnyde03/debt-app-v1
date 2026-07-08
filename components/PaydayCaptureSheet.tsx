@@ -60,7 +60,7 @@ export function PaydayCaptureSheet({
     onDismiss,
     onClose,
 }: PaydayCaptureSheetProps) {
-    const [adjustingExtras, setAdjustingExtras] = useState(false);
+    const [editingExtraKey, setEditingExtraKey] = useState<string | null>(null);
     const [overrides, setOverrides] = useState<Record<string, PaydayCaptureOverride>>({});
 
     // Reconciliation view state. requiredPaid opens in each item's EXACT current
@@ -87,8 +87,16 @@ export function PaydayCaptureSheet({
 
     const plannedTotal = activeRecommendedActions.reduce((sum, a) => {
         const o = overrides[captureKey(a)] ?? {};
+        if (o.skipped) return sum;
         return sum + (o.actualAmount ?? a.actualAmount);
     }, 0);
+
+    // Any extra the user edited / skipped / marked external — used (with the required
+    // adjustments) to label the confirm button honestly.
+    const extrasAdjusted = activeRecommendedActions.some((a) => {
+        const o = overrides[captureKey(a)];
+        return !!o && (o.skipped || o.actualAmount !== undefined || o.external);
+    });
 
     function setOverride(key: string, patch: Partial<PaydayCaptureOverride>) {
         setOverrides((current) => ({ ...current, [key]: { ...current[key], ...patch } }));
@@ -98,6 +106,20 @@ export function PaydayCaptureSheet({
         if (!id) return;
         triggerLightHaptic();
         setRequiredPaid((cur) => ({ ...cur, [id]: !(cur[id] ?? true) }));
+        setHasAdjustedRequired(true);
+    }
+
+    function markAllRequiredPaid() {
+        triggerLightHaptic();
+        setRequiredPaid(() => {
+            const next: Record<string, boolean> = {};
+            for (const row of requiredRows) {
+                const id = rowId(row);
+                if (id) next[id] = true;
+            }
+            return next;
+        });
+        setHasAdjustedRequired(true);
     }
 
     function buildRequiredDecisions(): RequiredReconciliation {
@@ -116,21 +138,26 @@ export function PaydayCaptureSheet({
     function handleCapture() {
         triggerMediumHaptic();
         const items = buildPaydayCaptureItems(
-            activeRecommendedActions.map((a) => ({
-                targetId: a.targetId,
-                label: a.label,
-                category: a.category,
-                recommendedAmount: a.recommendedAmount,
-                actualAmount: a.actualAmount,
-            })),
+            activeRecommendedActions
+                .filter((a) => !overrides[captureKey(a)]?.skipped)
+                .map((a) => ({
+                    targetId: a.targetId,
+                    label: a.label,
+                    category: a.category,
+                    recommendedAmount: a.recommendedAmount,
+                    actualAmount: a.actualAmount,
+                })),
             overrides
         );
         onCapture(items, hasAdjustedRequired ? buildRequiredDecisions() : undefined);
     }
 
+    // Closing the reconcile view does NOT itself count as an adjustment — only an
+    // actual toggle / mark-all does (via setHasAdjustedRequired above). So opening
+    // Adjust out of curiosity and backing out unchanged leaves the happy-path
+    // "mark everything paid" intact instead of silently flipping bills to unpaid.
     function closeReconcile() {
         setAdjustingRequired(false);
-        setHasAdjustedRequired(true);
     }
 
     // ── The focused reconciliation view (content SWAP — one screen at a time) ──
@@ -160,6 +187,16 @@ export function PaydayCaptureSheet({
                                 Tap to mark what you actually paid — anything left carries to next cycle.
                             </p>
                         </div>
+                    </div>
+
+                    <div className="payday-reconcile-toolbar">
+                        <button
+                            type="button"
+                            className="text-action-button payday-mark-all"
+                            onClick={markAllRequiredPaid}
+                        >
+                            Mark all paid
+                        </button>
                     </div>
 
                     <div className="payday-reconcile-list">
@@ -286,44 +323,73 @@ export function PaydayCaptureSheet({
                     <div className="payday-section-label">Extra payments</div>
                 )}
 
-                <div className="payday-plan-list">
+                <div className="payday-extras-list">
                     {activeRecommendedActions.map((action) => {
                         const key = captureKey(action);
-                        const override = overrides[key] ?? {};
+                        const o = overrides[key] ?? {};
+                        const skipped = !!o.skipped;
+                        const external = !!o.external;
+                        const amount = o.actualAmount ?? action.actualAmount;
+                        const editing = editingExtraKey === key;
                         return (
-                            <div className="payday-plan-row" key={action.key}>
-                                <div className="payday-plan-row-main">
-                                    <span className="payday-plan-label">{action.label}</span>
-                                    {adjustingExtras ? (
+                            <div
+                                className={`payday-extra-row${skipped ? " skipped" : ""}`}
+                                key={action.key}
+                            >
+                                <div className="payday-extra-text">
+                                    <span className="payday-extra-label">{action.label}</span>
+                                    <button
+                                        type="button"
+                                        className={`payday-extra-chip${external ? " on" : ""}`}
+                                        onClick={() => {
+                                            triggerLightHaptic();
+                                            setOverride(key, { external: !external });
+                                        }}
+                                        aria-pressed={external}
+                                    >
+                                        {external ? "From savings ✓" : "From savings"}
+                                    </button>
+                                </div>
+
+                                <div className="payday-extra-right">
+                                    {editing ? (
                                         <input
                                             type="number"
                                             inputMode="decimal"
-                                            className="payday-plan-input"
+                                            className="payday-extra-input"
                                             aria-label={`Amount paid for ${action.label}`}
-                                            value={override.actualAmount ?? action.actualAmount}
+                                            autoFocus
+                                            value={amount}
                                             min={0}
                                             onChange={(event) =>
                                                 setOverride(key, {
                                                     actualAmount: Math.max(0, Number(event.target.value) || 0),
                                                 })
                                             }
+                                            onBlur={() => setEditingExtraKey(null)}
                                         />
                                     ) : (
-                                        <span className="payday-plan-amount">
-                                            {formatCurrency(override.actualAmount ?? action.actualAmount)}
-                                        </span>
+                                        <button
+                                            type="button"
+                                            className="payday-extra-amount"
+                                            onClick={() => setEditingExtraKey(key)}
+                                            disabled={skipped}
+                                        >
+                                            {formatCurrency(amount)}
+                                        </button>
                                     )}
+                                    <button
+                                        type="button"
+                                        className={`payday-extra-state ${skipped ? "skipped" : "paid"}`}
+                                        onClick={() => {
+                                            triggerLightHaptic();
+                                            setOverride(key, { skipped: !skipped });
+                                        }}
+                                        aria-pressed={!skipped}
+                                    >
+                                        {skipped ? "Skipped" : "Paid"}
+                                    </button>
                                 </div>
-                                {adjustingExtras && (
-                                    <label className="payday-external-toggle">
-                                        <input
-                                            type="checkbox"
-                                            checked={!!override.external}
-                                            onChange={(event) => setOverride(key, { external: event.target.checked })}
-                                        />
-                                        Paid from elsewhere (not this paycheck)
-                                    </label>
-                                )}
                             </div>
                         );
                     })}
@@ -331,27 +397,17 @@ export function PaydayCaptureSheet({
 
                 {activeRecommendedActions.length > 0 && (
                     <div className="payday-plan-total">
-                        <span>{adjustingExtras ? "Total you paid" : "Recommended this paycheck"}</span>
+                        <span>You paid</span>
                         <strong>{formatCurrency(plannedTotal)}</strong>
                     </div>
                 )}
 
                 <div className="payday-actions">
                     <button type="button" className="payday-primary-button" onClick={handleCapture}>
-                        {hasAdjustedRequired ? "Confirm what I paid" : "I followed the plan"}
+                        {hasAdjustedRequired || extrasAdjusted
+                            ? "Confirm what I paid"
+                            : "I followed the plan"}
                     </button>
-                    {!adjustingExtras && activeRecommendedActions.length > 0 && (
-                        <button
-                            type="button"
-                            className="text-action-button payday-secondary"
-                            onClick={() => {
-                                triggerLightHaptic();
-                                setAdjustingExtras(true);
-                            }}
-                        >
-                            Adjust amounts
-                        </button>
-                    )}
                     <button type="button" className="text-action-button payday-secondary" onClick={onDismiss}>
                         Not now
                     </button>

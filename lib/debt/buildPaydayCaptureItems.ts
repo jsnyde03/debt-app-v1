@@ -17,6 +17,9 @@ export type PaydayCaptureOverride = {
     actualAmount?: number;
     /** Paid from outside this paycheck (counts toward debt/goal progress, NOT this paycheck's cash). */
     external?: boolean;
+    /** The user marked this recommended payment as NOT made — it's excluded from
+     *  the capture (never recorded as completed). Filtered out before this builder. */
+    skipped?: boolean;
 };
 
 /** targetId|label|category — the same identity `handleMarkRecommendedAction` dedups on. */
