@@ -59,17 +59,17 @@ jobs:
           node-version: 22
           cache: npm
 
-      # Kick the ~60s simulator boot off HERE so it runs in parallel with npm ci +
-      # the app build (we only WAIT for it just before install). Reclaims ~1 min.
-      - name: Boot a simulator (start)
-        run: |
-          xcrun simctl list devices available
-          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name|startswith("iPhone"))][-1].udid')
-          echo "Booting $UDID"
-          for i in 1 2 3; do xcrun simctl boot "$UDID" && break || { echo "boot retry $i"; sleep 5; }; done
-          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+      # Cache node_modules directly (keyed on the lockfile) so npm ci is SKIPPED on a
+      # hit — faster, and sidesteps the flaky/slow npm ci step most runs.
+      - name: Cache node_modules
+        id: node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node22-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       # Bake the SIM_SMOKE seed into the web bundle (stress fixture: 9 long-named
@@ -106,10 +106,15 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      # The sim has been booting since right after node setup; block only now (it's
-      # usually already up, so this returns fast).
-      - name: Wait for simulator boot
-        run: xcrun simctl bootstatus "$SIM_UDID" -b
+      # Boot the sim sequentially (reverted the parallel-with-build boot: on a macOS
+      # runner it starved npm ci and hung the deps step).
+      - name: Boot a simulator
+        run: |
+          xcrun simctl list devices available
+          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name|startswith("iPhone"))][-1].udid')
+          echo "Booting $UDID"
+          for i in 1 2 3; do xcrun simctl boot "$UDID" && break || { echo "boot retry $i"; sleep 5; }; done
+          xcrun simctl bootstatus "$UDID" -b
 
       - name: Install the app
         run: |
