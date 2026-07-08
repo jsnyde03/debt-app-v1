@@ -1,0 +1,106 @@
+name: ios-sim-smoke
+
+# Renders the app in a REAL iOS Simulator (true WKWebView) and screenshots the
+# payday reconciliation view — the device-only layer that Chromium AND Playwright's
+# WebKit can't reproduce (this is the gate that would have caught the v1.6
+# reconcile-row overlap before a TestFlight build). Runs on a GitHub-hosted macOS
+# runner, which is FREE for public repos (no Codemagic Mac minutes spent) and runs
+# on push, i.e. BEFORE Codemagic is ever kicked off.
+#
+# Manual for now (workflow_dispatch): run it before cutting a build. Once proven,
+# uncomment the `push` trigger below to auto-run on UI changes.
+
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: ["**"]
+  #   paths:
+  #     - "components/**"
+  #     - "app/**"
+  #     - "lib/**"
+
+# Sim builds are unsigned; no code-signing secrets needed.
+env:
+  DEVICE: "iPhone 15 Pro Max"
+  APP_ID: "com.jasonsnyder.debtplanner"
+
+jobs:
+  ios-sim-smoke:
+    runs-on: macos-14
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Bake the SIM_SMOKE seed into the web bundle (stress fixture: 9 long-named
+      # bills, payday auto-opens). Inert in every non-flagged build.
+      - name: Build web (SIM_SMOKE seed)
+        run: NEXT_PUBLIC_SIM_SMOKE=1 npm run build
+
+      - name: Sync web assets into the iOS project
+        run: npx cap sync ios
+
+      # Diagnostics — if the scheme name ever changes, this surfaces it in the log.
+      - name: List Xcode schemes
+        run: xcodebuild -list -project ios/App/App.xcodeproj || true
+
+      - name: Build the app for the iOS Simulator (unsigned)
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath ios/build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Boot the simulator
+        run: |
+          xcrun simctl list devices available
+          xcrun simctl boot "$DEVICE" || true
+          xcrun simctl bootstatus "$DEVICE" -b
+
+      - name: Install the app
+        run: |
+          APP_PATH="ios/build/Build/Products/Debug-iphonesimulator/App.app"
+          echo "Installing $APP_PATH"
+          xcrun simctl install booted "$APP_PATH"
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Smoke test — dark theme
+        run: |
+          xcrun simctl ui booted appearance dark
+          maestro test .maestro/reconcile-smoke.yaml
+          mkdir -p artifacts/dark
+          mv reconcile-*.png artifacts/dark/ 2>/dev/null || true
+
+      - name: Smoke test — light theme
+        run: |
+          xcrun simctl ui booted appearance light
+          maestro test .maestro/reconcile-smoke.yaml
+          mkdir -p artifacts/light
+          mv reconcile-*.png artifacts/light/ 2>/dev/null || true
+
+      - name: Upload WKWebView screenshots
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-sim-screenshots
+          path: |
+            artifacts/**
+            ~/.maestro/tests/**/*.png
+          retention-days: 14
+          if-no-files-found: warn

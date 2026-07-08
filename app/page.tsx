@@ -58,6 +58,7 @@ import { useLivingExpenses } from "@/lib/hooks/useLivingExpenses";
 import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
+import { applySimSmokeSeedToStorage } from "@/lib/testing/simSmokeSeed";
 import { TimelineSection } from "@/components/TimelineSection";
 import { UpgradeSection } from "@/components/UpgradeSection";
 import { restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";
@@ -503,6 +504,18 @@ export default function Home() {
         });
         paydayCapture.completeCapture();
     }
+
+    // iOS-Simulator smoke-test seed — ONLY in a build made with NEXT_PUBLIC_SIM_SMOKE=1
+    // (the env check is inlined + tree-shaken out of production). Seeds a stress
+    // fixture (many long-named bills) once, then reloads so the persisted-state hooks
+    // read it on the next paint. The reconcile-view smoke test drives this state.
+    useEffect(() => {
+        if (process.env.NEXT_PUBLIC_SIM_SMOKE !== "1") return;
+        if (window.sessionStorage.getItem("__sim_smoke_seeded__") === "1") return;
+        applySimSmokeSeedToStorage(window.localStorage);
+        window.sessionStorage.setItem("__sim_smoke_seeded__", "1");
+        window.location.reload();
+    }, []);
 
     useEffect(() => {
         if (!showUpgrade || premiumPackageInfo) return;

@@ -1,0 +1,35 @@
+# iOS-Simulator smoke test for the payday reconciliation view.
+#
+# Drives the SIM_SMOKE build (built with NEXT_PUBLIC_SIM_SMOKE=1, which seeds a
+# stress fixture of 9 long-named bills and auto-opens the payday sheet) to the
+# reconcile view and screenshots it in TRUE iOS WKWebView — the render the browser
+# harness (Chromium AND Playwright-WebKit) cannot reproduce. This is the gate that
+# would have caught the v1.6 reconcile-row overlap before TestFlight.
+#
+# Theme is controlled by the SIMULATOR appearance (the app follows system/Auto),
+# set by the workflow via `xcrun simctl ui booted appearance <dark|light>` before
+# each run — so this flow is theme-agnostic.
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: true
+
+# The SIM_SMOKE build seeds localStorage then reloads on first paint; the payday
+# sheet auto-opens once the seeded state is read. Wait on the "Adjust" control
+# (unique to the required card — a robust anchor that avoids apostrophe matching).
+- extendedWaitUntil:
+    visible: "Adjust"
+    timeout: 30000
+
+# Open the itemized reconciliation view.
+- tapOn: "Adjust"
+- extendedWaitUntil:
+    visible: "Which bills got paid?"
+    timeout: 10000
+
+# The state that broke on-device: many rows, some with two-line wrapping labels.
+- takeScreenshot: reconcile-current
+
+# All-paid state (the other view Jason reproduced).
+- tapOn: "Mark all paid"
+- takeScreenshot: reconcile-all-paid
