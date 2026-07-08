@@ -14,12 +14,18 @@ appId: com.jasonsnyder.debtplanner
 - launchApp:
     clearState: true
 
+# Unconditional snapshot of the launch state — always in the artifact, so a
+# "couldn't find Adjust" failure shows WHAT the app was displaying (onboarding /
+# empty / loading / a sheet with different text).
+- takeScreenshot: 00-launch
+
 # The SIM_SMOKE build seeds localStorage then reloads on first paint; the payday
-# sheet auto-opens once the seeded state is read. Wait on the "Adjust" control
-# (unique to the required card — a robust anchor that avoids apostrophe matching).
+# sheet auto-opens once the seeded state is read. A cold simulator + that reload is
+# much slower than a local browser, so wait generously. "Adjust" is unique to the
+# required card (a robust anchor that avoids apostrophe matching).
 - extendedWaitUntil:
     visible: "Adjust"
-    timeout: 30000
+    timeout: 90000
 
 # Open the itemized reconciliation view.
 - tapOn: "Adjust"

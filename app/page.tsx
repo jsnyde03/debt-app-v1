@@ -89,6 +89,15 @@ import { HistorySection } from "@/components/HistorySection";
 import { OnboardingFlow } from "@/components/Onboarding/OnboardingFlow";
 import { CreditCard, Settings, Wallet } from "@/lib/icons";
 
+// iOS-Simulator smoke seed — module-level, BEFORE migrateState + any hook reads a
+// persisted key, so the app renders the seeded stress fixture on FIRST paint. No
+// reload (a `location.reload()` mis-renders to a black WebView in Capacitor). ONLY
+// in a NEXT_PUBLIC_SIM_SMOKE build (the flag is inlined → tree-shaken from
+// production); SSR-safe via the window guard.
+if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_SIM_SMOKE === "1") {
+    applySimSmokeSeedToStorage(window.localStorage);
+}
+
 // Run storage schema migrations once, at module load, before any hook reads a
 // persisted key. No-op under SSR (no localStorage) and idempotent.
 migrateState();
@@ -504,18 +513,6 @@ export default function Home() {
         });
         paydayCapture.completeCapture();
     }
-
-    // iOS-Simulator smoke-test seed — ONLY in a build made with NEXT_PUBLIC_SIM_SMOKE=1
-    // (the env check is inlined + tree-shaken out of production). Seeds a stress
-    // fixture (many long-named bills) once, then reloads so the persisted-state hooks
-    // read it on the next paint. The reconcile-view smoke test drives this state.
-    useEffect(() => {
-        if (process.env.NEXT_PUBLIC_SIM_SMOKE !== "1") return;
-        if (window.sessionStorage.getItem("__sim_smoke_seeded__") === "1") return;
-        applySimSmokeSeedToStorage(window.localStorage);
-        window.sessionStorage.setItem("__sim_smoke_seeded__", "1");
-        window.location.reload();
-    }, []);
 
     useEffect(() => {
         if (!showUpgrade || premiumPackageInfo) return;
