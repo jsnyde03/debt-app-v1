@@ -1,0 +1,21 @@
+[
+  "app/page.tsx::button::settings-icon-button",
+  "components/AppNav.tsx::button::sidebar-nav-item",
+  "components/Debts/DebtGroup.tsx::button::section-collapse-button",
+  "components/Debts/DebtRow.tsx::button::saved-item-inner-button",
+  "components/DebtsSection.tsx::button::debt-sort-btn",
+  "components/DebtsSection.tsx::button::sort-dir-btn",
+  "components/DebtsSection.tsx::button::sort-sheet-option",
+  "components/GoalsSection.tsx::button::saved-item",
+  "components/HistorySection.tsx::button::history-upsell-row",
+  "components/PlanSettings/PlanSettingsBody.tsx::button::card",
+  "components/PlanSettings/PlanSettingsBody.tsx::button::settings-nav-row",
+  "components/PlanSettings/PlanSettingsBody.tsx::button::windfall-trigger-button",
+  "components/RequiredExpenses/ExpenseListItem.tsx::button::saved-item",
+  "components/Results/CompletedActionsList.tsx::button::section-collapse-button",
+  "components/ResultsSection.tsx::button::section-collapse-button",
+  "components/SnowballSection.tsx::button::payoff-focus-schedule-button",
+  "components/SnowballSection.tsx::button::section-collapse-button",
+  "components/TimelineSection.tsx::button::section-collapse-button",
+  "components/TimelineSection.tsx::button::timeline-cycle-header"
+]
