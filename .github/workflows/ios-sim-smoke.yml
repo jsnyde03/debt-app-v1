@@ -156,8 +156,9 @@ jobs:
           n=0; until maestro test .maestro/reconcile-smoke.yaml; do
             n=$((n+1)); [ $n -ge 3 ] && exit 1; echo "maestro retry $n"; sleep 15;
           done
-          mkdir -p artifacts/dark
-          mv reconcile-*.png artifacts/dark/ 2>/dev/null || true
+          mkdir -p artifacts/dark diagnostics/dark
+          mv 00-launch.png diagnostics/dark/ 2>/dev/null || true  # diagnostic, not a baseline
+          mv *.png artifacts/dark/ 2>/dev/null || true
 
       - name: Smoke test — light theme
         run: |
@@ -165,8 +166,9 @@ jobs:
           n=0; until maestro test .maestro/reconcile-smoke.yaml; do
             n=$((n+1)); [ $n -ge 3 ] && exit 1; echo "maestro retry $n"; sleep 15;
           done
-          mkdir -p artifacts/light
-          mv reconcile-*.png artifacts/light/ 2>/dev/null || true
+          mkdir -p artifacts/light diagnostics/light
+          mv 00-launch.png diagnostics/light/ 2>/dev/null || true  # diagnostic, not a baseline
+          mv *.png artifacts/light/ 2>/dev/null || true
 
       # Golden-image gate: diff the true-WKWebView screenshots against committed
       # baselines. Missing baselines are captured (bootstraps on first run); a real
@@ -215,6 +217,7 @@ jobs:
           name: ios-sim-screenshots
           path: |
             artifacts/**
+            diagnostics/**
             ~/.maestro/tests/**/*.png
           retention-days: 14
           if-no-files-found: warn
