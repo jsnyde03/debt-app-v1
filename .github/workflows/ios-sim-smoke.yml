@@ -26,12 +26,13 @@ on:
 
 # Sim builds are unsigned; no code-signing secrets needed.
 env:
-  DEVICE: "iPhone 15 Pro Max"
-  APP_ID: "com.jasonsnyder.debtplanner"
+  APP_ID: "com.jasonsnyder.debtplanner" # matches .maestro/reconcile-smoke.yaml
 
 jobs:
   ios-sim-smoke:
-    runs-on: macos-14
+    # macos-15 → Xcode 16 by default, which Capacitor 8 requires (macos-14's
+    # Xcode 15 fails to compile the plugins' Swift).
+    runs-on: macos-15
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
@@ -70,11 +71,15 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Boot the simulator
+      - name: Boot a simulator
         run: |
           xcrun simctl list devices available
-          xcrun simctl boot "$DEVICE" || true
-          xcrun simctl bootstatus "$DEVICE" -b
+          # Pick any available iPhone by UDID (device names vary by runner image);
+          # the smoke test just needs an iPhone-sized screen.
+          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name|startswith("iPhone"))][-1].udid')
+          echo "Booting $UDID"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
 
       - name: Install the app
         run: |
