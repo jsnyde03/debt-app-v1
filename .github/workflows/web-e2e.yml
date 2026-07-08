@@ -9,12 +9,9 @@ name: web-e2e
 
 on:
   workflow_dispatch:
-  # Auto-trigger TEMPORARILY OFF (Jason 2026-07-08) while standing up the
-  # ios-sim-smoke workflow, to keep the Actions runs quiet. Re-enable these once
-  # the sim smoke test is green.
-  # push:
-  #   branches: ["**"]
-  # pull_request:
+  push:
+    branches: ["**"]
+  pull_request:
 
 # A newer push to the same ref cancels an in-progress run — don't stack builds.
 concurrency:

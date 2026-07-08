@@ -172,6 +172,25 @@ jobs:
             echo "no baseline changes"
           fi
 
+      # Surface the outcome inline on the run page (no artifact download needed to
+      # know what happened; the images themselves stay in the artifact).
+      - name: Job summary
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo "## iOS-Simulator smoke test — reconcile view"
+            echo ""
+            echo "True-WKWebView screenshots (dark + light) are in the **ios-sim-screenshots** artifact."
+            echo "Golden-image diff vs \`tests/ios-baselines\`; a populated \`artifacts/diffs/\` means a layout regression (and the job failed)."
+            if [ -d artifacts/diffs ] && [ -n "$(ls -A artifacts/diffs 2>/dev/null)" ]; then
+              echo ""
+              echo "> ⚠️ **Visual regression detected** — see \`artifacts/diffs/\`."
+            else
+              echo ""
+              echo "> ✅ No visual regression."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload WKWebView screenshots
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
