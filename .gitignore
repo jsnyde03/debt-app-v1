@@ -43,3 +43,5 @@ next-env.d.ts
 
 *.keystore
 *.jks
+# Playwright test output/artifacts
+test-results/
