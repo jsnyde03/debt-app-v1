@@ -135,6 +135,24 @@ function runComputeMilestonesTests() {
     assertEqual(legacyStillOwed.allDebtsPaidOff, false, "a still-owed legacy debt (no originalBalance) blocks debt-free");
     assertEqual(legacyStillOwed.newlyAllPaidOff, false, "no false 'Debt free!' while a legacy debt is owed");
 
+    // --- #10: a threshold does NOT re-celebrate after a backslide + re-cross. ---
+    // The debt already peaked at 51% paid, backslid to 49% (interest > minimum), and a
+    // later payment re-crosses to 51%. With the high-water mark, 50% must NOT re-fire.
+    const reCross = computeMilestones({
+        debts: [debt({ previousBalance: 510, currentBalance: 490 })], // 49% -> 51%
+        maxProgressByDebt: { d1: 51 },
+    });
+    assertEqual(reCross.milestones.length, 0, "50% does NOT re-celebrate on a re-cross (#10)");
+    assertEqual(reCross.nextMaxProgressByDebt.d1, 51, "high-water mark stays at 51");
+
+    // ...and with no prior max (empty map = existing behavior), the same crossing fires once.
+    const firstCross = computeMilestones({
+        debts: [debt({ previousBalance: 510, currentBalance: 490 })], // 49% -> 51%
+    });
+    assertEqual(firstCross.milestones.length, 1, "a genuine first 50% crossing still fires");
+    assertEqual(firstCross.milestones[0].threshold, 50, "first crossing reports 50");
+    assertEqual(firstCross.nextMaxProgressByDebt.d1, 51, "records the new high-water mark");
+
     console.log("✅ Milestone regression tests passed.");
 }
 

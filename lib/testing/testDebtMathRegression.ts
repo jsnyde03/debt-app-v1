@@ -278,6 +278,17 @@ function testRollover_paymentNeverDrivesBalanceNegative() {
     assertEqual(result.balance, 0, "rollover: overpayment floors balance at zero, never negative");
 }
 
+function testRollover_displayedPayoffClearsToZeroNoInterestResidual() {
+    // The v1.6 display↔rollover seam: the app shows/recommends interest-free
+    // balances, so paying the full pre-interest balance reads as "paid off." A
+    // final cycle's interest must NOT leave a few-dollar residual that reappears
+    // next cycle (and suppresses the paid-off celebration). $300 @ 22% APR,
+    // minimum $50 paid + snowball $250 = the full $300 pre-interest balance.
+    const debt = makeDebt({ id: "d1", name: "FinalPayoff", balance: 300, apr: 22, minimumPayment: 50 });
+    const result = applyRolloverPayment({ ...debt, minimumPaidThisCycle: true }, 250, "biweekly");
+    assertEqual(result.balance, 0, "rollover: a fully-paid (pre-interest) debt clears to exactly 0, no interest residual");
+}
+
 function testRollover_perCycleInterestByCadence() {
     // $1000 @ 12% APR, no payment. Monthly interest is $10. A rollover is one
     // PAYCHECK, so a biweekly user must accrue one biweekly period of interest
@@ -405,6 +416,7 @@ export function runDebtMathRegressionTests() {
     testRollover_zeroBalanceDebtUnchanged();
     testRollover_paymentNeverDrivesBalanceNegative();
     testRollover_perCycleInterestByCadence();
+    testRollover_displayedPayoffClearsToZeroNoInterestResidual();
     testRollover_yearOfBiweeklyRollsUpToAnnualInterest();
 
     testExtraPaymentPlan_snowballTargetsSmallestBalance();

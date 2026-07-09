@@ -1,32 +1,34 @@
 import { expect, test, type Page } from "@playwright/test";
 import { billsSection } from "./helpers/nav";
+import { seedLocalStorage } from "./helpers/seed";
 
 async function resetApp(page: Page) {
-    await page.goto("/");
-
-    await page.evaluate(() => {
-        localStorage.clear();
-
-        localStorage.setItem("debtPlanner.amount", JSON.stringify("1950"));
-        localStorage.setItem("debtPlanner.hasCompletedOnboarding", JSON.stringify(true));
-        localStorage.setItem("debtPlanner.hasConfiguredPaycheck", JSON.stringify(true));
-        localStorage.setItem("debtPlanner.payCycle", JSON.stringify("biweekly"));
-        localStorage.setItem("debtPlanner.currentDate", JSON.stringify("2026-05-23"));
-        localStorage.setItem("debtPlanner.requiredExpenses", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.debts", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.goals", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.completedRecommendedActions", JSON.stringify([]));
-        localStorage.setItem("debtPlanner.payoffStrategy", JSON.stringify("snowball"));
-        localStorage.setItem("debtPlanner.darkMode", JSON.stringify(false));
+    // Seed BEFORE first paint via addInitScript (seedLocalStorage), NOT the old
+    // goto→evaluate(setItem)→reload dance. The app reads `amount` synchronously at
+    // mount (usePersistedState lazy init), so with the paycheck already present
+    // `isFirstRunSetup` (= !hasConfiguredPaycheck) is false and the "Create Your
+    // First Plan" overlay never renders — nothing to dismiss. The old pattern
+    // seeded AFTER the first mount, so the overlay flashed and, on the wide/slow
+    // iPad-landscape layout, its post-reload hydration reconciliation stuck (an
+    // un-dismissable overlay → main app never renders → timeouts). This is the same
+    // pattern every other (non-flaky) spec uses.
+    await seedLocalStorage(page, {
+        amount: "1950",
+        hasCompletedOnboarding: true,
+        hasConfiguredPaycheck: true,
+        payCycle: "biweekly",
+        currentDate: "2026-05-23",
+        requiredExpenses: [],
+        debts: [],
+        goals: [],
+        completedRecommendedActions: [],
+        payoffStrategy: "snowball",
+        darkMode: false,
     });
 
-    await page.reload();
-
-    const setupOverlay = page.locator(".settings-overlay");
-
-    if (await setupOverlay.isVisible().catch(() => false)) {
-        await page.getByRole("button", { name: /Calculate plan/i }).click();
-    }
+    // Barrier: main app up, no first-run overlay (paycheck seeded pre-paint).
+    await expect(page.getByRole("heading", { name: "Debt Planner" })).toBeVisible();
+    await expect(page.locator(".settings-overlay")).toBeHidden();
 }
 
 test.beforeEach(async ({ page }) => {
@@ -34,29 +36,12 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("planner empty state renders on mobile", async ({ page }) => {
-    await page.goto("/");
-
-    await page.evaluate(() => {
-        localStorage.clear();
-        // Empty *data*, but a returning (onboarded) user — we're asserting the
-        // empty main-app state, not the first-run onboarding flow.
-        localStorage.setItem("debtPlanner.hasCompletedOnboarding", JSON.stringify(true));
-    });
-
-    await page.reload();
-
-    const overlay = page.locator(".settings-overlay");
-
-    if (await overlay.isVisible().catch(() => false)) {
-        const calculateButton = page.getByRole("button", {
-            name: /Calculate plan/i,
-        });
-
-        if (await calculateButton.isVisible().catch(() => false)) {
-            await calculateButton.click();
-        }
-    }
-
+    // resetApp (beforeEach) seeded a paycheck with NO debts/expenses — the empty
+    // MAIN-APP state (a returning user with no data), which is exactly what this
+    // asserts (NOT the first-run overlay). The old inline re-seed cleared the
+    // paycheck, which re-entered the first-run flow — where clicking "Calculate"
+    // is a no-op (no paycheck to compute) so the overlay couldn't be dismissed —
+    // and added a racy goto→evaluate→reload that flaked under load.
     await expect(
         page.getByRole("heading", { name: "Debt Planner" })
     ).toBeVisible();

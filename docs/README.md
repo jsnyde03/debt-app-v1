@@ -19,8 +19,9 @@ what's current or forward-looking.
 | Doc | Purpose |
 |---|---|
 | [V15_TRACK_YOUR_JOURNEY.md](V15_TRACK_YOUR_JOURNEY.md) | **v1.5 (next)** — full build + release checklist for the next release |
-| [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) | v1.7+ detail |
-| [ANDROID_READINESS.md](ANDROID_READINESS.md) | Android (v1.7) blockers, CI, plugins, testing — prep starts v1.5 |
+| [V16_PLAN.md](V16_PLAN.md) | **v1.6 Differentiation Strike** — full plan + opening audit |
+| [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) | v1.6+ detail |
+| [ANDROID_READINESS.md](ANDROID_READINESS.md) | Android (v1.8) blockers, CI, plugins, testing — prep starts v1.5 |
 | [UX_POLISH_BACKLOG.md](UX_POLISH_BACKLOG.md) | Versioned UX polish backlog (shipped + pending) |
 | [MOBILE_POLISH_ROADMAP.md](MOBILE_POLISH_ROADMAP.md) | Mobile craft/motion/haptics track — what & why |
 | [MOBILE_POLISH_IMPLEMENTATION_PLAN.md](MOBILE_POLISH_IMPLEMENTATION_PLAN.md) | Mobile polish — how (files, steps, verification) |

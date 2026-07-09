@@ -22,7 +22,7 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 
 **Known half-built things already in the code, worth closing before piling on new features:**
 - BNPL debts store `remainingPayments`/`scheduledPaymentAmount` but the engine ignores them — BNPL is calculated exactly like a regular debt today.
-- `paymentSource: "external"` / `isExternal` exist in the data model with no UI to actually log an external payment.
+- ~~`paymentSource: "external"` exists in the data model with no UI to log an external payment.~~ **RESOLVED in v1.6** — Payday Autopilot's capture sheet has a "Paid from elsewhere" toggle that writes `paymentSource: "external"` (counts toward debt/goal progress, excluded from paycheck cash math).
 - Required-expense presets are all hardcoded to monthly despite the recurrence system supporting weekly/biweekly/quarterly/annual.
 - Storage has no schema version or migration path (hardcoded `"debt-planner-v1"` key, parse errors silently wipe state).
 - No Android target exists at all (`@capacitor/android` is installed but there's no `/android` directory).
@@ -38,8 +38,8 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 | **Ultimate (AI)** | $14.99/mo | $119.99/yr (33% off, ~$10/mo equivalent) | AI-driven layer: Claude-powered recommendations, conversational assistant, household support, and (pending a separate infra decision) bank-linked automation. |
 
 **Annual pricing activation timing — don't launch all three at once:**
-- **Premium annual ($39.99/yr): activate at v1.9.** By then Premium's core value prop (Smart Insights, Forecasting, Strategy Comparison, Simulation, widget, Live Activities, custom icons) is feature-complete and won't shift dramatically right after — the worst time to sell an annual commitment is right before the thing someone's committing to changes shape. Locking in annual pricing on a stable, complete tier reduces refund/chargeback risk and gives a real year of value to point to. *(Widget and Live Activities ship at v1.9 — Android is prioritized first at v1.7 as the larger revenue unlock.)*
-- **Premium+ annual ($79.99/yr): activate at v1.8**, once the 3-tier infrastructure (v1.6) formalizes Premium+ as a real, distinct tier (not just "Premium with extra stuff loosely bolted on") and the bulk of its differentiating features (v1.5: history + amortization; v1.8: multi-scenario + probabilistic projections) already exist. v1.10's later additions (net worth, consolidation, reporting) become "more value added to an existing subscription" rather than something worth delaying annual pricing for.
+- **Premium annual ($39.99/yr): activate at v1.10.** By then Premium's core value prop (Smart Insights, Forecasting, Strategy Comparison, Simulation, widget, Live Activities, custom icons) is feature-complete and won't shift dramatically right after — the worst time to sell an annual commitment is right before the thing someone's committing to changes shape. Locking in annual pricing on a stable, complete tier reduces refund/chargeback risk and gives a real year of value to point to. *(Widget and Live Activities ship at v1.10 — Android is prioritized first at v1.8 as the larger revenue unlock.)*
+- **Premium+ annual ($79.99/yr): activate at v1.9**, once the 3-tier infrastructure (v1.7) formalizes Premium+ as a real, distinct tier (not just "Premium with extra stuff loosely bolted on") and the bulk of its differentiating features (v1.5: history + amortization; v1.9: multi-scenario + probabilistic projections) already exist. v1.11's later additions (net worth, consolidation, reporting) become "more value added to an existing subscription" rather than something worth delaying annual pricing for.
 - **Ultimate annual ($119.99/yr): do not activate — or even sell *any* Ultimate plan, monthly or annual — until v2.0 ships.** Per the tier-value note above, Ultimate has zero deliverable value until AI Recommendations exists. Annual pricing on an empty tier compounds that risk: a year-long commitment to nothing is a much worse trust problem than a month-long one. Activate Ultimate (monthly first, annual shortly after once a few weeks of monthly retention data exists) only once v2.0's AI Recommendations has actually shipped.
 
 **Why 33% off (not a different discount depth):** matches the most common App Store convention for "X months free" framing (33% off ≈ 4 months free on a 12-month term) and lands each annual price on a clean, appealing number ($39.99/$79.99/$119.99) rather than an oddly-precise discount percentage. Revisit only with real conversion data once annual options are live — don't tune this number further on guesswork.
@@ -61,7 +61,7 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 - What-If Simulation (already built)
 - 3-Month Forecast (already built)
 - Home screen widget (iOS WidgetKit — days to paycheck, debt remaining)
-- **Live Activities / Dynamic Island** — "Debt-free in 14 months" or "Payday in 3 days" surfaced live on the lock screen/Dynamic Island, reusing the same App Group plumbing as the widget. Ships alongside the widget at v1.9 since both need identical native infra — building it as a separate effort later would mean redoing that plumbing twice.
+- **Live Activities / Dynamic Island** — "Debt-free in 14 months" or "Payday in 3 days" surfaced live on the lock screen/Dynamic Island, reusing the same App Group plumbing as the widget. Ships alongside the widget at v1.10 since both need identical native infra — building it as a separate effort later would mean redoing that plumbing twice.
 - Custom app icons
 - Pay cycle history, capped at 6 cycles
 - Lite amortization view (current debt only, no full calendar)
@@ -71,13 +71,13 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 - Unlimited pay cycle history
 - Full amortization calendar (every debt, every month, principal/interest split)
 - Multi-scenario planning (save/compare named what-if scenarios, not just one ephemeral run)
-- **Probabilistic payoff projections** — instead of one deterministic debt-free date, run a Monte Carlo-style distribution across variable/gig income, showing a date *range* with confidence bands rather than a single point estimate. Ships alongside Multi-Scenario Planning at v1.10 since it's the same projection engine, just fed an income distribution instead of a fixed paycheck amount. The single most mathematically sophisticated thing in the app — most competitors don't attempt this.
+- **Probabilistic payoff projections** — instead of one deterministic debt-free date, run a Monte Carlo-style distribution across variable/gig income, showing a date *range* with confidence bands rather than a single point estimate. Ships alongside Multi-Scenario Planning at v1.9 since it's the same projection engine, just fed an income distribution instead of a fixed paycheck amount. The single most mathematically sophisticated thing in the app — most competitors don't attempt this.
 - Net worth tracker (assets − debts over time — needs a lightweight "assets" input, new but small)
 - Debt consolidation / balance-transfer calculator (compare current debts against a hypothetical consolidation loan or 0% transfer)
 - **Statement auto-import (OCR + AI extraction)** — snap a photo of a credit card/loan statement; AI extracts name, balance, APR, minimum payment, and due date automatically instead of manual entry. The single biggest friction-killer in the whole app, but needs the v2.0 backend (image upload + AI parsing can't run client-side) — ships as Phase 2 of v2.0, right after AI Recommendations. Tier-flagged Premium+ to match the rest of this tier's "power tool" theme, but note the per-scan AI/OCR cost is real — revisit whether this needs its own rate limit or Ultimate-only gating once usage data exists.
 - Scheduled automatic backups + PDF/CSV reporting
 - Apple Watch companion (glance: next paycheck, total debt, debt-free date)
-- External-payment logging UI (closes the existing data-model gap — payments made outside the paycheck flow)
+- ~~External-payment logging UI~~ **✅ SHIPPED in v1.6** as part of Payday Autopilot (the capture sheet's "Paid from elsewhere" toggle).
 
 ### Ultimate / AI ($14.99)
 - AI Recommendations (Claude API) replacing/supercharging the rule-based Smart Insights, same card UI
@@ -87,15 +87,15 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 - Early access to new features
 - **Bank linking (Plaid) — pending decision, see §5.** If pursued, this tier is where auto-import, subscription audit, and real anomaly detection would live, since they're only valuable with real transaction data.
 
-**Tier-value note (see §2.5 below): do not market or sell this tier until v2.0 actually ships.** Every single bullet above is gated behind the v2.0 backend foundation, which is itself gated behind v1.5-v1.10 shipping first — selling a tier with zero deliverable value for a long stretch is a trust risk, not just an underwhelming launch.
+**Tier-value note (see §2.5 below): do not market or sell this tier until v2.0 actually ships.** Every single bullet above is gated behind the v2.0 backend foundation, which is itself gated behind v1.5-v1.11 shipping first — selling a tier with zero deliverable value for a long stretch is a trust risk, not just an underwhelming launch.
 
 ## 2.5. Tier-value audit (added 2026-06-23)
 
-**Premium ($4.99):** Justified, possibly even generous for the price — Smart Insights + Forecasting + Strategy Comparison + Simulation + widget is a meaningfully bigger jump from Free than $4.99 implies. (Notifications moved to Free in v1.2 — a retention feature, not an analytical insight — so it no longer counts toward this tier's value stack.) No changes recommended; if anything, slight underpricing here is fine since premium *conversion volume* matters more than per-user extraction at this entry tier. Annual pricing activates at v1.9 when the widget/Live Activities tier is complete (deferred from original v1.7 to prioritize Android launch at v1.7).
+**Premium ($4.99):** Justified, possibly even generous for the price — Smart Insights + Forecasting + Strategy Comparison + Simulation + widget is a meaningfully bigger jump from Free than $4.99 implies. (Notifications moved to Free in v1.2 — a retention feature, not an analytical insight — so it no longer counts toward this tier's value stack.) No changes recommended; if anything, slight underpricing here is fine since premium *conversion volume* matters more than per-user extraction at this entry tier. Annual pricing activates at v1.10 when the widget/Live Activities tier is complete (deferred from original v1.8 to prioritize Android launch at v1.8).
 
-**Premium+ ($9.99):** Justified, and gets meaningfully stronger with this round's additions (Statement Auto-Import, Probabilistic Projections) on top of the already-substantial existing bundle (full amortization, multi-scenario, net worth, consolidation calculator). The $5 jump over Premium now buys clearly power-user-tier depth, not just "more of the same." Annual pricing activates at v1.8 — 3-tier infra ships at v1.6, and multi-scenario/projections land at v1.8, completing the core Premium+ value stack.
+**Premium+ ($9.99):** Justified, and gets meaningfully stronger with this round's additions (Statement Auto-Import, Probabilistic Projections) on top of the already-substantial existing bundle (full amortization, multi-scenario, net worth, consolidation calculator). The $5 jump over Premium now buys clearly power-user-tier depth, not just "more of the same." Annual pricing activates at v1.9 — 3-tier infra ships at v1.7, and multi-scenario/projections land at v1.9, completing the core Premium+ value stack.
 
-**Ultimate ($14.99):** The *eventual* value is real and the negotiation-coach addition strengthens it further, but the **near-term sequencing is the actual risk**, not the feature list. Every Ultimate-tier feature depends on the v2.0 backend, which doesn't exist until v1.5-v1.10 ship first — meaning this tier could sit empty (or simply not exist as a purchasable option) for a long stretch of the v1.x cycle. **Recommendation: don't expose Ultimate as a purchasable tier in RevenueCat/App Store Connect until v2.0 has actually shipped at least the AI Recommendations feature.** Selling a tier ahead of its real value, even unintentionally, is the same category of trust problem as the App Store rejection this app already worked through once.
+**Ultimate ($14.99):** The *eventual* value is real and the negotiation-coach addition strengthens it further, but the **near-term sequencing is the actual risk**, not the feature list. Every Ultimate-tier feature depends on the v2.0 backend, which doesn't exist until v1.5-v1.11 ship first — meaning this tier could sit empty (or simply not exist as a purchasable option) for a long stretch of the v1.x cycle. **Recommendation: don't expose Ultimate as a purchasable tier in RevenueCat/App Store Connect until v2.0 has actually shipped at least the AI Recommendations feature.** Selling a tier ahead of its real value, even unintentionally, is the same category of trust problem as the App Store rejection this app already worked through once.
 
 **Open question, not urgent:** Household/multi-income is tier-placed at Ultimate mostly because of *when* it ships (v2.1, after the backend exists), not because it's inherently AI-related — it's arguably closer to a Premium+-style power feature. Worth revisiting before v2.1 actually ships, but not a decision that needs to be made now.
 
@@ -104,11 +104,11 @@ A feature-complete MVP for a **single-income, iOS-only** debt payoff planner:
 This is the brainstorm with nothing filtered out. Items already slotted into the roadmap below are marked with their version; everything else is backlog.
 
 **Debt & payoff**
-- [v1.8] BNPL real calculations (use `remainingPayments`/`scheduledPaymentAmount` instead of treating as a regular debt)
-- [v1.5] Amortization — Premium *lite* view (focus debt) · [v1.6] full calendar (all debts, Premium+ — deferred to align with the sellable tier; Premium+ isn't purchasable until v1.6)
-- [v1.10] Debt consolidation / balance-transfer calculator
+- [v1.9] BNPL real calculations (use `remainingPayments`/`scheduledPaymentAmount` instead of treating as a regular debt)
+- [v1.5] Amortization — Premium *lite* view (focus debt) · [v1.7] full calendar (all debts, Premium+ — deferred to align with the sellable tier; Premium+ isn't purchasable until v1.7)
+- [v1.11] Debt consolidation / balance-transfer calculator
 - [v1.5] Payoff milestones + celebrations
-- [v1.8] Probabilistic payoff projections (Monte Carlo-style date range/confidence bands for variable income, ships alongside Multi-Scenario Planning)
+- [v1.9] Probabilistic payoff projections (Monte Carlo-style date range/confidence bands for variable income, ships alongside Multi-Scenario Planning)
 - Backlog: custom user-defined payoff order (drag-to-reorder, beyond snowball/avalanche)
 - Backlog: lifetime-interest-paid tracker
 
@@ -117,18 +117,18 @@ This is the brainstorm with nothing filtered out. Items already slotted into the
 - Backlog: spending categorization vs. forecast
 - Backlog: subscription/recurring-charge audit (needs bank data to be worth building)
 - Backlog: spending alerts ("over budget in Dining")
-- [v1.10] Net worth tracker
+- [v1.11] Net worth tracker
 
 **Income & cash flow**
 - [v2.1] Multiple income sources / household merge
-- [v1.8] Variable/irregular (freelance/gig) income support — the actual input feeding the new Probabilistic Payoff Projections (see Debt & payoff above); was backlog, now has a concrete consumer
+- [v1.9] Variable/irregular (freelance/gig) income support — the actual input feeding the new Probabilistic Payoff Projections (see Debt & payoff above); was backlog, now has a concrete consumer
 - [v1.4, done] Windfall/bonus one-time allocator
 - Backlog: pay-raise impact simulator
 
 **Savings & goals**
 - Backlog: additional goal types/templates (vacation, down payment, etc.)
 - Backlog: round-up savings (needs bank linking)
-- [v1.6] External-payment logging UI
+- [v1.6] External-payment logging UI (ships as Payday Autopilot — see [FUTURE_VERSIONS.md](FUTURE_VERSIONS.md) v1.6)
 
 **Insights & AI**
 - [v2.0] AI Recommendations (Claude API)
@@ -139,30 +139,30 @@ This is the brainstorm with nothing filtered out. Items already slotted into the
 
 **Engagement & gamification**
 - [v1.5] Streaks, milestone badges
-- [v1.11] Shareable milestone cards (social export)
-- [v1.11] Animated "Year in Review" recap (Spotify-Wrapped-style annual/monthly summary, same data source as the shareable cards — sharing it doubles as organic marketing)
+- [v1.12] Shareable milestone cards (social export)
+- [v1.12] Animated "Year in Review" recap (Spotify-Wrapped-style annual/monthly summary, same data source as the shareable cards — sharing it doubles as organic marketing)
 - Backlog: opt-in anonymized debt-free leaderboard
-- [v1.9] Home screen widget
-- [v1.9] Live Activities / Dynamic Island
+- [v1.10] Home screen widget
+- [v1.10] Live Activities / Dynamic Island
 - [v3.1] Apple Watch app, Siri Shortcuts
 
 **Data, sync & security**
 - Backlog: cloud sync / multi-device (needs an account system — currently zero auth)
 - [v1.2] App Lock — Face ID/Touch ID with device passcode fallback (Free, all tiers — see §4 note)
-- [v1.6] Schema versioning + migration path
-- [v1.6] Scheduled automatic backups / [v1.10] PDF/CSV reporting
+- [v1.7] Schema versioning + migration path
+- [v1.7] Scheduled automatic backups / [v1.11] PDF/CSV reporting
 
 **Platform & accessibility**
 - [v1.3, done] iPad layout
-- [v1.7] Android build — prep (Play Console signup, Maestro harness, RevenueCat per-platform key, notification icon) starts in v1.5/v1.6; see [ANDROID_READINESS.md](ANDROID_READINESS.md)
-- [v1.9] Accessibility audit (VoiceOver/TalkBack, Dynamic Type, `prefers-reduced-motion`) — split out of v1.7 so Android ships clean; now covers both platforms at once
+- [v1.8] Android build — prep (Play Console signup, Maestro harness, RevenueCat per-platform key, notification icon) starts in v1.5/v1.7; see [ANDROID_READINESS.md](ANDROID_READINESS.md)
+- [v1.10] Accessibility audit (VoiceOver/TalkBack, Dynamic Type, `prefers-reduced-motion`) — split out of v1.8 so Android ships clean; now covers both platforms at once
 - Backlog: localization / multi-currency (currently USD-only, hardcoded `$`)
 - Backlog: Web/PWA desktop companion
 
 **Monetization & growth infra**
 - [v1.2] Manage Subscription + Terms of Use links — verified gap, currently zero entry points for either; closing preemptively given the App Review history
-- [v1.6] 3-tier subscription infrastructure (`hasFeatureAccess()` is free/premium-only today)
-- [v1.6] Product analytics (PostHog) + crash reporting (Sentry) — currently zero instrumentation
+- [v1.7] 3-tier subscription infrastructure (`hasFeatureAccess()` is free/premium-only today)
+- [v1.7] Product analytics (PostHog) + crash reporting (Sentry) — currently zero instrumentation
 - Backlog: free trial flow, promo codes, Family Sharing support
 - Backlog: paywall A/B testing
 
@@ -181,13 +181,14 @@ Per the established cadence philosophy: **v1.x stays quick-turnaround** (days/we
 | v1.2 | Local Notifications + App Store review prompt + **App Lock** *(not yet launched — see note below)* | Notifications/Lock: Free; review prompt: all tiers | Small |
 | v1.3 | iPad Support + iPad Native Polish — sidebar nav, two-column Bills, centered modals, landscape two-column Goals/Payoff, Delete All Data *(done)* | All | Small |
 | v1.4 | Onboarding flow + timeline fix + UX/mobile polish + payoff trajectory chart *(done — shipped)* | All | Small |
-| v1.5 | **Track Your Journey:** Pay Cycle History + Debt Milestones + Amortization *(Premium lite — focus debt only; full calendar → v1.6)* + Streaks + Payoff Trajectory Chart + Settings UX rework + progress polish | Free (milestones, streak count, progress bars) / Premium (6-cycle history, lite amortization) / Premium+ gating exists in code but **not purchasable until v1.6** | Medium |
-| v1.6 | **Foundation:** 3-tier subscription infra (makes Premium+ purchasable) + **full amortization calendar (all debts, Premium+ — deferred from v1.5)** + storage schema versioning + analytics + crash reporting + backup automation + external-payment logging | Infra / Premium+ | Medium |
-| v1.7 | **Android build** *(opens second revenue channel ahead of iOS-only native features; accessibility audit split out to v1.9 so Android ships as a clean standalone milestone — prep starts in v1.5, see [ANDROID_READINESS.md](ANDROID_READINESS.md))* | Infra / Platform | Large — **breaks small-release pattern; treat as its own milestone** |
-| v1.8 | Multi-Scenario Planning + Probabilistic Payoff Projections (variable income) + BNPL real calculations — **activate Premium+ annual pricing here** | Premium+ | Medium |
-| v1.9 | Home Screen Widget + Live Activities/Dynamic Island + custom app icons + **accessibility audit** (VoiceOver/TalkBack, Dynamic Type, `prefers-reduced-motion` — moved from v1.7) — **activate Premium annual pricing here** | Premium / Platform | Medium — *iOS native features deferred to after Android; a11y now covers both platforms at once* |
-| v1.10 | Net worth tracker + debt consolidation/refinance calculator + PDF/CSV reporting | Premium+ | Medium |
-| v1.11 | Shareable milestone cards + animated Year in Review recap + opt-in leaderboard (deferred half) | Free hook / Premium+ depth | Medium |
+| v1.5 | **Track Your Journey:** Pay Cycle History + Debt Milestones + Amortization *(Premium lite — focus debt only; full calendar → v1.7)* + Streaks + Payoff Trajectory Chart + Settings UX rework + progress polish | Free (milestones, streak count, progress bars) / Premium (6-cycle history, lite amortization) / Premium+ gating exists in code but **not purchasable until v1.7** | Medium |
+| v1.6 | **Differentiation Strike:** payday-allocation engine as the hero + LLM-proof capture (Payday Autopilot, Interest-Saved Momentum Ledger, Plan-vs-Actual Drift Tracker) + bounded refactor slice/CI gate + marketing/ASO kickoff — **pure-JS/Capacitor, no native-Swift**; see [V16_PLAN.md](V16_PLAN.md) | Premium / Growth | Medium |
+| v1.7 | **Foundation:** 3-tier subscription infra (makes Premium+ purchasable) + **full amortization calendar (all debts, Premium+ — deferred from v1.5)** + storage schema versioning + analytics + crash reporting + backup automation *(external-payment logging shipped in v1.6 as Payday Autopilot)* | Infra / Premium+ | Medium |
+| v1.8 | **Android build** *(opens second revenue channel ahead of iOS-only native features; accessibility audit split out to v1.10 so Android ships as a clean standalone milestone — prep starts in v1.5, see [ANDROID_READINESS.md](ANDROID_READINESS.md))* | Infra / Platform | Large — **breaks small-release pattern; treat as its own milestone** |
+| v1.9 | Multi-Scenario Planning + Probabilistic Payoff Projections (variable income) + BNPL real calculations — **activate Premium+ annual pricing here** | Premium+ | Medium |
+| v1.10 | Home Screen Widget + Live Activities/Dynamic Island + custom app icons + **accessibility audit** (VoiceOver/TalkBack, Dynamic Type, `prefers-reduced-motion` — moved from v1.8) — **activate Premium annual pricing here** | Premium / Platform | Medium — *iOS native features deferred to after Android; a11y now covers both platforms at once* |
+| v1.11 | Net worth tracker + debt consolidation/refinance calculator + PDF/CSV reporting | Premium+ | Medium |
+| v1.12 | Shareable milestone cards + animated Year in Review recap + opt-in leaderboard (deferred half) | Free hook / Premium+ depth | Medium |
 | v2.0 | AI Recommendations (Claude API, replaces rule engine) + Statement Auto-Import (OCR+AI) | Ultimate / Premium+ — **do not sell Ultimate until this ships, see §2.5** | Large |
 | v2.1 | Household / Multi-Income support | Ultimate | Large |
 | v2.2 | Bank linking evaluation (Plaid) → auto-import, subscription audit | Ultimate | Large, **strategic fork — see §5** |
@@ -212,4 +213,4 @@ Recommendation carried over from earlier planning: **don't gate v2.0/v2.1/v3.0 o
 - AI Recommendations (v2.0) replace/supercharge the rule-based Smart Insights engine behind the same card UI — not a new surface.
 - v2.0's AI needs pay-cycle history (v1.5) to have something to reason about — don't skip v1.5.
 - No account/auth system exists at all today. Cloud sync and multi-device are blocked on this — not currently scheduled, would need its own infra version if prioritized.
-- `IMPLEMENTATION_PLAN.md`'s v2.0 section specifies a "Phase 0: backend foundation" (server, anonymous device ID, server-side API key handling) that doesn't appear as its own line item here — it's the technical prerequisite for v1.11's leaderboard half, v2.0's AI calls, v2.1's household sync, and v2.2's bank-token storage, all of which *are* listed above. Treat it as shared infrastructure underlying those four items, not a separate feature.
+- `IMPLEMENTATION_PLAN.md`'s v2.0 section specifies a "Phase 0: backend foundation" (server, anonymous device ID, server-side API key handling) that doesn't appear as its own line item here — it's the technical prerequisite for v1.12's leaderboard half, v2.0's AI calls, v2.1's household sync, and v2.2's bank-token storage, all of which *are* listed above. Treat it as shared infrastructure underlying those four items, not a separate feature.

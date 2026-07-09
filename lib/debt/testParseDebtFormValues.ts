@@ -35,6 +35,14 @@ function runParseDebtFormValuesTests() {
     assert(parseDebtFormValues({ balance: "500", minimumPayment: "-1", apr: "0" }) === null, "negative minimum rejected");
     assert(parseDebtFormValues({ balance: "500", minimumPayment: "20", apr: "-3" }) === null, "negative apr rejected");
 
+    // Parity with the ADD path (audit #12): the EDIT parse now enforces the same guards.
+    assert(parseDebtFormValues({ balance: "500", minimumPayment: "20", apr: "250" }) === null, "APR > 100 rejected");
+    assert(parseDebtFormValues({ balance: "500", minimumPayment: "600", apr: "10" }) === null, "minimum > balance rejected");
+    assert(parseDebtFormValues({ balance: "0", minimumPayment: "20", apr: "10" }) === null, "zero balance rejected");
+    assert(parseDebtFormValues({ balance: "500", minimumPayment: "0", apr: "10" }) === null, "zero minimum rejected");
+    assert(parseDebtFormValues({ balance: "500", minimumPayment: "20", apr: "100" }) !== null, "APR exactly 100 accepted");
+    assert(parseDebtFormValues({ balance: "500", minimumPayment: "500", apr: "10" }) !== null, "minimum == balance accepted");
+
     console.log("✅ parseDebtFormValues regression tests passed.");
 }
 

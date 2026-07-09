@@ -6,11 +6,25 @@ _v1.4–v1.5 detail lives in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). U
 
 ---
 
-## v1.6 — Foundation: Infrastructure & Instrumentation
+## v1.6 — Differentiation Strike
 
-**Scope:** Formalize the 3-tier subscription model, add schema versioning, instrument the app with analytics and crash reporting, automate backups, and close the external-payment logging gap. Primarily infrastructure, with three user-visible additions: a proper Premium+/Ultimate distinction in the UI, backup reminders, and a new swipe action on debt rows.
+**Scope:** make the **payday-allocation engine** the hero + build the LLM-proof capture features that turn Debt's un-copyable advantages into its moat, on a live earner. **Pure-JS/Capacitor — no native-Swift this version.** Also the marketing kickoff.
 
-**Annual pricing note:** Premium+ annual pricing ($79.99/yr) activates at v1.8, not here — see [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) v1.6 section for rationale.
+**Spine (capture-before-analytics):** hero reposition (payday-allocation engine + "radical-trust" positioning; drop the unverified APR-attack; stop calling the heuristic "AI") · **Payday Autopilot** (the capture keystone — absorbs the old "external-payment logging" item) · **Interest-Saved Momentum Ledger** (extends the "lifetime total paid" stat) · **Plan-vs-Actual Drift Tracker**.
+
+**Bounded refactor slice + a gate:** CI keep-green gate · `getPortalTarget()` theme-safety · `CompletedRecommendedAction` canonicalization · the `handleMarkRecommendedAction` mark→unmark reconciliation test (guards a latent balance-drift bug the opening audit found) — before Payday Autopilot.
+
+**Close-out:** release gate + the v1.6 ASO rebuild around the new hero.
+
+**Full plan + opening-audit detail → [V16_PLAN.md](V16_PLAN.md).** (Split out of the old "v1.6 Foundation," now v1.7.)
+
+---
+
+## v1.7 — Foundation: Infrastructure & Instrumentation
+
+**Scope:** Formalize the 3-tier subscription model, add schema versioning, instrument the app with analytics and crash reporting, automate backups. Primarily infrastructure, with two user-visible additions: a proper Premium+/Ultimate distinction in the UI and backup reminders. _(External-payment logging is no longer part of this version — it shipped in v1.6 as Payday Autopilot; see the note in that section below.)_
+
+**Annual pricing note:** Premium+ annual pricing ($79.99/yr) activates at v1.9, not here — see [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) v1.7 section for rationale.
 
 ### 3-Tier Subscription Infrastructure
 
@@ -49,29 +63,29 @@ _v1.4–v1.5 detail lives in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). U
 
 Extend `lib/storage/backup.ts` with a scheduled trigger on app foreground ("if last backup > 7 days ago, prompt to export"). Note: true automatic backup on iOS means writing to the Files app via the share sheet or iCloud Drive — verify iCloud Drive write access is feasible from the WKWebView/Capacitor sandbox before committing to this UX. If not feasible, scope down to "more prominent backup reminders."
 
-### External Payment Logging
+### External Payment Logging — ✅ shipped in v1.6 as Payday Autopilot
 
-Add "Log Payment Made Outside the App" action in `DebtRow`/`ExpenseListItem` swipe actions, calling `onMarkRecommendedAction(..., paymentSource: "external")` — the handler already supports this parameter; this is purely a missing UI entry point.
+_This item is redundant. The external-payment logging gap ("Log Payment Made Outside the App" via `onMarkRecommendedAction(..., paymentSource: "external")`) is closed by v1.6's **Payday Autopilot** capture feature, which absorbed it. No standalone work remains for v1.7._
 
 **Files touched:** `lib/subscription/plans.ts`, `lib/subscription/features.ts`, `lib/subscription/hasFeatureAccess.ts`, `lib/subscription/revenueCat.ts`, `lib/storage/migrateState.ts` (new), `lib/storage/debtPlannerStorage.ts`, `lib/storage/backup.ts`, `lib/analytics/track.ts` (new), `app/layout.tsx`, Xcode project (Sentry native), `components/Debts/DebtRow.tsx`.
 
-**Also shipping in v1.6:**
+**Also shipping in v1.7:**
 - Page Orchestrator Phase 3 (Backup/Snapshot Hook) — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md)
 
 ---
 
-## v1.7 — Android Build
+## v1.8 — Android Build
 
 **Scope:** First Android release. The web app ships effectively free (static export — Capacitor serves the same `out/` bundle to both platforms); the real work is native-project setup, CI/Gradle wiring, plugin verification, and Google Play / billing setup.
 
-**Accessibility audit moved out of this version (now v1.9)** so Android doesn't compete with a second Large effort in one release — see the timing rationale in [ANDROID_READINESS.md](ANDROID_READINESS.md).
+**Accessibility audit moved out of this version (now v1.10)** so Android doesn't compete with a second Large effort in one release — see the timing rationale in [ANDROID_READINESS.md](ANDROID_READINESS.md).
 
 **Full audit:** See **[ANDROID_READINESS.md](ANDROID_READINESS.md)** for blockers, the plugin verification matrix, CI gaps, external-account dependencies, and the Maestro testing strategy.
 
-**Prerequisites landed earlier (do NOT wait for v1.7):**
+**Prerequisites landed earlier (do NOT wait for v1.8):**
 - **v1.5:** kick off Google Play Console signup — identity/D-U-N-S verification can take weeks and has zero code dependency, so it's the slowest gate; stand up Maestro native smoke tests on an emulator/simulator.
-- **v1.6:** crash reporting (Sentry) must be live *before* launching a brand-new, surprise-prone platform; the 3-tier billing structure must be finalized so Google Play products get configured once (against the final tiers), not torn down and rebuilt.
-- **Small code fixes (land in v1.5/v1.6 window):** **B1** — `lib/subscription/revenueCat.ts` hardcodes the Apple key (`appl_...`); add a `Capacitor.getPlatform()` branch to select the `goog_...` key (no platform branching exists anywhere today). **B2** — replace the placeholder `smallIcon: "ic_stat_icon_config_sample"` in `capacitor.config.ts` with a real Android drawable.
+- **v1.7:** crash reporting (Sentry) must be live *before* launching a brand-new, surprise-prone platform; the 3-tier billing structure must be finalized so Google Play products get configured once (against the final tiers), not torn down and rebuilt.
+- **Small code fixes (land in v1.5/v1.7 window):** **B1** — `lib/subscription/revenueCat.ts` hardcodes the Apple key (`appl_...`); add a `Capacitor.getPlatform()` branch to select the `goog_...` key (no platform branching exists anywhere today). **B2** — replace the placeholder `smallIcon: "ic_stat_icon_config_sample"` in `capacitor.config.ts` with a real Android drawable.
 
 **Current state (verified):** `@capacitor/android` is installed but no `/android` directory exists — Android has never been built. `codemagic.yaml` is half-wired (named `ios-android-release`, decodes an Android keystore via `CM_KEYSTORE_BASE64`, lists `.apk`/`.aab` artifact paths) but has no Gradle build step and no Google Play publish block — it builds iOS only today.
 
@@ -87,11 +101,11 @@ Add "Log Payment Made Outside the App" action in `DebtRow`/`ExpenseListItem` swi
 
 ---
 
-## v1.8 — Multi-Scenario Planning + Probabilistic Payoff Projections + BNPL Real Calculations
+## v1.9 — Multi-Scenario Planning + Probabilistic Payoff Projections + BNPL Real Calculations
 
 **Scope:** Three "analytical depth" features shipped together. Multi-Scenario and Probabilistic Projections share the same projection engine and UI pattern. BNPL real calculations closes a data-model gap that has been present since launch. Page Orchestrator Phases 4–5 also ship here (final two phases of the internal refactor — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md)).
 
-**Activate Premium+ annual pricing ($79.99/yr) at this release.** The 3-tier infra (v1.6) is already in place; by v1.8, Premium+'s core value stack (v1.5 history/amortization + v1.8 multi-scenario/projections) is complete.
+**Activate Premium+ annual pricing ($79.99/yr) at this release.** The 3-tier infra (v1.7) is already in place; by v1.9, Premium+'s core value stack (v1.5 history/amortization + v1.9 multi-scenario/projections) is complete.
 
 ### Multi-Scenario Planning (Premium+)
 
@@ -128,18 +142,20 @@ Instead of one deterministic debt-free date, run the existing projection engine 
 2. Same branch in `lib/engine/allocatePaycheck.ts`'s minimum-payment logic — a BNPL "minimum" IS the `scheduledPaymentAmount`.
 3. **Exclude BNPL debts from snowball/avalanche extra-payment targeting** — most BNPL providers don't allow early payoff to reduce remaining installments; treating them as fixed-schedule is more realistic.
 
-**Also shipping in v1.8:**
+**Also shipping in v1.9:**
 - Page Orchestrator Phases 4–5 (Plan-Execution Hook + Rollover Engine — the two highest-risk phases; mandatory reconciliation test before shipping) — see [PAGE_ORCHESTRATOR_PLAN.md](PAGE_ORCHESTRATOR_PLAN.md).
 
 **Risk:** Low-medium per item. Keep the three items strictly independent in implementation so one slipping doesn't block the others.
 
 ---
 
-## v1.9 — Home Screen Widget + Live Activities/Dynamic Island + Custom App Icons + Accessibility Audit
+## v1.10 — Home Screen Widget + Live Activities/Dynamic Island + Custom App Icons + Accessibility Audit
 
-**Scope:** Native iOS features outside the Capacitor/JS layer entirely, plus the accessibility audit (moved here from v1.7 so Android shipped as a clean standalone milestone). Shipped after Android (v1.7) so the App Group plumbing built here doesn't need to work on a platform that's still being bootstrapped, and so the accessibility pass covers both platforms (VoiceOver + TalkBack) at once.
+**Scope:** Native iOS features outside the Capacitor/JS layer entirely, plus the accessibility audit (moved here from v1.8 so Android shipped as a clean standalone milestone). Shipped after Android (v1.8) so the App Group plumbing built here doesn't need to work on a platform that's still being bootstrapped, and so the accessibility pass covers both platforms (VoiceOver + TalkBack) at once.
 
-### Accessibility Audit (moved from v1.7)
+**Payoff Live Activity pulled forward-then-deferred into this native batch:** the debt-free-countdown Live Activity was scoped as part of the v1.6 differentiation work, then deferred to here — v1.6 is deliberately pure-JS/Capacitor (no native-Swift), and a Live Activity needs the same App Group + native plugin plumbing as the Home-Screen Widget. Building it here lets that App Group plumbing be built **once** and shared between the widget and the Live Activity, rather than standing up native infra in v1.6 for a single feature.
+
+### Accessibility Audit (moved from v1.8)
 
 1. Systematic pass over every interactive element for `aria-label`/accessible names — icon-only buttons across `DebtRow`, `ExpenseListItem`, swipe actions are the most likely gaps.
 2. VoiceOver (iOS) and TalkBack (Android) manual pass through every tab and modal — now genuinely cross-platform since Android exists by this point.
@@ -178,9 +194,9 @@ Instead of one deterministic debt-free date, run the existing projection engine 
 
 ---
 
-## v1.10 — Net Worth Tracker + Debt Consolidation/Refinance Calculator + PDF/CSV Reporting
+## v1.11 — Net Worth Tracker + Debt Consolidation/Refinance Calculator + PDF/CSV Reporting
 
-_Note: scheduled automatic backup automation shipped in v1.6. Only PDF/CSV reporting remains here._
+_Note: scheduled automatic backup automation shipped in v1.7. Only PDF/CSV reporting remains here._
 
 ### Net Worth Tracker (Premium+)
 
@@ -206,17 +222,17 @@ _Note: scheduled automatic backup automation shipped in v1.6. Only PDF/CSV repor
 
 ---
 
-## v1.11 — Shareable Milestone Cards + Animated Year in Review + Opt-In Leaderboard (deferred)
+## v1.12 — Shareable Milestone Cards + Animated Year in Review + Opt-In Leaderboard (deferred)
 
-_The leaderboard half of this version does not ship at v1.11 — it requires a backend that doesn't exist until v2.0._
+_The leaderboard half of this version does not ship at v1.12 — it requires a backend that doesn't exist until v2.0._
 
-### Shareable Milestone Cards (ships at v1.11)
+### Shareable Milestone Cards (ships at v1.12)
 
 1. Add `@capacitor/share` (not currently installed) for the native share sheet.
 2. New `components/ShareableMilestoneCard.tsx` — renders a styled summary (debt-free date, % paid off, current streak) to an offscreen DOM node, captured to an image via a DOM-to-image library (evaluate options — keep dependency footprint small) or a dedicated share-preview screen screenshot.
 3. Trigger from the existing milestone-badge moment (v1.5) — "Share this milestone" action.
 
-### Animated "Year in Review" Recap (ships at v1.11)
+### Animated "Year in Review" Recap (ships at v1.12)
 
 1. New `components/YearInReview/YearInReviewFlow.tsx` — full-screen, multi-slide animated recap (Spotify Wrapped-style: total paid off, debt-free progress, best month, streak, milestones hit). Built from `cycleHistory` data already collected by v1.5 — no new data collection.
 2. Free tier: a single teaser slide (e.g., total paid off this year). Premium+: full multi-slide animated recap.
@@ -245,7 +261,7 @@ Needs: an account/anonymous-ID system, a server endpoint, and real thought about
 2. Anonymous device-bound ID for rate-limiting/abuse prevention (no full accounts yet — that's v2.1). Store locally, send with requests.
 3. Anthropic API key **server-side only** — never shipped in the client bundle.
 
-This backend also unblocks v1.11's leaderboard, v2.1's household sharing, and v2.2's Plaid integration.
+This backend also unblocks v1.12's leaderboard, v2.1's household sharing, and v2.2's Plaid integration.
 
 ### Phase 1: AI Insights (Ultimate tier)
 
@@ -332,7 +348,7 @@ Entry point: "Negotiate this rate" from each debt's detail/edit view — surface
 
 ## v3.1 — Apple Watch + Siri Shortcuts
 
-1. New Watch App target in Xcode, sharing the same App Group set up in v1.9 for the widget — reuse that plumbing.
+1. New Watch App target in Xcode, sharing the same App Group set up in v1.10 for the widget — reuse that plumbing.
 2. SiriKit/App Intents for shortcuts like "what's my debt-free date" — read-only queries against the shared App Group data, no new backend dependency.
 
-**Risk:** Medium. Native-only work, but builds on v1.9's already-solved data-sharing pattern.
+**Risk:** Medium. Native-only work, but builds on v1.10's already-solved data-sharing pattern.

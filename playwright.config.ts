@@ -38,6 +38,13 @@ export default defineConfig({
         // Reuse a warm server locally for fast iteration; always build fresh in CI.
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
+        // Windows teardown trap: without a graceful shutdown, the `serve` webServer process tree
+        // can linger after the run, so the test process hangs on teardown (~5 min force-kill) and
+        // POISONS the local exit code (a pass can read as a hang, red as green). SIGTERM + a short
+        // wait lets `serve` exit cleanly. CI (ubuntu) was never affected. If a local run still hangs
+        // on teardown, trust the HTML report / test-results — NOT the shell exit code — or run
+        // against a manually-started server (reuseExistingServer is true locally).
+        gracefulShutdown: { signal: "SIGTERM", timeout: 5_000 },
     },
     projects: [
         {

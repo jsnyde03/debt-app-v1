@@ -17,6 +17,9 @@ export type RequiredExpense = {
 	recurrence: Recurrence;
 	isPaidThisCycle?: boolean;
 	isAutopay?: boolean;
+	// Set true when the user reports at the payday check-in that this autopay
+	// did NOT go through. Keeps it owed (not auto-reconciled) until actually paid.
+	autopayFailedThisCycle?: boolean;
 	expenseType?: "fixed" | "variable";
 	category?: RequiredExpenseCategory;
 };
@@ -41,6 +44,8 @@ export type Debt = {
 	minimumPaidThisCycle?: boolean;
 	snowballPaidThisCycle?: boolean;
 	isAutopay?: boolean;
+	// See RequiredExpense.autopayFailedThisCycle.
+	autopayFailedThisCycle?: boolean;
 };
 
 export type Goal = {
@@ -61,6 +66,12 @@ export type RecommendationOverride = {
 // Mirrors the local type in app/page.tsx; declared here so it can be
 // persisted inside a PayCycleSnapshot. Structurally identical, so the
 // page can pass its array straight through.
+// THE canonical CompletedRecommendedAction (the persisted shape). Every other
+// module imports this one — do not redeclare a local copy. `page.tsx`
+// (handleMarkRecommendedAction) is the sole write path and always populates the
+// full shape, so `label`/`recommendedAmount` are non-optional invariants that
+// readers can rely on; `paymentSource` is optional (absent = treated as paycheck).
+// (v1.7 will relocate this to a neutral `lib/types/` layer — see decision #4.)
 export type CompletedRecommendedAction = {
 	targetId: string;
 	label: string;

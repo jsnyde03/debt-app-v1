@@ -35,6 +35,18 @@ export function useDarkMode() {
     }, [themePreference]);
 
     useEffect(() => {
+        // Sync the resolved theme onto <html> so the body / overscroll backdrop follows the user's
+        // EXPLICIT choice — the single source of truth — instead of the OS prefers-color-scheme
+        // (which conflicted: a Light choice on a dark-OS device left a dark backdrop behind a light
+        // app). A distinct class name from `.dark-theme` (which lives on <main.app> and drives the
+        // descendant-scoped content CSS) keeps this root-level backdrop rule out of that cascade.
+        // globals.css maps these to the same colors as the native StatusBar below, so the web
+        // backdrop and native chrome stay in lockstep. Also covers the pre-mount AppSkeleton /
+        // AppLockScreen phases, where <main.app> isn't in the tree yet.
+        const root = document.documentElement;
+        root.classList.toggle("theme-dark", darkMode);
+        root.classList.toggle("theme-light", !darkMode);
+
         StatusBar.setOverlaysWebView({ overlay: false }).catch(() => undefined);
 
         StatusBar.setStyle({

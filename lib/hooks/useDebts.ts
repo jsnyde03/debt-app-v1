@@ -152,6 +152,10 @@ export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => 
                         ...debt,
                         minimumPaidThisCycle: !currentlyPaid,
                         isPaidThisCycle: !currentlyPaid,
+                        // Confirming the minimum resolves any reported autopay
+                        // failure so it doesn't re-fail next cycle (mirrors
+                        // bulkMarkRequiredPaid). No-op for manual debts.
+                        autopayFailedThisCycle: false,
                     }
                     : debt;
             });

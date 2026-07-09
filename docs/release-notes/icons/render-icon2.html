@@ -1,0 +1,32 @@
+<style>* { margin: 0; padding: 0; } body { background: #0C0A26; } #descentbars { width: 1024px; height: 1024px; }</style>
+<div id="descentbars">
+  <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="display:block;width:1024px;height:1024px">
+    <defs>
+      <linearGradient id="bg2" x1="0.12" y1="0.05" x2="0.72" y2="1">
+        <stop offset="0" stop-color="#3B2D7E"/>
+        <stop offset="0.55" stop-color="#1B1440"/>
+        <stop offset="1" stop-color="#0C0A26"/>
+      </linearGradient>
+      <linearGradient id="bar2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#48ECA6"/>
+        <stop offset="1" stop-color="#1DB776"/>
+      </linearGradient>
+    </defs>
+    <rect width="1024" height="1024" fill="url(#bg2)"/>
+
+    <!-- subtle checkmark watermark behind the bars -->
+    <path d="M298 566 L470 748 L826 300" fill="none" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="92" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- descending bars: debt coming down -->
+    <rect x="232" y="270" width="132" height="372" rx="26" fill="url(#bar2)"/>
+    <rect x="446" y="400" width="132" height="242" rx="26" fill="url(#bar2)"/>
+    <rect x="660" y="510" width="132" height="132" rx="26" fill="url(#bar2)"/>
+
+    <!-- dashed downward trend line from the tallest bar to the shortest -->
+    <path d="M300 282 L716 498" fill="none" stroke="#CBCDEC" stroke-opacity="0.72" stroke-width="7" stroke-linecap="round" stroke-dasharray="11 17"/>
+
+    <!-- on-plan checkmark badge on the last bar -->
+    <circle cx="726" cy="504" r="39" fill="#F1F3FF"/>
+    <path d="M708 505 l12 13 22 -26" fill="none" stroke="#1A1442" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</div>

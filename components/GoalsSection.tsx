@@ -72,13 +72,18 @@ export function GoalsSection({
     }
 
     function saveEditing(id: string) {
-        const targetAmount = Number(editTargetAmount);
-        const currentAmount = Number(editCurrentAmount || 0);
+        // Tolerate comma grouping ("1,000") like the debt-edit path — Number("1,000")
+        // is NaN, which the old guard silently swallowed into a no-op. And ALLOW an
+        // over-funded goal (currentAmount > targetAmount): lowering a funded goal's
+        // target is data-safe (markGoal reconciles) and shouldn't fail silently (#6).
+        const clean = (s: string) => Number(String(s).replace(/,/g, "").trim());
+        const targetAmount = clean(editTargetAmount);
+        const currentAmount = editCurrentAmount.trim() === "" ? 0 : clean(editCurrentAmount);
 
-        if (!targetAmount || targetAmount < 0 || currentAmount < 0 || currentAmount > targetAmount) {
+        if (!Number.isFinite(targetAmount) || targetAmount <= 0 || !Number.isFinite(currentAmount) || currentAmount < 0) {
             return;
         }
-        
+
         triggerMediumHaptic();
 
         onUpdateGoal(id, {

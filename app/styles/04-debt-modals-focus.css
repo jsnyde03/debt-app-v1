@@ -381,6 +381,29 @@
 	border: 1px solid rgba(59, 130, 246, 0.24);
 }
 
+/* Autopay no-nag status — replaces the Mark-Paid button on autopay rows. Same
+   footprint as .action-pill so the row layout is unchanged. Blue = scheduled,
+   green = presumed paid (due date passed). */
+.autopay-status {
+	display: inline-flex;
+	align-items: center;
+	height: 32px;
+	padding: 0 12px;
+	border-radius: var(--radius-pill);
+	font-size: 0.72rem;
+	font-weight: 700;
+	white-space: nowrap;
+	background: rgba(59, 130, 246, 0.10);
+	color: var(--badge-blue-color);
+	border: 1px solid rgba(59, 130, 246, 0.18);
+}
+
+.autopay-status.paid {
+	background: rgba(34, 197, 94, 0.09);
+	color: var(--success-color);
+	border: 1px solid rgba(34, 197, 94, 0.18);
+}
+
 .debt-type-icon {
 	display: inline-flex;
 	align-items: center;

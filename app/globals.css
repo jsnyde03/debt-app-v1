@@ -12,11 +12,22 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Body / overscroll backdrop follows the app's EXPLICIT theme choice: useDarkMode syncs the
+   resolved theme onto <html> as .theme-dark / .theme-light. This replaces an OS-based
+   `@media (prefers-color-scheme: dark)` block that CONFLICTED with the manual theme selector — a
+   Light choice on a dark-OS device (or vice-versa) showed the wrong backdrop behind the app, and
+   iOS overscroll rubber-banding exposed it. Colors match the native StatusBar backdrop set in
+   useDarkMode so the web backdrop and native chrome stay in lockstep. `.dark-theme` on <main.app>
+   remains the single authority for content styling; these rules only paint the root backdrop.
+   (`:has()` would be the terser selector but the app targets iOS 15.0 and `:has()` needs 15.4.) */
+html.theme-dark,
+html.theme-dark body {
+  background: #07111f;
+}
+
+html.theme-light,
+html.theme-light body {
+  background: #eef3f8;
 }
 
 body {

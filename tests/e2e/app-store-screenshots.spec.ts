@@ -8,6 +8,8 @@ const screenshotState = {
     payCycle: "biweekly",
     currentDate: "2026-06-15",
     nextPaycheckDate: "2026-06-27",
+    // Suppress the Payday Autopilot capture sheet so it doesn't cover the screenshots.
+    lastHandledPaydayDate: "2026-06-27",
     semiMonthlyFirstDay: "1",
     semiMonthlySecondDay: "15",
     monthlyPayDay: "1",

@@ -3,6 +3,9 @@
 import { useMemo, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import { getNextPaycheckDate } from "@/lib/payCycle/getNextPaycheckDate";
+import { rollPaydayToFuture } from "@/lib/payCycle/rollPaydayToFuture";
+import { payCyclesPerMonth } from "@/lib/payCycle/payCyclesPerMonth";
+import { computeInterestSaved, type InterestSaved } from "@/lib/debt/computeInterestSaved";
 import type { Recurrence } from "@/lib/types/recurrence";
 import "./styles/00-theme-and-base.css";
 import "./styles/01-payoff-goals.css";
@@ -28,18 +31,34 @@ import {
     rolloverRequiredExpenses,
 } from "@/lib/recurrence/rolloverPayCycle";
 
-import { type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+import { type CompletedRecommendedAction, type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
+import { markGoal, unmarkGoal } from "@/lib/debt/reconcileGoalAmount";
 import { computeMilestones } from "@/lib/debt/computeMilestones";
 import { computeStreak } from "@/lib/debt/computeStreak";
 import { MilestoneBadge, type MilestoneCelebration } from "@/components/MilestoneBadge";
 import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
 import { getDebtsWithDisplayBalances, getCompletedSnowballAmount } from "@/lib/debt/getDebtsWithDisplayBalances";
+import { selectActiveRecommendedActions } from "@/lib/debt/selectActiveRecommendedActions";
+import { applyPaydayCapture } from "@/lib/debt/applyPaydayCapture";
+import {
+    bulkMarkRequiredPaid,
+    applyRequiredReconciliation,
+    type RequiredReconciliation,
+} from "@/lib/debt/bulkMarkRequired";
+import { deriveRequiredActionView } from "@/lib/debt/deriveRequiredActionView";
+import { reconcileAutopayForRollover } from "@/lib/debt/reconcileAutopay";
+import { upsertCompletedAction } from "@/lib/debt/mergeCompletedAction";
+import { usePaydayCapture } from "@/lib/hooks/usePaydayCapture";
+import { getPortalTarget } from "@/lib/dom/getPortalTarget";
+import { PaydayCaptureSheet } from "@/components/PaydayCaptureSheet";
+import { createPortal } from "react-dom";
 import { useLivingExpenses } from "@/lib/hooks/useLivingExpenses";
 import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
+import { applySimSmokeSeedToStorage, freezeClockForSimSmoke } from "@/lib/testing/simSmokeSeed";
 import { TimelineSection } from "@/components/TimelineSection";
 import { UpgradeSection } from "@/components/UpgradeSection";
 import { restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";
@@ -70,18 +89,19 @@ import { HistorySection } from "@/components/HistorySection";
 import { OnboardingFlow } from "@/components/Onboarding/OnboardingFlow";
 import { CreditCard, Settings, Wallet } from "@/lib/icons";
 
+// iOS-Simulator smoke seed — module-level, BEFORE migrateState + any hook reads a
+// persisted key, so the app renders the seeded stress fixture on FIRST paint. No
+// reload (a `location.reload()` mis-renders to a black WebView in Capacitor). ONLY
+// in a NEXT_PUBLIC_SIM_SMOKE build (the flag is inlined → tree-shaken from
+// production); SSR-safe via the window guard.
+if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_SIM_SMOKE === "1") {
+    freezeClockForSimSmoke(); // deterministic dates → stable golden-image baselines
+    applySimSmokeSeedToStorage(window.localStorage);
+}
+
 // Run storage schema migrations once, at module load, before any hook reads a
 // persisted key. No-op under SSR (no localStorage) and idempotent.
 migrateState();
-
-type CompletedRecommendedAction = {
-    targetId: string;
-    label: string;
-    category: "emergency" | "snowball" | "optional_goal";
-    recommendedAmount: number;
-    actualAmount: number;
-    paymentSource?: "paycheck" | "external";
-};
 
 function formatRecurrence(recurrence: Recurrence) {
     switch (recurrence) {
@@ -182,10 +202,16 @@ export default function Home() {
         "snowball" | "avalanche"
     >("debtPlanner.payoffStrategy", "snowball");
 
+    // Highest progress % ever reached per debt — so a milestone celebrates at most
+    // once per debt lifetime even across a backslide + re-cross (#10).
+    const [milestoneMaxProgress, setMilestoneMaxProgress] = usePersistedState<Record<string, number>>(
+        "debtPlanner.milestoneMaxProgress", {}
+    );
+
     const { appLockEnabled, setAppLockEnabled, isUnlocked, requestUnlock } = useAppLock();
     const { hasCompletedOnboarding } = useOnboarding();
 
-    const [isDemoMode] = useState(() =>
+    const [isDemoMode, setIsDemoMode] = useState(() =>
         readKeyValue("debtPlanner.isDemoMode", false)
     );
 
@@ -249,6 +275,7 @@ export default function Home() {
 
     const {
         cycleHistory,
+        setCycleHistory,
         recordCycleSnapshot,
         visibleHistory,
         previousSnapshot,
@@ -327,7 +354,7 @@ export default function Home() {
         const snowballTotal = result.allocations
             .filter(a => a.category === "snowball")
             .reduce((sum, a) => sum + a.amount, 0);
-        const cycleMultiplier = payCycle === "weekly" ? 4 : payCycle === "monthly" ? 1 : 2;
+        const cycleMultiplier = payCyclesPerMonth(payCycle);
         const { estimatedDebtFreeDate } = projectDebtPayoff({
             debts: liveDebts,
             monthlyExtraPayment: snowballTotal * cycleMultiplier,
@@ -337,18 +364,156 @@ export default function Home() {
         return estimatedDebtFreeDate === "Unable to estimate" ? null : estimatedDebtFreeDate;
     }, [result, debts, payoffStrategy, currentDate, payCycle]);
 
+    // Interest-Saved Momentum Ledger — what the current plan saves vs. minimums.
+    const interestSaved = useMemo((): InterestSaved => {
+        const liveDebts = debts.filter((d) => d.balance > 0);
+        if (!result || liveDebts.length === 0) return { kind: "none" };
+        const snowballTotal = result.allocations
+            .filter((a) => a.category === "snowball")
+            .reduce((sum, a) => sum + a.amount, 0);
+        const monthlyExtraPayment = snowballTotal * payCyclesPerMonth(payCycle);
+        return computeInterestSaved({
+            debts: liveDebts,
+            monthlyExtraPayment,
+            strategy: payoffStrategy,
+            startDate: currentDate,
+        });
+    }, [result, debts, payoffStrategy, currentDate, payCycle]);
+
     const heroSubtitle = useMemo(() => {
-        if (!result || debts.filter(d => d.balance > 0).length === 0) {
+        // No plan yet (no paycheck entered) — the only true "enter a paycheck" state.
+        if (!result) {
             return "Enter a paycheck and see exactly what to do next.";
+        }
+        // Paycheck IS set but nothing is left to pay: debt-free (balances cleared)
+        // or no debts entered yet. Previously both fell through to "Enter a
+        // paycheck…", which was wrong once a paycheck existed.
+        if (debts.filter(d => d.balance > 0).length === 0) {
+            return debts.length > 0
+                ? "You're debt-free — every balance is cleared. Keep the momentum going."
+                : "Add a debt to see exactly what to pay each paycheck.";
         }
         if (result.shortfall > 0) {
             return "Tight cycle — protect your minimums first.";
         }
         if (debtFreeDate) {
-            return `You're on track to be debt-free by ${debtFreeDate}.`;
+            // Lead with the uncopyable job — "what to pay THIS paycheck" — and keep the
+            // debt-free date as reassurance, not the headline (v1.6 hero reposition: the
+            // payday-allocation engine is the differentiator, not the generic debt-free date).
+            return `Here's exactly what to pay this paycheck — on track to be debt-free by ${debtFreeDate}.`;
         }
         return "Here's what to do this paycheck.";
     }, [result, debts, debtFreeDate]);
+
+    // Single source of truth for the cycle's recommended allocation — fed to both
+    // ResultsSection (the Plan tab) and the Payday Autopilot capture sheet so they
+    // can never drift. Empty until a paycheck/plan exists.
+    const activeRecommendedActions = useMemo(
+        () =>
+            result
+                ? selectActiveRecommendedActions({
+                    result,
+                    debts,
+                    goals,
+                    payoffStrategy,
+                    recommendationOverrides,
+                    completedRecommendedActions,
+                })
+                : [],
+        [result, debts, goals, payoffStrategy, recommendationOverrides, completedRecommendedActions]
+    );
+
+    // The cycle's REQUIRED items (bills + minimums due this paycheck) — the payday
+    // checkpoint's "Required bills & minimums" section confirms these alongside the
+    // extras. Same filter ResultsSection uses for its Required Actions list.
+    const requiredCaptureItems = useMemo(
+        () =>
+            result
+                ? result.allocations.filter(
+                    (item) =>
+                        item.category === "expense" ||
+                        item.category === "minimum_debt" ||
+                        item.category === "autopay_expense" ||
+                        item.category === "autopay_debt"
+                )
+                : [],
+        [result]
+    );
+
+    const requiredCaptureTotal = useMemo(
+        () => requiredCaptureItems.reduce((sum, item) => sum + item.amount, 0),
+        [requiredCaptureItems]
+    );
+
+    // Enriched rows (item + derived current state) for the checkpoint's [Adjust]
+    // reconciliation view. Derived as-of the PAYDAY (cycle close), not currentDate:
+    // by payday every this-cycle autopay has run, so autopay rows open presumed-paid
+    // while manual bills reflect their real (usually unmarked) state.
+    const requiredCaptureRows = useMemo(
+        () =>
+            requiredCaptureItems.map((item) => ({
+                item,
+                view: deriveRequiredActionView(item, requiredExpenses, debts, nextPaycheckDate),
+            })),
+        [requiredCaptureItems, requiredExpenses, debts, nextPaycheckDate]
+    );
+
+    // Payday Autopilot — detection + capture sheet state (the narrow hook).
+    const paydayCapture = usePaydayCapture({
+        nextPaycheckDate,
+        payCycle,
+        hasCapturablePlan: activeRecommendedActions.length > 0,
+        enabled: !isDemoMode, // Demo Mode is a static showcase — no payday capture (#9).
+    });
+
+    // Bulk-apply a payday capture in ONE state update (looping the single-mark
+    // handler would setState off stale closures), then mark the payday handled.
+    function handlePaydayCapture(
+        items: CompletedRecommendedAction[],
+        requiredDecisions?: RequiredReconciliation
+    ) {
+        const { nextGoals, nextCompleted } = applyPaydayCapture(
+            items,
+            goals,
+            completedRecommendedActions
+        );
+
+        // The payday check-in confirms the WHOLE paycheck (required + extras). If the
+        // user used [Adjust], honor their per-item paid/failed decisions; otherwise
+        // mark every required bill + minimum paid (the "Paid all" happy path).
+        let nextRequiredExpenses: RequiredExpense[];
+        let nextDebts: Debt[];
+        if (requiredDecisions) {
+            ({ expenses: nextRequiredExpenses, debts: nextDebts } =
+                applyRequiredReconciliation(requiredExpenses, debts, requiredDecisions));
+        } else {
+            const expenseIds = requiredCaptureItems
+                .filter((i) => i.category === "expense" || i.category === "autopay_expense")
+                .map((i) => i.targetId)
+                .filter((id): id is string => !!id);
+            const debtIds = requiredCaptureItems
+                .filter((i) => i.category === "minimum_debt" || i.category === "autopay_debt")
+                .map((i) => i.debtId ?? i.targetId)
+                .filter((id): id is string => !!id);
+            ({ expenses: nextRequiredExpenses, debts: nextDebts } = bulkMarkRequiredPaid(
+                requiredExpenses,
+                debts,
+                { expenseIds, debtIds }
+            ));
+        }
+
+        setGoals(nextGoals);
+        setCompletedRecommendedActions(nextCompleted);
+        setRequiredExpenses(nextRequiredExpenses);
+        setDebts(nextDebts);
+        saveResetSnapshot({
+            goals: nextGoals,
+            completedRecommendedActions: nextCompleted,
+            requiredExpenses: nextRequiredExpenses,
+            debts: nextDebts,
+        });
+        paydayCapture.completeCapture();
+    }
 
     useEffect(() => {
         if (!showUpgrade || premiumPackageInfo) return;
@@ -432,13 +597,17 @@ export default function Home() {
             completedRecommendedActions,
             payoffStrategy,
             lastSavedAt,
+            cycleHistory,
         };
     }
 
     function handleCalculate() {
         const value = Number(amount);
 
-        if (!value || value <= 0 || !nextPaycheckDate || nextPaycheckDate <= currentDate) {
+        // Allow next payday == today (a natural answer when setting up ON payday);
+        // only reject a payday strictly in the PAST. The result memo handles same-day
+        // fine — the old `<=` silently no-op'd the CTA and stranded first-run (#8).
+        if (!value || value <= 0 || !nextPaycheckDate || nextPaycheckDate < currentDate) {
             return;
         }
 
@@ -462,26 +631,36 @@ export default function Home() {
         setStatusMessage("Up to date");
     }
 
-    function handleMarkRecommendedAction(targetId: string, label: string, category: "emergency" | "snowball" | "optional_goal", recommendedAmount: number, actualAmount: number, paymentSource: "paycheck" | "external" = "paycheck") {
-        const existingAction = completedRecommendedActions.find((action) => action.targetId === targetId && action.label === label && action.category === category);
+    function handleMarkRecommendedAction(targetId: string, label: string, category: "emergency" | "snowball" | "optional_goal", recommendedAmount: number, actualAmount: number, paymentSource: "paycheck" | "external" = "paycheck", isUnmark: boolean = false) {
+        // UNMARK: reverse a specific completed contribution. Matched on
+        // paymentSource too, so un-marking a paycheck row never touches a
+        // same-goal external contribution (or vice-versa). Intent is passed
+        // explicitly (the tapped row's `isCompleted`) rather than inferred from a
+        // key match — inference was the v1.6 collision bug, where tapping a
+        // re-recommended remainder un-marked its completed partial.
+        if (isUnmark) {
+            const existingAction = completedRecommendedActions.find(
+                (action) => action.targetId === targetId && action.label === label && action.category === category && action.paymentSource === paymentSource
+            );
 
-        if (existingAction) {
+            if (!existingAction) {
+                return;
+            }
+
             const nextGoals =
                 category === "emergency" || category === "optional_goal"
                     ? goals.map((goal) =>
                         goal.id === targetId
                             ? {
                                 ...goal,
-                                currentAmount: roundMoney(
-                                    Math.max(0, goal.currentAmount - existingAction.actualAmount)
-                                ),
+                                currentAmount: unmarkGoal(goal.currentAmount, existingAction.actualAmount),
                             }
                             : goal
                     )
                     : goals;
 
             const nextCompletedRecommendedActions = completedRecommendedActions.filter(
-                (action) => !(action.targetId === targetId && action.label === label && action.category === category)
+                (action) => !(action.targetId === targetId && action.label === label && action.category === category && action.paymentSource === paymentSource)
             );
 
             setGoals(nextGoals);
@@ -502,28 +681,38 @@ export default function Home() {
             const goal = goals.find((item) => item.id === targetId);
 
             if (goal) {
-                const remainingGoalAmount = roundMoney(Math.max(0, goal.targetAmount - goal.currentAmount));
+                // markGoal clamps to the goal's remaining room and returns the
+                // exact currentAmount delta; unmark subtracts that same stored
+                // amount, so the two are exact inverses even when the goal is
+                // over-funded (see reconcileGoalAmount.ts — the old inline
+                // `min(targetAmount, …)` here destroyed over-funded excess).
+                const { appliedAmount, nextCurrentAmount } = markGoal(
+                    goal.currentAmount,
+                    goal.targetAmount,
+                    actualAmount
+                );
 
-                safeActualAmount = roundMoney(Math.min(safeActualAmount, remainingGoalAmount));
+                safeActualAmount = appliedAmount;
 
                 nextGoals = goals.map((item) => item.id === targetId ? {
                     ...item,
-                    currentAmount: roundMoney(Math.min(item.targetAmount, item.currentAmount + safeActualAmount)),
+                    currentAmount: nextCurrentAmount,
                 } : item);
             }
         }
 
-        const nextCompletedRecommendedActions = [
-            ...completedRecommendedActions,
-            {
-                targetId,
-                label,
-                category,
-                recommendedAmount,
-                actualAmount: safeActualAmount,
-                paymentSource,
-            },
-        ];
+        // Accumulate into any existing same-(target|label|category|source)
+        // contribution rather than appending a colliding duplicate, so a partial
+        // and its re-recommended remainder fold into one entry (see
+        // upsertCompletedAction — the v1.6 capture-collision fix).
+        const nextCompletedRecommendedActions = upsertCompletedAction(completedRecommendedActions, {
+            targetId,
+            label,
+            category,
+            recommendedAmount,
+            actualAmount: safeActualAmount,
+            paymentSource,
+        });
 
         setGoals(nextGoals);
         setCompletedRecommendedActions(nextCompletedRecommendedActions);
@@ -597,14 +786,25 @@ export default function Home() {
             setSemiMonthlyFirstDay(String(backup.semiMonthlyFirstDay ?? 1));
             setSemiMonthlySecondDay(String(backup.semiMonthlySecondDay ?? 15));
             setMonthlyPayDay(String(backup.monthlyPayDay ?? 1));
-            setCurrentDate(backup.currentDate ?? getCurrentDate());
-            setNextPaycheckDate(backup.nextPaycheckDate ?? getNextPaycheckDate({
+
+            // Resume the imported plan from TODAY with the next REAL upcoming payday.
+            // A backup's `nextPaycheckDate` is a snapshot usually in the PAST, so
+            // restoring it verbatim made the app think payday had just happened and
+            // wrongly popped the Payday Autopilot sheet on load. Anchor currentDate to
+            // today and roll the payday forward (schedule/phase-preserving) to
+            // on-or-after today — so the sheet fires ONLY when today genuinely is payday.
+            const importToday = getCurrentDate();
+            const importCycleConfig = {
                 payCycle: backup.payCycle ?? "biweekly",
-                currentDate: backup.currentDate ?? getCurrentDate(),
                 semiMonthlyFirstDay: Number(backup.semiMonthlyFirstDay ?? 1),
                 semiMonthlySecondDay: Number(backup.semiMonthlySecondDay ?? 15),
                 monthlyPayDay: Number(backup.monthlyPayDay ?? 1),
-            }));
+            } as const;
+            const importedNextPayday = backup.nextPaycheckDate
+                ?? getNextPaycheckDate({ ...importCycleConfig, currentDate: backup.currentDate ?? importToday });
+            const rolledImportPayday = rollPaydayToFuture(importedNextPayday, importCycleConfig, importToday);
+            setCurrentDate(importToday);
+            setNextPaycheckDate(rolledImportPayday);
             setRequiredExpenses(backup.requiredExpenses ?? []);
             setLivingExpenses(backup.livingExpenses ?? livingExpensePresets.map((expense, index) => ({
                 ...expense,
@@ -616,6 +816,31 @@ export default function Home() {
                 backup.completedRecommendedActions ?? []
             );
             setPayoffStrategy(backup.payoffStrategy ?? "snowball");
+            // Restore pay-cycle history so a backup round-trips faithfully (it drives
+            // the streak + history view); replace to match the imported plan (#5).
+            setCycleHistory(backup.cycleHistory ?? []);
+
+            // A successful import IS the user's plan — transition out of first-run
+            // setup (mirror Calculate) so the imported plan loads immediately.
+            // Without this, importing from the first-run "Create Your First Plan"
+            // overlay left the overlay UP: the plan loaded underneath but stayed
+            // blocked, and any auto-opened payday sheet dismissed back onto the
+            // stuck overlay (the reported onboarding bug).
+            setIsFirstRunSetup(false);
+            setShowPlanSettings(false);
+            setActiveTab("plan");
+
+            // Import IS the user's real plan — leave Demo Mode, else the demo banner
+            // keeps lying over real data and its "Start My Own Plan" / Delete-All exits
+            // localStorage.clear() the just-imported plan (data loss) (#1).
+            setIsDemoMode(false);
+            writeKey("debtPlanner.isDemoMode", false);
+
+            // Reschedule reminders for the rolled-forward payday (as Calculate/rollover
+            // do); otherwise they keep pointing at the pre-import date (#13).
+            if (notificationsEnabled) {
+                void scheduleNotifications({ nextPaycheckDate: rolledImportPayday, requiredExpenses: backup.requiredExpenses ?? [] });
+            }
 
             void triggerMediumHaptic();
             setStatusMessage("Backup imported successfully");
@@ -660,6 +885,14 @@ export default function Home() {
         setShowDeleteConfirm(false);
         saveResetSnapshot();
 
+        // Autopay left untouched at the checkpoint is presumed to have run by payday,
+        // so reconcile it to explicit paid flags BEFORE any rollover math — it then
+        // pays down + advances instead of rotting into next-cycle false-overdue
+        // (Jason's Option-A gate). A user-flagged FAILED autopay is exempt (stays owed).
+        // As-of the payday (nextPaycheckDate): by cycle close, this-cycle autopay ran.
+        const { expenses: reconciledExpenses, debts: reconciledDebts } =
+            reconcileAutopayForRollover(requiredExpenses, debts, nextPaycheckDate);
+
         // Record the cycle that's ending BEFORE any mutation - capture
         // pre-rollover debts and completed actions so the snapshot reflects
         // where the user actually was when this cycle closed.
@@ -671,7 +904,7 @@ export default function Home() {
         recordCycleSnapshot(
             buildCycleSnapshot({
                 cycleEndDate: nextPaycheckDate,
-                debts,
+                debts: reconciledDebts,
                 completedRecommendedActions,
                 payoffStrategy,
                 allRequiredMet,
@@ -680,7 +913,7 @@ export default function Home() {
 
         // Apply this cycle's payments once, so we can both persist the new
         // balances AND detect any milestone thresholds crossed by them.
-        const debtsAfterPayment = debts.map((debt) => ({
+        const debtsAfterPayment = reconciledDebts.map((debt) => ({
             before: debt,
             after: applyRolloverPayment(
                 debt,
@@ -697,7 +930,11 @@ export default function Home() {
                 previousBalance: before.balance,
                 currentBalance: after.balance,
             })),
+            maxProgressByDebt: milestoneMaxProgress,
         });
+        // Persist the updated per-debt progress high-water marks so a celebrated
+        // threshold never re-fires on a later re-cross (#10).
+        setMilestoneMaxProgress(milestoneResult.nextMaxProgressByDebt);
 
         setDebts(
             rolloverDebts(
@@ -735,8 +972,8 @@ export default function Home() {
             });
         }
 
-        setRequiredExpenses((current) =>
-            rolloverRequiredExpenses(current, nextPaycheckDate)
+        setRequiredExpenses(
+            rolloverRequiredExpenses(reconciledExpenses, nextPaycheckDate)
         );
 
         setCompletedRecommendedActions([]);
@@ -920,6 +1157,24 @@ export default function Home() {
                         </div>
 
                         <div className="plan-tab-grid">
+                            {paydayCapture.isAwaitingRollover && (
+                                <div className="card payday-rollover-nudge">
+                                    <p className="first-debt-prompt-text">
+                                        Payday logged. Start your next pay cycle to apply this cycle&apos;s payments and get your next plan.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className="primary-plan-button"
+                                        onClick={() => {
+                                            triggerMediumHaptic();
+                                            handleRolloverPayCycle();
+                                        }}
+                                    >
+                                        Start Next Pay Cycle
+                                    </button>
+                                </div>
+                            )}
+
                             {currentStreak > 0 && (
                                 <div
                                     className="streak-stat"
@@ -934,7 +1189,7 @@ export default function Home() {
                                 </div>
                             )}
 
-                            {result !== null && activeDebts.length === 0 && (
+                            {result !== null && debts.length === 0 && (
                                 <div className="card first-debt-prompt">
                                     <p className="first-debt-prompt-text">
                                         Your debt-free date is waiting. Add your first debt to see exactly what to do this paycheck.
@@ -956,8 +1211,7 @@ export default function Home() {
                                 result={result}
                                 requiredExpenses={requiredExpenses}
                                 debts={debts}
-                                goals={goals}
-                                payoffStrategy={payoffStrategy}
+                                activeRecommendedActions={activeRecommendedActions}
                                 debtFreeDate={debtFreeDate}
                                 previousSnapshot={previousSnapshot}
                                 completedRecommendedActions={
@@ -968,7 +1222,6 @@ export default function Home() {
                                 onMarkDebtMinimumPaid={handleMarkDebtMinimumPaid}
                                 onMarkDebtSnowballPaid={handleMarkDebtSnowballPaid}
                                 onMarkRecommendedAction={handleMarkRecommendedAction}
-                                recommendationOverrides={recommendationOverrides}
                                 onRecommendationOverrideChange={(
                                     targetId,
                                     category,
@@ -1019,7 +1272,9 @@ export default function Home() {
                             debts={debtsWithDisplayBalances}
                             result={result}
                             completedRecommendedActions={completedRecommendedActions}
+                            interestSaved={interestSaved}
                             payoffStrategy={payoffStrategy}
+                            payCycle={payCycle}
                             currentDate={currentDate}
                             subscriptionPlan={subscriptionPlan}
                             onUpgradeClick={() => {
@@ -1240,6 +1495,19 @@ export default function Home() {
                     onDismiss={() => setMilestoneCelebration(null)}
                 />
             )}
+
+            {paydayCapture.isOpen && typeof document !== "undefined" &&
+                createPortal(
+                    <PaydayCaptureSheet
+                        activeRecommendedActions={activeRecommendedActions}
+                        requiredRows={requiredCaptureRows}
+                        requiredTotal={requiredCaptureTotal}
+                        onCapture={handlePaydayCapture}
+                        onDismiss={paydayCapture.dismiss}
+                        onClose={paydayCapture.close}
+                    />,
+                    getPortalTarget()
+                )}
         </main>
     );
 }

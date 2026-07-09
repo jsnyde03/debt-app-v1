@@ -1,0 +1,52 @@
+<style>
+  * { margin: 0; padding: 0; }
+  body { background: #0A1E3E; }
+  .icon { width: 1024px; height: 1024px; display: block; }
+  svg { display: block; width: 1024px; height: 1024px; }
+</style>
+
+<!-- A: Payoff Descent -->
+<div class="icon" id="descent">
+  <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="navyD" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#1B4479"/><stop offset="1" stop-color="#091B39"/></linearGradient>
+      <linearGradient id="mintD" x1="0.1" y1="0" x2="0.9" y2="1"><stop offset="0" stop-color="#74F5BA"/><stop offset="1" stop-color="#1EC489"/></linearGradient>
+    </defs>
+    <rect width="1024" height="1024" fill="url(#navyD)"/>
+    <line x1="266" y1="716" x2="758" y2="716" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="24" stroke-linecap="round"/>
+    <path d="M266 316 C 470 404 512 648 758 700" fill="none" stroke="url(#mintD)" stroke-width="70" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="266" cy="316" r="30" fill="#EAF6FF" fill-opacity="0.92"/>
+    <circle cx="758" cy="700" r="54" fill="#74F5BA"/>
+    <circle cx="758" cy="700" r="54" fill="none" stroke="#091B39" stroke-opacity="0.22" stroke-width="6"/>
+  </svg>
+</div>
+
+<!-- B: Payday Allocation -->
+<div class="icon" id="allocation">
+  <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="navyAl" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#1B4479"/><stop offset="1" stop-color="#091B39"/></linearGradient>
+    </defs>
+    <rect width="1024" height="1024" fill="url(#navyAl)"/>
+    <circle cx="512" cy="300" r="92" fill="none" stroke="#EAF6FF" stroke-width="40"/>
+    <text x="512" y="300" font-size="108" font-weight="800" fill="#EAF6FF" text-anchor="middle" dominant-baseline="central" font-family="-apple-system, system-ui, sans-serif">$</text>
+    <path d="M512 400 C 500 500 352 500 312 660" fill="none" stroke="#74F5BA" stroke-width="48" stroke-linecap="round"/>
+    <path d="M512 400 L 512 672" fill="none" stroke="#3EDBA0" stroke-width="48" stroke-linecap="round"/>
+    <path d="M512 400 C 524 500 672 500 712 660" fill="none" stroke="#1EC489" stroke-width="48" stroke-linecap="round"/>
+    <circle cx="312" cy="712" r="52" fill="#74F5BA"/>
+    <circle cx="512" cy="732" r="40" fill="#3EDBA0"/>
+    <circle cx="712" cy="712" r="30" fill="#1EC489"/>
+  </svg>
+</div>
+
+<!-- C: Confident $ -->
+<div class="icon" id="dollar">
+  <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="navyDo" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#1B4479"/><stop offset="1" stop-color="#091B39"/></linearGradient>
+      <linearGradient id="mintDo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#74F5BA"/><stop offset="1" stop-color="#22C88C"/></linearGradient>
+    </defs>
+    <rect width="1024" height="1024" fill="url(#navyDo)"/>
+    <text x="512" y="524" font-size="680" font-weight="800" fill="url(#mintDo)" text-anchor="middle" dominant-baseline="central" font-family="-apple-system, 'SF Pro Display', system-ui, sans-serif">$</text>
+  </svg>
+</div>

@@ -174,4 +174,20 @@ test("backup import restores planner data", async ({ page }) => {
     expect(restored.expenses[0].name).toBe("Phone");
     expect(restored.debts[0].name).toBe("Backup Visa");
     expect(restored.goals[0].name).toBe("Backup Goal");
+
+    // v1.6 onboarding-seam fixes:
+    // (1) Importing from the first-run overlay must CLOSE it and load the plan —
+    //     it previously stayed up ("stuck"), with the plan blocked underneath.
+    await expect(page.locator(".settings-overlay")).toBeHidden();
+    await expect(page.getByRole("button", { name: /Recommended Actions/i })).toBeVisible();
+    // (2) The Payday Autopilot sheet must NOT auto-open on import: the backup's
+    //     stale payday is rolled forward to a real upcoming date, so it isn't payday.
+    await expect(page.locator(".payday-sheet")).toHaveCount(0);
+
+    // …and the payday was actually rolled to the future (not the backup's past date).
+    const nextPayday = await page.evaluate(() =>
+        JSON.parse(localStorage.getItem("debtPlanner.nextPaycheckDate") ?? '""')
+    );
+    const todayISO = new Date().toISOString().slice(0, 10);
+    expect(nextPayday >= todayISO).toBe(true);
 });

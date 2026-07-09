@@ -1,0 +1,119 @@
+import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { triggerMediumHaptic } from "@/lib/mobile/haptics";
+import { SwipeActionCard } from "./SwipeActionCard";
+import {
+    requiredDisplayLabel,
+    type RequiredAllocationItem,
+    type RequiredActionView,
+} from "@/lib/debt/deriveRequiredActionView";
+
+type RequiredActionItemProps = {
+    item: RequiredAllocationItem;
+    /** Derived display state (from deriveRequiredActionView) — single source of truth. */
+    view: RequiredActionView;
+    onMarkExpensePaid: (id: string) => void;
+    onMarkDebtMinimumPaid: (id: string) => void;
+};
+
+/**
+ * The Plan tab's required-action row (bill or debt minimum) — a swipeable
+ * Mark-Paid/Undo card. Extracted verbatim from ResultsSection.renderRequiredAction
+ * so the required-list rendering has a component home; the derivation now comes from
+ * the shared deriveRequiredActionView helper (also used by the payday view).
+ */
+export function RequiredActionItem({
+    item,
+    view,
+    onMarkExpensePaid,
+    onMarkDebtMinimumPaid,
+}: RequiredActionItemProps) {
+    const { isPaid, dueDate, overdue, isAutopay, presumedPaid, autopayFailed } = view;
+    // Autopay pays itself — once due it's presumed run. Either way the Plan tab
+    // shows a status, never a Mark-Paid nag (Option A). Failure reporting lives
+    // in the payday checkpoint, not here.
+    const autopayHandled = isAutopay && (isPaid || presumedPaid);
+    // A reported-failed autopay stops presenting as autopay and behaves like a
+    // manual owed bill (Overdue chip + Mark-Paid pill + swipe), so the user can
+    // both SEE it needs them and RESOLVE it right here — the one autopay case the
+    // frictionless status treatment would otherwise trap.
+    const presentAsAutopay = isAutopay && !autopayFailed;
+
+    function handleToggle() {
+        if (item.category === "expense" || item.category === "autopay_expense") {
+            if (item.targetId) {
+                onMarkExpensePaid(item.targetId);
+            }
+            return;
+        }
+
+        if (item.category === "minimum_debt" || item.category === "autopay_debt") {
+            const debtId = item.debtId ?? item.targetId;
+            if (debtId) {
+                onMarkDebtMinimumPaid(debtId);
+            }
+        }
+    }
+
+    return (
+        <SwipeActionCard
+            className={[
+                "saved-item",
+                isPaid ? "completed-item" : "",
+                overdue && !presentAsAutopay ? "overdue-item" : "",
+                presentAsAutopay ? "autopay-item" : "",
+            ]
+                .filter(Boolean)
+                .join(" ")}
+            leftAction={
+                !presentAsAutopay && !isPaid
+                    ? { label: "Mark Paid", tone: "positive", onTrigger: handleToggle }
+                    : undefined
+            }
+            rightAction={
+                !presentAsAutopay && isPaid
+                    ? { label: "Undo", tone: "warning", onTrigger: handleToggle }
+                    : undefined
+            }
+        >
+            <div className="saved-item-left">
+                <div className="saved-title">{requiredDisplayLabel(item, view)}</div>
+
+                {overdue && !presentAsAutopay && (
+                    <div className="status-chip overdue">Overdue</div>
+                )}
+
+                <div className="saved-meta">
+                    {dueDate ? `Due ${dueDate}` : "Required Payment"}
+                </div>
+            </div>
+
+            <div className="saved-item-right">
+                <strong className="saved-amount">{formatCurrency(item.amount)}</strong>
+
+                {presentAsAutopay ? (
+                    <span
+                        className={`autopay-status${autopayHandled ? " paid" : ""}`}
+                        aria-label={
+                            autopayHandled
+                                ? "Paid automatically by autopay"
+                                : "Scheduled to pay automatically"
+                        }
+                    >
+                        {autopayHandled ? "Auto-paid" : "Autopay"}
+                    </span>
+                ) : (
+                    <button
+                        type="button"
+                        className={isPaid ? "action-pill completed" : "action-pill"}
+                        onClick={() => {
+                            triggerMediumHaptic();
+                            handleToggle();
+                        }}
+                    >
+                        {isPaid ? "Undo" : "Mark Paid"}
+                    </button>
+                )}
+            </div>
+        </SwipeActionCard>
+    );
+}

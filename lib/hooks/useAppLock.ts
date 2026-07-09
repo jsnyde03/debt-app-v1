@@ -48,7 +48,12 @@ export function useAppLock() {
 
     function setAppLockEnabled(enabled: boolean) {
         setAppLockEnabledState(enabled);
-        setIsUnlocked(!enabled);
+        // Enabling ARMS the lock for the next background/relaunch — the user stays in
+        // the app they're already using. Slamming them to the Unlock screen the instant
+        // they flip the toggle reads as a glitch (audit #14). The appStateChange listener
+        // locks on the next background; a cold launch inits isUnlocked=!enabled. Disabling
+        // always leaves them unlocked.
+        if (!enabled) setIsUnlocked(true);
     }
 
     const lockTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);

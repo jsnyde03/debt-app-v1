@@ -1,0 +1,59 @@
+# iOS-Simulator smoke test — payday surface, true iOS WKWebView.
+#
+# Drives the SIM_SMOKE build (NEXT_PUBLIC_SIM_SMOKE=1 — freezes the clock to
+# 2026-07-15 for deterministic dates, seeds 9 long-named bills, auto-opens the
+# payday sheet) through the key payday screens and screenshots each — the render
+# the browser harness (Chromium AND Playwright-WebKit) can't reproduce.
+#
+# Theme is set by the simulator appearance (the app follows system/Auto), toggled
+# by the workflow before each run — so this flow is theme-agnostic.
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: true
+
+# Diagnostic only (NOT a golden baseline — the workflow files it under diagnostics/,
+# not artifacts/). Shows the launch state if a later step can't find its anchor.
+- takeScreenshot: 00-launch
+
+# The SIM_SMOKE build seeds localStorage at module load (no reload) and the payday
+# sheet auto-opens. Cold sim is slow → wait generously. "Adjust" is unique to the
+# required card (robust anchor, avoids apostrophe matching).
+- extendedWaitUntil:
+    visible: "Adjust"
+    timeout: 90000
+
+# 1) The payday sheet itself — the Payday Autopilot hero (aggregate required card +
+#    extras + "I followed the plan").
+- takeScreenshot: payday-sheet
+
+# 2) The reconciliation view — the surface that had the v1.6 overlap.
+- tapOn: "Adjust"
+- extendedWaitUntil:
+    visible: "Which bills got paid?"
+    timeout: 15000
+- takeScreenshot: reconcile-current
+
+# 3) All-paid state.
+- tapOn: "Mark all paid"
+- takeScreenshot: reconcile-all-paid
+
+# Back out to the payday sheet, then dismiss it to reach the Plan tab.
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Adjust"
+    timeout: 15000
+- tapOn: "Close"
+
+# 4) The Plan-tab hero (the app's front door).
+- extendedWaitUntil:
+    visible: "Plan"
+    timeout: 15000
+- takeScreenshot: plan-hero
+
+# 5) The Payoff tab — includes the free Interest-Saved card.
+- tapOn: "Payoff"
+- extendedWaitUntil:
+    visible: "Payoff"
+    timeout: 15000
+- takeScreenshot: payoff-tab

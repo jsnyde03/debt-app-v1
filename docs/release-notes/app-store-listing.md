@@ -1,6 +1,6 @@
 # App Store Listing Copy — Paycheck Debt Planner
 
-_**v1.5 "Track Your Journey" ASO pass** (2026-07-02). App Name unchanged (renaming a live app resets keyword history — high-risk, low-reward). Subtitle + keyword field re-optimized against a live 2026 competitor teardown, and the description now folds in the v1.5 journey layer (Pay Cycle History, Milestones + celebration, Streaks, Amortization). Full rationale + competitor research → [V15_ASO_STRATEGY.md](V15_ASO_STRATEGY.md)._
+_**v1.6 "Differentiation Strike" ASO pass** (2026-07-06). Layered on the v1.5 pass (below): Keywords `loan`→`payday`, Promo Text + What's New rewritten to the one-tap-capture / interest-saved hook, and two free features (Payday Autopilot, Interest Saved) folded into the description. Subtitle + Name unchanged. Full rationale + the 2 new screenshots + the step-by-step ASC how-to → [V16_ASO_STRATEGY.md](V16_ASO_STRATEGY.md). (v1.5 pass: Subtitle + keyword re-optimization against a 2026 competitor teardown + the journey layer → [V15_ASO_STRATEGY.md](V15_ASO_STRATEGY.md).)_
 
 **Positioning (lead the creative with this):** _the moment you get paid, it tells you exactly which bill and which debt to hit this paycheck — then celebrates every streak and milestone to debt-free, 100% private on your phone._ The open market gap is the four-way intersection no competitor occupies: paycheck-cycle "what to pay this payday" + a real snowball/avalanche engine + the motivational journey (streaks/milestones/history) + on-device/no-bank-login.
 
@@ -14,17 +14,19 @@ Snowball Budget & Bill Payoff
 
 _Why this change (v1.5):_ the old subtitle ("Budget, Bills & Debt Payoff") wasted an indexed slot repeating **Debt** (already in the Name). This adds four *new* indexed words — **snowball, budget, bill, payoff** — and unlocks the name-combos "debt snowball," "paycheck budget," "bill payoff," and "budget/payoff planner." Name + Subtitle are the highest-weighted search fields.
 
-## Keywords (100 chars max — 96 used)
-avalanche,calculator,biweekly,reminder,milestone,streak,tracker,loan,credit,card,expense,savings
+## Keywords (100 chars max — 98 used)
+avalanche,calculator,biweekly,reminder,milestone,streak,tracker,payday,credit,card,expense,savings
+
+_v1.6 change:_ **`loan` → `payday`** — adds the app's core wedge (not in Name/Subtitle; combines to "payday budget/planner/tracker") and drops `loan` specifically so `payday`+`loan` can't auto-combine into the wrong-intent **"payday loan"** (lender) category; `calculator` already carries the generic loan-calculator intent. Full rationale → [V16_ASO_STRATEGY.md](V16_ASO_STRATEGY.md) §1.2.
 
 _Why this change (v1.5):_ drops `snowball` (now in the Subtitle — never duplicate), `debt free` (*debt* is in the Name), and the saturated `finance`/`money manager` heads, freeing room for the higher-intent, more-winnable cluster: **avalanche, calculator, biweekly** (the pay-cycle wedge no debt app targets) and **milestone, streak** (the v1.5 journey differentiators, near-unclaimed in debt search). Singular, no spaces, no Name/Subtitle repeats — Apple auto-combines words into phrases.
 
 _2026-07-03 ASO re-audit update:_ **added `reminder`** (high-volume, winnable "bill reminder" — feature-backed by the paycheck-eve + bill-due local reminders), **dropped `income`** (weak standalone intent; "income tracker" is saturated) **and `goal`** (≈ covered by `savings` → "savings goal"). If ASC Search Ads popularity shows `payment` beats `expense`, swap `expense`→`payment`. Full rationale + competitor landscape → `app-portfolio/content/ASO_REAUDIT_2026-07-03.md`.
 
 ## Promotional Text (170 chars max — not search-indexed; rotate anytime, no build needed)
-Payday? See exactly which bill and which debt to hit — then watch your streaks and milestones stack up to debt-free. 100% on your device. No bank login, no sign-up.
+Payday? One tap logs your plan — no bookkeeping. See exactly what to pay this paycheck, and the interest your extra payments save you. 100% private, no sign-up.
 
-_(166 chars. v1.5 hook, leading with the "this payday, do this" + journey angle. Rotatable as a seasonal/feature-launch hook.)_
+_(161 chars. v1.6 hook — leads with the one-tap capture (Payday Autopilot) + the interest-saved proof, keeps the trust signal. Not indexed → rotate anytime, zero keyword risk. Prior v1.5 hook: "Payday? See exactly which bill and which debt to hit — then watch your streaks and milestones stack up to debt-free…")_
 
 ## URLs (App Store Connect metadata fields)
 Served as real webpages via GitHub Pages from the `jsnyde03/debt-planner-site` repo (source of truth: `debt-app-v1/site/`). _Superseded the old `github.com/.../blob/main/privacy.html` blob link, which rendered raw HTML source instead of a page (2026-07-03)._
@@ -40,7 +42,7 @@ Served as real webpages via GitHub Pages from the `jsnyde03/debt-planner-site` r
 
 Payday shouldn't start with a spreadsheet. Enter your paycheck and your due dates, and Paycheck Debt Planner tells you exactly what to do this cycle: which bills are due, which debt gets the next attack, and how much cushion you'll have left. Then it turns the long grind to debt-free into something you can actually feel — streaks, milestones, and a history of every cycle you stayed on plan.
 
-Curious before you commit? Tap "Try with Sample Data" and explore a fully populated plan instantly — real debts, real bills, real numbers — with nothing of yours entered yet. No bank connections. No accounts. No sign-up.
+Curious before you commit? Tap "Try with Sample Data" to explore a fully populated plan instantly — no accounts, no bank connections, no sign-up.
 
 ---
 
@@ -50,13 +52,14 @@ Paying off debt is a marathon — this makes the progress visible every single p
 
 - **Milestones & Celebrations** — Cross 25%, 50%, 75%, or fully clear a debt and the app celebrates the moment. Free for everyone.
 - **On-Plan Streaks** — Stay on plan and your streak grows, cycle after cycle — the small win that keeps the big goal moving. Free.
-- **Since Last Cycle** — See exactly how much you paid down since your last paycheck, every time you roll forward. Free.
 - **Pay Cycle History** *(Premium)* — Look back at your recent finished cycles and how far you've come.
 
 ---
 
 **WHAT YOU GET, FREE**
 
+- **Payday Autopilot** — On payday, confirm your whole plan — required bills, minimums, and extras — in one tap, or adjust any item. Bills on autopay handle themselves. Zero bookkeeping.
+- **Interest Saved** — See how much interest your extra payments save, and how much sooner you're debt-free, vs. paying minimums only.
 - **Paycheck Plan** — Required payments and recommended actions the moment your paycheck lands — what you must pay vs. what you should.
 - **Debt Payoff Engine** — Snowball or avalanche, your choice. Tracks your focus debt, projects your payoff date, and puts the extra to work.
 - **Timeline View** — Your full pay cycle with a running safe-cash balance, so you always see where the money goes.
@@ -87,11 +90,28 @@ Premium Monthly is an auto-renewing subscription billed at $4.99/month through y
 
 **BUILT FOR PRIVACY**
 
-Everything stays on your device — no accounts, no cloud, no bank connections, no trackers. App Lock uses Apple's on-device Face ID/Touch ID; we never receive your biometric data, only a yes-or-no that you unlocked. Weekly, bi-weekly, semi-monthly, and monthly pay schedules all supported.
+Everything stays on your device — no accounts, no cloud, no bank connections, no trackers. App Lock uses Apple's on-device Face ID/Touch ID — your biometric data never reaches us. Weekly, bi-weekly, semi-monthly, and monthly pay schedules all supported.
 
 ---
 
 *Paycheck Debt Planner provides budgeting and organizational tools only and does not provide financial advice.*
+
+---
+
+## What's New — Version 1.6 (App Store Release Notes)
+
+**Payday Autopilot — your whole paycheck, confirmed in one tap.**
+On payday, Debt Planner surfaces everything this paycheck covers — your required bills and minimums *plus* your extra payments — and lets you confirm it all in a single tap. Paid a bill differently, or one didn't go through? Tap Adjust to reconcile just that item; the rest stays one-tap. Your progress stays accurate with zero bookkeeping.
+
+**Autopay, handled.**
+Mark a bill or debt minimum as autopay and Debt Planner stops nagging you to check it off — it shows an "Autopay" status, assumes it ran once due, and never lets a paid-by-autopay bill pile up as falsely overdue next paycheck. If an autopay didn't go through, report it at payday and it becomes a clear Overdue item you can pay off right from your plan.
+
+**See what your extra payments are worth.**
+A new Interest-Saved card on the Payoff tab shows exactly how much interest your plan saves you — and how much sooner you'll be debt-free — versus minimums only. Free, updated every time you run your plan.
+
+Plus: the Plan hero now leads with exactly what to pay this paycheck; more accurate payoff dates for weekly and biweekly plans; a touch-first payday check-in; demo mode follows your Light/Dark setting; and fixes so paid-off debts clear cleanly.
+
+_(Source of truth for this copy + review notes → `docs/release-notes/v1.6.md` — keep the two in sync.)_
 
 ---
 

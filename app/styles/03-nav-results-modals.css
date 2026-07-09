@@ -462,7 +462,7 @@
 	border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
-.dark-them .execution-summary-strip span {
+.dark-theme .execution-summary-strip span {
 	color: rgba(226, 232, 250, 0.7);
 }
 
@@ -1795,5 +1795,467 @@
 .amortization-balance {
 	color: var(--text-primary);
 	font-weight: 700;
+}
+
+/* ─── Payday Autopilot capture sheet (v1.6) ─── */
+.payday-sheet {
+	max-width: 460px;
+}
+
+/* Payday checkpoint — the aggregate "Required bills & minimums" section above the
+   itemized extras. Confirmed as a block by the primary action (or itemized via
+   Adjust, step 6). */
+.payday-required {
+	margin: 12px 0 4px;
+	padding: 14px 16px;
+	border-radius: 14px;
+	background: rgba(148, 163, 184, 0.06);
+	border: 1px solid var(--border-color);
+}
+
+.payday-required-main {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.payday-required-text {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.payday-required-label {
+	font-size: 0.98rem;
+	font-weight: 700;
+	color: var(--text-primary);
+}
+
+.payday-required-sub {
+	font-size: 0.78rem;
+	color: var(--text-secondary);
+}
+
+.payday-required-amount {
+	font-size: 1.15rem;
+	font-weight: 800;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.payday-section-label {
+	margin-top: 14px;
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--text-secondary);
+}
+
+.payday-required-adjust {
+	display: block;
+	margin: 10px 0 0 auto;
+	padding: 2px 0;
+	font-size: 0.82rem;
+	font-weight: 700;
+	color: var(--accent-color);
+	background: none;
+	border: none;
+}
+
+/* The focused reconciliation view (in-sheet content swap). The list mounts fresh
+   on the swap, so its entrance animation gives the cross-fade — CSS only, no
+   native driver. */
+.payday-back {
+	display: inline-block;
+	margin-bottom: 8px;
+	padding: 0;
+	font-size: 0.86rem;
+	font-weight: 600;
+	color: var(--text-secondary);
+}
+
+.payday-reconcile-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 10px 0 4px;
+	max-height: 46vh;
+	overflow-y: auto;
+	animation: paydayReconcileIn 0.2s ease;
+}
+
+@keyframes paydayReconcileIn {
+	from {
+		opacity: 0;
+		transform: translateX(14px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* A <div role="button">, not a <button> — iOS WKWebView won't grow a native
+   <button> box to fit multi-line content (it renders at ~min-height), so the meta
+   line spilled over the next card. A plain <div> grows to content on-device. */
+.payday-reconcile-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 12px 14px;
+	border-radius: 12px;
+	background: rgba(148, 163, 184, 0.06);
+	border: 1px solid var(--border-color);
+	text-align: left;
+	cursor: pointer;
+	transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.payday-reconcile-row.unpaid {
+	background: rgba(239, 68, 68, 0.08);
+	border-color: rgba(239, 68, 68, 0.28);
+}
+
+.payday-reconcile-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+	min-width: 0;
+}
+
+.payday-reconcile-label {
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: var(--text-primary);
+	overflow-wrap: anywhere;
+}
+
+.payday-reconcile-meta {
+	font-size: 0.74rem;
+	color: var(--text-secondary);
+}
+
+.payday-reconcile-amount {
+	font-size: 0.98rem;
+	font-weight: 700;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.payday-reconcile-state {
+	min-width: 72px;
+	text-align: right;
+	font-size: 0.78rem;
+	font-weight: 700;
+	color: var(--success-color);
+}
+
+.payday-reconcile-row.unpaid .payday-reconcile-state {
+	color: #ef4444;
+}
+
+.payday-reconcile-carry {
+	padding: 12px 2px 4px;
+	margin-top: 4px;
+	border-top: 1px solid var(--border-color);
+	font-size: 0.86rem;
+	color: var(--text-secondary);
+}
+
+.payday-reconcile-toolbar {
+	display: flex;
+	justify-content: flex-end;
+	margin: 6px 0 -2px;
+}
+
+.payday-mark-all {
+	font-size: 0.82rem;
+	font-weight: 700;
+	color: var(--accent-color);
+	padding: 4px 2px;
+}
+
+/* Recommended/extras — touch-first rows (tap the state to mark made/skipped, tap
+   the amount to edit) replacing the old number-input + checkbox form. */
+.payday-extras-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 8px 0 4px;
+}
+
+.payday-extra-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 12px 14px;
+	border-radius: 12px;
+	background: rgba(148, 163, 184, 0.06);
+	border: 1px solid var(--border-color);
+	transition: opacity 0.16s ease;
+}
+
+.payday-extra-row.skipped {
+	opacity: 0.6;
+}
+
+.payday-extra-text {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	min-width: 0;
+	flex: 1;
+}
+
+.payday-extra-label {
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: var(--text-primary);
+	overflow-wrap: anywhere;
+}
+
+.payday-extra-chip {
+	align-self: flex-start;
+	font-size: 0.7rem;
+	font-weight: 700;
+	padding: 3px 9px;
+	border-radius: var(--radius-pill);
+	background: rgba(148, 163, 184, 0.10);
+	color: var(--text-secondary);
+	border: 1px solid var(--border-color);
+}
+
+.payday-extra-chip.on {
+	background: rgba(59, 130, 246, 0.12);
+	color: var(--badge-blue-color);
+	border-color: rgba(59, 130, 246, 0.28);
+}
+
+.payday-extra-right {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.payday-extra-amount {
+	font-size: 1rem;
+	font-weight: 700;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+	padding: 2px 1px;
+	background: none;
+	border: none;
+	border-bottom: 1px dashed var(--text-secondary);
+}
+
+.payday-extra-amount:disabled {
+	border-bottom-color: transparent;
+}
+
+.payday-extra-row.skipped .payday-extra-amount {
+	text-decoration: line-through;
+	color: var(--text-secondary);
+}
+
+.payday-extra-input {
+	width: 96px;
+	font-size: 1rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	padding: 4px 8px;
+	border-radius: 8px;
+	background: rgba(148, 163, 184, 0.10);
+	border: 1px solid var(--accent-color);
+	color: var(--text-primary);
+	text-align: right;
+}
+
+.payday-extra-state {
+	min-width: 66px;
+	text-align: center;
+	font-size: 0.76rem;
+	font-weight: 700;
+	padding: 6px 10px;
+	border-radius: var(--radius-pill);
+	background: rgba(34, 197, 94, 0.09);
+	color: var(--success-color);
+	border: 1px solid rgba(34, 197, 94, 0.18);
+}
+
+/* Skipping an OPTIONAL extra is a choice, not an error — neutral tone (red stays
+   for required bills, which you actually owe). */
+.payday-extra-state.skipped {
+	background: rgba(148, 163, 184, 0.10);
+	color: var(--text-secondary);
+	border: 1px solid var(--border-color);
+}
+
+/* Post-confirm success beat. */
+.payday-captured {
+	align-items: center;
+	text-align: center;
+	padding: 44px 24px 40px;
+}
+
+.payday-captured h2 {
+	margin-top: 4px;
+}
+
+.payday-captured-check {
+	width: 76px;
+	height: 76px;
+	margin: 0 auto 14px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 2.4rem;
+	font-weight: 800;
+	background: rgba(34, 197, 94, 0.14);
+	color: var(--success-color);
+	border: 1px solid rgba(34, 197, 94, 0.24);
+	animation: paydayCheckPop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes paydayCheckPop {
+	from {
+		transform: scale(0.4);
+		opacity: 0;
+	}
+	to {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+.payday-plan-list {
+	display: flex;
+	flex-direction: column;
+	margin: 8px 0 4px;
+}
+
+.payday-plan-row {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 14px 2px;
+	border-bottom: 1px solid var(--border-soft);
+}
+
+.payday-plan-row:last-child {
+	border-bottom: none;
+}
+
+.payday-plan-row-main {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.payday-plan-label {
+	font-size: 0.98rem;
+	font-weight: 600;
+	color: var(--text-primary);
+}
+
+.payday-plan-amount {
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.payday-plan-input {
+	width: 118px;
+	padding: 8px 10px;
+	font-size: 1rem;
+	font-weight: 600;
+	text-align: right;
+	color: var(--text-primary);
+	background: var(--bg-primary);
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	font-variant-numeric: tabular-nums;
+}
+
+.payday-plan-input:focus {
+	outline: none;
+	border-color: var(--accent-color);
+	box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.payday-external-toggle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.85rem;
+	color: var(--text-secondary);
+}
+
+.payday-external-toggle input {
+	width: 16px;
+	height: 16px;
+	accent-color: var(--accent-color);
+}
+
+.payday-plan-total {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 2px 4px;
+	margin-top: 4px;
+	border-top: 1px solid var(--border-color);
+}
+
+.payday-plan-total span {
+	font-size: 0.78rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--text-secondary);
+}
+
+.payday-plan-total strong {
+	font-size: 1.25rem;
+	font-weight: 800;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+
+.payday-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: 18px;
+}
+
+.payday-primary-button {
+	width: 100%;
+	padding: 15px;
+	font-size: 1.02rem;
+	font-weight: 700;
+	color: #ffffff;
+	background: var(--accent-color);
+	border: none;
+	border-radius: 14px;
+	cursor: pointer;
+	box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+	transition: transform 0.08s ease;
+}
+
+.payday-primary-button:active {
+	transform: scale(0.98);
+}
+
+.payday-secondary {
+	align-self: center;
+	padding: 9px;
 }
 

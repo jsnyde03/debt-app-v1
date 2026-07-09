@@ -98,6 +98,10 @@ export function useRequiredExpenses(saveResetSnapshot: (overrides?: { requiredEx
                     ? {
                         ...expense,
                         isPaidThisCycle: !expense.isPaidThisCycle,
+                        // Confirming payment resolves any reported autopay failure —
+                        // it must not re-surface as failed next cycle (mirrors
+                        // bulkMarkRequiredPaid). Harmless no-op for manual bills.
+                        autopayFailedThisCycle: false,
                     }
                     : expense
             );

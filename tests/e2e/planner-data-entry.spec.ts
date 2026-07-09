@@ -32,7 +32,7 @@ test("can add an expense and persist after reload", async ({ page }) => {
 
     await page.getByRole("button", { name: "Add Required Expense" }).click();
 
-    await expect(page.locator(".saved-title").filter({hasText: "Internet"})).toBeVisible;
+    await expect(page.locator(".saved-title").filter({ hasText: "Internet" })).toBeVisible();
 
     await page.reload();
 

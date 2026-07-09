@@ -5,46 +5,36 @@ import type { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import type {
     Debt,
     RequiredExpense,
-    RecommendationOverride,
 } from "@/lib/storage/debtPlannerStorage";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { computeCycleDelta } from "@/lib/debt/computeCycleDelta";
-import type { PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
+import { deriveRequiredActionView } from "@/lib/debt/deriveRequiredActionView";
+import type { CompletedRecommendedAction, PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
 import { TrendingDown, TrendingUp } from "@/lib/icons";
 import { SwipeActionCard } from "./SwipeActionCard";
+import { RequiredActionItem } from "./RequiredActionItem";
 import { CompletedActionsList } from "./Results/CompletedActionsList";
 import { OptionalGoalsList } from "./Results/OptionalGoalsList";
+import {
+    computeFlexibleCash,
+    computeCompletedRecommendedTotal,
+    type ActiveRecommendedAction,
+} from "@/lib/engine/recommendedActions";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 
 type RecommendedCategory = "emergency" | "snowball" | "optional_goal";
 
-type Goal = {
-    id: string;
-    name: string;
-    targetAmount: number;
-    currentAmount: number;
-    type: "emergency" | "savings";
-};
-
-type CompletedRecommendedAction = {
-    targetId: string;
-    label: string;
-    category: RecommendedCategory;
-    recommendedAmount: number;
-    actualAmount: number;
-    paymentSource?: "paycheck" | "external";
-};
-
 type ResultsSectionProps = {
     result: AllocationResult | null;
     requiredExpenses: RequiredExpense[];
     debts: Debt[];
-    goals: Goal[];
+    /** The cycle's active recommended actions — computed once in page.tsx via
+     *  selectActiveRecommendedActions so the Plan tab and the payday capture sheet
+     *  share one source of truth. */
+    activeRecommendedActions: ActiveRecommendedAction[];
     completedRecommendedActions: CompletedRecommendedAction[];
-    recommendationOverrides: RecommendationOverride[];
     currentDate: string;
-    payoffStrategy: "snowball" | "avalanche";
     debtFreeDate?: string | null;
     previousSnapshot?: PayCycleSnapshot | null;
     onMarkExpensePaid: (id: string) => void;
@@ -61,7 +51,8 @@ type ResultsSectionProps = {
         category: RecommendedCategory,
         recommendedAmount: number,
         actualAmount: number,
-        paymentSource?: "paycheck" | "external"
+        paymentSource?: "paycheck" | "external",
+        isUnmark?: boolean
     ) => void;
 };
 
@@ -78,13 +69,6 @@ type RecommendedDisplayAction = {
 
 function roundMoney(amount: number) {
     return Math.round(amount * 100) / 100;
-}
-
-function isOverdue(dueDate: string, currentDate: string) {
-    return (
-        new Date(`${dueDate}T00:00:00`) <
-        new Date(`${currentDate}T00:00:00`)
-    );
 }
 
 function isRecommendedCategory(
@@ -109,11 +93,9 @@ export function ResultsSection({
     result,
     requiredExpenses,
     debts,
-    goals,
+    activeRecommendedActions,
     completedRecommendedActions,
-    recommendationOverrides,
     currentDate,
-    payoffStrategy,
     debtFreeDate,
     previousSnapshot,
     onMarkExpensePaid,
@@ -163,85 +145,15 @@ export function ResultsSection({
             item.category === "autopay_debt"
     );
 
-    const completedSnowballAmountsByDebtId = completedRecommendedActions
-        .filter((action) => action.category === "snowball")
-        .reduce<Record<string, number>>((map, action) => {
-            map[action.targetId] = roundMoney(
-                (map[action.targetId] ?? 0) + action.actualAmount
-            );
-
-            return map;
-        }, {});
-
-    const adjustedActiveDebts = debts
-        .map((debt) => ({
-            ...debt,
-            balance: roundMoney(
-                Math.max(
-                    0,
-                    debt.balance -
-                    (completedSnowballAmountsByDebtId[debt.id] ?? 0)
-                )
-            ),
-        }))
-        .filter((debt) => debt.balance > 0)
-        .sort((a, b) => {
-            if (payoffStrategy === "avalanche") {
-                if (b.apr !== a.apr) {
-                    return b.apr - a.apr;
-                }
-
-                return a.balance - b.balance;
-            }
-
-            return a.balance - b.balance;
-        });
-
-    const activeSnowballRecommendationActions = adjustedActiveDebts.map(
-        (debt) => ({
-            category: "snowball" as const,
-            targetId: debt.id,
-            debtId: debt.id,
-            label: `Extra payment to ${debt.name}`,
-            amount: debt.balance,
-        })
-    );
-
-    const recommendedActions = [
-        ...result.allocations.filter((item) => item.category === "emergency"),
-        ...activeSnowballRecommendationActions,
-    ];
-
     const optionalGoalActions = result.allocations.filter(
         (item) => item.category === "optional_goal"
     );
 
-    const unpaidRequiredActions = requiredActions.filter((item) => {
-        const expense =
-            item.category === "expense" || item.category === "autopay_expense"
-                ? requiredExpenses.find(
-                    (expenseItem) => expenseItem.id === item.targetId
-                )
-                : undefined;
-
-        const debt =
-            item.category === "minimum_debt" ||
-                item.category === "autopay_debt"
-                ? debts.find(
-                    (debtItem) =>
-                        debtItem.id === (item.debtId ?? item.targetId)
-                )
-                : undefined;
-
-        const isPaid =
-            item.category === "expense" || item.category === "autopay_expense"
-                ? expense?.isPaidThisCycle ?? false
-                : debt?.minimumPaidThisCycle ??
-                debt?.isPaidThisCycle ??
-                false;
-
-        return !isPaid;
-    });
+    const unpaidRequiredActions = requiredActions.filter(
+        (item) =>
+            !deriveRequiredActionView(item, requiredExpenses, debts, currentDate)
+                .isPaid
+    );
 
     const completedRequiredActions = [
         ...requiredExpenses
@@ -302,7 +214,7 @@ export function ResultsSection({
 
     const completedRecommendedDisplayActions: RecommendedDisplayAction[] =
         completedRecommendedActions.map((action) => ({
-            key: `completed-${action.category}-${action.targetId}-${action.label}`,
+            key: `completed-${action.category}-${action.targetId}-${action.label}-${action.paymentSource ?? "paycheck"}`,
             label: action.label,
             category: action.category,
             targetId: action.targetId,
@@ -319,109 +231,29 @@ export function ResultsSection({
         unpaidRequiredActions.reduce((sum, item) => sum + item.amount, 0) +
         unfundedRequiredTotal;
 
-    const completedRecommendedTotal = completedRecommendedActions.filter((action) => action.paymentSource !== "external").reduce((sum, action) => sum + action.actualAmount, 0);
+    const completedRecommendedTotal = computeCompletedRecommendedTotal(completedRecommendedActions);
 
-    const flexibleCashAvailable = roundMoney(
-        Math.max(
-            0,
-            result.paycheckAmount -
-            result.totalRequired -
-            result.livingExpenseReserve -
-            bufferTotal -
-            completedRecommendedTotal
-        )
-    );
+    const flexibleCashAvailable = computeFlexibleCash({
+        paycheckAmount: result.paycheckAmount,
+        totalRequired: result.totalRequired,
+        livingExpenseReserve: result.livingExpenseReserve,
+        bufferTotal,
+        completedRecommendedTotal,
+    });
 
-    function getRecommendationMaxAmount(
-        item: AllocationResult["allocations"][number]
-    ) {
-        if (!item.targetId) {
-            return item.amount;
-        }
-
-        if (item.category === "snowball") {
-            return roundMoney(Math.max(0, item.amount));
-        }
-
-        if (item.category === "emergency" || item.category === "optional_goal") {
-            const goal = goals.find(
-                (goalItem) => goalItem.id === item.targetId
-            );
-
-            if (!goal) {
-                return item.amount;
-            }
-
-            return roundMoney(
-                Math.max(0, goal.targetAmount - goal.currentAmount)
-            );
-        }
-
-        return item.amount;
-    }
-
-    function getRecommendationOverrideAmount(
-        targetId: string,
-        category: RecommendedCategory
-    ) {
-        if (category !== "emergency" && category !== "snowball") {
-            return undefined;
-        }
-
-        return recommendationOverrides.find(
-            (override) =>
-                override.targetId === targetId &&
-                override.category === category
-        )?.amount;
-    }
-
-    const activeRecommendedDisplayActions: RecommendedDisplayAction[] = [];
-
-    let remainingRecommendationCapacity = flexibleCashAvailable;
-
-    for (const item of recommendedActions) {
-        if (remainingRecommendationCapacity <= 0) {
-            break;
-        }
-
-        if (!isRecommendedCategory(item.category) || !item.targetId) {
-            continue;
-        }
-
-        const key = `active-${getRecommendedKey(item)}`;
-        const maxAmount = getRecommendationMaxAmount(item);
-
-        const overrideAmount = getRecommendationOverrideAmount(
-            item.targetId,
-            item.category
-        );
-
-        const amount = roundMoney(
-            Math.min(
-                overrideAmount ?? maxAmount,
-                maxAmount,
-                remainingRecommendationCapacity
-            )
-        );
-
-        if (amount <= 0) {
-            continue;
-        }
-
-        activeRecommendedDisplayActions.push({
-            key,
-            label: item.label,
-            category: item.category,
-            targetId: item.targetId,
-            recommendedAmount: maxAmount,
-            actualAmount: amount,
+    // The active recommended actions are computed ONCE in page.tsx
+    // (selectActiveRecommendedActions) and passed in, so the Plan tab and the
+    // payday capture sheet render the identical plan — no drift.
+    const activeRecommendedDisplayActions: RecommendedDisplayAction[] =
+        activeRecommendedActions.map((action) => ({
+            key: action.key,
+            label: action.label,
+            category: action.category,
+            targetId: action.targetId,
+            recommendedAmount: action.recommendedAmount,
+            actualAmount: action.actualAmount,
             isCompleted: false,
-        });
-
-        remainingRecommendationCapacity = roundMoney(
-            remainingRecommendationCapacity - amount
-        );
-    }
+        }));
 
     const displayedRecommendedActions = [
         ...completedRecommendedDisplayActions,
@@ -442,152 +274,31 @@ export function ResultsSection({
         0
     );
 
-    const hasOverdueItems = requiredActions.some((item) => {
-        const expense =
-            item.category === "expense" || item.category === "autopay_expense"
-                ? requiredExpenses.find(
-                    (expense) => expense.id === item.targetId
-                )
-                : undefined;
-
-        const debt =
-            item.category === "minimum_debt" ||
-                item.category === "autopay_debt"
-                ? debts.find((debt) => debt.id === item.targetId)
-                : undefined;
-
-        const dueDate = expense?.dueDate ?? debt?.dueDate;
-
-        const isPaid =
-            item.category === "expense" || item.category === "autopay_expense"
-                ? expense?.isPaidThisCycle ?? false
-                : debt?.minimumPaidThisCycle ??
-                debt?.isPaidThisCycle ??
-                false;
-
-        return dueDate && !isPaid ? isOverdue(dueDate, currentDate) : false;
-    });
+    const hasOverdueItems = requiredActions.some(
+        (item) =>
+            deriveRequiredActionView(item, requiredExpenses, debts, currentDate)
+                .overdue
+    );
 
     function renderRequiredAction(
         item: AllocationResult["allocations"][number],
         index: number
     ) {
-        const expense =
-            item.category === "expense" || item.category === "autopay_expense"
-                ? requiredExpenses.find(
-                    (expenseItem) => expenseItem.id === item.targetId
-                )
-                : undefined;
-
-        const debt =
-            item.category === "minimum_debt" ||
-                item.category === "autopay_debt"
-                ? debts.find(
-                    (debtItem) =>
-                        debtItem.id === (item.debtId ?? item.targetId)
-                )
-                : undefined;
-
-        const isPaid =
-            item.category === "expense" || item.category === "autopay_expense"
-                ? expense?.isPaidThisCycle ?? false
-                : debt?.minimumPaidThisCycle ??
-                debt?.isPaidThisCycle ??
-                false;
-
-        const dueDate = expense?.dueDate ?? debt?.dueDate;
-
-        const overdue =
-            dueDate && !isPaid ? isOverdue(dueDate, currentDate) : false;
-
-        const isAutopay =
-            item.category === "autopay_expense" ||
-            item.category === "autopay_debt";
-
-        function handleRequiredActionToggle() {
-            if (item.category === "expense" || item.category === "autopay_expense") {
-                if (item.targetId) {
-                    onMarkExpensePaid(item.targetId);
-                }
-
-                return;
-            }
-
-            if (item.category === "minimum_debt" || item.category === "autopay_debt") {
-                const debtId = item.debtId ?? item.targetId;
-
-                if (debtId) {
-                    onMarkDebtMinimumPaid(debtId);
-                }
-            }
-        }
+        const view = deriveRequiredActionView(
+            item,
+            requiredExpenses,
+            debts,
+            currentDate
+        );
 
         return (
-            <SwipeActionCard
+            <RequiredActionItem
                 key={`${item.category}-${item.targetId ?? index}`}
-                className={[
-                    "saved-item",
-                    isPaid ? "completed-item" : "",
-                    overdue ? "overdue-item" : "",
-                ].filter(Boolean).join(" ")}
-
-                leftAction={
-                    !isPaid
-                        ? {
-                            label: "Mark Paid",
-                            tone: "positive",
-                            onTrigger: handleRequiredActionToggle,
-                        }
-                        : undefined
-                }
-
-                rightAction={
-                    isPaid
-                        ? {
-                            label: "Undo",
-                            tone: "warning",
-                            onTrigger: handleRequiredActionToggle,
-                        }
-                        : undefined
-                }
-
-            >
-                <div className="saved-item-left">
-                    <div className="saved-title">
-                        {item.label}
-                        {isAutopay && (
-                            <span className="autopay-pill">Autopay</span>
-                        )}
-                    </div>
-
-                    {overdue && (
-                        <div className="status-chip overdue">Overdue</div>
-                    )}
-
-                    <div className="saved-meta">
-                        {dueDate ? `Due ${dueDate}` : "Required Payment"}
-                    </div>
-                </div>
-
-                <div className="saved-item-right">
-                    <strong className="saved-amount">
-                        {formatCurrency(item.amount)}
-                    </strong>
-
-                    <button
-                        type="button"
-                        className={
-                            isPaid ? "action-pill completed" : "action-pill"
-                        }
-                        onClick={() => {
-                            triggerMediumHaptic();
-                            handleRequiredActionToggle();
-                        }}
-                    >
-                        {isPaid ? "Undo" : "Mark Paid"}
-                    </button>
-                </div>
-            </SwipeActionCard>
+                item={item}
+                view={view}
+                onMarkExpensePaid={onMarkExpensePaid}
+                onMarkDebtMinimumPaid={onMarkDebtMinimumPaid}
+            />
         );
     }
 
@@ -668,12 +379,17 @@ export function ResultsSection({
 
         function handleRecommendedPrimaryAction() {
             if (action.isCompleted) {
+                // Un-mark THIS completed row — pass its own payment source so the
+                // right (paycheck vs external) contribution is reversed, and the
+                // explicit unmark intent so it never toggles a same-key remainder.
                 onMarkRecommendedAction(
                     action.targetId,
                     action.label,
                     action.category,
                     action.recommendedAmount,
-                    action.actualAmount
+                    action.actualAmount,
+                    action.paymentSource ?? "paycheck",
+                    true
                 );
 
                 return;
