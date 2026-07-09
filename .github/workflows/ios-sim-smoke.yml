@@ -156,11 +156,20 @@ jobs:
           prep
           n=0
           until maestro test .maestro/reconcile-smoke.yaml; do
-            n=$((n+1)); [ "$n" -ge 3 ] && exit 1
-            echo "::warning::maestro attempt $n failed (iOS driver) — rebooting sim + retrying"
-            xcrun simctl shutdown "$SIM_UDID" || true; sleep 3
-            xcrun simctl boot "$SIM_UDID"; xcrun simctl bootstatus "$SIM_UDID" -b
-            prep; sleep 5
+            n=$((n+1)); [ "$n" -ge 4 ] && exit 1
+            if [ "$n" -ge 3 ]; then
+              # Last-ditch: the warm-retries didn't take — reboot and try once more.
+              echo "::warning::maestro attempt $n failed — last-ditch sim reboot"
+              xcrun simctl shutdown "$SIM_UDID" || true; sleep 3
+              xcrun simctl boot "$SIM_UDID"; xcrun simctl bootstatus "$SIM_UDID" -b
+              prep
+            else
+              # Retry on the WARM sim — a cold reboot makes the driver-attach flake
+              # WORSE (the driver times out attaching to a freshly-booted sim), so
+              # don't throw away the warm state on the first couple of retries.
+              echo "::warning::maestro attempt $n failed (iOS driver) — retrying on the warm sim"
+            fi
+            sleep 8
           done
           mkdir -p artifacts/dark diagnostics/dark
           mv 00-launch.png diagnostics/dark/ 2>/dev/null || true  # diagnostic, not a baseline
@@ -177,11 +186,16 @@ jobs:
           prep
           n=0
           until maestro test .maestro/reconcile-smoke.yaml; do
-            n=$((n+1)); [ "$n" -ge 3 ] && exit 1
-            echo "::warning::maestro attempt $n failed (iOS driver) — rebooting sim + retrying"
-            xcrun simctl shutdown "$SIM_UDID" || true; sleep 3
-            xcrun simctl boot "$SIM_UDID"; xcrun simctl bootstatus "$SIM_UDID" -b
-            prep; sleep 5
+            n=$((n+1)); [ "$n" -ge 4 ] && exit 1
+            if [ "$n" -ge 3 ]; then
+              echo "::warning::maestro attempt $n failed — last-ditch sim reboot"
+              xcrun simctl shutdown "$SIM_UDID" || true; sleep 3
+              xcrun simctl boot "$SIM_UDID"; xcrun simctl bootstatus "$SIM_UDID" -b
+              prep
+            else
+              echo "::warning::maestro attempt $n failed (iOS driver) — retrying on the warm sim"
+            fi
+            sleep 8
           done
           mkdir -p artifacts/light diagnostics/light
           mv 00-launch.png diagnostics/light/ 2>/dev/null || true  # diagnostic, not a baseline
