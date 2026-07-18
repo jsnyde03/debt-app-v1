@@ -8,6 +8,17 @@
 
 ---
 
+## ✅ DECISION (Jason, 2026-07-18) — **Option B: full migration COMMITTED**
+Jason chose to commit the full migration, over the "commit Gate 1 first" recommendation. Rationale (stronger than the audits' "not forced today" framing): the migration is **inevitable** given the v2.0+ feature/polish hyperdrive, and its LOE only grows with surface area — so the cheapest version of an inevitable migration is the soonest. "Not forced" ≠ "not right."
+- **The commitment is to the destination; execution still runs through the gates** (now execution checkpoints, not go/no-go-on-the-decision) — the live earner stays protected and every step abort-able.
+- **The release train does not stop:** v1.7 (Premium+/Drift) + v1.8 (Android) ship on Capacitor behind the **v1.8 UI Freeze Line**; RN cuts over after.
+- **Data-continuity is proven on a real upgraded device before cut-over** — non-negotiable.
+- **D1 resolved:** the migration IS v1.7's debt-kill → v1.7-on-Capacitor **drops** the throwaway in-place God-file/CSS/Tailwind refactor and **keeps** the revenue spine + the stack-agnostic core work (= the `packages/core` extraction, Gate 1). God-files die by being rebuilt clean in RN.
+- **Own standalone portfolio initiative**, interleaved — never a monopolizing block; must not preempt the protected finance slot or starve the bet rotation.
+- **First concrete step: Gate 1** (extract `packages/core` + stand up `apps/rn` with one screen at parity). Sequencing of when Gate 1 becomes active work vs. shipping v1.7's revenue spine first = confirm with Jason.
+
+---
+
 ## Headline numbers
 
 - **Portability:** ~**55% of the TypeScript** (13,030 LOC) and **68% of files** port essentially unchanged. Only **2.8% (8 files, 668 LOC)** is genuine native re-glue. The rewrite is **the presentation layer**, not the domain.
