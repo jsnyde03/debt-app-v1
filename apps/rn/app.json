@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "Debt Planner (RN)",
+    "slug": "debt-planner-rn",
+    "scheme": "debtplannerrn",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "web": {
+      "output": "single"
+    }
+  }
+}
