@@ -1,4 +1,4 @@
-import { allocatePaycheck } from "../engine/allocatePaycheck";
+import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import { projectDebtPayoff } from "../debt/projectDebtPayoff";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {

@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { formatCurrency } from "@core/utils/formatCurrency";
 import type { InterestSaved } from "@/lib/debt/computeInterestSaved";
 
 function formatMonths(months: number): string {

@@ -1,6 +1,6 @@
 import { usePersistedState } from "@/lib/storage/usePersistedState";
 import type { LivingExpense } from "@core/types/livingExpense";
-import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
+import { livingExpensePresets } from "@core/constants/livingExpensePresets";
 
 /**
  * Owns the `livingExpenses` persisted state, seeded from the presets — one

@@ -3,8 +3,8 @@ import {
     computeCompletedSnowballByDebt,
     computeCompletedRecommendedTotal,
     buildActiveRecommendedActions,
-} from "../engine/recommendedActions";
-import type { CompletedRecommendedAction, Goal } from "../storage/debtPlannerStorage";
+} from "@/lib/engine/recommendedActions";
+import type { CompletedRecommendedAction, Goal } from "@/lib/storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, msg: string) {
     if (actual !== expected) {

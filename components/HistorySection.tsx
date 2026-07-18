@@ -1,6 +1,6 @@
 import type { PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
-import { formatCurrency } from "@/lib/utils/formatCurrency";
-import { dayBefore } from "@/lib/utils/dayBefore";
+import { formatCurrency } from "@core/utils/formatCurrency";
+import { dayBefore } from "@core/utils/dayBefore";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 import { History, ChevronRight, TrendingDown, TrendingUp } from "@/lib/icons";
 import { PREMIUM_PLUS_AVAILABLE } from "@/lib/subscription/plans";

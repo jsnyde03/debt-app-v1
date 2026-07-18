@@ -1,5 +1,5 @@
 import type { allocatePaycheck } from "./allocatePaycheck";
-import type { CompletedRecommendedAction, Goal } from "../storage/debtPlannerStorage";
+import type { CompletedRecommendedAction, Goal } from "@/lib/storage/debtPlannerStorage";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 type AllocationItem = AllocationResult["allocations"][number];

@@ -1,5 +1,5 @@
 import { bulkMarkRequiredPaid, applyRequiredReconciliation } from "./bulkMarkRequired";
-import type { RequiredExpense, Debt } from "../storage/debtPlannerStorage";
+import type { RequiredExpense, Debt } from "@/lib/storage/debtPlannerStorage";
 
 function assert(condition: boolean, msg: string) {
     if (!condition) throw new Error(`FAIL [${msg}]`);

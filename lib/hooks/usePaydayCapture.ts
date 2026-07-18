@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { readKeyValue, writeKey } from "@/lib/storage/safeStorage";
 import { shouldPromptPaydayCapture, isPaydayAwaitingRollover } from "@/lib/debt/shouldPromptPaydayCapture";
-import type { PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
+import type { PayCycle } from "@core/payCycle/getNextPaycheckDate";
 
 const HANDLED_KEY = "debtPlanner.lastHandledPaydayDate";
 

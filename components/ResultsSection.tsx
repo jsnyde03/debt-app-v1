@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
-import { formatDisplayAmount } from "@/lib/utils/formatDisplayAmount";
+import { formatDisplayAmount } from "@core/utils/formatDisplayAmount";
 import type { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import type {
     Debt,
     RequiredExpense,
 } from "@/lib/storage/debtPlannerStorage";
-import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { formatCurrency } from "@core/utils/formatCurrency";
 import { computeCycleDelta } from "@/lib/debt/computeCycleDelta";
 import { deriveRequiredActionView } from "@/lib/debt/deriveRequiredActionView";
 import type { CompletedRecommendedAction, PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";

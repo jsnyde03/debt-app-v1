@@ -1,4 +1,4 @@
-import type { Debt, RequiredExpense } from "../storage/debtPlannerStorage";
+import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 
 function toDate(date: string) {
     return new Date(`${date}T00:00:00`);

@@ -1,12 +1,12 @@
-import { formatCurrency } from "@/lib/utils/formatCurrency";
-import { dayBefore } from "@/lib/utils/dayBefore";
+import { formatCurrency } from "@core/utils/formatCurrency";
+import { dayBefore } from "@core/utils/dayBefore";
 import type { CompletedRecommendedAction, Debt, RequiredExpense, Goal } from "@/lib/storage/debtPlannerStorage";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import {
     buildMultiCycleTimeline,
     type MultiCycleTimelineConfig,
-} from "@/lib/timeline/buildMultiCycleTimeline";
-import type { TimelineItem } from "@/lib/timeline/buildTimelineItems";
+} from "@core/timeline/buildMultiCycleTimeline";
+import type { TimelineItem } from "@core/timeline/buildTimelineItems";
 import type { LivingExpense } from "@core/types/livingExpense";
 import { useState } from "react";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";

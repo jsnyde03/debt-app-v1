@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { LivingExpense } from "@core/types/livingExpense";
-import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { formatCurrency } from "@core/utils/formatCurrency";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 
 type LivingExpensesSectionProps = {

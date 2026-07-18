@@ -1,6 +1,6 @@
 import { isAutopayPresumedPaid, reconcileAutopayForRollover } from "./reconcileAutopay";
-import { rolloverRequiredExpenses, rolloverDebts } from "../recurrence/rolloverPayCycle";
-import type { RequiredExpense, Debt } from "../storage/debtPlannerStorage";
+import { rolloverRequiredExpenses, rolloverDebts } from "@core/recurrence/rolloverPayCycle";
+import type { RequiredExpense, Debt } from "@/lib/storage/debtPlannerStorage";
 
 function toDate(date: string) {
     return new Date(`${date}T00:00:00`);

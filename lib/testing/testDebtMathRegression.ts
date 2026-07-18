@@ -3,7 +3,7 @@ import { applyDebtPaymentProjection } from "../debt/applyDebtPaymentProjection";
 import { projectDebtPayoff } from "../debt/projectDebtPayoff";
 import { buildExtraPaymentAllocationPlan } from "../debt/extraPaymentPlan";
 import { applyRolloverPayment } from "../debt/applyRolloverPayment";
-import type { Debt } from "../storage/debtPlannerStorage";
+import type { Debt } from "@/lib/storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, msg: string) {
     if (actual !== expected) {

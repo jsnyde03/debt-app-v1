@@ -1,4 +1,4 @@
-import type { PayCycleSnapshot } from "../storage/debtPlannerStorage";
+import type { PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
 
 export type CycleDelta = {
     // "down" = total debt fell since the last cycle (good, green);

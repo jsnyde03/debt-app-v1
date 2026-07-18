@@ -2,9 +2,9 @@
 
 import { useMemo, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
-import { getNextPaycheckDate } from "@/lib/payCycle/getNextPaycheckDate";
-import { rollPaydayToFuture } from "@/lib/payCycle/rollPaydayToFuture";
-import { payCyclesPerMonth } from "@/lib/payCycle/payCyclesPerMonth";
+import { getNextPaycheckDate } from "@core/payCycle/getNextPaycheckDate";
+import { rollPaydayToFuture } from "@core/payCycle/rollPaydayToFuture";
+import { payCyclesPerMonth } from "@core/payCycle/payCyclesPerMonth";
 import { computeInterestSaved, type InterestSaved } from "@/lib/debt/computeInterestSaved";
 import type { Recurrence } from "@core/types/recurrence";
 import "./styles/00-theme-and-base.css";
@@ -29,7 +29,7 @@ import { SnowballSection } from "@/components/SnowballSection";
 import {
     rolloverDebts,
     rolloverRequiredExpenses,
-} from "@/lib/recurrence/rolloverPayCycle";
+} from "@core/recurrence/rolloverPayCycle";
 
 import { type CompletedRecommendedAction, type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
@@ -55,7 +55,7 @@ import { getPortalTarget } from "@/lib/dom/getPortalTarget";
 import { PaydayCaptureSheet } from "@/components/PaydayCaptureSheet";
 import { createPortal } from "react-dom";
 import { useLivingExpenses } from "@/lib/hooks/useLivingExpenses";
-import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
+import { livingExpensePresets } from "@core/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
 import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
 import { applySimSmokeSeedToStorage, freezeClockForSimSmoke } from "@/lib/testing/simSmokeSeed";
@@ -84,7 +84,7 @@ import { AppLockScreen } from "@/components/AppLockScreen";
 import { useAppLock } from "@/lib/hooks/useAppLock";
 import { useOnboarding } from "@/lib/hooks/useOnboarding";
 import { usePayCycleHistory } from "@/lib/hooks/usePayCycleHistory";
-import { buildCycleSnapshot } from "@/lib/history/buildCycleSnapshot";
+import { buildCycleSnapshot } from "@core/history/buildCycleSnapshot";
 import { HistorySection } from "@/components/HistorySection";
 import { OnboardingFlow } from "@/components/Onboarding/OnboardingFlow";
 import { CreditCard, Settings, Wallet } from "@/lib/icons";

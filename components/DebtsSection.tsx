@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import type { Recurrence } from "@core/types/recurrence";
-import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { formatCurrency } from "@core/utils/formatCurrency";
 import { parseDebtFormValues } from "@/lib/debt/parseDebtFormValues";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";

@@ -1,5 +1,5 @@
-import { getForecastStatus } from "../forecast/getForecastStatus";
-import { projectForecast } from "../forecast/projectForecast";
+import { getForecastStatus } from "@core/forecast/getForecastStatus";
+import { projectForecast } from "@core/forecast/projectForecast";
 
 function assertEqual<T>(actual: T, expected: T, msg: string) {
     if (actual !== expected) {

@@ -1,6 +1,6 @@
 import { projectDebtPayoff } from "./projectDebtPayoff";
-import type { Debt } from "../storage/debtPlannerStorage";
-import { roundMoney } from "@/lib/utils/money";
+import type { Debt } from "@/lib/storage/debtPlannerStorage";
+import { roundMoney } from "@core/utils/money";
 
 type PayoffStrategy = "snowball" | "avalanche";
 

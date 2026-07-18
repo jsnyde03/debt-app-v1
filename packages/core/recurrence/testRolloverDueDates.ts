@@ -1,5 +1,5 @@
 import { rolloverRequiredExpenses, rolloverDebts } from "./rolloverPayCycle";
-import type { RequiredExpense, Debt } from "../storage/debtPlannerStorage";
+import type { RequiredExpense, Debt } from "@/lib/storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
     if (actual !== expected) {

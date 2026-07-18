@@ -1,6 +1,6 @@
-import { allocatePaycheck } from "../engine/allocatePaycheck";
-import { projectForecast } from "../forecast/projectForecast";
-import { buildTimelineItems } from "../timeline/buildTimelineItems";
+import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
+import { projectForecast } from "@core/forecast/projectForecast";
+import { buildTimelineItems } from "@core/timeline/buildTimelineItems";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
 	if (actual !== expected) {

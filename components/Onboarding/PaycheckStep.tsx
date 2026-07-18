@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getNextPaycheckDate, type PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
+import { getNextPaycheckDate, type PayCycle } from "@core/payCycle/getNextPaycheckDate";
 import { getCurrentDate } from "@/lib/hooks/usePayCycleSettings";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 import { writeKey } from "@/lib/storage/safeStorage";

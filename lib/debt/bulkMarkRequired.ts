@@ -1,4 +1,4 @@
-import type { Debt, RequiredExpense } from "../storage/debtPlannerStorage";
+import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 
 /**
  * "Paid all required" — the payday checkpoint's one-tap happy path. Marks every

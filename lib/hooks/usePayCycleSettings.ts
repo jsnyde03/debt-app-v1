@@ -1,5 +1,5 @@
 import { usePersistedState } from "@/lib/storage/usePersistedState";
-import { getNextPaycheckDate, type PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
+import { getNextPaycheckDate, type PayCycle } from "@core/payCycle/getNextPaycheckDate";
 
 export function getCurrentDate() {
     const today = new Date();

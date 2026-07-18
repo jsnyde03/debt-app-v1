@@ -1,5 +1,5 @@
-import { cyclesPerYear } from "../payCycle/cyclesPerYear";
-import type { PayCycle } from "../payCycle/getNextPaycheckDate";
+import { cyclesPerYear } from "@core/payCycle/cyclesPerYear";
+import type { PayCycle } from "@core/payCycle/getNextPaycheckDate";
 
 export function calculateMonthlyInterest(balance: number, apr: number) {
     if (balance <= 0 || apr <= 0) {

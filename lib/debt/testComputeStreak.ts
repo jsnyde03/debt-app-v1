@@ -1,5 +1,5 @@
 import { computeStreak, isCycleOnPlan } from "./computeStreak";
-import type { PayCycleSnapshot } from "../storage/debtPlannerStorage";
+import type { PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
     if (actual !== expected) {

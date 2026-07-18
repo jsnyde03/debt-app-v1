@@ -1,4 +1,4 @@
-import { roundMoney } from "@/lib/utils/money";
+import { roundMoney } from "@core/utils/money";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
 
 export type DebtWithDisplayBalance = Debt & { displayBalance: number };

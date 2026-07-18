@@ -1,4 +1,4 @@
-import type { Debt, RequiredExpense } from "../storage/debtPlannerStorage";
+import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 import { isAutopayPresumedPaid } from "./reconcileAutopay";
 
 /**

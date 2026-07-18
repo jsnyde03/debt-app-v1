@@ -1,4 +1,4 @@
-import type { PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
+import type { PayCycle } from "@core/payCycle/getNextPaycheckDate";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 
 type PaycheckSectionProps = {

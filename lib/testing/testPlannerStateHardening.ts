@@ -1,9 +1,9 @@
-import { allocatePaycheck } from "../engine/allocatePaycheck";
+import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
 import {
     rolloverDebts,
     rolloverRequiredExpenses,
-} from "../recurrence/rolloverPayCycle";
-import type { Debt, RequiredExpense } from "../storage/debtPlannerStorage";
+} from "@core/recurrence/rolloverPayCycle";
+import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
     if (actual !== expected) {

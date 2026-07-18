@@ -5,7 +5,7 @@ import {
 } from "./buildPaydayCaptureItems";
 import { upsertCompletedAction } from "./mergeCompletedAction";
 import { markGoal, unmarkGoal } from "./reconcileGoalAmount";
-import { computeCompletedRecommendedTotal } from "../engine/recommendedActions";
+import { computeCompletedRecommendedTotal } from "@/lib/engine/recommendedActions";
 import type { CompletedRecommendedAction } from "@/lib/storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {

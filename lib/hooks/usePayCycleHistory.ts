@@ -8,7 +8,7 @@ import { hasFeatureAccess } from "@/lib/subscription/hasFeatureAccess";
 import {
     PREMIUM_HISTORY_CAP,
     selectVisibleHistory,
-} from "@/lib/history/selectVisibleHistory";
+} from "@core/history/selectVisibleHistory";
 
 // Owns the appended cycleHistory array + its persistence, and exposes
 // tier-aware views over it. Snapshots are recorded by the rollover

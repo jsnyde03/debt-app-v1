@@ -12,7 +12,7 @@ import {
     computeFlexibleCash,
     type ActiveRecommendedAction,
 } from "@/lib/engine/recommendedActions";
-import { roundMoney } from "@/lib/utils/money";
+import { roundMoney } from "@core/utils/money";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 

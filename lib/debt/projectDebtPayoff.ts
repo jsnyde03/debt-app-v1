@@ -1,4 +1,4 @@
-import { Debt } from "../storage/debtPlannerStorage";
+import { Debt } from "@/lib/storage/debtPlannerStorage";
 import { calculateMonthlyInterest } from "./calculateMonthlyInterest";
 
 type PayoffStrategy = "snowball" | "avalanche";

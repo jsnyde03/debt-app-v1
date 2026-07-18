@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { formatCurrency } from "@core/utils/formatCurrency";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import type { ActiveRecommendedAction } from "@/lib/engine/recommendedActions";
 import {

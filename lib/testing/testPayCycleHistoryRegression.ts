@@ -1,13 +1,13 @@
-import { buildCycleSnapshot } from "../history/buildCycleSnapshot";
+import { buildCycleSnapshot } from "@core/history/buildCycleSnapshot";
 import {
     selectVisibleHistory,
     PREMIUM_HISTORY_CAP,
-} from "../history/selectVisibleHistory";
+} from "@core/history/selectVisibleHistory";
 import type {
     CompletedRecommendedAction,
     Debt,
     PayCycleSnapshot,
-} from "../storage/debtPlannerStorage";
+} from "@/lib/storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, msg: string) {
     if (actual !== expected) {

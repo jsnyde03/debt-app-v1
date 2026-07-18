@@ -1,6 +1,6 @@
-import { allocatePaycheck } from "../engine/allocatePaycheck";
-import { buildTimelineItems } from "../timeline/buildTimelineItems";
-import type { Debt, RequiredExpense } from "../storage/debtPlannerStorage";
+import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
+import { buildTimelineItems } from "@core/timeline/buildTimelineItems";
+import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 

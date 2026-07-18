@@ -5,8 +5,8 @@ import {
     getCorruptKeys,
     __setStorageForTests,
     __resetCorruptionForTests,
-} from "../storage/safeStorage";
-import { migrateState, CURRENT_SCHEMA_VERSION } from "../storage/migrateState";
+} from "@/lib/storage/safeStorage";
+import { migrateState, CURRENT_SCHEMA_VERSION } from "@/lib/storage/migrateState";
 
 function assert(condition: boolean, msg: string) {
     if (!condition) throw new Error(`FAIL [${msg}]`);

@@ -1,7 +1,7 @@
 import { computeInterestSaved } from "./computeInterestSaved";
 import { projectDebtPayoff } from "./projectDebtPayoff";
-import { roundMoney } from "@/lib/utils/money";
-import type { Debt } from "../storage/debtPlannerStorage";
+import { roundMoney } from "@core/utils/money";
+import type { Debt } from "@/lib/storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
     if (actual !== expected) {

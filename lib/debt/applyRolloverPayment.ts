@@ -1,6 +1,6 @@
-import type { Debt } from "../storage/debtPlannerStorage";
+import type { Debt } from "@/lib/storage/debtPlannerStorage";
 import { calculateCycleInterest } from "./calculateMonthlyInterest";
-import type { PayCycle } from "../payCycle/getNextPaycheckDate";
+import type { PayCycle } from "@core/payCycle/getNextPaycheckDate";
 
 function roundMoney(amount: number) {
     return Math.round(amount * 100) / 100;

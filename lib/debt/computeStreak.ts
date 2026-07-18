@@ -1,4 +1,4 @@
-import type { PayCycleSnapshot } from "../storage/debtPlannerStorage";
+import type { PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
 
 // A cycle counts toward the streak when the user completed every REQUIRED action
 // (bills + debt minimums) they could afford that cycle - i.e. they stayed on

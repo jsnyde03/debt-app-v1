@@ -1,6 +1,6 @@
 import { buildAmortizationSchedule } from "./buildAmortizationSchedule";
 import { projectDebtPayoff } from "./projectDebtPayoff";
-import type { Debt } from "../storage/debtPlannerStorage";
+import type { Debt } from "@/lib/storage/debtPlannerStorage";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
     if (actual !== expected) {

@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { formatCurrency } from "@core/utils/formatCurrency";
 import { triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { SwipeActionCard } from "./SwipeActionCard";
 import {

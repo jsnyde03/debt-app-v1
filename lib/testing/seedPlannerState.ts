@@ -1,4 +1,4 @@
-import type { PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
+import type { PayCycle } from "@core/payCycle/getNextPaycheckDate";
 import type { LivingExpense } from "@core/types/livingExpense";
 import type { CompletedRecommendedAction, Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 

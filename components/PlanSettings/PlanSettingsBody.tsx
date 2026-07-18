@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction, ChangeEvent } from "react";
 import { PaycheckSection } from "@/components/PaycheckSection";
 import { ChevronRight } from "@/lib/icons";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
-import type { PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
+import type { PayCycle } from "@core/payCycle/getNextPaycheckDate";
 import type { ThemePreference } from "@/lib/hooks/useDarkMode";
 
 // The shared Plan Settings content, container-agnostic. Rendered inside the
