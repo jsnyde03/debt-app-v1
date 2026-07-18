@@ -20,8 +20,18 @@ _Jason's executive call: v1.7 is the full migration done all at once — no Capa
 ## Surfaced during rebuild — running capture log
 
 **HARD (Jason 2026-07-18):** this make-or-break version demands diligent before **AND** after enhancement scans on **EVERY** subtask — a multi-screen rebuild is the easiest place to lose surfaced bugs/polish/ideas. Capture **immediately**, in the same edit: never in-head, never a parenthetical inside an active item. Version-necessary items fold into the current phase; everything else is filed here or to MASTER_PLAN §9 Deferred backlog, atomically.
+**Plan parity (Jason 2026-07-18):** every subtask decomposition is mirrored into MASTER_PLAN item 3 as it's created and checked off as done — the plan tracks the actual work exactly, never drifts behind.
+**UI-improvement watch (Jason 2026-07-18):** the rebuild isn't a pure token-swap — at each screen, actively call out *true* UI improvements (places the old shell settled) as **proposals for Jason's approval** (not unilateral redesign), logged here. Governed by [[feedback_premium_quality_bar]] · [[feedback_less_is_more_premium]] · [[feedback_light_mode_equal_premium]] · [[feedback_agree_design_before_implementing]].
 
-- _(none yet — first entries land as Phase B screens are rebuilt.)_
+- **B.1 before-scan (2026-07-18):**
+  - **Parity correction — "History" is NOT a top-level tab.** Debt's real current nav = **4 tabs: Plan · Bills · Payoff · Goals** (`components/AppNav.tsx`, `ActiveTab = "plan"|"bills"|"snowball"|"goals"`) + a Settings gear/sidebar button. History is a sub-view, not a destination. → Fix the MASTER_PLAN B.7 wording ("History tab" → History sub-view + More hub); the RN 4-tab nav reproduces Plan/Bills/Payoff/Goals, and Settings→"•••" More hub. _(Where paycheck-setup + rollover get promoted TO, and where History lives, are B.3/B.7 design points — not B.1.)_
+  - **`apps/rn` scaffold is bare** — deps are only expo/react-native/rn-web; **no expo-router, safe-area, gesture-handler, reanimated, rn-svg, zustand, or MMKV.** B.1 adds + configures them and moves the single `App.tsx` to an expo-router `app/` tree.
+  - **Theme identity:** port Freedom's token *architecture* + light/dark mechanism, but populate with **Debt's own palette** (extract from Debt's CSS tokens — Debt keeps its purple→navy identity, must NOT inherit Freedom's colors).
+- **B.1 after-scan (2026-07-18) — shell DONE, both themes web-verified:**
+  - **Deferred to B.8 (native re-glue), captured in code comments:** SF-Symbols-on-iOS upgrade (B.1 uses MaterialIcons everywhere for web-verifiability) · the `react-native-get-random-values` crypto shim + `expo-symbols` dep · the onboarding route-guard (`Stack.Protected` on `isComplete`) → **B.2** · Sentry wrap + MMKV-persistence / iCloud-restore / notifications bootstrap → **B.8**.
+  - **Structural win (folded, = the ratified IA):** the adaptive single-source `Tabs` (bottom ↔ iPad sidebar rail, reactive to resize) replaces the Capacitor app's TWO hardcoded navs (`.bottom-nav` + `.sidebar-nav` in `components/AppNav.tsx`) — one source, no drift.
+  - **UI-improvement watch:** **no** visible shell-level improvement worth making — the chrome reads premium and restraint wins ([[feedback_less_is_more_premium]]); adding tab-bar elevation / a filled "•••" chip would be gilding. The real UI-improvement scan begins at **B.3 (Plan content)** where the hero/allocation live.
+- _(more entries land as Phase B screens are rebuilt.)_
 
 ---
 

@@ -3,12 +3,13 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@core/*": ["./core/*"]
+      "@core/*": ["./core/*"],
+      "@/*": ["./src/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],
   // Exclude ./core (the packages/core link): the shared core is typechecked by the
-  // Capacitor app, where its interim @/lib backward-deps resolve. apps/rn still
-  // typechecks its OWN use of @core imports (e.g. App.tsx's calls) via the path alias.
+  // Capacitor app, where its interim @/lib backward-deps resolve. apps/rn typechecks
+  // its OWN @core + @/ usage via the path aliases above.
   "exclude": ["core", "node_modules", "dist", ".expo"]
 }
