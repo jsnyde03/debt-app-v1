@@ -1,6 +1,6 @@
 # Debt Planner v1.7 — "The Robust Build"
 
-> **Status:** PLANNED (scope locked 2026-07-08). Build opens after v1.6 is approved + live (never before — v1.6 is at the TestFlight/device gate). This doc is the **canonical v1.7 source** and supersedes `V16_PLAN.md` §B/§C/§D for v1.7 scope.
+> **Status:** ▶ SWITCH-IN RUN 2026-07-17 — **Phase 0 ACTIVE** on branch `v1.7-dev` (off `release/v1`). v1.6 is approved + live; the switch-in gate ran (rules refresh → pre-authored-plan verification → 5 gaps folded → Phase 0 decomposed → exit-line set). No Phase-1 code until Phase 0's exit-line is met. This doc is the **canonical v1.7 source** and supersedes `V16_PLAN.md` §B/§C/§D for v1.7 scope.
 >
 > **Identity:** the deliberate backlog-paydown version after v1.5/v1.6 shipped as fast strikes (per [[project_debt_app_roadmap_philosophy]] — "v1.7 = THE ROBUST BUILD… pay the backlog DOWN comprehensively or it spirals"). It does **two** new-value things — turn on upper-tier revenue (Premium+) and ship its differentiation carrot (Drift Tracker) — on top of a hardened base.
 
@@ -14,10 +14,20 @@ Phases are ordered risk-first / polish-last. **Phases 1–4 are the spine** (mus
 
 ---
 
-## Phase 0 — Switch-in audits that SHAPE scope (do FIRST)
+## Phase 0 — Switch-in audits that SHAPE scope (do FIRST) · ▶ ACTIVE (switch-in run 2026-07-17)
 _Per the plan-audit cadence: structural audit at the version boundary. These gate everything downstream._
-- **0.1 Per-app structural audit** (1000-ft: approach/roadmap/keep-vs-pivot) + refresh this plan's premises against the code at build-open (they'll have drifted again by then — treat as hypothesis, verify on sight, per [[feedback_verify_preauthored_audit_accuracy]]).
-- **0.2 Holistic IA / nav audit** (time-boxed → a **keep / evolve / rework** verdict). Benchmarks: Copilot/Monarch. ⚠️ Re-opens the v1.6 "KEEP bottom-tab + iPad-sidebar" decision at fintech-polish altitude. **Output gates Phase 6's polish scope**; a "rework" verdict → its own version (v1.8+), not v1.7.
+
+> **🎯 BLOCK EXIT-LINE (bet-block discipline, [[feedback_bet_block_rotation_and_exit_line]]):** Phase 0 is done when **(a)** the 0.1 structural audit + gap-fold is complete, **(b)** the 0.2 IA/nav verdict is rendered (keep / evolve / rework), **(c)** the 0.3 Drift Tracker data-model spec is written, and **(d)** V17_PLAN scope is re-confirmed against current code with every `[DECISION]` gate surfaced to Jason. Deliverable = the three audit outputs exist as docs + the decisions are logged. No Phase-1 code until then.
+>
+> **✅ Pre-authored-plan verification DONE (2026-07-17, this switch-in):** V17_PLAN premises re-checked vs `release/v1` code — they HOLD (minor drift only: `page.tsx` 1502→**1513**; `roundMoney` = 13 decls; the 7 date-bug files exact; `clampMoney` dead; 3-tier type + `PREMIUM_PLUS_AVAILABLE=false` confirmed). The **five 2026-07-17 audit gaps** are verified against code and folded into 0.1 below.
+
+- **0.1 Per-app structural audit** (1000-ft: approach/roadmap/keep-vs-pivot) + refresh this plan's premises against the code at build-open (treat as hypothesis, verify on sight, per [[feedback_verify_preauthored_audit_accuracy]]). **Verified-gap fold-in (2026-07-17):**
+  - **0.1.a — Android v1.8 prerequisites (highest-value gap; ABSENT from this plan until now).** `IMPLEMENTATION_PLAN.md`/`ANDROID_READINESS.md` assign v1.7 the Android groundwork: **per-platform RevenueCat key** (`revenueCat.ts:3` hardcodes ONE `appl_` key → Google Play needs a `goog_` key), finalize the 3-tier before Play billing, Sentry live before Android. Decide which land in v1.7 vs v1.8; the per-platform key pairs naturally with §3.1.
+  - **0.1.b — Annual pricing is a CODE change, not a config flip.** `getMonthlyPackage()` (`revenueCat.ts:34`) structurally only selects `currentOffering.monthly`; `purchasePremium()` calls it; `case "P1Y"` is display-only dead code. Cheapest lever = **widen the package selector during §3.1 while the file is already open** (Debt monthly-only until v1.10 annual — but the seam belongs here).
+  - **0.1.c — Rewrite the stale `SUSTAINABILITY_REFACTOR.md`** — `page.tsx` 1245/1255→**1513**; `roundMoney` 12→**13** decls; the **`CompletedRecommendedAction` self-contradiction** (marked ✅ DONE at top, still listed as ×4 TODO in Queued + audit-agenda #3). Reconcile it as part of the audit.
+  - **0.1.d — Explicit keep/cut for the sustainability-doc-routed items MISSING from this plan:** **Tailwind v4 drop** (still present: `package.json`/`postcss.config.mjs`/`globals.css`), **component God-file extraction**, **CSS co-location** — the doc routes all three to v1.7 but Phase 1.4 omits them. Decide keep-in-v1.7 vs cut-to-v1.8 at the switch-in.
+  - **0.1.e — Purge stale in-code "ships in v1.6" comments** (confirmed: `plans.ts:8-12` says the 3-tier "ships in v1.6" — it's v1.7). Sweep for other moved-work comments.
+- **0.2 Holistic IA / nav audit** (time-boxed → a **keep / evolve / rework** verdict). Benchmarks: Copilot/Monarch. Folds in the deferred **"More" hub reframe** ([[project_more_hub_ia_pattern]] — split Settings into Data/Preferences/About; kill Settings-tab+gear redundancy). ⚠️ Re-opens the v1.6 "KEEP bottom-tab + iPad-sidebar" decision at fintech-polish altitude. **Output gates Phase 6's polish scope**; a "rework" verdict → its own version (v1.8+), not v1.7.
 - **0.3 Drift Tracker data-model design spike.** The feature needs a "days behind" headline, but there's **no stored projected balance and no skipped-recommendation record** — only per-cycle captured actuals. Design the projected-vs-actual reconstruction (and whether v1.7 must start *recording* projected balance now so the tracker has real data). Output = the Phase 2 build spec + its reconciliation-test shape.
 
 ## Phase 1 — Foundational robustness (de-risk before features)
@@ -36,7 +46,7 @@ _This is the "robust" core. Do before Phase 2 because Drift Tracker adds new mon
 - **2.3 Interest-Saved momentum history chart** (premium_plus) — the truest "Momentum Ledger" upgrade draw (deferred from v1.6 1.8.3).
 
 ## Phase 3 — Monetization: turn on the till
-- **3.1 RevenueCat Premium+ wiring** — add the premium_plus product/entitlement (RevenueCat wires only one `PREMIUM_ENTITLEMENT_ID` today); `hasFeatureAccess` premium_plus gating **already exists**, so this is store wiring + `purchasePremiumPlus()`.
+- **3.1 RevenueCat Premium+ wiring** — add the premium_plus product/entitlement (RevenueCat wires only one `PREMIUM_ENTITLEMENT_ID` today); `hasFeatureAccess` premium_plus gating **already exists**, so this is store wiring + `purchasePremiumPlus()`. **⚠️ MUST ALSO widen `getSubscriptionPlan()`** (`revenueCat.ts:101`) — it returns only `"free" | "premium"` and checks only the `"premium"` entitlement, so a Premium+ buyer would still read as `premium`; add the premium_plus entitlement check + widen the return type (else the whole tier is unreachable at runtime despite the type/gating existing). **While the file is open (per 0.1.b): widen `getMonthlyPackage()` into a period-aware selector** so annual isn't a future code change, and thread the **per-platform key (0.1.a)** if Android lands in v1.7.
 - **3.2 Flip `PREMIUM_PLUS_AVAILABLE=true`** + surface the upsell (the History "last 6 cycles → upgrade" row is already gated behind the flag; add paywall entry for Drift Tracker / full calendar / momentum chart).
 - **3.3 [DECISION] 4th "ultimate" tier?** — FUTURE_VERSIONS assumes a 4-value tier type; code has 3 (`free|premium|premium_plus`). Decide keep-3 vs add-ultimate BEFORE creating permanent ASC products ([[feedback_lock_strategy_before_irreversible_setup]]).
 - **3.4 Product analytics + crash reporting** — PostHog (zero instrumentation today) + Sentry. Placed here so there's a **purchase funnel to measure** (capture-before-analytics). Gives the conversion data the go-to-market gate wants.
@@ -76,7 +86,7 @@ Every item below was checked against current code; verdicts cite evidence.
 - CI lint+regression gate (1.1) — `validate:release` effectively covered **except `tsc`** (→ 1.6).
 
 ### Drift corrections baked into the plan above
-- `page.tsx` = **1502 lines** (docs said 1245; §E grew it ~257) → orchestrator target moved further (1.3).
+- `page.tsx` = **1513 lines** (docs said 1245; §E + post-lock autopay fixes grew it) → orchestrator target moved further (1.3).
 - 3-tier subscription type + `hasFeatureAccess` premium_plus gating **already exist** → monetization work is store-wiring only (3.1), not "build tiers."
 - Schema-versioning **already shipped v1.5** (`migrateState.ts`) → only future migrations remain (1.7).
 - roundMoney now **~13** local decls (was 12) → 1.1.
