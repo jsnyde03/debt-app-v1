@@ -6,10 +6,10 @@ import type { SubscriptionPlan } from "./plans";
 // - premium: every feature EXCEPT the Premium+-exclusive ones.
 // - free: nothing.
 //
-// NOTE (v1.5): premium_plus is a real, gateable tier here, but it is
-// not yet purchasable - the RevenueCat product wiring lands in v1.6.
+// NOTE: premium_plus is a real, gateable tier here, but it is
+// not yet purchasable - the RevenueCat product wiring lands in v1.7.
 // Gating is correct and forward-compatible now; real buyers can only
-// reach premium_plus features once v1.6 ships the product.
+// reach premium_plus features once v1.7 ships the product.
 export function hasFeatureAccess(plan: SubscriptionPlan, feature: PremiumFeature): boolean {
     if (plan === "premium_plus") {
         return true;

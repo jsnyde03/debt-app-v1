@@ -66,11 +66,11 @@ Rules that apply to every slice:
   `lib/utils/money.ts` already exports the canonical pair. Consolidate all local copies to the
   shared import. Mechanical + behavior-preserving (verify each copy is byte-identical first;
   flag any variant rounding); regression-suite backed. _Slice size: ~12 tiny edits, one commit._
-- **`CompletedRecommendedAction` type fragmentation (×4)** — defined with **differing shapes** in
-  `lib/storage/debtPlannerStorage.ts`, `lib/engine/recommendedActions.ts`,
-  `lib/timeline/buildTimelineItems.ts`, and `app/page.tsx`. Consolidate to one canonical type
-  (the persisted storage shape is the source of truth) and import it everywhere. _Pairs naturally
-  with the orchestrator's Phase 3/4 typing work._
+- ✅ **DONE (v1.6 step 1.3, `19c8b8d`) — `CompletedRecommendedAction` consolidated to ONE canonical.**
+  Was ~6 divergent decls (storage/engine/timeline/page/ResultsSection/SnowballSection) + a demo type;
+  all collapsed onto the storage export, every site imports it. _(This line previously listed it as an
+  open ×4 TODO — that was the DONE-vs-TODO self-contradiction; corrected 2026-07-18.)_ Remaining v1.7
+  follow-on: relocate the canonical `lib/storage/` → neutral `lib/types/` (§1.2).
 - **`livingExpenses` preset-default duplicated** _(surfaced 2.18 Phase 1)_ — the seed default
   `livingExpensePresets.map((e, i) => ({ ...e, id: ` + "`living-${i}`" + ` }))` now lives in both
   `useLivingExpenses.ts` and the backup-restore fallback in `page.tsx` (~:607). Extract to one
@@ -110,9 +110,10 @@ was noted — verify each against current source at session start (see the pre-a
    (mixed flat files + domain folders; e.g. `ResultsSection.tsx` flat vs. `Debts/`, `PlanSettings/`
    foldered). Decide a **target tree** + **naming conventions** + a low-risk migration approach
    (the `@/` alias makes moves cheap but touches many imports — batch + verify per move).
-3. **Type consolidation** — one canonical source per domain type. Anchor case: `CompletedRecommendedAction`
-   defined **4 ways** (storage / engine / timeline / page) — persisted storage shape = source of truth.
-   Decide the import policy; pairs with orchestrator Phase 3/4 typing.
+3. **Type consolidation** — one canonical source per domain type. Anchor case `CompletedRecommendedAction`
+   **✅ DONE v1.6** (consolidated to one canonical). **Remaining → v1.7 §1.2:** `Debt`(×2)/`Goal`(×3)
+   unification (~31 sites, engine-adjacent, reconciliation-test-gated) + relocate canonical types
+   `lib/storage/` → neutral `lib/types/`.
 4. **Shared-utility dedup policy** — `roundMoney` ×12 + `clampMoney` + the `livingExpenses` preset-default
    dup → shared `lib/utils/*`. Decide the module boundaries and whether a lint rule can forbid local
    re-declaration going forward.

@@ -135,7 +135,7 @@ export function SnowballSection({
 	// Amortization "lite" (v1.5): a month-by-month schedule for the FOCUS debt
 	// only, paid at its minimum + the recommended snowball extra. Built on the
 	// shared engine so it reconciles with projectDebtPayoff. The full/all-debts
-	// calendar lands with the Premium+ tier in v1.6.
+	// calendar lands with the Premium+ tier in v1.7.
 	const focusDebtStartingBalance = currentTarget
 		? currentTarget.displayBalance ?? currentTarget.balance
 		: 0;

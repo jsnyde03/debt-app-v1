@@ -43,9 +43,10 @@ A frozen baseline must define **when it re-anchors** — otherwise drift reflect
 
 - **(a) Never re-anchor** — drift always measures against the original plan. *Rejected:* any material plan change makes drift meaningless/discouraging.
 - **(b) Re-anchor on every edit** — drift always measures "since your last change." *Rejected:* can never show a cumulative "N days behind" story — the whole point of the feature.
-- **(c) [RECOMMENDED] Re-anchor only on MATERIAL structural changes** — a new debt added, a debt removed, or a paycheck change beyond a threshold (e.g. >±10%). Normal cycle progression, small edits, and payment behavior do NOT re-anchor. Between re-anchors, drift measures **pure adherence**. When a re-anchor fires, surface it plainly ("Plan updated — your drift baseline reset"). *Why:* keeps the cumulative-accountability story while staying fair to the user; the materiality threshold is the tunable.
+- **(c) ✅ DECIDED (Jason 2026-07-18) — Re-anchor only on MATERIAL structural changes** — a new debt added, a debt removed, or a paycheck change beyond a threshold (starting point **±10%**, tunable). Normal cycle progression, small edits, and payment behavior do NOT re-anchor. Between re-anchors, drift measures **pure adherence**. When a re-anchor fires, surface it plainly ("Plan updated — your drift baseline reset"). *Why:* keeps the cumulative-accountability story while staying fair to the user.
+- (a) Never re-anchor and (b) re-anchor on every edit were rejected (a = drift becomes meaningless after any plan change; b = can never show a cumulative "N days behind").
 
-**Jason to confirm (c) + the materiality threshold, or pick another.** This is the one thing to settle before Phase-2.1 code.
+**Settled.** The ±10% materiality threshold is the one tunable to validate in real use during Phase-2.1.
 
 ## 5. Recording sequence — MUST start in v1.7
 A migration can only *stamp*, not backfill — pre-v1.7 cycles have no recoverable baseline. So:
