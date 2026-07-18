@@ -1,4 +1,4 @@
-import type { LivingExpense } from "../types/livingExpense";
+import type { LivingExpense } from "@core/types/livingExpense";
 
 export const livingExpensePresets: Omit<LivingExpense, "id">[] = [
     {

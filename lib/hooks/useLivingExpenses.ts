@@ -1,5 +1,5 @@
 import { usePersistedState } from "@/lib/storage/usePersistedState";
-import type { LivingExpense } from "@/lib/types/livingExpense";
+import type { LivingExpense } from "@core/types/livingExpense";
 import { livingExpensePresets } from "@/lib/constants/livingExpensePresets";
 
 /**

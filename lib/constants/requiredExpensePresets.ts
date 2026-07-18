@@ -1,4 +1,4 @@
-import type { Recurrence } from "../types/recurrence";
+import type { Recurrence } from "@core/types/recurrence";
 
 export type RequiredExpensePreset = {
     name: string;

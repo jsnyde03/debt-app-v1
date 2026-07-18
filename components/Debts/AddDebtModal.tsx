@@ -1,5 +1,5 @@
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
-import type { Recurrence } from "@/lib/types/recurrence";
+import type { Recurrence } from "@core/types/recurrence";
 
 type AddDebtModalProps = {
     debtName: string;

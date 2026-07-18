@@ -1,5 +1,5 @@
-import type { LivingExpense } from "../types/livingExpense";
-import type { Recurrence } from "../types/recurrence";
+import type { LivingExpense } from "@core/types/livingExpense";
+import type { Recurrence } from "@core/types/recurrence";
 
 export type Expense = {
 	id: string;

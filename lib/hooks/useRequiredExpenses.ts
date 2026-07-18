@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { usePersistedState } from "@/lib/storage/usePersistedState";
 import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
-import type { Recurrence } from "@/lib/types/recurrence";
+import type { Recurrence } from "@core/types/recurrence";
 import { triggerErrorHaptic } from "@/lib/mobile/haptics";
 
 export function useRequiredExpenses(saveResetSnapshot: (overrides?: { requiredExpenses?: RequiredExpense[] }) => void) {

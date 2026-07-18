@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
-import type { Recurrence } from "@/lib/types/recurrence";
+import type { Recurrence } from "@core/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { calculateMonthlyInterest } from "@/lib/debt/calculateMonthlyInterest";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";

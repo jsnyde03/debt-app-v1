@@ -6,7 +6,7 @@ import { getNextPaycheckDate } from "@/lib/payCycle/getNextPaycheckDate";
 import { rollPaydayToFuture } from "@/lib/payCycle/rollPaydayToFuture";
 import { payCyclesPerMonth } from "@/lib/payCycle/payCyclesPerMonth";
 import { computeInterestSaved, type InterestSaved } from "@/lib/debt/computeInterestSaved";
-import type { Recurrence } from "@/lib/types/recurrence";
+import type { Recurrence } from "@core/types/recurrence";
 import "./styles/00-theme-and-base.css";
 import "./styles/01-payoff-goals.css";
 import "./styles/02-overdue-pagination-nav.css";

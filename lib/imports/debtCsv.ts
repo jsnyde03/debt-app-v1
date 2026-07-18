@@ -1,5 +1,5 @@
 import type { Debt } from "../storage/debtPlannerStorage";
-import type { Recurrence } from "../types/recurrence";
+import type { Recurrence } from "@core/types/recurrence";
 
 type DebtType = "debt" | "bnpl";
 

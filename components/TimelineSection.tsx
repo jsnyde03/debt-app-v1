@@ -7,7 +7,7 @@ import {
     type MultiCycleTimelineConfig,
 } from "@/lib/timeline/buildMultiCycleTimeline";
 import type { TimelineItem } from "@/lib/timeline/buildTimelineItems";
-import type { LivingExpense } from "@/lib/types/livingExpense";
+import type { LivingExpense } from "@core/types/livingExpense";
 import { useState } from "react";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 

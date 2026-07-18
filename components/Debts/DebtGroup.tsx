@@ -1,5 +1,5 @@
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
-import type { Recurrence } from "@/lib/types/recurrence";
+import type { Recurrence } from "@core/types/recurrence";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 import { DebtRow } from "./DebtRow";
 

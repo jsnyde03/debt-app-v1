@@ -1,5 +1,5 @@
 import type { PayCycle } from "@/lib/payCycle/getNextPaycheckDate";
-import type { LivingExpense } from "@/lib/types/livingExpense";
+import type { LivingExpense } from "@core/types/livingExpense";
 import type { CompletedRecommendedAction, Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
 
 export type DemoPlannerGoal = {

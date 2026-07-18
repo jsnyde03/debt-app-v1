@@ -3,7 +3,7 @@ import { buildTimelineItems, type TimelineItem } from "./buildTimelineItems";
 import { getNextPaycheckDate, type PayCycle } from "../payCycle/getNextPaycheckDate";
 import { rolloverRequiredExpenses, rolloverDebts } from "../recurrence/rolloverPayCycle";
 import type { CompletedRecommendedAction, Debt, RequiredExpense, Goal } from "../storage/debtPlannerStorage";
-import type { LivingExpense } from "../types/livingExpense";
+import type { LivingExpense } from "@core/types/livingExpense";
 
 export type CushionStatus = "stable" | "tight" | "pressure";
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Debt } from "@/lib/storage/debtPlannerStorage";
-import type { Recurrence } from "@/lib/types/recurrence";
+import type { Recurrence } from "@core/types/recurrence";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { parseDebtFormValues } from "@/lib/debt/parseDebtFormValues";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";

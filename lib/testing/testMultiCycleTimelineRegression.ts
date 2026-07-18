@@ -2,7 +2,7 @@ import { allocatePaycheck } from "../engine/allocatePaycheck";
 import { buildMultiCycleTimeline } from "../timeline/buildMultiCycleTimeline";
 import { buildTimelineItems } from "../timeline/buildTimelineItems";
 import type { Debt, RequiredExpense } from "../storage/debtPlannerStorage";
-import type { LivingExpense } from "../types/livingExpense";
+import type { LivingExpense } from "@core/types/livingExpense";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
