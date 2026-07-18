@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { formatDisplayAmount } from "@core/utils/formatDisplayAmount";
-import type { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
+import type { allocatePaycheck } from "@core/engine/allocatePaycheck";
 import type {
     Debt,
     RequiredExpense,
-} from "@/lib/storage/debtPlannerStorage";
+} from "@core/storage/debtPlannerStorage";
 import { formatCurrency } from "@core/utils/formatCurrency";
-import { computeCycleDelta } from "@/lib/debt/computeCycleDelta";
-import { deriveRequiredActionView } from "@/lib/debt/deriveRequiredActionView";
-import type { CompletedRecommendedAction, PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
+import { computeCycleDelta } from "@core/debt/computeCycleDelta";
+import { deriveRequiredActionView } from "@core/debt/deriveRequiredActionView";
+import type { CompletedRecommendedAction, PayCycleSnapshot } from "@core/storage/debtPlannerStorage";
 import { TrendingDown, TrendingUp } from "@/lib/icons";
 import { SwipeActionCard } from "./SwipeActionCard";
 import { RequiredActionItem } from "./RequiredActionItem";
@@ -19,7 +19,7 @@ import {
     computeFlexibleCash,
     computeCompletedRecommendedTotal,
     type ActiveRecommendedAction,
-} from "@/lib/engine/recommendedActions";
+} from "@core/engine/recommendedActions";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 

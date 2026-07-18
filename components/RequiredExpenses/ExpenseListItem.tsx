@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
+import type { RequiredExpense, RequiredExpenseCategory } from "@core/storage/debtPlannerStorage";
 import type { Recurrence } from "@core/types/recurrence";
 import { formatCurrency } from "@core/utils/formatCurrency";
 import { triggerMediumHaptic } from "@/lib/mobile/haptics";

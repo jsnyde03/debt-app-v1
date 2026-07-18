@@ -1,5 +1,5 @@
 import { readKey, writeKey } from "@/lib/storage/safeStorage";
-import type { Debt } from "@/lib/storage/debtPlannerStorage";
+import type { Debt } from "@core/storage/debtPlannerStorage";
 
 const DEBTS_KEY = "debtPlanner.debts";
 

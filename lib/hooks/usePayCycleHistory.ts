@@ -2,7 +2,7 @@ import { usePersistedState } from "@/lib/storage/usePersistedState";
 import {
     CYCLE_HISTORY_STORAGE_KEY,
     type PayCycleSnapshot,
-} from "@/lib/storage/debtPlannerStorage";
+} from "@core/storage/debtPlannerStorage";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { hasFeatureAccess } from "@/lib/subscription/hasFeatureAccess";
 import {

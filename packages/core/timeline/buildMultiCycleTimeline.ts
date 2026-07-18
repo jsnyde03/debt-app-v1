@@ -1,8 +1,8 @@
-import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
+import { allocatePaycheck } from "@core/engine/allocatePaycheck";
 import { buildTimelineItems, type TimelineItem } from "./buildTimelineItems";
 import { getNextPaycheckDate, type PayCycle } from "@core/payCycle/getNextPaycheckDate";
 import { rolloverRequiredExpenses, rolloverDebts } from "@core/recurrence/rolloverPayCycle";
-import type { CompletedRecommendedAction, Debt, RequiredExpense, Goal } from "@/lib/storage/debtPlannerStorage";
+import type { CompletedRecommendedAction, Debt, RequiredExpense, Goal } from "@core/storage/debtPlannerStorage";
 import type { LivingExpense } from "@core/types/livingExpense";
 
 export type CushionStatus = "stable" | "tight" | "pressure";

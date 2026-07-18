@@ -1,5 +1,5 @@
 import { formatCurrency } from "@core/utils/formatCurrency";
-import type { InterestSaved } from "@/lib/debt/computeInterestSaved";
+import type { InterestSaved } from "@core/debt/computeInterestSaved";
 
 function formatMonths(months: number): string {
     if (months < 24) return `${months} month${months === 1 ? "" : "s"}`;

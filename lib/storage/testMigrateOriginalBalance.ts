@@ -1,5 +1,5 @@
 import { withBackfilledOriginalBalance } from "./migrateState";
-import type { Debt } from "./debtPlannerStorage";
+import type { Debt } from "@core/storage/debtPlannerStorage";
 
 function assert(condition: boolean, label: string) {
     if (!condition) {

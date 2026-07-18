@@ -1,7 +1,7 @@
 import { formatCurrency } from "@core/utils/formatCurrency";
 import { dayBefore } from "@core/utils/dayBefore";
-import type { CompletedRecommendedAction, Debt, RequiredExpense, Goal } from "@/lib/storage/debtPlannerStorage";
-import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
+import type { CompletedRecommendedAction, Debt, RequiredExpense, Goal } from "@core/storage/debtPlannerStorage";
+import { allocatePaycheck } from "@core/engine/allocatePaycheck";
 import {
     buildMultiCycleTimeline,
     type MultiCycleTimelineConfig,

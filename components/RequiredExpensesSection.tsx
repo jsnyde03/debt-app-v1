@@ -2,7 +2,7 @@ import { useState } from "react";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { useScrollFabVisible } from "@/lib/mobile/useScrollFabVisible";
 import { Wallet } from "@/lib/icons";
-import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
+import type { RequiredExpense, RequiredExpenseCategory } from "@core/storage/debtPlannerStorage";
 import type { Recurrence } from "@core/types/recurrence";
 import { ExpenseListItem, requiredExpenseCategoryOptions } from "./RequiredExpenses/ExpenseListItem";
 import { AddExpenseModal } from "./RequiredExpenses/AddExpenseModal";

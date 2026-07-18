@@ -1,5 +1,5 @@
 import { LocalNotifications } from "@capacitor/local-notifications";
-import type { RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+import type { RequiredExpense } from "@core/storage/debtPlannerStorage";
 
 const ID_PAYCHECK_EVE = 1001;
 const ID_BILLS_ALERT = 1002;

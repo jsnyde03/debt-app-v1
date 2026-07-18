@@ -5,7 +5,7 @@ import {
     requiredDisplayLabel,
     type RequiredAllocationItem,
     type RequiredActionView,
-} from "@/lib/debt/deriveRequiredActionView";
+} from "@core/debt/deriveRequiredActionView";
 
 type RequiredActionItemProps = {
     item: RequiredAllocationItem;

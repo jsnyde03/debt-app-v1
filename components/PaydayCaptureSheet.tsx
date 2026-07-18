@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { formatCurrency } from "@core/utils/formatCurrency";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
-import type { ActiveRecommendedAction } from "@/lib/engine/recommendedActions";
+import type { ActiveRecommendedAction } from "@core/engine/recommendedActions";
 import {
     buildPaydayCaptureItems,
     captureKey,
     type PaydayCaptureOverride,
-} from "@/lib/debt/buildPaydayCaptureItems";
-import { requiredDisplayLabel, type RequiredActionView } from "@/lib/debt/deriveRequiredActionView";
-import type { RequiredReconciliation } from "@/lib/debt/bulkMarkRequired";
-import type { CompletedRecommendedAction } from "@/lib/storage/debtPlannerStorage";
+} from "@core/debt/buildPaydayCaptureItems";
+import { requiredDisplayLabel, type RequiredActionView } from "@core/debt/deriveRequiredActionView";
+import type { RequiredReconciliation } from "@core/debt/bulkMarkRequired";
+import type { CompletedRecommendedAction } from "@core/storage/debtPlannerStorage";
 
 /** One required item (bill or debt minimum) + its derived display state — the rows
  *  the [Adjust] reconciliation view renders in their CURRENT state. */

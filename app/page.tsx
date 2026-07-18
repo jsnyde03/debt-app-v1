@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useEffect, useRef, useState, type ChangeEvent } from "react";
-import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
+import { allocatePaycheck } from "@core/engine/allocatePaycheck";
 import { getNextPaycheckDate } from "@core/payCycle/getNextPaycheckDate";
 import { rollPaydayToFuture } from "@core/payCycle/rollPaydayToFuture";
 import { payCyclesPerMonth } from "@core/payCycle/payCyclesPerMonth";
-import { computeInterestSaved, type InterestSaved } from "@/lib/debt/computeInterestSaved";
+import { computeInterestSaved, type InterestSaved } from "@core/debt/computeInterestSaved";
 import type { Recurrence } from "@core/types/recurrence";
 import "./styles/00-theme-and-base.css";
 import "./styles/01-payoff-goals.css";
@@ -31,25 +31,25 @@ import {
     rolloverRequiredExpenses,
 } from "@core/recurrence/rolloverPayCycle";
 
-import { type CompletedRecommendedAction, type RecommendationOverride, type Debt, type RequiredExpense } from "@/lib/storage/debtPlannerStorage";
-import { applyRolloverPayment } from "@/lib/debt/applyRolloverPayment";
-import { markGoal, unmarkGoal } from "@/lib/debt/reconcileGoalAmount";
-import { computeMilestones } from "@/lib/debt/computeMilestones";
-import { computeStreak } from "@/lib/debt/computeStreak";
+import { type CompletedRecommendedAction, type RecommendationOverride, type Debt, type RequiredExpense } from "@core/storage/debtPlannerStorage";
+import { applyRolloverPayment } from "@core/debt/applyRolloverPayment";
+import { markGoal, unmarkGoal } from "@core/debt/reconcileGoalAmount";
+import { computeMilestones } from "@core/debt/computeMilestones";
+import { computeStreak } from "@core/debt/computeStreak";
 import { MilestoneBadge, type MilestoneCelebration } from "@/components/MilestoneBadge";
-import { projectDebtPayoff } from "@/lib/debt/projectDebtPayoff";
+import { projectDebtPayoff } from "@core/debt/projectDebtPayoff";
 import { downloadBackup, readBackupFile } from "@/lib/storage/backup";
-import { getDebtsWithDisplayBalances, getCompletedSnowballAmount } from "@/lib/debt/getDebtsWithDisplayBalances";
-import { selectActiveRecommendedActions } from "@/lib/debt/selectActiveRecommendedActions";
-import { applyPaydayCapture } from "@/lib/debt/applyPaydayCapture";
+import { getDebtsWithDisplayBalances, getCompletedSnowballAmount } from "@core/debt/getDebtsWithDisplayBalances";
+import { selectActiveRecommendedActions } from "@core/debt/selectActiveRecommendedActions";
+import { applyPaydayCapture } from "@core/debt/applyPaydayCapture";
 import {
     bulkMarkRequiredPaid,
     applyRequiredReconciliation,
     type RequiredReconciliation,
-} from "@/lib/debt/bulkMarkRequired";
-import { deriveRequiredActionView } from "@/lib/debt/deriveRequiredActionView";
-import { reconcileAutopayForRollover } from "@/lib/debt/reconcileAutopay";
-import { upsertCompletedAction } from "@/lib/debt/mergeCompletedAction";
+} from "@core/debt/bulkMarkRequired";
+import { deriveRequiredActionView } from "@core/debt/deriveRequiredActionView";
+import { reconcileAutopayForRollover } from "@core/debt/reconcileAutopay";
+import { upsertCompletedAction } from "@core/debt/mergeCompletedAction";
 import { usePaydayCapture } from "@/lib/hooks/usePaydayCapture";
 import { getPortalTarget } from "@/lib/dom/getPortalTarget";
 import { PaydayCaptureSheet } from "@/components/PaydayCaptureSheet";
@@ -57,8 +57,8 @@ import { createPortal } from "react-dom";
 import { useLivingExpenses } from "@/lib/hooks/useLivingExpenses";
 import { livingExpensePresets } from "@core/constants/livingExpensePresets";
 import { LivingExpensesSection } from "@/components/LivingExpensesSection";
-import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
-import { applySimSmokeSeedToStorage, freezeClockForSimSmoke } from "@/lib/testing/simSmokeSeed";
+import { applyDemoPlannerStateToStorage } from "@core/testing/seedPlannerState";
+import { applySimSmokeSeedToStorage, freezeClockForSimSmoke } from "@core/testing/simSmokeSeed";
 import { TimelineSection } from "@/components/TimelineSection";
 import { UpgradeSection } from "@/components/UpgradeSection";
 import { restorePurchases, purchasePremium, resetRevenueCatUserForTesting, getPremiumPackageInfo, type PremiumPackageInfo } from "@/lib/subscription/revenueCat";

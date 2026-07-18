@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { usePersistedState } from "@/lib/storage/usePersistedState";
-import type { RequiredExpense, RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
+import type { RequiredExpense, RequiredExpenseCategory } from "@core/storage/debtPlannerStorage";
 import type { Recurrence } from "@core/types/recurrence";
 import { triggerErrorHaptic } from "@/lib/mobile/haptics";
 

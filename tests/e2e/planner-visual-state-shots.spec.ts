@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { buildDemoPlannerState } from "../../lib/testing/seedPlannerState";
+import { buildDemoPlannerState } from "@core/testing/seedPlannerState";
 
 async function seedPopulatedPlanner(page: Page) {
 const demoPlannerState = buildDemoPlannerState();

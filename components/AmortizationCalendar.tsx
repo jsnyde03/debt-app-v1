@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { AmortizationSchedule } from "@/lib/debt/buildAmortizationSchedule";
+import type { AmortizationSchedule } from "@core/debt/buildAmortizationSchedule";
 import { formatCurrency } from "@core/utils/formatCurrency";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 import { Target, TrendingDown } from "@/lib/icons";

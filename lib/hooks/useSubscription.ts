@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { initializeRevenueCat, getSubscriptionPlan } from "@/lib/subscription/revenueCat";
 import { scheduleNotifications, hasNotificationPermission } from "@/lib/notifications/scheduleNotifications";
-import type { RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+import type { RequiredExpense } from "@core/storage/debtPlannerStorage";
 
 export function useSubscription(
     notificationsEnabled: boolean,

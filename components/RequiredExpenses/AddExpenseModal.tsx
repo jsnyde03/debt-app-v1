@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
-import type { RequiredExpenseCategory } from "@/lib/storage/debtPlannerStorage";
+import type { RequiredExpenseCategory } from "@core/storage/debtPlannerStorage";
 import type { Recurrence } from "@core/types/recurrence";
 import { requiredExpensePresets } from "@core/constants/requiredExpensePresets";
 import { requiredExpenseCategoryOptions } from "./ExpenseListItem";

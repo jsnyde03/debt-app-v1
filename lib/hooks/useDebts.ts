@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent } from "react";
 import { usePersistedState } from "@/lib/storage/usePersistedState";
-import type { Debt } from "@/lib/storage/debtPlannerStorage";
+import type { Debt } from "@core/storage/debtPlannerStorage";
 import type { Recurrence } from "@core/types/recurrence";
 import { triggerErrorHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { parseDebtCsv } from "@core/imports/debtCsv";

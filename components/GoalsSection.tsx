@@ -1,4 +1,4 @@
-import type { Goal } from "@/lib/storage/debtPlannerStorage";
+import type { Goal } from "@core/storage/debtPlannerStorage";
 import { useState } from "react";
 import { formatCurrency } from "@core/utils/formatCurrency";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";

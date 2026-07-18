@@ -1,7 +1,7 @@
 import { usePersistedState } from "@/lib/storage/usePersistedState";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
 import { scheduleNotifications, cancelAllNotifications, requestNotificationPermission } from "@/lib/notifications/scheduleNotifications";
-import type { RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+import type { RequiredExpense } from "@core/storage/debtPlannerStorage";
 
 export function useNotificationsSetting(nextPaycheckDate: string, requiredExpenses: RequiredExpense[]) {
     const [notificationsEnabled, setNotificationsEnabled] = usePersistedState(

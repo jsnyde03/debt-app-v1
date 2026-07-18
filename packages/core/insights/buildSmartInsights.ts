@@ -1,4 +1,4 @@
-import type { Debt } from "@/lib/storage/debtPlannerStorage";
+import type { Debt } from "@core/storage/debtPlannerStorage";
 
 export type SmartInsightSeverity = "good" | "warning" | "risk";
 

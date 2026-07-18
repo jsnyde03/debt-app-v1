@@ -1,4 +1,4 @@
-import type { PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
+import type { PayCycleSnapshot } from "@core/storage/debtPlannerStorage";
 import { formatCurrency } from "@core/utils/formatCurrency";
 import { dayBefore } from "@core/utils/dayBefore";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";

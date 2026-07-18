@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import type { Debt } from "@/lib/storage/debtPlannerStorage";
+import type { Debt } from "@core/storage/debtPlannerStorage";
 import type { Recurrence } from "@core/types/recurrence";
 import { formatCurrency } from "@core/utils/formatCurrency";
-import { calculateMonthlyInterest } from "@/lib/debt/calculateMonthlyInterest";
+import { calculateMonthlyInterest } from "@core/debt/calculateMonthlyInterest";
 import { triggerLightHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
 import { SwipeActionCard } from "../SwipeActionCard";
 import { Check, ChevronRight, CreditCard } from "@/lib/icons";

@@ -1,5 +1,5 @@
-import { allocatePaycheck } from "@/lib/engine/allocatePaycheck";
-import type { CompletedRecommendedAction, Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+import { allocatePaycheck } from "@core/engine/allocatePaycheck";
+import type { CompletedRecommendedAction, Debt, RequiredExpense } from "@core/storage/debtPlannerStorage";
 
 type AllocationResult = ReturnType<typeof allocatePaycheck>;
 

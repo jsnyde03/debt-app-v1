@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { readKeyValue, writeKey } from "@/lib/storage/safeStorage";
 import { triggerLightHaptic } from "@/lib/mobile/haptics";
-import type { Debt, RequiredExpense } from "@/lib/storage/debtPlannerStorage";
+import type { Debt, RequiredExpense } from "@core/storage/debtPlannerStorage";
 
 type EntryType = "debt" | "expense";
 

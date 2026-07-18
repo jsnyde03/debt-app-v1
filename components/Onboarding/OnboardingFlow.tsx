@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { applyDemoPlannerStateToStorage } from "@/lib/testing/seedPlannerState";
+import { applyDemoPlannerStateToStorage } from "@core/testing/seedPlannerState";
 import { WelcomeStep } from "./WelcomeStep";
 import { PaycheckStep } from "./PaycheckStep";
 import { FirstDebtOrBillStep } from "./FirstDebtOrBillStep";

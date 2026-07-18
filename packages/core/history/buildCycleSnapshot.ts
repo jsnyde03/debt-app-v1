@@ -2,7 +2,7 @@ import type {
     CompletedRecommendedAction,
     Debt,
     PayCycleSnapshot,
-} from "@/lib/storage/debtPlannerStorage";
+} from "@core/storage/debtPlannerStorage";
 
 function roundMoney(amount: number) {
     return Math.round(amount * 100) / 100;

@@ -1,4 +1,4 @@
-import type { PayCycleSnapshot } from "@/lib/storage/debtPlannerStorage";
+import type { PayCycleSnapshot } from "@core/storage/debtPlannerStorage";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { hasFeatureAccess } from "@/lib/subscription/hasFeatureAccess";
 
