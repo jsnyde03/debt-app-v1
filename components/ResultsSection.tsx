@@ -7,6 +7,7 @@ import type {
     RequiredExpense,
 } from "@core/storage/debtPlannerStorage";
 import { formatCurrency } from "@core/utils/formatCurrency";
+import { roundMoney } from "@core/utils/money";
 import { computeCycleDelta } from "@core/debt/computeCycleDelta";
 import { deriveRequiredActionView } from "@core/debt/deriveRequiredActionView";
 import type { CompletedRecommendedAction, PayCycleSnapshot } from "@core/storage/debtPlannerStorage";
@@ -66,10 +67,6 @@ type RecommendedDisplayAction = {
     isCompleted: boolean;
     paymentSource?: "paycheck" | "external";
 };
-
-function roundMoney(amount: number) {
-    return Math.round(amount * 100) / 100;
-}
 
 function isRecommendedCategory(
     category: string

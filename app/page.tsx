@@ -6,6 +6,7 @@ import { getNextPaycheckDate } from "@core/payCycle/getNextPaycheckDate";
 import { rollPaydayToFuture } from "@core/payCycle/rollPaydayToFuture";
 import { payCyclesPerMonth } from "@core/payCycle/payCyclesPerMonth";
 import { computeInterestSaved, type InterestSaved } from "@core/debt/computeInterestSaved";
+import { roundMoney } from "@core/utils/money";
 import type { Recurrence } from "@core/types/recurrence";
 import "./styles/00-theme-and-base.css";
 import "./styles/01-payoff-goals.css";
@@ -121,10 +122,6 @@ function formatRecurrence(recurrence: Recurrence) {
         default:
             return "Monthly";
     }
-}
-
-function roundMoney(amount: number) {
-    return Math.round(amount * 100) / 100;
 }
 
 export default function Home() {

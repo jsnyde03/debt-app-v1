@@ -4,6 +4,7 @@ import type { CompletedRecommendedAction, Debt } from "@core/storage/debtPlanner
 import type { allocatePaycheck } from "@core/engine/allocatePaycheck";
 import { projectDebtPayoff } from "@core/debt/projectDebtPayoff";
 import { formatCurrency } from "@core/utils/formatCurrency";
+import { buildExtraPaymentAllocationPlan } from "@core/debt/extraPaymentPlan";
 import { hasFeatureAccess } from "@/lib/subscription/hasFeatureAccess";
 import type { SubscriptionPlan } from "@/lib/subscription/plans";
 import { projectForecast } from "@core/forecast/projectForecast";
@@ -239,8 +240,6 @@ export function SnowballSection({
 			? recommendedSimulationStrategy
 			: simulationStrategy;
 
-
-
 	const projectedBuffer = remainingSnowballExtra - (result?.shortfall ?? 0);
 
 	const smartInsights = buildSmartInsights({
@@ -321,39 +320,6 @@ export function SnowballSection({
 	const snowballHasLowerInterest = lowerInterestStrategy === "snowball";
 	const avalancheHasLowerInterest = lowerInterestStrategy === "avalanche";
 
-	function buildExtraPaymentAllocationPlan({ debts, amount, strategy }: { debts: DebtWithDisplayBalance[]; amount: number; strategy: "snowball" | "avalanche" }) {
-		let remainingAmount = Math.max(0, amount);
-
-		const orderedDebts = [...debts].filter((debt) => debt.balance > 0).sort((a, b) => {
-			if (strategy === "avalanche") {
-				if (b.apr !== a.apr) {
-					return b.apr - a.apr;
-				}
-
-				return a.balance - b.balance;
-			}
-
-			return a.balance - b.balance;
-		});
-
-		return orderedDebts.map((debt) => {
-			if (remainingAmount <= 0) {
-				return null;
-			}
-
-			const amountToApply = Math.min(remainingAmount, debt.balance);
-			remainingAmount -= amountToApply;
-
-			return {
-				debtId: debt.id,
-				debtName: debt.name,
-				amount: amountToApply,
-				remainingBalanceAfterPayment: Math.max(0, debt.balance - amountToApply),
-				isPaidOff: amountToApply >= debt.balance,
-			};
-		}).filter((item): item is NonNullable<typeof item> => item !== null);
-	}
-
 	function getInsightMeta(severity: "good" | "warning" | "risk", title: string) {
 		if (severity === "risk") {
 			return {
@@ -395,7 +361,6 @@ export function SnowballSection({
 			label: "Good",
 		};
 	}
-
 
 	return (
 		<section className="card payoff-shell">
