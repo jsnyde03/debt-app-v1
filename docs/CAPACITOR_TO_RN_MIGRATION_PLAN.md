@@ -11,11 +11,13 @@
 ## ✅ DECISION (Jason, 2026-07-18) — **Option B: full migration COMMITTED**
 Jason chose to commit the full migration, over the "commit Gate 1 first" recommendation. Rationale (stronger than the audits' "not forced today" framing): the migration is **inevitable** given the v2.0+ feature/polish hyperdrive, and its LOE only grows with surface area — so the cheapest version of an inevitable migration is the soonest. "Not forced" ≠ "not right."
 - **The commitment is to the destination; execution still runs through the gates** (now execution checkpoints, not go/no-go-on-the-decision) — the live earner stays protected and every step abort-able.
-- **The release train does not stop:** v1.7 (Premium+/Drift) + v1.8 (Android) ship on Capacitor behind the **v1.8 UI Freeze Line**; RN cuts over after.
-- **Data-continuity is proven on a real upgraded device before cut-over** — non-negotiable.
-- **D1 resolved:** the migration IS v1.7's debt-kill → v1.7-on-Capacitor **drops** the throwaway in-place God-file/CSS/Tailwind refactor and **keeps** the revenue spine + the stack-agnostic core work (= the `packages/core` extraction, Gate 1). God-files die by being rebuilt clean in RN.
-- **Own standalone portfolio initiative**, interleaved — never a monopolizing block; must not preempt the protected finance slot or starve the bet rotation.
-- **First concrete step: Gate 1** (extract `packages/core` + stand up `apps/rn` with one screen at parity). Sequencing of when Gate 1 becomes active work vs. shipping v1.7's revenue spine first = confirm with Jason.
+
+**⚡ ESCALATED 2026-07-18 (same day, later) — v1.7 IS the migration, done all at once.** Jason made the executive call to STOP the two-track "ship v1.7 on Capacitor first / migrate later behind a v1.8 freeze line" plan. **There is no Capacitor-first track and no freeze line.** **v1.7 = ONE massive version = the full migration (Gates 2–3) + the revenue spine + iCloud backup + AU/NZ, all built once natively in RN, shipping AS the RN app.** Rationale: v1.7 was always "The Robust Build"; shipping the revenue spine on Capacitor only to rebuild it in RN months later is the exact double-work Option B exists to stop, and v1.7 carries no must-ship-fast urgency (the live app earns; marketing is gated). After this one massive version the roadmap realigns: **v1.8 = Android off RN → v1.9+.**
+- **Data-continuity is proven on a real populated, upgraded device before cut-over — the release SHIP-BLOCKER.** Everything else is recoverable; silently wiping a live user's data is not.
+- **No Capacitor-first · no freeze line · no separate standalone initiative** — the migration IS v1.7's scope. The only remaining Capacitor work is a final `1.6.x` that writes the native-readable handoff blob for the data bridge.
+- **All UI incl. the revenue spine (Premium+/Drift/calendar/paywall) is built ONCE in RN** — zero double-build. iCloud backup ports from Freedom's `cloudBackup` module.
+- **Canonical build sequence (`V17_PLAN.md` + MASTER_PLAN item 3):** Phase B0 core+scaffold ✅ → **B** RN parity rebuild + IA EVOLVE → **C** new value in RN (revenue spine · Drift · amort calendar · iCloud backup · AU/NZ) → **D** data bridge + cutover (ship-blocker) → **E** release gate.
+- **Deliverable #3 (parallel-execution "don't stop the train") + the incremental Gate-1-first recommendation below are SUPERSEDED** by this call — kept as the analysis record. The gates are now v1.7's internal phases, not a separate interleaved track.
 
 ---
 
