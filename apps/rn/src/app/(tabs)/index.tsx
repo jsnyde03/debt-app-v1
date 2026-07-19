@@ -1,62 +1,128 @@
+import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { MoreButton } from '@/components/more-button';
-import { Placeholder } from '@/components/placeholder';
+import { PlanHero } from '@/components/plan/PlanHero';
+import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
+import { RequiredActionsCard } from '@/components/plan/RequiredActionsCard';
 import { Screen } from '@/components/screen';
+import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { appStore } from '@/store/appStore';
+import {
+  selectPlanState,
+  selectPlanSummary,
+  selectRecommendedActions,
+  selectRequiredRows,
+  type RequiredRow,
+} from '@/store/planSelectors';
 import { selectAllocation } from '@/store/selectors';
 import { useAppStore } from '@/store/useAppStore';
-import { layout, spacing } from '@/theme/spacing';
+import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
-const money = (n: number) => `$${n.toFixed(2)}`;
+function handleMark(row: RequiredRow, paid: boolean) {
+  const isExpense = row.item.category === 'expense' || row.item.category === 'autopay_expense';
+  const id = isExpense ? row.item.targetId : (row.item.debtId ?? row.item.targetId);
+  if (!id) return;
+  if (isExpense) appStore.getState().markExpensePaid(id, paid);
+  else appStore.getState().markDebtMinimumPaid(id, paid);
+}
 
-/**
- * Plan tab (Plan-first index). B.2 wires the store → `@core` engine → this hero to prove the data
- * layer end-to-end; B.4 rebuilds it into the full Plan (hero + required actions + Payday Autopilot).
- */
+/** Plan tab (Plan-first index) — the signature screen. */
 export default function PlanScreen() {
   const c = useAppColors();
   const store = useAppStore((s) => s.store);
   const allocation = selectAllocation(store);
+  const planState = selectPlanState(store, allocation);
+
+  let content: React.ReactNode = null;
+  if (planState === 'no-paycheck') {
+    content = (
+      <PromptCard
+        icon="account-balance-wallet"
+        iconColor={c.accent.primary}
+        title="Set up your paycheck"
+        body="Add your paycheck to see exactly what to pay each cycle."
+      />
+    );
+  } else if (planState === 'no-debts') {
+    content = (
+      <PromptCard
+        icon="add-circle-outline"
+        iconColor={c.accent.primary}
+        title="Add your first debt"
+        body="Your debt-free date is waiting. Add a debt to see your plan."
+        cta="Add a debt"
+        onCta={() => router.push('/bills')}
+      />
+    );
+  } else if (planState === 'debt-free') {
+    content = (
+      <PromptCard
+        icon="celebration"
+        iconColor={c.accent.success}
+        title="You're debt-free!"
+        body="Every balance is cleared. Keep the momentum going."
+      />
+    );
+  } else if (allocation) {
+    const requiredRows = selectRequiredRows(store, allocation);
+    const summary = selectPlanSummary(store, allocation, requiredRows);
+    const recommended = selectRecommendedActions(store, allocation);
+    content = (
+      <>
+        <PlanHero summary={summary} nextPaycheckDate={store.paycheck.nextPaycheckDate} />
+        <RequiredActionsCard rows={requiredRows} unfunded={allocation.unfundedRequiredItems ?? []} onMark={handleMark} />
+        <RecommendedActionsCard
+          active={recommended}
+          completed={store.completedRecommendedActions}
+          onToggle={(a, done) => appStore.getState().toggleRecommendedDone(a, done)}
+        />
+      </>
+    );
+  }
 
   return (
     <Screen title="Plan" right={<MoreButton />}>
-      {allocation ? (
-        <View style={[styles.card, { backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}>
-          <Text style={[textStyles.footnote, styles.eyebrow, { color: c.accent.primary }]}>
-            THIS PAYCHECK · store → @core engine
-          </Text>
-          <Text style={[textStyles.numericLarge, { color: c.text.primary }]}>{money(allocation.paycheckAmount)}</Text>
-          <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
-            Required {money(allocation.totalRequired)} · Remaining {money(allocation.remaining)}
-          </Text>
-          <View style={[styles.divider, { backgroundColor: c.border.subtle }]} />
-          {allocation.allocations.map((a, i) => (
-            <View key={`${a.category}-${i}`} style={styles.row}>
-              <Text style={[textStyles.body, { color: c.text.primary }]} numberOfLines={1}>
-                {a.label}
-              </Text>
-              <Text style={[textStyles.numericBody, { color: c.text.primary }]}>{money(a.amount)}</Text>
-            </View>
-          ))}
-        </View>
-      ) : (
-        <Placeholder label="Plan" note="Set your paycheck to see your plan — full Plan screen at B.4." />
-      )}
+      {content}
     </Screen>
   );
 }
 
+function PromptCard({
+  icon,
+  iconColor,
+  title,
+  body,
+  cta,
+  onCta,
+}: {
+  icon: IconGlyph;
+  iconColor: string;
+  title: string;
+  body: string;
+  cta?: string;
+  onCta?: () => void;
+}) {
+  const c = useAppColors();
+  return (
+    <Card style={styles.prompt}>
+      <View style={[styles.promptIcon, { backgroundColor: c.background.tertiary }]}>
+        <AppIcon name={icon} size={28} color={iconColor} />
+      </View>
+      <Text style={[textStyles.title3, styles.center, { color: c.text.primary }]}>{title}</Text>
+      <Text style={[textStyles.subhead, styles.center, { color: c.text.secondary }]}>{body}</Text>
+      {cta && onCta ? <Button label={cta} onPress={onCta} style={styles.promptCta} /> : null}
+    </Card>
+  );
+}
+
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: layout.cardRadius,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: layout.cardPaddingH,
-    paddingVertical: layout.cardPaddingV,
-    gap: spacing.xs,
-  },
-  eyebrow: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700' },
-  divider: { height: StyleSheet.hairlineWidth, marginVertical: spacing.sm },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.sm },
+  prompt: { alignItems: 'center', gap: spacing.sm },
+  promptIcon: { width: 64, height: 64, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
+  center: { textAlign: 'center' },
+  promptCta: { alignSelf: 'stretch', marginTop: spacing.sm },
 });

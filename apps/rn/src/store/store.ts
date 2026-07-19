@@ -4,6 +4,7 @@ import { createDefaultStore } from '@/data/defaults';
 import { runMigrations } from '@/data/migrations';
 import {
   CURRENT_STORE_VERSION,
+  type CompletedRecommendedAction,
   type Debt,
   type DebtStore,
   type Goal,
@@ -49,6 +50,11 @@ export interface DebtAppState {
   updateGoal(id: string, updates: Partial<Goal>): void;
   removeGoal(id: string): void;
 
+  // Mark-paid (this cycle)
+  markExpensePaid(id: string, paid: boolean): void;
+  markDebtMinimumPaid(id: string, paid: boolean): void;
+  toggleRecommendedDone(action: CompletedRecommendedAction, done: boolean): void;
+
   // Prefs / subscription / onboarding
   updatePrefs(updates: Partial<Preferences>): void;
   setSubscriptionPlan(plan: SubscriptionPlan): void;
@@ -57,6 +63,9 @@ export interface DebtAppState {
   // Import (shared by JSON import + iCloud restore + the Phase-D data bridge)
   importStore(store: DebtStore): void;
 }
+
+/** Stable identity for a completed recommended action (dedup key for toggle). */
+const recKey = (a: CompletedRecommendedAction) => `${a.category}:${a.targetId}:${a.paymentSource ?? 'paycheck'}`;
 
 export function createDebtStore() {
   return createStore<DebtAppState>((set, get) => ({
@@ -146,6 +155,34 @@ export function createDebtStore() {
     },
     removeGoal(id) {
       set((s) => ({ store: { ...s.store, goals: s.store.goals.filter((g) => g.id !== id) } }));
+    },
+
+    markExpensePaid(id, paid) {
+      set((s) => ({
+        store: {
+          ...s.store,
+          requiredExpenses: s.store.requiredExpenses.map((e) => (e.id === id ? { ...e, isPaidThisCycle: paid } : e)),
+        },
+      }));
+    },
+    markDebtMinimumPaid(id, paid) {
+      set((s) => ({
+        store: {
+          ...s.store,
+          debts: s.store.debts.map((d) => (d.id === id ? { ...d, minimumPaidThisCycle: paid } : d)),
+        },
+      }));
+    },
+    toggleRecommendedDone(action, done) {
+      set((s) => {
+        const existing = s.store.completedRecommendedActions;
+        const next = done
+          ? existing.some((a) => recKey(a) === recKey(action))
+            ? existing
+            : [...existing, action]
+          : existing.filter((a) => recKey(a) !== recKey(action));
+        return { store: { ...s.store, completedRecommendedActions: next } };
+      });
     },
 
     updatePrefs(updates) {
