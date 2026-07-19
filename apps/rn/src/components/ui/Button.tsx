@@ -1,0 +1,54 @@
+import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
+
+import { useAppColors } from '@/hooks/use-app-colors';
+import { layout, spacing } from '@/theme/spacing';
+import { textStyles } from '@/theme/typography';
+
+type Variant = 'primary' | 'secondary' | 'text';
+
+/** Themed button. `primary` = the brand CTA fill, `secondary` = outlined card, `text` = bare label. */
+export function Button({
+  label,
+  onPress,
+  variant = 'primary',
+  disabled,
+  style,
+}: {
+  label: string;
+  onPress: () => void;
+  variant?: Variant;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const c = useAppColors();
+  const bg = variant === 'primary' ? c.accent.brand : variant === 'secondary' ? c.background.secondary : 'transparent';
+  const fg = variant === 'primary' ? c.text.onAccent : variant === 'text' ? c.text.secondary : c.text.primary;
+  const border = variant === 'secondary' ? c.border.default : 'transparent';
+
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      style={({ pressed }) => [
+        styles.base,
+        variant === 'text' && styles.textVariant,
+        { backgroundColor: bg, borderColor: border, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
+        style,
+      ]}>
+      <Text style={[textStyles.bodyMedium, { color: fg }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  base: {
+    minHeight: 52,
+    borderRadius: layout.buttonRadius,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  textVariant: { minHeight: 44 },
+});

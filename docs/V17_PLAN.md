@@ -41,6 +41,11 @@ _Jason's executive call: v1.7 is the full migration done all at once — no Capa
   - **Store shape carries entities without actions yet** (built as their screens land): `cycleHistory`/`completedRecommendedActions`/`recommendationOverrides`/`milestoneMaxProgress` → Payday Autopilot (B.5) + History (B.8); `lastSavedAt` unwritten until the "last saved" indicator returns.
   - **Testability win:** the store + data + selectors are pure TS + zustand (zero RN-native imports) → node-unit-testable — a store-action + hydrate/quarantine reconciliation test is a cheap add (candidate for B.9 / test-hardening).
   - **UI-improvement watch:** the temporary Plan hero already reads clean; the **B.4 Plan** scan will weigh the required-vs-extra visual hierarchy + the "Leftover cash / Extra payment" framing against the Capacitor hero for a true improvement.
+- **B.3 after-scan (2026-07-19) — onboarding DONE, full flow verified:**
+  - **UI improvement SHIPPED (Jason-approved):** emoji → the tokenized premium icon set across all 4 steps — reads notably more premium. Reusable form primitives (`Button`/`TextField`/`SegmentedToggle`/`RadioGroup`/`AppIcon`) built → feed B.6 (Debts/Bills/Goals) + later forms.
+  - **Parity gaps deferred to B.9 / device-QA:** the "Next paycheck" is a **computed read-only** display (Capacitor allowed editing it via a date input — needs `@react-native-community/datetimepicker`, a native module) · `OnboardingLayout` has no `KeyboardAvoidingView` yet (lower fields under the keyboard on device — native polish) · explicit semimonthly/monthly day validation relies on `getNextPaycheckDate`'s try/catch fallback (could add inline validation) · SF-Symbols icon upgrade (shared B.9 item).
+  - **Demo mode** uses a hand-authored sample store (2 debts / 2 bills / 1 goal), not the Capacitor `@core/testing/seedPlannerState` canonical demo — fine for parity; align later if desired.
+  - **Test-hardening candidate:** the Capacitor onboarding has an e2e (`onboarding-flow.spec.ts`); an RN equivalent (Playwright-web / Maestro) belongs in the Phase-E/keep-green infra once it's stood up.
 - _(more entries land as Phase B screens are rebuilt.)_
 
 ---
