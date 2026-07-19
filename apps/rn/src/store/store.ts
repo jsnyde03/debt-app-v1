@@ -1,5 +1,7 @@
 import { createStore } from 'zustand/vanilla';
 
+import type { RequiredReconciliation } from '@core/debt/bulkMarkRequired';
+
 import { createDefaultStore } from '@/data/defaults';
 import { runMigrations } from '@/data/migrations';
 import {
@@ -15,6 +17,8 @@ import {
   type SubscriptionPlan,
 } from '@/data/models';
 import type { StorageAdapter } from '@/storage/adapter';
+
+import { applyCapture, applyRollover } from './payday';
 
 /**
  * The app-wide state: the persisted `store` blob + hydration lifecycle + the mutating actions.
@@ -54,6 +58,11 @@ export interface DebtAppState {
   markExpensePaid(id: string, paid: boolean): void;
   markDebtMinimumPaid(id: string, paid: boolean): void;
   toggleRecommendedDone(action: CompletedRecommendedAction, done: boolean): void;
+
+  // Payday Autopilot: capture the paycheck, roll the cycle forward, track the handled payday
+  capturePayday(items: CompletedRecommendedAction[], requiredDecisions: RequiredReconciliation): void;
+  rolloverPayCycle(): void;
+  setLastHandledPayday(date: string): void;
 
   // Prefs / subscription / onboarding
   updatePrefs(updates: Partial<Preferences>): void;
@@ -183,6 +192,16 @@ export function createDebtStore() {
           : existing.filter((a) => recKey(a) !== recKey(action));
         return { store: { ...s.store, completedRecommendedActions: next } };
       });
+    },
+
+    capturePayday(items, requiredDecisions) {
+      set((s) => ({ store: applyCapture(s.store, items, requiredDecisions) }));
+    },
+    rolloverPayCycle() {
+      set((s) => ({ store: applyRollover(s.store) }));
+    },
+    setLastHandledPayday(date) {
+      set((s) => ({ store: { ...s.store, lastHandledPaydayDate: date } }));
     },
 
     updatePrefs(updates) {

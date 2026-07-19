@@ -66,4 +66,6 @@ export interface DebtStore {
   subscriptionPlan: SubscriptionPlan;
   prefs: Preferences;
   lastSavedAt: string;
+  /** The payday the capture sheet was last handled for (self-clears on rollover as the date advances). */
+  lastHandledPaydayDate: string | null;
 }

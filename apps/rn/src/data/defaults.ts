@@ -39,5 +39,6 @@ export function createDefaultStore(): DebtStore {
       onboardingComplete: false,
     },
     lastSavedAt: '',
+    lastHandledPaydayDate: null,
   };
 }

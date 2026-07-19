@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { MoreButton } from '@/components/more-button';
+import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
 import { PlanHero } from '@/components/plan/PlanHero';
 import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
 import { RequiredActionsCard } from '@/components/plan/RequiredActionsCard';
@@ -10,6 +11,7 @@ import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
 import {
   selectPlanState,
@@ -31,22 +33,24 @@ function handleMark(row: RequiredRow, paid: boolean) {
   else appStore.getState().markDebtMinimumPaid(id, paid);
 }
 
-/** Plan tab (Plan-first index) — the signature screen. */
+/** Plan tab (Plan-first index) — the signature screen + Payday Autopilot. */
 export default function PlanScreen() {
   const c = useAppColors();
   const store = useAppStore((s) => s.store);
   const allocation = selectAllocation(store);
   const planState = selectPlanState(store, allocation);
 
+  const requiredRows = allocation ? selectRequiredRows(store, allocation) : [];
+  const recommended = allocation ? selectRecommendedActions(store, allocation) : [];
+  const summary = allocation ? selectPlanSummary(store, allocation, requiredRows) : null;
+
+  // Payday Autopilot — detection + the capture sheet's open state. Called unconditionally (hooks rule).
+  const payday = usePaydayCapture(recommended.length > 0);
+
   let content: React.ReactNode = null;
   if (planState === 'no-paycheck') {
     content = (
-      <PromptCard
-        icon="account-balance-wallet"
-        iconColor={c.accent.primary}
-        title="Set up your paycheck"
-        body="Add your paycheck to see exactly what to pay each cycle."
-      />
+      <PromptCard icon="account-balance-wallet" iconColor={c.accent.primary} title="Set up your paycheck" body="Add your paycheck to see exactly what to pay each cycle." />
     );
   } else if (planState === 'no-debts') {
     content = (
@@ -60,18 +64,8 @@ export default function PlanScreen() {
       />
     );
   } else if (planState === 'debt-free') {
-    content = (
-      <PromptCard
-        icon="celebration"
-        iconColor={c.accent.success}
-        title="You're debt-free!"
-        body="Every balance is cleared. Keep the momentum going."
-      />
-    );
-  } else if (allocation) {
-    const requiredRows = selectRequiredRows(store, allocation);
-    const summary = selectPlanSummary(store, allocation, requiredRows);
-    const recommended = selectRecommendedActions(store, allocation);
+    content = <PromptCard icon="celebration" iconColor={c.accent.success} title="You're debt-free!" body="Every balance is cleared. Keep the momentum going." />;
+  } else if (allocation && summary) {
     content = (
       <>
         <PlanHero summary={summary} nextPaycheckDate={store.paycheck.nextPaycheckDate} />
@@ -87,7 +81,32 @@ export default function PlanScreen() {
 
   return (
     <Screen title="Plan" right={<MoreButton />}>
+      {payday.isAwaitingRollover ? (
+        <Card tone="accent" style={styles.nudge}>
+          <Text style={[textStyles.subhead, { color: c.text.primary }]}>
+            Payday logged. Start your next pay cycle to apply this cycle&apos;s payments and get your next plan.
+          </Text>
+          <Button label="Start Next Pay Cycle" onPress={() => appStore.getState().rolloverPayCycle()} style={styles.nudgeBtn} />
+        </Card>
+      ) : null}
+
       {content}
+
+      {allocation && summary ? (
+        <PaydayCaptureSheet
+          key={store.paycheck.nextPaycheckDate}
+          visible={payday.isOpen}
+          activeRecommendedActions={recommended}
+          requiredRows={requiredRows}
+          requiredTotal={summary.requiredTotal}
+          onCapture={(items, decisions) => {
+            appStore.getState().capturePayday(items, decisions);
+            payday.completeCapture();
+          }}
+          onDismiss={payday.dismiss}
+          onClose={payday.close}
+        />
+      ) : null}
     </Screen>
   );
 }
@@ -125,4 +144,6 @@ const styles = StyleSheet.create({
   promptIcon: { width: 64, height: 64, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
   center: { textAlign: 'center' },
   promptCta: { alignSelf: 'stretch', marginTop: spacing.sm },
+  nudge: { gap: spacing.md },
+  nudgeBtn: { alignSelf: 'stretch' },
 });
