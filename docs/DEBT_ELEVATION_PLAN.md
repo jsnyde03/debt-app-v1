@@ -80,6 +80,7 @@ Build the reshaped Premium: the **Payday Partner loop** (reminders + calendar + 
 
 ### Phase 3 — Delight + native platform
 The emotional layer built *with* the features: the **debt-paid-off celebration**, milestone moments, progress-fill, animated counters, haptics, reanimated micro-interactions — and **genuinely-native iPad** (master-detail/multi-column, not a centered column). Restraint on daily surfaces; delight on the beats.
+- **⚠️ Per-screen iPad RE-EVALUATION required (Jason 2026-07-20):** the Phase-1 screens are elevated **phone-first** and look great on phone, but leave **a lot of empty space on iPad** — the current `Screen` centers a width-capped single column, which doesn't use the real estate. Every elevated screen (Today first) must be **re-evaluated + re-laid-out for iPad** (multi-column / master-detail / adaptive), NOT just a centered phone column. Do this as a deliberate pass in the iPad work, screen by screen.
 
 ### Phase 4 — Quality
 A **real automated test harness** for the RN app (unit tests for store/selectors/money-math via the `packages/core` reconciliation pattern + e2e for the critical flows — Debt has none today; Freedom shipped with a full suite) + the whole-app gap analysis + reconciliation + both-theme visual verification, kept green.

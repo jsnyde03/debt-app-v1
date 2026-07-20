@@ -2,6 +2,7 @@ import { buildPayoffTrajectory, type TrajectoryPoint } from '@core/debt/buildPay
 import { computeDrift, type DriftResult } from '@core/debt/computeDrift';
 import { computeInterestSaved, type InterestSaved } from '@core/debt/computeInterestSaved';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
+import { buildMultiCycleTimeline, type TimelineCycle } from '@core/timeline/buildMultiCycleTimeline';
 
 import { todayLocalISO } from '@/data/defaults';
 import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
@@ -9,7 +10,35 @@ import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
 import { selectDebtFreeDate, selectExtraToDebt } from './planSelectors';
 import { selectAllocation } from './selectors';
 
-export type { TrajectoryPoint, InterestSaved, DriftResult };
+export type { TrajectoryPoint, InterestSaved, DriftResult, TimelineCycle };
+
+/**
+ * The near-term cash-cushion forecast — the next few pay cycles' ending balance + a stable/tight/
+ * pressure health flag. Distinct from the payoff trajectory (this = "will I be tight next month?",
+ * that = "when am I free?"). Built on the tested `@core/timeline` engine. `[]` if no plan yet.
+ */
+export function selectCashTimeline(store: DebtStore, maxCycles = 5): TimelineCycle[] {
+  const allocation = selectAllocation(store);
+  if (!allocation) return [];
+  return buildMultiCycleTimeline({
+    result: allocation,
+    requiredExpenses: store.requiredExpenses,
+    debts: store.debts,
+    goals: store.goals,
+    livingExpenses: store.livingExpenses,
+    completedRecommendedActions: store.completedRecommendedActions,
+    currentDate: store.paycheck.currentDate,
+    nextPaycheckDate: store.paycheck.nextPaycheckDate,
+    payCycleConfig: {
+      payCycle: store.paycheck.payCycle,
+      semiMonthlyFirstDay: Number(store.paycheck.semiMonthlyFirstDay) || undefined,
+      semiMonthlySecondDay: Number(store.paycheck.semiMonthlySecondDay) || undefined,
+      monthlyPayDay: Number(store.paycheck.monthlyPayDay) || undefined,
+    },
+    strategy: store.payoffStrategy,
+    maxCycles,
+  });
+}
 
 /**
  * Drift of the live debt balance against the frozen baseline (the premium_plus carrot on Payoff).
