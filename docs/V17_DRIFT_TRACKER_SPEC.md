@@ -57,7 +57,7 @@ A migration can only *stamp*, not backfill — pre-v1.7 cycles have no recoverab
 Additive optional key + (if the skipped-rec attribution is wanted later) an optional per-cycle field. Register `MIGRATIONS[3]`, bump `CURRENT_SCHEMA_VERSION` 2→3 (`lib/storage/migrateState.ts`). Old installs simply lack `driftBaseline` and get one written on their next plan-establish/rollover. **Carries into the RN app verbatim** via `packages/core` (schema + migrations are portable).
 
 ## 7. Gating & placement
-`premium_plus` (gated by the existing `hasFeatureAccess`). Placement/framing TBD with the 0.2 IA verdict (it's an accountability surface — likely a Plan-tab or dedicated "Progress/Journey" destination). Ships as its own component (per the tech-debt audit — do NOT bolt it into the 1396-line SnowballSection, or the migration extracts a moving target).
+`premium_plus` (gated by the existing `hasFeatureAccess`). **Placement ✅ DECIDED (Jason 2026-07-20): the Payoff tab** — Drift is the lead premium module there, overlaying actual-vs-projected on the trajectory chart that already renders + a "N days behind" headline (strongest thematic fit: Payoff = the debt trajectory, Drift = actual vs. that projected line; the other premium modules also land on Payoff). Ships as its own component (per the tech-debt audit — do NOT bolt it into the old SnowballSection).
 
 ## 8. RN-migration note
 `computeDrift` + the baseline type + the migration live in `packages/core` (portable, test-locked). Only the Drift Tracker *component* is rebuilt in RN. The reconciliation test is the parity oracle — the RN Drift screen must produce identical `daysBehind` for identical inputs.
