@@ -106,13 +106,13 @@ Premium is a cross-cutting **entitlement**, NOT a walled-off "Premium tab" and N
 
 | # | Decision | Recommendation | Status |
 |---|---|---|---|
-| **D1** | Reminders line: Free = payday-eve nudge only; Premium = full per-bill reminder→pay→verify loop? | **Yes** — the loop is the recurring engine; free still gets a nudge so it's not punitive | ⏳ OPEN |
-| **D2** | Sharing: basic milestone card Free (acquisition), richer/custom + full system Premium? | **Yes** — debt is social; don't wall off free-marketing | ⏳ OPEN |
-| **D3** | Widget: Premium, or Free for engagement/home-screen presence? | **Premium** (active glanceable surface + upgrade hook) — but the one most worth considering free | ⏳ OPEN |
-| **D4** | Smart Insights → Premium ("next move"); Forecasting → Free? | **Yes** — split on active-vs-readout | ⏳ OPEN |
-| **D5** | Rename "Payoff" tab → "Progress"? | Lean **yes** (matches its new emotional role) — but a Phase-6 polish call, low-risk to defer | ⏳ OPEN |
-| **D6** | Pricing/model (from the exploration): one Premium $4.99/mo + annual (data-gated) + Lifetime (~$60–80) + portfolio-sub as connective tissue? | **Adopt** per the exploration §4 | ⏳ OPEN (exploration decisions 1–4) |
-| **D7** | How far to push a deliberate visual-identity / design-language reset now (RN unlocks it) vs. incrementally via D.6? | A focused design-direction pass is worth it; scope as its own effort | ⏳ OPEN (see §5b) |
+| **D1** | Reminders line: Free = payday-eve nudge only; Premium = full per-bill reminder→pay→verify loop? | **Yes** | ✅ DECIDED 2026-07-20 (D-LINE) |
+| **D2** | Sharing: basic milestone card Free (acquisition), richer/custom + full system Premium? | **Yes** | ✅ DECIDED 2026-07-20 (D-LINE) |
+| **D3** | Widget: Premium, or Free for engagement/home-screen presence? | Split | ✅ DECIDED 2026-07-20 (W): **free** glanceable debt-free countdown + **premium** interactive/plan widget |
+| **D4** | Smart Insights → Premium ("next move"); Forecasting → Free? | **Yes** — active-vs-readout split | ✅ DECIDED 2026-07-20 (D-LINE) |
+| **D5** | Rename "Payoff" tab → "Progress"? | **Yes** | ✅ DECIDED 2026-07-20 — resolved by the IA skeleton: **Progress** is a first-class tab; "Payoff" as a tab is gone |
+| **D6** | Pricing/model: one Premium $4.99/mo + annual (data-gated) + Lifetime + portfolio-sub? | **Adopt** | ✅ DECIDED 2026-07-20 (D-LIFE) — Lifetime **~$79–99** (supersedes the earlier ~$60–80; PocketGuard $79.99 anchor), shown as a second offer after the sub is declined |
+| **D7** | How far to push a deliberate visual-identity / design-language reset now (RN unlocks it) vs. incrementally via D.6? | Full deliberate reset now, as its OWN effort (= Phase 0.2) | ⏳ OPEN → **the 0.2 doorway**; the Elevation mandate (best-in-class, do-it-right) points to a full reset now — confirm + execute in 0.2 |
 
 _(Add rows as questions surface — "which milestones exactly," "what's on a shared card," "does verify need reconcile UI," etc.)_
 
