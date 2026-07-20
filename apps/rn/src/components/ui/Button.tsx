@@ -4,9 +4,9 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
-type Variant = 'primary' | 'secondary' | 'text';
+type Variant = 'primary' | 'secondary' | 'text' | 'danger';
 
-/** Themed button. `primary` = the brand CTA fill, `secondary` = outlined card, `text` = bare label. */
+/** Themed button. `primary` = brand CTA fill, `secondary` = outlined card, `text` = bare label, `danger` = destructive fill. */
 export function Button({
   label,
   onPress,
@@ -21,8 +21,10 @@ export function Button({
   style?: StyleProp<ViewStyle>;
 }) {
   const c = useAppColors();
-  const bg = variant === 'primary' ? c.accent.brand : variant === 'secondary' ? c.background.secondary : 'transparent';
-  const fg = variant === 'primary' ? c.text.onAccent : variant === 'text' ? c.text.secondary : c.text.primary;
+  const bg =
+    variant === 'primary' ? c.accent.brand : variant === 'danger' ? c.accent.danger : variant === 'secondary' ? c.background.secondary : 'transparent';
+  const fg =
+    variant === 'primary' || variant === 'danger' ? c.text.onAccent : variant === 'text' ? c.text.secondary : c.text.primary;
   const border = variant === 'secondary' ? c.border.default : 'transparent';
 
   return (

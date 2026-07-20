@@ -28,6 +28,12 @@ export function demoStore(): DebtStore {
       { id: 'demo-gas', name: 'Gas', amount: 120, enabled: true },
     ],
     goals: [{ id: 'demo-ef', name: 'Emergency Fund', targetAmount: 1000, currentAmount: 250, type: 'emergency' }],
+    // A short journey so Pay Cycle History has something to show (total debt falling each cycle).
+    cycleHistory: [
+      { cycleEndDate: '2026-05-22', totalDebtBalance: 12100, totalPaidThisCycle: 305, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
+      { cycleEndDate: '2026-06-05', totalDebtBalance: 11720, totalPaidThisCycle: 380, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
+      { cycleEndDate: '2026-06-19', totalDebtBalance: 11305, totalPaidThisCycle: 415, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
+    ],
     prefs: { ...base.prefs, isDemoMode: true, onboardingComplete: true },
   };
 }

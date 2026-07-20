@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatCurrency } from '@core/utils/formatCurrency';
 
@@ -22,7 +22,15 @@ function shortDate(iso: string): string {
  * actionable this-cycle figure — with planned/cushion secondary and the debt-free date as
  * reassurance. Payday-first framing (v1.6) kept; the app-name h1 is gone.
  */
-export function PlanHero({ summary, nextPaycheckDate }: { summary: PlanSummary; nextPaycheckDate: string }) {
+export function PlanHero({
+  summary,
+  nextPaycheckDate,
+  onEditPaycheck,
+}: {
+  summary: PlanSummary;
+  nextPaycheckDate: string;
+  onEditPaycheck?: () => void;
+}) {
   const c = useAppColors();
   const scheme = useColorScheme();
 
@@ -37,9 +45,17 @@ export function PlanHero({ summary, nextPaycheckDate }: { summary: PlanSummary; 
 
   return (
     <View style={[styles.hero, { backgroundColor: HERO_BG[scheme], borderColor: c.border.default }]}>
-      <Text style={[textStyles.footnote, styles.eyebrow, { color: c.accent.primary }]}>
-        THIS PAYCHECK · {shortDate(nextPaycheckDate)}
-      </Text>
+      <Pressable
+        onPress={onEditPaycheck}
+        disabled={!onEditPaycheck}
+        accessibilityRole={onEditPaycheck ? 'button' : undefined}
+        accessibilityLabel={onEditPaycheck ? 'Edit paycheck' : undefined}
+        style={styles.eyebrowRow}>
+        <Text style={[textStyles.footnote, styles.eyebrow, { color: c.accent.primary }]}>
+          THIS PAYCHECK · {shortDate(nextPaycheckDate)}
+        </Text>
+        {onEditPaycheck ? <AppIcon name="edit" size={14} color={c.accent.primary} /> : null}
+      </Pressable>
 
       <View style={styles.numberRow}>
         <Text style={[styles.heroNumber, { color: c.text.primary }]}>{formatCurrency(summary.heroValue)}</Text>
@@ -74,6 +90,7 @@ const styles = StyleSheet.create({
     padding: layout.cardPaddingH + 2,
     gap: spacing.xs,
   },
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, alignSelf: 'flex-start' },
   eyebrow: { textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: '700' },
   numberRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm, flexWrap: 'wrap' },
   heroNumber: { fontSize: 40, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'] },

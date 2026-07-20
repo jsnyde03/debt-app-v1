@@ -1,7 +1,9 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { MoreButton } from '@/components/more-button';
+import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
 import { PlanHero } from '@/components/plan/PlanHero';
 import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
@@ -46,11 +48,19 @@ export default function PlanScreen() {
 
   // Payday Autopilot — detection + the capture sheet's open state. Called unconditionally (hooks rule).
   const payday = usePaydayCapture(recommended.length > 0);
+  const [paycheckSheet, setPaycheckSheet] = useState(false);
 
   let content: React.ReactNode = null;
   if (planState === 'no-paycheck') {
     content = (
-      <PromptCard icon="account-balance-wallet" iconColor={c.accent.primary} title="Set up your paycheck" body="Add your paycheck to see exactly what to pay each cycle." />
+      <PromptCard
+        icon="account-balance-wallet"
+        iconColor={c.accent.primary}
+        title="Set up your paycheck"
+        body="Add your paycheck to see exactly what to pay each cycle."
+        cta="Set up your paycheck"
+        onCta={() => setPaycheckSheet(true)}
+      />
     );
   } else if (planState === 'no-debts') {
     content = (
@@ -68,7 +78,7 @@ export default function PlanScreen() {
   } else if (allocation && summary) {
     content = (
       <>
-        <PlanHero summary={summary} nextPaycheckDate={store.paycheck.nextPaycheckDate} />
+        <PlanHero summary={summary} nextPaycheckDate={store.paycheck.nextPaycheckDate} onEditPaycheck={() => setPaycheckSheet(true)} />
         <RequiredActionsCard rows={requiredRows} unfunded={allocation.unfundedRequiredItems ?? []} onMark={handleMark} />
         <RecommendedActionsCard
           active={recommended}
@@ -107,6 +117,8 @@ export default function PlanScreen() {
           onClose={payday.close}
         />
       ) : null}
+
+      {paycheckSheet ? <PaycheckSheet onClose={() => setPaycheckSheet(false)} /> : null}
     </Screen>
   );
 }

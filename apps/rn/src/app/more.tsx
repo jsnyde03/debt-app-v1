@@ -1,25 +1,143 @@
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
+import { useState } from 'react';
+import { Linking, StyleSheet, Switch, Text, View } from 'react-native';
 
-import { Placeholder } from '@/components/placeholder';
+import { ExportBackupSheet, ImportBackupSheet } from '@/components/more/BackupSheets';
+import { SettingGroup, SettingRow } from '@/components/more/SettingRow';
 import { Screen, Section } from '@/components/screen';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
+import type { ThemeMode } from '@/data/models';
+import { useAppColors } from '@/hooks/use-app-colors';
+import { appStore } from '@/store/appStore';
+import { useAppStore } from '@/store/useAppStore';
+import { spacing } from '@/theme/spacing';
+import { textStyles } from '@/theme/typography';
+
+const LINKS = {
+  privacy: 'https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html',
+  terms: 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+  support: 'https://github.com/jsnyde03/debt-planner-stie/blob/main/Paycheck%20Debt%20Planner%20Support',
+  subscription: 'https://apps.apple.com/account/subscriptions',
+};
+
+const APP_VERSION = Constants.expoConfig?.version ?? '—';
 
 /**
  * The "More" hub (ratified IA EVOLVE) — replaces the old Settings gear, organized by purpose:
- * Data (actions/utilities), Preferences (real settings), About. Real rows land at B.7; iCloud
- * backup + export/import wire in at Phase C / B.8.
+ * Pay Cycle History (a destination, top) · Data (backup/reset) · Preferences (real settings) · About.
+ * Not here (per the IA verdict): paycheck editing + rollover live on Plan. iCloud backup + the native
+ * file-based share/picker + real notification/biometric activation land at B.9 / Phase C.
  */
 export default function MoreScreen() {
+  const c = useAppColors();
+  const prefs = useAppStore((s) => s.store.prefs);
+  const [sheet, setSheet] = useState<'export' | 'import' | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
   return (
     <Screen title="More" onBack={() => router.back()}>
+      {/* History — a reflective destination, so it sits above the settings sections. */}
+      <SettingGroup>
+        <SettingRow
+          icon="history"
+          label="Pay Cycle History"
+          subtitle="Look back at your finished pay cycles."
+          onPress={() => router.push('/history')}
+          last
+        />
+      </SettingGroup>
+
       <Section title="Data">
-        <Placeholder label="Data" note="Export · Import · iCloud backup · Reset — B.7 / Phase C." />
+        <SettingGroup>
+          <SettingRow icon="ios-share" label="Export backup" subtitle="Save a copy of your data." onPress={() => setSheet('export')} />
+          <SettingRow icon="file-download" label="Import backup" subtitle="Restore from a saved backup." onPress={() => setSheet('import')} />
+          <SettingRow
+            icon="cloud-off"
+            label="iCloud Backup"
+            subtitle="Automatic cloud backup — coming with Premium."
+            right={<Text style={[textStyles.caption, { color: c.text.tertiary }]}>Soon</Text>}
+          />
+          {confirmingDelete ? (
+            <DeleteConfirm onCancel={() => setConfirmingDelete(false)} onConfirm={() => { appStore.getState().reset(); setConfirmingDelete(false); }} />
+          ) : (
+            <SettingRow icon="delete-outline" label="Delete All Data" danger onPress={() => setConfirmingDelete(true)} last />
+          )}
+        </SettingGroup>
       </Section>
+
       <Section title="Preferences">
-        <Placeholder label="Preferences" note="Appearance · reminders · plan settings — B.7." />
+        <Card style={styles.appearance}>
+          <Text style={[textStyles.body, { color: c.text.primary }]}>Appearance</Text>
+          <SegmentedToggle<ThemeMode>
+            value={prefs.themeMode}
+            onChange={(mode) => appStore.getState().updatePrefs({ themeMode: mode })}
+            options={[
+              { value: 'system', label: 'Auto' },
+              { value: 'light', label: 'Light' },
+              { value: 'dark', label: 'Dark' },
+            ]}
+          />
+        </Card>
+        <SettingGroup>
+          {/* The toggles persist the prefs now; native scheduling + biometric activation land at B.9. */}
+          <SettingRow
+            icon="notifications-none"
+            label="Notifications"
+            subtitle="Paycheck-eve reminder and bill alerts."
+            right={<Switch value={prefs.notificationsEnabled} onValueChange={(v) => appStore.getState().updatePrefs({ notificationsEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
+          />
+          <SettingRow
+            icon="lock-outline"
+            label="App Lock"
+            subtitle="Require Face ID / passcode to open."
+            right={<Switch value={prefs.appLockEnabled} onValueChange={(v) => appStore.getState().updatePrefs({ appLockEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
+          />
+          <SettingRow icon="shopping-cart" label="Living Expenses" subtitle="Everyday spending set aside each paycheck." onPress={() => router.push('/living-expenses')} last />
+        </SettingGroup>
       </Section>
+
       <Section title="About">
-        <Placeholder label="About" note="About · privacy · version — B.7." />
+        <SettingGroup>
+          <SettingRow icon="lock" label="Your data stays on this device" subtitle="Nothing is uploaded or shared." />
+          <SettingRow icon="privacy-tip" label="Privacy Policy" onPress={() => Linking.openURL(LINKS.privacy)} />
+          <SettingRow icon="description" label="Terms of Use" onPress={() => Linking.openURL(LINKS.terms)} />
+          <SettingRow icon="help-outline" label="Support" onPress={() => Linking.openURL(LINKS.support)} />
+          <SettingRow icon="card-membership" label="Manage Subscription" onPress={() => Linking.openURL(LINKS.subscription)} />
+          <SettingRow icon="info-outline" label="Version" right={<Text style={[textStyles.caption, { color: c.text.tertiary }]}>{APP_VERSION}</Text>} last />
+        </SettingGroup>
       </Section>
+
+      {sheet === 'export' ? <ExportBackupSheet onClose={() => setSheet(null)} /> : null}
+      {sheet === 'import' ? <ImportBackupSheet onClose={() => setSheet(null)} /> : null}
     </Screen>
   );
 }
+
+function DeleteConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) {
+  const c = useAppColors();
+  return (
+    <View style={styles.confirm}>
+      <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
+        All debts, bills, goals, and settings will be permanently erased. This cannot be undone.
+      </Text>
+      <View style={styles.confirmActions}>
+        <View style={styles.confirmBtn}>
+          <Button label="Cancel" variant="secondary" onPress={onCancel} />
+        </View>
+        <View style={styles.confirmBtn}>
+          <Button label="Delete Everything" variant="danger" onPress={onConfirm} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  appearance: { gap: spacing.md },
+  confirm: { padding: spacing.base, gap: spacing.md },
+  confirmActions: { flexDirection: 'row', gap: spacing.md },
+  confirmBtn: { flex: 1 },
+});

@@ -49,6 +49,8 @@ export default function RootLayout() {
         <Stack.Protected guard={onboardingComplete}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="more" />
+          <Stack.Screen name="history" />
+          <Stack.Screen name="living-expenses" />
         </Stack.Protected>
         <Stack.Protected guard={!onboardingComplete}>
           <Stack.Screen name="onboarding" />
