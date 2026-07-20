@@ -20,8 +20,11 @@ import { textStyles } from '@/theme/typography';
 
 const HERO_BG = { light: '#f1f0fb', dark: '#0e1a2e' } as const;
 
-/** Payoff tab — the FREE surface (premium modules + amortization + paywall → Phase C). */
-export default function PayoffScreen() {
+/**
+ * Progress tab — TEMPORARY: still renders the old Payoff free-surface. Rebuilt as the journey
+ * (navy ring · milestones · momentum · the debt-paid-off celebration) in 1.4.
+ */
+export default function ProgressScreen() {
   const c = useAppColors();
   const scheme = useColorScheme();
   const goToTab = useGoToTab();
@@ -34,13 +37,13 @@ export default function PayoffScreen() {
 
   if (!view.hasDebts) {
     return (
-      <Screen title="Payoff" right={<MoreButton />}>
+      <Screen title="Progress" right={<MoreButton />}>
         <EmptyState
           icon="trending-down"
           title="No debts to pay off"
           body="Add a debt to see your payoff order, timeline, and interest saved."
           cta="Add a debt"
-          onCta={() => goToTab('bills')}
+          onCta={() => goToTab('money')}
         />
       </Screen>
     );
@@ -54,7 +57,7 @@ export default function PayoffScreen() {
         : null;
 
   return (
-    <Screen title="Payoff" right={<MoreButton />}>
+    <Screen title="Progress" right={<MoreButton />}>
       <View style={[styles.hero, { backgroundColor: HERO_BG[scheme], borderColor: c.border.default }]}>
         <Text style={[textStyles.footnote, styles.eyebrow, { color: c.accent.primary }]}>DEBT-FREE DATE</Text>
         <Text style={[styles.heroDate, { color: c.text.primary }]}>{view.debtFreeDate ?? '—'}</Text>

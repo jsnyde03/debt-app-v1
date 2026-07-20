@@ -3,8 +3,11 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { cardElevation } from '@/theme/elevation';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { groupLabel } from '@/utils/a11y';
 
 /**
  * The standardized list row for Debts / Bills / Goals — calm hierarchy (title + one meta line +
@@ -29,11 +32,20 @@ export function ListRow({
   onPress?: () => void;
 }) {
   const c = useAppColors();
+  const scheme = useColorScheme();
+  // One screen-reader utterance: "Visa, $2,400 · 22.99% APR, $65.00/mo" instead of separate stops.
+  const a11y = groupLabel(title, meta, amount ? `${amount}${amountSuffix ?? ''}` : undefined);
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      style={({ pressed }) => [styles.row, { backgroundColor: c.background.secondary, borderColor: c.border.subtle, opacity: pressed ? 0.9 : 1 }]}>
+      accessibilityHint={onPress ? 'Opens the editor' : undefined}
+      {...a11y}
+      style={({ pressed }) => [
+        styles.row,
+        cardElevation(scheme),
+        { backgroundColor: c.background.secondary, borderColor: c.border.subtle, opacity: pressed ? 0.9 : 1 },
+      ]}>
       <View style={styles.left}>
         <View style={styles.titleRow}>
           <Text style={[textStyles.bodyMedium, { color: c.text.primary }]} numberOfLines={1}>

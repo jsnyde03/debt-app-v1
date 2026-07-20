@@ -1,12 +1,12 @@
 import { useNavigation } from 'expo-router';
 import { useCallback } from 'react';
 
-/** The four tab route names (file names under `app/(tabs)/`). */
-export type TabName = 'index' | 'bills' | 'payoff' | 'goals';
+/** The three tab route names (file names under `app/(tabs)/`). */
+export type TabName = 'index' | 'progress' | 'money';
 
 /**
- * Switch between the four tabs via the TAB navigator's own `navigate` (a `jumpTo`), NOT
- * `router.push('/bills')`. From a screen already inside `(tabs)`, an absolute-path push/navigate
+ * Switch between the tabs via the TAB navigator's own `navigate` (a `jumpTo`), NOT
+ * `router.push('/money')`. From a screen already inside `(tabs)`, an absolute-path push/navigate
  * resolves UP through the root `Stack` (which wraps `(tabs)` in `Stack.Protected`) and nests back
  * down — on native this intermittently lands as a detached/duplicate tab group with no focused child
  * = a BLANK screen (Freedom RN lesson #7). `useNavigation()` on a tab screen returns the tab

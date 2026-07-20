@@ -1,22 +1,22 @@
 /**
  * Debt Planner — icon token maps.
  *
- * B.1 renders MaterialIcons glyphs on every platform (web-verifiable, zero native modules). The
- * SF-Symbols-on-iOS upgrade (crisper, Dynamic-Type-aware) lands at B.8 native re-glue — see the
- * note in `components/tab-bar-icon.tsx`. Tab glyphs mirror the Capacitor nav (Plan=home,
- * Bills=card, Payoff=trend, Goals=target).
+ * Tab glyphs render as **SF Symbols on iOS** (via `expo-symbols` — weight/Dynamic-Type/dark-mode
+ * aware, no asset files) with a **MaterialIcons fallback** on Android/web. The new 3-tab IA:
+ * Today (checklist — what to pay) · Progress (uptrend — the journey) · Money (card — accounts).
  */
 
 import type { MaterialIcons } from '@expo/vector-icons';
+import type { SymbolViewProps } from 'expo-symbols';
 
 type MaterialGlyph = keyof typeof MaterialIcons.glyphMap;
+type SFSymbol = SymbolViewProps['name'];
 
 export const tabIcons = {
-  plan: 'home',
-  bills: 'credit-card',
-  payoff: 'trending-up',
-  goals: 'adjust',
-} satisfies Record<string, MaterialGlyph>;
+  today: { sf: 'checklist', md: 'checklist' },
+  progress: { sf: 'chart.line.uptrend.xyaxis', md: 'trending-up' },
+  money: { sf: 'creditcard', md: 'account-balance-wallet' },
+} satisfies Record<string, { sf: SFSymbol; md: MaterialGlyph }>;
 
 export const icons = {
   more: 'more-horiz',

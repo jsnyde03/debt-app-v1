@@ -36,8 +36,8 @@ function handleMark(row: RequiredRow, paid: boolean) {
   else appStore.getState().markDebtMinimumPaid(id, paid);
 }
 
-/** Plan tab (Plan-first index) — the signature screen + Payday Autopilot. */
-export default function PlanScreen() {
+/** Today tab (home) — the payday moment + Payday Autopilot. Elevated to the navy hero + count-ups in 1.3. */
+export default function TodayScreen() {
   const c = useAppColors();
   const goToTab = useGoToTab();
   const store = useAppStore((s) => s.store);
@@ -72,7 +72,7 @@ export default function PlanScreen() {
         title="Add your first debt"
         body="Your debt-free date is waiting. Add a debt to see your plan."
         cta="Add a debt"
-        onCta={() => goToTab('bills')}
+        onCta={() => goToTab('money')}
       />
     );
   } else if (planState === 'debt-free') {
@@ -92,7 +92,7 @@ export default function PlanScreen() {
   }
 
   return (
-    <Screen title="Plan" right={<MoreButton />}>
+    <Screen title="Today" right={<MoreButton />}>
       {payday.isAwaitingRollover ? (
         <Card tone="accent" style={styles.nudge}>
           <Text style={[textStyles.subhead, { color: c.text.primary }]}>
