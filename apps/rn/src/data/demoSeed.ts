@@ -12,6 +12,12 @@ export function demoStore(): DebtStore {
   const base = createDefaultStore();
   const { currentDate } = base.paycheck;
   const nextPaycheckDate = getNextPaycheckDate({ payCycle: 'biweekly', currentDate });
+  // A drift baseline frozen ~45 days ago so the Drift Tracker demos a real "days ahead" story for a
+  // Premium+ view (the demo itself stays free → shows the teaser). Tuned so today's $11,000 reads
+  // ahead of the plan's ~$11,152 projection for now.
+  const anchor = new Date(`${currentDate}T00:00:00`);
+  anchor.setDate(anchor.getDate() - 45);
+  const anchorDate = anchor.toISOString().slice(0, 10);
   return {
     ...base,
     paycheck: { ...base.paycheck, amount: '2100', nextPaycheckDate },
@@ -34,6 +40,20 @@ export function demoStore(): DebtStore {
       { cycleEndDate: '2026-06-05', totalDebtBalance: 11720, totalPaidThisCycle: 380, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
       { cycleEndDate: '2026-06-19', totalDebtBalance: 11305, totalPaidThisCycle: 415, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
     ],
+    driftBaseline: {
+      anchorDate,
+      anchorBalance: 11300,
+      debtCount: 2,
+      payoffStrategy: 'snowball',
+      extraPayment: 300,
+      projectedPoints: [
+        { month: 0, balance: 11300 },
+        { month: 3, balance: 11000 },
+        { month: 12, balance: 7000 },
+        { month: 24, balance: 0 },
+      ],
+      projectedDebtFreeDate: 'Jan 2028',
+    },
     prefs: { ...base.prefs, isDemoMode: true, onboardingComplete: true },
   };
 }
