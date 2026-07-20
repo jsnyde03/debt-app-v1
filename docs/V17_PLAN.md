@@ -62,6 +62,11 @@ _Jason's executive call: v1.7 is the full migration done all at once — no Capa
   - **Deferred to B.9:** swipe-to-delete (Remove lives in the edit sheet for now) · native date-picker (dueDate is a `YYYY-MM-DD` TextField) · form-sheet slide-OUT animation (conditional-mount → instant close).
   - **Follow-on polish (backlog):** undo-toast on Remove (Capacitor had one) · the debt min-payment **soft warning** (never-payoff nudge; only the hard min≤balance check is in) · the expense **preset picker** (common bills) omitted for now.
   - **Test-hardening:** all new store actions (livingExpenses CRUD) + the entity forms are pure/node-testable.
+- **B.7 after-scan (2026-07-20) — Payoff FREE-surface REDESIGN done (design-first):**
+  - **Redesign SHIPPED (Jason-approved):** the most over-built tab → a clean 4-block free stack (hero stat · finished trajectory chart · strategy toggle · Focus Debt · Payoff Order). Dropped the phantom 2-col grid, the four locked premium accordions (dead weight for free users), and the inverted premium hero. First **react-native-svg** use (chart renders on web); the toggle now visibly redraws the chart (active bold / other ghosted) — fixing the Capacitor disconnect where it drew both.
+  - **Scoped to Phase C (revenue spine):** all four premium modules (Smart Insights · Strategy Comparison · What-If · Forecast) + the amortization "View Schedule" content + the upgrade paywall. B.7 is the free surface only.
+  - **Deferred to B.9:** the chart's stroke-draw animation (static now; the Capacitor `pathLength` hook was dead too).
+  - **Notes:** interest-saved line is (correctly) absent when there's no extra-to-debt this cycle (demo funds EF first → monthlyExtra 0 → `kind:"none"`) · Focus-Debt progress bar needs `originalBalance` (real debts have it; demo lacks it) · Payoff Order shows all debts (Capacitor paginated at 10 — fine for typical counts; paginate later if needed).
 - _(more entries land as Phase B screens are rebuilt.)_
 
 ---
