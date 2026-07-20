@@ -15,6 +15,7 @@ function assertClose(actual: number, expected: number, tol: number, label: strin
 const baseline: DriftBaseline = {
   anchorDate: "2026-01-01",
   anchorBalance: 12000,
+  debtCount: 2,
   payoffStrategy: "snowball",
   extraPayment: 500,
   projectedPoints: [
@@ -77,15 +78,17 @@ function runComputeDriftTests() {
     projectedDebtFreeDate: "Aug 2028",
   });
   assertEqual(built.anchorBalance, 5000, "baseline anchorBalance sums positive debts");
+  assertEqual(built.debtCount, 2, "baseline debtCount = array length (a paid-off $0 debt still counts → payoff won't re-anchor)");
   assertEqual(built.projectedPoints[0].balance, 5000, "baseline projected month 0 = anchor balance");
   assertEqual(built.projectedPoints.length > 1, true, "baseline has a real projected trajectory");
   assertEqual(built.projectedDebtFreeDate, "Aug 2028", "baseline carries the debt-free date");
 
-  // shouldReAnchor: material changes only.
-  assertEqual(shouldReAnchor(null, { debtCount: 2, monthlyExtraPayment: 100 }, 2), true, "no baseline → re-anchor");
-  assertEqual(shouldReAnchor(baseline, { debtCount: 3, monthlyExtraPayment: 500 }, 2), true, "debt added → re-anchor");
-  assertEqual(shouldReAnchor(baseline, { debtCount: 2, monthlyExtraPayment: 525 }, 2), false, "small extra change (5%) → no re-anchor");
-  assertEqual(shouldReAnchor(baseline, { debtCount: 2, monthlyExtraPayment: 650 }, 2), true, "big extra change (30%) → re-anchor");
+  // shouldReAnchor: material changes only (compares against the baseline's own frozen state).
+  assertEqual(shouldReAnchor(null, { debtCount: 2, monthlyExtraPayment: 100, payoffStrategy: "snowball" }), true, "no baseline → re-anchor");
+  assertEqual(shouldReAnchor(baseline, { debtCount: 3, monthlyExtraPayment: 500, payoffStrategy: "snowball" }), true, "debt added → re-anchor");
+  assertEqual(shouldReAnchor(baseline, { debtCount: 2, monthlyExtraPayment: 500, payoffStrategy: "avalanche" }), true, "strategy switch → re-anchor");
+  assertEqual(shouldReAnchor(baseline, { debtCount: 2, monthlyExtraPayment: 525, payoffStrategy: "snowball" }), false, "small extra change (5%) → no re-anchor");
+  assertEqual(shouldReAnchor(baseline, { debtCount: 2, monthlyExtraPayment: 650, payoffStrategy: "snowball" }), true, "big extra change (30%) → re-anchor");
 
   console.log("✅ Drift Tracker (computeDrift) reconciliation tests passed.");
 }

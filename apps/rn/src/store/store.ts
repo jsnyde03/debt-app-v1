@@ -19,6 +19,7 @@ import {
 } from '@/data/models';
 import type { StorageAdapter } from '@/storage/adapter';
 
+import { recordDriftBaseline } from './drift';
 import { applyCapture, applyRollover } from './payday';
 
 /**
@@ -125,14 +126,14 @@ export function createDebtStore() {
     },
 
     updatePaycheck(updates) {
-      set((s) => ({ store: { ...s.store, paycheck: { ...s.store.paycheck, ...updates } } }));
+      set((s) => ({ store: recordDriftBaseline({ ...s.store, paycheck: { ...s.store.paycheck, ...updates } }) }));
     },
     setPayoffStrategy(strategy) {
-      set((s) => ({ store: { ...s.store, payoffStrategy: strategy } }));
+      set((s) => ({ store: recordDriftBaseline({ ...s.store, payoffStrategy: strategy }) }));
     },
 
     addDebt(debt) {
-      set((s) => ({ store: { ...s.store, debts: [...s.store.debts, debt] } }));
+      set((s) => ({ store: recordDriftBaseline({ ...s.store, debts: [...s.store.debts, debt] }) }));
     },
     updateDebt(id, updates) {
       set((s) => ({
@@ -140,7 +141,7 @@ export function createDebtStore() {
       }));
     },
     removeDebt(id) {
-      set((s) => ({ store: { ...s.store, debts: s.store.debts.filter((d) => d.id !== id) } }));
+      set((s) => ({ store: recordDriftBaseline({ ...s.store, debts: s.store.debts.filter((d) => d.id !== id) }) }));
     },
 
     addExpense(expense) {
@@ -216,7 +217,9 @@ export function createDebtStore() {
       set((s) => ({ store: applyCapture(s.store, items, requiredDecisions) }));
     },
     rolloverPayCycle() {
-      set((s) => ({ store: applyRollover(s.store) }));
+      // Re-check the baseline at the cycle boundary — establishes one for pre-drift users and catches
+      // any material change since the last anchor (no-op when nothing material changed).
+      set((s) => ({ store: recordDriftBaseline(applyRollover(s.store)) }));
     },
     setLastHandledPayday(date) {
       set((s) => ({ store: { ...s.store, lastHandledPaydayDate: date } }));
@@ -229,7 +232,8 @@ export function createDebtStore() {
       set((s) => ({ store: { ...s.store, subscriptionPlan: plan } }));
     },
     completeOnboarding() {
-      set((s) => ({ store: { ...s.store, prefs: { ...s.store.prefs, onboardingComplete: true } } }));
+      // Plan-establish point — freeze the first drift baseline if the plan is ready.
+      set((s) => ({ store: recordDriftBaseline({ ...s.store, prefs: { ...s.store.prefs, onboardingComplete: true } }) }));
     },
 
     importStore(store) {

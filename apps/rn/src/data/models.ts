@@ -16,6 +16,9 @@ import type {
 } from '@core/storage/debtPlannerStorage';
 import type { LivingExpense } from '@core/types/livingExpense';
 import type { PayCycle } from '@core/payCycle/getNextPaycheckDate';
+import type { DriftBaseline } from '@core/debt/computeDrift';
+
+export type { DriftBaseline };
 
 export type {
   Debt,
@@ -54,7 +57,7 @@ export interface Preferences {
 }
 
 /** Bump when the persisted shape changes; `runMigrations` brings older blobs forward. */
-export const CURRENT_STORE_VERSION = 1;
+export const CURRENT_STORE_VERSION = 2;
 
 export interface DebtStore {
   storeVersion: number;
@@ -69,6 +72,8 @@ export interface DebtStore {
   completedRecommendedActions: CompletedRecommendedAction[];
   milestoneMaxProgress: Record<string, number>;
   subscriptionPlan: SubscriptionPlan;
+  /** Frozen Drift Tracker baseline (schema v2); null until the plan is first established. */
+  driftBaseline: DriftBaseline | null;
   prefs: Preferences;
   lastSavedAt: string;
   /** The payday the capture sheet was last handled for (self-clears on rollover as the date advances). */

@@ -18,6 +18,7 @@ export const DRIFT_TOLERANCE_DAYS = 14;
 export interface DriftBaseline {
   anchorDate: string; // when frozen (plan-start / last re-anchor), YYYY-MM-DD
   anchorBalance: number;
+  debtCount: number; // # of debts in the plan at anchor (array length — the add/remove re-anchor trigger; NOT active-only, so paying a debt to $0 doesn't re-anchor)
   payoffStrategy: "snowball" | "avalanche";
   extraPayment: number; // planned per-cycle (monthly-equiv) extra at anchor
   projectedPoints: TrajectoryPoint[]; // frozen projected balance-by-month from the anchor
@@ -125,6 +126,7 @@ export function buildDriftBaseline(input: {
   return {
     anchorDate: input.anchorDate,
     anchorBalance: round2(anchorBalance),
+    debtCount: input.debts.length, // array length — add/remove signal (paying to $0 keeps the debt in the plan)
     payoffStrategy: input.payoffStrategy,
     extraPayment: input.monthlyExtraPayment,
     projectedPoints: buildPayoffTrajectory({
@@ -137,18 +139,19 @@ export function buildDriftBaseline(input: {
 }
 
 /**
- * Whether a plan change is "material" enough to re-anchor the baseline (§4: a debt added/removed, or a
- * paycheck/extra change beyond ±threshold). Normal cycle progression + small edits do NOT re-anchor,
- * so between re-anchors drift measures pure adherence.
+ * Whether a plan change is "material" enough to re-anchor the baseline (§4): a debt added/removed, a
+ * strategy switch, or a planned-extra change beyond ±threshold (paycheck-driven). Compares the current
+ * plan against the FROZEN baseline's own state — normal cycle progression + small edits do NOT
+ * re-anchor, so between re-anchors drift measures pure adherence.
  */
 export function shouldReAnchor(
   baseline: DriftBaseline | null | undefined,
-  next: { debtCount: number; monthlyExtraPayment: number },
-  prevDebtCount: number,
+  next: { debtCount: number; monthlyExtraPayment: number; payoffStrategy: "snowball" | "avalanche" },
   thresholdPct = 0.1,
 ): boolean {
   if (!baseline) return true; // no baseline yet → establish one
-  if (next.debtCount !== prevDebtCount) return true; // debt added/removed
+  if (next.debtCount !== baseline.debtCount) return true; // debt added/removed
+  if (next.payoffStrategy !== baseline.payoffStrategy) return true; // strategy switch → new trajectory
   const base = baseline.extraPayment;
   if (base <= 0) return next.monthlyExtraPayment > 0; // 0→something is material
   return Math.abs(next.monthlyExtraPayment - base) / base > thresholdPct;

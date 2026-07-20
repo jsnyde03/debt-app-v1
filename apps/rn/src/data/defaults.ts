@@ -32,6 +32,7 @@ export function createDefaultStore(): DebtStore {
     completedRecommendedActions: [],
     milestoneMaxProgress: {},
     subscriptionPlan: 'free',
+    driftBaseline: null,
     prefs: {
       notificationsEnabled: false,
       appLockEnabled: false,
