@@ -12,6 +12,7 @@ import "../debt/testAmortizationSchedule";
 import "../debt/testComputeMilestones";
 import "../debt/testComputeStreak";
 import "../debt/testComputeCycleDelta";
+import "../debt/testComputeDrift";
 import "../debt/testGetDebtsWithDisplayBalances";
 import "../debt/testParseDebtFormValues";
 import "@/lib/storage/testMigrateOriginalBalance";
