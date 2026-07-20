@@ -24,8 +24,13 @@ The core mistake to avoid is elevating *after* building. So the foundation (stru
 
 ## Operating principle 2: TECHNOLOGY-AGNOSTIC — the tool serves the bar (Jason 2026-07-20)
 
-Don't default to pure-RN by habit; **use native Swift where it delivers a first-class result RN can't.** Swift+RN interop is standard: `expo-modules` (clean Swift native modules), Fabric native components (embed SwiftUI/UIKit views in RN screens), and extensions (widgets, Live Activities). **Some reshape features FORCE Swift** — the home-screen widget is SwiftUI-only, and Live Activities / App Intents / Siri / Control-Center are Swift-only best-in-class touches.
-- **Discipline:** Swift is **iOS-only** → each native surface needs an **Android plan (v1.8)** budgeted; **RN stays the shared app surface** (one codebase, both platforms); **the engine stays in `packages/core`** (logic never goes native — the rewrite-the-experience-not-the-core invariant); use Swift **where it earns the result, not everywhere** ([[feedback_less_is_more_premium]]).
+Don't default to pure-RN by habit; **use native code where it delivers a first-class result RN can't.** Interop is standard: `expo-modules` (clean native modules), Fabric native components (embed SwiftUI/UIKit in RN screens), and extensions (widgets, Live Activities). **Some reshape features FORCE native** — the home-screen widget is SwiftUI-only; Live Activities / App Intents / Siri / Control-Center are iOS-native best-in-class touches.
+
+**Each platform is first-class on its OWN terms (Jason 2026-07-20):**
+- **Never weaken iOS to keep Android in lockstep — and vice versa.** Platform-**exclusive** capabilities are embraced, not avoided ("we can only do this on iOS/Android" is NOT a showstopper).
+- **"First-class on Android" = Android's OWN native capabilities** (Material You / dynamic color · Android App Widgets + Quick Settings tiles · Wear OS · rich notifications) — designed *as an Android app*, NOT an iOS port. A reskinned iOS design = a second-class port, which fails the bar.
+- **What keeps it affordable (not 2× everything):** divergence lives ONLY at the native-capability *edges*. **Shared `packages/core` engine + shared RN app surface** stay common (one codebase for the logic + the bulk of screens); only the platform-native flourishes diverge. "Shared core + shared surface + first-class native edges per platform," not two apps. The engine never goes native (rewrite-the-experience-not-the-core invariant).
+- **Sequencing (eyes-open, solo-dev):** those divergent native edges are real extra surface, so iOS gets its first-class native edges now (current focus + revenue); **Android gets its OWN first-class treatment at v1.8** — neither a hostage to the other. Use native **where it earns the result, not everywhere** ([[feedback_less_is_more_premium]]).
 
 ---
 
