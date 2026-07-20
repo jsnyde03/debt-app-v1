@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -20,7 +20,11 @@ export function OnboardingLayout({
   const c = useAppColors();
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.root, { backgroundColor: c.background.primary, paddingTop: insets.top + spacing.lg }]}>
+    // KeyboardAvoidingView so the decimal-pad keyboard (which has no return key on iOS) never covers
+    // the sticky CTA stack — that trapped onboarding un-advanceable on device in Freedom (RN lesson #9).
+    <KeyboardAvoidingView
+      style={[styles.root, { backgroundColor: c.background.primary, paddingTop: insets.top + spacing.lg }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.dots}>
         {Array.from({ length: total }).map((_, i) => (
           <View
@@ -33,7 +37,7 @@ export function OnboardingLayout({
         {children}
       </ScrollView>
       <View style={[styles.ctas, { paddingBottom: insets.bottom + spacing.base }]}>{ctas}</View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

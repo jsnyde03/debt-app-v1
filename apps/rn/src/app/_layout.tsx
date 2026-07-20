@@ -1,9 +1,12 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { useEffect } from 'react';
+import { AppState } from 'react-native';
 
+import { AppLockGate } from '@/components/AppLockGate';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useNotificationSync } from '@/hooks/use-notification-sync';
 import { createStorageAdapter } from '@/storage/createAdapter';
-import { bootstrapPersistence } from '@/store/persistence';
+import { bootstrapPersistence, flushPendingSave } from '@/store/persistence';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 
@@ -34,9 +37,23 @@ export default function RootLayout() {
   const scheme = useColorScheme();
   const isHydrated = useAppStore((s) => s.isHydrated);
   const onboardingComplete = useAppStore((s) => s.store.prefs.onboardingComplete);
+  useNotificationSync();
 
   useEffect(() => {
     void bootstrapPersistence(createStorageAdapter());
+    // Persist any pending debounced write when the app leaves the foreground, so a
+    // background/terminate never drops the last change. Wrapped defensively — a listener throw must
+    // never crash the app (the platform-split lifecycle-handler lesson).
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'background' || next === 'inactive') {
+        try {
+          flushPendingSave();
+        } catch {
+          /* best-effort flush */
+        }
+      }
+    });
+    return () => sub.remove();
   }, []);
 
   // Render nothing until hydrate resolves, so a returning user never flashes onboarding. (On native
@@ -45,7 +62,8 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={navTheme(scheme)}>
-      <Stack screenOptions={{ headerShown: false }}>
+      <AppLockGate>
+        <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={onboardingComplete}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="more" />
@@ -56,7 +74,8 @@ export default function RootLayout() {
           <Stack.Screen name="onboarding" />
         </Stack.Protected>
         <Stack.Screen name="+not-found" />
-      </Stack>
+        </Stack>
+      </AppLockGate>
     </ThemeProvider>
   );
 }

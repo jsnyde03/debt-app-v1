@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { formatCurrency } from '@core/utils/formatCurrency';
@@ -10,6 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useGoToTab } from '@/hooks/use-go-to-tab';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { appStore } from '@/store/appStore';
 import { selectPayoffView } from '@/store/payoffSelectors';
@@ -23,6 +23,7 @@ const HERO_BG = { light: '#f1f0fb', dark: '#0e1a2e' } as const;
 export default function PayoffScreen() {
   const c = useAppColors();
   const scheme = useColorScheme();
+  const goToTab = useGoToTab();
   const store = useAppStore((s) => s.store);
   const strategy = store.payoffStrategy;
   const view = selectPayoffView(store);
@@ -35,7 +36,7 @@ export default function PayoffScreen() {
           title="No debts to pay off"
           body="Add a debt to see your payoff order, timeline, and interest saved."
           cta="Add a debt"
-          onCta={() => router.push('/bills')}
+          onCta={() => goToTab('bills')}
         />
       </Screen>
     );

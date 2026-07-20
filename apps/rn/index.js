@@ -1,4 +1,7 @@
 // App entry — Expo Router owns routing from src/app/.
-// (The crypto.getRandomValues shim + Sentry/MMKV-persistence/iCloud bootstrap
-//  arrive at B.8 "native re-glue"; B.1 is the web-verifiable shell only.)
-import "expo-router/entry";
+//
+// `react-native-get-random-values` MUST load here, BEFORE `expo-router/entry`: Expo Router's route
+// discovery evaluates route + store modules eagerly, so any `crypto.getRandomValues` use (absent in
+// Hermes) has to be polyfilled first or it crashes on a fresh install only (Freedom RN lesson #5).
+import 'react-native-get-random-values';
+import 'expo-router/entry';

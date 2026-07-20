@@ -5,13 +5,27 @@
     "scheme": "debtplannerrn",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "com.jasonsnyder.debtplanner",
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
     "web": {
       "output": "single"
     },
     "plugins": [
       "expo-router",
       "expo-splash-screen",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Unlock Debt Planner with Face ID."
+        }
+      ],
+      "./plugins/with-local-notifications-only.js"
     ]
   }
 }

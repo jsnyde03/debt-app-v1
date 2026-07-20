@@ -1,10 +1,11 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Linking, StyleSheet, Switch, Text, View } from 'react-native';
+import { InteractionManager, Linking, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { ExportBackupSheet, ImportBackupSheet } from '@/components/more/BackupSheets';
 import { SettingGroup, SettingRow } from '@/components/more/SettingRow';
+import { requestNotificationPermission } from '@/notifications/notifications';
 import { Screen, Section } from '@/components/screen';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -37,6 +38,28 @@ export default function MoreScreen() {
   const [sheet, setSheet] = useState<'export' | 'import' | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
+  // Enabling requires OS permission first — only flip the pref if granted (a denied prompt leaves it
+  // off). Disabling flips immediately; the sync hook then cancels the schedule. (Web: permission
+  // returns false, so the toggle stays off — notifications are native-only.)
+  async function handleNotificationsToggle(next: boolean) {
+    if (!next) {
+      appStore.getState().updatePrefs({ notificationsEnabled: false });
+      return;
+    }
+    const granted = await requestNotificationPermission();
+    if (granted) appStore.getState().updatePrefs({ notificationsEnabled: true });
+  }
+
+  // Reset flips `onboardingComplete=false`, which makes the root Stack.Protected guard swap
+  // tabs→onboarding. Doing that while More is pushed would orphan this screen with a dead back
+  // stack (Freedom RN lesson #6), so DISMISS to the still-mounted tabs FIRST, then reset once the
+  // pop settles.
+  function handleDeleteAll() {
+    setConfirmingDelete(false);
+    router.back();
+    InteractionManager.runAfterInteractions(() => appStore.getState().reset());
+  }
+
   return (
     <Screen title="More" onBack={() => router.back()}>
       {/* History — a reflective destination, so it sits above the settings sections. */}
@@ -61,7 +84,7 @@ export default function MoreScreen() {
             right={<Text style={[textStyles.caption, { color: c.text.tertiary }]}>Soon</Text>}
           />
           {confirmingDelete ? (
-            <DeleteConfirm onCancel={() => setConfirmingDelete(false)} onConfirm={() => { appStore.getState().reset(); setConfirmingDelete(false); }} />
+            <DeleteConfirm onCancel={() => setConfirmingDelete(false)} onConfirm={handleDeleteAll} />
           ) : (
             <SettingRow icon="delete-outline" label="Delete All Data" danger onPress={() => setConfirmingDelete(true)} last />
           )}
@@ -87,7 +110,7 @@ export default function MoreScreen() {
             icon="notifications-none"
             label="Notifications"
             subtitle="Paycheck-eve reminder and bill alerts."
-            right={<Switch value={prefs.notificationsEnabled} onValueChange={(v) => appStore.getState().updatePrefs({ notificationsEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
+            right={<Switch value={prefs.notificationsEnabled} onValueChange={handleNotificationsToggle} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
           <SettingRow
             icon="lock-outline"

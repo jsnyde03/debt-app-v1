@@ -1,6 +1,8 @@
+import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput } from 'react-native';
 
+import { Button } from '@/components/ui/Button';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { runMigrations } from '@/data/migrations';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -20,6 +22,12 @@ export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
   const c = useAppColors();
   const store = useAppStore((s) => s.store);
   const json = JSON.stringify(store, null, 2);
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    await Clipboard.setStringAsync(json);
+    setCopied(true);
+  }
 
   return (
     <FormSheet
@@ -29,6 +37,7 @@ export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
       submitLabel="Done"
       onSubmit={onClose}
       onClose={onClose}>
+      <Button label={copied ? 'Copied ✓' : 'Copy to clipboard'} variant="secondary" onPress={copy} />
       <TextInput
         value={json}
         editable={false}

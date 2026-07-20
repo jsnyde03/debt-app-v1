@@ -1,8 +1,9 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { MoreButton } from '@/components/more-button';
+import { useGoToTab } from '@/hooks/use-go-to-tab';
+import { maybeRequestReview } from '@/lib/review';
 import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
 import { PlanHero } from '@/components/plan/PlanHero';
@@ -38,6 +39,7 @@ function handleMark(row: RequiredRow, paid: boolean) {
 /** Plan tab (Plan-first index) — the signature screen + Payday Autopilot. */
 export default function PlanScreen() {
   const c = useAppColors();
+  const goToTab = useGoToTab();
   const store = useAppStore((s) => s.store);
   const allocation = selectAllocation(store);
   const planState = selectPlanState(store, allocation);
@@ -70,7 +72,7 @@ export default function PlanScreen() {
         title="Add your first debt"
         body="Your debt-free date is waiting. Add a debt to see your plan."
         cta="Add a debt"
-        onCta={() => router.push('/bills')}
+        onCta={() => goToTab('bills')}
       />
     );
   } else if (planState === 'debt-free') {
@@ -112,6 +114,9 @@ export default function PlanScreen() {
           onCapture={(items, decisions) => {
             appStore.getState().capturePayday(items, decisions);
             payday.completeCapture();
+            // Ask for a review at a genuine success moment, but only for an established user (not the
+            // first cycle). iOS throttles the real prompt regardless.
+            if (store.cycleHistory.length >= 2) void maybeRequestReview();
           }}
           onDismiss={payday.dismiss}
           onClose={payday.close}
