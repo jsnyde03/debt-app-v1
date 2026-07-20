@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { Card } from '@/components/ui/Card';
+import { CheckCircle } from '@/components/ui/CheckCircle';
 import { Pill } from '@/components/ui/Pill';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { RequiredRow } from '@/store/planSelectors';
@@ -91,14 +92,12 @@ function RequiredRowView({
   const showOverdue = (view.overdue && !isAutopay) || view.autopayFailed;
 
   let control: React.ReactNode;
-  if (view.isPaid) {
-    control = <Pill label="Undo" tone="paid" onPress={() => onMark(row, false)} />;
-  } else if (isAutopay && view.presumedPaid && !view.autopayFailed) {
+  if (isAutopay && view.presumedPaid && !view.autopayFailed) {
     control = <Pill label="Auto-paid" tone="paid" />;
   } else if (isAutopay && !view.autopayFailed) {
     control = <Pill label="Autopay" tone="autopay" />;
   } else {
-    control = <Pill label="Mark Paid" tone="action" onPress={() => onMark(row, true)} />;
+    control = <CheckCircle checked={view.isPaid} onPress={() => onMark(row, !view.isPaid)} label={`Mark ${item.label} paid`} />;
   }
 
   return (
@@ -144,7 +143,7 @@ const styles = StyleSheet.create({
   },
   itemLeft: { flex: 1, gap: spacing.xs },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  itemRight: { alignItems: 'flex-end', gap: spacing.xs },
+  itemRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   unfunded: { paddingHorizontal: layout.cardPaddingH, paddingVertical: layout.cardPaddingV, borderTopWidth: StyleSheet.hairlineWidth, gap: spacing.sm },
   unfundedNote: { fontWeight: '600' },
   unfundedRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },

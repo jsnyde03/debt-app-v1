@@ -1,16 +1,22 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-
-import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { PlanSummary } from '@/store/planSelectors';
+import { colors } from '@/theme/colors';
+import { elevation } from '@/theme/elevation';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
-/** Subtle premium-tinted hero surface (a real gradient lands at B.9 polish). */
-const HERO_BG = { light: '#f1f0fb', dark: '#0e1a2e' } as const;
+// On-navy semantics: the hero panel is deep navy in BOTH themes, so its accents are the dark-tuned
+// token values (they read on navy) — constant, never theme-resolved.
+const onNavy = {
+  success: colors.accent.success.dark,
+  warning: colors.accent.warning.dark,
+  danger: colors.accent.danger.dark,
+};
 
 function shortDate(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
@@ -18,9 +24,10 @@ function shortDate(iso: string): string {
 }
 
 /**
- * The Plan hero (agreed redesign 2026-07-19): leads with "$X to debt this paycheck" — the
- * actionable this-cycle figure — with planned/cushion secondary and the debt-free date as
- * reassurance. Payday-first framing (v1.6) kept; the app-name h1 is gone.
+ * The Today hero (Elevation, redesigned 2026-07-20): an **outcome anchor**, not a dollar amount —
+ * the signature **navy panel (constant in both themes)** leads with the debt-free date + on-track
+ * status. The amounts live in the cards below; the hero carries the "why / where you're headed."
+ * (No payment figure in the hero — optional actions must never read as obligations.)
  */
 export function PlanHero({
   summary,
@@ -33,69 +40,61 @@ export function PlanHero({
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
+  const s = c.surface;
 
   const statusLabel =
     summary.status === 'overdue'
       ? 'Overdue payments need attention'
       : summary.status === 'short'
-        ? `Short ${formatCurrency(summary.shortfall)} this cycle`
+        ? 'Short this cycle — cover from savings'
         : "You're on track this cycle";
   const statusColor =
-    summary.status === 'on-track' ? c.accent.success : summary.status === 'short' ? c.accent.warning : c.accent.danger;
+    summary.status === 'on-track' ? onNavy.success : summary.status === 'short' ? onNavy.warning : onNavy.danger;
 
   return (
-    <View style={[styles.hero, { backgroundColor: HERO_BG[scheme], borderColor: c.border.default }]}>
+    <LinearGradient
+      colors={[s.heroTop, s.heroBottom]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.hero, elevation.hero[scheme]]}>
       <Pressable
         onPress={onEditPaycheck}
         disabled={!onEditPaycheck}
         accessibilityRole={onEditPaycheck ? 'button' : undefined}
         accessibilityLabel={onEditPaycheck ? 'Edit paycheck' : undefined}
         style={styles.eyebrowRow}>
-        <Text style={[textStyles.footnote, styles.eyebrow, { color: c.accent.primary }]}>
+        <Text style={[textStyles.footnote, styles.eyebrow, { color: s.heroSub }]}>
           THIS PAYCHECK · {shortDate(nextPaycheckDate)}
         </Text>
-        {onEditPaycheck ? <AppIcon name="edit" size={14} color={c.accent.primary} /> : null}
+        {onEditPaycheck ? <AppIcon name="edit" size={14} color={s.heroSub} /> : null}
       </Pressable>
 
-      <View style={styles.numberRow}>
-        <Text style={[styles.heroNumber, { color: c.text.primary }]}>{formatCurrency(summary.heroValue)}</Text>
-        <Text style={[textStyles.callout, { color: c.text.secondary }]}>{summary.heroLabel}</Text>
-      </View>
-
-      <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
-        {formatCurrency(summary.planned)} planned · {formatCurrency(summary.cushion)} cushion
+      <Text style={[styles.headline, { color: s.heroText }]}>
+        {summary.debtFreeDate ? `Debt-free by ${summary.debtFreeDate}` : 'On track this cycle'}
       </Text>
 
-      <View style={[styles.divider, { backgroundColor: c.border.subtle }]} />
-
-      <View style={styles.footerRow}>
-        {summary.debtFreeDate ? (
-          <View style={styles.reassure}>
-            <AppIcon name="check-circle" size={16} color={c.accent.success} />
-            <Text style={[textStyles.subhead, { color: c.text.primary }]}>Debt-free by {summary.debtFreeDate}</Text>
-          </View>
-        ) : (
-          <View />
-        )}
-        <Text style={[textStyles.caption, styles.status, { color: statusColor }]}>{statusLabel}</Text>
+      <View style={styles.statusRow}>
+        <AppIcon
+          name={summary.status === 'on-track' ? 'check-circle' : 'error-outline'}
+          size={16}
+          color={statusColor}
+        />
+        <Text style={[textStyles.subhead, styles.status, { color: statusColor }]}>{statusLabel}</Text>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   hero: {
     borderRadius: layout.cardRadiusLarge,
-    borderWidth: StyleSheet.hairlineWidth,
     padding: layout.cardPaddingH + 2,
-    gap: spacing.xs,
+    gap: spacing.sm,
+    overflow: 'hidden',
   },
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, alignSelf: 'flex-start' },
   eyebrow: { textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: '700' },
-  numberRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm, flexWrap: 'wrap' },
-  heroNumber: { fontSize: 40, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'] },
-  divider: { height: StyleSheet.hairlineWidth, marginVertical: spacing.sm },
-  footerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm, flexWrap: 'wrap' },
-  reassure: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  headline: { fontSize: 30, fontWeight: '800', letterSpacing: -0.6, lineHeight: 36 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   status: { fontWeight: '600' },
 });

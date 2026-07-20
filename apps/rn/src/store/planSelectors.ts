@@ -1,4 +1,4 @@
-import { deriveRequiredActionView, type RequiredActionView } from '@core/debt/deriveRequiredActionView';
+import { deriveRequiredActionView, type RequiredActionView, type RequiredAllocationItem } from '@core/debt/deriveRequiredActionView';
 import { projectDebtPayoff } from '@core/debt/projectDebtPayoff';
 import { selectActiveRecommendedActions } from '@core/debt/selectActiveRecommendedActions';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
@@ -7,14 +7,13 @@ import type { DebtStore } from '@/data/models';
 
 import type { Allocation } from './selectors';
 
-type AllocItem = Allocation['allocations'][number];
 export type ActiveRecommendedAction = ReturnType<typeof selectActiveRecommendedActions>[number];
 
 const REQUIRED_CATEGORIES = ['expense', 'minimum_debt', 'autopay_expense', 'autopay_debt'];
 
 /** A required-action row: the allocation item + its derived display state (paid/overdue/autopay/…). */
 export interface RequiredRow {
-  item: AllocItem;
+  item: RequiredAllocationItem;
   view: RequiredActionView;
   isAutopay: boolean;
   dueDate?: string;
@@ -45,20 +44,41 @@ export function selectDebtFreeDate(store: DebtStore, allocation: Allocation | nu
 
 /** Required bills + debt minimums due this paycheck, each with its display state. */
 export function selectRequiredRows(store: DebtStore, allocation: Allocation): RequiredRow[] {
-  return allocation.allocations
-    .filter((item) => REQUIRED_CATEGORIES.includes(item.category))
-    .map((item) => {
-      const isExpense = item.category === 'expense' || item.category === 'autopay_expense';
-      const dueDate = isExpense
-        ? store.requiredExpenses.find((e) => e.id === item.targetId)?.dueDate
-        : store.debts.find((d) => d.id === (item.debtId ?? item.targetId))?.dueDate;
-      return {
-        item,
-        view: deriveRequiredActionView(item, store.requiredExpenses, store.debts, store.paycheck.currentDate),
-        isAutopay: item.category === 'autopay_expense' || item.category === 'autopay_debt',
-        dueDate,
-      };
-    });
+  const build = (item: RequiredAllocationItem): RequiredRow => {
+    const isExpense = item.category === 'expense' || item.category === 'autopay_expense';
+    const dueDate = isExpense
+      ? store.requiredExpenses.find((e) => e.id === item.targetId)?.dueDate
+      : store.debts.find((d) => d.id === (item.debtId ?? item.targetId))?.dueDate;
+    return {
+      item,
+      view: deriveRequiredActionView(item, store.requiredExpenses, store.debts, store.paycheck.currentDate),
+      isAutopay: item.category === 'autopay_expense' || item.category === 'autopay_debt',
+      dueDate,
+    };
+  };
+
+  const rows = allocation.allocations.filter((item) => REQUIRED_CATEGORIES.includes(item.category)).map(build);
+
+  // The allocation drops items already PAID this cycle — but they must stay visible (struck-through,
+  // undo-able) so a paid bill never silently vanishes. Re-add any paid required item not already shown.
+  const shownExpenses = new Set(
+    rows.filter((r) => r.item.category === 'expense' || r.item.category === 'autopay_expense').map((r) => r.item.targetId),
+  );
+  const shownDebts = new Set(
+    rows
+      .filter((r) => r.item.category === 'minimum_debt' || r.item.category === 'autopay_debt')
+      .map((r) => r.item.debtId ?? r.item.targetId),
+  );
+  const paidRows: RequiredRow[] = [
+    ...store.requiredExpenses
+      .filter((e) => e.isPaidThisCycle && !shownExpenses.has(e.id))
+      .map((e) => build({ category: 'expense', targetId: e.id, label: `Pay ${e.name}`, amount: e.amount })),
+    ...store.debts
+      .filter((d) => d.minimumPaidThisCycle && d.balance > 0 && !shownDebts.has(d.id))
+      .map((d) => build({ category: 'minimum_debt', targetId: d.id, debtId: d.id, label: `Pay minimum on ${d.name}`, amount: d.minimumPayment })),
+  ];
+
+  return [...rows, ...paidRows];
 }
 
 /** The cycle's recommended extras (emergency fund + extra debt payoff + optional goals). */
@@ -93,6 +113,9 @@ export interface PlanSummary {
   cushion: number;
   requiredTotal: number;
   shortfall: number;
+  /** Paycheck − required (bills + minimums): what's left to work with after obligations. */
+  remainingAfterRequired: number;
+  cushionStatus: 'stable' | 'tight' | 'pressure';
   debtFreeDate: string | null;
   status: PlanStatus;
 }
@@ -106,7 +129,7 @@ function heroFraming(allocation: Allocation): { value: number; label: string } {
   const snowball = sumCategory(allocation, 'snowball');
   if (snowball > 0) return { value: snowball, label: 'to debt this paycheck' };
   const emergency = sumCategory(allocation, 'emergency');
-  if (emergency > 0) return { value: emergency, label: 'to your safety net' };
+  if (emergency > 0) return { value: emergency, label: 'to your emergency fund' };
   const optional = sumCategory(allocation, 'optional_goal');
   if (optional > 0) return { value: optional, label: 'to your goals' };
   return { value: allocation.remaining, label: 'cushion this paycheck' };
@@ -118,6 +141,9 @@ export function selectPlanSummary(store: DebtStore, allocation: Allocation, requ
   const shortfall = allocation.shortfall ?? 0;
   const overdue = requiredRows.some((r) => r.view.overdue);
   const hero = heroFraming(allocation);
+  const remainingAfterRequired = allocation.paycheckAmount - allocation.totalRequired;
+  const cushionStatus: PlanSummary['cushionStatus'] =
+    remainingAfterRequired <= 0 ? 'pressure' : remainingAfterRequired < allocation.paycheckAmount * 0.1 ? 'tight' : 'stable';
   return {
     heroValue: hero.value,
     heroLabel: hero.label,
@@ -125,6 +151,8 @@ export function selectPlanSummary(store: DebtStore, allocation: Allocation, requ
     cushion,
     requiredTotal: allocation.totalRequired,
     shortfall,
+    remainingAfterRequired,
+    cushionStatus,
     debtFreeDate: selectDebtFreeDate(store, allocation),
     status: overdue ? 'overdue' : shortfall > 0 ? 'short' : 'on-track',
   };

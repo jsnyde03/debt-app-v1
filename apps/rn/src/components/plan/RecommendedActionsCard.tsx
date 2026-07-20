@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { Card } from '@/components/ui/Card';
-import { Pill } from '@/components/ui/Pill';
+import { CheckCircle } from '@/components/ui/CheckCircle';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { CompletedRecommendedAction } from '@/data/models';
 import type { ActiveRecommendedAction } from '@/store/planSelectors';
@@ -51,7 +51,7 @@ export function RecommendedActionsCard({
           meta="Suggested for this cycle"
           amount={a.actualAmount}
           focus={i === 0}
-          control={<Pill label={verb(a.category)} tone="action" onPress={() => onToggle(toCompleted(a), true)} />}
+          control={<CheckCircle checked={false} tone="accent" onPress={() => onToggle(toCompleted(a), true)} label={verb(a.category)} />}
           divider={i < active.length - 1 || completed.length > 0}
         />
       ))}
@@ -63,7 +63,7 @@ export function RecommendedActionsCard({
           meta={a.paymentSource === 'external' ? 'Completed with outside money' : 'Completed this cycle'}
           amount={a.actualAmount}
           done
-          control={<Pill label="Undo" tone="paid" onPress={() => onToggle(a, false)} />}
+          control={<CheckCircle checked tone="accent" onPress={() => onToggle(a, false)} label="Undo" />}
           divider={i < completed.length - 1}
         />
       ))}
@@ -125,6 +125,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   left: { flex: 1, gap: spacing.xs },
-  right: { alignItems: 'flex-end', gap: spacing.xs },
+  right: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   amount: { fontWeight: '700' },
 });

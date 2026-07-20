@@ -8,6 +8,7 @@ import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
 import { PlanHero } from '@/components/plan/PlanHero';
 import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
+import { RemainingAfterRequired } from '@/components/plan/RemainingAfterRequired';
 import { RequiredActionsCard } from '@/components/plan/RequiredActionsCard';
 import { Screen } from '@/components/screen';
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
@@ -82,6 +83,7 @@ export default function TodayScreen() {
       <>
         <PlanHero summary={summary} nextPaycheckDate={store.paycheck.nextPaycheckDate} onEditPaycheck={() => setPaycheckSheet(true)} />
         <RequiredActionsCard rows={requiredRows} unfunded={allocation.unfundedRequiredItems ?? []} onMark={handleMark} />
+        <RemainingAfterRequired remaining={summary.remainingAfterRequired} status={summary.cushionStatus} />
         <RecommendedActionsCard
           active={recommended}
           completed={store.completedRecommendedActions}
@@ -103,6 +105,10 @@ export default function TodayScreen() {
       ) : null}
 
       {content}
+
+      {allocation && summary ? (
+        <Text style={[textStyles.caption, styles.trust, { color: c.text.tertiary }]}>Private · on your device</Text>
+      ) : null}
 
       {allocation && summary ? (
         <PaydayCaptureSheet
@@ -163,4 +169,5 @@ const styles = StyleSheet.create({
   promptCta: { alignSelf: 'stretch', marginTop: spacing.sm },
   nudge: { gap: spacing.md },
   nudgeBtn: { alignSelf: 'stretch' },
+  trust: { textAlign: 'center', marginTop: spacing.xs },
 });
