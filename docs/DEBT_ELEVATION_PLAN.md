@@ -16,11 +16,16 @@ Debt ships only when it clears **Freedom-v1.0-or-above AND acquisition-ready**, 
 - **Trust is visible** (the moat: honest, on-device, never sells you more debt) — in the app and the store.
 - **Store presence** is acquisition-grade (sells the active/emotional features + the trust positioning), and first-run makes a cold user "get it" in seconds.
 
-## Operating principle: DESIGN-FIRST, then build to it
+## Operating principle 1: DESIGN-FIRST, then build to it
 
 The core mistake to avoid is elevating *after* building. So the foundation (structure, visual language, the reshape, the readiness gap-list) is **designed and signed off BEFORE the build** ([[feedback_agree_design_before_implementing]]). No parity shortcuts; no EVOLVE-to-save-time.
 
 **What Phase B already earned (preserved, NOT wasted):** the RN stack proven, `packages/core` (the engine — never rewritten, per the invariant), the zustand store, the design-token system, the reusable primitives, the Freedom-RN-lessons hardening, and Drift's tested engine. The **experience** gets elevated on top of this foundation; the **core** stays put.
+
+## Operating principle 2: TECHNOLOGY-AGNOSTIC — the tool serves the bar (Jason 2026-07-20)
+
+Don't default to pure-RN by habit; **use native Swift where it delivers a first-class result RN can't.** Swift+RN interop is standard: `expo-modules` (clean Swift native modules), Fabric native components (embed SwiftUI/UIKit views in RN screens), and extensions (widgets, Live Activities). **Some reshape features FORCE Swift** — the home-screen widget is SwiftUI-only, and Live Activities / App Intents / Siri / Control-Center are Swift-only best-in-class touches.
+- **Discipline:** Swift is **iOS-only** → each native surface needs an **Android plan (v1.8)** budgeted; **RN stays the shared app surface** (one codebase, both platforms); **the engine stays in `packages/core`** (logic never goes native — the rewrite-the-experience-not-the-core invariant); use Swift **where it earns the result, not everywhere** ([[feedback_less_is_more_premium]]).
 
 ---
 
@@ -31,6 +36,7 @@ The core mistake to avoid is elevating *after* building. So the foundation (stru
 - **0.2 Visual design-language + motion system** — a deliberate premium identity (type/color/depth/spacing), the motion language, and the **emotional-moment design** (celebrations, progress-fill, animated numbers). Output: the design language + comps for the key screens + the delight beats. (Resolves D7.)
 - **0.3 Premium reshape finalization** — resolve `PREMIUM_RESHAPE_SPEC` D1–D7; lock the active feature set, the free/premium line, and the model (one Premium tier + Lifetime + a portfolio-subscription seam).
 - **0.4 Structural-readiness audit** — independent + adversarial: current app vs. the bar → a prioritized gap list that sets the build order + stress-tests the portfolio-subscription assumption (strategy gap #3).
+- **0.5 Native-capability pass (technology-agnostic)** — decide, per surface, RN vs. native Swift: which delight/native surfaces go SwiftUI (widget [Swift-only], Live Activities, App Intents, specific delight moments) vs. stay RN (the shared app). Each Swift piece gets an Android-parity note. Output: the tech-choice map feeding the build.
 - **GATE:** design foundation signed off. Nothing below starts until it is.
 
 ### Phase 1 — Elevate the surface
