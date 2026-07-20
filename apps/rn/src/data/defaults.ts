@@ -25,6 +25,7 @@ export function createDefaultStore(): DebtStore {
     payoffStrategy: 'snowball',
     debts: [],
     requiredExpenses: [],
+    livingExpenses: [],
     goals: [],
     cycleHistory: [],
     recommendationOverrides: [],

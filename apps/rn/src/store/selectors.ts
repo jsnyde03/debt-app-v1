@@ -20,6 +20,7 @@ export function selectAllocation(store: DebtStore): Allocation | null {
     nextPaycheckDate: store.paycheck.nextPaycheckDate,
     strategy: store.payoffStrategy,
     expenses: store.requiredExpenses,
+    livingExpenses: store.livingExpenses,
     debts: store.debts,
     goals: store.goals,
   });

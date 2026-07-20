@@ -56,6 +56,12 @@ _Jason's executive call: v1.7 is the full migration done all at once — no Capa
   - **Money-critical logic** (`store/payday.ts` `applyCapture`/`applyRollover`) ported faithfully from `handlePaydayCapture`/`handleRolloverPayCycle` as **pure `DebtStore→DebtStore` fns** (node-testable) — reconcile-autopay → cycle snapshot → apply-payments → milestone high-water marks → roll debts/expenses → advance payday. **Strong test-hardening candidate:** a reconciliation unit test for these two (money + rollover correctness).
   - **Deferred to B.9 (captured):** rollover's `scheduleNotifications` + `maybeRequestAppReview` + the milestone **celebration overlay** (state math done; the overlay/animation is B.9).
   - **Parity notes:** reconcile inits every row to `isPaid||presumedPaid` using `currentDate`=cycle-start (matches Capacitor — autopay isn't presumed-paid mid-cycle, only reconciled at rollover) · the sheet is keyed by `nextPaycheckDate` so its state is fresh per cycle (a mid-cycle Plan mark-paid → reopen shows stale `requiredPaid`; minor edge).
+- **B.6 after-scan (2026-07-20) — Debts/Bills/Goals REDESIGN DONE (design-first):**
+  - **Redesign SHIPPED (Jason-approved):** (1) unified mode-driven `FormSheet` for add+edit — **kills the add/edit divergence + restores full editability** (BNPL remaining-payments/scheduled + goal type are now editable, were add-only); (2) informational Expenses/Debts toggle carrying totals; (3) standardized calm `ListRow`s (tap→edit); (4) real empty-state CTAs; (5) Living-Expenses demoted to a slim reserve summary (management → More). New reusable primitives: `FormSheet`·`Select`·`SwitchRow`·`ListRow`·`EmptyState`. **Store `livingExpenses`** added (a B.2 omission) + wired into `selectAllocation` (it affects `livingExpenseReserve`).
+  - **Deferred to B.8:** the Living-Expenses **management UI** (add/edit/toggle) in More → Preferences (store actions exist; Bills shows only the summary).
+  - **Deferred to B.9:** swipe-to-delete (Remove lives in the edit sheet for now) · native date-picker (dueDate is a `YYYY-MM-DD` TextField) · form-sheet slide-OUT animation (conditional-mount → instant close).
+  - **Follow-on polish (backlog):** undo-toast on Remove (Capacitor had one) · the debt min-payment **soft warning** (never-payoff nudge; only the hard min≤balance check is in) · the expense **preset picker** (common bills) omitted for now.
+  - **Test-hardening:** all new store actions (livingExpenses CRUD) + the entity forms are pure/node-testable.
 - _(more entries land as Phase B screens are rebuilt.)_
 
 ---

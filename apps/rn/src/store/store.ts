@@ -10,6 +10,7 @@ import {
   type Debt,
   type DebtStore,
   type Goal,
+  type LivingExpense,
   type PaycheckConfig,
   type PayoffStrategy,
   type Preferences,
@@ -53,6 +54,11 @@ export interface DebtAppState {
   addGoal(goal: Goal): void;
   updateGoal(id: string, updates: Partial<Goal>): void;
   removeGoal(id: string): void;
+
+  // Living expenses (everyday-spending reserve)
+  addLivingExpense(expense: LivingExpense): void;
+  updateLivingExpense(id: string, updates: Partial<LivingExpense>): void;
+  removeLivingExpense(id: string): void;
 
   // Mark-paid (this cycle)
   markExpensePaid(id: string, paid: boolean): void;
@@ -164,6 +170,18 @@ export function createDebtStore() {
     },
     removeGoal(id) {
       set((s) => ({ store: { ...s.store, goals: s.store.goals.filter((g) => g.id !== id) } }));
+    },
+
+    addLivingExpense(expense) {
+      set((s) => ({ store: { ...s.store, livingExpenses: [...s.store.livingExpenses, expense] } }));
+    },
+    updateLivingExpense(id, updates) {
+      set((s) => ({
+        store: { ...s.store, livingExpenses: s.store.livingExpenses.map((e) => (e.id === id ? { ...e, ...updates } : e)) },
+      }));
+    },
+    removeLivingExpense(id) {
+      set((s) => ({ store: { ...s.store, livingExpenses: s.store.livingExpenses.filter((e) => e.id !== id) } }));
     },
 
     markExpensePaid(id, paid) {

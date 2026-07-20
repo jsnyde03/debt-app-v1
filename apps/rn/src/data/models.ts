@@ -8,20 +8,24 @@
 import type {
   Debt,
   RequiredExpense,
+  RequiredExpenseCategory,
   Goal,
   RecommendationOverride,
   CompletedRecommendedAction,
   PayCycleSnapshot,
 } from '@core/storage/debtPlannerStorage';
+import type { LivingExpense } from '@core/types/livingExpense';
 import type { PayCycle } from '@core/payCycle/getNextPaycheckDate';
 
 export type {
   Debt,
   RequiredExpense,
+  RequiredExpenseCategory,
   Goal,
   RecommendationOverride,
   CompletedRecommendedAction,
   PayCycleSnapshot,
+  LivingExpense,
   PayCycle,
 };
 
@@ -58,6 +62,7 @@ export interface DebtStore {
   payoffStrategy: PayoffStrategy;
   debts: Debt[];
   requiredExpenses: RequiredExpense[];
+  livingExpenses: LivingExpense[];
   goals: Goal[];
   cycleHistory: PayCycleSnapshot[];
   recommendationOverrides: RecommendationOverride[];

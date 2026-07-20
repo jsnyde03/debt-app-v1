@@ -23,6 +23,10 @@ export function demoStore(): DebtStore {
       { id: 'demo-rent', name: 'Rent', amount: 1200, dueDate: currentDate, recurrence: 'monthly', category: 'housing' },
       { id: 'demo-phone', name: 'Phone', amount: 80, dueDate: currentDate, recurrence: 'monthly', category: 'utilities' },
     ],
+    livingExpenses: [
+      { id: 'demo-groceries', name: 'Groceries', amount: 300, enabled: true },
+      { id: 'demo-gas', name: 'Gas', amount: 120, enabled: true },
+    ],
     goals: [{ id: 'demo-ef', name: 'Emergency Fund', targetAmount: 1000, currentAmount: 250, type: 'emergency' }],
     prefs: { ...base.prefs, isDemoMode: true, onboardingComplete: true },
   };
