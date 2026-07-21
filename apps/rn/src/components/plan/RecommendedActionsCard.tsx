@@ -40,7 +40,11 @@ export function RecommendedActionsCard({
   return (
     <Card tone="accent" padded={false}>
       <View style={styles.header}>
-        <Text style={[textStyles.title3, { color: c.text.primary }]}>Recommended</Text>
+        <View style={styles.titleRow}>
+          {/* blue tag — ties to the hero's Suggested line */}
+          <View style={[styles.tagDot, { backgroundColor: c.accent.primary }]} />
+          <Text style={[textStyles.title3, { color: c.text.primary }]}>Recommended</Text>
+        </View>
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Best next move for this paycheck.</Text>
       </View>
 
@@ -117,6 +121,8 @@ function Row({
 
 const styles = StyleSheet.create({
   header: { paddingHorizontal: layout.cardPaddingH, paddingTop: layout.cardPaddingV, paddingBottom: spacing.md, gap: 2 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  tagDot: { width: 8, height: 8, borderRadius: 4 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

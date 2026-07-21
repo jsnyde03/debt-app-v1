@@ -37,7 +37,11 @@ export function RequiredActionsCard({
     <Card padded={false}>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <Text style={[textStyles.title3, { color: c.text.primary }]}>Required Actions</Text>
+          <View style={styles.titleRow}>
+            {/* green tag — ties to the hero's Required segment */}
+            <View style={[styles.tagDot, { backgroundColor: c.accent.success }]} />
+            <Text style={[textStyles.title3, { color: c.text.primary }]}>Required Actions</Text>
+          </View>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Bills and minimums due this paycheck.</Text>
         </View>
         {outstanding > 0 ? <Pill label={String(outstanding)} tone="neutral" /> : null}
@@ -133,6 +137,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   headerText: { flex: 1, gap: 2 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  tagDot: { width: 8, height: 8, borderRadius: 4 },
   pad: { paddingHorizontal: layout.cardPaddingH, paddingBottom: layout.cardPaddingV },
   itemRow: {
     flexDirection: 'row',

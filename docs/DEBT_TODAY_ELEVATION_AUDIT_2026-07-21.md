@@ -37,3 +37,10 @@ Companion to [DEBT_PROGRESS_ELEVATION_AUDIT_2026-07-21.md]. Same 7 criteria (too
 5. **Nit:** recommended focus tint → token.
 
 Design-first per element; RN/Reanimated build; both-theme web-verify; native motion = Phase-E device gate.
+
+---
+
+## Build log
+
+**2026-07-21 — layout redesign: the Allocation Hero (T3 + composition).** Jason: the layout still read as "stacked boxes." Rebuilt the Today hero from a text panel into a composition — the paycheck total (count-up) + a segmented bar splitting it into **Required** (solid = obligation) and **Safe** (translucent = flexible), which sum to the paycheck; the debt-free date demoted to a slim reassurance line (Progress owns it). The recommended move is shown *beneath* as a clearly-optional suggestion pulled from the real recommended action (fix: the first cut wrongly derived it from the allocation cushion → dumped all remaining into a mislabeled "To debt"; now Safe = full remaining, suggestion = its true small self + real target). Removed the redundant **Remaining After Obligations** strip (hero owns that figure; component deleted). Color-tied the cards to the hero (green dot on Required Actions, blue on Recommended) so the screen reads as one system. Bar wipes in + total rolls up on mount (Reduce-Motion snaps). Both themes web-verified; tsc 0. Segment semantics = option (b) per Jason.
+- **Open:** T1 mark-paid celebration · T2 broader count-ups + card-enter stagger · T4 payday-capture beat · the deeper **"Living/everyday" bucket** question (living expenses don't appear in the hero split). Native Skia/motion → Phase-E device gate.

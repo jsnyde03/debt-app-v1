@@ -8,7 +8,6 @@ import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
 import { PlanHero } from '@/components/plan/PlanHero';
 import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
-import { RemainingAfterRequired } from '@/components/plan/RemainingAfterRequired';
 import { RequiredActionsCard } from '@/components/plan/RequiredActionsCard';
 import { Screen } from '@/components/screen';
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
@@ -81,9 +80,13 @@ export default function TodayScreen() {
   } else if (allocation && summary) {
     content = (
       <>
-        <PlanHero summary={summary} nextPaycheckDate={store.paycheck.nextPaycheckDate} onEditPaycheck={() => setPaycheckSheet(true)} />
+        <PlanHero
+          summary={summary}
+          recommended={recommended}
+          nextPaycheckDate={store.paycheck.nextPaycheckDate}
+          onEditPaycheck={() => setPaycheckSheet(true)}
+        />
         <RequiredActionsCard rows={requiredRows} unfunded={allocation.unfundedRequiredItems ?? []} onMark={handleMark} />
-        <RemainingAfterRequired remaining={summary.remainingAfterRequired} status={summary.cushionStatus} />
         <RecommendedActionsCard
           active={recommended}
           completed={store.completedRecommendedActions}
