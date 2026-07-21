@@ -44,3 +44,12 @@ The **trajectory rail and journey rail now hit the bar; the hero ring, momentum 
 5. **Flag → Phase 2:** DriftCard Premium+ → Premium.
 
 Each is design-first (agree the treatment, then build in Skia/RN, then both-theme web-verify; native = Phase-E device gate).
+
+---
+
+## Recompose log (Jason: "treat Progress like Today — full composition review, not just the ring")
+
+The element audit above missed the Today-scale lever: **Progress was a ~9-element firehose that told "where you are" 3+ ways** (% paid in the ring AND the milestone rail; debt-free date in the hero AND the trajectory footer; "$ paid" in the hero AND momentum) with a debt-*management* cluster (strategy · focus · payoff-order) that the IA assigns to Money. The recompose:
+- **✅ DriftCard pulled off Progress (2026-07-21)** — premium teaser with stale "Premium+" copy + placeholder gate; re-placed with the reshaped model in Phase 2 (component + C.4 engine preserved).
+- **✅ Management cluster → Money (2026-07-21)** — strategy toggle · focus · payoff-order removed from Progress; rebuilt in Money's **Debts** section (strategy control preserved · debts ranked in payoff order · blue "Focus" pill on the top target). Both themes verified; tsc 0. _Money's Debts gets its full visual elevation at 1.5._
+- **▶ NEXT — the journey hero (design-first):** merge the ring (% paid) + debt-free date + milestone rail into ONE integrated **Skia** journey hero (animated sweep · count-up · green→gold arc · milestones on the arc), replacing the three overlapping "where you are" pieces. Then P2 (Skia cushion bars) + the de-dupe. Target composition: **hero → trajectory → interest-saved → cash-flow**.

@@ -16,6 +16,8 @@ import { Pill } from '@/components/ui/Pill';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import type { Debt, Goal, RequiredExpense } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { appStore } from '@/store/appStore';
+import { selectPayoffView } from '@/store/payoffSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -51,15 +53,17 @@ export default function MoneyScreen() {
   );
 }
 
-// ── Debts (the hero section) ──────────────────────────────────────────────────
+// ── Debts (the hero section) — the debts + the payoff plan (strategy · order · focus, moved here
+//    from Progress: management belongs in Money per the IA). Elevated visually at 1.5.
 function DebtsSection() {
-  const debts = useAppStore((s) => s.store.debts);
+  const store = useAppStore((s) => s.store);
+  const strategy = store.payoffStrategy;
+  const view = selectPayoffView(store);
   const [sheet, setSheet] = useState<{ editing: Debt | null } | null>(null);
-  const active = debts.filter((d) => d.balance > 0);
-  const paidOff = debts.filter((d) => d.balance <= 0);
+  const paidOff = store.debts.filter((d) => d.balance <= 0);
   const c = useAppColors();
 
-  if (debts.length === 0) {
+  if (store.debts.length === 0) {
     return (
       <>
         <EmptyState
@@ -74,6 +78,8 @@ function DebtsSection() {
     );
   }
 
+  const active = view.order; // ranked by the payoff strategy
+  const focusId = view.focus?.id;
   const totalBal = active.reduce((s, d) => s + d.balance, 0);
   const totalMin = active.reduce((s, d) => s + d.minimumPayment, 0);
 
@@ -84,8 +90,25 @@ function DebtsSection() {
         <SummaryCell label="Minimums" value={formatCurrency(totalMin)} />
         <SummaryCell label="Active" value={String(active.length)} />
       </Card>
+
+      <View style={styles.strategyBlock}>
+        <SegmentedToggle
+          value={strategy}
+          onChange={(s) => appStore.getState().setPayoffStrategy(s)}
+          options={[
+            { value: 'snowball', label: 'Snowball' },
+            { value: 'avalanche', label: 'Avalanche' },
+          ]}
+        />
+        <Text style={[textStyles.caption, styles.strategyDesc, { color: c.text.tertiary }]}>
+          {strategy === 'snowball'
+            ? 'Smallest balance first — quick wins. Your debts are listed in payoff order.'
+            : 'Highest APR first — least interest. Your debts are listed in payoff order.'}
+        </Text>
+      </View>
+
       {active.map((d) => (
-        <DebtRow key={d.id} debt={d} onEdit={(x) => setSheet({ editing: x })} />
+        <DebtRow key={d.id} debt={d} focus={d.id === focusId} onEdit={(x) => setSheet({ editing: x })} />
       ))}
       {paidOff.length > 0 ? (
         <>
@@ -101,17 +124,19 @@ function DebtsSection() {
   );
 }
 
-function DebtRow({ debt, onEdit }: { debt: Debt; onEdit: (d: Debt) => void }) {
+function DebtRow({ debt, focus, onEdit }: { debt: Debt; focus?: boolean; onEdit: (d: Debt) => void }) {
   const progress = debt.originalBalance && debt.originalBalance > 0 ? 1 - debt.balance / debt.originalBalance : undefined;
-  const badges =
-    debt.type === 'bnpl' ? <Pill label="BNPL" tone="neutral" /> : debt.isAutopay ? <Pill label="Autopay" tone="autopay" /> : undefined;
+  const chips = [
+    focus ? <Pill key="f" label="Focus" tone="action" /> : null,
+    debt.type === 'bnpl' ? <Pill key="b" label="BNPL" tone="neutral" /> : debt.isAutopay ? <Pill key="a" label="Autopay" tone="autopay" /> : null,
+  ].filter(Boolean);
   return (
     <ListRow
       title={debt.name}
       meta={`${formatCurrency(debt.balance)} · ${debt.apr}% APR`}
       amount={formatCurrency(debt.minimumPayment)}
       amountSuffix="/mo"
-      badges={badges}
+      badges={chips.length ? <>{chips}</> : undefined}
       progress={progress}
       onPress={() => onEdit(debt)}
     />
@@ -238,6 +263,8 @@ const styles = StyleSheet.create({
   cell: { flex: 1, gap: 2 },
   cellLabel: { textTransform: 'uppercase', letterSpacing: 0.4, fontWeight: '600' },
   groupLabel: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700', marginTop: spacing.sm },
+  strategyBlock: { gap: spacing.xs, marginTop: spacing.xs },
+  strategyDesc: { textAlign: 'center' },
   living: { gap: spacing.xs },
   livingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });
