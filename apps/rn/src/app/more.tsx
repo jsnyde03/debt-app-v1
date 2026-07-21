@@ -7,6 +7,7 @@ import { ExportBackupSheet, ImportBackupSheet } from '@/components/more/BackupSh
 import { SettingGroup, SettingRow } from '@/components/more/SettingRow';
 import { requestNotificationPermission } from '@/notifications/notifications';
 import { Screen, Section } from '@/components/screen';
+import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
@@ -62,6 +63,9 @@ export default function MoreScreen() {
 
   return (
     <Screen title="More" onBack={() => router.back()}>
+      {/* Trust moment (the moat) — the first thing you see: honest, on-device, never sells you debt. */}
+      <TrustCard />
+
       {/* History — a reflective destination, so it sits above the settings sections. */}
       <SettingGroup>
         <SettingRow
@@ -124,7 +128,6 @@ export default function MoreScreen() {
 
       <Section title="About">
         <SettingGroup>
-          <SettingRow icon="lock" label="Your data stays on this device" subtitle="Nothing is uploaded or shared." />
           <SettingRow icon="privacy-tip" label="Privacy Policy" onPress={() => Linking.openURL(LINKS.privacy)} />
           <SettingRow icon="description" label="Terms of Use" onPress={() => Linking.openURL(LINKS.terms)} />
           <SettingRow icon="help-outline" label="Support" onPress={() => Linking.openURL(LINKS.support)} />
@@ -136,6 +139,24 @@ export default function MoreScreen() {
       {sheet === 'export' ? <ExportBackupSheet onClose={() => setSheet(null)} /> : null}
       {sheet === 'import' ? <ImportBackupSheet onClose={() => setSheet(null)} /> : null}
     </Screen>
+  );
+}
+
+/** The trust moment — the app's moat stated plainly, at the top of the hub. Calm, not a sales pitch. */
+function TrustCard() {
+  const c = useAppColors();
+  return (
+    <Card style={styles.trust}>
+      <View style={[styles.trustIcon, { backgroundColor: c.background.tertiary }]}>
+        <AppIcon name="verified-user" size={22} color={c.accent.primary} />
+      </View>
+      <View style={styles.trustText}>
+        <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>Private by design</Text>
+        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+          Your money stays on this device — no account, no uploads. And we&apos;ll never sell you more debt.
+        </Text>
+      </View>
+    </Card>
   );
 }
 
@@ -159,6 +180,9 @@ function DeleteConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfir
 }
 
 const styles = StyleSheet.create({
+  trust: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  trustIcon: { width: 40, height: 40, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  trustText: { flex: 1, gap: 2 },
   appearance: { gap: spacing.md },
   confirm: { padding: spacing.base, gap: spacing.md },
   confirmActions: { flexDirection: 'row', gap: spacing.md },
