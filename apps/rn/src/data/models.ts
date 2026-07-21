@@ -78,4 +78,6 @@ export interface DebtStore {
   lastSavedAt: string;
   /** The payday the capture sheet was last handled for (self-clears on rollover as the date advances). */
   lastHandledPaydayDate: string | null;
+  /** True once we've asked for an App Store review — so we never re-prompt (beyond the OS throttle). */
+  reviewPrompted?: boolean;
 }

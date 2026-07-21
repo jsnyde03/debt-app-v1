@@ -42,5 +42,6 @@ export function createDefaultStore(): DebtStore {
     },
     lastSavedAt: '',
     lastHandledPaydayDate: null,
+    reviewPrompted: false,
   };
 }

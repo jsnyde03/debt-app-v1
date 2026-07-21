@@ -130,9 +130,13 @@ export default function TodayScreen() {
           onCapture={(items, decisions) => {
             appStore.getState().capturePayday(items, decisions);
             payday.completeCapture();
-            // Ask for a review at a genuine success moment, but only for an established user (not the
-            // first cycle). iOS throttles the real prompt regardless.
-            if (store.cycleHistory.length >= 2) void maybeRequestReview();
+            // Ask for a review ONCE, at a genuine success moment on an established user (not the first
+            // cycle) — the persisted guard prevents re-prompting; iOS also throttles the real prompt.
+            const st = appStore.getState().store;
+            if (st.cycleHistory.length >= 2 && !st.reviewPrompted) {
+              appStore.getState().markReviewPrompted();
+              void maybeRequestReview();
+            }
           }}
           onDismiss={payday.dismiss}
           onClose={payday.close}

@@ -70,6 +70,7 @@ export interface DebtAppState {
   capturePayday(items: CompletedRecommendedAction[], requiredDecisions: RequiredReconciliation): void;
   rolloverPayCycle(): void;
   setLastHandledPayday(date: string): void;
+  markReviewPrompted(): void;
 
   // Prefs / subscription / onboarding
   updatePrefs(updates: Partial<Preferences>): void;
@@ -223,6 +224,9 @@ export function createDebtStore() {
     },
     setLastHandledPayday(date) {
       set((s) => ({ store: { ...s.store, lastHandledPaydayDate: date } }));
+    },
+    markReviewPrompted() {
+      set((s) => ({ store: { ...s.store, reviewPrompted: true } }));
     },
 
     updatePrefs(updates) {
