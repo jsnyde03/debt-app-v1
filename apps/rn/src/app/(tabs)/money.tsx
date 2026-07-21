@@ -16,7 +16,6 @@ import { MoreButton } from '@/components/more-button';
 import { Screen } from '@/components/screen';
 import { AddRow } from '@/components/ui/AddRow';
 import { AppIcon } from '@/components/ui/AppIcon';
-import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ListRow } from '@/components/ui/ListRow';
@@ -540,30 +539,44 @@ function GoalsSection() {
 
   return (
     <>
-      <Card style={styles.summary}>
-        <SummaryCell label="Saved" value={formatCurrency(totalSaved)} />
-        <SummaryCell label="Target" value={formatCurrency(totalTarget)} />
-        <SummaryCell label="Progress" value={`${Math.round(overall * 100)}%`} />
-      </Card>
-      {goals.map((g) => {
-        const pct = g.targetAmount > 0 ? g.currentAmount / g.targetAmount : 0;
-        const funded = g.currentAmount >= g.targetAmount;
-        return (
-          <ListRow
-            key={g.id}
-            title={g.name}
-            meta={g.type === 'emergency' ? 'Emergency fund' : 'Savings'}
-            amount={funded ? 'Funded' : formatCurrency(Math.max(0, g.targetAmount - g.currentAmount))}
-            amountSuffix={funded ? undefined : ' left'}
-            badges={funded ? <Pill label="Funded" tone="paid" /> : undefined}
-            progress={pct}
-            onPress={() => setSheet({ editing: g })}
-          />
-        );
-      })}
-      <Button label="Add goal" variant="secondary" onPress={() => setSheet({ editing: null })} />
+      <MoneyHero
+        value={formatWhole(totalSaved)}
+        sub={`saved of ${formatWhole(totalTarget)} target`}
+        caption={`${Math.round(overall * 100)}% funded`}
+        bar={<HeroProgressBar pct={overall} />}
+      />
+      <View style={styles.goalsList}>
+        {goals.map((g) => {
+          const pct = g.targetAmount > 0 ? g.currentAmount / g.targetAmount : 0;
+          const funded = g.currentAmount >= g.targetAmount;
+          return (
+            <ListRow
+              key={g.id}
+              title={g.name}
+              meta={g.type === 'emergency' ? 'Emergency fund' : 'Savings'}
+              amount={funded ? 'Funded' : formatCurrency(Math.max(0, g.targetAmount - g.currentAmount))}
+              amountSuffix={funded ? undefined : ' left'}
+              badges={funded ? <Pill label="Funded" tone="paid" /> : undefined}
+              progress={pct}
+              onPress={() => setSheet({ editing: g })}
+            />
+          );
+        })}
+      </View>
+      <AddRow label="Add goal" onPress={() => setSheet({ editing: null })} />
       {sheet ? <GoalSheet editing={sheet.editing} onClose={() => setSheet(null)} /> : null}
     </>
+  );
+}
+
+/** A slim overall-progress bar for a Money hero (Goals) — a plain themed fill, no Skia (calm). */
+function HeroProgressBar({ pct }: { pct: number }) {
+  const c = useAppColors();
+  const clamped = Math.max(0, Math.min(1, Number.isFinite(pct) ? pct : 0));
+  return (
+    <View style={[styles.heroProgTrack, { backgroundColor: c.background.tertiary }]}>
+      <View style={[styles.heroProgFill, { width: `${clamped * 100}%`, backgroundColor: c.accent.success }]} />
+    </View>
   );
 }
 
@@ -597,16 +610,6 @@ function MoneyHero({ value, sub, caption, bar, onPress }: { value: string; sub: 
   );
 }
 
-function SummaryCell({ label, value }: { label: string; value: string }) {
-  const c = useAppColors();
-  return (
-    <View style={styles.cell}>
-      <Text style={[textStyles.footnote, styles.cellLabel, { color: c.text.tertiary }]}>{label}</Text>
-      <Text style={[textStyles.numericBody, { color: c.text.primary, fontWeight: '700' }]}>{value}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   rowGap: { height: spacing.sm },
@@ -616,10 +619,10 @@ const styles = StyleSheet.create({
   heroNum: { fontSize: 34, fontWeight: '800', letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
   heroBar: { marginTop: spacing.sm },
   allocBar: { width: '100%', height: 10 },
+  heroProgTrack: { height: 8, borderRadius: 4, width: '100%', overflow: 'hidden' },
+  heroProgFill: { height: '100%', borderRadius: 4 },
+  goalsList: { gap: spacing.sm },
   hairline: { height: StyleSheet.hairlineWidth, marginTop: spacing.md },
-  summary: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
-  cell: { flex: 1, gap: 2 },
-  cellLabel: { textTransform: 'uppercase', letterSpacing: 0.4, fontWeight: '600' },
   groupLabel: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700', marginTop: spacing.sm },
   strategyBlock: { gap: spacing.xs, marginTop: spacing.xs },
   strategyDesc: { textAlign: 'center' },
