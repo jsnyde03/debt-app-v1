@@ -33,7 +33,9 @@ export type {
 };
 
 export type PayoffStrategy = 'snowball' | 'avalanche';
-export type SubscriptionPlan = 'free' | 'premium' | 'premium_plus';
+/** One-tier reshape (Elevation Phase 2): free finishes the job · premium does it with you every
+ *  cycle. The old `premium_plus` tier is gone; feature access is via `@/subscription/hasFeatureAccess`. */
+export type SubscriptionPlan = 'free' | 'premium';
 export type ThemeMode = 'system' | 'light' | 'dark';
 
 /** Paycheck / pay-cycle configuration (Capacitor: the `usePayCycleSettings` keys). */

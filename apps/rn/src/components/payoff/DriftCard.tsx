@@ -10,9 +10,9 @@ import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
 /**
- * Drift Tracker — the premium_plus carrot, lead module on Payoff (V17_DRIFT_TRACKER_SPEC placement).
+ * Drift Tracker — a Premium carrot (one-tier reshape; folds fully to Premium at Elevation 2.4).
  * "You're ~N days ahead/behind the plan the engine authored for you." Three states: a locked teaser
- * for non-premium_plus, a "building your history…" empty state until enough data, and the live drift.
+ * for free, a "building your history…" empty state until enough data, and the live drift.
  * Tone is encouraging, never punishing (behind = calm amber, not alarm red — the user is progressing).
  */
 export function DriftCard({ drift, isPremiumPlus }: { drift: DriftResult | null; isPremiumPlus: boolean }) {

@@ -36,6 +36,7 @@ const APP_VERSION = Constants.expoConfig?.version ?? '—';
 export default function MoreScreen() {
   const c = useAppColors();
   const prefs = useAppStore((s) => s.store.prefs);
+  const plan = useAppStore((s) => s.store.subscriptionPlan);
   const [sheet, setSheet] = useState<'export' | 'import' | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -135,6 +136,26 @@ export default function MoreScreen() {
           <SettingRow icon="info-outline" label="Version" right={<Text style={[textStyles.caption, { color: c.text.tertiary }]}>{APP_VERSION}</Text>} last />
         </SettingGroup>
       </Section>
+
+      {__DEV__ ? (
+        <Section title="Developer">
+          <SettingGroup>
+            <SettingRow
+              icon="science"
+              label="Simulate Premium"
+              subtitle="Unlock premium features while they're built (dev only)."
+              right={
+                <Switch
+                  value={plan === 'premium'}
+                  onValueChange={(v) => appStore.getState().setSubscriptionPlan(v ? 'premium' : 'free')}
+                  trackColor={{ true: c.accent.primary, false: c.border.strong }}
+                />
+              }
+              last
+            />
+          </SettingGroup>
+        </Section>
+      ) : null}
 
       {sheet === 'export' ? <ExportBackupSheet onClose={() => setSheet(null)} /> : null}
       {sheet === 'import' ? <ImportBackupSheet onClose={() => setSheet(null)} /> : null}

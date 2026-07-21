@@ -42,7 +42,7 @@ export function selectCashTimeline(store: DebtStore, maxCycles = 5): TimelineCyc
 }
 
 /**
- * Drift of the live debt balance against the frozen baseline (the premium_plus carrot on Payoff).
+ * Drift of the live debt balance against the frozen baseline (the Premium carrot on Payoff).
  * Returns null → the "building your drift history…" empty state. Call in render off the stable store
  * ref (it builds a fresh object each call — never inside a zustand selector, per the loop lesson).
  */
