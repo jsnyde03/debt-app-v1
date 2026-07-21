@@ -24,8 +24,8 @@ export function demoStore(): DebtStore {
     // A user genuinely MID-JOURNEY (~39% paid — original $18,900 → now $11,580), so the ring shows
     // real progress past the 25% milestone and the snowball has an "about to win" focus debt.
     debts: [
-      { id: 'demo-store', name: 'Store Card', balance: 180, originalBalance: 1200, minimumPayment: 30, apr: 26.9, dueDate: currentDate, type: 'debt', recurrence: 'monthly' },
-      { id: 'demo-visa', name: 'Visa', balance: 2400, originalBalance: 4200, minimumPayment: 65, apr: 22.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly' },
+      { id: 'demo-store', name: 'Store Card', balance: 180, originalBalance: 1200, minimumPayment: 30, apr: 22.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly' },
+      { id: 'demo-visa', name: 'Visa', balance: 2400, originalBalance: 4200, minimumPayment: 65, apr: 26.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly' },
       { id: 'demo-car', name: 'Car Loan', balance: 9000, originalBalance: 13500, minimumPayment: 260, apr: 6.5, dueDate: currentDate, type: 'debt', recurrence: 'monthly' },
     ],
     requiredExpenses: [
