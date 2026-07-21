@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -15,7 +16,9 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Pill } from '@/components/ui/Pill';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { CountUp, haptics, useReduceMotion } from '@/motion';
 import type { ActiveRecommendedAction, RequiredRow } from '@/store/planSelectors';
+import { spring } from '@/theme/motion';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
@@ -80,6 +83,9 @@ export function PaydayCaptureSheet({
     const o = overrides[captureKey(a)];
     return !!o && (o.skipped || o.actualAmount !== undefined || o.external);
   });
+  // Mirror the capture decision: "I followed the plan" (no adjustment) marks all required paid;
+  // once adjusted, only the confirmed-paid portion counts (the rest carries forward).
+  const capturedTotal = (hasAdjustedRequired ? Math.max(0, requiredTotal - carryForward) : requiredTotal) + plannedTotal;
 
   function setOverride(key: string, patch: Partial<PaydayCaptureOverride>) {
     setOverrides((cur) => ({ ...cur, [key]: { ...cur[key], ...patch } }));
@@ -134,8 +140,9 @@ export function PaydayCaptureSheet({
       overrides,
     );
     const decisions = decisionsFrom(!hasAdjustedRequired);
+    haptics.success(); // the payday-completion beat — quiet count-up + a success tick (motion spec §5)
     setCaptured(true);
-    setTimeout(() => onCapture(items, decisions), 850);
+    setTimeout(() => onCapture(items, decisions), 1300);
   }
 
   const requiredSub = hasAdjustedRequired
@@ -150,13 +157,7 @@ export function PaydayCaptureSheet({
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
         <View style={[styles.sheet, { backgroundColor: c.background.primary, paddingBottom: insets.bottom + spacing.base }]}>
           {captured ? (
-            <View style={styles.successPad}>
-              <View style={[styles.successCheck, { backgroundColor: c.background.secondary }]}>
-                <AppIcon name="check-circle" size={40} color={c.accent.success} />
-              </View>
-              <Text style={[textStyles.title2, { color: c.text.primary }]}>Payday captured</Text>
-              <Text style={[textStyles.subhead, { color: c.text.secondary }]}>Nice work — your plan&apos;s up to date.</Text>
-            </View>
+            <CaptureSuccess amount={capturedTotal} />
           ) : adjustingRequired ? (
             <>
               <View style={styles.header}>
@@ -305,6 +306,46 @@ export function PaydayCaptureSheet({
   );
 }
 
+/**
+ * The payday-completion beat — quiet, not spectacle (the paid-off celebration owns that). The check
+ * springs in, a soft ring pulses out once, and the amount you confirmed rolls up, with a success
+ * haptic fired at capture. Reduce Motion → the finished state, no motion.
+ */
+function CaptureSuccess({ amount }: { amount: number }) {
+  const c = useAppColors();
+  const reduce = useReduceMotion();
+  const pop = useSharedValue(reduce ? 1 : 0);
+  const ring = useSharedValue(reduce ? 1 : 0);
+  const [shown, setShown] = useState(reduce ? amount : 0);
+  useEffect(() => {
+    if (reduce) return;
+    pop.value = withSpring(1, spring.bouncy);
+    ring.value = withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) });
+    setShown(amount);
+  }, [reduce, amount, pop, ring]);
+
+  const checkStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }], opacity: pop.value }));
+  const ringStyle = useAnimatedStyle(() => ({ transform: [{ scale: 0.7 + ring.value * 1.0 }], opacity: (1 - ring.value) * 0.5 }));
+
+  return (
+    <View style={styles.successPad}>
+      <View style={styles.checkWrap}>
+        <Animated.View style={[styles.ring, ringStyle, { borderColor: c.accent.success }]} />
+        <Animated.View style={[styles.successCheck, checkStyle, { backgroundColor: c.background.secondary }]}>
+          <AppIcon name="check-circle" size={40} color={c.accent.success} />
+        </Animated.View>
+      </View>
+      <Text style={[textStyles.title2, { color: c.text.primary }]}>Payday captured</Text>
+      <CountUp
+        value={shown}
+        format={(n) => formatCurrency(Math.round(n))}
+        style={[styles.capturedAmount, { color: c.accent.success }]}
+      />
+      <Text style={[textStyles.subhead, { color: c.text.secondary }]}>confirmed · your plan&apos;s up to date</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
   sheet: {
@@ -332,5 +373,8 @@ const styles = StyleSheet.create({
   carry: { textAlign: 'center', paddingTop: spacing.sm },
   actions: { gap: spacing.sm },
   successPad: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xxl },
-  successCheck: { width: 72, height: 72, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
+  checkWrap: { alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
+  ring: { position: 'absolute', width: 72, height: 72, borderRadius: 36, borderWidth: 2 },
+  successCheck: { width: 72, height: 72, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  capturedAmount: { fontSize: 30, fontWeight: '800', letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
 });
