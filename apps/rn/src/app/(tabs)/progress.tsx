@@ -4,7 +4,6 @@ import { StyleSheet, Text, View } from 'react-native';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { MoreButton } from '@/components/more-button';
-import { DriftCard } from '@/components/payoff/DriftCard';
 import { TrajectoryChart } from '@/components/payoff/TrajectoryChart';
 import { CashFlowSection } from '@/components/progress/CashFlowSection';
 import { MilestonesRow } from '@/components/progress/MilestonesRow';
@@ -18,7 +17,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useGoToTab } from '@/hooks/use-go-to-tab';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { appStore } from '@/store/appStore';
-import { selectCashTimeline, selectDrift, selectPayoffView } from '@/store/payoffSelectors';
+import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 import { elevation } from '@/theme/elevation';
@@ -37,9 +36,6 @@ export default function ProgressScreen() {
   const store = useAppStore((s) => s.store);
   const strategy = store.payoffStrategy;
   const view = selectPayoffView(store);
-  const drift = selectDrift(store);
-  // Placeholder gate — C.2 replaces this with `hasFeatureAccess(plan, 'drift')` + the real paywall entry.
-  const isPremiumPlus = store.subscriptionPlan === 'premium_plus';
 
   if (!view.hasDebts) {
     return (
@@ -88,8 +84,6 @@ export default function ProgressScreen() {
       <CashFlowSection cycles={selectCashTimeline(store)} />
 
       <TrajectoryChart snowball={view.snowball} avalanche={view.avalanche} strategy={strategy} debtFreeDate={view.debtFreeDate} />
-
-      <DriftCard drift={drift} isPremiumPlus={isPremiumPlus} />
 
       <View style={styles.stratBlock}>
         <SegmentedToggle
