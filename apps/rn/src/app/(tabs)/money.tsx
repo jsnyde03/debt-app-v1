@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { SectionList, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { formatCurrency } from '@core/utils/formatCurrency';
 
@@ -40,7 +41,7 @@ export default function MoneyScreen() {
   const [view, setView] = useState<MoneyView>('debts');
 
   return (
-    <Screen title="Money" right={<MoreButton />}>
+    <Screen title="Money" right={<MoreButton />} scroll={view !== 'debts'}>
       <SegmentedToggle
         value={view}
         onChange={setView}
@@ -64,6 +65,7 @@ function DebtsSection() {
   const [sheet, setSheet] = useState<{ editing: Debt | null } | null>(null);
   const paidOff = store.debts.filter((d) => d.balance <= 0);
   const c = useAppColors();
+  const insets = useSafeAreaInsets();
 
   if (store.debts.length === 0) {
     return (
@@ -84,10 +86,16 @@ function DebtsSection() {
   const focusId = view.focus?.id;
   const totalBal = active.reduce((s, d) => s + d.balance, 0);
 
-  return (
-    <>
-      <MoneyHero value={formatWhole(totalBal)} sub={`remaining across ${active.length} ${active.length === 1 ? 'debt' : 'debts'}`} />
+  type DebtGroup = { key: string; title?: string; data: Debt[] };
+  const sections: DebtGroup[] = [{ key: 'active', data: active }];
+  if (paidOff.length > 0) sections.push({ key: 'paid', title: 'PAID OFF', data: paidOff });
 
+  // Own scroll surface (virtualized) — the debt-heavy user (student loans, BNPL, medical) can carry
+  // 20–30+ debts. Hero + strategy stay pinned above the scrolling list; payoff order is the
+  // findability (focus debt is always first), so no grouping/search here.
+  return (
+    <View style={styles.flex}>
+      <MoneyHero value={formatWhole(totalBal)} sub={`remaining across ${active.length} ${active.length === 1 ? 'debt' : 'debts'}`} />
       <View style={styles.strategyBlock}>
         <SegmentedToggle
           value={strategy}
@@ -104,20 +112,28 @@ function DebtsSection() {
         </Text>
       </View>
 
-      {active.map((d) => (
-        <DebtRow key={d.id} debt={d} focus={d.id === focusId} onEdit={(x) => setSheet({ editing: x })} />
-      ))}
-      {paidOff.length > 0 ? (
-        <>
-          <Text style={[textStyles.footnote, styles.groupLabel, { color: c.text.tertiary }]}>PAID OFF</Text>
-          {paidOff.map((d) => (
-            <DebtRow key={d.id} debt={d} onEdit={(x) => setSheet({ editing: x })} />
-          ))}
-        </>
-      ) : null}
-      <AddRow label="Add debt" onPress={() => setSheet({ editing: null })} />
+      <SectionList
+        style={styles.flex}
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        stickySectionHeadersEnabled={false}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: spacing.md, paddingBottom: insets.bottom + spacing.huge }}
+        ItemSeparatorComponent={() => <View style={styles.rowGap} />}
+        renderSectionHeader={({ section }) =>
+          section.title ? (
+            <Text style={[textStyles.footnote, styles.groupLabel, { color: c.text.tertiary }]}>{section.title}</Text>
+          ) : null
+        }
+        renderItem={({ item }) => <DebtRow debt={item} focus={item.id === focusId} onEdit={(x) => setSheet({ editing: x })} />}
+        ListFooterComponent={
+          <View style={styles.listFooter}>
+            <AddRow label="Add debt" onPress={() => setSheet({ editing: null })} />
+          </View>
+        }
+      />
       {sheet ? <DebtSheet editing={sheet.editing} onClose={() => setSheet(null)} /> : null}
-    </>
+    </View>
   );
 }
 
@@ -270,6 +286,9 @@ function SummaryCell({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  rowGap: { height: spacing.sm },
+  listFooter: { marginTop: spacing.md },
   hero: { gap: 2, marginBottom: spacing.xs },
   heroNum: { fontSize: 34, fontWeight: '800', letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
   hairline: { height: StyleSheet.hairlineWidth, marginTop: spacing.md },
