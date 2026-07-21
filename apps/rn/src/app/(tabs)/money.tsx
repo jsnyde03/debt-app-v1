@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { SectionList, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { DebtSheet } from '@/components/entities/DebtSheet';
@@ -10,20 +12,21 @@ import { GoalSheet } from '@/components/entities/GoalSheet';
 import { MoreButton } from '@/components/more-button';
 import { Screen } from '@/components/screen';
 import { AddRow } from '@/components/ui/AddRow';
+import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ListRow } from '@/components/ui/ListRow';
 import { Pill } from '@/components/ui/Pill';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
-import type { Debt, Goal, RequiredExpense } from '@/data/models';
+import type { Debt, Goal, RequiredExpense, RequiredExpenseCategory } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
 import { selectPayoffView } from '@/store/payoffSelectors';
 import { useAppStore } from '@/store/useAppStore';
-import { spacing } from '@/theme/spacing';
+import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-import { formatWhole } from '@/utils/format';
+import { formatWhole, monthlyEquivalent } from '@/utils/format';
 
 /**
  * Money — the consolidated management hub (Elevation IA). One tab holds all three entity types as
@@ -41,7 +44,7 @@ export default function MoneyScreen() {
   const [view, setView] = useState<MoneyView>('debts');
 
   return (
-    <Screen title="Money" right={<MoreButton />} scroll={view !== 'debts'}>
+    <Screen title="Money" right={<MoreButton />} scroll={view === 'goals'}>
       <SegmentedToggle
         value={view}
         onChange={setView}
@@ -158,16 +161,79 @@ function DebtRow({ debt, focus, onEdit }: { debt: Debt; focus?: boolean; onEdit:
   );
 }
 
-// ── Bills (required expenses) ─────────────────────────────────────────────────
+// ── Bills (required expenses) — the management surface. Anchors on a monthly-total number; once
+//    the list is long enough to be a wall, it groups by category (collapsible, count + $/mo
+//    subtotal) and offers search. Own virtualized scroll surface, like Debts. (1.5.2)
+const BILL_CATEGORY_LABEL: Record<RequiredExpenseCategory, string> = {
+  housing: 'Housing',
+  utilities: 'Utilities',
+  insurance: 'Insurance',
+  subscriptions: 'Subscriptions',
+  medical: 'Medical',
+  other: 'Other',
+};
+const BILL_CATEGORY_ORDER: RequiredExpenseCategory[] = [
+  'housing',
+  'utilities',
+  'insurance',
+  'subscriptions',
+  'medical',
+  'other',
+];
+/** Below this, a flat list reads fine; at/above it, grouping + search earn their chrome. */
+const BILL_GROUPING_THRESHOLD = 8;
+
+type BillGroup = { key: string; category: RequiredExpenseCategory; count: number; monthly: number; data: RequiredExpense[] };
+
 function BillsSection() {
   const expenses = useAppStore((s) => s.store.requiredExpenses);
   const living = useAppStore((s) => s.store.livingExpenses);
+  const payCycle = useAppStore((s) => s.store.paycheck.payCycle);
   const [sheet, setSheet] = useState<{ editing: RequiredExpense | null } | null>(null);
-  const livingTotal = living.filter((l) => l.enabled).reduce((s, l) => s + l.amount, 0);
+  const [query, setQuery] = useState('');
+  const [collapsed, setCollapsed] = useState<Set<RequiredExpenseCategory>>(() => new Set());
+  const c = useAppColors();
+  const insets = useSafeAreaInsets();
 
-  return (
-    <>
-      {expenses.length === 0 ? (
+  const livingTotal = living.filter((l) => l.enabled).reduce((s, l) => s + l.amount, 0);
+  const cyclesPerMonth = payCyclesPerMonth(payCycle);
+  const monthlyTotal = expenses.reduce((s, e) => s + monthlyEquivalent(e.amount, e.recurrence, cyclesPerMonth), 0);
+  const grouped = expenses.length >= BILL_GROUPING_THRESHOLD;
+  const searching = query.trim().length > 0;
+
+  const sections = useMemo<BillGroup[]>(() => {
+    const q = query.trim().toLowerCase();
+    const match = (e: RequiredExpense) => !q || e.name.toLowerCase().includes(q);
+
+    if (!grouped) {
+      const data = expenses.filter(match);
+      return [{ key: 'all', category: 'other', count: data.length, monthly: 0, data }];
+    }
+    return BILL_CATEGORY_ORDER.map((category) => {
+      const items = expenses.filter((e) => e.category === category);
+      const shown = items.filter(match);
+      // Count + subtotal track the matches while searching, the full category otherwise (so a
+      // collapsed header still shows its true count + $/mo overview).
+      const summ = searching ? shown : items;
+      const monthly = summ.reduce((s, e) => s + monthlyEquivalent(e.amount, e.recurrence, cyclesPerMonth), 0);
+      // Search overrides collapse (matches expand); otherwise honor the user's collapse toggles.
+      const open = searching ? shown.length > 0 : !collapsed.has(category);
+      return { key: category, category, count: summ.length, monthly, data: open ? shown : [] };
+    }).filter((g) => (searching ? g.data.length > 0 : g.count > 0));
+  }, [expenses, grouped, searching, query, collapsed, cyclesPerMonth]);
+
+  function toggle(category: RequiredExpenseCategory) {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
+      return next;
+    });
+  }
+
+  if (expenses.length === 0) {
+    return (
+      <>
         <EmptyState
           icon="receipt-long"
           title="No bills yet"
@@ -175,37 +241,148 @@ function BillsSection() {
           cta="Add your first bill"
           onCta={() => setSheet({ editing: null })}
         />
-      ) : (
-        <>
-          {expenses.map((e) => (
-            <ListRow
-              key={e.id}
-              title={e.name}
-              meta={`Due ${shortDate(e.dueDate)} · ${e.recurrence}${e.expenseType === 'variable' ? ' · Variable' : ''}`}
-              amount={formatCurrency(e.amount)}
-              badges={e.isAutopay ? <Pill label="Autopay" tone="autopay" /> : undefined}
-              onPress={() => setSheet({ editing: e })}
-            />
-          ))}
-          <Button label="Add bill" variant="secondary" onPress={() => setSheet({ editing: null })} />
-          {livingTotal > 0 ? <LivingReserve total={livingTotal} /> : null}
-        </>
-      )}
+        {sheet ? <ExpenseSheet editing={sheet.editing} onClose={() => setSheet(null)} /> : null}
+      </>
+    );
+  }
+
+  return (
+    <View style={styles.flex}>
+      <MoneyHero value={formatWhole(monthlyTotal)} sub={`per month · ${expenses.length} ${expenses.length === 1 ? 'bill' : 'bills'}`} />
+      {grouped ? <BillSearch value={query} onChange={setQuery} /> : null}
+
+      <SectionList
+        style={styles.flex}
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        stickySectionHeadersEnabled={false}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingTop: spacing.md, paddingBottom: insets.bottom + spacing.huge }}
+        ItemSeparatorComponent={() => <View style={styles.rowGap} />}
+        renderSectionHeader={
+          grouped
+            ? ({ section }) => (
+                <BillGroupHeader
+                  label={BILL_CATEGORY_LABEL[section.category]}
+                  count={section.count}
+                  monthly={section.monthly}
+                  open={section.data.length > 0 || (searching ? false : !collapsed.has(section.category))}
+                  disabled={searching}
+                  onToggle={() => toggle(section.category)}
+                />
+              )
+            : undefined
+        }
+        renderSectionFooter={grouped ? () => <View style={styles.rowGap} /> : undefined}
+        renderItem={({ item }) => (
+          <ListRow
+            title={item.name}
+            meta={`Due ${shortDate(item.dueDate)} · ${item.recurrence}${item.expenseType === 'variable' ? ' · Variable' : ''}`}
+            amount={formatCurrency(item.amount)}
+            badges={item.isAutopay ? <Pill label="Autopay" tone="autopay" /> : undefined}
+            onPress={() => setSheet({ editing: item })}
+          />
+        )}
+        ListEmptyComponent={
+          searching ? (
+            <Text style={[textStyles.subhead, styles.noResults, { color: c.text.tertiary }]}>No bills match “{query.trim()}”.</Text>
+          ) : null
+        }
+        ListFooterComponent={
+          <View style={styles.listFooter}>
+            <AddRow label="Add bill" onPress={() => setSheet({ editing: null })} />
+            {livingTotal > 0 ? <LivingReserve total={livingTotal} /> : null}
+          </View>
+        }
+      />
       {sheet ? <ExpenseSheet editing={sheet.editing} onClose={() => setSheet(null)} /> : null}
-    </>
+    </View>
   );
 }
 
+/** Lightweight search affordance (pill, no form label) — appears only when Bills is long. */
+function BillSearch({ value, onChange }: { value: string; onChange: (t: string) => void }) {
+  const c = useAppColors();
+  return (
+    <View style={[styles.search, { backgroundColor: c.background.secondary, borderColor: c.border.default }]}>
+      <AppIcon name="search" size={18} color={c.text.tertiary} />
+      <TextInput
+        value={value}
+        onChangeText={onChange}
+        placeholder="Search bills"
+        placeholderTextColor={c.text.tertiary}
+        style={[textStyles.body, styles.searchInput, { color: c.text.primary }]}
+        returnKeyType="search"
+        autoCorrect={false}
+      />
+      {value.length > 0 ? (
+        <Pressable onPress={() => onChange('')} accessibilityRole="button" accessibilityLabel="Clear search" hitSlop={8}>
+          <AppIcon name="close" size={18} color={c.text.tertiary} />
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+/** A collapsible category header: label · count · monthly subtotal · chevron. */
+function BillGroupHeader({
+  label,
+  count,
+  monthly,
+  open,
+  disabled,
+  onToggle,
+}: {
+  label: string;
+  count: number;
+  monthly: number;
+  open: boolean;
+  disabled?: boolean;
+  onToggle: () => void;
+}) {
+  const c = useAppColors();
+  return (
+    <Pressable
+      onPress={disabled ? undefined : onToggle}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityState={{ expanded: open }}
+      accessibilityLabel={`${label}, ${count} ${count === 1 ? 'bill' : 'bills'}, ${formatWhole(monthly)} per month`}
+      style={({ pressed }) => [styles.groupHeader, { opacity: pressed && !disabled ? 0.6 : 1 }]}>
+      {!disabled ? (
+        <AppIcon name={open ? 'expand-more' : 'chevron-right'} size={20} color={c.text.tertiary} />
+      ) : null}
+      <Text style={[textStyles.footnote, styles.groupHeaderLabel, { color: c.text.secondary }]}>{label}</Text>
+      <View style={[styles.groupCountPill, { backgroundColor: c.background.tertiary }]}>
+        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{count}</Text>
+      </View>
+      <View style={styles.flex} />
+      <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{formatWhole(monthly)}/mo</Text>
+    </Pressable>
+  );
+}
+
+/** The everyday-spending reserve — tappable straight to its management screen (also in More). */
 function LivingReserve({ total }: { total: number }) {
   const c = useAppColors();
   return (
-    <Card tone="accent" style={styles.living}>
-      <View style={styles.livingRow}>
-        <Text style={[textStyles.subhead, { color: c.text.secondary }]}>Everyday spending reserve</Text>
-        <Text style={[textStyles.numericBody, { color: c.text.primary }]}>{formatCurrency(total)}</Text>
-      </View>
-      <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Set aside each paycheck · manage in More</Text>
-    </Card>
+    <Pressable
+      onPress={() => router.push('/living-expenses')}
+      accessibilityRole="button"
+      accessibilityLabel={`Everyday spending reserve, ${formatCurrency(total)}. Opens management.`}
+      style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}>
+      <Card tone="accent" style={styles.living}>
+        <View style={styles.livingRow}>
+          <Text style={[textStyles.subhead, { color: c.text.secondary }]}>Everyday spending reserve</Text>
+          <View style={styles.livingRight}>
+            <Text style={[textStyles.numericBody, { color: c.text.primary }]}>{formatCurrency(total)}</Text>
+            <AppIcon name="chevron-right" size={20} color={c.text.tertiary} />
+          </View>
+        </View>
+        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Set aside each paycheck · tap to manage</Text>
+      </Card>
+    </Pressable>
   );
 }
 
@@ -288,7 +465,7 @@ function SummaryCell({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   rowGap: { height: spacing.sm },
-  listFooter: { marginTop: spacing.md },
+  listFooter: { marginTop: spacing.md, gap: spacing.md },
   hero: { gap: 2, marginBottom: spacing.xs },
   heroNum: { fontSize: 34, fontWeight: '800', letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
   hairline: { height: StyleSheet.hairlineWidth, marginTop: spacing.md },
@@ -300,4 +477,20 @@ const styles = StyleSheet.create({
   strategyDesc: { textAlign: 'center' },
   living: { gap: spacing.xs },
   livingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  livingRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  search: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.base,
+    height: 44,
+    borderRadius: layout.inputRadius,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  searchInput: { flex: 1, paddingVertical: 0 },
+  noResults: { textAlign: 'center', paddingVertical: spacing.xl },
+  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.sm },
+  groupHeaderLabel: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700' },
+  groupCountPill: { minWidth: 22, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 999, alignItems: 'center' },
 });
