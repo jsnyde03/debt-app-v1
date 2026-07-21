@@ -115,6 +115,8 @@ export interface PlanSummary {
   shortfall: number;
   /** Paycheck − required (bills + minimums): what's left to work with after obligations. */
   remainingAfterRequired: number;
+  /** Everyday/living reserved this cycle (variable but essential — groceries, gas, life). */
+  everydayReserve: number;
   cushionStatus: 'stable' | 'tight' | 'pressure';
   debtFreeDate: string | null;
   status: PlanStatus;
@@ -152,6 +154,7 @@ export function selectPlanSummary(store: DebtStore, allocation: Allocation, requ
     requiredTotal: allocation.totalRequired,
     shortfall,
     remainingAfterRequired,
+    everydayReserve: allocation.livingExpenseReserve,
     cushionStatus,
     debtFreeDate: selectDebtFreeDate(store, allocation),
     status: overdue ? 'overdue' : shortfall > 0 ? 'short' : 'on-track',

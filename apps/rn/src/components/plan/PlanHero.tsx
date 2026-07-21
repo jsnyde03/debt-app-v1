@@ -16,8 +16,8 @@ import { textStyles } from '@/theme/typography';
 // On-navy semantics: the hero panel is deep navy in BOTH themes, so its accents are the dark-tuned
 // token values (they read on navy) — constant, never theme-resolved.
 const onNavy = {
-  required: colors.accent.success.dark, // bills + minimums — the covered obligations (mandatory)
-  safe: '#dbe6f5', // safe-to-spend — a light neutral (flexible leftover, not a semantic state)
+  essential: colors.accent.success.dark, // green family — money that's accounted for (required + everyday)
+  free: '#dbe6f5', // free-to-spend — a light neutral (truly leftover, not a semantic state)
   suggest: colors.accent.primary.dark, // the recommended move — a suggestion, never an obligation
   warning: colors.accent.warning.dark,
   danger: colors.accent.danger.dark,
@@ -55,7 +55,8 @@ export function PlanHero({
 
   const paycheck = summary.requiredTotal + summary.remainingAfterRequired;
   const required = Math.max(0, summary.requiredTotal);
-  const safe = Math.max(0, summary.remainingAfterRequired);
+  const everyday = Math.max(0, summary.everydayReserve);
+  const free = Math.max(0, summary.remainingAfterRequired - everyday);
 
   // Draw-on: the total rolls up from 0 and the split bar wipes in from the left. Reduce Motion snaps.
   const reduce = useReducedMotion();
@@ -67,10 +68,12 @@ export function PlanHero({
   }, [paycheck, reduce, grow]);
   const barStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: grow.value }] }));
 
-  // Two real buckets that sum to the paycheck: the obligation (solid) + the flexible remainder.
+  // Three buckets summing to the paycheck, two hues: the green "accounted-for" family (Required =
+  // solid/fixed, Everyday = translucent/variable-but-reserved) + the neutral truly-free remainder.
   const segments = [
-    { key: 'required', label: 'Required', value: required, color: onNavy.required, mandatory: true, fill: 1 },
-    { key: 'safe', label: 'Safe', value: safe, color: onNavy.safe, mandatory: false, fill: 0.5 },
+    { key: 'required', label: 'Required', value: required, color: onNavy.essential, ring: false, fill: 1 },
+    { key: 'everyday', label: 'Everyday', value: everyday, color: onNavy.essential, ring: true, fill: 0.5 },
+    { key: 'free', label: 'Free', value: free, color: onNavy.free, ring: true, fill: 0.5 },
   ].filter((seg) => seg.value > 0);
 
   // The recommendation is a SUGGESTED use of the safe money — shown as its real (small) self, from
@@ -80,7 +83,7 @@ export function PlanHero({
     recommended.length === 1 ? recommended[0].label : recommended.length > 1 ? `${recommended.length} suggested moves` : null;
 
   const statusColor =
-    summary.status === 'on-track' ? onNavy.required : summary.status === 'short' ? onNavy.warning : onNavy.danger;
+    summary.status === 'on-track' ? onNavy.essential : summary.status === 'short' ? onNavy.warning : onNavy.danger;
   const statusLabel =
     summary.status === 'overdue'
       ? 'Overdue payments need attention'
@@ -134,9 +137,9 @@ export function PlanHero({
                 <View
                   style={[
                     styles.dot,
-                    seg.mandatory
-                      ? { backgroundColor: seg.color }
-                      : { borderWidth: 1.5, borderColor: seg.color, backgroundColor: 'transparent' },
+                    seg.ring
+                      ? { borderWidth: 1.5, borderColor: seg.color, backgroundColor: 'transparent' }
+                      : { backgroundColor: seg.color },
                   ]}
                 />
                 <Text style={[textStyles.caption, { color: s.heroSub }]}>{seg.label}</Text>
