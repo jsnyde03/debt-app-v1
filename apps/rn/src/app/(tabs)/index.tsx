@@ -94,7 +94,7 @@ export default function TodayScreen() {
           />
         </Motion>
         <Motion delay={90}>
-          <RequiredActionsCard rows={requiredRows} unfunded={allocation.unfundedRequiredItems ?? []} onMark={handleMark} />
+          <RequiredActionsCard rows={requiredRows} unfunded={allocation.unfundedRequiredItems ?? []} onMark={handleMark} currentDate={store.paycheck.currentDate} />
         </Motion>
         <Motion delay={180}>
           <RecommendedActionsCard

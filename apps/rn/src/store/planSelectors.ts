@@ -81,6 +81,65 @@ export function selectRequiredRows(store: DebtStore, allocation: Allocation): Re
   return [...rows, ...paidRows];
 }
 
+// ── Required-action bucketing (Today scale, 1.5.4) ───────────────────────────────
+export type RequiredBucketKey = 'overdue' | 'thisWeek' | 'nextWeek' | 'later' | 'handled';
+export interface RequiredBucket {
+  key: RequiredBucketKey;
+  title: string;
+  rows: RequiredRow[];
+  total: number;
+  defaultOpen: boolean;
+}
+
+/** Stable per-row identity (expense id or debt id) — for the "paid this visit" pin set. */
+export function requiredRowKey(r: RequiredRow): string {
+  const isExpense = r.item.category === 'expense' || r.item.category === 'autopay_expense';
+  return `${isExpense ? 'e' : 'd'}:${r.item.debtId ?? r.item.targetId}`;
+}
+
+/** True when a row needs no action — paid, or an autopay presumed to have run. */
+export function rowHandledNow(r: RequiredRow): boolean {
+  return r.view.isPaid || (r.isAutopay && r.view.presumedPaid && !r.view.autopayFailed);
+}
+
+function daysBetween(fromISO: string, toISO?: string): number {
+  if (!toISO) return 0; // no due date → treat as due now (this week), never hidden
+  const a = new Date(`${fromISO}T00:00:00`).getTime();
+  const b = new Date(`${toISO}T00:00:00`).getTime();
+  return Math.round((b - a) / 86_400_000);
+}
+
+/**
+ * Group required rows into urgency buckets for Today (1.5.4). Overdue + This-week stay open;
+ * later-in-cycle + Handled collapse. `paidThisVisit` pins rows the user just checked off so they
+ * stay struck-through in place (they settle into Handled on the next visit, never vanish on tap).
+ * Adapts to cycle length automatically — a weekly payer's bills all land in "this week", so the
+ * later buckets are simply empty (filtered out).
+ */
+export function bucketRequiredRows(rows: RequiredRow[], currentDateISO: string, paidThisVisit: Set<string>): RequiredBucket[] {
+  const b: Record<RequiredBucketKey, RequiredRow[]> = { overdue: [], thisWeek: [], nextWeek: [], later: [], handled: [] };
+  for (const r of rows) {
+    if (rowHandledNow(r) && !paidThisVisit.has(requiredRowKey(r))) {
+      b.handled.push(r);
+    } else if ((r.view.overdue && !r.isAutopay) || r.view.autopayFailed) {
+      b.overdue.push(r);
+    } else {
+      const d = daysBetween(currentDateISO, r.dueDate);
+      (d < 7 ? b.thisWeek : d < 14 ? b.nextWeek : b.later).push(r);
+    }
+  }
+  const meta: { key: RequiredBucketKey; title: string; open: boolean }[] = [
+    { key: 'overdue', title: 'Overdue', open: true },
+    { key: 'thisWeek', title: 'Due this week', open: true },
+    { key: 'nextWeek', title: 'Due next week', open: false },
+    { key: 'later', title: 'Later this cycle', open: false },
+    { key: 'handled', title: 'Handled', open: false },
+  ];
+  return meta
+    .map((m) => ({ key: m.key, title: m.title, rows: b[m.key], total: b[m.key].reduce((s, r) => s + r.item.amount, 0), defaultOpen: m.open }))
+    .filter((x) => x.rows.length > 0);
+}
+
 /** The cycle's recommended extras (emergency fund + extra debt payoff + optional goals). */
 export function selectRecommendedActions(store: DebtStore, allocation: Allocation): ActiveRecommendedAction[] {
   return selectActiveRecommendedActions({
