@@ -9,6 +9,7 @@ import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
 import { PlanHero } from '@/components/plan/PlanHero';
 import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
 import { RequiredActionsCard } from '@/components/plan/RequiredActionsCard';
+import { Motion } from '@/motion';
 import { Screen } from '@/components/screen';
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
@@ -80,18 +81,24 @@ export default function TodayScreen() {
   } else if (allocation && summary) {
     content = (
       <>
-        <PlanHero
-          summary={summary}
-          recommended={recommended}
-          nextPaycheckDate={store.paycheck.nextPaycheckDate}
-          onEditPaycheck={() => setPaycheckSheet(true)}
-        />
-        <RequiredActionsCard rows={requiredRows} unfunded={allocation.unfundedRequiredItems ?? []} onMark={handleMark} />
-        <RecommendedActionsCard
-          active={recommended}
-          completed={store.completedRecommendedActions}
-          onToggle={(a, done) => appStore.getState().toggleRecommendedDone(a, done)}
-        />
+        <Motion>
+          <PlanHero
+            summary={summary}
+            recommended={recommended}
+            nextPaycheckDate={store.paycheck.nextPaycheckDate}
+            onEditPaycheck={() => setPaycheckSheet(true)}
+          />
+        </Motion>
+        <Motion delay={90}>
+          <RequiredActionsCard rows={requiredRows} unfunded={allocation.unfundedRequiredItems ?? []} onMark={handleMark} />
+        </Motion>
+        <Motion delay={180}>
+          <RecommendedActionsCard
+            active={recommended}
+            completed={store.completedRecommendedActions}
+            onToggle={(a, done) => appStore.getState().toggleRecommendedDone(a, done)}
+          />
+        </Motion>
       </>
     );
   }

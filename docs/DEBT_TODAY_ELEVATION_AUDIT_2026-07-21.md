@@ -47,4 +47,6 @@ Design-first per element; RN/Reanimated build; both-theme web-verify; native mot
 
 **2026-07-21 — T1 mark-paid celebration.** `CheckCircle` (shared by Required + Recommended) now springs the fill + check in (`spring.bouncy`) with a **success haptic** on check (a light tick on undo); Reduce Motion snaps the visual but keeps the haptic (accessibility channel). The daily payday win is now felt, everywhere the control is used. Both themes verified (checked = green fill + check); tsc 0. Haptic/motion *feel* → Phase-E device gate.
 
-- **Open:** T2 broader count-ups + card-enter stagger · T4 payday-capture beat. Native Skia/motion → Phase-E device gate.
+**2026-07-21 — T2 card-entrance stagger.** Today's content cards now cascade in on mount (`<Motion>` FadeInDown, staggered 0/90/180ms); Reduce Motion → no motion. Count-ups deliberately scoped to the hero total only — the other Today numbers are static bill amounts, so rolling them would be motion for its own sake.
+
+- **Open:** T4 payday-capture beat. Native Skia/motion → Phase-E device gate.
