@@ -11,8 +11,9 @@ import { textStyles } from '@/theme/typography';
 
 import { TrajectoryCanvas } from './TrajectoryCanvas';
 
-const H = 150;
-const PAD = { l: 6, r: 10, t: 14, b: 12 };
+const H = 200;
+// Left gutter holds the balance labels; bottom gutter holds the time ticks.
+const PAD = { l: 38, r: 14, t: 16, b: 26 };
 
 /** Whole-dollar currency (no cents) — a big saved figure reads cleaner than "$1,222.00". */
 function formatWhole(amount: number): string {
@@ -23,6 +24,21 @@ function formatWhole(amount: number): string {
 function formatMonths(months: number): string {
   if (months < 24) return `${months} month${months === 1 ? '' : 's'}`;
   return `${Math.round(months / 12)} years`;
+}
+
+/** A compact axis balance label: $0 · $4k · $12k. */
+function formatAxisBalance(v: number): string {
+  if (v === 0) return '$0';
+  if (v >= 1000) return `$${Math.round(v / 1000)}k`;
+  return `$${Math.round(v)}`;
+}
+
+/** Pick a "nice" gridline step so the Y-axis has ~3–4 lines (never a cramped 6). */
+function niceStep(max: number): number {
+  for (const s of [1000, 2000, 2500, 4000, 5000, 10000, 20000, 50000]) {
+    if (max / s <= 3.5) return s;
+  }
+  return 100000;
 }
 
 type Pt = { x: number; y: number };
@@ -58,6 +74,7 @@ export function TrajectoryChart({
   strategy,
   debtFreeDate,
   interestSaved,
+  startDate,
 }: {
   snowball: TrajectoryPoint[];
   avalanche: TrajectoryPoint[];
@@ -65,6 +82,7 @@ export function TrajectoryChart({
   strategy: PayoffStrategy;
   debtFreeDate: string | null;
   interestSaved: InterestSaved;
+  startDate: string;
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
@@ -77,26 +95,46 @@ export function TrajectoryChart({
   const ghost = showMinimums ? minimums : [];
   const all = [...active, ...ghost];
   const maxMonth = Math.max(1, ...all.map((p) => p.month));
-  const maxBalance = Math.max(1, ...all.map((p) => p.balance));
+  const rawMax = Math.max(1, ...all.map((p) => p.balance));
+  const step = niceStep(rawMax);
+  const niceMax = Math.ceil(rawMax / step) * step; // Y-axis top, rounded to a gridline.
 
   const mapX = (month: number) => PAD.l + (month / maxMonth) * (w - PAD.l - PAD.r);
-  const mapY = (bal: number) => PAD.t + (1 - bal / maxBalance) * (H - PAD.t - PAD.b);
+  const mapY = (bal: number) => PAD.t + (1 - bal / niceMax) * (H - PAD.t - PAD.b);
   const toPts = (traj: TrajectoryPoint[]): Pt[] => traj.map((p) => ({ x: mapX(p.month), y: mapY(p.balance) }));
+  const baselineY = mapY(0);
 
   const activePts = w > 0 ? toPts(active) : [];
   const activePath = smoothPath(activePts);
   const ghostPath = w > 0 ? smoothPath(toPts(ghost)) : '';
   const areaPath =
     activePts.length >= 2
-      ? `${activePath} L${activePts[activePts.length - 1].x.toFixed(1)},${H} L${activePts[0].x.toFixed(1)},${H} Z`
+      ? `${activePath} L${activePts[activePts.length - 1].x.toFixed(1)},${baselineY.toFixed(1)} L${activePts[0].x.toFixed(1)},${baselineY.toFixed(1)} Z`
       : '';
 
   const endPoint = active.find((p) => p.balance <= 0);
-  const endpoint = endPoint && w > 0 ? { x: mapX(endPoint.month), y: mapY(0) } : null;
+  const endpoint = endPoint && w > 0 ? { x: mapX(endPoint.month), y: baselineY } : null;
   const start = activePts.length ? activePts[0] : null;
+
+  // Y-scale: balance gridlines 0 → niceMax. X-scale: year marks (each January) between Now and the end.
+  const gridVals: number[] = [];
+  for (let v = 0; v <= niceMax + 1; v += step) gridVals.push(v);
+  const monthDate = (m: number) => {
+    const d = new Date(`${startDate}T00:00:00`);
+    d.setMonth(d.getMonth() + m);
+    return d;
+  };
+  const xTicks: { m: number; label: string }[] = [];
+  if (w > 0) {
+    for (let m = 1; m < maxMonth; m++) {
+      const d = monthDate(m);
+      if (d.getMonth() === 0) xTicks.push({ m, label: String(d.getFullYear()) });
+    }
+  }
 
   const dark = scheme === 'dark';
   const gold = dark ? '#f7cf5f' : '#dca01f';
+  const axisColor = dark ? 'rgba(255,255,255,0.07)' : 'rgba(16,38,84,0.07)';
   const palette = {
     lineFrom: c.accent.primary,
     lineMid: c.accent.primary,
@@ -117,16 +155,38 @@ export function TrajectoryChart({
       </View>
       <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ height: H }}>
         {w > 0 && activePath ? (
-          <TrajectoryCanvas
-            width={w}
-            height={H}
-            activePath={activePath}
-            areaPath={areaPath}
-            ghostPath={ghostPath}
-            endpoint={endpoint}
-            start={start}
-            palette={palette}
-          />
+          <>
+            <TrajectoryCanvas
+              width={w}
+              height={H}
+              activePath={activePath}
+              areaPath={areaPath}
+              ghostPath={ghostPath}
+              endpoint={endpoint}
+              start={start}
+              gridLines={gridVals.map(mapY)}
+              plotLeft={PAD.l}
+              plotRight={w - PAD.r}
+              axisColor={axisColor}
+              palette={palette}
+            />
+            {/* balance labels — left gutter, aligned to each gridline */}
+            {gridVals.map((v) => (
+              <Text
+                key={`y${v}`}
+                style={[textStyles.caption, styles.yLabel, { top: mapY(v) - 7, color: c.text.tertiary }]}>
+                {formatAxisBalance(v)}
+              </Text>
+            ))}
+            {/* year marks — bottom gutter, between Now and debt-free */}
+            {xTicks.map((t) => (
+              <Text
+                key={`x${t.m}`}
+                style={[textStyles.caption, styles.xLabel, { left: mapX(t.m) - 20, top: baselineY + 6, color: c.text.tertiary }]}>
+                {t.label}
+              </Text>
+            ))}
+          </>
         ) : null}
       </View>
       <View style={styles.footer}>
@@ -162,6 +222,8 @@ export function TrajectoryChart({
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: spacing.sm },
   eyebrow: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700' },
+  yLabel: { position: 'absolute', left: 0, width: PAD.l - 6, textAlign: 'right', fontSize: 10 },
+  xLabel: { position: 'absolute', width: 40, textAlign: 'center', fontSize: 10 },
   footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.xs },
   dfLabel: { fontWeight: '700' },
   legend: {

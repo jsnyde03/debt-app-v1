@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BlurMask, Canvas, Circle, LinearGradient, Path, Skia, vec } from '@shopify/react-native-skia';
+import { BlurMask, Canvas, Circle, Line, LinearGradient, Path, Skia, vec } from '@shopify/react-native-skia';
 import { Easing, interpolate, useDerivedValue, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 
 /**
@@ -16,6 +16,11 @@ export interface TrajectorySkiaChartProps {
   ghostPath: string;
   endpoint: { x: number; y: number } | null;
   start: { x: number; y: number } | null;
+  /** Faint horizontal balance gridlines (y-positions) spanning [plotLeft, plotRight]. */
+  gridLines?: number[];
+  plotLeft?: number;
+  plotRight?: number;
+  axisColor?: string;
   palette: {
     lineFrom: string;
     lineMid: string;
@@ -37,6 +42,10 @@ export default function TrajectorySkiaChart({
   ghostPath,
   endpoint,
   start,
+  gridLines,
+  plotLeft = 0,
+  plotRight = width,
+  axisColor,
   palette,
 }: TrajectorySkiaChartProps) {
   const line = Skia.Path.MakeFromSVGString(activePath);
@@ -55,6 +64,13 @@ export default function TrajectorySkiaChart({
 
   return (
     <Canvas style={{ width, height }}>
+      {/* balance gridlines — faint, behind everything (the Y-scale) */}
+      {gridLines && axisColor
+        ? gridLines.map((y, i) => (
+            <Line key={i} p1={vec(plotLeft, y)} p2={vec(plotRight, y)} color={axisColor} strokeWidth={1} />
+          ))
+        : null}
+
       {/* area body — luminous wash fading to transparent (contrasts the card) */}
       {area ? (
         <Path path={area} style="fill" opacity={areaOpacity}>

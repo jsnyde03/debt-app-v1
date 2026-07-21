@@ -124,6 +124,7 @@ export default function ProgressScreen() {
         strategy={strategy}
         debtFreeDate={view.debtFreeDate}
         interestSaved={view.interestSaved}
+        startDate={store.paycheck.currentDate}
       />
     </Screen>
   );
