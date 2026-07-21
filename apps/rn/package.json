@@ -4,6 +4,10 @@
   "private": true,
   "main": "index.js",
   "scripts": {
+    "postinstall": "node ./scripts/copy-canvaskit.mjs",
+    "prestart": "node ./scripts/copy-canvaskit.mjs",
+    "preweb": "node ./scripts/copy-canvaskit.mjs",
+    "preexport:web": "node ./scripts/copy-canvaskit.mjs",
     "start": "expo start",
     "web": "expo start --web",
     "export:web": "expo export --platform web",
