@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,6 +9,9 @@ import { formatCurrency } from '@core/utils/formatCurrency';
 import { DebtSheet } from '@/components/entities/DebtSheet';
 import { ExpenseSheet } from '@/components/entities/ExpenseSheet';
 import { GoalSheet } from '@/components/entities/GoalSheet';
+import { AllocationBarCanvas } from '@/components/money/AllocationBarCanvas';
+import type { AllocationSegment } from '@/components/money/AllocationBarChart';
+import { BillBreakdownSheet, type BillBreakdownData } from '@/components/money/BillBreakdownSheet';
 import { MoreButton } from '@/components/more-button';
 import { Screen } from '@/components/screen';
 import { AddRow } from '@/components/ui/AddRow';
@@ -161,9 +164,11 @@ function DebtRow({ debt, focus, onEdit }: { debt: Debt; focus?: boolean; onEdit:
   );
 }
 
-// ── Bills (required expenses) — the management surface. Anchors on a monthly-total number; once
-//    the list is long enough to be a wall, it groups by category (collapsible, count + $/mo
-//    subtotal) and offers search. Own virtualized scroll surface, like Debts. (1.5.2)
+// ── Bills (required expenses) — the management surface. Paycheck-centric like the rest of the app:
+//    the anchor is what each paycheck sets aside for RECURRING bills (with an ≈/mo caption for the
+//    familiar frame). One-time bills aren't part of that steady load, so they're summed + surfaced
+//    on their own (never as "$0/mo"). Once long, it groups by category (collapsible, count +
+//    per-paycheck subtotal) + a "One-time" group, and offers search. Own virtualized scroll. (1.5.2)
 const BILL_CATEGORY_LABEL: Record<RequiredExpenseCategory, string> = {
   housing: 'Housing',
   utilities: 'Utilities',
@@ -183,7 +188,14 @@ const BILL_CATEGORY_ORDER: RequiredExpenseCategory[] = [
 /** Below this, a flat list reads fine; at/above it, grouping + search earn their chrome. */
 const BILL_GROUPING_THRESHOLD = 8;
 
-type BillGroup = { key: string; category: RequiredExpenseCategory; count: number; monthly: number; data: RequiredExpense[] };
+type BillGroup = {
+  key: string; // a category value, or 'one-time'
+  title: string;
+  count: number;
+  subtotal: string; // visual, e.g. "$790/paycheck" or "$430 one-time"
+  subtotalA11y: string; // spoken form (no "/" glyph)
+  data: RequiredExpense[];
+};
 
 function BillsSection() {
   const expenses = useAppStore((s) => s.store.requiredExpenses);
@@ -191,42 +203,121 @@ function BillsSection() {
   const payCycle = useAppStore((s) => s.store.paycheck.payCycle);
   const [sheet, setSheet] = useState<{ editing: RequiredExpense | null } | null>(null);
   const [query, setQuery] = useState('');
-  const [collapsed, setCollapsed] = useState<Set<RequiredExpenseCategory>>(() => new Set());
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
   const c = useAppColors();
   const insets = useSafeAreaInsets();
 
   const livingTotal = living.filter((l) => l.enabled).reduce((s, l) => s + l.amount, 0);
   const cyclesPerMonth = payCyclesPerMonth(payCycle);
-  const monthlyTotal = expenses.reduce((s, e) => s + monthlyEquivalent(e.amount, e.recurrence, cyclesPerMonth), 0);
+  const perCycle = cyclesPerMonth > 0 ? cyclesPerMonth : 1;
+
+  // Recurring bills = the ongoing per-paycheck load; one-time bills are discrete, summed separately.
+  const recurring = expenses.filter((e) => e.recurrence !== 'one-time');
+  const oneTime = expenses.filter((e) => e.recurrence === 'one-time');
+  const monthlyTotal = recurring.reduce((s, e) => s + monthlyEquivalent(e.amount, e.recurrence, cyclesPerMonth), 0);
+  const perPaycheckTotal = monthlyTotal / perCycle;
+  const oneTimeTotal = oneTime.reduce((s, e) => s + e.amount, 0);
+  const monthlyRedundant = formatWhole(perPaycheckTotal) === formatWhole(monthlyTotal); // paid monthly → ≈/mo caption is noise
+
+  // Per-category smoothed contributions (recurring only) — feeds both the hero allocation bar and
+  // the "where it goes" receipt. Sorted largest → smallest for the bar's tonal ramp.
+  const categoryBreakdown = useMemo(() => {
+    return BILL_CATEGORY_ORDER.map((category) => {
+      const catBills = recurring.filter((e) => e.category === category);
+      return {
+        key: category,
+        label: BILL_CATEGORY_LABEL[category],
+        perPaycheck: catBills.reduce((s, e) => s + monthlyEquivalent(e.amount, e.recurrence, cyclesPerMonth), 0) / perCycle,
+        bills: catBills.map((e) => ({
+          id: e.id,
+          name: e.name,
+          recurrence: e.recurrence,
+          amount: e.amount,
+          perPaycheck: monthlyEquivalent(e.amount, e.recurrence, cyclesPerMonth) / perCycle,
+        })),
+      };
+    })
+      .filter((x) => x.bills.length > 0)
+      .sort((a, b) => b.perPaycheck - a.perPaycheck);
+  }, [recurring, cyclesPerMonth, perCycle]);
+
+  const barTotal = categoryBreakdown.reduce((s, x) => s + x.perPaycheck, 0);
+  const segCount = categoryBreakdown.length;
+  const segments: AllocationSegment[] =
+    barTotal > 0
+      ? categoryBreakdown.map((x, i) => ({ fraction: x.perPaycheck / barTotal, opacity: segCount <= 1 ? 1 : 1 - (i / (segCount - 1)) * 0.6 }))
+      : [];
+
+  const breakdownData: BillBreakdownData = {
+    perPaycheckTotal,
+    monthlyTotal,
+    perCycleEqualsMonth: monthlyRedundant,
+    categories: categoryBreakdown,
+    oneTimeTotal,
+    oneTimeCount: oneTime.length,
+  };
+
   const grouped = expenses.length >= BILL_GROUPING_THRESHOLD;
   const searching = query.trim().length > 0;
 
   const sections = useMemo<BillGroup[]>(() => {
     const q = query.trim().toLowerCase();
     const match = (e: RequiredExpense) => !q || e.name.toLowerCase().includes(q);
+    const perCheck = (bills: RequiredExpense[]) =>
+      bills.reduce((s, e) => s + monthlyEquivalent(e.amount, e.recurrence, cyclesPerMonth), 0) / perCycle;
 
     if (!grouped) {
+      // Short list: a flat list reads fine (the adaptive hero already tells the recurring/one-time story).
       const data = expenses.filter(match);
-      return [{ key: 'all', category: 'other', count: data.length, monthly: 0, data }];
+      return [{ key: 'all', title: '', count: data.length, subtotal: '', subtotalA11y: '', data }];
     }
-    return BILL_CATEGORY_ORDER.map((category) => {
-      const items = expenses.filter((e) => e.category === category);
-      const shown = items.filter(match);
-      // Count + subtotal track the matches while searching, the full category otherwise (so a
-      // collapsed header still shows its true count + $/mo overview).
-      const summ = searching ? shown : items;
-      const monthly = summ.reduce((s, e) => s + monthlyEquivalent(e.amount, e.recurrence, cyclesPerMonth), 0);
-      // Search overrides collapse (matches expand); otherwise honor the user's collapse toggles.
-      const open = searching ? shown.length > 0 : !collapsed.has(category);
-      return { key: category, category, count: summ.length, monthly, data: open ? shown : [] };
-    }).filter((g) => (searching ? g.data.length > 0 : g.count > 0));
-  }, [expenses, grouped, searching, query, collapsed, cyclesPerMonth]);
 
-  function toggle(category: RequiredExpenseCategory) {
+    const recur = expenses.filter((e) => e.recurrence !== 'one-time');
+    const once = expenses.filter((e) => e.recurrence === 'one-time');
+
+    const groups: BillGroup[] = BILL_CATEGORY_ORDER.map((category) => {
+      const items = recur.filter((e) => e.category === category);
+      const shown = items.filter(match);
+      // Count + subtotal track matches while searching, else the full group (so a collapsed header
+      // still shows its true count + per-paycheck overview). Search overrides collapse.
+      const summ = searching ? shown : items;
+      const amt = perCheck(summ);
+      const open = searching ? shown.length > 0 : !collapsed.has(category);
+      return {
+        key: category,
+        title: BILL_CATEGORY_LABEL[category],
+        count: summ.length,
+        subtotal: `${formatWhole(amt)}/paycheck`,
+        subtotalA11y: `${formatWhole(amt)} per paycheck`,
+        data: open ? shown : [],
+      };
+    }).filter((g) => (searching ? g.data.length > 0 : g.count > 0));
+
+    if (once.length > 0) {
+      const shown = once.filter(match);
+      if (!searching || shown.length > 0) {
+        const summ = searching ? shown : once;
+        const amt = summ.reduce((s, e) => s + e.amount, 0);
+        const open = searching ? true : !collapsed.has('one-time');
+        groups.push({
+          key: 'one-time',
+          title: 'One-time',
+          count: summ.length,
+          subtotal: `${formatWhole(amt)} one-time`,
+          subtotalA11y: `${formatWhole(amt)} in one-time bills`,
+          data: open ? shown : [],
+        });
+      }
+    }
+    return groups;
+  }, [expenses, grouped, searching, query, collapsed, cyclesPerMonth, perCycle]);
+
+  function toggle(key: string) {
     setCollapsed((prev) => {
       const next = new Set(prev);
-      if (next.has(category)) next.delete(category);
-      else next.add(category);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   }
@@ -246,9 +337,28 @@ function BillsSection() {
     );
   }
 
+  const bills = (n: number) => (n === 1 ? 'bill' : 'bills');
+  const hasBar = recurring.length > 0 && segments.length > 0;
+  const hero =
+    recurring.length === 0
+      ? // no recurring load at all — anchor honestly on the one-time sum, never "$0 per month"
+        { value: formatWhole(oneTimeTotal), sub: `${oneTime.length} one-time ${bills(oneTime.length)}`, caption: undefined as string | undefined }
+      : {
+          value: formatWhole(perPaycheckTotal),
+          sub: 'set aside per paycheck',
+          // Drop the ≈/mo caption when the user is paid monthly (per-paycheck == per-month → redundant).
+          caption: monthlyRedundant ? undefined : `≈ ${formatWhole(monthlyTotal)}/mo`,
+        };
+
   return (
     <View style={styles.flex}>
-      <MoneyHero value={formatWhole(monthlyTotal)} sub={`per month · ${expenses.length} ${expenses.length === 1 ? 'bill' : 'bills'}`} />
+      <MoneyHero
+        value={hero.value}
+        sub={hero.sub}
+        caption={hero.caption}
+        bar={hasBar ? <AllocationBar segments={segments} /> : undefined}
+        onPress={recurring.length > 0 ? () => setBreakdownOpen(true) : undefined}
+      />
       {grouped ? <BillSearch value={query} onChange={setQuery} /> : null}
 
       <SectionList
@@ -264,12 +374,13 @@ function BillsSection() {
           grouped
             ? ({ section }) => (
                 <BillGroupHeader
-                  label={BILL_CATEGORY_LABEL[section.category]}
+                  title={section.title}
                   count={section.count}
-                  monthly={section.monthly}
-                  open={section.data.length > 0 || (searching ? false : !collapsed.has(section.category))}
+                  subtotal={section.subtotal}
+                  subtotalA11y={section.subtotalA11y}
+                  open={section.data.length > 0 || (searching ? false : !collapsed.has(section.key))}
                   disabled={searching}
-                  onToggle={() => toggle(section.category)}
+                  onToggle={() => toggle(section.key)}
                 />
               )
             : undefined
@@ -297,6 +408,21 @@ function BillsSection() {
         }
       />
       {sheet ? <ExpenseSheet editing={sheet.editing} onClose={() => setSheet(null)} /> : null}
+      <BillBreakdownSheet visible={breakdownOpen} onClose={() => setBreakdownOpen(false)} data={breakdownData} />
+    </View>
+  );
+}
+
+/** The measured container for the hero allocation bar — Skia needs an explicit pixel width. */
+function AllocationBar({ segments }: { segments: AllocationSegment[] }) {
+  const c = useAppColors();
+  const [w, setW] = useState(0);
+  const H = 10;
+  return (
+    <View style={styles.allocBar} onLayout={(e) => setW(Math.round(e.nativeEvent.layout.width))} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      {w > 0 ? (
+        <AllocationBarCanvas width={w} height={H} segments={segments} color={c.accent.primary} trackColor={c.background.tertiary} radius={H / 2} />
+      ) : null}
     </View>
   );
 }
@@ -325,18 +451,20 @@ function BillSearch({ value, onChange }: { value: string; onChange: (t: string) 
   );
 }
 
-/** A collapsible category header: label · count · monthly subtotal · chevron. */
+/** A collapsible group header: title · count · per-paycheck (or one-time) subtotal · chevron. */
 function BillGroupHeader({
-  label,
+  title,
   count,
-  monthly,
+  subtotal,
+  subtotalA11y,
   open,
   disabled,
   onToggle,
 }: {
-  label: string;
+  title: string;
   count: number;
-  monthly: number;
+  subtotal: string;
+  subtotalA11y: string;
   open: boolean;
   disabled?: boolean;
   onToggle: () => void;
@@ -348,17 +476,17 @@ function BillGroupHeader({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityState={{ expanded: open }}
-      accessibilityLabel={`${label}, ${count} ${count === 1 ? 'bill' : 'bills'}, ${formatWhole(monthly)} per month`}
+      accessibilityLabel={`${title}, ${count} ${count === 1 ? 'bill' : 'bills'}, ${subtotalA11y}`}
       style={({ pressed }) => [styles.groupHeader, { opacity: pressed && !disabled ? 0.6 : 1 }]}>
       {!disabled ? (
         <AppIcon name={open ? 'expand-more' : 'chevron-right'} size={20} color={c.text.tertiary} />
       ) : null}
-      <Text style={[textStyles.footnote, styles.groupHeaderLabel, { color: c.text.secondary }]}>{label}</Text>
+      <Text style={[textStyles.footnote, styles.groupHeaderLabel, { color: c.text.secondary }]}>{title}</Text>
       <View style={[styles.groupCountPill, { backgroundColor: c.background.tertiary }]}>
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{count}</Text>
       </View>
       <View style={styles.flex} />
-      <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{formatWhole(monthly)}/mo</Text>
+      <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{subtotal}</Text>
     </Pressable>
   );
 }
@@ -440,15 +568,32 @@ function GoalsSection() {
 }
 
 // ── shared ────────────────────────────────────────────────────────────────────
-/** The calm anchoring stat for a Money section — one big number + context, on a hairline (no box). */
-function MoneyHero({ value, sub }: { value: string; sub: string }) {
+/** The calm anchoring stat for a Money section — one big number + context, on a hairline (no box).
+ *  Optional dim caption for a secondary frame, an optional micro-viz `bar`, and `onPress` (a trailing
+ *  chevron + the whole block becomes a tap target — e.g. Bills' "where it goes" breakdown). */
+function MoneyHero({ value, sub, caption, bar, onPress }: { value: string; sub: string; caption?: string; bar?: ReactNode; onPress?: () => void }) {
   const c = useAppColors();
-  return (
+  const body = (
     <View style={styles.hero}>
-      <Text style={[styles.heroNum, { color: c.text.primary }]}>{value}</Text>
+      <View style={styles.heroTop}>
+        <Text style={[styles.heroNum, { color: c.text.primary }]}>{value}</Text>
+        {onPress ? <AppIcon name="chevron-right" size={22} color={c.text.tertiary} /> : null}
+      </View>
       <Text style={[textStyles.subhead, { color: c.text.tertiary }]}>{sub}</Text>
+      {caption ? <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{caption}</Text> : null}
+      {bar ? <View style={styles.heroBar}>{bar}</View> : null}
       <View style={[styles.hairline, { backgroundColor: c.border.default }]} />
     </View>
+  );
+  if (!onPress) return body;
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${value} ${sub}${caption ? `, ${caption}` : ''}. See where it goes.`}
+      style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}>
+      {body}
+    </Pressable>
   );
 }
 
@@ -467,7 +612,10 @@ const styles = StyleSheet.create({
   rowGap: { height: spacing.sm },
   listFooter: { marginTop: spacing.md, gap: spacing.md },
   hero: { gap: 2, marginBottom: spacing.xs },
+  heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heroNum: { fontSize: 34, fontWeight: '800', letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
+  heroBar: { marginTop: spacing.sm },
+  allocBar: { width: '100%', height: 10 },
   hairline: { height: StyleSheet.hairlineWidth, marginTop: spacing.md },
   summary: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
   cell: { flex: 1, gap: 2 },
