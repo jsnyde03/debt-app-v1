@@ -20,39 +20,51 @@ export function demoStore(): DebtStore {
   const anchorDate = anchor.toISOString().slice(0, 10);
   return {
     ...base,
-    paycheck: { ...base.paycheck, amount: '2100', nextPaycheckDate },
+    paycheck: { ...base.paycheck, amount: '2350', nextPaycheckDate },
+    // A user genuinely MID-JOURNEY (~39% paid — original $18,900 → now $11,580), so the ring shows
+    // real progress past the 25% milestone and the snowball has an "about to win" focus debt.
     debts: [
-      { id: 'demo-visa', name: 'Visa', balance: 2400, minimumPayment: 65, apr: 22.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly' },
-      { id: 'demo-car', name: 'Car Loan', balance: 8600, minimumPayment: 240, apr: 6.5, dueDate: currentDate, type: 'debt', recurrence: 'monthly' },
+      { id: 'demo-store', name: 'Store Card', balance: 180, originalBalance: 1200, minimumPayment: 30, apr: 26.9, dueDate: currentDate, type: 'debt', recurrence: 'monthly' },
+      { id: 'demo-visa', name: 'Visa', balance: 2400, originalBalance: 4200, minimumPayment: 65, apr: 22.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly' },
+      { id: 'demo-car', name: 'Car Loan', balance: 9000, originalBalance: 13500, minimumPayment: 260, apr: 6.5, dueDate: currentDate, type: 'debt', recurrence: 'monthly' },
     ],
     requiredExpenses: [
-      { id: 'demo-rent', name: 'Rent', amount: 1200, dueDate: currentDate, recurrence: 'monthly', category: 'housing' },
-      { id: 'demo-phone', name: 'Phone', amount: 80, dueDate: currentDate, recurrence: 'monthly', category: 'utilities' },
+      { id: 'demo-rent', name: 'Rent', amount: 1150, dueDate: currentDate, recurrence: 'monthly', category: 'housing' },
+      { id: 'demo-utilities', name: 'Utilities', amount: 130, dueDate: currentDate, recurrence: 'monthly', category: 'utilities' },
+      { id: 'demo-phone', name: 'Phone', amount: 85, dueDate: currentDate, recurrence: 'monthly', category: 'utilities' },
     ],
     livingExpenses: [
       { id: 'demo-groceries', name: 'Groceries', amount: 300, enabled: true },
       { id: 'demo-gas', name: 'Gas', amount: 120, enabled: true },
     ],
-    goals: [{ id: 'demo-ef', name: 'Emergency Fund', targetAmount: 1000, currentAmount: 250, type: 'emergency' }],
-    // A short journey so Pay Cycle History has something to show (total debt falling each cycle).
+    // Emergency fund FUNDED, so surplus now attacks debt (the plan generates real extra-to-debt →
+    // interest saved + the vs-minimums trajectory gap). A second, partially-funded goal fills Goals.
+    goals: [
+      { id: 'demo-ef', name: 'Emergency Fund', targetAmount: 1000, currentAmount: 1000, type: 'emergency' },
+      { id: 'demo-vacation', name: 'Vacation Fund', targetAmount: 2500, currentAmount: 700, type: 'savings' },
+    ],
+    // A real track record — total debt falling cycle over cycle down to today's $11,580.
     cycleHistory: [
-      { cycleEndDate: '2026-05-22', totalDebtBalance: 12100, totalPaidThisCycle: 305, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
-      { cycleEndDate: '2026-06-05', totalDebtBalance: 11720, totalPaidThisCycle: 380, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
-      { cycleEndDate: '2026-06-19', totalDebtBalance: 11305, totalPaidThisCycle: 415, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
+      { cycleEndDate: '2026-05-01', totalDebtBalance: 13320, totalPaidThisCycle: 430, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
+      { cycleEndDate: '2026-05-15', totalDebtBalance: 12930, totalPaidThisCycle: 460, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
+      { cycleEndDate: '2026-05-29', totalDebtBalance: 12520, totalPaidThisCycle: 445, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
+      { cycleEndDate: '2026-06-12', totalDebtBalance: 12130, totalPaidThisCycle: 470, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
+      { cycleEndDate: '2026-06-26', totalDebtBalance: 11840, totalPaidThisCycle: 455, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
+      { cycleEndDate: '2026-07-10', totalDebtBalance: 11580, totalPaidThisCycle: 480, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
     ],
     driftBaseline: {
       anchorDate,
-      anchorBalance: 11300,
-      debtCount: 2,
+      anchorBalance: 12200,
+      debtCount: 3,
       payoffStrategy: 'snowball',
-      extraPayment: 300,
+      extraPayment: 450,
       projectedPoints: [
-        { month: 0, balance: 11300 },
+        { month: 0, balance: 12200 },
         { month: 3, balance: 11000 },
-        { month: 12, balance: 7000 },
-        { month: 24, balance: 0 },
+        { month: 12, balance: 6500 },
+        { month: 22, balance: 0 },
       ],
-      projectedDebtFreeDate: 'Jan 2028',
+      projectedDebtFreeDate: 'May 2028',
     },
     prefs: { ...base.prefs, isDemoMode: true, onboardingComplete: true },
   };
