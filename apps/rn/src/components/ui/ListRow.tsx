@@ -21,6 +21,7 @@ export function ListRow({
   amountSuffix,
   badges,
   progress,
+  progressColor,
   onPress,
 }: {
   title: string;
@@ -29,6 +30,8 @@ export function ListRow({
   amountSuffix?: string;
   badges?: ReactNode;
   progress?: number;
+  /** Fill color for the progress bar — defaults to the success/progress green. */
+  progressColor?: string;
   onPress?: () => void;
 }) {
   const c = useAppColors();
@@ -60,7 +63,7 @@ export function ListRow({
         ) : null}
         {progress !== undefined ? (
           <View style={[styles.track, { backgroundColor: c.background.tertiary }]}>
-            <View style={[styles.fill, { backgroundColor: c.accent.success, width: `${Math.min(100, Math.max(0, progress * 100))}%` }]} />
+            <View style={[styles.fill, { backgroundColor: progressColor ?? c.accent.success, width: `${Math.min(100, Math.max(0, progress * 100))}%` }]} />
           </View>
         ) : null}
       </View>

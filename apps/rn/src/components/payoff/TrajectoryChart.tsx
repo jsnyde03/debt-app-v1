@@ -8,18 +8,13 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { InterestSaved, TrajectoryPoint } from '@/store/payoffSelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { formatWhole } from '@/utils/format';
 
 import { TrajectoryCanvas } from './TrajectoryCanvas';
 
 const H = 200;
 // Left gutter holds the balance labels; bottom gutter holds the time ticks.
 const PAD = { l: 38, r: 14, t: 16, b: 26 };
-
-/** Whole-dollar currency (no cents) — a big saved figure reads cleaner than "$1,222.00". */
-function formatWhole(amount: number): string {
-  const safe = Number.isFinite(amount) ? amount : 0;
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(safe);
-}
 
 function formatMonths(months: number): string {
   if (months < 24) return `${months} month${months === 1 ? '' : 's'}`;

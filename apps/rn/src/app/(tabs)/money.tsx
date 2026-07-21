@@ -8,6 +8,7 @@ import { ExpenseSheet } from '@/components/entities/ExpenseSheet';
 import { GoalSheet } from '@/components/entities/GoalSheet';
 import { MoreButton } from '@/components/more-button';
 import { Screen } from '@/components/screen';
+import { AddRow } from '@/components/ui/AddRow';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -21,6 +22,7 @@ import { selectPayoffView } from '@/store/payoffSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { formatWhole } from '@/utils/format';
 
 /**
  * Money — the consolidated management hub (Elevation IA). One tab holds all three entity types as
@@ -81,15 +83,10 @@ function DebtsSection() {
   const active = view.order; // ranked by the payoff strategy
   const focusId = view.focus?.id;
   const totalBal = active.reduce((s, d) => s + d.balance, 0);
-  const totalMin = active.reduce((s, d) => s + d.minimumPayment, 0);
 
   return (
     <>
-      <Card style={styles.summary}>
-        <SummaryCell label="Total debt" value={formatCurrency(totalBal)} />
-        <SummaryCell label="Minimums" value={formatCurrency(totalMin)} />
-        <SummaryCell label="Active" value={String(active.length)} />
-      </Card>
+      <MoneyHero value={formatWhole(totalBal)} sub={`remaining across ${active.length} ${active.length === 1 ? 'debt' : 'debts'}`} />
 
       <View style={styles.strategyBlock}>
         <SegmentedToggle
@@ -118,13 +115,14 @@ function DebtsSection() {
           ))}
         </>
       ) : null}
-      <Button label="Add debt" variant="secondary" onPress={() => setSheet({ editing: null })} />
+      <AddRow label="Add debt" onPress={() => setSheet({ editing: null })} />
       {sheet ? <DebtSheet editing={sheet.editing} onClose={() => setSheet(null)} /> : null}
     </>
   );
 }
 
 function DebtRow({ debt, focus, onEdit }: { debt: Debt; focus?: boolean; onEdit: (d: Debt) => void }) {
+  const c = useAppColors();
   const progress = debt.originalBalance && debt.originalBalance > 0 ? 1 - debt.balance / debt.originalBalance : undefined;
   const chips = [
     focus ? <Pill key="f" label="Focus" tone="action" /> : null,
@@ -138,6 +136,7 @@ function DebtRow({ debt, focus, onEdit }: { debt: Debt; focus?: boolean; onEdit:
       amountSuffix="/mo"
       badges={chips.length ? <>{chips}</> : undefined}
       progress={progress}
+      progressColor={focus ? c.accent.primary : undefined}
       onPress={() => onEdit(debt)}
     />
   );
@@ -248,6 +247,18 @@ function GoalsSection() {
 }
 
 // ── shared ────────────────────────────────────────────────────────────────────
+/** The calm anchoring stat for a Money section — one big number + context, on a hairline (no box). */
+function MoneyHero({ value, sub }: { value: string; sub: string }) {
+  const c = useAppColors();
+  return (
+    <View style={styles.hero}>
+      <Text style={[styles.heroNum, { color: c.text.primary }]}>{value}</Text>
+      <Text style={[textStyles.subhead, { color: c.text.tertiary }]}>{sub}</Text>
+      <View style={[styles.hairline, { backgroundColor: c.border.default }]} />
+    </View>
+  );
+}
+
 function SummaryCell({ label, value }: { label: string; value: string }) {
   const c = useAppColors();
   return (
@@ -259,6 +270,9 @@ function SummaryCell({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  hero: { gap: 2, marginBottom: spacing.xs },
+  heroNum: { fontSize: 34, fontWeight: '800', letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
+  hairline: { height: StyleSheet.hairlineWidth, marginTop: spacing.md },
   summary: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
   cell: { flex: 1, gap: 2 },
   cellLabel: { textTransform: 'uppercase', letterSpacing: 0.4, fontWeight: '600' },
