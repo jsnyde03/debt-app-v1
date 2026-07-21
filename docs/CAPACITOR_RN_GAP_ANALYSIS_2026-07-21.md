@@ -72,9 +72,16 @@ These have **no deferral note** and are cheap to restore:
 
 ---
 
-## 6. Open decisions
-1. **Timeline placement** — Progress `[Cushion | Timeline]` toggle (rec) vs. Today-hero drill-down vs. both.
-2. **Rebuild-now batch** — confirm the 🔴 five (#1–#5) get folded into the elevation now (all cheap).
-3. **Free-tier premium modules** — Strategy Comparison / What-If / Forecast are free per the reshape → sequence their rebuild into the elevation (not Phase C).
-4. **Amortization** — free (restore now) vs. Phase-C premium.
-5. **The ❓ DECIDE reductions** (#8–#12) — restore in the elevation vs. accept; swipe gestures likely ride with B.9 native work.
+## 6. Rebuild-now batch (Jason-approved 2026-07-21 — folded into the elevation)
+
+Decomposed, ordered. Before/after enhancement scan per sub-item.
+1. **✅ Timeline DONE (2026-07-21)** — `CashFlowSection` = `[Cushion | Timeline]` `SegmentedToggle` on Progress (replaces `CashTimeline`); `TimelineLedger` renders `selectCashTimeline` `items[]` as an itemized per-cycle ledger (icon per type · signed amount · running balance, red <$100) in a collapsible cycle accordion (this cycle open). View-only; both themes verified; tsc 0. _After-scan: fixed a latent bug — accordion header used the raw responder API (scroll-capture risk on native) → switched to `Pressable`. P2 Skia bar-elevation stays its own item. Nothing else surfaced._
+2. **Interest-saved narrative** — restore payoff-enabling + months-saved framing in `MomentumStats` (same screen).
+3. **`expenseType` fixed/variable** — restore field in RN `data/models` + `ExpenseSheet` + bill-row display.
+4. **In-app review gating** — restore persisted "already-asked" guard (store flag + `review.ts`).
+5. **Windfall flow** — [DECISION on home] + rebuild "Got extra money this paycheck?" add-to-paycheck.
+
+### Still-open decisions (after the batch)
+- **Free-tier premium modules** (Strategy Comparison / What-If / Forecast — now free per reshape) → sequence into the elevation, not Phase C.
+- **Amortization** — free (restore) vs. Phase-C premium.
+- **❓ DECIDE reductions** (#8–#12) — restore vs. accept; swipe gestures likely ride with B.9.

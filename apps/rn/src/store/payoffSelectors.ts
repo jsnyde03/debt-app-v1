@@ -3,6 +3,7 @@ import { computeDrift, type DriftResult } from '@core/debt/computeDrift';
 import { computeInterestSaved, type InterestSaved } from '@core/debt/computeInterestSaved';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import { buildMultiCycleTimeline, type TimelineCycle } from '@core/timeline/buildMultiCycleTimeline';
+import type { TimelineItem } from '@core/timeline/buildTimelineItems';
 
 import { todayLocalISO } from '@/data/defaults';
 import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
@@ -10,7 +11,7 @@ import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
 import { selectDebtFreeDate, selectExtraToDebt } from './planSelectors';
 import { selectAllocation } from './selectors';
 
-export type { TrajectoryPoint, InterestSaved, DriftResult, TimelineCycle };
+export type { TrajectoryPoint, InterestSaved, DriftResult, TimelineCycle, TimelineItem };
 
 /**
  * The near-term cash-cushion forecast — the next few pay cycles' ending balance + a stable/tight/

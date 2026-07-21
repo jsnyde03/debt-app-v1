@@ -6,7 +6,7 @@ import { formatCurrency } from '@core/utils/formatCurrency';
 import { MoreButton } from '@/components/more-button';
 import { DriftCard } from '@/components/payoff/DriftCard';
 import { TrajectoryChart } from '@/components/payoff/TrajectoryChart';
-import { CashTimeline } from '@/components/progress/CashTimeline';
+import { CashFlowSection } from '@/components/progress/CashFlowSection';
 import { MilestonesRow } from '@/components/progress/MilestonesRow';
 import { MomentumStats } from '@/components/progress/MomentumStats';
 import { ProgressRing } from '@/components/progress/ProgressRing';
@@ -86,7 +86,7 @@ export default function ProgressScreen() {
 
       <MilestonesRow pct={pct} debtFreeLabel={view.debtFreeDate ?? undefined} />
       <MomentumStats interestSaved={interestSavedAmount} paid={totalPaid} />
-      <CashTimeline cycles={selectCashTimeline(store)} />
+      <CashFlowSection cycles={selectCashTimeline(store)} />
 
       <TrajectoryChart snowball={view.snowball} avalanche={view.avalanche} strategy={strategy} debtFreeDate={view.debtFreeDate} />
 

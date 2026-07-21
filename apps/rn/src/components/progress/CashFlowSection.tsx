@@ -1,26 +1,52 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { formatCurrency } from '@core/utils/formatCurrency';
 
+import { TimelineLedger } from '@/components/progress/TimelineLedger';
 import { Card } from '@/components/ui/Card';
+import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { TimelineCycle } from '@/store/payoffSelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
 function shortDate(iso: string): string {
-  const d = new Date(`${iso}T00:00:00`);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 /**
- * The near-term cash-cushion forecast — one bar per upcoming pay cycle (ending balance), colored by
- * the stable/tight/pressure health. Answers "will I be squeezed soon?" — distinct from the long-
- * horizon payoff trajectory. On `@core/timeline` (tested). Reborn from the Capacitor list as a chart.
+ * The cash-flow module — one section, two lenses (Freedom's Milestones/Table pattern): **Cushion**
+ * (near-term ending-balance forecast bars — "will I be squeezed soon?") and **Timeline** (the
+ * itemized "where every dollar went" ledger — the reborn Capacitor Timeline). Same `selectCashTimeline`
+ * data, user picks the view.
  */
-export function CashTimeline({ cycles }: { cycles: TimelineCycle[] }) {
+export function CashFlowSection({ cycles }: { cycles: TimelineCycle[] }) {
   const c = useAppColors();
+  const [view, setView] = useState<'cushion' | 'timeline'>('cushion');
   if (cycles.length === 0) return null;
+
+  return (
+    <Card>
+      <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>
+        CASH FLOW · NEXT {cycles.length} PAY CYCLES
+      </Text>
+      <SegmentedToggle
+        value={view}
+        onChange={(v) => setView(v as 'cushion' | 'timeline')}
+        options={[
+          { value: 'cushion', label: 'Cushion' },
+          { value: 'timeline', label: 'Timeline' },
+        ]}
+      />
+      <View style={styles.body}>{view === 'cushion' ? <CushionBars cycles={cycles} /> : <TimelineLedger cycles={cycles} />}</View>
+    </Card>
+  );
+}
+
+/** Near-term cash-cushion forecast — one bar per upcoming cycle, colored by stable/tight/pressure. */
+function CushionBars({ cycles }: { cycles: TimelineCycle[] }) {
+  const c = useAppColors();
   const tone = { stable: c.accent.success, tight: c.accent.warning, pressure: c.accent.danger };
   const max = Math.max(1, ...cycles.map((cy) => Math.max(0, cy.endingBalance)));
   const caption = cycles.some((cy) => cy.cushionStatus === 'pressure')
@@ -30,10 +56,7 @@ export function CashTimeline({ cycles }: { cycles: TimelineCycle[] }) {
       : 'Comfortable across the next few paychecks.';
 
   return (
-    <Card>
-      <Text style={[textStyles.footnote, styles.title, { color: c.text.tertiary }]}>
-        CASH CUSHION · NEXT {cycles.length} PAY CYCLES
-      </Text>
+    <>
       <View style={styles.bars}>
         {cycles.map((cy, i) => (
           <View
@@ -54,12 +77,13 @@ export function CashTimeline({ cycles }: { cycles: TimelineCycle[] }) {
         ))}
       </View>
       <Text style={[textStyles.caption, styles.caption, { color: c.text.secondary }]}>{caption}</Text>
-    </Card>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700', marginBottom: spacing.md },
+  eyebrow: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700', marginBottom: spacing.md },
+  body: { marginTop: spacing.md },
   bars: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.xs },
   col: { flex: 1, alignItems: 'center', gap: 4 },
   val: { fontWeight: '600', fontVariant: ['tabular-nums'] },
