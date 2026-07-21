@@ -141,7 +141,7 @@ function BillsSection() {
             <ListRow
               key={e.id}
               title={e.name}
-              meta={`Due ${shortDate(e.dueDate)} · ${e.recurrence}`}
+              meta={`Due ${shortDate(e.dueDate)} · ${e.recurrence}${e.expenseType === 'variable' ? ' · Variable' : ''}`}
               amount={formatCurrency(e.amount)}
               badges={e.isAutopay ? <Pill label="Autopay" tone="autopay" /> : undefined}
               onPress={() => setSheet({ editing: e })}

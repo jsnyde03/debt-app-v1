@@ -37,12 +37,21 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
   const [recurrence, setRecurrence] = useState<Recurrence>(editing?.recurrence ?? 'monthly');
   const [category, setCategory] = useState<RequiredExpenseCategory>(editing?.category ?? 'other');
   const [autopay, setAutopay] = useState(editing?.isAutopay ?? false);
+  const [variable, setVariable] = useState(editing?.expenseType === 'variable');
   const [error, setError] = useState('');
 
   function submit() {
     if (!name.trim()) return setError('Enter a name.');
     if (!amount || Number(amount) <= 0) return setError('Enter an amount greater than 0.');
-    const fields = { name: name.trim(), amount: Number(amount), dueDate, recurrence, category, isAutopay: autopay };
+    const fields = {
+      name: name.trim(),
+      amount: Number(amount),
+      dueDate,
+      recurrence,
+      category,
+      isAutopay: autopay,
+      expenseType: (variable ? 'variable' : 'fixed') as 'fixed' | 'variable',
+    };
     if (isEdit && editing) appStore.getState().updateExpense(editing.id, fields);
     else appStore.getState().addExpense({ id: `expense-${Date.now()}`, isPaidThisCycle: false, ...fields });
     onClose();
@@ -68,6 +77,7 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
       <TextField label="Due date (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate} placeholder="2026-07-01" />
       <Select label="Recurrence" value={recurrence} options={RECURRENCE} onChange={setRecurrence} />
       <Select label="Category" value={category} options={CATEGORY} onChange={setCategory} />
+      <SwitchRow label="Variable amount (estimate)" value={variable} onValueChange={setVariable} />
       <SwitchRow label="Autopay" value={autopay} onValueChange={setAutopay} />
     </FormSheet>
   );
