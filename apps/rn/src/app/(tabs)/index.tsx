@@ -9,6 +9,7 @@ import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
 import { PlanHero } from '@/components/plan/PlanHero';
 import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
 import { RequiredActionsCard } from '@/components/plan/RequiredActionsCard';
+import { WindfallSheet } from '@/components/plan/WindfallSheet';
 import { Motion } from '@/motion';
 import { Screen } from '@/components/screen';
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
@@ -52,6 +53,7 @@ export default function TodayScreen() {
   // Payday Autopilot — detection + the capture sheet's open state. Called unconditionally (hooks rule).
   const payday = usePaydayCapture(recommended.length > 0);
   const [paycheckSheet, setPaycheckSheet] = useState(false);
+  const [windfallSheet, setWindfallSheet] = useState(false);
 
   let content: React.ReactNode = null;
   if (planState === 'no-paycheck') {
@@ -86,6 +88,8 @@ export default function TodayScreen() {
             summary={summary}
             recommended={recommended}
             nextPaycheckDate={store.paycheck.nextPaycheckDate}
+            windfall={store.windfall ?? 0}
+            onAddWindfall={() => setWindfallSheet(true)}
             onEditPaycheck={() => setPaycheckSheet(true)}
           />
         </Motion>
@@ -144,6 +148,7 @@ export default function TodayScreen() {
       ) : null}
 
       {paycheckSheet ? <PaycheckSheet onClose={() => setPaycheckSheet(false)} /> : null}
+      {windfallSheet ? <WindfallSheet current={store.windfall ?? 0} onClose={() => setWindfallSheet(false)} /> : null}
     </Screen>
   );
 }

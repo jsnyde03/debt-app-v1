@@ -42,11 +42,15 @@ export function PlanHero({
   summary,
   recommended,
   nextPaycheckDate,
+  windfall = 0,
+  onAddWindfall,
   onEditPaycheck,
 }: {
   summary: PlanSummary;
   recommended: ActiveRecommendedAction[];
   nextPaycheckDate: string;
+  windfall?: number;
+  onAddWindfall?: () => void;
   onEditPaycheck?: () => void;
 }) {
   const c = useAppColors();
@@ -164,6 +168,19 @@ export function PlanHero({
         <AppIcon name={summary.status === 'on-track' ? 'check-circle' : 'error-outline'} size={15} color={statusColor} />
         <Text style={[textStyles.footnote, styles.status, { color: statusColor }]}>{reassurance}</Text>
       </View>
+
+      {onAddWindfall ? (
+        <Pressable
+          onPress={onAddWindfall}
+          accessibilityRole="button"
+          accessibilityLabel={windfall > 0 ? `Extra income ${money0(windfall)} this cycle, edit` : 'Add extra income'}
+          style={styles.windfallRow}>
+          <AppIcon name="add-circle-outline" size={15} color={windfall > 0 ? s.goldPill : s.heroSub} />
+          <Text style={[textStyles.caption, { color: windfall > 0 ? s.goldPill : s.heroSub, fontWeight: windfall > 0 ? '700' : '400' }]}>
+            {windfall > 0 ? `${money0(windfall)} extra this cycle` : 'Add extra income'}
+          </Text>
+        </Pressable>
+      ) : null}
     </LinearGradient>
   );
 }
@@ -189,4 +206,5 @@ const styles = StyleSheet.create({
   suggestText: { flex: 1 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   status: { fontWeight: '600' },
+  windfallRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, alignSelf: 'flex-start' },
 });

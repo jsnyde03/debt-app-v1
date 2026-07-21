@@ -15,7 +15,7 @@ export function selectAllocation(store: DebtStore): Allocation | null {
   const amount = Number(store.paycheck.amount);
   if (!Number.isFinite(amount) || amount <= 0 || !store.paycheck.nextPaycheckDate) return null;
   return allocatePaycheck({
-    paycheckAmount: amount,
+    paycheckAmount: amount + (store.windfall ?? 0),
     currentDate: store.paycheck.currentDate,
     nextPaycheckDate: store.paycheck.nextPaycheckDate,
     strategy: store.payoffStrategy,

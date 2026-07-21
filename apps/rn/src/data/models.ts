@@ -80,4 +80,6 @@ export interface DebtStore {
   lastHandledPaydayDate: string | null;
   /** True once we've asked for an App Store review — so we never re-prompt (beyond the OS throttle). */
   reviewPrompted?: boolean;
+  /** One-time extra income added to THIS cycle only (bonus/refund/side gig); clears on rollover. */
+  windfall?: number;
 }

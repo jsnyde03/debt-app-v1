@@ -71,6 +71,7 @@ export interface DebtAppState {
   rolloverPayCycle(): void;
   setLastHandledPayday(date: string): void;
   markReviewPrompted(): void;
+  setWindfall(amount: number): void;
 
   // Prefs / subscription / onboarding
   updatePrefs(updates: Partial<Preferences>): void;
@@ -227,6 +228,10 @@ export function createDebtStore() {
     },
     markReviewPrompted() {
       set((s) => ({ store: { ...s.store, reviewPrompted: true } }));
+    },
+    setWindfall(amount) {
+      // A one-time this-cycle bump — does NOT re-baseline drift (it clears on rollover; the baseline holds).
+      set((s) => ({ store: { ...s.store, windfall: Math.max(0, amount) } }));
     },
 
     updatePrefs(updates) {

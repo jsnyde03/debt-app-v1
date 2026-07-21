@@ -104,6 +104,7 @@ export function applyRollover(store: DebtStore): DebtStore {
     completedRecommendedActions: [],
     cycleHistory: [...store.cycleHistory, snapshot],
     milestoneMaxProgress: milestoneResult.nextMaxProgressByDebt,
+    windfall: 0, // one-time extra income was for the closing cycle only
     paycheck: { ...store.paycheck, currentDate: nextPaycheckDate, nextPaycheckDate: followingPaycheckDate },
   };
 }
