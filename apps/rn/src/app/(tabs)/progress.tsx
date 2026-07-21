@@ -59,7 +59,6 @@ export default function ProgressScreen() {
   const totalCurrent = store.debts.reduce((sum, d) => sum + d.balance, 0);
   const totalPaid = Math.max(0, totalOriginal - totalCurrent);
   const pct = totalOriginal > 0 ? Math.round((totalPaid / totalOriginal) * 100) : 0;
-  const interestSavedAmount = view.interestSaved.kind === 'saving' ? view.interestSaved.interestSaved : 0;
   const surf = c.surface;
 
   return (
@@ -85,7 +84,7 @@ export default function ProgressScreen() {
       </LinearGradient>
 
       <MilestonesRow pct={pct} debtFreeLabel={view.debtFreeDate ?? undefined} />
-      <MomentumStats interestSaved={interestSavedAmount} paid={totalPaid} />
+      <MomentumStats interestSaved={view.interestSaved} paid={totalPaid} />
       <CashFlowSection cycles={selectCashTimeline(store)} />
 
       <TrajectoryChart snowball={view.snowball} avalanche={view.avalanche} strategy={strategy} debtFreeDate={view.debtFreeDate} />
