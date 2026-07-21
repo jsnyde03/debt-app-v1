@@ -79,7 +79,7 @@ Rebuild every screen to the **new IA + visual language** (not parity). The Phase
   - **1.5.1** Debts section → comp: **Remaining-debt hero** (`<CountUp>` big number + context sub) replacing the 3-cell box · refined rows w/ the **Focus debt** called out · **dashed premium add-row** · **payoff-order footer** (kills the dead space + frames it).
   - **1.5.2** Bills + Goals sections → the same hero + add-row pattern.
   - **1.5.3** both-theme verify (premium, not "stacked boxes").
-  - _Sequence: ~~1.3 Today~~ ✅ → ~~1.4 Progress~~ ✅ (+ refinements 1.4.R rail, 1.4.T Skia trajectory) → **1.5 Money elevation** → 1.6 More. **▶ NEXT = 1.5 Money elevation** (or continue Progress-element polish per Jason's screen-by-screen pass)._
+  - _Sequence: ~~1.3 Today~~ ✅ (re-elevated → the **Allocation Hero**; see `DEBT_TODAY_ELEVATION_AUDIT`) → ~~1.4 Progress~~ ✅ (rail 1.4.R · Skia trajectory 1.4.T · Cash-flow `[Cushion|Timeline]`) → ~~Capacitor→RN parity sweep~~ ✅ (`CAPACITOR_RN_GAP_ANALYSIS` — D.5 pulled forward + 5-oversight rebuild batch) → **▶ NEXT = Progress ring hero → Skia (green→gold arc)** → 1.5 Money elevation → 1.6 More → free-tier premium modules (Strategy/What-If/Forecast)._
 
 ### Phase 2 — Premium substance + revenue spine
 Build the reshaped Premium: the **Payday Partner loop** (reminders + calendar + mark-paid + verify), milestones/streaks/widget, shareable cards, auto-adjusting plan, momentum chart, PDF/partner sharing, Drift folded to Premium. Plus the **revenue spine** to the reshaped model (one tier, Lifetime, portfolio-sub-ready entitlement, `hasFeatureAccess` gating, analytics + Sentry-8.18), iCloud backup, AU/NZ. (`PREMIUM_PLUS_AVAILABLE` gone; the value-gate is moot under one tier.)
