@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card';
 import type { PayoffStrategy } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import type { TrajectoryPoint } from '@/store/payoffSelectors';
+import type { InterestSaved, TrajectoryPoint } from '@/store/payoffSelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
@@ -13,6 +13,17 @@ import { TrajectoryCanvas } from './TrajectoryCanvas';
 
 const H = 150;
 const PAD = { l: 6, r: 10, t: 14, b: 12 };
+
+/** Whole-dollar currency (no cents) — a big saved figure reads cleaner than "$1,222.00". */
+function formatWhole(amount: number): string {
+  const safe = Number.isFinite(amount) ? amount : 0;
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(safe);
+}
+
+function formatMonths(months: number): string {
+  if (months < 24) return `${months} month${months === 1 ? '' : 's'}`;
+  return `${Math.round(months / 12)} years`;
+}
 
 type Pt = { x: number; y: number };
 
@@ -43,21 +54,28 @@ function smoothPath(pts: Pt[]): string {
 export function TrajectoryChart({
   snowball,
   avalanche,
+  minimums,
   strategy,
   debtFreeDate,
+  interestSaved,
 }: {
   snowball: TrajectoryPoint[];
   avalanche: TrajectoryPoint[];
+  minimums: TrajectoryPoint[];
   strategy: PayoffStrategy;
   debtFreeDate: string | null;
+  interestSaved: InterestSaved;
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
   const [w, setW] = useState(0);
 
   const active = strategy === 'snowball' ? snowball : avalanche;
-  const ghost = strategy === 'snowball' ? avalanche : snowball;
-  const all = [...snowball, ...avalanche];
+  // The ghost is the minimum-payments baseline — but only when there's a real gap to show. In the
+  // "none" case (no extra reaches the debt) the minimums curve IS the active plan, so we hide it.
+  const showMinimums = interestSaved.kind === 'saving' || interestSaved.kind === 'payoff-enabling';
+  const ghost = showMinimums ? minimums : [];
+  const all = [...active, ...ghost];
   const maxMonth = Math.max(1, ...all.map((p) => p.month));
   const maxBalance = Math.max(1, ...all.map((p) => p.balance));
 
@@ -117,6 +135,26 @@ export function TrajectoryChart({
           <Text style={[textStyles.caption, styles.dfLabel, { color: gold }]}>Debt-free {debtFreeDate}</Text>
         ) : null}
       </View>
+
+      {showMinimums ? (
+        <View style={styles.legend}>
+          <View style={styles.legendItems}>
+            <View style={styles.legendItem}>
+              <View style={[styles.swatch, { backgroundColor: c.accent.primary }]} />
+              <Text style={[textStyles.caption, { color: c.text.secondary }]}>Your plan</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.swatch, { backgroundColor: c.text.tertiary, opacity: 0.55 }]} />
+              <Text style={[textStyles.caption, { color: c.text.secondary }]}>Minimum payments</Text>
+            </View>
+          </View>
+          <Text style={[textStyles.caption, styles.saved, { color: c.accent.success }]}>
+            {interestSaved.kind === 'saving'
+              ? `${formatWhole(interestSaved.interestSaved)} · ${formatMonths(interestSaved.monthsSaved)} saved`
+              : 'Minimums never pay it off'}
+          </Text>
+        </View>
+      ) : null}
     </Card>
   );
 }
@@ -126,4 +164,19 @@ const styles = StyleSheet.create({
   eyebrow: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.xs },
   dfLabel: { fontWeight: '700' },
+  legend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(127,127,127,0.18)',
+  },
+  legendItems: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  swatch: { width: 14, height: 3, borderRadius: 2 },
+  saved: { fontWeight: '800' },
 });

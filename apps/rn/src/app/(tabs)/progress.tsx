@@ -8,7 +8,6 @@ import { TrajectoryChart } from '@/components/payoff/TrajectoryChart';
 import { CashFlowSection } from '@/components/progress/CashFlowSection';
 import { type JourneyRingChartProps, type MilestoneState } from '@/components/progress/JourneyRingChart';
 import { JourneyRingCanvas } from '@/components/progress/JourneyRingCanvas';
-import { MomentumStats } from '@/components/progress/MomentumStats';
 import { Screen } from '@/components/screen';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -116,10 +115,16 @@ export default function ProgressScreen() {
         </View>
       </LinearGradient>
 
-      <MomentumStats interestSaved={view.interestSaved} paid={totalPaid} />
       <CashFlowSection cycles={selectCashTimeline(store)} />
 
-      <TrajectoryChart snowball={view.snowball} avalanche={view.avalanche} strategy={strategy} debtFreeDate={view.debtFreeDate} />
+      <TrajectoryChart
+        snowball={view.snowball}
+        avalanche={view.avalanche}
+        minimums={view.minimums}
+        strategy={strategy}
+        debtFreeDate={view.debtFreeDate}
+        interestSaved={view.interestSaved}
+      />
     </Screen>
   );
 }

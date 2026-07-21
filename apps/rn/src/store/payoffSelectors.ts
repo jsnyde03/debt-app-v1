@@ -58,6 +58,8 @@ export interface PayoffView {
   monthlyExtra: number;
   snowball: TrajectoryPoint[];
   avalanche: TrajectoryPoint[];
+  /** The minimum-payments-only curve — the "vs. minimums" ghost on the trajectory chart. */
+  minimums: TrajectoryPoint[];
   order: Debt[];
   focus: Debt | null;
 }
@@ -81,6 +83,9 @@ export function selectPayoffView(store: DebtStore): PayoffView {
 
   const snowball = liveDebts.length > 0 ? buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: 'snowball' }) : [];
   const avalanche = liveDebts.length > 0 ? buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: 'avalanche' }) : [];
+  // The minimums-only baseline (no extra) — pays off later (or, when interest outruns minimums,
+  // never), so it trails above/beyond the active plan: the visible "vs. minimums" gap.
+  const minimums = liveDebts.length > 0 ? buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: 0, strategy: store.payoffStrategy }) : [];
 
   const order = rankDebts(liveDebts, store.payoffStrategy);
   return {
@@ -90,6 +95,7 @@ export function selectPayoffView(store: DebtStore): PayoffView {
     monthlyExtra,
     snowball,
     avalanche,
+    minimums,
     order,
     focus: order[0] ?? null,
   };
