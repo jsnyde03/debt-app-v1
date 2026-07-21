@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { formatCurrency } from '@core/utils/formatCurrency';
 
@@ -7,9 +9,34 @@ import { TimelineLedger } from '@/components/progress/TimelineLedger';
 import { Card } from '@/components/ui/Card';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useReduceMotion } from '@/motion';
 import type { TimelineCycle } from '@/store/payoffSelectors';
+import { duration } from '@/theme/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+
+type CushionStatus = TimelineCycle['cushionStatus'];
+
+/**
+ * Cushion-bar color — green is DELIBERATELY absent (it means progress elsewhere on this screen).
+ * Comfortable cycles recede to a calm slate; only the cycles you must plan for carry color + glow.
+ */
+function barTone(status: CushionStatus, dark: boolean) {
+  if (status === 'pressure') {
+    return dark
+      ? { grad: ['#fda4af', '#fb7185'] as const, glow: 'rgba(251,113,133,0.5)', label: '#fb7185' }
+      : { grad: ['#f87171', '#dc2626'] as const, glow: 'rgba(220,38,38,0.38)', label: '#dc2626' };
+  }
+  if (status === 'tight') {
+    return dark
+      ? { grad: ['#fcd34d', '#f59e0b'] as const, glow: 'rgba(251,191,36,0.45)', label: '#fbbf24' }
+      : { grad: ['#f59e0b', '#d97706'] as const, glow: 'rgba(217,119,6,0.34)', label: '#d97706' };
+  }
+  return dark
+    ? { grad: ['#5b6b86', '#3f4d68'] as const, glow: null, label: '#a6b9d4' }
+    : { grad: ['#aab6c9', '#8b99b0'] as const, glow: null, label: '#5a6b82' };
+}
 
 function shortDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -44,10 +71,9 @@ export function CashFlowSection({ cycles }: { cycles: TimelineCycle[] }) {
   );
 }
 
-/** Near-term cash-cushion forecast — one bar per upcoming cycle, colored by stable/tight/pressure. */
+/** Near-term cash-cushion forecast — one crafted bar per upcoming cycle (gradient + glow on concern). */
 function CushionBars({ cycles }: { cycles: TimelineCycle[] }) {
   const c = useAppColors();
-  const tone = { stable: c.accent.success, tight: c.accent.warning, pressure: c.accent.danger };
   const max = Math.max(1, ...cycles.map((cy) => Math.max(0, cy.endingBalance)));
   const caption = cycles.some((cy) => cy.cushionStatus === 'pressure')
     ? 'A cycle runs short ahead — plan for it.'
@@ -59,25 +85,43 @@ function CushionBars({ cycles }: { cycles: TimelineCycle[] }) {
     <>
       <View style={styles.bars}>
         {cycles.map((cy, i) => (
-          <View
-            key={i}
-            style={styles.col}
-            accessible
-            accessibilityLabel={`${shortDate(cy.cycleStart)}: ${formatCurrency(cy.endingBalance)}, ${cy.cushionStatus}`}>
-            <Text style={[textStyles.caption, styles.val, { color: c.text.secondary }]}>
-              {formatCurrency(Math.round(cy.endingBalance))}
-            </Text>
-            <View style={styles.track}>
-              <View style={[styles.bar, { height: 8 + (Math.max(0, cy.endingBalance) / max) * 84, backgroundColor: tone[cy.cushionStatus] }]} />
-            </View>
-            <Text style={[textStyles.caption, { color: c.text.tertiary }]} numberOfLines={1}>
-              {shortDate(cy.cycleStart)}
-            </Text>
-          </View>
+          <CushionBar key={i} cycle={cy} index={i} fraction={Math.max(0, cy.endingBalance) / max} />
         ))}
       </View>
       <Text style={[textStyles.caption, styles.caption, { color: c.text.secondary }]}>{caption}</Text>
     </>
+  );
+}
+
+/** One cushion bar — a 2-stop gradient with rounded caps that grows on mount (staggered). */
+function CushionBar({ cycle, index, fraction }: { cycle: TimelineCycle; index: number; fraction: number }) {
+  const c = useAppColors();
+  const dark = useColorScheme() === 'dark';
+  const reduce = useReduceMotion();
+  const tone = barTone(cycle.cushionStatus, dark);
+  const target = 8 + fraction * 84;
+
+  const grow = useSharedValue(reduce ? 1 : 0);
+  useEffect(() => {
+    grow.value = reduce ? 1 : withDelay(index * 70, withTiming(1, { duration: duration.chart }));
+  }, [reduce, grow, index]);
+  const barStyle = useAnimatedStyle(() => ({ height: target * grow.value }));
+
+  return (
+    <View
+      style={styles.col}
+      accessible
+      accessibilityLabel={`${shortDate(cycle.cycleStart)}: ${formatCurrency(cycle.endingBalance)}, ${cycle.cushionStatus}`}>
+      <Text style={[textStyles.caption, styles.val, { color: tone.label }]}>{formatCurrency(Math.round(cycle.endingBalance))}</Text>
+      <View style={styles.track}>
+        <Animated.View style={[styles.bar, barStyle, tone.glow ? { boxShadow: `0px 0px 8px 1px ${tone.glow}` } : null]}>
+          <LinearGradient colors={tone.grad} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.barFill} />
+        </Animated.View>
+      </View>
+      <Text style={[textStyles.caption, { color: c.text.tertiary }]} numberOfLines={1}>
+        {shortDate(cycle.cycleStart)}
+      </Text>
+    </View>
   );
 }
 
@@ -88,6 +132,7 @@ const styles = StyleSheet.create({
   col: { flex: 1, alignItems: 'center', gap: 4 },
   val: { fontWeight: '600', fontVariant: ['tabular-nums'] },
   track: { height: 92, width: '62%', justifyContent: 'flex-end' },
-  bar: { width: '100%', borderRadius: 4 },
+  bar: { width: '100%', borderRadius: 5 },
+  barFill: { flex: 1, borderRadius: 5 },
   caption: { marginTop: spacing.md, textAlign: 'center' },
 });
