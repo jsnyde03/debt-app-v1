@@ -69,17 +69,23 @@ Rebuild every screen to the **new IA + visual language** (not parity). The Phase
   - **1.2.3 ✅ DONE (2026-07-20)** — `Screen`/`Section` header roles already present (verified vs code); `ListRow` → **`groupLabel`** (single-utterance a11y) + `accessibilityHint` + **`cardElevation`** (rows lift like cards; propagates to every list). tsc 0. _Sheets adopt `elevation.raised` when next touched (deferred — modals, already distinct)._
   - **1.2.4 ✅ DONE (2026-07-20)** — both themes verified (tab bar Today·Progress·Money · Money segments work), 0 page errors. **✅ 1.2 (shared chrome) COMPLETE.** _After-scan: ⚠️ **Money was CONSOLIDATED (structure) but NOT ELEVATED — I ported the old parity content ("stacked boxes"); the premium visual pass is reopened as 1.5** (Jason flagged 2026-07-20; consolidated ≠ elevated, [[feedback_premium_quality_bar]]). progress.tsx still uses the old lavender payoff hero → 1.4._
 
+**✅ 1.3 Today — DONE (2026-07-20, `e1ad5a6`).** Elevated to the premium bar. Detail → log.
+
+**✅ 1.4 Progress — DONE (2026-07-20, `4072717`).** The journey: navy ring hero · milestones · momentum · cash-cushion timeline (+ transitional chart/strategy/order below). Detail → log.
+  - **1.4.R ✅ BUILT + both-theme verified (2026-07-21) — pending Jason sign-off.** MilestonesRow: four flat chips → one connected **journey rail** — green fill sweeps 0→pct on mount, live numberless "you are here" bead rides the fill edge (ring owns the %), next post glows (accent ring), gold-star debt-free destination, single a11y utterance. Dropped the under-"Free" date (deduped with the ring hero, which already shows it). tsc 0. _After-scan: the true "just-crossed-a-milestone" celebration pulse was NOT faked here — deferred to the Phase-3 celebration system, which can hook the EXISTING `milestoneMaxProgress` + payday.ts crossing-detection (surfaced: that infra already exists → the pulse is a real, cheap Phase-3 add, see Phase 3 below). Marker `left`-percent animates fine on web; native motion → the batched device-QA carry-forward._
+
 **1.5 Money ELEVATION — ⏳ REOPENED / PENDING** _(correcting the 1.2 over-claim; **build at 1.5 in sequence, NOT now — Jason 2026-07-20**)._ The consolidated Money hub gets its premium visual pass to the approved comp (`DEBT_PHASE0_DESIGN_SYNTHESIS` §3 + the comp artifact) when we reach it.
   - **1.5.1** Debts section → comp: **Remaining-debt hero** (`<CountUp>` big number + context sub) replacing the 3-cell box · refined rows w/ the **Focus debt** called out · **dashed premium add-row** · **payoff-order footer** (kills the dead space + frames it).
   - **1.5.2** Bills + Goals sections → the same hero + add-row pattern.
   - **1.5.3** both-theme verify (premium, not "stacked boxes").
-  - _Sequence: 1.3 Today → 1.4 Progress → **1.5 Money elevation** → 1.6 More. **▶ NEXT = 1.3 Today.**_
+  - _Sequence: ~~1.3 Today~~ ✅ → ~~1.4 Progress~~ ✅ → **1.5 Money elevation** → 1.6 More. **▶ NEXT = 1.4.R milestone rail (in flight) → 1.5 Money elevation.**_
 
 ### Phase 2 — Premium substance + revenue spine
 Build the reshaped Premium: the **Payday Partner loop** (reminders + calendar + mark-paid + verify), milestones/streaks/widget, shareable cards, auto-adjusting plan, momentum chart, PDF/partner sharing, Drift folded to Premium. Plus the **revenue spine** to the reshaped model (one tier, Lifetime, portfolio-sub-ready entitlement, `hasFeatureAccess` gating, analytics + Sentry-8.18), iCloud backup, AU/NZ. (`PREMIUM_PLUS_AVAILABLE` gone; the value-gate is moot under one tier.)
 
 ### Phase 3 — Delight + native platform
 The emotional layer built *with* the features: the **debt-paid-off celebration**, milestone moments, progress-fill, animated counters, haptics, reanimated micro-interactions — and **genuinely-native iPad** (master-detail/multi-column, not a centered column). Restraint on daily surfaces; delight on the beats.
+- **Milestone-cross pulse (surfaced 1.4.R):** the journey-rail node should pulse (spring.bouncy) + haptic the moment a milestone is freshly crossed. Infra already exists — `store.milestoneMaxProgress` + payday.ts crossing-detection — so this is a cheap hook, not new plumbing. Lives here with the celebration system (needs prior-vs-current cross state, which the daily-render rail deliberately doesn't fake).
 - **⚠️ Per-screen iPad RE-EVALUATION required (Jason 2026-07-20):** the Phase-1 screens are elevated **phone-first** and look great on phone, but leave **a lot of empty space on iPad** — the current `Screen` centers a width-capped single column, which doesn't use the real estate. Every elevated screen (Today first) must be **re-evaluated + re-laid-out for iPad** (multi-column / master-detail / adaptive), NOT just a centered phone column. Do this as a deliberate pass in the iPad work, screen by screen.
 
 ### Phase 4 — Quality
