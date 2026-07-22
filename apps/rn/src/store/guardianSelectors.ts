@@ -41,6 +41,8 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     discretionary: selectDiscretionary(allocation),
     kept: selectLiquidCushion(allocation),
     deployedToDebt: selectExtraToDebt(allocation),
+    // The extra fills debts in strategy order, so it spans >1 when it exceeds the focus debt's balance.
+    deploySpread: allocation.allocations.filter((a) => a.category === 'snowball').length > 1,
     shortfall: allocation.shortfall,
     focusDebtName: rankDebts(liveDebts, store.payoffStrategy)[0]?.name,
     lookahead: upcoming

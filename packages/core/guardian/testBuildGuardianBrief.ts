@@ -10,7 +10,7 @@ function assertTrue(actual: boolean, label: string) {
 }
 
 function input(o: Partial<GuardianInput>): GuardianInput {
-  return { isPremium: true, floor: 200, discretionary: 210, kept: 200, deployedToDebt: 10, shortfall: 0, ...o };
+  return { isPremium: true, floor: 200, discretionary: 210, kept: 200, deployedToDebt: 10, deploySpread: false, shortfall: 0, ...o };
 }
 /** No brief states a false-precise dollar verdict: amounts are hedged, never shown with cents. */
 function hedged(text: string): boolean {
@@ -24,7 +24,12 @@ function runGuardianTests() {
   // $210 after obligations is above the $200 line, so BOTH tiers read clear even though the split differs.
   const premClear = buildGuardianBrief(input({ isPremium: true, discretionary: 210, kept: 200, deployedToDebt: 10, focusDebtName: "Store Card" }));
   assertEqual(premClear.state, "clear", "premium: covered with headroom above the line → clear (not a false 'tight')");
-  assertTrue(premClear.detail.includes("holding") || (premClear.safeMove ?? "").includes("Store Card"), "premium clear names the kept cushion + the deployed payment");
+  assertTrue(/to Store Card\b/.test(premClear.detail) && !/across/.test(premClear.detail), "single-target extra names the debt directly ('to Store Card')");
+
+  // The extra spreads across multiple debts when it exceeds the focus balance — copy must not claim one target.
+  const spread = buildGuardianBrief(input({ deployedToDebt: 2660, deploySpread: true, focusDebtName: "Store Card" }));
+  assertTrue(/across your debts, starting with Store Card/.test(spread.detail), "a spread extra reads 'across your debts, starting with …', not 'to Store Card'");
+  assertTrue(/extra payments/.test(spread.safeMove ?? ""), "a spread extra says 'payments' (plural), not a single payment");
   const freeClear = buildGuardianBrief(input({ isPremium: false, discretionary: 210, kept: 50, deployedToDebt: 160 }));
   assertEqual(freeClear.state, "clear", "free: SAME headroom → clear (the split doesn't change the band)");
   assertEqual(freeClear.safeMove, undefined, "free gets no safeMove (the card shows the invitation)");

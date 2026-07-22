@@ -42,6 +42,8 @@ export interface GuardianInput {
   kept: number;
   /** Extra deployed to debt this cycle (the snowball). */
   deployedToDebt: number;
+  /** True when the extra spans more than one debt (fills the focus, then rolls onward). */
+  deploySpread: boolean;
   /** Amount the paycheck can't cover of what's required this cycle (>0 = an acute shortfall). */
   shortfall: number;
   focusDebtName?: string;
@@ -65,7 +67,7 @@ function amt(n: number): string {
 }
 
 export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
-  const { isPremium, focusDebtName, lookahead } = input;
+  const { isPremium, focusDebtName, deploySpread, lookahead } = input;
   // Sanitize every number up front — a bad upstream value must degrade to a safe read, never `$NaN`.
   const floor = money(input.floor) || 200;
   const discretionary = money(input.discretionary);
@@ -87,7 +89,12 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       : undefined;
 
   const viz = { cushion: kept, deployedToDebt, floor, reachedFloor };
-  const focus = focusDebtName ? ` to ${focusDebtName}` : " to your focus debt";
+  // Where the extra actually lands: a single debt names it; a spread fills the focus first, then rolls.
+  const dest = !focusDebtName
+    ? "toward debt"
+    : deploySpread
+      ? `across your debts, starting with ${focusDebtName}`
+      : `to ${focusDebtName}`;
 
   if (!isPremium) {
     // Free: the honest read for this paycheck (the value-led taste) — no action claimed. The card
@@ -105,9 +112,9 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   if (shortfall > 0) {
     return {
       state,
-      title: "This paycheck is stretched",
-      detail: `This paycheck comes up ${about(shortfall)} short of everything due this cycle — a genuinely tight one.`,
-      safeMove: "I've paused all extra payoff. Cover required bills and minimums first; anything you can add goes straight to safety.",
+      title: "This paycheck won't cover everything",
+      detail: `You're about ${amt(shortfall)} short of the bills and minimums due before your next paycheck — this one needs a plan.`,
+      safeMove: "Cover the essentials first — housing, utilities, food. Extra payoff is paused, and any income you can add this cycle helps the most.",
       lookahead: look,
       ...viz,
     };
@@ -137,8 +144,8 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   return {
     state,
     title: "You're covered this paycheck",
-    detail: `About ${amt(discretionary)} after everything required. I'm holding ${amt(kept)} as your cushion and sending the spare ${amt(deployedToDebt)}${focus}.`,
-    safeMove: `Mark the ${amt(deployedToDebt)} payment when you're ready — your ${amt(floor)} cushion stays protected either way.`,
+    detail: `About ${amt(discretionary)} after everything required. I'm holding ${amt(kept)} as your cushion and sending the spare ${amt(deployedToDebt)} ${dest}.`,
+    safeMove: `Mark ${deploySpread ? "the extra payments" : `the ${amt(deployedToDebt)} payment`} when you're ready — your ${amt(floor)} cushion stays protected either way.`,
     lookahead: look,
     ...viz,
   };
