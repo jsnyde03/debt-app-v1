@@ -5,6 +5,7 @@ import { MoreButton } from '@/components/more-button';
 import { useGoToTab } from '@/hooks/use-go-to-tab';
 import { maybeRequestReview } from '@/lib/review';
 import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
+import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
 import { PlanHero } from '@/components/plan/PlanHero';
 import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
@@ -18,7 +19,7 @@ import { Card } from '@/components/ui/Card';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
-import { selectStaleBalanceViews } from '@/store/balanceSelectors';
+import { selectStaleBalanceViews, selectProvisionalPayoffs } from '@/store/balanceSelectors';
 import {
   selectPlanState,
   selectPlanSummary,
@@ -55,6 +56,8 @@ export default function TodayScreen() {
   const payday = usePaydayCapture(recommended.length > 0);
   // 2.3.5 — stale premium estimates surfaced for the payday re-verify batch (empty for free).
   const staleBalances = selectStaleBalanceViews(store, store.subscriptionPlan === 'premium');
+  // 2.3.6 — debts the premium estimate projected to $0 → the provisional "confirm to celebrate" invitation.
+  const provisionalPayoffs = selectProvisionalPayoffs(store, store.subscriptionPlan === 'premium');
   const [paycheckSheet, setPaycheckSheet] = useState(false);
   const [windfallSheet, setWindfallSheet] = useState(false);
 
@@ -112,6 +115,16 @@ export default function TodayScreen() {
 
   return (
     <Screen title="Today" right={<MoreButton />}>
+      {provisionalPayoffs.map((d) => (
+        <PayoffInvitationCard
+          key={d.id}
+          debtName={d.name}
+          // Confirm → re-anchor to $0 (the confirmed-payoff signal; the Phase-3 spectacle fires here).
+          onConfirm={() => appStore.getState().verifyDebtBalance(d.id, 0, store.paycheck.currentDate)}
+          onNotYet={() => goToTab('money')}
+        />
+      ))}
+
       {payday.isAwaitingRollover ? (
         <Card tone="accent" style={styles.nudge}>
           <Text style={[textStyles.subhead, { color: c.text.primary }]}>

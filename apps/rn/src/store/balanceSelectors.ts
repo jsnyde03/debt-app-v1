@@ -1,6 +1,7 @@
 import {
   projectCurrentBalance,
   computeEstimateConfidence,
+  isDebtProjectedPaidOff,
   type EstimateConfidence,
 } from '@core/debt/projectCurrentBalance';
 
@@ -78,6 +79,18 @@ export function selectStaleDebtIds(store: DebtStore): string[] {
   return store.debts
     .filter((debt) => debt.balance > 0 && computeEstimateConfidence(debt, asOf).staleness === 'stale')
     .map((debt) => debt.id);
+}
+
+/**
+ * Debts that have PROVISIONALLY paid off (2.3.6) — the anchor still shows a balance but the premium
+ * estimate reached $0 on its own, so the app noticed a payoff the user hasn't confirmed. These get the
+ * "you crushed it — confirm to celebrate" invitation on Today; the celebration + permanent record fire
+ * only on confirm. Premium-only (free debts reach $0 via a user action = confirmed, no invitation).
+ */
+export function selectProvisionalPayoffs(store: DebtStore, isPremium: boolean): Debt[] {
+  if (!isPremium) return [];
+  const asOf = store.paycheck.currentDate;
+  return store.debts.filter((debt) => isDebtProjectedPaidOff(debt, asOf));
 }
 
 /** Views for the stale-estimate debts — the Payday Autopilot re-verify batch (2.3.5). Premium-only ([]  for free). */
