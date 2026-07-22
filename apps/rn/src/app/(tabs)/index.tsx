@@ -7,6 +7,7 @@ import { maybeRequestReview } from '@/lib/review';
 import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
+import { PaydayGuardianCard } from '@/components/plan/PaydayGuardianCard';
 import { PlanHero } from '@/components/plan/PlanHero';
 import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
 import { RequiredActionsCard } from '@/components/plan/RequiredActionsCard';
@@ -20,6 +21,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
+import { selectPaydayGuardian } from '@/store/guardianSelectors';
 import {
   selectPlanState,
   selectPlanSummary,
@@ -56,6 +58,8 @@ export default function TodayScreen() {
   const requiredRows = allocation ? selectRequiredRows(engineStore, allocation) : [];
   const recommended = allocation ? selectRecommendedActions(engineStore, allocation) : [];
   const summary = allocation ? selectPlanSummary(engineStore, allocation, requiredRows) : null;
+  // 2.4 — the Payday Cushion Guardian for this paycheck (off the projected cushion for premium).
+  const guardian = selectPaydayGuardian(engineStore);
 
   // Payday Autopilot — detection + the capture sheet's open state. Called unconditionally (hooks rule).
   const payday = usePaydayCapture(recommended.length > 0);
@@ -104,6 +108,11 @@ export default function TodayScreen() {
             onEditPaycheck={() => setPaycheckSheet(true)}
           />
         </Motion>
+        {guardian ? (
+          <Motion delay={45}>
+            <PaydayGuardianCard brief={guardian} isPremium={isPremium} />
+          </Motion>
+        ) : null}
         <Motion delay={90}>
           <RequiredActionsCard rows={requiredRows} unfunded={allocation.unfundedRequiredItems ?? []} onMark={handleMark} currentDate={store.paycheck.currentDate} />
         </Motion>
