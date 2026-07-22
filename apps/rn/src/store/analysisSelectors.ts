@@ -2,7 +2,6 @@ import { buildAmortizationSchedule, type AmortizationSchedule } from '@core/debt
 import { buildPayoffTrajectory, type TrajectoryPoint } from '@core/debt/buildPayoffTrajectory';
 import { buildExtraPaymentAllocationPlan, type ExtraPaymentAllocationItem } from '@core/debt/extraPaymentPlan';
 import { projectDebtPayoff } from '@core/debt/projectDebtPayoff';
-import { buildSmartInsights, type SmartInsight } from '@core/insights/buildSmartInsights';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 
 import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
@@ -11,7 +10,7 @@ import { selectExtraToDebt } from './planSelectors';
 import { rankDebts } from './payoffSelectors';
 import { selectAllocation, type Allocation } from './selectors';
 
-export type { SmartInsight, AmortizationSchedule, ExtraPaymentAllocationItem };
+export type { AmortizationSchedule, ExtraPaymentAllocationItem };
 
 /**
  * The shared derivation layer for the free analysis tools (What-If · Forecast · Smart Insights ·
@@ -54,71 +53,6 @@ function derivePlanBasis(store: DebtStore): PlanBasis {
     projectedBuffer,
     currentDate: store.paycheck.currentDate,
     strategy: store.payoffStrategy,
-  };
-}
-
-// ── Strategy comparison (snowball vs. avalanche) ─────────────────────────────────
-// Shared by What-If ("Recommended" resolution) and Smart Insights (its interest/date inputs).
-
-export interface StrategyComparison {
-  canEstimate: boolean;
-  snowballDate: string;
-  avalancheDate: string;
-  snowballInterest: number;
-  avalancheInterest: number;
-  snowballMonths: number;
-  avalancheMonths: number;
-  /** Which finishes sooner (null when they tie or can't be estimated). */
-  fasterStrategy: PayoffStrategy | null;
-  /** Which pays less total interest (null when they tie or can't be estimated). */
-  lowerInterestStrategy: PayoffStrategy | null;
-  /** The one to recommend: lower-interest, else faster, else the user's current pick. */
-  recommendedStrategy: PayoffStrategy;
-  interestDifference: number;
-  monthDifference: number;
-}
-
-/** Project both strategies at the recommended monthly extra and compare them. */
-export function selectStrategyComparison(store: DebtStore): StrategyComparison {
-  const { liveDebts, monthlyExtra, currentDate, strategy } = derivePlanBasis(store);
-
-  const project = (s: PayoffStrategy) =>
-    projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: monthlyExtra, strategy: s, startDate: currentDate });
-
-  const snowball = project('snowball');
-  const avalanche = project('avalanche');
-  const canEstimate =
-    liveDebts.length > 0 &&
-    snowball.estimatedDebtFreeDate !== 'Unable to estimate' &&
-    avalanche.estimatedDebtFreeDate !== 'Unable to estimate';
-
-  const fasterStrategy =
-    canEstimate && snowball.monthsToDebtFree !== avalanche.monthsToDebtFree
-      ? snowball.monthsToDebtFree < avalanche.monthsToDebtFree
-        ? 'snowball'
-        : 'avalanche'
-      : null;
-
-  const lowerInterestStrategy =
-    canEstimate && snowball.totalInterestPaid !== avalanche.totalInterestPaid
-      ? snowball.totalInterestPaid < avalanche.totalInterestPaid
-        ? 'snowball'
-        : 'avalanche'
-      : null;
-
-  return {
-    canEstimate,
-    snowballDate: snowball.estimatedDebtFreeDate,
-    avalancheDate: avalanche.estimatedDebtFreeDate,
-    snowballInterest: snowball.totalInterestPaid,
-    avalancheInterest: avalanche.totalInterestPaid,
-    snowballMonths: snowball.monthsToDebtFree,
-    avalancheMonths: avalanche.monthsToDebtFree,
-    fasterStrategy,
-    lowerInterestStrategy,
-    recommendedStrategy: lowerInterestStrategy ?? fasterStrategy ?? strategy,
-    interestDifference: Math.abs(snowball.totalInterestPaid - avalanche.totalInterestPaid),
-    monthDifference: Math.abs(snowball.monthsToDebtFree - avalanche.monthsToDebtFree),
   };
 }
 
@@ -187,29 +121,15 @@ export function selectWhatIf(store: DebtStore, extraMonthly: number): WhatIfResu
   };
 }
 
-// ── Smart Insights ───────────────────────────────────────────────────────────────
-
-/** The prioritized guidance list (the free pull-readout; the premium Guardian is the push layer). */
-export function selectSmartInsights(store: DebtStore): SmartInsight[] {
-  const { liveDebts, perCycleExtra, projectedBuffer } = derivePlanBasis(store);
-  if (liveDebts.length === 0) return [];
-  const comparison = selectStrategyComparison(store);
-  return buildSmartInsights({
-    safeExtraPayment: perCycleExtra,
-    projectedBuffer,
-    debts: liveDebts,
-    snowballDebtFreeDate: comparison.snowballDate,
-    avalancheDebtFreeDate: comparison.avalancheDate,
-    snowballInterest: comparison.snowballInterest,
-    avalancheInterest: comparison.avalancheInterest,
-  });
-}
-
-// Forecast: intentionally NOT surfaced. The shipped Cash-Flow "Cushion" view (`selectCashTimeline`,
-// per-pay-cycle ending balance + stable/tight/pressure) already delivers the free forecast job at a
-// higher bar than the old monthly `projectForecast` — a separate module would duplicate it (2.2.3
-// before-scan, Jason 2026-07-22). `projectForecast`'s only distinct bit (upcoming relief) is routed
-// to Smart Insights (2.2.5) + the Phase-3 trajectory waypoints + the premium Guardian (2.4).
+// Smart Insights: intentionally NOT surfaced (2.2.5 scrapped, Jason 2026-07-22). `buildSmartInsights`
+// is weak "smart text" — most of it duplicates Today (cushion status → hero; safe-extra → Recommended
+// Actions) and the reshape audit demoted it BECAUSE it's LLM-commodity. Its one additive nugget
+// (near-payoff "upcoming relief") is delivered by the premium Cushion Guardian (2.4, the real
+// stateful/proactive version) + the Phase-3 trajectory waypoints (visual).
+//
+// Forecast: intentionally NOT surfaced either (2.2.3, Jason 2026-07-22). The shipped Cash-Flow
+// "Cushion" view (`selectCashTimeline`, per-pay-cycle ending balance + stable/tight/pressure) already
+// delivers the free forecast job at a higher bar than the old monthly `projectForecast`.
 
 // ── Amortization schedule (per debt) ─────────────────────────────────────────────
 
