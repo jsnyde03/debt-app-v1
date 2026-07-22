@@ -128,6 +128,27 @@ function runProjectCurrentBalanceTests() {
     "unverified debt reads as fresh with zero days (safe default)"
   );
 
+  // --- two-date split (balanceAsOfDate vs lastVerifiedDate): the rollover scenario ---
+  // After a rollover the anchor date is fresh (advanced to the cycle) but the user hasn't re-confirmed,
+  // so lastVerifiedDate stays old. Projection MUST anchor on balanceAsOfDate (no double-count of the
+  // paydown the rollover already applied); staleness MUST key off lastVerifiedDate.
+  const rolled = debt({ balance: 2388, apr: 26.99, minimumPayment: 65, balanceAsOfDate: "2026-02-20", lastVerifiedDate: "2026-01-01" });
+  assertEqual(
+    projectCurrentBalance(rolled, "2026-02-20"),
+    2388,
+    "projection anchors on balanceAsOfDate — 0 elapsed → the rolled balance, NOT re-projected from the old verified date (the double-count fix)"
+  );
+  assertEqual(
+    computeEstimateConfidence(rolled, "2026-02-20").staleness,
+    "stale",
+    "staleness still keys off lastVerifiedDate — 50 days since the user confirmed → verify-soon, despite the fresh rollover anchor"
+  );
+  assertEqual(
+    projectCurrentBalance(debt({ balance: 1000, apr: 0, minimumPayment: 0, lastVerifiedDate: "2026-01-01" }), "2026-01-01"),
+    1000,
+    "falls back to lastVerifiedDate as the anchor when balanceAsOfDate is absent (pre-split blobs)"
+  );
+
   console.log("✅ Projection auto-maintenance (2.3) tests passed.");
 }
 

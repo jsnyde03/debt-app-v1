@@ -59,7 +59,7 @@ export interface Preferences {
 }
 
 /** Bump when the persisted shape changes; `runMigrations` brings older blobs forward. */
-export const CURRENT_STORE_VERSION = 3;
+export const CURRENT_STORE_VERSION = 4;
 
 export interface DebtStore {
   storeVersion: number;

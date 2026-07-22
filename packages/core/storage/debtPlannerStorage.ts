@@ -47,12 +47,21 @@ export type Debt = {
 	// See RequiredExpense.autopayFailedThisCycle.
 	autopayFailedThisCycle?: boolean;
 
-	// v1.7 Projection auto-maintenance (2.3) — the trust anchor. `balance` is the
-	// user's last VERIFIED balance as of this date; it moves only on confirm/correct,
-	// never silently. The live "always-current" number shown to premium users is
-	// projected forward from (balance, lastVerifiedDate) to today and always labelled
-	// "estimated · verified {date}" (never presented as synced fact). Absent = legacy /
-	// unverified (pre-v1.7 blobs; the v3 migration backfills it to the app's current date).
+	// v1.7 Projection auto-maintenance (2.3) — TWO deliberately-separate dates:
+	//
+	// `balanceAsOfDate` = the projection ANCHOR: the date `balance` is current as-of. The premium
+	//   "always-current" number is projected forward from (balance, balanceAsOfDate) to today. It
+	//   advances whenever `balance` changes for ANY reason — a user verify/edit (=today) OR a payday
+	//   rollover (=the cycle date). Advancing it at rollover is what stops the projection from
+	//   re-applying a paydown the rollover already made (the double-count bug). Absent → treat as today.
+	//
+	// `lastVerifiedDate` = the last time the USER confirmed this balance against reality (a statement).
+	//   Set ONLY by a user verify/correct/edit — NEVER by a rollover (a rollover is a computed estimate,
+	//   not a verification). Drives the staleness "verify soon" prompt + the "verified {date}" label, so
+	//   they mean "you last checked this on {date}", not "the app recomputed it." Absent = never
+	//   user-confirmed (rolled-forward / legacy). `balance` still only moves on confirm/correct/rollover
+	//   — never silently mid-cycle.
+	balanceAsOfDate?: string;
 	lastVerifiedDate?: string;
 };
 

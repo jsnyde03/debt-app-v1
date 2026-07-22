@@ -84,7 +84,14 @@ export function applyRollover(store: DebtStore): DebtStore {
     maxProgressByDebt: store.milestoneMaxProgress,
   });
 
-  const rolledDebts = rolloverDebts(debtsAfter, nextPaycheckDate);
+  // Balances are now current as-of this rollover → advance the projection anchor (`balanceAsOfDate`)
+  // so the premium estimate doesn't re-apply this cycle's paydown (the double-count). `lastVerifiedDate`
+  // (last USER confirmation) is deliberately NOT touched — a rollover is a computed estimate, so the
+  // debt can still go "verify soon" until the user actually confirms it against a statement.
+  const rolledDebts = rolloverDebts(debtsAfter, nextPaycheckDate).map((d) => ({
+    ...d,
+    balanceAsOfDate: nextPaycheckDate,
+  }));
   const rolledExpenses = rolloverRequiredExpenses(reconciledExpenses, nextPaycheckDate);
 
   const followingPaycheckDate = nextPaycheckDate

@@ -17,10 +17,17 @@ import { Button } from '@/components/ui/Button';
 import { Pill } from '@/components/ui/Pill';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { CountUp, haptics, useReduceMotion } from '@/motion';
+import type { DebtBalanceView } from '@/store/balanceSelectors';
 import type { ActiveRecommendedAction, RequiredRow } from '@/store/planSelectors';
 import { spring } from '@/theme/motion';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { formatWhole } from '@/utils/format';
+
+function shortDate(iso?: string): string {
+  if (!iso) return 'a while ago';
+  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
 
 function isExpenseRow(row: RequiredRow): boolean {
   return row.item.category === 'expense' || row.item.category === 'autopay_expense';
@@ -40,6 +47,9 @@ export function PaydayCaptureSheet({
   activeRecommendedActions,
   requiredRows,
   requiredTotal,
+  staleBalances,
+  currentDate,
+  onVerifyBalances,
   onCapture,
   onDismiss,
   onClose,
@@ -48,6 +58,10 @@ export function PaydayCaptureSheet({
   activeRecommendedActions: ActiveRecommendedAction[];
   requiredRows: RequiredRow[];
   requiredTotal: number;
+  /** Premium debts whose estimate has gone stale — the decay-gated balance re-verify batch (2.3.5). Empty = no card. */
+  staleBalances: DebtBalanceView[];
+  currentDate: string;
+  onVerifyBalances: (entries: { id: string; balance: number }[], verifiedDate: string) => void;
   onCapture: (items: ReturnType<typeof buildPaydayCaptureItems>, requiredDecisions: RequiredReconciliation) => void;
   onDismiss: () => void;
   onClose: () => void;
@@ -69,6 +83,36 @@ export function PaydayCaptureSheet({
     return init;
   });
   const [preMarkAllPaid, setPreMarkAllPaid] = useState<Record<string, boolean> | null>(null);
+
+  // Balance re-verify (2.3.5) — the decay-gated "do these still look right?" batch.
+  const [checkingBalances, setCheckingBalances] = useState(false);
+  const [balancesConfirmed, setBalancesConfirmed] = useState(false);
+  const [balanceEdits, setBalanceEdits] = useState<Record<string, string>>({});
+  const showBalanceCheck = staleBalances.length > 0 && !balancesConfirmed;
+
+  function confirmAllBalances() {
+    // "These look right" — accept every estimate as the verified balance (zero typing).
+    onVerifyBalances(staleBalances.map((v) => ({ id: v.debt.id, balance: v.currentBalance })), currentDate);
+    haptics.light();
+    setBalancesConfirmed(true);
+  }
+  function openBalanceCheck() {
+    // Pre-fill each input with the rounded estimate → the default is "accept the estimate".
+    const seed: Record<string, string> = {};
+    for (const v of staleBalances) seed[v.debt.id] = String(Math.round(v.currentBalance));
+    setBalanceEdits(seed);
+    setCheckingBalances(true);
+  }
+  function confirmEditedBalances() {
+    const entries = staleBalances.map((v) => {
+      const typed = Number(balanceEdits[v.debt.id]);
+      return { id: v.debt.id, balance: Number.isFinite(typed) && typed >= 0 ? typed : v.currentBalance };
+    });
+    onVerifyBalances(entries, currentDate);
+    haptics.light();
+    setBalancesConfirmed(true);
+    setCheckingBalances(false);
+  }
 
   const requiredCount = requiredRows.length;
   const carryForward = requiredRows.reduce((sum, row) => {
@@ -212,6 +256,42 @@ export function PaydayCaptureSheet({
               </ScrollView>
               <Button label="Done" onPress={() => setAdjustingRequired(false)} />
             </>
+          ) : checkingBalances ? (
+            <>
+              <View style={styles.header}>
+                <View style={styles.headerText}>
+                  <Pressable onPress={() => setCheckingBalances(false)} accessibilityRole="button">
+                    <Text style={[textStyles.subhead, { color: c.accent.primary }]}>‹ Back</Text>
+                  </Pressable>
+                  <Text style={[textStyles.title2, { color: c.text.primary }]}>Check your balances</Text>
+                  <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
+                    Confirm each estimate, or type the real balance from your statement.
+                  </Text>
+                </View>
+              </View>
+              <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+                {staleBalances.map((v) => (
+                  <View
+                    key={v.debt.id}
+                    style={[styles.reconcileRow, { borderColor: c.border.default, backgroundColor: c.background.secondary }]}>
+                    <View style={styles.reconcileText}>
+                      <Text style={[textStyles.bodyMedium, { color: c.text.primary }]} numberOfLines={1}>{v.debt.name}</Text>
+                      <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+                        estimated ~{formatWhole(v.currentBalance)} · verified {shortDate(v.lastVerifiedDate)}
+                      </Text>
+                    </View>
+                    <TextInput
+                      keyboardType="decimal-pad"
+                      value={balanceEdits[v.debt.id] ?? ''}
+                      onChangeText={(t) => setBalanceEdits((cur) => ({ ...cur, [v.debt.id]: t }))}
+                      accessibilityLabel={`Balance for ${v.debt.name}`}
+                      style={[textStyles.numericBody, styles.amountInput, { color: c.text.primary, borderColor: c.border.default }]}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+              <Button label="Confirm balances" onPress={confirmEditedBalances} />
+            </>
           ) : (
             <>
               <View style={styles.header}>
@@ -237,6 +317,30 @@ export function PaydayCaptureSheet({
                       <Text style={[textStyles.numericBody, { color: c.text.primary }]}>{formatCurrency(requiredTotal)}</Text>
                     </View>
                     <Pill label="Adjust" tone="neutral" onPress={() => setAdjustingRequired(true)} />
+                  </View>
+                ) : null}
+
+                {showBalanceCheck ? (
+                  // 2.3.5 — the decay-gated balance re-verify batch. Only stale premium estimates surface
+                  // here; "These look right" re-anchors them all in one tap, "Update" corrects individuals.
+                  <View style={[styles.requiredCard, { backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}>
+                    <View style={styles.requiredMain}>
+                      <View style={styles.flex}>
+                        <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>Estimated balances</Text>
+                        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+                          {staleBalances.length === 1
+                            ? "1 balance hasn't been checked in a while"
+                            : `${staleBalances.length} balances haven't been checked in a while`}
+                        </Text>
+                      </View>
+                      <Pill label="Update" tone="neutral" onPress={openBalanceCheck} />
+                    </View>
+                    <Button label="These look right" variant="secondary" onPress={confirmAllBalances} />
+                  </View>
+                ) : balancesConfirmed ? (
+                  <View style={styles.balancesDone}>
+                    <AppIcon name="check-circle" size={16} color={c.accent.success} />
+                    <Text style={[textStyles.caption, { color: c.text.secondary }]}>Balances confirmed</Text>
                   </View>
                 ) : null}
 
@@ -371,6 +475,7 @@ const styles = StyleSheet.create({
   reconcileRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderRadius: layout.inputRadius, borderWidth: StyleSheet.hairlineWidth, padding: spacing.md },
   reconcileText: { flex: 1, gap: 2 },
   carry: { textAlign: 'center', paddingTop: spacing.sm },
+  balancesDone: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.xs },
   actions: { gap: spacing.sm },
   successPad: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xxl },
   checkWrap: { alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },

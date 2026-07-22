@@ -33,12 +33,14 @@ function daysBetween(aIso: string, bIso: string): number {
 
 /** The fields the projection reads from a Debt — kept structural so callers can pass a partial. */
 export interface ProjectableDebt {
-  /** The last-VERIFIED balance (the anchor). */
+  /** The current best-known balance (the projection anchor value). */
   balance: number;
   apr: number;
   minimumPayment: number;
   type?: "debt" | "bnpl";
-  /** YYYY-MM-DD; absent = unverified (legacy/pre-v1.7) → shown as-is, no projection. */
+  /** The projection ANCHOR date — when `balance` is current as-of (advances at rollover + user verify). */
+  balanceAsOfDate?: string;
+  /** The last USER confirmation date — drives staleness + the label, NOT the projection math. */
   lastVerifiedDate?: string;
 }
 
@@ -54,9 +56,12 @@ export interface ProjectableDebt {
 export function projectCurrentBalance(debt: ProjectableDebt, asOfDate: string): number {
   const anchor = roundMoney(Math.max(0, debt.balance));
   if (anchor <= 0) return 0;
-  if (!debt.lastVerifiedDate) return anchor; // unverified → no projection
+  // Project from the balance's as-of date. Fall back to lastVerifiedDate for pre-split blobs; absent
+  // both → no projection (show the anchor as-is).
+  const anchorDate = debt.balanceAsOfDate ?? debt.lastVerifiedDate;
+  if (!anchorDate) return anchor;
 
-  const totalMonths = daysBetween(debt.lastVerifiedDate, asOfDate) / DAYS_PER_MONTH;
+  const totalMonths = daysBetween(anchorDate, asOfDate) / DAYS_PER_MONTH;
   if (totalMonths <= 0) return anchor; // asOf at/before the anchor → nothing to project
 
   const apr = debt.type === "bnpl" ? 0 : debt.apr;

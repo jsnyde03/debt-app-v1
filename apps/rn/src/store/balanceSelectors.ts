@@ -79,3 +79,12 @@ export function selectStaleDebtIds(store: DebtStore): string[] {
     .filter((debt) => debt.balance > 0 && computeEstimateConfidence(debt, asOf).staleness === 'stale')
     .map((debt) => debt.id);
 }
+
+/** Views for the stale-estimate debts — the Payday Autopilot re-verify batch (2.3.5). Premium-only ([]  for free). */
+export function selectStaleBalanceViews(store: DebtStore, isPremium: boolean): DebtBalanceView[] {
+  if (!isPremium) return [];
+  const asOf = store.paycheck.currentDate;
+  return store.debts
+    .filter((debt) => debt.balance > 0 && computeEstimateConfidence(debt, asOf).staleness === 'stale')
+    .map((debt) => selectDebtBalanceView(debt, asOf, true));
+}

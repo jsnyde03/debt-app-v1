@@ -18,6 +18,7 @@ import { Card } from '@/components/ui/Card';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
+import { selectStaleBalanceViews } from '@/store/balanceSelectors';
 import {
   selectPlanState,
   selectPlanSummary,
@@ -52,6 +53,8 @@ export default function TodayScreen() {
 
   // Payday Autopilot — detection + the capture sheet's open state. Called unconditionally (hooks rule).
   const payday = usePaydayCapture(recommended.length > 0);
+  // 2.3.5 — stale premium estimates surfaced for the payday re-verify batch (empty for free).
+  const staleBalances = selectStaleBalanceViews(store, store.subscriptionPlan === 'premium');
   const [paycheckSheet, setPaycheckSheet] = useState(false);
   const [windfallSheet, setWindfallSheet] = useState(false);
 
@@ -131,6 +134,9 @@ export default function TodayScreen() {
           activeRecommendedActions={recommended}
           requiredRows={requiredRows}
           requiredTotal={summary.requiredTotal}
+          staleBalances={staleBalances}
+          currentDate={store.paycheck.currentDate}
+          onVerifyBalances={(entries, date) => appStore.getState().verifyDebtBalances(entries, date)}
           onCapture={(items, decisions) => {
             appStore.getState().capturePayday(items, decisions);
             payday.completeCapture();

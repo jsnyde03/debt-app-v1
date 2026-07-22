@@ -140,21 +140,33 @@ export function createDebtStore() {
     },
 
     addDebt(debt) {
-      // A new debt's balance is verified NOW (the user just entered a real number) → stamp the anchor date.
-      set((s) => ({
-        store: recordDriftBaseline({
-          ...s.store,
-          debts: [...s.store.debts, { ...debt, lastVerifiedDate: debt.lastVerifiedDate ?? s.store.paycheck.currentDate }],
-        }),
-      }));
+      // A new debt's balance is verified NOW (the user just entered a real number) → stamp both dates.
+      set((s) => {
+        const now = s.store.paycheck.currentDate;
+        return {
+          store: recordDriftBaseline({
+            ...s.store,
+            debts: [
+              ...s.store.debts,
+              { ...debt, lastVerifiedDate: debt.lastVerifiedDate ?? now, balanceAsOfDate: debt.balanceAsOfDate ?? now },
+            ],
+          }),
+        };
+      });
     },
     updateDebt(id, updates) {
       set((s) => {
-        // Editing the balance IS a verification — the user typed a real number → re-anchor its date
-        // (unless the caller already set one, e.g. a projected confirm). Other edits leave the date.
+        // Editing the balance IS a verification — the user typed a real number → re-anchor BOTH the
+        // as-of date and the user-confirmation date (unless the caller already set them). Other edits
+        // leave the dates alone.
+        const now = s.store.paycheck.currentDate;
         const stamped =
-          updates.balance !== undefined && updates.lastVerifiedDate === undefined
-            ? { ...updates, lastVerifiedDate: s.store.paycheck.currentDate }
+          updates.balance !== undefined
+            ? {
+                ...updates,
+                lastVerifiedDate: updates.lastVerifiedDate ?? now,
+                balanceAsOfDate: updates.balanceAsOfDate ?? now,
+              }
             : updates;
         return {
           store: { ...s.store, debts: s.store.debts.map((d) => (d.id === id ? { ...d, ...stamped } : d)) },
@@ -169,7 +181,9 @@ export function createDebtStore() {
       set((s) => ({
         store: {
           ...s.store,
-          debts: s.store.debts.map((d) => (d.id === id ? { ...d, balance, lastVerifiedDate: verifiedDate } : d)),
+          debts: s.store.debts.map((d) =>
+            d.id === id ? { ...d, balance, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate } : d
+          ),
         },
       }));
     },
@@ -179,7 +193,9 @@ export function createDebtStore() {
         store: {
           ...s.store,
           debts: s.store.debts.map((d) =>
-            next.has(d.id) ? { ...d, balance: next.get(d.id)!, lastVerifiedDate: verifiedDate } : d
+            next.has(d.id)
+              ? { ...d, balance: next.get(d.id)!, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate }
+              : d
           ),
         },
       }));
