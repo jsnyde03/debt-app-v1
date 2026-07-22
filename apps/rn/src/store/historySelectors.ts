@@ -13,10 +13,25 @@ export interface HistoryRow {
   debtDelta: number;
 }
 
+/** The progress-anchor stat for the History header — total debt paid down across all recorded cycles. */
+export interface HistorySummary {
+  /** Debt reduction from the oldest recorded cycle to the newest (0 if <2 cycles or debt grew net). */
+  paidDown: number;
+  cycleCount: number;
+}
+
+/** Total "how far you've come" across the whole (uncapped) history. */
+export function selectHistorySummary(store: DebtStore): HistorySummary {
+  const h = store.cycleHistory; // chronological (oldest first)
+  const cycleCount = h.length;
+  const paidDown = cycleCount >= 2 ? Math.max(0, h[0].totalDebtBalance - h[cycleCount - 1].totalDebtBalance) : 0;
+  return { paidDown, cycleCount };
+}
+
 /**
- * Pay Cycle History rows, most-recent-first. B.8 ships this UNGATED (free surface); the tier-aware
- * slice (free lock + Premium 6-cycle cap + Premium+ full history) wires in at Phase C with the
- * revenue spine — see V17_PLAN. Snapshots are appended chronologically by the rollover handler.
+ * Pay Cycle History rows, most-recent-first. **UNGATED + uncapped** — the 2026-07-21 premium reshape
+ * makes history a generous FREE surface (no Premium cap / Premium+ full-history split; that old
+ * tier plan is retired). Snapshots are appended chronologically by the rollover handler.
  */
 export function selectHistoryRows(store: DebtStore): HistoryRow[] {
   const chronological = store.cycleHistory;
