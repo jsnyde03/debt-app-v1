@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Pressable, Text } from 'react-native';
 
 import type { Recurrence } from '@core/types/recurrence';
-import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { AmortizationSheet } from '@/components/entities/AmortizationSheet';
 import { FormSheet } from '@/components/ui/FormSheet';
@@ -16,6 +15,7 @@ import { appStore } from '@/store/appStore';
 import { selectDebtBalanceView } from '@/store/balanceSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { textStyles } from '@/theme/typography';
+import { formatWhole } from '@/utils/format';
 
 function shortDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -100,15 +100,17 @@ export function DebtSheet({ editing, onClose }: { editing: Debt | null; onClose:
       {isEdit && estimate?.isEstimate ? (
         // Premium estimate: offer the projected value in one tap (Save re-anchors it) — never pre-fill
         // it silently. Typing the real number is the correction path; both re-anchor lastVerifiedDate.
+        // Stacked + left-aligned so the action never hides behind a scroll bar on wide/iPad layouts.
         <Pressable
           onPress={() => { setBalance(String(estimate.currentBalance)); setError(''); }}
           accessibilityRole="button"
-          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -4 }}>
-          <Text style={[textStyles.caption, { color: c.text.tertiary, flexShrink: 1 }]}>
-            Estimated {formatCurrency(estimate.currentBalance)} today
+          accessibilityLabel={`Use the estimated balance, ${formatWhole(estimate.currentBalance)}`}
+          style={{ marginTop: -4, gap: 2, alignSelf: 'flex-start' }}>
+          <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+            Estimated {formatWhole(estimate.currentBalance)} today
             {estimate.lastVerifiedDate ? ` · verified ${shortDate(estimate.lastVerifiedDate)}` : ''}
           </Text>
-          <Text style={[textStyles.caption, { color: c.accent.primary }]}>Use estimate</Text>
+          <Text style={[textStyles.caption, { color: c.accent.primary }]}>Use estimate →</Text>
         </Pressable>
       ) : isEdit && !isPremium && estimate?.lastVerifiedDate ? (
         <Text style={[textStyles.caption, { color: c.text.tertiary, marginTop: -4 }]}>Updated {shortDate(estimate.lastVerifiedDate)}</Text>

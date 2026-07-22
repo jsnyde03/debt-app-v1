@@ -173,7 +173,7 @@ function DebtRow({
   return (
     <ListRow
       title={debt.name}
-      meta={`${view.isEstimate ? '~' : ''}${formatCurrency(view.currentBalance)} · ${debt.apr}% APR`}
+      meta={`${view.isEstimate ? `~${formatWhole(view.currentBalance)}` : formatCurrency(view.currentBalance)} · ${debt.apr}% APR`}
       caption={caption.text || undefined}
       captionColor={caption.attention ? c.accent.warning : undefined}
       amount={formatCurrency(debt.minimumPayment)}
