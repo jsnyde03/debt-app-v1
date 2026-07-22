@@ -104,13 +104,13 @@ export function DebtSheet({ editing, onClose }: { editing: Debt | null; onClose:
         <Pressable
           onPress={() => { setBalance(String(estimate.currentBalance)); setError(''); }}
           accessibilityRole="button"
-          accessibilityLabel={`Use the estimated balance, ${formatWhole(estimate.currentBalance)}`}
+          accessibilityLabel={`Apply the estimated balance ${formatWhole(estimate.currentBalance)} to your plan`}
           style={{ marginTop: -4, gap: 2, alignSelf: 'flex-start' }}>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
             Estimated {formatWhole(estimate.currentBalance)} today
             {estimate.lastVerifiedDate ? ` · verified ${shortDate(estimate.lastVerifiedDate)}` : ''}
           </Text>
-          <Text style={[textStyles.caption, { color: c.accent.primary }]}>Use estimate →</Text>
+          <Text style={[textStyles.caption, { color: c.accent.primary }]}>Apply Estimate to Plan</Text>
         </Pressable>
       ) : isEdit && !isPremium && estimate?.lastVerifiedDate ? (
         <Text style={[textStyles.caption, { color: c.text.tertiary, marginTop: -4 }]}>Updated {shortDate(estimate.lastVerifiedDate)}</Text>
