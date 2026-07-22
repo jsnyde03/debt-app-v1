@@ -2,8 +2,6 @@ import { buildAmortizationSchedule, type AmortizationSchedule } from '@core/debt
 import { buildPayoffTrajectory, type TrajectoryPoint } from '@core/debt/buildPayoffTrajectory';
 import { buildExtraPaymentAllocationPlan, type ExtraPaymentAllocationItem } from '@core/debt/extraPaymentPlan';
 import { projectDebtPayoff } from '@core/debt/projectDebtPayoff';
-import { projectForecast } from '@core/forecast/projectForecast';
-import type { ForecastMonth } from '@core/forecast/types';
 import { buildSmartInsights, type SmartInsight } from '@core/insights/buildSmartInsights';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 
@@ -13,7 +11,7 @@ import { selectExtraToDebt } from './planSelectors';
 import { rankDebts } from './payoffSelectors';
 import { selectAllocation, type Allocation } from './selectors';
 
-export type { SmartInsight, ForecastMonth, AmortizationSchedule, ExtraPaymentAllocationItem };
+export type { SmartInsight, AmortizationSchedule, ExtraPaymentAllocationItem };
 
 /**
  * The shared derivation layer for the free analysis tools (What-If · Forecast · Smart Insights ·
@@ -207,60 +205,37 @@ export function selectSmartInsights(store: DebtStore): SmartInsight[] {
   });
 }
 
-// ── Forecast (3-month cash-cushion outlook) ──────────────────────────────────────
-
-/**
- * The near-term monthly cash outlook — projected cushion + debt balance per month with a
- * stable/tight/pressure/recovery status, recommended action, risk drivers and upcoming relief.
- * The passive free readout (premium Guardian 2.4 = the proactive per-cycle watch on top).
- */
-export function selectForecast(store: DebtStore, months = 3): ForecastMonth[] {
-  const { liveDebts, allocation, monthlyExtra, projectedBuffer } = derivePlanBasis(store);
-  if (!allocation || liveDebts.length === 0) return [];
-
-  const totalDebtBalance = liveDebts.reduce((sum, d) => sum + d.balance, 0);
-  const monthlyMinimumTotal = liveDebts.reduce((sum, d) => sum + Math.min(d.minimumPayment, d.balance), 0);
-  const bufferTrendPerMonth = Math.min(75, Math.max(0, monthlyMinimumTotal * 0.05));
-  const requiredPaymentCount = allocation.allocations.filter(
-    (a) => a.category === 'expense' || a.category === 'minimum_debt',
-  ).length;
-  const nextDebt = rankDebts(liveDebts, store.payoffStrategy)[0];
-
-  return projectForecast({
-    startingSafeCash: projectedBuffer,
-    startingDebtBalance: totalDebtBalance,
-    monthlyDebtReduction: monthlyExtra,
-    months,
-    bufferTrendPerMonth,
-    requiredPaymentCount,
-    monthlyMinimumTotal,
-    nextDebtName: nextDebt?.name,
-    nextDebtMinimum: nextDebt?.minimumPayment,
-  });
-}
+// Forecast: intentionally NOT surfaced. The shipped Cash-Flow "Cushion" view (`selectCashTimeline`,
+// per-pay-cycle ending balance + stable/tight/pressure) already delivers the free forecast job at a
+// higher bar than the old monthly `projectForecast` — a separate module would duplicate it (2.2.3
+// before-scan, Jason 2026-07-22). `projectForecast`'s only distinct bit (upcoming relief) is routed
+// to Smart Insights (2.2.5) + the Phase-3 trajectory waypoints + the premium Guardian (2.4).
 
 // ── Amortization schedule (per debt) ─────────────────────────────────────────────
 
-/** Build a single debt's month-by-month schedule at its minimum + (if it's the focus) the extra. */
-export function selectDebtAmortization(store: DebtStore, debtId: string): AmortizationSchedule | null {
-  const { liveDebts, monthlyExtra, strategy } = derivePlanBasis(store);
+export interface DebtAmortization {
+  debt: Debt;
+  schedule: AmortizationSchedule;
+  /** The monthly payment the schedule assumes: minimum + (if this is the focus debt) the extra. */
+  monthlyPayment: number;
+  isFocus: boolean;
+  /** First month of the schedule — row N's date = this + N months (for the sheet's month labels). */
+  startDate: string;
+}
+
+/** A single debt's month-by-month payoff schedule at its minimum + (if it's the focus) the extra. */
+export function selectDebtAmortization(store: DebtStore, debtId: string): DebtAmortization | null {
+  const { liveDebts, monthlyExtra, strategy, currentDate } = derivePlanBasis(store);
   const debt = liveDebts.find((d) => d.id === debtId);
   if (!debt) return null;
   const isFocus = rankDebts(liveDebts, strategy)[0]?.id === debt.id;
-  return buildAmortizationSchedule({
+  // Only the focus debt receives the recommended extra; others amortize at their minimum.
+  const monthlyPayment = debt.minimumPayment + (isFocus ? monthlyExtra : 0);
+  const schedule = buildAmortizationSchedule({
     balance: debt.balance,
     // BNPL carries no interest — mirror the old app's `apr: 0` so the schedule reconciles.
     apr: debt.type === 'bnpl' ? 0 : debt.apr,
-    // Only the focus debt receives the recommended extra; others amortize at their minimum.
-    monthlyPayment: debt.minimumPayment + (isFocus ? monthlyExtra : 0),
+    monthlyPayment,
   });
-}
-
-/** Convenience: the focus debt's schedule (the primary "View Schedule" drill-in). */
-export function selectFocusAmortization(store: DebtStore): { debt: Debt; schedule: AmortizationSchedule } | null {
-  const { liveDebts, strategy } = derivePlanBasis(store);
-  const focus = rankDebts(liveDebts, strategy)[0];
-  if (!focus) return null;
-  const schedule = selectDebtAmortization(store, focus.id);
-  return schedule ? { debt: focus, schedule } : null;
+  return { debt, schedule, monthlyPayment, isFocus, startDate: currentDate };
 }

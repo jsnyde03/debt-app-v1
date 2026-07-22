@@ -20,6 +20,7 @@ export function FormSheet({
   onSubmit,
   onRemove,
   onClose,
+  headerAction,
   children,
 }: {
   visible: boolean;
@@ -29,6 +30,8 @@ export function FormSheet({
   onSubmit: () => void;
   onRemove?: () => void;
   onClose: () => void;
+  /** Optional pressable pinned in the header row, just left of Close (e.g. "View payoff schedule"). */
+  headerAction?: ReactNode;
   children: ReactNode;
 }) {
   const c = useAppColors();
@@ -45,6 +48,7 @@ export function FormSheet({
               <Text style={[textStyles.title2, { color: c.text.primary }]}>{title}</Text>
               {subtitle ? <Text style={[textStyles.subhead, { color: c.text.secondary }]}>{subtitle}</Text> : null}
             </View>
+            {headerAction}
             <Pressable onPress={onClose} accessibilityRole="button">
               <Text style={[textStyles.subhead, { color: c.text.secondary }]}>Close</Text>
             </Pressable>

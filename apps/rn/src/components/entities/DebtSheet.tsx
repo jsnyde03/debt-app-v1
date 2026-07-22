@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
 
 import type { Recurrence } from '@core/types/recurrence';
 
+import { AmortizationSheet } from '@/components/entities/AmortizationSheet';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { Select } from '@/components/ui/Select';
 import { SwitchRow } from '@/components/ui/SwitchRow';
@@ -37,6 +38,7 @@ export function DebtSheet({ editing, onClose }: { editing: Debt | null; onClose:
   const [remainingPayments, setRemainingPayments] = useState(editing?.remainingPayments != null ? String(editing.remainingPayments) : '');
   const [scheduledPaymentAmount, setScheduledPaymentAmount] = useState(editing?.scheduledPaymentAmount != null ? String(editing.scheduledPaymentAmount) : '');
   const [error, setError] = useState('');
+  const [showSchedule, setShowSchedule] = useState(false);
 
   function submit() {
     if (!name.trim()) return setError('Enter a name.');
@@ -67,6 +69,7 @@ export function DebtSheet({ editing, onClose }: { editing: Debt | null; onClose:
   }
 
   return (
+    <>
     <FormSheet
       visible
       title={isEdit ? 'Edit debt' : 'Add a debt'}
@@ -74,7 +77,14 @@ export function DebtSheet({ editing, onClose }: { editing: Debt | null; onClose:
       submitLabel={isEdit ? 'Save' : 'Add debt'}
       onSubmit={submit}
       onRemove={isEdit ? remove : undefined}
-      onClose={onClose}>
+      onClose={onClose}
+      headerAction={
+        isEdit ? (
+          <Pressable onPress={() => setShowSchedule(true)} accessibilityRole="button" hitSlop={6}>
+            <Text style={[textStyles.subhead, { color: c.accent.primary }]}>View Payoff Schedule</Text>
+          </Pressable>
+        ) : undefined
+      }>
       <TextField label="Name" value={name} onChangeText={(t) => { setName(t); setError(''); }} placeholder="Visa, Car Loan" />
       <TextField label="Current balance" value={balance} onChangeText={(t) => { setBalance(t); setError(''); }} placeholder="e.g. 2400" keyboardType="decimal-pad" />
       <TextField label="Minimum payment" value={minimumPayment} onChangeText={(t) => { setMinimumPayment(t); setError(''); }} placeholder="e.g. 65" keyboardType="decimal-pad" />
@@ -96,5 +106,9 @@ export function DebtSheet({ editing, onClose }: { editing: Debt | null; onClose:
       <SwitchRow label="Autopay" value={autopay} onValueChange={setAutopay} />
       {error ? <Text style={[textStyles.caption, { color: c.accent.danger }]}>{error}</Text> : null}
     </FormSheet>
+    {isEdit && editing ? (
+      <AmortizationSheet visible={showSchedule} debtId={editing.id} onClose={() => setShowSchedule(false)} />
+    ) : null}
+    </>
   );
 }
