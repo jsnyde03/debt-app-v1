@@ -46,6 +46,14 @@ export type Debt = {
 	isAutopay?: boolean;
 	// See RequiredExpense.autopayFailedThisCycle.
 	autopayFailedThisCycle?: boolean;
+
+	// v1.7 Projection auto-maintenance (2.3) — the trust anchor. `balance` is the
+	// user's last VERIFIED balance as of this date; it moves only on confirm/correct,
+	// never silently. The live "always-current" number shown to premium users is
+	// projected forward from (balance, lastVerifiedDate) to today and always labelled
+	// "estimated · verified {date}" (never presented as synced fact). Absent = legacy /
+	// unverified (pre-v1.7 blobs; the v3 migration backfills it to the app's current date).
+	lastVerifiedDate?: string;
 };
 
 export type Goal = {
