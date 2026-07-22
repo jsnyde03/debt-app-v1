@@ -18,15 +18,23 @@ export function demoStore(): DebtStore {
   const anchor = new Date(`${currentDate}T00:00:00`);
   anchor.setDate(anchor.getDate() - 45);
   const anchorDate = anchor.toISOString().slice(0, 10);
+  // Staggered verification dates so Projection auto-maintenance (2.3) demos one of each estimate
+  // state for a Premium view: fresh (Store), aging (Visa), stale → "verify soon" (Car). Free just
+  // reads "updated {date}". Only affects the DISPLAY estimate, not drift/plan (still on the anchor).
+  const daysAgo = (n: number) => {
+    const d = new Date(`${currentDate}T00:00:00`);
+    d.setDate(d.getDate() - n);
+    return d.toISOString().slice(0, 10);
+  };
   return {
     ...base,
     paycheck: { ...base.paycheck, amount: '2350', nextPaycheckDate },
     // A user genuinely MID-JOURNEY (~39% paid — original $18,900 → now $11,580), so the ring shows
     // real progress past the 25% milestone and the snowball has an "about to win" focus debt.
     debts: [
-      { id: 'demo-store', name: 'Store Card', balance: 180, originalBalance: 1200, minimumPayment: 30, apr: 22.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly', lastVerifiedDate: currentDate },
-      { id: 'demo-visa', name: 'Visa', balance: 2400, originalBalance: 4200, minimumPayment: 65, apr: 26.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly', lastVerifiedDate: currentDate },
-      { id: 'demo-car', name: 'Car Loan', balance: 9000, originalBalance: 13500, minimumPayment: 260, apr: 6.5, dueDate: currentDate, type: 'debt', recurrence: 'monthly', lastVerifiedDate: currentDate },
+      { id: 'demo-store', name: 'Store Card', balance: 180, originalBalance: 1200, minimumPayment: 30, apr: 22.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly', lastVerifiedDate: daysAgo(8) },
+      { id: 'demo-visa', name: 'Visa', balance: 2400, originalBalance: 4200, minimumPayment: 65, apr: 26.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly', lastVerifiedDate: daysAgo(38) },
+      { id: 'demo-car', name: 'Car Loan', balance: 9000, originalBalance: 13500, minimumPayment: 260, apr: 6.5, dueDate: currentDate, type: 'debt', recurrence: 'monthly', lastVerifiedDate: daysAgo(52) },
     ],
     requiredExpenses: [
       { id: 'demo-rent', name: 'Rent', amount: 1150, dueDate: currentDate, recurrence: 'monthly', category: 'housing' },

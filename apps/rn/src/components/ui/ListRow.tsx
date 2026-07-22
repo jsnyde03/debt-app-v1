@@ -17,6 +17,8 @@ import { groupLabel } from '@/utils/a11y';
 export function ListRow({
   title,
   meta,
+  caption,
+  captionColor,
   amount,
   amountSuffix,
   badges,
@@ -26,6 +28,10 @@ export function ListRow({
 }: {
   title: string;
   meta?: string;
+  /** Optional quiet second line under `meta` (e.g. Projection auto-maintenance's "estimated · verified {date}"). */
+  caption?: string;
+  /** Tint for `caption` — defaults to the tertiary text color. */
+  captionColor?: string;
   amount?: string;
   amountSuffix?: string;
   badges?: ReactNode;
@@ -36,8 +42,8 @@ export function ListRow({
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
-  // One screen-reader utterance: "Visa, $2,400 · 22.99% APR, $65.00/mo" instead of separate stops.
-  const a11y = groupLabel(title, meta, amount ? `${amount}${amountSuffix ?? ''}` : undefined);
+  // One screen-reader utterance: "Visa, $2,400 · 22.99% APR, estimated verified Jun 3, $65.00/mo".
+  const a11y = groupLabel(title, [meta, caption].filter(Boolean).join(', ') || undefined, amount ? `${amount}${amountSuffix ?? ''}` : undefined);
   return (
     <Pressable
       onPress={onPress}
@@ -59,6 +65,11 @@ export function ListRow({
         {meta ? (
           <Text style={[textStyles.caption, { color: c.text.tertiary }]} numberOfLines={1}>
             {meta}
+          </Text>
+        ) : null}
+        {caption ? (
+          <Text style={[textStyles.caption, { color: captionColor ?? c.text.tertiary }]} numberOfLines={1}>
+            {caption}
           </Text>
         ) : null}
         {progress !== undefined ? (

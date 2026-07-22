@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, Text } from 'react-native';
 
 import type { Recurrence } from '@core/types/recurrence';
+import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { AmortizationSheet } from '@/components/entities/AmortizationSheet';
 import { FormSheet } from '@/components/ui/FormSheet';
@@ -12,7 +13,13 @@ import { todayLocalISO } from '@/data/defaults';
 import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
+import { selectDebtBalanceView } from '@/store/balanceSelectors';
+import { useAppStore } from '@/store/useAppStore';
 import { textStyles } from '@/theme/typography';
+
+function shortDate(iso: string): string {
+  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
 
 const RECURRENCE: { value: Recurrence; label: string }[] = [
   { value: 'monthly', label: 'Monthly' },
@@ -26,6 +33,9 @@ const RECURRENCE: { value: Recurrence; label: string }[] = [
 /** Unified add/edit sheet for a debt. BNPL fields are now editable in both modes (redesign fix). */
 export function DebtSheet({ editing, onClose }: { editing: Debt | null; onClose: () => void }) {
   const c = useAppColors();
+  const currentDate = useAppStore((s) => s.store.paycheck.currentDate);
+  const isPremium = useAppStore((s) => s.store.subscriptionPlan === 'premium');
+  const estimate = editing ? selectDebtBalanceView(editing, currentDate, isPremium) : null;
   const isEdit = !!editing;
   const [name, setName] = useState(editing?.name ?? '');
   const [balance, setBalance] = useState(editing ? String(editing.balance) : '');
@@ -87,6 +97,22 @@ export function DebtSheet({ editing, onClose }: { editing: Debt | null; onClose:
       }>
       <TextField label="Name" value={name} onChangeText={(t) => { setName(t); setError(''); }} placeholder="Visa, Car Loan" />
       <TextField label="Current balance" value={balance} onChangeText={(t) => { setBalance(t); setError(''); }} placeholder="e.g. 2400" keyboardType="decimal-pad" />
+      {isEdit && estimate?.isEstimate ? (
+        // Premium estimate: offer the projected value in one tap (Save re-anchors it) — never pre-fill
+        // it silently. Typing the real number is the correction path; both re-anchor lastVerifiedDate.
+        <Pressable
+          onPress={() => { setBalance(String(estimate.currentBalance)); setError(''); }}
+          accessibilityRole="button"
+          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -4 }}>
+          <Text style={[textStyles.caption, { color: c.text.tertiary, flexShrink: 1 }]}>
+            Estimated {formatCurrency(estimate.currentBalance)} today
+            {estimate.lastVerifiedDate ? ` · verified ${shortDate(estimate.lastVerifiedDate)}` : ''}
+          </Text>
+          <Text style={[textStyles.caption, { color: c.accent.primary }]}>Use estimate</Text>
+        </Pressable>
+      ) : isEdit && !isPremium && estimate?.lastVerifiedDate ? (
+        <Text style={[textStyles.caption, { color: c.text.tertiary, marginTop: -4 }]}>Updated {shortDate(estimate.lastVerifiedDate)}</Text>
+      ) : null}
       <TextField label="Minimum payment" value={minimumPayment} onChangeText={(t) => { setMinimumPayment(t); setError(''); }} placeholder="e.g. 65" keyboardType="decimal-pad" />
       <TextField label="APR %" value={apr} onChangeText={setApr} placeholder="e.g. 22.99" keyboardType="decimal-pad" />
       <TextField label="Due date (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate} placeholder="2026-07-01" />

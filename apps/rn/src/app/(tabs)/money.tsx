@@ -24,6 +24,7 @@ import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import type { Debt, Goal, RequiredExpense, RequiredExpenseCategory } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
+import { selectDebtBalanceView, buildEstimateCaption } from '@/store/balanceSelectors';
 import { selectPayoffView } from '@/store/payoffSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
@@ -87,9 +88,12 @@ function DebtsSection() {
     );
   }
 
+  const isPremium = store.subscriptionPlan === 'premium';
+  const currentDate = store.paycheck.currentDate;
   const active = view.order; // ranked by the payoff strategy
   const focusId = view.focus?.id;
-  const totalBal = active.reduce((s, d) => s + d.balance, 0);
+  // Premium sums the projected (always-current) balances so the hero reconciles with the rows.
+  const totalBal = active.reduce((s, d) => s + selectDebtBalanceView(d, currentDate, isPremium).currentBalance, 0);
 
   type DebtGroup = { key: string; title?: string; data: Debt[] };
   const sections: DebtGroup[] = [{ key: 'active', data: active }];
@@ -130,7 +134,9 @@ function DebtsSection() {
             <Text style={[textStyles.footnote, styles.groupLabel, { color: c.text.tertiary }]}>{section.title}</Text>
           ) : null
         }
-        renderItem={({ item }) => <DebtRow debt={item} focus={item.id === focusId} onEdit={(x) => setSheet({ editing: x })} />}
+        renderItem={({ item }) => (
+          <DebtRow debt={item} focus={item.id === focusId} currentDate={currentDate} isPremium={isPremium} onEdit={(x) => setSheet({ editing: x })} />
+        )}
         ListFooterComponent={
           <View style={styles.listFooter}>
             <AddRow label="Add debt" onPress={() => setSheet({ editing: null })} />
@@ -142,9 +148,24 @@ function DebtsSection() {
   );
 }
 
-function DebtRow({ debt, focus, onEdit }: { debt: Debt; focus?: boolean; onEdit: (d: Debt) => void }) {
+function DebtRow({
+  debt,
+  focus,
+  currentDate,
+  isPremium,
+  onEdit,
+}: {
+  debt: Debt;
+  focus?: boolean;
+  currentDate: string;
+  isPremium: boolean;
+  onEdit: (d: Debt) => void;
+}) {
   const c = useAppColors();
-  const progress = debt.originalBalance && debt.originalBalance > 0 ? 1 - debt.balance / debt.originalBalance : undefined;
+  const view = selectDebtBalanceView(debt, currentDate, isPremium);
+  const caption = buildEstimateCaption(view, isPremium, shortDate);
+  // Progress off the (projected) current balance so the bar tracks what the row shows.
+  const progress = debt.originalBalance && debt.originalBalance > 0 ? 1 - view.currentBalance / debt.originalBalance : undefined;
   const chips = [
     focus ? <Pill key="f" label="Focus" tone="action" /> : null,
     debt.type === 'bnpl' ? <Pill key="b" label="BNPL" tone="neutral" /> : debt.isAutopay ? <Pill key="a" label="Autopay" tone="autopay" /> : null,
@@ -152,7 +173,9 @@ function DebtRow({ debt, focus, onEdit }: { debt: Debt; focus?: boolean; onEdit:
   return (
     <ListRow
       title={debt.name}
-      meta={`${formatCurrency(debt.balance)} · ${debt.apr}% APR`}
+      meta={`${view.isEstimate ? '~' : ''}${formatCurrency(view.currentBalance)} · ${debt.apr}% APR`}
+      caption={caption.text || undefined}
+      captionColor={caption.attention ? c.accent.warning : undefined}
       amount={formatCurrency(debt.minimumPayment)}
       amountSuffix="/mo"
       badges={chips.length ? <>{chips}</> : undefined}
