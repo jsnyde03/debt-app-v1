@@ -32,6 +32,7 @@ export function createDefaultStore(): DebtStore {
     completedRecommendedActions: [],
     milestoneMaxProgress: {},
     subscriptionPlan: 'free',
+    cushionFloor: 200,
     driftBaseline: null,
     prefs: {
       notificationsEnabled: false,

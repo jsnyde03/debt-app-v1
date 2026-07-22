@@ -81,6 +81,7 @@ export interface DebtAppState {
   // Prefs / subscription / onboarding
   updatePrefs(updates: Partial<Preferences>): void;
   setSubscriptionPlan(plan: SubscriptionPlan): void;
+  setCushionFloor(floor: number): void;
   completeOnboarding(): void;
 
   // Import (shared by JSON import + iCloud restore + the Phase-D data bridge)
@@ -294,6 +295,12 @@ export function createDebtStore() {
     },
     setSubscriptionPlan(plan) {
       set((s) => ({ store: { ...s.store, subscriptionPlan: plan } }));
+    },
+    setCushionFloor(floor) {
+      // Clamp to a sane, snapped range — the "alert line" a user would actually set. Guard NaN → 200.
+      const safe = Number.isFinite(floor) ? floor : 200;
+      const snapped = Math.round(Math.max(0, Math.min(1000, safe)) / 25) * 25;
+      set((s) => ({ store: { ...s.store, cushionFloor: snapped } }));
     },
     completeOnboarding() {
       // Plan-establish point — freeze the first drift baseline if the plan is ready.

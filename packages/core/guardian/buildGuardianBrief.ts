@@ -1,116 +1,145 @@
 import type { CushionStatus } from "@core/timeline/buildMultiCycleTimeline";
 
 /**
- * Payday Cushion Guardian core (v1.7 Phase 2.4) — the premium headline. Answers the one question the
- * free plan deliberately doesn't: **"am I going to make it THIS paycheck?"** — from the SAME projected
- * cushion the cash-flow bars already show (so the two never disagree).
+ * Payday Cushion Guardian core (v1.7 Phase 2.4) — the premium headline, and now an ACTOR, not a
+ * narrator. Premium reserves the user's **cushion floor** before any extra debt payoff, so the plan it
+ * shows is already the safe one; this brief states what the Guardian DID ("held your cushion at your
+ * line", "paused extra payoff") and hands the viz numbers to the cushion bar. The effort it removes —
+ * deciding every cycle how much to hold vs. pay — is the premium value; a chat can't reshape your plan.
  *
- * Hard requirement (the Guardian runs on a PROJECTION): frame as tight-cycle RISK + a safe move, with
- * every dollar HEDGED ("about $X") and user-correctable — NEVER a false-precise "$X short" verdict. A
- * wrong alarm destroys trust worse than no feature. Pure + deterministic → reconciliation-tested.
+ * Hard requirement (it runs on a PROJECTION): risk-framed + hedged ("about $X"), never a false-precise
+ * verdict. It only ever reallocates DISCRETIONARY money (extra payoff / optional goals); it never cuts
+ * an obligation to fake a cushion. Pure + deterministic → reconciliation-tested.
  */
 
 export type GuardianState = "clear" | "tight" | "at-risk";
 
 export interface GuardianBrief {
   state: GuardianState;
-  /** Short banner label — the answer at a glance. */
   title: string;
-  /** The hedged, risk-framed read of this paycheck. Contains "about $X", never an exact verdict. */
   detail: string;
-  /** The single safe move. */
-  safeMove: string;
-  /** Optional forewarning of the nearest upcoming non-clear cycle (the proactive, un-chattable value). */
+  /** The action / next step (premium only; free gets the value-led invitation from the card). */
+  safeMove?: string;
+  /** Forewarning of the nearest upcoming non-clear cycle (the proactive, un-chattable value). */
   lookahead?: string;
+  // ── viz numbers for the cushion bar (exact; the copy hedges, the bar is proportional) ──
+  /** This cycle's protected cushion (premium: held to the floor; free: the base plan's cushion). */
+  cushion: number;
+  /** Extra cash the plan sends to debt this cycle after protecting the cushion. */
+  deployedToDebt: number;
+  /** The user's cushion line. */
+  floor: number;
+  /** Whether the cushion reached the floor. */
+  reachedFloor: boolean;
 }
 
 export interface GuardianInput {
-  /** This cycle's projected ending cushion (cash left after everything required) — the headline number. */
-  thisCushion: number;
-  /** This cycle's cushion band, from the SAME `toCushionStatus` the timeline bars use (coherence). */
-  thisStatus: CushionStatus;
+  isPremium: boolean;
+  floor: number;
+  /** Cash after every obligation (bills + minimums + living) — the headroom that drives the band. */
+  discretionary: number;
+  /** The liquid cushion the plan KEEPS (buffer + leftover) — what the floor protects. */
+  kept: number;
+  /** Extra deployed to debt this cycle (the snowball). */
+  deployedToDebt: number;
   /** Amount the paycheck can't cover of what's required this cycle (>0 = an acute shortfall). */
   shortfall: number;
-  /** Cash safely available for extra debt payoff this cycle (the surplus side). */
-  safeExtra: number;
-  /** The strategy's focus debt name, for the surplus "best move". */
   focusDebtName?: string;
-  /** The nearest upcoming cycle that isn't clear — the forewarning ("next month looks tight"). */
   lookahead?: { status: CushionStatus; cushion: number; label: string };
 }
 
-/** CushionStatus → the Guardian's user-facing band. Same thresholds, warmer vocabulary. */
-function toState(status: CushionStatus): GuardianState {
-  return status === "stable" ? "clear" : status === "tight" ? "tight" : "at-risk";
+/** A finite, non-negative number or 0 — the guard against `$NaN`/`$Infinity` ever reaching a screen. */
+function money(n: number): number {
+  return Number.isFinite(n) ? Math.max(0, n) : 0;
 }
 
-/**
- * Hedge a dollar amount so the projection never reads as false precision: rounded to the nearest $10
- * (nearest $5 under $100) and always spoken as "about $X". This is the load-bearing trust move.
- */
+/** Hedge a dollar amount so a projection never reads as false precision (and never NaN). */
 function about(n: number): string {
-  const v = Math.max(0, n);
+  const v = money(n);
   const step = v < 100 ? 5 : 10;
   return `about $${(Math.round(v / step) * step).toLocaleString("en-US")}`;
 }
+/** Bare hedged figure (no "about" prefix) for mid-sentence use. */
+function amt(n: number): string {
+  return about(n).replace("about $", "$");
+}
 
 export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
-  const { thisCushion, thisStatus, shortfall, safeExtra, focusDebtName, lookahead } = input;
+  const { isPremium, focusDebtName, lookahead } = input;
+  // Sanitize every number up front — a bad upstream value must degrade to a safe read, never `$NaN`.
+  const floor = money(input.floor) || 200;
+  const discretionary = money(input.discretionary);
+  const kept = money(input.kept);
+  const deployedToDebt = money(input.deployedToDebt);
+  const shortfall = money(input.shortfall);
 
-  // An acute shortfall (the paycheck can't cover required) always wins the read — the sharpest risk.
-  const state: GuardianState = shortfall > 0 ? "at-risk" : toState(thisStatus);
+  // The band is driven by HEADROOM (cash after every obligation), not by how much you keep vs. deploy —
+  // sending money to debt is a choice, not a risk. Same for free and premium (the split differs, the
+  // headroom doesn't). at-risk (red): can't cover obligations, or critically little left. tight (amber):
+  // covered, but under your line. clear (slate): covered with your full cushion intact.
+  const state: GuardianState =
+    shortfall > 0 || discretionary < 100 ? "at-risk" : discretionary < floor ? "tight" : "clear";
+  const reachedFloor = kept >= floor - 1;
 
   const look =
     lookahead && lookahead.status !== "stable"
       ? `Heads up: ${lookahead.label} looks ${lookahead.status === "pressure" ? "tight" : "a little tight"} — ${about(lookahead.cushion)} of cushion. Worth planning for now.`
       : undefined;
 
+  const viz = { cushion: kept, deployedToDebt, floor, reachedFloor };
+  const focus = focusDebtName ? ` to ${focusDebtName}` : " to your focus debt";
+
+  if (!isPremium) {
+    // Free: the honest read for this paycheck (the value-led taste) — no action claimed. The card
+    // supplies the "Premium holds you at your line" invitation; the bar shows the kept cushion vs. the line.
+    return {
+      state,
+      title: state === "clear" ? "You're covered this paycheck" : state === "tight" ? "A little tight this paycheck" : "Tight this paycheck",
+      detail: `You've got ${about(discretionary)} after everything required this paycheck${state === "clear" ? "." : ` — under a healthy ${amt(floor)}.`}`,
+      lookahead: undefined, // watching ahead is part of the premium value
+      ...viz,
+    };
+  }
+
+  // Premium — the Guardian acted.
   if (shortfall > 0) {
     return {
       state,
       title: "This paycheck is stretched",
       detail: `This paycheck comes up ${about(shortfall)} short of everything due this cycle — a genuinely tight one.`,
-      safeMove: "Safe move: cover required bills and minimums first, and hold off on any extra debt payoff until next payday.",
+      safeMove: "I've paused all extra payoff. Cover required bills and minimums first; anything you can add goes straight to safety.",
       lookahead: look,
+      ...viz,
     };
   }
-
-  if (state === "at-risk") {
+  if (state !== "clear") {
+    // Covered, but the headroom is under the line — keep all of it, deploy nothing.
     return {
       state,
-      title: "Covered — but very tight",
-      detail: `You'll cover everything this paycheck, but only ${about(thisCushion)} is left over. One surprise could make it tight.`,
-      safeMove: "Safe move: keep that as cushion this cycle — skip extra payoff until your next paycheck lands.",
+      title: state === "at-risk" ? "Very tight this paycheck" : "A little tight this paycheck",
+      detail: `About ${amt(discretionary)} is left after everything required — under your ${amt(floor)} line, so I'm keeping all of it as cushion.`,
+      safeMove: "Nothing extra goes out this cycle. Extra payoff resumes once you're back above your line.",
       lookahead: look,
+      ...viz,
     };
   }
-
-  if (state === "tight") {
+  // Clear — floor held; deploy the spare (if any) to debt.
+  if (deployedToDebt <= 0) {
     return {
       state,
-      title: "On track — a little tight",
-      detail: `You're on track this paycheck with ${about(thisCushion)} of cushion after everything required — just a bit snug.`,
-      safeMove: "Safe move: go easy on extra debt payoff this cycle so a surprise can't push you short.",
+      title: "You're covered this paycheck",
+      detail: `About ${amt(discretionary)} after everything required, all held as your cushion — right at your ${amt(floor)} line.`,
+      safeMove: "Nudge your line down anytime to send more toward debt.",
       lookahead: look,
-    };
-  }
-
-  // Clear — the surplus side.
-  if (safeExtra > 0) {
-    const target = focusDebtName ? ` toward ${focusDebtName}` : " toward your focus debt";
-    return {
-      state,
-      title: "You're clear this paycheck",
-      detail: `You've got ${about(thisCushion)} of room after everything required — a comfortable cushion.`,
-      safeMove: `Best move: ${about(safeExtra)}${target} keeps you ahead, and still leaves your cushion intact.`,
-      lookahead: look,
+      ...viz,
     };
   }
   return {
     state,
-    title: "You're clear this paycheck",
-    detail: `Everything required is covered with ${about(thisCushion)} of cushion — nicely on plan.`,
-    safeMove: "Nothing extra needed this cycle. Staying current is the win.",
+    title: "You're covered this paycheck",
+    detail: `About ${amt(discretionary)} after everything required. I'm holding ${amt(kept)} as your cushion and sending the spare ${amt(deployedToDebt)}${focus}.`,
+    safeMove: `Mark the ${amt(deployedToDebt)} payment when you're ready — your ${amt(floor)} cushion stays protected either way.`,
     lookahead: look,
+    ...viz,
   };
 }

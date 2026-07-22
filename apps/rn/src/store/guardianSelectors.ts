@@ -2,7 +2,7 @@ import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@cor
 
 import type { DebtStore } from '@/data/models';
 
-import { selectExtraToDebt } from './planSelectors';
+import { selectDiscretionary, selectExtraToDebt, selectLiquidCushion } from './planSelectors';
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
 import { selectAllocation } from './selectors';
 
@@ -28,16 +28,20 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
 
   const cycles = selectCashTimeline(store, 3);
   if (cycles.length === 0) return null;
-  const thisCycle = cycles[0];
 
   // The nearest upcoming cycle that isn't clear — the proactive forewarning ("next month looks tight").
   const upcoming = cycles.slice(1).find((c) => c.cushionStatus !== 'stable');
 
   return buildGuardianBrief({
-    thisCushion: thisCycle.endingBalance,
-    thisStatus: thisCycle.cushionStatus,
+    isPremium: store.subscriptionPlan === 'premium',
+    // The user's cushion line — premium is held to it; for free it's the healthy line they're not on.
+    floor: store.cushionFloor ?? 200,
+    // Headroom after every obligation drives the band (a choice to deploy to debt isn't a risk). The
+    // plan reserves the floor for premium (effectivePaycheckBuffer), so `kept` = the protected cushion.
+    discretionary: selectDiscretionary(allocation),
+    kept: selectLiquidCushion(allocation),
+    deployedToDebt: selectExtraToDebt(allocation),
     shortfall: allocation.shortfall,
-    safeExtra: selectExtraToDebt(allocation),
     focusDebtName: rankDebts(liveDebts, store.payoffStrategy)[0]?.name,
     lookahead: upcoming
       ? { status: upcoming.cushionStatus, cushion: upcoming.endingBalance, label: shortDate(upcoming.cycleStart) }

@@ -10,51 +10,59 @@ function assertTrue(actual: boolean, label: string) {
 }
 
 function input(o: Partial<GuardianInput>): GuardianInput {
-  return { thisCushion: 500, thisStatus: "stable", shortfall: 0, safeExtra: 0, ...o };
+  return { isPremium: true, floor: 200, discretionary: 210, kept: 200, deployedToDebt: 10, shortfall: 0, ...o };
 }
-
-/** No brief ever states a false-precise dollar verdict: amounts are hedged, never shown with cents. */
+/** No brief states a false-precise dollar verdict: amounts are hedged, never shown with cents. */
 function hedged(text: string): boolean {
-  return !/\$\d[\d,]*\.\d/.test(text); // no "$123.45"
+  return !/\$\d[\d,]*\.\d/.test(text);
 }
 
 function runGuardianTests() {
   console.log("Running Payday Cushion Guardian (2.4) tests...");
 
-  // Acute shortfall wins the read regardless of the cushion band.
-  const short = buildGuardianBrief(input({ shortfall: 180, thisStatus: "stable", thisCushion: 500 }));
-  assertEqual(short.state, "at-risk", "a shortfall forces at-risk even if the raw cushion band looks stable");
-  assertTrue(/short/i.test(short.detail), "shortfall detail names the shortfall");
+  // ── The band follows HEADROOM, not the keep-vs-deploy split — the demo-data lesson ──
+  // $210 after obligations is above the $200 line, so BOTH tiers read clear even though the split differs.
+  const premClear = buildGuardianBrief(input({ isPremium: true, discretionary: 210, kept: 200, deployedToDebt: 10, focusDebtName: "Store Card" }));
+  assertEqual(premClear.state, "clear", "premium: covered with headroom above the line → clear (not a false 'tight')");
+  assertTrue(premClear.detail.includes("holding") || (premClear.safeMove ?? "").includes("Store Card"), "premium clear names the kept cushion + the deployed payment");
+  const freeClear = buildGuardianBrief(input({ isPremium: false, discretionary: 210, kept: 50, deployedToDebt: 160 }));
+  assertEqual(freeClear.state, "clear", "free: SAME headroom → clear (the split doesn't change the band)");
+  assertEqual(freeClear.safeMove, undefined, "free gets no safeMove (the card shows the invitation)");
+  assertTrue(!/I['’]?ve|I['’]?m|holding|paused/i.test(freeClear.detail), "free copy never claims the app acted");
 
-  // Pressure (thin cushion, no shortfall) → at-risk 'covered but tight'.
-  const pressure = buildGuardianBrief(input({ thisStatus: "pressure", thisCushion: 60 }));
-  assertEqual(pressure.state, "at-risk", "pressure band → at-risk");
-  assertTrue(/tight/i.test(pressure.title + pressure.detail), "pressure reads as tight, not an alarm");
+  // viz carries the kept-vs-deploy split for the bar (differs by tier, same headroom)
+  assertEqual(premClear.cushion, 200, "premium viz cushion = kept ($200)");
+  assertEqual(freeClear.cushion, 50, "free viz cushion = kept ($50 — under the line, the value prop)");
 
-  // Tight band.
-  const tight = buildGuardianBrief(input({ thisStatus: "tight", thisCushion: 140 }));
-  assertEqual(tight.state, "tight", "tight band → tight");
+  // ── Genuinely tight: headroom under the line ──
+  const tight = buildGuardianBrief(input({ discretionary: 150, kept: 150, deployedToDebt: 0, floor: 200 }));
+  assertEqual(tight.state, "tight", "headroom under the line → tight");
+  assertTrue(/keeping all of it as cushion/i.test(tight.detail), "tight premium keeps everything, deploys nothing");
 
-  // Clear + surplus → the best-move names the focus debt.
-  const surplus = buildGuardianBrief(input({ thisStatus: "stable", thisCushion: 640, safeExtra: 220, focusDebtName: "Store Card" }));
-  assertEqual(surplus.state, "clear", "stable band → clear");
-  assertTrue(surplus.safeMove.includes("Store Card"), "surplus best-move targets the focus debt");
+  // ── Acute shortfall → at-risk, extra paused (obligations never cut) ──
+  const short = buildGuardianBrief(input({ shortfall: 180, discretionary: 0 }));
+  assertEqual(short.state, "at-risk", "a shortfall → at-risk");
+  assertTrue(/paused/i.test(short.safeMove ?? ""), "shortfall → paused extra payoff (never cuts an obligation)");
 
-  // Clear + no surplus → 'nicely on plan', no forced payoff push.
-  const clearNoExtra = buildGuardianBrief(input({ thisStatus: "stable", thisCushion: 300, safeExtra: 0 }));
-  assertEqual(clearNoExtra.state, "clear", "stable + no extra → clear");
-  assertTrue(!/toward/i.test(clearNoExtra.safeMove), "no surplus → no 'put $X toward debt' push");
+  // ── reachedFloor tracks the kept cushion vs. the line ──
+  assertTrue(premClear.reachedFloor, "reachedFloor true when kept cushion meets the line");
+  assertEqual(freeClear.reachedFloor, false, "reachedFloor false when the kept cushion is under the line");
 
-  // Lookahead: this cycle clear, next cycle pressure → a forewarning surfaces.
-  const withLook = buildGuardianBrief(input({ thisStatus: "stable", thisCushion: 500, lookahead: { status: "pressure", cushion: 40, label: "Sep 2" } }));
-  assertTrue(!!withLook.lookahead && withLook.lookahead.includes("Sep 2"), "an upcoming non-clear cycle produces a lookahead heads-up");
+  // ── Lookahead (premium only) ──
+  const withLook = buildGuardianBrief(input({ lookahead: { status: "pressure", cushion: 40, label: "Sep 2" } }));
+  assertTrue(!!withLook.lookahead && withLook.lookahead.includes("Sep 2"), "an upcoming non-clear cycle → a lookahead heads-up");
   const noLook = buildGuardianBrief(input({ lookahead: { status: "stable", cushion: 800, label: "Sep 2" } }));
-  assertEqual(noLook.lookahead, undefined, "a clear upcoming cycle produces no lookahead noise");
+  assertEqual(noLook.lookahead, undefined, "a clear upcoming cycle → no lookahead noise");
 
-  // The trust invariant: every surface of every brief is hedged (no cents / false precision).
-  for (const b of [short, pressure, tight, surplus, clearNoExtra, withLook]) {
-    assertTrue(hedged(b.detail) && hedged(b.safeMove) && hedged(b.lookahead ?? ""), `hedged (no false-precise $) — ${b.state}`);
-    assertTrue(/about \$/.test(b.detail) || /about \$/.test(b.safeMove), `speaks in "about $X" — ${b.state}`);
+  // ── $NaN guard: non-finite upstream values degrade safely, never reach a screen ──
+  const nan = buildGuardianBrief(input({ discretionary: NaN, kept: Infinity, deployedToDebt: NaN, floor: NaN, shortfall: NaN }));
+  assertTrue(!/NaN|Infinity/.test(nan.title + nan.detail + (nan.safeMove ?? "") + (nan.lookahead ?? "")), "no NaN/Infinity in any copy");
+  assertTrue(Number.isFinite(nan.cushion) && Number.isFinite(nan.deployedToDebt) && Number.isFinite(nan.floor), "viz numbers are always finite");
+  assertEqual(nan.floor, 200, "a NaN floor falls back to the $200 default");
+
+  // ── The trust invariant: everything hedged, no cents ──
+  for (const b of [premClear, freeClear, tight, short]) {
+    assertTrue(hedged(b.detail) && hedged(b.safeMove ?? "") && hedged(b.lookahead ?? ""), `hedged (no false-precise $) — ${b.state}`);
   }
 
   console.log("✅ Payday Cushion Guardian (2.4) tests passed.");

@@ -9,7 +9,7 @@ import { todayLocalISO } from '@/data/defaults';
 import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
 
 import { selectDebtFreeDate, selectExtraToDebt } from './planSelectors';
-import { selectAllocation } from './selectors';
+import { effectivePaycheckBuffer, selectAllocation } from './selectors';
 
 export type { TrajectoryPoint, InterestSaved, DriftResult, TimelineCycle, TimelineItem };
 
@@ -37,6 +37,7 @@ export function selectCashTimeline(store: DebtStore, maxCycles = 5): TimelineCyc
       monthlyPayDay: Number(store.paycheck.monthlyPayDay) || undefined,
     },
     strategy: store.payoffStrategy,
+    paycheckBuffer: effectivePaycheckBuffer(store),
     maxCycles,
   });
 }

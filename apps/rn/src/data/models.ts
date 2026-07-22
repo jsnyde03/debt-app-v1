@@ -74,6 +74,12 @@ export interface DebtStore {
   completedRecommendedActions: CompletedRecommendedAction[];
   milestoneMaxProgress: Record<string, number>;
   subscriptionPlan: SubscriptionPlan;
+  /**
+   * Premium auto-protect: the cushion the plan holds each cycle before deploying anything to extra
+   * payoff — the user's "bank low-balance alert" line (default $200, adjustable). Premium reserves it
+   * as the paycheck buffer so tight cycles keep cash instead of over-paying debt; free is unaffected.
+   */
+  cushionFloor: number;
   /** Frozen Drift Tracker baseline (schema v2); null until the plan is first established. */
   driftBaseline: DriftBaseline | null;
   prefs: Preferences;

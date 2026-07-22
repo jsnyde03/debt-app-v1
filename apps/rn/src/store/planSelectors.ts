@@ -29,6 +29,16 @@ export function selectExtraToDebt(allocation: Allocation): number {
   return sumCategory(allocation, 'snowball');
 }
 
+/** The liquid cushion the plan KEEPS this cycle (reserved buffer + true leftover) — what the floor protects. */
+export function selectLiquidCushion(allocation: Allocation): number {
+  return sumCategory(allocation, 'leftover');
+}
+
+/** Cash left after every obligation (required bills + minimums + living reserve) — the "will I make it" headroom. */
+export function selectDiscretionary(allocation: Allocation): number {
+  return Math.max(0, allocation.paycheckAmount - allocation.totalRequired - allocation.livingExpenseReserve);
+}
+
 /** The estimated debt-free date under the current plan (via the shared payoff engine), or null. */
 export function selectDebtFreeDate(store: DebtStore, allocation: Allocation | null): string | null {
   const liveDebts = store.debts.filter((d) => d.balance > 0);
