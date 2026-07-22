@@ -16,6 +16,7 @@ import { useGoToTab } from '@/hooks/use-go-to-tab';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { CountUp } from '@/motion';
 import { selectWhatIf } from '@/store/analysisSelectors';
+import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
@@ -49,11 +50,15 @@ export default function ProgressScreen() {
   const goToTab = useGoToTab();
   const store = useAppStore((s) => s.store);
   const strategy = store.payoffStrategy;
-  const view = selectPayoffView(store);
+  // 2.4 — forward-looking computations (debt-free date, trajectory, cushion, what-if) read projected-
+  // current balances for premium; free is a no-op wrap. Backward-looking "% paid" below stays on the
+  // raw/confirmed balances (progress is what you've actually paid, not a projection).
+  const engineStore = withProjectedBalances(store, store.subscriptionPlan === 'premium');
+  const view = selectPayoffView(engineStore);
 
   // What-If state — folded into the projection card (the extra drives its overlay + controls).
   const [extra, setExtra] = useState('');
-  const whatIf = selectWhatIf(store, Number(extra) || 0);
+  const whatIf = selectWhatIf(engineStore, Number(extra) || 0);
 
   if (!view.hasDebts) {
     return (
@@ -121,7 +126,7 @@ export default function ProgressScreen() {
         </View>
       </LinearGradient>
 
-      <CashFlowSection cycles={selectCashTimeline(store)} />
+      <CashFlowSection cycles={selectCashTimeline(engineStore)} />
 
       <TrajectoryChart
         snowball={view.snowball}

@@ -19,7 +19,7 @@ import { Card } from '@/components/ui/Card';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
-import { selectStaleBalanceViews, selectProvisionalPayoffs } from '@/store/balanceSelectors';
+import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
 import {
   selectPlanState,
   selectPlanSummary,
@@ -45,19 +45,24 @@ export default function TodayScreen() {
   const c = useAppColors();
   const goToTab = useGoToTab();
   const store = useAppStore((s) => s.store);
-  const allocation = selectAllocation(store);
-  const planState = selectPlanState(store, allocation);
+  const isPremium = store.subscriptionPlan === 'premium';
+  // 2.4 — the payday engine reads projected-current balances (premium) so the plan reflects where the
+  // user actually is between verifications; free stays on the verified anchor (no-op wrap). The
+  // estimate/staleness selectors below keep the RAW store — they detect drift from the real anchor.
+  const engineStore = withProjectedBalances(store, isPremium);
+  const allocation = selectAllocation(engineStore);
+  const planState = selectPlanState(engineStore, allocation);
 
-  const requiredRows = allocation ? selectRequiredRows(store, allocation) : [];
-  const recommended = allocation ? selectRecommendedActions(store, allocation) : [];
-  const summary = allocation ? selectPlanSummary(store, allocation, requiredRows) : null;
+  const requiredRows = allocation ? selectRequiredRows(engineStore, allocation) : [];
+  const recommended = allocation ? selectRecommendedActions(engineStore, allocation) : [];
+  const summary = allocation ? selectPlanSummary(engineStore, allocation, requiredRows) : null;
 
   // Payday Autopilot — detection + the capture sheet's open state. Called unconditionally (hooks rule).
   const payday = usePaydayCapture(recommended.length > 0);
   // 2.3.5 — stale premium estimates surfaced for the payday re-verify batch (empty for free).
-  const staleBalances = selectStaleBalanceViews(store, store.subscriptionPlan === 'premium');
+  const staleBalances = selectStaleBalanceViews(store, isPremium);
   // 2.3.6 — debts the premium estimate projected to $0 → the provisional "confirm to celebrate" invitation.
-  const provisionalPayoffs = selectProvisionalPayoffs(store, store.subscriptionPlan === 'premium');
+  const provisionalPayoffs = selectProvisionalPayoffs(store, isPremium);
   const [paycheckSheet, setPaycheckSheet] = useState(false);
   const [windfallSheet, setWindfallSheet] = useState(false);
 

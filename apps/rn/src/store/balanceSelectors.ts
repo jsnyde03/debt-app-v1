@@ -1,11 +1,25 @@
 import {
   projectCurrentBalance,
+  projectDebtsToDate,
   computeEstimateConfidence,
   isDebtProjectedPaidOff,
   type EstimateConfidence,
 } from '@core/debt/projectCurrentBalance';
 
 import type { Debt, DebtStore } from '@/data/models';
+
+/**
+ * Route the payday ENGINE off projected-current balances (2.4 foundation). Premium screens run
+ * allocation / debt-free date / trajectory / cushion / drift over the store this returns, so the plan
+ * reflects where the user actually is between verifications; free (no projection) gets the store back
+ * untouched — a strict no-op. Only `debts` are remapped (projected to `currentDate`, anchor re-stamped
+ * so the wrap is idempotent); every other store field passes by reference. Compute/display-READ only —
+ * the write-side (payday capture, drift-baseline freeze) deliberately stays on the verified anchor.
+ */
+export function withProjectedBalances(store: DebtStore, isPremium: boolean): DebtStore {
+  if (!isPremium) return store;
+  return { ...store, debts: projectDebtsToDate(store.debts, store.paycheck.currentDate) };
+}
 
 /**
  * The read side of Projection auto-maintenance (2.3). `debt.balance` is the last-VERIFIED anchor;

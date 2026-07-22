@@ -80,6 +80,24 @@ export function projectCurrentBalance(debt: ProjectableDebt, asOfDate: string): 
 }
 
 /**
+ * Route a debts array off the last-verified anchor and onto its projected-to-`asOfDate` position:
+ * each `balance` becomes the `projectCurrentBalance` estimate, and `balanceAsOfDate` is re-stamped to
+ * `asOfDate` so re-projecting the result is a no-op (idempotent). Every other field passes through
+ * untouched — `lastVerifiedDate` in particular is preserved, so staleness + labels stay honest. This
+ * is the seam that lets the payday ENGINE (allocation / debt-free date / trajectory / cushion / drift)
+ * compute from "where the user actually is" between verifications — the compute-side completion of
+ * projection auto-maintenance (2.3 routed the display; 2.4 routes the engine). Pure; premium-gated at
+ * the caller (free never projects).
+ */
+export function projectDebtsToDate<T extends ProjectableDebt>(debts: T[], asOfDate: string): T[] {
+  return debts.map((debt) => ({
+    ...debt,
+    balance: projectCurrentBalance(debt, asOfDate),
+    balanceAsOfDate: asOfDate,
+  }));
+}
+
+/**
  * True when a debt whose anchor is still > $0 projects down to $0 as of `asOfDate` — i.e. it LOOKS
  * paid off but hasn't been confirmed. This is the trigger for the payoff verification gate (2.3.6):
  * we celebrate the moment provisionally but only write the permanent record on a confirmed $0. A

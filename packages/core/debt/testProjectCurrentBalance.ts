@@ -1,5 +1,7 @@
+import { buildPayoffTrajectory } from "./buildPayoffTrajectory";
 import {
   projectCurrentBalance,
+  projectDebtsToDate,
   isDebtProjectedPaidOff,
   computeEstimateConfidence,
   ESTIMATE_AGING_DAYS,
@@ -149,7 +151,36 @@ function runProjectCurrentBalanceTests() {
     "falls back to lastVerifiedDate as the anchor when balanceAsOfDate is absent (pre-split blobs)"
   );
 
-  console.log("✅ Projection auto-maintenance (2.3) tests passed.");
+  // --- projectDebtsToDate: the 2.4 engine-routing seam (map · re-stamp · preserve · idempotent) ---
+  const anchorDebts = [
+    debt({ balance: 1000, apr: 12, minimumPayment: 100, lastVerifiedDate: "2026-01-01", balanceAsOfDate: "2026-01-01" }),
+    debt({ balance: 400, apr: 24.99, minimumPayment: 100, type: "bnpl", lastVerifiedDate: "2026-01-01", balanceAsOfDate: "2026-01-01" }),
+  ];
+  const routed = projectDebtsToDate(anchorDebts, "2026-02-01");
+  assertApprox(routed[0].balance, projectCurrentBalance(anchorDebts[0], "2026-02-01"), "projectDebtsToDate maps each balance to its projectCurrentBalance");
+  assertApprox(routed[1].balance, projectCurrentBalance(anchorDebts[1], "2026-02-01"), "projectDebtsToDate projects BNPL as pure principal too");
+  assertEqual(routed[0].balanceAsOfDate, "2026-02-01", "projectDebtsToDate re-stamps balanceAsOfDate to asOfDate");
+  assertEqual(routed[0].lastVerifiedDate, "2026-01-01", "projectDebtsToDate preserves lastVerifiedDate (staleness/labels stay honest)");
+  assertEqual(routed[0].apr, 12, "projectDebtsToDate preserves other fields (apr)");
+  assertEqual(routed[0].minimumPayment, 100, "projectDebtsToDate preserves other fields (minimumPayment)");
+  const reRouted = projectDebtsToDate(routed, "2026-02-01");
+  assertEqual(reRouted[0].balance, routed[0].balance, "projectDebtsToDate is idempotent — re-projecting to the same date doesn't move the balance");
+
+  // --- reconciliation: routing the engine off projected balances changes the plan HONESTLY ---
+  // Honest direction is data-dependent: a debt whose minimum beats its interest projects DOWN (paydown
+  // already banked); one whose interest outruns the minimum projects UP (the real cost of delay).
+  const paydown = projectDebtsToDate([debt({ balance: 5000, apr: 22, minimumPayment: 150, balanceAsOfDate: "2026-01-01" })], "2026-07-01");
+  assertTrue(paydown[0].balance < 5000, "reconciliation: a min-beats-interest debt projects DOWN (banked paydown)");
+  const negam = projectDebtsToDate([debt({ balance: 10000, apr: 30, minimumPayment: 100, balanceAsOfDate: "2026-01-01" })], "2026-07-01");
+  assertTrue(negam[0].balance > 10000, "reconciliation: an interest-outruns-minimum debt projects UP (the cost of delay)");
+  // The trajectory the engine draws must START from the PROJECTED balance, not the stale anchor — the
+  // proof the routing is actually wired through, and that projected ≠ anchor after 6 aged months.
+  const anchorTraj = buildPayoffTrajectory({ debts: [debt({ balance: 5000, apr: 22, minimumPayment: 150 })], monthlyExtraPayment: 0, strategy: "avalanche" });
+  const projectedTraj = buildPayoffTrajectory({ debts: paydown, monthlyExtraPayment: 0, strategy: "avalanche" });
+  assertApprox(projectedTraj[0].balance, paydown[0].balance, "the engine's trajectory starts from the PROJECTED balance (routing is effective)", 0.5);
+  assertTrue(Math.abs(projectedTraj[0].balance - anchorTraj[0].balance) > 1, "routing shifts the engine's starting balance off the anchor");
+
+  console.log("✅ Projection auto-maintenance (2.3) + engine-routing (2.4) tests passed.");
 }
 
 runProjectCurrentBalanceTests();
