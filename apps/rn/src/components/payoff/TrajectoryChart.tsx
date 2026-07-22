@@ -1,16 +1,19 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { AppIcon } from '@/components/ui/AppIcon';
 import { Card } from '@/components/ui/Card';
 import type { PayoffStrategy } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import type { WhatIfResult } from '@/store/analysisSelectors';
 import type { InterestSaved, TrajectoryPoint } from '@/store/payoffSelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
 
 import { TrajectoryCanvas } from './TrajectoryCanvas';
+import { WhatIfControls } from './WhatIfControls';
 
 const H = 200;
 // Left gutter holds the balance labels; bottom gutter holds the time ticks.
@@ -19,6 +22,20 @@ const PAD = { l: 38, r: 14, t: 16, b: 26 };
 function formatMonths(months: number): string {
   if (months < 24) return `${months} month${months === 1 ? '' : 's'}`;
   return `${Math.round(months / 12)} years`;
+}
+
+/** The savings suffix shared by both legend rows: " · $1,666, 22 months saved" / " · $309, 7 months sooner". */
+function deltaSuffix(interestSaved: number, monthsSaved: number, word: string): string {
+  if (interestSaved > 0 && monthsSaved > 0) return ` · ${formatWhole(interestSaved)}, ${formatMonths(monthsSaved)} ${word}`;
+  if (interestSaved > 0) return ` · ${formatWhole(interestSaved)} less interest`;
+  if (monthsSaved > 0) return ` · ${formatMonths(monthsSaved)} ${word}`;
+  return '';
+}
+
+/** "January 2028" → "Jan 2028" for a compact endpoint label. */
+function shortDate(full: string): string {
+  const [month, year] = full.split(' ');
+  return year ? `${month.slice(0, 3)} ${year}` : full;
 }
 
 /** A compact axis balance label: $0 · $4k · $12k. */
@@ -70,6 +87,9 @@ export function TrajectoryChart({
   debtFreeDate,
   interestSaved,
   startDate,
+  whatIf,
+  extra,
+  onExtraChange,
 }: {
   snowball: TrajectoryPoint[];
   avalanche: TrajectoryPoint[];
@@ -78,10 +98,21 @@ export function TrajectoryChart({
   debtFreeDate: string | null;
   interestSaved: InterestSaved;
   startDate: string;
+  /** The What-If simulation folded into this card — drives both the overlay curve and the controls. */
+  whatIf: WhatIfResult;
+  extra: string;
+  onExtraChange: (value: string) => void;
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
   const [w, setW] = useState(0);
+  // What-If is a secondary, opt-in tool — collapsed by default so the resting card stays calm.
+  const [whatIfOpen, setWhatIfOpen] = useState(false);
+
+  // The What-If overlay: the "with extra" curve — only while the tool is open (collapsing returns the
+  // chart to its calm resting state). The plan-vs-minimums "saved" line below is NEVER overridden by
+  // it — the with-extra debt-free DATE lives in the What-If controls, not this slot.
+  const simulated = whatIfOpen ? whatIf.simulatedTrajectory : [];
 
   const active = strategy === 'snowball' ? snowball : avalanche;
   // The ghost is the minimum-payments baseline — but only when there's a real gap to show. In the
@@ -111,6 +142,12 @@ export function TrajectoryChart({
   const endpoint = endPoint && w > 0 ? { x: mapX(endPoint.month), y: baselineY } : null;
   const start = activePts.length ? activePts[0] : null;
 
+  // What-If overlay geometry (same scale — the simulated curve ends earlier, so it fits as-is).
+  const showSimulated = simulated.length > 1 && w > 0;
+  const simulatedPath = showSimulated ? smoothPath(toPts(simulated)) : undefined;
+  const simEnd = showSimulated ? simulated.find((p) => p.balance <= 0) : undefined;
+  const simulatedEndpoint = simEnd ? { x: mapX(simEnd.month), y: baselineY } : null;
+
   // Y-scale: balance gridlines 0 → niceMax. X-scale: year marks (each January) between Now and the end.
   const gridVals: number[] = [];
   for (let v = 0; v <= niceMax + 1; v += step) gridVals.push(v);
@@ -127,6 +164,14 @@ export function TrajectoryChart({
     }
   }
 
+  // The minimums-only payoff date (from the ghost trajectory, same month scale) — or "Never" when
+  // minimums can't clear the debt. Gives the baseline row a date, uniform with the plan/with-extra.
+  const minEnd = minimums.find((p) => p.balance <= 0);
+  const minimumsDateLabel =
+    interestSaved.kind === 'saving' && minEnd
+      ? monthDate(minEnd.month).toLocaleString('en-US', { month: 'short', year: 'numeric' })
+      : 'Never';
+
   const dark = scheme === 'dark';
   const gold = dark ? '#f7cf5f' : '#dca01f';
   const axisColor = dark ? 'rgba(255,255,255,0.07)' : 'rgba(16,38,84,0.07)';
@@ -140,6 +185,7 @@ export function TrajectoryChart({
     glow: dark ? 'rgba(247,207,95,0.55)' : 'rgba(220,160,31,0.5)',
     core: dark ? '#ffe9a8' : '#eeb42e',
     startDot: c.accent.primary,
+    simulated: c.accent.success, // green "with extra" overlay — distinct from the gold plan finish
   };
 
   return (
@@ -157,6 +203,8 @@ export function TrajectoryChart({
               activePath={activePath}
               areaPath={areaPath}
               ghostPath={ghostPath}
+              simulatedPath={simulatedPath}
+              simulatedEndpoint={simulatedEndpoint}
               endpoint={endpoint}
               start={start}
               gridLines={gridVals.map(mapY)}
@@ -186,30 +234,69 @@ export function TrajectoryChart({
       </View>
       <View style={styles.footer}>
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Now</Text>
-        {debtFreeDate ? (
-          <Text style={[textStyles.caption, styles.dfLabel, { color: gold }]}>Debt-free {debtFreeDate}</Text>
-        ) : null}
       </View>
 
-      {showMinimums ? (
+      {showMinimums || showSimulated ? (
         <View style={styles.legend}>
-          <View style={styles.legendItems}>
+          {/* Order mirrors the chart's line stacking (top→bottom): minimums rides highest, then the
+              plan, then with-extra dips lowest. */}
+          {/* Minimum payments — the baseline you beat; no date (it's the reference, or never pays off). */}
+          {showMinimums ? (
+            <View style={styles.legendRow}>
+              <View style={styles.legendItem}>
+                <View style={[styles.swatch, { backgroundColor: c.text.tertiary, opacity: 0.55 }]} />
+                <Text style={[textStyles.caption, { color: c.text.secondary }]}>Minimum payments</Text>
+              </View>
+              <Text style={[textStyles.caption, styles.rowData, { color: c.text.secondary }]} numberOfLines={1}>
+                {minimumsDateLabel}
+              </Text>
+            </View>
+          ) : null}
+          {/* Your plan — its payoff date + savings-vs-minimums, grouped in gold (one "plan" thing). */}
+          <View style={styles.legendRow}>
             <View style={styles.legendItem}>
               <View style={[styles.swatch, { backgroundColor: c.accent.primary }]} />
               <Text style={[textStyles.caption, { color: c.text.secondary }]}>Your plan</Text>
             </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.swatch, { backgroundColor: c.text.tertiary, opacity: 0.55 }]} />
-              <Text style={[textStyles.caption, { color: c.text.secondary }]}>Minimum payments</Text>
-            </View>
+            {debtFreeDate ? (
+              <Text style={[textStyles.caption, styles.rowData, { color: c.accent.primary }]} numberOfLines={1}>
+                {shortDate(debtFreeDate)}
+                {interestSaved.kind === 'saving'
+                  ? deltaSuffix(interestSaved.interestSaved, interestSaved.monthsSaved, 'saved')
+                  : ''}
+              </Text>
+            ) : null}
           </View>
-          <Text style={[textStyles.caption, styles.saved, { color: c.accent.success }]}>
-            {interestSaved.kind === 'saving'
-              ? `${formatWhole(interestSaved.interestSaved)} · ${formatMonths(interestSaved.monthsSaved)} saved`
-              : 'Minimums never pay it off'}
-          </Text>
+          {/* With extra — the what-if payoff date, green (the contrast to the gold plan). */}
+          {showSimulated ? (
+            <View style={styles.legendRow}>
+              <View style={styles.legendItem}>
+                <View style={[styles.swatch, styles.swatchDashed, { backgroundColor: c.accent.success }]} />
+                <Text style={[textStyles.caption, { color: c.text.secondary }]}>With extra</Text>
+              </View>
+              {whatIf.simulatedDate ? (
+                <Text style={[textStyles.caption, styles.rowData, { color: c.accent.success }]} numberOfLines={1}>
+                  {shortDate(whatIf.simulatedDate)}
+                  {deltaSuffix(whatIf.interestSaved, whatIf.monthsSaved, 'sooner')}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
         </View>
       ) : null}
+
+      <Pressable
+        onPress={() => setWhatIfOpen((o) => !o)}
+        style={[styles.whatIfToggle, { borderTopColor: c.border.subtle }]}
+        accessibilityRole="button"
+        accessibilityLabel="What if you paid extra?"
+        accessibilityState={{ expanded: whatIfOpen }}>
+        <Text style={[textStyles.subhead, styles.whatIfLabel, { color: c.text.secondary }]}>
+          What if you paid extra?
+        </Text>
+        <AppIcon name={whatIfOpen ? 'expand-less' : 'expand-more'} size={22} color={c.text.tertiary} />
+      </Pressable>
+      {whatIfOpen ? <WhatIfControls result={whatIf} extra={extra} onExtraChange={onExtraChange} /> : null}
     </Card>
   );
 }
@@ -220,20 +307,25 @@ const styles = StyleSheet.create({
   yLabel: { position: 'absolute', left: 0, width: PAD.l - 6, textAlign: 'right', fontSize: 10 },
   xLabel: { position: 'absolute', width: 40, textAlign: 'center', fontSize: 10 },
   footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.xs },
-  dfLabel: { fontWeight: '700' },
   legend: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
+    gap: 6,
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: 'rgba(127,127,127,0.18)',
   },
-  legendItems: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  legendRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   swatch: { width: 14, height: 3, borderRadius: 2 },
-  saved: { fontWeight: '800' },
+  swatchDashed: { width: 8 }, // shorter → reads as a dash segment (the overlay line is dashed)
+  rowData: { fontWeight: '800', letterSpacing: -0.2, flexShrink: 1, textAlign: 'right' },
+  whatIfToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  whatIfLabel: { fontWeight: '600' },
 });

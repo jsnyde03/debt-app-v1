@@ -1,6 +1,7 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AppLockGate } from '@/components/AppLockGate';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -61,21 +62,23 @@ export default function RootLayout() {
   if (!isHydrated) return null;
 
   return (
-    <ThemeProvider value={navTheme(scheme)}>
-      <AppLockGate>
-        <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Protected guard={onboardingComplete}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="more" />
-          <Stack.Screen name="history" />
-          <Stack.Screen name="living-expenses" />
-        </Stack.Protected>
-        <Stack.Protected guard={!onboardingComplete}>
-          <Stack.Screen name="onboarding" />
-        </Stack.Protected>
-        <Stack.Screen name="+not-found" />
-        </Stack>
-      </AppLockGate>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={navTheme(scheme)}>
+        <AppLockGate>
+          <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Protected guard={onboardingComplete}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="more" />
+            <Stack.Screen name="history" />
+            <Stack.Screen name="living-expenses" />
+          </Stack.Protected>
+          <Stack.Protected guard={!onboardingComplete}>
+            <Stack.Screen name="onboarding" />
+          </Stack.Protected>
+          <Stack.Screen name="+not-found" />
+          </Stack>
+        </AppLockGate>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { formatCurrency } from '@core/utils/formatCurrency';
@@ -14,6 +15,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useGoToTab } from '@/hooks/use-go-to-tab';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { CountUp } from '@/motion';
+import { selectWhatIf } from '@/store/analysisSelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
@@ -48,6 +50,10 @@ export default function ProgressScreen() {
   const store = useAppStore((s) => s.store);
   const strategy = store.payoffStrategy;
   const view = selectPayoffView(store);
+
+  // What-If state — folded into the projection card (the extra drives its overlay + controls).
+  const [extra, setExtra] = useState('');
+  const whatIf = selectWhatIf(store, Number(extra) || 0);
 
   if (!view.hasDebts) {
     return (
@@ -125,6 +131,9 @@ export default function ProgressScreen() {
         debtFreeDate={view.debtFreeDate}
         interestSaved={view.interestSaved}
         startDate={store.paycheck.currentDate}
+        whatIf={whatIf}
+        extra={extra}
+        onExtraChange={setExtra}
       />
     </Screen>
   );

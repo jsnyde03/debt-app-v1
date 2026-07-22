@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BlurMask, Canvas, Circle, Line, LinearGradient, Path, Skia, vec } from '@shopify/react-native-skia';
+import { BlurMask, Canvas, Circle, DashPathEffect, Line, LinearGradient, Path, Skia, vec } from '@shopify/react-native-skia';
 import { Easing, interpolate, useDerivedValue, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 
 /**
@@ -14,6 +14,9 @@ export interface TrajectorySkiaChartProps {
   activePath: string;
   areaPath: string;
   ghostPath: string;
+  /** Optional What-If overlay — the payoff curve WITH the simulated extra (dashed, drawn instantly). */
+  simulatedPath?: string;
+  simulatedEndpoint?: { x: number; y: number } | null;
   endpoint: { x: number; y: number } | null;
   start: { x: number; y: number } | null;
   /** Faint horizontal balance gridlines (y-positions) spanning [plotLeft, plotRight]. */
@@ -31,6 +34,8 @@ export interface TrajectorySkiaChartProps {
     glow: string;
     core: string;
     startDot: string;
+    /** The What-If overlay color (green) — distinct from the plan's gold debt-free finish. */
+    simulated: string;
   };
 }
 
@@ -40,6 +45,8 @@ export default function TrajectorySkiaChart({
   activePath,
   areaPath,
   ghostPath,
+  simulatedPath,
+  simulatedEndpoint,
   endpoint,
   start,
   gridLines,
@@ -51,6 +58,7 @@ export default function TrajectorySkiaChart({
   const line = Skia.Path.MakeFromSVGString(activePath);
   const area = Skia.Path.MakeFromSVGString(areaPath);
   const ghost = ghostPath ? Skia.Path.MakeFromSVGString(ghostPath) : null;
+  const simulated = simulatedPath ? Skia.Path.MakeFromSVGString(simulatedPath) : null;
 
   const reduce = useReducedMotion();
   const progress = useSharedValue(reduce ? 1 : 0);
@@ -92,6 +100,17 @@ export default function TrajectorySkiaChart({
           />
           <BlurMask blur={3} style="solid" />
         </Path>
+      ) : null}
+
+      {/* What-If overlay — the "with extra" curve: dashed gold, drawn instantly (no trim) so it
+          updates live as the user types, landing left of the active endpoint = the visible shift. */}
+      {simulated ? (
+        <Path path={simulated} style="stroke" strokeWidth={2.5} strokeCap="round" strokeJoin="round" color={palette.simulated}>
+          <DashPathEffect intervals={[7, 5]} />
+        </Path>
+      ) : null}
+      {simulatedEndpoint ? (
+        <Circle cx={simulatedEndpoint.x} cy={simulatedEndpoint.y} r={4.5} color={palette.simulated} />
       ) : null}
 
       {/* "Now" anchor */}

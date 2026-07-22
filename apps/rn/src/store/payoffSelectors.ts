@@ -65,7 +65,7 @@ export interface PayoffView {
 }
 
 /** Rank live debts by the chosen strategy (snowball = smallest balance · avalanche = highest APR). */
-function rankDebts(debts: Debt[], strategy: PayoffStrategy): Debt[] {
+export function rankDebts(debts: Debt[], strategy: PayoffStrategy): Debt[] {
   return [...debts].sort((a, b) => (strategy === 'snowball' ? a.balance - b.balance : b.apr - a.apr));
 }
 
