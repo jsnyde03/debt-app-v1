@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -19,6 +19,7 @@ export function ListRow({
   meta,
   caption,
   captionColor,
+  onCaptionPress,
   amount,
   amountSuffix,
   badges,
@@ -32,6 +33,8 @@ export function ListRow({
   caption?: string;
   /** Tint for `caption` — defaults to the tertiary text color. */
   captionColor?: string;
+  /** If set, the caption becomes its own tap target (e.g. "tap to verify") without triggering the row's onPress. */
+  onCaptionPress?: () => void;
   amount?: string;
   amountSuffix?: string;
   badges?: ReactNode;
@@ -68,7 +71,14 @@ export function ListRow({
           </Text>
         ) : null}
         {caption ? (
-          <Text style={[textStyles.caption, { color: captionColor ?? c.text.tertiary }]} numberOfLines={1}>
+          // onPress on the Text itself (a tappable span on web, not a nested <button>) — stopPropagation
+          // so the row's edit-sheet onPress doesn't also fire. Plain Text when not tappable.
+          <Text
+            onPress={onCaptionPress ? (e) => { e.stopPropagation?.(); onCaptionPress(); } : undefined}
+            // Button role only on native — on web it renders a nested <button> inside the row's button (invalid DOM).
+            accessibilityRole={onCaptionPress && Platform.OS !== 'web' ? 'button' : undefined}
+            style={[textStyles.caption, { color: captionColor ?? c.text.tertiary }]}
+            numberOfLines={1}>
             {caption}
           </Text>
         ) : null}

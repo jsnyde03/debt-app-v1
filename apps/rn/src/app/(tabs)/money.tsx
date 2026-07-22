@@ -163,7 +163,12 @@ function DebtRow({
 }) {
   const c = useAppColors();
   const view = selectDebtBalanceView(debt, currentDate, isPremium);
-  const caption = buildEstimateCaption(view, isPremium, shortDate);
+  const est = buildEstimateCaption(view, isPremium, shortDate);
+  // A stale premium estimate becomes a one-tap in-place verify: tap → accept the estimate as the
+  // verified balance (re-anchors both dates to today). Blue = interactive (not the amber warning).
+  const canVerify = isPremium && view.isEstimate && view.confidence.staleness === 'stale';
+  const captionText = canVerify ? 'estimated · tap to verify' : est.text || undefined;
+  const captionColor = canVerify ? c.accent.primary : est.attention ? c.accent.warning : undefined;
   // Progress off the (projected) current balance so the bar tracks what the row shows.
   const progress = debt.originalBalance && debt.originalBalance > 0 ? 1 - view.currentBalance / debt.originalBalance : undefined;
   const chips = [
@@ -174,8 +179,9 @@ function DebtRow({
     <ListRow
       title={debt.name}
       meta={`${view.isEstimate ? `~${formatWhole(view.currentBalance)}` : formatCurrency(view.currentBalance)} · ${debt.apr}% APR`}
-      caption={caption.text || undefined}
-      captionColor={caption.attention ? c.accent.warning : undefined}
+      caption={captionText}
+      captionColor={captionColor}
+      onCaptionPress={canVerify ? () => appStore.getState().verifyDebtBalance(debt.id, view.currentBalance, currentDate) : undefined}
       amount={formatCurrency(debt.minimumPayment)}
       amountSuffix="/mo"
       badges={chips.length ? <>{chips}</> : undefined}
