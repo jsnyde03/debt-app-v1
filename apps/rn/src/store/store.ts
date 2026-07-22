@@ -45,6 +45,11 @@ export interface DebtAppState {
   addDebt(debt: Debt): void;
   updateDebt(id: string, updates: Partial<Debt>): void;
   removeDebt(id: string): void;
+  // Projection auto-maintenance (2.3): re-anchor a debt's verified balance (confirm/correct/manual
+  // update) — the ONLY path that moves `balance` deliberately. `verifyDebtBalances` is the batch used
+  // by the Payday Autopilot confirm-all step.
+  verifyDebtBalance(id: string, verifiedBalance: number, verifiedDate: string): void;
+  verifyDebtBalances(entries: { id: string; balance: number }[], verifiedDate: string): void;
 
   // Required expenses (bills)
   addExpense(expense: RequiredExpense): void;
@@ -135,15 +140,49 @@ export function createDebtStore() {
     },
 
     addDebt(debt) {
-      set((s) => ({ store: recordDriftBaseline({ ...s.store, debts: [...s.store.debts, debt] }) }));
+      // A new debt's balance is verified NOW (the user just entered a real number) → stamp the anchor date.
+      set((s) => ({
+        store: recordDriftBaseline({
+          ...s.store,
+          debts: [...s.store.debts, { ...debt, lastVerifiedDate: debt.lastVerifiedDate ?? s.store.paycheck.currentDate }],
+        }),
+      }));
     },
     updateDebt(id, updates) {
-      set((s) => ({
-        store: { ...s.store, debts: s.store.debts.map((d) => (d.id === id ? { ...d, ...updates } : d)) },
-      }));
+      set((s) => {
+        // Editing the balance IS a verification — the user typed a real number → re-anchor its date
+        // (unless the caller already set one, e.g. a projected confirm). Other edits leave the date.
+        const stamped =
+          updates.balance !== undefined && updates.lastVerifiedDate === undefined
+            ? { ...updates, lastVerifiedDate: s.store.paycheck.currentDate }
+            : updates;
+        return {
+          store: { ...s.store, debts: s.store.debts.map((d) => (d.id === id ? { ...d, ...stamped } : d)) },
+        };
+      });
     },
     removeDebt(id) {
       set((s) => ({ store: recordDriftBaseline({ ...s.store, debts: s.store.debts.filter((d) => d.id !== id) }) }));
+    },
+    verifyDebtBalance(id, verifiedBalance, verifiedDate) {
+      const balance = Math.max(0, Math.round(verifiedBalance * 100) / 100);
+      set((s) => ({
+        store: {
+          ...s.store,
+          debts: s.store.debts.map((d) => (d.id === id ? { ...d, balance, lastVerifiedDate: verifiedDate } : d)),
+        },
+      }));
+    },
+    verifyDebtBalances(entries, verifiedDate) {
+      const next = new Map(entries.map((e) => [e.id, Math.max(0, Math.round(e.balance * 100) / 100)]));
+      set((s) => ({
+        store: {
+          ...s.store,
+          debts: s.store.debts.map((d) =>
+            next.has(d.id) ? { ...d, balance: next.get(d.id)!, lastVerifiedDate: verifiedDate } : d
+          ),
+        },
+      }));
     },
 
     addExpense(expense) {
