@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useAppColors } from '@/hooks/use-app-colors';
-import { layout, spacing } from '@/theme/spacing';
+import { layout } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
 /** A compact 2–3 option segmented control (e.g. the debt/bill toggle). */

@@ -21,7 +21,7 @@ export function DriftCard({ drift, isPremiumPlus }: { drift: DriftResult | null;
   if (!isPremiumPlus) {
     return (
       <Card tone="accent" style={styles.card}>
-        <Header icon="trending-flat" tint={c.accent.primary} label="DRIFT TRACKER" c={c} />
+        <Header icon="trending-flat" tint={c.accent.primary} label="DRIFT TRACKER" />
         <Text style={[textStyles.title3, { color: c.text.primary }]}>Are you ahead or behind your plan?</Text>
         <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
           Premium+ tracks your real balance against the plan the app authored for you — see exactly how many days
@@ -38,7 +38,7 @@ export function DriftCard({ drift, isPremiumPlus }: { drift: DriftResult | null;
   if (!drift) {
     return (
       <Card tone="accent" style={styles.card}>
-        <Header icon="timeline" tint={c.accent.primary} label="DRIFT TRACKER" c={c} />
+        <Header icon="timeline" tint={c.accent.primary} label="DRIFT TRACKER" />
         <Text style={[textStyles.title3, { color: c.text.primary }]}>Building your drift history…</Text>
         <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
           Once a couple of pay cycles roll through, this shows how many days ahead or behind your plan you&apos;re running.
@@ -75,7 +75,7 @@ export function DriftCard({ drift, isPremiumPlus }: { drift: DriftResult | null;
 
   return (
     <Card tone="accent" style={styles.card}>
-      <Header icon="timeline" tint={c.accent.primary} label="DRIFT TRACKER" c={c} />
+      <Header icon="timeline" tint={c.accent.primary} label="DRIFT TRACKER" />
       <View style={styles.headline}>
         <AppIcon name={icon} size={22} color={tint} />
         <Text style={[textStyles.title2, styles.title, { color: c.text.primary }]}>{title}</Text>
@@ -89,12 +89,10 @@ function Header({
   icon,
   tint,
   label,
-  c,
 }: {
   icon: 'timeline' | 'trending-flat';
   tint: string;
   label: string;
-  c: ReturnType<typeof useAppColors>;
 }) {
   return (
     <View style={styles.header}>

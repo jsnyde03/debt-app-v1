@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -250,8 +250,7 @@ function BillsSection() {
 
   // Per-category smoothed contributions (recurring only) — feeds both the hero allocation bar and
   // the "where it goes" receipt. Sorted largest → smallest for the bar's tonal ramp.
-  const categoryBreakdown = useMemo(() => {
-    return BILL_CATEGORY_ORDER.map((category) => {
+  const categoryBreakdown = BILL_CATEGORY_ORDER.map((category) => {
       const catBills = recurring.filter((e) => e.category === category);
       return {
         key: category,
@@ -268,7 +267,6 @@ function BillsSection() {
     })
       .filter((x) => x.bills.length > 0)
       .sort((a, b) => b.perPaycheck - a.perPaycheck);
-  }, [recurring, cyclesPerMonth, perCycle]);
 
   const barTotal = categoryBreakdown.reduce((s, x) => s + x.perPaycheck, 0);
   const segCount = categoryBreakdown.length;
@@ -289,7 +287,7 @@ function BillsSection() {
   const grouped = expenses.length >= BILL_GROUPING_THRESHOLD;
   const searching = query.trim().length > 0;
 
-  const sections = useMemo<BillGroup[]>(() => {
+  const sections: BillGroup[] = (() => {
     const q = query.trim().toLowerCase();
     const match = (e: RequiredExpense) => !q || e.name.toLowerCase().includes(q);
     const perCheck = (bills: RequiredExpense[]) =>
@@ -339,7 +337,7 @@ function BillsSection() {
       }
     }
     return groups;
-  }, [expenses, grouped, searching, query, collapsed, cyclesPerMonth, perCycle]);
+  })();
 
   function toggle(key: string) {
     setCollapsed((prev) => {
