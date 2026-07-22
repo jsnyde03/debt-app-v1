@@ -75,3 +75,32 @@ The **AI tier inverts the un-chattable test**: an in-app coach grounded in your 
 
 ## The reflection
 This started at "maybe scrap premium" and ended with a headline feature the engine was *already computing but throwing away*, a moat we can honestly own, an E2EE-grade privacy posture, and a four-tier ladder that grows from private-by-default automation to AI coaching. The lesson worth keeping: the four questions (good enough / enough / worth the price / just-an-LLM-chat) are the right gate to run any premium tier through — and "un-chattable = stateful, scheduled, proactive, relational, on-device" is the compass that pointed to every good answer.
+
+---
+
+## Premium Vision + Line Audit — 2026-07-22
+_Source: `PREMIUM_VISION_PROPOSAL.md` + `PREMIUM_TIER_STRATEGY.md` (Jason's brainstorm). **NOT a v1.7 scope change** — a north-star review + a premium-line integrity check. The above capstone stands; this extends it._
+
+### The guiding principle (adopt verbatim — the sharpest statement of the reshape)
+> **If removing the feature only removes information, it isn't premium enough. If removing it forces the user to do significantly more work themselves, it's a strong premium feature.**
+
+Effort, not intelligence. This is the test every future premium feature runs through.
+
+### Strategic refinements (LOCKED w/ Jason 2026-07-22 — captured in `[[project_differentiation_strategy_2026-07-04]]`)
+1. **The financial OS = the ECOSYSTEM, not any one app.** It already exists in the architecture (`packages/core` + FinKit interchange = the shared brain); each app is a *lens*. Resolves "is Debt or Freedom the OS?" → neither; the portfolio is.
+2. **The wedge is the ON-RAMP, not the CEILING.** "Lead with the uncopyable job" is go-to-market positioning, not a product cap. Sharp entrance, expansive interior. Debt is emerging as the ecosystem's **best front door** (payday cadence = highest-frequency trusted touch) → do not niche-cap it. Guardrail that survives = **ORDER, not ceiling** (uncapped ambition, sequenced execution; the automation tier is literally the planner→OS bridge).
+3. **The ecosystem is THIN → single-app strength > ecosystem elegance → NEVER dismiss a feature because it "fits better on another app."** Cross-install is a small niche on its best day; the single-app user is the normal case. Always analyze the **best path**, argued not assumed: (a) surface it here · (b) build once in `core`, surface through several lenses (the default — surfacing not rebuilding) · (c) genuinely only-elsewhere (must be argued). Default bias: does THIS app's user benefit?
+
+### Premium-line audit — features that DON'T carry premium weight (and where they go)
+- **Explain-every-recommendation** → **free** (it's transparency/info, the exact smart-text the reshape demoted; and transparency builds trust, shouldn't be paywalled).
+- **Forecast-confidence ranges** → **free / minor throw-in** (more-honest info; doesn't save work or drive a decision by itself).
+- **Hidden Cash Finder · Subscription Watch · Bill-Drift auto-detection** → **Premium+ (Plaid), not on-device Premium** (on manual data they're trivial/impossible; the work-saving version needs transactions — and they're the strongest argument *for* the connected tier).
+- **Opportunity Engine's insurance/refi shopping** → **CUT** (lead-gen in premium clothing; off-device; cuts against "we never sell you more debt" — a trust liability, not premium automation).
+- **Motivation pillar** (streaks/milestones/share cards/anniversaries) → **retention, not the premium line** (mostly free; only custom share-art is premium). **Drop "confetti" — contradicts the locked Skia-spectacle celebration.**
+- **Borderline** (pass only if they drive an action, not just display): Seasonal Spending · Income Volatility · Goal-impact planning → build action-first.
+
+### Carries real premium weight (the spine)
+Autopilot Payday · Smart Carry-Forward · Can-I-Afford-This? · Windfall Planner · Cash-Flow Risk Detection (= Cushion Guardian) · Life-Event Simulator · projection auto-maintenance (✅ 2.3) · the Financial-OS morning brief · (Premium+) the connected auto-detection features. **Pull forward the cheap-but-killer engine-re-solve decision tools** — Can-I-Afford, Windfall, Life-Event sim — they're high-impact and mostly already-built-engine.
+
+### The AI coach = Ava (DECIDED, not open)
+A conversational finance coach = Ava's real engine at the premium bar, **never an LLM wrapper** ("I will not throw a wrapper on a model and call it good… premium standard or it'll never happen"). Door **gated not closed**: once Ava holds its "as good on turn 1000 as turn 4" bar, it can surface AS Debt's coach via `core` (build-once-surface-many). Much of the doc's "AI That Matters" (life-event sim, what-if, explain) is actually *deterministic engine re-solve*, NOT AI — that's a strength (on-device, no LLM cost); only open-ended chat is Ava.
