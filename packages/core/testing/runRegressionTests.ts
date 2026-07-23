@@ -18,6 +18,7 @@ import "../debt/testProjectCurrentBalance";
 import "../guardian/testBuildGuardianBrief";
 import "../guardian/testGuardianPartition";
 import "../guardian/testComputeState";
+import "../cashflow/testDetectCrunches";
 import "../debt/testParseDebtFormValues";
 import "@/lib/storage/testMigrateOriginalBalance";
 import "@core/recurrence/testRolloverDueDates";
