@@ -65,6 +65,11 @@ function runGuardianTests() {
   assertTrue(Number.isFinite(nan.cushion) && Number.isFinite(nan.deployedToDebt) && Number.isFinite(nan.floor), "viz numbers are always finite");
   assertEqual(nan.floor, 200, "a NaN floor falls back to the $200 default");
 
+  // ── Bug (2.4.6.1.4): a NONZERO amount never hedges to "$0" ──
+  const tinyDeploy = buildGuardianBrief(input({ discretionary: 210, kept: 205, deployedToDebt: 2, floor: 200, focusDebtName: "Store Card" }));
+  assertTrue(!/\$0\b/.test(tinyDeploy.detail + (tinyDeploy.safeMove ?? "")), "a $2 deploy never renders as '$0' (floors to the smallest hedge unit)");
+  assertTrue(/spare \$5/.test(tinyDeploy.detail), "a $2 deploy hedges up to 'spare $5', not '$0'");
+
   // ── §2.0.d voice gate: the one-hedge budget + the stale hard-cutoff (2.4.6.1.3) ──
   const AGING = /from a little while ago/i;
   const INCOME_HEDGE = /learn your income/i;

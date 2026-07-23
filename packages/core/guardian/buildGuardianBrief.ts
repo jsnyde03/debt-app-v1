@@ -77,11 +77,15 @@ function money(n: number): number {
   return Number.isFinite(n) ? Math.max(0, n) : 0;
 }
 
-/** Hedge a dollar amount so a projection never reads as false precision (and never NaN). */
+/** Hedge a dollar amount so a projection never reads as false precision (and never NaN). A NONZERO
+ *  amount never rounds down to "$0" (2.4.6.1.4 — the Guardian must not claim it's sending nothing when
+ *  it's sending a few dollars); it floors to the smallest hedge unit instead. */
 function about(n: number): string {
   const v = money(n);
   const step = v < 100 ? 5 : 10;
-  return `about $${(Math.round(v / step) * step).toLocaleString("en-US")}`;
+  const rounded = Math.round(v / step) * step;
+  const display = v > 0 ? Math.max(step, rounded) : rounded;
+  return `about $${display.toLocaleString("en-US")}`;
 }
 /** Bare hedged figure (no "about" prefix) for mid-sentence use. */
 function amt(n: number): string {

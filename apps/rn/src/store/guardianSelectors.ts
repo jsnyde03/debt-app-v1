@@ -46,6 +46,14 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
   // The nearest upcoming cycle that isn't clear — the proactive forewarning ("next month looks tight").
   const upcoming = cycles.slice(1).find((c) => c.cushionStatus !== 'stable');
 
+  // Focus = the debt the ACTUAL allocation sends the extra to FIRST (2.4.6.1.4), not a fresh `rankDebts`
+  // — the engine ranks AFTER this cycle's paid minimums / skips already-cleared debts, so a raw re-rank
+  // can name the wrong debt. Fall back to the raw rank only when nothing deploys (copy doesn't use it then).
+  const snowballItems = allocation.allocations.filter((a) => a.category === 'snowball');
+  const focusDebtName =
+    (snowballItems[0] && store.debts.find((d) => d.id === (snowballItems[0].debtId ?? snowballItems[0].targetId))?.name) ||
+    rankDebts(liveDebts, store.payoffStrategy)[0]?.name;
+
   return buildGuardianBrief({
     isPremium: store.subscriptionPlan === 'premium',
     // The user's cushion line — premium is held to it; for free it's the healthy line they're not on.
@@ -56,9 +64,9 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     kept: selectLiquidCushion(allocation),
     deployedToDebt: selectExtraToDebt(allocation),
     // The extra fills debts in strategy order, so it spans >1 when it exceeds the focus debt's balance.
-    deploySpread: allocation.allocations.filter((a) => a.category === 'snowball').length > 1,
+    deploySpread: snowballItems.length > 1,
     shortfall: allocation.shortfall,
-    focusDebtName: rankDebts(liveDebts, store.payoffStrategy)[0]?.name,
+    focusDebtName,
     lookahead: upcoming
       ? { status: upcoming.cushionStatus, cushion: upcoming.endingBalance, label: shortDate(upcoming.cycleStart) }
       : undefined,

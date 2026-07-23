@@ -71,6 +71,51 @@ function buildTimeline({
     });
 }
 
+// ─── One-time windfall (2.4.6.1.4) ──────────────────────────────────────────
+
+function testWindfallDoesNotRepeatInProjectedCycles() {
+    // Cycle 0's paycheck includes a $500 one-time windfall (base $2000 → $2500). Projected cycles must
+    // run on the recurring $2000, never the windfall-inflated amount (which is cleared at rollover).
+    const base = 2000;
+    const windfall = 500;
+    const result = allocatePaycheck({
+        paycheckAmount: base + windfall,
+        currentDate: "2026-06-01",
+        nextPaycheckDate: "2026-06-15",
+        expenses: [],
+        livingExpenses: [],
+        debts: [],
+        goals: [],
+        strategy: "snowball",
+        paycheckBuffer: 0,
+    });
+    const cycles = buildMultiCycleTimeline({
+        result,
+        requiredExpenses: [],
+        debts: [],
+        goals: [],
+        livingExpenses: [],
+        completedRecommendedActions: [],
+        currentDate: "2026-06-01",
+        nextPaycheckDate: "2026-06-15",
+        payCycleConfig: { payCycle: "biweekly" },
+        strategy: "snowball",
+        paycheckBuffer: 0,
+        maxCycles: 3,
+        projectedPaycheckAmount: base,
+    });
+    assertMoney(cycles[0].paycheckAmount, base + windfall, "cycle 0 keeps the windfall ($2500)");
+    assertMoney(cycles[1].paycheckAmount, base, "projected cycle 1 drops the windfall ($2000)");
+    assertMoney(cycles[2].paycheckAmount, base, "projected cycle 2 drops the windfall ($2000)");
+    // And the default (no projectedPaycheckAmount) stays backward-compatible: projected == cycle 0.
+    const legacy = buildMultiCycleTimeline({
+        result, requiredExpenses: [], debts: [], goals: [], livingExpenses: [], completedRecommendedActions: [],
+        currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15", payCycleConfig: { payCycle: "biweekly" },
+        strategy: "snowball", paycheckBuffer: 0, maxCycles: 3,
+    });
+    assertMoney(legacy[1].paycheckAmount, base + windfall, "default (no projected amount) → projected == cycle 0 (backward-compatible)");
+}
+
 // ─── 1. THE CORE BUG FIX ─────────────────────────────────────────────────────
 
 function testBillAfterNextPaycheckAppearsInFutureCycle() {
@@ -519,6 +564,9 @@ export function runMultiCycleTimelineRegressionTests() {
 
     // Item dates
     testProjectedCycleItemsHaveCorrectDates();
+
+    // One-time windfall not repeated across projected cycles (2.4.6.1.4)
+    testWindfallDoesNotRepeatInProjectedCycles();
 
     // Cross-cycle carry (2.4.D.6)
     testNetEqualsPaycheckMinusRequiredMinusLiving();

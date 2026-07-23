@@ -62,6 +62,7 @@ export function buildMultiCycleTimeline({
     maxCycles = 3,
     startingBalance,
     priorBand,
+    projectedPaycheckAmount,
 }: {
     result: AllocationResult;
     requiredExpenses: RequiredExpense[];
@@ -81,8 +82,14 @@ export function buildMultiCycleTimeline({
     /** The persisted prior Guardian band (2.4.6.1.2) — seeds the projection's cycle-to-cycle hysteresis
      *  so a value hovering on a boundary doesn't flap the forecast's state. */
     priorBand?: GuardianState | null;
+    /** The RECURRING paycheck for PROJECTED cycles (2.4.6.1.4) — cycle 0 uses `result.paycheckAmount`
+     *  (which may include a one-time windfall), but a windfall must NOT repeat across future cycles.
+     *  Defaults to `result.paycheckAmount` (correct when there's no windfall). */
+    projectedPaycheckAmount?: number;
 }): TimelineCycle[] {
     const cycles: TimelineCycle[] = [];
+    // Future cycles project on the recurring paycheck, never a one-time windfall folded into cycle 0.
+    const recurringPaycheck = projectedPaycheckAmount ?? result.paycheckAmount;
     // The un-clamped cross-cycle running balance (2.4.D.6). Seeded at the retained floor, then each
     // cycle's net is added — negatives preserved, so a lumpy-bill crunch survives into the forecast.
     let carriedBalance = startingBalance ?? paycheckBuffer;
@@ -145,7 +152,7 @@ export function buildMultiCycleTimeline({
         }
 
         const projResult = allocatePaycheck({
-            paycheckAmount: result.paycheckAmount,
+            paycheckAmount: recurringPaycheck,
             currentDate: projCurrentDate,
             nextPaycheckDate: projNextDate,
             expenses: projExpenses,
@@ -174,7 +181,7 @@ export function buildMultiCycleTimeline({
         cycles.push({
             cycleStart: projCurrentDate,
             cycleEnd: projNextDate,
-            paycheckAmount: result.paycheckAmount,
+            paycheckAmount: projResult.paycheckAmount,
             items: cycleItems,
             endingBalance,
             cushionStatus: toCushionStatus(projState),
