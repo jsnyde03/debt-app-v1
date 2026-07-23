@@ -9,6 +9,7 @@ import { todayLocalISO } from '@/data/defaults';
 import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
 
 import { selectDebtFreeDate, selectExtraToDebt } from './planSelectors';
+import { projectedIncome } from './projectedIncome';
 import { effectivePaycheckBuffer, selectAllocation } from './selectors';
 
 export type { TrajectoryPoint, InterestSaved, DriftResult, TimelineCycle, TimelineItem };
@@ -40,8 +41,9 @@ export function selectCashTimeline(store: DebtStore, maxCycles = 5): TimelineCyc
     paycheckBuffer: effectivePaycheckBuffer(store),
     maxCycles,
     // Projected cycles run on the RECURRING paycheck — a one-time windfall (folded into cycle 0's
-    // `result.paycheckAmount`) must not repeat across the forecast (2.4.6.1.4).
-    projectedPaycheckAmount: Number(store.paycheck.amount) || 0,
+    // `result.paycheckAmount`) must not repeat (2.4.6.1.4) — and on the LEAN for variable income, so the
+    // valley reaches the forecast (2.4.7.2 / §2.3 valley-into-forecast).
+    projectedPaycheckAmount: projectedIncome(store.paycheck),
   });
 }
 
