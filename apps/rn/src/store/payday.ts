@@ -8,9 +8,18 @@ import { buildCycleSnapshot } from '@core/history/buildCycleSnapshot';
 import { getNextPaycheckDate } from '@core/payCycle/getNextPaycheckDate';
 import { rolloverDebts, rolloverRequiredExpenses } from '@core/recurrence/rolloverPayCycle';
 
-import type { CompletedRecommendedAction, DebtStore } from '@/data/models';
+import type { CompletedRecommendedAction, DebtStore, SurpriseOutflow } from '@/data/models';
 
 import { selectAllocation } from './selectors';
+import { incrementGenuineCycle, recordCycleIncome, recordSurpriseOutflow } from './substrateProducers';
+
+/** Optional actuals the user reports at the payday check-in (2.4.D.3). Absent → fixed income records
+ *  deterministically (actual = planned); variable income with no actual is skipped. */
+export type PaydayActuals = {
+  actualIncome?: number;
+  missed?: boolean;
+  surpriseOutflow?: SurpriseOutflow;
+};
 
 /**
  * Money-critical payday state transitions, ported faithfully from the Capacitor
@@ -26,16 +35,24 @@ export function applyCapture(
   store: DebtStore,
   items: CompletedRecommendedAction[],
   requiredDecisions: RequiredReconciliation,
+  actuals?: PaydayActuals,
 ): DebtStore {
   const { nextGoals, nextCompleted } = applyPaydayCapture(items, store.goals, store.completedRecommendedActions);
   const { expenses, debts } = applyRequiredReconciliation(store.requiredExpenses, store.debts, requiredDecisions);
-  return {
+  let next: DebtStore = {
     ...store,
     goals: nextGoals,
     completedRecommendedActions: nextCompleted,
     requiredExpenses: expenses,
     debts,
   };
+  // 2.4.D.3: record the cycle's actuals at the check-in (the touchpoint where the user reports what
+  // happened). cycleEndDate = the current payday (this cycle's close). Fixed income records
+  // deterministically even with no `actuals`; a surprise outflow / missed arrival records when reported.
+  const cycleEndDate = store.paycheck.nextPaycheckDate;
+  next = recordCycleIncome(next, cycleEndDate, { actualIncome: actuals?.actualIncome, missed: actuals?.missed });
+  if (actuals?.surpriseOutflow) next = recordSurpriseOutflow(next, actuals.surpriseOutflow);
+  return next;
 }
 
 /**
@@ -104,7 +121,9 @@ export function applyRollover(store: DebtStore): DebtStore {
       })
     : nextPaycheckDate;
 
-  return {
+  // 2.4.D.3b: a genuine lived cycle just closed → bump the bill-completeness counter (real rollovers
+  // only; seeded/imported cycles never reach here, so they can't inflate it).
+  const rolled: DebtStore = {
     ...store,
     requiredExpenses: rolledExpenses,
     debts: rolledDebts,
@@ -114,4 +133,5 @@ export function applyRollover(store: DebtStore): DebtStore {
     windfall: 0, // one-time extra income was for the closing cycle only
     paycheck: { ...store.paycheck, currentDate: nextPaycheckDate, nextPaycheckDate: followingPaycheckDate },
   };
+  return incrementGenuineCycle(rolled);
 }

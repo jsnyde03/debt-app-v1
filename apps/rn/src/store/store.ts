@@ -20,7 +20,8 @@ import {
 import type { StorageAdapter } from '@/storage/adapter';
 
 import { recordDriftBaseline } from './drift';
-import { applyCapture, applyRollover } from './payday';
+import { applyCapture, applyRollover, type PaydayActuals } from './payday';
+import { stampInputsFresh, stampOnboardedAt } from './substrateProducers';
 
 /**
  * The app-wide state: the persisted `store` blob + hydration lifecycle + the mutating actions.
@@ -72,7 +73,7 @@ export interface DebtAppState {
   toggleRecommendedDone(action: CompletedRecommendedAction, done: boolean): void;
 
   // Payday Autopilot: capture the paycheck, roll the cycle forward, track the handled payday
-  capturePayday(items: CompletedRecommendedAction[], requiredDecisions: RequiredReconciliation): void;
+  capturePayday(items: CompletedRecommendedAction[], requiredDecisions: RequiredReconciliation, actuals?: PaydayActuals): void;
   rolloverPayCycle(): void;
   setLastHandledPayday(date: string): void;
   markReviewPrompted(): void;
@@ -134,7 +135,8 @@ export function createDebtStore() {
     },
 
     updatePaycheck(updates) {
-      set((s) => ({ store: recordDriftBaseline({ ...s.store, paycheck: { ...s.store.paycheck, ...updates } }) }));
+      // A genuine income edit → stamp read-freshness (2.4.D.3a).
+      set((s) => ({ store: stampInputsFresh(recordDriftBaseline({ ...s.store, paycheck: { ...s.store.paycheck, ...updates } })) }));
     },
     setPayoffStrategy(strategy) {
       set((s) => ({ store: recordDriftBaseline({ ...s.store, payoffStrategy: strategy }) }));
@@ -145,13 +147,13 @@ export function createDebtStore() {
       set((s) => {
         const now = s.store.paycheck.currentDate;
         return {
-          store: recordDriftBaseline({
+          store: stampInputsFresh(recordDriftBaseline({
             ...s.store,
             debts: [
               ...s.store.debts,
               { ...debt, lastVerifiedDate: debt.lastVerifiedDate ?? now, balanceAsOfDate: debt.balanceAsOfDate ?? now },
             ],
-          }),
+          })),
         };
       });
     },
@@ -161,61 +163,62 @@ export function createDebtStore() {
         // as-of date and the user-confirmation date (unless the caller already set them). Other edits
         // leave the dates alone.
         const now = s.store.paycheck.currentDate;
-        const stamped =
-          updates.balance !== undefined
-            ? {
-                ...updates,
-                lastVerifiedDate: updates.lastVerifiedDate ?? now,
-                balanceAsOfDate: updates.balanceAsOfDate ?? now,
-              }
-            : updates;
-        return {
-          store: { ...s.store, debts: s.store.debts.map((d) => (d.id === id ? { ...d, ...stamped } : d)) },
-        };
+        const isBalanceEdit = updates.balance !== undefined;
+        const stamped = isBalanceEdit
+          ? {
+              ...updates,
+              lastVerifiedDate: updates.lastVerifiedDate ?? now,
+              balanceAsOfDate: updates.balanceAsOfDate ?? now,
+            }
+          : updates;
+        const next = { ...s.store, debts: s.store.debts.map((d) => (d.id === id ? { ...d, ...stamped } : d)) };
+        // Field-discriminated read-freshness stamp: a balance edit is a genuine input edit (2.4.D.3a);
+        // other debt edits (name, APR, due date) are not.
+        return { store: isBalanceEdit ? stampInputsFresh(next) : next };
       });
     },
     removeDebt(id) {
-      set((s) => ({ store: recordDriftBaseline({ ...s.store, debts: s.store.debts.filter((d) => d.id !== id) }) }));
+      set((s) => ({ store: stampInputsFresh(recordDriftBaseline({ ...s.store, debts: s.store.debts.filter((d) => d.id !== id) })) }));
     },
     verifyDebtBalance(id, verifiedBalance, verifiedDate) {
       const balance = Math.max(0, Math.round(verifiedBalance * 100) / 100);
       set((s) => ({
-        store: {
+        store: stampInputsFresh({
           ...s.store,
           debts: s.store.debts.map((d) =>
             d.id === id ? { ...d, balance, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate } : d
           ),
-        },
+        }),
       }));
     },
     verifyDebtBalances(entries, verifiedDate) {
       const next = new Map(entries.map((e) => [e.id, Math.max(0, Math.round(e.balance * 100) / 100)]));
       set((s) => ({
-        store: {
+        store: stampInputsFresh({
           ...s.store,
           debts: s.store.debts.map((d) =>
             next.has(d.id)
               ? { ...d, balance: next.get(d.id)!, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate }
               : d
           ),
-        },
+        }),
       }));
     },
 
     addExpense(expense) {
-      set((s) => ({ store: { ...s.store, requiredExpenses: [...s.store.requiredExpenses, expense] } }));
+      set((s) => ({ store: stampInputsFresh({ ...s.store, requiredExpenses: [...s.store.requiredExpenses, expense] }) }));
     },
     updateExpense(id, updates) {
       set((s) => ({
-        store: {
+        store: stampInputsFresh({
           ...s.store,
           requiredExpenses: s.store.requiredExpenses.map((e) => (e.id === id ? { ...e, ...updates } : e)),
-        },
+        }),
       }));
     },
     removeExpense(id) {
       set((s) => ({
-        store: { ...s.store, requiredExpenses: s.store.requiredExpenses.filter((e) => e.id !== id) },
+        store: stampInputsFresh({ ...s.store, requiredExpenses: s.store.requiredExpenses.filter((e) => e.id !== id) }),
       }));
     },
 
@@ -232,15 +235,15 @@ export function createDebtStore() {
     },
 
     addLivingExpense(expense) {
-      set((s) => ({ store: { ...s.store, livingExpenses: [...s.store.livingExpenses, expense] } }));
+      set((s) => ({ store: stampInputsFresh({ ...s.store, livingExpenses: [...s.store.livingExpenses, expense] }) }));
     },
     updateLivingExpense(id, updates) {
       set((s) => ({
-        store: { ...s.store, livingExpenses: s.store.livingExpenses.map((e) => (e.id === id ? { ...e, ...updates } : e)) },
+        store: stampInputsFresh({ ...s.store, livingExpenses: s.store.livingExpenses.map((e) => (e.id === id ? { ...e, ...updates } : e)) }),
       }));
     },
     removeLivingExpense(id) {
-      set((s) => ({ store: { ...s.store, livingExpenses: s.store.livingExpenses.filter((e) => e.id !== id) } }));
+      set((s) => ({ store: stampInputsFresh({ ...s.store, livingExpenses: s.store.livingExpenses.filter((e) => e.id !== id) }) }));
     },
 
     markExpensePaid(id, paid) {
@@ -271,8 +274,8 @@ export function createDebtStore() {
       });
     },
 
-    capturePayday(items, requiredDecisions) {
-      set((s) => ({ store: applyCapture(s.store, items, requiredDecisions) }));
+    capturePayday(items, requiredDecisions, actuals) {
+      set((s) => ({ store: applyCapture(s.store, items, requiredDecisions, actuals) }));
     },
     rolloverPayCycle() {
       // Re-check the baseline at the cycle boundary — establishes one for pre-drift users and catches
@@ -303,8 +306,9 @@ export function createDebtStore() {
       set((s) => ({ store: { ...s.store, cushionFloor: snapped } }));
     },
     completeOnboarding() {
-      // Plan-establish point — freeze the first drift baseline if the plan is ready.
-      set((s) => ({ store: recordDriftBaseline({ ...s.store, prefs: { ...s.store.prefs, onboardingComplete: true } }) }));
+      // Plan-establish point — freeze the first drift baseline if the plan is ready, and stamp the
+      // bill-completeness baseline `onboardedAt` (2.4.D.3, set once).
+      set((s) => ({ store: stampOnboardedAt(recordDriftBaseline({ ...s.store, prefs: { ...s.store.prefs, onboardingComplete: true } })) }));
     },
 
     importStore(store) {
