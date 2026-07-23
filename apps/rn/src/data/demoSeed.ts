@@ -60,6 +60,11 @@ export function demoStore(): DebtStore {
       { cycleEndDate: '2026-06-26', totalDebtBalance: 11840, totalPaidThisCycle: 455, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
       { cycleEndDate: '2026-07-10', totalDebtBalance: 11580, totalPaidThisCycle: 480, allRequiredMet: true, completedRecommendedActions: [], payoffStrategy: 'snowball' },
     ],
+    // Past the §2.0 discovery window (matches the 6-cycle track record above) so the mid-journey
+    // showcase reads as an ESTABLISHED premium user — no cold-start holdback / "getting to know your
+    // bills" hedge on a user who's clearly been here a while. A deliberate cold-start demo state is
+    // 2.4.11's ("demo bounded to cold-start reality").
+    genuineCycleCount: 6,
     driftBaseline: {
       anchorDate,
       anchorBalance: 12200,
