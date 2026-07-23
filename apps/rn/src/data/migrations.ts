@@ -10,6 +10,12 @@ import { CURRENT_STORE_VERSION, type DebtStore } from './models';
  * balance as freshly verified, so projection starts at zero drift rather than an alarming jump.
  * `balanceAsOfDate` (the projection anchor) defaults to `lastVerifiedDate` (the balance is as-of when
  * it was last confirmed). Both are backfilled together so a v2 OR the interim-v3 blob lands correct.
+ * v5 (Payday Cushion Guardian substrate, 2.4.D) is purely ADDITIVE — the new store-level fields
+ * (`inputsAsOf`, `genuineCycleCount`, the logs, the current-cycle carriers, `missedArrivals`) and the
+ * new `PaycheckConfig` income fields (`incomeVaries`/`leanAmount`/`typicalAmount`) merge onto the
+ * current defaults below (top-level via `...base`, paycheck via the explicit paycheck merge), so an
+ * older blob backfills to safe values (fixed income, zero genuine cycles, empty logs) with no bespoke
+ * step. `inputsAsOf` lands at the current date → an upgrade reads as freshly-entered, not stale.
  * A raw that isn't a plain object throws → the caller quarantines it (never writes corrupt data
  * back). Older/partial shapes are merged onto the current defaults so a missing field never bricks
  * hydration. (The Capacitor per-key `debtPlanner.*` → this blob mapping is the Phase-D data bridge,

@@ -308,7 +308,11 @@ export function createDebtStore() {
     },
 
     importStore(store) {
-      set({ store });
+      // Route EVERY import through the migration merge (2.4.D, round-6 data #3). It's idempotent, so
+      // callers that already pre-migrate (JSON restore) are unaffected; it hardens the future raw
+      // callers the interface advertises (iCloud restore, the Phase-D data bridge) so an unmigrated
+      // blob can't land the v5 substrate fields `undefined` (NaN `genuineCycleCount`, broken staleness).
+      set({ store: runMigrations(store) });
     },
   }));
 }

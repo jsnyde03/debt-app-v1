@@ -21,6 +21,9 @@ export function createDefaultStore(): DebtStore {
       semiMonthlyFirstDay: '1',
       semiMonthlySecondDay: '15',
       monthlyPayDay: '1',
+      incomeVaries: false,
+      leanAmount: 0,
+      typicalAmount: 0,
     },
     payoffStrategy: 'snowball',
     debts: [],
@@ -44,5 +47,17 @@ export function createDefaultStore(): DebtStore {
     lastSavedAt: '',
     lastHandledPaydayDate: null,
     reviewPrompted: false,
+    // v1.7 Payday Guardian substrate (2.4.D) — safe/decisive defaults; an upgrade reads as
+    // fresh-but-unproven (fixed income, zero genuine cycles, empty logs, no in-flight prediction).
+    inputsAsOf: currentDate,
+    genuineCycleCount: 0,
+    onboardedAt: null,
+    incomeActualsLog: [],
+    surpriseOutflowLog: [],
+    currentCyclePrediction: null,
+    currentCycleNotifyState: null,
+    pushLog: [],
+    priorGuardianBand: null,
+    missedArrivals: [],
   };
 }

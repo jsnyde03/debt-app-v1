@@ -98,6 +98,60 @@ export type CompletedRecommendedAction = {
 	paymentSource?: "paycheck" | "external";
 };
 
+// v1.7 Payday Cushion Guardian (2.4.D) — the persisted substrate shapes.
+// The Guardian's 3-band read (mirrors buildGuardianBrief's GuardianState; a
+// self-contained persisted union, decoupled from the compute module).
+export type GuardianBand = "clear" | "tight" | "at-risk";
+
+// The Guardian's prediction for a cycle, stamped at cycle-START (§2.0.e / §3.2).
+// Lives in-flight on the store (DebtStore.currentCyclePrediction) and is folded
+// into the cycle's PayCycleSnapshot at rollover WITH the reconciled outcome — the
+// snapshot itself is a historical end-of-cycle record, so the in-flight prediction
+// cannot live on it (2.4.D.1 before-scan finding #2).
+export type CyclePrediction = {
+	// The cycle this prediction is FOR (matches the snapshot's cycleEndDate at rollover).
+	forCycleEndDate: string;
+	predictedCushion: number;
+	predictedState: GuardianBand;
+	predictedShortfall: number;
+	// §2.0.e confidence context: which holdbacks / provisional flags were active at
+	// stamp time, so the §2.9 scorecard can EXCLUDE / down-weight deliberately-cautious
+	// reads instead of grading its own caution as a confident miss.
+	predictedConfidenceContext: {
+		discoveryHoldbackActive: boolean;
+		coldStartHoldbackActive: boolean;
+		provisional: boolean;
+	};
+	// The planned income this prediction assumed — captured here (not on the overwritten
+	// PaycheckConfig) so predicted-vs-actual has real history (2.4.D.1 before-scan finding #1).
+	plannedIncome: number;
+};
+
+// The reconciled outcome of a cycle, captured at rollover against the prediction.
+export type CycleOutcome = {
+	actualIncome: number;
+	actualCushionHeld: number;
+	outcomeConfirmed: boolean;
+};
+
+// One per-paycheck income actual, paired with the income it was planned against.
+// Per-PAYCHECK granularity (not per-cycle) so weekly earners with multiple paychecks
+// per cycle keep a real series; `store.windfall` is excluded so a one-off can't inflate lean.
+export type IncomeActual = {
+	cycleEndDate: string;
+	plannedIncome: number;
+	actualIncome: number;
+};
+
+// An un-modeled outflow surfaced at a payday reconcile — the second half of the
+// bill-completeness signal (§2.0.a), and the walk-back trigger for an over-confident
+// "my bills are complete" attestation (§2.0.c).
+export type SurpriseOutflow = {
+	cycleEndDate: string;
+	amount: number;
+	note?: string;
+};
+
 // One frozen record of a pay cycle at the moment it rolled over.
 // Written pre-rollover (before debts mutate / actions clear) so it
 // captures where the user actually was when the cycle ended. Feeds Pay
@@ -119,6 +173,12 @@ export type PayCycleSnapshot = {
 	recommendedThisCycle?: number;
 	completedRecommendedActions: CompletedRecommendedAction[];
 	payoffStrategy: "snowball" | "avalanche";
+	// v1.7 Guardian calibration (2.4.D): the cycle-start prediction folded in at rollover
+	// + its reconciled outcome. Both optional so pre-v1.7 snapshots still parse; `disturbed`
+	// marks a cycle whose prediction was re-stamped mid-cycle (excluded from the N≥4 count).
+	prediction?: CyclePrediction;
+	outcome?: CycleOutcome;
+	disturbed?: boolean;
 };
 
 // localStorage key for the appended cycle-history array.
