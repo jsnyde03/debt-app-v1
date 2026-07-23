@@ -2,11 +2,13 @@ import { deriveRequiredActionView, type RequiredActionView, type RequiredAllocat
 import { PROTECTED_CUSHION_CATEGORIES } from '@core/engine/allocatePaycheck';
 import { projectDebtPayoff } from '@core/debt/projectDebtPayoff';
 import { selectActiveRecommendedActions } from '@core/debt/selectActiveRecommendedActions';
+import { computeState } from '@core/guardian/computeState';
+import { toCushionStatus } from '@core/timeline/buildMultiCycleTimeline';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 
 import type { DebtStore } from '@/data/models';
 
-import type { Allocation } from './selectors';
+import { effectivePaycheckBuffer, type Allocation } from './selectors';
 
 export type ActiveRecommendedAction = ReturnType<typeof selectActiveRecommendedActions>[number];
 
@@ -217,8 +219,11 @@ export function selectPlanSummary(store: DebtStore, allocation: Allocation, requ
   const overdue = requiredRows.some((r) => r.view.overdue);
   const hero = heroFraming(allocation);
   const remainingAfterRequired = allocation.paycheckAmount - allocation.totalRequired;
-  const cushionStatus: PlanSummary['cushionStatus'] =
-    remainingAfterRequired <= 0 ? 'pressure' : remainingAfterRequired < allocation.paycheckAmount * 0.1 ? 'tight' : 'stable';
+  // Unified state (2.4.6.1.2): the SAME floor-relative `computeState` the card + forecast use — off
+  // discretionary (after living too), NOT `remainingAfterRequired` vs a `paycheck × 0.1` threshold.
+  const cushionStatus: PlanSummary['cushionStatus'] = toCushionStatus(
+    computeState(selectDiscretionary(allocation), effectivePaycheckBuffer(store), store.priorGuardianBand),
+  );
   return {
     heroValue: hero.value,
     heroLabel: hero.label,

@@ -139,6 +139,9 @@ export function applyRollover(store: DebtStore): DebtStore {
     milestoneMaxProgress: milestoneResult.nextMaxProgressByDebt,
     windfall: 0, // one-time extra income was for the closing cycle only
     currentCyclePrediction: null,
+    // 2.4.6.1.2: the closing cycle's band becomes the NEW cycle's prior, for cross-cycle hysteresis
+    // (so the state doesn't flap on a value hovering at a boundary). Persisted + reloaded across rollover.
+    priorGuardianBand: store.currentCyclePrediction?.predictedState ?? store.priorGuardianBand,
     paycheck: { ...store.paycheck, currentDate: nextPaycheckDate, nextPaycheckDate: followingPaycheckDate },
   };
   return stampCyclePrediction(incrementGenuineCycle(rolled));

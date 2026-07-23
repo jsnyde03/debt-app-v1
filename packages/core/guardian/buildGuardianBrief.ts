@@ -1,4 +1,5 @@
 import type { CushionStatus } from "@core/timeline/buildMultiCycleTimeline";
+import { computeState } from "@core/guardian/computeState";
 
 /**
  * Payday Cushion Guardian core (v1.7 Phase 2.4) — the premium headline, and now an ACTOR, not a
@@ -48,6 +49,8 @@ export interface GuardianInput {
   shortfall: number;
   focusDebtName?: string;
   lookahead?: { status: CushionStatus; cushion: number; label: string };
+  /** The persisted prior band (2.4.6.1.2) — enables hysteresis so the card's state can't flap. */
+  priorBand?: GuardianState | null;
 }
 
 /** A finite, non-negative number or 0 — the guard against `$NaN`/`$Infinity` ever reaching a screen. */
@@ -79,8 +82,10 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   // sending money to debt is a choice, not a risk. Same for free and premium (the split differs, the
   // headroom doesn't). at-risk (red): can't cover obligations, or critically little left. tight (amber):
   // covered, but under your line. clear (slate): covered with your full cushion intact.
-  const state: GuardianState =
-    shortfall > 0 || discretionary < 100 ? "at-risk" : discretionary < floor ? "tight" : "clear";
+  // The ONE state machine (2.4.6.1.2): floor-relative headroom + hysteresis via the prior band. A
+  // shortfall drives `discretionary` to 0 → at-risk, so it needs no separate branch here (the copy
+  // below still keys off `shortfall` for its wording).
+  const state: GuardianState = computeState(discretionary, floor, input.priorBand);
   const reachedFloor = kept >= floor - 1;
 
   const look =

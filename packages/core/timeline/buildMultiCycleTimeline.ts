@@ -1,11 +1,20 @@
 import { allocatePaycheck } from "@core/engine/allocatePaycheck";
 import { buildTimelineItems, type TimelineItem } from "./buildTimelineItems";
+import { computeState } from "@core/guardian/computeState";
+import type { GuardianState } from "@core/guardian/buildGuardianBrief";
 import { getNextPaycheckDate, type PayCycle } from "@core/payCycle/getNextPaycheckDate";
 import { rolloverRequiredExpenses, rolloverDebts } from "@core/recurrence/rolloverPayCycle";
 import type { CompletedRecommendedAction, Debt, RequiredExpense, Goal } from "@core/storage/debtPlannerStorage";
 import type { LivingExpense } from "@core/types/livingExpense";
 
 export type CushionStatus = "stable" | "tight" | "pressure";
+
+/** Map the unified Guardian band → the forecast's display vocabulary (2.4.6.1.2). The band is the
+ *  single source (computed by `computeState` off floor-relative headroom); `cushionStatus` is its alias
+ *  so the existing cash-flow-bar / lookahead consumers keep working. */
+export function toCushionStatus(state: GuardianState): CushionStatus {
+    return state === "clear" ? "stable" : state === "tight" ? "tight" : "pressure";
+}
 
 export type TimelineCycle = {
     cycleStart: string;
@@ -14,6 +23,9 @@ export type TimelineCycle = {
     items: TimelineItem[];
     endingBalance: number;
     cushionStatus: CushionStatus;
+    /** The canonical unified Guardian band for this cycle (§2.2 / round-4 F4). `cushionStatus` is its
+     *  display alias. Driven by floor-relative headroom (`net`), NOT `endingBalance`. */
+    guardianState: GuardianState;
     isProjected: boolean;
     // v1.7 Guardian cross-cycle carry (2.4.D.6) — the substrate for §2.5 water-fill smoothing.
     // `net` = income − required − living for THIS cycle, UN-CLAMPED (negative on a lumpy-bill cycle;
@@ -49,6 +61,7 @@ export function buildMultiCycleTimeline({
     paycheckBuffer = 50,
     maxCycles = 3,
     startingBalance,
+    priorBand,
 }: {
     result: AllocationResult;
     requiredExpenses: RequiredExpense[];
@@ -65,11 +78,17 @@ export function buildMultiCycleTimeline({
     /** The retained balance at the START of cycle 0 (before its net) — the §2.5 water-fill's `bal_0`.
      *  Defaults to the protected floor (`paycheckBuffer`). */
     startingBalance?: number;
+    /** The persisted prior Guardian band (2.4.6.1.2) — seeds the projection's cycle-to-cycle hysteresis
+     *  so a value hovering on a boundary doesn't flap the forecast's state. */
+    priorBand?: GuardianState | null;
 }): TimelineCycle[] {
     const cycles: TimelineCycle[] = [];
     // The un-clamped cross-cycle running balance (2.4.D.6). Seeded at the retained floor, then each
     // cycle's net is added — negatives preserved, so a lumpy-bill crunch survives into the forecast.
     let carriedBalance = startingBalance ?? paycheckBuffer;
+    // The unified band (2.4.6.1.2), threaded cycle-to-cycle for hysteresis. `paycheckBuffer` is the
+    // forecast's floor. The band is driven by floor-relative headroom (`net`), never `endingBalance`.
+    let band: GuardianState | null | undefined = priorBand;
 
     // Cycle 0: current cycle (result already computed by caller)
     const cycle0Items = buildTimelineItems({
@@ -84,6 +103,8 @@ export function buildMultiCycleTimeline({
     const cycle0Balance = getEndingBalance(cycle0Items, result.paycheckAmount);
     const cycle0Net = cycleNet(result);
     carriedBalance += cycle0Net;
+    const cycle0State = computeState(Math.max(0, cycle0Net), paycheckBuffer, band);
+    band = cycle0State;
 
     cycles.push({
         cycleStart: currentDate,
@@ -91,7 +112,8 @@ export function buildMultiCycleTimeline({
         paycheckAmount: result.paycheckAmount,
         items: cycle0Items,
         endingBalance: cycle0Balance,
-        cushionStatus: toCushionStatus(cycle0Balance),
+        cushionStatus: toCushionStatus(cycle0State),
+        guardianState: cycle0State,
         isProjected: false,
         net: cycle0Net,
         carriedBalance,
@@ -146,6 +168,8 @@ export function buildMultiCycleTimeline({
         const endingBalance = getEndingBalance(cycleItems, projResult.paycheckAmount);
         const projNet = cycleNet(projResult);
         carriedBalance += projNet;
+        const projState = computeState(Math.max(0, projNet), paycheckBuffer, band);
+        band = projState;
 
         cycles.push({
             cycleStart: projCurrentDate,
@@ -153,7 +177,8 @@ export function buildMultiCycleTimeline({
             paycheckAmount: result.paycheckAmount,
             items: cycleItems,
             endingBalance,
-            cushionStatus: toCushionStatus(endingBalance),
+            cushionStatus: toCushionStatus(projState),
+            guardianState: projState,
             isProjected: true,
             net: projNet,
             carriedBalance,
@@ -214,10 +239,4 @@ function getEndingBalance(items: TimelineItem[], fallback: number): number {
  *  to see. Excludes the buffer/deploy (deploy-independence is what makes crunch detection a single pass). */
 function cycleNet(r: AllocationResult): number {
     return r.paycheckAmount - r.totalRequired - r.livingExpenseReserve;
-}
-
-function toCushionStatus(balance: number): CushionStatus {
-    if (balance >= 200) return "stable";
-    if (balance >= 100) return "tight";
-    return "pressure";
 }

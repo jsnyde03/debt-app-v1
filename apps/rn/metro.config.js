@@ -32,6 +32,13 @@ if (!fs.existsSync(coreLink)) {
 
 const config = getDefaultConfig(projectRoot);
 
+// Watch the REAL packages/core (not just the ./core symlink). Without this, Metro watches only the
+// project root and reaches core through the symlink for BUNDLING but never WATCHES the real files, so
+// a newly-added @core export doesn't invalidate the hot-reload cache → "X is not a function" until a
+// `--clear`. Watching the real dir + following symlinks makes new exports hot-reload cleanly.
+config.watchFolders = Array.from(new Set([...(config.watchFolders ?? []), coreTarget]));
+config.resolver.unstable_enableSymlinks = true;
+
 const EXTS = ["ts", "tsx", "js", "jsx", "json"];
 
 // Resolve `base` to a concrete file, trying platform-specific extensions first

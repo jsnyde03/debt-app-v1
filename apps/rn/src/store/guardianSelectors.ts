@@ -48,5 +48,6 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     lookahead: upcoming
       ? { status: upcoming.cushionStatus, cushion: upcoming.endingBalance, label: shortDate(upcoming.cycleStart) }
       : undefined,
+    priorBand: store.priorGuardianBand,
   });
 }
