@@ -10,6 +10,7 @@ import { rolloverDebts, rolloverRequiredExpenses } from '@core/recurrence/rollov
 
 import type { CompletedRecommendedAction, DebtStore, SurpriseOutflow } from '@/data/models';
 
+import { reconcileClosingCycle, stampCyclePrediction } from './guardianPrediction';
 import { selectAllocation } from './selectors';
 import { incrementGenuineCycle, recordCycleIncome, recordSurpriseOutflow } from './substrateProducers';
 
@@ -76,14 +77,18 @@ export function applyRollover(store: DebtStore): DebtStore {
   const allocation = selectAllocation(store);
   const allRequiredMet = (allocation?.affordableUnpaidRequiredCount ?? 0) === 0;
 
-  // Record the closing cycle BEFORE mutating (reflects where the user actually was).
-  const snapshot = buildCycleSnapshot({
-    cycleEndDate: nextPaycheckDate,
-    debts: reconciledDebts,
-    completedRecommendedActions: store.completedRecommendedActions,
-    payoffStrategy: store.payoffStrategy,
-    allRequiredMet,
-  });
+  // Record the closing cycle BEFORE mutating (reflects where the user actually was), then fold the
+  // in-flight prediction + its reconciled outcome into it (2.4.D.4 two-touchpoint reconcile).
+  const snapshot = reconcileClosingCycle(
+    store,
+    buildCycleSnapshot({
+      cycleEndDate: nextPaycheckDate,
+      debts: reconciledDebts,
+      completedRecommendedActions: store.completedRecommendedActions,
+      payoffStrategy: store.payoffStrategy,
+      allRequiredMet,
+    }),
+  );
 
   // Apply this cycle's payments once (so we persist new balances AND detect milestone crossings).
   const debtsAfter = reconciledDebts.map((debt) =>
@@ -122,7 +127,9 @@ export function applyRollover(store: DebtStore): DebtStore {
     : nextPaycheckDate;
 
   // 2.4.D.3b: a genuine lived cycle just closed → bump the bill-completeness counter (real rollovers
-  // only; seeded/imported cycles never reach here, so they can't inflate it).
+  // only; seeded/imported cycles never reach here, so they can't inflate it). 2.4.D.4: the folded
+  // prediction is now on the closing snapshot, so clear the in-flight carrier and re-stamp for the NEW
+  // cycle off the rolled store (the second touchpoint's "start" stamp for cycle N+1).
   const rolled: DebtStore = {
     ...store,
     requiredExpenses: rolledExpenses,
@@ -131,7 +138,8 @@ export function applyRollover(store: DebtStore): DebtStore {
     cycleHistory: [...store.cycleHistory, snapshot],
     milestoneMaxProgress: milestoneResult.nextMaxProgressByDebt,
     windfall: 0, // one-time extra income was for the closing cycle only
+    currentCyclePrediction: null,
     paycheck: { ...store.paycheck, currentDate: nextPaycheckDate, nextPaycheckDate: followingPaycheckDate },
   };
-  return incrementGenuineCycle(rolled);
+  return stampCyclePrediction(incrementGenuineCycle(rolled));
 }

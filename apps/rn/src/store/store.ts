@@ -20,6 +20,7 @@ import {
 import type { StorageAdapter } from '@/storage/adapter';
 
 import { recordDriftBaseline } from './drift';
+import { stampCyclePrediction } from './guardianPrediction';
 import { applyCapture, applyRollover, type PaydayActuals } from './payday';
 import { stampInputsFresh, stampOnboardedAt } from './substrateProducers';
 
@@ -84,6 +85,8 @@ export interface DebtAppState {
   setSubscriptionPlan(plan: SubscriptionPlan): void;
   setCushionFloor(floor: number): void;
   completeOnboarding(): void;
+  /** 2.4.D.4 — stamp/refresh the current cycle's Guardian prediction (app-open cycle-detect). */
+  refreshCyclePrediction(): void;
 
   // Import (shared by JSON import + iCloud restore + the Phase-D data bridge)
   importStore(store: DebtStore): void;
@@ -306,9 +309,19 @@ export function createDebtStore() {
       set((s) => ({ store: { ...s.store, cushionFloor: snapped } }));
     },
     completeOnboarding() {
-      // Plan-establish point — freeze the first drift baseline if the plan is ready, and stamp the
-      // bill-completeness baseline `onboardedAt` (2.4.D.3, set once).
-      set((s) => ({ store: stampOnboardedAt(recordDriftBaseline({ ...s.store, prefs: { ...s.store.prefs, onboardingComplete: true } })) }));
+      // Plan-establish point — freeze the first drift baseline if the plan is ready, stamp the
+      // bill-completeness baseline `onboardedAt` (2.4.D.3, set once), and stamp the first cycle's
+      // Guardian prediction (2.4.D.4 onboarding-mid-cycle entry path; no-op until a plan exists).
+      set((s) => ({
+        store: stampCyclePrediction(
+          stampOnboardedAt(recordDriftBaseline({ ...s.store, prefs: { ...s.store.prefs, onboardingComplete: true } })),
+        ),
+      }));
+    },
+    refreshCyclePrediction() {
+      // App-open / cycle-detect entry path (2.4.D.4): stamp the current cycle's prediction if unstamped,
+      // or re-stamp + mark disturbed on a material change. Idempotent, so it's safe to call on mount.
+      set((s) => ({ store: stampCyclePrediction(s.store) }));
     },
 
     importStore(store) {

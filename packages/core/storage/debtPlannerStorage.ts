@@ -125,6 +125,9 @@ export type CyclePrediction = {
 	// The planned income this prediction assumed — captured here (not on the overwritten
 	// PaycheckConfig) so predicted-vs-actual has real history (2.4.D.1 before-scan finding #1).
 	plannedIncome: number;
+	// Set true when the prediction was RE-STAMPED mid-cycle after a material change (2.4.D.4). Folded
+	// into the snapshot's `disturbed` at rollover so the §2.9 scorecard excludes the cycle from N≥4.
+	restampedMidCycle?: boolean;
 };
 
 // The reconciled outcome of a cycle, captured at rollover against the prediction.
