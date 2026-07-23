@@ -424,6 +424,58 @@ function testProjectedCycleItemsHaveCorrectDates() {
     assertEqual(internetItem.date, "2026-06-22", "Internet item has correct due date in projected cycle");
 }
 
+// ─── 10. CROSS-CYCLE CARRY (2.4.D.6 · round-6 F3) ────────────────────────────
+
+function testNetEqualsPaycheckMinusRequiredMinusLiving() {
+    const expenses: RequiredExpense[] = [
+        { id: "e1", name: "Rent", amount: 850, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: false },
+    ];
+    const livingExpenses: LivingExpense[] = [{ id: "l1", name: "Groceries", amount: 400, enabled: true }];
+    const cycles = buildTimeline({ paycheckAmount: 2000, expenses, livingExpenses, paycheckBuffer: 0 });
+    // 2000 − 850 required − 400 living = 750
+    assertMoney(cycles[0].net, 750, "cycle 0 net = paycheck − required − living");
+}
+
+function testCarriedBalanceIsCumulativeFromStartingBalance() {
+    // No bills → net = 2000 every cycle; startingBalance defaults to paycheckBuffer (200 here).
+    const cycles = buildTimeline({ paycheckAmount: 2000, paycheckBuffer: 200, maxCycles: 3 });
+    assertMoney(cycles[0].carriedBalance, 200 + 2000, "carried_0 = startingBalance + net_0");
+    assertMoney(cycles[1].carriedBalance, 200 + 2000 * 2, "carried_1 accumulates net_1");
+    assertMoney(cycles[2].carriedBalance, 200 + 2000 * 3, "carried_2 accumulates net_2");
+}
+
+function testCarriedBalanceRecurrenceHolds() {
+    const expenses: RequiredExpense[] = [
+        { id: "e1", name: "Internet", amount: 80, dueDate: "2026-06-22", recurrence: "monthly", isPaidThisCycle: false },
+    ];
+    const cycles = buildTimeline({ paycheckAmount: 2000, expenses, maxCycles: 3 });
+    for (let i = 1; i < cycles.length; i++) {
+        assertMoney(
+            cycles[i].carriedBalance,
+            cycles[i - 1].carriedBalance + cycles[i].net,
+            `carried_${i} = carried_${i - 1} + net_${i}`
+        );
+    }
+}
+
+function testNegativeNetLumpyCyclePreservedUnclamped() {
+    // A lumpy bill lands in cycle 1 that EXCEEDS that cycle's income → net_1 < 0. The un-clamped net
+    // must be preserved — `endingBalance` clamps the dip to ≥0, hiding the crunch the water-fill needs.
+    const expenses: RequiredExpense[] = [
+        { id: "e1", name: "PropertyTax", amount: 1800, dueDate: "2026-06-22", recurrence: "monthly", isPaidThisCycle: false },
+    ];
+    const cycles = buildTimeline({ paycheckAmount: 1000, expenses, maxCycles: 2, paycheckBuffer: 0 });
+    const cycle1 = assertExists(cycles[1], "cycle 1 exists");
+    // 1000 − 1800 = −800: the negative net is the whole point (a lumpy-bill crunch).
+    assertMoney(cycle1.net, -800, "lumpy-bill cycle net is NEGATIVE and un-clamped");
+    assertAtLeast(cycle1.endingBalance, 0, "endingBalance stays clamped ≥0 (the dip it would hide)");
+    assertMoney(
+        cycle1.carriedBalance,
+        cycles[0].carriedBalance + cycle1.net,
+        "carried recurrence holds THROUGH the negative cycle"
+    );
+}
+
 // ─── runner ──────────────────────────────────────────────────────────────────
 
 export function runMultiCycleTimelineRegressionTests() {
@@ -467,6 +519,12 @@ export function runMultiCycleTimelineRegressionTests() {
 
     // Item dates
     testProjectedCycleItemsHaveCorrectDates();
+
+    // Cross-cycle carry (2.4.D.6)
+    testNetEqualsPaycheckMinusRequiredMinusLiving();
+    testCarriedBalanceIsCumulativeFromStartingBalance();
+    testCarriedBalanceRecurrenceHolds();
+    testNegativeNetLumpyCyclePreservedUnclamped();
 
     console.log("✅ Multi-cycle timeline regression tests passed.");
 }

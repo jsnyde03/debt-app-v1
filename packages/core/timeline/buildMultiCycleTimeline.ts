@@ -15,6 +15,15 @@ export type TimelineCycle = {
     endingBalance: number;
     cushionStatus: CushionStatus;
     isProjected: boolean;
+    // v1.7 Guardian cross-cycle carry (2.4.D.6) — the substrate for §2.5 water-fill smoothing.
+    // `net` = income − required − living for THIS cycle, UN-CLAMPED (negative on a lumpy-bill cycle;
+    // the plain per-cycle flow, before any buffer/deploy). `carriedBalance` = the running balance at
+    // this cycle's END if nothing is deployed: startingBalance + Σ net (also un-clamped, so a genuine
+    // future crunch — carriedBalance dipping below the floor — is visible instead of erased by the
+    // `endingBalance` max(0,·) clamp). Deploy-independent by construction → the water-fill (2.4.7)
+    // detects crunches on this fixed track in a single pass.
+    net: number;
+    carriedBalance: number;
 };
 
 export type MultiCycleTimelineConfig = {
@@ -39,6 +48,7 @@ export function buildMultiCycleTimeline({
     strategy,
     paycheckBuffer = 50,
     maxCycles = 3,
+    startingBalance,
 }: {
     result: AllocationResult;
     requiredExpenses: RequiredExpense[];
@@ -52,8 +62,14 @@ export function buildMultiCycleTimeline({
     strategy: "snowball" | "avalanche";
     paycheckBuffer?: number;
     maxCycles?: number;
+    /** The retained balance at the START of cycle 0 (before its net) — the §2.5 water-fill's `bal_0`.
+     *  Defaults to the protected floor (`paycheckBuffer`). */
+    startingBalance?: number;
 }): TimelineCycle[] {
     const cycles: TimelineCycle[] = [];
+    // The un-clamped cross-cycle running balance (2.4.D.6). Seeded at the retained floor, then each
+    // cycle's net is added — negatives preserved, so a lumpy-bill crunch survives into the forecast.
+    let carriedBalance = startingBalance ?? paycheckBuffer;
 
     // Cycle 0: current cycle (result already computed by caller)
     const cycle0Items = buildTimelineItems({
@@ -66,6 +82,8 @@ export function buildMultiCycleTimeline({
     });
 
     const cycle0Balance = getEndingBalance(cycle0Items, result.paycheckAmount);
+    const cycle0Net = cycleNet(result);
+    carriedBalance += cycle0Net;
 
     cycles.push({
         cycleStart: currentDate,
@@ -75,6 +93,8 @@ export function buildMultiCycleTimeline({
         endingBalance: cycle0Balance,
         cushionStatus: toCushionStatus(cycle0Balance),
         isProjected: false,
+        net: cycle0Net,
+        carriedBalance,
     });
 
     // Project future cycles so the user can see their full bill schedule.
@@ -124,6 +144,8 @@ export function buildMultiCycleTimeline({
         });
 
         const endingBalance = getEndingBalance(cycleItems, projResult.paycheckAmount);
+        const projNet = cycleNet(projResult);
+        carriedBalance += projNet;
 
         cycles.push({
             cycleStart: projCurrentDate,
@@ -133,6 +155,8 @@ export function buildMultiCycleTimeline({
             endingBalance,
             cushionStatus: toCushionStatus(endingBalance),
             isProjected: true,
+            net: projNet,
+            carriedBalance,
         });
 
         projCurrentDate = projNextDate;
@@ -183,6 +207,13 @@ function markInCycleBillsAsPaid(
 function getEndingBalance(items: TimelineItem[], fallback: number): number {
     if (items.length === 0) return fallback;
     return items[items.length - 1].runningCash;
+}
+
+/** This cycle's UN-CLAMPED net flow (income − required − living) — the §2.5 carry increment (2.4.D.6).
+ *  Negative on a cycle whose bills+living exceed income (a lumpy-bill crunch), which the water-fill needs
+ *  to see. Excludes the buffer/deploy (deploy-independence is what makes crunch detection a single pass). */
+function cycleNet(r: AllocationResult): number {
+    return r.paycheckAmount - r.totalRequired - r.livingExpenseReserve;
 }
 
 function toCushionStatus(balance: number): CushionStatus {
