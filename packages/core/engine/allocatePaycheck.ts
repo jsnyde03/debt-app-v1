@@ -107,7 +107,17 @@ type AllocatePaycheckParams = {
 	/** §2.5 prefunded reserve (2.4.7) — cash earmarked THIS cycle for a specific future crunch. Adds
 	 *  to the hold (a real dated need), clamped so the held buckets never exceed headroom. */
 	prefundedReserve?: number;
+	/** §2.5 starter-EF cap (2.4.7.6) — the emergency-fund tranche funded BEFORE debt payoff (the rest
+	 *  funds after). Capped at the goal's target. Default `STARTER_EMERGENCY_TARGET`. */
+	starterEmergencyTarget?: number;
+	/** §2.5 D5.3 gate (2.4.7.6) — the user has an emergency buffer elsewhere, so skip the pre-debt
+	 *  starter EF and deploy to debt first (the fuller EF still funds after debt). */
+	skipStarterEmergency?: boolean;
 };
+
+/** §2.5 default starter emergency-fund target (2.4.7.6) — the small buffer built before aggressive debt
+ *  payoff (the standard sequence). [BUILD]-tunable, Phase 6. */
+export const STARTER_EMERGENCY_TARGET = 1000;
 
 /** Clamp a fraction to [0, 1] — a bad upstream value must degrade to "no hold", never a negative/>100%. */
 function clampFraction(f: number): number {
@@ -126,6 +136,8 @@ export function allocatePaycheck({
 	discoveryHoldbackFraction = 0,
 	coldStartHoldbackFraction = 0,
 	prefundedReserve = 0,
+	starterEmergencyTarget = STARTER_EMERGENCY_TARGET,
+	skipStarterEmergency = false,
 }: AllocatePaycheckParams) {
 	const roundMoney = (amount: number) => Math.round(amount * 100) / 100;
 
@@ -371,39 +383,46 @@ export function allocatePaycheck({
 			})
 		);
 
-		if (held > 0) {
-			allocations.push({
-				label: "Settling-in reserve",
-				amount: held,
-				category: "discovery_holdback",
-			});
+		// §2.5 waterfall: the held reserve splits into its two canonical buckets (2.4.7.6) — the pre-funded
+		// reserve (a dated future need, §2.5) comes FIRST and gets its own bucket + framing; the §2.0
+		// uncertainty reserve is the remainder. `prefunded WINS` the clamp collision, so this ordering
+		// matches `combinedHoldback`. Both are protected cushion (never "put to work").
+		const prefunded = roundMoney(Math.max(0, Math.min(prefundedReserve, remaining)));
+		const uncertainty = roundMoney(Math.max(0, held - prefunded));
 
-			remaining = roundMoney(remaining - held);
+		if (prefunded > 0) {
+			allocations.push({ label: "Held for an upcoming tight cycle", amount: prefunded, category: "prefunded_reserve" });
+			remaining = roundMoney(remaining - prefunded);
+		}
+		if (uncertainty > 0) {
+			allocations.push({ label: "Settling-in reserve", amount: uncertainty, category: "discovery_holdback" });
+			remaining = roundMoney(remaining - uncertainty);
 		}
 	}
 
 	const emergencyGoal = goals.find((goal) => goal.type === "emergency");
 
-	if (
-		emergencyGoal &&
-		emergencyGoal.currentAmount < emergencyGoal.targetAmount &&
-		remaining > 0
-	) {
-		const emergencyNeeded = roundMoney(
-			emergencyGoal.targetAmount - emergencyGoal.currentAmount
-		);
+	// §2.5 waterfall (2.4.7.6): a small STARTER emergency fund funds BEFORE debt payoff (the standard
+	// sequence — a buffer first, then attack debt, then finish the fund). Capped at `starterEmergencyTarget`
+	// so a big EF goal can't stall debt for months. Skipped when the user has savings elsewhere (D5.3 gate)
+	// → deploy straight to debt. Tracked so the fuller-EF rung (after debt) funds only the remainder.
+	let starterEmergencyFunded = 0;
+	if (emergencyGoal && !skipStarterEmergency && remaining > 0) {
+		const starterCap = roundMoney(Math.min(Math.max(0, starterEmergencyTarget), emergencyGoal.targetAmount));
+		const starterNeeded = roundMoney(Math.max(0, starterCap - emergencyGoal.currentAmount));
+		const amount = roundMoney(Math.min(starterNeeded, remaining));
 
-		const amount = roundMoney(Math.min(emergencyNeeded, remaining));
-
-		allocations.push({
-			label: `Add to ${emergencyGoal.name}`,
-			amount,
-			category: "emergency",
-			targetId: emergencyGoal.id,
-			goalId: emergencyGoal.id,
-		});
-
-		remaining = roundMoney(remaining - amount);
+		if (amount > 0) {
+			allocations.push({
+				label: `Add to ${emergencyGoal.name}`,
+				amount,
+				category: "starter_emergency",
+				targetId: emergencyGoal.id,
+				goalId: emergencyGoal.id,
+			});
+			remaining = roundMoney(remaining - amount);
+			starterEmergencyFunded = amount;
+		}
 	}
 
 	const sortedSnowballDebts = debts
@@ -440,6 +459,26 @@ export function allocatePaycheck({
 		});
 
 		remaining = roundMoney(remaining - amount);
+	}
+
+	// §2.5 fuller EF (2.4.7.6): finish the emergency goal AFTER debt payoff — the remainder beyond the
+	// starter tranche already funded this cycle. `effectiveCurrent` = the goal's current + the starter
+	// just added, so the two rungs never over-fund past the target.
+	if (emergencyGoal && remaining > 0) {
+		const effectiveCurrent = roundMoney(emergencyGoal.currentAmount + starterEmergencyFunded);
+		const fullerNeeded = roundMoney(Math.max(0, emergencyGoal.targetAmount - effectiveCurrent));
+		const amount = roundMoney(Math.min(fullerNeeded, remaining));
+
+		if (amount > 0) {
+			allocations.push({
+				label: `Add to ${emergencyGoal.name}`,
+				amount,
+				category: "emergency",
+				targetId: emergencyGoal.id,
+				goalId: emergencyGoal.id,
+			});
+			remaining = roundMoney(remaining - amount);
+		}
 	}
 
 	const savingsGoals = goals.filter(

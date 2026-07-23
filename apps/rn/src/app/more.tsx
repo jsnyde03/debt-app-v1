@@ -123,6 +123,12 @@ export default function MoreScreen() {
             subtitle="Require Face ID / passcode to open."
             right={<Switch value={prefs.appLockEnabled} onValueChange={(v) => appStore.getState().updatePrefs({ appLockEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
+          <SettingRow
+            icon="savings"
+            label="I have savings elsewhere"
+            subtitle="Skip building a starter emergency fund — put more toward debt first."
+            right={<Switch value={prefs.hasSavingsElsewhere} onValueChange={(v) => appStore.getState().updatePrefs({ hasSavingsElsewhere: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
+          />
           <SettingRow icon="shopping-cart" label="Living Expenses" subtitle="Everyday spending set aside each paycheck." onPress={() => router.push('/living-expenses')} last />
         </SettingGroup>
       </Section>

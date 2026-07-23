@@ -101,10 +101,12 @@ function discretionaryOf(result: ReturnType<typeof allocatePaycheck>): number {
 	assertMoney(sumBuckets(r, ["discovery_holdback"]), 220, "holdback: discovery + cold-start compose by MAX (220), not sum");
 }
 {
-	// A prefunded reserve ADDS to the uncertainty hold, still clamped to headroom. aboveFloor 550,
-	// prefunded 100 + max(40%×550) = 100 + 220 = 320 → snowball 230.
+	// A prefunded reserve ADDS to the uncertainty hold (2.4.7.6: now its OWN bucket, split from discovery).
+	// aboveFloor 550, prefunded 100 (prefunded_reserve) + max(40%×550)=220 (discovery_holdback) = 320 held.
 	const r = alloc({ paycheckAmount: 2000, required: 850, living: 400, buffer: 200, debtBalance: 5000, discoveryFrac: 0.4, prefunded: 100 });
-	assertMoney(sumBuckets(r, ["discovery_holdback"]), 320, "holdback: prefunded ADDS (100 + 220 = 320)");
+	assertMoney(sumBuckets(r, ["prefunded_reserve"]), 100, "holdback: prefunded gets its OWN bucket (2.4.7.6 split)");
+	assertMoney(sumBuckets(r, ["discovery_holdback"]), 220, "holdback: discovery is the remainder (220, not lumped with prefunded)");
+	assertMoney(sumBuckets(r, PROTECTED_CUSHION_CATEGORIES), 520, "holdback: protected = buffer 200 + prefunded 100 + discovery 220 (snowball gets the remaining 230)");
 	assertMoney(sumBuckets(r, DISCRETIONARY_BUCKETS), discretionaryOf(r), "holdback+prefunded: buckets still sum to discretionary");
 }
 {
@@ -134,5 +136,52 @@ assertMoney(
 );
 assertMoney(computeDeploy(300, 200, 100), 0, "deploy = max(0, 300−200−100) = 0, never negative");
 assertMoney(computeDeploy(1000, 200, 500), 300, "deploy = 1000−200−500 = 300");
+
+// ── §2.5 surplus-waterfall re-arch (2.4.7.6): starter EF before debt · fuller EF after · gate ──
+const EF = (currentAmount: number, targetAmount: number) => [{ id: "ef", name: "EF", currentAmount, targetAmount, type: "emergency" as const }];
+function allocEF(o: { paycheckAmount: number; debtBalance?: number; goals: ReturnType<typeof EF>; skipStarter?: boolean }) {
+	return allocatePaycheck({
+		paycheckAmount: o.paycheckAmount,
+		currentDate: "2026-06-01",
+		nextPaycheckDate: "2026-06-15",
+		expenses: [],
+		livingExpenses: [],
+		debts: o.debtBalance ? [{ id: "d1", name: "Visa", balance: o.debtBalance, minimumPayment: 0, apr: 20, dueDate: "2026-06-10", type: "debt", recurrence: "monthly", isPaidThisCycle: false }] : [],
+		goals: o.goals,
+		strategy: "snowball",
+		paycheckBuffer: 0,
+		skipStarterEmergency: o.skipStarter,
+	});
+}
+{
+	// Starter EF ($1000 cap) funds BEFORE debt; the remainder goes to the snowball.
+	const r = allocEF({ paycheckAmount: 2000, debtBalance: 5000, goals: EF(0, 3000) });
+	assertMoney(sumBuckets(r, ["starter_emergency"]), 1000, "starter EF funds the $1000 cap before debt");
+	assertMoney(sumBuckets(r, ["snowball"]), 1000, "debt gets the remainder AFTER the starter EF (not before)");
+	assertMoney(sumBuckets(r, ["emergency"]), 0, "no fuller EF (paycheck exhausted by starter + debt)");
+	assertMoney(sumBuckets(r, DISCRETIONARY_BUCKETS), discretionaryOf(r), "starter split: buckets sum to discretionary");
+}
+{
+	// The D5.3 gate (savings elsewhere) → SKIP the starter, deploy straight to debt.
+	const r = allocEF({ paycheckAmount: 2000, debtBalance: 5000, goals: EF(0, 3000), skipStarter: true });
+	assertMoney(sumBuckets(r, ["starter_emergency"]), 0, "gate: no starter EF when savings are elsewhere");
+	assertMoney(sumBuckets(r, ["snowball"]), 2000, "gate: everything deploys to debt first");
+}
+{
+	// Full waterfall: starter EF → small debt → fuller EF (the remainder) → leftover; the two EF tranches
+	// never over-fund past the target.
+	const r = allocEF({ paycheckAmount: 5000, debtBalance: 500, goals: EF(0, 3000) });
+	assertMoney(sumBuckets(r, ["starter_emergency"]), 1000, "waterfall: starter EF $1000 before debt");
+	assertMoney(sumBuckets(r, ["snowball"]), 500, "waterfall: debt paid after the starter");
+	assertMoney(sumBuckets(r, ["emergency"]), 2000, "waterfall: fuller EF finishes the goal AFTER debt (3000 − 1000 starter)");
+	assertMoney(sumBuckets(r, ["starter_emergency", "emergency"]), 3000, "the two EF tranches never over-fund past the target");
+	assertMoney(sumBuckets(r, ["true_leftover"]), 1500, "genuine leftover after the full waterfall");
+}
+{
+	// EF already past the starter cap → starter funds 0; the rest funds after debt.
+	const r = allocEF({ paycheckAmount: 5000, debtBalance: 500, goals: EF(1500, 3000) });
+	assertMoney(sumBuckets(r, ["starter_emergency"]), 0, "already above the $1000 starter → no pre-debt EF");
+	assertMoney(sumBuckets(r, ["emergency"]), 1500, "fuller EF tops up the remaining 1500 after debt");
+}
 
 console.log("✅ Guardian partition + holdback-clamp tests passed.");

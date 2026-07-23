@@ -90,9 +90,9 @@ function runStressScenarioTests() {
     assertMoney(underwater.shortfall, 250, "underwater shortfall");
     assertMoney(underwater.remaining, 0, "underwater remaining cash");
     assertEqual(
-        underwater.allocations.some((item) => item.category === "emergency"),
+        underwater.allocations.some((item) => item.category === "emergency" || item.category === "starter_emergency"),
         false,
-        "underwater scenario should not fund goals"
+        "underwater scenario should not fund goals (neither EF tranche)"
     );
 
     // Scenario 2: All required items are already paid.

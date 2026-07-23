@@ -73,6 +73,9 @@ export interface Preferences {
   isDemoMode: boolean;
   themeMode: ThemeMode;
   onboardingComplete: boolean;
+  /** §2.5 D5.3 gate (2.4.7.6): the user has an emergency buffer in a separate account, so the plan
+   *  skips building a pre-debt STARTER emergency fund and deploys to debt first. Default false. */
+  hasSavingsElsewhere: boolean;
 }
 
 /** Bump when the persisted shape changes; `runMigrations` brings older blobs forward.

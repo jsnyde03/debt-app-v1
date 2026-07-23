@@ -79,7 +79,9 @@ function testEmergencyGoalFundedBeforeSavingsGoal() {
 		paycheckBuffer: 0,
 	});
 
-	const emergencyAlloc = result.allocations.find((a) => a.category === "emergency");
+	// The EF now funds in two waterfall tranches (2.4.7.6) — starter (before debt) and/or fuller (after);
+	// either satisfies "EF funded before savings", which come last.
+	const emergencyAlloc = result.allocations.find((a) => a.category === "emergency" || a.category === "starter_emergency");
 	const savingsAlloc = result.allocations.find((a) => a.category === "optional_goal");
 
 	assertExists(emergencyAlloc, "Emergency allocation exists");
@@ -107,7 +109,7 @@ function testGoalContributionCappedAtRemaining() {
 	});
 
 	const emergencyAlloc = assertExists(
-		result.allocations.find((a) => a.category === "emergency"),
+		result.allocations.find((a) => a.category === "emergency" || a.category === "starter_emergency"),
 		"Emergency allocation"
 	);
 

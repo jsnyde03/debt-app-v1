@@ -60,8 +60,14 @@ export function selectActiveRecommendedActions({
             return a.balance - b.balance;
         });
 
+    // §2.5 (2.4.7.6): the starter + fuller EF are two waterfall tranches of the SAME goal — merge them
+    // into ONE "Add to Emergency Fund" recommended action (the tranche split is internal to the allocation
+    // order; the user just funds their fund). `getRecommendationMaxAmount` drives the amount off the goal.
+    const efItems = result.allocations.filter((item) => item.category === "emergency" || item.category === "starter_emergency");
+    const mergedEmergency: AllocationItem[] = efItems.length > 0 ? [{ ...efItems[0], category: "emergency" }] : [];
+
     const recommendedActions: AllocationItem[] = [
-        ...result.allocations.filter((item) => item.category === "emergency"),
+        ...mergedEmergency,
         ...adjustedActiveDebts.map((debt) => ({
             category: "snowball" as const,
             targetId: debt.id,

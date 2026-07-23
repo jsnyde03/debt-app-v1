@@ -49,6 +49,8 @@ function buildAllocation(store: DebtStore, prefundedReserve: number): Allocation
     discoveryHoldbackFraction: confidence?.discoveryHoldbackActive ? DISCOVERY_HOLDBACK_FRACTION : 0,
     coldStartHoldbackFraction: confidence?.coldStartHoldbackActive ? COLDSTART_HOLDBACK_FRACTION : 0,
     prefundedReserve,
+    // §2.5 D5.3 gate (2.4.7.6): savings elsewhere → skip the pre-debt starter EF, deploy to debt first.
+    skipStarterEmergency: store.prefs.hasSavingsElsewhere,
   });
 }
 

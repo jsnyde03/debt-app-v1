@@ -127,9 +127,9 @@ type: "emergency",
 assertMoney(brokeUser.totalRequired, 975, "broke user total required");
 assertTrue(brokeUser.shortfall > 0, "broke user has shortfall");
 assertEqual(
-brokeUser.allocations.some((item) => item.category === "emergency"),
+brokeUser.allocations.some((item) => item.category === "emergency" || item.category === "starter_emergency"),
 false,
-"broke user should not fund goals"
+"broke user should not fund goals (neither EF tranche)"
 );
 assertEqual(
 brokeUser.allocations.some((item) => item.category === "snowball"),
