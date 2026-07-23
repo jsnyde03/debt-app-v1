@@ -108,7 +108,7 @@ function pickHedge(isPremium: boolean, c?: GuardianConfidence): string | null {
   if (!c) return null;
   if (c.freshness === "aging") return "These figures are from a little while ago — a quick refresh keeps this exact.";
   if (!isPremium) return null;
-  if (c.coldStartHoldbackActive) return "I'm planning from the low side while I learn your income.";
+  if (c.coldStartHoldbackActive) return "I'm planning from the low side while I learn what your paychecks reliably clear.";
   if (c.discoveryHoldbackActive) return "I'm keeping a little extra set aside while I get to know your bills.";
   return null;
 }
@@ -170,7 +170,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
     ? "toward debt"
     : deploySpread
       ? `across your debts, starting with ${focusDebtName}`
-      : `to ${focusDebtName}`;
+      : `toward ${focusDebtName}`;
 
   if (!isPremium) {
     // Free: the honest read for this paycheck (the value-led taste) — no action claimed. The card
@@ -178,8 +178,8 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
     return withHedge(
       {
         state,
-        title: state === "clear" ? "You're covered this paycheck" : state === "tight" ? "A little tight this paycheck" : "Tight this paycheck",
-        detail: `You've got ${about(discretionary)} after everything required this paycheck${state === "clear" ? "." : ` — under a healthy ${amt(floor)}.`}`,
+        title: state === "clear" ? "Looks clear this paycheck" : state === "tight" ? "A little tight this paycheck" : "Tight this paycheck",
+        detail: `You've got ${about(discretionary)} after everything required this paycheck${state === "clear" ? "." : " — a bit tight this one, so keep an eye on the essentials."}`,
         lookahead: undefined, // watching ahead is part of the premium value
         ...viz,
       },
@@ -217,9 +217,9 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
     return withHedge(
       {
         state,
-        title: "You're covered this paycheck",
-        detail: `About ${amt(discretionary)} after everything required, all held as your cushion — right at your ${amt(floor)} line.`,
-        safeMove: "Nudge your line down anytime to send more toward debt.",
+        title: "Looks clear this paycheck",
+        detail: `About ${amt(discretionary)} after everything required — this paycheck keeps all of it as your cushion, right at your ${amt(floor)} line.`,
+        safeMove: "Nudge your line down anytime to free up more for debt.",
         lookahead: look,
         ...viz,
       },
@@ -229,8 +229,8 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   return withHedge(
     {
       state,
-      title: "You're covered this paycheck",
-      detail: `About ${amt(discretionary)} after everything required. I'm holding ${amt(kept)} as your cushion and sending the spare ${amt(deployedToDebt)} ${dest}.`,
+      title: "Looks clear this paycheck",
+      detail: `About ${amt(discretionary)} after everything required. I've set this paycheck to keep ${amt(kept)} as your cushion and put the spare ${amt(deployedToDebt)} ${dest}.`,
       safeMove: `Mark ${deploySpread ? "the extra payments" : `the ${amt(deployedToDebt)} payment`} when you're ready — your ${amt(floor)} cushion stays protected either way.`,
       lookahead: look,
       ...viz,

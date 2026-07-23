@@ -24,7 +24,7 @@ function runGuardianTests() {
   // $210 after obligations is above the $200 line, so BOTH tiers read clear even though the split differs.
   const premClear = buildGuardianBrief(input({ isPremium: true, discretionary: 210, kept: 200, deployedToDebt: 10, focusDebtName: "Store Card" }));
   assertEqual(premClear.state, "clear", "premium: covered with headroom above the line → clear (not a false 'tight')");
-  assertTrue(/to Store Card\b/.test(premClear.detail) && !/across/.test(premClear.detail), "single-target extra names the debt directly ('to Store Card')");
+  assertTrue(/toward Store Card\b/.test(premClear.detail) && !/across/.test(premClear.detail), "single-target extra names the debt directly ('toward Store Card')");
 
   // The extra spreads across multiple debts when it exceeds the focus balance — copy must not claim one target.
   const spread = buildGuardianBrief(input({ deployedToDebt: 2660, deploySpread: true, focusDebtName: "Store Card" }));
@@ -79,7 +79,7 @@ function runGuardianTests() {
 
   // ── §2.0.d voice gate: the one-hedge budget + the stale hard-cutoff (2.4.6.1.3) ──
   const AGING = /from a little while ago/i;
-  const INCOME_HEDGE = /learn your income/i;
+  const INCOME_HEDGE = /paychecks reliably clear/i;
   const BILLS_HEDGE = /get to know your bills/i;
   const countHedges = (s: string) => [AGING, INCOME_HEDGE, BILLS_HEDGE].filter((re) => re.test(s)).length;
 

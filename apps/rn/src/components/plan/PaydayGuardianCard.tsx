@@ -50,7 +50,7 @@ export function PaydayGuardianCard({ brief, isPremium }: { brief: GuardianBrief;
           'Payday Guardian',
           brief.title,
           brief.detail,
-          isPremium ? brief.safeMove : 'Premium holds your cushion at your line automatically',
+          isPremium ? brief.safeMove : 'Premium keeps your cushion at your line automatically, all on your device',
           isPremium ? brief.lookahead : undefined,
         )}>
         <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>PAYDAY GUARDIAN</Text>
@@ -125,7 +125,7 @@ export function PaydayGuardianCard({ brief, isPremium }: { brief: GuardianBrief;
           <View style={styles.invite} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
             <AppIcon name="workspace-premium" size={18} color={c.accent.primary} />
             <Text style={[textStyles.subhead, styles.inviteText, { color: c.accent.primary }]}>
-              Premium holds your cushion at your line automatically — no deciding each paycheck.
+              Premium keeps your cushion at your line automatically, all on your device — no deciding each paycheck.
             </Text>
           </View>
         )}
