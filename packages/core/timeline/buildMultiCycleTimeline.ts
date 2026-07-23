@@ -1,4 +1,5 @@
 import { allocatePaycheck } from "@core/engine/allocatePaycheck";
+import { applyRolloverPayment } from "@core/debt/applyRolloverPayment";
 import { buildTimelineItems, type TimelineItem } from "./buildTimelineItems";
 import { computeState } from "@core/guardian/computeState";
 import type { GuardianState } from "@core/guardian/buildGuardianBrief";
@@ -133,9 +134,11 @@ export function buildMultiCycleTimeline({
     const initialPaid = markInCycleBillsAsPaid(requiredExpenses, debts, nextPaycheckDate);
     let projExpenses = rolloverRequiredExpenses(initialPaid.expenses, nextPaycheckDate)
         .filter((e) => e.recurrence !== "one-time" || !isPastDue(e.dueDate, nextPaycheckDate));
-    let projDebts = rolloverDebts(initialPaid.debts, nextPaycheckDate)
-        .filter((d) => d.recurrence !== "one-time" || !isPastDue(d.dueDate, nextPaycheckDate));
-    const projGoals = [...goals];
+    // State-thread cycle 0 → 1 (2.4.7.1): reduce balances by cycle 0's min+snowball and advance funded
+    // goals, so cycle 1 projects on the SHRUNK debts (a paid-off debt drops out, freeing its minimum).
+    let projDebts = rolloverDebts(stateThreadDebts(initialPaid.debts, result, payCycleConfig.payCycle), nextPaycheckDate)
+        .filter((d) => d.balance > 0 && (d.recurrence !== "one-time" || !isPastDue(d.dueDate, nextPaycheckDate)));
+    let projGoals = advanceGoals([...goals], result);
 
     for (let i = 1; i < maxCycles; i++) {
         let projNextDate: string;
@@ -199,8 +202,11 @@ export function buildMultiCycleTimeline({
         const paidForRollover = markInCycleBillsAsPaid(projExpenses, projDebts, projNextDate);
         projExpenses = rolloverRequiredExpenses(paidForRollover.expenses, projNextDate)
             .filter((e) => e.recurrence !== "one-time" || !isPastDue(e.dueDate, projNextDate));
-        projDebts = rolloverDebts(paidForRollover.debts, projNextDate)
-            .filter((d) => d.recurrence !== "one-time" || !isPastDue(d.dueDate, projNextDate));
+        // State-thread (2.4.7.1): apply this cycle's min+snowball to balances + advance funded goals
+        // before rolling, so the next cycle sees shrunk debts and a retired debt frees its minimum.
+        projDebts = rolloverDebts(stateThreadDebts(paidForRollover.debts, projResult, payCycleConfig.payCycle), projNextDate)
+            .filter((d) => d.balance > 0 && (d.recurrence !== "one-time" || !isPastDue(d.dueDate, projNextDate)));
+        projGoals = advanceGoals(projGoals, projResult);
     }
 
     return cycles;
@@ -208,6 +214,39 @@ export function buildMultiCycleTimeline({
 
 function isPastDue(dueDate: string, cycleStart: string): boolean {
     return new Date(`${dueDate}T00:00:00`) < new Date(`${cycleStart}T00:00:00`);
+}
+
+/**
+ * State-thread the projection (2.4.7.1 / §2.5 C5): reduce each debt's balance by the minimum (its paid
+ * flag is set by `markInCycleBillsAsPaid`) + the snowball this cycle's allocation deployed to it,
+ * accruing one pay cycle's interest via the shared `applyRolloverPayment`. Without this the forecast
+ * re-ran `allocatePaycheck` on frozen balances every cycle, so debts never shrank or retired.
+ */
+function stateThreadDebts(debts: Debt[], result: AllocationResult, payCycle: PayCycle): Debt[] {
+    const snowballByDebt = new Map<string, number>();
+    for (const a of result.allocations) {
+        if (a.category === "snowball" && a.debtId) {
+            snowballByDebt.set(a.debtId, (snowballByDebt.get(a.debtId) ?? 0) + a.amount);
+        }
+    }
+    return debts.map((d) => applyRolloverPayment(d, snowballByDebt.get(d.id) ?? 0, payCycle));
+}
+
+/**
+ * Advance each goal by what this cycle's allocation funded (EF / starter EF / optional goal), clamped
+ * to its target — so a fully-funded goal stops pulling money in later cycles and it redirects to debt.
+ */
+function advanceGoals(goals: Goal[], result: AllocationResult): Goal[] {
+    return goals.map((g) => {
+        const added = result.allocations
+            .filter(
+                (a) =>
+                    (a.category === "emergency" || a.category === "starter_emergency" || a.category === "optional_goal") &&
+                    a.goalId === g.id,
+            )
+            .reduce((s, a) => s + a.amount, 0);
+        return added > 0 ? { ...g, currentAmount: Math.min(g.targetAmount, g.currentAmount + added) } : g;
+    });
 }
 
 function markInCycleBillsAsPaid(

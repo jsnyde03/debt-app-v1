@@ -1,7 +1,7 @@
 import { allocatePaycheck } from "@core/engine/allocatePaycheck";
 import { buildMultiCycleTimeline } from "@core/timeline/buildMultiCycleTimeline";
 import { buildTimelineItems } from "@core/timeline/buildTimelineItems";
-import type { Debt, RequiredExpense } from "@core/storage/debtPlannerStorage";
+import type { Debt, Goal, RequiredExpense } from "@core/storage/debtPlannerStorage";
 import type { LivingExpense } from "@core/types/livingExpense";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -40,6 +40,7 @@ function buildTimeline({
     paycheckAmount = 2000,
     expenses = [] as RequiredExpense[],
     debts = [] as Debt[],
+    goals = [] as Goal[],
     livingExpenses = [] as LivingExpense[],
     maxCycles = 3,
     paycheckBuffer = 0,
@@ -51,7 +52,7 @@ function buildTimeline({
         expenses,
         livingExpenses,
         debts,
-        goals: [],
+        goals,
         strategy: "snowball",
         paycheckBuffer,
     });
@@ -59,7 +60,7 @@ function buildTimeline({
         result,
         requiredExpenses: expenses,
         debts,
-        goals: [],
+        goals,
         livingExpenses,
         completedRecommendedActions: [],
         currentDate: "2026-06-01",
@@ -70,6 +71,25 @@ function buildTimeline({
         maxCycles,
     });
 }
+
+// ─── Forecast state-threading (2.4.7.1 / §2.5 C5) ────────────────────────────
+
+function testRetiredDebtFreesItsMinimumIntoLaterNet() {
+    // A debt that pays off mid-horizon must free its minimum into a later cycle's discretionary —
+    // visible as `net` rising once the debt is gone. Without state-threading the debt never retires
+    // (the projection re-ran on frozen balances) and net stays flat at the minimum-reduced value.
+    const debts: Debt[] = [
+        { id: "d1", name: "Card", balance: 400, minimumPayment: 100, apr: 0, dueDate: "2026-06-10", type: "debt", recurrence: "biweekly", isPaidThisCycle: false },
+    ];
+    const cycles = buildTimeline({ paycheckAmount: 300, debts, maxCycles: 3 });
+    assertMoney(cycles[0].net, 200, "cycle 0 net = 300 − 100 minimum (debt still active)");
+    assertMoney(cycles[2].net, 300, "cycle 2 net = 300 (debt retired → its $100 minimum freed into discretionary)");
+}
+
+// Goal advancement is also state-threaded (advanceGoals) so a funded goal stops re-funding each cycle,
+// but its effect is DEPLOY (excluded from `net`/`carriedBalance`/`endingBalance` and only shown as a
+// timeline item once marked paid) → not directly observable via the public TimelineCycle API. It's
+// covered by construction + indirectly by the debt-retirement timing above (freed goal money → snowball).
 
 // ─── One-time windfall (2.4.6.1.4) ──────────────────────────────────────────
 
@@ -139,9 +159,11 @@ function testBillAfterNextPaycheckAppearsInFutureCycle() {
 
 function testDebtMinimumAfterNextPaycheckAppearsInFutureCycle() {
     // Same bug, debt minimum variant: a minimum payment due after nextPaycheckDate
-    // must appear in the correct projected cycle.
+    // must appear in the correct projected cycle. Balance is large so state-threading (2.4.7.1) doesn't
+    // pay it off in cycle 0's snowball before its cycle-1 minimum can be asserted (this tests due-date
+    // PLACEMENT, not payoff).
     const debts: Debt[] = [
-        { id: "d1", name: "CreditCard", balance: 1200, minimumPayment: 35, apr: 22, dueDate: "2026-06-20", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
+        { id: "d1", name: "CreditCard", balance: 12000, minimumPayment: 35, apr: 22, dueDate: "2026-06-20", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
     ];
     const cycles = buildTimeline({ debts });
 
@@ -564,6 +586,9 @@ export function runMultiCycleTimelineRegressionTests() {
 
     // Item dates
     testProjectedCycleItemsHaveCorrectDates();
+
+    // Forecast state-threading (2.4.7.1)
+    testRetiredDebtFreesItsMinimumIntoLaterNet();
 
     // One-time windfall not repeated across projected cycles (2.4.6.1.4)
     testWindfallDoesNotRepeatInProjectedCycles();
