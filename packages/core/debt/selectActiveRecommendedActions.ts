@@ -72,7 +72,7 @@ export function selectActiveRecommendedActions({
     ];
 
     const bufferTotal = result.allocations
-        .filter((item) => item.category === "leftover" && item.label === "Keep cash buffer")
+        .filter((item) => item.category === "cushion_buffer")
         .reduce((sum, item) => sum + item.amount, 0);
 
     const flexibleCashAvailable = computeFlexibleCash({

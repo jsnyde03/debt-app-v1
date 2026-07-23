@@ -103,7 +103,7 @@ export function buildTimelineItems({
     // Show the cash buffer reserve when the engine allocated one (shortfall = 0 and buffer > 0).
     // This makes the ending balance match the flexible-cash-available figure in the plan view.
     const bufferAllocation = result.allocations.find(
-        (item) => item.category === "leftover" && item.label === "Keep cash buffer"
+        (item) => item.category === "cushion_buffer"
     );
     if (bufferAllocation) {
         items.push({

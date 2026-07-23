@@ -16,6 +16,7 @@ import "../debt/testComputeDrift";
 import "../debt/testGetDebtsWithDisplayBalances";
 import "../debt/testProjectCurrentBalance";
 import "../guardian/testBuildGuardianBrief";
+import "../guardian/testGuardianPartition";
 import "../debt/testParseDebtFormValues";
 import "@/lib/storage/testMigrateOriginalBalance";
 import "@core/recurrence/testRolloverDueDates";

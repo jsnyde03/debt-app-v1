@@ -1,4 +1,5 @@
 import { deriveRequiredActionView, type RequiredActionView, type RequiredAllocationItem } from '@core/debt/deriveRequiredActionView';
+import { PROTECTED_CUSHION_CATEGORIES } from '@core/engine/allocatePaycheck';
 import { projectDebtPayoff } from '@core/debt/projectDebtPayoff';
 import { selectActiveRecommendedActions } from '@core/debt/selectActiveRecommendedActions';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
@@ -19,9 +20,10 @@ export interface RequiredRow {
   dueDate?: string;
 }
 
-/** Sum of one allocation category. */
-function sumCategory(allocation: Allocation, category: string): number {
-  return allocation.allocations.filter((a) => a.category === category).reduce((sum, a) => sum + a.amount, 0);
+/** Sum of one or more allocation categories. */
+function sumCategory(allocation: Allocation, ...categories: string[]): number {
+  const set = new Set(categories);
+  return allocation.allocations.filter((a) => set.has(a.category)).reduce((sum, a) => sum + a.amount, 0);
 }
 
 /** Sum of the "snowball" allocations — the extra beyond minimums (feeds the debt-free projection). */
@@ -29,9 +31,11 @@ export function selectExtraToDebt(allocation: Allocation): number {
   return sumCategory(allocation, 'snowball');
 }
 
-/** The liquid cushion the plan KEEPS this cycle (reserved buffer + true leftover) — what the floor protects. */
+/** The protected cushion the plan KEEPS this cycle — ALL held buckets (§2.2 canonical: cushion_buffer +
+ *  prefunded_reserve + discovery_holdback + true_leftover), what the floor protects. NOT the buffer alone
+ *  (round-6 F1: held reserves must count as cushion or "put to work" over-counts them). */
 export function selectLiquidCushion(allocation: Allocation): number {
-  return sumCategory(allocation, 'leftover');
+  return sumCategory(allocation, ...PROTECTED_CUSHION_CATEGORIES);
 }
 
 /** Cash left after every obligation (required bills + minimums + living reserve) — the "will I make it" headroom. */

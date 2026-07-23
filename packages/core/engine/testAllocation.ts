@@ -178,7 +178,7 @@ function runAllocationRegressionTests() {
 
     assertEqual(
         bufferBeforeGoals.allocations[0].category,
-        "leftover",
+        "cushion_buffer",
         "cash buffer should be allocated before emergency goal"
     );
     assertMoney(

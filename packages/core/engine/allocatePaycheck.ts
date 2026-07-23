@@ -34,18 +34,47 @@ export type Goal = {
 	type: "emergency" | "savings";
 };
 
-export type AllocationItem = {
-	label: string;
-	amount: number;
-	category:
+// v1.7 §2.2 canonical partition (2.4.6.1.1) — the ONE bucket set every selector, bar zone, and
+// reconciliation test derives from. The old single `leftover` (which conflated the reserved buffer
+// and the true residual → the F3 "cushion lie") is split into `cushion_buffer` + `true_leftover`,
+// and the held/gated buckets are added. `prefunded_reserve` (fed by the §2.5 water-fill, 2.4.7),
+// `discovery_holdback` (fed by §2.0's deriveConfidenceContext, 2.4.6.1.3), and `starter_emergency`
+// (the gated starter EF, 2.4.7) are declared here but stay $0 until their producer lands.
+export type AllocationCategory =
 	| "expense"
 	| "minimum_debt"
 	| "autopay_expense"
 	| "autopay_debt"
-	| "emergency"
-	| "snowball"
-	| "optional_goal"
-	| "leftover";
+	| "cushion_buffer"     // 1 · the reserved floor
+	| "prefunded_reserve"  // 2 · cash held this cycle for a specific future crunch (§2.5)
+	| "discovery_holdback" // 3 · the §2.0 uncertainty reserve
+	| "starter_emergency"  // 4 · the gated starter EF
+	| "emergency"          // 5 · the fuller EF
+	| "snowball"           // 6 · debt (extra beyond minimums)
+	| "optional_goal"      // 7 · goals
+	| "true_leftover";     // 8 · genuine residual liquid cash
+
+/** Displayed "protected" cushion = held/kept buckets (1+2+3+8). NOT `cushion_buffer` alone (round-6
+ *  F1: held reserves must count as cushion or "put to work" over-counts them). */
+export const PROTECTED_CUSHION_CATEGORIES = [
+	"cushion_buffer",
+	"prefunded_reserve",
+	"discovery_holdback",
+	"true_leftover",
+] as const satisfies readonly AllocationCategory[];
+
+/** "Put to work" = actual EF / debt / goals (buckets 4–7). */
+export const PUT_TO_WORK_CATEGORIES = [
+	"starter_emergency",
+	"emergency",
+	"snowball",
+	"optional_goal",
+] as const satisfies readonly AllocationCategory[];
+
+export type AllocationItem = {
+	label: string;
+	amount: number;
+	category: AllocationCategory;
 	targetId?: string;
 	debtId?: string;
 	goalId?: string;
@@ -301,7 +330,7 @@ export function allocatePaycheck({
 		allocations.push({
 			label: "Keep cash buffer",
 			amount,
-			category: "leftover",
+			category: "cushion_buffer",
 		});
 
 		remaining = roundMoney(remaining - amount);
@@ -395,7 +424,7 @@ export function allocatePaycheck({
 		allocations.push({
 			label: "Leftover cash",
 			amount: roundMoney(remaining),
-			category: "leftover",
+			category: "true_leftover",
 		});
 	}
 
