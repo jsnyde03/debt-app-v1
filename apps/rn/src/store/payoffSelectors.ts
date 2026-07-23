@@ -2,14 +2,14 @@ import { buildPayoffTrajectory, type TrajectoryPoint } from '@core/debt/buildPay
 import { computeDrift, type DriftResult } from '@core/debt/computeDrift';
 import { computeInterestSaved, type InterestSaved } from '@core/debt/computeInterestSaved';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
-import { buildMultiCycleTimeline, type TimelineCycle } from '@core/timeline/buildMultiCycleTimeline';
+import type { TimelineCycle } from '@core/timeline/buildMultiCycleTimeline';
 import type { TimelineItem } from '@core/timeline/buildTimelineItems';
 
 import { todayLocalISO } from '@/data/defaults';
 import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
 
 import { selectDebtFreeDate, selectExtraToDebt } from './planSelectors';
-import { projectedIncome } from './projectedIncome';
+import { buildForecastCycles } from './forecastCycles';
 import { effectivePaycheckBuffer, selectAllocation } from './selectors';
 
 export type { TrajectoryPoint, InterestSaved, DriftResult, TimelineCycle, TimelineItem };
@@ -22,29 +22,9 @@ export type { TrajectoryPoint, InterestSaved, DriftResult, TimelineCycle, Timeli
 export function selectCashTimeline(store: DebtStore, maxCycles = 5): TimelineCycle[] {
   const allocation = selectAllocation(store);
   if (!allocation) return [];
-  return buildMultiCycleTimeline({
-    result: allocation,
-    requiredExpenses: store.requiredExpenses,
-    debts: store.debts,
-    goals: store.goals,
-    livingExpenses: store.livingExpenses,
-    completedRecommendedActions: store.completedRecommendedActions,
-    currentDate: store.paycheck.currentDate,
-    nextPaycheckDate: store.paycheck.nextPaycheckDate,
-    payCycleConfig: {
-      payCycle: store.paycheck.payCycle,
-      semiMonthlyFirstDay: Number(store.paycheck.semiMonthlyFirstDay) || undefined,
-      semiMonthlySecondDay: Number(store.paycheck.semiMonthlySecondDay) || undefined,
-      monthlyPayDay: Number(store.paycheck.monthlyPayDay) || undefined,
-    },
-    strategy: store.payoffStrategy,
-    paycheckBuffer: effectivePaycheckBuffer(store),
-    maxCycles,
-    // Projected cycles run on the RECURRING paycheck — a one-time windfall (folded into cycle 0's
-    // `result.paycheckAmount`) must not repeat (2.4.6.1.4) — and on the LEAN for variable income, so the
-    // valley reaches the forecast (2.4.7.2 / §2.3 valley-into-forecast).
-    projectedPaycheckAmount: projectedIncome(store.paycheck),
-  });
+  // Delegates to the shared forecast builder (2.4.7.5) — same state-threaded / valley-on-lean projection
+  // the §2.5 water-fill runs on, so display and prefund can't diverge.
+  return buildForecastCycles(store, allocation, effectivePaycheckBuffer(store), maxCycles);
 }
 
 /**
