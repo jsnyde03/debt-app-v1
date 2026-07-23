@@ -20,12 +20,15 @@ function assertMoney(actual: number, expected: number, label: string) {
 
 const DISCRETIONARY_BUCKETS = [...PROTECTED_CUSHION_CATEGORIES, ...PUT_TO_WORK_CATEGORIES] as AllocationCategory[];
 
-function alloc({ paycheckAmount, required = 0, living = 0, buffer = 0, debtBalance = 0 }: {
+function alloc({ paycheckAmount, required = 0, living = 0, buffer = 0, debtBalance = 0, discoveryFrac = 0, coldStartFrac = 0, prefunded = 0 }: {
 	paycheckAmount: number;
 	required?: number;
 	living?: number;
 	buffer?: number;
 	debtBalance?: number;
+	discoveryFrac?: number;
+	coldStartFrac?: number;
+	prefunded?: number;
 }) {
 	return allocatePaycheck({
 		paycheckAmount,
@@ -37,6 +40,9 @@ function alloc({ paycheckAmount, required = 0, living = 0, buffer = 0, debtBalan
 		goals: [],
 		strategy: "snowball",
 		paycheckBuffer: buffer,
+		discoveryHoldbackFraction: discoveryFrac,
+		coldStartHoldbackFraction: coldStartFrac,
+		prefundedReserve: prefunded,
 	});
 }
 
@@ -77,6 +83,36 @@ function discretionaryOf(result: ReturnType<typeof allocatePaycheck>): number {
 	const r = alloc({ paycheckAmount: 500, required: 900, buffer: 200 });
 	assertMoney(discretionaryOf(r), 0, "shortfall: discretionary = 0");
 	assertMoney(sumBuckets(r, DISCRETIONARY_BUCKETS), 0, "shortfall: all discretionary buckets 0");
+}
+
+// ── §2.0.b holdback WIRED INTO the allocation (2.4.6.1.3): it dampens deploy + stays protected ──
+{
+	// Discovery holdback 40% of above-floor headroom. discretionary 750, floor 200 → aboveFloor 550 →
+	// held 220 → snowball 330 (dampened from 550). The partition invariant must still hold.
+	const r = alloc({ paycheckAmount: 2000, required: 850, living: 400, buffer: 200, debtBalance: 5000, discoveryFrac: 0.4 });
+	assertMoney(sumBuckets(r, ["discovery_holdback"]), 220, "holdback: discovery_holdback = 40% of above-floor headroom (550) = 220");
+	assertMoney(sumBuckets(r, DISCRETIONARY_BUCKETS), discretionaryOf(r), "holdback: buckets STILL sum to discretionary");
+	assertMoney(sumBuckets(r, ["snowball"]), 330, "holdback: deploy DAMPENED (550 → 330)");
+	assertMoney(sumBuckets(r, PROTECTED_CUSHION_CATEGORIES), 420, "holdback: held cash counts as PROTECTED (200 buffer + 220 held)");
+}
+{
+	// discovery + cold-start compose by MAX, not sum: max(40%, 25%) of 550 = 220 (not 357.5).
+	const r = alloc({ paycheckAmount: 2000, required: 850, living: 400, buffer: 200, debtBalance: 5000, discoveryFrac: 0.4, coldStartFrac: 0.25 });
+	assertMoney(sumBuckets(r, ["discovery_holdback"]), 220, "holdback: discovery + cold-start compose by MAX (220), not sum");
+}
+{
+	// A prefunded reserve ADDS to the uncertainty hold, still clamped to headroom. aboveFloor 550,
+	// prefunded 100 + max(40%×550) = 100 + 220 = 320 → snowball 230.
+	const r = alloc({ paycheckAmount: 2000, required: 850, living: 400, buffer: 200, debtBalance: 5000, discoveryFrac: 0.4, prefunded: 100 });
+	assertMoney(sumBuckets(r, ["discovery_holdback"]), 320, "holdback: prefunded ADDS (100 + 220 = 320)");
+	assertMoney(sumBuckets(r, DISCRETIONARY_BUCKETS), discretionaryOf(r), "holdback+prefunded: buckets still sum to discretionary");
+}
+{
+	// No deploy target (no debt) → the held reserve + true_leftover both land on the protected side.
+	const r = alloc({ paycheckAmount: 2000, required: 850, living: 400, buffer: 200, discoveryFrac: 0.4 });
+	assertMoney(sumBuckets(r, DISCRETIONARY_BUCKETS), 750, "holdback/no-deploy: buckets sum to discretionary");
+	assertMoney(sumBuckets(r, PROTECTED_CUSHION_CATEGORIES), 750, "holdback/no-deploy: all of it protected (buffer + held + leftover)");
+	assertMoney(sumBuckets(r, PUT_TO_WORK_CATEGORIES), 0, "holdback/no-deploy: nothing put to work");
 }
 
 // ── holdback clamp (§2.0.b, round-6 F1) ──

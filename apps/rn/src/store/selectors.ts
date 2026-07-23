@@ -1,6 +1,9 @@
 import { allocatePaycheck } from '@core/engine/allocatePaycheck';
+import { COLDSTART_HOLDBACK_FRACTION, DISCOVERY_HOLDBACK_FRACTION } from '@core/guardian/holdbackComposition';
 
 import type { DebtStore } from '@/data/models';
+
+import { deriveConfidenceContext } from './guardianPredictionCore';
 
 /** The shared payday-allocation engine's output (kept in `@core`, identical to the Capacitor app). */
 export type Allocation = ReturnType<typeof allocatePaycheck>;
@@ -27,6 +30,11 @@ export function effectivePaycheckBuffer(store: DebtStore): number {
 export function selectAllocation(store: DebtStore): Allocation | null {
   const amount = Number(store.paycheck.amount);
   if (!Number.isFinite(amount) || amount <= 0 || !store.paycheck.nextPaycheckDate) return null;
+  // §2.0.b action gate (2.4.6.1.3): the uncertainty holdback is part of the premium ACTING (like the
+  // floor buffer), so it's premium-gated — free deploys undampened. Which holdbacks are live comes from
+  // the substrate signals via `deriveConfidenceContext`; the fractions are the §2.0.b tunables.
+  const isPremium = store.subscriptionPlan === 'premium';
+  const confidence = isPremium ? deriveConfidenceContext(store) : null;
   return allocatePaycheck({
     paycheckAmount: amount + (store.windfall ?? 0),
     currentDate: store.paycheck.currentDate,
@@ -37,5 +45,7 @@ export function selectAllocation(store: DebtStore): Allocation | null {
     debts: store.debts,
     goals: store.goals,
     paycheckBuffer: effectivePaycheckBuffer(store),
+    discoveryHoldbackFraction: confidence?.discoveryHoldbackActive ? DISCOVERY_HOLDBACK_FRACTION : 0,
+    coldStartHoldbackFraction: confidence?.coldStartHoldbackActive ? COLDSTART_HOLDBACK_FRACTION : 0,
   });
 }

@@ -1,3 +1,4 @@
+import { combinedHoldback } from "@core/guardian/holdbackComposition";
 import type { LivingExpense } from "@core/types/livingExpense";
 import type { Recurrence } from "@core/types/recurrence";
 
@@ -97,7 +98,21 @@ type AllocatePaycheckParams = {
 	goals: Goal[];
 	strategy: "snowball" | "avalanche";
 	paycheckBuffer?: number;
+	/** §2.0.b uncertainty holdback (2.4.6.1.3) — fraction of above-floor headroom held back from
+	 *  deploy while bill-completeness is unproven. 0 = no hold (free tier / proven). */
+	discoveryHoldbackFraction?: number;
+	/** §2.0.b cold-start holdback — fraction held while a variable-income lean is unverified. 0 for
+	 *  fixed income / confirmed. Composes with discovery by `max`, not sum. */
+	coldStartHoldbackFraction?: number;
+	/** §2.5 prefunded reserve (2.4.7) — cash earmarked THIS cycle for a specific future crunch. Adds
+	 *  to the hold (a real dated need), clamped so the held buckets never exceed headroom. */
+	prefundedReserve?: number;
 };
+
+/** Clamp a fraction to [0, 1] — a bad upstream value must degrade to "no hold", never a negative/>100%. */
+function clampFraction(f: number): number {
+	return Number.isFinite(f) ? Math.min(1, Math.max(0, f)) : 0;
+}
 
 export function allocatePaycheck({
 	paycheckAmount,
@@ -108,6 +123,9 @@ export function allocatePaycheck({
 	goals,
 	strategy,
 	paycheckBuffer = 50,
+	discoveryHoldbackFraction = 0,
+	coldStartHoldbackFraction = 0,
+	prefundedReserve = 0,
 }: AllocatePaycheckParams) {
 	const roundMoney = (amount: number) => Math.round(amount * 100) / 100;
 
@@ -334,6 +352,34 @@ export function allocatePaycheck({
 		});
 
 		remaining = roundMoney(remaining - amount);
+	}
+
+	// §2.0.b uncertainty holdback (2.4.6.1.3): with the floor already reserved, `remaining` IS the
+	// above-floor headroom. While bill-completeness / a variable lean are unproven, hold a fraction of
+	// it back BEFORE any deploy (EF / snowball / goals), so the whole plan is dampened — not just the
+	// engine's snowball line. The held cash stays PROTECTED cushion (`discovery_holdback` is a protected
+	// bucket), never "put to work". `combinedHoldback` clamps it so buckets 1+2+3 can never over-sum the
+	// headroom (round-6 F1). All fractions default 0 → this is inert until §2.0 feeds it (free stays 0).
+	if (shortfall === 0 && remaining > 0) {
+		const held = roundMoney(
+			combinedHoldback({
+				prefundedReserve: Math.max(0, prefundedReserve),
+				discoveryHoldback: roundMoney(remaining * clampFraction(discoveryHoldbackFraction)),
+				coldStartHoldback: roundMoney(remaining * clampFraction(coldStartHoldbackFraction)),
+				discretionary: remaining,
+				floor: 0,
+			})
+		);
+
+		if (held > 0) {
+			allocations.push({
+				label: "Settling-in reserve",
+				amount: held,
+				category: "discovery_holdback",
+			});
+
+			remaining = roundMoney(remaining - held);
+		}
 	}
 
 	const emergencyGoal = goals.find((goal) => goal.type === "emergency");

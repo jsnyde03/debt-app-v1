@@ -71,8 +71,17 @@ export function selectActiveRecommendedActions({
         })),
     ];
 
+    // The non-deployable reserved cushion = the floor buffer + the §2.0 held reserves (2.4.6.1.3:
+    // discovery/cold-start + prefunded). Subtracting all of it from flexible cash keeps the recommended
+    // surface from offering to deploy money the plan is holding back. `true_leftover` is excluded — it's
+    // the residual AFTER recommendations, not a reservation.
     const bufferTotal = result.allocations
-        .filter((item) => item.category === "cushion_buffer")
+        .filter(
+            (item) =>
+                item.category === "cushion_buffer" ||
+                item.category === "discovery_holdback" ||
+                item.category === "prefunded_reserve"
+        )
         .reduce((sum, item) => sum + item.amount, 0);
 
     const flexibleCashAvailable = computeFlexibleCash({

@@ -22,7 +22,7 @@ export function daysBetweenISO(a: string, b: string): number {
 /**
  * §2.0 read-freshness — classify how stale THIS read's inputs are from the day-count, using the SAME
  * thresholds as per-debt staleness (injected so this stays selector-free / tsx-testable). The wrapper
- * `selectReadFreshness` (guardianPrediction.ts) feeds it `inputsAsOf` + the ESTIMATE_* constants.
+ * `selectReadFreshness` (guardianSelectors.ts) feeds it `inputsAsOf` + the ESTIMATE_* constants.
  */
 export function classifyFreshness(daysSinceInputs: number, agingDays: number, staleDays: number): EstimateStaleness {
   const d = Math.max(0, daysSinceInputs);

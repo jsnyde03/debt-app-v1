@@ -1,3 +1,4 @@
+import type { EstimateStaleness } from "@core/debt/projectCurrentBalance";
 import type { CushionStatus } from "@core/timeline/buildMultiCycleTimeline";
 import { computeState } from "@core/guardian/computeState";
 
@@ -32,6 +33,22 @@ export interface GuardianBrief {
   floor: number;
   /** Whether the cushion reached the floor. */
   reachedFloor: boolean;
+  /** §2.0.d — the inputs are too old for a confident read; the card renders this as a neutral
+   *  "refresh your numbers" state rather than a color-coded verdict (2.4.6.1.5). */
+  staleAdvisory?: boolean;
+}
+
+/**
+ * §2.0.d confidence signals for the voice gate — the freshness of THIS read's inputs + which
+ * uncertainty holdbacks are live. The brief spends at most ONE hedge, on the dominant live signal.
+ */
+export interface GuardianConfidence {
+  /** Read-level input freshness (store-level `inputsAsOf`, NOT per-debt staleness). 'stale' → hard cutoff. */
+  freshness?: EstimateStaleness;
+  /** Bill-completeness unproven (first N genuine cycles) — a premium learning hedge. */
+  discoveryHoldbackActive?: boolean;
+  /** A variable-income lean not yet confirmed from the low side — a premium learning hedge. */
+  coldStartHoldbackActive?: boolean;
 }
 
 export interface GuardianInput {
@@ -51,6 +68,8 @@ export interface GuardianInput {
   lookahead?: { status: CushionStatus; cushion: number; label: string };
   /** The persisted prior band (2.4.6.1.2) — enables hysteresis so the card's state can't flap. */
   priorBand?: GuardianState | null;
+  /** §2.0.d voice-gate signals (2.4.6.1.3) — drives the one-hedge budget + the stale hard-cutoff. */
+  confidence?: GuardianConfidence;
 }
 
 /** A finite, non-negative number or 0 — the guard against `$NaN`/`$Infinity` ever reaching a screen. */
@@ -67,6 +86,27 @@ function about(n: number): string {
 /** Bare hedged figure (no "about" prefix) for mid-sentence use. */
 function amt(n: number): string {
   return about(n).replace("about $", "$");
+}
+
+/**
+ * §2.0.d hedge budget — return the SINGLE hedge sentence for the dominant *live* uncertainty, or null.
+ * Priority: stale-inputs > lean-unverified > unproven-accuracy. ('stale' is handled by the caller as a
+ * hard cutoff, so this only ever sees the softer 'aging' freshness.) 'fresh' inputs never hedge — the
+ * auto-maintained-and-recent read stays fully decisive (the 2.1↔2.3 reconciliation). The learning
+ * hedges (cold-start / discovery) describe the premium ACTING, so they're premium-only.
+ */
+function pickHedge(isPremium: boolean, c?: GuardianConfidence): string | null {
+  if (!c) return null;
+  if (c.freshness === "aging") return "These figures are from a little while ago — a quick refresh keeps this exact.";
+  if (!isPremium) return null;
+  if (c.coldStartHoldbackActive) return "I'm planning from the low side while I learn your income.";
+  if (c.discoveryHoldbackActive) return "I'm keeping a little extra set aside while I get to know your bills.";
+  return null;
+}
+
+/** Append the one selected hedge to a brief's detail (voice budget spent once, §2.0.d). */
+function withHedge(brief: GuardianBrief, hedge: string | null): GuardianBrief {
+  return hedge ? { ...brief, detail: `${brief.detail} ${hedge}` } : brief;
 }
 
 export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
@@ -94,6 +134,25 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       : undefined;
 
   const viz = { cushion: kept, deployedToDebt, floor, reachedFloor };
+
+  // §2.0.d hard cutoff — inputs too old for a confident read. Supersedes EVERY read (free + premium,
+  // clear + shortfall): the honest move is to stop asserting a verdict and ask for a refresh. The state
+  // still rides through for the bar's proportions, but `staleAdvisory` tells the card to render it
+  // neutrally (2.4.6.1.5) instead of as a green/amber/red verdict.
+  if (input.confidence?.freshness === "stale") {
+    return {
+      state,
+      title: "Let's refresh your numbers",
+      detail:
+        "Your paycheck, bills, or balances are more than a few weeks old, so I can't tell you if you'll make it this paycheck with confidence.",
+      safeMove: isPremium ? "Update your numbers and I'll plan from where you actually are." : undefined,
+      staleAdvisory: true,
+      ...viz,
+    };
+  }
+
+  const hedge = pickHedge(isPremium, input.confidence);
+
   // Where the extra actually lands: a single debt names it; a spread fills the focus first, then rolls.
   const dest = !focusDebtName
     ? "toward debt"
@@ -104,13 +163,16 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   if (!isPremium) {
     // Free: the honest read for this paycheck (the value-led taste) — no action claimed. The card
     // supplies the "Premium holds you at your line" invitation; the bar shows the kept cushion vs. the line.
-    return {
-      state,
-      title: state === "clear" ? "You're covered this paycheck" : state === "tight" ? "A little tight this paycheck" : "Tight this paycheck",
-      detail: `You've got ${about(discretionary)} after everything required this paycheck${state === "clear" ? "." : ` — under a healthy ${amt(floor)}.`}`,
-      lookahead: undefined, // watching ahead is part of the premium value
-      ...viz,
-    };
+    return withHedge(
+      {
+        state,
+        title: state === "clear" ? "You're covered this paycheck" : state === "tight" ? "A little tight this paycheck" : "Tight this paycheck",
+        detail: `You've got ${about(discretionary)} after everything required this paycheck${state === "clear" ? "." : ` — under a healthy ${amt(floor)}.`}`,
+        lookahead: undefined, // watching ahead is part of the premium value
+        ...viz,
+      },
+      hedge,
+    );
   }
 
   // Premium — the Guardian acted.
@@ -126,32 +188,41 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   }
   if (state !== "clear") {
     // Covered, but the headroom is under the line — keep all of it, deploy nothing.
-    return {
-      state,
-      title: state === "at-risk" ? "Very tight this paycheck" : "A little tight this paycheck",
-      detail: `About ${amt(discretionary)} is left after everything required — under your ${amt(floor)} line, so I'm keeping all of it as cushion.`,
-      safeMove: "Nothing extra goes out this cycle. Extra payoff resumes once you're back above your line.",
-      lookahead: look,
-      ...viz,
-    };
+    return withHedge(
+      {
+        state,
+        title: state === "at-risk" ? "Very tight this paycheck" : "A little tight this paycheck",
+        detail: `About ${amt(discretionary)} is left after everything required — under your ${amt(floor)} line, so I'm keeping all of it as cushion.`,
+        safeMove: "Nothing extra goes out this cycle. Extra payoff resumes once you're back above your line.",
+        lookahead: look,
+        ...viz,
+      },
+      hedge,
+    );
   }
   // Clear — floor held; deploy the spare (if any) to debt.
   if (deployedToDebt <= 0) {
-    return {
+    return withHedge(
+      {
+        state,
+        title: "You're covered this paycheck",
+        detail: `About ${amt(discretionary)} after everything required, all held as your cushion — right at your ${amt(floor)} line.`,
+        safeMove: "Nudge your line down anytime to send more toward debt.",
+        lookahead: look,
+        ...viz,
+      },
+      hedge,
+    );
+  }
+  return withHedge(
+    {
       state,
       title: "You're covered this paycheck",
-      detail: `About ${amt(discretionary)} after everything required, all held as your cushion — right at your ${amt(floor)} line.`,
-      safeMove: "Nudge your line down anytime to send more toward debt.",
+      detail: `About ${amt(discretionary)} after everything required. I'm holding ${amt(kept)} as your cushion and sending the spare ${amt(deployedToDebt)} ${dest}.`,
+      safeMove: `Mark ${deploySpread ? "the extra payments" : `the ${amt(deployedToDebt)} payment`} when you're ready — your ${amt(floor)} cushion stays protected either way.`,
       lookahead: look,
       ...viz,
-    };
-  }
-  return {
-    state,
-    title: "You're covered this paycheck",
-    detail: `About ${amt(discretionary)} after everything required. I'm holding ${amt(kept)} as your cushion and sending the spare ${amt(deployedToDebt)} ${dest}.`,
-    safeMove: `Mark ${deploySpread ? "the extra payments" : `the ${amt(deployedToDebt)} payment`} when you're ready — your ${amt(floor)} cushion stays protected either way.`,
-    lookahead: look,
-    ...viz,
-  };
+    },
+    hedge,
+  );
 }

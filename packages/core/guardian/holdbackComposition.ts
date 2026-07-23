@@ -10,6 +10,15 @@
  * double-charge a week-one variable user), which the caller passes as the two operands.
  */
 
+/**
+ * §2.0.b holdback FRACTIONS ([BUILD] tunables, Phase 6). Each uncertainty reserve is a fraction of
+ * above-floor headroom: discovery (bill-completeness unproven) holds more; cold-start (lean unverified,
+ * variable income) a touch less. They compose by `max` (same kind of caution — not summed), so a
+ * week-one variable user is charged the larger of the two, never both.
+ */
+export const DISCOVERY_HOLDBACK_FRACTION = 0.4;
+export const COLDSTART_HOLDBACK_FRACTION = 0.25;
+
 export interface HoldbackInput {
 	/** Cash earmarked THIS cycle for a specific future crunch (§2.5 water-fill output). */
 	prefundedReserve: number;

@@ -1,12 +1,26 @@
 import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@core/guardian/buildGuardianBrief';
+import { ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS, type EstimateStaleness } from '@core/debt/projectCurrentBalance';
 
 import type { DebtStore } from '@/data/models';
 
+import { classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './guardianPredictionCore';
 import { selectDiscretionary, selectExtraToDebt, selectLiquidCushion } from './planSelectors';
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
 import { selectAllocation } from './selectors';
 
 export type { GuardianBrief, GuardianState };
+
+/**
+ * §2.0 read-freshness (2.4.D.7) — how stale THIS read's inputs are, off the store-level `inputsAsOf`
+ * stamp, NOT per-debt `lastVerifiedDate`. This is the seam that stops a rolled-over / auto-maintained
+ * debt (whose `lastVerifiedDate` deliberately ages) from tripping the Guardian's staleness hedge: as
+ * long as the user recently touched real inputs, the read stays fresh. Same day-thresholds as per-debt
+ * staleness. The §2.0 voice-hedge / hard cutoff (buildGuardianBrief) consumes this at 2.4.6.1.3.
+ */
+export function selectReadFreshness(store: DebtStore, asOfDate?: string): EstimateStaleness {
+  const today = asOfDate ?? store.paycheck.currentDate;
+  return classifyFreshness(daysBetweenISO(store.inputsAsOf, today), ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS);
+}
 
 /** "Aug 5" — mirrors the cash-flow bars' label so the Guardian's lookahead reads consistently. */
 function shortDate(iso: string): string {
@@ -49,5 +63,11 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
       ? { status: upcoming.cushionStatus, cushion: upcoming.endingBalance, label: shortDate(upcoming.cycleStart) }
       : undefined,
     priorBand: store.priorGuardianBand,
+    // §2.0.d voice gate (2.4.6.1.3): read-freshness (all tiers — a stale read is honestly deferred) +
+    // the live learning holdbacks (premium only — free doesn't act/learn, so no learning hedge).
+    confidence: {
+      freshness: selectReadFreshness(store),
+      ...(store.subscriptionPlan === 'premium' ? deriveConfidenceContext(store) : {}),
+    },
   });
 }

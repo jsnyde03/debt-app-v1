@@ -65,8 +65,53 @@ function runGuardianTests() {
   assertTrue(Number.isFinite(nan.cushion) && Number.isFinite(nan.deployedToDebt) && Number.isFinite(nan.floor), "viz numbers are always finite");
   assertEqual(nan.floor, 200, "a NaN floor falls back to the $200 default");
 
-  // ── The trust invariant: everything hedged, no cents ──
-  for (const b of [premClear, freeClear, tight, short]) {
+  // ── §2.0.d voice gate: the one-hedge budget + the stale hard-cutoff (2.4.6.1.3) ──
+  const AGING = /from a little while ago/i;
+  const INCOME_HEDGE = /learn your income/i;
+  const BILLS_HEDGE = /get to know your bills/i;
+  const countHedges = (s: string) => [AGING, INCOME_HEDGE, BILLS_HEDGE].filter((re) => re.test(s)).length;
+
+  // fresh inputs + no live holdback → no hedge at all (auto-maintained-and-recent stays decisive).
+  const fresh = buildGuardianBrief(input({ confidence: { freshness: "fresh" } }));
+  assertEqual(countHedges(fresh.detail), 0, "fresh + nothing live → no hedge");
+
+  // aging freshness → exactly one hedge (applies to BOTH tiers — a stale read is honest regardless of tier).
+  const agingPrem = buildGuardianBrief(input({ confidence: { freshness: "aging" } }));
+  assertEqual(countHedges(agingPrem.detail), 1, "aging → exactly one hedge");
+  assertTrue(AGING.test(agingPrem.detail), "aging → the refresh hedge");
+  const agingFree = buildGuardianBrief(input({ isPremium: false, discretionary: 210, kept: 50, deployedToDebt: 160, confidence: { freshness: "aging" } }));
+  assertTrue(AGING.test(agingFree.detail), "aging freshness hedges the FREE read too");
+
+  // premium learning hedges: cold-start (income) and discovery (bills), fresh inputs.
+  const coldStart = buildGuardianBrief(input({ confidence: { freshness: "fresh", coldStartHoldbackActive: true } }));
+  assertTrue(INCOME_HEDGE.test(coldStart.detail), "cold-start → the income hedge");
+  const discovery = buildGuardianBrief(input({ confidence: { freshness: "fresh", discoveryHoldbackActive: true } }));
+  assertTrue(BILLS_HEDGE.test(discovery.detail), "discovery → the bills hedge");
+
+  // hedge BUDGET: at most ONE, dominant live uncertainty by priority (stale/aging > lean > bills).
+  const stacked = buildGuardianBrief(input({ confidence: { freshness: "aging", coldStartHoldbackActive: true, discoveryHoldbackActive: true } }));
+  assertEqual(countHedges(stacked.detail), 1, "three live signals → still exactly ONE hedge");
+  assertTrue(AGING.test(stacked.detail), "priority: freshness (aging) wins over the learning hedges");
+  const leanOverBills = buildGuardianBrief(input({ confidence: { freshness: "fresh", coldStartHoldbackActive: true, discoveryHoldbackActive: true } }));
+  assertTrue(INCOME_HEDGE.test(leanOverBills.detail) && !BILLS_HEDGE.test(leanOverBills.detail), "priority: lean-unverified wins over bills-completeness");
+
+  // learning hedges are PREMIUM-only (free doesn't act/learn → nothing to hedge).
+  const freeNoLearn = buildGuardianBrief(input({ isPremium: false, discretionary: 210, kept: 50, deployedToDebt: 160, confidence: { freshness: "fresh", coldStartHoldbackActive: true, discoveryHoldbackActive: true } }));
+  assertEqual(countHedges(freeNoLearn.detail), 0, "free + learning holdbacks live → no hedge (free doesn't learn)");
+
+  // stale → the hard cutoff supersedes EVERY read (clear + shortfall, both tiers).
+  const staleClear = buildGuardianBrief(input({ confidence: { freshness: "stale" } }));
+  assertTrue(staleClear.staleAdvisory === true, "stale → staleAdvisory flag for the neutral card render");
+  assertTrue(/refresh your numbers/i.test(staleClear.title), "stale → the 'refresh your numbers' cutoff, not a verdict");
+  assertEqual(countHedges(staleClear.detail), 0, "the cutoff replaces the read — no residual hedge");
+  const staleShort = buildGuardianBrief(input({ shortfall: 180, discretionary: 0, confidence: { freshness: "stale" } }));
+  assertTrue(staleShort.staleAdvisory === true, "stale supersedes even a shortfall read");
+  const staleFree = buildGuardianBrief(input({ isPremium: false, confidence: { freshness: "stale" } }));
+  assertEqual(staleFree.safeMove, undefined, "stale cutoff: free gets no safeMove");
+  assertTrue(/Update your numbers/i.test(buildGuardianBrief(input({ confidence: { freshness: "stale" } })).safeMove ?? ""), "stale cutoff: premium gets the update prompt");
+
+  // ── The trust invariant: everything hedged, no cents (incl. the new voice-gate briefs) ──
+  for (const b of [premClear, freeClear, tight, short, agingPrem, coldStart, discovery, staleClear]) {
     assertTrue(hedged(b.detail) && hedged(b.safeMove ?? "") && hedged(b.lookahead ?? ""), `hedged (no false-precise $) — ${b.state}`);
   }
 
