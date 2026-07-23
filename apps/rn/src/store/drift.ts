@@ -15,8 +15,16 @@ import { selectAllocation } from './selectors';
  *   - no plan yet (no active debt or no paycheck) → leave the baseline untouched;
  *   - else freeze a fresh baseline ONLY when the change is material (`shouldReAnchor`), so normal
  *     cycle progression + small edits keep measuring pure adherence to the frozen plan.
+ *
+ * `source` (2.4.D.5 · v6 §3.3 · round-6 data B2): a **learning-driven** lean nudge (the app refined
+ * its income estimate, 2.4.7) is a MEASUREMENT change — it must NOT re-anchor, else "days ahead/behind"
+ * resets with no behavior change. A **user-driven** edit is a PLAN change → re-anchors normally
+ * (the default; every current caller is user-driven). The learning consumer arrives with 2.4.7.
  */
-export function recordDriftBaseline(store: DebtStore): DebtStore {
+export function recordDriftBaseline(store: DebtStore, source: 'user' | 'learning' = 'user'): DebtStore {
+  // Learning refines how we READ income, not the plan the user committed to → preserve the baseline.
+  if (source === 'learning') return store;
+
   const hasPlan = store.debts.some((d) => d.balance > 0) && Number(store.paycheck.amount) > 0;
   if (!hasPlan) return store;
 
