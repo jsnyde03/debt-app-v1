@@ -4,6 +4,7 @@
  * `computeCyclePrediction`/`stampCyclePrediction` on top of these.
  */
 
+import type { EstimateStaleness } from '@core/debt/projectCurrentBalance';
 import type { PayCycleSnapshot } from '@core/storage/debtPlannerStorage';
 
 import type { CyclePrediction, DebtStore } from '@/data/models';
@@ -11,6 +12,22 @@ import type { CyclePrediction, DebtStore } from '@/data/models';
 /** [BUILD] tunables (Phase 6) — the discovery window + the cold-start lean-confirmation count. */
 export const DISCOVERY_CYCLES = 3;
 export const COLDSTART_CONFIRMATIONS = 4;
+
+/** Whole days from ISO `a` to ISO `b` (local midnight), floored, never negative below 0 handled by caller. */
+export function daysBetweenISO(a: string, b: string): number {
+  const ms = new Date(`${b}T00:00:00`).getTime() - new Date(`${a}T00:00:00`).getTime();
+  return Math.floor(ms / 86_400_000);
+}
+
+/**
+ * §2.0 read-freshness — classify how stale THIS read's inputs are from the day-count, using the SAME
+ * thresholds as per-debt staleness (injected so this stays selector-free / tsx-testable). The wrapper
+ * `selectReadFreshness` (guardianPrediction.ts) feeds it `inputsAsOf` + the ESTIMATE_* constants.
+ */
+export function classifyFreshness(daysSinceInputs: number, agingDays: number, staleDays: number): EstimateStaleness {
+  const d = Math.max(0, daysSinceInputs);
+  return d >= staleDays ? 'stale' : d >= agingDays ? 'aging' : 'fresh';
+}
 
 /** §2.0.e — which holdbacks WOULD be active this read, derived from the substrate signals. */
 export function deriveConfidenceContext(store: DebtStore): CyclePrediction['predictedConfidenceContext'] {

@@ -10,13 +10,27 @@
  * this file adds the two functions that need the Guardian selectors.
  */
 
+import { ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS, type EstimateStaleness } from '@core/debt/projectCurrentBalance';
+
 import type { CyclePrediction, DebtStore } from '@/data/models';
 
-import { applyStampDecision, deriveConfidenceContext } from './guardianPredictionCore';
+import { applyStampDecision, classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './guardianPredictionCore';
 import { selectPaydayGuardian } from './guardianSelectors';
 import { selectAllocation } from './selectors';
 
 export { reconcileClosingCycle } from './guardianPredictionCore';
+
+/**
+ * §2.0 read-freshness (2.4.D.7) — how stale THIS read's inputs are, off the store-level `inputsAsOf`
+ * stamp, NOT per-debt `lastVerifiedDate`. This is the seam that stops a rolled-over / auto-maintained
+ * debt (whose `lastVerifiedDate` deliberately ages) from tripping the Guardian's staleness hedge: as
+ * long as the user recently touched real inputs, the read stays fresh. Same day-thresholds as per-debt
+ * staleness. The §2.0 voice-hedge / hard cutoff consumes this at 2.4.6.1.
+ */
+export function selectReadFreshness(store: DebtStore, asOfDate?: string): EstimateStaleness {
+  const today = asOfDate ?? store.paycheck.currentDate;
+  return classifyFreshness(daysBetweenISO(store.inputsAsOf, today), ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS);
+}
 
 /**
  * Pure-ish: the Guardian's prediction for the CURRENT cycle, or null when there's no read (no plan / no

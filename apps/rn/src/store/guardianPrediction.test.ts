@@ -7,7 +7,8 @@ import type { PayCycleSnapshot } from '@core/storage/debtPlannerStorage';
 
 import type { CyclePrediction, DebtStore } from '@/data/models';
 
-import { applyStampDecision, deriveConfidenceContext, reconcileClosingCycle } from './guardianPredictionCore';
+import { applyStampDecision, classifyFreshness, daysBetweenISO, deriveConfidenceContext, reconcileClosingCycle } from './guardianPredictionCore';
+import { incrementGenuineCycle, recordCycleIncome } from './substrateProducers';
 
 let failures = 0;
 function check(name: string, cond: boolean) {
@@ -139,7 +140,22 @@ check('a missed arrival → actualIncome 0 (cushion floored at 0, not negative)'
 const disturbed = reconcileClosingCycle(makeStore({ currentCyclePrediction: PRED({ restampedMidCycle: true }) }), SNAP());
 check('a re-stamped prediction → snapshot.disturbed = true', disturbed.disturbed === true);
 
-if (failures === 0) console.log('✅ All 2.4.D.4 prediction-orchestration tests passed.');
+// ── 2.4.D.7 §2.0 seams: read-freshness (off inputsAsOf) + substrate de-gate ──
+check('classifyFreshness: <30 days → fresh', classifyFreshness(10, 30, 45) === 'fresh');
+check('classifyFreshness: 30–44 days → aging', classifyFreshness(30, 30, 45) === 'aging' && classifyFreshness(44, 30, 45) === 'aging');
+check('classifyFreshness: ≥45 days → stale', classifyFreshness(45, 30, 45) === 'stale');
+check('classifyFreshness: negative day count floored to fresh', classifyFreshness(-5, 30, 45) === 'fresh');
+check('daysBetweenISO computes whole-day span', daysBetweenISO('2026-06-01', '2026-07-16') === 45);
+// Read-freshness keys off inputsAsOf, NOT lastVerifiedDate: a rolled-over debt with an OLD
+// lastVerifiedDate but a RECENT inputsAsOf must read fresh (the 2.1↔2.3 reconciliation).
+check('recent inputsAsOf → fresh even if a debt would be stale by lastVerifiedDate', classifyFreshness(daysBetweenISO('2026-07-20', '2026-07-23'), 30, 45) === 'fresh');
+// Substrate de-gate: the RECORDING producers never gate on debts — they feed a debt-free store.
+const debtFree = incrementGenuineCycle(makeStore({ genuineCycleCount: 4 } as Partial<DebtStore>));
+check('genuineCycleCount increments on a debt-free store (substrate de-gated)', debtFree.genuineCycleCount === 5);
+const debtFreeIncome = recordCycleIncome(makeStore(), '2026-08-06');
+check('income-actuals record on a debt-free store (substrate de-gated)', debtFreeIncome.incomeActualsLog.length === 1);
+
+if (failures === 0) console.log('✅ All 2.4.D.4 + D.7 prediction/seam tests passed.');
 else {
   console.error(`❌ ${failures} prediction-orchestration test(s) failed.`);
   process.exit(1);
