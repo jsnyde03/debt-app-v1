@@ -45,6 +45,12 @@ export function selectDiscretionary(allocation: Allocation): number {
   return Math.max(0, allocation.paycheckAmount - allocation.totalRequired - allocation.livingExpenseReserve);
 }
 
+/** The §2.0 held reserve within the cushion — the uncertainty/prefunded buckets the Guardian sets aside
+ *  (the "Set aside" bar zone, §2.0.c). A subset of `selectLiquidCushion`; 0 when nothing is held back. */
+export function selectHeldReserve(allocation: Allocation): number {
+  return sumCategory(allocation, 'discovery_holdback', 'prefunded_reserve');
+}
+
 /** The estimated debt-free date under the current plan (via the shared payoff engine), or null. */
 export function selectDebtFreeDate(store: DebtStore, allocation: Allocation | null): string | null {
   const liveDebts = store.debts.filter((d) => d.balance > 0);

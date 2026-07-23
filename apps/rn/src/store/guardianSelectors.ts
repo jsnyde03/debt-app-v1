@@ -4,7 +4,7 @@ import { ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS, type EstimateStaleness } from
 import type { DebtStore } from '@/data/models';
 
 import { classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './guardianPredictionCore';
-import { selectDiscretionary, selectExtraToDebt, selectLiquidCushion } from './planSelectors';
+import { selectDiscretionary, selectExtraToDebt, selectHeldReserve, selectLiquidCushion } from './planSelectors';
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
 import { selectAllocation } from './selectors';
 
@@ -62,6 +62,7 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     // plan reserves the floor for premium (effectivePaycheckBuffer), so `kept` = the protected cushion.
     discretionary: selectDiscretionary(allocation),
     kept: selectLiquidCushion(allocation),
+    heldReserve: selectHeldReserve(allocation),
     deployedToDebt: selectExtraToDebt(allocation),
     // The extra fills debts in strategy order, so it spans >1 when it exceeds the focus debt's balance.
     deploySpread: snowballItems.length > 1,

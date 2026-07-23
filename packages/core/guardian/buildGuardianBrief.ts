@@ -29,6 +29,9 @@ export interface GuardianBrief {
   cushion: number;
   /** Extra cash the plan sends to debt this cycle after protecting the cushion. */
   deployedToDebt: number;
+  /** The §2.0 held reserve WITHIN the cushion (discovery + prefunded) — the "set aside" zone the bar
+   *  names on the protected side (§2.0.c). ≤ `cushion`; 0 when nothing is held back. */
+  heldReserve: number;
   /** The user's cushion line. */
   floor: number;
   /** Whether the cushion reached the floor. */
@@ -56,8 +59,10 @@ export interface GuardianInput {
   floor: number;
   /** Cash after every obligation (bills + minimums + living) — the headroom that drives the band. */
   discretionary: number;
-  /** The liquid cushion the plan KEEPS (buffer + leftover) — what the floor protects. */
+  /** The liquid cushion the plan KEEPS (all protected buckets) — what the floor protects. */
   kept: number;
+  /** The held-reserve portion of `kept` (discovery + prefunded) — the "set aside" bar zone. Default 0. */
+  heldReserve?: number;
   /** Extra deployed to debt this cycle (the snowball). */
   deployedToDebt: number;
   /** True when the extra spans more than one debt (fills the focus, then rolls onward). */
@@ -119,6 +124,9 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   const floor = money(input.floor) || 200;
   const discretionary = money(input.discretionary);
   const kept = money(input.kept);
+  // The held reserve is a portion of the kept cushion — never more than it (a bad upstream value can't
+  // make the "set aside" zone exceed the cushion it lives inside).
+  const heldReserve = Math.min(money(input.heldReserve ?? 0), kept);
   const deployedToDebt = money(input.deployedToDebt);
   const shortfall = money(input.shortfall);
 
@@ -137,7 +145,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       ? `Heads up: ${lookahead.label} looks ${lookahead.status === "pressure" ? "tight" : "a little tight"} — ${about(lookahead.cushion)} of cushion. Worth planning for now.`
       : undefined;
 
-  const viz = { cushion: kept, deployedToDebt, floor, reachedFloor };
+  const viz = { cushion: kept, deployedToDebt, heldReserve, floor, reachedFloor };
 
   // §2.0.d hard cutoff — inputs too old for a confident read. Supersedes EVERY read (free + premium,
   // clear + shortfall): the honest move is to stop asserting a verdict and ask for a refresh. The state

@@ -65,6 +65,13 @@ function runGuardianTests() {
   assertTrue(Number.isFinite(nan.cushion) && Number.isFinite(nan.deployedToDebt) && Number.isFinite(nan.floor), "viz numbers are always finite");
   assertEqual(nan.floor, 200, "a NaN floor falls back to the $200 default");
 
+  // ── heldReserve viz (2.4.6.1.5): exposed for the "Set aside" bar zone, clamped ≤ cushion ──
+  const withReserve = buildGuardianBrief(input({ kept: 220, heldReserve: 20, deployedToDebt: 6 }));
+  assertEqual(withReserve.heldReserve, 20, "heldReserve is exposed on the viz for the bar's set-aside zone");
+  const overReserve = buildGuardianBrief(input({ kept: 100, heldReserve: 500 }));
+  assertEqual(overReserve.heldReserve, 100, "heldReserve clamps to the cushion (can't exceed what it lives inside)");
+  assertEqual(buildGuardianBrief(input({})).heldReserve, 0, "no reserve → heldReserve 0 (zone hidden)");
+
   // ── Bug (2.4.6.1.4): a NONZERO amount never hedges to "$0" ──
   const tinyDeploy = buildGuardianBrief(input({ discretionary: 210, kept: 205, deployedToDebt: 2, floor: 200, focusDebtName: "Store Card" }));
   assertTrue(!/\$0\b/.test(tinyDeploy.detail + (tinyDeploy.safeMove ?? "")), "a $2 deploy never renders as '$0' (floors to the smallest hedge unit)");

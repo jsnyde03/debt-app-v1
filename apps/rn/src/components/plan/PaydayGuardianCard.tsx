@@ -30,11 +30,18 @@ export function PaydayGuardianCard({ brief, isPremium }: { brief: GuardianBrief;
     tight: { color: c.accent.warning, icon: 'gpp-maybe' },
     'at-risk': { color: c.accent.danger, icon: 'gpp-bad' },
   };
-  const { color, icon } = tone[brief.state];
+  // §2.0.d stale cutoff: no color-coded verdict. Neutral shield + a dimmed bar (its proportions rest on
+  // stale inputs) + an "Update needed" chip — the card says "I can't see far enough", not clear/tight/at-risk.
+  const stale = brief.staleAdvisory === true;
+  const { color, icon } = stale ? { color: c.text.tertiary, icon: 'update' as IconGlyph } : tone[brief.state];
 
   // Bar domain reaches at least the floor, so the line is always on the bar (the under-floor gap shows).
   const domain = Math.max(brief.cushion + brief.deployedToDebt, brief.floor, 1);
   const hasPayoff = brief.deployedToDebt > 0;
+  const hasReserve = brief.heldReserve > 0;
+  // "Adjust your line" only makes sense when you're covered — hidden in at-risk/shortfall (lowering your
+  // safety line is the wrong move) and while stale (the move is "update your numbers", not "adjust").
+  const showAdjust = isPremium && !stale && brief.state !== 'at-risk';
 
   return (
     <Card>
@@ -51,11 +58,16 @@ export function PaydayGuardianCard({ brief, isPremium }: { brief: GuardianBrief;
         <View style={styles.head}>
           <AppIcon name={icon} size={22} color={color} />
           <Text style={[textStyles.title3, styles.title, { color }]}>{brief.title}</Text>
+          {stale ? (
+            <View style={[styles.chip, { backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}>
+              <Text style={[textStyles.caption, styles.chipText, { color: c.text.tertiary }]}>Update needed</Text>
+            </View>
+          ) : null}
         </View>
 
-        {/* The cushion bar — the automation made visible. */}
+        {/* The cushion bar — the automation made visible. Dimmed while stale (numbers aren't trustworthy). */}
         <View
-          style={styles.barWrap}
+          style={[styles.barWrap, stale && styles.dimmed]}
           onLayout={(e: LayoutChangeEvent) => setBarW(e.nativeEvent.layout.width)}
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants">
@@ -64,6 +76,7 @@ export function PaydayGuardianCard({ brief, isPremium }: { brief: GuardianBrief;
               width={barW}
               height={BAR_H}
               cushionFrac={brief.cushion / domain}
+              reserveFrac={brief.heldReserve / domain}
               payoffFrac={brief.deployedToDebt / domain}
               floorFrac={brief.floor / domain}
               cushionColor={color}
@@ -73,7 +86,16 @@ export function PaydayGuardianCard({ brief, isPremium }: { brief: GuardianBrief;
             />
           ) : null}
         </View>
-        <View style={styles.legend}>
+        <View
+          style={[styles.legend, stale && styles.dimmed]}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants">
+          {hasReserve ? (
+            <View style={styles.legendItem}>
+              <View style={[styles.dot, { backgroundColor: color, opacity: 0.5 }]} />
+              <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Set aside</Text>
+            </View>
+          ) : null}
           <View style={styles.legendItem}>
             <View style={[styles.dot, { backgroundColor: color }]} />
             <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Cushion</Text>
@@ -98,9 +120,6 @@ export function PaydayGuardianCard({ brief, isPremium }: { brief: GuardianBrief;
           <>
             {brief.safeMove ? <Text style={[textStyles.subhead, styles.move, { color: c.text.primary }]}>{brief.safeMove}</Text> : null}
             {brief.lookahead ? <Text style={[textStyles.caption, styles.look, { color: c.text.tertiary }]}>{brief.lookahead}</Text> : null}
-            <Pressable onPress={() => setFloorSheet(true)} accessibilityRole="button" accessibilityLabel="Adjust your cushion line" hitSlop={8}>
-              <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>Adjust your line →</Text>
-            </Pressable>
           </>
         ) : (
           <View style={styles.invite} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -112,6 +131,14 @@ export function PaydayGuardianCard({ brief, isPremium }: { brief: GuardianBrief;
         )}
       </View>
 
+      {/* The adjust control lives OUTSIDE the narrated group so a screen reader reaches it as its own
+          button (the group's `accessible` collapses its descendants into one utterance). */}
+      {showAdjust ? (
+        <Pressable onPress={() => setFloorSheet(true)} accessibilityRole="button" accessibilityLabel="Adjust your cushion line" hitSlop={8}>
+          <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>Adjust your line →</Text>
+        </Pressable>
+      ) : null}
+
       {isPremium ? <CushionFloorSheet visible={floorSheet} floor={brief.floor} onClose={() => setFloorSheet(false)} /> : null}
     </Card>
   );
@@ -121,6 +148,9 @@ const styles = StyleSheet.create({
   eyebrow: { letterSpacing: 0.8, marginBottom: spacing.xs },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   title: { flex: 1 },
+  chip: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: 999, borderWidth: StyleSheet.hairlineWidth },
+  chipText: { fontWeight: '600' },
+  dimmed: { opacity: 0.4 },
   barWrap: { marginTop: spacing.md, height: BAR_H, justifyContent: 'center' },
   legend: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.sm },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
