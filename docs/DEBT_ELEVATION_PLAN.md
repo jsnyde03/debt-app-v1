@@ -68,10 +68,16 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 - **2.4.11.1–.3 ✅** — presentation reshape (visual stat-row, exact amounts) · tight-case one-tap (move-from-savings) · cold-start first-run intro + advice boundary.
 - **RS "break-it" regression baseline ✅ (RS.1–7)** — core fuzz + app-layer + RN-web e2e, green-gated via `validate:release:rn`. Found + fixed **2 real money-path bugs**; RN app gained its **first e2e harness + first scoped lint**; legacy Next gate retired. Doc = `docs/REGRESSION_BASELINE_2026-07-24.md`.
 
-### Remaining in 2.4 (Guardian) — ▶ the active workstream
-- [ ] **2.4.11.4 ▶ ACTIVE** — valley debt-free band · advice boundary · reserve insurance-tapped / attestation-walkback copy. (Design-shaped copy — align with Jason first.)
-- [ ] **2.4.11.5** — **BOUNDED demo** (launch-critical): a scripted premium showcase bounded to cold-start reality (never a matured Guardian the month-one buyer can't be) + a free-at-risk demo state.
-- [ ] **2.4.11.6** — Verify, both themes both tiers.
+### Remaining in 2.4 (Guardian) — ▶ the active workstream _(decomposed + shaped w/ Jason 2026-07-24)_
+- **2.4.11.4 — Guardian honesty edges.** Structure-first; each sub-step before/after scan + verify as built; copy-heavy bits align w/ Jason before building.
+  - [ ] **2.4.11.4a ▶ ACTIVE** — **Two-sided-with-a-why safe move** (last of the §2.1 advice boundary; the one-time notice + "your call" shipped in .3). `buildGuardianBrief`: a genuine-tradeoff deploy (EF-vs-debt with a live high-APR debt · liquidity-vs-APR) emits a two-sided safe move + the why; mechanical no-tradeoff moves stay single-voiced.
+  - [ ] **2.4.11.4b** — **Reserve insurance release moment.** Detect the settling-in-reserve release transition (held → freed as `genuineCycleCount` crosses N=3 / lean-verified); a one-time insurance-framed acknowledgment **branched on TAPPED** (surprise-outflow log drew on it during the hold → "it did its job — covered $X"; else "you didn't need it — now going to work").
+  - [ ] **2.4.11.4c** — **"Bills complete" attestation + walk-back.** An attestation affordance that REDUCES (not skips) the `discoveryHoldback`; the surprise-outflow log WALKS IT BACK when over-confident ("a surprise bill showed up — I've restored your settling-in reserve"). Floor protects independently.
+  - [ ] **2.4.11.4d** — **Valley debt-free BAND** (Jason: build now). One projection engine run twice (lean + typical) → reconcile the 3 current producers; **typical = motivational headline · lean = safe-floor secondary** (not a symmetric range); interest-cost-of-caution rounded/qualitative, never false-precise $. Reconciliation-tested. _(Promoted from the deferred "one-engine-two-runs" backlog item.)_
+- [ ] **2.4.11.5 — Bounded demo + free-at-risk.**
+  - [ ] **2.4.11.5a** — a **distinct cold-start-bounded premium showcase state** (Jason's pick): day-one value only (floor auto-protect + tight one-tap + a visible water-fill smoothing of a lumpy bill), scorecard shown as "here's what I'll show once I learn your income," reserves HELD (not deployed); isolated — never feeds real calibration / `genuineCycleCount`. NOT the matured `genuineCycleCount:6` demo (§3.6).
+  - [ ] **2.4.11.5b** — the **free at-risk demo state** (the softened free at-risk copy has never been visually confirmed — the demo is clear-only).
+- [ ] **2.4.11.6 — Verify** both themes both tiers; fold the deferred RN e2e states (missed / stale / debt-free / at-risk) onto the RS.6 harness.
 
 ### The rest of the tier
 - [ ] **2.5 Smart obligation quality layer** — descoped: add capture fields (category · trial/first-seen · BNPL term · amount-variance) + a lightweight on-device heuristic (finite-BNPL auto-expiry · trial-lapse · variance). Core ML deferred.
@@ -139,7 +145,6 @@ Acquisition-grade store presence (screenshots · app-preview video · listing se
 ## Deferred backlog
 
 - **Demo-able Payday Autopilot** — disabled in Demo Mode (a stale demo payday pops the sheet) → a demo-safe walkthrough is a later candidate.
-- **Debt-free-date one-engine-two-runs** — the timeline's payoff vs `selectDebtFreeDate`'s separate `projectDebtPayoff` can diverge; reconcile (backlog).
 - **`selectTightTopUp` offers the Emergency Fund** — raiding the safety net for a covered-but-tight dip is questionable; prefer a discretionary savings goal, EF last-or-never (design call — for the convergence audit).
 - **Hero vs Guardian number coherence** — hero shows paycheck flow ("$210 free") while the Guardian shows total cushion ("$500 held") — confirm it doesn't read as a conflict (convergence-audit coherence lens).
 - **No undo for the tight-case top-up** (missed-paycheck has one).
