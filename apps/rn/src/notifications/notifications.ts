@@ -15,7 +15,18 @@ import type { RequiredExpense } from '@/data/models';
 const ID_PAYCHECK_EVE = 'paycheck-eve';
 const ID_PAYDAY_CAPTURE = 'payday-capture';
 const ID_BILLS_ALERT = 'bills-alert';
-const ALL_IDS = [ID_PAYCHECK_EVE, ID_PAYDAY_CAPTURE, ID_BILLS_ALERT];
+const ID_RISK = 'guardian-risk';
+const ALL_IDS = [ID_PAYCHECK_EVE, ID_PAYDAY_CAPTURE, ID_BILLS_ALERT, ID_RISK];
+
+/**
+ * §2.8 Guardian risk push (2.4.10.2) — a NEUTRAL prompt, never a verdict a reconcile-to-clear would turn
+ * into cried-wolf, and never a figure (the hedged number stays in-app). It under-claims by design: a
+ * never-opened user gets exactly this, so it must be safe even if the read later reconciles to clear.
+ */
+export const RISK_NOTIFICATION = {
+  title: 'Time to check this paycheck',
+  body: 'Take a quick look at your plan before this one lands.',
+} as const;
 
 // Show notifications while the app is foregrounded (banner + list).
 Notifications.setNotificationHandler({
@@ -89,6 +100,24 @@ export async function syncNotifications({ nextPaycheckDate, requiredExpenses }: 
       await schedule(ID_BILLS_ALERT, title, body, billAlert);
     }
   }
+}
+
+/**
+ * §2.8 (2.4.10.4) — schedule the Guardian RISK push for `fireAt` (paycheck-eve). Returns whether a push
+ * was actually scheduled, so the caller only stamps the notify-state / push-log when one really went out
+ * (on web the stub returns false → the state is never falsely marked "notified"). A fire time already in
+ * the past delivers promptly, so a never-opened at-risk user still gets the heads-up. Native-only.
+ */
+export async function scheduleRiskNotification(fireAt: Date): Promise<boolean> {
+  await Notifications.cancelScheduledNotificationAsync(ID_RISK).catch(() => {});
+  const now = new Date();
+  const when = fireAt > now ? fireAt : new Date(now.getTime() + 5_000);
+  await schedule(ID_RISK, RISK_NOTIFICATION.title, RISK_NOTIFICATION.body, when);
+  return true;
+}
+
+export async function cancelRiskNotification(): Promise<void> {
+  await Notifications.cancelScheduledNotificationAsync(ID_RISK).catch(() => {});
 }
 
 function schedule(identifier: string, title: string, body: string, date: Date): Promise<string> {

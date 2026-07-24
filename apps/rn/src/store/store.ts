@@ -1,6 +1,7 @@
 import { createStore } from 'zustand/vanilla';
 
 import type { RequiredReconciliation } from '@core/debt/bulkMarkRequired';
+import type { GuardianBand } from '@core/storage/debtPlannerStorage';
 
 import { createDefaultStore } from '@/data/defaults';
 import { runMigrations } from '@/data/migrations';
@@ -93,6 +94,11 @@ export interface DebtAppState {
   /** §2.3 (2.4.7.8) — apply / dismiss a learned income-floor (lean) suggestion. */
   applyLeanSuggestion(lean: number): void;
   dismissLeanSuggestion(value: number): void;
+  /** §2.8 (2.4.10.3) — record that a proactive risk push fired for a cycle: stamp the notify-state +
+   *  append the push-log (bounded). Called ONLY when a push actually delivered (never on web). */
+  applyRiskNotified(cycleEndDate: string, level: GuardianBand, nowISO: string): void;
+  /** §2.8 (2.4.10.2) — dismiss the reconcile-to-clear acknowledgment (clears the current-cycle notify-state). */
+  acknowledgeRiskCleared(): void;
 
   // Import (shared by JSON import + iCloud restore + the Phase-D data bridge)
   importStore(store: DebtStore): void;
@@ -354,6 +360,23 @@ export function createDebtStore() {
     },
     dismissLeanSuggestion(value) {
       set((s) => ({ store: { ...s.store, dismissedLeanSuggestion: value } }));
+    },
+    applyRiskNotified(cycleEndDate, level, nowISO) {
+      // §2.8 (2.4.10.3): a risk push went out — stamp the current-cycle notify-state (so we don't
+      // re-fire the same read) + append the timestamp for the rolling-window cap. Bounded to the last
+      // 24 entries (well past the ≤2/month cap window; keeps the persisted log from growing forever).
+      set((s) => ({
+        store: {
+          ...s.store,
+          currentCycleNotifyState: { forCycleEndDate: cycleEndDate, notifiedRiskLevel: level },
+          pushLog: [...s.store.pushLog, nowISO].slice(-24),
+        },
+      }));
+    },
+    acknowledgeRiskCleared() {
+      // §2.8 (2.4.10.2): the user saw the "looks clear after all" acknowledgment — clear the notify-state
+      // so it doesn't re-show. The freq-cap (push-log) still guards against re-pushing this cycle.
+      set((s) => ({ store: { ...s.store, currentCycleNotifyState: null } }));
     },
 
     importStore(store) {

@@ -25,7 +25,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
-import { selectPaydayGuardian } from '@/store/guardianSelectors';
+import { selectPaydayGuardian, selectRiskAcknowledgment } from '@/store/guardianSelectors';
 import { selectLeanSuggestion } from '@/store/incomeLearning';
 import {
   selectPlanState,
@@ -65,6 +65,8 @@ export default function TodayScreen() {
   const summary = allocation ? selectPlanSummary(engineStore, allocation, requiredRows) : null;
   // 2.4 — the Payday Cushion Guardian for this paycheck (off the projected cushion for premium).
   const guardian = selectPaydayGuardian(engineStore);
+  // 2.4.10.2 — a risk heads-up went out for this cycle but the read reconciled to clear → acknowledge it.
+  const riskCleared = selectRiskAcknowledgment(engineStore);
   // 2.4.7.8 — the income-learning nudge (premium + variable income, material change only), off the raw store.
   const leanNudge = selectLeanSuggestion(store);
 
@@ -163,6 +165,16 @@ export default function TodayScreen() {
         />
       ))}
 
+      {riskCleared ? (
+        <Card tone="accent" style={styles.ack}>
+          <View style={styles.ackRow}>
+            <AppIcon name="check-circle" size={20} color={c.accent.success} />
+            <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>Good news — this paycheck looks clear after all.</Text>
+          </View>
+          <Button label="Got it" variant="text" onPress={() => appStore.getState().acknowledgeRiskCleared()} />
+        </Card>
+      ) : null}
+
       {payday.isAwaitingRollover ? (
         <Card tone="accent" style={styles.nudge}>
           <Text style={[textStyles.subhead, { color: c.text.primary }]}>
@@ -246,4 +258,7 @@ const styles = StyleSheet.create({
   nudge: { gap: spacing.md },
   nudgeBtn: { alignSelf: 'stretch' },
   trust: { textAlign: 'center', marginTop: spacing.xs },
+  ack: { gap: spacing.xs },
+  ackRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  ackText: { flex: 1, fontWeight: '600' },
 });

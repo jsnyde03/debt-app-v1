@@ -1,5 +1,6 @@
 import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@core/guardian/buildGuardianBrief';
 import { scoreCalibration, type CalibrationScore } from '@core/guardian/calibrationScore';
+import { decideRiskNotification, type NotifyDecision } from '@core/guardian/notificationDecision';
 import { ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS, type EstimateStaleness } from '@core/debt/projectCurrentBalance';
 
 import type { DebtStore } from '@/data/models';
@@ -40,6 +41,37 @@ export function selectCalibrationScore(store: DebtStore): CalibrationScore {
     debtFree,
     missedCycleEndDates: store.missedArrivals,
   });
+}
+
+export type { NotifyDecision };
+
+/**
+ * §2.8 (2.4.10) — should a proactive RISK push fire for the current cycle? Premium-only ("watches every
+ * paycheck" is premium value). Pass the PROJECTED store (the premium read). Off the Guardian band + the
+ * notify substrate (`currentCycleNotifyState` + `pushLog`); `now` is injected (no clock in a selector).
+ */
+export function selectRiskNotification(store: DebtStore, now: string): NotifyDecision {
+  if (store.subscriptionPlan !== 'premium') return { fire: false, level: 'clear', reason: 'not-risk' };
+  const brief = selectPaydayGuardian(store);
+  return decideRiskNotification({
+    band: brief?.state ?? 'clear',
+    cycleEndDate: store.paycheck.nextPaycheckDate,
+    lastNotified: store.currentCycleNotifyState,
+    pushLog: store.pushLog,
+    now,
+  });
+}
+
+/**
+ * §2.8 reconcile-to-clear (2.4.10.2) — the user got a risk heads-up for THIS cycle, but the read now
+ * reconciles to clear. Acknowledge it in-app ("good news — looks clear after all") so a heads-up that
+ * didn't pan out never reads as cried-wolf. Pass the projected store; premium-only.
+ */
+export function selectRiskAcknowledgment(store: DebtStore): boolean {
+  if (store.subscriptionPlan !== 'premium') return false;
+  const notified = store.currentCycleNotifyState;
+  if (!notified || notified.forCycleEndDate !== store.paycheck.nextPaycheckDate) return false;
+  return selectPaydayGuardian(store)?.state === 'clear';
 }
 
 /** "Aug 5" — mirrors the cash-flow bars' label so the Guardian's lookahead reads consistently. */
