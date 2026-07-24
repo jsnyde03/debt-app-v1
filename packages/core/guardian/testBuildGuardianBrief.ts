@@ -72,10 +72,14 @@ function runGuardianTests() {
   assertEqual(overReserve.heldReserve, 100, "heldReserve clamps to the cushion (can't exceed what it lives inside)");
   assertEqual(buildGuardianBrief(input({})).heldReserve, 0, "no reserve → heldReserve 0 (zone hidden)");
 
-  // ── Bug (2.4.6.1.4): a NONZERO amount never hedges to "$0" ──
+  // ── Amounts are EXACT (2.4.11.1) — a concrete figure the user acts on must be correct, never hedged
+  //    down (a $96 payment must read "$96", not "$95"); still never "$0" for a nonzero. ──
+  const exact96 = buildGuardianBrief(input({ discretionary: 356, kept: 260, deployedToDebt: 96, floor: 200, focusDebtName: "Store Card" }));
+  assertTrue(/spare \$96 toward Store Card/.test(exact96.detail), "a $96 deploy reads EXACTLY '$96' in the detail, never hedged to $95");
+  assertTrue(/the \$96 payment/.test(exact96.safeMove ?? ""), "…and '$96' in the action, matching the plan");
   const tinyDeploy = buildGuardianBrief(input({ discretionary: 210, kept: 205, deployedToDebt: 2, floor: 200, focusDebtName: "Store Card" }));
-  assertTrue(!/\$0\b/.test(tinyDeploy.detail + (tinyDeploy.safeMove ?? "")), "a $2 deploy never renders as '$0' (floors to the smallest hedge unit)");
-  assertTrue(/spare \$5/.test(tinyDeploy.detail), "a $2 deploy hedges up to 'spare $5', not '$0'");
+  assertTrue(!/\$0\b/.test(tinyDeploy.detail + (tinyDeploy.safeMove ?? "")), "a $2 deploy never renders as '$0'");
+  assertTrue(/spare \$2/.test(tinyDeploy.detail), "a $2 deploy reads exactly '$2' (exact, not fuzzed)");
 
   // ── §2.3.1 paused-deploy (2.4.7.7): a missed paycheck → paused-deploy, NEVER a phantom-income clear ──
   // Even with a would-be-CLEAR read (high discretionary), pausedDeploy supersedes everything.

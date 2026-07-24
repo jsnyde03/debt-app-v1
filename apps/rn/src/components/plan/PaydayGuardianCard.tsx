@@ -86,34 +86,22 @@ export function PaydayGuardianCard({ brief, isPremium, onSeeForecast }: { brief:
             />
           ) : null}
         </View>
+        {/* 2.4.11.1 presentation reshape — the numbers ARE the read (a stat row, not a paragraph). Each
+            stat is its bar zone made legible; the prose detail is kept only where the message matters. */}
         <View
-          style={[styles.legend, stale && styles.dimmed]}
+          style={[styles.stats, stale && styles.dimmed]}
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants">
-          {hasReserve ? (
-            <View style={styles.legendItem}>
-              <View style={[styles.dot, { backgroundColor: color, opacity: 0.5 }]} />
-              <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Set aside</Text>
-            </View>
-          ) : null}
-          <View style={styles.legendItem}>
-            <View style={[styles.dot, { backgroundColor: color }]} />
-            <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Cushion</Text>
-          </View>
-          {hasPayoff ? (
-            <View style={styles.legendItem}>
-              <View style={[styles.dot, { backgroundColor: c.accent.primary }]} />
-              {/* 2.4.8 graduation — the deploy zone tops up savings, not debt, once debt-free. */}
-              <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{brief.debtFree ? 'To savings' : 'To debt'}</Text>
-            </View>
-          ) : null}
-          <View style={styles.legendItem}>
-            <View style={[styles.tick, { backgroundColor: c.text.primary }]} />
-            <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Your line</Text>
-          </View>
+          <Stat dot={color} amount={brief.cushion} label={hasReserve ? `Cushion · ${money(brief.heldReserve)} set aside` : 'Cushion'} />
+          {hasPayoff ? <Stat dot={c.accent.primary} amount={brief.deployedToDebt} label={brief.debtFree ? 'To savings' : 'To debt'} /> : null}
+          <Stat dot={c.text.primary} tick amount={brief.floor} label="Your line" />
         </View>
 
-        <Text style={[textStyles.subhead, styles.detail, { color: c.text.secondary }]}>{brief.detail}</Text>
+        {/* The Guardian's voice — one short line for the states where it carries weight; the calm
+            clear/tight reads are told by the title + the stats, so their paragraph is dropped. */}
+        {stale || brief.pausedDeploy || brief.state === 'at-risk' ? (
+          <Text style={[textStyles.subhead, styles.detail, { color: c.text.secondary }]}>{brief.detail}</Text>
+        ) : null}
 
         <View style={[styles.divider, { backgroundColor: c.border.subtle }]} />
 
@@ -151,6 +139,28 @@ export function PaydayGuardianCard({ brief, isPremium, onSeeForecast }: { brief:
   );
 }
 
+/** Exact whole-dollar — the stats match the plan's real figures (the hero shows them exact too); a
+ *  concrete amount the user acts on must be correct, not hedged to the nearest $5/$10. */
+function money(n: number): string {
+  return `$${Math.round(Math.max(0, Number.isFinite(n) ? n : 0)).toLocaleString('en-US')}`;
+}
+
+/** One figure from the cushion bar, made legible — a colored marker + the amount + its label. */
+function Stat({ dot, tick, amount, label }: { dot: string; tick?: boolean; amount: number; label: string }) {
+  const c = useAppColors();
+  return (
+    <View style={styles.stat}>
+      <View style={styles.statHead}>
+        <View style={[tick ? styles.tick : styles.dot, { backgroundColor: dot }]} />
+        <Text style={[textStyles.title3, styles.statAmount, { color: c.text.primary }]}>{money(amount)}</Text>
+      </View>
+      <Text style={[textStyles.caption, { color: c.text.tertiary }]} numberOfLines={1}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   eyebrow: { letterSpacing: 0.8, marginBottom: spacing.xs },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
@@ -159,8 +169,10 @@ const styles = StyleSheet.create({
   chipText: { fontWeight: '600' },
   dimmed: { opacity: 0.4 },
   barWrap: { marginTop: spacing.md, height: BAR_H, justifyContent: 'center' },
-  legend: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.sm },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  stats: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
+  stat: { flex: 1, gap: 2 },
+  statHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  statAmount: { fontWeight: '700', fontVariant: ['tabular-nums'] },
   dot: { width: 8, height: 8, borderRadius: 4 },
   tick: { width: 2, height: 10, borderRadius: 1 },
   detail: { marginTop: spacing.md },

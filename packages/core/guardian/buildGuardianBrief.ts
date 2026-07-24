@@ -106,9 +106,13 @@ function about(n: number): string {
   const display = v > 0 ? Math.max(step, rounded) : rounded;
   return `about $${display.toLocaleString("en-US")}`;
 }
-/** Bare hedged figure (no "about" prefix) for mid-sentence use. */
+/** Bare EXACT whole-dollar figure — a concrete amount the user acts on (a payment to mark, the cushion,
+ *  the spare) must be CORRECT, never hedged down to the nearest $5/$10 (a $96 payment must not read as
+ *  "$95"). Never "$0" for a nonzero. The projection softening lives in the WORDING ("about …", "based on
+ *  what you entered"), NOT in fuzzing the number — the hero shows these figures exact too. */
 function amt(n: number): string {
-  return about(n).replace("about $", "$");
+  const v = money(n);
+  return v > 0 ? `$${Math.max(1, Math.round(v)).toLocaleString("en-US")}` : "$0";
 }
 
 /**
