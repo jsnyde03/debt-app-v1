@@ -173,8 +173,8 @@ const styles = StyleSheet.create({
   stat: { flex: 1, gap: 2 },
   statHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   statAmount: { fontWeight: '700', fontVariant: ['tabular-nums'] },
-  dot: { width: 8, height: 8, borderRadius: 4 },
-  tick: { width: 2, height: 10, borderRadius: 1 },
+  dot: { width: 14, height: 6, borderRadius: 3 }, // a mini bar SEGMENT (matches the cushion/payoff zones)
+  tick: { width: 3, height: 12, borderRadius: 1.5 }, // a vertical LINE (matches the floor line in the bar)
   detail: { marginTop: spacing.md },
   divider: { height: StyleSheet.hairlineWidth, marginVertical: spacing.md },
   move: { fontWeight: '600' },
