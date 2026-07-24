@@ -74,6 +74,40 @@ export function selectRiskAcknowledgment(store: DebtStore): boolean {
   return selectPaydayGuardian(store)?.state === 'clear';
 }
 
+export interface TightTopUp {
+  gap: number;
+  available: number;
+  topUp: number;
+  goalId: string;
+  goalName: string;
+}
+
+/** The top-up already applied for the CURRENT cycle (cycle-keyed → a stale one self-corrects). */
+function appliedTopUp(store: DebtStore): number {
+  return store.cycleTopUp?.forCycle === store.paycheck.nextPaycheckDate ? Math.max(0, store.cycleTopUp.amount) : 0;
+}
+
+/**
+ * §2.10 tight-case one-tap (2.4.11.2) — when the cushion is under the floor but obligations are covered
+ * (tight), and the user has savings to tap, the smallest move that HOLDS the line: move `topUp` from
+ * `goalName` to checking. Premium only; `null` when not tight, already at/above the line (incl. after a
+ * top-up), or there's no savings balance to draw from (→ the honest "rebuilds next paycheck" state).
+ */
+export function selectTightTopUp(store: DebtStore): TightTopUp | null {
+  if (store.subscriptionPlan !== 'premium') return null;
+  const allocation = selectAllocation(store);
+  if (!allocation || allocation.shortfall > 0) return null;
+  const floor = store.cushionFloor ?? 200;
+  const cushion = selectDiscretionary(allocation) + appliedTopUp(store);
+  const gap = Math.round((floor - cushion) * 100) / 100;
+  if (gap <= 0) return null; // at or above the line already
+  const goal = store.goals.find((g) => (g.type === 'emergency' || g.type === 'savings') && g.currentAmount > 0);
+  if (!goal) return null;
+  const topUp = Math.round(Math.min(gap, goal.currentAmount) * 100) / 100;
+  if (topUp <= 0) return null;
+  return { gap, available: goal.currentAmount, topUp, goalId: goal.id, goalName: goal.name };
+}
+
 /** "Aug 5" — mirrors the cash-flow bars' label so the Guardian's lookahead reads consistently. */
 function shortDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -117,6 +151,10 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     ? (savingsItems[0] && store.goals.find((g) => g.id === savingsItems[0].goalId)?.name) || undefined
     : undefined;
 
+  // §2.10 tight-case top-up (2.4.11.2): cash the user moved from savings to hold the line THIS cycle
+  // lifts the effective cushion (it's really in checking now) — so the read reflects the held line.
+  const topUp = appliedTopUp(store);
+
   return buildGuardianBrief({
     isPremium: store.subscriptionPlan === 'premium',
     debtFree,
@@ -124,8 +162,9 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     floor: store.cushionFloor ?? 200,
     // Headroom after every obligation drives the band (a choice to deploy isn't a risk). The plan
     // reserves the floor for premium (effectivePaycheckBuffer), so `kept` = the protected cushion.
-    discretionary: selectDiscretionary(allocation),
-    kept: selectLiquidCushion(allocation),
+    discretionary: selectDiscretionary(allocation) + topUp,
+    kept: selectLiquidCushion(allocation) + topUp,
+    toppedUp: topUp > 0,
     heldReserve: selectHeldReserve(allocation),
     // The "deployed" figure: extra-to-debt while owing, spare-to-savings once debt-free (2.4.8).
     deployedToDebt: debtFree ? selectDeployedToSavings(allocation) : selectExtraToDebt(allocation),

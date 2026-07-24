@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { CushionBarCanvas } from '@/components/plan/CushionBarCanvas';
 import { CushionFloorSheet } from '@/components/plan/CushionFloorSheet';
 import { useAppColors } from '@/hooks/use-app-colors';
-import type { GuardianBrief, GuardianState } from '@/store/guardianSelectors';
+import type { GuardianBrief, GuardianState, TightTopUp } from '@/store/guardianSelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { groupLabel } from '@/utils/a11y';
@@ -20,7 +21,20 @@ const BAR_H = 14;
  * bar's one quiet fill, no count-up/haptic ([[match motion to surface job]]). Gating is value-led:
  * free sees the real read + the line it isn't held to, with an honest invitation — never a lock.
  */
-export function PaydayGuardianCard({ brief, isPremium, onSeeForecast }: { brief: GuardianBrief; isPremium: boolean; onSeeForecast?: () => void }) {
+export function PaydayGuardianCard({
+  brief,
+  isPremium,
+  onSeeForecast,
+  topUp,
+  onTopUp,
+}: {
+  brief: GuardianBrief;
+  isPremium: boolean;
+  onSeeForecast?: () => void;
+  /** §2.10 tight-case (2.4.11.2) — the "move $X from savings to hold your line" one-tap, when available. */
+  topUp?: TightTopUp | null;
+  onTopUp?: () => void;
+}) {
   const c = useAppColors();
   const [barW, setBarW] = useState(0);
   const [floorSheet, setFloorSheet] = useState(false);
@@ -109,6 +123,16 @@ export function PaydayGuardianCard({ brief, isPremium, onSeeForecast }: { brief:
           <>
             {brief.safeMove ? <Text style={[textStyles.subhead, styles.move, { color: c.text.primary }]}>{brief.safeMove}</Text> : null}
             {brief.lookahead ? <Text style={[textStyles.caption, styles.look, { color: c.text.tertiary }]}>{brief.lookahead}</Text> : null}
+            {/* §2.10 tight-case one-tap (2.4.11.2): a REAL move to hold the line — only when the user has
+                savings to tap (else the read stays the honest "rebuilds next paycheck"). */}
+            {topUp ? (
+              <View style={styles.topUp}>
+                <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+                  You have {money(topUp.available)} in {topUp.goalName} — moving {money(topUp.topUp)} over holds your line this paycheck.
+                </Text>
+                <Button label={`Move ${money(topUp.topUp)} from savings`} variant="secondary" onPress={() => onTopUp?.()} style={styles.topUpBtn} />
+              </View>
+            ) : null}
           </>
         ) : (
           <View style={styles.invite} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -179,6 +203,8 @@ const styles = StyleSheet.create({
   divider: { height: StyleSheet.hairlineWidth, marginVertical: spacing.md },
   move: { fontWeight: '600' },
   look: { marginTop: spacing.sm },
+  topUp: { marginTop: spacing.md, gap: spacing.sm },
+  topUpBtn: { alignSelf: 'stretch' },
   adjust: { marginTop: spacing.md, fontWeight: '600' },
   invite: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   inviteText: { flex: 1, fontWeight: '600' },

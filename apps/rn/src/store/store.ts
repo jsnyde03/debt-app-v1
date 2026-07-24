@@ -99,6 +99,9 @@ export interface DebtAppState {
   applyRiskNotified(cycleEndDate: string, level: GuardianBand, nowISO: string): void;
   /** §2.8 (2.4.10.2) — dismiss the reconcile-to-clear acknowledgment (clears the current-cycle notify-state). */
   acknowledgeRiskCleared(): void;
+  /** §2.10 tight-case (2.4.11.2) — hold this cycle's line by moving `amount` from a savings/EF goal to
+   *  checking: reduce the goal + record the top-up for the current cycle. */
+  applyTightTopUp(goalId: string, amount: number): void;
 
   // Import (shared by JSON import + iCloud restore + the Phase-D data bridge)
   importStore(store: DebtStore): void;
@@ -377,6 +380,24 @@ export function createDebtStore() {
       // §2.8 (2.4.10.2): the user saw the "looks clear after all" acknowledgment — clear the notify-state
       // so it doesn't re-show. The freq-cap (push-log) still guards against re-pushing this cycle.
       set((s) => ({ store: { ...s.store, currentCycleNotifyState: null } }));
+    },
+    applyTightTopUp(goalId, amount) {
+      // §2.10 (2.4.11.2): the user moved `amount` from savings to hold this cycle's line — draw it down
+      // from the goal + record the top-up (cycle-keyed). The plan refills the goal next cycle via the
+      // waterfall, so this self-corrects. `cycleTopUp` accumulates if they top up more than once.
+      set((s) => {
+        const forCycle = s.store.paycheck.nextPaycheckDate;
+        const prior = s.store.cycleTopUp?.forCycle === forCycle ? s.store.cycleTopUp.amount : 0;
+        return {
+          store: {
+            ...s.store,
+            goals: s.store.goals.map((g) =>
+              g.id === goalId ? { ...g, currentAmount: Math.max(0, Math.round((g.currentAmount - amount) * 100) / 100) } : g,
+            ),
+            cycleTopUp: { forCycle, amount: Math.round((prior + amount) * 100) / 100 },
+          },
+        };
+      });
     },
 
     importStore(store) {

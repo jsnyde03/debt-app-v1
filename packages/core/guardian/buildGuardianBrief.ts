@@ -89,6 +89,9 @@ export interface GuardianInput {
   /** §2.3.1 (2.4.7.7) — the scheduled paycheck for this cycle was reported missed ($0 arrival). Deploy
    *  pauses and the read is reframed honestly, never a phantom-income clear. */
   pausedDeploy?: boolean;
+  /** §2.10 tight-case (2.4.11.2) — the user held their line by moving cash from savings this cycle. The
+   *  boosted cushion reads as clear; the copy acknowledges the top-up instead of a plain "looks clear". */
+  toppedUp?: boolean;
 }
 
 /** A finite, non-negative number or 0 — the guard against `$NaN`/`$Infinity` ever reaching a screen. */
@@ -246,13 +249,30 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       {
         state,
         title: state === "at-risk" ? "Very tight this paycheck" : "A little tight this paycheck",
-        detail: `About ${amt(discretionary)} is left after everything required — under your ${amt(floor)} line, so I'm keeping all of it as cushion.`,
-        safeMove: `Nothing extra goes out this cycle. Extra ${deployNoun} resumes once you're back above your line.`,
+        // Calm + honest (2.4.11.2): lead with "you're covered" (obligations ARE met — this is a cushion
+        // dip, not a miss), and reassure that the line rebuilds — a tight cycle is a low-cushion cycle,
+        // not a failure. The tap-savings action (when a lever exists) is layered by the card selector.
+        detail: `You're covered this paycheck — ${amt(discretionary)} after everything required, ${
+          state === "at-risk" ? "under" : "a little under"
+        } your ${amt(floor)} line, so I'm holding all of it as your cushion.`,
+        safeMove: `Nothing extra goes out this cycle — your cushion rebuilds next paycheck.`,
         lookahead: look,
         ...viz,
       },
       hedge,
     );
+  }
+  // §2.10 tight-case top-up held the line (2.4.11.2): the cushion reads clear because the user moved
+  // savings over — acknowledge THAT, not a plain "looks clear" (the paycheck itself was tight).
+  if (input.toppedUp) {
+    return {
+      state,
+      title: "Your line's held",
+      detail: `You moved some savings over to hold your cushion right at your ${amt(floor)} line this paycheck — a tight one, but covered.`,
+      safeMove: "Nothing extra goes out this cycle, and your emergency fund tops back up as your cushion rebuilds.",
+      lookahead: look,
+      ...viz,
+    };
   }
   // Clear — floor held; deploy the spare (if any) to debt.
   if (deployedToDebt <= 0) {

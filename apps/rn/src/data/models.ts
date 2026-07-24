@@ -151,4 +151,9 @@ export interface DebtStore {
   /** §2.3.1 income-arrival axis: cycle-end dates where a paycheck was missed ($0 / "didn't get paid").
    *  A missed arrival pauses deploy and is EXCLUDED from lean-learning (it's a zero-arrival, not a low cycle). */
   missedArrivals: string[];
+  /** §2.10 tight-case top-up (2.4.11.2): when a tight cycle is held by moving cash from savings, the amount
+   *  moved + the cycle it's for. Cycle-KEYED (not just reset at rollover) so a stale top-up self-corrects:
+   *  `selectPaydayGuardian` only applies it when `forCycle` matches the current cycle. Optional +
+   *  fallback-to-none, so pre-2.4.11 stores parse unchanged (no migration needed). */
+  cycleTopUp?: { forCycle: string; amount: number };
 }

@@ -42,7 +42,8 @@ function runGuardianTests() {
   // ── Genuinely tight: headroom under the line ──
   const tight = buildGuardianBrief(input({ discretionary: 150, kept: 150, deployedToDebt: 0, floor: 200 }));
   assertEqual(tight.state, "tight", "headroom under the line → tight");
-  assertTrue(/keeping all of it as cushion/i.test(tight.detail), "tight premium keeps everything, deploys nothing");
+  assertTrue(/holding all of it as your cushion/i.test(tight.detail), "tight premium keeps everything, deploys nothing");
+  assertTrue(/covered this paycheck/i.test(tight.detail) && /rebuilds next paycheck/i.test(tight.safeMove ?? ""), "tight reads CALM — 'covered' + 'rebuilds next paycheck' (2.4.11.2)");
 
   // ── Acute shortfall → at-risk, extra paused (obligations never cut) ──
   const short = buildGuardianBrief(input({ shortfall: 180, discretionary: 0 }));
@@ -153,7 +154,12 @@ function runGuardianTests() {
   assertTrue(/contributions/.test(gradSpread.safeMove ?? ""), "debt-free spread → 'contributions' (plural)");
 
   const gradTight = buildGuardianBrief(input({ debtFree: true, discretionary: 150, kept: 150, deployedToDebt: 0, floor: 200 }));
-  assertTrue(/Extra savings resumes/.test(gradTight.safeMove ?? "") && !/payoff/.test(gradTight.safeMove ?? ""), "debt-free tight → 'Extra savings resumes', not 'payoff'");
+  assertTrue(/rebuilds next paycheck/.test(gradTight.safeMove ?? "") && !/payoff/.test(gradTight.safeMove ?? ""), "debt-free tight → calm 'rebuilds next paycheck', never 'payoff'");
+
+  // ── §2.10 tight-case top-up (2.4.11.2): moving savings over holds the line → the 'held' acknowledgment ──
+  const held = buildGuardianBrief(input({ toppedUp: true, discretionary: 200, kept: 200, deployedToDebt: 0, floor: 200 }));
+  assertTrue(/line's held/i.test(held.title), "topped-up → 'Your line's held', not a plain 'looks clear'");
+  assertTrue(/moved some savings/i.test(held.detail), "…acknowledges the savings move");
 
   const gradHold = buildGuardianBrief(input({ debtFree: true, discretionary: 205, kept: 205, deployedToDebt: 0, floor: 200 }));
   assertTrue(/free up more for your goals/.test(gradHold.safeMove ?? "") && !/for debt/.test(gradHold.safeMove ?? ""), "debt-free clear-no-deploy → 'free up more for your goals'");
