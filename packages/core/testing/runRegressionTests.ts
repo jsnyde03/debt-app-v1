@@ -3,6 +3,7 @@ import "../debt/testDebtProjection";
 import "./testPlannerStateHardening";
 import "./testStressScenarios";
 import "./testAbuseScenarios";
+import "./testEngineFuzz";
 import "./testAprMath";
 import "@core/payCycle/testPayCycle";
 import "@core/payCycle/testPayCyclesPerMonth";

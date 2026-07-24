@@ -187,6 +187,21 @@ function run() {
     eq(s.getState().store.windfall, 250, 'positive windfall → kept');
   }
 
+  // ── verifyDebtBalance(s): the money-critical re-anchor — clamp + round + date stamp (RS.4 fold-in) ──
+  {
+    const s = inst();
+    s.getState().verifyDebtBalance('d0', -300, '2026-08-01');
+    eq(s.getState().store.debts[0].balance, 0, 'verifyDebtBalance → negative clamped to 0');
+    eq(s.getState().store.debts[0].lastVerifiedDate, '2026-08-01', '…stamps the confirmation date');
+    eq(s.getState().store.debts[0].balanceAsOfDate, '2026-08-01', '…and the projection anchor date');
+    s.getState().verifyDebtBalance('d0', 1234.567, '2026-08-01');
+    eq(s.getState().store.debts[0].balance, 1234.57, '…fractional cents rounded to 2dp');
+    // batch path clamps per-entry; an unknown id is a no-op (no crash)
+    s.getState().verifyDebtBalances([{ id: 'd0', balance: -9 }, { id: 'ghost', balance: 500 }], '2026-08-02');
+    eq(s.getState().store.debts[0].balance, 0, 'verifyDebtBalances → per-entry clamp');
+    eq(s.getState().store.debts.length, 1, '…unknown id ignored (no phantom debt)');
+  }
+
   // ── reset ──
   {
     const s = inst({ debts: plan().debts });

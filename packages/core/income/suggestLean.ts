@@ -51,7 +51,9 @@ export interface LeanSuggestion {
 export function suggestLean(actuals: number[], typical: number, currentLean: number): LeanSuggestion {
 	const clean = actuals.filter((a) => Number.isFinite(a) && a > 0);
 	const n = clean.length;
-	if (n === 0) return { suggestedLean: roundMoney(currentLean), n: 0 };
+	// Nothing to learn → echo the current lean, but never leak a non-finite value back out (parity with
+	// the `typical` guard below; a bad persisted lean can't poison the suggestion).
+	if (n === 0) return { suggestedLean: roundMoney(Number.isFinite(currentLean) ? currentLean : 0), n: 0 };
 
 	const sorted = [...clean].sort((a, b) => a - b);
 	const typicalAnchor = Number.isFinite(typical) && typical > 0 ? typical : sorted[sorted.length - 1];

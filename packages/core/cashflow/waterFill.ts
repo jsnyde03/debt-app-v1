@@ -62,7 +62,10 @@ export function waterFill(carriedBalances: number[], floor: number): WaterFillRe
 	const suffixMinCap = new Array<number>(n).fill(0);
 	let running = Infinity;
 	for (let k = n - 1; k >= 0; k--) {
-		running = Math.min(running, carriedBalances[k] - f);
+		// Guard non-finite balances (parity with detectCrunches): a NaN/Infinity cycle imposes no
+		// constraint rather than poisoning `running` (Math.min(x, NaN) → NaN cascades to every reserve).
+		const headroom = carriedBalances[k] - f;
+		if (Number.isFinite(headroom)) running = Math.min(running, headroom);
 		suffixMinCap[k] = Math.max(0, running);
 	}
 
