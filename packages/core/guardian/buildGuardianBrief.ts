@@ -96,16 +96,6 @@ function money(n: number): number {
   return Number.isFinite(n) ? Math.max(0, n) : 0;
 }
 
-/** Hedge a dollar amount so a projection never reads as false precision (and never NaN). A NONZERO
- *  amount never rounds down to "$0" (2.4.6.1.4 — the Guardian must not claim it's sending nothing when
- *  it's sending a few dollars); it floors to the smallest hedge unit instead. */
-function about(n: number): string {
-  const v = money(n);
-  const step = v < 100 ? 5 : 10;
-  const rounded = Math.round(v / step) * step;
-  const display = v > 0 ? Math.max(step, rounded) : rounded;
-  return `about $${display.toLocaleString("en-US")}`;
-}
 /** Bare EXACT whole-dollar figure — a concrete amount the user acts on (a payment to mark, the cushion,
  *  the spare) must be CORRECT, never hedged down to the nearest $5/$10 (a $96 payment must not read as
  *  "$95"). Never "$0" for a nonzero. The projection softening lives in the WORDING ("about …", "based on
@@ -165,7 +155,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
 
   const look =
     lookahead && lookahead.status !== "stable"
-      ? `Heads up: ${lookahead.label} looks ${lookahead.status === "pressure" ? "tight" : "a little tight"} — ${about(lookahead.cushion)} of cushion. Worth planning for now.`
+      ? `Heads up: ${lookahead.label} looks ${lookahead.status === "pressure" ? "tight" : "a little tight"} — ${amt(lookahead.cushion)} of cushion. Worth planning for now.`
       : undefined;
 
   const viz = { cushion: kept, deployedToDebt, heldReserve, floor, reachedFloor, debtFree };
@@ -229,7 +219,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       {
         state,
         title: state === "clear" ? "Looks clear this paycheck" : state === "tight" ? "A little tight this paycheck" : "Tight this paycheck",
-        detail: `You've got ${about(discretionary)} after everything required this paycheck${state === "clear" ? "." : " — a bit tight this one, so keep an eye on the essentials."}`,
+        detail: `You've got ${amt(discretionary)} after everything required this paycheck${state === "clear" ? "." : " — a bit tight this one, so keep an eye on the essentials."}`,
         lookahead: undefined, // watching ahead is part of the premium value
         ...viz,
       },
