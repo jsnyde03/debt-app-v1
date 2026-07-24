@@ -11,7 +11,9 @@
     "lint:webkit": "tsx scripts/check-webkit-flex-controls.ts",
     "test:e2e": "playwright test",
     "e2e:fresh": "node scripts/e2e-fresh.cjs",
-    "validate:release": "npm run lint && npm run test:regression && npm run test:e2e",
+    "test:app": "npm --prefix apps/rn run test:app",
+    "test:all": "npm run test:regression && npm run test:app",
+    "validate:release": "npm run lint && npm run test:regression && npm run test:app && npm run test:e2e",
     "test:regression": "tsx packages/core/testing/runRegressionTests"
   },
   "dependencies": {

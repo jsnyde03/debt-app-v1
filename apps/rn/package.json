@@ -11,7 +11,8 @@
     "start": "expo start",
     "web": "expo start --web",
     "export:web": "expo export --platform web",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:app": "tsx src/testing/runAppTests.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
