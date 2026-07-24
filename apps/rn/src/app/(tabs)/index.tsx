@@ -25,7 +25,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
-import { selectBillsAttestation, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp } from '@/store/guardianSelectors';
+import { selectBillsAttestation, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
 import { selectLeanSuggestion } from '@/store/incomeLearning';
 import {
   selectPlanState,
@@ -72,6 +72,11 @@ export default function TodayScreen() {
   // 2.4.11.4c — the "bills complete" attestation affordance + the surprise-outflow walk-back notice.
   const attestation = selectBillsAttestation(engineStore);
   const reserveWalkback = selectReserveWalkback(engineStore);
+  // 2.5.4 — a trial obligation whose intro period just ended: confirm "keep it (now $X)" or "cancelled it"
+  // so a cancelled trial can't project a phantom bill. Ephemeral dismiss (re-surfaces next open until resolved).
+  const [dismissedTrials, setDismissedTrials] = useState<string[]>([]);
+  const trialConvRaw = selectTrialConversion(engineStore);
+  const trialConversion = trialConvRaw && !dismissedTrials.includes(trialConvRaw.id) ? trialConvRaw : null;
   // 2.4.11.2 — the tight-case "move $X from savings to hold your line" one-tap (null unless tight + savings).
   const tightTopUp = selectTightTopUp(engineStore);
   // 2.4.7.8 — the income-learning nudge (premium + variable income, material change only), off the raw store.
@@ -218,6 +223,26 @@ export default function TodayScreen() {
         </Card>
       ) : null}
 
+      {trialConversion ? (
+        <Card tone="accent" style={styles.ack}>
+          <View style={styles.ackRow}>
+            <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
+            <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>
+              Your {trialConversion.name} trial has ended — it&apos;s now ${trialConversion.fullAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {trialConversion.cadence}. Keeping it?
+            </Text>
+          </View>
+          <View style={styles.ackActions}>
+            <Button
+              label="Keep it"
+              onPress={() => appStore.getState().updateExpense(trialConversion.id, { amount: trialConversion.fullAmount, isTrial: false, fullAmount: undefined, fullChargeDate: undefined })}
+            />
+            <Button label="I cancelled it" variant="text" onPress={() => appStore.getState().removeExpense(trialConversion.id)} />
+          </View>
+          <Button label="Not now" variant="text" onPress={() => setDismissedTrials((d) => [...d, trialConversion.id])} />
+        </Card>
+      ) : null}
+
       {payday.isAwaitingRollover ? (
         <Card tone="accent" style={styles.nudge}>
           <Text style={[textStyles.subhead, { color: c.text.primary }]}>
@@ -304,4 +329,5 @@ const styles = StyleSheet.create({
   ack: { gap: spacing.xs },
   ackRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   ackText: { flex: 1, fontWeight: '600' },
+  ackActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 });

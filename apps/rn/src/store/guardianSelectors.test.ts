@@ -1,6 +1,6 @@
 import { createDefaultStore } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
-import { selectCalibrationScore, selectPaydayGuardian, selectRiskNotification, selectTightTopUp } from '@/store/guardianSelectors';
+import { selectCalibrationScore, selectPaydayGuardian, selectRiskNotification, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
 
 /**
  * RS.2 — comprehensive break-it coverage for the Guardian SELECTORS (the newest, least-covered
@@ -119,6 +119,24 @@ function run() {
   eq(cal.proven, false, 'no history → not proven (day-one state)');
   eq(cal.matchRate, null, 'no history → matchRate null (no hollow number)');
   eq(cal.n, 0, 'no gradeable cycles → n 0');
+
+  // ── selectTrialConversion (2.5.4) — a converted trial surfaces the keep/cancel prompt; tier-agnostic ──
+  {
+    const today = createDefaultStore().paycheck.currentDate;
+    const withTrial = (over: Record<string, unknown>): DebtStore => ({
+      ...store(),
+      requiredExpenses: [{ id: 't0', name: 'Netflix', amount: 0, dueDate: today, recurrence: 'monthly', isTrial: true, fullAmount: 15.99, fullChargeDate: '2020-01-01', ...over }],
+    });
+    eq(selectTrialConversion(withTrial({}))?.name, 'Netflix', 'converted trial (past kick-in) → surfaces');
+    eq(selectTrialConversion(withTrial({}))?.fullAmount, 15.99, '→ carries the full price');
+    eq(selectTrialConversion(withTrial({}))?.cadence, '/mo', '→ monthly cadence label');
+    eq(selectTrialConversion(withTrial({ fullChargeDate: '2999-01-01' })), null, 'not-yet-converted (future kick-in) → null');
+    eq(selectTrialConversion(withTrial({ isTrial: false })), null, 'not flagged a trial → null');
+    eq(selectTrialConversion(withTrial({ fullAmount: undefined })), null, 'no full price → null (no phantom prompt)');
+    eq(selectTrialConversion(withTrial({ fullAmount: Number.NaN })), null, 'non-finite full price → null');
+    eq(selectTrialConversion(store()), null, 'no trials → null');
+    eq(selectTrialConversion({ ...withTrial({}), subscriptionPlan: 'free' })?.name, 'Netflix', 'free tier also gets the prompt (accuracy for all)');
+  }
 
   console.log(`✅ Guardian selector (RS.2) tests passed (${passed} asserts).`);
 }

@@ -35,4 +35,14 @@ test.describe('§2.5 trials — the resolver reprices the Guardian on the real a
     await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
     await expect(page.getByText('Looks clear this paycheck')).toBeVisible();
   });
+
+  test('2.5.4 — a converted trial surfaces the keep/cancel card; Keep it resolves it', async ({ page }) => {
+    // A realistic converted trial (past kick-in) — stays clear, but the card should prompt.
+    const netflix = { id: 'nf', name: 'Netflix', amount: 0, dueDate: '2026-07-10', recurrence: 'monthly' as const, isTrial: true, fullAmount: 15.99, fullChargeDate: '2020-01-01' };
+    await seedStore(page, scenario({ requiredExpenses: [netflix] }));
+    await page.goto('/');
+    await expect(page.getByText(/Your Netflix trial has ended/)).toBeVisible();
+    await page.getByRole('button', { name: 'Keep it' }).click();
+    await expect(page.getByText(/Your Netflix trial has ended/)).toHaveCount(0); // resolved → card gone
+  });
 });

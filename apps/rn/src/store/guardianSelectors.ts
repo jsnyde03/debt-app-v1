@@ -112,6 +112,43 @@ export function selectReserveWalkback(store: DebtStore): boolean {
   return store.subscriptionPlan === 'premium' && store.pendingReserveWalkback === true;
 }
 
+export interface TrialConversion {
+  id: string;
+  name: string;
+  fullAmount: number;
+  /** Short cadence suffix for "$X{/mo}". */
+  cadence: string;
+}
+
+/** §2.5 (2.5.4) short cadence label for the trial-conversion card ("$15.99/mo"). */
+function cadenceLabel(recurrence: string): string {
+  switch (recurrence) {
+    case 'weekly': return '/wk';
+    case 'biweekly': return '/2wks';
+    case 'per-paycheck': return '/paycheck';
+    case 'quarterly': return '/qtr';
+    case 'annually': return '/yr';
+    case 'monthly': return '/mo';
+    default: return '';
+  }
+}
+
+/**
+ * §2.5 trial conversion (2.5.4) — the first trial obligation whose intro period has ENDED (its
+ * `fullChargeDate` has arrived), still flagged `isTrial`. Once a trial converts, the resolver bills the
+ * full price forever — correct if the user KEPT it, wrong (a phantom bill) if they CANCELLED. This drives
+ * the Today "keep it or cancel it?" card that resolves the ambiguity, so it's NOT premium-gated: a
+ * cancelled trial would otherwise pollute the free forecast too. Returns null when nothing has converted.
+ */
+export function selectTrialConversion(store: DebtStore): TrialConversion | null {
+  const today = store.paycheck.currentDate;
+  const conv = store.requiredExpenses.find(
+    (e) => e.isTrial && e.fullAmount != null && Number.isFinite(e.fullAmount) && !!e.fullChargeDate && e.fullChargeDate <= today,
+  );
+  if (!conv || conv.fullAmount == null) return null;
+  return { id: conv.id, name: conv.name, fullAmount: conv.fullAmount, cadence: cadenceLabel(conv.recurrence) };
+}
+
 export interface TightTopUp {
   gap: number;
   available: number;
