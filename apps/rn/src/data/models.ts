@@ -159,4 +159,13 @@ export interface DebtStore {
    *  `selectPaydayGuardian` only applies it when `forCycle` matches the current cycle. Optional +
    *  fallback-to-none, so pre-2.4.11 stores parse unchanged (no migration needed). */
   cycleTopUp?: { forCycle: string; amount: number };
+  /** §2.0.c settling-in reserve (2.4.11.4b) — the reserve-held state (`deriveConfidenceContext.provisional`)
+   *  as of the last rollover, so the next rollover can detect the held → free transition (mirrors
+   *  `priorGuardianBand`). Undefined on old/new stores → the pre-rollover value is computed as the fallback. */
+  priorReserveHeld?: boolean;
+  /** §2.0.c settling-in reserve RELEASE (2.4.11.4b): set at the rollover where the reserve transitions
+   *  held → free; a one-time insurance-framed acknowledgment. `tapped` = a surprise outflow drew on it
+   *  during the hold window (`covered` = the sum). Cleared when the user dismisses the card. Optional +
+   *  fallback-to-none, so older stores parse unchanged. */
+  pendingReserveRelease?: { tapped: boolean; covered: number } | null;
 }

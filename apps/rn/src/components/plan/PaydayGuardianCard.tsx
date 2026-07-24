@@ -138,7 +138,7 @@ export function PaydayGuardianCard({
           importantForAccessibility="no-hide-descendants">
           {/* Order matches the bar's fixed left→right shading: Set aside (tinted, far-left) → Cushion →
               To debt. The "set aside" reserve is only present for a settling-in (cold-start) user. */}
-          {hasReserve ? <Stat swatch={color} dim amount={brief.heldReserve} label="Set aside" /> : null}
+          {hasReserve ? <Stat swatch={color} dim amount={brief.heldReserve} label="Safety net" /> : null}
           <Stat swatch={color} amount={brief.cushion} label="Cushion" />
           {hasPayoff ? <Stat swatch={c.accent.primary} amount={brief.deployedToDebt} label={brief.debtFree ? 'To savings' : 'To debt'} /> : null}
         </View>

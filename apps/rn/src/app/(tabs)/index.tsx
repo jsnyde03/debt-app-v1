@@ -25,7 +25,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
-import { selectPaydayGuardian, selectRiskAcknowledgment, selectTightTopUp } from '@/store/guardianSelectors';
+import { selectPaydayGuardian, selectReserveRelease, selectRiskAcknowledgment, selectTightTopUp } from '@/store/guardianSelectors';
 import { selectLeanSuggestion } from '@/store/incomeLearning';
 import {
   selectPlanState,
@@ -67,6 +67,8 @@ export default function TodayScreen() {
   const guardian = selectPaydayGuardian(engineStore);
   // 2.4.10.2 — a risk heads-up went out for this cycle but the read reconciled to clear → acknowledge it.
   const riskCleared = selectRiskAcknowledgment(engineStore);
+  // 2.4.11.4b — the safety net just freed (held → free): a one-time insurance-framed ack.
+  const reserveRelease = selectReserveRelease(engineStore);
   // 2.4.11.2 — the tight-case "move $X from savings to hold your line" one-tap (null unless tight + savings).
   const tightTopUp = selectTightTopUp(engineStore);
   // 2.4.7.8 — the income-learning nudge (premium + variable income, material change only), off the raw store.
@@ -182,6 +184,20 @@ export default function TodayScreen() {
             <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>Good news — this paycheck looks clear after all.</Text>
           </View>
           <Button label="Got it" variant="text" onPress={() => appStore.getState().acknowledgeRiskCleared()} />
+        </Card>
+      ) : null}
+
+      {reserveRelease ? (
+        <Card tone="accent" style={styles.ack}>
+          <View style={styles.ackRow}>
+            <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
+            <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>
+              {reserveRelease.tapped
+                ? `Your safety net did its job — it covered a $${Math.round(reserveRelease.covered).toLocaleString('en-US')} surprise while I got to know your bills. It's now going to work on ${reserveRelease.targetName}.`
+                : `Your safety net is free — you didn't need it, and it's now going to work on ${reserveRelease.targetName}.`}
+            </Text>
+          </View>
+          <Button label="Got it" variant="text" onPress={() => appStore.getState().acknowledgeReserveRelease()} />
         </Card>
       ) : null}
 

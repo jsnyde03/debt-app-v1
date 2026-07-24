@@ -10,6 +10,7 @@ import { rolloverDebts, rolloverRequiredExpenses } from '@core/recurrence/rollov
 
 import type { CompletedRecommendedAction, DebtStore, SurpriseOutflow } from '@/data/models';
 
+import { deriveConfidenceContext } from './guardianPredictionCore';
 import { reconcileClosingCycle, stampCyclePrediction } from './guardianPrediction';
 import { selectAllocation } from './selectors';
 import { incrementGenuineCycle, recordCycleIncome, recordSurpriseOutflow } from './substrateProducers';
@@ -144,5 +145,24 @@ export function applyRollover(store: DebtStore): DebtStore {
     priorGuardianBand: store.currentCyclePrediction?.predictedState ?? store.priorGuardianBand,
     paycheck: { ...store.paycheck, currentDate: nextPaycheckDate, nextPaycheckDate: followingPaycheckDate },
   };
-  return stampCyclePrediction(incrementGenuineCycle(rolled));
+  // §2.0.c settling-in reserve release (2.4.11.4b): the reserve just freed if it was held as of the last
+  // rollover but isn't after this one (the discovery-cycle gate crossed, or the lean got confirmed at the
+  // preceding capture). Fire a one-time insurance ack, branched on whether a surprise drew on it while held.
+  const incremented = incrementGenuineCycle(rolled);
+  const wasHeld = store.priorReserveHeld ?? deriveConfidenceContext(store).provisional;
+  const nowHeld = deriveConfidenceContext(incremented).provisional;
+  const released = wasHeld && !nowHeld && !incremented.pendingReserveRelease;
+  const withReserve: DebtStore = {
+    ...incremented,
+    priorReserveHeld: nowHeld,
+    ...(released ? { pendingReserveRelease: computeReserveRelease(store) } : {}),
+  };
+  return stampCyclePrediction(withReserve);
+}
+
+/** The settling-in reserve's release ack (2.4.11.4b): `tapped` = a surprise outflow drew on the reserve
+ *  during the hold window; `covered` = the sum of those surprises. */
+function computeReserveRelease(store: DebtStore): { tapped: boolean; covered: number } {
+  const covered = Math.round((store.surpriseOutflowLog ?? []).reduce((s, o) => s + Math.max(0, o.amount), 0) * 100) / 100;
+  return { tapped: covered > 0, covered };
 }

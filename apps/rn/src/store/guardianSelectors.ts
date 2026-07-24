@@ -74,6 +74,28 @@ export function selectRiskAcknowledgment(store: DebtStore): boolean {
   return selectPaydayGuardian(store)?.state === 'clear';
 }
 
+export interface ReserveRelease {
+  tapped: boolean;
+  covered: number;
+  /** Where the freed reserve now goes to work — the focus debt, or "your savings" once debt-free. */
+  targetName: string;
+}
+
+/**
+ * §2.0.c settling-in reserve release (2.4.11.4b) — the one-time insurance-framed acknowledgment shown
+ * when the settling-in reserve has just freed (the held → free transition is detected + stamped at
+ * rollover). Premium only; `null` until a release is pending, and after the user dismisses it.
+ */
+export function selectReserveRelease(store: DebtStore): ReserveRelease | null {
+  if (store.subscriptionPlan !== 'premium') return null;
+  const pending = store.pendingReserveRelease;
+  if (!pending) return null;
+  const liveDebts = store.debts.filter((d) => d.balance > 0);
+  const focus = liveDebts.length > 0 ? rankDebts(liveDebts, store.payoffStrategy)[0]?.name : undefined;
+  const targetName = liveDebts.length === 0 ? 'your savings' : focus ? `your ${focus}` : 'your debt';
+  return { tapped: pending.tapped, covered: pending.covered, targetName };
+}
+
 export interface TightTopUp {
   gap: number;
   available: number;

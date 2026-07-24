@@ -1,6 +1,7 @@
-import { applyCapture } from '@/store/payday';
+import { applyCapture, applyRollover } from '@/store/payday';
 
 import { createDefaultStore } from '@/data/defaults';
+import { selectReserveRelease } from '@/store/guardianSelectors';
 import { runMigrations } from '@/data/migrations';
 import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
 import { createDebtStore } from '@/store/store';
@@ -200,6 +201,32 @@ function run() {
     s.getState().verifyDebtBalances([{ id: 'd0', balance: -9 }, { id: 'ghost', balance: 500 }], '2026-08-02');
     eq(s.getState().store.debts[0].balance, 0, 'verifyDebtBalances → per-entry clamp');
     eq(s.getState().store.debts.length, 1, '…unknown id ignored (no phantom debt)');
+  }
+
+  // ── 2.4.11.4b — safety-net (settling-in reserve) RELEASE at rollover ──
+  {
+    // A near-established premium user (genuineCycleCount 2 < the discovery gate of 3 → reserve held);
+    // one rollover crosses the gate → the held→free release fires.
+    const released = applyRollover(plan({ genuineCycleCount: 2, priorReserveHeld: true }));
+    assert(released.pendingReserveRelease != null, 'reserve held→free at rollover → a release is pending');
+    eq(released.pendingReserveRelease?.tapped, false, '…no surprise outflow → not tapped');
+    assert(selectReserveRelease(released) !== null, 'selectReserveRelease surfaces it (premium)');
+    eq(selectReserveRelease({ ...released, subscriptionPlan: 'free' }), null, 'free tier → no release ack');
+
+    // acknowledge clears it (one-time moment)
+    const s = createDebtStore();
+    s.setState({ store: released });
+    s.getState().acknowledgeReserveRelease();
+    eq(s.getState().store.pendingReserveRelease, null, 'acknowledgeReserveRelease → clears it');
+
+    // a surprise outflow during the hold window → tapped, covered = the sum
+    const tapped = applyRollover(plan({ genuineCycleCount: 2, priorReserveHeld: true, surpriseOutflowLog: [{ cycleEndDate: '2026-07-01', amount: 120 } as DebtStore['surpriseOutflowLog'][number]] }));
+    eq(tapped.pendingReserveRelease?.tapped, true, 'a surprise during the hold → tapped');
+    eq(tapped.pendingReserveRelease?.covered, 120, '…covered = the surprise sum');
+
+    // an established user (reserve never held) → no false release on rollover
+    const established = applyRollover(plan({ genuineCycleCount: 6, priorReserveHeld: false }));
+    eq(established.pendingReserveRelease ?? null, null, 'established (no reserve) → no false release');
   }
 
   // ── reset ──

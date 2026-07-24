@@ -126,7 +126,7 @@ function pickHedge(isPremium: boolean, c?: GuardianConfidence): string | null {
   if (c.freshness === "aging") return "These figures are from a little while ago — a quick refresh keeps this exact.";
   if (!isPremium) return null;
   if (c.coldStartHoldbackActive) return "I'm planning from the low side while I learn what your paychecks reliably clear.";
-  if (c.discoveryHoldbackActive) return "I'm keeping a little extra set aside while I get to know your bills.";
+  if (c.discoveryHoldbackActive) return "I'm holding a small safety net while I get to know your bills.";
   return null;
 }
 
