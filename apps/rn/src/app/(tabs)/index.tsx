@@ -7,6 +7,7 @@ import { maybeRequestReview } from '@/lib/review';
 import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
+import { LeanSuggestionCard } from '@/components/plan/LeanSuggestionCard';
 import { PaydayGuardianCard } from '@/components/plan/PaydayGuardianCard';
 import { PlanHero } from '@/components/plan/PlanHero';
 import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
@@ -22,6 +23,7 @@ import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
 import { selectPaydayGuardian } from '@/store/guardianSelectors';
+import { selectLeanSuggestion } from '@/store/incomeLearning';
 import {
   selectPlanState,
   selectPlanSummary,
@@ -60,6 +62,8 @@ export default function TodayScreen() {
   const summary = allocation ? selectPlanSummary(engineStore, allocation, requiredRows) : null;
   // 2.4 — the Payday Cushion Guardian for this paycheck (off the projected cushion for premium).
   const guardian = selectPaydayGuardian(engineStore);
+  // 2.4.7.8 — the income-learning nudge (premium + variable income, material change only), off the raw store.
+  const leanNudge = selectLeanSuggestion(store);
 
   // Payday Autopilot — detection + the capture sheet's open state. Called unconditionally (hooks rule).
   const payday = usePaydayCapture(recommended.length > 0);
@@ -111,6 +115,11 @@ export default function TodayScreen() {
         {guardian ? (
           <Motion delay={45}>
             <PaydayGuardianCard brief={guardian} isPremium={isPremium} />
+          </Motion>
+        ) : null}
+        {leanNudge ? (
+          <Motion delay={68}>
+            <LeanSuggestionCard nudge={leanNudge} />
           </Motion>
         ) : null}
         <Motion delay={90}>

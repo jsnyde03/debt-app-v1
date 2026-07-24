@@ -145,6 +145,9 @@ export interface DebtStore {
   pushLog: string[];
   /** §2.2 the prior Guardian band, persisted + reloaded across rollover, for hysteresis. Null = no prior. */
   priorGuardianBand: GuardianBand | null;
+  /** §2.3 income learning (2.4.7.8): the last lean suggestion the user dismissed, so we don't re-nudge it
+   *  until the suggestion moves materially. Undefined = never dismissed. */
+  dismissedLeanSuggestion?: number;
   /** §2.3.1 income-arrival axis: cycle-end dates where a paycheck was missed ($0 / "didn't get paid").
    *  A missed arrival pauses deploy and is EXCLUDED from lean-learning (it's a zero-arrival, not a low cycle). */
   missedArrivals: string[];

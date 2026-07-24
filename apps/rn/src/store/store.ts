@@ -90,6 +90,9 @@ export interface DebtAppState {
   /** §2.3.1 (2.4.7.7) — report / un-report that THIS cycle's paycheck didn't arrive (paused-deploy). */
   declareMissedPaycheck(): void;
   undoMissedPaycheck(): void;
+  /** §2.3 (2.4.7.8) — apply / dismiss a learned income-floor (lean) suggestion. */
+  applyLeanSuggestion(lean: number): void;
+  dismissLeanSuggestion(value: number): void;
 
   // Import (shared by JSON import + iCloud restore + the Phase-D data bridge)
   importStore(store: DebtStore): void;
@@ -335,6 +338,22 @@ export function createDebtStore() {
       set((s) => ({
         store: { ...s.store, missedArrivals: s.store.missedArrivals.filter((d) => d !== s.store.paycheck.nextPaycheckDate) },
       }));
+    },
+    applyLeanSuggestion(lean) {
+      // §2.3 (2.4.7.8): refine the lean from confirmed actuals. Route through the `'learning'` drift
+      // source (a no-op passthrough) so this MEASUREMENT change does NOT re-anchor the drift baseline —
+      // "days ahead/behind" must not reset just because the app learned the income floor (2.4.D.5).
+      set((s) => ({
+        store: stampInputsFresh(
+          recordDriftBaseline(
+            { ...s.store, paycheck: { ...s.store.paycheck, leanAmount: lean }, dismissedLeanSuggestion: undefined },
+            'learning',
+          ),
+        ),
+      }));
+    },
+    dismissLeanSuggestion(value) {
+      set((s) => ({ store: { ...s.store, dismissedLeanSuggestion: value } }));
     },
 
     importStore(store) {
