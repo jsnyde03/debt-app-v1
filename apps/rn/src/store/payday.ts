@@ -12,6 +12,7 @@ import type { CompletedRecommendedAction, DebtStore, SurpriseOutflow } from '@/d
 
 import { deriveConfidenceContext } from './guardianPredictionCore';
 import { reconcileClosingCycle, stampCyclePrediction } from './guardianPrediction';
+import { selectHeldReserve } from './planSelectors';
 import { selectAllocation } from './selectors';
 import { incrementGenuineCycle, recordCycleIncome, recordSurpriseOutflow } from './substrateProducers';
 
@@ -161,8 +162,21 @@ export function applyRollover(store: DebtStore): DebtStore {
 }
 
 /** The settling-in reserve's release ack (2.4.11.4b): `tapped` = a surprise outflow drew on the reserve
- *  during the hold window; `covered` = the sum of those surprises. */
+ *  during the hold window; `covered` = the sum of those surprises, capped at the reserve that was held.
+ *  MF.5 (audit #6): the old version summed the ENTIRE surprise log uncapped and set `tapped` on any
+ *  surprise — so it could claim the safety net "covered a $300 surprise" over a $50 held reserve, and
+ *  credit it for surprises the ordinary cushion absorbed. Now: scope to surprises logged since onboarding,
+ *  and credit the reserve only up to what it actually held (0 held → nothing "covered" → the neutral branch). */
 function computeReserveRelease(store: DebtStore): { tapped: boolean; covered: number } {
-  const covered = Math.round((store.surpriseOutflowLog ?? []).reduce((s, o) => s + Math.max(0, o.amount), 0) * 100) / 100;
+  const round = (n: number) => Math.round(n * 100) / 100;
+  const alloc = selectAllocation(store);
+  const heldReserve = alloc ? round(selectHeldReserve(alloc)) : 0;
+  const since = store.onboardedAt ?? '';
+  const surpriseSum = round(
+    (store.surpriseOutflowLog ?? [])
+      .filter((o) => o.cycleEndDate >= since)
+      .reduce((s, o) => s + Math.max(0, o.amount), 0),
+  );
+  const covered = round(Math.min(surpriseSum, heldReserve));
   return { tapped: covered > 0, covered };
 }
