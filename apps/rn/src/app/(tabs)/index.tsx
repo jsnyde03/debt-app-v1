@@ -159,7 +159,7 @@ export default function TodayScreen() {
               onAttestBills={(v) => appStore.getState().setBillsAttested(v)}
               recovery={recovery}
               onDefer={(id) => appStore.getState().deferExpense(id)}
-              onKeepEssential={(id) => appStore.getState().updateExpense(id, { deferability: 'essential' })}
+              onKeepEssential={(id) => appStore.getState().setDeferability(id, 'essential')}
             />
           </Motion>
         ) : null}

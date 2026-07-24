@@ -14,16 +14,15 @@ function bill(over: Partial<RequiredExpense>): RequiredExpense {
 	return { id: "e1", name: "Bill", amount: 100, dueDate: "2026-08-01", recurrence: "monthly", ...over };
 }
 
-// Category defaults — essential set.
+// Only genuinely-known-deferrable categories default deferrable (MF.1 / audit #3).
+assertEq(classifyDeferability(bill({ category: "subscriptions" })), "deferrable", "subscriptions → deferrable");
+// The essential categories default essential.
 for (const category of ["housing", "utilities", "medical", "insurance"] as RequiredExpenseCategory[]) {
 	assertEq(classifyDeferability(bill({ category })), "essential", `${category} → essential`);
 }
-// Category defaults — deferrable set.
-for (const category of ["subscriptions", "other"] as RequiredExpenseCategory[]) {
-	assertEq(classifyDeferability(bill({ category })), "deferrable", `${category} → deferrable`);
-}
-// Uncategorized → deferrable (offered, never auto-deferred; the user confirms).
-assertEq(classifyDeferability(bill({ category: undefined })), "deferrable", "uncategorized → deferrable");
+// `other` + uncategorized → ESSENTIAL (never pre-suggest deferring a bill we can't classify).
+assertEq(classifyDeferability(bill({ category: "other" })), "essential", "other → essential (can't classify → don't call it safe)");
+assertEq(classifyDeferability(bill({ category: undefined })), "essential", "uncategorized → essential");
 
 // The user override ALWAYS wins over the category default (both directions).
 assertEq(classifyDeferability(bill({ category: "housing", deferability: "deferrable" })), "deferrable", "override flips an essential category to deferrable");

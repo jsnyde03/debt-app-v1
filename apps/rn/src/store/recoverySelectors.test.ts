@@ -20,7 +20,8 @@ function eq<T>(a: T, b: T, label: string) {
   assert(a === b, `${label} (expected ${JSON.stringify(b)}, got ${JSON.stringify(a)})`);
 }
 
-/** paycheck 850 vs required 896 (rent 800 + netflix 16 + gym 30 + card min 50) → a $46 shortfall. */
+/** paycheck 850 vs required 896 (rent 800 + netflix 16 + music 30 + card min 50) → a $46 shortfall.
+ *  netflix + music are `subscriptions` (deferrable); rent is `housing` + card-min are essential. */
 function shortfallStore(over: Partial<DebtStore> = {}): DebtStore {
   const s = createDefaultStore();
   const today = s.paycheck.currentDate;
@@ -31,7 +32,7 @@ function shortfallStore(over: Partial<DebtStore> = {}): DebtStore {
     requiredExpenses: [
       { id: 'rent', name: 'Rent', amount: 800, dueDate: today, recurrence: 'monthly', category: 'housing' },
       { id: 'netflix', name: 'Netflix', amount: 16, dueDate: today, recurrence: 'monthly', category: 'subscriptions' },
-      { id: 'gym', name: 'Gym', amount: 30, dueDate: today, recurrence: 'monthly', category: 'other' },
+      { id: 'music', name: 'Music', amount: 30, dueDate: today, recurrence: 'monthly', category: 'subscriptions' },
     ],
     debts: [{ id: 'card', name: 'Card', balance: 5000, minimumPayment: 50, apr: 20, dueDate: today, type: 'debt', recurrence: 'monthly' }],
     prefs: { ...s.prefs, onboardingComplete: true },
@@ -52,8 +53,8 @@ function run() {
     eq(plan.gap, 46, 'gap = the allocation shortfall (896 − 850)');
     eq(plan.coverNow.map((i) => i.id).sort().join(','), 'card,rent', 'cover-now = essentials (rent) + the debt minimum');
     eq(plan.coverNow.find((i) => i.id === 'card')?.amount, 50, 'debt minimum is essential (cover-now), amount = the minimum');
-    eq(plan.safeToDefer.map((i) => i.id).join(','), 'gym,netflix', 'safe-to-defer = deferrable, ranked largest-first (gym 30, netflix 16)');
-    eq(plan.suggestedDeferIds.join(','), 'gym,netflix', 'both needed to cross the $46 gap');
+    eq(plan.safeToDefer.map((i) => i.id).join(','), 'music,netflix', 'safe-to-defer = deferrable, ranked largest-first (music 30, netflix 16)');
+    eq(plan.suggestedDeferIds.join(','), 'music,netflix', 'both needed to cross the $46 gap');
     eq(plan.closeable, true, 'deferrable 46 ≥ gap 46 → closeable');
     eq(plan.residualGap, 0, 'closeable → no residual');
   }
@@ -64,23 +65,53 @@ function run() {
     requiredExpenses: [
       { id: 'rent', name: 'Rent', amount: 800, dueDate: today, recurrence: 'monthly', category: 'housing', deferability: 'deferrable' },
       { id: 'netflix', name: 'Netflix', amount: 16, dueDate: today, recurrence: 'monthly', category: 'subscriptions' },
-      { id: 'gym', name: 'Gym', amount: 30, dueDate: today, recurrence: 'monthly', category: 'other' },
+      { id: 'music', name: 'Music', amount: 30, dueDate: today, recurrence: 'monthly', category: 'subscriptions' },
     ],
   }));
   assert(!!overridden?.safeToDefer.some((i) => i.id === 'rent'), 'a deferability override moves an essential-category bill to safe-to-defer');
   assert(!overridden?.coverNow.some((i) => i.id === 'rent'), '…and the overridden rent leaves cover-now');
 
+  // MF.1 (audit #3): an `other`/uncategorized bill defaults to ESSENTIAL — never pre-suggested to defer.
+  const otherBill = selectRecoveryPlan(shortfallStore({
+    requiredExpenses: [
+      { id: 'rent', name: 'Rent', amount: 800, dueDate: today, recurrence: 'monthly', category: 'housing' },
+      { id: 'misc', name: 'Misc', amount: 60, dueDate: today, recurrence: 'monthly', category: 'other' },
+    ],
+  }));
+  assert(!!otherBill?.coverNow.some((i) => i.id === 'misc'), "an `other` bill defaults to essential (cover-now), never safe-to-defer");
+  assert(!otherBill?.safeToDefer.some((i) => i.id === 'misc'), "…and is not offered for deferral");
+
+  // MF.1 (audit #1): an AUTOPAY bill can't be deferred → cover-now, never safe-to-defer (even if subscriptions).
+  const autopayBill = selectRecoveryPlan(shortfallStore({
+    requiredExpenses: [
+      { id: 'rent', name: 'Rent', amount: 800, dueDate: today, recurrence: 'monthly', category: 'housing' },
+      { id: 'auto', name: 'Streaming', amount: 60, dueDate: today, recurrence: 'monthly', category: 'subscriptions', isAutopay: true },
+    ],
+  }));
+  assert(!autopayBill?.safeToDefer.some((i) => i.id === 'auto'), 'an autopay subscription is excluded from safe-to-defer (the charge fires regardless)');
+  assert(!!autopayBill?.coverNow.some((i) => i.id === 'auto'), '…and lands in cover-now instead');
+
   // The defer action honestly moves the due date to next payday + shrinks the gap on recompute.
   const s = createDebtStore();
   s.setState({ store: shortfallStore() });
   const nextPayday = s.getState().store.paycheck.nextPaycheckDate;
-  s.getState().deferExpense('gym');
-  eq(s.getState().store.requiredExpenses.find((e) => e.id === 'gym')?.dueDate, nextPayday, 'deferExpense → due date moves to next payday');
-  eq(selectRecoveryPlan(s.getState().store)?.gap, 16, 'after deferring gym ($30) → gap shrinks 46 → 16');
+  s.getState().deferExpense('music');
+  eq(s.getState().store.requiredExpenses.find((e) => e.id === 'music')?.dueDate, nextPayday, 'deferExpense → due date moves to next payday');
+  eq(selectRecoveryPlan(s.getState().store)?.gap, 16, 'after deferring music ($30) → gap shrinks 46 → 16');
   s.getState().deferExpense('netflix');
   eq(selectRecoveryPlan(s.getState().store), null, 'after deferring netflix too → gap closed, recovery clears');
 
-  console.log(`✅ Recovery Plan (2.6.4) tests passed (${passed} asserts).`);
+  // MF.1: setDeferability is a pure classification change — it must NOT re-stamp read-freshness.
+  const s2 = createDebtStore();
+  s2.setState({ store: shortfallStore() });
+  const beforeStamp = s2.getState().store.inputsAsOf;
+  s2.setState({ store: { ...s2.getState().store, inputsAsOf: '2020-01-01' } }); // artificially age it
+  s2.getState().setDeferability('netflix', 'essential');
+  eq(s2.getState().store.requiredExpenses.find((e) => e.id === 'netflix')?.deferability, 'essential', 'setDeferability sets the override');
+  eq(s2.getState().store.inputsAsOf, '2020-01-01', '…without re-stamping read-freshness (stale stays stale)');
+  void beforeStamp;
+
+  console.log(`✅ Recovery Plan (2.6.4 + MF.1) tests passed (${passed} asserts).`);
 }
 
 try {

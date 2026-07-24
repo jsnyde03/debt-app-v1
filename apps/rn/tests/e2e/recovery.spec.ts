@@ -16,7 +16,7 @@ const shortfall = () =>
     requiredExpenses: [
       { id: 'rent', name: 'Rent', amount: 800, dueDate: '2026-07-01', recurrence: 'monthly', category: 'housing' },
       { id: 'netflix', name: 'Netflix', amount: 16, dueDate: '2026-07-01', recurrence: 'monthly', category: 'subscriptions' },
-      { id: 'gym', name: 'Gym', amount: 30, dueDate: '2026-07-01', recurrence: 'monthly', category: 'other' },
+      { id: 'music', name: 'Music', amount: 30, dueDate: '2026-07-01', recurrence: 'monthly', category: 'subscriptions' },
     ],
     debts: [{ id: 'card', name: 'Card', balance: 5000, minimumPayment: 50, apr: 20, dueDate: '2026-07-01', type: 'debt', recurrence: 'monthly' }],
   });

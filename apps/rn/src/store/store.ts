@@ -74,6 +74,9 @@ export interface DebtAppState {
   /** §2.6 Recovery — defer a bill to next cycle: move its due date to the next payday so it's no longer
    *  owed this cycle (honest — next cycle carries it; the forecast reflects it). */
   deferExpense(id: string): void;
+  /** §2.6 Recovery — the per-bill essential/deferrable override. A pure classification change, so it does
+   *  NOT re-stamp read-freshness (MF.1: `updateExpense` would, making a stale read look fresh). */
+  setDeferability(id: string, deferability: 'essential' | 'deferrable'): void;
   markDebtMinimumPaid(id: string, paid: boolean): void;
   toggleRecommendedDone(action: CompletedRecommendedAction, done: boolean): void;
 
@@ -296,6 +299,16 @@ export function createDebtStore() {
           }),
         };
       });
+    },
+    setDeferability(id, deferability) {
+      // MF.1: a pure classification toggle — NO stampInputsFresh (a deferability change must not make a
+      // stale read look fresh and silence the §2.0 staleness hedge).
+      set((s) => ({
+        store: {
+          ...s.store,
+          requiredExpenses: s.store.requiredExpenses.map((e) => (e.id === id ? { ...e, deferability } : e)),
+        },
+      }));
     },
     markDebtMinimumPaid(id, paid) {
       set((s) => ({

@@ -103,20 +103,29 @@ export function RecoveryPlanSection({
       ) : null}
 
       <Text style={[textStyles.caption, styles.gapLine, { color: covered ? c.accent.primary : c.text.secondary }]}>
-        {covered
-          ? `Deferring ${count === 1 ? 'this' : `these ${count}`} covers your ${money(plan.gap)} gap.`
-          : !plan.closeable && allChecked
-            ? `Even deferring everything, you're ${money(remaining)} short this cycle — adding income helps most.`
-            : `Still ${money(remaining)} short — pick more to defer, or add income.`}
+        {plan.safeToDefer.length === 0
+          ? `Nothing here can safely wait this paycheck — adding income is the surest fix, or cover the ${money(plan.gap)} gap from savings.`
+          : covered
+            ? `Deferring ${count === 1 ? 'this' : `these ${count}`} covers your ${money(plan.gap)} gap.`
+            : !plan.closeable && allChecked
+              ? `Even deferring everything, you're ${money(remaining)} short this cycle — adding income helps most.`
+              : `Still ${money(remaining)} short — pick more to defer, or add income.`}
       </Text>
 
       {count > 0 ? (
-        <Button
-          label={covered ? `Defer ${count === 1 ? 'it' : `these ${count}`} → next paycheck` : `Defer ${count} selected`}
-          variant={covered ? 'primary' : 'secondary'}
-          onPress={apply}
-          style={styles.applyBtn}
-        />
+        <>
+          <Button
+            label={covered ? `Defer ${count === 1 ? 'it' : `these ${count}`} → next paycheck` : `Defer ${count} selected`}
+            variant={covered ? 'primary' : 'secondary'}
+            onPress={apply}
+            style={styles.applyBtn}
+          />
+          {/* MF.1 (audit #1) — deferring only reschedules the bill in YOUR plan; it can't stop the biller.
+              (Autopay bills are excluded from the list, but a manual bill still needs a real action.) */}
+          <Text style={[textStyles.caption, styles.disclaimer, { color: c.text.tertiary }]}>
+            This reschedules the payment in your plan — remember to actually pay it late with the biller.
+          </Text>
+        </>
       ) : null}
     </View>
   );
@@ -132,4 +141,5 @@ const styles = StyleSheet.create({
   amt: { fontVariant: ['tabular-nums'] },
   gapLine: { fontWeight: '600' },
   applyBtn: { alignSelf: 'stretch' },
+  disclaimer: { marginTop: spacing.xs },
 });

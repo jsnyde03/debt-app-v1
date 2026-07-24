@@ -34,7 +34,10 @@ export function selectRecoveryPlan(store: DebtStore): RecoveryPlan | null {
   for (const e of resolveTrialAmounts(store.requiredExpenses)) {
     if (e.isPaidThisCycle || e.amount <= 0 || !dueThisCycle(e.dueDate, nextPayday)) continue;
     const item: RecoveryCandidate = { id: e.id, name: e.name, amount: e.amount };
-    (classifyDeferability(e) === 'deferrable' ? deferrable : essential).push(item);
+    // MF.1 (audit #1): an autopay bill CANNOT be deferred (the charge fires regardless), so it's
+    // cover-now, never "safe to defer" — deferring it in-app would be a false promise of coverage.
+    const canDefer = !e.isAutopay && classifyDeferability(e) === 'deferrable';
+    (canDefer ? deferrable : essential).push(item);
   }
 
   for (const d of store.debts) {
