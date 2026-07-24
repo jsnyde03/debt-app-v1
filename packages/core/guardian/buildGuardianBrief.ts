@@ -45,6 +45,9 @@ export interface GuardianBrief {
   /** §2.7 graduation (2.4.8) — the read is running PAST debt-free, so the spare tops up savings/wealth,
    *  not debt. The card relabels the "To debt" bar legend to "To savings"; the copy never implies debt. */
   debtFree?: boolean;
+  /** MF.3 — the amount short this paycheck (>0 only on a shortfall read). Drives the free card's
+   *  state-aware invite (pitch recovery, not "cushion at your line") + is the honest crisis figure. */
+  shortfall?: number;
 }
 
 /**
@@ -221,9 +224,29 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
         ? `across your debts, starting with ${focusDebtName}`
         : `toward ${focusDebtName}`;
 
+  // MF.3 (audit #4): a shortfall is the honest crisis read for BOTH tiers — free is told it won't cover
+  // everything AND the amount short; only the built recovery PLAN (the safe move + the card's defer flow)
+  // is premium. Previously the free branch returned FIRST and softened a real shortfall to "a bit tight",
+  // hiding the shortfall behind the paywall while the tier-agnostic hero already said "Short this cycle".
+  if (shortfall > 0) {
+    return {
+      state,
+      title: "This paycheck won't cover everything",
+      detail: `You're about ${amt(shortfall)} short of the ${
+        debtFree ? "bills" : "bills and minimums"
+      } due before your next paycheck${isPremium ? " — this one needs a plan." : "."}`,
+      safeMove: isPremium
+        ? `Cover the essentials first — housing, utilities, food. Extra ${deployNoun} is paused, and any income you can add this cycle helps the most.`
+        : undefined,
+      lookahead: isPremium ? look : undefined,
+      shortfall,
+      ...viz,
+    };
+  }
+
   if (!isPremium) {
-    // Free: the honest read for this paycheck (the value-led taste) — no action claimed. The card
-    // supplies the "Premium holds you at your line" invitation; the bar shows the kept cushion vs. the line.
+    // Free: the honest read for a COVERED paycheck (the value-led taste) — no action claimed. The card
+    // supplies the state-aware premium invitation; the bar shows the kept cushion vs. the line.
     return withHedge(
       {
         state,
@@ -237,18 +260,6 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   }
 
   // Premium — the Guardian acted.
-  if (shortfall > 0) {
-    return {
-      state,
-      title: "This paycheck won't cover everything",
-      detail: `You're about ${amt(shortfall)} short of the ${
-        debtFree ? "bills" : "bills and minimums"
-      } due before your next paycheck — this one needs a plan.`,
-      safeMove: `Cover the essentials first — housing, utilities, food. Extra ${deployNoun} is paused, and any income you can add this cycle helps the most.`,
-      lookahead: look,
-      ...viz,
-    };
-  }
   if (state !== "clear") {
     // Covered, but the headroom is under the line — keep all of it, deploy nothing.
     return withHedge(

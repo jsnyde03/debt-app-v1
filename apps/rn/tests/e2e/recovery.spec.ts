@@ -40,11 +40,13 @@ test.describe('§2.6 Recovery Plan — the shortfall card builds + applies the c
     await expect(page.getByText("This paycheck won't cover everything")).toHaveCount(0);
   });
 
-  test('free shortfall → the honest read + invite, NOT the recovery checklist (premium acting)', async ({ page }) => {
+  test('free shortfall → the honest read + recovery invite, NOT the checklist (premium acting)', async ({ page }) => {
     await seedStore(page, { ...shortfall(), subscriptionPlan: 'free' });
     await page.goto('/');
-    // Free sees the honest read (not the premium "won't cover everything" title) + the value-led invite.
-    await expect(page.getByText(/Premium keeps your cushion at your line/)).toBeVisible();
+    // MF.3: free now gets the HONEST shortfall read (no longer softened + paywalled)...
+    await expect(page.getByText("This paycheck won't cover everything")).toBeVisible();
+    // ...and the state-aware invite pitches the recovery value, not "cushion at your line".
+    await expect(page.getByText(/Premium builds you a catch-up plan/)).toBeVisible();
     await expect(page.getByText('SAFE TO DEFER')).toHaveCount(0); // the built plan is premium
   });
 });

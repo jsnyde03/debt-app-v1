@@ -81,6 +81,13 @@ export function PaydayGuardianCard({
   // safety line is the wrong move) and while stale (the move is "update your numbers", not "adjust").
   const showAdjust = isPremium && !stale && brief.state !== 'at-risk';
 
+  // MF.3 — the free invite is state-aware: in a shortfall it sells the RECOVERY value (a catch-up plan),
+  // not "cushion at your line" (there's no cushion to hold when you're short — that pitch reads off-context).
+  const freeInvite =
+    (brief.shortfall ?? 0) > 0
+      ? "Premium builds you a catch-up plan — what to cover now, what's safe to move to next paycheck."
+      : 'Premium keeps your cushion at your line automatically, all on your device — no deciding each paycheck.';
+
   return (
     <Card>
       {/* 2.4.11.3 — one-time premium first-run intro: reframes cold-start as protection (acting from
@@ -91,7 +98,7 @@ export function PaydayGuardianCard({
           style={[styles.intro, { backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}
           accessibilityRole="summary">
           <Text style={[textStyles.subhead, styles.introText, { color: c.text.secondary }]}>
-            <Text style={{ color: c.text.primary, fontWeight: '600' }}>Your floor is protected from today.</Text> As you
+            <Text style={{ color: c.text.primary, fontWeight: '600' }}>Your floor is protected, starting today.</Text> As you
             log each paycheck, I learn your floor and put your money to work more precisely. Guidance from your numbers —
             not financial advice. Your call.
           </Text>
@@ -110,7 +117,7 @@ export function PaydayGuardianCard({
           'Payday Guardian',
           brief.title,
           brief.detail,
-          isPremium ? brief.safeMove : 'Premium keeps your cushion at your line automatically, all on your device',
+          isPremium ? brief.safeMove : freeInvite,
           isPremium ? brief.lookahead : undefined,
         )}>
         <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>PAYDAY GUARDIAN</Text>
@@ -223,9 +230,7 @@ export function PaydayGuardianCard({
         ) : (
           <View style={styles.invite} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
             <AppIcon name="workspace-premium" size={18} color={c.accent.primary} />
-            <Text style={[textStyles.subhead, styles.inviteText, { color: c.accent.primary }]}>
-              Premium keeps your cushion at your line automatically, all on your device — no deciding each paycheck.
-            </Text>
+            <Text style={[textStyles.subhead, styles.inviteText, { color: c.accent.primary }]}>{freeInvite}</Text>
           </View>
         )}
       </View>

@@ -57,6 +57,14 @@ function runGuardianTests() {
   const short = buildGuardianBrief(input({ shortfall: 180, discretionary: 0 }));
   assertEqual(short.state, "at-risk", "a shortfall → at-risk");
   assertTrue(/paused/i.test(short.safeMove ?? ""), "shortfall → paused extra payoff (never cuts an obligation)");
+  assertEqual(short.shortfall, 180, "the brief carries the shortfall amount");
+
+  // MF.3 (audit #4): FREE gets the honest shortfall read too — the crisis statement is not premium-gated.
+  const freeShort = buildGuardianBrief(input({ isPremium: false, shortfall: 180, discretionary: 0 }));
+  assertEqual(freeShort.title, "This paycheck won't cover everything", "free shortfall → the honest title (not softened to 'a bit tight')");
+  assertTrue(/\$180 short/i.test(freeShort.detail), "free shortfall → tells the amount short");
+  assertEqual(freeShort.safeMove, undefined, "free shortfall → no safeMove (the built plan is premium)");
+  assertEqual(freeShort.shortfall, 180, "free shortfall carries the amount for the state-aware invite");
 
   // ── reachedFloor tracks the kept cushion vs. the line ──
   assertTrue(premClear.reachedFloor, "reachedFloor true when kept cushion meets the line");
