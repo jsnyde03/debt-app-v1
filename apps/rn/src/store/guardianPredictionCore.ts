@@ -89,10 +89,14 @@ export function reconcileClosingCycle(store: DebtStore, snapshot: PayCycleSnapsh
     .reduce((sum, o) => sum + o.amount, 0);
   const actualCushionHeld = Math.max(0, prediction.predictedCushion + (actualIncome - prediction.plannedIncome) - surprise);
 
+  // §2.10 (2.4.11.2 after-scan): a cycle the user held by TOPPING UP from savings is a user intervention,
+  // not a clean prediction test — exclude it from calibration (mark `disturbed`), same as a re-stamp.
+  const toppedUp = store.cycleTopUp?.forCycle === snapshot.cycleEndDate;
+
   return {
     ...snapshot,
     prediction,
     outcome: { actualIncome, actualCushionHeld, outcomeConfirmed: true },
-    disturbed: prediction.restampedMidCycle ?? false,
+    disturbed: (prediction.restampedMidCycle ?? false) || toppedUp,
   };
 }
