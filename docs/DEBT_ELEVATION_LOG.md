@@ -20,7 +20,7 @@
 
 **2.5.5 verify — full `validate:release:rn` gate GREEN (post-restart, clean memory):** lint:rn · test:regression · test:app (incl. 9 trial-selector asserts) · test:scenarios · test:e2e:rn **15/15** (incl. the 2.5.4 card) · both-theme visual (Bills list + trial card). Env note: mid-session the gate OOM'd (Metro :8081 + :4319 serve + Playwright Chromium + VS Code exhausted RAM) → machine restart cleared it; the e2e harness-race residual is filed to Phase-4.
 
-**After-scan (whole-2.5) — folded/filed:** variable-buffer label (→ convergence audit), "Not now" layout (→ convergence audit UX lens), ExpenseSheet modal visual (→ device-QA), e2e harness race (→ Phase-4 residual), behavioral mis-entry detection (→ Connected/Plaid backlog). Nothing else needed folding into v1.7. Multiple-converted-trials handled one-at-a-time (accepted for v1).
+**After-scan (whole-2.5) — folded/filed:** variable-buffer "Settling-in reserve" label (→ convergence audit wording lens), "Not now" layout centered/loose (→ convergence audit UX lens), **variable buffer shapes cycle 0 only — forecast/lookahead doesn't widen for variable future cycles** (→ convergence audit accuracy lens), **the trial card adds to the Today ack-card stack** (→ compounds the existing affordance-density finding), ExpenseSheet modal visual (→ device-QA), e2e harness race (→ Phase-4 residual), behavioral mis-entry detection (→ Connected/Plaid backlog). Nothing else needed folding into v1.7. Multiple-converted-trials handled one-at-a-time (accepted for v1).
 
 ---
 
