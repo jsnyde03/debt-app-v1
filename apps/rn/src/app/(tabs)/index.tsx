@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { MoreButton } from '@/components/more-button';
+import { router } from 'expo-router';
+
 import { useGoToTab } from '@/hooks/use-go-to-tab';
 import { maybeRequestReview } from '@/lib/review';
 import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
@@ -114,7 +116,7 @@ export default function TodayScreen() {
         </Motion>
         {guardian ? (
           <Motion delay={45}>
-            <PaydayGuardianCard brief={guardian} isPremium={isPremium} />
+            <PaydayGuardianCard brief={guardian} isPremium={isPremium} onSeeForecast={() => router.push('/cushion-forecast')} />
           </Motion>
         ) : null}
         {leanNudge ? (

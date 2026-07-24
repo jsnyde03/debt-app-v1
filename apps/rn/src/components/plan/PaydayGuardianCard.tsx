@@ -20,7 +20,7 @@ const BAR_H = 14;
  * bar's one quiet fill, no count-up/haptic ([[match motion to surface job]]). Gating is value-led:
  * free sees the real read + the line it isn't held to, with an honest invitation — never a lock.
  */
-export function PaydayGuardianCard({ brief, isPremium }: { brief: GuardianBrief; isPremium: boolean }) {
+export function PaydayGuardianCard({ brief, isPremium, onSeeForecast }: { brief: GuardianBrief; isPremium: boolean; onSeeForecast?: () => void }) {
   const c = useAppColors();
   const [barW, setBarW] = useState(0);
   const [floorSheet, setFloorSheet] = useState(false);
@@ -136,6 +136,12 @@ export function PaydayGuardianCard({ brief, isPremium }: { brief: GuardianBrief;
       {showAdjust ? (
         <Pressable onPress={() => setFloorSheet(true)} accessibilityRole="button" accessibilityLabel="Adjust your cushion line" hitSlop={8}>
           <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>Adjust your line →</Text>
+        </Pressable>
+      ) : null}
+      {/* §2.6 drill-down (2.4.7.9) — a pushed route into the full cushion forecast; own a11y button. */}
+      {isPremium && onSeeForecast && !stale && !brief.pausedDeploy ? (
+        <Pressable onPress={onSeeForecast} accessibilityRole="button" accessibilityLabel="See your cushion forecast" hitSlop={8}>
+          <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>See your forecast →</Text>
         </Pressable>
       ) : null}
 
