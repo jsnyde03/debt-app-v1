@@ -8,9 +8,10 @@
 
 ## ▶ NOW
 
-- **Active build:** **2.4.11.4** — Guardian honesty edges (valley debt-free band · advice boundary · reserve insurance-tapped / attestation-walkback copy). Design-shaped copy work → align with Jason before building.
+- **Active build:** **2.4.11.4b.0** — condense the cushion-bar legend + key the "set aside" swatch (Jason flagged the chart). 2.4.11.4a (two-sided safe move) ✅ done.
 - **Phase:** 2 (Premium substance + revenue spine). The Guardian is the headline; **2.4.1–2.4.10 shipped**, 2.4.11 in progress.
-- **Then:** 2.4.11.5 (bounded demo) → 2.4.11.6 (verify) → 2.5 (obligation heuristic) → **2.6 Recovery Plan** (the top differentiator) → **Guardian convergence audit** (gate) → 2.7–2.11.
+- **Then:** finish 2.4.11.4 (4b.0 legend → 4b reserve release → 4c attestation/walk-back → 4d valley band) → 2.4.11.6 verify → 2.5 (obligation heuristic) → **2.6 Recovery Plan** (top differentiator) → **Guardian convergence audit** (gate) → 2.7–2.11 → Phase 3 (delight) → **Phase 3.5 (interactive tutorial + demo showcase)** → 4 / 5 / 5.5 / 6.
+- **⚠️ Launch gating:** v1.7 ships as ONE release — nothing launches until Phase 6 is done + Jason is satisfied. The whole Elevation (through Phase 6) is the release.
 - **Quality gate:** `validate:release:rn` (`lint:rn` + `test:regression` + `test:app` + `test:e2e:rn`) — **green across the board.** The "break-it" regression baseline (RS.1–7) is ✅ complete.
 
 ---
@@ -71,13 +72,12 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 ### Remaining in 2.4 (Guardian) — ▶ the active workstream _(decomposed + shaped w/ Jason 2026-07-24)_
 - **2.4.11.4 — Guardian honesty edges.** Structure-first; each sub-step before/after scan + verify as built; copy-heavy bits align w/ Jason before building.
   - [x] **2.4.11.4a ✅ Two-sided-with-a-why safe move (2026-07-24).** `buildGuardianBrief` gains `deployTradeoff`/`tradeoffTargetName`; the selector flags a genuine EF-vs-debt tradeoff (live debt + underfunded emergency fund + not `hasSavingsElsewhere`) → a two-sided move ("Apply the spare $X toward {debt} to save on interest, or build {EF} first if you'd rather strengthen your cushion — your call"); mechanical moves stay single ("Apply the spare $X {dest} when you're ready…"). **Wording: "Apply the spare $XX"** (Jason). Standing "Your call" caption suppressed when the move already carries it. Core+app+tsc+lint green, both themes verified. _After-scan → filed to backlog: when the waterfall sends the spare to STARTER EF (EF<$1k, debt live), `deployedToDebt`=0 → the brief's "keeps all of it as your cushion" branch OVERSTATES cushion (EF funding isn't cushion) — pre-existing, reverse-direction, for the convergence audit._
-  - [ ] **2.4.11.4b ▶ ACTIVE** — **Reserve insurance release moment.** Detect the settling-in-reserve release transition (held → freed as `genuineCycleCount` crosses N=3 / lean-verified); a one-time insurance-framed acknowledgment **branched on TAPPED** (surprise-outflow log drew on it during the hold → "it did its job — covered $X"; else "you didn't need it — now going to work").
+  - [ ] **2.4.11.4b.0 ▶ ACTIVE — Cushion-bar legend fix (Jason flagged the current chart 2026-07-24).** The legend "doesn't look right" + the light "set aside" band has no legend entry. Condense the legend to the hero card's compact style (small swatch + label + value) and give the "set aside" its own KEYED swatch so every bar color is explained. The reserve's full TEACHING is the Phase 3.5 interactive tutorial (ships with v1.7 — everything launches together), so this is visual coherence, NOT a standalone explanation. Both themes; with + without a reserve.
+  - [ ] **2.4.11.4b** — **Reserve insurance release moment (copy approved 2026-07-24).** Detect the settling-in-reserve release transition (held → freed as `genuineCycleCount` crosses N=3 / lean-verified); a one-time insurance-framed acknowledgment **branched on TAPPED** ("your settling-in reserve did its job — it covered a $X surprise while I got to know your bills. It's now going to work on your {focus/savings}." vs "your settling-in reserve is free. You didn't need it — it's now going to work on your {focus/savings}.").
   - [ ] **2.4.11.4c** — **"Bills complete" attestation + walk-back.** An attestation affordance that REDUCES (not skips) the `discoveryHoldback`; the surprise-outflow log WALKS IT BACK when over-confident ("a surprise bill showed up — I've restored your settling-in reserve"). Floor protects independently.
   - [ ] **2.4.11.4d** — **Valley debt-free BAND** (Jason: build now). One projection engine run twice (lean + typical) → reconcile the 3 current producers; **typical = motivational headline · lean = safe-floor secondary** (not a symmetric range); interest-cost-of-caution rounded/qualitative, never false-precise $. Reconciliation-tested. _(Promoted from the deferred "one-engine-two-runs" backlog item.)_
-- [ ] **2.4.11.5 — Bounded demo + free-at-risk.**
-  - [ ] **2.4.11.5a** — a **distinct cold-start-bounded premium showcase state** (Jason's pick): day-one value only (floor auto-protect + tight one-tap + a visible water-fill smoothing of a lumpy bill), scorecard shown as "here's what I'll show once I learn your income," reserves HELD (not deployed); isolated — never feeds real calibration / `genuineCycleCount`. NOT the matured `genuineCycleCount:6` demo (§3.6).
-  - [ ] **2.4.11.5b** — the **free at-risk demo state** (the softened free at-risk copy has never been visually confirmed — the demo is clear-only).
-- [ ] **2.4.11.6 — Verify** both themes both tiers; fold the deferred RN e2e states (missed / stale / debt-free / at-risk) onto the RS.6 harness.
+- [ ] **2.4.11.6 — Verify** both themes both tiers; fold the deferred RN e2e states (missed / stale / debt-free / **at-risk** — incl. the never-yet-confirmed softened free at-risk copy, via an injected state) onto the RS.6 harness.
+- _**2.4.11.5 bounded demo + free-at-risk marketing state → MOVED to Phase 3.5** (Jason 2026-07-24): it shares the sandbox with the tutorial and must showcase the FINAL polished Guardian — building it on a still-moving Guardian is double work. The free at-risk COPY is still visually verified in 2.4.11.6 (injected state)._
 
 ### The rest of the tier
 - [ ] **2.5 Smart obligation quality layer** — descoped: add capture fields (category · trial/first-seen · BNPL term · amount-variance) + a lightweight on-device heuristic (finite-BNPL auto-expiry · trial-lapse · variance). Core ML deferred.
@@ -108,6 +108,17 @@ The emotional layer built *with* the features; restraint on daily surfaces, deli
 - **History per-cycle detail drilldown** (v1.8 candidate).
 - **Entrance-motion revisit** — decide the `<Motion>` FadeInDown language once, apply consistently (or drop on calm surfaces).
 - **Genuinely-native iPad** — per-screen re-layout (multi-column / master-detail), not a centered phone column.
+
+## Phase 3.5 — Guardian interactive tutorial + demo showcase _(Jason 2026-07-24 — AFTER the Guardian is polished + final, never before)_
+
+Both the interactive tutorial and the marketing/demo showcase live here: they share the same **sandboxed, scriptable Guardian substrate** and must run on the FINAL polished Guardian, so building either on a still-moving Guardian (2.4.11.x · Recovery · convergence audit · Phase-3 interactivity) is double work.
+
+**(A) Interactive tutorial —** a **fully interactive, hands-on walkthrough** on a **sandboxed example** (never touches the real plan): the user *drives* it and watches it respond, so the concepts land by doing.
+- **Steps (interactive):** meet it ("will you make it this paycheck?") → read the bar (tap each zone to reveal) → **your line (drag the floor slider, watch the Guardian re-plan live)** → **the settling-in reserve (tap "a surprise lands" → watch it absorb it; tap "once I've learned you" → watch it release)** → the safe move + "your call" → done.
+- **Reach:** fires on first premium Guardian view (**absorbs/upgrades the 2.4.11.3 intro** into the real tour); **replayable** from a "?" on the card + a "How the Guardian works" row in More.
+- **Rough decomposition:** stepped-flow scaffold + replay entry points → shared sandbox substrate (isolated, scriptable states) → interactive bar (tap-to-reveal) → interactive "your line" slider (live re-plan) → interactive reserve lifecycle (surprise→absorb→release) → safe-move/your-call + wrap → copy + both-theme + a11y verify.
+
+**(B) Bounded demo showcase (moved here from 2.4.11.5) —** a **distinct cold-start-bounded premium showcase** on the shared sandbox (§3.6, launch-critical for GTM/ASO): day-one value only (floor auto-protect + tight one-tap + a visible water-fill smoothing of a lumpy bill), scorecard shown as "here's what I'll show once I learn your income," reserves HELD (not deployed) — NOT a matured Guardian the month-one buyer can't be. Isolated (never feeds real calibration / `genuineCycleCount`). Plus a free at-risk showcase state. The interactive demo is essentially a scripted run of the tutorial.
 
 ## Phase 4 — Quality
 
