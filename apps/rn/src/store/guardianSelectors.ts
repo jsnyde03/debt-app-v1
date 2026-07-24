@@ -1,4 +1,5 @@
 import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@core/guardian/buildGuardianBrief';
+import { scoreCalibration, type CalibrationScore } from '@core/guardian/calibrationScore';
 import { ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS, type EstimateStaleness } from '@core/debt/projectCurrentBalance';
 
 import type { DebtStore } from '@/data/models';
@@ -20,6 +21,25 @@ export type { GuardianBrief, GuardianState };
 export function selectReadFreshness(store: DebtStore, asOfDate?: string): EstimateStaleness {
   const today = asOfDate ?? store.paycheck.currentDate;
   return classifyFreshness(daysBetweenISO(store.inputsAsOf, today), ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS);
+}
+
+export type { CalibrationScore };
+
+/**
+ * §2.9 calibration scorecard (2.4.9) — the Guardian's proven accuracy for the user's CURRENT regime
+ * (debt vs debt-free, never blended), off the CONFIRMED cycle history. Runs SILENTLY every cycle (the
+ * substrate stamps predictions + folds outcomes at rollover); `score.proven` (n ≥ N) gates whether the
+ * surface shows a number or the §2.0.d day-one-protection state — never an apology, never a hollow
+ * pre-proof figure. Fixed income counts only genuine risk-events (F-trust #5). Premium value; the
+ * surface (2.4.9.6) applies the tier gate.
+ */
+export function selectCalibrationScore(store: DebtStore): CalibrationScore {
+  const debtFree = store.debts.filter((d) => d.balance > 0).length === 0;
+  return scoreCalibration(store.cycleHistory, {
+    incomeVaries: store.paycheck.incomeVaries === true,
+    debtFree,
+    missedCycleEndDates: store.missedArrivals,
+  });
 }
 
 /** "Aug 5" — mirrors the cash-flow bars' label so the Guardian's lookahead reads consistently. */

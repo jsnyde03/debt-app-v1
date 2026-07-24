@@ -18,6 +18,7 @@ import "../debt/testProjectCurrentBalance";
 import "../guardian/testBuildGuardianBrief";
 import "../guardian/testGuardianPartition";
 import "../guardian/testComputeState";
+import "../guardian/testCalibrationScore";
 import "../cashflow/testDetectCrunches";
 import "../cashflow/testWaterFill";
 import "../income/testSuggestLean";

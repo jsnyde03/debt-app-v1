@@ -40,6 +40,9 @@ export function computeCyclePrediction(store: DebtStore): CyclePrediction | null
     plannedIncome,
     // §2.7 graduation (2.4.8) — record the target regime so 2.4.9 grades debt vs debt-free separately.
     debtFree: brief.debtFree === true,
+    // §2.9 calibration (2.4.9) — the floor this read assumed, so the scorecard grades floor-breach
+    // against the line at prediction time (the user can move it later).
+    floor: brief.floor,
   };
 }
 

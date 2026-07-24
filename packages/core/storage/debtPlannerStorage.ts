@@ -133,6 +133,10 @@ export type CyclePrediction = {
 	// debt-free→new-debt re-entry doesn't BLEND two different targets into one meaningless accuracy
 	// number; the two regimes are graded separately. Optional → pre-2.4.8 predictions parse (default: debt).
 	debtFree?: boolean;
+	// §2.9 calibration (2.4.9): the cushion FLOOR at read time — stored so the scorecard can grade
+	// "did the cushion hold at/above the line?" against the floor THAT prediction assumed (the user can
+	// move their line later, so the current floor would misgrade history). Optional → pre-2.4.9 parse.
+	floor?: number;
 };
 
 // The reconciled outcome of a cycle, captured at rollover against the prediction.
