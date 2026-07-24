@@ -34,6 +34,9 @@ async function main() {
   // §2.6 Recovery Plan — the selector split (essential/deferrable + minimums) + defer action loop.
   await import('../store/recoverySelectors.test');
 
+  // MF.4 (audit #5) — the debt-free projection runs on the steady-state (holdback-stripped) deploy.
+  await import('../store/steadyStateProjection.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

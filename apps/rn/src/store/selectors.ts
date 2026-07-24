@@ -35,8 +35,11 @@ export function selectPaycheckMissed(store: DebtStore): boolean {
 }
 
 /** Run the `@core` engine at a given prefunded-reserve level. `prefundedReserve` is injected as an
- *  INPUT from the §2.5 smoothing layer (spec §2.5) — never a rung inside single-cycle `allocatePaycheck`. */
-function buildAllocation(store: DebtStore, prefundedReserve: number): Allocation | null {
+ *  INPUT from the §2.5 smoothing layer (spec §2.5) — never a rung inside single-cycle `allocatePaycheck`.
+ *  `steadyState` (MF.4, audit #5): strips the TEMPORARY cold-start reserves (discovery + cold-start
+ *  holdbacks + prefunded) so a long-horizon projection isn't built on a 3-cycle dampener extrapolated as
+ *  permanent. The FLOOR and the structural variable-bill buffer are KEPT — those are ongoing, honest. */
+function buildAllocation(store: DebtStore, prefundedReserve: number, steadyState = false): Allocation | null {
   const amount = Number(store.paycheck.amount);
   if (!Number.isFinite(amount) || amount <= 0 || !store.paycheck.nextPaycheckDate) return null;
   // §2.3.1 paused-deploy: a missed paycheck means $0 income THIS cycle — plan on that, never on phantom
@@ -59,14 +62,18 @@ function buildAllocation(store: DebtStore, prefundedReserve: number): Allocation
     goals: store.goals,
     paycheckBuffer: effectivePaycheckBuffer(store),
     // §2.0.c (2.4.11.4c): a "bills complete" attestation REDUCES the discovery reserve (never skips it).
-    discoveryHoldbackFraction: confidence?.discoveryHoldbackActive
-      ? (store.billsAttested ? DISCOVERY_HOLDBACK_ATTESTED_FRACTION : DISCOVERY_HOLDBACK_FRACTION)
-      : 0,
-    coldStartHoldbackFraction: confidence?.coldStartHoldbackActive ? COLDSTART_HOLDBACK_FRACTION : 0,
+    // MF.4: the temporary cold-start reserves are dropped in a steady-state (long-horizon) allocation.
+    discoveryHoldbackFraction: steadyState
+      ? 0
+      : confidence?.discoveryHoldbackActive
+        ? (store.billsAttested ? DISCOVERY_HOLDBACK_ATTESTED_FRACTION : DISCOVERY_HOLDBACK_FRACTION)
+        : 0,
+    coldStartHoldbackFraction: steadyState ? 0 : confidence?.coldStartHoldbackActive ? COLDSTART_HOLDBACK_FRACTION : 0,
     // §2.5 variable-bill buffer (2.5.3b): premium holds a small buffer for variable bills (structural,
     // not a cold-start learning reserve → gated on premium alone, not confidence). Free deploys undampened.
+    // KEPT in steady-state (it's a permanent reservation, not a cold-start dampener).
     variableBillBufferFraction: isPremium ? VARIABLE_BILL_BUFFER_FRACTION : 0,
-    prefundedReserve,
+    prefundedReserve: steadyState ? 0 : prefundedReserve,
     // §2.5 D5.3 gate (2.4.7.6): savings elsewhere → skip the pre-debt starter EF, deploy to debt first.
     skipStarterEmergency: store.prefs.hasSavingsElsewhere,
   });
@@ -77,6 +84,15 @@ function buildAllocation(store: DebtStore, prefundedReserve: number): Allocation
  *  (selectAllocation → prefunded → forecast → selectAllocation). */
 export function selectBaseAllocation(store: DebtStore): Allocation | null {
   return buildAllocation(store, 0);
+}
+
+/** MF.4 (audit #5) — the STEADY-STATE allocation for long-horizon projections (debt-free date, payoff
+ *  trajectory, interest-saved). Strips the TEMPORARY cold-start reserves (discovery/cold-start holdbacks
+ *  + prefunded) so the projection isn't built on a 3-cycle dampener extrapolated across years — which
+ *  made premium's projected debt-free date read LATER than free's during cold-start. The floor + the
+ *  structural variable-bill buffer are kept (they're permanent, honest reservations). */
+export function selectSteadyStateAllocation(store: DebtStore): Allocation | null {
+  return buildAllocation(store, 0, true);
 }
 
 // The store is immutable (a new object on every change), so the water-fill — which builds a whole

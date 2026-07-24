@@ -10,7 +10,7 @@ import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
 
 import { selectDebtFreeDate, selectExtraToDebt } from './planSelectors';
 import { buildForecastCycles } from './forecastCycles';
-import { effectivePaycheckBuffer, selectAllocation } from './selectors';
+import { effectivePaycheckBuffer, selectAllocation, selectSteadyStateAllocation } from './selectors';
 
 export type { TrajectoryPoint, InterestSaved, DriftResult, TimelineCycle, TimelineItem };
 
@@ -59,7 +59,10 @@ export function rankDebts(debts: Debt[], strategy: PayoffStrategy): Debt[] {
 export function selectPayoffView(store: DebtStore): PayoffView {
   const liveDebts = store.debts.filter((d) => d.balance > 0);
   const allocation = selectAllocation(store);
-  const monthlyExtra = allocation ? selectExtraToDebt(allocation) * payCyclesPerMonth(store.paycheck.payCycle) : 0;
+  // MF.4 (audit #5): project on the STEADY-STATE deploy (temporary cold-start holdbacks stripped) so the
+  // payoff date / trajectory / interest-saved aren't extrapolated off a 3-cycle cold-start dampener.
+  const steady = selectSteadyStateAllocation(store);
+  const monthlyExtra = steady ? selectExtraToDebt(steady) * payCyclesPerMonth(store.paycheck.payCycle) : 0;
   const startDate = store.paycheck.currentDate;
 
   const interestSaved: InterestSaved =

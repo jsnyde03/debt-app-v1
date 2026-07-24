@@ -14,6 +14,11 @@ What blocks ship is a tight cluster of **honesty, accessibility, and coherence d
 
 **9 must-fix-before-ship items** (below), most small and well-scoped. Fix them and the Guardian clears the bar.
 
+### Disposition (Jason 2026-07-24)
+- **Fixing NOW** (before Guardian ships): every **major/severe/blocker** (MF.1–MF.6) **plus the Tier-1/Tier-2 minors** folded in (MF.7 polish: `cycle`→`paycheck`, variable-buffer label, trial "Not now"; and the Tier-1 items — state-aware invite, `keepEssential` freshness, "starting today" copy — folded into MF.1/MF.3). See `DEBT_ELEVATION_PLAN.md` Active Queue (MF.1–MF.7).
+- **Committed to Phase 3 — NOT dropped:** the remaining Tier-3 findings (hero "Free"→"Safe" label · ack-card density coordinator · "Keep essential" toggle+undo) are scheduled into Phase 3 (filed in the plan's Phase-3 section), where they get the design attention they need. The "future/watch" items likewise remain on record.
+- **Gate:** a **round-2 convergence audit** (same 4 lenses/criteria) re-runs against the fixed code — Guardian is not called done until synthesizer + agents reach **consensus** it's premium-level.
+
 ---
 
 ## 🔴 MUST-FIX BEFORE SHIP

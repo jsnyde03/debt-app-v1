@@ -8,7 +8,7 @@ import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 
 import type { DebtStore } from '@/data/models';
 
-import { effectivePaycheckBuffer, type Allocation } from './selectors';
+import { effectivePaycheckBuffer, selectSteadyStateAllocation, type Allocation } from './selectors';
 
 export type ActiveRecommendedAction = ReturnType<typeof selectActiveRecommendedActions>[number];
 
@@ -58,13 +58,17 @@ export function selectHeldReserve(allocation: Allocation): number {
   return sumCategory(allocation, 'discovery_holdback', 'prefunded_reserve');
 }
 
-/** The estimated debt-free date under the current plan (via the shared payoff engine), or null. */
+/** The estimated debt-free date under the current plan (via the shared payoff engine), or null.
+ *  MF.4 (audit #5): projects on the STEADY-STATE deploy (temporary cold-start holdbacks stripped), not
+ *  the current cycle's dampened allocation — otherwise a 3-cycle cold-start reserve is extrapolated
+ *  across years and premium's date reads later than free's. */
 export function selectDebtFreeDate(store: DebtStore, allocation: Allocation | null): string | null {
   const liveDebts = store.debts.filter((d) => d.balance > 0);
   if (!allocation || liveDebts.length === 0) return null;
+  const steady = selectSteadyStateAllocation(store);
   const { estimatedDebtFreeDate } = projectDebtPayoff({
     debts: liveDebts,
-    monthlyExtraPayment: selectExtraToDebt(allocation) * payCyclesPerMonth(store.paycheck.payCycle),
+    monthlyExtraPayment: selectExtraToDebt(steady ?? allocation) * payCyclesPerMonth(store.paycheck.payCycle),
     strategy: store.payoffStrategy,
     startDate: store.paycheck.currentDate,
   });
