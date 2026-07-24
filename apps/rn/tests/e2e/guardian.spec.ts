@@ -45,7 +45,7 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
   test('premium · first-run intro shows once, then dismisses', async ({ page }) => {
     await seedStore(page, scenario()); // premium, guardianIntroSeen defaults false → intro shows
     await page.goto('/');
-    const intro = page.getByText('Your floor is protected from today');
+    const intro = page.getByText('Your floor is protected, starting today');
     await expect(intro).toBeVisible();
     await page.getByRole('button', { name: /Got it/i }).click();
     await expect(intro).toHaveCount(0); // dismissed → persisted to guardianIntroSeen
@@ -55,14 +55,14 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
     await seedStore(page, scenario({ prefs: { onboardingComplete: true, guardianIntroSeen: true } }));
     await page.goto('/');
     await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
-    await expect(page.getByText('Your floor is protected from today')).toHaveCount(0);
+    await expect(page.getByText('Your floor is protected, starting today')).toHaveCount(0);
   });
 
   test('free · no first-run intro (premium-only)', async ({ page }) => {
     await seedStore(page, scenario({ subscriptionPlan: 'free' }));
     await page.goto('/');
     await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
-    await expect(page.getByText('Your floor is protected from today')).toHaveCount(0);
+    await expect(page.getByText('Your floor is protected, starting today')).toHaveCount(0);
   });
 
   test('no plan: the Guardian card does not appear', async ({ page }) => {
