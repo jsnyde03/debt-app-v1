@@ -27,6 +27,8 @@ export function PaydayGuardianCard({
   onSeeForecast,
   topUp,
   onTopUp,
+  showIntro,
+  onDismissIntro,
 }: {
   brief: GuardianBrief;
   isPremium: boolean;
@@ -34,6 +36,10 @@ export function PaydayGuardianCard({
   /** §2.10 tight-case (2.4.11.2) — the "move $X from savings to hold your line" one-tap, when available. */
   topUp?: TightTopUp | null;
   onTopUp?: () => void;
+  /** 2.4.11.3 (§2.0.d/§2.1) — the one-time premium first-run intro: floor-protected-from-today +
+   *  earns-trust-as-it-learns + the advice boundary. Shown once, then dismissed to `guardianIntroSeen`. */
+  showIntro?: boolean;
+  onDismissIntro?: () => void;
 }) {
   const c = useAppColors();
   const [barW, setBarW] = useState(0);
@@ -59,6 +65,28 @@ export function PaydayGuardianCard({
 
   return (
     <Card>
+      {/* 2.4.11.3 — one-time premium first-run intro: reframes cold-start as protection (acting from
+          day one) + the earns-trust-as-it-learns story + the advice boundary. Calm, inline, dismissible
+          (never a modal). Wording is non-monotonic ("more precisely") + non-surveillance ("as you log"). */}
+      {showIntro ? (
+        <View
+          style={[styles.intro, { backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}
+          accessibilityRole="summary">
+          <Text style={[textStyles.subhead, styles.introText, { color: c.text.secondary }]}>
+            <Text style={{ color: c.text.primary, fontWeight: '600' }}>Your floor is protected from today.</Text> As you
+            log each paycheck, I learn your floor and put your money to work more precisely. Guidance from your numbers —
+            not financial advice. Your call.
+          </Text>
+          <Pressable
+            onPress={() => onDismissIntro?.()}
+            accessibilityRole="button"
+            accessibilityLabel="Got it, dismiss the Guardian intro"
+            hitSlop={8}
+            style={styles.introBtnWrap}>
+            <Text style={[textStyles.subhead, styles.introBtn, { color: c.accent.primary }]}>Got it</Text>
+          </Pressable>
+        </View>
+      ) : null}
       <View
         {...groupLabel(
           'Payday Guardian',
@@ -122,6 +150,9 @@ export function PaydayGuardianCard({
         {isPremium ? (
           <>
             {brief.safeMove ? <Text style={[textStyles.subhead, styles.move, { color: c.text.primary }]}>{brief.safeMove}</Text> : null}
+            {/* 2.4.11.3 — the standing advice boundary: the decisive plan always carries a light "your
+                call" (the persistent half of the §2.1 boundary, after the one-time intro is dismissed). */}
+            {brief.safeMove ? <Text style={[textStyles.caption, styles.yourCall, { color: c.text.tertiary }]}>Your call</Text> : null}
             {brief.lookahead ? <Text style={[textStyles.caption, styles.look, { color: c.text.tertiary }]}>{brief.lookahead}</Text> : null}
             {/* §2.10 tight-case one-tap (2.4.11.2): a REAL move to hold the line — only when the user has
                 savings to tap (else the read stays the honest "rebuilds next paycheck"). */}
@@ -208,4 +239,9 @@ const styles = StyleSheet.create({
   adjust: { marginTop: spacing.md, fontWeight: '600' },
   invite: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   inviteText: { flex: 1, fontWeight: '600' },
+  intro: { padding: spacing.md, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, marginBottom: spacing.md, gap: spacing.sm },
+  introText: { lineHeight: 20 },
+  introBtnWrap: { alignSelf: 'flex-end' },
+  introBtn: { fontWeight: '700' },
+  yourCall: { marginTop: spacing.xs },
 });

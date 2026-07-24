@@ -44,6 +44,7 @@ export function createDefaultStore(): DebtStore {
       themeMode: 'system',
       onboardingComplete: false,
       hasSavingsElsewhere: false,
+      guardianIntroSeen: false,
     },
     lastSavedAt: '',
     lastHandledPaydayDate: null,

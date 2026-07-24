@@ -139,6 +139,8 @@ export default function TodayScreen() {
               onSeeForecast={() => router.push('/cushion-forecast')}
               topUp={tightTopUp}
               onTopUp={() => tightTopUp && appStore.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
+              showIntro={isPremium && !store.prefs.guardianIntroSeen}
+              onDismissIntro={() => appStore.getState().updatePrefs({ guardianIntroSeen: true })}
             />
           </Motion>
         ) : null}

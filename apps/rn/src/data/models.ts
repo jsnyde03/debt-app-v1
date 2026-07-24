@@ -76,6 +76,9 @@ export interface Preferences {
   /** §2.5 D5.3 gate (2.4.7.6): the user has an emergency buffer in a separate account, so the plan
    *  skips building a pre-debt STARTER emergency fund and deploys to debt first. Default false. */
   hasSavingsElsewhere: boolean;
+  /** §2.1/§2.0.d (2.4.11.3): the one-time premium Guardian first-run intro (floor-protected-from-today
+   *  + earns-trust-as-it-learns + advice boundary) has been seen + dismissed. Default false. */
+  guardianIntroSeen: boolean;
 }
 
 /** Bump when the persisted shape changes; `runMigrations` brings older blobs forward.
