@@ -22,7 +22,11 @@ async function main() {
   // RS.2 — Guardian selectors (states × tier × regime + break-it).
   await import('../store/guardianSelectors.test');
 
-  // (RS.3+ app-layer store-action suites are appended here as they land.)
+  // RS.3 — store actions + money-critical transitions (capture · rollover · missed/undo · lean ·
+  // top-up · risk-notified · floor clamp · migration/import path), with break-it inputs.
+  await import('../store/storeActions.test');
+
+  // (RS.4+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');
 }
