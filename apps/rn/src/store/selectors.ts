@@ -1,6 +1,6 @@
 import { allocatePaycheck } from '@core/engine/allocatePaycheck';
 import { waterFill, type WaterFillResult } from '@core/cashflow/waterFill';
-import { COLDSTART_HOLDBACK_FRACTION, DISCOVERY_HOLDBACK_FRACTION } from '@core/guardian/holdbackComposition';
+import { COLDSTART_HOLDBACK_FRACTION, DISCOVERY_HOLDBACK_ATTESTED_FRACTION, DISCOVERY_HOLDBACK_FRACTION } from '@core/guardian/holdbackComposition';
 
 import type { DebtStore } from '@/data/models';
 
@@ -55,7 +55,10 @@ function buildAllocation(store: DebtStore, prefundedReserve: number): Allocation
     debts: store.debts,
     goals: store.goals,
     paycheckBuffer: effectivePaycheckBuffer(store),
-    discoveryHoldbackFraction: confidence?.discoveryHoldbackActive ? DISCOVERY_HOLDBACK_FRACTION : 0,
+    // §2.0.c (2.4.11.4c): a "bills complete" attestation REDUCES the discovery reserve (never skips it).
+    discoveryHoldbackFraction: confidence?.discoveryHoldbackActive
+      ? (store.billsAttested ? DISCOVERY_HOLDBACK_ATTESTED_FRACTION : DISCOVERY_HOLDBACK_FRACTION)
+      : 0,
     coldStartHoldbackFraction: confidence?.coldStartHoldbackActive ? COLDSTART_HOLDBACK_FRACTION : 0,
     prefundedReserve,
     // §2.5 D5.3 gate (2.4.7.6): savings elsewhere → skip the pre-debt starter EF, deploy to debt first.

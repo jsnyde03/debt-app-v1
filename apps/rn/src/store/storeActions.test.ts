@@ -1,7 +1,8 @@
 import { applyCapture, applyRollover } from '@/store/payday';
 
 import { createDefaultStore } from '@/data/defaults';
-import { selectReserveRelease } from '@/store/guardianSelectors';
+import { selectBillsAttestation, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback } from '@/store/guardianSelectors';
+import { recordSurpriseOutflow } from '@/store/substrateProducers';
 import { runMigrations } from '@/data/migrations';
 import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
 import { createDebtStore } from '@/store/store';
@@ -227,6 +228,37 @@ function run() {
     // an established user (reserve never held) → no false release on rollover
     const established = applyRollover(plan({ genuineCycleCount: 6, priorReserveHeld: false }));
     eq(established.pendingReserveRelease ?? null, null, 'established (no reserve) → no false release');
+  }
+
+  // ── 2.4.11.4c — "bills complete" attestation + surprise-outflow walk-back ──
+  {
+    // A discovery-hold scenario (genuineCycleCount 1 < the gate of 3): attesting reduces the safety net.
+    const held = plan({ genuineCycleCount: 1 });
+    const netUnattested = selectPaydayGuardian(held)?.heldReserve ?? 0;
+    const netAttested = selectPaydayGuardian({ ...held, billsAttested: true })?.heldReserve ?? 0;
+    assert(netUnattested > 0, 'discovery hold → a safety net is held');
+    assert(netAttested < netUnattested && netAttested > 0, 'attesting bills → a SMALLER (not zero) safety net');
+
+    // the affordance shows during a discovery hold (premium) + reflects the attested state
+    eq(selectBillsAttestation(held).show, true, 'discovery hold (premium) → the attestation affordance shows');
+    eq(selectBillsAttestation({ ...held, subscriptionPlan: 'free' }).show, false, 'free → no attestation affordance');
+    eq(selectBillsAttestation({ ...held, billsAttested: true }).attested, true, '…reflects the attested state');
+
+    // walk-back: a surprise outflow AFTER attesting restores the hold + flags the notice
+    const walked = recordSurpriseOutflow({ ...held, billsAttested: true }, { cycleEndDate: '2026-07-01', amount: 90 } as DebtStore['surpriseOutflowLog'][number]);
+    eq(walked.billsAttested, false, 'surprise after attesting → un-attests (restores the full hold)');
+    eq(walked.pendingReserveWalkback, true, '…and flags the walk-back notice');
+    eq(selectReserveWalkback(walked), true, 'selectReserveWalkback surfaces it (premium)');
+    const noWalk = recordSurpriseOutflow(held, { cycleEndDate: '2026-07-01', amount: 90 } as DebtStore['surpriseOutflowLog'][number]);
+    eq(noWalk.pendingReserveWalkback ?? null, null, 'surprise WITHOUT a prior attestation → no walk-back');
+
+    // actions
+    const s = createDebtStore();
+    s.setState({ store: { ...held, pendingReserveWalkback: true } });
+    s.getState().setBillsAttested(true);
+    eq(s.getState().store.billsAttested, true, 'setBillsAttested → sets it');
+    s.getState().acknowledgeReserveWalkback();
+    eq(s.getState().store.pendingReserveWalkback, null, 'acknowledgeReserveWalkback → clears it');
   }
 
   // ── reset ──

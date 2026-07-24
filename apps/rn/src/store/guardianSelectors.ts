@@ -96,6 +96,22 @@ export function selectReserveRelease(store: DebtStore): ReserveRelease | null {
   return { tapped: pending.tapped, covered: pending.covered, targetName };
 }
 
+/**
+ * §2.0.c "bills complete" attestation affordance (2.4.11.4c) — show it while a DISCOVERY safety net is
+ * being held (premium): the user can confirm their bills are all entered to hold a reduced reserve.
+ * `attested` reflects the current state so the card's copy reads confirm-vs-undo.
+ */
+export function selectBillsAttestation(store: DebtStore): { show: boolean; attested: boolean } {
+  if (store.subscriptionPlan !== 'premium') return { show: false, attested: false };
+  return { show: deriveConfidenceContext(store).discoveryHoldbackActive === true, attested: store.billsAttested === true };
+}
+
+/** §2.0.c attestation walk-back notice (2.4.11.4c) — a surprise restored the safety net after the user
+ *  attested. Premium; false until pending / after dismiss. */
+export function selectReserveWalkback(store: DebtStore): boolean {
+  return store.subscriptionPlan === 'premium' && store.pendingReserveWalkback === true;
+}
+
 export interface TightTopUp {
   gap: number;
   available: number;

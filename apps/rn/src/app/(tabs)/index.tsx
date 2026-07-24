@@ -25,7 +25,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
-import { selectPaydayGuardian, selectReserveRelease, selectRiskAcknowledgment, selectTightTopUp } from '@/store/guardianSelectors';
+import { selectBillsAttestation, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp } from '@/store/guardianSelectors';
 import { selectLeanSuggestion } from '@/store/incomeLearning';
 import {
   selectPlanState,
@@ -69,6 +69,9 @@ export default function TodayScreen() {
   const riskCleared = selectRiskAcknowledgment(engineStore);
   // 2.4.11.4b — the safety net just freed (held → free): a one-time insurance-framed ack.
   const reserveRelease = selectReserveRelease(engineStore);
+  // 2.4.11.4c — the "bills complete" attestation affordance + the surprise-outflow walk-back notice.
+  const attestation = selectBillsAttestation(engineStore);
+  const reserveWalkback = selectReserveWalkback(engineStore);
   // 2.4.11.2 — the tight-case "move $X from savings to hold your line" one-tap (null unless tight + savings).
   const tightTopUp = selectTightTopUp(engineStore);
   // 2.4.7.8 — the income-learning nudge (premium + variable income, material change only), off the raw store.
@@ -143,6 +146,8 @@ export default function TodayScreen() {
               onTopUp={() => tightTopUp && appStore.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
               showIntro={isPremium && !store.prefs.guardianIntroSeen}
               onDismissIntro={() => appStore.getState().updatePrefs({ guardianIntroSeen: true })}
+              attestation={attestation}
+              onAttestBills={(v) => appStore.getState().setBillsAttested(v)}
             />
           </Motion>
         ) : null}
@@ -198,6 +203,18 @@ export default function TodayScreen() {
             </Text>
           </View>
           <Button label="Got it" variant="text" onPress={() => appStore.getState().acknowledgeReserveRelease()} />
+        </Card>
+      ) : null}
+
+      {reserveWalkback ? (
+        <Card tone="accent" style={styles.ack}>
+          <View style={styles.ackRow}>
+            <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
+            <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>
+              A surprise bill came up — I&apos;ve restored your safety net for now.
+            </Text>
+          </View>
+          <Button label="Got it" variant="text" onPress={() => appStore.getState().acknowledgeReserveWalkback()} />
         </Card>
       ) : null}
 

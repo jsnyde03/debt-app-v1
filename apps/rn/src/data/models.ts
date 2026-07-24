@@ -168,4 +168,11 @@ export interface DebtStore {
    *  during the hold window (`covered` = the sum). Cleared when the user dismisses the card. Optional +
    *  fallback-to-none, so older stores parse unchanged. */
   pendingReserveRelease?: { tapped: boolean; covered: number } | null;
+  /** §2.0.c safety-net attestation (2.4.11.4c): the user confirmed their regular bills are all entered, so
+   *  the Guardian holds a REDUCED discovery reserve (never skips — the floor still protects). Walked back
+   *  (reset false) if a surprise outflow later proves the bills weren't complete. Optional/backfill-safe. */
+  billsAttested?: boolean;
+  /** §2.0.c attestation walk-back (2.4.11.4c): a surprise outflow arrived after the user attested → the
+   *  hold was restored; a one-time notice. Cleared on dismiss. Optional/backfill-safe. */
+  pendingReserveWalkback?: boolean | null;
 }

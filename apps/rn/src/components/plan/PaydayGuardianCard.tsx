@@ -31,6 +31,8 @@ export function PaydayGuardianCard({
   onTopUp,
   showIntro,
   onDismissIntro,
+  attestation,
+  onAttestBills,
 }: {
   brief: GuardianBrief;
   isPremium: boolean;
@@ -38,6 +40,10 @@ export function PaydayGuardianCard({
   /** §2.10 tight-case (2.4.11.2) — the "move $X from savings to hold your line" one-tap, when available. */
   topUp?: TightTopUp | null;
   onTopUp?: () => void;
+  /** §2.0.c (2.4.11.4c) — the "bills complete" attestation affordance: shown while a discovery safety net
+   *  is held; toggling reduces / restores the reserve. */
+  attestation?: { show: boolean; attested: boolean };
+  onAttestBills?: (value: boolean) => void;
   /** 2.4.11.3 (§2.0.d/§2.1) — the one-time premium first-run intro: floor-protected-from-today +
    *  earns-trust-as-it-learns + the advice boundary. Shown once, then dismissed to `guardianIntroSeen`. */
   showIntro?: boolean;
@@ -180,6 +186,22 @@ export function PaydayGuardianCard({
                 <Button label={`Move ${money(topUp.topUp)} from savings`} variant="secondary" onPress={() => onTopUp?.()} style={styles.topUpBtn} />
               </View>
             ) : null}
+            {/* §2.0.c (2.4.11.4c) — while a discovery safety net is held, let an organized user confirm
+                their bills are all entered to hold less (a surprise walks it back). Toggle. */}
+            {attestation?.show ? (
+              <Pressable
+                onPress={() => onAttestBills?.(!attestation.attested)}
+                accessibilityRole="button"
+                accessibilityLabel={attestation.attested ? 'Bills confirmed — tap to undo and restore the safety net' : 'Confirm your regular bills are all entered to hold a smaller safety net'}
+                hitSlop={8}
+                style={styles.attest}>
+                <Text style={[textStyles.caption, { color: c.accent.primary }]}>
+                  {attestation.attested
+                    ? 'Bills confirmed — holding a smaller safety net. Undo'
+                    : "All your regular bills entered? I'll hold a smaller safety net."}
+                </Text>
+              </Pressable>
+            ) : null}
           </>
         ) : (
           <View style={styles.invite} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -254,6 +276,7 @@ const styles = StyleSheet.create({
   look: { marginTop: spacing.sm },
   topUp: { marginTop: spacing.md, gap: spacing.sm },
   topUpBtn: { alignSelf: 'stretch' },
+  attest: { marginTop: spacing.sm },
   adjust: { marginTop: spacing.md, fontWeight: '600' },
   invite: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   inviteText: { flex: 1, fontWeight: '600' },

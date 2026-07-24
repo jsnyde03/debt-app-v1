@@ -17,6 +17,9 @@
  * week-one variable user is charged the larger of the two, never both.
  */
 export const DISCOVERY_HOLDBACK_FRACTION = 0.4;
+/** §2.0.c (2.4.11.4c) — when the user attests their bills are all entered, the discovery reserve is
+ *  REDUCED (never skipped: the floor still protects + a surprise walks it back). */
+export const DISCOVERY_HOLDBACK_ATTESTED_FRACTION = 0.15;
 export const COLDSTART_HOLDBACK_FRACTION = 0.25;
 
 export interface HoldbackInput {

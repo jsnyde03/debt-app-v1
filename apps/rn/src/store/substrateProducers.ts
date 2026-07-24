@@ -73,7 +73,11 @@ export function recordCycleIncome(
  */
 export function recordSurpriseOutflow(store: DebtStore, outflow: SurpriseOutflow): DebtStore {
   if (!(outflow.amount > 0)) return store;
-  return { ...store, surpriseOutflowLog: [...store.surpriseOutflowLog, outflow] };
+  const logged = { ...store, surpriseOutflowLog: [...store.surpriseOutflowLog, outflow] };
+  // §2.0.c walk-back (2.4.11.4c): a surprise proves the bills weren't complete after all → un-attest,
+  // restore the full hold, and flag a one-time notice. Only fires if the user had attested.
+  if (store.billsAttested) return { ...logged, billsAttested: false, pendingReserveWalkback: true };
+  return logged;
 }
 
 /**

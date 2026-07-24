@@ -101,6 +101,11 @@ export interface DebtAppState {
   acknowledgeRiskCleared(): void;
   /** §2.0.c (2.4.11.4b) — dismiss the settling-in-reserve release acknowledgment. */
   acknowledgeReserveRelease(): void;
+  /** §2.0.c (2.4.11.4c) — the user attests their regular bills are all entered (true) / retracts it
+   *  (false), which reduces / restores the discovery safety-net reserve. */
+  setBillsAttested(value: boolean): void;
+  /** §2.0.c (2.4.11.4c) — dismiss the attestation walk-back notice. */
+  acknowledgeReserveWalkback(): void;
   /** §2.10 tight-case (2.4.11.2) — hold this cycle's line by moving `amount` from a savings/EF goal to
    *  checking: reduce the goal + record the top-up for the current cycle. */
   applyTightTopUp(goalId: string, amount: number): void;
@@ -386,6 +391,13 @@ export function createDebtStore() {
     acknowledgeReserveRelease() {
       // §2.0.c (2.4.11.4b): the user saw the settling-in-reserve release ack — clear it (one-time moment).
       set((s) => ({ store: { ...s.store, pendingReserveRelease: null } }));
+    },
+    setBillsAttested(value) {
+      // §2.0.c (2.4.11.4c): attesting reduces the discovery reserve; retracting restores it.
+      set((s) => ({ store: { ...s.store, billsAttested: value } }));
+    },
+    acknowledgeReserveWalkback() {
+      set((s) => ({ store: { ...s.store, pendingReserveWalkback: null } }));
     },
     applyTightTopUp(goalId, amount) {
       // §2.10 (2.4.11.2): the user moved `amount` from savings to hold this cycle's line — draw it down
