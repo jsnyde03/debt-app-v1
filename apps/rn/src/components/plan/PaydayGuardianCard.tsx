@@ -183,14 +183,9 @@ export function PaydayGuardianCard({
 
         <View style={[styles.divider, { backgroundColor: c.border.subtle }]} />
 
-        {isPremium && recovery ? (
-          // §2.6 — the shortfall card rolls up its sleeves: the built catch-up plan replaces the generic
-          // safe-move line (same voice/visual). The lookahead still follows for the next-cycle heads-up.
-          <>
-            <RecoveryPlanSection plan={recovery} onDefer={(id) => onDefer?.(id)} onKeepEssential={(id) => onKeepEssential?.(id)} />
-            {brief.lookahead ? <Text style={[textStyles.caption, styles.look, { color: c.text.tertiary }]}>{brief.lookahead}</Text> : null}
-          </>
-        ) : isPremium ? (
+        {/* READ-ONLY voice stays inside the narrated group. The INTERACTIVE controls (recovery / top-up /
+            attestation) render OUTSIDE it, below — see MF.2. */}
+        {isPremium && !recovery ? (
           <>
             {brief.safeMove ? <Text style={[textStyles.subhead, styles.move, { color: c.text.primary }]}>{brief.safeMove}</Text> : null}
             {/* 2.4.11.3 — the standing advice boundary: the decisive plan carries a light "your call"
@@ -200,40 +195,50 @@ export function PaydayGuardianCard({
               <Text style={[textStyles.caption, styles.yourCall, { color: c.text.tertiary }]}>Your call</Text>
             ) : null}
             {brief.lookahead ? <Text style={[textStyles.caption, styles.look, { color: c.text.tertiary }]}>{brief.lookahead}</Text> : null}
-            {/* §2.10 tight-case one-tap (2.4.11.2): a REAL move to hold the line — only when the user has
-                savings to tap (else the read stays the honest "rebuilds next paycheck"). */}
-            {topUp ? (
-              <View style={styles.topUp}>
-                <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-                  You have {money(topUp.available)} in {topUp.goalName} — moving {money(topUp.topUp)} over holds your line this paycheck.
-                </Text>
-                <Button label={`Move ${money(topUp.topUp)} from savings`} variant="secondary" onPress={() => onTopUp?.()} style={styles.topUpBtn} />
-              </View>
-            ) : null}
-            {/* §2.0.c (2.4.11.4c) — while a discovery safety net is held, let an organized user confirm
-                their bills are all entered to hold less (a surprise walks it back). Toggle. */}
-            {attestation?.show ? (
-              <Pressable
-                onPress={() => onAttestBills?.(!attestation.attested)}
-                accessibilityRole="button"
-                accessibilityLabel={attestation.attested ? 'Bills confirmed — tap to undo and restore the safety net' : 'Confirm your regular bills are all entered to hold a smaller safety net'}
-                hitSlop={8}
-                style={styles.attest}>
-                <Text style={[textStyles.caption, { color: c.accent.primary }]}>
-                  {attestation.attested
-                    ? 'Bills confirmed — holding a smaller safety net. Undo'
-                    : "All your regular bills entered? I'll hold a smaller safety net."}
-                </Text>
-              </Pressable>
-            ) : null}
           </>
-        ) : (
+        ) : !isPremium ? (
           <View style={styles.invite} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
             <AppIcon name="workspace-premium" size={18} color={c.accent.primary} />
             <Text style={[textStyles.subhead, styles.inviteText, { color: c.accent.primary }]}>{freeInvite}</Text>
           </View>
-        )}
+        ) : null}
       </View>
+
+      {/* MF.2 (audit #2) — the INTERACTIVE controls live OUTSIDE the `accessible` group (which collapses its
+          descendants into one VoiceOver utterance), so a screen reader reaches each as its own element,
+          exactly like the "Adjust your line" control below. Recovery / top-up / attestation are mutually
+          exclusive (different Guardian states), so at most one renders. */}
+      {isPremium && recovery ? (
+        <>
+          {/* §2.6 — the shortfall card rolls up its sleeves: the built catch-up plan, then the next-cycle heads-up. */}
+          <RecoveryPlanSection plan={recovery} onDefer={(id) => onDefer?.(id)} onKeepEssential={(id) => onKeepEssential?.(id)} />
+          {brief.lookahead ? <Text style={[textStyles.caption, styles.look, { color: c.text.tertiary }]}>{brief.lookahead}</Text> : null}
+        </>
+      ) : null}
+      {/* §2.10 tight-case one-tap (2.4.11.2): a REAL move to hold the line — only when the user has savings to tap. */}
+      {isPremium && !recovery && topUp ? (
+        <View style={styles.topUp}>
+          <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+            You have {money(topUp.available)} in {topUp.goalName} — moving {money(topUp.topUp)} over holds your line this paycheck.
+          </Text>
+          <Button label={`Move ${money(topUp.topUp)} from savings`} variant="secondary" onPress={() => onTopUp?.()} style={styles.topUpBtn} />
+        </View>
+      ) : null}
+      {/* §2.0.c (2.4.11.4c) — while a discovery safety net is held, let an organized user confirm their bills. */}
+      {isPremium && !recovery && attestation?.show ? (
+        <Pressable
+          onPress={() => onAttestBills?.(!attestation.attested)}
+          accessibilityRole="button"
+          accessibilityLabel={attestation.attested ? 'Bills confirmed — tap to undo and restore the safety net' : 'Confirm your regular bills are all entered to hold a smaller safety net'}
+          hitSlop={8}
+          style={styles.attest}>
+          <Text style={[textStyles.caption, { color: c.accent.primary }]}>
+            {attestation.attested
+              ? 'Bills confirmed — holding a smaller safety net. Undo'
+              : "All your regular bills entered? I'll hold a smaller safety net."}
+          </Text>
+        </Pressable>
+      ) : null}
 
       {/* The adjust control lives OUTSIDE the narrated group so a screen reader reaches it as its own
           button (the group's `accessible` collapses its descendants into one utterance). */}

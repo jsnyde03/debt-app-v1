@@ -30,6 +30,8 @@ test.describe('§2.6 Recovery Plan — the shortfall card builds + applies the c
     await expect(page.getByText('SAFE TO DEFER')).toBeVisible();
     await expect(page.getByText('Keep essential').first()).toBeVisible(); // the per-bill override affordance
     await expect(page.getByText(/covers your \$46 gap/)).toBeVisible(); // both suggested → gap covered
+    // MF.6: the Recovery Plan owns the shortfall — the RequiredActions "cover these" block is suppressed.
+    await expect(page.getByText(/cover these from savings or your next paycheck/)).toHaveCount(0);
   });
 
   test('applying the defers closes the gap and the card relaxes out of the shortfall', async ({ page }) => {
