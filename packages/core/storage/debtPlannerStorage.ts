@@ -22,6 +22,16 @@ export type RequiredExpense = {
 	autopayFailedThisCycle?: boolean;
 	expenseType?: "fixed" | "variable";
 	category?: RequiredExpenseCategory;
+
+	// v1.7 Smart obligation quality (2.5) — trial / intro-price modeling. A subscription that bills
+	// `amount` now (often $0 or a low intro) but JUMPS to `fullAmount` on `fullChargeDate`. Without this
+	// the Guardian projects the intro price forever and under-reserves for the real charge. All optional /
+	// backfill-safe (older blobs parse with these undefined — no migration, like `cycleTopUp`). `isTrial`
+	// is the explicit capture flag (drives the UI toggle + the heuristic); `fullAmount`/`fullChargeDate`
+	// are only meaningful when it is true.
+	isTrial?: boolean;
+	fullAmount?: number;
+	fullChargeDate?: string;
 };
 
 export type Debt = {

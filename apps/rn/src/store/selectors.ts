@@ -1,4 +1,5 @@
 import { allocatePaycheck } from '@core/engine/allocatePaycheck';
+import { resolveTrialAmounts } from '@core/obligations/effectiveObligationAmount';
 import { waterFill, type WaterFillResult } from '@core/cashflow/waterFill';
 import { COLDSTART_HOLDBACK_FRACTION, DISCOVERY_HOLDBACK_ATTESTED_FRACTION, DISCOVERY_HOLDBACK_FRACTION } from '@core/guardian/holdbackComposition';
 
@@ -50,7 +51,9 @@ function buildAllocation(store: DebtStore, prefundedReserve: number): Allocation
     currentDate: store.paycheck.currentDate,
     nextPaycheckDate: store.paycheck.nextPaycheckDate,
     strategy: store.payoffStrategy,
-    expenses: store.requiredExpenses,
+    // §2.5 trials: resolve intro→full price for the cycle each obligation's due date falls in, so the
+    // allocation (and the forecast's cycle-0 base) plans on the price that will actually be charged.
+    expenses: resolveTrialAmounts(store.requiredExpenses),
     livingExpenses: store.livingExpenses,
     debts: store.debts,
     goals: store.goals,

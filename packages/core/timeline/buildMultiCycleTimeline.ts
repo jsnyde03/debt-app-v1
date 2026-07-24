@@ -4,6 +4,7 @@ import { buildTimelineItems, type TimelineItem } from "./buildTimelineItems";
 import { computeState } from "@core/guardian/computeState";
 import type { GuardianState } from "@core/guardian/buildGuardianBrief";
 import { getNextPaycheckDate, type PayCycle } from "@core/payCycle/getNextPaycheckDate";
+import { resolveTrialAmounts } from "@core/obligations/effectiveObligationAmount";
 import { rolloverRequiredExpenses, rolloverDebts } from "@core/recurrence/rolloverPayCycle";
 import type { CompletedRecommendedAction, Debt, RequiredExpense, Goal } from "@core/storage/debtPlannerStorage";
 import type { LivingExpense } from "@core/types/livingExpense";
@@ -89,6 +90,12 @@ export function buildMultiCycleTimeline({
     projectedPaycheckAmount?: number;
 }): TimelineCycle[] {
     const cycles: TimelineCycle[] = [];
+    // §2.5 trials: price each obligation at what it will actually charge in the cycle its due date falls
+    // in (intro until the kick-in date, then full). Keyed off the obligation's own due date — which
+    // rollover advances per cycle — so a trial converts in the correct projected cycle. Resolving cycle 0
+    // here keeps its timeline items consistent with the caller's already-resolved `result`; each projected
+    // cycle re-resolves its rolled obligations below (a no-op until conversion, idempotent after).
+    const resolvedRequiredExpenses = resolveTrialAmounts(requiredExpenses);
     // Future cycles project on the recurring paycheck, never a one-time windfall folded into cycle 0.
     const recurringPaycheck = projectedPaycheckAmount ?? result.paycheckAmount;
     // The un-clamped cross-cycle running balance (2.4.D.6). Seeded at the retained floor, then each
@@ -101,7 +108,7 @@ export function buildMultiCycleTimeline({
     // Cycle 0: current cycle (result already computed by caller)
     const cycle0Items = buildTimelineItems({
         result,
-        requiredExpenses,
+        requiredExpenses: resolvedRequiredExpenses,
         debts,
         completedRecommendedActions,
         currentDate,
@@ -131,9 +138,11 @@ export function buildMultiCycleTimeline({
     // For the initial rollover, treat all in-cycle bills as paid so that recurring
     // items advance their due dates and one-time items are not carried forward.
     let projCurrentDate = nextPaycheckDate;
-    const initialPaid = markInCycleBillsAsPaid(requiredExpenses, debts, nextPaycheckDate);
-    let projExpenses = rolloverRequiredExpenses(initialPaid.expenses, nextPaycheckDate)
-        .filter((e) => e.recurrence !== "one-time" || !isPastDue(e.dueDate, nextPaycheckDate));
+    const initialPaid = markInCycleBillsAsPaid(resolvedRequiredExpenses, debts, nextPaycheckDate);
+    let projExpenses = resolveTrialAmounts(
+        rolloverRequiredExpenses(initialPaid.expenses, nextPaycheckDate)
+            .filter((e) => e.recurrence !== "one-time" || !isPastDue(e.dueDate, nextPaycheckDate)),
+    );
     // State-thread cycle 0 → 1 (2.4.7.1): reduce balances by cycle 0's min+snowball and advance funded
     // goals, so cycle 1 projects on the SHRUNK debts (a paid-off debt drops out, freeing its minimum).
     let projDebts = rolloverDebts(stateThreadDebts(initialPaid.debts, result, payCycleConfig.payCycle), nextPaycheckDate)
@@ -200,8 +209,10 @@ export function buildMultiCycleTimeline({
         // advances their due dates correctly and the same bill doesn't appear in every
         // subsequent cycle.
         const paidForRollover = markInCycleBillsAsPaid(projExpenses, projDebts, projNextDate);
-        projExpenses = rolloverRequiredExpenses(paidForRollover.expenses, projNextDate)
-            .filter((e) => e.recurrence !== "one-time" || !isPastDue(e.dueDate, projNextDate));
+        projExpenses = resolveTrialAmounts(
+            rolloverRequiredExpenses(paidForRollover.expenses, projNextDate)
+                .filter((e) => e.recurrence !== "one-time" || !isPastDue(e.dueDate, projNextDate)),
+        );
         // State-thread (2.4.7.1): apply this cycle's min+snowball to balances + advance funded goals
         // before rolling, so the next cycle sees shrunk debts and a retired debt frees its minimum.
         projDebts = rolloverDebts(stateThreadDebts(paidForRollover.debts, projResult, payCycleConfig.payCycle), projNextDate)
