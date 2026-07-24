@@ -415,7 +415,7 @@ function BillsSection() {
         renderItem={({ item }) => (
           <ListRow
             title={item.name}
-            meta={`Due ${shortDate(item.dueDate)} · ${item.recurrence}${item.expenseType === 'variable' ? ' · Variable' : ''}`}
+            meta={`Due ${shortDate(item.dueDate)} · ${item.recurrence}${item.expenseType === 'variable' ? ' · Variable' : ''}${item.isTrial && item.fullChargeDate ? ` · Trial → ${formatCurrency(item.fullAmount ?? 0)} ${shortDate(item.fullChargeDate)}` : ''}`}
             amount={formatCurrency(item.amount)}
             badges={item.isAutopay ? <Pill label="Autopay" tone="autopay" /> : undefined}
             onPress={() => setSheet({ editing: item })}
