@@ -8,7 +8,7 @@ import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
 
 import { selectExtraToDebt } from './planSelectors';
 import { rankDebts } from './payoffSelectors';
-import { selectAllocation, type Allocation } from './selectors';
+import { selectAllocation, selectSteadyStateAllocation, type Allocation } from './selectors';
 
 export type { AmortizationSchedule, ExtraPaymentAllocationItem };
 
@@ -43,7 +43,12 @@ function derivePlanBasis(store: DebtStore): PlanBasis {
   const liveDebts = store.debts.filter((d) => d.balance > 0);
   const allocation = selectAllocation(store);
   const perCycleExtra = allocation ? selectExtraToDebt(allocation) : 0;
-  const monthlyExtra = perCycleExtra * payCyclesPerMonth(store.paycheck.payCycle);
+  // MF.4 (completed in round-2): month-stepped PROJECTIONS (What-If baseline, trajectory, amortization)
+  // run on the STEADY-STATE deploy — same as the Payoff tab — so a cold-start discovery hold isn't
+  // extrapolated across years and the What-If baseline date matches the Payoff endpoint. `perCycleExtra`
+  // / `projectedBuffer` stay on the dampened allocation (they're this-cycle figures).
+  const steady = selectSteadyStateAllocation(store);
+  const monthlyExtra = (steady ? selectExtraToDebt(steady) : 0) * payCyclesPerMonth(store.paycheck.payCycle);
   const projectedBuffer = perCycleExtra - (allocation?.shortfall ?? 0);
   return {
     liveDebts,

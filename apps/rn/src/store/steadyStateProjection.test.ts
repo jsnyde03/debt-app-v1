@@ -1,6 +1,8 @@
+import { selectWhatIf } from '@/store/analysisSelectors';
 import { createDefaultStore } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
 import { selectExtraToDebt, selectDebtFreeDate } from '@/store/planSelectors';
+import { selectPayoffView } from '@/store/payoffSelectors';
 import { selectAllocation, selectSteadyStateAllocation } from '@/store/selectors';
 
 /**
@@ -53,6 +55,16 @@ function run() {
   // extra-to-debt monotonically means an EARLIER payoff, the steady > dampened result above guarantees the
   // date is no later than the old dampened extrapolation (no separate re-projection needed).
   assert(selectDebtFreeDate(store, dampened) !== null, 'a debt-free date is projected off the steady-state deploy');
+
+  // Round-2 (audit NEW-1/NEW-2): every long-horizon projection surface agrees on the debt-free date at
+  // cold-start — the Payoff tab, the What-If baseline (no extra), and the frozen drift baseline all run on
+  // the steady-state deploy. Previously What-If read the dampened extra → a later baseline than the Payoff tab.
+  {
+    const payoffDate = selectPayoffView(store).debtFreeDate;
+    const whatIfBaseline = selectWhatIf(store, 0).baselineDate;
+    assert(payoffDate !== null && whatIfBaseline !== null, 'both projection surfaces produce a date');
+    assert(payoffDate === whatIfBaseline, `What-If baseline date matches the Payoff date at cold-start (${whatIfBaseline} === ${payoffDate})`);
+  }
 
   // An established premium user (no discovery hold) → steady ≈ dampened (nothing temporary to strip).
   const established = coldStartPremium({ genuineCycleCount: 6 });

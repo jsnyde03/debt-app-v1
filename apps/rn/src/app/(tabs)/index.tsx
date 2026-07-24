@@ -170,7 +170,7 @@ export default function TodayScreen() {
         ) : null}
         <Motion delay={90}>
           {/* MF.6 (audit #7) — when the premium Recovery Plan is showing, IT owns the shortfall; suppress
-              the RequiredActions "Short this cycle — cover these" block so the two don't duplicate/compete. */}
+              the RequiredActions "Short this paycheck — cover these" block so the two don't duplicate/compete. */}
           <RequiredActionsCard rows={requiredRows} unfunded={recovery ? [] : (allocation.unfundedRequiredItems ?? [])} onMark={handleMark} currentDate={store.paycheck.currentDate} />
         </Motion>
         <Motion delay={180}>

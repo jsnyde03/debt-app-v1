@@ -227,7 +227,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   // MF.3 (audit #4): a shortfall is the honest crisis read for BOTH tiers — free is told it won't cover
   // everything AND the amount short; only the built recovery PLAN (the safe move + the card's defer flow)
   // is premium. Previously the free branch returned FIRST and softened a real shortfall to "a bit tight",
-  // hiding the shortfall behind the paywall while the tier-agnostic hero already said "Short this cycle".
+  // hiding the shortfall behind the paywall while the tier-agnostic hero already said "Short this paycheck".
   if (shortfall > 0) {
     return {
       state,

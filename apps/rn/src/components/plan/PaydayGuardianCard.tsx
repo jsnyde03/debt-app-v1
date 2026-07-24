@@ -85,7 +85,7 @@ export function PaydayGuardianCard({
   // not "cushion at your line" (there's no cushion to hold when you're short — that pitch reads off-context).
   const freeInvite =
     (brief.shortfall ?? 0) > 0
-      ? "Premium builds you a catch-up plan — what to cover now, what's safe to move to next paycheck."
+      ? 'Premium builds you a catch-up plan — what to cover first, and what (if anything) can safely wait.'
       : 'Premium keeps your cushion at your line automatically, all on your device — no deciding each paycheck.';
 
   return (
@@ -117,8 +117,11 @@ export function PaydayGuardianCard({
           'Payday Guardian',
           brief.title,
           brief.detail,
-          isPremium ? brief.safeMove : freeInvite,
-          isPremium ? brief.lookahead : undefined,
+          // MF.2 round-2: in recovery mode the visible safeMove is replaced by the (out-of-group) recovery
+          // section and the lookahead renders as its own Text below — so drop both from the narrated label
+          // here, else VoiceOver speaks a phantom safeMove + a double lookahead.
+          isPremium ? (recovery ? undefined : brief.safeMove) : freeInvite,
+          isPremium && !recovery ? brief.lookahead : undefined,
         )}>
         <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>PAYDAY GUARDIAN</Text>
 
@@ -224,8 +227,10 @@ export function PaydayGuardianCard({
           <Button label={`Move ${money(topUp.topUp)} from savings`} variant="secondary" onPress={() => onTopUp?.()} style={styles.topUpBtn} />
         </View>
       ) : null}
-      {/* §2.0.c (2.4.11.4c) — while a discovery safety net is held, let an organized user confirm their bills. */}
-      {isPremium && !recovery && attestation?.show ? (
+      {/* §2.0.c (2.4.11.4c) — while a discovery safety net is held, let an organized user confirm their bills.
+          MF.2 round-2: gated behind `!topUp` so at most one of recovery/top-up/attestation ever renders (a
+          cold-start tight cycle can satisfy both top-up + attestation; the urgent line-holding move wins). */}
+      {isPremium && !recovery && !topUp && attestation?.show ? (
         <Pressable
           onPress={() => onAttestBills?.(!attestation.attested)}
           accessibilityRole="button"

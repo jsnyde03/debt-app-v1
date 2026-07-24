@@ -5,7 +5,7 @@ import { todayLocalISO } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
 
 import { selectDebtFreeDate, selectExtraToDebt } from './planSelectors';
-import { selectAllocation } from './selectors';
+import { selectAllocation, selectSteadyStateAllocation } from './selectors';
 
 /**
  * Record / re-anchor the Drift Tracker baseline (v1.7 Phase C.4.2). Recording MUST start in v1.7 —
@@ -29,7 +29,13 @@ export function recordDriftBaseline(store: DebtStore, source: 'user' | 'learning
   if (!hasPlan) return store;
 
   const allocation = selectAllocation(store);
-  const monthlyExtra = allocation ? selectExtraToDebt(allocation) * payCyclesPerMonth(store.paycheck.payCycle) : 0;
+  // MF.4 (completed in round-2): the frozen baseline's trajectory + its `monthlyExtra` + its headline
+  // `projectedDebtFreeDate` (which selectDebtFreeDate now computes STEADY) must all agree, so this uses
+  // the steady-state deploy too. Without it the frozen curve bottomed out LATER than its own headline
+  // date (a cold-start desync the MF.4 date-change introduced), and shouldReAnchor keyed off a dampened
+  // extra that drifts as the cold-start hold releases (a spurious re-anchor).
+  const steady = selectSteadyStateAllocation(store);
+  const monthlyExtra = steady ? selectExtraToDebt(steady) * payCyclesPerMonth(store.paycheck.payCycle) : 0;
 
   // debtCount = the plan's debt array length (add/remove signal), so paying a debt to $0 doesn't re-anchor.
   if (!shouldReAnchor(store.driftBaseline, { debtCount: store.debts.length, monthlyExtraPayment: monthlyExtra, payoffStrategy: store.payoffStrategy })) {

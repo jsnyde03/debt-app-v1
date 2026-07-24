@@ -123,7 +123,7 @@ export function RecoveryPlanSection({
           {/* MF.1 (audit #1) — deferring only reschedules the bill in YOUR plan; it can't stop the biller.
               (Autopay bills are excluded from the list, but a manual bill still needs a real action.) */}
           <Text style={[textStyles.caption, styles.disclaimer, { color: c.text.tertiary }]}>
-            This reschedules the payment in your plan — remember to actually pay it late with the biller.
+            This reschedules the payment in your plan — remember to handle it with the biller (pay it late, or cancel it).
           </Text>
         </>
       ) : null}
