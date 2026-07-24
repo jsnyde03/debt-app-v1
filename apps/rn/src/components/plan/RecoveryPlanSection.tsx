@@ -108,7 +108,7 @@ export function RecoveryPlanSection({
           : covered
             ? `Deferring ${count === 1 ? 'this' : `these ${count}`} covers your ${money(plan.gap)} gap.`
             : !plan.closeable && allChecked
-              ? `Even deferring everything, you're ${money(remaining)} short this cycle — adding income helps most.`
+              ? `Even deferring everything, you're ${money(remaining)} short this paycheck — adding income helps most.`
               : `Still ${money(remaining)} short — pick more to defer, or add income.`}
       </Text>
 

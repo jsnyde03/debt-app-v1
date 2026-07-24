@@ -236,7 +236,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
         debtFree ? "bills" : "bills and minimums"
       } due before your next paycheck${isPremium ? " — this one needs a plan." : "."}`,
       safeMove: isPremium
-        ? `Cover the essentials first — housing, utilities, food. Extra ${deployNoun} is paused, and any income you can add this cycle helps the most.`
+        ? `Cover the essentials first — housing, utilities, food. Extra ${deployNoun} is paused, and any income you can add this paycheck helps the most.`
         : undefined,
       lookahead: isPremium ? look : undefined,
       shortfall,
@@ -272,7 +272,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
         detail: `You're covered this paycheck — ${amt(discretionary)} after everything required, ${
           state === "at-risk" ? "under" : "a little under"
         } your ${amt(floor)} line, so I'm holding all of it as your cushion.`,
-        safeMove: `Nothing extra goes out this cycle — your cushion rebuilds next paycheck.`,
+        safeMove: `Nothing extra goes out this paycheck — your cushion rebuilds next paycheck.`,
         lookahead: look,
         ...viz,
       },
@@ -286,7 +286,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       state,
       title: "Your line's held",
       detail: `You moved some savings over to hold your cushion right at your ${amt(floor)} line this paycheck — a tight one, but covered.`,
-      safeMove: "Nothing extra goes out this cycle, and your emergency fund tops back up as your cushion rebuilds.",
+      safeMove: "Nothing extra goes out this paycheck, and your emergency fund tops back up as your cushion rebuilds.",
       lookahead: look,
       ...viz,
     };

@@ -414,7 +414,10 @@ export function allocatePaycheck({
 			remaining = roundMoney(remaining - prefunded);
 		}
 		if (uncertainty > 0) {
-			allocations.push({ label: "Settling-in reserve", amount: uncertainty, category: "discovery_holdback" });
+			// MF.7 — "Safety net" (the user-facing term) is honest for BOTH the temporary cold-start reserve
+			// AND the permanent variable-bill buffer that composes into this bucket; "Settling-in" mislabeled
+			// the latter once discovery decayed.
+			allocations.push({ label: "Safety net", amount: uncertainty, category: "discovery_holdback" });
 			remaining = roundMoney(remaining - uncertainty);
 		}
 	}

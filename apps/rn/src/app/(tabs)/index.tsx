@@ -241,14 +241,16 @@ export default function TodayScreen() {
               {trialConversion.cadence}. Keeping it?
             </Text>
           </View>
+          {/* MF.7 — one clean action row: the primary keep + two tertiary text links (no loose full-width
+              "Not now" hanging below). */}
           <View style={styles.ackActions}>
             <Button
               label="Keep it"
               onPress={() => appStore.getState().updateExpense(trialConversion.id, { amount: trialConversion.fullAmount, isTrial: false, fullAmount: undefined, fullChargeDate: undefined })}
             />
             <Button label="I cancelled it" variant="text" onPress={() => appStore.getState().removeExpense(trialConversion.id)} />
+            <Button label="Not now" variant="text" onPress={() => setDismissedTrials((d) => [...d, trialConversion.id])} />
           </View>
-          <Button label="Not now" variant="text" onPress={() => setDismissedTrials((d) => [...d, trialConversion.id])} />
         </Card>
       ) : null}
 

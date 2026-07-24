@@ -52,7 +52,7 @@ export function RecommendedActionsCard({
         <Row
           key={a.key}
           label={a.label}
-          meta="Suggested for this cycle"
+          meta="Suggested this paycheck"
           amount={a.actualAmount}
           focus={i === 0}
           control={<CheckCircle checked={false} tone="accent" onPress={() => onToggle(toCompleted(a), true)} label={verb(a.category)} />}
@@ -64,7 +64,7 @@ export function RecommendedActionsCard({
         <Row
           key={`c-${a.category}-${a.targetId}-${i}`}
           label={a.label}
-          meta={a.paymentSource === 'external' ? 'Completed with outside money' : 'Completed this cycle'}
+          meta={a.paymentSource === 'external' ? 'Completed with outside money' : 'Completed this paycheck'}
           amount={a.actualAmount}
           done
           control={<CheckCircle checked tone="accent" onPress={() => onToggle(a, false)} label="Undo" />}

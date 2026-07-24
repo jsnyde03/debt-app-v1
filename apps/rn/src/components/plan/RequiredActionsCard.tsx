@@ -118,7 +118,7 @@ export function RequiredActionsCard({
       {unfunded.length > 0 ? (
         <View style={[styles.unfunded, { borderTopColor: c.border.subtle }]}>
           <Text style={[textStyles.caption, styles.unfundedNote, { color: c.accent.warning }]}>
-            Short this cycle — cover these from savings or your next paycheck.
+            Short this paycheck — cover these from savings or your next paycheck.
           </Text>
           {unfunded.map((u, i) => (
             <View key={`unf-${i}`} style={styles.unfundedRow}>

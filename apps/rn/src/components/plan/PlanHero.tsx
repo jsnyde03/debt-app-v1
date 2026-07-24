@@ -92,7 +92,7 @@ export function PlanHero({
     summary.status === 'overdue'
       ? 'Overdue payments need attention'
       : summary.status === 'short'
-        ? 'Short this cycle'
+        ? 'Short this paycheck'
         : 'On track';
   const reassurance = summary.debtFreeDate ? `${statusLabel} · debt-free by ${summary.debtFreeDate}` : statusLabel;
 
@@ -173,11 +173,11 @@ export function PlanHero({
         <Pressable
           onPress={onAddWindfall}
           accessibilityRole="button"
-          accessibilityLabel={windfall > 0 ? `Extra income ${money0(windfall)} this cycle, edit` : 'Add extra income'}
+          accessibilityLabel={windfall > 0 ? `Extra income ${money0(windfall)} this paycheck, edit` : 'Add extra income'}
           style={styles.windfallRow}>
           <AppIcon name="add-circle-outline" size={15} color={windfall > 0 ? s.goldPill : s.heroSub} />
           <Text style={[textStyles.caption, { color: windfall > 0 ? s.goldPill : s.heroSub, fontWeight: windfall > 0 ? '700' : '400' }]}>
-            {windfall > 0 ? `${money0(windfall)} extra this cycle` : 'Add extra income'}
+            {windfall > 0 ? `${money0(windfall)} extra this paycheck` : 'Add extra income'}
           </Text>
         </Pressable>
       ) : null}
