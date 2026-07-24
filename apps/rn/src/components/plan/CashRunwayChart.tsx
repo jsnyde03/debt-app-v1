@@ -126,9 +126,6 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
               selected={{ x: points[sel].x, y: points[sel].y }}
               palette={palette}
             />
-            <Text style={[textStyles.caption, styles.floorLabel, { top: floorY - 15, color: c.text.tertiary }]}>
-              your ${formatWhole(floor).replace('$', '')} line
-            </Text>
             {cycles.map((_, i) => (
               <Pressable
                 key={i}
@@ -145,6 +142,12 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
             ))}
           </>
         ) : null}
+      </View>
+
+      {/* Floor-line legend — out of the plot, so it can never overlap the runway. */}
+      <View style={styles.legendRow}>
+        <View style={[styles.dashSwatch, { borderColor: c.text.tertiary }]} />
+        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>your ${formatWhole(floor).replace('$', '')} line</Text>
       </View>
 
       {/* The premium action, when there's a real one: hold this from THIS paycheck for a looming crunch. */}
@@ -192,7 +195,8 @@ function DetailRow({ label, value, color, valueColor, bold }: { label: string; v
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: spacing.xs },
   eyebrow: { textTransform: 'uppercase', letterSpacing: 0.8, fontWeight: '700' },
-  floorLabel: { position: 'absolute', right: PAD.r, textAlign: 'right', fontSize: 10 },
+  legendRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
+  dashSwatch: { width: 14, height: 0, borderTopWidth: 1.5, borderStyle: 'dashed' },
   xLabel: { position: 'absolute', width: 48, textAlign: 'center', fontSize: 10 },
   tapCol: { position: 'absolute', top: 0 },
   holdRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md, padding: spacing.sm, borderRadius: 10 },
