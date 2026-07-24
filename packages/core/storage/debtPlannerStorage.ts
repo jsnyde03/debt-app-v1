@@ -32,6 +32,11 @@ export type RequiredExpense = {
 	isTrial?: boolean;
 	fullAmount?: number;
 	fullChargeDate?: string;
+
+	// v1.7 Recovery Plan (2.6) — the user's per-bill essential-vs-deferrable OVERRIDE. Absent → the
+	// Recovery engine derives it from `category` (classifyDeferability). Only set when the user flips a
+	// bill in the Recovery card, so it always wins over the category default. Optional / backfill-safe.
+	deferability?: "essential" | "deferrable";
 };
 
 export type Debt = {

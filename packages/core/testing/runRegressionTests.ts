@@ -25,6 +25,7 @@ import "../cashflow/testDetectCrunches";
 import "../cashflow/testWaterFill";
 import "../income/testSuggestLean";
 import "../obligations/testEffectiveObligationAmount";
+import "../obligations/testClassifyDeferability";
 import "../debt/testParseDebtFormValues";
 import "@/lib/storage/testMigrateOriginalBalance";
 import "@core/recurrence/testRolloverDueDates";
