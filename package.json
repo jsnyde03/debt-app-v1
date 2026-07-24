@@ -13,9 +13,10 @@
     "test:e2e:rn": "playwright test --config apps/rn/playwright.config.ts",
     "e2e:fresh": "node scripts/e2e-fresh.cjs",
     "test:app": "npm --prefix apps/rn run test:app",
-    "test:all": "npm run test:regression && npm run test:app",
+    "test:scenarios": "npm --prefix apps/rn run test:scenarios",
+    "test:all": "npm run test:regression && npm run test:app && npm run test:scenarios",
     "lint:rn": "npm --prefix apps/rn run lint",
-    "validate:release:rn": "npm run lint:rn && npm run test:regression && npm run test:app && npm run test:e2e:rn",
+    "validate:release:rn": "npm run lint:rn && npm run test:regression && npm run test:app && npm run test:scenarios && npm run test:e2e:rn",
     "validate:release": "npm run validate:release:rn",
     "validate:release:legacy": "npm run lint && npm run test:regression && npm run test:app && npm run test:e2e",
     "test:regression": "tsx packages/core/testing/runRegressionTests"
