@@ -26,7 +26,12 @@ async function main() {
   // top-up · risk-notified · floor clamp · migration/import path), with break-it inputs.
   await import('../store/storeActions.test');
 
-  // (RS.4+ app-layer suites are appended here as they land.)
+  // RS.5 — persistence + migration lifecycle (first-launch seed · clean/upgrade hydrate · corrupt →
+  // quarantine → fresh · malformed-nested · save · migration structural edges). ASYNC → default-exports
+  // its runner (the store lifecycle is async; top-level await is unavailable under the cjs transform).
+  await (await import('../store/persistenceLifecycle.test')).default();
+
+  // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');
 }
