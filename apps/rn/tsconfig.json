@@ -11,5 +11,7 @@
   // Exclude ./core (the packages/core link): the shared core is typechecked by the
   // Capacitor app, where its interim @/lib backward-deps resolve. apps/rn typechecks
   // its OWN @core + @/ usage via the path aliases above.
-  "exclude": ["core", "node_modules", "dist", ".expo"]
+  // Exclude the Playwright e2e harness (config + specs): it's node/@playwright code that Playwright
+  // compiles itself (own tsconfig + node globals), not part of the RN app's type surface.
+  "exclude": ["core", "node_modules", "dist", ".expo", "playwright.config.ts", "tests"]
 }
