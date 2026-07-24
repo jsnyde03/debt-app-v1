@@ -17,7 +17,7 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
     await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
     await expect(page.getByText('Looks clear this paycheck')).toBeVisible();
     await expect(page.getByText('To debt')).toBeVisible(); // premium deploys the spare → the payoff stat
-    await expect(page.getByText('Your line', { exact: true })).toBeVisible(); // the floor stat (exact: not "Adjust your line →")
+    await expect(page.getByText('· Your line')).toBeVisible(); // the floor sub-line ("$200 · Your line"), 2.4.11.4b.0
     await expect(page.getByText('Adjust your line →')).toBeVisible(); // premium-only floor control is wired
   });
 
@@ -70,5 +70,35 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
     await page.goto('/');
     // The app still boots to Today; the Guardian card is simply absent (no crash, no empty shell).
     await expect(page.getByText('PAYDAY GUARDIAN')).toHaveCount(0);
+  });
+
+  // ── 2.4.11.6 — the remaining Guardian STATES fold onto the harness (missed / stale / debt-free / at-risk) ──
+  test('premium · at-risk: "Very tight this paycheck"', async ({ page }) => {
+    await seedStore(page, scenario({ requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 1870, dueDate: '2026-07-01', recurrence: 'monthly' }] }));
+    await page.goto('/');
+    await expect(page.getByText('Very tight this paycheck')).toBeVisible();
+  });
+
+  test('premium · missed paycheck (paused deploy): "A paycheck didn\'t land"', async ({ page }) => {
+    await seedStore(page, scenario({ paycheck: { amount: '2000', payCycle: 'biweekly', nextPaycheckDate: '2026-08-07' }, missedArrivals: ['2026-08-07'] }));
+    await page.goto('/');
+    await expect(page.getByText("A paycheck didn't land")).toBeVisible();
+  });
+
+  test('premium · stale inputs: "Let\'s refresh your numbers"', async ({ page }) => {
+    await seedStore(page, scenario({ inputsAsOf: '2026-05-01' })); // > 45 days before "today" → stale cutoff
+    await page.goto('/');
+    await expect(page.getByText("Let's refresh your numbers")).toBeVisible();
+  });
+
+  test('premium · debt-free: the Guardian persists, framed to savings', async ({ page }) => {
+    // A paid-off debt (balance 0) → debt-free, but the entity keeps the plan/timeline intact.
+    await seedStore(page, scenario({
+      debts: [{ id: 'd0', name: 'Card', balance: 0, minimumPayment: 100, apr: 20, dueDate: '2026-07-01', type: 'debt', recurrence: 'monthly' }],
+      goals: [{ id: 'ef', name: 'Emergency Fund', type: 'emergency', currentAmount: 1000, targetAmount: 5000 }],
+    }));
+    await page.goto('/');
+    await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
+    await expect(page.getByText('To savings')).toBeVisible(); // spare re-targeted to savings, never "To debt"
   });
 });
