@@ -10,7 +10,7 @@
 
 - **Active build:** **2.4.11.4b.0** — condense the cushion-bar legend + key the "set aside" swatch (Jason flagged the chart). 2.4.11.4a (two-sided safe move) ✅ done.
 - **Phase:** 2 (Premium substance + revenue spine). The Guardian is the headline; **2.4.1–2.4.10 shipped**, 2.4.11 in progress.
-- **Then:** finish 2.4.11.4 (4b.0 legend → 4b reserve release → 4c attestation/walk-back → 4d valley band) → 2.4.11.6 verify → 2.5 (obligation heuristic) → **2.6 Recovery Plan** (top differentiator) → **Guardian convergence audit** (gate) → 2.7–2.11 → Phase 3 (delight) → **Phase 3.5 (interactive tutorial + demo showcase)** → 4 / 5 / 5.5 / 6.
+- **Then:** finish 2.4.11.4 (4b.0 legend → 4b reserve release → 4c attestation/walk-back → 4d valley band) → 2.4.11.6 verify → 2.5 (obligation heuristic) → **2.6 Recovery Plan** (top differentiator) → **Guardian convergence audit** (gate) → 2.7–2.11 → **Premium-framework audit** (Phase-2 close) → Phase 3 (delight) → **Phase 3.5 (tutorial + demo)** → **whole-app cohesion audit** → 4 / 5 / 5.5 / 6. _(3 audit gates: Guardian@2.6 · Premium-framework@Phase-2-close · whole-app-cohesion@after-3.5.)_
 - **⚠️ Launch gating:** v1.7 ships as ONE release — nothing launches until Phase 6 is done + Jason is satisfied. The whole Elevation (through Phase 6) is the release.
 - **Quality gate:** `validate:release:rn` (`lint:rn` + `test:regression` + `test:app` + `test:e2e:rn`) — **green across the board.** The "break-it" regression baseline (RS.1–7) is ✅ complete.
 
@@ -88,6 +88,7 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 - [ ] **2.9 Widget + App Intents + Live Activity** — payoff-countdown Live Activity + interactive-widget App Intents (mark-paid / log-paycheck). One native build (with Phase-6 device work).
 - [ ] **2.10 Revenue spine** — RevenueCat + paywall (port Gig) + Lifetime 2nd offer + portfolio-sub seam + analytics + Sentry. **[DECISION before any StoreKit SKU]:** guarantee window/terms (default to honest "not charged until day 30" if StoreKit can't honor a refund) · Lifetime scope · pin annual + Lifetime prices. "Watches every paycheck" copy gated on 2.4.10. Launch-flip gated on value shipped.
 - [ ] **2.11 E2EE iCloud backup + AU/NZ** — verify the ADP-status API exists or fall back to "encrypted iCloud backup" wording (backup ≠ sync; multi-device sync deferred).
+- [ ] **⭐ [AUDIT GATE] Premium-framework audit — after Phase 2 complete (all of 2.1–2.11) (Jason 2026-07-24).** Adversarially review the ENTIRE Premium framework (not just Guardian) → a verdict: the automation identity · the 4-tier ladder · the free/premium line across EVERY feature · pricing / paywall / guarantee · the moat & positioning · does the whole tier cohere and justify the price. The superset of the Guardian convergence audit (which is scoped to Guardian at 2.6). Flagship adversarial method — rotated lenses, consensus = the verdict.
 
 ### Future premium features (post-Guardian; scope into v1.7 vs v1.7.x/v1.8 with Jason)
 - **① Can-I-Afford-This? (the inverse Guardian)** — re-solve the cycle for a one-off expense; survives debt=$0. *Top net-new pick.*
@@ -107,9 +108,7 @@ The emotional layer built *with* the features; restraint on daily surfaces, deli
 - **What-If full-impact explorer** — propagate the extra through the whole model, month by month (substantial; likely its own slice / v1.8).
 - **History per-cycle detail drilldown** (v1.8 candidate).
 - **Entrance-motion revisit** — decide the `<Motion>` FadeInDown language once, apply consistently (or drop on calm surfaces).
-- **Genuinely-native iPad** — per-screen re-layout (multi-column / master-detail), not a centered phone column.
-
-## Phase 3.5 — Guardian interactive tutorial + demo showcase _(Jason 2026-07-24 — AFTER the Guardian is polished + final, never before)_
+- **Genuinely-native iPad** — per-screen re-layout (multi-column / master-detail), not a centered phone column. _(Jason 2026-07-24 — AFTER the Guardian is polished + final, never before)_
 
 Both the interactive tutorial and the marketing/demo showcase live here: they share the same **sandboxed, scriptable Guardian substrate** and must run on the FINAL polished Guardian, so building either on a still-moving Guardian (2.4.11.x · Recovery · convergence audit · Phase-3 interactivity) is double work.
 
@@ -119,6 +118,10 @@ Both the interactive tutorial and the marketing/demo showcase live here: they sh
 - **Rough decomposition:** stepped-flow scaffold + replay entry points → shared sandbox substrate (isolated, scriptable states) → interactive bar (tap-to-reveal) → interactive "your line" slider (live re-plan) → interactive reserve lifecycle (surprise→absorb→release) → safe-move/your-call + wrap → copy + both-theme + a11y verify.
 
 **(B) Bounded demo showcase (moved here from 2.4.11.5) —** a **distinct cold-start-bounded premium showcase** on the shared sandbox (§3.6, launch-critical for GTM/ASO): day-one value only (floor auto-protect + tight one-tap + a visible water-fill smoothing of a lumpy bill), scorecard shown as "here's what I'll show once I learn your income," reserves HELD (not deployed) — NOT a matured Guardian the month-one buyer can't be. Isolated (never feeds real calibration / `genuineCycleCount`). Plus a free at-risk showcase state. The interactive demo is essentially a scripted run of the tutorial.
+
+## Whole-app cohesion audit _(AUDIT GATE — after Phase 3.5, Jason 2026-07-24)_
+
+- [ ] The same adversarial rigor for the ENTIRE APP up to this point (Phases 0–3.5: every surface + premium + delight/native + the tutorial & demo), with an added **PURE-EVALUATION / COHESION** criterion: evaluate every element and ensure the whole app works TOGETHER, never in isolation — does the Today hero cohere with the Guardian below it? do they make sense side by side? cross-surface consistency (voice · visual · motion · numbers) app-wide. Placed AFTER 3.5 so the tutorial + demo are in scope. Output triaged must-fix vs later, folded before the release gate.
 
 ## Phase 4 — Quality
 
