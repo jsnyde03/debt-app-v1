@@ -6,8 +6,10 @@ import { Card } from '@/components/ui/Card';
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { CushionBarCanvas } from '@/components/plan/CushionBarCanvas';
 import { CushionFloorSheet } from '@/components/plan/CushionFloorSheet';
+import { RecoveryPlanSection } from '@/components/plan/RecoveryPlanSection';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { GuardianBrief, GuardianState, TightTopUp } from '@/store/guardianSelectors';
+import type { RecoveryPlan } from '@/store/recoverySelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { groupLabel } from '@/utils/a11y';
@@ -33,10 +35,18 @@ export function PaydayGuardianCard({
   onDismissIntro,
   attestation,
   onAttestBills,
+  recovery,
+  onDefer,
+  onKeepEssential,
 }: {
   brief: GuardianBrief;
   isPremium: boolean;
   onSeeForecast?: () => void;
+  /** §2.6 Recovery — the built catch-up plan when this cycle is short (premium). Null otherwise; when
+   *  present it replaces the generic safe-move line with the interactive cover-now/defer plan. */
+  recovery?: RecoveryPlan | null;
+  onDefer?: (id: string) => void;
+  onKeepEssential?: (id: string) => void;
   /** §2.10 tight-case (2.4.11.2) — the "move $X from savings to hold your line" one-tap, when available. */
   topUp?: TightTopUp | null;
   onTopUp?: () => void;
@@ -166,7 +176,14 @@ export function PaydayGuardianCard({
 
         <View style={[styles.divider, { backgroundColor: c.border.subtle }]} />
 
-        {isPremium ? (
+        {isPremium && recovery ? (
+          // §2.6 — the shortfall card rolls up its sleeves: the built catch-up plan replaces the generic
+          // safe-move line (same voice/visual). The lookahead still follows for the next-cycle heads-up.
+          <>
+            <RecoveryPlanSection plan={recovery} onDefer={(id) => onDefer?.(id)} onKeepEssential={(id) => onKeepEssential?.(id)} />
+            {brief.lookahead ? <Text style={[textStyles.caption, styles.look, { color: c.text.tertiary }]}>{brief.lookahead}</Text> : null}
+          </>
+        ) : isPremium ? (
           <>
             {brief.safeMove ? <Text style={[textStyles.subhead, styles.move, { color: c.text.primary }]}>{brief.safeMove}</Text> : null}
             {/* 2.4.11.3 — the standing advice boundary: the decisive plan carries a light "your call"

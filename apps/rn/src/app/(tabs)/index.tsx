@@ -26,6 +26,7 @@ import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
 import { selectBillsAttestation, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
+import { selectRecoveryPlan } from '@/store/recoverySelectors';
 import { selectLeanSuggestion } from '@/store/incomeLearning';
 import {
   selectPlanState,
@@ -65,6 +66,9 @@ export default function TodayScreen() {
   const summary = allocation ? selectPlanSummary(engineStore, allocation, requiredRows) : null;
   // 2.4 — the Payday Cushion Guardian for this paycheck (off the projected cushion for premium).
   const guardian = selectPaydayGuardian(engineStore);
+  // 2.6 — the built catch-up plan when this cycle is short (premium acting; free sees the honest read +
+  // invite). Null unless there's a shortfall, so it only shows on the trouble states it's meant for.
+  const recovery = isPremium ? selectRecoveryPlan(engineStore) : null;
   // 2.4.10.2 — a risk heads-up went out for this cycle but the read reconciled to clear → acknowledge it.
   const riskCleared = selectRiskAcknowledgment(engineStore);
   // 2.4.11.4b — the safety net just freed (held → free): a one-time insurance-framed ack.
@@ -153,6 +157,9 @@ export default function TodayScreen() {
               onDismissIntro={() => appStore.getState().updatePrefs({ guardianIntroSeen: true })}
               attestation={attestation}
               onAttestBills={(v) => appStore.getState().setBillsAttested(v)}
+              recovery={recovery}
+              onDefer={(id) => appStore.getState().deferExpense(id)}
+              onKeepEssential={(id) => appStore.getState().updateExpense(id, { deferability: 'essential' })}
             />
           </Motion>
         ) : null}
