@@ -1,4 +1,4 @@
-import { applyCapture, applyRollover } from '@/store/payday';
+import { applyCapture } from '@/store/payday';
 
 import { createDefaultStore } from '@/data/defaults';
 import { runMigrations } from '@/data/migrations';

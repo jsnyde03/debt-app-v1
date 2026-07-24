@@ -14,7 +14,9 @@
     "e2e:fresh": "node scripts/e2e-fresh.cjs",
     "test:app": "npm --prefix apps/rn run test:app",
     "test:all": "npm run test:regression && npm run test:app",
+    "lint:rn": "npm --prefix apps/rn run lint",
     "validate:release": "npm run lint && npm run test:regression && npm run test:app && npm run test:e2e",
+    "validate:release:rn": "npm run lint:rn && npm run test:regression && npm run test:app && npm run test:e2e:rn",
     "test:regression": "tsx packages/core/testing/runRegressionTests"
   },
   "dependencies": {

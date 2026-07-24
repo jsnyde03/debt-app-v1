@@ -17,7 +17,7 @@ export function headerProps(label?: string): AccessibilityProps {
  * be passed already-formatted (and count-ups pass the FINAL value, never mid-roll).
  */
 export function groupLabel(
-  ...parts: Array<string | number | false | null | undefined>
+  ...parts: (string | number | false | null | undefined)[]
 ): AccessibilityProps {
   const label = parts
     .filter((p) => p !== '' && p != null && p !== false)

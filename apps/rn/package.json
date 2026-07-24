@@ -12,11 +12,14 @@
     "web": "expo start --web",
     "export:web": "expo export --platform web",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
     "test:app": "tsx src/testing/runAppTests.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
     "@shopify/react-native-skia": "2.6.2",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~56.0.4",
     "expo": "~56.0.14",
     "expo-clipboard": "~56.0.4",
     "expo-constants": "~56.0.21",
