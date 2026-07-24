@@ -77,6 +77,17 @@ function runGuardianTests() {
   assertTrue(!/\$0\b/.test(tinyDeploy.detail + (tinyDeploy.safeMove ?? "")), "a $2 deploy never renders as '$0' (floors to the smallest hedge unit)");
   assertTrue(/spare \$5/.test(tinyDeploy.detail), "a $2 deploy hedges up to 'spare $5', not '$0'");
 
+  // ── §2.3.1 paused-deploy (2.4.7.7): a missed paycheck → paused-deploy, NEVER a phantom-income clear ──
+  // Even with a would-be-CLEAR read (high discretionary), pausedDeploy supersedes everything.
+  const paused = buildGuardianBrief(input({ pausedDeploy: true, discretionary: 500, kept: 400, deployedToDebt: 80, focusDebtName: "Store Card" }));
+  assertTrue(paused.pausedDeploy === true, "missed paycheck → pausedDeploy flag set");
+  assertTrue(/didn't land/i.test(paused.title), "paused: honest 'a paycheck didn't land', not a verdict");
+  assertEqual(paused.deployedToDebt, 0, "paused: deploy to debt is 0 (never planned on phantom income)");
+  assertTrue(!/covered|clear|spare|sending|put the spare/i.test(paused.title + paused.detail), "paused: no phantom-income clear/deploy copy");
+  assertTrue(/paused/i.test(paused.detail), "paused: says it paused moving money to debt");
+  const pausedFree = buildGuardianBrief(input({ isPremium: false, pausedDeploy: true, discretionary: 500 }));
+  assertEqual(pausedFree.safeMove, undefined, "paused: free gets no safeMove");
+
   // ── §2.0.d voice gate: the one-hedge budget + the stale hard-cutoff (2.4.6.1.3) ──
   const AGING = /from a little while ago/i;
   const INCOME_HEDGE = /paychecks reliably clear/i;

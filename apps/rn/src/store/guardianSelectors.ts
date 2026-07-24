@@ -6,7 +6,7 @@ import type { DebtStore } from '@/data/models';
 import { classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './guardianPredictionCore';
 import { selectDiscretionary, selectExtraToDebt, selectHeldReserve, selectLiquidCushion } from './planSelectors';
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
-import { selectAllocation } from './selectors';
+import { selectAllocation, selectPaycheckMissed } from './selectors';
 
 export type { GuardianBrief, GuardianState };
 
@@ -72,6 +72,8 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
       ? { status: upcoming.cushionStatus, cushion: upcoming.endingBalance, label: shortDate(upcoming.cycleStart) }
       : undefined,
     priorBand: store.priorGuardianBand,
+    // §2.3.1 (2.4.7.7): a missed paycheck pauses deploy + reframes the read honestly (no phantom clear).
+    pausedDeploy: selectPaycheckMissed(store),
     // §2.0.d voice gate (2.4.6.1.3): read-freshness (all tiers — a stale read is honestly deferred) +
     // the live learning holdbacks (premium only — free doesn't act/learn, so no learning hedge).
     confidence: {

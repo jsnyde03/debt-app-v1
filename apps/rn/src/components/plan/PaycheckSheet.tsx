@@ -5,10 +5,12 @@ import { getNextPaycheckDate, type PayCycle } from '@core/payCycle/getNextPayche
 
 import { FormSheet } from '@/components/ui/FormSheet';
 import { RadioGroup } from '@/components/ui/RadioGroup';
+import { SwitchRow } from '@/components/ui/SwitchRow';
 import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
+import { selectPaycheckMissed } from '@/store/selectors';
 import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -47,6 +49,7 @@ function formatDate(iso: string): string {
 export function PaycheckSheet({ onClose }: { onClose: () => void }) {
   const c = useAppColors();
   const paycheck = useAppStore((s) => s.store.paycheck);
+  const missed = useAppStore((s) => selectPaycheckMissed(s.store));
 
   const [amount, setAmount] = useState(paycheck.amount ?? '');
   const [payCycle, setPayCycle] = useState<PayCycle>(paycheck.payCycle);
@@ -110,6 +113,16 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
       <View style={[styles.nextCard, { backgroundColor: c.background.tertiary, borderColor: c.border.subtle }]}>
         <Text style={[textStyles.footnote, styles.groupLabel, { color: c.text.secondary }]}>Next paycheck</Text>
         <Text style={[textStyles.title3, { color: c.text.primary }]}>{formatDate(nextDate)}</Text>
+      </View>
+
+      {/* §2.3.1 (2.4.7.7): report a missed paycheck → the Guardian pauses deploy + protects the cushion
+          instead of planning on income that didn't land. Auto-resumes when the cycle rolls over. */}
+      <View style={styles.group}>
+        <SwitchRow
+          label="This paycheck didn't arrive"
+          value={missed}
+          onValueChange={(v) => (v ? appStore.getState().declareMissedPaycheck() : appStore.getState().undoMissedPaycheck())}
+        />
       </View>
     </FormSheet>
   );

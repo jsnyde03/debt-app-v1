@@ -22,7 +22,7 @@ import type { StorageAdapter } from '@/storage/adapter';
 import { recordDriftBaseline } from './drift';
 import { stampCyclePrediction } from './guardianPrediction';
 import { applyCapture, applyRollover, type PaydayActuals } from './payday';
-import { stampInputsFresh, stampOnboardedAt } from './substrateProducers';
+import { recordMissedArrival, stampInputsFresh, stampOnboardedAt } from './substrateProducers';
 
 /**
  * The app-wide state: the persisted `store` blob + hydration lifecycle + the mutating actions.
@@ -87,6 +87,9 @@ export interface DebtAppState {
   completeOnboarding(): void;
   /** 2.4.D.4 — stamp/refresh the current cycle's Guardian prediction (app-open cycle-detect). */
   refreshCyclePrediction(): void;
+  /** §2.3.1 (2.4.7.7) — report / un-report that THIS cycle's paycheck didn't arrive (paused-deploy). */
+  declareMissedPaycheck(): void;
+  undoMissedPaycheck(): void;
 
   // Import (shared by JSON import + iCloud restore + the Phase-D data bridge)
   importStore(store: DebtStore): void;
@@ -322,6 +325,16 @@ export function createDebtStore() {
       // App-open / cycle-detect entry path (2.4.D.4): stamp the current cycle's prediction if unstamped,
       // or re-stamp + mark disturbed on a material change. Idempotent, so it's safe to call on mount.
       set((s) => ({ store: stampCyclePrediction(s.store) }));
+    },
+    declareMissedPaycheck() {
+      // §2.3.1 (2.4.7.7): mark THIS cycle's paycheck (keyed by nextPaycheckDate) as a missed arrival →
+      // paused-deploy. A rollover advances the date, so the pause auto-resumes on the next real paycheck.
+      set((s) => ({ store: recordMissedArrival(s.store, s.store.paycheck.nextPaycheckDate) }));
+    },
+    undoMissedPaycheck() {
+      set((s) => ({
+        store: { ...s.store, missedArrivals: s.store.missedArrivals.filter((d) => d !== s.store.paycheck.nextPaycheckDate) },
+      }));
     },
 
     importStore(store) {

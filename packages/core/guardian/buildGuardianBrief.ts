@@ -39,6 +39,9 @@ export interface GuardianBrief {
   /** §2.0.d — the inputs are too old for a confident read; the card renders this as a neutral
    *  "refresh your numbers" state rather than a color-coded verdict (2.4.6.1.5). */
   staleAdvisory?: boolean;
+  /** §2.3.1 (2.4.7.7) — a scheduled paycheck didn't land, so deploy is paused; the card renders a
+   *  neutral "income paused" posture, never a phantom-income clear. */
+  pausedDeploy?: boolean;
 }
 
 /**
@@ -75,6 +78,9 @@ export interface GuardianInput {
   priorBand?: GuardianState | null;
   /** §2.0.d voice-gate signals (2.4.6.1.3) — drives the one-hedge budget + the stale hard-cutoff. */
   confidence?: GuardianConfidence;
+  /** §2.3.1 (2.4.7.7) — the scheduled paycheck for this cycle was reported missed ($0 arrival). Deploy
+   *  pauses and the read is reframed honestly, never a phantom-income clear. */
+  pausedDeploy?: boolean;
 }
 
 /** A finite, non-negative number or 0 — the guard against `$NaN`/`$Infinity` ever reaching a screen. */
@@ -146,6 +152,25 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       : undefined;
 
   const viz = { cushion: kept, deployedToDebt, heldReserve, floor, reachedFloor };
+
+  // §2.3.1 paused-deploy (2.4.7.7) — a scheduled paycheck was reported missed. This supersedes every
+  // other read (a missed check with the plan still assuming income is the structural phantom-income
+  // false-clear the confidence layer can't even hedge): deploy pauses, the floor still protects, and
+  // the copy says so honestly. Obligations still surface elsewhere; income resuming clears it.
+  if (input.pausedDeploy) {
+    return {
+      state,
+      title: "A paycheck didn't land",
+      detail:
+        "It looks like this paycheck didn't come through. I've paused moving money to debt and I'm protecting your cushion until your income resumes.",
+      safeMove: isPremium
+        ? "Cover essentials from your cushion if you need to — extra payoff stays paused until your next paycheck lands."
+        : undefined,
+      pausedDeploy: true,
+      ...viz,
+      deployedToDebt: 0,
+    };
+  }
 
   // §2.0.d hard cutoff — inputs too old for a confident read. Supersedes EVERY read (free + premium,
   // clear + shortfall): the honest move is to stop asserting a verdict and ask for a refresh. The state

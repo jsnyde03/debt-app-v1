@@ -27,17 +27,26 @@ export function effectivePaycheckBuffer(store: DebtStore): number {
  *  quarterly bill). [BUILD]-tunable, Phase 6. */
 const PREFUND_HORIZON = 8;
 
+/** §2.3.1 (2.4.7.7): the current cycle's scheduled paycheck was reported missed ($0 arrival). Keyed by
+ *  the current cycle's end (`nextPaycheckDate`), so a rollover (which advances the date) auto-resumes. */
+export function selectPaycheckMissed(store: DebtStore): boolean {
+  return !!store.paycheck.nextPaycheckDate && store.missedArrivals.includes(store.paycheck.nextPaycheckDate);
+}
+
 /** Run the `@core` engine at a given prefunded-reserve level. `prefundedReserve` is injected as an
  *  INPUT from the §2.5 smoothing layer (spec §2.5) — never a rung inside single-cycle `allocatePaycheck`. */
 function buildAllocation(store: DebtStore, prefundedReserve: number): Allocation | null {
   const amount = Number(store.paycheck.amount);
   if (!Number.isFinite(amount) || amount <= 0 || !store.paycheck.nextPaycheckDate) return null;
+  // §2.3.1 paused-deploy: a missed paycheck means $0 income THIS cycle — plan on that, never on phantom
+  // income (only the windfall, if any, is real). Projected future cycles resume on the recurring income.
+  const income = selectPaycheckMissed(store) ? 0 : amount;
   // §2.0.b action gate (2.4.6.1.3): the uncertainty holdback is part of the premium ACTING (like the
   // floor buffer), so it's premium-gated — free deploys undampened. The fractions are the §2.0.b tunables.
   const isPremium = store.subscriptionPlan === 'premium';
   const confidence = isPremium ? deriveConfidenceContext(store) : null;
   return allocatePaycheck({
-    paycheckAmount: amount + (store.windfall ?? 0),
+    paycheckAmount: income + (store.windfall ?? 0),
     currentDate: store.paycheck.currentDate,
     nextPaycheckDate: store.paycheck.nextPaycheckDate,
     strategy: store.payoffStrategy,
