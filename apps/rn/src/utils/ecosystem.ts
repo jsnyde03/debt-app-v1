@@ -4,10 +4,9 @@ import { Linking } from 'react-native';
  *  directly when it's installed on the device. */
 const FREEDOM_SCHEME_URL = 'ffp://';
 
-/** App Store fallback when Financial Freedom isn't installed. [BUILD] the exact product URL is owned by
- *  Jason (no numeric App Store ID lives in either repo) — this search URL is a safe, non-broken interim
- *  until it's swapped for the real product link. */
-const FREEDOM_STORE_URL = 'https://apps.apple.com/search?term=Financial%20Freedom%20Planner';
+/** App Store fallback when Financial Freedom isn't installed — the real product page (Jason-confirmed
+ *  2026-07-24). An https App Store link opens the App Store app directly on iOS. */
+const FREEDOM_STORE_URL = 'https://apps.apple.com/us/app/freedom-date-fire-planner/id6789297671';
 
 /**
  * Graduation handoff (2.4.8) — open Financial Freedom if installed, else its App Store page. This is the
