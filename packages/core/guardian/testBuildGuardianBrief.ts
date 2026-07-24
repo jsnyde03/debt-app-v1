@@ -29,7 +29,15 @@ function runGuardianTests() {
   // The extra spreads across multiple debts when it exceeds the focus balance — copy must not claim one target.
   const spread = buildGuardianBrief(input({ deployedToDebt: 2660, deploySpread: true, focusDebtName: "Store Card" }));
   assertTrue(/across your debts, starting with Store Card/.test(spread.detail), "a spread extra reads 'across your debts, starting with …', not 'to Store Card'");
-  assertTrue(/extra payments/.test(spread.safeMove ?? ""), "a spread extra says 'payments' (plural), not a single payment");
+  assertTrue(/Apply the spare .*across your debts, starting with Store Card/i.test(spread.safeMove ?? ""), "a spread extra safe move reads 'Apply the spare … across your debts'");
+
+  // ── §2.1 advice boundary (2.4.11.4a): an EF-vs-debt tradeoff → two-sided-with-a-why; mechanical → single ──
+  const tradeoff = buildGuardianBrief(input({ deployedToDebt: 40, focusDebtName: "Store Card", deployTradeoff: true, tradeoffTargetName: "Emergency Fund" }));
+  assertTrue(/Apply the spare \$40 toward Store Card to save on interest/i.test(tradeoff.safeMove ?? ""), "tradeoff: leads with applying the spare to the debt + the why");
+  assertTrue(/or build Emergency Fund/i.test(tradeoff.safeMove ?? "") && /your call/i.test(tradeoff.safeMove ?? ""), "tradeoff: two-sided (the EF alternative) + 'your call'");
+  const mechanical = buildGuardianBrief(input({ deployedToDebt: 40, focusDebtName: "Store Card", deployTradeoff: false }));
+  assertTrue(/Apply the spare \$40 toward Store Card when you.re ready/i.test(mechanical.safeMove ?? ""), "mechanical: single decisive 'Apply the spare …'");
+  assertTrue(!/your call/i.test(mechanical.safeMove ?? ""), "mechanical: no two-sided 'your call'");
   const freeClear = buildGuardianBrief(input({ isPremium: false, discretionary: 210, kept: 50, deployedToDebt: 160 }));
   assertEqual(freeClear.state, "clear", "free: SAME headroom → clear (the split doesn't change the band)");
   assertEqual(freeClear.safeMove, undefined, "free gets no safeMove (the card shows the invitation)");
@@ -77,7 +85,7 @@ function runGuardianTests() {
   //    down (a $96 payment must read "$96", not "$95"); still never "$0" for a nonzero. ──
   const exact96 = buildGuardianBrief(input({ discretionary: 356, kept: 260, deployedToDebt: 96, floor: 200, focusDebtName: "Store Card" }));
   assertTrue(/spare \$96 toward Store Card/.test(exact96.detail), "a $96 deploy reads EXACTLY '$96' in the detail, never hedged to $95");
-  assertTrue(/the \$96 payment/.test(exact96.safeMove ?? ""), "…and '$96' in the action, matching the plan");
+  assertTrue(/Apply the spare \$96 toward Store Card/.test(exact96.safeMove ?? ""), "…and '$96' EXACT in the action, matching the plan");
   const tinyDeploy = buildGuardianBrief(input({ discretionary: 210, kept: 205, deployedToDebt: 2, floor: 200, focusDebtName: "Store Card" }));
   assertTrue(!/\$0\b/.test(tinyDeploy.detail + (tinyDeploy.safeMove ?? "")), "a $2 deploy never renders as '$0'");
   assertTrue(/spare \$2/.test(tinyDeploy.detail), "a $2 deploy reads exactly '$2' (exact, not fuzzed)");
@@ -144,14 +152,14 @@ function runGuardianTests() {
   assertTrue(gradDeploy.debtFree === true, "debt-free brief carries the debtFree flag (the card relabels the bar legend to 'To savings')");
   assertTrue(/toward your Emergency Fund/.test(gradDeploy.detail), "debt-free clear-deploy: the spare goes 'toward your Emergency Fund'");
   assertTrue(!/\bdebt\b/i.test(gradDeploy.detail + (gradDeploy.safeMove ?? "")), "debt-free clear-deploy: never says 'debt'");
-  assertTrue(/contribution/.test(gradDeploy.safeMove ?? "") && !/payment/.test(gradDeploy.safeMove ?? ""), "debt-free: 'contribution', not 'payment'");
+  assertTrue(/toward your Emergency Fund/.test(gradDeploy.safeMove ?? "") && !/payment/i.test(gradDeploy.safeMove ?? ""), "debt-free safe move: savings-framed ('toward your Emergency Fund'), never 'payment'");
 
   const gradUnnamed = buildGuardianBrief(input({ debtFree: true, deployedToDebt: 40 }));
   assertTrue(/toward your savings/.test(gradUnnamed.detail), "debt-free with no named goal → 'toward your savings'");
 
   const gradSpread = buildGuardianBrief(input({ debtFree: true, deployedToDebt: 500, deploySpread: true, deployTargetName: "Emergency Fund" }));
   assertTrue(/across your savings, starting with your Emergency Fund/.test(gradSpread.detail), "debt-free spread → 'across your savings, starting with …'");
-  assertTrue(/contributions/.test(gradSpread.safeMove ?? ""), "debt-free spread → 'contributions' (plural)");
+  assertTrue(/across your savings, starting with your Emergency Fund/.test(gradSpread.safeMove ?? ""), "debt-free spread safe move → 'across your savings, starting with …'");
 
   const gradTight = buildGuardianBrief(input({ debtFree: true, discretionary: 150, kept: 150, deployedToDebt: 0, floor: 200 }));
   assertTrue(/rebuilds next paycheck/.test(gradTight.safeMove ?? "") && !/payoff/.test(gradTight.safeMove ?? ""), "debt-free tight → calm 'rebuilds next paycheck', never 'payoff'");

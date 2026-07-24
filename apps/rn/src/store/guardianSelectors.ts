@@ -151,6 +151,14 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     ? (savingsItems[0] && store.goals.find((g) => g.id === savingsItems[0].goalId)?.name) || undefined
     : undefined;
 
+  // §2.1 advice boundary (2.4.11.4a): the spare-to-debt move is a genuine EF-vs-debt tradeoff (→ a
+  // two-sided-with-a-why voice) when a debt is live AND an emergency fund is underfunded AND the user
+  // hasn't opted out via "savings elsewhere". Otherwise it's mechanical (single decisive voice).
+  const efGoal = store.goals.find(
+    (g) => g.type === 'emergency' && g.currentAmount < (g.targetAmount ?? Number.POSITIVE_INFINITY),
+  );
+  const deployTradeoff = !debtFree && !store.prefs.hasSavingsElsewhere && !!efGoal;
+
   // §2.10 tight-case top-up (2.4.11.2): cash the user moved from savings to hold the line THIS cycle
   // lifts the effective cushion (it's really in checking now) — so the read reflects the held line.
   const topUp = appliedTopUp(store);
@@ -173,6 +181,8 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     shortfall: allocation.shortfall,
     focusDebtName,
     deployTargetName,
+    deployTradeoff,
+    tradeoffTargetName: efGoal?.name,
     lookahead: upcoming
       ? { status: upcoming.cushionStatus, cushion: upcoming.endingBalance, label: shortDate(upcoming.cycleStart) }
       : undefined,

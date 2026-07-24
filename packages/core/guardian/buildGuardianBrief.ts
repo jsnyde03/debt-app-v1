@@ -81,6 +81,12 @@ export interface GuardianInput {
   /** Amount the paycheck can't cover of what's required this cycle (>0 = an acute shortfall). */
   shortfall: number;
   focusDebtName?: string;
+  /** §2.1 advice boundary (2.4.11.4a) — the spare has a genuine EF-vs-debt tradeoff (a live debt AND an
+   *  underfunded emergency fund the user hasn't opted out of). True → the safe move is two-sided-with-a-
+   *  why; false → a mechanical no-tradeoff move keeps the single decisive voice. */
+  deployTradeoff?: boolean;
+  /** The emergency-fund name for the two-sided copy (defaults to "your emergency fund"). */
+  tradeoffTargetName?: string;
   lookahead?: { status: CushionStatus; cushion: number; label: string };
   /** The persisted prior band (2.4.6.1.2) — enables hysteresis so the card's state can't flap. */
   priorBand?: GuardianState | null;
@@ -288,20 +294,21 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       hedge,
     );
   }
+  // §2.1 advice boundary (2.4.11.4a): a genuine EF-vs-debt tradeoff gets a two-sided-with-a-why voice
+  // (present both valid moves + the why, never a single "do this"); a mechanical no-tradeoff move keeps
+  // the single decisive instruction. Both use "apply the spare $X" (the plan-shaping verb).
+  const safeMove =
+    input.deployTradeoff && !debtFree
+      ? `Apply the spare ${amt(deployedToDebt)} toward ${focusDebtName ?? "your debts"} to save on interest, or build ${
+          input.tradeoffTargetName ?? "your emergency fund"
+        } first if you'd rather strengthen your cushion — your call.`
+      : `Apply the spare ${amt(deployedToDebt)} ${dest} when you're ready — your ${amt(floor)} cushion stays protected either way.`;
   return withHedge(
     {
       state,
       title: "Looks clear this paycheck",
-      detail: `About ${amt(discretionary)} after everything required. I've set this paycheck to keep ${amt(kept)} as your cushion and put the spare ${amt(deployedToDebt)} ${dest}.`,
-      safeMove: `Mark ${
-        deploySpread
-          ? debtFree
-            ? "the extra contributions"
-            : "the extra payments"
-          : debtFree
-            ? `the ${amt(deployedToDebt)} contribution`
-            : `the ${amt(deployedToDebt)} payment`
-      } when you're ready — your ${amt(floor)} cushion stays protected either way.`,
+      detail: `About ${amt(discretionary)} after everything required. I've set this paycheck to keep ${amt(kept)} as your cushion and apply the spare ${amt(deployedToDebt)} ${dest}.`,
+      safeMove,
       lookahead: look,
       ...viz,
     },

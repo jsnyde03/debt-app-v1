@@ -150,9 +150,12 @@ export function PaydayGuardianCard({
         {isPremium ? (
           <>
             {brief.safeMove ? <Text style={[textStyles.subhead, styles.move, { color: c.text.primary }]}>{brief.safeMove}</Text> : null}
-            {/* 2.4.11.3 — the standing advice boundary: the decisive plan always carries a light "your
-                call" (the persistent half of the §2.1 boundary, after the one-time intro is dismissed). */}
-            {brief.safeMove ? <Text style={[textStyles.caption, styles.yourCall, { color: c.text.tertiary }]}>Your call</Text> : null}
+            {/* 2.4.11.3 — the standing advice boundary: the decisive plan carries a light "your call"
+                (the persistent half of the §2.1 boundary). 2.4.11.4a: suppressed when the move is already
+                two-sided-with-a-why (its copy ends in "your call") so it never doubles up. */}
+            {brief.safeMove && !/your call/i.test(brief.safeMove) ? (
+              <Text style={[textStyles.caption, styles.yourCall, { color: c.text.tertiary }]}>Your call</Text>
+            ) : null}
             {brief.lookahead ? <Text style={[textStyles.caption, styles.look, { color: c.text.tertiary }]}>{brief.lookahead}</Text> : null}
             {/* §2.10 tight-case one-tap (2.4.11.2): a REAL move to hold the line — only when the user has
                 savings to tap (else the read stays the honest "rebuilds next paycheck"). */}
