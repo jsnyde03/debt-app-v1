@@ -1,7 +1,7 @@
 import { allocatePaycheck } from '@core/engine/allocatePaycheck';
 import { resolveTrialAmounts } from '@core/obligations/effectiveObligationAmount';
 import { waterFill, type WaterFillResult } from '@core/cashflow/waterFill';
-import { COLDSTART_HOLDBACK_FRACTION, DISCOVERY_HOLDBACK_ATTESTED_FRACTION, DISCOVERY_HOLDBACK_FRACTION } from '@core/guardian/holdbackComposition';
+import { COLDSTART_HOLDBACK_FRACTION, DISCOVERY_HOLDBACK_ATTESTED_FRACTION, DISCOVERY_HOLDBACK_FRACTION, VARIABLE_BILL_BUFFER_FRACTION } from '@core/guardian/holdbackComposition';
 
 import type { DebtStore } from '@/data/models';
 
@@ -63,6 +63,9 @@ function buildAllocation(store: DebtStore, prefundedReserve: number): Allocation
       ? (store.billsAttested ? DISCOVERY_HOLDBACK_ATTESTED_FRACTION : DISCOVERY_HOLDBACK_FRACTION)
       : 0,
     coldStartHoldbackFraction: confidence?.coldStartHoldbackActive ? COLDSTART_HOLDBACK_FRACTION : 0,
+    // §2.5 variable-bill buffer (2.5.3b): premium holds a small buffer for variable bills (structural,
+    // not a cold-start learning reserve → gated on premium alone, not confidence). Free deploys undampened.
+    variableBillBufferFraction: isPremium ? VARIABLE_BILL_BUFFER_FRACTION : 0,
     prefundedReserve,
     // §2.5 D5.3 gate (2.4.7.6): savings elsewhere → skip the pre-debt starter EF, deploy to debt first.
     skipStarterEmergency: store.prefs.hasSavingsElsewhere,

@@ -10,6 +10,9 @@ export type Expense = {
 	recurrence: Recurrence;
 	isPaidThisCycle?: boolean;
 	isAutopay?: boolean;
+	/** §2.5 — a `variable` obligation swings month to month, so the Guardian holds a small buffer for it
+	 *  (see `variableBillBufferFraction`). Absent/`"fixed"` → no buffer. */
+	expenseType?: "fixed" | "variable";
 };
 
 export type Debt = {
@@ -104,6 +107,11 @@ type AllocatePaycheckParams = {
 	/** §2.0.b cold-start holdback — fraction held while a variable-income lean is unverified. 0 for
 	 *  fixed income / confirmed. Composes with discovery by `max`, not sum. */
 	coldStartHoldbackFraction?: number;
+	/** §2.5 variable-bill buffer fraction (2.5.3b) — fraction of THIS cycle's `variable`-flagged
+	 *  obligations held as extra cushion against a higher-than-typed bill. 0 = no buffer (free / no
+	 *  variable bills). Composed into the uncertainty holdback by `max`, so it's never stacked on the
+	 *  §2.0 discovery reserve. */
+	variableBillBufferFraction?: number;
 	/** §2.5 prefunded reserve (2.4.7) — cash earmarked THIS cycle for a specific future crunch. Adds
 	 *  to the hold (a real dated need), clamped so the held buckets never exceed headroom. */
 	prefundedReserve?: number;
@@ -135,6 +143,7 @@ export function allocatePaycheck({
 	paycheckBuffer = 50,
 	discoveryHoldbackFraction = 0,
 	coldStartHoldbackFraction = 0,
+	variableBillBufferFraction = 0,
 	prefundedReserve = 0,
 	starterEmergencyTarget = STARTER_EMERGENCY_TARGET,
 	skipStarterEmergency = false,
@@ -373,11 +382,21 @@ export function allocatePaycheck({
 	// bucket), never "put to work". `combinedHoldback` clamps it so buckets 1+2+3 can never over-sum the
 	// headroom (round-6 F1). All fractions default 0 → this is inert until §2.0 feeds it (free stays 0).
 	if (shortfall === 0 && remaining > 0) {
+		// §2.5 variable-bill buffer (2.5.3b): a fraction of THIS cycle's variable-flagged obligations,
+		// held as extra cushion so a higher-than-typed bill doesn't breach the floor. An absolute (off the
+		// bill amounts, not headroom), composed into the uncertainty `max` below — folded into the cushion,
+		// never stacked on the discovery reserve.
+		const variableBuffer = roundMoney(
+			upcomingExpenses
+				.filter((expense) => expense.expenseType === "variable")
+				.reduce((sum, expense) => sum + expense.amount, 0) * clampFraction(variableBillBufferFraction)
+		);
 		const held = roundMoney(
 			combinedHoldback({
 				prefundedReserve: Math.max(0, prefundedReserve),
 				discoveryHoldback: roundMoney(remaining * clampFraction(discoveryHoldbackFraction)),
 				coldStartHoldback: roundMoney(remaining * clampFraction(coldStartHoldbackFraction)),
+				variableBuffer,
 				discretionary: remaining,
 				floor: 0,
 			})

@@ -20,7 +20,7 @@ function assertMoney(actual: number, expected: number, label: string) {
 
 const DISCRETIONARY_BUCKETS = [...PROTECTED_CUSHION_CATEGORIES, ...PUT_TO_WORK_CATEGORIES] as AllocationCategory[];
 
-function alloc({ paycheckAmount, required = 0, living = 0, buffer = 0, debtBalance = 0, discoveryFrac = 0, coldStartFrac = 0, prefunded = 0 }: {
+function alloc({ paycheckAmount, required = 0, living = 0, buffer = 0, debtBalance = 0, discoveryFrac = 0, coldStartFrac = 0, prefunded = 0, variableRequired = 0, variableFrac = 0 }: {
 	paycheckAmount: number;
 	required?: number;
 	living?: number;
@@ -29,12 +29,18 @@ function alloc({ paycheckAmount, required = 0, living = 0, buffer = 0, debtBalan
 	discoveryFrac?: number;
 	coldStartFrac?: number;
 	prefunded?: number;
+	/** A `variable`-flagged required obligation (for the §2.5 variable-bill buffer). */
+	variableRequired?: number;
+	variableFrac?: number;
 }) {
 	return allocatePaycheck({
 		paycheckAmount,
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
-		expenses: required > 0 ? [{ id: "e1", name: "Rent", amount: required, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: false }] : [],
+		expenses: [
+			...(required > 0 ? [{ id: "e1", name: "Rent", amount: required, dueDate: "2026-06-05", recurrence: "monthly" as const, isPaidThisCycle: false }] : []),
+			...(variableRequired > 0 ? [{ id: "ev", name: "Electric", amount: variableRequired, dueDate: "2026-06-06", recurrence: "monthly" as const, isPaidThisCycle: false, expenseType: "variable" as const }] : []),
+		],
 		livingExpenses: living > 0 ? [{ id: "l1", name: "Groceries", amount: living, enabled: true }] : [],
 		debts: debtBalance > 0 ? [{ id: "d1", name: "Visa", balance: debtBalance, minimumPayment: 0, apr: 20, dueDate: "2026-06-10", type: "debt", recurrence: "monthly", isPaidThisCycle: false }] : [],
 		goals: [],
@@ -42,6 +48,7 @@ function alloc({ paycheckAmount, required = 0, living = 0, buffer = 0, debtBalan
 		paycheckBuffer: buffer,
 		discoveryHoldbackFraction: discoveryFrac,
 		coldStartHoldbackFraction: coldStartFrac,
+		variableBillBufferFraction: variableFrac,
 		prefundedReserve: prefunded,
 	});
 }
@@ -136,6 +143,44 @@ assertMoney(
 );
 assertMoney(computeDeploy(300, 200, 100), 0, "deploy = max(0, 300−200−100) = 0, never negative");
 assertMoney(computeDeploy(1000, 200, 500), 300, "deploy = 1000−200−500 = 300");
+
+// ── §2.5 variable-bill buffer (2.5.3b): composes into the uncertainty `max`, never stacked ──
+assertMoney(
+	combinedHoldback({ prefundedReserve: 0, discoveryHoldback: 0, coldStartHoldback: 0, variableBuffer: 30, discretionary: 1000, floor: 200 }),
+	30,
+	"variable buffer alone → held (30)"
+);
+assertMoney(
+	combinedHoldback({ prefundedReserve: 0, discoveryHoldback: 200, coldStartHoldback: 0, variableBuffer: 30, discretionary: 1000, floor: 200 }),
+	200,
+	"variable buffer composes by MAX with discovery — not stacked (200, never 230)"
+);
+assertMoney(
+	combinedHoldback({ prefundedReserve: 0, discoveryHoldback: 10, coldStartHoldback: 0, variableBuffer: 30, discretionary: 1000, floor: 200 }),
+	30,
+	"variable buffer wins the max when it's the larger reason (30 > discovery 10)"
+);
+{
+	// Integration: a premium variable buffer (0.15) holds 15% of the variable bill ($200) as protected
+	// cushion, reducing the deploy by exactly that much. Partition invariant holds.
+	const r = alloc({ paycheckAmount: 2000, required: 850, variableRequired: 200, living: 400, buffer: 200, debtBalance: 5000, variableFrac: 0.15 });
+	assertMoney(discretionaryOf(r), 550, "variable buffer: discretionary = 2000 − (850+200) − 400");
+	assertMoney(sumBuckets(r, ["discovery_holdback"]), 30, "variable buffer held as protected cushion (200 × 0.15)");
+	assertMoney(sumBuckets(r, ["snowball"]), 320, "deploy reduced by the $30 variable buffer (550 − 200 buffer floor − 30)");
+	assertMoney(sumBuckets(r, DISCRETIONARY_BUCKETS), discretionaryOf(r), "variable buffer: buckets still sum to discretionary");
+}
+{
+	// Not stacked: with a large discovery reserve live, the variable buffer is absorbed by the max.
+	const r = alloc({ paycheckAmount: 2000, required: 850, variableRequired: 200, living: 400, buffer: 200, debtBalance: 5000, variableFrac: 0.15, discoveryFrac: 0.4 });
+	// remaining after the $200 floor = 350; discovery = 350×0.4 = 140; variableBuffer = 30 → held = max = 140.
+	assertMoney(sumBuckets(r, ["discovery_holdback"]), 140, "held = max(discovery 140, variable 30) — variable absorbed, not 170");
+	assertMoney(sumBuckets(r, ["snowball"]), 210, "deploy = 350 − 140 (the larger reserve), not 350 − 170");
+}
+{
+	// A variable bill with the fraction off (free tier / no buffer) holds nothing extra.
+	const r = alloc({ paycheckAmount: 2000, required: 850, variableRequired: 200, living: 400, buffer: 200, debtBalance: 5000, variableFrac: 0 });
+	assertMoney(sumBuckets(r, ["discovery_holdback"]), 0, "no variable buffer when the fraction is 0 (free undampened)");
+}
 
 // ── §2.5 surplus-waterfall re-arch (2.4.7.6): starter EF before debt · fuller EF after · gate ──
 const EF = (currentAmount: number, targetAmount: number) => [{ id: "ef", name: "EF", currentAmount, targetAmount, type: "emergency" as const }];

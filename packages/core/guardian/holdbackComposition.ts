@@ -21,6 +21,12 @@ export const DISCOVERY_HOLDBACK_FRACTION = 0.4;
  *  REDUCED (never skipped: the floor still protects + a surprise walks it back). */
 export const DISCOVERY_HOLDBACK_ATTESTED_FRACTION = 0.15;
 export const COLDSTART_HOLDBACK_FRACTION = 0.25;
+/** §2.5 variable-bill buffer ([BUILD] tunable, Phase 6) — fraction of a `variable`-flagged obligation's
+ *  entered amount the Guardian holds as extra cushion, so a bill that comes in higher than typed doesn't
+ *  breach the floor. Applied to the summed variable obligations (an absolute), then composed by `max`
+ *  with the uncertainty reserves — so it's folded into the cushion, never STACKED on the discovery
+ *  holdback (a cold-start user's larger learning reserve already absorbs it). Premium-gated (the acting). */
+export const VARIABLE_BILL_BUFFER_FRACTION = 0.15;
 
 export interface HoldbackInput {
 	/** Cash earmarked THIS cycle for a specific future crunch (§2.5 water-fill output). */
@@ -29,6 +35,9 @@ export interface HoldbackInput {
 	discoveryHoldback: number;
 	/** The §2.0 cold-start reserve (lean unverified; 0 for fixed income). */
 	coldStartHoldback: number;
+	/** §2.5 variable-bill buffer (Σ variable obligations × fraction; 0 when no variable bills / free).
+	 *  Composed into the uncertainty `max` — folded into the cushion, not stacked on discovery. */
+	variableBuffer?: number;
 	/** Cash after every obligation (income − required − living), clamped ≥0. */
 	discretionary: number;
 	/** The user's protected floor. */
@@ -40,8 +49,9 @@ export function combinedHoldback(input: HoldbackInput): number {
 	const aboveFloor = Math.max(0, input.discretionary - input.floor);
 	// prefunded wins the collision, capped at the available headroom.
 	const prefunded = Math.max(0, Math.min(input.prefundedReserve, aboveFloor));
-	// the uncertainty buffer (discovery vs cold-start compose by max) takes only the remainder.
-	const uncertainty = Math.max(0, input.discoveryHoldback, input.coldStartHoldback);
+	// the uncertainty buffer (discovery vs cold-start vs the §2.5 variable-bill buffer all compose by
+	// max — same kind of caution, never summed) takes only the remainder.
+	const uncertainty = Math.max(0, input.discoveryHoldback, input.coldStartHoldback, input.variableBuffer ?? 0);
 	return prefunded + Math.min(uncertainty, aboveFloor - prefunded);
 }
 
