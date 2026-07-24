@@ -19,7 +19,10 @@ async function main() {
   await import('../store/projectedIncome.test');
   await import('../store/guardianPrediction.test');
 
-  // (RS.2+ app-layer selector/action suites are appended here as they land.)
+  // RS.2 — Guardian selectors (states × tier × regime + break-it).
+  await import('../store/guardianSelectors.test');
+
+  // (RS.3+ app-layer store-action suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');
 }
