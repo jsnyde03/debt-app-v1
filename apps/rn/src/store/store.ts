@@ -71,6 +71,9 @@ export interface DebtAppState {
 
   // Mark-paid (this cycle)
   markExpensePaid(id: string, paid: boolean): void;
+  /** §2.6 Recovery — defer a bill to next cycle: move its due date to the next payday so it's no longer
+   *  owed this cycle (honest — next cycle carries it; the forecast reflects it). */
+  deferExpense(id: string): void;
   markDebtMinimumPaid(id: string, paid: boolean): void;
   toggleRecommendedDone(action: CompletedRecommendedAction, done: boolean): void;
 
@@ -278,6 +281,21 @@ export function createDebtStore() {
           requiredExpenses: s.store.requiredExpenses.map((e) => (e.id === id ? { ...e, isPaidThisCycle: paid } : e)),
         },
       }));
+    },
+    deferExpense(id) {
+      set((s) => {
+        // Move the due date to the next payday → it belongs to next cycle (a bill due ON the next
+        // payday is not "due before" it, so it drops out of this cycle's obligations). Honest defer.
+        const nextPayday = s.store.paycheck.nextPaycheckDate;
+        return {
+          store: stampInputsFresh({
+            ...s.store,
+            requiredExpenses: s.store.requiredExpenses.map((e) =>
+              e.id === id ? { ...e, dueDate: nextPayday, isPaidThisCycle: false } : e,
+            ),
+          }),
+        };
+      });
     },
     markDebtMinimumPaid(id, paid) {
       set((s) => ({

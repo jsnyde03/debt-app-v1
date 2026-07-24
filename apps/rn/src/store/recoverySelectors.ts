@@ -1,0 +1,48 @@
+import { classifyDeferability } from '@core/obligations/classifyDeferability';
+import { resolveTrialAmounts } from '@core/obligations/effectiveObligationAmount';
+import { buildRecoveryPlan, type RecoveryCandidate, type RecoveryPlan } from '@core/recovery/buildRecoveryPlan';
+
+import type { DebtStore } from '@/data/models';
+
+import { selectAllocation } from './selectors';
+
+export type { RecoveryPlan };
+
+/** A cycle runs [payday, next payday): a bill due strictly BEFORE the next payday belongs to this cycle
+ *  (same boundary the allocation engine uses). */
+function dueThisCycle(dueDate: string, nextPaycheckDate: string): boolean {
+  return new Date(`${dueDate}T00:00:00`) < new Date(`${nextPaycheckDate}T00:00:00`);
+}
+
+/**
+ * §2.6 Recovery Plan — the deficit read for THIS cycle, or null when there's no shortfall (recovery only
+ * exists when the Guardian is short). The gap IS the allocation's shortfall (same number the Guardian
+ * card shows). Splits this cycle's UNPAID obligations into essential ("cover now") and deferrable via
+ * `classifyDeferability`; debt minimums are essential by rule (credit impact). Trials are priced with the
+ * resolver so the amounts match the plan. Pure derivation off the store — the engine does the ranking.
+ */
+export function selectRecoveryPlan(store: DebtStore): RecoveryPlan | null {
+  const allocation = selectAllocation(store);
+  if (!allocation) return null;
+  const gap = allocation.shortfall ?? 0;
+  if (gap <= 0) return null;
+
+  const nextPayday = store.paycheck.nextPaycheckDate;
+  const essential: RecoveryCandidate[] = [];
+  const deferrable: RecoveryCandidate[] = [];
+
+  for (const e of resolveTrialAmounts(store.requiredExpenses)) {
+    if (e.isPaidThisCycle || e.amount <= 0 || !dueThisCycle(e.dueDate, nextPayday)) continue;
+    const item: RecoveryCandidate = { id: e.id, name: e.name, amount: e.amount };
+    (classifyDeferability(e) === 'deferrable' ? deferrable : essential).push(item);
+  }
+
+  for (const d of store.debts) {
+    const minPaid = d.minimumPaidThisCycle ?? d.isPaidThisCycle ?? false;
+    if (minPaid || d.balance <= 0 || !dueThisCycle(d.dueDate, nextPayday)) continue;
+    // Debt minimums are always essential (missing one hits credit) — cover-now, never deferred.
+    essential.push({ id: d.id, name: d.name, amount: Math.min(d.minimumPayment, d.balance) });
+  }
+
+  return buildRecoveryPlan({ gap, deferrable, essential });
+}

@@ -31,6 +31,9 @@ async function main() {
   // its runner (the store lifecycle is async; top-level await is unavailable under the cjs transform).
   await (await import('../store/persistenceLifecycle.test')).default();
 
+  // §2.6 Recovery Plan — the selector split (essential/deferrable + minimums) + defer action loop.
+  await import('../store/recoverySelectors.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');
