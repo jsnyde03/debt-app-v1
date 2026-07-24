@@ -1,5 +1,5 @@
 import { allocatePaycheck } from '@core/engine/allocatePaycheck';
-import { waterFill } from '@core/cashflow/waterFill';
+import { waterFill, type WaterFillResult } from '@core/cashflow/waterFill';
 import { COLDSTART_HOLDBACK_FRACTION, DISCOVERY_HOLDBACK_FRACTION } from '@core/guardian/holdbackComposition';
 
 import type { DebtStore } from '@/data/models';
@@ -73,28 +73,37 @@ export function selectBaseAllocation(store: DebtStore): Allocation | null {
 // The store is immutable (a new object on every change), so the water-fill — which builds a whole
 // forecast — is computed at most ONCE per store version and reused across the many `selectAllocation`
 // calls a render makes (the WeakMap auto-drops old versions). [Phase-4: a real memo-selector layer.]
-const prefundedCache = new WeakMap<object, number>();
+const waterFillCache = new WeakMap<object, WaterFillResult | null>();
 
 /**
- * §2.5 pre-funded reserve (2.4.7.5) — cash cycle 0 holds back THIS paycheck to cover a future crunch the
- * forecast predicts, from the backward water-fill over the (prefunded-free) carry track. Premium-only
- * (it's part of the acting), 0 otherwise. Injected into `selectAllocation` as the §2.5 smoothing input.
+ * §2.5 the full water-fill PLAN (2.4.7.4 / 2.4.9.6) — the Guardian's multi-cycle reasoning: the crunch
+ * `segments` it detected in the raw trajectory, the `reserveByCycle` it holds to smooth them, the total
+ * `structuralDeficit` no reserve can cover, and cycle 0's actionable `prefundedReserve`. Premium-only
+ * (it's the acting), `null` otherwise / pre-plan. Cached per immutable store version. The drill-down
+ * (2.4.9.6) narrates this — the premium reasoning free never sees; `selectAllocation` consumes the
+ * cycle-0 number via `selectPrefundedReserve`.
  */
-export function selectPrefundedReserve(store: DebtStore): number {
-  if (store.subscriptionPlan !== 'premium') return 0;
-  const cached = prefundedCache.get(store);
+export function selectWaterFillPlan(store: DebtStore): WaterFillResult | null {
+  if (store.subscriptionPlan !== 'premium') return null;
+  const cached = waterFillCache.get(store);
   if (cached !== undefined) return cached;
 
   const base = selectBaseAllocation(store);
   const floor = effectivePaycheckBuffer(store);
-  const reserve = base
-    ? waterFill(
-        buildForecastCycles(store, base, floor, PREFUND_HORIZON).map((c) => c.carriedBalance),
-        floor,
-      ).prefundedReserve
-    : 0;
-  prefundedCache.set(store, reserve);
-  return reserve;
+  const result = base
+    ? waterFill(buildForecastCycles(store, base, floor, PREFUND_HORIZON).map((c) => c.carriedBalance), floor)
+    : null;
+  waterFillCache.set(store, result);
+  return result;
+}
+
+/**
+ * §2.5 pre-funded reserve (2.4.7.5) — cash cycle 0 holds back THIS paycheck to cover a future crunch the
+ * forecast predicts. The cycle-0 share of the water-fill plan; injected into `selectAllocation` as the
+ * §2.5 smoothing input. Premium-only, 0 otherwise.
+ */
+export function selectPrefundedReserve(store: DebtStore): number {
+  return selectWaterFillPlan(store)?.prefundedReserve ?? 0;
 }
 
 /**
