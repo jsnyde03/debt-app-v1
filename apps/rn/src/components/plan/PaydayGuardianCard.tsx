@@ -13,6 +13,8 @@ import { textStyles } from '@/theme/typography';
 import { groupLabel } from '@/utils/a11y';
 
 const BAR_H = 14;
+/** The "set aside" swatch matches the bar's tinted reserve zone (cushion color at this opacity). */
+const RESERVE_OPACITY = 0.5;
 
 /**
  * Payday Cushion Guardian card (2.4) — the premium headline on Today, and an ACTOR: premium holds your
@@ -128,15 +130,26 @@ export function PaydayGuardianCard({
             />
           ) : null}
         </View>
-        {/* 2.4.11.1 presentation reshape — the numbers ARE the read (a stat row, not a paragraph). Each
-            stat is its bar zone made legible; the prose detail is kept only where the message matters. */}
+        {/* 2.4.11.1 / 2.4.11.4b.0 — the numbers ARE the read, in the hero card's compact legend style
+            (swatch + label on top, value below). Each swatch keys a zone of the cushion bar above. */}
         <View
           style={[styles.stats, stale && styles.dimmed]}
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants">
-          <Stat dot={color} amount={brief.cushion} label={hasReserve ? `Cushion · ${money(brief.heldReserve)} set aside` : 'Cushion'} />
-          {hasPayoff ? <Stat dot={c.accent.primary} amount={brief.deployedToDebt} label={brief.debtFree ? 'To savings' : 'To debt'} /> : null}
-          <Stat dot={c.text.primary} tick amount={brief.floor} label="Your line" />
+          {/* Order matches the bar's fixed left→right shading: Set aside (tinted, far-left) → Cushion →
+              To debt. The "set aside" reserve is only present for a settling-in (cold-start) user. */}
+          {hasReserve ? <Stat swatch={color} dim amount={brief.heldReserve} label="Set aside" /> : null}
+          <Stat swatch={color} amount={brief.cushion} label="Cushion" />
+          {hasPayoff ? <Stat swatch={c.accent.primary} amount={brief.deployedToDebt} label={brief.debtFree ? 'To savings' : 'To debt'} /> : null}
+        </View>
+        {/* Your line (the floor) is a reference marker, not a flow amount, so it sits below the amounts as
+            a keyed sub-line (the vertical tick matches the floor line drawn in the bar). */}
+        <View
+          style={styles.lineKey}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants">
+          <View style={[styles.tick, { backgroundColor: c.text.primary }]} />
+          <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{money(brief.floor)} · Your line</Text>
         </View>
 
         {/* The Guardian's voice — one short line for the states where it carries weight; the calm
@@ -203,18 +216,19 @@ function money(n: number): string {
   return `$${Math.round(Math.max(0, Number.isFinite(n) ? n : 0)).toLocaleString('en-US')}`;
 }
 
-/** One figure from the cushion bar, made legible — a colored marker + the amount + its label. */
-function Stat({ dot, tick, amount, label }: { dot: string; tick?: boolean; amount: number; label: string }) {
+/** One legend item from the cushion bar, in the hero card's compact style — a bar-zone-keyed swatch +
+ *  label on top, the value below. */
+function Stat({ swatch, dim, amount, label }: { swatch: string; dim?: boolean; amount: number; label: string }) {
   const c = useAppColors();
   return (
     <View style={styles.stat}>
       <View style={styles.statHead}>
-        <View style={[tick ? styles.tick : styles.dot, { backgroundColor: dot }]} />
-        <Text style={[textStyles.title3, styles.statAmount, { color: c.text.primary }]}>{money(amount)}</Text>
+        <View style={[styles.dot, { backgroundColor: swatch }, dim ? { opacity: RESERVE_OPACITY } : null]} />
+        <Text style={[textStyles.caption, { color: c.text.tertiary }]} numberOfLines={1}>
+          {label}
+        </Text>
       </View>
-      <Text style={[textStyles.caption, { color: c.text.tertiary }]} numberOfLines={1}>
-        {label}
-      </Text>
+      <Text style={[styles.statValue, { color: c.text.primary }]}>{money(amount)}</Text>
     </View>
   );
 }
@@ -227,10 +241,11 @@ const styles = StyleSheet.create({
   chipText: { fontWeight: '600' },
   dimmed: { opacity: 0.4 },
   barWrap: { marginTop: spacing.md, height: BAR_H, justifyContent: 'center' },
-  stats: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
-  stat: { flex: 1, gap: 2 },
+  stats: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md },
+  stat: { gap: 3 },
   statHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  statAmount: { fontWeight: '700', fontVariant: ['tabular-nums'] },
+  statValue: { fontSize: 17, fontWeight: '700', letterSpacing: -0.3, fontVariant: ['tabular-nums'] }, // hero-legend scale
+  lineKey: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm },
   dot: { width: 14, height: 6, borderRadius: 3 }, // a mini bar SEGMENT (matches the cushion/payoff zones)
   tick: { width: 3, height: 12, borderRadius: 1.5 }, // a vertical LINE (matches the floor line in the bar)
   detail: { marginTop: spacing.md },
