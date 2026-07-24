@@ -103,7 +103,8 @@ export function PaydayGuardianCard({ brief, isPremium, onSeeForecast }: { brief:
           {hasPayoff ? (
             <View style={styles.legendItem}>
               <View style={[styles.dot, { backgroundColor: c.accent.primary }]} />
-              <Text style={[textStyles.caption, { color: c.text.tertiary }]}>To debt</Text>
+              {/* 2.4.8 graduation — the deploy zone tops up savings, not debt, once debt-free. */}
+              <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{brief.debtFree ? 'To savings' : 'To debt'}</Text>
             </View>
           ) : null}
           <View style={styles.legendItem}>

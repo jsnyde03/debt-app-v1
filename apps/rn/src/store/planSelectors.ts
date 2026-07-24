@@ -33,6 +33,13 @@ export function selectExtraToDebt(allocation: Allocation): number {
   return sumCategory(allocation, 'snowball');
 }
 
+/** Spare "put to work" toward the emergency fund + savings goals this cycle — the debt-free deploy
+ *  target (2.4.8 graduation). Once there's no debt, this is where the Guardian's spare lands, so the
+ *  brief's "deployed" figure reads off it instead of the (now always-$0) snowball. */
+export function selectDeployedToSavings(allocation: Allocation): number {
+  return sumCategory(allocation, 'starter_emergency', 'emergency', 'optional_goal');
+}
+
 /** The protected cushion the plan KEEPS this cycle — ALL held buckets (§2.2 canonical: cushion_buffer +
  *  prefunded_reserve + discovery_holdback + true_leftover), what the floor protects. NOT the buffer alone
  *  (round-6 F1: held reserves must count as cushion or "put to work" over-counts them). */

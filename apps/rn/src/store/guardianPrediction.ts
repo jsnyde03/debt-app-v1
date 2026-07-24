@@ -20,7 +20,9 @@ export { reconcileClosingCycle } from './guardianPredictionCore';
 
 /**
  * Pure-ish: the Guardian's prediction for the CURRENT cycle, or null when there's no read (no plan / no
- * income / debt-free). Reads the same brief the card shows so the stamped prediction can't diverge.
+ * income). It PERSISTS past debt-free (2.4.8) — the brief keeps running with the spare re-targeted to
+ * savings, so calibration + income-learning don't stop the moment the user graduates. Reads the same
+ * brief the card shows so the stamped prediction can't diverge; `debtFree` marks the target regime.
  */
 export function computeCyclePrediction(store: DebtStore): CyclePrediction | null {
   const brief = selectPaydayGuardian(store);
@@ -36,6 +38,8 @@ export function computeCyclePrediction(store: DebtStore): CyclePrediction | null
     predictedShortfall: allocation?.shortfall ?? 0,
     predictedConfidenceContext: deriveConfidenceContext(store),
     plannedIncome,
+    // §2.7 graduation (2.4.8) — record the target regime so 2.4.9 grades debt vs debt-free separately.
+    debtFree: brief.debtFree === true,
   };
 }
 

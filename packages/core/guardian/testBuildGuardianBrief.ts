@@ -133,8 +133,39 @@ function runGuardianTests() {
   assertEqual(staleFree.safeMove, undefined, "stale cutoff: free gets no safeMove");
   assertTrue(/Update your numbers/i.test(buildGuardianBrief(input({ confidence: { freshness: "stale" } })).safeMove ?? ""), "stale cutoff: premium gets the update prompt");
 
-  // ── The trust invariant: everything hedged, no cents (incl. the new voice-gate briefs) ──
-  for (const b of [premClear, freeClear, tight, short, agingPrem, coldStart, discovery, staleClear]) {
+  // ── §2.7 graduation (2.4.8): the Guardian PERSISTS past debt-free, spare → savings, never "debt" ──
+  const gradDeploy = buildGuardianBrief(input({ debtFree: true, discretionary: 210, kept: 200, deployedToDebt: 10, deployTargetName: "Emergency Fund" }));
+  assertEqual(gradDeploy.state, "clear", "debt-free: the band still follows headroom (clear)");
+  assertTrue(gradDeploy.debtFree === true, "debt-free brief carries the debtFree flag (the card relabels the bar legend to 'To savings')");
+  assertTrue(/toward your Emergency Fund/.test(gradDeploy.detail), "debt-free clear-deploy: the spare goes 'toward your Emergency Fund'");
+  assertTrue(!/\bdebt\b/i.test(gradDeploy.detail + (gradDeploy.safeMove ?? "")), "debt-free clear-deploy: never says 'debt'");
+  assertTrue(/contribution/.test(gradDeploy.safeMove ?? "") && !/payment/.test(gradDeploy.safeMove ?? ""), "debt-free: 'contribution', not 'payment'");
+
+  const gradUnnamed = buildGuardianBrief(input({ debtFree: true, deployedToDebt: 40 }));
+  assertTrue(/toward your savings/.test(gradUnnamed.detail), "debt-free with no named goal → 'toward your savings'");
+
+  const gradSpread = buildGuardianBrief(input({ debtFree: true, deployedToDebt: 500, deploySpread: true, deployTargetName: "Emergency Fund" }));
+  assertTrue(/across your savings, starting with your Emergency Fund/.test(gradSpread.detail), "debt-free spread → 'across your savings, starting with …'");
+  assertTrue(/contributions/.test(gradSpread.safeMove ?? ""), "debt-free spread → 'contributions' (plural)");
+
+  const gradTight = buildGuardianBrief(input({ debtFree: true, discretionary: 150, kept: 150, deployedToDebt: 0, floor: 200 }));
+  assertTrue(/Extra savings resumes/.test(gradTight.safeMove ?? "") && !/payoff/.test(gradTight.safeMove ?? ""), "debt-free tight → 'Extra savings resumes', not 'payoff'");
+
+  const gradHold = buildGuardianBrief(input({ debtFree: true, discretionary: 205, kept: 205, deployedToDebt: 0, floor: 200 }));
+  assertTrue(/free up more for your goals/.test(gradHold.safeMove ?? "") && !/for debt/.test(gradHold.safeMove ?? ""), "debt-free clear-no-deploy → 'free up more for your goals'");
+
+  const gradShort = buildGuardianBrief(input({ debtFree: true, shortfall: 180, discretionary: 0 }));
+  assertTrue(/\bbills\b/.test(gradShort.detail) && !/minimums/.test(gradShort.detail), "debt-free shortfall → 'bills' (no minimums exist debt-free)");
+  assertTrue(/Extra savings is paused/.test(gradShort.safeMove ?? ""), "debt-free shortfall → 'Extra savings is paused'");
+
+  const gradPaused = buildGuardianBrief(input({ debtFree: true, pausedDeploy: true, discretionary: 500 }));
+  assertTrue(/moving money to savings/.test(gradPaused.detail), "debt-free paused → 'moving money to savings', not 'to debt'");
+
+  // A brief WITH debt is unchanged by the graduation branch (regression guard).
+  assertTrue(/toward Store Card/.test(premClear.detail) && premClear.debtFree !== true, "with-debt brief still names the debt + debtFree unset");
+
+  // ── The trust invariant: everything hedged, no cents (incl. the voice-gate + graduation briefs) ──
+  for (const b of [premClear, freeClear, tight, short, agingPrem, coldStart, discovery, staleClear, gradDeploy, gradTight, gradShort]) {
     assertTrue(hedged(b.detail) && hedged(b.safeMove ?? "") && hedged(b.lookahead ?? ""), `hedged (no false-precise $) — ${b.state}`);
   }
 

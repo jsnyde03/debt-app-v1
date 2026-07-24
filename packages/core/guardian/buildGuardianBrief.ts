@@ -42,6 +42,9 @@ export interface GuardianBrief {
   /** §2.3.1 (2.4.7.7) — a scheduled paycheck didn't land, so deploy is paused; the card renders a
    *  neutral "income paused" posture, never a phantom-income clear. */
   pausedDeploy?: boolean;
+  /** §2.7 graduation (2.4.8) — the read is running PAST debt-free, so the spare tops up savings/wealth,
+   *  not debt. The card relabels the "To debt" bar legend to "To savings"; the copy never implies debt. */
+  debtFree?: boolean;
 }
 
 /**
@@ -59,6 +62,11 @@ export interface GuardianConfidence {
 
 export interface GuardianInput {
   isPremium: boolean;
+  /** §2.7 graduation (2.4.8) — once debt-free the spare tops up savings/wealth, not debt: the deploy
+   *  copy re-targets (emergency fund / goals) and never says "toward debt" / "free up for debt". */
+  debtFree?: boolean;
+  /** The savings destination name at debt-free (emergency fund / goal), for the deploy copy. */
+  deployTargetName?: string;
   floor: number;
   /** Cash after every obligation (bills + minimums + living) — the headroom that drives the band. */
   discretionary: number;
@@ -126,6 +134,11 @@ function withHedge(brief: GuardianBrief, hedge: string | null): GuardianBrief {
 
 export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   const { isPremium, focusDebtName, deploySpread, lookahead } = input;
+  // §2.7 graduation (2.4.8): past debt-free the spare goes to savings/wealth. The band + viz are
+  // identical (headroom vs. the floor doesn't care what the extra funds); only the deploy wording
+  // shifts — "toward debt" → "toward your savings", "Extra payoff" → "Extra savings", etc.
+  const debtFree = input.debtFree === true;
+  const deployNoun = debtFree ? "savings" : "payoff"; // "Extra {payoff} resumes / is paused"
   // Sanitize every number up front — a bad upstream value must degrade to a safe read, never `$NaN`.
   const floor = money(input.floor) || 200;
   const discretionary = money(input.discretionary);
@@ -151,7 +164,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       ? `Heads up: ${lookahead.label} looks ${lookahead.status === "pressure" ? "tight" : "a little tight"} — ${about(lookahead.cushion)} of cushion. Worth planning for now.`
       : undefined;
 
-  const viz = { cushion: kept, deployedToDebt, heldReserve, floor, reachedFloor };
+  const viz = { cushion: kept, deployedToDebt, heldReserve, floor, reachedFloor, debtFree };
 
   // §2.3.1 paused-deploy (2.4.7.7) — a scheduled paycheck was reported missed. This supersedes every
   // other read (a missed check with the plan still assuming income is the structural phantom-income
@@ -161,10 +174,11 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
     return {
       state,
       title: "A paycheck didn't land",
-      detail:
-        "It looks like this paycheck didn't come through. I've paused moving money to debt and I'm protecting your cushion until your income resumes.",
+      detail: `It looks like this paycheck didn't come through. I've paused moving money to ${
+        debtFree ? "savings" : "debt"
+      } and I'm protecting your cushion until your income resumes.`,
       safeMove: isPremium
-        ? "Cover essentials from your cushion if you need to — extra payoff stays paused until your next paycheck lands."
+        ? `Cover essentials from your cushion if you need to — extra ${deployNoun} stays paused until your next paycheck lands.`
         : undefined,
       pausedDeploy: true,
       ...viz,
@@ -190,12 +204,19 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
 
   const hedge = pickHedge(isPremium, input.confidence);
 
-  // Where the extra actually lands: a single debt names it; a spread fills the focus first, then rolls.
-  const dest = !focusDebtName
-    ? "toward debt"
-    : deploySpread
-      ? `across your debts, starting with ${focusDebtName}`
-      : `toward ${focusDebtName}`;
+  // Where the extra actually lands. Debt-free: the savings destination (EF / goal), or "your savings"
+  // when unnamed. With debt: a single debt names it; a spread fills the focus first, then rolls onward.
+  const dest = debtFree
+    ? input.deployTargetName
+      ? deploySpread
+        ? `across your savings, starting with your ${input.deployTargetName}`
+        : `toward your ${input.deployTargetName}`
+      : "toward your savings"
+    : !focusDebtName
+      ? "toward debt"
+      : deploySpread
+        ? `across your debts, starting with ${focusDebtName}`
+        : `toward ${focusDebtName}`;
 
   if (!isPremium) {
     // Free: the honest read for this paycheck (the value-led taste) — no action claimed. The card
@@ -217,8 +238,10 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
     return {
       state,
       title: "This paycheck won't cover everything",
-      detail: `You're about ${amt(shortfall)} short of the bills and minimums due before your next paycheck — this one needs a plan.`,
-      safeMove: "Cover the essentials first — housing, utilities, food. Extra payoff is paused, and any income you can add this cycle helps the most.",
+      detail: `You're about ${amt(shortfall)} short of the ${
+        debtFree ? "bills" : "bills and minimums"
+      } due before your next paycheck — this one needs a plan.`,
+      safeMove: `Cover the essentials first — housing, utilities, food. Extra ${deployNoun} is paused, and any income you can add this cycle helps the most.`,
       lookahead: look,
       ...viz,
     };
@@ -230,7 +253,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
         state,
         title: state === "at-risk" ? "Very tight this paycheck" : "A little tight this paycheck",
         detail: `About ${amt(discretionary)} is left after everything required — under your ${amt(floor)} line, so I'm keeping all of it as cushion.`,
-        safeMove: "Nothing extra goes out this cycle. Extra payoff resumes once you're back above your line.",
+        safeMove: `Nothing extra goes out this cycle. Extra ${deployNoun} resumes once you're back above your line.`,
         lookahead: look,
         ...viz,
       },
@@ -244,7 +267,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
         state,
         title: "Looks clear this paycheck",
         detail: `About ${amt(discretionary)} after everything required — this paycheck keeps all of it as your cushion, right at your ${amt(floor)} line.`,
-        safeMove: "Nudge your line down anytime to free up more for debt.",
+        safeMove: `Nudge your line down anytime to free up more for ${debtFree ? "your goals" : "debt"}.`,
         lookahead: look,
         ...viz,
       },
@@ -256,7 +279,15 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       state,
       title: "Looks clear this paycheck",
       detail: `About ${amt(discretionary)} after everything required. I've set this paycheck to keep ${amt(kept)} as your cushion and put the spare ${amt(deployedToDebt)} ${dest}.`,
-      safeMove: `Mark ${deploySpread ? "the extra payments" : `the ${amt(deployedToDebt)} payment`} when you're ready — your ${amt(floor)} cushion stays protected either way.`,
+      safeMove: `Mark ${
+        deploySpread
+          ? debtFree
+            ? "the extra contributions"
+            : "the extra payments"
+          : debtFree
+            ? `the ${amt(deployedToDebt)} contribution`
+            : `the ${amt(deployedToDebt)} payment`
+      } when you're ready — your ${amt(floor)} cushion stays protected either way.`,
       lookahead: look,
       ...viz,
     },

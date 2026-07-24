@@ -4,7 +4,7 @@ import { ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS, type EstimateStaleness } from
 import type { DebtStore } from '@/data/models';
 
 import { classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './guardianPredictionCore';
-import { selectDiscretionary, selectExtraToDebt, selectHeldReserve, selectLiquidCushion } from './planSelectors';
+import { selectDeployedToSavings, selectDiscretionary, selectExtraToDebt, selectHeldReserve, selectLiquidCushion } from './planSelectors';
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
 import { selectAllocation, selectPaycheckMissed } from './selectors';
 
@@ -32,13 +32,16 @@ function shortDate(iso: string): string {
  * this paycheck?". Reads the SAME projected cushion the cash-flow bars show (`selectCashTimeline`
  * cycle 0), so the Guardian never contradicts them. Pass the PROJECTED store (premium) so the read is
  * off where the user actually is; on the raw store it answers off the last-verified anchor (free).
- * `null` before there's a plan or once debt-free (the cushion-vs-debt framing no longer applies).
+ * `null` before there's a plan. It PERSISTS past debt-free (2.4.8 graduation): the framing shifts from
+ * cushion-vs-debt to cushion-vs-savings (the spare now tops up the emergency fund / goals / wealth), so
+ * the premium headline keeps running instead of going dark exactly when the user has earned it.
  */
 export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
   const allocation = selectAllocation(store);
   if (!allocation) return null;
   const liveDebts = store.debts.filter((d) => d.balance > 0);
-  if (liveDebts.length === 0) return null;
+  // 2.4.8 — the Guardian no longer nulls at debt-free; it re-targets the spare to savings/wealth.
+  const debtFree = liveDebts.length === 0;
 
   const cycles = selectCashTimeline(store, 3);
   if (cycles.length === 0) return null;
@@ -46,28 +49,39 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
   // The nearest upcoming cycle that isn't clear — the proactive forewarning ("next month looks tight").
   const upcoming = cycles.slice(1).find((c) => c.cushionStatus !== 'stable');
 
-  // Focus = the debt the ACTUAL allocation sends the extra to FIRST (2.4.6.1.4), not a fresh `rankDebts`
-  // — the engine ranks AFTER this cycle's paid minimums / skips already-cleared debts, so a raw re-rank
-  // can name the wrong debt. Fall back to the raw rank only when nothing deploys (copy doesn't use it then).
+  // Where the spare lands. WITH debt: the focus is the debt the ACTUAL allocation sends the extra to
+  // FIRST (2.4.6.1.4), not a fresh `rankDebts` (the engine ranks AFTER paid minimums / skips cleared
+  // debts, so a raw re-rank can name the wrong debt). DEBT-FREE: the first "put to work" bucket names
+  // the savings destination (EF → goals), so the copy reads "toward your Emergency Fund".
   const snowballItems = allocation.allocations.filter((a) => a.category === 'snowball');
-  const focusDebtName =
-    (snowballItems[0] && store.debts.find((d) => d.id === (snowballItems[0].debtId ?? snowballItems[0].targetId))?.name) ||
-    rankDebts(liveDebts, store.payoffStrategy)[0]?.name;
+  const savingsItems = allocation.allocations.filter(
+    (a) => a.category === 'starter_emergency' || a.category === 'emergency' || a.category === 'optional_goal',
+  );
+  const focusDebtName = debtFree
+    ? undefined
+    : (snowballItems[0] && store.debts.find((d) => d.id === (snowballItems[0].debtId ?? snowballItems[0].targetId))?.name) ||
+      rankDebts(liveDebts, store.payoffStrategy)[0]?.name;
+  const deployTargetName = debtFree
+    ? (savingsItems[0] && store.goals.find((g) => g.id === savingsItems[0].goalId)?.name) || undefined
+    : undefined;
 
   return buildGuardianBrief({
     isPremium: store.subscriptionPlan === 'premium',
+    debtFree,
     // The user's cushion line — premium is held to it; for free it's the healthy line they're not on.
     floor: store.cushionFloor ?? 200,
-    // Headroom after every obligation drives the band (a choice to deploy to debt isn't a risk). The
-    // plan reserves the floor for premium (effectivePaycheckBuffer), so `kept` = the protected cushion.
+    // Headroom after every obligation drives the band (a choice to deploy isn't a risk). The plan
+    // reserves the floor for premium (effectivePaycheckBuffer), so `kept` = the protected cushion.
     discretionary: selectDiscretionary(allocation),
     kept: selectLiquidCushion(allocation),
     heldReserve: selectHeldReserve(allocation),
-    deployedToDebt: selectExtraToDebt(allocation),
-    // The extra fills debts in strategy order, so it spans >1 when it exceeds the focus debt's balance.
-    deploySpread: snowballItems.length > 1,
+    // The "deployed" figure: extra-to-debt while owing, spare-to-savings once debt-free (2.4.8).
+    deployedToDebt: debtFree ? selectDeployedToSavings(allocation) : selectExtraToDebt(allocation),
+    // The extra fills targets in order, so it spans >1 when it exceeds the first target's need.
+    deploySpread: debtFree ? savingsItems.length > 1 : snowballItems.length > 1,
     shortfall: allocation.shortfall,
     focusDebtName,
+    deployTargetName,
     lookahead: upcoming
       ? { status: upcoming.cushionStatus, cushion: upcoming.endingBalance, label: shortDate(upcoming.cycleStart) }
       : undefined,

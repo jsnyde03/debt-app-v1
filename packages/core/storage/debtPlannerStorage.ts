@@ -128,6 +128,11 @@ export type CyclePrediction = {
 	// Set true when the prediction was RE-STAMPED mid-cycle after a material change (2.4.D.4). Folded
 	// into the snapshot's `disturbed` at rollover so the §2.9 scorecard excludes the cycle from N≥4.
 	restampedMidCycle?: boolean;
+	// §2.7 graduation (2.4.8): the prediction's TARGET regime — false while paying down debt (spare →
+	// debt), true once debt-free (spare → EF / goals / wealth). The §2.9 scorecard reads this so a
+	// debt-free→new-debt re-entry doesn't BLEND two different targets into one meaningless accuracy
+	// number; the two regimes are graded separately. Optional → pre-2.4.8 predictions parse (default: debt).
+	debtFree?: boolean;
 };
 
 // The reconciled outcome of a cycle, captured at rollover against the prediction.

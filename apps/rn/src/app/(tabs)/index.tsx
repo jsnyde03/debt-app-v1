@@ -9,6 +9,7 @@ import { maybeRequestReview } from '@/lib/review';
 import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
+import { GraduationBanner, FreedomNextChapterCard } from '@/components/plan/GraduationCards';
 import { LeanSuggestionCard } from '@/components/plan/LeanSuggestionCard';
 import { PaydayGuardianCard } from '@/components/plan/PaydayGuardianCard';
 import { PlanHero } from '@/components/plan/PlanHero';
@@ -99,11 +100,23 @@ export default function TodayScreen() {
         onCta={() => goToTab('money')}
       />
     );
-  } else if (planState === 'debt-free') {
-    content = <PromptCard icon="celebration" iconColor={c.accent.success} title="You're debt-free!" body="Every balance is cleared. Keep the momentum going." />;
   } else if (allocation && summary) {
+    // 2.4.8 graduation — debt-free flows into the SAME autopilot (the Guardian persists, spare → savings),
+    // with the calm permanent graduation banner + the ecosystem "next chapter" invite prepended. The
+    // one-time celebration spectacle stays Phase 3 (gated on confirmed-$0).
+    const isDebtFree = planState === 'debt-free';
     content = (
       <>
+        {isDebtFree ? (
+          <Motion>
+            <GraduationBanner />
+          </Motion>
+        ) : null}
+        {isDebtFree ? (
+          <Motion delay={30}>
+            <FreedomNextChapterCard />
+          </Motion>
+        ) : null}
         <Motion>
           <PlanHero
             summary={summary}
