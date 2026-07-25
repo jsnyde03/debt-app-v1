@@ -284,6 +284,15 @@ function runAllocationRegressionTests() {
     });
     assertEqual(withoutPriority.allocations.find((a) => a.goalId === "couch"), undefined, "the same goal WITHOUT priority funds after debt → nothing here");
 
+    // §2.9 sinking-fund PACE cap: a $75/paycheck cap funds only $75 (not the full $200), so a chosen
+    // pace is real; the rest still goes to debt this cycle.
+    const paced = allocatePaycheck({
+        ...priorityInputs,
+        goals: [{ id: "couch", name: "Couch", targetAmount: 200, currentAmount: 0, type: "savings", priority: true, priorityPerPaycheck: 75 }],
+    });
+    assertMoney(paced.allocations.find((a) => a.goalId === "couch")?.amount ?? 0, 75, "the per-paycheck cap paces the sinking fund ($75, not the full $200)");
+    assertMoney(paced.allocations.filter((a) => a.category === "snowball").reduce((s, a) => s + a.amount, 0), 375, "the uncapped remainder still reaches debt this cycle");
+
     console.log("✅ Allocation regression tests passed.");
 }
 

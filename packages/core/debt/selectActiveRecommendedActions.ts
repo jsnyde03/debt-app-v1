@@ -66,8 +66,19 @@ export function selectActiveRecommendedActions({
     const efItems = result.allocations.filter((item) => item.category === "emergency" || item.category === "starter_emergency");
     const mergedEmergency: AllocationItem[] = efItems.length > 0 ? [{ ...efItems[0], category: "emergency" }] : [];
 
+    // §2.9: ONLY an opt-in sinking fund (a PRIORITY savings goal) surfaces before debt — it funds before the
+    // snowball in `allocatePaycheck`, so it must also show as a plan action ahead of the extra-debt items and
+    // consume flexible-cash capacity first (matching the allocation order). A NORMAL savings goal is NOT
+    // surfaced here — normal debt payoff keeps optional goals after debt (Jason 2026-07-25).
+    // `buildActiveRecommendedActions` already handles `optional_goal`.
+    const priorityGoalIds = new Set(goals.filter((g) => g.priority === true).map((g) => g.id));
+    const sinkingFundItems = result.allocations.filter(
+        (item) => item.category === "optional_goal" && item.targetId != null && priorityGoalIds.has(item.targetId)
+    );
+
     const recommendedActions: AllocationItem[] = [
         ...mergedEmergency,
+        ...sinkingFundItems,
         ...adjustedActiveDebts.map((debt) => ({
             category: "snowball" as const,
             targetId: debt.id,

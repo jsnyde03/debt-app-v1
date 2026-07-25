@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { SaveForItSheet, type SavedInfo } from '@/components/plan/SaveForItSheet';
 import { TextField } from '@/components/ui/TextField';
 import { appStore } from '@/store/appStore';
 import { withProjectedBalances } from '@/store/balanceSelectors';
@@ -15,10 +16,6 @@ import { textStyles } from '@/theme/typography';
 
 function money(n: number): string {
   return `$${Math.round(Math.max(0, Number.isFinite(n) ? n : 0)).toLocaleString('en-US')}`;
-}
-
-function shortDate(iso: string): string {
-  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 // A session-unique id for an applied purchase / created goal — a plain counter (not `Date.now()`, which
@@ -43,6 +40,21 @@ export function AffordabilityCard() {
   const [amount, setAmount] = useState('');
   const [name, setName] = useState('');
   const [applied, setApplied] = useState<{ id: string; name: string } | null>(null);
+  const [saveSheet, setSaveSheet] = useState(false);
+  const [saved, setSaved] = useState<SavedInfo | null>(null);
+  const [nameError, setNameError] = useState('');
+
+  // Safeguard against a duplicate goal (Jason 2026-07-25): a save-for-it goal shares the Goals namespace,
+  // so block a name that already exists (checked when the user opens the sheet, where the name is editable).
+  function openSaveSheet() {
+    const effName = name.trim() || 'Savings goal';
+    if (store.goals.some((g) => g.name.trim().toLowerCase() === effName.toLowerCase())) {
+      setNameError(`You already have a goal named "${effName}" — rename it above.`);
+      return;
+    }
+    setNameError('');
+    setSaveSheet(true);
+  }
 
   const engineStore = withProjectedBalances(store, isPremium);
   const n = Number(amount);
@@ -57,6 +69,10 @@ export function AffordabilityCard() {
   function undo() {
     if (applied) appStore.getState().removeExpense(applied.id);
     setApplied(null);
+  }
+  function undoSave() {
+    if (saved) appStore.getState().removeGoal(saved.id);
+    setSaved(null);
   }
 
   const tone: Record<Affordability['verdict'], { color: string; icon: IconGlyph }> = {
@@ -83,7 +99,29 @@ export function AffordabilityCard() {
     );
   }
 
+  // ── Saved state: a sinking fund is now in the plan. This state also SAFEGUARDS against duplicates —
+  // the [Save for it →] button is gone, so the goal can't be re-added (Jason 2026-07-25). ──
+  if (saved) {
+    return (
+      <Card>
+        <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>CAN I AFFORD IT?</Text>
+        <View style={styles.read}>
+          <View style={styles.readHead}>
+            <AppIcon name="check-circle" size={18} color={c.accent.primary} />
+            <Text style={[textStyles.subhead, styles.readText, { color: c.text.primary }]}>
+              {saved.prioritize && saved.perPaycheck != null
+                ? `Now saving ${money(saved.perPaycheck)}/paycheck toward ${saved.name} — funds before debt. Track it in Goals.`
+                : `Saving toward ${saved.name} from whatever's spare after debt. Track it in Goals.`}
+            </Text>
+          </View>
+          <Button label="Undo" variant="secondary" onPress={undoSave} style={styles.action} />
+        </View>
+      </Card>
+    );
+  }
+
   return (
+    <>
     <Card>
       <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>CAN I AFFORD IT?</Text>
       <View style={styles.head}>
@@ -92,7 +130,8 @@ export function AffordabilityCard() {
       </View>
 
       <TextField label="Amount" value={amount} onChangeText={setAmount} placeholder="e.g. 400" keyboardType="decimal-pad" />
-      <TextField label="What is it? (optional)" value={name} onChangeText={setName} placeholder="e.g. New couch" />
+      <TextField label="What is it? (optional)" value={name} onChangeText={(t) => { setName(t); setNameError(''); }} placeholder="e.g. New couch" />
+      {nameError ? <Text style={[textStyles.caption, styles.hint, { color: c.accent.danger }]}>{nameError}</Text> : null}
 
       {!result ? (
         <Text style={[textStyles.caption, styles.hint, { color: c.text.tertiary }]}>Enter an amount to see if it fits this paycheck.</Text>
@@ -107,7 +146,7 @@ export function AffordabilityCard() {
           </View>
         </View>
       ) : result.verdict === 'short' ? (
-        // Short → the honest read + the safe alternative. (The multi-option save-for-it sheet lands in 2.9.6.)
+        // Short → the honest read + a path to save for it (the multi-option sign-off sheet, 2.9.6).
         <View style={styles.read}>
           <View style={styles.readHead}>
             <AppIcon name={tone.short.icon} size={18} color={tone.short.color} />
@@ -115,7 +154,7 @@ export function AffordabilityCard() {
               Not this paycheck — you&apos;d come up about {money(result.shortBy)} short.
             </Text>
           </View>
-          <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Wait until {shortDate(result.nextPayday)}, or save up for it.</Text>
+          <Button label="Save for it →" variant="secondary" onPress={openSaveSheet} style={styles.action} />
         </View>
       ) : (
         // Comfortable / tight → the read + the honest debt cost + apply-to-plan.
@@ -142,6 +181,10 @@ export function AffordabilityCard() {
         </View>
       )}
     </Card>
+    {isPremium && result ? (
+      <SaveForItSheet visible={saveSheet} amount={n} name={name} onClose={() => setSaveSheet(false)} onSaved={setSaved} />
+    ) : null}
+    </>
   );
 }
 

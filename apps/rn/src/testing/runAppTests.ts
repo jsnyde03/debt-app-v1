@@ -40,6 +40,9 @@ async function main() {
   // §2.7.4 — the in-window BNPL cadence scaling flows through the allocation + the lookahead timeline.
   await import('../store/bnplCadence.test');
 
+  // §2.9 — the Can-I-Afford-This? selectors (verdict + honest impact + save-for-it options).
+  await import('../store/affordability.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

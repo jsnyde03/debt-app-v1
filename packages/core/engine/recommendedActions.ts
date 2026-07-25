@@ -74,7 +74,13 @@ function getRecommendationMaxAmount(item: AllocationItem, goals: Goal[]): number
     if (item.category === "emergency" || item.category === "optional_goal") {
         const goal = goals.find((g) => g.id === item.targetId);
         if (!goal) return item.amount;
-        return roundMoney(Math.max(0, goal.targetAmount - goal.currentAmount));
+        const remaining = roundMoney(Math.max(0, goal.targetAmount - goal.currentAmount));
+        // §2.9: a PACED sinking fund recommends only THIS cycle's set-aside (what the engine reserved),
+        // not the whole goal — so the action matches the allocation and can't over-fund the plan.
+        if (goal.priority === true && goal.priorityPerPaycheck != null && goal.priorityPerPaycheck > 0) {
+            return roundMoney(Math.min(remaining, goal.priorityPerPaycheck));
+        }
+        return remaining;
     }
 
     return item.amount;

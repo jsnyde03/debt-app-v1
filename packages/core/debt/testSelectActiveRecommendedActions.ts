@@ -89,6 +89,34 @@ function run() {
         assertEqual(actions[0].recommendedAmount, 300, "remaining balance nets out completed snowball");
     }
 
+    // ── §2.9: a PRIORITY sinking fund surfaces as an action (before debt) at its per-paycheck pace; a
+    // normal (non-priority) savings goal does NOT surface here (normal payoff keeps optional goals after debt).
+    {
+        const result = makeResult({
+            paycheckAmount: 2000,
+            allocations: [
+                { label: "Add to Couch", amount: 50, category: "optional_goal", targetId: "couch", goalId: "couch" },
+                { label: "Add to Vacation", amount: 0, category: "optional_goal", targetId: "vacay", goalId: "vacay" },
+            ],
+        });
+        const actions = selectActiveRecommendedActions({
+            result,
+            debts: [debt({ id: "visa", name: "Visa", balance: 500 })],
+            goals: [
+                { id: "couch", name: "Couch", targetAmount: 400, currentAmount: 0, type: "savings", priority: true, priorityPerPaycheck: 50 },
+                { id: "vacay", name: "Vacation", targetAmount: 500, currentAmount: 0, type: "savings" },
+            ],
+            payoffStrategy: "snowball", recommendationOverrides: [], completedRecommendedActions: [],
+        });
+        const couch = actions.find((a) => a.targetId === "couch");
+        const vacay = actions.find((a) => a.targetId === "vacay");
+        const visa = actions.find((a) => a.targetId === "visa");
+        assertEqual(couch?.category, "optional_goal", "a priority sinking fund surfaces as a plan action");
+        assertEqual(couch?.recommendedAmount, 50, "…at this cycle's pace ($50), not the whole goal ($400)");
+        assertEqual(vacay, undefined, "a normal (non-priority) savings goal does NOT surface in actions");
+        assertEqual(couch != null && visa != null && actions.indexOf(couch) < actions.indexOf(visa), true, "the sinking fund is listed BEFORE the extra-debt action (funds before debt)");
+    }
+
     console.log("✅ selectActiveRecommendedActions regression tests passed.");
 }
 

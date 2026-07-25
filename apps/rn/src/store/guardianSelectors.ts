@@ -255,6 +255,58 @@ export function selectAffordability(store: DebtStore, amount: number): Affordabi
   return { amount, verdict, discretionaryNow, cushionAfter, shortBy, floor, nextPayday: store.paycheck.nextPaycheckDate, extraToDebtDelta };
 }
 
+/** Advance an ISO date by whole paychecks of the given cadence (for a save-for-it "ready by" date). */
+function addPaychecks(iso: string, payCycle: string, n: number): string {
+  const days = payCycle === 'weekly' ? 7 : payCycle === 'biweekly' ? 14 : payCycle === 'semimonthly' ? 15 : 30;
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() + days * n);
+  return d.toISOString().slice(0, 10);
+}
+
+export interface SaveOption {
+  key: 'fast' | 'balanced' | 'debtFirst';
+  title: string;
+  /** Funds BEFORE debt (a sinking fund) — the honest debt cost is shown at sign-off. Debt-first = false. */
+  prioritize: boolean;
+  perPaycheck: number | null;
+  paychecks: number | null;
+  readyBy: string | null;
+  /** The honest trade-off line for this option. */
+  detail: string;
+}
+
+/**
+ * §2.9.6 the save-for-it options for a SHORT purchase — the user picks a path (and signs off) rather than
+ * a single false-promise plan. Prioritized paces (fund before debt → a real "ready by" date, with the
+ * debt cost owned) + a debt-first path (normal post-debt goal, no debt-free-date hit, no firm date).
+ * Precise savings math; the debt-free-date cost stays qualitative (no false precision) at the sign-off.
+ */
+export function selectSaveForItOptions(store: DebtStore, amount: number): SaveOption[] {
+  const base = selectAllocation(store);
+  const discretionary = base ? selectDiscretionary(base) : 0;
+  const payCycle = store.paycheck.payCycle;
+  const today = store.paycheck.currentDate;
+  const opts: SaveOption[] = [];
+
+  if (discretionary > 0 && amount > 0) {
+    // Save fast — set aside (about) all this paycheck's spare, so it's ready soonest.
+    const fastN = Math.max(1, Math.ceil(amount / discretionary));
+    const fastPer = Math.ceil((amount / fastN) / 5) * 5;
+    opts.push({ key: 'fast', title: 'Save fast', prioritize: true, perPaycheck: fastPer, paychecks: fastN, readyBy: addPaychecks(today, payCycle, fastN), detail: 'Funds before debt — pauses most of your extra debt payoff while you save.' });
+
+    // Balanced — a lighter pace (~half), so debt payoff keeps moving.
+    const balPer = Math.max(5, Math.ceil((fastPer / 2) / 5) * 5);
+    const balN = Math.max(1, Math.ceil(amount / balPer));
+    if (balN > fastN) {
+      opts.push({ key: 'balanced', title: 'Balanced', prioritize: true, perPaycheck: balPer, paychecks: balN, readyBy: addPaychecks(today, payCycle, balN), detail: 'A lighter set-aside — eases off your debt payoff a little, takes longer.' });
+    }
+  }
+
+  // Debt-first — a normal savings goal, funded from whatever's spare after debt.
+  opts.push({ key: 'debtFirst', title: 'Keep debt first', prioritize: false, perPaycheck: null, paychecks: null, readyBy: null, detail: 'Save whatever’s spare after debt — no hit to your debt-free date, but no firm date.' });
+  return opts;
+}
+
 /**
  * The Payday Cushion Guardian for THIS paycheck (2.4) — the premium headline "am I going to make it
  * this paycheck?". Reads the SAME projected cushion the cash-flow bars show (`selectCashTimeline`

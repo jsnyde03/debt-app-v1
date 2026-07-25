@@ -39,6 +39,10 @@ export type Goal = {
 	/** §2.9 sinking fund — the user chose (with sign-off, seeing the debt-free-date cost) to fund this
 	 *  savings goal BEFORE debt payoff, so its "ready by" date holds. Absent → funds after debt (normal). */
 	priority?: boolean;
+	/** §2.9 sinking-fund PACE — the most to put toward a priority goal per paycheck, so a chosen pace
+	 *  ("$50/paycheck for 10 paychecks") is real, not greedily funded at once. Absent → no cap (funds as
+	 *  fast as spare allows). Only meaningful with `priority`. */
+	priorityPerPaycheck?: number;
 };
 
 // v1.7 §2.2 canonical partition (2.4.6.1.1) — the ONE bucket set every selector, bar zone, and
@@ -458,7 +462,9 @@ export function allocatePaycheck({
 		if (remaining <= 0) break;
 		if (goal.priority !== true || goal.type !== "savings" || goal.currentAmount >= goal.targetAmount) continue;
 		const needed = roundMoney(goal.targetAmount - goal.currentAmount);
-		const amount = roundMoney(Math.min(remaining, needed));
+		// The per-paycheck pace cap (if any) keeps a chosen "$X/paycheck" plan real instead of greedy.
+		const pace = goal.priorityPerPaycheck != null && goal.priorityPerPaycheck > 0 ? goal.priorityPerPaycheck : Infinity;
+		const amount = roundMoney(Math.min(remaining, needed, pace));
 		if (amount <= 0) continue;
 		allocations.push({ label: `Add to ${goal.name}`, amount, category: "optional_goal", targetId: goal.id, goalId: goal.id });
 		remaining = roundMoney(remaining - amount);

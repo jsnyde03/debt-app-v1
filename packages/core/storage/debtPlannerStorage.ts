@@ -93,6 +93,9 @@ export type Goal = {
 	// v1.7 §2.9 sinking fund — the user opted (with sign-off) to fund this savings goal BEFORE debt payoff
 	// so a "ready by {date}" plan holds; the honest debt-free-date cost is shown at opt-in. Optional / backfill-safe.
 	priority?: boolean;
+	// v1.7 §2.9 sinking-fund pace — the most to fund per paycheck (a chosen "$X/paycheck" plan), so it isn't
+	// funded greedily at once. Absent → funds as fast as spare allows. Only meaningful with `priority`.
+	priorityPerPaycheck?: number;
 };
 
 export type RecommendationOverride = {
