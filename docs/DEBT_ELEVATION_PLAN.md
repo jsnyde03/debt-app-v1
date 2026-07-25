@@ -8,7 +8,7 @@
 
 ## ▶ NOW
 
-- **Active item:** **✅✅ 2.7 BNPL as a first-class obligation — COMPLETE (all 5 leaves, e2e 20/20, both themes).** **▶ NEXT (recommended, pending Jason's pick) = 2.9 Momentum** (Interest-Saved spine; switch-in = design gate). **✅✅ GUARDIAN COMPLETE + AUDIT PASSED. ✅ 2.6 · 2.5 · 2.4 COMPLETE**.
+- **Active item:** **▶ 2.8 Scan-to-prefill (Jason's pick)** — switch-in = design + native-approach gate (before-scan in progress). **✅✅ 2.7 BNPL COMPLETE (all 5 leaves, e2e 20/20). ✅✅ GUARDIAN + AUDIT PASSED. ✅ 2.6 · 2.5 · 2.4**.
 - **Phase:** 2 (Premium substance + revenue spine). The Guardian headline + its convergence audit are done; the tier plumbing (2.7 → 2.8–2.11 revenue) remains.
 - **Then:** **2.7 BNPL first-class** → 2.8–2.12 → **Premium-framework audit** (Phase-2 close) → Phase 3 (delight; incl. the debt-free band) → **Phase 3.5 (tutorial + demo)** → **whole-app cohesion audit** → 4 / 5 / 5.5 / 6. _(remaining audit gates: Premium-framework@Phase-2-close · whole-app-cohesion@after-3.5.)_
 - **⚠️ Launch gating:** v1.7 ships as ONE release — nothing launches until Phase 6 is done + Jason is satisfied. The whole Elevation (through Phase 6) is the release.
@@ -74,15 +74,20 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 
 ### Active Queue — the live build _(decomposed; the queue never sits idle)_
 
-**▶ 2.9 ⭐ Momentum (RECOMMENDED next — pending Jason's pick)** — the Interest-Saved ledger as the premium spine: the always-true, un-chattable number (interest avoided vs a minimum-only baseline), a debts-vanquished archive (hooks the confirmed-$0 signal), streaks demoted. **Rec over 2.8/2.10 (native, device-gated → batch w/ Phase 6) + 2.11 (decide-first gate): 2.9 is a buildable, web-verifiable premium surface that advances the tier now.** _(2.7 BNPL fully shipped → Shipped roll-up above.)_
-- [ ] **2.9.1 [DESIGN GATE]** switch-in before-scan (what interest/history data exists — `computeInterestSaved`, `cycleHistory`, the confirmed-$0 vanquished signal — vs current code) + design alignment w/ Jason (the ledger's home · what it shows · free/premium line) → decompose 2.9.2+.
-- **Exit:** the Momentum spine shipped (Interest-Saved + vanquished archive); verified both themes + tests + e2e.
+**▶ 2.8 ⭐ Scan-to-prefill (Jason's pick 2026-07-25)** — Apple Vision OCR → prefill a debt/bill capture → user confirms; free initial scan / premium keeps-current. **⚠️ NATIVE (device-gated): browser/Expo-Go verification does NOT cover the native OCR/camera path — real-device is the only real check ([[feedback_native_module_verification_gap]]); flag any camera-usage/entitlement + autolink CI risk ([[feedback_regenerate_profiles_on_capability_change]] · [[project_codemagic_xcodeproj_glob_gotcha]]).** _**Switch-in = before-scan (existing capture/prefill infra + native OCR options) + design & native-approach alignment w/ Jason BEFORE building (design-shaped + a native-module decision).**_
+- [x] **2.8.1 [DESIGN GATE] ✅ (2026-07-25)** — before-scan: NO existing scan/camera/OCR infra; `debtCsv` (text→Debt) is the parser precedent; app is Expo-prebuild (native module + config plugin = the established pattern). **Agreed w/ Jason:** OCR = **Apple Vision** (on-device, no-Google, on-brand trust moat; iOS-first, Android→v1.8 via MLKit); **build the native module NOW too, verify at Phase 6** (Jason: "native items can still be built now"); scan a statement/bill → name·balance·minimum·APR·due date → **prefill the DebtSheet** → confirm; **free initial scan / premium keeps-current** (automation).
+- [x] **2.8.2 ✅ (2026-07-25)** core `parseStatementText(text)` — pure heuristic extraction (issuer name · balance · minimum · APR · ISO due date) from OCR text; same-line label→value anchoring so minimum≠balance; known-issuer list + first-line name fallback; partial/junk → only what's confidently found, never guessed. +18 core asserts. _(real-statement tuning = device-QA/Phase-6, needs real OCR text.)_ Detail → LOG.
+- [ ] **2.8.3** native Apple Vision module + config plugin — Swift `VNRecognizeTextRequest`/`DataScannerViewController` → a JS `scanDocument(): Promise<string>` interface; camera-usage `NSCameraUsageDescription` (⚠️ not a signing capability, but a new native module = autolink/xcodeproj CI risk → pre-commit native-build pass); platform-split web/Android no-op. Built now; **device-QA @ Phase 6**.
+- [ ] **2.8.4** UI — a Scan entry on the add-debt flow → capture → `parseStatementText` → prefill DebtSheet → confirm/edit → save; free initial / premium keeps-current gating; both themes.
+- [ ] **2.8.5** verify — web-verify the parser + prefill/confirm UI (both themes) + tests; the native OCR path flagged device-QA @ Phase 6 (NOT web-verifiable).
+- **Exit:** scan-to-prefill shipped (parse → prefill → confirm), structure web-verified + the native path device-QA'd at Phase 6; both themes + tests.
 
 ### The GUARDIAN AUDIT + must-fixes ✅ (detail → the round-2 doc)
 _All shipped 2026-07-24 — 2 audit rounds, 8 major/blocker + minors fixed (MF.1 recovery trust · MF.2 a11y · MF.3 free honest read · MF.4 steady-state projection [completed in round 2] · MF.5 reserve-release honesty · MF.6 surface unification · MF.7 polish), then round-2 re-verification reached 4/4-lens CONSENSUS ship-ready. Tier-3 → Phase 3; 2 minors → backlog. See the Shipped roll-up above + `…_ROUND2_2026-07-24.md`._
 
 ### The rest of the tier
-- [ ] **2.8 Scan-to-prefill** — Apple Vision OCR → prefill → confirm; free initial scan / premium keeps-current. Native, fast-follow (not launch-critical).
+- **2.8 Scan-to-prefill** → promoted to the **Active Queue** above (Jason's pick 2026-07-25).
+- [ ] **2.9 Momentum** — Interest-Saved ledger as the premium spine (the always-true, un-chattable number; counterfactual moved here from 2.6) + debts-vanquished archive (hooks the confirmed-$0 signal); streaks demoted. _(Was the recommended next; Jason picked 2.8 first.)_
 - **2.9 Momentum** → promoted to the **Active Queue** above (the recommended next build). _(Interest-Saved counterfactual moved here from 2.6 — Jason: no place in recovery.)_
 - [ ] **2.10 Widget + App Intents + Live Activity** — payoff-countdown Live Activity + interactive-widget App Intents (mark-paid / log-paycheck). One native build (with Phase-6 device work).
 - [ ] **2.11 Revenue spine** — RevenueCat + paywall (port Gig) + Lifetime 2nd offer + portfolio-sub seam + analytics + Sentry. **[DECISION before any StoreKit SKU]:** guarantee window/terms (default to honest "not charged until day 30" if StoreKit can't honor a refund) · Lifetime scope · pin annual + Lifetime prices. "Watches every paycheck" copy gated on 2.4.10. Launch-flip gated on value shipped.
