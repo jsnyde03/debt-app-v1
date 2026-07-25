@@ -75,6 +75,7 @@ Go to the **[RevenueCat dashboard](https://app.revenuecat.com)** → your **Debt
 3. Repeat for the **Lifetime** Product ID from §3.
 
 ### 4b. Attach both to the `premium` entitlement
+> ⚠️ **One entitlement, three products.** Do **NOT** create new "annual"/"lifetime" entitlements. There is exactly one entitlement — **`premium`** — and all three products (monthly, annual, lifetime) attach to it. (The app only checks `entitlements.active["premium"]`, so a separate entitlement would make annual/lifetime buyers read as *not* premium.)
 1. Left sidebar → **Entitlements** → click **`premium`**.
 2. **Attach** → select the new **Annual** product → attach.
 3. **Attach** again → select the new **Lifetime** product → attach.

@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppLockGate } from '@/components/AppLockGate';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNotificationSync } from '@/hooks/use-notification-sync';
+import { useInitPremium } from '@/premium/premiumSync';
 import { createStorageAdapter } from '@/storage/createAdapter';
 import { bootstrapPersistence, flushPendingSave } from '@/store/persistence';
 import { useAppStore } from '@/store/useAppStore';
@@ -39,6 +40,7 @@ export default function RootLayout() {
   const isHydrated = useAppStore((s) => s.isHydrated);
   const onboardingComplete = useAppStore((s) => s.store.prefs.onboardingComplete);
   useNotificationSync();
+  useInitPremium();
 
   useEffect(() => {
     void bootstrapPersistence(createStorageAdapter());

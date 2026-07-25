@@ -17,12 +17,13 @@ import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { MANAGE_SUBSCRIPTION_URL, PRIVACY_POLICY_URL, SUPPORT_URL, TERMS_OF_USE_URL } from '@/premium/legal';
 
 const LINKS = {
-  privacy: 'https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html',
-  terms: 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
-  support: 'https://github.com/jsnyde03/debt-planner-stie/blob/main/Paycheck%20Debt%20Planner%20Support',
-  subscription: 'https://apps.apple.com/account/subscriptions',
+  privacy: PRIVACY_POLICY_URL,
+  terms: TERMS_OF_USE_URL,
+  support: SUPPORT_URL,
+  subscription: MANAGE_SUBSCRIPTION_URL,
 };
 
 const APP_VERSION = Constants.expoConfig?.version ?? '—';
