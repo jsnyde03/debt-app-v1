@@ -1,15 +1,16 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { AppIcon } from '@/components/ui/AppIcon';
+import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
 /**
  * A lightweight "+ Add …" row — a dashed affordance that reads as the last item in a list, not a
- * bolted-on button. Replaces the chunky secondary button at the foot of the Money sections.
+ * bolted-on button. Replaces the chunky secondary button at the foot of the Money sections. `icon`
+ * defaults to "add" but can name any glyph (e.g. "document-scanner" for the §2.8 scan entry).
  */
-export function AddRow({ label, onPress }: { label: string; onPress: () => void }) {
+export function AddRow({ label, onPress, icon = 'add' }: { label: string; onPress: () => void; icon?: IconGlyph }) {
   const c = useAppColors();
   return (
     <Pressable
@@ -17,7 +18,7 @@ export function AddRow({ label, onPress }: { label: string; onPress: () => void 
       accessibilityRole="button"
       accessibilityLabel={label}
       style={({ pressed }) => [styles.row, { borderColor: c.border.strong, opacity: pressed ? 0.6 : 1 }]}>
-      <AppIcon name="add" size={18} color={c.accent.primary} />
+      <AppIcon name={icon} size={18} color={c.accent.primary} />
       <Text style={[textStyles.bodyMedium, { color: c.accent.primary }]}>{label}</Text>
     </Pressable>
   );

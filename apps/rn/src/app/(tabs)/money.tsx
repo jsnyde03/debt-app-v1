@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { bnplPaymentsRemaining, bnplPaymentsTotal, isInstallmentNative } from '@core/debt/bnplInstallment';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
+import { parseStatementText } from '@core/scan/parseStatementText';
 import type { Recurrence } from '@core/types/recurrence';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
@@ -13,6 +14,7 @@ import { ExpenseSheet } from '@/components/entities/ExpenseSheet';
 import { GoalSheet } from '@/components/entities/GoalSheet';
 import { AllocationBarCanvas } from '@/components/money/AllocationBarCanvas';
 import { BnplCalendarSection } from '@/components/money/BnplCalendarSection';
+import { isScanAvailable, scanStatement } from '@/lib/scan';
 import type { AllocationSegment } from '@/components/money/AllocationBarChart';
 import { BillBreakdownSheet, type BillBreakdownData } from '@/components/money/BillBreakdownSheet';
 import { MoreButton } from '@/components/more-button';
@@ -83,10 +85,20 @@ function DebtsSection() {
   const store = useAppStore((s) => s.store);
   const strategy = store.payoffStrategy;
   const view = selectPayoffView(store);
-  const [sheet, setSheet] = useState<{ editing: Debt | null } | null>(null);
+  const [sheet, setSheet] = useState<{ editing: Debt | null; prefill?: Partial<Debt> } | null>(null);
   const paidOff = store.debts.filter((d) => d.balance <= 0);
   const c = useAppColors();
   const insets = useSafeAreaInsets();
+
+  // §2.8 scan-to-prefill (free): scan a statement → OCR text → parse → open the sheet PREFILLED for the
+  // user to confirm. Nothing is saved without their tap. Hidden where the native scanner isn't available.
+  async function handleScan() {
+    const text = await scanStatement();
+    if (!text) return; // cancelled
+    const parsed = parseStatementText(text);
+    if (parsed.balance == null && parsed.minimumPayment == null && !parsed.name) return; // nothing usable
+    setSheet({ editing: null, prefill: parsed });
+  }
 
   if (store.debts.length === 0) {
     return (
@@ -98,7 +110,8 @@ function DebtsSection() {
           cta="Add your first debt"
           onCta={() => setSheet({ editing: null })}
         />
-        {sheet ? <DebtSheet editing={sheet.editing} onClose={() => setSheet(null)} /> : null}
+        {isScanAvailable() ? <View style={styles.scanEmpty}><AddRow label="Scan a statement" icon="document-scanner" onPress={handleScan} /></View> : null}
+        {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} /> : null}
       </>
     );
   }
@@ -155,12 +168,14 @@ function DebtsSection() {
         ListFooterComponent={
           <View style={styles.listFooter}>
             <AddRow label="Add debt" onPress={() => setSheet({ editing: null })} />
+            {/* §2.8 — scan a statement to prefill a new debt (free). Hidden where no native scanner. */}
+            {isScanAvailable() ? <AddRow label="Scan a statement" icon="document-scanner" onPress={handleScan} /> : null}
             {/* §2.7.5 — the consolidated BNPL calendar (renders only when there are upcoming installments). */}
             <BnplCalendarSection debts={active} currentDate={currentDate} />
           </View>
         }
       />
-      {sheet ? <DebtSheet editing={sheet.editing} onClose={() => setSheet(null)} /> : null}
+      {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} /> : null}
     </View>
   );
 }
@@ -669,6 +684,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   rowGap: { height: spacing.sm },
   listFooter: { marginTop: spacing.md, gap: spacing.md },
+  scanEmpty: { paddingHorizontal: spacing.lg, marginTop: spacing.md },
   hero: { gap: 2, marginBottom: spacing.xs },
   heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heroNum: { fontSize: 34, fontWeight: '800', letterSpacing: -0.5, fontVariant: ['tabular-nums'] },

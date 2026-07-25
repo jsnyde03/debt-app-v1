@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Pressable, Text } from 'react-native';
 
+import { parseStatementText } from '@core/scan/parseStatementText';
 import type { Recurrence } from '@core/types/recurrence';
 
+import { isScanAvailable, scanStatement } from '@/lib/scan';
 import { AmortizationSheet } from '@/components/entities/AmortizationSheet';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { Select } from '@/components/ui/Select';
@@ -52,19 +54,22 @@ const PROVIDERS: { value: string; label: string }[] = [
   { value: 'Other', label: 'Other' },
 ];
 
-/** Unified add/edit sheet for a debt. BNPL fields are now editable in both modes (redesign fix). */
-export function DebtSheet({ editing, onClose }: { editing: Debt | null; onClose: () => void }) {
+/** Unified add/edit sheet for a debt. BNPL fields are now editable in both modes (redesign fix).
+ *  `prefill` (§2.8) seeds a NEW debt's fields from a scanned statement — the user reviews/edits, then Adds. */
+export function DebtSheet({ editing, onClose, prefill }: { editing: Debt | null; onClose: () => void; prefill?: Partial<Debt> | null }) {
   const c = useAppColors();
   const currentDate = useAppStore((s) => s.store.paycheck.currentDate);
   const isPremium = useAppStore((s) => s.store.subscriptionPlan === 'premium');
   const estimate = editing ? selectDebtBalanceView(editing, currentDate, isPremium) : null;
   const isEdit = !!editing;
-  const [name, setName] = useState(editing?.name ?? '');
-  const [balance, setBalance] = useState(editing ? String(editing.balance) : '');
-  const [minimumPayment, setMinimumPayment] = useState(editing ? String(editing.minimumPayment) : '');
-  const [apr, setApr] = useState(editing?.apr != null ? String(editing.apr) : '');
-  const [dueDate, setDueDate] = useState(editing?.dueDate ?? todayLocalISO());
-  const [type, setType] = useState<'debt' | 'bnpl'>(editing?.type ?? 'debt');
+  // A new debt seeds from a scan prefill (if any); an existing debt seeds from itself.
+  const seed = editing ?? prefill ?? null;
+  const [name, setName] = useState(seed?.name ?? '');
+  const [balance, setBalance] = useState(seed?.balance != null ? String(seed.balance) : '');
+  const [minimumPayment, setMinimumPayment] = useState(seed?.minimumPayment != null ? String(seed.minimumPayment) : '');
+  const [apr, setApr] = useState(seed?.apr != null ? String(seed.apr) : '');
+  const [dueDate, setDueDate] = useState(seed?.dueDate ?? todayLocalISO());
+  const [type, setType] = useState<'debt' | 'bnpl'>(seed?.type ?? 'debt');
   const [recurrence, setRecurrence] = useState<Recurrence>(editing?.recurrence ?? 'monthly');
   const [autopay, setAutopay] = useState(editing?.isAutopay ?? false);
   const [remainingPayments, setRemainingPayments] = useState(editing?.remainingPayments != null ? String(editing.remainingPayments) : '');
@@ -85,6 +90,18 @@ export function DebtSheet({ editing, onClose }: { editing: Debt | null; onClose:
     setType(next);
     setError('');
     if (next === 'bnpl' && recurrence === 'monthly') setRecurrence('biweekly');
+  }
+
+  // §2.8 premium "keeps-current": re-scan a fresh statement to update this debt's balance (+ minimum)
+  // without retyping — the ongoing automation half of scan-to-prefill. Premium + native-scanner only.
+  const canRescan = isEdit && isPremium && isScanAvailable();
+  async function handleRescan() {
+    const text = await scanStatement();
+    if (!text) return;
+    const p = parseStatementText(text);
+    if (p.balance != null) setBalance(String(p.balance));
+    if (p.minimumPayment != null) setMinimumPayment(String(p.minimumPayment));
+    setError('');
   }
 
   function submit() {
@@ -146,8 +163,8 @@ export function DebtSheet({ editing, onClose }: { editing: Debt | null; onClose:
     <>
     <FormSheet
       visible
-      title={isEdit ? 'Edit debt' : 'Add a debt'}
-      subtitle="A loan, credit card, or BNPL balance."
+      title={isEdit ? 'Edit debt' : prefill ? 'Add from scan' : 'Add a debt'}
+      subtitle={prefill && !isEdit ? 'Review the scanned details, then add.' : 'A loan, credit card, or BNPL balance.'}
       submitLabel={isEdit ? 'Save' : 'Add debt'}
       onSubmit={submit}
       onRemove={isEdit ? remove : undefined}
@@ -184,6 +201,12 @@ export function DebtSheet({ editing, onClose }: { editing: Debt | null; onClose:
       ) : (
         <>
           <TextField label="Current balance" value={balance} onChangeText={(t) => { setBalance(t); setError(''); }} placeholder="e.g. 2400" keyboardType="decimal-pad" />
+          {/* §2.8 premium keeps-current: re-scan a statement to update the balance without retyping. */}
+          {canRescan ? (
+            <Pressable onPress={handleRescan} accessibilityRole="button" accessibilityLabel="Re-scan a statement to update this balance" hitSlop={6} style={{ marginTop: -4, alignSelf: 'flex-start' }}>
+              <Text style={[textStyles.caption, { color: c.accent.primary }]}>Re-scan to update →</Text>
+            </Pressable>
+          ) : null}
           {isEdit && estimate?.isEstimate ? (
             // Premium estimate: offer the projected value in one tap (Save re-anchors it) — never pre-fill
             // it silently. Typing the real number is the correction path; both re-anchor lastVerifiedDate.
