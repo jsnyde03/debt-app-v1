@@ -7,6 +7,7 @@ import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { CushionBarCanvas } from '@/components/plan/CushionBarCanvas';
 import { CushionFloorSheet } from '@/components/plan/CushionFloorSheet';
 import { RecoveryPlanSection } from '@/components/plan/RecoveryPlanSection';
+import { PremiumInvite } from '@/components/premium/PremiumInvite';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { GuardianBrief, GuardianState, TightTopUp } from '@/store/guardianSelectors';
 import type { RecoveryPlan } from '@/store/recoverySelectors';
@@ -124,7 +125,10 @@ export function PaydayGuardianCard({
           // MF.2 round-2: in recovery mode the visible safeMove is replaced by the (out-of-group) recovery
           // section and the lookahead renders as its own Text below — so drop both from the narrated label
           // here, else VoiceOver speaks a phantom safeMove + a double lookahead.
-          isPremium ? (recovery ? undefined : brief.safeMove) : freeInvite,
+          // Free: the invite is NOT narrated here — it renders below as its own tappable "Premium…"
+          // button (outside the group, per MF.2), so VoiceOver reaches it as an actionable element
+          // rather than a buried, double-spoken line.
+          isPremium ? (recovery ? undefined : brief.safeMove) : undefined,
           isPremium && !recovery ? brief.lookahead : undefined,
           bnplHeadsUp ?? undefined,
         )}>
@@ -211,13 +215,16 @@ export function PaydayGuardianCard({
             ) : null}
             {brief.lookahead ? <Text style={[textStyles.caption, styles.look, { color: c.text.tertiary }]}>{brief.lookahead}</Text> : null}
           </>
-        ) : !isPremium ? (
-          <View style={styles.invite} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-            <AppIcon name="workspace-premium" size={18} color={c.accent.primary} />
-            <Text style={[textStyles.subhead, styles.inviteText, { color: c.accent.primary }]}>{freeInvite}</Text>
-          </View>
         ) : null}
       </View>
+
+      {/* Free: the value-led invite as a real, tappable button → the paywall. Outside the narrated group
+          (MF.2) so it's an actionable a11y element, and consistent with every other PremiumInvite. */}
+      {!isPremium ? (
+        <View style={styles.invite}>
+          <PremiumInvite message={freeInvite} />
+        </View>
+      ) : null}
 
       {/* MF.2 (audit #2) — the INTERACTIVE controls live OUTSIDE the `accessible` group (which collapses its
           descendants into one VoiceOver utterance), so a screen reader reaches each as its own element,
@@ -323,8 +330,7 @@ const styles = StyleSheet.create({
   topUpBtn: { alignSelf: 'stretch' },
   attest: { marginTop: spacing.sm },
   adjust: { marginTop: spacing.md, fontWeight: '600' },
-  invite: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  inviteText: { flex: 1, fontWeight: '600' },
+  invite: { marginTop: spacing.md },
   intro: { padding: spacing.md, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, marginBottom: spacing.md, gap: spacing.sm },
   introText: { lineHeight: 20 },
   introBtnWrap: { alignSelf: 'flex-end' },

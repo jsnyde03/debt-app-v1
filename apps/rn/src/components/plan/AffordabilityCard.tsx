@@ -5,6 +5,7 @@ import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { SaveForItSheet, type SavedInfo } from '@/components/plan/SaveForItSheet';
+import { PremiumInvite } from '@/components/premium/PremiumInvite';
 import { TextField } from '@/components/ui/TextField';
 import { appStore } from '@/store/appStore';
 import { withProjectedBalances } from '@/store/balanceSelectors';
@@ -154,12 +155,7 @@ export function AffordabilityCard() {
       ) : !isPremium ? (
         <View style={styles.read}>
           <Text style={[textStyles.subhead, { color: c.text.primary }]}>You have about {money(result.discretionaryNow)} spare this paycheck.</Text>
-          <View style={styles.invite}>
-            <AppIcon name="workspace-premium" size={16} color={c.accent.primary} />
-            <Text style={[textStyles.caption, styles.inviteText, { color: c.accent.primary }]}>
-              Premium tells you if {money(result.amount)} fits — applies it to your plan, or plans how to save for it.
-            </Text>
-          </View>
+          <PremiumInvite message={`Premium tells you if ${money(result.amount)} fits — applies it to your plan, or plans how to save for it.`} />
         </View>
       ) : result.verdict === 'short' ? (
         // Short → the honest read + a path to save for it (the multi-option sign-off sheet, 2.9.6).
@@ -223,6 +219,4 @@ const styles = StyleSheet.create({
   readHead: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   readText: { flex: 1, fontWeight: '600' },
   action: { alignSelf: 'stretch', marginTop: spacing.xs },
-  invite: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  inviteText: { flex: 1, fontWeight: '600' },
 });

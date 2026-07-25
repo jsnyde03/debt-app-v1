@@ -68,6 +68,29 @@ export default function MoreScreen() {
       {/* Trust moment (the moat) — the first thing you see: honest, on-device, never sells you debt. */}
       <TrustCard />
 
+      {/* Premium entry — the ALWAYS-VISIBLE, obvious path to the paywall. Kept high + clearly labeled so
+          an App Review tester (and any free user) can always find it without triggering a premium moment
+          — the fix for the v1.1 "couldn't find the paywall" rejections. Premium users get manage-sub. */}
+      <SettingGroup>
+        {plan === 'premium' ? (
+          <SettingRow
+            icon="workspace-premium"
+            label="Premium"
+            subtitle="Active — thanks for the support. Tap to manage your subscription."
+            onPress={() => void Linking.openURL(MANAGE_SUBSCRIPTION_URL)}
+            last
+          />
+        ) : (
+          <SettingRow
+            icon="workspace-premium"
+            label="Unlock Premium"
+            subtitle="The Payday Guardian, Can I Afford It & more."
+            onPress={() => router.push('/paywall')}
+            last
+          />
+        )}
+      </SettingGroup>
+
       {/* History — a reflective destination, so it sits above the settings sections. */}
       <SettingGroup>
         <SettingRow
