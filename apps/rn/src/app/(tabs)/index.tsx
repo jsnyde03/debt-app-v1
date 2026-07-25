@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 
 import { useGoToTab } from '@/hooks/use-go-to-tab';
 import { maybeRequestReview } from '@/lib/review';
+import { DebtSheet } from '@/components/entities/DebtSheet';
 import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
@@ -98,6 +99,7 @@ export default function TodayScreen() {
   const provisionalPayoffs = selectProvisionalPayoffs(store, isPremium);
   const [paycheckSheet, setPaycheckSheet] = useState(false);
   const [windfallSheet, setWindfallSheet] = useState(false);
+  const [addDebtOpen, setAddDebtOpen] = useState(false);
 
   let content: React.ReactNode = null;
   if (planState === 'no-paycheck') {
@@ -119,7 +121,9 @@ export default function TodayScreen() {
         title="Add your first debt"
         body="Your debt-free date is waiting. Add a debt to see your plan."
         cta="Add a debt"
-        onCta={() => goToTab('money')}
+        // Open the Add-Debt sheet right here (one tap) — no bounce to Money and a second tap. After
+        // adding, Today re-renders straight into the plan. (Jason 2026-07-25.)
+        onCta={() => setAddDebtOpen(true)}
       />
     );
   } else if (allocation && summary) {
@@ -308,6 +312,7 @@ export default function TodayScreen() {
 
       {paycheckSheet ? <PaycheckSheet onClose={() => setPaycheckSheet(false)} /> : null}
       {windfallSheet ? <WindfallSheet current={store.windfall ?? 0} onClose={() => setWindfallSheet(false)} /> : null}
+      {addDebtOpen ? <DebtSheet editing={null} onClose={() => setAddDebtOpen(false)} /> : null}
     </Screen>
   );
 }
