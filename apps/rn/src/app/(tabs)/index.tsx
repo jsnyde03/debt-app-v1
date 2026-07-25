@@ -25,7 +25,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
-import { selectBillsAttestation, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
+import { selectBillsAttestation, selectBnplBetweenPaycheck, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
 import { selectRecoveryPlan } from '@/store/recoverySelectors';
 import { selectLeanSuggestion } from '@/store/incomeLearning';
 import {
@@ -66,6 +66,9 @@ export default function TodayScreen() {
   const summary = allocation ? selectPlanSummary(engineStore, allocation, requiredRows) : null;
   // 2.4 — the Payday Cushion Guardian for this paycheck (off the projected cushion for premium).
   const guardian = selectPaydayGuardian(engineStore);
+  // 2.7.4 — a between-paycheck BNPL heads-up (a biweekly plan landing 2+ installments this cycle), naming
+  // why the Guardian reads tight. All tiers; null when no BNPL is lumpy.
+  const bnplHeadsUp = selectBnplBetweenPaycheck(engineStore);
   // 2.6 — the built catch-up plan when this cycle is short (premium acting; free sees the honest read +
   // invite). Null unless there's a shortfall, so it only shows on the trouble states it's meant for.
   const recovery = isPremium ? selectRecoveryPlan(engineStore) : null;
@@ -160,6 +163,7 @@ export default function TodayScreen() {
               recovery={recovery}
               onDefer={(id) => appStore.getState().deferExpense(id)}
               onKeepEssential={(id) => appStore.getState().setDeferability(id, 'essential')}
+              bnplHeadsUp={bnplHeadsUp}
             />
           </Motion>
         ) : null}

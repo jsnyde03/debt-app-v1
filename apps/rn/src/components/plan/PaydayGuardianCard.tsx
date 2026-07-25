@@ -38,10 +38,14 @@ export function PaydayGuardianCard({
   recovery,
   onDefer,
   onKeepEssential,
+  bnplHeadsUp,
 }: {
   brief: GuardianBrief;
   isPremium: boolean;
   onSeeForecast?: () => void;
+  /** §2.7.4 — a between-paycheck BNPL heads-up ("2 Klarna payments land before your next paycheck"),
+   *  naming why a cycle reads tight. All tiers; null when no BNPL is lumpy this cycle. */
+  bnplHeadsUp?: string | null;
   /** §2.6 Recovery — the built catch-up plan when this cycle is short (premium). Null otherwise; when
    *  present it replaces the generic safe-move line with the interactive cover-now/defer plan. */
   recovery?: RecoveryPlan | null;
@@ -122,6 +126,7 @@ export function PaydayGuardianCard({
           // here, else VoiceOver speaks a phantom safeMove + a double lookahead.
           isPremium ? (recovery ? undefined : brief.safeMove) : freeInvite,
           isPremium && !recovery ? brief.lookahead : undefined,
+          bnplHeadsUp ?? undefined,
         )}>
         <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>PAYDAY GUARDIAN</Text>
 
@@ -182,6 +187,13 @@ export function PaydayGuardianCard({
             clear/tight reads are told by the title + the stats, so their paragraph is dropped. */}
         {stale || brief.pausedDeploy || brief.state === 'at-risk' ? (
           <Text style={[textStyles.subhead, styles.detail, { color: c.text.secondary }]}>{brief.detail}</Text>
+        ) : null}
+
+        {/* §2.7.4 — the between-paycheck BNPL heads-up: names why the cycle reads tight (a biweekly plan
+            landing 2+ installments before the next paycheck). Calm caption, all tiers. Inside the narrated
+            group (the `accessible` group collapses it → it's spoken via the group label, not twice). */}
+        {bnplHeadsUp ? (
+          <Text style={[textStyles.caption, styles.bnplHeadsUp, { color: c.text.tertiary }]}>{bnplHeadsUp}</Text>
         ) : null}
 
         <View style={[styles.divider, { backgroundColor: c.border.subtle }]} />
@@ -306,6 +318,7 @@ const styles = StyleSheet.create({
   divider: { height: StyleSheet.hairlineWidth, marginVertical: spacing.md },
   move: { fontWeight: '600' },
   look: { marginTop: spacing.sm },
+  bnplHeadsUp: { marginTop: spacing.sm, lineHeight: 18 },
   topUp: { marginTop: spacing.md, gap: spacing.sm },
   topUpBtn: { alignSelf: 'stretch' },
   attest: { marginTop: spacing.sm },

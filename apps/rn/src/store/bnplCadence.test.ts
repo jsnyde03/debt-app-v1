@@ -2,6 +2,7 @@ import { createDefaultStore } from '@/data/defaults';
 import type { Debt, DebtStore } from '@/data/models';
 import { selectAllocation } from '@/store/selectors';
 import { selectCashTimeline } from '@/store/payoffSelectors';
+import { selectBnplBetweenPaycheck } from '@/store/guardianSelectors';
 
 /**
  * §2.7.4 Guardian-aware cadence — the integration check that the in-window BNPL scaling actually flows
@@ -63,6 +64,12 @@ function run() {
     monthlyTL[0].net < biweeklyTL[0].net,
     `the monthly earner's cycle-0 net is tighter (more BNPL outflow): ${monthlyTL[0].net} < ${biweeklyTL[0].net}`,
   );
+
+  // 2.7.4.3 — the between-paycheck heads-up names the lumpy BNPL for the monthly earner, and stays quiet
+  // for the aligned biweekly-paid case (one charge per cycle → not lumpy).
+  const headsUp = selectBnplBetweenPaycheck(storeWith('monthly', '2026-09-01'));
+  assert(headsUp !== null && /Klarna/.test(headsUp) && /before your next paycheck/.test(headsUp), `monthly earner gets a named BNPL heads-up — got ${JSON.stringify(headsUp)}`);
+  assert(selectBnplBetweenPaycheck(storeWith('biweekly', '2026-08-15')) === null, 'aligned biweekly-paid case has no between-paycheck heads-up');
 
   console.log(`✅ BNPL cadence integration (2.7.4) tests passed (${passed} asserts).`);
 }

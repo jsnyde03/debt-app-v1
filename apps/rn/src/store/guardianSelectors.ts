@@ -1,3 +1,4 @@
+import { bnplInstallmentsInWindow, isInstallmentNative } from '@core/debt/bnplInstallment';
 import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@core/guardian/buildGuardianBrief';
 import { scoreCalibration, type CalibrationScore } from '@core/guardian/calibrationScore';
 import { decideRiskNotification, type NotifyDecision } from '@core/guardian/notificationDecision';
@@ -186,6 +187,29 @@ export function selectTightTopUp(store: DebtStore): TightTopUp | null {
 /** "Aug 5" — mirrors the cash-flow bars' label so the Guardian's lookahead reads consistently. */
 function shortDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+/**
+ * §2.7.4 — a between-paycheck BNPL heads-up: names why a cycle can read tighter than a single bill
+ * suggests. A live installment-native BNPL that charges 2+ times before the next paycheck (a biweekly
+ * plan for a monthly earner) lands multiple installments in one cycle — the Guardian's crunch read
+ * already reflects that (2.7.4), and this line explains the cause. Picks the highest-count lumpy BNPL.
+ * All tiers — honest information about the user's own plan, not premium acting. Null when none is lumpy.
+ */
+export function selectBnplBetweenPaycheck(store: DebtStore): string | null {
+  const start = store.paycheck.currentDate;
+  const end = store.paycheck.nextPaycheckDate;
+  if (!end) return null;
+  let best: { provider: string; amount: number; count: number } | null = null;
+  for (const d of store.debts) {
+    if (d.balance <= 0 || !isInstallmentNative(d)) continue;
+    const count = bnplInstallmentsInWindow(d, start, end);
+    if (count < 2) continue;
+    if (!best || count > best.count) best = { provider: d.bnplProvider || 'BNPL', amount: d.scheduledPaymentAmount as number, count };
+  }
+  if (!best) return null;
+  const each = `$${Math.round(best.amount).toLocaleString('en-US')}`;
+  return `Heads up — ${best.count} ${best.provider} payments (about ${each} each) land before your next paycheck.`;
 }
 
 /**
