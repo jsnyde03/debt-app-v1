@@ -8,7 +8,7 @@
 
 ## ▶ NOW
 
-- **Active item:** **✅ 2.8 Scan-to-prefill STRUCTURE COMPLETE (2026-07-25, e2e 21/21, both themes; native OCR → Phase-6 device-QA).** **▶ NEXT = 2.9 Momentum** (Interest-Saved spine; switch-in = design gate). **✅✅ 2.7 BNPL COMPLETE. ✅✅ GUARDIAN + AUDIT PASSED. ✅ 2.6 · 2.5 · 2.4**.
+- **Active item:** **▶ 2.9 Can-I-Afford-This? (inverse Guardian)** — Jason promoted it over Momentum (which → Phase 3, doesn't justify premium); switch-in = design gate. **✅ 2.8 Scan-to-prefill STRUCTURE COMPLETE (native OCR → Phase-6). ✅✅ 2.7 BNPL COMPLETE. ✅✅ GUARDIAN + AUDIT PASSED. ✅ 2.6 · 2.5 · 2.4**.
 - **Phase:** 2 (Premium substance + revenue spine). The Guardian headline + its convergence audit are done; the tier plumbing (2.7 → 2.8–2.11 revenue) remains.
 - **Then:** **2.7 BNPL first-class** → 2.8–2.12 → **Premium-framework audit** (Phase-2 close) → Phase 3 (delight; incl. the debt-free band) → **Phase 3.5 (tutorial + demo)** → **whole-app cohesion audit** → 4 / 5 / 5.5 / 6. _(remaining audit gates: Premium-framework@Phase-2-close · whole-app-cohesion@after-3.5.)_
 - **⚠️ Launch gating:** v1.7 ships as ONE release — nothing launches until Phase 6 is done + Jason is satisfied. The whole Elevation (through Phase 6) is the release.
@@ -75,16 +75,18 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 
 ### Active Queue — the live build _(decomposed; the queue never sits idle)_
 
-**▶ 2.9 ⭐ Momentum (replenished — the next active build)** — the Interest-Saved ledger as the premium spine (the always-true, un-chattable number) + a debts-vanquished archive (hooks the confirmed-$0 signal); streaks demoted. Buildable + web-verifiable now. _(2.8 scan-to-prefill structure-complete → Shipped roll-up above; native OCR on the Phase-6 device-QA ledger.)_
-- [ ] **2.9.1 [DESIGN GATE]** switch-in before-scan (`computeInterestSaved` · `cycleHistory` · the confirmed-$0 vanquished signal vs current code) + design alignment w/ Jason (the ledger's home · what it shows · free/premium line) → decompose 2.9.2+.
-- **Exit:** the Momentum spine shipped (Interest-Saved + vanquished archive); verified both themes + tests + e2e.
+**▶ 2.9 ⭐ Can-I-Afford-This? — the inverse Guardian (Jason promoted 2026-07-25)** — premium AUTOMATION, the top net-new pick: re-solve the cycle for a hypothetical one-off expense ("can I afford this $400 / this BNPL?") → a cushion-aware yes / tight / no read + the impact on the plan. Reuses the Guardian engine; survives debt=$0; absorbs the BNPL afford-check angle. On-identity (automation, not motivation) — unlike Momentum, which moved to Phase 3. _**Switch-in = before-scan (can `allocatePaycheck`/the cushion read run with a hypothetical expense injected?) + design alignment w/ Jason (entry point · what it shows · free/premium line) BEFORE building.**_
+- [ ] **2.9.1 [DESIGN GATE]** switch-in before-scan (Guardian-engine reusability for a hypothetical one-off + where affordability data lives) + design the "can I afford this?" UX w/ Jason (entry · the read · the impact viz · gating) → decompose 2.9.2+.
+- **Exit:** the inverse-Guardian shipped (affordability read + plan impact); verified both themes + tests + e2e.
+
+**Decision (2026-07-25, Jason):** Momentum doesn't justify premium — the Interest-Saved projection is already free, its vanquished archive duplicates the free Phase-3 debt-paid-off celebration, and celebration is the app's free emotional core (not premium automation). → **Momentum MOVED to Phase 3** (reevaluate there); **inverse-Guardian promoted** as the premium build.
 
 ### The GUARDIAN AUDIT + must-fixes ✅ (detail → the round-2 doc)
 _All shipped 2026-07-24 — 2 audit rounds, 8 major/blocker + minors fixed (MF.1 recovery trust · MF.2 a11y · MF.3 free honest read · MF.4 steady-state projection [completed in round 2] · MF.5 reserve-release honesty · MF.6 surface unification · MF.7 polish), then round-2 re-verification reached 4/4-lens CONSENSUS ship-ready. Tier-3 → Phase 3; 2 minors → backlog. See the Shipped roll-up above + `…_ROUND2_2026-07-24.md`._
 
 ### The rest of the tier
 - **2.8 Scan-to-prefill** → ✅ structure-complete (Shipped roll-up above; native OCR @ Phase-6 device-QA).
-- **2.9 Momentum** → promoted to the **Active Queue** above (the next active build).
+- **2.9 Can-I-Afford-This? (inverse Guardian)** → promoted to the **Active Queue** above (the next active build). _(Momentum moved to Phase 3.)_
 - **2.9 Momentum** → promoted to the **Active Queue** above (the recommended next build). _(Interest-Saved counterfactual moved here from 2.6 — Jason: no place in recovery.)_
 - [ ] **2.10 Widget + App Intents + Live Activity** — payoff-countdown Live Activity + interactive-widget App Intents (mark-paid / log-paycheck). One native build (with Phase-6 device work).
 - [ ] **2.11 Revenue spine** — RevenueCat + paywall (port Gig) + Lifetime 2nd offer + portfolio-sub seam + analytics + Sentry. **[DECISION before any StoreKit SKU]:** guarantee window/terms (default to honest "not charged until day 30" if StoreKit can't honor a refund) · Lifetime scope · pin annual + Lifetime prices. "Watches every paycheck" copy gated on 2.4.10. Launch-flip gated on value shipped.
@@ -93,7 +95,7 @@ _All shipped 2026-07-24 — 2 audit rounds, 8 major/blocker + minors fixed (MF.1
   - **⭐ Added criterion (Jason 2026-07-24): BNPL-cadence coverage.** RESEARCH the real BNPL/financing market and verify EVERY cadence/term is correctly captured, modeled, displayed, and Guardian-handled — biweekly pay-in-4 (Klarna/Afterpay) · monthly financing at every term length (Affirm 3/6/12/24/48-month) · one-time deferred (Klarna pay-in-30) · every-3-months and any other real interval. Confirm the (installment × count × cadence) model + the crunch detection hold across all of them, with no cadence silently mishandled.
 
 ### Future premium features (post-Guardian; scope into v1.7 vs v1.7.x/v1.8 with Jason)
-- **① Can-I-Afford-This? (the inverse Guardian)** — re-solve the cycle for a one-off expense; survives debt=$0. *Top net-new pick.* **Absorbs the "Can I afford this BNPL?" angle (moved here from 2.7, Jason 2026-07-24)** — build the inverse-Guardian core once; BNPL affordability is one entry point.
+- **① Can-I-Afford-This? (the inverse Guardian)** → **PROMOTED to the Active Queue as 2.9 (Jason 2026-07-25).** Re-solve the cycle for a one-off expense; survives debt=$0. Absorbs the "Can I afford this BNPL?" angle (from 2.7).
 - **② Windfall Autopilot** — found money → optimal split in one confirm (`store.windfall` exists; the split IS the waterfall).
 - ③ Life-Event Simulator (→ Phase-3 What-If explorer) · ④ Strategy Auto-Advisor (low-pri) · ⑤ Bill-shock autopilot (→ Connected tier).
 - **⛔ DO NOT build:** refi / insurance / rate-drop lead-gen — cut (violates "never sell you more debt").
@@ -105,6 +107,7 @@ _All shipped 2026-07-24 — 2 audit rounds, 8 major/blocker + minors fixed (MF.1
 
 The emotional layer built *with* the features; restraint on daily surfaces, delight on beats.
 - **Debt-paid-off celebration** (full Skia spectacle + permanent "debt-vanquished" archive) — **HARD: fires ONLY on a confirmed $0**, never projected.
+- **Momentum (moved here from Phase 2, Jason 2026-07-25 — reevaluate scope here)** — the Interest-Saved read + any "you've come this far" proof are FREE emotional-journey/delight, not premium; the debts-vanquished archive is the same surface as the celebration above (unify, don't duplicate). Reassess whether Momentum adds anything beyond the free hero/trajectory/interest-saved + this celebration; keep only what's genuinely net-new.
 - **Milestone-cross pulse** (journey-rail node spring + haptic; infra already exists).
 - **Interactivity passes:** tappable journey-ring milestones · Guardian cushion-bar + Cash Runway (tap/scrub/haptics) · trajectory-chart (payoff waypoints + touch-scrubbing).
 - **⭐ Variable-income debt-free BAND — trajectory cone (design LOCKED w/ Jason 2026-07-24; from 2.4.11.4d, moved here to build WITH the trajectory work).** For a **variable-income** user (fixed income → one date, no band), show the payoff as a **cone of outcomes** on the Skia trajectory chart: plot BOTH payoff paths — **typical** (extra-to-debt off the entered/typical amount → faster, gold) and **lean** (extra off `leanAmount` → slower, conservative) — with a shaded band between them narrowing to two dated endpoints. Framing (spec §2.5): **typical = the motivational HEADLINE** ("On track for {typical}"), **lean = the safe-floor secondary** ("Safe-floor {lean}") — NEVER a bare symmetric range (invites anchoring on the rosy end); interest-cost-of-caution stays **rounded/qualitative** (no false-precise $) until the state-threaded forecast is proven. **Engine = "one engine, two runs":** a `selectDebtFreeBand(store, allocation)` → `{ typical, lean, hasBand }` — typical = the existing `selectDebtFreeDate`; lean = a second `projectDebtPayoff` with the extra computed off a lean-income allocation; `hasBand` = variable AND the dates differ. Reconciliation-test both runs. The What-If overlay becomes a mode so it never competes with the band. **⭐ NO SCAFFOLDING NEEDED NOW (confirmed w/ Jason 2026-07-24):** the band is a PURE DERIVATION from data that already exists + is already captured — typical = the entered `amount`, lean = `paycheck.leanAmount` (populated by the income-learning nudge 2.4.7.8, stored via 2.4.D), plus `incomeVaries` + debts + the payoff engine. Nothing accumulates specifically for the band; no schema / migration / persisted state to seed in v1.7. Fully deferrable with zero risk.
