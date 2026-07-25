@@ -1,4 +1,5 @@
 import { bnplInstallmentsInWindow, isInstallmentNative } from '@core/debt/bnplInstallment';
+import { computeAffordability, type AffordabilityVerdict } from '@core/guardian/affordability';
 import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@core/guardian/buildGuardianBrief';
 import { scoreCalibration, type CalibrationScore } from '@core/guardian/calibrationScore';
 import { decideRiskNotification, type NotifyDecision } from '@core/guardian/notificationDecision';
@@ -210,6 +211,48 @@ export function selectBnplBetweenPaycheck(store: DebtStore): string | null {
   if (!best) return null;
   const each = `$${Math.round(best.amount).toLocaleString('en-US')}`;
   return `Heads up — ${best.count} ${best.provider} payments (about ${each} each) land before your next paycheck.`;
+}
+
+export interface Affordability {
+  amount: number;
+  verdict: AffordabilityVerdict;
+  /** The honest spare-cash number this paycheck, BEFORE the purchase — the free taste. */
+  discretionaryNow: number;
+  /** Cushion left after the purchase (premium). */
+  cushionAfter: number;
+  /** How much short, when the purchase exceeds the headroom (premium). */
+  shortBy: number;
+  floor: number;
+  /** When money refreshes — the safe-alternative anchor ("wait until {nextPayday}"). */
+  nextPayday: string;
+  /** §2.9.4 honest impact: how much LESS goes to debt this paycheck if the purchase is applied (>0 only
+   *  when it displaces a snowball payment). The trust-moat number — affording it has a real debt cost. */
+  extraToDebtDelta: number;
+}
+
+/** The ephemeral one-off used to re-solve the plan WITH the purchase (never persisted — the preview). */
+const AFFORD_PREVIEW_ID = '__afford_preview__';
+
+/**
+ * §2.9 the inverse Guardian — can the user afford a one-off purchase of `amount` THIS paycheck? Reuses
+ * the Guardian's cushion model: `selectDiscretionary` is this cycle's cash above every obligation
+ * (premium holdbacks already reflected), run against the purchase + the floor by `computeAffordability`.
+ * Also re-solves the plan WITH the purchase injected (the true inverse-Guardian) for the honest debt
+ * impact, and computes the save-for-it plan when it's short. Null before a plan / for a non-positive amount.
+ */
+export function selectAffordability(store: DebtStore, amount: number): Affordability | null {
+  const base = selectAllocation(store);
+  if (!base || !Number.isFinite(amount) || amount <= 0) return null;
+  const discretionaryNow = selectDiscretionary(base);
+  const floor = store.cushionFloor ?? 200;
+  const { verdict, cushionAfter, shortBy } = computeAffordability(discretionaryNow, amount, floor);
+
+  // Re-solve WITH the purchase as a one-off this cycle → how much less reaches debt (the honest cost).
+  const oneOff = { id: AFFORD_PREVIEW_ID, name: 'Purchase', amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' as const };
+  const after = selectAllocation({ ...store, requiredExpenses: [...store.requiredExpenses, oneOff] });
+  const extraToDebtDelta = after ? Math.max(0, Math.round((selectExtraToDebt(base) - selectExtraToDebt(after)) * 100) / 100) : 0;
+
+  return { amount, verdict, discretionaryNow, cushionAfter, shortBy, floor, nextPayday: store.paycheck.nextPaycheckDate, extraToDebtDelta };
 }
 
 /**

@@ -22,6 +22,7 @@ import "../scan/testParseStatementText";
 import "../guardian/testBuildGuardianBrief";
 import "../guardian/testGuardianPartition";
 import "../guardian/testComputeState";
+import "../guardian/testAffordability";
 import "../guardian/testCalibrationScore";
 import "../guardian/testNotificationDecision";
 import "../cashflow/testDetectCrunches";

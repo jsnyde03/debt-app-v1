@@ -11,6 +11,7 @@ import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
 import { GraduationBanner, FreedomNextChapterCard } from '@/components/plan/GraduationCards';
 import { LeanSuggestionCard } from '@/components/plan/LeanSuggestionCard';
+import { AffordabilityCard } from '@/components/plan/AffordabilityCard';
 import { PaydayGuardianCard } from '@/components/plan/PaydayGuardianCard';
 import { PlanHero } from '@/components/plan/PlanHero';
 import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
@@ -165,6 +166,12 @@ export default function TodayScreen() {
               onKeepEssential={(id) => appStore.getState().setDeferability(id, 'essential')}
               bnplHeadsUp={bnplHeadsUp}
             />
+          </Motion>
+        ) : null}
+        {/* 2.9 — the inverse Guardian: "can I afford this purchase?" (the Guardian's sibling on Today). */}
+        {guardian ? (
+          <Motion delay={57}>
+            <AffordabilityCard />
           </Motion>
         ) : null}
         {leanNudge ? (
