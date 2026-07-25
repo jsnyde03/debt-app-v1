@@ -39,7 +39,7 @@ function addMonths(date: string, months: number, anchorDay?: number) {
     return toDateString(target);
 }
 
-function advanceDueDateOnce(
+export function advanceDueDateOnce(
     date: string,
     recurrence: RequiredExpense["recurrence"],
     anchorDay?: number

@@ -37,6 +37,9 @@ async function main() {
   // MF.4 (audit #5) — the debt-free projection runs on the steady-state (holdback-stripped) deploy.
   await import('../store/steadyStateProjection.test');
 
+  // §2.7.4 — the in-window BNPL cadence scaling flows through the allocation + the lookahead timeline.
+  await import('../store/bnplCadence.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

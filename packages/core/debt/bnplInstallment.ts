@@ -1,4 +1,5 @@
 import type { Debt } from "@core/storage/debtPlannerStorage";
+import { advanceDueDateOnce } from "@core/recurrence/rolloverPayCycle";
 
 function roundMoney(amount: number) {
 	return Math.round(amount * 100) / 100;
@@ -71,4 +72,50 @@ export function bnplPaymentsTotal(debt: Debt): number | null {
 	const scheduled = debt.scheduledPaymentAmount as number;
 	const basis = debt.originalBalance && debt.originalBalance > 0 ? debt.originalBalance : debt.balance;
 	return Math.max(bnplPaymentsRemaining(debt) ?? 0, Math.round(basis / scheduled));
+}
+
+/**
+ * How many installments of an installment-native BNPL fall in the pay-cycle window [start, end) —
+ * i.e. how many times it actually charges before the next paycheck (2.7.4). A biweekly BNPL in a
+ * MONTHLY paycheck window charges ~2×, but the per-cycle allocator (which keys off a single due date)
+ * counts it as 1 → the Guardian under-detects that crunch. This is the count that lets the cash read
+ * reflect the FULL between-paycheck outflow. Steps from the debt's next due date by its cadence,
+ * counting occurrences strictly before `end`, capped at `remainingPayments`. Returns 0 for a
+ * non-installment-native debt or when nothing is due before `end`. In the aligned case (a biweekly
+ * BNPL for a biweekly-paid user) the window holds exactly one charge → 1, so nothing changes.
+ */
+export function bnplInstallmentsInWindow(debt: Debt, windowStartISO: string, windowEndISO: string): number {
+	if (!isInstallmentNative(debt)) return 0;
+	const end = new Date(`${windowEndISO}T00:00:00`).getTime();
+	const cap = debt.remainingPayments as number;
+	let count = 0;
+	let due = debt.dueDate;
+	while (count < cap && new Date(`${due}T00:00:00`).getTime() < end) {
+		count += 1;
+		const next = advanceDueDateOnce(due, debt.recurrence);
+		if (next === due) break; // one-time / per-paycheck don't advance → a single occurrence in-window
+		due = next;
+	}
+	return count;
+}
+
+/**
+ * Reflect a BNPL's FULL in-window outflow by scaling its effective per-cycle minimum to
+ * (installments in the window) × the installment (2.7.4), capped at its balance so it never over-pays.
+ * A no-op when the window holds ≤1 charge (the common aligned case) and for every non-BNPL debt — so
+ * it's safe to apply blanket at an engine boundary. This is a per-cycle VIEW: it changes what the
+ * allocator/forecast reserve for the BNPL this cycle, not the stored installment (the row still shows
+ * the true per-installment amount) and not the paid-flag/rollover machinery.
+ */
+export function scaleBnplMinimumForWindow(debt: Debt, windowStartISO: string, windowEndISO: string): Debt {
+	if (!isInstallmentNative(debt)) return debt;
+	const n = bnplInstallmentsInWindow(debt, windowStartISO, windowEndISO);
+	if (n <= 1) return debt;
+	const scaled = roundMoney(Math.min(n * (debt.scheduledPaymentAmount as number), debt.balance));
+	return scaled === debt.minimumPayment ? debt : { ...debt, minimumPayment: scaled };
+}
+
+/** Map `scaleBnplMinimumForWindow` across a debt list (the engine-boundary transform). */
+export function scaleBnplMinimumsForWindow(debts: Debt[], windowStartISO: string, windowEndISO: string): Debt[] {
+	return debts.map((d) => scaleBnplMinimumForWindow(d, windowStartISO, windowEndISO));
 }

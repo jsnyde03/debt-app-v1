@@ -1,5 +1,6 @@
 import { allocatePaycheck } from "@core/engine/allocatePaycheck";
 import { applyRolloverPayment } from "@core/debt/applyRolloverPayment";
+import { scaleBnplMinimumsForWindow } from "@core/debt/bnplInstallment";
 import { buildTimelineItems, type TimelineItem } from "./buildTimelineItems";
 import { computeState } from "@core/guardian/computeState";
 import type { GuardianState } from "@core/guardian/buildGuardianBrief";
@@ -163,13 +164,18 @@ export function buildMultiCycleTimeline({
             break;
         }
 
+        // §2.7.4: reflect the FULL in-window BNPL outflow (a biweekly BNPL charges ~2× before a monthly
+        // paycheck) for this cycle's allocation + items. A TRANSIENT view — `projDebts` (unscaled) is what
+        // rolls forward, so the scaling is never compounded across cycles; paid-flags/rollover untouched.
+        const scaledProjDebts = scaleBnplMinimumsForWindow(projDebts, projCurrentDate, projNextDate);
+
         const projResult = allocatePaycheck({
             paycheckAmount: recurringPaycheck,
             currentDate: projCurrentDate,
             nextPaycheckDate: projNextDate,
             expenses: projExpenses,
             livingExpenses,
-            debts: projDebts,
+            debts: scaledProjDebts,
             goals: projGoals,
             strategy,
             paycheckBuffer,
@@ -178,7 +184,7 @@ export function buildMultiCycleTimeline({
         const cycleItems = buildTimelineItems({
             result: projResult,
             requiredExpenses: projExpenses,
-            debts: projDebts,
+            debts: scaledProjDebts,
             completedRecommendedActions: [],
             currentDate: projCurrentDate,
             nextPaycheckDate: projNextDate,

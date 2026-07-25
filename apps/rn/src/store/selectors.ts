@@ -1,3 +1,4 @@
+import { scaleBnplMinimumsForWindow } from '@core/debt/bnplInstallment';
 import { allocatePaycheck } from '@core/engine/allocatePaycheck';
 import { resolveTrialAmounts } from '@core/obligations/effectiveObligationAmount';
 import { waterFill, type WaterFillResult } from '@core/cashflow/waterFill';
@@ -58,7 +59,10 @@ function buildAllocation(store: DebtStore, prefundedReserve: number, steadyState
     // allocation (and the forecast's cycle-0 base) plans on the price that will actually be charged.
     expenses: resolveTrialAmounts(store.requiredExpenses),
     livingExpenses: store.livingExpenses,
-    debts: store.debts,
+    // §2.7.4 Guardian-aware cadence: reflect the FULL in-window BNPL outflow — a biweekly BNPL that
+    // charges ~2× before a monthly paycheck is counted once by the single-due-date allocator, so scale
+    // its effective minimum to the in-window installment count. A no-op for aligned cadences + non-BNPL.
+    debts: scaleBnplMinimumsForWindow(store.debts, store.paycheck.currentDate, store.paycheck.nextPaycheckDate),
     goals: store.goals,
     paycheckBuffer: effectivePaycheckBuffer(store),
     // §2.0.c (2.4.11.4c): a "bills complete" attestation REDUCES the discovery reserve (never skips it).

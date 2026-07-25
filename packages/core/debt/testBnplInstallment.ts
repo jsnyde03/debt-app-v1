@@ -4,6 +4,8 @@ import {
 	normalizeBnplInstallment,
 	bnplPaymentsRemaining,
 	bnplPaymentsTotal,
+	bnplInstallmentsInWindow,
+	scaleBnplMinimumForWindow,
 } from "./bnplInstallment";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
@@ -85,7 +87,25 @@ function runBnplInstallmentTests() {
 	assertEqual(bnplPaymentsTotal(paidDown), 4, "payments-total derives from the original balance ($400 → 4 total)");
 	assertEqual(bnplPaymentsRemaining(plain), null, "payments-remaining is null for a non-installment-native debt");
 
-	console.log("✅ BNPL installment-native model (2.7.2) tests passed.");
+	// ── 2.7.4 — in-window installment count + minimum scaling (Guardian-aware cadence) ──
+	// A biweekly BNPL (installment $100, 4 left, due Aug 1) — the count is window-accurate (each charge
+	// date that lands strictly before the window end), so a monthly window holds 2–3 depending on alignment.
+	const biweeklyBnpl = debt({ type: "bnpl", scheduledPaymentAmount: 100, remainingPayments: 4, balance: 400, minimumPayment: 100, dueDate: "2026-08-01", recurrence: "biweekly" });
+	assertEqual(bnplInstallmentsInWindow(biweeklyBnpl, "2026-08-01", "2026-09-01"), 3, "biweekly BNPL, due on the window start → Aug 1/15/29 all land before Sep 1 (3 charges)");
+	assertEqual(bnplInstallmentsInWindow(biweeklyBnpl, "2026-08-01", "2026-08-28"), 2, "biweekly BNPL in a ~4-week window → 2 charges (Aug 1, 15; Aug 29 is out)");
+	assertEqual(bnplInstallmentsInWindow(biweeklyBnpl, "2026-08-01", "2026-08-15"), 1, "biweekly BNPL in a 2-week (aligned) window → 1 charge");
+	assertEqual(bnplInstallmentsInWindow(biweeklyBnpl, "2026-08-01", "2026-11-01"), 4, "a long window is capped at remaining payments (4, not 6)");
+	assertEqual(bnplInstallmentsInWindow(debt({ type: "bnpl", scheduledPaymentAmount: 100, remainingPayments: 1, balance: 100, minimumPayment: 100, dueDate: "2026-08-01", recurrence: "one-time" }), "2026-08-01", "2026-09-01"), 1, "a one-time BNPL charges exactly once (never advances)");
+	assertEqual(bnplInstallmentsInWindow(biweeklyBnpl, "2026-08-01", "2026-07-15"), 0, "nothing due before a window that ends before the due date");
+	assertEqual(bnplInstallmentsInWindow(debt({ type: "debt", balance: 1000, minimumPayment: 50 }), "2026-08-01", "2026-09-01"), 0, "a plain debt has no in-window installment count");
+
+	// scaleBnplMinimumForWindow: reflect the full in-window outflow in the effective minimum.
+	assertEqual(scaleBnplMinimumForWindow(biweeklyBnpl, "2026-08-01", "2026-08-28").minimumPayment, 200, "2-charge window → effective minimum scales to 2 × the installment");
+	assertTrue(scaleBnplMinimumForWindow(biweeklyBnpl, "2026-08-01", "2026-08-15") === biweeklyBnpl, "aligned window (1 charge) → no-op, same reference");
+	assertEqual(scaleBnplMinimumForWindow(biweeklyBnpl, "2026-08-01", "2026-12-01").minimumPayment, 400, "a long window's scaled minimum is capped at the balance (never over-pays)");
+	assertTrue(scaleBnplMinimumForWindow(plain, "2026-08-01", "2026-09-01") === plain, "a plain debt is never scaled");
+
+	console.log("✅ BNPL installment-native model (2.7.2/2.7.4) tests passed.");
 }
 
 runBnplInstallmentTests();
