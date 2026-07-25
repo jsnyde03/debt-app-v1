@@ -36,6 +36,9 @@ export type Goal = {
 	targetAmount: number;
 	currentAmount: number;
 	type: "emergency" | "savings";
+	/** §2.9 sinking fund — the user chose (with sign-off, seeing the debt-free-date cost) to fund this
+	 *  savings goal BEFORE debt payoff, so its "ready by" date holds. Absent → funds after debt (normal). */
+	priority?: boolean;
 };
 
 // v1.7 §2.2 canonical partition (2.4.6.1.1) — the ONE bucket set every selector, bar zone, and
@@ -447,6 +450,20 @@ export function allocatePaycheck({
 		}
 	}
 
+	// §2.9 sinking funds (priority goals): a savings goal the user chose to PRIORITIZE over debt (with
+	// sign-off, having seen the debt-free-date cost) funds BEFORE the snowball, capped at its target — like
+	// the starter-EF — so its "ready by {date}" promise holds. A non-priority savings goal still funds
+	// AFTER debt (below). Opt-in per goal; absent `priority` → unchanged behavior.
+	for (const goal of goals) {
+		if (remaining <= 0) break;
+		if (goal.priority !== true || goal.type !== "savings" || goal.currentAmount >= goal.targetAmount) continue;
+		const needed = roundMoney(goal.targetAmount - goal.currentAmount);
+		const amount = roundMoney(Math.min(remaining, needed));
+		if (amount <= 0) continue;
+		allocations.push({ label: `Add to ${goal.name}`, amount, category: "optional_goal", targetId: goal.id, goalId: goal.id });
+		remaining = roundMoney(remaining - amount);
+	}
+
 	const sortedSnowballDebts = debts
 		.filter((debt) => debt.balance - paidTowardDebt(debt.id) > 0)
 		.sort((a, b) => {
@@ -505,7 +522,9 @@ export function allocatePaycheck({
 
 	const savingsGoals = goals.filter(
 		(goal) =>
-			goal.type === "savings" && goal.currentAmount < goal.targetAmount
+			// §2.9: priority sinking funds already funded BEFORE debt (above) — exclude them here so they
+			// aren't double-funded.
+			goal.priority !== true && goal.type === "savings" && goal.currentAmount < goal.targetAmount
 	);
 
 	for (const goal of savingsGoals) {

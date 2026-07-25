@@ -254,6 +254,36 @@ function runAllocationRegressionTests() {
     // Shortfall / unaffordable required items are forgiven (partial + unfunded, none fully covered).
     assertEqual(basicShortfall.affordableUnpaidRequiredCount, 0, "unaffordable (shortfall) required items are forgiven");
 
+    // §2.9 sinking fund: a PRIORITY savings goal funds BEFORE the snowball; a non-priority one funds
+    // after debt (and gets nothing when the snowball consumes the extra).
+    const priorityInputs = {
+        paycheckAmount: 1000,
+        currentDate: "2026-05-04",
+        nextPaycheckDate: "2026-05-18",
+        strategy: "snowball" as const,
+        expenses: [{ id: "rent", name: "Rent", amount: 400, dueDate: "2026-05-06", recurrence: "monthly" as const }],
+        debts: [{ id: "card", name: "Card", balance: 5000, minimumPayment: 50, apr: 20, dueDate: "2026-05-10", type: "debt" as const, recurrence: "monthly" as const }],
+        paycheckBuffer: 100,
+    };
+    const withPriority = allocatePaycheck({
+        ...priorityInputs,
+        goals: [
+            { id: "couch", name: "Couch", targetAmount: 200, currentAmount: 0, type: "savings", priority: true },
+            { id: "vacay", name: "Vacation", targetAmount: 500, currentAmount: 0, type: "savings" },
+        ],
+    });
+    assertMoney(withPriority.allocations.find((a) => a.goalId === "couch")?.amount ?? 0, 200, "priority sinking fund funds before debt (couch $200)");
+    assertEqual(withPriority.allocations.find((a) => a.goalId === "vacay"), undefined, "a non-priority savings goal gets nothing when the snowball consumes the extra");
+    // The priority goal took $200 that would otherwise have gone to the snowball (the honest debt cost).
+    assertMoney(withPriority.allocations.filter((a) => a.category === "snowball").reduce((s, a) => s + a.amount, 0), 250, "the snowball is reduced by exactly what the sinking fund took");
+
+    // The SAME goal WITHOUT priority funds after debt → nothing (proving the flag is what routes it).
+    const withoutPriority = allocatePaycheck({
+        ...priorityInputs,
+        goals: [{ id: "couch", name: "Couch", targetAmount: 200, currentAmount: 0, type: "savings" }],
+    });
+    assertEqual(withoutPriority.allocations.find((a) => a.goalId === "couch"), undefined, "the same goal WITHOUT priority funds after debt → nothing here");
+
     console.log("✅ Allocation regression tests passed.");
 }
 

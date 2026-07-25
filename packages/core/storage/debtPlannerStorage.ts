@@ -90,6 +90,9 @@ export type Goal = {
 	targetAmount: number;
 	currentAmount: number;
 	type: "emergency" | "savings";
+	// v1.7 §2.9 sinking fund — the user opted (with sign-off) to fund this savings goal BEFORE debt payoff
+	// so a "ready by {date}" plan holds; the honest debt-free-date cost is shown at opt-in. Optional / backfill-safe.
+	priority?: boolean;
 };
 
 export type RecommendationOverride = {
