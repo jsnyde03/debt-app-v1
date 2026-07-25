@@ -1,5 +1,6 @@
 import type { Debt } from "@core/storage/debtPlannerStorage";
 import type { Recurrence } from "@core/types/recurrence";
+import { normalizeBnplInstallment } from "@core/debt/bnplInstallment";
 
 type DebtType = "debt" | "bnpl";
 
@@ -131,7 +132,8 @@ export async function parseDebtCsv(file: File): Promise<{debts: Debt[]; errors: 
             return;
         }
 
-        debts.push({
+        // Installment-native BNPL: reconcile balance + minimum to scheduled × remaining (2.7.2).
+        debts.push(normalizeBnplInstallment({
             id: crypto.randomUUID(),
             name,
             balance,
@@ -146,7 +148,7 @@ export async function parseDebtCsv(file: File): Promise<{debts: Debt[]; errors: 
             scheduledPaymentAmount: type === "bnpl" ? scheduledPaymentAmount : undefined,
             minimumPaidThisCycle: false,
             snowballPaidThisCycle: false,
-        });
+        }));
 
 
 

@@ -1,9 +1,21 @@
 import type { Debt } from "@core/storage/debtPlannerStorage";
 import { calculateCycleInterest } from "./calculateMonthlyInterest";
+import { isInstallmentNative } from "./bnplInstallment";
 import type { PayCycle } from "@core/payCycle/getNextPaycheckDate";
 
 function roundMoney(amount: number) {
     return Math.round(amount * 100) / 100;
+}
+
+/**
+ * Keep an installment-native BNPL's `remainingPayments` count in sync with the balance a rollover
+ * just reduced (2.7.2) — the count is derived from the current balance so "payment 2 of 4" stays
+ * truthful as the plan pays down. A no-op for every other debt.
+ */
+function syncBnplRemaining(debt: Debt): Debt {
+    if (!isInstallmentNative(debt)) return debt;
+    const remaining = Math.max(0, Math.round(debt.balance / (debt.scheduledPaymentAmount as number)));
+    return remaining === debt.remainingPayments ? debt : { ...debt, remainingPayments: remaining };
 }
 
 /**
@@ -38,7 +50,7 @@ export function applyRolloverPayment(
         : 0;
 
     if (roundMoney(paidMinimumPreInterest + completedSnowballAmount) >= debt.balance) {
-        return { ...debt, balance: 0 };
+        return syncBnplRemaining({ ...debt, balance: 0 });
     }
 
     // BNPL is fixed-installment, interest-free by definition - never accrue
@@ -58,8 +70,8 @@ export function applyRolloverPayment(
 
     const totalPayment = roundMoney(minimumPaymentAmount + completedSnowballAmount);
 
-    return {
+    return syncBnplRemaining({
         ...debt,
         balance: roundMoney(Math.max(0, balanceWithInterest - totalPayment)),
-    };
+    });
 }

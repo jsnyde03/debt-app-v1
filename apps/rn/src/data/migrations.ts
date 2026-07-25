@@ -1,3 +1,4 @@
+import { normalizeBnplInstallment } from '@core/debt/bnplInstallment';
 import { createDefaultStore } from './defaults';
 import { CURRENT_STORE_VERSION, type DebtStore } from './models';
 
@@ -16,6 +17,12 @@ import { CURRENT_STORE_VERSION, type DebtStore } from './models';
  * current defaults below (top-level via `...base`, paycheck via the explicit paycheck merge), so an
  * older blob backfills to safe values (fixed income, zero genuine cycles, empty logs) with no bespoke
  * step. `inputsAsOf` lands at the current date → an upgrade reads as freshly-entered, not stale.
+ * v6 (BNPL installment-native model, 2.7.2) reconciles each installment-native BNPL — one with both
+ * a `scheduledPaymentAmount` and a `remainingPayments` — so `balance` = scheduled × remaining and
+ * `minimumPayment` = scheduled. Before v6 those two fields were captured but read back nowhere, so a
+ * BNPL whose entered minimum differed from its real installment projected the wrong payoff; the
+ * upgrade snaps the derived fields to the installment truth the user actually entered. A BNPL missing
+ * either field is left untouched (the balance+minimum fallback path).
  * A raw that isn't a plain object throws → the caller quarantines it (never writes corrupt data
  * back). Older/partial shapes are merged onto the current defaults so a missing field never bricks
  * hydration. (The Capacitor per-key `debtPlanner.*` → this blob mapping is the Phase-D data bridge,
@@ -33,7 +40,8 @@ export function runMigrations(raw: unknown): DebtStore {
   const debts = (r.debts ?? base.debts).map((debt) => {
     const lastVerifiedDate = debt.lastVerifiedDate ?? paycheck.currentDate;
     const balanceAsOfDate = debt.balanceAsOfDate ?? lastVerifiedDate;
-    return { ...debt, lastVerifiedDate, balanceAsOfDate };
+    // v6: reconcile an installment-native BNPL's balance+minimum to its scheduled × remaining truth.
+    return normalizeBnplInstallment({ ...debt, lastVerifiedDate, balanceAsOfDate });
   });
   return {
     ...base,

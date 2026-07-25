@@ -84,7 +84,7 @@ export interface Preferences {
 /** Bump when the persisted shape changes; `runMigrations` brings older blobs forward.
  *  v5 (2.4.D) adds the Payday Guardian substrate — the additive fields below merge onto the
  *  current defaults, so an older blob backfills safely (fixed income, count 0, empty logs). */
-export const CURRENT_STORE_VERSION = 5;
+export const CURRENT_STORE_VERSION = 6;
 
 /** v1.7 (2.4.D): the store-level current-cycle notification carrier. Lives here — NOT on
  *  PayCycleSnapshot (a historical end-of-cycle record) — because the §2.8 notification fires at

@@ -4,6 +4,26 @@
 
 ---
 
+## 2.7 BNPL as a first-class obligation — IN PROGRESS (2026-07-24)
+
+### 2.7.1 design gate — before-scan + alignment (2026-07-24)
+
+**Before-scan corrected the pre-authored premise.** The plan hypothesized "display uses `scheduledPaymentAmount × remainingPayments`, engine uses `balance`+`minimumPayment`, nothing reconciles them." Reality (verified vs code) is different and cleaner: `scheduledPaymentAmount`/`remainingPayments` are **dead capture** — collected in `DebtSheet` + CSV import, but read back NOWHERE. The engine (`projectDebtPayoff`/`buildPayoffTrajectory`/`projectCurrentBalance`/`applyRolloverPayment`/`allocatePaycheck`) and the amortization view (`selectDebtAmortization`) both run BNPL off `balance`+`minimumPayment` with `apr` forced to 0; `money.tsx` shows only a "BNPL" pill. So 2.7 is "make the installment the real model," not "reconcile two disagreeing surfaces." `biweekly` recurrence already exists in the type. **Design forks (both my recs, Jason ✓):** installment-native model + balance fallback · "Can I afford this BNPL?" folds into inverse-Guardian ① (build that engine once); 2.7 keeps the BNPL calendar.
+
+### 2.7.2 installment-native model — COMPLETE (2026-07-24)
+
+**Model:** for a BNPL with BOTH a positive `scheduledPaymentAmount` and `remainingPayments` ("installment-native"), the two installment fields are canonical and `balance`/`minimumPayment` are DERIVED (`balance = scheduled × remaining`, `minimumPayment = scheduled`). A BNPL missing either field is NOT installment-native → the plain balance+minimum fallback path, unchanged. That fallback IS the reconciliation: when installment data exists, balance can't drift from the schedule because it's derived.
+
+- **Pure core helper** `packages/core/debt/bnplInstallment.ts` — `isInstallmentNative` · `normalizeBnplInstallment` (idempotent; no-op returns the same reference so it's safe to apply blanket) · `bnplPaymentsRemaining`/`bnplPaymentsTotal` (derived off the current/original balance for the 2.7.3 "payment 2 of 4" read). Reconciliation-tested: `testBnplInstallment.ts`, +13 core asserts, wired into `runRegressionTests`.
+- **Applied at every write seam** so stored data is always self-consistent and the engine needs ZERO read-site changes: `store.addDebt`/`updateDebt` (a BNPL terms edit re-derives balance + is treated as a verification for the date stamps) · CSV import (`debtCsv.ts`) · **migration v5→v6** (`CURRENT_STORE_VERSION` 5→6; reconciles existing installment-native BNPL — those fields were dead pre-v6, so snapping balance/minimum to the entered schedule is the correct fix).
+- **Rollover** (`applyRolloverPayment`) — new `syncBnplRemaining` re-derives `remainingPayments` from the paid-down balance at both return points, so "2 of 4" stays truthful as the plan pays down (a no-op for every other debt).
+
+**Verified:** tsc clean · core regression (incl. the new BNPL tests) · app-layer (persistence/migration covered) · scenarios · lint:rn — all green. Web-export e2e deferred to the 2.7.3 UI checkpoint (2.7.2 changed no UI).
+
+**After-scan (→ 2.7.3 / 2.7.4 inputs, not blockers):** (1) the DebtSheet still asks for `balance` AND scheduled/remaining for BNPL — the entered balance is now silently overridden by the terms → 2.7.3 derive/hide the balance field for BNPL; (2) `originalBalance` on a sheet-added BNPL = the entered balance, not the derived → 2.7.3 derive it at capture; (3) no demo BNPL is installment-native (both use the fallback) → 2.7.3 upgrade one demo BNPL to showcase "2 of 4" + biweekly; (4) snowball extra can over-pay an interest-free BNPL — `syncBnplRemaining` keeps it coherent, but "should snowball target a BNPL at all?" → 2.7.4.
+
+---
+
 ## 2.6 Close-the-loop + THE RECOVERY PLAN — COMPLETE (2026-07-24)
 
 **Design consensus (Jason "I agree completely") — "one ladder, two directions":** Recovery is the Guardian's existing priority ladder run in the deficit direction; same card/voice/engine, trouble surfaces funnel into one entry. Decisions: classify = category-default + per-bill override; defer = advance the due date one cycle, honestly. Before-scan confirmed the engine already yields the raw materials (`allocation.shortfall` · `unfundedRequiredItems` · `category`/`isAutopay` · the apply primitives).

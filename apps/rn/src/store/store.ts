@@ -1,5 +1,6 @@
 import { createStore } from 'zustand/vanilla';
 
+import { normalizeBnplInstallment } from '@core/debt/bnplInstallment';
 import type { RequiredReconciliation } from '@core/debt/bulkMarkRequired';
 import type { GuardianBand } from '@core/storage/debtPlannerStorage';
 
@@ -177,32 +178,38 @@ export function createDebtStore() {
       // A new debt's balance is verified NOW (the user just entered a real number) → stamp both dates.
       set((s) => {
         const now = s.store.paycheck.currentDate;
+        // Installment-native BNPL: derive balance + minimum from scheduled × remaining (2.7.2).
+        const stored = normalizeBnplInstallment({
+          ...debt,
+          lastVerifiedDate: debt.lastVerifiedDate ?? now,
+          balanceAsOfDate: debt.balanceAsOfDate ?? now,
+        });
         return {
           store: stampInputsFresh(recordDriftBaseline({
             ...s.store,
-            debts: [
-              ...s.store.debts,
-              { ...debt, lastVerifiedDate: debt.lastVerifiedDate ?? now, balanceAsOfDate: debt.balanceAsOfDate ?? now },
-            ],
+            debts: [...s.store.debts, stored],
           })),
         };
       });
     },
     updateDebt(id, updates) {
       set((s) => {
-        // Editing the balance IS a verification — the user typed a real number → re-anchor BOTH the
-        // as-of date and the user-confirmation date (unless the caller already set them). Other edits
-        // leave the dates alone.
         const now = s.store.paycheck.currentDate;
-        const isBalanceEdit = updates.balance !== undefined;
-        const stamped = isBalanceEdit
-          ? {
-              ...updates,
-              lastVerifiedDate: updates.lastVerifiedDate ?? now,
-              balanceAsOfDate: updates.balanceAsOfDate ?? now,
-            }
-          : updates;
-        const next = { ...s.store, debts: s.store.debts.map((d) => (d.id === id ? { ...d, ...stamped } : d)) };
+        const existing = s.store.debts.find((d) => d.id === id);
+        // Merge, then reconcile an installment-native BNPL: a scheduled/remaining edit re-derives
+        // balance + minimum from scheduled × remaining (2.7.2). A no-op for every other debt.
+        const merged = existing ? normalizeBnplInstallment({ ...existing, ...updates }) : null;
+        // Editing the balance IS a verification — a real number typed directly OR produced by a BNPL
+        // terms edit → re-anchor BOTH the as-of and user-confirmation dates (unless the caller set
+        // them). Other edits (name, APR, due date) leave the dates alone.
+        const balanceChanged = !!existing && !!merged && merged.balance !== existing.balance;
+        const isBalanceEdit = updates.balance !== undefined || balanceChanged;
+        const stamped = merged
+          ? isBalanceEdit
+            ? { ...merged, lastVerifiedDate: updates.lastVerifiedDate ?? now, balanceAsOfDate: updates.balanceAsOfDate ?? now }
+            : merged
+          : null;
+        const next = { ...s.store, debts: s.store.debts.map((d) => (d.id === id && stamped ? stamped : d)) };
         // Field-discriminated read-freshness stamp: a balance edit is a genuine input edit (2.4.D.3a);
         // other debt edits (name, APR, due date) are not.
         return { store: isBalanceEdit ? stampInputsFresh(next) : next };

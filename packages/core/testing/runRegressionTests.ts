@@ -16,6 +16,7 @@ import "../debt/testComputeCycleDelta";
 import "../debt/testComputeDrift";
 import "../debt/testGetDebtsWithDisplayBalances";
 import "../debt/testProjectCurrentBalance";
+import "../debt/testBnplInstallment";
 import "../guardian/testBuildGuardianBrief";
 import "../guardian/testGuardianPartition";
 import "../guardian/testComputeState";
