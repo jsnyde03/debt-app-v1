@@ -42,7 +42,8 @@ export type {
 
 export type PayoffStrategy = 'snowball' | 'avalanche';
 /** One-tier reshape (Elevation Phase 2): free finishes the job · premium does it with you every
- *  cycle. The old `premium_plus` tier is gone; feature access is via `@/subscription/hasFeatureAccess`. */
+ *  cycle. The old `premium_plus` tier is gone; gating is a uniform inline `subscriptionPlan === 'premium'`
+ *  check (driven by RevenueCat's `premium` entitlement via `setSubscriptionPlan`). */
 export type SubscriptionPlan = 'free' | 'premium';
 export type ThemeMode = 'system' | 'light' | 'dark';
 
