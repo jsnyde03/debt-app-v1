@@ -74,6 +74,7 @@ export default function RootLayout() {
             <Stack.Screen name="history" />
             <Stack.Screen name="living-expenses" />
             <Stack.Screen name="cushion-forecast" />
+            <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
           </Stack.Protected>
           <Stack.Protected guard={!onboardingComplete}>
             <Stack.Screen name="onboarding" />
