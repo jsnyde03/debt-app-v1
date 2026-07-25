@@ -79,15 +79,7 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 - [ ] **2.9.1 [DESIGN GATE]** switch-in before-scan (Guardian-engine reusability for a hypothetical one-off + where affordability data lives) + design the "can I afford this?" UX w/ Jason (entry · the read · the impact viz · gating) → decompose 2.9.2+.
 - **Exit:** the inverse-Guardian shipped (affordability read + plan impact); verified both themes + tests + e2e.
 
-**Decision (2026-07-25, Jason):** Momentum doesn't justify premium — the Interest-Saved projection is already free, its vanquished archive duplicates the free Phase-3 debt-paid-off celebration, and celebration is the app's free emotional core (not premium automation). → **Momentum MOVED to Phase 3** (reevaluate there); **inverse-Guardian promoted** as the premium build.
-
-### The GUARDIAN AUDIT + must-fixes ✅ (detail → the round-2 doc)
-_All shipped 2026-07-24 — 2 audit rounds, 8 major/blocker + minors fixed (MF.1 recovery trust · MF.2 a11y · MF.3 free honest read · MF.4 steady-state projection [completed in round 2] · MF.5 reserve-release honesty · MF.6 surface unification · MF.7 polish), then round-2 re-verification reached 4/4-lens CONSENSUS ship-ready. Tier-3 → Phase 3; 2 minors → backlog. See the Shipped roll-up above + `…_ROUND2_2026-07-24.md`._
-
-### The rest of the tier
-- **2.8 Scan-to-prefill** → ✅ structure-complete (Shipped roll-up above; native OCR @ Phase-6 device-QA).
-- **2.9 Can-I-Afford-This? (inverse Guardian)** → promoted to the **Active Queue** above (the next active build). _(Momentum moved to Phase 3.)_
-- **2.9 Momentum** → promoted to the **Active Queue** above (the recommended next build). _(Interest-Saved counterfactual moved here from 2.6 — Jason: no place in recovery.)_
+### The rest of the tier _(2.1–2.8 shipped · 2.9 inverse-Guardian is the Active Queue above)_
 - [ ] **2.10 Widget + App Intents + Live Activity** — payoff-countdown Live Activity + interactive-widget App Intents (mark-paid / log-paycheck). One native build (with Phase-6 device work).
 - [ ] **2.11 Revenue spine** — RevenueCat + paywall (port Gig) + Lifetime 2nd offer + portfolio-sub seam + analytics + Sentry. **[DECISION before any StoreKit SKU]:** guarantee window/terms (default to honest "not charged until day 30" if StoreKit can't honor a refund) · Lifetime scope · pin annual + Lifetime prices. "Watches every paycheck" copy gated on 2.4.10. Launch-flip gated on value shipped.
 - [ ] **2.12 E2EE iCloud backup + AU/NZ** — verify the ADP-status API exists or fall back to "encrypted iCloud backup" wording (backup ≠ sync; multi-device sync deferred).
@@ -95,7 +87,7 @@ _All shipped 2026-07-24 — 2 audit rounds, 8 major/blocker + minors fixed (MF.1
   - **⭐ Added criterion (Jason 2026-07-24): BNPL-cadence coverage.** RESEARCH the real BNPL/financing market and verify EVERY cadence/term is correctly captured, modeled, displayed, and Guardian-handled — biweekly pay-in-4 (Klarna/Afterpay) · monthly financing at every term length (Affirm 3/6/12/24/48-month) · one-time deferred (Klarna pay-in-30) · every-3-months and any other real interval. Confirm the (installment × count × cadence) model + the crunch detection hold across all of them, with no cadence silently mishandled.
 
 ### Future premium features (post-Guardian; scope into v1.7 vs v1.7.x/v1.8 with Jason)
-- **① Can-I-Afford-This? (the inverse Guardian)** → **PROMOTED to the Active Queue as 2.9 (Jason 2026-07-25).** Re-solve the cycle for a one-off expense; survives debt=$0. Absorbs the "Can I afford this BNPL?" angle (from 2.7).
+_(① Can-I-Afford-This? promoted → Active Queue as 2.9.)_
 - **② Windfall Autopilot** — found money → optimal split in one confirm (`store.windfall` exists; the split IS the waterfall).
 - ③ Life-Event Simulator (→ Phase-3 What-If explorer) · ④ Strategy Auto-Advisor (low-pri) · ⑤ Bill-shock autopilot (→ Connected tier).
 - **⛔ DO NOT build:** refi / insurance / rate-drop lead-gen — cut (violates "never sell you more debt").
@@ -197,6 +189,7 @@ Acquisition-grade store presence (screenshots · app-preview video · listing se
 - **2.6 Recovery design consensus ✅ (2026-07-24, Jason "I agree completely")** — "one ladder, two directions": Recovery = the Guardian's existing priority ladder run in deficit (same card/voice/engine, unify trouble surfaces). Decisions: classify = category-default + per-bill override; defer = advance the due date one cycle honestly. Full detail in the Active-Queue 2.6 block.
 - **2.7.1 design gate ✅ (2026-07-24, Jason ✓)** — before-scan corrected the pre-authored premise: `scheduledPaymentAmount`/`remainingPayments` are **dead capture** (collected, read back nowhere; engine + amortization run BNPL off `balance`+`minimumPayment`, `apr:0`), not a conflicting display surface. Design (both my recs): **installment-native + balance fallback** (installment fields → source of truth, balance derived; absent → balance+minimum = the reconciliation) · **afford-check → inverse-Guardian ①** (build that engine once); 2.7 keeps the BNPL calendar.
 - **2.5 rescope ✅ (2026-07-24, Jason ✓)** — before-scan found category/BNPL-term/variance already captured + one-off already handled by `one-time` recurrence → one-off heuristic SCRAPPED. A deeper read then showed **BNPL-expiry is also already handled** (required minimum + balance-depletion retires it) → **BNPL-expiry SCRAPPED**. Net 2.5 = **trials (new) + variable-bill modest %-buffer reserve** (Jason picked the bounded-% approach folded into the cushion). Honest high-value cut over the pre-authored 4-field blob.
+- **2.9 pivot ✅ (2026-07-25, Jason)** — Momentum doesn't justify premium (the Interest-Saved projection is already free · its vanquished archive duplicates the free Phase-3 debt-paid-off celebration · celebration is the free emotional core, not premium automation). → **Momentum MOVED to Phase 3** (reevaluate scope there); **① Can-I-Afford-This? (inverse Guardian) PROMOTED** as the premium build (on-identity automation, top net-new pick, reuses the Guardian engine + the BNPL afford-check).
 
 ## Reference docs
 
