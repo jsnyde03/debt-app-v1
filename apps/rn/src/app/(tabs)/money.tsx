@@ -3,7 +3,9 @@ import { type ReactNode, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { bnplPaymentsRemaining, bnplPaymentsTotal, isInstallmentNative } from '@core/debt/bnplInstallment';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
+import type { Recurrence } from '@core/types/recurrence';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { DebtSheet } from '@/components/entities/DebtSheet';
@@ -42,6 +44,18 @@ function shortDate(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
+
+// A BNPL installment recurs on its own cadence (usually biweekly), not monthly — so the row's
+// per-payment suffix stays truthful (a "/mo" on a biweekly plan would misstate the outflow).
+const CADENCE_SUFFIX: Record<Recurrence, string> = {
+  'monthly': '/mo',
+  'weekly': '/wk',
+  'biweekly': '/2 wks',
+  'per-paycheck': '/check',
+  'quarterly': '/qtr',
+  'annually': '/yr',
+  'one-time': '',
+};
 
 export default function MoneyScreen() {
   const [view, setView] = useState<MoneyView>('debts');
@@ -171,19 +185,30 @@ function DebtRow({
   const captionColor = canVerify ? c.accent.primary : est.attention ? c.accent.warning : undefined;
   // Progress off the (projected) current balance so the bar tracks what the row shows.
   const progress = debt.originalBalance && debt.originalBalance > 0 ? 1 - view.currentBalance / debt.originalBalance : undefined;
+  // Installment-native BNPL reads as its plan ("2 of 4 · interest-free"), not a meaningless APR;
+  // the per-payment suffix follows the plan's cadence, and the pill names the provider (2.7.3).
+  const bnplRemaining = isInstallmentNative(debt) ? bnplPaymentsRemaining(debt) : null;
+  const bnplTotal = isInstallmentNative(debt) ? bnplPaymentsTotal(debt) : null;
+  const isBnpl = debt.type === 'bnpl';
+  const balanceText = view.isEstimate ? `~${formatWhole(view.currentBalance)}` : formatCurrency(view.currentBalance);
+  const meta = bnplRemaining != null && bnplTotal != null
+    ? `${balanceText} · ${bnplTotal - bnplRemaining} of ${bnplTotal} paid · interest-free`
+    : isBnpl
+      ? `${balanceText} · interest-free`
+      : `${balanceText} · ${debt.apr}% APR`;
   const chips = [
     focus ? <Pill key="f" label="Focus" tone="action" /> : null,
-    debt.type === 'bnpl' ? <Pill key="b" label="BNPL" tone="neutral" /> : debt.isAutopay ? <Pill key="a" label="Autopay" tone="autopay" /> : null,
+    isBnpl ? <Pill key="b" label={debt.bnplProvider || 'BNPL'} tone="neutral" /> : debt.isAutopay ? <Pill key="a" label="Autopay" tone="autopay" /> : null,
   ].filter(Boolean);
   return (
     <ListRow
       title={debt.name}
-      meta={`${view.isEstimate ? `~${formatWhole(view.currentBalance)}` : formatCurrency(view.currentBalance)} · ${debt.apr}% APR`}
+      meta={meta}
       caption={captionText}
       captionColor={captionColor}
       onCaptionPress={canVerify ? () => appStore.getState().verifyDebtBalance(debt.id, view.currentBalance, currentDate) : undefined}
       amount={formatCurrency(debt.minimumPayment)}
-      amountSuffix="/mo"
+      amountSuffix={isBnpl ? (CADENCE_SUFFIX[debt.recurrence] || '/mo') : '/mo'}
       badges={chips.length ? <>{chips}</> : undefined}
       progress={progress}
       progressColor={focus ? c.accent.primary : undefined}

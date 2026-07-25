@@ -175,16 +175,22 @@ export function buildDemoPlannerState(today: Date = new Date()): DemoPlannerStat
                 snowballPaidThisCycle: false,
             },
             {
+                // Installment-native BNPL (2.7.3): "4 payments of $78.86 every 2 weeks" — balance is
+                // derived (4 × 78.86 = 315.44), interest-free, provider-tagged. Showcases the native
+                // capture + the "of 4" row read (the Klarna entry above stays a fallback example).
                 id: "debt-affirm-long-name",
                 name: "Affirm - Furniture & Home Office Setup",
                 balance: 315.44,
                 originalBalance: 315.44,
-                minimumPayment: 42.5,
-                apr: 15.99,
+                minimumPayment: 78.86,
+                apr: 0,
                 dueDate: addDays(anchor, 10),
                 originalDueDate: addDays(anchor, 10),
                 type: "bnpl",
-                recurrence: "monthly",
+                bnplProvider: "Affirm",
+                scheduledPaymentAmount: 78.86,
+                remainingPayments: 4,
+                recurrence: "biweekly",
                 isPaidThisCycle: false,
                 minimumPaidThisCycle: false,
                 snowballPaidThisCycle: false,

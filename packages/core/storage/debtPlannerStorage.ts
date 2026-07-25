@@ -50,6 +50,10 @@ export type Debt = {
 	apr: number;
 	remainingPayments?: number;
 	scheduledPaymentAmount?: number;
+	// v1.7 BNPL first-class (2.7.3) — the plan's provider (Klarna/Affirm/Afterpay/PayPal/Zip/…),
+	// captured for the row/pill + the consolidated BNPL calendar. Optional / backfill-safe; only
+	// meaningful when `type === "bnpl"`.
+	bnplProvider?: string;
 	type: "debt" | "bnpl";
 	recurrence: Recurrence;
 
