@@ -12,6 +12,7 @@ import { DebtSheet } from '@/components/entities/DebtSheet';
 import { ExpenseSheet } from '@/components/entities/ExpenseSheet';
 import { GoalSheet } from '@/components/entities/GoalSheet';
 import { AllocationBarCanvas } from '@/components/money/AllocationBarCanvas';
+import { BnplCalendarSection } from '@/components/money/BnplCalendarSection';
 import type { AllocationSegment } from '@/components/money/AllocationBarChart';
 import { BillBreakdownSheet, type BillBreakdownData } from '@/components/money/BillBreakdownSheet';
 import { MoreButton } from '@/components/more-button';
@@ -154,6 +155,8 @@ function DebtsSection() {
         ListFooterComponent={
           <View style={styles.listFooter}>
             <AddRow label="Add debt" onPress={() => setSheet({ editing: null })} />
+            {/* §2.7.5 — the consolidated BNPL calendar (renders only when there are upcoming installments). */}
+            <BnplCalendarSection debts={active} currentDate={currentDate} />
           </View>
         }
       />
