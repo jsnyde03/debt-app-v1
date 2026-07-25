@@ -39,7 +39,7 @@ export function AffordabilityCard() {
   const isPremium = store.subscriptionPlan === 'premium';
   const [amount, setAmount] = useState('');
   const [name, setName] = useState('');
-  const [applied, setApplied] = useState<{ id: string; name: string } | null>(null);
+  const [applied, setApplied] = useState<{ id: string; name: string; cover?: { goalId: string; amount: number; goalName: string } } | null>(null);
   const [saveSheet, setSaveSheet] = useState(false);
   const [saved, setSaved] = useState<SavedInfo | null>(null);
   const [nameError, setNameError] = useState('');
@@ -66,8 +66,22 @@ export function AffordabilityCard() {
     appStore.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' });
     setApplied({ id, name: purchaseName });
   }
+  // §2.9.5 cover-a-tight-dip: apply the purchase AND move the gap from a savings goal to hold the line,
+  // in one tap (reuses the Guardian's tight-top-up: draws down the goal + a cycle-keyed top-up).
+  function coverAndApply(r: Affordability) {
+    if (!r.coverFromSavings) return apply(r);
+    const id = localId('purchase', store.paycheck.currentDate);
+    const purchaseName = name.trim() || 'Purchase';
+    appStore.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' });
+    appStore.getState().applyTightTopUp(r.coverFromSavings.goalId, r.coverFromSavings.amount);
+    setApplied({ id, name: purchaseName, cover: { goalId: r.coverFromSavings.goalId, amount: r.coverFromSavings.amount, goalName: r.coverFromSavings.goalName } });
+  }
   function undo() {
-    if (applied) appStore.getState().removeExpense(applied.id);
+    if (applied) {
+      appStore.getState().removeExpense(applied.id);
+      // Reverse a cover the same way it was applied — a negative top-up restores the goal + clears the cycle top-up.
+      if (applied.cover) appStore.getState().applyTightTopUp(applied.cover.goalId, -applied.cover.amount);
+    }
     setApplied(null);
   }
   function undoSave() {
@@ -90,7 +104,9 @@ export function AffordabilityCard() {
           <View style={styles.readHead}>
             <AppIcon name="check-circle" size={18} color={c.accent.primary} />
             <Text style={[textStyles.subhead, styles.readText, { color: c.text.primary }]}>
-              Added {applied.name} to this paycheck — your plan updated below.
+              {applied.cover
+                ? `Added ${applied.name} + moved ${money(applied.cover.amount)} from ${applied.cover.goalName} to hold your line — your plan updated below.`
+                : `Added ${applied.name} to this paycheck — your plan updated below.`}
             </Text>
           </View>
           <Button label="Undo" variant="secondary" onPress={undo} style={styles.action} />
@@ -172,9 +188,19 @@ export function AffordabilityCard() {
               About {money(result.extraToDebtDelta)} less goes to debt this paycheck.
             </Text>
           ) : null}
+          {/* §2.9.5 — a tight buy can hold the line by covering the dip from savings (the primary move); or
+              apply anyway and accept the tighter cushion. Comfortable buys just apply. */}
+          {result.verdict === 'tight' && result.coverFromSavings ? (
+            <Button
+              label={`Cover ${money(result.coverFromSavings.amount)} from ${result.coverFromSavings.goalName} & apply`}
+              variant="secondary"
+              onPress={() => coverAndApply(result)}
+              style={styles.action}
+            />
+          ) : null}
           <Button
             label={result.verdict === 'tight' ? 'Apply anyway' : 'Apply to this paycheck'}
-            variant="secondary"
+            variant={result.verdict === 'tight' && result.coverFromSavings ? 'text' : 'secondary'}
             onPress={() => apply(result)}
             style={styles.action}
           />

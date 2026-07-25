@@ -228,6 +228,10 @@ export interface Affordability {
   /** §2.9.4 honest impact: how much LESS goes to debt this paycheck if the purchase is applied (>0 only
    *  when it displaces a snowball payment). The trust-moat number — affording it has a real debt cost. */
   extraToDebtDelta: number;
+  /** §2.9.5 cover-a-tight-dip: for a TIGHT purchase, the smallest move to hold the floor — draw the gap
+   *  from a discretionary savings goal (never the emergency fund, for a discretionary buy). Null unless
+   *  tight AND a savings goal has a balance. */
+  coverFromSavings: { goalId: string; goalName: string; amount: number } | null;
 }
 
 /** The ephemeral one-off used to re-solve the plan WITH the purchase (never persisted — the preview). */
@@ -252,7 +256,18 @@ export function selectAffordability(store: DebtStore, amount: number): Affordabi
   const after = selectAllocation({ ...store, requiredExpenses: [...store.requiredExpenses, oneOff] });
   const extraToDebtDelta = after ? Math.max(0, Math.round((selectExtraToDebt(base) - selectExtraToDebt(after)) * 100) / 100) : 0;
 
-  return { amount, verdict, discretionaryNow, cushionAfter, shortBy, floor, nextPayday: store.paycheck.nextPaycheckDate, extraToDebtDelta };
+  // §2.9.5 cover-a-tight-dip: only when tight, and only from a discretionary SAVINGS goal (never the
+  // emergency fund for a discretionary purchase). The gap = how far the purchase pushes you below the floor.
+  let coverFromSavings: Affordability['coverFromSavings'] = null;
+  if (verdict === 'tight') {
+    const gap = Math.round((floor - cushionAfter) * 100) / 100;
+    const goal = store.goals.find((g) => g.type === 'savings' && g.currentAmount > 0);
+    if (gap > 0 && goal) {
+      coverFromSavings = { goalId: goal.id, goalName: goal.name, amount: Math.min(gap, Math.round(goal.currentAmount * 100) / 100) };
+    }
+  }
+
+  return { amount, verdict, discretionaryNow, cushionAfter, shortBy, floor, nextPayday: store.paycheck.nextPaycheckDate, extraToDebtDelta, coverFromSavings };
 }
 
 /** Advance an ISO date by whole paychecks of the given cadence (for a save-for-it "ready by" date). */

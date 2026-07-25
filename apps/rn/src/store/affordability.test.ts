@@ -45,6 +45,16 @@ function run() {
   // The honest debt impact: a comfortable purchase displaces money that would have gone to the snowball.
   assert((selectAffordability(s, 500)?.extraToDebtDelta ?? 0) > 0, 'a purchase reduces what reaches debt this paycheck (extraToDebtDelta > 0)');
 
+  // §2.9.5 cover-a-tight-dip: a tight purchase can be covered from a SAVINGS goal (never the EF).
+  const withSavings: DebtStore = { ...s, goals: [{ id: 'vac', name: 'Vacation', targetAmount: 1000, currentAmount: 500, type: 'savings' }] };
+  const tightCover = selectAffordability(withSavings, 1800); // cushionAfter 100 < floor 200 → tight, gap 100
+  assert(tightCover?.verdict === 'tight', '$1800 is tight (cover case)');
+  assert(tightCover?.coverFromSavings?.goalName === 'Vacation' && tightCover?.coverFromSavings?.amount === 100, 'cover offers the $100 gap from the savings goal');
+  assert(selectAffordability(s, 1800)?.coverFromSavings === null, 'no cover option when there is no savings goal');
+  const efOnly: DebtStore = { ...s, goals: [{ id: 'ef', name: 'Emergency Fund', targetAmount: 1000, currentAmount: 500, type: 'emergency' }] };
+  assert(selectAffordability(efOnly, 1800)?.coverFromSavings === null, 'never raids the emergency fund for a discretionary buy');
+  assert(selectAffordability(withSavings, 500)?.coverFromSavings === null, 'a comfortable purchase has no cover option');
+
   // Save-for-it options for a short purchase: prioritized paces + a debt-first path.
   const opts = selectSaveForItOptions(s, 2500);
   assert(opts.some((o) => o.key === 'fast' && o.prioritize && (o.perPaycheck ?? 0) > 0 && o.paychecks != null), 'a prioritized "fast" option with a real per-paycheck pace + ready date');
