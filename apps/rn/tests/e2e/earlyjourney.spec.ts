@@ -10,6 +10,15 @@ import { scenario, seedStore } from './helpers/seed';
 test.use({ viewport: { width: 402, height: 874 } });
 
 for (const theme of ['light', 'dark'] as const) {
+  test(`§3.3.6.3 Welcome leads with the Guardian job (${theme})`, async ({ page }) => {
+    await seedStore(page, scenario({ prefs: { onboardingComplete: false, themeMode: theme } }));
+    await page.goto('/onboarding');
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: `test-results/welcome-${theme}.png` });
+    await expect(page.getByText('Will you make it to payday?')).toBeVisible();
+    await expect(page.getByText('A guardian for every payday')).toBeVisible();
+  });
+
   test(`early Progress hero leads forward (${theme})`, async ({ page }) => {
     await seedStore(page, scenario({
       subscriptionPlan: 'premium',

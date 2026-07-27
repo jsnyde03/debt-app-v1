@@ -7,10 +7,12 @@ import { textStyles } from '@/theme/typography';
 
 import { OnboardingLayout, onboardingStyles as s } from './OnboardingLayout';
 
+// 3.3.6.3 — first-run leads with the uncopyable job (the payday cushion Guardian), not table stakes.
+// Honest across tiers: the free read genuinely tells you what's safe; premium automates the moves.
 const FEATURES: { icon: IconGlyph; title: string; body: string }[] = [
-  { icon: 'assignment', title: 'See your full payment plan', body: 'Every bill, minimum payment, and deadline — laid out per paycheck.' },
-  { icon: 'trending-down', title: 'Know your debt-free date', body: 'Snowball or avalanche — see exactly when the last debt disappears.' },
-  { icon: 'task-alt', title: 'Mark bills as you pay them', body: 'Swipe to pay, track your cushion, and roll over to the next cycle.' },
+  { icon: 'savings', title: 'A guardian for every payday', body: "Know what's safe to spend and what to pay down — your cushion, protected." },
+  { icon: 'trending-down', title: 'A real debt-free date', body: 'Snowball or avalanche — see exactly when your last debt disappears.' },
+  { icon: 'shopping-cart', title: 'Spend without the guilt', body: 'Check any purchase against your plan before you buy.' },
 ];
 
 export function WelcomeStep({ onNext, onDemo }: { onNext: () => void; onDemo: () => void }) {
@@ -26,12 +28,12 @@ export function WelcomeStep({ onNext, onDemo }: { onNext: () => void; onDemo: ()
         </>
       }>
       <View style={[s.hero, { backgroundColor: c.background.secondary }]}>
-        <AppIcon name="account-balance-wallet" size={34} color={c.accent.primary} />
+        <AppIcon name="gpp-good" size={34} color={c.accent.primary} />
       </View>
       <View style={s.copy}>
-        <Text style={[textStyles.title1, { color: c.text.primary }]}>Your paycheck, organized.</Text>
+        <Text style={[textStyles.title1, { color: c.text.primary }]}>Will you make it to payday?</Text>
         <Text style={[textStyles.body, { color: c.text.secondary }]}>
-          Know exactly where every dollar goes and when you&apos;ll be debt-free.
+          Debt Planner watches your cushion every paycheck — so you always know what&apos;s safe to spend and what to pay down.
         </Text>
       </View>
       <View style={s.list}>
