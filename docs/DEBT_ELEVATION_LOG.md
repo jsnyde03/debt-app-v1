@@ -4,6 +4,15 @@
 
 ---
 
+## Phase 3 · Wave B · 3.3.4 — Affordability impact-viz — COMPLETE (2026-07-27)
+
+The §2.9 "Can I Afford It?" animated layer. Design aligned w/ Jason pre-build. Both themes verified, gate green (50 e2e). Commit `3cfb49f`.
+
+- Before-scan: the carve data already lives on the affordability read (`discretionaryNow` = before · `cushionAfter` = after · `floor` · `verdict`), so **no new engine** (3.3.4.1 folded into using the existing fields).
+- **`AffordabilityImpactBar`** — as the amount is typed, the cushion carves from its full level down to what's left, landing against the floor-line marker; **green when it clears the line, red on tight/short**. The carved purchase reads as the gray remainder. **Reanimated, not the Guardian's Skia bar** (the before/after carve shape differs from the multi-segment cushion bar; Reanimated matches the free cushion-bar motion + is web-verifiable). Decorative (`accessibilityElementsHidden`) — the card's textual read stays the a11y source.
+- Wired into all three verdict branches of `AffordabilityCard` (comfortable/tight/short). The debt-free-date slide stayed the existing "$X less to debt" text (no false-precise recomputed date, per the design).
+- Verify: `affordability.spec` both-theme impact-bar screenshots ("$1,400 left · your $200 line", green clearing the floor) + the existing verdict/save-for-it assertions; full gate green.
+
 ## Phase 3 · Wave B · 3.3.3 — Guardian proof-of-work ledger — COMPLETE (2026-07-27)
 
 The churn-hole fix (audit F6.1): premium's automation goes invisible on calm cycles; make its accumulating work visible. Design aligned w/ Jason BEFORE build (standing Guardian directive). Both themes verified, gate green (48 e2e). Commits `ac2da18`→`6133783`.
