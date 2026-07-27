@@ -4,6 +4,17 @@
 
 ---
 
+## Phase 3 · Wave B · 3.3.1 — Debt-paid-off celebration — COMPLETE (2026-07-27)
+
+The flagship emotional beat. Design signed off w/ Jason (Skia+Reanimated+Core-Haptics · contained per-debt beat · full-screen finale · archive on Progress; spec `DEBT_CELEBRATION_SPEC.md`). Built structure-first, both themes verified, `validate:release:rn` green (44 e2e). Commits `5a5f32c`→(this).
+
+- **3.3.1.1 logic** — `celebrationSelectors.ts`: `selectVanquishedDebts` (archive rows) · `isLastLiveDebt` (beat-vs-finale detector, called at confirm time before the store mutates) · `selectCelebrationStats` (honest trio). 12 asserts. **Honesty correction (Jason ✓):** interest-saved DROPPED — not derivable at $0 (no cumulative tally / historical extra) → would be fabricated; the trio is total vanquished · debts cleared · months-to-freedom (`onboardedAt`→last clear).
+- **3.3.1.2 per-debt beat** — `VanquishedBeat.tsx`: contained Reanimated overlay on the constant navy panel (gold check-pop + haptic · CountUp amount · "freed $X/mo flows to {next}" cascade · Keep-going dismiss · reduce-motion snap). Refinement: Reanimated + existing components, not bespoke Skia (fires repeatedly in a snowball).
+- **3.3.1.3 finale** — `PaidOffFinale.tsx`: full-screen navy takeover · the REUSED Skia journey ring swept to gold 100% w/ a "$0 balance" centre · Reanimated gold confetti burst · the count-up trio · Continue. Reduce-motion snaps + keeps the haptic.
+- **3.3.1.4 archive** — `VanquishedArchive.tsx` on Progress: the growing trophy shelf (gold-badge tombstones: name · amount cleared · date, most-recent first) + plain-text Share (RN Share, no dep). Wired above Progress's early return so a **debt-free** user sees a calm "Every balance cleared" hero + the archive, not the "add a debt" empty state.
+- **3.3.1.5 wiring** — Today's `PayoffInvitationCard.onConfirm` → `confirmPayoff`: `isLastLiveDebt` picks beat vs finale, beat data captured before the clear; overlays live in the single `content` return so the finale renders over the debt-free graduation branch.
+- **3.3.1.6 verify** — `celebration.spec.ts` drives the real confirm flow (seeded provisional payoff → tap Confirm → beat/finale) + the archive/debt-free state; 6/6 green, **both themes screenshot-verified** (beat: "Chase Freedom · Vanquished · $4,200 · freed $300/mo→Auto Loan"; finale: gold ring · $0 · "$4,200 vanquished · 1 debt · 7 months"; archive: 2 tombstones). Bespoke Core-Haptics AHAP + on-device motion/Skia/Modal → Phase-6 device-QA.
+
 ## Phase 3 · Wave A — foundation polish & perf — COMPLETE (2026-07-27)
 
 Opened by the 3.0 Best-in-Class Enhancement audit (7 lens-auditors × 15 lenses, real both-theme screenshots + external benchmark → `DEBT_PHASE3_ENHANCEMENT_AUDIT_2026-07-27.md`). All 7 items shipped; `validate:release:rn` green (38 e2e); both themes verified. Commits `c017a62`→`a6c6d04`.
