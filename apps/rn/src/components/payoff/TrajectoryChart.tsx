@@ -172,6 +172,10 @@ export function TrajectoryChart({
           })
       : [];
 
+  // 3.4.2.2 — when the scrub lands on a debt's clear-month, name it in the readout (recovers the
+  // collision-suppressed waypoint labels; the endpoint debt is included, so "$0 · Car cleared" reads too).
+  const scrubClearedName = scrub ? activeClears.find((cl) => cl.month === scrub.month && cl.name)?.name : undefined;
+
   // What-If overlay geometry (same scale — the simulated curve ends earlier, so it fits as-is).
   const showSimulated = simulated.length > 1 && w > 0;
   const simulatedPath = showSimulated ? smoothPath(toPts(simulated)) : undefined;
@@ -346,7 +350,7 @@ export function TrajectoryChart({
                     {'  ·  '}
                     {formatWhole(scrub.balance)}
                     {'  ·  '}
-                    {scrub.month === 0 ? 'now' : `${scrub.month} mo`}
+                    {scrubClearedName ? `${scrubClearedName} cleared` : scrub.month === 0 ? 'now' : `${scrub.month} mo`}
                   </Text>
                 </View>
               </>

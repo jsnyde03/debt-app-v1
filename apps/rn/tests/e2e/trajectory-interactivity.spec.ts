@@ -34,6 +34,9 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(page.getByTestId('traj-endpoint-pill')).toBeVisible();
     await expect(page.getByTestId('traj-scrub-readout')).toHaveCount(0);
 
+    // 3.4.2.1 — the ring's next milestone reads as a clean caption in the hero (22% paid → next 25%).
+    await expect(page.getByText(/Next milestone:/)).toBeVisible();
+
     // Per-debt waypoints — intermediate debts (not the endpoint) get a bead where they clear.
     // 3 debts → the last is the endpoint, so ≥1 intermediate waypoint, with its ✓ name label.
     await expect(page.getByTestId('traj-waypoint').first()).toBeVisible();
@@ -51,6 +54,11 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(readout).toBeVisible();
     await expect(readout).toContainText(/mo|now/);
     await expect(readout).toContainText('$');
+
+    // 3.4.2.2 — sweep to the endpoint: the last debt clears there, so the readout names it.
+    await page.mouse.move(box.x + 360, cy, { steps: 12 });
+    await page.waitForTimeout(150);
+    await expect(readout).toContainText(/cleared/);
 
     // Release → the readout clears, the resting pill returns.
     await page.mouse.up();

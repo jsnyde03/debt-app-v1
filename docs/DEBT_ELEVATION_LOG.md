@@ -4,6 +4,16 @@
 
 ---
 
+## Phase 3 · Wave C · 3.4.2 — Chart interactivity (additive only) — COMPLETE (2026-07-27)
+
+**Switch-in reshape (verify-pre-authored-plan):** grepped the actual surfaces — the pre-authored 3.4.2 was ~half redundant with already-shipped work: the Guardian card already carries a full **Safety net / Cushion / To debt / "$X · Your line"** legend + an explicit **"Adjust your line →"** button, and the Cash Runway already has a per-cycle **tap → full detail receipt**. So the cushion-bar zone **tooltip** and the standalone **floor-line tap** were DROPPED (redundant + would busy the calm Guardian card — less-is-more), and the "Cash-Runway scrub readout" was reshaped to **drag-select** (a floating readout would duplicate the receipt). Presented to Jason → ✓ "reshape, additive only."
+
+- **3.4.2.1 Ring next-milestone (progress hero).** First pass: on-arc node labels (next + Free) inside the arc — **visual-verify caught it**: on the 112px ring the "25%" label collided with the center "22%" ("22%25%" mashed), and outside-right would hit the DEBT-FREE column. The nodes already GLOW to mark next/passed/Free, so per less-is-more the ring stays clean and the next checkpoint reads as a **caption in the meta column** — `Next milestone: 25%` (suppressed past 75%, where next IS Free and the DEBT-FREE date already says it). Both themes verified.
+- **3.4.2.2 Trajectory scrub names the debt.** `scrubClearedName = activeClears.find(month === scrub.month)` → the readout's third segment becomes `{name} cleared` when the finger lands on a debt's clear-month (the endpoint debt included → "$0 · Car cleared"). Recovers 3.4.1.4's collision-suppressed labels for free.
+- **3.4.2.3 Cash-Runway drag-select.** The container claims the responder **only on MOVE** (`onMoveShouldSetResponder`), so a plain tap still falls through to the per-cycle Pressables (tap + a11y) while a drag sweeps the selection continuously; the existing detail receipt IS the readout, so no floating overlay. Light detent haptic per cycle change (`lastSweep` ref). Hook-order fix: the `useRef` had to move above the `cycles.length < 2` early return.
+- **Verify:** extended `trajectory-interactivity.spec.ts` (ring caption + scrub `cleared`) + new `cushion-forecast.spec.ts` (drag moves selection off "This paycheck", receipt still reconciles). `validate:release:rn` green — **58 e2e**. Both themes screenshot-verified.
+- **After-scan:** nothing version-blocking; the reshape drops + the ring-label pivot are the notable calls (all surfaced to Jason / logged).
+
 ## Phase 3 · Wave C · 3.4.1 — Trajectory interactivity — COMPLETE (2026-07-27)
 
 The payoff-trajectory chart gains life: a crisp line, the date read off the bead, a scrub readout, and a bead where each debt falls away.

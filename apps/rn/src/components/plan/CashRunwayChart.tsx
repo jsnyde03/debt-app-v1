@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { type GestureResponderEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { WaterFillResult } from '@core/cashflow/waterFill';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Card } from '@/components/ui/Card';
+import { haptics } from '@/motion';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { GuardianState } from '@/store/guardianSelectors';
@@ -51,6 +52,7 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
   const c = useAppColors();
   const dark = useColorScheme() === 'dark';
   const [w, setW] = useState(0);
+  const lastSweep = useRef<number | null>(null); // 3.4.2.3 drag-select detent tracker (hook — above any early return)
 
   // Default the selection to the nearest under-the-line cycle (the thing worth looking at), else cycle 0.
   const firstTight = cycles.findIndex((cy) => cy.net < floor - 1);
@@ -104,6 +106,24 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
   // a cumulative deploy-cap), so this is the only "set aside" number shown — and only when it's real.
   const holdNow = Math.max(0, plan?.prefundedReserve ?? 0);
 
+  // 3.4.2.3 — drag-select: sweeping a finger across the chart moves the selection continuously (the
+  // detail receipt below is the readout, so no floating overlay is needed). The per-cycle Pressables
+  // still handle discrete taps + a11y; the container claims the gesture only on MOVE, so a plain tap
+  // falls through to them and a drag sweeps. A light detent haptic ticks on each cycle change.
+  const handleSweep = (e: GestureResponderEvent) => {
+    if (!(w > 0) || cycles.length < 2) return;
+    const frac = (e.nativeEvent.locationX - plotL) / Math.max(1, plotR - plotL);
+    const i = Math.max(0, Math.min(cycles.length - 1, Math.round(frac * (cycles.length - 1))));
+    if (i !== lastSweep.current) {
+      lastSweep.current = i;
+      setSelected(i);
+      haptics.light();
+    }
+  };
+  const endSweep = () => {
+    lastSweep.current = null;
+  };
+
   return (
     <Card>
       <View style={styles.head}>
@@ -111,7 +131,14 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>next {cycles.length} paychecks</Text>
       </View>
 
-      <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ height: H }}>
+      <View
+        onLayout={(e) => setW(e.nativeEvent.layout.width)}
+        style={{ height: H }}
+        onMoveShouldSetResponder={() => w > 0 && cycles.length > 1}
+        onResponderGrant={handleSweep}
+        onResponderMove={handleSweep}
+        onResponderRelease={endSweep}
+        onResponderTerminate={endSweep}>
         {w > 0 && runwayPath ? (
           <>
             <CashRunwayCanvas

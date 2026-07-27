@@ -121,6 +121,12 @@ export default function ProgressScreen() {
     state: t === 100 ? 'free' : pct >= t ? 'passed' : t === nextT ? 'next' : 'upcoming',
   }));
 
+  // 3.4.2.1 — legible milestones. On a 112px ring, per-node text crowds the arc (it collides with the
+  // center %), and the nodes already GLOW to mark next/passed/Free. So the ring stays clean and the next
+  // checkpoint reads as a caption in the meta column (which has room). Suppressed past 75%, where the
+  // next milestone IS Free and the DEBT-FREE date already says it.
+  const nextMilestoneLabel = nextT && nextT < 100 ? `Next milestone: ${nextT}%` : null;
+
   // One collapsed screen-reader utterance for the ring (which is otherwise a decorative canvas).
   const reached = MILE_TS.filter((t) => pct >= t && t < 100).map((t) => `${t}%`);
   const ringA11y = groupLabel(
@@ -156,6 +162,10 @@ export default function ProgressScreen() {
               {/* 3.3.6b — early on, lead FORWARD (the remaining as a goal) instead of a deflating "$0 paid". */}
               {totalPaid > 0 ? `${formatCurrency(totalPaid)} of ${formatCurrency(totalOriginal)} paid` : `${formatCurrency(totalOriginal)} to go`}
             </Text>
+            {/* 3.4.2.1 — the next milestone, read as a clean caption (the ring's glowing node marks it visually). */}
+            {nextMilestoneLabel ? (
+              <Text style={[textStyles.caption, styles.nextMile, { color: surf.heroSub }]}>{nextMilestoneLabel}</Text>
+            ) : null}
           </View>
         </View>
       </LinearGradient>
@@ -189,6 +199,7 @@ const styles = StyleSheet.create({
   ringCenter: { alignItems: 'center', justifyContent: 'center' },
   ringMeta: { flex: 1, gap: 3 },
   ringPct: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
+  nextMile: { marginTop: 2 },
   eyebrow: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700' },
   heroDate: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
 });
