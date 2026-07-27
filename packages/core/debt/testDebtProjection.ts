@@ -393,6 +393,37 @@ function runDebtProjectionTests() {
     const trajZeroMonth = biweeklyTraj.find((p) => p.balance <= 0.01)?.month;
     assertEqual(trajZeroMonth, 2, "payoff chart zero-crossing matches the debt-free date for a biweekly BNPL (R2.1)");
 
+    // R3 Finding 1 — a solo one-time BNPL (zero recurring budget) must clear on the CHART too, not
+    // flatline forever. Its trajectory zero-crossing must be month 1, matching the date.
+    const oneTimeTraj = buildPayoffTrajectory({
+        debts: [{ balance: 200, minimumPayment: 200, apr: 0, type: "bnpl", recurrence: "one-time" }],
+        monthlyExtraPayment: 0,
+        strategy: "snowball",
+    });
+    assertEqual(oneTimeTraj.find((p) => p.balance <= 0.01)?.month, 1, "solo one-time BNPL chart clears month 1, no flatline (R3 F1)");
+
+    // R3 Finding 2 — with extra > 0, a one-time BNPL must NOT decelerate a coexisting debt either. The
+    // $1000 card at $400/mo (100 min + 300 extra) clears in the same months with or without a $2000 one-time.
+    const cardExtraAlone = projectDebtPayoff({
+        debts: [{ id: "card", name: "Card", balance: 1000, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "debt", recurrence: "monthly", isPaidThisCycle: false }],
+        monthlyExtraPayment: 300, strategy: "snowball", startDate: "2026-05-01",
+    });
+    const cardExtraWithLump = projectDebtPayoff({
+        debts: [
+            { id: "k30", name: "Klarna Pay-in-30", balance: 2000, minimumPayment: 2000, apr: 0, dueDate: "2026-05-01", type: "bnpl", recurrence: "one-time", isPaidThisCycle: false },
+            { id: "card", name: "Card", balance: 1000, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
+        ],
+        monthlyExtraPayment: 300, strategy: "snowball", startDate: "2026-05-01",
+    });
+    assertEqual(cardExtraWithLump.monthsToDebtFree, cardExtraAlone.monthsToDebtFree, "one-time BNPL doesn't decelerate a coexisting debt with extra>0 (R3 F2)");
+
+    // Coverage — a weekly pay-in-4 ($100×4) clears in ~1 month (52/12 ≈ 4.33 installments/mo).
+    const weeklyBnpl = projectDebtPayoff({
+        debts: [{ id: "z", name: "Zip", balance: 400, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "bnpl", recurrence: "weekly", isPaidThisCycle: false }],
+        monthlyExtraPayment: 0, strategy: "snowball", startDate: "2026-05-01",
+    });
+    assertEqual(weeklyBnpl.monthsToDebtFree, 1, "weekly BNPL clears in ~1 month");
+
     console.log("✅ Debt projection regression tests passed.");
 }
 

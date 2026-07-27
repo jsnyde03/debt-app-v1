@@ -53,14 +53,19 @@ export function buildPayoffTrajectory({
             }
         }
 
+        // Negative-amortization guard, but ONLY when there's a recurring budget to compare against — a
+        // $0 recurring budget (e.g. an all-one-time-BNPL plan with no extra) is not un-amortizable; the
+        // lumps still clear via their month-1 minimum below. Without the `> 0` guard, `0 >= 0` broke the
+        // curve pre-payment and it flatlined while the date said month 1 (round-3 Finding 1).
         const totalInterest = pool.reduce((s, d) => s + calculateMonthlyInterest(d.balance, d.apr), 0);
-        if (totalInterest >= monthlyBudget) break;
+        if (monthlyBudget > 0 && totalInterest >= monthlyBudget) break;
 
         let minimumsPaidThisMonth = 0;
         for (let i = 0; i < pool.length; i++) {
             if (pool[i].balance > 0) {
                 const payment = Math.min(pool[i].minimumPayment, pool[i].balance);
-                minimumsPaidThisMonth += payment;
+                // One-time lump: clear it, but don't debit the extra pool (match projectDebtPayoff — R2.2).
+                if (!pool[i].oneTimeLump) minimumsPaidThisMonth += payment;
                 pool[i] = { ...pool[i], balance: Math.max(0, pool[i].balance - payment) };
             }
         }

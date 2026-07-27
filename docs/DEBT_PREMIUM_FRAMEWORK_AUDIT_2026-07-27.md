@@ -80,5 +80,12 @@
 - **Deferred:** R2.8 (offline lifetime-mislabel flicker, LOW) → backlog. **Off-device R2.9–R2.12 → Jason** (hosted `site/privacy.html` self-contradiction + stale v1.5/localStorage content + ASC privacy label must declare RevenueCat + marketing "100% private").
 - Verified: tsc · lint · core regression (+R2.1/R2.2 asserts) · app · scenarios · **e2e 28/28**, both themes. **Awaiting consensus signoff** (focused round-3 re-audit of R2.1/R2.2, or Jason's signoff) → Phase 2 closes.
 
+## ROUND 3 (2026-07-27) — re-audit of the R2.1/R2.2 fixes. Caught ONE more real edge (the cadence working a 3rd time); fixed.
+2 focused verifiers (correctness + regression sweep). R3-B: no regressions, all 6 minors clean, R2.2 core correct. But BOTH independently caught:
+- **R3.F1 [fixed]** — the R2.2 budget-exclusion INTRODUCED a chart flatline: an all-one-time-BNPL plan with zero extra → `monthlyBudget=0` → the chart's `totalInterest >= monthlyBudget` break fired at `0>=0` before clearing the lump, so the chart flatlined while the date said month 1. → guarded the break on `monthlyBudget > 0` (the lumps still clear via their month-1 minimum). + solo-one-time chart-parity assert.
+- **R3.F2 [fixed]** — R2.2's "no effect on a coexisting debt" only held at extra=0; with extra>0 the lump *decelerated* the card (debited against the extra pool). Decided the correct model: a one-time lump is an obligation paid month 1 from regular cash, so it's cleared but NOT counted in `minimumsPaidThisMonth` in either engine → it neither accelerates nor decelerates coexisting debts. + an extra>0 non-deceleration assert + weekly coverage.
+- **Deferred (R3-B, non-blocking → backlog):** `selectDebtAmortization` still cadence-blind (per-debt sheet vs headline) · dead `DriftResult` re-export.
+Verified: debt projection (+R3 asserts) · core regression · RN tsc/lint · e2e 28/28. **Consensus check pending** (a final focused re-verify of the round-3 fix).
+
 ## Method note
 7 lens verdicts: Free/premium-line PASS · Automation-identity CONDITIONAL-PASS · Moat/honesty/competition CHANGES-REQUIRED(core passes) · Tier/pricing, Apple-compliance, Entitlement-correctness, BNPL-cadence each FAIL-with-majors. No lens found the *strategy* wrong — every failure is a fixable storefront/wiring/copy/correctness defect. Consensus: the tier justifies its price; fix Section A before the launch-flip.

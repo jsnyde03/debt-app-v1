@@ -147,7 +147,10 @@ export function projectDebtPayoff({
             }
 
             const payment = Math.min(debt.minimumPayment, debt.balance);
-            minimumsPaidThisMonth += payment;
+            // A one-time BNPL lump is an obligation paid month 1 from regular cash, NOT the recurring
+            // snowball budget — clear it, but don't debit the extra pool, so it neither phantom-accelerates
+            // nor decelerates coexisting debts (R2.2 / round-3 Finding 2).
+            if (!debt.oneTimeLump) minimumsPaidThisMonth += payment;
             const newBalance = normalizeBalance(debt.balance - payment);
 
             if (newBalance === 0 && !payoffOrder.includes(debt.name)) {
