@@ -314,7 +314,9 @@ const styles = StyleSheet.create({
   chipText: { fontWeight: '600' },
   dimmed: { opacity: 0.4 },
   barWrap: { marginTop: spacing.md, height: BAR_H, justifyContent: 'center' },
-  stats: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md },
+  // flexWrap so the 3 stats reflow to a second row at large Dynamic-Type sizes instead of clipping /
+  // overflowing off-screen (premium-a11y: degrade gracefully at AX sizes). Full AX3/AX5 QA → Phase 6.
+  stats: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg, marginTop: spacing.md },
   stat: { gap: 3 },
   statHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   statValue: { fontSize: 17, fontWeight: '700', letterSpacing: -0.3, fontVariant: ['tabular-nums'] }, // hero-legend scale

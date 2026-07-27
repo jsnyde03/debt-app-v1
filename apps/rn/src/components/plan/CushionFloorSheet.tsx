@@ -28,7 +28,7 @@ export function CushionFloorSheet({ visible, floor, onClose }: { visible: boolea
       }}
       onClose={onClose}>
       <View style={styles.body}>
-        <Text style={[textStyles.heroNumber, styles.value, { color: c.text.primary }]}>${value.toLocaleString('en-US')}</Text>
+        <Text maxFontSizeMultiplier={1.4} style={[textStyles.heroNumber, styles.value, { color: c.text.primary }]}>${value.toLocaleString('en-US')}</Text>
         <Slider value={value} onChange={setValue} min={0} max={500} step={25} accessibilityLabel="Cushion line amount" />
         <View style={styles.scaleRow}>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>$0</Text>

@@ -120,7 +120,7 @@ export default function ProgressScreen() {
               pointerEvents="none"
               importantForAccessibility="no-hide-descendants"
               accessibilityElementsHidden>
-              <CountUp value={pct} format={(n) => `${Math.round(n)}%`} style={[styles.ringPct, { color: surf.heroText }]} />
+              <CountUp value={pct} format={(n) => `${Math.round(n)}%`} maxFontSizeMultiplier={1.4} style={[styles.ringPct, { color: surf.heroText }]} />
               <Text style={[textStyles.caption, { color: surf.heroSub }]}>paid</Text>
             </View>
           </View>

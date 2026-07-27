@@ -36,7 +36,9 @@ export const colors = {
   text: {
     primary: { light: '#111a2e', dark: '#f3f8ff' },
     secondary: { light: '#5a6b82', dark: '#a6b9d4' },
-    tertiary: { light: '#8695ab', dark: '#6f83a1' },
+    // Tertiary bumped to clear WCAG AA (4.5:1) on cards/elevated — was #8695ab/#6f83a1 (3.04/4.04,
+    // below the floor). Now 4.66 (light card) / 5.19 (dark card), still visibly subordinate to secondary.
+    tertiary: { light: '#68758b', dark: '#8496b2' },
     inverse: { light: '#ffffff', dark: '#0f172a' },
     onAccent: { light: '#ffffff', dark: '#08111f' }, // text sitting on an accent fill
   },
