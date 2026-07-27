@@ -6,10 +6,11 @@ import { Card } from '@/components/ui/Card';
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { CushionBarCanvas } from '@/components/plan/CushionBarCanvas';
 import { CushionFloorSheet } from '@/components/plan/CushionFloorSheet';
+import { GuardianProofStrip } from '@/components/plan/GuardianProofStrip';
 import { RecoveryPlanSection } from '@/components/plan/RecoveryPlanSection';
 import { PremiumInvite } from '@/components/premium/PremiumInvite';
 import { useAppColors } from '@/hooks/use-app-colors';
-import type { GuardianBrief, GuardianState, TightTopUp } from '@/store/guardianSelectors';
+import type { GuardianBrief, GuardianProofOfWork, GuardianState, TightTopUp } from '@/store/guardianSelectors';
 import type { RecoveryPlan } from '@/store/recoverySelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -40,10 +41,13 @@ export function PaydayGuardianCard({
   onDefer,
   onKeepEssential,
   bnplHeadsUp,
+  proofOfWork,
 }: {
   brief: GuardianBrief;
   isPremium: boolean;
   onSeeForecast?: () => void;
+  /** §3.3.3 — the premium proof-of-work read for the clear-cycle strip; null for free / no data yet. */
+  proofOfWork?: GuardianProofOfWork | null;
   /** §2.7.4 — a between-paycheck BNPL heads-up ("2 Klarna payments land before your next paycheck"),
    *  naming why a cycle reads tight. All tiers; null when no BNPL is lumpy this cycle. */
   bnplHeadsUp?: string | null;
@@ -271,6 +275,9 @@ export function PaydayGuardianCard({
           <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>Adjust your line →</Text>
         </Pressable>
       ) : null}
+      {/* §3.3.3 proof-of-work — the accumulating record of the automation's work, on calm/clear cycles only
+          (where it otherwise goes invisible). Display-only; the forecast link below opens the full scorecard. */}
+      {isPremium && !stale && brief.state === 'clear' && proofOfWork ? <GuardianProofStrip pow={proofOfWork} /> : null}
       {/* §2.6 drill-down (2.4.7.9) — a pushed route into the full cushion forecast; own a11y button. */}
       {isPremium && onSeeForecast && !stale && !brief.pausedDeploy ? (
         <Pressable onPress={onSeeForecast} accessibilityRole="button" accessibilityLabel="See your cushion forecast" hitSlop={8}>

@@ -30,7 +30,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
-import { selectBillsAttestation, selectBnplBetweenPaycheck, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
+import { selectBillsAttestation, selectBnplBetweenPaycheck, selectGuardianProofOfWork, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
 import { selectRecoveryPlan } from '@/store/recoverySelectors';
 import { selectLeanSuggestion } from '@/store/incomeLearning';
 import {
@@ -80,6 +80,8 @@ export default function TodayScreen() {
   const summary = allocation ? selectPlanSummary(engineStore, allocation, requiredRows) : null;
   // 2.4 — the Payday Cushion Guardian for this paycheck (off the projected cushion for premium).
   const guardian = selectPaydayGuardian(engineStore);
+  // 3.3.3 — the premium proof-of-work read (off the RAW store: it's the confirmed cycle record, not a projection).
+  const proofOfWork = selectGuardianProofOfWork(store);
   // 2.7.4 — a between-paycheck BNPL heads-up (a biweekly plan landing 2+ installments this cycle), naming
   // why the Guardian reads tight. All tiers; null when no BNPL is lumpy.
   const bnplHeadsUp = selectBnplBetweenPaycheck(engineStore);
@@ -184,6 +186,7 @@ export default function TodayScreen() {
             <PaydayGuardianCard
               brief={guardian}
               isPremium={isPremium}
+              proofOfWork={proofOfWork}
               onSeeForecast={() => router.push('/cushion-forecast')}
               topUp={tightTopUp}
               onTopUp={() => tightTopUp && appStore.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
