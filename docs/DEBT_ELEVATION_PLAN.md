@@ -8,9 +8,9 @@
 
 ## ▶ NOW
 
-- **Active item:** **▶ 3.3 Wave B — delight & the emotional peak (5/6 done).** **✅ 3.3.1 celebration · 3.3.2 milestone-cross · 3.3.3 proof-of-work · 3.3.4 affordability impact-viz · 3.3.5 tactility — all COMPLETE (both themes, gate green, 50 e2e).** NOW → **3.3.6 onboarding + early-journey** (last Wave-B item; mechanical parts, then PAUSE for the design-first first-run positioning). **✅✅ Phase 2 · 3.0 audit · 3.1 Wave A · 3.3.1–3.3.5**.
+- **Active item:** **✅✅ Wave B COMPLETE (6/6, 2026-07-27, both themes, gate green, 54 e2e) → shipped roll-up in Completed.** **▶ NOW = 3.4 Wave C — interactivity & data-viz** (decomposed 3.4.1–3.4.6; starting 3.4.1 trajectory interactivity). **New gate added:** Phase-3-closeout / best-in-class audit @after-Phase-3-before-3.5. **✅✅ Phase 2 · 3.0 audit · 3.1 Wave A · 3.3 Wave B**.
 - **Phase:** **3 (Delight + native platform) ▶ ACTIVE.** Opens with the enhancement audit (3.0) → its (A) findings + the pre-listed Phase-3 items (2.10 widgets · debt-free band · affordability impact viz · Windfall revisit) become the build order. Phase 2 (premium substance + revenue spine) ✅ COMPLETE.
-- **Then:** **Phase 3 (comprehensive, per Jason's 2026-07-27 pull-everything-in call)** — Wave A polish/perf → Wave B delight/emotional peak → Wave C interactivity/data-viz → the native-platform block (Live Activity · widgets · App Intents) → native iPad → confirmed items (debt-free band · Guardian Tier-3 · Windfall) → **Phase 3.5 (tutorial + demo)** → **whole-app cohesion audit** → 4 / 5 (incl. E2EE backup) / 5.5 / 6 (incl. AU/NZ · Sentry wire · native device-QA). _(remaining audit gates, all fan-out on Fable 5: whole-app-cohesion + wording/voice @after-3.5 · adversarial-migration @Phase-5-exit · privacy/data-flow + pre-submit-functional(+money lens) + a11y-device + perf-device @Phase-6.)_
+- **Then:** **Phase 3 (comprehensive, per Jason's 2026-07-27 pull-everything-in call)** — Wave A polish/perf → Wave B delight/emotional peak → Wave C interactivity/data-viz → the native-platform block (Live Activity · widgets · App Intents) → native iPad → confirmed items (debt-free band · Guardian Tier-3 · Windfall) → **Phase 3.5 (tutorial + demo)** → **whole-app cohesion audit** → 4 / 5 (incl. E2EE backup) / 5.5 / 6 (incl. AU/NZ · Sentry wire · native device-QA). _(remaining audit gates, all fan-out on Fable 5: **phase-3-closeout / best-in-class @after-Phase-3-before-3.5** · whole-app-cohesion + wording/voice @after-3.5 · adversarial-migration @Phase-5-exit · privacy/data-flow + pre-submit-functional(+money lens) + a11y-device + perf-device @Phase-6.)_
 - **⚠️ Launch gating:** v1.7 ships as ONE release — nothing launches until Phase 6 is done + Jason is satisfied. The whole Elevation (through Phase 6) is the release.
 - **Quality gate:** `validate:release:rn` (`lint:rn` + `test:regression` + `test:app` + `test:scenarios` + `test:e2e:rn`) — **green across the board.** Regression baseline (RS.1–7) + scenario testing ✅.
 
@@ -79,14 +79,14 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 
 ### Active Queue — the live build _(the queue never sits idle)_
 
-**▶ 3.3.6 [ACTIVE BUILD] Wave B — Onboarding + early-journey wins** _(last Wave-B item; 3.3.1–3.3.5 SHIPPED → Completed below)_:
-- [x] **3.3.6.1 ✅** onboarding finish personalized on the projected debt-free date ("You could be debt-free by {date}", graceful fallback). tsc+gate green; gated-flow visual → device/manual.
-- [x] **3.3.6.2 ✅** early Progress hero leads FORWARD ("{remaining} to go" instead of "$0 paid" before any payment). Both themes verified (`earlyjourney.spec`); gate green (52 e2e).
-- [ ] **▶ 3.3.6.3 [DESIGN-FIRST — AWAITING JASON]** first-run positioning — seed the uncopyable Guardian job in Welcome (options presented; awaiting the pick).
-- [ ] **3.3.6.4** verify — both themes + gate.
-- **Wave B exit:** all 6 green, both themes + `validate:release:rn` green → the task-level after-scan → Wave C.
-
-**3.4 Wave C — interactivity & data-viz:** trajectory (endpoint date pill · touch-scrub · per-debt payoff waypoints · line crispness) · cushion-bar/Cash-Runway/ring tap-scrub + **Safety-net tooltip** + ring milestone labels · `expo-blur` glass (tab bar + sheet scrims) · context-menu + swipe actions on rows · bottom-sheet migration.
+**▶ 3.4 [ACTIVE BUILD] Wave C — interactivity & data-viz** _(pure-RN/Skia first = web-verifiable; tooling/native adoptions last = dev-build + Phase-6 device-QA)_:
+- [ ] **3.4.1 Trajectory chart interactivity** — endpoint **date pill** on the gold bead (trivial, do first) · **line-crispness** fix (move the always-on `BlurMask` off the primary stroke) · **per-debt payoff waypoints** ("Klarna gone — Aug 2026") · **touch-scrub** with a moving balance/date/months readout. (Skia + Reanimated gesture; web-verifiable.)
+- [ ] **3.4.2 Chart tap/scrub + labels** — Guardian cushion-bar zone tap → the **Safety-net tooltip** (queued) + tap-the-floor-line → the line sheet · Cash-Runway + journey-ring tap/scrub · **ring milestone node labels** (25/50/75/Free legible).
+- [ ] **3.4.3 `expo-blur` glass** — frosted tab bar + sheet scrims (first-party Expo; apply with restraint per less-is-more — not on content cards).
+- [ ] **3.4.4 Native row interactions** [DEV-BUILD] — `react-native-ios-context-menu` long-press UIMenu (mark focus / edit / delete) + swipe actions (mark-paid-this-cycle / snooze / delete) on debt & bill rows. Native deps → build now, device-QA @ Phase 6 (+ provisioning check).
+- [ ] **3.4.5 Bottom-sheet migration** [DEV-BUILD] — `@gorhom/bottom-sheet` (confirm Reanimated-4 ≥5.1.8 first) for the Add-debt / Adjust-line / Can-I-Afford / Scan sheets (snap points · drag-dismiss). Only if it beats the current iOS sheet detents — decide after the compat check.
+- [ ] **3.4.6 verify** — both themes + gate; the native bits (context-menu · swipe · bottom-sheet) → the Phase-6 device-QA ledger.
+- **Wave C exit:** all green, both themes + `validate:release:rn` green → the whole-Wave-C after-scan → the native block (3.5).
 
 **3.5 Native-platform block** _(substrate starts early, parallel to Wave A)_: App Group + `expo-apple-targets` + dev client → **Live Activity + Dynamic Island** payday countdown (the on-brand centerpiece) → **widget family** (home/Lock-Screen/interactive "log paycheck") + StandBy → **App Intents/Siri** ("debt-free date?" · "log a payment") + Control Center → **TipKit** feature discovery. One provisioning-regen + one CI-glob check for the whole block. Device-QA batches at Phase 6.
 
@@ -99,7 +99,7 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 _Completed this phase + settled scope (reference — not the active build):_
 
 - **✅ Done (→ LOG):** the **3.0 Best-in-Class Enhancement audit** (7 lens-auditors × 15 lenses → `DEBT_PHASE3_ENHANCEMENT_AUDIT_2026-07-27.md`) · **Wave A** (foundation polish & perf, 7/7, gate green).
-- **✅ Wave B — delight & the emotional peak, 5/6 SHIPPED (→ LOG §3.3):** 3.3.1 debt-paid-off celebration (per-debt beat · full-screen finale · vanquished archive) · 3.3.2 milestone-cross (portfolio ack + ring-node pulse) · 3.3.3 Guardian proof-of-work strip · 3.3.4 affordability impact-viz · 3.3.5 tactility bundle. Both themes verified, gate green. _(3.3.6 onboarding = the active build above.)_
+- **✅ Wave B — delight & the emotional peak, 6/6 SHIPPED (→ LOG §3.3):** 3.3.1 debt-paid-off celebration (per-debt beat · full-screen finale · vanquished archive) · 3.3.2 milestone-cross (portfolio ack + ring-node pulse) · 3.3.3 Guardian proof-of-work strip · 3.3.4 affordability impact-viz · 3.3.5 tactility bundle · 3.3.6 onboarding + early-journey (Welcome reframed to lead with the Guardian job). Both themes verified, gate green (54 e2e); whole-phase after-scan → LOG.
 - **Phase-3 scope — settled (Jason 2026-07-27):** pull EVERYTHING into v1.7 unless it genuinely can't ship until later. **Decided:** analytics OUT (privacy moat) · house voice (Guardian sole "I", else "you"). **Adopt:** `expo-blur` · Sentry (scaffold now, wire at first native build) · Maestro · interactive notifications · context-menu · bottom-sheet (Reanimated-4 ≥5.1.8) · TipKit · opt-in debt-free sound · native iPad. **Craft calls:** celebration Skia-vs-Rive (rec Skia + Core Haptics) · mesh-gradient w/ <iOS-18 fallback. **Genuinely-later (not v1.7):** Android v1.8 · Plaid Connected v1.8 · sync · Ava.
 
 **Phase-3-open after-scan (the audit IS the scan) — captured:** (A) items → the Wave A/B/C build order above · (B)/(C) deferred → the doc's backlog + [[Deferred backlog]] pointer below · strengths to protect (Recovery = substance floor · Guardian a11y above-category · demo path · the Guardian-as-actor moat) noted in the doc. **Off-device R2.9–R2.12 → Jason, pre-submission:** ✅ hosted `privacy.html`/`support.html` FIXED + pushed · ASC privacy label must declare RevenueCat · marketing "100% private" align at submission.
@@ -127,6 +127,15 @@ _The Waves above are the driver; built items → LOG. These are the fuller specs
 - **⭐ Windfall Autopilot revisit (② from the future-features list, Jason 2026-07-25)** — a presentation layer over the already-wired windfall→waterfall split (show cushion/debt/EF + one-tap confirm, the affordability-card pattern); decide whether it's a worthwhile extra premium beat for v1.7.
 - **Entrance-motion revisit** — decide the `<Motion>` FadeInDown language once, apply consistently (or drop on calm surfaces).
 - **v1.8 candidates:** What-If full-impact explorer (propagate the extra month-by-month through the whole model) · History per-cycle detail drilldown.
+
+## ⭐ [AUDIT GATE] Phase-3 closeout — best-in-class verification (after ALL of Phase 3, BEFORE 3.5, Jason 2026-07-27)
+
+**Runs after all of Phase 3 (Waves A/B/C + the native block + native iPad + the confirmed items) and BEFORE Phase 3.5 (tutorial/demo).** An adversarial audit measuring the DELIVERED Phase 3 against the ORIGINAL Best-in-Class Enhancement audit's (3.0) expectations + its ranked "top moves to best-in-class." The question: **did Phase 3 hit the bar it set for itself?**
+- **Criteria:** (1) **Best-in-class?** benchmark the delivered surfaces vs the category leaders 3.0 named — genuinely best-in-class now, or still short? (2) **Delivered the vision, not just "built"?** did each (A) enhancement land the 3.0 INTENT (a real emotional peak · a real churn-hole fix · uncopyable moments) or a thinner version? (3) **Gaps** — what 3.0 wanted that DIDN'T ship (deferred/missed). (4) **New features/polish** only visible now that Phase 3 is WHOLE. (5) **Regression** — did any Phase-3 change quietly degrade a Phase-0/1/2 surface? (6) **Cross-wave coherence** — do the delight beats + native surfaces + iPad cohere as ONE premium experience? (7) **Deferred (B)/(C) re-triage** — any deferred item now newly cheap/necessary? (8) **Honesty + premium-bar** spot-check on every new surface (no false-precise numbers · no free-dressed-as-premium).
+- **Method:** flagship adversarial, rotated lenses, verified vs real screenshots both themes + the code (not opinion). **Fan-out on Fable 5** ([[feedback_use_fable5_for_audits]]). Output: triaged **must-fix-before-3.5** vs later, folded atomically.
+- **Distinct from the whole-app cohesion audit (@after-3.5):** that asks "does the WHOLE app (incl. tutorial/demo) hang together?"; THIS asks "did PHASE 3 deliver the best-in-class bar the 3.0 audit set?"
+
+## Phase 3.5 — Interactive tutorial + bounded demo
 
 Both the interactive tutorial and the marketing/demo showcase live here: they share the same **sandboxed, scriptable Guardian substrate** and must run on the FINAL polished Guardian, so building either on a still-moving Guardian (2.4.11.x · Recovery · convergence audit · Phase-3 interactivity) is double work.
 

@@ -4,6 +4,18 @@
 
 ---
 
+## Phase 3 · Wave B · 3.3.6 — Onboarding + early-journey wins — COMPLETE (2026-07-27)
+
+The last Wave-B item; closes Wave B (6/6). Gate green (54 e2e). Commits `6f5e291`, `2f69392`.
+
+- **3.3.6.1 onboarding finish** — `CompletionStep` now lands the aspirational anchor at the finish: "You could be debt-free by {date}", computed from the store (which holds the entered paycheck + first debt by then; graceful fallback when no date). tsc/gate green; the gated-flow visual → device/manual.
+- **3.3.6.2 early Progress hero** — leads FORWARD before any payment: "{remaining} to go" instead of a deflating "$0 of $X paid" (the ring still honestly shows 0%). `earlyjourney.spec`, both themes.
+- **3.3.6.3 first-run positioning** — DESIGN-FIRST, Jason picked the **bold reframe**: Welcome now leads with the uncopyable job — "Will you make it to payday?" + a shield + three Guardian-led features (a guardian for every payday · a real debt-free date · spend without the guilt), replacing the table-stakes framing. Copy kept honest across tiers (the free read genuinely tells you what's safe; premium automates the moves). Both themes screenshot-verified.
+- **3.3.6.4 verify** — `earlyjourney.spec` (Welcome + early-Progress, both themes); full gate green.
+
+### Wave B — whole-phase after-scan (2026-07-27)
+6/6 shipped, gate green throughout. Coherence: the delight beats layer cleanly onto the calm daily surfaces (celebration/milestone fire only on real events; proof-of-work + impact-viz are calm reference/decision surfaces; tactility is app-wide). Cross-item lessons: the plan-hygiene misses (stale duplicate sub-steps · shipped items lingering in the queue · a skipped decomposition) were all caught by Jason → adopted the convention "completed → Shipped roll-up, never `[x]` left in the Active Queue" + "no `▶ NEXT` pointer lines (one entry per item)". Owed to Phase 6: all Wave-B haptics are native-only (feel), the bespoke celebration AHAP, SF-symbol render, and the onboarding-finish gated-flow visual. No version-blocking gaps surfaced.
+
 ## Phase 3 · Wave B · 3.3.5 — Tactility bundle — COMPLETE (2026-07-27)
 
 App-wide felt polish (mechanical, no design fork). tsc + lint + full gate green (50 e2e); toggle-thumb screenshot-verified. Commit `1ecddd3`.
