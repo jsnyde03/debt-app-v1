@@ -73,5 +73,12 @@
 
 **No regressions confirmed:** non-BNPL debt-free dates byte-identical; payoff order intact; A2 hydration + A7 lifetime + premiumIsLifetime transient field all correct across hydrate/reset; A10 copy coherent across all 3 surfaces; free/premium line + identity + projection-honesty all still hold.
 
+### ROUND-2 FIX STATUS — 2.11.10 cycle (2026-07-27) ✅
+- **R2.1 ✅** shared `packages/core/debt/bnplPayoffPace.ts` applied to BOTH `projectDebtPayoff` + `buildPayoffTrajectory` — chart and date now agree (parity assert: biweekly BNPL zero-crossing = month 2 = the reported date).
+- **R2.2 ✅** one-time BNPL excluded from the recurring budget in both engines (cleared month 1 only) — multi-debt regression proves a $2000 one-time no longer wipes a coexisting $1000 card early (stays 10 months).
+- **R2.3 ✅** More About "Manage Subscription" row + paywall Manage button both gated to real subscribers (`plan==='premium' && !premiumIsLifetime`). **R2.4 ✅** orphaned `selectDrift` deleted. **R2.5 ✅** per-month anchor derives the currency symbol from `priceString`. **R2.6 ✅** plan-row a11y label includes badge+subnote. **R2.7 ✅** selection resets when the live offering lacks the preselected plan.
+- **Deferred:** R2.8 (offline lifetime-mislabel flicker, LOW) → backlog. **Off-device R2.9–R2.12 → Jason** (hosted `site/privacy.html` self-contradiction + stale v1.5/localStorage content + ASC privacy label must declare RevenueCat + marketing "100% private").
+- Verified: tsc · lint · core regression (+R2.1/R2.2 asserts) · app · scenarios · **e2e 28/28**, both themes. **Awaiting consensus signoff** (focused round-3 re-audit of R2.1/R2.2, or Jason's signoff) → Phase 2 closes.
+
 ## Method note
 7 lens verdicts: Free/premium-line PASS · Automation-identity CONDITIONAL-PASS · Moat/honesty/competition CHANGES-REQUIRED(core passes) · Tier/pricing, Apple-compliance, Entitlement-correctness, BNPL-cadence each FAIL-with-majors. No lens found the *strategy* wrong — every failure is a fixable storefront/wiring/copy/correctness defect. Consensus: the tier justifies its price; fix Section A before the launch-flip.

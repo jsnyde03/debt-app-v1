@@ -80,12 +80,9 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 
 **✅ 2.11.9 Premium-framework audit ROUND 2 RAN (2026-07-27) — NOT yet consensus.** 5 verifiers: the storefront/wiring/copy fixes (A1–A12, A2 hydration, A7 lifetime) all HOLD, no regressions, framework close not blocked — BUT the B1 free-tier fix was INCOMPLETE (2 real correctness bugs caught, mirroring the Guardian round-2 MF.4 catch). Findings + fix list in the audit doc §ROUND 2.
 
-**▶ 2.11.10 ⭐ Round-2 fix cycle (the cadence holds until consensus).**
-- [ ] **R2.1 [HIGH]** `buildPayoffTrajectory` cadence-normalize BNPL (the chart-vs-date contradiction; share `bnplMonthlyEquivalentMinimum`) + parity assert.
-- [ ] **R2.2 [MAJOR]** one-time BNPL phantom-freed-minimum in `projectDebtPayoff` (treat as one-shot) + multi-debt regression.
-- [ ] **R2.3–R2.8 minors** — Lifetime mirror on the 2nd Manage row + paywall Manage button · delete orphaned `selectDrift` · strip hardcoded "$" per-month anchor · plan-row a11y label · no-ANNUAL selection reset · `premiumResolved` gate for the offline lifetime-mislabel.
-- [ ] **R2 verify** — full `validate:release:rn` + both-theme paywall check → then a focused re-audit of R2.1/R2.2 for consensus.
-- **Exit:** consensus (fixes hold · no new blockers) → **Phase 2 CLOSES** → Phase 3 opens with the Best-in-Class Enhancement audit. **Off-device R2.9–R2.12 → Jason** (hosted privacy self-contradiction + stale v1.5 content + ASC privacy label + marketing "100% private").
+**✅ 2.11.10 Round-2 fix cycle DONE (2026-07-27) — verified, awaiting consensus signoff.** R2.1 [HIGH] `buildPayoffTrajectory` cadence-normalized (shared `bnplPayoffPace` helper across both payoff engines; chart now agrees with the date, parity assert) · R2.2 [MAJOR] one-time BNPL no longer phantom-accelerates coexisting debts (excluded from the recurring budget, multi-debt regression) · R2.3 Lifetime dead-ends closed (More About row + paywall Manage button) · R2.4 orphaned `selectDrift` deleted · R2.5 per-month anchor derives the currency symbol · R2.6 plan-row a11y label · R2.7 no-ANNUAL selection reset. **Full `validate:release:rn` GREEN (e2e 28/28, both themes).** Deferred: R2.8 offline lifetime-mislabel (LOW) → backlog.
+
+**▶ Consensus gate:** the two correctness fixes carry regression tests that prove them (biweekly chart↔date parity · one-time doesn't accelerate a coexisting card) + full gate green. **Jason's signoff cadence:** either a focused round-3 re-audit of R2.1/R2.2, or Jason signs off → **Phase 2 CLOSES** → Phase 3 opens with the Best-in-Class Enhancement audit. **Off-device R2.9–R2.12 → Jason** (hosted privacy self-contradiction + stale v1.5 content + ASC privacy label + marketing "100% private").
 - **Exit:** round-2 CONSENSUS (fixes hold · no new blockers) → **Phase 2 CLOSES** → Phase 3 opens with the Best-in-Class Enhancement audit. If round-2 finds majors → another fix + re-audit cycle (the cadence holds until consensus).
 
 ### Future premium features (post-Guardian; scope into v1.7 vs v1.7.x/v1.8 with Jason)
