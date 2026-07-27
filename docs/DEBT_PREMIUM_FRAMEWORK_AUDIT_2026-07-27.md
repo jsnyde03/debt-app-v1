@@ -47,5 +47,13 @@
 ## E. Positioning (internalize; feed marketing / Phase 6)
 - The moat is a **business-model/ethics wall** (incumbents structurally can't claim "nothing leaves your device / never sell you debt") + accumulating execution depth — **NOT** a technical wall (on-device is cloneable) and **NOT** a novel question (Rocket Money ships "Payday View" + "safe to spend"). Market the actor + ethics + on-device-day-1 + BNPL-aware *stack*, not the question. BNPL-cadence planning is a genuine incumbent gap — foreground it.
 
+## FIX STATUS — 2.11.8 pass (2026-07-27) ✅ Section A + B1 landed
+- **A1** ✅ paywall now shows an error+Retry (never static/unpurchasable prices) when the client is attached but the offering has no mappable packages. **A2** ✅ entitlement sync gated on `isHydrated` (no clobber). **A3** ✅ already-premium → Manage-subscription, no re-purchase CTA; + a successful-but-not-entitled guard.
+- **A4/A5** ✅ legal URLs → the rendered GitHub Pages (`jsnyde03.github.io/debt-planner-site/{privacy,support}.html`); both verified 200/rendered. _(Content refresh of privacy.html v1.5→v1.7 still owed — §D, Jason.)_
+- **A6** ✅ disclosure scopes Lifetime ("covers all current Premium; future add-on tiers sold separately") + subnote "all today's Premium, forever". **A7** ✅ Lifetime owners get a distinct non-sub row (transient `premiumIsLifetime` off the entitlement's `productIdentifier`; no migration).
+- **A8** ✅ free "BNPL-aware" bullet removed. **A9** ✅ Guardian headline → the action it takes (no "know"). **A10** ✅ "100% private/everything/no uploads" → "your financial data stays on your device" (CompletionStep + TrustCard). **A11** ✅ per-month anchor computed in the live path. **A12** ✅ honestly-scoped moat/ethics line on the paywall.
+- **B1** ✅ `projectDebtPayoff` cadence-normalizes BNPL minimums (+3 asserts: biweekly=2mo, monthly=4mo, one-time=1mo). **B-F1** ✅ dead `DriftCard` deleted.
+- Verified: tsc · lint · core regression (+B1) · app · **e2e 28/28** · both themes screenshot-checked. Section C polish → backlog; §D (host-content refresh) + §E (positioning) → Jason / marketing.
+
 ## Method note
 7 lens verdicts: Free/premium-line PASS · Automation-identity CONDITIONAL-PASS · Moat/honesty/competition CHANGES-REQUIRED(core passes) · Tier/pricing, Apple-compliance, Entitlement-correctness, BNPL-cadence each FAIL-with-majors. No lens found the *strategy* wrong — every failure is a fixable storefront/wiring/copy/correctness defect. Consensus: the tier justifies its price; fix Section A before the launch-flip.

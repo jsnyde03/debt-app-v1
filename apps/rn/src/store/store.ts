@@ -35,6 +35,10 @@ export interface DebtAppState {
   store: DebtStore;
   isHydrated: boolean;
   isSaving: boolean;
+  /** Transient (NOT persisted): is the active premium the one-time Lifetime purchase vs a subscription?
+   *  Recomputed from the RevenueCat entitlement each launch by premiumSync — so it can't be stomped by
+   *  hydrate and needs no migration. */
+  premiumIsLifetime: boolean;
 
   // Lifecycle
   hydrate(adapter: StorageAdapter): Promise<void>;
@@ -91,6 +95,7 @@ export interface DebtAppState {
   // Prefs / subscription / onboarding
   updatePrefs(updates: Partial<Preferences>): void;
   setSubscriptionPlan(plan: SubscriptionPlan): void;
+  setPremiumIsLifetime(isLifetime: boolean): void;
   setCushionFloor(floor: number): void;
   completeOnboarding(): void;
   /** 2.4.D.4 — stamp/refresh the current cycle's Guardian prediction (app-open cycle-detect). */
@@ -129,6 +134,7 @@ export function createDebtStore() {
     store: createDefaultStore(),
     isHydrated: false,
     isSaving: false,
+    premiumIsLifetime: false,
 
     async hydrate(adapter) {
       const raw = await adapter.read();
@@ -361,6 +367,9 @@ export function createDebtStore() {
     },
     setSubscriptionPlan(plan) {
       set((s) => ({ store: { ...s.store, subscriptionPlan: plan } }));
+    },
+    setPremiumIsLifetime(isLifetime) {
+      set({ premiumIsLifetime: isLifetime });
     },
     setCushionFloor(floor) {
       // Clamp to a sane, snapped range — the "alert line" a user would actually set. Guard NaN → 200.

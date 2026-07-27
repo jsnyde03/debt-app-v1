@@ -11,11 +11,9 @@
 export const TERMS_OF_USE_URL =
   'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
-export const PRIVACY_POLICY_URL =
-  'https://github.com/jsnyde03/debt-planner-stie/blob/main/privacy.html';
+export const PRIVACY_POLICY_URL = 'https://jsnyde03.github.io/debt-planner-site/privacy.html';
 
-export const SUPPORT_URL =
-  'https://github.com/jsnyde03/debt-planner-stie/blob/main/Paycheck%20Debt%20Planner%20Support';
+export const SUPPORT_URL = 'https://jsnyde03.github.io/debt-planner-site/support.html';
 
 /** Apple's manage-subscriptions deep link (used by the More tab). */
 export const MANAGE_SUBSCRIPTION_URL = 'https://apps.apple.com/account/subscriptions';

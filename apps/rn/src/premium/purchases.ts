@@ -14,6 +14,10 @@
 /** RevenueCat entitlement identifier the gate checks. MUST match the RevenueCat dashboard exactly. */
 export const PREMIUM_ENTITLEMENT_ID = 'premium';
 
+/** The non-consumable Lifetime product id (App Store Connect / RevenueCat). Used to tell a Lifetime
+ * owner apart from a recurring subscriber so we never tell them to "manage a subscription" (A7). */
+export const LIFETIME_PRODUCT_ID = 'paycheck_debt_planner_premium_lifetime';
+
 /**
  * Minimal structural shapes this module depends on — intentionally a subset of the real SDK types
  * (`CustomerInfo`, `PurchasesPackage`) so this file imports nothing native and the real SDK objects
@@ -21,6 +25,8 @@ export const PREMIUM_ENTITLEMENT_ID = 'premium';
  */
 export interface EntitlementInfoLike {
   identifier: string;
+  /** The product that granted this entitlement — the real SDK's EntitlementInfo carries it. */
+  productIdentifier?: string;
 }
 
 export interface CustomerInfoLike {
@@ -77,4 +83,11 @@ export function getPurchasesClient(): PurchasesClient | null {
 export function isPremiumActive(info: CustomerInfoLike | null): boolean {
   if (!info) return false;
   return info.entitlements.active[PREMIUM_ENTITLEMENT_ID] !== undefined;
+}
+
+/** Is the ACTIVE premium entitlement the one-time Lifetime purchase (vs a recurring subscription)?
+ * Drives the More-hub copy so a Lifetime owner isn't told to "manage your subscription" (A7). */
+export function isLifetimeActive(info: CustomerInfoLike | null): boolean {
+  const ent = info?.entitlements.active[PREMIUM_ENTITLEMENT_ID];
+  return ent?.productIdentifier === LIFETIME_PRODUCT_ID;
 }

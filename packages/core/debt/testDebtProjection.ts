@@ -323,6 +323,41 @@ function runDebtProjectionTests() {
     );
 
 
+    // B1 — BNPL cadence: a biweekly pay-in-4 ($100 × 4 = $400) really costs ~$216.67/mo, so it clears in
+    // 2 months, not the 4 a naive "$100 minimum per month" would give.
+    const biweeklyBnpl = projectDebtPayoff({
+        debts: [
+            { id: "bnpl", name: "Klarna", balance: 400, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "bnpl", recurrence: "biweekly", isPaidThisCycle: false },
+        ],
+        monthlyExtraPayment: 0,
+        strategy: "snowball",
+        startDate: "2026-05-01",
+    });
+    assertEqual(biweeklyBnpl.monthsToDebtFree, 2, "biweekly BNPL rated at its true monthly rate (B1)");
+
+    // The SAME numbers labeled monthly are NOT scaled — proves the scaling is cadence-specific, not a
+    // blanket BNPL bump: $100/mo against $400 = 4 months.
+    const monthlyBnpl = projectDebtPayoff({
+        debts: [
+            { id: "bnpl", name: "Affirm", balance: 400, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "bnpl", recurrence: "monthly", isPaidThisCycle: false },
+        ],
+        monthlyExtraPayment: 0,
+        strategy: "snowball",
+        startDate: "2026-05-01",
+    });
+    assertEqual(monthlyBnpl.monthsToDebtFree, 4, "monthly BNPL stays at its monthly rate (cadence-specific)");
+
+    // A one-time (pay-in-30) BNPL clears the month it lands.
+    const oneTimeBnpl = projectDebtPayoff({
+        debts: [
+            { id: "k30", name: "Klarna Pay-in-30", balance: 200, minimumPayment: 200, apr: 0, dueDate: "2026-05-01", type: "bnpl", recurrence: "one-time", isPaidThisCycle: false },
+        ],
+        monthlyExtraPayment: 0,
+        strategy: "snowball",
+        startDate: "2026-05-01",
+    });
+    assertEqual(oneTimeBnpl.monthsToDebtFree, 1, "one-time BNPL clears the month it lands (B1)");
+
     console.log("✅ Debt projection regression tests passed.");
 }
 

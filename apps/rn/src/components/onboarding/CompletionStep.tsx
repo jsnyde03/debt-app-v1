@@ -8,7 +8,7 @@ import { textStyles } from '@/theme/typography';
 import { OnboardingLayout, onboardingStyles as s } from './OnboardingLayout';
 
 const STATS: { icon: IconGlyph; label: string; body: string }[] = [
-  { icon: 'lock', label: '100% private', body: 'everything stays on your device.' },
+  { icon: 'lock', label: 'Private by design', body: 'your financial data stays on your device.' },
   { icon: 'edit', label: 'Always editable', body: 'update amounts any time.' },
   { icon: 'phone-iphone', label: 'Free to use', body: 'core features never require a subscription.' },
 ];

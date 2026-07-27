@@ -39,6 +39,7 @@ export default function MoreScreen() {
   const c = useAppColors();
   const prefs = useAppStore((s) => s.store.prefs);
   const plan = useAppStore((s) => s.store.subscriptionPlan);
+  const premiumIsLifetime = useAppStore((s) => s.premiumIsLifetime);
   const [sheet, setSheet] = useState<'export' | 'import' | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -75,13 +76,24 @@ export default function MoreScreen() {
       {plan === 'premium' || PREMIUM_PURCHASABLE ? (
         <SettingGroup>
           {plan === 'premium' ? (
-            <SettingRow
-              icon="workspace-premium"
-              label="Premium"
-              subtitle="Active — thanks for the support. Tap to manage your subscription."
-              onPress={() => void Linking.openURL(MANAGE_SUBSCRIPTION_URL)}
-              last
-            />
+            premiumIsLifetime ? (
+              // A7 — Lifetime is a one-time purchase; there's no subscription to manage, so don't deep-link
+              // to the App Store subscriptions page (it'd be empty for a non-consumable).
+              <SettingRow
+                icon="workspace-premium"
+                label="Premium — Lifetime"
+                subtitle="Active — a one-time purchase, yours forever. Thanks for the support."
+                last
+              />
+            ) : (
+              <SettingRow
+                icon="workspace-premium"
+                label="Premium"
+                subtitle="Active — thanks for the support. Tap to manage your subscription."
+                onPress={() => void Linking.openURL(MANAGE_SUBSCRIPTION_URL)}
+                last
+              />
+            )
           ) : (
             <SettingRow
               icon="workspace-premium"
@@ -207,7 +219,7 @@ function TrustCard() {
       <View style={styles.trustText}>
         <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>Private by design</Text>
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-          Your money stays on this device — no account, no uploads. And we&apos;ll never sell you more debt.
+          Your financial data stays on this device — no account needed. And we&apos;ll never sell you more debt.
         </Text>
       </View>
     </Card>

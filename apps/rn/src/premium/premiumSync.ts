@@ -1,28 +1,37 @@
 import { useEffect } from 'react';
 
 import { appStore } from '@/store/appStore';
+import { useAppStore } from '@/store/useAppStore';
 
-import { getPurchasesClient, isPremiumActive } from './purchases';
+import { getPurchasesClient, isLifetimeActive, isPremiumActive, type CustomerInfoLike } from './purchases';
 import { initPurchases } from './purchasesClient';
 
 /**
- * Drives the store's `subscriptionPlan` from RevenueCat's `premium` entitlement. Call once at the app
- * root. On web / local dev the client stays detached (see `purchasesClient`), so this is inert and the
- * store's plan — including the dev "Simulate Premium" toggle — stands untouched.
+ * Drives the store's `subscriptionPlan` (+ the transient `premiumIsLifetime`) from RevenueCat's
+ * `premium` entitlement. Call once at the app root. On web / local dev the client stays detached (see
+ * `purchasesClient`), so this is inert and the store's plan — including the dev "Simulate Premium"
+ * toggle — stands untouched.
  *
- * A failed fetch never *downgrades*: we only write a plan on a definitive customerInfo result
- * (RevenueCat returns its offline cache when there's no network, so a real paying user keeps premium),
- * and the listener keeps the store in sync across renewal/expiry/restore.
+ * A2: the sync WAITS for `isHydrated` before applying, because `hydrate` replaces the whole store
+ * object (incl. `subscriptionPlan`) — applying earlier could be clobbered back to the persisted `free`.
+ * A failed fetch never *downgrades* (RevenueCat returns its offline cache on no network); the listener
+ * keeps the store in sync across renewal/expiry/restore.
  */
 export function useInitPremium(): void {
+  const isHydrated = useAppStore((s) => s.isHydrated);
+
   useEffect(() => {
+    if (!isHydrated) return; // apply entitlement only after hydrate, so it can't be stomped (A2)
     initPurchases();
     const client = getPurchasesClient();
     if (!client) return; // web / dev / no SDK → the current store plan stands
 
     let cancelled = false;
-    const apply = (info: Parameters<typeof isPremiumActive>[0]) =>
-      appStore.getState().setSubscriptionPlan(isPremiumActive(info) ? 'premium' : 'free');
+    const apply = (info: CustomerInfoLike | null) => {
+      const s = appStore.getState();
+      s.setSubscriptionPlan(isPremiumActive(info) ? 'premium' : 'free');
+      s.setPremiumIsLifetime(isLifetimeActive(info));
+    };
 
     void client
       .getCustomerInfo()
@@ -41,5 +50,5 @@ export function useInitPremium(): void {
       cancelled = true;
       unsubscribe();
     };
-  }, []);
+  }, [isHydrated]);
 }
