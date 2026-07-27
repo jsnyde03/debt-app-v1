@@ -88,8 +88,6 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
   - [ ] **3.3.4.2** the impact-viz Skia component (before→after carve · floor line · tight-dip · animated).
   - [ ] **3.3.4.3** wire into `AffordabilityCard` (on a valid amount; text stays).
   - [ ] **3.3.4.4** verify — tests + both-theme screenshots + gate.
-- [ ] **3.3.3 Guardian proof-of-work ledger** (the churn-hole fix) — an accumulating "held your line N paychecks · $X auto-deployed · $Y saved by holding vs dumping" from `cycleHistory`, visible on calm cycles; unifies Momentum (free journey read) + surfaces the buried scorecard trust line.
-- [ ] **3.3.4 Affordability impact-viz** (the §2.9 animated layer) — before/after Skia cushion-bar carve + debt-free-date slide on a "can I afford it?" apply.
 - [ ] **3.3.5 Tactility bundle** — haptic pass (slider detents · strategy toggle · commits) + animated segmented-control thumb + list stagger (token exists) + card/row press-scale.
 - [ ] **3.3.6 Onboarding + early-journey wins** — personalize the onboarding finish on the debt-free date + reframe the early Progress hero to lead forward (not 0%) + **first-run positioning** (seed the Guardian job in Welcome — design-first, options to Jason).
 - **Exit:** Wave B green, both themes verified + `validate:release:rn` green → the task-level after-scan → Wave C.
