@@ -9,6 +9,8 @@ import { maybeRequestReview } from '@/lib/review';
 import { DebtSheet } from '@/components/entities/DebtSheet';
 import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
+import { PaidOffFinale } from '@/components/plan/PaidOffFinale';
+import { VanquishedBeat } from '@/components/plan/VanquishedBeat';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
 import { GraduationBanner, FreedomNextChapterCard } from '@/components/plan/GraduationCards';
 import { LeanSuggestionCard } from '@/components/plan/LeanSuggestionCard';
@@ -37,8 +39,11 @@ import {
   selectRequiredRows,
   type RequiredRow,
 } from '@/store/planSelectors';
+import { isLastLiveDebt, selectCelebrationStats } from '@/store/celebrationSelectors';
+import { rankDebts } from '@/store/payoffSelectors';
 import { selectAllocation } from '@/store/selectors';
 import { useAppStore } from '@/store/useAppStore';
+import type { Debt } from '@/data/models';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
@@ -49,6 +54,12 @@ function handleMark(row: RequiredRow, paid: boolean) {
   if (isExpense) appStore.getState().markExpensePaid(id, paid);
   else appStore.getState().markDebtMinimumPaid(id, paid);
 }
+
+/** Which celebration overlay is showing after a payoff confirm (3.3.1) — a contained per-debt beat, or the
+ *  once-ever full-screen finale when the LAST debt clears. */
+type Celebration =
+  | { kind: 'beat'; debtName: string; amount: number | null; freed: number; nextDebtName: string | null }
+  | { kind: 'finale' };
 
 /** Today tab (home) — the payday moment + Payday Autopilot. Elevated to the navy hero + count-ups in 1.3. */
 export default function TodayScreen() {
@@ -97,6 +108,20 @@ export default function TodayScreen() {
   const staleBalances = selectStaleBalanceViews(store, isPremium);
   // 2.3.6 — debts the premium estimate projected to $0 → the provisional "confirm to celebrate" invitation.
   const provisionalPayoffs = selectProvisionalPayoffs(store, isPremium);
+
+  // 3.3.1 celebration — confirming a payoff to $0 fires the per-debt "vanquished" beat, or the full-screen
+  // finale when it's the LAST live debt. Capture the beat's data BEFORE the store clears the debt.
+  const [celebration, setCelebration] = useState<Celebration | null>(null);
+  function confirmPayoff(d: Debt) {
+    const isLast = isLastLiveDebt(store.debts, d.id);
+    const next = rankDebts(store.debts.filter((x) => x.balance > 0 && x.id !== d.id), store.payoffStrategy)[0];
+    appStore.getState().verifyDebtBalance(d.id, 0, store.paycheck.currentDate);
+    setCelebration(
+      isLast
+        ? { kind: 'finale' }
+        : { kind: 'beat', debtName: d.name, amount: d.originalBalance ?? null, freed: d.minimumPayment, nextDebtName: next?.name ?? null },
+    );
+  }
   const [paycheckSheet, setPaycheckSheet] = useState(false);
   const [windfallSheet, setWindfallSheet] = useState(false);
   const [addDebtOpen, setAddDebtOpen] = useState(false);
@@ -205,11 +230,25 @@ export default function TodayScreen() {
         <PayoffInvitationCard
           key={d.id}
           debtName={d.name}
-          // Confirm → re-anchor to $0 (the confirmed-payoff signal; the Phase-3 spectacle fires here).
-          onConfirm={() => appStore.getState().verifyDebtBalance(d.id, 0, store.paycheck.currentDate)}
+          // Confirm → re-anchor to $0 (the confirmed-payoff signal) AND fire the celebration (beat / finale).
+          onConfirm={() => confirmPayoff(d)}
           onNotYet={() => goToTab('money')}
         />
       ))}
+
+      {celebration?.kind === 'beat' ? (
+        <VanquishedBeat
+          visible
+          debtName={celebration.debtName}
+          amountVanquished={celebration.amount}
+          freedPerMonth={celebration.freed}
+          nextDebtName={celebration.nextDebtName}
+          onDismiss={() => setCelebration(null)}
+        />
+      ) : null}
+      {celebration?.kind === 'finale' ? (
+        <PaidOffFinale visible stats={selectCelebrationStats(store)} onDismiss={() => setCelebration(null)} />
+      ) : null}
 
       {riskCleared ? (
         <Card tone="accent" style={styles.ack}>
