@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Card } from '@/components/ui/Card';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -55,9 +56,9 @@ export function SettingRow({
 
   if (!onPress) return body;
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => (pressed ? styles.pressed : undefined)}>
+    <PressableScale onPress={onPress} accessibilityLabel={label}>
       {body}
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -73,5 +74,4 @@ const styles = StyleSheet.create({
   iconWrap: { width: 34, height: 34, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   text: { flex: 1, gap: 1 },
   right: { flexShrink: 0 },
-  pressed: { opacity: 0.6 },
 });

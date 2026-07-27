@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { useAppColors } from '@/hooks/use-app-colors';
+import { haptics } from '@/motion';
 
 const THUMB = 26;
 const TRACK_H = 6;
@@ -29,13 +30,20 @@ export function Slider({
 }) {
   const c = useAppColors();
   const [w, setW] = useState(0);
+  // Track the last emitted value so a drag ticks the haptic once PER step crossed (a detent), not per pixel.
+  const lastRef = useRef(value);
 
   const setFromX = (x: number) => {
     if (w <= 0) return;
     const ratio = Math.max(0, Math.min(1, x / w));
     const raw = min + ratio * (max - min);
     const stepped = Math.round(raw / step) * step;
-    onChange(Math.max(min, Math.min(max, stepped)));
+    const clamped = Math.max(min, Math.min(max, stepped));
+    if (clamped !== lastRef.current) {
+      haptics.light();
+      lastRef.current = clamped;
+    }
+    onChange(clamped);
   };
 
   const pan = Gesture.Pan()

@@ -84,7 +84,13 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 - [x] **3.3.2 Milestone-cross pulse + dead-code retire — COMPLETE ✅ (2026-07-27).** Portfolio 25/50/75% crossing captured at rollover (once-per-lifetime · 100% = the finale's domain) → calm gold Today ack + success haptic + Progress ring-node pulse; retired orphaned `MilestonesRow` + dead `DriftResult` re-export. Both themes verified; gate green (46 e2e). Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) §3.3.2.
 - [x] **3.3.3 Guardian proof-of-work ledger — COMPLETE ✅ (2026-07-27, the churn-hole fix).** Premium-only calm VISUAL strip on the clear Guardian card — "Held your line N paychecks · $X to debt · reads matched N/N" (accuracy chip only when proven) — from a pure `cycleHistory` derivation; free Momentum left as-is (no duplicate). Design aligned w/ Jason pre-build; both themes verified; gate green (48 e2e). Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) §3.3.3.
 - [x] **3.3.4 Affordability impact-viz — COMPLETE ✅ (2026-07-27, the §2.9 animated layer).** `AffordabilityImpactBar` — the cushion carves from full down to what's left, landing vs the floor line (green clears · red on tight/short); Reanimated, decorative (text stays the a11y source), wired into all 3 verdict branches. No new engine (data on the existing read). Both themes verified; gate green (50 e2e). Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) §3.3.4.
-- [ ] **▶ 3.3.5 Tactility bundle — NEXT** — haptic pass (slider detents · strategy toggle · commits) + animated segmented-control thumb + list stagger (token exists) + card/row press-scale.
+- [ ] **▶ 3.3.5 Tactility bundle — ACTIVE** (mechanical; app-wide felt polish):
+  - [ ] **3.3.5.1** Slider detent haptic (a light tick on each step change).
+  - [ ] **3.3.5.2** SegmentedToggle animated sliding thumb + tap haptic (covers Debts/Bills/Goals · Snowball/Avalanche · Cushion/Timeline).
+  - [ ] **3.3.5.3** key commit haptics (affordability apply · tight top-up).
+  - [ ] **3.3.5.4** `PressableScale` press-scale on tappable cards/rows.
+  - [ ] **3.3.5.5** list stagger — wire the `stagger.list` token into a list's entrance.
+  - [ ] **3.3.5.6** verify — both themes + gate.
 - [ ] **3.3.6 Onboarding + early-journey wins** — personalize the onboarding finish on the debt-free date + reframe the early Progress hero to lead forward (not 0%) + **first-run positioning** (seed the Guardian job in Welcome — design-first, options to Jason).
 - **Exit:** Wave B green, both themes verified + `validate:release:rn` green → the task-level after-scan → Wave C.
 

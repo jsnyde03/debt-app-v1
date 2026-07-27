@@ -4,7 +4,9 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { Motion } from '@/motion';
 import type { VanquishedDebt } from '@/store/celebrationSelectors';
+import { stagger } from '@/theme/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
@@ -33,21 +35,24 @@ export function VanquishedArchive({ debts }: { debts: VanquishedDebt[] }) {
         DEBTS VANQUISHED · {debts.length}
       </Text>
       <View style={styles.list}>
-        {debts.map((d) => (
-          <View key={d.id} style={styles.row}>
-            <View style={[styles.badge, { backgroundColor: c.accent.gold }]}>
-              <AppIcon name="check" size={13} color={c.text.onAccent} />
+        {debts.map((d, i) => (
+          // 3.3.5.5 — the trophy shelf reveals with a staggered entrance (the `stagger.list` token, wired).
+          <Motion key={d.id} delay={i * stagger.list}>
+            <View style={styles.row}>
+              <View style={[styles.badge, { backgroundColor: c.accent.gold }]}>
+                <AppIcon name="check" size={13} color={c.text.onAccent} />
+              </View>
+              <View style={styles.rowText}>
+                <Text style={[textStyles.bodyMedium, { color: c.text.primary }]} numberOfLines={1}>
+                  {d.name}
+                </Text>
+                <Text style={[textStyles.caption, { color: c.text.tertiary }]} numberOfLines={1}>
+                  {d.amount != null ? `${formatWhole(d.amount)} cleared` : 'Cleared'}
+                  {d.clearedDate ? ` · ${shortDate(d.clearedDate)}` : ''}
+                </Text>
+              </View>
             </View>
-            <View style={styles.rowText}>
-              <Text style={[textStyles.bodyMedium, { color: c.text.primary }]} numberOfLines={1}>
-                {d.name}
-              </Text>
-              <Text style={[textStyles.caption, { color: c.text.tertiary }]} numberOfLines={1}>
-                {d.amount != null ? `${formatWhole(d.amount)} cleared` : 'Cleared'}
-                {d.clearedDate ? ` · ${shortDate(d.clearedDate)}` : ''}
-              </Text>
-            </View>
-          </View>
+          </Motion>
         ))}
       </View>
       <Button label="Share" variant="secondary" onPress={onShare} style={styles.share} />

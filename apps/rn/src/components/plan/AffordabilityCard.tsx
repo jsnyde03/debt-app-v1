@@ -13,6 +13,7 @@ import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectAffordability, type Affordability } from '@/store/guardianSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { haptics } from '@/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
@@ -68,6 +69,7 @@ export function AffordabilityCard() {
     const id = localId('purchase', store.paycheck.currentDate);
     const purchaseName = name.trim() || 'Purchase';
     appStore.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' });
+    haptics.success(); // 3.3.5.3 — a commit is a felt moment
     setApplied({ id, name: purchaseName });
   }
   // §2.9.5 cover-a-tight-dip: apply the purchase AND move the gap from a savings goal to hold the line,
@@ -78,6 +80,7 @@ export function AffordabilityCard() {
     const purchaseName = name.trim() || 'Purchase';
     appStore.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' });
     appStore.getState().applyTightTopUp(r.coverFromSavings.goalId, r.coverFromSavings.amount);
+    haptics.success(); // 3.3.5.3
     setApplied({ id, name: purchaseName, cover: { goalId: r.coverFromSavings.goalId, amount: r.coverFromSavings.amount, goalName: r.coverFromSavings.goalName } });
   }
   function undo() {
