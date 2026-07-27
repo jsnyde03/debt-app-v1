@@ -4,6 +4,17 @@
 
 ---
 
+## Phase 3 · Wave B · 3.3.5 — Tactility bundle — COMPLETE (2026-07-27)
+
+App-wide felt polish (mechanical, no design fork). tsc + lint + full gate green (50 e2e); toggle-thumb screenshot-verified. Commit `1ecddd3`.
+
+- **Slider detent haptic** — a light tick once per step crossed during a drag (a `lastRef` guards per-pixel spam).
+- **SegmentedToggle** — rewritten with a single sliding Reanimated thumb (measured segment width → `translateX`, `duration.fast`) + a light tap haptic; covers every toggle (Debts/Bills/Goals · Snowball/Avalanche · Cushion/Timeline). Thumb alignment verified.
+- **Commit haptics** — `success()` on the affordability apply / cover-and-apply.
+- **`PressableScale`** — a reusable subtle-spring press-scale component; applied to the More-hub `SettingRow`s (replaced the opacity-dim). Available for broader incremental use.
+- **List stagger** — wired the `stagger.list` token (via `Motion delay={i*stagger.list}`) into the VanquishedArchive tombstone reveal. Virtualized lists (Money `SectionList`) left un-staggered by design (rows mount on scroll).
+- Haptics are native-only (no-op on web) → the "feel" verification is Phase-6 device.
+
 ## Phase 3 · Wave B · 3.3.4 — Affordability impact-viz — COMPLETE (2026-07-27)
 
 The §2.9 "Can I Afford It?" animated layer. Design aligned w/ Jason pre-build. Both themes verified, gate green (50 e2e). Commit `3cfb49f`.
