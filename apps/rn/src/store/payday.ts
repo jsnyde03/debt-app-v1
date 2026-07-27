@@ -92,9 +92,17 @@ export function applyRollover(store: DebtStore): DebtStore {
     }),
   );
 
-  // Apply this cycle's payments once (so we persist new balances AND detect milestone crossings).
+  // Apply this cycle's payments once (so we persist new balances AND detect milestone crossings). Pass
+  // the pay-cycle window so a cross-cadence BNPL pays down by the same in-window installment count the
+  // allocator reserved (after-scan AS.2) — cash-out and paydown stay in lockstep.
   const debtsAfter = reconciledDebts.map((debt) =>
-    applyRolloverPayment(debt, getCompletedSnowballAmount(debt.id, store.completedRecommendedActions), payCycle),
+    applyRolloverPayment(
+      debt,
+      getCompletedSnowballAmount(debt.id, store.completedRecommendedActions),
+      payCycle,
+      store.paycheck.currentDate,
+      nextPaycheckDate,
+    ),
   );
 
   const milestoneResult = computeMilestones({

@@ -1,3 +1,4 @@
+import { bnplMonthlyEquivalentMinimum } from '@core/debt/bnplPayoffPace';
 import { buildAmortizationSchedule, type AmortizationSchedule } from '@core/debt/buildAmortizationSchedule';
 import { buildPayoffTrajectory, type TrajectoryPoint } from '@core/debt/buildPayoffTrajectory';
 import { buildExtraPaymentAllocationPlan, type ExtraPaymentAllocationItem } from '@core/debt/extraPaymentPlan';
@@ -154,8 +155,11 @@ export function selectDebtAmortization(store: DebtStore, debtId: string): DebtAm
   const debt = liveDebts.find((d) => d.id === debtId);
   if (!debt) return null;
   const isFocus = rankDebts(liveDebts, strategy)[0]?.id === debt.id;
-  // Only the focus debt receives the recommended extra; others amortize at their minimum.
-  const monthlyPayment = debt.minimumPayment + (isFocus ? monthlyExtra : 0);
+  // Only the focus debt receives the recommended extra; others amortize at their minimum. A BNPL pays
+  // per-installment at its cadence → use the monthly equivalent so this per-debt schedule agrees with the
+  // headline debt-free date, the payoff chart, and the BNPL calendar (after-scan AS.5).
+  const baseMonthly = debt.type === 'bnpl' ? bnplMonthlyEquivalentMinimum(debt) : debt.minimumPayment;
+  const monthlyPayment = baseMonthly + (isFocus ? monthlyExtra : 0);
   const schedule = buildAmortizationSchedule({
     balance: debt.balance,
     // BNPL carries no interest — mirror the old app's `apr: 0` so the schedule reconciles.

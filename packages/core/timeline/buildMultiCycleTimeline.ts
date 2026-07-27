@@ -146,7 +146,7 @@ export function buildMultiCycleTimeline({
     );
     // State-thread cycle 0 → 1 (2.4.7.1): reduce balances by cycle 0's min+snowball and advance funded
     // goals, so cycle 1 projects on the SHRUNK debts (a paid-off debt drops out, freeing its minimum).
-    let projDebts = rolloverDebts(stateThreadDebts(initialPaid.debts, result, payCycleConfig.payCycle), nextPaycheckDate)
+    let projDebts = rolloverDebts(stateThreadDebts(initialPaid.debts, result, payCycleConfig.payCycle, currentDate, nextPaycheckDate), nextPaycheckDate)
         .filter((d) => d.balance > 0 && (d.recurrence !== "one-time" || !isPastDue(d.dueDate, nextPaycheckDate)));
     let projGoals = advanceGoals([...goals], result);
 
@@ -167,7 +167,8 @@ export function buildMultiCycleTimeline({
         // §2.7.4: reflect the FULL in-window BNPL outflow (a biweekly BNPL charges ~2× before a monthly
         // paycheck) for this cycle's allocation + items. A TRANSIENT view — `projDebts` (unscaled) is what
         // rolls forward, so the scaling is never compounded across cycles; paid-flags/rollover untouched.
-        const scaledProjDebts = scaleBnplMinimumsForWindow(projDebts, projCurrentDate, projNextDate);
+        const cycleWindowStart = projCurrentDate; // stable window start for both the cash reserve + the state-thread (projCurrentDate advances below)
+        const scaledProjDebts = scaleBnplMinimumsForWindow(projDebts, cycleWindowStart, projNextDate);
 
         const projResult = allocatePaycheck({
             paycheckAmount: recurringPaycheck,
@@ -221,7 +222,7 @@ export function buildMultiCycleTimeline({
         );
         // State-thread (2.4.7.1): apply this cycle's min+snowball to balances + advance funded goals
         // before rolling, so the next cycle sees shrunk debts and a retired debt frees its minimum.
-        projDebts = rolloverDebts(stateThreadDebts(paidForRollover.debts, projResult, payCycleConfig.payCycle), projNextDate)
+        projDebts = rolloverDebts(stateThreadDebts(paidForRollover.debts, projResult, payCycleConfig.payCycle, cycleWindowStart, projNextDate), projNextDate)
             .filter((d) => d.balance > 0 && (d.recurrence !== "one-time" || !isPastDue(d.dueDate, projNextDate)));
         projGoals = advanceGoals(projGoals, projResult);
     }
@@ -239,14 +240,23 @@ function isPastDue(dueDate: string, cycleStart: string): boolean {
  * accruing one pay cycle's interest via the shared `applyRolloverPayment`. Without this the forecast
  * re-ran `allocatePaycheck` on frozen balances every cycle, so debts never shrank or retired.
  */
-function stateThreadDebts(debts: Debt[], result: AllocationResult, payCycle: PayCycle): Debt[] {
+function stateThreadDebts(
+    debts: Debt[],
+    result: AllocationResult,
+    payCycle: PayCycle,
+    windowStartISO: string,
+    windowEndISO: string,
+): Debt[] {
     const snowballByDebt = new Map<string, number>();
     for (const a of result.allocations) {
         if (a.category === "snowball" && a.debtId) {
             snowballByDebt.set(a.debtId, (snowballByDebt.get(a.debtId) ?? 0) + a.amount);
         }
     }
-    return debts.map((d) => applyRolloverPayment(d, snowballByDebt.get(d.id) ?? 0, payCycle));
+    // Pass the SAME window the cash reserve used (scaleBnplMinimumsForWindow) so a cross-cadence BNPL's
+    // threaded balance pays down by the same in-window count it reserved — else the forecast keeps
+    // charging a biweekly BNPL long after its balance should have cleared (after-scan AS.3).
+    return debts.map((d) => applyRolloverPayment(d, snowballByDebt.get(d.id) ?? 0, payCycle, windowStartISO, windowEndISO));
 }
 
 /**

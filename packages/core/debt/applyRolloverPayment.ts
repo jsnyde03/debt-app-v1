@@ -1,6 +1,6 @@
 import type { Debt } from "@core/storage/debtPlannerStorage";
 import { calculateCycleInterest } from "./calculateMonthlyInterest";
-import { isInstallmentNative } from "./bnplInstallment";
+import { bnplInstallmentsInWindow, isInstallmentNative } from "./bnplInstallment";
 import type { PayCycle } from "@core/payCycle/getNextPaycheckDate";
 
 function roundMoney(amount: number) {
@@ -29,7 +29,9 @@ function syncBnplRemaining(debt: Debt): Debt {
 export function applyRolloverPayment(
     debt: Debt,
     completedSnowballAmount: number,
-    payCycle: PayCycle
+    payCycle: PayCycle,
+    windowStartISO?: string,
+    windowEndISO?: string
 ): Debt {
     if (debt.balance <= 0) {
         return debt;
@@ -37,6 +39,22 @@ export function applyRolloverPayment(
 
     const minimumWasPaid =
         debt.minimumPaidThisCycle ?? debt.isPaidThisCycle ?? false;
+
+    // The minimum actually due this cycle. For an installment-native BNPL, more than one installment can
+    // fall inside the pay-cycle window (a biweekly plan for a monthly earner charges ~2×) — the allocator
+    // already RESERVES that full in-window amount (scaleBnplMinimumsForWindow), so the balance must pay
+    // down by the same or it drifts high forever (after-scan AS.2). `minimumPayment` (the per-installment)
+    // stays untouched — this is only how much the balance drops. No window → 1 installment (unchanged).
+    const effectiveMinimum =
+        isInstallmentNative(debt) && windowStartISO && windowEndISO
+            ? roundMoney(
+                  Math.min(
+                      Math.max(1, bnplInstallmentsInWindow(debt, windowStartISO, windowEndISO)) *
+                          (debt.scheduledPaymentAmount as number),
+                      debt.balance
+                  )
+              )
+            : debt.minimumPayment;
 
     // Honor the DISPLAYED payoff. The app recommends and shows interest-free
     // balances (getDebtsWithDisplayBalances), so a debt paid down to a $0 display
@@ -46,7 +64,7 @@ export function applyRolloverPayment(
     // clears the pre-interest balance, the debt is done. (Making the recommendation
     // itself interest-aware is the fuller fix, deferred to v1.7.)
     const paidMinimumPreInterest = minimumWasPaid
-        ? Math.min(debt.minimumPayment, debt.balance)
+        ? Math.min(effectiveMinimum, debt.balance)
         : 0;
 
     if (roundMoney(paidMinimumPreInterest + completedSnowballAmount) >= debt.balance) {
@@ -65,7 +83,7 @@ export function applyRolloverPayment(
     const balanceWithInterest = roundMoney(debt.balance + interest);
 
     const minimumPaymentAmount = minimumWasPaid
-        ? Math.min(debt.minimumPayment, balanceWithInterest)
+        ? Math.min(effectiveMinimum, balanceWithInterest)
         : 0;
 
     const totalPayment = roundMoney(minimumPaymentAmount + completedSnowballAmount);

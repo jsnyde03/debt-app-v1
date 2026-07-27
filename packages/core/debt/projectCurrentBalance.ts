@@ -1,4 +1,5 @@
 import { applyDebtPaymentProjection } from "./applyDebtPaymentProjection";
+import { bnplMonthlyEquivalentMinimum } from "./bnplPayoffPace";
 import { calculateMonthlyInterest } from "./calculateMonthlyInterest";
 
 /**
@@ -38,6 +39,9 @@ export interface ProjectableDebt {
   apr: number;
   minimumPayment: number;
   type?: "debt" | "bnpl";
+  /** BNPL cadence — a BNPL `minimumPayment` is per-installment, so the projection must scale it to a
+   *  monthly equivalent to match the payoff engines (whole-phase after-scan AS.1). */
+  recurrence?: string;
   /** The projection ANCHOR date — when `balance` is current as-of (advances at rollover + user verify). */
   balanceAsOfDate?: string;
   /** The last USER confirmation date — drives staleness + the label, NOT the projection math. */
@@ -65,13 +69,16 @@ export function projectCurrentBalance(debt: ProjectableDebt, asOfDate: string): 
   if (totalMonths <= 0) return anchor; // asOf at/before the anchor → nothing to project
 
   const apr = debt.type === "bnpl" ? 0 : debt.apr;
+  // BNPL pays per-installment at its cadence → use the monthly equivalent so a biweekly plan pays down
+  // ~2.17× its installment per month, matching the payoff trajectory (AS.1). Non-BNPL is unchanged.
+  const monthlyPayment = debt.type === "bnpl" ? bnplMonthlyEquivalentMinimum(debt) : debt.minimumPayment;
   const wholeMonths = Math.floor(totalMonths);
   const frac = totalMonths - wholeMonths;
 
   let balance = anchor;
   for (let m = 0; m < wholeMonths; m++) {
     if (balance <= 0) return 0;
-    balance = applyDebtPaymentProjection({ balance, apr, payment: debt.minimumPayment }).projectedBalance;
+    balance = applyDebtPaymentProjection({ balance, apr, payment: monthlyPayment }).projectedBalance;
   }
   if (frac > 0 && balance > 0) {
     balance = roundMoney(balance + calculateMonthlyInterest(balance, apr) * frac);

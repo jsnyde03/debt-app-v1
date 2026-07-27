@@ -93,6 +93,19 @@ function runProjectCurrentBalanceTests() {
     "BNPL projects as pure principal — zero interest even with a nonzero APR"
   );
 
+  // AS.1 (whole-phase after-scan) — a BIWEEKLY BNPL pays down at its monthly-equivalent (~2.17×
+  // installment/month), matching the payoff trajectory. $400, $100 installments, biweekly, 1 month
+  // elapsed → ~$216.67 paid → ~$183.33 (NOT $300, which a naive one-installment/month would give).
+  assertApprox(
+    projectCurrentBalance(
+      debt({ balance: 400, apr: 0, minimumPayment: 100, type: "bnpl", recurrence: "biweekly", lastVerifiedDate: "2026-01-01" }),
+      "2026-02-01"
+    ),
+    183.33,
+    "AS.1: a biweekly BNPL projects down at its monthly-equivalent rate, not one installment/month",
+    0.5
+  );
+
   // --- projectCurrentBalance: floors at zero, never negative ---
   assertEqual(
     projectCurrentBalance(debt({ balance: 180, apr: 0, minimumPayment: 100, lastVerifiedDate: "2026-01-01" }), "2026-06-01"),

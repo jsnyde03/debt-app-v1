@@ -1,3 +1,4 @@
+import { scaleBnplMinimumForWindow } from '@core/debt/bnplInstallment';
 import { classifyDeferability } from '@core/obligations/classifyDeferability';
 import { resolveTrialAmounts } from '@core/obligations/effectiveObligationAmount';
 import { buildRecoveryPlan, type RecoveryCandidate, type RecoveryPlan } from '@core/recovery/buildRecoveryPlan';
@@ -28,6 +29,7 @@ export function selectRecoveryPlan(store: DebtStore): RecoveryPlan | null {
   if (gap <= 0) return null;
 
   const nextPayday = store.paycheck.nextPaycheckDate;
+  const windowStart = store.paycheck.currentDate;
   const essential: RecoveryCandidate[] = [];
   const deferrable: RecoveryCandidate[] = [];
 
@@ -43,8 +45,10 @@ export function selectRecoveryPlan(store: DebtStore): RecoveryPlan | null {
   for (const d of store.debts) {
     const minPaid = d.minimumPaidThisCycle ?? d.isPaidThisCycle ?? false;
     if (minPaid || d.balance <= 0 || !dueThisCycle(d.dueDate, nextPayday)) continue;
-    // Debt minimums are always essential (missing one hits credit) — cover-now, never deferred.
-    essential.push({ id: d.id, name: d.name, amount: Math.min(d.minimumPayment, d.balance) });
+    // Debt minimums are always essential (missing one hits credit) — cover-now, never deferred. Window-scale
+    // a cross-cadence BNPL so the essential amount matches the (window-scaled) gap it's covering (AS.4).
+    const scaled = scaleBnplMinimumForWindow(d, windowStart, nextPayday);
+    essential.push({ id: d.id, name: d.name, amount: Math.min(scaled.minimumPayment, scaled.balance) });
   }
 
   return buildRecoveryPlan({ gap, deferrable, essential });

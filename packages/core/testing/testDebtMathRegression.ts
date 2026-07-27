@@ -314,6 +314,24 @@ function testRollover_yearOfBiweeklyRollsUpToAnnualInterest() {
     assertApprox(d.balance, 1127.2, "a year of biweekly rollovers accrues ~one year of interest, not ~2.17x", 1);
 }
 
+function testRollover_bnplCrossCadencePaysDownInWindowCount() {
+    // AS.2 (whole-phase after-scan) — a monthly-paid user with a biweekly installment-native BNPL:
+    // ~2 installments fall in the month + the allocator RESERVES 2× cash, so the rollover must pay the
+    // balance down 2 installments (not 1) or it drifts high every cycle. $400 (4×$100 biweekly), window
+    // Jan 1–Feb 1 holds 2 charges (due Jan 5, Jan 19) → -$200 → $200, remaining 4→2.
+    const bnpl = makeDebt({ id: "d1", name: "Klarna", balance: 400, apr: 0, minimumPayment: 100, type: "bnpl" });
+    const native: Debt = { ...bnpl, dueDate: "2026-01-05", recurrence: "biweekly", scheduledPaymentAmount: 100, remainingPayments: 4, minimumPaidThisCycle: true };
+    const scaled = applyRolloverPayment(native, 0, "monthly", "2026-01-01", "2026-02-01");
+    assertApprox(scaled.balance, 200, "AS.2: cross-cadence BNPL rollover pays down the in-window count (2 installments), not 1");
+    assertEqual(scaled.remainingPayments, 2, "AS.2: remaining advances by the in-window installments (4 -> 2)");
+    // Aligned (a biweekly-paid user, one charge in the window) still pays exactly one installment.
+    const aligned = applyRolloverPayment(native, 0, "biweekly", "2026-01-01", "2026-01-15");
+    assertApprox(aligned.balance, 300, "AS.2: aligned window (1 installment) pays down exactly 1");
+    // No window passed (legacy callers) → unchanged one-installment behavior.
+    const noWindow = applyRolloverPayment(native, 0, "monthly");
+    assertApprox(noWindow.balance, 300, "AS.2: no window → falls back to one installment (backward compatible)");
+}
+
 // --- buildExtraPaymentAllocationPlan ---
 
 function testExtraPaymentPlan_snowballTargetsSmallestBalance() {
@@ -416,6 +434,7 @@ export function runDebtMathRegressionTests() {
     testRollover_zeroBalanceDebtUnchanged();
     testRollover_paymentNeverDrivesBalanceNegative();
     testRollover_perCycleInterestByCadence();
+    testRollover_bnplCrossCadencePaysDownInWindowCount();
     testRollover_displayedPayoffClearsToZeroNoInterestResidual();
     testRollover_yearOfBiweeklyRollsUpToAnnualInterest();
 
