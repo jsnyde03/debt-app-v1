@@ -10,7 +10,7 @@
  * on iOS at the batched native build; if clipped, move the shadow to a non-clipping wrapper view.
  */
 
-import type { ViewStyle } from 'react-native';
+import { StyleSheet, type ViewStyle } from 'react-native';
 
 import type { ColorScheme } from './colors';
 
@@ -27,10 +27,17 @@ export const elevation: { card: Elev; raised: Elev; hero: Elev } = {
     light: { boxShadow: '0px 16px 40px rgba(16, 38, 84, 0.16)' },
     dark: { boxShadow: '0px 16px 40px rgba(0, 0, 0, 0.5)' },
   },
-  // the navy hero/beat panel's own lift off the screen
+  // the navy hero/beat panel's own lift off the screen. In LIGHT it pops as a dark island on the cool
+  // ground (shadow alone). In DARK a black shadow can't separate navy-on-near-black, so the panel lifts
+  // by a hairline luminous EDGE instead — brighter on top to catch light — restoring the island in dark.
   hero: {
     light: { boxShadow: '0px 14px 30px rgba(8, 20, 50, 0.30)' },
-    dark: { boxShadow: '0px 14px 30px rgba(0, 0, 0, 0.5)' },
+    dark: {
+      boxShadow: '0px 14px 30px rgba(0, 0, 0, 0.5)',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: 'rgba(255, 255, 255, 0.08)',
+      borderTopColor: 'rgba(255, 255, 255, 0.14)',
+    },
   },
 };
 
