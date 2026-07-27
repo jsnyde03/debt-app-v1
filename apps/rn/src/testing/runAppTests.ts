@@ -49,6 +49,9 @@ async function main() {
   // §3.3.2 — the portfolio milestone-cross capture at rollover (crossing · 100%-excluded · dedup).
   await import('../store/milestoneCross.test');
 
+  // §3.3.3 — the premium Guardian proof-of-work read (held streak · cumulative-to-debt · gating).
+  await import('../store/proofOfWork.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

@@ -1,7 +1,7 @@
 import { bnplInstallmentsInWindow, isInstallmentNative } from '@core/debt/bnplInstallment';
 import { computeAffordability, type AffordabilityVerdict } from '@core/guardian/affordability';
 import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@core/guardian/buildGuardianBrief';
-import { scoreCalibration, type CalibrationScore } from '@core/guardian/calibrationScore';
+import { reachedFloor, scoreCalibration, type CalibrationScore } from '@core/guardian/calibrationScore';
 import { decideRiskNotification, type NotifyDecision } from '@core/guardian/notificationDecision';
 import { ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS, type EstimateStaleness } from '@core/debt/projectCurrentBalance';
 
@@ -43,6 +43,43 @@ export function selectCalibrationScore(store: DebtStore): CalibrationScore {
     debtFree,
     missedCycleEndDates: store.missedArrivals,
   });
+}
+
+export interface GuardianProofOfWork {
+  /** Consecutive most-recent CONFIRMED cycles the cushion held at/above the line — "held your line N running". */
+  heldStreak: number;
+  /** Cumulative paid toward debt across every recorded cycle (minimums + extras). */
+  totalToDebt: number;
+  /** Genuine cycles the Guardian has run (for framing). */
+  cyclesRun: number;
+  score: CalibrationScore;
+}
+
+/**
+ * §3.3.3 Guardian proof-of-work — the accumulating, un-chattable record of what the automation has DONE, so
+ * premium's ongoing work stays visible on the calm cycles where it otherwise disappears (the churn-hole fix).
+ * PREMIUM only (the automation is the paid job); a pure derivation from `cycleHistory` — no new persistence.
+ * Honest facts only: the held-your-line streak, cumulative-to-debt, and the proven scorecard.
+ */
+export function selectGuardianProofOfWork(store: DebtStore): GuardianProofOfWork | null {
+  if (store.subscriptionPlan !== 'premium') return null;
+  const history = store.cycleHistory;
+  if (history.length === 0) return null;
+
+  // Held-your-line streak: walk back from the most recent, counting cycles whose CONFIRMED cushion reached
+  // the floor that read assumed; stop at the first miss / non-gradeable cycle so "running" stays literal.
+  let heldStreak = 0;
+  for (let i = history.length - 1; i >= 0; i--) {
+    const s = history[i];
+    const floor = s.prediction?.floor;
+    const held = s.outcome?.actualCushionHeld;
+    if (!s.outcome?.outcomeConfirmed || floor == null || held == null) break;
+    if (!reachedFloor(held, floor)) break;
+    heldStreak++;
+  }
+
+  const totalToDebt = Math.round(history.reduce((sum, s) => sum + Math.max(0, s.totalPaidThisCycle), 0) * 100) / 100;
+  return { heldStreak, totalToDebt, cyclesRun: history.length, score: selectCalibrationScore(store) };
 }
 
 export type { NotifyDecision };
