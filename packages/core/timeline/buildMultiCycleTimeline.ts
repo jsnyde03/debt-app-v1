@@ -106,11 +106,14 @@ export function buildMultiCycleTimeline({
     // forecast's floor. The band is driven by floor-relative headroom (`net`), never `endingBalance`.
     let band: GuardianState | null | undefined = priorBand;
 
-    // Cycle 0: current cycle (result already computed by caller)
+    // Cycle 0: current cycle (result already computed by caller). Scale the BNPL outflow into the ledger
+    // items the SAME way the caller's `result` was scaled (scaleBnplMinimumsForWindow) and the projected
+    // cycles are below — else cycle 0's debt row + endingBalance under-count a cross-cadence BNPL and
+    // overstate the cushion, contradicting its own scaled net (after-scan re-scan Finding 1).
     const cycle0Items = buildTimelineItems({
         result,
         requiredExpenses: resolvedRequiredExpenses,
-        debts,
+        debts: scaleBnplMinimumsForWindow(debts, currentDate, nextPaycheckDate),
         completedRecommendedActions,
         currentDate,
         nextPaycheckDate,

@@ -64,6 +64,13 @@ function run() {
     monthlyTL[0].net < biweeklyTL[0].net,
     `the monthly earner's cycle-0 net is tighter (more BNPL outflow): ${monthlyTL[0].net} < ${biweeklyTL[0].net}`,
   );
+  // Re-scan Finding 1 — cycle 0's endingBalance (the Cash Flow bar/value) must ALSO reflect the scaled
+  // BNPL outflow, not just net; pre-fix cycle 0 subtracted only one installment → this would have been
+  // equal, overstating the monthly earner's cushion.
+  assert(
+    monthlyTL[0].endingBalance < biweeklyTL[0].endingBalance,
+    `cycle-0 endingBalance reflects the scaled BNPL outflow: ${monthlyTL[0].endingBalance} < ${biweeklyTL[0].endingBalance}`,
+  );
 
   // 2.7.4.3 — the between-paycheck heads-up names the lumpy BNPL for the monthly earner, and stays quiet
   // for the aligned biweekly-paid case (one charge per cycle → not lumpy).
