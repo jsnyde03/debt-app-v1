@@ -80,7 +80,13 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 ### Active Queue — the live build _(the queue never sits idle)_
 
 **▶ 3.3 [ACTIVE BUILD] Wave B — delight & the emotional peak** _(the emotional layer; delight on beats, restraint elsewhere)_:
-- [ ] **3.3.1 ⭐ Debt-paid-off celebration — DESIGN-FIRST (the flagship).** Full-screen Skia spectacle fired ONLY on a confirmed $0 (trigger already wired), a scaled "vanquished" beat on EACH debt cleared → grand finale on the last, count-up of total paid / interest saved / time-to-freedom, haptic crescendo, + a permanent shareable "debts-vanquished" archive. **Gate: agree the design + settle the engine (rec Skia + Core Haptics) with Jason BEFORE code.** Shares the Skia/haptic substrate with 3.3.2 + 3.3.4.
+- [ ] **3.3.1 ⭐ Debt-paid-off celebration — the flagship.** ✅ DESIGN LOCKED (Jason 2026-07-27): Skia+Reanimated+Core-Haptics engine · contained per-debt "vanquished" beat · full-screen grand finale on the last debt · "Debts Vanquished" archive on Progress. Spec = [`DEBT_CELEBRATION_SPEC.md`](DEBT_CELEBRATION_SPEC.md). Build structure-first:
+  - [ ] **3.3.1.1** logic/selectors (pure, tested) — `selectVanquishedDebts` + last-debt/finale detector + finale stat-trio.
+  - [ ] **3.3.1.2** per-debt "vanquished" beat overlay (Skia contained + interim haptic).
+  - [ ] **3.3.1.3** grand finale full-screen spectacle (ring sweep · particles · count-up trio).
+  - [ ] **3.3.1.4** "Debts Vanquished" archive on Progress (tombstones + share export).
+  - [ ] **3.3.1.5** wire into the confirm flow (beat vs finale) · reduce-motion · a11y.
+  - [ ] **3.3.1.6** verify — tsc/lint/tests + both-theme screenshots + gate. (Bespoke AHAP + on-device motion → Phase-6 device-QA.)
 - [ ] **3.3.2 Milestone-cross pulse + resolve orphaned `MilestonesRow`** — node spring + haptic on a newly-crossed 25/50/75%; retire the dead rail or fold its bead/glow craft into the journey ring. Reuses 3.3.1's substrate.
 - [ ] **3.3.3 Guardian proof-of-work ledger** (the churn-hole fix) — an accumulating "held your line N paychecks · $X auto-deployed · $Y saved by holding vs dumping" from `cycleHistory`, visible on calm cycles; unifies Momentum (free journey read) + surfaces the buried scorecard trust line.
 - [ ] **3.3.4 Affordability impact-viz** (the §2.9 animated layer) — before/after Skia cushion-bar carve + debt-free-date slide on a "can I afford it?" apply.
