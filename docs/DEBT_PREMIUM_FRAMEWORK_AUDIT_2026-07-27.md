@@ -87,5 +87,11 @@
 - **Deferred (R3-B, non-blocking → backlog):** `selectDebtAmortization` still cadence-blind (per-debt sheet vs headline) · dead `DriftResult` re-export.
 Verified: debt projection (+R3 asserts) · core regression · RN tsc/lint · e2e 28/28. **Consensus check pending** (a final focused re-verify of the round-3 fix).
 
+## ROUND 4 (2026-07-27) — VERDICT: **CONSENSUS** ✅
+1 focused verifier re-checked the round-3 fix across every one-time-BNPL scenario (solo · two lumps · coexisting at extra=0 AND extra>0 · 3-debt snowball/avalanche · lump>budget · un-amortizable boundary). Chart↔date AGREE in every case; they correctly co-report "never" on un-amortizable inputs (proven by algebra + boundary tests — no finite-date-vs-never-chart divergence); rollover integrity + non-termination confirmed. **Fix complete + correct, no new edge.** Closed the one flagged test gap (a chart-side coexisting-lump non-deceleration assert). Non-blocker → backlog: a pathological `minimum=0` non-lump plan renders the full 600-month flat chart (consistent with the date's "Unable to estimate", not a contradiction).
+
+### ⭐ PREMIUM-FRAMEWORK AUDIT — CONSENSUS REACHED (round 4).
+The framework justifies its price; the storefront/wiring/copy fixes hold; the free-tier BNPL payoff math is correct + regression-locked. **Phase-2 BUILD ready to close on Jason's signoff.** Off-device R2.9–R2.12 (hosted privacy content self-contradiction + stale v1.5 pages + the App Store Connect privacy-label RevenueCat declaration) remain Jason's, pre-submission.
+
 ## Method note
 7 lens verdicts: Free/premium-line PASS · Automation-identity CONDITIONAL-PASS · Moat/honesty/competition CHANGES-REQUIRED(core passes) · Tier/pricing, Apple-compliance, Entitlement-correctness, BNPL-cadence each FAIL-with-majors. No lens found the *strategy* wrong — every failure is a fixable storefront/wiring/copy/correctness defect. Consensus: the tier justifies its price; fix Section A before the launch-flip.

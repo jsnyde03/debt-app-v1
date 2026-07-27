@@ -424,6 +424,29 @@ function runDebtProjectionTests() {
     });
     assertEqual(weeklyBnpl.monthsToDebtFree, 1, "weekly BNPL clears in ~1 month");
 
+    // R4 — the CHART-side coexisting-lump non-deceleration (the changed path that R3 F1/F2 left unasserted):
+    // a $2000 one-time BNPL must not shift the card's chart zero-crossing (3 months at $400/mo), matching
+    // the date engine and the card alone. Guards against a future regression re-adding the lump to the
+    // chart's minimumsPaidThisMonth.
+    const cardChartAlone = buildPayoffTrajectory({
+        debts: [{ balance: 1000, minimumPayment: 100, apr: 0, type: "debt", recurrence: "monthly" }],
+        monthlyExtraPayment: 300,
+        strategy: "snowball",
+    });
+    const cardChartWithLump = buildPayoffTrajectory({
+        debts: [
+            { balance: 2000, minimumPayment: 2000, apr: 0, type: "bnpl", recurrence: "one-time" },
+            { balance: 1000, minimumPayment: 100, apr: 0, type: "debt", recurrence: "monthly" },
+        ],
+        monthlyExtraPayment: 300,
+        strategy: "snowball",
+    });
+    assertEqual(
+        cardChartWithLump.find((p) => p.balance <= 0.01)?.month,
+        cardChartAlone.find((p) => p.balance <= 0.01)?.month,
+        "chart: one-time BNPL doesn't decelerate a coexisting debt with extra>0 (R4)",
+    );
+
     console.log("✅ Debt projection regression tests passed.");
 }
 
