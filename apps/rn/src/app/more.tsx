@@ -17,6 +17,7 @@ import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { PREMIUM_PURCHASABLE } from '@/premium/config';
 import { MANAGE_SUBSCRIPTION_URL, PRIVACY_POLICY_URL, SUPPORT_URL, TERMS_OF_USE_URL } from '@/premium/legal';
 
 const LINKS = {
@@ -71,25 +72,27 @@ export default function MoreScreen() {
       {/* Premium entry — the ALWAYS-VISIBLE, obvious path to the paywall. Kept high + clearly labeled so
           an App Review tester (and any free user) can always find it without triggering a premium moment
           — the fix for the v1.1 "couldn't find the paywall" rejections. Premium users get manage-sub. */}
-      <SettingGroup>
-        {plan === 'premium' ? (
-          <SettingRow
-            icon="workspace-premium"
-            label="Premium"
-            subtitle="Active — thanks for the support. Tap to manage your subscription."
-            onPress={() => void Linking.openURL(MANAGE_SUBSCRIPTION_URL)}
-            last
-          />
-        ) : (
-          <SettingRow
-            icon="workspace-premium"
-            label="Unlock Premium"
-            subtitle="The Payday Guardian, Can I Afford It & more."
-            onPress={() => router.push('/paywall')}
-            last
-          />
-        )}
-      </SettingGroup>
+      {plan === 'premium' || PREMIUM_PURCHASABLE ? (
+        <SettingGroup>
+          {plan === 'premium' ? (
+            <SettingRow
+              icon="workspace-premium"
+              label="Premium"
+              subtitle="Active — thanks for the support. Tap to manage your subscription."
+              onPress={() => void Linking.openURL(MANAGE_SUBSCRIPTION_URL)}
+              last
+            />
+          ) : (
+            <SettingRow
+              icon="workspace-premium"
+              label="Unlock Premium"
+              subtitle="The Payday Guardian, Can I Afford It & more."
+              onPress={() => router.push('/paywall')}
+              last
+            />
+          )}
+        </SettingGroup>
+      ) : null}
 
       {/* History — a reflective destination, so it sits above the settings sections. */}
       <SettingGroup>

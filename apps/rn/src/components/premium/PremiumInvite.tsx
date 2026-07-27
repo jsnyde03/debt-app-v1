@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
+import { PREMIUM_PURCHASABLE } from '@/premium/config';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -14,6 +15,7 @@ import { textStyles } from '@/theme/typography';
  */
 export function PremiumInvite({ message }: { message: string }) {
   const c = useAppColors();
+  if (!PREMIUM_PURCHASABLE) return null; // launch kill-switch — no upsell when purchases are off
   return (
     <Pressable
       onPress={() => router.push('/paywall')}
