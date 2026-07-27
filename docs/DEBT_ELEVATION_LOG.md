@@ -4,6 +4,17 @@
 
 ---
 
+## Phase 3 · Wave C · 3.4.1 (.1–.3) — Trajectory interactivity — COMPLETE (2026-07-27)
+
+The payoff-trajectory chart gains life; the native waypoints beat (.4) follows.
+
+- **Switch-in verification (pre-authored-plan check):** grep'd `buildPayoffTrajectory` (`packages/core/debt`) — it computes each debt's payoff in an internal `pool` but returns only total `{month,balance}` points. So "per-debt payoff waypoints" is NOT free presentation (needs a core change + a regression test), unlike the other three parts. Surfaced to Jason → he chose to split waypoints into its own beat **3.4.1.4** and ship .1–.3 first.
+- **3.4.1.1 line-crispness** — `TrajectorySkiaChart.tsx`: the sole active stroke carried an always-on `BlurMask blur={3} style="solid"`, softening the line. Split into two layers: a wide (strokeWidth 7, opacity 0.3) `blur=6 style="normal"` underglow behind + a crisp un-blurred 3.5 stroke on top. Same luminosity, sharp line.
+- **3.4.1.2 endpoint date pill** — `TrajectoryChart.tsx`: a gold pill (`#10264f` text) at the bead showing `shortDate(debtFreeDate)`; width estimated from the label length so it clamps on-screen at either edge; hidden while scrubbing. Reads the debt-free date off the chart itself.
+- **3.4.1.3 touch-scrub** — RN responder (`onResponder*`, works web + native, no gesture-handler) on the plot View → `handleScrub` maps `locationX` to the nearest trajectory point, snaps a vertical guide + a dot on the curve + a floating `{MMM yyyy} · {balance} · {N mo|now}` readout; `haptics.light()` detent on each month change; `endScrub` clears on release. All on existing `mapX/mapY/monthDate` — no engine data. Overlays are RN Views on top of the Canvas (untouched shared Skia component, so identical on web/native).
+- **Verify:** `traj-endpoint-pill` / `traj-scrub-readout` testIDs + `tests/e2e/trajectory-interactivity.spec.ts` (rest→pill visible + no readout; drag→readout with `mo|now` + `$`; release→clears). Both themes screenshot-verified. `validate:release:rn` green — **56 e2e** (was 54).
+- **After-scan:** nothing version-blocking; scrub honestly reads `$0` at the endpoint, pill clears the axis ticks. No new queue items.
+
 ## Phase 3 · Wave B · 3.3.6 — Onboarding + early-journey wins — COMPLETE (2026-07-27)
 
 The last Wave-B item; closes Wave B (6/6). Gate green (54 e2e). Commits `6f5e291`, `2f69392`.

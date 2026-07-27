@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { type GestureResponderEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Card } from '@/components/ui/Card';
 import type { PayoffStrategy } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { haptics } from '@/motion';
 import type { WhatIfResult } from '@/store/analysisSelectors';
 import type { InterestSaved, TrajectoryPoint } from '@/store/payoffSelectors';
 import { spacing } from '@/theme/spacing';
@@ -108,6 +109,9 @@ export function TrajectoryChart({
   const [w, setW] = useState(0);
   // What-If is a secondary, opt-in tool — collapsed by default so the resting card stays calm.
   const [whatIfOpen, setWhatIfOpen] = useState(false);
+  // Touch-scrub: the point under the finger (px position + its month/balance) — null when not scrubbing.
+  const [scrub, setScrub] = useState<{ x: number; y: number; month: number; balance: number } | null>(null);
+  const lastScrubMonth = useRef<number | null>(null);
 
   // The What-If overlay: the "with extra" curve — only while the tool is open (collapsing returns the
   // chart to its calm resting state). The plan-vs-minimums "saved" line below is NEVER overridden by
@@ -172,6 +176,32 @@ export function TrajectoryChart({
       ? monthDate(minEnd.month).toLocaleString('en-US', { month: 'short', year: 'numeric' })
       : 'Never';
 
+  // Touch-scrub: map the finger's x to the nearest trajectory point, snap the readout to it, and tick a
+  // light haptic each time the snapped month changes (a subtle detent, like the Slider). All on existing
+  // geometry — no engine data needed.
+  const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+  const handleScrub = (e: GestureResponderEvent) => {
+    if (!(w > 0) || active.length === 0) return;
+    const plotW = w - PAD.l - PAD.r;
+    const x = clamp(e.nativeEvent.locationX, PAD.l, w - PAD.r);
+    const targetMonth = ((x - PAD.l) / plotW) * maxMonth;
+    let nearest = active[0];
+    for (const p of active) {
+      if (Math.abs(p.month - targetMonth) < Math.abs(nearest.month - targetMonth)) nearest = p;
+    }
+    if (nearest.month !== lastScrubMonth.current) {
+      lastScrubMonth.current = nearest.month;
+      haptics.light();
+    }
+    setScrub({ x: mapX(nearest.month), y: mapY(nearest.balance), month: nearest.month, balance: nearest.balance });
+  };
+  const endScrub = () => {
+    lastScrubMonth.current = null;
+    setScrub(null);
+  };
+  // Estimate the debt-free pill's width (no layout round-trip) so it clamps on-screen at either chart edge.
+  const endPillW = 20 + (debtFreeDate ? shortDate(debtFreeDate).length : 8) * 6.5;
+
   const dark = scheme === 'dark';
   const gold = dark ? '#f7cf5f' : '#dca01f';
   const axisColor = dark ? 'rgba(255,255,255,0.07)' : 'rgba(16,38,84,0.07)';
@@ -194,7 +224,15 @@ export function TrajectoryChart({
         <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.secondary }]}>PAYOFF TRAJECTORY</Text>
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Balance over time</Text>
       </View>
-      <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ height: H }}>
+      <View
+        onLayout={(e) => setW(e.nativeEvent.layout.width)}
+        style={{ height: H }}
+        onStartShouldSetResponder={() => w > 0}
+        onMoveShouldSetResponder={() => w > 0}
+        onResponderGrant={handleScrub}
+        onResponderMove={handleScrub}
+        onResponderRelease={endScrub}
+        onResponderTerminate={endScrub}>
         {w > 0 && activePath ? (
           <>
             <TrajectoryCanvas
@@ -229,6 +267,41 @@ export function TrajectoryChart({
                 {t.label}
               </Text>
             ))}
+            {/* debt-free date pill — read the payoff date off the bead itself. Hidden while scrubbing so
+                the readout owns the overlay. */}
+            {endpoint && debtFreeDate && !scrub ? (
+              <View
+                testID="traj-endpoint-pill"
+                pointerEvents="none"
+                style={[styles.endPill, { left: clamp(endpoint.x - endPillW / 2, PAD.l, w - PAD.r - endPillW), top: baselineY - 30, backgroundColor: gold }]}>
+                <Text style={styles.endPillText}>{shortDate(debtFreeDate)}</Text>
+              </View>
+            ) : null}
+            {/* touch-scrub — vertical guide + a dot on the curve + a floating date/balance/months readout */}
+            {scrub ? (
+              <>
+                <View
+                  pointerEvents="none"
+                  style={[styles.scrubLine, { left: scrub.x, top: PAD.t, height: baselineY - PAD.t, backgroundColor: c.text.tertiary }]}
+                />
+                <View
+                  pointerEvents="none"
+                  style={[styles.scrubDot, { left: scrub.x - 5, top: scrub.y - 5, borderColor: c.accent.primary, backgroundColor: c.background.primary }]}
+                />
+                <View
+                  testID="traj-scrub-readout"
+                  pointerEvents="none"
+                  style={[styles.scrubReadout, { left: clamp(scrub.x - 60, PAD.l, w - PAD.r - 132), top: PAD.t, backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}>
+                  <Text style={[textStyles.caption, styles.scrubReadoutText, { color: c.text.primary }]} numberOfLines={1}>
+                    {monthDate(scrub.month).toLocaleString('en-US', { month: 'short', year: 'numeric' })}
+                    {'  ·  '}
+                    {formatWhole(scrub.balance)}
+                    {'  ·  '}
+                    {scrub.month === 0 ? 'now' : `${scrub.month} mo`}
+                  </Text>
+                </View>
+              </>
+            ) : null}
           </>
         ) : null}
       </View>
@@ -328,4 +401,17 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   whatIfLabel: { fontWeight: '600' },
+  endPill: { position: 'absolute', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  endPillText: { fontSize: 11, fontWeight: '800', letterSpacing: -0.2, color: '#10264f' },
+  scrubLine: { position: 'absolute', width: 1, opacity: 0.5 },
+  scrubDot: { position: 'absolute', width: 10, height: 10, borderRadius: 5, borderWidth: 2 },
+  scrubReadout: {
+    position: 'absolute',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    maxWidth: 172,
+  },
+  scrubReadoutText: { fontWeight: '700', fontSize: 11 },
 });

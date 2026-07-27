@@ -80,7 +80,11 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 ### Active Queue — the live build _(the queue never sits idle)_
 
 **▶ 3.4 [ACTIVE BUILD] Wave C — interactivity & data-viz** _(pure-RN/Skia first = web-verifiable; tooling/native adoptions last = dev-build + Phase-6 device-QA)_:
-- [ ] **3.4.1 Trajectory chart interactivity** — endpoint **date pill** on the gold bead (trivial, do first) · **line-crispness** fix (move the always-on `BlurMask` off the primary stroke) · **per-debt payoff waypoints** ("Klarna gone — Aug 2026") · **touch-scrub** with a moving balance/date/months readout. (Skia + Reanimated gesture; web-verifiable.)
+- [ ] **3.4.1 Trajectory chart interactivity** — ✅ .1–.3 done (2026-07-27, both themes, gate green 56 e2e → LOG). ▶ .4 active.
+  - [x] **3.4.1.1 Line-crispness** — faint blurred underglow layer + crisp un-blurred top stroke.
+  - [x] **3.4.1.2 Endpoint date pill** — gold debt-free-date pill on the bead.
+  - [x] **3.4.1.3 Touch-scrub** — drag → guide + dot + `{date} · {balance} · {N mo}` readout, light detent haptic per month; RN responder (web-verifiable, `traj-scrub-readout`/`traj-endpoint-pill` testIDs).
+  - [ ] **3.4.1.4 Per-debt payoff waypoints** [ENGINE] — extend `buildPayoffTrajectory` to emit per-debt clear-months (+ regression test), then plot "Klarna gone — Aug 2026" markers. Separate beat so the engine change stays isolated + testable; gauge chart clutter before adding.
 - [ ] **3.4.2 Chart tap/scrub + labels** — Guardian cushion-bar zone tap → the **Safety-net tooltip** (queued) + tap-the-floor-line → the line sheet · Cash-Runway + journey-ring tap/scrub · **ring milestone node labels** (25/50/75/Free legible).
 - [ ] **3.4.3 `expo-blur` glass** — frosted tab bar + sheet scrims (first-party Expo; apply with restraint per less-is-more — not on content cards).
 - [ ] **3.4.4 Native row interactions** [DEV-BUILD] — `react-native-ios-context-menu` long-press UIMenu (mark focus / edit / delete) + swipe actions (mark-paid-this-cycle / snooze / delete) on debt & bill rows. Native deps → build now, device-QA @ Phase 6 (+ provisioning check).

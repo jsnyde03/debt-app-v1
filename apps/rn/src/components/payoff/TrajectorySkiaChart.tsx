@@ -91,17 +91,30 @@ export default function TrajectorySkiaChart({
       {/* the other strategy — faint ghost, no glow */}
       {ghost ? <Path path={ghost} style="stroke" strokeWidth={1.5} strokeCap="round" color={palette.ghost} opacity={0.3} /> : null}
 
-      {/* active line — blue accent, blooming to gold near freedom; GPU glow; trims 0→1 on draw-on */}
+      {/* active line — blue accent, blooming to gold near freedom; trims 0→1 on draw-on. Two layers so
+          the primary stroke stays CRISP: a wide blurred underglow behind (the luminosity), a sharp
+          un-blurred stroke on top (the line itself — previously a `BlurMask style="solid"` on the sole
+          stroke softened its edges). */}
       {line ? (
-        <Path path={line} style="stroke" strokeWidth={3.5} strokeCap="round" strokeJoin="round" start={0} end={progress}>
-          <LinearGradient
-            start={vec(0, 0)}
-            end={vec(width, 0)}
-            colors={[palette.lineFrom, palette.lineMid, palette.lineTo]}
-            positions={[0, 0.65, 1]}
-          />
-          <BlurMask blur={3} style="solid" />
-        </Path>
+        <>
+          <Path path={line} style="stroke" strokeWidth={7} strokeCap="round" strokeJoin="round" start={0} end={progress} opacity={0.3}>
+            <LinearGradient
+              start={vec(0, 0)}
+              end={vec(width, 0)}
+              colors={[palette.lineFrom, palette.lineMid, palette.lineTo]}
+              positions={[0, 0.65, 1]}
+            />
+            <BlurMask blur={6} style="normal" />
+          </Path>
+          <Path path={line} style="stroke" strokeWidth={3.5} strokeCap="round" strokeJoin="round" start={0} end={progress}>
+            <LinearGradient
+              start={vec(0, 0)}
+              end={vec(width, 0)}
+              colors={[palette.lineFrom, palette.lineMid, palette.lineTo]}
+              positions={[0, 0.65, 1]}
+            />
+          </Path>
+        </>
       ) : null}
 
       {/* What-If overlay — the "with extra" curve: dashed gold, drawn instantly (no trim) so it
