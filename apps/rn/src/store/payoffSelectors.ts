@@ -1,5 +1,4 @@
 import { buildPayoffTrajectory, type TrajectoryPoint } from '@core/debt/buildPayoffTrajectory';
-import type { DriftResult } from '@core/debt/computeDrift';
 import { computeInterestSaved, type InterestSaved } from '@core/debt/computeInterestSaved';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import type { TimelineCycle } from '@core/timeline/buildMultiCycleTimeline';
@@ -11,7 +10,7 @@ import { selectDebtFreeDate, selectExtraToDebt } from './planSelectors';
 import { buildForecastCycles } from './forecastCycles';
 import { effectivePaycheckBuffer, selectAllocation, selectSteadyStateAllocation } from './selectors';
 
-export type { TrajectoryPoint, InterestSaved, DriftResult, TimelineCycle, TimelineItem };
+export type { TrajectoryPoint, InterestSaved, TimelineCycle, TimelineItem };
 
 /**
  * The near-term cash-cushion forecast — the next few pay cycles' ending balance + a stable/tight/

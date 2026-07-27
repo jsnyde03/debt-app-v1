@@ -9,6 +9,7 @@ import { maybeRequestReview } from '@/lib/review';
 import { DebtSheet } from '@/components/entities/DebtSheet';
 import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
+import { MilestoneAckCard } from '@/components/plan/MilestoneAckCard';
 import { PaidOffFinale } from '@/components/plan/PaidOffFinale';
 import { VanquishedBeat } from '@/components/plan/VanquishedBeat';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
@@ -248,6 +249,10 @@ export default function TodayScreen() {
       ) : null}
       {celebration?.kind === 'finale' ? (
         <PaidOffFinale visible stats={selectCelebrationStats(store)} onDismiss={() => setCelebration(null)} />
+      ) : null}
+
+      {store.pendingMilestone ? (
+        <MilestoneAckCard milestone={store.pendingMilestone} onAck={() => appStore.getState().acknowledgeMilestone()} />
       ) : null}
 
       {riskCleared ? (

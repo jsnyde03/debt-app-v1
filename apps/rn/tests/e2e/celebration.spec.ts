@@ -57,6 +57,23 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(page.getByRole('button', { name: 'Continue' })).toBeVisible();
   });
 
+  test(`milestone-cross ack (${theme})`, async ({ page }) => {
+    // A pending portfolio milestone (50%) → Today shows the calm gold ack card.
+    await seedStore(page, scenario({
+      subscriptionPlan: 'premium',
+      genuineCycleCount: 6,
+      paycheck: { amount: '2400', payCycle: 'monthly', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
+      debts: [{ id: 'car', name: 'Auto Loan', balance: 4800, originalBalance: 12000, minimumPayment: 310, apr: 6.4, dueDate: '2026-08-20', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' }],
+      prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode: theme },
+      onboardedAt: '2026-01-01',
+      pendingMilestone: { threshold: 50, progressPercent: 60 },
+    }));
+    await page.goto('/');
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: `test-results/celebration-milestone-${theme}.png`, fullPage: true });
+    await expect(page.getByText('Halfway to debt-free')).toBeVisible();
+  });
+
   test(`vanquished archive + debt-free (${theme})`, async ({ page }) => {
     // Already-cleared debts (balance 0) → Progress shows the debt-free resting state + the archive.
     await seedStore(page, base(theme, [
