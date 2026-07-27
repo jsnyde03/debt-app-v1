@@ -9,6 +9,7 @@ import { TrajectoryChart } from '@/components/payoff/TrajectoryChart';
 import { CashFlowSection } from '@/components/progress/CashFlowSection';
 import { type JourneyRingChartProps, type MilestoneState } from '@/components/progress/JourneyRingChart';
 import { JourneyRingCanvas } from '@/components/progress/JourneyRingCanvas';
+import { VanquishedArchive } from '@/components/progress/VanquishedArchive';
 import { Screen } from '@/components/screen';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -17,6 +18,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { CountUp } from '@/motion';
 import { selectWhatIf } from '@/store/analysisSelectors';
 import { withProjectedBalances } from '@/store/balanceSelectors';
+import { selectVanquishedDebts } from '@/store/celebrationSelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { effectivePaycheckBuffer } from '@/store/selectors';
 import { useAppStore } from '@/store/useAppStore';
@@ -70,8 +72,28 @@ export default function ProgressScreen() {
   const cashCycles = useMemo(() => selectCashTimeline(engineStore), [engineStore]);
   // The cushion floor for the cash-flow bars' reference line (free = BASE buffer · premium = your line).
   const cushionFloor = effectivePaycheckBuffer(engineStore);
+  // The permanent trophy shelf of confirmed-cleared debts (raw store — a cleared debt is cleared).
+  const vanquished = selectVanquishedDebts(store);
 
   if (!view.hasDebts) {
+    // Debt-free WITH a history → the calm resting state (the finale already fired the spectacle) + the
+    // archive. Only a truly-empty user (never any debt) gets the "add a debt" prompt.
+    if (vanquished.length > 0) {
+      return (
+        <Screen title="Progress" right={<MoreButton />}>
+          <LinearGradient
+            colors={[c.surface.heroTop, c.surface.heroBottom]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.hero, elevation.hero[scheme]]}>
+            <Text style={[textStyles.footnote, styles.eyebrow, { color: c.surface.heroSub }]}>DEBT-FREE</Text>
+            <Text style={[styles.heroDate, { color: c.surface.heroText }]}>Every balance cleared</Text>
+            <Text style={[textStyles.subhead, { color: c.surface.heroSub }]}>Your trophy shelf is below.</Text>
+          </LinearGradient>
+          <VanquishedArchive debts={vanquished} />
+        </Screen>
+      );
+    }
     return (
       <Screen title="Progress" right={<MoreButton />}>
         <EmptyState
@@ -151,6 +173,8 @@ export default function ProgressScreen() {
         extra={extra}
         onExtraChange={setExtra}
       />
+
+      <VanquishedArchive debts={vanquished} />
     </Screen>
   );
 }
