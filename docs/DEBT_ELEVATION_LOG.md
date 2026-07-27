@@ -4,6 +4,15 @@
 
 ---
 
+## Phase 3 · Wave B · 3.3.3 — Guardian proof-of-work ledger — COMPLETE (2026-07-27)
+
+The churn-hole fix (audit F6.1): premium's automation goes invisible on calm cycles; make its accumulating work visible. Design aligned w/ Jason BEFORE build (standing Guardian directive). Both themes verified, gate green (48 e2e). Commits `ac2da18`→`6133783`.
+
+- **Calls (Jason ✓):** PREMIUM ledger only (free Momentum already covered by trajectory/interest-saved/vanquished archive → no duplicate) · a compact VISUAL strip on the **clear-cycle** Guardian card (not prose) · honest metrics only — **dropped "saved by holding vs dumping"** (holding doesn't save interest).
+- **3.3.3.1 selector** — `selectGuardianProofOfWork` (premium; pure derivation from `cycleHistory`, no new persistence): held-your-line streak (consecutive confirmed cycles whose cushion reached the floor, via core `reachedFloor`) · cumulative-to-debt (Σ `totalPaidThisCycle`) · reuses `selectCalibrationScore` for the trust line. 8 asserts (streak / gating / honest-null).
+- **3.3.3.2 surface** — `GuardianProofStrip`: shield glyph + "Held your line N paychecks · $X to debt · reads matched N/N" (accuracy chip only when `score.proven`), tonal tertiary text, no count-up/haptic (reference surface). Rendered on the clear Guardian card (premium · `brief.state === 'clear'` · has data), above the existing "See your forecast →" drill-down (which opens the full scorecard — display-only strip, no double tap-target).
+- **3.3.3.3 verify** — `proofofwork.spec` seeds a held-cycle history → the strip shows "Held your line 5 paychecks · $1,000 to debt", both themes; full gate green. **Note:** the seed didn't cross the calibration `proven` gate so the accuracy chip stayed (correctly) hidden — verify the "reads matched N/N" branch with real proven data at Phase-6 device QA.
+
 ## Phase 3 · Wave B · 3.3.2 — Milestone-cross pulse + dead-code retire — COMPLETE (2026-07-27)
 
 Design forks (Jason ✓): **portfolio** milestones (not per-debt) · calm Today ack + ring pulse + haptic (no overlay) · **retire** the orphaned rail. Both themes verified, gate green (46 e2e). Commits `4ce2740`→`5c4cd7d`.
