@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { BlurMask, Canvas, Circle, Group, Path, Skia, SweepGradient, vec } from '@shopify/react-native-skia';
-import { Easing, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
+import { Easing, useDerivedValue, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
 export type MilestoneState = 'passed' | 'next' | 'upcoming' | 'free';
 
@@ -18,6 +18,8 @@ export interface JourneyRingChartProps {
     dim: string;
     free: string;
   };
+  /** 3.3.2.3 — a just-crossed milestone (25/50/75) whose node BREATHES (animated glow) until acknowledged. */
+  pulseThreshold?: number;
 }
 
 /**
@@ -27,7 +29,7 @@ export interface JourneyRingChartProps {
  * ON the arc — passed lit green, the next glowing gold, Free the gold finish at the top. No hooks/
  * context (lazy-loads cleanly under WithSkiaWeb). Reduce Motion snaps.
  */
-export default function JourneyRingChart({ size, stroke, pct, milestones, palette }: JourneyRingChartProps) {
+export default function JourneyRingChart({ size, stroke, pct, milestones, palette, pulseThreshold }: JourneyRingChartProps) {
   const r = (size - stroke) / 2;
   const cx = size / 2;
   const cy = size / 2;
@@ -41,6 +43,17 @@ export default function JourneyRingChart({ size, stroke, pct, milestones, palett
   useEffect(() => {
     sweep.value = reduce ? clamped / 100 : withTiming(clamped / 100, { duration: 900, easing: Easing.out(Easing.cubic) });
   }, [clamped, reduce, sweep]);
+
+  // 3.3.2.3 — a breathing pulse (0→1→0) for the just-crossed milestone node (static under Reduce Motion).
+  const pulse = useSharedValue(0);
+  useEffect(() => {
+    pulse.value =
+      pulseThreshold != null && !reduce
+        ? withRepeat(withTiming(1, { duration: 950, easing: Easing.inOut(Easing.quad) }), -1, true)
+        : 0;
+  }, [pulseThreshold, reduce, pulse]);
+  const pulseR = useDerivedValue(() => 9 + 7 * pulse.value);
+  const pulseOpacity = useDerivedValue(() => 0.55 - 0.35 * pulse.value);
 
   const nodePos = (t: number) => {
     const f = t / 100;
@@ -65,14 +78,19 @@ export default function JourneyRingChart({ size, stroke, pct, milestones, palett
         const p = nodePos(m.t);
         const c = colorFor(m.state);
         const glow = m.state === 'next' || m.state === 'free';
+        const pulsing = m.t === pulseThreshold;
         return (
           <Group key={m.t}>
-            {glow ? (
+            {pulsing ? (
+              <Circle cx={p.x} cy={p.y} r={pulseR} color={palette.to} opacity={pulseOpacity}>
+                <BlurMask blur={8} style="normal" />
+              </Circle>
+            ) : glow ? (
               <Circle cx={p.x} cy={p.y} r={9} color={c} opacity={0.4}>
                 <BlurMask blur={7} style="normal" />
               </Circle>
             ) : null}
-            <Circle cx={p.x} cy={p.y} r={m.state === 'free' ? 6 : 4.5} color={c} />
+            <Circle cx={p.x} cy={p.y} r={m.state === 'free' ? 6 : 4.5} color={pulsing ? palette.to : c} />
           </Group>
         );
       })}

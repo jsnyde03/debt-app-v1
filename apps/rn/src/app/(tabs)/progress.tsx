@@ -139,7 +139,7 @@ export default function ProgressScreen() {
         style={[styles.hero, elevation.hero[scheme]]}>
         <View style={styles.ringRow}>
           <View style={styles.ringWrap} {...ringA11y}>
-            <JourneyRingCanvas size={RING_SIZE} stroke={12} pct={pct} milestones={milestones} palette={RING_PALETTE} />
+            <JourneyRingCanvas size={RING_SIZE} stroke={12} pct={pct} milestones={milestones} palette={RING_PALETTE} pulseThreshold={store.pendingMilestone?.threshold} />
             <View
               style={[StyleSheet.absoluteFill, styles.ringCenter]}
               pointerEvents="none"

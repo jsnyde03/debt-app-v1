@@ -72,6 +72,11 @@ for (const theme of ['light', 'dark'] as const) {
     await page.waitForTimeout(500);
     await page.screenshot({ path: `test-results/celebration-milestone-${theme}.png`, fullPage: true });
     await expect(page.getByText('Halfway to debt-free')).toBeVisible();
+
+    // 3.3.2.3 — the Progress journey ring pulses the just-crossed (50%) node.
+    await page.goto('/progress');
+    await page.waitForTimeout(1100);
+    await page.screenshot({ path: `test-results/celebration-ring-pulse-${theme}.png` });
   });
 
   test(`vanquished archive + debt-free (${theme})`, async ({ page }) => {
