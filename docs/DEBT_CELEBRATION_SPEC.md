@@ -19,8 +19,13 @@
    pops + haptic tick, "**{name} — gone**", the amount vanquished, and a "**freed ${X}/mo now flows to
    {next debt}**" cascade line. ~2s, dismissible (tap / auto-dismiss).
 2. **Grand finale** (last debt → $0) — the **full-screen Skia spectacle**: navy takeover, gold ring sweeps
-   to 100%, particle burst, a **count-up trio** (total paid · interest saved vs minimums · time to freedom),
-   haptic crescendo → "You're debt-free" → the Freedom next-chapter invite.
+   to 100%, particle burst, a **count-up trio**, haptic crescendo → "You're debt-free" → the Freedom
+   next-chapter invite.
+   - **Trio = HONEST concrete figures (3.3.1.1 before-scan correction):** **total vanquished** (Σ
+     `originalBalance`) · **debts cleared** (count) · **months to freedom** (`onboardedAt` → last clear).
+     **"Interest saved" was DROPPED from the trio:** at debt-free time every balance is 0 and there is no
+     tracked cumulative interest / historical per-cycle extra, so any figure would be fabricated — which
+     the honest-numbers moat forbids. (Revisit only if we start accumulating a real interest-saved tally.)
 3. **"Debts Vanquished" archive** — lives on **Progress**. A permanent, shareable list of tombstone cards,
    one per cleared debt (name · amount vanquished · date cleared · interest saved) + a share-card export.
 

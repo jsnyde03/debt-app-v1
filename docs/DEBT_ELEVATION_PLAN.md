@@ -81,7 +81,7 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 
 **▶ 3.3 [ACTIVE BUILD] Wave B — delight & the emotional peak** _(the emotional layer; delight on beats, restraint elsewhere)_:
 - [ ] **3.3.1 ⭐ Debt-paid-off celebration — the flagship.** ✅ DESIGN LOCKED (Jason 2026-07-27): Skia+Reanimated+Core-Haptics engine · contained per-debt "vanquished" beat · full-screen grand finale on the last debt · "Debts Vanquished" archive on Progress. Spec = [`DEBT_CELEBRATION_SPEC.md`](DEBT_CELEBRATION_SPEC.md). Build structure-first:
-  - [ ] **3.3.1.1** logic/selectors (pure, tested) — `selectVanquishedDebts` + last-debt/finale detector + finale stat-trio.
+  - [x] **3.3.1.1 ✅** logic/selectors — `celebrationSelectors.ts`: `selectVanquishedDebts` (archive) · `isLastLiveDebt` (finale detector) · `selectCelebrationStats` (honest trio: total vanquished · debts cleared · months to freedom). 12 asserts, app suite green. **Honesty correction:** interest-saved DROPPED from the finale (not derivable at $0 without a cumulative tally → would be fabricated) — flagged for Jason.
   - [ ] **3.3.1.2** per-debt "vanquished" beat overlay (Skia contained + interim haptic).
   - [ ] **3.3.1.3** grand finale full-screen spectacle (ring sweep · particles · count-up trio).
   - [ ] **3.3.1.4** "Debts Vanquished" archive on Progress (tombstones + share export).

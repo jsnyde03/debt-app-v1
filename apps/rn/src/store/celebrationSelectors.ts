@@ -1,0 +1,83 @@
+import type { Debt, DebtStore } from '@/data/models';
+
+/**
+ * Debt-paid-off celebration (3.3.1) — the pure read layer for the "vanquished" archive + the grand-finale
+ * stats. All derivations are HONEST facts off data that already persists: paid-off debts stay in the store
+ * (`balance: 0`) carrying their `originalBalance` + the `lastVerifiedDate` they were confirmed cleared.
+ *
+ * Deliberately NO per-debt "interest saved" and NO finale "interest saved" — at debt-free time every balance
+ * is 0 and there's no tracked cumulative interest / historical per-cycle extra to reconstruct it from, so any
+ * figure would be fabricated. The moat is honest numbers (never false-precise), so the finale reports what we
+ * can stand behind: total vanquished · debts cleared · months to freedom.
+ */
+
+/** One cleared debt in the "Debts Vanquished" archive. */
+export interface VanquishedDebt {
+  id: string;
+  name: string;
+  /** Amount vanquished = the original balance; `null` when it was never captured (don't fabricate). */
+  amount: number | null;
+  /** Date confirmed cleared (`lastVerifiedDate`, else the projection anchor); `null` if unknown. */
+  clearedDate: string | null;
+  isBnpl: boolean;
+}
+
+/** The archive: every debt confirmed to $0, most-recently-cleared first. */
+export function selectVanquishedDebts(store: DebtStore): VanquishedDebt[] {
+  return store.debts
+    .filter((d) => d.balance <= 0)
+    .map((d) => ({
+      id: d.id,
+      name: d.name,
+      amount: d.originalBalance ?? null,
+      clearedDate: d.lastVerifiedDate ?? d.balanceAsOfDate ?? null,
+      isBnpl: d.type === 'bnpl',
+    }))
+    .sort((a, b) => (b.clearedDate ?? '').localeCompare(a.clearedDate ?? ''));
+}
+
+/**
+ * True when `id` is the LAST live debt — confirming it to $0 makes the user debt-free. Called at confirm
+ * time (BEFORE the store mutates, while `id` still has a balance) to choose the per-debt beat vs the finale.
+ */
+export function isLastLiveDebt(debts: Debt[], id: string): boolean {
+  const live = debts.filter((d) => d.balance > 0);
+  return live.length === 1 && live[0].id === id;
+}
+
+/** The grand-finale count-up trio — concrete, honest figures only. */
+export interface CelebrationStats {
+  /** Total originally owed across all debts (the sum vanquished). Unknown originals contribute 0, never overclaim. */
+  totalPaid: number;
+  debtsCleared: number;
+  /** onboarding → the last debt cleared, in whole months; `null` when no onboarding anchor exists (legacy). */
+  monthsToFreedom: number | null;
+}
+
+export function selectCelebrationStats(store: DebtStore): CelebrationStats {
+  const { debts } = store;
+  const totalPaid = round2(debts.reduce((sum, d) => sum + (d.originalBalance ?? Math.max(0, d.balance)), 0));
+  const cleared = debts.filter((d) => d.balance <= 0);
+
+  const latestClear = cleared.reduce<string | null>((max, d) => {
+    const dt = d.lastVerifiedDate ?? d.balanceAsOfDate ?? null;
+    return dt && (max === null || dt > max) ? dt : max;
+  }, null) ?? store.paycheck.currentDate;
+
+  return {
+    totalPaid,
+    debtsCleared: cleared.length,
+    monthsToFreedom: store.onboardedAt ? monthsBetween(store.onboardedAt, latestClear) : null,
+  };
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+/** Whole months between two `YYYY-MM-DD` dates (clamped at 0). Calendar-month granularity is all the finale needs. */
+function monthsBetween(fromISO: string, toISO: string): number {
+  const [fy, fm] = fromISO.split('-').map(Number);
+  const [ty, tm] = toISO.split('-').map(Number);
+  return Math.max(0, (ty - fy) * 12 + (tm - fm));
+}
