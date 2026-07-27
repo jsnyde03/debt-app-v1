@@ -34,6 +34,8 @@ export function createDefaultStore(): DebtStore {
     recommendationOverrides: [],
     completedRecommendedActions: [],
     milestoneMaxProgress: {},
+    portfolioMaxProgress: 0,
+    pendingMilestone: null,
     subscriptionPlan: 'free',
     cushionFloor: 200,
     driftBaseline: null,

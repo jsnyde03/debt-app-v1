@@ -95,6 +95,13 @@ export interface CurrentCycleNotifyState {
   notifiedRiskLevel: GuardianBand;
 }
 
+/** A just-crossed PORTFOLIO milestone (% of total debt paid) awaiting its celebratory ack (3.3.2). 100% is
+ *  debt-free — owned by the payoff finale — so milestones here are only 25/50/75. */
+export interface PendingMilestone {
+  threshold: 25 | 50 | 75;
+  progressPercent: number;
+}
+
 export interface DebtStore {
   storeVersion: number;
   paycheck: PaycheckConfig;
@@ -107,6 +114,10 @@ export interface DebtStore {
   recommendationOverrides: RecommendationOverride[];
   completedRecommendedActions: CompletedRecommendedAction[];
   milestoneMaxProgress: Record<string, number>;
+  /** 3.3.2 — the highest portfolio %-paid milestone ever reached (25/50/75), so each celebrates once. */
+  portfolioMaxProgress: number;
+  /** 3.3.2 — a just-crossed portfolio milestone awaiting its ack; null when none / already acknowledged. */
+  pendingMilestone: PendingMilestone | null;
   subscriptionPlan: SubscriptionPlan;
   /**
    * Premium auto-protect: the cushion the plan holds each cycle before deploying anything to extra

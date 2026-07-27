@@ -111,6 +111,8 @@ export interface DebtAppState {
   applyRiskNotified(cycleEndDate: string, level: GuardianBand, nowISO: string): void;
   /** §2.8 (2.4.10.2) — dismiss the reconcile-to-clear acknowledgment (clears the current-cycle notify-state). */
   acknowledgeRiskCleared(): void;
+  /** 3.3.2 — clear a just-crossed portfolio milestone after its celebratory ack. */
+  acknowledgeMilestone(): void;
   /** §2.0.c (2.4.11.4b) — dismiss the settling-in-reserve release acknowledgment. */
   acknowledgeReserveRelease(): void;
   /** §2.0.c (2.4.11.4c) — the user attests their regular bills are all entered (true) / retracts it
@@ -445,6 +447,10 @@ export function createDebtStore() {
     },
     acknowledgeReserveWalkback() {
       set((s) => ({ store: { ...s.store, pendingReserveWalkback: null } }));
+    },
+    acknowledgeMilestone() {
+      // 3.3.2: the user saw the portfolio milestone-cross beat — clear it (one-time moment).
+      set((s) => ({ store: { ...s.store, pendingMilestone: null } }));
     },
     applyTightTopUp(goalId, amount) {
       // §2.10 (2.4.11.2): the user moved `amount` from savings to hold this cycle's line — draw it down

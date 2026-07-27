@@ -116,6 +116,17 @@ export function applyRollover(store: DebtStore): DebtStore {
     maxProgressByDebt: store.milestoneMaxProgress,
   });
 
+  // 3.3.2 — the PORTFOLIO milestone (25/50/75% of total debt paid → the mid-journey beat). Reuse the same
+  // crossing+dedup engine on a synthetic aggregate; 100% is debt-free → owned by the payoff finale, excluded.
+  const totalOriginal = reconciledDebts.reduce((sum, d) => sum + (d.originalBalance ?? d.balance), 0);
+  const totalBefore = reconciledDebts.reduce((sum, d) => sum + d.balance, 0);
+  const totalAfter = debtsAfter.reduce((sum, d) => sum + d.balance, 0);
+  const portfolioResult = computeMilestones({
+    debts: [{ id: '__portfolio__', name: 'Portfolio', originalBalance: totalOriginal, previousBalance: totalBefore, currentBalance: totalAfter }],
+    maxProgressByDebt: { __portfolio__: store.portfolioMaxProgress ?? 0 },
+  });
+  const crossedPortfolio = portfolioResult.milestones.find((m) => m.threshold < 100);
+
   // Balances are now current as-of this rollover → advance the projection anchor (`balanceAsOfDate`)
   // so the premium estimate doesn't re-apply this cycle's paydown (the double-count). `lastVerifiedDate`
   // (last USER confirmation) is deliberately NOT touched — a rollover is a computed estimate, so the
@@ -147,6 +158,10 @@ export function applyRollover(store: DebtStore): DebtStore {
     completedRecommendedActions: [],
     cycleHistory: [...store.cycleHistory, snapshot],
     milestoneMaxProgress: milestoneResult.nextMaxProgressByDebt,
+    portfolioMaxProgress: portfolioResult.nextMaxProgressByDebt['__portfolio__'] ?? store.portfolioMaxProgress ?? 0,
+    pendingMilestone: crossedPortfolio
+      ? { threshold: crossedPortfolio.threshold as 25 | 50 | 75, progressPercent: Math.round(crossedPortfolio.progressPercent) }
+      : store.pendingMilestone,
     windfall: 0, // one-time extra income was for the closing cycle only
     currentCyclePrediction: null,
     // 2.4.6.1.2: the closing cycle's band becomes the NEW cycle's prior, for cross-cycle hysteresis
