@@ -79,19 +79,6 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 
 ### Active Queue — the live build _(the queue never sits idle)_
 
-**✅ 3.0 Best-in-Class Enhancement audit — DONE (2026-07-27).** 7 lens-auditors × 15 lenses, real both-theme screenshots + external category benchmark; 4 load-bearing claims code-verified (perf 3×-unmemoized · MilestonesRow orphaned · AppIcon MaterialIcons-universal · notifications non-interactive). Output = the prioritized backlog + the build order below. Full → [`DEBT_PHASE3_ENHANCEMENT_AUDIT_2026-07-27.md`](DEBT_PHASE3_ENHANCEMENT_AUDIT_2026-07-27.md).
-
-**✅✅ 3.1 Wave A — foundation polish & perf — COMPLETE (7/7, 2026-07-27).** Perf memoization · SF Symbols (iOS) · contrast+Dynamic-Type · house-voice copy · free cushion-bar net/floor reshape · Skia skeletons · dark-hero lift. Both themes verified · `validate:release:rn` green (38 e2e) · commits `c017a62`→`a6c6d04`. Detail + task-level after-scan → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) §Phase 3 · Wave A.
-
-**3.2 [SCOPE — Jason executive call 2026-07-27]: pull EVERYTHING into v1.7 unless it genuinely cannot ship until a later version.** Phase 3 is now comprehensive — all (A)/(B)/(C) enhancement-audit items are IN v1.7, incl. the full native-platform block. The old defer-gate is resolved:
-- **Native surfaces — IN v1.7** (Live Activity + Dynamic Island · widget family: home/Lock-Screen/interactive · App Intents/Siri · Control Center · StandBy). Its substrate (App Group + `expo-apple-targets` + dev client) is a LONG POLE + a provisioning-regen ([[feedback_regenerate_profiles_on_capability_change]]) + CI-glob gate ([[project_codemagic_xcodeproj_glob_gotcha]]) → **starts EARLY, in parallel with Wave A** (see 3.5).
-- **Adopt (folded into the waves):** `expo-blur` · Sentry (scaffold the facade now, wire the backend at the first native build) · Maestro (RS.6 device-e2e) · interactive notifications (full — incl. background App-Intent actions) · `react-native-ios-context-menu` · `@gorhom/bottom-sheet` (confirm Reanimated-4 compat ≥5.1.8) · TipKit · optional opt-in debt-free **sound** (`expo-audio`, silent-switch-respecting) · **native iPad re-layout** (3.6).
-- **Celebration engine [craft call, not a scope defer]:** **rec hand-rolled Skia + a Core Haptics custom pattern** (in-stack, no new native runtime); Rive optional if we want a motion-designer asset.
-- **mesh-gradient [craft call]:** **rec adopt WITH a linear-gradient fallback for <iOS 18** (no forced OS floor), else skip.
-- **✅ DECIDED (Jason 2026-07-27) — product analytics stays OUT.** Not a timing defer; excluded to protect the on-device privacy moat ("financial data never leaves your device"). If ever revisited: PostHog self-host + value-free events only.
-- **✅ DECIDED (Jason 2026-07-27) — house voice: the Guardian keeps the sole first-person "I" (it's the actor); everything else (onboarding · notifications · paywall · empty states) drops "we" for direct "you"** (3.1.4). Celebration engine (3.2 craft call) stays OPEN — revisit at Wave B with the design.
-- **Genuinely LATER (cannot be v1.7):** Android first-class platform pass (v1.8) · Premium **Connected/Plaid** tier (v1.8, own workstream) · multi-device **sync** (Connected) · **Ava AI** tier (future). Device-QA of the native surfaces still batches at Phase 6 (same v1.7 release, later phase — not a deferral).
-
 **▶ 3.3 [ACTIVE BUILD] Wave B — delight & the emotional peak** _(the emotional layer; delight on beats, restraint elsewhere)_:
 - [ ] **3.3.1 ⭐ Debt-paid-off celebration — DESIGN-FIRST (the flagship).** Full-screen Skia spectacle fired ONLY on a confirmed $0 (trigger already wired), a scaled "vanquished" beat on EACH debt cleared → grand finale on the last, count-up of total paid / interest saved / time-to-freedom, haptic crescendo, + a permanent shareable "debts-vanquished" archive. **Gate: agree the design + settle the engine (rec Skia + Core Haptics) with Jason BEFORE code.** Shares the Skia/haptic substrate with 3.3.2 + 3.3.4.
 - [ ] **3.3.2 Milestone-cross pulse + resolve orphaned `MilestonesRow`** — node spring + haptic on a newly-crossed 25/50/75%; retire the dead rail or fold its bead/glow craft into the journey ring. Reuses 3.3.1's substrate.
@@ -108,6 +95,13 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 **3.6 Genuinely-native iPad** _(heaviest single addition; after the Guardian-dependent delight work)_: per-screen re-layout (multi-column / master-detail · pointer/keyboard), not a centered phone column. The Guardian is now final (Phase 2 ✅), so its "after the Guardian is polished" precondition is met. Overlaps Gig's iPad method — reuse the approach.
 
 **Also in Phase 3 (audit-CONFIRMED, already listed below):** variable-income debt-free band (LOCKED, zero-scaffolding) · Guardian Tier-3 (hero label · ack-density coordinator · keep-essential toggle) · Windfall revisit.
+
+---
+
+_Completed this phase + settled scope (reference — not the active build):_
+
+- **✅ Done (→ LOG):** the **3.0 Best-in-Class Enhancement audit** (7 lens-auditors × 15 lenses → `DEBT_PHASE3_ENHANCEMENT_AUDIT_2026-07-27.md`) · **Wave A** (foundation polish & perf, 7/7, gate green).
+- **Phase-3 scope — settled (Jason 2026-07-27):** pull EVERYTHING into v1.7 unless it genuinely can't ship until later. **Decided:** analytics OUT (privacy moat) · house voice (Guardian sole "I", else "you"). **Adopt:** `expo-blur` · Sentry (scaffold now, wire at first native build) · Maestro · interactive notifications · context-menu · bottom-sheet (Reanimated-4 ≥5.1.8) · TipKit · opt-in debt-free sound · native iPad. **Craft calls:** celebration Skia-vs-Rive (rec Skia + Core Haptics) · mesh-gradient w/ <iOS-18 fallback. **Genuinely-later (not v1.7):** Android v1.8 · Plaid Connected v1.8 · sync · Ava.
 
 **Phase-3-open after-scan (the audit IS the scan) — captured:** (A) items → the Wave A/B/C build order above · (B)/(C) deferred → the doc's backlog + [[Deferred backlog]] pointer below · strengths to protect (Recovery = substance floor · Guardian a11y above-category · demo path · the Guardian-as-actor moat) noted in the doc. **Off-device R2.9–R2.12 → Jason, pre-submission:** ✅ hosted `privacy.html`/`support.html` FIXED + pushed · ASC privacy label must declare RevenueCat · marketing "100% private" align at submission.
 
