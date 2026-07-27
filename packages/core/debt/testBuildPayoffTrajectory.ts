@@ -1,4 +1,4 @@
-import { buildPayoffTrajectory } from "./buildPayoffTrajectory";
+import { buildPayoffTrajectory, simulatePayoff } from "./buildPayoffTrajectory";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
     if (actual !== expected) {
@@ -110,4 +110,65 @@ function runBuildPayoffTrajectoryTests() {
     console.log("✅ buildPayoffTrajectory regression tests passed.");
 }
 
+// 3.4.1.4 — per-debt clear-months (the trajectory waypoints). The pool already pays debts off one at a
+// time; these confirm `simulatePayoff` records WHEN each hits zero, carries id/name, and orders by strategy.
+function runSimulatePayoffTests() {
+    // Two 0% debts, snowball: the smaller balance clears first, both are recorded with their names, and
+    // the LAST clear month equals the total debt-free month (the endpoint).
+    {
+        const { points, clears } = simulatePayoff({
+            debts: [
+                { id: "a", name: "Small", balance: 200, minimumPayment: 40, apr: 0 },
+                { id: "b", name: "Big", balance: 1000, minimumPayment: 40, apr: 0 },
+            ],
+            monthlyExtraPayment: 100,
+            strategy: "snowball",
+        });
+        assertEqual(clears.length, 2, "both debts recorded a clear month");
+        const small = clears.find((c) => c.id === "a");
+        const big = clears.find((c) => c.id === "b");
+        assertTrue(!!small && !!big, "clears carry id");
+        assertEqual(small!.name, "Small", "clears carry name");
+        assertTrue(small!.month < big!.month, "snowball clears the smaller balance first");
+        assertEqual(Math.max(small!.month, big!.month), points[points.length - 1].month, "the last clear is the debt-free month");
+    }
+
+    // Strategy orders the clears: snowball clears the smaller balance first, avalanche the higher APR.
+    {
+        const debts = [
+            { id: "lo", name: "LoAPR", balance: 300, minimumPayment: 20, apr: 3 },
+            { id: "hi", name: "HiAPR", balance: 900, minimumPayment: 20, apr: 30 },
+        ];
+        const snow = simulatePayoff({ debts, monthlyExtraPayment: 300, strategy: "snowball" });
+        const aval = simulatePayoff({ debts, monthlyExtraPayment: 300, strategy: "avalanche" });
+        const snowFirst = [...snow.clears].sort((a, b) => a.month - b.month)[0].id;
+        const avalFirst = [...aval.clears].sort((a, b) => a.month - b.month)[0].id;
+        assertEqual(snowFirst, "lo", "snowball clears the smaller-balance debt first");
+        assertEqual(avalFirst, "hi", "avalanche clears the higher-APR debt first");
+    }
+
+    // A debt that never clears (negative amortization) records no waypoint.
+    {
+        const { clears } = simulatePayoff({
+            debts: [{ id: "x", name: "Sink", balance: 10000, minimumPayment: 10, apr: 30 }],
+            monthlyExtraPayment: 0,
+            strategy: "snowball",
+        });
+        assertEqual(clears.length, 0, "a debt that never clears has no waypoint");
+    }
+
+    // The points-only wrapper is exactly `simulatePayoff().points` — existing callers are unaffected.
+    {
+        const args = { debts: [{ id: "a", balance: 500, minimumPayment: 30, apr: 0 }], monthlyExtraPayment: 50, strategy: "snowball" as const };
+        assertEqual(
+            JSON.stringify(buildPayoffTrajectory(args)),
+            JSON.stringify(simulatePayoff(args).points),
+            "buildPayoffTrajectory === simulatePayoff().points",
+        );
+    }
+
+    console.log("✅ simulatePayoff (per-debt clears) regression tests passed.");
+}
+
 runBuildPayoffTrajectoryTests();
+runSimulatePayoffTests();

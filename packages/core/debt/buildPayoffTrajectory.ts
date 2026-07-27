@@ -2,32 +2,51 @@ import { bnplMonthlyEquivalentMinimum, isOneTimeBnplLump } from "./bnplPayoffPac
 import { calculateMonthlyInterest } from "./calculateMonthlyInterest";
 
 export type TrajectoryPoint = { month: number; balance: number };
+/** The month a single debt's balance first reaches zero (for per-debt "Visa gone — Aug 2027" waypoints). */
+export type DebtClearPoint = { id?: string; name?: string; month: number };
 
-export function buildPayoffTrajectory({
-    debts,
-    monthlyExtraPayment,
-    strategy,
-}: {
+type SimInput = {
     // `recurrence` is required to rate BNPL by cadence, matching projectDebtPayoff (R2.1). Callers pass
-    // full Debt objects, so it's present at runtime.
-    debts: Array<{ balance: number; minimumPayment: number; apr: number; type?: string; recurrence?: string }>;
+    // full Debt objects, so `id`/`name` (used only for waypoints) are present at runtime.
+    debts: Array<{ id?: string; name?: string; balance: number; minimumPayment: number; apr: number; type?: string; recurrence?: string }>;
     monthlyExtraPayment: number;
     strategy: "snowball" | "avalanche";
-}): TrajectoryPoint[] {
+};
+
+/**
+ * The full payoff simulation: the total-balance curve AND the month each individual debt clears. The
+ * pool already pays debts off one-by-one (snowball/avalanche) — this just records WHEN each hits zero,
+ * which the old total-only return threw away. `buildPayoffTrajectory` stays a thin points-only wrapper
+ * so every existing caller and test is untouched.
+ */
+export function simulatePayoff({ debts, monthlyExtraPayment, strategy }: SimInput): { points: TrajectoryPoint[]; clears: DebtClearPoint[] } {
     type DebtState = { balance: number; minimumPayment: number; apr: number; oneTimeLump: boolean };
 
+    // `meta` stays index-aligned to `pool` so a cleared pool slot maps back to its debt's id/name.
+    const meta: { id?: string; name?: string }[] = [];
     const pool: DebtState[] = debts
         .filter((d) => d.balance > 0)
-        .map((d) => ({
-            balance: d.balance,
-            // Rate BNPL by cadence (monthly-equivalent), the same as projectDebtPayoff, so the chart and
-            // the debt-free date agree (R2.1). Non-BNPL minimums are unchanged.
-            minimumPayment: d.type === "bnpl" ? bnplMonthlyEquivalentMinimum(d) : d.minimumPayment,
-            apr: d.type === "bnpl" ? 0 : (d.apr ?? 0),
-            oneTimeLump: isOneTimeBnplLump(d),
-        }));
+        .map((d) => {
+            meta.push({ id: d.id, name: d.name });
+            return {
+                balance: d.balance,
+                // Rate BNPL by cadence (monthly-equivalent), the same as projectDebtPayoff, so the chart and
+                // the debt-free date agree (R2.1). Non-BNPL minimums are unchanged.
+                minimumPayment: d.type === "bnpl" ? bnplMonthlyEquivalentMinimum(d) : d.minimumPayment,
+                apr: d.type === "bnpl" ? 0 : (d.apr ?? 0),
+                oneTimeLump: isOneTimeBnplLump(d),
+            };
+        });
 
-    if (pool.length === 0) return [{ month: 0, balance: 0 }];
+    if (pool.length === 0) return { points: [{ month: 0, balance: 0 }], clears: [] };
+
+    // First month each pool debt hits zero (null = never clears within the horizon).
+    const clearedMonth: Array<number | null> = pool.map(() => null);
+    const recordClears = (month: number) => {
+        for (let i = 0; i < pool.length; i++) {
+            if (clearedMonth[i] === null && pool[i].balance <= 0.01) clearedMonth[i] = month;
+        }
+    };
 
     const startingBalance = pool.reduce((s, d) => s + d.balance, 0);
     const points: TrajectoryPoint[] = [{ month: 0, balance: startingBalance }];
@@ -95,8 +114,18 @@ export function buildPayoffTrajectory({
 
         const totalBalance = pool.reduce((s, d) => s + d.balance, 0);
         points.push({ month, balance: Math.max(0, totalBalance) });
+        recordClears(month);
         if (totalBalance <= 0.01) break;
     }
 
-    return points;
+    const clears: DebtClearPoint[] = [];
+    for (let i = 0; i < pool.length; i++) {
+        if (clearedMonth[i] !== null) clears.push({ ...meta[i], month: clearedMonth[i]! });
+    }
+    return { points, clears };
+}
+
+/** Points-only view of the simulation — the long-standing signature every caller/test already uses. */
+export function buildPayoffTrajectory(args: SimInput): TrajectoryPoint[] {
+    return simulatePayoff(args).points;
 }

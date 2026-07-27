@@ -165,6 +165,8 @@ export default function ProgressScreen() {
       <TrajectoryChart
         snowball={view.snowball}
         avalanche={view.avalanche}
+        snowballClears={view.snowballClears}
+        avalancheClears={view.avalancheClears}
         minimums={view.minimums}
         strategy={strategy}
         debtFreeDate={view.debtFreeDate}

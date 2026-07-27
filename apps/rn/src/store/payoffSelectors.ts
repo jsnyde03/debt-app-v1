@@ -1,4 +1,4 @@
-import { buildPayoffTrajectory, type TrajectoryPoint } from '@core/debt/buildPayoffTrajectory';
+import { buildPayoffTrajectory, type DebtClearPoint, simulatePayoff, type TrajectoryPoint } from '@core/debt/buildPayoffTrajectory';
 import { computeInterestSaved, type InterestSaved } from '@core/debt/computeInterestSaved';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import type { TimelineCycle } from '@core/timeline/buildMultiCycleTimeline';
@@ -10,7 +10,7 @@ import { selectDebtFreeDate, selectExtraToDebt } from './planSelectors';
 import { buildForecastCycles } from './forecastCycles';
 import { effectivePaycheckBuffer, selectAllocation, selectSteadyStateAllocation } from './selectors';
 
-export type { TrajectoryPoint, InterestSaved, TimelineCycle, TimelineItem };
+export type { TrajectoryPoint, DebtClearPoint, InterestSaved, TimelineCycle, TimelineItem };
 
 /**
  * The near-term cash-cushion forecast — the next few pay cycles' ending balance + a stable/tight/
@@ -32,6 +32,9 @@ export interface PayoffView {
   monthlyExtra: number;
   snowball: TrajectoryPoint[];
   avalanche: TrajectoryPoint[];
+  /** Per-debt clear-months for each strategy — the "Visa gone — Aug 2027" trajectory waypoints. */
+  snowballClears: DebtClearPoint[];
+  avalancheClears: DebtClearPoint[];
   /** The minimum-payments-only curve — the "vs. minimums" ghost on the trajectory chart. */
   minimums: TrajectoryPoint[];
   order: Debt[];
@@ -58,8 +61,10 @@ export function selectPayoffView(store: DebtStore): PayoffView {
       ? computeInterestSaved({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: store.payoffStrategy, startDate })
       : { kind: 'none' };
 
-  const snowball = liveDebts.length > 0 ? buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: 'snowball' }) : [];
-  const avalanche = liveDebts.length > 0 ? buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: 'avalanche' }) : [];
+  const snowballSim = liveDebts.length > 0 ? simulatePayoff({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: 'snowball' }) : { points: [], clears: [] };
+  const avalancheSim = liveDebts.length > 0 ? simulatePayoff({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: 'avalanche' }) : { points: [], clears: [] };
+  const snowball = snowballSim.points;
+  const avalanche = avalancheSim.points;
   // The minimums-only baseline (no extra) — pays off later (or, when interest outruns minimums,
   // never), so it trails above/beyond the active plan: the visible "vs. minimums" gap.
   const minimums = liveDebts.length > 0 ? buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: 0, strategy: store.payoffStrategy }) : [];
@@ -72,6 +77,8 @@ export function selectPayoffView(store: DebtStore): PayoffView {
     monthlyExtra,
     snowball,
     avalanche,
+    snowballClears: snowballSim.clears,
+    avalancheClears: avalancheSim.clears,
     minimums,
     order,
     focus: order[0] ?? null,

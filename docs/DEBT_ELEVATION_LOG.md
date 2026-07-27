@@ -4,9 +4,20 @@
 
 ---
 
-## Phase 3 · Wave C · 3.4.1 (.1–.3) — Trajectory interactivity — COMPLETE (2026-07-27)
+## Phase 3 · Wave C · 3.4.1 — Trajectory interactivity — COMPLETE (2026-07-27)
 
-The payoff-trajectory chart gains life; the native waypoints beat (.4) follows.
+The payoff-trajectory chart gains life: a crisp line, the date read off the bead, a scrub readout, and a bead where each debt falls away.
+
+### 3.4.1.4 — Per-debt payoff waypoints [ENGINE] (2026-07-27)
+
+- **Engine:** refactored `buildPayoffTrajectory` (`packages/core/debt`) — the total-balance loop already pays debts off one at a time (snowball/avalanche) but threw away *when* each cleared. Extracted `simulatePayoff({...}) → { points, clears: DebtClearPoint[] }` that records the first month each pool slot hits ≤0 (index-aligned `meta[]` carries id/name back). `buildPayoffTrajectory` is now a thin `simulatePayoff(...).points` wrapper, so every existing caller + test is untouched. Regression tests added (`testBuildPayoffTrajectory.ts`): smaller-balance clears first under snowball / higher-APR first under avalanche · names+ids carried · last clear == debt-free month · never-payoff debt records no clear · wrapper === `.points`.
+- **Selector:** `selectPayoffView` now runs `simulatePayoff` for both strategies and exposes `snowballClears`/`avalancheClears`; the chart picks the active strategy's set.
+- **Chart:** intermediate debts only (the last clear IS the endpoint bead/date pill) get a small gold bead ON the curve at their clear-month + a collision-avoided `{name} ✓` label (skip any within 48px of the previous shown label, so 3+ debts don't crowd). Hidden while scrubbing.
+- **Bug found + fixed during build (RN gotcha):** first pass wrapped each waypoint's dot+label in a non-absolute intermediate `<View>` → their `position:absolute` coords resolved against that zero-height wrapper (which sits *below* the Canvas in flow), so dots rendered off-plot and invisible. Fix: emit the dot + label as **direct absolute children** of the measured plot container via `flatMap` (matching the sibling y/x axis labels). Lesson: absolute overlays must be direct children of the measured/positioned container, never nested under an in-flow wrapper.
+- **Verify:** `traj-waypoint` testID + extended `trajectory-interactivity.spec.ts` (3-debt modest-extra plan → ≥1 waypoint bead + a `✓` label visible). Both themes screenshot-verified (Klarna beads at the top, Visa mid-line label-suppressed near Klarna, Car = endpoint). `validate:release:rn` green — 56 e2e.
+- **After-scan:** the collision-suppressed waypoint label (Visa) → folded a follow-on into **3.4.2**: name the debt in the scrub readout when the finger lands on a waypoint. Nothing version-blocking.
+
+### 3.4.1 (.1–.3) — line, pill, scrub (2026-07-27)
 
 - **Switch-in verification (pre-authored-plan check):** grep'd `buildPayoffTrajectory` (`packages/core/debt`) — it computes each debt's payoff in an internal `pool` but returns only total `{month,balance}` points. So "per-debt payoff waypoints" is NOT free presentation (needs a core change + a regression test), unlike the other three parts. Surfaced to Jason → he chose to split waypoints into its own beat **3.4.1.4** and ship .1–.3 first.
 - **3.4.1.1 line-crispness** — `TrajectorySkiaChart.tsx`: the sole active stroke carried an always-on `BlurMask blur={3} style="solid"`, softening the line. Split into two layers: a wide (strokeWidth 7, opacity 0.3) `blur=6 style="normal"` underglow behind + a crisp un-blurred 3.5 stroke on top. Same luminosity, sharp line.

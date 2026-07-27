@@ -9,10 +9,12 @@ import { scenario, seedStore } from './helpers/seed';
 
 test.use({ viewport: { width: 402, height: 874 } });
 
+// A modest-extra, multi-year plan so multiple debts clear at spread-out months (waypoints have room).
 const PLAN = scenario({
-  paycheck: { amount: '2600', payCycle: 'monthly', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
+  paycheck: { amount: '1650', payCycle: 'monthly', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
   debts: [
     { id: 'd0', name: 'Visa', balance: 6200, originalBalance: 8000, minimumPayment: 160, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },
+    { id: 'd1', name: 'Klarna', balance: 900, originalBalance: 1200, minimumPayment: 75, apr: 0, dueDate: '2026-08-14', type: 'bnpl', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },
     { id: 'd2', name: 'Car', balance: 11000, originalBalance: 14000, minimumPayment: 320, apr: 6, dueDate: '2026-08-20', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },
   ],
   prefs: { onboardingComplete: true, guardianIntroSeen: true },
@@ -31,6 +33,11 @@ for (const theme of ['light', 'dark'] as const) {
     // At rest: the debt-free date pill is on the bead, no scrub readout.
     await expect(page.getByTestId('traj-endpoint-pill')).toBeVisible();
     await expect(page.getByTestId('traj-scrub-readout')).toHaveCount(0);
+
+    // Per-debt waypoints — intermediate debts (not the endpoint) get a bead where they clear.
+    // 3 debts → the last is the endpoint, so ≥1 intermediate waypoint, with its ✓ name label.
+    await expect(page.getByTestId('traj-waypoint').first()).toBeVisible();
+    await expect(page.getByText(/✓/).first()).toBeVisible();
 
     // Drag across the plot → the scrub readout appears (date · balance · months).
     const box = await eyebrow.boundingBox();

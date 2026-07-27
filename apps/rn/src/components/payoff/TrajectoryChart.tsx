@@ -8,7 +8,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { haptics } from '@/motion';
 import type { WhatIfResult } from '@/store/analysisSelectors';
-import type { InterestSaved, TrajectoryPoint } from '@/store/payoffSelectors';
+import type { DebtClearPoint, InterestSaved, TrajectoryPoint } from '@/store/payoffSelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
@@ -83,6 +83,8 @@ function smoothPath(pts: Pt[]): string {
 export function TrajectoryChart({
   snowball,
   avalanche,
+  snowballClears,
+  avalancheClears,
   minimums,
   strategy,
   debtFreeDate,
@@ -94,6 +96,8 @@ export function TrajectoryChart({
 }: {
   snowball: TrajectoryPoint[];
   avalanche: TrajectoryPoint[];
+  snowballClears: DebtClearPoint[];
+  avalancheClears: DebtClearPoint[];
   minimums: TrajectoryPoint[];
   strategy: PayoffStrategy;
   debtFreeDate: string | null;
@@ -145,6 +149,28 @@ export function TrajectoryChart({
   const endPoint = active.find((p) => p.balance <= 0);
   const endpoint = endPoint && w > 0 ? { x: mapX(endPoint.month), y: baselineY } : null;
   const start = activePts.length ? activePts[0] : null;
+
+  // Per-debt waypoints — a small bead where each debt falls away, sitting ON the curve. The LAST clear
+  // IS the debt-free endpoint (already the bead + date pill), so only intermediate debts get a waypoint.
+  // Labels collision-avoid (skip any within ~48px of the previous shown label) so 3+ debts don't crowd.
+  const endMonth = endPoint?.month ?? Infinity;
+  const activeClears = strategy === 'snowball' ? snowballClears : avalancheClears;
+  let lastLabelX = -Infinity;
+  const waypoints =
+    w > 0
+      ? activeClears
+          .filter((cl) => cl.month > 0 && cl.month < endMonth)
+          .map((cl) => {
+            const pt = active.find((p) => p.month === cl.month);
+            return { name: cl.name ?? '', x: mapX(cl.month), y: pt ? mapY(pt.balance) : baselineY };
+          })
+          .sort((a, b) => a.x - b.x)
+          .map((wp) => {
+            const showLabel = !!wp.name && wp.x - lastLabelX >= 48;
+            if (showLabel) lastLabelX = wp.x;
+            return { ...wp, showLabel };
+          })
+      : [];
 
   // What-If overlay geometry (same scale — the simulated curve ends earlier, so it fits as-is).
   const showSimulated = simulated.length > 1 && w > 0;
@@ -267,6 +293,29 @@ export function TrajectoryChart({
                 {t.label}
               </Text>
             ))}
+            {/* per-debt waypoints — a bead on the curve where each intermediate debt clears, with a small
+                name label (collision-avoided). Direct absolute children of the plot container (NOT wrapped
+                in a flow View, or their coords would resolve against a zero-height wrapper). Hidden while
+                scrubbing so the readout owns the overlay. */}
+            {!scrub
+              ? waypoints.flatMap((wp, i) => [
+                  <View
+                    key={`wpd${i}`}
+                    testID="traj-waypoint"
+                    pointerEvents="none"
+                    style={[styles.waypointDot, { left: wp.x - 4, top: wp.y - 4, backgroundColor: gold, borderColor: c.background.primary }]}
+                  />,
+                  wp.showLabel ? (
+                    <Text
+                      key={`wpl${i}`}
+                      pointerEvents="none"
+                      style={[textStyles.caption, styles.waypointLabel, { left: wp.x - 40, top: wp.y - 22, color: c.text.tertiary }]}
+                      numberOfLines={1}>
+                      {wp.name} ✓
+                    </Text>
+                  ) : null,
+                ])
+              : null}
             {/* debt-free date pill — read the payoff date off the bead itself. Hidden while scrubbing so
                 the readout owns the overlay. */}
             {endpoint && debtFreeDate && !scrub ? (
@@ -401,6 +450,8 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   whatIfLabel: { fontWeight: '600' },
+  waypointDot: { position: 'absolute', width: 8, height: 8, borderRadius: 4, borderWidth: 1.5 },
+  waypointLabel: { position: 'absolute', width: 80, textAlign: 'center', fontSize: 9, fontWeight: '700' },
   endPill: { position: 'absolute', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   endPillText: { fontSize: 11, fontWeight: '800', letterSpacing: -0.2, color: '#10264f' },
   scrubLine: { position: 'absolute', width: 1, opacity: 0.5 },
