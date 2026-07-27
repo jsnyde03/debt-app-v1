@@ -1,4 +1,5 @@
 import { applyDebtPaymentProjection } from "./applyDebtPaymentProjection";
+import { buildPayoffTrajectory } from "./buildPayoffTrajectory";
 import { projectDebtPayoff } from "./projectDebtPayoff";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
@@ -357,6 +358,40 @@ function runDebtProjectionTests() {
         startDate: "2026-05-01",
     });
     assertEqual(oneTimeBnpl.monthsToDebtFree, 1, "one-time BNPL clears the month it lands (B1)");
+
+    // R2.2 — a one-time BNPL must NOT phantom-accelerate a coexisting debt. A $1000 card ($100/mo, 0%)
+    // takes 10 months alone; adding a $2000 one-time BNPL must leave the card at 10 months (the one-time
+    // clears month 1 and is excluded from the recurring budget), not wipe it early via phantom freed cash.
+    const cardAlone = projectDebtPayoff({
+        debts: [
+            { id: "card", name: "Card", balance: 1000, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
+        ],
+        monthlyExtraPayment: 0,
+        strategy: "snowball",
+        startDate: "2026-05-01",
+    });
+    assertEqual(cardAlone.monthsToDebtFree, 10, "baseline: the card alone takes 10 months");
+
+    const oneTimePlusCard = projectDebtPayoff({
+        debts: [
+            { id: "k30", name: "Klarna Pay-in-30", balance: 2000, minimumPayment: 2000, apr: 0, dueDate: "2026-05-01", type: "bnpl", recurrence: "one-time", isPaidThisCycle: false },
+            { id: "card", name: "Card", balance: 1000, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
+        ],
+        monthlyExtraPayment: 0,
+        strategy: "snowball",
+        startDate: "2026-05-01",
+    });
+    assertEqual(oneTimePlusCard.monthsToDebtFree, 10, "one-time BNPL does not phantom-accelerate a coexisting debt (R2.2)");
+
+    // R2.1 — the payoff CHART and the debt-free DATE must agree on BNPL cadence. A biweekly BNPL's
+    // trajectory must hit zero the same month projectDebtPayoff reports (month 2), not month 4.
+    const biweeklyTraj = buildPayoffTrajectory({
+        debts: [{ balance: 400, minimumPayment: 100, apr: 0, type: "bnpl", recurrence: "biweekly" }],
+        monthlyExtraPayment: 0,
+        strategy: "snowball",
+    });
+    const trajZeroMonth = biweeklyTraj.find((p) => p.balance <= 0.01)?.month;
+    assertEqual(trajZeroMonth, 2, "payoff chart zero-crossing matches the debt-free date for a biweekly BNPL (R2.1)");
 
     console.log("✅ Debt projection regression tests passed.");
 }

@@ -1,4 +1,5 @@
 import { Debt } from "@core/storage/debtPlannerStorage";
+import { bnplMonthlyEquivalentMinimum, isOneTimeBnplLump } from "./bnplPayoffPace";
 import { calculateMonthlyInterest } from "./calculateMonthlyInterest";
 
 type PayoffStrategy = "snowball" | "avalanche";
@@ -16,6 +17,8 @@ type ProjectedDebt = {
     balance: number;
     minimumPayment: number;
     apr: number;
+    /** A one-time (pay-in-30) BNPL lump — cleared in month 1 but kept OUT of the recurring budget (R2.2). */
+    oneTimeLump: boolean;
 };
 
 function roundMoney(amount: number) {
@@ -26,28 +29,6 @@ function normalizeBalance(balance: number) {
     return balance < 0.01 ? 0 : roundMoney(balance);
 }
 
-// Installments-per-month by cadence (B1). A BNPL's `minimumPayment` is its per-INSTALLMENT amount at
-// its `recurrence` cadence — so a biweekly pay-in-4 really costs ~2.17× its installment per month. The
-// monthly payoff loop pays each debt once per month, so a BNPL must be scaled to its monthly-equivalent
-// or its debt-free date is wrong (biweekly under-paid → too slow; quarterly over-paid → too fast). This
-// mirrors the cash forecast's `scaleBnplMinimumsForWindow`; scoped to BNPL (the general sub-cycle case
-// for non-BNPL bills stays a separate backlog item).
-const BNPL_MONTHLY_FACTOR: Record<string, number> = {
-    weekly: 52 / 12,
-    biweekly: 26 / 12,
-    "per-paycheck": 26 / 12, // no pay-cycle here → assume biweekly (the common case)
-    monthly: 1,
-    quarterly: 1 / 3,
-    annually: 1 / 12,
-};
-
-/** A BNPL's monthly-equivalent minimum: installment × installments-per-month, or the whole balance as a
- *  lump for a one-time (pay-in-30) plan (cleared the month it lands). Non-BNPL debts are unaffected. */
-function bnplMonthlyEquivalentMinimum(debt: Debt): number {
-    if (debt.recurrence === "one-time") return roundMoney(debt.balance);
-    const factor = BNPL_MONTHLY_FACTOR[debt.recurrence] ?? 1;
-    return roundMoney(debt.minimumPayment * factor);
-}
 
 function formatMonthYear(date: Date) {
     return date.toLocaleString("en-US", { month: "long", year: "numeric" });
@@ -107,6 +88,7 @@ export function projectDebtPayoff({
             // BNPL is fixed-installment, interest-free by definition - never
             // accrue interest on it even if a nonzero APR was entered/defaulted.
             apr: debt.type === "bnpl" ? 0 : debt.apr,
+            oneTimeLump: isOneTimeBnplLump(debt),
         }));
 
     let months = 0;
@@ -121,8 +103,10 @@ export function projectDebtPayoff({
     // pool is whatever the budget covers beyond the minimums actually paid, which
     // grows automatically as debts are cleared. (First months are unchanged:
     // nothing is freed yet, so the pool equals monthlyExtraPayment.)
+    // Exclude one-time BNPL lumps from the RECURRING budget — they clear in month 1 via their own
+    // minimum, but must not re-appear as phantom "freed" cash in later months (R2.2).
     const totalMinimums = projectedDebts.reduce(
-        (sum, debt) => sum + debt.minimumPayment,
+        (sum, debt) => sum + (debt.oneTimeLump ? 0 : debt.minimumPayment),
         0
     );
     const monthlyBudget = roundMoney(totalMinimums + Math.max(0, monthlyExtraPayment));

@@ -1,11 +1,10 @@
 import { buildPayoffTrajectory, type TrajectoryPoint } from '@core/debt/buildPayoffTrajectory';
-import { computeDrift, type DriftResult } from '@core/debt/computeDrift';
+import type { DriftResult } from '@core/debt/computeDrift';
 import { computeInterestSaved, type InterestSaved } from '@core/debt/computeInterestSaved';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import type { TimelineCycle } from '@core/timeline/buildMultiCycleTimeline';
 import type { TimelineItem } from '@core/timeline/buildTimelineItems';
 
-import { todayLocalISO } from '@/data/defaults';
 import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
 
 import { selectDebtFreeDate, selectExtraToDebt } from './planSelectors';
@@ -25,16 +24,6 @@ export function selectCashTimeline(store: DebtStore, maxCycles = 5): TimelineCyc
   // Delegates to the shared forecast builder (2.4.7.5) — same state-threaded / valley-on-lean projection
   // the §2.5 water-fill runs on, so display and prefund can't diverge.
   return buildForecastCycles(store, allocation, effectivePaycheckBuffer(store), maxCycles);
-}
-
-/**
- * Drift of the live debt balance against the frozen baseline (the Premium carrot on Payoff).
- * Returns null → the "building your drift history…" empty state. Call in render off the stable store
- * ref (it builds a fresh object each call — never inside a zustand selector, per the loop lesson).
- */
-export function selectDrift(store: DebtStore): DriftResult | null {
-  const currentBalance = store.debts.filter((d) => d.balance > 0).reduce((s, d) => s + d.balance, 0);
-  return computeDrift(store.driftBaseline, { currentDate: todayLocalISO(), currentBalance });
 }
 
 export interface PayoffView {

@@ -177,7 +177,11 @@ export default function MoreScreen() {
           <SettingRow icon="privacy-tip" label="Privacy Policy" onPress={() => Linking.openURL(LINKS.privacy)} />
           <SettingRow icon="description" label="Terms of Use" onPress={() => Linking.openURL(LINKS.terms)} />
           <SettingRow icon="help-outline" label="Support" onPress={() => Linking.openURL(LINKS.support)} />
-          <SettingRow icon="card-membership" label="Manage Subscription" onPress={() => Linking.openURL(LINKS.subscription)} />
+          {/* Only real subscribers manage a subscription — a free user or a Lifetime owner would land on an
+              empty App Store subscriptions page (R2.3). */}
+          {plan === 'premium' && !premiumIsLifetime ? (
+            <SettingRow icon="card-membership" label="Manage Subscription" onPress={() => Linking.openURL(LINKS.subscription)} />
+          ) : null}
           <SettingRow icon="info-outline" label="Version" right={<Text style={[textStyles.caption, { color: c.text.tertiary }]}>{APP_VERSION}</Text>} last />
         </SettingGroup>
       </Section>

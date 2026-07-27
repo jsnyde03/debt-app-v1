@@ -63,8 +63,10 @@ const PLAN_ORDER: Record<PlanKey, number> = { annual: 0, lifetime: 1, monthly: 2
 function planFromPackage(pkg: PackageLike): PlanView | null {
   switch (pkg.packageType) {
     case 'ANNUAL': {
-      // Keep the per-month anchor on real devices too (A11) — it justifies the "Best value" badge.
-      const perMo = pkg.product.price > 0 ? ` · just $${(pkg.product.price / 12).toFixed(2)}/mo` : '';
+      // Keep the per-month anchor on real devices too (A11) — it justifies the "Best value" badge. Derive
+      // the currency symbol from the localized priceString so it isn't a hardcoded "$" on non-USD stores (R2.5).
+      const sym = pkg.product.priceString.replace(/[\d.,\s ]/g, '') || '$';
+      const perMo = pkg.product.price > 0 ? ` · just ${sym}${(pkg.product.price / 12).toFixed(2)}/mo` : '';
       return { key: 'annual', title: 'Annual', priceString: pkg.product.priceString, periodLabel: 'per year', subnote: `Billed yearly${perMo}`, badge: 'Best value', pkg };
     }
     case 'LIFETIME':
@@ -85,6 +87,7 @@ function planFromPackage(pkg: PackageLike): PlanView | null {
 export default function PaywallScreen() {
   const c = useAppColors();
   const isPremium = useAppStore((s) => s.store.subscriptionPlan === 'premium');
+  const premiumIsLifetime = useAppStore((s) => s.premiumIsLifetime);
   const client = getPurchasesClient();
 
   const [plans, setPlans] = useState<PlanView[]>(STATIC_PLANS);
@@ -107,6 +110,9 @@ export default function PaywallScreen() {
       if (mapped.length > 0) {
         mapped.sort((a, b) => PLAN_ORDER[a.key] - PLAN_ORDER[b.key]);
         setPlans(mapped);
+        // If the live offering lacks the preselected plan (e.g. no ANNUAL), select the first real one so
+        // a row is always highlighted to match the CTA (R2.7).
+        setSelectedKey((cur) => (mapped.some((p) => p.key === cur) ? cur : mapped[0].key));
       } else {
         // Client attached but the offering isn't "current"/has no mappable packages → fail loud, don't
         // masquerade static prices that can't be purchased on a real device (App Review 2.1 + revenue).
@@ -219,9 +225,14 @@ export default function PaywallScreen() {
         <>
           <View style={[styles.premiumBanner, { backgroundColor: c.background.secondary, borderColor: c.border.default }]}>
             <AppIcon name="check-circle" size={20} color={c.accent.primary} />
-            <Text style={[textStyles.bodyMedium, styles.flex1, { color: c.text.primary }]}>You’re on Premium — thanks for the support.</Text>
+            <Text style={[textStyles.bodyMedium, styles.flex1, { color: c.text.primary }]}>
+              {premiumIsLifetime ? 'You’re on Premium — Lifetime. Thanks for the support.' : 'You’re on Premium — thanks for the support.'}
+            </Text>
           </View>
-          <Button label="Manage subscription" variant="secondary" onPress={() => void openLink(MANAGE_SUBSCRIPTION_URL)} />
+          {/* Lifetime has no subscription to manage — don't deep-link to the (empty) App Store subs page (R2.3). */}
+          {premiumIsLifetime ? null : (
+            <Button label="Manage subscription" variant="secondary" onPress={() => void openLink(MANAGE_SUBSCRIPTION_URL)} />
+          )}
         </>
       ) : loadingPlans ? (
         <ActivityIndicator color={c.accent.primary} style={styles.loading} />
@@ -244,7 +255,7 @@ export default function PaywallScreen() {
                   onPress={() => setSelectedKey(plan.key)}
                   accessibilityRole="button"
                   accessibilityState={{ selected: isSel }}
-                  accessibilityLabel={`${plan.title}, ${plan.priceString} ${plan.periodLabel}`}
+                  accessibilityLabel={`${plan.title}${plan.badge ? `, ${plan.badge}` : ''}, ${plan.priceString} ${plan.periodLabel}. ${plan.subnote}`}
                   style={[
                     styles.planRow,
                     { backgroundColor: c.background.secondary, borderColor: isSel ? c.accent.primary : c.border.default },

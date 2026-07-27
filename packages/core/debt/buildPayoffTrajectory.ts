@@ -1,3 +1,4 @@
+import { bnplMonthlyEquivalentMinimum, isOneTimeBnplLump } from "./bnplPayoffPace";
 import { calculateMonthlyInterest } from "./calculateMonthlyInterest";
 
 export type TrajectoryPoint = { month: number; balance: number };
@@ -7,18 +8,23 @@ export function buildPayoffTrajectory({
     monthlyExtraPayment,
     strategy,
 }: {
-    debts: Array<{ balance: number; minimumPayment: number; apr: number; type?: string }>;
+    // `recurrence` is required to rate BNPL by cadence, matching projectDebtPayoff (R2.1). Callers pass
+    // full Debt objects, so it's present at runtime.
+    debts: Array<{ balance: number; minimumPayment: number; apr: number; type?: string; recurrence?: string }>;
     monthlyExtraPayment: number;
     strategy: "snowball" | "avalanche";
 }): TrajectoryPoint[] {
-    type DebtState = { balance: number; minimumPayment: number; apr: number };
+    type DebtState = { balance: number; minimumPayment: number; apr: number; oneTimeLump: boolean };
 
     const pool: DebtState[] = debts
         .filter((d) => d.balance > 0)
         .map((d) => ({
             balance: d.balance,
-            minimumPayment: d.minimumPayment,
+            // Rate BNPL by cadence (monthly-equivalent), the same as projectDebtPayoff, so the chart and
+            // the debt-free date agree (R2.1). Non-BNPL minimums are unchanged.
+            minimumPayment: d.type === "bnpl" ? bnplMonthlyEquivalentMinimum(d) : d.minimumPayment,
             apr: d.type === "bnpl" ? 0 : (d.apr ?? 0),
+            oneTimeLump: isOneTimeBnplLump(d),
         }));
 
     if (pool.length === 0) return [{ month: 0, balance: 0 }];
@@ -29,7 +35,8 @@ export function buildPayoffTrajectory({
     // Constant monthly outflow so a paid-off debt's freed minimum rolls onto the
     // next target (the defining snowball/avalanche behavior). pool length is
     // fixed and minimums never change, so this stays constant.
-    const totalMinimums = pool.reduce((s, d) => s + d.minimumPayment, 0);
+    // One-time BNPL lumps clear in month 1 but stay OUT of the recurring budget (no phantom freed cash — R2.2).
+    const totalMinimums = pool.reduce((s, d) => s + (d.oneTimeLump ? 0 : d.minimumPayment), 0);
     const monthlyBudget = totalMinimums + Math.max(0, monthlyExtraPayment);
 
     // Match projectDebtPayoff's 600-month horizon so the chart reaches zero for any
