@@ -79,7 +79,11 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 
 ### Active Queue — the live build _(the queue never sits idle)_
 
-**▶ 3.3.6 [ACTIVE BUILD] Wave B — Onboarding + early-journey wins** _(the last Wave-B item; 3.3.1–3.3.5 SHIPPED → see Completed below)_. Mechanical: (a) personalize the onboarding finish on the computed debt-free date · (b) reframe the early Progress hero to lead FORWARD (not a deflating "0% paid"). **Design-first — PAUSE for Jason:** (c) **first-run positioning** — seed the uncopyable Guardian job in Welcome (options to Jason before building).
+**▶ 3.3.6 [ACTIVE BUILD] Wave B — Onboarding + early-journey wins** _(last Wave-B item; 3.3.1–3.3.5 SHIPPED → Completed below)_:
+- [x] **3.3.6.1** onboarding finish personalized on the projected debt-free date ("You could be debt-free by {date}", graceful fallback). — built, verifying.
+- [x] **3.3.6.2** early Progress hero leads FORWARD ("{remaining} to go" instead of "$0 paid" before any payment). — built, verifying.
+- [ ] **3.3.6.3 [DESIGN-FIRST — PAUSE for Jason]** first-run positioning — seed the uncopyable Guardian job in Welcome (bring options, don't solo).
+- [ ] **3.3.6.4** verify — both themes + gate.
 - **Wave B exit:** all 6 green, both themes + `validate:release:rn` green → the task-level after-scan → Wave C.
 
 **3.4 Wave C — interactivity & data-viz:** trajectory (endpoint date pill · touch-scrub · per-debt payoff waypoints · line crispness) · cushion-bar/Cash-Runway/ring tap-scrub + **Safety-net tooltip** + ring milestone labels · `expo-blur` glass (tab bar + sheet scrims) · context-menu + swipe actions on rows · bottom-sheet migration.

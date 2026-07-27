@@ -153,7 +153,8 @@ export default function ProgressScreen() {
             <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]}>DEBT-FREE</Text>
             <Text style={[styles.heroDate, { color: surf.heroText }]}>{view.debtFreeDate ?? '—'}</Text>
             <Text style={[textStyles.subhead, { color: surf.heroSub }]}>
-              {formatCurrency(totalPaid)} of {formatCurrency(totalOriginal)} paid
+              {/* 3.3.6b — early on, lead FORWARD (the remaining as a goal) instead of a deflating "$0 paid". */}
+              {totalPaid > 0 ? `${formatCurrency(totalPaid)} of ${formatCurrency(totalOriginal)} paid` : `${formatCurrency(totalOriginal)} to go`}
             </Text>
           </View>
         </View>

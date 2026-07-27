@@ -3,6 +3,8 @@ import { Text, View } from 'react-native';
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { selectPayoffView } from '@/store/payoffSelectors';
+import { useAppStore } from '@/store/useAppStore';
 import { textStyles } from '@/theme/typography';
 
 import { OnboardingLayout, onboardingStyles as s } from './OnboardingLayout';
@@ -15,15 +17,23 @@ const STATS: { icon: IconGlyph; label: string; body: string }[] = [
 
 export function CompletionStep({ onComplete }: { onComplete: () => void }) {
   const c = useAppColors();
+  // 3.3.6a — land the aspirational anchor at the finish: their real projected debt-free date (the onboarding
+  // has already written the paycheck + first debt to the store). Falls back gracefully if there's no date yet.
+  const store = useAppStore((st) => st.store);
+  const debtFreeDate = selectPayoffView(store).debtFreeDate;
   return (
     <OnboardingLayout step={3} total={4} ctas={<Button label="See My Plan  →" onPress={onComplete} />}>
       <View style={[s.hero, { backgroundColor: c.background.secondary }]}>
         <AppIcon name="celebration" size={34} color={c.accent.success} />
       </View>
       <View style={s.copy}>
-        <Text style={[textStyles.title1, { color: c.text.primary }]}>You&apos;re all set!</Text>
+        <Text style={[textStyles.title1, { color: c.text.primary }]}>
+          {debtFreeDate ? `You could be debt-free by ${debtFreeDate}` : "You're all set"}
+        </Text>
         <Text style={[textStyles.body, { color: c.text.secondary }]}>
-          Your plan is ready. Tap below to see exactly what to do with your next paycheck.
+          {debtFreeDate
+            ? "That's your target — stay the course. Tap below to see exactly what to do with your next paycheck."
+            : 'Your plan is ready. Tap below to see exactly what to do with your next paycheck.'}
         </Text>
       </View>
       <View style={s.list}>
