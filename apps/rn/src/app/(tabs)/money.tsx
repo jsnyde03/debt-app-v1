@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -84,7 +84,9 @@ export default function MoneyScreen() {
 function DebtsSection() {
   const store = useAppStore((s) => s.store);
   const strategy = store.payoffStrategy;
-  const view = selectPayoffView(store);
+  // Memoized on the store so re-renders that don't change the plan (e.g. the parent's Debts/Bills/Goals
+  // section toggle) don't rebuild all three payoff trajectories.
+  const view = useMemo(() => selectPayoffView(store), [store]);
   const [sheet, setSheet] = useState<{ editing: Debt | null; prefill?: Partial<Debt> } | null>(null);
   const paidOff = store.debts.filter((d) => d.balance <= 0);
   const c = useAppColors();

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -52,8 +52,10 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
   const c = useAppColors();
   const store = useAppStore((s) => s.store);
   const isPremium = store.subscriptionPlan === 'premium';
-  const engineStore = withProjectedBalances(store, isPremium);
-  const options = selectSaveForItOptions(engineStore, amount);
+  // Memoized off the store/amount so the sheet's own input state (customPer, selection) doesn't re-project
+  // balances or rebuild the options on every interaction.
+  const engineStore = useMemo(() => withProjectedBalances(store, isPremium), [store, isPremium]);
+  const options = useMemo(() => selectSaveForItOptions(engineStore, amount), [engineStore, amount]);
   const [selected, setSelected] = useState<SaveOption['key'] | 'custom'>(options[0]?.key ?? 'debtFirst');
   const [customPer, setCustomPer] = useState('');
   const goalLabel = name.trim() || 'this purchase';

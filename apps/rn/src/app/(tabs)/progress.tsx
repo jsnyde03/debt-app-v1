@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { formatCurrency } from '@core/utils/formatCurrency';
@@ -53,12 +53,20 @@ export default function ProgressScreen() {
   // 2.4 — forward-looking computations (debt-free date, trajectory, cushion, what-if) read projected-
   // current balances for premium; free is a no-op wrap. Backward-looking "% paid" below stays on the
   // raw/confirmed balances (progress is what you've actually paid, not a projection).
-  const engineStore = withProjectedBalances(store, store.subscriptionPlan === 'premium');
-  const view = selectPayoffView(engineStore);
+  // Memoized on the store (not on `extra`): the projection + the 3 payoff trajectories are expensive and
+  // don't depend on the What-If input, so a keystroke in the extra field must NOT re-run them. `store` is a
+  // stable zustand reference between renders, so these recompute only when the plan actually changes.
+  const isPremium = store.subscriptionPlan === 'premium';
+  const engineStore = useMemo(() => withProjectedBalances(store, isPremium), [store, isPremium]);
+  const view = useMemo(() => selectPayoffView(engineStore), [engineStore]);
 
-  // What-If state — folded into the projection card (the extra drives its overlay + controls).
+  // What-If state — folded into the projection card (the extra drives its overlay + controls). Only THIS
+  // recomputes per keystroke now, off the stable engineStore.
   const [extra, setExtra] = useState('');
-  const whatIf = selectWhatIf(engineStore, Number(extra) || 0);
+  const whatIf = useMemo(() => selectWhatIf(engineStore, Number(extra) || 0), [engineStore, extra]);
+  // Same rule as above: the cash-cushion forecast is expensive and doesn't depend on `extra`, so it must
+  // be memoized off the stable engineStore rather than rebuilt inline on every keystroke.
+  const cashCycles = useMemo(() => selectCashTimeline(engineStore), [engineStore]);
 
   if (!view.hasDebts) {
     return (
@@ -126,7 +134,7 @@ export default function ProgressScreen() {
         </View>
       </LinearGradient>
 
-      <CashFlowSection cycles={selectCashTimeline(engineStore)} />
+      <CashFlowSection cycles={cashCycles} />
 
       <TrajectoryChart
         snowball={view.snowball}

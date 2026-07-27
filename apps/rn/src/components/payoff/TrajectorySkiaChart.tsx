@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { BlurMask, Canvas, Circle, DashPathEffect, Line, LinearGradient, Path, Skia, vec } from '@shopify/react-native-skia';
 import { Easing, interpolate, useDerivedValue, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 
@@ -55,10 +55,12 @@ export default function TrajectorySkiaChart({
   axisColor,
   palette,
 }: TrajectorySkiaChartProps) {
-  const line = Skia.Path.MakeFromSVGString(activePath);
-  const area = Skia.Path.MakeFromSVGString(areaPath);
-  const ghost = ghostPath ? Skia.Path.MakeFromSVGString(ghostPath) : null;
-  const simulated = simulatedPath ? Skia.Path.MakeFromSVGString(simulatedPath) : null;
+  // Parse the SVG path strings into Skia paths only when a string actually changes — otherwise every
+  // parent re-render (e.g. a What-If keystroke redrawing the simulated curve) needlessly re-parsed all four.
+  const line = useMemo(() => Skia.Path.MakeFromSVGString(activePath), [activePath]);
+  const area = useMemo(() => Skia.Path.MakeFromSVGString(areaPath), [areaPath]);
+  const ghost = useMemo(() => (ghostPath ? Skia.Path.MakeFromSVGString(ghostPath) : null), [ghostPath]);
+  const simulated = useMemo(() => (simulatedPath ? Skia.Path.MakeFromSVGString(simulatedPath) : null), [simulatedPath]);
 
   const reduce = useReducedMotion();
   const progress = useSharedValue(reduce ? 1 : 0);

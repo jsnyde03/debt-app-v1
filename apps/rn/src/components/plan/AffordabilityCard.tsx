@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
@@ -57,7 +57,9 @@ export function AffordabilityCard() {
     setSaveSheet(true);
   }
 
-  const engineStore = withProjectedBalances(store, isPremium);
+  // Memoized off the store so typing the purchase amount doesn't re-project balances each keystroke
+  // (only `selectAffordability`, which genuinely depends on the amount, recomputes below).
+  const engineStore = useMemo(() => withProjectedBalances(store, isPremium), [store, isPremium]);
   const n = Number(amount);
   const result: Affordability | null = amount.trim() && Number.isFinite(n) && n > 0 ? selectAffordability(engineStore, n) : null;
 
