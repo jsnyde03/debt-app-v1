@@ -4,6 +4,16 @@
 
 ---
 
+## Phase 3 · Wave B · 3.3.2 — Milestone-cross pulse + dead-code retire — COMPLETE (2026-07-27)
+
+Design forks (Jason ✓): **portfolio** milestones (not per-debt) · calm Today ack + ring pulse + haptic (no overlay) · **retire** the orphaned rail. Both themes verified, gate green (46 e2e). Commits `4ce2740`→`5c4cd7d`.
+
+- **3.3.2.1 capture** — before-scan: `computeMilestones` (per-debt) + `milestoneMaxProgress` dedup were wired in `payday.ts` but the crossings were DISCARDED (surfacing deferred "B.9"). Added `portfolioMaxProgress` + transient `pendingMilestone` to the store; `payday.ts` reuses `computeMilestones` on a **synthetic portfolio aggregate** to detect a 25/50/75% journey crossing (100% excluded → the payoff finale owns debt-free), dedup'd once-per-lifetime; `acknowledgeMilestone` clears it. 7 asserts (crossing / 100-excluded / dedup). Test learning: `applyRolloverPayment` only pays down a debt marked `minimumPaidThisCycle`, so the fixtures set it.
+- **3.3.2.2 Today ack** — `MilestoneAckCard`: a calm gold-star card with threshold-specific copy ("Halfway to debt-free · 50% paid off — you're over the hump") + a success haptic on appear; wired off `store.pendingMilestone`. Proportional to a mid-journey win (no overlay).
+- **3.3.2.3 ring pulse** — `JourneyRingChart` gains an optional `pulseThreshold`; the matching node breathes (animated gold glow via `withRepeat`, static under reduce-motion). Progress passes `store.pendingMilestone?.threshold` → the crossed node pulses until acknowledged.
+- **3.3.2.4 retire dead code** (Jason: "retire any dead code") — deleted orphaned `MilestonesRow.tsx` + the dead `DriftResult` type re-export in `payoffSelectors` (`DriftCard` was already gone — backlog item resolved).
+- **3.3.2.5 verify** — `celebration.spec` milestone tests (Today ack + Progress ring pulse), both themes; full `validate:release:rn` green. **Edge (noted):** the ack/pulse persist (`pendingMilestone`) until acked on Today — acceptable (the ack card resurfaces next Today visit). On-device pulse-stops-on-ack → Phase-6.
+
 ## Phase 3 · Wave B · 3.3.1 — Debt-paid-off celebration — COMPLETE (2026-07-27)
 
 The flagship emotional beat. Design signed off w/ Jason (Skia+Reanimated+Core-Haptics · contained per-debt beat · full-screen finale · archive on Progress; spec `DEBT_CELEBRATION_SPEC.md`). Built structure-first, both themes verified, `validate:release:rn` green (44 e2e). Commits `5a5f32c`→(this).
