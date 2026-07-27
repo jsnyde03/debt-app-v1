@@ -64,12 +64,13 @@ function run() {
     monthlyTL[0].net < biweeklyTL[0].net,
     `the monthly earner's cycle-0 net is tighter (more BNPL outflow): ${monthlyTL[0].net} < ${biweeklyTL[0].net}`,
   );
-  // Re-scan Finding 1 — cycle 0's endingBalance (the Cash Flow bar/value) must ALSO reflect the scaled
-  // BNPL outflow, not just net; pre-fix cycle 0 subtracted only one installment → this would have been
-  // equal, overstating the monthly earner's cushion.
+  // Re-scan Finding 1 — cycle 0's endingBalance (the Cash Flow bar/value) must reflect the scaled BNPL
+  // outflow, not just net. The two scenarios differ ONLY in the BNPL row (3×$100 vs 1×$100), so the gap
+  // is EXACTLY $200. An exact check (not directional) locks out BOTH a removed scaling (gap → $0) AND a
+  // doubled one (gap → $400) — the double-scale regression a `<` assert would miss.
   assert(
-    monthlyTL[0].endingBalance < biweeklyTL[0].endingBalance,
-    `cycle-0 endingBalance reflects the scaled BNPL outflow: ${monthlyTL[0].endingBalance} < ${biweeklyTL[0].endingBalance}`,
+    Math.round((biweeklyTL[0].endingBalance - monthlyTL[0].endingBalance) * 100) / 100 === 200,
+    `cycle-0 endingBalance reflects EXACTLY the extra 2 in-window BNPL installments ($200 gap) — got ${biweeklyTL[0].endingBalance - monthlyTL[0].endingBalance}`,
   );
 
   // 2.7.4.3 — the between-paycheck heads-up names the lumpy BNPL for the monthly earner, and stays quiet
