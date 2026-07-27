@@ -65,7 +65,7 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
           <View style={styles.echo}>
             <Text style={[styles.echoNum, { color: c.text.primary }]}>{formatWhole(data.perPaycheckTotal)}</Text>
             <Text style={[textStyles.subhead, { color: c.text.tertiary }]}>
-              set aside per paycheck{data.perCycleEqualsMonth ? '' : ` · ≈ ${formatWhole(data.monthlyTotal)}/mo`}
+              reserved per paycheck{data.perCycleEqualsMonth ? '' : ` · ≈ ${formatWhole(data.monthlyTotal)}/mo`}
             </Text>
           </View>
           <Text style={[textStyles.caption, styles.explain, { color: c.text.tertiary }]}>
@@ -103,7 +103,7 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
             {data.oneTimeCount > 0 ? (
               <View style={[styles.oneTime, { borderColor: c.border.subtle }]}>
                 <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-                  Plus {formatCurrency(data.oneTimeTotal)} in {data.oneTimeCount} one-time {data.oneTimeCount === 1 ? 'bill' : 'bills'} — not part of your ongoing set-aside.
+                  Plus {formatCurrency(data.oneTimeTotal)} in {data.oneTimeCount} one-time {data.oneTimeCount === 1 ? 'bill' : 'bills'} — not part of your ongoing reserve.
                 </Text>
               </View>
             ) : null}

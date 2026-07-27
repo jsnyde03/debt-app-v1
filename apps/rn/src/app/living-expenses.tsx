@@ -32,7 +32,7 @@ export default function LivingExpensesScreen() {
   return (
     <Screen title="Living Expenses" onBack={() => router.back()}>
       <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
-        Everyday spending set aside each paycheck, before debt and goals.
+        Everyday spending reserved each paycheck, before debt and goals.
       </Text>
 
       {items.length === 0 ? (

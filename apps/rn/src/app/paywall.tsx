@@ -156,7 +156,7 @@ export default function PaywallScreen() {
       } else {
         // Purchased at StoreKit but the entitlement didn't come back active (mapping issue) — don't leave
         // the user charged-and-confused with a silent no-op.
-        Alert.alert('Almost there', 'Your purchase went through, but we couldn’t confirm Premium yet. Tap Restore, or contact support if it persists.');
+        Alert.alert('Almost there', 'Your purchase went through, but Premium couldn’t be confirmed yet. Tap Restore, or contact support if it persists.');
       }
     } catch (error) {
       Alert.alert('Purchase didn’t complete', error instanceof Error ? error.message : 'Something went wrong. Please try again.');
@@ -178,7 +178,7 @@ export default function PaywallScreen() {
         Alert.alert('Purchases restored', 'Your premium access is back.');
         router.back();
       } else {
-        Alert.alert('Nothing to restore', 'We couldn’t find an active purchase for this Apple Account.');
+        Alert.alert('Nothing to restore', 'No active purchase was found for this Apple Account.');
       }
     } catch (error) {
       Alert.alert('Restore didn’t complete', error instanceof Error ? error.message : 'Something went wrong. Please try again.');
@@ -216,7 +216,7 @@ export default function PaywallScreen() {
       <View style={styles.trust}>
         <AppIcon name="lock" size={16} color={c.text.tertiary} />
         <Text style={[textStyles.caption, styles.flex1, { color: c.text.secondary }]}>
-          Private by design — your financial data never leaves your device, and we never sell you more debt.
+          Private by design — your financial data never leaves your device, and you’ll never be sold more debt.
         </Text>
       </View>
 
@@ -240,7 +240,7 @@ export default function PaywallScreen() {
         // A1 — client attached but no purchasable packages: fail loud, never offer static prices here.
         <View style={[styles.errorCard, { backgroundColor: c.background.secondary, borderColor: c.border.default }]}>
           <Text style={[textStyles.subhead, styles.flex1, { color: c.text.primary }]}>
-            We couldn’t load plans right now. Check your connection and try again.
+            Plans couldn’t load right now. Check your connection and try again.
           </Text>
           <Button label="Retry" variant="secondary" onPress={() => void loadPlans()} disabled={busy} />
         </View>

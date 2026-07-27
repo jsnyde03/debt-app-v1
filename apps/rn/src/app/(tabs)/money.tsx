@@ -107,7 +107,7 @@ function DebtsSection() {
       <>
         <EmptyState
           icon="credit-card"
-          title="No debts yet"
+          title="Start your debt-free plan"
           body="Add a loan, credit card, or BNPL balance to see your debt-free date."
           cta="Add your first debt"
           onCta={() => setSheet({ editing: null })}
@@ -398,8 +398,8 @@ function BillsSection() {
       <>
         <EmptyState
           icon="receipt-long"
-          title="No bills yet"
-          body="Add a required bill or payment to build your paycheck plan."
+          title="Build your paycheck plan"
+          body="Add a required bill or payment so your plan knows what’s due."
           cta="Add your first bill"
           onCta={() => setSheet({ editing: null })}
         />
@@ -416,7 +416,7 @@ function BillsSection() {
         { value: formatWhole(oneTimeTotal), sub: `${oneTime.length} one-time ${bills(oneTime.length)}`, caption: undefined as string | undefined }
       : {
           value: formatWhole(perPaycheckTotal),
-          sub: 'set aside per paycheck',
+          sub: 'reserved per paycheck',
           // Drop the ≈/mo caption when the user is paid monthly (per-paycheck == per-month → redundant).
           caption: monthlyRedundant ? undefined : `≈ ${formatWhole(monthlyTotal)}/mo`,
         };
@@ -579,7 +579,7 @@ function LivingReserve({ total }: { total: number }) {
             <AppIcon name="chevron-right" size={20} color={c.text.tertiary} />
           </View>
         </View>
-        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Set aside each paycheck · tap to manage</Text>
+        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Reserved each paycheck · tap to manage</Text>
       </Card>
     </Pressable>
   );
@@ -595,7 +595,7 @@ function GoalsSection() {
       <>
         <EmptyState
           icon="flag"
-          title="No goals yet"
+          title="Start a savings goal"
           body="Add an emergency fund or savings goal to start tracking progress."
           cta="Add your first goal"
           onCta={() => setSheet({ editing: null })}

@@ -168,7 +168,7 @@ export default function MoreScreen() {
             subtitle="Skip building a starter emergency fund — put more toward debt first."
             right={<Switch value={prefs.hasSavingsElsewhere} onValueChange={(v) => appStore.getState().updatePrefs({ hasSavingsElsewhere: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
-          <SettingRow icon="shopping-cart" label="Living Expenses" subtitle="Everyday spending set aside each paycheck." onPress={() => router.push('/living-expenses')} last />
+          <SettingRow icon="shopping-cart" label="Living Expenses" subtitle="Everyday spending reserved each paycheck." onPress={() => router.push('/living-expenses')} last />
         </SettingGroup>
       </Section>
 

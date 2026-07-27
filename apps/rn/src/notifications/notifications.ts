@@ -24,8 +24,10 @@ const ALL_IDS = [ID_PAYCHECK_EVE, ID_PAYDAY_CAPTURE, ID_BILLS_ALERT, ID_RISK];
  * never-opened user gets exactly this, so it must be safe even if the read later reconciles to clear.
  */
 export const RISK_NOTIFICATION = {
-  title: 'Time to check this paycheck',
-  body: 'Take a quick look at your plan before this one lands.',
+  // 3.1.4 house voice: in the Guardian's first-person, but STILL neutral — no verdict ("tight"), no figure,
+  // so a reconcile-to-clear can't turn it into cried-wolf (the locked constraint above).
+  title: 'Before this paycheck lands',
+  body: "I'd give your plan a quick look before payday.",
 } as const;
 
 // Show notifications while the app is foregrounded (banner + list).

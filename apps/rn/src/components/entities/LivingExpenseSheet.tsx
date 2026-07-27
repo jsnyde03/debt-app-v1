@@ -37,7 +37,7 @@ export function LivingExpenseSheet({ editing, onClose }: { editing: LivingExpens
     <FormSheet
       visible
       title={isEdit ? 'Edit spending item' : 'Add a spending item'}
-      subtitle="Everyday spending you set aside for each paycheck (groceries, gas, fun)."
+      subtitle="Everyday spending you reserve each paycheck (groceries, gas, fun)."
       submitLabel={isEdit ? 'Save' : 'Add item'}
       onSubmit={submit}
       onRemove={isEdit ? remove : undefined}

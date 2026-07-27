@@ -73,7 +73,7 @@ export default function ProgressScreen() {
       <Screen title="Progress" right={<MoreButton />}>
         <EmptyState
           icon="trending-down"
-          title="No debts to pay off"
+          title="Your payoff journey starts here"
           body="Add a debt to see your payoff order, timeline, and interest saved."
           cta="Add a debt"
           onCta={() => goToTab('money')}
