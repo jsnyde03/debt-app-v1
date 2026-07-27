@@ -1,5 +1,6 @@
-import { View } from 'react-native';
 import { WithSkiaWeb } from '@shopify/react-native-skia/lib/module/web';
+
+import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 
 import type { TrajectorySkiaChartProps } from './TrajectorySkiaChart';
 
@@ -13,7 +14,7 @@ export function TrajectoryCanvas(props: TrajectorySkiaChartProps) {
       getComponent={() => import('./TrajectorySkiaChart')}
       opts={{ locateFile: (file: string) => `/${file}` }}
       componentProps={props}
-      fallback={<View style={{ width: props.width, height: props.height }} />}
+      fallback={<ChartSkeleton shape="rect" width={props.width} height={props.height} />}
     />
   );
 }

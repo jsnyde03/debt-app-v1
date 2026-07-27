@@ -1,5 +1,6 @@
-import { View } from 'react-native';
 import { WithSkiaWeb } from '@shopify/react-native-skia/lib/module/web';
+
+import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 
 import type { CushionBarChartProps } from './CushionBarChart';
 
@@ -10,7 +11,7 @@ export function CushionBarCanvas(props: CushionBarChartProps) {
       getComponent={() => import('./CushionBarChart')}
       opts={{ locateFile: (file: string) => `/${file}` }}
       componentProps={props}
-      fallback={<View style={{ width: props.width, height: props.height }} />}
+      fallback={<ChartSkeleton shape="rect" width={props.width} height={props.height} />}
     />
   );
 }

@@ -1,5 +1,6 @@
-import { View } from 'react-native';
 import { WithSkiaWeb } from '@shopify/react-native-skia/lib/module/web';
+
+import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 
 import type { JourneyRingChartProps } from './JourneyRingChart';
 
@@ -10,7 +11,7 @@ export function JourneyRingCanvas(props: JourneyRingChartProps) {
       getComponent={() => import('./JourneyRingChart')}
       opts={{ locateFile: (file: string) => `/${file}` }}
       componentProps={props}
-      fallback={<View style={{ width: props.size, height: props.size }} />}
+      fallback={<ChartSkeleton shape="ring" size={props.size} stroke={props.stroke} />}
     />
   );
 }
