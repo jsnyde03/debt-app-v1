@@ -83,7 +83,7 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 
 **▶ 3.1 [ACTIVE BUILD] Wave A — foundation polish & perf** _(mechanical; no design/tooling gate — build now)_:
 - [x] **3.1.1 Perf memoization ✅** — memoized the heavy derivations off the stable store (not the input) at all 5 input-/toggle-driven sites the after-scan surfaced beyond the audit's two: progress `view`/`whatIf`/`cashCycles` · TrajectorySkiaChart's 4 SVG parses · AffordabilityCard + SaveForItSheet `engineStore` · money `selectPayoffView` (3 sims per section toggle). tsc + lint + regression/app/scenarios green. (Today + cushion-forecast `engineStore` deferred → backlog.)
-- [ ] **3.1.2 SF Symbols on iOS** (VERIFIED) — platform-split `AppIcon` → `expo-symbols` (installed), Material fallback. Kills the biggest generic-Android tell.
+- [x] **3.1.2 SF Symbols on iOS ✅** — platform-split `AppIcon.ios` → SF Symbols via a tsc-validated `appIconSF` glyph→symbol map (`@/theme/icons`), MaterialIcons fallback for unmapped; routed `more-button` through `AppIcon` (last non-tab direct-Material path). Before-scan corrected a stale premise: the **tab bar was already SF** (only AppIcon + more-button remained). Web/Android unchanged (no screenshot delta); iOS symbol render → Phase-6 device-QA.
 - [ ] **3.1.3 Contrast + Dynamic-Type start** — tertiary-on-navy/card ratios both themes; Guardian 3-stat row wraps + hero multiplier cap. (Full AX3/AX5 QA → Phase 6 device.)
 - [ ] **3.1.4 Copy coherence** — house voice (Guardian = sole first-person "I"; kill the "we" drift → direct "you") · risk notification in-voice · **"set aside"→"reserved/held"** ([[reference_set_aside_is_gig_brand]]) · warm empty states.
 - [ ] **3.1.5 Free Cushion-bar legibility** — dashed safety-net/floor line + one-line legend (per-cycle crunch analysis stays premium).
@@ -209,6 +209,7 @@ Acquisition-grade store presence (screenshots · app-preview video · listing se
 - Native Skia render + draw-on motion on all surfaces (Progress ring · trajectory · Bills allocation bar · Cash Runway chart) + CanvasKit-native.
 - `boxShadow` + `overflow:hidden` native clip · `<Motion>`/`<CountUp>` native runtime.
 - Guardian `gpp-*` MaterialIcons render · VoiceOver walk (structure fixed; walk owed).
+- **§3.1.2 SF Symbols (AppIcon.ios):** verify every `appIconSF` symbol renders on the min-iOS deployment target — some are iOS-16+ (`party.popper.fill` · `banknote.fill` · `bandage.fill` · `rosette`); swap or add a `SymbolView fallback` for any that blank. Also eyeball SF vs Material sizing/weight parity across surfaces.
 - Native risk-notification delivery + rollover-while-backgrounded reliability · Freedom `ffp://` deep-link handoff (+ possible `LSApplicationQueriesSchemes`).
 - What-If slider drag + gesture-vs-ScrollView arbitration · Today buckets vs real overdue-carried / autopay-presumed rows.
 - Per-screen iPad re-layout · confidence-decay threshold tuning on real use.

@@ -24,5 +24,52 @@ export const icons = {
   close: 'close',
 } satisfies Record<string, MaterialGlyph>;
 
+/**
+ * SF-Symbol equivalents for the MaterialIcons glyphs `AppIcon` renders, so iOS gets native symbols
+ * (weight/Dynamic-Type/dark-mode aware) instead of the generic-Android Material glyphs. `AppIcon.ios`
+ * looks a glyph up here; anything NOT listed simply keeps its MaterialIcons rendering on iOS (graceful
+ * degrade). `SFSymbol` is the full symbol-name union, so tsc rejects an invalid name at compile time.
+ */
+export const appIconSF: Partial<Record<MaterialGlyph, SFSymbol>> = {
+  // navigation / actions
+  'chevron-right': 'chevron.right',
+  'chevron-left': 'chevron.left',
+  'expand-more': 'chevron.down',
+  close: 'xmark',
+  cancel: 'xmark.circle.fill',
+  check: 'checkmark',
+  'check-circle': 'checkmark.circle.fill',
+  'task-alt': 'checkmark.circle',
+  add: 'plus',
+  'add-circle-outline': 'plus.circle',
+  edit: 'pencil',
+  search: 'magnifyingglass',
+  'more-horiz': 'ellipsis',
+  update: 'arrow.clockwise',
+  // finance / domain
+  'account-balance-wallet': 'wallet.pass.fill',
+  savings: 'banknote.fill',
+  'shopping-cart': 'cart.fill',
+  'trending-up': 'chart.line.uptrend.xyaxis',
+  'trending-down': 'chart.line.downtrend.xyaxis',
+  'auto-graph': 'chart.xyaxis.line',
+  assignment: 'doc.text.fill',
+  history: 'clock.arrow.circlepath',
+  'phone-iphone': 'iphone',
+  // status / trust (gpp-* = the shield family)
+  'gpp-good': 'checkmark.shield.fill',
+  'gpp-bad': 'xmark.shield.fill',
+  'gpp-maybe': 'exclamationmark.shield.fill',
+  shield: 'shield.fill',
+  'verified-user': 'checkmark.seal.fill',
+  lock: 'lock.fill',
+  'error-outline': 'exclamationmark.triangle',
+  healing: 'bandage.fill',
+  // premium / celebration
+  'workspace-premium': 'rosette',
+  star: 'star.fill',
+  celebration: 'party.popper.fill',
+} satisfies Partial<Record<MaterialGlyph, SFSymbol>>;
+
 export type TabIconName = keyof typeof tabIcons;
 export type IconName = keyof typeof icons;

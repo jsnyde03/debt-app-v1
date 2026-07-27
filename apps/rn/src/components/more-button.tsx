@@ -3,10 +3,10 @@
  * Present in every tab header for consistent access; opens the More hub (Data / Preferences / About).
  */
 
-import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable } from 'react-native';
 
+import { AppIcon } from '@/components/ui/AppIcon';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { icons } from '@/theme/icons';
 
@@ -18,7 +18,8 @@ export function MoreButton() {
       hitSlop={12}
       accessibilityRole="button"
       accessibilityLabel="More">
-      <MaterialIcons name={icons.more} size={24} color={c.text.secondary} />
+      {/* Routed through AppIcon so iOS gets the SF-Symbol ellipsis (more-horiz → ellipsis). */}
+      <AppIcon name={icons.more} size={24} color={c.text.secondary} />
     </Pressable>
   );
 }
