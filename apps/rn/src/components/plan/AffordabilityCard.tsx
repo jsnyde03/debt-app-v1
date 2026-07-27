@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { AffordabilityImpactBar } from '@/components/plan/AffordabilityImpactBar';
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -168,6 +169,7 @@ export function AffordabilityCard() {
               Not this paycheck — you&apos;d come up about {money(result.shortBy)} short.
             </Text>
           </View>
+          <AffordabilityImpactBar before={result.discretionaryNow} after={result.cushionAfter} floor={result.floor} verdict={result.verdict} />
           <Button label="Save for it →" variant="secondary" onPress={openSaveSheet} style={styles.action} />
         </View>
       ) : (
@@ -181,6 +183,8 @@ export function AffordabilityCard() {
                 : `Yes, but tight — you'd dip to about ${money(result.cushionAfter)}, below your ${money(result.floor)} line.`}
             </Text>
           </View>
+          {/* §3.3.4 — the animated impact: the cushion carves down to what's left, vs your floor line. */}
+          <AffordabilityImpactBar before={result.discretionaryNow} after={result.cushionAfter} floor={result.floor} verdict={result.verdict} />
           {result.extraToDebtDelta > 0 ? (
             <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
               About {money(result.extraToDebtDelta)} less goes to debt this paycheck.

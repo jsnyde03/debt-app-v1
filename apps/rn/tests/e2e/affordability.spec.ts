@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 
 import { scenario, seedStore } from './helpers/seed';
 
+test.use({ viewport: { width: 402, height: 874 } });
+
 /**
  * §2.9 Can-I-Afford-This? (web). The verdict + save-for-it math are unit/app-tested; this proves the
  * Today card wiring: entering an amount yields the right premium read + action, and the short case
@@ -33,3 +35,20 @@ test('short purchase → the honest read + a save-for-it path', async ({ page })
   // + device/manual, per the Phase-4 web-e2e limits.)
   await expect(page.getByRole('button', { name: 'Save for it →' })).toBeVisible();
 });
+
+// §3.3.4 — the animated impact bar renders under a valid amount (the cushion carves vs the floor line).
+for (const theme of ['light', 'dark'] as const) {
+  test(`§3.3.4 affordability impact bar (${theme})`, async ({ page }) => {
+    await seedStore(page, scenario({
+      debts: [{ id: 'd0', name: 'Card', balance: 8000, minimumPayment: 100, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly' }],
+      paycheck: { amount: '2000', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
+      prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode: theme },
+    }));
+    await page.goto('/');
+    await page.getByPlaceholder('e.g. 400').fill('500');
+    await expect(page.getByText(/you'd still hold/)).toBeVisible();
+    await page.getByText(/you'd still hold/).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400); // let the carve settle
+    await page.screenshot({ path: `test-results/affordability-impact-${theme}.png` });
+  });
+}
