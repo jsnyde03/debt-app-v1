@@ -55,5 +55,23 @@
 - **B1** ✅ `projectDebtPayoff` cadence-normalizes BNPL minimums (+3 asserts: biweekly=2mo, monthly=4mo, one-time=1mo). **B-F1** ✅ dead `DriftCard` deleted.
 - Verified: tsc · lint · core regression (+B1) · app · **e2e 28/28** · both themes screenshot-checked. Section C polish → backlog; §D (host-content refresh) + §E (positioning) → Jason / marketing.
 
+## ROUND 2 (2026-07-27) — VERDICT: NOT yet consensus. In-app storefront/wiring/copy fixes HOLD; the B1 free-tier fix was INCOMPLETE (2 real correctness bugs) + off-device content is stale/contradictory.
+
+5 verifiers vs the fixed code (commit 611a4fb). The premium-framework CLOSE is not blocked (identity/free-premium-line/pricing/moat all still hold post-fix); the blockers are correctness bugs in the B1 free-tier work + off-device content.
+
+**MUST-FIX (round-2 caught these — the value of the gate):**
+- **R2.1 [HIGH — B1 incomplete] `buildPayoffTrajectory` left cadence-blind.** The B1 fix went into `projectDebtPayoff` (the date) but NOT its twin `buildPayoffTrajectory.ts:16-22` (the CHART), rendered on the SAME Payoff/What-If screen → for any non-monthly BNPL the debt-free DATE and the payoff CHART's zero-crossing contradict (biweekly $400: date=2mo, chart=4mo). → share `bnplMonthlyEquivalentMinimum`, apply in `buildPayoffTrajectory`, add `recurrence` to its input type + a date-vs-chart parity assert.
+- **R2.2 [MAJOR — B1 one-time bug] one-time BNPL injects a PHANTOM recurring minimum.** `bnplMonthlyEquivalentMinimum` returns the whole balance for one-time, which is summed into `monthlyBudget` once (`projectDebtPayoff.ts:124-128`) and then re-appears as "freed" extra every month after it clears → a multi-debt free debt-free date far too optimistic (the isolation-only test masked it). → treat one-time as a one-shot cost, not a recurring minimum; add a multi-debt (one-time BNPL + card) regression.
+
+**SHOULD-FOLD (minor, cheap, mostly A7/cleanup family):**
+- **R2.3** the More › About "Manage Subscription" row (`more.tsx:180`) AND the paywall's premium-branch "Manage subscription" button both still dead-end a Lifetime owner (unconditional) — mirror the `premiumIsLifetime` split there too. **R2.4** delete the now-orphaned `selectDrift` (DriftCard gone). **R2.5** the live per-month anchor hardcodes "$" (`paywall.tsx:67`) — derive the symbol / strip it (non-USD). **R2.6** plan-row a11y label omits badge+subnote; **R2.7** if the live offering has no ANNUAL, `selectedKey` stays 'annual' → no row highlighted (reset to `mapped[0].key`). **R2.8** the offline lifetime-mislabel LOW (transient `premiumIsLifetime` defaults false pre-resolve) → a `premiumResolved` gate.
+
+**OFF-DEVICE → Jason (sharper than §D):**
+- **R2.9 [MED] the HOSTED privacy.html contradicts itself** — "nothing shared with anyone including us / never leaves under any circumstances" (`site/privacy.html:138,147`) vs its own RevenueCat disclosure (`:175`). The exact A10 overclaim class, on the doc App Review reads. Scope the absolutes. **R2.10** privacy+support pages are stamped v1.5 / "browser's localStorage" for a v1.7 RN/MMKV app → refresh. **R2.11 [MED]** the App Store Connect privacy nutrition label MUST declare RevenueCat (Identifiers/Purchases) or 5.1.1 label-mismatch. **R2.12** "100% private" survives in store-listing/ASO marketing copy → align at submission.
+
+**DEFER (backlog / round-1 C confirmed):** per-paycheck payCycle threading · weekly/quarterly BNPL capture · financed-BNPL "interest-free" mislabel · listener spurious-downgrade guard · error-path logging (moot until Sentry) · affordability info-led invite · stale "Premium+" comments · isScanAvailable Android gate (v1.8).
+
+**No regressions confirmed:** non-BNPL debt-free dates byte-identical; payoff order intact; A2 hydration + A7 lifetime + premiumIsLifetime transient field all correct across hydrate/reset; A10 copy coherent across all 3 surfaces; free/premium line + identity + projection-honesty all still hold.
+
 ## Method note
 7 lens verdicts: Free/premium-line PASS · Automation-identity CONDITIONAL-PASS · Moat/honesty/competition CHANGES-REQUIRED(core passes) · Tier/pricing, Apple-compliance, Entitlement-correctness, BNPL-cadence each FAIL-with-majors. No lens found the *strategy* wrong — every failure is a fixable storefront/wiring/copy/correctness defect. Consensus: the tier justifies its price; fix Section A before the launch-flip.
