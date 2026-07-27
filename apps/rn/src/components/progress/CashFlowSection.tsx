@@ -3,8 +3,6 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { formatCurrency } from '@core/utils/formatCurrency';
-
 import { TimelineLedger } from '@/components/progress/TimelineLedger';
 import { Card } from '@/components/ui/Card';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
@@ -15,6 +13,7 @@ import type { TimelineCycle } from '@/store/payoffSelectors';
 import { duration } from '@/theme/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { formatWhole } from '@/utils/format';
 
 type CushionStatus = TimelineCycle['cushionStatus'];
 
@@ -48,7 +47,7 @@ function shortDate(iso: string): string {
  * itemized "where every dollar went" ledger — the reborn Capacitor Timeline). Same `selectCashTimeline`
  * data, user picks the view.
  */
-export function CashFlowSection({ cycles }: { cycles: TimelineCycle[] }) {
+export function CashFlowSection({ cycles, floor }: { cycles: TimelineCycle[]; floor: number }) {
   const c = useAppColors();
   const [view, setView] = useState<'cushion' | 'timeline'>('cushion');
   if (cycles.length === 0) return null;
@@ -66,15 +65,24 @@ export function CashFlowSection({ cycles }: { cycles: TimelineCycle[] }) {
           { value: 'timeline', label: 'Timeline' },
         ]}
       />
-      <View style={styles.body}>{view === 'cushion' ? <CushionBars cycles={cycles} /> : <TimelineLedger cycles={cycles} />}</View>
+      <View style={styles.body}>{view === 'cushion' ? <CushionBars cycles={cycles} floor={floor} /> : <TimelineLedger cycles={cycles} />}</View>
     </Card>
   );
 }
 
-/** Near-term cash-cushion forecast — one crafted bar per upcoming cycle (gradient + glow on concern). */
-function CushionBars({ cycles }: { cycles: TimelineCycle[] }) {
+const TRACK_H = 92;
+
+/**
+ * Near-term cash-cushion forecast. Each bar plots the cycle's **breathing room** (`net` = income −
+ * essentials, the SAME floor-relative quantity the cushion status is driven by, so height and color tell
+ * ONE story) against a dashed **"your $X line"** floor. A bar that dips below the line is the cycle to
+ * plan for. The deeper analysis (un-clamped cross-cycle runway, crunch drill-down, water-fill prefunding)
+ * stays premium in the Cash Runway — this free read is the basic "will I be squeezed?" glance.
+ */
+function CushionBars({ cycles, floor }: { cycles: TimelineCycle[]; floor: number }) {
   const c = useAppColors();
-  const max = Math.max(1, ...cycles.map((cy) => Math.max(0, cy.endingBalance)));
+  const scaleMax = Math.max(1, floor, ...cycles.map((cy) => Math.max(0, cy.net)));
+  const floorY = (Math.max(0, floor) / scaleMax) * TRACK_H;
   const caption = cycles.some((cy) => cy.cushionStatus === 'pressure')
     ? 'A cycle runs short ahead — plan for it.'
     : cycles.some((cy) => cy.cushionStatus === 'tight')
@@ -83,23 +91,35 @@ function CushionBars({ cycles }: { cycles: TimelineCycle[] }) {
 
   return (
     <>
-      <View style={styles.bars}>
+      <View style={styles.tracksRow}>
         {cycles.map((cy, i) => (
-          <CushionBar key={i} cycle={cy} index={i} fraction={Math.max(0, cy.endingBalance) / max} />
+          <CushionBar key={i} cycle={cy} index={i} fraction={Math.max(0, cy.net) / scaleMax} />
         ))}
+        {/* The floor reference line — dashed, spanning the plot, so "above/below your line" reads at a glance. */}
+        <View pointerEvents="none" style={[styles.floorLine, { bottom: floorY, borderColor: c.text.tertiary }]} />
+      </View>
+      <View style={styles.datesRow} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        {cycles.map((cy, i) => (
+          <Text key={i} style={[textStyles.caption, styles.cell, { color: c.text.tertiary }]} numberOfLines={1}>
+            {shortDate(cy.cycleStart)}
+          </Text>
+        ))}
+      </View>
+      <View style={styles.legendRow}>
+        <View style={[styles.floorTick, { borderColor: c.text.tertiary }]} />
+        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>your {formatWhole(floor)} line · room after each paycheck</Text>
       </View>
       <Text style={[textStyles.caption, styles.caption, { color: c.text.secondary }]}>{caption}</Text>
     </>
   );
 }
 
-/** One cushion bar — a 2-stop gradient with rounded caps that grows on mount (staggered). */
+/** One cushion bar — the cycle's breathing room, a 2-stop gradient with rounded caps that grows on mount. */
 function CushionBar({ cycle, index, fraction }: { cycle: TimelineCycle; index: number; fraction: number }) {
-  const c = useAppColors();
   const dark = useColorScheme() === 'dark';
   const reduce = useReduceMotion();
   const tone = barTone(cycle.cushionStatus, dark);
-  const target = 8 + fraction * 84;
+  const target = Math.max(2, fraction * TRACK_H);
 
   const grow = useSharedValue(reduce ? 1 : 0);
   useEffect(() => {
@@ -111,16 +131,13 @@ function CushionBar({ cycle, index, fraction }: { cycle: TimelineCycle; index: n
     <View
       style={styles.col}
       accessible
-      accessibilityLabel={`${shortDate(cycle.cycleStart)}: ${formatCurrency(cycle.endingBalance)}, ${cycle.cushionStatus}`}>
-      <Text style={[textStyles.caption, styles.val, { color: tone.label }]}>{formatCurrency(Math.round(cycle.endingBalance))}</Text>
+      accessibilityLabel={`${shortDate(cycle.cycleStart)}: ${formatWhole(cycle.net)} of room, ${cycle.cushionStatus}`}>
+      <Text style={[textStyles.caption, styles.val, { color: tone.label }]}>{formatWhole(cycle.net)}</Text>
       <View style={styles.track}>
         <Animated.View style={[styles.bar, barStyle, tone.glow ? { boxShadow: `0px 0px 8px 1px ${tone.glow}` } : null]}>
           <LinearGradient colors={tone.grad} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.barFill} />
         </Animated.View>
       </View>
-      <Text style={[textStyles.caption, { color: c.text.tertiary }]} numberOfLines={1}>
-        {shortDate(cycle.cycleStart)}
-      </Text>
     </View>
   );
 }
@@ -128,11 +145,16 @@ function CushionBar({ cycle, index, fraction }: { cycle: TimelineCycle; index: n
 const styles = StyleSheet.create({
   eyebrow: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700', marginBottom: spacing.md },
   body: { marginTop: spacing.md },
-  bars: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.xs },
+  tracksRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.xs, position: 'relative' },
   col: { flex: 1, alignItems: 'center', gap: 4 },
   val: { fontWeight: '600', fontVariant: ['tabular-nums'] },
-  track: { height: 92, width: '62%', justifyContent: 'flex-end' },
+  track: { height: TRACK_H, width: '62%', justifyContent: 'flex-end' },
   bar: { width: '100%', borderRadius: 5 },
   barFill: { flex: 1, borderRadius: 5 },
-  caption: { marginTop: spacing.md, textAlign: 'center' },
+  floorLine: { position: 'absolute', left: 0, right: 0, borderTopWidth: 1, borderStyle: 'dashed', opacity: 0.7 },
+  datesRow: { flexDirection: 'row', gap: spacing.xs, marginTop: 4 },
+  cell: { flex: 1, textAlign: 'center' },
+  legendRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm },
+  floorTick: { width: 14, borderTopWidth: 1, borderStyle: 'dashed' },
+  caption: { marginTop: spacing.sm, textAlign: 'center' },
 });

@@ -18,6 +18,7 @@ import { CountUp } from '@/motion';
 import { selectWhatIf } from '@/store/analysisSelectors';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
+import { effectivePaycheckBuffer } from '@/store/selectors';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 import { elevation } from '@/theme/elevation';
@@ -67,6 +68,8 @@ export default function ProgressScreen() {
   // Same rule as above: the cash-cushion forecast is expensive and doesn't depend on `extra`, so it must
   // be memoized off the stable engineStore rather than rebuilt inline on every keystroke.
   const cashCycles = useMemo(() => selectCashTimeline(engineStore), [engineStore]);
+  // The cushion floor for the cash-flow bars' reference line (free = BASE buffer · premium = your line).
+  const cushionFloor = effectivePaycheckBuffer(engineStore);
 
   if (!view.hasDebts) {
     return (
@@ -134,7 +137,7 @@ export default function ProgressScreen() {
         </View>
       </LinearGradient>
 
-      <CashFlowSection cycles={cashCycles} />
+      <CashFlowSection cycles={cashCycles} floor={cushionFloor} />
 
       <TrajectoryChart
         snowball={view.snowball}
