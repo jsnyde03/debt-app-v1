@@ -4,6 +4,21 @@
 
 ---
 
+## Phase 3 · Wave A — foundation polish & perf — COMPLETE (2026-07-27)
+
+Opened by the 3.0 Best-in-Class Enhancement audit (7 lens-auditors × 15 lenses, real both-theme screenshots + external benchmark → `DEBT_PHASE3_ENHANCEMENT_AUDIT_2026-07-27.md`). All 7 items shipped; `validate:release:rn` green (38 e2e); both themes verified. Commits `c017a62`→`a6c6d04`.
+
+- **3.1.1 Perf memoization** — the What-If `extra` field re-ran 3 full payoff sims + 4 Skia SVG re-parses on every keystroke. Memoized the heavy derivations off the stable store (not the input); the after-scan found the SAME pattern on 4 more sites beyond the audit's 2: progress `view`/`whatIf`/`cashCycles` · `TrajectorySkiaChart` path parses · `AffordabilityCard` + `SaveForItSheet` `engineStore` · `money` `selectPayoffView` (3 sims/section-toggle). Today + cushion-forecast `engineStore` deferred (half-measure without downstream selector memoization; no keystroke driver) → backlog.
+- **3.1.2 SF Symbols on iOS** — platform-split `AppIcon.ios` → SF Symbols via a tsc-validated `appIconSF` glyph→symbol map (`@/theme/icons`, ~33 glyphs), MaterialIcons fallback for unmapped; `more-button` routed through `AppIcon`. Before-scan corrected a stale premise: the tab bar was ALREADY SF (`TabBarIcon`). Web/Android unchanged; iOS symbol render → Phase-6 device-QA (some symbols iOS-16+ → verify/fallback).
+- **3.1.3 Contrast + Dynamic-Type start** — measured all suspect pairs; `text.tertiary` failed AA on cards (3.04/4.04) → bumped `#8695ab→#68758b` (light 4.66) / `#6f83a1→#8496b2` (dark 5.19), still subordinate to secondary; screenshot-verified both themes. Auditor's hero-contrast worry was a verified false alarm (heroSub 7.66/8.62). Guardian 3-stat row `flexWrap`; ring-% + CushionFloorSheet hero numbers capped at 1.4× multiplier. Residual (tertiary-on-page-bg 3.89 large-only · Today-hero cap · AX3/AX5) → Phase-6 a11y pass.
+- **3.1.4 Copy coherence** — dropped first-person "we" (5 paywall/onboarding sites → direct "you"/impersonal, per the decided house voice); risk notification rewritten in the Guardian's "I" BUT kept neutral (caught: the audit's "looks tight" wording would've broken the locked cried-wolf constraint); "set aside"→"reserved" at 7 sites ([[reference_set_aside_is_gig_brand]]); warmed 4 flat empty-state titles. ("You're all set!" → B6 · paywall benefit-copy → wording audit.)
+- **3.1.5 Free Cushion-bar reshape** — DESIGN FORK (approved by Jason): the free bars encoded `endingBalance` as height but colored by `net`-based status, so a floor line couldn't be drawn coherently. Reshaped to plot `net` breathing-room (the canonical floor-relative quantity) vs a dashed "your $X line" + legend; whole-dollar labels; restructured into aligned value/track/date rows with a floor-line overlay. Premium Cash Runway keeps its depth. Both themes verified. Confirmed the earlier blank-trajectory was a CanvasKit web-load artifact, not a bug.
+- **3.1.6 Skia skeletons** — shared `ChartSkeleton` (ghosted ring / gridlines) replaces the bare-empty-`<View>` fallback in all 5 `.web` canvases, so a chart card never flashes empty while CanvasKit loads. Web-only (native compiles Skia in).
+- **3.1.7 Dark-hero lift** — `elevation.hero.dark` gains a hairline luminous border (brighter on top) so the navy panel reads as an island against near-black (a black shadow couldn't separate it). Token-level; lifts all hero panels. Light untouched.
+- **Task-level after-scan:** cross-item coherent; the before/after-scans corrected the pre-authored audit's scope on 6/7 items (findings = hypotheses — verify-against-current-code earned its keep). Minors → backlog (cents-formatter sweep · cushion-reshape e2e assert · capture-spec-in-gate).
+
+---
+
 ## 2.7 BNPL as a first-class obligation — IN PROGRESS (2026-07-24)
 
 ### 2.7.1 design gate — before-scan + alignment (2026-07-24)
