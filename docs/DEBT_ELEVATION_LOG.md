@@ -4,6 +4,15 @@
 
 ---
 
+## Phase 3 · Wave C · 3.4.5 decision — Sheet "still-premium?" audit (2026-07-28)
+
+Ran the 3.4.5 decide-first gate as a **3-lens Fable-5 adversarial audit** on real both-theme screenshots (the Add/Edit-debt `FormSheet` + the scrollable payoff-schedule sheet stacked over the frosted edit sheet) + the actual `FormSheet.tsx`/`SheetScrim.tsx`. Lenses: interaction/gesture-physics · visual-craft/both-theme-parity · comparative/cost-benefit.
+
+- **Unanimous verdict: "adequate but not premium."** Not embarrassing (the frosted `SheetScrim` is *above* baseline — better than `@gorhom`'s stock dim), but a few real tells.
+- **Unanimous decision: KEEP the `FormSheet` + polish; do NOT migrate to `@gorhom` now.** `@gorhom` improves *feel* (drag-dismiss), not *look*; its headline features (snap points · `BottomSheetTextInput` · dynamic sizing) are **inapplicable** to these single-height form sheets; migrating 5 core add/edit flows to an imperative ref-based stack + re-litigating the hard-won `KeyboardAvoidingView`/lesson-#9 keyboard path is high-churn/low-delta risk during the regression freeze. **`@gorhom` → v1.8 Android**, flip-to-migrate trigger = a designed feature that needs multi-detent snap points or scroll↔drag handoff (a half-expanded browsable sheet). Else it stays scrapped.
+- **Load-bearing claims verified against the code/screenshots before acting:** (1) the scrim *slides* up (it's rendered inside the `animationType="slide"` Modal) — TRUE; (2) dark-mode sheet↔backdrop separation is weak (no shadow/hairline/elevated dark surface; light pops via white-on-gray) — TRUE on inspection; (3) missing grabber + swipe-dismiss, text "Close", `DUE DATE (YYYY-MM-DD)` hand-typed field — TRUE in the screenshots.
+- **→ Reshaped 3.4.5 = the bounded premium-polish pass** (Jason ✓ full): scrim fade-in-place · dark-mode elevation · grabber + swipe-dismiss · ✕-in-circle header · keyboard-aware backdrop + dirty-guard · date-field cleanup. Detail on the build → below as it lands.
+
 ## Phase 3 · Wave C · 3.4.4 — Swipe-to-delete on rows — COMPLETE (2026-07-28)
 
 **Switch-in reshape (Jason ✓):** the pre-authored "native row interactions" was mostly stale — grep proved: focus is **auto-derived** (`rankDebts(...)[0]`, not settable → drop "mark focus"); tap already opens the edit sheet (→ "edit" redundant); **snooze** has no concept in the code; `markDebtMinimumPaid` exists but has **zero UI callers** (payday-capture-owned → a manual toggle risks divergence); and `react-native-ios-context-menu` (UIMenu) can't be web-verified + adds CI/native-build risk and duplicates the swipe. So 3.4.4 reduced to the one clean, verifiable win — **swipe-to-delete** (the "B.9" the `ListRow` docstring already anticipated). The iOS long-press UIMenu moved to the **3.5 native block**.
