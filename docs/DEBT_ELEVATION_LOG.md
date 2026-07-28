@@ -6,7 +6,9 @@
 
 ## Phase 3.5 · 3.5.2 — context-menu NATIVE FIX #2: RCTRootContentView link failure (2026-07-28)
 
-**Trigger:** the first GH-Actions Maestro sim run (the outstanding native verification for 3.5.2) got past `pod install` (the Folly fix worked) and failed at the final `Ld` of `DebtPlannerRN.app`:
+**⚠️ Reconciliation — a PRIOR fix for this same symbol already existed and empirically FAILED.** Before this session, commit `199c384` "fix(ci): build RN core from source (RCT_USE_PREBUILT_RNCORE=0) to resolve link" (2026-07-28 15:35 EDT) set that env var in `native-e2e.yml` on the theory that building React core from source would provide `RCTRootContentView`. It did NOT: GH run `30392621150` ran on `headSha 199c384` (verified) and still failed at `Ld` with the same undefined symbol at 19:51Z. So `RCT_USE_PREBUILT_RNCORE=0` is **ineffective for this** (and costly — it recompiles all of RN core from source, ~2× wall-clock, and the workflow comment claims Codemagic's signed build would need it too). This plugin is the actual fix. **Follow-up (do after the plugin run goes green):** revert `RCT_USE_PREBUILT_RNCORE` to `'1'` (fast prebuilt) in `native-e2e.yml` and drop the "Codemagic needs env=0" note — the plugin makes both moot, keeping the free pipeline AND signed builds fast. `199c384` was never logged in the plan; noted here.
+
+**Trigger:** run `30392621150` (the outstanding native verification for 3.5.2, latest of several since the context-menu landed ~18:00Z — the 17:37Z run was green pre-context-menu) got past `pod install` (the Folly fix worked) and failed at the final `Ld` of `DebtPlannerRN.app`:
 
 ```
 Undefined symbols for architecture arm64:
