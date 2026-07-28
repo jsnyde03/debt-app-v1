@@ -4,6 +4,26 @@
 
 ---
 
+## Phase 3.5 · NATIVE BLOCK — full design lock (2026-07-28)
+
+Locked the design across the whole native block with Jason (before any 3.5.5 code). Ratified the three already-settled items and resolved the two open ones + a unifying design language.
+
+**Native-block design language (the through-line):**
+- **Free = the honest glance · Premium = the actor.** Free surfaces: the widget (3.5.4), the two Siri glance facts, basic row actions (Edit/Delete). Premium surfaces: the Live Activity (3.5.3), the Guardian Siri query, voice log-a-payment. Same thesis as the whole app — free is complete, premium is the automation layer ([[feedback_premium_gating_value_led]], [[feedback_no_paywall_basic_functionality]]).
+- **Voice:** Guardian is the sole first-person "I"; everything else speaks as "you." **Motion:** calm on reference surfaces (widget, query answers, coach-marks); the emotional beats stay in-app.
+
+**Ratified as-is:** 3.5.2 context-menu (long-press UIMenu: Edit + Delete destructive) · 3.5.3 Live Activity (premium, auto-start ~3 days, day-granular calm countdown, Guardian state-dot the only moving color) · 3.5.4 widget (read-only).
+
+**Decisions (Jason ✓ all, via AskUserQuestion):**
+1. **3.5.6 TipKit → DROPPED, folded into Phase 3.5.** Before-scan catch: TipKit anchors *native* tip views to *native* UI, but Debt's in-app screens are RN → it barely reaches them, and feature-discovery overlapped Phase 3.5's interactive tutorial. Resolution: one discovery system in Phase 3.5 as on-brand **RN coach-marks** (iOS-16-safe, Android-reusable), priority target = the invisible long-press context menu. Avoids two competing discovery systems + the RN/native mismatch.
+2. **Voice log-a-payment = PREMIUM.** It's the hands-free automation/actor layer, consistent with the Live Activity being premium; the basic in-app manual balance edit stays free (automation axis, not the core job).
+3. **The voice intent gets an in-app twin.** Before-scan catch: there is **no discrete "log a payment" action today** — balances move via payday rollover / verify / manual edit. So log-a-payment needs a *new* shared `logManualPayment` store action (reduce balance · clamp ≥0 · re-anchor `lastVerifiedDate`=today · Undo), surfaced as a **"Log payment"** action in the row context-menu (joins 3.5.2's Edit/Delete). The mutation gets a visible, web-verifiable home; Siri reuses the one code path rather than being a hidden voice-only mutation.
+4. **Guardian Siri query = committed premium.** The widget snapshot already carries `debtFreeDate` + `remaining` (→ the two free glance queries are ~free to ship). Expand `WidgetSnapshot` now with `guardianState` + a spoken summary + `nextPaycheckDate` (pure JS, unit-tested, same "all formatting stays JS-side" principle as 3.5.4) to power the premium "am I okay this paycheck?" query. Snapshot expansion is additive — doesn't force any widget change.
+
+**Resulting build order (3.5.6 removed):** 3.5.0 ✅ → 3.5.1 ✅ → 3.5.2 (Maestro-verifying) → 3.5.4 ✅ → **3.5.3 Live Activity (next real build)** → 3.5.5 App Intents (after 3.5.3 for the bridge; 3.5.5.1–.5.5) → 3.5.7 close → 3.6 native iPad. Feature-discovery lives in Phase 3.5 (C).
+
+---
+
 ## Phase 3.5 · 3.5.2 — context-menu NATIVE FIX #2: RCTRootContentView link failure (2026-07-28)
 
 **⚠️ Reconciliation — a PRIOR fix for this same symbol already existed and empirically FAILED.** Before this session, commit `199c384` "fix(ci): build RN core from source (RCT_USE_PREBUILT_RNCORE=0) to resolve link" (2026-07-28 15:35 EDT) set that env var in `native-e2e.yml` on the theory that building React core from source would provide `RCTRootContentView`. It did NOT: GH run `30392621150` ran on `headSha 199c384` (verified) and still failed at `Ld` with the same undefined symbol at 19:51Z. So `RCT_USE_PREBUILT_RNCORE=0` is **ineffective for this** (and costly — it recompiles all of RN core from source, ~2× wall-clock, and the workflow comment claims Codemagic's signed build would need it too). This plugin is the actual fix. **Follow-up (do after the plugin run goes green):** revert `RCT_USE_PREBUILT_RNCORE` to `'1'` (fast prebuilt) in `native-e2e.yml` and drop the "Codemagic needs env=0" note — the plugin makes both moot, keeping the free pipeline AND signed builds fast. `199c384` was never logged in the plan; noted here.
