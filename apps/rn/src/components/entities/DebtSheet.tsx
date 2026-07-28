@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, Text } from 'react-native';
 
 import { parseStatementText } from '@core/scan/parseStatementText';
@@ -77,6 +77,10 @@ export function DebtSheet({ editing, onClose, prefill }: { editing: Debt | null;
   const [bnplProvider, setBnplProvider] = useState(editing?.bnplProvider ?? '');
   const [error, setError] = useState('');
   const [showSchedule, setShowSchedule] = useState(false);
+  // 3.4.5.5 dirty-guard: a tap/swipe dismiss confirms before discarding unsaved edits.
+  const snapshot = JSON.stringify({ name, balance, minimumPayment, apr, dueDate, type, recurrence, autopay, remainingPayments, scheduledPaymentAmount, bnplProvider });
+  const initialSnapshot = useRef(snapshot);
+  const dirty = snapshot !== initialSnapshot.current;
 
   // A BNPL's balance is DERIVED from its plan (installment × payments left), not typed (2.7.3).
   const bnplSched = Number(scheduledPaymentAmount);
@@ -164,11 +168,12 @@ export function DebtSheet({ editing, onClose, prefill }: { editing: Debt | null;
     <FormSheet
       visible
       title={isEdit ? 'Edit debt' : prefill ? 'Add from scan' : 'Add a debt'}
-      subtitle={prefill && !isEdit ? 'Review the scanned details, then add.' : 'A loan, credit card, or BNPL balance.'}
+      subtitle={isEdit ? undefined : prefill ? 'Review the scanned details, then add.' : 'A loan, credit card, or BNPL balance.'}
       submitLabel={isEdit ? 'Save' : 'Add debt'}
       onSubmit={submit}
       onRemove={isEdit ? remove : undefined}
       onClose={onClose}
+      dirty={dirty}
       headerAction={
         isEdit ? (
           <Pressable onPress={() => setShowSchedule(true)} accessibilityRole="button" hitSlop={6}>
@@ -191,7 +196,7 @@ export function DebtSheet({ editing, onClose, prefill }: { editing: Debt | null;
           <TextField label="Payment amount" value={scheduledPaymentAmount} onChangeText={(t) => { setScheduledPaymentAmount(t); setError(''); }} placeholder="e.g. 100" keyboardType="decimal-pad" />
           <TextField label="Payments remaining" value={remainingPayments} onChangeText={(t) => { setRemainingPayments(t); setError(''); }} placeholder="e.g. 4" keyboardType="number-pad" />
           <Select label="How often" value={recurrence} options={BNPL_CADENCE} onChange={setRecurrence} />
-          <TextField label="Next payment (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate} placeholder="2026-07-01" />
+          <TextField label="Next payment" value={dueDate} onChangeText={setDueDate} placeholder="2026-07-01" />
           {bnplTotal != null ? (
             <Text style={[textStyles.caption, { color: c.text.tertiary, marginTop: -4 }]}>
               {bnplRem} {bnplRem === 1 ? 'payment' : 'payments'} of {formatWhole(bnplSched)} · {formatWhole(bnplTotal)} left · interest-free
@@ -227,7 +232,7 @@ export function DebtSheet({ editing, onClose, prefill }: { editing: Debt | null;
           ) : null}
           <TextField label="Minimum payment" value={minimumPayment} onChangeText={(t) => { setMinimumPayment(t); setError(''); }} placeholder="e.g. 65" keyboardType="decimal-pad" />
           <TextField label="APR %" value={apr} onChangeText={setApr} placeholder="e.g. 22.99" keyboardType="decimal-pad" />
-          <TextField label="Due date (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate} placeholder="2026-07-01" />
+          <TextField label="Due date" value={dueDate} onChangeText={setDueDate} placeholder="2026-07-01" />
           <Select label="Recurrence" value={recurrence} options={RECURRENCE} onChange={setRecurrence} />
         </>
       )}
