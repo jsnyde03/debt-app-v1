@@ -14,19 +14,13 @@
 name: Native E2E (Maestro · iOS Simulator)
 
 on:
-  workflow_dispatch: {} # (the Run-workflow button only appears once this file is on the DEFAULT branch)
+  # MANUAL ONLY — never auto-runs on push (a ~40-min mac job is overkill per-commit, free or not). Use
+  # the "Run workflow" button in GitHub → Actions → Native E2E, and pick the branch (v1.7-dev) to test.
+  # ⚠️ That button only appears once THIS file exists on the DEFAULT branch (master), so the file is
+  # committed to master too (it runs the SELECTED branch's code, not master's).
+  workflow_dispatch: {}
   push:
     tags: ['v*'] # release tags → a gated native smoke before shipping
-    # Until this file reaches master, a path-filtered push on the active dev branch is how it runs —
-    # native-relevant changes ONLY (never doc-only commits), so mac jobs stay rare. concurrency below
-    # cancels a superseded run. (Same pattern the retired ios-sim-smoke used for v1.6-dev.)
-    branches: ['v1.7-dev']
-    paths:
-      - 'apps/rn/src/**'
-      - 'apps/rn/app.json'
-      - 'apps/rn/package.json'
-      - '.maestro/**'
-      - '.github/workflows/native-e2e.yml'
 
 concurrency:
   group: native-e2e-${{ github.ref }}
