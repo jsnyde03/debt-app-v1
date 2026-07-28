@@ -5,10 +5,35 @@
 > **Your project's fixed values** (used throughout):
 > - **App (bundle) ID:** `com.jasonsnyder.debtplanner` — already registered (the legacy Capacitor app used it). **v1.7 ships as an UPDATE to that same App Store record**, not a new app.
 > - **App Group (new):** `group.com.jasonsnyder.debtplanner`
-> - **Widget/Live-Activity extension ID (new):** `com.jasonsnyder.debtplanner.widgets`
+> - **Widget/Live-Activity extension ID (new):** `com.jasonsnyder.debtplanner.widget` (singular — matches the Freedom convention)
+> - **Apple Team ID:** `CVCY985YCD` — **same Apple Developer account as Freedom**, so it's the same team (confirm, and I'll wire it into `app.json` — `@bacons/apple-targets` needs it).
 > - **Apple Developer portal:** https://developer.apple.com/account → **Certificates, Identifiers & Profiles**
 > - **App Store Connect:** https://appstoreconnect.apple.com
 > - **Min iOS:** 15.1 (Expo SDK 56 default). Live Activities need iOS 16.1+, Dynamic Island needs **iPhone 14 Pro or newer**, TipKit needs iOS 17+.
+
+> ## ✅ You've done this before — Freedom v1 is the proven template
+>
+> FinancialFreedom v1 is the **same stack** (Expo SDK 56 + Codemagic) and already ships a live WidgetKit widget. Its setup is our template, so this block is far lower-risk than a first attempt:
+> - **Build pipeline** → mirror `FinancialFreedom/codemagic.yaml` (`ios-testflight` workflow): `expo prebuild` → **fetch signing files for BOTH bundle IDs** → `use-profiles --project … --warn-only` → `build-ipa --archive-flags="-destination generic/platform=iOS"` → TestFlight. I adapt it for Debt's monorepo (`cd apps/rn`) + bundle ID + app name.
+> - **Widget target** → mirror `FinancialFreedom/targets/widget/` (`@bacons/apple-targets`: `expo-target.config.js` + Swift views) and `src/widget/` (App-Group storage/sync).
+> - **The exact provisioning gotchas you hit are documented** → `FinancialFreedom/docs/WIDGET_SIGNING_SETUP.md`. I bake all of them in up front (see the box below), so we shouldn't re-hit them.
+
+> ## ⚠️ THE #1 THING (your words): capabilities → refresh the provisioning profile
+>
+> A provisioning profile is a **snapshot** of the capabilities at the moment it was generated. **Adding a capability (App Groups, the widget target, Push…) invalidates every existing profile** — the build then fails with *"profile doesn't include the … entitlement."* The fix each time:
+> 1. Enable the capability on the **App ID** in the portal (and for App Groups, tick the specific group).
+> 2. **Regenerate the profile** — with Codemagic automatic signing, just **re-run the build** and it re-fetches/creates the fresh profile via the ASC API key; if it doesn't, regenerate manually (Section F).
+> 3. For the **widget**, its separate App ID needs the same capability, and the build must **fetch signing files for the widget bundle ID too** (baked into the workflow, mirrored from Freedom).
+>
+> This is a HARD project rule (`feedback_regenerate_profiles_on_capability_change`). I'll call it out in-line every time I add a capability so you know a profile refresh is due.
+
+> ## The Freedom fixes I bake in up front (so we don't re-hit them)
+> From `FinancialFreedom/docs/WIDGET_SIGNING_SETUP.md` (all learned the hard way there):
+> 1. **Fetch signing files for BOTH** `com.jasonsnyder.debtplanner` **and** `…debtplanner.widget` before `use-profiles` (the main `ios_signing` only does the app → the widget would have "no profile").
+> 2. **Pin the archive to iOS:** `--archive-flags="-destination generic/platform=iOS"`. Debt has `supportsTablet: true` (same as Freedom), so without this xcodebuild picks *"My Mac (Designed for iPad)"* → a **false** "widget requires a provisioning profile" that dies before compiling.
+> 3. **Scope `--project` to the real app project + `--warn-only`** (not the `**/*.xcodeproj` glob) — several node_modules native modules ship their own `.xcodeproj` with no profile.
+> 4. **Declare the App Group in the widget's `expo-target.config.js` `entitlements`** — `@bacons/apple-targets` only auto-mirrors the group if `entitlements` is already truthy, else the widget ships with no App-Group access and reads empty data on device.
+> 5. Debt's existing **`plugins/with-local-notifications-only.js`** already strips the Push entitlement (same plugin Freedom needed) — so the app stays local-only and App Groups is its only special entitlement. ✅ already in place.
 
 ---
 
