@@ -31,13 +31,21 @@ jobs:
     name: Compile · boot · Maestro
     runs-on: macos-15
     timeout-minutes: 60
+    env:
+      # RN 0.85 ships PREBUILT React Native core by default (RCT_USE_PREBUILT_RNCORE=1). The prebuilt
+      # slice doesn't export every RN internal ObjC class, so a third-party native module that references
+      # one fails at LINK (not compile): react-native-ios-utilities references
+      # `_OBJC_CLASS_$_RCTRootContentView` (pulled in by react-native-ios-context-menu), undefined for
+      # arm64. Building RN core FROM SOURCE provides that class. Slower, but correct — and this is the
+      # free pipeline, so wall-clock isn't a $ cost. ⚠️ Codemagic's signed RN build will need the same
+      # env before it first builds the widget + context menu (it built green before those existed).
+      RCT_USE_PREBUILT_RNCORE: '0'
     # NOTE: ccache was removed (2026-07-28) — RN's ccache wiring set a compiler-launcher path that DIDN'T
     # resolve for the widget-extension target (`@bacons/apple-targets`, in the app project not Pods),
     # failing the DebtWidget link with "unable to spawn ccache-clang.sh"; it also conflicted with
-    # Xcode 26's explicit modules. Its only benefit was incremental compile caching, and prebuilt RN
-    # core+deps (RCT_USE_PREBUILT_RNCORE, ON by default in 0.85) already carry the big speedup. This is
-    # the FREE unlimited pipeline, so wall-clock isn't a $ cost. Revisit a correct ccache setup (widget
-    # target excluded) later as a deliberate speed pass if build time becomes painful.
+    # Xcode 26's explicit modules. Its only benefit was incremental compile caching. This is the FREE
+    # unlimited pipeline, so wall-clock isn't a $ cost. Revisit a correct ccache setup (widget target
+    # excluded) later as a deliberate speed pass if build time becomes painful.
     defaults:
       run:
         working-directory: apps/rn
