@@ -3,6 +3,8 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 import { AppIcon } from '@/components/ui/AppIcon';
+import { RowContextMenu } from '@/components/ui/RowContextMenu';
+import type { RowMenuAction } from '@/components/ui/RowContextMenu.types';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { cardElevation } from '@/theme/elevation';
@@ -123,6 +125,13 @@ export function ListRow({
     </Pressable>
   );
 
+  // iOS long-press → native context menu (3.5.2): Edit (if the row is tappable) + a destructive Delete.
+  // A discoverable alternative to the hidden swipe; tap + swipe stay untouched. Passthrough off-iOS.
+  const menuActions: RowMenuAction[] = [
+    ...(onPress ? [{ key: 'edit', title: 'Edit', systemIcon: 'pencil', onPress } as RowMenuAction] : []),
+    { key: 'delete', title: 'Delete', systemIcon: 'trash', destructive: true, onPress: handleDelete },
+  ];
+
   return (
     <ReanimatedSwipeable
       ref={swipeRef}
@@ -130,7 +139,9 @@ export function ListRow({
       overshootRight={false}
       rightThreshold={40}
       containerStyle={styles.swipeContainer}>
-      {rowBody}
+      <RowContextMenu title={title} actions={menuActions}>
+        {rowBody}
+      </RowContextMenu>
     </ReanimatedSwipeable>
   );
 }

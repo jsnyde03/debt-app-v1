@@ -4,6 +4,18 @@
 
 ---
 
+## Phase 3.5 · 3.5.2 — iOS long-press context menu — CODE-COMPLETE (2026-07-28)
+
+Long-press a debt row → a native iOS `UIMenu` (Edit + Delete, Delete destructive/red). Tap→edit and swipe→delete are untouched — the menu is a third, iOS-native discovery path (Mail/Files pattern). Files: `RowContextMenu.ios.tsx` (`ContextMenuView` builds the menu from `actions`, `onPressMenuItem` dispatches by `actionKey`, SF-Symbol icons `pencil`/`trash`), base `RowContextMenu.tsx` (transparent passthrough — web/Android unchanged), shared non-split `RowContextMenu.types.ts` (avoids the platform-split self-resolve trap), and the typed shim `src/types/react-native-ios-context-menu.d.ts`. Wired in `ListRow` inside the `onDelete` branch, over the `ReanimatedSwipeable` (menu wraps `rowBody`).
+
+**The packaging saga (why the pin matters).** Started on `react-native-ios-context-menu@^3.2.1` (latest). A clean install has NO built `lib/` — the tarball ships **source-only**, yet its own `package.json` `main`/`module`/`types` all point at `lib/…` files that don't exist (internally inconsistent). Metro/runtime still resolve (via `react-native: src/index`, Expo transpiles the source), but `tsc` follows the dangling `types` → `TS2307`. Jason's "root-entry-file" theory didn't hold — there's no root `index.js`, and it's the package's own manifest pointing at `lib/`, not our config. Verified it's a **3.2.x regression**: `3.2.0` + `3.2.1` are source-only; **`3.1.3` ships built `lib/commonjs` + `lib/module`** AND still carries `RCT_NEW_ARCH_ENABLED`/Fabric flags in its podspec. Pinned `3.1.3` (exact). Neither line ships `.d.ts` (0 files), so a hand-written typed shim is needed regardless — done, typed to our real usage (not `any`). Native matrix confirmed coherent: 3.1.3's own devDep is utilities `^5.1.4`, which our `5.2.0` satisfies; utilities 5.2.0 pulls `DGSwiftUtilities ~>0.46` + `ComputableLayout ~>0.7` from CocoaPods trunk at `pod install`. No config plugin / script-phase / xcodeproj-glob risk (pure autolinked pods).
+
+**Verification.** tsc green; full `validate:release:rn` green (lint + regression + app + scenarios + 63 Playwright e2e, incl. the swipe-delete spec — the base passthrough is structurally inert on web). Pre-commit native-build pass done. Added Maestro flow `.maestro/03-row-context-menu.yaml` (money tab → assert "Visa" row → `longPressOn` → assert Edit/Delete). **Outstanding = the GH-Actions Maestro sim run** (Jason-triggered) — the real check that it compiles + mounts on New Arch; flow 02 already exercises the mount path (money tab renders every row wrapped in `ContextMenuView`), so a compile crash can't hide. Then the signed device build for the tactile UIMenu feel.
+
+**Deferred → backlog:** delete the typed shim if/when a context-menu version ships proper `.d.ts`.
+
+---
+
 ## Phase 3 · Wave C · 3.4.5 decision — Sheet "still-premium?" audit (2026-07-28)
 
 Ran the 3.4.5 decide-first gate as a **3-lens Fable-5 adversarial audit** on real both-theme screenshots (the Add/Edit-debt `FormSheet` + the scrollable payoff-schedule sheet stacked over the frosted edit sheet) + the actual `FormSheet.tsx`/`SheetScrim.tsx`. Lenses: interaction/gesture-physics · visual-craft/both-theme-parity · comparative/cost-benefit.

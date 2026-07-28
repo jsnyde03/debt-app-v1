@@ -1,0 +1,27 @@
+# Maestro E2E — the iOS long-press context menu (3.5.2), a native-only affordance the web gate can't
+# see. Long-pressing a debt row must open the UIMenu with Edit + Delete (react-native-ios-context-menu
+# on the New Architecture). Flow 02 already proves the rows MOUNT without crashing (the money tab
+# renders every ListRow wrapped in ContextMenuView); this flow proves the menu itself opens + renders.
+#
+# Depends on 01 having seeded the demo data (Maestro runs flows in filename order → demo debts persist).
+# ⚠️ FIRST-RUN TUNING: whether Maestro's longPressOn triggers UIContextMenuInteraction and whether the
+# UIMenu actions surface as matchable a11y text may each need one adjustment on the first GH run — like
+# every other flow here did. A red here does NOT mask a compile crash (flow 02 covers that).
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: false
+
+# Money tab via testID (react-navigation composite a11y makes the LABELS unmatchable on iOS).
+- tapOn:
+    id: "tab-money"
+
+# A demo debt row is present (seeded by flow 01).
+- assertVisible: "Visa"
+
+# Long-press the row → the native iOS context menu.
+- longPressOn: "Visa"
+
+# The UIMenu rendered with both actions (Delete is the destructive one).
+- assertVisible: "Edit"
+- assertVisible: "Delete"
