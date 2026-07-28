@@ -23,15 +23,13 @@ So the real first job isn't a widget — it's **standing up a build pipeline for
 ## ✅ Master checklist (tick as you go)
 
 **Decisions**
-- [ ] **D1 — Build tool:** EAS Build (recommended) or Codemagic-for-Expo → see [Decision 1](#decision-1--build-tool-eas-vs-codemagic)
+- [x] **D1 — Build tool: ✅ Codemagic-for-Expo** (Jason 2026-07-28 — reuse the 500 free min/mo + existing ASC key; not paying EAS $99/mo). This sheet now follows the **Codemagic** path.
 
 **One-time setup (Section A + B)**
 - [ ] A1 — Confirm Apple Developer Program membership is active ($99/yr)
 - [ ] A2 — Have a physical iPhone (+ USB cable or same Wi-Fi); note the model (Dynamic Island needs 14 Pro+)
-- [ ] A3 — Create/confirm an Expo account (if EAS)
-- [ ] A4 — Install Node + the EAS CLI on your computer (if EAS)
-- [ ] B1 — Locate your App Store Connect **API key** (you already have one — it's in Codemagic)
-- [ ] B2 — Link Apple credentials to EAS (or configure Codemagic-for-Expo)
+- [ ] B1 — Confirm your App Store Connect **API key** is still valid in Codemagic (the `AppleConnect` group)
+- [ ] B2 — Turn on Codemagic **automatic iOS code signing** for the new RN workflow
 
 **First device build = catch-up QA (Section C)**
 - [ ] C1 — Run the first RN build
@@ -52,10 +50,14 @@ So the real first job isn't a widget — it's **standing up a build pipeline for
 
 ---
 
-## Decision 1 — Build tool: EAS vs Codemagic
+## Decision 1 — Build tool: ✅ DECIDED — Codemagic-for-Expo
+
+**Jason chose Codemagic (2026-07-28):** reuse the 500 free minutes/month + the ASC key you already have, rather than add EAS's ~$99/mo. The rest of this sheet follows the **Codemagic** path. The EAS comparison below is kept for the record.
+
+> **What this means in practice:** Codemagic's **automatic code signing** (via your ASC API key) creates & manages certificates and profiles for you — including capabilities like the App Group — so it's *not* the fully-manual profile juggling. The one place to expect friction is the **widget-extension's** separate signing identity (`3.5.3`), where Expo-prebuild + Codemagic is less turnkey than EAS; we'll iterate there if needed. Everything through the App Group should be smooth.
 
 <details>
-<summary><b>The choice, and my recommendation (EAS Build)</b></summary>
+<summary><b>The original EAS-vs-Codemagic comparison (for the record)</b></summary>
 
 You need something that turns the managed Expo app into a signed `.ipa` and uploads it to TestFlight. Two realistic options:
 
@@ -71,7 +73,7 @@ You need something that turns the managed Expo app into a signed `.ipa` and uplo
 
 **If you'd rather stay on Codemagic:** it's doable, but I'd add an Expo workflow (`expo prebuild` → `xcodebuild`), and **you** own the provisioning-profile regen in the portal on every capability change (Section F becomes manual and frequent). Tell me and I'll write that path instead.
 
-👉 **Action: pick EAS or Codemagic and tell me.** The rest of this sheet's build steps assume **EAS**; the Apple-portal and device steps are the same either way.
+_(Decided: Codemagic. The Apple-portal and device steps are the same either way.)_
 </details>
 
 ---
@@ -85,19 +87,14 @@ You need something that turns the managed Expo app into a signed `.ipa` and uplo
 
 **A2 — A physical iPhone.** The simulator can't do Live Activities-on-lock-screen, real haptics, the camera scanner, or Dynamic Island. Have an iPhone you can install TestFlight builds on. **Model matters:** Dynamic Island (3.5.3) only renders on **iPhone 14 Pro / 15 Pro / 16 Pro** (and later Pro/all-15+ models); the Live Activity still works on the Lock Screen on any iOS 16.1+ iPhone. Tell me your model so I set expectations for 3.5.3.
 
-**A3 — Expo account (EAS path).** Go to https://expo.dev → sign up (free). Remember the username/password.
-
-**A4 — EAS CLI (EAS path).** On your computer, install Node (https://nodejs.org, LTS) if you don't have it, then in a terminal:
-```
-npm install -g eas-cli
-eas login          # use your expo.dev account
-```
-That's all the local tooling you need — EAS builds in the cloud, so **you do not need a Mac.**
+**A3 — Nothing else to install.** On the Codemagic path there's **no Expo account, no CLI, no Mac** needed — builds run in Codemagic's cloud macOS and you trigger them from the Codemagic web UI (or a git push). You already have the Codemagic account.
 </details>
 
 ---
 
-## Section B — Build pipeline (EAS path)
+## Section B — Build pipeline (Codemagic path)
+
+> **What I do in-repo:** add a **new Codemagic workflow** ("Debt Planner RN") that installs deps, runs `expo prebuild` inside `apps/rn` to generate the native iOS project, then archives + signs it and ships to TestFlight. Your existing "iOS Android Release" workflow (the legacy Capacitor one) stays untouched. **What you do:** the two steps below, then trigger the build (Section C).
 
 <details>
 <summary><b>B1 — Find your App Store Connect API key (you already have one)</b></summary>
@@ -109,14 +106,13 @@ Your `codemagic.yaml` already uses an ASC API key (the `AppleConnect` group: an 
 </details>
 
 <details>
-<summary><b>B2 — Link Apple credentials to EAS (mostly automatic)</b></summary>
+<summary><b>B2 — Turn on Codemagic automatic code signing (via your ASC API key)</b></summary>
 
-I'll add an `eas.json` to the repo. Then, the first time you run a build (Section C), EAS asks to log into your Apple account (or use the API key from B1) and **creates everything for you**: the Distribution certificate, the App ID's capabilities, the App Group, and the provisioning profiles. You just answer the prompts (mostly "yes, let EAS handle it").
+Automatic signing lets Codemagic create & fetch the certificate + provisioning profiles for you (including when I add a capability like the App Group), using the App Store Connect API key you already have — so you're not hand-managing profiles in the portal.
 
-- When prompted **"Reuse this App Store Connect API Key?"** → point it at the `.p8` from B1 (or let it log in with your Apple ID + an app-specific password).
-- When prompted about the bundle identifier → confirm `com.jasonsnyder.debtplanner`.
-
-There is **nothing to pre-create in the Apple portal for the base app** — EAS does it. (The App Group + extension come later, in Section D, and EAS also handles those.)
+- In **Codemagic → your app (debt-app-v1) → Settings**, confirm the **App Store Connect** integration / API key from B1 is connected (it already is, since the legacy workflow publishes to TestFlight).
+- I'll configure the new RN workflow's `ios_signing` for **automatic** signing on `com.jasonsnyder.debtplanner`. On the first build, Codemagic uses the API key to register/fetch the profile automatically.
+- **Nothing to pre-create in the Apple portal for the base app.** (The App Group + widget extension come later in Section D; automatic signing registers those too — the extension is the one spot we may need to nudge it, see `3.5.3`.)
 </details>
 
 ---
@@ -126,20 +122,13 @@ There is **nothing to pre-create in the Apple portal for the base app** — EAS 
 > This is the big one. Getting the current app onto your phone once verifies **everything built in v1.7 so far** that has only ever run in a browser.
 
 <details>
-<summary><b>C1–C3 — build, submit, install</b></summary>
+<summary><b>C1–C3 — build, submit, install (Codemagic)</b></summary>
 
-After I've added `eas.json` and confirmed the config, **you run** (from the repo root or `apps/rn`, I'll tell you which):
-```
-eas build --platform ios --profile preview
-```
-- Answer the credential prompts (Section B2). The build runs in the cloud (~15–25 min); you'll get a link + email when it's done.
-- **C2 — Submit to TestFlight:**
-```
-eas submit --platform ios --latest
-```
-(uses your ASC API key; uploads the build to App Store Connect → TestFlight).
+After I've added the RN workflow to `codemagic.yaml` and confirmed the config:
+- **C1 — Build:** in **Codemagic → debt-app-v1 → Start new build** → pick the branch (`v1.7-dev`) → pick the **"Debt Planner RN"** workflow → **Start build**. It runs in the cloud (~20–30 min: install → `expo prebuild` → pod install → archive → sign). You get a success/failure email. _(Watch the first one's minutes — an `expo prebuild` + pod install cold build is the heaviest; caching makes #2+ faster.)_
+- **C2 — Submit to TestFlight:** the workflow's `publishing` block auto-uploads to App Store Connect → TestFlight (same as your legacy workflow), so C2 is automatic on a green build. If Apple flags anything (e.g. an encryption/export question), answer it in App Store Connect → your app → TestFlight.
 - **C3 — Install:** on your iPhone, install **TestFlight** from the App Store, sign in with your Apple ID, and the "Debt Planner" build appears (allow a few minutes for Apple to finish processing). Tap **Install**.
-  - First TestFlight build for an app sometimes needs you to add yourself as an **Internal Tester**: App Store Connect → your app → **TestFlight → Internal Testing → +** → add your Apple ID.
+  - First time, add yourself as an **Internal Tester**: App Store Connect → your app → **TestFlight → Internal Testing → +** → add your Apple ID.
 </details>
 
 <details>
@@ -172,8 +161,8 @@ Walk these on the device and note anything broken (I fix in-repo, you rebuild):
 
 The App Group is the shared container the app and its widgets/Live-Activity read the same data from.
 
-- **EAS path:** I declare `group.com.jasonsnyder.debtplanner` in the config; on the next `eas build`, EAS **registers the App Group and enables it on your App ID automatically**. Your only job: when EAS prints *"the following capabilities will be added: App Groups — proceed?"* → **yes**.
-- **If you ever need to verify it manually:** developer.apple.com/account → **Identifiers** → click **App Groups** in the top filter dropdown → confirm `group.com.jasonsnyder.debtplanner` exists; then → **Identifiers → App IDs →** `com.jasonsnyder.debtplanner` → **App Groups** capability is checked and points at that group.
+- **Codemagic (automatic signing):** I declare `group.com.jasonsnyder.debtplanner` in the Expo config; on the next build, Codemagic's automatic signing **registers the App Group + enables it on your App ID** via the ASC API key. Usually zero manual steps.
+- **If automatic signing doesn't pick it up (verify/fix manually):** developer.apple.com/account → **Identifiers** → top filter dropdown **App Groups** → **+** → register `group.com.jasonsnyder.debtplanner`; then **Identifiers → App IDs →** `com.jasonsnyder.debtplanner` → check **App Groups** → point it at that group → **Save**. Re-run the build.
 - Then rebuild (C1) + reinstall (C3). Nothing visible changes yet — this is plumbing.
 </details>
 
@@ -188,7 +177,7 @@ Pure code + a native dependency (`react-native-ios-context-menu`). **No portal s
 
 This adds a **widget extension target** (a second mini-app bundle: `com.jasonsnyder.debtplanner.widgets`).
 
-- **EAS path:** I add the target via `expo-apple-targets`; EAS **creates the extension's App ID + profile** on build. Confirm the capability prompt when EAS asks.
+- **Codemagic (the friction point):** I add the target via `expo-apple-targets`. The extension needs its OWN App ID (`com.jasonsnyder.debtplanner.widgets`) + profile. Automatic signing *should* create them, but this is the least turnkey spot on Codemagic — **if the build fails on the extension's signing**, you (one-time): developer.apple.com/account → **Identifiers → +** → App ID `com.jasonsnyder.debtplanner.widgets` (check App Groups → the same group) → **Save**; then re-run. I'll give you the exact error-to-action if it happens.
 - **On device (you test):** trigger a payday (I'll add a debug button) → a Live Activity appears on the **Lock Screen** and (on iPhone 14 Pro+) in the **Dynamic Island**. Long-press the Dynamic Island to see the expanded view. Confirm the countdown updates.
 - **Settings check:** the phone must have **Settings → Face ID & Passcode → (or Notifications) → Live Activities** enabled, and per-app **Settings → Debt Planner → Live Activities** on.
 - If we later want **frequent/remote** updates, that needs the **Push Notifications** capability + an APNs key — I'll flag it separately; the first version uses local/timeline updates (no push, no extra key).
@@ -237,8 +226,8 @@ Code-only (iOS 17+). **On device:** confirm the feature-discovery tips appear at
 
 Every time I add a capability (App Group, an extension, Push, etc.), the signing profile must be regenerated or the build fails with a signing error.
 
-- **EAS path:** **automatic** — EAS detects the new capability and re-creates/re-syncs the profiles on the next `eas build`. You just approve the prompt. This is the main reason I recommend EAS for this block.
-- **Codemagic path (if you chose it):** **manual** — developer.apple.com/account → **Profiles** → find the app's (and each extension's) distribution profile → **Edit → Generate** (it picks up the new capability) → **Download** → upload to Codemagic (or re-run its automatic signing). Do this for **both** the app ID and the widget-extension ID.
+- **Codemagic automatic signing (your path):** on most capability changes it **re-fetches/creates the profile automatically** on the next build via the ASC API key — no action from you.
+- **Manual fallback (only if a build fails on signing):** developer.apple.com/account → **Profiles** → find the app's (and each extension's) distribution profile → **Edit → Generate** (it picks up the new capability) → **Download** → upload to Codemagic (or just re-trigger the build so automatic signing regenerates it). Do this for **both** the app ID and the widget-extension ID if the extension is involved.
 </details>
 
 ---
@@ -246,7 +235,7 @@ Every time I add a capability (App Group, an extension, Push, etc.), the signing
 ## What I'll do in-repo (so the boundary is clear)
 
 You do the dashboards/device; **I do all of this** and tell you exactly when to build/test:
-- Add `eas.json` (build profiles) — or the Codemagic-for-Expo workflow if you choose that.
+- Add the **Codemagic-for-Expo workflow** to `codemagic.yaml` (install → `expo prebuild` in `apps/rn` → pod install → archive → automatic sign → TestFlight).
 - Add `expo-apple-targets` + the widget/Live-Activity target (SwiftUI views for the Live Activity, widgets, Dynamic Island).
 - Declare the App Group + wire the shared data store (app writes → extension reads).
 - Add `react-native-ios-context-menu` + wire the row UIMenu.
