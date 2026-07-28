@@ -1,0 +1,146 @@
+# Native E2E on a GitHub-Actions macOS runner: expo prebuild → compile the RN app for the iOS
+# Simulator (unsigned) → boot → run Maestro flows. This is the Codemagic-FREE native-verification loop
+# (GH macOS minutes are separate from the Codemagic 500) — it catches native-only bugs the web
+# Playwright gate structurally can't (gesture/tap behavior, New-Arch launch crashes, autolinked native
+# modules, the widget/App-Group compile), WITHOUT a signed device build. Mirrors Freedom's native-e2e.
+#
+# Builds the EXPO RN app in apps/rn (NOT the retired Capacitor app). Manual / release-gated only — mac
+# minutes are ~10× Linux, so never every-push.
+#
+# ⚠️ FIRST-RUN TUNING (not locally verifiable — no macOS here): the generated scheme/workspace name
+# (app.json name "Debt Planner (RN)" → expected "DebtPlannerRN"), the simulator device name, whether
+# Maestro needs idb-companion on this runner, and the .maestro selectors may each need one adjustment
+# on the first GH-Actions run — exactly as Freedom's first run did.
+name: Native E2E (Maestro · iOS Simulator)
+
+on:
+  # MANUAL ONLY — never auto-runs on push (a ~40-min mac job is overkill per-commit, free or not). Use
+  # the "Run workflow" button in GitHub → Actions → Native E2E, and pick the branch (v1.7-dev) to test.
+  # ⚠️ That button only appears once THIS file exists on the DEFAULT branch (master), so the file is
+  # committed to master too (it runs the SELECTED branch's code, not master's).
+  workflow_dispatch: {}
+  push:
+    tags: ['v*'] # release tags → a gated native smoke before shipping
+
+concurrency:
+  group: native-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  maestro:
+    name: Compile · boot · Maestro
+    runs-on: macos-15
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: apps/rn
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # No npm workspaces — install root (core/tooling) then the RN app's own node_modules. `@core` is a
+      # Metro source alias, so it needs no build/link.
+      - name: Install dependencies (root + apps/rn)
+        working-directory: .
+        run: |
+          npm install --prefer-offline --no-audit --no-fund
+          npm --prefix apps/rn install --prefer-offline --no-audit --no-fund
+
+      # Cache the CocoaPods + Swift-PM DOWNLOADS (not the compile) so cold runs don't re-fetch the native
+      # deps (incl. @bacons/apple-targets). Keyed on the RN lockfile.
+      - name: Cache CocoaPods + Swift-PM downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+            ~/Library/Caches/org.swift.swiftpm
+          key: pods-spm-${{ runner.os }}-${{ hashFiles('apps/rn/package-lock.json') }}
+          restore-keys: |
+            pods-spm-${{ runner.os }}-
+
+      - name: Select newest Xcode
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+          xcodebuild -version
+
+      - name: Fail fast (typecheck before the slow native build)
+        run: npx tsc --noEmit
+
+      - name: Generate the native iOS project (expo prebuild)
+        run: npx expo prebuild --platform ios
+
+      - name: Build for the iOS Simulator (no signing)
+        run: |
+          # Build ONLY the runner's native arch — Release defaults to both arm64 + x86_64 sim slices (≈2×
+          # the compile); we only need the slice matching the sim we boot.
+          ARCH="$(uname -m)"
+          echo "Building single simulator arch: $ARCH"
+          xcodebuild \
+            -workspace ios/DebtPlannerRN.xcworkspace \
+            -scheme DebtPlannerRN \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -derivedDataPath ios/build \
+            -destination 'generic/platform=iOS Simulator' \
+            ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
+            CODE_SIGNING_ALLOWED=NO build
+
+      - name: Boot, install, launch, capture the app log
+        run: |
+          # Pick the newest available iPhone simulator by name (the lineup shifts across Xcode versions).
+          DEVICE=$(xcrun simctl list devices available | grep -oE 'iPhone [0-9]+[A-Za-z ]*' | sed 's/ *$//' | sort -V | tail -1)
+          echo "Booting simulator: ${DEVICE:-<none found>}"
+          xcrun simctl boot "$DEVICE" || true
+          xcrun simctl install booted ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
+          mkdir -p maestro-debug
+          # Stream the app's unified log so a fatal JS throw's message + stack is captured (the crash
+          # report has the native abort stack but not the JS message).
+          xcrun simctl spawn booted log stream --level debug --style compact \
+            --predicate 'processImagePath CONTAINS "DebtPlannerRN" OR senderImagePath CONTAINS "DebtPlannerRN"' \
+            > maestro-debug/os-log.txt 2>&1 &
+          LOG_PID=$!
+          xcrun simctl launch booted com.jasonsnyder.debtplanner || true
+          sleep 25
+          xcrun simctl io booted screenshot maestro-debug/cold-launch.png || true
+          kill "$LOG_PID" 2>/dev/null || true
+          echo "=== app log — error/exception/fatal lines ==="
+          grep -iE "fatal|exception|invariant|undefined is not|is not a function|cannot read|TypeError|ReferenceError|RCTFatal" maestro-debug/os-log.txt | head -80 || true
+          echo "=== app log — last 60 lines ==="
+          tail -60 maestro-debug/os-log.txt || true
+
+      - name: Install Maestro (+ idb for the iOS driver)
+        run: |
+          brew tap facebook/fb && brew install idb-companion || true
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Run Maestro flows
+        env:
+          # Maestro's iOS driver often exceeds its default startup timeout on a cold CI sim.
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
+        run: maestro test .maestro/ --format junit --output maestro-report.xml --debug-output ./maestro-debug
+
+      - name: Screenshot the final simulator state
+        if: always()
+        run: xcrun simctl io booted screenshot maestro-debug/final-screen.png || true
+
+      - name: Collect crash reports
+        if: always()
+        run: |
+          mkdir -p maestro-debug/crash
+          cp -R ~/Library/Logs/DiagnosticReports/. maestro-debug/crash/ 2>/dev/null || true
+          latest=$(ls -t maestro-debug/crash/*.ips 2>/dev/null | head -1)
+          [ -n "$latest" ] && head -200 "$latest" || echo "(no .ips crash file found)"
+
+      - name: Upload Maestro report + debug (screenshots + view hierarchy)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-report
+          path: |
+            apps/rn/maestro-report.xml
+            apps/rn/maestro-debug/**
