@@ -21,7 +21,15 @@ Ran the 3.4.5 decide-first gate as a **3-lens Fable-5 adversarial audit** on rea
 - **Header (.4):** text "Close" → an ✕-in-tinted-circle (`sheet-close` testID); `DebtSheet` drops its subtitle in edit mode (the "View Payoff Schedule" headerAction was truncating it) — add mode keeps the full-width subtitle.
 - **Keyboard-aware backdrop + dirty-guard (.5):** a `keyboardDidShow/Hide` ref; a backdrop tap with the keyboard up runs `Keyboard.dismiss()` instead of closing (kills the accidental-form-loss case). A `dirty` prop (wired in `DebtSheet` via a first-render snapshot vs live field-hash) routes tap/swipe dismiss through a `confirmDiscard` (Alert native / `window.confirm` web).
 - **Date field (.6):** dropped the `(YYYY-MM-DD)` from the DebtSheet due-date labels (kept the format as a placeholder) — no new native dep.
-- **Verify:** `sheet-polish.spec.ts` (✕ closes · swipe-down closes, CDP touch); scan/blur-glass sheet flows still green. `validate:release:rn` — **63 e2e**, both themes screenshot-verified (grabber · ✕-circle · dark separation · clean header). **Owed (3.4.5.7):** the 3 non-FormSheet sheets still slide; `dirty` unwired on Expense/Goal/LivingExpense — decide extend-now vs follow-up.
+- **Verify:** `sheet-polish.spec.ts` (✕ closes · swipe-down closes, CDP touch); scan/blur-glass sheet flows still green. `validate:release:rn` — **63 e2e**, both themes screenshot-verified (grabber · ✕-circle · dark separation · clean header).
+
+### 3.4.5.7 build (2026-07-28) — full-consistency shell (Jason ✓ "do everything now")
+
+- **Extracted the shared presentation:** `hooks/use-sheet-presentation.ts` (the scrim-fade + sheet-spring + grabber-pan + keyboard-aware backdrop + `dirty` discard-guard logic, returning styles/handlers) and `components/ui/sheet-styles.ts` (the shell geometry — frosted panel, grabber, dark luminous edge, header, ✕-circle). **`FormSheet` refactored onto the hook** (no behaviour change; gate re-verified) so there's one source of truth.
+- **`AnimatedSheet` shell** (`components/ui/AnimatedSheet.tsx`) — grabber + a standard title/subtitle/headerRight/✕ header + children body, on the hook. **Converted `AmortizationSheet` + `BillBreakdownSheet`** to it (dropped their bespoke Modal/backdrop/`SheetScrim`/text-Close). They now fade+spring+grabber+swipe+dark-edge like the FormSheet.
+- **`PaydayCaptureSheet`** (a multi-step flow with per-step Back/action headers that don't fit `AnimatedSheet`'s fixed header) → applied `useSheetPresentation` **directly** (like FormSheet): Modal `none` + `GestureHandlerRootView` + `KeyboardAvoidingView` (it had TextInputs and NO keyboard handling before — this fixes that) + animated scrim/sheet + grabber; kept its own step headers.
+- **`dirty` wired into all 4 entity sheets** (Debt already; +Expense/Goal/LivingExpense) via a first-render field-hash snapshot vs live — so every add/edit form confirms before discarding on tap/swipe.
+- **Verify:** lint + tsc clean; `validate:release:rn` green (**63 e2e**, all sheet flows); Amortization both-theme screenshot-verified (grabber · ✕-circle · dark edge · clean stack over the frosted edit sheet). Every sheet in the app now shares one premium presentation. PaydayCapture's on-device multi-step + keyboard → Phase-6 device-QA.
 
 ## Phase 3 · Wave C · 3.4.4 — Swipe-to-delete on rows — COMPLETE (2026-07-28)
 

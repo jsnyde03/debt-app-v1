@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Text } from 'react-native';
 
 import { FormSheet } from '@/components/ui/FormSheet';
@@ -18,6 +18,10 @@ export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose:
   const [current, setCurrent] = useState(editing ? String(editing.currentAmount) : '');
   const [type, setType] = useState<'emergency' | 'savings'>(editing?.type ?? 'savings');
   const [error, setError] = useState('');
+  // 3.4.5.5 dirty-guard: confirm before discarding unsaved edits on tap/swipe dismiss.
+  const snapshot = JSON.stringify({ name, target, current, type });
+  const initialSnapshot = useRef(snapshot);
+  const dirty = snapshot !== initialSnapshot.current;
 
   function submit() {
     if (!name.trim()) return setError('Enter a name.');
@@ -42,7 +46,8 @@ export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose:
       submitLabel={isEdit ? 'Save' : 'Add goal'}
       onSubmit={submit}
       onRemove={isEdit ? remove : undefined}
-      onClose={onClose}>
+      onClose={onClose}
+      dirty={dirty}>
       <TextField label="Name" value={name} onChangeText={(t) => { setName(t); setError(''); }} placeholder="Emergency Fund, Vacation" />
       <TextField label="Target amount" value={target} onChangeText={(t) => { setTarget(t); setError(''); }} placeholder="e.g. 1000" keyboardType="decimal-pad" />
       <TextField label="Current amount saved" value={current} onChangeText={setCurrent} placeholder="e.g. 250" keyboardType="decimal-pad" />

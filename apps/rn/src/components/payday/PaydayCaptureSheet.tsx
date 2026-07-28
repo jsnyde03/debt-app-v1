@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -14,10 +15,14 @@ import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { SheetScrim } from '@/components/ui/SheetScrim';
+import { sheetStyles } from '@/components/ui/sheet-styles';
 import { Button } from '@/components/ui/Button';
 import { Pill } from '@/components/ui/Pill';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useSheetPresentation } from '@/hooks/use-sheet-presentation';
 import { CountUp, haptics, useReduceMotion } from '@/motion';
+import { elevation } from '@/theme/elevation';
 import type { DebtBalanceView } from '@/store/balanceSelectors';
 import type { ActiveRecommendedAction, RequiredRow } from '@/store/planSelectors';
 import { spring } from '@/theme/motion';
@@ -68,7 +73,9 @@ export function PaydayCaptureSheet({
   onClose: () => void;
 }) {
   const c = useAppColors();
+  const scheme = useColorScheme();
   const insets = useSafeAreaInsets();
+  const { pan, scrimStyle, sheetStyle, onBackdrop, onSheetLayout } = useSheetPresentation(onClose);
 
   const [editingExtraKey, setEditingExtraKey] = useState<string | null>(null);
   const [overrides, setOverrides] = useState<Record<string, PaydayCaptureOverride>>({});
@@ -197,12 +204,28 @@ export function PaydayCaptureSheet({
     : `${requiredCount} due this paycheck`;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <SheetScrim />
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
-        <View style={[styles.sheet, { backgroundColor: c.background.primary, paddingBottom: insets.bottom + spacing.base }]}>
-          {captured ? (
+    <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={onBackdrop}>
+      <GestureHandlerRootView style={sheetStyles.flex}>
+        <KeyboardAvoidingView style={sheetStyles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <Animated.View style={[StyleSheet.absoluteFill, scrimStyle]} pointerEvents="none">
+            <SheetScrim />
+          </Animated.View>
+          <Pressable style={StyleSheet.absoluteFill} onPress={onBackdrop} accessibilityLabel="Close" />
+          <Animated.View
+            onLayout={onSheetLayout}
+            style={[
+              styles.sheet,
+              { backgroundColor: c.background.primary, paddingBottom: insets.bottom + spacing.base },
+              elevation.raised[scheme],
+              scheme === 'dark' && sheetStyles.sheetDarkEdge,
+              sheetStyle,
+            ]}>
+            <GestureDetector gesture={pan}>
+              <View style={sheetStyles.grabZone}>
+                <View style={[sheetStyles.grabber, { backgroundColor: c.text.tertiary }]} />
+              </View>
+            </GestureDetector>
+            {captured ? (
             <CaptureSuccess amount={capturedTotal} />
           ) : adjustingRequired ? (
             <>
@@ -406,8 +429,9 @@ export function PaydayCaptureSheet({
               </View>
             </>
           )}
-        </View>
-      </View>
+          </Animated.View>
+        </KeyboardAvoidingView>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
@@ -453,13 +477,12 @@ function CaptureSuccess({ amount }: { amount: number }) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: 'flex-end' }, // dim now from <SheetScrim /> (frosted)
   sheet: {
     maxHeight: '90%',
     borderTopLeftRadius: layout.cardRadiusLarge,
     borderTopRightRadius: layout.cardRadiusLarge,
     paddingHorizontal: layout.screenPaddingH,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.xs,
     gap: spacing.md,
   },
   header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },

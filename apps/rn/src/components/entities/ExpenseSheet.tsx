@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import type { Recurrence } from '@core/types/recurrence';
 
@@ -43,6 +43,10 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
   const [fullAmount, setFullAmount] = useState(editing?.fullAmount != null ? String(editing.fullAmount) : '');
   const [fullChargeDate, setFullChargeDate] = useState(editing?.fullChargeDate ?? '');
   const [error, setError] = useState('');
+  // 3.4.5.5 dirty-guard: confirm before discarding unsaved edits on tap/swipe dismiss.
+  const snapshot = JSON.stringify({ name, amount, dueDate, recurrence, category, autopay, variable, trial, fullAmount, fullChargeDate });
+  const initialSnapshot = useRef(snapshot);
+  const dirty = snapshot !== initialSnapshot.current;
 
   function submit() {
     if (!name.trim()) return setError('Enter a name.');
@@ -87,7 +91,8 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
       submitLabel={isEdit ? 'Save' : 'Add bill'}
       onSubmit={submit}
       onRemove={isEdit ? remove : undefined}
-      onClose={onClose}>
+      onClose={onClose}
+      dirty={dirty}>
       <TextField label="Name" value={name} onChangeText={(t) => { setName(t); setError(''); }} placeholder="Rent, phone, utilities" />
       <TextField label={trial ? 'Amount now (0 for a free trial)' : 'Amount'} value={amount} onChangeText={(t) => { setAmount(t); setError(''); }} placeholder={trial ? 'e.g. 0' : 'e.g. 850'} keyboardType="decimal-pad" error={error || undefined} />
       <TextField label="Due date (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate} placeholder="2026-07-01" />

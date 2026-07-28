@@ -1,51 +1,39 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppIcon } from '@/components/ui/AppIcon';
-import { Button } from '@/components/ui/Button';
 import { SheetScrim } from '@/components/ui/SheetScrim';
+import { sheetStyles } from '@/components/ui/sheet-styles';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { sheetStyles } from '@/components/ui/sheet-styles';
 import { useSheetPresentation } from '@/hooks/use-sheet-presentation';
 import { elevation } from '@/theme/elevation';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
 /**
- * A slide-up bottom sheet for the unified add/edit forms (the B.6 redesign — one sheet drives both
- * modes). 3.4.5 premium polish (shared with the display/capture sheets via `useSheetPresentation` +
- * `sheetStyles`): the frosted `SheetScrim` FADES in place while the sheet SPRINGS up; a grabber +
- * swipe-down-to-dismiss (pan on the header zone only, Modal content wrapped in its own
- * `GestureHandlerRootView`); a dark elevated surface + luminous top edge; an ✕-in-circle close; a
- * keyboard-aware backdrop + optional `dirty` discard-guard. Renders title + subtitle + a scrollable
- * field body + a sticky submit.
+ * 3.4.5.7 — the shared premium sheet shell for the NON-form (display/capture) sheets, so they match
+ * the FormSheet exactly: frosted scrim fades in place · sheet springs up · grabber + swipe-down-dismiss
+ * · dark luminous edge · ✕-in-circle header. Provides the grabber + a standard title/subtitle/✕ header;
+ * the caller passes the body (its own ScrollView/content) as children. Uses `useSheetPresentation`.
  */
-export function FormSheet({
+export function AnimatedSheet({
   visible,
+  onClose,
   title,
   subtitle,
-  submitLabel,
-  onSubmit,
-  onRemove,
-  onClose,
-  headerAction,
+  headerRight,
   dirty,
   children,
 }: {
   visible: boolean;
+  onClose: () => void;
   title: string;
   subtitle?: string;
-  submitLabel: string;
-  onSubmit: () => void;
-  onRemove?: () => void;
-  onClose: () => void;
-  /** Optional pressable pinned in the header row, just left of the close button (e.g. "View schedule"). */
-  headerAction?: ReactNode;
-  /** When the form has unsaved edits, a tap/swipe dismiss asks to confirm before discarding (3.4.5.5). */
+  headerRight?: ReactNode;
   dirty?: boolean;
   children: ReactNode;
 }) {
@@ -57,8 +45,6 @@ export function FormSheet({
   return (
     <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={onBackdrop}>
       <GestureHandlerRootView style={sheetStyles.flex}>
-        {/* KeyboardAvoidingView lifts the sheet (and its sticky submit) above the keyboard — the
-            decimal-pad has no return key, so an un-lifted submit is unreachable on device (RN lesson #9). */}
         <KeyboardAvoidingView style={sheetStyles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Animated.View style={[StyleSheet.absoluteFill, scrimStyle]} pointerEvents="none">
             <SheetScrim />
@@ -85,7 +71,7 @@ export function FormSheet({
                       </Text>
                     ) : null}
                   </View>
-                  {headerAction}
+                  {headerRight}
                   <Pressable
                     testID="sheet-close"
                     onPress={() => void requestClose()}
@@ -98,29 +84,10 @@ export function FormSheet({
                 </View>
               </View>
             </GestureDetector>
-
-            <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-              {children}
-            </ScrollView>
-
-            <View style={styles.actions}>
-              <Button label={submitLabel} onPress={onSubmit} />
-              {onRemove ? (
-                <Pressable onPress={onRemove} accessibilityRole="button" style={styles.remove}>
-                  <Text style={[textStyles.bodyMedium, { color: c.accent.danger }]}>Remove</Text>
-                </Pressable>
-              ) : null}
-            </View>
+            {children}
           </Animated.View>
         </KeyboardAvoidingView>
       </GestureHandlerRootView>
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  scroll: { flexGrow: 0 },
-  scrollContent: { gap: spacing.base, paddingVertical: spacing.xs },
-  actions: { gap: spacing.xs },
-  remove: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-});
