@@ -31,14 +31,13 @@ jobs:
     name: Compile · boot · Maestro
     runs-on: macos-15
     timeout-minutes: 60
-    env:
-      # RN auto-wires ccache into the Pods compiler/linker build settings when USE_CCACHE=1
-      # (react_native_pods.rb) — no Podfile hacking. The ccache dir is cached across runs, so run #2+
-      # reuses compiled objects; ccache is CONTENT-hashed, so it survives the CNG `expo prebuild` regen
-      # (unlike DerivedData, which keys on path/mtime → ~zero reuse). Prebuilt RN core + deps are already
-      # ON by default in RN 0.85 (RCT_USE_PREBUILT_RNCORE / RCT_USE_RN_DEP), so that lever's pulled.
-      USE_CCACHE: '1'
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
+    # NOTE: ccache was removed (2026-07-28) — RN's ccache wiring set a compiler-launcher path that DIDN'T
+    # resolve for the widget-extension target (`@bacons/apple-targets`, in the app project not Pods),
+    # failing the DebtWidget link with "unable to spawn ccache-clang.sh"; it also conflicted with
+    # Xcode 26's explicit modules. Its only benefit was incremental compile caching, and prebuilt RN
+    # core+deps (RCT_USE_PREBUILT_RNCORE, ON by default in 0.85) already carry the big speedup. This is
+    # the FREE unlimited pipeline, so wall-clock isn't a $ cost. Revisit a correct ccache setup (widget
+    # target excluded) later as a deliberate speed pass if build time becomes painful.
     defaults:
       run:
         working-directory: apps/rn
@@ -70,17 +69,6 @@ jobs:
           restore-keys: |
             pods-spm-${{ runner.os }}-
 
-      # The compiled-object cache (the real compile speedup). Keyed with the SHA so each run saves a
-      # fresh cache; restore-keys fall back to the most recent, so every run builds on the last one's.
-      - name: Cache ccache (compiled objects)
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/.ccache
-          key: ccache-${{ runner.os }}-${{ hashFiles('apps/rn/package-lock.json') }}-${{ github.sha }}
-          restore-keys: |
-            ccache-${{ runner.os }}-${{ hashFiles('apps/rn/package-lock.json') }}-
-            ccache-${{ runner.os }}-
-
       - name: Select newest Xcode
         run: |
           sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
@@ -96,19 +84,6 @@ jobs:
 
       - name: Fail fast (typecheck before the slow native build)
         run: npx tsc --noEmit
-
-      - name: Install + configure ccache
-        working-directory: .
-        # Config must be set BEFORE prebuild's pod install (which reads USE_CCACHE + wires the settings).
-        # Xcode-friendly sloppiness so ccache tolerates the paths/PCH/modules the RN build uses.
-        run: |
-          brew install ccache || true
-          ccache --version
-          ccache -o max_size=3G
-          ccache -o sloppiness=clang_index_store,file_stat_matches,include_file_ctime,include_file_mtime,ivfsoverlay,pch_defines,modules,system_headers,time_macros
-          ccache -o file_clone=true
-          ccache -o inode_cache=true
-          ccache -z
 
       - name: Generate the native iOS project (expo prebuild)
         run: npx expo prebuild --platform ios
@@ -128,11 +103,10 @@ jobs:
           # the compile); we only need the slice matching the sim we boot.
           ARCH="$(uname -m)"
           echo "Building single simulator arch: $ARCH"
-          # CLANG_ENABLE_EXPLICIT_MODULES=NO: Xcode 26+ defaults Clang explicit modules ON, which is
-          # incompatible with a compiler launcher (our USE_CCACHE=1 sets C_COMPILER_LAUNCHER) — every
-          # pod target errors "Explicit modules is enabled but the compiler was not recognized", and
-          # the cascade sinks the link. Disabling explicit modules keeps ccache working (Xcode's own
-          # prescribed fix). Codemagic isn't affected — it doesn't use ccache, so it needs no override.
+          # CLANG_ENABLE_EXPLICIT_MODULES=NO: kept as a conservative choice on Xcode 26, whose default
+          # (Clang explicit modules ON) is new. Implicit modules is the long-proven path and rules out an
+          # Xcode-26 explicit-modules surprise on this pod set. Harmless to keep; drop it later to try the
+          # explicit-modules speedup once the pipeline is reliably green.
           xcodebuild \
             -workspace ios/DebtPlannerRN.xcworkspace \
             -scheme DebtPlannerRN \
@@ -143,11 +117,6 @@ jobs:
             ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
             CODE_SIGNING_ALLOWED=NO \
             CLANG_ENABLE_EXPLICIT_MODULES=NO build
-
-      - name: ccache stats (hit-rate — 0% on the first cached run, climbs after)
-        if: always()
-        working-directory: .
-        run: ccache -s
 
       - name: Boot, install, launch, capture the app log
         run: |
