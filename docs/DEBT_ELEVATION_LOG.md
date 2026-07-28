@@ -4,6 +4,39 @@
 
 ---
 
+## Phase 3.5 · 3.5.3 — Payday Countdown Live Activity — DESIGN LOCKED (2026-07-28, not yet built)
+
+Design agreed with Jason before any Swift (design-first). **Concept:** the Live Activity is the *imminent-payday event* surface — the opposite of the always-on widget (which is the long-horizon debt-free-date glance). It auto-appears in the final run-up to payday, counts down, and shows the **Guardian read for that specific paycheck** (clear/tight/at-risk), then resolves at payday. Complementary, not duplicative. Data's all present (scout-verified): `paycheck.nextPaycheckDate` = countdown target; `selectPaydayGuardian().state` + title + safe-move = the live read; the widget's `WidgetBundle` was deliberately built to host it with no restructuring; deployment target already 16.1.
+
+**Locked decisions (Jason ✓ all recs):**
+1. **Premium-only.** The Live Activity's value *is* the Guardian read (a bare countdown is thin, and Guardian is premium). Free users keep the always-on widget as their complete glance surface → free complete, premium additive (value-led). Avoids a locked-preview feel.
+2. **Auto-start in the final stretch + Settings toggle.** Starts itself when premium AND payday is within ~3 days (on app foreground); ends at payday rollover; toggle in More → Preferences. ~3 days keeps it feeling imminent without being permanent even on weekly pay. Tunable.
+3. **Day-granular calm countdown** ("in 3 days" → "Today" on the last day), navy/gold to match the widget; the Guardian **state dot is the only moving color** (calm-data-viz).
+4. Tap anywhere → deep-links to the Guardian/payday screen.
+
+**Surface mockups (approved):**
+```
+Lock Screen card — three Guardian states (colored dot = state; calm tonal, not emoji):
+┌───────────────────────────────────────────────┐
+│  🏁  PAYDAY IN                  Fri · Aug 1     │
+│      3 days                                     │
+│  ─────────────────────────────────────────     │
+│  🟢 Looks clear this paycheck                   │
+│      Cushion safe · $420 free to deploy         │
+└───────────────────────────────────────────────┘
+  🟡 A little tight this paycheck  · Move $200 from savings to hold your line
+  🔴 Very tight this paycheck      · $180 short of your obligations
+
+Dynamic Island:
+  Compact:   ( 🏁            3d )         glyph · days-left
+  Expanded:  🏁 Payday · Fri, Aug 1 / big "3 days" / 🟡 Tight · move $200 to hold your line
+  Minimal:   🏁  (state-tinted flag)
+```
+
+**Build sequencing:** build AFTER the current native run confirms the 3.5.2 + widget baseline compiles + boots — so the Live Activity is added onto a known-good build and any new native failure is isolated to it (the one-layer-at-a-time discipline this whole native block has taught). Decomposition (3.5.3.1–.4) is in `DEBT_ELEVATION_PLAN.md`. **Key implementation unknown:** the app-side ActivityKit start/update needs a native bridge (no `expo-live-activity` dep) — a local Expo module or config-plugin Swift + a small JS API; resolve during 3.5.3.3.
+
+---
+
 ## Phase 3.5 · 3.5.2 — iOS long-press context menu — CODE-COMPLETE (2026-07-28)
 
 Long-press a debt row → a native iOS `UIMenu` (Edit + Delete, Delete destructive/red). Tap→edit and swipe→delete are untouched — the menu is a third, iOS-native discovery path (Mail/Files pattern). Files: `RowContextMenu.ios.tsx` (`ContextMenuView` builds the menu from `actions`, `onPressMenuItem` dispatches by `actionKey`, SF-Symbol icons `pencil`/`trash`), base `RowContextMenu.tsx` (transparent passthrough — web/Android unchanged), shared non-split `RowContextMenu.types.ts` (avoids the platform-split self-resolve trap), and the typed shim `src/types/react-native-ios-context-menu.d.ts`. Wired in `ListRow` inside the `onDelete` branch, over the `ReanimatedSwipeable` (menu wraps `rowBody`).
