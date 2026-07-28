@@ -3,6 +3,7 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleShee
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
+import { SheetScrim } from '@/components/ui/SheetScrim';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -41,6 +42,7 @@ export function FormSheet({
       {/* KeyboardAvoidingView lifts the sheet (and its sticky submit) above the keyboard — the
           decimal-pad has no return key, so an un-lifted submit is unreachable on device (RN lesson #9). */}
       <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <SheetScrim />
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
         <View style={[styles.sheet, { backgroundColor: c.background.primary, paddingBottom: insets.bottom + spacing.base }]}>
           <View style={styles.header}>
@@ -73,7 +75,7 @@ export function FormSheet({
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
+  backdrop: { flex: 1, justifyContent: 'flex-end' }, // dim now comes from <SheetScrim /> (frosted)
   sheet: {
     maxHeight: '92%',
     borderTopLeftRadius: layout.cardRadiusLarge,

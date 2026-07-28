@@ -4,6 +4,15 @@
 
 ---
 
+## Phase 3 · Wave C · 3.4.3 — `expo-blur` frosted glass — COMPLETE (2026-07-28)
+
+Installed `expo-blur` (SDK-matched). Applied with restraint (less-is-more) — glass on chrome, never content cards.
+
+- **Frosted tab bar (compact/iPhone only).** `_layout.tsx`: `tabBarBackground` → a themed `BlurView` (tint by scheme, intensity 70) + `tabBarStyle: { position: 'absolute', backgroundColor: 'transparent' }` so content scrolls under the glass. Safe because the `Screen` scaffold already pads scroll content `insets.bottom + spacing.huge (64)` "to clear the tab bar" — verified nothing is hidden. The iPad rail (`isRegular`, material/left) stays solid — iPhone-first through v1.1.
+- **Frosted sheet scrims.** New shared `components/ui/SheetScrim.tsx` = a `BlurView` (tint by scheme, intensity 20) + a light `rgba(0,0,0,0.28)` dim, `pointerEvents="none"` so the sheet's own dismiss Pressable (layered on top) still catches the backdrop tap. Dropped the flat `rgba(0,0,0,0.45)` wash on all 4 slide-up sheets (FormSheet · Amortization · BillBreakdown · PaydayCapture); the small centered Select dropdown keeps its simple dim (a "sheet" scrim there would be overkill).
+- **Verify:** new `blur-glass.spec.ts` guards the one behavioral risk — the scrim's `pointerEvents` must not swallow backdrop-dismiss (open the scan sheet → tap backdrop → closes). Flaked once (dark) racing the slide-up → added a 500ms settle before the tap; then green ×2 both themes. `validate:release:rn` green — **60 e2e**. All 4 both-theme screenshots reviewed + Jason ✓ the look. Web frost (CSS `backdrop-filter`) is subtle; the true UIKit material is a **Phase-6 device-QA** item. `expo-blur` adds no entitlements → no provisioning regen.
+- **After-scan:** nothing version-blocking. `expo-blur` is a native dep → a native rebuild is needed before device QA (batched into Phase 6).
+
 ## Phase 3 · Wave C · 3.4.2 — Chart interactivity (additive only) — COMPLETE (2026-07-27)
 
 **Switch-in reshape (verify-pre-authored-plan):** grepped the actual surfaces — the pre-authored 3.4.2 was ~half redundant with already-shipped work: the Guardian card already carries a full **Safety net / Cushion / To debt / "$X · Your line"** legend + an explicit **"Adjust your line →"** button, and the Cash Runway already has a per-cycle **tap → full detail receipt**. So the cushion-bar zone **tooltip** and the standalone **floor-line tap** were DROPPED (redundant + would busy the calm Guardian card — less-is-more), and the "Cash-Runway scrub readout" was reshaped to **drag-select** (a floating readout would duplicate the receipt). Presented to Jason → ✓ "reshape, additive only."

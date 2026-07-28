@@ -1,7 +1,10 @@
+import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
+import { StyleSheet } from 'react-native';
 
 import { TabBarIcon } from '@/components/tab-bar-icon';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLayout } from '@/hooks/use-layout';
 
 /**
@@ -18,6 +21,7 @@ import { useLayout } from '@/hooks/use-layout';
  */
 export default function TabsLayout() {
   const c = useAppColors();
+  const scheme = useColorScheme();
   const { isRegular } = useLayout();
 
   return (
@@ -28,9 +32,15 @@ export default function TabsLayout() {
         tabBarVariant: isRegular ? 'material' : 'uikit',
         tabBarActiveTintColor: c.accent.primary,
         tabBarInactiveTintColor: c.text.tertiary,
+        // 3.4.3 — the compact (iPhone) bottom bar is frosted glass: a translucent bar over a BlurView, so
+        // content scrolls under it (the Screen scaffold already pads `insets.bottom + 64` to clear it). The
+        // iPad rail stays solid (iPhone-first through v1.1). Device-QA the native material @ Phase 6.
+        tabBarBackground: isRegular
+          ? undefined
+          : () => <BlurView tint={scheme === 'dark' ? 'dark' : 'light'} intensity={70} style={StyleSheet.absoluteFill} />,
         tabBarStyle: isRegular
           ? { backgroundColor: c.background.secondary, borderRightColor: c.border.subtle }
-          : { backgroundColor: c.background.secondary, borderTopColor: c.border.subtle },
+          : { position: 'absolute', backgroundColor: 'transparent', borderTopColor: c.border.subtle },
         tabBarLabelStyle: { fontSize: isRegular ? 15 : 11, fontWeight: '600' },
       }}>
       <Tabs.Screen

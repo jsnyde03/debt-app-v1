@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Recurrence } from '@core/types/recurrence';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
+import { SheetScrim } from '@/components/ui/SheetScrim';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -53,6 +54,7 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.backdrop}>
+        <SheetScrim />
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
         <View style={[styles.sheet, { backgroundColor: c.background.primary, paddingBottom: insets.bottom + spacing.base }]}>
           <View style={styles.header}>
@@ -115,7 +117,7 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
+  backdrop: { flex: 1, justifyContent: 'flex-end' }, // dim now from <SheetScrim /> (frosted)
   sheet: {
     maxHeight: '88%',
     borderTopLeftRadius: layout.cardRadiusLarge,

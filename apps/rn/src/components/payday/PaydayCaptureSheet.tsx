@@ -13,6 +13,7 @@ import type { RequiredReconciliation } from '@core/debt/bulkMarkRequired';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { AppIcon } from '@/components/ui/AppIcon';
+import { SheetScrim } from '@/components/ui/SheetScrim';
 import { Button } from '@/components/ui/Button';
 import { Pill } from '@/components/ui/Pill';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -198,6 +199,7 @@ export function PaydayCaptureSheet({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.backdrop}>
+        <SheetScrim />
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
         <View style={[styles.sheet, { backgroundColor: c.background.primary, paddingBottom: insets.bottom + spacing.base }]}>
           {captured ? (
@@ -451,7 +453,7 @@ function CaptureSuccess({ amount }: { amount: number }) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
+  backdrop: { flex: 1, justifyContent: 'flex-end' }, // dim now from <SheetScrim /> (frosted)
   sheet: {
     maxHeight: '90%',
     borderTopLeftRadius: layout.cardRadiusLarge,

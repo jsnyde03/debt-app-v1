@@ -22,6 +22,7 @@
     "eslint": "^9.39.5",
     "eslint-config-expo": "~56.0.4",
     "expo": "~56.0.14",
+    "expo-blur": "~56.0.4",
     "expo-clipboard": "~56.0.4",
     "expo-constants": "~56.0.21",
     "expo-font": "~56.0.7",
