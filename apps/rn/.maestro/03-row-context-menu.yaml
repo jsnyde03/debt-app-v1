@@ -16,12 +16,15 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "tab-money"
 
-# A demo debt row is present (seeded by flow 01).
-- assertVisible: "Visa"
+# A demo debt row is present (seeded by flow 01). The row is a COMPOSITE a11y element
+# (ListRow spreads groupLabel → accessible:true, label "Visa, $2,400 · 26.99% APR, …"), and Maestro
+# matches the element's FULL text as a regex — so a bare "Visa" can't match the longer label (the same
+# reason the tab LABELS forced testIDs). Match the row by a contains-regex instead.  [first-run tuning]
+- assertVisible: ".*Visa.*"
 
-# Long-press the row → the native iOS context menu.
-- longPressOn: "Visa"
+# Long-press the row → the native iOS context menu (targets the same composite row element).
+- longPressOn: ".*Visa.*"
 
-# The UIMenu rendered with both actions (Delete is the destructive one).
+# The UIMenu rendered with both actions (exact labels → full-string match; Delete is the destructive one).
 - assertVisible: "Edit"
 - assertVisible: "Delete"
