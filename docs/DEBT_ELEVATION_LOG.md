@@ -4,6 +4,27 @@
 
 ---
 
+## Phase 3.5 · 3.5.2 — context-menu NATIVE FIX #2: RCTRootContentView link failure (2026-07-28)
+
+**Trigger:** the first GH-Actions Maestro sim run (the outstanding native verification for 3.5.2) got past `pod install` (the Folly fix worked) and failed at the final `Ld` of `DebtPlannerRN.app`:
+
+```
+Undefined symbols for architecture arm64:
+  "_OBJC_CLASS_$_RCTRootContentView", referenced from:
+       in libreact-native-ios-utilities.a[48](RCTView+Helpers.o)
+ld: symbol(s) not found for architecture arm64
+```
+
+**Root cause.** `react-native-ios-utilities@5.2.0` (latest; satisfies context-menu 3.1.3's `^5.1.4`) hard-references `RCTRootContentView` in `ios/Sources/Extensions+Helpers/RCTView+Helpers.swift` (`RCTRootContentView.self` metatype + `-> RCTRootContentView?` return type). `RCTRootContentView` is a **legacy Paper-renderer class**. The app runs New Arch (`newArchEnabled: true`) against RN 0.85's **prebuilt** React core, which no longer exports that class symbol for third-party linking — so the third-party static lib can't resolve it. Verified it's the ONLY reference to the class in the entire library (grep of both `react-native-ios-utilities` and `react-native-ios-context-menu` ios sources), and it only feeds a nil-able fallback: `closestParentReactContentView` → used solely by `closestParentReactTouchHandler` (line 61), which context-menu calls once as `parentReactView.closestParentReactTouchHandler?.cancel()`. The primary path already walks the superview chain for `RCTTouchHandler` first; the content-view fallback is the last resort.
+
+**Fix.** New prebuild config plugin `plugins/with-ios-utilities-rootcontentview-fix.js` (registered in `app.json` after the Folly fix), same dangerous-mod pattern as `with-context-menu-folly-fix.js`. At prebuild (before pod install compiles the Swift) it rewrites the `closestParentReactContentView` computed property to `var closestParentReactContentView: RCTView? { return nil; }`, removing every `RCTRootContentView` token from the file. Idempotent (marker-comment guard), warns-and-skips if the block shape changes (library fixed it upstream), survives `npm install` restoring pristine source. Behavior impact: the touch-handler fallback returns nil in the rare case the superview-chain walk finds no `RCTTouchHandler` — acceptable; the long-press UIMenu doesn't depend on it.
+
+**Verified locally (Windows, no macOS):** regex dry-run against the real pinned source → matches, and `RCTRootContentView` is fully absent post-patch; plugin `require()`s clean; `app.json` still valid JSON. The real proof is the **re-triggered GH-Maestro sim run reaching a green compile + mount** (Jason triggers) — a Windows box can't link iOS.
+
+**Cost signal (surfaced, not acted on):** 3rd native workaround for this one library (typed shim → Folly pin → RCTRootContentView). Persisting per the greenlit decision + integration-friction-≠-scrap rule; the zero-native-dep custom-JS-menu fallback stays on the shelf if the friction keeps compounding.
+
+---
+
 ## Phase 3.5 · 3.5.3 — Payday Countdown Live Activity — DESIGN LOCKED (2026-07-28, not yet built)
 
 Design agreed with Jason before any Swift (design-first). **Concept:** the Live Activity is the *imminent-payday event* surface — the opposite of the always-on widget (which is the long-horizon debt-free-date glance). It auto-appears in the final run-up to payday, counts down, and shows the **Guardian read for that specific paycheck** (clear/tight/at-risk), then resolves at payday. Complementary, not duplicative. Data's all present (scout-verified): `paycheck.nextPaycheckDate` = countdown target; `selectPaydayGuardian().state` + title + safe-move = the live read; the widget's `WidgetBundle` was deliberately built to host it with no restructuring; deployment target already 16.1.
