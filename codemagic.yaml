@@ -91,6 +91,104 @@ workflows:
           success: true
           failure: true
 
+  # ────────────────────────────────────────────────────────────────────────────────────────────
+  # Debt Planner RN (v1.7) — builds the EXPO app in `apps/rn`. The `ios-android-release` workflow
+  # ABOVE builds the LEGACY Capacitor app (`ios/App`); THIS one builds the new React-Native app.
+  # Adapted from FinancialFreedom/codemagic.yaml `ios-testflight` (same Expo-56 + Codemagic stack,
+  # proven on a live WidgetKit build) — full context in docs/DEBT_NATIVE_BLOCK_MANUAL_STEPS.md.
+  #
+  # Manual-only (no `triggering:` block → never auto-spends minutes; start it from the Codemagic UI).
+  #
+  # ⚠️ CI config that CANNOT be locally verified (no macOS here) — the FIRST Codemagic run is the
+  # validation pass; expect one round of tuning. The likeliest tweak is the generated project/scheme
+  # NAME: Expo derives it from app.json `expo.name` ("Debt Planner (RN)" → expected "DebtPlannerRN").
+  # If prebuild names the .xcworkspace/scheme differently, update the two paths below.
+  # (The widget's 2nd bundle id + its `fetch-signing-files` step get added at 3.5.3, mirroring Freedom.)
+  # ────────────────────────────────────────────────────────────────────────────────────────────
+  debt-planner-rn:
+    name: Debt Planner RN — iOS TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    cache:
+      cache_paths:
+        - $HOME/.npm
+        - $HOME/Library/Caches/CocoaPods
+        - $HOME/Library/Developer/Xcode/DerivedData
+
+    environment:
+      node: 22
+      groups:
+        - AppleConnect
+      # Automatic signing — Codemagic creates/fetches the distribution cert + App Store profile for
+      # the main app via the AppleConnect ASC API key. `com.jasonsnyder.debtplanner` already exists
+      # (the legacy app), so no pre-registration is needed for the first build.
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.jasonsnyder.debtplanner
+
+    scripts:
+      - name: Install dependencies (root + apps/rn)
+        # No npm workspaces — install root (core/tooling) then the RN app's own node_modules. `@core`
+        # is a Metro SOURCE alias (../../packages/core), so core needs no build/link. apps/rn's
+        # postinstall copies the CanvasKit wasm (web-only; harmless on a native build).
+        script: |
+          npm install --prefer-offline --no-audit --no-fund
+          npm --prefix apps/rn install --prefer-offline --no-audit --no-fund
+
+      - name: Generate the native iOS project (expo prebuild)
+        working_directory: apps/rn
+        # /ios is gitignored (Continuous Native Generation) — regenerated from app.json + config
+        # plugins (incl. plugins/with-local-notifications-only.js, which strips the Push entitlement).
+        # expo prebuild runs `pod install` itself on macOS.
+        script: |
+          npx expo prebuild --platform ios
+
+      - name: Apply iOS signing profiles
+        working_directory: apps/rn
+        # Scope --project to the REAL app project (not the **/*.xcodeproj glob — node_modules native
+        # modules ship their own .xcodeproj with no profile); --warn-only is the safety net. (Freedom lesson.)
+        script: |
+          xcode-project use-profiles --project ios/DebtPlannerRN.xcodeproj --warn-only
+
+      - name: Increment iOS build number
+        working_directory: apps/rn/ios
+        script: |
+          agvtool new-version -all "$BUILD_NUMBER"
+
+      - name: Build iOS IPA
+        working_directory: apps/rn
+        # ⚠️ Pin the archive -destination to iOS. Debt has supportsTablet:true, so WITHOUT this
+        # xcodebuild resolves "My Mac (Designed for iPad)" and native targets can't sign for Mac →
+        # a false "requires a provisioning profile" that dies before compiling. (Freedom lesson 2026-07-15.)
+        script: |
+          xcode-project build-ipa \
+            --workspace "ios/DebtPlannerRN.xcworkspace" \
+            --scheme "DebtPlannerRN" \
+            --archive-flags="-destination generic/platform=iOS"
+
+      - name: List build outputs
+        script: |
+          find apps/rn/build apps/rn/ios/build -iname "*.ipa" 2>/dev/null || true
+
+    artifacts:
+      - apps/rn/build/ios/ipa/*.ipa
+      - apps/rn/ios/build/ios/ipa/*.ipa
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Logs/Build/*.xcactivitylog
+
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+      email:
+        recipients:
+          - jason.snyder1984@gmail.com
+        notify:
+          success: true
+          failure: true
+
 # Post-v1.5-build follow-ups (deferred so a working-step change can't jeopardize this release build):
 #   • Remove the redundant "Initialize keychain" + "Add signing certificates" steps — Codemagic does
 #     both automatically once `ios_signing` is configured (proven in the Gig codemagic.yaml).

@@ -7,6 +7,7 @@
     "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "com.jasonsnyder.debtplanner",
+      "appleTeamId": "CVCY985YCD",
       "supportsTablet": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
