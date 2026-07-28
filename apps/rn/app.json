@@ -32,7 +32,8 @@
         }
       ],
       "@bacons/apple-targets",
-      "./plugins/with-local-notifications-only.js"
+      "./plugins/with-local-notifications-only.js",
+      "./plugins/with-context-menu-folly-fix.js"
     ]
   }
 }

@@ -113,6 +113,15 @@ jobs:
       - name: Generate the native iOS project (expo prebuild)
         run: npx expo prebuild --platform ios
 
+      # `expo prebuild` runs pod install but treats it as BEST-EFFORT — it prints CocoaPods errors yet
+      # still exits 0, so a pod failure silently yields no .xcworkspace and the build step fails later
+      # with a misleading "workspace does not exist". Re-run pod install as its OWN step so any real
+      # CocoaPods error (e.g. a third-party podspec pinning an incompatible RCT-Folly) is the failing
+      # step, with the actual message. Idempotent — a no-op re-install when prebuild already succeeded.
+      - name: Install CocoaPods (fail loud — prebuild masks pod errors with exit 0)
+        working-directory: apps/rn/ios
+        run: pod install
+
       - name: Build for the iOS Simulator (no signing)
         run: |
           # Build ONLY the runner's native arch — Release defaults to both arm64 + x86_64 sim slices (≈2×
