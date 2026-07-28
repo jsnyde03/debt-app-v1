@@ -1,0 +1,22 @@
+# Maestro E2E — the cold-launch smoke: the RN app boots on the iOS Simulator, onboarding renders, and
+# the Try-with-Sample-Data path lands on the populated app. This alone catches New-Architecture launch
+# crashes + autolink failures (incl. @bacons/apple-targets + the widget-sync launch path) that the web
+# gate structurally cannot. Maestro matches on-screen text / a11y labels; runs in filename order.
+#
+# ⚠️ FIRST-RUN TUNING: the exact onboarding copy + the post-demo landing state may need one selector
+# adjustment on the first GH-Actions run (as Freedom's flows did).
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: true
+
+# The app launched + rendered the first onboarding screen (WelcomeStep) — the core "did New Arch boot
+# without a fatal JS throw" assertion.
+- assertVisible: "Will you make it to payday?"
+
+# Demo path → skip manual entry, land on the populated app with sample data.
+- tapOn: "Try with Sample Data"
+
+# The 3-tab shell rendered (Today · Progress · Money) → onboarding completed, the store hydrated, the
+# populated Home drew.
+- assertVisible: "Money"
