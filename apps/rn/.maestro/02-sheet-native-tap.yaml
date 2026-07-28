@@ -1,18 +1,24 @@
 # Maestro E2E — the native SHEET interaction, the class of bug the web gate can't see. The Add-debt
-# FormSheet is a native Modal with a swipe-down GestureDetector; a header button that lives inside that
+# FormSheet is a native Modal with a swipe-down GestureDetector; a header button that lives INSIDE that
 # gesture is UNTAPPABLE on device (the "View Payoff Schedule" / ✕ bug found on the first device build).
 # This opens the sheet and taps its ✕-in-circle (a header button) — proving header buttons are tappable
-# on native, so that regression can never reach a device build silently again.
+# on native, so that regression can't reach a device build silently again.
 #
-# Depends on 01 having run first (Maestro runs flows in filename order → sample data is loaded).
-# ⚠️ FIRST-RUN TUNING: the Money-tab Add affordance label + the sheet copy may need one adjustment.
+# Depends on 01 having run first (Maestro runs flows in filename order → the demo data persists).
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
     clearState: false
 
-- tapOn: "Money"
-- assertVisible: "Add debt"
+# Money tab via testID (labels aren't reliably matchable on iOS).
+- tapOn:
+    id: "tab-money"
+
+# The "Add debt" AddRow may sit below the demo debts — scroll it into view, then open the sheet.
+- scrollUntilVisible:
+    element:
+      text: "Add debt"
+    direction: DOWN
 - tapOn: "Add debt"
 
 # The FormSheet sprang up (native Modal + grabber).
@@ -21,5 +27,5 @@ appId: com.jasonsnyder.debtplanner
 # Tap the ✕-in-circle close (a HEADER button). If header buttons were inside the pan GestureDetector
 # again, this tap would be swallowed on native and the sheet would stay open → the flow fails.
 - tapOn:
-    id: 'sheet-close'
+    id: "sheet-close"
 - assertNotVisible: "Add a debt"

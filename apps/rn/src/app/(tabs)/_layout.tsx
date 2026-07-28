@@ -45,15 +45,15 @@ export default function TabsLayout() {
       }}>
       <Tabs.Screen
         name="index"
-        options={{ title: 'Today', tabBarIcon: ({ color }) => <TabBarIcon name="today" color={color} /> }}
+        options={{ title: 'Today', tabBarButtonTestID: 'tab-today', tabBarIcon: ({ color }) => <TabBarIcon name="today" color={color} /> }}
       />
       <Tabs.Screen
         name="progress"
-        options={{ title: 'Progress', tabBarIcon: ({ color }) => <TabBarIcon name="progress" color={color} /> }}
+        options={{ title: 'Progress', tabBarButtonTestID: 'tab-progress', tabBarIcon: ({ color }) => <TabBarIcon name="progress" color={color} /> }}
       />
       <Tabs.Screen
         name="money"
-        options={{ title: 'Money', tabBarIcon: ({ color }) => <TabBarIcon name="money" color={color} /> }}
+        options={{ title: 'Money', tabBarButtonTestID: 'tab-money', tabBarIcon: ({ color }) => <TabBarIcon name="money" color={color} /> }}
       />
     </Tabs>
   );

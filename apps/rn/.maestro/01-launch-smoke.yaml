@@ -1,10 +1,7 @@
 # Maestro E2E — the cold-launch smoke: the RN app boots on the iOS Simulator, onboarding renders, and
-# the Try-with-Sample-Data path lands on the populated app. This alone catches New-Architecture launch
-# crashes + autolink failures (incl. @bacons/apple-targets + the widget-sync launch path) that the web
-# gate structurally cannot. Maestro matches on-screen text / a11y labels; runs in filename order.
-#
-# ⚠️ FIRST-RUN TUNING: the exact onboarding copy + the post-demo landing state may need one selector
-# adjustment on the first GH-Actions run (as Freedom's flows did).
+# the Try-with-Sample-Data path lands on the populated tab shell. This alone catches New-Architecture
+# launch crashes + autolink failures (incl. @bacons/apple-targets + the widget-sync launch path) that
+# the web gate structurally cannot. Runs in filename order.
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
@@ -14,9 +11,11 @@ appId: com.jasonsnyder.debtplanner
 # without a fatal JS throw" assertion.
 - assertVisible: "Will you make it to payday?"
 
-# Demo path → skip manual entry, land on the populated app with sample data.
+# Demo path → importStore(demoStore()) flips onboardingComplete → the _layout route-guard swaps to the
+# tabs.
 - tapOn: "Try with Sample Data"
 
-# The 3-tab shell rendered (Today · Progress · Money) → onboarding completed, the store hydrated, the
-# populated Home drew.
-- assertVisible: "Money"
+# The tab shell rendered. Assert via a stable testID — react-navigation groups tab buttons into
+# composite a11y elements on iOS, so the "Money"/"Today" LABELS aren't reliably text-matchable.
+- assertVisible:
+    id: "tab-money"
