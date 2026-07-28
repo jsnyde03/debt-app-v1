@@ -9,6 +9,7 @@ import { useNotificationSync } from '@/hooks/use-notification-sync';
 import { useInitPremium } from '@/premium/premiumSync';
 import { createStorageAdapter } from '@/storage/createAdapter';
 import { bootstrapPersistence, flushPendingSave } from '@/store/persistence';
+import { startWidgetSync } from '@/widget/widgetSync';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 
@@ -43,7 +44,9 @@ export default function RootLayout() {
   useInitPremium();
 
   useEffect(() => {
-    void bootstrapPersistence(createStorageAdapter());
+    // Hydrate + autosave, THEN start mirroring the debt summary to the iOS widget's App-Group container
+    // (3.5.1) — after hydrate so the first snapshot reflects real data. No-op on web/Android.
+    void bootstrapPersistence(createStorageAdapter()).then(() => startWidgetSync());
     // Persist any pending debounced write when the app leaves the foreground, so a
     // background/terminate never drops the last change. Wrapped defensively — a listener throw must
     // never crash the app (the platform-split lifecycle-handler lesson).
