@@ -63,7 +63,7 @@ So the real first job isn't a widget — it's **standing up a build pipeline for
 - [ ] C4 — Walk the [catch-up QA checklist](#c4--catch-up-qa-checklist-the-whole-v17-surface-on-a-real-phone-for-the-first-time)
 
 **Per native feature (Section D) — I'll tell you exactly when each is needed**
-- [ ] D-substrate — App Group registered + capability enabled
+- [x] D-substrate — App Group registered + enabled on the App ID + profile refreshed in CM ✅ (Jason 2026-07-28)
 - [ ] D-contextmenu — (no portal step; just a rebuild + device test)
 - [ ] D-liveactivity — extension registered + Live Activities tested on device
 - [ ] D-widgets — widget added to Home/Lock screen + tested
