@@ -31,15 +31,16 @@ jobs:
     name: Compile · boot · Maestro
     runs-on: macos-15
     timeout-minutes: 60
-    env:
-      # RN 0.85 ships PREBUILT React Native core by default (RCT_USE_PREBUILT_RNCORE=1). The prebuilt
-      # slice doesn't export every RN internal ObjC class, so a third-party native module that references
-      # one fails at LINK (not compile): react-native-ios-utilities references
-      # `_OBJC_CLASS_$_RCTRootContentView` (pulled in by react-native-ios-context-menu), undefined for
-      # arm64. Building RN core FROM SOURCE provides that class. Slower, but correct — and this is the
-      # free pipeline, so wall-clock isn't a $ cost. ⚠️ Codemagic's signed RN build will need the same
-      # env before it first builds the widget + context menu (it built green before those existed).
-      RCT_USE_PREBUILT_RNCORE: '0'
+    # RN 0.85's PREBUILT React core (the fast default, RCT_USE_PREBUILT_RNCORE=1) doesn't export every
+    # legacy ObjC class, so react-native-ios-utilities' reference to `_OBJC_CLASS_$_RCTRootContentView`
+    # (pulled in by react-native-ios-context-menu) was undefined at LINK for arm64. FIX = the prebuild
+    # config plugin `plugins/with-ios-utilities-rootcontentview-fix.js`, which strips that reference — so
+    # the symbol's absence no longer matters and we keep the FAST prebuilt core. NOTE: setting
+    # RCT_USE_PREBUILT_RNCORE=0 (build core from source) was tried first (commit 199c384) and STILL failed
+    # at link — the env approach was ineffective + slower; the plugin is the real fix. ⚠️ Codemagic's
+    # signed RN build therefore does NOT need any RCT_USE_PREBUILT_RNCORE override — the plugin runs at its
+    # prebuild too.
+    # (default RCT_USE_PREBUILT_RNCORE=1 — no override needed.)
     # NOTE: ccache was removed (2026-07-28) — RN's ccache wiring set a compiler-launcher path that DIDN'T
     # resolve for the widget-extension target (`@bacons/apple-targets`, in the app project not Pods),
     # failing the DebtWidget link with "unable to spawn ccache-clang.sh"; it also conflicted with
