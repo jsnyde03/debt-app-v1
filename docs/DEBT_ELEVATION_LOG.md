@@ -33,7 +33,12 @@ Dynamic Island:
   Minimal:   🏁  (state-tinted flag)
 ```
 
-**Build sequencing:** build AFTER the current native run confirms the 3.5.2 + widget baseline compiles + boots — so the Live Activity is added onto a known-good build and any new native failure is isolated to it (the one-layer-at-a-time discipline this whole native block has taught). Decomposition (3.5.3.1–.4) is in `DEBT_ELEVATION_PLAN.md`. **Key implementation unknown:** the app-side ActivityKit start/update needs a native bridge (no `expo-live-activity` dep) — a local Expo module or config-plugin Swift + a small JS API; resolve during 3.5.3.3.
+**Build sequencing:** build AFTER the current native run confirms the 3.5.2 + widget baseline compiles + boots — so the Live Activity is added onto a known-good build and any new native failure is isolated to it (the one-layer-at-a-time discipline this whole native block has taught). Decomposition (3.5.3.1–.5) is in `DEBT_ELEVATION_PLAN.md`. **Key implementation unknown:** the app-side ActivityKit start/update needs a native bridge (no `expo-live-activity` dep) — a local Expo module or config-plugin Swift + a small JS API; resolve during 3.5.3.3.
+
+**Scope additions (2026-07-28, from the wait-time design pass):**
+- **Widget stays read-only** — the interactive action moved OFF the widget (a calm glance surface) ONTO the Live Activity's payday-day state, where it's contextual → **3.5.4 closes**.
+- **Payday-landed one-tap (3.5.3.5)** — on "Today", a `AppIntent` button that rolls the cycle (`applyRollover`) + Undo. Because a Swift AppIntent can't touch the JS/MMKV store, it builds the **reusable bridge**: intent → pending action in the App Group → app drains on launch/foreground + refreshes. 
+- **⭐ Smart-order decision (Jason ✓):** Jason wants voice **"log a payment"** (3.5.5). Rather than duplicate the AppIntent-mutation machinery, build 3.5.3 first (which pays for the bridge via the payday-landed button), then 3.5.5's log-a-payment rides the SAME bridge + a debt `AppEntity` — the marginal cost drops from ~4–5× to ~2× the query-intent baseline. Effort table + rationale captured in-thread. **iOS-18 Control Center control deferred** → Deferred backlog.
 
 ---
 
