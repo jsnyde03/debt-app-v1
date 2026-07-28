@@ -74,30 +74,31 @@ export function FormSheet({
               sheetStyle,
             ]}>
             <GestureDetector gesture={pan}>
-              <View style={sheetStyles.grabZone}>
+              <View testID="sheet-drag-handle" style={sheetStyles.dragHandle}>
                 <View style={[sheetStyles.grabber, { backgroundColor: c.text.tertiary }]} />
-                <View style={sheetStyles.header}>
-                  <View style={sheetStyles.flex}>
-                    <Text style={[textStyles.title2, { color: c.text.primary }]}>{title}</Text>
-                    {subtitle ? (
-                      <Text style={[textStyles.subhead, { color: c.text.secondary }]} numberOfLines={1}>
-                        {subtitle}
-                      </Text>
-                    ) : null}
-                  </View>
-                  {headerAction}
-                  <Pressable
-                    testID="sheet-close"
-                    onPress={() => void requestClose()}
-                    accessibilityRole="button"
-                    accessibilityLabel="Close"
-                    hitSlop={10}
-                    style={[sheetStyles.closeBtn, { backgroundColor: c.background.tertiary }]}>
-                    <AppIcon name="close" size={17} color={c.text.secondary} />
-                  </Pressable>
-                </View>
               </View>
             </GestureDetector>
+            {/* Header lives OUTSIDE the GestureDetector so headerAction + ✕ stay tappable on native. */}
+            <View style={sheetStyles.header}>
+              <View style={sheetStyles.flex}>
+                <Text style={[textStyles.title2, { color: c.text.primary }]}>{title}</Text>
+                {subtitle ? (
+                  <Text style={[textStyles.subhead, { color: c.text.secondary }]} numberOfLines={1}>
+                    {subtitle}
+                  </Text>
+                ) : null}
+              </View>
+              {headerAction}
+              <Pressable
+                testID="sheet-close"
+                onPress={() => void requestClose()}
+                accessibilityRole="button"
+                accessibilityLabel="Close"
+                hitSlop={10}
+                style={[sheetStyles.closeBtn, { backgroundColor: c.background.tertiary }]}>
+                <AppIcon name="close" size={17} color={c.text.secondary} />
+              </Pressable>
+            </View>
 
             <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
               {children}

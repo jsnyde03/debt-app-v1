@@ -29,13 +29,15 @@ test('§3.4.5 the ✕-in-circle close button dismisses the sheet', async ({ page
   await expect(page.getByText('Add a debt')).toHaveCount(0);
 });
 
-test('§3.4.5 swipe-down on the header dismisses the sheet', async ({ page }) => {
+test('§3.4.5 swipe-down on the grabber dismisses the sheet', async ({ page }) => {
   await openAddSheet(page);
-  const title = page.getByText('Add a debt');
-  const box = await title.boundingBox();
-  if (!box) throw new Error('no sheet box');
-  const x = Math.round(box.x + 20);
-  const yTop = Math.round(box.y - 10); // the grabber/header zone, just above the title
+  // Drag the grabber handle (the ONLY drag zone — header buttons live outside the gesture so they
+  // stay tappable on native; 3.4.5 device fix).
+  const handle = page.getByTestId('sheet-drag-handle');
+  const box = await handle.boundingBox();
+  if (!box) throw new Error('no drag handle');
+  const x = Math.round(box.x + box.width / 2);
+  const yTop = Math.round(box.y + box.height / 2);
 
   const client = await page.context().newCDPSession(page);
   await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: yTop }] });

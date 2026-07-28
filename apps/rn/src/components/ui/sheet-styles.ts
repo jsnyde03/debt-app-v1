@@ -26,6 +26,11 @@ export const sheetStyles = StyleSheet.create({
     borderTopColor: 'rgba(255,255,255,0.16)',
   },
   grabZone: { paddingTop: spacing.sm, gap: spacing.sm },
+  // The drag handle owns the swipe-down gesture ALONE — header buttons (headerAction, ✕) must live
+  // OUTSIDE the GestureDetector, or on native the Pan swallows their taps (a web-invisible bug: RN's
+  // responder let taps through, gesture-handler's native Pan does not). Full-width + padded = a
+  // generous drag target at the very top of the sheet.
+  dragHandle: { paddingTop: spacing.sm, paddingBottom: spacing.sm, alignItems: 'center' },
   grabber: { width: 36, height: 5, borderRadius: 3, opacity: 0.4, alignSelf: 'center' },
   header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },
   closeBtn: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
