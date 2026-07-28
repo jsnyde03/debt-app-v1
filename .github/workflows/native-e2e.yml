@@ -128,6 +128,11 @@ jobs:
           # the compile); we only need the slice matching the sim we boot.
           ARCH="$(uname -m)"
           echo "Building single simulator arch: $ARCH"
+          # CLANG_ENABLE_EXPLICIT_MODULES=NO: Xcode 26+ defaults Clang explicit modules ON, which is
+          # incompatible with a compiler launcher (our USE_CCACHE=1 sets C_COMPILER_LAUNCHER) — every
+          # pod target errors "Explicit modules is enabled but the compiler was not recognized", and
+          # the cascade sinks the link. Disabling explicit modules keeps ccache working (Xcode's own
+          # prescribed fix). Codemagic isn't affected — it doesn't use ccache, so it needs no override.
           xcodebuild \
             -workspace ios/DebtPlannerRN.xcworkspace \
             -scheme DebtPlannerRN \
@@ -136,7 +141,8 @@ jobs:
             -derivedDataPath ios/build \
             -destination 'generic/platform=iOS Simulator' \
             ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
-            CODE_SIGNING_ALLOWED=NO build
+            CODE_SIGNING_ALLOWED=NO \
+            CLANG_ENABLE_EXPLICIT_MODULES=NO build
 
       - name: ccache stats (hit-rate — 0% on the first cached run, climbs after)
         if: always()
