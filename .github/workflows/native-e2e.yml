@@ -31,6 +31,14 @@ jobs:
     name: Compile · boot · Maestro
     runs-on: macos-15
     timeout-minutes: 60
+    env:
+      # RN auto-wires ccache into the Pods compiler/linker build settings when USE_CCACHE=1
+      # (react_native_pods.rb) — no Podfile hacking. The ccache dir is cached across runs, so run #2+
+      # reuses compiled objects; ccache is CONTENT-hashed, so it survives the CNG `expo prebuild` regen
+      # (unlike DerivedData, which keys on path/mtime → ~zero reuse). Prebuilt RN core + deps are already
+      # ON by default in RN 0.85 (RCT_USE_PREBUILT_RNCORE / RCT_USE_RN_DEP), so that lever's pulled.
+      USE_CCACHE: '1'
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
     defaults:
       run:
         working-directory: apps/rn
@@ -62,6 +70,17 @@ jobs:
           restore-keys: |
             pods-spm-${{ runner.os }}-
 
+      # The compiled-object cache (the real compile speedup). Keyed with the SHA so each run saves a
+      # fresh cache; restore-keys fall back to the most recent, so every run builds on the last one's.
+      - name: Cache ccache (compiled objects)
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ccache
+          key: ccache-${{ runner.os }}-${{ hashFiles('apps/rn/package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            ccache-${{ runner.os }}-${{ hashFiles('apps/rn/package-lock.json') }}-
+            ccache-${{ runner.os }}-
+
       - name: Select newest Xcode
         run: |
           sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
@@ -77,6 +96,19 @@ jobs:
 
       - name: Fail fast (typecheck before the slow native build)
         run: npx tsc --noEmit
+
+      - name: Install + configure ccache
+        working-directory: .
+        # Config must be set BEFORE prebuild's pod install (which reads USE_CCACHE + wires the settings).
+        # Xcode-friendly sloppiness so ccache tolerates the paths/PCH/modules the RN build uses.
+        run: |
+          brew install ccache || true
+          ccache --version
+          ccache -o max_size=3G
+          ccache -o sloppiness=clang_index_store,file_stat_matches,include_file_ctime,include_file_mtime,ivfsoverlay,pch_defines,modules,system_headers,time_macros
+          ccache -o file_clone=true
+          ccache -o inode_cache=true
+          ccache -z
 
       - name: Generate the native iOS project (expo prebuild)
         run: npx expo prebuild --platform ios
@@ -96,6 +128,11 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
             CODE_SIGNING_ALLOWED=NO build
+
+      - name: ccache stats (hit-rate — 0% on the first cached run, climbs after)
+        if: always()
+        working-directory: .
+        run: ccache -s
 
       - name: Boot, install, launch, capture the app log
         run: |
