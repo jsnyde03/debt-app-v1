@@ -13,6 +13,7 @@ import { ListRow } from '@/components/ui/ListRow';
 import { Pill } from '@/components/ui/Pill';
 import type { LivingExpense } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -60,6 +61,7 @@ export default function LivingExpensesScreen() {
               amount={formatCurrency(item.amount)}
               badges={item.enabled ? undefined : <Pill label="Off" tone="neutral" />}
               onPress={() => setSheet({ editing: item })}
+              onDelete={() => appStore.getState().removeLivingExpense(item.id)}
             />
           ))}
 

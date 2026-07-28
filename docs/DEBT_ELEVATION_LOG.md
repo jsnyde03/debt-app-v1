@@ -4,6 +4,16 @@
 
 ---
 
+## Phase 3 · Wave C · 3.4.4 — Swipe-to-delete on rows — COMPLETE (2026-07-28)
+
+**Switch-in reshape (Jason ✓):** the pre-authored "native row interactions" was mostly stale — grep proved: focus is **auto-derived** (`rankDebts(...)[0]`, not settable → drop "mark focus"); tap already opens the edit sheet (→ "edit" redundant); **snooze** has no concept in the code; `markDebtMinimumPaid` exists but has **zero UI callers** (payday-capture-owned → a manual toggle risks divergence); and `react-native-ios-context-menu` (UIMenu) can't be web-verified + adds CI/native-build risk and duplicates the swipe. So 3.4.4 reduced to the one clean, verifiable win — **swipe-to-delete** (the "B.9" the `ListRow` docstring already anticipated). The iOS long-press UIMenu moved to the **3.5 native block**.
+
+- **`ListRow`** gains an optional `onDelete`; when set, the row is wrapped in **`ReanimatedSwipeable`** (the classic `Swipeable` is deprecated + didn't drive on web) with `renderRightActions` → a red Delete action, `containerStyle` clipped to `cardRadius` so the panel matches the row shape. `overshootRight={false}`, `rightThreshold={40}`. Ref (`SwipeableMethods`) closes it on cancel.
+- **`confirmDelete`** (`utils/confirm.ts`) — cross-platform destructive confirm: `Alert.alert` is a no-op on RN-web, so web falls back to `window.confirm`; native gets a destructive `Alert`. Delete → confirm → the existing remove action.
+- **Wired** on all four row surfaces: Debts (`removeDebt`) · Bills (`removeExpense`) · Goals (`removeGoal`) · Living-expenses (`removeLivingExpense`). Tap→edit is untouched.
+- **Testing lesson:** gesture-handler's pan is a **touch** gesture — a Playwright *mouse* drag registers as a tap (edit sheet opens), not a swipe. Proven end-to-end with real **CDP touch events** (`Input.dispatchTouchEvent`, context `hasTouch`): swipe → Delete reveals → tap → confirm accepted → the Visa row is removed, Car remains. `swipe-delete.spec.ts` drives it this way. `validate:release:rn` green — **61 e2e**. Both themes screenshot-verified (the red adapts light/dark).
+- **After-scan:** nothing version-blocking. gesture-handler was already a dep → no native rebuild for this. Deferred: swipe-to-mark-paid (blocked on clarifying `minimumPaidThisCycle` ownership) + the iOS UIMenu (→ 3.5).
+
 ## Phase 3 · Wave C · 3.4.3 — `expo-blur` frosted glass — COMPLETE (2026-07-28)
 
 Installed `expo-blur` (SDK-matched). Applied with restraint (less-is-more) — glass on chrome, never content cards.

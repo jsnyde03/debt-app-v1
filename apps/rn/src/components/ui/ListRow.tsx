@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useRef } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -8,6 +9,7 @@ import { cardElevation } from '@/theme/elevation';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { groupLabel } from '@/utils/a11y';
+import { confirmDelete } from '@/utils/confirm';
 
 /**
  * The standardized list row for Debts / Bills / Goals — calm hierarchy (title + one meta line +
@@ -26,6 +28,7 @@ export function ListRow({
   progress,
   progressColor,
   onPress,
+  onDelete,
 }: {
   title: string;
   meta?: string;
@@ -42,12 +45,15 @@ export function ListRow({
   /** Fill color for the progress bar — defaults to the success/progress green. */
   progressColor?: string;
   onPress?: () => void;
+  /** If set, the row becomes swipeable → a red Delete action (3.4.4). Runs after a destructive confirm. */
+  onDelete?: () => void;
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
+  const swipeRef = useRef<SwipeableMethods>(null);
   // One screen-reader utterance: "Visa, $2,400 · 22.99% APR, estimated verified Jun 3, $65.00/mo".
   const a11y = groupLabel(title, [meta, caption].filter(Boolean).join(', ') || undefined, amount ? `${amount}${amountSuffix ?? ''}` : undefined);
-  return (
+  const rowBody = (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
@@ -99,6 +105,34 @@ export function ListRow({
       </View>
     </Pressable>
   );
+
+  if (!onDelete) return rowBody;
+
+  const handleDelete = async () => {
+    const ok = await confirmDelete(`Delete ${title}?`);
+    if (ok) onDelete();
+    else swipeRef.current?.close(); // cancelled → snap the row back
+  };
+  const renderRightActions = () => (
+    <Pressable
+      onPress={handleDelete}
+      accessibilityRole="button"
+      accessibilityLabel={`Delete ${title}`}
+      style={[styles.deleteAction, { backgroundColor: c.accent.danger }]}>
+      <Text style={styles.deleteText}>Delete</Text>
+    </Pressable>
+  );
+
+  return (
+    <ReanimatedSwipeable
+      ref={swipeRef}
+      renderRightActions={renderRightActions}
+      overshootRight={false}
+      rightThreshold={40}
+      containerStyle={styles.swipeContainer}>
+      {rowBody}
+    </ReanimatedSwipeable>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -116,4 +150,8 @@ const styles = StyleSheet.create({
   right: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   track: { height: 6, borderRadius: 3, overflow: 'hidden', marginTop: 2 },
   fill: { height: 6, borderRadius: 3 },
+  // Clip the revealed action to the row's rounded shape so the red panel doesn't peek past the corners.
+  swipeContainer: { borderRadius: layout.cardRadius, overflow: 'hidden' },
+  deleteAction: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
+  deleteText: { color: '#ffffff', fontWeight: '700', fontSize: 15 },
 });

@@ -233,6 +233,7 @@ function DebtRow({
       progress={progress}
       progressColor={focus ? c.accent.primary : undefined}
       onPress={() => onEdit(debt)}
+      onDelete={() => appStore.getState().removeDebt(debt.id)}
     />
   );
 }
@@ -464,6 +465,7 @@ function BillsSection() {
             amount={formatCurrency(item.amount)}
             badges={item.isAutopay ? <Pill label="Autopay" tone="autopay" /> : undefined}
             onPress={() => setSheet({ editing: item })}
+            onDelete={() => appStore.getState().removeExpense(item.id)}
           />
         )}
         ListEmptyComponent={
@@ -631,6 +633,7 @@ function GoalsSection() {
               badges={funded ? <Pill label="Funded" tone="paid" /> : undefined}
               progress={pct}
               onPress={() => setSheet({ editing: g })}
+              onDelete={() => appStore.getState().removeGoal(g.id)}
             />
           );
         })}
