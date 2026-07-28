@@ -4,6 +4,31 @@
 
 ---
 
+## Phase 3.5 · 3.5.2 — context-menu DONE: Maestro native-e2e GREEN 3/3 (2026-07-28)
+
+3.5.2's last outstanding piece — the native verification — is green. Run `30400688656` (commit `d5d5931`, fast prebuilt core): **01-launch-smoke ✓ · 02-sheet-native-tap ✓ · 03-row-context-menu ✓** on the iOS Simulator, New Architecture. Proves the long-press UIMenu (Edit + Delete) compiles, mounts, and OPENS on New Arch — and that idb can introspect the system UIMenu (the last first-run unknown: "Edit"/"Delete" matched).
+
+**What it took — 3 native fixes for `react-native-ios-context-menu@3.1.3` + its `react-native-ios-utilities@5.2.0`:**
+1. **Typed shim** (`src/types/react-native-ios-context-menu.d.ts`) — neither line ships `.d.ts`.
+2. **Folly-pin fix** (`plugins/with-context-menu-folly-fix.js`) — podspec hardcodes an ancient RCT-Folly; RN 0.85 ships newer → `pod install` fails; plugin strips the redundant pin.
+3. **RCTRootContentView link fix** (`plugins/with-ios-utilities-rootcontentview-fix.js`) — see the dedicated entry below; the legacy Paper class isn't in RN 0.85's prebuilt New-Arch core.
+
+**Maestro selector fix (test-only):** the debt row is a composite a11y element (`groupLabel` → `accessible:true`, label "Visa, $2,400 · …"); Maestro matches the FULL element text as a regex, so a bare "Visa" can't match → flow 03 uses `.*Visa.*`. Same lesson that forced tab testIDs.
+
+**Prebuilt-core flip:** with the link fix living in a plugin, dropped `RCT_USE_PREBUILT_RNCORE=0` — fast prebuilt core restored; Codemagic's signed build needs no override either (`RCT_USE_PREBUILT_RNCORE=0` was tried first at `199c384` and still failed — the plugin is the real fix).
+
+**Version pin (do NOT upgrade):** `react-native-ios-context-menu@3.1.3` EXACT — the 3.2.x line publishes broken (source-only, no built `lib/`, dangling `main`/`types`). `react-native-ios-utilities ^5.2.0` satisfies 3.1.3's `^5.1.4`.
+
+**After-scan (completion):**
+- ✅ **idb CAN introspect a system UIMenu** — reusable for 3.5.5.2's "Log payment" menu-action flow (assert its title directly).
+- **Reusable `debt-row-*` testID** — worth adding when 3.5.5.2 touches the row (more robust than the regex; the composite row hides child text). Folded into 3.5.5.2, not churned now.
+- No version-necessary fixes surfaced. Cost signal (3rd native workaround) already logged; custom-JS-menu stays the fallback if friction compounds.
+- Owed device check (real long-press haptics + menu on hardware) → batched into the 3.5.7 signed device build.
+
+**Queue replenishment (never-idle):** 3.5.2 vacates the active-build slot → **3.5.3 Live Activity (Payday Countdown)** promoted to active — design-locked + decomposed (3.5.3.1–.3.5), the 3.5.2+widget native baseline it was gated on is now green.
+
+---
+
 ## Phase 3.5 · NATIVE BLOCK — full design lock (2026-07-28)
 
 Locked the design across the whole native block with Jason (before any 3.5.5 code). Ratified the three already-settled items and resolved the two open ones + a unifying design language.
