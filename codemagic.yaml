@@ -1,110 +1,19 @@
+# Debt Planner v1.7 — Codemagic CI/CD
+#
+# Builds the EXPO React-Native app in `apps/rn` (the v1.7 rewrite that REPLACES the retired Capacitor
+# app — the old `ios-android-release`/`cap sync` workflow was removed 2026-07-28). Adapted from
+# FinancialFreedom/codemagic.yaml `ios-testflight` (same Expo-56 + Codemagic stack, proven on a live
+# WidgetKit build) — full context in docs/DEBT_NATIVE_BLOCK_MANUAL_STEPS.md.
+#
+# Manual-only (no `triggering:` block → never auto-spends minutes; start it from the Codemagic UI).
+#
+# ⚠️ CI config that CANNOT be locally verified (no macOS here) — the FIRST Codemagic run is the
+# validation pass; expect one round of tuning. The likeliest tweak is the generated project/scheme
+# NAME: Expo derives it from app.json `expo.name` ("Debt Planner (RN)" → expected "DebtPlannerRN").
+# If prebuild names the .xcworkspace/scheme differently, update the two paths below.
+# (The widget's 2nd bundle id + its `fetch-signing-files` step get added at 3.5.3, mirroring Freedom.)
+
 workflows:
-  ios-android-release:
-    name: iOS Android Release
-
-    # Apple Silicon instance — faster compile/archive than the default mac, so fewer minutes/build.
-    instance_type: mac_mini_m2
-
-    # Fail fast instead of silently burning the whole minute budget on a hung build.
-    max_build_duration: 45
-
-    # Cache the slow-to-rebuild dirs so build #2+ is much faster. NOTE: the FIRST build after this
-    # change is a cold cache (no speedup) — the wins start on the next build. Capacitor's `cap sync`
-    # runs `pod install`, so the CocoaPods cache applies here.
-    cache:
-      cache_paths:
-        - $HOME/.npm                                 # npm download cache → faster install
-        - $HOME/Library/Caches/CocoaPods             # CocoaPods spec/pod cache → faster pod install
-        - $HOME/Library/Developer/Xcode/DerivedData  # incremental Xcode build artifacts
-
-    environment:
-      node: 22
-
-      groups:
-        - Android KeyStore
-        - AppleConnect
-
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.jasonsnyder.debtplanner
-
-    scripts:
-      - name: Install dependencies
-        # --prefer-offline pulls from the cached $HOME/.npm (fast on a warm cache); --no-audit/--no-fund
-        # skip network/work CI doesn't need.
-        script: npm install --prefer-offline --no-audit --no-fund
-
-      - name: Build Next.js app
-        script: npm run build
-
-      - name: Decode Android keystore
-        script: |
-          echo "$CM_KEYSTORE_BASE64" | base64 --decode > "$HOME/keystore.jks"
-          ls -lh "$HOME/keystore.jks"
-
-      - name: Sync Capacitor
-        script: npx cap sync
-
-      - name: Initialize keychain
-        script: keychain initialize
-      
-      - name: Add signing certificates to keychain
-        script: keychain add-certificates
-
-      - name: Apply iOS signing profiles
-        script: xcode-project use-profiles
-
-      - name: Increment iOS build number
-        script: |
-          cd ios/App
-          agvtool new-version -all "$BUILD_NUMBER"
-
-      - name: Build iOS IPA
-        script: |
-          xcode-project build-ipa \
-            --project "ios/App/App.xcodeproj" \
-            --scheme "App"
-
-      - name: List build outputs
-        script: |
-          find ios -type f | grep ipa || true
-          find android/app/build/outputs -type f || true
-
-    artifacts:
-      - ios/App/build/ios/ipa/*.ipa
-      - build/ios/ipa/*.ipa
-      - android/app/build/outputs/**/*.apk
-      - android/app/build/outputs/**/*.aab
-      - xcodebuild-archive.log
-      - build/**/*.xcarchive
-
-    publishing:
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: true
-      email:
-        recipients:
-          - jason.snyder1984@gmail.com
-        notify:
-          success: true
-          failure: true
-
-  # ────────────────────────────────────────────────────────────────────────────────────────────
-  # Debt Planner RN (v1.7) — builds the EXPO app in `apps/rn`. The `ios-android-release` workflow
-  # ABOVE builds the LEGACY Capacitor app (`ios/App`); THIS one builds the new React-Native app.
-  # Adapted from FinancialFreedom/codemagic.yaml `ios-testflight` (same Expo-56 + Codemagic stack,
-  # proven on a live WidgetKit build) — full context in docs/DEBT_NATIVE_BLOCK_MANUAL_STEPS.md.
-  #
-  # Manual-only (no `triggering:` block → never auto-spends minutes; start it from the Codemagic UI).
-  #
-  # ⚠️ CI config that CANNOT be locally verified (no macOS here) — the FIRST Codemagic run is the
-  # validation pass; expect one round of tuning. The likeliest tweak is the generated project/scheme
-  # NAME: Expo derives it from app.json `expo.name` ("Debt Planner (RN)" → expected "DebtPlannerRN").
-  # If prebuild names the .xcworkspace/scheme differently, update the two paths below.
-  # (The widget's 2nd bundle id + its `fetch-signing-files` step get added at 3.5.3, mirroring Freedom.)
-  # ────────────────────────────────────────────────────────────────────────────────────────────
   debt-planner-rn:
     name: Debt Planner RN — iOS TestFlight
     instance_type: mac_mini_m2
@@ -122,7 +31,8 @@ workflows:
         - AppleConnect
       # Automatic signing — Codemagic creates/fetches the distribution cert + App Store profile for
       # the main app via the AppleConnect ASC API key. `com.jasonsnyder.debtplanner` already exists
-      # (the legacy app), so no pre-registration is needed for the first build.
+      # (the retired Capacitor app used it), so no pre-registration is needed, and v1.7 ships as an
+      # UPDATE to that App Store record.
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.jasonsnyder.debtplanner
@@ -189,10 +99,5 @@ workflows:
           success: true
           failure: true
 
-# Post-v1.5-build follow-ups (deferred so a working-step change can't jeopardize this release build):
-#   • Remove the redundant "Initialize keychain" + "Add signing certificates" steps — Codemagic does
-#     both automatically once `ios_signing` is configured (proven in the Gig codemagic.yaml).
-#   • Scope signing: `xcode-project use-profiles --project ios/App/App.xcodeproj --warn-only` so it
-#     doesn't glob a foreign **/*.xcodeproj if a future Capacitor plugin ships one.
-#   • Android is v1.7, not v1.5: the Android keystore-decode step + APK/AAB artifacts are inert here.
-#     Trim them (and `npx cap sync ios`) for a clean iOS-only release, or leave as harmless scaffold.
+# Android (RN) is v1.8 — no Google Play signing yet. When it lands, add an "android-internal-track"
+# workflow: npm install → expo prebuild --platform android → Gradle build → publish via google_play.
