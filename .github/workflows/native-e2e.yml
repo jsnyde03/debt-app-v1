@@ -67,6 +67,14 @@ jobs:
           sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
           xcodebuild -version
 
+      - name: Link ./core so tsc can resolve @core before Metro runs
+        # tsconfig maps `@core/*` → `./core/*`, a symlink Metro creates at startup (NOT committed). tsc
+        # runs before any Metro invocation here, so on a fresh checkout the link is absent → every @core
+        # import fails. Create it up front (Metro's own `if (!exists)` guard then no-ops later).
+        run: |
+          [ -e core ] || ln -s ../../packages/core core
+          ls -la core
+
       - name: Fail fast (typecheck before the slow native build)
         run: npx tsc --noEmit
 
