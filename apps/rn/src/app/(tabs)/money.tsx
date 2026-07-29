@@ -25,10 +25,12 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ListRow } from '@/components/ui/ListRow';
+import { MasterDetail } from '@/components/ui/MasterDetail';
 import { Pill } from '@/components/ui/Pill';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import type { Debt, Goal, RequiredExpense, RequiredExpenseCategory } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useLayout } from '@/hooks/use-layout';
 import { appStore } from '@/store/appStore';
 import { selectDebtBalanceView, buildEstimateCaption } from '@/store/balanceSelectors';
 import { selectPayoffView } from '@/store/payoffSelectors';
@@ -63,9 +65,12 @@ const CADENCE_SUFFIX: Record<Recurrence, string> = {
 
 export default function MoneyScreen() {
   const [view, setView] = useState<MoneyView>('debts');
+  const { isExpanded } = useLayout();
 
   return (
-    <Screen title="Money" right={<MoreButton />} scroll={view === 'goals'}>
+    // 3.6.2 — the Debts master-detail needs the full iPad canvas; Bills/Goals stay the centered column
+    // (their iPad treatment lands at 3.6.5).
+    <Screen title="Money" right={<MoreButton />} scroll={view === 'goals'} wide={isExpanded && view === 'debts'}>
       <SegmentedToggle
         value={view}
         onChange={setView}
@@ -90,6 +95,7 @@ function DebtsSection() {
   const view = useMemo(() => selectPayoffView(store), [store]);
   const [sheet, setSheet] = useState<{ editing: Debt | null; prefill?: Partial<Debt> } | null>(null);
   const [logPaymentFor, setLogPaymentFor] = useState<Debt | null>(null);
+  const { isExpanded } = useLayout(); // 3.6.2 — iPad landscape / wide → master-detail
   const paidOff = store.debts.filter((d) => d.balance <= 0);
   const c = useAppColors();
   const insets = useSafeAreaInsets();
@@ -134,7 +140,7 @@ function DebtsSection() {
   // Own scroll surface (virtualized) — the debt-heavy user (student loans, BNPL, medical) can carry
   // 20–30+ debts. Hero + strategy stay pinned above the scrolling list; payoff order is the
   // findability (focus debt is always first), so no grouping/search here.
-  return (
+  const list = (
     <View style={styles.flex}>
       <MoneyHero value={formatWhole(totalBal)} sub={`remaining across ${active.length} ${active.length === 1 ? 'debt' : 'debts'}`} />
       <View style={styles.strategyBlock}>
@@ -167,7 +173,7 @@ function DebtsSection() {
           ) : null
         }
         renderItem={({ item }) => (
-          <DebtRow debt={item} focus={item.id === focusId} currentDate={currentDate} isPremium={isPremium} onEdit={(x) => setSheet({ editing: x })} onLogPayment={setLogPaymentFor} />
+          <DebtRow debt={item} focus={item.id === focusId} selected={isExpanded && sheet?.editing?.id === item.id} currentDate={currentDate} isPremium={isPremium} onEdit={(x) => setSheet({ editing: x })} onLogPayment={setLogPaymentFor} />
         )}
         ListFooterComponent={
           <View style={styles.listFooter}>
@@ -179,15 +185,42 @@ function DebtsSection() {
           </View>
         }
       />
-      {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} /> : null}
-      {logPaymentFor ? <LogPaymentSheet debt={logPaymentFor} onClose={() => setLogPaymentFor(null)} /> : null}
     </View>
+  );
+
+  const editor = sheet ? (
+    <DebtSheet inline={isExpanded} editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} />
+  ) : null;
+
+  return (
+    <>
+      {isExpanded ? (
+        <MasterDetail
+          list={list}
+          hasSelection={sheet != null}
+          detail={editor}
+          detailEmpty={
+            <View style={styles.detailEmpty}>
+              <AppIcon name="credit-card" size={30} color={c.text.tertiary} />
+              <Text style={[textStyles.subhead, styles.detailEmptyText, { color: c.text.tertiary }]}>Select a debt to edit, or add one.</Text>
+            </View>
+          }
+        />
+      ) : (
+        <>
+          {list}
+          {editor}
+        </>
+      )}
+      {logPaymentFor ? <LogPaymentSheet debt={logPaymentFor} onClose={() => setLogPaymentFor(null)} /> : null}
+    </>
   );
 }
 
 function DebtRow({
   debt,
   focus,
+  selected,
   currentDate,
   isPremium,
   onEdit,
@@ -195,6 +228,8 @@ function DebtRow({
 }: {
   debt: Debt;
   focus?: boolean;
+  /** 3.6.2 — the row whose detail pane is open, on the iPad master-detail. */
+  selected?: boolean;
   currentDate: string;
   isPremium: boolean;
   onEdit: (d: Debt) => void;
@@ -240,6 +275,7 @@ function DebtRow({
       onPress={() => onEdit(debt)}
       onDelete={() => appStore.getState().removeDebt(debt.id)}
       onLogPayment={() => onLogPayment(debt)}
+      selected={selected}
     />
   );
 }
@@ -693,6 +729,8 @@ function MoneyHero({ value, sub, caption, bar, onPress }: { value: string; sub: 
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  detailEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.xl },
+  detailEmptyText: { textAlign: 'center' },
   rowGap: { height: spacing.sm },
   listFooter: { marginTop: spacing.md, gap: spacing.md },
   scanEmpty: { paddingHorizontal: spacing.lg, marginTop: spacing.md },

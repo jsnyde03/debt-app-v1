@@ -34,6 +34,7 @@ export function FormSheet({
   onClose,
   headerAction,
   dirty,
+  inline = false,
   children,
 }: {
   visible: boolean;
@@ -47,12 +48,53 @@ export function FormSheet({
   headerAction?: ReactNode;
   /** When the form has unsaved edits, a tap/swipe dismiss asks to confirm before discarding (3.4.5.5). */
   dirty?: boolean;
+  /** 3.6.2 — render as an in-tree PANE (the iPad Money master-detail detail) instead of a Modal: same
+   *  header + fields + submit/remove, but no scrim / grabber / swipe / ✕ (a pane isn't a dismissed sheet). */
+  inline?: boolean;
   children: ReactNode;
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const { pan, scrimStyle, sheetStyle, onBackdrop, requestClose, onSheetLayout } = useSheetPresentation(onClose, dirty);
+
+  // 3.6.2 — inline pane (iPad Money master-detail): the same header + fields + submit/remove, but no
+  // Modal / scrim / grabber / swipe / ✕ (a pane isn't a dismissible sheet). `useSheetPresentation` is
+  // still called above (hooks rule); its swipe/scrim just go unused here.
+  if (inline) {
+    return (
+      <KeyboardAvoidingView
+        style={[styles.inlineRoot, { backgroundColor: c.background.primary }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={sheetStyles.header}>
+          <View style={sheetStyles.flex}>
+            <Text style={[textStyles.title2, { color: c.text.primary }]}>{title}</Text>
+            {subtitle ? (
+              <Text style={[textStyles.subhead, { color: c.text.secondary }]} numberOfLines={1}>
+                {subtitle}
+              </Text>
+            ) : null}
+          </View>
+          {headerAction}
+        </View>
+        <ScrollView
+          style={[styles.scroll, styles.scrollInline]}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          {children}
+        </ScrollView>
+        <View style={styles.actions}>
+          <Button label={submitLabel} onPress={onSubmit} />
+          {onRemove ? (
+            <Pressable onPress={onRemove} accessibilityRole="button" style={styles.remove}>
+              <Text style={[textStyles.bodyMedium, { color: c.accent.danger }]}>Remove</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      </KeyboardAvoidingView>
+    );
+  }
 
   return (
     <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={onBackdrop}>
@@ -124,4 +166,7 @@ const styles = StyleSheet.create({
   scrollContent: { gap: spacing.base, paddingVertical: spacing.xs },
   actions: { gap: spacing.xs },
   remove: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+  // 3.6.2 inline pane — fill the detail column; the scroll grows so the submit/remove stick to the bottom.
+  inlineRoot: { flex: 1, paddingTop: spacing.base },
+  scrollInline: { flexGrow: 1 },
 });

@@ -32,6 +32,7 @@ export function ListRow({
   onPress,
   onDelete,
   onLogPayment,
+  selected,
 }: {
   title: string;
   meta?: string;
@@ -52,6 +53,8 @@ export function ListRow({
   onDelete?: () => void;
   /** 3.5.5.2 — if set, the long-press menu gains a "Log payment" action (debts only). */
   onLogPayment?: () => void;
+  /** 3.6.2 — the row whose detail is open in the iPad master-detail pane (accent border + tint). */
+  selected?: boolean;
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
@@ -67,7 +70,11 @@ export function ListRow({
       style={({ pressed }) => [
         styles.row,
         cardElevation(scheme),
-        { backgroundColor: c.background.secondary, borderColor: c.border.subtle, opacity: pressed ? 0.9 : 1 },
+        {
+          backgroundColor: selected ? c.background.tertiary : c.background.secondary,
+          borderColor: selected ? c.accent.primary : c.border.subtle,
+          opacity: pressed ? 0.9 : 1,
+        },
       ]}>
       <View style={styles.left}>
         <View style={styles.titleRow}>

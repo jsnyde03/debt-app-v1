@@ -56,7 +56,7 @@ const PROVIDERS: { value: string; label: string }[] = [
 
 /** Unified add/edit sheet for a debt. BNPL fields are now editable in both modes (redesign fix).
  *  `prefill` (§2.8) seeds a NEW debt's fields from a scanned statement — the user reviews/edits, then Adds. */
-export function DebtSheet({ editing, onClose, prefill }: { editing: Debt | null; onClose: () => void; prefill?: Partial<Debt> | null }) {
+export function DebtSheet({ editing, onClose, prefill, inline }: { editing: Debt | null; onClose: () => void; prefill?: Partial<Debt> | null; inline?: boolean }) {
   const c = useAppColors();
   const currentDate = useAppStore((s) => s.store.paycheck.currentDate);
   const isPremium = useAppStore((s) => s.store.subscriptionPlan === 'premium');
@@ -167,6 +167,7 @@ export function DebtSheet({ editing, onClose, prefill }: { editing: Debt | null;
     <>
     <FormSheet
       visible
+      inline={inline}
       title={isEdit ? 'Edit debt' : prefill ? 'Add from scan' : 'Add a debt'}
       subtitle={isEdit ? undefined : prefill ? 'Review the scanned details, then add.' : 'A loan, credit card, or BNPL balance.'}
       submitLabel={isEdit ? 'Save' : 'Add debt'}
@@ -240,7 +241,9 @@ export function DebtSheet({ editing, onClose, prefill }: { editing: Debt | null;
       {error ? <Text style={[textStyles.caption, { color: c.accent.danger }]}>{error}</Text> : null}
     </FormSheet>
     {isEdit && editing ? (
-      <AmortizationSheet overlay visible={showSchedule} debtId={editing.id} onClose={() => setShowSchedule(false)} />
+      // When DebtSheet is a modal (compact), the schedule needs `overlay` to dodge modal-over-modal;
+      // when DebtSheet is INLINE (iPad detail pane, not a modal), the schedule can be a normal Modal.
+      <AmortizationSheet overlay={!inline} visible={showSchedule} debtId={editing.id} onClose={() => setShowSchedule(false)} />
     ) : null}
     </>
   );
