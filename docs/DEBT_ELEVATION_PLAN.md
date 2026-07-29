@@ -107,7 +107,14 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 - [ ] **3.5.7 verify + close** — Maestro native-e2e green across the block (free GH sim, iterated) + `validate:release:rn` green → a device build ONLY for the device-only surfaces → Jason sanity-check; provisioning-regen + CI-glob check; device-QA batch → Phase-6 ledger; whole-block after-scan → native iPad (3.6).
 - **3.5 exit:** the RN app builds+signs+ships to TestFlight · the native features device-verified · → native iPad (3.6) → the Phase-3-closeout audit.
 
-**3.6 Genuinely-native iPad** _(heaviest single addition; after the Guardian-dependent delight work)_: per-screen re-layout (multi-column / master-detail · pointer/keyboard), not a centered phone column. The Guardian is now final (Phase 2 ✅), so its "after the Guardian is polished" precondition is met. Overlaps Gig's iPad method — reuse the approach.
+**3.6 Genuinely-native iPad** — DECOMPOSED + DESIGN-LOCKED (Jason ✓ 2026-07-29). ⚠️ before-scan correction: the iPad **foundation already exists** (size classes compact/regular/expanded · sidebar rail · width-capped `Screen`), but `isExpanded` is used NOWHERE + no screen adapts its content → the current iPad IS the "centered phone column" to replace. So 3.6 = the **per-screen native layouts** + pointer/keyboard, not the chrome. **Locked:** sheets → iPad-native (Money = master-detail pane · the rest = centered form-sheets) · master-detail = **Money ONLY** (Today/Progress = 2-column reflow) · pointer/keyboard = meaningful-but-bounded (hover + focus + a few ⌘-shortcuts). Detail → LOG.
+  - **3.6.1 Layout primitives** [structure-first] — a shared `TwoColumn`/split scaffold + a master-detail container (gated on `isExpanded`) that screens compose.
+  - **3.6.2 Money → master-detail** [flagship] — the list (left) + the selected item's detail/edit (right, replacing the modal sheet on iPad); the payoff schedule as a detail pane.
+  - **3.6.3 Today → two-column** — the Guardian/payday moment beside the required + recommended actions.
+  - **3.6.4 Progress → wide-canvas** — Skia ring + stats + trajectory using the room (not a stacked column).
+  - **3.6.5 More + long-tail** — settings two-column; adapt living-expenses / paywall / onboarding.
+  - **3.6.6 Pointer + keyboard** — hover states · focus rings · a handful of ⌘-shortcuts (new debt · tab switch).
+  - **3.6.7 verify** — both orientations · Split View · Stage Manager (compact-within-iPad) · both themes · real-iPad device QA.
 
 **Also in Phase 3 (audit-CONFIRMED, already listed below):** variable-income debt-free band (LOCKED, zero-scaffolding) · Guardian Tier-3 (hero label · ack-density coordinator · keep-essential toggle) · Windfall revisit.
 

@@ -4,6 +4,19 @@
 
 ---
 
+## Phase 3.6 · Genuinely-native iPad — DESIGN GATE (decomposed + locked 2026-07-29, not yet built)
+
+Decomposed the pre-authored 3.6 roadmap item with Jason before any code (design-first). **Before-scan correction (the item drifted):** the iPad *foundation* is already built — `utils/sizeClass.ts` (compact <768 / regular ≥768 / expanded ≥1024), `hooks/use-layout.ts`, a sidebar rail (`(tabs)/_layout.tsx` via `Tabs tabBarPosition:'left'` on regular), and a width-capped centered `Screen` on regular. BUT `isExpanded` is referenced NOWHERE and no individual screen adapts its content, so today's iPad = the sidebar chrome around a **centered phone-width column** — exactly the thing 3.6's "not a centered phone column" mandate targets. So 3.6's real scope = the **per-screen native layouts + pointer/keyboard**, not the chrome (which is done).
+
+**Locked decisions (Jason ✓ all three recs, 2026-07-29):**
+1. **Sheets on iPad → iPad-native.** Full-height bottom-sheets read phone-y on the big canvas. Money's edit becomes the master-**detail pane** (3.6.2); the remaining modal sheets become centered **form-sheets** (not bottom sheets). Builds on the `AnimatedSheet.overlay` mode just added for the modal-over-modal fix.
+2. **Master-detail = Money ONLY.** It's the one list→item surface. Today + Progress are single-object dashboards → **two-column reflow** (gated on `isExpanded`), not master-detail.
+3. **Pointer/keyboard = meaningful-but-bounded.** Hover states + focus rings + a handful of ⌘-shortcuts (new debt, tab switch) — not a full desktop keyboard map.
+
+**Decomposition (7 steps, structure-first): 3.6.1 layout primitives → 3.6.2 Money master-detail (flagship) → 3.6.3 Today two-column → 3.6.4 Progress wide-canvas → 3.6.5 More + long-tail → 3.6.6 pointer/keyboard → 3.6.7 verify (both orientations · Split View · Stage Manager compact-within-iPad · both themes · real-iPad device QA).** Sits after the 3.5 native block closes; not the active build yet (3.5.5 verification pending).
+
+---
+
 ## Phase 3.5 · 3.5.3 Live Activity — COMPLETE + native-verified (2026-07-29)
 
 The whole Payday Countdown Live Activity is code-complete and native-compile-verified. Two green native-e2e runs: `30456773326` (3.5.3.1–.3 baseline) + `30460864814` (3.5.3.5 producer — the interactive `LiveActivityIntent` + button + module queue fns). Both = compile GREEN + 3/3 Maestro flows (app boots + mounts). The **real** Lock Screen / Dynamic Island render + the payday-landed flow are on the **signed device build** (checklist: `docs/DEBT_3.5_DEVICE_QA_CHECKLIST.md`).
