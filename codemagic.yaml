@@ -11,7 +11,8 @@
 # validation pass; expect one round of tuning. The likeliest tweak is the generated project/scheme
 # NAME: Expo derives it from app.json `expo.name` ("Debt Planner (RN)" → expected "DebtPlannerRN").
 # If prebuild names the .xcworkspace/scheme differently, update the two paths below.
-# (The widget's 2nd bundle id + its `fetch-signing-files` step get added at 3.5.3, mirroring Freedom.)
+# (Widget 2nd bundle id + its `fetch-signing-files` step ADDED at 3.5.3, mirroring Freedom — see the
+# "Apply iOS signing profiles" step.)
 
 workflows:
   debt-planner-rn:
@@ -54,11 +55,19 @@ workflows:
         script: |
           npx expo prebuild --platform ios
 
-      - name: Apply iOS signing profiles
+      - name: Apply iOS signing profiles (fetch BOTH bundle ids — app + widget)
         working_directory: apps/rn
+        # ⚠️ MULTI-TARGET (3.5.3, mirrors Freedom 2026-07-15): the widget extension
+        # (`com.jasonsnyder.debtplanner.widget` — its own App ID + App Group registered in the portal +
+        # set up in Codemagic, Jason 2026-07-29) is a SECOND signable target that ALSO hosts the Live
+        # Activity. The `ios_signing` block above only fetches the MAIN app's profile → the widget would
+        # fail "requires a provisioning profile". Explicitly fetch/create an App Store profile for BOTH
+        # bundle ids (idempotent for the app), THEN map them onto the targets.
         # Scope --project to the REAL app project (not the **/*.xcodeproj glob — node_modules native
         # modules ship their own .xcodeproj with no profile); --warn-only is the safety net. (Freedom lesson.)
         script: |
+          app-store-connect fetch-signing-files "com.jasonsnyder.debtplanner" --type IOS_APP_STORE --create
+          app-store-connect fetch-signing-files "com.jasonsnyder.debtplanner.widget" --type IOS_APP_STORE --create
           xcode-project use-profiles --project ios/DebtPlannerRN.xcodeproj --warn-only
 
       - name: Increment iOS build number
