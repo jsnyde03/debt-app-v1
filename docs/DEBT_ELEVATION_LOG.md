@@ -4,6 +4,14 @@
 
 ---
 
+## Phase 3.5 · native-e2e CI speed pass (2026-07-29)
+
+Targeted the dominant cost — the Xcode sim compile (13m27s = 58% of the run; single-arch was already in place). Two safe, no-infra, compiler-level cuts (commit `8f6e803`): **optimization OFF** (`SWIFT_OPTIMIZATION_LEVEL=-Onone` / `GCC_OPTIMIZATION_LEVEL=0` — skips the Release `-O` passes while KEEPING the Release config's embedded self-contained bundle, so the sim app still runs with no Metro; Maestro tests behavior not perf, and the signed Codemagic build stays the optimized final check) + **Clang explicit modules ON** (Xcode 26 default, un-pinned now that the pipeline is reliably green). Result (run `30452956045`, green 3/3): compile **13m27s → 11m42s (~13%, −1m45s)**. Wall-clock barely moved (−27s) because boot+Maestro drifted up on sim variance — the compile gain is the real, repeatable win; run-total keeps bouncing on sim-boot/driver variance.
+
+**Deferred bigger lever — ccache scoped to Pods:** the Pods (RN core, Skia, Reanimated…) are most of the 11m42s and don't change as we develop app code → a warm ccache could cut far more. NOT done here: it broke the widget target before (`unable to spawn ccache-clang.sh`), conflicts with explicit modules, and can't be verified locally (Windows). Do it as a dedicated pass (scope ccache to Pod targets via a Podfile `post_install`, keep the app/widget targets untouched) if build time becomes painful during 3.5.3 iteration.
+
+---
+
 ## Phase 3.5 · 3.5.2 — context-menu DONE: Maestro native-e2e GREEN 3/3 (2026-07-28)
 
 3.5.2's last outstanding piece — the native verification — is green. Run `30400688656` (commit `d5d5931`, fast prebuilt core): **01-launch-smoke ✓ · 02-sheet-native-tap ✓ · 03-row-context-menu ✓** on the iOS Simulator, New Architecture. Proves the long-press UIMenu (Edit + Delete) compiles, mounts, and OPENS on New Arch — and that idb can introspect the system UIMenu (the last first-run unknown: "Edit"/"Delete" matched).
