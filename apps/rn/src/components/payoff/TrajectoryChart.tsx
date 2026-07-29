@@ -11,6 +11,7 @@ import type { WhatIfResult } from '@/store/analysisSelectors';
 import type { DebtClearPoint, InterestSaved, TrajectoryPoint } from '@/store/payoffSelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { groupLabel } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 
 import { TrajectoryCanvas } from './TrajectoryCanvas';
@@ -256,6 +257,14 @@ export function TrajectoryChart({
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Balance over time</Text>
       </View>
       <View
+        // A11Y-1: collapse the canvas + loose overlay fragments (axis labels, waypoint checks, end pill)
+        // into ONE VoiceOver utterance — the shipped pattern on the ring + cash-flow. The scrub is a visual
+        // touch affordance; SR users get this summary. (The What-If button below stays separately focusable.)
+        {...groupLabel(
+          'Payoff trajectory chart',
+          debtFreeDate ? `debt-free ${shortDate(debtFreeDate)}` : 'projected balance over time',
+          showMinimums ? 'your plan clears faster than minimum payments' : undefined,
+        )}
         onLayout={(e) => setW(e.nativeEvent.layout.width)}
         style={{ height: H }}
         onStartShouldSetResponder={() => w > 0}

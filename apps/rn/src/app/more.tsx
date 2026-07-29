@@ -116,7 +116,7 @@ export default function MoreScreen() {
       <SettingGroup>
         <SettingRow
           icon="history"
-          label="Pay Cycle History"
+          label="Pay cycle history"
           subtitle="Look back at your finished pay cycles."
           onPress={() => router.push('/history')}
           last
@@ -129,14 +129,14 @@ export default function MoreScreen() {
           <SettingRow icon="file-download" label="Import backup" subtitle="Restore from a saved backup." onPress={() => setSheet('import')} />
           <SettingRow
             icon="cloud-off"
-            label="iCloud Backup"
-            subtitle="Automatic cloud backup — coming with Premium."
+            label="iCloud backup"
+            subtitle="Automatic cloud backup — coming soon."
             right={<Text style={[textStyles.caption, { color: c.text.tertiary }]}>Soon</Text>}
           />
           {confirmingDelete ? (
             <DeleteConfirm onCancel={() => setConfirmingDelete(false)} onConfirm={handleDeleteAll} />
           ) : (
-            <SettingRow icon="delete-outline" label="Delete All Data" danger onPress={() => setConfirmingDelete(true)} last />
+            <SettingRow icon="delete-outline" label="Delete all data" danger onPress={() => setConfirmingDelete(true)} last />
           )}
         </SettingGroup>
       </Section>
