@@ -1,6 +1,6 @@
 import { createStore } from 'zustand/vanilla';
 
-import { normalizeBnplInstallment } from '@core/debt/bnplInstallment';
+import { isInstallmentNative, normalizeBnplInstallment } from '@core/debt/bnplInstallment';
 import type { RequiredReconciliation } from '@core/debt/bulkMarkRequired';
 import type { GuardianBand } from '@core/storage/debtPlannerStorage';
 
@@ -206,6 +206,11 @@ export function createDebtStore() {
         // Installment-native BNPL: derive balance + minimum from scheduled × remaining (2.7.2).
         const stored = normalizeBnplInstallment({
           ...debt,
+          // NEW-1: seed `originalBalance` from the first entered balance when unset, so every debt row can
+          // show a momentum bar (the Progress % + the row bar read off it) instead of only debts that
+          // happened to carry one. The user's just-entered number IS their starting point. Skip BNPL
+          // (installment-native): its balance is DERIVED from installments and it shows "X of N", not a bar.
+          originalBalance: debt.originalBalance ?? (isInstallmentNative(debt) ? undefined : debt.balance),
           lastVerifiedDate: debt.lastVerifiedDate ?? now,
           balanceAsOfDate: debt.balanceAsOfDate ?? now,
         });
