@@ -27,6 +27,7 @@ export function TextField({
       <TextInput
         value={value}
         onChangeText={onChangeText}
+        accessibilityLabel={label}
         placeholder={placeholder}
         placeholderTextColor={c.text.tertiary}
         keyboardType={keyboardType}

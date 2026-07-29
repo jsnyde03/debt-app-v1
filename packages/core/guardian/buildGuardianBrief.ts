@@ -167,7 +167,9 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
 
   const look =
     lookahead && lookahead.status !== "stable"
-      ? `Heads up: ${lookahead.label} looks ${lookahead.status === "pressure" ? "tight" : "a little tight"} — ${amt(lookahead.cushion)} of cushion. Worth planning for now.`
+      ? // COH-1: "room" (= the floor-relative `net` the Progress bars label "room after each paycheck"),
+        // one quantity + one name across both premium surfaces.
+        `Heads up: ${lookahead.label} looks ${lookahead.status === "pressure" ? "tight" : "a little tight"} — ${amt(lookahead.cushion)} of room. Worth planning for now.`
       : undefined;
 
   const viz = { cushion: kept, deployedToDebt, heldReserve, floor, reachedFloor, debtFree };

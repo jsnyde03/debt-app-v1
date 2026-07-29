@@ -27,8 +27,9 @@ function formatMonths(months: number): string {
 
 /** The savings suffix shared by both legend rows: " · $1,666, 22 months saved" / " · $309, 7 months sooner". */
 function deltaSuffix(interestSaved: number, monthsSaved: number, word: string): string {
-  if (interestSaved > 0 && monthsSaved > 0) return ` · ${formatWhole(interestSaved)}, ${formatMonths(monthsSaved)} ${word}`;
-  if (interestSaved > 0) return ` · ${formatWhole(interestSaved)} less interest`;
+  // HON-2: hedge the projected (multi-year) interest figure with "~" — matches the Guardian's hedged-dollar voice.
+  if (interestSaved > 0 && monthsSaved > 0) return ` · ~${formatWhole(interestSaved)}, ${formatMonths(monthsSaved)} ${word}`;
+  if (interestSaved > 0) return ` · ~${formatWhole(interestSaved)} less interest`;
   if (monthsSaved > 0) return ` · ${formatMonths(monthsSaved)} ${word}`;
   return '';
 }
@@ -315,7 +316,9 @@ export function TrajectoryChart({
                       pointerEvents="none"
                       style={[textStyles.caption, styles.waypointLabel, { left: wp.x - 40, top: wp.y - 22, color: c.text.tertiary }]}
                       numberOfLines={1}>
-                      {wp.name} ✓
+                      {/* COH-5: no "✓" on a FUTURE projected clear-month — the ✓ means done elsewhere (verified/paid).
+                          The gold bead + the name already say "clears here". */}
+                      {wp.name}
                     </Text>
                   ) : null,
                 ])

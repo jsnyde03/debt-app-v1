@@ -178,7 +178,10 @@ export function PaydayGuardianCard({
           {/* Order matches the bar's fixed left→right shading: Set aside (tinted, far-left) → Cushion →
               To debt. The "set aside" reserve is only present for a settling-in (cold-start) user. */}
           {hasReserve ? <Stat swatch={color} dim amount={brief.heldReserve} label="Safety net" /> : null}
-          <Stat swatch={color} amount={brief.cushion} label="Cushion" />
+          {/* COH-2: the held reserve is WITHIN cushion (buildGuardianBrief: heldReserve ≤ cushion). Show the
+              non-reserve remainder here so Safety net + Cushion read as disjoint segments (matching the bar)
+              and reconcile with the hero's Free above. */}
+          <Stat swatch={color} amount={hasReserve ? brief.cushion - brief.heldReserve : brief.cushion} label="Cushion" />
           {hasPayoff ? <Stat swatch={c.accent.primary} amount={brief.deployedToDebt} label={brief.debtFree ? 'To savings' : 'To debt'} /> : null}
         </View>
         {/* Your line (the floor) is a reference marker, not a flow amount, so it sits below the amounts as

@@ -30,7 +30,7 @@ function barTone(status: CushionStatus, dark: boolean) {
   if (status === 'tight') {
     return dark
       ? { grad: ['#fcd34d', '#f59e0b'] as const, glow: 'rgba(251,191,36,0.45)', label: '#fbbf24' }
-      : { grad: ['#f59e0b', '#d97706'] as const, glow: 'rgba(217,119,6,0.34)', label: '#d97706' };
+      : { grad: ['#f59e0b', '#d97706'] as const, glow: 'rgba(217,119,6,0.34)', label: '#b45309' }; // A11Y-3: label text ≥AA (bars stay decorative)
   }
   return dark
     ? { grad: ['#5b6b86', '#3f4d68'] as const, glow: null, label: '#a6b9d4' }

@@ -430,7 +430,9 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     deployTradeoff,
     tradeoffTargetName: efGoal?.name,
     lookahead: upcoming
-      ? { status: upcoming.cushionStatus, cushion: upcoming.endingBalance, label: shortDate(upcoming.cycleStart) }
+      ? // COH-1: surface the SAME floor-relative `net` the Progress cash-flow bars plot (and that drives
+        // this cycle's status word) — NOT `endingBalance` (clamped), which contradicted both.
+        { status: upcoming.cushionStatus, cushion: upcoming.net, label: shortDate(upcoming.cycleStart) }
       : undefined,
     priorBand: store.priorGuardianBand,
     // §2.3.1 (2.4.7.7): a missed paycheck pauses deploy + reframes the read honestly (no phantom clear).

@@ -49,7 +49,7 @@ export const colors = {
     accentSoft: { light: '#e6effc', dark: '#14264c' }, // accent-tinted chip/soft fill
     brand: { light: '#0f172a', dark: '#5b9dff' }, // primary CTA fill (navy light / blue dark)
     success: { light: '#12a150', dark: '#43d17f' }, // semantic — progress / paid / on-plan
-    warning: { light: '#d97706', dark: '#fbbf24' },
+    warning: { light: '#b45309', dark: '#fbbf24' }, // A11Y-3: amber-700 light ≥4.5:1 on white (AA for caption text)
     danger: { light: '#dc2626', dark: '#fb7185' }, // semantic — overdue / validation
     gold: { light: '#b7791f', dark: '#fbd34d' }, // semantic — achievement / milestone (warm; the beats)
   },

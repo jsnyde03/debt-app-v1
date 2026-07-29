@@ -1,4 +1,5 @@
 import { requireNativeModule } from 'expo-modules-core';
+import { Platform } from 'react-native';
 
 /**
  * §2.8 scan-to-prefill — the JS side of the native OCR edge. Presents Apple's document scanner and
@@ -15,5 +16,7 @@ export async function scanStatement(): Promise<string> {
 
 /** Whether the native document scanner is available (iOS with the module linked). Web/Android → false. */
 export function isScanAvailable(): boolean {
-  return true;
+  // ENG-3: iOS-only (the ScanVision module is iOS-native). Android resolves this base file (web uses
+  // scan.web.ts), so without this gate an Android build would show the scan CTA then throw.
+  return Platform.OS === 'ios';
 }

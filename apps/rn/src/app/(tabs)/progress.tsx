@@ -2,8 +2,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { formatCurrency } from '@core/utils/formatCurrency';
-
 import { MoreButton } from '@/components/more-button';
 import { TrajectoryChart } from '@/components/payoff/TrajectoryChart';
 import { CashFlowSection } from '@/components/progress/CashFlowSection';
@@ -28,6 +26,7 @@ import { elevation } from '@/theme/elevation';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { groupLabel } from '@/utils/a11y';
+import { formatWhole } from '@/utils/format';
 
 const RING_SIZE = 112;
 const MILE_TS = [25, 50, 75, 100] as const;
@@ -164,7 +163,8 @@ export default function ProgressScreen() {
             <Text style={[styles.heroDate, { color: surf.heroText }]}>{view.debtFreeDate ?? '—'}</Text>
             <Text style={[textStyles.subhead, { color: surf.heroSub }]}>
               {/* 3.3.6b — early on, lead FORWARD (the remaining as a goal) instead of a deflating "$0 paid". */}
-              {totalPaid > 0 ? `${formatCurrency(totalPaid)} of ${formatCurrency(totalOriginal)} paid` : `${formatCurrency(totalOriginal)} to go`}
+              {/* HON-1: whole dollars on the headline journey figure — matches every other Phase-3 surface (formatWhole). */}
+              {totalPaid > 0 ? `${formatWhole(totalPaid)} of ${formatWhole(totalOriginal)} paid` : `${formatWhole(totalOriginal)} to go`}
             </Text>
             {/* 3.4.2.1 — the next milestone, read as a clean caption (the ring's glowing node marks it visually). */}
             {nextMilestoneLabel ? (
