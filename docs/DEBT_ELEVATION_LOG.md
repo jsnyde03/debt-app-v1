@@ -4,6 +4,15 @@
 
 ---
 
+## Phase 3.6 · WHOLE-PHASE after-scan (2026-07-29)
+
+3.6's build items (3.6.1–3.6.6) are all done + web-verified; 3.6.7 is the real-iPad pass (owed to Jason's device session). Phase-level scan across the whole phase:
+- **Retroactive lesson sweep (the big one):** the mid-phase `.native.tsx`→web-leak crash retroactively applies to the whole codebase. Swept every platform-split file + native lookup: **no `.native.tsx` component files remain** (KeyCommandListener is now `.ios.tsx`), and **every** `requireNativeModule`/`requireNativeViewManager` (both bridges, scan.ts, KeyCommands) is now **lazy** (resolved inside a getter/function, never at import). The web-crash class is closed phase-wide. New memory `feedback_native_tsx_leaks_to_web`.
+- **Cross-screen iPad coherence:** all adaptive screens share one approach (`isExpanded` + `Screen` maxWidth/`wide`), with intentional per-screen widths (Money master-detail · Today two-col 900 · Progress wide 980 · More 680) matched to content. Coherent, not divergent.
+- **Deferrals filed (→ backlog):** More fuller section two-column (v1.8 polish) · light-mode hover explicit screenshot (theme-correct by construction; §10 covers it). 
+- **Build sequencing flagged:** 3.6 device-QA (§10) needs a build cut AFTER the 3.6 commits — the current 3.5 CM build predates 3.6 and it's the `KeyCommands` module's first iOS compile (mirrors the working modules → low CI risk, watch it). Noted in the checklist §10 header.
+- **Gate:** full web e2e **63 green** after the phase; the committed gate caught TWO web-crash regressions this phase (/more `.native` bridge · KeyCommandListener `.native.tsx`) that "looked like harness quirks" but were real.
+
 ## Phase 3.6 · 3.6.6 — pointer + keyboard (code-complete, device-verify-owed) (2026-07-29)
 
 Jason picked "fold into device pass" — build 3.6.6 code-complete the right way now, real verification rides his imminent iPad session (same model as 3.5.5). Two parts:

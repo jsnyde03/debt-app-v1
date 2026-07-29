@@ -122,8 +122,9 @@ Go to **More → Developer / QA → Live Activity QA**. For each button, then **
 
 ---
 
-## §10 — 3.6 iPad (adaptive layout + pointer/keyboard) — ⚠️ needs an iPad; only if this build includes 3.6
+## §10 — 3.6 iPad (adaptive layout + pointer/keyboard) — ⚠️ needs an iPad AND a 3.6-inclusive build
 _The 3.6 native-iPad work is web-verified (layout + hover render in both themes); these are the checks only a real iPad can settle. Skip if you're testing on iPhone only — nothing here regresses the phone._
+> ⚠️ **This needs a NEW build cut AFTER the 3.6 commits** — the current 3.5 CM build predates 3.6, and it's the **first compile of the new local `KeyCommands` native module** (structured identically to the working `live-activity`/`scan-vision` modules, so low CI risk, but watch the first iOS build). The ⌘-shortcut checks below only apply to that 3.6-inclusive build.
 
 **Adaptive layout (rotate the iPad to hit each):**
 - [ ] **Landscape / full-screen (expanded):** **Money → Debts** shows the **list on the left + the edit form INLINE in a right pane** (tap a row → it fills the pane, the row highlights; no bottom-sheet). **Today** = two columns (Guardian/payday left · action lists right). **Progress** = one **wide** centered column (ring + charts using the room). **More** = a wider centered settings column. A left **sidebar rail** replaces the bottom tab bar.
