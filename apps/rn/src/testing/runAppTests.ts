@@ -25,6 +25,9 @@ async function main() {
   // 3.5.3.1 — Payday Countdown Live Activity pure derivation (premium/toggle/window gates · countdown).
   await import('../liveActivity/paydayActivityContent.test');
 
+  // 3.5.3.5 — the AppIntent → store bridge core (defensive parse · apply-dispatch · drain).
+  await import('../appIntents/pendingActions.test');
+
   // RS.3 — store actions + money-critical transitions (capture · rollover · missed/undo · lean ·
   // top-up · risk-notified · floor clamp · migration/import path), with break-it inputs.
   await import('../store/storeActions.test');
