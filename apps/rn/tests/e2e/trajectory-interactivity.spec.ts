@@ -37,10 +37,11 @@ for (const theme of ['light', 'dark'] as const) {
     // 3.4.2.1 — the ring's next milestone reads as a clean caption in the hero (22% paid → next 25%).
     await expect(page.getByText(/Next milestone:/)).toBeVisible();
 
-    // Per-debt waypoints — intermediate debts (not the endpoint) get a bead where they clear.
-    // 3 debts → the last is the endpoint, so ≥1 intermediate waypoint, with its ✓ name label.
+    // Per-debt waypoints — intermediate debts (not the endpoint) get a bead + NAME label where they clear.
+    // COH-5: the label is the debt name only — NO "✓" (a future projected clear-month isn't "done"; ✓ = done).
     await expect(page.getByTestId('traj-waypoint').first()).toBeVisible();
-    await expect(page.getByText(/✓/).first()).toBeVisible();
+    await expect(page.getByText('Klarna')).toBeVisible();
+    await expect(page.getByText(/✓/)).toHaveCount(0);
 
     // Drag across the plot → the scrub readout appears (date · balance · months).
     const box = await eyebrow.boundingBox();
