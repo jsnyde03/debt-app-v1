@@ -298,6 +298,31 @@ function run() {
     eq(s.getState().store.genuineCycleCount, 0, '…substrate fields safe, never undefined');
   }
 
+  // 3.5.5 — logManualPayment (money mutation) + the shared intent-rollback Undo.
+  {
+    const s = inst(); // debt d0 @ balance 5000
+    const today = s.getState().store.paycheck.currentDate;
+    s.getState().logManualPayment('d0', 1200);
+    const d = s.getState().store.debts.find((x) => x.id === 'd0')!;
+    eq(d.balance, 3800, 'logManualPayment: balance reduced by the amount');
+    eq(d.lastVerifiedDate, today, '…re-anchors the verified date to today');
+    assert(s.getState().intentRollback?.kind === 'log-payment', '…sets the log-payment Undo snapshot');
+
+    s.getState().undoIntentAction();
+    eq(s.getState().store.debts.find((x) => x.id === 'd0')!.balance, 5000, 'undoIntentAction: restores the pre-payment balance');
+    eq(s.getState().intentRollback, null, '…clears the rollback');
+
+    // clamp + guards
+    const s2 = inst();
+    s2.getState().logManualPayment('d0', 999999); // overpay
+    eq(s2.getState().store.debts.find((x) => x.id === 'd0')!.balance, 0, 'logManualPayment: overpay clamps to 0 (never negative)');
+    const s3 = inst();
+    const before = s3.getState().store;
+    s3.getState().logManualPayment('nope', 100); // bad id → no-op
+    s3.getState().logManualPayment('d0', -50); // non-positive → no-op
+    assert(s3.getState().store === before && s3.getState().intentRollback === null, 'logManualPayment: bad id / non-positive amount → no-op');
+  }
+
   console.log(`✅ Store-action (RS.3) tests passed (${passed} asserts).`);
 }
 

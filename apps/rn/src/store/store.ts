@@ -39,10 +39,11 @@ export interface DebtAppState {
    *  Recomputed from the RevenueCat entitlement each launch by premiumSync — so it can't be stomped by
    *  hydrate and needs no migration. */
   premiumIsLifetime: boolean;
-  /** 3.5.3.5 — the pre-roll store snapshot captured when a "Payday landed" AppIntent rolled the cycle,
-   *  for a one-tap Undo. Transient (never persisted; resets to null each launch → the Undo is session-
-   *  brief); null when there's nothing to undo. */
-  paydayRollback: DebtStore | null;
+  /** 3.5.3.5 / 3.5.5 — the pre-mutation store snapshot for a one-tap Undo of an AppIntent-driven change
+   *  (a payday-landed roll, or a logged payment), tagged by `kind` so the Today card words it right.
+   *  Transient (never persisted; resets to null each launch → the Undo is session-brief); null when
+   *  there's nothing to undo. */
+  intentRollback: { store: DebtStore; kind: 'payday-landed' | 'log-payment' } | null;
 
   // Lifecycle
   hydrate(adapter: StorageAdapter): Promise<void>;
@@ -95,10 +96,14 @@ export interface DebtAppState {
   /** 3.5.3.5 — apply a "Payday landed" AppIntent: snapshot the pre-roll store for Undo, then roll the
    *  cycle exactly as `rolloverPayCycle`. */
   applyPaydayLandedIntent(): void;
-  /** 3.5.3.5 — undo the last AppIntent-driven roll (restore the snapshot); no-op if nothing to undo. */
-  undoPaydayLanded(): void;
-  /** 3.5.3.5 — keep the roll and clear the Undo affordance. */
-  dismissPaydayRollback(): void;
+  /** 3.5.5 — log a manual payment against a debt (reduce its balance by `amount`, re-anchor its verified
+   *  date to today), with Undo. The ONE mutation shared by the in-app "Log payment" action AND the voice
+   *  log-a-payment intent — reuses the `verifyDebtBalance` anchoring. No-op on a bad id / non-positive amount. */
+  logManualPayment(debtId: string, amount: number): void;
+  /** 3.5.3.5 / 3.5.5 — undo the last AppIntent-driven mutation (roll / logged payment); no-op if none. */
+  undoIntentAction(): void;
+  /** Keep the mutation and clear the Undo affordance. */
+  dismissIntentRollback(): void;
   setLastHandledPayday(date: string): void;
   markReviewPrompted(): void;
   setWindfall(amount: number): void;
@@ -148,7 +153,7 @@ export function createDebtStore() {
     isHydrated: false,
     isSaving: false,
     premiumIsLifetime: false,
-    paydayRollback: null,
+    intentRollback: null,
 
     async hydrate(adapter) {
       const raw = await adapter.read();
@@ -368,13 +373,32 @@ export function createDebtStore() {
     applyPaydayLandedIntent() {
       // 3.5.3.5 — same roll as rolloverPayCycle, but stash the pre-roll store first so the Today card can
       // offer a one-tap Undo (an accidental Live-Activity tap is fully reversible).
-      set((s) => ({ paydayRollback: s.store, store: recordDriftBaseline(applyRollover(s.store)) }));
+      set((s) => ({ intentRollback: { store: s.store, kind: 'payday-landed' }, store: recordDriftBaseline(applyRollover(s.store)) }));
     },
-    undoPaydayLanded() {
-      set((s) => (s.paydayRollback ? { store: s.paydayRollback, paydayRollback: null } : {}));
+    logManualPayment(debtId, amount) {
+      // 3.5.5 — reduce the debt's balance by `amount` + re-anchor its verified date to today (the same
+      // deliberate-balance-move transform as verifyDebtBalance), snapshotting first for Undo.
+      set((s) => {
+        const debt = s.store.debts.find((d) => d.id === debtId);
+        if (!debt || !(amount > 0)) return {};
+        const date = s.store.paycheck.currentDate;
+        const balance = Math.max(0, Math.round((debt.balance - amount) * 100) / 100);
+        return {
+          intentRollback: { store: s.store, kind: 'log-payment' },
+          store: stampInputsFresh({
+            ...s.store,
+            debts: s.store.debts.map((d) =>
+              d.id === debtId ? { ...d, balance, lastVerifiedDate: date, balanceAsOfDate: date } : d,
+            ),
+          }),
+        };
+      });
     },
-    dismissPaydayRollback() {
-      set({ paydayRollback: null });
+    undoIntentAction() {
+      set((s) => (s.intentRollback ? { store: s.intentRollback.store, intentRollback: null } : {}));
+    },
+    dismissIntentRollback() {
+      set({ intentRollback: null });
     },
     setLastHandledPayday(date) {
       set((s) => ({ store: { ...s.store, lastHandledPaydayDate: date } }));

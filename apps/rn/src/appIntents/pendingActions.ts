@@ -10,15 +10,19 @@
  */
 
 /** A mutation queued by an iOS AppIntent for the app to apply. `id` dedupes a double-write. */
-export type PendingAction = { kind: 'payday-landed'; id: string };
+export type PendingAction =
+  | { kind: 'payday-landed'; id: string }
+  | { kind: 'log-payment'; id: string; debtId: string; amount: number };
 
 type PendingKind = PendingAction['kind'];
-const KINDS: ReadonlySet<string> = new Set<PendingKind>(['payday-landed']);
+const KINDS: ReadonlySet<string> = new Set<PendingKind>(['payday-landed', 'log-payment']);
 
 /** The narrow store surface a pending action drives — keeps this decoupled + testable with a stub. */
 export interface PendingActionApi {
   /** Roll the cycle with a snapshot for Undo (3.5.3.5) — the AppIntent-driven counterpart to a manual roll. */
   applyPaydayLandedIntent(): void;
+  /** Log a payment against a debt with Undo (3.5.5) — the voice log-a-payment intent's target. */
+  logManualPayment(debtId: string, amount: number): void;
 }
 
 /**
@@ -41,11 +45,21 @@ export function parsePendingActions(raw: unknown): PendingAction[] {
   const out: PendingAction[] = [];
   for (const item of arr) {
     if (!item || typeof item !== 'object') continue;
-    const { kind, id } = item as Record<string, unknown>;
+    const rec = item as Record<string, unknown>;
+    const { kind, id } = rec;
     if (typeof kind !== 'string' || !KINDS.has(kind)) continue;
     if (typeof id !== 'string' || id.length === 0 || seen.has(id)) continue;
-    seen.add(id);
-    out.push({ kind: kind as PendingKind, id });
+    if (kind === 'log-payment') {
+      // Extra fields must be present + sane, or the whole entry is dropped (never a partial mutation).
+      const { debtId, amount } = rec;
+      if (typeof debtId !== 'string' || debtId.length === 0) continue;
+      if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0) continue;
+      seen.add(id);
+      out.push({ kind: 'log-payment', id, debtId, amount });
+    } else {
+      seen.add(id);
+      out.push({ kind: 'payday-landed', id });
+    }
   }
   return out;
 }
@@ -55,6 +69,9 @@ export function applyPendingAction(action: PendingAction, api: PendingActionApi)
   switch (action.kind) {
     case 'payday-landed':
       api.applyPaydayLandedIntent();
+      return true;
+    case 'log-payment':
+      api.logManualPayment(action.debtId, action.amount);
       return true;
     default:
       return false;

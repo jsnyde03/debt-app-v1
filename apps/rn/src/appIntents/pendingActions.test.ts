@@ -24,7 +24,10 @@ function eq<T>(a: T, b: T, label: string) {
 /** A stub store surface that counts dispatches. */
 function stubApi() {
   const calls: string[] = [];
-  const api: PendingActionApi = { applyPaydayLandedIntent: () => calls.push('applyPaydayLandedIntent') };
+  const api: PendingActionApi = {
+    applyPaydayLandedIntent: () => calls.push('applyPaydayLandedIntent'),
+    logManualPayment: (debtId, amount) => calls.push(`logManualPayment:${debtId}:${amount}`),
+  };
   return { api, calls };
 }
 
@@ -79,6 +82,39 @@ eq(parsePendingActions([{ kind: 'payday-landed', id: 'a' }, { kind: 'payday-land
   const { api } = stubApi();
   const applied = drainPendingActions({ read: () => { throw new Error('boom'); }, clear: () => {} }, api);
   eq(applied.length, 0, 'drain: a throwing bridge is caught → []');
+}
+
+// ── log-payment variant (3.5.5) ─────────────────────────────────────────────────
+eq(parsePendingActions([{ kind: 'log-payment', id: 'p1', debtId: 'd0', amount: 200 }]).length, 1, 'parse: valid log-payment kept');
+eq(parsePendingActions([{ kind: 'log-payment', id: 'p1', debtId: 'd0' }]).length, 0, 'parse: log-payment missing amount → dropped');
+eq(parsePendingActions([{ kind: 'log-payment', id: 'p1', amount: 200 }]).length, 0, 'parse: log-payment missing debtId → dropped');
+eq(parsePendingActions([{ kind: 'log-payment', id: 'p1', debtId: 'd0', amount: 0 }]).length, 0, 'parse: log-payment non-positive amount → dropped');
+eq(parsePendingActions([{ kind: 'log-payment', id: 'p1', debtId: 'd0', amount: 'x' }]).length, 0, 'parse: log-payment non-number amount → dropped');
+{
+  const parsed = parsePendingActions([{ kind: 'log-payment', id: 'p1', debtId: 'visa', amount: 150.5 }]);
+  const a = parsed[0];
+  assert(a.kind === 'log-payment' && a.debtId === 'visa' && a.amount === 150.5, 'parse: log-payment fields preserved');
+}
+{
+  const { api, calls } = stubApi();
+  applyPendingActions(parsePendingActions([{ kind: 'log-payment', id: 'p1', debtId: 'visa', amount: 150 }]), api);
+  eq(calls[0], 'logManualPayment:visa:150', 'apply: log-payment dispatches logManualPayment(debtId, amount)');
+}
+{
+  // A mixed queue applies both, in order.
+  const { calls } = (() => {
+    const s = stubApi();
+    applyPendingActions(
+      parsePendingActions([
+        { kind: 'payday-landed', id: 'a' },
+        { kind: 'log-payment', id: 'b', debtId: 'car', amount: 90 },
+      ]),
+      s.api,
+    );
+    return s;
+  })();
+  eq(calls.length, 2, 'apply: mixed queue applies both');
+  eq(calls[1], 'logManualPayment:car:90', 'apply: order preserved');
 }
 
 console.log(`\n  pendingActions (AppIntent bridge): ${passed} assertions passed\n`);

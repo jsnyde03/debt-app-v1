@@ -95,8 +95,9 @@ export default function TodayScreen() {
   // 2.4.11.4c — the "bills complete" attestation affordance + the surprise-outflow walk-back notice.
   const attestation = selectBillsAttestation(engineStore);
   const reserveWalkback = selectReserveWalkback(engineStore);
-  // 3.5.3.5 — a "Payday landed" AppIntent (Live Activity button) rolled the cycle; offer a one-tap Undo.
-  const paydayRollback = useAppStore((s) => s.paydayRollback);
+  // 3.5.3.5 / 3.5.5 — an AppIntent-driven mutation (payday-landed roll · logged payment) that offers a
+  // one-tap Undo on Today.
+  const intentRollback = useAppStore((s) => s.intentRollback);
   // 2.5.4 — a trial obligation whose intro period just ended: confirm "keep it (now $X)" or "cancelled it"
   // so a cancelled trial can't project a phantom bill. Ephemeral dismiss (re-surfaces next open until resolved).
   const [dismissedTrials, setDismissedTrials] = useState<string[]>([]);
@@ -296,17 +297,19 @@ export default function TodayScreen() {
         </Card>
       ) : null}
 
-      {paydayRollback ? (
+      {intentRollback ? (
         <Card tone="accent" style={styles.ack}>
           <View style={styles.ackRow}>
-            <AppIcon name="schedule" size={20} color={c.accent.primary} />
+            <AppIcon name={intentRollback.kind === 'log-payment' ? 'savings' : 'schedule'} size={20} color={c.accent.primary} />
             <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>
-              Payday landed — I rolled your plan forward to this paycheck.
+              {intentRollback.kind === 'log-payment'
+                ? 'Payment logged — I updated your balance.'
+                : 'Payday landed — I rolled your plan forward to this paycheck.'}
             </Text>
           </View>
           <View style={styles.ackActions}>
-            <Button label="Undo" variant="text" onPress={() => appStore.getState().undoPaydayLanded()} />
-            <Button label="Keep" variant="text" onPress={() => appStore.getState().dismissPaydayRollback()} />
+            <Button label="Undo" variant="text" onPress={() => appStore.getState().undoIntentAction()} />
+            <Button label="Keep" variant="text" onPress={() => appStore.getState().dismissIntentRollback()} />
           </View>
         </Card>
       ) : null}
