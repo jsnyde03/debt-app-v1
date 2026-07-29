@@ -1,10 +1,33 @@
-# Debt Planner v1.7 — On-Device QA Checklist (everything up to 3.5.4 + Live Activity)
+# Debt Planner v1.7 — On-Device QA Checklist (through 3.5.5 App Intents / Siri)
 
-> **What this build contains:** all of v1.7 + the native block through **3.5.3 (Live Activity)** and **3.5.4 (widget)**, plus the **QA trigger** panel. **NOT in this build:** 3.5.5 (App Intents / Siri) — not built yet. 3.5.6 (TipKit) — dropped.
+> **What THIS build contains:** all of v1.7 + the native block through **3.5.5** — Live Activity (3.5.3) · widget (3.5.4) · **App Intents / Siri (3.5.5): the 3 query shortcuts + voice log-a-payment + the in-app "Log payment"** · plus the **QA trigger** panel and the **two device-fix** re-verifies. 3.5.6 (TipKit) — dropped. **➡️ Start with the "BUILD 2 delta" section below — it's the only part that changed since your last pass.**
 >
 > **How to use this:** work top-to-bottom on the phone. Each item has the **exact steps**, what a **✅ pass** looks like, and **⚠️** notes. Tick as you go; anything that fails, note it (screenshot + what you did) → I fix in-repo → you rebuild. **Priority = the NEW native (§4–§7)** — the v1.7 app surface (§3) already passed on the first device build, so §3 is a lighter re-sanity.
 >
 > **Legend:** ✅ = expected pass · ⚠️ = watch-out · 🅿️ = needs premium (turn on Simulate Premium, §2) · 📱 = 14 Pro/15 Pro/16 Pro only (Dynamic Island).
+
+---
+
+## ⭐ BUILD 2 (this CM build) — the delta to re-check + newly test
+
+> Everything here is **new or fixed since your last device pass**. Do this section first; §1–§9 below are unchanged and only need a re-walk if you want. Install the new TestFlight build first (§0). Premium items need **Simulate Premium ON** (More → Developer / QA). _(Widget signing is already proven from the last build — no signing watch-out this time.)_
+
+### 🔧 Re-verify the 2 fixes you flagged
+- [ ] **"View Payoff Schedule" now opens** — Money → tap a debt (edit sheet) → tap **"View Payoff Schedule"** in the header → ✅ the payoff schedule appears. _(Was a modal-over-modal that silently failed on device; now renders in-place.)_
+- [ ] **Long-press blur is back** — long-press a debt row → ✅ the background **dims/blurs** behind the Edit/Delete menu. ⚠️ **Best-effort fix** — if there's *still* no blur, it's likely a library/New-Arch limitation (not a config miss) → tell me and I'll look at alternatives.
+
+### 🆕 In-app "Log payment" (3.5.5)
+- [ ] **The menu action** — long-press a **debt** row → the context menu now has **"Log payment"** (first, above Edit/Delete) → tap → an **amount sheet** opens ("Log a payment · {debt} · ${balance} owed").
+- [ ] **Logging works** — enter an amount → **Log payment** → ✅ the balance drops by that amount + a **"Payment logged — Undo / Keep"** card appears on **Today** → tap **Undo** → the balance restores.
+- [ ] **Overpay clamps** — enter more than the balance → the field notes it'll clear to $0 → confirm the debt goes to **$0** (never negative).
+
+### 🆕 Siri / Shortcuts (3.5.5)
+> Prereq: Settings → **Siri & Search** → Siri on. Shortcuts auto-register after first launch (give it a minute).
+- [ ] **Free glances** — *"Hey Siri, what's my debt-free date?"* → speaks your date · *"Hey Siri, how much debt is left?"* → speaks the amount. (No app launch.)
+- [ ] 🅿️ **Guardian read** — *"Hey Siri, am I okay this paycheck?"* → **premium** speaks the paycheck read; **free** (Simulate Premium off) → the upsell line.
+- [ ] 🅿️ **Voice log-a-payment** — *"Hey Siri, log a payment in Debt Planner"* → Siri asks the **amount** + **which debt** → confirm → ✅ open the app → the balance updated + the Undo card on Today. (Free → an upsell instead.)
+- [ ] **Discoverable** — the **Shortcuts** app (and Settings → Siri & Search → Debt Planner) lists all four: debt-free date · remaining · this paycheck · log a payment.
+- [ ] ⚠️ **Siri caveat:** first registration can lag, and phrasing varies — if "in Debt Planner" isn't caught, try the exact phrase or run it from the Shortcuts app. A miss here is usually Siri phrasing, not the intent.
 
 ---
 
@@ -33,7 +56,7 @@
 
 ## §3 — v1.7 app surface — quick re-sanity (already passed on build #1)
 _Just confirm nothing regressed with all the new native modules added since build #1._
-- [ ] **⭐ FormSheet header buttons (the owed re-verify):** open **Add debt** (Money → Debts → Add debt) → tap the **✕** (top-right circle) → the sheet closes. Open a debt → tap **"View Payoff Schedule"** in the sheet header → it opens. _(This is the header-tap fix from build #1 — confirm both header buttons are tappable and NOT swallowed by the swipe gesture.)_
+- [ ] **⭐ FormSheet header buttons (the owed re-verify):** open **Add debt** (Money → Debts → Add debt) → tap the **✕** (top-right circle) → the sheet closes. Open a debt → tap **"View Payoff Schedule"** in the sheet header → it opens. _(This is the header-tap fix from build #1 — confirm both header buttons are tappable and NOT swallowed by the swipe gesture.)_ - DOES NOT WORK
 - [ ] **Sheet gestures:** open any add/edit sheet → **swipe it down** → it dismisses. The grabber shows. Keyboard doesn't cover the Save button.
 - [ ] **Swipe-to-delete:** on a debt row, **swipe left** → a red **Delete** appears → tap → confirm → row removed.
 - [ ] **Blur:** the tab bar + a sheet backdrop show real UIKit blur (richer than web).
@@ -45,7 +68,7 @@ _Just confirm nothing regressed with all the new native modules added since buil
 ---
 
 ## §4 — 3.5.2 iOS context menu (long-press)
-- [ ] **Long-press a debt row** (press and hold ~0.5s) → a **native UIMenu** pops with **Edit** and **Delete**. ✅ Delete is **red / destructive**, with a system blur behind the menu + a subtle haptic.
+- [ ] **Long-press a debt row** (press and hold ~0.5s) → a **native UIMenu** pops with **Edit** and **Delete**. ✅ Delete is **red / destructive**, with a system blur behind the menu + a subtle haptic. - NO SYSTEM BLUR
 - [ ] Tap **Edit** → the debt editor opens.
 - [ ] Long-press again → tap **Delete** → the confirm → the row is removed.
 - [ ] **Tap (not long-press)** a row → still opens the editor (long-press didn't break the tap).
