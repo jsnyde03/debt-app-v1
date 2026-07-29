@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useGoToTab } from '@/hooks/use-go-to-tab';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLayout } from '@/hooks/use-layout';
 import { CountUp } from '@/motion';
 import { selectWhatIf } from '@/store/analysisSelectors';
 import { withProjectedBalances } from '@/store/balanceSelectors';
@@ -51,6 +52,7 @@ export default function ProgressScreen() {
   const c = useAppColors();
   const scheme = useColorScheme();
   const goToTab = useGoToTab();
+  const { isExpanded } = useLayout(); // 3.6.4 — a wider column on iPad so the ring + timeline charts breathe
   const store = useAppStore((s) => s.store);
   const strategy = store.payoffStrategy;
   // 2.4 — forward-looking computations (debt-free date, trajectory, cushion, what-if) read projected-
@@ -137,7 +139,9 @@ export default function ProgressScreen() {
   );
 
   return (
-    <Screen title="Progress" right={<MoreButton />}>
+    // 3.6.4 — a wider centered column on iPad (not two-column): the timeline charts (trajectory · cash
+    // flow) read better with width than split, and the ring hero + stats get room. "Using the room."
+    <Screen title="Progress" right={<MoreButton />} maxWidth={isExpanded ? 980 : undefined}>
       <LinearGradient
         colors={[surf.heroTop, surf.heroBottom]}
         start={{ x: 0, y: 0 }}
