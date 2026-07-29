@@ -21,6 +21,7 @@ export function Screen({
   scroll = true,
   footer,
   maxWidth,
+  wide = false,
 }: {
   title: string;
   right?: ReactNode;
@@ -30,13 +31,16 @@ export function Screen({
   footer?: ReactNode;
   /** Override the centered column's max width on the regular (iPad) layout; ignored on compact. */
   maxWidth?: number;
+  /** 3.6 — opt OUT of the centered width-cap on the regular (iPad) layout so the screen uses the FULL
+   *  canvas for its own two-column / master-detail layout. No-op on compact (already full-width). */
+  wide?: boolean;
 }) {
   const c = useAppColors();
   const insets = useSafeAreaInsets();
   const { isRegular, maxContentWidth } = useLayout();
   const bottomPad = insets.bottom + spacing.huge; // clear the tab bar
 
-  const columnStyle = isRegular
+  const columnStyle = isRegular && !wide
     ? [styles.column, { maxWidth: maxWidth ?? maxContentWidth, paddingHorizontal: spacing.sm }]
     : styles.column;
 
