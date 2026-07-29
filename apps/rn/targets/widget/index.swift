@@ -7,5 +7,8 @@ import WidgetKit
 struct DebtWidgetBundle: WidgetBundle {
     var body: some Widget {
         DebtWidget()
+        // 3.5.3 — the Payday Countdown Live Activity joins the same bundle (no new target/bundle-id).
+        // Deployment target is 16.1, so ActivityConfiguration is always available (no #available guard).
+        PaydayLiveActivity()
     }
 }

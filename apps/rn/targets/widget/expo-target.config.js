@@ -23,6 +23,9 @@ module.exports = () => ({
   bundleIdentifier: '.widget',
   // Lock-screen accessory widgets need iOS 16; the Live Activity (3.5.3) batches in at 16.1.
   deploymentTarget: '16.1',
+  // ActivityKit is REQUIRED for the Payday Countdown Live Activity (3.5.3) that joins this bundle —
+  // `import ActivityKit` in PaydayLiveActivity.swift needs it linked. (SwiftUI/WidgetKit are implicit.)
+  frameworks: ['ActivityKit'],
   // REQUIRED — see the header note. Shares the app's suite so the widget can read what JS writes.
   entitlements: {
     'com.apple.security.application-groups': ['group.com.jasonsnyder.debtplanner'],
@@ -34,6 +37,8 @@ module.exports = () => ({
     BrandGold: { light: '#DCA01F', dark: '#F7CF5F' },
     BrandBlue: { light: '#2F66EA', dark: '#5B9DFF' },
     BrandSuccess: { light: '#0E8A5F', dark: '#34D399' },
+    // The Payday Live Activity's at-risk state dot (3.5.3) — mirrors the app's accent.danger.
+    BrandDanger: { light: '#DC2626', dark: '#FB7185' },
     RingTrack: { light: '#E0E6EF', dark: '#22304A' },
     CardBackground: { light: '#FFFFFF', dark: '#121A2E' },
   },
