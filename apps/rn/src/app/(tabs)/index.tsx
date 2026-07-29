@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { MoreButton } from '@/components/more-button';
@@ -74,7 +74,10 @@ export default function TodayScreen() {
   // 2.4 — the payday engine reads projected-current balances (premium) so the plan reflects where the
   // user actually is between verifications; free stays on the verified anchor (no-op wrap). The
   // estimate/staleness selectors below keep the RAW store — they detect drift from the real anchor.
-  const engineStore = withProjectedBalances(store, isPremium);
+  // PERF-1: memoize the expensive projection on [store, isPremium] (matching Progress) so it doesn't
+  // re-run on every incidental re-render (sheet open/close, celebration toggles). `store` is a stable
+  // zustand ref between renders, so this recomputes only when the plan actually changes.
+  const engineStore = useMemo(() => withProjectedBalances(store, isPremium), [store, isPremium]);
   const allocation = selectAllocation(engineStore);
   const planState = selectPlanState(engineStore, allocation);
 

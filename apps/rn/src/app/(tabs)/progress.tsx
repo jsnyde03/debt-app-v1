@@ -15,7 +15,7 @@ import { useGoToTab } from '@/hooks/use-go-to-tab';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLayout } from '@/hooks/use-layout';
 import { CountUp } from '@/motion';
-import { selectWhatIf } from '@/store/analysisSelectors';
+import { selectWhatIf, selectWhatIfBaseline } from '@/store/analysisSelectors';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectVanquishedDebts } from '@/store/celebrationSelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
@@ -67,7 +67,10 @@ export default function ProgressScreen() {
   // What-If state — folded into the projection card (the extra drives its overlay + controls). Only THIS
   // recomputes per keystroke now, off the stable engineStore.
   const [extra, setExtra] = useState('');
-  const whatIf = useMemo(() => selectWhatIf(engineStore, Number(extra) || 0), [engineStore, extra]);
+  // PERF-2: the What-If baseline sim is invariant of `extra` — memoize it on the store so a keystroke runs
+  // only the "with extra" sim, not both.
+  const whatIfBaseline = useMemo(() => selectWhatIfBaseline(engineStore), [engineStore]);
+  const whatIf = useMemo(() => selectWhatIf(engineStore, Number(extra) || 0, whatIfBaseline), [engineStore, extra, whatIfBaseline]);
   // Same rule as above: the cash-cushion forecast is expensive and doesn't depend on `extra`, so it must
   // be memoized off the stable engineStore rather than rebuilt inline on every keystroke.
   const cashCycles = useMemo(() => selectCashTimeline(engineStore), [engineStore]);

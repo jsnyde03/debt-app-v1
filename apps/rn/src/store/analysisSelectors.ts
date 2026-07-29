@@ -90,20 +90,28 @@ export interface WhatIfResult {
  * store's current payoff strategy — the same strategy the trajectory it overlays is drawn in — so
  * the "with extra" curve is an honest apples-to-apples shift of the plan, not a strategy swap.
  */
-export function selectWhatIf(store: DebtStore, extraMonthly: number): WhatIfResult {
+/** PERF-2: the What-If BASELINE payoff (no extra) — invariant of the extra input, so the caller memoizes
+ *  it on the store and passes it into `selectWhatIf`, keeping a keystroke to a single (simulated) sim. */
+export function selectWhatIfBaseline(store: DebtStore): ReturnType<typeof projectDebtPayoff> {
+  const { liveDebts, monthlyExtra, currentDate, strategy } = derivePlanBasis(store);
+  return projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: monthlyExtra, strategy, startDate: currentDate });
+}
+
+export function selectWhatIf(store: DebtStore, extraMonthly: number, baseline?: ReturnType<typeof projectDebtPayoff>): WhatIfResult {
   const { liveDebts, monthlyExtra, currentDate, strategy } = derivePlanBasis(store);
   const extra = Math.max(0, extraMonthly);
 
-  const baseline = projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: monthlyExtra, strategy, startDate: currentDate });
+  // PERF-2: reuse a precomputed baseline (memoized off the store) when given; compute it only as a fallback.
+  const base = baseline ?? projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: monthlyExtra, strategy, startDate: currentDate });
   const simulated = projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: monthlyExtra + extra, strategy, startDate: currentDate });
 
   const canEstimate =
     liveDebts.length > 0 &&
-    baseline.estimatedDebtFreeDate !== 'Unable to estimate' &&
+    base.estimatedDebtFreeDate !== 'Unable to estimate' &&
     simulated.estimatedDebtFreeDate !== 'Unable to estimate';
 
-  const monthsSaved = canEstimate ? Math.max(0, baseline.monthsToDebtFree - simulated.monthsToDebtFree) : 0;
-  const interestSaved = canEstimate ? Math.max(0, baseline.totalInterestPaid - simulated.totalInterestPaid) : 0;
+  const monthsSaved = canEstimate ? Math.max(0, base.monthsToDebtFree - simulated.monthsToDebtFree) : 0;
+  const interestSaved = canEstimate ? Math.max(0, base.totalInterestPaid - simulated.totalInterestPaid) : 0;
 
   const allocation = buildExtraPaymentAllocationPlan({ debts: liveDebts, amount: extra, strategy });
   // Only build the overlay curve when there's a real extra to visualize (else it duplicates the plan line).
@@ -114,7 +122,7 @@ export function selectWhatIf(store: DebtStore, extraMonthly: number): WhatIfResu
 
   return {
     canEstimate,
-    baselineDate: canEstimate ? baseline.estimatedDebtFreeDate : null,
+    baselineDate: canEstimate ? base.estimatedDebtFreeDate : null,
     simulatedDate: canEstimate ? simulated.estimatedDebtFreeDate : null,
     monthsSaved,
     daysSaved: monthsSaved * 30,
