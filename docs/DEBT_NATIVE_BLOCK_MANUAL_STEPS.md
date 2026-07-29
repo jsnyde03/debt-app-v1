@@ -45,33 +45,40 @@ So the real first job isn't a widget — it's **standing up a build pipeline for
 
 ---
 
-## ✅ Master checklist (tick as you go)
+## ✅ 3.5 MANUAL CHECKLIST — everything YOU do (ASC / portal / device)
 
-**Decisions**
-- [x] **D1 — Build tool: ✅ Codemagic-for-Expo** (Jason 2026-07-28 — reuse the 500 free min/mo + existing ASC key; not paying EAS $99/mo). This sheet now follows the **Codemagic** path.
+_The definitive, current list (verified against the build 2026-07-29). Grouped by where you do it. I do all in-repo code; you do only what's below, and only when I say a feature's ready to test — most 3.5 features batch into one signed device build._
 
-**One-time setup (Section A + B)**
-- [ ] A1 — Confirm Apple Developer Program membership is active ($99/yr)
-- [ ] A2 — Have a physical iPhone (+ USB cable or same Wi-Fi); note the model (Dynamic Island needs 14 Pro+)
-- [ ] B1 — Confirm your App Store Connect **API key** is still valid in Codemagic (the `AppleConnect` group)
-- [ ] B2 — Turn on Codemagic **automatic iOS code signing** for the new RN workflow
+### Already done — no action
+- [x] **Build pipeline** — the Codemagic "Debt Planner RN" workflow; first build **green on device** (2026-07-28).
+- [x] **App Group** `group.com.jasonsnyder.debtplanner` registered + enabled on the app App ID (2026-07-28).
+- [x] **3.5.2 context menu** — verified on the free sim pipeline; the real-device long-press feel batches into the next signed build.
 
-**First device build = catch-up QA (Section C)**
-- [ ] C1 — Run the first RN build
-- [ ] C2 — Submit it to TestFlight
-- [ ] C3 — Install via TestFlight on your iPhone
-- [ ] C4 — Walk the [catch-up QA checklist](#c4--catch-up-qa-checklist-the-whole-v17-surface-on-a-real-phone-for-the-first-time)
+### ① Apple Developer Portal — signing for the widget extension
+_Needed before the next **signed device build** (it introduces the widget-extension bundle that hosts **both** the widget (3.5.4) **and** the Live Activity (3.5.3)). This is the one friction spot on Codemagic._
+- [ ] **P1 — Widget extension App ID `com.jasonsnyder.debtplanner.widget`** (singular). Automatic signing *should* create it; **only if the build fails on the widget's signing:** developer.apple.com/account → **Certificates, Identifiers & Profiles → Identifiers → + → App IDs → App** → Bundle ID = `com.jasonsnyder.debtplanner.widget` → tick **App Groups** → **Continue → Register**.
+- [ ] **P2 — App Group on that widget App ID:** Identifiers → `…debtplanner.widget` → **App Groups → Edit** → select `group.com.jasonsnyder.debtplanner` → **Save**.
+- [ ] **P3 — Refresh provisioning** after the widget target first lands: just **re-run the Codemagic build** (automatic signing regenerates via your ASC API key). Manual fallback → Section F.
+- [x] **(No action) Live Activities need NO extra capability** — `NSSupportsLiveActivities` is in the app Info.plist (I added it via a config plugin). **NO Push Notifications capability, NO APNs key** — the countdown updates locally, not via push.
+- [x] **(No action) App Intents / Siri (3.5.5) need NO portal capability** — App Intents auto-register and surface to Siri/Shortcuts on their own.
 
-**Per native feature (Section D) — I'll tell you exactly when each is needed**
-- [x] D-substrate — App Group registered + enabled on the App ID + profile refreshed in CM ✅ (Jason 2026-07-28)
-- [ ] D-contextmenu — (no portal step; just a rebuild + device test)
-- [ ] D-liveactivity — extension registered + Live Activities tested on device
-- [ ] D-widgets — widget added to Home/Lock screen + tested
-- [ ] D-siri — Siri phrases tested
-- [ ] D-tipkit — tips appear on device
+### ② App Store Connect — for 3.5 specifically
+- [x] **No per-feature ASC steps.** Live Activities, widgets, and App Intents need **no** ASC-side declaration; the app record already exists (v1.7 is an update to `com.jasonsnyder.debtplanner`). ASC submission chores (privacy nutrition labels, export compliance, screenshots) are **Phase 6**, not 3.5.
+- [ ] **A1 — Internal tester** (so signed builds install on your phone): ASC → your app → **TestFlight → Internal Testing → +** → add your Apple ID. One-time; likely already done from the first build.
 
-**Recurring**
-- [ ] Every time I add a capability → you regenerate the provisioning (Section F) — EAS does this automatically; Codemagic does not
+### ③ Device — one-time setup
+- [ ] **Note your iPhone model** — Dynamic Island renders only on **14 Pro / 15 Pro / 16 Pro+**; the Live Activity Lock-Screen card works on **any iOS 16.1+** iPhone. (The interactive "Payday landed" button + widget interactivity need **iOS 17+**.)
+- [ ] **Enable Live Activities:** Settings → **Debt Planner → Live Activities = ON** (and Settings → Face ID & Passcode → **Live Activities** on the Lock Screen, if present).
+
+### ④ Device — per-feature test (batched into signed builds; I'll say when each is ready)
+- [ ] **3.5.2 context menu** — long-press a debt row → native **Edit / Delete** UIMenu (blur + haptic).
+- [ ] **3.5.3 Live Activity** — as a **premium** user with payday within ~3 days: the countdown appears on the **Lock Screen** (+ **Dynamic Island** on 14 Pro+); the **Guardian state dot** is the only color that moves. On **payday day**, tap **"Payday landed"** → the app rolls the cycle on next open, with a one-tap **Undo** card on Today. Verify the toggle: **More → Preferences → Payday countdown** (premium-only row) turns it off/on.
+- [ ] **3.5.4 widget** — add **Debt-Free Date** to Home + Lock Screen + **StandBy** (charger, landscape). **Read-only by design** (no buttons — the interactive action lives on the Live Activity).
+- [ ] **3.5.5 App Intents / Siri** _(built after 3.5.3)_ — "Hey Siri, **what's my debt-free date?**" · "**how much debt is left?**" (both free) · "**am I okay this paycheck?**" (premium Guardian read) · "**log a $200 payment to Visa**" (premium); confirm the **Shortcuts** app lists them. Also test the in-app **"Log payment"** in a debt row's context menu.
+- [x] **~~3.5.6 TipKit~~ — DROPPED** (Jason 2026-07-28). Feature-discovery folded into the Phase-3.5 tutorial as RN coach-marks → **no native / portal / device step**.
+
+### Recurring rule
+- [ ] **Every capability I add → a provisioning refresh is due** (Section F). Codemagic automatic signing usually handles it on the next build; I flag it in-line each time.
 
 ---
 
@@ -179,7 +186,7 @@ Walk these on the device and note anything broken (I fix in-repo, you rebuild):
 
 ## Section D — Per-native-feature manual steps
 
-> I build each feature in-repo; **you** do only the dashboard/device bits below, and only when I say the feature is ready to test. With **EAS**, most "portal" steps are automated — I've marked what's truly manual.
+> I build each feature in-repo; **you** do only the dashboard/device bits below, and only when I say the feature is ready to test. On **Codemagic** automatic signing, most "portal" steps happen on the next build — I've marked the few that are truly manual (the widget App ID being the main one).
 
 <details>
 <summary><b>3.5.1 — Native substrate (App Group)</b></summary>
@@ -200,34 +207,36 @@ Pure code + a native dependency (`react-native-ios-context-menu`). **No portal s
 <details>
 <summary><b>3.5.3 — Live Activity + Dynamic Island (payday countdown)</b></summary>
 
-This adds a **widget extension target** (a second mini-app bundle: `com.jasonsnyder.debtplanner.widgets`).
+This lives in the **widget extension target** — the same second bundle as the widget (`com.jasonsnyder.debtplanner.widget`, **singular**); no new bundle ID beyond the widget's.
 
-- **Codemagic (the friction point):** I add the target via `expo-apple-targets`. The extension needs its OWN App ID (`com.jasonsnyder.debtplanner.widgets`) + profile. Automatic signing *should* create them, but this is the least turnkey spot on Codemagic — **if the build fails on the extension's signing**, you (one-time): developer.apple.com/account → **Identifiers → +** → App ID `com.jasonsnyder.debtplanner.widgets` (check App Groups → the same group) → **Save**; then re-run. I'll give you the exact error-to-action if it happens.
-- **On device (you test):** trigger a payday (I'll add a debug button) → a Live Activity appears on the **Lock Screen** and (on iPhone 14 Pro+) in the **Dynamic Island**. Long-press the Dynamic Island to see the expanded view. Confirm the countdown updates.
-- **Settings check:** the phone must have **Settings → Face ID & Passcode → (or Notifications) → Live Activities** enabled, and per-app **Settings → Debt Planner → Live Activities** on.
-- If we later want **frequent/remote** updates, that needs the **Push Notifications** capability + an APNs key — I'll flag it separately; the first version uses local/timeline updates (no push, no extra key).
+- **Codemagic (the friction point):** the extension needs its OWN App ID (`com.jasonsnyder.debtplanner.widget`) + profile. Automatic signing *should* create them, but this is the least-turnkey spot — **if the build fails on the extension's signing**, do **P1 + P2** in the checklist above (register the App ID, tick the App Group), then re-run. I'll give you the exact error-to-action if it happens.
+- **Design:** premium-only · auto-starts when premium + payday is within ~3 days (toggle: **More → Preferences → Payday countdown**) · day-granular countdown · the **Guardian state dot** is the only moving color · tap → opens the app to Today.
+- **On device (you test):** as a **premium** user near payday → the Live Activity appears on the **Lock Screen** and (iPhone 14 Pro+) the **Dynamic Island** (long-press it for the expanded view). On **payday day (0 days)** an interactive **"Payday landed"** button shows (**iOS 17+**) → tap it → on next app open the cycle has rolled and a **"Payday landed — Undo / Keep"** card is on Today. Confirm the Preferences toggle turns it off.
+- **Settings check:** **Settings → Debt Planner → Live Activities** must be ON (and Lock-Screen Live Activities enabled).
+- **No push:** updates are **local** (no APNs key, no Push capability). Remote/push updates would be a later enhancement.
 </details>
 
 <details>
 <summary><b>3.5.4 — Widgets + StandBy</b></summary>
 
-Uses the same extension target as 3.5.3 (no new bundle ID).
+Uses the same extension target as 3.5.3 (no new bundle ID). **Read-only by design** (Jason 2026-07-28) — a reference/glance surface with no buttons; the interactive action lives on the Live Activity's payday state (3.5.3.5), where it's contextual.
 
-- **On device (you test):** long-press the Home Screen → **+** (top-left) → search "Debt Planner" → add the widget (try small + medium). Add one to the **Lock Screen** too (long-press lock screen → Customize → Lock Screen → add widget). For the **interactive** "log paycheck" widget, tap its button and confirm the app records it (interactive widgets = iOS 17+). **StandBy:** put the phone on a charger, landscape — the widget should appear.
+- **On device (you test):** long-press the Home Screen → **+** (top-left) → search "Debt Planner" → add the widget (small + medium + large). Add one to the **Lock Screen** too (long-press Lock Screen → Customize → add a widget → the circular / rectangular / inline accessory). **StandBy:** phone on a charger, landscape → the widget should appear. Confirm the debt-free date / payoff ring / remaining all read correctly and match the app.
 </details>
 
 <details>
-<summary><b>3.5.5 — App Intents / Siri + Control Center</b></summary>
+<summary><b>3.5.5 — App Intents / Siri (queries + log-a-payment)</b></summary>
 
-Code-only capability (no portal step).
+Code-only (**no portal step** — App Intents auto-register). Built **after** 3.5.3 (reuses its AppIntent→store bridge).
 
-- **On device (you test):** say *"Hey Siri, when am I debt-free?"* / *"Hey Siri, log a payment in Debt Planner"* → confirm Siri runs the intent. Check **Settings → Siri & Search → Debt Planner** shows the shortcuts. Add the Control Center control (Settings → Control Center, or long-press Control Center → + on iOS 18).
+- **On device (you test):** say — free glances: *"Hey Siri, what's my debt-free date?"* · *"how much debt is left?"*; premium: *"am I okay this paycheck?"* (the Guardian read) · *"log a $200 payment to Visa"* → confirm Siri runs each. Check the **Shortcuts** app (and Settings → Siri & Search → Debt Planner) lists them. Also test the in-app twin: a debt row's long-press context menu has a **"Log payment"** action.
+- **Control Center control** was **deferred** to a later version (App Intents + Siri + the Live-Activity action already cover the quick-action ground for v1.7).
 </details>
 
 <details>
-<summary><b>3.5.6 — TipKit</b></summary>
+<summary><b>~~3.5.6 — TipKit~~ — DROPPED (Jason 2026-07-28)</b></summary>
 
-Code-only (iOS 17+). **On device:** confirm the feature-discovery tips appear at the right moments and dismiss/don't-repeat correctly. (To re-trigger tips during testing I can add a reset.)
+Native TipKit can't reach Debt's React-Native screens and overlapped the Phase-3.5 tutorial, so feature-discovery was folded into that tutorial as on-brand **RN coach-marks** instead. **No native / portal / device step for 3.5.** (It resurfaces as part of the Phase-3.5 interactive tutorial later.)
 </details>
 
 ---
@@ -264,7 +273,7 @@ You do the dashboards/device; **I do all of this** and tell you exactly when to 
 - Add `expo-apple-targets` + the widget/Live-Activity target (SwiftUI views for the Live Activity, widgets, Dynamic Island).
 - Declare the App Group + wire the shared data store (app writes → extension reads).
 - Add `react-native-ios-context-menu` + wire the row UIMenu.
-- Write the App Intents / Siri intents + TipKit tips.
+- Write the App Intents / Siri intents (queries + log-a-payment) + the AppIntent→store bridge. _(TipKit dropped → RN coach-marks in the Phase-3.5 tutorial.)_
 - Add debug triggers so you can test payday/Live-Activity/tips on demand.
 - Run the pre-commit native-build checks (CI xcodeproj-glob, config-plugin sanity) before each native dep lands.
 
