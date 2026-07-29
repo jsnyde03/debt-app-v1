@@ -4,6 +4,19 @@
 
 ---
 
+## Phase 3.6 · 3.6.3–3.6.5 — Today / Progress / More adaptive layouts + a real /more web-crash fix (2026-07-29)
+
+**3.6.3 Today → two-column (`c050173`):** on expanded iPad, the Today content splits — the Guardian/payday moment (hero · guardian · affordability · lean) in the left column, the required + recommended action lists in the right, via `TwoColumn ratio={1.05}`; `Screen maxWidth={900}` on expanded. Compact stacks unchanged. Both themes screenshot-verified.
+
+**3.6.4 Progress → wide-canvas (`9b21c86`):** a wider centered column (`Screen maxWidth={980}` on expanded), NOT two-column — the ring hero + cash-flow + trajectory timeline charts read better with width than split. "Using the room." Both themes verified.
+
+**3.6.5 More + long-tail (`365c348`):** More gets a wider settings column (`maxWidth={680}` on expanded, appropriate for a settings list; a fuller section split is a noted future enhancement). The long-tail screens (living-expenses / paywall / onboarding) already inherit `Screen`'s default centered iPad column, so no special layout — 3.6.5's real work was More only. iPad-width both-theme verified.
+
+**Real /more web-crash caught by the e2e gate + fixed (`6864dd5`) — NOT the "harness quirk" it first looked like.** While closing 3.6.5, the full web e2e failed on `premium-entry.spec.ts` (the always-visible "Unlock Premium" reviewer-findability path). Root cause via bisect: navigating to `/more` on web threw `Cannot find native module 'LiveActivity'` and rendered the whole screen blank. `expo-router`'s per-route web chunking pulled the `.native` LiveActivity bridge (reached through `LiveActivityQA`) into the `/more` chunk, where a **top-level** `requireNativeModule('LiveActivity')` throws at import (web uses the no-op base `.ts`, but the `.native` still got bundled into the route chunk). Two complementary fixes:
+- `liveActivityBridge.native.ts` + `pendingActionBridge.native.ts` → resolve the native module **lazily on first call**, never at import, so an accidental `.native` load on web can't hard-crash a route. (Belt-and-suspenders; aligns with the platform-split re-export lesson.)
+- `more.tsx` → gate the Developer/QA section to `Platform.OS !== 'web'`: it's on-device tooling (Live Activities are iOS-only; Simulate-Premium is for TestFlight) with no purpose on web, and its "Unlock premium features…" subtitle was a strict-mode collision with the paywall's "Unlock Premium" once the crash was fixed.
+- **Verified:** tsc · lint (0 errors) · full web e2e **63 passed** · /more renders premium at iPad width in both themes. **Lesson:** the earlier "blank /more" was dismissed as a harness quirk — it was a real crash; the committed e2e gate is what surfaced it. A `.native.ts` that top-level-calls `requireNativeModule` is a latent web-route landmine — keep native resolution lazy.
+
 ## Phase 3.6 · 3.6.1 + 3.6.2 — iPad primitives + Money master-detail (2026-07-29, built ahead during the 3.5-verify wait)
 
 **3.6.1 primitives:** `components/ui/TwoColumn.tsx` (side-by-side on expanded ≥1024pt, stacked otherwise — for Today/Progress) · `components/ui/MasterDetail.tsx` (list pane + detail pane on expanded, list-only on compact — Money) · `Screen.wide` prop (opt out of the centered width-cap so an adaptive screen uses the full canvas). Inert until composed; tsc/lint green.
