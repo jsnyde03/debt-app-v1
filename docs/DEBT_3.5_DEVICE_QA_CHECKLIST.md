@@ -1,0 +1,108 @@
+# Debt Planner v1.7 — On-Device QA Checklist (everything up to 3.5.4 + Live Activity)
+
+> **What this build contains:** all of v1.7 + the native block through **3.5.3 (Live Activity)** and **3.5.4 (widget)**, plus the **QA trigger** panel. **NOT in this build:** 3.5.5 (App Intents / Siri) — not built yet. 3.5.6 (TipKit) — dropped.
+>
+> **How to use this:** work top-to-bottom on the phone. Each item has the **exact steps**, what a **✅ pass** looks like, and **⚠️** notes. Tick as you go; anything that fails, note it (screenshot + what you did) → I fix in-repo → you rebuild. **Priority = the NEW native (§4–§7)** — the v1.7 app surface (§3) already passed on the first device build, so §3 is a lighter re-sanity.
+>
+> **Legend:** ✅ = expected pass · ⚠️ = watch-out · 🅿️ = needs premium (turn on Simulate Premium, §2) · 📱 = 14 Pro/15 Pro/16 Pro only (Dynamic Island).
+
+---
+
+## §0 — Get the build on your phone
+- [ ] **Trigger the build:** Codemagic → **debt-app-v1 → Start new build** → branch **`v1.7-dev`** → workflow **"Debt Planner RN — iOS TestFlight"** → **Start build**. (~20–30 min; you get a success/failure email.)
+  - ⚠️ This is the **first build with the widget extension**, so watch for a **signing** error on `…debtplanner.widget`. It *should* sign (I added the dual-bundle `fetch-signing-files`; you set up the App ID + CM). If it fails on signing, send me the error.
+- [ ] **Install:** once the email says success + App Store Connect finishes processing (a few min), open **TestFlight** on the phone → **Debt Planner → Update/Install**.
+- [ ] **Note your model** here: __________ (Dynamic Island = 14 Pro / 15 Pro / 16 Pro+; the Lock-Screen Live Activity works on **any** iOS 16.1+).
+- [ ] **Device settings prereq:** Settings → **Debt Planner** → confirm **Live Activities = ON** (and Notifications allowed). Also Settings → Face ID & Passcode → **Allow Access When Locked → Live Activities = ON** if present.
+
+---
+
+## §1 — Launch & foundation
+- [ ] **App launches** past the splash — **no white screen, no crash** (this is the New-Architecture + all-native-modules runtime; a crash here = an autolink/New-Arch problem).
+- [ ] Lands on **Today** (if you have data) or **onboarding** (fresh install). If onboarding, either complete it or tap **"Try with Sample Data"** to get a populated app fast.
+- [ ] **Both themes render:** More → Preferences → Appearance → toggle **Light / Dark** → the app recolors cleanly, no unreadable text, no white flashes.
+
+---
+
+## §2 — Turn on QA mode (needed for premium + Live Activity tests)
+- [ ] **More → Developer / QA** section is present (it only shows because QA tooling is on for this build).
+- [ ] **Simulate Premium → ON.** ✅ Premium surfaces unlock (e.g. the Guardian shows the full read on Today; the paywall's "Unlock Premium" changes to manage-sub). Leave it ON for the 🅿️ items below.
+- [ ] Confirm the **"Live Activity QA"** card is visible in that section (four state buttons + End + Simulate).
+
+---
+
+## §3 — v1.7 app surface — quick re-sanity (already passed on build #1)
+_Just confirm nothing regressed with all the new native modules added since build #1._
+- [ ] **⭐ FormSheet header buttons (the owed re-verify):** open **Add debt** (Money → Debts → Add debt) → tap the **✕** (top-right circle) → the sheet closes. Open a debt → tap **"View Payoff Schedule"** in the sheet header → it opens. _(This is the header-tap fix from build #1 — confirm both header buttons are tappable and NOT swallowed by the swipe gesture.)_
+- [ ] **Sheet gestures:** open any add/edit sheet → **swipe it down** → it dismisses. The grabber shows. Keyboard doesn't cover the Save button.
+- [ ] **Swipe-to-delete:** on a debt row, **swipe left** → a red **Delete** appears → tap → confirm → row removed.
+- [ ] **Blur:** the tab bar + a sheet backdrop show real UIKit blur (richer than web).
+- [ ] **Charts:** Progress → scrub the **trajectory** line → the readout follows + you feel **haptic** detents. (Cash-Runway drag-select too if premium.)
+- [ ] **Haptics** fire on chart scrub / payday capture.
+- [ ] 🅿️ **RevenueCat paywall** (only if testing IAP): open the paywall → the three plans render with real prices. _(A real sandbox purchase is optional here — cover it in the Phase-6 pre-submit; Simulate Premium already unlocks the features.)_
+- [ ] **Scanner:** Money → Debts → **Scan a statement** → the camera/document scanner opens (permission prompt shows your copy). Scanning a real statement prefills fields.
+
+---
+
+## §4 — 3.5.2 iOS context menu (long-press)
+- [ ] **Long-press a debt row** (press and hold ~0.5s) → a **native UIMenu** pops with **Edit** and **Delete**. ✅ Delete is **red / destructive**, with a system blur behind the menu + a subtle haptic.
+- [ ] Tap **Edit** → the debt editor opens.
+- [ ] Long-press again → tap **Delete** → the confirm → the row is removed.
+- [ ] **Tap (not long-press)** a row → still opens the editor (long-press didn't break the tap).
+- [ ] **Swipe-to-delete** still works alongside the long-press (both gestures coexist).
+- [ ] Repeat the long-press on a **Bill** row and a **Goal** row (Money → Bills / Goals) — same menu.
+- [ ] ⚠️ If a long-press does nothing, note which row/tab.
+
+---
+
+## §5 — 3.5.1 + 3.5.4 Widget (proves the App-Group data bridge)
+- [ ] **Add to Home Screen:** long-press an empty Home area → **+** (top-left) → search **"Debt Planner"** → the **"Debt-Free Date"** widget → add the **small**, then **medium**, then **large**.
+- [ ] ✅ Each widget shows **real data** — your **debt-free date**, the **payoff ring / % paid**, and **remaining balance** — and they **match what the app shows**. _(This is the whole App-Group test: if the widget shows an empty/"open the app" state or zeros while the app has data, the shared container isn't wired — tell me.)_
+- [ ] **Add to Lock Screen:** long-press the Lock Screen → **Customize → Lock Screen** → add a widget → pick a Debt Planner **accessory** (circular / rectangular / inline).
+- [ ] **StandBy:** put the phone **on a charger, landscape** → the widget appears in StandBy.
+- [ ] **Live update:** in the app, pay down / edit a debt → within a minute (WidgetKit budget) the widget's numbers update.
+- [ ] ✅ **Read-only:** the widget has **no buttons** (by design — the interactive action lives on the Live Activity).
+- [ ] **Tap the widget** → it opens the app.
+
+---
+
+## §6 — 3.5.3 Live Activity + Dynamic Island (the big one)
+
+### 6a — via the QA trigger (fastest; no premium/date tuning)
+Go to **More → Developer / QA → Live Activity QA**. For each button, then **lock the phone** / pull down the Lock Screen to see the card:
+- [ ] **"Clear · 2 days"** → Lock Screen shows: a **checkered-flag** header ("PAYDAY IN 2 DAYS"), a **green** state dot, the title **"Looks clear this paycheck"**, the line **"Cushion safe · $420 free to deploy"**, and a **gold progress bar**.
+- [ ] 📱 **Dynamic Island:** the same activity shows **compact** (dot + "in 2 days"); **long-press** it → **expanded** (dot · countdown · title · line); the **minimal** state (dot) when another activity shares the Island.
+- [ ] **"Tight · tomorrow"** → **amber/gold** dot, "A little tight this paycheck", "Move $200 from savings to hold your line", "Tomorrow".
+- [ ] **"At-risk · today"** → **red** dot, "Very tight this paycheck", "$180 short of your obligations", "Today".
+- [ ] ✅ **The state dot is the only thing that changes color** across the three — the rest stays calm navy/gold. That's the intended "calm data-viz."
+- [ ] **"Payday day (button)"** → on the Lock Screen card, a **"Payday landed"** button appears (📱 iOS 17+ only). 
+- [ ] **Tap the "Payday landed" button** (on the Live Activity itself) → open the app → ✅ the cycle has **rolled forward** and a **"Payday landed — Undo / Keep"** card is on **Today**. Tap **Undo** → it reverts. _(This is the AppIntent → App-Group queue → app-drains-on-foreground path — the machinery 3.5.5 will reuse.)_
+- [ ] **"End activity"** → the Live Activity **disappears** from the Lock Screen.
+- [ ] **"Simulate 'Payday landed'"** (the last QA button) → an alert confirms → **Today** shows the **Undo / Keep** card → test **Undo** (reverts the roll) and, on a fresh sim, **Keep** (dismisses, roll stays).
+
+### 6b — via the real auto-start flow 🅿️
+- [ ] With **Simulate Premium ON**, set your **next paycheck to ~2 days out**: on **Today**, tap the **"THIS PAYCHECK · <date> ✎"** row → set the next paycheck date 2 days from today → save.
+- [ ] **Background the app, then reopen it** → ✅ the Live Activity **auto-starts** (premium + within ~3 days). 
+- [ ] **Deep link:** tap the Live Activity (Lock Screen or Island) → ✅ it opens the app to **Today**.
+- [ ] **Toggle off:** More → **Preferences → Payday countdown → OFF** → reopen → ✅ the activity **doesn't start** (and ends if running). Toggle back ON.
+- [ ] ⚠️ Note: on a **free** account (Simulate Premium OFF) the auto-start should **not** happen (premium-only) — the always-on widget is the free surface.
+
+---
+
+## §7 — Settings / preferences
+- [ ] 🅿️ **More → Preferences → "Payday countdown"** row is present **only when premium** (turn Simulate Premium off → the row disappears; on → it returns) and its toggle drives §6b.
+
+---
+
+## §8 — Both-theme spot check
+- [ ] In **Light** and **Dark** (More → Preferences → Appearance): re-check the **Live Activity** card, the **widget**, the **context menu**, and **Today** — all legible, on-brand, no clipped/again unreadable text.
+
+---
+
+## §9 — Report back
+- [ ] Jot anything that failed (which §, what you did, a screenshot). I fix in-repo → you rebuild → re-run only the failed items.
+- [ ] When this is clean, 3.5.3/3.5.4 are **device-verified**; next I build **3.5.5 (App Intents / Siri)**, which reuses the payday-landed bridge you just tested — then one more signed build closes the block.
+
+---
+
+_Companion to `DEBT_NATIVE_BLOCK_MANUAL_STEPS.md` (the portal/ASC steps — all done). Canonical plan: `DEBT_ELEVATION_PLAN.md` §3.5._
