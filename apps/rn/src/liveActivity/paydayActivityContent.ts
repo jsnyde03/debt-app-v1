@@ -104,3 +104,30 @@ export function shouldRunPaydayActivity(store: DebtStore): boolean {
   if (days > PAYDAY_ACTIVITY_WINDOW_DAYS) return false;
   return buildPaydayActivityContent(store) !== null;
 }
+
+/** What the lifecycle manager should do to the live activity given the store + its current state. */
+export type LiveActivityAction =
+  | { kind: 'none' }
+  | { kind: 'start'; content: PaydayActivityContent; key: string }
+  | { kind: 'update'; content: PaydayActivityContent; key: string }
+  | { kind: 'end' };
+
+/**
+ * Pure reconciliation between "what the store implies" and "what's live right now" — the whole
+ * start/update/end decision, extracted so it's unit-testable without ActivityKit or timers. `running` /
+ * `lastKey` are the manager's held state; the returned action is applied via the native bridge.
+ * `key` is the serialized content so an unchanged read skips a redundant update (WidgetKit-budget hygiene).
+ */
+export function decideLiveActivityAction(
+  store: DebtStore,
+  running: boolean,
+  lastKey: string | null,
+): LiveActivityAction {
+  if (!shouldRunPaydayActivity(store)) return running ? { kind: 'end' } : { kind: 'none' };
+  const content = buildPaydayActivityContent(store);
+  if (!content) return running ? { kind: 'end' } : { kind: 'none' };
+  const key = JSON.stringify(content);
+  if (!running) return { kind: 'start', content, key };
+  if (key !== lastKey) return { kind: 'update', content, key };
+  return { kind: 'none' };
+}

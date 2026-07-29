@@ -55,6 +55,7 @@ export const appIconSF: Partial<Record<MaterialGlyph, SFSymbol>> = {
   'auto-graph': 'chart.xyaxis.line',
   assignment: 'doc.text.fill',
   history: 'clock.arrow.circlepath',
+  schedule: 'clock', // the Payday Countdown toggle (3.5.3)
   'phone-iphone': 'iphone',
   // status / trust (gpp-* = the shield family)
   'gpp-good': 'checkmark.shield.fill',

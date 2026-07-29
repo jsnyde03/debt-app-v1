@@ -10,6 +10,7 @@ import { useInitPremium } from '@/premium/premiumSync';
 import { createStorageAdapter } from '@/storage/createAdapter';
 import { bootstrapPersistence, flushPendingSave } from '@/store/persistence';
 import { startWidgetSync } from '@/widget/widgetSync';
+import { startLiveActivitySync } from '@/liveActivity/liveActivitySync';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 
@@ -46,7 +47,12 @@ export default function RootLayout() {
   useEffect(() => {
     // Hydrate + autosave, THEN start mirroring the debt summary to the iOS widget's App-Group container
     // (3.5.1) — after hydrate so the first snapshot reflects real data. No-op on web/Android.
-    void bootstrapPersistence(createStorageAdapter()).then(() => startWidgetSync());
+    void bootstrapPersistence(createStorageAdapter()).then(() => {
+      startWidgetSync();
+      // 3.5.3 — drive the premium Payday Countdown Live Activity off the same hydrated store. No-op on
+      // web/Android and when the OS/user has Live Activities off.
+      startLiveActivitySync();
+    });
     // Persist any pending debounced write when the app leaves the foreground, so a
     // background/terminate never drops the last change. Wrapped defensively — a listener throw must
     // never crash the app (the platform-split lifecycle-handler lesson).

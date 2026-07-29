@@ -168,6 +168,16 @@ export default function MoreScreen() {
             subtitle="Skip building a starter emergency fund — put more toward debt first."
             right={<Switch value={prefs.hasSavingsElsewhere} onValueChange={(v) => appStore.getState().updatePrefs({ hasSavingsElsewhere: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
+          {/* 3.5.3 — premium-only: the Payday Countdown Live Activity. Free users don't have it, so the
+              toggle only appears for premium (never a locked/greyed control). */}
+          {plan === 'premium' ? (
+            <SettingRow
+              icon="schedule"
+              label="Payday countdown"
+              subtitle="Show a Live Activity in the ~3 days before payday."
+              right={<Switch value={prefs.paydayLiveActivityEnabled} onValueChange={(v) => appStore.getState().updatePrefs({ paydayLiveActivityEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
+            />
+          ) : null}
           <SettingRow icon="shopping-cart" label="Living Expenses" subtitle="Everyday spending reserved each paycheck." onPress={() => router.push('/living-expenses')} last />
         </SettingGroup>
       </Section>

@@ -5,6 +5,7 @@ import { selectPaydayGuardian } from '@/store/guardianSelectors';
 
 import {
   buildPaydayActivityContent,
+  decideLiveActivityAction,
   shouldRunPaydayActivity,
   wholeDaysBetween,
 } from './paydayActivityContent';
@@ -95,5 +96,31 @@ eq(shouldRunPaydayActivity(store({ premium: true, daysToPayday: 4 })), false, 'p
 eq(shouldRunPaydayActivity(store({ premium: true, daysToPayday: 2, toggle: false })), false, 'toggle off → no');
 // build() ignores the window (an in-flight activity still updates its content past the edge).
 assert(buildPaydayActivityContent(store({ premium: true, daysToPayday: 10 })) !== null, 'build() ignores the window gate');
+
+// ── decideLiveActivityAction (the pure start/update/end reconciler) ──────────────
+{
+  const inWindow = store({ premium: true, daysToPayday: 2 });
+  // not running + should-run → start (carries content + key)
+  const startAction = decideLiveActivityAction(inWindow, false, null);
+  eq(startAction.kind, 'start', 'not running + should-run → start');
+  const key = startAction.kind === 'start' ? startAction.key : '';
+  assert(key.length > 0, 'start action carries a content key');
+
+  // running + same content (key matches) → none (no redundant update)
+  eq(decideLiveActivityAction(inWindow, true, key).kind, 'none', 'running + unchanged read → none');
+
+  // running + changed content → update
+  const changed = store({ premium: true, daysToPayday: 1 }); // different countdown → different key
+  eq(decideLiveActivityAction(changed, true, key).kind, 'update', 'running + changed read → update');
+
+  // running + should-NOT-run (fell out of the window) → end
+  eq(decideLiveActivityAction(store({ premium: true, daysToPayday: 9 }), true, key).kind, 'end', 'running + outside window → end');
+
+  // running + downgraded to free → end
+  eq(decideLiveActivityAction(store({ premium: false }), true, key).kind, 'end', 'running + free → end');
+
+  // not running + should-not-run → none (nothing to do)
+  eq(decideLiveActivityAction(store({ premium: false }), false, null).kind, 'none', 'not running + free → none');
+}
 
 console.log(`\n  paydayActivityContent: ${passed} assertions passed\n`);
