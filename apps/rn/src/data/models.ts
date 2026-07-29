@@ -80,6 +80,9 @@ export interface Preferences {
   /** §2.1/§2.0.d (2.4.11.3): the one-time premium Guardian first-run intro (floor-protected-from-today
    *  + earns-trust-as-it-learns + advice boundary) has been seen + dismissed. Default false. */
   guardianIntroSeen: boolean;
+  /** 3.5.3: the premium Payday Countdown Live Activity auto-starts in the final ~3-day run-up to payday.
+   *  User toggle (More → Preferences). Default true; only ever runs for premium users. */
+  paydayLiveActivityEnabled: boolean;
 }
 
 /** Bump when the persisted shape changes; `runMigrations` brings older blobs forward.

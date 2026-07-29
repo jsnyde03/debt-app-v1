@@ -22,6 +22,9 @@ async function main() {
   // RS.2 — Guardian selectors (states × tier × regime + break-it).
   await import('../store/guardianSelectors.test');
 
+  // 3.5.3.1 — Payday Countdown Live Activity pure derivation (premium/toggle/window gates · countdown).
+  await import('../liveActivity/paydayActivityContent.test');
+
   // RS.3 — store actions + money-critical transitions (capture · rollover · missed/undo · lean ·
   // top-up · risk-notified · floor clamp · migration/import path), with break-it inputs.
   await import('../store/storeActions.test');
