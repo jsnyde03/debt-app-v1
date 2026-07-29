@@ -112,10 +112,15 @@ jobs:
           # the compile); we only need the slice matching the sim we boot.
           ARCH="$(uname -m)"
           echo "Building single simulator arch: $ARCH"
-          # CLANG_ENABLE_EXPLICIT_MODULES=NO: kept as a conservative choice on Xcode 26, whose default
-          # (Clang explicit modules ON) is new. Implicit modules is the long-proven path and rules out an
-          # Xcode-26 explicit-modules surprise on this pod set. Harmless to keep; drop it later to try the
-          # explicit-modules speedup once the pipeline is reliably green.
+          # 2026-07-29 speed pass — two compiler-level cuts to the ~13-min sim compile, both safe for a
+          # FUNCTIONAL e2e (the signed Codemagic build is the optimized final sanity check):
+          #  • Optimization OFF (SWIFT_OPTIMIZATION_LEVEL=-Onone / GCC_OPTIMIZATION_LEVEL=0) — skips the
+          #    expensive Release -O passes while KEEPING the Release config's embedded self-contained JS
+          #    bundle (bundling is gated on the config NAME, not opt level), so the app still runs on the
+          #    sim with no Metro. Maestro tests behavior, not perf → unoptimized is fine.
+          #  • Clang explicit modules ON (Xcode 26 default) — pinned OFF while stabilizing; now green across
+          #    3 runs, so we take the module-reuse speedup. Revert to CLANG_ENABLE_EXPLICIT_MODULES=NO build
+          #    if a pod's module map trips explicit modules.
           xcodebuild \
             -workspace ios/DebtPlannerRN.xcworkspace \
             -scheme DebtPlannerRN \
@@ -125,7 +130,8 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
             CODE_SIGNING_ALLOWED=NO \
-            CLANG_ENABLE_EXPLICIT_MODULES=NO build
+            SWIFT_OPTIMIZATION_LEVEL='-Onone' GCC_OPTIMIZATION_LEVEL=0 \
+            build
 
       - name: Boot, install, launch, capture the app log
         run: |
