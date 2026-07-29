@@ -15,6 +15,8 @@ import type { ThemeMode } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
+import { QA_TOOLS } from '@/config/qa';
+import { LiveActivityQA } from '@/components/more/LiveActivityQA';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { PREMIUM_PURCHASABLE } from '@/premium/config';
@@ -196,13 +198,13 @@ export default function MoreScreen() {
         </SettingGroup>
       </Section>
 
-      {__DEV__ ? (
-        <Section title="Developer">
+      {__DEV__ || QA_TOOLS ? (
+        <Section title="Developer / QA">
           <SettingGroup>
             <SettingRow
               icon="science"
               label="Simulate Premium"
-              subtitle="Unlock premium features while they're built (dev only)."
+              subtitle="Unlock premium features for testing (dev / TestFlight QA)."
               right={
                 <Switch
                   value={plan === 'premium'}
@@ -213,6 +215,9 @@ export default function MoreScreen() {
               last
             />
           </SettingGroup>
+          {/* 3.5.3 device-QA — trigger the Payday Countdown Live Activity states + the payday-landed drain
+              on demand (no need to hand-tune the paycheck date). Removed with QA_TOOLS before submission. */}
+          <LiveActivityQA />
         </Section>
       ) : null}
 
