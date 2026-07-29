@@ -9,6 +9,7 @@ import type { PendingMilestone } from '@/data/models';
 import { haptics } from '@/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { groupLabel } from '@/utils/a11y';
 
 /**
  * The portfolio milestone-cross ack (3.3.2.2) — a calm, gold-accented Today card when a 25/50/75% journey
@@ -35,7 +36,8 @@ export function MilestoneAckCard({ milestone, onAck }: { milestone: PendingMiles
         <View style={[styles.badge, { backgroundColor: c.accent.gold }]}>
           <AppIcon name="star" size={18} color={c.text.onAccent} />
         </View>
-        <View style={styles.text}>
+        {/* A11Y-5: one VoiceOver utterance for the title + body (the star badge is decorative). */}
+        <View style={styles.text} {...groupLabel(m.title, m.body)}>
           <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>{m.title}</Text>
           <Text style={[textStyles.subhead, { color: c.text.secondary }]}>{m.body}</Text>
         </View>

@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { Canvas, Group, Rect, RoundedRect, rect, rrect } from '@shopify/react-native-skia';
 import { Easing, useDerivedValue, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 
+import { duration } from '@/theme/motion';
+
 /** The held "set aside" reserve renders as the cushion color at this opacity (§2.0.c — a visible-but-
  *  clearly-protected sub-zone, one calm slate language, not a second hue). */
 const RESERVE_OPACITY = 0.5;
@@ -48,7 +50,7 @@ export default function CushionBarChart({
   useEffect(() => {
     if (width <= 0 || hasGrown.current) return;
     hasGrown.current = true;
-    grow.value = reduce ? 1 : withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) });
+    grow.value = reduce ? 1 : withTiming(1, { duration: duration.chart, easing: Easing.out(Easing.cubic) }); // COH-6: token (unified with the ring)
   }, [reduce, grow, width]);
 
   // Reveal clip grows left→right; the track stays full underneath, so the segments "fill" the bar.

@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { BlurMask, Canvas, Circle, Group, Path, Skia, SweepGradient, vec } from '@shopify/react-native-skia';
 import { Easing, useDerivedValue, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
+import { duration } from '@/theme/motion';
+
 export type MilestoneState = 'passed' | 'next' | 'upcoming' | 'free';
 
 export interface JourneyRingChartProps {
@@ -41,7 +43,7 @@ export default function JourneyRingChart({ size, stroke, pct, milestones, palett
   const reduce = useReducedMotion();
   const sweep = useSharedValue(reduce ? clamped / 100 : 0);
   useEffect(() => {
-    sweep.value = reduce ? clamped / 100 : withTiming(clamped / 100, { duration: 900, easing: Easing.out(Easing.cubic) });
+    sweep.value = reduce ? clamped / 100 : withTiming(clamped / 100, { duration: duration.chart, easing: Easing.out(Easing.cubic) }); // COH-6: token
   }, [clamped, reduce, sweep]);
 
   // 3.3.2.3 — a breathing pulse (0→1→0) for the just-crossed milestone node (static under Reduce Motion).

@@ -9,6 +9,7 @@ import type { VanquishedDebt } from '@/store/celebrationSelectors';
 import { stagger } from '@/theme/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { groupLabel } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 
 /**
@@ -42,7 +43,10 @@ export function VanquishedArchive({ debts }: { debts: VanquishedDebt[] }) {
               <View style={[styles.badge, { backgroundColor: c.accent.gold }]}>
                 <AppIcon name="check" size={13} color={c.text.onAccent} />
               </View>
-              <View style={styles.rowText}>
+              {/* A11Y-5: one utterance per tombstone (name · amount cleared · date); the check badge is decorative. */}
+              <View
+                style={styles.rowText}
+                {...groupLabel(d.name, d.amount != null ? `${formatWhole(d.amount)} cleared` : 'Cleared', d.clearedDate ? shortDate(d.clearedDate) : undefined)}>
                 <Text style={[textStyles.bodyMedium, { color: c.text.primary }]} numberOfLines={1}>
                   {d.name}
                 </Text>

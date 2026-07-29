@@ -10,6 +10,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { ActiveRecommendedAction, PlanSummary } from '@/store/planSelectors';
 import { colors } from '@/theme/colors';
 import { elevation } from '@/theme/elevation';
+import { duration } from '@/theme/motion';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
@@ -68,7 +69,7 @@ export function PlanHero({
   const grow = useSharedValue(0);
   useEffect(() => {
     setShownPaycheck(paycheck);
-    grow.value = reduce ? 1 : withTiming(1, { duration: 550, easing: Easing.out(Easing.cubic) });
+    grow.value = reduce ? 1 : withTiming(1, { duration: duration.slow, easing: Easing.out(Easing.cubic) }); // COH-6: token
   }, [paycheck, reduce, grow]);
   const barStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: grow.value }] }));
 
