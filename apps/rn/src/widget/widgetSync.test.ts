@@ -61,6 +61,22 @@ console.log('\n▶ widget snapshot + sync (3.5.1)');
   eq(snap.pctLabel, '100%', 'fully cleared → 100%');
 }
 
+// 3.5.5 — guardianSpoken (the Siri "am I okay this paycheck?" read): premium only.
+{
+  const free = createDefaultStore();
+  free.paycheck = { ...free.paycheck, amount: '2000' };
+  free.debts = [debt({ id: 'a', name: 'Visa', balance: 6000, originalBalance: 8000, minimumPayment: 100 })];
+  eq(buildWidgetSnapshot(free, 400).guardianSpoken, '', 'free tier → guardianSpoken empty (Siri returns an upsell)');
+
+  const premium = createDefaultStore();
+  premium.subscriptionPlan = 'premium';
+  premium.genuineCycleCount = 6; // established → a real read, no cold-start dampening
+  premium.paycheck = { ...premium.paycheck, amount: '2000' };
+  premium.debts = [debt({ id: 'a', name: 'Visa', balance: 6000, originalBalance: 8000, minimumPayment: 100 })];
+  const spoken = buildWidgetSnapshot(premium, 400).guardianSpoken;
+  assert(spoken.length > 0 && spoken.toLowerCase().includes('paycheck'), 'premium → a non-empty spoken Guardian read');
+}
+
 // startWidgetSync mirrors once at launch, and is idempotent per store.
 {
   const store = createDebtStore();

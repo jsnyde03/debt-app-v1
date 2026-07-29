@@ -1,4 +1,6 @@
 import type { DebtStore } from '@/data/models';
+import { withProjectedBalances } from '@/store/balanceSelectors';
+import { selectPaydayGuardian } from '@/store/guardianSelectors';
 import { selectPayoffView } from '@/store/payoffSelectors';
 import { formatWhole } from '@/utils/format';
 
@@ -22,6 +24,32 @@ export interface WidgetSnapshot {
   remaining: string;
   /** Epoch ms of the write — an "as of" footnote / staleness signal on the native side. */
   updatedAt: number;
+  /** 3.5.5 — the PREMIUM Guardian read for this paycheck, as a spoken sentence for the Siri "am I okay
+   *  this paycheck?" App Shortcut. `""` for free (the intent returns a value-led upsell). The widget
+   *  doesn't render this — its Swift `DebtSnapshot` ignores the extra key; only the Siri intent reads it. */
+  guardianSpoken: string;
+}
+
+/** The premium Guardian read as a spoken sentence (Siri), or "" for free. Guarded — `buildWidgetSnapshot`
+ *  must never throw (the widget depends on it), so a selector hiccup collapses to "". */
+function buildGuardianSpoken(store: DebtStore): string {
+  try {
+    if (store.subscriptionPlan !== 'premium') return '';
+    const brief = selectPaydayGuardian(withProjectedBalances(store, true));
+    if (!brief) return '';
+    if (brief.shortfall && brief.shortfall > 0) {
+      return `This paycheck is very tight — you're about ${formatWhole(brief.shortfall)} short of your obligations.`;
+    }
+    if (brief.state === 'tight' && brief.safeMove) {
+      return `This paycheck is a little tight. ${brief.safeMove}`;
+    }
+    if (brief.deployedToDebt > 0) {
+      return `This paycheck looks clear. Your cushion is safe, with ${formatWhole(brief.deployedToDebt)} free to put toward debt.`;
+    }
+    return 'This paycheck looks clear. Your cushion is safe.';
+  } catch {
+    return '';
+  }
 }
 
 /**
@@ -49,5 +77,6 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
     pctLabel: `${Math.round(pct * 100)}%`,
     remaining: formatWhole(totalCurrent),
     updatedAt,
+    guardianSpoken: buildGuardianSpoken(store),
   };
 }
