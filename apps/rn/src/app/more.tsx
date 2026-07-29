@@ -15,6 +15,7 @@ import type { ThemeMode } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
+import { useLayout } from '@/hooks/use-layout';
 import { QA_TOOLS } from '@/config/qa';
 import { LiveActivityQA } from '@/components/more/LiveActivityQA';
 import { spacing } from '@/theme/spacing';
@@ -42,6 +43,7 @@ export default function MoreScreen() {
   const prefs = useAppStore((s) => s.store.prefs);
   const plan = useAppStore((s) => s.store.subscriptionPlan);
   const premiumIsLifetime = useAppStore((s) => s.premiumIsLifetime);
+  const { isExpanded } = useLayout(); // 3.6.5 — a wider settings column on iPad
   const [sheet, setSheet] = useState<'export' | 'import' | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -68,7 +70,9 @@ export default function MoreScreen() {
   }
 
   return (
-    <Screen title="More" onBack={() => router.back()}>
+    // 3.6.5 — a wider settings column on iPad (a clean, appropriate treatment for a settings list; a
+    // fuller two-column/section-split is a noted future enhancement).
+    <Screen title="More" onBack={() => router.back()} maxWidth={isExpanded ? 680 : undefined}>
       {/* Trust moment (the moat) — the first thing you see: honest, on-device, never sells you debt. */}
       <TrustCard />
 
