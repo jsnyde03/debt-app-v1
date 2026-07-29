@@ -11,6 +11,7 @@ import { createStorageAdapter } from '@/storage/createAdapter';
 import { bootstrapPersistence, flushPendingSave } from '@/store/persistence';
 import { startWidgetSync } from '@/widget/widgetSync';
 import { startLiveActivitySync } from '@/liveActivity/liveActivitySync';
+import { drainPendingActions } from '@/appIntents/drainPendingActions';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 
@@ -52,6 +53,8 @@ export default function RootLayout() {
       // 3.5.3 — drive the premium Payday Countdown Live Activity off the same hydrated store. No-op on
       // web/Android and when the OS/user has Live Activities off.
       startLiveActivitySync();
+      // 3.5.3.5 — apply anything a "Payday landed" AppIntent queued while the app was closed. No-op on web.
+      drainPendingActions();
     });
     // Persist any pending debounced write when the app leaves the foreground, so a
     // background/terminate never drops the last change. Wrapped defensively — a listener throw must
@@ -62,6 +65,13 @@ export default function RootLayout() {
           flushPendingSave();
         } catch {
           /* best-effort flush */
+        }
+      } else if (next === 'active') {
+        // 3.5.3.5 — a "Payday landed" tap while backgrounded lands here on return-to-foreground.
+        try {
+          drainPendingActions();
+        } catch {
+          /* best-effort drain */
         }
       }
     });

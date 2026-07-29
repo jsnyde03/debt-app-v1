@@ -56,7 +56,26 @@ public class LiveActivityModule: Module {
       guard #available(iOS 16.2, *) else { return }
       Task { await Self.endAll() }
     }
+
+    // ── The AppIntent → store queue (3.5.3.5) — the app drains what PaydayLandedIntent wrote ──
+    // Returns the queued actions as a JSON string (parsed by `parsePendingActions` in JS). "[]" when empty.
+    Function("readPendingActions") { () -> String in
+      guard
+        let defaults = UserDefaults(suiteName: Self.appGroup),
+        let actions = defaults.array(forKey: Self.pendingActionsKey),
+        let data = try? JSONSerialization.data(withJSONObject: actions),
+        let json = String(data: data, encoding: .utf8)
+      else { return "[]" }
+      return json
+    }
+
+    Function("clearPendingActions") {
+      UserDefaults(suiteName: Self.appGroup)?.removeObject(forKey: Self.pendingActionsKey)
+    }
   }
+
+  private static let appGroup = "group.com.jasonsnyder.debtplanner"
+  private static let pendingActionsKey = "pendingActions"
 
   @available(iOS 16.2, *)
   private static func endAll() async {

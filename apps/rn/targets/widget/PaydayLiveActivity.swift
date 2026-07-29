@@ -69,6 +69,18 @@ private struct PaydayLockScreenView: View {
                 .lineLimit(2)
             ProgressView(value: state.cycleProgress)
                 .tint(Color("BrandGold"))
+            // On payday itself (iOS 17+ interactive Live Activities), a one-tap "Payday landed" that
+            // queues the cycle roll for the app to apply on next foreground (3.5.3.5).
+            if #available(iOS 17.0, *), state.daysUntilPayday == 0 {
+                Button(intent: PaydayLandedIntent()) {
+                    Text("Payday landed")
+                        .font(.subheadline).fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                }
+                .tint(Color("BrandGold"))
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 2)
+            }
         }
         .padding()
         .activityBackgroundTint(Color("CardBackground"))
