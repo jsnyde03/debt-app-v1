@@ -108,8 +108,8 @@ Hard rule: the Guardian frames tight-cycle **risk + a safe move**, never a false
 - **3.5 exit:** the RN app builds+signs+ships to TestFlight · the native features device-verified · → native iPad (3.6) → the Phase-3-closeout audit.
 
 **3.6 Genuinely-native iPad** — DECOMPOSED + DESIGN-LOCKED (Jason ✓ 2026-07-29). ⚠️ before-scan correction: the iPad **foundation already exists** (size classes compact/regular/expanded · sidebar rail · width-capped `Screen`), but `isExpanded` is used NOWHERE + no screen adapts its content → the current iPad IS the "centered phone column" to replace. So 3.6 = the **per-screen native layouts** + pointer/keyboard, not the chrome. **Locked:** sheets → iPad-native (Money = master-detail pane · the rest = centered form-sheets) · master-detail = **Money ONLY** (Today/Progress = 2-column reflow) · pointer/keyboard = meaningful-but-bounded (hover + focus + a few ⌘-shortcuts). Detail → LOG.
-  - **3.6.1 Layout primitives** [structure-first] — a shared `TwoColumn`/split scaffold + a master-detail container (gated on `isExpanded`) that screens compose.
-  - **3.6.2 Money → master-detail** [flagship] — the list (left) + the selected item's detail/edit (right, replacing the modal sheet on iPad); the payoff schedule as a detail pane.
+  - **✅ 3.6.1 Layout primitives DONE 2026-07-29** — `TwoColumn` + `MasterDetail` (gated on `isExpanded`) + `Screen.wide`. tsc/lint green; inert until composed.
+  - **✅ 3.6.2 Money → master-detail DONE 2026-07-29** [flagship] — expanded iPad: list pane (selected row highlighted) + the debt edit form INLINE in the detail pane (`FormSheet.inline` mode; no modal). Compact unchanged. Both themes screenshot-verified + compact regression-checked. Built ahead during the 3.5-verify wait. → LOG.
   - **3.6.3 Today → two-column** — the Guardian/payday moment beside the required + recommended actions.
   - **3.6.4 Progress → wide-canvas** — Skia ring + stats + trajectory using the room (not a stacked column).
   - **3.6.5 More + long-tail** — settings two-column; adapt living-expenses / paywall / onboarding.

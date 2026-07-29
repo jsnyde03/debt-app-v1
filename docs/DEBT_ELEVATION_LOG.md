@@ -4,6 +4,14 @@
 
 ---
 
+## Phase 3.6 · 3.6.1 + 3.6.2 — iPad primitives + Money master-detail (2026-07-29, built ahead during the 3.5-verify wait)
+
+**3.6.1 primitives:** `components/ui/TwoColumn.tsx` (side-by-side on expanded ≥1024pt, stacked otherwise — for Today/Progress) · `components/ui/MasterDetail.tsx` (list pane + detail pane on expanded, list-only on compact — Money) · `Screen.wide` prop (opt out of the centered width-cap so an adaptive screen uses the full canvas). Inert until composed; tsc/lint green.
+
+**3.6.2 Money master-detail (flagship):** on the expanded iPad canvas, Money-Debts renders the debt list (left, the selected row accent-highlighted via a new `ListRow.selected`) beside the debt's **edit form INLINE** in the right pane — no modal. Enabled by a new **`FormSheet.inline`** mode (same header + fields + submit/remove, but no Modal/scrim/grabber/swipe/✕ — mirrors `AnimatedSheet.overlay`); `DebtSheet` forwards `inline` and, when inline, renders the payoff schedule as a normal Modal (no nesting to dodge). `MoneyScreen` passes `wide` for Debts-on-expanded (Bills/Goals stay the centered column → their iPad treatment at 3.6.5). Compact (iPhone / portrait iPad) is UNCHANGED — list + modal edit. Verified: tsc · lint · **both-theme iPad screenshots** (list + inline Edit-debt pane, selected-row highlight) · **compact regression-checked** (list renders, no inline pane). Commits `c050173` (3.6.1) · `f3669ef` (3.6.2).
+
+---
+
 ## Phase 3.6 · Genuinely-native iPad — DESIGN GATE (decomposed + locked 2026-07-29, not yet built)
 
 Decomposed the pre-authored 3.6 roadmap item with Jason before any code (design-first). **Before-scan correction (the item drifted):** the iPad *foundation* is already built — `utils/sizeClass.ts` (compact <768 / regular ≥768 / expanded ≥1024), `hooks/use-layout.ts`, a sidebar rail (`(tabs)/_layout.tsx` via `Tabs tabBarPosition:'left'` on regular), and a width-capped centered `Screen` on regular. BUT `isExpanded` is referenced NOWHERE and no individual screen adapts its content, so today's iPad = the sidebar chrome around a **centered phone-width column** — exactly the thing 3.6's "not a centered phone column" mandate targets. So 3.6's real scope = the **per-screen native layouts + pointer/keyboard**, not the chrome (which is done).
