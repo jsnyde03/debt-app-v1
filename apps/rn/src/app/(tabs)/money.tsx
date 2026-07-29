@@ -10,6 +10,7 @@ import type { Recurrence } from '@core/types/recurrence';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { DebtSheet } from '@/components/entities/DebtSheet';
+import { LogPaymentSheet } from '@/components/entities/LogPaymentSheet';
 import { ExpenseSheet } from '@/components/entities/ExpenseSheet';
 import { GoalSheet } from '@/components/entities/GoalSheet';
 import { AllocationBarCanvas } from '@/components/money/AllocationBarCanvas';
@@ -88,6 +89,7 @@ function DebtsSection() {
   // section toggle) don't rebuild all three payoff trajectories.
   const view = useMemo(() => selectPayoffView(store), [store]);
   const [sheet, setSheet] = useState<{ editing: Debt | null; prefill?: Partial<Debt> } | null>(null);
+  const [logPaymentFor, setLogPaymentFor] = useState<Debt | null>(null);
   const paidOff = store.debts.filter((d) => d.balance <= 0);
   const c = useAppColors();
   const insets = useSafeAreaInsets();
@@ -165,7 +167,7 @@ function DebtsSection() {
           ) : null
         }
         renderItem={({ item }) => (
-          <DebtRow debt={item} focus={item.id === focusId} currentDate={currentDate} isPremium={isPremium} onEdit={(x) => setSheet({ editing: x })} />
+          <DebtRow debt={item} focus={item.id === focusId} currentDate={currentDate} isPremium={isPremium} onEdit={(x) => setSheet({ editing: x })} onLogPayment={setLogPaymentFor} />
         )}
         ListFooterComponent={
           <View style={styles.listFooter}>
@@ -178,6 +180,7 @@ function DebtsSection() {
         }
       />
       {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} /> : null}
+      {logPaymentFor ? <LogPaymentSheet debt={logPaymentFor} onClose={() => setLogPaymentFor(null)} /> : null}
     </View>
   );
 }
@@ -188,12 +191,14 @@ function DebtRow({
   currentDate,
   isPremium,
   onEdit,
+  onLogPayment,
 }: {
   debt: Debt;
   focus?: boolean;
   currentDate: string;
   isPremium: boolean;
   onEdit: (d: Debt) => void;
+  onLogPayment: (d: Debt) => void;
 }) {
   const c = useAppColors();
   const view = selectDebtBalanceView(debt, currentDate, isPremium);
@@ -234,6 +239,7 @@ function DebtRow({
       progressColor={focus ? c.accent.primary : undefined}
       onPress={() => onEdit(debt)}
       onDelete={() => appStore.getState().removeDebt(debt.id)}
+      onLogPayment={() => onLogPayment(debt)}
     />
   );
 }

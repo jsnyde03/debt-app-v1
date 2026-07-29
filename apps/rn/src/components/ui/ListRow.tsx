@@ -31,6 +31,7 @@ export function ListRow({
   progressColor,
   onPress,
   onDelete,
+  onLogPayment,
 }: {
   title: string;
   meta?: string;
@@ -49,6 +50,8 @@ export function ListRow({
   onPress?: () => void;
   /** If set, the row becomes swipeable → a red Delete action (3.4.4). Runs after a destructive confirm. */
   onDelete?: () => void;
+  /** 3.5.5.2 — if set, the long-press menu gains a "Log payment" action (debts only). */
+  onLogPayment?: () => void;
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
@@ -128,6 +131,7 @@ export function ListRow({
   // iOS long-press → native context menu (3.5.2): Edit (if the row is tappable) + a destructive Delete.
   // A discoverable alternative to the hidden swipe; tap + swipe stay untouched. Passthrough off-iOS.
   const menuActions: RowMenuAction[] = [
+    ...(onLogPayment ? [{ key: 'log', title: 'Log payment', systemIcon: 'dollarsign.circle', onPress: onLogPayment } as RowMenuAction] : []),
     ...(onPress ? [{ key: 'edit', title: 'Edit', systemIcon: 'pencil', onPress } as RowMenuAction] : []),
     { key: 'delete', title: 'Delete', systemIcon: 'trash', destructive: true, onPress: handleDelete },
   ];
