@@ -45,5 +45,6 @@ export function TwoColumn({
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: spacing.xl, alignItems: 'flex-start' },
   stack: { gap: spacing.lg },
-  col: { minWidth: 0 },
+  // Each column spaces its own cards (matches the Screen's content gap); on compact the stack does it.
+  col: { minWidth: 0, gap: spacing.lg },
 });

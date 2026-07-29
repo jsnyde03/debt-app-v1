@@ -26,7 +26,9 @@ import { Screen } from '@/components/screen';
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { TwoColumn } from '@/components/ui/TwoColumn';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useLayout } from '@/hooks/use-layout';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { appStore } from '@/store/appStore';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
@@ -66,6 +68,7 @@ type Celebration =
 export default function TodayScreen() {
   const c = useAppColors();
   const goToTab = useGoToTab();
+  const { isExpanded } = useLayout(); // 3.6.3 — iPad landscape / wide → two-column (read | do)
   const store = useAppStore((s) => s.store);
   const isPremium = store.subscriptionPlan === 'premium';
   // 2.4 — the payday engine reads projected-current balances (premium) so the plan reflects where the
@@ -163,7 +166,12 @@ export default function TodayScreen() {
     // one-time celebration spectacle stays Phase 3 (gated on confirmed-$0).
     const isDebtFree = planState === 'debt-free';
     content = (
-      <>
+      // 3.6.3 — on the expanded iPad canvas this reflows to two columns: the READ (hero · Guardian ·
+      // affordability) beside the DO (required · recommended actions); a single stacked column otherwise.
+      <TwoColumn
+        ratio={1.05}
+        left={
+          <>
         {isDebtFree ? (
           <Motion>
             <GraduationBanner />
@@ -215,6 +223,10 @@ export default function TodayScreen() {
             <LeanSuggestionCard nudge={leanNudge} />
           </Motion>
         ) : null}
+          </>
+        }
+        right={
+          <>
         <Motion delay={90}>
           {/* MF.6 (audit #7) — when the premium Recovery Plan is showing, IT owns the shortfall; suppress
               the RequiredActions "Short this paycheck — cover these" block so the two don't duplicate/compete. */}
@@ -227,12 +239,16 @@ export default function TodayScreen() {
             onToggle={(a, done) => appStore.getState().toggleRecommendedDone(a, done)}
           />
         </Motion>
-      </>
+          </>
+        }
+      />
     );
   }
 
   return (
-    <Screen title="Today" right={<MoreButton />}>
+    // 3.6.3 — a wider centered column on the expanded iPad so the two-column content has room (but not
+    // full-bleed — a dashboard reads better contained; the ack cards above also cap here).
+    <Screen title="Today" right={<MoreButton />} maxWidth={isExpanded ? 900 : undefined}>
       {provisionalPayoffs.map((d) => (
         <PayoffInvitationCard
           key={d.id}
