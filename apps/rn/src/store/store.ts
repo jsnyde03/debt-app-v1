@@ -39,6 +39,10 @@ export interface DebtAppState {
    *  Recomputed from the RevenueCat entitlement each launch by premiumSync — so it can't be stomped by
    *  hydrate and needs no migration. */
   premiumIsLifetime: boolean;
+  /** 3.5.3.5 — the pre-roll store snapshot captured when a "Payday landed" AppIntent rolled the cycle,
+   *  for a one-tap Undo. Transient (never persisted; resets to null each launch → the Undo is session-
+   *  brief); null when there's nothing to undo. */
+  paydayRollback: DebtStore | null;
 
   // Lifecycle
   hydrate(adapter: StorageAdapter): Promise<void>;
@@ -88,6 +92,13 @@ export interface DebtAppState {
   // Payday Autopilot: capture the paycheck, roll the cycle forward, track the handled payday
   capturePayday(items: CompletedRecommendedAction[], requiredDecisions: RequiredReconciliation, actuals?: PaydayActuals): void;
   rolloverPayCycle(): void;
+  /** 3.5.3.5 — apply a "Payday landed" AppIntent: snapshot the pre-roll store for Undo, then roll the
+   *  cycle exactly as `rolloverPayCycle`. */
+  applyPaydayLandedIntent(): void;
+  /** 3.5.3.5 — undo the last AppIntent-driven roll (restore the snapshot); no-op if nothing to undo. */
+  undoPaydayLanded(): void;
+  /** 3.5.3.5 — keep the roll and clear the Undo affordance. */
+  dismissPaydayRollback(): void;
   setLastHandledPayday(date: string): void;
   markReviewPrompted(): void;
   setWindfall(amount: number): void;
@@ -137,6 +148,7 @@ export function createDebtStore() {
     isHydrated: false,
     isSaving: false,
     premiumIsLifetime: false,
+    paydayRollback: null,
 
     async hydrate(adapter) {
       const raw = await adapter.read();
@@ -352,6 +364,17 @@ export function createDebtStore() {
       // Re-check the baseline at the cycle boundary — establishes one for pre-drift users and catches
       // any material change since the last anchor (no-op when nothing material changed).
       set((s) => ({ store: recordDriftBaseline(applyRollover(s.store)) }));
+    },
+    applyPaydayLandedIntent() {
+      // 3.5.3.5 — same roll as rolloverPayCycle, but stash the pre-roll store first so the Today card can
+      // offer a one-tap Undo (an accidental Live-Activity tap is fully reversible).
+      set((s) => ({ paydayRollback: s.store, store: recordDriftBaseline(applyRollover(s.store)) }));
+    },
+    undoPaydayLanded() {
+      set((s) => (s.paydayRollback ? { store: s.paydayRollback, paydayRollback: null } : {}));
+    },
+    dismissPaydayRollback() {
+      set({ paydayRollback: null });
     },
     setLastHandledPayday(date) {
       set((s) => ({ store: { ...s.store, lastHandledPaydayDate: date } }));

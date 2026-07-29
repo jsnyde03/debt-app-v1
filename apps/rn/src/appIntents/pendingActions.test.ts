@@ -24,7 +24,7 @@ function eq<T>(a: T, b: T, label: string) {
 /** A stub store surface that counts dispatches. */
 function stubApi() {
   const calls: string[] = [];
-  const api: PendingActionApi = { rolloverPayCycle: () => calls.push('rolloverPayCycle') };
+  const api: PendingActionApi = { applyPaydayLandedIntent: () => calls.push('applyPaydayLandedIntent') };
   return { api, calls };
 }
 
@@ -47,8 +47,8 @@ eq(parsePendingActions([{ kind: 'payday-landed', id: 'a' }, { kind: 'payday-land
 {
   const { api, calls } = stubApi();
   const applied = applyPendingActions(parsePendingActions([{ kind: 'payday-landed', id: 'a' }]), api);
-  eq(calls.length, 1, 'apply: payday-landed dispatches rolloverPayCycle once');
-  eq(calls[0], 'rolloverPayCycle', 'apply: correct action');
+  eq(calls.length, 1, 'apply: payday-landed dispatches applyPaydayLandedIntent once');
+  eq(calls[0], 'applyPaydayLandedIntent', 'apply: correct action (the Undo-aware roll)');
   eq(applied.length, 1, 'apply: returns the applied action');
 }
 

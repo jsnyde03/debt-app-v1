@@ -95,6 +95,8 @@ export default function TodayScreen() {
   // 2.4.11.4c — the "bills complete" attestation affordance + the surprise-outflow walk-back notice.
   const attestation = selectBillsAttestation(engineStore);
   const reserveWalkback = selectReserveWalkback(engineStore);
+  // 3.5.3.5 — a "Payday landed" AppIntent (Live Activity button) rolled the cycle; offer a one-tap Undo.
+  const paydayRollback = useAppStore((s) => s.paydayRollback);
   // 2.5.4 — a trial obligation whose intro period just ended: confirm "keep it (now $X)" or "cancelled it"
   // so a cancelled trial can't project a phantom bill. Ephemeral dismiss (re-surfaces next open until resolved).
   const [dismissedTrials, setDismissedTrials] = useState<string[]>([]);
@@ -291,6 +293,21 @@ export default function TodayScreen() {
             </Text>
           </View>
           <Button label="Got it" variant="text" onPress={() => appStore.getState().acknowledgeReserveWalkback()} />
+        </Card>
+      ) : null}
+
+      {paydayRollback ? (
+        <Card tone="accent" style={styles.ack}>
+          <View style={styles.ackRow}>
+            <AppIcon name="schedule" size={20} color={c.accent.primary} />
+            <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>
+              Payday landed — I rolled your plan forward to this paycheck.
+            </Text>
+          </View>
+          <View style={styles.ackActions}>
+            <Button label="Undo" variant="text" onPress={() => appStore.getState().undoPaydayLanded()} />
+            <Button label="Keep" variant="text" onPress={() => appStore.getState().dismissPaydayRollback()} />
+          </View>
         </Card>
       ) : null}
 

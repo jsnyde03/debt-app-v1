@@ -17,7 +17,8 @@ const KINDS: ReadonlySet<string> = new Set<PendingKind>(['payday-landed']);
 
 /** The narrow store surface a pending action drives — keeps this decoupled + testable with a stub. */
 export interface PendingActionApi {
-  rolloverPayCycle(): void;
+  /** Roll the cycle with a snapshot for Undo (3.5.3.5) — the AppIntent-driven counterpart to a manual roll. */
+  applyPaydayLandedIntent(): void;
 }
 
 /**
@@ -53,7 +54,7 @@ export function parsePendingActions(raw: unknown): PendingAction[] {
 export function applyPendingAction(action: PendingAction, api: PendingActionApi): boolean {
   switch (action.kind) {
     case 'payday-landed':
-      api.rolloverPayCycle();
+      api.applyPaydayLandedIntent();
       return true;
     default:
       return false;
