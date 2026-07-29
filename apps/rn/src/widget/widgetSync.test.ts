@@ -73,8 +73,16 @@ console.log('\n▶ widget snapshot + sync (3.5.1)');
   premium.genuineCycleCount = 6; // established → a real read, no cold-start dampening
   premium.paycheck = { ...premium.paycheck, amount: '2000' };
   premium.debts = [debt({ id: 'a', name: 'Visa', balance: 6000, originalBalance: 8000, minimumPayment: 100 })];
-  const spoken = buildWidgetSnapshot(premium, 400).guardianSpoken;
-  assert(spoken.length > 0 && spoken.toLowerCase().includes('paycheck'), 'premium → a non-empty spoken Guardian read');
+  const premiumSnap = buildWidgetSnapshot(premium, 400);
+  assert(premiumSnap.guardianSpoken.length > 0 && premiumSnap.guardianSpoken.toLowerCase().includes('paycheck'), 'premium → a non-empty spoken Guardian read');
+  eq(premiumSnap.isPremium, true, 'premium → isPremium true');
+  eq(buildWidgetSnapshot(free, 400).isPremium, false, 'free → isPremium false');
+
+  // debtsJson — the live debt list for Siri's DebtEntity (a flat JSON string).
+  const parsed = JSON.parse(premiumSnap.debtsJson) as { id: string; name: string; balance: string }[];
+  eq(parsed.length, 1, 'debtsJson lists the live debt');
+  eq(parsed[0].name, 'Visa', '…with its name');
+  assert(typeof parsed[0].id === 'string' && typeof parsed[0].balance === 'string', '…id + formatted balance');
 }
 
 // startWidgetSync mirrors once at launch, and is idempotent per store.

@@ -18,7 +18,9 @@ struct PaydayLandedIntent: LiveActivityIntent {
         let suite = "group.com.jasonsnyder.debtplanner"
         let key = "pendingActions"
         if let defaults = UserDefaults(suiteName: suite) {
-            var actions = defaults.array(forKey: key) as? [[String: String]] ?? []
+            // `[String: Any]` (not `[String: String]`) so this queue can also hold the log-payment action
+            // (which carries a numeric amount) — a `[String: String]` cast would fail + wipe those. (3.5.5)
+            var actions = defaults.array(forKey: key) as? [[String: Any]] ?? []
             actions.append(["kind": "payday-landed", "id": UUID().uuidString])
             defaults.set(actions, forKey: key)
         }

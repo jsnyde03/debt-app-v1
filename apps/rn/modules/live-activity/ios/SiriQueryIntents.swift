@@ -105,5 +105,14 @@ struct DebtPlannerAppShortcuts: AppShortcutsProvider {
             shortTitle: "This paycheck",
             systemImageName: "checkmark.shield"
         )
+        AppShortcut(
+            intent: LogPaymentIntent(),
+            phrases: [
+                "Log a payment in \(.applicationName)",
+                "Log a debt payment in \(.applicationName)",
+            ],
+            shortTitle: "Log a payment",
+            systemImageName: "dollarsign.circle"
+        )
     }
 }

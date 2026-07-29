@@ -28,6 +28,11 @@ export interface WidgetSnapshot {
    *  this paycheck?" App Shortcut. `""` for free (the intent returns a value-led upsell). The widget
    *  doesn't render this — its Swift `DebtSnapshot` ignores the extra key; only the Siri intent reads it. */
   guardianSpoken: string;
+  /** 3.5.5 — premium flag, so the voice log-a-payment intent can gate (free → an upsell). */
+  isPremium: boolean;
+  /** 3.5.5 — the LIVE debt list as a JSON string `[{id,name,balance}]` (kept a STRING so the snapshot
+   *  stays flat), for Siri's `DebtEntity` disambiguation in the log-a-payment intent. */
+  debtsJson: string;
 }
 
 /** The premium Guardian read as a spoken sentence (Siri), or "" for free. Guarded — `buildWidgetSnapshot`
@@ -78,5 +83,9 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
     remaining: formatWhole(totalCurrent),
     updatedAt,
     guardianSpoken: buildGuardianSpoken(store),
+    isPremium: store.subscriptionPlan === 'premium',
+    debtsJson: JSON.stringify(
+      live.map((d) => ({ id: d.id, name: d.name, balance: formatWhole(d.balance) })),
+    ),
   };
 }
