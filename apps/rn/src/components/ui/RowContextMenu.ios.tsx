@@ -20,6 +20,10 @@ export function RowContextMenu({ title, actions, children }: RowContextMenuProps
   return (
     <ContextMenuView
       menuConfig={{ menuTitle: title, menuItems }}
+      // Explicit DEFAULT preview with a TRANSPARENT platter — without this the preview's background can
+      // render opaque and mask the system blur (device: menu showed but no blur/dim behind it). The
+      // rounded corners match the row card so the lifted preview reads premium.
+      previewConfig={{ previewType: 'DEFAULT', backgroundColor: 'transparent', borderRadius: 14 }}
       onPressMenuItem={({ nativeEvent }) => {
         actions.find((a) => a.key === nativeEvent.actionKey)?.onPress();
       }}>

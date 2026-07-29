@@ -30,10 +30,19 @@ declare module 'react-native-ios-context-menu' {
     menuItems?: MenuActionConfig[];
   };
 
+  /** Subset of `MenuPreviewConfig` — controls the lifted preview + its platter (so the system blur
+   *  shows through instead of an opaque background). */
+  export type MenuPreviewConfig = {
+    previewType?: 'DEFAULT' | 'CUSTOM';
+    backgroundColor?: string;
+    borderRadius?: number;
+  };
+
   export type OnPressMenuItemEventObject = NativeSyntheticEvent<MenuActionConfig>;
 
   export interface ContextMenuViewProps extends ViewProps {
     menuConfig?: MenuConfig;
+    previewConfig?: MenuPreviewConfig;
     onPressMenuItem?: (event: OnPressMenuItemEventObject) => void;
     children?: ReactNode;
   }

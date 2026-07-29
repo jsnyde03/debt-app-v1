@@ -27,6 +27,7 @@ export function AnimatedSheet({
   subtitle,
   headerRight,
   dirty,
+  overlay,
   children,
 }: {
   visible: boolean;
@@ -35,6 +36,9 @@ export function AnimatedSheet({
   subtitle?: string;
   headerRight?: ReactNode;
   dirty?: boolean;
+  /** Render as an in-tree absolute overlay instead of a Modal — for a sheet opened from WITHIN another
+   *  Modal (e.g. DebtSheet → payoff schedule), where iOS won't reliably present a modal-over-modal. */
+  overlay?: boolean;
   children: ReactNode;
 }) {
   const c = useAppColors();
@@ -42,8 +46,7 @@ export function AnimatedSheet({
   const insets = useSafeAreaInsets();
   const { pan, scrimStyle, sheetStyle, onBackdrop, requestClose, onSheetLayout } = useSheetPresentation(onClose, dirty);
 
-  return (
-    <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={onBackdrop}>
+  const body = (
       <GestureHandlerRootView style={sheetStyles.flex}>
         <KeyboardAvoidingView style={sheetStyles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Animated.View style={[StyleSheet.absoluteFill, scrimStyle]} pointerEvents="none">
@@ -89,6 +92,18 @@ export function AnimatedSheet({
           </Animated.View>
         </KeyboardAvoidingView>
       </GestureHandlerRootView>
+  );
+
+  // `overlay`: no Modal — an in-tree absolute overlay inside the parent (a sheet-from-a-Modal, e.g.
+  // DebtSheet → payoff schedule). On device the nested Modal never presented (the tap fired, nothing
+  // showed); with one Modal + this overlay there's no modal-over-modal to fail. The sheet's own spring
+  // (useSheetPresentation) still animates entry/exit.
+  if (overlay) {
+    return visible ? <View style={StyleSheet.absoluteFill}>{body}</View> : null;
+  }
+  return (
+    <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={onBackdrop}>
+      {body}
     </Modal>
   );
 }

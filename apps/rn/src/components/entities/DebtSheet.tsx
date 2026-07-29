@@ -240,7 +240,7 @@ export function DebtSheet({ editing, onClose, prefill }: { editing: Debt | null;
       {error ? <Text style={[textStyles.caption, { color: c.accent.danger }]}>{error}</Text> : null}
     </FormSheet>
     {isEdit && editing ? (
-      <AmortizationSheet visible={showSchedule} debtId={editing.id} onClose={() => setShowSchedule(false)} />
+      <AmortizationSheet overlay visible={showSchedule} debtId={editing.id} onClose={() => setShowSchedule(false)} />
     ) : null}
     </>
   );

@@ -27,10 +27,13 @@ export function AmortizationSheet({
   visible,
   debtId,
   onClose,
+  overlay,
 }: {
   visible: boolean;
   debtId: string | null;
   onClose: () => void;
+  /** Opened from within another Modal (DebtSheet) → render as an overlay, not a nested Modal. */
+  overlay?: boolean;
 }) {
   const c = useAppColors();
   const store = useAppStore((s) => s.store);
@@ -40,7 +43,7 @@ export function AmortizationSheet({
   const payoffPossible = schedule?.payoffPossible ?? false;
 
   return (
-    <AnimatedSheet visible={visible} onClose={onClose} title="Payoff schedule" subtitle={amort?.debt.name}>
+    <AnimatedSheet visible={visible} onClose={onClose} overlay={overlay} title="Payoff schedule" subtitle={amort?.debt.name}>
       {!amort || !schedule ? (
         <Text style={[textStyles.body, styles.empty, { color: c.text.tertiary }]}>No schedule to show.</Text>
       ) : !payoffPossible ? (
