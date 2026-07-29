@@ -4,6 +4,26 @@
 
 ---
 
+## Phase 3.5 · 3.5.3 Live Activity — COMPLETE + native-verified (2026-07-29)
+
+The whole Payday Countdown Live Activity is code-complete and native-compile-verified. Two green native-e2e runs: `30456773326` (3.5.3.1–.3 baseline) + `30460864814` (3.5.3.5 producer — the interactive `LiveActivityIntent` + button + module queue fns). Both = compile GREEN + 3/3 Maestro flows (app boots + mounts). The **real** Lock Screen / Dynamic Island render + the payday-landed flow are on the **signed device build** (checklist: `docs/DEBT_3.5_DEVICE_QA_CHECKLIST.md`).
+
+- **3.5.3.5 native producer:** `PaydayLandedIntent` (iOS-17 `LiveActivityIntent`, dup widget+module) appends `{payday-landed}` to the App Group; `LiveActivityModule.readPendingActions`/`clearPendingActions`; `.native` `pendingActionBridge`; drain wired at launch + return-to-foreground; the interactive **"Payday landed"** button on the payday-day Lock Screen state.
+- **Undo:** transient `paydayRollback` store field (never persisted) + `applyPaydayLandedIntent` (snapshot→roll) / `undoPaydayLanded` / `dismissPaydayRollback`; the drain dispatches `applyPaydayLandedIntent`; a **"Payday landed — Undo / Keep"** Today ack card (clone of the verified trialConversion card, **both-theme screenshot-verified**).
+- **QA trigger (device-QA affordance):** `QA_TOOLS`-gated "Live Activity QA" panel in More → Developer/QA — start each state (Clear/Tight/At-risk/Payday-day) via the bridge, End, Simulate 'Payday landed'; also surfaced Simulate Premium on TestFlight. **Flip `QA_TOOLS=false` before submission.**
+- **CM signing prep (caught a real gap):** the CM RN workflow's `ios_signing` only fetched the app's profile → the widget would fail "requires a provisioning profile". Fixed to fetch BOTH bundles (mirrors Freedom, `1e2485b`). Widget App ID + App Group + CM set up by Jason 2026-07-29 → §① of the manual checklist is fully done.
+- **Tallies:** JS across 3.5.3 = tsc · lint · **49 app asserts** (30 Live Activity + 19 AppIntent bridge) green. Commits `68918df`·`27705c4`·`7b3fa1b`·`023aad9`·`0feda26`·`5e8f604`·`cf0ce10` (+ docs).
+
+**Completion after-scan:**
+- **Owed device checks** (real Lock Screen/DI render · button · App-Group widget data · context-menu feel) → the signed CM build now (Jason triggers) via the checklist; results → the Phase-6 device-QA ledger at 3.5.7.
+- **Foreground currentDate freshness** — the countdown recomputes from `paycheck.currentDate`; if that's stale on a long background, the day count could lag until the app refreshes it. Pre-existing app concern, not Live-Activity-specific → noted for a later polish, not v1.7-blocking.
+- **Wording** ("Payday landed — I rolled your plan forward…", the sub-lines) = solid placeholders → the whole-app wording/voice audit (after Phase 3.5) polishes.
+- No version-necessary fixes surfaced.
+
+**Queue replenishment (never-idle):** 3.5.3 vacates the active-build slot → **3.5.5 App Intents / Siri** promoted to active — design-locked + decomposed (3.5.5.1–.5), and it **reuses the 3.5.3.5 AppIntent→store bridge just device-testable via payday-landed** (build-after-3.5.3 rationale satisfied).
+
+---
+
 ## Phase 3.5 · 3.5.3 Live Activity — 3.5.3.1–.3 code-complete, JS-verified (2026-07-29)
 
 Built the Payday Countdown Live Activity through the bridge, JS fully verified (tsc · lint · **30 app asserts** green); the native Swift is written but NOT yet compile-verified (Windows can't build iOS → the batched native-e2e run is owed).
