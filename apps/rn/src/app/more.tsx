@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { InteractionManager, Linking, StyleSheet, Switch, Text, View } from 'react-native';
+import { InteractionManager, Linking, Platform, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { ExportBackupSheet, ImportBackupSheet } from '@/components/more/BackupSheets';
 import { SettingGroup, SettingRow } from '@/components/more/SettingRow';
@@ -202,7 +202,10 @@ export default function MoreScreen() {
         </SettingGroup>
       </Section>
 
-      {__DEV__ || QA_TOOLS ? (
+      {/* On-DEVICE QA tools only (Live Activities are iOS-only; the Simulate-Premium toggle is for
+          TestFlight). Kept off web — it's the e2e surface, and the "Unlock premium features…" subtitle
+          otherwise collides with the paywall's "Unlock Premium" entry. */}
+      {(__DEV__ || QA_TOOLS) && Platform.OS !== 'web' ? (
         <Section title="Developer / QA">
           <SettingGroup>
             <SettingRow

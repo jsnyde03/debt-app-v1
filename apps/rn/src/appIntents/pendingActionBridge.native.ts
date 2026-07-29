@@ -12,19 +12,24 @@ interface NativeLiveActivity {
   clearPendingActions(): void;
 }
 
-const native = requireNativeModule<NativeLiveActivity>('LiveActivity');
+// Lazily resolved on first use, never at import — see liveActivityBridge.native.ts for why a top-level
+// requireNativeModule in a `.native` file can hard-crash a web route chunk. feedback_platform_split_reexport_gap.
+let _native: NativeLiveActivity | null = null;
+function native(): NativeLiveActivity {
+  return (_native ??= requireNativeModule<NativeLiveActivity>('LiveActivity'));
+}
 
 export const pendingActionBridge: PendingActionBridge = {
   read: () => {
     try {
-      return native.readPendingActions();
+      return native().readPendingActions();
     } catch {
       return null;
     }
   },
   clear: () => {
     try {
-      native.clearPendingActions();
+      native().clearPendingActions();
     } catch {
       /* best-effort */
     }
