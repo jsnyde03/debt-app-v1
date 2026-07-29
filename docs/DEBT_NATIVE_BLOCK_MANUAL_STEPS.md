@@ -55,10 +55,10 @@ _The definitive, current list (verified against the build 2026-07-29). Grouped b
 - [x] **3.5.2 context menu** — verified on the free sim pipeline; the real-device long-press feel batches into the next signed build.
 
 ### ① Apple Developer Portal — signing for the widget extension
-_Needed before the next **signed device build** (it introduces the widget-extension bundle that hosts **both** the widget (3.5.4) **and** the Live Activity (3.5.3)). This is the one friction spot on Codemagic._
-- [ ] **P1 — Widget extension App ID `com.jasonsnyder.debtplanner.widget`** (singular). Automatic signing *should* create it; **only if the build fails on the widget's signing:** developer.apple.com/account → **Certificates, Identifiers & Profiles → Identifiers → + → App IDs → App** → Bundle ID = `com.jasonsnyder.debtplanner.widget` → tick **App Groups** → **Continue → Register**.
-- [ ] **P2 — App Group on that widget App ID:** Identifiers → `…debtplanner.widget` → **App Groups → Edit** → select `group.com.jasonsnyder.debtplanner` → **Save**.
-- [ ] **P3 — Refresh provisioning** after the widget target first lands: just **re-run the Codemagic build** (automatic signing regenerates via your ASC API key). Manual fallback → Section F.
+_Needed before the next **signed device build** (it introduces the widget-extension bundle that hosts **both** the widget (3.5.4) **and** the Live Activity (3.5.3)). This was the one friction spot on Codemagic._
+- [x] **P1 — Widget extension App ID `com.jasonsnyder.debtplanner.widget`** (singular) — ✅ **set up in ASC + Codemagic** (Jason 2026-07-29).
+- [x] **P2 — App Group on that widget App ID** — ✅ done as part of the widget-extension setup (2026-07-29).
+- [x] **P3 — Provisioning** — ✅ the widget extension is wired in Codemagic (2026-07-29). The next signed build should sign both bundles cleanly; if it ever fails on signing, Section F is the manual fallback.
 - [x] **(No action) Live Activities need NO extra capability** — `NSSupportsLiveActivities` is in the app Info.plist (I added it via a config plugin). **NO Push Notifications capability, NO APNs key** — the countdown updates locally, not via push.
 - [x] **(No action) App Intents / Siri (3.5.5) need NO portal capability** — App Intents auto-register and surface to Siri/Shortcuts on their own.
 
