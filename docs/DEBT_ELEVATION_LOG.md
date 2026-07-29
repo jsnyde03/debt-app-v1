@@ -4,6 +4,18 @@
 
 ---
 
+## Phase 3.5 · 3.5.3 Live Activity — 3.5.3.1–.3 code-complete, JS-verified (2026-07-29)
+
+Built the Payday Countdown Live Activity through the bridge, JS fully verified (tsc · lint · **30 app asserts** green); the native Swift is written but NOT yet compile-verified (Windows can't build iOS → the batched native-e2e run is owed).
+
+- **3.5.3.1 (data contract):** pure `buildPaydayActivityContent`/`shouldRunPaydayActivity`/`decideLiveActivityAction` (`src/liveActivity/paydayActivityContent.ts`, mirrors `widget/snapshot.ts`) — premium-gated, ~3-day window, day-granular countdown, Guardian passthrough (single source of truth), pure start/update/end reconciler. New `prefs.paydayLiveActivityEnabled` (default true, auto-backfills via the `{...base.prefs}` merge). `+ liveActivityKeys.ts`.
+- **3.5.3.2 (SwiftUI):** `targets/widget/PaydayLiveActivity.swift` (ActivityConfiguration: Lock Screen card + Dynamic Island compact/expanded/minimal; Guardian state-dot the only moving color; navy/gold; deep-link → Today) joined `DebtWidgetBundle`; added the `ActivityKit` framework + a `BrandDanger` colorset.
+- **3.5.3.3 (bridge):** local Expo module `modules/live-activity` (`LiveActivityModule.swift` start/update/end, all `#available(iOS 16.2)`-guarded so the app is unchanged below; Record payload). Platform-split `liveActivityBridge` (native / web no-op) + thin `liveActivitySync` (debounce + change-gate + idempotent) wired at launch. `NSSupportsLiveActivities` config plugin. Premium-only "Payday countdown" toggle in More → Preferences.
+- **Shared-attributes resolution (the flagged unknown):** `PaydayActivityAttributes` is DUPLICATED (widget target + module) — the accepted expo-apple-targets pattern; ActivityKit routes by type name + Codable shape, not module identity. Researched + confirmed against a working expo-apple-targets Live Activity demo.
+- **▶ Owed:** native-compile verification (GH native-e2e run) BEFORE building 3.5.3.5 (the "Payday landed" AppIntent) — de-risk the Swift before adding more. Then real Lock Screen / Dynamic Island render = device-QA at 3.5.7.
+
+---
+
 ## Phase 3.5 · native-e2e CI speed pass (2026-07-29)
 
 Targeted the dominant cost — the Xcode sim compile (13m27s = 58% of the run; single-arch was already in place). Two safe, no-infra, compiler-level cuts (commit `8f6e803`): **optimization OFF** (`SWIFT_OPTIMIZATION_LEVEL=-Onone` / `GCC_OPTIMIZATION_LEVEL=0` — skips the Release `-O` passes while KEEPING the Release config's embedded self-contained bundle, so the sim app still runs with no Metro; Maestro tests behavior not perf, and the signed Codemagic build stays the optimized final check) + **Clang explicit modules ON** (Xcode 26 default, un-pinned now that the pipeline is reliably green). Result (run `30452956045`, green 3/3): compile **13m27s → 11m42s (~13%, −1m45s)**. Wall-clock barely moved (−27s) because boot+Maestro drifted up on sim variance — the compile gain is the real, repeatable win; run-total keeps bouncing on sim-boot/driver variance.
