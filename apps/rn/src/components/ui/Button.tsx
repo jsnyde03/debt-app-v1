@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
 
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -21,6 +22,11 @@ export function Button({
   style?: StyleProp<ViewStyle>;
 }) {
   const c = useAppColors();
+  // 3.6.6 — pointer/keyboard affordances via the OFFICIALLY-typed Pressable props (the style-callback's
+  // `hovered`/`focused` are RN-Web-only; these props fire for the iPad pointer + hardware keyboard on iOS
+  // too, and are inert on touch). A gentle hover lift + a keyboard focus ring, never touching the touch UX.
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
   const bg =
     variant === 'primary' ? c.accent.brand : variant === 'danger' ? c.accent.danger : variant === 'secondary' ? c.background.secondary : 'transparent';
   const fg =
@@ -32,10 +38,15 @@ export function Button({
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
       style={({ pressed }) => [
         styles.base,
         variant === 'text' && styles.textVariant,
-        { backgroundColor: bg, borderColor: border, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
+        { backgroundColor: bg, borderColor: focused ? c.accent.brand : border, opacity: disabled ? 0.5 : pressed ? 0.85 : hovered ? 0.9 : 1 },
+        focused && styles.focusRing,
         style,
       ]}>
       <Text style={[textStyles.bodyMedium, { color: fg }]}>{label}</Text>
@@ -53,4 +64,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   textVariant: { minHeight: 44 },
+  // Keyboard/pointer focus ring — a wider brand-tinted outline (borderColor above supplies the hue).
+  focusRing: { borderWidth: 2 },
 });

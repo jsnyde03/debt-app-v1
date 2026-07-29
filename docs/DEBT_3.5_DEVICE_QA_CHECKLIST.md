@@ -122,6 +122,25 @@ Go to **More → Developer / QA → Live Activity QA**. For each button, then **
 
 ---
 
+## §10 — 3.6 iPad (adaptive layout + pointer/keyboard) — ⚠️ needs an iPad; only if this build includes 3.6
+_The 3.6 native-iPad work is web-verified (layout + hover render in both themes); these are the checks only a real iPad can settle. Skip if you're testing on iPhone only — nothing here regresses the phone._
+
+**Adaptive layout (rotate the iPad to hit each):**
+- [ ] **Landscape / full-screen (expanded):** **Money → Debts** shows the **list on the left + the edit form INLINE in a right pane** (tap a row → it fills the pane, the row highlights; no bottom-sheet). **Today** = two columns (Guardian/payday left · action lists right). **Progress** = one **wide** centered column (ring + charts using the room). **More** = a wider centered settings column. A left **sidebar rail** replaces the bottom tab bar.
+- [ ] **Portrait / narrow:** everything **stacks** into the single centered column with the **bottom tab bar** (same as iPhone). **Rotate back and forth** → layouts reflow cleanly, no clipped/stranded content.
+- [ ] **Split View + Stage Manager:** drag the app **narrow** → it becomes the compact (bottom-bar) layout · **wide** → the sidebar + expanded panes return. No blank/frozen frame at the breakpoint.
+
+**Pointer (trackpad / mouse):**
+- [ ] Move the pointer over a **debt/bill row** and a **button** → ✅ a **subtle highlight** (row raises to a lighter surface; button lifts). Inert without a pointer — that's expected.
+
+**Keyboard (hardware keyboard on iPad):**
+- [ ] **⌘N** → ✅ opens the **add-debt sheet** (navigates to Money first if you're elsewhere).
+- [ ] **⌘1 / ⌘2 / ⌘3** → ✅ switch to **Today / Progress / Money**. ⚠️ **Watch for a blank screen** on a tab switch — if it happens, note it (it means the shortcut needs the tab-navigator jumpTo, not a root navigate — an easy fix).
+- [ ] **Hold ⌘** → ✅ the iPad shortcut HUD lists **New debt · Today · Progress · Money**. ⚠️ If **nothing** happens on any ⌘-key, the invisible listener didn't hold **first responder** — note it (the known device-only risk for this feature).
+- [ ] Both **Light + Dark**: the hover highlight + focus ring read on-brand, legible.
+
+---
+
 ## §9 — Report back
 - [ ] Jot anything that failed (which §, what you did, a screenshot). I fix in-repo → you rebuild → re-run only the failed items.
 - [ ] When this is clean, 3.5.3/3.5.4 are **device-verified**; next I build **3.5.5 (App Intents / Siri)**, which reuses the payday-landed bridge you just tested — then one more signed build closes the block.

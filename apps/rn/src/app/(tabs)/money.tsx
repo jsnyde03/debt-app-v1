@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -10,6 +10,7 @@ import type { Recurrence } from '@core/types/recurrence';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { DebtSheet } from '@/components/entities/DebtSheet';
+import { onAddDebtRequested } from '@/keyCommands/keyCommandBus';
 import { LogPaymentSheet } from '@/components/entities/LogPaymentSheet';
 import { ExpenseSheet } from '@/components/entities/ExpenseSheet';
 import { GoalSheet } from '@/components/entities/GoalSheet';
@@ -99,6 +100,10 @@ function DebtsSection() {
   const paidOff = store.debts.filter((d) => d.balance <= 0);
   const c = useAppColors();
   const insets = useSafeAreaInsets();
+
+  // 3.6.6 — ⌘N (iPad keyboard) opens the add-debt sheet; the root key-command listener navigates here
+  // and fires the bus, which this subscription turns into the same "add" the button does.
+  useEffect(() => onAddDebtRequested(() => setSheet({ editing: null })), []);
 
   // §2.8 scan-to-prefill (free): scan a statement → OCR text → parse → open the sheet PREFILLED for the
   // user to confirm. Nothing is saved without their tap. Hidden where the native scanner isn't available.

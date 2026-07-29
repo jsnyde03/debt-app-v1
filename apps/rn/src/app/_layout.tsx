@@ -12,6 +12,7 @@ import { bootstrapPersistence, flushPendingSave } from '@/store/persistence';
 import { startWidgetSync } from '@/widget/widgetSync';
 import { startLiveActivitySync } from '@/liveActivity/liveActivitySync';
 import { drainPendingActions } from '@/appIntents/drainPendingActions';
+import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 
@@ -100,6 +101,9 @@ export default function RootLayout() {
           </Stack.Protected>
           <Stack.Screen name="+not-found" />
           </Stack>
+          {/* 3.6.6 — iPad hardware ⌘-shortcuts (inert on iPhone/touch + web). Only meaningful once past
+              onboarding, since it routes to the tabs. */}
+          {onboardingComplete ? <KeyCommandListener /> : null}
         </AppLockGate>
       </ThemeProvider>
     </GestureHandlerRootView>

@@ -1,4 +1,4 @@
-import { type ReactNode, useRef } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 
@@ -59,6 +59,9 @@ export function ListRow({
   const c = useAppColors();
   const scheme = useColorScheme();
   const swipeRef = useRef<SwipeableMethods>(null);
+  // 3.6.6 — iPad pointer / web-mouse hover cue (via the typed onHoverIn/Out props; inert on touch). A
+  // subtle raise to the tertiary surface signals "interactive"; `selected` keeps its accent border.
+  const [hovered, setHovered] = useState(false);
   // One screen-reader utterance: "Visa, $2,400 · 22.99% APR, estimated verified Jun 3, $65.00/mo".
   const a11y = groupLabel(title, [meta, caption].filter(Boolean).join(', ') || undefined, amount ? `${amount}${amountSuffix ?? ''}` : undefined);
   const rowBody = (
@@ -67,11 +70,13 @@ export function ListRow({
       accessibilityRole="button"
       accessibilityHint={onPress ? 'Opens the editor' : undefined}
       {...a11y}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
       style={({ pressed }) => [
         styles.row,
         cardElevation(scheme),
         {
-          backgroundColor: selected ? c.background.tertiary : c.background.secondary,
+          backgroundColor: selected || hovered ? c.background.tertiary : c.background.secondary,
           borderColor: selected ? c.accent.primary : c.border.subtle,
           opacity: pressed ? 0.9 : 1,
         },
