@@ -341,6 +341,21 @@ function sumWindfallCategories(alloc: Allocation | null, categories: AllocationC
 }
 
 /**
+ * Round bucket amounts to WHOLE dollars via largest-remainder, so the displayed rows sum EXACTLY to
+ * `target` (the whole-dollar headline) — no false precision from independent per-row rounding (C4).
+ */
+function roundBucketsToWhole(buckets: WindfallSplitItem[], target: number): WindfallSplitItem[] {
+  const parts = buckets.map((b) => ({ key: b.key, whole: Math.floor(b.amount), frac: b.amount - Math.floor(b.amount) }));
+  let remaining = target - parts.reduce((s, p) => s + p.whole, 0);
+  const byFrac = [...parts].sort((a, b) => b.frac - a.frac);
+  for (let i = 0; i < byFrac.length && remaining > 0; i++) {
+    byFrac[i].whole += 1;
+    remaining -= 1;
+  }
+  return parts.map((p) => ({ key: p.key, amount: p.whole }));
+}
+
+/**
  * Windfall Autopilot — the itemized routing of a one-time windfall (bonus/refund/side gig), the premium
  * "the app does it, you confirm" beat. Re-solves the plan WITH the windfall vs WITHOUT and diffs each
  * bucket (the same re-solve method `selectAffordability` uses). Because paid-required + living reserve are
@@ -353,10 +368,22 @@ export function selectWindfallSplit(store: DebtStore, amount: number): WindfallS
   const withAlloc = selectAllocation({ ...store, windfall: amount });
   const withoutAlloc = selectAllocation({ ...store, windfall: 0 });
   if (!withAlloc) return null;
-  const items = WINDFALL_GROUPS.map((g) => ({
+  const raw: WindfallSplitItem[] = WINDFALL_GROUPS.map((g) => ({
     key: g.key,
     amount: Math.round((sumWindfallCategories(withAlloc, g.categories) - sumWindfallCategories(withoutAlloc, g.categories)) * 100) / 100,
-  })).filter((it) => it.amount >= 0.5);
+  }));
+  // C1 — when base income can't cover required bills + the living reserve, the engine nets those off
+  // BEFORE allocating, so windfall dollars that go to covering them appear in NEITHER diff run (worst
+  // case: a missed paycheck, income $0 → every windfall dollar is absorbed, zero bucket deltas). Attribute
+  // that absorbed remainder to `bills` so the split accounts for EVERY dollar (money conserved, always).
+  const allocated = raw.reduce((sum, it) => sum + it.amount, 0);
+  const absorbed = Math.round((amount - allocated) * 100) / 100;
+  if (absorbed > 0.005) {
+    const bills = raw.find((it) => it.key === 'bills');
+    if (bills) bills.amount = Math.round((bills.amount + absorbed) * 100) / 100;
+  }
+  // C4 — round to whole dollars so the rows sum to the whole-dollar headline exactly, then drop $0 rows.
+  const items = roundBucketsToWhole(raw, Math.round(amount)).filter((it) => it.amount >= 1);
   // Bills (a caveat — "it covered your bills first") lead; then the biggest destination, so debt payoff
   // tends to headline a healthy plan.
   items.sort((a, b) => (a.key === 'bills' ? -1 : b.key === 'bills' ? 1 : b.amount - a.amount));

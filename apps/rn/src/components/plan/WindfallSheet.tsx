@@ -52,6 +52,8 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
     () => (isPremium && validAmount ? selectWindfallSplit(engineStore, n) : null),
     [isPremium, validAmount, engineStore, n],
   );
+  // C3 — only treat the split as renderable when it has rows (a sub-dollar windfall rounds to nothing).
+  const hasSplit = split != null && split.items.length > 0;
 
   function submit() {
     if (!validAmount) return setError('Enter an amount greater than 0.');
@@ -72,7 +74,7 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
       visible
       title="Extra income"
       subtitle="A bonus, refund, or side gig — added to this paycheck only."
-      submitLabel={isPremium && split ? 'Confirm' : 'Add'}
+      submitLabel={isPremium && hasSplit ? 'Confirm' : 'Add'}
       onSubmit={submit}
       onRemove={current > 0 ? remove : undefined}
       onClose={onClose}>
@@ -89,7 +91,7 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
       />
 
       {/* Premium: the autopilot routing — where every dollar of the windfall lands, before you confirm. */}
-      {isPremium && split ? (
+      {isPremium && hasSplit ? (
         <View style={styles.split}>
           <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>
             HERE&apos;S HOW THE APP WILL ROUTE {formatWhole(split.amount)}
@@ -102,13 +104,13 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
             </View>
           ))}
           <Text style={[textStyles.caption, styles.footHint, { color: c.text.tertiary }]}>
-            Confirm and the app routes it automatically — your whole plan updates.
+            Confirm to route it this way — your whole plan updates. Your call.
           </Text>
         </View>
       ) : !isPremium && validAmount ? (
         // Free adds the windfall as always; the invite sells the routing view, never a locked preview.
         <View style={styles.split}>
-          <PremiumInvite message={`Premium shows exactly where your ${formatWhole(n)} lands — cushion, debt, and savings — and routes it for you.`} />
+          <PremiumInvite message={`Premium shows exactly where your ${formatWhole(n)} lands — bills, debt, and savings — before you confirm.`} />
         </View>
       ) : null}
     </FormSheet>

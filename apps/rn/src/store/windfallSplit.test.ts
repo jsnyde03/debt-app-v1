@@ -40,16 +40,38 @@ function run() {
   const split = selectWindfallSplit(s, 1000);
   assert(split != null, '$1000 windfall yields a split');
   const sum = split!.items.reduce((a, it) => a + it.amount, 0);
-  assert(Math.abs(sum - 1000) < 0.5, `bucket deltas sum to the windfall (money conserved) — got ${sum}`);
+  // C4 — rows are WHOLE dollars and sum EXACTLY to the whole-dollar headline (no false precision).
+  assert(sum === 1000, `rows sum EXACTLY to the windfall (money conserved) — got ${sum}`);
+  assert(split!.items.every((it) => Number.isInteger(it.amount)), 'rows are whole dollars');
   assert(split!.items.length >= 2, 'this scenario routes across multiple buckets');
   assert(split!.items.some((it) => it.key === 'emergency' && it.amount > 0), 'part lands in the emergency fund');
   assert(split!.items.some((it) => it.key === 'debt' && it.amount > 0), 'part lands as extra to debt');
-  assert(split!.items.every((it) => it.amount >= 0.5), 'no near-zero noise buckets');
+  assert(split!.items.every((it) => it.amount >= 1), 'no near-zero noise buckets (whole-dollar, ≥$1)');
 
   // A healthy plan whose base already funds the EF routes the whole windfall to debt (single bucket, honest).
   const funded: DebtStore = { ...s, paycheck: { ...s.paycheck, amount: '2600' }, livingExpenses: [] };
   const fundedSplit = selectWindfallSplit(funded, 1000);
   assert((fundedSplit?.items.find((it) => it.key === 'debt')?.amount ?? 0) > 900, 'when the base already covers the EF, the windfall goes to debt');
+
+  // C1 — base income can't cover required + living (paycheck 400 < 800 living): the windfall dollars are
+  // absorbed covering obligations and appear in NEITHER diff run, so they MUST still surface (attributed to
+  // bills) — never an empty "ROUTE $500 · (no rows)" sheet, and still money-conserving.
+  const tight: DebtStore = { ...s, paycheck: { ...s.paycheck, amount: '400' } };
+  const tightSplit = selectWindfallSplit(tight, 500);
+  assert(tightSplit != null && tightSplit.items.length > 0, 'C1: a windfall on an absorbed/tight plan still yields a NON-empty split');
+  assert(tightSplit!.items.reduce((a, it) => a + it.amount, 0) === 500, 'C1: absorbed windfall still sums EXACTLY to the amount');
+  assert(tightSplit!.items.some((it) => it.key === 'bills' && it.amount > 0), 'C1: absorbed dollars are attributed to bills');
+
+  // T1 — a windfall with nowhere to deploy (no debts, EF already full) lands as spare cash.
+  const idle: DebtStore = {
+    ...s,
+    debts: [],
+    goals: [{ id: 'ef', name: 'Emergency fund', targetAmount: 1000, currentAmount: 1000, type: 'emergency' }],
+    livingExpenses: [],
+  };
+  const idleSplit = selectWindfallSplit(idle, 300);
+  assert(!!idleSplit?.items.some((it) => it.key === 'cash' && it.amount > 0), 'T1: with no debts + EF full, the windfall lands as spare cash');
+  assert((idleSplit?.items.reduce((a, it) => a + it.amount, 0) ?? 0) === 300, 'T1: cash-landing windfall sums exactly');
 
   // Ordering: bills (a caveat) always lead; otherwise largest destination first.
   assert(split!.items[0].amount >= split!.items[split!.items.length - 1].amount || split!.items[0].key === 'bills', 'ordered largest-first (bills excepted)');
