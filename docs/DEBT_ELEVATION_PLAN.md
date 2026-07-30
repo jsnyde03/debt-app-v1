@@ -154,6 +154,7 @@ _(v1.7-deferred + v1.8 + Connected-tier items; the 2026-07-30 "no backlog" decis
 - **Gold-usage app-wide sweep** — formalize "gold = the debt-free moment only." · **Money hero-language coherence** — decide whether the calm-micro-viz hero extends to Debts (currently bare). · **Dead code:** `ProgressRing` / `MilestonesRow` — delete once the on-ring-journey lands.
 - **Behavioral mis-entry detection / persistent-cushion / bill-shock autopilot** → Connected/Plaid tier (never gates the on-device Guardian).
 - **§2.8 web scan entry** — `scan.web.ts` returns a sample for the demo; if a web build ships, decide hide-vs-keep-as-"try it".
+- **Sandbox scenario purity enforcement (from the 3.5.0.1 after-scan)** — `SandboxScenario.build` is documented pure but unenforced; a scenario reaching for a live clock/random would silently break replay determinism. A `__DEV__`-only double-build-and-compare assert would catch it. Revisit at 3.5.0.3, when scenarios actually get written (the byte-identity test already covers tested ones).
 
 ## Decisions (log)
 
