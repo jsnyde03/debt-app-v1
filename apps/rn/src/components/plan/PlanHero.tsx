@@ -78,7 +78,7 @@ export function PlanHero({
   const segments = [
     { key: 'required', label: 'Required', value: required, color: onNavy.essential, ring: false, fill: 1 },
     { key: 'everyday', label: 'Everyday', value: everyday, color: onNavy.essential, ring: true, fill: 0.5 },
-    { key: 'free', label: 'Free', value: free, color: onNavy.free, ring: true, fill: 0.5 },
+    { key: 'free', label: 'Flexible', value: free, color: onNavy.free, ring: true, fill: 0.5 }, // VIS-4/Guardian Tier-3: "Free"→"Flexible" (Jason ✓) — names the discretionary money, distinct from the Guardian's protected "Cushion"
   ].filter((seg) => seg.value > 0);
 
   // The recommendation is a SUGGESTED use of the safe money — shown as its real (small) self, from
