@@ -43,6 +43,7 @@ for (const theme of ['light', 'dark'] as const) {
     await page.goto('/');
     await page.waitForTimeout(500);
     await page.screenshot({ path: `test-results/guardian-proof-${theme}.png`, fullPage: true });
-    await expect(page.getByText(/Held your line 5 paychecks/i)).toBeVisible();
+    // VIS-3 — the streak now reads as a calm PILL ("Held your line · 5 paychecks"), so allow the middot.
+    await expect(page.getByText(/Held your line.*5 paychecks/i)).toBeVisible();
   });
 }
