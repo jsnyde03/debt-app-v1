@@ -68,3 +68,17 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(page.getByTestId('traj-endpoint-pill')).toBeVisible();
   });
 }
+
+// TEST-4 (closeout): the What-If UI path (only the selector was locked before). Typing an extra payment
+// opens the tool + surfaces the faster-payoff outcome in the legend.
+test('§3.4.1 What-If: typing an extra payment surfaces the faster-payoff readout', async ({ page }) => {
+  await seedStore(page, PLAN);
+  await page.goto('/progress');
+  await page.getByText('PAYOFF TRAJECTORY').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(1500); // CanvasKit lazy-load + draw-on
+  await page.getByText('What if you paid extra?').click();
+  await page.getByLabel('Extra monthly payment amount').fill('300');
+  await page.waitForTimeout(300);
+  // The outcome lands in the legend: faster payoff (months sooner/saved) or interest saved.
+  await expect(page.getByText(/sooner|saved|less interest/).first()).toBeVisible();
+});

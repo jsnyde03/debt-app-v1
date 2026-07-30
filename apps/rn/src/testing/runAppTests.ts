@@ -28,6 +28,9 @@ async function main() {
   // 3.5.3.5 — the AppIntent → store bridge core (defensive parse · apply-dispatch · drain).
   await import('../appIntents/pendingActions.test');
 
+  // 3.6.6 — the ⌘N add-debt bus latch (held-then-delivered-once).
+  await import('../keyCommands/keyCommandBus.test');
+
   // RS.3 — store actions + money-critical transitions (capture · rollover · missed/undo · lean ·
   // top-up · risk-notified · floor clamp · migration/import path), with break-it inputs.
   await import('../store/storeActions.test');
