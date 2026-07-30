@@ -135,26 +135,52 @@ Acquisition-grade store presence (screenshots · app-preview video · listing se
 
 ---
 
+## Phase 3.7 — the FOLD-IN block (ledger clearance)
+
+_**New standing rule (Jason 2026-07-30):** stop deferring — if an item needs no Phase-6 device pass and can truly land in v1.7, fold it in. The whole deferred backlog was retro-triaged against it on 2026-07-30; what follows is what folded. Runs AFTER Phase 3.5 (don't interrupt a half-built substrate) and BEFORE the whole-app cohesion + wording/voice audit gate, so the audit reviews the final state. Two items folded straight into Phase 3.5 instead (the impact viz → 3.5.3, sandbox-purity enforcement → 3.5.0.3). Sequence lives in `MASTER_PLAN.md`; this is the spec._
+
+**Wave A — correctness / honesty (highest value, do first):**
+- **A1 · BNPL payoff-RATE undercount in `projectDebtPayoff`** — a monthly projection pays a biweekly BNPL 1×/mo, so it retires ~2× too slow. 2.7.4 fixed the cash READ, not the payoff rate. Normalize the monthly-equivalent.
+- **A2 · General sub-cycle obligation undercount** — the allocator counts each obligation once per paycheck cycle, so a weekly/biweekly `RequiredExpense` under a monthly payer is under-reserved (the non-BNPL half of the 2.7.4 gap). Clean fix = expand obligations into per-occurrence instances.
+- **A3 · Guardian honesty/coherence ledger** (convergence-audit-parked): attestation affordance gated to where the reserve is meaningfully reducible · starter-EF-deploy "keeps it as cushion" overstatement · `selectTightTopUp` prefers a savings goal over the EF · hero-vs-Guardian number coherence · no-undo for the tight-case top-up · "hold your line" offered twice · applied-purchase reads as a deferrable bill · `GoalSheet` name-dedupe (match the save-for-it flow) · affordability-card density → the ack coordinator.
+- **A4 · BNPL seam polish** — month-stepped vs per-cycle intermediate-balance divergence (they agree at the payoff endpoint) · paid struck-through row shows the raw installment · "Pay minimum $300 for 3 installments" wording clarity.
+- **A5 · R2.8 offline lifetime-mislabel** — a Lifetime owner offline before RevenueCat resolves briefly sees the subscription row; add a `premiumResolved` gate.
+- **A6 · Drift type hygiene** — `computeDrift`/`buildDriftBaseline` input omits `recurrence` (cadence-correct at runtime; add `recurrence?` so a future `.map` can't drop it) · drop the dead `DriftResult` re-export.
+- **A7 · Debt-free-date producer reconciliation (residual)** — VIS-5 `selectDebtFreeBand` + MF.4 steady-state landed the two-run lean/typical engine; confirm no third independent producer survives, then retire the portfolio-level follow-on note.
+
+**Wave B — features that belong in v1.7:**
+- **B1 · Drag-the-curve What-If** — direct manipulation on the trajectory chart (from the Phase-3 enhancement audit).
+- **B2 · Dropped streak / milestone surfacing** — streaks exist in the substrate but reach no surface.
+- **B3 · Name → greeting personalization.**
+- **B4 · Swipe-to-mark-paid on rows** — ⚠️ gated on **[DECISION D2] `minimumPaidThisCycle` ownership** (today it's payday-capture-owned; a manual swipe risks diverging). Resolve the ownership question, then build.
+
+**Wave C — coherence / wording sweeps (merge INTO the cohesion + wording/voice audit gate):**
+- **C1 · cents-formatter sweep** — `$X.00` vs whole dollars (`formatWhole` vs `formatCurrency`), app-wide.
+- **C2 · Gold-usage sweep** — formalize "gold = the debt-free moment only."
+- **C3 · Money hero-language coherence** — ⚠️ **[DECISION D3]**: does the calm-micro-viz hero extend to Debts (currently bare)?
+- **C4 · Paywall benefit-copy reframe.**
+- **C5 · Chart VoiceOver alt-labels** — code-addressable now; the on-device VO spot-check rides Phase 6.
+- **C6 · iPad More two-column settings layout** — verifiable at the existing iPad e2e viewport.
+- **C7 · Dead code** — delete `ProgressRing` / `MilestonesRow`.
+- **C8 · §2.8 web scan entry** — decide hide-vs-keep-as-"try it" for `scan.web.ts`'s sample (trivial call, just make it).
+
+---
+
 ## Deferred backlog
 
-_(v1.7-deferred + v1.8 + Connected-tier items; the 2026-07-30 "no backlog" decision applied to the 3.5 audit findings only, not this list.)_
-- **iOS-18 Control Center control (from 3.5.5):** a quick debt-free-date glance / open-to-log. App Intents + Siri + Live-Activity log-a-payment already cover the high-value ground; promote later if adoption warrants.
-- **Guardian adjustment IMPACT visualization (v1.1/1.2)** — a Skia before/after showing the safety net reducing → freed money to debt → debt-free date sliding earlier, for any Guardian adjustment (attestation · adjust-your-line · top-up). Visually impressive; pairs with the Guardian interactivity.
-- **cents-formatter sweep** — some surfaces show `$X.00` where whole dollars read cleaner (`formatWhole` vs `formatCurrency`); do app-wide in the wording pass.
-- **Today + cushion-forecast selector memoization** — a full memoization pass on those two derived-selector-heavy screens if a real hotspot shows on device (Phase-6 perf).
-- **Phase-3 enhancement-audit (B)/(C) items** — full lists in `DEBT_PHASE3_ENHANCEMENT_AUDIT_2026-07-27.md`: name→greeting personalization · dropped streak/milestone surfacing · chart VoiceOver alt-labels · drag-the-curve What-If · paywall benefit-copy reframe · Watch · Dynamic-Type device QA.
-- **`@gorhom/bottom-sheet` migration → v1.8 Android** — JS-only, improves feel not look; flip when a feature needs multi-detent snap points or scroll↔drag handoff. Else scrapped.
-- **Swipe-to-mark-paid on rows** — `markDebtMinimumPaid` exists but is payday-capture-owned; a manual swipe risks diverging. Deferred pending a `minimumPaidThisCycle` ownership decision.
-- **BNPL cadence seams (non-blocking, by-design):** month-stepped vs per-cycle intermediate-balance divergence (agree at payoff endpoint) · paid struck-through row shows raw installment · "Pay minimum $300 for 3 installments" wording clarity · **BNPL payoff-RATE undercount in `projectDebtPayoff`** (biweekly BNPL retires ~2× too slow in the projection — normalize the monthly-equivalent) · **general sub-cycle obligation undercount** (weekly/biweekly RequiredExpense too — the clean fix expands obligations into per-occurrence instances).
-- **`computeDrift`/`buildDriftBaseline` input type omits `recurrence`** — cadence-correct at runtime; add `recurrence?` so a future `.map` can't drop it (Drift is unmounted). · **Dead `DriftResult` re-export** — drop when convenient.
-- **R2.8 offline lifetime-mislabel (LOW)** — a Lifetime owner offline before RevenueCat resolves briefly sees the subscription row; add a `premiumResolved` gate.
-- **Holiday/promo free-trial** — launch is paywall-from-day-1; a time-boxed introductory offer on the EXISTING monthly product is a reversible later acquisition incentive.
-- **iPad polish (v1.8):** More two-column settings layout · a web-level light-mode hover screenshot record.
-- **Guardian honesty/coherence lens items (mostly convergence-audit-parked):** attestation affordance gated to where the reserve is meaningfully reducible · starter-EF-deploy "keeps it as cushion" overstatement · `selectTightTopUp` prefers a savings goal over the EF · hero-vs-Guardian number coherence · no-undo for the tight-case top-up · "hold your line" offered twice · applied-purchase reads as a deferrable bill · `GoalSheet` name-dedupe (match the save-for-it flow) · affordability-card density → the ack coordinator.
-- **Gold-usage app-wide sweep** — formalize "gold = the debt-free moment only." · **Money hero-language coherence** — decide whether the calm-micro-viz hero extends to Debts (currently bare). · **Dead code:** `ProgressRing` / `MilestonesRow` — delete once the on-ring-journey lands.
-- **Behavioral mis-entry detection / persistent-cushion / bill-shock autopilot** → Connected/Plaid tier (never gates the on-device Guardian).
-- **§2.8 web scan entry** — `scan.web.ts` returns a sample for the demo; if a web build ships, decide hide-vs-keep-as-"try it".
-- **Sandbox scenario purity enforcement (from the 3.5.0.1 after-scan)** — `SandboxScenario.build` is documented pure but unenforced; a scenario reaching for a live clock/random would silently break replay determinism. A `__DEV__`-only double-build-and-compare assert would catch it. Revisit at 3.5.0.3, when scenarios actually get written (the byte-identity test already covers tested ones).
+_(Post-triage 2026-07-30 under the fold-don't-defer rule — only two carve-outs remain: **device-gated**, or **genuinely a later version/tier**. Everything else moved to Phase 3.7 above.)_
+
+**Device-gated → the consolidated Phase-6 device pass:**
+- **Today + cushion-forecast selector memoization** — deliberately conditional on a REAL measured hotspot on device; optimizing without one is premature.
+- **Dynamic-Type device QA.**
+
+**Genuinely a later version / tier:**
+- **Apple Watch** — a new platform target → v1.8+.
+- **`@gorhom/bottom-sheet` migration** — v1.8 Android; JS-only, improves feel not look, and is a live scrap candidate. Flip only if a feature needs multi-detent snap points or scroll↔drag handoff.
+- **Behavioral mis-entry detection / persistent-cushion / bill-shock autopilot** → Connected/Plaid tier (a tier that doesn't exist yet; never gates the on-device Guardian).
+- **Holiday/promo free-trial** — a deliberate strategy call, not a deferral: launch is paywall-from-day-1, and an introductory offer on the existing monthly product stays a reversible later acquisition lever.
+- **iOS-18 Control Center control** — ⚠️ **[DECISION D1]**, held as a value call: App Intents + Siri + Live-Activity log-a-payment already cover this ground, and it's device-verified anyway. Recommend staying deferred.
+- **Web-level light-mode hover screenshot record** — a QA artifact, not product.
 
 ## Decisions (log)
 
