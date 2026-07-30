@@ -1,0 +1,43 @@
+# Maestro E2E — reaching the PAYOFF SCHEDULE on real UIKit. This is the flow that would have caught the
+# bug the web gate missed three times.
+#
+# History: "View Payoff Schedule" lived in the debt edit sheet's header and opened a sheet from inside a
+# sheet. On iOS that meant either a nested Modal (never presented) or an absolute overlay rendered as a
+# SIBLING of the presented Modal — behind it, invisible. Web is one DOM tree, so Playwright saw it fine.
+# Flow 02 didn't catch it either: it only taps the ✕ on the ADD sheet, where the schedule entry never
+# renders (it's edit-only).
+#
+# 3.7.A0 replaced the nesting with a real route. This asserts the whole journey on the Simulator, which
+# has genuine UIKit presentation semantics: EDIT an existing debt → tap the schedule entry → the schedule
+# screen is actually VISIBLE, and the edit sheet is gone rather than covering it.
+#
+# Depends on 01 having run first (Maestro runs flows in filename order → the demo data persists).
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: false
+
+- tapOn:
+    id: "tab-money"
+
+# Open an EXISTING debt (not "Add debt") — the schedule entry is edit-only, which is exactly the gap
+# flow 02 left open.
+- tapOn: "Card"
+- assertVisible: "Edit debt"
+
+# The entry now lives in the sheet BODY and NAVIGATES. If it ever regresses to opening a nested
+# presentation, the schedule won't be visible here and this fails on the Simulator — no device needed.
+- tapOn:
+    id: "debt-view-schedule"
+
+# The payoff screen actually rendered…
+- assertVisible: "Payoff schedule"
+# …with real derived content, not an empty shell.
+- assertVisible:
+    text: ".*debt-free.*"
+# …and the sheet that launched it is gone, so nothing is sitting on top of it.
+- assertNotVisible: "Edit debt"
+
+# Back returns to Money (a real route, so the native back gesture/control exists).
+- back
+- assertVisible: "Money"

@@ -27,7 +27,6 @@ export function AnimatedSheet({
   subtitle,
   headerRight,
   dirty,
-  overlay,
   children,
 }: {
   visible: boolean;
@@ -36,10 +35,11 @@ export function AnimatedSheet({
   subtitle?: string;
   headerRight?: ReactNode;
   dirty?: boolean;
-  /** Render as an in-tree absolute overlay instead of a Modal — for a sheet opened from WITHIN another
-   *  Modal (e.g. DebtSheet → payoff schedule), where iOS won't reliably present a modal-over-modal. */
-  overlay?: boolean;
   children: ReactNode;
+  // NOTE (3.7.A0): there is deliberately no `overlay` escape hatch. It existed so a sheet could open
+  // from INSIDE another Modal, but it rendered as a SIBLING of the presented Modal and therefore sat
+  // behind it on iOS — invisible on device, fine on web. Anything that needs to open "from" a sheet
+  // should navigate to a route (see `app/schedule/[id].tsx`) rather than nest presentations.
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
@@ -94,13 +94,6 @@ export function AnimatedSheet({
       </GestureHandlerRootView>
   );
 
-  // `overlay`: no Modal — an in-tree absolute overlay inside the parent (a sheet-from-a-Modal, e.g.
-  // DebtSheet → payoff schedule). On device the nested Modal never presented (the tap fired, nothing
-  // showed); with one Modal + this overlay there's no modal-over-modal to fail. The sheet's own spring
-  // (useSheetPresentation) still animates entry/exit.
-  if (overlay) {
-    return visible ? <View style={StyleSheet.absoluteFill}>{body}</View> : null;
-  }
   return (
     <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={onBackdrop}>
       {body}

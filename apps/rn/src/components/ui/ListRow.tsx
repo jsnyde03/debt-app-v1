@@ -32,6 +32,7 @@ export function ListRow({
   onPress,
   onDelete,
   onLogPayment,
+  onViewSchedule,
   selected,
 }: {
   title: string;
@@ -53,6 +54,10 @@ export function ListRow({
   onDelete?: () => void;
   /** 3.5.5.2 — if set, the long-press menu gains a "Log payment" action (debts only). */
   onLogPayment?: () => void;
+  /** 3.7.A0 — if set, the long-press menu gains a "Payoff schedule" action (debts only). iOS-only by
+   *  nature (RowContextMenu is a passthrough elsewhere), so it is the FAST path, not the only one — the
+   *  edit sheet carries the cross-platform entry. */
+  onViewSchedule?: () => void;
   /** 3.6.2 — the row whose detail is open in the iPad master-detail pane (accent border + tint). */
   selected?: boolean;
 }) {
@@ -144,6 +149,7 @@ export function ListRow({
   // A discoverable alternative to the hidden swipe; tap + swipe stay untouched. Passthrough off-iOS.
   const menuActions: RowMenuAction[] = [
     ...(onLogPayment ? [{ key: 'log', title: 'Log payment', systemIcon: 'dollarsign.circle', onPress: onLogPayment } as RowMenuAction] : []),
+    ...(onViewSchedule ? [{ key: 'schedule', title: 'Payoff schedule', systemIcon: 'calendar', onPress: onViewSchedule } as RowMenuAction] : []),
     ...(onPress ? [{ key: 'edit', title: 'Edit', systemIcon: 'pencil', onPress } as RowMenuAction] : []),
     { key: 'delete', title: 'Delete', systemIcon: 'trash', destructive: true, onPress: handleDelete },
   ];

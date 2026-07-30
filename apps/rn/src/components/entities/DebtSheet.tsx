@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { parseStatementText } from '@core/scan/parseStatementText';
 import type { Recurrence } from '@core/types/recurrence';
 
 import { isScanAvailable, scanStatement } from '@/lib/scan';
-import { AmortizationSheet } from '@/components/entities/AmortizationSheet';
+import { AppIcon } from '@/components/ui/AppIcon';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { Select } from '@/components/ui/Select';
 import { SwitchRow } from '@/components/ui/SwitchRow';
@@ -16,6 +16,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
 import { selectDebtBalanceView } from '@/store/balanceSelectors';
 import { useAppStore } from '@/store/useAppStore';
+import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
 
@@ -56,7 +57,22 @@ const PROVIDERS: { value: string; label: string }[] = [
 
 /** Unified add/edit sheet for a debt. BNPL fields are now editable in both modes (redesign fix).
  *  `prefill` (§2.8) seeds a NEW debt's fields from a scanned statement — the user reviews/edits, then Adds. */
-export function DebtSheet({ editing, onClose, prefill, inline }: { editing: Debt | null; onClose: () => void; prefill?: Partial<Debt> | null; inline?: boolean }) {
+export function DebtSheet({
+  editing,
+  onClose,
+  prefill,
+  inline,
+  onViewSchedule,
+}: {
+  editing: Debt | null;
+  onClose: () => void;
+  prefill?: Partial<Debt> | null;
+  inline?: boolean;
+  /** 3.7.A0 — hand the payoff schedule to the HOST rather than opening it here. Money decides: push the
+   *  route (compact) or swap the iPad detail pane. Opening it from inside this sheet is what failed on
+   *  device twice; the sheet no longer owns that presentation at all. */
+  onViewSchedule: (debtId: string) => void;
+}) {
   const c = useAppColors();
   const currentDate = useAppStore((s) => s.store.paycheck.currentDate);
   const isPremium = useAppStore((s) => s.store.subscriptionPlan === 'premium');
@@ -76,7 +92,6 @@ export function DebtSheet({ editing, onClose, prefill, inline }: { editing: Debt
   const [scheduledPaymentAmount, setScheduledPaymentAmount] = useState(editing?.scheduledPaymentAmount != null ? String(editing.scheduledPaymentAmount) : '');
   const [bnplProvider, setBnplProvider] = useState(editing?.bnplProvider ?? '');
   const [error, setError] = useState('');
-  const [showSchedule, setShowSchedule] = useState(false);
   // 3.4.5.5 dirty-guard: a tap/swipe dismiss confirms before discarding unsaved edits.
   const snapshot = JSON.stringify({ name, balance, minimumPayment, apr, dueDate, type, recurrence, autopay, remainingPayments, scheduledPaymentAmount, bnplProvider });
   const initialSnapshot = useRef(snapshot);
@@ -175,13 +190,7 @@ export function DebtSheet({ editing, onClose, prefill, inline }: { editing: Debt
       onRemove={isEdit ? remove : undefined}
       onClose={onClose}
       dirty={dirty}
-      headerAction={
-        isEdit ? (
-          <Pressable onPress={() => setShowSchedule(true)} accessibilityRole="button" hitSlop={6}>
-            <Text style={[textStyles.subhead, { color: c.accent.primary }]}>View Payoff Schedule</Text>
-          </Pressable>
-        ) : undefined
-      }>
+      >
       <TextField label="Name" value={name} onChangeText={(t) => { setName(t); setError(''); }} placeholder={type === 'bnpl' ? 'Affirm — Sofa' : 'Visa, Car Loan'} />
       <Select
         label="Type"
@@ -238,13 +247,32 @@ export function DebtSheet({ editing, onClose, prefill, inline }: { editing: Debt
         </>
       )}
       <SwitchRow label="Autopay" value={autopay} onValueChange={setAutopay} />
+      {/* 3.7.A0 — the cross-platform way into the payoff schedule (the iOS row long-press menu is the
+          fast path, but RowContextMenu is a passthrough on web/Android). This NAVIGATES rather than
+          opening a sheet-from-a-sheet: close this sheet first, then push, so nothing can be occluded by
+          a presented Modal — the failure that killed the old header button on device. */}
+      {isEdit && editing ? (
+        <Pressable
+          testID="debt-view-schedule"
+          onPress={() => onViewSchedule(editing.id)}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.scheduleRow, { borderColor: c.border.subtle, opacity: pressed ? 0.7 : 1 }]}>
+          <Text style={[textStyles.body, { color: c.accent.primary }]}>View payoff schedule</Text>
+          <AppIcon name="chevron-right" size={20} color={c.accent.primary} />
+        </Pressable>
+      ) : null}
       {error ? <Text style={[textStyles.caption, { color: c.accent.danger }]}>{error}</Text> : null}
     </FormSheet>
-    {isEdit && editing ? (
-      // When DebtSheet is a modal (compact), the schedule needs `overlay` to dodge modal-over-modal;
-      // when DebtSheet is INLINE (iPad detail pane, not a modal), the schedule can be a normal Modal.
-      <AmortizationSheet overlay={!inline} visible={showSchedule} debtId={editing.id} onClose={() => setShowSchedule(false)} />
-    ) : null}
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  scheduleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+});

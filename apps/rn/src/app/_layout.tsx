@@ -115,6 +115,8 @@ function RootLayout() {
             <Stack.Screen name="history" />
             <Stack.Screen name="living-expenses" />
             <Stack.Screen name="cushion-forecast" />
+            {/* 3.7.A0 — the payoff schedule as a pushed route (was a sheet-from-a-sheet, dead on device). */}
+            <Stack.Screen name="schedule/[id]" />
             <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
           </Stack.Protected>
           <Stack.Protected guard={!onboardingComplete}>

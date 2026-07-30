@@ -16,6 +16,8 @@ const ROUTES: { path: string; text?: string; onboarded: boolean }[] = [
   { path: '/history', text: 'Pay Cycle History', onboarded: true },
   { path: '/living-expenses', text: 'Living Expenses', onboarded: true },
   { path: '/cushion-forecast', text: 'Your cushion forecast', onboarded: true },
+  { path: '/schedule/d0', text: 'Payoff schedule', onboarded: true }, // 3.7.A0 — the seeded debt's id
+
   { path: '/paywall', text: 'Debt payoff on autopilot', onboarded: true },
   { path: '/onboarding', onboarded: false }, // guarded by !onboardingComplete
 ];

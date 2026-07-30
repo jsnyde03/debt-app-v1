@@ -419,7 +419,19 @@ export default function TodayScreen() {
 
       {paycheckSheet ? <PaycheckSheet onClose={() => setPaycheckSheet(false)} /> : null}
       {windfallSheet ? <WindfallSheet current={store.windfall ?? 0} onClose={() => setWindfallSheet(false)} /> : null}
-      {addDebtOpen ? <DebtSheet editing={null} onClose={() => setAddDebtOpen(false)} /> : null}
+      {/* Add-only here, so the schedule row never renders — but the handler is wired anyway so this host
+          stays correct if Today ever opens an EXISTING debt (3.7.A0). Close first, then push: a presented
+          Modal would occlude the route. */}
+      {addDebtOpen ? (
+        <DebtSheet
+          editing={null}
+          onClose={() => setAddDebtOpen(false)}
+          onViewSchedule={(debtId) => {
+            setAddDebtOpen(false);
+            router.push(`/schedule/${debtId}`);
+          }}
+        />
+      ) : null}
     </Screen>
   );
 }

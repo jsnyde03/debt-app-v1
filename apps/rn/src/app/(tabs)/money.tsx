@@ -9,6 +9,7 @@ import { parseStatementText } from '@core/scan/parseStatementText';
 import type { Recurrence } from '@core/types/recurrence';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
+import { AmortizationPane } from '@/components/entities/AmortizationView';
 import { DebtSheet } from '@/components/entities/DebtSheet';
 import { onAddDebtRequested } from '@/keyCommands/keyCommandBus';
 import { LogPaymentSheet } from '@/components/entities/LogPaymentSheet';
@@ -96,6 +97,9 @@ function DebtsSection() {
   const view = useMemo(() => selectPayoffView(store), [store]);
   const [sheet, setSheet] = useState<{ editing: Debt | null; prefill?: Partial<Debt> } | null>(null);
   const [logPaymentFor, setLogPaymentFor] = useState<Debt | null>(null);
+  // 3.7.A0 — the debt whose payoff schedule fills the iPad DETAIL PANE. Compact never sets this: it
+  // pushes the `/schedule/[id]` route instead (see `viewSchedule`).
+  const [scheduleFor, setScheduleFor] = useState<string | null>(null);
   const { isExpanded } = useLayout(); // 3.6.2 — iPad landscape / wide → master-detail
   const paidOff = store.debts.filter((d) => d.balance <= 0);
   const c = useAppColors();
@@ -103,7 +107,29 @@ function DebtsSection() {
 
   // 3.6.6 — ⌘N (iPad keyboard) opens the add-debt sheet; the root key-command listener navigates here
   // and fires the bus, which this subscription turns into the same "add" the button does.
-  useEffect(() => onAddDebtRequested(() => setSheet({ editing: null })), []);
+  useEffect(() => onAddDebtRequested(() => openEditor({ editing: null })), []);
+
+  /** Opening the editor clears any schedule in the pane — the detail pane has exactly one owner. */
+  const openEditor = (next: { editing: Debt | null; prefill?: Partial<Debt> }) => {
+    setScheduleFor(null);
+    setSheet(next);
+  };
+
+  /**
+   * 3.7.A0 — the ONE way into the payoff schedule, from every entry point (the row long-press menu and
+   * the edit sheet's row). Never a sheet-from-a-sheet, which is what failed on device twice.
+   *  - iPad (expanded): swap the master-detail DETAIL pane — a pushed route would cover the split.
+   *  - compact/web: close the sheet FIRST (a presented Modal would occlude the pushed route), then push.
+   */
+  const viewSchedule = (debtId: string) => {
+    if (isExpanded) {
+      setSheet(null);
+      setScheduleFor(debtId);
+      return;
+    }
+    setSheet(null);
+    router.push(`/schedule/${debtId}`);
+  };
 
   // §2.8 scan-to-prefill (free): scan a statement → OCR text → parse → open the sheet PREFILLED for the
   // user to confirm. Nothing is saved without their tap. Hidden where the native scanner isn't available.
@@ -112,7 +138,7 @@ function DebtsSection() {
     if (!text) return; // cancelled
     const parsed = parseStatementText(text);
     if (parsed.balance == null && parsed.minimumPayment == null && !parsed.name) return; // nothing usable
-    setSheet({ editing: null, prefill: parsed });
+    openEditor({ editing: null, prefill: parsed });
   }
 
   if (store.debts.length === 0) {
@@ -123,10 +149,10 @@ function DebtsSection() {
           title="Start your debt-free plan"
           body="Add a loan, credit card, or BNPL balance to see your debt-free date."
           cta="Add your first debt"
-          onCta={() => setSheet({ editing: null })}
+          onCta={() => openEditor({ editing: null })}
         />
         {isScanAvailable() ? <View style={styles.scanEmpty}><AddRow label="Scan a statement" icon="document-scanner" onPress={handleScan} /></View> : null}
-        {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} /> : null}
+        {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} onViewSchedule={viewSchedule} /> : null}
       </>
     );
   }
@@ -178,11 +204,11 @@ function DebtsSection() {
           ) : null
         }
         renderItem={({ item }) => (
-          <DebtRow debt={item} focus={item.id === focusId} selected={isExpanded && sheet?.editing?.id === item.id} currentDate={currentDate} isPremium={isPremium} onEdit={(x) => setSheet({ editing: x })} onLogPayment={setLogPaymentFor} />
+          <DebtRow debt={item} focus={item.id === focusId} selected={isExpanded && (sheet?.editing?.id === item.id || scheduleFor === item.id)} currentDate={currentDate} isPremium={isPremium} onEdit={(x) => openEditor({ editing: x })} onLogPayment={setLogPaymentFor} onViewSchedule={viewSchedule} />
         )}
         ListFooterComponent={
           <View style={styles.listFooter}>
-            <AddRow label="Add debt" onPress={() => setSheet({ editing: null })} />
+            <AddRow label="Add debt" onPress={() => openEditor({ editing: null })} />
             {/* §2.8 — scan a statement to prefill a new debt (free). Hidden where no native scanner. */}
             {isScanAvailable() ? <AddRow label="Scan a statement" icon="document-scanner" onPress={handleScan} /> : null}
             {/* §2.7.5 — the consolidated BNPL calendar (renders only when there are upcoming installments). */}
@@ -193,17 +219,20 @@ function DebtsSection() {
     </View>
   );
 
+  // The iPad detail pane shows whichever the user last asked for — the schedule (read) or the editor.
+  // They're mutually exclusive: opening one clears the other, so the pane never has two owners.
   const editor = sheet ? (
-    <DebtSheet inline={isExpanded} editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} />
+    <DebtSheet inline={isExpanded} editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} onViewSchedule={viewSchedule} />
   ) : null;
+  const detail = scheduleFor ? <AmortizationPane debtId={scheduleFor} /> : editor;
 
   return (
     <>
       {isExpanded ? (
         <MasterDetail
           list={list}
-          hasSelection={sheet != null}
-          detail={editor}
+          hasSelection={sheet != null || scheduleFor != null}
+          detail={detail}
           detailEmpty={
             <View style={styles.detailEmpty}>
               <AppIcon name="credit-card" size={30} color={c.text.tertiary} />
@@ -230,6 +259,7 @@ function DebtRow({
   isPremium,
   onEdit,
   onLogPayment,
+  onViewSchedule,
 }: {
   debt: Debt;
   focus?: boolean;
@@ -239,6 +269,8 @@ function DebtRow({
   isPremium: boolean;
   onEdit: (d: Debt) => void;
   onLogPayment: (d: Debt) => void;
+  /** 3.7.A0 — the iOS long-press fast path into the payoff schedule. */
+  onViewSchedule: (debtId: string) => void;
 }) {
   const c = useAppColors();
   const view = selectDebtBalanceView(debt, currentDate, isPremium);
@@ -280,6 +312,7 @@ function DebtRow({
       onPress={() => onEdit(debt)}
       onDelete={() => appStore.getState().removeDebt(debt.id)}
       onLogPayment={() => onLogPayment(debt)}
+      onViewSchedule={() => onViewSchedule(debt.id)}
       selected={selected}
     />
   );
