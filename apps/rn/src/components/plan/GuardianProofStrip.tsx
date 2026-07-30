@@ -18,25 +18,31 @@ export function GuardianProofStrip({ pow }: { pow: GuardianProofOfWork }) {
   const c = useAppColors();
 
   const chips: string[] = [];
-  if (pow.heldStreak >= 1) chips.push(`held your line ${pow.heldStreak} ${pow.heldStreak === 1 ? 'paycheck' : 'paychecks'}`);
+  if (pow.heldStreak >= 1) chips.push(`Held your line · ${pow.heldStreak} ${pow.heldStreak === 1 ? 'paycheck' : 'paychecks'}`);
   if (pow.totalToDebt > 0) chips.push(`${formatWhole(pow.totalToDebt)} to debt`);
-  if (pow.score.proven && pow.score.matchRate != null) chips.push(`reads matched ${pow.score.matches}/${pow.score.n}`);
+  if (pow.score.proven && pow.score.matchRate != null) chips.push(`Reads matched · ${pow.score.matches}/${pow.score.n}`);
   if (chips.length === 0) return null;
 
-  const line = chips.join(' · ');
-  const display = line.charAt(0).toUpperCase() + line.slice(1);
-
+  // VIS-3 — the proof of work reads as distinct visual TOKENS (calm pills), not a single tertiary prose
+  // line, so the "what am I paying for" record has real presence. Reference surface: tonal, no motion.
   return (
-    <View style={styles.wrap} accessible accessibilityLabel={`The Guardian's record so far: ${display}`}>
-      <AppIcon name="verified-user" size={15} color={c.text.tertiary} />
-      <Text style={[textStyles.footnote, styles.text, { color: c.text.tertiary }]} numberOfLines={2}>
-        {display}
-      </Text>
+    <View style={styles.wrap} accessible accessibilityLabel={`The Guardian's record so far: ${chips.join(', ')}`}>
+      <AppIcon name="verified-user" size={15} color={c.accent.primary} />
+      <View style={styles.chips}>
+        {chips.map((chip) => (
+          <View key={chip} style={[styles.chip, { backgroundColor: c.background.tertiary }]}>
+            <Text style={[textStyles.caption, { color: c.text.secondary }]} numberOfLines={1}>
+              {chip}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.md },
-  text: { flex: 1 },
+  wrap: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs, marginTop: spacing.md },
+  chips: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  chip: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: 8 },
 });
