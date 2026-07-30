@@ -75,6 +75,10 @@ async function main() {
   // default-exports its runner (it awaits the persistence bootstrap + the autosave debounce).
   await (await import('../store/sandboxStore.test')).default();
 
+  // 3.5.0.3 — the scenario scripts: each named state READS as its name through the real Guardian
+  // engine, the personal seed stands on the user's own numbers, and every build is deterministic.
+  await import('../store/sandboxScenarios.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

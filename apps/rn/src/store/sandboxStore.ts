@@ -153,15 +153,39 @@ export function createSandboxBase(baseDate: string): DebtStore {
  * "start over" and the demo's loop restart: same scenario in → byte-identical state out, because
  * `build` is pure and the clock is frozen.
  */
+/**
+ * 3.5.0.3.4 — dev-only purity guard. `SandboxScenario.build` is documented pure, but a scenario that
+ * quietly reaches for a clock or `Math.random()` would break replay determinism in a way that only
+ * shows up as "the tutorial looked different that time" — the hardest kind of bug to be told about.
+ * Building twice and comparing catches it at the moment the scenario is used.
+ *
+ * `__DEV__` is read through a `typeof` guard because the tsx test runner leaves it undefined (the same
+ * pattern as `reportError`), so this is inert in tests and stripped in release.
+ */
+function assertScenarioPurity(scenario: SandboxScenario, built: DebtStore): void {
+  const dev = typeof __DEV__ !== 'undefined' && __DEV__;
+  if (!dev) return;
+  const again = scenario.build(createSandboxBase(scenario.baseDate));
+  if (JSON.stringify(again) !== JSON.stringify(built)) {
+    console.warn(
+      `[sandbox] scenario "${scenario.id}" is not pure — two builds differed. ` +
+        'Replay and the tutorial e2e depend on it being deterministic; check for a clock or random read.',
+    );
+  }
+}
+
 export function seedSandbox(store: SandboxStoreInstance, scenario: SandboxScenario): void {
   // Re-point the frozen clock first, so any action driven after this seed anchors to THIS scenario's date.
   const box = sandboxClocks.get(store);
   if (box) box.date = scenario.baseDate;
 
+  const built = scenario.build(createSandboxBase(scenario.baseDate));
+  assertScenarioPurity(scenario, built);
+
   // The seed is bounded by the wrapped `setState` installed in `createSandboxStore` — a scenario cannot
   // hand-seed a matured Guardian (6 cycles of history) straight past the ceiling.
   store.setState({
-    store: scenario.build(createSandboxBase(scenario.baseDate)),
+    store: built,
     // A sandbox has nothing to hydrate FROM; declaring it hydrated keeps every `isHydrated` gate in the
     // shared UI satisfied so the tutorial renders the real screens rather than a loading state.
     isHydrated: true,
