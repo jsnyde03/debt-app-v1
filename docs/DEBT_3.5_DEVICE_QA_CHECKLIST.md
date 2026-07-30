@@ -1,6 +1,6 @@
-# Debt Planner v1.7 — On-Device QA Checklist (through 3.5.5 App Intents / Siri)
+# Debt Planner v1.7 — On-Device QA Checklist (Phase 3 closeout + native block)
 
-> **What THIS build contains:** all of v1.7 + the native block through **3.5.5** — Live Activity (3.5.3) · widget (3.5.4) · **App Intents / Siri (3.5.5): the 3 query shortcuts + voice log-a-payment + the in-app "Log payment"** · plus the **QA trigger** panel and the **two device-fix** re-verifies. 3.5.6 (TipKit) — dropped. **➡️ Start with the "BUILD 2 delta" section below — it's the only part that changed since your last pass.**
+> **What THIS build contains:** all of v1.7 + the native block (Live Activity · widget · App Intents/Siri · context-menu · iPad) **+ the Phase-3 CLOSEOUT delight closeout** — the deepened debt-free **finale** with a **true AHAP Core-Haptics crescendo** (new `finale-haptics` module), an opt-in **chime** (`expo-audio`), and a **branded image Share card**, plus **Sentry** crash reporting. **➡️ Start with "BUILD 3 delta" below (the newest, never-device-tested work), then "BUILD 2 delta."**
 >
 > **How to use this:** work top-to-bottom on the phone. Each item has the **exact steps**, what a **✅ pass** looks like, and **⚠️** notes. Tick as you go; anything that fails, note it (screenshot + what you did) → I fix in-repo → you rebuild. **Priority = the NEW native (§4–§7)** — the v1.7 app surface (§3) already passed on the first device build, so §3 is a lighter re-sanity.
 >
@@ -8,7 +8,37 @@
 
 ---
 
-## ⭐ BUILD 2 (this CM build) — the delta to re-check + newly test
+## ⭐⭐ BUILD 3 (fresh `v1.7-dev` build) — Phase 3 CLOSEOUT delta — do this FIRST
+
+> **New since build 2 — real native pieces only a device can verify:** the debt-paid-off **celebration got deepened** (VIS-1/2/6) with a **true AHAP Core-Haptics crescendo** (new local module `finale-haptics`), an **opt-in debt-free chime** (`expo-audio`), and a **branded IMAGE Share card** (view-shot → native share sheet) on the finale, the per-debt beat, and the Progress "Vanquished" shelf. Plus **Sentry** crash reporting now initializes at launch.
+>
+> **⚠️ Build watch-out:** this is the **FIRST compile** of the `finale-haptics` native module + the `expo-audio` and `@sentry/react-native` plugins — watch the iOS build for an **autolink / CocoaPods** error, and §1 launch for a **New-Arch crash**. If the archive fails on Sentry (source-map upload), it's the `SENTRY_DISABLE_AUTO_UPLOAD` env — already set in `codemagic.yaml`.
+>
+> **How to trigger the celebration (no QA button — use real data):** on **Money → Debts**, add **two** small debts, then use **Log payment** (long-press a debt → Log payment) to **overpay one to $0** → the **per-debt "Vanquished" beat**; overpay the **last remaining** debt to $0 → the **full-screen finale**.
+
+### 🎉 Debt-free FINALE (pay the LAST debt to $0)
+- [ ] **Fires + feels premium** — the full-screen finale appears: two-wave confetti · gold bloom · the Skia **mesh-gradient** background · count-up stats. ✅ Smooth (~60fps), **no jank/stutter** on the confetti, no white flash.
+- [ ] **⭐ AHAP haptic crescendo** — as it lands you feel a **building Core-Haptics crescendo** (not one buzz). ⚠️ Feel **nothing** → the `finale-haptics` module didn't autolink (or device Haptics/Silent is off); a **single tap** → it fell back to expo-haptics. Note which.
+- [ ] **Safe-area + legibility** — the stats and the **"Share your win"** + dismiss buttons sit **inside** the notch / home-indicator insets (nothing clipped); the `onDark` buttons read clearly on the navy.
+- [ ] **Share your win** — tap **"Share your win"** → ✅ the native **share sheet** opens with a **branded IMAGE** (not just text): "$X paid · N debts cleared · …". Save/AirDrop → the PNG is crisp, text not scaled or cut off.
+- [ ] 🔊 **Chime (opt-in)** — More → Preferences → enable **Debt-free sound** (default **OFF**) → refire the finale → ✅ a short chime plays (respects the ringer/Silent switch). With it OFF → silent. _(Placeholder tone; a mastered asset swaps in at Phase 6.)_
+- [ ] ♿ **Reduce Motion** — Settings → Accessibility → Motion → **Reduce Motion ON** → refire → ✅ it **snaps to the final state** (no big confetti sweep) yet still reads as a celebration; the haptic still fires.
+- [ ] Dismiss → returns to **Today** cleanly.
+
+### 🏅 Per-debt "Vanquished" beat (pay ONE of several to $0)
+- [ ] Overpay one debt while others remain → ✅ the **contained beat** shows (check-cascade · "freed $X/mo" · the next-debt line).
+- [ ] **Share** on the beat → the branded image share sheet opens (same as the finale).
+- [ ] ♿ **VoiceOver** — turn VoiceOver on → the beat text reads as **one utterance** AND the **Share** button is focusable + activatable (the backdrop must not swallow it — the B2 fix).
+
+### 🗂️ Progress "Vanquished" shelf share
+- [ ] Progress → the **Vanquished** archive (needs ≥1 paid-off debt) → tap **Share** → ✅ the branded trophy-shelf **image** opens in the share sheet (text is the fallback only if capture fails).
+
+### 🛡️ Sentry (crash reporting)
+- [ ] **Launch is clean** — the app opens past the splash with Sentry initialized, **no new launch crash** from the wrapper. _(No DSN is set yet → it's a no-op init; this just confirms the plugin didn't break the New-Arch build/launch.)_
+
+---
+
+## ⭐ BUILD 2 (prior CM build) — the delta to re-check + newly test
 
 > Everything here is **new or fixed since your last device pass**. Do this section first; §1–§9 below are unchanged and only need a re-walk if you want. Install the new TestFlight build first (§0). Premium items need **Simulate Premium ON** (More → Developer / QA). _(Widget signing is already proven from the last build — no signing watch-out this time.)_
 
