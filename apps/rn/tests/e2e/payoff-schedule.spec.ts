@@ -79,6 +79,16 @@ test.describe('payoff schedule route (3.7.A0)', () => {
     await expect(page.getByText(/interest ·/).first()).toBeVisible();
   });
 
+  test('entered COLD (deep link, no history), back still goes somewhere', async ({ page }) => {
+    await seedStore(page, scenario());
+    // Straight to the route — no navigation history behind it, which `router.back()` alone can't handle.
+    await page.goto('/schedule/d0');
+    await expect(page.getByText('Payoff schedule')).toBeVisible();
+
+    await page.getByRole('button', { name: /back/i }).first().click();
+    await expect(page).toHaveURL(/\/money/);
+  });
+
   test('an unknown debt id degrades gracefully instead of crashing the route', async ({ page }) => {
     await seedStore(page, scenario());
     await page.goto('/schedule/does-not-exist');

@@ -26,7 +26,9 @@ export default function ScheduleScreen() {
   }, []);
 
   return (
-    <Screen title="Payoff schedule" onBack={() => router.back()}>
+    // Deep-linkable, so it can be entered COLD with no history — `router.back()` would no-op and strand
+    // the user on a screen with a dead back control. Fall back to Money, which is where it belongs.
+    <Screen title="Payoff schedule" onBack={() => (router.canGoBack() ? router.back() : router.replace('/money'))}>
       <AmortizationView debtId={debtId} />
     </Screen>
   );
