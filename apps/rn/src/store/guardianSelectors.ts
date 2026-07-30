@@ -10,7 +10,8 @@ import type { DebtStore } from '@/data/models';
 import { classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './guardianPredictionCore';
 import { selectDeployedToSavings, selectDiscretionary, selectExtraToDebt, selectHeldReserve, selectLiquidCushion } from './planSelectors';
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
-import { selectAllocation, selectPaycheckMissed } from './selectors';
+import { selectAllocation, selectPaycheckMissed, type Allocation } from './selectors';
+import type { AllocationCategory } from '@core/engine/allocatePaycheck';
 
 export type { GuardianBrief, GuardianState };
 
@@ -305,6 +306,61 @@ export function selectAffordability(store: DebtStore, amount: number): Affordabi
   }
 
   return { amount, verdict, discretionaryNow, cushionAfter, shortBy, floor, nextPayday: store.paycheck.nextPaycheckDate, extraToDebtDelta, coverFromSavings };
+}
+
+// ── Windfall Autopilot (Phase-3 premium beat) ────────────────────────────────
+export type WindfallBucketKey = 'bills' | 'debt' | 'emergency' | 'goals' | 'safetyNet' | 'cash';
+
+export interface WindfallSplitItem {
+  key: WindfallBucketKey;
+  amount: number;
+}
+
+export interface WindfallSplit {
+  /** The windfall amount being routed. */
+  amount: number;
+  /** Where each dollar lands, largest-first (bills, a caveat, always first). Nonzero buckets only. */
+  items: WindfallSplitItem[];
+}
+
+/** The user-facing buckets a windfall lands in, mapped to the engine's canonical allocation categories.
+ *  These groups partition ALL 12 categories, so the deltas sum exactly to the windfall (money conserved). */
+const WINDFALL_GROUPS: { key: WindfallBucketKey; categories: AllocationCategory[] }[] = [
+  { key: 'bills', categories: ['expense', 'minimum_debt', 'autopay_expense', 'autopay_debt'] },
+  { key: 'safetyNet', categories: ['cushion_buffer', 'prefunded_reserve', 'discovery_holdback'] },
+  { key: 'emergency', categories: ['starter_emergency', 'emergency'] },
+  { key: 'goals', categories: ['optional_goal'] },
+  { key: 'debt', categories: ['snowball'] },
+  { key: 'cash', categories: ['true_leftover'] },
+];
+
+function sumWindfallCategories(alloc: Allocation | null, categories: AllocationCategory[]): number {
+  if (!alloc) return 0;
+  const set = new Set<string>(categories);
+  return alloc.allocations.filter((a) => set.has(a.category)).reduce((sum, a) => sum + a.amount, 0);
+}
+
+/**
+ * Windfall Autopilot — the itemized routing of a one-time windfall (bonus/refund/side gig), the premium
+ * "the app does it, you confirm" beat. Re-solves the plan WITH the windfall vs WITHOUT and diffs each
+ * bucket (the same re-solve method `selectAffordability` uses). Because paid-required + living reserve are
+ * windfall-independent, the deltas sum exactly to `amount` — an honest "here's where your extra lands".
+ * The caller passes an already-projected store (premium); free never renders this (the value-led gate).
+ * Null for a non-positive amount or pre-plan.
+ */
+export function selectWindfallSplit(store: DebtStore, amount: number): WindfallSplit | null {
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  const withAlloc = selectAllocation({ ...store, windfall: amount });
+  const withoutAlloc = selectAllocation({ ...store, windfall: 0 });
+  if (!withAlloc) return null;
+  const items = WINDFALL_GROUPS.map((g) => ({
+    key: g.key,
+    amount: Math.round((sumWindfallCategories(withAlloc, g.categories) - sumWindfallCategories(withoutAlloc, g.categories)) * 100) / 100,
+  })).filter((it) => it.amount >= 0.5);
+  // Bills (a caveat — "it covered your bills first") lead; then the biggest destination, so debt payoff
+  // tends to headline a healthy plan.
+  items.sort((a, b) => (a.key === 'bills' ? -1 : b.key === 'bills' ? 1 : b.amount - a.amount));
+  return { amount, items };
 }
 
 /** Advance an ISO date by whole paychecks of the given cadence (for a save-for-it "ready by" date). */

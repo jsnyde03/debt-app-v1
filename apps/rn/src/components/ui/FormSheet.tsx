@@ -125,7 +125,7 @@ export function FormSheet({
               <View style={sheetStyles.flex}>
                 <Text style={[textStyles.title2, { color: c.text.primary }]}>{title}</Text>
                 {subtitle ? (
-                  <Text style={[textStyles.subhead, { color: c.text.secondary }]} numberOfLines={1}>
+                  <Text style={[textStyles.subhead, { color: c.text.secondary }]} numberOfLines={2}>
                     {subtitle}
                   </Text>
                 ) : null}

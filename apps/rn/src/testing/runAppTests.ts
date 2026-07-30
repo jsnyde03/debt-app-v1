@@ -55,6 +55,9 @@ async function main() {
   // §2.9 — the Can-I-Afford-This? selectors (verdict + honest impact + save-for-it options).
   await import('../store/affordability.test');
 
+  // VIS-6 — the Windfall Autopilot split (marginal diff · money conservation · multi-bucket routing).
+  await import('../store/windfallSplit.test');
+
   // §3.3.1 — the debt-paid-off celebration read layer (vanquished archive · finale detector · stat-trio).
   await import('../store/celebrationSelectors.test');
 

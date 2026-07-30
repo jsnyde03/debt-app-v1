@@ -1,6 +1,6 @@
 import { requireNativeViewManager } from 'expo-modules-core';
 import { router } from 'expo-router';
-import type { ComponentType } from 'react';
+import { createElement, type ComponentType } from 'react';
 import { StyleSheet } from 'react-native';
 
 import { requestAddDebt } from './keyCommandBus';
@@ -23,8 +23,9 @@ type NativeKeyCommandsProps = {
 
 // This file is `.ios.tsx`, so metro only resolves it on iOS — web + Android get the no-op base. (An earlier
 // `.native.tsx` split leaked onto web here and blanked every route; `.ios` is the codebase convention that
-// doesn't. See KeyCommandListener.tsx.) The native lookup is still deferred out of module scope as cheap
-// insurance, so importing this module is always side-effect-free.
+// doesn't. See KeyCommandListener.tsx.) The native lookup stays deferred out of module scope, per the 3.6.6
+// phase-wide invariant that NO `requireNativeViewManager`/`requireNativeModule` runs at import — so importing
+// this module is always side-effect-free. `_nativeView` memoizes it, so it's a stable component reference.
 let _nativeView: ComponentType<NativeKeyCommandsProps> | null = null;
 function nativeKeyCommandsView(): ComponentType<NativeKeyCommandsProps> {
   return (_nativeView ??= requireNativeViewManager('KeyCommands') as ComponentType<NativeKeyCommandsProps>);
@@ -37,21 +38,21 @@ const TAB_ROUTES: Record<string, string> = {
 };
 
 export function KeyCommandListener() {
-  const NativeKeyCommands = nativeKeyCommandsView();
-  return (
-    <NativeKeyCommands
-      style={styles.hidden}
-      onCommand={({ nativeEvent }) => {
-        if (nativeEvent.id === 'new-debt') {
-          router.navigate('/money');
-          requestAddDebt();
-          return;
-        }
-        const to = TAB_ROUTES[nativeEvent.id];
-        if (to) router.navigate(to as Parameters<typeof router.navigate>[0]);
-      }}
-    />
-  );
+  // `createElement` (not JSX) with the memoized native view: keeps the lazy lookup (the 3.6.6 invariant)
+  // AND avoids react-hooks/static-components, which flags a locally-resolved component only as a JSX
+  // element type. `nativeKeyCommandsView()` returns the same memoized view every render (stable identity).
+  return createElement(nativeKeyCommandsView(), {
+    style: styles.hidden,
+    onCommand: ({ nativeEvent }: { nativeEvent: { id: string } }) => {
+      if (nativeEvent.id === 'new-debt') {
+        router.navigate('/money');
+        requestAddDebt();
+        return;
+      }
+      const to = TAB_ROUTES[nativeEvent.id];
+      if (to) router.navigate(to as Parameters<typeof router.navigate>[0]);
+    },
+  });
 }
 
 const styles = StyleSheet.create({

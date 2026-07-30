@@ -20,7 +20,7 @@ export function CushionFloorSheet({ visible, floor, onClose }: { visible: boolea
     <FormSheet
       visible={visible}
       title="Your cushion line"
-      subtitle="The cash the Guardian keeps each paycheck before any extra debt payoff — like a low-balance alert, set where you're comfortable."
+      subtitle="The cash the Guardian keeps each paycheck before any extra debt payoff."
       submitLabel="Save"
       onSubmit={() => {
         appStore.getState().setCushionFloor(value);

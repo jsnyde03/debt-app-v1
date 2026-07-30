@@ -7,7 +7,6 @@
 export function reportError(error: unknown, context?: Record<string, string>): void {
   const dev = typeof __DEV__ !== 'undefined' && __DEV__;
   if (dev) {
-    // eslint-disable-next-line no-console
     console.warn('[reportError]', context ?? {}, error);
   }
   // TODO(Phase 6): Sentry.captureException(error, { tags: context }).
