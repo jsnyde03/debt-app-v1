@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
-import { Modal, Pressable, StyleSheet, Text } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { ShareCard } from '@/components/plan/ShareCard';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -12,6 +13,8 @@ import { duration, spring } from '@/theme/motion';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
+import { reportError } from '@/utils/reportError';
+import { shareDebtCard } from '@/utils/share-card';
 
 /**
  * The per-debt "vanquished" beat (3.3.1.2) — a CONTAINED celebratory overlay fired each time a debt is
@@ -75,6 +78,19 @@ export function VanquishedBeat({
 
   const showCascade = nextDebtName != null && freedPerMonth > 0;
 
+  // B2 — the per-debt win is shareable too (the moment users hit repeatedly, not just the finale).
+  const shareRef = useRef<View>(null);
+  async function onShare() {
+    try {
+      await shareDebtCard(
+        shareRef,
+        `I just vanquished ${debtName}${amountVanquished != null ? ` — ${formatWhole(amountVanquished)}` : ''} on my way to debt-free with Debt Planner.`,
+      );
+    } catch (e) {
+      reportError(e, { subsystem: 'share', operation: 'vanquished-beat' });
+    }
+  }
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss} statusBarTranslucent>
       <Pressable style={styles.backdrop} onPress={onDismiss} accessibilityLabel={`${debtName} paid off. Tap to continue.`}>
@@ -104,9 +120,23 @@ export function VanquishedBeat({
               </Animated.Text>
             ) : null}
 
-            <Button label="Keep going" onDark onPress={onDismiss} style={styles.cta} />
+            <View style={styles.actions}>
+              <Button label="Share" variant="secondary" onDark onPress={onShare} />
+              <Button label="Keep going" onDark onPress={onDismiss} />
+            </View>
           </LinearGradient>
         </Animated.View>
+
+        {/* Off-screen branded card — captured to a PNG by Share (native). A11y-hidden capture artifact. */}
+        <View
+          ref={shareRef}
+          collapsable={false}
+          style={styles.offscreen}
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants">
+          <ShareCard data={{ kind: 'debt', debtName, amount: amountVanquished, freedPerMonth }} />
+        </View>
       </Pressable>
     </Modal>
   );
@@ -129,5 +159,6 @@ const styles = StyleSheet.create({
   gone: { fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
   amount: { fontSize: 40, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'], marginTop: spacing.xs },
   cascade: { textAlign: 'center', marginTop: spacing.sm },
-  cta: { marginTop: spacing.lg, alignSelf: 'stretch' },
+  actions: { alignSelf: 'stretch', gap: spacing.sm, marginTop: spacing.lg },
+  offscreen: { position: 'absolute', left: -9999, top: 0 },
 });

@@ -1,5 +1,7 @@
-import { Share, StyleSheet, Text, View } from 'react-native';
+import { useRef } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { ShareCard } from '@/components/plan/ShareCard';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -11,6 +13,8 @@ import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { groupLabel } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
+import { reportError } from '@/utils/reportError';
+import { shareDebtCard } from '@/utils/share-card';
 
 /**
  * The permanent "Debts Vanquished" archive (3.3.1.4) — the growing trophy shelf of every debt confirmed
@@ -20,14 +24,21 @@ import { formatWhole } from '@/utils/format';
  */
 export function VanquishedArchive({ debts }: { debts: VanquishedDebt[] }) {
   const c = useAppColors();
+  // B2 — the off-screen branded card's ref (declared before the early return, hooks rule).
+  const shareRef = useRef<View>(null);
   if (debts.length === 0) return null;
 
   const total = debts.reduce((sum, d) => sum + (d.amount ?? 0), 0);
 
-  const onShare = () => {
+  // B2 — share the branded trophy-shelf card (image on native; the text is the web/Share-API fallback).
+  const onShare = async () => {
     const lines = debts.map((d) => `• ${d.name}${d.amount != null ? ` — ${formatWhole(d.amount)}` : ''}`).join('\n');
     const headline = `I vanquished ${debts.length} debt${debts.length === 1 ? '' : 's'}${total > 0 ? ` (${formatWhole(total)})` : ''} on my way to debt-free 🎉`;
-    Share.share({ message: `${headline}\n\n${lines}` }).catch(() => {});
+    try {
+      await shareDebtCard(shareRef, `${headline}\n\n${lines}`);
+    } catch (e) {
+      reportError(e, { subsystem: 'share', operation: 'vanquished-archive' });
+    }
   };
 
   return (
@@ -60,6 +71,17 @@ export function VanquishedArchive({ debts }: { debts: VanquishedDebt[] }) {
         ))}
       </View>
       <Button label="Share" variant="secondary" onPress={onShare} style={styles.share} />
+
+      {/* Off-screen branded card — captured to a PNG by Share (native). A11y-hidden capture artifact. */}
+      <View
+        ref={shareRef}
+        collapsable={false}
+        style={styles.offscreen}
+        pointerEvents="none"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants">
+        <ShareCard data={{ kind: 'progress', debtsCleared: debts.length, totalPaid: total }} />
+      </View>
     </Card>
   );
 }
@@ -75,4 +97,5 @@ const styles = StyleSheet.create({
   badge: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   rowText: { flex: 1, gap: 1 },
   share: { marginTop: spacing.lg, alignSelf: 'flex-start' },
+  offscreen: { position: 'absolute', left: -9999, top: 0 },
 });

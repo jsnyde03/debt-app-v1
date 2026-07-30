@@ -44,7 +44,8 @@ for (const theme of ['light', 'dark'] as const) {
     await page.getByRole('button', { name: /Confirm.*paid off/i }).click();
     await page.waitForTimeout(1300);
     await page.screenshot({ path: `test-results/celebration-beat-${theme}.png` });
-    await expect(page.getByText(/Vanquished/i)).toBeVisible();
+    // `.first()` — the visible beat headline (the off-screen branded ShareCard, B2, also says "Vanquished").
+    await expect(page.getByText(/Vanquished/i).first()).toBeVisible();
   });
 
   test(`grand finale (${theme})`, async ({ page }) => {
@@ -88,7 +89,8 @@ for (const theme of ['light', 'dark'] as const) {
     ]));
     await page.goto('/progress');
     await page.waitForTimeout(600);
-    await expect(page.getByText(/DEBTS VANQUISHED/i)).toBeVisible();
+    // `.first()` — the visible eyebrow (the off-screen branded ShareCard, B2, also says "N debts vanquished").
+    await expect(page.getByText(/DEBTS VANQUISHED/i).first()).toBeVisible();
     await page.screenshot({ path: `test-results/celebration-archive-${theme}.png`, fullPage: true });
   });
 }

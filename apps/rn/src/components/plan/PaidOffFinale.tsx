@@ -38,7 +38,7 @@ const GOLD_PALETTE = {
   dim: 'rgba(255,255,255,0.2)',
   free: '#fbe08a',
 };
-const CONFETTI = 44;
+const CONFETTI = 64;
 const GOLDS = ['#f7cf5f', '#fbe08a', '#ffd873', '#fff3cf'];
 
 export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean; stats: CelebrationStats; onDismiss: () => void }) {
@@ -131,7 +131,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
           pointerEvents="none"
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants">
-          <ShareCard stats={stats} />
+          <ShareCard data={{ kind: 'finale', totalPaid: stats.totalPaid, debtsCleared: stats.debtsCleared, monthsToFreedom: stats.monthsToFreedom }} />
         </View>
       </LinearGradient>
     </Modal>
@@ -172,8 +172,8 @@ function ConfettiPiece({ index }: { index: number }) {
   const wave = index >= half ? 1 : 0;
   const inWave = index % half;
   const angle = (index / CONFETTI) * 2 * Math.PI + (index % 3) * 0.3;
-  const dist = 120 + (index % 7) * 26;
-  const delay = wave * 850 + inWave * 55;
+  const dist = 150 + (index % 9) * 34; // wider spread → fills the screen, not a mid-band cluster (B6)
+  const delay = wave * 850 + inWave * 45;
   const fall = 1900 + (index % 5) * 200; // 1900–2700ms per piece
   const spin = wave ? -400 : 460;
   const p = useSharedValue(0);
