@@ -79,6 +79,10 @@ async function main() {
   // engine, the personal seed stands on the user's own numbers, and every build is deterministic.
   await import('../store/sandboxScenarios.test');
 
+  // 3.5.0.4 — the scripted payday beats: absorb + release are produced by the REAL rollover, the
+  // tutorial ceiling can cross the discovery gate, and the demo's day-one bound still cannot.
+  await import('../store/sandboxBeats.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

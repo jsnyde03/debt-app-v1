@@ -31,6 +31,16 @@ import type { SandboxScenario } from './sandboxStore';
 
 export type SandboxState = 'clear' | 'tight' | 'at-risk';
 
+export interface ScenarioOpts {
+  premium?: boolean;
+  /**
+   * 3.5.0.4.1 — the scenario's honesty ceiling. Omit for the day-one bound the DEMO must keep; the
+   * TUTORIAL passes `TUTORIAL_MAX_CYCLES` so a scripted payday can cross the discovery gate and the
+   * safety net's release becomes a real engine event instead of a hand-set flag.
+   */
+  maxGenuineCycles?: number;
+}
+
 /** The frozen day every scenario is told from. A Monday, mid-month — nothing calendar-special. */
 export const SCENARIO_BASE_DATE = '2026-03-02';
 
@@ -98,12 +108,6 @@ function personaGoals(): Goal[] {
   return [{ id: 'sbx-ef', name: 'Emergency fund', targetAmount: 1000, currentAmount: 240, type: 'emergency' }] as Goal[];
 }
 
-/**
- * Solve the bill budget that puts this cycle in the requested state, then distribute it across the
- * persona's mix. Income and minimums are given; the bills are the lever, because the tutorial's own
- * interactions (drag the floor, absorb a surprise) move the OTHER side of the equation — so the setup
- * has to be stable under them.
- */
 /**
  * Binary-search the bill budget for the boundary where the engine's verdict stops satisfying `stillOk`.
  * The band is monotonic in the budget (more bills ⇒ never a better band), which is what makes this
@@ -227,11 +231,12 @@ function assemble(
 }
 
 /** The stand-in scenario: no real numbers needed. */
-export function personaScenario(state: SandboxState, opts: { premium?: boolean } = {}): SandboxScenario {
+export function personaScenario(state: SandboxState, opts: ScenarioOpts = {}): SandboxScenario {
   return {
     id: `persona-${state}`,
     label: STATE_LABEL[state],
     baseDate: SCENARIO_BASE_DATE,
+    maxGenuineCycles: opts.maxGenuineCycles,
     build: (base) => {
       // The persona's own numbers are chosen to carry every state, so this can't legitimately fail —
       // but `build` is nullable, and silently rendering an empty plan would be worse than being loud.
@@ -251,7 +256,7 @@ export function personaScenario(state: SandboxState, opts: { premium?: boolean }
  * any) carry over; everything else is filled from the persona so the beats still have something to act
  * on. Falls back to the persona outright when there's no usable income to stand on.
  */
-export function personalScenario(store: DebtStore, state: SandboxState, opts: { premium?: boolean } = {}): SandboxScenario {
+export function personalScenario(store: DebtStore, state: SandboxState, opts: ScenarioOpts = {}): SandboxScenario {
   const income = Number(store.paycheck.amount);
   if (!Number.isFinite(income) || income <= 0) return personaScenario(state, opts);
 
@@ -261,6 +266,7 @@ export function personalScenario(store: DebtStore, state: SandboxState, opts: { 
     id: `personal-${state}`,
     label: STATE_LABEL[state],
     baseDate: SCENARIO_BASE_DATE,
+    maxGenuineCycles: opts.maxGenuineCycles,
     build: (base) => {
       const currentDate = base.paycheck.currentDate;
       const debts = (real.length
@@ -285,7 +291,7 @@ export function personalScenario(store: DebtStore, state: SandboxState, opts: { 
  * The one entry point the tutorial/demo should call: their numbers when there's something real to
  * stand on, the persona otherwise. Callers don't have to know which they got.
  */
-export function scenarioFor(store: DebtStore | null, state: SandboxState, opts: { premium?: boolean } = {}): SandboxScenario {
+export function scenarioFor(store: DebtStore | null, state: SandboxState, opts: ScenarioOpts = {}): SandboxScenario {
   return store ? personalScenario(store, state, opts) : personaScenario(state, opts);
 }
 

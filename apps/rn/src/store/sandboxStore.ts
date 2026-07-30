@@ -64,10 +64,16 @@ export const SANDBOX_MAX_HISTORY = 1;
 /** One spare slot beyond history so an absorb/walk-back beat has room without unbounded growth. */
 export const SANDBOX_MAX_SURPRISES = 2;
 
-/** Build the honesty ceiling for a scenario's frozen base date. Pure; idempotent. */
-export function boundSandboxStore(baseDate: string): (store: DebtStore) => DebtStore {
+/**
+ * Build the honesty ceiling for a scenario's frozen base date. Pure; idempotent.
+ *
+ * `maxGenuineCycles` is per-scenario (3.5.0.4.1) — the demo's day-one bound vs the tutorial's need to
+ * cross the discovery gate. Only THIS channel is scenario-tunable; the track-record channels below stay
+ * fixed, so a raised cycle count still can't buy a proof-of-work streak or a cleared cold start.
+ */
+export function boundSandboxStore(baseDate: string, maxGenuineCycles = SANDBOX_MAX_GENUINE_CYCLES): (store: DebtStore) => DebtStore {
   return (store) => {
-    const genuineCycleCount = Math.min(store.genuineCycleCount, SANDBOX_MAX_GENUINE_CYCLES);
+    const genuineCycleCount = Math.min(store.genuineCycleCount, maxGenuineCycles);
     const cycleHistory =
       store.cycleHistory.length > SANDBOX_MAX_HISTORY ? store.cycleHistory.slice(-SANDBOX_MAX_HISTORY) : store.cycleHistory;
     const incomeActualsLog =
@@ -107,6 +113,19 @@ export interface SandboxScenario {
   label: string;
   /** The frozen "today" the whole scenario is told from (YYYY-MM-DD) — determinism starts here. */
   baseDate: string;
+  /**
+   * 3.5.0.4.1 — how many genuine cycles this scenario may reach, i.e. its honesty ceiling.
+   *
+   * Defaults to `SANDBOX_MAX_GENUINE_CYCLES` (1) — day-one bounded, which is what the pre-purchase
+   * DEMO must stay at: it must never pose as a matured, proven Guardian. The TUTORIAL declares
+   * `DISCOVERY_CYCLES` instead, because its whole subject is what happens across your first few
+   * paydays — and under a flat ceiling of 1 the safety net could never release, so the arc's payoff
+   * moment was structurally unreachable (found by 3.5.0.4's before-scan).
+   *
+   * Raising it does NOT loosen the other channels: `cycleHistory` and `incomeActualsLog` stay capped,
+   * so no scenario can manufacture a multi-cycle track record or clear the variable-income cold start.
+   */
+  maxGenuineCycles?: number;
   /** Shape the pinned base into the scripted state. Must stay PURE (no clock, no randomness). */
   build(base: DebtStore): DebtStore;
 }
@@ -121,7 +140,7 @@ const sandboxes = new WeakSet<object>();
  * rollover, add/remove debt, and onboarding — from stamping the REAL today onto a scenario dated months
  * away, which would both break replay determinism and make the tutorial's drift read nonsense.
  */
-const sandboxClocks = new WeakMap<object, { date: string }>();
+const sandboxClocks = new WeakMap<object, { date: string; maxCycles: number }>();
 
 /** True when `store` came from `createSandboxStore` — i.e. it must never reach a persistence/sync path. */
 export function isSandboxStore(store: object): boolean {
@@ -175,9 +194,13 @@ function assertScenarioPurity(scenario: SandboxScenario, built: DebtStore): void
 }
 
 export function seedSandbox(store: SandboxStoreInstance, scenario: SandboxScenario): void {
-  // Re-point the frozen clock first, so any action driven after this seed anchors to THIS scenario's date.
+  // Re-point the frozen clock AND the ceiling first, so anything driven after this seed uses THIS
+  // scenario's date and its own honesty bound (a re-seed can swap demo ↔ tutorial).
   const box = sandboxClocks.get(store);
-  if (box) box.date = scenario.baseDate;
+  if (box) {
+    box.date = scenario.baseDate;
+    box.maxCycles = scenario.maxGenuineCycles ?? SANDBOX_MAX_GENUINE_CYCLES;
+  }
 
   const built = scenario.build(createSandboxBase(scenario.baseDate));
   assertScenarioPurity(scenario, built);
@@ -201,10 +224,10 @@ export function seedSandbox(store: SandboxStoreInstance, scenario: SandboxScenar
 export function createSandboxStore(scenario: SandboxScenario): SandboxStoreInstance {
   // The clock box is created BEFORE the store so the injected `now` and the bound can close over it —
   // the ceiling's `onboardedAt` pin has to follow a re-seed to a different base date too.
-  const box = { date: scenario.baseDate };
+  const box = { date: scenario.baseDate, maxCycles: scenario.maxGenuineCycles ?? SANDBOX_MAX_GENUINE_CYCLES };
   const store = createDebtStore({
     now: () => box.date,
-    bound: (s) => boundSandboxStore(box.date)(s),
+    bound: (s) => boundSandboxStore(box.date, box.maxCycles)(s),
   });
   sandboxes.add(store);
   sandboxClocks.set(store, box);
@@ -227,7 +250,7 @@ export function createSandboxStore(scenario: SandboxScenario): SandboxStoreInsta
     (rawSetState as (p: unknown, r?: boolean) => void)((state: DebtAppState) => {
       const next = typeof partial === 'function' ? (partial as (s: DebtAppState) => unknown)(state) : partial;
       const patch = next as Partial<DebtAppState> | null;
-      return patch && patch.store ? { ...patch, store: boundSandboxStore(box.date)(patch.store) } : patch;
+      return patch && patch.store ? { ...patch, store: boundSandboxStore(box.date, box.maxCycles)(patch.store) } : patch;
     }, replace)) as typeof store.setState;
 
   seedSandbox(store, scenario);
