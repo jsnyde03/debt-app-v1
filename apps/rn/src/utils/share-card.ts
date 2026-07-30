@@ -12,6 +12,6 @@ import * as Sharing from 'expo-sharing';
 export async function shareDebtCard(ref: RefObject<View | null>, _fallbackText: string): Promise<void> {
   const uri = await captureRef(ref, { format: 'png', quality: 1, result: 'tmpfile' });
   if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: "Share you're debt-free" });
+    await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Share your debt-free win' });
   }
 }

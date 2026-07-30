@@ -110,7 +110,7 @@ export async function syncNotifications({ nextPaycheckDate, requiredExpenses }: 
   paycheckEve.setDate(paycheckEve.getDate() - 1);
   paycheckEve.setHours(20, 0, 0, 0);
   if (paycheckEve > now) {
-    await schedule(ID_PAYCHECK_EVE, 'Paycheck Tomorrow', 'Your paycheck arrives tomorrow — open Debt Planner to run your plan.', paycheckEve, NOTIF_CATEGORY_PAYDAY);
+    await schedule(ID_PAYCHECK_EVE, 'Paycheck tomorrow', 'Your paycheck arrives tomorrow — open Debt Planner to run your plan.', paycheckEve, NOTIF_CATEGORY_PAYDAY);
   }
 
   // Payday-morning capture prompt: 9am ON payday (brings the user in as the capture sheet auto-opens).
@@ -133,7 +133,7 @@ export async function syncNotifications({ nextPaycheckDate, requiredExpenses }: 
     const sameDayAsEve = billAlert.toDateString() === paycheckEve.toDateString();
     if (billAlert > now && !sameDayAsEve) {
       const count = upcomingUnpaid.length;
-      const title = count === 1 ? 'Upcoming Bill' : `${count} Upcoming Bills`;
+      const title = count === 1 ? 'Upcoming bill' : `${count} upcoming bills`;
       const body =
         count === 1
           ? `${earliest.name} is due soon — check your plan.`

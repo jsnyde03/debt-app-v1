@@ -44,7 +44,9 @@ const EXTS = ["ts", "tsx", "js", "jsx", "json"];
 // Resolve `base` to a concrete file, trying platform-specific extensions first
 // (mirrors Metro's own platform resolution), then plain, then an index file.
 function resolveWithExts(base, platform) {
-  const platformTags = platform ? [platform, "native"] : [];
+  // W2 — `native` is a fallback tag for iOS/Android only; real Metro NEVER tries `.native` on web. Match
+  // that, so a stray `foo.native.ts` can't resolve into (and blank) the web bundle.
+  const platformTags = platform ? (platform === "web" ? ["web"] : [platform, "native"]) : [];
   const candidates = [];
   for (const tag of platformTags) for (const e of EXTS) candidates.push(`${base}.${tag}.${e}`);
   for (const e of EXTS) candidates.push(`${base}.${e}`);

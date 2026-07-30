@@ -41,7 +41,12 @@
       "./plugins/with-ios-utilities-rootcontentview-fix.js",
       "./plugins/with-live-activities.js",
       "./plugins/with-app-intents.js",
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }
