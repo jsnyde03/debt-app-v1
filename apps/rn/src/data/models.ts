@@ -83,6 +83,9 @@ export interface Preferences {
   /** 3.5.3: the premium Payday Countdown Live Activity auto-starts in the final ~3-day run-up to payday.
    *  User toggle (More → Preferences). Default true; only ever runs for premium users. */
   paydayLiveActivityEnabled: boolean;
+  /** VIS-6: play a celebratory chime on the debt-free finale. Opt-in (default false) — sound is never
+   *  a default; the visual + haptic carry the beat unless the user turns this on (More → Preferences). */
+  debtFreeSoundEnabled: boolean;
 }
 
 /** Bump when the persisted shape changes; `runMigrations` brings older blobs forward.

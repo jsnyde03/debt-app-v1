@@ -184,6 +184,13 @@ export default function MoreScreen() {
               right={<Switch value={prefs.paydayLiveActivityEnabled} onValueChange={(v) => appStore.getState().updatePrefs({ paydayLiveActivityEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
             />
           ) : null}
+          {/* VIS-6 — opt-in celebratory chime on the debt-free finale (off by default; the beat carries itself). */}
+          <SettingRow
+            icon="celebration"
+            label="Debt-free sound"
+            subtitle="Play a chime when you clear your last debt."
+            right={<Switch value={prefs.debtFreeSoundEnabled ?? false} onValueChange={(v) => appStore.getState().updatePrefs({ debtFreeSoundEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
+          />
           <SettingRow icon="shopping-cart" label="Living Expenses" subtitle="Everyday spending reserved each paycheck." onPress={() => router.push('/living-expenses')} last />
         </SettingGroup>
       </Section>

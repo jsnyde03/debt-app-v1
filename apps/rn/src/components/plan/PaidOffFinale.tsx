@@ -16,6 +16,8 @@ import { textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
 import { reportError } from '@/utils/reportError';
 import { shareDebtCard } from '@/utils/share-card';
+import { playDebtFreeSound } from '@/utils/debtFreeSound';
+import { useAppStore } from '@/store/useAppStore';
 
 /**
  * The grand finale (3.3.1.3) — the once-ever full-screen spectacle when the LAST debt is confirmed to $0.
@@ -44,6 +46,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
   const reduce = useReduceMotion();
   const surf = c.surface;
   const { width: winW, height: winH } = useWindowDimensions();
+  const soundEnabled = useAppStore((s) => s.store.prefs.debtFreeSoundEnabled ?? false);
 
   const enter = useSharedValue(0);
   useEffect(() => {
@@ -51,6 +54,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
       enter.value = 0;
       return;
     }
+    if (soundEnabled) playDebtFreeSound(); // opt-in chime (no-op on web / when off)
     enter.value = reduce ? 1 : withTiming(1, { duration: duration.slow });
     if (reduce) {
       haptics.finale();
@@ -59,7 +63,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
     // Fire near-immediately: the crescendo builds for ~0.9s so its peak lands as the ring reads 100%.
     const t = setTimeout(() => haptics.finale(), 80);
     return () => clearTimeout(t);
-  }, [visible, reduce, enter]);
+  }, [visible, reduce, enter, soundEnabled]);
 
   const contentStyle = useAnimatedStyle(() => ({ opacity: enter.value, transform: [{ translateY: 14 * (1 - enter.value) }] }));
 

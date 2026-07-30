@@ -48,6 +48,7 @@ export function createDefaultStore(): DebtStore {
       hasSavingsElsewhere: false,
       guardianIntroSeen: false,
       paydayLiveActivityEnabled: true,
+      debtFreeSoundEnabled: false,
     },
     lastSavedAt: '',
     lastHandledPaydayDate: null,

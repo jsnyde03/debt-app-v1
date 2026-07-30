@@ -15,7 +15,9 @@
         "NSCameraUsageDescription": "Scan a statement or bill to prefill your debt details — the scan stays on your device."
       },
       "entitlements": {
-        "com.apple.security.application-groups": ["group.com.jasonsnyder.debtplanner"],
+        "com.apple.security.application-groups": [
+          "group.com.jasonsnyder.debtplanner"
+        ],
         "com.apple.developer.siri": true
       }
     },
@@ -37,7 +39,8 @@
       "./plugins/with-context-menu-folly-fix.js",
       "./plugins/with-ios-utilities-rootcontentview-fix.js",
       "./plugins/with-live-activities.js",
-      "./plugins/with-app-intents.js"
+      "./plugins/with-app-intents.js",
+      "expo-audio"
     ]
   }
 }
