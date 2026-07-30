@@ -9,9 +9,9 @@ import * as Sharing from 'expo-sharing';
  * `react-native-view-shot` never enters the web bundle. Device-verified (no local RN runtime); the
  * `fallbackText` path is web-only. Mirrors Freedom's proven `share-card.ts`.
  */
-export async function shareDebtCard(ref: RefObject<View | null>, _fallbackText: string): Promise<void> {
+export async function shareDebtCard(ref: RefObject<View | null>, _fallbackText: string, dialogTitle = 'Share your debt-free win'): Promise<void> {
   const uri = await captureRef(ref, { format: 'png', quality: 1, result: 'tmpfile' });
   if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Share your debt-free win' });
+    await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle });
   }
 }

@@ -44,8 +44,9 @@ for (const theme of ['light', 'dark'] as const) {
     await page.getByRole('button', { name: /Confirm.*paid off/i }).click();
     await page.waitForTimeout(1300);
     await page.screenshot({ path: `test-results/celebration-beat-${theme}.png` });
-    // `.first()` — the visible beat headline (the off-screen branded ShareCard, B2, also says "Vanquished").
-    await expect(page.getByText(/Vanquished/i).first()).toBeVisible();
+    // Identity-based: "Keep going" is unique to the visible beat card (the off-screen ShareCard has no
+    // such button), so a regression that killed the visible beat can't pass by matching the off-screen copy.
+    await expect(page.getByRole('button', { name: 'Keep going' })).toBeVisible();
   });
 
   test(`grand finale (${theme})`, async ({ page }) => {
@@ -53,7 +54,10 @@ for (const theme of ['light', 'dark'] as const) {
     await seedStore(page, base(theme, [provisional('card', 'Chase Freedom')]));
     await page.goto('/');
     await page.getByRole('button', { name: /Confirm.*paid off/i }).click();
-    await page.waitForTimeout(1600);
+    // R2-A3 — wait for the Skia CanvasKit layers (ring + mesh) to actually render before capturing, so the
+    // light run doesn't screenshot a ringless/meshless frame (a fixed timeout raced the CanvasKit load).
+    await page.locator('canvas').first().waitFor({ state: 'visible', timeout: 10_000 }).catch(() => {});
+    await page.waitForTimeout(1400);
     await page.screenshot({ path: `test-results/celebration-finale-${theme}.png` });
     await expect(page.getByRole('button', { name: 'Continue' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Share your win' })).toBeVisible(); // VIS-2 share entry
@@ -89,8 +93,9 @@ for (const theme of ['light', 'dark'] as const) {
     ]));
     await page.goto('/progress');
     await page.waitForTimeout(600);
-    // `.first()` — the visible eyebrow (the off-screen branded ShareCard, B2, also says "N debts vanquished").
-    await expect(page.getByText(/DEBTS VANQUISHED/i).first()).toBeVisible();
+    // Identity-based: the eyebrow's "DEBTS VANQUISHED · N" (with the middot) is unique — the off-screen
+    // ShareCard's "N debts vanquished" has no middot, so this can't match the capture artifact.
+    await expect(page.getByText(/DEBTS VANQUISHED ·/i)).toBeVisible();
     await page.screenshot({ path: `test-results/celebration-archive-${theme}.png`, fullPage: true });
   });
 }

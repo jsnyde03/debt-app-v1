@@ -85,6 +85,7 @@ export function VanquishedBeat({
       await shareDebtCard(
         shareRef,
         `I just vanquished ${debtName}${amountVanquished != null ? ` — ${formatWhole(amountVanquished)}` : ''} on my way to debt-free with Debt Planner.`,
+        'Share your win',
       );
     } catch (e) {
       reportError(e, { subsystem: 'share', operation: 'vanquished-beat' });
@@ -93,7 +94,10 @@ export function VanquishedBeat({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss} statusBarTranslucent>
-      <Pressable style={styles.backdrop} onPress={onDismiss} accessibilityLabel={`${debtName} paid off. Tap to continue.`}>
+      {/* R2-A1 — `accessible={false}` so the backdrop doesn't COLLAPSE the card into one VoiceOver element
+          (that made the new Share button unreachable). Backdrop-tap dismiss still works for touch; VO users
+          use the Share / Keep going buttons (now individually focusable) or the Modal escape gesture. */}
+      <Pressable style={styles.backdrop} onPress={onDismiss} accessible={false}>
         <Animated.View style={[styles.card, panelStyle]} pointerEvents="box-none">
           <LinearGradient colors={[surf.heroTop, surf.heroBottom]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cardBg}>
             <Animated.View style={[styles.checkRing, checkStyle]}>
@@ -133,6 +137,7 @@ export function VanquishedBeat({
           collapsable={false}
           style={styles.offscreen}
           pointerEvents="none"
+          aria-hidden
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants">
           <ShareCard data={{ kind: 'debt', debtName, amount: amountVanquished, freedPerMonth }} />

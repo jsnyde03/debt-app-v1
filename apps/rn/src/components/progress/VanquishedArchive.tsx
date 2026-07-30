@@ -35,7 +35,7 @@ export function VanquishedArchive({ debts }: { debts: VanquishedDebt[] }) {
     const lines = debts.map((d) => `• ${d.name}${d.amount != null ? ` — ${formatWhole(d.amount)}` : ''}`).join('\n');
     const headline = `I vanquished ${debts.length} debt${debts.length === 1 ? '' : 's'}${total > 0 ? ` (${formatWhole(total)})` : ''} on my way to debt-free 🎉`;
     try {
-      await shareDebtCard(shareRef, `${headline}\n\n${lines}`);
+      await shareDebtCard(shareRef, `${headline}\n\n${lines}`, 'Share your progress');
     } catch (e) {
       reportError(e, { subsystem: 'share', operation: 'vanquished-archive' });
     }
@@ -78,6 +78,7 @@ export function VanquishedArchive({ debts }: { debts: VanquishedDebt[] }) {
         collapsable={false}
         style={styles.offscreen}
         pointerEvents="none"
+        aria-hidden
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants">
         <ShareCard data={{ kind: 'progress', debtsCleared: debts.length, totalPaid: total }} />

@@ -4,7 +4,7 @@
  * API (mobile browsers) or fall back to an alert. Keeps `react-native-view-shot` out of the web bundle.
  * The shipping surface is native iOS. Mirrors Freedom's `share-card.web.ts`.
  */
-export async function shareDebtCard(_ref: unknown, fallbackText: string): Promise<void> {
+export async function shareDebtCard(_ref: unknown, fallbackText: string, _dialogTitle?: string): Promise<void> {
   if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
     try {
       await navigator.share({ text: fallbackText });

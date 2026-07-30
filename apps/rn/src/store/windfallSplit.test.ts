@@ -62,6 +62,13 @@ function run() {
   assert(tightSplit!.items.reduce((a, it) => a + it.amount, 0) === 500, 'C1: absorbed windfall still sums EXACTLY to the amount');
   assert(tightSplit!.items.some((it) => it.key === 'bills' && it.amount > 0), 'C1: absorbed dollars are attributed to bills');
 
+  // R2-T1 — the actual MISSED-paycheck path (income $0 via `missedArrivals`, not just a small base): the
+  // windfall is the only real money, fully absorbed covering living/bills → still non-empty + conserving.
+  const missed: DebtStore = { ...s, missedArrivals: [s.paycheck.nextPaycheckDate] };
+  const missedSplit = selectWindfallSplit(missed, 500);
+  assert(missedSplit != null && missedSplit.items.length > 0, 'R2-T1: missed-paycheck windfall still yields a non-empty split');
+  assert(missedSplit!.items.reduce((a, it) => a + it.amount, 0) === 500, 'R2-T1: missed-paycheck windfall sums exactly');
+
   // T1 — a windfall with nowhere to deploy (no debts, EF already full) lands as spare cash.
   const idle: DebtStore = {
     ...s,

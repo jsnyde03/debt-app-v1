@@ -221,6 +221,7 @@ export default function MoreScreen() {
               subtitle="Unlock premium features for testing (dev / TestFlight QA)."
               right={
                 <Switch
+                  accessibilityLabel="Simulate Premium"
                   value={plan === 'premium'}
                   onValueChange={(v) => appStore.getState().setSubscriptionPlan(v ? 'premium' : 'free')}
                   trackColor={{ true: c.accent.primary, false: c.border.strong }}

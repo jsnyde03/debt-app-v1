@@ -17,7 +17,7 @@ import { formatWhole } from '@/utils/format';
 
 /** Display meta per windfall bucket — the label + glyph (all in the iOS SF-symbol map, `@/theme/icons`). */
 const BUCKET_META: Record<WindfallBucketKey, { label: string; icon: IconGlyph }> = {
-  bills: { label: 'Covers your bills first', icon: 'check-circle' },
+  bills: { label: 'Covers your bills & essentials first', icon: 'check-circle' },
   debt: { label: 'Extra to your debt', icon: 'trending-down' },
   emergency: { label: 'To your emergency fund', icon: 'savings' },
   goals: { label: 'Toward your goals', icon: 'star' },

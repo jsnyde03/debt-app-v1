@@ -10,7 +10,9 @@ export function SwitchRow({ label, value, onValueChange }: { label: string; valu
   return (
     <View style={styles.row}>
       <Text style={[textStyles.body, styles.label, { color: c.text.primary }]}>{label}</Text>
-      <Switch value={value} onValueChange={onValueChange} trackColor={{ true: c.accent.primary, false: c.border.strong }} />
+      {/* R2-A2 — the Switch is its own a11y element, so it must carry the row's name (else VoiceOver says
+          only "off, switch"). Fixed once here → every SwitchRow consumer (Autopay, trials, variable, …). */}
+      <Switch accessibilityLabel={label} value={value} onValueChange={onValueChange} trackColor={{ true: c.accent.primary, false: c.border.strong }} />
     </View>
   );
 }

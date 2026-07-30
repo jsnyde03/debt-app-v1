@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { JourneyRingCanvas } from '@/components/progress/JourneyRingCanvas';
 import { MeshGradientCanvas } from '@/components/plan/MeshGradientCanvas';
@@ -46,6 +47,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
   const reduce = useReduceMotion();
   const surf = c.surface;
   const { width: winW, height: winH } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const soundEnabled = useAppStore((s) => s.store.prefs.debtFreeSoundEnabled ?? false);
 
   const enter = useSharedValue(0);
@@ -94,9 +96,14 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
         ) : null}
 
         {/* A3 — scrollable so AX Dynamic-Type can overflow instead of pushing the CTAs off-screen. */}
-        <ScrollView style={StyleSheet.absoluteFill} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={StyleSheet.absoluteFill}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl }]}
+          showsVerticalScrollIndicator={false}>
         <Animated.View style={[styles.content, contentStyle]}>
-          <View style={styles.ringWrap} accessible accessibilityLabel="You're debt-free.">
+          {/* Ring describes its OWN content ($0 balance); the headline below already says "debt-free"
+              (avoids VoiceOver reading "debt-free" twice). */}
+          <View style={styles.ringWrap} accessible accessibilityLabel="$0 balance">
             {!reduce ? <Bloom color={surf.goldPill} /> : null}
             <JourneyRingCanvas size={RING} stroke={14} pct={100} milestones={[{ t: 100, state: 'free' }]} palette={GOLD_PALETTE} />
             <View style={[StyleSheet.absoluteFill, styles.ringCenter]} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -129,6 +136,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
           collapsable={false}
           style={styles.offscreen}
           pointerEvents="none"
+          aria-hidden
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants">
           <ShareCard data={{ kind: 'finale', totalPaid: stats.totalPaid, debtsCleared: stats.debtsCleared, monthsToFreedom: stats.monthsToFreedom }} />
@@ -148,7 +156,7 @@ function FinaleStat({ value, label, money, surf, reduce }: { value: number; labe
       ) : (
         <CountUp value={value} format={fmt} durationMs={900} maxFontSizeMultiplier={1.3} style={[styles.statVal, { color: surf.goldPill }]} />
       )}
-      <Text style={[textStyles.caption, styles.statLabel, { color: surf.heroSub }]}>{label}</Text>
+      <Text style={[textStyles.caption, styles.statLabel, { color: surf.heroSub }]} maxFontSizeMultiplier={1.3}>{label}</Text>
     </View>
   );
 }
@@ -196,7 +204,7 @@ function ConfettiPiece({ index }: { index: number }) {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  scrollContent: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+  scrollContent: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl },
   content: { alignItems: 'center', gap: spacing.md, width: '100%', maxWidth: 420 },
   ringWrap: { width: RING, height: RING, alignItems: 'center', justifyContent: 'center' },
   ringCenter: { alignItems: 'center', justifyContent: 'center' },
