@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { JourneyRingCanvas } from '@/components/progress/JourneyRingCanvas';
@@ -15,9 +15,11 @@ import { formatWhole } from '@/utils/format';
 
 /**
  * The grand finale (3.3.1.3) — the once-ever full-screen spectacle when the LAST debt is confirmed to $0.
- * A navy takeover, the reused Skia journey ring sweeping to a gold 100% (with a "$0 balance" centre), a
- * Reanimated gold confetti burst, and the HONEST count-up trio (total vanquished · debts cleared · months
- * to freedom — no fabricated interest-saved). Reduce Motion snaps to the final state + keeps the haptic.
+ * A navy takeover, the reused Skia journey ring at a gold 100% (with a "$0 balance" centre) behind a gold
+ * BLOOM flash, a deepened two-wave gold confetti layer that keeps emerging so it BREATHES ~4.7s, the HONEST
+ * count-up trio (total vanquished · debts cleared · months to freedom — no fabricated interest-saved), and
+ * the bespoke `haptics.finale()` Core-Haptics crescendo (VIS-1). Reduce Motion snaps to the final state +
+ * keeps the finale haptic.
  */
 
 const RING = 208;
@@ -30,7 +32,8 @@ const GOLD_PALETTE = {
   dim: 'rgba(255,255,255,0.2)',
   free: '#fbe08a',
 };
-const CONFETTI = 24;
+const CONFETTI = 44;
+const GOLDS = ['#f7cf5f', '#fbe08a', '#ffd873', '#fff3cf'];
 
 export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean; stats: CelebrationStats; onDismiss: () => void }) {
   const c = useAppColors();
@@ -45,10 +48,11 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
     }
     enter.value = reduce ? 1 : withTiming(1, { duration: duration.slow });
     if (reduce) {
-      haptics.success();
+      haptics.finale();
       return;
     }
-    const t = setTimeout(() => haptics.success(), 300); // the crescendo lands with the ring sweep
+    // Fire near-immediately: the crescendo builds for ~0.9s so its peak lands as the ring reads 100%.
+    const t = setTimeout(() => haptics.finale(), 80);
     return () => clearTimeout(t);
   }, [visible, reduce, enter]);
 
@@ -67,6 +71,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
 
         <Animated.View style={[styles.content, contentStyle]}>
           <View style={styles.ringWrap} accessible accessibilityLabel="You're debt-free.">
+            {!reduce ? <Bloom color={surf.goldPill} /> : null}
             <JourneyRingCanvas size={RING} stroke={14} pct={100} milestones={[{ t: 100, state: 'free' }]} palette={GOLD_PALETTE} />
             <View style={[StyleSheet.absoluteFill, styles.ringCenter]} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
               <Text style={[styles.zero, { color: surf.goldPill }]}>$0</Text>
@@ -105,23 +110,45 @@ function FinaleStat({ value, label, money, surf, reduce }: { value: number; labe
   );
 }
 
+/** A soft gold flash that blooms out from behind the ring as the crescendo crests. */
+function Bloom({ color }: { color: string }) {
+  const b = useSharedValue(0);
+  useEffect(() => {
+    b.value = withDelay(650, withTiming(1, { duration: 1100, easing: Easing.out(Easing.quad) }));
+  }, [b]);
+  const style = useAnimatedStyle(() => ({
+    opacity: interpolate(b.value, [0, 0.25, 1], [0, 0.3, 0]),
+    transform: [{ scale: 0.4 + 1.7 * b.value }],
+  }));
+  return <Animated.View pointerEvents="none" style={[styles.bloom, style, { backgroundColor: color }]} />;
+}
+
 function ConfettiPiece({ index }: { index: number }) {
-  const angle = (index / CONFETTI) * 2 * Math.PI;
-  const dist = 150 + (index % 5) * 24;
+  // Two waves (the second a beat behind) so particles keep emerging → the layer breathes ~4.7s.
+  const half = CONFETTI / 2;
+  const wave = index >= half ? 1 : 0;
+  const inWave = index % half;
+  const angle = (index / CONFETTI) * 2 * Math.PI + (index % 3) * 0.3;
+  const dist = 120 + (index % 7) * 26;
+  const delay = wave * 850 + inWave * 55;
+  const fall = 1900 + (index % 5) * 200; // 1900–2700ms per piece
+  const spin = wave ? -400 : 460;
   const p = useSharedValue(0);
   useEffect(() => {
-    p.value = withDelay(index * 12, withTiming(1, { duration: 1150, easing: Easing.out(Easing.quad) }));
-  }, [p, index]);
+    p.value = withDelay(delay, withTiming(1, { duration: fall, easing: Easing.out(Easing.cubic) }));
+  }, [p, delay, fall]);
   const style = useAnimatedStyle(() => ({
-    opacity: 1 - p.value,
+    opacity: interpolate(p.value, [0, 0.1, 0.75, 1], [0, 1, 1, 0]),
     transform: [
-      { translateX: Math.cos(angle) * dist * p.value },
-      { translateY: Math.sin(angle) * dist * p.value + 60 * p.value * p.value }, // a little gravity
-      { rotate: `${p.value * 420}deg` },
-      { scale: 0.7 + 0.5 * p.value },
+      { translateX: Math.cos(angle) * dist * p.value + Math.sin(p.value * 6) * 6 }, // spread + wobble
+      { translateY: Math.sin(angle) * dist * p.value + 90 * p.value * p.value }, // gravity
+      { rotate: `${p.value * spin}deg` },
+      { scale: 0.6 + 0.6 * p.value },
     ],
   }));
-  return <Animated.View style={[styles.confetti, style, { backgroundColor: index % 2 ? '#f7cf5f' : '#fbe08a' }]} />;
+  // Shape variety: streamer / square / dot.
+  const shapeStyle = index % 3 === 0 ? styles.streamer : index % 3 === 1 ? styles.square : styles.dot;
+  return <Animated.View style={[styles.confetti, shapeStyle, style, { backgroundColor: GOLDS[index % GOLDS.length] }]} />;
 }
 
 const styles = StyleSheet.create({
@@ -129,6 +156,7 @@ const styles = StyleSheet.create({
   content: { alignItems: 'center', gap: spacing.md, width: '100%', maxWidth: 420 },
   ringWrap: { width: RING, height: RING, alignItems: 'center', justifyContent: 'center' },
   ringCenter: { alignItems: 'center', justifyContent: 'center' },
+  bloom: { position: 'absolute', width: RING, height: RING, borderRadius: RING / 2 },
   zero: { fontSize: 44, fontWeight: '800', letterSpacing: -1.5, fontVariant: ['tabular-nums'] },
   headline: { fontSize: 30, fontWeight: '800', letterSpacing: -0.5, marginTop: spacing.sm },
   trio: { flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: spacing.xl, marginTop: spacing.sm },
@@ -136,5 +164,8 @@ const styles = StyleSheet.create({
   statVal: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
   statLabel: { textTransform: 'uppercase', letterSpacing: 0.6 },
   cta: { marginTop: spacing.xl, alignSelf: 'stretch' },
-  confetti: { position: 'absolute', left: '50%', top: '40%', width: 10, height: 6, borderRadius: 1.5, marginLeft: -5 },
+  confetti: { position: 'absolute', left: '50%', top: '40%', marginLeft: -5 },
+  streamer: { width: 11, height: 5, borderRadius: 1.5 },
+  square: { width: 7, height: 7, borderRadius: 1 },
+  dot: { width: 7, height: 7, borderRadius: 4 },
 });
