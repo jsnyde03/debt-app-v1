@@ -2,26 +2,41 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
 
 import { useAppColors } from '@/hooks/use-app-colors';
+import { colors } from '@/theme/colors';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
 type Variant = 'primary' | 'secondary' | 'text' | 'danger';
 
-/** Themed button. `primary` = brand CTA fill, `secondary` = outlined card, `text` = bare label, `danger` = destructive fill. */
+/** Themed button. `primary` = brand CTA fill, `secondary` = outlined card, `text` = bare label, `danger` = destructive fill.
+ *  `onDark` forces the DARK color set regardless of the active theme — for a theme-CONSTANT dark surface (the
+ *  finale/beat navy takeover) where theme-reactive tokens invert the hierarchy (B1: light primary is navy-on-navy). */
 export function Button({
   label,
   onPress,
   variant = 'primary',
   disabled,
+  onDark = false,
   style,
 }: {
   label: string;
   onPress: () => void;
   variant?: Variant;
   disabled?: boolean;
+  onDark?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
-  const c = useAppColors();
+  const themeColors = useAppColors();
+  // On a constant-dark surface, resolve from the dark tokens directly so light-mode doesn't render a
+  // navy-on-navy primary / a white secondary that reads as the primary.
+  const c = onDark
+    ? {
+        accent: { brand: colors.accent.brand.dark, danger: colors.accent.danger.dark },
+        text: { onAccent: colors.text.onAccent.dark, primary: colors.text.primary.dark, secondary: colors.text.secondary.dark },
+        background: { secondary: colors.background.secondary.dark },
+        border: { default: colors.border.default.dark },
+      }
+    : themeColors;
   // 3.6.6 — pointer/keyboard affordances via the OFFICIALLY-typed Pressable props (the style-callback's
   // `hovered`/`focused` are RN-Web-only; these props fire for the iPad pointer + hardware keyboard on iOS
   // too, and are inert on touch). A gentle hover lift + a keyboard focus ring, never touching the touch UX.

@@ -114,8 +114,8 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
           </View>
 
           <View style={styles.actions}>
-            <Button label="Share your win" variant="secondary" onPress={onShare} />
-            <Button label="Continue" onPress={onDismiss} />
+            <Button label="Share your win" variant="secondary" onDark onPress={onShare} />
+            <Button label="Continue" onDark onPress={onDismiss} />
           </View>
         </Animated.View>
 

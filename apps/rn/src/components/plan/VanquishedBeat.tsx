@@ -104,7 +104,7 @@ export function VanquishedBeat({
               </Animated.Text>
             ) : null}
 
-            <Button label="Keep going" onPress={onDismiss} style={styles.cta} />
+            <Button label="Keep going" onDark onPress={onDismiss} style={styles.cta} />
           </LinearGradient>
         </Animated.View>
       </Pressable>
