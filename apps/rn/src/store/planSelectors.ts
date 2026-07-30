@@ -8,7 +8,7 @@ import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 
 import type { DebtStore } from '@/data/models';
 
-import { effectivePaycheckBuffer, selectSteadyStateAllocation, type Allocation } from './selectors';
+import { effectivePaycheckBuffer, selectAllocation, selectSteadyStateAllocation, type Allocation } from './selectors';
 
 export type ActiveRecommendedAction = ReturnType<typeof selectActiveRecommendedActions>[number];
 
@@ -73,6 +73,32 @@ export function selectDebtFreeDate(store: DebtStore, allocation: Allocation | nu
     startDate: store.paycheck.currentDate,
   });
   return estimatedDebtFreeDate === 'Unable to estimate' ? null : estimatedDebtFreeDate;
+}
+
+export interface DebtFreeBand {
+  /** The motivational headline date (off the entered/typical income). */
+  typical: string | null;
+  /** The safe-floor date (off `leanAmount`) — null for fixed income. */
+  lean: string | null;
+  /** True only when income varies AND the two dates actually differ (else show one date). */
+  hasBand: boolean;
+}
+
+/**
+ * VIS-5 — the variable-income debt-free BAND. A single date over-promises for a variable-income user, so
+ * this returns TWO: `typical` (headline) and `lean` (safe-floor, off `leanAmount`). "One engine, two runs"
+ * — a pure derivation from data already captured (entered income · `leanAmount` from income-learning ·
+ * debts · the payoff engine); NO schema/scaffolding. Fixed income (or no lean) → `hasBand` false, one date.
+ */
+export function selectDebtFreeBand(store: DebtStore): DebtFreeBand {
+  const typical = selectDebtFreeDate(store, selectAllocation(store));
+  if (!store.paycheck.incomeVaries || store.paycheck.leanAmount <= 0) {
+    return { typical, lean: null, hasBand: false };
+  }
+  // The lean run = the SAME plan with income set to the lean figure → less extra-to-debt → a later date.
+  const leanStore: DebtStore = { ...store, paycheck: { ...store.paycheck, amount: String(store.paycheck.leanAmount) } };
+  const lean = selectDebtFreeDate(leanStore, selectAllocation(leanStore));
+  return { typical, lean, hasBand: typical != null && lean != null && typical !== lean };
 }
 
 /** Required bills + debt minimums due this paycheck, each with its display state. */

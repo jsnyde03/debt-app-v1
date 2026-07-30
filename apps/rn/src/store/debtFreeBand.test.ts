@@ -1,0 +1,48 @@
+import { createDefaultStore } from '@/data/defaults';
+import type { DebtStore } from '@/data/models';
+import { selectDebtFreeBand } from '@/store/planSelectors';
+
+/**
+ * VIS-5 (closeout) — the variable-income debt-free BAND. Pure "one engine, two runs" derivation.
+ * Self-runs on import via `test:app`.
+ */
+let passed = 0;
+function assert(cond: boolean, label: string) {
+  if (!cond) throw new Error(`FAIL [debtFreeBand: ${label}]`);
+  passed++;
+}
+
+function storeWith(over: Partial<DebtStore['paycheck']>): DebtStore {
+  const s = createDefaultStore();
+  return {
+    ...s,
+    debts: [
+      { id: 'd0', name: 'Card', balance: 12000, minimumPayment: 200, apr: 22, dueDate: '2026-08-01', type: 'debt', recurrence: 'monthly', originalBalance: 12000, balanceAsOfDate: '2026-08-01', lastVerifiedDate: '2026-08-01' },
+    ],
+    paycheck: { ...s.paycheck, amount: '3000', currentDate: '2026-08-01', payCycle: 'monthly', ...over },
+  };
+}
+
+// Fixed income → exactly one date, no band.
+{
+  const band = selectDebtFreeBand(storeWith({ incomeVaries: false, leanAmount: 0 }));
+  assert(band.hasBand === false, 'fixed income has no band');
+  assert(band.lean === null, 'fixed income lean is null');
+  assert(band.typical !== null, 'fixed income still has a typical date');
+}
+
+// Variable income but lean === typical income → the two runs match → still no band.
+{
+  const band = selectDebtFreeBand(storeWith({ incomeVaries: true, leanAmount: 3000 }));
+  assert(band.hasBand === false, 'equal typical/lean income → dates match → no band');
+}
+
+// Variable income with a materially lower lean → both dates + a real band, lean no earlier than typical.
+{
+  const band = selectDebtFreeBand(storeWith({ incomeVaries: true, leanAmount: 2000 }));
+  assert(band.typical !== null && band.lean !== null, 'variable income yields both dates');
+  assert(band.hasBand === true, 'a materially lower lean income produces a band');
+  assert(new Date(band.lean as string).getTime() >= new Date(band.typical as string).getTime(), 'lean payoff is not earlier than typical');
+}
+
+console.log(`\n  debtFreeBand: ${passed} assertions passed\n`);
