@@ -264,6 +264,14 @@ async function run() {
   b.getState().setCushionFloor(1_000_000);
   eq(b.getState().store.cushionFloor, 1000, '…and the real setCushionFloor clamp applies (no forked logic)');
 
+  // 3.5.0.5 — the tutorial's "drag your line" beat routes through THIS setter, so the snap-to-$25 the
+  // user is being taught is the app's own rule, not a reimplementation that could drift from it.
+  b.getState().setCushionFloor(213);
+  eq(b.getState().store.cushionFloor, 225, 'the sandbox floor snaps to $25 exactly as the real app does');
+  const realFloorBefore = appStore.getState().store.cushionFloor;
+  b.getState().setCushionFloor(375);
+  eq(appStore.getState().store.cushionFloor, realFloorBefore, '…while the user\'s REAL cushion line never moves');
+
   console.log(`✅ sandbox store: ${passed} assertions passed.\n`);
 }
 

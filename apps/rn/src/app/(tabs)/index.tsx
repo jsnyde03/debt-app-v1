@@ -227,6 +227,7 @@ export default function TodayScreen() {
               onTopUp={() => tightTopUp && appStore.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
               showIntro={isPremium && !store.prefs.guardianIntroSeen}
               onDismissIntro={() => appStore.getState().updatePrefs({ guardianIntroSeen: true })}
+              onSetFloor={(v) => appStore.getState().setCushionFloor(v)}
               attestation={attestation}
               onAttestBills={(v) => appStore.getState().setBillsAttested(v)}
               recovery={recovery}

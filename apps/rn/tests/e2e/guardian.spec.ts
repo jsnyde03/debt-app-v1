@@ -21,6 +21,17 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
     await expect(page.getByText('Adjust your line →')).toBeVisible(); // premium-only floor control is wired
   });
 
+  test('premium · the floor control actually OPENS its sheet (3.5.0.5 wiring)', async ({ page }) => {
+    // 3.5.0.5 made the sheet's render conditional on the host passing `onSetFloor`, so the card can be
+    // reused as a tutorial prop without moving the user's real line. The visible-control assertion above
+    // can't catch a host that forgets the prop — the link still renders and nothing opens. This does.
+    await seedStore(page, scenario());
+    await page.goto('/');
+    await page.getByText('Adjust your line →').click();
+    await expect(page.getByText('Your cushion line')).toBeVisible();
+    await expect(page.getByText('The cash the Guardian keeps each paycheck before any extra debt payoff.')).toBeVisible();
+  });
+
   test('premium · tight: headroom under the floor renders the tight read', async ({ page }) => {
     await seedStore(page, scenario({ requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 1750, dueDate: '2026-07-01', recurrence: 'monthly' }] }));
     await page.goto('/');

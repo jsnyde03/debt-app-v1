@@ -35,6 +35,7 @@ export function PaydayGuardianCard({
   onTopUp,
   showIntro,
   onDismissIntro,
+  onSetFloor,
   attestation,
   onAttestBills,
   recovery,
@@ -67,6 +68,10 @@ export function PaydayGuardianCard({
    *  earns-trust-as-it-learns + the advice boundary. Shown once, then dismissed to `guardianIntroSeen`. */
   showIntro?: boolean;
   onDismissIntro?: () => void;
+  /** 3.5.0.5 — commit a new cushion floor. The HOST owns this write (the app store's setter in the real
+   *  app, the sandbox's in the tutorial) so the card can be used as a teaching prop without moving the
+   *  user's real line. Omit it and the floor sheet simply isn't offered. */
+  onSetFloor?: (value: number) => void;
 }) {
   const c = useAppColors();
   const [barW, setBarW] = useState(0);
@@ -288,7 +293,9 @@ export function PaydayGuardianCard({
         </Pressable>
       ) : null}
 
-      {isPremium ? <CushionFloorSheet visible={floorSheet} floor={brief.floor} onClose={() => setFloorSheet(false)} /> : null}
+      {isPremium && onSetFloor ? (
+        <CushionFloorSheet visible={floorSheet} floor={brief.floor} onClose={() => setFloorSheet(false)} onApply={onSetFloor} />
+      ) : null}
     </Card>
   );
 }
