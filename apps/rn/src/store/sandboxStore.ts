@@ -3,7 +3,7 @@ import { getNextPaycheckDate } from '@core/payCycle/getNextPaycheckDate';
 import { createDefaultStore } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
 
-import { createDebtStore, type DebtStoreInstance } from './store';
+import { createDebtStore, type DebtAppState, type DebtStoreInstance } from './store';
 
 /**
  * 3.5.0.1 — the SANDBOX STORE factory: the ephemeral, scriptable Guardian substrate that the Phase-3.5
@@ -34,6 +34,65 @@ import { createDebtStore, type DebtStoreInstance } from './store';
 
 /** A sandbox instance is structurally a normal store — the brand is tracked out-of-band (see below). */
 export type SandboxStoreInstance = DebtStoreInstance;
+
+/**
+ * 3.5.0.2 — the COLD-START HONESTY CEILING.
+ *
+ * The demo and tutorial must never depict a Guardian a day-one user could not have. That is not one
+ * number: the before-scan found THREE independent maturity channels, and the original spec named only
+ * the first.
+ *
+ *  1. `genuineCycleCount` ≥ `DISCOVERY_CYCLES` (3) retires the discovery holdback — the safety net stops
+ *     being held. Capped at 1, so the net is ALWAYS held and the release moment stays a scripted beat
+ *     rather than something the tutorial can stumble into.
+ *  2. `cycleHistory` feeds `selectGuardianProofOfWork` and `selectCalibrationScore` DIRECTLY (not via
+ *     `genuineCycleCount`). Uncapped, three scripted rollovers would have the proof strip announcing
+ *     "Held your line · 3 paychecks" on a day-one demo. Capped to the most recent entry.
+ *  3. `incomeActualsLog` drives `leanConfirms`; at `COLDSTART_CONFIRMATIONS` (4) the variable-income
+ *     cold-start holdback clears. Capped so it cannot be reached.
+ *
+ * Plus two "day one" pins: reads never age into a staleness hedge mid-tutorial (`inputsAsOf` tracks the
+ * scripted today, which is honest — the script's numbers ARE current), and `onboardedAt` never drifts
+ * off the frozen base date.
+ *
+ * Applied by `createDebtStore({ bound })` on EVERY mutation and by `seedSandbox` on the way in, so it
+ * holds by construction: a scenario cannot seed past it, and no sequence of scripted actions — however
+ * many rollover beats 3.5.0.4 adds — can climb over it.
+ */
+export const SANDBOX_MAX_GENUINE_CYCLES = 1;
+export const SANDBOX_MAX_HISTORY = 1;
+/** One spare slot beyond history so an absorb/walk-back beat has room without unbounded growth. */
+export const SANDBOX_MAX_SURPRISES = 2;
+
+/** Build the honesty ceiling for a scenario's frozen base date. Pure; idempotent. */
+export function boundSandboxStore(baseDate: string): (store: DebtStore) => DebtStore {
+  return (store) => {
+    const genuineCycleCount = Math.min(store.genuineCycleCount, SANDBOX_MAX_GENUINE_CYCLES);
+    const cycleHistory =
+      store.cycleHistory.length > SANDBOX_MAX_HISTORY ? store.cycleHistory.slice(-SANDBOX_MAX_HISTORY) : store.cycleHistory;
+    const incomeActualsLog =
+      store.incomeActualsLog.length > SANDBOX_MAX_HISTORY ? store.incomeActualsLog.slice(-SANDBOX_MAX_HISTORY) : store.incomeActualsLog;
+    const surpriseOutflowLog =
+      store.surpriseOutflowLog.length > SANDBOX_MAX_SURPRISES ? store.surpriseOutflowLog.slice(-SANDBOX_MAX_SURPRISES) : store.surpriseOutflowLog;
+    // Reads stay fresh: `inputsAsOf` follows the scripted today rather than aging away from it.
+    const inputsAsOf = store.paycheck.currentDate;
+    // Day one never moves, however many cycles are scripted.
+    const onboardedAt = store.onboardedAt === null ? null : baseDate;
+
+    // Identity-preserving when nothing was out of bounds — avoids pointless re-renders on every set.
+    if (
+      genuineCycleCount === store.genuineCycleCount &&
+      cycleHistory === store.cycleHistory &&
+      incomeActualsLog === store.incomeActualsLog &&
+      surpriseOutflowLog === store.surpriseOutflowLog &&
+      inputsAsOf === store.inputsAsOf &&
+      onboardedAt === store.onboardedAt
+    ) {
+      return store;
+    }
+    return { ...store, genuineCycleCount, cycleHistory, incomeActualsLog, surpriseOutflowLog, inputsAsOf, onboardedAt };
+  };
+}
 
 /**
  * A scripted starting state for the sandbox. `build` receives a base store whose clock is already
@@ -99,6 +158,8 @@ export function seedSandbox(store: SandboxStoreInstance, scenario: SandboxScenar
   const box = sandboxClocks.get(store);
   if (box) box.date = scenario.baseDate;
 
+  // The seed is bounded by the wrapped `setState` installed in `createSandboxStore` — a scenario cannot
+  // hand-seed a matured Guardian (6 cycles of history) straight past the ceiling.
   store.setState({
     store: scenario.build(createSandboxBase(scenario.baseDate)),
     // A sandbox has nothing to hydrate FROM; declaring it hydrated keeps every `isHydrated` gate in the
@@ -114,9 +175,13 @@ export function seedSandbox(store: SandboxStoreInstance, scenario: SandboxScenar
  * Build an ephemeral, isolated, scripted store for the scenario. The ONLY way to make a sandbox.
  */
 export function createSandboxStore(scenario: SandboxScenario): SandboxStoreInstance {
-  // The clock box is created BEFORE the store so the injected `now` can close over it.
+  // The clock box is created BEFORE the store so the injected `now` and the bound can close over it —
+  // the ceiling's `onboardedAt` pin has to follow a re-seed to a different base date too.
   const box = { date: scenario.baseDate };
-  const store = createDebtStore({ now: () => box.date });
+  const store = createDebtStore({
+    now: () => box.date,
+    bound: (s) => boundSandboxStore(box.date)(s),
+  });
   sandboxes.add(store);
   sandboxClocks.set(store, box);
 
@@ -127,6 +192,19 @@ export function createSandboxStore(scenario: SandboxScenario): SandboxStoreInsta
     hydrate: async () => {},
     save: async () => {},
   });
+
+  // Close the last gap in the honesty ceiling (3.5.0.2 after-scan): the `bound` passed to
+  // `createDebtStore` wraps the ACTIONS' `set`, but `api.setState` is a separate door — direct
+  // `sandbox.setState({ store })` from a caller would land unbounded. Wrap it so every write to a
+  // sandbox goes through the ceiling, whichever door it uses. The bound is idempotent, so re-applying
+  // it to already-bounded state is free.
+  const rawSetState = store.setState;
+  store.setState = ((partial: unknown, replace?: boolean) =>
+    (rawSetState as (p: unknown, r?: boolean) => void)((state: DebtAppState) => {
+      const next = typeof partial === 'function' ? (partial as (s: DebtAppState) => unknown)(state) : partial;
+      const patch = next as Partial<DebtAppState> | null;
+      return patch && patch.store ? { ...patch, store: boundSandboxStore(box.date)(patch.store) } : patch;
+    }, replace)) as typeof store.setState;
 
   seedSandbox(store, scenario);
   return store;

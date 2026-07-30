@@ -148,16 +148,37 @@ export interface DebtAppState {
 const recKey = (a: CompletedRecommendedAction) => `${a.category}:${a.targetId}:${a.paymentSource ?? 'paycheck'}`;
 
 /**
- * Build a store instance. `opts.now` (3.5.0.1) injects the wall clock the drift baseline anchors to;
- * it defaults to the real one, so the app and every existing test are unaffected. The Phase-3.5 sandbox
- * passes its scenario's frozen base date so a scripted rollover stays deterministic and its drift read
- * stays sane. See `sandboxStore.ts`.
+ * Build a store instance.
+ *
+ * `opts.now` (3.5.0.1) injects the wall clock the drift baseline anchors to; it defaults to the real
+ * one, so the app and every existing test are unaffected. The Phase-3.5 sandbox passes its scenario's
+ * frozen base date so a scripted rollover stays deterministic and its drift read stays sane.
+ *
+ * `opts.bound` (3.5.0.2) is an invariant applied to `store` on EVERY mutation, before it lands. Undefined
+ * for the real app (zero overhead, zero behavior change); the sandbox passes the cold-start honesty
+ * bounds so no sequence of scripted actions can reach a matured Guardian a day-one user couldn't have.
+ * Enforcing it here rather than at the call sites is what makes the bound hold "by construction" — an
+ * action added later is covered without anyone remembering to clamp it. See `sandboxStore.ts`.
  */
-export function createDebtStore(opts?: { now?: () => string }) {
+export function createDebtStore(opts?: { now?: () => string; bound?: (store: DebtStore) => DebtStore }) {
   // Named `clock`, not `now` — several actions already bind a local `now` to the store's own
   // `paycheck.currentDate`, which is a different notion of "today" (see the drift.ts note).
   const clock = opts?.now ?? todayLocalISO;
-  return createStore<DebtAppState>((set, get) => ({
+  const bound = opts?.bound;
+  return createStore<DebtAppState>((rawSet, get) => {
+    // Wrap the actions' `set` so the bound runs inside the SAME update (one render, no correction
+    // flash). `api.setState` is deliberately left unwrapped — external seeding goes through
+    // `seedSandbox`, which applies the same bound itself.
+    const set: typeof rawSet = !bound
+      ? rawSet
+      : ((partial: unknown, replace?: boolean) =>
+          (rawSet as (p: unknown, r?: boolean) => void)((state: DebtAppState) => {
+            const next = typeof partial === 'function' ? (partial as (s: DebtAppState) => unknown)(state) : partial;
+            const patch = next as Partial<DebtAppState> | null;
+            return patch && patch.store ? { ...patch, store: bound(patch.store) } : patch;
+          }, replace)) as typeof rawSet;
+
+    return {
     store: createDefaultStore(),
     isHydrated: false,
     isSaving: false,
@@ -540,7 +561,8 @@ export function createDebtStore(opts?: { now?: () => string }) {
       // blob can't land the v5 substrate fields `undefined` (NaN `genuineCycleCount`, broken staleness).
       set({ store: runMigrations(store) });
     },
-  }));
+    };
+  });
 }
 
 export type DebtStoreInstance = ReturnType<typeof createDebtStore>;

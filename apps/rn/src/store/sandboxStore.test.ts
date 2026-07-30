@@ -7,9 +7,12 @@ import {
   createSandboxStore,
   isSandboxStore,
   seedSandbox,
+  SANDBOX_MAX_GENUINE_CYCLES,
+  SANDBOX_MAX_HISTORY,
   type SandboxScenario,
 } from '@/store/sandboxStore';
-import { selectPaydayGuardian } from '@/store/guardianSelectors';
+import { selectGuardianProofOfWork, selectPaydayGuardian } from '@/store/guardianSelectors';
+import { deriveConfidenceContext } from '@/store/guardianPredictionCore';
 import { bootstrapPersistence } from '@/store/persistence';
 import { createDebtStore } from '@/store/store';
 import type { StorageAdapter } from '@/storage/adapter';
@@ -179,6 +182,81 @@ async function run() {
     real.getState().store.driftBaseline?.anchorDate !== SCENARIO.baseDate,
     'a NON-sandbox store still anchors to the real wall clock (default behavior unchanged)',
   );
+
+  // ── 3.5.0.2 — the cold-start honesty ceiling holds BY CONSTRUCTION. ──────────────────────────
+  // The point: the demo must never depict a Guardian a day-one user could not have. The before-scan
+  // found three independent maturity channels, so all three are asserted — driven, not just seeded.
+  const aged = createSandboxStore(SCENARIO);
+  aged.getState().completeOnboarding();
+  for (let i = 0; i < 8; i++) aged.getState().rolloverPayCycle();
+
+  const s = aged.getState().store;
+  eq(s.genuineCycleCount, SANDBOX_MAX_GENUINE_CYCLES, '8 scripted rollovers cannot push genuineCycleCount past the cap');
+  assert(s.cycleHistory.length <= SANDBOX_MAX_HISTORY, '…nor build a multi-cycle cycleHistory');
+  assert(s.incomeActualsLog.length <= SANDBOX_MAX_HISTORY, '…nor accumulate lean confirmations');
+  eq(s.onboardedAt, SCENARIO.baseDate, '…and "day one" never drifts off the frozen base date');
+  eq(s.inputsAsOf, s.paycheck.currentDate, '…and the read never ages into a staleness hedge');
+
+  // Channel 1 — the safety net is still held (discovery holdback never retires).
+  eq(
+    deriveConfidenceContext(s).discoveryHoldbackActive,
+    true,
+    'the discovery holdback is STILL active after 8 rollovers (the safety net cannot mature away)',
+  );
+
+  // Channel 2 — the proof strip cannot claim a track record the user has not earned.
+  const pow = selectGuardianProofOfWork(s);
+  assert(
+    pow === null || pow.heldStreak <= SANDBOX_MAX_HISTORY,
+    'the proof-of-work strip cannot announce a multi-paycheck held streak on a day-one demo',
+  );
+
+  // Channel 3 — a variable-income scenario cannot clear the cold-start holdback either.
+  const varying = createSandboxStore({
+    ...SCENARIO,
+    id: 'test-variable',
+    build: (base) => {
+      const built = SCENARIO.build(base);
+      return { ...built, paycheck: { ...built.paycheck, incomeVaries: true, leanAmount: 1500, typicalAmount: 2000 } };
+    },
+  });
+  varying.getState().completeOnboarding();
+  for (let i = 0; i < 8; i++) varying.getState().rolloverPayCycle();
+  eq(
+    deriveConfidenceContext(varying.getState().store).coldStartHoldbackActive,
+    true,
+    'variable income: the cold-start holdback also survives 8 rollovers (leanConfirms capped)',
+  );
+
+  // The ceiling also binds the SEED — `setState` bypasses the actions' wrapped `set`.
+  const matured = createSandboxStore({
+    ...SCENARIO,
+    id: 'test-matured-seed',
+    build: (base) => ({
+      ...SCENARIO.build(base),
+      genuineCycleCount: 6,
+      cycleHistory: [{ cycleEndDate: base.paycheck.currentDate, totalPaidThisCycle: 100 }] as DebtStore['cycleHistory'],
+    }),
+  });
+  eq(
+    matured.getState().store.genuineCycleCount,
+    SANDBOX_MAX_GENUINE_CYCLES,
+    'a scenario cannot SEED a matured Guardian past the ceiling either',
+  );
+
+  // …and neither can a direct `setState`, the other door into the store (3.5.0.2 after-scan).
+  matured.setState({ store: { ...matured.getState().store, genuineCycleCount: 9 } });
+  eq(
+    matured.getState().store.genuineCycleCount,
+    SANDBOX_MAX_GENUINE_CYCLES,
+    'a direct sandbox.setState is bounded too (every write door goes through the ceiling)',
+  );
+
+  // And the real app is untouched: no bound, so a real store matures normally.
+  const realAged = createDebtStore();
+  realAged.setState({ store: { ...SCENARIO.build(createSandboxBase(SCENARIO.baseDate)), genuineCycleCount: 6 } });
+  realAged.getState().setPayoffStrategy('avalanche');
+  eq(realAged.getState().store.genuineCycleCount, 6, 'a NON-sandbox store is NOT bounded (real maturity is untouched)');
 
   // ── The payoff: a sandbox IS a real store, so shipped logic runs against it verbatim. ─────────
   const guardian = selectPaydayGuardian(b.getState().store);
