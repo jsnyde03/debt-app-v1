@@ -14,6 +14,10 @@ export interface TrajectorySkiaChartProps {
   activePath: string;
   areaPath: string;
   ghostPath: string;
+  /** VIS-5 — the cone of outcomes: a faint fill between the typical + lean curves, with a dashed lean edge. */
+  bandPath?: string;
+  leanPath?: string;
+  leanEndpoint?: { x: number; y: number } | null;
   /** Optional What-If overlay — the payoff curve WITH the simulated extra (dashed, drawn instantly). */
   simulatedPath?: string;
   simulatedEndpoint?: { x: number; y: number } | null;
@@ -36,6 +40,9 @@ export interface TrajectorySkiaChartProps {
     startDot: string;
     /** The What-If overlay color (green) — distinct from the plan's gold debt-free finish. */
     simulated: string;
+    /** VIS-5 cone: faint fill (band) + dashed edge (lean). */
+    band?: string;
+    lean?: string;
   };
 }
 
@@ -45,6 +52,9 @@ export default function TrajectorySkiaChart({
   activePath,
   areaPath,
   ghostPath,
+  bandPath,
+  leanPath,
+  leanEndpoint,
   simulatedPath,
   simulatedEndpoint,
   endpoint,
@@ -61,6 +71,8 @@ export default function TrajectorySkiaChart({
   const area = useMemo(() => Skia.Path.MakeFromSVGString(areaPath), [areaPath]);
   const ghost = useMemo(() => (ghostPath ? Skia.Path.MakeFromSVGString(ghostPath) : null), [ghostPath]);
   const simulated = useMemo(() => (simulatedPath ? Skia.Path.MakeFromSVGString(simulatedPath) : null), [simulatedPath]);
+  const bandArea = useMemo(() => (bandPath ? Skia.Path.MakeFromSVGString(bandPath) : null), [bandPath]);
+  const leanLine = useMemo(() => (leanPath ? Skia.Path.MakeFromSVGString(leanPath) : null), [leanPath]);
 
   const reduce = useReducedMotion();
   const progress = useSharedValue(reduce ? 1 : 0);
@@ -87,6 +99,16 @@ export default function TrajectorySkiaChart({
           <LinearGradient start={vec(0, 0)} end={vec(0, height)} colors={[palette.areaTop, palette.areaBottom]} />
         </Path>
       ) : null}
+
+      {/* VIS-5 cone — the range of outcomes: a faint plan-tinted fill between the typical + lean curves,
+          behind the lines; the lean (safe-floor) edge as a dashed stroke. Variable income only. */}
+      {bandArea && palette.band ? <Path path={bandArea} style="fill" color={palette.band} opacity={areaOpacity} /> : null}
+      {leanLine && palette.lean ? (
+        <Path path={leanLine} style="stroke" strokeWidth={1.5} strokeCap="round" color={palette.lean} opacity={0.7}>
+          <DashPathEffect intervals={[6, 5]} />
+        </Path>
+      ) : null}
+      {leanEndpoint && palette.lean ? <Circle cx={leanEndpoint.x} cy={leanEndpoint.y} r={4} color={palette.lean} /> : null}
 
       {/* the other strategy — faint ghost, no glow */}
       {ghost ? <Path path={ghost} style="stroke" strokeWidth={1.5} strokeCap="round" color={palette.ghost} opacity={0.3} /> : null}

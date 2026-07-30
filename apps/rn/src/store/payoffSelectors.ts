@@ -6,7 +6,7 @@ import type { TimelineItem } from '@core/timeline/buildTimelineItems';
 
 import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
 
-import { selectDebtFreeDate, selectExtraToDebt } from './planSelectors';
+import { selectDebtFreeBand, selectDebtFreeDate, selectExtraToDebt, type DebtFreeBand } from './planSelectors';
 import { buildForecastCycles } from './forecastCycles';
 import { effectivePaycheckBuffer, selectAllocation, selectSteadyStateAllocation } from './selectors';
 
@@ -37,6 +37,10 @@ export interface PayoffView {
   avalancheClears: DebtClearPoint[];
   /** The minimum-payments-only curve — the "vs. minimums" ghost on the trajectory chart. */
   minimums: TrajectoryPoint[];
+  /** VIS-5 — the lean/safe-floor payoff curve (variable income only); empty when there's no band. */
+  lean: TrajectoryPoint[];
+  /** VIS-5 — typical/lean debt-free dates + whether to show the cone (variable income, dates differ). */
+  band: DebtFreeBand;
   order: Debt[];
   focus: Debt | null;
 }
@@ -69,6 +73,17 @@ export function selectPayoffView(store: DebtStore): PayoffView {
   // never), so it trails above/beyond the active plan: the visible "vs. minimums" gap.
   const minimums = liveDebts.length > 0 ? buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: 0, strategy: store.payoffStrategy }) : [];
 
+  // VIS-5 — the lean/safe-floor curve for a variable-income user: the SAME plan run on the lean income,
+  // so it pays off later (the cone's upper edge). Only computed when there's a real band.
+  const band = selectDebtFreeBand(store);
+  let lean: TrajectoryPoint[] = [];
+  if (band.hasBand && liveDebts.length > 0) {
+    const leanStore: DebtStore = { ...store, paycheck: { ...store.paycheck, amount: String(store.paycheck.leanAmount) } };
+    const leanSteady = selectSteadyStateAllocation(leanStore);
+    const leanExtra = leanSteady ? selectExtraToDebt(leanSteady) * payCyclesPerMonth(store.paycheck.payCycle) : 0;
+    lean = buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: leanExtra, strategy: store.payoffStrategy });
+  }
+
   const order = rankDebts(liveDebts, store.payoffStrategy);
   return {
     hasDebts: liveDebts.length > 0,
@@ -80,6 +95,8 @@ export function selectPayoffView(store: DebtStore): PayoffView {
     snowballClears: snowballSim.clears,
     avalancheClears: avalancheSim.clears,
     minimums,
+    lean,
+    band,
     order,
     focus: order[0] ?? null,
   };

@@ -8,6 +8,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { haptics } from '@/motion';
 import type { WhatIfResult } from '@/store/analysisSelectors';
+import type { DebtFreeBand } from '@/store/planSelectors';
 import type { DebtClearPoint, InterestSaved, TrajectoryPoint } from '@/store/payoffSelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -88,6 +89,8 @@ export function TrajectoryChart({
   snowballClears,
   avalancheClears,
   minimums,
+  lean,
+  band,
   strategy,
   debtFreeDate,
   interestSaved,
@@ -101,6 +104,9 @@ export function TrajectoryChart({
   snowballClears: DebtClearPoint[];
   avalancheClears: DebtClearPoint[];
   minimums: TrajectoryPoint[];
+  /** VIS-5 — the lean/safe-floor curve + the typical/lean band dates (variable income). */
+  lean: TrajectoryPoint[];
+  band: DebtFreeBand;
   strategy: PayoffStrategy;
   debtFreeDate: string | null;
   interestSaved: InterestSaved;
@@ -129,7 +135,10 @@ export function TrajectoryChart({
   // "none" case (no extra reaches the debt) the minimums curve IS the active plan, so we hide it.
   const showMinimums = interestSaved.kind === 'saving' || interestSaved.kind === 'payoff-enabling';
   const ghost = showMinimums ? minimums : [];
-  const all = [...active, ...ghost];
+  // VIS-5 — the lean/safe-floor curve rides ABOVE the typical plan (pays off later); include it in the
+  // extent so the X-scale reaches the lean date and the cone isn't clipped.
+  const cone = band.hasBand ? lean : [];
+  const all = [...active, ...ghost, ...cone];
   const maxMonth = Math.max(1, ...all.map((p) => p.month));
   const rawMax = Math.max(1, ...all.map((p) => p.balance));
   const step = niceStep(rawMax);
@@ -151,6 +160,17 @@ export function TrajectoryChart({
   const endPoint = active.find((p) => p.balance <= 0);
   const endpoint = endPoint && w > 0 ? { x: mapX(endPoint.month), y: baselineY } : null;
   const start = activePts.length ? activePts[0] : null;
+
+  // VIS-5 — the safe-floor (lean) curve + the cone band = the area between the typical and lean curves.
+  // The band's smooth top edge follows the lean curve; the bottom edge traces the typical curve back.
+  const leanPts = cone.length > 1 && w > 0 ? toPts(cone) : [];
+  const leanPath = leanPts.length >= 2 ? smoothPath(leanPts) : '';
+  const bandPath =
+    leanPts.length >= 2 && activePts.length >= 2
+      ? `${leanPath} ${[...activePts].reverse().map((p) => `L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')} Z`
+      : '';
+  const leanEndPoint = cone.find((p) => p.balance <= 0);
+  const leanEndpoint = leanEndPoint && w > 0 ? { x: mapX(leanEndPoint.month), y: baselineY } : null;
 
   // Per-debt waypoints — a small bead where each debt falls away, sitting ON the curve. The LAST clear
   // IS the debt-free endpoint (already the bead + date pill), so only intermediate debts get a waypoint.
@@ -248,6 +268,9 @@ export function TrajectoryChart({
     core: dark ? '#ffe9a8' : '#eeb42e',
     startDot: c.accent.primary,
     simulated: c.accent.success, // green "with extra" overlay — distinct from the gold plan finish
+    // VIS-5 — the cone of outcomes: a faint plan-tinted fill between typical + lean, with a dashed lean edge.
+    band: dark ? 'rgba(91,157,255,0.14)' : 'rgba(47,102,234,0.10)',
+    lean: dark ? 'rgba(91,157,255,0.5)' : 'rgba(47,102,234,0.45)',
   };
 
   return (
@@ -281,6 +304,9 @@ export function TrajectoryChart({
               activePath={activePath}
               areaPath={areaPath}
               ghostPath={ghostPath}
+              bandPath={bandPath}
+              leanPath={leanPath}
+              leanEndpoint={leanEndpoint}
               simulatedPath={simulatedPath}
               simulatedEndpoint={simulatedEndpoint}
               endpoint={endpoint}
@@ -374,7 +400,7 @@ export function TrajectoryChart({
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Now</Text>
       </View>
 
-      {showMinimums || showSimulated ? (
+      {showMinimums || showSimulated || band.hasBand ? (
         <View style={styles.legend}>
           {/* Order mirrors the chart's line stacking (top→bottom): minimums rides highest, then the
               plan, then with-extra dips lowest. */}
@@ -405,6 +431,19 @@ export function TrajectoryChart({
               </Text>
             ) : null}
           </View>
+          {/* VIS-5 — Safe-floor: the lean-income payoff date (the cone's later edge). The plan row above is
+              the motivational headline ("on track for"); this is the honest floor for a variable earner. */}
+          {band.hasBand && band.lean ? (
+            <View style={styles.legendRow}>
+              <View style={styles.legendItem}>
+                <View style={[styles.swatch, styles.swatchDashed, { backgroundColor: c.accent.primary, opacity: 0.5 }]} />
+                <Text style={[textStyles.caption, { color: c.text.secondary }]}>Safe-floor</Text>
+              </View>
+              <Text style={[textStyles.caption, styles.rowData, { color: c.text.secondary }]} numberOfLines={1}>
+                {shortDate(band.lean)}
+              </Text>
+            </View>
+          ) : null}
           {/* With extra — the what-if payoff date, green (the contrast to the gold plan). */}
           {showSimulated ? (
             <View style={styles.legendRow}>

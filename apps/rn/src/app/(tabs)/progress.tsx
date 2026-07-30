@@ -185,6 +185,8 @@ export default function ProgressScreen() {
         snowballClears={view.snowballClears}
         avalancheClears={view.avalancheClears}
         minimums={view.minimums}
+        lean={view.lean}
+        band={view.band}
         strategy={strategy}
         debtFreeDate={view.debtFreeDate}
         interestSaved={view.interestSaved}
