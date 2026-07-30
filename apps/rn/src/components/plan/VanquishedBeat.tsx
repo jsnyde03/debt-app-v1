@@ -92,6 +92,12 @@ export function VanquishedBeat({
     }
   }
 
+  // R3-A1 — one VoiceOver utterance for the whole card (name · amount · cascade), which also suppresses
+  // the animated CountUp reading mid-roll (a11y.ts's "final value, never mid-roll" doctrine).
+  const beatA11y = `${debtName} vanquished${amountVanquished != null ? `, ${formatWhole(amountVanquished)} cleared` : ' — paid off'}${
+    showCascade ? `. ${formatWhole(freedPerMonth)} a month now flows to ${nextDebtName}.` : ''
+  }`;
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss} statusBarTranslucent>
       {/* R2-A1 — `accessible={false}` so the backdrop doesn't COLLAPSE the card into one VoiceOver element
@@ -104,25 +110,27 @@ export function VanquishedBeat({
               <AppIcon name="check" size={34} color={colors.surface.goldPillInk.light} />
             </Animated.View>
 
-            <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]}>{debtName.toUpperCase()}</Text>
-            <Text style={[styles.gone, { color: surf.heroText }]}>Vanquished</Text>
+            <View style={styles.textGroup} accessible accessibilityLabel={beatA11y}>
+              <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]} maxFontSizeMultiplier={1.4}>{debtName.toUpperCase()}</Text>
+              <Text style={[styles.gone, { color: surf.heroText }]} maxFontSizeMultiplier={1.3}>Vanquished</Text>
 
-            {amountVanquished != null ? (
-              <CountUp
-                value={amountVanquished}
-                format={(n) => formatWhole(n)}
-                maxFontSizeMultiplier={1.4}
-                style={[styles.amount, { color: surf.goldPill }]}
-              />
-            ) : (
-              <Text style={[styles.amount, { color: surf.goldPill }]}>Paid off</Text>
-            )}
+              {amountVanquished != null ? (
+                <CountUp
+                  value={amountVanquished}
+                  format={(n) => formatWhole(n)}
+                  maxFontSizeMultiplier={1.4}
+                  style={[styles.amount, { color: surf.goldPill }]}
+                />
+              ) : (
+                <Text style={[styles.amount, { color: surf.goldPill }]} maxFontSizeMultiplier={1.4}>Paid off</Text>
+              )}
 
-            {showCascade ? (
-              <Animated.Text style={[textStyles.subhead, styles.cascade, cascadeStyle, { color: surf.heroSub }]}>
-                Freed {formatWhole(freedPerMonth)}/mo now flows to {nextDebtName}.
-              </Animated.Text>
-            ) : null}
+              {showCascade ? (
+                <Animated.Text style={[textStyles.subhead, styles.cascade, cascadeStyle, { color: surf.heroSub }]} maxFontSizeMultiplier={1.4}>
+                  Freed {formatWhole(freedPerMonth)}/mo now flows to {nextDebtName}.
+                </Animated.Text>
+              ) : null}
+            </View>
 
             <View style={styles.actions}>
               <Button label="Share" variant="secondary" onDark onPress={onShare} />
@@ -164,6 +172,7 @@ const styles = StyleSheet.create({
   gone: { fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
   amount: { fontSize: 40, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'], marginTop: spacing.xs },
   cascade: { textAlign: 'center', marginTop: spacing.sm },
+  textGroup: { alignItems: 'center', gap: spacing.sm, alignSelf: 'stretch' },
   actions: { alignSelf: 'stretch', gap: spacing.sm, marginTop: spacing.lg },
   offscreen: { position: 'absolute', left: -9999, top: 0 },
 });
