@@ -117,6 +117,7 @@ Acquisition-grade store presence (screenshots · app-preview video · listing se
 - **⭐ [AUDIT GATE] Privacy / data-flow audit — before submit; defends the moat + the marketing claim.** Trace EVERY possible data egress and prove "financial data never leaves your device / 100% private" is literally true: network calls · RevenueCat SDK · Sentry (PII-scrubbed) · iCloud/E2EE backup · scan-vision OCR (on-device) · logs. Fan-out on Fable 5.
 - **⭐ [AUDIT GATE] Pre-submit functional-correctness audit ([[feedback_presubmit_functional_audit]]) + FINANCIAL-CORRECTNESS money lens.** Whole-surface real-user-lens adversarial pass with an explicit money lens: boundary/edge inputs across the whole engine — zero/negative income · date-boundary/leap-year/timezone · rounding drift · month-vs-cycle stepping · cross-cadence BNPL · huge/partial portfolios. Fan-out on Fable 5.
 - **⭐ App Review paywall-findability** (v1.1 was rejected repeatedly): the ASC review notes MUST point the tester to the paywall — "Tap ••• More → **Unlock Premium**." Verify the always-visible More entry shows for a fresh free account; restore-purchases reachable.
+- **⚠️ SHIP-BLOCKER · flip the app DISPLAY NAME before submit** — `app.json` is `"name": "Debt Planner (RN)"`, a dev label that would ship as the **Home Screen + App Store name** (and is why Siri demands "…in Debt Planner RN"). Flip to **"Debt Planner"**. Surfaced 2026-07-30 by Jason's Siri report; was tracked NOWHERE before that. Paired with 3.7.A8; the [DECISION D4] is only about *when* (see A8.3), not whether.
 - **Owed off-device (Jason, pre-submission):** ASC privacy label must declare RevenueCat · marketing "100% private" alignment · the launch-FLIP (Jason's value gate).
 
 **📋 Device-QA ledger (verify on real hardware at the gate — web can't cover these):**
@@ -157,6 +158,12 @@ _**New standing rule (Jason 2026-07-30):** stop deferring — if an item needs n
 - **A5 · R2.8 offline lifetime-mislabel** — a Lifetime owner offline before RevenueCat resolves briefly sees the subscription row; add a `premiumResolved` gate.
 - **A6 · Drift type hygiene** — `computeDrift`/`buildDriftBaseline` input omits `recurrence` (cadence-correct at runtime; add `recurrence?` so a future `.map` can't drop it) · drop the dead `DriftResult` re-export.
 - **A7 · Debt-free-date producer reconciliation (residual)** — VIS-5 `selectDebtFreeBand` + MF.4 steady-state landed the two-run lean/typical engine; confirm no third independent producer survives, then retire the portfolio-level follow-on note.
+
+- **A8 · Siri invocation phrase too long (Jason 2026-07-30, on device)** — *"Hey Siri, what's my debt-free date on Debt Planner RN?"*. **Verified against current Apple docs (not memory):** every App Shortcut phrase **must** contain `\(.applicationName)` — the app name cannot be dropped, so the phrase can only shrink by shrinking the NAME. `.applicationName` also matches **synonyms** registered as `INAlternativeAppNames` in Info.plist, and synonyms must be based on the real name or a legitimate user name.
+  - **A8.1** add `INAlternativeAppNames` to `ios.infoPlist` (e.g. "Debt Planner", "Debt") → *"Hey Siri, what's my debt-free date in Debt?"* — this alone fixes the complaint without touching the dev build's identity.
+  - **A8.2** add shorter phrase variants alongside the existing ones (`SiriQueryIntents.swift` already has 2 per intent; AppShortcut takes several) — e.g. "Debt-free date in \(.applicationName)".
+  - **A8.3 [DECISION D4]** *when* to flip `app.json` `name` → "Debt Planner": **rec = synonyms now, rename at Phase-6 pre-submit**, so the dev build stays visually identifiable meanwhile. The rename itself is not optional — it's a ship-blocker filed in Phase 6.
+  - **A8.4** device re-verify (Siri is device-only; the phrase set can't be proven on web or in the Simulator).
 
 **Wave B — features that belong in v1.7:**
 - **B1 · Drag-the-curve What-If** — direct manipulation on the trajectory chart (from the Phase-3 enhancement audit).
