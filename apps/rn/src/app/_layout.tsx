@@ -13,6 +13,7 @@ import { startWidgetSync } from '@/widget/widgetSync';
 import { startLiveActivitySync } from '@/liveActivity/liveActivitySync';
 import { drainPendingActions } from '@/appIntents/drainPendingActions';
 import { addNotificationResponseListener, registerNotificationCategories } from '@/notifications/notifications';
+import { initErrorReporting, wrapRoot } from '@/utils/sentry';
 import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
@@ -40,7 +41,11 @@ function navTheme(scheme: 'light' | 'dark') {
  * the tabs after. Deferred: the full bootstrap — splash gate, storage-locked/retry, native lifecycle
  * — lands at B.9. (`bootstrapPersistence` hydrates + starts autosave now.)
  */
-export default function RootLayout() {
+// VIS-6 — init crash reporting at MODULE scope so an early crash (before mount) is still captured. No-op
+// without EXPO_PUBLIC_SENTRY_DSN / on web; the real DSN + CI care land at Phase 6.
+initErrorReporting();
+
+function RootLayout() {
   const scheme = useColorScheme();
   const isHydrated = useAppStore((s) => s.isHydrated);
   const onboardingComplete = useAppStore((s) => s.store.prefs.onboardingComplete);
@@ -125,3 +130,7 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+// VIS-6 — wrapped for Sentry auto-instrumentation (navigation/touch breadcrumbs → a crash trail).
+// Passthrough on web / without a DSN. Expo Router uses this default export.
+export default wrapRoot(RootLayout);
