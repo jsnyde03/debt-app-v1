@@ -138,6 +138,27 @@ export default function TodayScreen() {
   const [windfallSheet, setWindfallSheet] = useState(false);
   const [addDebtOpen, setAddDebtOpen] = useState(false);
 
+  // VIS-4 — single priority ack-slot. Today shows at most ONE acknowledgment card at a time (ranked),
+  // so the surface never stacks 5-6 acks. Dismissing the top one clears its condition, so the next in
+  // priority surfaces on the following render. A celebration (full-screen beat/finale) outranks them all
+  // and suppresses the slot while it's up.
+  const activeAck: 'milestone' | 'intent' | 'reserve-release' | 'reserve-walkback' | 'risk-cleared' | 'trial' | null =
+    celebration
+      ? null
+      : store.pendingMilestone
+        ? 'milestone'
+        : intentRollback
+          ? 'intent'
+          : reserveRelease
+            ? 'reserve-release'
+            : reserveWalkback
+              ? 'reserve-walkback'
+              : riskCleared
+                ? 'risk-cleared'
+                : trialConversion
+                  ? 'trial'
+                  : null;
+
   let content: React.ReactNode = null;
   if (planState === 'no-paycheck') {
     content = (
@@ -276,11 +297,11 @@ export default function TodayScreen() {
         <PaidOffFinale visible stats={selectCelebrationStats(store)} onDismiss={() => setCelebration(null)} />
       ) : null}
 
-      {store.pendingMilestone ? (
+      {store.pendingMilestone && activeAck === 'milestone' ? (
         <MilestoneAckCard milestone={store.pendingMilestone} onAck={() => appStore.getState().acknowledgeMilestone()} />
       ) : null}
 
-      {riskCleared ? (
+      {riskCleared && activeAck === 'risk-cleared' ? (
         <Card tone="accent" style={styles.ack}>
           <View style={styles.ackRow}>
             <AppIcon name="check-circle" size={20} color={c.accent.success} />
@@ -290,7 +311,7 @@ export default function TodayScreen() {
         </Card>
       ) : null}
 
-      {reserveRelease ? (
+      {reserveRelease && activeAck === 'reserve-release' ? (
         <Card tone="accent" style={styles.ack}>
           <View style={styles.ackRow}>
             <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
@@ -304,7 +325,7 @@ export default function TodayScreen() {
         </Card>
       ) : null}
 
-      {reserveWalkback ? (
+      {reserveWalkback && activeAck === 'reserve-walkback' ? (
         <Card tone="accent" style={styles.ack}>
           <View style={styles.ackRow}>
             <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
@@ -316,7 +337,7 @@ export default function TodayScreen() {
         </Card>
       ) : null}
 
-      {intentRollback ? (
+      {intentRollback && activeAck === 'intent' ? (
         <Card tone="accent" style={styles.ack}>
           <View style={styles.ackRow}>
             <AppIcon name={intentRollback.kind === 'log-payment' ? 'savings' : 'schedule'} size={20} color={c.accent.primary} />
@@ -333,7 +354,7 @@ export default function TodayScreen() {
         </Card>
       ) : null}
 
-      {trialConversion ? (
+      {trialConversion && activeAck === 'trial' ? (
         <Card tone="accent" style={styles.ack}>
           <View style={styles.ackRow}>
             <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
