@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { JourneyRingCanvas } from '@/components/progress/JourneyRingCanvas';
+import { ShareCard } from '@/components/plan/ShareCard';
 import { Button } from '@/components/ui/Button';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { CountUp, haptics, useReduceMotion } from '@/motion';
@@ -12,6 +13,8 @@ import { duration } from '@/theme/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
+import { reportError } from '@/utils/reportError';
+import { shareDebtCard } from '@/utils/share-card';
 
 /**
  * The grand finale (3.3.1.3) — the once-ever full-screen spectacle when the LAST debt is confirmed to $0.
@@ -58,6 +61,17 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
 
   const contentStyle = useAnimatedStyle(() => ({ opacity: enter.value, transform: [{ translateY: 14 * (1 - enter.value) }] }));
 
+  // VIS-2 — capture the off-screen branded ShareCard to a PNG + open the share sheet (native); on web
+  // it shares text / alerts (share-card.web.ts). Failures are reported, never surfaced to the user.
+  const shareRef = useRef<View>(null);
+  async function onShare() {
+    try {
+      await shareDebtCard(shareRef, `I'm debt-free — I paid off ${formatWhole(stats.totalPaid)} with Debt Planner.`);
+    } catch (e) {
+      reportError(e, { subsystem: 'share', operation: 'finale-card' });
+    }
+  }
+
   return (
     <Modal visible={visible} animationType="fade" onRequestClose={onDismiss} statusBarTranslucent>
       <LinearGradient colors={[surf.heroTop, surf.heroBottom]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fill}>
@@ -89,8 +103,23 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
             ) : null}
           </View>
 
-          <Button label="Continue" onPress={onDismiss} style={styles.cta} />
+          <View style={styles.actions}>
+            <Button label="Share your win" variant="secondary" onPress={onShare} />
+            <Button label="Continue" onPress={onDismiss} />
+          </View>
         </Animated.View>
+
+        {/* Off-screen branded card — captured to a PNG by the Share action (native). Hidden from screen
+            readers (a capture-only artifact) and non-interactive. */}
+        <View
+          ref={shareRef}
+          collapsable={false}
+          style={styles.offscreen}
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants">
+          <ShareCard stats={stats} />
+        </View>
       </LinearGradient>
     </Modal>
   );
@@ -163,7 +192,8 @@ const styles = StyleSheet.create({
   stat: { alignItems: 'center', gap: 2 },
   statVal: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
   statLabel: { textTransform: 'uppercase', letterSpacing: 0.6 },
-  cta: { marginTop: spacing.xl, alignSelf: 'stretch' },
+  actions: { alignSelf: 'stretch', gap: spacing.sm, marginTop: spacing.xl },
+  offscreen: { position: 'absolute', left: -9999, top: 0 },
   confetti: { position: 'absolute', left: '50%', top: '40%', marginLeft: -5 },
   streamer: { width: 11, height: 5, borderRadius: 1.5 },
   square: { width: 7, height: 7, borderRadius: 1 },

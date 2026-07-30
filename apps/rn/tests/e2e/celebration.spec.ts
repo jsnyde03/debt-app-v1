@@ -55,6 +55,7 @@ for (const theme of ['light', 'dark'] as const) {
     await page.waitForTimeout(1600);
     await page.screenshot({ path: `test-results/celebration-finale-${theme}.png` });
     await expect(page.getByRole('button', { name: 'Continue' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Share your win' })).toBeVisible(); // VIS-2 share entry
   });
 
   test(`milestone-cross ack (${theme})`, async ({ page }) => {

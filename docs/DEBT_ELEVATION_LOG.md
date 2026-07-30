@@ -4,6 +4,15 @@
 
 ---
 
+## Phase-3 Closeout block · session 3 — VIS-2 branded share-card (2026-07-29)
+
+**VIS-2 (share the vanquished/finale as a branded image — the one organic-growth artifact) — DONE (web-verified; native capture+share device-owed).** Mirrors Freedom's proven `share-card` pattern ([[reference_freedom_native_widget_template]]).
+- **Deps:** added `react-native-view-shot` 5.1.0 (pinned, = Freedom) + `expo-sharing` ~56.0.21. Installed with `--legacy-peer-deps` (monorepo hoists `react-native` → npm resolved it as `undefined` under `apps/rn`; the RN 0.85.3 + view-shot 5.1.0 combo is proven on the same SDK 56 in Freedom, so it's a resolver artifact, not an incompatibility).
+- **Utils:** `src/utils/share-card.ts` (native: `captureRef` → PNG → `expo-sharing` share sheet) + `.web.ts` (Web Share API / alert) — the platform split keeps `react-native-view-shot` out of the web bundle.
+- **`ShareCard.tsx`:** a branded, **static + View-based** (no Skia/animation, so `captureRef` reliably rasterizes) navy card — gold check ring · "I'm debt-free" · the honest stat trio (vanquished · debts · months) · a "Debt Planner · honest, on-device payoff" brand footer. Fixed 360px width.
+- **Wiring:** `PaidOffFinale` renders the `ShareCard` off-screen (`left:-9999`, `collapsable={false}`, a11y-hidden) behind a `useRef<View>`; a new **"Share your win"** secondary button (grouped above "Continue") calls `shareDebtCard(ref, fallbackText)`, errors routed to `reportError`.
+- **Verified:** tsc + lint green; web export clean (view-shot excluded on web); full celebration e2e 8/8 both themes; a temp on-screen render confirmed the ShareCard design + the finale's two-button layout in both themes; the finale e2e now asserts the Share button. **Device-owed → Phase-6 ledger:** real `captureRef` rasterization + the iOS share sheet + first autolink/compile of the two new native deps (Maestro sim covers compile).
+
 ## Phase-3 Closeout block · session 3 — VIS-1 finale deepen + Core-Haptics AHAP (2026-07-29)
 
 **VIS-1 (Jason ✓ "build the true AHAP module now") — DONE (motion web-verified; native feel device-owed).** The audit: the finale was thinner than spec'd (24 rects, ~2s, a placeholder `success()` haptic; the AHAP was an unbuilt BUILD item mis-parked as device-QA).
