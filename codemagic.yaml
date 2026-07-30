@@ -28,6 +28,12 @@ workflows:
 
     environment:
       node: 22
+      vars:
+        # VIS-6d: the @sentry/react-native config plugin wires a source-map upload build phase that
+        # HARD-FAILS a release archive without a SENTRY_AUTH_TOKEN. Sentry ships DISABLED (no DSN) until
+        # Phase 6, so suppress the upload here — otherwise the archive breaks at PhaseScriptExecution.
+        # Flip to a real token (source-map upload) when the DSN goes live at Phase 6.
+        SENTRY_DISABLE_AUTO_UPLOAD: "true"
       groups:
         - AppleConnect
       # Automatic signing — Codemagic creates/fetches the distribution cert + App Store profile for

@@ -4,6 +4,10 @@
 
 ---
 
+## Phase-3 Closeout block · session 3 — EXIT-GATE RE-AUDIT (Fable-5 fan-out) (2026-07-30)
+
+After VIS-3 (a stale-test fix — the proof-strip pills already render) the full `validate:release:rn` gate went **GREEN (83 e2e)**, and the **exit-gate re-audit ran** as a **6-lens-cluster Fable-5 adversarial fan-out** (Jason's call to run it in Fable 5, save all outputs + a synthesis). **Canonical = `docs/DEBT_PHASE3_CLOSEOUT_REAUDIT_2026-07-30/`** (`00-INDEX` · `01`–`06` per lens · `_SUMMARY`). **Consensus NOT yet — one fold-round owed** (the block closes only at consensus, not "fixes applied"). Verdict: no true BLOCKER in shipped app code; the 1 build-breaker was CI config (bare Sentry plugin → release-archive upload fail) — **fixed now** via `SENTRY_DISABLE_AUTO_UPLOAD` in `codemagic.yaml`. Cross-auditor convergence was high (Sentry-CI, windfall-conservation, and the incomplete truncation fix each found by 2 auditors). Full triage + fold-order → `_SUMMARY.md`; the fold-round is the next session's work. Added criteria this re-audit: new-native-addition risk · placeholder-asset honesty · copy micro-scrutiny · privacy-claim integrity.
+
 ## Phase-3 Closeout block · session 3 — VIS-6 remainder (re-triage → build all four) (2026-07-30)
 
 **VIS-6 was a scope re-triage the closeout audit reserved for Jason. Decision: BUILD ALL FOUR now** (interactive notifications · mesh-gradient · opt-in sound · Sentry scaffold). Windfall (the 5th VIS-6 part) shipped earlier this block.
