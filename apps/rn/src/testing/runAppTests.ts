@@ -70,6 +70,11 @@ async function main() {
   // §3.5.1 — the iOS widget App-Group bridge (snapshot builder + startWidgetSync mirror/idempotency).
   await import('../widget/widgetSync.test');
 
+  // 3.5.0.1 — the tutorial/demo SANDBOX store: frozen-clock determinism + the three isolation
+  // guarantees (no durable write · no real-store disturbance · shipped logic runs verbatim). ASYNC →
+  // default-exports its runner (it awaits the persistence bootstrap + the autosave debounce).
+  await (await import('../store/sandboxStore.test')).default();
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

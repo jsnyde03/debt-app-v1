@@ -20,8 +20,20 @@ import { selectAllocation, selectSteadyStateAllocation } from './selectors';
  * its income estimate, 2.4.7) is a MEASUREMENT change — it must NOT re-anchor, else "days ahead/behind"
  * resets with no behavior change. A **user-driven** edit is a PLAN change → re-anchors normally
  * (the default; every current caller is user-driven). The learning consumer arrives with 2.4.7.
+ *
+ * `now` (3.5.0.1): the wall clock, injectable. It defaults to `todayLocalISO` — the real app's behavior
+ * is unchanged — but the Phase-3.5 sandbox binds it to the scenario's frozen base date. Without this,
+ * ANY action that re-anchors (rollover, add/remove debt, onboarding) would stamp `anchorDate` with the
+ * real today against a scenario dated months away, making the tutorial's drift read nonsense AND its
+ * replay non-deterministic. NOTE: `paycheck.currentDate` is deliberately NOT used here — it only
+ * advances at onboarding/edit/rollover, so it can lag real today by a cycle; drift must measure elapsed
+ * REAL time from when the plan was frozen.
  */
-export function recordDriftBaseline(store: DebtStore, source: 'user' | 'learning' = 'user'): DebtStore {
+export function recordDriftBaseline(
+  store: DebtStore,
+  source: 'user' | 'learning' = 'user',
+  now: () => string = todayLocalISO,
+): DebtStore {
   // Learning refines how we READ income, not the plan the user committed to → preserve the baseline.
   if (source === 'learning') return store;
 
@@ -43,7 +55,7 @@ export function recordDriftBaseline(store: DebtStore, source: 'user' | 'learning
   }
 
   const baseline = buildDriftBaseline({
-    anchorDate: todayLocalISO(), // the real date this plan is frozen (drift measures elapsed time from here)
+    anchorDate: now(), // the real date this plan is frozen (drift measures elapsed time from here)
     debts: store.debts,
     payoffStrategy: store.payoffStrategy,
     monthlyExtraPayment: monthlyExtra,

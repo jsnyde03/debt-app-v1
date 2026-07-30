@@ -4,7 +4,7 @@ import { isInstallmentNative, normalizeBnplInstallment } from '@core/debt/bnplIn
 import type { RequiredReconciliation } from '@core/debt/bulkMarkRequired';
 import type { GuardianBand } from '@core/storage/debtPlannerStorage';
 
-import { createDefaultStore } from '@/data/defaults';
+import { createDefaultStore, todayLocalISO } from '@/data/defaults';
 import { runMigrations } from '@/data/migrations';
 import {
   CURRENT_STORE_VERSION,
@@ -147,7 +147,16 @@ export interface DebtAppState {
 /** Stable identity for a completed recommended action (dedup key for toggle). */
 const recKey = (a: CompletedRecommendedAction) => `${a.category}:${a.targetId}:${a.paymentSource ?? 'paycheck'}`;
 
-export function createDebtStore() {
+/**
+ * Build a store instance. `opts.now` (3.5.0.1) injects the wall clock the drift baseline anchors to;
+ * it defaults to the real one, so the app and every existing test are unaffected. The Phase-3.5 sandbox
+ * passes its scenario's frozen base date so a scripted rollover stays deterministic and its drift read
+ * stays sane. See `sandboxStore.ts`.
+ */
+export function createDebtStore(opts?: { now?: () => string }) {
+  // Named `clock`, not `now` — several actions already bind a local `now` to the store's own
+  // `paycheck.currentDate`, which is a different notion of "today" (see the drift.ts note).
+  const clock = opts?.now ?? todayLocalISO;
   return createStore<DebtAppState>((set, get) => ({
     store: createDefaultStore(),
     isHydrated: false,
@@ -193,10 +202,10 @@ export function createDebtStore() {
 
     updatePaycheck(updates) {
       // A genuine income edit → stamp read-freshness (2.4.D.3a).
-      set((s) => ({ store: stampInputsFresh(recordDriftBaseline({ ...s.store, paycheck: { ...s.store.paycheck, ...updates } })) }));
+      set((s) => ({ store: stampInputsFresh(recordDriftBaseline({ ...s.store, paycheck: { ...s.store.paycheck, ...updates } }, 'user', clock)) }));
     },
     setPayoffStrategy(strategy) {
-      set((s) => ({ store: recordDriftBaseline({ ...s.store, payoffStrategy: strategy }) }));
+      set((s) => ({ store: recordDriftBaseline({ ...s.store, payoffStrategy: strategy }, 'user', clock) }));
     },
 
     addDebt(debt) {
@@ -218,7 +227,7 @@ export function createDebtStore() {
           store: stampInputsFresh(recordDriftBaseline({
             ...s.store,
             debts: [...s.store.debts, stored],
-          })),
+          }, 'user', clock)),
         };
       });
     },
@@ -246,7 +255,7 @@ export function createDebtStore() {
       });
     },
     removeDebt(id) {
-      set((s) => ({ store: stampInputsFresh(recordDriftBaseline({ ...s.store, debts: s.store.debts.filter((d) => d.id !== id) })) }));
+      set((s) => ({ store: stampInputsFresh(recordDriftBaseline({ ...s.store, debts: s.store.debts.filter((d) => d.id !== id) }, 'user', clock)) }));
     },
     verifyDebtBalance(id, verifiedBalance, verifiedDate) {
       const balance = Math.max(0, Math.round(verifiedBalance * 100) / 100);
@@ -373,12 +382,12 @@ export function createDebtStore() {
     rolloverPayCycle() {
       // Re-check the baseline at the cycle boundary — establishes one for pre-drift users and catches
       // any material change since the last anchor (no-op when nothing material changed).
-      set((s) => ({ store: recordDriftBaseline(applyRollover(s.store)) }));
+      set((s) => ({ store: recordDriftBaseline(applyRollover(s.store), 'user', clock) }));
     },
     applyPaydayLandedIntent() {
       // 3.5.3.5 — same roll as rolloverPayCycle, but stash the pre-roll store first so the Today card can
       // offer a one-tap Undo (an accidental Live-Activity tap is fully reversible).
-      set((s) => ({ intentRollback: { store: s.store, kind: 'payday-landed' }, store: recordDriftBaseline(applyRollover(s.store)) }));
+      set((s) => ({ intentRollback: { store: s.store, kind: 'payday-landed' }, store: recordDriftBaseline(applyRollover(s.store), 'user', clock) }));
     },
     logManualPayment(debtId, amount) {
       // 3.5.5 — reduce the debt's balance by `amount` + re-anchor its verified date to today (the same
@@ -437,7 +446,7 @@ export function createDebtStore() {
       // Guardian prediction (2.4.D.4 onboarding-mid-cycle entry path; no-op until a plan exists).
       set((s) => ({
         store: stampCyclePrediction(
-          stampOnboardedAt(recordDriftBaseline({ ...s.store, prefs: { ...s.store.prefs, onboardingComplete: true } })),
+          stampOnboardedAt(recordDriftBaseline({ ...s.store, prefs: { ...s.store.prefs, onboardingComplete: true } }, 'user', clock)),
         ),
       }));
     },
@@ -465,6 +474,7 @@ export function createDebtStore() {
           recordDriftBaseline(
             { ...s.store, paycheck: { ...s.store.paycheck, leanAmount: lean }, dismissedLeanSuggestion: undefined },
             'learning',
+            clock,
           ),
         ),
       }));
