@@ -2,6 +2,8 @@
 
 **4 Fable-5 lens-auditors; synthesis on the session model.** Goal (Jason): no gaps / no misses across the interactive tutorial + bounded demo.
 
+> **⭐ EXECUTIVE DECISION (Jason, 2026-07-30): everything found in the audits + the best-in-class enhancements WILL BE DONE — NO BACKLOG** ([[feedback_fix_everything_one_block]]). The 3 [DECISION]s below are all RESOLVED = **DO**; the web-embeddable demo (was (B/C)) is pulled in as **3.5.7**; all 13 best-in-class enhancements + every coverage gap are in-scope. The live, authoritative build order is `DEBT_ELEVATION_PLAN.md` §Phase 3.5 (3.5.0–3.5.7).
+
 ## ⭐ VERDICT: the current 3.5 spec is **NOT build-ready — real gaps, incl. ~3 blockers.**
 The design *skeleton* is sound (and the codebase architecture makes an isolated sandbox cheap), but the spec has load-bearing holes that would each surface mid-build or ship a defect. High cross-auditor convergence on the big ones. Fold the gaps below into the spec first, then build.
 
