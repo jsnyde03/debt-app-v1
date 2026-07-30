@@ -24,7 +24,8 @@ export function ShareCard({ stats }: { stats: CelebrationStats }) {
       <View style={[styles.ring, { backgroundColor: surf.goldPill }]}>
         <AppIcon name="check" size={46} color={colors.surface.goldPillInk.light} />
       </View>
-      <Text style={[styles.headline, { color: surf.heroText }]}>I&rsquo;m debt-free</Text>
+      {/* A4 — the card is a fixed-size capture artifact; font scaling would break its layout. */}
+      <Text style={[styles.headline, { color: surf.heroText }]} allowFontScaling={false}>I&rsquo;m debt-free</Text>
 
       <View style={styles.trio}>
         <Stat value={formatWhole(stats.totalPaid)} label="vanquished" surf={surf} />
@@ -36,7 +37,7 @@ export function ShareCard({ stats }: { stats: CelebrationStats }) {
 
       <View style={styles.brandRow}>
         <AppIcon name="shield" size={13} color={surf.goldPill} />
-        <Text style={[textStyles.footnote, styles.brand, { color: surf.heroSub }]}>Debt Planner &middot; honest, on-device payoff</Text>
+        <Text style={[textStyles.footnote, styles.brand, { color: surf.heroSub }]} allowFontScaling={false}>Debt Planner &middot; honest, on-device payoff</Text>
       </View>
     </LinearGradient>
   );
@@ -44,9 +45,9 @@ export function ShareCard({ stats }: { stats: CelebrationStats }) {
 
 function Stat({ value, label, surf }: { value: string; label: string; surf: { goldPill: string; heroSub: string } }) {
   return (
-    <View style={styles.stat}>
-      <Text style={[styles.statVal, { color: surf.goldPill }]}>{value}</Text>
-      <Text style={[textStyles.caption, styles.statLabel, { color: surf.heroSub }]}>{label}</Text>
+    <View style={styles.stat} accessible accessibilityLabel={`${value} ${label}`}>
+      <Text style={[styles.statVal, { color: surf.goldPill }]} allowFontScaling={false}>{value}</Text>
+      <Text style={[textStyles.caption, styles.statLabel, { color: surf.heroSub }]} allowFontScaling={false}>{label}</Text>
     </View>
   );
 }

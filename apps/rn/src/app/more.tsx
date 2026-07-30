@@ -160,19 +160,19 @@ export default function MoreScreen() {
             icon="notifications-none"
             label="Notifications"
             subtitle="Paycheck-eve reminder and bill alerts."
-            right={<Switch value={prefs.notificationsEnabled} onValueChange={handleNotificationsToggle} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
+            right={<Switch accessibilityLabel="Notifications" value={prefs.notificationsEnabled} onValueChange={handleNotificationsToggle} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
           <SettingRow
             icon="lock-outline"
             label="App Lock"
             subtitle="Require Face ID / passcode to open."
-            right={<Switch value={prefs.appLockEnabled} onValueChange={(v) => appStore.getState().updatePrefs({ appLockEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
+            right={<Switch accessibilityLabel="App Lock" value={prefs.appLockEnabled} onValueChange={(v) => appStore.getState().updatePrefs({ appLockEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
           <SettingRow
             icon="savings"
             label="I have savings elsewhere"
             subtitle="Skip building a starter emergency fund — put more toward debt first."
-            right={<Switch value={prefs.hasSavingsElsewhere} onValueChange={(v) => appStore.getState().updatePrefs({ hasSavingsElsewhere: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
+            right={<Switch accessibilityLabel="I have savings elsewhere" value={prefs.hasSavingsElsewhere} onValueChange={(v) => appStore.getState().updatePrefs({ hasSavingsElsewhere: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
           {/* 3.5.3 — premium-only: the Payday Countdown Live Activity. Free users don't have it, so the
               toggle only appears for premium (never a locked/greyed control). */}
@@ -181,7 +181,7 @@ export default function MoreScreen() {
               icon="schedule"
               label="Payday countdown"
               subtitle="Show a Live Activity in the ~3 days before payday."
-              right={<Switch value={prefs.paydayLiveActivityEnabled} onValueChange={(v) => appStore.getState().updatePrefs({ paydayLiveActivityEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
+              right={<Switch accessibilityLabel="Payday countdown" value={prefs.paydayLiveActivityEnabled} onValueChange={(v) => appStore.getState().updatePrefs({ paydayLiveActivityEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
             />
           ) : null}
           {/* VIS-6 — opt-in celebratory chime on the debt-free finale (off by default; the beat carries itself). */}
@@ -189,7 +189,7 @@ export default function MoreScreen() {
             icon="celebration"
             label="Debt-free sound"
             subtitle="Play a chime when you clear your last debt."
-            right={<Switch value={prefs.debtFreeSoundEnabled ?? false} onValueChange={(v) => appStore.getState().updatePrefs({ debtFreeSoundEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
+            right={<Switch accessibilityLabel="Debt-free sound" value={prefs.debtFreeSoundEnabled ?? false} onValueChange={(v) => appStore.getState().updatePrefs({ debtFreeSoundEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
           <SettingRow icon="shopping-cart" label="Living Expenses" subtitle="Everyday spending reserved each paycheck." onPress={() => router.push('/living-expenses')} last />
         </SettingGroup>

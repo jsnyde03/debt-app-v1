@@ -31,7 +31,8 @@ export function GuardianProofStrip({ pow }: { pow: GuardianProofOfWork }) {
       <View style={styles.chips}>
         {chips.map((chip) => (
           <View key={chip} style={[styles.chip, { backgroundColor: c.background.tertiary }]}>
-            <Text style={[textStyles.caption, { color: c.text.secondary }]} numberOfLines={1}>
+            {/* A2 — text.primary on the tertiary chip clears WCAG AA in BOTH themes (secondary was 4.25:1 in light). */}
+            <Text style={[textStyles.caption, { color: c.text.primary }]} numberOfLines={1}>
               {chip}
             </Text>
           </View>

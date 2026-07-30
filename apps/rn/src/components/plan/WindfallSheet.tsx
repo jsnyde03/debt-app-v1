@@ -97,7 +97,8 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
             HERE&apos;S HOW THE APP WILL ROUTE {formatWhole(split.amount)}
           </Text>
           {split.items.map((item) => (
-            <View key={item.key} style={styles.row}>
+            // A4 — one utterance ("To your emergency fund, $700"), not icon + label + amount separately.
+            <View key={item.key} style={styles.row} accessible accessibilityLabel={`${BUCKET_META[item.key].label}, ${formatWhole(item.amount)}`}>
               <AppIcon name={BUCKET_META[item.key].icon} size={18} color={toneFor(item.key)} />
               <Text style={[textStyles.subhead, styles.rowLabel, { color: c.text.primary }]}>{BUCKET_META[item.key].label}</Text>
               <Text style={[textStyles.numericBody, { color: toneFor(item.key) }]}>{formatWhole(item.amount)}</Text>

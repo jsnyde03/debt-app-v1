@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Modal, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -93,17 +93,19 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
           </View>
         ) : null}
 
+        {/* A3 — scrollable so AX Dynamic-Type can overflow instead of pushing the CTAs off-screen. */}
+        <ScrollView style={StyleSheet.absoluteFill} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Animated.View style={[styles.content, contentStyle]}>
           <View style={styles.ringWrap} accessible accessibilityLabel="You're debt-free.">
             {!reduce ? <Bloom color={surf.goldPill} /> : null}
             <JourneyRingCanvas size={RING} stroke={14} pct={100} milestones={[{ t: 100, state: 'free' }]} palette={GOLD_PALETTE} />
             <View style={[StyleSheet.absoluteFill, styles.ringCenter]} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-              <Text style={[styles.zero, { color: surf.goldPill }]}>$0</Text>
-              <Text style={[textStyles.caption, { color: surf.heroSub }]}>balance</Text>
+              <Text style={[styles.zero, { color: surf.goldPill }]} maxFontSizeMultiplier={1.3}>$0</Text>
+              <Text style={[textStyles.caption, { color: surf.heroSub }]} maxFontSizeMultiplier={1.4}>balance</Text>
             </View>
           </View>
 
-          <Text style={[styles.headline, { color: surf.heroText }]}>You&rsquo;re debt-free</Text>
+          <Text style={[styles.headline, { color: surf.heroText }]} maxFontSizeMultiplier={1.3}>You&rsquo;re debt-free</Text>
 
           <View style={styles.trio}>
             <FinaleStat value={stats.totalPaid} label="vanquished" money surf={surf} reduce={reduce} />
@@ -118,6 +120,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
             <Button label="Continue" onDark onPress={onDismiss} />
           </View>
         </Animated.View>
+        </ScrollView>
 
         {/* Off-screen branded card — captured to a PNG by the Share action (native). Hidden from screen
             readers (a capture-only artifact) and non-interactive. */}
@@ -138,7 +141,8 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
 function FinaleStat({ value, label, money, surf, reduce }: { value: number; label: string; money?: boolean; surf: { goldPill: string; heroSub: string }; reduce: boolean }) {
   const fmt = (n: number) => (money ? formatWhole(n) : String(Math.round(n)));
   return (
-    <View style={styles.stat}>
+    // A4 — one utterance ("$4,200 vanquished"), not two disconnected reads.
+    <View style={styles.stat} accessible accessibilityLabel={`${fmt(value)} ${label}`}>
       {reduce ? (
         <Text style={[styles.statVal, { color: surf.goldPill }]} maxFontSizeMultiplier={1.3}>{fmt(value)}</Text>
       ) : (
@@ -191,7 +195,8 @@ function ConfettiPiece({ index }: { index: number }) {
 }
 
 const styles = StyleSheet.create({
-  fill: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+  fill: { flex: 1 },
+  scrollContent: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   content: { alignItems: 'center', gap: spacing.md, width: '100%', maxWidth: 420 },
   ringWrap: { width: RING, height: RING, alignItems: 'center', justifyContent: 'center' },
   ringCenter: { alignItems: 'center', justifyContent: 'center' },
