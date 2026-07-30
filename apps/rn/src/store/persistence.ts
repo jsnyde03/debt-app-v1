@@ -1,6 +1,8 @@
 import type { StorageAdapter } from '@/storage/adapter';
+import { reportError } from '@/utils/reportError';
 
 import { appStore } from './appStore';
+import { isSandboxStore } from './sandboxStore';
 import type { DebtStoreInstance } from './store';
 
 /**
@@ -17,6 +19,13 @@ export async function bootstrapPersistence(
   adapter: StorageAdapter,
   store: DebtStoreInstance = appStore,
 ): Promise<void> {
+  // 3.5.0.6 — a sandbox must never reach durable storage. Its `save`/`hydrate` are already neutered, so
+  // this can't corrupt anything; the guard exists to make a mis-wire OBSERVABLE (and to skip installing
+  // an autosave subscription on a store whose whole point is being throwaway) rather than silently inert.
+  if (isSandboxStore(store)) {
+    reportError(new Error('bootstrapPersistence called with a SANDBOX store — refusing'), { seam: 'persistence' });
+    return;
+  }
   if (bootstrapped.has(store)) return;
   bootstrapped.add(store);
 

@@ -83,6 +83,10 @@ async function main() {
   // tutorial ceiling can cross the discovery gate, and the demo's day-one bound still cannot.
   await import('../store/sandboxBeats.test');
 
+  // 3.5.0.7 — the e2e/QA harness seam: scenario selection + a READ-ONLY snapshot (no store actions,
+  // so a tutorial e2e can't manufacture the state it then asserts on).
+  await import('../store/sandboxHarness.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

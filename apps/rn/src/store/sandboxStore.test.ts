@@ -15,6 +15,8 @@ import { selectGuardianProofOfWork, selectPaydayGuardian } from '@/store/guardia
 import { deriveConfidenceContext } from '@/store/guardianPredictionCore';
 import { bootstrapPersistence } from '@/store/persistence';
 import { createDebtStore } from '@/store/store';
+import { startLiveActivitySync } from '@/liveActivity/liveActivitySync';
+import { startWidgetSync } from '@/widget/widgetSync';
 import type { StorageAdapter } from '@/storage/adapter';
 
 /**
@@ -101,6 +103,24 @@ async function run() {
   sandbox.getState().setCushionFloor(400);
   await new Promise((r) => setTimeout(r, 600)); // past the 500ms autosave debounce
   eq(spy.writes, 0, 'bootstrapPersistence(adapter, sandbox) writes NOTHING, even after a mutation');
+
+  // ── 3.5.0.6 — every native sync seam REFUSES a sandbox outright. ──────────────────────────────
+  let widgetWrites = 0;
+  startWidgetSync(sandbox, () => { widgetWrites++; }, () => 0);
+  eq(widgetWrites, 0, 'startWidgetSync refuses a sandbox (scripted money never reaches the widget)');
+  // A normal store still syncs — the guard is targeted, not a blanket disable.
+  let realWidgetWrites = 0;
+  startWidgetSync(createDebtStore(), () => { realWidgetWrites++; }, () => 0);
+  assert(realWidgetWrites > 0, '…while a NON-sandbox store still mirrors normally');
+
+  let laStarted = 0;
+  startLiveActivitySync(sandbox, {
+    areActivitiesEnabled: () => { laStarted++; return true; },
+  } as unknown as Parameters<typeof startLiveActivitySync>[1]);
+  eq(laStarted, 0, 'startLiveActivitySync refuses a sandbox before it even asks the bridge');
+
+  // The hard-declaration: a sandbox is NOT the legacy demo mechanism.
+  eq(sandbox.getState().store.prefs.isDemoMode, false, 'a sandbox never sets prefs.isDemoMode (isolation is structural, not a flag)');
 
   // ── Guarantee 3: the user's real plan is untouched by anything the sandbox does. ──────────────
   const realBefore = appStore.getState().store;

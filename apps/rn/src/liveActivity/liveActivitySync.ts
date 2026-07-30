@@ -1,4 +1,5 @@
 import { appStore } from '@/store/appStore';
+import { isSandboxStore } from '@/store/sandboxStore';
 import type { DebtStoreInstance } from '@/store/store';
 import { reportError } from '@/utils/reportError';
 
@@ -24,6 +25,11 @@ export function startLiveActivitySync(
   store: DebtStoreInstance = appStore,
   bridge: LiveActivityBridge = liveActivityBridge,
 ): void {
+  // 3.5.0.6 — a tutorial payday must never start a real Lock Screen Live Activity.
+  if (isSandboxStore(store)) {
+    reportError(new Error('startLiveActivitySync called with a SANDBOX store — refusing'), { seam: 'liveActivitySync' });
+    return;
+  }
   if (started.has(store)) return;
   started.add(store);
 

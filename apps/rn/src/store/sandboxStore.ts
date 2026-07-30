@@ -9,8 +9,17 @@ import { createDebtStore, type DebtAppState, type DebtStoreInstance } from './st
  * 3.5.0.1 — the SANDBOX STORE factory: the ephemeral, scriptable Guardian substrate that the Phase-3.5
  * interactive tutorial, the bounded demo, and the marketing-site demo all run on.
  *
- * ⚠️ This is NOT `prefs.isDemoMode` and NOT the legacy `demoSeed` (3.5.0.6 hard-declares that seam).
- * Those mutate the user's REAL store. A sandbox is a SECOND store instance that is bound to NOTHING:
+ * ⚠️ **THIS IS NOT `prefs.isDemoMode`, AND NOT the legacy `demoSeed` (3.5.0.6 hard-declaration).** The
+ * three are easy to confuse and only one of them is safe for teaching:
+ *   - `demoStore()` (`data/demoSeed.ts`) is **`importStore`d into the REAL store** from onboarding's
+ *     "try sample data". It overwrites the user's plan, and it seeds a MATURED Guardian
+ *     (`genuineCycleCount: 6`) — the opposite of the day-one bound a demo must keep. 3.5.4 replaces it.
+ *   - `prefs.isDemoMode` is a flag ON THE REAL STORE, read by real code (`use-payday-capture` disables
+ *     payday capture when it's set). It changes real behaviour; it does not isolate anything.
+ *   - A **sandbox** is a second store instance bound to nothing. Nothing here touches the real store,
+ *     and no sandbox scenario sets `isDemoMode` — the isolation is structural, not a flag.
+ *
+ * A sandbox is a SECOND store instance that is bound to NOTHING:
  * never persisted, never mirrored to the widget App Group, never driving a Live Activity, never
  * scheduling a notification. The tutorial can therefore drag the cushion floor, absorb a surprise, and
  * roll a payday forward without touching a single byte the user owns.

@@ -1,4 +1,5 @@
 import { appStore } from '@/store/appStore';
+import { isSandboxStore } from '@/store/sandboxStore';
 import type { DebtStoreInstance } from '@/store/store';
 import { reportError } from '@/utils/reportError';
 
@@ -25,6 +26,11 @@ export function startWidgetSync(
   write: (snapshot: WidgetSnapshot) => void = writeWidgetSnapshot,
   now: () => number = () => Date.now(),
 ): void {
+  // 3.5.0.6 — the tutorial's scripted money must never reach the user's Home Screen widget.
+  if (isSandboxStore(store)) {
+    reportError(new Error('startWidgetSync called with a SANDBOX store — refusing'), { seam: 'widgetSync' });
+    return;
+  }
   if (started.has(store)) return;
   started.add(store);
 

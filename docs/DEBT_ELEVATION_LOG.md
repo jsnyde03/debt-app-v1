@@ -889,3 +889,55 @@ _Commits (all local on `v1.7-dev`, unpushed): `3242f23` (Phase-2 rescope + P3-op
 - **⭐ Premium-framework audit (Phase-2 close) — round 1 → CONDITIONAL PASS.** 7 independent adversarial lens-auditors (+ BNPL-cadence criterion) vs the real code/docs/market. Verdict: the framework is SOUND and justifies its price (automation identity genuine · free/premium line clean · pricing sound · projection-honesty exemplary · never-sells-debt upheld · moat defensible-as-ethics). No lens found the strategy wrong — every failure was a fixable storefront/wiring/copy defect + 1 correctness bug. Canonical verdict + triaged evidence + fix status = `DEBT_PREMIUM_FRAMEWORK_AUDIT_2026-07-27.md`.
 - **2.11.8 fix pass ✅** — Section-A must-fixes + B1: A1 offering-load error state (no unpurchasable static prices on device; App Review 2.1) · A2 entitlement sync gated on `isHydrated` (no hydrate-clobber) · A3 already-premium → Manage, no re-purchase · A4/A5 legal links → rendered GitHub Pages (`jsnyde03.github.io/debt-planner-site/…`) · A6 Lifetime scope disclosed · A7 Lifetime owners get a distinct non-sub row (transient `premiumIsLifetime` off `productIdentifier`, no migration) · A8 removed the free "BNPL-aware" premium bullet · A9 Guardian headline → the action (not "know") · A10 "100% private/no uploads" → "financial data stays on your device" · A11 per-month anchor in the live path · A12 honestly-scoped moat line on the paywall · **B1 `projectDebtPayoff` cadence-normalizes BNPL minimums** (+3 asserts) · B-F1 deleted dead `DriftCard`. Verified: tsc · lint · core regression +B1 · app · e2e 28/28 · both themes.
 - **Owed (NOT blocking the build):** launch-FLIP (Jason's value gate) · Phase-6 device/native verification (real RevenueCat purchases · `react-native-purchases` native build · restore for existing subs) · Sentry (Phase 6) · `site/privacy.html` content refresh v1.5→v1.7 (Jason).
+
+---
+
+## 3.5.0 — `createSandboxStore` substrate — ✅ COMPLETE (2026-07-30)
+
+The ephemeral, scriptable, isolated Guardian sandbox the whole of Phase 3.5 stands on. Seven leaves, all
+gated green (tsc · lint · core regression · app · scenarios · e2e 90). Commits `b750d23` · `1990425` ·
+`bac41b4` · `629f582` · `31a813a` (+ the 3.5.0.6/3.5.0.7 close).
+
+**What shipped, layer by layer:** `sandboxStore` (isolation · frozen clock · honesty ceiling) →
+`sandboxScenarios` (persona/personal seeds · clear/tight/at-risk) → `sandboxBeats` (scripted paydays) →
+`sandboxHarness` (e2e seam). Clean layering — `store.ts` never imports a sandbox module, so there's no cycle.
+
+**Isolation (3 guarantees + 3 seam guards):** never handed to a sync seam · `hydrate`/`save` neutered on
+the instance · `WeakSet` brand; plus `bootstrapPersistence`/`startWidgetSync`/`startLiveActivitySync` now
+REFUSE a branded sandbox outright. `useNotificationSync` needs no guard — verified it hardcodes `appStore`
+and only ever READS it, so a sandbox can't reach it (closes the note opened at 3.5.0.1).
+
+**Honesty ceiling:** per-purpose (`maxGenuineCycles`) — demo day-one bounded at 1, tutorial at
+`DISCOVERY_CYCLES`. Only the cycle channel is tunable; `cycleHistory` + `incomeActualsLog` stay capped, so
+a raised ceiling can't buy a proof-of-work streak or clear the variable-income cold start.
+
+### What the per-leaf scans caught (the value of this block)
+- **3.5.0.1** — `recordDriftBaseline` reads the WALL CLOCK and fires on rollover/add-debt/onboarding, so a
+  driven sandbox anchored a months-old scenario to today. Clock made injectable, default unchanged.
+- **3.5.0.2** — the spec's bound was INCOMPLETE: three maturity channels, not one. `cycleHistory` feeds the
+  proof strip + calibration DIRECTLY, so three scripted rolls would have claimed "Held your line · 3
+  paychecks" on day one.
+- **3.5.0.3** — "tight" targeted cushion == floor, which is the CLEAR boundary; the engine read `clear`
+  while the tutorial was about to narrate "tight" (and the test had HEDGED, letting it through). Also: the
+  safety net is derived and adapts (172/32/0), so no constant could model it → the bill budget is now
+  SOLVED against the live engine. Also: fixed living costs collapsed all three states into one identical
+  read at ~$700.
+- **3.5.0.4** — under a flat ceiling the reserve could NEVER release (verified across 6 rollovers), so the
+  arc's payoff was structurally unreachable → the per-purpose ceiling.
+- **3.5.0.5** — `CushionFloorSheet` wrote the REAL store directly; and the existing e2e asserted only that
+  the *link* renders, so a missing prop would have passed silently.
+
+### Whole-item after-scan (carry-forward)
+1. **⚠️ The substrate is unit-proven but NOT render-proven.** `useSandboxStore` has zero consumers and has
+   never run inside a real React render — the first exercise is 3.5.3. Named risk, not a defect; there is
+   no React test harness in this app (suites are pure tsx by design), so adding one for a single binding
+   would be premature. 3.5.3 must not assume the binding is proven.
+2. **⚠️ Exit criterion partially met.** "Drives the tutorial e2e" — the SEAM ships (3.5.0.7), but no
+   tutorial e2e can exist until there's UI. Carried to 3.5.2's VoiceOver + e2e exit-gate.
+3. **⚠️ `cycleHistory` is capped at 1, and the arc has a "scorecard" beat.** The sandbox can show at most
+   one recorded cycle, so any scorecard/track-record beat must be framed as *what this will look like*
+   (3.5.4 already says "scorecard-as-future") rather than as real history. Flagged so the beat isn't
+   designed around data the ceiling forbids.
+4. **⚠️ 75 direct `appStore.getState()` calls across 21 files** — the tutorial cannot simply reuse real
+   screens. Filed to the 3.5.3 design gate as an architecture call (per-site injection vs an active-store
+   context), for Jason.
