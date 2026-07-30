@@ -33,8 +33,7 @@ export function PaydayGuardianCard({
   onSeeForecast,
   topUp,
   onTopUp,
-  showIntro,
-  onDismissIntro,
+  onReplayTutorial,
   onSetFloor,
   attestation,
   onAttestBills,
@@ -64,10 +63,10 @@ export function PaydayGuardianCard({
    *  is held; toggling reduces / restores the reserve. */
   attestation?: { show: boolean; attested: boolean };
   onAttestBills?: (value: boolean) => void;
-  /** 2.4.11.3 (§2.0.d/§2.1) — the one-time premium first-run intro: floor-protected-from-today +
-   *  earns-trust-as-it-learns + the advice boundary. Shown once, then dismissed to `guardianIntroSeen`. */
-  showIntro?: boolean;
-  onDismissIntro?: () => void;
+  /** 3.5.1 — replay the Guardian walkthrough ("?" in the header). Always available, so the tutorial is
+   *  never a one-shot a user can lose by dismissing it. Replaces the retired 2.4.11.3 static intro,
+   *  which the tutorial absorbs. */
+  onReplayTutorial?: () => void;
   /** 3.5.0.5 — commit a new cushion floor. The HOST owns this write (the app store's setter in the real
    *  app, the sandbox's in the tutorial) so the card can be used as a teaching prop without moving the
    *  user's real line. Omit it and the floor sheet simply isn't offered. */
@@ -104,29 +103,7 @@ export function PaydayGuardianCard({
 
   return (
     <Card>
-      {/* 2.4.11.3 — one-time premium first-run intro: reframes cold-start as protection (acting from
-          day one) + the earns-trust-as-it-learns story + the advice boundary. Calm, inline, dismissible
-          (never a modal). Wording is non-monotonic ("more precisely") + non-surveillance ("as you log"). */}
-      {showIntro ? (
         <View
-          style={[styles.intro, { backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}
-          accessibilityRole="summary">
-          <Text style={[textStyles.subhead, styles.introText, { color: c.text.secondary }]}>
-            <Text style={{ color: c.text.primary, fontWeight: '600' }}>Your floor is protected, starting today.</Text> As you
-            log each paycheck, I learn your floor and put your money to work more precisely. Guidance from your numbers —
-            not financial advice. Your call.
-          </Text>
-          <Pressable
-            onPress={() => onDismissIntro?.()}
-            accessibilityRole="button"
-            accessibilityLabel="Got it, dismiss the Guardian intro"
-            hitSlop={8}
-            style={styles.introBtnWrap}>
-            <Text style={[textStyles.subhead, styles.introBtn, { color: c.accent.primary }]}>Got it</Text>
-          </Pressable>
-        </View>
-      ) : null}
-      <View
         {...groupLabel(
           'Payday Guardian',
           brief.title,
@@ -281,6 +258,19 @@ export function PaydayGuardianCard({
       {showAdjust ? (
         <Pressable onPress={() => setFloorSheet(true)} accessibilityRole="button" accessibilityLabel="Adjust your cushion line" hitSlop={8}>
           <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>Adjust your line →</Text>
+        </Pressable>
+      ) : null}
+      {/* 3.5.1 — the always-available replay. Also OUTSIDE the group, for the same reason. It's a quiet
+          text link rather than a floating "?" glyph: the card is already dense, and restraint reads more
+          premium than another piece of chrome. Available to BOTH tiers — free gets a real run. */}
+      {onReplayTutorial ? (
+        <Pressable
+          testID="guardian-replay-tutorial"
+          onPress={onReplayTutorial}
+          accessibilityRole="button"
+          accessibilityLabel="See how your Guardian works"
+          hitSlop={8}>
+          <Text style={[textStyles.caption, styles.adjust, { color: c.text.tertiary }]}>How this works</Text>
         </Pressable>
       ) : null}
       {/* §3.3.3 proof-of-work — the accumulating record of the automation's work, on calm/clear cycles only

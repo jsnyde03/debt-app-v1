@@ -117,6 +117,8 @@ function RootLayout() {
             <Stack.Screen name="cushion-forecast" />
             {/* 3.7.A0 — the payoff schedule as a pushed route (was a sheet-from-a-sheet, dead on device). */}
             <Stack.Screen name="schedule/[id]" />
+            {/* 3.5.1 — the Guardian tutorial (scaffold; beats land at 3.5.3). Runs on a sandbox. */}
+            <Stack.Screen name="tutorial" />
             <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
           </Stack.Protected>
           <Stack.Protected guard={!onboardingComplete}>

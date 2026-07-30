@@ -87,6 +87,10 @@ async function main() {
   // so a tutorial e2e can't manufacture the state it then asserts on).
   await import('../store/sandboxHarness.test');
 
+  // 3.5.1 — the tutorial invitation matrix: which audiences are offered which run. The v1.6-upgrade and
+  // free→premium cases fail SILENTLY (nobody reports an offer they never got), so they're pinned here.
+  await import('../store/tutorialSelectors.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

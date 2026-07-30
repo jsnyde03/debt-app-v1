@@ -53,13 +53,15 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
     await expect(page.getByText(/Premium keeps your cushion at your line/i)).toBeVisible(); // the designed invitation
   });
 
-  test('premium · first-run intro shows once, then dismisses', async ({ page }) => {
-    await seedStore(page, scenario()); // premium, guardianIntroSeen defaults false → intro shows
+  test('premium · the static first-run intro is RETIRED (3.5.1.5) — the tutorial replaces it', async ({ page }) => {
+    // Was: "first-run intro shows once, then dismisses". 3.5.1 retired that in-card intro because the
+    // tutorial absorbs it — leaving both would put the ack-slot invitation AND an intro block on one
+    // screen for a new premium user, the exact stacking VIS-4 exists to prevent. This now guards the
+    // decision: the old copy must stay gone, and the teaching surface must be the invitation.
+    await seedStore(page, scenario());
     await page.goto('/');
-    const intro = page.getByText('Your floor is protected, starting today');
-    await expect(intro).toBeVisible();
-    await page.getByRole('button', { name: /Got it/i }).click();
-    await expect(intro).toHaveCount(0); // dismissed → persisted to guardianIntroSeen
+    await expect(page.getByText('Your floor is protected, starting today')).toHaveCount(0);
+    await expect(page.getByTestId('tutorial-invite')).toBeVisible();
   });
 
   test('premium · intro already seen: not shown again', async ({ page }) => {

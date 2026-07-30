@@ -86,12 +86,25 @@ export interface Preferences {
   /** VIS-6: play a celebratory chime on the debt-free finale. Opt-in (default false) — sound is never
    *  a default; the visual + haptic carry the beat unless the user turns this on (More → Preferences). */
   debtFreeSoundEnabled: boolean;
+  /**
+   * 3.5.1 — which run of the Guardian tutorial this user has completed (or dismissed). `null` = never
+   * offered/seen, so they get the first-run invitation.
+   *
+   * Deliberately NOT `guardianIntroSeen`, and deliberately not a boolean:
+   *  - reusing `guardianIntroSeen` would silently EXCLUDE every existing v1.6 user, who carries it
+   *    `true` from the old static intro but has never seen a tutorial;
+   *  - a boolean can't express "saw the free run, then upgraded" — an upgrader is re-offered once,
+   *    because the premium run shows the reserve/Recovery/release beats free never reaches.
+   */
+  tutorialSeen: 'free' | 'premium' | null;
 }
 
 /** Bump when the persisted shape changes; `runMigrations` brings older blobs forward.
  *  v5 (2.4.D) adds the Payday Guardian substrate — the additive fields below merge onto the
- *  current defaults, so an older blob backfills safely (fixed income, count 0, empty logs). */
-export const CURRENT_STORE_VERSION = 6;
+ *  current defaults, so an older blob backfills safely (fixed income, count 0, empty logs).
+ *  v7 (3.5.1) adds `prefs.tutorialSeen`, additive: the prefs merge backfills it to `null`, which is
+ *  exactly right — every existing user becomes eligible for the tutorial invitation exactly once. */
+export const CURRENT_STORE_VERSION = 7;
 
 /** v1.7 (2.4.D): the store-level current-cycle notification carrier. Lives here — NOT on
  *  PayCycleSnapshot (a historical end-of-cycle record) — because the §2.8 notification fires at

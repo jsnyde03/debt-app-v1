@@ -10,6 +10,8 @@ import { DebtSheet } from '@/components/entities/DebtSheet';
 import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
 import { MilestoneAckCard } from '@/components/plan/MilestoneAckCard';
+import { TutorialInviteCard } from '@/components/plan/TutorialInviteCard';
+import { markTutorialSeen, selectTutorialInvite } from '@/store/tutorialSelectors';
 import { PaidOffFinale } from '@/components/plan/PaidOffFinale';
 import { VanquishedBeat } from '@/components/plan/VanquishedBeat';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
@@ -142,7 +144,11 @@ export default function TodayScreen() {
   // so the surface never stacks 5-6 acks. Dismissing the top one clears its condition, so the next in
   // priority surfaces on the following render. A celebration (full-screen beat/finale) outranks them all
   // and suppresses the slot while it's up.
-  const activeAck: 'milestone' | 'intent' | 'reserve-release' | 'reserve-walkback' | 'risk-cleared' | 'trial' | null =
+  // 3.5.1 — the tutorial invitation joins the slot ranked LAST: every other ack is time-sensitive
+  // (a milestone just crossed, a reserve just released), while a teaching offer keeps. On a brand-new
+  // user none of the others can fire anyway, so it costs the offer nothing to yield to them.
+  const tutorialInvite = selectTutorialInvite(store);
+  const activeAck: 'milestone' | 'intent' | 'reserve-release' | 'reserve-walkback' | 'risk-cleared' | 'trial' | 'tutorial' | null =
     celebration
       ? null
       : store.pendingMilestone
@@ -157,7 +163,9 @@ export default function TodayScreen() {
                 ? 'risk-cleared'
                 : trialConversion
                   ? 'trial'
-                  : null;
+                  : tutorialInvite
+                    ? 'tutorial'
+                    : null;
 
   let content: React.ReactNode = null;
   if (planState === 'no-paycheck') {
@@ -225,8 +233,7 @@ export default function TodayScreen() {
               onSeeForecast={() => router.push('/cushion-forecast')}
               topUp={tightTopUp}
               onTopUp={() => tightTopUp && appStore.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
-              showIntro={isPremium && !store.prefs.guardianIntroSeen}
-              onDismissIntro={() => appStore.getState().updatePrefs({ guardianIntroSeen: true })}
+              onReplayTutorial={() => router.push(`/tutorial?run=${isPremium ? 'premium' : 'free'}`)}
               onSetFloor={(v) => appStore.getState().setCushionFloor(v)}
               attestation={attestation}
               onAttestBills={(v) => appStore.getState().setBillsAttested(v)}
@@ -375,6 +382,15 @@ export default function TodayScreen() {
             <Button label="Not now" variant="text" onPress={() => setDismissedTrials((d) => [...d, trialConversion.id])} />
           </View>
         </Card>
+      ) : null}
+
+      {/* 3.5.1 — the tutorial invitation. "Not now" records the run as seen: declining is an answer, and
+          re-asking every launch would make the offer nag. Replay lives on the Guardian card + in More. */}
+      {tutorialInvite && activeAck === 'tutorial' ? (
+        <TutorialInviteCard
+          onStart={() => router.push(`/tutorial?run=${tutorialInvite.run}`)}
+          onDismiss={() => appStore.getState().updatePrefs(markTutorialSeen(store.prefs, tutorialInvite.run))}
+        />
       ) : null}
 
       {payday.isAwaitingRollover ? (

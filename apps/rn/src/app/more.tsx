@@ -119,6 +119,15 @@ export default function MoreScreen() {
           label="Pay cycle history"
           subtitle="Look back at your finished pay cycles."
           onPress={() => router.push('/history')}
+        />
+        {/* 3.5.1 — the tutorial's permanent home. The first-run invitation can be declined (and dismissing
+            it records the run as seen), so replay must live somewhere stable and findable — not only on a
+            card affordance the user might never look at again. Both tiers. */}
+        <SettingRow
+          icon="gpp-good"
+          label="How the Guardian works"
+          subtitle="Replay the short walkthrough."
+          onPress={() => router.push('/tutorial')}
           last
         />
       </SettingGroup>
