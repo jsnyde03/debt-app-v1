@@ -16,7 +16,7 @@ import { textStyles } from '@/theme/typography';
 /** What Premium unlocks — effort-not-info framing: each line is a job the app DOES for you, not a fact
  * it tells you (the un-chattable test). BNPL handling is intentionally NOT here — it's free/all-tiers. */
 const PREMIUM_BENEFITS: { icon: IconGlyph; text: string }[] = [
-  { icon: 'shield', text: 'The Payday Cushion Guardian — holds your cushion at your line every payday and reshapes the plan, so you don’t decide it each cycle.' },
+  { icon: 'shield', text: 'The Payday Guardian — holds your cushion at your line every payday and reshapes the plan, so you don’t decide it each cycle.' },
   { icon: 'shopping-cart', text: 'Can I Afford It? — apply any purchase to your plan in one tap, or build a plan to save for it.' },
   { icon: 'healing', text: 'Recovery Plan — a guided catch-up when a cycle comes up short.' },
   { icon: 'auto-graph', text: 'Always-current balances — projected forward or re-scanned in seconds, no monthly retyping.' },
