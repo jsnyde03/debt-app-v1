@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { Modal, StyleSheet, Text, View } from 'react-native';
+import { Modal, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { JourneyRingCanvas } from '@/components/progress/JourneyRingCanvas';
+import { MeshGradientCanvas } from '@/components/plan/MeshGradientCanvas';
 import { ShareCard } from '@/components/plan/ShareCard';
 import { Button } from '@/components/ui/Button';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -42,6 +43,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
   const c = useAppColors();
   const reduce = useReduceMotion();
   const surf = c.surface;
+  const { width: winW, height: winH } = useWindowDimensions();
 
   const enter = useSharedValue(0);
   useEffect(() => {
@@ -75,6 +77,10 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
   return (
     <Modal visible={visible} animationType="fade" onRequestClose={onDismiss} statusBarTranslucent>
       <LinearGradient colors={[surf.heroTop, surf.heroBottom]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fill}>
+        {/* Ambient mesh wash over the navy base — adds depth (static, calm; kept under Reduce Motion). */}
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <MeshGradientCanvas width={winW} height={winH} />
+        </View>
         {!reduce ? (
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
             {Array.from({ length: CONFETTI }, (_, i) => (

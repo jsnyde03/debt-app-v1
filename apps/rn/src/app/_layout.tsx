@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-router';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -12,6 +12,7 @@ import { bootstrapPersistence, flushPendingSave } from '@/store/persistence';
 import { startWidgetSync } from '@/widget/widgetSync';
 import { startLiveActivitySync } from '@/liveActivity/liveActivitySync';
 import { drainPendingActions } from '@/appIntents/drainPendingActions';
+import { addNotificationResponseListener, registerNotificationCategories } from '@/notifications/notifications';
 import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
@@ -56,6 +57,18 @@ export default function RootLayout() {
       startLiveActivitySync();
       // 3.5.3.5 — apply anything a "Payday landed" AppIntent queued while the app was closed. No-op on web.
       drainPendingActions();
+      // VIS-6 — register the interactive-notification action categories (no-op web/Android-less).
+      void registerNotificationCategories();
+    });
+
+    // VIS-6 — a notification tap / action-button press routes the user to Today (where the payday
+    // capture auto-opens + the Guardian read lives). No-op on web.
+    const notifUnsub = addNotificationResponseListener(() => {
+      try {
+        router.navigate('/');
+      } catch {
+        /* navigation not ready — the default cold-start route already lands the user in-app */
+      }
     });
     // Persist any pending debounced write when the app leaves the foreground, so a
     // background/terminate never drops the last change. Wrapped defensively — a listener throw must
@@ -76,7 +89,10 @@ export default function RootLayout() {
         }
       }
     });
-    return () => sub.remove();
+    return () => {
+      sub.remove();
+      notifUnsub();
+    };
   }, []);
 
   // Render nothing until hydrate resolves, so a returning user never flashes onboarding. (On native

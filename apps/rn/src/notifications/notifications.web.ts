@@ -28,3 +28,14 @@ export async function syncNotifications(_params: {
   nextPaycheckDate: string;
   requiredExpenses: RequiredExpense[];
 }): Promise<void> {}
+
+// VIS-6 interactive-notification surface — web no-ops (same exports as the native module).
+export const NOTIF_CATEGORY_PAYDAY = 'payday-actions';
+export const NOTIF_CATEGORY_RISK = 'risk-actions';
+export const NOTIF_CATEGORY_BILLS = 'bills-actions';
+
+export async function registerNotificationCategories(): Promise<void> {}
+
+export function addNotificationResponseListener(_onOpen: () => void): () => void {
+  return () => {};
+}

@@ -19,6 +19,45 @@ const ID_RISK = 'guardian-risk';
 const ALL_IDS = [ID_PAYCHECK_EVE, ID_PAYDAY_CAPTURE, ID_BILLS_ALERT, ID_RISK];
 
 /**
+ * Interactive-notification categories (VIS-6) — each scheduled notification carries a category so it
+ * shows an actionable button, not just a tappable banner. Every action opens the app to Today (where the
+ * payday-capture auto-opens and the Guardian read lives), so acting from the notification is one tap.
+ * `opensAppToForeground` keeps them foreground actions (no silent background mutation — the app decides).
+ */
+export const NOTIF_CATEGORY_PAYDAY = 'payday-actions';
+export const NOTIF_CATEGORY_RISK = 'risk-actions';
+export const NOTIF_CATEGORY_BILLS = 'bills-actions';
+const CATEGORY_ACTIONS: Record<string, { identifier: string; buttonTitle: string }> = {
+  [NOTIF_CATEGORY_PAYDAY]: { identifier: 'run-plan', buttonTitle: 'Run my plan' },
+  [NOTIF_CATEGORY_RISK]: { identifier: 'review-plan', buttonTitle: 'Review my plan' },
+  [NOTIF_CATEGORY_BILLS]: { identifier: 'review-bills', buttonTitle: 'Check my plan' },
+};
+
+/** Register the interactive-notification categories once at app init. Idempotent; native-only. */
+export async function registerNotificationCategories(): Promise<void> {
+  await Promise.all(
+    Object.entries(CATEGORY_ACTIONS).map(([category, action]) =>
+      Notifications.setNotificationCategoryAsync(category, [
+        { identifier: action.identifier, buttonTitle: action.buttonTitle, options: { opensAppToForeground: true } },
+      ]).catch(() => {}),
+    ),
+  );
+}
+
+/**
+ * Listen for a notification tap / action press and route the app to Today (`onOpen`). Covers both an
+ * action-button press and a plain tap (DEFAULT action) on any of our categories. Returns an unsubscribe.
+ * Native-only (the web stub no-ops).
+ */
+export function addNotificationResponseListener(onOpen: () => void): () => void {
+  const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+    const category = response.notification.request.content.categoryIdentifier;
+    if (category && category in CATEGORY_ACTIONS) onOpen();
+  });
+  return () => sub.remove();
+}
+
+/**
  * §2.8 Guardian risk push (2.4.10.2) — a NEUTRAL prompt, never a verdict a reconcile-to-clear would turn
  * into cried-wolf, and never a figure (the hedged number stays in-app). It under-claims by design: a
  * never-opened user gets exactly this, so it must be safe even if the read later reconciles to clear.
@@ -71,14 +110,14 @@ export async function syncNotifications({ nextPaycheckDate, requiredExpenses }: 
   paycheckEve.setDate(paycheckEve.getDate() - 1);
   paycheckEve.setHours(20, 0, 0, 0);
   if (paycheckEve > now) {
-    await schedule(ID_PAYCHECK_EVE, 'Paycheck Tomorrow', 'Your paycheck arrives tomorrow — open Debt Planner to run your plan.', paycheckEve);
+    await schedule(ID_PAYCHECK_EVE, 'Paycheck Tomorrow', 'Your paycheck arrives tomorrow — open Debt Planner to run your plan.', paycheckEve, NOTIF_CATEGORY_PAYDAY);
   }
 
   // Payday-morning capture prompt: 9am ON payday (brings the user in as the capture sheet auto-opens).
   const paydayMorning = new Date(paycheckDate);
   paydayMorning.setHours(9, 0, 0, 0);
   if (paydayMorning > now) {
-    await schedule(ID_PAYDAY_CAPTURE, "It's payday", 'Open Debt Planner to confirm your plan for this paycheck.', paydayMorning);
+    await schedule(ID_PAYDAY_CAPTURE, "It's payday", 'Open Debt Planner to confirm your plan for this paycheck.', paydayMorning, NOTIF_CATEGORY_PAYDAY);
   }
 
   // Bills alert: 8pm two days before the earliest upcoming unpaid bill, unless that's the eve day.
@@ -99,7 +138,7 @@ export async function syncNotifications({ nextPaycheckDate, requiredExpenses }: 
         count === 1
           ? `${earliest.name} is due soon — check your plan.`
           : `${earliest.name} and ${count - 1} more due soon — check your plan.`;
-      await schedule(ID_BILLS_ALERT, title, body, billAlert);
+      await schedule(ID_BILLS_ALERT, title, body, billAlert, NOTIF_CATEGORY_BILLS);
     }
   }
 }
@@ -114,7 +153,7 @@ export async function scheduleRiskNotification(fireAt: Date): Promise<boolean> {
   await Notifications.cancelScheduledNotificationAsync(ID_RISK).catch(() => {});
   const now = new Date();
   const when = fireAt > now ? fireAt : new Date(now.getTime() + 5_000);
-  await schedule(ID_RISK, RISK_NOTIFICATION.title, RISK_NOTIFICATION.body, when);
+  await schedule(ID_RISK, RISK_NOTIFICATION.title, RISK_NOTIFICATION.body, when, NOTIF_CATEGORY_RISK);
   return true;
 }
 
@@ -122,10 +161,10 @@ export async function cancelRiskNotification(): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(ID_RISK).catch(() => {});
 }
 
-function schedule(identifier: string, title: string, body: string, date: Date): Promise<string> {
+function schedule(identifier: string, title: string, body: string, date: Date, categoryIdentifier?: string): Promise<string> {
   return Notifications.scheduleNotificationAsync({
     identifier,
-    content: { title, body },
+    content: { title, body, ...(categoryIdentifier ? { categoryIdentifier } : {}) },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
   });
 }
