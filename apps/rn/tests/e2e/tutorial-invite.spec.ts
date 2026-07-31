@@ -214,6 +214,38 @@ test.describe('tutorial invitation + in-situ shell', () => {
     });
   }
 
+  test('beat 4: confirming your bills shrinks the net, and the release ack is the ENGINE\'s', async ({ page }) => {
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
+    await page.goto('/tutorial');
+    for (let i = 0; i < 3; i++) await page.getByText('Next', { exact: true }).click();
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 4 of');
+
+    // The user's own tap on a REAL Guardian control ([D10]).
+    await expect(page.getByText(/All your regular bills entered/)).toBeVisible();
+    await page.getByText(/All your regular bills entered/).click();
+    await expect(page.getByText(/Bills confirmed/)).toBeVisible();
+
+    // Then the scripted story, driven by the real producers: a surprise the net absorbs, then three
+    // paydays (DISCOVERY_CYCLES) so the net retires. The closing ack is written by `applyRollover`, not
+    // by the tutorial — asserting its SURPRISE-branch copy is what proves the engine produced it, since
+    // the tutorial has no way to fabricate that sentence.
+    await expect(page.getByText(/safety net was there when a surprise came up/)).toBeVisible({ timeout: 12_000 });
+  });
+
+  test('skipping mid-story does not leave rollovers landing afterwards', async ({ page }) => {
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
+    await page.goto('/tutorial');
+    for (let i = 0; i < 3; i++) await page.getByText('Next', { exact: true }).click();
+    await page.getByText(/All your regular bills entered/).click();
+    // Leave immediately — the timers are still in flight.
+    await page.getByText('Skip', { exact: true }).click();
+    await expect(page.getByTestId('tutorial-overlay')).toHaveCount(0);
+    await page.waitForTimeout(3000);
+    // Nothing from the sandbox's story may surface on the user's own Today.
+    await expect(page.getByText(/safety net was there when a surprise came up/)).toHaveCount(0);
+    await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
+  });
+
   test('moving the line in the tutorial never touches the real plan', async ({ page }) => {
     await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' }, cushionFloor: 200 }));
     await page.goto('/tutorial');

@@ -1,8 +1,9 @@
 import { createStore } from 'zustand/vanilla';
 import { useStore } from 'zustand';
 
-import { TUTORIAL_MAX_CYCLES } from './sandboxBeats';
+import { runBeats, scriptSurprise, TUTORIAL_MAX_CYCLES } from './sandboxBeats';
 import { harnessScenario, publishSandbox, unpublishSandbox } from './sandboxHarness';
+import { selectPaydayGuardian } from './guardianSelectors';
 import { SANDBOX_STATES, scenarioForBeat, type SandboxState } from './sandboxScenarios';
 import { createSandboxStore, seedSandbox, type SandboxStoreInstance } from './sandboxStore';
 import type { DebtStore } from '@/data/models';
@@ -49,6 +50,8 @@ interface TutorialSessionState extends TutorialSession {
   end(): void;
   /** Record the pre-change read so the impact payoff has a "before" to show. */
   noteFloorBefore(before: { cushion: number; floor: number }): void;
+  /** 3.5.3.5 — play the scripted reserve story after the user confirms their bills. */
+  playReserveStory(): void;
 }
 
 /**
@@ -57,6 +60,17 @@ interface TutorialSessionState extends TutorialSession {
  * to survive `start`, which previously used it and dropped it), and the harness pin.
  */
 let staging: { realStore: DebtStore; opts: { premium: boolean; maxGenuineCycles: number }; pinned: SandboxState | null } | null = null;
+
+/**
+ * 3.5.3.5 — pending timers for the scripted reserve story. Held module-level and cleared on every beat
+ * change and on `end()`: a user who skips out mid-story would otherwise have rollovers land on a
+ * sandbox that is no longer on screen — or, worse, on the NEXT session's sandbox.
+ */
+let storyTimers: ReturnType<typeof setTimeout>[] = [];
+function clearStoryTimers() {
+  storyTimers.forEach(clearTimeout);
+  storyTimers = [];
+}
 
 export const tutorialSession = createStore<TutorialSessionState>((set, get) => ({
   active: false,
@@ -104,6 +118,9 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
 
   goTo(index) {
     if (!get().active) return;
+    // A story still mid-flight belongs to the beat being left — let it land on the next one and the
+    // user sees rollovers they didn't ask for, on a card that's now talking about something else.
+    clearStoryTimers();
     stageBeat(index);
     // The payoff belongs to the beat that produced it — carrying it forward would show a stale "before".
     set({ index, floorBefore: null });
@@ -113,8 +130,43 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
     if (get().active) set({ floorBefore: before });
   },
 
+  /**
+   * 3.5.3.5 — the reserve story, played AFTER the user's own tap ([D10]).
+   *
+   * Three moments, spaced so they read as a sequence rather than a jump-cut: the net has just shrunk
+   * because they confirmed their bills → a surprise lands and the net absorbs it → three paydays roll
+   * and the net retires, releasing what's left to the debt. Every one of those is the REAL engine:
+   * `recordSurpriseOutflow` is the same producer the payday check-in calls, and the release is written
+   * by `applyRollover`, not by this function. That matters — the closing ack a user sees here is the
+   * genuine one, so it can never drift from what the app would actually say on their third payday.
+   *
+   * `DISCOVERY_CYCLES` is 3, which is why it rolls three times and not once: the reserve retires when
+   * the discovery window closes, and a single rollover would leave the beat promising a release that
+   * never arrives.
+   */
+  playReserveStory() {
+    const { active, sandbox } = get();
+    if (!active || !sandbox) return;
+    clearStoryTimers();
+
+    // Sized from the net itself so it is always absorbable, whatever the user's paycheck scaled it to —
+    // a surprise that overflowed the net would teach the opposite of this beat's point.
+    const held = selectPaydayGuardian(sandbox.getState().store)?.heldReserve ?? 0;
+    const amount = Math.max(25, Math.round((held || 100) * 0.8));
+
+    storyTimers.push(
+      setTimeout(() => {
+        if (tutorialSession.getState().sandbox === sandbox) scriptSurprise(sandbox, amount);
+      }, 900),
+      setTimeout(() => {
+        if (tutorialSession.getState().sandbox === sandbox) runBeats(sandbox, TUTORIAL_MAX_CYCLES);
+      }, 2100),
+    );
+  },
+
   end() {
     unpublishSandbox();
+    clearStoryTimers();
     staging = null;
     // Drop the sandbox so it can be collected; a later session builds a fresh, deterministic one.
     set({ active: false, sandbox: null, index: 0, floorBefore: null });

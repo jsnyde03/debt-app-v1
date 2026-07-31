@@ -73,7 +73,16 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
     state: 'clear',
     coach: 'Drag the line, then Save — your plan re-solves around it.',
   },
-  { id: 'reserve', title: 'A little extra, at first', body: 'While your Guardian is still learning your bills it holds a bit more back — and releases it once it knows.', target: 'guardian-bar', state: 'clear' },
+  // Interactive ([D10]). A surprise is an EVENT, not a control — the real app records one at the payday
+  // check-in — so the thing the user DOES here is the real Guardian control that changes the reserve:
+  // confirming their bills. The surprise, the absorb and the release then play as the scripted payoff.
+  {
+    id: 'reserve',
+    title: 'A little extra, at first',
+    body: 'While your Guardian is learning your bills it holds a bit more back. Tell it your bills are all in and it holds less — then watch what that net is for.',
+    target: 'guardian-reserve',
+    state: 'clear',
+  },
   // The one beat that deliberately puts the card into trouble — the Recovery glimpse. It's also the
   // beat the Example marker was built for: a real-looking shortfall, on figures scaled from their pay.
   // Says what the GUARDIAN does, not what is about to render: the built plan is premium, so a free user

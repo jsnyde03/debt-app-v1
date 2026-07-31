@@ -279,7 +279,13 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
                 store_.getState().setCushionFloor(v);
               }}
               attestation={attestation}
-              onAttestBills={(v) => store_.getState().setBillsAttested(v)}
+              // 3.5.3.5 ([D10]) — the tap is real (it genuinely shrinks the net); inside a walkthrough it
+              // also cues the scripted story that shows what the net is FOR. Only on the way in: undoing
+              // shouldn't replay it.
+              onAttestBills={(v) => {
+                store_.getState().setBillsAttested(v);
+                if (isExample && v) tutorialSession.getState().playReserveStory();
+              }}
               recovery={recovery}
               onDefer={(id) => store_.getState().deferExpense(id)}
               onKeepEssential={(id) => store_.getState().setDeferability(id, 'essential')}

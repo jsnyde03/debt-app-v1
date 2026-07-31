@@ -286,18 +286,21 @@ export function PaydayGuardianCard({
           MF.2 round-2: gated behind `!topUp` so at most one of recovery/top-up/attestation ever renders (a
           cold-start tight cycle can satisfy both top-up + attestation; the urgent line-holding move wins). */}
       {isPremium && !recovery && !topUp && attestation?.show ? (
+        // 3.5.3.5.1 — interactive beat B's subject ([D10]). Spacing on the TARGET, label none: fourth
+        // time this pattern has mattered, so it is now the default shape for any coachable control.
+        <TutorialTarget id="guardian-reserve" style={styles.attest}>
         <Pressable
           onPress={() => onAttestBills?.(!attestation.attested)}
           accessibilityRole="button"
           accessibilityLabel={attestation.attested ? 'Bills confirmed — tap to undo and restore the safety net' : 'Confirm your regular bills are all entered to hold a smaller safety net'}
-          hitSlop={8}
-          style={styles.attest}>
+          hitSlop={8}>
           <Text style={[textStyles.caption, { color: c.accent.primary }]}>
             {attestation.attested
               ? 'Bills confirmed — holding a smaller safety net. Undo'
               : "All your regular bills entered? I'll hold a smaller safety net."}
           </Text>
         </Pressable>
+        </TutorialTarget>
       ) : null}
 
       {/* The adjust control lives OUTSIDE the narrated group so a screen reader reaches it as its own
