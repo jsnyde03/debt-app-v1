@@ -33,6 +33,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { StoreProvider, useActiveStore } from '@/store/StoreContext';
+import { isSandboxStore } from '@/store/sandboxStore';
 import { TutorialOverlay } from '@/components/plan/TutorialOverlay';
 import { startTutorial, tutorialSession, useTutorialSession } from '@/store/tutorialSession';
 import { INTERACTIVE_STEP_IDS, TUTORIAL_STEPS, TUTORIAL_STEP_COUNT, isLastStep, nextIndex, prevIndex } from '@/store/tutorialPath';
@@ -80,6 +81,11 @@ function TodayContent() {
   // 3.5.3.0 — the store this screen acts on: the real singleton normally, the sandbox when the
   // tutorial wraps Today in a StoreProvider. Reads and writes MUST resolve to the same one.
   const store_ = useActiveStore();
+  // 3.5.3.2 — is this screen showing EXAMPLE money? Asked of the STORE, not of the tutorial session:
+  // the marker's whole job is to be true about what's rendered, so it hangs off the same brand the
+  // persistence + sync seams refuse on. A session flag could be set while the provider wasn't (or
+  // vice-versa) and the card would then lie in the one direction that matters.
+  const isExample = isSandboxStore(store_);
   const store = useAppStore((s) => s.store);
   const isPremium = store.subscriptionPlan === 'premium';
   // 2.4 — the payday engine reads projected-current balances (premium) so the plan reflects where the
@@ -156,7 +162,11 @@ function TodayContent() {
   // 3.5.1 — the tutorial invitation joins the slot ranked LAST: every other ack is time-sensitive
   // (a milestone just crossed, a reserve just released), while a teaching offer keeps. On a brand-new
   // user none of the others can fire anyway, so it costs the offer nothing to yield to them.
-  const tutorialInvite = selectTutorialInvite(store);
+  // 3.5.3.2 — never offer the walkthrough while the user is INSIDE it. The invitation reads the acting
+  // store, and the sandbox is a fresh store that has of course never seen the tutorial — so the in-situ
+  // shell (3.5.3.1) had Today advertising "See how your Guardian works · Show me" on top of the very
+  // walkthrough it was inviting them to. Caught by 3.5.3.2's marker screenshot.
+  const tutorialInvite = isExample ? null : selectTutorialInvite(store);
   const activeAck: 'milestone' | 'intent' | 'reserve-release' | 'reserve-walkback' | 'risk-cleared' | 'trial' | 'tutorial' | null =
     celebration
       ? null
@@ -238,6 +248,7 @@ function TodayContent() {
             <PaydayGuardianCard
               brief={guardian}
               isPremium={isPremium}
+              isExample={isExample}
               proofOfWork={proofOfWork}
               onSeeForecast={() => router.push('/cushion-forecast')}
               topUp={tightTopUp}

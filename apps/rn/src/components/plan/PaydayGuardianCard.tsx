@@ -42,6 +42,7 @@ export function PaydayGuardianCard({
   onKeepEssential,
   bnplHeadsUp,
   proofOfWork,
+  isExample,
 }: {
   brief: GuardianBrief;
   isPremium: boolean;
@@ -71,6 +72,10 @@ export function PaydayGuardianCard({
    *  app, the sandbox's in the tutorial) so the card can be used as a teaching prop without moving the
    *  user's real line. Omit it and the floor sheet simply isn't offered. */
   onSetFloor?: (value: number) => void;
+  /** 3.5.3.2 — this card is showing EXAMPLE money (the tutorial sandbox), not the user's plan. Drives
+   *  the persistent marker below. The host derives it from the acting store's sandbox brand rather than
+   *  from "is a tutorial running", so the claim can never drift from what's actually on screen. */
+  isExample?: boolean;
 }) {
   const c = useAppColors();
   const [barW, setBarW] = useState(0);
@@ -105,6 +110,10 @@ export function PaydayGuardianCard({
     <Card>
         <View
         {...groupLabel(
+          // 3.5.3.2 — spoken FIRST, before the verdict. A VoiceOver user can't see the chip, and the
+          // beat that most needs this marker is the one where the card says "you're at risk" about
+          // money that isn't theirs. Whoever hears the warning must hear "example" ahead of it.
+          isExample ? 'Example' : undefined,
           'Payday Guardian',
           brief.title,
           brief.detail,
@@ -123,6 +132,21 @@ export function PaydayGuardianCard({
         <View style={styles.head}>
           <AppIcon name={icon} size={22} color={color} />
           <Text style={[textStyles.title3, styles.title, { color }]}>{brief.title}</Text>
+          {/* 3.5.3.2 — the persistent EXAMPLE marker, on every beat of the walkthrough.
+              WHY it sits here and not in the eyebrow: the tutorial teaches over the user's real Today
+              with figures scaled from their own income, and two of the beats put the card into tight /
+              at-risk. A marker in the meta line above would read as a label for the section; next to
+              the verdict it reads as a qualifier ON the verdict, which is the only thing that stops
+              "You're short this paycheck" from landing as a real warning about their real money.
+              It borrows the accent (never a state color) so it can't be mistaken for a verdict of its
+              own, and it never renders outside the sandbox. */}
+          {isExample ? (
+            <View
+              style={[styles.chip, { backgroundColor: c.accent.accentSoft, borderColor: c.accent.primary }]}
+              testID="guardian-example-marker">
+              <Text style={[textStyles.caption, styles.chipText, { color: c.accent.primary }]}>Example</Text>
+            </View>
+          ) : null}
           {stale ? (
             <View style={[styles.chip, { backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}>
               <Text style={[textStyles.caption, styles.chipText, { color: c.text.tertiary }]}>Update needed</Text>
@@ -315,7 +339,9 @@ function Stat({ swatch, dim, amount, label }: { swatch: string; dim?: boolean; a
 
 const styles = StyleSheet.create({
   eyebrow: { letterSpacing: 0.8, marginBottom: spacing.xs },
-  head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  // flexWrap so a title long enough to squeeze the chips reflows instead of crushing them — the
+  // Example marker losing its label is the one failure this row can't afford.
+  head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   title: { flex: 1 },
   chip: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: 999, borderWidth: StyleSheet.hairlineWidth },
   chipText: { fontWeight: '600' },

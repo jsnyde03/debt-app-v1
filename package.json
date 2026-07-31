@@ -12,6 +12,7 @@
     "test:e2e": "playwright test",
     "test:e2e:rn": "playwright test --config apps/rn/playwright.config.ts",
     "e2e:fresh": "node scripts/e2e-fresh.cjs",
+    "e2e:fresh:rn": "node scripts/e2e-fresh-rn.cjs",
     "test:app": "npm --prefix apps/rn run test:app",
     "test:scenarios": "npm --prefix apps/rn run test:scenarios",
     "test:all": "npm run test:regression && npm run test:app && npm run test:scenarios",

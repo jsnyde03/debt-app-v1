@@ -66,10 +66,16 @@ test.describe('tutorial invitation + in-situ shell', () => {
     for (let step = 1; step < total; step++) {
       await expect(page.getByTestId('tutorial-progress')).toContainText(`Step ${step} of ${total}`);
       await expect(page.getByTestId('tutorial-step-title')).not.toBeEmpty();
+      // 3.5.3.2 — the marker is PERSISTENT, so it's asserted on every single beat rather than once at
+      // the start. The entry copy scrolls away and later beats drive the card into tight/at-risk with
+      // figures scaled from the user's own income; a marker that lapses on beat 5 fails exactly where
+      // it's needed.
+      await expect(page.getByTestId('guardian-example-marker')).toBeVisible();
       await page.getByText('Next', { exact: true }).click();
     }
 
     await expect(page.getByTestId('tutorial-progress')).toContainText(`Step ${total} of ${total}`);
+    await expect(page.getByTestId('guardian-example-marker')).toBeVisible();
     await expect(page.getByText('Finish', { exact: true })).toBeVisible();
     await page.getByText('Finish', { exact: true }).click();
 
@@ -79,6 +85,25 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(page.getByTestId('tutorial-overlay')).toHaveCount(0);
     await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
     await expect(page.getByText(/MAR 16/i)).toHaveCount(0);
+    // ...and the marker leaves WITH the sandbox. A marker stranded on the user's own card would be the
+    // mirror of the bug it exists to prevent: their real read dismissed as an example.
+    await expect(page.getByTestId('guardian-example-marker')).toHaveCount(0);
+  });
+
+  test('the walkthrough is not advertised while you are inside it', async ({ page }) => {
+    await seedStore(page, newUser());
+    await page.goto('/tutorial');
+    await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
+    // The sandbox is a fresh store that has never "seen" the tutorial, so the invitation selector fires
+    // on it unless the host suppresses it — leaving Today offering the walkthrough during the walkthrough.
+    await expect(page.getByTestId('tutorial-invite')).toHaveCount(0);
+  });
+
+  test('the Example marker never appears on the real card', async ({ page }) => {
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
+    await page.goto('/');
+    await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
+    await expect(page.getByTestId('guardian-example-marker')).toHaveCount(0);
   });
 
   test('Back works, and Skip ends the session from a mid beat', async ({ page }) => {
