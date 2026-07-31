@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
+import { startTutorial } from '@/store/tutorialSession';
 import { useState } from 'react';
 import { InteractionManager, Linking, Platform, StyleSheet, Switch, Text, View } from 'react-native';
 
@@ -127,7 +128,7 @@ export default function MoreScreen() {
           icon="gpp-good"
           label="How the Guardian works"
           subtitle="Replay the short walkthrough."
-          onPress={() => router.push('/tutorial')}
+          onPress={() => { startTutorial(appStore.getState().store.subscriptionPlan === 'premium' ? 'premium' : 'free'); router.navigate('/'); }}
           last
         />
       </SettingGroup>

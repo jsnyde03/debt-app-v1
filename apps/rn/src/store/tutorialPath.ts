@@ -33,6 +33,14 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
 
 export const TUTORIAL_STEP_COUNT = TUTORIAL_STEPS.length;
 
+/**
+ * 3.5.3 gate (Jason 2026-07-31) — the TWO beats where the user actually does something; the other five
+ * are scripted reveals. On these the overlay stops blocking touches so the real control underneath is
+ * reachable, and each must be VoiceOver-OPERABLE, not merely readable — which is precisely why the
+ * count is two: every added control multiplies that obligation and the ways a step can trap someone.
+ */
+export const INTERACTIVE_STEP_IDS: string[] = ['line', 'reserve'];
+
 /** Clamp a persisted resume point back into range — a shorter arc must never strand a returning user. */
 export function resumeIndex(saved: number | null | undefined, count: number = TUTORIAL_STEP_COUNT): number {
   if (saved == null || !Number.isFinite(saved)) return 0;

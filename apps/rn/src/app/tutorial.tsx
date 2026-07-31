@@ -1,153 +1,48 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
 
-import { Button } from '@/components/ui/Button';
-import { Motion } from '@/motion/Motion';
-import { Screen } from '@/components/screen';
-import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
-import { TUTORIAL_MAX_CYCLES } from '@/store/sandboxBeats';
-import { harnessScenario, publishSandbox, unpublishSandbox } from '@/store/sandboxHarness';
-import { scenarioFor } from '@/store/sandboxScenarios';
-import { createSandboxStore } from '@/store/sandboxStore';
-import {
-  isLastStep,
-  nextIndex,
-  prevIndex,
-  resumeIndex,
-  stepAnnouncement,
-  TUTORIAL_STEPS,
-  TUTORIAL_STEP_COUNT,
-} from '@/store/tutorialPath';
-import { markTutorialSeen, type TutorialRun } from '@/store/tutorialSelectors';
-import { useAppStore } from '@/store/useAppStore';
-import { useSandboxStore } from '@/store/useSandboxStore';
-import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
-import { announce, headerProps } from '@/utils/a11y';
+import { resumeIndex } from '@/store/tutorialPath';
+import { tutorialSession } from '@/store/tutorialSession';
+import type { TutorialRun } from '@/store/tutorialSelectors';
 
 /**
- * 3.5.1/3.5.2 — the Guardian tutorial route.
+ * 3.5.3.1 — the tutorial LAUNCHER.
  *
- * 3.5.1 gave it entry, the sandbox lifecycle and the seen-flag. **3.5.2 adds the PATH**: stepping,
- * skip, interrupt-resume, and the accessibility contract — every step reachable and operable by
- * VoiceOver, announced on entry, and calm under Reduce Motion. The beats' actual content is 3.5.3's;
- * the copy here is placeholder by design.
+ * This route used to host the walkthrough. It no longer does: the beats run as an overlay on the REAL
+ * Today tab, because `useGoToTab` calls `useNavigation()` and only behaves inside the tabs navigator —
+ * hosting a copy of Today from this Stack route would resolve up through the root and land as a
+ * detached tab group, i.e. a blank screen on device (Freedom RN lesson #7).
  *
- * Everything renders from a SANDBOX, never the real store, so nothing done here touches the user's plan.
- *
- * A11y notes worth keeping: the step title carries `headerProps` so the VoiceOver rotor can jump by
- * heading; `announce()` fires on every step change because the transition is otherwise MOTION-ONLY and
- * a screen-reader user would get no signal at all; and the controls sit outside any grouped element so
- * each is reachable as its own button (the MF.2 lesson).
+ * So the route survives purely as the ENTRY: it starts a session (picking up any interrupted step) and
+ * hands off to Today. Keeping it means the deep link, the More row, the card's replay affordance and
+ * the e2e all still have a stable URL to aim at — they simply arrive somewhere else now.
  */
-export default function TutorialScreen() {
-  const c = useAppColors();
+export default function TutorialLauncher() {
   const params = useLocalSearchParams<{ run?: string }>();
-  const realStore = useAppStore((s) => s.store);
-  const run: TutorialRun =
-    params.run === 'premium' ? 'premium' : params.run === 'free' ? 'free' : realStore.subscriptionPlan === 'premium' ? 'premium' : 'free';
 
-  // Resume where they left off. Read ONCE on mount: re-reading would yank a user back mid-step as the
-  // pref updates beneath them.
-  const [index, setIndex] = useState(() => resumeIndex(realStore.prefs.tutorialStep));
+  useEffect(() => {
+    const real = appStore.getState().store;
+    const run: TutorialRun =
+      params.run === 'premium' ? 'premium' : params.run === 'free' ? 'free' : real.subscriptionPlan === 'premium' ? 'premium' : 'free';
 
-  const sandbox = useMemo(() => {
-    const scenario =
-      harnessScenario({ maxGenuineCycles: TUTORIAL_MAX_CYCLES }) ??
-      scenarioFor(realStore, 'clear', { premium: run === 'premium', maxGenuineCycles: TUTORIAL_MAX_CYCLES });
-    const store = createSandboxStore(scenario);
-    publishSandbox(store, scenario.id);
-    return store;
-    // Mount-only: rebuilding the sandbox when the real store changes would restart the lesson mid-step.
+    tutorialSession.getState().start(real, run, resumeIndex(real.prefs.tutorialStep));
+
+    // Get out of the way WITHOUT re-mounting the tab group. `router.replace('/')` from a pushed Stack
+    // route renders `(tabs)` a SECOND time — two Todays, two overlays — which is the duplicate/detached
+    // tab-group failure `useGoToTab` documents (Freedom RN lesson #7), reproduced here in the e2e.
+    // Popping returns to the Today that's already mounted; `replace` is only for a cold deep link with
+    // no history to pop. Third time this session that `canGoBack()` has been the right guard.
+    // `navigate`, not `push`/`replace`/`back`. The three entry points sit at different stack depths —
+    // the Guardian card is on Today, the More row is its own Stack route, a deep link has no history —
+    // and each needs to end up on the Today TAB with nothing duplicated. `replace` re-mounted the tab
+    // group (two Todays, two overlays — the detached-tab-group class `useGoToTab` documents), and
+    // `back`/`dismissAll` landed wherever the caller happened to be. `navigate` targets the existing
+    // route if there is one and only creates it otherwise, which is the one behaviour all three share.
+    router.navigate('/');
+    // Mount-only: this route's whole job is to fire once and get out of the way.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const step = TUTORIAL_STEPS[index];
-
-  // The step change is motion-only, so announce it — otherwise VoiceOver users hear nothing move.
-  useEffect(() => {
-    announce(stepAnnouncement(index));
-  }, [index]);
-
-  useEffect(() => () => unpublishSandbox(), []);
-
-  /** Persist the resume point as they move, so an interruption keeps their place. */
-  const goTo = (next: number) => {
-    setIndex(next);
-    appStore.getState().updatePrefs({ tutorialStep: next });
-  };
-
-  /**
-   * Leaving — by finishing, skipping, or backing out — all record the run as seen and CLEAR the resume
-   * point. A completed walkthrough that resumed at its last step would otherwise reopen there forever.
-   */
-  const leave = () => {
-    const prefs = appStore.getState().store.prefs;
-    appStore.getState().updatePrefs({ ...markTutorialSeen(prefs, run), tutorialStep: null });
-    // Same cold-entry guard as the payoff-schedule route (3.7.A0): this is reachable directly (More,
-    // a deep link, a QA harness run), and with no history `router.back()` silently no-ops — leaving the
-    // user stuck on a walkthrough whose Finish button does nothing. Caught by the 3.5.2 e2e.
-    if (router.canGoBack()) router.back();
-    else router.replace('/');
-  };
-
-  const sandboxDate = useSandboxStore(sandbox, (s) => s.store.paycheck.currentDate);
-  const sandboxFloor = useSandboxStore(sandbox, (s) => s.store.cushionFloor);
-  const last = isLastStep(index);
-
-  return (
-    <Screen title="How your Guardian works" onBack={leave}>
-      <View style={styles.body} testID="tutorial-scaffold">
-        {/* Position first, and as text — a screen-reader user has no progress dots to glance at. */}
-        <Text style={[textStyles.caption, { color: c.text.tertiary }]} testID="tutorial-progress">
-          Step {index + 1} of {TUTORIAL_STEP_COUNT}
-        </Text>
-
-        {/* Keyed on the step so each entry re-runs the fade; `Motion` degrades to none under the
-            system Reduce-Motion setting, so this stays calm for anyone who asked for calm. */}
-        <Motion key={step.id} style={styles.stepBlock}>
-          <Text {...headerProps()} style={[textStyles.title3, { color: c.text.primary }]} testID="tutorial-step-title">
-            {step.title}
-          </Text>
-          {/* Body copy is deliberately NOT font-capped: Dynamic Type should scale it freely. Only
-              oversized display numerals get `maxFontSizeMultiplier` in this app. */}
-          <Text style={[textStyles.body, { color: c.text.secondary }]}>{step.body}</Text>
-        </Motion>
-
-        {/* Placeholder for the beat's interactive content (3.5.3). Rendering live sandbox values keeps
-            the scaffold honest — if the sandbox binding broke, this screen would show it. */}
-        <Text style={[textStyles.caption, { color: c.text.tertiary }]} testID="tutorial-sandbox-proof">
-          Example paycheck dated {sandboxDate} · cushion line ${sandboxFloor}
-        </Text>
-
-        {/* Controls: each its own reachable element, never inside a grouped label. */}
-        <View style={styles.nav}>
-          {index > 0 ? (
-            <Button label="Back" variant="text" onPress={() => goTo(prevIndex(index))} />
-          ) : null}
-          <Button
-            label={last ? 'Finish' : 'Next'}
-            onPress={() => (last ? leave() : goTo(nextIndex(index)))}
-          />
-        </View>
-
-        {/* Skip stays available on EVERY step — a walkthrough you can't leave is a trap, and that's
-            worse for the people most likely to need to leave. */}
-        {!last ? (
-          <Pressable onPress={leave} accessibilityRole="button" accessibilityLabel="Skip the walkthrough" hitSlop={8} testID="tutorial-skip">
-            <Text style={[textStyles.caption, styles.skip, { color: c.text.tertiary }]}>Skip</Text>
-          </Pressable>
-        ) : null}
-      </View>
-    </Screen>
-  );
+  return null;
 }
-
-const styles = StyleSheet.create({
-  body: { gap: spacing.md, paddingVertical: spacing.md },
-  stepBlock: { gap: spacing.xs },
-  nav: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  skip: { textAlign: 'center', paddingVertical: spacing.sm },
-});

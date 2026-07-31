@@ -32,7 +32,11 @@ import { TwoColumn } from '@/components/ui/TwoColumn';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
-import { useActiveStore } from '@/store/StoreContext';
+import { StoreProvider, useActiveStore } from '@/store/StoreContext';
+import { TutorialOverlay } from '@/components/plan/TutorialOverlay';
+import { startTutorial, tutorialSession, useTutorialSession } from '@/store/tutorialSession';
+import { INTERACTIVE_STEP_IDS, TUTORIAL_STEPS, TUTORIAL_STEP_COUNT, isLastStep, nextIndex, prevIndex } from '@/store/tutorialPath';
+import { appStore } from '@/store/appStore';
 import type { DebtStoreInstance } from '@/store/store';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
 import { selectBillsAttestation, selectBnplBetweenPaycheck, selectGuardianProofOfWork, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
@@ -69,7 +73,7 @@ type Celebration =
   | { kind: 'finale' };
 
 /** Today tab (home) — the payday moment + Payday Autopilot. Elevated to the navy hero + count-ups in 1.3. */
-export default function TodayScreen() {
+function TodayContent() {
   const c = useAppColors();
   const goToTab = useGoToTab();
   const { isExpanded } = useLayout(); // 3.6.3 — iPad landscape / wide → two-column (read | do)
@@ -238,7 +242,7 @@ export default function TodayScreen() {
               onSeeForecast={() => router.push('/cushion-forecast')}
               topUp={tightTopUp}
               onTopUp={() => tightTopUp && store_.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
-              onReplayTutorial={() => router.push(`/tutorial?run=${isPremium ? 'premium' : 'free'}`)}
+              onReplayTutorial={() => startTutorial(isPremium ? 'premium' : 'free')}
               onSetFloor={(v) => store_.getState().setCushionFloor(v)}
               attestation={attestation}
               onAttestBills={(v) => store_.getState().setBillsAttested(v)}
@@ -393,7 +397,7 @@ export default function TodayScreen() {
           re-asking every launch would make the offer nag. Replay lives on the Guardian card + in More. */}
       {tutorialInvite && activeAck === 'tutorial' ? (
         <TutorialInviteCard
-          onStart={() => router.push(`/tutorial?run=${tutorialInvite.run}`)}
+          onStart={() => startTutorial(tutorialInvite.run)}
           onDismiss={() => store_.getState().updatePrefs(markTutorialSeen(store.prefs, tutorialInvite.run))}
         />
       ) : null}
@@ -499,3 +503,60 @@ const styles = StyleSheet.create({
   ackText: { flex: 1, fontWeight: '600' },
   ackActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 });
+
+/**
+ * 3.5.3.1 — the Today ROUTE. Thin by design: it exists so the tutorial's `StoreProvider` and overlay
+ * can sit ABOVE `TodayContent` (a component can't consume a context it renders itself), while Today
+ * stays inside the TABS navigator.
+ *
+ * That last part is the constraint that shaped this: `useGoToTab` calls `useNavigation()` and only
+ * behaves within the tab navigator — hosting a copy of Today inside the `/tutorial` Stack route would
+ * resolve up through the root and land as a detached tab group, i.e. a blank screen on device
+ * (Freedom RN lesson #7, cited in the hook's own doc). So the walkthrough is an overlay on the real
+ * tab, never a second instance of it.
+ */
+export default function TodayScreen() {
+  // Separate primitive selectors, NOT one object literal: a selector returning a fresh object every
+  // render never compares equal, so zustand re-renders in a loop (and React warns the snapshot isn't
+  // cached). Cheap mistake, expensive symptom — it took the whole screen down.
+  const active = useTutorialSession((s) => s.active);
+  const sandbox = useTutorialSession((s) => s.sandbox);
+  const index = useTutorialSession((s) => s.index);
+
+  if (!active || !sandbox) return <TodayContent />;
+
+  const session = { active, sandbox, index };
+  const step = TUTORIAL_STEPS[index];
+  const last = isLastStep(index);
+  const leave = () => {
+    const prefs = appStore.getState().store.prefs;
+    appStore.getState().updatePrefs({ ...markTutorialSeen(prefs, tutorialSession.getState().run), tutorialStep: null });
+    tutorialSession.getState().end();
+  };
+
+  return (
+    <StoreProvider store={session.sandbox}>
+      <TodayContent />
+      <TutorialOverlay
+        position={session.index + 1}
+        total={TUTORIAL_STEP_COUNT}
+        title={step.title}
+        body={step.body}
+        interactive={INTERACTIVE_STEP_IDS.includes(step.id)}
+        isLast={last}
+        onBack={session.index > 0 ? () => {
+          const next = prevIndex(session.index);
+          tutorialSession.getState().goTo(next);
+          appStore.getState().updatePrefs({ tutorialStep: next });
+        } : undefined}
+        onNext={() => {
+          if (last) return leave();
+          const next = nextIndex(session.index);
+          tutorialSession.getState().goTo(next);
+          appStore.getState().updatePrefs({ tutorialStep: next });
+        }}
+        onSkip={leave}
+      />
+    </StoreProvider>
+  );
+}
