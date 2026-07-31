@@ -1279,3 +1279,44 @@ what was already understood. All three are needed, and "I looked at it and it wo
   tabs are already held so it is cosmetic. Flagged, deliberately not decided solo.
 - `guardian-reserve` as its own target (the reserve beat currently spotlights the whole bar group) → 3.5.3.5.
 - The finale spotlights `guardian-card` and must survive the crossfade → 3.5.3.6.
+
+## 3.5.3.4 — drag the floor — ⚠️ BUILT + VERIFIED, EXIT BLOCKED ON [D9] (2026-07-31, `aea6672`)
+
+**Before-scan corrected two premises before a line was written:**
+1. **There is no inline slider to drag.** The floor control lives in a modal `FormSheet`, which renders
+   ABOVE the tutorial overlay (the 3.7.A0 lesson). So the beat cannot spotlight a control and have the
+   user drag it in place — [D7] resolved it as: spotlight the ENTRY, open the real sheet, and carry one
+   line of coaching inside it, because the modal covers the coaching card that sent them there.
+2. **"The Skia impact viz" was stale.** `AffordabilityImpactBar` already answers this question on the
+   sibling surface, in Reanimated. Built a sibling rather than reusing it: both ask "what did this do to
+   my cushion", but that one narrates a PURCHASE carving down toward a fixed line — passing a floor
+   change through it would have animated correctly and captioned it wrongly. Skia was declined on
+   purpose: identical result, plus a device-QA gate.
+
+**Scope discipline on the [D8] allowance:** `isExample` widens exactly two gates (`showAdjust` and the
+sheet's render). Every other premium-gated element on the card still reads plain `isPremium`, so a free
+walkthrough doesn't quietly inherit Recovery, the safe-move voice, top-up, attestation, the proof strip
+or the forecast link. That narrowness is the thing to preserve if this pattern spreads.
+
+**Two defects caught by this leaf's own scans:**
+- **A fresh-object selector took the entire tutorial suite down** — `useStore(sandbox, s =>
+  selectPaydayGuardian(s.store))` builds a new object every call, so it never compares equal: the exact
+  un-cached-snapshot loop this screen already documents in `TodayScreen`. 17 failed / 3 passed; deriving
+  outside the selector restored 20/20. The code-level after-scan found it before the run reported.
+- **The 3.5.3.3.1 target guard caught my own change** — beat 3 re-pointed to `guardian-adjust` and the
+  registered-subject assertion failed immediately. Exactly what it was written for.
+
+**⛔ [D9] — the after-scan's blocking finding, from the screenshots.** With a real drag scripted, the
+premium run reads `Cushion $413 → $323 · $90 more to debt this paycheck`. The FREE run reads **`Cushion
+$50 → $50 · Same cushion, same plan`** — because a free Guardian is never held to the floor, so moving
+the line does nothing. The taste [D8] bought is therefore hollow: the control looks broken, and both the
+beat body and the in-sheet coach line ("the whole plan re-solves around it") are false for that
+audience — the same defect class 3.5.3.3.3 existed to kill.
+
+**Recommendation: run the SANDBOX as premium for every audience.** This is what the E1 spec always
+described — _"free lands on the real free card + invite = the app's best paywall"_ — i.e. the walkthrough
+teaches what the Guardian DOES, and the hand-back to their own free card is the conversion moment. The
+current `premium: run === 'premium'` scenario option quietly contradicts that. It also dissolves
+3.5.3.3.3's both-tiers copy constraint. Alternative: revert [D8] and script the beat for free, keeping
+the tier boundary crisp at the cost of the one moment of agency. **Jason's call — it changes what a free
+user sees for the whole walkthrough, so it is not mine to make.**
