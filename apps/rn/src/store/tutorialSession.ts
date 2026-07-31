@@ -3,7 +3,7 @@ import { useStore } from 'zustand';
 
 import { TUTORIAL_MAX_CYCLES } from './sandboxBeats';
 import { harnessScenario, publishSandbox, unpublishSandbox } from './sandboxHarness';
-import { SANDBOX_STATES, scenarioFor, scenarioForBeat, type SandboxState } from './sandboxScenarios';
+import { SANDBOX_STATES, scenarioForBeat, type SandboxState } from './sandboxScenarios';
 import { createSandboxStore, seedSandbox, type SandboxStoreInstance } from './sandboxStore';
 import type { DebtStore } from '@/data/models';
 import type { TutorialRun } from './tutorialSelectors';
@@ -64,7 +64,15 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
     const pinned = (pinnedScenario ? harnessState(pinnedScenario.id) : null) ?? null;
     staging = { realStore, opts, pinned };
 
-    const opening = pinnedScenario ?? scenarioFor(realStore, TUTORIAL_STEPS[startIndex]?.state ?? 'clear', opts);
+    // Opening through the SAME policy `stageBeat` uses, not a parallel copy of it. The after-scan
+    // caught the divergence: a user who interrupt-RESUMES at beat 5 enters through here, while a user
+    // who STEPS to beat 5 enters through `goTo` — two code paths for one question ("what state is
+    // beat 5?") is exactly how those two users end up looking at different cards.
+    // The `?? clear` is the one honest difference: a sandbox has to be created from something, whereas
+    // stepping onto a stateless beat correctly leaves the stage as it found it.
+    const opening =
+      scenarioForBeat(realStore, TUTORIAL_STEPS[startIndex]?.state, { ...opts, pinned }) ??
+      scenarioForBeat(realStore, 'clear', { ...opts, pinned })!;
     const sandbox = createSandboxStore(opening);
     publishSandbox(sandbox, opening.id);
     set({ active: true, run, sandbox, index: startIndex });
@@ -102,7 +110,7 @@ function harnessState(id: string): SandboxState | null {
  * run — a test asserting "the card is at-risk on this beat" would read a stale id and pass on the wrong
  * evidence. (Found in this leaf's before-scan.)
  */
-export function stageBeat(index: number): void {
+function stageBeat(index: number): void {
   const { sandbox } = tutorialSession.getState();
   if (!sandbox || !staging) return;
   const scenario = scenarioForBeat(staging.realStore, TUTORIAL_STEPS[index]?.state, { ...staging.opts, pinned: staging.pinned });

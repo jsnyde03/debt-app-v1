@@ -149,6 +149,15 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(short).toBeVisible();
   });
 
+  test('resuming onto a beat shows the same state as stepping onto it', async ({ page }) => {
+    // Two doors into beat 5: `start` (interrupt-resume) and `goTo` (stepping). They were computing the
+    // scenario separately, which is how two users end up looking at different cards on the same beat.
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium', tutorialStep: 4 } }));
+    await page.goto('/tutorial');
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 5 of');
+    await expect(page.getByText(/won't cover everything/)).toBeVisible();
+  });
+
   test('a harness-pinned state governs the whole run, not just the opening', async ({ page }) => {
     await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
     await page.addInitScript(() => {
