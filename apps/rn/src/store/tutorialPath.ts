@@ -14,6 +14,12 @@ export interface TutorialStepDef {
   title: string;
   /** One line of body copy. */
   body: string;
+  /**
+   * 3.5.3.3.1 — the registered subject this beat coaches (see `tutorialTargets`). Omitted for a beat
+   * that addresses the whole screen; the overlay then falls back to an uncut scrim rather than
+   * spotlighting something arbitrary.
+   */
+  target?: string;
 }
 
 /**
@@ -22,13 +28,13 @@ export interface TutorialStepDef {
  * shape are what 3.5.2 needs, so the path, its a11y and its e2e are provable now.
  */
 export const TUTORIAL_STEPS: TutorialStepDef[] = [
-  { id: 'intro', title: 'What your Guardian does', body: 'It protects a cushion from each paycheck before anything extra goes to debt.' },
-  { id: 'bar', title: 'Reading your paycheck', body: 'The bar splits this paycheck into what is held back and what goes to debt.' },
-  { id: 'line', title: 'Your line', body: 'You choose the cushion to keep. Move it and the plan re-solves around it.' },
-  { id: 'reserve', title: 'The safety net', body: 'Early on, a little extra is held back while the app learns your bills.' },
-  { id: 'recovery', title: 'When a paycheck is short', body: 'You get a plan: what to cover first, and what can safely wait.' },
-  { id: 'yourcall', title: 'Always your call', body: 'The Guardian suggests. Nothing moves without you.' },
-  { id: 'handback', title: 'Over to your plan', body: 'That was example money. Here is your own paycheck.' },
+  { id: 'intro', title: 'What your Guardian does', body: 'It protects a cushion from each paycheck before anything extra goes to debt.', target: 'guardian-card' },
+  { id: 'bar', title: 'Reading your paycheck', body: 'The bar splits this paycheck into what is held back and what goes to debt.', target: 'guardian-bar' },
+  { id: 'line', title: 'Your line', body: 'You choose the cushion to keep. Move it and the plan re-solves around it.', target: 'guardian-line' },
+  { id: 'reserve', title: 'The safety net', body: 'Early on, a little extra is held back while the app learns your bills.', target: 'guardian-bar' },
+  { id: 'recovery', title: 'When a paycheck is short', body: 'You get a plan: what to cover first, and what can safely wait.', target: 'guardian-card' },
+  { id: 'yourcall', title: 'Always your call', body: 'The Guardian suggests. Nothing moves without you.', target: 'guardian-card' },
+  { id: 'handback', title: 'Over to your plan', body: 'That was example money. Here is your own paycheck.', target: 'guardian-card' },
 ];
 
 export const TUTORIAL_STEP_COUNT = TUTORIAL_STEPS.length;

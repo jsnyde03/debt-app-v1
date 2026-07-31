@@ -9,6 +9,7 @@ import { CushionFloorSheet } from '@/components/plan/CushionFloorSheet';
 import { GuardianProofStrip } from '@/components/plan/GuardianProofStrip';
 import { RecoveryPlanSection } from '@/components/plan/RecoveryPlanSection';
 import { PremiumInvite } from '@/components/premium/PremiumInvite';
+import { TutorialTarget } from '@/store/tutorialTargets';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { GuardianBrief, GuardianProofOfWork, GuardianState, TightTopUp } from '@/store/guardianSelectors';
 import type { RecoveryPlan } from '@/store/recoverySelectors';
@@ -154,7 +155,11 @@ export function PaydayGuardianCard({
           ) : null}
         </View>
 
-        {/* The cushion bar — the automation made visible. Dimmed while stale (numbers aren't trustworthy). */}
+        {/* The cushion bar — the automation made visible. Dimmed while stale (numbers aren't trustworthy).
+            3.5.3.3.1: also the "read the bar" beat's subject. `TutorialTarget` is a bare View with no
+            style of its own, and registration is inert with no provider above it, so a user who never
+            opens the walkthrough pays nothing for this. */}
+        <TutorialTarget id="guardian-bar">
         <View
           style={[styles.barWrap, stale && styles.dimmed]}
           onLayout={(e: LayoutChangeEvent) => setBarW(e.nativeEvent.layout.width)}
@@ -190,8 +195,10 @@ export function PaydayGuardianCard({
           <Stat swatch={color} amount={hasReserve ? brief.cushion - brief.heldReserve : brief.cushion} label="Cushion" />
           {hasPayoff ? <Stat swatch={c.accent.primary} amount={brief.deployedToDebt} label={brief.debtFree ? 'To savings' : 'To debt'} /> : null}
         </View>
+        </TutorialTarget>
         {/* Your line (the floor) is a reference marker, not a flow amount, so it sits below the amounts as
             a keyed sub-line (the vertical tick matches the floor line drawn in the bar). */}
+        <TutorialTarget id="guardian-line">
         <View
           style={styles.lineKey}
           accessibilityElementsHidden
@@ -199,6 +206,7 @@ export function PaydayGuardianCard({
           <View style={[styles.tick, { backgroundColor: c.text.primary }]} />
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{money(brief.floor)} · Your line</Text>
         </View>
+        </TutorialTarget>
 
         {/* The Guardian's voice — one short line for the states where it carries weight; the calm
             clear/tight reads are told by the title + the stats, so their paragraph is dropped. */}

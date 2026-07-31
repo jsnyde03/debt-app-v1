@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -22,6 +22,8 @@ export function Screen({
   footer,
   maxWidth,
   wide = false,
+  scrollRef,
+  onScroll,
 }: {
   title: string;
   right?: ReactNode;
@@ -34,6 +36,13 @@ export function Screen({
   /** 3.6 — opt OUT of the centered width-cap on the regular (iPad) layout so the screen uses the FULL
    *  canvas for its own two-column / master-detail layout. No-op on compact (already full-width). */
   wide?: boolean;
+  /** 3.5.3.3.1 — a handle on the body scroller, so an overlay can bring a coached subject into view.
+   *  Opt-in and inert for every other screen; the alternative was for the tutorial to reach around
+   *  `Screen` and re-implement the scaffold, which would then drift from it. */
+  scrollRef?: React.Ref<ScrollView>;
+  /** Paired with `scrollRef`: `scrollTo` takes an ABSOLUTE content offset, so a caller that wants to
+   *  move by a measured delta has to know where the scroller currently is. */
+  onScroll?: ScrollViewProps['onScroll'];
 }) {
   const c = useAppColors();
   const insets = useSafeAreaInsets();
@@ -68,6 +77,9 @@ export function Screen({
 
         {scroll ? (
           <ScrollView
+            ref={scrollRef}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
             contentContainerStyle={[styles.content, { paddingBottom: bottomPad }]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>

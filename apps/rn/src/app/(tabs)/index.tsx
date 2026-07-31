@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { StyleSheet, Text, View, useWindowDimensions, type ScrollView, type ScrollViewProps } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MoreButton } from '@/components/more-button';
 import { router } from 'expo-router';
@@ -34,6 +35,8 @@ import { useLayout } from '@/hooks/use-layout';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { StoreProvider, useActiveStore } from '@/store/StoreContext';
 import { isSandboxStore } from '@/store/sandboxStore';
+import { TutorialTarget, TutorialTargetsProvider } from '@/store/tutorialTargets';
+import { useSpotlight } from '@/hooks/use-spotlight';
 import { TutorialOverlay } from '@/components/plan/TutorialOverlay';
 import { startTutorial, tutorialSession, useTutorialSession } from '@/store/tutorialSession';
 import { INTERACTIVE_STEP_IDS, TUTORIAL_STEPS, TUTORIAL_STEP_COUNT, isLastStep, nextIndex, prevIndex } from '@/store/tutorialPath';
@@ -58,6 +61,9 @@ import type { Debt } from '@/data/models';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
+/** `Screen`'s title header — the top of the region a coached subject is scrolled into. */
+const HEADER_H = 56;
+
 /** 3.5.3.0 — module-level, so the acting store is PASSED in rather than reached for. */
 function handleMark(store: DebtStoreInstance, row: RequiredRow, paid: boolean) {
   const isExpense = row.item.category === 'expense' || row.item.category === 'autopay_expense';
@@ -74,7 +80,7 @@ type Celebration =
   | { kind: 'finale' };
 
 /** Today tab (home) — the payday moment + Payday Autopilot. Elevated to the navy hero + count-ups in 1.3. */
-function TodayContent() {
+function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollView>; onScroll?: ScrollViewProps['onScroll'] } = {}) {
   const c = useAppColors();
   const goToTab = useGoToTab();
   const { isExpanded } = useLayout(); // 3.6.3 — iPad landscape / wide → two-column (read | do)
@@ -245,6 +251,9 @@ function TodayContent() {
         </Motion>
         {guardian ? (
           <Motion delay={45}>
+            {/* 3.5.3.3.1 — the whole card is the subject of the opening + closing beats. Registered from
+                the host so the card itself stays unaware of the walkthrough. */}
+            <TutorialTarget id="guardian-card">
             <PaydayGuardianCard
               brief={guardian}
               isPremium={isPremium}
@@ -253,7 +262,10 @@ function TodayContent() {
               onSeeForecast={() => router.push('/cushion-forecast')}
               topUp={tightTopUp}
               onTopUp={() => tightTopUp && store_.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
-              onReplayTutorial={() => startTutorial(isPremium ? 'premium' : 'free')}
+              // Withheld on example money: "How this works" restarts the walkthrough, and offering that
+              // FROM INSIDE the walkthrough is both incoherent and — on an interactive beat, where taps
+              // pass through — a live way to re-enter a session you're already in.
+              onReplayTutorial={isExample ? undefined : () => startTutorial(isPremium ? 'premium' : 'free')}
               onSetFloor={(v) => store_.getState().setCushionFloor(v)}
               attestation={attestation}
               onAttestBills={(v) => store_.getState().setBillsAttested(v)}
@@ -262,6 +274,7 @@ function TodayContent() {
               onKeepEssential={(id) => store_.getState().setDeferability(id, 'essential')}
               bnplHeadsUp={bnplHeadsUp}
             />
+            </TutorialTarget>
           </Motion>
         ) : null}
         {/* 2.9 — the inverse Guardian: "can I afford this purchase?" (the Guardian's sibling on Today). */}
@@ -300,7 +313,7 @@ function TodayContent() {
   return (
     // 3.6.3 — a wider centered column on the expanded iPad so the two-column content has room (but not
     // full-bleed — a dashboard reads better contained; the ack cards above also cap here).
-    <Screen title="Today" right={<MoreButton />} maxWidth={isExpanded ? 900 : undefined}>
+    <Screen title="Today" right={<MoreButton />} maxWidth={isExpanded ? 900 : undefined} scrollRef={scrollRef} onScroll={onScroll}>
       {provisionalPayoffs.map((d) => (
         <PayoffInvitationCard
           key={d.id}
@@ -536,8 +549,42 @@ export default function TodayScreen() {
 
   if (!active || !sandbox) return <TodayContent />;
 
-  const session = { active, sandbox, index };
+  // The registry only has to exist while a walkthrough is running — with no provider, every
+  // `TutorialTarget` in the tree degrades to a plain View and registers nothing.
+  return (
+    <TutorialTargetsProvider>
+      <TutorialRun sandbox={sandbox} index={index} />
+    </TutorialTargetsProvider>
+  );
+}
+
+/**
+ * 3.5.3.3.1 — the running walkthrough: Today on sandbox data, with the beat's subject brought into the
+ * stage and spotlit.
+ *
+ * Split out from `TodayScreen` because `useSpotlight` has to consume the targets context, and a
+ * component cannot consume a context it renders itself.
+ */
+function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: number }) {
+  const insets = useSafeAreaInsets();
+  const { height: screenH } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null);
+  const offsetRef = useRef(0);
+  const [dockH, setDockH] = useState(0);
+
   const step = TUTORIAL_STEPS[index];
+  // The stage: below the screen header, above the coaching dock. The subject is scrolled to sit inside
+  // it, which is what stops a beat from describing something hidden behind its own card.
+  const spotlight = useSpotlight({
+    targetId: step.target ?? null,
+    stageTop: insets.top + HEADER_H,
+    stageBottom: screenH - dockH - spacing.sm,
+    scrollRef,
+    offsetRef,
+    revision: dockH, // the dock resizes with its copy; a shorter beat can re-open room below
+  });
+
+  const session = { sandbox, index };
   const last = isLastStep(index);
   const leave = () => {
     const prefs = appStore.getState().store.prefs;
@@ -547,7 +594,12 @@ export default function TodayScreen() {
 
   return (
     <StoreProvider store={session.sandbox}>
-      <TodayContent />
+      <TodayContent
+        scrollRef={scrollRef}
+        onScroll={(e) => {
+          offsetRef.current = e.nativeEvent.contentOffset.y;
+        }}
+      />
       <TutorialOverlay
         position={session.index + 1}
         total={TUTORIAL_STEP_COUNT}
@@ -555,6 +607,8 @@ export default function TodayScreen() {
         body={step.body}
         interactive={INTERACTIVE_STEP_IDS.includes(step.id)}
         isLast={last}
+        spotlight={spotlight}
+        onDockLayout={setDockH}
         onBack={session.index > 0 ? () => {
           const next = prevIndex(session.index);
           tutorialSession.getState().goTo(next);

@@ -90,10 +90,64 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(page.getByTestId('guardian-example-marker')).toHaveCount(0);
   });
 
+  test('a beat spotlights its subject, and the scrim cuts around it', async ({ page }) => {
+    await seedStore(page, newUser());
+    await page.goto('/tutorial');
+    await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
+
+    // Beat 1's subject is the whole Guardian card; beat 2's is the cushion bar inside it. The ring
+    // must therefore MOVE and SHRINK between them — a spotlight that never changes would pass a mere
+    // "is it visible" assertion while pointing at the wrong thing all the way through.
+    // Poll rather than snapshot: the ring is unmounted while the screen scrolls to the next subject
+    // and remounted at the settled position, so a single read can land in the gap between the two.
+    const ring = page.getByTestId('tutorial-spotlight');
+    const ringHeight = async () => (await ring.boundingBox())?.height ?? 0;
+    await expect.poll(ringHeight, { timeout: 5000 }).toBeGreaterThan(0);
+    const cardHeight = await ringHeight();
+
+    await page.getByText('Next', { exact: true }).click();
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 2 of');
+    await expect.poll(ringHeight, { timeout: 5000 }).toBeGreaterThan(0);
+    await expect.poll(ringHeight, { timeout: 5000 }).toBeLessThan(cardHeight);
+
+    // The cut is the point of the cutout: the lit subject must NOT be under a scrim band.
+    const bar = (await ring.boundingBox())!;
+    const bands = await page.getByTestId('tutorial-scrim').locator('div').all();
+    expect(bands.length).toBeGreaterThan(0);
+    for (const band of bands) {
+      const b = await band.boundingBox();
+      if (!b) continue;
+      const overlaps = b.x < bar.x + bar.width && b.x + b.width > bar.x && b.y < bar.y + bar.height && b.y + b.height > bar.y;
+      expect(overlaps, 'no scrim band may cover the spotlit subject').toBeFalsy();
+    }
+  });
+
+  test('the tabs are held while a session is running', async ({ page }) => {
+    await seedStore(page, newUser());
+    await page.goto('/tutorial');
+    await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
+
+    // The scrim lives inside the Today screen, so it CANNOT cover the tab bar — without the hold, one
+    // tap lands the user on Money's real data mid-beat.
+    await page.getByTestId('tab-money').click();
+    await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 1 of');
+
+    // …and the hold lifts with the session.
+    await page.getByText('Skip', { exact: true }).click();
+    await expect(page.getByTestId('tutorial-overlay')).toHaveCount(0);
+    await page.getByTestId('tab-money').click();
+    await expect(page.getByTestId('tutorial-overlay')).toHaveCount(0);
+    await expect(page).toHaveURL(/money/);
+  });
+
   test('the walkthrough is not advertised while you are inside it', async ({ page }) => {
     await seedStore(page, newUser());
     await page.goto('/tutorial');
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
+    // The replay entry restarts the walkthrough — offering that from inside one is incoherent, and on
+    // an interactive beat (no scrim) it would be live.
+    await expect(page.getByTestId('guardian-replay-tutorial')).toHaveCount(0);
     // The sandbox is a fresh store that has never "seen" the tutorial, so the invitation selector fires
     // on it unless the host suppresses it — leaving Today offering the walkthrough during the walkthrough.
     await expect(page.getByTestId('tutorial-invite')).toHaveCount(0);

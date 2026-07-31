@@ -6,6 +6,7 @@ import { TabBarIcon } from '@/components/tab-bar-icon';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLayout } from '@/hooks/use-layout';
+import { useTutorialSession } from '@/store/tutorialSession';
 
 /**
  * The 3-tab shell (Elevation IA) — Today · Progress · Money, Today-first (index). Management
@@ -23,6 +24,12 @@ export default function TabsLayout() {
   const c = useAppColors();
   const scheme = useColorScheme();
   const { isRegular } = useLayout();
+  // 3.5.3.3.1 — the walkthrough's scrim lives INSIDE the Today screen, so it can't cover the tab bar:
+  // a user could tap straight through to Money's real data mid-beat and lose the thread (and, on the
+  // interactive beats, do it without even a scrim in the way). Holding the tabs for the duration is the
+  // honest read of "the scrim blocks stray taps" — and Skip is always right there if they want out.
+  const inTutorial = useTutorialSession((s) => s.active);
+  const holdTabs = { tabPress: (e: { preventDefault(): void }) => { if (inTutorial) e.preventDefault(); } };
 
   return (
     <Tabs
@@ -49,10 +56,12 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="progress"
+        listeners={holdTabs}
         options={{ title: 'Progress', tabBarButtonTestID: 'tab-progress', tabBarIcon: ({ color }) => <TabBarIcon name="progress" color={color} /> }}
       />
       <Tabs.Screen
         name="money"
+        listeners={holdTabs}
         options={{ title: 'Money', tabBarButtonTestID: 'tab-money', tabBarIcon: ({ color }) => <TabBarIcon name="money" color={color} /> }}
       />
     </Tabs>

@@ -99,6 +99,10 @@ async function main() {
   // store. The failure mode is a tutorial silently editing real money, so it gets an explicit assert.
   await import('../store/storeContext.test');
 
+  // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
+  // something hidden behind its own dock), so it's pinned away from React.
+  await import('../hooks/spotlight.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');
