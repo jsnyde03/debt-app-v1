@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import {
   isLastStep,
   nextIndex,
@@ -72,6 +75,16 @@ function run() {
     assert(stepAnnouncement(s).length > 0, `step ${s + 1} has a non-empty announcement`);
   }
   eq(stepAnnouncement(99), '', 'an out-of-range step announces nothing rather than throwing');
+
+  // ── 3.5.3.3.4.1 — the announcement must actually be CALLED, not merely correct. ───────────────
+  // This exists because it already went wrong: 3.5.3.1 moved the overlay off the /tutorial route and
+  // the announce call went with it. Every assertion above kept passing, because they cover the pure
+  // function rather than its wiring — and the failure is invisible to sighted testing and unobservable
+  // on web (`announceForAccessibility` is a no-op in react-native-web). So the guard is a source check
+  // on the component that renders a beat, in the spirit of the repo's existing `lint:webkit` scan.
+  const overlay = readFileSync(join(__dirname, '../components/plan/TutorialOverlay.tsx'), 'utf8');
+  assert(/stepAnnouncement\s*\(/.test(overlay), 'TutorialOverlay CALLS stepAnnouncement (a beat with no announcement is silent to VoiceOver)');
+  assert(/announce\s*\(/.test(overlay), '…through `announce`, so the utterance actually reaches the platform');
 
   console.log(`✅ tutorial path: ${passed} assertions passed.\n`);
 }

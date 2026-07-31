@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { ScrollView } from 'react-native';
 
+import { useReducedMotion } from 'react-native-reanimated';
+
 import { useTutorialTargets } from '@/store/tutorialTargets';
 import { scrollDelta, type TargetRect } from './spotlightGeometry';
 
@@ -44,6 +46,7 @@ export function useSpotlight({
   revision?: string | number;
 }): TargetRect | null {
   const targets = useTutorialTargets();
+  const reduceMotion = useReducedMotion();
   const [rect, setRect] = useState<TargetRect | null>(null);
 
   useEffect(() => {
@@ -68,7 +71,10 @@ export function useSpotlight({
       // Hide the old highlight while the screen is moving — a spotlight sliding across unrelated content
       // reads as a glitch, where a brief absence reads as "it's getting there".
       setRect(null);
-      scrollRef.current?.scrollTo({ y: Math.max(0, (offsetRef.current ?? 0) + delta), animated: true });
+      // Reduce Motion gets the jump, not the glide. A programmatic scroll the user didn't initiate is
+      // exactly the kind of movement the setting exists to suppress, and the destination is identical
+      // either way — only the travel differs.
+      scrollRef.current?.scrollTo({ y: Math.max(0, (offsetRef.current ?? 0) + delta), animated: !reduceMotion });
 
       timer = setTimeout(() => {
         void (async () => {
@@ -82,7 +88,7 @@ export function useSpotlight({
       stale = true; // invalidate any in-flight measure belonging to this run
       if (timer) clearTimeout(timer);
     };
-  }, [targetId, targets, stageTop, stageBottom, scrollRef, offsetRef, revision]);
+  }, [targetId, targets, stageTop, stageBottom, scrollRef, offsetRef, revision, reduceMotion]);
 
   return rect;
 }

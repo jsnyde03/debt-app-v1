@@ -71,6 +71,9 @@ test.describe('tutorial invitation + in-situ shell', () => {
       // figures scaled from the user's own income; a marker that lapses on beat 5 fails exactly where
       // it's needed.
       await expect(page.getByTestId('guardian-example-marker')).toBeVisible();
+      // 3.5.3.3.4.3 — and every beat must actually land on a subject. A beat whose target is missing
+      // degrades to an uncut scrim, which looks like a broken spotlight rather than failing anywhere.
+      await expect.poll(async () => ((await page.getByTestId('tutorial-spotlight').boundingBox())?.height ?? 0), { timeout: 5000 }).toBeGreaterThan(0);
       await page.getByText('Next', { exact: true }).click();
     }
 
@@ -176,6 +179,12 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(page.getByTestId('tutorial-progress')).toContainText('Step 2 of');
     await expect(page.getByText(/won't cover everything/)).toBeVisible();
   });
+
+  // NOTE (3.5.3.3.4.1): the per-beat screen-reader announcement is deliberately NOT asserted here.
+  // `AccessibilityInfo.announceForAccessibility` is a documented no-op in react-native-web, so a web e2e
+  // can never observe it — an assertion here would be theatre. The wiring is guarded in the app-layer
+  // suite instead (`tutorialPath.test`), and the real behaviour is device-owed with the rest of the VO
+  // pass in Phase 6.
 
   test('the tabs are held while a session is running', async ({ page }) => {
     await seedStore(page, newUser());

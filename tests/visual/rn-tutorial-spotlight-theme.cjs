@@ -26,9 +26,9 @@ function seedFn(arg) {
   window.__debtSandboxHarness = { scenarioId: arg.scenarioId };
 }
 
-async function shoot(theme, scenarioId, beats, name) {
+async function shoot(theme, scenarioId, beats, name, viewport = { width: 402, height: 874 }) {
   const b = await chromium.launch();
-  const ctx = await b.newContext({ viewport: { width: 402, height: 874 }, deviceScaleFactor: 2, colorScheme: theme });
+  const ctx = await b.newContext({ viewport, deviceScaleFactor: 2, colorScheme: theme });
   const blob = JSON.stringify({ ...STORE, prefs: { ...STORE.prefs, themeMode: theme } });
   await ctx.addInitScript(seedFn, { key: KEY, blob, scenarioId });
   const p = await ctx.newPage();
@@ -55,5 +55,8 @@ async function shoot(theme, scenarioId, beats, name) {
     await shoot(theme, "persona-at-risk", 1, "tutorial-spot-atrisk");
     // 3.5.3.3.2 — beat 5 with NO harness pin: the arc itself must have staged the shortfall.
     await shoot(theme, undefined, 5, "tutorial-beat5-recovery");
+    // 3.5.3.3.4.3 — the iPad two-column layout: Today reflows to read|do with a width-capped centred
+    // column, so the spotlight's window-space rect has to survive a layout it was never designed against.
+    await shoot(theme, undefined, 2, "tutorial-ipad-bar", { width: 1024, height: 768 });
   }
 })();
