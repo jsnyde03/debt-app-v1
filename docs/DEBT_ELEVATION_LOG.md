@@ -1164,3 +1164,21 @@ wait". The fix is the SCENARIO (give the at-risk persona one deferrable expense)
 otherwise the beat's lesson has nothing to demonstrate. Also: the Recovery section is premium-gated, so
 a FREE run's Recovery beat shows the honest read + invite and no rendered plan; the copy must be true
 for both tiers. Both found by looking at the beat-5 screenshot.
+
+### 3.5.3.3.2 — code-level after-scan (Jason asked; the screenshot pass had not covered this)
+
+The first after-scan was screenshot-driven and found the copy/scenario contradiction. Sweeping the code
+just written found one more, and it was the kind that ships:
+
+- **`start` and `goTo` computed a beat's scenario separately.** Two doors into beat 5 — interrupt-resume
+  goes through `start`, stepping goes through `goTo` — each with its own copy of the policy. A user
+  resuming onto a beat could see a different card than one who stepped onto it, and nothing would fail.
+  Both now route through `scenarioForBeat`; the one honest difference (a sandbox must be created from
+  *something*, so the opening defaults to `clear` for a stateless beat) is explicit rather than
+  accidental. Pinned by an e2e that resumes onto beat 5 and asserts the same shortfall.
+- **`stageBeat` narrowed to module-private** — nothing outside used it, and `goTo` is the door.
+- **Filed to 3.5.3.3.4:** a re-stage changes the card's content silently under VoiceOver. The step
+  announcement describes the new beat, which is probably enough, but it's a device-pass judgement.
+
+_Lesson: the after-scan has two halves — what the RUNNING app showed, and what the WRITTEN code shows.
+The screenshot half found the copy contradiction; only the code half found the divergence._
