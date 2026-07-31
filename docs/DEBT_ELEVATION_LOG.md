@@ -1127,3 +1127,40 @@ thing the user is being asked to read.
 sandbox state (a card that grows leaves the highlight on the old layout) · 3.5.3.3.3 gets per-beat
 spotlight tuning (the bar subject's ring currently crops the card title) · 3.5.3.3.4 gets reduce-motion
 (the stage scroll is unconditionally animated) and an iPad two-column check.
+
+## 3.5.3.3.2 — beat choreography — ✅ COMPLETE (2026-07-31, `82ab07a`)
+
+**What it buys:** one arc that shows a clear paycheck, then a short one, then a clear one again —
+without the user having to produce those states themselves.
+
+**Design:** beats declare the `state` they NARRATE, and entering a beat **re-seeds** the sandbox to it
+rather than mutating forward. `build` is pure and the clock is frozen, so beat 5 is byte-identical
+whether you arrived from beat 4 or stepped back from beat 6. That is what makes Back exact and stops any
+beat inheriting a mess from the one before it. Accepted trade, documented in the type: a change made on
+an interactive beat does not survive stepping away and returning — each beat is a fresh scripted stage.
+
+**The arc climbs back OUT of trouble** (beat 6 restages clear) before the hand-back, and it's asserted:
+handing someone back to their own money with a red card as the last thing they saw would undo the point
+of the walkthrough.
+
+**⭐ The before-scan is what made this leaf cheap — four premises that were wrong, none of which fail
+loudly** (Jason asked mid-build whether I'd run it; I had only half-run it, went back and did it
+properly, and it paid for itself immediately):
+1. **The session used `realStore` in `start()` and dropped it.** Every scripted state is scaled from the
+   user's own paycheck, so staging needs it retained for the session's life.
+2. **`publishSandbox` captures `scenarioId` in a closure.** Without re-publishing on each stage, the
+   harness snapshot reports the OPENING scenario for the rest of the run — a test asserting "the card is
+   at-risk on beat 5" would have passed on stale evidence.
+3. **The spotlight's `revision` needed the beat INDEX, not just the target.** `recovery` and `yourcall`
+   both spotlight the whole card, and the card changes height between at-risk and clear — keyed on
+   target alone, the highlight would keep the previous state's geometry.
+4. **[Decision] a harness-named scenario now PINS the state for the whole run.** Beat 1 declares `clear`,
+   so otherwise the pin survived exactly one render and every screenshot script that asks for a state
+   would quietly shoot the wrong one — while still looking like a working tutorial.
+
+**After-scan → filed to 3.5.3.3.3:** the at-risk persona has **nothing deferrable**, so the card reads
+"Nothing here can safely wait this paycheck" directly under coaching copy promising "what can safely
+wait". The fix is the SCENARIO (give the at-risk persona one deferrable expense) as much as the words —
+otherwise the beat's lesson has nothing to demonstrate. Also: the Recovery section is premium-gated, so
+a FREE run's Recovery beat shows the honest read + invite and no rendered plan; the copy must be true
+for both tiers. Both found by looking at the beat-5 screenshot.
