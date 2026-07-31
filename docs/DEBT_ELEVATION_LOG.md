@@ -1349,3 +1349,41 @@ item is why the audit gate below lists geometry as a standing lens.
 **Verified:** e2e 110/110 fresh, with a FREE-seeded user asserting a working drag AND a visible
 Safety-net stat — the assertions that pin [D9] rather than trusting it. Both tiers now produce the
 identical payoff (`Cushion $413 → $323 · $90 more to debt this paycheck`), both themes.
+
+## 3.5.3.5 — interactive beat B — ⚠️ BUILT, NOT CLOSED (2026-07-31, `b7b91ab`)
+
+**[D10] — the before-scan re-shaped the beat before a line was written.** The settled gate said "tap the
+surprise", but a surprise is an **EVENT**: the real app records one at the payday check-in
+(`payday.ts:57`), so there is nothing in the Guardian a user could tap that means one happened. Two other
+facts landed at the same time: **`DISCOVERY_CYCLES = 3`**, so the reserve only retires after three cycles
+(which is what `runBeats` was built for), and the release already has **real product UI** — the
+`reserve-release` ack, whose copy branches on whether the net was actually tapped.
+
+So beat B now teaches the **attestation** — a real Guardian control that visibly shrinks the net — and
+the surprise → absorbed → released story plays as the scripted payoff of the same beat, driven by the
+real producers. The e2e asserts the ack's **surprise-branch** sentence specifically, because the tutorial
+has no way to fabricate it: that is what proves the engine wrote it. A second test skips out mid-story
+and asserts nothing lands afterwards (the timers are cancelled on beat-change and on end — otherwise
+rollovers arrive on a sandbox that has left the screen, or on the next session's).
+
+**⛔ Then the screenshot pass found two defects that every assertion had passed straight through** — the
+correctness-vs-feel gap Jason named the same day, demonstrated inside a single leaf:
+
+1. **The payoff lands off-screen.** The release ack renders in Today's ack-slot at the TOP of the screen,
+   while the spotlight holds the view mid-card on the attestation. The e2e found the text because it was
+   in the DOM; the user never sees it. Worse, the attestation *disappears* once the net retires, so the
+   ring is left framing an unrelated line ("Your call"). The mechanism this needs is a **payoff target**:
+   when a beat's story completes, the spotlight re-points and scrolls to the result.
+2. **The scripted rollovers leave the example plan alarming.** After three rolls the hero reads *"Overdue
+   payments need attention · debt-free by December 2035"* (it opened at April 2035). The story makes the
+   taught plan visibly WORSE, which teaches the opposite of the beat's point.
+   **Root cause sits in the 3.5.0.4 substrate, and this leaf is its first consumer** —
+   `advanceSandboxCycle` calls a bare `rolloverPayCycle`, but a real payday goes through
+   **`capturePayday(items, decisions, actuals)`**, which is *also* where the real app records a surprise.
+   The substrate's own doc claims "a beat calls the same producers the real app calls"; that is true of
+   `recordSurpriseOutflow` and **not** true of the rollover path. Fix is to script through `capturePayday`
+   with the required decisions settled and the surprise as `actuals` — more faithful, and it removes the
+   overdue debris as a side effect rather than papering over it.
+
+_Both are filed as 3.5.3.5.5 / .5.6. Neither is deferrable: the beat currently passes its tests and fails
+its user._
