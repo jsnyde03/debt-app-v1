@@ -1219,3 +1219,63 @@ latent bug (8pt); fixed before it could surface on beat 3.
   the rest of the app.
 - **Filed to 3.5.3.5:** beat 4's copy promises the safety net "releases it once it knows" — that leaf's
   scripted rollover is what has to deliver the release, or the promise dangles.
+
+## 3.5.3.3.4 — verify + close — ✅ COMPLETE (2026-07-31, `86730f5`)
+
+The verify leaf found two real defects, which is the argument for having one.
+
+**.4.1 — an A11Y REGRESSION.** `stepAnnouncement` had **zero production callers**. 3.5.3.1 moved the
+overlay off the `/tutorial` route and the announce went with it; nothing failed, because the unit test
+covers the pure function rather than whether anyone calls it. The result was a walkthrough that said
+nothing whatsoever to a VoiceOver user — the beat transition is motion-only, so that string IS the
+signal. Restored **inside `TutorialOverlay`**: the component that draws a step is now the one that
+speaks it, so a future host rewrite cannot separate them again. Guarded by a **source check** in the app
+suite, in the spirit of the repo's existing `lint:webkit` scan — a web e2e cannot assert this at all,
+because `AccessibilityInfo.announceForAccessibility` is a documented **no-op in react-native-web**. An
+e2e assertion here would have been theatre; the honest split is a wiring guard now + VoiceOver on the
+Phase-6 device pass.
+
+**.4.2 — Reduce Motion** gets the jump, not the glide: a programmatic scroll the user didn't initiate is
+exactly what the setting exists to suppress, and the destination is identical either way.
+
+**.4.3 — iPad WAS BROKEN.** Subjects are measured in WINDOW coordinates while the overlay draws in its
+own local space, and the two coincide only on a phone. On the regular (iPad) layout the tab bar becomes
+a left sidebar RAIL, so the ring rendered ~700pt right of its subject — framing an unrelated row in the
+other column. The overlay now measures its own origin and draws relative to it. **Found by shooting the
+walkthrough at 1024×768; a phone-only screenshot pass would have shipped it.**
+
+---
+
+## 3.5.3.3 — WHOLE-ITEM after-scan (all four leaves together)
+
+**Pattern 1 — the dominant defect class was "correct but not connected."** Three of the six defects were
+integration failures between units that were each individually right, and therefore individually green:
+the dropped announce, the stale `publishSandbox` closure, and the `start`-vs-`goTo` policy divergence.
+Unit tests structurally cannot catch this class.
+
+**So the scan swept for other instances rather than assuming there were none** — every export in the
+tutorial/sandbox modules, checked for a production consumer. Result: `sandboxBeats`' `scriptSurprise`,
+`advanceSandboxCycle` and `runBeats` have **none**. They are not a regression — they're 3.5.0.4
+substrate built ahead of the beat that consumes them — but they are the identical shape as the announce
+bug, and **3.5.3.5 is the leaf that must wire them**. If it doesn't, the surprise→absorb→release arc
+silently never happens, while beat 4's copy already promises the release. Filed there. (`resolveScenario`
+and `HARNESS_SCENARIO_IDS` also flagged: both benign — internal use and a documented contract export.)
+
+**Pattern 2 — measurement assumptions that only break off-phone.** Two defects, both in the same
+machinery: a margin on the CHILD inflating the measured rect (.3), and window-vs-local coordinates
+diverging on iPad (.4). **Both generalise directly to 3.5.5's coach-marks**, which will point at
+controls all over the app: any measured overlay needs its margins on the target and its rects converted
+into the drawing surface's own space.
+
+**Pattern 3 — the verification medium determines what is findable.** Tallying honestly across the item:
+screenshots found the copy/scenario contradiction and the iPad breakage; reading the code found the
+divergence and the dead wiring; the e2e suite found neither class — it protected against regression in
+what was already understood. All three are needed, and "I looked at it and it worked" is not a scan.
+
+**Ledger left open by this item (nothing silently dropped):**
+- VoiceOver end-to-end — device-owed, Phase 6, with 3.5.2's half.
+- The iPad **sidebar rail is not dimmed** during a session. The overlay cannot reach outside its screen
+  container, so fixing it means moving where the overlay mounts — an architecture call, not a tweak, and
+  tabs are already held so it is cosmetic. Flagged, deliberately not decided solo.
+- `guardian-reserve` as its own target (the reserve beat currently spotlights the whole bar group) → 3.5.3.5.
+- The finale spotlights `guardian-card` and must survive the crossfade → 3.5.3.6.
