@@ -36,22 +36,38 @@ export interface TutorialStepDef {
 }
 
 /**
- * PLACEHOLDER beats — 3.5.3 replaces the copy with the real arc (predict-then-reveal → read the bar →
- * drag the floor → the reserve → a Recovery glimpse → safe move → the hand-back finale). The COUNT and
- * shape are what 3.5.2 needs, so the path, its a11y and its e2e are provable now.
+ * 3.5.3.3.3 — the arc's copy.
+ *
+ * Two rules it is written to, both learned the hard way in this phase:
+ *
+ *  1. **Every line must be true of what is actually on the screen behind it.** The placeholder copy
+ *     promised "what to cover first, and what can safely wait" over a card reading "Nothing here can
+ *     safely wait this paycheck" — the scenario had no deferrable bill. Copy that describes a screen it
+ *     doesn't match teaches the user to distrust the screen.
+ *  2. **True on BOTH tiers.** The Recovery section is premium-gated, so a free user on the Recovery beat
+ *     sees the honest shortfall read and an invitation, not a built plan. So the beat promises what the
+ *     GUARDIAN does ("it works out what can wait"), never what the user is about to see rendered.
+ *
+ * Deliberately not word-perfect: the whole-app wording/voice audit polishes every string in one pass
+ * ([[don't over-lock wording mid-build]]). These are solid, professional, and honest — that's the bar here.
  */
 export const TUTORIAL_STEPS: TutorialStepDef[] = [
-  { id: 'intro', title: 'What your Guardian does', body: 'It protects a cushion from each paycheck before anything extra goes to debt.', target: 'guardian-card', state: 'clear' },
-  { id: 'bar', title: 'Reading your paycheck', body: 'The bar splits this paycheck into what is held back and what goes to debt.', target: 'guardian-bar', state: 'clear' },
-  { id: 'line', title: 'Your line', body: 'You choose the cushion to keep. Move it and the plan re-solves around it.', target: 'guardian-line', state: 'clear' },
-  { id: 'reserve', title: 'The safety net', body: 'Early on, a little extra is held back while the app learns your bills.', target: 'guardian-bar', state: 'clear' },
+  // Opens on the card itself rather than on a claim about it — the first thing to establish is that
+  // this number is decided BEFORE payoff, which is the one genuinely unfamiliar idea in the app.
+  { id: 'intro', title: 'Money set aside first', body: 'Every payday, your Guardian keeps a cushion back before anything extra goes to your debt.', target: 'guardian-card', state: 'clear' },
+  { id: 'bar', title: 'Where this paycheck went', body: 'The bar is the whole paycheck: what stayed as your cushion, and what went to debt.', target: 'guardian-bar', state: 'clear' },
+  // "Your line" is the app's own term for the floor, so the beat teaches the word as well as the control.
+  { id: 'line', title: 'Your line', body: 'This is the least you want to keep. Move it and the whole plan re-solves around it.', target: 'guardian-line', state: 'clear' },
+  { id: 'reserve', title: 'A little extra, at first', body: 'While your Guardian is still learning your bills it holds a bit more back — and releases it once it knows.', target: 'guardian-bar', state: 'clear' },
   // The one beat that deliberately puts the card into trouble — the Recovery glimpse. It's also the
   // beat the Example marker was built for: a real-looking shortfall, on figures scaled from their pay.
-  { id: 'recovery', title: 'When a paycheck is short', body: 'You get a plan: what to cover first, and what can safely wait.', target: 'guardian-card', state: 'at-risk' },
+  // Says what the GUARDIAN does, not what is about to render: the built plan is premium, so a free user
+  // sees this same shortfall with an invitation instead. Both readings of this sentence are true.
+  { id: 'recovery', title: "When it won't stretch", body: 'Some paychecks come up short. Your Guardian works out what has to be covered now, and what can safely wait.', target: 'guardian-card', state: 'at-risk' },
   // …and back out of trouble deliberately: nobody should be handed back to their own money while the
   // last thing they saw was a red card.
-  { id: 'yourcall', title: 'Always your call', body: 'The Guardian suggests. Nothing moves without you.', target: 'guardian-card', state: 'clear' },
-  { id: 'handback', title: 'Over to your plan', body: 'That was example money. Here is your own paycheck.', target: 'guardian-card', state: 'clear' },
+  { id: 'yourcall', title: 'Always your call', body: 'Your Guardian suggests — it never moves your money. Every number here is yours to overrule.', target: 'guardian-card', state: 'clear' },
+  { id: 'handback', title: 'Over to your plan', body: 'That was example money. This is your own paycheck, and your Guardian is already watching it.', target: 'guardian-card', state: 'clear' },
 ];
 
 export const TUTORIAL_STEP_COUNT = TUTORIAL_STEPS.length;

@@ -12,6 +12,7 @@ import {
   type SandboxState,
 } from '@/store/sandboxScenarios';
 import { TUTORIAL_STEPS } from '@/store/tutorialPath';
+import { classifyDeferability } from '@core/obligations/classifyDeferability';
 import { createSandboxStore, seedSandbox, SANDBOX_MAX_GENUINE_CYCLES } from '@/store/sandboxStore';
 
 /**
@@ -174,6 +175,11 @@ function run() {
   // the last thing they saw would undo the point of the walkthrough.
   eq(TUTORIAL_STEPS[TUTORIAL_STEPS.length - 1].state, 'clear', 'the arc ends on a clear card, not a scary one');
   assert(TUTORIAL_STEPS.some((s) => s.state === 'at-risk'), 'the arc does show trouble somewhere (the Recovery glimpse)');
+
+  // 3.5.3.3.3.1 — the Recovery beat teaches "what to cover first, and what can safely wait". If the
+  // scenario has nothing deferrable, the card answers "nothing can wait" and the lesson has no subject.
+  const deferrable = reads['at-risk'].store.requiredExpenses.filter((e) => classifyDeferability(e) === 'deferrable');
+  assert(deferrable.length > 0, 'the at-risk scenario has something the Recovery plan can offer to defer');
 
   const real = createDefaultStore();
   eq(scenarioForBeat(real, undefined), null, 'a beat with no declared state leaves the stage untouched');

@@ -159,7 +159,11 @@ export function PaydayGuardianCard({
             3.5.3.3.1: also the "read the bar" beat's subject. `TutorialTarget` is a bare View with no
             style of its own, and registration is inert with no provider above it, so a user who never
             opens the walkthrough pays nothing for this. */}
-        <TutorialTarget id="guardian-bar">
+        {/* 3.5.3.3.3.3 — the group's top margin lives on the TARGET, not on `barWrap` inside it.
+            Layout-neutral, but it changes what gets MEASURED: with the margin on the child, the
+            measured rect began 16pt higher, flush with the title above — so the spotlight ring was
+            drawn straight through the title's descenders and read as a rendering bug. */}
+        <TutorialTarget id="guardian-bar" style={styles.barGroup}>
         <View
           style={[styles.barWrap, stale && styles.dimmed]}
           onLayout={(e: LayoutChangeEvent) => setBarW(e.nativeEvent.layout.width)}
@@ -198,9 +202,10 @@ export function PaydayGuardianCard({
         </TutorialTarget>
         {/* Your line (the floor) is a reference marker, not a flow amount, so it sits below the amounts as
             a keyed sub-line (the vertical tick matches the floor line drawn in the bar). */}
-        <TutorialTarget id="guardian-line">
+        {/* Margin on the target, not the child — same measurement reason as `barGroup` above. */}
+        <TutorialTarget id="guardian-line" style={styles.lineGroup}>
         <View
-          style={styles.lineKey}
+          style={styles.lineKeyRow}
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants">
           <View style={[styles.tick, { backgroundColor: c.text.primary }]} />
@@ -354,14 +359,16 @@ const styles = StyleSheet.create({
   chip: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: 999, borderWidth: StyleSheet.hairlineWidth },
   chipText: { fontWeight: '600' },
   dimmed: { opacity: 0.4 },
-  barWrap: { marginTop: spacing.md, height: BAR_H, justifyContent: 'center' },
+  barGroup: { marginTop: spacing.md },
+  barWrap: { height: BAR_H, justifyContent: 'center' },
   // flexWrap so the 3 stats reflow to a second row at large Dynamic-Type sizes instead of clipping /
   // overflowing off-screen (premium-a11y: degrade gracefully at AX sizes). Full AX3/AX5 QA → Phase 6.
   stats: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg, marginTop: spacing.md },
   stat: { gap: 3 },
   statHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   statValue: { fontSize: 17, fontWeight: '700', letterSpacing: -0.3, fontVariant: ['tabular-nums'] }, // hero-legend scale
-  lineKey: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm },
+  lineGroup: { marginTop: spacing.sm },
+  lineKeyRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   dot: { width: 14, height: 6, borderRadius: 3 }, // a mini bar SEGMENT (matches the cushion/payoff zones)
   tick: { width: 3, height: 12, borderRadius: 1.5 }, // a vertical LINE (matches the floor line in the bar)
   detail: { marginTop: spacing.md },

@@ -75,7 +75,16 @@ const BILL_MIX: { name: string; category: RequiredExpense['category']; weight: n
   { name: 'Utilities', category: 'utilities', weight: 0.12 },
   { name: 'Phone', category: 'utilities', weight: 0.08 },
   { name: 'Car insurance', category: 'insurance', weight: 0.11 },
-  { name: 'Streaming', category: 'other', weight: 0.07 },
+  // 3.5.3.3.3.1 — `subscriptions`, not `other`, and it matters twice over. It's the correct category
+  // for a streaming bill; and `classifyDeferability` defaults everything EXCEPT subscriptions to
+  // essential (deliberately — never call an unclassifiable bill safe to skip). Left as `other`, the
+  // at-risk scenario had nothing deferrable, so Recovery rendered "Nothing here can safely wait" while
+  // the beat teaching it promised "what can safely wait". The lesson needs something to demonstrate.
+  // Named "Subscriptions" (plural) rather than "Streaming" because it carries 7% of the bill budget —
+  // ~$120 on the persona, which is absurd for one streaming service and credible for a bundle. The
+  // teaching example has to survive a sceptical glance; the alternative was shrinking it until it was
+  // too small to close any part of the gap it exists to demonstrate.
+  { name: 'Subscriptions', category: 'subscriptions', weight: 0.07 },
 ];
 
 const round = (n: number) => Math.round(n * 100) / 100;

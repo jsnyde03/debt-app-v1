@@ -137,6 +137,10 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(short).toBeVisible();
     // The marker has to hold through the scary state — that is the entire reason it exists.
     await expect(page.getByTestId('guardian-example-marker')).toBeVisible();
+    // 3.5.3.3.3.1 — and the beat's lesson must have something to demonstrate. With no deferrable bill
+    // the card answered "Nothing here can safely wait" underneath copy about what can wait.
+    await expect(page.getByText(/Nothing here can safely wait/)).toHaveCount(0);
+    await expect(page.getByText(/Defer/)).toBeVisible();
 
     // …and the arc must climb back out, so nobody is handed their own money right after a red card.
     await page.getByText('Next', { exact: true }).click();
