@@ -1182,3 +1182,40 @@ just written found one more, and it was the kind that ships:
 
 _Lesson: the after-scan has two halves — what the RUNNING app showed, and what the WRITTEN code shows.
 The screenshot half found the copy contradiction; only the code half found the divergence._
+
+## 3.5.3.3.3 — beat copy + the truth it has to match — ✅ COMPLETE (2026-07-31, `2947601`)
+
+**The principle this leaf ended up being about:** copy that describes a screen it doesn't match teaches
+the user to distrust the screen. Two of the three fixes were therefore NOT copy fixes.
+
+**.3.1 — fix the scenario, not the words.** The before-scan root-caused the contradiction found in
+3.5.3.3.2: the persona's "Streaming" bill carried `category: 'other'`, and `classifyDeferability`
+deliberately defaults everything except `subscriptions` to ESSENTIAL (a rule worth keeping — never call
+an unclassifiable bill safe to skip). So the at-risk scenario contained nothing deferrable, and the
+Recovery beat taught "what can safely wait" over a card reading "Nothing here can safely wait this
+paycheck". Categorised as `subscriptions` — correct in its own right — and asserted, so the beat can
+never again lose its subject. Renamed to **"Subscriptions"** (plural): it carries 7% of the bill budget,
+~$120, which is absurd for one streaming service and credible for a bundle. The teaching example has to
+survive a sceptical glance, and the alternative — shrinking it — would have made it too small to close
+any part of the gap it exists to demonstrate.
+
+**.3.2 — the arc's copy**, to two rules: true of what is actually on screen behind it, and true on BOTH
+tiers. The Recovery section is premium-gated, so the beat promises what the GUARDIAN does ("works out
+what has to be covered now, and what can safely wait") rather than what the user is about to see
+rendered — true for a premium user reading a built plan and for a free user reading the honest shortfall
+plus an invitation. Deliberately not word-perfect; the whole-app wording/voice audit polishes in one pass.
+
+**.3.3 — the ring crossed the Guardian's title, and the inset was not the cause.** First attempt shrank
+`RING_INSET` 6→3 and it still clipped, which was the clue: the target's top margin lived on the CHILD,
+so the measured rect began 16pt higher — flush with the title. Moving the margin onto the target is
+layout-neutral but changes what gets measured. Inset restored to 6. The **line** target had the same
+latent bug (8pt); fixed before it could surface on beat 3.
+
+**After-scan (both halves):**
+- _Screenshot half:_ the Recovery beat now demonstrates itself — COVER NOW beside SAFE TO DEFER with a
+  real "Defer 1 selected" action, under copy that finally matches.
+- _Code half:_ the margin-on-child measurement bug generalises to **any** future `TutorialTarget` whose
+  wrapped element carries its own margin — worth remembering when 3.5.5's coach-marks start marking up
+  the rest of the app.
+- **Filed to 3.5.3.5:** beat 4's copy promises the safety net "releases it once it knows" — that leaf's
+  scripted rollover is what has to deliver the release, or the promise dangles.
