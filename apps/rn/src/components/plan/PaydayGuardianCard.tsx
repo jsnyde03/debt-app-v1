@@ -104,12 +104,11 @@ export function PaydayGuardianCard({
   // "Adjust your line" only makes sense when you're covered — hidden in at-risk/shortfall (lowering your
   // safety line is the wrong move) and while stale (the move is "update your numbers", not "adjust").
   //
-  // 3.5.3.4.1 ([D8], Jason 2026-07-31) — on EXAMPLE money the control is offered to both tiers. The
-  // walkthrough's whole job is to teach what the Guardian does, and the free audience is the one it most
-  // needs to reach; with the control hidden they'd be told about a line they never got to touch. This is
-  // a taste, not a re-tier: the write lands in the sandbox, and the free invite directly below is what
-  // says premium is the part that holds this line automatically every payday.
-  const showAdjust = (isPremium || isExample) && !stale && brief.state !== 'at-risk';
+  // 3.5.3.4 briefly widened this to `isPremium || isExample`, so a free walkthrough could reach the
+  // control. [D9] removed the need: the sandbox itself now runs premium, so `isPremium` is already true
+  // inside a session and the card keeps ONE gate per premium affordance. Worth keeping that way — the
+  // hazard of an `|| isExample` escape hatch is that it spreads to the next control, and then the next.
+  const showAdjust = isPremium && !stale && brief.state !== 'at-risk';
 
   // MF.3 — the free invite is state-aware: in a shortfall it sells the RECOVERY value (a catch-up plan),
   // not "cushion at your line" (there's no cushion to hold when you're short — that pitch reads off-context).
@@ -307,9 +306,13 @@ export function PaydayGuardianCard({
         // 3.5.3.4.3 — registered as a subject: an interactive beat must spotlight the thing you TAP,
         // not the thing it changes. (Beat 3 pointed at the line readout before, which told the user
         // where to look but not what to do.)
-        <TutorialTarget id="guardian-adjust">
+        //
+        // The spacing lives on the TARGET and the label carries none — the THIRD time this bit us. A
+        // margin on the wrapped child inflates the measured rect upward, so the ring gets drawn across
+        // whatever sits above it (here, the attestation line). Layout is identical either way.
+        <TutorialTarget id="guardian-adjust" style={styles.adjustGroup}>
           <Pressable onPress={() => setFloorSheet(true)} accessibilityRole="button" accessibilityLabel="Adjust your cushion line" hitSlop={8}>
-            <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>Adjust your line →</Text>
+            <Text style={[textStyles.subhead, styles.adjustLabel, { color: c.accent.primary }]}>Adjust your line →</Text>
           </Pressable>
         </TutorialTarget>
       ) : null}
@@ -336,7 +339,7 @@ export function PaydayGuardianCard({
         </Pressable>
       ) : null}
 
-      {(isPremium || isExample) && onSetFloor ? (
+      {isPremium && onSetFloor ? (
         <CushionFloorSheet visible={floorSheet} floor={brief.floor} onClose={() => setFloorSheet(false)} onApply={onSetFloor} coach={coachLine} />
       ) : null}
     </Card>
@@ -396,6 +399,8 @@ const styles = StyleSheet.create({
   topUpBtn: { alignSelf: 'stretch' },
   attest: { marginTop: spacing.sm },
   adjust: { marginTop: spacing.md, fontWeight: '600' },
+  adjustGroup: { marginTop: spacing.md },
+  adjustLabel: { fontWeight: '600' },
   invite: { marginTop: spacing.md },
   intro: { padding: spacing.md, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, marginBottom: spacing.md, gap: spacing.sm },
   introText: { lineHeight: 20 },

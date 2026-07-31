@@ -66,7 +66,22 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
   floorBefore: null,
 
   start(realStore, run, startIndex) {
-    const opts = { premium: run === 'premium', maxGenuineCycles: TUTORIAL_MAX_CYCLES };
+    // [D9] (Jason 2026-07-31) — the SANDBOX runs premium for every audience, whatever the user's own
+    // tier. It used to mirror them (`run === 'premium'`), and verification showed what that cost: a free
+    // Guardian is never held to its floor and its cold-start hedges are premium-only by design, so a free
+    // walkthrough had a line that did nothing when dragged (beat 3), no safety net to point at (beat 4)
+    // and no reserve to absorb a surprise (beat 5) — three of seven beats teaching nothing, over copy
+    // that said otherwise.
+    //
+    // This is what E1 always described: the walkthrough shows what the Guardian DOES, and the hand-back
+    // to the user's own card is the conversion moment ("free lands on the real free card + invite = the
+    // app's best paywall"). `run` still carries the audience — it drives `tutorialSeen` and is the
+    // finale's input for naming what changes.
+    //
+    // ⚠️ The honesty of this rests ENTIRELY on two things: the persistent "Example" marker, and 3.5.3.6
+    // saying plainly that premium is what did the holding. Without the second, this becomes exactly the
+    // thing the standing rule forbids — dressing free as premium.
+    const opts = { premium: true, maxGenuineCycles: TUTORIAL_MAX_CYCLES };
     // A test may name the opening state (3.5.0.7); a real user always gets their own scaled scenario.
     // When it IS named, it pins every later beat too — see `scenarioForBeat`.
     const pinnedScenario = harnessScenario(opts);

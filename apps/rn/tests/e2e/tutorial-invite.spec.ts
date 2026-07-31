@@ -188,9 +188,10 @@ test.describe('tutorial invitation + in-situ shell', () => {
 
   for (const tier of ['premium', 'free'] as const) {
     test(`beat 3 lets a ${tier} user move the real line, and the plan re-solves`, async ({ page }) => {
-      // [D8] — the FREE run gets the control too. Its sandbox is `subscriptionPlan: 'free'`, where
-      // `showAdjust` is normally false, so without the example-mode allowance the audience the tutorial
-      // most needs to convert would be told about a line it never got to touch.
+      // [D9] — a free-tier USER gets the same walkthrough, because the SANDBOX runs premium for every
+      // audience. The earlier shape (sandbox mirrors the user's tier) gave a free user a line that did
+      // nothing when dragged: free is never held to its floor, so the plan could not re-solve. Seeding
+      // `free` here and expecting a working drag is precisely the assertion that pins [D9] in place.
       await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' }, subscriptionPlan: tier }));
       await page.goto('/tutorial');
       await page.getByText('Next', { exact: true }).click();
@@ -205,6 +206,11 @@ test.describe('tutorial invitation + in-situ shell', () => {
       await page.getByText('Save', { exact: true }).click();
       // The payoff: a before→after the user produced themselves.
       await expect(page.getByTestId('floor-impact')).toBeVisible();
+      // …and the walkthrough must show the SAFETY NET on both tiers too — the cold-start hedges are
+      // premium-only in the engine, so under the old shape beat 4 had no subject for a free user either.
+      // `exact` — the attestation control also says "…hold a smaller safety net", and the STAT is what
+      // proves beat 4 has a subject.
+      await expect(page.getByText('Safety net', { exact: true })).toBeVisible();
     });
   }
 
