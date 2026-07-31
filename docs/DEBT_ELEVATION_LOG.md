@@ -1320,3 +1320,32 @@ current `premium: run === 'premium'` scenario option quietly contradicts that. I
 3.5.3.3.3's both-tiers copy constraint. Alternative: revert [D8] and script the beat for free, keeping
 the tier boundary crisp at the cost of the one moment of agency. **Jason's call — it changes what a free
 user sees for the whole walkthrough, so it is not mine to make.**
+
+### [D9] resolved — the sandbox runs premium for every audience (2026-07-31, `b7fb64c`)
+
+**Jason chose A.** The engine settled it: `buildGuardianBrief` documents *"premium: held to the floor;
+free: the base plan's cushion"*, and the cold-start hedges are premium-only **by design** ("they describe
+the premium ACTING"). So under the old shape — sandbox mirrors the user's tier — a free walkthrough had
+**three of seven beats with no subject**: a line that did nothing when dragged (3), no safety net to point
+at (4), and no reserve to absorb a surprise (5). All three narrated by copy that said otherwise.
+
+**What changed:** `opts.premium` is now `true` regardless of `run`. `run` survives as the AUDIENCE — it
+drives `tutorialSeen`, the invitation matrix, and is the finale's input for naming what changes.
+
+**Consequences deliberately accepted:**
+- The `PremiumInvite` no longer renders during a walkthrough, so **100% of the conversion framing moves
+  to the finale**. That is [D9]'s cost, and it is why **3.5.3.6 is now a HARD GATE** (Jason: "we need to
+  make sure .6 holds the bar"): the finale must say plainly that premium did the holding, and for a free
+  user name what their own card does and doesn't do. Without it, this is dressing free as premium.
+- 3.5.3.3.3's "copy must be true on BOTH tiers" constraint is **retired** — every audience now sees the
+  same render, so the copy just has to be true.
+- The `isPremium || isExample` widening was **reverted**: redundant once the sandbox is premium, and an
+  escape hatch of that shape spreads to the next control and the next. One gate per premium affordance.
+
+**Third instance of the margin-on-child measurement bug** — the ring drew across the attestation line
+above the adjust control. Same fix (spacing on the target, label carries none). Three occurrences in one
+item is why the audit gate below lists geometry as a standing lens.
+
+**Verified:** e2e 110/110 fresh, with a FREE-seeded user asserting a working drag AND a visible
+Safety-net stat — the assertions that pin [D9] rather than trusting it. Both tiers now produce the
+identical payoff (`Cushion $413 → $323 · $90 more to debt this paycheck`), both themes.
