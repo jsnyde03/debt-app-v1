@@ -941,3 +941,66 @@ a raised ceiling can't buy a proof-of-work streak or clear the variable-income c
 4. **⚠️ 75 direct `appStore.getState()` calls across 21 files** — the tutorial cannot simply reuse real
    screens. Filed to the 3.5.3 design gate as an architecture call (per-site injection vs an active-store
    context), for Jason.
+
+---
+
+## 3.5.1 — tutorial invitation + reachability — ✅ COMPLETE (2026-07-30, `359c317`)
+
+**Design gate (Jason):** an INVITATION in the VIS-4 ack-slot on the first Today view, never a takeover —
+it can't stack, it respects a user who just wants to see their number, and for free it reads value-led
+rather than as a pitch. **All four audiences** get one offer: new-premium · new-free · free→premium
+upgraders · existing v1.6 users.
+
+**Shipped (6 leaves):** `prefs.tutorialSeen` (`'free'|'premium'|null`, store v7) · `tutorialSelectors`
+(the whole audience matrix as one pure function) · `TutorialInviteCard` in the ack-slot **ranked last** ·
+`app/tutorial.tsx` scaffold route · replay entries ("How this works" on the Guardian card + a permanent
+More row) · retired the static in-card intro.
+
+**Two consequences that fell out of the gate, not obvious up front:**
+- `tutorialSeen` could NOT reuse `guardianIntroSeen` — it's already `true` for every existing v1.6 user,
+  so reusing it would have silently excluded exactly the audience the gate chose to include. And it had
+  to be a VALUE, not a boolean, so an upgrader gets the premium run once.
+- The static intro had to retire: leaving both would put the invitation AND an in-card intro on one
+  screen for a new premium user — the exact stacking VIS-4 exists to prevent. Its e2e now guards the
+  decision rather than testing the removed feature.
+
+**Before-scan correction:** the invitation had no DESTINATION — no tutorial route existed, so nothing was
+verifiable end-to-end. 3.5.1 therefore also shipped the scaffold route.
+
+**⭐ Closed the 3.5.0 carry-forward:** the substrate was unit-proven but never render-proven. The scaffold
+renders live sandbox values through `useSandboxStore`, and the e2e asserts the FROZEN date (2026-03-02)
+on screen — proof it reads the sandbox, not the real store.
+
+**After-scan:** `prefs.guardianIntroSeen` is now orphaned (persisted → delete-vs-leave is a migration
+call) → filed to 3.7.C7 · invitation placement above the hero raised as **D5** with a rec · recorded a
+harness fact: `seedStore`'s `addInitScript` re-seeds on EVERY navigation, so cross-page persistence
+can't be asserted in e2e. +13 asserts, e2e 90→95, both themes.
+
+## 3.5.2 — tutorial path + a11y contract — ✅ COMPLETE (2026-07-31, `fda41a8`)
+
+**Shipped:** `tutorialPath.ts` (pure: stepping bounds, skip, `resumeIndex` clamping, `stepAnnouncement`)
++ its wiring in the route. Content stays 3.5.3's, so the step copy is deliberate placeholder.
+
+**A11y contract:** `announce()` on every step change — the transition is MOTION-ONLY, so that string is
+the only signal a VoiceOver user gets; **position spoken first** ("Step 3 of 7…") because there are no
+progress dots to glance at; `headerProps` on the step title for rotor jumps; controls outside any grouped
+label (MF.2); `Motion` for system reduce-motion.
+
+**Interrupt-resume:** `prefs.tutorialStep`, clamped on read — a stale point past the end restarts rather
+than dead-ending, so a future shorter arc can't strand a returning user; cleared on finish/skip so a
+completed run doesn't reopen on its last step. Both new prefs land under **v7** (unreleased), so no blob
+in the wild can carry one field without the other.
+
+**Before-scan corrections (2):** the shared `Slider` is ALREADY `accessibilityRole="adjustable"` with
+increment/decrement actions, so the spec's "adjustable slider" was pre-met by the component; and
+Dynamic-Type here means NOT capping body copy — `maxFontSizeMultiplier` appears in only 4 files, all
+oversized display numerals, so capping tutorial copy would have been a regression dressed as compliance.
+
+**⚠️ The e2e caught a REAL bug — a repeat of 3.7.A0's class:** `router.back()` no-ops on a cold entry, so
+"Finish" did nothing for anyone arriving by deep link or from More. Same `canGoBack()` guard applied.
+That's the second occurrence, which strengthens the case for the filed **3.7.C9** bare-`router.back()`
+sweep.
+
+**Exit-gate is HALF met, deliberately flagged:** the web e2e now walks every step end-to-end (bounded, so
+an unadvanceable step fails rather than hangs), but it **cannot prove VoiceOver** — that half is
+device-owed and belongs with the Phase-6 accessibility pass. +31 asserts, e2e 95→99, both themes.
