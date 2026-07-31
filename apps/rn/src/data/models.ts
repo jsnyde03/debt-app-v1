@@ -97,13 +97,25 @@ export interface Preferences {
    *    because the premium run shows the reserve/Recovery/release beats free never reaches.
    */
   tutorialSeen: 'free' | 'premium' | null;
+  /**
+   * 3.5.2 — interrupt-resume: the step the user was on when they left, so a phone call mid-walkthrough
+   * doesn't cost them their place. `null` = start at the beginning. Cleared on completion or skip.
+   *
+   * Persisted rather than session-only because the realistic interruption (backgrounding the app, a
+   * call) survives the session. `resumeIndex` clamps it, so a shorter arc in a later version can never
+   * strand a returning user on a step that no longer exists.
+   */
+  tutorialStep: number | null;
 }
 
 /** Bump when the persisted shape changes; `runMigrations` brings older blobs forward.
  *  v5 (2.4.D) adds the Payday Guardian substrate — the additive fields below merge onto the
  *  current defaults, so an older blob backfills safely (fixed income, count 0, empty logs).
- *  v7 (3.5.1) adds `prefs.tutorialSeen`, additive: the prefs merge backfills it to `null`, which is
- *  exactly right — every existing user becomes eligible for the tutorial invitation exactly once. */
+ *  v7 (3.5.1/3.5.2) adds `prefs.tutorialSeen` + `prefs.tutorialStep`, both additive: the prefs merge
+ *  backfills them to `null`, which is exactly right — every existing user becomes eligible for the
+ *  tutorial invitation exactly once, and starts it at the beginning. (Both land under v7 rather than
+ *  bumping twice: v7 has not shipped, so there is no blob in the wild that has one field but not the
+ *  other.) */
 export const CURRENT_STORE_VERSION = 7;
 
 /** v1.7 (2.4.D): the store-level current-cycle notification carrier. Lives here — NOT on

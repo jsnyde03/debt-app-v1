@@ -91,6 +91,10 @@ async function main() {
   // free→premium cases fail SILENTLY (nobody reports an offer they never got), so they're pinned here.
   await import('../store/tutorialSelectors.test');
 
+  // 3.5.2 — the tutorial PATH: stepping bounds, interrupt-resume clamping, and the per-step
+  // announcement (the step change is motion-only, so that string IS the signal for VoiceOver).
+  await import('../store/tutorialPath.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

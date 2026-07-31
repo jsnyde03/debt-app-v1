@@ -50,6 +50,7 @@ export function createDefaultStore(): DebtStore {
       paydayLiveActivityEnabled: true,
       debtFreeSoundEnabled: false,
       tutorialSeen: null,
+      tutorialStep: null,
     },
     lastSavedAt: '',
     lastHandledPaydayDate: null,
