@@ -200,6 +200,7 @@ _**New standing rule (Jason 2026-07-30):** stop deferring — if an item needs n
 - **C7 · Dead code** — delete `ProgressRing` / `MilestonesRow`. _(+from the 3.5.1 after-scan: `prefs.guardianIntroSeen` is now ORPHANED — 3.5.1.5 retired its only reader. It's a PERSISTED field, so decide delete-with-migration vs leave-inert here rather than as scope-creep on a feature.)_ _(+from the A0 after-scan: `FormSheet.headerAction` and `AnimatedSheet.headerRight` now have ZERO consumers. Deliberately NOT deleted in A0 — they're legitimate general props and the gesture bug that made them dead is genuinely fixed (Maestro 02 proves ✕ taps land). Decide keep-vs-delete here rather than as scope-creep on a bug fix.)_
 - **C9 · `router.back()` cold-entry sweep** — the A0 route now guards with `canGoBack()`, but `history`, `cushion-forecast`, and `living-expenses` still call `router.back()` bare. Harmless while they're only reachable by push; worth a sweep if any becomes deep-linkable.
 - **C8 · §2.8 web scan entry** — decide hide-vs-keep-as-"try it" for `scan.web.ts`'s sample (trivial call, just make it).
+- **C10 · doc disambiguation (3.5.3.2 after-scan)** — "3.5.3.x" is overloaded: Phase 3's item 3.5 (Live Activity) used 3.5.3.1–.5, and Phase 3.5's tutorial arc now uses the same leaf numbers. Note it where both appear in `DEBT_ELEVATION_LOG.md` so a later reader can't conflate them.
 
 ---
 

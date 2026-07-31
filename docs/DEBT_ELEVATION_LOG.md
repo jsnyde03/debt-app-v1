@@ -1004,3 +1004,84 @@ sweep.
 **Exit-gate is HALF met, deliberately flagged:** the web e2e now walks every step end-to-end (bounded, so
 an unadvanceable step fails rather than hangs), but it **cannot prove VoiceOver** — that half is
 device-owed and belongs with the Phase-6 accessibility pass. +31 asserts, e2e 95→99, both themes.
+
+## 3.5.3.0 — active-store rewire — ✅ COMPLETE (2026-07-31, `02a46f2`)
+
+**The problem it solves:** 75 direct `appStore.getState()` calls across 21 files meant Today could only
+ever render the user's real money — the reason the tutorial couldn't run over the real screen.
+
+**Shipped:** `StoreContext` (`StoreProvider` + `useActiveStore`) with `useAppStore` made context-aware and
+the singleton as the default, so all 39 existing call sites behave identically. Today's 23 writes,
+`usePaydayCapture`, and 6 child components converted to `useActiveStore()`. `assertNoRealWrites` is the
+backstop: while a sandbox subtree is mounted, any mutation of the real store is reported rather than
+silently corrupting real data — the dangerous shape here is a component that READS through the context
+and WRITES through the singleton, which has no visible symptom at all.
+
+**After-scan caught a 6th component:** `SaveForItSheet`, rendered by `AffordabilityCard` inside Today,
+was still writing via the singleton. Remaining singleton writers are all OUTSIDE Today (Money/More/
+onboarding sheets) and only matter if the tutorial ever covers those screens — which 3.5.5's scope
+decision (tutorial stays Guardian-only) makes unlikely. +9 asserts; Today renders identically (e2e 99).
+
+## 3.5.3.1 — the in-situ shell — ✅ COMPLETE (2026-07-31, `1de2777`)
+
+**Shipped:** the walkthrough runs OVER the real Today — `tutorialSession` (transient, outside React) +
+a thin Today route wrapper (`StoreProvider` + overlay above `TodayContent`) + `TutorialOverlay` (scrim
+blocks scripted beats, passes touches through on interactive ones). In-app entries call `startTutorial()`
+directly; `/tutorial` survives as the deep-link/e2e entry.
+
+**Before-scan correction that reshaped the leaf:** hosting a copy of Today inside the `/tutorial` Stack
+route would have landed a detached tab group — a blank screen on device (`useGoToTab`/Freedom RN lesson
+#7). The overlay-on-the-real-tab shape is forced by that, not chosen for elegance. Routing to `/tutorial`
+from in-app entries was also removed: three different stack depths each broke a different router verb
+(`replace` re-mounted the tab group into two Todays; `back`/`dismissAll` landed wherever the caller was).
+
+e2e 100. Verified: Today shows MAR 16 (sandbox) during the session, AUG 14 (real) after.
+
+## 3.5.3.2 — the persistent "Example" marker — ✅ COMPLETE (2026-07-31, `9fb6537`)
+
+**Why it's load-bearing, not decoration:** the tutorial teaches over the user's real Today with figures
+scaled from their own income, and later beats drive the card into tight/at-risk. The invitation copy
+scrolls away within a beat, so by beat 5 the only thing standing between "This paycheck won't cover
+everything" and a genuine scare about their real money is this marker.
+
+**Design decisions:**
+- **Placed beside the VERDICT, not in the eyebrow.** In the meta line it reads as a label for the
+  section; next to the state line it reads as a qualifier ON the verdict, which is the job.
+- **Accent-outlined pill, never a state color** — it can't be mistaken for a verdict of its own. The
+  first pass used the soft accent fill alone; the both-theme screenshot showed dark's `accentSoft`
+  (#14264c) sitting invisibly on the card (#152340), so the pill read as bare blue text in dark and a
+  proper badge in light. A hairline accent border restored parity ([[feedback_light_mode_equal_premium]]).
+- **Derived from `isSandboxStore(useActiveStore())`, not from "a tutorial is running."** The marker's
+  entire value is being true about what's rendered; hanging it off the same brand the persistence and
+  sync seams refuse on means it cannot drift from the data on screen.
+- **Spoken FIRST in the card's group label.** A VoiceOver user can't see the chip but hears the at-risk
+  verdict all the same.
+
+**e2e (+2 tests, 100→102):** asserted on EVERY beat rather than once — a persistent marker that lapses on
+beat 5 fails exactly where it's needed; that it leaves WITH the sandbox at hand-back (a marker stranded
+on the user's own card is the mirror bug: their real read dismissed as an example); and that it never
+appears on the real card. Visual script `tests/visual/rn-tutorial-example-marker-theme.cjs` shoots
+clear + at-risk × dark + light (at-risk is the case the marker exists for).
+
+**Folded in — both surfaced BY this leaf's verification:**
+1. **Today advertised the walkthrough during the walkthrough.** The invitation selector reads the acting
+   store, and the sandbox is a fresh store that has of course never seen the tutorial — so "See how your
+   Guardian works · Show me" sat at the top of the very walkthrough it was inviting the user into. A
+   structural consequence of 3.5.3.1's rewire that only a screenshot could show. Suppressed on example
+   money, +e2e.
+2. **`npm run e2e:fresh:rn`** — a `serve` left on :4319 from an earlier session is silently reused
+   (`reuseExistingServer: !CI`), so the RN suite can run against a stale bundle. It produced a false RED
+   here; the same trap gives a false GREEN just as easily, which is the version that ships a bug. The
+   legacy app already had `e2e:fresh`; the RN app now has its twin.
+
+**After-scan carry-forward (filed to the leaves they affect, not the backlog):**
+- **3.5.3.4 blocker:** a FREE run's sandbox is `subscriptionPlan: 'free'` → `showAdjust` is false → there
+  is **no floor control to drag**, for exactly the audience the tutorial most needs to convert.
+- **3.5.3.3:** each beat must scroll its subject clear of the bottom dock (at-risk's Recovery section
+  sits behind it today); and the **tab bar is outside the overlay**, so it stays tappable on every beat —
+  a user can wander to Money's real data mid-session.
+- **[D6 · open, for Jason]** marker SCOPE: the hero above the card also shows sandbox money ("$2,000 ·
+  Short this paycheck") unmarked. Rec: keep it card-only — the Guardian card carries the verdict, and a
+  second marker doubles the chrome on a screen already carrying an overlay.
+- **Doc hygiene:** "3.5.3.x" is overloaded — Phase 3's item 3.5 (Live Activity) used 3.5.3.1–.5 in this
+  same log. Worth a disambiguating note at the 3.7.C coherence sweep.
