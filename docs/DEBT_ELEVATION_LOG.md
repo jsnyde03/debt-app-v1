@@ -1085,3 +1085,45 @@ clear + at-risk × dark + light (at-risk is the case the marker exists for).
   second marker doubles the chrome on a screen already carrying an overlay.
 - **Doc hygiene:** "3.5.3.x" is overloaded — Phase 3's item 3.5 (Live Activity) used 3.5.3.1–.5 in this
   same log. Worth a disambiguating note at the 3.7.C coherence sweep.
+
+## 3.5.3.3.1 — the per-beat spotlight — ✅ COMPLETE (2026-07-31, `3fa1d5a`)
+
+**The problem, seen not reasoned:** 3.5.3.2's at-risk screenshot showed the Recovery section sitting
+behind the coaching card that was describing it. The dock is at the bottom, the Guardian card is tall,
+and Today scrolls — so "look at this" frequently pointed at something off-screen.
+
+**Shipped:**
+- **`tutorialTargets`** — a coached-SUBJECT registry. Two constraints shaped it: it renders for every
+  user on every launch, so registration is a ref write and an `onLayout` and nothing more (with no
+  provider above it, `TutorialTarget` is a plain `View`); and **3.5.5's coach-marks need exactly this**,
+  so ids are free-form and nothing in it knows what a beat is. Built walkthrough-specific, it would have
+  been written twice.
+- **`useSpotlight`** — measure → scroll into the stage → measure AGAIN. The second measure is the whole
+  point: drawing from the pre-scroll rect leaves the highlight behind on screen. Returns null mid-scroll
+  (a spotlight sliding across unrelated content reads as a glitch; a brief absence reads as "getting
+  there") and when the subject isn't mounted at all, since a beat may point at something the current
+  Guardian state doesn't render.
+- **The cutout scrim** — four bands around the subject rather than one sheet over everything, plus a
+  quiet ring that survives onto the interactive beats where the scrim is gone (there, the outline is the
+  only thing still saying "this is the bit we mean"). Four rects rather than an SVG mask: identical
+  render on web and device, and plain geometry an e2e can assert.
+- **`Screen` scroll seam** (`scrollRef` + `onScroll`, opt-in, inert elsewhere). The alternative was the
+  tutorial re-implementing the screen scaffold and then drifting from it.
+
+**Why `scrollDelta` is a pure module with 15 asserts:** every wrong answer is silent — too little and the
+beat describes something behind its own dock, too much and the subject leaves the top, a stray non-zero
+and the screen twitches on every step. None of it throws, and a render test only says "looked odd". A
+subject taller than the stage aligns TOP and accepts overflow; centering would hide the beginning of the
+thing the user is being asked to read.
+
+**Folded in — both from looking at the screenshots, neither findable by reading code:**
+1. **The tab bar is outside the overlay.** The scrim lives inside the Today screen, so one tap reached
+   Money's real data mid-beat — and on the interactive beats, without even a scrim in the way. Tabs are
+   now held for the session; Skip remains the way out.
+2. **"How this works" was on offer from inside the walkthrough** — an entry that restarts the very
+   session you're in, live on any interactive beat.
+
+**After-scan → filed forward:** 3.5.3.3.2 must bump the spotlight's `revision` when a beat changes the
+sandbox state (a card that grows leaves the highlight on the old layout) · 3.5.3.3.3 gets per-beat
+spotlight tuning (the bar subject's ring currently crops the card title) · 3.5.3.3.4 gets reduce-motion
+(the stage scroll is unconditionally animated) and an iPad two-column check.
