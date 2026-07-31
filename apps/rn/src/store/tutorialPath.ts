@@ -33,6 +33,12 @@ export interface TutorialStepDef {
    * and returning — each beat is a fresh scripted stage.)
    */
   state?: SandboxState;
+  /**
+   * 3.5.3.4.2 — guidance to carry into a modal this beat sends the user into. Declared here so the
+   * walkthrough's copy stays in one file rather than being smuggled into the component that happens to
+   * present the sheet.
+   */
+  coach?: string;
 }
 
 /**
@@ -57,7 +63,16 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
   { id: 'intro', title: 'Money set aside first', body: 'Every payday, your Guardian keeps a cushion back before anything extra goes to your debt.', target: 'guardian-card', state: 'clear' },
   { id: 'bar', title: 'Where this paycheck went', body: 'The bar is the whole paycheck: what stayed as your cushion, and what went to debt.', target: 'guardian-bar', state: 'clear' },
   // "Your line" is the app's own term for the floor, so the beat teaches the word as well as the control.
-  { id: 'line', title: 'Your line', body: 'This is the least you want to keep. Move it and the whole plan re-solves around it.', target: 'guardian-line', state: 'clear' },
+  // Interactive. Spotlights the CONTROL, not the readout — on a beat where the user has to do something,
+  // pointing at the number tells them where to look but not what to do.
+  {
+    id: 'line',
+    title: 'Your line',
+    body: 'This is the least you want to keep. Open it and move the line — the whole plan re-solves around it.',
+    target: 'guardian-adjust',
+    state: 'clear',
+    coach: 'Drag the line, then Save — your plan re-solves around it.',
+  },
   { id: 'reserve', title: 'A little extra, at first', body: 'While your Guardian is still learning your bills it holds a bit more back — and releases it once it knows.', target: 'guardian-bar', state: 'clear' },
   // The one beat that deliberately puts the card into trouble — the Recovery glimpse. It's also the
   // beat the Example marker was built for: a real-looking shortfall, on figures scaled from their pay.

@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { FloorImpactBar } from '@/components/plan/FloorImpactBar';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { Motion } from '@/motion/Motion';
 import { spacing } from '@/theme/spacing';
@@ -54,6 +55,7 @@ export function TutorialOverlay({
   isLast,
   spotlight,
   onDockLayout,
+  impact,
 }: {
   position: number;
   total: number;
@@ -69,6 +71,8 @@ export function TutorialOverlay({
   spotlight?: TargetRect | null;
   /** The dock's measured height defines the bottom of the stage the subject is scrolled into. */
   onDockLayout?: (height: number) => void;
+  /** 3.5.3.4.4 — set once the user has actually moved their line on this beat; the before→after payoff. */
+  impact?: { before: number; after: number; freed: number } | null;
 }) {
   const c = useAppColors();
   useAnnounceBeat(position);
@@ -128,6 +132,11 @@ export function TutorialOverlay({
                 {title}
               </Text>
               <Text style={[textStyles.body, { color: c.text.secondary }]}>{body}</Text>
+              {/* 3.5.3.4.4 — the payoff lands in the coaching card, not on the Guardian card. The card
+                  already shows the RESULT (its bar re-solves live); what the walkthrough adds is the
+                  before→after, which is narration — and keeping it here leaves the shared card free of
+                  tutorial-only props. */}
+              {impact ? <FloorImpactBar before={impact.before} after={impact.after} freed={impact.freed} /> : null}
 
               <View style={styles.nav}>
                 {onBack ? <Button label="Back" variant="text" onPress={onBack} /> : null}

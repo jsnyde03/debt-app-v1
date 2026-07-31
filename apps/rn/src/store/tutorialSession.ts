@@ -35,12 +35,20 @@ export interface TutorialSession {
   sandbox: SandboxStoreInstance | null;
   /** Which beat is showing (index into `TUTORIAL_STEPS`). */
   index: number;
+  /**
+   * 3.5.3.4.4 — what the plan looked like immediately BEFORE the user moved their line, so the payoff
+   * can show the change rather than just the result. Captured at the moment of the write because by the
+   * time anything renders, the "before" is gone — the store has already re-solved.
+   */
+  floorBefore: { cushion: number; floor: number } | null;
 }
 
 interface TutorialSessionState extends TutorialSession {
   start(realStore: DebtStore, run: TutorialRun, startIndex: number): void;
   goTo(index: number): void;
   end(): void;
+  /** Record the pre-change read so the impact payoff has a "before" to show. */
+  noteFloorBefore(before: { cushion: number; floor: number }): void;
 }
 
 /**
@@ -55,6 +63,7 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
   run: 'free',
   sandbox: null,
   index: 0,
+  floorBefore: null,
 
   start(realStore, run, startIndex) {
     const opts = { premium: run === 'premium', maxGenuineCycles: TUTORIAL_MAX_CYCLES };
@@ -75,20 +84,25 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
       scenarioForBeat(realStore, 'clear', { ...opts, pinned })!;
     const sandbox = createSandboxStore(opening);
     publishSandbox(sandbox, opening.id);
-    set({ active: true, run, sandbox, index: startIndex });
+    set({ active: true, run, sandbox, index: startIndex, floorBefore: null });
   },
 
   goTo(index) {
     if (!get().active) return;
     stageBeat(index);
-    set({ index });
+    // The payoff belongs to the beat that produced it — carrying it forward would show a stale "before".
+    set({ index, floorBefore: null });
+  },
+
+  noteFloorBefore(before) {
+    if (get().active) set({ floorBefore: before });
   },
 
   end() {
     unpublishSandbox();
     staging = null;
     // Drop the sandbox so it can be collected; a later session builds a fresh, deterministic one.
-    set({ active: false, sandbox: null, index: 0 });
+    set({ active: false, sandbox: null, index: 0, floorBefore: null });
   },
 }));
 

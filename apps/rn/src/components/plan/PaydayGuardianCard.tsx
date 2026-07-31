@@ -44,6 +44,7 @@ export function PaydayGuardianCard({
   bnplHeadsUp,
   proofOfWork,
   isExample,
+  coachLine,
 }: {
   brief: GuardianBrief;
   isPremium: boolean;
@@ -77,6 +78,10 @@ export function PaydayGuardianCard({
    *  the persistent marker below. The host derives it from the acting store's sandbox brand rather than
    *  from "is a tutorial running", so the claim can never drift from what's actually on screen. */
   isExample?: boolean;
+  /** 3.5.3.4.2 — one line of walkthrough guidance to carry INTO the floor sheet. The sheet is a modal, so
+   *  it covers the coaching card that sent the user there; without this they are alone with a slider
+   *  mid-lesson. Undefined outside a tutorial, which is every real use. */
+  coachLine?: string;
 }) {
   const c = useAppColors();
   const [barW, setBarW] = useState(0);
@@ -98,7 +103,13 @@ export function PaydayGuardianCard({
   const hasReserve = brief.heldReserve > 0;
   // "Adjust your line" only makes sense when you're covered — hidden in at-risk/shortfall (lowering your
   // safety line is the wrong move) and while stale (the move is "update your numbers", not "adjust").
-  const showAdjust = isPremium && !stale && brief.state !== 'at-risk';
+  //
+  // 3.5.3.4.1 ([D8], Jason 2026-07-31) — on EXAMPLE money the control is offered to both tiers. The
+  // walkthrough's whole job is to teach what the Guardian does, and the free audience is the one it most
+  // needs to reach; with the control hidden they'd be told about a line they never got to touch. This is
+  // a taste, not a re-tier: the write lands in the sandbox, and the free invite directly below is what
+  // says premium is the part that holds this line automatically every payday.
+  const showAdjust = (isPremium || isExample) && !stale && brief.state !== 'at-risk';
 
   // MF.3 — the free invite is state-aware: in a shortfall it sells the RECOVERY value (a catch-up plan),
   // not "cushion at your line" (there's no cushion to hold when you're short — that pitch reads off-context).
@@ -293,9 +304,14 @@ export function PaydayGuardianCard({
       {/* The adjust control lives OUTSIDE the narrated group so a screen reader reaches it as its own
           button (the group's `accessible` collapses its descendants into one utterance). */}
       {showAdjust ? (
-        <Pressable onPress={() => setFloorSheet(true)} accessibilityRole="button" accessibilityLabel="Adjust your cushion line" hitSlop={8}>
-          <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>Adjust your line →</Text>
-        </Pressable>
+        // 3.5.3.4.3 — registered as a subject: an interactive beat must spotlight the thing you TAP,
+        // not the thing it changes. (Beat 3 pointed at the line readout before, which told the user
+        // where to look but not what to do.)
+        <TutorialTarget id="guardian-adjust">
+          <Pressable onPress={() => setFloorSheet(true)} accessibilityRole="button" accessibilityLabel="Adjust your cushion line" hitSlop={8}>
+            <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>Adjust your line →</Text>
+          </Pressable>
+        </TutorialTarget>
       ) : null}
       {/* 3.5.1 — the always-available replay. Also OUTSIDE the group, for the same reason. It's a quiet
           text link rather than a floating "?" glyph: the card is already dense, and restraint reads more
@@ -320,8 +336,8 @@ export function PaydayGuardianCard({
         </Pressable>
       ) : null}
 
-      {isPremium && onSetFloor ? (
-        <CushionFloorSheet visible={floorSheet} floor={brief.floor} onClose={() => setFloorSheet(false)} onApply={onSetFloor} />
+      {(isPremium || isExample) && onSetFloor ? (
+        <CushionFloorSheet visible={floorSheet} floor={brief.floor} onClose={() => setFloorSheet(false)} onApply={onSetFloor} coach={coachLine} />
       ) : null}
     </Card>
   );

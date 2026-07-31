@@ -186,6 +186,43 @@ test.describe('tutorial invitation + in-situ shell', () => {
   // suite instead (`tutorialPath.test`), and the real behaviour is device-owed with the rest of the VO
   // pass in Phase 6.
 
+  for (const tier of ['premium', 'free'] as const) {
+    test(`beat 3 lets a ${tier} user move the real line, and the plan re-solves`, async ({ page }) => {
+      // [D8] — the FREE run gets the control too. Its sandbox is `subscriptionPlan: 'free'`, where
+      // `showAdjust` is normally false, so without the example-mode allowance the audience the tutorial
+      // most needs to convert would be told about a line it never got to touch.
+      await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' }, subscriptionPlan: tier }));
+      await page.goto('/tutorial');
+      await page.getByText('Next', { exact: true }).click();
+      await page.getByText('Next', { exact: true }).click();
+      await expect(page.getByTestId('tutorial-progress')).toContainText('Step 3 of');
+
+      // The beat spotlights the CONTROL, and the scrim is off so the tap reaches it.
+      await page.getByText('Adjust your line').click();
+      // [D7] — the sheet is a modal that covers the coaching card, so the beat's guidance rides inside it.
+      await expect(page.getByTestId('floor-sheet-coach')).toBeVisible();
+
+      await page.getByText('Save', { exact: true }).click();
+      // The payoff: a before→after the user produced themselves.
+      await expect(page.getByTestId('floor-impact')).toBeVisible();
+    });
+  }
+
+  test('moving the line in the tutorial never touches the real plan', async ({ page }) => {
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' }, cushionFloor: 200 }));
+    await page.goto('/tutorial');
+    await page.getByText('Next', { exact: true }).click();
+    await page.getByText('Next', { exact: true }).click();
+    await page.getByText('Adjust your line').click();
+    await page.getByText('Save', { exact: true }).click();
+    await page.getByText('Skip', { exact: true }).click();
+    await expect(page.getByTestId('tutorial-overlay')).toHaveCount(0);
+
+    // The whole substrate exists so this holds: a real slider, a real setter, a sandbox store.
+    const realFloor = await page.evaluate(() => JSON.parse(window.localStorage.getItem('debtPlanner.rnStore') || '{}').cushionFloor);
+    expect(realFloor).toBe(200);
+  });
+
   test('the tabs are held while a session is running', async ({ page }) => {
     await seedStore(page, newUser());
     await page.goto('/tutorial');

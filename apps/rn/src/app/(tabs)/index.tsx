@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { useStore } from 'zustand';
 import { StyleSheet, Text, View, useWindowDimensions, type ScrollView, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -92,6 +93,9 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   // persistence + sync seams refuse on. A session flag could be set while the provider wasn't (or
   // vice-versa) and the card would then lie in the one direction that matters.
   const isExample = isSandboxStore(store_);
+  // 3.5.3.4.2 — the active beat's modal-guidance line, if it declares one. Read here rather than passed
+  // down from the route, because the card that presents the sheet is rendered by this screen.
+  const coachLine = useTutorialSession((s) => (s.active ? TUTORIAL_STEPS[s.index]?.coach : undefined));
   const store = useAppStore((s) => s.store);
   const isPremium = store.subscriptionPlan === 'premium';
   // 2.4 — the payday engine reads projected-current balances (premium) so the plan reflects where the
@@ -266,7 +270,14 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               // FROM INSIDE the walkthrough is both incoherent and — on an interactive beat, where taps
               // pass through — a live way to re-enter a session you're already in.
               onReplayTutorial={isExample ? undefined : () => startTutorial(isPremium ? 'premium' : 'free')}
-              onSetFloor={(v) => store_.getState().setCushionFloor(v)}
+              // 3.5.3.4.2 — the beat's own guidance, carried into the modal it sends the user into.
+              coachLine={isExample ? coachLine : undefined}
+              // 3.5.3.4.4 — snapshot the read BEFORE the write: once the store re-solves, the "before"
+              // this beat's payoff needs is gone. No-op outside a session.
+              onSetFloor={(v) => {
+                if (isExample && guardian) tutorialSession.getState().noteFloorBefore({ cushion: guardian.cushion, floor: guardian.floor });
+                store_.getState().setCushionFloor(v);
+              }}
               attestation={attestation}
               onAttestBills={(v) => store_.getState().setBillsAttested(v)}
               recovery={recovery}
@@ -573,6 +584,27 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   const [dockH, setDockH] = useState(0);
 
   const step = TUTORIAL_STEPS[index];
+
+  // 3.5.3.4.4 — the payoff, computed by comparing the snapshot taken at the write against the plan the
+  // sandbox re-solved to. Null until the user actually moves their line, so the beat opens as an
+  // invitation and earns its result.
+  const floorBefore = useTutorialSession((s) => s.floorBefore);
+  // Select the STORE BLOB and derive outside the selector. `selectPaydayGuardian` builds a fresh object
+  // every call, so selecting it directly would never compare equal — the same un-cached-snapshot loop
+  // this screen already learned the hard way (see the note in `TodayScreen`). The blob is a stable
+  // reference between updates, so the memo recomputes exactly when the plan actually changes.
+  const sandboxStore = useStore(sandbox, (s) => s.store);
+  const nowGuardian = useMemo(() => selectPaydayGuardian(sandboxStore), [sandboxStore]);
+  const impact =
+    floorBefore && nowGuardian
+      ? {
+          before: floorBefore.cushion,
+          after: nowGuardian.cushion,
+          // Lowering the line releases cushion to debt; raising it holds more back and frees nothing.
+          freed: Math.max(0, floorBefore.cushion - nowGuardian.cushion),
+        }
+      : null;
+
   // The stage: below the screen header, above the coaching dock. The subject is scrolled to sit inside
   // it, which is what stops a beat from describing something hidden behind its own card.
   const spotlight = useSpotlight({
@@ -613,6 +645,7 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
         isLast={last}
         spotlight={spotlight}
         onDockLayout={setDockH}
+        impact={impact}
         onBack={session.index > 0 ? () => {
           const next = prevIndex(session.index);
           tutorialSession.getState().goTo(next);

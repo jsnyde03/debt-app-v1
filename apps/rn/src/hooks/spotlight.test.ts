@@ -48,7 +48,10 @@ function run() {
 
   // Every beat must name a subject that some component actually registers — a typo here degrades to an
   // uncut scrim, which looks like "the spotlight is broken" rather than failing anywhere visible.
-  const REGISTERED = ['guardian-card', 'guardian-bar', 'guardian-line'];
+  // Keep in step with the `TutorialTarget` ids actually rendered by `PaydayGuardianCard` / Today.
+  // 3.5.3.4 added `guardian-adjust` — and this assertion caught the beat re-point before any run did,
+  // which is the whole reason it's here.
+  const REGISTERED = ['guardian-card', 'guardian-bar', 'guardian-line', 'guardian-adjust'];
   for (const step of TUTORIAL_STEPS) {
     assert(!step.target || REGISTERED.includes(step.target), `beat "${step.id}" points at a registered subject`);
   }

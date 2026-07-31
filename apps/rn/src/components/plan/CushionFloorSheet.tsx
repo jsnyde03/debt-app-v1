@@ -25,12 +25,17 @@ export function CushionFloorSheet({
   floor,
   onClose,
   onApply,
+  coach,
 }: {
   visible: boolean;
   floor: number;
   onClose: () => void;
   /** Commit the chosen floor. The real app passes the app store's setter; the tutorial passes the sandbox's. */
   onApply: (value: number) => void;
+  /** 3.5.3.4.2 — one line of walkthrough guidance, shown only while the tutorial sent the user here.
+   *  This sheet is a `Modal`, so it covers the coaching card that pointed at it; without this the user
+   *  is alone with a slider in the middle of a lesson. Absent in every real use. */
+  coach?: string;
 }) {
   const c = useAppColors();
   const [value, setValue] = useState(Number.isFinite(floor) ? floor : 200);
@@ -47,6 +52,13 @@ export function CushionFloorSheet({
       }}
       onClose={onClose}>
       <View style={styles.body}>
+        {/* Bare accent text, no card or fill: this is the walkthrough's voice passing through, not a
+            second piece of content competing with the control it's describing ([[less is more premium]]). */}
+        {coach ? (
+          <Text style={[textStyles.subhead, styles.coach, { color: c.accent.primary }]} testID="floor-sheet-coach">
+            {coach}
+          </Text>
+        ) : null}
         <Text maxFontSizeMultiplier={1.4} style={[textStyles.heroNumber, styles.value, { color: c.text.primary }]}>${value.toLocaleString('en-US')}</Text>
         <Slider value={value} onChange={setValue} min={0} max={500} step={25} accessibilityLabel="Cushion line amount" />
         <View style={styles.scaleRow}>
@@ -61,5 +73,6 @@ export function CushionFloorSheet({
 const styles = StyleSheet.create({
   body: { gap: spacing.md, paddingVertical: spacing.sm },
   value: { textAlign: 'center' },
+  coach: { textAlign: 'center', fontWeight: '600' },
   scaleRow: { flexDirection: 'row', justifyContent: 'space-between' },
 });
