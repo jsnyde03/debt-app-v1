@@ -7,9 +7,11 @@ import {
   personalScenario,
   SANDBOX_STATES,
   scenarioFor,
+  scenarioForBeat,
   SCENARIO_BASE_DATE,
   type SandboxState,
 } from '@/store/sandboxScenarios';
+import { TUTORIAL_STEPS } from '@/store/tutorialPath';
 import { createSandboxStore, seedSandbox, SANDBOX_MAX_GENUINE_CYCLES } from '@/store/sandboxStore';
 
 /**
@@ -161,6 +163,35 @@ function run() {
   // ── Free vs premium: the demo's free-at-risk contrast needs the tier to be scriptable. ────────
   const free = read(personaScenario('at-risk', { premium: false }));
   eq(free.store.subscriptionPlan, 'free', 'a scenario can be scripted FREE (the demo contrast)');
+
+  // ── 3.5.3.3.2 — beat staging policy ───────────────────────────────────────────────────────────
+  // Every beat's declared state has to be one the scenario builder actually knows. A typo here would
+  // throw mid-walkthrough, on the user's screen, on whichever beat nobody happened to step through.
+  for (const step of TUTORIAL_STEPS) {
+    assert(!step.state || SANDBOX_STATES.includes(step.state), `beat "${step.id}" declares a real state`);
+  }
+  // The arc has to leave trouble behind it: handing a user back to their own money with a red card as
+  // the last thing they saw would undo the point of the walkthrough.
+  eq(TUTORIAL_STEPS[TUTORIAL_STEPS.length - 1].state, 'clear', 'the arc ends on a clear card, not a scary one');
+  assert(TUTORIAL_STEPS.some((s) => s.state === 'at-risk'), 'the arc does show trouble somewhere (the Recovery glimpse)');
+
+  const real = createDefaultStore();
+  eq(scenarioForBeat(real, undefined), null, 'a beat with no declared state leaves the stage untouched');
+  eq(scenarioForBeat(real, 'at-risk')?.label, personaScenario('at-risk').label, 'a declared state stages that state');
+
+  // The pin: a harness-named scenario governs the WHOLE run. Without it, beat 1's `clear` would
+  // silently override what a test or a screenshot script asked to see — and it would still LOOK like a
+  // working tutorial, which is why this is asserted rather than trusted.
+  eq(scenarioForBeat(real, 'clear', { pinned: 'at-risk' })?.id, 'persona-at-risk', 'a harness pin overrides the beat state');
+  eq(scenarioForBeat(real, 'at-risk', { pinned: 'clear' })?.id, 'persona-clear', '…in both directions');
+  eq(scenarioForBeat(real, undefined, { pinned: 'at-risk' }), null, '…but a stateless beat still stages nothing');
+
+  // Idempotence is what makes Back exact: entering a beat re-seeds rather than mutating forward.
+  const s1 = createSandboxStore(scenarioForBeat(real, 'at-risk')!);
+  const afterFirst = JSON.stringify(s1.getState().store);
+  seedSandbox(s1, scenarioForBeat(real, 'clear')!);
+  seedSandbox(s1, scenarioForBeat(real, 'at-risk')!);
+  eq(JSON.stringify(s1.getState().store), afterFirst, 'stepping away and back re-stages byte-identical state');
 
   console.log(`✅ sandbox scenarios: ${passed} assertions passed.\n`);
 }

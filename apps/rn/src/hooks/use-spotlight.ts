@@ -41,7 +41,7 @@ export function useSpotlight({
   /** Live scroll offset — `scrollTo` is absolute, so moving by a measured delta needs the current y. */
   offsetRef: React.RefObject<number>;
   /** Bump to force a re-measure when the subject itself changed size (state change, card grew). */
-  revision?: number;
+  revision?: string | number;
 }): TargetRect | null {
   const targets = useTutorialTargets();
   const [rect, setRect] = useState<TargetRect | null>(null);

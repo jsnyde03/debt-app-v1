@@ -297,3 +297,28 @@ export function scenarioFor(store: DebtStore | null, state: SandboxState, opts: 
 
 /** Every named state, for the demo's scripted run and for determinism sweeps. */
 export const SANDBOX_STATES: SandboxState[] = ['clear', 'tight', 'at-risk'];
+
+/**
+ * 3.5.3.3.2 — which scenario a BEAT should be staged with.
+ *
+ * Two rules, and the second is the one that isn't obvious:
+ *  - a beat that declares no state leaves the sandbox alone (null → the caller doesn't re-seed), so a
+ *    beat can be purely narrative without silently resetting whatever the last one set up;
+ *  - **a harness-named scenario pins the state for the WHOLE run.** The harness exists so a test or a
+ *    screenshot script can say "show me the at-risk card"; if beat 1's declared `clear` overrode that,
+ *    the pin would survive exactly until the first render and every such script would quietly shoot the
+ *    wrong state. Pinning also keeps `persona-*` fixtures on the persona seed rather than sliding onto
+ *    the user's numbers mid-arc.
+ *
+ * Pure, so the whole staging policy is assertable without a store or a renderer.
+ */
+export function scenarioForBeat(
+  realStore: DebtStore | null,
+  beatState: SandboxState | undefined,
+  opts: ScenarioOpts & { pinned?: SandboxState | null } = {},
+): SandboxScenario | null {
+  const { pinned, ...scenarioOpts } = opts;
+  if (!beatState) return null;
+  if (pinned) return personaScenario(pinned, scenarioOpts);
+  return scenarioFor(realStore, beatState, scenarioOpts);
+}

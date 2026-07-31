@@ -122,6 +122,48 @@ test.describe('tutorial invitation + in-situ shell', () => {
     }
   });
 
+  test('the arc stages each beat\'s state, and steps back out of trouble', async ({ page }) => {
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
+    await page.goto('/tutorial');
+    await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
+
+    const clear = page.getByText('Looks clear this paycheck');
+    const short = page.getByText(/won't cover everything/);
+    await expect(clear).toBeVisible();
+
+    // Step to the Recovery glimpse — the one beat that deliberately puts the card in trouble.
+    for (let i = 0; i < 4; i++) await page.getByText('Next', { exact: true }).click();
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 5 of');
+    await expect(short).toBeVisible();
+    // The marker has to hold through the scary state — that is the entire reason it exists.
+    await expect(page.getByTestId('guardian-example-marker')).toBeVisible();
+
+    // …and the arc must climb back out, so nobody is handed their own money right after a red card.
+    await page.getByText('Next', { exact: true }).click();
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 6 of');
+    await expect(clear).toBeVisible();
+
+    // Back re-stages rather than replaying forward: the shortfall returns exactly as it was.
+    await page.getByText('Back', { exact: true }).click();
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 5 of');
+    await expect(short).toBeVisible();
+  });
+
+  test('a harness-pinned state governs the whole run, not just the opening', async ({ page }) => {
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
+    await page.addInitScript(() => {
+      (window as unknown as { __debtSandboxHarness: { scenarioId: string } }).__debtSandboxHarness = { scenarioId: 'persona-at-risk' };
+    });
+    await page.goto('/tutorial');
+
+    // Beat 1 declares `clear`. If the beat state won the argument, the pin would survive exactly one
+    // render — and every screenshot script that asks for a state would quietly shoot the wrong one.
+    await expect(page.getByText(/won't cover everything/)).toBeVisible();
+    await page.getByText('Next', { exact: true }).click();
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 2 of');
+    await expect(page.getByText(/won't cover everything/)).toBeVisible();
+  });
+
   test('the tabs are held while a session is running', async ({ page }) => {
     await seedStore(page, newUser());
     await page.goto('/tutorial');

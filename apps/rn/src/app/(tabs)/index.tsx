@@ -581,7 +581,11 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     stageBottom: screenH - dockH - spacing.sm,
     scrollRef,
     offsetRef,
-    revision: dockH, // the dock resizes with its copy; a shorter beat can re-open room below
+    // Must include the beat INDEX, not just the target: consecutive beats can share a subject while
+    // 3.5.3.3.2 re-stages the sandbox underneath it (recovery → yourcall are both the whole card, and
+    // the card changes height between at-risk and clear). Keyed on target alone, the highlight would
+    // keep the previous state's geometry. The dock is in here too — it resizes with its own copy.
+    revision: `${index}:${dockH}`,
   });
 
   const session = { sandbox, index };

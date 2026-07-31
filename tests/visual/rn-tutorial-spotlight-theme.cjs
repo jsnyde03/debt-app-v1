@@ -53,5 +53,7 @@ async function shoot(theme, scenarioId, beats, name) {
     await shoot(theme, "persona-clear", 1, "tutorial-spot-card");
     await shoot(theme, "persona-clear", 2, "tutorial-spot-bar");
     await shoot(theme, "persona-at-risk", 1, "tutorial-spot-atrisk");
+    // 3.5.3.3.2 — beat 5 with NO harness pin: the arc itself must have staged the shortfall.
+    await shoot(theme, undefined, 5, "tutorial-beat5-recovery");
   }
 })();

@@ -1,3 +1,5 @@
+import type { SandboxState } from './sandboxScenarios';
+
 /**
  * 3.5.2 — the tutorial PATH: step sequencing, skip, and interrupt-resume, as pure logic.
  *
@@ -20,6 +22,17 @@ export interface TutorialStepDef {
    * spotlighting something arbitrary.
    */
   target?: string;
+  /**
+   * 3.5.3.3.2 — the Guardian state this beat NARRATES. Entering the beat re-seeds the sandbox to it,
+   * which is what lets one arc show a clear paycheck, then a short one, then a clear one again without
+   * the user having to produce those states themselves.
+   *
+   * Declared per beat rather than accumulated, so entering a beat is idempotent: stepping Back and
+   * forward lands on byte-identical state, and a beat can never inherit a mess left by the one before.
+   * (The trade, accepted: a change the user made on an interactive beat doesn't survive stepping away
+   * and returning — each beat is a fresh scripted stage.)
+   */
+  state?: SandboxState;
 }
 
 /**
@@ -28,13 +41,17 @@ export interface TutorialStepDef {
  * shape are what 3.5.2 needs, so the path, its a11y and its e2e are provable now.
  */
 export const TUTORIAL_STEPS: TutorialStepDef[] = [
-  { id: 'intro', title: 'What your Guardian does', body: 'It protects a cushion from each paycheck before anything extra goes to debt.', target: 'guardian-card' },
-  { id: 'bar', title: 'Reading your paycheck', body: 'The bar splits this paycheck into what is held back and what goes to debt.', target: 'guardian-bar' },
-  { id: 'line', title: 'Your line', body: 'You choose the cushion to keep. Move it and the plan re-solves around it.', target: 'guardian-line' },
-  { id: 'reserve', title: 'The safety net', body: 'Early on, a little extra is held back while the app learns your bills.', target: 'guardian-bar' },
-  { id: 'recovery', title: 'When a paycheck is short', body: 'You get a plan: what to cover first, and what can safely wait.', target: 'guardian-card' },
-  { id: 'yourcall', title: 'Always your call', body: 'The Guardian suggests. Nothing moves without you.', target: 'guardian-card' },
-  { id: 'handback', title: 'Over to your plan', body: 'That was example money. Here is your own paycheck.', target: 'guardian-card' },
+  { id: 'intro', title: 'What your Guardian does', body: 'It protects a cushion from each paycheck before anything extra goes to debt.', target: 'guardian-card', state: 'clear' },
+  { id: 'bar', title: 'Reading your paycheck', body: 'The bar splits this paycheck into what is held back and what goes to debt.', target: 'guardian-bar', state: 'clear' },
+  { id: 'line', title: 'Your line', body: 'You choose the cushion to keep. Move it and the plan re-solves around it.', target: 'guardian-line', state: 'clear' },
+  { id: 'reserve', title: 'The safety net', body: 'Early on, a little extra is held back while the app learns your bills.', target: 'guardian-bar', state: 'clear' },
+  // The one beat that deliberately puts the card into trouble — the Recovery glimpse. It's also the
+  // beat the Example marker was built for: a real-looking shortfall, on figures scaled from their pay.
+  { id: 'recovery', title: 'When a paycheck is short', body: 'You get a plan: what to cover first, and what can safely wait.', target: 'guardian-card', state: 'at-risk' },
+  // …and back out of trouble deliberately: nobody should be handed back to their own money while the
+  // last thing they saw was a red card.
+  { id: 'yourcall', title: 'Always your call', body: 'The Guardian suggests. Nothing moves without you.', target: 'guardian-card', state: 'clear' },
+  { id: 'handback', title: 'Over to your plan', body: 'That was example money. Here is your own paycheck.', target: 'guardian-card', state: 'clear' },
 ];
 
 export const TUTORIAL_STEP_COUNT = TUTORIAL_STEPS.length;
