@@ -9,7 +9,7 @@ import { SwitchRow } from '@/components/ui/SwitchRow';
 import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import { selectPaycheckMissed } from '@/store/selectors';
 import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
@@ -47,6 +47,8 @@ function formatDate(iso: string): string {
  * from the store; recomputes the next payday as inputs change, same as onboarding's PaycheckStep.
  */
 export function PaycheckSheet({ onClose }: { onClose: () => void }) {
+  // 3.5.3.0 — write to the store this subtree resolves to (sandbox under the tutorial, real otherwise).
+  const store_ = useActiveStore();
   const c = useAppColors();
   const paycheck = useAppStore((s) => s.store.paycheck);
   const missed = useAppStore((s) => selectPaycheckMissed(s.store));
@@ -62,7 +64,7 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
 
   function submit() {
     if (!amount || Number(amount) <= 0) return setError('Enter your paycheck amount.');
-    appStore.getState().updatePaycheck({
+    store_.getState().updatePaycheck({
       amount,
       payCycle,
       currentDate: todayLocalISO(),
@@ -121,7 +123,7 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
         <SwitchRow
           label="This paycheck didn't arrive"
           value={missed}
-          onValueChange={(v) => (v ? appStore.getState().declareMissedPaycheck() : appStore.getState().undoMissedPaycheck())}
+          onValueChange={(v) => (v ? store_.getState().declareMissedPaycheck() : store_.getState().undoMissedPaycheck())}
         />
       </View>
     </FormSheet>

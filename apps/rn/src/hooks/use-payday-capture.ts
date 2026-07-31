@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { isPaydayAwaitingRollover, shouldPromptPaydayCapture } from '@core/debt/shouldPromptPaydayCapture';
 import type { PayCycle } from '@core/payCycle/getNextPaycheckDate';
 
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import { useAppStore } from '@/store/useAppStore';
 
 const CYCLE_DAYS: Record<PayCycle, number> = { weekly: 7, biweekly: 14, semimonthly: 15, monthly: 31 };
@@ -39,6 +39,12 @@ export interface PaydayCapture {
  * (its seeded payday goes stale and would pop the sheet over sample data).
  */
 export function usePaydayCapture(hasCapturablePlan: boolean): PaydayCapture {
+  // 3.5.3.0 — write to the SAME store these reads come from. This hook was the concrete mixed-resolution
+  // hazard: its reads go through `useAppStore` (context-aware), while `markHandled` wrote through the
+  // `appStore` singleton. Under a StoreProvider it would have read the tutorial's frozen sandbox date,
+  // concluded a payday had landed, and stamped the user's REAL `lastHandledPaydayDate` with it —
+  // silently corrupting genuine payday tracking from scripted money.
+  const store = useActiveStore();
   const nextPaycheckDate = useAppStore((s) => s.store.paycheck.nextPaycheckDate);
   const payCycle = useAppStore((s) => s.store.paycheck.payCycle);
   const lastHandled = useAppStore((s) => s.store.lastHandledPaydayDate);
@@ -55,7 +61,7 @@ export function usePaydayCapture(hasCapturablePlan: boolean): PaydayCapture {
   const isAwaitingRollover = enabled && isPaydayAwaitingRollover(today, nextPaycheckDate, lastHandled);
 
   function markHandled() {
-    appStore.getState().setLastHandledPayday(nextPaycheckDate);
+    store.getState().setLastHandledPayday(nextPaycheckDate);
   }
   function closeForThisPayday() {
     setManualOpen(false);

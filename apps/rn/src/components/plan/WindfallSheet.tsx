@@ -7,7 +7,7 @@ import { PremiumInvite } from '@/components/premium/PremiumInvite';
 import { TextField } from '@/components/ui/TextField';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { haptics } from '@/motion';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectWindfallSplit, type WindfallBucketKey } from '@/store/guardianSelectors';
 import { useAppStore } from '@/store/useAppStore';
@@ -36,6 +36,8 @@ const BUCKET_META: Record<WindfallBucketKey, { label: string; icon: IconGlyph }>
  * invite to the routing view (never a locked preview).
  */
 export function WindfallSheet({ current, onClose }: { current: number; onClose: () => void }) {
+  // 3.5.3.0 — write to the store this subtree resolves to (sandbox under the tutorial, real otherwise).
+  const store_ = useActiveStore();
   const c = useAppColors();
   const store = useAppStore((s) => s.store);
   const isPremium = store.subscriptionPlan === 'premium';
@@ -57,12 +59,12 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
 
   function submit() {
     if (!validAmount) return setError('Enter an amount greater than 0.');
-    appStore.getState().setWindfall(n);
+    store_.getState().setWindfall(n);
     haptics.success(); // a windfall landing is a positive beat
     onClose();
   }
   function remove() {
-    appStore.getState().setWindfall(0);
+    store_.getState().setWindfall(0);
     onClose();
   }
 

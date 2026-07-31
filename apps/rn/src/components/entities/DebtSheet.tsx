@@ -13,7 +13,7 @@ import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import { selectDebtBalanceView } from '@/store/balanceSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
@@ -73,6 +73,8 @@ export function DebtSheet({
    *  device twice; the sheet no longer owns that presentation at all. */
   onViewSchedule: (debtId: string) => void;
 }) {
+  // 3.5.3.0 — write to the store this subtree resolves to (sandbox under the tutorial, real otherwise).
+  const store_ = useActiveStore();
   const c = useAppColors();
   const currentDate = useAppStore((s) => s.store.paycheck.currentDate);
   const isPremium = useAppStore((s) => s.store.subscriptionPlan === 'premium');
@@ -145,8 +147,8 @@ export function DebtSheet({
         scheduledPaymentAmount: bnplSched,
         bnplProvider: bnplProvider || undefined,
       };
-      if (isEdit && editing) appStore.getState().updateDebt(editing.id, fields);
-      else appStore.getState().addDebt({ id: `debt-${Date.now()}`, originalBalance: derived, isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields });
+      if (isEdit && editing) store_.getState().updateDebt(editing.id, fields);
+      else store_.getState().addDebt({ id: `debt-${Date.now()}`, originalBalance: derived, isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields });
       onClose();
       return;
     }
@@ -167,13 +169,13 @@ export function DebtSheet({
       scheduledPaymentAmount: undefined,
       bnplProvider: undefined,
     };
-    if (isEdit && editing) appStore.getState().updateDebt(editing.id, fields);
-    else appStore.getState().addDebt({ id: `debt-${Date.now()}`, originalBalance: Number(balance), isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields });
+    if (isEdit && editing) store_.getState().updateDebt(editing.id, fields);
+    else store_.getState().addDebt({ id: `debt-${Date.now()}`, originalBalance: Number(balance), isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields });
     onClose();
   }
   function remove() {
     if (editing) {
-      appStore.getState().removeDebt(editing.id);
+      store_.getState().removeDebt(editing.id);
       onClose();
     }
   }

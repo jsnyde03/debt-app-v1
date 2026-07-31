@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { TextField } from '@/components/ui/TextField';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectSaveForItOptions, type SaveOption } from '@/store/guardianSelectors';
 import { useAppStore } from '@/store/useAppStore';
@@ -49,6 +49,9 @@ export interface SavedInfo {
 }
 
 export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { visible: boolean; amount: number; name: string; onClose: () => void; onSaved?: (info: SavedInfo) => void }) {
+  // 3.5.3.0 — write to the resolved store (this sheet renders inside Today, so it inherits the
+  // tutorial's sandbox; writing via the singleton here would create a real goal from scripted money).
+  const store_ = useActiveStore();
   const c = useAppColors();
   const store = useAppStore((s) => s.store);
   const isPremium = store.subscriptionPlan === 'premium';
@@ -84,7 +87,7 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
     }
     submitted.current = true; // commit — guard against a second goal from a double-tap
     const id = nextGoalId(store.paycheck.currentDate);
-    appStore.getState().addGoal({
+    store_.getState().addGoal({
       id,
       name: name.trim() || 'Savings goal',
       targetAmount: amount,

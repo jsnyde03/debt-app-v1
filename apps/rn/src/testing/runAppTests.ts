@@ -95,6 +95,10 @@ async function main() {
   // announcement (the step change is motion-only, so that string IS the signal for VoiceOver).
   await import('../store/tutorialPath.test');
 
+  // 3.5.3.0 — the active-store rewire's invariant: a write aimed at a sandbox must never move the real
+  // store. The failure mode is a tutorial silently editing real money, so it gets an explicit assert.
+  await import('../store/storeContext.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

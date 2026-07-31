@@ -32,7 +32,8 @@ import { TwoColumn } from '@/components/ui/TwoColumn';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
+import type { DebtStoreInstance } from '@/store/store';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
 import { selectBillsAttestation, selectBnplBetweenPaycheck, selectGuardianProofOfWork, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
 import { selectRecoveryPlan } from '@/store/recoverySelectors';
@@ -52,12 +53,13 @@ import type { Debt } from '@/data/models';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
-function handleMark(row: RequiredRow, paid: boolean) {
+/** 3.5.3.0 — module-level, so the acting store is PASSED in rather than reached for. */
+function handleMark(store: DebtStoreInstance, row: RequiredRow, paid: boolean) {
   const isExpense = row.item.category === 'expense' || row.item.category === 'autopay_expense';
   const id = isExpense ? row.item.targetId : (row.item.debtId ?? row.item.targetId);
   if (!id) return;
-  if (isExpense) appStore.getState().markExpensePaid(id, paid);
-  else appStore.getState().markDebtMinimumPaid(id, paid);
+  if (isExpense) store.getState().markExpensePaid(id, paid);
+  else store.getState().markDebtMinimumPaid(id, paid);
 }
 
 /** Which celebration overlay is showing after a payoff confirm (3.3.1) — a contained per-debt beat, or the
@@ -71,6 +73,9 @@ export default function TodayScreen() {
   const c = useAppColors();
   const goToTab = useGoToTab();
   const { isExpanded } = useLayout(); // 3.6.3 — iPad landscape / wide → two-column (read | do)
+  // 3.5.3.0 — the store this screen acts on: the real singleton normally, the sandbox when the
+  // tutorial wraps Today in a StoreProvider. Reads and writes MUST resolve to the same one.
+  const store_ = useActiveStore();
   const store = useAppStore((s) => s.store);
   const isPremium = store.subscriptionPlan === 'premium';
   // 2.4 — the payday engine reads projected-current balances (premium) so the plan reflects where the
@@ -129,7 +134,7 @@ export default function TodayScreen() {
   function confirmPayoff(d: Debt) {
     const isLast = isLastLiveDebt(store.debts, d.id);
     const next = rankDebts(store.debts.filter((x) => x.balance > 0 && x.id !== d.id), store.payoffStrategy)[0];
-    appStore.getState().verifyDebtBalance(d.id, 0, store.paycheck.currentDate);
+    store_.getState().verifyDebtBalance(d.id, 0, store.paycheck.currentDate);
     setCelebration(
       isLast
         ? { kind: 'finale' }
@@ -232,14 +237,14 @@ export default function TodayScreen() {
               proofOfWork={proofOfWork}
               onSeeForecast={() => router.push('/cushion-forecast')}
               topUp={tightTopUp}
-              onTopUp={() => tightTopUp && appStore.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
+              onTopUp={() => tightTopUp && store_.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
               onReplayTutorial={() => router.push(`/tutorial?run=${isPremium ? 'premium' : 'free'}`)}
-              onSetFloor={(v) => appStore.getState().setCushionFloor(v)}
+              onSetFloor={(v) => store_.getState().setCushionFloor(v)}
               attestation={attestation}
-              onAttestBills={(v) => appStore.getState().setBillsAttested(v)}
+              onAttestBills={(v) => store_.getState().setBillsAttested(v)}
               recovery={recovery}
-              onDefer={(id) => appStore.getState().deferExpense(id)}
-              onKeepEssential={(id) => appStore.getState().setDeferability(id, 'essential')}
+              onDefer={(id) => store_.getState().deferExpense(id)}
+              onKeepEssential={(id) => store_.getState().setDeferability(id, 'essential')}
               bnplHeadsUp={bnplHeadsUp}
             />
           </Motion>
@@ -262,13 +267,13 @@ export default function TodayScreen() {
         <Motion delay={90}>
           {/* MF.6 (audit #7) — when the premium Recovery Plan is showing, IT owns the shortfall; suppress
               the RequiredActions "Short this paycheck — cover these" block so the two don't duplicate/compete. */}
-          <RequiredActionsCard rows={requiredRows} unfunded={recovery ? [] : (allocation.unfundedRequiredItems ?? [])} onMark={handleMark} currentDate={store.paycheck.currentDate} />
+          <RequiredActionsCard rows={requiredRows} unfunded={recovery ? [] : (allocation.unfundedRequiredItems ?? [])} onMark={(row, paid) => handleMark(store_, row, paid)} currentDate={store.paycheck.currentDate} />
         </Motion>
         <Motion delay={180}>
           <RecommendedActionsCard
             active={recommended}
             completed={store.completedRecommendedActions}
-            onToggle={(a, done) => appStore.getState().toggleRecommendedDone(a, done)}
+            onToggle={(a, done) => store_.getState().toggleRecommendedDone(a, done)}
           />
         </Motion>
           </>
@@ -306,7 +311,7 @@ export default function TodayScreen() {
       ) : null}
 
       {store.pendingMilestone && activeAck === 'milestone' ? (
-        <MilestoneAckCard milestone={store.pendingMilestone} onAck={() => appStore.getState().acknowledgeMilestone()} />
+        <MilestoneAckCard milestone={store.pendingMilestone} onAck={() => store_.getState().acknowledgeMilestone()} />
       ) : null}
 
       {riskCleared && activeAck === 'risk-cleared' ? (
@@ -315,7 +320,7 @@ export default function TodayScreen() {
             <AppIcon name="check-circle" size={20} color={c.accent.success} />
             <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>Good news — this paycheck looks clear after all.</Text>
           </View>
-          <Button label="Got it" variant="text" onPress={() => appStore.getState().acknowledgeRiskCleared()} />
+          <Button label="Got it" variant="text" onPress={() => store_.getState().acknowledgeRiskCleared()} />
         </Card>
       ) : null}
 
@@ -329,7 +334,7 @@ export default function TodayScreen() {
                 : `Your safety net is free — you didn't need it, and it's now going to work on ${reserveRelease.targetName}.`}
             </Text>
           </View>
-          <Button label="Got it" variant="text" onPress={() => appStore.getState().acknowledgeReserveRelease()} />
+          <Button label="Got it" variant="text" onPress={() => store_.getState().acknowledgeReserveRelease()} />
         </Card>
       ) : null}
 
@@ -341,7 +346,7 @@ export default function TodayScreen() {
               A surprise bill came up — I&apos;ve restored your safety net for now.
             </Text>
           </View>
-          <Button label="Got it" variant="text" onPress={() => appStore.getState().acknowledgeReserveWalkback()} />
+          <Button label="Got it" variant="text" onPress={() => store_.getState().acknowledgeReserveWalkback()} />
         </Card>
       ) : null}
 
@@ -356,8 +361,8 @@ export default function TodayScreen() {
             </Text>
           </View>
           <View style={styles.ackActions}>
-            <Button label="Undo" variant="text" onPress={() => appStore.getState().undoIntentAction()} />
-            <Button label="Keep" variant="text" onPress={() => appStore.getState().dismissIntentRollback()} />
+            <Button label="Undo" variant="text" onPress={() => store_.getState().undoIntentAction()} />
+            <Button label="Keep" variant="text" onPress={() => store_.getState().dismissIntentRollback()} />
           </View>
         </Card>
       ) : null}
@@ -376,9 +381,9 @@ export default function TodayScreen() {
           <View style={styles.ackActions}>
             <Button
               label="Keep it"
-              onPress={() => appStore.getState().updateExpense(trialConversion.id, { amount: trialConversion.fullAmount, isTrial: false, fullAmount: undefined, fullChargeDate: undefined })}
+              onPress={() => store_.getState().updateExpense(trialConversion.id, { amount: trialConversion.fullAmount, isTrial: false, fullAmount: undefined, fullChargeDate: undefined })}
             />
-            <Button label="I cancelled it" variant="text" onPress={() => appStore.getState().removeExpense(trialConversion.id)} />
+            <Button label="I cancelled it" variant="text" onPress={() => store_.getState().removeExpense(trialConversion.id)} />
             <Button label="Not now" variant="text" onPress={() => setDismissedTrials((d) => [...d, trialConversion.id])} />
           </View>
         </Card>
@@ -389,7 +394,7 @@ export default function TodayScreen() {
       {tutorialInvite && activeAck === 'tutorial' ? (
         <TutorialInviteCard
           onStart={() => router.push(`/tutorial?run=${tutorialInvite.run}`)}
-          onDismiss={() => appStore.getState().updatePrefs(markTutorialSeen(store.prefs, tutorialInvite.run))}
+          onDismiss={() => store_.getState().updatePrefs(markTutorialSeen(store.prefs, tutorialInvite.run))}
         />
       ) : null}
 
@@ -398,7 +403,7 @@ export default function TodayScreen() {
           <Text style={[textStyles.subhead, { color: c.text.primary }]}>
             Payday logged. Start your next pay cycle to apply this cycle&apos;s payments and get your next plan.
           </Text>
-          <Button label="Start Next Pay Cycle" onPress={() => appStore.getState().rolloverPayCycle()} style={styles.nudgeBtn} />
+          <Button label="Start Next Pay Cycle" onPress={() => store_.getState().rolloverPayCycle()} style={styles.nudgeBtn} />
         </Card>
       ) : null}
 
@@ -417,15 +422,15 @@ export default function TodayScreen() {
           requiredTotal={summary.requiredTotal}
           staleBalances={staleBalances}
           currentDate={store.paycheck.currentDate}
-          onVerifyBalances={(entries, date) => appStore.getState().verifyDebtBalances(entries, date)}
+          onVerifyBalances={(entries, date) => store_.getState().verifyDebtBalances(entries, date)}
           onCapture={(items, decisions) => {
-            appStore.getState().capturePayday(items, decisions);
+            store_.getState().capturePayday(items, decisions);
             payday.completeCapture();
             // Ask for a review ONCE, at a genuine success moment on an established user (not the first
             // cycle) — the persisted guard prevents re-prompting; iOS also throttles the real prompt.
-            const st = appStore.getState().store;
+            const st = store_.getState().store;
             if (st.cycleHistory.length >= 2 && !st.reviewPrompted) {
-              appStore.getState().markReviewPrompted();
+              store_.getState().markReviewPrompted();
               void maybeRequestReview();
             }
           }}

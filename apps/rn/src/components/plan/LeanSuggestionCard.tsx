@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { AppIcon } from '@/components/ui/AppIcon';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import type { LeanNudge } from '@/store/incomeLearning';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { spacing } from '@/theme/spacing';
@@ -18,6 +18,8 @@ const money0 = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`;
  * alarm). Applying it re-anchors drift via the `'learning'` seam so "days ahead/behind" doesn't reset.
  */
 export function LeanSuggestionCard({ nudge }: { nudge: LeanNudge }) {
+  // 3.5.3.0 — write to the store this subtree resolves to (sandbox under the tutorial, real otherwise).
+  const store_ = useActiveStore();
   const c = useAppColors();
   const up = nudge.direction === 'up';
 
@@ -35,8 +37,8 @@ export function LeanSuggestionCard({ nudge }: { nudge: LeanNudge }) {
         <Text style={[textStyles.subhead, styles.detail, { color: c.text.secondary }]}>{detail}</Text>
       </View>
       <View style={styles.actions}>
-        <Button label={`Update to ${money0(nudge.suggestedLean)}`} onPress={() => appStore.getState().applyLeanSuggestion(nudge.suggestedLean)} />
-        <Button label="Not now" variant="secondary" onPress={() => appStore.getState().dismissLeanSuggestion(nudge.suggestedLean)} />
+        <Button label={`Update to ${money0(nudge.suggestedLean)}`} onPress={() => store_.getState().applyLeanSuggestion(nudge.suggestedLean)} />
+        <Button label="Not now" variant="secondary" onPress={() => store_.getState().dismissLeanSuggestion(nudge.suggestedLean)} />
       </View>
     </Card>
   );

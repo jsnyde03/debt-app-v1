@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { SaveForItSheet, type SavedInfo } from '@/components/plan/SaveForItSheet';
 import { PremiumInvite } from '@/components/premium/PremiumInvite';
 import { TextField } from '@/components/ui/TextField';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectAffordability, type Affordability } from '@/store/guardianSelectors';
 import { useAppStore } from '@/store/useAppStore';
@@ -37,6 +37,8 @@ function localId(prefix: string, cycleDate: string): string {
  * taste + a value-led invite. Calm register — a reference read + a deliberate action, never a beat.
  */
 export function AffordabilityCard() {
+  // 3.5.3.0 — write to the store this subtree resolves to (sandbox under the tutorial, real otherwise).
+  const store_ = useActiveStore();
   const c = useAppColors();
   const store = useAppStore((s) => s.store);
   const isPremium = store.subscriptionPlan === 'premium';
@@ -68,7 +70,7 @@ export function AffordabilityCard() {
   function apply(r: Affordability) {
     const id = localId('purchase', store.paycheck.currentDate);
     const purchaseName = name.trim() || 'Purchase';
-    appStore.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' });
+    store_.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' });
     haptics.success(); // 3.3.5.3 — a commit is a felt moment
     setApplied({ id, name: purchaseName });
   }
@@ -78,21 +80,21 @@ export function AffordabilityCard() {
     if (!r.coverFromSavings) return apply(r);
     const id = localId('purchase', store.paycheck.currentDate);
     const purchaseName = name.trim() || 'Purchase';
-    appStore.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' });
-    appStore.getState().applyTightTopUp(r.coverFromSavings.goalId, r.coverFromSavings.amount);
+    store_.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' });
+    store_.getState().applyTightTopUp(r.coverFromSavings.goalId, r.coverFromSavings.amount);
     haptics.success(); // 3.3.5.3
     setApplied({ id, name: purchaseName, cover: { goalId: r.coverFromSavings.goalId, amount: r.coverFromSavings.amount, goalName: r.coverFromSavings.goalName } });
   }
   function undo() {
     if (applied) {
-      appStore.getState().removeExpense(applied.id);
+      store_.getState().removeExpense(applied.id);
       // Reverse a cover the same way it was applied — a negative top-up restores the goal + clears the cycle top-up.
-      if (applied.cover) appStore.getState().applyTightTopUp(applied.cover.goalId, -applied.cover.amount);
+      if (applied.cover) store_.getState().applyTightTopUp(applied.cover.goalId, -applied.cover.amount);
     }
     setApplied(null);
   }
   function undoSave() {
-    if (saved) appStore.getState().removeGoal(saved.id);
+    if (saved) store_.getState().removeGoal(saved.id);
     setSaved(null);
   }
 
