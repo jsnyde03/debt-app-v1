@@ -1,0 +1,151 @@
+# Guardian Tutorial — Audit Gate 3.5.3.9 · Round 1
+
+**Date:** 2026-08-02 · **Subject:** Debt v1.7 Phase 3.5.3, the Guardian walkthrough (beats 1–7)
+**Method:** 7 adversarial lenses, run in parallel on Fable 5, each blind to the others
+**Verdict:** ⛔ **DOES NOT PASS.** ~30 findings. **Every one was green in CI at the time.**
+
+> The gate's exit requires consensus **AND** the premium bar judged MET **AND** an owed-ledger empty
+> except device-gated items. Round 1 fails on all three. A correctness-only gate would have closed here —
+> which is precisely the argument for having run it.
+
+**Verification protocol:** load-bearing negative claims were re-checked against the code before being
+accepted ([[feedback_verify_critic_claims_on_user_work]]). Items marked **CONFIRMED** were verified
+directly against source; **SUSPECTED** means argued but not executed.
+
+---
+
+## A. Honesty & tier — what [D9] rested on
+
+<details open>
+<summary>4 findings · <b>A1 is the shipping risk</b></summary>
+
+| ID | Sev | Status | Finding |
+|---|---|---|---|
+| **A1** | **HIGH** | CONFIRMED | **The finale tells a free user "you decide what to hold." They cannot.** `showAdjust = isPremium && …` (`PaydayGuardianCard.tsx:111`) and the card's sheet is the *only* path to `setCushionFloor` in the app. The sentence sits in the one beat [D9]'s honesty depends on. |
+| **A2** | **HIGH** | CONFIRMED | **Beats 4–5 narrate premium behaviour as "your Guardian"** — safety net, attestation, release (`guardianSelectors.ts:130,145`) and Recovery are all premium-only. The finale names only the *holding*: ~⅓ of what was demonstrated. A free user's first real short paycheck contradicts what they were told. |
+| **A3** | MED | CONFIRMED | **Beat 2: "The bar is the whole paycheck."** Domain is `cushion + deployedToDebt` (`PaydayGuardianCard.tsx:101`) — post-obligation discretionary only (~$740 of $2,000), with the real figure in the hero directly above. Also unnamed: the third "Safety net" zone. |
+| **A4** | MED | CONFIRMED | **The 3.5.3.5.8 fallback created a new copy defect.** Plan-less users are offered the walkthrough (`index.tsx` invite fallback); the finale tells them to look at their own card and they land on "Set up your paycheck". |
+
+</details>
+
+## B. Correctness
+
+<details open>
+<summary>4 findings · <b>B1 breaks the user's own action; B3 poisons a safety mechanism</b></summary>
+
+| ID | Sev | Status | Finding |
+|---|---|---|---|
+| **B1** | **HIGH** | CONFIRMED | **The scripted surprise UN-ATTESTS the user's tap.** `substrateProducers.ts:79` — `if (store.billsAttested) return { …, billsAttested: false, pendingReserveWalkback: true }`. ~900ms after the user acts, the net jumps back up and the control reverts to the un-attested prompt: it reads as if their tap silently failed. Beat 4's copy never mentions the restore. Re-tapping re-fires `playReserveStory`, stacking a second surprise. |
+| **B2** | **HIGH** | SUSPECTED (arithmetic-backed) | **The milestone ack outranks the release ack.** Persona seeds at 24.67% paid (`sandboxScenarios.ts:95-97`); roll 1 crosses 25% → `pendingMilestone` (`payday.ts:162-164`) → VIS-4 ranks milestone above `reserve-release` (`index.tsx:180-197`) → `today-ack` never mounts → payoff spotlight measures null → interactive beat with no rect → **no scrim renders at all**. Payoff missing *and* screen unguarded. |
+| **B3** | **HIGH** | CONFIRMED ×2 lenses | **The no-real-writes guard fires on every step.** `TutorialCoach.tsx:38` writes the real store (`updatePrefs({tutorialStep})`) while the sandbox subtree is mounted; `before` never advances (`StoreContext.tsx:45-59`), so it re-fires all session. Dev-only today (e2e runs a prod bundle, `__DEV__` false — why no test saw it). **At Phase 6 with Sentry wired this becomes production error spam**, and the guard built to catch real corruption becomes 100% noise. It also hollows out the plan's own "real plan **provably** untouched". |
+| **B4** | MED | CONFIRMED | **Geometry:** nothing tracks window **width** — a Split View drag leaves ring, hole and scroll at pre-resize coordinates (`use-spotlight.ts` deps) · `stageBottom` can collapse ≤ 0 at large Dynamic Type (dock has no max-height/scroll) · `HEADER_H = 56` is constant while the header scales · the dock ignores `insets.bottom`, putting Next/Finish in the home-indicator swipe zone. |
+
+</details>
+
+## C. Accessibility
+
+<details open>
+<summary>3 findings · <b>C1 makes an interactive beat impossible, and contradicts my own recorded note</b></summary>
+
+| ID | Sev | Status | Finding |
+|---|---|---|---|
+| **C1** | **CRITICAL** | CONFIRMED | **The `Slider` never sets `accessible={true}`** (`Slider.tsx:69-72` has role/value/actions but not the prop that makes a View an a11y element). It is absent from the tree; its children are text-less Views. **Beat 3's required action is impossible via VoiceOver** — they reach the sheet, find a heading, "$200" and Save, and can only save unchanged. ⚠️ **My 3.5.2 before-scan recorded the opposite as settled fact** ("already `accessibilityRole="adjustable"` … pre-met by the component"). |
+| **C2** | **HIGH** | CONFIRMED | **Beat 4's entire story is silent.** Exactly one `announce()` exists in the tutorial path (per-beat). The surprise, the three rolls, and the release ack that appears at the *top* of the screen produce nothing. Same class as the shipped silent walkthrough, one level down: per-beat announced, per-**event** not. |
+| **C3** | **HIGH** | CONFIRMED | **Nothing hides content behind the scrim from the a11y tree** (no `accessibilityViewIsModal` anywhere in `src`). A screen-reader user has full swipe access to what a sighted user is fenced out of, including More. Both branches of what happens on activation are broken, so the fix isn't gated on the device answer. |
+| C4 | MED | CONFIRMED | Sub-44pt targets (Skip ≈34pt, attestation, slider hit area) · label-in-name mismatch on "Adjust your line →" (WCAG 2.5.3) · `FormSheet`'s full-screen "Close" backdrop is a focusable element inside the floor sheet · held-reserve amount only exists in a11y-hidden legend. |
+
+</details>
+
+## D. The premium bar — **NOT MET** (binding criterion)
+
+<details open>
+<summary>Dedicated reviewer, judged against rendered screenshots of every beat in both themes</summary>
+
+**Per criterion:** progress rail ✅ MET · haptics ✅ MET ("correctly reasoned") · control hierarchy ✅ MET ·
+payoff choreography ✅ met in code but **visually unverified** · beat/spotlight motion ⚠️ PARTIAL ·
+dock material ⚠️ **cosmetic-leaning partial**.
+
+| ID | Sev | Status | Finding |
+|---|---|---|---|
+| **D1** | **HIGH** | CONFIRMED | **The frost is a claim, not a material.** `intensity 24` under an **0.82** opaque layer — against `SheetScrim`'s 0.28 and the tab bar's 70. Only ~18% of the blur survives: a solid card with faint smudges, worse in light where they read as rendering artifacts. |
+| **D2** | MED | CONFIRMED | **The scrim doesn't participate in the motion story** — four static Views hard-cut between beats while the ring fades. The ring got the motion pass; the darkness around it didn't. |
+| **D3** | MED | CONFIRMED | **Dark is the weak theme, not light.** Scrim = `background.primary` at 0.55 — near-black over navy barely dims; the ring does all the work. In light the same maths produces a proper dim. (Inverts the usual concern.) |
+| D4 | LOW | CONFIRMED | Interactive-beat guard drops during the ~380ms scroll transit (`local` null → no scrim) — the .5.9 leak reopens briefly · `FloorImpactBar` uses `withTiming` against the app's springs-over-easing motion contract · payoff states have **zero screenshot coverage**. |
+
+> Holistic verdict, quoted: *"This does not read as a tooltip library — it reads as the app coaching
+> itself… The architecture is above the bar. The finish is at ~85%."*
+
+</details>
+
+## E. CLAIM-vs-CODE — the new lens, vindicated
+
+<details open>
+<summary>8 confirmed false/stale claims — and a diagnosis of how they got here</summary>
+
+| ID | Sev | Status | Finding |
+|---|---|---|---|
+| **E1** | MED | CONFIRMED | **`TutorialOverlay.tsx` contains two comments ~100 lines apart asserting OPPOSITE scrim behaviour.** The top doc (`:26-30`) and ring comment (`:132-133`) still describe the pre-.5.9 world ("the scrim is gone"); the inline .5.9 comment describes the truth. Same stale claim in `_layout.tsx:29-30` and `tutorialPath.ts:146`. |
+| **E2** | MED | CONFIRMED | **`useSandboxStore.ts`'s usage example teaches the known crash** — the fresh-object-selector pattern the repo documents as an infinite re-render loop that "took the whole screen down". Its rationale ("`useAppStore` is hardwired to the singleton") has been false since 3.5.3.0. No production consumer. |
+| **E3** | MED | CONFIRMED | **`tutorialPath.ts:83-86` and `:119-121` still assert the pre-[D9] both-tiers split** — the file contradicts itself (`:59` and the LOG both say the constraint is retired). |
+| **E4** | MED | CONFIRMED | **`tutorialSelectors.ts:15-17,46` justifies the upgrade re-offer** with "the premium run reaches beats free never does" — post-[D9] both runs are beat-identical. An upgrader is re-offered what they already saw. |
+| E5 | LOW | CONFIRMED | `tutorialTargets.tsx:87-89` describes re-registration on layout that **does not exist** · scrim-vs-ring inset claim is false (both `RING_INSET`) · **the LOG mislabels the second haptic** (fires at the attestation tap, not the release) · MASTER_PLAN still headlines "tap-the-surprise" though [D10] replaced it. |
+| E6 | LOW | SUSPECTED | `tutorialSession.ts:153-156` claims the surprise is "always absorbable"; `Math.max(25, held*0.8)` exceeds a net under ~$31. |
+
+> **The diagnosis, which is the most useful thing this round produced:**
+> *"Both prior incidents were fixed in code and in the LOG, but the stale claims survived in the
+> doc-comments of NEIGHBOURING files — the sweep after .5.9 and [D9] updated the files that changed,
+> not the files that talked about them."*
+
+</details>
+
+## F. Wiring
+
+<details>
+<summary>Dead seams and unread channels — mostly benign, one that matters</summary>
+
+`publishSandbox`'s snapshot has **zero readers** (the 3.5.2 exit-gate assertion it was built for was never
+written) · `HARNESS_SCENARIO_IDS` unused (the e2e hardcodes the id) · `useSandboxStore` production-dead ·
+`guardian-line` target rendered but no longer referenced by any beat · `runBeats`' `surprise` param and the
+whole `BeatResult` channel unread in production · `tutorialRunFor` bypassed by three inline
+re-implementations. **None user-visible**; all are the "built, not called" shape this phase keeps hitting.
+
+</details>
+
+## G. What this round says about the method
+
+<details open>
+<summary>The finding behind the findings</summary>
+
+Several defects are in code written **in the same session, while explicitly applying the rule they
+break**:
+- **A3** violates "every line must be true of what's on screen" — the rule 3.5.3.3.3 was built around.
+- **C1** contradicts a before-scan note I recorded as a *correction*, having read three a11y props and
+  never checked the fourth that makes them apply.
+- **A4** is a defect introduced *by* the fix that a before-scan added to prevent a different defect.
+- **E1/E3** are the CLAIM-vs-CODE class landing in the comments I wrote to explain the honesty rationale.
+
+**Applying a rule is not the same as verifying it held.** Only an adversary with fresh eyes caught the
+difference — and the correctness suite stayed green through all of it.
+
+</details>
+
+## H. Fold plan (proposed)
+
+<details open>
+<summary>Ordered by shipping risk, one block, then re-audit</summary>
+
+1. **Honesty/tier (A1–A4)** — the only findings with a *shipping* consequence. Finale must name all three
+   premium behaviours and drop "you decide what to hold"; beat 2's bar copy; beat attribution; the
+   plan-less audience.
+2. **Correctness (B1–B4)** — the un-attest reversal (B1) and the milestone/ack collision (B2) both break
+   the beat the user just acted on. B3 must be fixed before Sentry lands, or the guard ships as noise.
+3. **Accessibility (C1–C4)** — C1 makes a beat impossible; C2/C3 are structural and code-addressable.
+4. **Premium bar (D1–D4)** — the binding criterion. Frost tuning, scrim motion, dark-mode dim.
+5. **Claims + wiring (E, F)** — including a sweep of *neighbouring* files, not just changed ones.
+
+Then re-run the lenses that found something. **Consensus is the gate, not the first green run.**
+
+**Device-owed (unchanged, legitimately deferred):** VoiceOver end-to-end · the haptics' real weight ·
+AX3/AX5 layout · whether VO activation under the scrim bands is action-dispatched or touch-synthesized.
+
+</details>
