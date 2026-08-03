@@ -1430,3 +1430,38 @@ worse than one that fails honestly: it burns the debugging on the wrong suspect.
   already exists, so the fix is to keep the scrim and cut a real hole at the spotlight rect.
 - **3.5.3.7 +7.7:** on iPad the coaching dock now spans the full canvas edge-to-edge, which reads
   unconstrained beside a width-capped app.
+
+## 3.5.3.5.6 — a scripted payday is one that was ATTENDED — ✅ COMPLETE (2026-08-02, `cc68ac8`)
+
+**The defect:** `advanceSandboxCycle` called `rolloverPayCycle` alone. That is not a payday — it is a
+payday nobody turned up to, so bills and minimums roll over unpaid. Three of them left the taught plan
+reading *"Overdue payments need attention · debt-free by December 2035"* against an opening state of
+April 2035. The walkthrough's own story was degrading the example it teaches on, while narrating a
+Guardian that looks after you.
+
+**The fix, and why it's the faithful one rather than a patch:** the real app makes two moves at a payday
+— `capturePayday` records what happened (obligations settled, income recorded, any surprise reported)
+and only then does `rolloverPayCycle` close the cycle. The beat now does both. That also carries the
+surprise through `actuals`, the same door the payday check-in uses, so the substrate's own claim — *"a
+beat calls the same producers the real app calls"* — is finally true of the rollover path as well. It
+had been true of `recordSurpriseOutflow` and quietly false next door.
+
+Settling every obligation is the honest script here: this beat is about a user who paid their bills,
+which is precisely the case it teaches.
+
+**+3 assertions** pin it: the story opens clear, three scripted paydays never leave the plan at risk,
+and nothing is left flagged as a failed obligation. Every existing assertion passed throughout the
+broken version — the defect was only ever visible on screen.
+
+**Verified:** the hero now reads *"On track · debt-free by August 2026"* in green, i.e. the story now
+IMPROVES the taught plan (three paydays of real payments) rather than wrecking it.
+
+### After-scan
+- **Confirms 3.5.3.5.5 is still outstanding** and now clearly the last blocker on this beat: the same
+  screenshot shows the ring still framing "Adjust your line" (the attestation it was pointing at retires
+  with the net), and the release ack sitting off-screen at the top.
+- **`runBeats(store, n, surprise?)`'s third argument has no production caller** — the tutorial
+  deliberately fires the surprise 900ms EARLIER so the absorb is legible as its own moment, then rolls.
+  Both paths are legitimate, but this is the same "built, not called" shape the whole-item sweep flagged:
+  **3.5.4's demo should use the parameter** (an unattended, faithful capture-with-surprise), or it should
+  go. Filed rather than left to be rediscovered.
