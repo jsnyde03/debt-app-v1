@@ -28,6 +28,13 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(page.getByTestId('tutorial-invite')).toBeVisible();
     await expect(page.getByText(/example numbers/)).toBeVisible();
 
+    // 3.5.3.5.8 ([D5]) — the offer sits with its subject, BELOW the Guardian card, so the user's own
+    // paycheck keeps first position. Asserting the vertical order is the only way to pin placement:
+    // "is it visible" passed just as happily when it was sitting on top of the hero.
+    const invite = await page.getByTestId('tutorial-invite').boundingBox();
+    const guardian = await page.getByText('PAYDAY GUARDIAN').boundingBox();
+    expect(invite!.y).toBeGreaterThan(guardian!.y);
+
     await page.getByText('Show me').click();
 
     // The launcher hands off to Today: the overlay is up, and we're on the tab — not a separate screen.

@@ -293,6 +293,18 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
             </TutorialTarget>
           </Motion>
         ) : null}
+        {/* 3.5.3.5.8 ([D5], Jason 2026-07-31) — the invitation sits with its SUBJECT. It used to open
+            Today above the paycheck hero, having inherited the ack slot's position, which put an offer
+            ahead of the user's own money on every launch until they answered it. It teaches the
+            Guardian, so it belongs under the Guardian. */}
+        {tutorialInvite && guardian ? (
+          <Motion delay={50}>
+            <TutorialInviteCard
+              onStart={() => startTutorial(tutorialInvite.run)}
+              onDismiss={() => store_.getState().updatePrefs(markTutorialSeen(store.prefs, tutorialInvite.run))}
+            />
+          </Motion>
+        ) : null}
         {/* 2.9 — the inverse Guardian: "can I afford this purchase?" (the Guardian's sibling on Today). */}
         {guardian ? (
           <Motion delay={57}>
@@ -439,8 +451,15 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
       ) : null}
 
       {/* 3.5.1 — the tutorial invitation. "Not now" records the run as seen: declining is an answer, and
-          re-asking every launch would make the offer nag. Replay lives on the Guardian card + in More. */}
-      {tutorialInvite && activeAck === 'tutorial' ? (
+          re-asking every launch would make the offer nag. Replay lives on the Guardian card + in More.
+
+          3.5.3.5.8 ([D5]) — it normally renders BELOW the Guardian card now (with its subject), so this
+          slot is the FALLBACK for a user who has no Guardian card to sit under. `selectTutorialInvite`
+          asks only for `onboardingComplete`, so someone who finished onboarding without entering a
+          paycheck is offered the walkthrough — and the tutorial runs on a sandbox, so it teaches them
+          perfectly well. Moving it strictly under the card would have silently dropped exactly the
+          newest audience it's aimed at. */}
+      {tutorialInvite && activeAck === 'tutorial' && !guardian ? (
         <TutorialInviteCard
           onStart={() => startTutorial(tutorialInvite.run)}
           onDismiss={() => store_.getState().updatePrefs(markTutorialSeen(store.prefs, tutorialInvite.run))}

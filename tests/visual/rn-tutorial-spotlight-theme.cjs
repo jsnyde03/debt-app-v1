@@ -10,6 +10,11 @@ const { chromium } = require("playwright");
 const OUT = __dirname;
 const PORT = process.env.VPORT || "4319";
 
+// A due date relative to the RUN, never a literal: a hardcoded date silently drifts into the past and
+// the seeded plan starts rendering "Overdue payments need attention" — which makes every screenshot
+// review harder by showing a broken-looking app that is working fine. Same trap the e2e fixtures hit.
+const soon = (d) => { const t = new Date(); t.setDate(t.getDate() + d); return t.toISOString().slice(0, 10); };
+
 const KEY = "debtPlanner.rnStore";
 const STORE = {
   storeVersion: 7,
@@ -17,7 +22,7 @@ const STORE = {
   cushionFloor: 200,
   genuineCycleCount: 6,
   paycheck: { amount: "2000" },
-  debts: [{ id: "d0", name: "Card", balance: 5000, minimumPayment: 100, apr: 20, dueDate: "2026-07-01", type: "debt", recurrence: "monthly" }],
+  debts: [{ id: "d0", name: "Card", balance: 5000, minimumPayment: 100, apr: 20, dueDate: soon(7), type: "debt", recurrence: "monthly" }],
   prefs: { onboardingComplete: true },
 };
 
