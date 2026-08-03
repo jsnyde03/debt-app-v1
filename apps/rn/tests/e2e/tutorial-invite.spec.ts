@@ -287,6 +287,43 @@ test.describe('tutorial invitation + in-situ shell', () => {
     expect(realFloor).toBe(200);
   });
 
+  test('a user who actually DOES the interactive beats completes the whole arc', async ({ page }) => {
+    // 3.5.3.8.1 — every other test walks the arc by pressing Next, or exercises one beat in isolation.
+    // Nobody had ever driven the path a real user takes: interacting on beats 3 and 4 and continuing
+    // through to the hand-back. That is the one sequence where the leaves have to work TOGETHER — a
+    // re-stage clobbering a payoff, or a story timer landing on the next beat, would only show up here.
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
+    await page.goto('/tutorial');
+
+    await page.getByText('Next', { exact: true }).click(); // → 2 read the bar
+    await page.getByText('Next', { exact: true }).click(); // → 3 your line (interactive)
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 3 of');
+    await page.getByText('Adjust your line').click();
+    await page.getByText('Save', { exact: true }).click();
+    await expect(page.getByTestId('floor-impact')).toBeVisible();
+
+    await page.getByText('Next', { exact: true }).click(); // → 4 the safety net (interactive)
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 4 of');
+    // The re-stage must have cleared the previous beat's payoff — a stale before→after here would be
+    // narrating beat 3's result under beat 4's copy.
+    await expect(page.getByTestId('floor-impact')).toHaveCount(0);
+    await page.getByText(/All your regular bills entered/).click();
+    await expect(page.getByText(/safety net was there when a surprise came up/)).toBeVisible({ timeout: 12_000 });
+
+    await page.getByText('Next', { exact: true }).click(); // → 5 short paycheck
+    await expect(page.getByText(/won't cover everything/)).toBeVisible();
+    await page.getByText('Next', { exact: true }).click(); // → 6 your call
+    await page.getByText('Next', { exact: true }).click(); // → 7 hand-back
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 7 of');
+    await page.getByText('Finish', { exact: true }).click();
+
+    // Back on their own plan, with nothing of the sandbox left behind.
+    await expect(page.getByTestId('tutorial-overlay')).toHaveCount(0);
+    await expect(page.getByTestId('guardian-example-marker')).toHaveCount(0);
+    await expect(page.getByText(/MAR 16/i)).toHaveCount(0);
+    await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
+  });
+
   test('the finale tells a FREE user what premium actually did', async ({ page }) => {
     // [D9]'s honesty rests entirely here: the walkthrough shows every audience a premium Guardian, and
     // the `PremiumInvite` doesn't render during a session — so if the hand-back doesn't name what
