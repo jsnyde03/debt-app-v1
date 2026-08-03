@@ -1522,3 +1522,55 @@ worth having.
 stronger affordance than a bare ring on an undimmed one. That wasn't the goal, but it is partial credit
 against 3.5.3.7's control-hierarchy and focus criteria, and worth remembering there: some of the
 "premium feel" gap is correctness that hasn't been finished yet, not decoration that hasn't been added.
+
+## 3.5.3.5.8 — [D5], the invitation sits with its subject — ✅ (2026-08-02, `03c7a62`)
+
+It opened Today ABOVE the paycheck hero, having inherited the ack slot's position — an offer leading the
+screen ahead of the user's own money, on every launch until answered. It teaches the Guardian, so it now
+sits under the Guardian.
+
+**The before-scan is what saved this from being a regression.** `selectTutorialInvite` asks only for
+`onboardingComplete`, **not** for a paycheck. A literal reading of [D5] would have silently dropped the
+offer for someone who finished onboarding without entering a plan — exactly the newest audience it aims
+at, and one the walkthrough serves perfectly well because it runs on a sandbox. The ack slot therefore
+survives as the fallback for "no Guardian card to sit under".
+
+**Named consequence:** the invitation leaves the VIS-4 single-ack slot, so a pending ack and the
+invitation can now both be on screen. That is what [D5] asks for — different regions — and the invitation
+was always the odd one out in a slot otherwise reserved for time-sensitive acknowledgements.
+
+e2e asserts the vertical ORDER (`invite.y > guardian.y`); "is it visible" passed just as happily when it
+sat on top of the hero. Six **visual** fixtures were de-fused the same way as the e2e ones — they pinned
+`dueDate: "2026-07-01"`, so every screenshot review was being handed a plan reading "Overdue payments
+need attention": a broken-looking app that was working fine.
+
+---
+
+## 3.5.3.5 — WHOLE-ITEM after-scan (nine leaves)
+
+**Six defects. Not one was caught by an assertion.** Three came from screenshots, three from reading the
+code. The suite went green after each leaf regardless.
+
+**Pattern 1 — PRESENT ≠ PERCEIVED (three instances).** The dropped `announce` (a walkthrough that said
+nothing to VoiceOver), the iPad ring drawn 700pt off its subject, and the payoff landing off-screen. Each
+passed its assertions because the thing existed; none was *perceivable*. This is now written into memory
+as a standing check, and it is the reason the audit gate carries a premium-bar lens with its own reviewer.
+
+**Pattern 2 — CLAIM vs CODE (two instances) → a new audit lens.** Two defects were *documented
+intentions that had quietly diverged from the implementation*: "passes touches through to the TARGET
+only" (in the plan since 3.5.3 was written, never implemented) and the substrate's "a beat calls the same
+producers the real app calls" (true of the surprise, false of the rollover right next to it). Both read
+as true to anyone who trusted the doc — which is everyone, including me, until I checked. **Added as a
+mandatory lens on 3.5.3.9: re-check every promise the plan and the doc-comments make against the code.**
+
+**Pattern 3 — measurement geometry (four instances of one bug).** Margin-on-child inflating a measured
+rect, now the default shape for any coachable control: spacing on the target, none on the label.
+
+**Pattern 4 — time bombs.** Ten e2e fixtures and six visual scripts pinned calendar literals. One had
+already expired and produced a failure that read exactly like a regression from the restructure in
+flight; a `git stash` to the committed baseline is what disproved it, before any good work was unpicked.
+All now anchor to the run date.
+
+**Ledger left open:** VoiceOver end-to-end (device, Phase 6) · the iPad coaching dock spanning the full
+canvas (→ 3.5.3.7 as +7.7) · `runBeats`' `surprise` parameter still has no production caller (→ 3.5.4's
+demo should use it, or it goes).
