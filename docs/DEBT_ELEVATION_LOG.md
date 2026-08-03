@@ -1654,3 +1654,36 @@ part is done, which is the standing split.
 - **Some of the "premium feel" gap turned out to be unfinished correctness, not missing decoration** —
   3.5.3.5.9's scrim fix improved the feel more than any styling here did. Worth carrying into the audit
   gate's premium-bar lens: ask what is *unfinished* before asking what is *undecorated*.
+
+## 3.5.3.8 — verify the arc as an ARC — ✅ COMPLETE (2026-08-02, `8117c4a`)
+
+The before-scan found two gaps that were invisible precisely *because* every individual leaf was green.
+
+**1. Nobody had ever driven the path a real user takes.** Every test either walked the arc by pressing
+Next, or exercised a single beat in isolation. The sequence where the leaves have to work TOGETHER —
+interacting on beat 3, then on beat 4, then continuing to the hand-back — had never been run end to end.
+The new test does that, and asserts the JOIN rather than the beats: beat 4 must **not** still be showing
+beat 3's payoff (a stale before→after would narrate the wrong result under the right copy), and the
+hand-back must leave nothing of the sandbox behind.
+
+**2. Every screenshot pass had shot beats piecemeal** — whichever beat the leaf in flight happened to
+touch. `rn-tutorial-arc-theme.cjs` now walks all seven in order, in both themes, and flags any beat that
+lands without a spotlight. Read as a *sequence* it shows what beat-by-beat cannot: whether the tone
+holds, whether the dock jumps around, whether the two themes stay at parity the whole way down.
+**Result: 7/7 beats, both themes, no missing subjects.**
+
+**a11y was checked rather than assumed.** I suspected the feel pass had weakened Skip by swapping
+`Button` for a raw `Pressable` — `Button` turns out to set only `accessibilityRole` too, so they're
+equivalent and there was no regression. Worth recording that the before-scan disproved my own suspicion;
+it would have been easy to "fix" something that wasn't broken. Announcement parity stays unit-pinned,
+since no web e2e can observe it.
+
+**Device-owed and unchanged:** VoiceOver end to end, and the haptics' actual weight — whether the medium
+beats read as emphasis or as noise.
+
+### After-scan → the audit gate
+Nothing new surfaced in the code; the item's value was in the two verification gaps themselves. The
+generalisable lesson, and it belongs on the audit gate's method rather than in a code comment:
+**green leaves do not compose into a green arc.** Both gaps here were about the SEAMS between things
+that individually worked — which is the same shape as this phase's dominant defect class
+("correct but not connected"), showing up one level higher.
