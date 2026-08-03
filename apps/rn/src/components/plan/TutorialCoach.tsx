@@ -1,6 +1,6 @@
 import { TutorialOverlay } from '@/components/plan/TutorialOverlay';
 import { appStore } from '@/store/appStore';
-import { INTERACTIVE_STEP_IDS, TUTORIAL_STEPS, TUTORIAL_STEP_COUNT, isLastStep, nextIndex, prevIndex } from '@/store/tutorialPath';
+import { INTERACTIVE_STEP_IDS, TUTORIAL_STEPS, TUTORIAL_STEP_COUNT, isLastStep, nextIndex, prevIndex, stepBody } from '@/store/tutorialPath';
 import { markTutorialSeen } from '@/store/tutorialSelectors';
 import { tutorialSession, useTutorialSession } from '@/store/tutorialSession';
 import { useTutorialShell } from '@/store/tutorialShell';
@@ -20,6 +20,7 @@ import { useTutorialShell } from '@/store/tutorialShell';
 export function TutorialCoach() {
   const active = useTutorialSession((s) => s.active);
   const index = useTutorialSession((s) => s.index);
+  const run = useTutorialSession((s) => s.run);
   const shell = useTutorialShell();
   if (!active || !shell) return null;
 
@@ -42,9 +43,10 @@ export function TutorialCoach() {
       position={index + 1}
       total={TUTORIAL_STEP_COUNT}
       title={step.title}
-      body={step.body}
+      body={stepBody(step, run)}
       interactive={INTERACTIVE_STEP_IDS.includes(step.id)}
       isLast={last}
+      run={run}
       spotlight={shell.spotlight}
       onDockLayout={shell.setDockH}
       impact={shell.impact}

@@ -253,7 +253,11 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
           />
         </Motion>
         {guardian ? (
-          <Motion delay={45}>
+          // 3.5.3.6.1 — the hand-back CROSSFADE. Keying on `isExample` makes the swap from sandbox money
+          // to the user's own a deliberate fade-in rather than a jump-cut: `Motion` re-runs its entrance
+          // when the key changes, and degrades to nothing under Reduce Motion. It is the same card
+          // component either way — only the money underneath changes, which is exactly the point.
+          <Motion key={isExample ? 'example' : 'real'} delay={45}>
             {/* 3.5.3.3.1 — the whole card is the subject of the opening + closing beats. Registered from
                 the host so the card itself stays unaware of the walkthrough. */}
             <TutorialTarget id="guardian-card">
@@ -665,6 +669,10 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   const setImpact = shell?.setImpact;
   useEffect(() => {
     setSpotlight?.(spotlight);
+    // 3.5.3.6.1 — release it on the way out. The overlay stops rendering when the session ends, so a
+    // stale rect is invisible rather than harmful — but leaving one parked means the NEXT session's
+    // first frame can draw a ring at the last session's coordinates before its own measure lands.
+    return () => setSpotlight?.(null);
   }, [setSpotlight, spotlight]);
   useEffect(() => {
     setImpact?.(impact);

@@ -287,6 +287,34 @@ test.describe('tutorial invitation + in-situ shell', () => {
     expect(realFloor).toBe(200);
   });
 
+  test('the finale tells a FREE user what premium actually did', async ({ page }) => {
+    // [D9]'s honesty rests entirely here: the walkthrough shows every audience a premium Guardian, and
+    // the `PremiumInvite` doesn't render during a session — so if the hand-back doesn't name what
+    // premium did, the whole run is free-dressed-as-premium, which the standing rule forbids.
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true }, subscriptionPlan: 'free' }));
+    await page.goto('/tutorial');
+    for (let i = 0; i < 6; i++) await page.getByText('Next', { exact: true }).click();
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 7 of');
+
+    await expect(page.getByText(/example money/)).toBeVisible();
+    await expect(page.getByText(/Premium is the part that held your line/)).toBeVisible();
+    await expect(page.getByText(/you decide what to hold/)).toBeVisible();
+
+    // …and it hands back to their OWN card, where the real invitation lives.
+    await page.getByText('Finish', { exact: true }).click();
+    await expect(page.getByTestId('tutorial-overlay')).toHaveCount(0);
+    await expect(page.getByText(/MAR 16/i)).toHaveCount(0); // the sandbox's payday is gone
+    await expect(page.getByText(/Premium keeps your cushion at your line/)).toBeVisible();
+  });
+
+  test('the finale does NOT sell premium to someone who already has it', async ({ page }) => {
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true }, subscriptionPlan: 'premium' }));
+    await page.goto('/tutorial');
+    for (let i = 0; i < 6; i++) await page.getByText('Next', { exact: true }).click();
+    await expect(page.getByText(/your Guardian does exactly this with your real paycheck/)).toBeVisible();
+    await expect(page.getByText(/Premium is the part that held your line/)).toHaveCount(0);
+  });
+
   test('the tabs are held while a session is running', async ({ page }) => {
     await seedStore(page, newUser());
     await page.goto('/tutorial');

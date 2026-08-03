@@ -7,6 +7,7 @@ import {
   prevIndex,
   resumeIndex,
   stepAnnouncement,
+  stepBody,
   TUTORIAL_STEPS,
   TUTORIAL_STEP_COUNT,
 } from '@/store/tutorialPath';
@@ -75,6 +76,18 @@ function run() {
     assert(stepAnnouncement(s).length > 0, `step ${s + 1} has a non-empty announcement`);
   }
   eq(stepAnnouncement(99), '', 'an out-of-range step announces nothing rather than throwing');
+
+  // ── 3.5.3.6.2 — the finale differs by AUDIENCE, and VoiceOver must hear the same line. ────────
+  // `announceForAccessibility` is a no-op on web, so no e2e can ever check this: if the announcement
+  // resolved the body separately from the screen, a free user would be READ the premium line and no
+  // test would notice. Pinning it here is the only place it can be pinned.
+  const last = TUTORIAL_STEP_COUNT - 1;
+  assert(stepBody(TUTORIAL_STEPS[last], 'free') !== stepBody(TUTORIAL_STEPS[last], 'premium'), 'the finale says something different to each audience');
+  assert(/[Pp]remium is the part/.test(stepBody(TUTORIAL_STEPS[last], 'free')), '…naming, to a FREE user, what premium actually did ([D9] rests on this)');
+  assert(!/[Pp]remium is the part/.test(stepBody(TUTORIAL_STEPS[last], 'premium')), '…and never selling premium to someone who already pays for it');
+  assert(stepAnnouncement(last, 'free').includes(stepBody(TUTORIAL_STEPS[last], 'free')), 'the free announcement carries the free body');
+  assert(stepAnnouncement(last, 'premium').includes(stepBody(TUTORIAL_STEPS[last], 'premium')), 'the premium announcement carries the premium body');
+  eq(stepBody(TUTORIAL_STEPS[0], 'free'), TUTORIAL_STEPS[0].body, 'a beat with no per-audience copy reads the same to everyone');
 
   // ── 3.5.3.3.4.1 — the announcement must actually be CALLED, not merely correct. ───────────────
   // This exists because it already went wrong: 3.5.3.1 moved the overlay off the /tutorial route and

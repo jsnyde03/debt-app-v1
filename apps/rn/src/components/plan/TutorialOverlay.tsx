@@ -10,6 +10,7 @@ import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { announce, headerProps } from '@/utils/a11y';
 import { stepAnnouncement } from '@/store/tutorialPath';
+import type { TutorialRun } from '@/store/tutorialSelectors';
 import type { TargetRect } from '@/store/tutorialTargets';
 
 /**
@@ -37,10 +38,12 @@ import type { TargetRect } from '@/store/tutorialTargets';
  * Putting it here is the structural fix rather than a note-to-self: the thing that draws a step is now
  * the thing that speaks it, so a future host rewrite cannot separate them again.
  */
-function useAnnounceBeat(position: number) {
+function useAnnounceBeat(position: number, run: TutorialRun) {
   useEffect(() => {
-    announce(stepAnnouncement(position - 1));
-  }, [position]);
+    // 3.5.3.6.2 — `run` matters: the finale's copy differs by audience, and a VoiceOver user must hear
+    // the line their screen is showing. Same resolver as the rendered body, for exactly that reason.
+    announce(stepAnnouncement(position - 1, run));
+  }, [position, run]);
 }
 
 export function TutorialOverlay({
@@ -53,6 +56,7 @@ export function TutorialOverlay({
   onNext,
   onSkip,
   isLast,
+  run,
   spotlight,
   onDockLayout,
   impact,
@@ -67,6 +71,8 @@ export function TutorialOverlay({
   onNext: () => void;
   onSkip: () => void;
   isLast: boolean;
+  /** 3.5.3.6.2 — the audience, so the finale can name what premium actually did (and VoiceOver hears it). */
+  run: TutorialRun;
   /** 3.5.3.3.1 — where this beat's subject landed, in window coordinates. Null → an uncut scrim. */
   spotlight?: TargetRect | null;
   /** The dock's measured height defines the bottom of the stage the subject is scrolled into. */
@@ -75,7 +81,7 @@ export function TutorialOverlay({
   impact?: { before: number; after: number; freed: number } | null;
 }) {
   const c = useAppColors();
-  useAnnounceBeat(position);
+  useAnnounceBeat(position, run);
 
   // 3.5.3.3.4.3 — subjects are measured in WINDOW coordinates, but this overlay draws in its own local
   // space, and the two are only the same on a phone. On the iPad regular layout the tab bar becomes a

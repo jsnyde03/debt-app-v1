@@ -1,4 +1,5 @@
 import type { SandboxState } from './sandboxScenarios';
+import type { TutorialRun } from './tutorialSelectors';
 
 /**
  * 3.5.2 — the tutorial PATH: step sequencing, skip, and interrupt-resume, as pure logic.
@@ -49,6 +50,26 @@ export interface TutorialStepDef {
    * retired along with the net.
    */
   payoffTarget?: string;
+  /**
+   * 3.5.3.6.2 — copy that must differ by AUDIENCE.
+   *
+   * Only the finale uses this, and it is the reason [D9] is honest rather than a bait-and-switch: the
+   * walkthrough shows every audience a premium Guardian, so the hand-back has to say plainly that
+   * premium is what did the holding, and what a free user's own card will and won't do. The
+   * `PremiumInvite` doesn't render during a walkthrough, so this is where the whole conversion framing
+   * lands — and where it would be a lie if it were vague.
+   */
+  bodyByRun?: Partial<Record<TutorialRun, string>>;
+}
+
+/**
+ * The body a given audience actually reads. ONE resolver, used by both the overlay and the
+ * announcement — if they each did their own lookup, a VoiceOver user could be read the premium line
+ * while a free user's screen showed a different one. That exact class of drift already cost this phase
+ * an entire dropped announcement (3.5.3.3.4.1).
+ */
+export function stepBody(step: TutorialStepDef, run: TutorialRun): string {
+  return step.bodyByRun?.[run] ?? step.body;
 }
 
 /**
@@ -102,7 +123,19 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
   // …and back out of trouble deliberately: nobody should be handed back to their own money while the
   // last thing they saw was a red card.
   { id: 'yourcall', title: 'Always your call', body: 'Your Guardian suggests — it never moves your money. Every number here is yours to overrule.', target: 'guardian-card', state: 'clear' },
-  { id: 'handback', title: 'Over to your plan', body: 'That was example money. This is your own paycheck, and your Guardian is already watching it.', target: 'guardian-card', state: 'clear' },
+  // The hand-back. Both lines end by orienting ("debts live in Money…"), and the free one names what
+  // premium actually did — because for the last seven beats it was premium doing it.
+  {
+    id: 'handback',
+    title: 'Over to your plan',
+    body: 'That was example money. This is your own paycheck, and your Guardian is already watching it.',
+    bodyByRun: {
+      premium: 'That was example money — your Guardian does exactly this with your real paycheck, all on your device. Your debts live in Money, your progress in Progress.',
+      free: 'That was example money. Premium is the part that held your line automatically, every payday — your own card shows the same honest read, and you decide what to hold. Your debts live in Money, your progress in Progress.',
+    },
+    target: 'guardian-card',
+    state: 'clear',
+  },
 ];
 
 export const TUTORIAL_STEP_COUNT = TUTORIAL_STEPS.length;
@@ -140,8 +173,10 @@ export function prevIndex(index: number): number {
  * What a screen reader hears on entering a step. Position is spoken FIRST because a VoiceOver user has
  * no progress dots to glance at — without it they can't tell whether they're two steps in or six.
  */
-export function stepAnnouncement(index: number, steps: TutorialStepDef[] = TUTORIAL_STEPS): string {
+export function stepAnnouncement(index: number, run: TutorialRun = 'premium', steps: TutorialStepDef[] = TUTORIAL_STEPS): string {
   const step = steps[index];
   if (!step) return '';
-  return `Step ${index + 1} of ${steps.length}. ${step.title}. ${step.body}`;
+  // Through the SAME resolver the screen uses — a VoiceOver user must hear the line their screen shows,
+  // and the finale is precisely where those diverge by audience.
+  return `Step ${index + 1} of ${steps.length}. ${step.title}. ${stepBody(step, run)}`;
 }
