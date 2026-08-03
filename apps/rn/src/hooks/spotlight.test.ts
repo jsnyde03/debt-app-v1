@@ -51,9 +51,10 @@ function run() {
   // Keep in step with the `TutorialTarget` ids actually rendered by `PaydayGuardianCard` / Today.
   // 3.5.3.4 added `guardian-adjust` — and this assertion caught the beat re-point before any run did,
   // which is the whole reason it's here.
-  const REGISTERED = ['guardian-card', 'guardian-bar', 'guardian-line', 'guardian-adjust', 'guardian-reserve'];
+  const REGISTERED = ['guardian-card', 'guardian-bar', 'guardian-line', 'guardian-adjust', 'guardian-reserve', 'today-ack'];
   for (const step of TUTORIAL_STEPS) {
     assert(!step.target || REGISTERED.includes(step.target), `beat "${step.id}" points at a registered subject`);
+    assert(!step.payoffTarget || REGISTERED.includes(step.payoffTarget), `beat "${step.id}" payoff points at a registered subject`);
   }
 
   console.log(`✅ spotlight geometry: ${passed} assertions passed.\n`);

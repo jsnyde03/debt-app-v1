@@ -39,6 +39,16 @@ export interface TutorialStepDef {
    * present the sheet.
    */
   coach?: string;
+  /**
+   * 3.5.3.5.5 — where to look once the beat's story has PAID OFF.
+   *
+   * A beat that ends in something happening has two subjects, not one: the control you act on, and the
+   * result. Beat 4's result — the safety-net release — renders in Today's ack slot at the top of the
+   * screen, while the spotlight is holding the view down on the attestation. Without this the user never
+   * sees the thing the beat exists to produce, and the ring is left framing a control that has since
+   * retired along with the net.
+   */
+  payoffTarget?: string;
 }
 
 /**
@@ -81,6 +91,7 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
     title: 'A little extra, at first',
     body: 'While your Guardian is learning your bills it holds a bit more back. Tell it your bills are all in and it holds less — then watch what that net is for.',
     target: 'guardian-reserve',
+    payoffTarget: 'today-ack',
     state: 'clear',
   },
   // The one beat that deliberately puts the card into trouble — the Recovery glimpse. It's also the

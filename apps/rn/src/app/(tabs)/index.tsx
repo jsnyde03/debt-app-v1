@@ -368,7 +368,11 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
         </Card>
       ) : null}
 
+      {/* 3.5.3.5.5 — registered so a beat can spotlight its own RESULT. The ack slot sits at the very top
+          of Today, far from whatever control produced it, so the walkthrough has to be able to bring the
+          user back up to it. */}
       {reserveRelease && activeAck === 'reserve-release' ? (
+        <TutorialTarget id="today-ack">
         <Card tone="accent" style={styles.ack}>
           <View style={styles.ackRow}>
             <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
@@ -380,6 +384,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
           </View>
           <Button label="Got it" variant="text" onPress={() => store_.getState().acknowledgeReserveRelease()} />
         </Card>
+        </TutorialTarget>
       ) : null}
 
       {reserveWalkback && activeAck === 'reserve-walkback' ? (
@@ -615,8 +620,14 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
 
   // The stage: below the screen header, above the coaching dock. The subject is scrolled to sit inside
   // it, which is what stops a beat from describing something hidden behind its own card.
+  // 3.5.3.5.5 — once a beat's story has paid off, the spotlight FOLLOWS the result. Asked of the engine's
+  // own selector on the sandbox — the same one Today renders the ack from — rather than of a flag the
+  // tutorial sets, so the highlight can't claim a payoff the screen isn't showing.
+  const payoffShowing = !!selectReserveRelease(sandboxStore);
+  const targetId = (payoffShowing && step.payoffTarget) || step.target || null;
+
   const spotlight = useSpotlight({
-    targetId: step.target ?? null,
+    targetId,
     stageTop: insets.top + HEADER_H,
     stageBottom: screenH - dockH - spacing.sm,
     scrollRef,
@@ -625,7 +636,8 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     // 3.5.3.3.2 re-stages the sandbox underneath it (recovery → yourcall are both the whole card, and
     // the card changes height between at-risk and clear). Keyed on target alone, the highlight would
     // keep the previous state's geometry. The dock is in here too — it resizes with its own copy.
-    revision: `${index}:${dockH}`,
+    // The payoff flips the subject mid-beat, so it has to be part of the re-measure key.
+    revision: `${index}:${dockH}:${payoffShowing}`,
   });
 
   // Publish what only this screen can know. Effects rather than render-time calls: setting a parent's

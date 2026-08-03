@@ -229,7 +229,22 @@ test.describe('tutorial invitation + in-situ shell', () => {
     // paydays (DISCOVERY_CYCLES) so the net retires. The closing ack is written by `applyRollover`, not
     // by the tutorial — asserting its SURPRISE-branch copy is what proves the engine produced it, since
     // the tutorial has no way to fabricate that sentence.
-    await expect(page.getByText(/safety net was there when a surprise came up/)).toBeVisible({ timeout: 12_000 });
+    const ack = page.getByText(/safety net was there when a surprise came up/);
+    await expect(ack).toBeVisible({ timeout: 12_000 });
+
+    // 3.5.3.5.5 — being in the DOM is not the same as being seen. The ack renders in Today's slot at the
+    // very top while the spotlight was holding the view down on the attestation, so the user watched the
+    // beat's payoff happen off-screen. The spotlight must FOLLOW it: assert the ring has moved onto the
+    // ack, which also proves the screen scrolled there.
+    const ring = page.getByTestId('tutorial-spotlight');
+    await expect.poll(async () => {
+      const r = await ring.boundingBox();
+      const a = await ack.boundingBox();
+      if (!r || !a) return false;
+      return r.y < a.y + a.height && r.y + r.height > a.y; // vertical overlap = the ring is on the ack
+    }, { timeout: 8000 }).toBeTruthy();
+    // …and it is genuinely in the viewport, not merely rendered somewhere above it.
+    await expect(ack).toBeInViewport();
   });
 
   test('skipping mid-story does not leave rollovers landing afterwards', async ({ page }) => {
