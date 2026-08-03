@@ -1465,3 +1465,34 @@ IMPROVES the taught plan (three paydays of real payments) rather than wrecking i
   Both paths are legitimate, but this is the same "built, not called" shape the whole-item sweep flagged:
   **3.5.4's demo should use the parameter** (an unattended, faithful capture-with-surprise), or it should
   go. Filed rather than left to be rediscovered.
+
+## 3.5.3.5.5 — the spotlight follows the payoff — ✅ COMPLETE (2026-08-02, `f6e07c5`)
+
+**The insight the defect forced:** a beat that ends in something *happening* has **two** subjects — the
+control you act on, and the result. The arc had only ever modelled one. Beat 4's result, the safety-net
+release, renders in Today's ack slot at the very top of the screen while the spotlight was holding the
+view down on the attestation; so the user watched the beat's payoff occur off-screen, and the ring was
+left framing a control that retires along with the net.
+
+The e2e passed throughout, because the ack was in the DOM. That is the same failure shape as the dropped
+`announce` and the iPad ring: **present is not the same as perceived**, and only a screenshot ever says so.
+
+**Shipped:** `TutorialStepDef.payoffTarget`; the ack slot registered as a `TutorialTarget` so
+`useSpotlight` scrolls it into the stage like any other subject; and — the part worth keeping — which
+subject is live is asked of **`selectReserveRelease` on the sandbox**, the same engine selector Today
+renders the ack from, rather than a flag the tutorial sets. The highlight therefore cannot claim a payoff
+the screen isn't showing. It's part of the re-measure key because it flips mid-beat.
+
+**Verification changed too:** the e2e now asserts the ring OVERLAPS the ack and the ack
+`toBeInViewport()`. "It's in the DOM" was precisely the assertion that let this ship.
+
+### After-scan
+- **Confirms 3.5.3.5.9:** the screenshot shows the payoff spotlit on a completely UNDIMMED screen —
+  beat 4 is interactive, and interactive beats currently drop the scrim entirely rather than cutting a
+  hole in it. The ring alone is carrying the focus.
+- **Minor:** once the user taps "Got it" the release clears, so the spotlight falls back to
+  `guardian-reserve`, which no longer renders — the ring simply disappears. Harmless (the beat is over by
+  then) and it degrades to an uncut scrim rather than pointing anywhere wrong, but noted.
+- **Two environmental flakes** this run (`affordability`, `blur-glass`) — both `page.goto` navigation
+  timeouts under parallel load, both green on retry, neither tutorial-related. Recorded rather than
+  "fixed", because inventing a fix for load noise is how real signal gets buried.
