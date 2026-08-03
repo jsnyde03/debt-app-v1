@@ -28,6 +28,10 @@ import type { TargetRect } from '@/hooks/spotlightGeometry';
 
 export type { TargetRect };
 
+/** Long enough that a slow device measures normally; short enough that a dropped callback doesn't
+ *  outlast the beat it would freeze. See `measure`. */
+const MEASURE_TIMEOUT_MS = 500;
+
 interface TargetRegistry {
   register(id: string, node: View | null): void;
   /** Measure a registered subject in window coordinates. Null when it isn't mounted (a beat can point
@@ -56,10 +60,27 @@ export function TutorialTargetsProvider({ children }: { children: ReactNode }) {
     return new Promise<TargetRect | null>((resolve) => {
       const node = nodes.current.get(id);
       if (!node?.measureInWindow) return resolve(null);
+
+      // `measureInWindow` is a callback into native with no failure path: if the view is detached
+      // between the lookup above and the native call, the callback can simply never fire and this
+      // promise never settles. That is not a hypothetical inconvenience — `useSpotlight` resets its
+      // `settling` flag inside the awaiting code, and an interactive beat renders a FULL scrim while
+      // settling. A dropped callback therefore seals the user away from the control the beat is asking
+      // them to use, with no way forward. A timeout converts an unresolvable promise into an honest
+      // "couldn't measure", which every caller already handles.
+      let settled = false;
+      const done = (rect: TargetRect | null) => {
+        if (settled) return;
+        settled = true;
+        resolve(rect);
+      };
+      const timer = setTimeout(() => done(null), MEASURE_TIMEOUT_MS);
+
       // A subject mid-transition can measure as 0×0; treat that as "not ready" rather than spotlighting
       // an empty rect, which would read as a bug rather than as a highlight.
       node.measureInWindow((x, y, width, height) => {
-        resolve(width > 0 && height > 0 ? { x, y, width, height } : null);
+        clearTimeout(timer);
+        done(width > 0 && height > 0 ? { x, y, width, height } : null);
       });
     });
   }, []);

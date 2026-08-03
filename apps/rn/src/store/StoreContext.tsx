@@ -23,6 +23,13 @@ import type { DebtStoreInstance } from './store';
 const StoreContext = createContext<DebtStoreInstance>(appStore);
 
 /**
+ * The ONLY real-store prefs a walkthrough may write: its resume position, and the record that the run
+ * was seen. Both must outlive the sandbox, which is why they're written to the real store at all.
+ * Anything else changing while a sandbox is mounted is a bug — see `useNoRealWritesGuard`.
+ */
+const TUTORIAL_WRITABLE_PREFS = ['tutorialStep', 'tutorialSeen'];
+
+/**
  * Point a subtree at a different store. React context flows through `Modal`, so sheets rendered by the
  * subtree inherit it too — which is required, since the tutorial's sheets must not write real data.
  */
@@ -62,10 +69,21 @@ function useNoRealWritesGuard(store: DebtStoreInstance) {
       // What is actually forbidden is the user's PLAN moving: money, debts, bills, the cushion line.
       // Prefs are the one channel the tutorial is entitled to write, so they're excluded and the
       // baseline advances — leaving a single, meaningful signal.
-      const { prefs: _prevPrefs, ...prevPlan } = before;
-      const { prefs: _nextPrefs, ...nextPlan } = state.store;
+      const { prefs: prevPrefs, ...prevPlan } = before;
+      const { prefs: nextPrefs, ...nextPlan } = state.store;
       before = state.store;
       const changed = (Object.keys(nextPlan) as (keyof typeof nextPlan)[]).filter((k) => nextPlan[k] !== prevPlan[k]);
+      // Prefs are diffed FIELD BY FIELD against a two-key allowlist rather than excluded wholesale.
+      // Dropping the entire `prefs` object was too generous by a wide margin: the walkthrough is
+      // entitled to `tutorialStep` and `tutorialSeen` and nothing else, but the blanket exclusion also
+      // blinded the backstop to a sandboxed component writing `isDemoMode` (which silently kills real
+      // payday capture) or `onboardingComplete: false` (which re-onboards the user) through the
+      // singleton. Those are exactly the silent corruptions this guard exists to catch, and the fix for
+      // its false-positive noise had quietly opened a hole underneath it.
+      const prefsChanged = (Object.keys(nextPrefs) as (keyof typeof nextPrefs)[]).filter(
+        (k) => nextPrefs[k] !== prevPrefs[k] && !TUTORIAL_WRITABLE_PREFS.includes(k as string),
+      );
+      changed.push(...(prefsChanged.map((k) => `prefs.${String(k)}`) as (keyof typeof nextPlan)[]));
       if (changed.length === 0) return;
       reportError(new Error('Real store mutated while a sandbox subtree was mounted'), {
         seam: 'StoreProvider',

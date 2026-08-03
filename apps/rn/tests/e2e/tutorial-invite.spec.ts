@@ -122,20 +122,23 @@ test.describe('tutorial invitation + in-situ shell', () => {
 
     // The cut is the point of the cutout: the lit subject must NOT be under a scrim band.
     //
-    // [D2] Targets the BLOCKING bands by testID rather than every `div` under the scrim. Two reasons,
-    // and the second is the one that matters: the scrim is now two layers (an animated visual one and a
-    // static hit-testing one), so a bare `div` selector picked up their full-screen wrappers and failed
-    // on geometry that was never a band. And the visual bands legitimately pass over the subject while
-    // the hole irises open — what must never cover it is the geometry that eats touches.
+    // [D2] Targets the VISUAL bands by testID rather than every `div` under the scrim — a bare `div`
+    // selector also picked up the two full-screen layer wrappers and failed on geometry that was never
+    // a band. Visual, specifically: this assertion is about the subject being LIT, and since the
+    // `passThrough` fix the blocking layer deliberately has no hole at all on a scripted beat like this
+    // one. Polled, because the hole now irises open on a spring and a single read can land mid-travel.
     const bar = (await ring.boundingBox())!;
-    const bands = await page.getByTestId('tutorial-scrim-band').all();
-    expect(bands.length).toBeGreaterThan(0);
-    for (const band of bands) {
-      const b = await band.boundingBox();
-      if (!b) continue;
-      const overlaps = b.x < bar.x + bar.width && b.x + b.width > bar.x && b.y < bar.y + bar.height && b.y + b.height > bar.y;
-      expect(overlaps, 'no scrim band may cover the spotlit subject').toBeFalsy();
-    }
+    const anyBandCovers = async () => {
+      const bands = await page.getByTestId('tutorial-scrim-band').all();
+      if (bands.length === 0) return true;
+      for (const band of bands) {
+        const b = await band.boundingBox();
+        if (!b) continue;
+        if (b.x < bar.x + bar.width && b.x + b.width > bar.x && b.y < bar.y + bar.height && b.y + b.height > bar.y) return true;
+      }
+      return false;
+    };
+    await expect.poll(anyBandCovers, { timeout: 5000, message: 'no scrim band may cover the spotlit subject' }).toBe(false);
   });
 
   test('the arc stages each beat\'s state, and steps back out of trouble', async ({ page }) => {
@@ -220,9 +223,21 @@ test.describe('tutorial invitation + in-situ shell', () => {
       // [D7] — the sheet is a modal that covers the coaching card, so the beat's guidance rides inside it.
       await expect(page.getByTestId('floor-sheet-coach')).toBeVisible();
 
+      // Actually MOVE the line. This test was named "lets a X user move the real line, and the plan
+      // re-solves" and never moved anything — it opened the sheet and saved the unchanged value.
+      // `FloorImpactBar` renders for an unchanged value too ("Same cushion, same plan"), so asserting
+      // `floor-impact` was visible proved only that the sheet had been saved. A regression that broke
+      // dragging outright would have passed. The slider is a gesture-handler view: a tap anywhere on the
+      // track sets the value, so clicking at ~20% of its width lowers the line.
+      const slider = page.getByLabel('Cushion line amount');
+      const box = (await slider.boundingBox())!;
+      await page.mouse.click(box.x + box.width * 0.2, box.y + box.height / 2);
+
       await page.getByText('Save', { exact: true }).click();
-      // The payoff: a before→after the user produced themselves.
+      // The payoff: a before→after the user produced themselves. Asserting the FREED-money caption, not
+      // merely the bar — that string is only reachable when the line actually came down.
       await expect(page.getByTestId('floor-impact')).toBeVisible();
+      await expect(page.getByText(/more to debt this paycheck/)).toBeVisible();
       // …and the walkthrough must show the SAFETY NET on both tiers too — the cold-start hedges are
       // premium-only in the engine, so under the old shape beat 4 had no subject for a free user either.
       // `exact` — the attestation control also says "…hold a smaller safety net", and the STAT is what
@@ -238,9 +253,20 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(page.getByTestId('tutorial-progress')).toContainText('Step 4 of');
 
     // The user's own tap on a REAL Guardian control ([D10]).
+    // The net BEFORE, so the shrink this test is named for is actually asserted rather than assumed —
+    // it previously checked only that the label flipped to "Bills confirmed".
+    const netAmount = async () => {
+      const t = await page.getByTestId('guardian-reserve-amount').textContent();
+      return Number((t ?? '').replace(/[^0-9.]/g, ''));
+    };
+    const netBefore = await netAmount();
+    expect(netBefore).toBeGreaterThan(0);
+
     await expect(page.getByText(/All your regular bills entered/)).toBeVisible();
     await page.getByText(/All your regular bills entered/).click();
     await expect(page.getByText(/Bills confirmed/)).toBeVisible();
+    // Confirming your bills holds LESS back — that is the whole claim of the beat's first half.
+    await expect.poll(netAmount, { timeout: 5000 }).toBeLessThan(netBefore);
 
     // Then the scripted story, driven by the real producers: a surprise the net absorbs, then three
     // paydays (DISCOVERY_CYCLES) so the net retires. The closing ack is written by `applyRollover`, not
@@ -328,6 +354,11 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await page.getByText('Next', { exact: true }).click();
     await page.getByText('Next', { exact: true }).click();
     await page.getByText('Adjust your line').click();
+    // Move it for real — the point of this test is that a genuine edit doesn't reach the real plan, and
+    // saving an unchanged value would have proved that vacuously.
+    const slider = page.getByLabel('Cushion line amount');
+    const box = (await slider.boundingBox())!;
+    await page.mouse.click(box.x + box.width * 0.8, box.y + box.height / 2);
     await page.getByText('Save', { exact: true }).click();
     await page.getByText('Skip', { exact: true }).click();
     await expect(page.getByTestId('tutorial-overlay')).toHaveCount(0);
@@ -407,8 +438,13 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await seedStore(page, newUser({ prefs: { onboardingComplete: true }, subscriptionPlan: 'premium' }));
     await page.goto('/tutorial');
     for (let i = 0; i < 6; i++) await page.getByText('Next', { exact: true }).click();
-    await expect(page.getByText(/your Guardian does exactly this with your real paycheck/)).toBeVisible();
-    await expect(page.getByText(/Premium is the part that held your line/)).toHaveCount(0);
+    // Intent, not wording — the THIRD test in this suite caught pinning a literal sentence, and this one
+    // broke on the round-2 [A4] fix (the premium line said "with your real paycheck", which isn't true
+    // of a premium user who completed onboarding without one). What must hold is: the hand-back speaks
+    // to someone who already has premium, and never sells it to them.
+    await expect(page.getByText(/example money/)).toBeVisible();
+    await expect(page.getByText(/your Guardian does exactly this/)).toBeVisible();
+    await expect(page.getByText(/premium/i)).toHaveCount(0);
   });
 
   test('the tabs are held while a session is running', async ({ page }) => {
@@ -418,8 +454,10 @@ test.describe('tutorial invitation + in-situ shell', () => {
 
     // 3.5.3.5.7 — the scrim now covers the tab bar too, so a normal click is intercepted before it ever
     // reaches the tab. `force` bypasses that deliberately: what's under test here is the LISTENER, which
-    // is the guard that still matters on the interactive beats, where the scrim is switched off so taps
-    // can reach the real control.
+    // is the guard that still matters on an interactive beat whose subject never measured — the one
+    // case that renders no scrim at all, and so the one case where a stray tab tap could strand the
+    // user mid-beat. (This said "the interactive beats, where the scrim is switched off"; it hasn't
+    // been switched off there since 3.5.3.5.9, as THIS FILE's own beat-3 test asserts ~200 lines up.)
     await page.getByTestId('tab-money').click({ force: true });
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
     await expect(page.getByTestId('tutorial-progress')).toContainText('Step 1 of');
@@ -436,8 +474,10 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await seedStore(page, newUser());
     await page.goto('/tutorial');
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
-    // The replay entry restarts the walkthrough — offering that from inside one is incoherent, and on
-    // an interactive beat (no scrim) it would be live.
+    // The replay entry restarts the walkthrough — offering that from inside one is incoherent. (The old
+    // reason given here, "on an interactive beat (no scrim) it would be live", is pre-3.5.3.5.9: the
+    // scrim stays up and the replay link sits under a blocking band. Still right to withhold it; the
+    // stated mechanism was stale.)
     await expect(page.getByTestId('guardian-replay-tutorial')).toHaveCount(0);
     // The sandbox is a fresh store that has never "seen" the tutorial, so the invitation selector fires
     // on it unless the host suppresses it — leaving Today offering the walkthrough during the walkthrough.

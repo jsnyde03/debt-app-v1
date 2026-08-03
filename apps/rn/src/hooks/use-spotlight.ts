@@ -120,7 +120,13 @@ export function useSpotlight({
   // doesn't itself cause layout, so there's no feedback loop.
   useEffect(() => {
     if (!targetId || !targets) return;
-    return targets.subscribe((id) => {
+    // The SAME stale guard the main effect carries, for the same reason — and its absence here was the
+    // main effect's documented race reintroduced one hook lower. A layout event firing just before a
+    // beat change resolves its measure AFTER the new beat's rect has landed, and `setRect`s the
+    // PREVIOUS subject's geometry; nothing corrects it until the next layout or revision, so the ring
+    // and (on an interactive beat) the touch hole sit over the wrong region for the whole beat.
+    let stale = false;
+    const unsubscribe = targets.subscribe((id) => {
       if (id !== targetId) return;
       // Never during a stage-scroll: the rect is deliberately null while the subject travels, and a
       // layout event landing mid-flight would paint the ring back at a half-way position — exactly the
@@ -128,12 +134,18 @@ export function useSpotlight({
       if (settlingRef.current) return;
       void (async () => {
         const next = await targets.measure(targetId);
+        // Re-checked AFTER the await, not just before it — the await is the window the race lives in.
+        if (stale || settlingRef.current) return;
         // Value-compare before setting. A layout pass can report identical geometry, and `measure`
         // resolves a NEW object every time — publishing it would re-render the shell (and everything
         // reading the spotlight) for no visual change, on a surface that gets a lot of layout events.
         setRect((prev) => (sameRect(prev, next) ? prev : next));
       })();
     });
+    return () => {
+      stale = true;
+      unsubscribe();
+    };
   }, [targetId, targets]);
 
   return { rect, settling };

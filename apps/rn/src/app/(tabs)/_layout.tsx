@@ -1,6 +1,6 @@
 import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
 import { TabBarIcon } from '@/components/tab-bar-icon';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -55,6 +55,28 @@ export default function TabsLayout() {
           ? { backgroundColor: c.background.secondary, borderRightColor: c.border.subtle }
           : { position: 'absolute', backgroundColor: 'transparent', borderTopColor: c.border.subtle },
         tabBarLabelStyle: { fontSize: isRegular ? 15 : 11, fontWeight: '600' },
+        // The tab bar leaves the ACCESSIBILITY tree while a session runs. `holdTabs` and the scrim only
+        // stop fingers: a VoiceOver double-tap dispatches straight to the focused element and never goes
+        // through hit-testing, so the bar stayed both reachable and — before this — silently inert. A
+        // screen-reader user could swipe to "Progress, tab", double-tap, and get nothing at all, with no
+        // announced reason; on the interactive beats they could leave the walkthrough outright. Removing
+        // it from the tree is the honest version of what the scrim says visually. Found by BOTH round-2
+        // a11y reviewers independently, which is usually the sign of something structural.
+        //
+        // Spreading react-navigation's own props keeps the role, the selected state and the press
+        // handling it already computed — this adds the two a11y flags and changes nothing else. A bare
+        // hand-rolled button here would silently drop "selected", and this file has history: wrapping
+        // `<Tabs>` to make room for a sibling once broke tab presses outright.
+        tabBarButton: (props) => (
+          <Pressable
+            // Cast only for the `ref` type: react-navigation types it as a legacy ref while RN's new
+            // architecture narrowed `Pressable`'s. A typing artefact, not a runtime difference — and the
+            // ref is passed through rather than dropped, so react-navigation keeps its handle.
+            {...(props as React.ComponentProps<typeof Pressable>)}
+            accessibilityElementsHidden={inTutorial}
+            importantForAccessibility={inTutorial ? 'no-hide-descendants' : 'auto'}
+          />
+        ),
       }}>
       <Tabs.Screen
         name="index"

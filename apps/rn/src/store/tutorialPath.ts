@@ -149,7 +149,13 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
     title: 'Over to your plan',
     body: 'That was example money. This is your own paycheck, and your Guardian is already watching it.',
     bodyByRun: {
-      premium: 'That was example money — your Guardian does exactly this with your real paycheck, all on your device. Your debts live in Money, your progress in Progress.',
+      // [A4, round 2] "with your real paycheck" was the same defect the free line had been rewritten to
+      // avoid, left standing one line above it. The invitation gates on `onboardingComplete` and NOT on
+      // having a paycheck, so a premium user can finish onboarding without one, take the walkthrough,
+      // and be told their Guardian is already doing this "with your real paycheck" — then hand back to a
+      // card reading "Set up your paycheck". Fixing an audience-specific claim in one branch of a
+      // per-audience string and not the other is how the [A4] class survives its own fix.
+      premium: 'That was example money — your Guardian does exactly this with every paycheck you add, all on your device. Your debts live in Money, your progress in Progress.',
       // [A1/A2] The audit caught two lies in the previous version of this line.
       //  1. It said "you decide what to hold". A free user CANNOT: `showAdjust` is premium-gated and the
       //     card's sheet is the only route to `setCushionFloor` in the whole app. It named a capability

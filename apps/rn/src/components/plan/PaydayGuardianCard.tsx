@@ -219,7 +219,9 @@ export function PaydayGuardianCard({
           importantForAccessibility="no-hide-descendants">
           {/* Order matches the bar's fixed left→right shading: Set aside (tinted, far-left) → Cushion →
               To debt. The "set aside" reserve is only present for a settling-in (cold-start) user. */}
-          {hasReserve ? <Stat swatch={color} dim amount={brief.heldReserve} label="Safety net" /> : null}
+          {hasReserve ? (
+            <Stat swatch={color} dim amount={brief.heldReserve} label="Safety net" testID="guardian-reserve-amount" />
+          ) : null}
           {/* COH-2: the held reserve is WITHIN cushion (buildGuardianBrief: heldReserve ≤ cushion). Show the
               non-reserve remainder here so Safety net + Cushion read as disjoint segments (matching the bar)
               and reconcile with the hero's Free above. */}
@@ -395,7 +397,21 @@ function money(n: number): string {
 
 /** One legend item from the cushion bar, in the hero card's compact style — a bar-zone-keyed swatch +
  *  label on top, the value below. */
-function Stat({ swatch, dim, amount, label }: { swatch: string; dim?: boolean; amount: number; label: string }) {
+function Stat({
+  swatch,
+  dim,
+  amount,
+  label,
+  testID,
+}: {
+  swatch: string;
+  dim?: boolean;
+  amount: number;
+  label: string;
+  /** For the beat-4 e2e, which has to assert the held net actually SHRINKS — the label flipping to
+   *  "Bills confirmed" was all it checked before, which the test's own name overstated. */
+  testID?: string;
+}) {
   const c = useAppColors();
   return (
     <View style={styles.stat}>
@@ -405,7 +421,9 @@ function Stat({ swatch, dim, amount, label }: { swatch: string; dim?: boolean; a
           {label}
         </Text>
       </View>
-      <Text style={[styles.statValue, { color: c.text.primary }]}>{money(amount)}</Text>
+      <Text style={[styles.statValue, { color: c.text.primary }]} testID={testID}>
+        {money(amount)}
+      </Text>
     </View>
   );
 }

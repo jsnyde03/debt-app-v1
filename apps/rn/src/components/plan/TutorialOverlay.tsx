@@ -160,7 +160,19 @@ export function TutorialOverlay({
           that already exists for exactly this job and carries real distance from the card fills in both.
           [D4] Also renders during the scroll transit on interactive beats: `local` goes null while the
           screen moves, and dropping the scrim there briefly re-opened the leak .5.9 closed. */}
-      {!interactive || local || interactiveTransit ? <Scrim rect={local} color={c.background.scrim} /> : null}
+      {/* `passThrough` — the hit-layer's hole is cut ONLY on the two interactive beats. The visual hole
+          is cut on every beat, because that's the spotlight.
+          The two had been the same hole since 3.5.3.3.1, which quietly made the top-of-file promise
+          ("a scrim blocks stray taps, so a user can't wander into a sheet or another tab") false on four
+          SCRIPTED beats: `intro`, `recovery`, `yourcall` and `handback` all spotlight the whole Guardian
+          card, and the whole Guardian card is full of live controls. A stray tap on a scripted beat could
+          open the floor sheet with no coaching line, push `/cushion-forecast` out from under the still-
+          mounted overlay, or hit the attestation — which fires beat 4's entire scripted story during
+          beat 1. Only the replay link had been individually guarded, one leak at a time.
+          Splitting visual from hit geometry for [D2] is what makes this one flag rather than a rework. */}
+      {!interactive || local || interactiveTransit ? (
+        <Scrim rect={local} color={c.background.scrim} passThrough={interactive} />
+      ) : null}
       {/* The ring is drawn on interactive beats too. Since 3.5.3.5.9 the scrim is there as well and the
           cutout is what passes touches to the control, so the ring is no longer load-bearing for
           "reach THIS" — it's the visual half of the same statement. */}
@@ -224,7 +236,9 @@ export function TutorialOverlay({
               <ScrollView
                 style={styles.dockScroll}
                 contentContainerStyle={styles.dockScrollContent}
-                showsVerticalScrollIndicator={false}
+                // The indicator is ON: it only appears when the content actually overflows, and in that
+                // case it is the one signal that there is more of the beat below the fold. Suppressing
+                // it would leave a large-type user reading a paragraph that appears to end mid-sentence.
                 bounces={false}>
               {/* 3.5.3.7.3 — a quiet progress rail. "Step 3 of 7" alone made the arc's length something
                   you had to read; the rail makes it something you glance at. Calm register: a hairline
@@ -291,7 +305,17 @@ const DOCK_MAX_W = 620;
  * not floating in the dark" reading we want. The comment here used to claim the cut was inset *less*
  * than the ring; that described an arrangement the numbers have never had.
  */
-function Scrim({ rect, color }: { rect: TargetRect | null; color: string }) {
+function Scrim({
+  rect,
+  color,
+  passThrough,
+}: {
+  rect: TargetRect | null;
+  color: string;
+  /** Cut the hole in the BLOCKING geometry too. Only true on a beat that asks the user to touch the
+   *  subject — otherwise the hole is purely visual and everything underneath stays fenced off. */
+  passThrough: boolean;
+}) {
   const a11y = { accessibilityElementsHidden: true, importantForAccessibility: 'no-hide-descendants' } as const;
 
   // [D2] The hole MOVES between beats instead of cutting. The ring already faded in on arrival, but the
@@ -329,27 +353,33 @@ function Scrim({ rect, color }: { rect: TargetRect | null; color: string }) {
   // roughly half a second, longer with the overshoot. The e2e caught it as flakiness (Playwright retried
   // the click until the band moved off); for a user it's the tap that does nothing on the beat that just
   // asked them to tap. The blocking geometry therefore snaps to the destination while the dark travels.
-  const hit = { top: Math.max(0, top), bottom, left: Math.max(0, left), right };
+  // A scripted beat gets a collapsed hit-hole — the bands meet and the whole screen is fenced, however
+  // the light is cut above it.
+  const hit = passThrough
+    ? { top: Math.max(0, top), bottom, left: Math.max(0, left), right }
+    : { top: 0, bottom: 0, left: 0, right: 0 };
 
   return (
     // `box-none` on the container, so the BANDS capture touches and the hole between them doesn't —
     // which is the whole pass-through mechanism on interactive beats (3.5.3.5.9). With the hole
     // collapsed the bands meet and cover everything, so a null rect blocks exactly as the old sheet did.
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none" {...a11y} testID="tutorial-scrim">
+      {/* The DARK. `tutorial-scrim-band` — "is the subject lit?" is a question about this layer. */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <Animated.View style={[styles.scrim, styles.band, { backgroundColor: color }, topBand]} />
-        <Animated.View style={[styles.scrim, styles.band, { backgroundColor: color }, bottomBand]} />
-        <Animated.View style={[styles.scrim, styles.band, { backgroundColor: color }, leftBand]} />
-        <Animated.View style={[styles.scrim, styles.band, { backgroundColor: color }, rightBand]} />
+        <Animated.View testID="tutorial-scrim-band" style={[styles.scrim, styles.band, { backgroundColor: color }, topBand]} />
+        <Animated.View testID="tutorial-scrim-band" style={[styles.scrim, styles.band, { backgroundColor: color }, bottomBand]} />
+        <Animated.View testID="tutorial-scrim-band" style={[styles.scrim, styles.band, { backgroundColor: color }, leftBand]} />
+        <Animated.View testID="tutorial-scrim-band" style={[styles.scrim, styles.band, { backgroundColor: color }, rightBand]} />
       </View>
-      {/* Invisible, and deliberately so: these carry no colour, only the touch-blocking. They're the
-          ones with a testID, because "is the subject reachable" is a question about the BLOCKING
-          geometry — the visual bands sweep over it while the iris opens, by design. */}
+      {/* The FENCE. Invisible and deliberately so: no colour, only touch-blocking. Separately identified
+          because it answers a different question — "is the subject REACHABLE?" — and since `passThrough`
+          the two layers legitimately disagree on every scripted beat, where the subject is lit but not
+          touchable. One testID for both would have made each assertion silently ambiguous. */}
       <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-        <View testID="tutorial-scrim-band" style={[styles.band, { top: 0, left: 0, right: 0, height: hit.top }]} />
-        <View testID="tutorial-scrim-band" style={[styles.band, { top: hit.bottom, left: 0, right: 0, bottom: 0 }]} />
-        <View testID="tutorial-scrim-band" style={[styles.band, { top: hit.top, height: Math.max(0, hit.bottom - hit.top), left: 0, width: hit.left }]} />
-        <View testID="tutorial-scrim-band" style={[styles.band, { top: hit.top, height: Math.max(0, hit.bottom - hit.top), left: hit.right, right: 0 }]} />
+        <View testID="tutorial-scrim-blocker" style={[styles.band, { top: 0, left: 0, right: 0, height: hit.top }]} />
+        <View testID="tutorial-scrim-blocker" style={[styles.band, { top: hit.bottom, left: 0, right: 0, bottom: 0 }]} />
+        <View testID="tutorial-scrim-blocker" style={[styles.band, { top: hit.top, height: Math.max(0, hit.bottom - hit.top), left: 0, width: hit.left }]} />
+        <View testID="tutorial-scrim-blocker" style={[styles.band, { top: hit.top, height: Math.max(0, hit.bottom - hit.top), left: hit.right, right: 0 }]} />
       </View>
     </View>
   );
@@ -370,7 +400,15 @@ const styles = StyleSheet.create({
   // 7.7 — a centred, width-capped column on the roomy layout, like every other surface in the app.
   dockInner: { alignSelf: 'center', width: '100%', borderRadius: 18, overflow: 'hidden' },
   // The Card sits ON the frost, so it contributes shape and padding but no fill of its own.
-  dockCard: { backgroundColor: 'transparent' },
+  //
+  // `flexShrink: 1` is load-bearing, not tidiness. `Card` sets no flex properties, and Yoga's default
+  // shrink is 0 — so the [B4] cap chain (`dockInner` maxHeight + `body`/`dockScroll` shrink) stopped
+  // dead here: the Card kept its natural height and `dockInner`'s `overflow: 'hidden'` simply CLIPPED
+  // the overflow instead of the ScrollView bounding it. What gets clipped is the bottom of the card,
+  // which is the nav row — so at large Dynamic Type the fix meant to guarantee a reachable Next
+  // produced a walkthrough with no Next, no Back and no Skip, while the scrim blocked Today and
+  // `holdTabs` blocked the tabs. A trap, shipped by the change that existed to prevent one.
+  dockCard: { backgroundColor: 'transparent', flexShrink: 1 },
   frost: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   progressRow: { gap: 6 },
   // 7.3 — a hairline rail: glanceable, and calm enough not to read as a game's progress bar.

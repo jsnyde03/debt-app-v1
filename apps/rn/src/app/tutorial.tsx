@@ -15,8 +15,13 @@ import { tutorialRunFor, type TutorialRun } from '@/store/tutorialSelectors';
  * detached tab group, i.e. a blank screen on device (Freedom RN lesson #7).
  *
  * So the route survives purely as the ENTRY: it starts a session (picking up any interrupted step) and
- * hands off to Today. Keeping it means the deep link, the More row, the card's replay affordance and
- * the e2e all still have a stable URL to aim at — they simply arrive somewhere else now.
+ * hands off to Today.
+ *
+ * ⚠️ It is NOT how the app itself starts a walkthrough. The More row and the Guardian card's replay
+ * affordance both call `startTutorial()` directly — see `tutorialSession.ts`, which has said so all
+ * along. This header claimed all four entry points "still have a stable URL to aim at"; two of them
+ * don't aim at a URL at all. What the route is actually for is the two callers that can only express
+ * themselves as a URL: **deep links and the e2e**.
  */
 export default function TutorialLauncher() {
   const params = useLocalSearchParams<{ run?: string }>();
@@ -30,11 +35,15 @@ export default function TutorialLauncher() {
 
     tutorialSession.getState().start(real, run, resumeIndex(real.prefs.tutorialStep));
 
-    // Get out of the way WITHOUT re-mounting the tab group. `router.replace('/')` from a pushed Stack
-    // route renders `(tabs)` a SECOND time — two Todays, two overlays — which is the duplicate/detached
-    // tab-group failure `useGoToTab` documents (Freedom RN lesson #7), reproduced here in the e2e.
-    // Popping returns to the Today that's already mounted; `replace` is only for a cold deep link with
-    // no history to pop. Third time this session that `canGoBack()` has been the right guard.
+    // Get out of the way WITHOUT re-mounting the tab group.
+    //
+    // [round-2 E1] Two paragraphs used to sit here asserting opposite mechanisms — one describing a pop
+    // guarded by `canGoBack()`, immediately followed by the one below explaining why `navigate` is used
+    // instead. Neither a pop nor `canGoBack()` has ever appeared in this file; the first paragraph
+    // described an approach that was tried and dropped, and it survived directly above its own
+    // replacement. Precisely the defect the claim-vs-code lens exists for, found in the fix block that
+    // was correcting that same class elsewhere.
+    //
     // `navigate`, not `push`/`replace`/`back`. The three entry points sit at different stack depths —
     // the Guardian card is on Today, the More row is its own Stack route, a deep link has no history —
     // and each needs to end up on the Today TAB with nothing duplicated. `replace` re-mounted the tab

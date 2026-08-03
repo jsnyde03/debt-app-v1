@@ -287,8 +287,10 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               topUp={tightTopUp}
               onTopUp={() => tightTopUp && store_.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
               // Withheld on example money: "How this works" restarts the walkthrough, and offering that
-              // FROM INSIDE the walkthrough is both incoherent and — on an interactive beat, where taps
-              // pass through — a live way to re-enter a session you're already in.
+              // FROM INSIDE the walkthrough is incoherent: an offer to restart something you are in.
+              // (The reason used to be "on an interactive beat, where taps pass through, it would be
+              // live". Pre-3.5.3.5.9: taps pass through the CUTOUT only, and the replay link sits under
+              // a blocking band. The conclusion survives the correction; the mechanism didn't.)
               onReplayTutorial={isExample ? undefined : () => startTutorial(tutorialRunFor(store))}
               // 3.5.3.4.2 — the beat's own guidance, carried into the modal it sends the user into.
               coachLine={isExample ? coachLine : undefined}
@@ -746,6 +748,20 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   useEffect(() => {
     setImpact?.(impact);
   }, [setImpact, impact?.before, impact?.after, impact?.freed]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Beat 3's payoff, announced. [C2] gave beat 4's ack story a voice and left this one silent — the
+  // same gap, one beat over, inside the fix for it. A sighted user watches the impact bar spring after
+  // they save; a VoiceOver user who just moved their own line heard nothing at all unless they thought
+  // to go re-read the dock. The payoff of an action the walkthrough ASKED them to take is the last
+  // thing that should be delivered visually only.
+  const impactText = impact
+    ? impact.freed > 0
+      ? `Your line moved. That frees $${Math.round(impact.freed)} more for your debt this paycheck.`
+      : 'Your line moved. Your plan re-solved around it.'
+    : null;
+  useEffect(() => {
+    if (impactText) announce(impactText);
+  }, [impactText]);
 
   return (
     <StoreProvider store={sandbox}>

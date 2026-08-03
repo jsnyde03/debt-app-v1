@@ -67,8 +67,14 @@ export function advanceSandboxCycle(store: SandboxStoreInstance, surprise?: numb
   // story was making the example plan visibly worse while narrating the Guardian looking after it.
   //
   // Settling everything is the honest script here: this is a user who paid their bills, which is exactly
-  // the case the beat is about. The surprise rides in as `actuals` — the same door the payday check-in
-  // uses — rather than being written separately, so the whole beat now goes through one real path.
+  // the case the beat is about.
+  //
+  // The optional `surprise` rides in as `actuals` — the same door the payday check-in uses. ⚠️ Note what
+  // this is NOT: the shipped beat-4 story does not use it. `playReserveStory` fires `scriptSurprise`
+  // separately at t=900ms so the user watches the net absorb it BEFORE anything else moves, then calls
+  // `runBeats` with no surprise at all. This parameter is exercised by the beat tests. The comment here
+  // used to claim "the whole beat now goes through one real path", which described an intention rather
+  // than the code — and it was written in the block that was correcting exactly that class elsewhere.
   const s0 = store.getState().store;
   store.getState().capturePayday([], {
     expensePaid: Object.fromEntries(s0.requiredExpenses.map((e) => [e.id, true])),

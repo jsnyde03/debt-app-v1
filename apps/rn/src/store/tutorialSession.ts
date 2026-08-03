@@ -22,8 +22,13 @@ import { resumeIndex, TUTORIAL_STEPS } from './tutorialPath';
  * `/tutorial` route would have shipped that failure straight into the tutorial.
  *
  * So the session lives here, outside React: the Today route wrapper subscribes and, while a session is
- * active, wraps its content in `StoreProvider(sandbox)` and mounts the overlay. `/tutorial` becomes the
- * launcher (and the deep-link/e2e entry) rather than the host.
+ * active, wraps its content in `StoreProvider(sandbox)`. `/tutorial` becomes the launcher (and the
+ * deep-link/e2e entry) rather than the host.
+ *
+ * ⚠️ Today does NOT mount the overlay — this said it did, and stopped being true at 3.5.3.5.7, when the
+ * coaching layer was hoisted to the ROOT layout so its scrim could cover the iPad sidebar rail. Today
+ * now only publishes geometry up through `TutorialShell`. The files that moved were all updated; this
+ * one merely described them, which is how the claim survived.
  *
  * Its own tiny store rather than a field on `appStore`: a tutorial session is transient UI state, and
  * putting it in the persisted blob would mean a migration plus the risk of a half-finished walkthrough
