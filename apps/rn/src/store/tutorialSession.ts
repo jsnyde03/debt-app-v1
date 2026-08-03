@@ -156,9 +156,13 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
     const amount = Math.max(25, Math.round((held || 100) * 0.8));
 
     storyTimers.push(
+      // The surprise lands first, on its own, so the user sees the net absorb it before anything else
+      // moves. `scriptSurprise` is the same producer the payday check-in uses.
       setTimeout(() => {
         if (tutorialSession.getState().sandbox === sandbox) scriptSurprise(sandbox, amount);
       }, 900),
+      // …then three paydays close properly — each one CHECKED IN and rolled (3.5.3.5.6), which is what
+      // stops the story from leaving the taught plan in arrears.
       setTimeout(() => {
         if (tutorialSession.getState().sandbox === sandbox) runBeats(sandbox, TUTORIAL_MAX_CYCLES);
       }, 2100),

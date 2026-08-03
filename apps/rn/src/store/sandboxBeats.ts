@@ -58,7 +58,22 @@ export function scriptSurprise(store: SandboxStoreInstance, amount: number): voi
  * Reads the held-state before and after so a beat can say "still held" / "just released" without
  * inspecting store internals. The release itself is produced inside `applyRollover`; this only observes.
  */
-export function advanceSandboxCycle(store: SandboxStoreInstance): BeatResult {
+export function advanceSandboxCycle(store: SandboxStoreInstance, surprise?: number): BeatResult {
+  // 3.5.3.5.6 — CHECK IN, then roll. A payday in the real app is two moves: `capturePayday` records what
+  // happened (bills and minimums settled, income recorded, any surprise reported), and only then does
+  // `rolloverPayCycle` close the cycle. This used to call the roll alone, which is not a payday — it is
+  // a payday nobody attended. Three scripted rolls of that left the taught plan reading "Overdue
+  // payments need attention" with the debt-free date pushed eight months out: the walkthrough's own
+  // story was making the example plan visibly worse while narrating the Guardian looking after it.
+  //
+  // Settling everything is the honest script here: this is a user who paid their bills, which is exactly
+  // the case the beat is about. The surprise rides in as `actuals` — the same door the payday check-in
+  // uses — rather than being written separately, so the whole beat now goes through one real path.
+  const s0 = store.getState().store;
+  store.getState().capturePayday([], {
+    expensePaid: Object.fromEntries(s0.requiredExpenses.map((e) => [e.id, true])),
+    debtPaid: Object.fromEntries(s0.debts.map((d) => [d.id, true])),
+  }, surprise ? { surpriseOutflow: { cycleEndDate: s0.paycheck.nextPaycheckDate, amount: surprise } } : undefined);
   store.getState().rolloverPayCycle();
 
   const s = store.getState().store;
@@ -77,8 +92,11 @@ export function advanceSandboxCycle(store: SandboxStoreInstance): BeatResult {
  * Run a whole scripted sequence and hand back every beat, so a caller can drive the arc without
  * managing the loop. Deterministic: same sandbox + same script ⇒ same beats.
  */
-export function runBeats(store: SandboxStoreInstance, beats: number): BeatResult[] {
+export function runBeats(store: SandboxStoreInstance, beats: number, surprise?: number): BeatResult[] {
   const out: BeatResult[] = [];
-  for (let i = 0; i < beats; i++) out.push(advanceSandboxCycle(store));
+  // The surprise belongs to the FIRST payday only — it's one unexpected bill, not a recurring one, and
+  // repeating it every cycle would be the engine absorbing three surprises rather than telling the story
+  // of one net doing its job.
+  for (let i = 0; i < beats; i++) out.push(advanceSandboxCycle(store, i === 0 ? surprise : undefined));
   return out;
 }

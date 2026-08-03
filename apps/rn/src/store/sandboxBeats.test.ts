@@ -1,3 +1,4 @@
+import { selectPaydayGuardian } from '@/store/guardianSelectors';
 import { deriveConfidenceContext } from '@/store/guardianPredictionCore';
 import { advanceSandboxCycle, runBeats, scriptSurprise, TUTORIAL_MAX_CYCLES } from '@/store/sandboxBeats';
 import { personaScenario } from '@/store/sandboxScenarios';
@@ -95,6 +96,25 @@ function run() {
   const a = runBeats(tutorialSandbox(), 4);
   const b = runBeats(tutorialSandbox(), 4);
   assert(JSON.stringify(a) === JSON.stringify(b), 'a scripted sequence is byte-identical across runs');
+
+  // ── 3.5.3.5.6 — a scripted payday must be a payday that was ATTENDED. ─────────────────────────
+  // The beats used to roll without checking in, which is not a payday — it's a payday nobody turned up
+  // to. Three of those left the taught plan reading "Overdue payments need attention" with the debt-free
+  // date months later: the walkthrough's own story quietly degrading the example it was teaching on.
+  // Nothing threw, and every assertion above still passed, which is exactly why this one exists.
+  const attended = tutorialSandbox();
+  const before = selectPaydayGuardian(attended.getState().store)?.state;
+  runBeats(attended, TUTORIAL_MAX_CYCLES, 120);
+  const after = attended.getState().store;
+  eq(before, 'clear', 'the story opens on a clear paycheck');
+  assert(
+    selectPaydayGuardian(after)?.state !== 'at-risk',
+    '…and three scripted paydays never leave the taught plan at risk',
+  );
+  assert(
+    !after.requiredExpenses.some((e) => e.autopayFailedThisCycle),
+    '…with nothing left flagged as a failed/unattended obligation',
+  );
 
   console.log(`✅ sandbox beats: ${passed} assertions passed.\n`);
 }
