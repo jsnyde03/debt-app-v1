@@ -1574,3 +1574,40 @@ All now anchor to the run date.
 **Ledger left open:** VoiceOver end-to-end (device, Phase 6) · the iPad coaching dock spanning the full
 canvas (→ 3.5.3.7 as +7.7) · `runBeats`' `surprise` parameter still has no production caller (→ 3.5.4's
 demo should use it, or it goes).
+
+## 3.5.3.6 — the E1 hand-back finale — ✅ COMPLETE (2026-08-02, `e17b707`)
+
+**This beat is where [D9] is either honest or a lie.** The walkthrough shows every audience a premium
+Guardian, and the `PremiumInvite` doesn't render during a session — so the finale carries 100% of the
+conversion framing, and it is the only thing standing between the run and "free dressed as premium".
+
+**The line, per audience.** A free user is told plainly that *premium* is what held the line
+automatically every payday, that their own card shows the same honest read, and that deciding what to
+hold stays theirs. A premium user is told their Guardian does exactly this with their real paycheck, all
+on their device — and is never sold what they already pay for.
+
+**One resolver, deliberately.** `bodyByRun` is read through a single `stepBody()` used by BOTH the
+rendered copy and the announcement. Two separate lookups is precisely how a VoiceOver user ends up being
+read the premium line off a free screen, and that class of drift has already cost this phase a dropped
+announcement.
+
+**The crossfade** keys `Motion` on `isExample`, so sandbox → their own money is a deliberate fade rather
+than a jump-cut, and nothing at all under Reduce Motion. The spotlight is released on unmount so a later
+session can't paint a ring at the previous one's coordinates before its own measure lands.
+
+**Verified end to end, and this is the bit that matters:** the free hand-back lands on a card showing
+**Cushion $50 against a $200 line — visibly NOT held** — with the invitation naming exactly why. The gap
+is real, visible, and explained. That is what makes it a paywall rather than a bait-and-switch, and it
+is what E1 described from the start.
+
+**Guards:** the e2e asserts both audiences (including that premium is never sold to a premium user); the
+unit suite pins the ANNOUNCEMENT parity, which no e2e can — `announceForAccessibility` is a no-op in
+react-native-web, so a divergence between spoken and shown copy would be invisible to every other test
+in the repo.
+
+### After-scan → filed to 3.5.3.7
+- The finale's dock runs to six lines of body and takes roughly 40% of the screen. Correct content,
+  but it makes the coached card a strip above it — worth weighing against the dock/control-hierarchy
+  criteria rather than treating the copy as untouchable.
+- The free hand-back's contrast ($50 cushion under a $200 line) is stark by design. Worth a deliberate
+  look during the feel pass: it should read as honest, never as punitive.
