@@ -1611,3 +1611,46 @@ in the repo.
   criteria rather than treating the copy as untouchable.
 - The free hand-back's contrast ($50 cushion under a $200 line) is stark by design. Worth a deliberate
   look during the feel pass: it should read as honest, never as punitive.
+
+## 3.5.3.7 — the premium-feel pass — ✅ COMPLETE (2026-08-02, `98ef579`)
+
+**Why this item existed at all:** Jason, seeing the arc come together — *"the tutorial has to hit the
+bar."* Every scan before it had tested CORRECTNESS. None had asked whether the thing feels like Debt,
+and the honest answer was no: correct and clear, but generic — a tooltip library bolted onto a premium
+app. Naming the six gaps against *what Debt already does* (rather than against taste) is what made it
+buildable rather than a matter of opinion.
+
+**What shipped**
+- **[D11] the dock is frosted** — the app's own `SheetScrim` idiom (BlurView + a light dim), the same
+  material as the tab bar and every sheet. It had been the one floating surface in the app that wasn't.
+  Dock ONLY: frosting the scrim bands too would have put five BlurViews on screen and risked softening
+  the single thing that must stay crisp.
+- **A hairline progress rail.** "Step 3 of 7" made the arc's length something you had to read; the rail
+  makes it something you glance at. No counter animation, nothing that reads as gamification.
+- **Control hierarchy.** Back / Next / Skip sat in a row as equals, so the way OUT was as loud as the way
+  ON. Next leads, Back is a quiet link beside it, Skip is pushed to the far edge and dimmed — reachable
+  the instant you want it, never where your eye lands.
+- **[D12] haptics** — a light tick as each beat lands; a MEDIUM at the two moments the user actually
+  caused something (the floor saved, the net released). The AHAP crescendo stays reserved for the last
+  debt: spending the signature of "you paid off your final debt" on finishing a walkthrough would
+  devalue it exactly where it matters.
+- **The ring fades in on arrival.** "Travelling spotlight", taken literally, contradicted a deliberate
+  3.5.3.3.1 decision — a ring sliding across unrelated content on its way reads as a glitch, not motion.
+  Resolved as: hidden in transit, animated in when it lands. No flicker, no skating. Worth recording as a
+  case where two good intentions conflicted and the resolution was neither one taken literally.
+- **The dock is width-capped on the roomy layout**, having run the full iPad canvas edge-to-edge — a web
+  banner beside an app of centred columns.
+
+**Verified by looking, both themes at parity:** content behind now bleeds through the dock, the rail
+reads at a glance, and Next/Back/Skip have an obvious order.
+
+**⏳ Device-owed:** the haptics. Neither web nor the simulator can feel them, so their actual weight —
+whether the medium beats land as emphasis or as noise — is a Phase-6 judgement. The code-addressable
+part is done, which is the standing split.
+
+### After-scan
+- The frost is a **new BlurView on a surface that renders over live content**; blur cost and appearance
+  on device are a real Phase-6 check (the same one the tab bar and `SheetScrim` already carry).
+- **Some of the "premium feel" gap turned out to be unfinished correctness, not missing decoration** —
+  3.5.3.5.9's scrim fix improved the feel more than any styling here did. Worth carrying into the audit
+  gate's premium-bar lens: ask what is *unfinished* before asking what is *undecorated*.
