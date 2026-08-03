@@ -1387,3 +1387,46 @@ correctness-vs-feel gap Jason named the same day, demonstrated inside a single l
 
 _Both are filed as 3.5.3.5.5 / .5.6. Neither is deferrable: the beat currently passes its tests and fails
 its user._
+
+## 3.5.3.5.7 — overlay hoisted to the root — ✅ COMPLETE (2026-08-02, `7725105`)
+
+**The move:** the coaching overlay rendered inside the Today screen, so its scrim could only ever cover
+what that screen occupies. On the iPad regular layout the tab bar becomes a sidebar RAIL owned by the
+navigator — so it sat fully lit beside a dimmed screen. It now mounts at the ROOT layout, above
+everything, and the screenshot confirms the rail dims with the rest of the canvas.
+
+`TutorialShell` is the whole seam, and deliberately nothing more: the SCREEN knows where the beat's
+subject is (it owns the scroller and the target registry), the OVERLAY knows how tall its dock is, and
+each needs the other's answer.
+
+**Mounting it in the TABS layout was the obvious step and was wrong.** Wrapping `<Tabs>` in a container
+View to make room for a sibling broke tab presses outright. The root layout already provides a flex
+container and needs no wrapper around the navigator. ⚠️ Today itself did NOT move — 3.5.3.1 put the
+walkthrough inside the tabs because hosting a COPY of Today in a Stack route lands a detached tab group
+(a blank screen on device, Freedom RN lesson #7). Only the overlay view is hoisted.
+
+**`startTutorial` now navigates to Today itself.** All three callers already did, but by convention —
+and once the overlay mounts above the navigator, a caller that forgot would coach the user over Money.
+Same lesson as the dropped `announce`: put the behaviour where it cannot be left out.
+
+### The BNPL failures — a time bomb, not a regression
+
+Two BNPL specs failed with *"subtree intercepts pointer events"* immediately after the hoist, which read
+exactly like a restructure regression. **Stashing to the committed baseline reproduced it**, which is
+what ruled the hoist out — worth the two minutes, because the next step would have been unpicking good
+work. The real cause: the fixture pinned `nextPaycheckDate: '2026-08-01'`, a date the real clock passed
+overnight. A payday in the past is a LANDED payday, so Today auto-opened the payday-capture sheet and its
+backdrop covered the tab bar.
+
+A sweep found **nine more specs queued to fail the same way on 2026-09-01**, and `guardian.spec` on
+2026-08-07. All now anchor to the run date through a shared `day()` helper whose doc-comment records the
+failure mode, so the next author doesn't re-arm it. A suite that starts failing on a calendar date is
+worse than one that fails honestly: it burns the debugging on the wrong suspect.
+
+### After-scan → filed forward
+- **3.5.3.5.9 (new):** the interactive beats remove the scrim ENTIRELY, so every control on screen is
+  live — including More, which pushes a route mid-walkthrough. The plan has promised "passes touches
+  through to the target only" since 3.5.3 was written; that was never what shipped. The cutout geometry
+  already exists, so the fix is to keep the scrim and cut a real hole at the spotlight rect.
+- **3.5.3.7 +7.7:** on iPad the coaching dock now spans the full canvas edge-to-edge, which reads
+  unconstrained beside a width-capped app.
