@@ -34,8 +34,18 @@ import { createDebtStore, type DebtAppState, type DebtStoreInstance } from './st
  *
  * Because a sandbox IS a `DebtStoreInstance`, every existing pure selector (`selectPaydayGuardian`,
  * `selectRecoveryPlan`, …) and every store action works against it verbatim — the tutorial drives the
- * REAL engine, so what it teaches is what the user's own Guardian will do. Read it in React via
- * `useSandboxStore` (the sandbox-bound peer of `useAppStore`).
+ * REAL engine, so what it teaches is what the user's own Guardian will do.
+ *
+ * Read it in React with zustand's own `useStore(sandbox, selector)`. There was a `useSandboxStore`
+ * wrapper here; [E2] retired it. It had no production consumer, its stated reason for existing
+ * ("`useAppStore` is hardwired to the singleton") stopped being true at 3.5.3.0 when `StoreContext`
+ * made the store injectable, and — worst — its usage example demonstrated a fresh-object selector,
+ * the exact pattern this repo has recorded as an infinite re-render that took the whole screen down.
+ * A dead example that teaches a known crash is worse than no example.
+ *
+ * ⚠️ Select the store BLOB and derive with `useMemo`; never return a fresh object from the selector:
+ *   const store = useStore(sandbox, (s) => s.store);
+ *   const guardian = useMemo(() => selectPaydayGuardian(store), [store]);
  *
  * Ephemeral: nothing subscribes to a sandbox except React, which unsubscribes on unmount, so the
  * instance is garbage-collected with the screen. There is no dispose step.
@@ -93,6 +103,15 @@ export function boundSandboxStore(baseDate: string, maxGenuineCycles = SANDBOX_M
     const inputsAsOf = store.paycheck.currentDate;
     // Day one never moves, however many cycles are scripted.
     const onboardedAt = store.onboardedAt === null ? null : baseDate;
+    // [B2] A sandbox never raises a MILESTONE. The scripted paydays pay real minimums, and the persona
+    // seeds at 24.67% paid — so the first roll crosses the 25% mark and `applyRollover` queues a
+    // milestone. Today's ack slot ranks milestone ABOVE reserve-release, so the celebration would evict
+    // the beat's own payoff: the ack the spotlight is aiming at never mounts, the target measures null,
+    // and on an interactive beat that also means no scrim renders at all — payoff missing AND screen
+    // unguarded. Suppressed here rather than by re-ranking the ack slot, because the honest statement is
+    // "scripted example money did not achieve a real milestone", which is the same class of claim as the
+    // cycle-count and history ceilings this function already enforces.
+    const pendingMilestone = null;
 
     // Identity-preserving when nothing was out of bounds — avoids pointless re-renders on every set.
     if (
@@ -101,11 +120,12 @@ export function boundSandboxStore(baseDate: string, maxGenuineCycles = SANDBOX_M
       incomeActualsLog === store.incomeActualsLog &&
       surpriseOutflowLog === store.surpriseOutflowLog &&
       inputsAsOf === store.inputsAsOf &&
-      onboardedAt === store.onboardedAt
+      onboardedAt === store.onboardedAt &&
+      pendingMilestone === store.pendingMilestone
     ) {
       return store;
     }
-    return { ...store, genuineCycleCount, cycleHistory, incomeActualsLog, surpriseOutflowLog, inputsAsOf, onboardedAt };
+    return { ...store, genuineCycleCount, cycleHistory, incomeActualsLog, surpriseOutflowLog, inputsAsOf, onboardedAt, pendingMilestone };
   };
 }
 

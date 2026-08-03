@@ -2,6 +2,12 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    // The `*.test.ts` files are node scripts run by tsx, not RN modules — `tutorialPath.test.ts` reads
+    // source files off disk to assert the arc, so it needs `node:fs`, `node:path` and `__dirname`.
+    // Without this `npm run typecheck` was red on master with 3 errors, which is the worst state for a
+    // gate to be in: a permanently-failing check trains everyone to skip reading its output, and a real
+    // regression hides in the noise. Expo's base config leaves `types` unset for RN, so name it here.
+    "types": ["node"],
     "paths": {
       "@core/*": ["./core/*"],
       "@/*": ["./src/*"]

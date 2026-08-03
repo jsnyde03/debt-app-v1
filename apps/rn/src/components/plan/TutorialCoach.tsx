@@ -48,6 +48,7 @@ export function TutorialCoach() {
       isLast={last}
       run={run}
       spotlight={shell.spotlight}
+      settling={shell.settling}
       onDockLayout={shell.setDockH}
       impact={shell.impact}
       onBack={index > 0 ? () => goTo(prevIndex(index)) : undefined}

@@ -24,6 +24,12 @@ interface TutorialShell {
   /** Where the current beat's subject landed, in window coordinates. Published by the screen. */
   spotlight: TargetRect | null;
   setSpotlight(rect: TargetRect | null): void;
+  /** [D4] Is a stage-scroll in flight? `spotlight` is null both while the subject TRAVELS and when it
+   *  doesn't exist at all, and the overlay owes those two cases opposite scrims — so the screen has to
+   *  say which null this is. Carried as its own boolean rather than folded into `spotlight` so the ~6
+   *  rect consumers keep their existing shape. */
+  settling: boolean;
+  setSettling(settling: boolean): void;
   /** The coaching dock's measured height — the screen needs it to know where the usable stage ends. */
   dockH: number;
   setDockH(height: number): void;
@@ -37,11 +43,12 @@ const TutorialShellContext = createContext<TutorialShell | null>(null);
 
 export function TutorialShellProvider({ children }: { children: ReactNode }) {
   const [spotlight, setSpotlight] = useState<TargetRect | null>(null);
+  const [settling, setSettling] = useState(false);
   const [dockH, setDockH] = useState(0);
   const [impact, setImpact] = useState<TutorialShell['impact']>(null);
   const value = useMemo(
-    () => ({ spotlight, setSpotlight, dockH, setDockH, impact, setImpact }),
-    [spotlight, dockH, impact],
+    () => ({ spotlight, setSpotlight, settling, setSettling, dockH, setDockH, impact, setImpact }),
+    [spotlight, settling, dockH, impact],
   );
   return <TutorialShellContext.Provider value={value}>{children}</TutorialShellContext.Provider>;
 }

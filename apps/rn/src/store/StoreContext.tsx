@@ -45,14 +45,33 @@ export function StoreProvider({ store, children }: { store: DebtStoreInstance; c
 function useNoRealWritesGuard(store: DebtStoreInstance) {
   useEffect(() => {
     if (store === appStore) return; // the real app: nothing to guard against
-    const before = appStore.getState().store;
+    let before = appStore.getState().store;
     const unsubscribe = appStore.subscribe((state) => {
-      if (state.store !== before) {
-        reportError(new Error('Real store mutated while a sandbox subtree was mounted'), {
-          seam: 'StoreProvider',
-          hint: 'a component inside the subtree is still writing via appStore instead of useActiveStore()',
-        });
-      }
+      if (state.store === before) return;
+      // [B3] Compare FIELD BY FIELD, ignoring the walkthrough's own resume bookkeeping.
+      //
+      // The guard used to fire on any change to the store blob, against a `before` captured once at
+      // mount. But the walkthrough legitimately persists its position to the REAL store on every step
+      // (`prefs.tutorialStep`, and `tutorialSeen` on finish) — that is resume state, and it has to
+      // outlive the sandbox. So the guard reported on the first Next tap and, because `before` never
+      // advanced, on every emission afterwards. It was 100% noise: dev-only console spam today, and
+      // production error spam the moment Sentry is wired at Phase 6 — with a real sandbox-write bug
+      // indistinguishable inside it. A backstop that always fires guards nothing, and it hollowed out
+      // the plan's own "the real plan provably untouched".
+      //
+      // What is actually forbidden is the user's PLAN moving: money, debts, bills, the cushion line.
+      // Prefs are the one channel the tutorial is entitled to write, so they're excluded and the
+      // baseline advances — leaving a single, meaningful signal.
+      const { prefs: _prevPrefs, ...prevPlan } = before;
+      const { prefs: _nextPrefs, ...nextPlan } = state.store;
+      before = state.store;
+      const changed = (Object.keys(nextPlan) as (keyof typeof nextPlan)[]).filter((k) => nextPlan[k] !== prevPlan[k]);
+      if (changed.length === 0) return;
+      reportError(new Error('Real store mutated while a sandbox subtree was mounted'), {
+        seam: 'StoreProvider',
+        hint: 'a component inside the subtree is still writing via appStore instead of useActiveStore()',
+        fields: changed.join(','),
+      });
     });
     return unsubscribe;
   }, [store]);

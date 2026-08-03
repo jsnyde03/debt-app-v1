@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { appStore } from '@/store/appStore';
 import { resumeIndex } from '@/store/tutorialPath';
 import { tutorialSession } from '@/store/tutorialSession';
-import type { TutorialRun } from '@/store/tutorialSelectors';
+import { tutorialRunFor, type TutorialRun } from '@/store/tutorialSelectors';
 
 /**
  * 3.5.3.1 — the tutorial LAUNCHER.
@@ -23,8 +23,10 @@ export default function TutorialLauncher() {
 
   useEffect(() => {
     const real = appStore.getState().store;
+    // [F] An explicit `?run=` param wins (deep links and the e2e pin a run); otherwise ask
+    // `tutorialRunFor`, which is the one definition of who gets which walkthrough.
     const run: TutorialRun =
-      params.run === 'premium' ? 'premium' : params.run === 'free' ? 'free' : real.subscriptionPlan === 'premium' ? 'premium' : 'free';
+      params.run === 'premium' ? 'premium' : params.run === 'free' ? 'free' : tutorialRunFor(real);
 
     tutorialSession.getState().start(real, run, resumeIndex(real.prefs.tutorialStep));
 

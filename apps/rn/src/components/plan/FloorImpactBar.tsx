@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useReduceMotion } from '@/motion';
-import { duration } from '@/theme/motion';
+import { spring } from '@/theme/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
@@ -42,9 +42,16 @@ export function FloorImpactBar({
   const beforeFrac = Math.min(1, before / scale);
   const afterFrac = Math.max(0, Math.min(1, after / scale));
 
+  // [D4] A SPRING, not a timing curve. `theme/motion.ts` opens with "spring physics over easing (except
+  // colour fades)", and this was a `withTiming` — so the one moment in the walkthrough that exists to
+  // make the user's own action feel consequential moved with a linear-feeling ease while every other
+  // travelling element in the app has weight. Reduce Motion still snaps, as before.
+  //
+  // Not `useSpringValue`, though it's the same spring: that hook initialises AT its target, and the
+  // whole point here is to start at `beforeFrac` and travel to `afterFrac` — the journey IS the payoff.
   const w = useSharedValue(reduce ? afterFrac : beforeFrac);
   useEffect(() => {
-    w.value = reduce ? afterFrac : withTiming(afterFrac, { duration: duration.default });
+    w.value = reduce ? afterFrac : withSpring(afterFrac, spring.default);
   }, [afterFrac, reduce, w]);
   const fill = useAnimatedStyle(() => ({ width: `${w.value * 100}%` }));
 

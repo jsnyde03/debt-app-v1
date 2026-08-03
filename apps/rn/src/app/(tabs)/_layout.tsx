@@ -25,9 +25,10 @@ export default function TabsLayout() {
   const scheme = useColorScheme();
   const { isRegular } = useLayout();
   // 3.5.3.3.1 — a walkthrough must not lose the user to another tab. The overlay's scrim now covers the
-  // whole canvas (3.5.3.5.7), so this is defence in depth rather than the only guard — but it still
-  // earns its place: on the INTERACTIVE beats the scrim is deliberately off so taps can reach the real
-  // control, and without this a stray tap on the bar would leave mid-beat. Skip is always right there.
+  // whole canvas (3.5.3.5.7) on every beat including the interactive ones (3.5.3.5.9), so this is
+  // defence in depth rather than the only guard. It still earns its place: the scrim renders nothing at
+  // all on an interactive beat whose subject never measured, and that is precisely the degraded state in
+  // which a stray tab tap would strand the user mid-beat. Skip is always right there.
   const inTutorial = useTutorialSession((s) => s.active);
   const holdTabs = { tabPress: (e: { preventDefault(): void }) => { if (inTutorial) e.preventDefault(); } };
 

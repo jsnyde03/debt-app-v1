@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
-import { StyleSheet, Text, View, useWindowDimensions, type ScrollView, type ScrollViewProps } from 'react-native';
+import { PixelRatio, StyleSheet, Text, View, useWindowDimensions, type ScrollView, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MoreButton } from '@/components/more-button';
@@ -13,7 +13,8 @@ import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
 import { MilestoneAckCard } from '@/components/plan/MilestoneAckCard';
 import { TutorialInviteCard } from '@/components/plan/TutorialInviteCard';
-import { markTutorialSeen, selectTutorialInvite } from '@/store/tutorialSelectors';
+import { markTutorialSeen, selectTutorialInvite, tutorialRunFor } from '@/store/tutorialSelectors';
+import { announce } from '@/utils/a11y';
 import { PaidOffFinale } from '@/components/plan/PaidOffFinale';
 import { VanquishedBeat } from '@/components/plan/VanquishedBeat';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
@@ -41,7 +42,7 @@ import { TutorialTarget, TutorialTargetsProvider } from '@/store/tutorialTargets
 import { useTutorialShell } from '@/store/tutorialShell';
 import { useSpotlight } from '@/hooks/use-spotlight';
 import { startTutorial, tutorialSession, useTutorialSession } from '@/store/tutorialSession';
-import { TUTORIAL_STEPS } from '@/store/tutorialPath';
+import { INTERACTIVE_STEP_IDS, TUTORIAL_STEPS } from '@/store/tutorialPath';
 import type { DebtStoreInstance } from '@/store/store';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
 import { selectBillsAttestation, selectBnplBetweenPaycheck, selectGuardianProofOfWork, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
@@ -62,8 +63,23 @@ import type { Debt } from '@/data/models';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
-/** `Screen`'s title header — the top of the region a coached subject is scrolled into. */
-const HEADER_H = 56;
+/**
+ * `Screen`'s title header — the top of the region a coached subject is scrolled into.
+ *
+ * [B4] Scaled by the user's text size rather than fixed at 56. The header's title grows with Dynamic
+ * Type; the constant did not, so at large sizes `stageTop` pointed part-way UP into the header and a
+ * subject "scrolled into the stage" could come to rest behind it — the exact failure the stage exists to
+ * prevent, appearing only for the users who most need the coaching to be legible.
+ *
+ * Deliberately an approximation, and deliberately biased to OVER-estimate: guessing the header too tall
+ * parks the subject slightly lower than necessary, which is invisible; guessing it too short hides the
+ * subject, which is the bug. Measuring the real header would mean threading a layout callback out of the
+ * shared `Screen` component for every screen in the app to serve one overlay — a poor trade for the
+ * precision it would buy, given the stage is a band and not a pixel.
+ */
+function headerHeight(): number {
+  return 56 * Math.min(2, Math.max(1, PixelRatio.getFontScale()));
+}
 
 /** 3.5.3.0 — module-level, so the acting store is PASSED in rather than reached for. */
 function handleMark(store: DebtStoreInstance, row: RequiredRow, paid: boolean) {
@@ -273,7 +289,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               // Withheld on example money: "How this works" restarts the walkthrough, and offering that
               // FROM INSIDE the walkthrough is both incoherent and — on an interactive beat, where taps
               // pass through — a live way to re-enter a session you're already in.
-              onReplayTutorial={isExample ? undefined : () => startTutorial(isPremium ? 'premium' : 'free')}
+              onReplayTutorial={isExample ? undefined : () => startTutorial(tutorialRunFor(store))}
               // 3.5.3.4.2 — the beat's own guidance, carried into the modal it sends the user into.
               coachLine={isExample ? coachLine : undefined}
               // 3.5.3.4.4 — snapshot the read BEFORE the write: once the store re-solves, the "before"
@@ -416,7 +432,11 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
         </TutorialTarget>
       ) : null}
 
+      {/* [B1] Also a spotlightable payoff: on beat 4 this ack IS the lesson ("a surprise proved
+          otherwise, so I put the net back"), and it renders at the top of Today far from the control
+          that produced it. */}
       {reserveWalkback && activeAck === 'reserve-walkback' ? (
+        <TutorialTarget id="today-ack">
         <Card tone="accent" style={styles.ack}>
           <View style={styles.ackRow}>
             <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
@@ -426,6 +446,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
           </View>
           <Button label="Got it" variant="text" onPress={() => store_.getState().acknowledgeReserveWalkback()} />
         </Card>
+        </TutorialTarget>
       ) : null}
 
       {intentRollback && activeAck === 'intent' ? (
@@ -578,6 +599,7 @@ const styles = StyleSheet.create({
   promptCta: { alignSelf: 'stretch', marginTop: spacing.sm },
   nudge: { gap: spacing.md },
   nudgeBtn: { alignSelf: 'stretch' },
+  flex: { flex: 1 },
   trust: { textAlign: 'center', marginTop: spacing.xs },
   ack: { gap: spacing.xs },
   ackRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
@@ -633,6 +655,8 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   const dockH = shell?.dockH ?? 0;
 
   const step = TUTORIAL_STEPS[index];
+  // [C3] Scripted beats fence the screen off for touch; the a11y tree has to match.
+  const interactive = INTERACTIVE_STEP_IDS.includes(step.id);
 
   // 3.5.3.4.4 — the payoff, computed by comparing the snapshot taken at the write against the plan the
   // sandbox re-solved to. Null until the user actually moves their line, so the beat opens as an
@@ -659,12 +683,21 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // 3.5.3.5.5 — once a beat's story has paid off, the spotlight FOLLOWS the result. Asked of the engine's
   // own selector on the sandbox — the same one Today renders the ack from — rather than of a flag the
   // tutorial sets, so the highlight can't claim a payoff the screen isn't showing.
-  const payoffShowing = !!selectReserveRelease(sandboxStore);
+  // [B1/B2] EITHER ack counts as the payoff. Beat 4's story produces two in sequence — the walk-back
+  // when the surprise proves the bills weren't complete, then the release three paydays later — and a
+  // spotlight that only tracked the release left the first one unspotlit and off-screen. [B2] also has
+  // the milestone ack outranking both, so `pendingMilestone` is suppressed for the sandbox at source
+  // rather than papered over here.
+  const payoffShowing = !!selectReserveRelease(sandboxStore) || !!selectReserveWalkback(sandboxStore);
   const targetId = (payoffShowing && step.payoffTarget) || step.target || null;
 
-  const spotlight = useSpotlight({
+  // Destructured, never held as the object: `useSpotlight` returns a fresh one each render, and the
+  // publish effect below depends on what it returns. Passing the object straight through would re-fire
+  // that effect every render and re-render the shell — the same fresh-value re-render loop that took the
+  // whole tutorial suite down at 3.5.3.2.
+  const { rect: spotlight, settling } = useSpotlight({
     targetId,
-    stageTop: insets.top + HEADER_H,
+    stageTop: insets.top + headerHeight(),
     stageBottom: screenH - dockH - spacing.sm,
     scrollRef,
     offsetRef,
@@ -679,7 +712,26 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // Publish what only this screen can know. Effects rather than render-time calls: setting a parent's
   // state during a child's render is the classic React warning, and here it would fire on every measure.
   const setSpotlight = shell?.setSpotlight;
+  const setSettling = shell?.setSettling;
   const setImpact = shell?.setImpact;
+  // [C2] Announce the PAYOFF, not just the beat. There was exactly one `announce()` in the whole
+  // tutorial path — the per-beat one — so beat 4's scripted story (a surprise absorbed, three paydays
+  // rolled, an ack appearing at the TOP of the screen) produced nothing at all for a VoiceOver user.
+  // A sighted user gets the scroll-up and the ring moving; they got silence and no reason to go looking.
+  // Same failure as the shipped silent walkthrough, one level down: per-beat announced, per-EVENT not.
+  const ackText = useStore(sandbox, (s) => {
+    const release = selectReserveRelease(s.store);
+    if (release) {
+      return release.tapped
+        ? `Your safety net covered about $${Math.round(release.covered)} while your Guardian learned your bills. It is now going to work on ${release.targetName}.`
+        : `Your safety net is free — it is now going to work on ${release.targetName}.`;
+    }
+    return selectReserveWalkback(s.store) ? 'A surprise bill came up — your Guardian has restored your safety net for now.' : null;
+  });
+  useEffect(() => {
+    if (ackText) announce(ackText);
+  }, [ackText]);
+
   useEffect(() => {
     setSpotlight?.(spotlight);
     // 3.5.3.6.1 — release it on the way out. The overlay stops rendering when the session ends, so a
@@ -688,17 +740,32 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     return () => setSpotlight?.(null);
   }, [setSpotlight, spotlight]);
   useEffect(() => {
+    setSettling?.(settling);
+    return () => setSettling?.(false);
+  }, [setSettling, settling]);
+  useEffect(() => {
     setImpact?.(impact);
   }, [setImpact, impact?.before, impact?.after, impact?.freed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <StoreProvider store={sandbox}>
+      {/* [C3] The scrim blocks TOUCH but nothing blocked the accessibility tree — no
+          `accessibilityViewIsModal` existed anywhere in src — so a VoiceOver user could swipe through
+          everything a sighted user is deliberately fenced out of, including More. On a scripted beat the
+          coached screen is hidden from the a11y tree entirely (the coaching dock lives above this, at the
+          root, so it stays reachable). On an INTERACTIVE beat it must stay exposed: the whole point is
+          that the user reaches the real control, and a screen reader has to be able to as well. */}
+      <View
+        style={styles.flex}
+        accessibilityElementsHidden={!interactive}
+        importantForAccessibility={interactive ? 'auto' : 'no-hide-descendants'}>
       <TodayContent
         scrollRef={scrollRef}
         onScroll={(e) => {
           offsetRef.current = e.nativeEvent.contentOffset.y;
         }}
       />
+      </View>
     </StoreProvider>
   );
 }

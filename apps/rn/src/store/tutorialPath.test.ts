@@ -83,8 +83,18 @@ function run() {
   // test would notice. Pinning it here is the only place it can be pinned.
   const last = TUTORIAL_STEP_COUNT - 1;
   assert(stepBody(TUTORIAL_STEPS[last], 'free') !== stepBody(TUTORIAL_STEPS[last], 'premium'), 'the finale says something different to each audience');
-  assert(/[Pp]remium is the part/.test(stepBody(TUTORIAL_STEPS[last], 'free')), '…naming, to a FREE user, what premium actually did ([D9] rests on this)');
-  assert(!/[Pp]remium is the part/.test(stepBody(TUTORIAL_STEPS[last], 'premium')), '…and never selling premium to someone who already pays for it');
+  // These matched the literal phrase "premium is the part", which the [A1/A2] copy fix replaced — so the
+  // test failed on a change that made the copy MORE honest, not less. A test that pins wording blocks the
+  // wording audit and pins nothing worth pinning. What [D9] actually rests on is the shape below.
+  const freeFinale = stepBody(TUTORIAL_STEPS[last], 'free');
+  const premiumFinale = stepBody(TUTORIAL_STEPS[last], 'premium');
+  assert(/premium/i.test(freeFinale), '…naming, to a FREE user, that premium is what did it ([D9] rests on this)');
+  assert(!/premium/i.test(premiumFinale), '…and never selling premium to someone who already pays for it');
+  // [A2] and naming ALL THREE premium behaviours the walkthrough demonstrated, not just the holding —
+  // a finale that shows three and credits one is the bait-and-switch [D9] has to avoid.
+  assert(/line/i.test(freeFinale), '…the cushion held at your line');
+  assert(/learn/i.test(freeFinale), '…the extra held while it learns your bills');
+  assert(/catch-up|comes up short/i.test(freeFinale), '…the catch-up plan when a paycheck is short');
   assert(stepAnnouncement(last, 'free').includes(stepBody(TUTORIAL_STEPS[last], 'free')), 'the free announcement carries the free body');
   assert(stepAnnouncement(last, 'premium').includes(stepBody(TUTORIAL_STEPS[last], 'premium')), 'the premium announcement carries the premium body');
   eq(stepBody(TUTORIAL_STEPS[0], 'free'), TUTORIAL_STEPS[0].body, 'a beat with no per-audience copy reads the same to everyone');

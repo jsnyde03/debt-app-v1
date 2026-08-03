@@ -1631,9 +1631,14 @@ buildable rather than a matter of opinion.
   ON. Next leads, Back is a quiet link beside it, Skip is pushed to the far edge and dimmed — reachable
   the instant you want it, never where your eye lands.
 - **[D12] haptics** — a light tick as each beat lands; a MEDIUM at the two moments the user actually
-  caused something (the floor saved, the net released). The AHAP crescendo stays reserved for the last
-  debt: spending the signature of "you paid off your final debt" on finishing a walkthrough would
-  devalue it exactly where it matters.
+  caused something: the floor **saved**, and the bills **attested**. The AHAP crescendo stays reserved
+  for the last debt: spending the signature of "you paid off your final debt" on finishing a walkthrough
+  would devalue it exactly where it matters.
+  - _[E5] Corrected 2026-08-03._ This line said the second medium fired at "the net released". It does
+    not — it fires at the **attestation tap**, which is right: a haptic answers the USER's action, and
+    the release is the app's own scripted consequence three paydays later. The description was wrong,
+    not the code. Worth noting that it was wrong in a *plausible* way, which is how it survived several
+    reads: "the net released" is the beat's memorable moment, so the sentence sounded correct.
 - **The ring fades in on arrival.** "Travelling spotlight", taken literally, contradicted a deliberate
   3.5.3.3.1 decision — a ring sliding across unrelated content on its way reads as a glitch, not motion.
   Resolved as: hidden in transit, animated in when it lands. No flicker, no skating. Worth recording as a

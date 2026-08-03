@@ -81,9 +81,15 @@ export function stepBody(step: TutorialStepDef, run: TutorialRun): string {
  *     promised "what to cover first, and what can safely wait" over a card reading "Nothing here can
  *     safely wait this paycheck" — the scenario had no deferrable bill. Copy that describes a screen it
  *     doesn't match teaches the user to distrust the screen.
- *  2. **True on BOTH tiers.** The Recovery section is premium-gated, so a free user on the Recovery beat
- *     sees the honest shortfall read and an invitation, not a built plan. So the beat promises what the
- *     GUARDIAN does ("it works out what can wait"), never what the user is about to see rendered.
+ *  2. **True of the SANDBOX screen, and reconciled with the tier at the finale.** ⚠️ This rule used to
+ *     read "true on BOTH tiers", on the premise that a free user saw gated beats — an invitation where
+ *     a premium user saw a built Recovery plan. [D9] retired that split: every audience now runs the
+ *     same premium Guardian on scripted money, so all seven beats render identically and there is no
+ *     per-tier screen for the copy to straddle. The obligation moved rather than disappeared, and got
+ *     sharper: the beats describe what the GUARDIAN does, and the FINALE (`bodyByRun`) is the one place
+ *     that says which of it was premium. Vagueness there is what would make [D9] a bait-and-switch.
+ *     Flagged by the [E1–E4] claim-vs-code lens: the [D9] change updated the code and the LOG, not the
+ *     comments in this file that argued for the old shape.
  *
  * Deliberately not word-perfect: the whole-app wording/voice audit polishes every string in one pass
  * ([[don't over-lock wording mid-build]]). These are solid, professional, and honest — that's the bar here.
@@ -92,7 +98,11 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
   // Opens on the card itself rather than on a claim about it — the first thing to establish is that
   // this number is decided BEFORE payoff, which is the one genuinely unfamiliar idea in the app.
   { id: 'intro', title: 'Money set aside first', body: 'Every payday, your Guardian keeps a cushion back before anything extra goes to your debt.', target: 'guardian-card', state: 'clear' },
-  { id: 'bar', title: 'Where this paycheck went', body: 'The bar is the whole paycheck: what stayed as your cushion, and what went to debt.', target: 'guardian-bar', state: 'clear' },
+  // [A3] NOT "the whole paycheck" — the bar's domain is `cushion + deployedToDebt`, i.e. what's left
+  // AFTER bills and minimums. The old line was ~$740 of a $2,000 paycheck with the real figure in the
+  // hero directly above it: a user either builds a wrong model or notices it doesn't add up and stops
+  // trusting the bar. Naming the three zones also covers the "Safety net" segment the old copy ignored.
+  { id: 'bar', title: 'Where this paycheck went', body: 'After your bills and minimums, this is what was left — held back as your cushion and safety net, or sent to your debt.', target: 'guardian-bar', state: 'clear' },
   // "Your line" is the app's own term for the floor, so the beat teaches the word as well as the control.
   // Interactive. Spotlights the CONTROL, not the readout — on a beat where the user has to do something,
   // pointing at the number tells them where to look but not what to do.
@@ -110,15 +120,24 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
   {
     id: 'reserve',
     title: 'A little extra, at first',
-    body: 'While your Guardian is learning your bills it holds a bit more back. Tell it your bills are all in and it holds less — then watch what that net is for.',
+    // [B1] The old line stopped at "it holds less", and then the scripted surprise visibly UNDID that:
+    // `recordSurpriseOutflow` un-attests and restores the full hold, so the net jumped back up and the
+    // control reverted — reading as if the user's tap had silently failed.
+    //
+    // That walk-back is CORRECT behaviour, not a bug: a surprise proves the bills weren't complete after
+    // all, so the Guardian puts the net back. The honest fix is to teach it rather than hide it — this is
+    // the app being protective, which is the whole point of the beat. So the copy now names the full
+    // shape: you say the bills are in, it holds less, a surprise proves otherwise, it restores the net.
+    body: 'While your Guardian is learning your bills it holds a bit more back. Tell it your bills are all in and it holds less — and if a surprise proves otherwise, it puts the net straight back.',
     target: 'guardian-reserve',
     payoffTarget: 'today-ack',
     state: 'clear',
   },
   // The one beat that deliberately puts the card into trouble — the Recovery glimpse. It's also the
   // beat the Example marker was built for: a real-looking shortfall, on figures scaled from their pay.
-  // Says what the GUARDIAN does, not what is about to render: the built plan is premium, so a free user
-  // sees this same shortfall with an invitation instead. Both readings of this sentence are true.
+  // Says what the GUARDIAN does rather than naming the rendered plan. Post-[D9] every audience sees the
+  // built plan here (the sandbox is premium for everyone), so this is no longer straddling two screens —
+  // it is keeping the promise at the level the finale can honestly settle up on.
   { id: 'recovery', title: "When it won't stretch", body: 'Some paychecks come up short. Your Guardian works out what has to be covered now, and what can safely wait.', target: 'guardian-card', state: 'at-risk' },
   // …and back out of trouble deliberately: nobody should be handed back to their own money while the
   // last thing they saw was a red card.
@@ -131,7 +150,20 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
     body: 'That was example money. This is your own paycheck, and your Guardian is already watching it.',
     bodyByRun: {
       premium: 'That was example money — your Guardian does exactly this with your real paycheck, all on your device. Your debts live in Money, your progress in Progress.',
-      free: 'That was example money. Premium is the part that held your line automatically, every payday — your own card shows the same honest read, and you decide what to hold. Your debts live in Money, your progress in Progress.',
+      // [A1/A2] The audit caught two lies in the previous version of this line.
+      //  1. It said "you decide what to hold". A free user CANNOT: `showAdjust` is premium-gated and the
+      //     card's sheet is the only route to `setCushionFloor` in the whole app. It named a capability
+      //     they do not have, in the one beat [D9]'s honesty depends on.
+      //  2. It named only the HOLDING. The walkthrough demonstrates three premium behaviours — holding
+      //     the line, holding extra while the Guardian learns their bills, and building the catch-up
+      //     plan when a paycheck is short. Naming one of three is not naming what premium did.
+      // It also no longer asserts what their own card shows: the invitation is offered to users who have
+      // finished onboarding WITHOUT a paycheck [A4], and those land on "Set up your paycheck", not a card.
+      // Tightened after LOOKING at it: the honest version ran six lines in the dock, which made the one
+      // beat that has to land — the hand-back, where a free user learns what they just saw was premium —
+      // the least readable moment in the arc. Every one of the three behaviours survives; only the words
+      // around them went. (Final polish still belongs to the whole-app wording audit.)
+      free: 'That was example money — premium is what did the holding: your cushion kept at your line, a little extra held while it learns your bills, and a catch-up plan when a paycheck comes up short. Your own plan is next — your debts live in Money, your progress in Progress.',
     },
     target: 'guardian-card',
     state: 'clear',
@@ -142,9 +174,11 @@ export const TUTORIAL_STEP_COUNT = TUTORIAL_STEPS.length;
 
 /**
  * 3.5.3 gate (Jason 2026-07-31) — the TWO beats where the user actually does something; the other five
- * are scripted reveals. On these the overlay stops blocking touches so the real control underneath is
- * reachable, and each must be VoiceOver-OPERABLE, not merely readable — which is precisely why the
- * count is two: every added control multiplies that obligation and the ways a step can trap someone.
+ * are scripted reveals. On these the scrim is CUT AROUND the subject so the real control underneath is
+ * reachable through the hole (3.5.3.5.9 — it used to drop the scrim entirely, which left every other
+ * control on screen live too), and each must be VoiceOver-OPERABLE, not merely readable — which is
+ * precisely why the count is two: every added control multiplies that obligation and the ways a step can
+ * trap someone.
  */
 export const INTERACTIVE_STEP_IDS: string[] = ['line', 'reserve'];
 

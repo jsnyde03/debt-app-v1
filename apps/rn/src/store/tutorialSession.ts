@@ -152,14 +152,25 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
 
     // Sized from the net itself so it is always absorbable, whatever the user's paycheck scaled it to —
     // a surprise that overflowed the net would teach the opposite of this beat's point.
+    //
+    // [E6] …which is what the code claimed and did not do. It was `max(25, round((held || 100) * 0.8))`,
+    // and BOTH halves of that broke the invariant at the small end: the $25 floor exceeds any net under
+    // ~$31, and the `|| 100` fallback scripted an $80 surprise against a net of ZERO. The sandbox scales
+    // from the user's own pay, so a low-income plan lands exactly there — and it fails silently and
+    // convincingly, because the beat still plays; it just shows the net being overrun in the one beat
+    // whose whole point is that the net holds. `min` is the guarantee the comment was always asserting.
     const held = selectPaydayGuardian(sandbox.getState().store)?.heldReserve ?? 0;
-    const amount = Math.max(25, Math.round((held || 100) * 0.8));
+    const amount = Math.min(held, Math.max(25, Math.round(held * 0.8)));
 
     storyTimers.push(
       // The surprise lands first, on its own, so the user sees the net absorb it before anything else
       // moves. `scriptSurprise` is the same producer the payday check-in uses.
+      //
+      // With no net held there is nothing to absorb anything, so the surprise is SKIPPED rather than
+      // scaled to zero — but the rollovers below still run, so the beat degrades to the release story
+      // instead of going inert.
       setTimeout(() => {
-        if (tutorialSession.getState().sandbox === sandbox) scriptSurprise(sandbox, amount);
+        if (amount > 0 && tutorialSession.getState().sandbox === sandbox) scriptSurprise(sandbox, amount);
       }, 900),
       // …then three paydays close properly — each one CHECKED IN and rolled (3.5.3.5.6), which is what
       // stops the story from leaving the taught plan in arrears.

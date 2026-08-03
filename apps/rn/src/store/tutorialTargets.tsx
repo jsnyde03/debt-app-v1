@@ -33,6 +33,13 @@ interface TargetRegistry {
   /** Measure a registered subject in window coordinates. Null when it isn't mounted (a beat can point
    *  at something the current Guardian state doesn't render — the caller degrades, it doesn't crash). */
   measure(id: string): Promise<TargetRect | null>;
+  /** [E5] A registered subject just laid out — its measured rect is stale. See `subscribe`. */
+  invalidate(id: string): void;
+  /** Watch for `invalidate`. Deliberately a listener set held in a ref, NOT React state: this fires on
+   *  every layout of every coached subject for EVERY user, and constraint 1 above says a non-tutorial
+   *  user must pay nothing. A ref write plus a walk of an empty Set is nothing; a `setState` would be a
+   *  re-render of Today on every layout pass. Returns an unsubscribe. */
+  subscribe(listener: (id: string) => void): () => void;
 }
 
 const TutorialTargetsContext = createContext<TargetRegistry | null>(null);
@@ -57,7 +64,21 @@ export function TutorialTargetsProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const value = useMemo(() => ({ register, measure }), [register, measure]);
+  const listeners = useRef(new Set<(id: string) => void>());
+  const invalidate = useCallback((id: string) => {
+    listeners.current.forEach((fn) => fn(id));
+  }, []);
+  const subscribe = useCallback((listener: (id: string) => void) => {
+    listeners.current.add(listener);
+    return () => {
+      listeners.current.delete(listener);
+    };
+  }, []);
+
+  const value = useMemo(
+    () => ({ register, measure, invalidate, subscribe }),
+    [register, measure, invalidate, subscribe],
+  );
   return <TutorialTargetsContext.Provider value={value}>{children}</TutorialTargetsContext.Provider>;
 }
 
@@ -84,9 +105,17 @@ export function TutorialTarget({
   return (
     <View
       ref={(node) => targets?.register(id, node)}
-      // Re-register on layout too: a ref callback fires once at mount, but a subject can move (the card
-      // grows when Recovery appears) and web in particular needs a nudge to re-measure.
-      onLayout={onLayout}
+      // [E5] This used to claim it "re-registers on layout", and did no such thing — it forwarded the
+      // caller's handler and nothing else, so a spotlight only ever re-measured when the beat's own
+      // `revision` key changed. The claim was worth making TRUE rather than deleting: a ref callback
+      // fires once at mount, but a subject genuinely moves afterwards — the Guardian card grows when
+      // Recovery renders, Dynamic Type reflows it, and [B4] an iPad Split View drag re-lays out the whole
+      // screen while the ring stays parked at pre-resize coordinates. Layout is the one signal that
+      // covers all three, so it now invalidates the measurement.
+      onLayout={(e) => {
+        targets?.invalidate(id);
+        onLayout?.(e);
+      }}
       style={style}
       collapsable={false} // else Android may flatten the view away and there's nothing left to measure
     >

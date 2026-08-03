@@ -129,7 +129,7 @@ difference — and the correctness suite stayed green through all of it.
 
 </details>
 
-## H. Fold plan (proposed)
+## H. Fold plan — ✅ ALL OF IT (Jason 2026-08-02: "Everything gets folded in. No backlog. No debt.")
 
 <details open>
 <summary>Ordered by shipping risk, one block, then re-audit</summary>
@@ -147,5 +147,68 @@ Then re-run the lenses that found something. **Consensus is the gate, not the fi
 
 **Device-owed (unchanged, legitimately deferred):** VoiceOver end-to-end · the haptics' real weight ·
 AX3/AX5 layout · whether VO activation under the scrim bands is action-dispatched or touch-synthesized.
+
+</details>
+
+---
+
+## I. Fold outcome — 2026-08-03 · ALL FOLDED
+
+<details open>
+<summary>Every finding closed in one block. Two were closed by <i>correcting the claim</i> rather than the code, and one is deliberately unresolved pending a design call — all three are named below rather than quietly counted as done.</summary>
+
+| ID | Closed by |
+|---|---|
+| A1–A4 | Finale rewritten (names all three premium behaviours, drops "you decide what to hold"); beat-2 bar copy; attribution; plan-less audience. |
+| B1 | Copy names the walk-back; spotlight follows either ack. |
+| B2 | `pendingMilestone` suppressed at the sandbox source, not papered over downstream. |
+| B3 | Guard compares field-by-field excluding `prefs`, and advances its baseline. |
+| B4 | Layout-invalidate subscription (covers Split-View resize + reflow) · dock capped at 60% with a scrolling body and a pinned nav row · `headerHeight()` scales with Dynamic Type · dock carries `insets.bottom`. |
+| C1 | `Slider` gets `accessible` + `text` in its value. |
+| C2 | Payoff acks announced, not just beats. |
+| C3 | Coached screen hidden from the a11y tree on scripted beats. |
+| C4 | Label-in-name fixed on **four** controls (audit flagged one) · Skip and Slider to 44pt · `FormSheet`'s full-screen backdrop removed from the a11y tree · the cushion/net/to-debt **amounts** added to the narrated group — they existed nowhere in the a11y tree before. |
+| D1 | Frost at intensity 70 under a 0.55 tint — a material, not a claim. |
+| D2 | The hole now irises open/closed on the app's own spring. Required splitting the scrim into a visual layer and a hit layer: a travelling band sat over the coached control for the length of its journey, which the e2e surfaced as flakiness and a user would have met as a tap that does nothing. |
+| D3 | Scrim uses the `scrim` token, and the 0.55 multiplier is gone (it would have re-dimmed an already-alpha'd colour to ~0.30). **Verified by screenshot in both themes.** |
+| D4 | Transit keeps the scrim via an explicit `settling` flag — the two kinds of null (travelling vs absent) owe opposite behaviour · `FloorImpactBar` springs · payoff states now have both-theme screenshot coverage. |
+| E1–E3, E5 | Stale claims corrected at all sites, incl. the two contradictory comments in one file, the LOG's haptic mislabel, and the "tap-the-surprise" headline in both plans. `tutorialTargets`' phantom "re-registers on layout" was made **true** instead of deleted — it turned out to be the mechanism B4's resize gap needed. |
+| E6 | Confirmed by arithmetic, not left as SUSPECTED: the `max(25, …)` floor and the `|| 100` fallback both overflowed the net they claimed to size themselves under. Now `min(held, …)`, and no surprise at all when nothing is held. |
+| F | `useSandboxStore` deleted (dead, and its example taught a known crash) · `tutorialRunFor` now the single definition across all three call sites · `publishSandbox` given the exit-gate assertion it was built for, so the channel is live rather than removed. |
+
+### Closed by correcting the claim, not the code
+
+- **E4 — the upgrade re-offer.** The stated reason ("the premium run reaches beats free never does") has
+  been false since [D9] made both runs beat-identical. But *whether* an upgrader should replay all seven
+  beats for one changed paragraph is a decision belonging to the 3.5.1 design gate that set the audience
+  matrix. Behaviour unchanged; the false justification replaced with what is actually true.
+- **F, partially.** `HARNESS_SCENARIO_IDS`, `guardian-line` and the `BeatResult` channel were listed as
+  "built, not called". They are test- and 3.5.5-facing seams with live assertions, not dead code — the
+  audit's label was half right, and deleting them would have removed working capability to satisfy a
+  metric. Recorded rather than acted on.
+
+### ⚠️ Open — needs a call, not a fix
+
+**The Guardian card's stacked text links are ~34–36pt tall** (`Adjust your line`, `See your forecast`,
+`How this works`, the attestation), under the 44pt minimum. Unlike Skip and the Slider — both of which
+grew into space their rows already had — these sit 12pt apart in the flagship card, so `hitSlop` large
+enough to reach 44 makes adjacent targets overlap, and 44pt rows add ~16pt each and change the card's
+vertical rhythm. **That is a visual-design change to a shipped surface**, which is Jason's call, not a
+fold. Everything else in C4 is done.
+
+### Found during the fold, not by the audit
+
+- **`npm run typecheck` was RED on master** — three pre-existing errors in `tutorialPath.test.ts` (node
+  globals absent from `tsconfig`). A permanently-failing gate is worse than no gate: it trains everyone
+  to skip its output, and a real regression hides in the noise. Fixed; typecheck is now clean.
+- **Two tests were pinning the defects.** `tutorialPath.test.ts` asserted the literal phrase A1/A2
+  replaced, and the e2e asserted `you decide what to hold` — *the exact sentence A1 identified as a lie* —
+  was **visible**. The suite could not have caught A1, because it was holding it in place. Both now pin
+  the intent (premium named, all three behaviours present, the lie absent) instead of the wording.
+- **The finale ran six lines** once the honest copy was in. Caught by looking at the render, not the
+  diff. Tightened with all three behaviours intact.
+
+**Gate:** typecheck clean · lint clean · app-layer + scenario suites green · **116/116 e2e, no flakes** ·
+arc, finale and reserve-payoff screenshots reviewed in **both** themes.
 
 </details>

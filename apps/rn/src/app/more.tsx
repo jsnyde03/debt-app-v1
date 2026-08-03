@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
+import { tutorialRunFor } from '@/store/tutorialSelectors';
 import { startTutorial } from '@/store/tutorialSession';
 import { useState } from 'react';
 import { InteractionManager, Linking, Platform, StyleSheet, Switch, Text, View } from 'react-native';
@@ -128,7 +129,10 @@ export default function MoreScreen() {
           icon="gpp-good"
           label="How the Guardian works"
           subtitle="Replay the short walkthrough."
-          onPress={() => startTutorial(appStore.getState().store.subscriptionPlan === 'premium' ? 'premium' : 'free')}
+          // [F] `tutorialRunFor`, not an inline tier check. Three call sites had each re-derived which
+          // run to open; they agreed, but "which audience gets which walkthrough" is a rule that has
+          // already moved once ([D9]) and every copy of it is a place the next move can be missed.
+          onPress={() => startTutorial(tutorialRunFor(appStore.getState().store))}
           last
         />
       </SettingGroup>

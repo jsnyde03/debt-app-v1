@@ -105,7 +105,18 @@ export function FormSheet({
           <Animated.View style={[StyleSheet.absoluteFill, scrimStyle]} pointerEvents="none">
             <SheetScrim />
           </Animated.View>
-          <Pressable style={StyleSheet.absoluteFill} onPress={onBackdrop} accessibilityLabel="Close" />
+          {/* [C4] Hidden from the accessibility tree, deliberately. This is a full-screen tap-to-dismiss
+              region, and as a labelled `Pressable` it was a focusable element the size of the display
+              sitting in front of the sheet's own content — a VoiceOver user swiping into the sheet met
+              "Close" spanning everything before reaching a single field. Tapping outside is a POINTER
+              affordance; the equivalent for a screen reader is the explicit Close button in the header
+              below, which already exists. Touch behaviour is unchanged. */}
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={onBackdrop}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          />
           <Animated.View
             onLayout={onSheetLayout}
             style={[

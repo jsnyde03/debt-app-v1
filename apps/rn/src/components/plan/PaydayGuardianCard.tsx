@@ -110,6 +110,14 @@ export function PaydayGuardianCard({
   // hazard of an `|| isExample` escape hatch is that it spreads to the next control, and then the next.
   const showAdjust = isPremium && !stale && brief.state !== 'at-risk';
 
+  // [C4] ONE source for the attestation control's words: the visible Text renders it and the
+  // `accessibilityLabel` is it. Two hand-written strings is how a label drifts from its own control.
+  const attestLabel = !attestation?.show
+    ? null
+    : attestation.attested
+      ? 'Bills confirmed — holding a smaller safety net. Undo'
+      : "All your regular bills entered? I'll hold a smaller safety net.";
+
   // MF.3 — the free invite is state-aware: in a shortfall it sells the RECOVERY value (a catch-up plan),
   // not "cushion at your line" (there's no cushion to hold when you're short — that pitch reads off-context).
   const freeInvite =
@@ -136,6 +144,15 @@ export function PaydayGuardianCard({
           // rather than a buried, double-spoken line.
           isPremium ? (recovery ? undefined : brief.safeMove) : undefined,
           isPremium && !recovery ? brief.lookahead : undefined,
+          // [C4] The AMOUNTS. The cushion bar and its legend are both `accessibilityElementsHidden` —
+          // correctly, since a swatch-keyed legend is a visual index into a canvas — but that left the
+          // held-reserve, cushion and to-debt figures existing NOWHERE in the accessibility tree. A
+          // VoiceOver user heard the card's verdict and never the money it was a verdict about, and the
+          // reserve beat in particular is entirely about a number they were never told. Spoken in the
+          // same left→right order the bar shades them, so the two readings describe one thing.
+          hasReserve ? `Safety net ${money(brief.heldReserve)}` : undefined,
+          `Cushion ${money(hasReserve ? brief.cushion - brief.heldReserve : brief.cushion)}`,
+          hasPayoff ? `${brief.debtFree ? 'To savings' : 'To debt'} ${money(brief.deployedToDebt)}` : undefined,
           bnplHeadsUp ?? undefined,
         )}>
         <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>PAYDAY GUARDIAN</Text>
@@ -285,20 +302,25 @@ export function PaydayGuardianCard({
       {/* §2.0.c (2.4.11.4c) — while a discovery safety net is held, let an organized user confirm their bills.
           MF.2 round-2: gated behind `!topUp` so at most one of recovery/top-up/attestation ever renders (a
           cold-start tight cycle can satisfy both top-up + attestation; the urgent line-holding move wins). */}
-      {isPremium && !recovery && !topUp && attestation?.show ? (
+      {isPremium && !recovery && !topUp && attestation?.show && attestLabel ? (
         // 3.5.3.5.1 — interactive beat B's subject ([D10]). Spacing on the TARGET, label none: fourth
         // time this pattern has mattered, so it is now the default shape for any coachable control.
         <TutorialTarget id="guardian-reserve" style={styles.attest}>
+        {/* [C4] Label-in-name again, and this was the worst of the four: the spoken name was a
+            different SENTENCE from the visible one, so nothing a user could read off the screen would
+            match. One string now feeds both, which is also what stops them drifting apart later; the
+            consequence of the tap moves to the hint. */}
         <Pressable
           onPress={() => onAttestBills?.(!attestation.attested)}
           accessibilityRole="button"
-          accessibilityLabel={attestation.attested ? 'Bills confirmed — tap to undo and restore the safety net' : 'Confirm your regular bills are all entered to hold a smaller safety net'}
+          accessibilityLabel={attestLabel}
+          accessibilityHint={
+            attestation.attested
+              ? 'Undoes the confirmation and restores the full safety net'
+              : 'Tells your Guardian your bills are all entered, so it holds less back'
+          }
           hitSlop={8}>
-          <Text style={[textStyles.caption, { color: c.accent.primary }]}>
-            {attestation.attested
-              ? 'Bills confirmed — holding a smaller safety net. Undo'
-              : "All your regular bills entered? I'll hold a smaller safety net."}
-          </Text>
+          <Text style={[textStyles.caption, { color: c.accent.primary }]}>{attestLabel}</Text>
         </Pressable>
         </TutorialTarget>
       ) : null}
@@ -314,7 +336,17 @@ export function PaydayGuardianCard({
         // margin on the wrapped child inflates the measured rect upward, so the ring gets drawn across
         // whatever sits above it (here, the attestation line). Layout is identical either way.
         <TutorialTarget id="guardian-adjust" style={styles.adjustGroup}>
-          <Pressable onPress={() => setFloorSheet(true)} accessibilityRole="button" accessibilityLabel="Adjust your cushion line" hitSlop={8}>
+          {/* [C4] The label must CONTAIN the visible text (WCAG 2.5.3, label-in-name). It read "Adjust
+              your cushion line" against a control that says "Adjust your line →", so Voice Control's
+              "tap Adjust your line" matched nothing — the user reads the words on screen and the one
+              command they'd naturally speak is the one that fails. The clarifying word moves to a hint,
+              which is exactly what hints are for. Same fix applied to the three sibling links below. */}
+          <Pressable
+            onPress={() => setFloorSheet(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Adjust your line"
+            accessibilityHint="Opens a sheet to set the cushion you keep back each payday"
+            hitSlop={8}>
             <Text style={[textStyles.subhead, styles.adjustLabel, { color: c.accent.primary }]}>Adjust your line →</Text>
           </Pressable>
         </TutorialTarget>
@@ -327,7 +359,8 @@ export function PaydayGuardianCard({
           testID="guardian-replay-tutorial"
           onPress={onReplayTutorial}
           accessibilityRole="button"
-          accessibilityLabel="See how your Guardian works"
+          accessibilityLabel="How this works"
+          accessibilityHint="Replays the walkthrough of how your Guardian decides"
           hitSlop={8}>
           <Text style={[textStyles.caption, styles.adjust, { color: c.text.tertiary }]}>How this works</Text>
         </Pressable>
@@ -337,7 +370,12 @@ export function PaydayGuardianCard({
       {isPremium && !stale && brief.state === 'clear' && proofOfWork ? <GuardianProofStrip pow={proofOfWork} /> : null}
       {/* §2.6 drill-down (2.4.7.9) — a pushed route into the full cushion forecast; own a11y button. */}
       {isPremium && onSeeForecast && !stale && !brief.pausedDeploy ? (
-        <Pressable onPress={onSeeForecast} accessibilityRole="button" accessibilityLabel="See your cushion forecast" hitSlop={8}>
+        <Pressable
+          onPress={onSeeForecast}
+          accessibilityRole="button"
+          accessibilityLabel="See your forecast"
+          accessibilityHint="Opens your full cushion forecast"
+          hitSlop={8}>
           <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>See your forecast →</Text>
         </Pressable>
       ) : null}

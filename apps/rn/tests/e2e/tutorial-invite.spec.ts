@@ -121,8 +121,14 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect.poll(ringHeight, { timeout: 5000 }).toBeLessThan(cardHeight);
 
     // The cut is the point of the cutout: the lit subject must NOT be under a scrim band.
+    //
+    // [D2] Targets the BLOCKING bands by testID rather than every `div` under the scrim. Two reasons,
+    // and the second is the one that matters: the scrim is now two layers (an animated visual one and a
+    // static hit-testing one), so a bare `div` selector picked up their full-screen wrappers and failed
+    // on geometry that was never a band. And the visual bands legitimately pass over the subject while
+    // the hole irises open — what must never cover it is the geometry that eats touches.
     const bar = (await ring.boundingBox())!;
-    const bands = await page.getByTestId('tutorial-scrim').locator('div').all();
+    const bands = await page.getByTestId('tutorial-scrim-band').all();
     expect(bands.length).toBeGreaterThan(0);
     for (const band of bands) {
       const b = await band.boundingBox();
@@ -258,6 +264,50 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(ack).toBeInViewport();
   });
 
+  // [F] The exit-gate assertion `publishSandbox` was built for, finally written. That snapshot channel
+  // has existed since 3.5.2 with ZERO readers — the harness could describe the live sandbox and nobody
+  // ever asked it anything, which is the "built, not called" shape this phase kept producing. The gap it
+  // left is real: every other assertion here reads the SCREEN, so the whole suite could stay green while
+  // the sandbox's underlying state was wrong in a way the current beat's copy didn't happen to render.
+  // This reads the store behind the story instead, and pins what the visible ack only implies.
+  test('the sandbox behind the story really advanced — cycles rolled, reserve released', async ({ page }) => {
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
+    await page.addInitScript(() => {
+      (window as unknown as { __debtSandboxHarness: Record<string, unknown> }).__debtSandboxHarness = {};
+    });
+    await page.goto('/tutorial');
+
+    const snap = () =>
+      page.evaluate(() => {
+        const g = (window as unknown as { __debtSandboxHarness?: { snapshot?: () => unknown } }).__debtSandboxHarness;
+        return g?.snapshot ? g.snapshot() : null;
+      });
+
+    // Published when the sandbox is BUILT, which happens as the session starts — so wait for the session
+    // to be on screen before asking, rather than racing the launcher's effect.
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 1 of');
+    const opening = (await snap()) as { cycle: number; reserveHeld: boolean; scenarioId: string } | null;
+    expect(opening).not.toBeNull();
+    expect(opening!.reserveHeld).toBe(true);
+
+    for (let i = 0; i < 3; i++) await page.getByText('Next', { exact: true }).click();
+    await page.getByText(/All your regular bills entered/).click();
+    await expect(page.getByText(/safety net was there when a surprise came up/)).toBeVisible({ timeout: 12_000 });
+
+    // The ack is the SCREEN's account of what happened; this is the store's. DISCOVERY_CYCLES paydays
+    // must genuinely have rolled, and the reserve must genuinely have retired — an ack rendered over a
+    // sandbox that never moved would be exactly the kind of lie the walkthrough cannot afford.
+    const after = (await snap()) as { cycle: number; reserveHeld: boolean } | null;
+    expect(after).not.toBeNull();
+    expect(after!.cycle).toBeGreaterThan(opening!.cycle);
+    expect(after!.reserveHeld).toBe(false);
+
+    // …and the channel closes with the session, so a stale snapshot can't outlive its sandbox.
+    await page.getByText('Skip', { exact: true }).click();
+    await expect(page.getByTestId('tutorial-overlay')).toHaveCount(0);
+    expect(await snap()).toBeNull();
+  });
+
   test('skipping mid-story does not leave rollovers landing afterwards', async ({ page }) => {
     await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
     await page.goto('/tutorial');
@@ -334,8 +384,17 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(page.getByTestId('tutorial-progress')).toContainText('Step 7 of');
 
     await expect(page.getByText(/example money/)).toBeVisible();
-    await expect(page.getByText(/Premium is the part that held your line/)).toBeVisible();
-    await expect(page.getByText(/you decide what to hold/)).toBeVisible();
+    await expect(page.getByText(/premium is what did the holding/i)).toBeVisible();
+    // [A2] All THREE premium behaviours the run demonstrated, not just the holding. Showing three and
+    // crediting one is the same bait-and-switch by a smaller margin.
+    await expect(page.getByText(/learns your bills/)).toBeVisible();
+    await expect(page.getByText(/comes up short/)).toBeVisible();
+    // [A1] And the removed LIE, asserted absent. This line used to read "you decide what to hold" — a
+    // free user cannot: `showAdjust` is premium-gated and that sheet is the only route to the cushion
+    // floor in the whole app. It named a capability they don't have, in the one beat [D9]'s honesty
+    // depends on. This spec ASSERTED that sentence was visible, so the suite was pinning the defect in
+    // place — which is why the audit had to find it instead.
+    await expect(page.getByText(/you decide what to hold/)).toHaveCount(0);
 
     // …and it hands back to their OWN card, where the real invitation lives.
     await page.getByText('Finish', { exact: true }).click();

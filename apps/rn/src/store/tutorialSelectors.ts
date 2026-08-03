@@ -13,8 +13,19 @@ import type { DebtStore } from '@/data/models';
  * Why `prefs.tutorialSeen` and not `guardianIntroSeen`: the latter is already `true` for every existing
  * v1.6 user (the old static intro), so reusing it would silently exclude precisely the audience the gate
  * chose to include. And why a value rather than a boolean: someone who saw the FREE run and later
- * upgrades is re-offered once, because the premium run reaches beats free never does (the held reserve,
- * Recovery, the release).
+ * upgrades is re-offered once.
+ *
+ * ⚠️ [E4] What that re-offer is worth CHANGED, and this comment used to state the old reason as fact:
+ * "the premium run reaches beats free never does (the held reserve, Recovery, the release)". That was
+ * true before [D9], when a free user's walkthrough ran on their own gated card. [D9] made every audience
+ * run the same premium Guardian on scripted money, so the two runs are now beat-identical and differ in
+ * exactly ONE string — the finale's `bodyByRun`, which is where the free run says "premium is what did
+ * the holding" and the premium run says "your Guardian does exactly this with your real paycheck".
+ *
+ * So the re-offer still has a real payload for an upgrader — the finale is the beat written for who they
+ * now are, and it's the conversion-honesty beat — but it is one paragraph, not four beats. Whether that
+ * justifies replaying all seven is a DESIGN question belonging to the 3.5.1 gate that set this matrix,
+ * not something to quietly flip here. Behaviour is unchanged; only the false justification is corrected.
  */
 
 export type TutorialRun = 'free' | 'premium';
@@ -43,7 +54,7 @@ export function selectTutorialInvite(store: DebtStore): TutorialInvite | null {
 
   // Never offered → offer.
   if (seen === null) return { run };
-  // Saw the free run, now premium → offer the premium run once (it reaches beats free never shows).
+  // Saw the free run, now premium → offer the premium run once (its finale is the one written for them).
   if (seen === 'free' && run === 'premium') return { run: 'premium' };
   // Otherwise they've had the run they'd get. Replay stays reachable from the "?" and More.
   return null;
