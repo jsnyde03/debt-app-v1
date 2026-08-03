@@ -198,7 +198,11 @@ test.describe('tutorial invitation + in-situ shell', () => {
       await page.getByText('Next', { exact: true }).click();
       await expect(page.getByTestId('tutorial-progress')).toContainText('Step 3 of');
 
-      // The beat spotlights the CONTROL, and the scrim is off so the tap reaches it.
+      // 3.5.3.5.9 — the scrim STAYS UP on an interactive beat, with a hole cut at the coached control.
+      // The two assertions together are the contract: the scrim is present (so stray taps are blocked),
+      // and this click lands WITHOUT `force` (so the hole is really over the control). If the hole were
+      // misplaced, Playwright would report the scrim intercepting — which is the failure we want.
+      await expect(page.getByTestId('tutorial-scrim')).toBeVisible();
       await page.getByText('Adjust your line').click();
       // [D7] — the sheet is a modal that covers the coaching card, so the beat's guidance rides inside it.
       await expect(page.getByTestId('floor-sheet-coach')).toBeVisible();

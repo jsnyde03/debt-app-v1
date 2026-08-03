@@ -95,13 +95,21 @@ export function TutorialOverlay({
     // `box-none` lets touches fall through to Today everywhere the overlay has no child; the scrim
     // below re-blocks them on scripted beats. Without this, even the pass-through beats would swallow.
     <View ref={rootRef} onLayout={measureOrigin} style={StyleSheet.absoluteFill} pointerEvents="box-none" testID="tutorial-overlay">
-      {!interactive ? (
-        // 3.5.3.3.1 — with a subject on screen the scrim is drawn as four bands AROUND it instead of one
-        // sheet over everything, so the thing being taught is the one thing at full strength. Four rects
-        // rather than a mask: no Skia/SVG dependency on a surface that must render identically on web,
-        // and the cutout is plain geometry a test can assert.
-        <Scrim rect={local} color={c.background.primary} />
-      ) : null}
+      {/* 3.5.3.3.1 — with a subject on screen the scrim is drawn as four bands AROUND it instead of one
+          sheet over everything, so the thing being taught is the one thing at full strength. Four rects
+          rather than a mask: no Skia/SVG dependency on a surface that must render identically on web,
+          and the cutout is plain geometry a test can assert.
+
+          3.5.3.5.9 — the scrim now stays up on INTERACTIVE beats too. It used to be dropped entirely
+          there, which made every control on screen live — including More, which pushes a route out from
+          under the walkthrough. The plan has promised "passes touches through to the TARGET only" since
+          3.5.3 was written, and the cutout was already exactly that mechanism: the bands capture touches,
+          the hole doesn't. It simply was never rendered.
+
+          The one case that renders nothing: an interactive beat with no measured rect. There is no hole
+          to cut, so a scrim would seal the user in — unable to do the thing the beat is asking for. Better
+          an unguarded screen than a trap. */}
+      {!interactive || local ? <Scrim rect={local} color={c.background.primary} /> : null}
       {/* The ring survives on interactive beats too — there the scrim is gone (touches must reach the
           control), so this outline is the only thing still saying "this is the bit we mean". */}
       {local ? (
