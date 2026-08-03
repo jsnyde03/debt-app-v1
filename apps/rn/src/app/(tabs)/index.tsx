@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { StyleSheet, Text, View, useWindowDimensions, type ScrollView, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,11 +37,10 @@ import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { StoreProvider, useActiveStore } from '@/store/StoreContext';
 import { isSandboxStore } from '@/store/sandboxStore';
 import { TutorialTarget, TutorialTargetsProvider } from '@/store/tutorialTargets';
+import { useTutorialShell } from '@/store/tutorialShell';
 import { useSpotlight } from '@/hooks/use-spotlight';
-import { TutorialOverlay } from '@/components/plan/TutorialOverlay';
 import { startTutorial, tutorialSession, useTutorialSession } from '@/store/tutorialSession';
-import { INTERACTIVE_STEP_IDS, TUTORIAL_STEPS, TUTORIAL_STEP_COUNT, isLastStep, nextIndex, prevIndex } from '@/store/tutorialPath';
-import { appStore } from '@/store/appStore';
+import { TUTORIAL_STEPS } from '@/store/tutorialPath';
 import type { DebtStoreInstance } from '@/store/store';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
 import { selectBillsAttestation, selectBnplBetweenPaycheck, selectGuardianProofOfWork, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
@@ -587,7 +586,10 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   const { height: screenH } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
   const offsetRef = useRef(0);
-  const [dockH, setDockH] = useState(0);
+  // 3.5.3.5.7 — the overlay now lives above the navigator, so the two halves trade through the shell:
+  // the dock's height comes DOWN (it bounds the stage), the located subject and the payoff go UP.
+  const shell = useTutorialShell();
+  const dockH = shell?.dockH ?? 0;
 
   const step = TUTORIAL_STEPS[index];
 
@@ -626,44 +628,24 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     revision: `${index}:${dockH}`,
   });
 
-  const session = { sandbox, index };
-  const last = isLastStep(index);
-  const leave = () => {
-    const prefs = appStore.getState().store.prefs;
-    appStore.getState().updatePrefs({ ...markTutorialSeen(prefs, tutorialSession.getState().run), tutorialStep: null });
-    tutorialSession.getState().end();
-  };
+  // Publish what only this screen can know. Effects rather than render-time calls: setting a parent's
+  // state during a child's render is the classic React warning, and here it would fire on every measure.
+  const setSpotlight = shell?.setSpotlight;
+  const setImpact = shell?.setImpact;
+  useEffect(() => {
+    setSpotlight?.(spotlight);
+  }, [setSpotlight, spotlight]);
+  useEffect(() => {
+    setImpact?.(impact);
+  }, [setImpact, impact?.before, impact?.after, impact?.freed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <StoreProvider store={session.sandbox}>
+    <StoreProvider store={sandbox}>
       <TodayContent
         scrollRef={scrollRef}
         onScroll={(e) => {
           offsetRef.current = e.nativeEvent.contentOffset.y;
         }}
-      />
-      <TutorialOverlay
-        position={session.index + 1}
-        total={TUTORIAL_STEP_COUNT}
-        title={step.title}
-        body={step.body}
-        interactive={INTERACTIVE_STEP_IDS.includes(step.id)}
-        isLast={last}
-        spotlight={spotlight}
-        onDockLayout={setDockH}
-        impact={impact}
-        onBack={session.index > 0 ? () => {
-          const next = prevIndex(session.index);
-          tutorialSession.getState().goTo(next);
-          appStore.getState().updatePrefs({ tutorialStep: next });
-        } : undefined}
-        onNext={() => {
-          if (last) return leave();
-          const next = nextIndex(session.index);
-          tutorialSession.getState().goTo(next);
-          appStore.getState().updatePrefs({ tutorialStep: next });
-        }}
-        onSkip={leave}
       />
     </StoreProvider>
   );

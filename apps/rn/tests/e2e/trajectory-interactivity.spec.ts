@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { scenario, seedStore, day } from './helpers/seed';
 
 /**
  * 3.4.1 — Wave C trajectory interactivity. The payoff chart reads its debt-free date off the bead (a
@@ -11,7 +11,7 @@ test.use({ viewport: { width: 402, height: 874 } });
 
 // A modest-extra, multi-year plan so multiple debts clear at spread-out months (waypoints have room).
 const PLAN = scenario({
-  paycheck: { amount: '1650', payCycle: 'monthly', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
+  paycheck: { amount: '1650', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) },
   debts: [
     { id: 'd0', name: 'Visa', balance: 6200, originalBalance: 8000, minimumPayment: 160, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },
     { id: 'd1', name: 'Klarna', balance: 900, originalBalance: 1200, minimumPayment: 75, apr: 0, dueDate: '2026-08-14', type: 'bnpl', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { scenario, seedStore, day } from './helpers/seed';
 
 test.use({ viewport: { width: 402, height: 874 } });
 
@@ -12,7 +12,7 @@ test.use({ viewport: { width: 402, height: 874 } });
 
 const PREMIUM = scenario({
   debts: [{ id: 'd0', name: 'Card', balance: 8000, minimumPayment: 100, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly' }],
-  paycheck: { amount: '2000', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
+  paycheck: { amount: '2000', currentDate: day(0), nextPaycheckDate: day(31) },
   prefs: { onboardingComplete: true, guardianIntroSeen: true },
 });
 
@@ -41,7 +41,7 @@ for (const theme of ['light', 'dark'] as const) {
   test(`§3.3.4 affordability impact bar (${theme})`, async ({ page }) => {
     await seedStore(page, scenario({
       debts: [{ id: 'd0', name: 'Card', balance: 8000, minimumPayment: 100, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly' }],
-      paycheck: { amount: '2000', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
+      paycheck: { amount: '2000', currentDate: day(0), nextPaycheckDate: day(31) },
       prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode: theme },
     }));
     await page.goto('/');

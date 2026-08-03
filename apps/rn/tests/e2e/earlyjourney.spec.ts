@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { scenario, seedStore, day } from './helpers/seed';
 
 /**
  * 3.3.6.2 — the early Progress hero leads FORWARD: before any payment (0% paid), the sub-line reads
@@ -22,7 +22,7 @@ for (const theme of ['light', 'dark'] as const) {
   test(`early Progress hero leads forward (${theme})`, async ({ page }) => {
     await seedStore(page, scenario({
       subscriptionPlan: 'premium',
-      paycheck: { amount: '2400', payCycle: 'monthly', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
+      paycheck: { amount: '2400', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) },
       // A fresh debt: balance === originalBalance → 0% paid (the deflating case the reframe fixes).
       debts: [{ id: 'd', name: 'Card', balance: 5000, originalBalance: 5000, minimumPayment: 120, apr: 12, dueDate: '2026-08-12', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' }],
       prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode: theme },

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { scenario, seedStore, day } from './helpers/seed';
 
 /**
  * 3.4.2.3 — the premium Cash Runway ("Breathing room") gains drag-select: sweeping a finger across the
@@ -11,7 +11,7 @@ test.use({ viewport: { width: 402, height: 874 } });
 
 const PLAN = scenario({
   cushionFloor: 400,
-  paycheck: { amount: '1650', payCycle: 'monthly', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
+  paycheck: { amount: '1650', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) },
   debts: [
     { id: 'd0', name: 'Visa', balance: 6200, originalBalance: 8000, minimumPayment: 160, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },
     { id: 'd2', name: 'Car', balance: 11000, originalBalance: 14000, minimumPayment: 320, apr: 6, dueDate: '2026-08-20', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },

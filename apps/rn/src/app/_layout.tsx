@@ -15,6 +15,8 @@ import { drainPendingActions } from '@/appIntents/drainPendingActions';
 import { addNotificationResponseListener, registerNotificationCategories } from '@/notifications/notifications';
 import { initErrorReporting, wrapRoot } from '@/utils/sentry';
 import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
+import { TutorialCoach } from '@/components/plan/TutorialCoach';
+import { TutorialShellProvider } from '@/store/tutorialShell';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 
@@ -108,6 +110,17 @@ function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={navTheme(scheme)}>
         <AppLockGate>
+          {/* 3.5.3.5.7 — the walkthrough's coaching layer mounts HERE, above everything.
+              It began inside the Today screen, where its scrim could only cover what that screen owns —
+              so on iPad the sidebar rail, which belongs to the navigator, sat fully lit beside a dimmed
+              screen. Mounting it in the tabs layout was the obvious next step and turned out to be the
+              wrong one: wrapping `<Tabs>` in a container View to make room for a sibling broke tab
+              presses entirely. This container already exists and needs no such wrapper.
+              ⚠️ Today itself did NOT move — 3.5.3.1 put the walkthrough inside the tabs because hosting a
+              COPY of Today in a Stack route lands a detached tab group (a blank screen on device,
+              Freedom RN lesson #7). Only the overlay VIEW is hoisted; the session still renders over the
+              real Today tab. */}
+          <TutorialShellProvider>
           <Stack screenOptions={{ headerShown: false }}>
           <Stack.Protected guard={onboardingComplete}>
             <Stack.Screen name="(tabs)" />
@@ -126,6 +139,8 @@ function RootLayout() {
           </Stack.Protected>
           <Stack.Screen name="+not-found" />
           </Stack>
+          <TutorialCoach />
+          </TutorialShellProvider>
           {/* 3.6.6 — iPad hardware ⌘-shortcuts (inert on iPhone/touch + web). Only meaningful once past
               onboarding, since it routes to the tabs. */}
           {onboardingComplete ? <KeyCommandListener /> : null}

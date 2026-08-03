@@ -128,7 +128,7 @@ export default function MoreScreen() {
           icon="gpp-good"
           label="How the Guardian works"
           subtitle="Replay the short walkthrough."
-          onPress={() => { startTutorial(appStore.getState().store.subscriptionPlan === 'premium' ? 'premium' : 'free'); router.navigate('/'); }}
+          onPress={() => startTutorial(appStore.getState().store.subscriptionPlan === 'premium' ? 'premium' : 'free')}
           last
         />
       </SettingGroup>

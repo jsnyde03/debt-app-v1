@@ -24,13 +24,18 @@ export default function TabsLayout() {
   const c = useAppColors();
   const scheme = useColorScheme();
   const { isRegular } = useLayout();
-  // 3.5.3.3.1 — the walkthrough's scrim lives INSIDE the Today screen, so it can't cover the tab bar:
-  // a user could tap straight through to Money's real data mid-beat and lose the thread (and, on the
-  // interactive beats, do it without even a scrim in the way). Holding the tabs for the duration is the
-  // honest read of "the scrim blocks stray taps" — and Skip is always right there if they want out.
+  // 3.5.3.3.1 — a walkthrough must not lose the user to another tab. The overlay's scrim now covers the
+  // whole canvas (3.5.3.5.7), so this is defence in depth rather than the only guard — but it still
+  // earns its place: on the INTERACTIVE beats the scrim is deliberately off so taps can reach the real
+  // control, and without this a stray tap on the bar would leave mid-beat. Skip is always right there.
   const inTutorial = useTutorialSession((s) => s.active);
   const holdTabs = { tabPress: (e: { preventDefault(): void }) => { if (inTutorial) e.preventDefault(); } };
 
+  // 3.5.3.5.7 — the coaching overlay is deliberately NOT mounted here. Wrapping `<Tabs>` in a container
+  // View to make room for a sibling broke tab presses outright (the BNPL specs' "Money" click timed
+  // out), so it lives in the ROOT layout instead: that already provides a flex container, needs no new
+  // wrapper around the navigator, and sits above everything — including the iPad sidebar rail, which was
+  // the whole point.
   return (
     <Tabs
       screenOptions={{

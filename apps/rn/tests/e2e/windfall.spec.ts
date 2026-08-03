@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { scenario, seedStore, day } from './helpers/seed';
 
 test.use({ viewport: { width: 402, height: 874 } });
 
@@ -19,7 +19,7 @@ function windfallScenario(themeMode?: 'light' | 'dark') {
     debts: [{ id: 'd0', name: 'Card', balance: 8000, minimumPayment: 200, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly' }],
     goals: [{ id: 'g0', name: 'Emergency fund', targetAmount: 3000, currentAmount: 0, type: 'emergency' }],
     livingExpenses: [{ id: 'l0', name: 'Living', amount: 800, enabled: true }],
-    paycheck: { amount: '1500', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
+    paycheck: { amount: '1500', currentDate: day(0), nextPaycheckDate: day(31) },
     prefs: { onboardingComplete: true, guardianIntroSeen: true, ...(themeMode ? { themeMode } : {}) },
   });
 }

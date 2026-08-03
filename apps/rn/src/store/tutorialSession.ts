@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { createStore } from 'zustand/vanilla';
 import { useStore } from 'zustand';
 
@@ -218,4 +219,10 @@ export function useTutorialSession<T>(selector: (s: TutorialSessionState) => T):
 export function startTutorial(run: TutorialRun): void {
   const real = appStore.getState().store;
   tutorialSession.getState().start(real, run, resumeIndex(real.prefs.tutorialStep));
+  // 3.5.3.5.7 — land on Today, here rather than at each call site. Every caller happened to do this
+  // already (the More row navigated after starting), but that was an invariant held by convention: once
+  // the overlay mounts above the NAVIGATOR it renders whatever tab you are on, so a future entry point
+  // that forgot would coach the user over Money. Same lesson as the dropped announce — put the
+  // behaviour where it cannot be left out.
+  router.navigate('/');
 }

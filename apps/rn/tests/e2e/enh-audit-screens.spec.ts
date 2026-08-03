@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { scenario, seedStore, day } from './helpers/seed';
 
 /**
  * Phase-3 Best-in-Class Enhancement audit (3.0) — capture a canonical both-theme screenshot set of the
@@ -16,7 +16,7 @@ const rich = (themeMode: 'light' | 'dark') =>
     subscriptionPlan: 'premium',
     genuineCycleCount: 6,
     cushionFloor: 200,
-    paycheck: { amount: '2400', payCycle: 'monthly', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
+    paycheck: { amount: '2400', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) },
     debts: [
       { id: 'card', name: 'Chase Freedom', balance: 4200, minimumPayment: 120, apr: 23.99, dueDate: '2026-08-12', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },
       { id: 'car', name: 'Auto Loan', balance: 9800, minimumPayment: 310, apr: 6.4, dueDate: '2026-08-20', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },

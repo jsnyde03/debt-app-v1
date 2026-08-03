@@ -35,3 +35,21 @@ export async function seedStore(page: Page, store: Record<string, unknown>) {
     { key: KEY, blob: JSON.stringify(store) },
   );
 }
+
+/**
+ * A date N days from the RUN DATE, as `YYYY-MM-DD`.
+ *
+ * Fixtures must not write calendar literals. A hardcoded `nextPaycheckDate` becomes a payday in the
+ * PAST the moment the real clock passes it — and Today then auto-opens the payday-capture sheet, whose
+ * backdrop covers the tab bar. The suite starts failing overnight with "subtree intercepts pointer
+ * events", which reads exactly like a UI regression and is nothing of the sort. That happened on
+ * 2026-08-02, when `bnpl.spec`'s `2026-08-01` payday expired; nine other specs were queued to do the
+ * same thing on 2026-09-01.
+ *
+ * Use `day(0)` for "today" and a comfortably future offset for the next payday.
+ */
+export function day(offset: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().slice(0, 10);
+}

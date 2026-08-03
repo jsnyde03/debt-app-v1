@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { scenario, seedStore, day } from './helpers/seed';
 
 /**
  * 3.3.3 — the premium Guardian proof-of-work strip on the CLEAR-cycle card: a seeded history of held
@@ -34,7 +34,7 @@ for (const theme of ['light', 'dark'] as const) {
     await seedStore(page, scenario({
       subscriptionPlan: 'premium',
       genuineCycleCount: 6,
-      paycheck: { amount: '2400', payCycle: 'monthly', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
+      paycheck: { amount: '2400', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) },
       debts: [{ id: 'car', name: 'Auto Loan', balance: 9800, originalBalance: 12000, minimumPayment: 310, apr: 6.4, dueDate: '2026-08-20', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' }],
       cycleHistory: [0, 1, 2, 3, 4].map(heldCycle),
       prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode: theme },

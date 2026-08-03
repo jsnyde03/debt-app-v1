@@ -266,9 +266,11 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await page.goto('/tutorial');
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
 
-    // The scrim lives inside the Today screen, so it CANNOT cover the tab bar — without the hold, one
-    // tap lands the user on Money's real data mid-beat.
-    await page.getByTestId('tab-money').click();
+    // 3.5.3.5.7 — the scrim now covers the tab bar too, so a normal click is intercepted before it ever
+    // reaches the tab. `force` bypasses that deliberately: what's under test here is the LISTENER, which
+    // is the guard that still matters on the interactive beats, where the scrim is switched off so taps
+    // can reach the real control.
+    await page.getByTestId('tab-money').click({ force: true });
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
     await expect(page.getByTestId('tutorial-progress')).toContainText('Step 1 of');
 

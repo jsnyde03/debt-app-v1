@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { scenario, seedStore, day } from './helpers/seed';
 
 /**
  * RS.6 — Payday Guardian SURFACES + trouble-flows (web). The core + app-layer suites prove the Guardian
@@ -93,7 +93,7 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
   });
 
   test('premium · missed paycheck (paused deploy): "A paycheck didn\'t land"', async ({ page }) => {
-    await seedStore(page, scenario({ paycheck: { amount: '2000', payCycle: 'biweekly', nextPaycheckDate: '2026-08-07' }, missedArrivals: ['2026-08-07'] }));
+    await seedStore(page, scenario({ paycheck: { amount: '2000', payCycle: 'biweekly', nextPaycheckDate: day(5) }, missedArrivals: [day(5)] }));
     await page.goto('/');
     await expect(page.getByText("A paycheck didn't land")).toBeVisible();
   });
