@@ -1760,3 +1760,91 @@ teaching the known fresh-object-selector crash, and **my own LOG mislabelling th
 Several findings are in code written THIS SESSION while explicitly applying the rule they break — "every
 line must be true of the screen" (beat 2), the CLAIM-vs-CODE lens (the Slider note), and the .5.8 fix
 that introduced a fresh copy defect. **Applying a rule is not the same as verifying it held.**
+
+---
+
+## 3.5.3.9 — the audit gate, ROUND 1 FOLD (2026-08-03, `7bb9e24`)
+
+Jason's call on the ~30 findings: _"Everything gets folded in. No backlog. No debt."_ One block, all
+tiers, ordered by shipping risk. The per-finding ledger lives in `DEBT_TUTORIAL_AUDIT_2026-08-02.md` §I;
+what follows is what the fold *taught*, which is the part worth keeping.
+
+### The tests were holding two of the defects in place
+
+The single most uncomfortable finding of the whole exercise, and it surfaced during the fold rather than
+during the audit. `tutorial-invite.spec.ts` asserted that the finale's line **"you decide what to hold"
+was visible** — the exact sentence finding A1 identified as a lie to free users. `tutorialPath.test.ts`
+pinned the literal phrase "premium is the part", so the honest rewrite *failed the suite*.
+
+So the suite could never have caught A1. It was configured to fail if A1 were fixed. This is worse than
+a gap in coverage: a gap is silent, and this actively pushed back. Both tests now pin the *intent*
+(premium named as the agent, all three behaviours present, the lie absent) rather than the wording —
+which also unblocks the whole-app wording audit, which those literals would have fought.
+
+**The generalisable form:** a test that asserts an exact user-facing string is a test that will resist
+being made more honest. Assert the property, not the sentence.
+
+### `npm run typecheck` was RED on master
+
+Three pre-existing errors (node globals missing from `tsconfig`). Nobody introduced them in this phase;
+they had simply been there. A permanently-failing gate is worse than no gate — it teaches everyone to
+skip reading its output, and a real regression hides inside the noise it normalises. Fixed as part of
+the fold because "no debt" has to include the debt that was already there.
+
+### Two nulls that owe opposite behaviour
+
+`useSpotlight` returned `rect: null` for two entirely different situations — *the subject is travelling*
+and *the subject does not exist* — and the overlay had to treat them oppositely. Absent: render no scrim,
+or the user is sealed away from the control the beat is asking them to reach. Travelling: keep the scrim,
+because dropping it for the ~380ms of transit re-opened the leak 3.5.3.5.9 had closed.
+
+One value cannot carry two meanings that require opposite responses. Hence the explicit `settling` flag.
+Worth remembering as a shape: when a fix keeps reintroducing a bug it already fixed, look for a
+**value that is overloaded**, not for a missing condition.
+
+### The animation and the touch target disagreed
+
+[D2] gave the scrim's hole a spring so it irises open rather than hard-cutting. That immediately broke
+the interactive beats — a *travelling* band sits over the coached control for the entire length of its
+journey, so the tap the beat had just asked for did nothing for ~500ms. The e2e reported it as flakiness
+(Playwright retried the click until the band moved off), which is exactly how this class hides: the
+suite goes green on a retry and nobody looks.
+
+Fixed by splitting the scrim into a **visual layer** (animated, `pointerEvents: none`) and a **hit layer**
+(snaps to the destination). The general rule: **when you animate something that also blocks input,
+the input geometry must lead the animation, never follow it.**
+
+### The phantom comment was worth making TRUE
+
+`tutorialTargets` claimed to "re-register on layout" and did nothing of the kind. The reflex is to delete
+the false comment. But B4 needed exactly that mechanism — an iPad Split View drag, a Dynamic Type change,
+or any reflow the arc didn't initiate left the ring, the cutout and the scroll target at pre-change
+coordinates, because the only re-measure trigger was the beat's own `revision` key. Implementing the
+claim closed a separate finding.
+
+**A false comment is sometimes a design that was intended and dropped.** Read it as a spec before
+deleting it as a lie.
+
+### Verified by arithmetic, not by assumption
+
+E6 arrived as SUSPECTED. `Math.max(25, round(held * 0.8))` — the $25 floor exceeds any net under ~$31,
+and the `|| 100` fallback scripted an $80 surprise against a net of **zero**. The sandbox scales from the
+user's own pay, so a low-income plan lands there, and it fails *convincingly*: the beat still plays, it
+just shows the net being overrun in the one beat whose entire point is that the net holds.
+
+### Deliberately not folded
+
+- **The upgrade re-offer (E4).** Its stated justification has been false since [D9]; whether an upgrader
+  should replay seven beats for one changed paragraph belongs to the 3.5.1 design gate. Claim corrected,
+  behaviour untouched.
+- **The card's stacked text links (C4 remainder).** ~34–36pt targets that cannot reach 44 without
+  changing the flagship card's vertical rhythm → **3.5.3.10 `[DECISION]`**, not a unilateral fold.
+- **`HARNESS_SCENARIO_IDS`, `guardian-line`, the `BeatResult` channel.** Listed as "built, not called";
+  they are test- and 3.5.5-facing seams with live assertions. Deleting working capability to satisfy a
+  dead-code metric would have been the wrong reading.
+
+### Gate
+
+Typecheck + lint clean · app-layer + scenario suites green · **116/116 e2e, no flakes** · arc, finale and
+reserve-payoff screenshots reviewed in **both** themes. Round-2 re-audit of the three lenses that found
+something is in flight — **consensus is the gate, not the first green run.**
