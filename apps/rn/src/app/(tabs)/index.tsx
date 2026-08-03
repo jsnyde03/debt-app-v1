@@ -26,6 +26,7 @@ import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard
 import { RequiredActionsCard } from '@/components/plan/RequiredActionsCard';
 import { WindfallSheet } from '@/components/plan/WindfallSheet';
 import { Motion } from '@/motion';
+import { haptics } from '@/motion/haptics';
 import { Screen } from '@/components/screen';
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
@@ -278,7 +279,14 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               // 3.5.3.4.4 — snapshot the read BEFORE the write: once the store re-solves, the "before"
               // this beat's payoff needs is gone. No-op outside a session.
               onSetFloor={(v) => {
-                if (isExample && guardian) tutorialSession.getState().noteFloorBefore({ cushion: guardian.cushion, floor: guardian.floor });
+                if (isExample && guardian) {
+                  tutorialSession.getState().noteFloorBefore({ cushion: guardian.cushion, floor: guardian.floor });
+                  // 3.5.3.7.5 ([D12]) — a medium beat, not the advance tick: the user just moved their own
+                  // line and the plan re-solved because of it. This is one of exactly two moments in the
+                  // arc they CAUSED something, and weighting it the same as pressing Next would flatten
+                  // the difference between doing and watching.
+                  haptics.medium();
+                }
                 store_.getState().setCushionFloor(v);
               }}
               attestation={attestation}
@@ -287,7 +295,12 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               // shouldn't replay it.
               onAttestBills={(v) => {
                 store_.getState().setBillsAttested(v);
-                if (isExample && v) tutorialSession.getState().playReserveStory();
+                if (isExample && v) {
+                  // The arc's second caused-it moment: the net shrinks by their word, and the story that
+                  // follows is the consequence. Same medium beat as the floor, for the same reason.
+                  haptics.medium();
+                  tutorialSession.getState().playReserveStory();
+                }
               }}
               recovery={recovery}
               onDefer={(id) => store_.getState().deferExpense(id)}

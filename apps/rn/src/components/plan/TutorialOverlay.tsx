@@ -1,11 +1,16 @@
+import { BlurView } from 'expo-blur';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn, ReduceMotion } from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FloorImpactBar } from '@/components/plan/FloorImpactBar';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLayout } from '@/hooks/use-layout';
 import { Motion } from '@/motion/Motion';
+import { haptics } from '@/motion/haptics';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { announce, headerProps } from '@/utils/a11y';
@@ -43,6 +48,12 @@ function useAnnounceBeat(position: number, run: TutorialRun) {
     // 3.5.3.6.2 — `run` matters: the finale's copy differs by audience, and a VoiceOver user must hear
     // the line their screen is showing. Same resolver as the rendered body, for exactly that reason.
     announce(stepAnnouncement(position - 1, run));
+    // 3.5.3.7.4 ([D12]) — a light selection tick as each beat lands. The app ships bespoke Core Haptics
+    // and the walkthrough had none, which is part of why it read as a tooltip library rather than as
+    // Debt. Deliberately the LIGHTEST rung: advancing is navigation, not achievement — the medium beats
+    // are reserved for the two moments the user actually causes something. No-op on web and honoured
+    // against the system setting inside `haptics`.
+    haptics.light();
   }, [position, run]);
 }
 
@@ -81,6 +92,8 @@ export function TutorialOverlay({
   impact?: { before: number; after: number; freed: number } | null;
 }) {
   const c = useAppColors();
+  const scheme = useColorScheme();
+  const { isRegular } = useLayout();
   useAnnounceBeat(position, run);
 
   // 3.5.3.3.4.3 — subjects are measured in WINDOW coordinates, but this overlay draws in its own local
@@ -118,8 +131,17 @@ export function TutorialOverlay({
       {!interactive || local ? <Scrim rect={local} color={c.background.primary} /> : null}
       {/* The ring survives on interactive beats too — there the scrim is gone (touches must reach the
           control), so this outline is the only thing still saying "this is the bit we mean". */}
+      {/* 3.5.3.7.1 — the ring FADES IN on arrival instead of popping.
+          The feel pass asked for a spotlight that "travels" between subjects; taken literally that
+          conflicts with a deliberate 3.5.3.3.1 decision — the ring is hidden while the screen scrolls,
+          because one sliding across unrelated content on the way reads as a glitch, not as motion. The
+          honest resolution is to keep it hidden in transit and animate it in when it LANDS: no flicker,
+          no ring skating over things it doesn't mean. Keyed on the rect so each new subject re-enters,
+          and `Motion`'s reduce-motion handling applies as everywhere else. */}
       {local ? (
-        <View
+        <Animated.View
+          key={`${Math.round(local.x)}:${Math.round(local.y)}:${Math.round(local.height)}`}
+          entering={FadeIn.duration(180).reduceMotion(ReduceMotion.System)}
           pointerEvents="none"
           style={[
             styles.ring,
@@ -136,12 +158,31 @@ export function TutorialOverlay({
       ) : null}
 
       <View style={styles.dock} pointerEvents="box-none" onLayout={(e) => onDockLayout?.(e.nativeEvent.layout.height)}>
-        <Motion key={position}>
-          <Card>
+        {/* 3.5.3.7.7 — width-capped on the roomy layout. Unconstrained, the dock ran the full iPad canvas
+            edge-to-edge, which reads as a web banner beside an app whose every other surface is a
+            centred column. */}
+        <Motion key={position} style={[styles.dockInner, isRegular ? { maxWidth: DOCK_MAX_W } : null]}>
+          {/* 3.5.3.7.2 ([D11]) — frosted, like the tab bar and every sheet. It's the app's own
+              `SheetScrim` idiom: this is a system surface floating over the lesson, not a panel bolted
+              on top of it. Only the DOCK is frosted — blurring the scrim bands too would have put five
+              BlurViews on screen and risked softening the one thing that must stay crisp. */}
+          <View style={styles.frost}>
+            <BlurView tint={scheme === 'dark' ? 'dark' : 'default'} intensity={24} style={StyleSheet.absoluteFill} />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: c.background.secondary, opacity: 0.82 }]} />
+          </View>
+          <Card style={styles.dockCard}>
             <View style={styles.body}>
-              <Text style={[textStyles.caption, { color: c.text.tertiary }]} testID="tutorial-progress">
-                Step {position} of {total}
-              </Text>
+              {/* 3.5.3.7.3 — a quiet progress rail. "Step 3 of 7" alone made the arc's length something
+                  you had to read; the rail makes it something you glance at. Calm register: a hairline
+                  track, no counter animation, nothing that reads as gamification. */}
+              <View style={styles.progressRow}>
+                <Text style={[textStyles.caption, { color: c.text.tertiary }]} testID="tutorial-progress">
+                  Step {position} of {total}
+                </Text>
+                <View style={[styles.rail, { backgroundColor: c.border.subtle }]}>
+                  <View style={[styles.railFill, { backgroundColor: c.accent.primary, width: `${(position / total) * 100}%` }]} />
+                </View>
+              </View>
               <Text {...headerProps()} style={[textStyles.title3, { color: c.text.primary }]} testID="tutorial-step-title">
                 {title}
               </Text>
@@ -152,10 +193,19 @@ export function TutorialOverlay({
                   tutorial-only props. */}
               {impact ? <FloorImpactBar before={impact.before} after={impact.after} freed={impact.freed} /> : null}
 
+              {/* 3.5.3.7.6 — one hierarchy, not three equals. Back / Next / Skip sat in a row competing:
+                  the way OUT was as loud as the way ON. Next is the primary and leads; Back is a quiet
+                  text link beside it; Skip is pushed to the far edge and dimmed to tertiary — reachable
+                  the instant you want it, never the thing your eye lands on. */}
               <View style={styles.nav}>
-                {onBack ? <Button label="Back" variant="text" onPress={onBack} /> : null}
                 <Button label={isLast ? 'Finish' : 'Next'} onPress={onNext} />
-                {!isLast ? <Button label="Skip" variant="text" onPress={onSkip} /> : null}
+                {onBack ? <Button label="Back" variant="text" onPress={onBack} /> : null}
+                <View style={styles.navSpacer} />
+                {!isLast ? (
+                  <Pressable onPress={onSkip} accessibilityRole="button" hitSlop={10}>
+                    <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Skip</Text>
+                  </Pressable>
+                ) : null}
               </View>
             </View>
           </Card>
@@ -167,6 +217,9 @@ export function TutorialOverlay({
 
 /** How far the ring stands off the subject, so it frames rather than crops it. */
 const RING_INSET = 6;
+
+/** 7.7 — the coaching column's cap on the roomy (iPad) layout, matching Today's own centred column. */
+const DOCK_MAX_W = 620;
 
 /**
  * The scrim, cut around the subject. With no rect it's the original single sheet.
@@ -203,6 +256,17 @@ const styles = StyleSheet.create({
   ring: { position: 'absolute', borderWidth: 2, borderRadius: 14 },
   // Docked to the bottom so the coached surface above stays visible.
   dock: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: spacing.base },
+  // 7.7 — a centred, width-capped column on the roomy layout, like every other surface in the app.
+  dockInner: { alignSelf: 'center', width: '100%', borderRadius: 18, overflow: 'hidden' },
+  // The Card sits ON the frost, so it contributes shape and padding but no fill of its own.
+  dockCard: { backgroundColor: 'transparent' },
+  frost: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  progressRow: { gap: 6 },
+  // 7.3 — a hairline rail: glanceable, and calm enough not to read as a game's progress bar.
+  rail: { height: 3, borderRadius: 2, overflow: 'hidden' },
+  railFill: { height: '100%', borderRadius: 2 },
+  // 7.6 — pushes Skip to the far edge, so leaving is reachable without competing with continuing.
+  navSpacer: { flex: 1 },
   body: { gap: spacing.xs },
   nav: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
 });
