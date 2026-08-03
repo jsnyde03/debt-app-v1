@@ -1496,3 +1496,29 @@ the screen isn't showing. It's part of the re-measure key because it flips mid-b
 - **Two environmental flakes** this run (`affordability`, `blur-glass`) — both `page.goto` navigation
   timeouts under parallel load, both green on retry, neither tutorial-related. Recorded rather than
   "fixed", because inventing a fix for load noise is how real signal gets buried.
+
+## 3.5.3.5.9 — the scrim stays up on interactive beats — ✅ COMPLETE (2026-08-02, `03c608c`)
+
+**A promise the code never kept.** The plan has said "passes touches through to the TARGET only" since
+3.5.3 was written. What shipped dropped the scrim *entirely* on interactive beats, so every control on
+screen was live — including More, which pushes a route out from under the walkthrough. The gap survived
+because the beats worked: you could reach the control, which was the thing anyone would check.
+
+**The fix needed no new mechanism**, which is the interesting part. The cutout scrim built in 3.5.3.3.1
+was already exactly this: its four bands capture touches, its hole does not. It was simply never
+rendered on the beats that needed it most. The whole change is which condition renders it.
+
+**One deliberate exception:** an interactive beat with no measured rect renders NO scrim. There is no
+hole to cut, so a scrim would seal the user in — unable to do the thing the beat is asking of them. An
+unguarded screen beats a trap, and a beat whose subject failed to measure is already degraded.
+
+**The e2e contract is a pair, not a single assertion:** the scrim is present on beat 3, AND the click on
+"Adjust your line" lands *without* `force`. Either alone is satisfiable by a bug — a scrim that covers
+everything passes the first; no scrim at all passes the second. Together they mean the hole is over the
+control. A misplaced hole now fails as "scrim intercepts pointer events", which is precisely the failure
+worth having.
+
+**After-scan:** it also reads considerably better — a lit control against a dimmed screen is a far
+stronger affordance than a bare ring on an undimmed one. That wasn't the goal, but it is partial credit
+against 3.5.3.7's control-hierarchy and focus criteria, and worth remembering there: some of the
+"premium feel" gap is correctness that hasn't been finished yet, not decoration that hasn't been added.
