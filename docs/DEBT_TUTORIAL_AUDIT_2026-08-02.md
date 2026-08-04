@@ -351,3 +351,39 @@ would double the chrome"). The new fact is that the scenario seeds *real* debt n
 may not have weighed. **Not folded** — reopening a settled design decision is Jason's call. → **3.5.3.11**.
 
 </details>
+
+---
+
+## M. ROUND 4 — the PREMIUM BAR re-judge · ✅ **BAR MET** (2026-08-04)
+
+<details open>
+<summary>The gate's binding exit criterion. Round 1 judged it <b>NOT MET</b> at "~85% finish"; round 4 judges it <b>MET</b> at ~97%, from fresh both-theme screenshots of all 7 beats + both finales + the payoff.</summary>
+
+**All six named criteria MET:** beat transition + travelling spotlight · dock material · progress
+affordance · haptics (code) · payoff choreography · control hierarchy.
+
+**Light/dark parity — resolved, and inverted again.** Round 1 found DARK was the weak theme. Round 4 finds
+them effectively equal, with dark now arguably the stronger set. Neither is visibly weaker on any beat.
+
+**The two changes just shipped both landed well.** The 44pt rows read "airy-intentional, not gappy"; the
+`· Example money` marker reads as calm metadata in the app's own label voice, "not clutter, not an
+apology" — and is doing real disclosure work.
+
+**Holistic, quoted:** *"This now reads as Debt coaching itself… Tooltip libraries don't restage the store,
+move a debt-free date, or say 'while I got to know your bills.'… The finish is at ~97% — what remains is
+three spacing nits, not a character problem."*
+
+### Non-gating polish it named
+
+1. 4–6pt more clearance between beat 4's ring and the "Your call" label above it (still tight after the
+   `xxs`→`xs` bump made during 3.5.3.10).
+2. The Guardian card's bottom padding (~37pt) is visibly tighter than its new ~48pt inter-row rhythm.
+3. On beat 5 the ringed card is taller than the stage, so the ring's side edges peek out beside the dock —
+   the least composed frame of the seven.
+4. No screenshot in the suite captures `FloorImpactBar` mid-flight, so criterion 5 is only partly
+   screenshot-grounded.
+
+**Standing caveat (unchanged):** haptics and spring *feel* are code- and still-verified only. They are
+owed the Phase-6 device pass — no web export can feel them.
+
+</details>
