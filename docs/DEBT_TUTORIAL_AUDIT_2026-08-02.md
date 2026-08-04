@@ -802,11 +802,49 @@ lie rhythmically.
 
 ### ⚠️ OPEN — the fold is not started, and one [DECISION] gates its shape
 
-**[D16] — fold round 8 as-is, or fold it AND delete the degraded-path subsystem?** Asked 2026-08-04;
-**Jason: _"I don't know. We need to discuss more."_** Deleting `unmeasurableFor` / `has(id)` /
-`spotlightPolicy` / `bodyIfNoSubject` / `subjectMissing` / the staleness gate (~150 lines) removes the code
-both recent show-stoppers live in, replaced by a build-time invariant that each beat's seeded state renders
-its own subject. Keeping it is lower-risk this round but leaves round 9 auditing the same machinery.
-**Unresolved and blocking the fold.**
+**[D16] SETTLED (2026-08-04) — DELETE the degraded path.** The deciding evidence was lens B's: the
+degraded path is **unreachable in the shipped build** (reaching it required serving a doctored `dist`), so
+it defended against a condition the scripted sandbox cannot produce — while coupling copy to layout,
+which is what oscillated. The invariant it was replaced by holds empirically: **39 assertions, all seven
+beats × both scenario shapes.** _(The rotation staleness gate was NOT deleted — it is an a11y/touch fence
+and was fixed instead.)_
+
+### ✅ FOLD COMPLETE (2026-08-04, `9887442`) — all four lenses
+
+**Deleted:** `unmeasurableFor` · `spotlightPolicy` (+ its test) · `bodyIfNoSubject` · `subjectMissing`
+(hook → shell → coach → overlay → announcement) · `TutorialTargets.has()`. **A beat's copy now depends on
+the audience and nothing else.** Added: `guardianSubjects` (ONE predicate the card renders from and the
+test asserts against) + `guardianSubjects.test.ts` + `tutorialStage` (shared, so the screen and the
+overlay cannot disagree about the stage) + `lint:a11y-props` (greps source AND tests, verified
+red-then-green).
+
+**The visual class is fixed at the mechanism, not per-instance:** the dark is now ONE element whose fill
+is its border, so the hole is rounded **by construction** and one radius constant feeds both it and the
+ring — the four-band/rounded-ring disagreement that produced nubs on every beat cannot recur. Drawn
+geometry clamps to the stage; **hit geometry deliberately does not** (reachability must not shrink to
+what happens to be drawn).
+
+**⭐ TWO MORE TESTS WERE PINNING THE DEFECTS** — the third and fourth instances at this gate. *"a user who
+actually DOES the interactive beats"* saved the floor sheet **without ever moving the slider**, asserting
+the payoff bar for a user who had done nothing; and the cutout assertion could only say "no band
+overlaps", so it now computes the hole from live layout and asserts the subject sits **inside** it.
+
+**Gate:** typecheck + lint clean · core + app + scenario suites green · **123/123 e2e, no flakes** ·
+completeness queries **zero** (native a11y props · decaying counts) · **arc re-shot, all 7 beats × both
+themes, verified by looking** — beat 5's ring now stops above the dock with the coaching sentence uncut,
+corners rounded with no nubs, below-stage content properly dimmed, Skip trailing, frost isolating.
+
+### ⚠️ NOT folded — carried into round 9's scope
+
+- **Lens C** (the overlay-less sandbox): nothing broken today, but the honesty marker dies with the
+  overlay + 4 cheap in-version items. Genuinely 3.5.4 entry cost.
+- **Lens D #7, the convention sweep:** the flagrant meta-commentary is deleted (including my own
+  round-8 comments), but ~50 lower-grade `round N` / `used to` lines survive across the feature.
+  **[D17] OPEN — the convention itself needs a call:** it was adopted in round 7 and violated 43 times
+  immediately, *by the round that adopted it*, which is evidence it fights the house style rather than
+  evidence of carelessness. This repo's comments earn their keep by explaining WHY, and the "why" is
+  often the history. Recommend narrowing the rule to what is indefensible — **no meta-commentary about
+  which earlier comment was wrong, and no counts of code** — and explicitly permitting rationale that
+  names a past defect. Both halves stay grep-checkable.
 
 </details>
