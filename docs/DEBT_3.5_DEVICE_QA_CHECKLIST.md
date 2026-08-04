@@ -180,6 +180,118 @@ _The 3.6 native-iPad work is web-verified (layout + hover render in both themes)
 
 ---
 
+---
+
+## §11 — the Guardian WALKTHROUGH — ⚠️ device-only, from the round-7 audit
+
+> ⚠️ **Numbering collision:** the plan calls this feature 3.5.3, and §6 above ALSO says "3.5.3" for the
+> Live Activity in the native block. They are different work. §11 is the 7-step coaching overlay on Today.
+
+_These cannot be settled on web: react-native-web has no VoiceOver, no haptics, no OS text scaling
+(`PixelRatio.getFontScale()` is always 1), and no native gesture handling. Every item below is a real
+audit finding whose verification the automated suite structurally cannot perform._
+
+**Reach the walkthrough (all items):** launch → complete onboarding if prompted → **Today** tab → find the
+card headed **PAYDAY GUARDIAN** → scroll to the quiet grey link near its bottom reading **"How this
+works"** → tap it. The walkthrough starts at **Step 1 of 7**: a dark layer covers the screen with a bright
+rectangle cut around one element, and a frosted panel sits at the bottom with **Next**, **Back**, **Skip**.
+_If the Guardian card isn't there, use **More → How the Guardian works** instead._
+
+**Set text size:** Settings → Accessibility → Display & Text Size → Larger Text → turn ON *Larger
+Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in from the right = AX4).
+**Set theme:** Settings → Display & Brightness → Light / Dark.
+
+- [ ] **§11.1 — Skip must stay on screen at large text** _(a 375pt phone: iPhone SE 3rd-gen or 13 mini. Do
+  NOT substitute a Pro Max — this is width-driven and a wide phone can pass while an SE fails.)_
+  At **AX3**, then **AX5**, in **both themes**: enter the walkthrough and look at the bottom panel's button
+  row on steps 1→6. (Step 7 shows **Finish** and has no Skip.)
+  **PASS:** on every step, **Skip** is fully visible with its whole tap area inside the panel, **Back** is
+  not truncated, and tapping Skip closes the walkthrough.
+  **FAIL:** Skip is partly/entirely off the right edge, or Back is cut off, or a tap where Skip should be
+  does nothing. Photograph each failing step and note the text size.
+
+- [ ] **§11.2 — no beat is silently skipped on slow hardware** _(the OLDEST iPhone in the support matrix —
+  not the simulator, which runs on desktop-class CPU and cannot reproduce this.)_
+  Default text size. Run the walkthrough **10 times end to end**, pressing **Next** as soon as each step's
+  text appears (don't linger). Note the **"Step N of 7"** number at every press. Force-quit between runs.
+  **PASS:** all 10 runs show 1,2,3,4,5,6,7 in order. Step 3 asks you to open and move a line; step 4 asks
+  you to confirm your bills — **both must appear**.
+  **FAIL:** any run where the number jumps (2→4, 2→5) or where step 3 and/or 4 never appears. Record the
+  count and which numbers. **Any non-zero count is a fail** — the count sizes the fix.
+
+- [ ] **§11.3 — a beat that can't find its control still reads honestly** _(same device as §11.2.)_
+  If §11.2 produced a run where a step's bright rectangle never appeared, read that step's text.
+  **PASS:** the text does NOT tell you to open, drag, move or confirm anything — it describes what the
+  Guardian does. The step count still advances one at a time and **Back** returns to the previous step and
+  **stays** there.
+  **FAIL:** the text asks you to operate a control you cannot see; or pressing Back moves the number down
+  and it jumps forward again on its own within a second or two. Video the Back behaviour if it happens.
+
+- [ ] **§11.4 — VoiceOver, end to end** _(Settings → Accessibility → VoiceOver: ON.)_
+  Swipe through the whole walkthrough on every step, both themes.
+  **PASS:** each step announces its number, the words **"Example money"**, the title and the body. On the
+  five scripted steps you cannot reach any control on the card behind the panel. On steps 3 and 4 you CAN
+  reach the one control the step is about (**"Adjust your line"**, then the bills confirmation) and **not**
+  "See your forecast" or the other one. Nothing on the card behind can be double-tapped into.
+  **FAIL:** silence on any step; or you can double-tap something behind the panel on a scripted step; or
+  step 3/4's own control cannot be reached.
+
+- [ ] **§11.5 — the header must not eat the highlight at AX5** _(any iPhone, AX5, both themes.)_
+  Step through all 7 and look at the bright rectangle and its thin coloured outline.
+  **PASS:** the outline is complete on all four sides and no part of the highlighted element hides behind
+  the large word **"Today"** at the top.
+  **FAIL:** the outline's top edge disappears under the header. Photograph, note the step.
+
+- [ ] **§11.6 — haptics** _(any iPhone, silent switch OFF, held in hand.)_
+  **PASS:** a light tick as each step lands; a distinctly STRONGER tap at exactly two moments — when you
+  save a new line (step 3) and when you confirm your bills (step 4).
+  **FAIL:** no haptics at all; the same strength everywhere; or a strong tap on a step where you did
+  nothing. (Neither web nor the simulator can feel these — this is the only way to check.)
+
+- [ ] **§11.7 — Reduce Motion, and interruption mid-story** _(any iPhone, dark theme.)_
+  **(a)** Settings → Accessibility → Motion → **Reduce Motion: ON**. Press Next through all 7.
+  **PASS:** transitions are instant. **FAIL:** on any step the whole screen goes uniformly dark with
+  nothing highlighted, holds for about a third of a second, then snaps open. Note the steps.
+  **(b)** Reduce Motion OFF. Go to **Step 4 of 7** and tap the highlighted line reading *"All your regular
+  bills entered? I'll hold a smaller safety net."* A sequence plays by itself over ~3 seconds. **Within one
+  second of tapping**, swipe up to the home screen. Count to 30. Reopen from the app switcher.
+  **PASS:** you return to step 4, intact and legible; nothing plays out in a burst.
+  **FAIL:** several changes fire at once in one jump, or a message about a safety net is on screen that you
+  never saw arrive.
+  **(c)** Turn **App Lock** on (More → App Lock) and **VoiceOver** on, then repeat (b).
+  **FAIL:** the phone speaks a sentence about a safety net **while the locked screen is showing**.
+
+- [ ] **§11.8 — rotation and Split View mid-step** _(iPad, any.)_
+  Go to **Step 3 of 7**; the row **"Adjust your line →"** is highlighted.
+  **(a)** Rotate 90°, then **within one second** tap once in the middle of the screen, away from that row.
+  **(b)** Rotate back, open Split View, and drag the divider narrower then wider while step 3 shows.
+  **PASS:** after each change the bright rectangle settles back onto **"Adjust your line →"** within about
+  a second, and the tap in (a) does nothing at all.
+  **FAIL:** the rectangle sits over an unrelated part of the screen for a noticeable moment; or the tap in
+  (a) opens a panel, ticks something, or changes any number. Note exactly what it hit.
+
+- [ ] **§11.9 — long debt names inside the scripted shortfall** _(any iPhone, AX3, both themes.)_
+  **Setup:** Money tab → rename one debt to 60+ characters, e.g.
+  `Chase Sapphire Preferred Visa Signature Card ending 4429 (joint)`. Save.
+  Go to **Step 5 of 7** ("When it won't stretch") and read the whole card.
+  **PASS:** the long name wraps or truncates with "…", no text overlaps, every amount is readable, **and
+  the word "Example" is visible on screen** (in the panel's "Step 5 of 7 · Example money" line and/or on
+  the card).
+  **FAIL:** the name collides with a number, any amount is clipped, **or the "Example" marker is not
+  visible anywhere on this step.** ⚠️ **Treat a missing marker here as the highest-severity result in this
+  entire checklist** — step 5 deliberately shows a made-up shortfall using your REAL debt names, and the
+  marker is the only thing stopping it reading as a genuine warning about your money.
+  **Cleanup:** rename the debt back.
+
+- [ ] **§11.10 — the walkthrough's one required gesture** _(any iPhone.)_
+  On **Step 3 of 7**, tap **"Adjust your line →"**, then **drag** the slider in the sheet and press Save.
+  **PASS:** the slider follows your finger, the sheet closes, and a short bar animates in the bottom panel
+  showing what changed.
+  **FAIL:** the slider doesn't respond to a drag (it is a gesture-handler control, which the browser suite
+  cannot exercise at all), or nothing animates after Save.
+
+---
+
 ## §9 — Report back
 - [ ] Jot anything that failed (which §, what you did, a screenshot). I fix in-repo → you rebuild → re-run only the failed items.
 - [ ] When this is clean, 3.5.3/3.5.4 are **device-verified**; next I build **3.5.5 (App Intents / Siri)**, which reuses the payday-landed bridge you just tested — then one more signed build closes the block.

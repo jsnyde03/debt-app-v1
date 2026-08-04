@@ -594,3 +594,113 @@ explaining a `tabBarButton` override that is not there**, in the file everyone t
 117th is the new fence assertion) · arc swept across all 7 beats × both themes, every beat lands on a subject.
 
 </details>
+
+## P. ROUND 7 — 2026-08-04 · ⛔ does not pass · ~22 findings, two-thirds of them ROUND 6's
+
+<details>
+<summary>4 rotated lenses (Opus 5) · a SHOW-STOPPER · fixed in <code>11237e8</code> + <code>9928ab2</code> · first round under the fix+proof+query rule</summary>
+
+**Method change (Jason, 2026-08-04): every finding returns FIX + PROOF + COMPLETENESS QUERY.** The
+recommendation alone was never the gap — round 6's lens wrote *"use `a11yHidden` at all six sites"* and
+four were converted, because nothing forced proof the class was closed. The third field is the one that
+bites: a query the lens writes, that the implementer must run, that fails loudly. → [[feedback_audit_findings_need_fix_and_proof]]
+
+**It paid on first use.** My round-6 comment claimed six call sites. The ESLint rule written to replace the
+list enumerated **24 errors across 12 sites in 10 files** — more than double any enumeration, and 9 of
+them predated this phase. A list written by the person who missed them misses them again; a rule cannot.
+
+### The SHOW-STOPPER — round 6's auto-advance deleted beats
+
+`line` and `reserve` are adjacent interactive beats, and the verdict was a bare boolean that survived a
+beat change by one commit. One slow measurement on beat 3 skipped **beat 4 as well — never measured at
+all** — jumped the counter 3→5, persisted the skip, and made Back appear dead (re-entering the beat
+advanced straight back out). Three lenses found it independently.
+
+Root cause: `unmeasurable` conflated three facts — *not mounted*, *timed out*, *0×0 mid-transition*. The
+doc-comment stated the distinction and the code discarded it at the point of consequence.
+
+**[D15] SETTLED (Jason): DEGRADE IN PLACE, superseding [D13].** Jason rejected "degrade" as a framing and
+asked what was actually being sacrificed. Honest answer: the user loses the interaction, since the control
+isn't rendered. But skipping also loses the lesson, the step count and Back; and a plain fence leaves copy
+asking for a control that isn't there. Both lie. So the beat **keeps its place and drops its ask** via
+`bodyIfNoSubject`, through the same resolver the announcement uses.
+
+Three fixes, none subsuming another: `has(id)` (absence as a FACT, not an inference) · `unmeasurableFor`
+(the verdict names its subject, so it can't be inherited) · the decision extracted to a pure
+`spotlightPolicy` — **because `apps/rn` has no component or hook test runner at all** (devDependencies:
+`typescript`, `@types/react`). A decision inline in a `useEffect` is unassertable *by construction*, which
+is exactly how this shipped untested.
+
+### The a11y fix was 4 of 6 — and its sibling was worse
+
+Round 6 left the `control` fence and the overlay scrim on the longhand pair, i.e. still no-ops on web —
+on the two interactive beats §O itself calls the `control` fence "the only thing fencing the coached
+controls". Seventh instance of the one-member fix, inside the fix that condemned it.
+
+Worse, `SheetBackdrop` shipped a NEW defect: **`focusable={false}` is inert on RNW.** Its Pressable always
+supplies a `tabIndex`, and `createDOMProps` only consults `focusable` in the branch that short-circuits on
+— so every sheet in the app was `aria-hidden` AND tabbable (the `aria-hidden-focus` violation), having
+also dropped two shells' "Close" label. `tabIndex={-1}` fixes it on both platforms; `useInert` fixes the
+regions, since `aria-hidden` and tab order are separate questions on web.
+
+### ⭐ The scanner that could not fail
+
+`@axe-core/playwright` over four states. It went green immediately — so the backdrop defect was
+**reintroduced to see whether it could fail. It could not.** axe reports a bare `tabindex="0"` inside
+`aria-hidden` as **`incomplete`**, not as a violation, and RNW produces exactly that shape for every
+Pressable. Asserting on `violations` alone, the scanner sat green on a full-viewport aria-hidden tab stop
+— green on the precise defect it was installed to catch.
+
+Found by dumping the DOM rather than reasoning about the rule: a `1280×720` div carrying both attributes.
+Fixed to assert both buckets, re-verified red (naming the node), then green.
+
+**It immediately caught one of mine:** `useInert` had gone onto the screen fence and `TutorialFence` but
+not `TutorialTarget`'s `control` fence. Two of three — the same shape, an eighth time, mine, caught by a
+machine rather than by me. `inert` itself is not taken on trust either: axe doesn't model it, so those
+subtrees are excluded from the scan and a separate test presses Tab 25 times asserting focus never lands
+in a fenced region.
+
+### The hostile-environment rotation — six rounds of ideal conditions
+
+- the dock's nav row could not shrink and had no `flexWrap` → past ~AX2.5 on a 375pt screen it spilled
+  into `overflow:hidden` and took **Skip** off screen. Round 2 fixed this row's VERTICAL clipping; nobody
+  checked the other axis, and the one it loses is the escape hatch.
+- `SETTLE_MS` ungated on Reduce Motion → 380ms of fully-closed scrim per scrolling beat, its justification
+  ("a beat longer than the scroll animation") not applying while its cost did.
+- `headerHeight`'s `Math.min(2, …)` inverted the over-estimate bias its own comment commits to, above
+  ~2.6× — where the header is tallest.
+- rotation / Split-View updates the overlay origin on the layout pass but the rect only after a re-measure
+  → the open touch hole sits over whatever now occupies that region. `screenReachable` now also requires a
+  rect measured under the CURRENT dimensions, so the a11y fence closes with it.
+- the scripted story's timers are suspended by iOS and released together on resume → a three-moment
+  sequence in one tick, or played out behind the lock screen with `announce()` narrating it.
+
+### Claims corrected (claim-vs-code, 7/7 rounds)
+
+"MoreButton's dim was deleted" — only its comment was · "All FIVE published values now release", wrong a
+**fourth** time and made so by the commit that deleted one · the `measure` timeout still justified by a
+mechanism [D13] removed and a premise [D13] disproved · "8 sheets" corrected with a second wrong number ·
+my e2e comment claiming a `getByRole` method the test didn't use · the source scan's "nothing may
+register" enforced over two hand-written paths.
+
+**The scan is now globbed over all of `src`**, matches across arrow-function props (`[^<]` not `[^>]` — a
+target with an arrow-fn prop before `id` was matched by neither pattern and vanished silently), and fails
+on a PARTIAL miss rather than only a total one.
+
+### Comment convention adopted
+
+Findings #3/#4/#5 were one shape: prose narrating audit history, deletions and counts, which decays with
+nothing edited. **A comment may only assert what the code beside it makes true; no totals or completeness
+words; no history, no post-mortem, no previous beliefs — and correcting a false comment means DELETING it,
+not annotating it.** Counts in these files have now been wrong four times.
+
+### Gate
+
+typecheck + lint clean · all unit suites green · **123/123 e2e, no flakes** (117 → 123: the policy suite,
+the role-based fence assertion, the focus-trap check, and four axe states) · completeness query **zero** ·
+10 device-only items written into `DEBT_3.5_DEVICE_QA_CHECKLIST.md` §11 as an executable checklist.
+
+**▶ ROUND 8 REQUIRED.** Seven rounds, every one has found the previous fix block defective, and round 7's
+changed user-visible behaviour ([D15]) while adding three modules and a scanner.
+
+</details>
