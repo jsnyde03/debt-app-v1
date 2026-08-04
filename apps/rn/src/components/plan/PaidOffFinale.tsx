@@ -19,6 +19,7 @@ import { reportError } from '@/utils/reportError';
 import { shareDebtCard } from '@/utils/share-card';
 import { playDebtFreeSound } from '@/utils/debtFreeSound';
 import { useAppStore } from '@/store/useAppStore';
+import { decorative } from '@/utils/a11y';
 
 /**
  * The grand finale (3.3.1.3) — the once-ever full-screen spectacle when the LAST debt is confirmed to $0.
@@ -106,7 +107,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
           <View style={styles.ringWrap} accessible accessibilityLabel="$0 balance">
             {!reduce ? <Bloom color={surf.goldPill} /> : null}
             <JourneyRingCanvas size={RING} stroke={14} pct={100} milestones={[{ t: 100, state: 'free' }]} palette={GOLD_PALETTE} />
-            <View style={[StyleSheet.absoluteFill, styles.ringCenter]} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            <View style={[StyleSheet.absoluteFill, styles.ringCenter]} pointerEvents="none" {...decorative}>
               <Text style={[styles.zero, { color: surf.goldPill }]} maxFontSizeMultiplier={1.3}>$0</Text>
               <Text style={[textStyles.caption, { color: surf.heroSub }]} maxFontSizeMultiplier={1.4}>balance</Text>
             </View>
@@ -137,8 +138,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
           style={styles.offscreen}
           pointerEvents="none"
           aria-hidden
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants">
+          {...decorative}>
           <ShareCard data={{ kind: 'finale', totalPaid: stats.totalPaid, debtsCleared: stats.debtsCleared, monthsToFreedom: stats.monthsToFreedom }} />
         </View>
       </LinearGradient>

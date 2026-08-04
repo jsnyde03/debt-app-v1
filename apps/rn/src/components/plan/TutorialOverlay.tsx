@@ -15,7 +15,7 @@ import { haptics } from '@/motion/haptics';
 import { useSpringValue } from '@/motion/hooks';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-import { announce, headerProps } from '@/utils/a11y';
+import { announce, decorative, headerProps } from '@/utils/a11y';
 import { stepAnnouncement } from '@/store/tutorialPath';
 import type { TutorialRun } from '@/store/tutorialSelectors';
 import type { TargetRect } from '@/store/tutorialTargets';
@@ -50,11 +50,11 @@ import type { TargetRect } from '@/store/tutorialTargets';
  * Putting it here is the structural fix rather than a note-to-self: the thing that draws a step is now
  * the thing that speaks it, so a future host rewrite cannot separate them again.
  */
-function useAnnounceBeat(position: number, run: TutorialRun) {
+function useAnnounceBeat(position: number, run: TutorialRun, subjectMissing: boolean) {
   useEffect(() => {
     // 3.5.3.6.2 — `run` matters: the finale's copy differs by audience, and a VoiceOver user must hear
     // the line their screen is showing. Same resolver as the rendered body, for exactly that reason.
-    announce(stepAnnouncement(position - 1, run));
+    announce(stepAnnouncement(position - 1, run, undefined, subjectMissing));
     // 3.5.3.7.4 ([D12]) — a light selection tick as each beat lands. The app ships bespoke Core Haptics
     // and the walkthrough had none, which is part of why it read as a tooltip library rather than as
     // Debt. Deliberately the LIGHTEST rung: advancing is navigation, not achievement — the medium beats
@@ -62,7 +62,10 @@ function useAnnounceBeat(position: number, run: TutorialRun) {
     // system haptics setting is honoured by iOS itself, not by anything in that module — this used to
     // credit `haptics` with a settings check it does not contain.
     haptics.light();
-  }, [position, run]);
+    // `subjectMissing` is a dependency because it CHANGES THE COPY. A beat that degrades after its first
+    // announcement would otherwise leave a VoiceOver user holding the version that asks them to operate a
+    // control that isn't there — the one user for whom the fix would not have applied.
+  }, [position, run, subjectMissing]);
 }
 
 export function TutorialOverlay({
@@ -77,6 +80,7 @@ export function TutorialOverlay({
   run,
   spotlight,
   passThrough = false,
+  subjectMissing = false,
   onDockLayout,
   impact,
 }: {
@@ -94,6 +98,9 @@ export function TutorialOverlay({
   spotlight?: TargetRect | null;
   /** Should the cutout pass TOUCHES as well as light? Published by the screen — see `tutorialShell`. */
   passThrough?: boolean;
+  /** [D15] This beat's control isn't on screen — the copy above already reflects it; the dep is here so
+   *  the announcement re-fires when it changes. */
+  subjectMissing?: boolean;
   /** The dock's measured height defines the bottom of the stage the subject is scrolled into. */
   onDockLayout?: (height: number) => void;
   /** 3.5.3.4.4 — set once the user has actually moved their line on this beat; the before→after payoff. */
@@ -104,7 +111,7 @@ export function TutorialOverlay({
   const { isRegular } = useLayout();
   const insets = useSafeAreaInsets();
   const { height: windowH } = useWindowDimensions();
-  useAnnounceBeat(position, run);
+  useAnnounceBeat(position, run, subjectMissing);
 
   // [B4] The dock must never eat the screen. Its height is content-driven, and at the largest Dynamic
   // Type sizes a seven-line beat body plus the nav row can grow past the whole display — which collapses
@@ -351,7 +358,7 @@ function Scrim({
    *  subject — otherwise the hole is purely visual and everything underneath stays fenced off. */
   passThrough: boolean;
 }) {
-  const a11y = { accessibilityElementsHidden: true, importantForAccessibility: 'no-hide-descendants' } as const;
+  const a11y = decorative;
 
   // [D2] The hole MOVES between beats instead of cutting. The ring already faded in on arrival, but the
   // darkness around it hard-swapped — four static Views replaced by four different static Views — so the

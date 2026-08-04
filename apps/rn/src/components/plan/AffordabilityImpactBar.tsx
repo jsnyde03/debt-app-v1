@@ -9,13 +9,14 @@ import { duration } from '@/theme/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
+import { decorative } from '@/utils/a11y';
 
 /**
  * §3.3.4 — the affordability impact bar: the animated layer over the §2.9 "Can I Afford It?" read. As you
  * consider a purchase, your cushion carves down from its current level to what's left after it, landing
  * against your floor line — green when it clears the line, red when it falls short (tight / short). Reanimated
  * (matches the free cushion-bar motion), a decision surface: a smooth carve, not a celebration. The card's
- * textual read stays as the a11y source; this bar is `accessibilityElementsHidden` (decorative).
+ * textual read stays as the a11y source; this bar is `decorative`.
  */
 export function AffordabilityImpactBar({
   before,
@@ -48,7 +49,7 @@ export function AffordabilityImpactBar({
   const cushionStyle = useAnimatedStyle(() => ({ width: `${w.value * 100}%` }));
 
   return (
-    <View style={styles.wrap} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View style={styles.wrap} {...decorative}>
       <View style={[styles.track, { backgroundColor: c.background.tertiary }]}>
         <Animated.View style={[styles.cushion, cushionStyle, { backgroundColor: cushionColor }]} />
         {/* your floor line — the cushion should reach it */}

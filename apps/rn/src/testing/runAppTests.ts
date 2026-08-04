@@ -103,6 +103,10 @@ async function main() {
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');
 
+  // What a beat does when its coached control can't be found. Extracted from an effect precisely so it
+  // could be asserted — inline, it shipped the gate's only show-stopper with no test able to see it.
+  await import('../store/spotlightPolicy.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

@@ -11,7 +11,7 @@ import type { VanquishedDebt } from '@/store/celebrationSelectors';
 import { stagger } from '@/theme/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-import { groupLabel } from '@/utils/a11y';
+import { decorative, groupLabel } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 import { reportError } from '@/utils/reportError';
 import { shareDebtCard } from '@/utils/share-card';
@@ -79,8 +79,7 @@ export function VanquishedArchive({ debts }: { debts: VanquishedDebt[] }) {
         style={styles.offscreen}
         pointerEvents="none"
         aria-hidden
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants">
+        {...decorative}>
         <ShareCard data={{ kind: 'progress', debtsCleared: debts.length, totalPaid: total }} />
       </View>
     </Card>

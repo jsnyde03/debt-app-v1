@@ -14,6 +14,7 @@ import { duration } from '@/theme/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
+import { decorative } from '@/utils/a11y';
 
 type CushionStatus = TimelineCycle['cushionStatus'];
 
@@ -98,7 +99,7 @@ function CushionBars({ cycles, floor }: { cycles: TimelineCycle[]; floor: number
         {/* The floor reference line — dashed, spanning the plot, so "above/below your line" reads at a glance. */}
         <View pointerEvents="none" style={[styles.floorLine, { bottom: floorY, borderColor: c.text.tertiary }]} />
       </View>
-      <View style={styles.datesRow} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View style={styles.datesRow} {...decorative}>
         {cycles.map((cy, i) => (
           <Text key={i} style={[textStyles.caption, styles.cell, { color: c.text.tertiary }]} numberOfLines={1}>
             {shortDate(cy.cycleStart)}

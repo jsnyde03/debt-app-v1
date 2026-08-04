@@ -16,7 +16,7 @@ import type { GuardianBrief, GuardianProofOfWork, GuardianState, TightTopUp } fr
 import type { RecoveryPlan } from '@/store/recoverySelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-import { a11yHidden, groupLabel } from '@/utils/a11y';
+import { a11yHidden, decorative, groupLabel } from '@/utils/a11y';
 
 const BAR_H = 14;
 /** The safety-net swatch matches the bar's tinted reserve zone (cushion color at this opacity).
@@ -175,7 +175,7 @@ export function PaydayGuardianCard({
           // rather than a buried, double-spoken line.
           isPremium ? (recovery ? undefined : brief.safeMove) : undefined,
           isPremium && !recovery ? brief.lookahead : undefined,
-          // [C4] The AMOUNTS. The cushion bar and its legend are both `accessibilityElementsHidden` —
+          // [C4] The AMOUNTS. The cushion bar and its legend are both `decorative` —
           // correctly, since a swatch-keyed legend is a visual index into a canvas — but that left the
           // held-reserve, cushion and to-debt figures existing NOWHERE in the accessibility tree. A
           // VoiceOver user heard the card's verdict and never the money it was a verdict about, and the
@@ -184,6 +184,11 @@ export function PaydayGuardianCard({
           hasReserve ? `Safety net ${money(brief.heldReserve)}` : undefined,
           `Cushion ${money(hasReserve ? brief.cushion - brief.heldReserve : brief.cushion)}`,
           hasPayoff ? `${brief.debtFree ? 'To savings' : 'To debt'} ${money(brief.deployedToDebt)}` : undefined,
+          // The card's FOURTH figure. [C4] added the three flow amounts and stopped there, so the floor —
+          // the one number a whole beat of the walkthrough is about, and the only one the user sets
+          // themselves — stayed unreachable. Its row is `decorative` (a tick keyed to the bar), which was
+          // right; the number needed a home, and this is it. Read last, matching the row's position.
+          `Your line ${money(brief.floor)}`,
           bnplHeadsUp ?? undefined,
         )}>
         <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>PAYDAY GUARDIAN</Text>
@@ -225,8 +230,7 @@ export function PaydayGuardianCard({
         <View
           style={[styles.barWrap, stale && styles.dimmed]}
           onLayout={(e: LayoutChangeEvent) => setBarW(e.nativeEvent.layout.width)}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants">
+          {...decorative}>
           {barW > 0 ? (
             <CushionBarCanvas
               width={barW}
@@ -246,8 +250,7 @@ export function PaydayGuardianCard({
             (swatch + label on top, value below). Each swatch keys a zone of the cushion bar above. */}
         <View
           style={[styles.stats, stale && styles.dimmed]}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants">
+          {...decorative}>
           {/* Order matches the bar's fixed left→right shading: Set aside (tinted, far-left) → Cushion →
               To debt. The safety-net reserve is only present for a settling-in (cold-start) user. */}
           {hasReserve ? (

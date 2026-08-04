@@ -1,6 +1,8 @@
+import { useRef } from 'react';
 import { View } from 'react-native';
 import type { ReactNode } from 'react';
 
+import { useInert } from '@/hooks/use-inert';
 import { useTutorialSession } from '@/store/tutorialSession';
 import { a11yHidden } from '@/utils/a11y';
 
@@ -27,5 +29,12 @@ import { a11yHidden } from '@/utils/a11y';
  */
 export function TutorialFence({ children }: { children: ReactNode }) {
   const inWalkthrough = useTutorialSession((s) => s.active);
-  return <View {...a11yHidden(inWalkthrough)}>{children}</View>;
+  // `aria-hidden` alone leaves every control in here tabbable on web — see `useInert`.
+  const ref = useRef<View>(null);
+  useInert(ref, inWalkthrough);
+  return (
+    <View ref={ref} {...a11yHidden(inWalkthrough)}>
+      {children}
+    </View>
+  );
 }

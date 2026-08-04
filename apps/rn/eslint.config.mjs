@@ -24,8 +24,29 @@ export default defineConfig([
       'react-hooks/immutability': 'off',
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/refs': 'off',
+      // `accessibilityElementsHidden` and `importantForAccessibility` are dropped SILENTLY by
+      // react-native-web: neither name appears in its `forwardedProps` allowlist, and `createDOMProps`
+      // discards unrecognised props with no warning. Written longhand they therefore fence on iOS and
+      // Android and do nothing at all on web — which is invisible to a suite whose selectors match
+      // through `aria-hidden`. `aria-hidden` covers all three platforms in one prop, because RN expands
+      // it into both native props itself.
+      //
+      // A rule, not a convention, because the convention failed: this class was fixed by enumeration and
+      // the enumeration was short. The linter knows every site; a person does not.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "JSXAttribute[name.name='accessibilityElementsHidden'], JSXAttribute[name.name='importantForAccessibility'], Property[key.name='accessibilityElementsHidden'], Property[key.name='importantForAccessibility']",
+          message:
+            'Dropped silently by react-native-web (fences native only). Use a11yHidden(flag) or `decorative` from @/utils/a11y.',
+        },
+      ],
     },
   },
+  // `utils/a11y.ts` is where the two props are legitimately written — it is the one file that knows what
+  // `aria-hidden` expands to, and the rule above exists to keep it that way.
+  { files: ['src/utils/a11y.ts'], rules: { 'no-restricted-syntax': 'off' } },
   // Build output, the native/e2e trees, and the Playwright harness (node/@playwright — its own tsconfig).
   globalIgnores(['dist/**', '.expo/**', 'node_modules/**', 'core/**', 'tests/**', 'playwright.config.ts']),
 ]);

@@ -577,33 +577,66 @@ test.describe('tutorial invitation + in-situ shell', () => {
   // was "verified" by this suite, on the one platform where the fences did not exist — and it stayed
   // green throughout, because nothing ever asked the document what it actually contained.
   //
-  // Asserts the PROPERTY (is the coached screen in the accessibility tree?), not a prop name or a
-  // sentence — the shape this gate has had to re-learn three times. `getByRole` resolves against the
-  // accessibility tree, so an aria-hidden Today makes its controls unresolvable BY CONSTRUCTION; that is
-  // the same question a screen reader asks, rather than a proxy for it.
+  // Asks the accessibility tree the question a screen reader asks. `getByRole` resolves against that
+  // tree only, so an aria-hidden control is unresolvable BY CONSTRUCTION — whereas `getByText` and
+  // `getByTestId` match straight through `aria-hidden`, and `toBeVisible()` is CSS-based. That
+  // distinction is the whole reason four rounds of a11y work stayed green while fencing nothing.
+  //
+  // The first version of this test measured the largest `aria-hidden` bounding box instead. It passed
+  // only because the overlay scrim was ALSO unfenced at the time — fixing the scrim would have made the
+  // gate written to protect this class fail. Geometry is not a proxy for the a11y tree.
   test('the coached screen leaves the a11y tree on scripted beats and returns for interactive ones', async ({ page }) => {
     await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
     await page.goto('/tutorial');
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
 
-    // Beat 1 is scripted: Today is fenced, so a full-viewport aria-hidden region covers it…
-    const viewport = page.viewportSize()!;
-    const fencedArea = async () =>
-      page.evaluate(() =>
-        [...document.querySelectorAll('[aria-hidden="true"]')].reduce((max, el) => {
-          const r = el.getBoundingClientRect();
-          return Math.max(max, r.width * r.height);
-        }, 0),
-      );
-    expect(await fencedArea()).toBeGreaterThan(viewport.width * viewport.height * 0.9);
-    // …and the dock stays reachable above it, or the walkthrough would be a trap.
+    // Beat 1 is scripted: Today is fenced entirely, so none of its controls resolve by role…
+    await expect(page.getByRole('button', { name: 'Adjust your line' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'See your forecast' })).toHaveCount(0);
+    // …while remaining on screen. The fence hides the card from assistive tech; it does not pull it out
+    // of the composition the user is being shown.
+    await expect(page.getByText('Adjust your line →')).toBeVisible();
+    // …and the dock stays reachable above the fence, or the walkthrough would be a trap.
     await expect(page.getByRole('button', { name: 'Next' })).toBeVisible();
 
-    // Step to beat 3 ('Your line'), the first INTERACTIVE beat — the fence must open, or a VoiceOver
-    // user cannot reach the control the beat is explicitly asking them to operate.
+    // Beat 3 ('Your line') is INTERACTIVE: the fence opens so the user can reach the coached control.
     await page.getByRole('button', { name: 'Next' }).click();
     await page.getByRole('button', { name: 'Next' }).click();
     await expect(page.getByTestId('tutorial-step-title')).toHaveText('Your line');
-    expect(await fencedArea()).toBeLessThan(viewport.width * viewport.height * 0.9);
+    await expect(page.getByRole('button', { name: 'Adjust your line' })).toHaveCount(1);
+    // But ONLY the coached control. The forecast link sits in the same open card and must stay fenced —
+    // it pushes a route out from under the live overlay, and a VoiceOver double-tap never goes through
+    // hit-testing, so the scrim cannot stop it.
+    await expect(page.getByRole('button', { name: 'See your forecast' })).toHaveCount(0);
+  });
+
+  // Nothing on the ordinary app may be hidden from assistive tech while still being tabbable — the
+  // `aria-hidden-focus` violation. It is a whole-app property (every sheet shares one backdrop), and it
+  // shipped once already: an RNW Pressable keeps its tabIndex regardless of aria state, so a fence
+  // written with `focusable={false}` produced an unlabelled full-screen keyboard stop.
+  test('no aria-hidden region contains a tabbable element', async ({ page }) => {
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
+    await page.goto('/');
+    // Focusability, not the `tabindex` attribute. `inert` is how a fenced region drops out of the tab
+    // order, and it does NOT remove `tabindex` — it makes the browser ignore it. An assertion on the
+    // attribute alone reports every correctly-fenced region as a violation, which is the mirror image of
+    // the bug: a check that cannot pass is as useless as one that cannot fail.
+    const trapped = async () =>
+      page.evaluate(() => {
+        const FOCUSABLE = '[tabindex="0"],a[href],button,input,select,textarea';
+        return [...document.querySelectorAll('[aria-hidden="true"]')]
+          .flatMap((el) => [el, ...el.querySelectorAll(FOCUSABLE)])
+          .filter((el) => el.matches(FOCUSABLE) && !el.closest('[inert]'))
+          .length;
+      });
+    expect(await trapped()).toBe(0);
+    // …and during a walkthrough, which fences most of Today.
+    await page.getByTestId('guardian-replay-tutorial').click();
+    await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
+    expect(await trapped()).toBe(0);
+    // The count above is only meaningful if the fence is actually there. Without this, deleting the
+    // fence entirely would also produce zero violations — the assertion would pass because nothing was
+    // hidden rather than because nothing was trapped. This gate has shipped that shape four times.
+    expect(await page.locator('[inert]').count()).toBeGreaterThan(0);
   });
 });

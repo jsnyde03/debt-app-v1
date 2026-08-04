@@ -27,6 +27,7 @@ import { View, type LayoutChangeEvent } from 'react-native';
  */
 
 import type { TargetRect } from '@/hooks/spotlightGeometry';
+import { a11yHidden } from '@/utils/a11y';
 
 export type { TargetRect };
 
@@ -39,6 +40,9 @@ interface TargetRegistry {
   /** Measure a registered subject in window coordinates. Null when it isn't mounted (a beat can point
    *  at something the current Guardian state doesn't render — the caller degrades, it doesn't crash). */
   measure(id: string): Promise<TargetRect | null>;
+  /** Is this subject MOUNTED? `measure` resolving null does not answer that — it also means "timed out"
+   *  or "measured 0×0 mid-transition". Callers that act on absence need the fact, not the inference. */
+  has(id: string): boolean;
   /** [E5] A registered subject just laid out — its measured rect is stale. See `subscribe`. */
   invalidate(id: string): void;
   /** Watch for `invalidate`. Deliberately a listener set held in a ref, NOT React state: this fires on
@@ -94,6 +98,8 @@ export function TutorialTargetsProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const has = useCallback((id: string) => nodes.current.has(id), []);
+
   const listeners = useRef(new Set<(id: string) => void>());
   const invalidate = useCallback((id: string) => {
     listeners.current.forEach((fn) => fn(id));
@@ -110,8 +116,8 @@ export function TutorialTargetsProvider({ children }: { children: ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const value = useMemo(
-    () => ({ register, measure, invalidate, subscribe, activeId, setActiveId }),
-    [register, measure, invalidate, subscribe, activeId],
+    () => ({ register, measure, has, invalidate, subscribe, activeId, setActiveId }),
+    [register, measure, has, invalidate, subscribe, activeId],
   );
   return <TutorialTargetsContext.Provider value={value}>{children}</TutorialTargetsContext.Provider>;
 }
@@ -171,8 +177,7 @@ export function TutorialTarget({
   const fenced = !!control && !!targets?.activeId && targets.activeId !== id;
   return (
     <View
-      accessibilityElementsHidden={fenced}
-      importantForAccessibility={fenced ? 'no-hide-descendants' : 'auto'}
+      {...a11yHidden(fenced)}
       ref={(node) => targets?.register(id, node)}
       // [E5] This used to claim it "re-registers on layout", and did no such thing — it forwarded the
       // caller's handler and nothing else, so a spotlight only ever re-measured when the beat's own

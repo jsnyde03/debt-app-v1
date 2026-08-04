@@ -25,7 +25,7 @@ import { colors } from '@/theme/colors';
 import { elevation } from '@/theme/elevation';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-import { groupLabel } from '@/utils/a11y';
+import { decorative, groupLabel } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 
 const RING_SIZE = 112;
@@ -155,8 +155,7 @@ export default function ProgressScreen() {
             <View
               style={[StyleSheet.absoluteFill, styles.ringCenter]}
               pointerEvents="none"
-              importantForAccessibility="no-hide-descendants"
-              accessibilityElementsHidden>
+              {...decorative}>
               <CountUp value={pct} format={(n) => `${Math.round(n)}%`} maxFontSizeMultiplier={1.4} style={[styles.ringPct, { color: surf.heroText }]} />
               <Text style={[textStyles.caption, { color: surf.heroSub }]}>paid</Text>
             </View>

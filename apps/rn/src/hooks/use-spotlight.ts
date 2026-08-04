@@ -46,7 +46,7 @@ export function useSpotlight({
   offsetRef: React.RefObject<number>;
   /** Bump to force a re-measure when the subject itself changed size (state change, card grew). */
   revision?: string | number;
-}): { rect: TargetRect | null; unmeasurable: boolean } {
+}): { rect: TargetRect | null; unmeasurableFor: string | null } {
   const targets = useTutorialTargets();
   const reduceMotion = useReducedMotion();
   const [rect, setRect] = useState<TargetRect | null>(null);
@@ -55,11 +55,13 @@ export function useSpotlight({
   // all three, and a caller that has to act on the last one cannot infer it — "null right now" is the
   // normal state for the first frames of every beat.
   const [settling, setSettling] = useState(false);
-  // Round 6: set ONLY where a measurement sequence has actually concluded and failed. The caller uses it
-  // to move an interactive beat along rather than leave the user reading "open it and move the line"
-  // beside a control the app cannot find. Inferring this from `rect === null && !settling` would have
-  // fired on the opening frames of every beat, skipping beats nobody failed to measure.
-  const [unmeasurable, setUnmeasurable] = useState(false);
+  // Set only where a measurement sequence has concluded AND the subject is genuinely not mounted.
+  //
+  // It holds the subject id, not a boolean, because a boolean cannot say WHICH beat failed. `line` and
+  // `reserve` are adjacent interactive beats and this state survives a beat change by one commit, so a
+  // bare flag was read by the beat it had just advanced into — deleting a beat that was never measured.
+  // The consumer compares it against the current `targetId`; see `spotlightPolicy`.
+  const [unmeasurableFor, setUnmeasurableFor] = useState<string | null>(null);
   // Mirrored in a ref so the layout subscriber below can read it without listing it as a dependency —
   // which would tear down and rebuild the subscription on every transit.
   const settlingRef = useRef(false);
@@ -72,7 +74,7 @@ export function useSpotlight({
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     // A new beat: nothing has been proven about this subject yet, so retract any previous verdict.
-    setUnmeasurable(false);
+    setUnmeasurableFor(null);
 
     if (!targetId || !targets) {
       setRect(null);
@@ -89,7 +91,7 @@ export function useSpotlight({
       if (!first) {
         setRect(null);
         setSettling(false);
-        setUnmeasurable(true);
+        setUnmeasurableFor(targets.has(targetId) ? null : targetId);
         return;
       }
 
@@ -119,7 +121,7 @@ export function useSpotlight({
           if (stale) return;
           setRect(settled);
           setSettling(false);
-          setUnmeasurable(settled === null);
+          setUnmeasurableFor(settled === null && !targets.has(targetId) ? targetId : null);
         })();
       }, SETTLE_MS);
     })();
@@ -180,7 +182,7 @@ export function useSpotlight({
   // `settlingRef` to avoid re-measuring mid-transit), but round 6 removed its only external consumer:
   // the overlay used it to tell a travelling null from an absent one, and now renders the same scrim for
   // both. A published value with no reader is the thing the next audit finds.
-  return { rect, unmeasurable };
+  return { rect, unmeasurableFor };
 }
 
 /**

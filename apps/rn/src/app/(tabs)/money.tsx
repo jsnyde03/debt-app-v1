@@ -40,6 +40,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { formatWhole, monthlyEquivalent } from '@/utils/format';
+import { decorative } from '@/utils/a11y';
 
 /**
  * Money — the consolidated management hub (Elevation IA). One tab holds all three entity types as
@@ -572,7 +573,7 @@ function AllocationBar({ segments }: { segments: AllocationSegment[] }) {
   const [w, setW] = useState(0);
   const H = 10;
   return (
-    <View style={styles.allocBar} onLayout={(e) => setW(Math.round(e.nativeEvent.layout.width))} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View style={styles.allocBar} onLayout={(e) => setW(Math.round(e.nativeEvent.layout.width))} {...decorative}>
       {w > 0 ? (
         <AllocationBarCanvas width={w} height={H} segments={segments} color={c.accent.primary} trackColor={c.background.tertiary} radius={H / 2} />
       ) : null}

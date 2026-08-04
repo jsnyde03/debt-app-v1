@@ -30,12 +30,13 @@ export function SheetBackdrop({
       <Animated.View style={[StyleSheet.absoluteFill, scrimStyle]} pointerEvents="none">
         <SheetScrim />
       </Animated.View>
-      {/* Out of the a11y tree AND out of the tab order — two different questions. `a11yHidden` removes
-          it from the screen-reader tree (tapping outside is a POINTER affordance; the screen-reader
-          equivalent is the explicit Close button in the header). `focusable={false}` removes it from the
-          web tab order, which an RNW Pressable keeps regardless of its aria state — hidden AND focusable
-          is the worst of both, an unlabelled full-screen stop for keyboard users. */}
-      <Pressable style={StyleSheet.absoluteFill} onPress={onPress} focusable={false} {...a11yHidden(true)} />
+      {/* Out of the a11y tree AND out of the tab order — two different questions, and the second needs
+          `tabIndex`, not `focusable`. RNW's Pressable always supplies a tabIndex of its own (0 unless
+          disabled), and `createDOMProps` only consults `focusable` in the branch a supplied tabIndex
+          short-circuits — so `focusable={false}` never reaches the DOM here and this was aria-hidden AND
+          tabbable, which is the axe `aria-hidden-focus` violation. `tabIndex={-1}` works on both: RN core
+          maps it to `focusable={!tabIndex}` for native. */}
+      <Pressable style={StyleSheet.absoluteFill} onPress={onPress} tabIndex={-1} {...a11yHidden(true)} />
     </>
   );
 }

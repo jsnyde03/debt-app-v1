@@ -40,6 +40,7 @@ import { StoreProvider, useActiveStore } from '@/store/StoreContext';
 import { isSandboxStore } from '@/store/sandboxStore';
 import { TutorialTarget, TutorialTargetsProvider, useTutorialTargets } from '@/store/tutorialTargets';
 import { useTutorialShell } from '@/store/tutorialShell';
+import { useInert } from '@/hooks/use-inert';
 import { useSpotlight } from '@/hooks/use-spotlight';
 import { startTutorial, tutorialSession, useTutorialSession } from '@/store/tutorialSession';
 import { INTERACTIVE_STEP_IDS, TUTORIAL_STEPS } from '@/store/tutorialPath';
@@ -59,7 +60,7 @@ import { isLastLiveDebt, selectCelebrationStats } from '@/store/celebrationSelec
 import { rankDebts } from '@/store/payoffSelectors';
 import { selectAllocation } from '@/store/selectors';
 import { TutorialFence } from '@/components/plan/TutorialFence';
-import { appStore } from '@/store/appStore';
+import { shouldDegradeToScripted } from '@/store/spotlightPolicy';
 import { useAppStore } from '@/store/useAppStore';
 import type { Debt } from '@/data/models';
 import { spacing } from '@/theme/spacing';
@@ -730,7 +731,7 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // publish effect below depends on what it returns. Passing the object straight through would re-fire
   // that effect every render and re-render the shell — the same fresh-value re-render loop that took the
   // whole tutorial suite down at 3.5.3.2.
-  const { rect: spotlight, unmeasurable } = useSpotlight({
+  const { rect: spotlight, unmeasurableFor } = useSpotlight({
     targetId,
     stageTop: insets.top + headerHeight(),
     stageBottom: screenH - dockH - spacing.sm,
@@ -795,26 +796,30 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     return () => setPassThrough?.(false);
   }, [setPassThrough, screenReachable]);
 
-  // Round 6 — the beat can't find its own control. `unmeasurable` is set only where a measurement
-  // sequence has actually concluded and failed (both retries included), never on the not-yet-measured
-  // frames every beat opens with.
+  // [D15] The beat cannot find its coached control. It KEEPS its place in the arc and drops its ask.
   //
-  // This replaces the old escape hatch, which dropped the scrim entirely and left the whole real screen
-  // live under copy saying "open it and move the line" — pointing at nothing. The scrim now always
-  // renders, so the alternative to acting here would be a fenced screen asking for an action the user
-  // cannot perform. Both of those lie to the user; moving on doesn't. They lose the interaction and its
-  // payoff, which is a real cost, but nothing on screen claims otherwise.
+  // The alternative — advancing past it — was tried and removed: it deleted a beat from a seven-beat arc
+  // with no visible reason, jumped the step counter, persisted the skip, and made Back appear dead
+  // (re-entering the beat immediately advanced out of it again). Losing the interaction is unavoidable
+  // when the control isn't rendered; losing the lesson and the step count is not.
   //
-  // Only when the beat is still asking for its CONTROL: once the payoff is showing the user has already
-  // acted, and skipping ahead would take away the result they just earned.
-  const advance = useTutorialSession((s) => s.goTo);
+  // `acted` uses `floorBefore` rather than the derived `impact` because it is recorded at the moment of
+  // the user's write, before the sandbox has re-solved — a guard against taking away a result they
+  // earned has to fire earlier than the result itself.
+  // `aria-hidden` alone leaves the fenced screen tabbable on web — see `useInert`. Same expression as
+  // the a11y fence below, for the reason stated there.
+  const fenceRef = useRef<View>(null);
+  useInert(fenceRef, !screenReachable);
+
+  const acted = payoffShowing || floorBefore !== null;
+  const subjectMissing = shouldDegradeToScripted({ interactive, acted, targetId, unmeasurableFor });
+  const setSubjectMissing = shell?.setSubjectMissing;
   useEffect(() => {
-    if (!interactive || payoffShowing || !unmeasurable) return;
-    const nextStep = index + 1;
-    if (nextStep >= TUTORIAL_STEPS.length) return; // the last beat has nowhere to go; the dock still exits.
-    advance(nextStep);
-    appStore.getState().updatePrefs({ tutorialStep: nextStep });
-  }, [interactive, payoffShowing, unmeasurable, index, advance]);
+    setSubjectMissing?.(subjectMissing);
+    // Released on unmount like every other published value — the shell outlives the session, so a parked
+    // `true` would open the NEXT session's first beat on its no-subject copy.
+    return () => setSubjectMissing?.(false);
+  }, [setSubjectMissing, subjectMissing]);
 
   // Publish which subject this beat coaches, so every OTHER coachable control can fence itself out of
   // the accessibility tree (see `TutorialTarget`'s `control` prop). `targetId` already accounts for the
@@ -863,7 +868,7 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
           root, so it stays reachable). On an INTERACTIVE beat it must stay exposed: the whole point is
           that the user reaches the real control, and a screen reader has to be able to as well.
           Keyed on `screenReachable` — the SAME expression as the touch fence, deliberately; see there. */}
-      <View style={styles.flex} {...a11yHidden(!screenReachable)}>
+      <View ref={fenceRef} style={styles.flex} {...a11yHidden(!screenReachable)}>
       <TodayContent
         scrollRef={scrollRef}
         onScroll={(e) => {

@@ -15,6 +15,7 @@ import { textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
 import { reportError } from '@/utils/reportError';
 import { shareDebtCard } from '@/utils/share-card';
+import { decorative } from '@/utils/a11y';
 
 /**
  * The per-debt "vanquished" beat (3.3.1.2) — a CONTAINED celebratory overlay fired each time a debt is
@@ -146,8 +147,7 @@ export function VanquishedBeat({
           style={styles.offscreen}
           pointerEvents="none"
           aria-hidden
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants">
+          {...decorative}>
           <ShareCard data={{ kind: 'debt', debtName, amount: amountVanquished, freedPerMonth }} />
         </View>
       </Pressable>
