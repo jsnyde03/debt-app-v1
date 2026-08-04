@@ -427,3 +427,62 @@ resurfaced it — filed to 3.5.6 with the other floaters, plus a new 3.5.6b for 
 **Gate:** typecheck + lint clean · suites green · **116/116 e2e, no flakes** · arc re-shot both themes.
 
 </details>
+
+---
+
+## N. ROUND 5 — 2026-08-04 · ⛔ does not pass · the tutorial had broken the ordinary app
+
+<details open>
+<summary>Scoped to the residual (premium bar + owed ledger had converged) plus one new rotation. The rotation found a whole-app regression that four rounds of tutorial-focused auditing could not see.</summary>
+
+### BLAST RADIUS — the rotation, and the finding of the round
+
+Four rounds of fixes landed in **shared** components — `Slider`, `FormSheet`, `MoreButton`, the whole
+app's `tabBarButton`, the flagship Guardian card, `StoreContext`. Every round verified the tutorial.
+**Nobody had checked whether this work broke the app for users who will never open it.**
+
+**The `tabBarButton` override was reverted entirely.** Rounds 2–4 replaced the framework's tab button
+with a plain `Pressable` so the tab bar could leave the a11y tree during a walkthrough. **The premise was
+wrong**: `holdTabs` hooks the `tabPress` EVENT, which the button emits from its own `onPress` — the same
+path VoiceOver activation takes. Navigation was blocked for screen-reader users all along; the real
+defect was a focusable-but-inert tab, a polish issue only a device can judge.
+
+What the override cost was paid by everyone. The framework passes `href` to that button, react-native-web
+renders any View with `href` as a real `<a>`, and `PlatformPressable` exists partly to `preventDefault()`
+it. A plain Pressable doesn't — so **on web every tab press fired SPA navigation AND the anchor's
+document navigation: a full page reload, dropping in-memory state.** It also dropped `role="link"`, the
+pointer cursor, the iPad rail's hover effect, and the theme-derived ripple colour.
+
+**The e2e stayed green through all of it, because a reload lands on the right URL.** Green tests on wrong
+evidence — the same shape as the tests that were pinning defects, one level up.
+
+### The one-member pattern, fifth round running
+
+Round 4's own comment on the forecast link named the class — *"a VoiceOver double-tap dispatches straight
+to the focused element and never goes through hit-testing"* — and then fenced exactly one member of it.
+Still activatable on the interactive beats: the **attestation on beat 3** (firing beat 4's entire scripted
+story mid-beat, flipping the spotlight and making the beat's own control untouchable), the **adjust row on
+beat 4** (opening the floor sheet carrying the wrong beat's coaching line), the hero's sheets, and the
+action-list toggles. `MoreButton`, the tabs, and the forecast link had each been patched individually —
+one member per round while the class stayed open.
+
+**Fixed at the registry, not at another control.** `TutorialTarget` gains a `control` flag; any coached
+control that isn't the beat's active subject fences itself out of the a11y tree. The card stays unaware of
+the walkthrough (3.5.3.3.1 holds), and the fix covers every current and future coached control at once.
+
+### The rest
+
+The forecast fence keyed on the **sandbox brand** rather than "a walkthrough is running", so it would have
+followed the sandbox into 3.5.4's demo mode as a live-looking, dead, screen-reader-invisible link ·
+`lastRowSpacer` fired when `GuardianProofStrip` was the last element, padding the wrong thing · FormSheet's
+backdrop was `aria-hidden` **and still in the web tab order**, across all 8 sheets · six more stale claims,
+including one contradicted by the comment directly below it and a phantom `"?"` affordance asserted in
+three files.
+
+**Verified fine by the blast-radius sweep:** `Slider`'s two real consumers, `MoreButton` (no stranded
+state — the session is memory-only and Skip always renders), the Guardian card's +30pt (costs scroll, not
+clipping), `allowRealStoreWrite` (report-only, synchronous), the `?run=` gate (zero external consumers).
+
+**Gate:** typecheck + lint clean · suites green · **116/116 e2e, no flakes**.
+
+</details>
