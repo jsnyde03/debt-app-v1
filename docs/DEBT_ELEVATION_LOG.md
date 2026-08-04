@@ -1848,3 +1848,50 @@ just shows the net being overrun in the one beat whose entire point is that the 
 Typecheck + lint clean · app-layer + scenario suites green · **116/116 e2e, no flakes** · arc, finale and
 reserve-payoff screenshots reviewed in **both** themes. Round-2 re-audit of the three lenses that found
 something is in flight — **consensus is the gate, not the first green run.**
+
+---
+
+## 3.5.3.10 + 3.5.3.11 — the two audit decisions, built (2026-08-04, `732dac1`)
+
+Both approved by Jason. Neither was foldable during the audit rounds: one changes the flagship card's
+proportions, the other reopens a settled design call.
+
+### 3.5.3.10 — 44pt rows on the Guardian card's links
+
+The four stacked links were ~34–36pt, and two of them are the controls the walkthrough *asks* the user to
+operate. `hitSlop` was not available as a fix: they sit 12pt apart, so slop wide enough to reach 44 makes
+neighbouring targets overlap and the wrong one wins. The height had to come from the gaps, so each link is
+a 44pt row carrying its own padding with the margins shrunk to match. Card grows ~30pt — the honest cost.
+
+### 3.5.3.11 — the marker moves from the card to the canvas
+
+**[D6] revised.** It settled the Example marker as CARD-ONLY, on the reasoning that a hero marker would
+double the chrome. That was right about the chrome and wrong about the scope, because of a fact [D6] never
+weighed: `personalScenario` seeds the user's **real debts, by name and balance**, into fabricated states.
+So on beat 5 their actual bills appear inside an invented $200 shortfall, on the hero and required-actions
+cards, with no marker anywhere near them. A screenshot cropped below the Guardian title row carried no
+indication that any of it was fictional.
+
+**What shipped is smaller than what was approved.** The recommendation was an "Example" ribbon on the
+scrim or dock; the switch-in re-read of [[feedback_less_is_more_premium]] ("try the barest version first;
+don't default a secondary indicator to a card") argued that down to **a bare `· Example money` appended to
+the dock's existing progress row**. No fill, no border, no new surface — one word in a line of metadata
+that is already on screen for the entire session. It marks the whole canvas because the dock is always
+over the whole canvas.
+
+The card chip **stays**, and that is not redundancy: it is the marker for when the sandbox renders
+*without* this overlay, which is exactly what 3.5.4's bounded demo and 3.5.7's web demo will do.
+
+### Two things the build surfaced that the decision didn't
+
+- **The announcement had no marker.** Adding the visible one created a divergence: a sighted user would
+  read "Example money" on every beat while a VoiceOver user heard nothing of it — the one user who cannot
+  see the card's chip being the only one never told, on a screen reciting their real debts. Folded into
+  `stepAnnouncement`, in the same slot, and pinned by a per-beat assertion.
+- **The ring cut through the copy above the attestation.** Absorbing the *entire* gap into the row padding
+  measured fine and looked wrong: the spotlight insets 6pt beyond its subject, so a 2pt margin put the
+  ring's top edge through "Your call". Margins are `xs`. Found by looking at beat 4 — the rows measure
+  identically either way, which is the [[feedback_visual_verify_ui_fixes]] lesson again.
+
+**Gate:** typecheck + lint clean · app + scenario suites green · **116/116 e2e, no flakes** · arc verified
+in both themes.
