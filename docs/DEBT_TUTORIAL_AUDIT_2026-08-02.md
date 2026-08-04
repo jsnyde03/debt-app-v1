@@ -212,3 +212,77 @@ fold. Everything else in C4 is done.
 arc, finale and reserve-payoff screenshots reviewed in **both** themes.
 
 </details>
+
+---
+
+## J. ROUND 2 — 2026-08-03 · ⛔ does not pass · the fold shipped a trap
+
+<details open>
+<summary>Three lenses, ~13 findings. The most important one was <b>introduced by round 1's fix block</b>.</summary>
+
+### The show-stopper the fold created
+
+`Card` sets no flex properties and Yoga's default `flexShrink` is **0**, so [B4]'s cap chain
+(`dockInner` maxHeight → body → dockScroll) stopped dead at the Card. `overflow: 'hidden'` then **clipped**
+the card instead of the ScrollView bounding it — and what sits at the bottom of the card is the nav row.
+At large Dynamic Type the change written to guarantee a reachable Next produced a walkthrough with **no
+Next, no Back and no Skip**, while the scrim blocked Today and `holdTabs` blocked the tabs.
+
+A one-property omission turned a trap-prevention fix into the trap. It is also invisible at default text
+size, which is why every screenshot and the whole e2e suite stayed green through it.
+
+### Two holes in the guarantee the fold was making
+
+- **The cutout passed touches on SCRIPTED beats.** Four of the seven spotlight the *whole Guardian card*,
+  and that card is full of live controls — so a stray tap could open the floor sheet with no coaching
+  line, push `/cushion-forecast` out from under the still-mounted overlay, or hit the attestation, which
+  fires **beat 4's entire scripted story during beat 1**. Only the replay link had ever been guarded, one
+  leak at a time. The top-of-file promise ("a scrim blocks stray taps, so a user can't wander into a
+  sheet or another tab") had been false since 3.5.3.3.1. Splitting visual from hit geometry for [D2] is
+  what made the fix a single flag rather than a rework.
+- **VoiceOver activation bypasses hit-testing.** A double-tap dispatches straight to the focused element,
+  so the scrim — the entire touch model — never fenced screen-reader users at all. The tab bar was
+  reachable on every beat; More on the interactive ones, where the whole screen is deliberately exposed.
+  That is the 3.5.3.5.9 leak still open for exactly the users [C3] was written for. **Found independently
+  by both a11y reviewers**, which is usually what a structural miss looks like.
+
+### The rest
+
+Stale-measure race reintroduced in the new layout subscription (ten lines below the main effect that
+documents it) · `measureInWindow` can drop its callback and hang `settling`, sealing an interactive beat ·
+the guard's blanket `prefs` exclusion was wide enough to hide `isDemoMode` and `onboardingComplete` writes
+· **[A4] was fixed in the free finale and not the premium one**, which still promised "your real paycheck"
+to a user who may not have one · four more stale claims, two of them written *by* round 1 while it was
+correcting that class · `sandboxBeats`' "one real path" comment described an intention, not the code.
+
+### And two more tests that were overstating
+
+`"beat 3 lets a user move the real line"` **never moved the slider** — it opened the sheet and saved the
+unchanged value, and `FloorImpactBar` renders for unchanged values too ("Same cushion, same plan"), so a
+regression that broke dragging outright would have passed. `"confirming your bills shrinks the net"` never
+checked the net. Both now do what their names say. A third was pinning wording again — the same lesson
+for the third time in two rounds.
+
+**Gate after the round-2 fixes:** typecheck + lint clean · app + scenario suites green · **116/116 e2e, no
+flakes** · arc re-shot in both themes.
+
+</details>
+
+## K. ROUND 3 — ⛔ OWED, NOT RUN
+
+<details open>
+<summary>Both lens agents died on an API session limit. This gate is NOT closed.</summary>
+
+What was verified **by hand** in their absence — enough to trust the round-2 fixes, not enough to close a
+gate: the collapsed hit-hole is genuinely full coverage (band 2 spans `top: 0`→`bottom: 0` alone) · the
+shrink chain has no other missing link (`Motion`[maxHeight] → `Card` → body → ScrollView) · the prefs
+allowlist covers every `updatePrefs` reachable during a session, and `markTutorialSeen` spreads existing
+prefs by value so the field diff sees no other change · the tab-button override's real cost was the
+Android ripple, since restored.
+
+**Why this is not consensus:** round 2's central finding is that *a fix block can ship its own
+show-stopper*, and round 2 was a large fix block. Self-verification is precisely the thing that failed in
+round 1 — every one of those ~30 findings was green in CI, written by someone applying the rules they
+were breaking. **Round 3 must actually run before 3.5.3.9 closes.**
+
+</details>
