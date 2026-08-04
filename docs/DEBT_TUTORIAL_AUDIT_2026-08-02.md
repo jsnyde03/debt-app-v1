@@ -286,3 +286,68 @@ round 1 — every one of those ~30 findings was green in CI, written by someone 
 were breaking. **Round 3 must actually run before 3.5.3.9 closes.**
 
 </details>
+
+---
+
+## L. ROUND 3 — 2026-08-04 · ⛔ does not pass · 16 findings, most created by round 2
+
+<details open>
+<summary>Three <b>rotated</b> lenses (per the consensus rule, not a repeat of rounds 1–2). The rotation earned its keep: the new angle found the worst finding, and no correctness or a11y reviewer was positioned to see it.</summary>
+
+### The one the rotation found: replay didn't replay
+
+`startTutorial()` always began at `resumeIndex(prefs.tutorialStep)`, and only `leave()` clears that step —
+so a force-quit, a crash, or iOS evicting the backgrounded app strands one. Both explicit replay
+affordances ("How this works" on the Guardian card, the More row) went through it. A user interrupted at
+beat 5 who came back later and tapped a control whose own accessibility hint **promises it "replays the
+walkthrough"** landed on **step 5 of 7**: the deliberately at-risk card, a shortfall scaled from their
+real paycheck, listing **their real debt names** (`personalScenario` maps them in), with none of beats
+1–4's framing that any of it is an example.
+
+The app opening its own explainer on a fabricated crisis about the user's own money. No test could have
+caught it — every suite starts from a clean `tutorialStep`, and resume-after-interruption and
+replay-on-request were one code path. Resume stays the default; the replay entries now pass `resume: false`.
+
+### The rest
+
+`?run=premium` was ungated on a route registered in the production Stack — one URL could hand a free user
+the premium finale, the single string [D9]'s honesty rests on · `setImpact` was the one published shell
+value missing the cleanup its two siblings carry (with a comment above them explaining exactly why it
+matters), so a later session's beat 1 could paint a `FloorImpactBar` the user never earned · **the 500ms
+measure timeout added in round 2 turned a hang into a PERMANENT degradation** — nothing retried, and on an
+interactive beat that renders no scrim at all · beat 4's payoff phase kept the touch hole over the ack, so
+"Got it" was live mid-story and the user could swallow the beat's payoff before reading it · Undo didn't
+cancel the story it had triggered, so the narration ran on over the user's own withdrawal · the guard
+would have false-fired on `drainPendingActions` landing from the background — **[B3]'s noise arriving from
+the opposite direction**, and at Phase 6 it would poison the one signal built to prove the real plan is
+untouched · the prefs diff was blind to key deletions · the first iris of every session opened from the
+screen's top-left corner · beat 6's copy ("yours to overrule") invited a tap the round-2 fence refuses.
+
+Plus six stale claims — **three written by round 2 while it was correcting that exact class**, including a
+[E4] correction that had itself acquired a stale quote of copy [A4] had already deleted.
+
+### And two more tests that would pass with the feature deleted
+
+`'the scrim blocks stray taps on a scripted beat'` asserted only that the scrim was **visible** — the
+container is `pointerEvents="box-none"`, so it never touched the layer that does the blocking, and passed
+identically with `passThrough` hardcoded true. `'the tabs are held while a session is running'` asserted
+the overlay was still visible after a forced tab press — but the overlay renders over *every* tab, so it
+held even if the press had navigated. Both now assert the thing they are named for; both pass.
+
+**Gate after the round-3 fixes:** typecheck + lint clean · app + scenario suites green · **116/116 e2e, no
+flakes**, including the two strengthened tests · arc re-shot in both themes.
+
+### ⚠️ Open — a DESIGN call, deliberately not folded
+
+**The "Example" marker is one chip on one card, and the rest of the screen shows the user's real debts
+inside fabricated states.** `personalScenario` seeds real income, real cadence and real debts by name and
+balance (`sandboxScenarios.ts:272-283`); the hero, required-actions, recommended-actions and affordability
+cards all render sandbox money with **no marker at all**. On beat 5 the cover-now list is the user's actual
+bills inside an invented $200 shortfall. A screenshot cropped below the Guardian title row carries zero
+indication that any of it is an example.
+
+This contradicts **[D6], which Jason settled** ("the Example marker stays CARD-ONLY — no hero marker, it
+would double the chrome"). The new fact is that the scenario seeds *real* debt names, which that decision
+may not have weighed. **Not folded** — reopening a settled design decision is Jason's call. → **3.5.3.11**.
+
+</details>
