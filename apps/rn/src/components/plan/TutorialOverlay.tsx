@@ -250,8 +250,22 @@ export function TutorialOverlay({
                   you had to read; the rail makes it something you glance at. Calm register: a hairline
                   track, no counter animation, nothing that reads as gamification. */}
               <View style={styles.progressRow}>
+                {/* 3.5.3.11 (Jason 2026-08-04) — the whole canvas is marked as an example, not just the
+                    Guardian card.
+                    The card's "Example" chip was the only marker anywhere, and the walkthrough puts
+                    SANDBOX money on every other surface too — the paycheck hero, required actions,
+                    recommended actions, affordability. Worse, `personalScenario` seeds the user's REAL
+                    debts by name and balance into fabricated states, so on beat 5 their actual bills
+                    appear inside an invented $200 shortfall. A screenshot cropped below the card's title
+                    row carried no indication that any of it was fictional.
+                    WHY IT LIVES HERE and not on the scrim: the dock is on screen for the entire session
+                    and already has a line of quiet metadata, so this marks the whole canvas by adding a
+                    single word rather than a fifth chip or a new band. The barest version first
+                    ([[less is more premium]]) — no fill, no border, no surface of its own.
+                    The card chip STAYS: it's the marker for when the sandbox renders WITHOUT this
+                    overlay, which is exactly what 3.5.4's demo mode and 3.5.7's web demo will do. */}
                 <Text style={[textStyles.caption, { color: c.text.tertiary }]} testID="tutorial-progress">
-                  Step {position} of {total}
+                  Step {position} of {total} · Example money
                 </Text>
                 <View style={[styles.rail, { backgroundColor: c.border.subtle }]}>
                   <View style={[styles.railFill, { backgroundColor: c.accent.primary, width: `${(position / total) * 100}%` }]} />

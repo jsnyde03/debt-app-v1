@@ -321,6 +321,7 @@ export function PaydayGuardianCard({
               ? 'Undoes the confirmation and restores the full safety net'
               : 'Tells your Guardian your bills are all entered, so it holds less back'
           }
+          style={styles.row}
           hitSlop={8}>
           <Text style={[textStyles.caption, { color: c.accent.primary }]}>{attestLabel}</Text>
         </Pressable>
@@ -348,6 +349,7 @@ export function PaydayGuardianCard({
             accessibilityRole="button"
             accessibilityLabel="Adjust your line"
             accessibilityHint="Opens a sheet to set the cushion you keep back each payday"
+            style={styles.row}
             hitSlop={8}>
             <Text style={[textStyles.subhead, styles.adjustLabel, { color: c.accent.primary }]}>Adjust your line →</Text>
           </Pressable>
@@ -362,7 +364,8 @@ export function PaydayGuardianCard({
           onPress={onReplayTutorial}
           accessibilityRole="button"
           accessibilityLabel="How this works"
-          accessibilityHint="Replays the walkthrough of how your Guardian decides"
+          accessibilityHint="Replays the walkthrough of how your Guardian decides, from the beginning"
+          style={styles.linkRow}
           hitSlop={8}>
           <Text style={[textStyles.caption, styles.adjust, { color: c.text.tertiary }]}>How this works</Text>
         </Pressable>
@@ -377,6 +380,7 @@ export function PaydayGuardianCard({
           accessibilityRole="button"
           accessibilityLabel="See your forecast"
           accessibilityHint="Opens your full cushion forecast"
+          style={styles.linkRow}
           hitSlop={8}>
           <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>See your forecast →</Text>
         </Pressable>
@@ -456,10 +460,28 @@ const styles = StyleSheet.create({
   bnplHeadsUp: { marginTop: spacing.sm, lineHeight: 18 },
   topUp: { marginTop: spacing.md, gap: spacing.sm },
   topUpBtn: { alignSelf: 'stretch' },
-  attest: { marginTop: spacing.sm },
-  adjust: { marginTop: spacing.md, fontWeight: '600' },
-  adjustGroup: { marginTop: spacing.md },
+  // 3.5.3.10 (Jason 2026-08-04) — the card's stacked text links are 44pt ROWS.
+  //
+  // They were ~34–36pt: caption/subhead text plus `hitSlop={8}`, under the minimum, on four controls
+  // including both of the ones the walkthrough asks the user to operate. `hitSlop` couldn't fix it —
+  // they sit 12pt apart, so slop wide enough to reach 44 makes neighbouring targets overlap and the
+  // wrong one wins.
+  //
+  // The height has to come from somewhere, so it comes from the GAPS: each row carries its own vertical
+  // padding and the margins that used to separate them shrink to match. The visible rhythm is close to
+  // what it was and the card grows ~30pt in total — the honest cost of targets a thumb can actually hit.
+  // `justifyContent: 'center'` keeps the label optically where it sat before the row grew around it.
+  // The margins are `xs`, not `xxs`. Absorbing the ENTIRE gap into the row padding looked right in
+  // isolation and wrong in the walkthrough: the spotlight ring insets 6pt beyond its subject, so with a
+  // 2pt margin the ring's top edge cut across the line of copy above it ("Your call", right above the
+  // attestation). 4pt clears it, and the row's own internal padding still carries most of the rhythm.
+  // Caught by looking at beat 4, not by the geometry — the rows measure identically either way.
+  row: { minHeight: 44, justifyContent: 'center' },
+  attest: { marginTop: spacing.xs },
+  adjust: { fontWeight: '600' },
+  adjustGroup: { marginTop: spacing.xs },
   adjustLabel: { fontWeight: '600' },
+  linkRow: { minHeight: 44, justifyContent: 'center', marginTop: spacing.xs },
   invite: { marginTop: spacing.md },
   intro: { padding: spacing.md, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, marginBottom: spacing.md, gap: spacing.sm },
   introText: { lineHeight: 20 },

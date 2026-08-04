@@ -70,6 +70,12 @@ function run() {
   // ── Announcements: the step change is motion-only, so this IS the signal. ─────────────────────
   const first = stepAnnouncement(0);
   assert(first.startsWith('Step 1 of '), 'the announcement leads with POSITION (no progress dots to glance at)');
+  // 3.5.3.11 — spoken on EVERY beat, in the same slot the dock shows it. The user who can't see the
+  // Example chip is the one who most needs telling, and by beat 5 the screen is reciting their real
+  // debts inside an invented shortfall.
+  for (let s = 0; s < TUTORIAL_STEP_COUNT; s++) {
+    assert(stepAnnouncement(s).includes('Example money'), `step ${s + 1} announces that the money is an example`);
+  }
   assert(first.includes(TUTORIAL_STEPS[0].title), '…then the step title');
   assert(first.includes(TUTORIAL_STEPS[0].body), '…then the body, so nothing is spoken-only-visually');
   for (let s = 0; s < TUTORIAL_STEP_COUNT; s++) {

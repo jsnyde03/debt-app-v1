@@ -221,7 +221,13 @@ export function prevIndex(index: number): number {
 export function stepAnnouncement(index: number, run: TutorialRun = 'premium', steps: TutorialStepDef[] = TUTORIAL_STEPS): string {
   const step = steps[index];
   if (!step) return '';
+  // 3.5.3.11 — "Example money" is spoken in the same slot the dock shows it. The visible marker and the
+  // spoken one must not diverge: a sighted user reads it in the progress row on every beat, so a
+  // VoiceOver user hears it on every beat. Without this the one user who cannot see the card's Example
+  // chip would be the only one never told the money is fictional — on a screen that, by beat 5, is
+  // reciting their real debts inside an invented shortfall.
+  //
   // Through the SAME resolver the screen uses — a VoiceOver user must hear the line their screen shows,
   // and the finale is precisely where those diverge by audience.
-  return `Step ${index + 1} of ${steps.length}. ${step.title}. ${stepBody(step, run)}`;
+  return `Step ${index + 1} of ${steps.length}. Example money. ${step.title}. ${stepBody(step, run)}`;
 }
