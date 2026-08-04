@@ -73,6 +73,14 @@ export default function TabsLayout() {
             // architecture narrowed `Pressable`'s. A typing artefact, not a runtime difference — and the
             // ref is passed through rather than dropped, so react-navigation keeps its handle.
             {...(props as React.ComponentProps<typeof Pressable>)}
+            // The default button is `PlatformPressable`, which adds the platform press affordances on
+            // top of a plain Pressable. It lives inside expo-router's BUNDLED react-navigation, with no
+            // public export path — deep-importing `expo-router/build/...` to get it would break on any
+            // expo-router upgrade, which is a worse trade than restoring the one affordance that
+            // actually shows. Android's borderless ripple is that affordance ([[first-class per
+            // platform]] — Android doesn't get the lesser bar because the fix was written on iOS).
+            // ⏳ iOS press-opacity parity is device-owed with the rest of the Phase-6 pass.
+            android_ripple={{ borderless: true, radius: 40 }}
             accessibilityElementsHidden={inTutorial}
             importantForAccessibility={inTutorial ? 'no-hide-descendants' : 'auto'}
           />
