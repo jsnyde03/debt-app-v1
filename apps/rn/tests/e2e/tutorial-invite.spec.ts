@@ -8,8 +8,11 @@ import { scenario, seedStore } from './helpers/seed';
  * 3.5.3.1 changed the shape of all of this: the walkthrough is no longer a screen of its own, it's an
  * overlay on the REAL Today tab, with Today's own components re-rendered from a sandbox store. That was
  * forced — `useGoToTab` only behaves inside the tabs navigator, so hosting a copy of Today in a Stack
- * route would land as a detached tab group (a blank screen on device). `/tutorial` survives as the
- * launcher, so every entry point still has a stable URL to aim at.
+ * route would land as a detached tab group (a blank screen on device). `/tutorial` survives as the entry
+ * for the two callers that can only express themselves as a URL — deep links and this suite. The More
+ * row and the Guardian card's replay call `startTutorial()` directly. (This said "every entry point
+ * still has a stable URL to aim at"; `tutorial.tsx` retracted that sentence and this copy of it was
+ * left standing — the same claim, false, in two files.)
  *
  * The load-bearing assertion here is the in-situ one: Today must render the SANDBOX's numbers while the
  * overlay is up. Today showing its own real data under a tutorial would mean the provider isn't taking
@@ -60,6 +63,21 @@ test.describe('tutorial invitation + in-situ shell', () => {
     // Step 1 is scripted, so Today underneath must not be reachable — otherwise a user can wander into
     // a sheet or another tab and lose the thread mid-walkthrough.
     await expect(page.getByTestId('tutorial-scrim')).toBeVisible();
+
+    // …and BLOCKS, which is what the test is named for. Asserting the scrim is merely visible tested
+    // nothing: the scrim container is `pointerEvents="box-none"`, so blocking is done by the invisible
+    // blocker layer this never touched — the test passed identically with `passThrough` hardcoded true
+    // on every beat. Beat 1 spotlights the whole Guardian card, so "Adjust your line" sits INSIDE the
+    // lit hole and looks reachable; on a scripted beat it must not be. An unforced click must be
+    // intercepted, which Playwright reports as a timeout rather than a navigation.
+    await expect(page.getByText('Adjust your line')).toBeVisible();
+    const blocked = await page
+      .getByText('Adjust your line')
+      .click({ timeout: 1500 })
+      .then(() => false)
+      .catch(() => true);
+    expect(blocked, 'a scripted beat must not pass taps to the card it is lighting').toBe(true);
+    await expect(page.getByTestId('floor-sheet-coach')).toHaveCount(0);
   });
 
   test('the web e2e completes EVERY beat end-to-end', async ({ page }) => {
@@ -459,7 +477,12 @@ test.describe('tutorial invitation + in-situ shell', () => {
     // user mid-beat. (This said "the interactive beats, where the scrim is switched off"; it hasn't
     // been switched off there since 3.5.3.5.9, as THIS FILE's own beat-3 test asserts ~200 lines up.)
     await page.getByTestId('tab-money').click({ force: true });
-    await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
+    // Assert the URL and the SCREEN, not just the overlay. The overlay mounts at the root and renders
+    // over whatever tab you're on, so "overlay still visible / still Step 1" held true even if the press
+    // had navigated — delete `holdTabs` entirely and the old assertions stayed green. What must be true
+    // is that the navigation did not happen.
+    await expect(page).not.toHaveURL(/money/);
+    await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
     await expect(page.getByTestId('tutorial-progress')).toContainText('Step 1 of');
 
     // …and the hold lifts with the session.

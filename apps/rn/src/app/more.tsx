@@ -132,7 +132,8 @@ export default function MoreScreen() {
           // [F] `tutorialRunFor`, not an inline tier check. Three call sites had each re-derived which
           // run to open; they agreed, but "which audience gets which walkthrough" is a rule that has
           // already moved once ([D9]) and every copy of it is a place the next move can be missed.
-          onPress={() => startTutorial(tutorialRunFor(appStore.getState().store))}
+          // "Replay the short walkthrough" — from the start, not from a stranded step.
+          onPress={() => startTutorial(tutorialRunFor(appStore.getState().store), { resume: false })}
           last
         />
       </SettingGroup>

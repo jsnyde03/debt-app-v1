@@ -25,6 +25,8 @@ import { scrollDelta, type TargetRect } from './spotlightGeometry';
  */
 
 const SETTLE_MS = 380; // a beat longer than the scroll animation, so the re-measure reads the end state
+/** One frame's grace before a null measure is believed — see the retry in the effect below. */
+const RETRY_MS = 120;
 
 export function useSpotlight({
   targetId,
@@ -72,9 +74,27 @@ export function useSpotlight({
     }
 
     void (async () => {
-      const first = await targets.measure(targetId);
+      let first = await targets.measure(targetId);
       if (stale) return;
-      // Permanently null: the subject isn't mounted for this beat. Not a transit.
+
+      // RETRY ONCE before concluding the subject isn't there. `measure` now resolves null on a 500ms
+      // timeout as well as on a genuine miss, and those deserve different answers: a real absence is
+      // permanent, but a timeout is most likely the heavy beat-transition frame, and treating it as
+      // permanent is expensive. Nothing schedules another attempt — `revision` doesn't change and a
+      // static screen fires no layout event — so the beat would sit there ringless for good, and on an
+      // interactive beat that means NO SCRIM at all, with the whole real screen live underneath copy
+      // saying "open it and move the line" while pointing at nothing.
+      //
+      // The retry costs one frame in the case that was already broken and nothing in the normal case.
+      if (!first) {
+        await new Promise((r) => setTimeout(r, RETRY_MS));
+        if (stale) return;
+        first = await targets.measure(targetId);
+        if (stale) return;
+      }
+
+      // Still nothing: the subject genuinely isn't mounted for this beat (a beat can point at something
+      // the current Guardian state doesn't render). Not a transit.
       if (!first) {
         setRect(null);
         setSettling(false);

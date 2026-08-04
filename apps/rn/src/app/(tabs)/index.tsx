@@ -291,7 +291,9 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               // (The reason used to be "on an interactive beat, where taps pass through, it would be
               // live". Pre-3.5.3.5.9: taps pass through the CUTOUT only, and the replay link sits under
               // a blocking band. The conclusion survives the correction; the mechanism didn't.)
-              onReplayTutorial={isExample ? undefined : () => startTutorial(tutorialRunFor(store))}
+              // `resume: false` — this control says "How this works", so it starts at beat 1. Without it
+              // a stranded step from an interrupted run would drop them mid-arc (see `startTutorial`).
+              onReplayTutorial={isExample ? undefined : () => startTutorial(tutorialRunFor(store), { resume: false })}
               // 3.5.3.4.2 — the beat's own guidance, carried into the modal it sends the user into.
               coachLine={isExample ? coachLine : undefined}
               // 3.5.3.4.4 — snapshot the read BEFORE the write: once the store re-solves, the "before"
@@ -313,11 +315,16 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               // shouldn't replay it.
               onAttestBills={(v) => {
                 store_.getState().setBillsAttested(v);
-                if (isExample && v) {
+                if (!isExample) return;
+                if (v) {
                   // The arc's second caused-it moment: the net shrinks by their word, and the story that
                   // follows is the consequence. Same medium beat as the floor, for the same reason.
                   haptics.medium();
                   tutorialSession.getState().playReserveStory();
+                } else {
+                  // Undo cancels the consequence. Without this the scripted surprise and rollovers still
+                  // landed, narrating a story about a confirmation the user had just withdrawn.
+                  tutorialSession.getState().cancelReserveStory();
                 }
               }}
               recovery={recovery}
@@ -715,6 +722,7 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // state during a child's render is the classic React warning, and here it would fire on every measure.
   const setSpotlight = shell?.setSpotlight;
   const setSettling = shell?.setSettling;
+  const setPassThrough = shell?.setPassThrough;
   const setImpact = shell?.setImpact;
   // [C2] Announce the PAYOFF, not just the beat. There was exactly one `announce()` in the whole
   // tutorial path — the per-beat one — so beat 4's scripted story (a surprise absorbed, three paydays
@@ -745,8 +753,27 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     setSettling?.(settling);
     return () => setSettling?.(false);
   }, [setSettling, settling]);
+
+  // The touch hole follows the CONTROL, not the spotlight. On beat 4 the spotlight deliberately moves off
+  // the attestation onto the payoff ack (3.5.3.5.5) — but the beat is still flagged interactive, so the
+  // hole moved with it and left the ack's "Got it" button live in the middle of the scripted story.
+  // Tapping it dismissed the walkback mid-narration: the spotlight scrolled back down to the control,
+  // then jumped up again when the release landed, and the user could swallow the beat's entire payoff
+  // before reading it. `passThrough` is about reachability; once the hole is over something to READ, it
+  // has no business passing touches.
+  useEffect(() => {
+    setPassThrough?.(interactive && !payoffShowing);
+    return () => setPassThrough?.(false);
+  }, [setPassThrough, interactive, payoffShowing]);
   useEffect(() => {
     setImpact?.(impact);
+    // Released on the way out, for the reason spelled out on `setSpotlight` above — the shell lives at
+    // the root for the app's lifetime and `end()` clears nothing in it, so a parked value survives the
+    // session. Two of the three published values had this cleanup and the third didn't, so a user who
+    // moved their line, skipped, and came back later got beat 1's dock painting a `FloorImpactBar`
+    // ("frees $X") they never earned, until the next publish overwrote it a frame later. The stale
+    // first-frame bug that comment describes, shipped one value over by the block that added it.
+    return () => setImpact?.(null);
   }, [setImpact, impact?.before, impact?.after, impact?.freed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Beat 3's payoff, announced. [C2] gave beat 4's ack story a voice and left this one silent — the
@@ -754,11 +781,14 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // they save; a VoiceOver user who just moved their own line heard nothing at all unless they thought
   // to go re-read the dock. The payoff of an action the walkthrough ASKED them to take is the last
   // thing that should be delivered visually only.
-  const impactText = impact
-    ? impact.freed > 0
-      ? `Your line moved. That frees $${Math.round(impact.freed)} more for your debt this paycheck.`
-      : 'Your line moved. Your plan re-solved around it.'
-    : null;
+  // Only when it actually MOVED. Saving the sheet without touching the slider still writes the store, so
+  // the un-branched version announced "Your line moved" to the one user who can't see that it didn't.
+  const impactText =
+    impact && impact.before !== impact.after
+      ? impact.freed > 0
+        ? `Your line moved. That frees $${Math.round(impact.freed)} more for your debt this paycheck.`
+        : `Your line moved. Your Guardian is holding $${Math.round(impact.after - impact.before)} more back.`
+      : null;
   useEffect(() => {
     if (impactText) announce(impactText);
   }, [impactText]);

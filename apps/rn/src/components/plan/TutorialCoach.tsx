@@ -49,6 +49,9 @@ export function TutorialCoach() {
       run={run}
       spotlight={shell.spotlight}
       settling={shell.settling}
+      // From the SHELL, not from `INTERACTIVE_STEP_IDS`: the beat being interactive isn't sufficient, and
+      // only the screen can see that the spotlight has moved onto the beat's payoff. See `passThrough`.
+      passThrough={shell.passThrough}
       onDockLayout={shell.setDockH}
       impact={shell.impact}
       onBack={index > 0 ? () => goTo(prevIndex(index)) : undefined}

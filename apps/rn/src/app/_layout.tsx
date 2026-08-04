@@ -9,6 +9,7 @@ import { useNotificationSync } from '@/hooks/use-notification-sync';
 import { useInitPremium } from '@/premium/premiumSync';
 import { createStorageAdapter } from '@/storage/createAdapter';
 import { bootstrapPersistence, flushPendingSave } from '@/store/persistence';
+import { allowRealStoreWrite } from '@/store/StoreContext';
 import { startWidgetSync } from '@/widget/widgetSync';
 import { startLiveActivitySync } from '@/liveActivity/liveActivitySync';
 import { drainPendingActions } from '@/appIntents/drainPendingActions';
@@ -89,8 +90,10 @@ function RootLayout() {
         }
       } else if (next === 'active') {
         // 3.5.3.5 — a "Payday landed" tap while backgrounded lands here on return-to-foreground.
+        // Declared to the sandbox backstop: this writes the REAL store, correctly, and can land while a
+        // walkthrough is on screen. Undeclared it reads as a sandbox leak — see `allowRealStoreWrite`.
         try {
-          drainPendingActions();
+          allowRealStoreWrite(() => drainPendingActions());
         } catch {
           /* best-effort drain */
         }

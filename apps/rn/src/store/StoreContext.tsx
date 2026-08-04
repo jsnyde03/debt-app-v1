@@ -17,7 +17,9 @@ import type { DebtStoreInstance } from './store';
  * shape is a component that reads through the context but writes through the singleton — inside the
  * tutorial it would read scripted money and mutate the user's real plan, silently. `useActiveStore()`
  * is the write-side counterpart of `useAppStore`, and every write inside a providered subtree must go
- * through it. `assertNoRealWrites` (3.5.3.0.5) is the backstop that makes a miss fail loudly.
+ * through it. `useNoRealWritesGuard` (3.5.3.0.5), below, is the backstop that makes a miss fail loudly.
+ * (It was named `assertNoRealWrites` in the plan and never in the code — a dangling symbol 32 lines
+ * above its own definition.)
  */
 
 const StoreContext = createContext<DebtStoreInstance>(appStore);
@@ -28,6 +30,31 @@ const StoreContext = createContext<DebtStoreInstance>(appStore);
  * Anything else changing while a sandbox is mounted is a bug — see `useNoRealWritesGuard`.
  */
 const TUTORIAL_WRITABLE_PREFS = ['tutorialStep', 'tutorialSeen'];
+
+/**
+ * Some real-store writes during a session are legitimate and have nothing to do with the sandbox: the
+ * app's own background work landing on return-to-foreground. `drainPendingActions()` is the concrete
+ * one — a user who taps the Live Activity's "Payday landed" while backgrounded mid-walkthrough has
+ * their real plan rolled the instant they come back, and that write is correct.
+ *
+ * Without a way to say so, the backstop reports it. Today that's dev noise; at Phase 6 with Sentry it
+ * would poison the ONE signal built to prove "the real plan provably untouched" — and a genuine sandbox
+ * leak becomes indistinguishable inside a stream of false alarms. That is exactly how [B3] went wrong,
+ * arriving from the other direction, so it gets an explicit answer rather than a wider exclusion.
+ *
+ * Synchronous by design: zustand notifies subscribers during `set`, so the flag covers the write and is
+ * down again before anything else can hide behind it.
+ */
+let realWriteAllowed = false;
+export function allowRealStoreWrite<T>(fn: () => T): T {
+  const prev = realWriteAllowed;
+  realWriteAllowed = true;
+  try {
+    return fn();
+  } finally {
+    realWriteAllowed = prev;
+  }
+}
 
 /**
  * Point a subtree at a different store. React context flows through `Modal`, so sheets rendered by the
@@ -55,6 +82,12 @@ function useNoRealWritesGuard(store: DebtStoreInstance) {
     let before = appStore.getState().store;
     const unsubscribe = appStore.subscribe((state) => {
       if (state.store === before) return;
+      // A declared-legitimate write (see `allowRealStoreWrite`). Advance the baseline so the NEXT
+      // comparison doesn't re-report this change as though the sandbox had made it.
+      if (realWriteAllowed) {
+        before = state.store;
+        return;
+      }
       // [B3] Compare FIELD BY FIELD, ignoring the walkthrough's own resume bookkeeping.
       //
       // The guard used to fire on any change to the store blob, against a `before` captured once at
@@ -80,7 +113,11 @@ function useNoRealWritesGuard(store: DebtStoreInstance) {
       // payday capture) or `onboardingComplete: false` (which re-onboards the user) through the
       // singleton. Those are exactly the silent corruptions this guard exists to catch, and the fix for
       // its false-positive noise had quietly opened a hole underneath it.
-      const prefsChanged = (Object.keys(nextPrefs) as (keyof typeof nextPrefs)[]).filter(
+      // The UNION of both key sets — iterating `nextPrefs` alone was blind to a REMOVED key, and a
+      // dropped pref is a real-store change like any other (writing prefs without `onboardingComplete`
+      // would re-onboard the user, silently, past a backstop looking the other way).
+      const prefKeys = new Set([...Object.keys(prevPrefs), ...Object.keys(nextPrefs)]);
+      const prefsChanged = ([...prefKeys] as (keyof typeof nextPrefs)[]).filter(
         (k) => nextPrefs[k] !== prevPrefs[k] && !TUTORIAL_WRITABLE_PREFS.includes(k as string),
       );
       changed.push(...(prefsChanged.map((k) => `prefs.${String(k)}`) as (keyof typeof nextPlan)[]));

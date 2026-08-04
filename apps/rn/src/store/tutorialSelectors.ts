@@ -19,8 +19,11 @@ import type { DebtStore } from '@/data/models';
  * "the premium run reaches beats free never does (the held reserve, Recovery, the release)". That was
  * true before [D9], when a free user's walkthrough ran on their own gated card. [D9] made every audience
  * run the same premium Guardian on scripted money, so the two runs are now beat-identical and differ in
- * exactly ONE string — the finale's `bodyByRun`, which is where the free run says "premium is what did
- * the holding" and the premium run says "your Guardian does exactly this with your real paycheck".
+ * exactly ONE string — the finale's `bodyByRun`, where the free run names premium as what did the
+ * holding and the premium run speaks to someone who already has it. (This used to quote the premium line
+ * verbatim as "…with your real paycheck" — the exact phrasing [A4] later removed as untrue of a premium
+ * user with no paycheck yet. A comment written to correct a stale claim had acquired one; quoting copy
+ * is how that keeps happening, so it doesn't any more.)
  *
  * So the re-offer still has a real payload for an upgrader — the finale is the beat written for who they
  * now are, and it's the conversion-honesty beat — but it is one paragraph, not four beats. Whether that

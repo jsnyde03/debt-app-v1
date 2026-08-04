@@ -30,6 +30,11 @@ interface TutorialShell {
    *  rect consumers keep their existing shape. */
   settling: boolean;
   setSettling(settling: boolean): void;
+  /** Should the cutout pass TOUCHES, not just light? Only when the hole sits over a control the beat is
+   *  asking the user to operate. The overlay knows the beat is interactive; only the SCREEN knows the
+   *  spotlight has moved off that control onto the beat's payoff, which is a thing to read, not tap. */
+  passThrough: boolean;
+  setPassThrough(passThrough: boolean): void;
   /** The coaching dock's measured height — the screen needs it to know where the usable stage ends. */
   dockH: number;
   setDockH(height: number): void;
@@ -44,11 +49,12 @@ const TutorialShellContext = createContext<TutorialShell | null>(null);
 export function TutorialShellProvider({ children }: { children: ReactNode }) {
   const [spotlight, setSpotlight] = useState<TargetRect | null>(null);
   const [settling, setSettling] = useState(false);
+  const [passThrough, setPassThrough] = useState(false);
   const [dockH, setDockH] = useState(0);
   const [impact, setImpact] = useState<TutorialShell['impact']>(null);
   const value = useMemo(
-    () => ({ spotlight, setSpotlight, settling, setSettling, dockH, setDockH, impact, setImpact }),
-    [spotlight, settling, dockH, impact],
+    () => ({ spotlight, setSpotlight, settling, setSettling, passThrough, setPassThrough, dockH, setDockH, impact, setImpact }),
+    [spotlight, settling, passThrough, dockH, impact],
   );
   return <TutorialShellContext.Provider value={value}>{children}</TutorialShellContext.Provider>;
 }

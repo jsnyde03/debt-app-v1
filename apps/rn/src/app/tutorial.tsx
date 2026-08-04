@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { appStore } from '@/store/appStore';
 import { resumeIndex } from '@/store/tutorialPath';
 import { tutorialSession } from '@/store/tutorialSession';
+import { QA_TOOLS } from '@/config/qa';
 import { tutorialRunFor, type TutorialRun } from '@/store/tutorialSelectors';
 
 /**
@@ -28,10 +29,18 @@ export default function TutorialLauncher() {
 
   useEffect(() => {
     const real = appStore.getState().store;
-    // [F] An explicit `?run=` param wins (deep links and the e2e pin a run); otherwise ask
-    // `tutorialRunFor`, which is the one definition of who gets which walkthrough.
+    // An explicit `?run=` param pins the run — but ONLY in a QA build. It is a test affordance, and it
+    // was reachable in production on a route registered in the production Stack: any free user opening
+    // `…/tutorial?run=premium` (a mis-built marketing link, a shared URL) would be handed the PREMIUM
+    // finale — "your Guardian does exactly this with every paycheck you add" — a claim that is false of
+    // their tier, in place of the free finale that exists for the sole purpose of saying premium is what
+    // did the holding. [D9]'s honesty rests entirely on that one string, and a URL could swap it.
+    //
+    // Gated behind the same `__DEV__ || QA_TOOLS` switch as the scenario harness, so both test hooks on
+    // this route disappear together at the Phase-6 flip. Outside QA the run always follows the tier.
+    const qa = (typeof __DEV__ !== 'undefined' && __DEV__) || QA_TOOLS;
     const run: TutorialRun =
-      params.run === 'premium' ? 'premium' : params.run === 'free' ? 'free' : tutorialRunFor(real);
+      qa && params.run === 'premium' ? 'premium' : qa && params.run === 'free' ? 'free' : tutorialRunFor(real);
 
     tutorialSession.getState().start(real, run, resumeIndex(real.prefs.tutorialStep));
 

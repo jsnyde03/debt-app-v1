@@ -84,8 +84,10 @@ export function stepBody(step: TutorialStepDef, run: TutorialRun): string {
  *  2. **True of the SANDBOX screen, and reconciled with the tier at the finale.** ⚠️ This rule used to
  *     read "true on BOTH tiers", on the premise that a free user saw gated beats — an invitation where
  *     a premium user saw a built Recovery plan. [D9] retired that split: every audience now runs the
- *     same premium Guardian on scripted money, so all seven beats render identically and there is no
- *     per-tier screen for the copy to straddle. The obligation moved rather than disappeared, and got
+ *     same premium Guardian on scripted money, so SIX of the seven beats render identically and there is
+ *     no per-tier screen for the copy to straddle. (Six, not all seven — the finale differs by audience
+ *     via `bodyByRun`, which is the mechanism described 30 lines above this paragraph. An absolute
+ *     contradicted by its own file.) The obligation moved rather than disappeared, and got
  *     sharper: the beats describe what the GUARDIAN does, and the FINALE (`bodyByRun`) is the one place
  *     that says which of it was premium. Vagueness there is what would make [D9] a bait-and-switch.
  *     Flagged by the [E1–E4] claim-vs-code lens: the [D9] change updated the code and the LOG, not the
@@ -141,7 +143,10 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
   { id: 'recovery', title: "When it won't stretch", body: 'Some paychecks come up short. Your Guardian works out what has to be covered now, and what can safely wait.', target: 'guardian-card', state: 'at-risk' },
   // …and back out of trouble deliberately: nobody should be handed back to their own money while the
   // last thing they saw was a red card.
-  { id: 'yourcall', title: 'Always your call', body: 'Your Guardian suggests — it never moves your money. Every number here is yours to overrule.', target: 'guardian-card', state: 'clear' },
+  // "…is yours to overrule" invited a tap this beat can't honour: it's scripted, so the cutout lights the
+  // card without passing touches, and a user taking the line literally got silence on the one beat whose
+  // message is that they're in control. The claim is about the app, not about right now — so it says so.
+  { id: 'yourcall', title: 'Always your call', body: 'Your Guardian suggests — it never moves your money. Every number here stays yours to overrule, once this tour is done.', target: 'guardian-card', state: 'clear' },
   // The hand-back. Both lines end by orienting ("debts live in Money…"), and the free one names what
   // premium actually did — because for the last seven beats it was premium doing it.
   {

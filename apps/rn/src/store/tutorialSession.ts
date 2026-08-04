@@ -58,6 +58,8 @@ interface TutorialSessionState extends TutorialSession {
   noteFloorBefore(before: { cushion: number; floor: number }): void;
   /** 3.5.3.5 — play the scripted reserve story after the user confirms their bills. */
   playReserveStory(): void;
+  /** …and stop it if they take the confirmation back before it has played out. */
+  cancelReserveStory(): void;
 }
 
 /**
@@ -185,6 +187,21 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
     );
   },
 
+  /**
+   * The user took their confirmation back. Nothing scripted should follow.
+   *
+   * The story is a consequence of an action, and the timers ran on regardless of whether that action
+   * still stood: tap "my bills are all in", tap **Undo** within 900ms, and the surprise still landed, the
+   * walkback ack still announced that the Guardian had "restored your safety net" — restoring what the
+   * user had already restored themselves — and three paydays still rolled. The beat's whole payoff
+   * narrated over the top of the user's most recent decision, which is the opposite of the thing this
+   * beat exists to say. Timers were cleared on `goTo`/`end`/replay but not on the one input that
+   * actually contradicts them.
+   */
+  cancelReserveStory() {
+    clearStoryTimers();
+  },
+
   end() {
     unpublishSandbox();
     clearStoryTimers();
@@ -236,9 +253,22 @@ export function useTutorialSession<T>(selector: (s: TutorialSessionState) => T):
  * landed wherever the caller happened to be. Since the session is global state, the caller can simply
  * start it and let Today render the overlay when it's on screen. The route survives for deep links only.
  */
-export function startTutorial(run: TutorialRun): void {
+export function startTutorial(run: TutorialRun, opts: { resume?: boolean } = {}): void {
   const real = appStore.getState().store;
-  tutorialSession.getState().start(real, run, resumeIndex(real.prefs.tutorialStep));
+  // RESUMING and REPLAYING are different intentions, and collapsing them broke the replay entries.
+  //
+  // Every exit that isn't Skip or Finish — a force-quit, a crash, iOS evicting the app overnight —
+  // leaves `prefs.tutorialStep` set, because only `leave()` clears it. This function always started at
+  // that index, so "How this works" on the Guardian card (whose own hint promises it *replays* the
+  // walkthrough) and the More row could drop the user onto **step 5 of 7** — the deliberately at-risk
+  // beat, a "won't cover everything" shortfall scaled from their real paycheck and listing their real
+  // debts — with none of beats 1–4's framing that any of it is an example. The app opening its own
+  // explainer on a fabricated crisis is the single worst thing this feature could do to trust.
+  //
+  // So the caller says which it means. Resume stays the DEFAULT, because the invitation legitimately
+  // picks up an interrupted first run; the explicit replay affordances opt out.
+  const from = opts.resume === false ? 0 : resumeIndex(real.prefs.tutorialStep);
+  tutorialSession.getState().start(real, run, from);
   // 3.5.3.5.7 — land on Today, here rather than at each call site. Every caller happened to do this
   // already (the More row navigated after starting), but that was an invariant held by convention: once
   // the overlay mounts above the NAVIGATOR it renders whatever tab you are on, so a future entry point

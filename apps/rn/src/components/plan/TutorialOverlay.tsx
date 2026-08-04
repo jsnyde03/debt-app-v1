@@ -59,8 +59,9 @@ function useAnnounceBeat(position: number, run: TutorialRun) {
     // 3.5.3.7.4 ([D12]) — a light selection tick as each beat lands. The app ships bespoke Core Haptics
     // and the walkthrough had none, which is part of why it read as a tooltip library rather than as
     // Debt. Deliberately the LIGHTEST rung: advancing is navigation, not achievement — the medium beats
-    // are reserved for the two moments the user actually causes something. No-op on web and honoured
-    // against the system setting inside `haptics`.
+    // are reserved for the two moments the user actually causes something. `haptics` no-ops on web; the
+    // system haptics setting is honoured by iOS itself, not by anything in that module — this used to
+    // credit `haptics` with a settings check it does not contain.
     haptics.light();
   }, [position, run]);
 }
@@ -78,6 +79,7 @@ export function TutorialOverlay({
   run,
   spotlight,
   settling = false,
+  passThrough = false,
   onDockLayout,
   impact,
 }: {
@@ -97,6 +99,8 @@ export function TutorialOverlay({
   spotlight?: TargetRect | null;
   /** [D4] True while the subject is TRAVELLING (a stage-scroll is in flight) rather than absent. */
   settling?: boolean;
+  /** Should the cutout pass TOUCHES as well as light? Published by the screen — see `tutorialShell`. */
+  passThrough?: boolean;
   /** The dock's measured height defines the bottom of the stage the subject is scrolled into. */
   onDockLayout?: (height: number) => void;
   /** 3.5.3.4.4 — set once the user has actually moved their line on this beat; the before→after payoff. */
@@ -171,7 +175,7 @@ export function TutorialOverlay({
           beat 1. Only the replay link had been individually guarded, one leak at a time.
           Splitting visual from hit geometry for [D2] is what makes this one flag rather than a rework. */}
       {!interactive || local || interactiveTransit ? (
-        <Scrim rect={local} color={c.background.scrim} passThrough={interactive} />
+        <Scrim rect={local} color={c.background.scrim} passThrough={passThrough} />
       ) : null}
       {/* The ring is drawn on interactive beats too. Since 3.5.3.5.9 the scrim is there as well and the
           cutout is what passes touches to the control, so the ring is no longer load-bearing for
@@ -185,7 +189,9 @@ export function TutorialOverlay({
           and `Motion`'s reduce-motion handling applies as everywhere else. */}
       {local ? (
         <Animated.View
-          key={`${Math.round(local.x)}:${Math.round(local.y)}:${Math.round(local.height)}`}
+          // All four dimensions. `width` was missing, so a subject that changed only in width — an iPad
+          // Split View drag is exactly that — kept the old key and never re-entered.
+          key={`${Math.round(local.x)}:${Math.round(local.y)}:${Math.round(local.width)}:${Math.round(local.height)}`}
           entering={FadeIn.duration(180).reduceMotion(ReduceMotion.System)}
           pointerEvents="none"
           style={[
@@ -329,7 +335,12 @@ function Scrim({
   // centre — which renders as full coverage and is identical on screen to the old single sheet, while
   // being the same four bands the springs are already driving. That also gives the transit its meaning
   // for free: the light closes as the screen starts moving and reopens on whatever it arrived at.
-  const anchor = useRef({ x: 0, y: 0 });
+  // Seeded to the screen CENTRE, not {0,0}. The Scrim mounts before the first rect exists, so the
+  // springs initialise wherever the anchor is — and at the origin the very first iris of every session
+  // opened diagonally from the top-left CORNER out to the Guardian card. One glitchy sweep, on the first
+  // frame the user ever sees of the walkthrough. From the centre the same animation reads as intended.
+  const { width: winW, height: winH } = useWindowDimensions();
+  const anchor = useRef({ x: winW / 2, y: winH / 2 });
   if (rect) anchor.current = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
 
   const top = rect ? Math.max(0, rect.y - RING_INSET) : anchor.current.y;
