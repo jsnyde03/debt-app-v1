@@ -260,7 +260,8 @@ export function startTutorial(run: TutorialRun, opts: { resume?: boolean } = {})
   // RESUMING and REPLAYING are different intentions, and collapsing them broke the replay entries.
   //
   // Every exit that isn't Skip or Finish — a force-quit, a crash, iOS evicting the app overnight —
-  // leaves `prefs.tutorialStep` set, because only `leave()` clears it. This function always started at
+  // leaves `prefs.tutorialStep` set, because `leave()` is the only EXIT that clears it (this function
+  // now clears it too, on an explicit replay — see below). This function always started at
   // that index, so "How this works" on the Guardian card (whose own hint promises it *replays* the
   // walkthrough) and the More row could drop the user onto **step 5 of 7** — the deliberately at-risk
   // beat, a "won't cover everything" shortfall scaled from their real paycheck and listing their real

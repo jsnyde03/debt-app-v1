@@ -38,7 +38,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { StoreProvider, useActiveStore } from '@/store/StoreContext';
 import { isSandboxStore } from '@/store/sandboxStore';
-import { TutorialTarget, TutorialTargetsProvider } from '@/store/tutorialTargets';
+import { TutorialTarget, TutorialTargetsProvider, useTutorialTargets } from '@/store/tutorialTargets';
 import { useTutorialShell } from '@/store/tutorialShell';
 import { useSpotlight } from '@/hooks/use-spotlight';
 import { startTutorial, tutorialSession, useTutorialSession } from '@/store/tutorialSession';
@@ -185,9 +185,14 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   // so the surface never stacks 5-6 acks. Dismissing the top one clears its condition, so the next in
   // priority surfaces on the following render. A celebration (full-screen beat/finale) outranks them all
   // and suppresses the slot while it's up.
-  // 3.5.1 — the tutorial invitation joins the slot ranked LAST: every other ack is time-sensitive
-  // (a milestone just crossed, a reserve just released), while a teaching offer keeps. On a brand-new
-  // user none of the others can fire anyway, so it costs the offer nothing to yield to them.
+  // 3.5.1 — the tutorial invitation is ranked LAST in this slot: every other ack is time-sensitive (a
+  // milestone just crossed, a reserve just released), while a teaching offer keeps. On a brand-new user
+  // none of the others can fire anyway, so it costs the offer nothing to yield to them.
+  //
+  // ⚠️ That ranking only governs the FALLBACK now. Since [D5]/3.5.3.5.8 the invitation's normal home is
+  // below the Guardian card with no ack-slot condition, so it and an ack can render together; the slot
+  // is used only when there's no Guardian card to sit under. The ranking was written when this was the
+  // one and only position.
   // 3.5.3.2 — never offer the walkthrough while the user is INSIDE it. The invitation reads the acting
   // store, and the sandbox is a fresh store that has of course never seen the tutorial — so the in-situ
   // shell (3.5.3.1) had Today advertising "See how your Guardian works · Show me" on top of the very
@@ -289,8 +294,11 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               // Withheld on example money: "How this works" restarts the walkthrough, and offering that
               // FROM INSIDE the walkthrough is incoherent: an offer to restart something you are in.
               // (The reason used to be "on an interactive beat, where taps pass through, it would be
-              // live". Pre-3.5.3.5.9: taps pass through the CUTOUT only, and the replay link sits under
-              // a blocking band. The conclusion survives the correction; the mechanism didn't.)
+              // live" — true pre-3.5.3.5.9, when the scrim was dropped entirely on interactive beats and
+              // everything was live. Since .5.9 taps pass through the CUTOUT only and the replay link
+              // sits under a blocking band. The conclusion survives the correction; the mechanism
+              // didn't. An earlier attempt at this note dropped a word and described the CURRENT
+              // mechanism as the old one — the correction had itself become a false claim.)
               // `resume: false` — this control says "How this works", so it starts at beat 1. Without it
               // a stranded step from an interrupted run would drop them mid-arc (see `startTutorial`).
               onReplayTutorial={isExample ? undefined : () => startTutorial(tutorialRunFor(store), { resume: false })}
@@ -765,6 +773,16 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     setPassThrough?.(interactive && !payoffShowing);
     return () => setPassThrough?.(false);
   }, [setPassThrough, interactive, payoffShowing]);
+
+  // Publish which subject this beat coaches, so every OTHER coachable control can fence itself out of
+  // the accessibility tree (see `TutorialTarget`'s `control` prop). `targetId` already accounts for the
+  // payoff, so once the spotlight moves onto the ack, both controls fence — which is right: nothing on
+  // that screen is asking to be operated while the story plays.
+  const setActiveId = useTutorialTargets()?.setActiveId;
+  useEffect(() => {
+    setActiveId?.(targetId);
+    return () => setActiveId?.(null);
+  }, [setActiveId, targetId]);
   useEffect(() => {
     setImpact?.(impact);
     // Released on the way out, for the reason spelled out on `setSpotlight` above — the shell lives at

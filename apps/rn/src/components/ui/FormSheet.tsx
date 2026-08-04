@@ -19,7 +19,8 @@ import { textStyles } from '@/theme/typography';
  * A slide-up bottom sheet for the unified add/edit forms (the B.6 redesign — one sheet drives both
  * modes). 3.4.5 premium polish (shared with the display/capture sheets via `useSheetPresentation` +
  * `sheetStyles`): the frosted `SheetScrim` FADES in place while the sheet SPRINGS up; a grabber +
- * swipe-down-to-dismiss (pan on the header zone only, Modal content wrapped in its own
+ * swipe-down-to-dismiss (pan on the GRABBER only — the header sits deliberately OUTSIDE the detector,
+ * so its touchables still receive taps on device; Modal content wrapped in its own
  * `GestureHandlerRootView`); a dark elevated surface + luminous top edge; an ✕-in-circle close; a
  * keyboard-aware backdrop + optional `dirty` discard-guard. Renders title + subtitle + a scrollable
  * field body + a sticky submit.
@@ -111,9 +112,14 @@ export function FormSheet({
               "Close" spanning everything before reaching a single field. Tapping outside is a POINTER
               affordance; the equivalent for a screen reader is the explicit Close button in the header
               below, which already exists. Touch behaviour is unchanged. */}
+          {/* `focusable={false}` as well as a11y-hidden: on web `accessibilityElementsHidden` becomes
+              `aria-hidden`, but an RNW Pressable stays in the TAB ORDER — so hiding it left every sheet
+              in the app with an unlabelled, aria-hidden, full-screen stop for keyboard users. Aria-hidden
+              AND focusable is the worst of both. */}
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={onBackdrop}
+            focusable={false}
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
           />

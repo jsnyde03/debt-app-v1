@@ -9,7 +9,7 @@ import { CushionFloorSheet } from '@/components/plan/CushionFloorSheet';
 import { GuardianProofStrip } from '@/components/plan/GuardianProofStrip';
 import { RecoveryPlanSection } from '@/components/plan/RecoveryPlanSection';
 import { PremiumInvite } from '@/components/premium/PremiumInvite';
-import { TutorialTarget } from '@/store/tutorialTargets';
+import { TutorialTarget, useTutorialTargets } from '@/store/tutorialTargets';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { GuardianBrief, GuardianProofOfWork, GuardianState, TightTopUp } from '@/store/guardianSelectors';
 import type { RecoveryPlan } from '@/store/recoverySelectors';
@@ -18,7 +18,9 @@ import { textStyles } from '@/theme/typography';
 import { groupLabel } from '@/utils/a11y';
 
 const BAR_H = 14;
-/** The "set aside" swatch matches the bar's tinted reserve zone (cushion color at this opacity). */
+/** The safety-net swatch matches the bar's tinted reserve zone (cushion color at this opacity).
+ *  (Called "set aside" here and at the legend below — the rendered label has been "Safety net" for a
+ *  while, and "Set aside" is the GIG app's brand term, which this app deliberately doesn't borrow.) */
 const RESERVE_OPACITY = 0.5;
 
 /**
@@ -66,8 +68,9 @@ export function PaydayGuardianCard({
    *  is held; toggling reduces / restores the reserve. */
   attestation?: { show: boolean; attested: boolean };
   onAttestBills?: (value: boolean) => void;
-  /** 3.5.1 — replay the Guardian walkthrough ("?" in the header). Always available, so the tutorial is
-   *  never a one-shot a user can lose by dismissing it. Replaces the retired 2.4.11.3 static intro,
+  /** 3.5.1 — replay the Guardian walkthrough (the "How this works" link near the card's bottom; a "?"
+   *  glyph in the header was considered and rejected — see the note at the render site). Always
+   *  available, so the tutorial is never a one-shot a user can lose by dismissing it. Replaces the retired 2.4.11.3 static intro,
    *  which the tutorial absorbs. */
   onReplayTutorial?: () => void;
   /** 3.5.0.5 — commit a new cushion floor. The HOST owns this write (the app store's setter in the real
@@ -109,6 +112,21 @@ export function PaydayGuardianCard({
   // inside a session and the card keeps ONE gate per premium affordance. Worth keeping that way — the
   // hazard of an `|| isExample` escape hatch is that it spreads to the next control, and then the next.
   const showAdjust = isPremium && !stale && brief.state !== 'at-risk';
+
+  // Is a WALKTHROUGH running — not merely "is this sandbox money". The distinction matters because the
+  // sandbox is designed to render WITHOUT the overlay (3.5.4's demo mode, 3.5.7's web demo), and fences
+  // keyed on `isExample` would follow it there: a link rendered in full accent colour, doing nothing on
+  // tap and invisible to screen readers, with no walkthrough on screen to explain why. `activeId` is
+  // published by the coached screen and is null the moment no beat is active.
+  const inWalkthrough = !!useTutorialTargets()?.activeId;
+
+  // The card's tail, in render order: … attest → adjust → replay → proof strip → forecast. Only a 44pt
+  // link row at the END needs the bottom spacer (its label is vertically centred, so it leaves less
+  // visual space below it than the gaps above it). Mirrors the render conditions below exactly — if one
+  // of those moves, this moves with it.
+  const showProofStrip = isPremium && !stale && brief.state === 'clear' && !!proofOfWork;
+  const showForecast = isPremium && !!onSeeForecast && !stale && !brief.pausedDeploy;
+  const endsOnRow = showForecast || (!showProofStrip && (!!onReplayTutorial || showAdjust));
 
   // [C4] ONE source for the attestation control's words: the visible Text renders it and the
   // `accessibilityLabel` is it. Two hand-written strings is how a label drifts from its own control.
@@ -218,7 +236,7 @@ export function PaydayGuardianCard({
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants">
           {/* Order matches the bar's fixed left→right shading: Set aside (tinted, far-left) → Cushion →
-              To debt. The "set aside" reserve is only present for a settling-in (cold-start) user. */}
+              To debt. The safety-net reserve is only present for a settling-in (cold-start) user. */}
           {hasReserve ? (
             <Stat swatch={color} dim amount={brief.heldReserve} label="Safety net" testID="guardian-reserve-amount" />
           ) : null}
@@ -307,7 +325,7 @@ export function PaydayGuardianCard({
       {isPremium && !recovery && !topUp && attestation?.show && attestLabel ? (
         // 3.5.3.5.1 — interactive beat B's subject ([D10]). Spacing on the TARGET, label none: fourth
         // time this pattern has mattered, so it is now the default shape for any coachable control.
-        <TutorialTarget id="guardian-reserve" style={styles.attest}>
+        <TutorialTarget id="guardian-reserve" style={styles.attest} control>
         {/* [C4] Label-in-name again, and this was the worst of the four: the spoken name was a
             different SENTENCE from the visible one, so nothing a user could read off the screen would
             match. One string now feeds both, which is also what stops them drifting apart later; the
@@ -337,12 +355,13 @@ export function PaydayGuardianCard({
         // The spacing lives on the TARGET and the label carries none — the THIRD time this bit us. A
         // margin on the wrapped child inflates the measured rect upward, so the ring gets drawn across
         // whatever sits above it (here, the attestation line). Layout is identical either way.
-        <TutorialTarget id="guardian-adjust" style={styles.adjustGroup}>
+        <TutorialTarget id="guardian-adjust" style={styles.adjustGroup} control>
           {/* [C4] The label must CONTAIN the visible text (WCAG 2.5.3, label-in-name). It read "Adjust
               your cushion line" against a control that says "Adjust your line →", so Voice Control's
               "tap Adjust your line" matched nothing — the user reads the words on screen and the one
               command they'd naturally speak is the one that fails. The clarifying word moves to a hint,
-              which is exactly what hints are for. Same fix applied to the three sibling links below. */}
+              which is exactly what hints are for. Same fix applied to the other three label-in-name
+              controls in this card — the attestation ABOVE, and the replay and forecast links below. */}
           <Pressable
             onPress={() => setFloorSheet(true)}
             accessibilityRole="button"
@@ -383,22 +402,24 @@ export function PaydayGuardianCard({
       {isPremium && onSeeForecast && !stale && !brief.pausedDeploy ? (
         <Pressable
           onPress={onSeeForecast}
-          disabled={isExample}
+          disabled={inWalkthrough}
           accessibilityRole="button"
           accessibilityLabel="See your forecast"
           accessibilityHint="Opens your full cushion forecast"
-          accessibilityElementsHidden={isExample}
-          importantForAccessibility={isExample ? 'no-hide-descendants' : 'auto'}
+          accessibilityElementsHidden={inWalkthrough}
+          importantForAccessibility={inWalkthrough ? 'no-hide-descendants' : 'auto'}
           style={styles.linkRow}>
           <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>See your forecast →</Text>
         </Pressable>
       ) : null}
 
-      {/* §M nit 2 — see `lastRowSpacer`. Rendered only when the card actually ends on a 44pt link row;
-          without one of those there is nothing whose centring needs compensating for. */}
-      {showAdjust || onReplayTutorial || (isPremium && onSeeForecast && !stale && !brief.pausedDeploy) ? (
-        <View style={styles.lastRowSpacer} />
-      ) : null}
+      {/* §M nit 2 — see `lastRowSpacer`. Only when the card genuinely ENDS on a 44pt row.
+          The first version asked "does any link row render?", which is a different question: the proof
+          strip renders BETWEEN the replay link and the forecast link, so with `pausedDeploy` true (which
+          hides the forecast row) the strip is last — and the spacer landed under IT, adding padding where
+          none was owed while the actual last row went uncompensated. The condition now walks the tail in
+          render order, which is the only way to answer the question it was always meant to ask. */}
+      {endsOnRow ? <View style={styles.lastRowSpacer} /> : null}
 
       {isPremium && onSetFloor ? (
         <CushionFloorSheet visible={floorSheet} floor={brief.floor} onClose={() => setFloorSheet(false)} onApply={onSetFloor} coach={coachLine} />
@@ -494,11 +515,13 @@ const styles = StyleSheet.create({
   // under the live overlay. The exact route-escape 3.5.3.5.9 and `passThrough` exist to prevent,
   // reopened by the fix that was making these targets bigger. A 44pt row needs no slop.
   //
-  // The margins are `xs`, not `xxs`. Absorbing the ENTIRE gap into the row padding looked right in
-  // isolation and wrong in the walkthrough: the spotlight ring insets 6pt beyond its subject, so with a
-  // 2pt margin the ring's top edge cut across the line of copy above it ("Your call", right above the
-  // attestation). 4pt clears it, and the row's own internal padding still carries most of the rhythm.
-  // Caught by looking at beat 4, not by the geometry — the rows measure identically either way.
+  // The margins are `xs` (4pt) — except the attestation's, which is `sm` (8pt); see the note on `attest`.
+  // Absorbing the ENTIRE gap into the row looked right in isolation and wrong in the walkthrough: the
+  // spotlight ring insets 6pt beyond its subject, so at 2pt the ring's top edge cut across the line of
+  // copy above it. Caught by looking at beat 4, not by the geometry — the rows measure identically
+  // either way. (This paragraph used to end "4pt clears it", which the very next comment block and the
+  // code both contradict: 4pt did NOT clear it, which is why `attest` went to 8. Fixing the value and
+  // adding a new note beside the old one is how a file ends up arguing with itself.)
   row: { minHeight: 44, justifyContent: 'center' },
   // §M nit 1 — `sm`, not `xs`, on the attestation. The spotlight ring insets 6pt beyond its subject, and
   // at 4pt the premium judge still read the ring's top edge as crowding the "Your call" label above it.

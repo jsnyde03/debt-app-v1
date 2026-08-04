@@ -13,10 +13,13 @@ import { groupLabel } from '@/utils/a11y';
  * The design gate chose an invitation over a takeover: a user who just finished onboarding wants to see
  * their own number first, and for a free user an unskippable tour of a premium-flavoured feature reads
  * as a pitch rather than help. So this offers, and never interrupts — declining is a real answer that
- * isn't asked again (replay stays on the Guardian card's "?" and in More).
+ * isn't asked again (replay stays on the Guardian card's "How this works" link and in More).
  *
- * It occupies the VIS-4 single ack-slot ranked LAST, so a milestone, a reserve release or a trial
- * conversion — all time-sensitive — always outranks a teaching offer.
+ * ⚠️ WHERE IT RENDERS changed at [D5] and this paragraph didn't. It used to occupy the VIS-4 single
+ * ack-slot ranked LAST, so any time-sensitive ack outranked a teaching offer. Since 3.5.3.5.8 the normal
+ * position is BELOW the Guardian card, with no ack-slot condition at all — so an ack and this invite can
+ * render at the same time, and nothing outranks anything. The ack slot survives only as the fallback for
+ * a user who has no Guardian card to sit under.
  */
 export function TutorialInviteCard({ onStart, onDismiss }: { onStart: () => void; onDismiss: () => void }) {
   const c = useAppColors();

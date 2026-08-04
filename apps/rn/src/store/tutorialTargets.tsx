@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useRef, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { View, type LayoutChangeEvent } from 'react-native';
 
 /**
@@ -44,6 +44,10 @@ interface TargetRegistry {
    *  user must pay nothing. A ref write plus a walk of an empty Set is nothing; a `setState` would be a
    *  re-render of Today on every layout pass. Returns an unsubscribe. */
   subscribe(listener: (id: string) => void): () => void;
+  /** Which subject the current beat coaches, or null outside a session. Published by the screen and read
+   *  by `TutorialTarget` so a control that ISN'T this beat's subject can fence itself — see `control`. */
+  activeId: string | null;
+  setActiveId(id: string | null): void;
 }
 
 const TutorialTargetsContext = createContext<TargetRegistry | null>(null);
@@ -96,9 +100,13 @@ export function TutorialTargetsProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // State, unlike the listener set — `TutorialTarget` has to RE-RENDER when the active subject changes.
+  // It stays null outside a session, so a non-tutorial user never sees a state change here.
+  const [activeId, setActiveId] = useState<string | null>(null);
+
   const value = useMemo(
-    () => ({ register, measure, invalidate, subscribe }),
-    [register, measure, invalidate, subscribe],
+    () => ({ register, measure, invalidate, subscribe, activeId, setActiveId }),
+    [register, measure, invalidate, subscribe, activeId],
   );
   return <TutorialTargetsContext.Provider value={value}>{children}</TutorialTargetsContext.Provider>;
 }
@@ -116,15 +124,38 @@ export function TutorialTarget({
   children,
   onLayout,
   style,
+  control,
 }: {
   id: string;
   children: ReactNode;
   onLayout?: (e: LayoutChangeEvent) => void;
   style?: View['props']['style'];
+  /**
+   * This target wraps an ACTIONABLE control, not just a region to look at.
+   *
+   * While a session is running, a control that isn't the current beat's subject leaves the
+   * accessibility tree. The scrim already fences it for touch — the hole is cut over one subject — but a
+   * VoiceOver double-tap dispatches straight to the focused element and never goes through hit-testing,
+   * so on the two interactive beats (where the screen is deliberately left exposed so the user CAN reach
+   * the coached control) every other control was still activatable. Concretely: on beat 3 the attestation
+   * fired beat 4's entire scripted story; on beat 4 the adjust row opened the floor sheet carrying the
+   * wrong beat's coaching line.
+   *
+   * Fixed HERE rather than at each control because it had already been patched one member at a time —
+   * More, then the tabs, then the forecast link, one per audit round — while the class stayed open. The
+   * wrapper that marks a coachable subject is the one place that knows both which controls exist and
+   * which one the beat means, and the card stays unaware of the walkthrough (3.5.3.3.1).
+   */
+  control?: boolean;
 }) {
   const targets = useTutorialTargets();
+  // Only when a session is actually running (`activeId` non-null) — outside one this is always false and
+  // costs nothing. Never fences the ACTIVE control, which is the whole point of the beat.
+  const fenced = !!control && !!targets?.activeId && targets.activeId !== id;
   return (
     <View
+      accessibilityElementsHidden={fenced}
+      importantForAccessibility={fenced ? 'no-hide-descendants' : 'auto'}
       ref={(node) => targets?.register(id, node)}
       // [E5] This used to claim it "re-registers on layout", and did no such thing — it forwarded the
       // caller's handler and nothing else, so a spotlight only ever re-measured when the beat's own

@@ -53,12 +53,16 @@ export default function TutorialLauncher() {
     // replacement. Precisely the defect the claim-vs-code lens exists for, found in the fix block that
     // was correcting that same class elsewhere.
     //
-    // `navigate`, not `push`/`replace`/`back`. The three entry points sit at different stack depths —
-    // the Guardian card is on Today, the More row is its own Stack route, a deep link has no history —
-    // and each needs to end up on the Today TAB with nothing duplicated. `replace` re-mounted the tab
-    // group (two Todays, two overlays — the detached-tab-group class `useGoToTab` documents), and
-    // `back`/`dismissAll` landed wherever the caller happened to be. `navigate` targets the existing
-    // route if there is one and only creates it otherwise, which is the one behaviour all three share.
+    // `navigate`, not `push`/`replace`/`back`. A deep link arrives with no history at all while the e2e
+    // arrives with some, and both must end up on the Today TAB with nothing duplicated: `replace`
+    // re-mounted the tab group (two Todays, two overlays — the detached-tab-group class `useGoToTab`
+    // documents) and `back`/`dismissAll` landed wherever the caller happened to be. `navigate` targets
+    // the existing route if there is one and only creates it otherwise.
+    //
+    // (This used to justify itself with "the three entry points sit at different stack depths — the
+    // Guardian card, the More row, a deep link". Two of those three don't come through this file at all,
+    // as the header above now says; that reasoning belongs to `startTutorial`, where it is still true.
+    // A rationale copied into a second home and then made false in one of them.)
     router.navigate('/');
     // Mount-only: this route's whole job is to fire once and get out of the way.
     // eslint-disable-next-line react-hooks/exhaustive-deps

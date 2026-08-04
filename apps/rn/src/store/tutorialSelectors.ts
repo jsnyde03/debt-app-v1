@@ -59,7 +59,8 @@ export function selectTutorialInvite(store: DebtStore): TutorialInvite | null {
   if (seen === null) return { run };
   // Saw the free run, now premium → offer the premium run once (its finale is the one written for them).
   if (seen === 'free' && run === 'premium') return { run: 'premium' };
-  // Otherwise they've had the run they'd get. Replay stays reachable from the "?" and More.
+  // Otherwise they've had the run they'd get. Replay stays reachable from the card's "How this works"
+  // link and from More. (Said "the '?'" — a glyph that was considered and never built.)
   return null;
 }
 
