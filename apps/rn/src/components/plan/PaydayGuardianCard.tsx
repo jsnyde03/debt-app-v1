@@ -543,9 +543,7 @@ const styles = StyleSheet.create({
   // Absorbing the ENTIRE gap into the row looked right in isolation and wrong in the walkthrough: the
   // spotlight ring insets 6pt beyond its subject, so at 2pt the ring's top edge cut across the line of
   // copy above it. Caught by looking at beat 4, not by the geometry — the rows measure identically
-  // either way. (This paragraph used to end "4pt clears it", which the very next comment block and the
-  // code both contradict: 4pt did NOT clear it, which is why `attest` went to 8. Fixing the value and
-  // adding a new note beside the old one is how a file ends up arguing with itself.)
+  // either way. 4pt does not clear the ring, which is why `attest` carries 8.
   row: { minHeight: 44, justifyContent: 'center' },
   // §M nit 1 — `sm`, not `xs`, on the attestation. The spotlight ring insets 6pt beyond its subject, and
   // at 4pt the premium judge still read the ring's top edge as crowding the "Your call" label above it.

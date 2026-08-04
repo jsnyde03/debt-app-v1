@@ -15,20 +15,17 @@ import type { DebtStore } from '@/data/models';
  * chose to include. And why a value rather than a boolean: someone who saw the FREE run and later
  * upgrades is re-offered once.
  *
- * ⚠️ [E4] What that re-offer is worth CHANGED, and this comment used to state the old reason as fact:
- * "the premium run reaches beats free never does (the held reserve, Recovery, the release)". That was
- * true before [D9], when a free user's walkthrough ran on their own gated card. [D9] made every audience
- * run the same premium Guardian on scripted money, so the two runs are now beat-identical and differ in
- * exactly ONE string — the finale's `bodyByRun`, where the free run names premium as what did the
- * holding and the premium run speaks to someone who already has it. (This used to quote the premium line
- * verbatim as "…with your real paycheck" — the exact phrasing [A4] later removed as untrue of a premium
- * user with no paycheck yet. A comment written to correct a stale claim had acquired one; quoting copy
- * is how that keeps happening, so it doesn't any more.)
+ * ⚠️ [E4] What that re-offer is WORTH is smaller than it looks. Before [D9] a free user's walkthrough ran
+ * on their own gated card, so the premium run genuinely reached beats free never did. [D9] made every
+ * audience run the same premium Guardian on scripted money, so the runs are beat-identical and diverge
+ * only in the finale's `bodyByRun` — where the free run names premium as what did the holding, and the
+ * premium run speaks to someone who already has it. Never quote that copy here; a comment that quotes
+ * copy goes stale the next time the copy is edited, which is not a hypothetical for these strings.
  *
  * So the re-offer still has a real payload for an upgrader — the finale is the beat written for who they
- * now are, and it's the conversion-honesty beat — but it is one paragraph, not four beats. Whether that
- * justifies replaying all seven is a DESIGN question belonging to the 3.5.1 gate that set this matrix,
- * not something to quietly flip here. Behaviour is unchanged; only the false justification is corrected.
+ * now are, and it's the conversion-honesty beat — but it is one paragraph, not a different walkthrough.
+ * Whether that justifies replaying the whole arc is a DESIGN question belonging to the 3.5.1 gate that
+ * set this matrix, not something to quietly flip here.
  */
 
 export type TutorialRun = 'free' | 'premium';

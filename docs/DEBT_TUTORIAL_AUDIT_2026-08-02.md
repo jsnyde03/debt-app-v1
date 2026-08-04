@@ -840,11 +840,15 @@ corners rounded with no nubs, below-stage content properly dimmed, Skip trailing
   overlay + 4 cheap in-version items. Genuinely 3.5.4 entry cost.
 - **Lens D #7, the convention sweep:** the flagrant meta-commentary is deleted (including my own
   round-8 comments), but ~50 lower-grade `round N` / `used to` lines survive across the feature.
-  **[D17] OPEN — the convention itself needs a call:** it was adopted in round 7 and violated 43 times
-  immediately, *by the round that adopted it*, which is evidence it fights the house style rather than
-  evidence of carelessness. This repo's comments earn their keep by explaining WHY, and the "why" is
-  often the history. Recommend narrowing the rule to what is indefensible — **no meta-commentary about
-  which earlier comment was wrong, and no counts of code** — and explicitly permitting rationale that
-  names a past defect. Both halves stay grep-checkable.
+  **✅ [D17] SETTLED (Jason, 2026-08-04) — the convention is NARROWED, and now enforced by a check.**
+  The blanket ban on history was adopted in round 7 and violated 43 times immediately, *by the round that
+  adopted it* — evidence that it fights the house style, not that everyone was careless. The rule is now
+  the two halves that are indefensible: **(1) no meta-commentary about which earlier COMMENT was wrong**
+  (correcting a false comment means deleting it, not annotating it) and **(2) no counts of code** (this
+  feature shipped four wrong counts, each written while correcting the previous one). Rationale about the
+  CODE's past — "used to", "round N", "was tried and removed" — is **explicitly permitted and
+  encouraged**; it is why these comments are worth reading. `npm run lint:comments`
+  (`scripts/check-comment-convention.ts`) enforces both halves, deliberately narrow to avoid false
+  positives on stable architectural facts, verified red-then-green. The whole feature is now clean.
 
 </details>

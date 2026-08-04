@@ -129,9 +129,9 @@ export default function MoreScreen() {
           icon="gpp-good"
           label="How the Guardian works"
           subtitle="Replay the short walkthrough."
-          // [F] `tutorialRunFor`, not an inline tier check. Three call sites had each re-derived which
-          // run to open; they agreed, but "which audience gets which walkthrough" is a rule that has
-          // already moved once ([D9]) and every copy of it is a place the next move can be missed.
+          // [F] `tutorialRunFor`, not an inline tier check. "Which audience gets which walkthrough" is a
+          // rule that has already moved once ([D9]), and every re-derivation of it is a place the next
+          // move can be missed — agreeing copies are still copies.
           // "Replay the short walkthrough" — from the start, not from a stranded step.
           onPress={() => startTutorial(tutorialRunFor(appStore.getState().store), { resume: false })}
           last
