@@ -28,15 +28,44 @@ async function violations(page: import('@playwright/test').Page) {
   // "keyboard focus cannot enter a fenced region" test below proves it by tabbing, rather than trusting
   // the attribute's presence.
   const res = await new AxeBuilder({ page }).exclude('[inert]').withRules(RULES).analyze();
-  // `incomplete` as well as `violations`, and this is load-bearing rather than belt-and-braces. axe
-  // reports a bare `tabindex="0"` inside an `aria-hidden` subtree as NEEDS-REVIEW rather than as a
-  // failure, because it cannot always resolve focusability statically — and react-native-web produces
-  // exactly that shape for every Pressable. Checked against `violations` alone this scanner stayed green
-  // on a full-viewport aria-hidden tab stop, i.e. green on the precise defect it was installed to catch.
-  // Verified by reintroducing that defect and watching this go red.
+  // `incomplete` as well as `violations`, and this is load-bearing rather than belt-and-braces.
+  //
+  // When one element covers ≥75% of the viewport, axe's `isModalOpen` heuristic fires
+  // (`axe-core@4.12.1/axe.js:17660`, `modalPercent = .75`) and both of `aria-hidden-focus`'s focus
+  // checks return `undefined` — "needs review" — instead of failing (`focusableNotTabbableEvaluate`,
+  // `axe.js:26381`). A full-screen fence is exactly that shape, so checked against `violations` alone
+  // this scanner stayed green on a full-viewport aria-hidden tab stop: green on the precise defect it
+  // was installed to catch. Verified by reintroducing that defect and watching this go red.
+  //
+  // ⚠️ Not a general rule about focusable elements inside `aria-hidden` — a normally-sized trapped
+  // control IS reported as a violation. It is specifically the full-screen case that hides in `incomplete`.
   return [...res.violations, ...res.incomplete].map(
     (x) => `${x.id}: ${x.nodes.map((n) => n.html.slice(0, 120)).join(' | ')}`,
   );
+}
+
+/**
+ * Tab repeatedly; assert focus never lands inside a fenced region.
+ *
+ * `inert` is what fences a region's TAB ORDER, and axe does not model it — it reports an inert subtree
+ * containing controls as `aria-hidden-focus`, which is why those subtrees are excluded from the scans.
+ * An exclusion is only honest if the thing excluded is actually safe, so this proves it directly rather
+ * than trusting the attribute's presence. If `inert` stops working, or is dropped from a fence, this
+ * fails even though the scanner would not.
+ *
+ * A helper, and called in BOTH states the scanner visits, because the two states fence by different
+ * means: on a scripted beat the screen fence carries `inert`; on an interactive beat that fence is open
+ * by design and the only tab-order fence left is the one on the non-coached controls.
+ */
+async function focusNeverEntersAFence(page: import('@playwright/test').Page) {
+  expect(await page.locator('[inert]').count()).toBeGreaterThan(0); // the fence is really there
+  for (let i = 0; i < 25; i++) {
+    await page.keyboard.press('Tab');
+    const inside = await page.evaluate(
+      () => !!document.activeElement?.closest('[inert],[aria-hidden="true"]'),
+    );
+    expect(inside, `focus entered a fenced region after ${i + 1} tabs`).toBe(false);
+  }
 }
 
 test.describe('a11y tree invariants', () => {
@@ -71,24 +100,16 @@ test.describe('a11y tree invariants', () => {
     await page.getByRole('button', { name: 'Next' }).click();
     await expect(page.getByTestId('tutorial-step-title')).toHaveText('Your line');
     expect(await violations(page)).toEqual([]);
+    // The screen fence is open here BY DESIGN, so `inert` on the non-coached controls is the only
+    // tab-order fence left — and that is the state in which excluding `[inert]` from the scan was
+    // being taken on trust.
+    await focusNeverEntersAFence(page);
   });
 
-  // `inert` is what fences a region's TAB ORDER, and axe does not model it — it reports an inert subtree
-  // containing controls as `aria-hidden-focus`, which is why those subtrees are excluded from the scan
-  // above. An exclusion is only honest if the thing excluded is actually safe, so this proves it
-  // directly: tab repeatedly and assert focus never lands inside a fenced region. If `inert` ever stops
-  // working, or is dropped from a fence, this fails even though the scanner would not.
-  test('keyboard focus cannot enter a fenced region', async ({ page }) => {
+  test('keyboard focus cannot enter a fenced region — a scripted beat', async ({ page }) => {
     await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
     await page.goto('/tutorial');
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
-    expect(await page.locator('[inert]').count()).toBeGreaterThan(0); // the fence is really there
-    for (let i = 0; i < 25; i++) {
-      await page.keyboard.press('Tab');
-      const inside = await page.evaluate(
-        () => !!document.activeElement?.closest('[inert],[aria-hidden="true"]'),
-      );
-      expect(inside, `focus entered a fenced region after ${i + 1} tabs`).toBe(false);
-    }
+    await focusNeverEntersAFence(page);
   });
 });

@@ -60,16 +60,6 @@ export interface TutorialStepDef {
    * lands — and where it would be a lie if it were vague.
    */
   bodyByRun?: Partial<Record<TutorialRun, string>>;
-  /**
-   * [D15] The body to read when this beat's coached control is not on screen.
-   *
-   * Only the two interactive beats need it, and only they can be wrong without it: their normal copy
-   * tells the user to operate a control ("Open it and move the line"), which is a lie if the control
-   * isn't rendered. The beat keeps its place in the arc and becomes a scripted reveal — the lesson still
-   * lands, the ask doesn't. The alternative, advancing past the beat, deleted it from a seven-beat arc
-   * with no visible reason and broke Back.
-   */
-  bodyIfNoSubject?: string;
 }
 
 /**
@@ -77,9 +67,14 @@ export interface TutorialStepDef {
  * announcement — if they each did their own lookup, a VoiceOver user could be read the premium line
  * while a free user's screen showed a different one. That exact class of drift already cost this phase
  * an entire dropped announcement (3.5.3.3.4.1).
+ *
+ * A beat's copy depends on the AUDIENCE and on nothing else. It deliberately cannot vary with anything
+ * measured at runtime: [D15] made it vary with whether the coached control had been measured, and since
+ * a different-length paragraph is a different dock height, and the dock height re-keyed the measurement,
+ * the beat flipped between two paragraphs five times in eight seconds. What a beat says is now decided
+ * before the app runs, and `guardianSubjects.test.ts` proves the ask is honest for every beat.
  */
-export function stepBody(step: TutorialStepDef, run: TutorialRun, subjectMissing = false): string {
-  if (subjectMissing && step.bodyIfNoSubject) return step.bodyIfNoSubject;
+export function stepBody(step: TutorialStepDef, run: TutorialRun): string {
   return step.bodyByRun?.[run] ?? step.body;
 }
 
@@ -123,9 +118,6 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
     id: 'line',
     title: 'Your line',
     body: 'This is the least you want to keep. Open it and move the line — the whole plan re-solves around it.',
-    // No control on screen to open, so the sentence that names one is dropped. Everything the beat
-    // teaches — what the line IS, and that the plan follows it — is still true of the card behind it.
-    bodyIfNoSubject: 'This is the least you want to keep. Your whole plan re-solves around it, and you can move it whenever you like.',
     target: 'guardian-adjust',
     state: 'clear',
     coach: 'Drag the line, then Save — your plan re-solves around it.',
@@ -145,9 +137,6 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
     // the app being protective, which is the whole point of the beat. So the copy now names the full
     // shape: you say the bills are in, it holds less, a surprise proves otherwise, it restores the net.
     body: 'While your Guardian is learning your bills it holds a bit more back. Tell it your bills are all in and it holds less — and if a surprise proves otherwise, it puts the net straight back.',
-    // The "tell it" clause is the ask; without the control it becomes an instruction to nothing. The
-    // behaviour it describes is the Guardian's either way, so the beat states it rather than requests it.
-    bodyIfNoSubject: 'While your Guardian is learning your bills it holds a bit more back. Once it knows them all it holds less — and if a surprise proves otherwise, it puts the net straight back.',
     target: 'guardian-reserve',
     payoffTarget: 'today-ack',
     state: 'clear',
@@ -239,7 +228,6 @@ export function stepAnnouncement(
   index: number,
   run: TutorialRun = 'premium',
   steps: TutorialStepDef[] = TUTORIAL_STEPS,
-  subjectMissing = false,
 ): string {
   const step = steps[index];
   if (!step) return '';
@@ -251,7 +239,5 @@ export function stepAnnouncement(
   //
   // Through the SAME resolver the screen uses — a VoiceOver user must hear the line their screen shows,
   // and the finale is precisely where those diverge by audience.
-  // [D15] `subjectMissing` rides the same resolver too. A VoiceOver user on a beat whose control isn't
-  // rendered must not be the one person still told to operate it.
-  return `Step ${index + 1} of ${steps.length}. Example money. ${step.title}. ${stepBody(step, run, subjectMissing)}`;
+  return `Step ${index + 1} of ${steps.length}. Example money. ${step.title}. ${stepBody(step, run)}`;
 }

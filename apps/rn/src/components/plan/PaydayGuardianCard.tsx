@@ -9,6 +9,7 @@ import { CushionFloorSheet } from '@/components/plan/CushionFloorSheet';
 import { GuardianProofStrip } from '@/components/plan/GuardianProofStrip';
 import { RecoveryPlanSection } from '@/components/plan/RecoveryPlanSection';
 import { PremiumInvite } from '@/components/premium/PremiumInvite';
+import { guardianSubjects } from '@/store/guardianSubjects';
 import { useTutorialSession } from '@/store/tutorialSession';
 import { TutorialTarget } from '@/store/tutorialTargets';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -105,14 +106,24 @@ export function PaydayGuardianCard({
   const domain = Math.max(brief.cushion + brief.deployedToDebt, brief.floor, 1);
   const hasPayoff = brief.deployedToDebt > 0;
   const hasReserve = brief.heldReserve > 0;
-  // "Adjust your line" only makes sense when you're covered — hidden in at-risk/shortfall (lowering your
-  // safety line is the wrong move) and while stale (the move is "update your numbers", not "adjust").
+  // Which coachable subjects this card is putting on screen. Derived through `guardianSubjects` rather
+  // than inline, so the walkthrough's build-time invariant — every beat's seeded state renders the
+  // subject that beat coaches — is asserted against the SAME predicate that renders, not against a
+  // second hand-written copy of it.
   //
-  // 3.5.3.4 briefly widened this to `isPremium || isExample`, so a free walkthrough could reach the
-  // control. [D9] removed the need: the sandbox itself now runs premium, so `isPremium` is already true
-  // inside a session and the card keeps ONE gate per premium affordance. Worth keeping that way — the
-  // hazard of an `|| isExample` escape hatch is that it spreads to the next control, and then the next.
-  const showAdjust = isPremium && !stale && brief.state !== 'at-risk';
+  // 3.5.3.4 briefly widened the adjust gate to `isPremium || isExample`, so a free walkthrough could
+  // reach the control. [D9] removed the need: the sandbox itself now runs premium, so `isPremium` is
+  // already true inside a session and the card keeps ONE gate per premium affordance. Worth keeping that
+  // way — the hazard of an `|| isExample` escape hatch is that it spreads to the next control.
+  const subjects = guardianSubjects({
+    isPremium,
+    state: brief.state,
+    stale,
+    hasRecovery: !!recovery,
+    hasTopUp: !!topUp,
+    attestationShown: !!attestation?.show,
+  });
+  const showAdjust = subjects.has('guardian-adjust');
 
   // Is a WALKTHROUGH running — not merely "is this sandbox money". The distinction matters because the
   // sandbox is designed to render WITHOUT the overlay (3.5.4's demo mode, 3.5.7's web demo), and fences
@@ -138,7 +149,7 @@ export function PaydayGuardianCard({
   // expression now walks the whole tail and the question is closed either way.
   const showProofStrip = isPremium && !stale && brief.state === 'clear' && !!proofOfWork;
   const showForecast = isPremium && !!onSeeForecast && !stale && !brief.pausedDeploy;
-  const showAttest = isPremium && !recovery && !topUp && !!attestation?.show;
+  const showAttest = subjects.has('guardian-reserve');
   const endsOnRow = showForecast || (!showProofStrip && (!!onReplayTutorial || showAdjust || showAttest));
 
   // [C4] ONE source for the attestation control's words: the visible Text renders it and the
@@ -265,12 +276,10 @@ export function PaydayGuardianCard({
         </TutorialTarget>
         {/* Your line (the floor) is a reference marker, not a flow amount, so it sits below the amounts as
             a keyed sub-line (the vertical tick matches the floor line drawn in the bar).
-            Round 6: this was wrapped in `<TutorialTarget id="guardian-line">` — a coached subject NO BEAT
-            COACHES, flagged in round 1 §F and still shipping five rounds later. It cost every non-tutorial
-            user an extra non-collapsable View plus an `onLayout`→`invalidate` on every render of the
-            flagship card. It survived because the test that checks "every beat points at a registered
-            subject" compares against a hand-maintained literal list which still contained the id — see
-            `spotlight.test.ts`, now derived from source so a stale id can't hide in it again. */}
+            Deliberately NOT a `TutorialTarget`: no beat coaches it, and registering it would cost every
+            non-tutorial user a non-collapsable View plus an `onLayout`→`invalidate` on every render of
+            the flagship card. `spotlight.test.ts` derives the registered set from source and asserts
+            there are no orphans, so an unused target cannot sit here unnoticed. */}
         <View style={[styles.lineKeyRow, styles.lineGroup]} {...a11yHidden(true)}>
           <View style={[styles.tick, { backgroundColor: c.text.primary }]} />
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{money(brief.floor)} · Your line</Text>
@@ -347,11 +356,11 @@ export function PaydayGuardianCard({
             match. One string now feeds both, which is also what stops them drifting apart later; the
             consequence of the tap moves to the hint. */}
         <Pressable
-          onPress={() => onAttestBills?.(!attestation.attested)}
+          onPress={() => onAttestBills?.(!attestation?.attested)}
           accessibilityRole="button"
           accessibilityLabel={attestLabel}
           accessibilityHint={
-            attestation.attested
+            attestation?.attested
               ? 'Undoes the confirmation and restores the full safety net'
               : 'Tells your Guardian your bills are all entered, so it holds less back'
           }

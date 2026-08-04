@@ -43,11 +43,10 @@ export function TutorialCoach() {
       position={index + 1}
       total={TUTORIAL_STEP_COUNT}
       title={step.title}
-      body={stepBody(step, run, shell.subjectMissing)}
+      body={stepBody(step, run)}
       isLast={last}
       run={run}
       spotlight={shell.spotlight}
-      subjectMissing={shell.subjectMissing}
       // From the SHELL, not from `INTERACTIVE_STEP_IDS`: the beat being interactive isn't sufficient, and
       // only the screen can see that the spotlight has moved onto the beat's payoff. See `passThrough`.
       passThrough={shell.passThrough}

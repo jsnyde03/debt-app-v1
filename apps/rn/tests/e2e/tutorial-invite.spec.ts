@@ -138,25 +138,36 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect.poll(ringHeight, { timeout: 5000 }).toBeGreaterThan(0);
     await expect.poll(ringHeight, { timeout: 5000 }).toBeLessThan(cardHeight);
 
-    // The cut is the point of the cutout: the lit subject must NOT be under a scrim band.
+    // The cut is the point of the cutout: the lit subject must sit INSIDE the hole, not under the dark.
     //
-    // [D2] Targets the VISUAL bands by testID rather than every `div` under the scrim — a bare `div`
-    // selector also picked up the two full-screen layer wrappers and failed on geometry that was never
-    // a band. Visual, specifically: this assertion is about the subject being LIT, and since the
-    // `passThrough` fix the blocking layer deliberately has no hole at all on a scripted beat like this
-    // one. Polled, because the hole now irises open on a spring and a single read can land mid-travel.
+    // The dark is one element whose fill is its BORDER — the hole is the border box inset by the border
+    // width — so a bounding-box overlap test says nothing here (the element's box contains the hole by
+    // construction). The hole is computed from the live layout instead, which is a stronger assertion
+    // than the old "no band overlaps": it pins where the light actually IS, not merely where it isn't.
+    //
+    // Polled, because the hole irises open on a spring and a single read can land mid-travel.
     const bar = (await ring.boundingBox())!;
-    const anyBandCovers = async () => {
-      const bands = await page.getByTestId('tutorial-scrim-band').all();
-      if (bands.length === 0) return true;
-      for (const band of bands) {
-        const b = await band.boundingBox();
-        if (!b) continue;
-        if (b.x < bar.x + bar.width && b.x + b.width > bar.x && b.y < bar.y + bar.height && b.y + b.height > bar.y) return true;
-      }
-      return false;
+    const holeCoversSubject = async () => {
+      const hole = await page.getByTestId('tutorial-scrim-band').evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        const s = getComputedStyle(el);
+        const bw = (side: string) => parseFloat(s.getPropertyValue(`border-${side}-width`)) || 0;
+        return {
+          x: r.x + bw('left'),
+          y: r.y + bw('top'),
+          width: r.width - bw('left') - bw('right'),
+          height: r.height - bw('top') - bw('bottom'),
+        };
+      });
+      // Tolerance of 1px for sub-pixel rounding between the spring's animated value and layout.
+      return (
+        hole.x <= bar.x + 1 &&
+        hole.y <= bar.y + 1 &&
+        hole.x + hole.width >= bar.x + bar.width - 1 &&
+        hole.y + hole.height >= bar.y + bar.height - 1
+      );
     };
-    await expect.poll(anyBandCovers, { timeout: 5000, message: 'no scrim band may cover the spotlit subject' }).toBe(false);
+    await expect.poll(holeCoversSubject, { timeout: 5000, message: 'the spotlit subject must sit inside the scrim hole' }).toBe(true);
   });
 
   test('the arc stages each beat\'s state, and steps back out of trouble', async ({ page }) => {
@@ -398,6 +409,12 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await page.getByText('Next', { exact: true }).click(); // → 3 your line (interactive)
     await expect(page.getByTestId('tutorial-progress')).toContainText('Step 3 of');
     await page.getByText('Adjust your line').click();
+    // MOVE the line before saving. Saving it unchanged is a no-op and deliberately produces no payoff
+    // bar — so a version of this test that only clicked Save asserted the payoff for a user who had not
+    // done anything, on the test whose entire premise is a user who DOES the interactive beats.
+    const floorSlider = page.getByLabel('Cushion line amount');
+    const floorBox = (await floorSlider.boundingBox())!;
+    await page.mouse.click(floorBox.x + floorBox.width * 0.8, floorBox.y + floorBox.height / 2);
     await page.getByText('Save', { exact: true }).click();
     await expect(page.getByTestId('floor-impact')).toBeVisible();
 
@@ -580,11 +597,10 @@ test.describe('tutorial invitation + in-situ shell', () => {
   // Asks the accessibility tree the question a screen reader asks. `getByRole` resolves against that
   // tree only, so an aria-hidden control is unresolvable BY CONSTRUCTION — whereas `getByText` and
   // `getByTestId` match straight through `aria-hidden`, and `toBeVisible()` is CSS-based. That
-  // distinction is the whole reason four rounds of a11y work stayed green while fencing nothing.
+  // distinction is the whole reason a11y work can stay green while fencing nothing.
   //
-  // The first version of this test measured the largest `aria-hidden` bounding box instead. It passed
-  // only because the overlay scrim was ALSO unfenced at the time — fixing the scrim would have made the
-  // gate written to protect this class fail. Geometry is not a proxy for the a11y tree.
+  // Assert on the a11y tree, never on geometry: a bounding-box proxy for "is it fenced" passes for
+  // reasons that have nothing to do with fencing.
   test('the coached screen leaves the a11y tree on scripted beats and returns for interactive ones', async ({ page }) => {
     await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
     await page.goto('/tutorial');

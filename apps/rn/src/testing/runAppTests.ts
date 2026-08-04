@@ -103,9 +103,9 @@ async function main() {
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');
 
-  // What a beat does when its coached control can't be found. Extracted from an effect precisely so it
-  // could be asserted — inline, it shipped the gate's only show-stopper with no test able to see it.
-  await import('../store/spotlightPolicy.test');
+  // 3.5.3.9 — THE ARC INVARIANT: every beat's seeded state renders the subject that beat
+  // coaches. Replaces the runtime degraded path, which answered this at runtime and oscillated doing it.
+  await import('../store/guardianSubjects.test');
 
   // (RS.6+ app-layer suites are appended here as they land.)
 

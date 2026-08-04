@@ -219,13 +219,17 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   **FAIL:** any run where the number jumps (2→4, 2→5) or where step 3 and/or 4 never appears. Record the
   count and which numbers. **Any non-zero count is a fail** — the count sizes the fix.
 
-- [ ] **§11.3 — a beat that can't find its control still reads honestly** _(same device as §11.2.)_
-  If §11.2 produced a run where a step's bright rectangle never appeared, read that step's text.
-  **PASS:** the text does NOT tell you to open, drag, move or confirm anything — it describes what the
-  Guardian does. The step count still advances one at a time and **Back** returns to the previous step and
-  **stays** there.
-  **FAIL:** the text asks you to operate a control you cannot see; or pressing Back moves the number down
-  and it jumps forward again on its own within a second or two. Video the Back behaviour if it happens.
+- [ ] **§11.3 — the coaching text NEVER rewrites itself** _(same device as §11.2.)_
+  On steps 3 and 4, read the panel's paragraph, then **watch it for a slow count of ten without touching
+  anything.** Do this at default text size and again at the largest accessibility size.
+  **PASS:** the words are identical after ten seconds, the panel does not change height, and there is no
+  repeated haptic tick. With VoiceOver on, the step is read once and finishes its sentence.
+  **FAIL:** the paragraph swaps between two versions, the panel jumps, the tick repeats, or VoiceOver
+  restarts the step mid-sentence. Video it — the flip can be as fast as one every 1–2 seconds.
+  _(Replaces the old "a beat that can't find its control still reads honestly" check. Copy no longer
+  varies at runtime at all: which control a beat can find is settled at build time by
+  `guardianSubjects.test.ts`, so the case that check described is now unreachable by construction —
+  and the mechanism that produced it is what made the text oscillate.)_
 
 - [ ] **§11.4 — VoiceOver, end to end** _(Settings → Accessibility → VoiceOver: ON.)_
   Swipe through the whole walkthrough on every step, both themes.

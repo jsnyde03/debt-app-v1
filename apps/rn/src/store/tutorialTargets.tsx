@@ -39,12 +39,9 @@ const MEASURE_TIMEOUT_MS = 500;
 
 interface TargetRegistry {
   register(id: string, node: View | null): void;
-  /** Measure a registered subject in window coordinates. Null when it isn't mounted (a beat can point
-   *  at something the current Guardian state doesn't render — the caller degrades, it doesn't crash). */
+  /** Measure a registered subject in window coordinates. Null on a miss or a timeout; the caller falls
+   *  back to an uncut scrim and keeps the beat's copy, which the arc invariant already proved honest. */
   measure(id: string): Promise<TargetRect | null>;
-  /** Is this subject MOUNTED? `measure` resolving null does not answer that — it also means "timed out"
-   *  or "measured 0×0 mid-transition". Callers that act on absence need the fact, not the inference. */
-  has(id: string): boolean;
   /** [E5] A registered subject just laid out — its measured rect is stale. See `subscribe`. */
   invalidate(id: string): void;
   /** Watch for `invalidate`. Deliberately a listener set held in a ref, NOT React state: this fires on
@@ -96,8 +93,7 @@ export function TutorialTargetsProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const has = useCallback((id: string) => nodes.current.has(id), []);
-
+  
   const listeners = useRef(new Set<(id: string) => void>());
   const invalidate = useCallback((id: string) => {
     listeners.current.forEach((fn) => fn(id));
@@ -114,8 +110,8 @@ export function TutorialTargetsProvider({ children }: { children: ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const value = useMemo(
-    () => ({ register, measure, has, invalidate, subscribe, activeId, setActiveId }),
-    [register, measure, has, invalidate, subscribe, activeId],
+    () => ({ register, measure, invalidate, subscribe, activeId, setActiveId }),
+    [register, measure, invalidate, subscribe, activeId],
   );
   return <TutorialTargetsContext.Provider value={value}>{children}</TutorialTargetsContext.Provider>;
 }
@@ -146,26 +142,17 @@ export function TutorialTarget({
    * accessibility tree. The scrim already fences it for touch — the hole is cut over one subject — but a
    * VoiceOver double-tap dispatches straight to the focused element and never goes through hit-testing,
    * so on the two interactive beats (where the screen is deliberately left exposed so the user CAN reach
-   * the coached control) every other control was still activatable. Concretely: on beat 3 the attestation
-   * fired beat 4's entire scripted story; on beat 4 the adjust row opened the floor sheet mid-beat.
-   * (Round 5 wrote that second one as opening the sheet "carrying the wrong beat's coaching line". It
-   * cannot: `coachLine` resolves off the CURRENT index and only beat 3 declares a `coach`, so on beat 4
-   * the sheet opens with no coaching line at all. The defect was real, the symptom was invented — worth
-   * recording, because a narrated symptom is exactly what a later reader takes on trust.)
+   * the coached control) every other control was still activatable: on beat 3 the attestation fired beat
+   * 4's entire scripted story; on beat 4 the adjust row opened the floor sheet mid-beat.
    *
-   * ⚠️ SCOPE — read this before trusting it. Round 5 introduced this and claimed it "covers every current
-   * and future coached control at once". It covers every control that is a `TutorialTarget`, which today
-   * is two: the attestation and the adjust row. The other leaks round 5 listed in the same paragraph —
-   * the hero's Edit-paycheck / Add-windfall sheets and the action-list toggles — are ordinary Today
-   * controls, not coached subjects, so this wrapper structurally cannot reach them. That fix belongs to
-   * the SCREEN's `screenReachable` fence, not here. Recording the boundary because the claim of totality
-   * is precisely what stops the next reviewer from checking: round 5 committed the one-member fix inside
-   * the commit that condemned it, and the overstated comment is why it read as closed.
+   * ⚠️ SCOPE. This reaches every control that is a `TutorialTarget` — and nothing else. Ordinary Today
+   * controls (the hero's Edit-paycheck / Add-windfall sheets, the action-list toggles) are not coached
+   * subjects, so this wrapper structurally cannot fence them; that is the SCREEN's `screenReachable`
+   * fence, not this.
    *
-   * Still fixed here rather than at each coached control, because that half HAD been patched one member
-   * at a time — More, then the tabs, then the forecast link, one per audit round. The wrapper that marks
-   * a coachable subject is the one place that knows both which coached controls exist and which one the
-   * beat means, and the card stays unaware of the walkthrough (3.5.3.3.1).
+   * Fixed here rather than at each coached control because this wrapper is the one place that knows both
+   * which coached controls exist and which one the beat means, and it keeps the card unaware of the
+   * walkthrough (3.5.3.3.1).
    */
   control?: boolean;
 }) {

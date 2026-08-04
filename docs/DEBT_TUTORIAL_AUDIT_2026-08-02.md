@@ -704,3 +704,109 @@ the role-based fence assertion, the focus-trap check, and four axe states) · co
 changed user-visible behaviour ([D15]) while adding three modules and a scanner.
 
 </details>
+
+## Q. ROUND 8 — 2026-08-04 · ⛔ does not pass · BAR NOT MET · **the LAST sweep round**
+
+<details>
+<summary>4 rotated lenses (Opus 5) · a SHOW-STOPPER, mine from round 7, traced AND observed · <b>NOT FOLDED</b> — the fold is the open item · full per-finding FIX/PROOF/QUERY → <code>DEBT_TUTORIAL_AUDIT_R8_LENS_REPORTS.md</code></summary>
+
+**⚠️ Recovered, not re-run.** The session that ran round 8 was closed before it wrote anything up. The four
+lens reports are recovered verbatim into `DEBT_TUTORIAL_AUDIT_R8_LENS_REPORTS.md`; this section is the
+consolidated read. **The tree is clean at `83c50a6` — round 8 is entirely unfolded.**
+
+### The SHOW-STOPPER — [D15]'s degraded beat oscillates (mine, from round 7)
+
+`subjectMissing` picks different-length copy → the dock reflows → `dockH` feeds `revision` → the measure
+effect re-runs → `setUnmeasurableFor(null)` retracts the verdict → the ask copy returns → repeat. **The
+measurement chooses the copy and the copy changes the measurement's input.**
+
+Traced by lens A and **independently observed** by lens B: beat 4, same session, 300ms apart, no input —
+the paragraph rewrites itself and the dock jumps ~45px; a probe logged **five flips in eight seconds**.
+Two runs of identical code landed on *different* copy, one showing the ask *"Tell it your bills are all
+in"* with no control on screen and no spotlight — precisely the lie [D15] was built to prevent. And
+because the linter made `subjectMissing` a dependency of the announce effect, **every flip re-fires the
+haptic and re-reads the whole beat to VoiceOver.** Strongest-evidenced defect in the gate.
+
+### Lens B — the premium bar, third look in eight rounds, and the first at pixels
+
+**BAR NOT MET** (it was MET at round 4). Beyond the oscillation, three defects on the **shipped happy
+path**, none of which any correctness lens was positioned to see:
+
+- **beat 5's spotlight ring is drawn across the coaching dock**, both themes — a blue rule slicing the
+  sentence in half. The at-risk card is ~697pt against a ~530pt stage and nothing clamps the highlight.
+- **four un-dimmed corner nubs on every beat** — the scrim's bands cut a plain rect while `ring` carries
+  `borderRadius: 14`. Worst in **light**. Shipping since 3.5.3.3.1.
+- **the dock's frost doesn't isolate** — "e.g. 400" is legible *inside the dark Next button*. [D1]
+  calibrated the tint against the tab bar, which never has body text under it. The dock does.
+- **round 7's `flexWrap` inverted the control hierarchy** — `navSpacer` is consumed by line one, so Skip
+  wraps to left-aligned directly under Next: the most conspicuous position a secondary can occupy.
+- a full accent bar celebrates a **no-op save**.
+
+**Why eight rounds missed them: only two rounds ever looked at pixels.** Round 4's "~97% finish" was a
+fair read *of what it looked at* — it didn't shoot beat 5, didn't zoom a corner, didn't put body text
+under the dock.
+
+### Lens A — the round-7 delta (three more, all in the commit presented as *the* fix)
+
+the rotation gate is a **one-frame no-op** (`dims` in its own dep array → a rotation re-stamps with the
+stale rect) · a **late-arriving subject never retracts the verdict** — coupled to the show-stopper, fixing
+either alone makes the other reachable on every beat · the ESLint rule **misses literal-key syntax** ·
+`bodyIfNoSubject` silently outranks `bodyByRun`, unpinned · `suspendStoryOnBackground` leaves the beat
+unretryable while its comment says otherwise.
+
+### Lens D — claim-vs-code, 8 for 8
+
+`a11y.ts` **still says "six call sites"** — the exact claim round 7 headlined as wrong, sitting in the one
+file the ESLint rule exempts. Plus the axe `incomplete` mechanism stated wrongly, [D15]'s VoiceOver wiring
+surviving its own deletion, the `[inert]` exclusion proven in only one of two states, device-checklist
+§11.3 deriving its case from a scenario the code cannot produce, and **43 surviving convention
+violations** under the convention round 7 had just adopted.
+
+### Lens C — the overlay-less sandbox (the forward-looking angle): nothing broken today
+
+Isolation holds **unconditionally** — `tutorialSession.end()` clears `active` and `sandbox` in one `set`,
+so no frame exists where one is true without the other. But **the honesty marker dies with the overlay**:
+rendered overlay-less, the sandbox would put the user's real debt names inside an invented shortfall with
+one chip on one card as the sole disclosure. That is 3.5.4's entry cost, plus four cheap items that belong
+in this version.
+
+### ⭐ What round 8 settled about the METHOD
+
+**[Jason] The sweep is over; the goalposts are LOCKED.** *"If we change the goalposts on every round then
+we will always be in this loop."* Across eight rounds the lenses have covered correctness · honesty/tier ·
+a11y · wiring · red-team/user-trust · claim-vs-code · blast radius · accumulated complexity ·
+device/native · hostile environment · forward-compatibility · and the premium/visual bar (3×). No major
+angle is left unpointed, so locking now doesn't freeze an unlooked-at surface — locking a round *earlier*
+would have shipped the corner nubs. **From round 9: same scope every round — (a) is every round-8 finding
+verified fixed, (b) did the fix block introduce a show-stopper. Nothing else, until a round comes back
+clean.** → [[feedback_audit_rounds_fixed_goalposts]]
+
+**⭐ THE EXIT BAR, made operational (Jason, 2026-08-04):** *"The findings from previous rounds need to be
+verified fixed. If they are, and there are no other show-stopper / major / medium findings, then
+convergence should be yes. We can't keep spinning our wheels here."* So a locked round **PASSES** on:
+**(a)** every round-8 finding verified fixed, **and (b)** nothing further at **show-stopper / MAJOR /
+MEDIUM**. **Minor and low findings do not block** — they get folded or filed. Round 9's lens brief carries
+this bar verbatim and every finding must return a severity, because severity is now load-bearing on the
+gate rather than editorial.
+
+**A diagnosis I walked back, and the one that replaced it.** I claimed the defects traced to one generator
+(runtime measurement); checked against all seven show-stoppers, only two do. What actually unifies rounds
+2/4/7/8 is **the overlay's geometric relationship to a screen it does not own**, and 5/6 its reach into
+shared/platform surfaces — i.e. the 3.5.3.1 decision to run **in situ over the live Today screen**. That
+is also exactly what earned round 4's *"this reads as Debt coaching itself"*; a walkthrough owning its own
+screen would have almost none of this surface and none of that quality.
+
+**Also worth watching in round 9:** my last two fixes each broke the thing they protected — `flexWrap`
+saved Skip from being clipped and made it the loudest control; [D15] stopped the copy lying and made it
+lie rhythmically.
+
+### ⚠️ OPEN — the fold is not started, and one [DECISION] gates its shape
+
+**[D16] — fold round 8 as-is, or fold it AND delete the degraded-path subsystem?** Asked 2026-08-04;
+**Jason: _"I don't know. We need to discuss more."_** Deleting `unmeasurableFor` / `has(id)` /
+`spotlightPolicy` / `bodyIfNoSubject` / `subjectMissing` / the staleness gate (~150 lines) removes the code
+both recent show-stoppers live in, replaced by a build-time invariant that each beat's seeded state renders
+its own subject. Keeping it is lower-risk this round but leaves round 9 auditing the same machinery.
+**Unresolved and blocking the fold.**
+
+</details>

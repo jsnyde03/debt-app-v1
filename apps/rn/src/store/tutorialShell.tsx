@@ -24,15 +24,6 @@ interface TutorialShell {
   /** Where the current beat's subject landed, in window coordinates. Published by the screen. */
   spotlight: TargetRect | null;
   setSpotlight(rect: TargetRect | null): void;
-  /* [D4]'s `settling` channel lived here: `spotlight` is null both while the subject TRAVELS and when it
-     doesn't exist at all, and the overlay owed those two cases opposite scrims. Round 6 deleted the case
-     that made them differ — the scrim now renders on every beat — so the distinction the channel existed
-     to carry no longer has a consumer. `useSpotlight` still knows both states; it just answers a
-     different question with them now (`unmeasurable`, read by the screen, not by the overlay). */
-  /** [D15] This beat's coached control is not on screen, so its copy must not ask the user to operate it.
-   *  Only the SCREEN can know (it owns the registry); only the overlay renders the copy. */
-  subjectMissing: boolean;
-  setSubjectMissing(missing: boolean): void;
   /** Should the cutout pass TOUCHES, not just light? Only when the hole sits over a control the beat is
    *  asking the user to operate. The overlay knows the beat is interactive; only the SCREEN knows the
    *  spotlight has moved off that control onto the beat's payoff, which is a thing to read, not tap. */
@@ -51,13 +42,12 @@ const TutorialShellContext = createContext<TutorialShell | null>(null);
 
 export function TutorialShellProvider({ children }: { children: ReactNode }) {
   const [spotlight, setSpotlight] = useState<TargetRect | null>(null);
-  const [subjectMissing, setSubjectMissing] = useState(false);
   const [passThrough, setPassThrough] = useState(false);
   const [dockH, setDockH] = useState(0);
   const [impact, setImpact] = useState<TutorialShell['impact']>(null);
   const value = useMemo(
-    () => ({ spotlight, setSpotlight, subjectMissing, setSubjectMissing, passThrough, setPassThrough, dockH, setDockH, impact, setImpact }),
-    [spotlight, subjectMissing, passThrough, dockH, impact],
+    () => ({ spotlight, setSpotlight, passThrough, setPassThrough, dockH, setDockH, impact, setImpact }),
+    [spotlight, passThrough, dockH, impact],
   );
   return <TutorialShellContext.Provider value={value}>{children}</TutorialShellContext.Provider>;
 }

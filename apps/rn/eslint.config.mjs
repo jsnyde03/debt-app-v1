@@ -36,8 +36,12 @@ export default defineConfig([
       'no-restricted-syntax': [
         'error',
         {
+          // Both key forms: `Property[key.name=…]` matches an Identifier key only, so the string-literal
+          // form (`{ 'accessibilityElementsHidden': true }`) walked straight past the rule written to
+          // stop it. A computed/concatenated key remains expressible — stated plainly rather than
+          // claimed closed, since the grep in `lint:a11y-props` is what actually closes the class.
           selector:
-            "JSXAttribute[name.name='accessibilityElementsHidden'], JSXAttribute[name.name='importantForAccessibility'], Property[key.name='accessibilityElementsHidden'], Property[key.name='importantForAccessibility']",
+            "JSXAttribute[name.name=/^(accessibilityElementsHidden|importantForAccessibility)$/], Property[key.name=/^(accessibilityElementsHidden|importantForAccessibility)$/], Property[key.value=/^(accessibilityElementsHidden|importantForAccessibility)$/]",
           message:
             'Dropped silently by react-native-web (fences native only). Use a11yHidden(flag) or `decorative` from @/utils/a11y.',
         },

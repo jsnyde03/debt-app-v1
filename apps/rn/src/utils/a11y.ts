@@ -34,12 +34,12 @@ export function groupLabel(
  * iOS and Android. The reverse is not true — react-native-web's prop allowlist contains neither native
  * prop, and `createDOMProps` drops unrecognised props silently with no warning.
  *
- * That asymmetry cost this codebase a whole class of invisible defects: the
- * `accessibilityElementsHidden` + `importantForAccessibility` pair was written out longhand at six call
- * sites — the walkthrough's screen fence, its control fence, MoreButton, the forecast link, the overlay
- * scrim and every sheet backdrop — and on web every one of them fenced NOTHING. Four audit rounds of
- * a11y work was "verified" by a Playwright suite running on the one platform where the fences did not
- * exist, which is why the suite stayed green through all of it. Round 6 (2026-08-04).
+ * That asymmetry cost this codebase a whole class of invisible defects — fences written longhand fenced
+ * NOTHING on web, and a Playwright suite running on that platform reported them all green.
+ *
+ * Never hand-roll the pair. Two things enforce it, because this file is the one the linter cannot check:
+ * the `no-restricted-syntax` rule in `eslint.config.mjs` covers `apps/rn/src` (exempting this file), and
+ * `npm run lint:a11y-props` greps source AND tests, which the linter's `globalIgnores` puts out of reach.
  */
 export function a11yHidden(hidden: boolean): AccessibilityProps {
   return { 'aria-hidden': hidden };

@@ -19,9 +19,13 @@ import { scrollDelta, type TargetRect } from './spotlightGeometry';
  * tells us where the subject is now, the scroll moves it, and only the third step knows where to draw
  * the highlight. Drawing from the pre-scroll rect would leave the spotlight behind on screen.
  *
- * Returns null while it has no usable answer — mid-scroll, or when the subject isn't mounted at all
- * (a beat may point at something the current Guardian state doesn't render). Callers fall back to an
- * un-cut scrim, which is a plain walkthrough rather than a broken one.
+ * Returns null while it has no usable answer — mid-scroll, or when every attempt came back empty.
+ * Callers fall back to an un-cut scrim, which is a plain walkthrough rather than a broken one.
+ *
+ * It reports GEOMETRY and nothing else. Whether a beat's subject exists is settled at build time by the
+ * arc invariant (`guardianSubjects.test.ts`), never inferred from a measurement here. That inference
+ * cannot be allowed to reach the dock's copy: copy length decides the dock's height, and the dock's
+ * height re-keys this measurement, so the two chase each other.
  */
 
 /** A beat longer than the scroll animation, so the re-measure reads the end state. Under Reduce Motion
@@ -49,22 +53,13 @@ export function useSpotlight({
   offsetRef: React.RefObject<number>;
   /** Bump to force a re-measure when the subject itself changed size (state change, card grew). */
   revision?: string | number;
-}): { rect: TargetRect | null; unmeasurableFor: string | null } {
+}): { rect: TargetRect | null } {
   const targets = useTutorialTargets();
   const reduceMotion = useReducedMotion();
   const [rect, setRect] = useState<TargetRect | null>(null);
-  // [D4] TRANSIENTLY null (a scroll is in flight) vs NOT-YET null (no measure has resolved) vs
-  // DEFINITIVELY null (every attempt, including the retries, came back empty). `rect` alone conflates
-  // all three, and a caller that has to act on the last one cannot infer it — "null right now" is the
-  // normal state for the first frames of every beat.
+  // A scroll is in flight, so `rect` is deliberately null and the layout subscriber must not paint a
+  // half-way position over it.
   const [settling, setSettling] = useState(false);
-  // Set only where a measurement sequence has concluded AND the subject is genuinely not mounted.
-  //
-  // It holds the subject id, not a boolean, because a boolean cannot say WHICH beat failed. `line` and
-  // `reserve` are adjacent interactive beats and this state survives a beat change by one commit, so a
-  // bare flag was read by the beat it had just advanced into — deleting a beat that was never measured.
-  // The consumer compares it against the current `targetId`; see `spotlightPolicy`.
-  const [unmeasurableFor, setUnmeasurableFor] = useState<string | null>(null);
   // Mirrored in a ref so the layout subscriber below can read it without listing it as a dependency —
   // which would tear down and rebuild the subscription on every transit.
   const settlingRef = useRef(false);
@@ -76,9 +71,6 @@ export function useSpotlight({
     let stale = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
 
-    // A new beat: nothing has been proven about this subject yet, so retract any previous verdict.
-    setUnmeasurableFor(null);
-
     if (!targetId || !targets) {
       setRect(null);
       setSettling(false);
@@ -89,12 +81,13 @@ export function useSpotlight({
       const first = await measureOnce(targets, targetId, () => stale, setRect);
       if (stale) return;
 
-      // Still nothing: the subject genuinely isn't mounted for this beat (a beat can point at something
-      // the current Guardian state doesn't render). Not a transit.
+      // Still nothing after the retry. The arc invariant (`guardianSubjects.test.ts`) proves every beat's
+      // seeded state renders its subject, so this is a measurement problem, not an absent control: the
+      // beat keeps its copy and loses only its ring. Nothing here may change what the dock SAYS —
+      // a measurement must never decide what the dock says.
       if (!first) {
         setRect(null);
         setSettling(false);
-        setUnmeasurableFor(targets.has(targetId) ? null : targetId);
         return;
       }
 
@@ -124,7 +117,6 @@ export function useSpotlight({
           if (stale) return;
           setRect(settled);
           setSettling(false);
-          setUnmeasurableFor(settled === null && !targets.has(targetId) ? targetId : null);
         })();
       }, reduceMotion ? 0 : SETTLE_MS);
     })();
@@ -155,9 +147,8 @@ export function useSpotlight({
       // sliding-highlight glitch 3.5.3.3.1 hides the ring to avoid. The settle re-measure owns that path.
       if (settlingRef.current) return;
       void (async () => {
-        // The SAME retry as the other two call sites. Round 6: there were THREE `measure` call sites,
-        // not the "two" the comment above claimed, and this was the one still missing it — one round
-        // after that exact miscount was written into this file while fixing the same class.
+        // The SAME retry as every other `measure` call site — a null here means "couldn't measure right
+        // now" just as often as it means a miss, and this path has no other trigger to reschedule it.
         const next = await measureOnce(targets, targetId, () => stale || settlingRef.current, noop);
         // Re-checked AFTER the await, not just before it — the await is the window the race lives in.
         if (stale || settlingRef.current) return;
@@ -185,7 +176,7 @@ export function useSpotlight({
   // `settlingRef` to avoid re-measuring mid-transit), but round 6 removed its only external consumer:
   // the overlay used it to tell a travelling null from an absent one, and now renders the same scrim for
   // both. A published value with no reader is the thing the next audit finds.
-  return { rect, unmeasurableFor };
+  return { rect };
 }
 
 /**

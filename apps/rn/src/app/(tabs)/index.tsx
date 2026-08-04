@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
-import { PixelRatio, StyleSheet, Text, View, useWindowDimensions, type ScrollView, type ScrollViewProps } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions, type ScrollView, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MoreButton } from '@/components/more-button';
@@ -60,34 +60,11 @@ import { isLastLiveDebt, selectCelebrationStats } from '@/store/celebrationSelec
 import { rankDebts } from '@/store/payoffSelectors';
 import { selectAllocation } from '@/store/selectors';
 import { TutorialFence } from '@/components/plan/TutorialFence';
-import { shouldDegradeToScripted } from '@/store/spotlightPolicy';
+import { headerHeight } from '@/components/plan/tutorialStage';
 import { useAppStore } from '@/store/useAppStore';
 import type { Debt } from '@/data/models';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-
-/**
- * `Screen`'s title header — the top of the region a coached subject is scrolled into.
- *
- * [B4] Scaled by the user's text size rather than fixed at 56. The header's title grows with Dynamic
- * Type; the constant did not, so at large sizes `stageTop` pointed part-way UP into the header and a
- * subject "scrolled into the stage" could come to rest behind it — the exact failure the stage exists to
- * prevent, appearing only for the users who most need the coaching to be legible.
- *
- * Deliberately an approximation, and deliberately biased to OVER-estimate: guessing the header too tall
- * parks the subject slightly lower than necessary, which is invisible; guessing it too short hides the
- * subject, which is the bug. Measuring the real header would mean threading a layout callback out of the
- * shared `Screen` component for every screen in the app to serve one overlay — a poor trade for the
- * precision it would buy, given the stage is a band and not a pixel.
- *
- * No upper clamp. A `Math.min(2, …)` here inverted that bias exactly where it mattered most: the real
- * header is padding plus a 28pt title that keeps growing, so above ~2.6× the estimate fell short and the
- * stage started inside the header — the failure this scaling exists to prevent, for the users who most
- * need the coaching legible.
- */
-function headerHeight(): number {
-  return 56 * Math.max(1, PixelRatio.getFontScale());
-}
 
 /** 3.5.3.0 — module-level, so the acting store is PASSED in rather than reached for. */
 function handleMark(store: DebtStoreInstance, row: RequiredRow, paid: boolean) {
@@ -307,12 +284,8 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               onTopUp={() => tightTopUp && store_.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
               // Withheld on example money: "How this works" restarts the walkthrough, and offering that
               // FROM INSIDE the walkthrough is incoherent: an offer to restart something you are in.
-              // (The reason used to be "on an interactive beat, where taps pass through, it would be
-              // live" — true pre-3.5.3.5.9, when the scrim was dropped entirely on interactive beats and
-              // everything was live. Since .5.9 taps pass through the CUTOUT only and the replay link
-              // sits under a blocking band. The conclusion survives the correction; the mechanism
-              // didn't. An earlier attempt at this note dropped a word and described the CURRENT
-              // mechanism as the old one — the correction had itself become a false claim.)
+              // Not a reachability question: taps pass through the CUTOUT only, and this link sits under
+              // a blocking band on every beat. It is withheld because the OFFER makes no sense here.
               // `resume: false` — this control says "How this works", so it starts at beat 1. Without it
               // a stranded step from an interrupted run would drop them mid-arc (see `startTutorial`).
               onReplayTutorial={isExample ? undefined : () => startTutorial(tutorialRunFor(store), { resume: false })}
@@ -709,8 +682,12 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // reference between updates, so the memo recomputes exactly when the plan actually changes.
   const sandboxStore = useStore(sandbox, (s) => s.store);
   const nowGuardian = useMemo(() => selectPaydayGuardian(sandboxStore), [sandboxStore]);
+  // Withheld when nothing MOVED. The payoff bar exists to show a change, and `FloorImpactBar` scales to
+  // `max(before, after)` — so an unchanged save drew a FULL accent bar captioned "Same cushion, same
+  // plan", which is this app's most emphatic visual language celebrating a no-op. Opening the sheet and
+  // closing it without dragging is a perfectly ordinary thing to do on this beat.
   const impact =
-    floorBefore && nowGuardian
+    floorBefore && nowGuardian && floorBefore.cushion !== nowGuardian.cushion
       ? {
           before: floorBefore.cushion,
           after: nowGuardian.cushion,
@@ -736,7 +713,7 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // publish effect below depends on what it returns. Passing the object straight through would re-fire
   // that effect every render and re-render the shell — the same fresh-value re-render loop that took the
   // whole tutorial suite down at 3.5.3.2.
-  const { rect: spotlight, unmeasurableFor } = useSpotlight({
+  const { rect: spotlight } = useSpotlight({
     targetId,
     stageTop: insets.top + headerHeight(),
     stageBottom: screenH - dockH - spacing.sm,
@@ -804,9 +781,14 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // it HERE means the a11y fence closes with it rather than needing its own copy of the rule.
   const dims = `${Math.round(screenW)}x${Math.round(screenH)}`;
   const [settledDims, setSettledDims] = useState(dims);
+  // Deliberately NOT keyed on `dims`: this stamps the dimensions that were current WHEN THE RECT LANDED.
+  // With `dims` in the deps, the dimension change that is supposed to CLOSE this fence also re-ran the
+  // effect — stamping the new dims against the pre-rotation rect — so the fence reopened on the commit
+  // after it closed. One render of protection, which is none.
   useEffect(() => {
     if (spotlight) setSettledDims(dims);
-  }, [spotlight, dims]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spotlight]);
 
   const screenReachable = interactive && !payoffShowing && settledDims === dims;
   useEffect(() => {
@@ -814,30 +796,10 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     return () => setPassThrough?.(false);
   }, [setPassThrough, screenReachable]);
 
-  // [D15] The beat cannot find its coached control. It KEEPS its place in the arc and drops its ask.
-  //
-  // The alternative — advancing past it — was tried and removed: it deleted a beat from a seven-beat arc
-  // with no visible reason, jumped the step counter, persisted the skip, and made Back appear dead
-  // (re-entering the beat immediately advanced out of it again). Losing the interaction is unavoidable
-  // when the control isn't rendered; losing the lesson and the step count is not.
-  //
-  // `acted` uses `floorBefore` rather than the derived `impact` because it is recorded at the moment of
-  // the user's write, before the sandbox has re-solved — a guard against taking away a result they
-  // earned has to fire earlier than the result itself.
   // `aria-hidden` alone leaves the fenced screen tabbable on web — see `useInert`. Same expression as
   // the a11y fence below, for the reason stated there.
   const fenceRef = useRef<View>(null);
   useInert(fenceRef, !screenReachable);
-
-  const acted = payoffShowing || floorBefore !== null;
-  const subjectMissing = shouldDegradeToScripted({ interactive, acted, targetId, unmeasurableFor });
-  const setSubjectMissing = shell?.setSubjectMissing;
-  useEffect(() => {
-    setSubjectMissing?.(subjectMissing);
-    // Released on unmount like every other published value — the shell outlives the session, so a parked
-    // `true` would open the NEXT session's first beat on its no-subject copy.
-    return () => setSubjectMissing?.(false);
-  }, [setSubjectMissing, subjectMissing]);
 
   // Publish which subject this beat coaches, so every OTHER coachable control can fence itself out of
   // the accessibility tree (see `TutorialTarget`'s `control` prop). `targetId` already accounts for the

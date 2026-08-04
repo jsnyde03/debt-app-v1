@@ -13,6 +13,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { Motion } from '@/motion/Motion';
 import { haptics } from '@/motion/haptics';
 import { useSpringValue } from '@/motion/hooks';
+import { stageBounds } from '@/components/plan/tutorialStage';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { announce, decorative, headerProps } from '@/utils/a11y';
@@ -31,10 +32,7 @@ import type { TargetRect } from '@/store/tutorialTargets';
  *    AROUND the subject and the hole is what passes the touch through. There is no longer any case that
  *    renders no scrim: round 6 removed the one exception (see the note on the `Scrim` below).
  *
- * ⚠️ This paragraph used to say the layer "becomes pass-through" on interactive beats. That was true
- * until 3.5.3.5.9 and false after it, and it survived here for a full phase because the fix updated the
- * code and the LOG but not the doc-comment above them — the [E1] claim-vs-code shape. If you change the
- * touch model, this comment is part of the change.
+ * If you change the touch model, this comment is part of the change.
  *
  * The scrim is deliberately light: Today is the lesson, so it stays legible rather than being dimmed
  * into a backdrop. Under Reduce Motion `Motion` degrades to no animation.
@@ -50,11 +48,11 @@ import type { TargetRect } from '@/store/tutorialTargets';
  * Putting it here is the structural fix rather than a note-to-self: the thing that draws a step is now
  * the thing that speaks it, so a future host rewrite cannot separate them again.
  */
-function useAnnounceBeat(position: number, run: TutorialRun, subjectMissing: boolean) {
+function useAnnounceBeat(position: number, run: TutorialRun) {
   useEffect(() => {
     // 3.5.3.6.2 — `run` matters: the finale's copy differs by audience, and a VoiceOver user must hear
     // the line their screen is showing. Same resolver as the rendered body, for exactly that reason.
-    announce(stepAnnouncement(position - 1, run, undefined, subjectMissing));
+    announce(stepAnnouncement(position - 1, run));
     // 3.5.3.7.4 ([D12]) — a light selection tick as each beat lands. The app ships bespoke Core Haptics
     // and the walkthrough had none, which is part of why it read as a tooltip library rather than as
     // Debt. Deliberately the LIGHTEST rung: advancing is navigation, not achievement — the medium beats
@@ -62,10 +60,10 @@ function useAnnounceBeat(position: number, run: TutorialRun, subjectMissing: boo
     // system haptics setting is honoured by iOS itself, not by anything in that module — this used to
     // credit `haptics` with a settings check it does not contain.
     haptics.light();
-    // `subjectMissing` is a dependency because it CHANGES THE COPY. A beat that degrades after its first
-    // announcement would otherwise leave a VoiceOver user holding the version that asks them to operate a
-    // control that isn't there — the one user for whom the fix would not have applied.
-  }, [position, run, subjectMissing]);
+    // Deps are the beat and the audience — the only two things a beat's copy depends on. Nothing
+    // measured belongs here. A dep that a relayout can flip re-fires this effect, which repeats the tick
+    // and restarts VoiceOver mid-sentence without the user having touched anything.
+  }, [position, run]);
 }
 
 export function TutorialOverlay({
@@ -80,7 +78,6 @@ export function TutorialOverlay({
   run,
   spotlight,
   passThrough = false,
-  subjectMissing = false,
   onDockLayout,
   impact,
 }: {
@@ -98,9 +95,6 @@ export function TutorialOverlay({
   spotlight?: TargetRect | null;
   /** Should the cutout pass TOUCHES as well as light? Published by the screen — see `tutorialShell`. */
   passThrough?: boolean;
-  /** [D15] This beat's control isn't on screen — the copy above already reflects it; the dep is here so
-   *  the announcement re-fires when it changes. */
-  subjectMissing?: boolean;
   /** The dock's measured height defines the bottom of the stage the subject is scrolled into. */
   onDockLayout?: (height: number) => void;
   /** 3.5.3.4.4 — set once the user has actually moved their line on this beat; the before→after payoff. */
@@ -111,7 +105,7 @@ export function TutorialOverlay({
   const { isRegular } = useLayout();
   const insets = useSafeAreaInsets();
   const { height: windowH } = useWindowDimensions();
-  useAnnounceBeat(position, run, subjectMissing);
+  useAnnounceBeat(position, run);
 
   // [B4] The dock must never eat the screen. Its height is content-driven, and at the largest Dynamic
   // Type sizes a seven-line beat body plus the nav row can grow past the whole display — which collapses
@@ -121,10 +115,9 @@ export function TutorialOverlay({
   // failure this replaces is a walkthrough with no reachable Next button.
   const dockMaxH = Math.max(220, windowH * 0.6);
 
-  // Release the dock height on the way out — the FIFTH published value, and the one the round-3 sweep
-  // missed while fixing the other four. The shell outlives every session, so a parked `dockH` skews the
-  // next session's first `stageBottom` until the new dock lays out: the opening beat scrolls its subject
-  // into a stage sized by a dock that no longer exists.
+  // Release the dock height on the way out. The shell outlives every session, so a parked `dockH` skews
+  // the next session's first `stageBottom` until the new dock lays out: the opening beat scrolls its
+  // subject into a stage sized by a dock that no longer exists. Every published value owes this.
   useEffect(() => () => onDockLayout?.(0), [onDockLayout]);
 
   // 3.5.3.3.4.3 — subjects are measured in WINDOW coordinates, but this overlay draws in its own local
@@ -133,13 +126,31 @@ export function TutorialOverlay({
   // was drawn that far right of its subject, landing on an unrelated row in the other column. Caught by
   // shooting the walkthrough at 1024×768; a phone-only screenshot pass would have shipped it.
   const rootRef = useRef<View>(null);
+  const [dockH, setDockH] = useState(0);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
   const measureOrigin = () => {
     rootRef.current?.measureInWindow?.((x, y) => {
       setOrigin((prev) => (prev.x === x && prev.y === y ? prev : { x, y }));
     });
   };
+  // CLAMPED to the stage. A subject can be taller than the band it's scrolled into — the at-risk
+  // Guardian card is ~697pt against a ~530pt stage — and nothing used to stop the highlight being drawn
+  // at its full height, so beat 5's ring ran straight through the coaching dock: a hard accent rule
+  // slicing the sentence in half, in both themes, reading as a rendering bug rather than as a spotlight.
+  // An over-tall subject is now lit to the edge of the stage and stops there.
+  //
+  // The VISUAL geometry only. Reachability is a separate layer by design (`Scrim`'s hit bands take the
+  // unclamped rect), because clipping what a user can TOUCH to what happens to be visible would silently
+  // shrink the tap area of a control the beat is asking them to operate.
+  const stage = stageBounds(insets.top, windowH, dockH);
   const local = spotlight ? { ...spotlight, x: spotlight.x - origin.x, y: spotlight.y - origin.y } : null;
+  const clamped = local
+    ? (() => {
+        const top = Math.max(local.y, stage.top - origin.y);
+        const bottom = Math.min(local.y + local.height, stage.bottom - origin.y);
+        return { ...local, y: top, height: Math.max(0, bottom - top) };
+      })()
+    : null;
 
   return (
     // `box-none` lets touches fall through to Today everywhere the overlay has no child; the scrim
@@ -169,18 +180,13 @@ export function TutorialOverlay({
           3.5.3 was written, and the cutout was already exactly that mechanism: the bands capture touches,
           the hole doesn't. It simply was never rendered.
 
-          Round 6 — the scrim now renders UNCONDITIONALLY. It used to be dropped entirely for one case,
-          an interactive beat whose subject never measured, on the reasoning "better an unguarded screen
-          than a trap". Two things were wrong with that. The premise: the dock is a sibling rendered
-          AFTER this, so Next/Back/Skip sit above the scrim and stay reachable — a full scrim was never a
-          trap. And the cost: that one branch was the standing justification for three other mechanisms
-          (`interactiveTransit` and the `settling` channel), and it made the scrim
-          decision a four-boolean product of which only a quarter was ever documented.
-          A null rect already collapses the hole to nothing, i.e. full coverage, so "always render" needed
-          no new code — it needed one condition deleted. What replaces the escape hatch is honest rather
-          than permissive: `useSpotlight` now reports `unmeasurable`, and the SCREEN moves the beat along
-          instead of parking the user in front of copy asking them to operate a control the app cannot
-          locate. Fenced, and never lying about what they can do. */}
+          The scrim renders UNCONDITIONALLY. Dropping it for an interactive beat whose subject never
+          measured traded a fence for nothing: the dock is a sibling rendered AFTER this, so Next/Back/
+          Skip sit above the scrim either way and a full scrim was never a trap. A null rect collapses
+          the hole to zero area, which renders as full coverage, so there is no separate branch to take.
+          What a beat SAYS never depended on this: the arc invariant proves each beat's seeded state
+          renders its subject, so a null rect here means the measurement missed, not that the ask is a
+          lie. */}
       {/* [D3] The scrim colour is now `scrim`, not `background.primary`.
           In LIGHT the old choice worked — a pale wash over cards produces an obvious dim. In DARK it was
           near-black (#07111f) at 0.55 over navy cards (#152340): almost no separation, so the ring was
@@ -198,7 +204,7 @@ export function TutorialOverlay({
           mounted overlay, or hit the attestation — which fires beat 4's entire scripted story during
           beat 1. Only the replay link had been individually guarded, one leak at a time.
           Splitting visual from hit geometry for [D2] is what makes this one flag rather than a rework. */}
-      <Scrim rect={local} color={c.background.scrim} passThrough={passThrough} />
+      <Scrim rect={clamped} hitRect={local} color={c.background.scrim} passThrough={passThrough} />
       {/* The ring is drawn on interactive beats too. Since 3.5.3.5.9 the scrim is there as well and the
           cutout is what passes touches to the control, so the ring is no longer load-bearing for
           "reach THIS" — it's the visual half of the same statement. */}
@@ -209,20 +215,20 @@ export function TutorialOverlay({
           honest resolution is to keep it hidden in transit and animate it in when it LANDS: no flicker,
           no ring skating over things it doesn't mean. Keyed on the rect so each new subject re-enters,
           and `Motion`'s reduce-motion handling applies as everywhere else. */}
-      {local ? (
+      {clamped && clamped.height > 0 ? (
         <Animated.View
           // All four dimensions. `width` was missing, so a subject that changed only in width — an iPad
           // Split View drag is exactly that — kept the old key and never re-entered.
-          key={`${Math.round(local.x)}:${Math.round(local.y)}:${Math.round(local.width)}:${Math.round(local.height)}`}
+          key={`${Math.round(clamped.x)}:${Math.round(clamped.y)}:${Math.round(clamped.width)}:${Math.round(clamped.height)}`}
           entering={FadeIn.duration(180).reduceMotion(ReduceMotion.System)}
           pointerEvents="none"
           style={[
             styles.ring,
             {
-              left: local.x - RING_INSET,
-              top: local.y - RING_INSET,
-              width: local.width + RING_INSET * 2,
-              height: local.height + RING_INSET * 2,
+              left: clamped.x - RING_INSET,
+              top: clamped.y - RING_INSET,
+              width: clamped.width + RING_INSET * 2,
+              height: clamped.height + RING_INSET * 2,
               borderColor: c.accent.primary,
             },
           ]}
@@ -238,7 +244,14 @@ export function TutorialOverlay({
       <View
         style={[styles.dock, { paddingBottom: insets.bottom + spacing.base }]}
         pointerEvents="box-none"
-        onLayout={(e) => onDockLayout?.(e.nativeEvent.layout.height)}>
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          // Kept HERE as well as published upward: the screen needs it to size the scroll stage, and this
+          // overlay needs it to know where its own drawing has to stop. Reading it back through the shell
+          // would make the clamp a render behind the dock that defines it.
+          setDockH(h);
+          onDockLayout?.(h);
+        }}>
         {/* 3.5.3.7.7 — width-capped on the roomy layout. Unconstrained, the dock ran the full iPad canvas
             edge-to-edge, which reads as a web banner beside an app whose every other surface is a
             centred column. */}
@@ -252,8 +265,13 @@ export function TutorialOverlay({
                 read as a solid card with faint smudges rather than as glass. The app's own idioms are the
                 calibration: `SheetScrim` blurs at 20 under a 0.28 dim, the tab bar at 70. Matching the
                 tab bar's intensity and seating it on a light tint makes it an actual material. */}
+            {/* The tint is 0.80, not 0.55. [D1] calibrated it against the TAB BAR, which never has body
+                text beneath it — the dock does, and at 0.55 the Can-I-afford-it card read straight
+                through it: "e.g. 400" legible INSIDE the dark Next button, "WHAT IS IT? (OPTIONAL)"
+                running across the nav row. A dock that doesn't isolate isn't glass, it's a smudge. The
+                blur stays at 70, so it still reads as a material rather than a slab. */}
             <BlurView tint={scheme === 'dark' ? 'dark' : 'light'} intensity={70} style={StyleSheet.absoluteFill} />
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: c.background.secondary, opacity: 0.55 }]} />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: c.background.secondary, opacity: 0.8 }]} />
           </View>
           <Card style={styles.dockCard}>
             <View style={styles.body}>
@@ -311,7 +329,6 @@ export function TutorialOverlay({
               <View style={styles.nav}>
                 <Button label={isLast ? 'Finish' : 'Next'} onPress={onNext} />
                 {onBack ? <Button label="Back" variant="text" onPress={onBack} /> : null}
-                <View style={styles.navSpacer} />
                 {!isLast ? (
                   // [C4] A 44pt target. Caption text plus `hitSlop={10}` came to ~38pt tall — under the
                   // minimum, on the control someone reaches for when they're already frustrated. It costs
@@ -332,6 +349,12 @@ export function TutorialOverlay({
 
 /** How far the ring stands off the subject, so it frames rather than crops it. */
 const RING_INSET = 6;
+/** The hole's corner radius. ONE constant, shared with the ring — they disagreed, and four bright square
+ *  nubs at every rounded corner is what that disagreement looked like. */
+const HOLE_RADIUS = 14;
+/** How far the dark extends past the hole on every side. Only has to exceed the largest screen dimension
+ *  so the view's own (rounded) outer corners are always off-screen; the clip parent hides the excess. */
+const BLEED = 2000;
 
 /** 7.7 — the coaching column's cap on the roomy (iPad) layout, matching Today's own centred column. */
 const DOCK_MAX_W = 620;
@@ -349,10 +372,14 @@ const DOCK_MAX_W = 620;
  */
 function Scrim({
   rect,
+  hitRect,
   color,
   passThrough,
 }: {
+  /** The VISUAL hole — clamped to the stage, so an over-tall subject is lit only as far as the dock. */
   rect: TargetRect | null;
+  /** The REACHABLE hole — unclamped. What a user can touch must not shrink to what happens to be drawn. */
+  hitRect: TargetRect | null;
   color: string;
   /** Cut the hole in the BLOCKING geometry too. Only true on a beat that asks the user to touch the
    *  subject — otherwise the hole is purely visual and everything underneath stays fenced off. */
@@ -389,10 +416,24 @@ function Scrim({
   const l = useSpringValue(left);
   const r = useSpringValue(right);
 
-  const topBand = useAnimatedStyle(() => ({ top: 0, left: 0, right: 0, height: Math.max(0, t.value) }));
-  const bottomBand = useAnimatedStyle(() => ({ top: b.value, left: 0, right: 0, bottom: 0 }));
-  const leftBand = useAnimatedStyle(() => ({ top: t.value, height: Math.max(0, b.value - t.value), left: 0, width: Math.max(0, l.value) }));
-  const rightBand = useAnimatedStyle(() => ({ top: t.value, height: Math.max(0, b.value - t.value), left: r.value, right: 0 }));
+  // ONE view with a ROUNDED HOLE, not four bands meeting at square corners.
+  //
+  // Four bands cut a plain rectangle while the ring carries `borderRadius: 14`, so at each corner a wedge
+  // of content sat inside the hole and outside the ring — four bright square nubs protruding from every
+  // rounded corner, on EVERY beat, worst in light. Shipping since 3.5.3.3.1 and invisible to eleven
+  // correctness lenses, because nothing about it is wrong except how it looks.
+  //
+  // The mechanism is a border, not a mask: a view inflated by `BLEED` on every side, with a `BLEED`-wide
+  // border, has an inner edge exactly on the hole — and a border's inner corner radius is
+  // `borderRadius − borderWidth`, so asking for `BLEED + HOLE_RADIUS` leaves the hole rounded at
+  // `HOLE_RADIUS`. The outer rounding lands `BLEED` off-screen where nobody can see it. No Skia, no SVG,
+  // no mask — the constraint the four-band version was written to satisfy still holds.
+  const dark = useAnimatedStyle(() => ({
+    top: t.value - BLEED,
+    left: l.value - BLEED,
+    width: Math.max(0, r.value - l.value) + BLEED * 2,
+    height: Math.max(0, b.value - t.value) + BLEED * 2,
+  }));
 
   // What the user SEES and what the user can TOUCH are now two layers, because the animation made them
   // disagree. A travelling band is over the new subject for the whole of its journey, so a single set of
@@ -402,21 +443,28 @@ function Scrim({
   // asked them to tap. The blocking geometry therefore snaps to the destination while the dark travels.
   // A scripted beat gets a collapsed hit-hole — the bands meet and the whole screen is fenced, however
   // the light is cut above it.
-  const hit = passThrough
-    ? { top: Math.max(0, top), bottom, left: Math.max(0, left), right }
-    : { top: 0, bottom: 0, left: 0, right: 0 };
+  // Off the UNCLAMPED rect. The visual hole stops at the dock so the ring can't be drawn across the
+  // coaching copy; the reachable hole must not, or a subject taller than the stage would have the bottom
+  // of the control the beat is asking the user to operate quietly fenced off.
+  const hit =
+    passThrough && hitRect
+      ? {
+          top: Math.max(0, hitRect.y - RING_INSET),
+          bottom: hitRect.y + hitRect.height + RING_INSET,
+          left: Math.max(0, hitRect.x - RING_INSET),
+          right: hitRect.x + hitRect.width + RING_INSET,
+        }
+      : { top: 0, bottom: 0, left: 0, right: 0 };
 
   return (
     // `box-none` on the container, so the BANDS capture touches and the hole between them doesn't —
     // which is the whole pass-through mechanism on interactive beats (3.5.3.5.9). With the hole
     // collapsed the bands meet and cover everything, so a null rect blocks exactly as the old sheet did.
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none" {...a11y} testID="tutorial-scrim">
-      {/* The DARK. `tutorial-scrim-band` — "is the subject lit?" is a question about this layer. */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <Animated.View testID="tutorial-scrim-band" style={[styles.scrim, styles.band, { backgroundColor: color }, topBand]} />
-        <Animated.View testID="tutorial-scrim-band" style={[styles.scrim, styles.band, { backgroundColor: color }, bottomBand]} />
-        <Animated.View testID="tutorial-scrim-band" style={[styles.scrim, styles.band, { backgroundColor: color }, leftBand]} />
-        <Animated.View testID="tutorial-scrim-band" style={[styles.scrim, styles.band, { backgroundColor: color }, rightBand]} />
+      {/* The DARK. `tutorial-scrim-band` — "is the subject lit?" is a question about this layer.
+          `overflow: 'hidden'` on the clip: the dark view deliberately extends `BLEED` past every edge. */}
+      <View style={[StyleSheet.absoluteFill, styles.clip]} pointerEvents="none">
+        <Animated.View testID="tutorial-scrim-band" style={[styles.band, styles.hole, { borderColor: color }, dark]} />
       </View>
       {/* The FENCE. Invisible and deliberately so: no colour, only touch-blocking. Separately identified
           because it answers a different question — "is the subject REACHABLE?" — and since `passThrough`
@@ -437,11 +485,14 @@ const styles = StyleSheet.create({
   // (`background.primary`) that needed knocking back. `background.scrim` already carries its own alpha —
   // the same calibration every other dimmed surface in the app uses — so a multiplier on top would land
   // it at ~0.25/0.30 effective and undo the fix: a dim so light the ring is again doing all the work.
-  scrim: {},
   band: { position: 'absolute' },
+  clip: { overflow: 'hidden' },
+  // The dark, as a border around a rounded hole — see the note at `dark`. `backgroundColor` stays unset:
+  // the fill IS the border, and a background would paint straight over the hole.
+  hole: { borderWidth: BLEED, borderRadius: BLEED + HOLE_RADIUS },
   // A quiet outline, not a glow: this is a reference surface being explained, so the highlight informs
   // rather than performs ([[match motion to the surface's job]]).
-  ring: { position: 'absolute', borderWidth: 2, borderRadius: 14 },
+  ring: { position: 'absolute', borderWidth: 2, borderRadius: HOLE_RADIUS },
   // Docked to the bottom so the coached surface above stays visible.
   dock: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: spacing.base },
   // 7.7 — a centred, width-capped column on the roomy layout, like every other surface in the app.
@@ -462,8 +513,11 @@ const styles = StyleSheet.create({
   rail: { height: 3, borderRadius: 2, overflow: 'hidden' },
   railFill: { height: '100%', borderRadius: 2 },
   // 7.6 — pushes Skip to the far edge, so leaving is reachable without competing with continuing.
-  navSpacer: { flex: 1 },
-  skip: { minHeight: 44, minWidth: 44, justifyContent: 'center', alignItems: 'flex-end' },
+  // `marginLeft: 'auto'`, not a flex spacer. A `flex: 1` spacer View is consumed by the FIRST line, so
+  // when the row wrapped (large Dynamic Type, narrow screens) Skip dropped onto its own line and landed
+  // LEFT-aligned directly beneath Next — the most conspicuous position a secondary control can occupy,
+  // exactly inverting the hierarchy this row exists to establish. `auto` margins survive the wrap.
+  skip: { minHeight: 44, minWidth: 44, justifyContent: 'center', alignItems: 'flex-end', marginLeft: 'auto' },
   body: { gap: spacing.xs, flexShrink: 1 },
   // `flexShrink` on both, so the scroller gives way to the nav row rather than the other way round.
   dockScroll: { flexGrow: 0, flexShrink: 1 },

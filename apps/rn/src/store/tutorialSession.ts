@@ -90,11 +90,21 @@ function clearStoryTimers() {
  * without this the whole sequence fires in one tick: the user returns to a jump-cut, or to a story that
  * played out entirely behind the lock screen, with `announce()` narrating it to VoiceOver over the top.
  *
- * Cancelled rather than deferred, deliberately. `goTo` re-seeds the beat and restores the attestation
- * control, so the user simply taps again; resuming half a narration is worse than restarting it.
+ * Cancelled rather than deferred, deliberately: resuming half a narration is worse than restarting it.
+ *
+ * Clearing the timers is not on its own enough, and the version that only did that said otherwise. If
+ * the app backgrounds after the surprise but before the rollovers, the sandbox is left holding a
+ * walkback ack — which makes the beat's spotlight follow the PAYOFF, and a beat showing its payoff
+ * fences the screen. The attestation the comment promised the user could "simply tap again" was neither
+ * restored nor reachable, and the only ways out were Next (losing the payoff) or Back-then-Next. So the
+ * beat is re-staged, which is what puts the ask back.
  */
 export function suspendStoryOnBackground(): void {
   clearStoryTimers();
+  const s = tutorialSession.getState();
+  // `goTo` clears the timers again and re-seeds the beat; it no-ops when no session is running, which is
+  // why the explicit clear above stays.
+  if (s.active) s.goTo(s.index);
 }
 
 export const tutorialSession = createStore<TutorialSessionState>((set, get) => ({
