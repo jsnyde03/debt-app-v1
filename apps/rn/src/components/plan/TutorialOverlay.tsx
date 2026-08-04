@@ -29,8 +29,10 @@ import type { TargetRect } from '@/store/tutorialTargets';
  *    can't wander into a sheet or another tab mid-walkthrough and lose the thread. On an interactive
  *    beat (drag the floor, attest the bills) touches must reach the real control — so the scrim is cut
  *    AROUND the subject and the hole is what passes the touch through. The only case that renders no
- *    scrim at all is an interactive beat whose subject never measured: no hole to cut, and a solid
- *    sheet would seal the user away from the thing the beat is asking them to do.
+ *    scrim at all is an interactive beat with no measured rect: no hole to cut, and a solid sheet would
+ *    seal the user away from the thing the beat is asking them to do. ("…whose subject NEVER measured"
+ *    was too strong — the settle re-measure could also time out *after* a successful first measure and
+ *    land there. That path now retries, but the absolute was false while it existed.)
  *
  * ⚠️ This paragraph used to say the layer "becomes pass-through" on interactive beats. That was true
  * until 3.5.3.5.9 and false after it, and it survived here for a full phase because the fix updated the
@@ -121,6 +123,12 @@ export function TutorialOverlay({
   // failure this replaces is a walkthrough with no reachable Next button.
   const dockMaxH = Math.max(220, windowH * 0.6);
 
+  // Release the dock height on the way out — the FIFTH published value, and the one the round-3 sweep
+  // missed while fixing the other four. The shell outlives every session, so a parked `dockH` skews the
+  // next session's first `stageBottom` until the new dock lays out: the opening beat scrolls its subject
+  // into a stage sized by a dock that no longer exists.
+  useEffect(() => () => onDockLayout?.(0), [onDockLayout]);
+
   // 3.5.3.3.4.3 — subjects are measured in WINDOW coordinates, but this overlay draws in its own local
   // space, and the two are only the same on a phone. On the iPad regular layout the tab bar becomes a
   // left sidebar RAIL, so the overlay's origin sits ~700pt to the right of the window's — and the ring
@@ -142,7 +150,20 @@ export function TutorialOverlay({
   return (
     // `box-none` lets touches fall through to Today everywhere the overlay has no child; the scrim
     // below re-blocks them on scripted beats. Without this, even the pass-through beats would swallow.
-    <View ref={rootRef} onLayout={measureOrigin} style={StyleSheet.absoluteFill} pointerEvents="box-none" testID="tutorial-overlay">
+    // `collapsable={false}` for the same reason `TutorialTarget` carries it, and this is the OTHER half
+    // of the same subtraction: every ring, hole and touch band is `subject − origin`, and the origin
+    // comes from measuring THIS view. A layout-only View with no background and `box-none` is exactly
+    // what Android's view flattener removes — and if it goes, the callback never fires, `origin` stays
+    // silently at {0,0}, and on the Android window configurations where `measureInWindow` includes the
+    // status bar every coordinate shifts down by its height. The registry learned this and the overlay
+    // never did. Web never flattens views, so no Playwright run could ever have shown it.
+    <View
+      ref={rootRef}
+      onLayout={measureOrigin}
+      collapsable={false}
+      style={StyleSheet.absoluteFill}
+      pointerEvents="box-none"
+      testID="tutorial-overlay">
       {/* 3.5.3.3.1 — with a subject on screen the scrim is drawn as four bands AROUND it instead of one
           sheet over everything, so the thing being taught is the one thing at full strength. Four rects
           rather than a mask: no Skia/SVG dependency on a surface that must render identically on web,

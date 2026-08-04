@@ -105,7 +105,11 @@ function useNoRealWritesGuard(store: DebtStoreInstance) {
       const { prefs: prevPrefs, ...prevPlan } = before;
       const { prefs: nextPrefs, ...nextPlan } = state.store;
       before = state.store;
-      const changed = (Object.keys(nextPlan) as (keyof typeof nextPlan)[]).filter((k) => nextPlan[k] !== prevPlan[k]);
+      // Union here too. The prefs diff below was fixed to cover removed keys and this one — the same
+      // pattern, ten lines up — was left single-sided, so a dropped optional field (`windfall`, which
+      // the screen reads as `store.windfall ?? 0`) would vanish from the real store unreported.
+      const planKeys = new Set([...Object.keys(prevPlan), ...Object.keys(nextPlan)]);
+      const changed = ([...planKeys] as (keyof typeof nextPlan)[]).filter((k) => nextPlan[k] !== prevPlan[k]);
       // Prefs are diffed FIELD BY FIELD against a two-key allowlist rather than excluded wholesale.
       // Dropping the entire `prefs` object was too generous by a wide margin: the walkthrough is
       // entitled to `tutorialStep` and `tutorialSeen` and nothing else, but the blanket exclusion also

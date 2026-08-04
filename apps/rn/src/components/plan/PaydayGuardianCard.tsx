@@ -321,8 +321,7 @@ export function PaydayGuardianCard({
               ? 'Undoes the confirmation and restores the full safety net'
               : 'Tells your Guardian your bills are all entered, so it holds less back'
           }
-          style={styles.row}
-          hitSlop={8}>
+          style={styles.row}>
           <Text style={[textStyles.caption, { color: c.accent.primary }]}>{attestLabel}</Text>
         </Pressable>
         </TutorialTarget>
@@ -349,8 +348,7 @@ export function PaydayGuardianCard({
             accessibilityRole="button"
             accessibilityLabel="Adjust your line"
             accessibilityHint="Opens a sheet to set the cushion you keep back each payday"
-            style={styles.row}
-            hitSlop={8}>
+            style={styles.row}>
             <Text style={[textStyles.subhead, styles.adjustLabel, { color: c.accent.primary }]}>Adjust your line →</Text>
           </Pressable>
         </TutorialTarget>
@@ -365,25 +363,41 @@ export function PaydayGuardianCard({
           accessibilityRole="button"
           accessibilityLabel="How this works"
           accessibilityHint="Replays the walkthrough of how your Guardian decides, from the beginning"
-          style={styles.linkRow}
-          hitSlop={8}>
+          style={styles.linkRow}>
           <Text style={[textStyles.caption, styles.adjust, { color: c.text.tertiary }]}>How this works</Text>
         </Pressable>
       ) : null}
       {/* §3.3.3 proof-of-work — the accumulating record of the automation's work, on calm/clear cycles only
           (where it otherwise goes invisible). Display-only; the forecast link below opens the full scorecard. */}
       {isPremium && !stale && brief.state === 'clear' && proofOfWork ? <GuardianProofStrip pow={proofOfWork} /> : null}
-      {/* §2.6 drill-down (2.4.7.9) — a pushed route into the full cushion forecast; own a11y button. */}
+      {/* §2.6 drill-down (2.4.7.9) — a pushed route into the full cushion forecast; own a11y button.
+          FENCED OFF during a walkthrough, in the a11y tree as well as by touch. A VoiceOver double-tap
+          dispatches straight to the focused element and never goes through the scrim's hit bands, so on
+          the two INTERACTIVE beats — where the coached screen is deliberately left exposed so the user
+          can reach the real control — this was still activatable, and it PUSHES A ROUTE out from under
+          the live overlay. Same leak 3.5.3.5.9 closed for fingers, still open for the users the a11y
+          work was for. It stays rendered rather than being removed: it's inside the lit card on four
+          beats, and pulling a row mid-walkthrough would change the composition the premium pass just
+          signed off. Sighted users already can't reach it (the cutout is over the coached control
+          only), so this simply gives a screen reader the same fence. */}
       {isPremium && onSeeForecast && !stale && !brief.pausedDeploy ? (
         <Pressable
           onPress={onSeeForecast}
+          disabled={isExample}
           accessibilityRole="button"
           accessibilityLabel="See your forecast"
           accessibilityHint="Opens your full cushion forecast"
-          style={styles.linkRow}
-          hitSlop={8}>
+          accessibilityElementsHidden={isExample}
+          importantForAccessibility={isExample ? 'no-hide-descendants' : 'auto'}
+          style={styles.linkRow}>
           <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>See your forecast →</Text>
         </Pressable>
+      ) : null}
+
+      {/* §M nit 2 — see `lastRowSpacer`. Rendered only when the card actually ends on a 44pt link row;
+          without one of those there is nothing whose centring needs compensating for. */}
+      {showAdjust || onReplayTutorial || (isPremium && onSeeForecast && !stale && !brief.pausedDeploy) ? (
+        <View style={styles.lastRowSpacer} />
       ) : null}
 
       {isPremium && onSetFloor ? (
@@ -467,21 +481,37 @@ const styles = StyleSheet.create({
   // they sit 12pt apart, so slop wide enough to reach 44 makes neighbouring targets overlap and the
   // wrong one wins.
   //
-  // The height has to come from somewhere, so it comes from the GAPS: each row carries its own vertical
-  // padding and the margins that used to separate them shrink to match. The visible rhythm is close to
-  // what it was and the card grows ~30pt in total — the honest cost of targets a thumb can actually hit.
-  // `justifyContent: 'center'` keeps the label optically where it sat before the row grew around it.
+  // The height comes from the GAPS: each row claims 44pt of its own and the margins that used to
+  // separate them shrink to match, so the label sits in the middle of its own row rather than in a band
+  // of margin. (Said "carries its own vertical padding" before — there is no padding here, just
+  // `minHeight` + centring. Same result, and now the comment describes the actual mechanism.)
+  // The card grows ~30pt in total — the honest cost of targets a thumb can actually hit.
+  // ⚠️ NO `hitSlop` on these rows, and that is the point. They kept the old `hitSlop={8}` when they
+  // became 44pt rows, which turned the comment below into a description of the bug it was warning about:
+  // 4pt margins with 8pt slop on each side means every row's touch region overlaps its neighbours', and
+  // later siblings win RN hit-testing. On beat 3 the bottom edge of the lit cutout then sat inside "See
+  // your forecast"'s slop — so a tap aimed at the coached control pushed `/cushion-forecast` out from
+  // under the live overlay. The exact route-escape 3.5.3.5.9 and `passThrough` exist to prevent,
+  // reopened by the fix that was making these targets bigger. A 44pt row needs no slop.
+  //
   // The margins are `xs`, not `xxs`. Absorbing the ENTIRE gap into the row padding looked right in
   // isolation and wrong in the walkthrough: the spotlight ring insets 6pt beyond its subject, so with a
   // 2pt margin the ring's top edge cut across the line of copy above it ("Your call", right above the
   // attestation). 4pt clears it, and the row's own internal padding still carries most of the rhythm.
   // Caught by looking at beat 4, not by the geometry — the rows measure identically either way.
   row: { minHeight: 44, justifyContent: 'center' },
-  attest: { marginTop: spacing.xs },
+  // §M nit 1 — `sm`, not `xs`, on the attestation. The spotlight ring insets 6pt beyond its subject, and
+  // at 4pt the premium judge still read the ring's top edge as crowding the "Your call" label above it.
+  // 8pt clears it with the 2pt to spare that makes it read as deliberate rather than as a near-miss.
+  attest: { marginTop: spacing.sm },
   adjust: { fontWeight: '600' },
   adjustGroup: { marginTop: spacing.xs },
   adjustLabel: { fontWeight: '600' },
   linkRow: { minHeight: 44, justifyContent: 'center', marginTop: spacing.xs },
+  // §M nit 2 — the card's last row is a 44pt box whose label sits centred, so it ends with only ~11pt of
+  // visual space below the text while the rows above it breathe at ~48pt. The card read bottom-heavy in
+  // the whole-card beats. This restores the rhythm at the one place `Card`'s uniform padding can't.
+  lastRowSpacer: { height: spacing.md },
   invite: { marginTop: spacing.md },
   intro: { padding: spacing.md, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, marginBottom: spacing.md, gap: spacing.sm },
   introText: { lineHeight: 20 },

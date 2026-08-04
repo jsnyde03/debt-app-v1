@@ -70,9 +70,11 @@ interface TutorialSessionState extends TutorialSession {
 let staging: { realStore: DebtStore; opts: { premium: boolean; maxGenuineCycles: number }; pinned: SandboxState | null } | null = null;
 
 /**
- * 3.5.3.5 — pending timers for the scripted reserve story. Held module-level and cleared on every beat
- * change and on `end()`: a user who skips out mid-story would otherwise have rollovers land on a
- * sandbox that is no longer on screen — or, worse, on the NEXT session's sandbox.
+ * 3.5.3.5 — pending timers for the scripted reserve story. Held module-level and cleared by every route
+ * that invalidates the story: a beat change, `end()`, `cancelReserveStory()` (the user un-attests), and
+ * the top of `playReserveStory()` itself (a re-attest restarts rather than overlapping). A user who
+ * skips out mid-story would otherwise have rollovers land on a sandbox that is no longer on screen — or,
+ * worse, on the NEXT session's sandbox.
  */
 let storyTimers: ReturnType<typeof setTimeout>[] = [];
 function clearStoryTimers() {
@@ -268,6 +270,12 @@ export function startTutorial(run: TutorialRun, opts: { resume?: boolean } = {})
   // So the caller says which it means. Resume stays the DEFAULT, because the invitation legitimately
   // picks up an interrupted first run; the explicit replay affordances opt out.
   const from = opts.resume === false ? 0 : resumeIndex(real.prefs.tutorialStep);
+  // …and CLEAR the stale step, not just start past it. Starting at 0 left `prefs.tutorialStep` pointing
+  // at the abandoned beat, so the original bug survived one exit away: replay from the card → quit on
+  // beat 1 without pressing Next (which is what writes the pref) → the next invitation resumes onto the
+  // at-risk beat 5 they were never on. Fixing where the session STARTS without fixing what the store
+  // REMEMBERS just moved the trap one step further out.
+  if (opts.resume === false) appStore.getState().updatePrefs({ tutorialStep: null });
   tutorialSession.getState().start(real, run, from);
   // 3.5.3.5.7 — land on Today, here rather than at each call site. Every caller happened to do this
   // already (the More row navigated after starting), but that was an invariant held by convention: once

@@ -769,10 +769,11 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     setImpact?.(impact);
     // Released on the way out, for the reason spelled out on `setSpotlight` above — the shell lives at
     // the root for the app's lifetime and `end()` clears nothing in it, so a parked value survives the
-    // session. Two of the three published values had this cleanup and the third didn't, so a user who
-    // moved their line, skipped, and came back later got beat 1's dock painting a `FloorImpactBar`
-    // ("frees $X") they never earned, until the next publish overwrote it a frame later. The stale
-    // first-frame bug that comment describes, shipped one value over by the block that added it.
+    // session. This one had no cleanup, so a user who moved their line, skipped, and came back later got
+    // beat 1's dock painting a `FloorImpactBar` ("frees $X") they never earned, until the next publish
+    // overwrote it a frame later. (All FIVE published values now release: spotlight, settling,
+    // passThrough, impact, and `dockH` in the overlay — the count in this comment was wrong twice, which
+    // is its own small lesson about asserting totals in prose.)
     return () => setImpact?.(null);
   }, [setImpact, impact?.before, impact?.after, impact?.freed]); // eslint-disable-line react-hooks/exhaustive-deps
 

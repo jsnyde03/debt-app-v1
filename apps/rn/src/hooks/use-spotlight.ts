@@ -25,7 +25,7 @@ import { scrollDelta, type TargetRect } from './spotlightGeometry';
  */
 
 const SETTLE_MS = 380; // a beat longer than the scroll animation, so the re-measure reads the end state
-/** One frame's grace before a null measure is believed — see the retry in the effect below. */
+/** ~7 frames' grace before a null measure is believed — see `measureOnce`. */
 const RETRY_MS = 120;
 
 export function useSpotlight({
@@ -74,24 +74,8 @@ export function useSpotlight({
     }
 
     void (async () => {
-      let first = await targets.measure(targetId);
+      const first = await measureOnce(targets, targetId, () => stale, setRect);
       if (stale) return;
-
-      // RETRY ONCE before concluding the subject isn't there. `measure` now resolves null on a 500ms
-      // timeout as well as on a genuine miss, and those deserve different answers: a real absence is
-      // permanent, but a timeout is most likely the heavy beat-transition frame, and treating it as
-      // permanent is expensive. Nothing schedules another attempt — `revision` doesn't change and a
-      // static screen fires no layout event — so the beat would sit there ringless for good, and on an
-      // interactive beat that means NO SCRIM at all, with the whole real screen live underneath copy
-      // saying "open it and move the line" while pointing at nothing.
-      //
-      // The retry costs one frame in the case that was already broken and nothing in the normal case.
-      if (!first) {
-        await new Promise((r) => setTimeout(r, RETRY_MS));
-        if (stale) return;
-        first = await targets.measure(targetId);
-        if (stale) return;
-      }
 
       // Still nothing: the subject genuinely isn't mounted for this beat (a beat can point at something
       // the current Guardian state doesn't render). Not a transit.
@@ -119,7 +103,13 @@ export function useSpotlight({
 
       timer = setTimeout(() => {
         void (async () => {
-          const settled = await targets.measure(targetId);
+          // The SAME retry as the first measure. It was applied to one of the two call sites, and this
+          // is the one that needed it more: it fires 380ms after a stage-scroll — the heaviest frame in
+          // the beat, the one the scroll itself caused — so it's the likeliest to time out. Timing out
+          // here set `rect` null after a *successful* first measure, which on an interactive beat is no
+          // scrim and no ring, permanently. Fixing a class at one call site and not the other is the
+          // shape this audit has now caught four rounds running.
+          const settled = await measureOnce(targets, targetId, () => stale, setRect);
           if (stale) return;
           setRect(settled);
           setSettling(false);
@@ -169,6 +159,34 @@ export function useSpotlight({
   }, [targetId, targets]);
 
   return { rect, settling };
+}
+
+/**
+ * Measure, and RETRY ONCE before believing a null.
+ *
+ * `measure` resolves null on a 500ms timeout as well as on a genuine miss, and those deserve opposite
+ * answers: a real absence is permanent, a timeout is almost always the heavy beat-transition frame.
+ * Nothing schedules another attempt — `revision` doesn't change and a static screen fires no layout
+ * event — so believing a timed-out null leaves the beat ringless for good, and on an interactive beat
+ * that means no scrim at all, with the whole real screen live under copy saying "open it and move the
+ * line" while pointing at nothing.
+ *
+ * `clearOnMiss` drops the PREVIOUS beat's rect before the retry window opens. Without it the old
+ * subject's ring stays drawn — and its touch hole stays open at the old coordinates — for up to
+ * 500 + 120 + 500ms, passing taps to whatever now occupies that region.
+ */
+async function measureOnce(
+  targets: { measure(id: string): Promise<TargetRect | null> },
+  targetId: string,
+  isStale: () => boolean,
+  clearOnMiss: (rect: TargetRect | null) => void,
+): Promise<TargetRect | null> {
+  const first = await targets.measure(targetId);
+  if (isStale() || first) return first;
+  clearOnMiss(null);
+  await new Promise((r) => setTimeout(r, RETRY_MS));
+  if (isStale()) return null;
+  return targets.measure(targetId);
 }
 
 function sameRect(a: TargetRect | null, b: TargetRect | null): boolean {
