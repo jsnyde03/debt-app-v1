@@ -387,3 +387,43 @@ three spacing nits, not a character problem."*
 owed the Phase-6 device pass — no web export can feel them.
 
 </details>
+
+### Round 4's other two lenses — ⛔ 8 more defects, and the owed ledger was empty
+
+<details open>
+<summary>The premium bar passed; correctness did not. The pattern held for a fourth round.</summary>
+
+**The 44pt rows reopened the route-escape leak** — my own change. They kept `hitSlop={8}` while their
+margins shrank to 4pt, so every row's touch region overlapped its neighbours' and later siblings win RN
+hit-testing. On beat 3 the bottom edge of the *lit cutout* sat inside "See your forecast"'s slop: a tap
+aimed at the coached control pushed `/cushion-forecast` out from under the live overlay — the exact leak
+3.5.3.5.9 and `passThrough` exist to prevent. The card's own comment names slop-overlap as the disease.
+
+**The measure retry covered one of two call sites.** The settle re-measure fires 380ms after the
+stage-scroll — the heaviest frame in the beat, the one the scroll itself caused, so the likeliest to time
+out — and still turned a timeout into a permanent no-scrim, no-ring beat. Both sites now share one helper.
+
+**VoiceOver could still push a route** from the two interactive beats, where the screen is deliberately
+exposed so the user can reach the control. Round 2 named this residue in its own text and never closed it.
+
+**The overlay root lacked `collapsable={false}`** — the other half of the `measureInWindow` subtraction its
+own target registry documents. Android flattens layout-only views; `origin` would silently stay `{0,0}`.
+
+Plus: `resume: false` left `prefs.tutorialStep` pointing at the abandoned beat, so round 3's trust fix
+survived one exit away · `dockH` was the fifth published shell value and the only one still without a
+cleanup · the plan-level store diff was still single-sided · five stale comments, including a miscount
+written by the block fixing that class.
+
+### The owed ledger was, in fact, empty
+
+The gate's exit says "an empty owed-ledger **except device-gated items**". The device-gated items existed
+— in an audit doc and in code comments — but had never been transferred to the Phase-6 Device-QA ledger,
+which is the document the device pass is actually run from. Ten items now live there under a new
+**"§3.5.3 the Guardian WALKTHROUGH"** block. Two further discoveries came with it: a `3.5.3` **numbering
+collision** (the native block also has one, and the checklist's closing line meant that one), now flagged;
+and **[E4] was parked against a design gate that is already closed**, so nothing would ever have
+resurfaced it — filed to 3.5.6 with the other floaters, plus a new 3.5.6b for the missing Maestro flow.
+
+**Gate:** typecheck + lint clean · suites green · **116/116 e2e, no flakes** · arc re-shot both themes.
+
+</details>

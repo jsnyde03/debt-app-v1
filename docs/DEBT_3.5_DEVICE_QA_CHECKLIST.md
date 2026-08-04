@@ -4,6 +4,14 @@
 >
 > **How to use this:** work top-to-bottom on the phone. Each item has the **exact steps**, what a **✅ pass** looks like, and **⚠️** notes. Tick as you go; anything that fails, note it (screenshot + what you did) → I fix in-repo → you rebuild. **Priority = the NEW native (§4–§7)** — the v1.7 app surface (§3) already passed on the first device build, so §3 is a lighter re-sanity.
 >
+> ⚠️ **NUMBERING COLLISION — read this before assuming a "§3.5.3" reference means this file.** The `3.5.x`
+> in this document is the **native block** (Live Activity · widget · App Intents). There is a *different*
+> `§3.5.3` in `DEBT_ELEVATION_PLAN.md`: the **Guardian walkthrough** (the in-situ tutorial). They are
+> unrelated, and the closing line of this checklist ("3.5.3/3.5.4 are device-verified") means the native
+> block, **not** the walkthrough. The walkthrough's device-owed items live in the **Phase-6 Device-QA
+> ledger** under "§3.5.3 the Guardian WALKTHROUGH" — added 2026-08-04, when a round-4 audit found the
+> whole set had been recorded nowhere durable.
+>
 > **Legend:** ✅ = expected pass · ⚠️ = watch-out · 🅿️ = needs premium (turn on Simulate Premium, §2) · 📱 = 14 Pro/15 Pro/16 Pro only (Dynamic Island).
 
 ---
