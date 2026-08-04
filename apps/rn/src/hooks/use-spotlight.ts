@@ -46,16 +46,20 @@ export function useSpotlight({
   offsetRef: React.RefObject<number>;
   /** Bump to force a re-measure when the subject itself changed size (state change, card grew). */
   revision?: string | number;
-}): { rect: TargetRect | null; settling: boolean } {
+}): { rect: TargetRect | null; unmeasurable: boolean } {
   const targets = useTutorialTargets();
   const reduceMotion = useReducedMotion();
   const [rect, setRect] = useState<TargetRect | null>(null);
-  // [D4] TRANSIENTLY null (a scroll is in flight) vs PERMANENTLY null (the subject never measured) —
-  // the caller has to tell them apart. On an interactive beat a permanent null must render no scrim, or
-  // the user is sealed away from the control the beat is asking them to use; but a transient null must
-  // KEEP the scrim, because dropping it for the ~380ms of travel re-opened the very leak 3.5.3.5.9
-  // closed. Same value, opposite correct behaviour.
+  // [D4] TRANSIENTLY null (a scroll is in flight) vs NOT-YET null (no measure has resolved) vs
+  // DEFINITIVELY null (every attempt, including the retries, came back empty). `rect` alone conflates
+  // all three, and a caller that has to act on the last one cannot infer it — "null right now" is the
+  // normal state for the first frames of every beat.
   const [settling, setSettling] = useState(false);
+  // Round 6: set ONLY where a measurement sequence has actually concluded and failed. The caller uses it
+  // to move an interactive beat along rather than leave the user reading "open it and move the line"
+  // beside a control the app cannot find. Inferring this from `rect === null && !settling` would have
+  // fired on the opening frames of every beat, skipping beats nobody failed to measure.
+  const [unmeasurable, setUnmeasurable] = useState(false);
   // Mirrored in a ref so the layout subscriber below can read it without listing it as a dependency —
   // which would tear down and rebuild the subscription on every transit.
   const settlingRef = useRef(false);
@@ -66,6 +70,9 @@ export function useSpotlight({
     // beat's settle-timer pending, and without this it resolves LAST and paints the previous subject.
     let stale = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
+
+    // A new beat: nothing has been proven about this subject yet, so retract any previous verdict.
+    setUnmeasurable(false);
 
     if (!targetId || !targets) {
       setRect(null);
@@ -82,6 +89,7 @@ export function useSpotlight({
       if (!first) {
         setRect(null);
         setSettling(false);
+        setUnmeasurable(true);
         return;
       }
 
@@ -103,16 +111,15 @@ export function useSpotlight({
 
       timer = setTimeout(() => {
         void (async () => {
-          // The SAME retry as the first measure. It was applied to one of the two call sites, and this
-          // is the one that needed it more: it fires 380ms after a stage-scroll — the heaviest frame in
-          // the beat, the one the scroll itself caused — so it's the likeliest to time out. Timing out
-          // here set `rect` null after a *successful* first measure, which on an interactive beat is no
-          // scrim and no ring, permanently. Fixing a class at one call site and not the other is the
-          // shape this audit has now caught four rounds running.
+          // The SAME retry as the first measure, and this is the site that needed it most: it fires
+          // 380ms after a stage-scroll — the heaviest frame in the beat, the one the scroll itself
+          // caused — so it's the likeliest to time out. Timing out here set `rect` null after a
+          // *successful* first measure, losing the ring permanently.
           const settled = await measureOnce(targets, targetId, () => stale, setRect);
           if (stale) return;
           setRect(settled);
           setSettling(false);
+          setUnmeasurable(settled === null);
         })();
       }, SETTLE_MS);
     })();
@@ -143,9 +150,20 @@ export function useSpotlight({
       // sliding-highlight glitch 3.5.3.3.1 hides the ring to avoid. The settle re-measure owns that path.
       if (settlingRef.current) return;
       void (async () => {
-        const next = await targets.measure(targetId);
+        // The SAME retry as the other two call sites. Round 6: there were THREE `measure` call sites,
+        // not the "two" the comment above claimed, and this was the one still missing it — one round
+        // after that exact miscount was written into this file while fixing the same class.
+        const next = await measureOnce(targets, targetId, () => stale || settlingRef.current, noop);
         // Re-checked AFTER the await, not just before it — the await is the window the race lives in.
         if (stale || settlingRef.current) return;
+        // A null means "couldn't measure right now" — a 500ms timeout, or a subject mid-transition that
+        // measures 0×0 — NOT "the subject is gone". Beat changes are the main effect's job, so nothing
+        // here should ever DEMOTE a rect that was already good. It used to: `sameRect(prev, null)` is
+        // false, so a null went straight through the setter below, and nothing rescheduled (revision
+        // hasn't changed, and a settled screen fires no further layout). One timed-out reflow —
+        // Dynamic Type, an iPad Split View drag, the card growing when Recovery renders, i.e. exactly
+        // the events [E5]/[B4] added this subscriber FOR — permanently lost the ring and its cutout.
+        if (next === null) return;
         // Value-compare before setting. A layout pass can report identical geometry, and `measure`
         // resolves a NEW object every time — publishing it would re-render the shell (and everything
         // reading the spotlight) for no visual change, on a surface that gets a lot of layout events.
@@ -158,7 +176,11 @@ export function useSpotlight({
     };
   }, [targetId, targets]);
 
-  return { rect, settling };
+  // `settling` is deliberately NOT returned. It stays internal (the layout subscriber reads it through
+  // `settlingRef` to avoid re-measuring mid-transit), but round 6 removed its only external consumer:
+  // the overlay used it to tell a travelling null from an absent one, and now renders the same scrim for
+  // both. A published value with no reader is the thing the next audit finds.
+  return { rect, unmeasurable };
 }
 
 /**
@@ -188,6 +210,9 @@ async function measureOnce(
   if (isStale()) return null;
   return targets.measure(targetId);
 }
+
+/** `measureOnce`'s clear-on-miss hook, for the caller that must NOT clear — see the layout subscriber. */
+function noop() {}
 
 function sameRect(a: TargetRect | null, b: TargetRect | null): boolean {
   if (!a || !b) return a === b;

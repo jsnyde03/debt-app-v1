@@ -10,6 +10,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useTutorialSession } from '@/store/tutorialSession';
 import { icons } from '@/theme/icons';
+import { a11yHidden } from '@/utils/a11y';
 
 export function MoreButton() {
   const c = useAppColors();
@@ -33,12 +34,9 @@ export function MoreButton() {
       hitSlop={12}
       accessibilityRole="button"
       accessibilityLabel="More"
-      accessibilityElementsHidden={inTutorial}
-      importantForAccessibility={inTutorial ? 'no-hide-descendants' : 'auto'}>
+      {...a11yHidden(inTutorial)}>
       {/* Routed through AppIcon so iOS gets the SF-Symbol ellipsis (more-horiz → ellipsis). */}
-      {/* Dimmed while held, so it doesn't read as live-but-broken. The scrim usually dims it anyway;
-          this covers the degraded case where an interactive beat's subject never measured and no scrim
-          renders at all — there it would otherwise sit at full strength and silently eat taps. */}
+      {/* Dimmed while held, so it doesn't read as live-but-broken under the scrim. */}
       <AppIcon name={icons.more} size={24} color={inTutorial ? c.text.tertiary : c.text.secondary} />
     </Pressable>
   );

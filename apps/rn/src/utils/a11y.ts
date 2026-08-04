@@ -27,13 +27,29 @@ export function groupLabel(
 }
 
 /**
- * Hide a purely decorative visual (progress ring, gradient, glow, the Skia celebration, an icon
- * whose meaning is already in words) from the a11y tree — cross-platform (iOS + Android props).
+ * Hide a subtree from the accessibility tree — on EVERY platform, including web.
+ *
+ * Use this (or `decorative`) and never hand-roll the props. `aria-hidden` is not a web-only prop: RN
+ * expands it to `accessibilityElementsHidden` + `importantForAccessibility` itself, so ONE prop covers
+ * iOS and Android. The reverse is not true — react-native-web's prop allowlist contains neither native
+ * prop, and `createDOMProps` drops unrecognised props silently with no warning.
+ *
+ * That asymmetry cost this codebase a whole class of invisible defects: the
+ * `accessibilityElementsHidden` + `importantForAccessibility` pair was written out longhand at six call
+ * sites — the walkthrough's screen fence, its control fence, MoreButton, the forecast link, the overlay
+ * scrim and every sheet backdrop — and on web every one of them fenced NOTHING. Four audit rounds of
+ * a11y work was "verified" by a Playwright suite running on the one platform where the fences did not
+ * exist, which is why the suite stayed green through all of it. Round 6 (2026-08-04).
  */
-export const decorative: AccessibilityProps = {
-  accessibilityElementsHidden: true,
-  importantForAccessibility: 'no-hide-descendants',
-};
+export function a11yHidden(hidden: boolean): AccessibilityProps {
+  return { 'aria-hidden': hidden };
+}
+
+/**
+ * Hide a purely decorative visual (progress ring, gradient, glow, the Skia celebration, an icon
+ * whose meaning is already in words) from the a11y tree — cross-platform. See `a11yHidden`.
+ */
+export const decorative: AccessibilityProps = { 'aria-hidden': true };
 
 /**
  * Announce a transient change to screen readers — a new onboarding step, a crossed milestone, a

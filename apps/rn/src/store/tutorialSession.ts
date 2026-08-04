@@ -248,12 +248,17 @@ export function useTutorialSession<T>(selector: (s: TutorialSessionState) => T):
 /**
  * Start a walkthrough from anywhere in the app.
  *
- * In-app entry points call this DIRECTLY rather than routing to `/tutorial`. That indirection cost real
- * time: the launcher had to hand off to the Today tab from three different stack depths (the Guardian
- * card is on Today, the More row is its own Stack route, a deep link has none), and every router verb
- * failed a different one — `replace` re-mounted the tab group into two Todays, `back`/`dismissAll`
- * landed wherever the caller happened to be. Since the session is global state, the caller can simply
- * start it and let Today render the overlay when it's on screen. The route survives for deep links only.
+ * The two IN-APP entry points call this DIRECTLY rather than routing to `/tutorial`: the Guardian card's
+ * replay link and the More row. (The third entry, a deep link, does NOT come through here — it hits the
+ * `/tutorial` route, which starts the session itself. Round 5 relocated this rationale from that file to
+ * this one as "still true"; it is true of the two callers here, and the member it named that made the
+ * stack-depth problem interesting is the one that never arrives here. Neither file sees all three.)
+ *
+ * The indirection cost real time: the launcher had to hand off to the Today tab from different stack
+ * depths — the Guardian card is on Today, the More row is its own Stack route — and every router verb
+ * failed a different one: `replace` re-mounted the tab group into two Todays, `back`/`dismissAll` landed
+ * wherever the caller happened to be. Since the session is global state, the caller can simply start it
+ * and let Today render the overlay when it's on screen.
  */
 export function startTutorial(run: TutorialRun, opts: { resume?: boolean } = {}): void {
   const real = appStore.getState().store;

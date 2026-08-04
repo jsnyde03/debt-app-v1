@@ -136,11 +136,6 @@ function useNoRealWritesGuard(store: DebtStoreInstance) {
   }, [store]);
 }
 
-/** Test seam: did the real store change while sandboxed? Returns the live real-store blob identity. */
-export function realStoreSnapshot() {
-  return appStore.getState().store;
-}
-
 /**
  * The store this subtree acts on — for WRITES (`useActiveStore().getState().addDebt(...)`) and for
  * passing to helpers that take a store. Returns the real singleton unless a provider says otherwise.

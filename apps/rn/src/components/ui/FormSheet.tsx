@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
-import { SheetScrim } from '@/components/ui/SheetScrim';
+import { SheetBackdrop } from '@/components/ui/SheetBackdrop';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { sheetStyles } from '@/components/ui/sheet-styles';
@@ -103,26 +103,9 @@ export function FormSheet({
         {/* KeyboardAvoidingView lifts the sheet (and its sticky submit) above the keyboard — the
             decimal-pad has no return key, so an un-lifted submit is unreachable on device (RN lesson #9). */}
         <KeyboardAvoidingView style={sheetStyles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <Animated.View style={[StyleSheet.absoluteFill, scrimStyle]} pointerEvents="none">
-            <SheetScrim />
-          </Animated.View>
-          {/* [C4] Hidden from the accessibility tree, deliberately. This is a full-screen tap-to-dismiss
-              region, and as a labelled `Pressable` it was a focusable element the size of the display
-              sitting in front of the sheet's own content — a VoiceOver user swiping into the sheet met
-              "Close" spanning everything before reaching a single field. Tapping outside is a POINTER
-              affordance; the equivalent for a screen reader is the explicit Close button in the header
-              below, which already exists. Touch behaviour is unchanged. */}
-          {/* `focusable={false}` as well as a11y-hidden: on web `accessibilityElementsHidden` becomes
-              `aria-hidden`, but an RNW Pressable stays in the TAB ORDER — so hiding it left every sheet
-              in the app with an unlabelled, aria-hidden, full-screen stop for keyboard users. Aria-hidden
-              AND focusable is the worst of both. */}
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={onBackdrop}
-            focusable={false}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-          />
+          {/* [C4] The dim + tap-to-dismiss layer, shared by all three sheet shells. See `SheetBackdrop`
+              for why it lives there and not inline. Touch behaviour is unchanged. */}
+          <SheetBackdrop scrimStyle={scrimStyle} onPress={onBackdrop} />
           <Animated.View
             onLayout={onSheetLayout}
             style={[

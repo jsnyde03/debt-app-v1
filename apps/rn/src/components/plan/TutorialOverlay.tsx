@@ -28,11 +28,8 @@ import type { TargetRect } from '@/store/tutorialTargets';
  *  - decide whether Today underneath is TOUCHABLE. On EVERY beat a scrim blocks stray taps, so a user
  *    can't wander into a sheet or another tab mid-walkthrough and lose the thread. On an interactive
  *    beat (drag the floor, attest the bills) touches must reach the real control — so the scrim is cut
- *    AROUND the subject and the hole is what passes the touch through. The only case that renders no
- *    scrim at all is an interactive beat with no measured rect: no hole to cut, and a solid sheet would
- *    seal the user away from the thing the beat is asking them to do. ("…whose subject NEVER measured"
- *    was too strong — the settle re-measure could also time out *after* a successful first measure and
- *    land there. That path now retries, but the absolute was false while it existed.)
+ *    AROUND the subject and the hole is what passes the touch through. There is no longer any case that
+ *    renders no scrim: round 6 removed the one exception (see the note on the `Scrim` below).
  *
  * ⚠️ This paragraph used to say the layer "becomes pass-through" on interactive beats. That was true
  * until 3.5.3.5.9 and false after it, and it survived here for a full phase because the fix updated the
@@ -73,14 +70,12 @@ export function TutorialOverlay({
   total,
   title,
   body,
-  interactive,
   onBack,
   onNext,
   onSkip,
   isLast,
   run,
   spotlight,
-  settling = false,
   passThrough = false,
   onDockLayout,
   impact,
@@ -89,8 +84,6 @@ export function TutorialOverlay({
   total: number;
   title: string;
   body: string;
-  /** True on a beat where the user must reach the real control underneath. */
-  interactive: boolean;
   onBack?: () => void;
   onNext: () => void;
   onSkip: () => void;
@@ -99,8 +92,6 @@ export function TutorialOverlay({
   run: TutorialRun;
   /** 3.5.3.3.1 — where this beat's subject landed, in window coordinates. Null → an uncut scrim. */
   spotlight?: TargetRect | null;
-  /** [D4] True while the subject is TRAVELLING (a stage-scroll is in flight) rather than absent. */
-  settling?: boolean;
   /** Should the cutout pass TOUCHES as well as light? Published by the screen — see `tutorialShell`. */
   passThrough?: boolean;
   /** The dock's measured height defines the bottom of the stage the subject is scrolled into. */
@@ -142,10 +133,6 @@ export function TutorialOverlay({
     });
   };
   const local = spotlight ? { ...spotlight, x: spotlight.x - origin.x, y: spotlight.y - origin.y } : null;
-  // [D4] The two nulls. `local` is null both while the subject travels and when it was never there, and
-  // an interactive beat owes them opposite answers: seal the screen for the ~380ms of travel (nothing is
-  // tappable on a moving screen anyway), but never seal it when the subject is simply absent.
-  const interactiveTransit = settling;
 
   return (
     // `box-none` lets touches fall through to Today everywhere the overlay has no child; the scrim
@@ -175,9 +162,18 @@ export function TutorialOverlay({
           3.5.3 was written, and the cutout was already exactly that mechanism: the bands capture touches,
           the hole doesn't. It simply was never rendered.
 
-          The one case that renders nothing: an interactive beat with no measured rect. There is no hole
-          to cut, so a scrim would seal the user in — unable to do the thing the beat is asking for. Better
-          an unguarded screen than a trap. */}
+          Round 6 — the scrim now renders UNCONDITIONALLY. It used to be dropped entirely for one case,
+          an interactive beat whose subject never measured, on the reasoning "better an unguarded screen
+          than a trap". Two things were wrong with that. The premise: the dock is a sibling rendered
+          AFTER this, so Next/Back/Skip sit above the scrim and stay reachable — a full scrim was never a
+          trap. And the cost: that one branch was the standing justification for three other mechanisms
+          (`interactiveTransit`, the whole `settling` channel, MoreButton's dim), and it made the scrim
+          decision a four-boolean product of which only a quarter was ever documented.
+          A null rect already collapses the hole to nothing, i.e. full coverage, so "always render" needed
+          no new code — it needed one condition deleted. What replaces the escape hatch is honest rather
+          than permissive: `useSpotlight` now reports `unmeasurable`, and the SCREEN moves the beat along
+          instead of parking the user in front of copy asking them to operate a control the app cannot
+          locate. Fenced, and never lying about what they can do. */}
       {/* [D3] The scrim colour is now `scrim`, not `background.primary`.
           In LIGHT the old choice worked — a pale wash over cards produces an obvious dim. In DARK it was
           near-black (#07111f) at 0.55 over navy cards (#152340): almost no separation, so the ring was
@@ -195,9 +191,7 @@ export function TutorialOverlay({
           mounted overlay, or hit the attestation — which fires beat 4's entire scripted story during
           beat 1. Only the replay link had been individually guarded, one leak at a time.
           Splitting visual from hit geometry for [D2] is what makes this one flag rather than a rework. */}
-      {!interactive || local || interactiveTransit ? (
-        <Scrim rect={local} color={c.background.scrim} passThrough={passThrough} />
-      ) : null}
+      <Scrim rect={local} color={c.background.scrim} passThrough={passThrough} />
       {/* The ring is drawn on interactive beats too. Since 3.5.3.5.9 the scrim is there as well and the
           cutout is what passes touches to the control, so the ring is no longer load-bearing for
           "reach THIS" — it's the visual half of the same statement. */}

@@ -568,4 +568,42 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await page.getByText('How the Guardian works').click();
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
   });
+
+  // Round 6 — the accessibility fence is REAL, asserted against the rendered document.
+  //
+  // Every a11y fence in this feature was a silent no-op on web for four audit rounds: the code wrote
+  // `accessibilityElementsHidden` + `importantForAccessibility`, react-native-web's prop allowlist
+  // contains neither, and `createDOMProps` drops unknown props with no warning. Four rounds of a11y work
+  // was "verified" by this suite, on the one platform where the fences did not exist — and it stayed
+  // green throughout, because nothing ever asked the document what it actually contained.
+  //
+  // Asserts the PROPERTY (is the coached screen in the accessibility tree?), not a prop name or a
+  // sentence — the shape this gate has had to re-learn three times. `getByRole` resolves against the
+  // accessibility tree, so an aria-hidden Today makes its controls unresolvable BY CONSTRUCTION; that is
+  // the same question a screen reader asks, rather than a proxy for it.
+  test('the coached screen leaves the a11y tree on scripted beats and returns for interactive ones', async ({ page }) => {
+    await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
+    await page.goto('/tutorial');
+    await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
+
+    // Beat 1 is scripted: Today is fenced, so a full-viewport aria-hidden region covers it…
+    const viewport = page.viewportSize()!;
+    const fencedArea = async () =>
+      page.evaluate(() =>
+        [...document.querySelectorAll('[aria-hidden="true"]')].reduce((max, el) => {
+          const r = el.getBoundingClientRect();
+          return Math.max(max, r.width * r.height);
+        }, 0),
+      );
+    expect(await fencedArea()).toBeGreaterThan(viewport.width * viewport.height * 0.9);
+    // …and the dock stays reachable above it, or the walkthrough would be a trap.
+    await expect(page.getByRole('button', { name: 'Next' })).toBeVisible();
+
+    // Step to beat 3 ('Your line'), the first INTERACTIVE beat — the fence must open, or a VoiceOver
+    // user cannot reach the control the beat is explicitly asking them to operate.
+    await page.getByRole('button', { name: 'Next' }).click();
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.getByTestId('tutorial-step-title')).toHaveText('Your line');
+    expect(await fencedArea()).toBeLessThan(viewport.width * viewport.height * 0.9);
+  });
 });

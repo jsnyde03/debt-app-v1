@@ -55,31 +55,10 @@ export default function TabsLayout() {
           ? { backgroundColor: c.background.secondary, borderRightColor: c.border.subtle }
           : { position: 'absolute', backgroundColor: 'transparent', borderTopColor: c.border.subtle },
         tabBarLabelStyle: { fontSize: isRegular ? 15 : 11, fontWeight: '600' },
-        // ⚠️ NO `tabBarButton` override here, deliberately — REVERTED 2026-08-04 (round 5).
-        //
-        // Rounds 2–4 replaced the default button with a plain `Pressable` so the tab bar could leave the
-        // a11y tree during a walkthrough. The premise was that a VoiceOver double-tap "dispatches to the
-        // element and bypasses hit-testing", so `holdTabs` couldn't stop it. **That premise was wrong.**
-        // `holdTabs` hooks the `tabPress` EVENT, which the button emits from its own `onPress` — the same
-        // path VoiceOver activation takes. Navigation was blocked for screen-reader users all along. The
-        // real defect was only that the tab was focusable and inert with no announced reason: a polish
-        // issue, and one that can only honestly be judged on a device with VO actually running.
-        //
-        // What the override cost, meanwhile, was paid by EVERY user of the app, tutorial or not. The
-        // framework passes `href` to this button and react-native-web renders any View with `href` as a
-        // real `<a>`; `PlatformPressable` exists partly to `preventDefault()` that (letting modifier- and
-        // middle-clicks through). A plain Pressable does none of it, so on web every tab press fired SPA
-        // navigation AND the anchor's document navigation — a full page reload, dropping in-memory state.
-        // It also dropped `role="link"` on web, the pointer cursor, the iPad rail's hover effect, and the
-        // theme-derived ripple colour.
-        //
-        // Re-implementing all of that to keep a cosmetic a11y win is the wrong trade, and deep-importing
-        // `PlatformPressable` out of expo-router's bundle would break on any upgrade. So: keep the
-        // framework's button, keep `holdTabs` (which is the guarantee that actually matters), and let the
-        // Phase-6 VO pass judge the focusable-inert-tab nit with a real screen reader.
-        //
-        // The lesson worth keeping: this was a whole-app regression introduced to fix a tutorial-only
-        // polish issue, and the web e2e stayed green through it because a reload lands on the right URL.
+        // ⚠️ NO `tabBarButton` override here, deliberately — REVERTED 2026-08-04. A plain `Pressable`
+        // drops the `href` preventDefault the framework's button does, so every tab press on web became a
+        // full page reload. `holdTabs` below is the guarantee that actually matters. Full post-mortem →
+        // audit doc §N.
       }}>
       <Tabs.Screen
         name="index"

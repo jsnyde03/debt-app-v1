@@ -14,7 +14,7 @@ import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
 import { MilestoneAckCard } from '@/components/plan/MilestoneAckCard';
 import { TutorialInviteCard } from '@/components/plan/TutorialInviteCard';
 import { markTutorialSeen, selectTutorialInvite, tutorialRunFor } from '@/store/tutorialSelectors';
-import { announce } from '@/utils/a11y';
+import { a11yHidden, announce } from '@/utils/a11y';
 import { PaidOffFinale } from '@/components/plan/PaidOffFinale';
 import { VanquishedBeat } from '@/components/plan/VanquishedBeat';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
@@ -58,6 +58,8 @@ import {
 import { isLastLiveDebt, selectCelebrationStats } from '@/store/celebrationSelectors';
 import { rankDebts } from '@/store/payoffSelectors';
 import { selectAllocation } from '@/store/selectors';
+import { TutorialFence } from '@/components/plan/TutorialFence';
+import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
 import type { Debt } from '@/data/models';
 import { spacing } from '@/theme/spacing';
@@ -261,18 +263,24 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
         ) : null}
         {isDebtFree ? (
           <Motion delay={30}>
-            <FreedomNextChapterCard />
+            <TutorialFence>
+              <FreedomNextChapterCard />
+            </TutorialFence>
           </Motion>
         ) : null}
         <Motion>
-          <PlanHero
-            summary={summary}
-            recommended={recommended}
-            nextPaycheckDate={store.paycheck.nextPaycheckDate}
-            windfall={store.windfall ?? 0}
-            onAddWindfall={() => setWindfallSheet(true)}
-            onEditPaycheck={() => setPaycheckSheet(true)}
-          />
+          {/* Fenced: `onAddWindfall` / `onEditPaycheck` each open a Modal, and a Modal opened from under a
+              live walkthrough covers the coaching dock itself. See `TutorialFence`. */}
+          <TutorialFence>
+            <PlanHero
+              summary={summary}
+              recommended={recommended}
+              nextPaycheckDate={store.paycheck.nextPaycheckDate}
+              windfall={store.windfall ?? 0}
+              onAddWindfall={() => setWindfallSheet(true)}
+              onEditPaycheck={() => setPaycheckSheet(true)}
+            />
+          </TutorialFence>
         </Motion>
         {guardian ? (
           // 3.5.3.6.1 — the hand-back CROSSFADE. Keying on `isExample` makes the swap from sandbox money
@@ -358,12 +366,16 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
         {/* 2.9 — the inverse Guardian: "can I afford this purchase?" (the Guardian's sibling on Today). */}
         {guardian ? (
           <Motion delay={57}>
-            <AffordabilityCard />
+            <TutorialFence>
+              <AffordabilityCard />
+            </TutorialFence>
           </Motion>
         ) : null}
         {leanNudge ? (
           <Motion delay={68}>
-            <LeanSuggestionCard nudge={leanNudge} />
+            <TutorialFence>
+              <LeanSuggestionCard nudge={leanNudge} />
+            </TutorialFence>
           </Motion>
         ) : null}
           </>
@@ -373,14 +385,19 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
         <Motion delay={90}>
           {/* MF.6 (audit #7) — when the premium Recovery Plan is showing, IT owns the shortfall; suppress
               the RequiredActions "Short this paycheck — cover these" block so the two don't duplicate/compete. */}
-          <RequiredActionsCard rows={requiredRows} unfunded={recovery ? [] : (allocation.unfundedRequiredItems ?? [])} onMark={(row, paid) => handleMark(store_, row, paid)} currentDate={store.paycheck.currentDate} />
+          {/* Fenced: `onMark` / `onToggle` write the store and re-stage the very card a beat is narrating. */}
+          <TutorialFence>
+            <RequiredActionsCard rows={requiredRows} unfunded={recovery ? [] : (allocation.unfundedRequiredItems ?? [])} onMark={(row, paid) => handleMark(store_, row, paid)} currentDate={store.paycheck.currentDate} />
+          </TutorialFence>
         </Motion>
         <Motion delay={180}>
-          <RecommendedActionsCard
-            active={recommended}
-            completed={store.completedRecommendedActions}
-            onToggle={(a, done) => store_.getState().toggleRecommendedDone(a, done)}
-          />
+          <TutorialFence>
+            <RecommendedActionsCard
+              active={recommended}
+              completed={store.completedRecommendedActions}
+              onToggle={(a, done) => store_.getState().toggleRecommendedDone(a, done)}
+            />
+          </TutorialFence>
         </Motion>
           </>
         }
@@ -393,13 +410,14 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
     // full-bleed — a dashboard reads better contained; the ack cards above also cap here).
     <Screen title="Today" right={<MoreButton />} maxWidth={isExpanded ? 900 : undefined} scrollRef={scrollRef} onScroll={onScroll}>
       {provisionalPayoffs.map((d) => (
+        <TutorialFence key={d.id}>
         <PayoffInvitationCard
-          key={d.id}
           debtName={d.name}
           // Confirm → re-anchor to $0 (the confirmed-payoff signal) AND fire the celebration (beat / finale).
           onConfirm={() => confirmPayoff(d)}
           onNotYet={() => goToTab('money')}
         />
+        </TutorialFence>
       ))}
 
       {celebration?.kind === 'beat' ? (
@@ -712,7 +730,7 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // publish effect below depends on what it returns. Passing the object straight through would re-fire
   // that effect every render and re-render the shell — the same fresh-value re-render loop that took the
   // whole tutorial suite down at 3.5.3.2.
-  const { rect: spotlight, settling } = useSpotlight({
+  const { rect: spotlight, unmeasurable } = useSpotlight({
     targetId,
     stageTop: insets.top + headerHeight(),
     stageBottom: screenH - dockH - spacing.sm,
@@ -729,7 +747,6 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // Publish what only this screen can know. Effects rather than render-time calls: setting a parent's
   // state during a child's render is the classic React warning, and here it would fire on every measure.
   const setSpotlight = shell?.setSpotlight;
-  const setSettling = shell?.setSettling;
   const setPassThrough = shell?.setPassThrough;
   const setImpact = shell?.setImpact;
   // [C2] Announce the PAYOFF, not just the beat. There was exactly one `announce()` in the whole
@@ -757,10 +774,6 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     // first frame can draw a ring at the last session's coordinates before its own measure lands.
     return () => setSpotlight?.(null);
   }, [setSpotlight, spotlight]);
-  useEffect(() => {
-    setSettling?.(settling);
-    return () => setSettling?.(false);
-  }, [setSettling, settling]);
 
   // The touch hole follows the CONTROL, not the spotlight. On beat 4 the spotlight deliberately moves off
   // the attestation onto the payoff ack (3.5.3.5.5) — but the beat is still flagged interactive, so the
@@ -769,10 +782,39 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // then jumped up again when the release landed, and the user could swallow the beat's entire payoff
   // before reading it. `passThrough` is about reachability; once the hole is over something to READ, it
   // has no business passing touches.
+  //
+  // ONE expression, used by the touch fence AND the a11y fence below, because they must never disagree.
+  // Round 6: they did. The a11y fence keyed on `interactive` alone, so through beat 4's whole payoff the
+  // screen was sealed for fingers and open to VoiceOver — and the ack's own "Got it" was reachable by
+  // exactly the double-tap this `passThrough` change exists to prevent, dismissing the payoff mid-
+  // narration for the one user who couldn't see it happen. Two predicates for one fence is how that
+  // gap opens; deriving both from this is how it stays shut.
+  const screenReachable = interactive && !payoffShowing;
   useEffect(() => {
-    setPassThrough?.(interactive && !payoffShowing);
+    setPassThrough?.(screenReachable);
     return () => setPassThrough?.(false);
-  }, [setPassThrough, interactive, payoffShowing]);
+  }, [setPassThrough, screenReachable]);
+
+  // Round 6 — the beat can't find its own control. `unmeasurable` is set only where a measurement
+  // sequence has actually concluded and failed (both retries included), never on the not-yet-measured
+  // frames every beat opens with.
+  //
+  // This replaces the old escape hatch, which dropped the scrim entirely and left the whole real screen
+  // live under copy saying "open it and move the line" — pointing at nothing. The scrim now always
+  // renders, so the alternative to acting here would be a fenced screen asking for an action the user
+  // cannot perform. Both of those lie to the user; moving on doesn't. They lose the interaction and its
+  // payoff, which is a real cost, but nothing on screen claims otherwise.
+  //
+  // Only when the beat is still asking for its CONTROL: once the payoff is showing the user has already
+  // acted, and skipping ahead would take away the result they just earned.
+  const advance = useTutorialSession((s) => s.goTo);
+  useEffect(() => {
+    if (!interactive || payoffShowing || !unmeasurable) return;
+    const nextStep = index + 1;
+    if (nextStep >= TUTORIAL_STEPS.length) return; // the last beat has nowhere to go; the dock still exits.
+    advance(nextStep);
+    appStore.getState().updatePrefs({ tutorialStep: nextStep });
+  }, [interactive, payoffShowing, unmeasurable, index, advance]);
 
   // Publish which subject this beat coaches, so every OTHER coachable control can fence itself out of
   // the accessibility tree (see `TutorialTarget`'s `control` prop). `targetId` already accounts for the
@@ -819,11 +861,9 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
           everything a sighted user is deliberately fenced out of, including More. On a scripted beat the
           coached screen is hidden from the a11y tree entirely (the coaching dock lives above this, at the
           root, so it stays reachable). On an INTERACTIVE beat it must stay exposed: the whole point is
-          that the user reaches the real control, and a screen reader has to be able to as well. */}
-      <View
-        style={styles.flex}
-        accessibilityElementsHidden={!interactive}
-        importantForAccessibility={interactive ? 'auto' : 'no-hide-descendants'}>
+          that the user reaches the real control, and a screen reader has to be able to as well.
+          Keyed on `screenReachable` — the SAME expression as the touch fence, deliberately; see there. */}
+      <View style={styles.flex} {...a11yHidden(!screenReachable)}>
       <TodayContent
         scrollRef={scrollRef}
         onScroll={(e) => {

@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, View } from 'react-native';
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppIcon } from '@/components/ui/AppIcon';
-import { SheetScrim } from '@/components/ui/SheetScrim';
+import { SheetBackdrop } from '@/components/ui/SheetBackdrop';
 import { sheetStyles } from '@/components/ui/sheet-styles';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -49,10 +49,7 @@ export function AnimatedSheet({
   const body = (
       <GestureHandlerRootView style={sheetStyles.flex}>
         <KeyboardAvoidingView style={sheetStyles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <Animated.View style={[StyleSheet.absoluteFill, scrimStyle]} pointerEvents="none">
-            <SheetScrim />
-          </Animated.View>
-          <Pressable style={StyleSheet.absoluteFill} onPress={onBackdrop} accessibilityLabel="Close" />
+          <SheetBackdrop scrimStyle={scrimStyle} onPress={onBackdrop} />
           <Animated.View
             onLayout={onSheetLayout}
             style={[

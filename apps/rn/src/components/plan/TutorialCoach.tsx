@@ -1,6 +1,6 @@
 import { TutorialOverlay } from '@/components/plan/TutorialOverlay';
 import { appStore } from '@/store/appStore';
-import { INTERACTIVE_STEP_IDS, TUTORIAL_STEPS, TUTORIAL_STEP_COUNT, isLastStep, nextIndex, prevIndex, stepBody } from '@/store/tutorialPath';
+import { TUTORIAL_STEPS, TUTORIAL_STEP_COUNT, isLastStep, nextIndex, prevIndex, stepBody } from '@/store/tutorialPath';
 import { markTutorialSeen } from '@/store/tutorialSelectors';
 import { tutorialSession, useTutorialSession } from '@/store/tutorialSession';
 import { useTutorialShell } from '@/store/tutorialShell';
@@ -44,11 +44,9 @@ export function TutorialCoach() {
       total={TUTORIAL_STEP_COUNT}
       title={step.title}
       body={stepBody(step, run)}
-      interactive={INTERACTIVE_STEP_IDS.includes(step.id)}
       isLast={last}
       run={run}
       spotlight={shell.spotlight}
-      settling={shell.settling}
       // From the SHELL, not from `INTERACTIVE_STEP_IDS`: the beat being interactive isn't sufficient, and
       // only the screen can see that the spotlight has moved onto the beat's payoff. See `passThrough`.
       passThrough={shell.passThrough}

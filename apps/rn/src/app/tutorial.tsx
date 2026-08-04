@@ -46,23 +46,16 @@ export default function TutorialLauncher() {
 
     // Get out of the way WITHOUT re-mounting the tab group.
     //
-    // [round-2 E1] Two paragraphs used to sit here asserting opposite mechanisms — one describing a pop
-    // guarded by `canGoBack()`, immediately followed by the one below explaining why `navigate` is used
-    // instead. Neither a pop nor `canGoBack()` has ever appeared in this file; the first paragraph
-    // described an approach that was tried and dropped, and it survived directly above its own
-    // replacement. Precisely the defect the claim-vs-code lens exists for, found in the fix block that
-    // was correcting that same class elsewhere.
-    //
     // `navigate`, not `push`/`replace`/`back`. A deep link arrives with no history at all while the e2e
     // arrives with some, and both must end up on the Today TAB with nothing duplicated: `replace`
     // re-mounted the tab group (two Todays, two overlays — the detached-tab-group class `useGoToTab`
     // documents) and `back`/`dismissAll` landed wherever the caller happened to be. `navigate` targets
     // the existing route if there is one and only creates it otherwise.
     //
-    // (This used to justify itself with "the three entry points sit at different stack depths — the
-    // Guardian card, the More row, a deep link". Two of those three don't come through this file at all,
-    // as the header above now says; that reasoning belongs to `startTutorial`, where it is still true.
-    // A rationale copied into a second home and then made false in one of them.)
+    // This route serves the DEEP LINK; the Guardian card's replay and the More row both go through
+    // `startTutorial` instead. (Round 5 moved a "three entry points at different stack depths" rationale
+    // to `startTutorial` "where it is still true" — it isn't quite: the deep link is the one member that
+    // never reaches `startTutorial`, so neither file sees all three. Corrected in both, round 6.)
     router.navigate('/');
     // Mount-only: this route's whole job is to fire once and get out of the way.
     // eslint-disable-next-line react-hooks/exhaustive-deps

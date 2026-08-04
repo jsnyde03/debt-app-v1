@@ -11,9 +11,11 @@ import { View, type LayoutChangeEvent } from 'react-native';
  * Two constraints shaped the design:
  *
  *  1. **It has to be inert when no tutorial is running.** Today renders this on every launch for every
- *     user, so registration is a ref write and an `onLayout` — no state, no re-render, nothing that
- *     costs a non-tutorial user anything. With no provider above it, `useTutorialTargets()` returns a
- *     null registry and `TutorialTarget` degrades to a plain `View`.
+ *     user, so registration is a ref write and an `onLayout` — nothing on the layout path costs a
+ *     non-tutorial user anything. The guarantee rests on MOUNTING, not on statelessness: the provider
+ *     lives only inside a running session, so with no provider above it `useTutorialTargets()` returns a
+ *     null registry, `TutorialTarget` degrades to a plain `View`, and there is no state to change.
+ *     (`activeId` below is React state — verified round 6 as not violating this, for that reason.)
  *
  *  2. **3.5.5 needs the same thing.** The feature-discovery coach-marks point at controls all over the
  *     app, so this is deliberately not tutorial-arc-specific: ids are free-form strings and nothing here
@@ -40,9 +42,12 @@ interface TargetRegistry {
   /** [E5] A registered subject just laid out — its measured rect is stale. See `subscribe`. */
   invalidate(id: string): void;
   /** Watch for `invalidate`. Deliberately a listener set held in a ref, NOT React state: this fires on
-   *  every layout of every coached subject for EVERY user, and constraint 1 above says a non-tutorial
-   *  user must pay nothing. A ref write plus a walk of an empty Set is nothing; a `setState` would be a
-   *  re-render of Today on every layout pass. Returns an unsubscribe. */
+   *  every layout of every coached subject, and a `setState` here would re-render Today on every layout
+   *  pass. A ref write plus a walk of an empty Set is nothing. Returns an unsubscribe.
+   *  (`activeId` below IS state, which does not contradict this: the constraint that matters is "nothing
+   *  on the LAYOUT path", and `activeId` changes once per beat, not once per layout. Constraint 1 at the
+   *  top of the file — inert outside a session — also still holds, but for a different reason than
+   *  statelessness: the provider is mounted only inside a running session.) */
   subscribe(listener: (id: string) => void): () => void;
   /** Which subject the current beat coaches, or null outside a session. Published by the screen and read
    *  by `TutorialTarget` so a control that ISN'T this beat's subject can fence itself — see `control`. */
@@ -133,18 +138,30 @@ export function TutorialTarget({
   /**
    * This target wraps an ACTIONABLE control, not just a region to look at.
    *
-   * While a session is running, a control that isn't the current beat's subject leaves the
+   * While a session is running, a COACHED control that isn't the current beat's subject leaves the
    * accessibility tree. The scrim already fences it for touch — the hole is cut over one subject — but a
    * VoiceOver double-tap dispatches straight to the focused element and never goes through hit-testing,
    * so on the two interactive beats (where the screen is deliberately left exposed so the user CAN reach
    * the coached control) every other control was still activatable. Concretely: on beat 3 the attestation
-   * fired beat 4's entire scripted story; on beat 4 the adjust row opened the floor sheet carrying the
-   * wrong beat's coaching line.
+   * fired beat 4's entire scripted story; on beat 4 the adjust row opened the floor sheet mid-beat.
+   * (Round 5 wrote that second one as opening the sheet "carrying the wrong beat's coaching line". It
+   * cannot: `coachLine` resolves off the CURRENT index and only beat 3 declares a `coach`, so on beat 4
+   * the sheet opens with no coaching line at all. The defect was real, the symptom was invented — worth
+   * recording, because a narrated symptom is exactly what a later reader takes on trust.)
    *
-   * Fixed HERE rather than at each control because it had already been patched one member at a time —
-   * More, then the tabs, then the forecast link, one per audit round — while the class stayed open. The
-   * wrapper that marks a coachable subject is the one place that knows both which controls exist and
-   * which one the beat means, and the card stays unaware of the walkthrough (3.5.3.3.1).
+   * ⚠️ SCOPE — read this before trusting it. Round 5 introduced this and claimed it "covers every current
+   * and future coached control at once". It covers every control that is a `TutorialTarget`, which today
+   * is two: the attestation and the adjust row. The other leaks round 5 listed in the same paragraph —
+   * the hero's Edit-paycheck / Add-windfall sheets and the action-list toggles — are ordinary Today
+   * controls, not coached subjects, so this wrapper structurally cannot reach them. That fix belongs to
+   * the SCREEN's `screenReachable` fence, not here. Recording the boundary because the claim of totality
+   * is precisely what stops the next reviewer from checking: round 5 committed the one-member fix inside
+   * the commit that condemned it, and the overstated comment is why it read as closed.
+   *
+   * Still fixed here rather than at each coached control, because that half HAD been patched one member
+   * at a time — More, then the tabs, then the forecast link, one per audit round. The wrapper that marks
+   * a coachable subject is the one place that knows both which coached controls exist and which one the
+   * beat means, and the card stays unaware of the walkthrough (3.5.3.3.1).
    */
   control?: boolean;
 }) {

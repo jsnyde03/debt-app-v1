@@ -9,13 +9,14 @@ import { CushionFloorSheet } from '@/components/plan/CushionFloorSheet';
 import { GuardianProofStrip } from '@/components/plan/GuardianProofStrip';
 import { RecoveryPlanSection } from '@/components/plan/RecoveryPlanSection';
 import { PremiumInvite } from '@/components/premium/PremiumInvite';
-import { TutorialTarget, useTutorialTargets } from '@/store/tutorialTargets';
+import { useTutorialSession } from '@/store/tutorialSession';
+import { TutorialTarget } from '@/store/tutorialTargets';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { GuardianBrief, GuardianProofOfWork, GuardianState, TightTopUp } from '@/store/guardianSelectors';
 import type { RecoveryPlan } from '@/store/recoverySelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-import { groupLabel } from '@/utils/a11y';
+import { a11yHidden, groupLabel } from '@/utils/a11y';
 
 const BAR_H = 14;
 /** The safety-net swatch matches the bar's tinted reserve zone (cushion color at this opacity).
@@ -116,17 +117,29 @@ export function PaydayGuardianCard({
   // Is a WALKTHROUGH running — not merely "is this sandbox money". The distinction matters because the
   // sandbox is designed to render WITHOUT the overlay (3.5.4's demo mode, 3.5.7's web demo), and fences
   // keyed on `isExample` would follow it there: a link rendered in full accent colour, doing nothing on
-  // tap and invisible to screen readers, with no walkthrough on screen to explain why. `activeId` is
-  // published by the coached screen and is null the moment no beat is active.
-  const inWalkthrough = !!useTutorialTargets()?.activeId;
+  // tap and invisible to screen readers, with no walkthrough on screen to explain why.
+  //
+  // Read from the SESSION, not from the registry's `activeId`. `activeId` is published by an effect in
+  // the coached screen, so it is null for the opening frame(s) of every beat — this fence was strictly
+  // weaker than the `isExample` predicate it replaced, opening a window on each beat change. "A session
+  // is running" is knowable synchronously and is what this actually means.
+  const inWalkthrough = useTutorialSession((s) => s.active);
 
   // The card's tail, in render order: … attest → adjust → replay → proof strip → forecast. Only a 44pt
   // link row at the END needs the bottom spacer (its label is vertically centred, so it leaves less
   // visual space below it than the gaps above it). Mirrors the render conditions below exactly — if one
   // of those moves, this moves with it.
+  //
+  // Round 6: the walk USED TO START AT `adjust`, silently skipping the attestation — the first member
+  // its own comment names, and a 44pt `styles.row` exactly like the other three. Two audit lenses then
+  // disagreed about whether the gap was reachable (it needs at-risk-or-stale to suppress adjust while
+  // the attestation still renders, which `recovery` probably precludes). Neither answer is worth
+  // carrying: the argument only exists because the expression didn't say what the comment said, so the
+  // expression now walks the whole tail and the question is closed either way.
   const showProofStrip = isPremium && !stale && brief.state === 'clear' && !!proofOfWork;
   const showForecast = isPremium && !!onSeeForecast && !stale && !brief.pausedDeploy;
-  const endsOnRow = showForecast || (!showProofStrip && (!!onReplayTutorial || showAdjust));
+  const showAttest = isPremium && !recovery && !topUp && !!attestation?.show;
+  const endsOnRow = showForecast || (!showProofStrip && (!!onReplayTutorial || showAdjust || showAttest));
 
   // [C4] ONE source for the attestation control's words: the visible Text renders it and the
   // `accessibilityLabel` is it. Two hand-written strings is how a label drifts from its own control.
@@ -248,17 +261,17 @@ export function PaydayGuardianCard({
         </View>
         </TutorialTarget>
         {/* Your line (the floor) is a reference marker, not a flow amount, so it sits below the amounts as
-            a keyed sub-line (the vertical tick matches the floor line drawn in the bar). */}
-        {/* Margin on the target, not the child — same measurement reason as `barGroup` above. */}
-        <TutorialTarget id="guardian-line" style={styles.lineGroup}>
-        <View
-          style={styles.lineKeyRow}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants">
+            a keyed sub-line (the vertical tick matches the floor line drawn in the bar).
+            Round 6: this was wrapped in `<TutorialTarget id="guardian-line">` — a coached subject NO BEAT
+            COACHES, flagged in round 1 §F and still shipping five rounds later. It cost every non-tutorial
+            user an extra non-collapsable View plus an `onLayout`→`invalidate` on every render of the
+            flagship card. It survived because the test that checks "every beat points at a registered
+            subject" compares against a hand-maintained literal list which still contained the id — see
+            `spotlight.test.ts`, now derived from source so a stale id can't hide in it again. */}
+        <View style={[styles.lineKeyRow, styles.lineGroup]} {...a11yHidden(true)}>
           <View style={[styles.tick, { backgroundColor: c.text.primary }]} />
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{money(brief.floor)} · Your line</Text>
         </View>
-        </TutorialTarget>
 
         {/* The Guardian's voice — one short line for the states where it carries weight; the calm
             clear/tight reads are told by the title + the stats, so their paragraph is dropped. */}
@@ -322,7 +335,7 @@ export function PaydayGuardianCard({
       {/* §2.0.c (2.4.11.4c) — while a discovery safety net is held, let an organized user confirm their bills.
           MF.2 round-2: gated behind `!topUp` so at most one of recovery/top-up/attestation ever renders (a
           cold-start tight cycle can satisfy both top-up + attestation; the urgent line-holding move wins). */}
-      {isPremium && !recovery && !topUp && attestation?.show && attestLabel ? (
+      {showAttest && attestLabel ? (
         // 3.5.3.5.1 — interactive beat B's subject ([D10]). Spacing on the TARGET, label none: fourth
         // time this pattern has mattered, so it is now the default shape for any coachable control.
         <TutorialTarget id="guardian-reserve" style={styles.attest} control>
@@ -406,8 +419,7 @@ export function PaydayGuardianCard({
           accessibilityRole="button"
           accessibilityLabel="See your forecast"
           accessibilityHint="Opens your full cushion forecast"
-          accessibilityElementsHidden={inWalkthrough}
-          importantForAccessibility={inWalkthrough ? 'no-hide-descendants' : 'auto'}
+          {...a11yHidden(inWalkthrough)}
           style={styles.linkRow}>
           <Text style={[textStyles.subhead, styles.adjust, { color: c.accent.primary }]}>See your forecast →</Text>
         </Pressable>

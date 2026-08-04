@@ -14,7 +14,7 @@ import type { RequiredReconciliation } from '@core/debt/bulkMarkRequired';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { AppIcon } from '@/components/ui/AppIcon';
-import { SheetScrim } from '@/components/ui/SheetScrim';
+import { SheetBackdrop } from '@/components/ui/SheetBackdrop';
 import { sheetStyles } from '@/components/ui/sheet-styles';
 import { Button } from '@/components/ui/Button';
 import { Pill } from '@/components/ui/Pill';
@@ -207,10 +207,7 @@ export function PaydayCaptureSheet({
     <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={onBackdrop}>
       <GestureHandlerRootView style={sheetStyles.flex}>
         <KeyboardAvoidingView style={sheetStyles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <Animated.View style={[StyleSheet.absoluteFill, scrimStyle]} pointerEvents="none">
-            <SheetScrim />
-          </Animated.View>
-          <Pressable style={StyleSheet.absoluteFill} onPress={onBackdrop} accessibilityLabel="Close" />
+          <SheetBackdrop scrimStyle={scrimStyle} onPress={onBackdrop} />
           <Animated.View
             onLayout={onSheetLayout}
             style={[

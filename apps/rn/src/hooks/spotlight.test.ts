@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { scrollDelta } from './spotlightGeometry';
 import { TUTORIAL_STEPS } from '@/store/tutorialPath';
 
@@ -48,13 +51,35 @@ function run() {
 
   // Every beat must name a subject that some component actually registers — a typo here degrades to an
   // uncut scrim, which looks like "the spotlight is broken" rather than failing anywhere visible.
-  // Keep in step with the `TutorialTarget` ids actually rendered by `PaydayGuardianCard` / Today.
-  // 3.5.3.4 added `guardian-adjust` — and this assertion caught the beat re-point before any run did,
+  // 3.5.3.4 added `guardian-adjust`, and this assertion caught the beat re-point before any run did,
   // which is the whole reason it's here.
-  const REGISTERED = ['guardian-card', 'guardian-bar', 'guardian-line', 'guardian-adjust', 'guardian-reserve', 'today-ack'];
+  //
+  // Round 6: `REGISTERED` used to be a hand-written literal, and the comment above it said "keep in step
+  // with the ids actually rendered". That is not a test — it compared two literals, so DELETING EVERY
+  // `TutorialTarget` IN THE APP left it green, and it could never catch the one failure its own name
+  // promises (a subject whose component stopped rendering it). It also quietly carried `guardian-line`,
+  // an id no beat coached and no component needed, for five audit rounds. Now scanned from source, in
+  // the spirit of `tutorialPath.test.ts`'s announce guard and the repo's `lint:webkit` scan.
+  // Comments are stripped first, and that is not a detail: the very first run of this scan failed
+  // because it matched the `<TutorialTarget id="guardian-line">` written inside the COMMENT explaining
+  // that the target had just been removed. A scan that reads prose as code reports a target nobody
+  // renders — the mirror image of the literal list it replaces, and just as untrue.
+  const sources = ['../components/plan/PaydayGuardianCard.tsx', '../app/(tabs)/index.tsx']
+    .map((p) => readFileSync(join(__dirname, p), 'utf8'))
+    .join('\n')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+  const REGISTERED = [...sources.matchAll(/<TutorialTarget\s[^>]*?id="([^"]+)"/g)].map((m) => m[1]);
+  assert(REGISTERED.length > 0, 'the TutorialTarget scan found at least one registered subject (else the regex has drifted)');
   for (const step of TUTORIAL_STEPS) {
     assert(!step.target || REGISTERED.includes(step.target), `beat "${step.id}" points at a registered subject`);
     assert(!step.payoffTarget || REGISTERED.includes(step.payoffTarget), `beat "${step.id}" payoff points at a registered subject`);
+  }
+  // And the inverse, which is what would have caught `guardian-line`: nothing may register a subject the
+  // arc never points at. A target that no beat coaches is dead weight on a screen every user loads.
+  const COACHED = new Set(TUTORIAL_STEPS.flatMap((s) => [s.target, s.payoffTarget]).filter(Boolean));
+  for (const id of REGISTERED) {
+    assert(COACHED.has(id), `registered subject "${id}" is actually coached by some beat (no orphan targets)`);
   }
 
   console.log(`✅ spotlight geometry: ${passed} assertions passed.\n`);
