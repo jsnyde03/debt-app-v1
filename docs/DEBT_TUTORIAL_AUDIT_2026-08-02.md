@@ -486,3 +486,111 @@ clipping), `allowRealStoreWrite` (report-only, synchronous), the `?run=` gate (z
 **Gate:** typecheck + lint clean · suites green · **116/116 e2e, no flakes**.
 
 </details>
+
+## O. ROUND 6 — 2026-08-04 · ⛔ does not pass · the a11y fences were a no-op on WEB
+
+<details>
+<summary>~20 findings across 3 rotated lenses · fixed in <code>043a501</code> · first round run on Opus 5, not Fable</summary>
+
+**Model note:** rounds 1–5 ran on Fable 5. Jason's new standing rule (2026-08-04) caps Fable at the first
+**two** passes of any audit; every later pass runs on Opus 5. Round 6 is the first under it. The rule is
+cost-driven, and this gate is the evidence for it: the highest-value findings of rounds 3, 5 and 6 all came
+from **rotating the lens**, not from model tier — a new angle finds what a stronger model pointed the same
+direction does not.
+
+### The finding of the round: four rounds of a11y work never existed on web
+
+`react-native-web` **0.21.2**'s prop allowlist contains **neither** `accessibilityElementsHidden` **nor**
+`importantForAccessibility`, and `createDOMProps` drops unrecognised props silently. Every fence in this
+feature was written as that longhand pair, at six call sites — the coached screen, the `control` fence,
+`MoreButton`, the forecast link, the overlay scrim, all sheet backdrops. **On web, every one fenced
+nothing.** Round 5 had even added a comment asserting the opposite ("on web `accessibilityElementsHidden`
+becomes `aria-hidden`") as the justification for the FormSheet change.
+
+The suite stayed green through all of it **because nothing ever asked the document what it contained** —
+the same green-on-wrong-evidence shape as round 5's full-page-reload finding, and the fourth "test on wrong
+evidence" this gate has produced.
+
+**`aria-hidden` is the whole fix, and it makes the code smaller.** RN 0.85.3 expands `aria-hidden` into
+*both* native props itself (`View.js:69-74`), and RNW renders it as the DOM attribute — so ONE prop covers
+iOS, Android and web, where the hand-rolled pair covers only native. Centralised as `a11yHidden()`; the
+asymmetry is now written down where the next person will look.
+
+**Verified against the rendered document, not the diff**, and now pinned by a permanent e2e test: scripted
+beats produce a full-viewport `aria-hidden` region (351,348px² of a 351,348px² viewport); the two
+interactive beats deliberately do not.
+
+### The one-member fix, sixth round running — three more instances
+
+- **Sheet backdrops.** Round 5's "across all 8 sheets" counted FormSheet's *consumers*, not the class.
+  `AnimatedSheet` and `PaydayCaptureSheet` carried the identical labelled full-screen `"Close"` — reached by
+  `LogPaymentSheet`, `BillBreakdownSheet` and the payday capture flow. Hoisted to one `SheetBackdrop`.
+- **`measure()` had THREE call sites**, not the "two" the comment claimed *while fixing that same class*.
+  The layout subscriber had no retry **and demoted a good rect to null** (`sameRect(prev, null)` is false),
+  so one timed-out reflow — Dynamic Type, an iPad Split View drag, the card growing when Recovery renders,
+  i.e. exactly the events [E5]/[B4] added it for — permanently lost the ring and its cutout.
+- **The `control` fence reaches only coached subjects** — two controls. The hero's sheets and the action
+  toggles, which round 5 listed as leaks *in the same paragraph*, are ordinary Today controls the registry
+  structurally cannot reach. Closed with `TutorialFence` on **regions** rather than controls.
+
+### The two fences that disagreed
+
+The a11y fence keyed on `interactive`; the touch fence on `interactive && !payoffShowing`. So through beat
+4's whole payoff the screen was **sealed for fingers and open to VoiceOver**, and the ack's own "Got it" was
+reachable by exactly the double-tap `passThrough` exists to prevent — dismissing the payoff mid-narration
+for the one user who could not see it happen. Both now derive from one expression.
+
+### Accumulated complexity — the new angle
+
+**Verdict: proportionate in mechanism, over-built in one cluster and in narration.** Six of seven
+escape/misfire guards are load-bearing and were argued individually.
+
+**[D13] SETTLED (Jason 2026-08-04): delete the no-scrim escape hatch, and AUTO-ADVANCE.** The branch was
+the standing justification for three other mechanisms, and its premise ("better an unguarded screen than a
+trap") was false — the dock renders *after* the scrim, so Next/Back/Skip were always reachable under it.
+Jason rejected the framing that deleting it merely "degrades" a beat, and asked what was actually being
+sacrificed: **the user loses the ability to complete that interaction**, since the control sits behind the
+scrim. Neither the old behaviour (live screen, copy pointing at nothing) nor a plain deletion (fenced
+screen, copy they cannot act on) is honest. So `useSpotlight` now reports `unmeasurable` — set only where a
+measurement sequence has concluded and failed — and the screen moves the beat along. Removed with it:
+`interactiveTransit`, the whole `shell.settling` channel, MoreButton's dim. The scrim decision drops from a
+4-boolean product (16 combinations, 4 documented) to 2.
+
+**Dead code, removed:** `guardian-line` — a coached subject **no beat coaches**, flagged in round 1 §F and
+still shipping on the flagship card five rounds later, costing every non-tutorial user a non-collapsable
+View and an `onLayout`→`invalidate` per render · `realStoreSnapshot()`, zero callers.
+
+**Why `guardian-line` survived five rounds:** the test asserting "every beat points at a registered subject"
+compared two **hand-written literals** — *delete every `TutorialTarget` in the app and it still passes*, and
+it could never catch the failure its own name promises. Now scanned from source, plus the inverse assertion
+(**no orphan targets**) that would have caught it. The scan's first run failed on the comment describing the
+removal → it strips comments first: a scan that reads prose as code is untrue in the other direction.
+
+### Claims corrected
+
+The registry's "covers every current and future coached control" (it covers coached subjects; the boundary
+is now recorded, because a claim of totality is what stops the next reviewer checking) · "the wrong beat's
+coaching line" — beat 4 declares no `coach`, so the sheet opens with **none**; the defect was real, the
+symptom invented · "still true in `startTutorial`" — the deep link is the one member that never reaches it,
+so *neither* file sees all three entry points · the `endsOnRow` tail walk skipped the attestation its own
+comment named **first**; two lenses disagreed on whether the gap was reachable, so the expression now walks
+the whole tail and the argument is retired rather than adjudicated · the "NOT React state" constraint vs
+`activeId` · `inWalkthrough` keyed on `activeId`, which is null for the opening frame(s) of every beat, so
+the fence was strictly weaker than the `isExample` predicate it replaced.
+
+**~35 lines of post-mortem prose cut** from shared files — including **25 lines in `(tabs)/_layout.tsx`
+explaining a `tabBarButton` override that is not there**, in the file everyone touching navigation reads.
+
+### Disproved, and closed for future rounds
+
+- **`activeId` cannot be stranded.** The provider mounts only inside the session branch and the session
+  store is not persisted, so there is no path to a non-null `activeId` with no session running. Round 3's
+  stranded-`tutorialStep` shape does **not** recur here.
+- **Round 5's revert left no orphans** — `tabBarButtonTestID` predates the override and its consumers survive.
+- **The `control` fence is not redundant** with the screen fence: on the 5 scripted beats it is a no-op under
+  a no-op, but on the 2 interactive beats it is the only thing fencing the coached controls. Kept.
+
+**Gate:** typecheck + lint clean · app/scenario/regression suites green · **117/117 e2e, no flakes** (the
+117th is the new fence assertion) · arc swept across all 7 beats × both themes, every beat lands on a subject.
+
+</details>
