@@ -6,17 +6,10 @@ import type { useSheetPresentation } from '@/hooks/use-sheet-presentation';
 import { a11yHidden } from '@/utils/a11y';
 
 /**
- * The dim + tap-to-dismiss layer behind every sheet in the app.
+ * The dim + tap-to-dismiss layer behind every sheet.
  *
- * Hoisted out of the three sheet shells — `FormSheet`, `AnimatedSheet`, `PaydayCaptureSheet` — which
- * carried byte-identical copies of it. A fix then landed in exactly one: round 5 made the FormSheet
- * backdrop a11y-hidden and un-tabbable and recorded it as covering "all 8 sheets", which counted
- * FormSheet's CONSUMERS rather than the class. The other two shells (reached by `LogPaymentSheet`,
- * `BillBreakdownSheet` and the payday capture flow, a core Today path) still put a full-screen element
- * LABELLED "Close" in front of the sheet's own content — the first thing a VoiceOver user met, spanning
- * the whole display, before a single field. Sixth round of the same one-member-fix shape.
- *
- * One component now, so the next fix has one place to land.
+ * One component so a fix reaches all three shells — `FormSheet`, `AnimatedSheet`, `PaydayCaptureSheet` —
+ * rather than whichever one was open at the time.
  */
 export function SheetBackdrop({
   scrimStyle,

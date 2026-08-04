@@ -79,9 +79,14 @@ import { textStyles } from '@/theme/typography';
  * subject, which is the bug. Measuring the real header would mean threading a layout callback out of the
  * shared `Screen` component for every screen in the app to serve one overlay — a poor trade for the
  * precision it would buy, given the stage is a band and not a pixel.
+ *
+ * No upper clamp. A `Math.min(2, …)` here inverted that bias exactly where it mattered most: the real
+ * header is padding plus a 28pt title that keeps growing, so above ~2.6× the estimate fell short and the
+ * stage started inside the header — the failure this scaling exists to prevent, for the users who most
+ * need the coaching legible.
  */
 function headerHeight(): number {
-  return 56 * Math.min(2, Math.max(1, PixelRatio.getFontScale()));
+  return 56 * Math.max(1, PixelRatio.getFontScale());
 }
 
 /** 3.5.3.0 — module-level, so the acting store is PASSED in rather than reached for. */
@@ -682,7 +687,7 @@ export default function TodayScreen() {
  */
 function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: number }) {
   const insets = useSafeAreaInsets();
-  const { height: screenH } = useWindowDimensions();
+  const { width: screenW, height: screenH } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
   const offsetRef = useRef(0);
   // 3.5.3.5.7 — the overlay now lives above the navigator, so the two halves trade through the shell:
@@ -790,7 +795,20 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // exactly the double-tap this `passThrough` change exists to prevent, dismissing the payoff mid-
   // narration for the one user who couldn't see it happen. Two predicates for one fence is how that
   // gap opens; deriving both from this is how it stays shut.
-  const screenReachable = interactive && !payoffShowing;
+  //
+  // …and never while the published geometry is known-stale. A rotation or an iPad Split View drag
+  // re-lays out the whole screen: the overlay's origin updates on that layout pass, but the subject's
+  // rect only updates after a fresh measure completes. In between, the open hole sits at
+  // `newOrigin − oldSpotlight` — over whatever now occupies that region, which on iPad is plausibly the
+  // other column. Fencing until a rect lands under the current dimensions closes the window, and doing
+  // it HERE means the a11y fence closes with it rather than needing its own copy of the rule.
+  const dims = `${Math.round(screenW)}x${Math.round(screenH)}`;
+  const [settledDims, setSettledDims] = useState(dims);
+  useEffect(() => {
+    if (spotlight) setSettledDims(dims);
+  }, [spotlight, dims]);
+
+  const screenReachable = interactive && !payoffShowing && settledDims === dims;
   useEffect(() => {
     setPassThrough?.(screenReachable);
     return () => setPassThrough?.(false);
@@ -832,13 +850,10 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   }, [setActiveId, targetId]);
   useEffect(() => {
     setImpact?.(impact);
-    // Released on the way out, for the reason spelled out on `setSpotlight` above — the shell lives at
+    // Released on the way out, like every value this screen publishes to the shell. The shell lives at
     // the root for the app's lifetime and `end()` clears nothing in it, so a parked value survives the
-    // session. This one had no cleanup, so a user who moved their line, skipped, and came back later got
-    // beat 1's dock painting a `FloorImpactBar` ("frees $X") they never earned, until the next publish
-    // overwrote it a frame later. (All FIVE published values now release: spotlight, settling,
-    // passThrough, impact, and `dockH` in the overlay — the count in this comment was wrong twice, which
-    // is its own small lesson about asserting totals in prose.)
+    // session — an un-released `impact` had beat 1's dock painting a `FloorImpactBar` ("frees $X") the
+    // user never earned.
     return () => setImpact?.(null);
   }, [setImpact, impact?.before, impact?.after, impact?.freed]); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -174,7 +174,7 @@ export function TutorialOverlay({
           than a trap". Two things were wrong with that. The premise: the dock is a sibling rendered
           AFTER this, so Next/Back/Skip sit above the scrim and stay reachable — a full scrim was never a
           trap. And the cost: that one branch was the standing justification for three other mechanisms
-          (`interactiveTransit`, the whole `settling` channel, MoreButton's dim), and it made the scrim
+          (`interactiveTransit` and the `settling` channel), and it made the scrim
           decision a four-boolean product of which only a quarter was ever documented.
           A null rect already collapses the hole to nothing, i.e. full coverage, so "always render" needed
           no new code — it needed one condition deleted. What replaces the escape hatch is honest rather
@@ -468,5 +468,11 @@ const styles = StyleSheet.create({
   // `flexShrink` on both, so the scroller gives way to the nav row rather than the other way round.
   dockScroll: { flexGrow: 0, flexShrink: 1 },
   dockScrollContent: { gap: spacing.xs },
-  nav: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
+  // `flexWrap` because this row cannot shrink: Yoga defaults `flexShrink` to 0, `Button` carries fixed
+  // horizontal padding and its label has no `numberOfLines`, and the only elastic member is a `flex: 1`
+  // spacer that collapses to nothing. Past roughly AX2.5 on a 375pt screen the three controls exceed the
+  // dock's width and spill into its `overflow: 'hidden'`, taking Skip off-screen — the escape hatch, for
+  // the users most likely to want it. Round 2 fixed the VERTICAL clipping of this same row and nobody
+  // checked the other axis. Wrapping drops Skip onto its own line; the dock's height cap absorbs it.
+  nav: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm, flexWrap: 'wrap' },
 });

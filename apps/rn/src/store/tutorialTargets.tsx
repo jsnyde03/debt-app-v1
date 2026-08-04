@@ -27,6 +27,8 @@ import { View, type LayoutChangeEvent } from 'react-native';
  */
 
 import type { TargetRect } from '@/hooks/spotlightGeometry';
+import { useInert } from '@/hooks/use-inert';
+import { useTutorialSession } from '@/store/tutorialSession';
 import { a11yHidden } from '@/utils/a11y';
 
 export type { TargetRect };
@@ -74,13 +76,9 @@ export function TutorialTargetsProvider({ children }: { children: ReactNode }) {
       const node = nodes.current.get(id);
       if (!node?.measureInWindow) return resolve(null);
 
-      // `measureInWindow` is a callback into native with no failure path: if the view is detached
-      // between the lookup above and the native call, the callback can simply never fire and this
-      // promise never settles. That is not a hypothetical inconvenience — `useSpotlight` resets its
-      // `settling` flag inside the awaiting code, and an interactive beat renders a FULL scrim while
-      // settling. A dropped callback therefore seals the user away from the control the beat is asking
-      // them to use, with no way forward. A timeout converts an unresolvable promise into an honest
-      // "couldn't measure", which every caller already handles.
+      // `measureInWindow` is a callback into native with no failure path: a view detached between the
+      // lookup above and the native call never fires it, so this promise would never settle. The timeout
+      // turns that into an honest "couldn't measure", which every caller handles.
       let settled = false;
       const done = (rect: TargetRect | null) => {
         if (settled) return;
@@ -172,13 +170,25 @@ export function TutorialTarget({
   control?: boolean;
 }) {
   const targets = useTutorialTargets();
-  // Only when a session is actually running (`activeId` non-null) — outside one this is always false and
-  // costs nothing. Never fences the ACTIVE control, which is the whole point of the beat.
-  const fenced = !!control && !!targets?.activeId && targets.activeId !== id;
+  // Fail-CLOSED. Keyed on the session rather than on `activeId`, because `activeId` is published by an
+  // effect and is therefore null for the opening frames of every beat — keyed on it, a coached control
+  // was briefly unfenced on exactly the beats where the screen fence is open, which is the leak this
+  // prop exists to close. With no active subject yet, every coached control fences; the beat's own
+  // subject un-fences as soon as it is published. Outside a session there is no provider, so this is
+  // false and costs nothing.
+  const inWalkthrough = useTutorialSession((s) => s.active);
+  const fenced = !!control && inWalkthrough && targets?.activeId !== id;
+  // `aria-hidden` leaves the control tabbable on web — the third and last fence in this feature to need
+  // its tab-order half, alongside the screen fence and `TutorialFence`. See `useInert`.
+  const nodeRef = useRef<View>(null);
+  useInert(nodeRef, fenced);
   return (
     <View
       {...a11yHidden(fenced)}
-      ref={(node) => targets?.register(id, node)}
+      ref={(node) => {
+        nodeRef.current = node;
+        targets?.register(id, node);
+      }}
       // [E5] This used to claim it "re-registers on layout", and did no such thing — it forwarded the
       // caller's handler and nothing else, so a spotlight only ever re-measured when the beat's own
       // `revision` key changed. The claim was worth making TRUE rather than deleting: a ref callback

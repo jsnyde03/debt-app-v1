@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { scrollDelta } from './spotlightGeometry';
@@ -49,28 +49,29 @@ function run() {
   eq(scrollDelta(rect(300, 900), TOP, BOTTOM), 200, 'a subject taller than the stage aligns to the TOP and accepts overflow');
   eq(scrollDelta(rect(TOP, 500), TOP, BOTTOM), 0, 'a subject exactly the stage height is already framed');
 
-  // Every beat must name a subject that some component actually registers — a typo here degrades to an
-  // uncut scrim, which looks like "the spotlight is broken" rather than failing anywhere visible.
-  // 3.5.3.4 added `guardian-adjust`, and this assertion caught the beat re-point before any run did,
-  // which is the whole reason it's here.
+  // Beats and rendered subjects must match in BOTH directions: a beat pointing at nothing degrades to an
+  // uncut scrim (silent), and a subject no beat coaches is dead weight on a screen every user loads.
   //
-  // Round 6: `REGISTERED` used to be a hand-written literal, and the comment above it said "keep in step
-  // with the ids actually rendered". That is not a test — it compared two literals, so DELETING EVERY
-  // `TutorialTarget` IN THE APP left it green, and it could never catch the one failure its own name
-  // promises (a subject whose component stopped rendering it). It also quietly carried `guardian-line`,
-  // an id no beat coached and no component needed, for five audit rounds. Now scanned from source, in
-  // the spirit of `tutorialPath.test.ts`'s announce guard and the repo's `lint:webkit` scan.
-  // Comments are stripped first, and that is not a detail: the very first run of this scan failed
-  // because it matched the `<TutorialTarget id="guardian-line">` written inside the COMMENT explaining
-  // that the target had just been removed. A scan that reads prose as code reports a target nobody
-  // renders — the mirror image of the literal list it replaces, and just as untrue.
-  const sources = ['../components/plan/PaydayGuardianCard.tsx', '../app/(tabs)/index.tsx']
-    .map((p) => readFileSync(join(__dirname, p), 'utf8'))
+  // Scanned from source over all of `src`, never a literal list — a hand-maintained list of ids or of
+  // files cannot see what moved. Comments are stripped, or prose about a target counts as one.
+  const SRC = join(__dirname, '..');
+  const sources = readdirSync(SRC, { recursive: true, encoding: 'utf8' })
+    .filter((f) => f.endsWith('.tsx'))
+    .map((f) => readFileSync(join(SRC, f), 'utf8'))
     .join('\n')
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/\/\/.*$/gm, '');
-  const REGISTERED = [...sources.matchAll(/<TutorialTarget\s[^>]*?id="([^"]+)"/g)].map((m) => m[1]);
-  assert(REGISTERED.length > 0, 'the TutorialTarget scan found at least one registered subject (else the regex has drifted)');
+  // `[^<]` not `[^>]`: a prop can contain `>` (an arrow-function `onLayout` sits between the tag name and
+  // `id`), and `[^>]` cannot cross it — such a target was matched by neither pattern and vanished
+  // silently. Bounded by the next `<` so it still can't run into a later element.
+  const REGISTERED = [...sources.matchAll(/<TutorialTarget\b[^<]*?\sid="([^"]+)"/g)].map((m) => m[1]);
+  // A PARTIAL miss is the silent one. `length > 0` only catches total drift; finding 5 of 6 leaves the
+  // orphan assertion below quietly weaker while still reporting green.
+  const OPEN_TAGS = (sources.match(/<TutorialTarget\b/g) ?? []).length;
+  assert(
+    REGISTERED.length === OPEN_TAGS,
+    `every <TutorialTarget> yielded an id (${REGISTERED.length}/${OPEN_TAGS}) — else the regex has drifted`,
+  );
   for (const step of TUTORIAL_STEPS) {
     assert(!step.target || REGISTERED.includes(step.target), `beat "${step.id}" points at a registered subject`);
     assert(!step.payoffTarget || REGISTERED.includes(step.payoffTarget), `beat "${step.id}" payoff points at a registered subject`);

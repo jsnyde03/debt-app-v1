@@ -24,7 +24,10 @@ import { scrollDelta, type TargetRect } from './spotlightGeometry';
  * un-cut scrim, which is a plain walkthrough rather than a broken one.
  */
 
-const SETTLE_MS = 380; // a beat longer than the scroll animation, so the re-measure reads the end state
+/** A beat longer than the scroll animation, so the re-measure reads the end state. Under Reduce Motion
+ *  there IS no animation — the scroll is instantaneous — and waiting anyway holds a fully-closed scrim
+ *  over the screen for 380ms on every beat that scrolls, which reads as a flash rather than as travel. */
+const SETTLE_MS = 380;
 /** ~7 frames' grace before a null measure is believed — see `measureOnce`. */
 const RETRY_MS = 120;
 
@@ -123,7 +126,7 @@ export function useSpotlight({
           setSettling(false);
           setUnmeasurableFor(settled === null && !targets.has(targetId) ? targetId : null);
         })();
-      }, SETTLE_MS);
+      }, reduceMotion ? 0 : SETTLE_MS);
     })();
 
     return () => {

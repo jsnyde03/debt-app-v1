@@ -82,6 +82,21 @@ function clearStoryTimers() {
   storyTimers = [];
 }
 
+/**
+ * Cancel the scripted story when the app leaves the foreground.
+ *
+ * Beat 4's story is a chain of `setTimeout`s spaced to be READ — a surprise lands, the net absorbs it,
+ * three paydays roll. iOS suspends those timers on background and releases them together on resume, so
+ * without this the whole sequence fires in one tick: the user returns to a jump-cut, or to a story that
+ * played out entirely behind the lock screen, with `announce()` narrating it to VoiceOver over the top.
+ *
+ * Cancelled rather than deferred, deliberately. `goTo` re-seeds the beat and restores the attestation
+ * control, so the user simply taps again; resuming half a narration is worse than restarting it.
+ */
+export function suspendStoryOnBackground(): void {
+  clearStoryTimers();
+}
+
 export const tutorialSession = createStore<TutorialSessionState>((set, get) => ({
   active: false,
   run: 'free',

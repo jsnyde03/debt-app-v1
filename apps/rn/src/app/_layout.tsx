@@ -17,6 +17,7 @@ import { addNotificationResponseListener, registerNotificationCategories } from 
 import { initErrorReporting, wrapRoot } from '@/utils/sentry';
 import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
 import { TutorialCoach } from '@/components/plan/TutorialCoach';
+import { suspendStoryOnBackground } from '@/store/tutorialSession';
 import { TutorialShellProvider } from '@/store/tutorialShell';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
@@ -85,6 +86,9 @@ function RootLayout() {
       if (next === 'background' || next === 'inactive') {
         try {
           flushPendingSave();
+          // The walkthrough's scripted story is timer-driven; suspended timers all fire at once on
+          // resume. See `suspendStoryOnBackground`.
+          suspendStoryOnBackground();
         } catch {
           /* best-effort flush */
         }
