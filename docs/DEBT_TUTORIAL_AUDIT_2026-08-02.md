@@ -889,6 +889,25 @@ Lens D#8 — `use-inert`'s claim that RNW gives every Pressable `tabIndex: 0` (i
 Not fixed, and **§Q never mentioned it**. MoreButton's tab-order fence was resting on `disabled` rather
 than on the fence. Both fixed. This failed half (a) of the bar on its own.
 
+### ✅ One lens CONVERGED — and it was the riskiest surface
+
+**Lens 1 returned PASS**, the first in nine rounds. Its territory was the [D16] deletion and the
+build-time invariant that replaced it — ~150 lines removed and a runtime mechanism swapped for a proof,
+the single biggest structural change in the gate. All three of its round-8 findings verified fixed;
+nothing above MINOR. It went looking for the vacuity too: probes reproducing the real staging path across
+all 14 beat × scenario-shape combinations, and it could not make the invariant pass while the feature was
+broken. **The change most likely to spawn its own defects didn't.**
+
+**⇒ Convergence is per-SURFACE, not per-round**, and that is the better unit. Converged: the
+deleted-path / invariant surface. Not converged: the new render mechanism · the remaining R8 fixes · the
+test evidence. Round 10 narrows to the residual — which is the standing rule's own "scope the next pass
+to the section that hasn't converged", i.e. narrowing, **not** moving goalposts.
+
+⚠️ Two caveats on banking it: lens 1 judged the **pre-fold** tree, so round 10 owes a light check that
+its folded minors landed; and two of its minors are deliberately **unfolded and still open** — the host's
+`guardian-card` render gate isn't modelled in the predicate, and the invariant seeds the sandbox without
+`maxGenuineCycles` / `withProjectedBalances`. Both LOW, both verified not-live-broken.
+
 ### What the locked round bought — and what the count does NOT mean
 
 **(Jason, 2026-08-05)** *"I have no issues with 10 rounds of an audit if it's finding legitimate issues
