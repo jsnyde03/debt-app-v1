@@ -25,11 +25,15 @@ appId: com.jasonsnyder.debtplanner
 # demonstrably existed when this flow started (the tap below opened its sheet), and `DebtSheet` has no
 # delete control at all, so something between here and the end of this flow destroyed it.
 #
-# The leading suspect is flow 03: it long-presses a row to open the native context menu, asserts that
-# "Edit" and "Delete" are both present, and then ENDS — leaving a destructive menu on screen for whatever
-# runs next. These three assertions localise it: if the count is already wrong HERE, the damage happened
-# before this flow and 03 is the culprit; if it is right here and wrong at the end, it is this flow's own
-# journey. Remove them once the answer is in.
+# ⚠️ Flow 03 was the obvious suspect — it leaves a native context menu open with a destructive "Delete"
+# on it — and the evidence RULES IT OUT: 03 runs before this flow, and the row tap below succeeded,
+# which means Visa still existed at that point. So the loss happened INSIDE this flow, after the row tap,
+# where the only action taken is opening the payoff schedule. That points at the app rather than at test
+# hygiene, which is the more serious of the two readings.
+#
+# These assertions exist to keep that honest rather than to confirm it: if the count is already wrong
+# HERE, the damage predates this flow after all and the reasoning above is wrong. If it is right here and
+# wrong at the end, viewing a payoff schedule destroys a debt. Remove them once the answer is in.
 - assertVisible: ".*Store Card.*"
 - assertVisible: ".*Visa.*"
 - assertVisible: ".*Car Loan.*"
