@@ -25,6 +25,7 @@ export function Slider({
   max = 100,
   step = 1,
   accessibilityLabel,
+  testID,
 }: {
   value: number;
   onChange: (value: number) => void;
@@ -32,6 +33,11 @@ export function Slider({
   max?: number;
   step?: number;
   accessibilityLabel?: string;
+  /** For the native (Maestro) suite. The root is `accessible`, which collapses its descendants into one
+   *  composite element on iOS — and a composite's LABEL is not reliably matchable there, which is why the
+   *  tab bar needed ids for the same reason. A drag is the one gesture the web suite cannot really
+   *  perform, so the native flow needs a dependable handle on this control. */
+  testID?: string;
 }) {
   const c = useAppColors();
   const [w, setW] = useState(0);
@@ -78,6 +84,7 @@ export function Slider({
         // premium user's cushion line unadjustable. Found by the 3.5.3.9 audit; a previous review had
         // seen the three props below and concluded the capability was met without checking this one.
         accessible
+        testID={testID}
         accessibilityRole="adjustable"
         accessibilityLabel={accessibilityLabel}
         // `text` too: `now` alone is spoken as a bare number ("200"), which is meaningless for money.

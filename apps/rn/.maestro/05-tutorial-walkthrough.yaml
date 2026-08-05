@@ -1,0 +1,161 @@
+# Maestro E2E — the Guardian WALKTHROUGH on the real iOS renderer (3.5.6b).
+#
+# WHY THIS FLOW EXISTS. The walkthrough is the most heavily audited feature in v1.7 (gate 3.5.3.9), and
+# every round of that gate was judged by a web Playwright suite. Round 9 then found that three of its
+# five blocking defects sat exactly where a web harness is structurally blind:
+#   - the scrim's rounded hole is built from a 2000pt border, which react-native-web draws as CSS and iOS
+#     draws by RASTERISING a multi-thousand-point bitmap unless the view clips (see
+#     `scripts/check-rn-style-divergence.ts`). If that allocation fails, the dark does not render at all;
+#   - `suspendStoryOnBackground` runs on a real iOS lifecycle transition, which the web suite could only
+#     approximate with a `visibilitychange` event;
+#   - the one interactive gesture in the arc is an RNGH drag, which nothing automated has ever driven.
+# Screenshots here are taken on the REAL renderer, so the visual class the gate has repeatedly missed
+# (corner geometry, the dock's frost, the ring's position) is finally observable in CI artifacts.
+#
+# WHAT IT DELIBERATELY DOES NOT PROVE. The simulator uses the Mac's memory, so a large allocation may
+# simply succeed here and say nothing about an iPhone; haptics are unobservable anywhere but a hand; and
+# VoiceOver interaction is device-QA-owed. This flow narrows the blind spot — it does not close it.
+#
+# Depends on 01 having run first (Maestro runs flows in filename order → the demo data persists), exactly
+# like flows 02–04. The demo user is not premium, so this exercises the FREE run — which is the more
+# valuable one: its finale is the conversion-honesty beat, and [D9] means all seven beats render
+# identically for both audiences anyway.
+#
+# ⚠️ FIRST-RUN TUNING, like every other flow here needed. Three things are most likely to want one
+# adjustment, and each is called out at its step: the coaching dock's text may be a composite a11y
+# element (so `Next` may need a regex or an id), the RNGH slider may need coordinate-based `swipe`
+# rather than element-relative, and `pressKey: Home` is the least certain step in the file — see BEAT 3B.
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: false
+
+# ── Entry ────────────────────────────────────────────────────────────────────────────────────────
+# Via the Guardian card's own replay link rather than the invitation card: the invitation disappears
+# once seen, so it is not a stable target across re-runs, while "How this works" is always present.
+# The link sits near the card's bottom, so scroll it in first (the flow-02 idiom).
+- scrollUntilVisible:
+    element:
+      text: "How this works"
+    direction: DOWN
+- tapOn: "How this works"
+
+# The overlay mounted. `tutorial-progress` is the dock's step counter — the one element that is present
+# on every beat and states which beat we are on, so every assertion below hangs off it.
+- assertVisible:
+    id: "tutorial-overlay"
+- assertVisible:
+    text: ".*Step 1 of 7.*"
+
+# ── BEAT 1 · the whole card ──────────────────────────────────────────────────────────────────────
+# Written into `maestro-debug/` because the workflow already uploads that whole directory as an
+# artifact — no CI change needed to get these out.
+- takeScreenshot: maestro-debug/tut-beat-1
+# The spotlight ring is drawn only when a subject was measured. Its ABSENCE on a beat that declares a
+# subject is the "beat lands on nothing" failure the web arc-sweep was built to catch; here it also
+# catches the iOS-only case where the scrim's rasterised fill fails and the highlight layer is wrong.
+- assertVisible:
+    id: "tutorial-spotlight"
+
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 2 of 7.*"
+- takeScreenshot: maestro-debug/tut-beat-2
+- assertVisible:
+    id: "tutorial-spotlight"
+
+# ── BEAT 3 · INTERACTIVE — the floor drag ────────────────────────────────────────────────────────
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 3 of 7.*"
+- takeScreenshot: maestro-debug/tut-beat-3
+
+# The scrim is cut around the coached control and the tap must reach the REAL control underneath. If the
+# cutout's hit geometry were wrong on native, this tap would be swallowed by the scrim and the sheet
+# would never open — which is the whole point of doing this on the simulator rather than in a browser.
+- tapOn: ".*Adjust your line.*"
+- assertVisible:
+    id: "floor-sheet-coach"
+
+# The one genuinely gestural moment in the arc. The slider is a react-native-gesture-handler view, so a
+# tap may not register a value change the way it does under RNW — hence a real swipe across the track.
+# ⚠️ FIRST-RUN TUNING: if this does not move the value, replace with a coordinate `swipe` using
+# `startRelative`/`endRelative` percentages of the screen.
+- swipe:
+    from:
+      id: "cushion-floor-slider"
+    direction: LEFT
+
+- tapOn: "Save"
+# The payoff renders ONLY when the value actually changed — it is deliberately withheld for a no-op
+# save. So this assertion doubles as proof that the swipe above really moved the line.
+- assertVisible:
+    id: "floor-impact"
+- takeScreenshot: maestro-debug/tut-beat-3-payoff
+
+# ── BEAT 3B · the payoff must survive BACKGROUNDING ──────────────────────────────────────────────
+# Round 9's MAJOR: `suspendStoryOnBackground` re-staged unconditionally, so a glance at Notification
+# Center reset the line the user had just dragged and discarded the payoff they earned. iOS emits
+# `inactive` for Notification Center, the app switcher and an incoming call — routine events. The web
+# suite could only fire a `visibilitychange`; this is the real transition.
+#
+# ⚠️ FIRST-RUN TUNING — the least certain step in this file. If `pressKey: Home` is unsupported by the
+# iOS driver, the fallback is a `runScript` shelling to
+# `xcrun simctl launch booted com.apple.springboard`, and if that also fails, DELETE this block and
+# ledger the check as device-QA-owed rather than leaving a flow that cannot run.
+- pressKey: Home
+- launchApp:
+    clearState: false
+- assertVisible:
+    text: ".*Step 3 of 7.*"
+- assertVisible:
+    id: "floor-impact"
+
+# ── BEAT 4 · INTERACTIVE — the attestation, and the scripted story ───────────────────────────────
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 4 of 7.*"
+- takeScreenshot: maestro-debug/tut-beat-4
+- tapOn:
+    text: ".*regular bills entered.*"
+# The story is a chain of timers spaced to be read (a surprise lands, the net absorbs it, paydays roll),
+# so the release ack takes several seconds to arrive. It renders in Today's ack slot at the TOP of the
+# screen — the beat's payoff target.
+- extendedWaitUntilVisible:
+    element:
+      text: ".*safety net.*"
+    timeout: 15000
+- takeScreenshot: maestro-debug/tut-beat-4-payoff
+
+# ── BEATS 5–7 · the at-risk card, the reassurance, the hand-back ─────────────────────────────────
+# Beat 5 is the one that puts the card into trouble, and it is where the ring is drawn against the
+# TALLEST subject — the round-8 defect (the highlight drawn straight across the coaching dock) lived
+# exactly here, and was judged only on web. This screenshot is the native counterpart.
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 5 of 7.*"
+- takeScreenshot: maestro-debug/tut-beat-5
+
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 6 of 7.*"
+- takeScreenshot: maestro-debug/tut-beat-6
+
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 7 of 7.*"
+- takeScreenshot: maestro-debug/tut-beat-7
+# The hand-back names what premium did, for a free user. This is the conversion-honesty beat and the one
+# place [D9] would become a bait-and-switch if the copy were vague.
+- assertVisible:
+    text: ".*example money.*"
+
+# ── Exit — back to the user's OWN plan, with no walkthrough residue ──────────────────────────────
+- tapOn: "Finish"
+- assertNotVisible:
+    id: "tutorial-overlay"
+# The Example marker must be gone: the screen is the user's real money again. Its persistence after the
+# hand-back would be the honesty layer failing in the direction that matters.
+- assertNotVisible:
+    text: ".*Example money.*"
+- takeScreenshot: maestro-debug/tut-handback

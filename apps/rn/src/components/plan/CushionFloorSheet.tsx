@@ -60,7 +60,7 @@ export function CushionFloorSheet({
           </Text>
         ) : null}
         <Text maxFontSizeMultiplier={1.4} style={[textStyles.heroNumber, styles.value, { color: c.text.primary }]}>${value.toLocaleString('en-US')}</Text>
-        <Slider value={value} onChange={setValue} min={0} max={500} step={25} accessibilityLabel="Cushion line amount" />
+        <Slider value={value} onChange={setValue} min={0} max={500} step={25} accessibilityLabel="Cushion line amount" testID="cushion-floor-slider" />
         <View style={styles.scaleRow}>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>$0</Text>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>$500</Text>
