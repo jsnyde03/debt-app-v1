@@ -1,0 +1,98 @@
+# Maestro E2E — the walkthrough's GESTURAL and LIFECYCLE checks (3.5.6b).
+#
+# Split out of `05-tutorial-walkthrough.yaml` deliberately. Maestro validates an ENTIRE FILE before
+# executing any of it, so one unsupported command stops every step in that file — which means risk
+# ordering only works at FILE granularity, not step granularity. 05 is therefore restricted to commands
+# flows 01-04 already prove, so its seven beat screenshots always land; everything below uses a command
+# or option this repo has never exercised against this Maestro build, so it lives here where a parse
+# failure costs this flow alone.
+#
+# Established the expensive way, three CI cycles at ~40 minutes: this build rejects
+# `extendedWaitUntilVisible` (unknown command) and `timeout` on assertions (unknown property).
+#
+# ⚠️ IF THIS FLOW FAILS TO PARSE, the offending command is unsupported here. Do NOT weaken it into
+# something that passes — each check below is written to fail for a real reason, and the two most likely
+# rewrites are both traps, called out at their steps. Delete the block and ledger the check as
+# device-QA-owed instead. An assertion that cannot fail is worse than an absent one: it reports
+# confidence nobody earned. This gate has already shipped four of those.
+#
+# Runs after 05 in filename order, so the tutorial has been seen and the demo data is in place.
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: false
+
+# ── Re-enter the arc and reach beat 3 ───────────────────────────────────────────────────────────
+- scrollUntilVisible:
+    element:
+      text: "How this works"
+    direction: DOWN
+- tapOn: "How this works"
+- tapOn: "Next"
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 3 of 7.*"
+
+# ── The coached control must be REACHABLE through the cutout ────────────────────────────────────
+# The scrim covers the screen and is cut around this control; the tap has to reach the real control
+# underneath. If the cutout's hit geometry were wrong on native, the tap would be swallowed and the sheet
+# would never open — precisely the class a browser cannot test, and the reason this runs on a simulator.
+- tapOn: ".*Adjust your line.*"
+- assertVisible:
+    id: "floor-sheet-coach"
+
+# ── The RNGH drag — the one real gesture in the arc ─────────────────────────────────────────────
+# The slider is a react-native-gesture-handler view. Nothing automated has ever driven it: the web suite
+# clicks a point on the track, which is not the same code path as a pan.
+# ⚠️ FIRST-RUN TUNING: if `swipe` with `from:` is unsupported or does not move the value, the fallback is
+# a coordinate swipe (`start: 80%, 60%` / `end: 20%, 60%`). Do NOT fall back to a plain `tapOn` — that
+# would silently stop testing the gesture while still going green.
+- swipe:
+    from:
+      id: "cushion-floor-slider"
+    direction: LEFT
+
+- tapOn: "Save"
+# The payoff renders ONLY when the value actually changed — it is deliberately withheld for a no-op save.
+# So this assertion doubles as proof that the swipe above genuinely moved the line, which is why it is
+# the right assertion to make here rather than reading the slider's value back.
+- assertVisible:
+    id: "floor-impact"
+- takeScreenshot: maestro-debug/tut-beat-3-payoff
+
+# ── The payoff must survive BACKGROUNDING ───────────────────────────────────────────────────────
+# Round 9's MAJOR: `suspendStoryOnBackground` re-staged the beat unconditionally, so a glance at
+# Notification Center reset the line the user had just dragged and discarded the payoff they earned. iOS
+# emits `inactive` for Notification Center, the app switcher and an incoming call — routine events, in
+# the one feature whose whole thesis is that the app never moves your money on its own. The web suite
+# could only approximate this with a `visibilitychange`; this is the real transition.
+#
+# `stopApp: false` is LOAD-BEARING. `launchApp` stops the app first by default, which restarts the JS
+# runtime and destroys the very session this checks survives — the assertion would then be testing a cold
+# start and failing for a reason unrelated to the defect.
+# ⚠️ Do NOT "fix" a failure here by dropping `stopApp: false`. That converts this into a cold-start test
+# that passes while proving nothing about the defect it was written for.
+- pressKey: Home
+- launchApp:
+    stopApp: false
+- assertVisible:
+    text: ".*Step 3 of 7.*"
+- assertVisible:
+    id: "floor-impact"
+- takeScreenshot: maestro-debug/tut-background-return
+
+# ── The scripted story (beat 4) ─────────────────────────────────────────────────────────────────
+# The attestation tap starts a chain of timers spaced to be READ — a surprise lands, the net absorbs it,
+# paydays roll — and the release ack renders in Today's ack slot at the TOP of the screen, the beat's
+# declared payoff target.
+#
+# NO assertion on the ack, deliberately. It arrives several seconds later, and this build has no way to
+# wait for it: `extendedWaitUntilVisible` is absent and `timeout` is not a valid assertion property. An
+# assertion that races a timed sequence is worse than none — it goes green or red on machine speed, and
+# teaches everyone to re-run until it passes. The screenshot is the evidence; a human reads it.
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 4 of 7.*"
+- tapOn:
+    text: ".*regular bills entered.*"
+- takeScreenshot: maestro-debug/tut-beat-4-attested

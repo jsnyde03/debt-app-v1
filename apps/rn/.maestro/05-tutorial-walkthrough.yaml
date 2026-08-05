@@ -16,16 +16,18 @@
 # simply succeed here and say nothing about an iPhone; haptics are unobservable anywhere but a hand; and
 # VoiceOver interaction is device-QA-owed. This flow narrows the blind spot — it does not close it.
 #
-# ── STRUCTURE, and why it is in two phases ──────────────────────────────────────────────────────
-# PHASE 1 walks all seven beats and screenshots each, using ONLY the commands flows 01–04 already prove
-# work against this Maestro build: launchApp, scrollUntilVisible, tapOn, assertVisible, assertNotVisible.
-# PHASE 2 then does everything gestural and timing-dependent — the drag, the scripted story, the
-# background/foreground cycle — by re-entering the arc.
+# ── SCOPE — proven commands only, and why that boundary has to be a FILE ────────────────────────
+# Maestro validates an ENTIRE FILE before executing any of it, so one unsupported command stops every
+# beat in that file from running. Ordering the risky steps last WITHIN a file therefore buys nothing —
+# the boundary must be the file itself. Learned across three CI cycles at ~40 minutes each: this build
+# rejects `extendedWaitUntilVisible` (unknown command) and `timeout` on assertions (unknown property),
+# and each rejection cost all seven beats.
 #
-# The split is deliberate risk ordering, learned the expensive way: `extendedWaitUntilVisible` is NOT in
-# this Maestro build (it fails the whole file at parse time, before a single beat runs), and a CI cycle
-# here is ~40 minutes. Phase 1 therefore depends on nothing uncertain, so the screenshots — the artifact
-# this flow exists to produce — are banked before anything that might not be supported is attempted.
+# So this file uses ONLY what flows 01-04 already prove works here — launchApp/clearState,
+# scrollUntilVisible, tapOn, assertVisible, assertNotVisible — plus `takeScreenshot`, which is the one
+# thing this flow exists to produce. Everything gestural or timing-dependent (the drag, the
+# background/foreground cycle, the scripted story) lives in `06-tutorial-interactions.yaml`, where a
+# parse failure costs that flow alone and leaves these screenshots intact.
 #
 # Depends on 01 having run first (Maestro runs flows in filename order → the demo data persists), exactly
 # like flows 02–04. The demo user is not premium, so this exercises the FREE run — which is the more
@@ -105,82 +107,3 @@ appId: com.jasonsnyder.debtplanner
 - assertNotVisible:
     text: ".*Example money.*"
 - takeScreenshot: maestro-debug/tut-handback
-
-# ══ PHASE 2 · the gestural + timing-dependent checks ════════════════════════════════════════════
-# Everything below uses a command or option that flows 01–04 do not exercise, so any of it may need
-# first-run tuning. It runs LAST on purpose: phase 1's artifacts are already on disk.
-- scrollUntilVisible:
-    element:
-      text: "How this works"
-    direction: DOWN
-- tapOn: "How this works"
-- tapOn: "Next"
-- tapOn: "Next"
-- assertVisible:
-    text: ".*Step 3 of 7.*"
-
-# The scrim is cut around the coached control and this tap must reach the REAL control underneath. If the
-# cutout's hit geometry were wrong on native, the tap would be swallowed and the sheet would never open —
-# which is the whole reason for running this on a simulator rather than in a browser.
-- tapOn: ".*Adjust your line.*"
-- assertVisible:
-    id: "floor-sheet-coach"
-
-# The one genuinely gestural moment in the arc. The slider is a react-native-gesture-handler view, so a
-# tap may not register a value change the way it does under RNW — hence a real swipe.
-# ⚠️ FIRST-RUN TUNING: if this does not move the value, replace with a coordinate swipe
-# (`start: 80%, 60%` / `end: 20%, 60%`), which does not depend on element-relative gestures.
-- swipe:
-    from:
-      id: "cushion-floor-slider"
-    direction: LEFT
-
-- tapOn: "Save"
-# The payoff renders ONLY when the value actually changed — it is deliberately withheld for a no-op save.
-# So this assertion doubles as proof that the swipe above really moved the line.
-- assertVisible:
-    id: "floor-impact"
-- takeScreenshot: maestro-debug/tut-beat-3-payoff
-
-# ── The payoff must survive BACKGROUNDING ───────────────────────────────────────────────────────
-# Round 9's MAJOR: `suspendStoryOnBackground` re-staged the beat unconditionally, so a glance at
-# Notification Center reset the line the user had just dragged and discarded the payoff they earned. iOS
-# emits `inactive` for Notification Center, the app switcher and an incoming call — routine events, in
-# the one feature whose thesis is that the app never moves your money on its own.
-#
-# `stopApp: false` is LOAD-BEARING. `launchApp` defaults to stopping the app first, which would restart
-# the JS runtime and destroy the very session this checks survives — the assertion would then be testing
-# a fresh launch and would fail for a reason unrelated to the defect. It must not be "fixed" by dropping
-# that option, which would make the check pass vacuously.
-#
-# ⚠️ FIRST-RUN TUNING: if `pressKey: Home` is unsupported, the fallback is a coordinate-free
-# `stopApp` + `launchApp` — which tests a COLD start, a different and weaker claim, and must be labelled
-# as such rather than silently substituted. If neither works, delete this block and ledger the check as
-# device-QA-owed rather than leave a flow that cannot run.
-- pressKey: Home
-- launchApp:
-    stopApp: false
-- assertVisible:
-    text: ".*Step 3 of 7.*"
-- assertVisible:
-    id: "floor-impact"
-- takeScreenshot: maestro-debug/tut-background-return
-
-# ── The scripted story (beat 4) ─────────────────────────────────────────────────────────────────
-# The attestation tap starts a chain of timers spaced to be READ — a surprise lands, the net absorbs it,
-# paydays roll — so the release ack takes several seconds and renders in Today's ack slot at the TOP of
-# the screen, which is the beat's declared payoff target.
-#
-# ⚠️ `extendedWaitUntilVisible` is NOT available in this Maestro build; it fails the file at parse time.
-# `assertVisible` with a `timeout` is the substitute. If `timeout` is also unsupported here, drop it and
-# rely on the screenshot alone rather than asserting on a race — a flaky assertion on a timed sequence is
-# worse than no assertion, because it teaches everyone to re-run until green.
-- tapOn: "Next"
-- assertVisible:
-    text: ".*Step 4 of 7.*"
-- tapOn:
-    text: ".*regular bills entered.*"
-- assertVisible:
-    text: ".*safety net.*"
-    timeout: 20000
-- takeScreenshot: maestro-debug/tut-beat-4-payoff
