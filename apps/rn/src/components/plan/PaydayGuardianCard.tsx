@@ -9,7 +9,7 @@ import { CushionFloorSheet } from '@/components/plan/CushionFloorSheet';
 import { GuardianProofStrip } from '@/components/plan/GuardianProofStrip';
 import { RecoveryPlanSection } from '@/components/plan/RecoveryPlanSection';
 import { PremiumInvite } from '@/components/premium/PremiumInvite';
-import { guardianSubjects } from '@/store/guardianSubjects';
+import { displayCushion, guardianSubjects } from '@/store/guardianSubjects';
 import { useTutorialSession } from '@/store/tutorialSession';
 import { TutorialTarget } from '@/store/tutorialTargets';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -191,7 +191,7 @@ export function PaydayGuardianCard({
           // reserve beat in particular is entirely about a number they were never told. Spoken in the
           // same left→right order the bar shades them, so the two readings describe one thing.
           hasReserve ? `Safety net ${money(brief.heldReserve)}` : undefined,
-          `Cushion ${money(hasReserve ? brief.cushion - brief.heldReserve : brief.cushion)}`,
+          `Cushion ${money(displayCushion(brief))}`,
           hasPayoff ? `${brief.debtFree ? 'To savings' : 'To debt'} ${money(brief.deployedToDebt)}` : undefined,
           // The card's FOURTH figure. [C4] added the three flow amounts and stopped there, so the floor —
           // the one number a whole beat of the walkthrough is about, and the only one the user sets
@@ -268,7 +268,7 @@ export function PaydayGuardianCard({
           {/* COH-2: the held reserve is WITHIN cushion (buildGuardianBrief: heldReserve ≤ cushion). Show the
               non-reserve remainder here so Safety net + Cushion read as disjoint segments (matching the bar)
               and reconcile with the hero's Free above. */}
-          <Stat swatch={color} amount={hasReserve ? brief.cushion - brief.heldReserve : brief.cushion} label="Cushion" />
+          <Stat swatch={color} amount={displayCushion(brief)} label="Cushion" />
           {hasPayoff ? <Stat swatch={c.accent.primary} amount={brief.deployedToDebt} label={brief.debtFree ? 'To savings' : 'To debt'} /> : null}
         </View>
         </TutorialTarget>

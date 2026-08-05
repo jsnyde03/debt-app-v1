@@ -71,6 +71,17 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
+/**
+ * Replace the CONTENTS of quoted runs with spaces, preserving length and the quotes themselves.
+ *
+ * Only used to decide where comments START. A glob or URL containing `/*` must not be mistaken for the
+ * opening of a block comment; blanking string contents makes that structural rather than a special case
+ * for the two forms that happened to bite.
+ */
+function blankStrings(line: string): string {
+  return line.replace(/(['"`])(?:\\.|(?!\1)[^\\])*\1?/g, (m, q: string) => q + ' '.repeat(Math.max(0, m.length - 2)) + (m.endsWith(q) && m.length > 1 ? q : ''));
+}
+
 /** Only COMMENT text is examined — a string literal that happens to say "five sites" is not the target. */
 function commentLines(src: string): (string | null)[] {
   const out: (string | null)[] = [];
@@ -82,13 +93,19 @@ function commentLines(src: string): (string | null)[] {
       if (t.includes('*/')) inBlock = false;
       continue;
     }
-    // `/*` ANYWHERE on the line, not just at its start. JSX comments are written `{/* … */}`, and they
-    // are the dominant comment form in the files this rule exists for — a scanner that only recognised a
-    // line-initial `/*` could not see any of them.
-    const bi = line.indexOf('/*');
+    // `/*` ANYWHERE on the line, not just at its start, so JSX `{/* … */}` blocks are seen.
+    //
+    // Searched in the line with STRING LITERALS BLANKED FIRST. A path glob like 'apps/rn/src/*.tsx' or a
+    // trailing-star URL contains `/*` and no `*/`, so a naive search latched into block mode and scanned
+    // the entire REST OF THE FILE — code included — as comment text, reporting violations on ordinary
+    // source. That breaks this file's own contract two comments up ("only COMMENT text is examined") and,
+    // worse, makes the guard fail correct code: a check that cries wolf gets switched off, which costs
+    // more than the class it was written to catch.
+    const scan = blankStrings(line);
+    const bi = scan.indexOf('/*');
     if (bi >= 0) {
       out.push(line.slice(bi));
-      if (!line.slice(bi).includes('*/')) inBlock = true;
+      if (!scan.slice(bi).includes('*/')) inBlock = true;
       continue;
     }
     const idx = line.indexOf('//');

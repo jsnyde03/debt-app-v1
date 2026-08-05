@@ -61,6 +61,7 @@ import { rankDebts } from '@/store/payoffSelectors';
 import { selectAllocation } from '@/store/selectors';
 import { TutorialFence } from '@/components/plan/TutorialFence';
 import { stageBounds } from '@/components/plan/tutorialStage';
+import { displayCushion } from '@/store/guardianSubjects';
 import { useAppStore } from '@/store/useAppStore';
 import type { Debt } from '@/data/models';
 import { spacing } from '@/theme/spacing';
@@ -304,7 +305,10 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
                 // Same reasoning as the fences — a beat-specific haptic outside the arc is the identical
                 // error to a beat-specific fence outside it.
                 if (inWalkthrough && guardian) {
-                  tutorialSession.getState().noteFloorBefore({ cushion: guardian.cushion, floor: guardian.floor });
+                  // `displayCushion`, not the raw brief — the payoff narrates a cushion figure to the
+                  // user, so it must resolve it exactly as the card LABELS it. Fed the raw value, this
+                  // beat read "Cushion $413 → $323" over a card showing "Cushion $50".
+                  tutorialSession.getState().noteFloorBefore({ cushion: displayCushion(guardian), floor: guardian.floor });
                   // 3.5.3.7.5 ([D12]) — a medium beat, not the advance tick: the user just moved their own
                   // line and the plan re-solved because of it. This is one of exactly two moments in the
                   // arc they CAUSED something, and weighting it the same as pressing Next would flatten
@@ -701,12 +705,12 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // plan", which is this app's most emphatic visual language celebrating a no-op. Opening the sheet and
   // closing it without dragging is a perfectly ordinary thing to do on this beat.
   const impact =
-    floorBefore && nowGuardian && floorBefore.cushion !== nowGuardian.cushion
+    floorBefore && nowGuardian && floorBefore.cushion !== displayCushion(nowGuardian)
       ? {
           before: floorBefore.cushion,
-          after: nowGuardian.cushion,
+          after: displayCushion(nowGuardian),
           // Lowering the line releases cushion to debt; raising it holds more back and frees nothing.
-          freed: Math.max(0, floorBefore.cushion - nowGuardian.cushion),
+          freed: Math.max(0, floorBefore.cushion - displayCushion(nowGuardian)),
         }
       : null;
 
@@ -815,7 +819,14 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   useEffect(() => {
     setSettledDims(dims);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [measuredAt]);
+    // BOTH of the hook's publications. `measuredAt` alone was not enough: it is bumped only by the main
+    // measure effect, and none of that effect's deps carries screen WIDTH (`stageTop` is inset+header,
+    // `stageBottom` is height−dock, `revision` is index/dock/payoff). So a width-only reflow — an iPad
+    // Split View drag, or a browser resize on the web demo — changed `dims`, closed the fence, and then
+    // never reopened it: the beat kept asking for a drag on a screen that was untouchable and inert.
+    // `spotlight` covers the hook's OTHER publisher, the layout subscriber, which does fire on exactly
+    // that reflow. Keying on one publisher of a two-publisher hook is what made this a fence that sticks.
+  }, [measuredAt, spotlight]);
 
   const screenReachable = interactive && !payoffShowing && settledDims === dims;
   useEffect(() => {

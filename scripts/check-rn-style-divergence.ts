@@ -56,27 +56,72 @@ function numericConsts(src: string): Map<string, number> {
   return out;
 }
 
+/**
+ * The text of the style object containing line `i` — from its opening `{` back through the balancing `}`.
+ *
+ * Brace-counted rather than regexed, because a style entry can nest (`shadowOffset: { … }`). If the
+ * braces do not resolve inside a small window, returns the line alone: reporting on less is a missed
+ * catch, reporting on more is a false alarm on correct code, and of the two only the false alarm gets
+ * the whole guard switched off.
+ */
+function objectAround(src: string, idx: number): string {
+  // Backward to the INNERMOST unclosed `{`. Character-wise, not line-wise: a style entry is often
+  // written on one line, where the object opens and closes around the match on that same line.
+  let depth = 0;
+  let start = -1;
+  for (let p = idx; p >= 0; p--) {
+    const ch = src[p];
+    if (ch === '}') depth++;
+    else if (ch === '{') {
+      if (depth === 0) {
+        start = p;
+        break;
+      }
+      depth--;
+    }
+  }
+  if (start < 0) return '';
+  // Forward to its match. Innermost matters: climbing to the enclosing `StyleSheet.create({…})` would
+  // find some OTHER entry's `overflow` and silently pass every style in the file — a false negative,
+  // which is worse than the false positive this replaced, because it looks like success.
+  let d = 0;
+  for (let p = start; p < src.length; p++) {
+    const ch = src[p];
+    if (ch === '{') d++;
+    else if (ch === '}') {
+      d--;
+      if (d === 0) return src.slice(start, p + 1);
+    }
+  }
+  return src.slice(start);
+}
+
 const hits: string[] = [];
 for (const root of ROOTS) {
   for (const file of walk(root)) {
     const rel = relative(REPO_ROOT, file);
     const src = readFileSync(file, 'utf8');
-    if (!src.includes('borderWidth')) continue;
+    // Matches the scan below, side-specific spellings included. Narrowed to the shorthand, this fast path
+    // skipped whole FILES whose only huge border was a `borderTopWidth` — the guard could not have found
+    // them however good the regex underneath was.
+    if (!/border\w*Width/.test(src)) continue;
     const consts = numericConsts(src);
-    src.split('\n').forEach((line, i) => {
-      const m = line.match(/borderWidth:\s*([A-Za-z_$][\w$]*|-?\d+(?:\.\d+)?)/);
-      if (!m) return;
+    // Side-specific widths too. `borderTopWidth: BLEED` takes the identical drawing path, and matching
+    // only the shorthand left four spellings of the same defect invisible.
+    for (const m of src.matchAll(/border(?:Top|Bottom|Left|Right|Start|End)?Width:\s*([A-Za-z_$][\w$]*|-?\d+(?:\.\d+)?)/g)) {
       const raw = m[1];
       const value = /^-?\d/.test(raw) ? Number(raw) : consts.get(raw);
       // An unresolvable identifier is NOT flagged — this check reports what it can prove, and a guard
       // that guesses gets switched off. Stated so a green run is not read as "no huge borders exist".
-      if (value === undefined || value < HUGE) return;
-      // Same LINE, because that is how style entries are written here (`hole: { … },` on one line). A
-      // multi-line style object with the two properties split across lines is a known blind spot.
-      if (!/overflow:\s*['"]hidden['"]/.test(line)) {
-        hits.push(`${rel}:${i + 1}  borderWidth: ${raw} (${value}) with no overflow: 'hidden'\n      ${line.trim()}`);
+      if (value === undefined || value < HUGE) continue;
+      // Look for the clip across the enclosing STYLE OBJECT, not just this line. Multi-line style entries
+      // are this repo's dominant form, so a same-line test failed CORRECT code — the loudest failure mode
+      // a lint gate has, and the one that gets it switched off.
+      if (!/overflow:\s*['"]hidden['"]/.test(objectAround(src, m.index))) {
+        const lineNo = src.slice(0, m.index).split('\n').length;
+        hits.push(`${rel}:${lineNo}  ${m[0].split(':')[0]}: ${raw} (${value}) with no overflow: 'hidden'`);
       }
-    });
+    }
   }
 }
 

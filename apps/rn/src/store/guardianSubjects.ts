@@ -33,8 +33,25 @@ export interface GuardianSubjectInputs {
 }
 
 /** Subjects the card owns. `guardian-card` is registered by the host and included here for completeness
- *  of the arc's inventory — it renders whenever there is a brief to render at all. */
+ *  of the arc's inventory — it renders whenever there is a brief to render at all.
+ *  ⚠️ Hand-maintained, and NOT read by `guardianSubjects()` below, which builds its own set. The real
+ *  orphan check — every registered `TutorialTarget` is coached by some beat, and vice versa — is
+ *  `spotlight.test.ts`, which derives the registered set by scanning the source. */
 export const GUARDIAN_CARD_SUBJECTS = ['guardian-card', 'guardian-bar', 'guardian-adjust', 'guardian-reserve'] as const;
+
+/**
+ * The number the Guardian card LABELS "Cushion".
+ *
+ * Not `brief.cushion`. The held reserve is WITHIN cushion, and the card deliberately shows the
+ * non-reserve remainder so "Safety net" and "Cushion" read as disjoint segments matching the bar
+ * (COH-2). Anything that narrates a cushion figure to the user must resolve it the same way, or it
+ * quotes numbers that appear nowhere on screen — which is what the walkthrough's floor payoff did:
+ * "Cushion $413 → $323" over a card reading "Cushion $50", on the one beat whose job is to teach this
+ * vocabulary. The delta was right; the absolutes were unfindable.
+ */
+export function displayCushion(brief: { cushion: number; heldReserve: number }): number {
+  return brief.heldReserve > 0 ? brief.cushion - brief.heldReserve : brief.cushion;
+}
 
 /**
  * The ids actually mounted for a given Guardian read. Mirrors the render conditions in

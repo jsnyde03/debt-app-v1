@@ -35,7 +35,20 @@ export function headerHeight(): number {
   return 56 * Math.max(1, PixelRatio.getFontScale());
 }
 
-/** The stage in WINDOW coordinates. `dockH` is the coaching dock's measured height (0 before it lays out). */
+/**
+ * What to reserve for the dock before it has reported its height.
+ *
+ * An UNMEASURED dock is not a dock of zero height, and `0` is a value the system actively produces: the
+ * overlay and the shell both seed it, and the overlay's unmount cleanup deliberately publishes it upward.
+ * Treated as a real height, it makes the stage the whole screen and the clamp silently a no-op — which
+ * puts beat 5's ring back across the coaching copy, the exact defect the clamp was added to fix.
+ *
+ * Matches the overlay's own floor for `dockMaxH`. Over-reserving parks the subject slightly high, which
+ * is invisible; under-reserving draws the highlight through the sentence, which is the bug.
+ */
+const DOCK_UNMEASURED = 220;
+
+/** The stage in WINDOW coordinates. `dockH` is the coaching dock's measured height, 0 before it lays out. */
 export function stageBounds(insetTop: number, screenH: number, dockH: number): { top: number; bottom: number } {
-  return { top: insetTop + headerHeight(), bottom: screenH - dockH - spacing.sm };
+  return { top: insetTop + headerHeight(), bottom: screenH - (dockH > 0 ? dockH : DOCK_UNMEASURED) - spacing.sm };
 }
