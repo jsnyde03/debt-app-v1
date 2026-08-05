@@ -31,6 +31,21 @@ jobs:
     name: Compile · boot · Maestro
     runs-on: macos-15
     timeout-minutes: 60
+    env:
+      # `@sentry/react-native/expo` hooks the Xcode "Bundle React Native code and images" phase and runs
+      # `sentry-cli` to upload source maps AFTER bundling. On this runner there is no org slug and no auth
+      # token, so sentry-cli exits non-zero and takes the whole phase script — and therefore the build —
+      # down with it. The JS bundles perfectly; the failure is entirely in the upload that follows it.
+      #
+      # Which makes the failure maximally misleading: xcodebuild reports
+      # `PhaseScriptExecution Bundle React Native code and images ... (2 failures)`, which reads as a
+      # BUNDLING error, and the log's most prominent line is React's benign umbrella-header warning.
+      #
+      # Disabling upload is the right answer here, not a workaround: this is an unsigned, unoptimized
+      # simulator build that exists to be driven by Maestro for ~10 minutes and thrown away. Source maps
+      # for it have no consumer. The SIGNED Codemagic build is where symbolication matters, and it has
+      # the credentials — this variable is scoped to this workflow and does not touch it.
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
     # RN 0.85's PREBUILT React core (the fast default, RCT_USE_PREBUILT_RNCORE=1) doesn't export every
     # legacy ObjC class, so react-native-ios-utilities' reference to `_OBJC_CLASS_$_RCTRootContentView`
     # (pulled in by react-native-ios-context-menu) was undefined at LINK for arm64. FIX = the prebuild
