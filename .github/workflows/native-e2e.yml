@@ -108,6 +108,9 @@ jobs:
 
       - name: Build for the iOS Simulator (no signing)
         run: |
+          # `pipefail` is LOAD-BEARING with the `tee` below: without it the pipeline's exit status is
+          # tee's (always 0) and a failed compile would sail through as a green step.
+          set -o pipefail
           # Build ONLY the runner's native arch — Release defaults to both arm64 + x86_64 sim slices (≈2×
           # the compile); we only need the slice matching the sim we boot.
           ARCH="$(uname -m)"
@@ -131,7 +134,39 @@ jobs:
             ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
             CODE_SIGNING_ALLOWED=NO \
             SWIFT_OPTIMIZATION_LEVEL='-Onone' GCC_OPTIMIZATION_LEVEL=0 \
-            build
+            build 2>&1 | tee xcodebuild.log
+
+      # xcodebuild emits thousands of lines and buries the ONE that matters in the middle of them, under
+      # a pile of benign warnings — the React prebuilt core's "umbrella header does not include header
+      # RCTTrackingAnimatedNode.h" is the loudest, appears on every build including successful ones, and
+      # reads exactly like a cause when you are scrolling a failed log looking for one. So the failure
+      # says what failed, rather than leaving it to a search.
+      #
+      # Same lesson as the pod-install step above: a tool that reports failure quietly gets its own loud
+      # wrapper.
+      - name: Surface the build error
+        if: failure()
+        run: |
+          echo "──────── errors / failures ────────"
+          grep -nE "error:|fatal error:|\*\* BUILD FAILED \*\*|The following build commands failed|^ld: |clang: error|No space left on device|Command .* failed with a nonzero exit code" \
+            xcodebuild.log | tail -60 || echo "(no error-shaped line matched — see the tail below)"
+          echo
+          echo "──────── failing build commands ────────"
+          sed -n '/The following build commands failed/,$p' xcodebuild.log | head -40 || true
+          echo
+          echo "──────── last 80 lines ────────"
+          tail -80 xcodebuild.log
+          echo
+          echo "NOTE: if NOTHING above looks like a compile error, the step did not fail from one —"
+          echo "check the job for a timeout (60 min), a cancelled runner, or disk exhaustion."
+
+      - name: Upload the raw build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: apps/rn/xcodebuild.log
+          if-no-files-found: ignore
 
       - name: Boot, install, launch, capture the app log
         run: |
