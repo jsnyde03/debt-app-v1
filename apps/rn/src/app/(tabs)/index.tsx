@@ -97,6 +97,10 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   // 3.5.3.4.2 — the active beat's modal-guidance line, if it declares one. Read here rather than passed
   // down from the route, because the card that presents the sheet is rendered by this screen.
   const coachLine = useTutorialSession((s) => (s.active ? TUTORIAL_STEPS[s.index]?.coach : undefined));
+  // Is a WALKTHROUGH running — distinct from `isExample` ("is this sandbox money"). The sandbox is
+  // designed to render without an overlay (3.5.4's demo, 3.5.7's web demo), so anything ARC-specific
+  // must key on this and anything about the MONEY being fictional must key on `isExample`.
+  const inWalkthrough = useTutorialSession((s) => s.active);
   const store = useAppStore((s) => s.store);
   const isPremium = store.subscriptionPlan === 'premium';
   // 2.4 — the payday engine reads projected-current balances (premium) so the plan reflects where the
@@ -294,7 +298,12 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               // 3.5.3.4.4 — snapshot the read BEFORE the write: once the store re-solves, the "before"
               // this beat's payoff needs is gone. No-op outside a session.
               onSetFloor={(v) => {
-                if (isExample && guardian) {
+                // Keyed on the SESSION, not on "is this sandbox money". The sandbox is designed to render
+                // without a walkthrough (3.5.4's demo, 3.5.7's web demo), and this beat is arc-specific:
+                // fired from a demo it would be a moment of emphasis with no beat to be emphatic about.
+                // Same reasoning as the fences — a beat-specific haptic outside the arc is the identical
+                // error to a beat-specific fence outside it.
+                if (inWalkthrough && guardian) {
                   tutorialSession.getState().noteFloorBefore({ cushion: guardian.cushion, floor: guardian.floor });
                   // 3.5.3.7.5 ([D12]) — a medium beat, not the advance tick: the user just moved their own
                   // line and the plan re-solved because of it. This is one of exactly two moments in the
@@ -310,7 +319,12 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               // shouldn't replay it.
               onAttestBills={(v) => {
                 store_.getState().setBillsAttested(v);
-                if (!isExample) return;
+                // The SESSION, not the sandbox brand. Keyed on `isExample`, a demo tap fired the beat's
+                // haptic and then called a story that returns immediately (it is session-gated inside) —
+                // so the net shrank with none of the surprise-and-rollover consequence that explains why,
+                // over a moment of emphasis with nothing to emphasise. Half a lesson reads as the app
+                // doing something arbitrary. A demo owes its own story driver (3.5.4).
+                if (!inWalkthrough) return;
                 if (v) {
                   // The arc's second caused-it moment: the net shrinks by their word, and the story that
                   // follows is the consequence. Same medium beat as the floor, for the same reason.

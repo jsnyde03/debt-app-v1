@@ -75,6 +75,17 @@ export function StoreProvider({ store, children }: { store: DebtStoreInstance; c
  * corruption. Same move as the 3.5.0.6 sync-seam guards.
  *
  * Deliberately watches the `store` blob only: `isSaving`/`isHydrated` churn is lifecycle, not user data.
+ *
+ * ⚠️ SCOPE — this REPORTS on the premise that the walkthrough fences navigation. It fires on the
+ * provider (`store !== appStore`), not on the session, so it keeps watching in any sandbox subtree; but
+ * "a real-store write while a sandbox is mounted" only means LEAK because a session holds the tabs and
+ * hides More, so nothing reachable can legitimately write. Mount this provider WITHOUT that fence —
+ * 3.5.4's demo — and ordinary navigation reaches `/more` and `/paywall`, which write the real store by
+ * design, while Today is still mounted underneath: every one of those becomes a reported "real store
+ * mutated" and floods the one signal built to prove the real plan is untouched (Sentry-wired at Phase 6).
+ * The fix is a report SCOPE on the provider (strict for the walkthrough, quiet for a demo), not a
+ * per-call-site allowlist over an open route graph. Owed at 3.5.4, when there is a demo caller to give
+ * it a correct value; changing the signature now would mean guessing the demo's containment model.
  */
 function useNoRealWritesGuard(store: DebtStoreInstance) {
   useEffect(() => {

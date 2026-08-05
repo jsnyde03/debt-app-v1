@@ -41,7 +41,15 @@ export interface ScenarioOpts {
   maxGenuineCycles?: number;
 }
 
-/** The frozen day every scenario is told from. A Monday, mid-month — nothing calendar-special. */
+/**
+ * The frozen day every scenario is told from. A Monday, mid-month — nothing calendar-special.
+ *
+ * ⚠️ It must stay WELL BEHIND real today, and that is load-bearing rather than incidental. The payday
+ * capture sheet and the "Start Next Pay Cycle" nudge read through the acting store, so in a sandbox they
+ * see this date; both currently decline to fire — but by ARITHMETIC (the staleness clause, and a null
+ * `lastHandledPaydayDate`), not by design. Date a scenario near real today and the capture sheet opens
+ * over the walkthrough, or over a demo recording. If this is ever refreshed, re-check both.
+ */
 export const SCENARIO_BASE_DATE = '2026-03-02';
 
 /** The persona's per-cycle income when there's nothing real to scale from. */
