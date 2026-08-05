@@ -218,6 +218,26 @@ jobs:
           MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
         run: maestro test .maestro/ --format junit --output maestro-report.xml --debug-output ./maestro-debug
 
+      # Maestro resolves a `takeScreenshot` path relative to the FLOW FILE's directory, not the working
+      # directory — so `takeScreenshot: maestro-debug/tut-beat-1` lands in `.maestro/maestro-debug/`,
+      # which is outside this job's artifact glob.
+      #
+      # The first fully green run therefore passed every assertion and uploaded NO screenshots at all:
+      # a gate that reported success while producing none of the evidence it exists to produce. Assertions
+      # were never the point here — the whole reason for a native lane is to LOOK at the real renderer.
+      #
+      # So this collects them from wherever Maestro actually wrote them, and prints the paths, so the next
+      # person does not have to re-derive the resolution rule.
+      - name: Collect the Maestro screenshots
+        if: always()
+        run: |
+          mkdir -p maestro-debug
+          echo "── screenshots found ──"
+          find . "$HOME/.maestro" -name 'tut-*.png' -not -path '*/node_modules/*' 2>/dev/null | tee /tmp/shots.txt
+          while IFS= read -r f; do [ -f "$f" ] && cp -f "$f" maestro-debug/ || true; done < /tmp/shots.txt
+          echo "── collected into maestro-debug/ ──"
+          ls -la maestro-debug/ || true
+
       - name: Screenshot the final simulator state
         if: always()
         run: xcrun simctl io booted screenshot maestro-debug/final-screen.png || true
