@@ -93,24 +93,6 @@ appId: com.jasonsnyder.debtplanner
     id: "floor-impact"
 - takeScreenshot: maestro-debug/tut-beat-3-payoff
 
-# ── BEAT 3B · the payoff must survive BACKGROUNDING ──────────────────────────────────────────────
-# Round 9's MAJOR: `suspendStoryOnBackground` re-staged unconditionally, so a glance at Notification
-# Center reset the line the user had just dragged and discarded the payoff they earned. iOS emits
-# `inactive` for Notification Center, the app switcher and an incoming call — routine events. The web
-# suite could only fire a `visibilitychange`; this is the real transition.
-#
-# ⚠️ FIRST-RUN TUNING — the least certain step in this file. If `pressKey: Home` is unsupported by the
-# iOS driver, the fallback is a `runScript` shelling to
-# `xcrun simctl launch booted com.apple.springboard`, and if that also fails, DELETE this block and
-# ledger the check as device-QA-owed rather than leaving a flow that cannot run.
-- pressKey: Home
-- launchApp:
-    clearState: false
-- assertVisible:
-    text: ".*Step 3 of 7.*"
-- assertVisible:
-    id: "floor-impact"
-
 # ── BEAT 4 · INTERACTIVE — the attestation, and the scripted story ───────────────────────────────
 - tapOn: "Next"
 - assertVisible:
@@ -122,8 +104,7 @@ appId: com.jasonsnyder.debtplanner
 # so the release ack takes several seconds to arrive. It renders in Today's ack slot at the TOP of the
 # screen — the beat's payoff target.
 - extendedWaitUntilVisible:
-    element:
-      text: ".*safety net.*"
+    text: ".*safety net.*"
     timeout: 15000
 - takeScreenshot: maestro-debug/tut-beat-4-payoff
 
@@ -159,3 +140,49 @@ appId: com.jasonsnyder.debtplanner
 - assertNotVisible:
     text: ".*Example money.*"
 - takeScreenshot: maestro-debug/tut-handback
+
+# ── REGRESSION · the payoff must survive BACKGROUNDING ───────────────────────────────────────────
+# Round 9's MAJOR: `suspendStoryOnBackground` re-staged the beat unconditionally, so a glance at
+# Notification Center reset the line the user had just dragged and discarded the payoff they earned.
+# iOS emits `inactive` for Notification Center, the app switcher and an incoming call — routine events,
+# in the one feature whose thesis is that the app never moves your money on its own. The web suite could
+# only approximate this with a `visibilitychange`; here it is the real transition.
+#
+# DELIBERATELY LAST, as a second pass rather than inline at beat 3. It is the least certain block in the
+# file, and every screenshot above is already captured by the time it runs — so if it fails, it costs its
+# own assertion and nothing else. Ordering the uncertain step after the valuable artifacts is worth the
+# few extra taps it takes to get back here.
+- scrollUntilVisible:
+    element:
+      text: "How this works"
+    direction: DOWN
+- tapOn: "How this works"
+- tapOn: "Next"
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 3 of 7.*"
+- tapOn: ".*Adjust your line.*"
+- swipe:
+    from:
+      id: "cushion-floor-slider"
+    direction: LEFT
+- tapOn: "Save"
+- assertVisible:
+    id: "floor-impact"
+
+# `stopApp: false` is LOAD-BEARING. `launchApp` defaults to stopping the app first, which would restart
+# the JS runtime and destroy the very session this is checking survives — the assertion would then be
+# testing a fresh launch and would fail for a reason that has nothing to do with the defect.
+#
+# ⚠️ FIRST-RUN TUNING — the least certain steps in this file. If `pressKey: Home` is not supported by the
+# iOS driver, the fallback is a `runScript` shelling to `xcrun simctl` to background the app; if that
+# also fails, DELETE this block and ledger the check as device-QA-owed rather than leave a flow that
+# cannot run. It must not be "fixed" by removing `stopApp: false`, which would make it pass vacuously.
+- pressKey: Home
+- launchApp:
+    stopApp: false
+- assertVisible:
+    text: ".*Step 3 of 7.*"
+- assertVisible:
+    id: "floor-impact"
+- takeScreenshot: maestro-debug/tut-background-return
