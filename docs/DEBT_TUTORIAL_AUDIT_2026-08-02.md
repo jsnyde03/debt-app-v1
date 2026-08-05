@@ -834,6 +834,67 @@ completeness queries **zero** (native a11y props · decaying counts) · **arc re
 themes, verified by looking** — beat 5's ring now stops above the dock with the coaching sentence uncut,
 corners rounded with no nubs, below-stage content properly dimmed, Skip trailing, frost isolating.
 
+## S. ROUND 10 — 2026-08-05 · ✅ **PASSES — THE GATE IS CLOSED**
+
+<details>
+<summary>3 narrowed lenses (Opus 5), native excluded · findings from all three, <b>none above MEDIUM</b> · folded in <code>00e0c0a</code></summary>
+
+**The bar, as Jason set it that day:** only **SHOW-STOPPER or MAJOR** fails a round, and **both halves
+are severity-shaped** — a partially-fixed prior finding does not fail either unless the residue is itself
+blocking. Round 10 returned one MEDIUM from each lens and a tail of minors. **Nothing above MEDIUM. The
+gate closes.**
+
+**Narrowed, not re-scoped.** Round 9 established that convergence is per-SURFACE: its lens 1 (the [D16]
+deletion + the invariant) returned PASS, so that surface was not re-audited — only lightly re-verified.
+The three residual surfaces got the lenses. That is the standing rule's own "scope the next pass to the
+section that hasn't converged", not a goalpost move.
+
+**Native was excluded by instruction.** The Maestro lane now runs the walkthrough on a real iOS
+simulator, so device claims belong there and cannot block here. Each lens returned a "FOR THE NATIVE
+LANE" section instead, carrying no severity.
+
+### What round 10 found (all folded)
+
+- **The rotation fence still stuck CLOSED — on a WIDTH-only reflow.** Round 9 keyed it on `measuredAt`
+  alone, which is bumped only by the main measure effect, and **none of that effect's deps carries screen
+  width**. An iPad Split View drag, or a browser resize on the web demo, closed the fence permanently:
+  beat 3 kept asking for a drag on a screen that was untouchable and inert. Round 9 traded one
+  stick-closed path for another. Keyed on **both** of the hook's publishers now.
+- **The coaching card narrated numbers that appear nowhere on screen.** The card labels
+  `cushion − heldReserve` as "Cushion"; the floor payoff was fed the raw brief — *"Cushion $413 → $323"*
+  over a card reading *"Cushion $50"*. The delta was right and the absolutes unfindable, on the one beat
+  whose job is to teach that vocabulary. One `displayCushion` now feeds **all four** sites.
+- **`stageBounds` treated `dockH === 0` as a real height**, so the stage became the whole screen and the
+  clamp was silently a no-op — beat 5's ring back through the coaching copy. Photographed once in 26 runs.
+- **Both new lint guards failed CORRECT code** — the comment scanner latched on `/*` inside a string
+  glob; the style guard rejected multi-line style objects, which are the house style. A guard that cries
+  wolf gets switched off, which is why these were folded rather than ledgered.
+
+### ⚠️ The fix for the style guard introduced a FALSE NEGATIVE, and only testing all six cases caught it
+
+The first attempt scanned the enclosing object for `overflow` by walking braces outward — and climbed to
+the enclosing `StyleSheet.create({…})`, where a *different* entry (`clip`) carries `overflow: 'hidden'`.
+Every style in the file then looked clipped. That would have **silently retired the only guard for round
+9's show-stopper class** while reporting green. Found by testing all six behaviours rather than the two
+that had changed.
+
+### Claims corrected
+
+The JSX-comment widening was credited with catching six violations; a hybrid scanner run against the
+pre-fold tree found **the same six**, all in `//` or `/** */` comments. It caught none of them. And
+`GUARDIAN_CARD_SUBJECTS` is a second hand-written literal the predicate never reads — "derives from the
+predicate's own inventory" was false on both halves.
+
+### The honest scope of "closed"
+
+Converged **as far as a web harness can see**. Ten rounds found real defects every time — a walkthrough
+that discarded the user's own work, tests that passed with the feature deleted, four visual defects on
+the shipped happy path, a11y fences that fenced nothing. What changed at round 10 is that nothing came
+back above MEDIUM. The residue is ledgered at **3.5.3.9-L**, gated by 3.5.6; the native surface belongs to
+the Maestro lane and the Phase-6 device pass.
+
+</details>
+
 ## R. ROUND 9 — 2026-08-05 · ⛔ does not pass · **the first LOCKED round**
 
 <details>
