@@ -40,6 +40,10 @@ const META = [
   /\b(mis)?count (that|which) was written\b/i,
   /\bread this before trusting it\b/i,
   /\bthe first version of this (test|comment|note)\b/i,
+  /\bthis (said|claimed)\b/i,
+  /\b(this|the) (header|comment|note|paragraph|version) (that |which )?(claimed|said (otherwise|so))\b/i,
+  /\bhow the claim survived\b/i,
+  /\bdidn't say what the comment said\b/i,
 ];
 
 /**
@@ -78,9 +82,13 @@ function commentLines(src: string): (string | null)[] {
       if (t.includes('*/')) inBlock = false;
       continue;
     }
-    if (t.startsWith('/*')) {
-      out.push(t);
-      if (!t.includes('*/')) inBlock = true;
+    // `/*` ANYWHERE on the line, not just at its start. JSX comments are written `{/* … */}`, and they
+    // are the dominant comment form in the files this rule exists for — a scanner that only recognised a
+    // line-initial `/*` could not see any of them.
+    const bi = line.indexOf('/*');
+    if (bi >= 0) {
+      out.push(line.slice(bi));
+      if (!line.slice(bi).includes('*/')) inBlock = true;
       continue;
     }
     const idx = line.indexOf('//');

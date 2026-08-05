@@ -57,12 +57,14 @@ export function FloorImpactBar({
 
   // Lowering the line frees money for debt; raising it holds more back. Both are legitimate moves, so
   // the caption states what happened rather than congratulating either direction.
+  // No `before === after` case. Its only caller withholds the payoff entirely when nothing moved — a
+  // full accent bar reading "Same cushion, same plan" is this app's loudest visual language spent on a
+  // no-op. Keeping a branch for it here would state that the component renders in a situation it cannot
+  // be given, which is the more expensive kind of dead code: the next reader believes it.
   const label =
     freed > 0
       ? `${formatWhole(freed)} more to debt this paycheck`
-      : before === after
-        ? 'Same cushion, same plan'
-        : `${formatWhole(after - before)} more held back`;
+      : `${formatWhole(after - before)} more held back`;
 
   return (
     <View style={styles.wrap} testID="floor-impact">

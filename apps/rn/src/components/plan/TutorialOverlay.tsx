@@ -489,7 +489,17 @@ const styles = StyleSheet.create({
   clip: { overflow: 'hidden' },
   // The dark, as a border around a rounded hole — see the note at `dark`. `backgroundColor` stays unset:
   // the fill IS the border, and a background would paint straight over the hole.
-  hole: { borderWidth: BLEED, borderRadius: BLEED + HOLE_RADIUS },
+  //
+  // `overflow: 'hidden'` is LOAD-BEARING on iOS and has nothing to do with clipping here (the view has no
+  // children). RN only hands a border to Core Animation when one of three things is true — zero border
+  // width, a fully transparent border colour, or `clipsToBounds`
+  // (`RCTViewComponentView.mm`, `useCoreAnimationBorderRendering`). A 2000pt scrim-coloured border is
+  // none of the first two, so without this the view falls to `RCTGetSolidBorderImage`, which RASTERISES:
+  // a ~4029×4029pt bitmap, re-drawn on every spring frame because layout props mark the layer invalid.
+  // `overflow` maps to `clipsToBounds` via `BaseViewProps::getClipsContentToBounds()`, which restores the
+  // vector path and keeps the inner radius at `borderRadius − borderWidth` exactly as the geometry needs.
+  // Web is unaffected either way, which is why no test here can see it.
+  hole: { borderWidth: BLEED, borderRadius: BLEED + HOLE_RADIUS, overflow: 'hidden' },
   // A quiet outline, not a glow: this is a reference surface being explained, so the highlight informs
   // rather than performs ([[match motion to the surface's job]]).
   ring: { position: 'absolute', borderWidth: 2, borderRadius: HOLE_RADIUS },

@@ -60,7 +60,7 @@ import { isLastLiveDebt, selectCelebrationStats } from '@/store/celebrationSelec
 import { rankDebts } from '@/store/payoffSelectors';
 import { selectAllocation } from '@/store/selectors';
 import { TutorialFence } from '@/components/plan/TutorialFence';
-import { headerHeight } from '@/components/plan/tutorialStage';
+import { stageBounds } from '@/components/plan/tutorialStage';
 import { useAppStore } from '@/store/useAppStore';
 import type { Debt } from '@/data/models';
 import { spacing } from '@/theme/spacing';
@@ -713,10 +713,15 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // publish effect below depends on what it returns. Passing the object straight through would re-fire
   // that effect every render and re-render the shell — the same fresh-value re-render loop that took the
   // whole tutorial suite down at 3.5.3.2.
-  const { rect: spotlight } = useSpotlight({
+  // Through `stageBounds`, not re-derived. The screen scrolls the subject INTO the stage and the overlay
+  // clamps what it DRAWS to the same stage; if the two ever compute it differently, the highlight is
+  // clipped to a band the subject was never scrolled into — which is exactly the defect the clamp exists
+  // to fix. Sharing `headerHeight` alone left the dock edge — the edge that matters — written twice.
+  const stage = stageBounds(insets.top, screenH, dockH);
+  const { rect: spotlight, measuredAt } = useSpotlight({
     targetId,
-    stageTop: insets.top + headerHeight(),
-    stageBottom: screenH - dockH - spacing.sm,
+    stageTop: stage.top,
+    stageBottom: stage.bottom,
     scrollRef,
     offsetRef,
     // Must include the beat INDEX, not just the target: consecutive beats can share a subject while
@@ -781,14 +786,22 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // it HERE means the a11y fence closes with it rather than needing its own copy of the rule.
   const dims = `${Math.round(screenW)}x${Math.round(screenH)}`;
   const [settledDims, setSettledDims] = useState(dims);
-  // Deliberately NOT keyed on `dims`: this stamps the dimensions that were current WHEN THE RECT LANDED.
-  // With `dims` in the deps, the dimension change that is supposed to CLOSE this fence also re-ran the
-  // effect — stamping the new dims against the pre-rotation rect — so the fence reopened on the commit
-  // after it closed. One render of protection, which is none.
+  // Keyed on the measurement CONCLUDING, not on a rect arriving, and deliberately NOT on `dims`.
+  //
+  // Not on `dims`, because the dimension change that is supposed to CLOSE this fence would re-run the
+  // effect and stamp the new dims against the pre-rotation rect — reopening on the commit after it
+  // closed, which is one render of protection.
+  //
+  // On `measuredAt` rather than `spotlight`, because a measurement can legitimately conclude with NO
+  // rect (the settle re-measure fires on the beat's heaviest frame and is the likeliest to time out).
+  // Keyed on the rect, that outcome never reopened the fence at all: `screenReachable` stayed false for
+  // the rest of the beat, and since it gates both the touch pass-through and `useInert`, an interactive
+  // beat asked the user to operate a control on a screen that was inert and untouchable. Without a
+  // rotation the identical timeout costs only the ring — this made the same event cost the whole beat.
   useEffect(() => {
-    if (spotlight) setSettledDims(dims);
+    setSettledDims(dims);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spotlight]);
+  }, [measuredAt]);
 
   const screenReachable = interactive && !payoffShowing && settledDims === dims;
   useEffect(() => {

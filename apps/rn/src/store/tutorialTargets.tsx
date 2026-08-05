@@ -172,6 +172,11 @@ export function TutorialTarget({
   return (
     <View
       {...a11yHidden(fenced)}
+      // Addressable from a test, so an assertion about the spotlight can take its reference box from the
+      // SUBJECT rather than from the highlight. The ring and the scrim hole are both drawn from one
+      // measured rect, so any assertion that compares them is comparing a value to itself and passes with
+      // the whole mechanism deleted.
+      testID={`tutorial-target-${id}`}
       ref={(node) => {
         nodeRef.current = node;
         targets?.register(id, node);

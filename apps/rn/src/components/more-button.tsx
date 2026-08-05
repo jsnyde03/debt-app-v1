@@ -31,6 +31,11 @@ export function MoreButton() {
     <Pressable
       onPress={() => router.push('/more')}
       disabled={inTutorial}
+      // Explicit, not inherited from `disabled`. RNW derives `tabIndex` from `disabled`, so the tab-order
+      // half of this fence currently holds for a reason unrelated to fencing — change why this is
+      // disabled and the control silently rejoins the tab order while still being `aria-hidden`, which is
+      // the `aria-hidden-focus` violation. Stating it here makes the fence depend on the fence.
+      tabIndex={inTutorial ? -1 : undefined}
       hitSlop={12}
       accessibilityRole="button"
       accessibilityLabel="More"

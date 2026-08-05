@@ -7,7 +7,9 @@ import { Platform } from 'react-native';
  * `aria-hidden` removes a subtree from the accessibility tree, and on native that is the whole job — RN
  * expands it into `accessibilityElementsHidden` + `importantForAccessibility`, neither of which has a
  * separate focus concept. On web the two questions come apart: react-native-web gives every `Pressable`
- * an explicit `tabIndex` of 0, so a fenced region keeps every control inside it in the tab order. Hidden
+ * an explicit `tabIndex` — `0` unless the Pressable is `disabled`, in which case `-1`
+ * (`react-native-web/src/exports/Pressable/index.js`) — so a fenced region keeps its enabled controls in
+ * the tab order, and a fence that happens to hold today may be resting on an unrelated `disabled`. Hidden
  * from a screen reader AND reachable by Tab is the `aria-hidden-focus` violation — worse than either
  * alone, because the element announces nothing when it receives focus.
  *

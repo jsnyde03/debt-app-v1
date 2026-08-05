@@ -142,11 +142,9 @@ export function PaydayGuardianCard({
   // of those moves, this moves with it.
   //
   // Round 6: the walk USED TO START AT `adjust`, silently skipping the attestation — the first member
-  // its own comment names, and a 44pt `styles.row` exactly like the other three. Two audit lenses then
-  // disagreed about whether the gap was reachable (it needs at-risk-or-stale to suppress adjust while
-  // the attestation still renders, which `recovery` probably precludes). Neither answer is worth
-  // carrying: the argument only exists because the expression didn't say what the comment said, so the
-  // expression now walks the whole tail and the question is closed either way.
+  // its own comment names, and a 44pt `styles.row` exactly like the other three. Whether that gap was
+  // reachable is not worth arguing: the expression walks the WHOLE tail, so the question is closed
+  // either way.
   const showProofStrip = isPremium && !stale && brief.state === 'clear' && !!proofOfWork;
   const showForecast = isPremium && !!onSeeForecast && !stale && !brief.pausedDeploy;
   const showAttest = subjects.has('guardian-reserve');

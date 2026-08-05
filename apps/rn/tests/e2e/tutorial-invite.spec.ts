@@ -10,9 +10,7 @@ import { scenario, seedStore } from './helpers/seed';
  * forced — `useGoToTab` only behaves inside the tabs navigator, so hosting a copy of Today in a Stack
  * route would land as a detached tab group (a blank screen on device). `/tutorial` survives as the entry
  * for the two callers that can only express themselves as a URL — deep links and this suite. The More
- * row and the Guardian card's replay call `startTutorial()` directly. (This said "every entry point
- * still has a stable URL to aim at"; `tutorial.tsx` retracted that sentence and this copy of it was
- * left standing — the same claim, false, in two files.)
+ * row and the Guardian card's replay call `startTutorial()` directly.
  *
  * The load-bearing assertion here is the in-situ one: Today must render the SANDBOX's numbers while the
  * overlay is up. Today showing its own real data under a tutorial would mean the provider isn't taking
@@ -138,16 +136,24 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect.poll(ringHeight, { timeout: 5000 }).toBeGreaterThan(0);
     await expect.poll(ringHeight, { timeout: 5000 }).toBeLessThan(cardHeight);
 
-    // The cut is the point of the cutout: the lit subject must sit INSIDE the hole, not under the dark.
+    // The cut is the point of the cutout: the hole must sit over THE SUBJECT, and must not be the screen.
     //
-    // The dark is one element whose fill is its BORDER — the hole is the border box inset by the border
-    // width — so a bounding-box overlap test says nothing here (the element's box contains the hole by
-    // construction). The hole is computed from the live layout instead, which is a stronger assertion
-    // than the old "no band overlaps": it pins where the light actually IS, not merely where it isn't.
+    // Two properties, and both are load-bearing:
+    //
+    //  1. The reference box is the SUBJECT's own node, not the ring. The ring and the hole are both drawn
+    //     from one measured rect, so an assertion relating them compares a value to itself — it passes
+    //     with the cutout deleted entirely, the subject dimmed like everything else and the spotlight
+    //     visually dead. That is not a hypothetical: it was proven by replacing the scrim with a flat
+    //     full-screen dark and watching the whole suite stay green.
+    //  2. Containment is TWO-SIDED. One-sided containment is satisfied by a hole the size of the
+    //     viewport, which is the same thing as no cutout at all.
+    //
+    // The dark is one element whose fill is its BORDER, so the hole is its border box inset by the border
+    // widths — read from live layout rather than assumed.
     //
     // Polled, because the hole irises open on a spring and a single read can land mid-travel.
-    const bar = (await ring.boundingBox())!;
-    const holeCoversSubject = async () => {
+    const subject = (await page.getByTestId('tutorial-target-guardian-bar').boundingBox())!;
+    const holeFramesSubject = async () => {
       const hole = await page.getByTestId('tutorial-scrim-band').evaluate((el) => {
         const r = el.getBoundingClientRect();
         const s = getComputedStyle(el);
@@ -159,15 +165,19 @@ test.describe('tutorial invitation + in-situ shell', () => {
           height: r.height - bw('top') - bw('bottom'),
         };
       });
-      // Tolerance of 1px for sub-pixel rounding between the spring's animated value and layout.
+      // 1px for sub-pixel rounding between the spring's animated value and layout; the upper bound allows
+      // the ring inset on both edges plus that rounding, and nothing like a full screen.
+      const slack = 24; // 4 × the overlay's RING_INSET (6) — the inset applies on both edges of both axes
       return (
-        hole.x <= bar.x + 1 &&
-        hole.y <= bar.y + 1 &&
-        hole.x + hole.width >= bar.x + bar.width - 1 &&
-        hole.y + hole.height >= bar.y + bar.height - 1
+        hole.x <= subject.x + 1 &&
+        hole.y <= subject.y + 1 &&
+        hole.x + hole.width >= subject.x + subject.width - 1 &&
+        hole.y + hole.height >= subject.y + subject.height - 1 &&
+        hole.width <= subject.width + slack &&
+        hole.height <= subject.height + slack
       );
     };
-    await expect.poll(holeCoversSubject, { timeout: 5000, message: 'the spotlit subject must sit inside the scrim hole' }).toBe(true);
+    await expect.poll(holeFramesSubject, { timeout: 5000, message: 'the scrim hole must frame the subject — and only the subject' }).toBe(true);
   });
 
   test('the arc stages each beat\'s state, and steps back out of trouble', async ({ page }) => {
@@ -252,12 +262,17 @@ test.describe('tutorial invitation + in-situ shell', () => {
       // [D7] — the sheet is a modal that covers the coaching card, so the beat's guidance rides inside it.
       await expect(page.getByTestId('floor-sheet-coach')).toBeVisible();
 
-      // Actually MOVE the line. This test was named "lets a X user move the real line, and the plan
-      // re-solves" and never moved anything — it opened the sheet and saved the unchanged value.
-      // `FloorImpactBar` renders for an unchanged value too ("Same cushion, same plan"), so asserting
-      // `floor-impact` was visible proved only that the sheet had been saved. A regression that broke
-      // dragging outright would have passed. The slider is a gesture-handler view: a tap anywhere on the
-      // track sets the value, so clicking at ~20% of its width lowers the line.
+      // A save with NOTHING MOVED must produce no payoff at all. The bar is this app's most emphatic
+      // "you changed something" language and it used to render for an unchanged value too, which made
+      // every `floor-impact` assertion below satisfiable by merely opening and closing the sheet. This
+      // is the assertion that keeps them honest — without it, un-gating the payoff silently returns
+      // every one of them to proving only that Save was pressed.
+      await page.getByText('Save', { exact: true }).click();
+      await expect(page.getByTestId('floor-impact')).toHaveCount(0);
+
+      // Now actually MOVE the line. The slider is a gesture-handler view: a tap anywhere on the track
+      // sets the value, so clicking at ~20% of its width lowers the line.
+      await page.getByText('Adjust your line').click();
       const slider = page.getByLabel('Cushion line amount');
       const box = (await slider.boundingBox())!;
       await page.mouse.click(box.x + box.width * 0.2, box.y + box.height / 2);
@@ -488,11 +503,9 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
 
     // 3.5.3.5.7 — the scrim now covers the tab bar too, so a normal click is intercepted before it ever
-    // reaches the tab. `force` bypasses that deliberately: what's under test here is the LISTENER, which
-    // is the guard that still matters on an interactive beat whose subject never measured — the one
-    // case that renders no scrim at all, and so the one case where a stray tab tap could strand the
-    // user mid-beat. (This said "the interactive beats, where the scrim is switched off"; it hasn't
-    // been switched off there since 3.5.3.5.9, as THIS FILE's own beat-3 test asserts ~200 lines up.)
+    // reaches the tab. `force` bypasses that deliberately: what's under test here is the LISTENER, the
+    // guard that has to hold even if the scrim's geometry is wrong — a stray tab tap mid-beat strands
+    // the user, and the scrim and the listener are independent defences against it.
     await page.getByTestId('tab-money').click({ force: true });
     // Assert the URL and the SCREEN, not just the overlay. The overlay mounts at the root and renders
     // over whatever tab you're on, so "overlay still visible / still Step 1" held true even if the press

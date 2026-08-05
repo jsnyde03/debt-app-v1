@@ -4,7 +4,7 @@ import { useStore } from 'zustand';
 
 import { runBeats, scriptSurprise, TUTORIAL_MAX_CYCLES } from './sandboxBeats';
 import { harnessScenario, publishSandbox, unpublishSandbox } from './sandboxHarness';
-import { selectPaydayGuardian } from './guardianSelectors';
+import { selectPaydayGuardian, selectReserveRelease, selectReserveWalkback } from './guardianSelectors';
 import { SANDBOX_STATES, scenarioForBeat, type SandboxState } from './sandboxScenarios';
 import { createSandboxStore, seedSandbox, type SandboxStoreInstance } from './sandboxStore';
 import type { DebtStore } from '@/data/models';
@@ -25,10 +25,8 @@ import { resumeIndex, TUTORIAL_STEPS } from './tutorialPath';
  * active, wraps its content in `StoreProvider(sandbox)`. `/tutorial` becomes the launcher (and the
  * deep-link/e2e entry) rather than the host.
  *
- * ⚠️ Today does NOT mount the overlay — this said it did, and stopped being true at 3.5.3.5.7, when the
- * coaching layer was hoisted to the ROOT layout so its scrim could cover the iPad sidebar rail. Today
- * now only publishes geometry up through `TutorialShell`. The files that moved were all updated; this
- * one merely described them, which is how the claim survived.
+ * ⚠️ Today does NOT mount the overlay. The coaching layer is mounted by the ROOT layout, so its scrim can
+ * cover the iPad sidebar rail; Today only publishes geometry up through `TutorialShell`.
  *
  * Its own tiny store rather than a field on `appStore`: a tutorial session is transient UI state, and
  * putting it in the persisted blob would mean a migration plus the risk of a half-finished walkthrough
@@ -92,19 +90,27 @@ function clearStoryTimers() {
  *
  * Cancelled rather than deferred, deliberately: resuming half a narration is worse than restarting it.
  *
- * Clearing the timers is not on its own enough, and the version that only did that said otherwise. If
- * the app backgrounds after the surprise but before the rollovers, the sandbox is left holding a
- * walkback ack — which makes the beat's spotlight follow the PAYOFF, and a beat showing its payoff
- * fences the screen. The attestation the comment promised the user could "simply tap again" was neither
- * restored nor reachable, and the only ways out were Next (losing the payoff) or Back-then-Next. So the
- * beat is re-staged, which is what puts the ask back.
+ * Clearing the timers alone is not enough for ONE state: backgrounding after the surprise but before the
+ * rollovers leaves the sandbox holding a walkback ack, and a beat showing its payoff fences the screen —
+ * so the attestation the user is being asked to tap is neither restored nor reachable. That state, and
+ * only that state, is re-staged.
+ *
+ * ⚠️ The re-stage is NARROW on purpose. `goTo` re-seeds the whole sandbox and clears `floorBefore`, so
+ * running it unconditionally throws away work the USER did: a floor they dragged on beat 3 and the payoff
+ * they earned for it, reset to the scripted default with the copy asking them to do it again. iOS emits
+ * `inactive` for Notification Center, the app switcher and an incoming call — so "backgrounded" is a
+ * routine event, not a rare one, and this is a walkthrough whose thesis is that the app never moves your
+ * money on its own.
  */
 export function suspendStoryOnBackground(): void {
   clearStoryTimers();
   const s = tutorialSession.getState();
-  // `goTo` clears the timers again and re-seeds the beat; it no-ops when no session is running, which is
-  // why the explicit clear above stays.
-  if (s.active) s.goTo(s.index);
+  if (!s.active) return;
+  const box = s.sandbox?.getState().store;
+  // Mid-story = the walkback landed and the release has not. A completed story is a finished payoff and
+  // is left alone, exactly like a beat the user acted on.
+  const cutMidStory = !!box && !!selectReserveWalkback(box) && !selectReserveRelease(box);
+  if (cutMidStory) s.goTo(s.index);
 }
 
 export const tutorialSession = createStore<TutorialSessionState>((set, get) => ({

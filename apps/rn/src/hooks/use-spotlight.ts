@@ -53,13 +53,20 @@ export function useSpotlight({
   offsetRef: React.RefObject<number>;
   /** Bump to force a re-measure when the subject itself changed size (state change, card grew). */
   revision?: string | number;
-}): { rect: TargetRect | null } {
+}): { rect: TargetRect | null; measuredAt: number } {
   const targets = useTutorialTargets();
   const reduceMotion = useReducedMotion();
   const [rect, setRect] = useState<TargetRect | null>(null);
   // A scroll is in flight, so `rect` is deliberately null and the layout subscriber must not paint a
   // half-way position over it.
   const [settling, setSettling] = useState(false);
+  // Bumped wherever a measurement sequence CONCLUDES — whether or not it produced a rect.
+  //
+  // The distinction is the point. A consumer that keys on the rect alone has no signal for "we finished
+  // measuring and the answer was nothing", so a gate opened by a new rect stays shut forever after one
+  // timed-out re-measure. That is not hypothetical here: the settle re-measure fires on the heaviest
+  // frame of the beat, and the caller's rotation fence gates BOTH touch pass-through and the a11y fence.
+  const [measuredAt, setMeasuredAt] = useState(0);
   // Mirrored in a ref so the layout subscriber below can read it without listing it as a dependency —
   // which would tear down and rebuild the subscription on every transit.
   const settlingRef = useRef(false);
@@ -74,6 +81,7 @@ export function useSpotlight({
     if (!targetId || !targets) {
       setRect(null);
       setSettling(false);
+      setMeasuredAt((n) => n + 1);
       return;
     }
 
@@ -88,6 +96,7 @@ export function useSpotlight({
       if (!first) {
         setRect(null);
         setSettling(false);
+        setMeasuredAt((n) => n + 1);
         return;
       }
 
@@ -95,6 +104,7 @@ export function useSpotlight({
       if (Math.abs(delta) < 1) {
         setRect(first);
         setSettling(false);
+        setMeasuredAt((n) => n + 1);
         return;
       }
 
@@ -117,6 +127,7 @@ export function useSpotlight({
           if (stale) return;
           setRect(settled);
           setSettling(false);
+          setMeasuredAt((n) => n + 1);
         })();
       }, reduceMotion ? 0 : SETTLE_MS);
     })();
@@ -176,7 +187,7 @@ export function useSpotlight({
   // `settlingRef` to avoid re-measuring mid-transit), but round 6 removed its only external consumer:
   // the overlay used it to tell a travelling null from an absent one, and now renders the same scrim for
   // both. A published value with no reader is the thing the next audit finds.
-  return { rect };
+  return { rect, measuredAt };
 }
 
 /**

@@ -19,10 +19,8 @@ import { tutorialRunFor, type TutorialRun } from '@/store/tutorialSelectors';
  * hands off to Today.
  *
  * ⚠️ It is NOT how the app itself starts a walkthrough. The More row and the Guardian card's replay
- * affordance both call `startTutorial()` directly — see `tutorialSession.ts`, which has said so all
- * along. This header claimed all four entry points "still have a stable URL to aim at"; two of them
- * don't aim at a URL at all. What the route is actually for is the two callers that can only express
- * themselves as a URL: **deep links and the e2e**.
+ * affordance both call `startTutorial()` directly. This route exists for the two callers that can only
+ * express themselves as a URL: **deep links and the e2e**.
  */
 export default function TutorialLauncher() {
   const params = useLocalSearchParams<{ run?: string }>();

@@ -1,5 +1,5 @@
 import { selectBillsAttestation, selectPaydayGuardian, selectTightTopUp } from '@/store/guardianSelectors';
-import { guardianSubjects } from '@/store/guardianSubjects';
+import { guardianSubjects, GUARDIAN_CARD_SUBJECTS } from '@/store/guardianSubjects';
 import { selectRecoveryPlan } from '@/store/recoverySelectors';
 import { personaScenario, personalScenario, type SandboxState } from '@/store/sandboxScenarios';
 import { createSandboxStore } from '@/store/sandboxStore';
@@ -88,7 +88,13 @@ function run() {
 
   // No beat may coach a subject that isn't a real registered target — the arc and the registry drift
   // apart silently otherwise, and a beat pointing at nothing is invisible until someone runs it.
-  const known = new Set(['guardian-card', 'guardian-bar', 'guardian-adjust', 'guardian-reserve', 'today-ack']);
+  //
+  // Derived from the predicate's own inventory, not hand-written. A literal list is a second copy of the
+  // truth, and this file's whole argument is that the second copy is where the drift lives. `today-ack`
+  // is added explicitly because it is the one coached subject the CARD does not own — it renders in
+  // Today's ack slot on a runtime event (the reserve release / walkback), which is not a seeded state and
+  // so is deliberately outside this invariant's reach. Its coverage is beat 4's e2e.
+  const known = new Set<string>([...GUARDIAN_CARD_SUBJECTS, 'today-ack']);
   for (const step of TUTORIAL_STEPS) {
     if (step.target) assert(known.has(step.target), `beat "${step.id}" coaches a known subject`);
     if (step.payoffTarget) assert(known.has(step.payoffTarget), `beat "${step.id}"'s payoff target is known`);
