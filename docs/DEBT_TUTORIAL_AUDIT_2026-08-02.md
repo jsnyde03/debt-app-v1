@@ -889,13 +889,45 @@ Lens D#8 — `use-inert`'s claim that RNW gives every Pressable `tabIndex: 0` (i
 Not fixed, and **§Q never mentioned it**. MoreButton's tab-order fence was resting on `disabled` rather
 than on the fence. Both fixed. This failed half (a) of the bar on its own.
 
-### What the locked round bought
+### What the locked round bought — and what the count does NOT mean
 
-Nine rounds in, this is the first one that measured the same thing twice — and the answer is that **the
-fold rate has not fallen: 9 for 9 fix blocks have contained their own defects.** The difference is that
-round 9's findings are all *regressions*, not new territory, which is the number that has to come down.
-Three of the five blockers sit exactly where the web harness is blind (native rendering, an OS lifecycle
-event, a test asserting against itself).
+**(Jason, 2026-08-05)** *"I have no issues with 10 rounds of an audit if it's finding legitimate issues
+with the tutorial. That's the audit doing its job. It sucks that we're always finding new things but
+that's the point."* **The signal is whether the findings are REAL, not how many rounds it takes.** Every
+round-9 finding was: a test that passed with the feature deleted, a walkthrough discarding work the user
+had just done, a fence that could strand someone on an inert screen, and an R8 item never folded. The
+alternative to finding those in round 9 was shipping them. The loop is healthy and it terminates on its
+own bar — a round with nothing at show-stopper/MAJOR/MEDIUM.
+
+The one thing that WOULD make it unhealthy is an **un-falsifiable** finding class blocking the gate
+forever. Hence the rule below.
+
+### ⚠️ DEVICE-UNVERIFIED findings may not carry a BLOCKING severity
+
+Round 9's show-stopper was found by *reading* RN's source, not by running anything. The **mechanism** was
+verifiable and was verified link-by-link. The **consequence** — the bitmap size, the jetsam, the
+show-stopper rating — was inferred and measured by nobody. Rating an unmeasurable inference at a blocking
+severity means the gate can be failed by a claim nothing can refute, and there is always another native
+inference available.
+
+So: a lens may report a native/device finding with its mechanism and a proposed fix, tagged
+**DEVICE-UNVERIFIED**, routed to the Phase-6 device ledger for adjudication — but it does **not** block a
+locked round. Where the fix is cheap and safe on both platforms (`overflow: 'hidden'` is one property),
+fold it anyway: folding is cheap, blocking is expensive. **Round 9's verdict does not depend on this** —
+its two MAJORs were both proven in the harness.
+
+**And it cuts both ways:** if the harness can't judge native, a GREEN harness is not evidence that native
+is fine. When this gate closes, the honest claim is "converged as far as a web harness can see, with the
+native surface owed to the device pass" — not "converged".
+
+### The real constraint: the harness cannot see the ship platform
+
+Three of round 9's five blockers sat exactly where a web Playwright suite is structurally blind — native
+rendering, an OS lifecycle event, and a test asserting against itself. **`.github/workflows/native-e2e.yml`
+already does the hard part** (GH macOS runner → prebuild → compile for the iOS Simulator → boot →
+`simctl` screenshots + log stream → Maestro → artifacts) and has **four flows, none of which touch the
+walkthrough** — the unbuilt 3.5.6b. Wiring the walkthrough into that lane, plus static guards for known
+RNW↔RN divergences, changes what the NEXT round can see rather than searching the same lit area again.
 
 </details>
 
