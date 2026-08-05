@@ -22,7 +22,13 @@ appId: com.jasonsnyder.debtplanner
 
 # Open an EXISTING debt (not "Add debt") — the schedule entry is edit-only, which is exactly the gap
 # flow 02 left open.
-- tapOn: "Card"
+#
+# `.*Visa.*`, not a bare debt name. A `ListRow` spreads `groupLabel`, so the row is one composite a11y
+# element whose text is "Visa, $2,400 · 26.99% APR, …", and Maestro matches an element's FULL text as a
+# regex — the same thing flow 03 documents and the same reason the tab bar needed ids. This previously
+# read `tapOn: "Card"`, which could never match: the demo has "Store Card", "Visa" and "Car Loan", and
+# none of them is "Card". Reusing flow 03's selector because it is PROVEN to match a row in this setup.
+- tapOn: ".*Visa.*"
 - assertVisible: "Edit debt"
 
 # The entry now lives in the sheet BODY and NAVIGATES. If it ever regresses to opening a nested
