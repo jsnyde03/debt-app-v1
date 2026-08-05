@@ -20,6 +20,20 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "tab-money"
 
+# ⚠️ INSTRUMENTATION (2026-08-05). A run where this flow got as far as opening the edit sheet ended with
+# the VISA DEBT GONE — the list went from 3 debts / $11,580 to 2 / $9,180, exactly Visa's $2,400. Visa
+# demonstrably existed when this flow started (the tap below opened its sheet), and `DebtSheet` has no
+# delete control at all, so something between here and the end of this flow destroyed it.
+#
+# The leading suspect is flow 03: it long-presses a row to open the native context menu, asserts that
+# "Edit" and "Delete" are both present, and then ENDS — leaving a destructive menu on screen for whatever
+# runs next. These three assertions localise it: if the count is already wrong HERE, the damage happened
+# before this flow and 03 is the culprit; if it is right here and wrong at the end, it is this flow's own
+# journey. Remove them once the answer is in.
+- assertVisible: ".*Store Card.*"
+- assertVisible: ".*Visa.*"
+- assertVisible: ".*Car Loan.*"
+
 # Open an EXISTING debt (not "Add debt") — the schedule entry is edit-only, which is exactly the gap
 # flow 02 left open.
 #
@@ -47,3 +61,11 @@ appId: com.jasonsnyder.debtplanner
 # Back returns to Money (a real route, so the native back gesture/control exists).
 - back
 - assertVisible: "Money"
+
+# ⚠️ INSTRUMENTATION — the other half of the debt-count probe at the top of this flow. Viewing a payoff
+# schedule must not change the user's debts. If this fails while the assertions at the top passed, the
+# destruction happened inside this journey and is a real data-loss bug; if the top ones fail first, the
+# damage predates this flow. Remove both blocks once the answer is in.
+- assertVisible: ".*Store Card.*"
+- assertVisible: ".*Visa.*"
+- assertVisible: ".*Car Loan.*"
