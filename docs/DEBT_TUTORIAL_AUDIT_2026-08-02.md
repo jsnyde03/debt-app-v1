@@ -834,6 +834,71 @@ completeness queries **zero** (native a11y props · decaying counts) · **arc re
 themes, verified by looking** — beat 5's ring now stops above the dock with the coaching sentence uncut,
 corners rounded with no nubs, below-stage content properly dimmed, Skip trailing, frost isolating.
 
+## R. ROUND 9 — 2026-08-05 · ⛔ does not pass · **the first LOCKED round**
+
+<details>
+<summary>4 lenses (Opus 5) under the FIXED scope · a SHOW-STOPPER + 2 MAJOR + 2 MEDIUM, <b>every blocker a regression in round 8's fold</b> · folded in <code>2c74572</code></summary>
+
+**The scope was locked and the lenses were told so**: no new angles, only (a) is every round-8 finding
+verified fixed, (b) did the fix block introduce a show-stopper. Severity required on every finding,
+because the exit bar now turns on it.
+
+### SHOW-STOPPER — the rounded-hole scrim rasterises on iOS, and only on iOS
+
+`styles.hole` uses a 2000pt border as its fill. RN hands a border to Core Animation only when the border
+width is zero, the colour is fully transparent, or the view clips (`RCTViewComponentView.mm`,
+`useCoreAnimationBorderRendering`). A scrim-coloured 2000pt border is none of the first two and the style
+set no `overflow` — so it fell to `RCTGetSolidBorderImage`, rasterising a **~4029×4029pt bitmap, redrawn
+every spring frame** because layout props invalidate the layer. **The four-band version it replaced had
+`borderWidth: 0` and rode the vector path for free; the fold moved it off.** And the failure isn't only
+the allocation: if it fails, `layer.contents` is nil while the CA path has already zeroed
+`layer.borderWidth` — **a bright ring on a completely undimmed screen.** `overflow: 'hidden'` restores the
+vector path and preserves `inner = borderRadius − borderWidth`. Verified link-by-link against the pinned
+RN 0.85.3 source. **Web is unaffected either way, which is why nothing in the harness could see it.**
+
+### MAJOR — backgrounding threw away the user's own work
+
+`suspendStoryOnBackground` re-staged **unconditionally**, and `goTo` re-seeds the sandbox and clears
+`floorBefore`. On beat 3: drag the line, save, read the payoff, glance at Notification Center — the floor
+resets to the scripted default and the copy asks you to do it again. iOS emits `inactive` for Notification
+Center, the app switcher and an incoming call, so this is routine, **in the one feature whose thesis is
+that the app never moves your money on its own.** Round 7's timers-only version was harmless here; round
+8's "fix" made it destructive. Now scoped to the single state it was written for.
+
+### MAJOR — the cutout assertion was vacuous, and §Q's claim about it was false
+
+It took its reference box from the **ring**, and the ring and the hole are both drawn from one `clamped`
+value — two renders of one variable agreeing, with one-sided containment so a viewport-sized hole passes.
+**Proven, not argued:** replacing the scrim with a flat full-screen dark — no cutout on any beat, the
+spotlight visually dead — passed **123/123**. §Q and `9887442` both claimed it *"pins where the light
+IS"*. It did not. Now anchored to the SUBJECT's own node (new `tutorial-target-*` testID) with two-sided
+containment; the same mutation now goes **RED**, green on restore. **Fifth instance of this class.**
+
+### MEDIUM ×2
+
+The rotation fence could **stick CLOSED** — `settledDims` was written only under `if (spotlight)`, so a
+measurement concluding with no rect never reopened it, and it gates both touch pass-through and
+`useInert`: an interactive beat asking for a control on an inert, untouchable screen. `useSpotlight` now
+publishes `measuredAt`, bumped at every terminal. · `tutorialStage` was a **one-member share** (three
+lenses found it independently): the screen hand-derived both edges, so the disagreement the module exists
+to prevent was still possible.
+
+### ⚠️ A round-8 finding was never folded at all
+
+Lens D#8 — `use-inert`'s claim that RNW gives every Pressable `tabIndex: 0` (it is `disabled ? -1 : 0`).
+Not fixed, and **§Q never mentioned it**. MoreButton's tab-order fence was resting on `disabled` rather
+than on the fence. Both fixed. This failed half (a) of the bar on its own.
+
+### What the locked round bought
+
+Nine rounds in, this is the first one that measured the same thing twice — and the answer is that **the
+fold rate has not fallen: 9 for 9 fix blocks have contained their own defects.** The difference is that
+round 9's findings are all *regressions*, not new territory, which is the number that has to come down.
+Three of the five blockers sit exactly where the web harness is blind (native rendering, an OS lifecycle
+event, a test asserting against itself).
+
+</details>
+
 ### ⚠️ NOT folded — carried into round 9's scope
 
 - **Lens C** (the overlay-less sandbox): nothing broken today, but the honesty marker dies with the
