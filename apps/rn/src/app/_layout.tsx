@@ -19,6 +19,7 @@ import { drainPendingActions } from '@/appIntents/drainPendingActions';
 import { addNotificationResponseListener, registerNotificationCategories } from '@/notifications/notifications';
 import { initErrorReporting, wrapRoot } from '@/utils/sentry';
 import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
+import { DemoDock } from '@/components/plan/DemoDock';
 import { TutorialCoach } from '@/components/plan/TutorialCoach';
 import { suspendStoryOnBackground } from '@/store/tutorialSession';
 import { TutorialShellProvider } from '@/store/tutorialShell';
@@ -160,16 +161,27 @@ function RootLayout() {
             <Stack.Screen name="schedule/[id]" />
             {/* 3.5.1 — the Guardian tutorial (scaffold; beats land at 3.5.3). Runs on a sandbox. */}
             <Stack.Screen name="tutorial" />
-            <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
           </Stack.Protected>
           <Stack.Protected guard={!onboardingComplete}>
             <Stack.Screen name="onboarding" />
           </Stack.Protected>
+          {/* 3.5.4.7 — the paywall is OUTSIDE the onboarding guard, and that is a fix rather than a
+              relaxation. Buying does not require having entered your data, and the demo's whole audience is
+              pre-purchase: with it inside the guard, a not-yet-onboarded viewer who tapped "Unlock Premium"
+              had the demo torn down (which closed the guard) and landed in ONBOARDING instead of the
+              paywall — the conversion path broken for exactly the people it exists for. Found by the exit
+              e2e, which is the only thing that walks that sequence. Nothing else links here pre-onboarding,
+              so this opens no new surface; it only stops closing one. */}
+          <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
           {/* 3.5.4.2 — the demo entry. QA-gated inside the route itself, so it disappears with the
               Phase-6 `QA_TOOLS` flip without a second switch here. */}
           <Stack.Screen name="demo" />
           <Stack.Screen name="+not-found" />
           </Stack>
+          {/* 3.5.4.7 — the demo's chrome, mounted beside the Stack for the same reason the walkthrough's
+              overlay is: it must sit above the navigator (so it covers the iPad rail too) and cannot live
+              inside a tab screen. Renders nothing unless a demo is running. */}
+          <DemoDock />
           </StoreProvider>
           <TutorialCoach />
           </TutorialShellProvider>

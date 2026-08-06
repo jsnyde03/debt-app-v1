@@ -1,0 +1,26 @@
+import { router } from 'expo-router';
+
+import { demoSession } from './demoSession';
+
+/** Where a demo can hand the viewer off to. Both are ends of the run, never detours inside it. */
+export type DemoExit = '/onboarding' | '/paywall';
+
+/**
+ * 3.5.4.7 — leave the demo. [D18]'s terminal-exit rule, in one place so no caller can get the order wrong.
+ *
+ * `end()` BEFORE `replace()`, and that sequence is the whole point: the destination must never render
+ * with the sandbox still mounted above it. `/paywall` writes the real store by design, and
+ * `useNoRealWritesGuard` is deliberately strict for a bounded run — so a purchase made from a
+ * still-mounted demo would be reported as the exact thing the guard exists to catch, and at Phase 6 that
+ * lands in Sentry as a real-plan-corruption alert for a working checkout.
+ *
+ * `replace`, not `push`: the demo is over, and leaving it on the stack lets a back gesture resurrect a
+ * torn-down run — a screen of sandbox figures with no session behind it and no marker in its dock.
+ *
+ * Separate module from `demoSession` on purpose: this needs `expo-router` (→ react-native), and the
+ * session is kept dependency-free so the headless suite can assert it.
+ */
+export function exitDemo(to: DemoExit): void {
+  demoSession.getState().end();
+  router.replace(to);
+}

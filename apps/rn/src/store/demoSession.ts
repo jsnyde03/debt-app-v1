@@ -64,13 +64,12 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
 }));
 
 /**
- * ⚠️ 3.5.4.7, when the exits are built: [D18] makes them TERMINAL — `end()` FIRST, then navigate. The
- * destination must never be reached with the sandbox still mounted, because `/paywall` writes the real
- * store by design (`setSubscriptionPlan`) and `useNoRealWritesGuard` is deliberately strict for both
- * bounded runs. Reverse that order and the one signal built to prove the real plan is untouched reports
- * every purchase.
+ * [D18] — the exits are TERMINAL: `end()` FIRST, then navigate. The destination must never be reached
+ * with the sandbox still mounted, because `/paywall` writes the real store by design
+ * (`setSubscriptionPlan`) and `useNoRealWritesGuard` is deliberately strict for both bounded runs.
+ * Reverse the order and every purchase is reported as a sandbox leak.
  *
- * The helper is not written here yet: it would need `expo-router`, and this module is dependency-free on
- * purpose — that is what lets the headless suite assert its invariants at all. It belongs next to the
- * exits that call it.
+ * ⚠️ Lives in its own module (`demoExit`) rather than here, because `expo-router` pulls in react-native
+ * and this file is dependency-free on purpose — that is what lets the headless suite assert its
+ * invariants at all.
  */

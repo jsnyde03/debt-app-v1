@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { isDemoReachable } from '@/config/qa';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -288,6 +289,20 @@ export default function PaywallScreen() {
           <Button label={ctaLabel} onPress={handleSubscribe} disabled={busy} />
         </>
       )}
+
+      {/* 3.5.4.7 — "show me" for someone who won't buy on description alone. Placed BELOW the CTA and
+          above Restore: it is an alternative to deciding now, not a competing primary.
+          ⚠️ Withheld where the demo isn't reachable — `isDemoReachable()` is the one definition, so this
+          entry cannot outlive its destination. */}
+      {isDemoReachable() ? (
+        <Pressable
+          onPress={() => router.push('/demo')}
+          disabled={busy}
+          accessibilityRole="button"
+          style={styles.restore}>
+          <Text style={[textStyles.subhead, { color: c.accent.primary }]}>See it in action</Text>
+        </Pressable>
+      ) : null}
 
       <Pressable onPress={handleRestore} disabled={busy} accessibilityRole="button" style={styles.restore}>
         <Text style={[textStyles.subhead, { color: c.accent.primary }]}>{restoring ? 'Restoring…' : 'Restore purchases'}</Text>

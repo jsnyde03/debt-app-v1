@@ -77,6 +77,26 @@ test('the canvas is marked as example money, above the scroll and in the a11y tr
   expect(after?.y).toBe(before?.y);
 });
 
+test('both exits are terminal — the demo is over before the destination renders', async ({ page }) => {
+  await seedStore(page, NOT_ONBOARDED);
+  await page.goto('/demo');
+  await expect(page.getByTestId('example-canvas-marker')).toBeVisible({ timeout: 15_000 });
+
+  // "Unlock Premium" is the exit that matters: /paywall writes the real store by design, so reaching it
+  // with the sandbox still mounted would report a working checkout as a real-plan leak — at Phase 6, a
+  // Sentry alert for a purchase. [D18]'s ordering is what prevents that.
+  await page.getByText('Unlock Premium', { exact: true }).click();
+  await expect(page).toHaveURL(/paywall/);
+
+  // The demo is torn down, not merely navigated away from: no marker, and no dock.
+  await expect(page.getByTestId('example-canvas-marker')).toHaveCount(0);
+
+  // `replace`, not `push` — going back must not resurrect a torn-down run as a screen of sandbox figures
+  // with no session behind it.
+  await page.goBack();
+  await expect(page.getByTestId('example-canvas-marker')).toHaveCount(0);
+});
+
 test('the walkthrough does not double the marker', async ({ page }) => {
   // A walkthrough renders sandbox money too, so a marker keyed on the MONEY would show alongside the
   // dock's own "Example money" line. Two disclosures is the chrome [D6] refused.
