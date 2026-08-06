@@ -27,5 +27,14 @@ export function exitDemo(to: DemoExit): void {
   // which exit people take, and reading it after `end()` would mean reconstructing it from the route.
   track({ name: 'demo_exited', reason: to === '/paywall' ? 'unlock_premium' : 'start_real_plan' });
   demoSession.getState().end();
-  router.replace(to);
+
+  // ⚠️ Always land on onboarding FIRST, then push the paywall on top of it.
+  //
+  // `replace('/paywall')` alone stranded the user: it swapped out the only entry on the stack, so the
+  // paywall's own back control had nothing to return to and did nothing. Reported from a real build, and
+  // it is the same shape as 3.7.A0's cold-entry finding — a screen reachable by a route that leaves no
+  // history behind it. Onboarding is the honest floor here: whichever exit they took, a demo viewer has
+  // no plan yet, so that is where they belong when they close the paywall.
+  router.replace('/onboarding');
+  if (to === '/paywall') router.push('/paywall');
 }

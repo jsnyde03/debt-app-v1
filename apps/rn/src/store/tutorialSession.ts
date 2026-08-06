@@ -5,7 +5,7 @@ import { useStore } from 'zustand';
 import { track } from '@/analytics/funnel';
 
 import { runBeats, scriptSurprise, TUTORIAL_MAX_CYCLES } from './sandboxBeats';
-import { clearStoryTimers, scheduleStoryStep } from './sandboxRun';
+import { claimRun, clearStoryTimers, releaseRun, scheduleStoryStep } from './sandboxRun';
 import { harnessScenario, publishSandbox, unpublishSandbox } from './sandboxHarness';
 import { selectPaydayGuardian, selectReserveRelease, selectReserveWalkback } from './guardianSelectors';
 import { SANDBOX_STATES, scenarioForBeat, type SandboxState } from './sandboxScenarios';
@@ -118,6 +118,10 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
   floorBefore: null,
 
   start(realStore, run, startIndex) {
+    // The other half of the one-bounded-run-at-a-time rule — see `sandboxRun`'s `claimRun`. Stated at both
+    // sessions rather than at one, because "the other one cannot be running" is a claim each has to make
+    // for itself; asserting it in a single place is how a class ends up closed in one direction only.
+    if (!claimRun('tutorial')) return;
     // [D9] (Jason 2026-07-31) — the SANDBOX runs premium for every audience, whatever the user's own
     // tier. It used to mirror them (`run === 'premium'`), and verification showed what that cost: a free
     // Guardian is never held to its floor and its cold-start hedges are premium-only by design, so a free
@@ -239,6 +243,7 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
       else track({ name: 'tutorial_skipped', beat: index });
     }
     unpublishSandbox();
+    releaseRun('tutorial');
     clearStoryTimers();
     staging = null;
     // Drop the sandbox so it can be collected; a later session builds a fresh, deterministic one.

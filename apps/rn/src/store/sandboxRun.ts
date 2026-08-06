@@ -14,6 +14,32 @@
  * construction, instead of by remembering.
  */
 
+/**
+ * Which bounded run currently owns this registry, or null.
+ *
+ * The registry being shared is what makes one global background handler cover every run — and it is also
+ * what makes two simultaneous runs dangerous, because `clearStoryTimers()` clears the array
+ * unconditionally, so either session's teardown would cancel the other's pending steps. That would show
+ * as a demo frozen on one stage, or a reserve story that stalls mid-narration.
+ *
+ * The answer is not a smarter clear; it is that **two bounded runs may never be live at once**. The claim
+ * lives here rather than in either session because this is the resource they contend for, and a rule
+ * enforced from one side is the shape this codebase keeps getting half-right.
+ */
+let liveRun: string | null = null;
+
+/** Take ownership. Returns false if a different run already holds it — the caller must not start. */
+export function claimRun(id: string): boolean {
+  if (liveRun !== null && liveRun !== id) return false;
+  liveRun = id;
+  return true;
+}
+
+/** Release ownership. A no-op if this run does not hold it, so a late teardown cannot evict its successor. */
+export function releaseRun(id: string): void {
+  if (liveRun === id) liveRun = null;
+}
+
 /** Pending timers for every scripted story, across all bounded runs. */
 let storyTimers: ReturnType<typeof setTimeout>[] = [];
 

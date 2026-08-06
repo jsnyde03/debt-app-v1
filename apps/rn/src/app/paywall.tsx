@@ -195,7 +195,12 @@ export default function PaywallScreen() {
       : `Start Premium — ${selected?.priceString ?? ''} ${selected?.periodLabel ?? ''}`.trim();
 
   return (
-    <Screen title="Premium" onBack={() => router.back()}>
+    // [C9] — `canGoBack()` before `back()`. A bare `router.back()` no-ops when this screen is the only
+    // entry on the stack, which strands the user on a paywall with a dead control. That happened for real
+    // when the demo exited straight here, and it is the same cold-entry shape 3.7.A0 already fixed on the
+    // schedule route. `/onboarding` rather than a tab: someone who reaches the paywall with no history is
+    // pre-purchase, and has no plan to go back to.
+    <Screen title="Premium" onBack={() => (router.canGoBack() ? router.back() : router.replace('/onboarding'))}>
       <View style={styles.hero}>
         <AppIcon name="workspace-premium" size={30} color={c.accent.primary} />
         <Text style={[textStyles.title2, styles.heroTitle, { color: c.text.primary }]}>Debt payoff on autopilot</Text>

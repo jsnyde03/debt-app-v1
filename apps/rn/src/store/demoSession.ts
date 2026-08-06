@@ -3,7 +3,7 @@ import { createStore } from 'zustand/vanilla';
 import { track } from '@/analytics/funnel';
 
 import { DEMO_STAGES, demoScenario, playDemoRun } from './demoRun';
-import { clearStoryTimers } from './sandboxRun';
+import { claimRun, clearStoryTimers, releaseRun } from './sandboxRun';
 import { createSandboxStore, type SandboxStoreInstance } from './sandboxStore';
 
 /**
@@ -39,6 +39,10 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
 
   start() {
     if (get().active) return; // re-entry is a no-op, not a second sandbox
+    // ⚠️ Refuse if a walkthrough owns the shared timer registry. Not reachable through the UI today — the
+    // replay link and the invite are both withheld while `isExample` — but `/tutorial` sits inside the
+    // block this demo's own route guard opens, so a deep link can reach it.
+    if (!claimRun('demo')) return;
     const sandbox = createSandboxStore(demoScenario(DEMO_STAGES[0]));
     set({ active: true, sandbox, stage: DEMO_STAGES[0].id });
     // Scheduled against THIS sandbox: if the demo ends and another starts, the old run's steps must not
@@ -67,6 +71,7 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
     // run. The staleness guard would refuse it anyway; this makes the ordering the reason rather than the
     // backstop.
     clearStoryTimers();
+    releaseRun('demo');
     set({ active: false, sandbox: null, stage: null });
   },
 }));
