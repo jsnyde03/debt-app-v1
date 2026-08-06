@@ -1981,6 +1981,48 @@ the answer** — the claim-vs-code lens the audit rounds ran against the app, tu
 
 **Gate:** typecheck + lint clean · regression / app / scenario suites green · **123/123 e2e**.
 
+### ✅ 6/6 GREEN — 2026-08-06 (`f45ce18`)
+
+Four runs, and each failed **further along** than the last, on a different real thing. That progression is
+the lane working: a destructive mis-tap → a frame report that lies → an Android-only gesture.
+
+- **Run 2** — the swipe landed the tap, and the failure screenshot became *the payoff schedule itself,
+  correct*: Visa, **Apr 2033 · 80 months · $2,786.29 interest**, full amortization table. **That is 3.7.A0
+  proven on real UIKit presentation semantics** — the thing web structurally cannot model, and the reason
+  A0.4 was parked for a device build. Two earlier fixes shipped believing they had solved it.
+- **Run 3** — failed at `- back`, which is Android's hardware back button and does nothing on iOS, so
+  "Money" was asserted with the schedule still on screen. The header control had an
+  `accessibilityLabel="Back"` but its only text is a "‹" glyph, so it now carries `testID="screen-back"` —
+  which makes **every** `Screen` in the app drivable from a native flow, not just this one.
+
+**Flow 04's debt-count probe is now a permanent invariant, not instrumentation.** Its own comment said to
+remove it once the answer was in. The better call: viewing a payoff schedule is a READ, the assertions pin
+that the portfolio is identical before and after, and *a read that mutates is invisible until someone
+counts.* Nothing else in the suite counts.
+
+### What the beats look like on UIKit — the first time anyone has seen them
+
+Round 8's visual fixes hold on device: the beat-5 ring stops above the dock with the coaching sentence
+uncut, corners are rounded with no nubs, the frost isolates, and "Step N of 7 · Example money" is on every
+beat. **The Skia cushion bar paints correctly on beat 1** — the device ledger carried that as a risk after
+a web capture showed it unpainted; that was a CanvasKit artifact, and it does not reproduce natively.
+
+**Gate:** typecheck + lint clean · full `validate:release:rn` green · **124/124 e2e** · **Maestro 6/6 on
+iPhone 17 Pro Max / iOS 26.2**.
+
+### After-scan
+
+- **The one that matters, and it was never a tutorial bug:** `FormSheet`'s Remove destroyed a record in one
+  touch, unconfirmed, while the swipe and the long-press menu on the *same record* both guarded. It shipped
+  that way and no suite could see it. It took a robot tapping the wrong pixel on a real simulator to find
+  it — the lane's first run paid for the lane.
+- **Filed to the ledger (§T L5):** "View payoff schedule" is below the fold on the largest iPhone at
+  default type, directly above that destructive Remove. 3.7.A0 moved that entry *for discoverability*.
+- **Filed to the ledger (§T L2d):** beat 1 leaves a visible gap at the bottom of the Guardian card where
+  the replay link is withheld in sandbox. Withholding rather than disabling is the right shape (round 8
+  lens C), but it appears to leave its space behind. Observation from the device capture — **verify by
+  measuring before treating it as a defect.**
+
 ---
 
 ## CI — the every-push lane was gating an app that was retired a month ago (2026-08-05, `3c796f0`)

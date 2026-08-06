@@ -9,7 +9,7 @@
 ## ▶ NOW
 
 - **Active build:** **Phase 3.5 — interactive tutorial + bounded demo.** 3.5.0–3.5.3 ✅ done, incl. the 3.5.3.9 audit gate **CLOSED at round 10** (2026-08-05). **Phases 0–3 ✅ COMPLETE.**
-- **▶ Next action:** close **3.5.6b** (native Maestro lane) — 5/6 flows green on a real iOS simulator incl. both walkthrough flows; flow 04 red, fix pushed, run in flight. Then **3.5.4** (bounded demo).
+- **▶ Next action:** **3.5.4** (bounded demo + GTM funnel), decomposed below. **It opens on a 🎯 decision — 3.5.4.0, the containment model** — which gates the architecture steps after it. 3.5.6b ✅ closed 6/6.
 - **⏸ Parallel (Jason):** cut a fresh `v1.7-dev` build (⚠️ current device build `c050173`/3.6.1 is STALE — predates the whole closeout + fold) → the consolidated **Phase-6 device pass** (the accumulated device-QA ledger, under Phase 6).
 - **⚠️ Launch gating:** v1.7 ships as ONE release — nothing launches until Phase 6 is done + Jason is satisfied. The whole Elevation (through Phase 6) is the release.
 - **Quality gate:** `validate:release:rn` (`lint:rn` + `test:regression` + `test:app` + `test:scenarios` + `test:e2e:rn`) — green across the board. **CI runs it on every push since 2026-08-05** (`web-e2e` had been red for a month gating the retired Next app — log: CI entry). Native lane (`native-e2e.yml`) stays manual.
@@ -69,10 +69,28 @@ The interactive tutorial + the bounded marketing/demo showcase (+ folded-in feat
 
 ✅ **3.5.0–3.5.3 DONE (2026-07-30 → 08-05)** — the sandbox substrate · the trigger/intro matrix + replay entries · the interactive-a11y path scaffold · the 7-beat in-situ arc with 2 interactive beats, the persistent Example marker and the E1 hand-back finale. Closed by the **3.5.3.9 audit gate at round 10** (10 rounds, every one finding real defects) + 3.5.3.10/.11. Detail, decisions and the three convergence rules → log; per-round detail → `DEBT_TUTORIAL_AUDIT_2026-08-02.md`.
 
-- **3.5.6b — native Maestro lane for the walkthrough ▶ IN FLIGHT.** 5/6 flows green on an iPhone 17 Pro Max sim incl. both walkthrough flows; flow 04 red — an id-tap landed on the sheet's Remove and deleted a debt. Fix + the sheet-Remove confirm pushed (`4f4bd48`); re-run in flight. **Done when: 6/6 green.**
+- **3.5.6b — native Maestro lane for the walkthrough ✅ DONE 2026-08-06 (`f45ce18`).** 6/6 on iPhone 17 Pro Max / iOS 26.2, incl. both walkthrough flows. Caught a real data-loss bug (`FormSheet`'s Remove destroyed a record unconfirmed) and **proved 3.7.A0's payoff-schedule route on real UIKit**. Log: 3.5.6b.
 - **3.5.3.9-L — the audit-gate residue ✅ LEDGER WRITTEN (2026-08-06).** The gate closed against a ledger that did not exist; it does now — `DEBT_TUTORIAL_AUDIT_2026-08-02.md` §T. **8 open** (1 design call [E4] · 3 polish/evidence · 2 LOW · round 10's native-lane findings LOST · the schedule row below the fold), 4 verified already-folded. Work it at **3.5.6**.
 
-- **3.5.4 — bounded demo (B) + GTM funnel [blocker/major-fix].** 🔑 **Switch-in must read the 8-item entry list in `DEBT_TUTORIAL_AUDIT_R8_LENS_REPORTS.md` §LENS C** — canvas-level Example marker (blocking: without it 3.5.4 cannot ship or record) · containment model · hoist `StoreProvider` above the `Stack` · route guard for a not-yet-onboarded demo user · extract `sandboxRun` · re-scope `useNoRealWritesGuard` · a QA-gated `/demo` route · retire `demoSeed`. Scope: scripted day-one-bounded run (floor auto-protect · tight one-tap · water-fill · scorecard-as-future · reserves HELD) + the **free at-risk→Recovery contrast** · **pre-purchase entry** (Welcome slot + paywall "See it in action" + free-Guardian teaser; ~5s hook; exits "Start my real plan"/"Unlock Premium") · **reconcile/replace the legacy `demoSeed` [D-B]** · doubles as the deterministic App-Preview/screenshot capture path + a **closing receipt frame** (the store money-shot) · locale-neutral copy.
+- **3.5.4 — bounded demo (B) + GTM funnel ▶ NEXT ACTIVE BUILD [blocker/major-fix].** 🔑 Switch-in reads the 8-item entry list in `DEBT_TUTORIAL_AUDIT_R8_LENS_REPORTS.md` §LENS C — it is the spec. **Decomposed:**
+
+  | # | Step | Owner |
+  |---|---|---|
+  | 3.5.4.0 | **[DECISION] the containment model** — what may a demo user reach? Tabs · More (has **Reset** on it) · paywall · deep links. Gates .1 and .2, and today a stray tap ends an App-Preview take | 🎯 |
+  | 3.5.4.1 | Hoist `StoreProvider` above the `Stack` (`_layout.tsx:131`) — **not** around `<Tabs>`, which is recorded as breaking tab presses — + the route guard admitting a demo for a **not-yet-onboarded** user without writing `onboardingComplete` (the legacy `demoSeed` sin) | ⚙️ |
+  | 3.5.4.2 | QA-gated `/demo` route — the seam that makes every item below testable at all | ⚙️ |
+  | 3.5.4.3 | **Canvas-level, sandbox-keyed "Example money" marker**, visible AND in the a11y tree, covering hero / required / recommended / affordability / recovery. **Blocking: without it 3.5.4 cannot ship or record** | ⚙️ |
+  | 3.5.4.4 | Extract `sandboxRun` from `tutorialSession` — seed/stage/story/teardown + the timers' background-suspend contract | ⚙️ |
+  | 3.5.4.5 | Re-scope `useNoRealWritesGuard` (a `strict` flag), so Phase-6 Sentry gets one signal instead of a stream | ⚙️ |
+  | 3.5.4.6 | The bounded run itself: floor auto-protect · tight one-tap · water-fill · scorecard-as-future · reserves HELD · the **free at-risk→Recovery contrast** | ⚙️ |
+  | 3.5.4.7 | Pre-purchase entries (Welcome slot · paywall "See it in action" · free-Guardian teaser) + exits ("Start my real plan" / "Unlock Premium") | ⚙️ |
+  | 3.5.4.8 | Retire `demoSeed.ts` / `prefs.isDemoMode` **[D-B]** — one honest demo system | ⚙️ |
+  | 3.5.4.9 | The privacy-first opt-out funnel seam **[D-A]** (~8 events, no financial data) | ⚙️ |
+  | 3.5.4.10 | Verify + close: both themes · a11y on `/demo` · e2e · closing receipt frame · locale-neutral copy | ⚙️ |
+
+  **Exit:** a not-yet-onboarded user enters the demo from Welcome or the paywall, sees a bounded scripted run with sandbox-keyed marking on **every** surface, and exits to "Start my real plan" / "Unlock Premium"; `demoSeed` is gone; one script serves in-app demo, marketing embed (3.5.7) and App Preview (3.5.8).
+
+  _Original scope line, retained:_ scripted day-one-bounded run (floor auto-protect · tight one-tap · water-fill · scorecard-as-future · reserves HELD) + the **free at-risk→Recovery contrast** · **pre-purchase entry** (Welcome slot + paywall "See it in action" + free-Guardian teaser; ~5s hook; exits "Start my real plan"/"Unlock Premium") · **reconcile/replace the legacy `demoSeed` [D-B]** · doubles as the deterministic App-Preview/screenshot capture path + a **closing receipt frame** (the store money-shot) · locale-neutral copy.
 - **3.5.5 — feature-discovery coach-marks (C):** calm · one-at-a-time · dismissible · replayable · iOS-16-safe · rendered OUTSIDE gesture handlers · platform-gated · over the ENUMERATED hidden-gesture inventory (long-press menu · Cash-Runway scrub · Can-I-Afford · income-varies toggle · swipe-to-delete · chart scrub · Log-payment · widget/Lock-Screen/Siri).
   > **⭐ SCOPE DECISION (Jason 2026-07-31): the tutorial stays GUARDIAN-ONLY; coach-marks are how the rest of the app is taught.** The Guardian is the one feature with a genuinely novel mental model (money held back BEFORE payoff; a safety net that builds then releases) — Money/Progress are conventional list/chart screens. Extending the tutorial would blow the ≤7-beat budget, force the 3.5.3.0 store rewire across Money's sheets too (`ExpenseSheet`/`GoalSheet`/`LogPaymentSheet` are all still singleton writers), and teach a swipe four beats before the user is on the screen that has it. Contextual beats a tour.
   > **+3 INVENTORY ADDITIONS (same discussion) — high-value discoveries the list was missing:**

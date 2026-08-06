@@ -20,20 +20,14 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "tab-money"
 
-# ⚠️ INSTRUMENTATION (2026-08-05). A run where this flow got as far as opening the edit sheet ended with
-# the VISA DEBT GONE — the list went from 3 debts / $11,580 to 2 / $9,180, exactly Visa's $2,400.
+# Viewing a payoff schedule is a READ. These three assertions, and the three at the end, pin that: the
+# portfolio must be identical before and after the journey.
 #
-# ⚠️ The earlier note here claimed "`DebtSheet` has no delete control at all". That was FALSE, and it is
-# the whole answer: `FormSheet` renders a destructive **Remove** in its sticky action bar whenever the
-# sheet is in EDIT mode (`onRemove={isEdit ? remove : undefined}`), and `DebtSheet.remove()` calls
-# `removeDebt` with no confirmation. The schedule row is the LAST child of a ScrollView inside a sheet
-# capped at 92% height, so on a full debt form it sits BELOW the fold — and a blind `tapOn: id` lands at
-# the element's projected centre, which is over the action bar. The tap deleted the debt instead of
-# navigating, which is exactly the pair of symptoms observed: no schedule screen, and a debt short.
-#
-# So the fix is to stop tapping blind — scroll the row into view first (below). The count assertions stay
-# for now: they are what turns "the schedule didn't open" into "and a debt was destroyed", and they are
-# the check that the scroll actually changed which element got hit.
+# They began as instrumentation. A run of this flow ended with the VISA DEBT GONE — 3 debts / $11,580 down
+# to 2 / $9,180 — and the answer turned out to be that the tap never reached the schedule row at all: it
+# landed on the sheet's destructive Remove (see the swipe note below). The diagnosis is finished, but the
+# assertions are worth more than the diagnosis was. A read that mutates is exactly the class of defect that
+# is invisible until someone counts, and nothing else in the suite counts.
 - assertVisible: ".*Store Card.*"
 - assertVisible: ".*Visa.*"
 - assertVisible: ".*Car Loan.*"
@@ -86,10 +80,8 @@ appId: com.jasonsnyder.debtplanner
     id: "screen-back"
 - assertVisible: "Money"
 
-# ⚠️ INSTRUMENTATION — the other half of the debt-count probe at the top of this flow. Viewing a payoff
-# schedule must not change the user's debts. If this fails while the assertions at the top passed, the
-# destruction happened inside this journey and is a real data-loss bug; if the top ones fail first, the
-# damage predates this flow. Remove both blocks once the answer is in.
+# The other half of the read-only invariant. If this fails while the assertions at the top passed, the
+# journey itself changed the user's portfolio.
 - assertVisible: ".*Store Card.*"
 - assertVisible: ".*Visa.*"
 - assertVisible: ".*Car Loan.*"
