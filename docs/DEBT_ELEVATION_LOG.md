@@ -2058,6 +2058,41 @@ applied ahead of the defect instead of behind it.
 
 ---
 
+## 3.5.4.8 — retire `demoSeed` [D-B] (2026-08-06, `f4c875e`)
+
+The legacy demo wrote a fabricated plan into the user's **real** store via `importStore(demoStore())` and
+set `onboardingComplete` to clear the route guard. "See a demo" and "start using the app with invented
+data" were therefore the same action, with no way back to an empty plan — the sin `sandboxStore` was built
+to retire, and precisely why a sandbox demo needed the guard to admit it (3.5.4.1) instead of buying past
+it.
+
+**Repointed, not removed.** [D-B] is *one honest demo system*, and deleting the Welcome affordance would
+have left a gap until 3.5.4.7. It now opens the sandbox demo, which writes nothing real and hands back an
+empty plan. `isDemoReachable()` is one definition read by both the route and every affordance offering it,
+so an entry can never outlive its destination; `WelcomeStep`'s CTA is **withheld** rather than rendered
+dead when it is false — the round-8 "nothing renders dead" rule, one screen earlier.
+
+**The payday-capture gate was removed, not pinned true.** Keeping the read would have been worse than dead
+code: a v1.6 user who ever tapped "Try with Sample Data" carries `isDemoMode: true` **forever**, so payday
+capture stayed silently switched off for them even after they replaced every number with a real one. That
+is a live bug for existing users, fixed here as a side effect of the retirement.
+
+### ⚠️ What was deliberately NOT done
+
+The persisted **field** stays, marked inert. Removing a key from the blob is a schema change, and schema
+changes belong to Phase 5's migration bridge — the one place upgrade shapes are adversarially tested and
+where data-loss is a declared ship-blocker. Tidying it out inside a feature commit would land that risk in
+the wrong place, and an unread boolean costs nothing where it sits.
+
+**After-scan → backlog:** the same is true of `prefs.guardianIntroSeen` (Wave C7), so both drop together
+with the Phase-5 migration. Separately, `packages/core/testing` still writes and asserts the legacy
+`debtPlanner.isDemoMode` localStorage key — harmless, since it tests the Capacitor tree, but it now reads
+as a live contract for a flag the RN app no longer honours. Filed to 5.5.1.
+
+**Gate:** full `validate:release:rn` green · **127/127 e2e**.
+
+---
+
 ## 3.5.4.6 — the demo's script, and the extraction it justified (2026-08-06, `c05139d`)
 
 **Reordered, on Jason's call.** 3.5.4.4's extraction had no second consumer: the demo had a session but no
