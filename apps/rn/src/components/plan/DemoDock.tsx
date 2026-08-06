@@ -42,9 +42,8 @@ export function DemoDock() {
         Example money · {position} of {DEMO_STAGES.length}
       </Text>
 
-      {/* ⚠️ DRAFT COPY — 3.5.4.7 review. The mechanism is settled; the words are not.
-          Intent: the primary exit is the honest one (this was a demonstration, here is YOUR empty plan),
-          and Premium is offered without being the way out. */}
+      {/* Approved 2026-08-06. The primary exit is the honest one — this was a demonstration, here is YOUR
+          empty plan — and Premium is offered without being the way out. */}
       <Text style={[textStyles.body, { color: c.text.primary }]}>
         This is what your Guardian does with a paycheck.
       </Text>
