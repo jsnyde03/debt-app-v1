@@ -6,7 +6,10 @@ import { TabBarIcon } from '@/components/tab-bar-icon';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLayout } from '@/hooks/use-layout';
+import { useStore } from 'zustand';
+
 import { useInBoundedRun } from '@/store/boundedRun';
+import { demoSession } from '@/store/demoSession';
 
 /**
  * The 3-tab shell (Elevation IA) — Today · Progress · Money, Today-first (index). Management
@@ -34,6 +37,11 @@ export default function TabsLayout() {
   // so this is the only thing between a stray tap and the real (usually empty) plan one tab over.
   const inBoundedRun = useInBoundedRun();
   const holdTabs = { tabPress: (e: { preventDefault(): void }) => { if (inBoundedRun) e.preventDefault(); } };
+  // 3.5.4.10 — a DEMO hides the tab bar; a walkthrough does not. Not an inconsistency: the walkthrough
+  // coaches over the real app and the tabs are part of what it is teaching you to use, fenced but present.
+  // A demo is a kiosk with its own dock, and the dock sat over the tab bar and cut the labels in half —
+  // a viewer's first impression of the app was a clipped control strip. Held AND hidden, not held alone.
+  const inDemo = useStore(demoSession, (s) => s.active);
 
   // 3.5.3.5.7 — the coaching overlay is deliberately NOT mounted here. Wrapping `<Tabs>` in a container
   // View to make room for a sibling broke tab presses outright (the BNPL specs' "Money" click timed
@@ -54,9 +62,11 @@ export default function TabsLayout() {
         tabBarBackground: isRegular
           ? undefined
           : () => <BlurView tint={scheme === 'dark' ? 'dark' : 'light'} intensity={70} style={StyleSheet.absoluteFill} />,
-        tabBarStyle: isRegular
-          ? { backgroundColor: c.background.secondary, borderRightColor: c.border.subtle }
-          : { position: 'absolute', backgroundColor: 'transparent', borderTopColor: c.border.subtle },
+        tabBarStyle: inDemo
+          ? { display: 'none' }
+          : isRegular
+            ? { backgroundColor: c.background.secondary, borderRightColor: c.border.subtle }
+            : { position: 'absolute', backgroundColor: 'transparent', borderTopColor: c.border.subtle },
         tabBarLabelStyle: { fontSize: isRegular ? 15 : 11, fontWeight: '600' },
         // ⚠️ NO `tabBarButton` override here, deliberately — REVERTED 2026-08-04. A plain `Pressable`
         // drops the `href` preventDefault the framework's button does, so every tab press on web became a

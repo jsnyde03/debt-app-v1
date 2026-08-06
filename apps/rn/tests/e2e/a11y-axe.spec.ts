@@ -75,6 +75,16 @@ test.describe('a11y tree invariants', () => {
     expect(await violations(page)).toEqual([]);
   });
 
+  test('the demo — a new surface with its own dock and marker', async ({ page }) => {
+    // 3.5.4.10. Worth its own case rather than assuming Today's coverage carries: the demo renders a dock
+    // Today does not have, a canvas marker with a `header` role, and it is reached by an audience who has
+    // completed no onboarding — so nothing else in this suite has scanned this combination.
+    await seedStore(page, newUser({ prefs: { onboardingComplete: false } }));
+    await page.goto('/demo');
+    await expect(page.getByTestId('example-canvas-marker')).toBeVisible();
+    expect(await violations(page)).toEqual([]);
+  });
+
   test('a sheet — where the shared backdrop lives', async ({ page }) => {
     await seedStore(page, newUser());
     await page.goto('/');

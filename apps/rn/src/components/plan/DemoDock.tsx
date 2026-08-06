@@ -36,10 +36,13 @@ export function DemoDock() {
       // One utterance: a screen reader should hear what this is and where it is, not three fragments.
       accessible
       accessibilityLabel={`Example money. Demonstration, ${position} of ${DEMO_STAGES.length}.`}>
-      {/* Same metadata line the walkthrough uses, for the same reason: the marker rides a row that is
-          already on screen rather than adding a surface of its own. */}
+      {/* Position only — the "Example money" disclosure belongs to `ExampleCanvasMarker`, which sits at
+          the TOP of the screen beside the figures it is about. Both said it at first, which is the same
+          doubling [D6] refused in the walkthrough, arriving from the other direction: there the dock owns
+          the marker and the canvas withholds, here the canvas owns it because it cannot scroll away from
+          the money. Caught by looking at the render, not by a test. */}
       <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-        Example money · {position} of {DEMO_STAGES.length}
+        {position} of {DEMO_STAGES.length}
       </Text>
 
       {/* Approved 2026-08-06. The primary exit is the honest one — this was a demonstration, here is YOUR

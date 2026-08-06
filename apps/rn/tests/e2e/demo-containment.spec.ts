@@ -49,10 +49,13 @@ test('a not-yet-onboarded user reaches the demo, and it is contained', async ({ 
   // the focused element and never goes through hit-testing, which is how this leaked for four rounds.
   await expect(more).toHaveAttribute('aria-hidden', 'true');
 
-  // 3b — the tabs are held. Press Money and assert we are still on Today; the demo must not be one tap
-  // from the real, empty plan. (`holdTabs` preventDefaults the press, so the URL never changes.)
-  await page.getByTestId('tab-money').click();
-  await expect(page).not.toHaveURL(/money/);
+  // 3b — the tabs are not merely held, they are GONE. 3.5.4.10 hid the bar for a demo because the dock
+  // sat over it and cut the labels in half, and hidden is the stronger guarantee: `holdTabs` still fences
+  // the press (and is what the walkthrough relies on, where the bar stays visible by design), but a
+  // control that isn't rendered cannot be tapped, mis-tapped, or photographed mid-capture.
+  // `toBeHidden`, not `toHaveCount(0)`: `display: 'none'` is how RN hides a tab bar, and on web that
+  // leaves the node in the DOM while removing it from layout, hit-testing and the a11y tree.
+  await expect(page.getByTestId('tab-money')).toBeHidden();
   await expect(page.getByText('Payday Guardian')).toBeVisible();
 });
 
