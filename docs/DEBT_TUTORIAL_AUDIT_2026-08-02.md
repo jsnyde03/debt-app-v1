@@ -895,6 +895,63 @@ the Maestro lane and the Phase-6 device pass.
 
 </details>
 
+## T. 3.5.3.9-L — THE RESIDUE LEDGER (2026-08-06)
+
+<details open>
+<summary>The list round 10 closed the gate against. It did not exist until now — this section is it.</summary>
+
+Round 10 closed with *"the residue is ledgered at **3.5.3.9-L**"*, and that sentence was the only mention
+of 3.5.3.9-L anywhere in the repo. **There was no list.** The residue was scattered across ten rounds as
+asides — a design call "deliberately not folded", four polish nits inside a PASS verdict, two minors banked
+in a converged lens, a per-lens section that was never written down at all.
+
+This gate already proved what happens to a finding that lives only in prose: round 8's lens D#8 went
+un-folded, §Q never mentioned it, and only round 9 caught it — *"this failed half (a) of the bar on its
+own."* A named ledger with no contents is that failure mode with a label on it.
+
+**Every item below was re-verified against the code on 2026-08-06, not carried on the doc's word.** That
+check moved four items to closed and one to "the evidence is gone".
+
+### Open
+
+| ID | Item | Class | Goes to |
+|---|---|---|---|
+| **L1** | **[E4] the upgrade re-offer has no owner.** An upgrader replays all seven beats for one changed paragraph. Round 1 replaced the false justification (`tutorialSelectors.ts:16,25` now argue the finale honestly) but left the behaviour, routing the decision to the 3.5.1 design gate — which round 4 found is **already closed**, so nothing will ever resurface it. Still live in code. | 🎯 DESIGN, unowned | **3.5.6** — decide replay-all vs finale-only |
+| **L2a** | Beat 4's spotlight ring still sits tight under "Your call" — round 4 asked for 4–6pt more and 3.5.3.11's `xxs`→`xs` bump did not fully answer it. | polish | 3.5.6 |
+| **L2b** | The Guardian card's bottom padding (~37pt) reads tighter than its own ~48pt inter-row rhythm, since the 44pt rows landed. | polish | 3.5.6 |
+| **L2c** | **No screenshot in the suite captures `FloorImpactBar` mid-flight**, so premium criterion 5 (payoff choreography) is only *partly* screenshot-grounded — it has been judged from code and end states in all three bar reviews. | evidence gap | 3.5.6 |
+| **L3a** | `GUARDIAN_CARD_SUBJECTS` carries `guardian-card`, which the **host** registers — the predicate does not model the host's render gate, and round 10 separately found this literal is one the predicate never reads. Two findings on one constant. | LOW, not live-broken | 3.5.6 |
+| **L3b** | The build-time invariant seeds the sandbox without `maxGenuineCycles` / `withProjectedBalances`, so it proves the arc against a shape slightly unlike the shipped one. | LOW, not live-broken | 3.5.6 |
+| **L4** | ⚠️ **Round 10's three "FOR THE NATIVE LANE" sections were never written down, and the lens outputs were not saved.** §S records only that each lens returned one carrying no severity. Unlike round 8 — recovered verbatim into `…_R8_LENS_REPORTS.md` — **this content is gone.** | evidence LOST | 3.5.6b + the Phase-6 device ledger must re-derive; do not assume the native surface was reviewed |
+| **L5** | **On the largest iPhone at default type, "View payoff schedule" is below the fold on a full debt form** — and directly above a destructive Remove. 3.7.A0 moved that entry *for discoverability*; on the biggest phone Apple sells it is off-screen. Found 2026-08-06 by the native lane (hierarchy: row at `[20,877][420,925]`, Remove at ~865–905). | UX / real | 3.5.6, with 3.7.A0's re-verify |
+
+**Not residue, but it must not be lost:** round 8's lens C produced an 8-item **3.5.4 entry list** (canvas
+marker · containment model · hoist `StoreProvider` above the `Stack` · the route guard for a
+not-yet-onboarded demo user · extract `sandboxRun` · re-scope `useNoRealWritesGuard` · a QA-gated `/demo`
+route · retire `demoSeed`). It is the best spec input 3.5.4 has and it lives in a round-8 lens report.
+Linked from the plan's 3.5.4 step so the switch-in reads it.
+
+### Closed on inspection — checked 2026-08-06, found already folded
+
+Recorded because a ledger that does not say what it *checked* has the same defect as one with no contents.
+
+- **Lens C's four "cheap, belongs in THIS version" items — all four landed.** The haptics at
+  `index.tsx:307,331` are keyed on `inWalkthrough`, not `isExample`, with the reasoning in place ·
+  `TutorialOverlay.tsx:305` states the chip marks the CARD, not the canvas · `StoreContext.tsx:86` records
+  the report-scope caveat · `sandboxScenarios.ts:47-51` carries the `SCENARIO_BASE_DATE` staleness warning.
+- **Round 4's polish item 3** (beat 5's ring peeking beside the dock) — fixed by round 8's fold; the ring
+  now clamps above the dock.
+- **Round 8 lens D's ~43 surviving comment-convention violations** — now machine-enforced.
+  `npm run lint:comments` is green, and round 10 fixed the scanner's own false positives, so the class is
+  held by a rule rather than by a count.
+- **Round 1 §F's "built, not called" seams** — `guardian-line` was deleted in round 6;
+  `HARNESS_SCENARIO_IDS` and the `BeatResult` channel were correctly re-classified as live test/3.5.5
+  seams, not dead code.
+
+</details>
+
+---
+
 ## R. ROUND 9 — 2026-08-05 · ⛔ does not pass · **the first LOCKED round**
 
 <details>
