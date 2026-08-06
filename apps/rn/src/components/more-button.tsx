@@ -8,7 +8,7 @@ import { Pressable } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { useTutorialSession } from '@/store/tutorialSession';
+import { useInBoundedRun } from '@/store/boundedRun';
 import { icons } from '@/theme/icons';
 import { a11yHidden } from '@/utils/a11y';
 
@@ -23,26 +23,30 @@ export function MoreButton() {
   // overlay. That is the same leak 3.5.3.5.9 closed for touch, still open for the users the a11y work
   // was for. One shared component, so one fix covers every tab header.
   //
-  // Deliberately NOT hidden outside a session: More is the reviewer-findable paywall entry and must stay
-  // a stable, always-available affordance ([[feedback_paywall_reviewer_findability]]). A walkthrough is
-  // a transient state the user chose, with Skip permanently on screen.
-  const inTutorial = useTutorialSession((s) => s.active);
+  // Deliberately NOT hidden outside a bounded run: More is the reviewer-findable paywall entry and must
+  // stay a stable, always-available affordance ([[feedback_paywall_reviewer_findability]]). A walkthrough
+  // or a demo is a transient state the user chose, with an exit permanently on screen.
+  //
+  // 3.5.4.1 — a demo needs this more than the walkthrough does. `/more` carries **Reset**, and the demo's
+  // audience is a stranger evaluating the app: the one route that must not be one tap from a marketing
+  // run is the one that can wipe a plan.
+  const inBoundedRun = useInBoundedRun();
   return (
     <Pressable
       onPress={() => router.push('/more')}
-      disabled={inTutorial}
+      disabled={inBoundedRun}
       // Explicit, not inherited from `disabled`. RNW derives `tabIndex` from `disabled`, so the tab-order
       // half of this fence currently holds for a reason unrelated to fencing — change why this is
       // disabled and the control silently rejoins the tab order while still being `aria-hidden`, which is
       // the `aria-hidden-focus` violation. Stating it here makes the fence depend on the fence.
-      tabIndex={inTutorial ? -1 : undefined}
+      tabIndex={inBoundedRun ? -1 : undefined}
       hitSlop={12}
       accessibilityRole="button"
       accessibilityLabel="More"
-      {...a11yHidden(inTutorial)}>
+      {...a11yHidden(inBoundedRun)}>
       {/* Routed through AppIcon so iOS gets the SF-Symbol ellipsis (more-horiz → ellipsis). */}
       {/* Dimmed while held, so it doesn't read as live-but-broken under the scrim. */}
-      <AppIcon name={icons.more} size={24} color={inTutorial ? c.text.tertiary : c.text.secondary} />
+      <AppIcon name={icons.more} size={24} color={inBoundedRun ? c.text.tertiary : c.text.secondary} />
     </Pressable>
   );
 }

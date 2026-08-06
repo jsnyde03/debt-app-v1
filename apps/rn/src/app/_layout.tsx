@@ -2,6 +2,7 @@ import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-rout
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useStore } from 'zustand';
 
 import { AppLockGate } from '@/components/AppLockGate';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -9,7 +10,9 @@ import { useNotificationSync } from '@/hooks/use-notification-sync';
 import { useInitPremium } from '@/premium/premiumSync';
 import { createStorageAdapter } from '@/storage/createAdapter';
 import { bootstrapPersistence, flushPendingSave } from '@/store/persistence';
-import { allowRealStoreWrite } from '@/store/StoreContext';
+import { allowRealStoreWrite, StoreProvider } from '@/store/StoreContext';
+import { appStore } from '@/store/appStore';
+import { demoSession } from '@/store/demoSession';
 import { startWidgetSync } from '@/widget/widgetSync';
 import { startLiveActivitySync } from '@/liveActivity/liveActivitySync';
 import { drainPendingActions } from '@/appIntents/drainPendingActions';
@@ -53,6 +56,11 @@ function RootLayout() {
   const scheme = useColorScheme();
   const isHydrated = useAppStore((s) => s.isHydrated);
   const onboardingComplete = useAppStore((s) => s.store.prefs.onboardingComplete);
+  // 3.5.4.1 — read BOTH halves of the demo session here. `sandbox` supplies the store to the provider
+  // below and `active` opens the route guard; `demoSession.end()` clears them in one `set`, so they
+  // cannot disagree for a frame.
+  const demoSandbox = useStore(demoSession, (s) => s.sandbox);
+  const inDemo = useStore(demoSession, (s) => s.active);
   useNotificationSync();
   useInitPremium();
 
@@ -128,8 +136,21 @@ function RootLayout() {
               Freedom RN lesson #7). Only the overlay VIEW is hoisted; the session still renders over the
               real Today tab. */}
           <TutorialShellProvider>
+          {/* 3.5.4.1 — the demo's store sits ABOVE the navigator, so every screen it can reach resolves to
+              the same sandbox. `useAppStore` reads through this context, so with no demo running the value
+              is the singleton and all ~39 call sites behave exactly as they did — and `useNoRealWritesGuard`
+              early-returns on `store === appStore`, so this wrapper is inert outside a demo.
+              ⚠️ Here, NOT around `<Tabs>`: wrapping that in a container broke tab presses outright
+              (see the tabs layout). The walkthrough keeps its own provider inside Today, which is correct —
+              it is Today-scoped by design and this one is not above it in that case. */}
+          <StoreProvider store={demoSandbox ?? appStore}>
           <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Protected guard={onboardingComplete}>
+          {/* [D18] — a demo is admitted for a NOT-YET-ONBOARDED user. That audience is the whole point of
+              the pre-purchase entry, and it is exactly who this guard blocked: the legacy `demoSeed` got
+              past it by writing `onboardingComplete: true` to the REAL store, which is the sin the sandbox
+              exists to retire. A sandbox demo writes nothing real, so it needs the guard to admit it
+              instead. */}
+          <Stack.Protected guard={onboardingComplete || inDemo}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="more" />
             <Stack.Screen name="history" />
@@ -144,8 +165,12 @@ function RootLayout() {
           <Stack.Protected guard={!onboardingComplete}>
             <Stack.Screen name="onboarding" />
           </Stack.Protected>
+          {/* 3.5.4.2 — the demo entry. QA-gated inside the route itself, so it disappears with the
+              Phase-6 `QA_TOOLS` flip without a second switch here. */}
+          <Stack.Screen name="demo" />
           <Stack.Screen name="+not-found" />
           </Stack>
+          </StoreProvider>
           <TutorialCoach />
           </TutorialShellProvider>
           {/* 3.6.6 — iPad hardware ⌘-shortcuts (inert on iPhone/touch + web). Only meaningful once past

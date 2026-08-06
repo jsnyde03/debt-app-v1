@@ -6,7 +6,7 @@ import { TabBarIcon } from '@/components/tab-bar-icon';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLayout } from '@/hooks/use-layout';
-import { useTutorialSession } from '@/store/tutorialSession';
+import { useInBoundedRun } from '@/store/boundedRun';
 
 /**
  * The 3-tab shell (Elevation IA) — Today · Progress · Money, Today-first (index). Management
@@ -24,13 +24,16 @@ export default function TabsLayout() {
   const c = useAppColors();
   const scheme = useColorScheme();
   const { isRegular } = useLayout();
-  // 3.5.3.3.1 — a walkthrough must not lose the user to another tab. The overlay's scrim now covers the
+  // 3.5.3.3.1 — a bounded run must not lose the user to another tab. The overlay's scrim now covers the
   // whole canvas (3.5.3.5.7) on every beat including the interactive ones (3.5.3.5.9), so this is
   // defence in depth rather than the only guard. It still earns its place: the scrim renders nothing at
   // all on an interactive beat whose subject never measured, and that is precisely the degraded state in
   // which a stray tab tap would strand the user mid-beat. Skip is always right there.
-  const inTutorial = useTutorialSession((s) => s.active);
-  const holdTabs = { tabPress: (e: { preventDefault(): void }) => { if (inTutorial) e.preventDefault(); } };
+  //
+  // 3.5.4.1 — and for a demo it is not defence in depth, it is the whole fence: a demo renders no scrim,
+  // so this is the only thing between a stray tap and the real (usually empty) plan one tab over.
+  const inBoundedRun = useInBoundedRun();
+  const holdTabs = { tabPress: (e: { preventDefault(): void }) => { if (inBoundedRun) e.preventDefault(); } };
 
   // 3.5.3.5.7 — the coaching overlay is deliberately NOT mounted here. Wrapping `<Tabs>` in a container
   // View to make room for a sibling broke tab presses outright (the BNPL specs' "Money" click timed

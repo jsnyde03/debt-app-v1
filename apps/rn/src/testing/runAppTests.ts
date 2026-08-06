@@ -107,6 +107,9 @@ async function main() {
   // coaches. Replaces the runtime degraded path, which answered this at runtime and oscillated doing it.
   await import('../store/guardianSubjects.test');
 
+  // 3.5.4.1 — a demo is a bounded run to every fence, and `end()` cannot publish a split frame.
+  await import('../store/demoSession.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

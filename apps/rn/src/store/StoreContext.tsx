@@ -76,16 +76,19 @@ export function StoreProvider({ store, children }: { store: DebtStoreInstance; c
  *
  * Deliberately watches the `store` blob only: `isSaving`/`isHydrated` churn is lifecycle, not user data.
  *
- * ⚠️ SCOPE — this REPORTS on the premise that the walkthrough fences navigation. It fires on the
- * provider (`store !== appStore`), not on the session, so it keeps watching in any sandbox subtree; but
- * "a real-store write while a sandbox is mounted" only means LEAK because a session holds the tabs and
- * hides More, so nothing reachable can legitimately write. Mount this provider WITHOUT that fence —
- * 3.5.4's demo — and ordinary navigation reaches `/more` and `/paywall`, which write the real store by
- * design, while Today is still mounted underneath: every one of those becomes a reported "real store
- * mutated" and floods the one signal built to prove the real plan is untouched (Sentry-wired at Phase 6).
- * The fix is a report SCOPE on the provider (strict for the walkthrough, quiet for a demo), not a
- * per-call-site allowlist over an open route graph. Owed at 3.5.4, when there is a demo caller to give
- * it a correct value; changing the signature now would mean guessing the demo's containment model.
+ * ⚠️ SCOPE — this reports on the premise that a bounded run fences navigation. It fires on the provider
+ * (`store !== appStore`), not on the session, so it watches any sandbox subtree; "a real-store write while
+ * a sandbox is mounted" only means LEAK because the run holds the tabs and withholds More, so nothing
+ * reachable can legitimately write.
+ *
+ * [D18] keeps that premise true for the demo as well as the walkthrough: a demo is a KIOSK, both share
+ * `useInBoundedRun`, and its exits tear the session down BEFORE navigating — so `/more` and `/paywall`
+ * are never reached with a demo provider above them. The guard therefore stays strict for both, and needs
+ * no per-caller scope flag.
+ *
+ * ⚠️ What would break it: mounting this provider around a subtree that can navigate to a real-store
+ * writer. If a future run is ever admitted without the fence, the answer is a report scope on the
+ * provider — never a per-call-site allowlist over an open route graph.
  */
 function useNoRealWritesGuard(store: DebtStoreInstance) {
   useEffect(() => {
