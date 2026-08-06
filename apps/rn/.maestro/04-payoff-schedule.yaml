@@ -52,13 +52,19 @@ appId: com.jasonsnyder.debtplanner
 # The entry now lives in the sheet BODY and NAVIGATES. If it ever regresses to opening a nested
 # presentation, the schedule won't be visible here and this fails on the Simulator — no device needed.
 #
-# ⚠️ SCROLL FIRST, then tap. The row is the last child of the sheet's ScrollView and falls below the fold
-# on a full debt form; a bare `tapOn: id` taps the projected centre, which is over the sticky action bar
-# and its destructive Remove. Scrolling makes the tap land on the element it names.
-- scrollUntilVisible:
-    element:
-      id: "debt-view-schedule"
-    direction: DOWN
+# ⚠️ SWIPE the sheet body first, then tap — and `scrollUntilVisible` is NOT enough here.
+#
+# The row is the last child of the sheet's ScrollView and falls below the fold on a full debt form, but RN
+# reports its UNCLIPPED absolute frame: the 2026-08-06 hierarchy dump has it at [20,877][420,925] on a
+# 440×956 screen, i.e. centred at y=901 — directly on top of the "Remove" button at ~865–905. So Maestro
+# considers it already visible, `scrollUntilVisible` no-ops, and `tapOn: id` taps a destructive control.
+# That run only survived because the sheet's Remove now confirms; the run before it deleted the debt.
+#
+# An explicit swipe actually moves the content. The `assertVisible: "Payoff schedule"` below is what proves
+# the tap landed — a visibility assertion here would pass on the clipped element for the same reason.
+- swipe:
+    start: "50%, 70%"
+    end: "50%, 35%"
 - tapOn:
     id: "debt-view-schedule"
 
