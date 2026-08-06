@@ -71,6 +71,15 @@ export interface PaycheckConfig {
 export interface Preferences {
   notificationsEnabled: boolean;
   appLockEnabled: boolean;
+  /**
+   * ⚠️ INERT since 3.5.4.8 — retained, not used. Nothing writes it (the legacy `demoSeed` was its only
+   * writer and is deleted) and nothing reads it. The FIELD stays because it is persisted: removing it is
+   * a schema change, and schema changes belong to Phase 5's migration bridge, where upgrade data-loss is
+   * a ship-blocker and every shape gets adversarially tested. Dropping a key here to tidy up would land
+   * that risk in a feature commit. An unread boolean in the blob costs nothing.
+   *
+   * → Phase 5: drop it with the migration that handles it, alongside `guardianIntroSeen` (Wave C7).
+   */
   isDemoMode: boolean;
   themeMode: ThemeMode;
   onboardingComplete: boolean;

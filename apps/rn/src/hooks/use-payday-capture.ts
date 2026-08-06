@@ -48,17 +48,22 @@ export function usePaydayCapture(hasCapturablePlan: boolean): PaydayCapture {
   const nextPaycheckDate = useAppStore((s) => s.store.paycheck.nextPaycheckDate);
   const payCycle = useAppStore((s) => s.store.paycheck.payCycle);
   const lastHandled = useAppStore((s) => s.store.lastHandledPaydayDate);
-  const enabled = useAppStore((s) => !s.store.prefs.isDemoMode);
+  // 3.5.4.8 — `prefs.isDemoMode` no longer gates this, and the gate is gone rather than pinned true.
+  // Nothing sets the flag: the legacy `demoSeed` was its only writer and it has been deleted, and the
+  // sandbox demo writes nothing to the real store at all — its isolation is structural, so there is no
+  // flag to consult. Keeping the read would have been worse than dead code: a v1.6 user who ever tapped
+  // "Try with Sample Data" carries `isDemoMode: true` forever, so payday capture stayed silently switched
+  // off for them even after they replaced every number with a real one.
 
   const [closedForPayday, setClosedForPayday] = useState<string | null>(null);
   const [manualOpen, setManualOpen] = useState(false);
 
   const today = todayISO();
   const isPaydayPending =
-    enabled && hasCapturablePlan && shouldPromptPaydayCapture(today, nextPaycheckDate, lastHandled, recencyWindowDays(payCycle));
+    hasCapturablePlan && shouldPromptPaydayCapture(today, nextPaycheckDate, lastHandled, recencyWindowDays(payCycle));
   const autoOpen = isPaydayPending && closedForPayday !== nextPaycheckDate;
   const isOpen = manualOpen || autoOpen;
-  const isAwaitingRollover = enabled && isPaydayAwaitingRollover(today, nextPaycheckDate, lastHandled);
+  const isAwaitingRollover = isPaydayAwaitingRollover(today, nextPaycheckDate, lastHandled);
 
   function markHandled() {
     store.getState().setLastHandledPayday(nextPaycheckDate);

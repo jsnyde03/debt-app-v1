@@ -15,7 +15,7 @@ const FEATURES: { icon: IconGlyph; title: string; body: string }[] = [
   { icon: 'shopping-cart', title: 'Spend without the guilt', body: 'Check any purchase against your plan before you buy.' },
 ];
 
-export function WelcomeStep({ onNext, onDemo }: { onNext: () => void; onDemo: () => void }) {
+export function WelcomeStep({ onNext, onDemo }: { onNext: () => void; onDemo?: () => void }) {
   const c = useAppColors();
   return (
     <OnboardingLayout
@@ -24,7 +24,10 @@ export function WelcomeStep({ onNext, onDemo }: { onNext: () => void; onDemo: ()
       ctas={
         <>
           <Button label="Get Started" onPress={onNext} />
-          <Button label="Try with Sample Data" variant="secondary" onPress={onDemo} />
+          {/* Optional since 3.5.4.8: withheld where the demo isn't reachable, rather than rendered dead.
+              A secondary CTA that does nothing is the "nothing renders dead" rule from the round-8
+              overlay-less review, one screen earlier. */}
+          {onDemo ? <Button label="Try with Sample Data" variant="secondary" onPress={onDemo} /> : null}
         </>
       }>
       <View style={[s.hero, { backgroundColor: c.background.secondary }]}>
