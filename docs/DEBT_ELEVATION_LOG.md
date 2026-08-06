@@ -2597,3 +2597,40 @@ have reintroduced. 3.5.8.1's bills also confirmed on screen as credible.
 
 **Gate:** tsc · `lint:rn` + all four house guards (2 pre-existing warnings in `(tabs)/index.tsx`, 0 errors) ·
 regression · app-layer · scenarios · **e2e 130/130**.
+
+---
+
+## 3.5.8.4a — the debt-free date shift: does not reproduce, and now cannot return (2026-08-06)
+
+The first of 3.5.4.11's two open capture defects. **Measured on screen, in the real run, at both beats:
+the date does NOT move — November 2029 on the trajectory beat and November 2029 on the closing one.**
+
+### The wrong turn, kept because it is the finding
+
+The first attempt asserted this headlessly, comparing `selectDebtFreeDate` on the trajectory beat's store
+against the primed closing beat's. It reported a **five-month shift** (November 2029 → June 2029) and it
+was **wrong** — not about the arithmetic, about the subject. Today renders its summary on
+`withProjectedBalances(store, …)`, which projects balances forward from **`balanceAsOfDate`** — the exact
+field `primePayoff` moves 35 days back. A raw-store comparison is therefore a comparison no screen makes,
+and it "found" a discrepancy no viewer can see.
+
+That also settles the 3.5.4.11 note, which named `balanceAsOfDate` a *suspected, unproven* cause. It is the
+right mechanism; it is simply not producing a visible shift, because the projection consumes the field the
+prime moves and lands back on the same month.
+
+Direction is worth recording too: the raw shift ran **earlier**, not later. The original report was a year
+*worse*; whatever produced that is gone (the `minimumPayment` cause was fixed at 3.5.4.11, and 3.5.8.1
+re-based the persona underneath it).
+
+### The guard
+
+Asserted in the **e2e**, through the real render, walking the real script — not headlessly. Set-based
+across both beats: every date on the closing beat must already have been on the trajectory beat, so a NEW
+one appearing fails. The screens are the only place this property is true or false, and asserting it there
+is immune to which projection each screen picks — which is precisely what the headless version got wrong.
+
+**Still open — 3.5.8.4b, the unpainted Skia canvases.** Not touchable here: it is a first-frame timing
+artifact and the 2026-08-06 Maestro run showed the native Skia path painting correctly, so it needs the
+runner, not the web export. Carried to the CI steps.
+
+**Gate:** tsc · `lint:rn` (0 errors) · regression · app-layer · scenarios · **e2e 131/131**.

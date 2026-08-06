@@ -139,3 +139,41 @@ test('the closing caption survives capture mode, where the dock does not', async
   await expect(caption).toContainText('Debt-free, one paycheck at a time.');
   await expect(caption).toContainText('Cushion planning and Recovery require Premium.');
 });
+
+/**
+ * 3.5.8.4 — the debt-free date must not move between the trajectory beat and the closing one.
+ *
+ * The 3.5.4.11 capture review saw it jump a YEAR on beat 5 only, and a date going visibly worse between
+ * two consecutive shots is something a viewer registers in a video without being able to name it. One
+ * cause was fixed there (the prime used to raise `minimumPayment`, so a bigger required obligation left
+ * less to attack the other debts); `balanceAsOfDate` was left as an unproven suspect.
+ *
+ * ⚠️ Asserted through the REAL RENDER, deliberately. The headless version of this compared raw stores and
+ * reported a five-month shift that no viewer can see — because Today renders its summary on
+ * `withProjectedBalances(store, …)`, the projection that consumes the very `balanceAsOfDate` the prime
+ * moves. The screens are the only place the property is true or false, and this is immune to which
+ * projection each screen picks.
+ */
+test('the debt-free date holds between the trajectory beat and the closing one', async ({ page }) => {
+  await seedStore(page, NOT_ONBOARDED);
+  await page.goto('/demo?capture=1');
+
+  const MONTH_YEAR = /(?:January|February|March|April|May|June|July|August|September|October|November|December) 20\d\d/g;
+  const datesOnScreen = async () => [...new Set(((await page.locator('body').innerText()).match(MONTH_YEAR) ?? []))];
+
+  // Beat 4 — Progress, at t=14s (`DEMO_STAGES`). Waiting out the real script rather than faking the
+  // state, because the defect is a property of the sequence, not of either store alone.
+  await page.waitForTimeout(15_500);
+  const trajectory = await datesOnScreen();
+  expect(trajectory.length).toBeGreaterThan(0);
+
+  // Beat 5 — Today, primed for the payoff. The caption is the reliable signal that the stage has landed.
+  await expect(page.getByTestId('demo-caption')).toBeVisible({ timeout: 20_000 });
+  await page.waitForTimeout(1500);
+  const closing = await datesOnScreen();
+
+  // Every date shown on the closing beat was already being shown on the trajectory beat. Set-based
+  // rather than string-equal: the two screens legitimately show different NUMBERS of dates, and what
+  // must not happen is a NEW one appearing.
+  expect(closing).toEqual(trajectory);
+});

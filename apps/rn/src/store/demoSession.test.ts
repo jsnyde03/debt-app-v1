@@ -86,6 +86,14 @@ function run() {
   const primed = box.getState().store;
   const invited = primed.debts.filter((d) => isDebtProjectedPaidOff(d, primed.paycheck.currentDate));
   assert(invited.length === 1, 'exactly one debt is primed to the payoff invitation — not none, not all');
+
+  // 3.5.8.4 — the closing prime must leave the debt-free date ALONE, and that is asserted in the e2e
+  // (`demo-containment`), not here. It was tried here first and the headless version was WRONG: it
+  // compared RAW stores, while Today renders its summary on `withProjectedBalances(store, …)` — the
+  // projection that reads the very `balanceAsOfDate` the prime moves. So the raw comparison reported a
+  // five-month shift that no viewer can see, on a store no screen uses. Asserting it through the real
+  // render is both truthful and immune to which projection each screen picks.
+
   // Strictly increasing, and the opener is synchronous — a scheduled first stage shows the sandbox's
   // default for a beat first, which is a wasted opening frame on a capture and a flicker in the app.
   assert(DEMO_STAGES[0].at === 0, 'the opening stage is applied synchronously');
