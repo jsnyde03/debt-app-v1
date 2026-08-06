@@ -2058,6 +2058,48 @@ applied ahead of the defect instead of behind it.
 
 ---
 
+## 3.5.4.6 — the demo's script, and the extraction it justified (2026-08-06, `c05139d`)
+
+**Reordered, on Jason's call.** 3.5.4.4's extraction had no second consumer: the demo had a session but no
+script, so the shared API would have been shaped against a guessed caller. That is lens C's own rule —
+*"a refactor with one consumer is speculative; do it when the second consumer exists"* — applied to lens
+C's own proposal.
+
+### The boundary was much narrower than specced
+
+With both callers visible, `{sandbox, scenario, stage, story, teardown}` was the wrong shape: `stage(index)`
+is beat-shaped and the demo has no beats; scenarios and teardown are session-shaped and trivial. What is
+genuinely shared is the **timer registry** — and its argument is present rather than anticipatory:
+`_layout` cancels pending stories from ONE global background handler, and iOS releases suspended timers
+together on resume, so a run whose timers lived in another module would return with its whole sequence
+firing in a tick, behind a handler that looked complete. One array means one cancel covers every run **by
+construction** instead of by remembering.
+
+### The script
+
+Covered → tight → cannot-be-made-to-work. **Timed rather than tapped**, because the same run has to serve
+the in-app demo, the marketing embed (3.5.7) and the App-Preview capture (3.5.8), and only a timed run
+gives the capture identical framing on every take. The at-risk stage **is** the free-tier contrast:
+Recovery shown rather than described.
+
+### ⚠️ The invariant the whole item turns on
+
+`maxGenuineCycles` is **not** passed. That ceiling is what lets a scripted payday cross the discovery gate
+so the safety net RELEASES — correct for the walkthrough, which teaches what the Guardian does over time,
+and a lie in a demo, where nobody watching has a history the app could have learned from. Held reserves and
+a scorecard-as-future are the day-one truth.
+
+It would also fail **silently**: the run still plays, it just shows an outcome the viewer cannot have. That
+is the [E6] shape exactly — a scripted beat that fails convincingly. Asserted per stage and verified red.
+
+**Left open, deliberately:** the watched-run chrome and its copy. The engine is deterministic and testable;
+the words and the pacing affordance are taste-facing and belong with 3.5.4.7's entry points, so they are
+one review rather than two.
+
+**Gate:** full `validate:release:rn` green · **127/127 e2e**.
+
+---
+
 ## 3.5.4.3 — the canvas marker (2026-08-06)
 
 Lens C's blocking item: without it 3.5.4 can neither ship nor be recorded. The card chip marks the CARD;
