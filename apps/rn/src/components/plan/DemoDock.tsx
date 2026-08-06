@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from 'zustand';
 
 import { Button } from '@/components/ui/Button';
@@ -24,6 +25,7 @@ import { textStyles } from '@/theme/typography';
  */
 export function DemoDock() {
   const c = useAppColors();
+  const insets = useSafeAreaInsets();
   const active = useStore(demoSession, (s) => s.active);
   const stage = useStore(demoSession, (s) => s.stage);
   if (!active) return null;
@@ -32,7 +34,15 @@ export function DemoDock() {
 
   return (
     <View
-      style={[styles.dock, { backgroundColor: c.background.secondary, borderTopColor: c.border.subtle }]}
+      // ⚠️ `insets.bottom` is load-bearing, and this dock shipped without it once. [B4] found the same
+      // omission in the walkthrough's dock: with no bottom inset the last control sits inside the
+      // home-indicator swipe zone, so the gesture that dismisses the app overlaps the button. Invisible on
+      // web, which has no safe area — and here the control in that zone is an EXIT, on the screen a
+      // stranger is evaluating.
+      style={[
+        styles.dock,
+        { backgroundColor: c.background.secondary, borderTopColor: c.border.subtle, paddingBottom: insets.bottom + spacing.base },
+      ]}
       // One utterance: a screen reader should hear what this is and where it is, not three fragments.
       accessible
       accessibilityLabel={`Example money. Demonstration, ${position} of ${DEMO_STAGES.length}.`}>
@@ -68,7 +78,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     paddingHorizontal: spacing.base,
     paddingTop: spacing.sm,
-    paddingBottom: spacing.base,
+
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   // 44pt, like the Guardian card's rows after 3.5.3.10 — a secondary exit is still an exit.

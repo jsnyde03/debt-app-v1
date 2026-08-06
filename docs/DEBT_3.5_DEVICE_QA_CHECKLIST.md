@@ -296,6 +296,72 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
 
 ---
 
+## §12 — the bounded DEMO (3.5.4) — ⚠️ device-only, and one KNOWN defect
+
+_Everything in 3.5.4 was verified on web (129/129) and both themes were checked by looking. What follows
+is only the part a browser structurally cannot judge: safe-area insets, RN layout for a hidden tab bar,
+native modal presentation, VoiceOver, and real StoreKit prices._
+
+> ⚠️ **One item below is ALREADY KNOWN BAD in this build and is fixed in the repo** — §12.3. It is listed
+> so you can confirm the symptom rather than waste time reporting it. Everything else is a genuine check.
+
+**Reach it (two doors, test both):**
+- **Fresh install / not onboarded:** first screen → **"Try with Sample Data"**.
+- **Any state:** ••• More → **Unlock Premium** → scroll to **"See it in action"** below the buy button.
+
+### §12.1 — the route guard (the one most likely to be wrong)
+- [ ] From a **fresh install with no data**, "Try with Sample Data" lands on **Today showing a $2,000
+      paycheck and MAR 16** — *not* on onboarding, and not on a blank screen.
+- [ ] Force-quit mid-demo and relaunch → you land on **onboarding**, with **no demo running** and no
+      example figures anywhere.
+
+### §12.2 — the tab bar is HIDDEN, not just fenced
+- [ ] During the demo there is **no tab bar at all** — no Today/Progress/Money strip, and no empty band
+      where it used to be.
+- [ ] **Check for a dead gap** between the end of the content and the dock. `Screen` pads the scroll by
+      `insets.bottom + 64` to clear a tab bar that is no longer there, so a large blank space at the
+      bottom of the scroll is the expected shape of that bug. Report it if you see it.
+- [ ] Start the **walkthrough** (More → How the Guardian works). Its tab bar **is still visible** — that
+      difference is deliberate, and this confirms the demo-only change did not leak into it.
+
+### §12.3 — ⚠️ KNOWN BAD in this build: the dock and the home indicator
+- [ ] **Expect this to fail.** "Unlock Premium" sits too low, overlapping the home-indicator swipe zone —
+      a swipe-up to leave the app may fight the button. The dock was missing `insets.bottom`, the same
+      omission audit finding [B4] caught in the walkthrough's dock. **Already fixed in the repo; it will
+      be right in the next build.** Just confirm you see it, so we know the fix targets the real symptom.
+
+### §12.4 — the exits are terminal
+- [ ] **"Unlock Premium"** → the paywall presents **as a modal**, and the "Example money" line at the top
+      of the screen is **gone** the moment it appears.
+- [ ] The paywall shows **real prices from the App Store** (not $4.99/$29.99/$79.99 exactly — those are
+      the web fallback). If you see the fallback prices on a device, the offering is not marked current.
+- [ ] **Swipe the modal down / go back** → you do **not** return to a demo. No example figures, no dock.
+- [ ] **"Start my real plan"** → onboarding, no demo running, and your own plan is **untouched** —
+      no debts, bills or paycheck invented by the demo.
+
+### §12.5 — the disclosure, on the surface that matters
+- [ ] **"Example money"** is visible at the top of the screen, under the "Today" title, on **every** stage.
+- [ ] **Scroll the content hard.** The marker **does not move** — it sits above the scroller.
+- [ ] It is said **once** in the dock too? **No** — it must appear in exactly ONE place. Two is a defect.
+- [ ] The scripted run advances **clear → tight → at-risk** on its own, about 3 seconds apart, with the
+      headline figure and colour changing each time. Watch that the Skia cushion bar **repaints** rather
+      than blanking on a stage change.
+
+### §12.6 — VoiceOver (the demo's audience includes screen-reader users evaluating the app)
+- [ ] Turn VoiceOver on, then enter the demo. You hear **"Example money. This is a demonstration with
+      sample figures."** on arrival.
+- [ ] Rotor → **Headings**: "Example money" is listed as a heading, reachable without swiping to it.
+- [ ] Swipe through the whole screen: you can reach the dock's two exits, and you **cannot** reach a tab
+      bar or the ••• More button.
+- [ ] The dock reads as **one** utterance ("Example money. Demonstration, 1 of 3."), not as fragments.
+
+### §12.7 — the opt-out control
+- [ ] ••• More → Preferences → **"Share anonymous usage"** is present, ON by default, and toggling it
+      persists across a force-quit. (Nothing is transmitted in this build either way — there is no sink
+      attached. This is confirming the control exists and sticks.)
+
+---
+
 ## §9 — Report back
 - [ ] Jot anything that failed (which §, what you did, a screenshot). I fix in-repo → you rebuild → re-run only the failed items.
 - [ ] When this is clean, 3.5.3/3.5.4 are **device-verified**; next I build **3.5.5 (App Intents / Siri)**, which reuses the payday-landed bridge you just tested — then one more signed build closes the block.
