@@ -44,10 +44,17 @@ jobs:
 
       # No npm workspaces — install root (core/tooling) then the RN app's own node_modules, the same
       # two-step the native lane needs.
+      #
+      # ⚠️ `npm ci` works at the root and NOT in apps/rn: that lockfile is out of sync with its
+      # package.json (`npm ci` reports ~12 missing transitive entries — @testing-library/dom,
+      # react-native-nitro-modules, the @react-native/metro-* chain). `npm install --prefer-offline` is
+      # what the native lane has always used there and it resolves them. Filed to the backlog as its own
+      # fix: an unusable lockfile means installs are not reproducible, which is worth correcting
+      # deliberately rather than as a side effect of a CI change.
       - name: Install dependencies (root + apps/rn)
         run: |
           npm ci --no-audit --no-fund
-          npm --prefix apps/rn ci --no-audit --no-fund
+          npm --prefix apps/rn install --prefer-offline --no-audit --no-fund
 
       - name: Link ./core so tsc can resolve @core
         # tsconfig maps `@core/*` → `apps/rn/core/*`, a symlink Metro creates at startup and does NOT

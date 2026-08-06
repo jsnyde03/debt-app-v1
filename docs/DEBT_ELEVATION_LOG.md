@@ -1895,3 +1895,114 @@ The card chip **stays**, and that is not redundancy: it is the marker for when t
 
 **Gate:** typecheck + lint clean · app + scenario suites green · **116/116 e2e, no flakes** · arc verified
 in both themes.
+
+---
+
+## [AUDIT GATE] 3.5.3.9 — rounds 2–10, and the close (2026-08-03 → 2026-08-05)
+
+Full per-round detail lives in `docs/DEBT_TUTORIAL_AUDIT_2026-08-02.md` (§J–§S) — this is the outcome only.
+
+**Ten rounds, and every one of them found something real.** Round 2 caught a trap the round-1 fold had
+itself shipped. Rounds 3 and 7 were dominated by findings the PREVIOUS round created — the fold is where
+the defects came from, not the feature. Round 4 re-judged the premium bar and passed it; round 8 re-judged
+it at pixels and failed it again. Round 5 found the tutorial had broken the ordinary app. Round 6 found the
+a11y fences were a no-op on web. Round 9 was the first **locked** round: a test that still passed with the
+feature deleted, a walkthrough that discarded work the user had just done, and a round-8 finding that had
+never been folded at all. **Round 10 returned one MEDIUM per lens and nothing above it. The gate closed.**
+
+**Three rules the loop produced, and they outlive it:**
+- **Convergence is per-SURFACE, not per-round.** A lens that returns PASS retires its surface; the next
+  pass narrows to what has not converged. That is scoping, not a moved goalpost.
+- **DEVICE-UNVERIFIED findings may not carry a blocking severity.** Round 9's show-stopper was found by
+  *reading* RN's source; the mechanism was verified link-by-link but the consequence was measured by
+  nobody. Rating an unmeasurable inference as blocking means the gate can be failed by a claim nothing can
+  refute — and there is always another native inference available. They route to the Phase-6 device ledger
+  instead. Fold anyway where the fix is one cheap property: folding is cheap, blocking is expensive.
+- **It cuts both ways: a green harness is not evidence that native is fine.** So the honest claim is
+  *converged as far as a web harness can see*, never *converged*.
+
+**Jason, 2026-08-05, when the round count was the obvious thing to complain about:** *"I have no issues
+with 10 rounds of an audit if it's finding legitimate issues with the tutorial. That's the audit doing its
+job. It sucks that we're always finding new things but that's the point."* The signal is whether findings
+are real, not how many rounds it takes; the alternative to finding round 9's in round 9 was shipping them.
+
+**Residue:** ledgered at **3.5.3.9-L**, gated by 3.5.6. The native surface belongs to the Maestro lane and
+the Phase-6 device pass — which is what made 3.5.6b the next thing built.
+
+---
+
+## 3.5.6b — a native gate for the walkthrough (2026-08-05)
+
+Round 9 named the real constraint: three of its five blockers sat exactly where a web Playwright suite is
+structurally blind — native rendering, an OS lifecycle event, and a test asserting against itself.
+`native-e2e.yml` already did the hard part (GH macOS runner → prebuild → compile for the Simulator → boot →
+Maestro → artifacts) and had four flows, **none of which touched the walkthrough**. Wiring it in changes
+what the next round can SEE rather than searching the same lit area again.
+
+**Now green on a real iPhone 17 Pro Max simulator, iOS 26.2:** flows 01 (launch smoke), 02 (sheet native
+tap), 03 (row context menu), **05 (the walkthrough, all seven beats)** and **06 (the interactive beats)**.
+The beat screenshots come back as artifacts — the first time anything has seen the walkthrough render on
+UIKit rather than in a browser.
+
+### What it cost to get there, and what that says about CI evidence
+
+Several rounds of flow-defect fixing, most of it the same lesson: **an assertion that cannot fail proves
+nothing, and neither does a green run that produces no artifacts.** One run passed while writing zero
+screenshots (Maestro resolves `takeScreenshot` relative to the FLOW FILE, not the working directory).
+Another failed inside Sentry's source-map upload and reported it as a bundling error.
+
+### ⚠️ Flow 04 — the tap that opened a schedule deleted a debt instead (`4f4bd48`)
+
+The one red flow, and it earned the whole lane. It failed on `assertVisible: "Payoff schedule"`, and the
+end-of-run screenshot showed Money with **Visa gone** — 3 debts / $11,580 down to 2 / $9,180, exactly
+Visa's $2,400. One cause explains both halves:
+
+`FormSheet` renders a destructive **Remove** in its sticky action bar whenever the sheet is editing. The
+`debt-view-schedule` row is the LAST child of a ScrollView inside a sheet capped at 92% height, so on a
+full debt form it sits below the fold — and `tapOn: id` taps the element's **projected centre**, which is
+over the action bar. The tap deleted the debt instead of navigating.
+
+**The flow's own comment asserted "`DebtSheet` has no delete control at all". That was false, and it was
+the answer** — the claim-vs-code lens the audit rounds ran against the app, turned on the test.
+
+**Folded (`4f4bd48`):**
+- Flow 04 scrolls the row into view before tapping. The debt-count instrumentation stays until a green run
+  earns its removal.
+- **The entity sheets' Remove now confirms** — `DebtSheet`, `ExpenseSheet`, `GoalSheet`,
+  `LivingExpenseSheet`. It was a direct action *by design* (`utils/confirm.ts` said so in a comment), while
+  the swipe and the long-press menu — the same destructive act on the same record — both guarded. A stray
+  tap on a Simulator destroying a debt and its history in one touch retired the design argument with
+  evidence rather than opinion. **Jason's call, 2026-08-05.** `WindfallSheet` stays direct: it zeroes an
+  amount, it deletes no record. +`tests/e2e/sheet-remove.spec.ts`, covering the CANCEL direction too.
+- **`include-hidden-files: true` on the artifact upload.** Maestro writes its per-command logs, view
+  hierarchy and failure screenshots under `maestro-debug/.maestro/tests/<run>/` — a HIDDEN path, which
+  `upload-artifact@v4` skips by default. The step named "screenshots + view hierarchy" was shipping
+  neither, so the failure had to be diagnosed from a single end-of-run screenshot.
+
+**Gate:** typecheck + lint clean · regression / app / scenario suites green · **123/123 e2e**.
+
+---
+
+## CI — the every-push lane was gating an app that was retired a month ago (2026-08-05, `3c796f0`)
+
+`web-e2e` has been **red on every push since 2026-07-24**, and not once because of the code. That is the
+day `validate:release` was repointed at the RN gate; the workflow was never repointed with it, so it kept
+running `npm run lint` and `next build && serve out` against the retired Capacitor/Next tree. Root eslint
+walks into `apps/rn` and rejects `require()` in `metro.config.js` and the Expo plugins — so it died at the
+first step, every time, for a month.
+
+**A permanently-red gate is worse than no gate.** It trains you to ignore the one signal that is supposed
+to mean something, and here it meant the real suites only ever ran on Jason's machine. It also sat
+alongside the *other* CI-evidence defect found the same day (the hidden-path artifact drop) and the one
+before it (a green Maestro run that wrote no screenshots): three instances, one shape — **a gate reporting
+a verdict it did not earn.**
+
+Now runs `validate:release:rn`'s contents, split into named steps so a red run says which stage died
+without opening the log: typecheck → `lint:rn` + the four house guards → regression → app → scenarios →
+the RN e2e against the static web export. Adds the typecheck the local gate does not run, plus the `./core`
+symlink it needs on a fresh checkout; drops the WebKit download (the RN config declares one project); and
+points the artifact paths at `apps/rn`, where Playwright actually writes them.
+
+**The legacy suite now runs nowhere, deliberately.** 5.5.1 deletes that tree, and its Next build no longer
+typechecks against the RN sources it was dragged into — so restoring it would mean fixing a build in order
+to delete it.
