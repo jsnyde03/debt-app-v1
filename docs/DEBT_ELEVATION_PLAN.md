@@ -77,8 +77,8 @@ The interactive tutorial + the bounded marketing/demo showcase (+ folded-in feat
   | # | Step | Owner |
   |---|---|---|
   | 3.5.4.0 | ✅ **[D18] DECIDED 2026-08-06 — KIOSK, terminal exits.** The demo owns the screen while it runs (tabs held, More withheld, no route escapes); both CTAs END the session before navigating, so the paywall is never reached with a demo mounted. Keeps the write-guard strict and the capture deterministic. Log: 3.5.4.0 | 🎯 |
-  | 3.5.4.1 | **One `inBoundedRun` predicate first**, then hoist `StoreProvider` above the `Stack` (`_layout.tsx:131`) — **not** around `<Tabs>`, recorded as breaking tab presses — + the route guard admitting a demo for a **not-yet-onboarded** user without writing `onboardingComplete` (the legacy `demoSeed` sin). *Before-scan: all three fences (`holdTabs`, `MoreButton`, the Today gate) key on `tutorialSession.active`; a second session concept turns each into a two-condition check, which is the one-member class this gate hit 8×. Share the predicate BEFORE the second member exists.* | ⚙️ |
-  | 3.5.4.2 | QA-gated `/demo` route — the seam that makes every item below testable at all | ⚙️ |
+  | 3.5.4.1 | ✅ **DONE 2026-08-06 (`70c118f`)** — `useInBoundedRun` shared by both fences · `demoSession` (persona, dependency-free) · `StoreProvider` above the `Stack` · route guard admits a not-yet-onboarded demo · guard stays strict ([D18] answered its owed scope flag). Both tests verified red-then-green. Log: 3.5.4.1 | ⚙️ |
+  | 3.5.4.2 | ✅ **DONE** — folded into .1: the QA-gated `/demo` route shipped with it, since neither was testable alone | ⚙️ |
   | 3.5.4.3 | **Canvas-level, sandbox-keyed "Example money" marker**, visible AND in the a11y tree, covering hero / required / recommended / affordability / recovery. **Blocking: without it 3.5.4 cannot ship or record** | ⚙️ |
   | 3.5.4.4 | Extract `sandboxRun` from `tutorialSession` — seed/stage/story/teardown + the timers' background-suspend contract | ⚙️ |
   | 3.5.4.5 | Re-scope `useNoRealWritesGuard` (a `strict` flag), so Phase-6 Sentry gets one signal instead of a stream | ⚙️ |

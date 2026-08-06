@@ -2058,6 +2058,65 @@ applied ahead of the defect instead of behind it.
 
 ---
 
+## 3.5.4.1 — the demo seam (2026-08-06, `70c118f`)
+
+**3.5.4.2 folded in.** The provider hoist, the route guard and the `/demo` route are one unit — none of
+them is testable alone, and shipping the architecture without an entry would have been dead code, which is
+the thing lens C explicitly warned about.
+
+### The predicate, and why it went first
+
+[D18]'s kiosk means the demo needs *exactly* the fences the walkthrough has. Both were keyed on
+`tutorialSession.active`, so a second session concept turns each into a two-condition check — and a class
+closed at some of its members but not all is the defect this phase kept shipping (the a11y longhand pair,
+the sheet backdrops, `measure`, the route-escape fence), every one found by an audit afterwards.
+
+So `useInBoundedRun` landed *before* the second member existed. The fences never learn a demo exists.
+
+**It bit inside the file being converted.** `MoreButton` had three more `inTutorial` references below the
+one being changed — `tabIndex`, `a11yHidden`, and the icon colour. Caught only because the conversion was
+a sweep rather than an edit at the site the compiler complained about.
+
+**The boundary is recorded, because a claim of totality is what stops the next reviewer checking:** the
+predicate has two consumers, and the other tutorial-keyed reads are correctly arc-specific — beat haptics,
+coaching copy, the coached-control fences, and Today's own `TutorialRun` branch. Today needed no change at
+all: with the provider hoisted, a demo falls through to `TodayContent`, which reads the sandbox through the
+context.
+
+### What shipped
+
+- **`demoSession`** — the persona, not `personalScenario`. The audience is pre-purchase and usually has no
+  data to personalise, and a fixed persona is also what makes the App-Preview capture identical on every
+  device. Dependency-free on purpose: that is what lets the headless suite assert it.
+- **`StoreProvider` above the `Stack`** — not around `<Tabs>`, which the tabs layout records as breaking
+  tab presses outright. `useAppStore` reads through the context, so every screen a demo can reach resolves
+  to the sandbox; with no demo the value is the singleton and `useNoRealWritesGuard` early-returns, so the
+  wrapper is inert for every existing call site.
+- **The route guard admits a not-yet-onboarded demo.** That audience is the entire point of the
+  pre-purchase entry and is exactly who `Stack.Protected guard={onboardingComplete}` turned away; the
+  legacy `demoSeed` got past it by writing `onboardingComplete: true` to the real store.
+- **The write-guard stays STRICT.** Its own comment said a scope flag was owed at 3.5.4 "when there is a
+  demo caller… changing the signature now would mean guessing the demo's containment model." [D18] answered
+  it — a kiosk fences navigation, so `/more` and `/paywall` are unreachable with a demo mounted and the
+  premise holds. Per the comment convention the false claim was **deleted**, not annotated. 3.5.4.5 shrinks
+  to this paragraph.
+
+### Both tests verified RED before green
+
+- Mutating `end()` into two `set` calls fails the split-frame assertion **by name**.
+- Reverting the predicate to tutorial-only fails the fence assertions.
+
+The e2e proves the **fences** — More disabled *and* `aria-hidden`, the tab press refused, the real store's
+`onboardingComplete` still `false` — rather than reading the boolean back, which would be a test agreeing
+with itself. That is the vacuity class this gate found five times.
+
+**Caught by the machine, on me:** `lint:comments` rejected my own comment in `boundedRun.ts` for a count of
+code — and the count was also wrong. [D17]'s convention doing its job on its author.
+
+**Gate:** full `validate:release:rn` green · **125/125 e2e**.
+
+---
+
 ## CI — the every-push lane was gating an app that was retired a month ago (2026-08-05, `3c796f0`)
 
 `web-e2e` has been **red on every push since 2026-07-24**, and not once because of the code. That is the
