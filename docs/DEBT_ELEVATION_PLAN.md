@@ -76,8 +76,8 @@ The interactive tutorial + the bounded marketing/demo showcase (+ folded-in feat
 
   | # | Step | Owner |
   |---|---|---|
-  | 3.5.4.0 | **[DECISION] the containment model** — what may a demo user reach? Tabs · More (has **Reset** on it) · paywall · deep links. Gates .1 and .2, and today a stray tap ends an App-Preview take | 🎯 |
-  | 3.5.4.1 | Hoist `StoreProvider` above the `Stack` (`_layout.tsx:131`) — **not** around `<Tabs>`, which is recorded as breaking tab presses — + the route guard admitting a demo for a **not-yet-onboarded** user without writing `onboardingComplete` (the legacy `demoSeed` sin) | ⚙️ |
+  | 3.5.4.0 | ✅ **[D18] DECIDED 2026-08-06 — KIOSK, terminal exits.** The demo owns the screen while it runs (tabs held, More withheld, no route escapes); both CTAs END the session before navigating, so the paywall is never reached with a demo mounted. Keeps the write-guard strict and the capture deterministic. Log: 3.5.4.0 | 🎯 |
+  | 3.5.4.1 | **One `inBoundedRun` predicate first**, then hoist `StoreProvider` above the `Stack` (`_layout.tsx:131`) — **not** around `<Tabs>`, recorded as breaking tab presses — + the route guard admitting a demo for a **not-yet-onboarded** user without writing `onboardingComplete` (the legacy `demoSeed` sin). *Before-scan: all three fences (`holdTabs`, `MoreButton`, the Today gate) key on `tutorialSession.active`; a second session concept turns each into a two-condition check, which is the one-member class this gate hit 8×. Share the predicate BEFORE the second member exists.* | ⚙️ |
   | 3.5.4.2 | QA-gated `/demo` route — the seam that makes every item below testable at all | ⚙️ |
   | 3.5.4.3 | **Canvas-level, sandbox-keyed "Example money" marker**, visible AND in the a11y tree, covering hero / required / recommended / affordability / recovery. **Blocking: without it 3.5.4 cannot ship or record** | ⚙️ |
   | 3.5.4.4 | Extract `sandboxRun` from `tutorialSession` — seed/stage/story/teardown + the timers' background-suspend contract | ⚙️ |

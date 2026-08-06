@@ -2025,6 +2025,39 @@ iPhone 17 Pro Max / iOS 26.2**.
 
 ---
 
+## 3.5.4.0 — [D18] the containment model: KIOSK, with terminal exits (2026-08-06)
+
+**Jason's call.** A demo user reaches nothing outside the run. Tabs held, More withheld, no route escapes;
+"Start my real plan" and "Unlock Premium" **tear the session down first, then navigate**, so the paywall is
+never reached with a demo still mounted.
+
+The alternative considered was letting the paywall be reachable *in-session* — lens C called "a marketing
+demo that demonstrates the paywall" plausible and maybe intended. Rejected on what it costs: `/paywall`
+writes the real store via `setSubscriptionPlan`, so `useNoRealWritesGuard` would have to go quiet exactly
+where a leak matters most. Terminal exits get the same funnel with none of that.
+
+**Three things fall out of the decision, which is why it was worth settling before any code:**
+- `useNoRealWritesGuard` stays **strict** — during a kiosk run any real write genuinely IS a leak, so
+  3.5.4.5 shrinks from a signature change to a recorded rationale.
+- The App-Preview capture is deterministic: no stray tap can end a take, which was lens C's "breaks the
+  take" hazard (tabs live, `MoreButton` → `/more`, which has **Reset** on it).
+- Containment needs no per-route allowlist over an open route graph — the thing lens C called
+  unmaintainable.
+
+### Before-scan — the fences are a one-member class waiting to happen
+
+Verified against the current tree, not the 2026-08-04 line numbers: **all three fences key on
+`useTutorialSession(s => s.active)`** — `holdTabs` (`(tabs)/_layout.tsx:32`), `MoreButton`
+(`more-button.tsx:29`), and Today's own gate (`index.tsx:661`). A kiosk demo needs all three.
+
+Adding a second session concept would turn each into a two-condition check — **the one-member fix this
+gate hit eight separate times**, where a class gets closed at some call sites and not others. So 3.5.4.1
+introduces ONE `inBoundedRun` predicate and converts all three sites *before* the second member exists,
+rather than discovering the misses afterwards. Same lesson as `a11yHidden()` and `guardianSubjects`,
+applied ahead of the defect instead of behind it.
+
+---
+
 ## CI — the every-push lane was gating an app that was retired a month ago (2026-08-05, `3c796f0`)
 
 `web-e2e` has been **red on every push since 2026-07-24**, and not once because of the code. That is the
