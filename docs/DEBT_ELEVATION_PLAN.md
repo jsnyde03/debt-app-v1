@@ -76,7 +76,7 @@ The interactive tutorial + the bounded marketing/demo showcase (+ folded-in feat
 - **3.5.5 — feature-discovery coach-marks (C) ▶ ACTIVE.** Calm · one-at-a-time · dismissible · replayable · iOS-16-safe · rendered OUTSIDE gesture handlers · platform-gated.
 
   **⚠️ Switch-in before-scan (2026-08-06) — the inventory has DRIFTED and two entries do not resolve:**
-  - **What-If simulator is UNBUILT.** Nothing in `src` matches it, and the plan itself carries it as **3.7.B1** ("Drag-the-curve What-If"), which runs *after* 3.5. A coach-mark cannot teach a feature that does not exist → **its mark ships with B1**, not here.
+  - **What-If EXISTS and stays in scope** — `components/payoff/WhatIfControls.tsx`, a collapsible extra-payment tool behind `whatIfOpen` on the trajectory chart, with a green "with extra" overlay curve. *(My first scan claimed it was unbuilt; I had grepped `"what if"` and `simulat`, and the symbol is `WhatIf`. Jason corrected it.)* **3.7.B1 is an ENHANCEMENT to it** — drag-the-curve direct manipulation — not the feature itself. Collapsed behind a toggle is exactly the hidden-affordance shape this item exists for.
   - **The payoff-schedule row sits BELOW THE FOLD** on the largest iPhone, directly above a destructive Remove (ledger §T **L5**, found by the native lane). Marking an off-screen control is worse than not marking it → **L5 is fixed first, in 3.5.5.5**.
   - **"income-varies toggle" could not be located** as a user-facing control; the variable-income machinery exists (`incomeLearning`, the VIS-5 band) but the toggle does not resolve. Verify at 3.5.5.4 and drop it if it is not real.
 
@@ -85,7 +85,7 @@ The interactive tutorial + the bounded marketing/demo showcase (+ folded-in feat
   | 3.5.5.1 | **The coach-mark primitive** — one-at-a-time, dismissible, iOS-16-safe, rendered OUTSIDE gesture handlers. Reuses `TutorialShell`'s geometry publishing rather than standing up a second measuring system; the walkthrough's `measure` retry/staleness lessons apply unchanged | ⚙️ |
   | 3.5.5.2 | **Register in the VIS-4 single-ack slot** — "one at a time" is a claim about the whole app, not about this component. Unregistered, a mark and the tutorial invite can both fire on the same launch | ⚙️ |
   | 3.5.5.3 | **Seen-persistence + a replay entry** in More, mirroring the walkthrough's. A discovery layer nobody can re-open is a one-shot | ⚙️ |
-  | 3.5.5.4 | **The corrected inventory** — long-press menu · Cash-Runway scrub · Can-I-Afford · swipe-to-delete · chart scrub · Log-payment · scan-a-statement · widget/Lock-Screen/Siri. Each verified reachable before it gets a mark | ⚙️ |
+  | 3.5.5.4 | **The corrected inventory** — long-press menu · Cash-Runway scrub · Can-I-Afford · swipe-to-delete · chart scrub · **What-If (distinct from the scrub: it is the collapsed extra-payment tool)** · Log-payment · scan-a-statement · widget/Lock-Screen/Siri. Each verified reachable before it gets a mark | ⚙️ |
   | 3.5.5.5 | **Payoff schedule: fix L5, then mark it** — the entry 3.7.A0 moved for discoverability is off-screen on the biggest phone Apple sells | ⚙️ |
   | 3.5.5.6 | **Verify + close** — both themes · a11y (the marks must not fence the control they point at) · e2e · native lane | ⚙️ |
 
