@@ -60,8 +60,10 @@ export function Screen({
       <View style={columnStyle}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
+            {/* The back control carries a testID so the native lane can drive it: Maestro's `back` is an
+                Android gesture and does nothing on iOS, and the glyph is a "‹" no selector should match on. */}
             {onBack ? (
-              <Pressable onPress={onBack} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
+              <Pressable testID="screen-back" onPress={onBack} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
                 <Text style={[textStyles.title2, { color: c.accent.primary }]}>‹</Text>
               </Pressable>
             ) : null}

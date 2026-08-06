@@ -76,8 +76,14 @@ appId: com.jasonsnyder.debtplanner
 # …and the sheet that launched it is gone, so nothing is sitting on top of it.
 - assertNotVisible: "Edit debt"
 
-# Back returns to Money (a real route, so the native back gesture/control exists).
-- back
+# Back returns to Money (a real route, so it has a real back control).
+#
+# ⚠️ NOT `- back`: that is Android's hardware back button and it did nothing here — the 2026-08-06 run
+# reached the schedule, then failed on "Money" with the schedule still on screen. Tap the header control
+# instead. It carries `accessibilityLabel="Back"`, but its only text is a "‹" glyph, so it gets a testID
+# like every other control this lane drives.
+- tapOn:
+    id: "screen-back"
 - assertVisible: "Money"
 
 # ⚠️ INSTRUMENTATION — the other half of the debt-count probe at the top of this flow. Viewing a payoff
