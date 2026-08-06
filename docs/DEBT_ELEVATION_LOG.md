@@ -2462,3 +2462,84 @@ teach a swipe four beats before the user is on the screen that has it. Contextua
 3. **⚠️ The payoff schedule** — **3.7.A0 MOVED it** (edit-sheet header → row long-press menu + a sheet body
    row). Anyone who knew the old location loses it, and new users have no way to find the menu. Relocating
    a feature without adding it to the discovery layer is how it goes dark.
+
+---
+
+## 3.5.8.1 — [D20b] the persona's weight, and the number that could never be credible (2026-08-06)
+
+Raised the persona from **$2,260 across 2 debts → $19,440 across 3** (Credit card $6,400 @22.99% · Car loan
+$11,800 @7.49% · Store card $1,240 @26.99%). The opening beat's own note reads *"three debts, a number you
+recognise"* and the seed had drifted from its own storyboard.
+
+**The coupling the switch-in flagged was real but cheap.** `personaDebts` is shared with the walkthrough,
+where the comment said the debts were small deliberately *"so the payoff beats resolve in-tutorial."*
+Measured rather than assumed, against the real engine:
+
+- All three bands still solve — the bill solver never returns `infeasible`.
+- The debt-free date moves **September 2029 → November 2029**. Two months, on 8.6× the balance, because the
+  minimums rose with it.
+- The payoff prime's target (the smallest debt) is still `Store card` at $1,240, and it still clears.
+- Nothing in the suite or the e2e pinned the old figures — the only two references were the definition.
+
+One set serves both consumers. A second debt table is a second thing to keep honest, and the walkthrough
+only ever needed the SMALLEST debt to be clearable.
+
+### ⚠️ The finding: a comfortable payday and a market rent are mutually exclusive
+
+The raise pushed rent to **$312/mo — 7% of the persona's $4,333/mo income, and less than its own car
+payment.** Swept both plausible levers against the engine before concluding anything:
+
+| lever | swept | rent as % of monthly income, `clear` |
+|---|---|---|
+| clear-band multiplier | 0.6 → 0.95 | 7% → 11% |
+| `PERSONA_INCOME` | $1,400 → $3,200 | 4% → 10% |
+
+Neither is a fix, because the cap is structural: **at `clear` the Guardian only leaves room for total bills
+of ≈12% of monthly income**, and rent was 62% of that mix. "Clear" *means* the obligations are small
+relative to the paycheck, so no line in that list can look like market rent. It was already wrong before
+[D20b] (12%); the raise made it indefensible.
+
+**✅ Jason's call: drop Rent from the mix** rather than render an implausible one. The mix is now Utilities
+0.28 · Car insurance 0.24 · Subscriptions 0.18 · Internet 0.16 · Phone 0.14 — every line honest at the
+budget the solver can actually afford: **$141 / $121 / $91 / $81 / $71** at `clear`. This persona's housing
+is simply not a tracked required expense.
+
+Weighted for `clear` and `tight`, the only two bands the App-Preview arc uses. `at-risk` is walkthrough-only
+and its budget is ~2.5× the clear one, so its lines inflate — accepted, because that beat is Recovery
+sorting what can wait, and **`Subscriptions` went UP 0.07 → 0.18**, so the deferrable pile the lesson needs
+grew rather than shrank.
+
+### ⭐ What only building surfaced: the debt-free date is a minimums-only projection
+
+The date was **identical across clear, tight and at-risk** — the tell. Traced it: extra-to-debt is **$0**,
+current *and* steady-state. The full `clear` breakdown of a $2,000 paycheck:
+
+```
+bills $504 · minimums $590 · living $370 · cash buffer $200 · safety net $134 · Emergency fund $202 → remaining $0
+```
+
+The **starter Emergency Fund absorbs the entire remainder on day one.** So the trajectory beat's date is a
+minimums-only, EF-first projection. This is NOT a bug and MF.4 is working as specified — it strips the
+temporary cold-start holdbacks, and deliberately keeps the floor and the permanent reservations; the EF is
+a goal, not a holdback. It is also exactly what a real day-one user's plan does.
+
+**✅ Jason's call: ship the honest date.** The alternative is graduating the Guardian, which is precisely the
+claim `demoRun`'s central invariant refuses. Recorded here because the tell — one number that does not move
+across three states — is the kind of thing that looks like a defect to the next reader, and the next reader
+should find the answer rather than re-derive it.
+
+### After-scan
+
+- **Fixed in-item:** the e2e's `getByText(/Defer/)` was a loose regex that passed for a reason it never
+  stated. A bigger deferrable bill gave Recovery a second line — *"Deferring this covers your $200 gap"* —
+  and the regex matched twice, failing strict mode. Tightened to `/Defer it/`, the affordance the beat is
+  actually about. The *product* got better here; only the assertion was loose.
+- **Reconfirmed, already filed:** running a single spec via a bare `npx playwright test` instead of
+  `npm run test:e2e:rn` produced a phantom beat-3 failure that the sanctioned runner does not reproduce —
+  the Phase-4 harness race, hit again. Use the script.
+- **Noted, no action:** `money.tsx`'s category ordering list still names `housing`, which now matches no
+  persona bill. Harmless — it orders whatever exists.
+- **→ Deferred backlog (cohesion audit):** the app never shows a debt-free date that reflects its own plan
+  working, because on day one the EF takes the surplus. Honest per-screen; worth one look app-wide.
+
+**Gate:** tsc · `lint:rn` + all four house guards · regression · app-layer · scenarios · **e2e 129/129**.

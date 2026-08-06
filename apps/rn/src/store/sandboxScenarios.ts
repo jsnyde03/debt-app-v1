@@ -77,31 +77,66 @@ const STATE_LABEL: Record<SandboxState, string> = {
   'at-risk': 'A short payday',
 };
 
-/** The persona's obligations, as fractions of the bill budget the state solves for. */
+/**
+ * The persona's obligations, as fractions of the bill budget the state solves for.
+ *
+ * ⚠️ **There is deliberately no RENT line, and that is a finding rather than an omission (3.5.8.1).**
+ * Measured against the real engine: at the `clear` band the Guardian only leaves room for total bills of
+ * **≈12% of monthly income**, so with rent at 62% of the mix it rendered as **$312/mo — 7% of the
+ * persona's income, and less than its own car payment.** No scalar fixes that; the clear multiplier swept
+ * 0.6→0.95 moves it 7%→11%, and income swept $1,400→$3,200 moves it 4%→10%. A comfortable payday and a
+ * market rent are mutually exclusive on one persona, because "clear" *means* the obligations are small
+ * relative to the paycheck.
+ *
+ * So the mix drops the one line that could never be credible and keeps only bills that are honest at the
+ * budget the solver can actually afford. This persona's housing is simply not a tracked required expense.
+ * Jason's call, 2026-08-06, once the sweep showed there was no tuning answer.
+ *
+ * **Weighted for `clear` and `tight`, which are the only bands the App-Preview arc uses** (`at-risk` is
+ * walkthrough-only, where the budget is ~2.5× the clear one and the lines inflate — acceptable there,
+ * because that beat is Recovery sorting what can wait, and a bigger deferrable pile teaches it better).
+ */
 const BILL_MIX: { name: string; category: RequiredExpense['category']; weight: number }[] = [
-  { name: 'Rent', category: 'housing', weight: 0.62 },
-  { name: 'Utilities', category: 'utilities', weight: 0.12 },
-  { name: 'Phone', category: 'utilities', weight: 0.08 },
-  { name: 'Car insurance', category: 'insurance', weight: 0.11 },
+  { name: 'Utilities', category: 'utilities', weight: 0.28 },
+  { name: 'Car insurance', category: 'insurance', weight: 0.24 },
+  { name: 'Internet', category: 'utilities', weight: 0.16 },
+  { name: 'Phone', category: 'utilities', weight: 0.14 },
   // 3.5.3.3.3.1 — `subscriptions`, not `other`, and it matters twice over. It's the correct category
   // for a streaming bill; and `classifyDeferability` defaults everything EXCEPT subscriptions to
   // essential (deliberately — never call an unclassifiable bill safe to skip). Left as `other`, the
   // at-risk scenario had nothing deferrable, so Recovery rendered "Nothing here can safely wait" while
   // the beat teaching it promised "what can safely wait". The lesson needs something to demonstrate.
-  // Named "Subscriptions" (plural) rather than "Streaming" because it carries 7% of the bill budget —
-  // ~$120 on the persona, which is absurd for one streaming service and credible for a bundle. The
-  // teaching example has to survive a sceptical glance; the alternative was shrinking it until it was
-  // too small to close any part of the gap it exists to demonstrate.
-  { name: 'Subscriptions', category: 'subscriptions', weight: 0.07 },
+  // Named "Subscriptions" (plural) rather than "Streaming" because it carries a share of the bill budget
+  // that is absurd for one streaming service and credible for a bundle. The teaching example has to
+  // survive a sceptical glance; the alternative was shrinking it until it was too small to close any part
+  // of the gap it exists to demonstrate. 3.5.8.1 RAISED its weight 0.07 → 0.18 when rent left the mix, so
+  // the deferrable pile Recovery works with grew rather than shrank.
+  { name: 'Subscriptions', category: 'subscriptions', weight: 0.18 },
 ];
 
 const round = (n: number) => Math.round(n * 100) / 100;
 
-/** The persona's debts — small, recognisable, and payable, so the payoff beats resolve in-tutorial. */
+/**
+ * The persona's debts — a load a stranger recognises as their own, with a smallest debt small enough that
+ * the payoff beats still resolve.
+ *
+ * ⚠️ [D20b] (Jason, 2026-08-06) raised this from $2,260 across 2 debts. The old set was chosen when the
+ * only consumer was the walkthrough, where the debts are scenery and the Guardian is the subject; the
+ * App-Preview arc's opening beat is *"three debts, a number you recognise"* and $2,260 was not it. Both
+ * consumers are served by one set rather than two, because a second debt table is a second thing to keep
+ * honest, and nothing in the walkthrough depends on the figures being small — only on the SMALLEST one
+ * being clearable, which `Store card` still is.
+ *
+ * The mix is deliberate: a card the payoff strategy attacks first (highest APR *and* smallest, so snowball
+ * and avalanche agree and the beat reads the same either way), a car loan carrying most of the balance at
+ * a low rate, and a mid-size card. Minimums land near 14% of monthly income — heavy enough to be real,
+ * light enough that the bill solver still reaches all three bands.
+ */
 function personaDebts(currentDate: string): DebtStore['debts'] {
   return [
-    { id: 'sbx-card', name: 'Credit card', balance: 1840, originalBalance: 2400, minimumPayment: 55, apr: 22.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly', balanceAsOfDate: currentDate, lastVerifiedDate: currentDate },
-    { id: 'sbx-store', name: 'Store card', balance: 420, originalBalance: 600, minimumPayment: 25, apr: 26.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly', balanceAsOfDate: currentDate, lastVerifiedDate: currentDate },
+    { id: 'sbx-card', name: 'Credit card', balance: 6400, originalBalance: 8200, minimumPayment: 160, apr: 22.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly', balanceAsOfDate: currentDate, lastVerifiedDate: currentDate },
+    { id: 'sbx-auto', name: 'Car loan', balance: 11800, originalBalance: 17500, minimumPayment: 385, apr: 7.49, dueDate: currentDate, type: 'debt', recurrence: 'monthly', balanceAsOfDate: currentDate, lastVerifiedDate: currentDate },
+    { id: 'sbx-store', name: 'Store card', balance: 1240, originalBalance: 1900, minimumPayment: 45, apr: 26.99, dueDate: currentDate, type: 'debt', recurrence: 'monthly', balanceAsOfDate: currentDate, lastVerifiedDate: currentDate },
   ] as DebtStore['debts'];
 }
 

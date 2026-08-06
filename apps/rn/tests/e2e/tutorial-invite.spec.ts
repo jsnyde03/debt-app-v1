@@ -198,7 +198,11 @@ test.describe('tutorial invitation + in-situ shell', () => {
     // 3.5.3.3.3.1 — and the beat's lesson must have something to demonstrate. With no deferrable bill
     // the card answered "Nothing here can safely wait" underneath copy about what can wait.
     await expect(page.getByText(/Nothing here can safely wait/)).toHaveCount(0);
-    await expect(page.getByText(/Defer/)).toBeVisible();
+    // The ACTION, not any string containing "Defer". 3.5.8.1 raised the deferrable bill's weight and
+    // Recovery gained a second line — "Deferring this covers your $200 gap" — so the old `/Defer/`
+    // matched twice and failed on strict mode. The lesson is that the beat OFFERS a deferral, so assert
+    // the affordance; the looser regex passed for a reason it never stated.
+    await expect(page.getByText(/Defer it/)).toBeVisible();
 
     // …and the arc must climb back out, so nobody is handed their own money right after a red card.
     await page.getByText('Next', { exact: true }).click();
