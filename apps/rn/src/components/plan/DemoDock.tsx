@@ -28,7 +28,10 @@ export function DemoDock() {
   const insets = useSafeAreaInsets();
   const active = useStore(demoSession, (s) => s.active);
   const stage = useStore(demoSession, (s) => s.stage);
-  if (!active) return null;
+  // Withheld for the App-Preview capture. The dock is a way OUT, and a video has nobody to let out — while
+  // it covered two of the five frames the video exists to show.
+  const chrome = useStore(demoSession, (s) => s.chrome);
+  if (!active || !chrome) return null;
 
   const position = Math.max(1, DEMO_STAGES.findIndex((s) => s.id === stage) + 1);
 

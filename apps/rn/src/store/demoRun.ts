@@ -58,9 +58,14 @@ function primePayoff(sandbox: SandboxStoreInstance): void {
   const back = new Date(`${store.paycheck.currentDate}T00:00:00`);
   back.setDate(back.getDate() - 35);
   const anchorDate = back.toISOString().slice(0, 10);
+  // ⚠️ Only the BALANCE moves. The first version also raised `minimumPayment` to guarantee the projection
+  // cleared — and that pushed the debt-free date a year later between the Progress beat and this one,
+  // because a bigger minimum is a bigger required obligation and less is left to attack the other debts.
+  // A date going visibly WORSE between two consecutive shots is the kind of thing a viewer notices in a
+  // video without being able to say why. Anchoring below the debt's own existing minimum clears it just
+  // as reliably and changes nothing else on screen.
   sandbox.getState().updateDebt(target.id, {
-    balance: 40,
-    minimumPayment: Math.max(target.minimumPayment, 60), // clears 40 in one month, at any APR here
+    balance: Math.max(1, Math.round(target.minimumPayment * 0.6)),
     balanceAsOfDate: anchorDate,
   });
 }

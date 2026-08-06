@@ -28,7 +28,16 @@ interface DemoSessionState {
   sandbox: SandboxStoreInstance | null;
   /** Which scripted stage is showing — for chrome (3.5.4.7) and for the capture to key its pacing on. */
   stage: string | null;
-  start: () => void;
+  /**
+   * Whether the demo's own chrome renders. FALSE for the App-Preview capture.
+   *
+   * The dock exists to give a viewer a way out, and a capture has no viewer — meanwhile it covered the
+   * payoff trajectory on the Progress beat and cut the Guardian card in half on the closing one, which
+   * are two of the five frames the video is for. Kept as a flag rather than deleted because 3.5.7's
+   * marketing embed does have a viewer, and will want it.
+   */
+  chrome: boolean;
+  start: (opts?: { chrome?: boolean }) => void;
   end: () => void;
 }
 
@@ -36,15 +45,16 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
   active: false,
   sandbox: null,
   stage: null,
+  chrome: true,
 
-  start() {
+  start(opts) {
     if (get().active) return; // re-entry is a no-op, not a second sandbox
     // ⚠️ Refuse if a walkthrough owns the shared timer registry. Not reachable through the UI today — the
     // replay link and the invite are both withheld while `isExample` — but `/tutorial` sits inside the
     // block this demo's own route guard opens, so a deep link can reach it.
     if (!claimRun('demo')) return;
     const sandbox = createSandboxStore(demoScenario(DEMO_STAGES[0]));
-    set({ active: true, sandbox, stage: DEMO_STAGES[0].id });
+    set({ active: true, sandbox, stage: DEMO_STAGES[0].id, chrome: opts?.chrome !== false });
     // Scheduled against THIS sandbox: if the demo ends and another starts, the old run's steps must not
     // land on the new one's store.
     playDemoRun(
@@ -72,7 +82,7 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
     // backstop.
     clearStoryTimers();
     releaseRun('demo');
-    set({ active: false, sandbox: null, stage: null });
+    set({ active: false, sandbox: null, stage: null, chrome: true });
   },
 }));
 
