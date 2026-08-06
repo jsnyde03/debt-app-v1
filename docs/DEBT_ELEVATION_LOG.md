@@ -2058,6 +2058,67 @@ applied ahead of the defect instead of behind it.
 
 ---
 
+## 3.5.4.7 / .9 / .10 — entries, the funnel seam, and what only looking found (2026-08-06)
+
+### .7 — the entries and exits (`dc5b4d1`, `4a05b05`)
+
+Paywall "See it in action" joins the repointed Welcome entry, both behind the single `isDemoReachable()`.
+Exits are terminal via `exitDemo` ([D18]), and `replace` rather than `push` so a back gesture cannot
+resurrect a torn-down run. The dock is deliberately **not** the walkthrough's: that one coaches, and this
+run is watched, so Back/Next/Skip would imply controls that do not exist and steps the viewer is failing
+to take.
+
+**⚠️ The exit test caught a broken conversion path.** `/paywall` sat inside
+`Stack.Protected guard={onboardingComplete || inDemo}`, so ending the demo **closed the guard on the way
+out**: a not-yet-onboarded viewer who tapped "Unlock Premium" landed in onboarding. Broken for exactly the
+audience the demo exists for, and invisible to every other test because nothing else walks that sequence.
+The paywall now sits outside the guard — a fix, not a relaxation: buying does not require having entered
+your data, and nothing links there pre-onboarding, so it opens no new surface.
+
+**🎯 Jason, 2026-08-06: a real user gets the demo in v1.7.** `isDemoReachable()` no longer rides
+`QA_TOOLS`, which would have removed the demo and both entries at the Phase-6 flip — a pre-purchase funnel
+built and not shipped. Copy approved as drafted. It also exposed a false claim of mine: `qa.ts` said it was
+the ONE definition while `/demo` still carried its own inline copy, written before the helper existed.
+
+### .9 — the funnel seam [D-A] (`91a5c30`)
+
+Analytics was kept out of v1.7's core to protect the moat; the demo re-opened it, because a funnel you
+cannot see is one you cannot improve and "did anyone finish the demo" is not a fact about anyone's money.
+
+- **No financial data BY CONSTRUCTION.** Every payload is a closed union of literals — no
+  `Record<string, unknown>`, no free-form string, no number in the file's types at all. A reviewer-enforced
+  rule holds until the first hurried call site; a type holds at compile time.
+- **It sends nothing.** `track` forwards to a sink that is null and stays null. [D-A] asked for the seam;
+  the Phase-6 privacy/data-flow audit decides whether anything is attached. Wiring a provider now would put
+  an egress in the app ahead of the audit built to trace every egress.
+- **Opt-out at the choke point**, with a switch in More — a preference with no control is a field, not an
+  opt-out. `analyticsOptOut` is optional, so an existing blob migrates by not having it.
+
+### .10 — two defects only looking could find (`c0d5966`)
+
+Everything passed, and the screen was wrong twice.
+
+- **The disclosure was doubled** — "Example money" on the canvas AND in the dock. The same doubling [D6]
+  refused, from the other direction: there the dock owns the marker and the canvas withholds; here the
+  canvas owns it, because it sits beside the figures and cannot scroll away from them.
+- **The dock sat over the tab bar**, cutting the labels in half — a viewer's first impression of the app
+  being a clipped control strip. A demo now HIDES the bar. A walkthrough still shows it, deliberately: it
+  coaches over the real app, and the tabs are part of what it is teaching you to use.
+
+The containment test changed with it, and the new assertion is **stronger** — the tabs are not merely
+fenced, they are not rendered. `toBeHidden` rather than `toHaveCount(0)`, because `display: 'none'` is how
+RN hides a tab bar and on web that leaves the node in the DOM while removing it from layout, hit-testing
+and the a11y tree.
+
+`/demo` also joins the axe scanner as its own case rather than assuming Today's coverage carries: a new
+dock, a marker with a `header` role, and an audience who has completed no onboarding.
+
+**Gate:** full `validate:release:rn` green · **129/129 e2e** · both themes verified by looking, which is
+the only thing that caught either defect. ⏳ Native lane owed — the dock, the hidden tab bar and the route
+guard are all native-sensitive.
+
+---
+
 ## 3.5.4.8 — retire `demoSeed` [D-B] (2026-08-06, `f4c875e`)
 
 The legacy demo wrote a fabricated plan into the user's **real** store via `importStore(demoStore())` and
