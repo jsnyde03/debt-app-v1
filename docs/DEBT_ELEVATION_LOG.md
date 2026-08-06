@@ -2314,3 +2314,151 @@ points the artifact paths at `apps/rn`, where Playwright actually writes them.
 **The legacy suite now runs nowhere, deliberately.** 5.5.1 deletes that tree, and its Next build no longer
 typechecks against the RN sources it was dragged into — so restoring it would mean fixing a build in order
 to delete it.
+
+---
+
+## 3.5.8 — switch-in: the capture research, and the assumption it killed (2026-08-06)
+
+The plan required this item to start cold: *"research the capture tooling against current-year guidance
+before assuming Maestro."* Done against Apple's own App Store Connect Help and the tools' own docs, per
+[[feedback_verify_asc_against_current_year]]. Three of the audit gate's seven questions closed on the way.
+
+### ⚠️ The plan's headline technical claim was FALSE
+
+`DEBT_ELEVATION_PLAN.md` recorded, verified 2026-07-30, that simulator capture *"yields exact store pixel
+dimensions"* and that *"one video at the largest size per device family scales to the rest (currently 6.9″
+iPhone)."* Apple's spec table says otherwise, and the difference is structural rather than a detail:
+
+**Every modern iPhone slot — 6.9″, 6.5″, 6.3″, 6.1″ — takes the same 886 × 1920 portrait file.** That is
+not a device resolution and never was; it is a fixed delivery size. `simctl` records at the simulator's
+native pixels (17 Pro Max ≈ 1320 × 2868), so **an ffmpeg conform step is mandatory, not polish** — scale to
+886 wide, crop the ~5px of height the aspect difference leaves, force CFR 30. The plan's own framing had
+ffmpeg as an optional trim; it is load-bearing.
+
+The good half: the scaling worry was backwards. One correctly-sized file covers the entire modern iPhone
+lineup outright, so there is nothing to re-shoot per size.
+
+Re-verified alongside it: 15–30s · **max** 30fps · ≤500MB · H.264 (10–12 Mbps, up to High Profile L4.0) or
+ProRes 422 HQ · audio optional, stereo AAC 256kbps if present · up to 3 previews per language · poster
+frame defaults to 5s in.
+
+### Two content rules the storyboard did not account for
+
+- **Previews autoplay MUTED.** Apple's own guidance is that on-screen text carries the meaning. The
+  five-beat arc has no text at all — it was designed as an in-app demo watched with attention, and the
+  premise changed under it at [D19] without the copy being revisited.
+- **Features requiring a subscription must be disclosed.** The at-risk beat *is* the premium contrast —
+  Recovery shown rather than described. Undisclosed, that is the exact overclaim shape this project keeps
+  auditing itself for. → **[D20a]**, below.
+
+Apple's wording is that previews use *"footage captured on device"*, and QuickTime against a connected
+device is the path it prescribes. Simulator capture is not prohibited and ASC validates only resolution —
+but that sentence is independent support for the draft-vs-submitted split the plan already chose, so it
+stays: auto-capture is the iteration path, a device re-run is the fallback for the submitted asset.
+
+### `maestro record` is OUT, and it is worth saying why
+
+Maestro was the incumbent and this is the part of it that does not survive contact. `maestro record`
+composites the flow-command panel beside the app, **defaults to 2× speed**, and renders in the cloud behind
+a signed URL. It is a share-your-test artifact. Reaching for it because Maestro was already wired is
+precisely the move the plan's own research instruction existed to prevent.
+
+### ✅ [D20] The pipeline (Jason, 2026-08-06) — Maestro drives · `simctl` records · ffmpeg conforms
+
+`xcrun simctl io booted recordVideo --codec h264 --mask ignored` produces clean, unbranded pixels through
+the simulator's **Metal** Skia path — the same code path as device, and notably *not* the web CanvasKit
+path that produced the unpainted-canvas frame in the 3.5.4.11 review. `--mask ignored` drops the
+rounded-corner mask Apple does not want baked in. Maestro's job shrinks to almost nothing because the run
+is timed: deep-link, wait, one tap on the payoff invitation, hold.
+
+Rejected, with reasons: **XCUITest** — the most faithful driver, but the recorder is the same `simctl` and
+it means a Swift UI-test target with no other consumer · **Detox/Appium** — heavier, no fidelity gain ·
+**Rotato / Screen-Studio class** — add the device frames and camera motion Apple prohibits for in-app
+footage, and are GUI Mac apps, so no CI · **QuickTime + real device** — retained as the fallback for the
+submitted asset, not as the pipeline.
+
+### Audit-gate questions, resolved at switch-in
+
+- **Q3 (the launch-into-demo seam) — nearly free, and already built.** `app.json` declares scheme
+  `debtplannerrn`, and `demo.tsx` already reads `capture` off the query string, so
+  `xcrun simctl openurl booted "debtplannerrn:///demo?capture=1"` is very likely the whole seam. Proving
+  it is a step; building it is not. The plan guessed this would have to be added.
+- **Q5 (the "~5s hook" vs Apple's 15–30s contradiction) — dissolved at [D19].** The 5s hook belonged to the
+  Guardian-only demo. The current arc runs 0 → 20 000 ms plus the celebration hold, ≈25s, inside the window
+  by construction.
+- **Q6 (practicalities) — ffmpeg is NOT preinstalled on `macos-15`**; Homebrew is, so the workflow installs
+  it. Xcode 26.x is present. Everything else stands.
+
+### ✅ [D20a] the muted-viewer line, and ✅ [D20b] the persona's weight (Jason, 2026-08-06)
+
+- **[D20a]** — one restrained caption over the closing beat, carrying the IAP disclosure and giving the
+  muted viewer a single anchor of text. Chosen over an end card (spends seconds, and ends on a card rather
+  than on the emotional peak) and over captioning every beat (marketing chrome over an app that has
+  refused it).
+- **[D20b]** — raise the opening frame from *$2,260 across 2 debts* to **3 debts, ~$18–25k**. The beat's own
+  note reads *"three debts, a number you recognise"*; the seed had drifted from its own storyboard.
+
+### ⚠️ What [D20b] costs, surfaced by the switch-in scan and NOT yet priced
+
+`personaDebts` is shared with the **walkthrough**, and its comment states the debts are small deliberately
+— *"small, recognisable, and payable, so the payoff beats resolve in-tutorial."* So this is not a
+demo-local edit. Two further couplings: the bill-budget **solver** binary-searches against the real
+Guardian and throws `infeasible` if minimum payments crowd the paycheck, and a larger balance pushes the
+**debt-free date** further out, which is the Progress beat's whole message. Measured, not assumed, at
+3.5.8.1; if the walkthrough degrades, the fallback is a demo-specific debt set and the "one honest demo
+system" principle takes the hit deliberately rather than silently.
+
+### Doc drift found in passing
+
+The plan's 3.5.4.11 line points at *"Log: 3.5.4.11"* and **no such section exists** — that item's detail
+lives only in `DEBT_DEMO_VS_WALKTHROUGH_AUDIT_2026-08-06.md`'s capture section. Recorded rather than
+back-filled: manufacturing a narrative I did not write would be worse than a pointer that is honest about
+where the record actually is.
+
+---
+
+## 3.5.5 — coach-marks: the PARKED decomposition (moved off the plan 2026-08-06)
+
+Jason re-sequenced 3.5.8 ahead of 3.5.5/.6/.7 on 2026-08-06. Under the one-decomposed-section rule the
+coach-mark sequence comes off the plan and waits here; it is retrieved at re-switch-in and **re-verified
+against the code then**, because a parked decomposition ages exactly like a pre-authored one.
+
+**Switch-in before-scan (2026-08-06) — the inventory had DRIFTED, two entries did not resolve:**
+- **What-If EXISTS and stays in scope** — `components/payoff/WhatIfControls.tsx`, a collapsible
+  extra-payment tool behind `whatIfOpen` on the trajectory chart, with a green "with extra" overlay curve.
+  *(My first scan claimed it was unbuilt; I had grepped `"what if"` and `simulat`, and the symbol is
+  `WhatIf`. Jason corrected it.)* **3.7.B1 is an ENHANCEMENT to it** — drag-the-curve direct manipulation —
+  not the feature itself. Collapsed behind a toggle is exactly the hidden-affordance shape this item exists
+  for.
+- **The payoff-schedule row sits BELOW THE FOLD** on the largest iPhone, directly above a destructive
+  Remove (ledger §T **L5**, found by the native lane). Marking an off-screen control is worse than not
+  marking it → **L5 is fixed first, in 3.5.5.5**.
+- **"income-varies toggle" could not be located** as a user-facing control; the variable-income machinery
+  exists (`incomeLearning`, the VIS-5 band) but the toggle does not. Verify at 3.5.5.4, drop it if unreal.
+
+| # | Step |
+|---|---|
+| 3.5.5.1 | **The coach-mark primitive** — one-at-a-time, dismissible, iOS-16-safe, rendered OUTSIDE gesture handlers. Reuses `TutorialShell`'s geometry publishing rather than standing up a second measuring system; the walkthrough's `measure` retry/staleness lessons apply unchanged |
+| 3.5.5.2 | **Register in the VIS-4 single-ack slot** — "one at a time" is a claim about the whole app, not about this component. Unregistered, a mark and the tutorial invite can both fire on the same launch |
+| 3.5.5.3 | **Seen-persistence + a replay entry** in More, mirroring the walkthrough's. A discovery layer nobody can re-open is a one-shot |
+| 3.5.5.4 | **The corrected inventory** — long-press menu · Cash-Runway scrub · Can-I-Afford · swipe-to-delete · chart scrub · **What-If (distinct from the scrub: it is the collapsed extra-payment tool)** · Log-payment · scan-a-statement · widget/Lock-Screen/Siri. Each verified reachable before it gets a mark |
+| 3.5.5.5 | **Payoff schedule: fix L5, then mark it** — the entry 3.7.A0 moved for discoverability is off-screen on the biggest phone Apple sells |
+| 3.5.5.6 | **Verify + close** — both themes · a11y (the marks must not fence the control they point at) · e2e · native lane |
+
+**Exit:** every hidden affordance that EXISTS has one calm, dismissible, replayable mark; none fires
+alongside another ack; and no mark points at a control the user cannot reach.
+
+**⭐ SCOPE DECISION (Jason 2026-07-31): the tutorial stays GUARDIAN-ONLY; coach-marks are how the rest of
+the app is taught.** The Guardian is the one feature with a genuinely novel mental model (money held back
+BEFORE payoff; a safety net that builds then releases) — Money/Progress are conventional list/chart
+screens. Extending the tutorial would blow the ≤7-beat budget, force the 3.5.3.0 store rewire across
+Money's sheets too (`ExpenseSheet`/`GoalSheet`/`LogPaymentSheet` are all still singleton writers), and
+teach a swipe four beats before the user is on the screen that has it. Contextual beats a tour.
+
+**+3 INVENTORY ADDITIONS (same discussion) — high-value discoveries the list was missing:**
+1. **Scan a statement (§2.8)** — on-device OCR is a real differentiator hiding behind an unremarkable
+   dashed row on Money.
+2. **What-If simulator (§2.2)** — premium, and DISTINCT from the "chart scrub" already listed.
+3. **⚠️ The payoff schedule** — **3.7.A0 MOVED it** (edit-sheet header → row long-press menu + a sheet body
+   row). Anyone who knew the old location loses it, and new users have no way to find the menu. Relocating
+   a feature without adding it to the discovery layer is how it goes dark.
