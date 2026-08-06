@@ -65,8 +65,13 @@ function run() {
     assert(scenario.maxGenuineCycles === undefined, `stage "${stage.id}" keeps the day-one bound (reserves HELD)`);
   }
 
-  // The arc is the argument: covered → tight → cannot-be-made-to-work. Out of order it stops being one.
-  assert(DEMO_STAGES.map((s) => s.state).join('>') === 'clear>tight>at-risk', 'the script walks clear → tight → at-risk');
+  // [D19] — the arc must LEAVE Today. A preview that never moves is a demo of one feature, and that is
+  // the whole reason this script was rebuilt. Asserted on the screens rather than the copy, because the
+  // copy will change and the structure is the decision.
+  const screens = new Set(DEMO_STAGES.map((s) => s.screen));
+  assert(screens.size >= 3, 'the arc visits at least three screens — situation, mechanism, payoff');
+  assert(DEMO_STAGES[0].screen === '/money', 'it OPENS on the problem, not on a feature');
+  assert(DEMO_STAGES.some((s) => s.screen === '/progress'), 'it reaches Progress, where the debt-free date lives');
   // Strictly increasing, and the opener is synchronous — a scheduled first stage shows the sandbox's
   // default for a beat first, which is a wasted opening frame on a capture and a flicker in the app.
   assert(DEMO_STAGES[0].at === 0, 'the opening stage is applied synchronously');

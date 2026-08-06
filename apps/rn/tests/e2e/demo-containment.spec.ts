@@ -30,9 +30,10 @@ test('a not-yet-onboarded user reaches the demo, and it is contained', async ({ 
   await seedStore(page, NOT_ONBOARDED);
   await page.goto('/demo');
 
-  // 1 — admitted. Today renders rather than onboarding, and it is showing the persona's money: the
-  // sandbox seeds a paycheck this user does not have, so any figure at all proves the sandbox is live.
-  await expect(page.getByText('Payday Guardian')).toBeVisible({ timeout: 15_000 });
+  // 1 — admitted, and the DIRECTOR moved. [D19]'s arc opens on the problem, so a demo that lands on
+  // Today and stays there means the script is not driving the camera. Asserted on the URL rather than on
+  // content, because Money and Today share too much chrome for content alone to tell them apart.
+  await expect(page).toHaveURL(/money/, { timeout: 15_000 });
   await expect(page.getByText('Set up your paycheck')).toHaveCount(0);
 
   // 2 — the real store is untouched. The demo must not buy its way past the route guard by writing

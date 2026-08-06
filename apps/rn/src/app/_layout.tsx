@@ -19,6 +19,7 @@ import { drainPendingActions } from '@/appIntents/drainPendingActions';
 import { addNotificationResponseListener, registerNotificationCategories } from '@/notifications/notifications';
 import { initErrorReporting, wrapRoot } from '@/utils/sentry';
 import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
+import { DemoDirector } from '@/components/plan/DemoDirector';
 import { DemoDock } from '@/components/plan/DemoDock';
 import { TutorialCoach } from '@/components/plan/TutorialCoach';
 import { suspendStoryOnBackground } from '@/store/tutorialSession';
@@ -181,6 +182,7 @@ function RootLayout() {
           {/* 3.5.4.7 — the demo's chrome, mounted beside the Stack for the same reason the walkthrough's
               overlay is: it must sit above the navigator (so it covers the iPad rail too) and cannot live
               inside a tab screen. Renders nothing unless a demo is running. */}
+          <DemoDirector />
           <DemoDock />
           </StoreProvider>
           <TutorialCoach />

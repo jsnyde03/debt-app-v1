@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { track } from '@/analytics/funnel';
 import { EXAMPLE_MONEY } from '@/components/plan/ExampleCanvasMarker';
 import { isDemoReachable } from '@/config/qa';
+import { DEMO_STAGES } from '@/store/demoRun';
 import { demoSession } from '@/store/demoSession';
 import { announce } from '@/utils/a11y';
 
@@ -49,5 +50,9 @@ export default function DemoEntry() {
 
   if (!enabled) return <Redirect href="/" />;
   if (!started) return null;
-  return <Redirect href="/(tabs)" />;
+  // The FIRST STAGE's screen, not a hardcoded `/(tabs)`. Hardcoding it raced `DemoDirector`: this redirect
+  // and the director's first navigate fired together, the redirect won, and the run sat on Today for the
+  // whole opening beat. The e2e passed anyway, because it asserted Today content — a test agreeing with a
+  // bug. Landing on the arc's own opening screen removes the race rather than sequencing it.
+  return <Redirect href={DEMO_STAGES[0].screen} />;
 }

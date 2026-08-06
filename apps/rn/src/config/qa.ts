@@ -15,14 +15,15 @@ export const QA_TOOLS = true;
  * outlive the destination it points at. The legacy demo was the opposite shape: a Welcome button wired
  * straight to `importStore(demoStore())`, with nothing tying the offer to what it opened.
  *
- * **Jason, 2026-08-06: a real user gets the demo in v1.7.** So this is not gated. It briefly rode
- * `QA_TOOLS`, which would have taken the demo and both entries out of the shipped app at the Phase-6
- * flip — leaving a pre-purchase funnel built and not shipped, which is the opposite of what 3.5.4 is for.
+ * **[D19], Jason 2026-08-06: the demo does NOT ship to users.** It briefly did. The walkthrough is the
+ * only in-app teaching surface, because both showed the same feature with the same persona money on the
+ * same screen — in the app, that is one thing said twice. The demo's remaining job is the App Preview
+ * (3.5.8) and the marketing embed (3.5.7), so it rides `QA_TOOLS` and leaves the shipped app at the
+ * Phase-6 flip along with every entry to it.
  *
- * A function rather than a constant because this is the lever: the demo's reachability is one decision in
- * one place, and if it ever needs a condition (a remote flag, a locale, a store review build) it acquires
- * one here without a single call site changing.
+ * A function rather than a constant because this is the lever: reachability is one decision in one place,
+ * and the entries read it too, so an entry can never outlive its destination.
  */
 export function isDemoReachable(): boolean {
-  return true;
+  return (typeof __DEV__ !== 'undefined' && __DEV__) || QA_TOOLS;
 }

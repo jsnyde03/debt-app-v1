@@ -19,19 +19,35 @@ import { seedSandbox, type SandboxScenario, type SandboxStoreInstance } from './
 export interface DemoStage {
   id: string;
   state: SandboxState;
+  /** Which tab this beat plays on. The script navigates; the viewer still cannot. */
+  screen: '/money' | '/' | '/progress';
   /** Milliseconds from the start of the run. */
   at: number;
+  /** One line of intent, for whoever reads the storyboard next. Not rendered. */
+  beat: string;
 }
 
 /**
- * Paced to be READ, not to be brisk. Each stage changes a headline figure and a colour, and a viewer who
- * has never seen the app needs to find the number before it moves — the walkthrough's own story timers
- * settled on ~1s to notice a change and ~2s to understand one, and this is the same eye.
+ * [D19] — the approved App-Preview arc: **situation → mechanism → proof → trajectory → triumph**, ~25s,
+ * inside Apple's 15–30s window.
+ *
+ * It opens on the PROBLEM rather than on a feature, because a stranger has to recognise themselves before
+ * anything else can matter — and it deliberately leaves Today, which the Guardian-only version could not.
+ * A preview that never leaves one screen is a demo of one feature, not of the app.
+ *
+ * **Timed, not tapped.** The in-app demo was going to be tap-through so a viewer could read at their own
+ * pace; that decision died with its premise when the demo left the app ([D19]). A capture has no viewer to
+ * pace and needs byte-identical takes, so timing is right again — and the re-seed-discards-interaction
+ * problem goes with it, since nothing is there to interact.
+ *
+ * Paced to be READ. The walkthrough's story timers settled on ~1s to notice a change and ~2s to understand
+ * one; a stranger reading unfamiliar money needs longer, so no beat is under 4s.
  */
 export const DEMO_STAGES: DemoStage[] = [
-  { id: 'clear', state: 'clear', at: 0 },
-  { id: 'tight', state: 'tight', at: 3200 },
-  { id: 'at-risk', state: 'at-risk', at: 6400 },
+  { id: 'debts', state: 'clear', screen: '/money', at: 0, beat: 'The situation: three debts, a number you recognise.' },
+  { id: 'held', state: 'clear', screen: '/', at: 4000, beat: 'The mechanism: a paycheck lands and the cushion is held at your line, before payoff.' },
+  { id: 'absorbed', state: 'tight', screen: '/', at: 9000, beat: 'The proof: a tight paycheck, and the safety net covers it.' },
+  { id: 'trajectory', state: 'clear', screen: '/progress', at: 14000, beat: 'The payoff: the ring, the curve, the debt-free date.' },
 ];
 
 /**
