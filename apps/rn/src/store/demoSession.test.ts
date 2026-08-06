@@ -1,7 +1,9 @@
 import { appStore } from '@/store/appStore';
+import { isDebtProjectedPaidOff } from '@core/debt/projectCurrentBalance';
+
 import { DEMO_STAGES, demoScenario } from '@/store/demoRun';
 import { demoSession } from '@/store/demoSession';
-import { isSandboxStore } from '@/store/sandboxStore';
+import { createSandboxStore, isSandboxStore } from '@/store/sandboxStore';
 
 /**
  * 3.5.4.1 — the demo session's invariants.
@@ -72,6 +74,18 @@ function run() {
   assert(screens.size >= 3, 'the arc visits at least three screens — situation, mechanism, payoff');
   assert(DEMO_STAGES[0].screen === '/money', 'it OPENS on the problem, not on a feature');
   assert(DEMO_STAGES.some((s) => s.screen === '/progress'), 'it reaches Progress, where the debt-free date lives');
+
+  // The closing beat has to leave a debt ONE TAP from zero — `balance > 0` and projecting to `<= 0` — or
+  // the payoff invitation never renders and the capture driver has nothing to confirm. Asserted through
+  // the same predicate the screen uses, not by eyeballing the numbers: a $40 balance that happens not to
+  // project to zero would look right in the store and produce no card.
+  const closing = DEMO_STAGES[DEMO_STAGES.length - 1];
+  assert(closing.prime !== undefined, 'the closing beat primes a payoff');
+  const box = createSandboxStore(demoScenario(closing));
+  closing.prime!(box);
+  const primed = box.getState().store;
+  const invited = primed.debts.filter((d) => isDebtProjectedPaidOff(d, primed.paycheck.currentDate));
+  assert(invited.length === 1, 'exactly one debt is primed to the payoff invitation — not none, not all');
   // Strictly increasing, and the opener is synchronous — a scheduled first stage shows the sandbox's
   // default for a beat first, which is a wasted opening frame on a capture and a flicker in the app.
   assert(DEMO_STAGES[0].at === 0, 'the opening stage is applied synchronously');

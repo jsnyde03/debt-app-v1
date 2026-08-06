@@ -25,6 +25,44 @@ export interface DemoStage {
   at: number;
   /** One line of intent, for whoever reads the storyboard next. Not rendered. */
   beat: string;
+  /** Optional shaping applied AFTER the stage's scenario is seeded — see `primePayoff`. */
+  prime?: (sandbox: SandboxStoreInstance) => void;
+}
+
+/**
+ * Put the smallest debt one tap away from being paid off.
+ *
+ * `isDebtProjectedPaidOff` is `balance > 0 && projectCurrentBalance(…) <= 0` — a debt whose anchor is
+ * still positive but which projects to zero as of today. That state is what puts the payoff INVITATION on
+ * Today, and confirming it is what fires the celebration.
+ *
+ * ⚠️ The celebration is deliberately NOT triggered from here, and that is the point. It is React state set
+ * by `confirmPayoff`, which runs when the invitation card is confirmed — so the capture driver taps it and
+ * records the real flow, invitation and all. A synthetic trigger would put the same pixels on screen
+ * having skipped the mechanism, which is the one thing a store video must not do: show something the app
+ * does not actually do that way.
+ *
+ * Deterministic by construction: anchor a balance the minimum payment clears, one month back, so the
+ * projection lands at zero on any device on any day.
+ */
+function primePayoff(sandbox: SandboxStoreInstance): void {
+  const store = sandbox.getState().store;
+  const live = store.debts.filter((d) => d.balance > 0);
+  if (live.length === 0) return;
+  // The smallest — it is the one the payoff strategy is already working on, so its death is the story the
+  // rest of the screen has been telling.
+  const target = live.reduce((a, b) => (b.balance < a.balance ? b : a));
+  // 35 days back — comfortably past the one whole month `projectCurrentBalance` needs to apply a payment,
+  // without depending on month lengths. Inline rather than a shared helper: one caller, and the repo has
+  // no add-months util to borrow.
+  const back = new Date(`${store.paycheck.currentDate}T00:00:00`);
+  back.setDate(back.getDate() - 35);
+  const anchorDate = back.toISOString().slice(0, 10);
+  sandbox.getState().updateDebt(target.id, {
+    balance: 40,
+    minimumPayment: Math.max(target.minimumPayment, 60), // clears 40 in one month, at any APR here
+    balanceAsOfDate: anchorDate,
+  });
 }
 
 /**
@@ -48,6 +86,14 @@ export const DEMO_STAGES: DemoStage[] = [
   { id: 'held', state: 'clear', screen: '/', at: 4000, beat: 'The mechanism: a paycheck lands and the cushion is held at your line, before payoff.' },
   { id: 'absorbed', state: 'tight', screen: '/', at: 9000, beat: 'The proof: a tight paycheck, and the safety net covers it.' },
   { id: 'trajectory', state: 'clear', screen: '/progress', at: 14000, beat: 'The payoff: the ring, the curve, the debt-free date.' },
+  {
+    id: 'payoff',
+    state: 'clear',
+    screen: '/',
+    at: 20000,
+    beat: 'The triumph: a debt one tap from zero. The capture driver confirms it, and the celebration is real.',
+    prime: primePayoff,
+  },
 ];
 
 /**
@@ -76,6 +122,9 @@ export function playDemoRun(sandbox: SandboxStoreInstance, isCurrent: () => bool
   DEMO_STAGES.forEach((stage) => {
     const apply = () => {
       seedSandbox(sandbox, demoScenario(stage));
+      // AFTER the seed — priming shapes the state the scenario just laid down, so seeding second would
+      // discard it.
+      stage.prime?.(sandbox);
       onStage?.(stage);
     };
     if (stage.at === 0) apply();
