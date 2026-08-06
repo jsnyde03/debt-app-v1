@@ -9,6 +9,7 @@ import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import type { RequiredExpense, RequiredExpenseCategory } from '@/data/models';
 import { appStore } from '@/store/appStore';
+import { confirmDelete } from '@/utils/confirm';
 
 const RECURRENCE: { value: Recurrence; label: string }[] = [
   { value: 'monthly', label: 'Monthly' },
@@ -76,11 +77,13 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
     else appStore.getState().addExpense({ id: `expense-${Date.now()}`, isPaidThisCycle: false, ...fields });
     onClose();
   }
-  function remove() {
-    if (editing) {
-      appStore.getState().removeExpense(editing.id);
-      onClose();
-    }
+  // 3.5.6b — confirms, like every other delete path. See `DebtSheet.remove` for why the direct action
+  // was retired: same destructive act, and the sheet was the one entry point that did not guard it.
+  async function remove() {
+    if (!editing) return;
+    if (!(await confirmDelete(`Delete ${editing.name}?`))) return;
+    appStore.getState().removeExpense(editing.id);
+    onClose();
   }
 
   return (

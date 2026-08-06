@@ -8,6 +8,7 @@ import type { Goal } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
 import { textStyles } from '@/theme/typography';
+import { confirmDelete } from '@/utils/confirm';
 
 /** Unified add/edit sheet for a savings goal (type is now editable in both modes — redesign fix). */
 export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose: () => void }) {
@@ -31,11 +32,13 @@ export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose:
     else appStore.getState().addGoal({ id: `goal-${Date.now()}`, ...fields });
     onClose();
   }
-  function remove() {
-    if (editing) {
-      appStore.getState().removeGoal(editing.id);
-      onClose();
-    }
+  // 3.5.6b — confirms, like every other delete path. See `DebtSheet.remove` for why the direct action
+  // was retired: same destructive act, and the sheet was the one entry point that did not guard it.
+  async function remove() {
+    if (!editing) return;
+    if (!(await confirmDelete(`Delete ${editing.name}?`))) return;
+    appStore.getState().removeGoal(editing.id);
+    onClose();
   }
 
   return (

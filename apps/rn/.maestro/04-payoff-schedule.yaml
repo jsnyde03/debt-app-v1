@@ -21,19 +21,19 @@ appId: com.jasonsnyder.debtplanner
     id: "tab-money"
 
 # ⚠️ INSTRUMENTATION (2026-08-05). A run where this flow got as far as opening the edit sheet ended with
-# the VISA DEBT GONE — the list went from 3 debts / $11,580 to 2 / $9,180, exactly Visa's $2,400. Visa
-# demonstrably existed when this flow started (the tap below opened its sheet), and `DebtSheet` has no
-# delete control at all, so something between here and the end of this flow destroyed it.
+# the VISA DEBT GONE — the list went from 3 debts / $11,580 to 2 / $9,180, exactly Visa's $2,400.
 #
-# ⚠️ Flow 03 was the obvious suspect — it leaves a native context menu open with a destructive "Delete"
-# on it — and the evidence RULES IT OUT: 03 runs before this flow, and the row tap below succeeded,
-# which means Visa still existed at that point. So the loss happened INSIDE this flow, after the row tap,
-# where the only action taken is opening the payoff schedule. That points at the app rather than at test
-# hygiene, which is the more serious of the two readings.
+# ⚠️ The earlier note here claimed "`DebtSheet` has no delete control at all". That was FALSE, and it is
+# the whole answer: `FormSheet` renders a destructive **Remove** in its sticky action bar whenever the
+# sheet is in EDIT mode (`onRemove={isEdit ? remove : undefined}`), and `DebtSheet.remove()` calls
+# `removeDebt` with no confirmation. The schedule row is the LAST child of a ScrollView inside a sheet
+# capped at 92% height, so on a full debt form it sits BELOW the fold — and a blind `tapOn: id` lands at
+# the element's projected centre, which is over the action bar. The tap deleted the debt instead of
+# navigating, which is exactly the pair of symptoms observed: no schedule screen, and a debt short.
 #
-# These assertions exist to keep that honest rather than to confirm it: if the count is already wrong
-# HERE, the damage predates this flow after all and the reasoning above is wrong. If it is right here and
-# wrong at the end, viewing a payoff schedule destroys a debt. Remove them once the answer is in.
+# So the fix is to stop tapping blind — scroll the row into view first (below). The count assertions stay
+# for now: they are what turns "the schedule didn't open" into "and a debt was destroyed", and they are
+# the check that the scroll actually changed which element got hit.
 - assertVisible: ".*Store Card.*"
 - assertVisible: ".*Visa.*"
 - assertVisible: ".*Car Loan.*"
@@ -51,6 +51,14 @@ appId: com.jasonsnyder.debtplanner
 
 # The entry now lives in the sheet BODY and NAVIGATES. If it ever regresses to opening a nested
 # presentation, the schedule won't be visible here and this fails on the Simulator — no device needed.
+#
+# ⚠️ SCROLL FIRST, then tap. The row is the last child of the sheet's ScrollView and falls below the fold
+# on a full debt form; a bare `tapOn: id` taps the projected centre, which is over the sticky action bar
+# and its destructive Remove. Scrolling makes the tap land on the element it names.
+- scrollUntilVisible:
+    element:
+      id: "debt-view-schedule"
+    direction: DOWN
 - tapOn:
     id: "debt-view-schedule"
 

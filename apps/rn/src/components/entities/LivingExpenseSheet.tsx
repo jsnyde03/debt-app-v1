@@ -5,6 +5,7 @@ import { SwitchRow } from '@/components/ui/SwitchRow';
 import { TextField } from '@/components/ui/TextField';
 import type { LivingExpense } from '@/data/models';
 import { appStore } from '@/store/appStore';
+import { confirmDelete } from '@/utils/confirm';
 
 /**
  * Unified add/edit sheet for an everyday-spending item (the living-expenses reserve). One form drives
@@ -30,11 +31,13 @@ export function LivingExpenseSheet({ editing, onClose }: { editing: LivingExpens
     else appStore.getState().addLivingExpense({ id: `living-${Date.now()}`, ...fields });
     onClose();
   }
-  function remove() {
-    if (editing) {
-      appStore.getState().removeLivingExpense(editing.id);
-      onClose();
-    }
+  // 3.5.6b — confirms, like every other delete path. See `DebtSheet.remove` for why the direct action
+  // was retired: same destructive act, and the sheet was the one entry point that did not guard it.
+  async function remove() {
+    if (!editing) return;
+    if (!(await confirmDelete(`Delete ${editing.name}?`))) return;
+    appStore.getState().removeLivingExpense(editing.id);
+    onClose();
   }
 
   return (

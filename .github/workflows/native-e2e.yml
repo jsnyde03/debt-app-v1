@@ -250,11 +250,18 @@ jobs:
           latest=$(ls -t maestro-debug/crash/*.ips 2>/dev/null | head -1)
           [ -n "$latest" ] && head -200 "$latest" || echo "(no .ips crash file found)"
 
+      # ⚠️ `include-hidden-files` is load-bearing, not hygiene. Maestro's `--debug-output ./maestro-debug`
+      # writes everything worth having — per-command logs, the VIEW HIERARCHY at the failure, and its own
+      # failure screenshots — under `maestro-debug/.maestro/tests/<run>/`, a HIDDEN path. upload-artifact
+      # v4 skips hidden files by default, so this step shipped its own name's worth of nothing: the 04
+      # failure had to be diagnosed from a single end-of-run screenshot because the hierarchy never left
+      # the runner.
       - name: Upload Maestro report + debug (screenshots + view hierarchy)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: maestro-report
+          include-hidden-files: true
           path: |
             apps/rn/maestro-report.xml
             apps/rn/maestro-debug/**

@@ -18,6 +18,7 @@ import { selectDebtBalanceView } from '@/store/balanceSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { confirmDelete } from '@/utils/confirm';
 import { formatWhole } from '@/utils/format';
 
 function shortDate(iso: string): string {
@@ -173,11 +174,16 @@ export function DebtSheet({
     else store_.getState().addDebt({ id: `debt-${Date.now()}`, originalBalance: Number(balance), isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields });
     onClose();
   }
-  function remove() {
-    if (editing) {
-      store_.getState().removeDebt(editing.id);
-      onClose();
-    }
+  // 3.5.6b — the Remove in the sheet's sticky action bar now confirms, like every other delete path.
+  // It used to be a direct action by design; the native lane retired that call with evidence rather than
+  // argument. A Maestro tap aimed at the schedule row landed on this button (the row sits below the fold)
+  // and permanently destroyed a $2,400 debt and its history in one touch, with no dialog and no undo —
+  // while the swipe and the long-press menu, the SAME destructive action on the SAME debt, both guard.
+  async function remove() {
+    if (!editing) return;
+    if (!(await confirmDelete(`Delete ${editing.name}?`))) return;
+    store_.getState().removeDebt(editing.id);
+    onClose();
   }
 
   return (
