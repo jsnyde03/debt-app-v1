@@ -372,3 +372,41 @@ Both the "what surfaces the demo to real users" question and the "does every san
 `Screen`" question (Q2/F-E) resolve to the same two-to-three files outside my read list — `(tabs)/index.tsx`,
 `PaydayGuardianCard.tsx`, and whichever screen hosts the Welcome flow. I was not able to verify either
 without stepping outside the assigned 17 files, per the hard constraint on this pass.
+
+---
+
+## Capture verification — 2026-08-06, all five beats shot and reviewed
+
+Shot in both themes, then re-shot with `?capture=1`. The suite was green throughout; every finding below
+came from looking at the frames.
+
+**Fixed:** the dock covered the payoff trajectory (beat 4) and cut the Guardian card in half (beat 5) —
+two of the five frames the video exists for. `?capture=1` now strips it. Its Guardian-specific copy sitting
+over the Money list at beat 1 goes with it.
+
+### ⚠️ OPEN — the debt-free date shifts a year on the closing beat only
+
+**Measured, not inferred:** unprimed Today reads *"debt-free by September 2029"* and Progress reads
+*"September 2029"* — **they agree**, so there is no second producer and plan item A7 stays closed. The
+2030 appears **only** on beat 5, after `primePayoff` runs.
+
+Raising `minimumPayment` was the first cause and is fixed; the date still moves, so the remaining suspect
+is `balanceAsOfDate` being anchored 35 days back — **suspected, not proven.** A year-worse date between
+two consecutive shots is the kind of thing a viewer registers without being able to name, so it needs
+settling before the capture is cut. Cheapest next probe: prime with the anchor left at `currentDate` and a
+balance already at zero-projection, and see whether the date holds.
+
+### ⚠️ OPEN — Skia canvases were UNPAINTED in one capture-mode frame
+
+The Progress beat came back with the ring arc, the cash-flow bars and the payoff curve all missing —
+labels and axes present, geometry absent. The same frame painted correctly in the earlier pass, so this is
+timing, not layout. It is the CanvasKit-paint artifact the device ledger already carries for beat 1 of the
+walkthrough, and **on the iOS simulator the native Skia path painted correctly** in the 2026-08-06 Maestro
+run — so this may be web-only. It still sets a hard requirement for 3.5.8: **hold each beat long enough
+after navigation for Skia to paint, and verify the first frame of every beat**, rather than trusting the
+stage timings.
+
+### Deferred — the persona's debt load reads thin for an opening frame
+
+Beat 1 shows *$2,260 across 2 debts*. The approved storyboard imagined a number a viewer recognises. This
+is a taste call about who the app is for, so it is Jason's rather than a defect. → 3.5.8 storyboard review.
