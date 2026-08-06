@@ -302,13 +302,10 @@ export function TutorialOverlay({
                     and already has a line of quiet metadata, so this marks the whole canvas by adding a
                     single word rather than a fifth chip or a new band. The barest version first
                     ([[less is more premium]]) — no fill, no border, no surface of its own.
-                    The card chip STAYS, but it marks the CARD, not the canvas — and this line, which does
-                    mark the canvas, dies with the overlay. So when the sandbox renders WITHOUT a session
-                    (3.5.4's demo, 3.5.7's web demo) the hero, the action lists and the Recovery section
-                    all carry no marker at all, over the user's own debt names in an invented shortfall.
-                    ⚠️ A canvas-level marker keyed on `isSandboxStore` — and in the a11y tree, since the
-                    spoken half dies here too — is OWED at 3.5.4. Not built now: there is no overlay-less
-                    render path yet, so it would ship dead, and its placement is a design call. */}
+                    The card chip STAYS, but it marks the CARD, not the canvas — and this line dies with
+                    the overlay. `ExampleCanvasMarker` (3.5.4.3) covers the sandbox rendered WITHOUT a
+                    session, keyed on `isSandboxStore` rather than on any session, and it withholds itself
+                    while this line is on screen so the two never double. */}
                 <Text style={[textStyles.caption, { color: c.text.tertiary }]} testID="tutorial-progress">
                   Step {position} of {total} · Example money
                 </Text>

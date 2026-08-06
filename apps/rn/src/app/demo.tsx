@@ -1,8 +1,10 @@
 import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 
+import { EXAMPLE_MONEY } from '@/components/plan/ExampleCanvasMarker';
 import { QA_TOOLS } from '@/config/qa';
 import { demoSession } from '@/store/demoSession';
+import { announce } from '@/utils/a11y';
 
 /**
  * 3.5.4.2 — the demo entry.
@@ -30,6 +32,11 @@ export default function DemoEntry() {
     if (!enabled) return;
     demoSession.getState().start();
     setStarted(true);
+    // 3.5.4.3 — said once, on the way in. The persistent marker is a header a screen-reader user can find
+    // with the rotor, but only if they think to look; the one moment they are guaranteed to be listening
+    // is the transition that brought them here. The written and spoken halves share `EXAMPLE_MONEY` so
+    // they cannot drift into saying different things about the same money.
+    announce(`${EXAMPLE_MONEY}. This is a demonstration with sample figures.`);
   }, [enabled]);
 
   if (!enabled) return <Redirect href="/" />;

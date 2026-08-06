@@ -55,3 +55,34 @@ test('a not-yet-onboarded user reaches the demo, and it is contained', async ({ 
   await expect(page).not.toHaveURL(/money/);
   await expect(page.getByText('Payday Guardian')).toBeVisible();
 });
+
+test('the canvas is marked as example money, above the scroll and in the a11y tree', async ({ page }) => {
+  await seedStore(page, NOT_ONBOARDED);
+  await page.goto('/demo');
+
+  const marker = page.getByTestId('example-canvas-marker');
+  await expect(marker).toBeVisible({ timeout: 15_000 });
+
+  // In the a11y tree as a HEADER, not decorative — the rotor is how a screen-reader user finds this
+  // after arriving mid-screen, and it is the one thing that makes everything below it trustworthy.
+  await expect(marker.locator('xpath=..')).toHaveAttribute('role', 'heading');
+
+  // Above the scroller, so it cannot leave the screen. Asserted by POSITION, not visibility: a marker
+  // inside the scroll body would still be "visible" after a modest scroll while having moved, and would
+  // leave the screen exactly when the figures further down start to look alarming. Its box must not move.
+  const before = await marker.boundingBox();
+  await page.mouse.wheel(0, 2000);
+  await page.waitForTimeout(300);
+  const after = await marker.boundingBox();
+  expect(after?.y).toBe(before?.y);
+});
+
+test('the walkthrough does not double the marker', async ({ page }) => {
+  // A walkthrough renders sandbox money too, so a marker keyed on the MONEY would show alongside the
+  // dock's own "Example money" line. Two disclosures is the chrome [D6] refused.
+  await seedStore(page, scenario({ prefs: { onboardingComplete: true, tutorialSeen: false } }));
+  await page.goto('/tutorial');
+
+  await expect(page.getByTestId('tutorial-progress')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('example-canvas-marker')).toHaveCount(0);
+});

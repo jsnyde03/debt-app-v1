@@ -2058,6 +2058,42 @@ applied ahead of the defect instead of behind it.
 
 ---
 
+## 3.5.4.3 — the canvas marker (2026-08-06)
+
+Lens C's blocking item: without it 3.5.4 can neither ship nor be recorded. The card chip marks the CARD;
+everything else a sandbox renders — the hero's paycheck, required and recommended actions, affordability,
+Recovery — carried nothing, over debts `personalScenario` seeds **by name** into fabricated states. The
+walkthrough's dock covered the canvas, and died with the overlay.
+
+**Built at the scaffold, not per screen.** `Screen` mounts `ExampleCanvasMarker` unconditionally and the
+component decides for itself from `isSandboxStore`. So a surface a demo can reach cannot forget to carry
+it — *including surfaces that don't exist yet*. The alternative, a prop each screen passes, is the exact
+shape this phase keeps being bitten by: a class closed at some of its members. Same reasoning as
+`boundedRun` one step earlier.
+
+**Three properties, each of which had a way of being wrong:**
+- **Above the scroller.** Asserted by POSITION, not visibility — a marker inside the scroll body stays
+  "visible" after a modest scroll while having moved, and leaves the screen precisely when the figures
+  below start to look alarming. That is 3.5.3.11's own finding about entry copy scrolling away.
+- **`header` role, not decorative.** The rotor is how a screen-reader user finds it after arriving
+  mid-screen, and it is the one thing that makes everything below it trustworthy.
+- **Spoken once on entry**, sharing the `EXAMPLE_MONEY` constant with the visible half so the two cannot
+  drift into describing the same money differently.
+
+**Withheld during a walkthrough**, whose dock already says it on every beat — two disclosures is the chrome
+[D6] refused.
+
+**The claim that blocked this is now false and was deleted.** `TutorialOverlay`'s comment said a canvas
+marker was owed but unbuildable because "there is no overlay-less render path yet, so it would ship dead."
+3.5.4.1's `/demo` is that path. Corrected by deletion per [D17], not annotation.
+
+**Verified red-then-green:** regressing the marker to session-keyed — the precise defect it replaces —
+fails both new tests, one for absence in the demo and one for doubling in the walkthrough.
+
+**Gate:** full `validate:release:rn` green · **127/127 e2e**.
+
+---
+
 ## 3.5.4.1 — the demo seam (2026-08-06, `70c118f`)
 
 **3.5.4.2 folded in.** The provider hoist, the route guard and the `/demo` route are one unit — none of

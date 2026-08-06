@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ExampleCanvasMarker } from '@/components/plan/ExampleCanvasMarker';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { layout, spacing } from '@/theme/spacing';
@@ -76,6 +77,11 @@ export function Screen({
           </View>
           {right ?? null}
         </View>
+
+        {/* 3.5.4.3 — decides for itself whether this screen is rendering sandbox money, so no screen has
+            to remember to ask. Null in the real app. Deliberately here, ABOVE the scroller: a disclosure
+            that scrolls off the top is one the user stops seeing exactly when the figures get alarming. */}
+        <ExampleCanvasMarker />
 
         {scroll ? (
           <ScrollView
