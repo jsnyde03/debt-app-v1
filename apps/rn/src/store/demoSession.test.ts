@@ -1,4 +1,5 @@
 import { appStore } from '@/store/appStore';
+import { DEMO_STAGES, demoScenario } from '@/store/demoRun';
 import { demoSession } from '@/store/demoSession';
 import { isSandboxStore } from '@/store/sandboxStore';
 
@@ -48,6 +49,28 @@ function run() {
   unsub();
   assert(!sawSplit, 'end() never publishes a frame where active and sandbox disagree');
   assert(!demoSession.getState().active && demoSession.getState().sandbox === null, 'end() clears both halves');
+
+  // ── 3.5.4.6 — the script ────────────────────────────────────────────────────────────────────────
+  //
+  // THE honesty invariant of the demo, and the one nothing else would catch. Passing `maxGenuineCycles`
+  // lets a scripted payday cross the discovery gate so the safety net RELEASES — correct for the
+  // walkthrough, which is teaching what the Guardian does over time, and a lie in a demo, where nobody
+  // watching has a history the app could have learned from. Held reserves and a scorecard-as-future are
+  // the day-one truth; a ceiling here would have the demo claiming results for its viewer.
+  //
+  // It would also be a silent lie: the run still plays, it just shows a better outcome than a day-one
+  // user can have. Exactly the shape of [E6] — a scripted beat that fails convincingly.
+  for (const stage of DEMO_STAGES) {
+    const scenario = demoScenario(stage);
+    assert(scenario.maxGenuineCycles === undefined, `stage "${stage.id}" keeps the day-one bound (reserves HELD)`);
+  }
+
+  // The arc is the argument: covered → tight → cannot-be-made-to-work. Out of order it stops being one.
+  assert(DEMO_STAGES.map((s) => s.state).join('>') === 'clear>tight>at-risk', 'the script walks clear → tight → at-risk');
+  // Strictly increasing, and the opener is synchronous — a scheduled first stage shows the sandbox's
+  // default for a beat first, which is a wasted opening frame on a capture and a flicker in the app.
+  assert(DEMO_STAGES[0].at === 0, 'the opening stage is applied synchronously');
+  assert(DEMO_STAGES.every((s, i) => i === 0 || s.at > DEMO_STAGES[i - 1].at), 'stages are strictly ordered in time');
 
   console.log(`✅ demo session: ${passed} assertions passed.\n`);
 }

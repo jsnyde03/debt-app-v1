@@ -1,6 +1,7 @@
 import { createStore } from 'zustand/vanilla';
 
-import { personaScenario } from './sandboxScenarios';
+import { DEMO_STAGES, demoScenario, playDemoRun } from './demoRun';
+import { clearStoryTimers } from './sandboxRun';
 import { createSandboxStore, type SandboxStoreInstance } from './sandboxStore';
 
 /**
@@ -23,6 +24,8 @@ import { createSandboxStore, type SandboxStoreInstance } from './sandboxStore';
 interface DemoSessionState {
   active: boolean;
   sandbox: SandboxStoreInstance | null;
+  /** Which scripted stage is showing — for chrome (3.5.4.7) and for the capture to key its pacing on. */
+  stage: string | null;
   start: () => void;
   end: () => void;
 }
@@ -30,11 +33,19 @@ interface DemoSessionState {
 export const demoSession = createStore<DemoSessionState>((set, get) => ({
   active: false,
   sandbox: null,
+  stage: null,
 
   start() {
     if (get().active) return; // re-entry is a no-op, not a second sandbox
-    const sandbox = createSandboxStore(personaScenario('clear', { premium: true }));
-    set({ active: true, sandbox });
+    const sandbox = createSandboxStore(demoScenario(DEMO_STAGES[0]));
+    set({ active: true, sandbox, stage: DEMO_STAGES[0].id });
+    // Scheduled against THIS sandbox: if the demo ends and another starts, the old run's steps must not
+    // land on the new one's store.
+    playDemoRun(
+      sandbox,
+      () => demoSession.getState().sandbox === sandbox,
+      (s) => set({ stage: s.id }),
+    );
   },
 
   /**
@@ -44,7 +55,11 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
    * screen with the user's real plan behind it. Neither is allowed to be reachable, even for a tick.
    */
   end() {
-    set({ active: false, sandbox: null });
+    // Cancel the script BEFORE clearing the session, so no scheduled stage can observe a half-torn-down
+    // run. The staleness guard would refuse it anyway; this makes the ordering the reason rather than the
+    // backstop.
+    clearStoryTimers();
+    set({ active: false, sandbox: null, stage: null });
   },
 }));
 

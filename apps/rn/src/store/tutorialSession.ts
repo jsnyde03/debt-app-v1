@@ -3,6 +3,7 @@ import { createStore } from 'zustand/vanilla';
 import { useStore } from 'zustand';
 
 import { runBeats, scriptSurprise, TUTORIAL_MAX_CYCLES } from './sandboxBeats';
+import { clearStoryTimers, scheduleStoryStep } from './sandboxRun';
 import { harnessScenario, publishSandbox, unpublishSandbox } from './sandboxHarness';
 import { selectPaydayGuardian, selectReserveRelease, selectReserveWalkback } from './guardianSelectors';
 import { SANDBOX_STATES, scenarioForBeat, type SandboxState } from './sandboxScenarios';
@@ -68,17 +69,11 @@ interface TutorialSessionState extends TutorialSession {
 let staging: { realStore: DebtStore; opts: { premium: boolean; maxGenuineCycles: number }; pinned: SandboxState | null } | null = null;
 
 /**
- * 3.5.3.5 — pending timers for the scripted reserve story. Held module-level and cleared by every route
- * that invalidates the story: a beat change, `end()`, `cancelReserveStory()` (the user un-attests), and
- * the top of `playReserveStory()` itself (a re-attest restarts rather than overlapping). A user who
- * skips out mid-story would otherwise have rollovers land on a sandbox that is no longer on screen — or,
- * worse, on the NEXT session's sandbox.
+ * 3.5.3.5 — the scripted reserve story's timers now live in `sandboxRun`, shared with the demo's run.
+ * Cleared by every route that invalidates the story: a beat change, `end()`, `cancelReserveStory()` (the
+ * user un-attests), and the top of `playReserveStory()` itself (a re-attest restarts rather than
+ * overlapping).
  */
-let storyTimers: ReturnType<typeof setTimeout>[] = [];
-function clearStoryTimers() {
-  storyTimers.forEach(clearTimeout);
-  storyTimers = [];
-}
 
 /**
  * Cancel the scripted story when the app leaves the foreground.
@@ -202,22 +197,17 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
     const held = selectPaydayGuardian(sandbox.getState().store)?.heldReserve ?? 0;
     const amount = Math.min(held, Math.max(25, Math.round(held * 0.8)));
 
-    storyTimers.push(
-      // The surprise lands first, on its own, so the user sees the net absorb it before anything else
-      // moves. `scriptSurprise` is the same producer the payday check-in uses.
-      //
-      // With no net held there is nothing to absorb anything, so the surprise is SKIPPED rather than
-      // scaled to zero — but the rollovers below still run, so the beat degrades to the release story
-      // instead of going inert.
-      setTimeout(() => {
-        if (amount > 0 && tutorialSession.getState().sandbox === sandbox) scriptSurprise(sandbox, amount);
-      }, 900),
-      // …then three paydays close properly — each one CHECKED IN and rolled (3.5.3.5.6), which is what
-      // stops the story from leaving the taught plan in arrears.
-      setTimeout(() => {
-        if (tutorialSession.getState().sandbox === sandbox) runBeats(sandbox, TUTORIAL_MAX_CYCLES);
-      }, 2100),
-    );
+    const isCurrent = () => tutorialSession.getState().sandbox === sandbox;
+    // The surprise lands first, on its own, so the user sees the net absorb it before anything else
+    // moves. `scriptSurprise` is the same producer the payday check-in uses.
+    //
+    // With no net held there is nothing to absorb anything, so the surprise is SKIPPED rather than
+    // scaled to zero — but the rollovers below still run, so the beat degrades to the release story
+    // instead of going inert.
+    if (amount > 0) scheduleStoryStep(900, isCurrent, () => scriptSurprise(sandbox, amount));
+    // …then three paydays close properly — each one CHECKED IN and rolled (3.5.3.5.6), which is what
+    // stops the story from leaving the taught plan in arrears.
+    scheduleStoryStep(2100, isCurrent, () => runBeats(sandbox, TUTORIAL_MAX_CYCLES));
   },
 
   /**
