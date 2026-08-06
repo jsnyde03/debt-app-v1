@@ -110,3 +110,32 @@ test('the walkthrough does not double the marker', async ({ page }) => {
   await expect(page.getByTestId('tutorial-progress')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId('example-canvas-marker')).toHaveCount(0);
 });
+
+/**
+ * 3.5.8.2 — [D20a] the closing caption, asserted on the render that OWES it.
+ *
+ * The disclosure is owed by the App-Preview capture, and the capture is precisely the run that strips the
+ * demo's chrome. So the assertion that matters is the ASYMMETRY: with `?capture=1` the dock is gone and
+ * the caption is still there. Asserting it on a chromed run would have passed while the shipped video
+ * carried no disclosure at all — the exact class of vacuous test this phase's audit gate kept finding.
+ */
+test('the closing caption survives capture mode, where the dock does not', async ({ page }) => {
+  await seedStore(page, NOT_ONBOARDED);
+  await page.goto('/demo?capture=1');
+
+  // The dock is withheld for the capture — this is the condition the caption must NOT share.
+  await expect(page.getByText('Start my real plan')).toHaveCount(0);
+
+  // Not a permanent banner: it belongs to the closing beat, so it must be absent on the opening one.
+  await expect(page.getByTestId('demo-caption')).toHaveCount(0);
+
+  // The final stage lands at 20s (`DEMO_STAGES`), so this waits out the real script rather than faking it
+  // — the caption keys on the stage the capture will actually be recording.
+  const caption = page.getByTestId('demo-caption');
+  await expect(caption).toBeVisible({ timeout: 40_000 });
+
+  // Apple requires the subscription disclosure, and it must name what was SHOWN. Both halves asserted:
+  // the muted viewer's anchor line, and the disclosure itself.
+  await expect(caption).toContainText('Debt-free, one paycheck at a time.');
+  await expect(caption).toContainText('Cushion planning and Recovery require Premium.');
+});

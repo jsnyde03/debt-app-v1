@@ -2543,3 +2543,57 @@ should find the answer rather than re-derive it.
   working, because on day one the EF takes the surplus. Honest per-screen; worth one look app-wide.
 
 **Gate:** tsc · `lint:rn` + all four house guards · regression · app-layer · scenarios · **e2e 129/129**.
+
+---
+
+## 3.5.8.2 — [D20a] the one line the App Preview says out loud (2026-08-06)
+
+Two obligations found by verifying Apple's current guidance rather than assuming it, both discharged by one
+caption on the closing beat — because a teaching surface that has refused chrome everywhere else should not
+grow a title card at the end:
+
+1. **Previews autoplay MUTED**, and Apple's guidance is that on-screen text carries the meaning. The arc had
+   no narration and no text. It was designed as an in-app demo watched with attention, and [D19] changed the
+   audience under it without the copy being revisited.
+2. **Subscription-gated features must be disclosed.** Verified which ones the arc actually shows rather than
+   guessing: `effectivePaycheckBuffer` gates the cushion floor on premium, the uncertainty holdback the
+   "safety net" beat turns on is premium-gated acting, and Recovery is premium outright. Beats 2 and 3 are
+   premium *behaviour*, not decoration.
+
+**Copy:** *"Debt-free, one paycheck at a time."* over *"Cushion planning and Recovery require Premium."* The
+disclosure names what was SHOWN — a disclosure a viewer cannot map onto the footage is not one.
+
+### ⚠️ The design constraint that made it its own component
+
+`DemoCaption` deliberately does **not** read `chrome`. The dock is withheld for the capture because a video
+has nobody to let out — but **the capture is the exact run that owes the disclosure**, so gating the caption
+the same way would remove it from the only render that legally needs it. `DemoDock` withholds on `!chrome`;
+this renders regardless. That inverted condition is the whole reason it is not a block inside the dock.
+
+**Verified RED first, on precisely that defect:** re-gating the caption on `chrome` fails the new e2e by
+name. The test asserts the ASYMMETRY — with `?capture=1` the dock is absent and the caption is present —
+because asserting it on a chromed run would have passed while the shipped video carried no disclosure at
+all. That is the vacuity class the 3.5.3.9 gate found five times.
+
+### Looked at it, both themes, at PHONE size
+
+The first shot came back at the desktop two-column layout, which is not the frame an App Preview is ever
+cut from; re-shot at 402×874. The closing beat reads well in both themes: the payoff invitation
+("Looks like you crushed Store card!" → "Confirm — it's paid off") is fully visible and **the caption does
+not occlude it** — the defect `?capture=1` exists to prevent, which a bottom-anchored banner could easily
+have reintroduced. 3.5.8.1's bills also confirmed on screen as credible.
+
+### After-scan
+
+- **→ 3.5.8.7, not fixed here:** the solved bill budget produces cents — *Utilities $141.10, Car insurance
+  $120.95, Internet $80.63, Phone $70.55* — which read computed rather than like real bills. At phone size
+  they sit BELOW THE FOLD, and the App Preview is phone-only, so they may never reach frame. Deliberately
+  not fixed against an unproven need: 3.5.8.7 shoots every beat's first frame and is the step that will
+  actually see whether they do. Related to Wave C1's cents sweep, but distinct — that one is `$X.00`
+  formatting; this is figures that are not round in the first place.
+- **Noted:** the plan's 3.5.4 line still said *"A real user gets it in v1.7"*, which [D19] reversed —
+  `isDemoReachable()` now rides `QA_TOOLS` and the demo leaves the shipped app at the Phase-6 flip.
+  Corrected in the same edit as this item.
+
+**Gate:** tsc · `lint:rn` + all four house guards (2 pre-existing warnings in `(tabs)/index.tsx`, 0 errors) ·
+regression · app-layer · scenarios · **e2e 130/130**.

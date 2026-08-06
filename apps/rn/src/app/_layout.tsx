@@ -20,6 +20,7 @@ import { addNotificationResponseListener, registerNotificationCategories } from 
 import { initErrorReporting, wrapRoot } from '@/utils/sentry';
 import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
 import { DemoDirector } from '@/components/plan/DemoDirector';
+import { DemoCaption } from '@/components/plan/DemoCaption';
 import { DemoDock } from '@/components/plan/DemoDock';
 import { TutorialCoach } from '@/components/plan/TutorialCoach';
 import { suspendStoryOnBackground } from '@/store/tutorialSession';
@@ -184,6 +185,10 @@ function RootLayout() {
               inside a tab screen. Renders nothing unless a demo is running. */}
           <DemoDirector />
           <DemoDock />
+          {/* 3.5.8.2 — the closing caption. Beside the dock rather than inside it because it renders on
+              the OPPOSITE condition: the dock is withheld for the capture, and the capture is the run that
+              owes the subscription disclosure. */}
+          <DemoCaption />
           </StoreProvider>
           <TutorialCoach />
           </TutorialShellProvider>
