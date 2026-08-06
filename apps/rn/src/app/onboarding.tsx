@@ -30,7 +30,7 @@ export default function OnboardingScreen() {
           // Now it opens the sandbox demo, which writes nothing real and ends by handing the user their
           // own empty plan. Withheld entirely where the demo isn't reachable — an offer that opens
           // nothing is worse than no offer.
-          onDemo={isDemoReachable() ? () => router.push('/demo') : undefined}
+          onDemo={isDemoReachable() ? () => router.push('/demo?from=welcome') : undefined}
         />
       ) : null}
       {step === 1 ? <PaycheckStep onNext={() => setStep(2)} onSkip={() => setStep(3)} /> : null}

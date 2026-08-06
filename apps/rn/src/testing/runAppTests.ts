@@ -110,6 +110,9 @@ async function main() {
   // 3.5.4.1 — a demo is a bounded run to every fence, and `end()` cannot publish a split frame.
   await import('../store/demoSession.test');
 
+  // 3.5.4.9 — the funnel seam sends nothing without a sink, and honours opt-out at the choke point.
+  await import('../analytics/funnel.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

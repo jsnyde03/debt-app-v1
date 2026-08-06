@@ -296,7 +296,7 @@ export default function PaywallScreen() {
           entry cannot outlive its destination. */}
       {isDemoReachable() ? (
         <Pressable
-          onPress={() => router.push('/demo')}
+          onPress={() => router.push('/demo?from=paywall')}
           disabled={busy}
           accessibilityRole="button"
           style={styles.restore}>

@@ -1,5 +1,7 @@
 import { createStore } from 'zustand/vanilla';
 
+import { track } from '@/analytics/funnel';
+
 import { DEMO_STAGES, demoScenario, playDemoRun } from './demoRun';
 import { clearStoryTimers } from './sandboxRun';
 import { createSandboxStore, type SandboxStoreInstance } from './sandboxStore';
@@ -44,7 +46,13 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
     playDemoRun(
       sandbox,
       () => demoSession.getState().sandbox === sandbox,
-      (s) => set({ stage: s.id }),
+      (s) => {
+        set({ stage: s.id });
+        track({ name: 'demo_stage', stage: s.id });
+        // The last stage IS completion: the run has no further beat to reach, and treating "watched to
+        // the end" as a separate later signal would only ever be inferred from an exit that never came.
+        if (s.id === DEMO_STAGES[DEMO_STAGES.length - 1].id) track({ name: 'demo_completed' });
+      },
     );
   },
 

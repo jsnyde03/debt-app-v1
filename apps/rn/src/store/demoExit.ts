@@ -1,5 +1,7 @@
 import { router } from 'expo-router';
 
+import { track } from '@/analytics/funnel';
+
 import { demoSession } from './demoSession';
 
 /** Where a demo can hand the viewer off to. Both are ends of the run, never detours inside it. */
@@ -21,6 +23,9 @@ export type DemoExit = '/onboarding' | '/paywall';
  * session is kept dependency-free so the headless suite can assert it.
  */
 export function exitDemo(to: DemoExit): void {
+  // Recorded BEFORE the teardown, while there is still a run to describe. The funnel's whole question is
+  // which exit people take, and reading it after `end()` would mean reconstructing it from the route.
+  track({ name: 'demo_exited', reason: to === '/paywall' ? 'unlock_premium' : 'start_real_plan' });
   demoSession.getState().end();
   router.replace(to);
 }

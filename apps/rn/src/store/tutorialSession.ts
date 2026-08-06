@@ -2,6 +2,8 @@ import { router } from 'expo-router';
 import { createStore } from 'zustand/vanilla';
 import { useStore } from 'zustand';
 
+import { track } from '@/analytics/funnel';
+
 import { runBeats, scriptSurprise, TUTORIAL_MAX_CYCLES } from './sandboxBeats';
 import { clearStoryTimers, scheduleStoryStep } from './sandboxRun';
 import { harnessScenario, publishSandbox, unpublishSandbox } from './sandboxHarness';
@@ -150,6 +152,7 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
     const sandbox = createSandboxStore(opening);
     publishSandbox(sandbox, opening.id);
     set({ active: true, run, sandbox, index: startIndex, floorBefore: null });
+    track({ name: 'tutorial_started', audience: run });
   },
 
   goTo(index) {
@@ -226,6 +229,15 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
   },
 
   end() {
+    // 3.5.4.9 — completed vs skipped is decided HERE, by where the user was, because `end()` is the one
+    // door out of a session and a leave-point recorded at each call site would drift from it. The last
+    // beat means they saw the hand-back; anything earlier is a skip, and the beat index is the useful
+    // half — it says WHERE the arc loses people.
+    const { active, index, run } = get();
+    if (active) {
+      if (index >= TUTORIAL_STEPS.length - 1) track({ name: 'tutorial_completed', audience: run });
+      else track({ name: 'tutorial_skipped', beat: index });
+    }
     unpublishSandbox();
     clearStoryTimers();
     staging = null;

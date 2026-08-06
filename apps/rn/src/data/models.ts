@@ -81,6 +81,16 @@ export interface Preferences {
    * → Phase 5: drop it with the migration that handles it, alongside `guardianIntroSeen` (Wave C7).
    */
   isDemoMode: boolean;
+  /**
+   * 3.5.4.9 [D-A] — the user has turned the product-funnel events off. Optional, so an existing blob
+   * migrates by simply not having it (absent = not opted out), which is the additive half of a schema
+   * change and carries none of the risk of removing a key.
+   *
+   * Only ever read by `analytics/funnel.ts`, at its single choke point. Note what it does NOT gate:
+   * there is no financial data in a funnel event by construction, so this is a preference about product
+   * telemetry, not the guarantee — the guarantee is that the events cannot carry money in the first place.
+   */
+  analyticsOptOut?: boolean;
   themeMode: ThemeMode;
   onboardingComplete: boolean;
   /** §2.5 D5.3 gate (2.4.7.6): the user has an emergency buffer in a separate account, so the plan

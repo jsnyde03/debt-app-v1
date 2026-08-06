@@ -183,6 +183,24 @@ export default function MoreScreen() {
             subtitle="Require Face ID / passcode to open."
             right={<Switch accessibilityLabel="App Lock" value={prefs.appLockEnabled} onValueChange={(v) => appStore.getState().updatePrefs({ appLockEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
+          {/* 3.5.4.9 [D-A] — the control that makes "opt-out" mean something. A preference with no switch
+              is not an opt-out, it is a field. Worded as what it covers and what it cannot: the events
+              carry no financial data BY CONSTRUCTION (a closed union of literals in `analytics/funnel`),
+              so this is a choice about product telemetry, not the thing standing between the user's money
+              and the network. Inverted here because the stored field is the opt-OUT. */}
+          <SettingRow
+            icon="insights"
+            label="Share anonymous usage"
+            subtitle="Which screens get used — never your balances, debts, or amounts."
+            right={
+              <Switch
+                accessibilityLabel="Share anonymous usage"
+                value={!prefs.analyticsOptOut}
+                onValueChange={(v) => appStore.getState().updatePrefs({ analyticsOptOut: !v })}
+                trackColor={{ true: c.accent.primary, false: c.border.strong }}
+              />
+            }
+          />
           <SettingRow
             icon="savings"
             label="I have savings elsewhere"

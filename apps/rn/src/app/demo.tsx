@@ -1,6 +1,7 @@
-import { Redirect } from 'expo-router';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 
+import { track } from '@/analytics/funnel';
 import { EXAMPLE_MONEY } from '@/components/plan/ExampleCanvasMarker';
 import { isDemoReachable } from '@/config/qa';
 import { demoSession } from '@/store/demoSession';
@@ -23,6 +24,7 @@ export default function DemoEntry() {
   // `isDemoReachable()`, not a second copy of its expression. This route had its own inline version while
   // `qa.ts` claimed to be the one definition — the claim was false the moment the second one was written,
   // and it is the shape that lets an entry point outlive its destination.
+  const { from } = useLocalSearchParams<{ from?: string }>();
   const enabled = isDemoReachable();
   // Start in an effect, not during render: `demoSession.start()` sets state, and the route guard in the
   // root layout reads it — writing another store mid-render is the loop this codebase has already paid
@@ -34,12 +36,16 @@ export default function DemoEntry() {
     if (!enabled) return;
     demoSession.getState().start();
     setStarted(true);
+    // `?from=` names the entry, because the funnel's first question is which door people come through and
+    // the route cannot infer it. Anything unrecognised is `direct` rather than trusted — a query string is
+    // user-editable, and this union is the guarantee that a funnel event carries nothing else.
+    track({ name: 'demo_started', source: from === 'welcome' || from === 'paywall' ? from : 'direct' });
     // 3.5.4.3 — said once, on the way in. The persistent marker is a header a screen-reader user can find
     // with the rotor, but only if they think to look; the one moment they are guaranteed to be listening
     // is the transition that brought them here. The written and spoken halves share `EXAMPLE_MONEY` so
     // they cannot drift into saying different things about the same money.
     announce(`${EXAMPLE_MONEY}. This is a demonstration with sample figures.`);
-  }, [enabled]);
+  }, [enabled, from]);
 
   if (!enabled) return <Redirect href="/" />;
   if (!started) return null;
