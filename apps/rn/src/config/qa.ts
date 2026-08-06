@@ -9,17 +9,20 @@
 export const QA_TOOLS = true;
 
 /**
- * 3.5.4.8 — is the bounded demo reachable in this build?
+ * Is the bounded demo reachable in this build?
  *
- * ONE definition, read by both the `/demo` route and every affordance that offers it, so an entry can
- * never outlive the destination it points at. The legacy demo was the opposite shape: a Welcome button
- * wired straight to `importStore(demoStore())`, with nothing tying the offer to what it opened.
+ * ONE definition, read by the `/demo` route AND every affordance that offers it, so an entry can never
+ * outlive the destination it points at. The legacy demo was the opposite shape: a Welcome button wired
+ * straight to `importStore(demoStore())`, with nothing tying the offer to what it opened.
  *
- * ⚠️ 3.5.4.7 decides what this becomes for a real pre-purchase user. Today it rides `QA_TOOLS`, which
- * ships in TestFlight and is flipped OFF before submission — so as it stands, the demo and every entry to
- * it disappear together at that flip. That is the honest default (an entry that leads nowhere is worse
- * than no entry), and it is deliberately a decision rather than a leftover.
+ * **Jason, 2026-08-06: a real user gets the demo in v1.7.** So this is not gated. It briefly rode
+ * `QA_TOOLS`, which would have taken the demo and both entries out of the shipped app at the Phase-6
+ * flip — leaving a pre-purchase funnel built and not shipped, which is the opposite of what 3.5.4 is for.
+ *
+ * A function rather than a constant because this is the lever: the demo's reachability is one decision in
+ * one place, and if it ever needs a condition (a remote flag, a locale, a store review build) it acquires
+ * one here without a single call site changing.
  */
 export function isDemoReachable(): boolean {
-  return (typeof __DEV__ !== 'undefined' && __DEV__) || QA_TOOLS;
+  return true;
 }

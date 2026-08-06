@@ -2,7 +2,7 @@ import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { EXAMPLE_MONEY } from '@/components/plan/ExampleCanvasMarker';
-import { QA_TOOLS } from '@/config/qa';
+import { isDemoReachable } from '@/config/qa';
 import { demoSession } from '@/store/demoSession';
 import { announce } from '@/utils/a11y';
 
@@ -15,13 +15,15 @@ import { announce } from '@/utils/a11y';
  * screen on device (Freedom RN lesson #7, and the note in the root layout). So it seeds the sandbox, then
  * redirects into the tabs, which now resolve to that sandbox through the hoisted provider.
  *
- * ⚠️ Gated `__DEV__ || QA_TOOLS`, the same one switch the sandbox harness and the Live-Activity QA
- * controls use — so it disappears at the Phase-6 flip with `git grep QA_TOOLS` and not a second lever.
- * The pre-purchase entry points that make this reachable by a real user (Welcome slot, paywall
- * "See it in action") land at 3.5.4.7, once there is a scripted run worth entering.
+ * Reachability is `isDemoReachable()` — one lever, shared with the entries that offer it. A real user
+ * gets this in v1.7 (Jason, 2026-08-06), reached from the Welcome slot and the paywall's
+ * "See it in action".
  */
 export default function DemoEntry() {
-  const enabled = (typeof __DEV__ !== 'undefined' && __DEV__) || QA_TOOLS;
+  // `isDemoReachable()`, not a second copy of its expression. This route had its own inline version while
+  // `qa.ts` claimed to be the one definition — the claim was false the moment the second one was written,
+  // and it is the shape that lets an entry point outlive its destination.
+  const enabled = isDemoReachable();
   // Start in an effect, not during render: `demoSession.start()` sets state, and the route guard in the
   // root layout reads it — writing another store mid-render is the loop this codebase has already paid
   // for once. `started` keeps the redirect from firing before the sandbox exists, which would land on a
