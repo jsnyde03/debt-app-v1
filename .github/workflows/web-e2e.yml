@@ -1,11 +1,20 @@
 name: web-e2e
 
-# Gates lint + the tsx regression (money-math) suite + the Playwright e2e suite — the "keep suites
-# green" CI backstop (v1.5 step 2.14 started the e2e gate; v1.6 step 1.1 added lint + regression).
-# Runs the functional specs against the PRODUCTION static build: playwright.config.ts's
-# webServer does `npm run build && serve out` with NEXT_PUBLIC_E2E=1, and reuseExistingServer
-# is off under CI so every run builds fresh. Kept on GitHub Actions (not Codemagic) to conserve
-# Codemagic minutes for native builds.
+# The every-push gate. Runs `validate:release:rn` — the RN app's own lint + engine suites + the
+# Playwright e2e against the static web export (`expo export --platform web` → `dist/`, served as an
+# SPA; `apps/rn/playwright.config.ts` builds it itself whenever CI is set).
+#
+# ⚠️ It used to gate the LEGACY Capacitor/Next app (`npm run lint`, `npm run build && serve out`), which
+# was retired on 2026-07-24 when `validate:release` was repointed at the RN gate. The workflow was never
+# repointed with it, so from then on this lane was red on EVERY push for a reason that had nothing to do
+# with the shipping app: the root eslint config walks into `apps/rn` and rejects `require()` in
+# `metro.config.js` and the Expo plugins. A permanently-red gate is worse than no gate — it trains you to
+# ignore the one signal that is supposed to mean something — and it meant the real suites only ever ran
+# on Jason's machine. The legacy suite is not run anywhere now, deliberately: Phase 5.5.1 deletes that
+# tree, and its Next build no longer typechecks against the RN sources it has been dragged into.
+#
+# The native lane (`native-e2e.yml`) is the complement, not a substitute: it is manual-only and sees what
+# a browser structurally cannot. This one is cheap enough to run on every push.
 
 on:
   workflow_dispatch:
@@ -20,8 +29,9 @@ concurrency:
 
 jobs:
   e2e:
+    name: RN gate (typecheck · lint · engine · e2e)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     env:
       CI: "true"
     steps:
@@ -29,58 +39,79 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      # No npm workspaces — install root (core/tooling) then the RN app's own node_modules, the same
+      # two-step the native lane needs.
+      - name: Install dependencies (root + apps/rn)
+        run: |
+          npm ci --no-audit --no-fund
+          npm --prefix apps/rn ci --no-audit --no-fund
 
-      # Fail fast: lint + the tsx reconciliation/regression suite (the money-math backstop for
-      # every refactor) run BEFORE the slow browser install + prod build + e2e. Through v1.5 these
-      # were UNGATED — CI ran only Playwright, so a refactor that broke the engine math wouldn't
-      # turn CI red. Gating them here is the v1.6 keep-green backstop (checkpoint #3).
-      - name: Lint
-        run: npm run lint
+      - name: Link ./core so tsc can resolve @core
+        # tsconfig maps `@core/*` → `apps/rn/core/*`, a symlink Metro creates at startup and does NOT
+        # commit. tsc runs before any Metro invocation here, so on a fresh checkout every @core import
+        # would fail. Metro's own `if (!exists)` guard no-ops later.
+        working-directory: apps/rn
+        run: |
+          [ -e core ] || ln -s ../../packages/core core
+          ls -la core
+
+      # Fail fast, cheapest first: types, then lint, then the engine suites, and only then the browser.
+      # `validate:release:rn` runs exactly these in one command locally; they are split here so a red run
+      # names the stage it died in without opening the log.
+      - name: Typecheck
+        run: npm --prefix apps/rn run typecheck
+
+      - name: Lint (RN + the four house guards)
+        run: npm run lint:rn
 
       - name: Regression tests (money-math backstop)
         run: npm run test:regression
 
-      # Cache the downloaded browser binaries (~/.cache/ms-playwright), keyed on the
-      # Playwright version pinned in package-lock. A cold Chromium+WebKit download runs
-      # several minutes on a good day and has hung >20min on a bad-CDN day; caching skips
-      # it entirely on every subsequent run. (v1.7 CI-hygiene, folded in early after a hang.)
+      - name: App-layer tests
+        run: npm run test:app
+
+      - name: Scenario tests
+        run: npm run test:scenarios
+
+      # Cache the downloaded browser binaries (~/.cache/ms-playwright), keyed on the Playwright version
+      # pinned in package-lock. A cold download runs several minutes on a good day and has hung >20min on
+      # a bad-CDN day. Chromium ONLY — the RN config declares one project (desktop-chrome), so the WebKit
+      # download the legacy config needed is now pure cost.
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-playwright-chromium-${{ hashFiles('package-lock.json') }}
 
-      # Pixel 7 → Chromium; iPhone/iPad devices → WebKit. Both needed for the 4 projects.
-      # Cache MISS → full binary download + OS deps. Cache HIT → only the apt-level libs
-      # (not stored in the browser cache). The per-step timeout turns a hung CDN download
-      # into a fast, retryable failure instead of a 30-min job stall.
-      - name: Install Playwright browsers (cache miss)
+      - name: Install Playwright browser (cache miss)
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         timeout-minutes: 12
-        run: npx playwright install --with-deps chromium webkit
+        run: npx playwright install --with-deps chromium
 
       - name: Install Playwright system deps (cache hit)
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         timeout-minutes: 8
-        run: npx playwright install-deps chromium webkit
+        run: npx playwright install-deps chromium
 
-      # webServer (build + serve out, NEXT_PUBLIC_E2E=1) is launched by Playwright itself.
-      - name: Run e2e suite
-        run: npx playwright test
+      # The config's webServer runs `export:web` then serves `dist/` on :4319. `reuseExistingServer` is
+      # off under CI, so every run builds fresh — which is also what keeps a stale `dist` from being
+      # served, the local-only hazard called out in the plan's Phase-4 notes.
+      - name: Run the RN e2e suite
+        run: npm run test:e2e:rn
 
-      # Surface the HTML report + traces on failure so a red gate is debuggable.
+      # Surface the traces (`trace: 'on-first-retry'`) so a red gate is debuggable. Paths resolve relative
+      # to the CONFIG's directory, so they land under apps/rn, not the repo root.
       - name: Upload Playwright report
         if: ${{ !cancelled() && failure() }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: |
-            playwright-report/
-            test-results/
+            apps/rn/playwright-report/
+            apps/rn/test-results/
+          if-no-files-found: ignore
           retention-days: 14
