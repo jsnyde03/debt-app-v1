@@ -218,10 +218,12 @@ jobs:
           sleep 2
           xcrun simctl io booted screenshot capture-out/after-launch.png || true
 
-          # DEMO_STAGES: 0 / 4 / 9 / 14 / 20s, then hold the closing beat long enough to be read. The
-          # generous tail is trimmed by the conform, which is cheaper than discovering the video ended
-          # mid-beat.
-          sleep 28
+          # DEMO_STAGES: 0 / 4 / 9 / 14 / 20s — but the script's clock starts at MOUNT, and a cold launch
+          # spends several seconds black before that. Cycle 3 measured the whole timeline landing ~5s later
+          # than a preroll-only model predicted, which put the closing beat past the end of the cut. The
+          # tail is generous on purpose; the conform trims it, and that is far cheaper than discovering the
+          # video stopped before its own ending.
+          sleep 40
 
           kill -INT "$REC_PID" 2>/dev/null || true
           wait "$REC_PID" 2>/dev/null || true
@@ -232,16 +234,42 @@ jobs:
       # worse than no video, and the unpainted-canvas defect (3.5.8.4b) is a FIRST-FRAME artifact — so
       # each frame is pulled just after its beat lands, where the defect would be, not mid-beat where it
       # would have healed.
+      # ⚠️ FIND WHERE THE APP ACTUALLY APPEARS, rather than assuming it.
+      #
+      # Cycle 3's frames were all mislabelled because the raw timeline is `preroll + LAUNCH-TO-MOUNT +
+      # script time`, and only the preroll was modelled. A cold launch sits BLACK for several seconds
+      # before React mounts — beat 1's "first frame" and its "settled" frame were both pure black, and the
+      # frame labelled beat 4 was really beat 3. Every PNG still appeared, correctly named, and wrong.
+      #
+      # So the anchor is MEASURED: `blackdetect` reports the leading black run, and its end is the moment
+      # the app painted — which is also the script's t=0, since the run starts when the router mounts. That
+      # is self-correcting, where any constant would silently rot the day launch time changes.
+      - name: Find when the app first painted (the script's real t=0)
+        run: |
+          set -o pipefail
+          ffmpeg -hide_banner -i capture-out/raw.mov -vf "blackdetect=d=0.20:pix_th=0.10" -an -f null - 2>&1 \
+            | grep -o "black_start:[0-9.]* black_end:[0-9.]*" | head -5 | tee capture-out/blackdetect.txt || true
+
+          # The first black run that STARTS at (or almost at) the top of the file is the launch. A later
+          # black run would be something else entirely and must not be mistaken for it.
+          MOUNT=$(awk '{ for (i=1;i<=NF;i++) { split($i,kv,":"); if (kv[1]=="black_start") s=kv[2]; if (kv[1]=="black_end") e=kv[2] } if (s < 1.5) { print e; exit } }' capture-out/blackdetect.txt)
+          if [ -z "$MOUNT" ]; then
+            echo "⚠️  No leading black run found — falling back to the pre-roll. Check after-launch.png."
+            MOUNT="$PREROLL"
+          fi
+          echo "app painted at raw ${MOUNT}s (pre-roll was ${PREROLL}s → launch cost $(awk -v m="$MOUNT" -v p="$PREROLL" 'BEGIN{printf "%.1f", m-p}')s)"
+          echo "MOUNT=$MOUNT" >> "$GITHUB_ENV"
+
       - name: Pull the first frame of every beat
         run: |
-          # Beat times are the SCRIPT's (DEMO_STAGES); raw-file time is that plus the pre-roll. Named per
-          # beat rather than per timestamp, so a reviewer opening the artifact sees which beat they are
-          # looking at without doing the arithmetic.
+          # Beat times are the SCRIPT's (DEMO_STAGES); raw-file time is that plus MOUNT — the measured
+          # moment the app painted, not a guess. Named per beat so a reviewer opening the artifact sees
+          # which beat they are looking at without doing the arithmetic.
           beats="1-debts:0 2-held:4 3-absorbed:9 4-trajectory:14 5-payoff:20"
           for entry in $beats; do
             name="${entry%%:*}"; at="${entry##*:}"
-            first=$(awk -v p="$PREROLL" -v a="$at" 'BEGIN { printf "%.2f", p + a + 0.20 }')
-            late=$(awk -v p="$PREROLL" -v a="$at"  'BEGIN { printf "%.2f", p + a + 3.30 }')
+            first=$(awk -v p="$MOUNT" -v a="$at" 'BEGIN { printf "%.2f", p + a + 0.20 }')
+            late=$(awk -v p="$MOUNT" -v a="$at"  'BEGIN { printf "%.2f", p + a + 3.30 }')
             # The FIRST frame after the beat lands is the one that matters: 3.5.8.4b's unpainted Skia is a
             # first-frame artifact, so a mid-beat sample would show it already healed and report a defect
             # as absent.
@@ -301,11 +329,27 @@ jobs:
           # workflow_dispatch, so on a tag push these expand to empty strings. Empty would fall through to
           # the script's own defaults — which is exactly the kind of quiet divergence that produces a
           # correct-looking video trimmed from the wrong place.
+          # Start from the MEASURED paint moment, not a constant. Cycle 3 trimmed at a guessed 3.6s and the
+          # video opened on ~4.5 seconds of black — the single frame a store listing is judged by. The
+          # small margin lets the opening beat settle rather than catching its very first painted frame.
+          #
+          # An explicit dispatch input still wins, for the case where a human has watched the cut and wants
+          # a different in-point. Empty on a tag push, so the measured value is the normal path.
+          OVERRIDE="${{ inputs.start_offset }}"
+          if [ -n "$OVERRIDE" ]; then
+            START="$OVERRIDE"
+            echo "trimming from ${START}s (explicit override)"
+          else
+            START=$(awk -v m="$MOUNT" 'BEGIN { printf "%.2f", m + 0.40 }')
+            echo "trimming from ${START}s (app painted at ${MOUNT}s)"
+          fi
+          DUR="${{ inputs.duration }}"
+          [ -n "$DUR" ] || DUR=25
           ../../scripts/conform-app-preview.sh \
             capture-out/raw.mov \
             capture-out/app-preview-6.9in.mp4 \
-            "${{ inputs.start_offset || '3.6' }}" \
-            "${{ inputs.duration || '25' }}"
+            "$START" \
+            "$DUR"
 
       - name: What was shot
         if: always()
@@ -316,7 +360,8 @@ jobs:
             echo "entry: EXPO_PUBLIC_CAPTURE_DEMO=1 build, launched (no deep link — iOS prompts on those)"
             # The `||` fallbacks again — cycle 1's notes read "trim: start=s duration=s" because `inputs`
             # is empty on a tag push and this line, unlike the conform's, had no default.
-            echo "trim: start=${{ inputs.start_offset || '3.6' }}s duration=${{ inputs.duration || '25' }}s"
+            echo "app painted at: ${MOUNT:-unknown}s (measured by blackdetect, not assumed)"
+            echo "trim: start=${{ inputs.start_offset || 'measured' }} duration=${{ inputs.duration || '25' }}s"
             echo "conformed: 886x1920 (covers every modern iPhone slot — 6.9/6.5/6.3/6.1)"
             echo "NOT captured: the payoff confirmation tap — see this workflow's header."
           } > capture-out/SHOT-NOTES.txt

@@ -2890,3 +2890,54 @@ Release builds come off fresh CI clones, so the real exposure is local — but "
 **Gate, on a genuinely clean bundle:** `lint:rn` (0 errors) · regression · app-layer · scenarios ·
 **e2e 131/131 in 4.7m with zero `error-context.md`** — count and failure-artifacts agreeing, which is the
 check this whole item keeps proving is worth more than an exit code.
+
+---
+
+## 3.5.8 — CYCLE 3: it captured the demo, and the cut is still wrong (2026-08-07)
+
+Run 31190169324, 27m55s, **green — and green for real this time**: the distinct-frame guard reported
+**5 of 5 settled frames distinct**, `raw.mov` came back at **2.4MB** against 353KB when it was recording a
+static screen, and all eleven PNGs landed including beat 5's, which cycle 1 could not even extract.
+
+`EXPO_PUBLIC_CAPTURE_DEMO` + `simctl launch` works. The deep link is gone and so is its dialog.
+
+### ✅ 3.5.8.4b ANSWERED — native Skia paints, and paints BETTER than web
+
+The Progress beat on the real simulator renders the progress ring with its glow, all five cash-flow bars
+with the dashed $200 line, and the payoff trajectory with its gradient fill and the "Nov 2029" callout
+pill — everything present, nothing missing. The unpainted-canvas defect carried since 3.5.4.11 was
+**web-only CanvasKit**, exactly as suspected but never proven until now.
+
+That also settles the plan's standing "honest risk" — *the simulator may not render Skia, `expo-blur` or
+the mesh gradient faithfully* — in the positive direction, for Skia at least. It is not a reason to prefer
+a device capture.
+
+### ⚠️ But the video opens on four and a half seconds of BLACK
+
+Beat 1's FIRST frame is black. So is its settled frame, 3.3 seconds later. The app is still launching.
+
+**The timeline model was wrong.** Raw-file time is `preroll + LAUNCH-TO-MOUNT + script time`, and only the
+preroll was modelled. The demo's clock starts when the router mounts, and a cold launch spends ~5s black
+before that — so every beat landed ~5s later than the extraction assumed. The frame labelled `beat-4` was
+really beat 3; the labelled `beat-1` frames were the launch. **Every PNG appeared, correctly named, and
+showed the wrong beat** — the same silent-mislabelling class the pre-roll dry-run caught before cycle 1,
+returning through a different door.
+
+Downstream, the 25s cut trimmed at a guessed 3.6s: it opened on black and ended around beat 5's start, so
+the closing beat and its caption were largely outside the video.
+
+### The fix: measure the anchor instead of assuming it
+
+`blackdetect` reports the leading black run; its end **is** the moment the app painted, which **is** the
+script's t=0. Every offset — the trim in-point and all ten beat frames — now derives from that measured
+value, so it self-corrects when launch time changes instead of rotting silently. A dispatch input still
+overrides it for a human who has watched the cut. Recording extended 28s → 40s, because the old tail did
+not survive a 5s launch.
+
+Dry-run against cycle 3's real numbers: a `black_end:8.23` yields a trim at 8.63s and beat 3 at raw 17.43s —
+which is precisely where the mislabelled frame had shown beat 3's tight state. The fallback (no leading
+black) drops back to the pre-roll rather than producing an empty offset.
+
+**Still owed at 3.5.8.7/.8:** the beats' true first frames, now that they will actually be of the right
+beats; and whether ~1s of first-mount lag per navigating beat (measured on web, visible again here) wants
+the script re-paced.
