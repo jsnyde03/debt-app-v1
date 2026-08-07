@@ -3086,3 +3086,40 @@ rounds), and a provider move is exactly the kind of change that passes review an
   an income-varies toggle that did not exist (→ 3.7.A9).
 
 **Gate:** `lint:rn` (0 errors) · regression · app-layer · scenarios · **e2e 133/133, zero failures**.
+
+---
+
+## 3.5.8 — CYCLE 6 failed, and the anchor stops being clever (2026-08-07)
+
+Run 31198616159 **failed at the distinct-frame guard** — 0 frames extracted — and the cause was the cycle-5
+fix itself.
+
+**`simctl io screenshot` costs ~1.4s per call.** A poll written as *"0.5s intervals, 20 seconds maximum"*
+therefore ran for **54.7 seconds**. The demo's entire 20-second script played out while the loop was still
+searching for its start; by the time it reported `content appeared after 54.7s (1242450 bytes)` it had found
+a chart-heavy later beat, not first paint. `MOUNT` landed at 57.66s, the beat offsets fell in the static
+tail, and ffmpeg could not seek to any of them. The 350KB threshold was also calibrated against frames
+extracted from VIDEO in cycle 3, not against `simctl` PNGs — the wrong artifact type.
+
+### Three wrong anchors, and the lesson is about when to stop
+
+| attempt | why it failed |
+|---|---|
+| guessed constant (3.6s) | opened on ~4.5s of black |
+| `blackdetect` | the dark theme is nearly black — 8.6s one cycle, 4.2s the next, same build |
+| screenshot polling | ~1.4s per call, so the poll outlived the thing it was measuring |
+
+Six cycles, ~2.5 hours of runner time, on where a 25-second video starts. **Everything else about the
+pipeline was proven working after cycle 3.** Automating this was worth two attempts and not three; the
+honest read is that the simple version should have landed a cycle earlier.
+
+### ✅ What it is now (Jason 2026-08-07)
+
+A **declared constant** — `LAUNCH_ALLOWANCE: 9` — plus a **contact sheet**: the first 40 seconds at one
+frame per second, tiled 8×5 with each second's index burnt in. Three anchors have now been wrong and every
+one was discovered by downloading the artifact and opening a PNG; a sheet answers *"when did the app appear,
+and is the trim in the right place"* at a glance, and turns the allowance into a number anyone can check
+rather than one I asserted. Correcting it is a one-line change.
+
+Less clever on purpose. A measurement that is wrong in a way nobody can see is worse than a constant that is
+wrong in a way everybody can.

@@ -81,9 +81,12 @@ jobs:
       # already frontmost. A LAUNCH raises no such dialog, so the URL is gone from the path entirely.
       EXPO_PUBLIC_CAPTURE_DEMO: '1'
       APP_ID: 'com.jasonsnyder.debtplanner'
-      # Seconds the recorder runs BEFORE the deep link fires. Every raw-file timestamp is this plus the
-      # script's own beat time — see the record step.
+      # Seconds the recorder runs BEFORE the app is launched.
       PREROLL: '3'
+      # How long the app is assumed to take from launch to first painted frame. A DECLARED CONSTANT, after
+      # two attempts to measure it automatically were withdrawn (see the record step). Verify it against
+      # `contact-sheet.jpg` in the artifact and change this one number if the cut opens wrong.
+      LAUNCH_ALLOWANCE: '9'
     defaults:
       run:
         working-directory: apps/rn
@@ -215,49 +218,24 @@ jobs:
           LAUNCH_AT=$(date +%s.%N)
           xcrun simctl launch booted "$APP_ID"
 
-          # ⚠️ MEASURE FIRST PAINT BY POLLING, not by analysing the video.
+          # ⚠️ A FIXED ALLOWANCE, and the reasons the two "smarter" answers were withdrawn.
           #
-          # `blackdetect` was tried and is the wrong instrument for THIS app: the dark theme is nearly
-          # black, so the "end of the black run" lands on some faint frame before any content renders. It
-          # reported an 8.6s cold launch on one cycle and 4.2s on the next for the same build, and the
-          # frame 0.2s after its answer was still pure black. An anchor that unstable is worse than a
-          # fixed guess, because it looks measured.
+          # `blackdetect` (cycle 5): this app's dark theme is nearly black, so the end of the leading
+          # black run lands on a faint frame before content renders — 8.6s on one cycle, 4.2s on the next,
+          # for the same build.
           #
-          # A screenshot's FILE SIZE separates the two states cleanly and cannot be fooled by hue: a blank
-          # dark screen is a few tens of KB of PNG, a screen with cards, type and charts is several
-          # hundred. Measured on this device family: 260KB warm-blank vs 434-806KB with content.
+          # Screenshot polling (cycle 6): `simctl io screenshot` costs ~1.4s per call, so a loop written as
+          # "0.5s intervals, 20s maximum" actually ran **54.7 seconds** — the demo's entire 20s script
+          # played out while the poll was still looking for its start, and the run produced no usable
+          # frames at all. The guard caught it; the idea was simply wrong.
           #
-          # ⚠️ The trade-off, stated rather than discovered later: this takes screenshots WHILE recording,
-          # ~12-18 of them, and the last one lands just as the opening beat appears. Earlier cycles took
-          # mid-record screenshots with no visible artifact, so the risk is judged small — but if a cut ever
-          # shows a hitch in its first second, this poll is the first suspect. 0.5s intervals are kept
-          # because the anchor's precision sets the trim's precision, and the trim decides frame one.
-          PAINTED_AT=""
-          for i in $(seq 1 40); do
-            sleep 0.5
-            xcrun simctl io booted screenshot capture-out/_poll.png >/dev/null 2>&1 || continue
-            SZ=$(stat -f%z capture-out/_poll.png 2>/dev/null || echo 0)
-            if [ "$SZ" -gt 350000 ]; then
-              PAINTED_AT=$(date +%s.%N)
-              cp capture-out/_poll.png capture-out/after-launch.png
-              echo "content appeared after $(awk -v a="$LAUNCH_AT" -v b="$PAINTED_AT" 'BEGIN{printf "%.1f", b-a}')s (screenshot ${SZ} bytes)"
-              break
-            fi
-          done
-          rm -f capture-out/_poll.png
-
-          if [ -n "$PAINTED_AT" ]; then
-            # Raw-file time = pre-roll + however long the launch actually took.
-            MOUNT=$(awk -v p="$PREROLL" -v a="$LAUNCH_AT" -v b="$PAINTED_AT" 'BEGIN{printf "%.2f", p + (b-a)}')
-            echo "MOUNT_SOURCE=measured" >> "$GITHUB_ENV"
-          else
-            echo "⚠️  FALLBACK: the app never rendered content within 20s. Check after-launch.png."
-            xcrun simctl io booted screenshot capture-out/after-launch.png || true
-            MOUNT=$(awk -v p="$PREROLL" 'BEGIN{printf "%.2f", p + 8}')
-            echo "MOUNT_SOURCE=fallback" >> "$GITHUB_ENV"
-          fi
+          # So: a generous constant, declared as a constant. It is verifiable from the contact sheet the
+          # conform step emits, and correctable in one place — which beats a clever measurement that is
+          # wrong in a way nobody can see.
+          MOUNT=$(awk -v p="$PREROLL" -v l="$LAUNCH_ALLOWANCE" 'BEGIN{printf "%.2f", p + l}')
+          echo "MOUNT_SOURCE=fixed-allowance" >> "$GITHUB_ENV"
           echo "MOUNT=$MOUNT" >> "$GITHUB_ENV"
-          echo "app painted at raw ${MOUNT}s"
+          echo "assuming the app paints ${LAUNCH_ALLOWANCE}s after launch → raw ${MOUNT}s (verify on the contact sheet)"
 
           # DEMO_STAGES: 0 / 4 / 9 / 14 / 20s — but the script's clock starts at MOUNT, and a cold launch
           # spends several seconds black before that. Cycle 3 measured the whole timeline landing ~5s later
@@ -295,6 +273,21 @@ jobs:
               "capture-out/beat-${name}-settled.png" || echo "(no frame for $name at ${late}s)"
           done
           ls -la capture-out/
+
+      # ⚠️ THE THING THAT MAKES A WRONG ANCHOR VISIBLE IN ONE GLANCE.
+      #
+      # Three anchor strategies have now been wrong (a guessed constant, `blackdetect`, screenshot polling)
+      # and each was discovered only by downloading the artifact and opening a PNG. A single sheet of the
+      # first 40 seconds at 1s intervals answers "when did the app actually appear, and is the trim in the
+      # right place" without a download-and-inspect loop — and it makes `LAUNCH_ALLOWANCE` a number anyone
+      # can check rather than a number I asserted.
+      - name: Contact sheet (the first 40s, one frame per second)
+        if: always()
+        run: |
+          ffmpeg -y -hide_banner -loglevel error -i capture-out/raw.mov \
+            -vf "fps=1,scale=220:-2,drawtext=text='%{eif\:n\:d}s':x=6:y=6:fontsize=22:fontcolor=yellow:box=1:boxcolor=black@0.6,tile=8x5" \
+            -frames:v 1 capture-out/contact-sheet.jpg || echo "(contact sheet unavailable)"
+          ls -la capture-out/contact-sheet.jpg || true
 
       # ⚠️ THE GUARD CYCLE 1 DID NOT HAVE, and the reason it shipped a green run with no capture in it.
       #
