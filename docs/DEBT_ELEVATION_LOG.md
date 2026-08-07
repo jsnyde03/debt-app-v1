@@ -3316,3 +3316,50 @@ evidence 3.5.8.8 (simulator vs device) needs and does not currently have.
 
 **Gate:** `lint:rn` · `test:regression` · `test:app` (29 assertions, up from 18) · `test:scenarios` ·
 `test:e2e:rn` **133/133**.
+
+## 3.5.8 — CYCLE 9: the anchor holds, and the slate fires one beat too soon (2026-08-07)
+
+Run `app-preview-20260807-09` (31208978159), green in 18m14s, `T0 = 2.393s` **found**. Frame review → the
+audit doc's cycle-9 section.
+
+**The mechanism works.** All ten frames extracted (cycle 8 got eight — the static-tail fallback closed it),
+and beat 2 arrives at `T0 + 4.1s` against a declared `at: 4000`, so the offsets are trustworthy for the
+first time. That is the precondition for everything else, and it is what four cycles of anchor-guessing
+never delivered.
+
+### ❌ But the app was not on screen when it said it was
+
+`beat-1-FIRST` is the iOS launch-zoom animation. The slate had fired over a root that had not painted.
+
+**The evidence was in the detector's own output and nothing was reading it:** the app holds the slate for
+350ms and `blackdetect` reported `black_duration:0.205`. The missing 145ms happened before the window was
+composited, so the recorder never saw it. `rAF ×2 + runAfterInteractions` is a *the JS thread got a turn*
+signal, not a *content is on screen* one — and on a warm launch the JS thread is free almost immediately.
+
+Two corrections, and the second matters more than the first:
+- **Gate on `AppState` reaching `active`** — the OS saying the launch transition is finished, which is the
+  earliest moment anything the app draws is in the recording at all — plus an 800ms compositing settle.
+- **Assert the recorded slate is as long as the held one.** A shortfall means exactly one thing, and it was
+  sitting in the log while the run went green. This is the fourth time this pipeline has produced a green
+  run whose artifact was wrong; every one of them had a tell nobody had written a check for.
+
+⚠️ **`CAPTURE_SETTLE_MS` is a constant, and that is not a regression to `LAUNCH_ALLOWANCE`.** That constant
+had to predict a cold launch, which moved 3 seconds between cycles. This one covers a fixed compositing
+step after a signal the OS gives; being wrong opens the cut slightly early instead of putting every
+extracted frame on the wrong beat — and now it fails loudly rather than silently.
+
+### ⚠️ Two smaller findings, both from frames the fixed anchor finally made readable
+
+- **The FIRST-frame offset could not survive a navigation.** `beat-4-FIRST` shows beat 3's screen: at
+  `+0.20s` the stage's navigation has not landed, so the sample catches the outgoing screen. → `+0.80s`.
+- **A transient `$790` on Today's arrival**, for about half a second before it settles to the persona's
+  `$2,000`. Same class as cycle 7's `$1,747`, which did not reproduce. Filed for the review step.
+
+### ⚠️ What cycle 9 does NOT establish
+
+This runner painted **~1s** after launch where cycle 8's took **8–11s**. So "no multi-second blank screens"
+is not evidence the arrival lag is fixed — it is more evidence of how much the runner varies, which is the
+same fact that killed the declared allowance. 3.5.8.8 still needs a slow-runner cycle, or a device.
+
+**Pre-flight re-run before cycle 10:** slate at 2.25s (was 1.32s — the settle, visible), cleared, script ran
+to its closing caption. The `AppState` gate does not strand it where `AppState` is already active.

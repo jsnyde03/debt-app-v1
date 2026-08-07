@@ -280,8 +280,24 @@ jobs:
             exit 1
           fi
 
+          # ⚠️ THE SLATE'S LENGTH IS ITSELF EVIDENCE, and cycle 9 is why this check exists.
+          #
+          # The app holds the slate for a known 350ms. The recording caught 205ms of it — because the first
+          # ~145ms happened before the window was composited, so the recorder could not see it. That
+          # shortfall was the only signal that the slate had fired before the app was really on screen, and
+          # nothing was looking at it: the run went green and the video still opened on the launch
+          # animation. A recorded slate materially shorter than the held one means exactly one thing.
+          DUR=$(echo "$DET" | grep -o 'black_duration:[0-9.]*' | head -1 | cut -d: -f2)
+          if [ -n "$DUR" ] && awk -v d="$DUR" 'BEGIN{exit !(d < 0.30)}'; then
+            echo "❌ The slate was recorded as ${DUR}s but the app holds it for 0.35s."
+            echo "   The missing part happened before the window was composited, which means the slate"
+            echo "   fired before the app was really on screen — so this T0 is early and the cut would"
+            echo "   open on the launch transition. Raise CAPTURE_SETTLE_MS in CaptureSlate.tsx."
+            exit 1
+          fi
+
           echo "T0=$T0" >> "$GITHUB_ENV"
-          echo "✅ slate ends at ${T0}s — the script's t=0, measured rather than assumed"
+          echo "✅ slate ends at ${T0}s (held ${DUR}s) — the script's t=0, measured rather than assumed"
 
       # 3.5.8.7's evidence, taken from the RAW recording rather than the trimmed one so the offsets are
       # the script's own. The hard requirement this exists for: an empty Skia chart in a store video is
@@ -316,7 +332,12 @@ jobs:
           beats="1-debts:0 2-held:4 3-absorbed:9 4-trajectory:14 5-payoff:20"
           for entry in $beats; do
             name="${entry%%:*}"; at="${entry##*:}"
-            first=$(awk -v p="$T0" -v a="$at" 'BEGIN { printf "%.2f", p + a + 0.20 }')
+            # ⚠️ +0.80, not +0.20. Cycle 9's `beat-4-FIRST` showed the PREVIOUS beat's screen: at +0.20 the
+            # navigation the stage triggers has not landed yet, so the sample catches the outgoing screen
+            # and says nothing about the incoming one. The offset has to clear the navigation and still be
+            # the arrival — an unpainted Skia canvas heals within a second, so a mid-beat sample would
+            # report the defect as absent.
+            first=$(awk -v p="$T0" -v a="$at" 'BEGIN { printf "%.2f", p + a + 0.80 }')
             late=$(awk -v p="$T0" -v a="$at"  'BEGIN { printf "%.2f", p + a + 3.30 }')
             # The FIRST frame after the beat lands is the one that matters: 3.5.8.4b's unpainted Skia is a
             # first-frame artifact, so a mid-beat sample would show it already healed and report a defect

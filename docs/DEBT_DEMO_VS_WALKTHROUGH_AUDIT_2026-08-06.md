@@ -464,3 +464,48 @@ per-stage re-seeds and its 25s screenshot is flawless — but that is a *settled
 frame, so it tells us the app is not broken and nothing about the arrival lag. The open question for
 3.5.8.8 stays open: runner CPU starvation would vanish on a device; `seedSandbox` blanking the tree on
 every stage (F-B's neighbour) would not.
+
+---
+
+## Capture verification — CYCLE 9 (2026-08-07), the slate works and fires one beat too soon
+
+Run `app-preview-20260807-09` (31208978159), green in 18m14s — the first cycle with a found anchor
+(`T0 = 2.393s`) rather than a declared one.
+
+### ✅ What the anchor fixed
+
+- **All ten frames extracted**, five FIRST and five settled. Cycle 8 got eight; the static-tail fallback
+  (last frame at or before the target) closed the gap that had made every prior cycle's evidence partial.
+- **The beats land where the script says.** Beat 2 arrives at `T0 + 4.1s` against a declared `at: 4000` —
+  the offsets are now trustworthy, which is the precondition for every other measurement here.
+- **No multi-second blank screens.** ⚠️ But this runner painted **~1s** after launch where cycle 8 took
+  **8–11s**, so this is not yet evidence the arrival lag is fixed — it is evidence of how much the runner
+  varies, which is the same fact that killed `LAUNCH_ALLOWANCE`.
+
+### ❌ The slate fires before the app is on screen
+
+`beat-1-FIRST` (`T0 + 0.2s`) is the **iOS launch-zoom animation** — the app's black window scaling out of
+the home screen. Nothing had rendered. So the cut still opens on the launch transition.
+
+**The tell was in the detector's own output, and nothing was reading it:** the app holds the slate for
+**350ms**; `blackdetect` reported `black_duration:0.205`. The missing 145ms happened before the window was
+composited into the recording. `rAF ×2 + runAfterInteractions` is a *the JS thread got a turn* signal, not
+a *content is on screen* one, and on a warm launch the JS thread is free almost immediately.
+
+→ Fixed by gating on `AppState` reaching `active` (the OS saying the launch transition is done) plus an
+800ms compositing settle, **and** by asserting the recorded slate is as long as the held one — so this
+failure is loud next time instead of green.
+
+### ⚠️ The FIRST-frame offset was too tight to survive a navigation
+
+`beat-4-FIRST` shows Today with the *tight* Guardian — beat 3's screen. At `+0.20s` the navigation the
+stage triggers has not landed, so the sample catches the outgoing screen and says nothing about the
+incoming one. Moved to `+0.80s`: far enough to clear the navigation, early enough that an unpainted Skia
+canvas has not healed.
+
+### ⚠️ A transient wrong number on Today's arrival
+
+The 2fps sheet catches Today showing **`$790`** with a half-rendered Guardian card for roughly half a
+second as beat 2 arrives, before settling to the persona's `$2,000`. Brief, but it is a number nobody can
+account for in a store video — the same class as cycle 7's `$1,747`, which did not reproduce. Needs
+settling before the asset is cut.

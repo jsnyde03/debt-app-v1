@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { InteractionManager, StyleSheet, View } from 'react-native';
+import { AppState, InteractionManager, StyleSheet, View } from 'react-native';
 import { useStore } from 'zustand';
 
 import { CAPTURE_DEMO } from '@/config/qa';
@@ -8,6 +8,25 @@ import { decorative } from '@/utils/a11y';
 
 /** How long the white frame is held. Long enough for `blackdetect` to see a run, short enough to be free. */
 export const CAPTURE_SLATE_MS = 350;
+
+/**
+ * Held after the launch transition completes, before the slate.
+ *
+ * ⚠️ **Cycle 9's correction, and it is a real distinction rather than a tuning nudge.** The first version
+ * fired the slate on two animation frames plus a drained interaction queue — which is a *JS thread got a
+ * turn* signal, not a *content is on screen* one. On a warm launch the JS thread is free almost
+ * immediately, so the slate rendered over a root that had not painted: the recording caught only **0.205s**
+ * of a 350ms slate (the window was not yet composited for the first ~145ms) and the frame 0.2s later was
+ * still the iOS launch-zoom animation.
+ *
+ * `AppState` going `active` is the OS saying the launch transition is done. This covers the compositing
+ * after it. It IS a constant, and the difference from the `LAUNCH_ALLOWANCE` this work deleted is the one
+ * that matters: that constant had to predict a cold launch, which moved by 3 seconds between cycles; this
+ * one covers a fixed compositing step, and being wrong makes the cut open slightly early rather than
+ * putting every extracted frame on the wrong beat. The workflow also asserts the recorded slate is as long
+ * as the slate the app held — so firing early is loud rather than silent.
+ */
+const CAPTURE_SETTLE_MS = 800;
 
 /**
  * 3.5.8.9 — the film slate, and the end of guessing where the video starts.
@@ -62,23 +81,51 @@ export function CaptureSlate() {
     armed.current = true;
 
     let cancelled = false;
+    let first = 0;
     let second = 0;
-    // Two frames, then the interaction queue. `runAfterInteractions` waits out the navigation that brought
-    // us here; the second `requestAnimationFrame` is what makes "the commit happened" into "a frame was
-    // produced from it", which is the distinction a starved CI runner actually exposes.
-    const first = requestAnimationFrame(() => {
-      second = requestAnimationFrame(() => {
-        InteractionManager.runAfterInteractions(() => {
-          if (cancelled) return;
-          setShowing(true);
+    let settle: ReturnType<typeof setTimeout> | undefined;
+
+    // Two frames, then the interaction queue, then the settle. `runAfterInteractions` waits out the
+    // navigation that brought us here; the second `requestAnimationFrame` turns "the commit happened" into
+    // "a frame was produced from it".
+    const armSlate = () => {
+      first = requestAnimationFrame(() => {
+        second = requestAnimationFrame(() => {
+          InteractionManager.runAfterInteractions(() => {
+            if (cancelled) return;
+            settle = setTimeout(() => {
+              if (!cancelled) setShowing(true);
+            }, CAPTURE_SETTLE_MS);
+          });
         });
       });
+    };
+
+    // ⚠️ The launch transition FIRST. An app launches into `inactive` and becomes `active` when iOS has
+    // finished bringing its window up — which is the earliest moment anything the app draws is in the
+    // recording at all. Cycle 9 skipped this and marked a frame the recorder could not yet see.
+    if (AppState.currentState === 'active') {
+      armSlate();
+      return () => {
+        cancelled = true;
+        cancelAnimationFrame(first);
+        cancelAnimationFrame(second);
+        clearTimeout(settle);
+      };
+    }
+
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next !== 'active' || cancelled) return;
+      sub.remove();
+      armSlate();
     });
 
     return () => {
       cancelled = true;
+      sub.remove();
       cancelAnimationFrame(first);
       cancelAnimationFrame(second);
+      clearTimeout(settle);
     };
   }, [held]);
 
