@@ -2697,3 +2697,111 @@ is that Jason drops the file straight into App Store Connect.
   `SENTRY_DISABLE_AUTO_UPLOAD`, pod-install-as-its-own-step). Extracting a composite action is the correct
   shape and was deliberately NOT done in the change that first proves the pipeline — a bug in the
   extraction would break the proven native gate as well as this one. Filed rather than left implicit.
+
+---
+
+## 3.5.8 — CYCLE 1: green, and it captured nothing (2026-08-07)
+
+Run 31179021997, 18m8s, every step ✅ — build, boot, record, conform, upload. The conformed file was
+**886×1920, 25.000s, constant 30fps, H.264 high@4.0**, validated against Apple's spec by the script's own
+checks.
+
+**It was 30 seconds of the iOS Home Screen.**
+
+### What actually happened
+
+`xcrun simctl openurl` was fired at a simulator whose frontmost app was **SpringBoard**, because the warm
+step had just terminated the app. iOS answered with a confirmation — **"Open in 'Debt Planner (RN)'?"
+[Cancel] [Open]** — and nothing was there to dismiss it. The app never launched; the demo never ran; the
+recorder faithfully captured the Home Screen for the full 30s.
+
+**3.5.8.3 therefore has a real answer, and it is not the one the switch-in predicted.** The scheme is
+right, the route is right, `?capture=1` is right — and the seam still does not work unattended, because
+the failure is not in the app at all. Verification earned its place here: the switch-in had this filed as
+*"verification, not construction."*
+
+### ⚠️ The worse defect: the pipeline reported a verdict it had not earned
+
+Every step exited 0. The conform produced a spec-perfect file. The artifact uploaded. Nothing anywhere
+asked whether **the screen ever changed** — and the evidence was sitting in the artifact listing the whole
+time: seven of the eight extracted PNGs were **byte-identical at 807686 bytes**.
+
+This repo has now shipped that exact shape four times: a green Maestro run that wrote no screenshots · an
+artifact glob that skipped a hidden path · `web-e2e` red for a month against a retired app · and this. The
+first three were caught by a human noticing. So the fix is a check on the **artifact** rather than on exit
+codes: five beats that are supposed to show three different screens cannot all hash the same. Under 3
+distinct hashes now fails the run and points at `after-openurl.png`.
+
+### Fixes for cycle 2
+
+- **The app is LEFT RUNNING** through the recording. The prompt is SpringBoard asking permission to
+  *switch* apps; with the app already frontmost there is no switch to confirm, so the URL is delivered
+  straight to it. (Mechanism-level reasoning, not a guess at iOS's mood — it will be proven or disproven
+  by `after-openurl.png` next cycle.)
+- **`after-openurl.png`** — one screenshot two seconds after the deep link. Cycle 1 cost a log dig to
+  explain; this makes the same failure legible at a glance.
+- **The distinct-frame guard** above.
+- **`SHOT-NOTES.txt` said `trim: start=s duration=s`** — `inputs` is empty on a tag push and this line,
+  unlike the conform's, had no `||` fallback. The conform was correct; only the notes lied.
+
+### What cycle 1 DID prove, and it is not nothing
+
+- The whole macOS build path works end to end on the free runner: ffmpeg install, typecheck, prebuild, pod
+  install, unsigned sim build, boot, dark-mode, install. The duplicated build recipe is sound.
+- **The conform's premise is now measured, not researched:** the simulator recorded at **1320×2868**, which
+  is *not* a resolution Apple accepts. The plan's claim that simulator capture "yields exact store pixel
+  dimensions" is false in the concrete, and the conform step is load-bearing exactly as re-verified.
+- The tag trigger works, so nothing needs to touch `release/v1`.
+- Visible in the frames and already tracked: the app icon is a blank placeholder and the name is
+  **"Debt Planner (RN)"** — the Phase-6 display-name ship-blocker, seen in the wild.
+
+---
+
+## 3.5.8.7 — the web reference set, and the cents that reached the opening frame (2026-08-07)
+
+`npm run shots:demo` (`playwright.shots.config.ts` + `tests/shots/demo-beats.shot.ts`) — the five beats,
+both themes, phone-sized, in capture mode, with filenames MIRRORING the CI artifact's so the two sets sit
+side by side. Deliberately outside `tests/e2e`: it asserts nothing, and the gate should not pay ~50s per
+run for screenshots nobody is reading.
+
+### ⭐ [D20b] delivered, and then betrayed itself in the type
+
+The opening frame reads **"$19,440 remaining across 3 debts"** — exactly the beat's own note. But the rows
+under it read **"$1,240.00 · 26.99% APR"** and **"$45.00/mo"**, directly beneath a hero reading
+**"$19,440"**: the same screen in two conventions, because the hero goes through `formatWhole` and the rows
+through `formatCurrency`.
+
+I had deferred this to "3.5.8.7 will see whether cents reach frame" on the guess that they stayed below the
+fold. **They are on the first frame of the store video.**
+
+**Root cause, one line:** `formatCurrency` set `maximumFractionDigits: 2`, but USD defaults the *minimum*
+to 2 — so whole amounts were being padded to `.00`. Fixed with `minimumFractionDigits: 0` (Jason's call,
+2026-08-07): cents render only when there are cents, so a real $1,240.37 still shows in full while
+$1,240.00 becomes $1,240. Deliberately not `formatWhole`, which would have rounded money away. 50 call
+sites, gate green, **e2e 131/131** — nothing had asserted the old strings. This is Wave **C1**'s root; the
+app-wide sweep stays filed.
+
+### Measured: what a beat costs to land
+
+| beat | screen | lands after |
+|---|---|---|
+| 1 debts | Money (first mount) | **+1157ms** |
+| 2 held | Today (first mount) | **+1044ms** |
+| 3 absorbed | Today (mounted) | +12ms |
+| 4 trajectory | Progress (first mount) | **+931ms** |
+| 5 payoff | Today (mounted) | +13ms |
+
+**First mount costs ~1s; re-seeding a mounted screen is free.** So roughly a second of each navigating beat
+shows the previous screen — which reads as a transition mid-video, but matters enormously for the OPENING
+frame, and is what `start_offset` exists to absorb.
+
+### A limit of this tool, stated so it is not mistaken for evidence
+
+`page.screenshot()` does its own stability wait, so the set's "FIRST" frames are **not** truly first
+frames — beat 4's FIRST showed a fully-rendered previous screen rather than a blank one. The web set is a
+**content** reference (what each beat should say), not a first-frame-timing instrument. Only ffmpeg pulling
+an exact timestamp out of a recording answers that, which is the CI side's job.
+
+Skia did paint on web at +3.3s — ring, cash-flow bars and payoff trajectory all present, with coherent
+numbers ($8,160 of $27,600 = 30%). **3.5.8.4b remains genuinely open**, because cycle 1 never rendered the
+app.

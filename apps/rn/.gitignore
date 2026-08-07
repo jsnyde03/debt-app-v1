@@ -1,2 +1,8 @@
 # CanvasKit wasm is copied from node_modules on install (scripts/copy-canvaskit.mjs), not committed.
 /public/canvaskit.wasm
+
+# 3.5.8.7 — the demo beat reference set (`npm run shots:demo`). Regenerated on demand and compared
+# against the CI capture artifact; committing it would put ~20 phone-sized PNGs in the tree per re-shoot.
+/capture-ref/
+# 3.5.8 — the CI capture pipeline writes here on the runner.
+/capture-out/

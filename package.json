@@ -14,6 +14,7 @@
     "lint:rn-style": "tsx scripts/check-rn-style-divergence.ts",
     "test:e2e": "playwright test",
     "test:e2e:rn": "playwright test --config apps/rn/playwright.config.ts",
+    "shots:demo": "playwright test --config apps/rn/playwright.shots.config.ts",
     "e2e:fresh": "node scripts/e2e-fresh.cjs",
     "e2e:fresh:rn": "node scripts/e2e-fresh-rn.cjs",
     "test:app": "npm --prefix apps/rn run test:app",

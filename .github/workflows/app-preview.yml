@@ -175,16 +175,22 @@ jobs:
           xcrun simctl ui booted appearance dark
           xcrun simctl install booted ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
 
-      # Cold-launch once and throw it away. The FIRST launch of a fresh install pays for Metro-less bundle
-      # evaluation, font registration and the first Skia surface — exactly the costs that would otherwise
-      # be paid inside the recording, on the opening frame the video is judged by.
-      - name: Warm the app, then reset it
+      # Cold-launch once to pay the first-launch costs — Metro-less bundle evaluation, font registration,
+      # the first Skia surface — outside the recording rather than on the opening frame the video is
+      # judged by.
+      #
+      # ⚠️ THE APP IS LEFT RUNNING, and that is the fix for cycle 1's failure. Cycle 1 terminated it here,
+      # so `simctl openurl` arrived while SpringBoard was frontmost and iOS put up
+      # **"Open in 'Debt Planner (RN)'?" [Cancel] [Open]** — a confirmation nothing was there to dismiss.
+      # The result was 30 seconds of Home Screen recorded as if it were a store video. That prompt is
+      # SpringBoard asking permission to SWITCH apps; with the app already frontmost there is no switch to
+      # confirm, so the URL is delivered straight to it.
+      - name: Warm the app, and LEAVE IT RUNNING
         run: |
           mkdir -p capture-out
           xcrun simctl launch booted "$APP_ID" || true
           sleep 20
           xcrun simctl io booted screenshot capture-out/warm.png || true
-          xcrun simctl terminate booted "$APP_ID" || true
 
       - name: Record the scripted demo
         run: |
@@ -204,6 +210,10 @@ jobs:
           # The deep link BOTH launches the app and starts the run, so the script's t=0 is HERE — which is
           # raw-file time $PREROLL, not 0.
           xcrun simctl openurl booted "$DEMO_URL"
+          # Proof the URL was ACCEPTED rather than parked behind a system prompt. Cheap, and it is the
+          # single frame that would have explained cycle 1 in one glance instead of a log dig.
+          sleep 2
+          xcrun simctl io booted screenshot capture-out/after-openurl.png || true
 
           # DEMO_STAGES: 0 / 4 / 9 / 14 / 20s, then hold the closing beat long enough to be read. The
           # generous tail is trimmed by the conform, which is cheaper than discovering the video ended
@@ -240,6 +250,31 @@ jobs:
           done
           ls -la capture-out/
 
+      # ⚠️ THE GUARD CYCLE 1 DID NOT HAVE, and the reason it shipped a green run with no capture in it.
+      #
+      # That run recorded 30 seconds of the iOS Home Screen behind an "Open in…?" prompt, extracted eight
+      # frames, conformed them to a spec-perfect 886x1920/25s file, reported success and uploaded it. Every
+      # step did its job; nothing asked whether the SCREEN EVER CHANGED. The tell was sitting in the
+      # artifact listing — seven of the eight PNGs were byte-identical at 807686 bytes.
+      #
+      # This repo has now shipped that shape four times (a green Maestro run that wrote no screenshots, an
+      # artifact glob that skipped a hidden path, a web-e2e red for a month against a retired app, and
+      # this). So the check is on the ARTIFACT, not on the exit codes: five beats that are supposed to
+      # show three different screens cannot all hash the same.
+      - name: Fail if the capture never changed (a static recording is not a preview)
+        run: |
+          cd capture-out
+          distinct=$(md5 -q beat-*-settled.png | sort -u | wc -l | tr -d ' ')
+          echo "distinct settled frames: $distinct of $(ls beat-*-settled.png | wc -l | tr -d ' ')"
+          md5 -q beat-*-settled.png | sort | uniq -c | sort -rn
+          if [ "$distinct" -lt 3 ]; then
+            echo "❌ The beats do not differ — the app almost certainly never ran the demo."
+            echo "   Look at after-openurl.png first: a system prompt (\"Open in …?\") means the deep link"
+            echo "   was never delivered, which is exactly how cycle 1 failed."
+            exit 1
+          fi
+          echo "✅ the screen actually changed across beats"
+
       - name: Conform to Apple's App Preview spec
         run: |
           chmod +x ../../scripts/conform-app-preview.sh
@@ -260,7 +295,9 @@ jobs:
             echo "device: ${SIM_DEVICE:-unknown}"
             echo "appearance: dark"
             echo "deep link: $DEMO_URL"
-            echo "trim: start=${{ inputs.start_offset }}s duration=${{ inputs.duration }}s"
+            # The `||` fallbacks again — cycle 1's notes read "trim: start=s duration=s" because `inputs`
+            # is empty on a tag push and this line, unlike the conform's, had no default.
+            echo "trim: start=${{ inputs.start_offset || '3.6' }}s duration=${{ inputs.duration || '25' }}s"
             echo "conformed: 886x1920 (covers every modern iPhone slot — 6.9/6.5/6.3/6.1)"
             echo "NOT captured: the payoff confirmation tap — see this workflow's header."
           } > capture-out/SHOT-NOTES.txt
