@@ -38,7 +38,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { StoreProvider, useActiveStore } from '@/store/StoreContext';
 import { isSandboxStore } from '@/store/sandboxStore';
-import { TutorialTarget, TutorialTargetsProvider, useTutorialTargets } from '@/store/tutorialTargets';
+import { TutorialTarget, useTutorialTargets } from '@/store/tutorialTargets';
 import { useTutorialShell } from '@/store/tutorialShell';
 import { useInert } from '@/hooks/use-inert';
 import { useSpotlight } from '@/hooks/use-spotlight';
@@ -660,13 +660,10 @@ export default function TodayScreen() {
 
   if (!active || !sandbox) return <TodayContent />;
 
-  // The registry only has to exist while a walkthrough is running — with no provider, every
-  // `TutorialTarget` in the tree degrades to a plain View and registers nothing.
-  return (
-    <TutorialTargetsProvider>
-      <TutorialRun sandbox={sandbox} index={index} />
-    </TutorialTargetsProvider>
-  );
+  // 3.5.5.1 — the registry moved to the ROOT layout, because coach-marks point at controls on Money,
+  // Progress and More, and a provider mounted here could only ever see Today. Mounting it in both places
+  // would give the walkthrough a second, shadowing registry, so this one is gone rather than kept.
+  return <TutorialRun sandbox={sandbox} index={index} />;
 }
 
 /**

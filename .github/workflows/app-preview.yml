@@ -211,12 +211,53 @@ jobs:
           sleep "$PREROLL"
 
           # A LAUNCH, not an open — no system dialog. The build enters `/demo?capture=1` by itself, so the
-          # script's t=0 is HERE: raw-file time $PREROLL, not 0.
+          # script's t=0 is when it PAINTS, which is what the poll below measures.
+          LAUNCH_AT=$(date +%s.%N)
           xcrun simctl launch booted "$APP_ID"
-          # Proof the run actually started, kept because it is what finally explained two failed cycles at
-          # a glance instead of a log dig.
-          sleep 2
-          xcrun simctl io booted screenshot capture-out/after-launch.png || true
+
+          # ⚠️ MEASURE FIRST PAINT BY POLLING, not by analysing the video.
+          #
+          # `blackdetect` was tried and is the wrong instrument for THIS app: the dark theme is nearly
+          # black, so the "end of the black run" lands on some faint frame before any content renders. It
+          # reported an 8.6s cold launch on one cycle and 4.2s on the next for the same build, and the
+          # frame 0.2s after its answer was still pure black. An anchor that unstable is worse than a
+          # fixed guess, because it looks measured.
+          #
+          # A screenshot's FILE SIZE separates the two states cleanly and cannot be fooled by hue: a blank
+          # dark screen is a few tens of KB of PNG, a screen with cards, type and charts is several
+          # hundred. Measured on this device family: 260KB warm-blank vs 434-806KB with content.
+          #
+          # ⚠️ The trade-off, stated rather than discovered later: this takes screenshots WHILE recording,
+          # ~12-18 of them, and the last one lands just as the opening beat appears. Earlier cycles took
+          # mid-record screenshots with no visible artifact, so the risk is judged small — but if a cut ever
+          # shows a hitch in its first second, this poll is the first suspect. 0.5s intervals are kept
+          # because the anchor's precision sets the trim's precision, and the trim decides frame one.
+          PAINTED_AT=""
+          for i in $(seq 1 40); do
+            sleep 0.5
+            xcrun simctl io booted screenshot capture-out/_poll.png >/dev/null 2>&1 || continue
+            SZ=$(stat -f%z capture-out/_poll.png 2>/dev/null || echo 0)
+            if [ "$SZ" -gt 350000 ]; then
+              PAINTED_AT=$(date +%s.%N)
+              cp capture-out/_poll.png capture-out/after-launch.png
+              echo "content appeared after $(awk -v a="$LAUNCH_AT" -v b="$PAINTED_AT" 'BEGIN{printf "%.1f", b-a}')s (screenshot ${SZ} bytes)"
+              break
+            fi
+          done
+          rm -f capture-out/_poll.png
+
+          if [ -n "$PAINTED_AT" ]; then
+            # Raw-file time = pre-roll + however long the launch actually took.
+            MOUNT=$(awk -v p="$PREROLL" -v a="$LAUNCH_AT" -v b="$PAINTED_AT" 'BEGIN{printf "%.2f", p + (b-a)}')
+            echo "MOUNT_SOURCE=measured" >> "$GITHUB_ENV"
+          else
+            echo "⚠️  FALLBACK: the app never rendered content within 20s. Check after-launch.png."
+            xcrun simctl io booted screenshot capture-out/after-launch.png || true
+            MOUNT=$(awk -v p="$PREROLL" 'BEGIN{printf "%.2f", p + 8}')
+            echo "MOUNT_SOURCE=fallback" >> "$GITHUB_ENV"
+          fi
+          echo "MOUNT=$MOUNT" >> "$GITHUB_ENV"
+          echo "app painted at raw ${MOUNT}s"
 
           # DEMO_STAGES: 0 / 4 / 9 / 14 / 20s — but the script's clock starts at MOUNT, and a cold launch
           # spends several seconds black before that. Cycle 3 measured the whole timeline landing ~5s later
@@ -234,43 +275,6 @@ jobs:
       # worse than no video, and the unpainted-canvas defect (3.5.8.4b) is a FIRST-FRAME artifact — so
       # each frame is pulled just after its beat lands, where the defect would be, not mid-beat where it
       # would have healed.
-      # ⚠️ FIND WHERE THE APP ACTUALLY APPEARS, rather than assuming it.
-      #
-      # Cycle 3's frames were all mislabelled because the raw timeline is `preroll + LAUNCH-TO-MOUNT +
-      # script time`, and only the preroll was modelled. A cold launch sits BLACK for several seconds
-      # before React mounts — beat 1's "first frame" and its "settled" frame were both pure black, and the
-      # frame labelled beat 4 was really beat 3. Every PNG still appeared, correctly named, and wrong.
-      #
-      # So the anchor is MEASURED: `blackdetect` reports the leading black run, and its end is the moment
-      # the app painted — which is also the script's t=0, since the run starts when the router mounts. That
-      # is self-correcting, where any constant would silently rot the day launch time changes.
-      - name: Find when the app first painted (the script's real t=0)
-        run: |
-          set -o pipefail
-          ffmpeg -hide_banner -i capture-out/raw.mov -vf "blackdetect=d=0.20:pix_th=0.10" -an -f null - 2>&1 \
-            | grep -o "black_start:[0-9.]* black_end:[0-9.]*" | head -5 | tee capture-out/blackdetect.txt || true
-
-          # ⚠️ The launch blackout does NOT start at the top of the file, and assuming it did cost a cycle.
-          # During the pre-roll the simulator is showing its HOME SCREEN — not black — so black begins when
-          # the app launches and ends when it paints. Cycle 4 measured exactly one run,
-          # `black_start:3.525 black_end:11.655`, against a guard that demanded `start < 1.5`; nothing
-          # matched, the fallback fired, and the step then reported the fallback as a measurement.
-          #
-          # So: take the first run that ENDS after the launch. That is the blackout by construction,
-          # wherever it happens to begin.
-          MOUNT=$(awk -v p="$PREROLL" '{ for (i=1;i<=NF;i++) { split($i,kv,":"); if (kv[1]=="black_end") e=kv[2] } if (e > p) { print e; exit } }' capture-out/blackdetect.txt)
-          if [ -z "$MOUNT" ]; then
-            # Loud, and distinguishable downstream. A fallback that reads like a measurement is how cycle 4
-            # produced a confident, wrong number.
-            echo "⚠️  FALLBACK: no black run ends after the launch — using the pre-roll. Check after-launch.png."
-            MOUNT="$PREROLL"
-            echo "MOUNT_SOURCE=fallback" >> "$GITHUB_ENV"
-          else
-            echo "MOUNT_SOURCE=measured" >> "$GITHUB_ENV"
-          fi
-          echo "app painted at raw ${MOUNT}s (launch was at ${PREROLL}s → cold-launch cost $(awk -v m="$MOUNT" -v p="$PREROLL" 'BEGIN{printf "%.1f", m-p}')s)"
-          echo "MOUNT=$MOUNT" >> "$GITHUB_ENV"
-
       - name: Pull the first frame of every beat
         run: |
           # Beat times are the SCRIPT's (DEMO_STAGES); raw-file time is that plus MOUNT — the measured
@@ -371,7 +375,7 @@ jobs:
             echo "entry: EXPO_PUBLIC_CAPTURE_DEMO=1 build, launched (no deep link — iOS prompts on those)"
             # The `||` fallbacks again — cycle 1's notes read "trim: start=s duration=s" because `inputs`
             # is empty on a tag push and this line, unlike the conform's, had no default.
-            echo "app painted at: ${MOUNT:-unknown}s (${MOUNT_SOURCE:-unknown} — 'fallback' means blackdetect found nothing usable and this is a GUESS)"
+            echo "app painted at: ${MOUNT:-unknown}s (${MOUNT_SOURCE:-unknown} — 'fallback' means the app never rendered content and this is a GUESS)"
             echo "trim: start=${{ inputs.start_offset || 'measured' }} duration=${{ inputs.duration || '25' }}s"
             echo "conformed: 886x1920 (covers every modern iPhone slot — 6.9/6.5/6.3/6.1)"
             echo "NOT captured: the payoff confirmation tap — see this workflow's header."

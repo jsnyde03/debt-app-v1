@@ -23,9 +23,11 @@ import { DemoDirector } from '@/components/plan/DemoDirector';
 import { CaptureAutoStart } from '@/components/plan/CaptureAutoStart';
 import { DemoCaption } from '@/components/plan/DemoCaption';
 import { DemoDock } from '@/components/plan/DemoDock';
+import { CoachMarkLayer } from '@/components/plan/CoachMarkLayer';
 import { TutorialCoach } from '@/components/plan/TutorialCoach';
 import { suspendStoryOnBackground } from '@/store/tutorialSession';
 import { TutorialShellProvider } from '@/store/tutorialShell';
+import { TutorialTargetsProvider } from '@/store/tutorialTargets';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 
@@ -140,6 +142,12 @@ function RootLayout() {
               Freedom RN lesson #7). Only the overlay VIEW is hoisted; the session still renders over the
               real Today tab. */}
           <TutorialShellProvider>
+          {/* 3.5.5.1 — the coached-subject registry, app-wide. It used to mount inside a running
+              walkthrough on Today, which is the only place it needed to be when the walkthrough was its
+              only consumer; coach-marks point at controls on Money, Progress and More, so a Today-scoped
+              registry could never see them. Inert on an ordinary launch: registration is a ref write and
+              its one piece of state stays null unless something is actively coaching. */}
+          <TutorialTargetsProvider>
           {/* 3.5.4.1 — the demo's store sits ABOVE the navigator, so every screen it can reach resolves to
               the same sandbox. `useAppStore` reads through this context, so with no demo running the value
               is the singleton and all ~39 call sites behave exactly as they did — and `useNoRealWritesGuard`
@@ -194,6 +202,10 @@ function RootLayout() {
           <DemoCaption />
           </StoreProvider>
           <TutorialCoach />
+          {/* 3.5.5.1 — beside the walkthrough's coaching layer, for the same reason: above the navigator
+              and outside the screens' gesture handlers. Renders nothing unless a mark is active. */}
+          <CoachMarkLayer />
+          </TutorialTargetsProvider>
           </TutorialShellProvider>
           {/* 3.6.6 — iPad hardware ⌘-shortcuts (inert on iPhone/touch + web). Only meaningful once past
               onboarding, since it routes to the tabs. */}

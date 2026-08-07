@@ -10,16 +10,25 @@ import { View, type LayoutChangeEvent } from 'react-native';
  *
  * Two constraints shaped the design:
  *
- *  1. **It has to be inert when no tutorial is running.** Today renders this on every launch for every
- *     user, so registration is a ref write and an `onLayout` — nothing on the layout path costs a
- *     non-tutorial user anything. The guarantee rests on MOUNTING, not on statelessness: the provider
- *     lives only inside a running session, so with no provider above it `useTutorialTargets()` returns a
- *     null registry, `TutorialTarget` degrades to a plain `View`, and there is no state to change.
- *     (`activeId` below is React state — verified round 6 as not violating this, for that reason.)
+ *  1. **It has to be inert when nothing is coaching.** Today renders this on every launch for every user,
+ *     so registration is a ref write and an `onLayout` — nothing on the layout path costs a non-coached
+ *     user anything.
  *
- *  2. **3.5.5 needs the same thing.** The feature-discovery coach-marks point at controls all over the
- *     app, so this is deliberately not tutorial-arc-specific: ids are free-form strings and nothing here
- *     knows about beats. Building it as a one-off for the walkthrough would mean writing it twice.
+ *     ⚠️ **The guarantee no longer rests on MOUNTING, and that sentence is rewritten rather than moved.**
+ *     It used to read "the provider lives only inside a running session, so with no provider above it
+ *     `useTutorialTargets()` returns a null registry" — true until 3.5.5, and false the moment the
+ *     provider went app-wide so coach-marks could point at controls on Money, Progress and More. A stale
+ *     claim about WHY something is safe is worse than no claim: the next reader trusts it.
+ *
+ *     What holds now: `register` is a ref write into a `Map`, `subscribe`/`invalidate` are a ref-held
+ *     listener set, and the only React state — `activeId` — stays `null` unless something is actively
+ *     coaching. So an ordinary launch mounts the provider, registers nodes into a ref, and changes no
+ *     state at all. Unmount clears each entry through the same ref callback, so the map does not grow.
+ *
+ *  2. **3.5.5 needs the same thing, and now uses it.** The feature-discovery coach-marks point at controls
+ *     all over the app, so this is deliberately not tutorial-arc-specific: ids are free-form strings and
+ *     nothing here knows about beats. Building it as a one-off for the walkthrough would have meant
+ *     writing it twice — the provider moved to the root layout at 3.5.5.1 and both consumers share it.
  *
  * Measurement is by `measure()` (window coordinates) rather than `onLayout` geometry, because what the
  * overlay needs is where the subject is ON SCREEN — which depends on scroll offset, and `onLayout`

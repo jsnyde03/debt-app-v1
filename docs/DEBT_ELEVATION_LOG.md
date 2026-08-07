@@ -3012,3 +3012,77 @@ both the log and the notes, via `MOUNT_SOURCE`.
 Dry-run against cycle 4's real output: MOUNT=11.655, trim at 12.05s, beats at 11.85 / 15.85 / 20.86 /
 25.86 / 31.86 — all inside the 43s recording. **The true cold-launch cost is 8.6 seconds**, which no
 constant would have guessed and which is exactly why the anchor has to be measured.
+
+---
+
+## 3.5.8 — CYCLE 5, and why `blackdetect` is the wrong instrument for THIS app (2026-08-07)
+
+Run 31196425053, green, and everything downstream of the anchor is right: **5 of 5 settled frames
+distinct**, the guard passed, the conform produced a spec-valid file, and the anchor labelled itself
+`measured` rather than silently falling back — the cycle-4 honesty fix working.
+
+**Beat 1's first frame is still black.** blackdetect put first paint at 7.183s; the frame 0.2s later is
+pure black.
+
+### The cause, and it is specific
+
+**The app's dark theme is nearly black.** So "the end of the leading black run" lands on some faint frame
+before any content renders — a status-bar redraw, a shade of near-black crossing the 0.10 threshold. The
+same build measured **8.6s on cycle 3 and 4.2s on cycle 5**. An anchor that unstable is *worse* than a
+fixed guess, because it presents as measured: exactly the failure the cycle-4 fix was written to close,
+reappearing one level down.
+
+### Replaced with something a dark UI cannot fool
+
+Poll `simctl io screenshot` after launch and watch the **file size**. A blank dark screen is tens of KB of
+PNG; a screen carrying cards, type and charts is several hundred — measured on this device family at
+**260KB blank vs 434–806KB with content**. Hue-independent, threshold-free in the perceptual sense, and it
+answers the question actually being asked ("is there content yet?") rather than a proxy for it.
+
+**The trade-off is written into the workflow rather than left to be discovered:** this takes ~12–18
+screenshots *during* the recording, the last landing as the opening beat appears. Earlier cycles took
+mid-record screenshots with no visible artifact, so the risk is judged small — but a hitch in a cut's first
+second should suspect this poll first. 0.5s intervals kept deliberately: the anchor's precision is the
+trim's precision, and the trim decides frame one.
+
+---
+
+## 3.5.5.1 — the coach-mark primitive (2026-08-07)
+
+### The registry moved to the root, and its safety argument was rewritten
+
+`TutorialTargetsProvider` mounted inside a running walkthrough on Today — correct while the walkthrough was
+its only consumer, and useless for coach-marks, which point at controls on Money, Progress and More. It now
+mounts in the root layout; the Today-scoped mount is **deleted** rather than kept, since two providers would
+give the walkthrough a second, shadowing registry.
+
+⚠️ The file's constraint-1 comment justified its inertness with *"the provider lives only inside a running
+session, so with no provider above it `useTutorialTargets()` returns a null registry."* True until this
+change and false immediately after. **Rewritten, not relocated** — a stale explanation of *why* something is
+safe is worse than none, because the next reader trusts it. What holds now: `register` is a ref write,
+`subscribe`/`invalidate` are a ref-held listener set, and the only React state (`activeId`) stays null unless
+something is actively coaching.
+
+**Guarded by the walkthrough's own suite — 28/28**, then the full gate at **133/133 with zero
+`error-context.md`**. That mattered: this is the most heavily audited feature in v1.7 (gate 3.5.3.9, ten
+rounds), and a provider move is exactly the kind of change that passes review and breaks behaviour.
+
+### What the primitive is, and what it deliberately is not
+
+- **`coachMarks`** — a session store so small it is almost a variable. One-at-a-time is enforced **by
+  shape**: `active` is a single id, so a second `show()` is refused rather than queued into a stack of
+  callouts. It is deliberately NOT `tutorialSession`: every containment fence in the app reads that flag, so
+  a coach-mark riding it would have inherited the walkthrough's kiosk — tabs held, More withheld. A
+  discovery hint that fences the app is worse than no hint.
+- **`CoachMarkLayer`** — no scrim, nothing fenced, the control live underneath. The walkthrough dims the
+  screen because it needs your whole attention for seven beats; a discovery hint is the opposite errand —
+  you are mid-task on real money and the app is mentioning something you may not know exists. If the user
+  ignores the hint and taps the thing, that is success, not dismissal. Mounted at the root beside
+  `TutorialCoach`, outside the screens' gesture handlers, for the reason the walkthrough already paid for
+  twice. iOS-16-safe by omission: plain View/Text/Pressable, no blur.
+- **`coachMarkCopy`** — starts with ONE entry, on purpose. Filling it is 3.5.5.4, where each affordance is
+  verified reachable first. Writing the full table now would be authoring marks for controls nobody has
+  re-checked since the inventory drifted — which is precisely how the parked decomposition came to promise
+  an income-varies toggle that did not exist (→ 3.7.A9).
+
+**Gate:** `lint:rn` (0 errors) · regression · app-layer · scenarios · **e2e 133/133, zero failures**.
