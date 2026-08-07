@@ -72,9 +72,14 @@ jobs:
     timeout-minutes: 60
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
-      # The demo's own entry, and the only thing that reaches the scripted run. `?capture=1` strips the
-      # dock — see `demo.tsx`. Both halves already exist; 3.5.8.3 is verification, not construction.
-      DEMO_URL: 'debtplannerrn:///demo?capture=1'
+      # ⚠️ THIS is what starts the demo, and it replaced a deep link that could not.
+      #
+      # Metro inlines `EXPO_PUBLIC_*` at BUILD time, so this build — and only this build — comes up inside
+      # `/demo?capture=1` on its own (`CaptureAutoStart`). Two CI cycles established why the obvious route
+      # does not work: `xcrun simctl openurl` on a custom scheme makes iOS raise
+      # "Open in 'Debt Planner (RN)'?", nothing unattended dismisses it, and it appears even with the app
+      # already frontmost. A LAUNCH raises no such dialog, so the URL is gone from the path entirely.
+      EXPO_PUBLIC_CAPTURE_DEMO: '1'
       APP_ID: 'com.jasonsnyder.debtplanner'
       # Seconds the recorder runs BEFORE the deep link fires. Every raw-file timestamp is this plus the
       # script's own beat time — see the record step.
@@ -179,18 +184,16 @@ jobs:
       # the first Skia surface — outside the recording rather than on the opening frame the video is
       # judged by.
       #
-      # ⚠️ THE APP IS LEFT RUNNING, and that is the fix for cycle 1's failure. Cycle 1 terminated it here,
-      # so `simctl openurl` arrived while SpringBoard was frontmost and iOS put up
-      # **"Open in 'Debt Planner (RN)'?" [Cancel] [Open]** — a confirmation nothing was there to dismiss.
-      # The result was 30 seconds of Home Screen recorded as if it were a store video. That prompt is
-      # SpringBoard asking permission to SWITCH apps; with the app already frontmost there is no switch to
-      # confirm, so the URL is delivered straight to it.
-      - name: Warm the app, and LEAVE IT RUNNING
+      # ⚠️ The app is TERMINATED again, and that is not a revert to cycle 1's mistake — it is required by
+      # the capture flag. This build enters the demo at launch, so the warm run plays the whole script
+      # before the recorder is even attached. The recorded run has to be a fresh launch.
+      - name: Warm the app (pays first-launch costs), then terminate
         run: |
           mkdir -p capture-out
           xcrun simctl launch booted "$APP_ID" || true
-          sleep 20
+          sleep 25
           xcrun simctl io booted screenshot capture-out/warm.png || true
+          xcrun simctl terminate booted "$APP_ID" || true
 
       - name: Record the scripted demo
         run: |
@@ -207,13 +210,13 @@ jobs:
           # here and every offset downstream is derived from it.
           sleep "$PREROLL"
 
-          # The deep link BOTH launches the app and starts the run, so the script's t=0 is HERE — which is
-          # raw-file time $PREROLL, not 0.
-          xcrun simctl openurl booted "$DEMO_URL"
-          # Proof the URL was ACCEPTED rather than parked behind a system prompt. Cheap, and it is the
-          # single frame that would have explained cycle 1 in one glance instead of a log dig.
+          # A LAUNCH, not an open — no system dialog. The build enters `/demo?capture=1` by itself, so the
+          # script's t=0 is HERE: raw-file time $PREROLL, not 0.
+          xcrun simctl launch booted "$APP_ID"
+          # Proof the run actually started, kept because it is what finally explained two failed cycles at
+          # a glance instead of a log dig.
           sleep 2
-          xcrun simctl io booted screenshot capture-out/after-openurl.png || true
+          xcrun simctl io booted screenshot capture-out/after-launch.png || true
 
           # DEMO_STAGES: 0 / 4 / 9 / 14 / 20s, then hold the closing beat long enough to be read. The
           # generous tail is trimmed by the conform, which is cheaper than discovering the video ended
@@ -264,13 +267,29 @@ jobs:
       - name: Fail if the capture never changed (a static recording is not a preview)
         run: |
           cd capture-out
-          distinct=$(md5 -q beat-*-settled.png | sort -u | wc -l | tr -d ' ')
-          echo "distinct settled frames: $distinct of $(ls beat-*-settled.png | wc -l | tr -d ' ')"
-          md5 -q beat-*-settled.png | sort | uniq -c | sort -rn
+          # `shopt -s nullglob` so a missing set yields an empty list rather than the literal glob. Cycle 2
+          # printed "distinct settled frames: 0 of 0" and then blamed identical beats — two different
+          # failures reported as one, in the very step written to make failures legible.
+          shopt -s nullglob
+          frames=(beat-*-settled.png)
+          echo "settled frames found: ${#frames[@]}"
+
+          if [ "${#frames[@]}" -eq 0 ]; then
+            echo "❌ NO frames could be extracted from the recording."
+            echo "   That is not 'the beats look alike' — ffmpeg found nothing at those timestamps, which"
+            echo "   happens when the screen never changed: a static recording carries almost no frames to"
+            echo "   seek to. Look at after-launch.png."
+            exit 1
+          fi
+
+          distinct=$(md5 -q "${frames[@]}" | sort -u | wc -l | tr -d ' ')
+          echo "distinct settled frames: $distinct of ${#frames[@]}"
+          md5 -q "${frames[@]}" | sort | uniq -c | sort -rn
+
           if [ "$distinct" -lt 3 ]; then
             echo "❌ The beats do not differ — the app almost certainly never ran the demo."
-            echo "   Look at after-openurl.png first: a system prompt (\"Open in …?\") means the deep link"
-            echo "   was never delivered, which is exactly how cycle 1 failed."
+            echo "   Look at after-launch.png: anything other than the app's own UI means the run never"
+            echo "   started, which is how both earlier cycles failed."
             exit 1
           fi
           echo "✅ the screen actually changed across beats"
@@ -294,7 +313,7 @@ jobs:
           {
             echo "device: ${SIM_DEVICE:-unknown}"
             echo "appearance: dark"
-            echo "deep link: $DEMO_URL"
+            echo "entry: EXPO_PUBLIC_CAPTURE_DEMO=1 build, launched (no deep link — iOS prompts on those)"
             # The `||` fallbacks again — cycle 1's notes read "trim: start=s duration=s" because `inputs`
             # is empty on a tag push and this line, unlike the conform's, had no default.
             echo "trim: start=${{ inputs.start_offset || '3.6' }}s duration=${{ inputs.duration || '25' }}s"

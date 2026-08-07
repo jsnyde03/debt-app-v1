@@ -20,6 +20,7 @@ import { addNotificationResponseListener, registerNotificationCategories } from 
 import { initErrorReporting, wrapRoot } from '@/utils/sentry';
 import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
 import { DemoDirector } from '@/components/plan/DemoDirector';
+import { CaptureAutoStart } from '@/components/plan/CaptureAutoStart';
 import { DemoCaption } from '@/components/plan/DemoCaption';
 import { DemoDock } from '@/components/plan/DemoDock';
 import { TutorialCoach } from '@/components/plan/TutorialCoach';
@@ -183,6 +184,8 @@ function RootLayout() {
           {/* 3.5.4.7 — the demo's chrome, mounted beside the Stack for the same reason the walkthrough's
               overlay is: it must sit above the navigator (so it covers the iPad rail too) and cannot live
               inside a tab screen. Renders nothing unless a demo is running. */}
+          {/* 3.5.8.3 — a capture build enters the demo on its own; inert everywhere else. */}
+          <CaptureAutoStart />
           <DemoDirector />
           <DemoDock />
           {/* 3.5.8.2 — the closing caption. Beside the dock rather than inside it because it renders on

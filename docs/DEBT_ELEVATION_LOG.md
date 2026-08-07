@@ -2805,3 +2805,88 @@ an exact timestamp out of a recording answers that, which is the CI side's job.
 Skia did paint on web at +3.3s — ring, cash-flow bars and payoff trajectory all present, with coherent
 numbers ($8,160 of $27,600 = 30%). **3.5.8.4b remains genuinely open**, because cycle 1 never rendered the
 app.
+
+---
+
+## 3.5.8.3 — CYCLE 2: the guard worked, the hypothesis did not (2026-08-07)
+
+Run 31181729459 **failed at the distinct-frame guard**, which is the correct outcome and the first thing
+this pipeline has got right about its own honesty: no spec-perfect video of nothing was uploaded, and
+`after-openurl.png` explained the failure at a glance instead of a log dig.
+
+### ⚠️ My cycle-2 hypothesis was wrong, and its own evidence disproved it
+
+Cycle 1's fix reasoned that the prompt was *"SpringBoard asking permission to SWITCH apps; with the app
+already frontmost there is no switch to confirm."* So cycle 2 left the app running.
+
+`after-openurl.png` shows the app **running and frontmost** — its onboarding screen is plainly visible —
+with **"Open in 'Debt Planner (RN)'?" [Cancel] [Open]** on top of it. iOS confirms a custom-scheme open
+regardless of what is frontmost. The mechanism argument was clean and it was simply not how iOS behaves.
+
+Recorded because the wrong reason was as expensive as the wrong fix: a plausible mechanism story is exactly
+what makes a hypothesis feel like it does not need testing.
+
+### The failure mode also taught the guard something
+
+ffmpeg extracted **one** frame, not eight. A recording of a static screen carries almost no frames to seek
+to, so most timestamps resolve to nothing — the step then printed *"distinct settled frames: 0 of 0"* and
+blamed identical beats. **Two different failures reported as one, inside the step written to make failures
+legible.** Now separated: no frames says the recording is static and names the screenshot to open; identical
+frames says the demo never ran.
+
+### ✅ The fix: the URL leaves the path entirely (Jason, 2026-08-07)
+
+`EXPO_PUBLIC_CAPTURE_DEMO=1` is inlined by Metro at **build** time, so the capture build — and only it —
+comes up inside `/demo?capture=1` via `CaptureAutoStart`. **A launch is not an open:** `xcrun simctl launch`
+raises no dialog. This removes the failure class rather than working around it, which is why it beat the two
+alternatives (Maestro tapping "Open" needs a driver warmed inside the recording window; an `idb` coordinate
+tap depends on a tool the runner installs with `|| true`).
+
+Two details that are load-bearing rather than incidental:
+- **`CaptureAutoStart` navigates to `/demo?capture=1`; it does not call `demoSession.start()`.** `demo.tsx`
+  is the one entry — it starts the session, reads chrome off the query param, fires the funnel event and
+  makes the a11y announcement. A second starter would be a second definition of "entering the demo," the
+  precise shape `isDemoReachable()` exists to prevent.
+- **The warm launch now TERMINATES again**, which is not a revert to cycle 1's mistake. A capture build
+  enters the demo *on launch*, so the warm run would play the entire script before the recorder attached.
+  The recorded run has to be a fresh launch.
+
+`isDemoReachable()` also ORs in `CAPTURE_DEMO`, so a capture build still works after the Phase-6 `QA_TOOLS`
+flip — which is exactly the release the App Preview needs re-shooting for.
+
+**Verified before spending a third cycle:** a flagged web export lands on the demo's opening screen from a
+cold, not-onboarded start with the dock stripped; and the unflagged export runs the full e2e gate normally,
+which is the real proof the branch is inert (131 tests would fail en masse if the flag leaked).
+
+**⚠️ Process note, logged because the plan already warned about it.** While waiting on one `test:e2e:rn`
+I started a second — both spawn `serve` on :4319, and the result was a 22-minute run reporting
+"41 passed" of 131 with no failures, i.e. a partial run that exited 0. That is the Phase-4 harness race
+(`DEBT_ELEVATION_PLAN.md` §Phase 4) hit deliberately-but-carelessly, and it produces the same thing this
+whole item has been fighting: **a green exit code covering an incomplete verification.** One runner at a
+time; the gate is not parallel-safe.
+
+### ⚠️ A build-time flag leaked into the NEXT build (2026-08-07) — found the expensive way
+
+Proving `CAPTURE_DEMO` worked meant building a flagged web export. The plain `expo export --platform web`
+that followed **set nothing and still produced a bundle with the flag true.** `EXPO_PUBLIC_*` is inlined at
+build time and Metro's export cache does not treat it as a cache key.
+
+The symptom was maximally misleading: every route auto-entered the demo, so the whole e2e suite failed with
+elements *"resolved but hidden"* — the bounded-run **a11y fence**, working perfectly on screens nobody meant
+to fence. 80 tests down, and the first read of it was "the run is slow."
+
+`expo export --clear` fixed it; route-smoke went 10/10 on the identical spec that had just failed, which is
+what turns a correlation into a cause. Documented at the flag itself, because the production version of this
+is silent and severe: a leaked flag ships an app that boots strangers into a demo of somebody else's money.
+Release builds come off fresh CI clones, so the real exposure is local — but "small" is not "none."
+
+**Two misreadings recorded, since both cost real time:**
+- `test-results/` subdirectories were read as failures. They are created for **attachments** too, and these
+  specs screenshot heavily, so most were residue from earlier runs. The honest signal is `error-context.md`.
+- The earlier "phantom" beat-3 failure was blamed on the harness race. It was almost certainly this cache
+  poisoning — a flagged export had run before it. The race was real and separate; it was not that failure's
+  cause, and attributing it early stopped the search too soon.
+
+**Gate, on a genuinely clean bundle:** `lint:rn` (0 errors) · regression · app-layer · scenarios ·
+**e2e 131/131 in 4.7m with zero `error-context.md`** — count and failure-artifacts agreeing, which is the
+check this whole item keeps proving is worth more than an exit code.
