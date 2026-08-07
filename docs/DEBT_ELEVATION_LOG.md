@@ -3363,3 +3363,36 @@ same fact that killed the declared allowance. 3.5.8.8 still needs a slow-runner 
 
 **Pre-flight re-run before cycle 10:** slate at 2.25s (was 1.32s — the settle, visible), cleared, script ran
 to its closing caption. The `AppState` gate does not strand it where `AppState` is already active.
+
+## 3.5.8.9 CLOSED — CYCLE 10: every beat's first frame is painted (2026-08-07)
+
+Run `app-preview-20260807-10` (31211254519), green in 18m41s. `T0 = 5.267s`, and **the slate recorded
+0.377s against the 0.350s held** — the window was composited when it fired, which is exactly what cycle 9
+got wrong and what the new assertion exists to catch. 5 of 5 distinct settled frames, no extraction fell
+back to the static-tail path. Frame table → the audit doc's cycle-10 section.
+
+**The check that failed in cycles 8 and 9 passes.** `beat-1-FIRST` is a fully painted Money screen —
+`$19,440` across 3 debts, all three cards, the Focus badge. Beats 2, 3 and 5 are painted and correct;
+cycle 9's transient `$790` did not reproduce, like cycle 7's `$1,747` before it. Both were arrival-render
+transients on a slow runner, not wrong numbers.
+
+### ⚠️ The finding that matters more than the fix: cycle 8 was misread, and the correction is load-bearing
+
+`TrajectorySkiaChart` animates over **850ms**; `CushionBarChart` and `JourneyRingChart` animate with it. So
+Progress arriving with an undrawn ring and no curve is the **first frame of a designed reveal** — in a
+store video, a chart drawing itself is the shot, not a defect. Measured at ~1.7s on this runner against a
+6s beat.
+
+But cycle 8 showed byte-identical frames **1.9s apart** with nothing drawn, which an 850ms animation cannot
+produce. One explanation covers both: **on a fast runner the reveal plays; on a starved one the animation
+never starts.** Cycle 8's runner painted 8–11s after launch, cycle 10's in ~1s.
+
+**That is the evidence 3.5.8.8 was missing, and it points at the device.** The simulator's risk was never
+Skia fidelity — 3.5.8.4b settled that and the settled frames are beautiful. It is that a shared runner's
+speed decides whether the motion happens *and nothing in a green run says which one you got*. A fast cycle
+would look perfect, ship, and the next re-shoot after a UI tweak could silently produce a video whose
+charts never draw. The plan's own risk paragraph predicted this shape: the simulator lane is the
+draft/iteration path; the submitted asset wants a device.
+
+**Exit met:** a CI artifact that passes the ASC conform, whose every beat's first frame is painted and
+correct. What remains is Jason's review of the cut and the two decisions.

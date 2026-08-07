@@ -508,4 +508,51 @@ canvas has not healed.
 The 2fps sheet catches Today showing **`$790`** with a half-rendered Guardian card for roughly half a
 second as beat 2 arrives, before settling to the persona's `$2,000`. Brief, but it is a number nobody can
 account for in a store video — the same class as cycle 7's `$1,747`, which did not reproduce. Needs
-settling before the asset is cut.
+settling before the asset is cut. *(Cycle 10: did not reproduce — `beat-2-FIRST` is fully painted at
+`$2,000`. Like `$1,747`, an arrival-render transient on a slow runner, not a wrong number.)*
+
+---
+
+## Capture verification — CYCLE 10 (2026-08-07): every beat's first frame is painted
+
+Run `app-preview-20260807-10` (31211254519), green in 18m41s. **`T0 = 5.267s`, and the slate recorded
+`0.377s` against the `0.350s` the app holds** — so the window was composited when it fired, which is the
+thing cycle 9 got wrong and the new assertion now guards.
+
+| beat | `FIRST` (`T0 + at + 0.80`) |
+|---|---|
+| 1 debts | **Money, fully painted** — `$19,440` across 3 debts, all three cards, the Focus badge |
+| 2 held | **Today, fully painted** — `$2,000`, Guardian "Looks clear this paycheck", Can-I-Afford below |
+| 3 absorbed | **Today, tight** — the Guardian's "A little tight this paycheck" state |
+| 4 trajectory | **Progress**, charts at the start of their reveal (below) |
+| 5 payoff | **Today**, the payoff invitation |
+
+5 of 5 distinct settled frames; no extraction fell back to the static-tail path. **The check cycles 8 and 9
+both failed — "is `beat-1-FIRST` a painted Money screen" — passes.**
+
+### ⚠️ The empty charts are a DESIGNED REVEAL, not a paint stall — and that reframes cycle 8
+
+`TrajectorySkiaChart` animates its progress over **850ms** (`Easing.out(Easing.cubic)`), and
+`CushionBarChart` and `JourneyRingChart` animate alongside it. So Progress arriving with an undrawn ring,
+no bars and no curve is the **first frame of the entrance animation**, which in a store video is
+desirable — a chart drawing itself is the shot.
+
+The 2fps sheet measures the whole reveal at **~1.7s** on this runner (Progress arrives ≈19.3s, charts
+complete ≈21.0s) against a 6s beat.
+
+**But cycle 8 showed byte-identical frames 1.9s apart with nothing drawn**, which an 850ms animation
+cannot produce. The two observations reconcile into one explanation with a sharp consequence:
+
+> On a fast runner the reveal plays and the footage is good. On a slow runner the JS/UI thread is starved,
+> **the animation does not start at all**, and the same beat is a still, empty chart. Cycle 8's runner
+> painted 8–11s after launch; cycle 10's painted in ~1s.
+
+### → This is the evidence 3.5.8.8 was missing
+
+The simulator's risk was never Skia *fidelity* — 3.5.8.4b settled that, and cycle 10's settled frames are
+beautiful. It is that a shared CI runner's speed decides whether the motion happens, and nothing in a green
+run says which one you got. A device removes that variable. **The honest reading is the one the plan
+predicted: the simulator lane is the draft/iteration path, and the submitted asset wants a device.**
+
+⚠️ Note what would happen without this: a cycle that ran fast would look perfect, ship, and the next
+re-shoot after a UI tweak could silently produce a video whose charts never draw.
