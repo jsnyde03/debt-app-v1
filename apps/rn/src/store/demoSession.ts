@@ -37,7 +37,17 @@ interface DemoSessionState {
    * marketing embed does have a viewer, and will want it.
    */
   chrome: boolean;
-  start: (opts?: { chrome?: boolean }) => void;
+  /**
+   * 3.5.8.9 — the pending clock start, or null once it has run (or was never held).
+   *
+   * Non-null means the opening state is on screen and the script's timers have NOT begun. Only a capture
+   * build holds it, and only `CaptureSlate` releases it — after the route has actually painted, which is
+   * the guarantee cycle 8 proved the mount-time clock could not give.
+   */
+  startClock: (() => void) | null;
+  start: (opts?: { chrome?: boolean; holdClock?: boolean }) => void;
+  /** Begin the script's clock. Idempotent, and a no-op when nothing was held. */
+  releaseClock: () => void;
   end: () => void;
 }
 
@@ -46,6 +56,7 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
   sandbox: null,
   stage: null,
   chrome: true,
+  startClock: null,
 
   start(opts) {
     if (get().active) return; // re-entry is a no-op, not a second sandbox
@@ -54,10 +65,18 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
     // block this demo's own route guard opens, so a deep link can reach it.
     if (!claimRun('demo')) return;
     const sandbox = createSandboxStore(demoScenario(DEMO_STAGES[0]));
-    set({ active: true, sandbox, stage: DEMO_STAGES[0].id, chrome: opts?.chrome !== false });
+    const hold = opts?.holdClock === true;
+    set({ active: true, sandbox, stage: DEMO_STAGES[0].id, chrome: opts?.chrome !== false, startClock: null });
     // Scheduled against THIS sandbox: if the demo ends and another starts, the old run's steps must not
     // land on the new one's store.
-    playDemoRun(
+    //
+    // ⚠️ Called AFTER the `set` above, not before, and the ordering is the one this file already argues
+    // for: `playDemoRun` applies stage 0 synchronously, which fires `onStage` — and that must not land
+    // while `active` is still false. `startClock` is set in a second `set` below because it is the one
+    // field that cannot be known until this call returns; a frame where the run is live and the clock is
+    // merely not-yet-holdable is inert (the slate simply has not been offered its cue), which is not true
+    // of `active`/`sandbox`.
+    const startClock = playDemoRun(
       sandbox,
       () => demoSession.getState().sandbox === sandbox,
       (s) => {
@@ -67,7 +86,16 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
         // the end" as a separate later signal would only ever be inferred from an exit that never came.
         if (s.id === DEMO_STAGES[DEMO_STAGES.length - 1].id) track({ name: 'demo_completed' });
       },
+      { holdClock: hold },
     );
+    if (hold) set({ startClock });
+  },
+
+  releaseClock() {
+    const start = get().startClock;
+    if (!start) return;
+    set({ startClock: null });
+    start();
   },
 
   /**
@@ -82,7 +110,10 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
     // backstop.
     clearStoryTimers();
     releaseRun('demo');
-    set({ active: false, sandbox: null, stage: null, chrome: true });
+    // `startClock` is cleared here too: a held clock outliving its session would be a starter that
+    // schedules a whole script over a sandbox that no longer exists. Its own staleness guard refuses that
+    // anyway — this makes the teardown the reason rather than the backstop, exactly as the ordering above.
+    set({ active: false, sandbox: null, stage: null, chrome: true, startClock: null });
   },
 }));
 

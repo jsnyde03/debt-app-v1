@@ -122,17 +122,52 @@ export function demoScenario(stage: DemoStage): SandboxScenario {
  * The first stage is applied SYNCHRONOUSLY: it is the frame the viewer sees on arrival, and scheduling it
  * would show them the sandbox's default state for a beat first — which on a capture is a wasted opening
  * frame, and in the app is a flicker.
+ *
+ * **Returns the thing that starts the CLOCK** (3.5.8.9). `stage.at` is measured from the moment the timers
+ * begin, and until cycle 8 that moment was the root layout's mount — seconds before a cold launch on a
+ * shared CI runner paints anything, so the script ran ahead of the screen and the beats advanced against a
+ * tree that had not rendered. `holdClock` separates "the opening state exists" from "the clock is running",
+ * which is the only way a beat can be guaranteed to land on something painted. Nothing in the app passes
+ * it; the capture does.
+ *
+ * With `holdClock` unset the returned starter has already run, and calling it is a no-op — so a caller
+ * that ignores the return value behaves exactly as before.
  */
-export function playDemoRun(sandbox: SandboxStoreInstance, isCurrent: () => boolean, onStage?: (stage: DemoStage) => void): void {
-  DEMO_STAGES.forEach((stage) => {
-    const apply = () => {
-      seedSandbox(sandbox, demoScenario(stage));
-      // AFTER the seed — priming shapes the state the scenario just laid down, so seeding second would
-      // discard it.
-      stage.prime?.(sandbox);
-      onStage?.(stage);
-    };
-    if (stage.at === 0) apply();
-    else scheduleStoryStep(stage.at, isCurrent, apply);
-  });
+export function playDemoRun(
+  sandbox: SandboxStoreInstance,
+  isCurrent: () => boolean,
+  onStage?: (stage: DemoStage) => void,
+  opts?: { holdClock?: boolean },
+): () => void {
+  const apply = (stage: DemoStage) => {
+    seedSandbox(sandbox, demoScenario(stage));
+    // AFTER the seed — priming shapes the state the scenario just laid down, so seeding second would
+    // discard it.
+    stage.prime?.(sandbox);
+    onStage?.(stage);
+  };
+
+  const schedule = () => {
+    DEMO_STAGES.forEach((stage) => {
+      if (stage.at !== 0) scheduleStoryStep(stage.at, isCurrent, () => apply(stage));
+    });
+  };
+
+  apply(DEMO_STAGES[0]);
+
+  if (!opts?.holdClock) {
+    schedule();
+    return () => {};
+  }
+
+  // Once. A second release would schedule the whole script a second time over the first — every beat
+  // firing twice, the later copy landing mid-capture.
+  let released = false;
+  return () => {
+    // The same staleness guard the steps themselves carry: a release that arrives after the session was
+    // torn down must not resurrect its timers.
+    if (released || !isCurrent()) return;
+    released = true;
+    schedule();
+  };
 }

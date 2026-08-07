@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 
 import { track } from '@/analytics/funnel';
 import { EXAMPLE_MONEY } from '@/components/plan/ExampleCanvasMarker';
-import { isDemoReachable } from '@/config/qa';
+import { CAPTURE_DEMO, isDemoReachable } from '@/config/qa';
 import { DEMO_STAGES } from '@/store/demoRun';
 import { demoSession } from '@/store/demoSession';
 import { announce } from '@/utils/a11y';
@@ -37,7 +37,16 @@ export default function DemoEntry() {
     if (!enabled) return;
     // `?capture=1` strips the demo's own chrome — the App-Preview pipeline (3.5.8) launches with it, the
     // marketing embed (3.5.7) does not.
-    demoSession.getState().start({ chrome: capture !== '1' });
+    //
+    // 3.5.8.9 — the clock is held on `CAPTURE_DEMO`, NOT on `?capture=1`, and the distinction is the
+    // whole correctness argument. `CaptureSlate` is the only thing that releases a held clock and it is
+    // inlined out of every non-capture build, so holding on the query param strands the run forever
+    // anywhere else — which is exactly what it did: the e2e drives `/demo?capture=1` against the web
+    // export, where there is no capture flag, and the demo sat on beat 1 for the whole spec.
+    //
+    // Two conditions that must agree are one condition. `?capture=1` keeps the job it can do alone —
+    // stripping the chrome, which 3.5.7's marketing embed will also want without being a capture build.
+    demoSession.getState().start({ chrome: capture !== '1', holdClock: CAPTURE_DEMO });
     setStarted(true);
     // `?from=` names the entry, because the funnel's first question is which door people come through and
     // the route cannot infer it. Anything unrecognised is `direct` rather than trusted — a query string is

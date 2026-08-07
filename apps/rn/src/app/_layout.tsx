@@ -21,6 +21,7 @@ import { initErrorReporting, wrapRoot } from '@/utils/sentry';
 import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
 import { DemoDirector } from '@/components/plan/DemoDirector';
 import { CaptureAutoStart } from '@/components/plan/CaptureAutoStart';
+import { CaptureSlate } from '@/components/plan/CaptureSlate';
 import { DemoCaption } from '@/components/plan/DemoCaption';
 import { DemoDock } from '@/components/plan/DemoDock';
 import { CoachMarkLayer } from '@/components/plan/CoachMarkLayer';
@@ -205,6 +206,11 @@ function RootLayout() {
           {/* 3.5.5.1 — beside the walkthrough's coaching layer, for the same reason: above the navigator
               and outside the screens' gesture handlers. Renders nothing unless a mark is active. */}
           <CoachMarkLayer />
+          {/* 3.5.8.9 — the capture's slate, and it is mounted LAST on purpose. Everything above may paint
+              over what precedes it, and a slate with any content showing through is a slate the detector
+              cannot trust — its entire premise is that nothing else in the recording looks like a full
+              white frame. Renders nothing outside a capture build. */}
+          <CaptureSlate />
           </TutorialTargetsProvider>
           </TutorialShellProvider>
           {/* 3.6.6 — iPad hardware ⌘-shortcuts (inert on iPhone/touch + web). Only meaningful once past

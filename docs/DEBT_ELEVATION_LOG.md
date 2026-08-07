@@ -3184,3 +3184,135 @@ one glance is a different thing from a wrong measurement that looks authoritativ
 "Nudge your line down anytime" line, the safety-net/cushion split, Can-I-Afford below. ⚠️ **Noted for the
 review step:** the paycheck reads **$1,747**, not the persona's $2,000 that every web reference shows.
 Unexplained, and not chased here — but a store video must not show a number nobody can account for.
+
+## 3.5.5 — the remaining decomposition, parked while 3.5.8.9 runs (2026-08-07)
+
+The plan carries 3.5.5 as one terse row while 3.5.8.9 is the live sequence; the steps live here and are
+retrieved at resume.
+
+**Switch-in re-verification, done 2026-08-07 against the current code** (the parked decomposition was dated
+2026-08-06): **.1 was de-risked** — `store/tutorialTargets.tsx` had been built for this by design (*"3.5.5
+needs the same thing… ids are free-form strings and nothing here knows about beats"*), so the work was
+mounting its provider app-wide **without losing the inert-when-no-tutorial guarantee**, not building a
+second measuring system. **.2's premise had DRIFTED** — the "VIS-4 single-ack slot" is a Today-local
+ternary chain, not an app-wide coordinator, and its own comment records that the ranking "only governs the
+FALLBACK now"; coach-marks live on Money/Progress/More, where that slot has no reach. **The income-varies
+toggle now EXISTS** — it did not resolve at the 2026-08-06 scan, which is what surfaced 3.7.A9.
+
+| # | Step |
+|---|---|
+| 3.5.5.3 | **Seen-persistence + a replay entry** in More, mirroring the walkthrough's. A discovery layer nobody can re-open is a one-shot |
+| 3.5.5.4 | **The corrected inventory** — long-press menu · Cash-Runway scrub · Can-I-Afford · swipe-to-delete · chart scrub · **What-If** (the collapsed extra-payment tool, distinct from the scrub) · Log-payment · scan-a-statement · **income-varies (new, via A9)** · widget/Lock-Screen/Siri. Each verified reachable before it gets a mark. ⚠️ **Start from a fresh read** — this inventory has been wrong once already |
+| 3.5.5.5 | **Payoff schedule: fix L5, then mark it** — the entry 3.7.A0 moved for discoverability is off-screen on the biggest phone Apple sells, directly above a destructive Remove |
+| 3.5.5.6 | **Verify + close** — both themes · a11y (a mark must not fence the control it points at) · e2e · native lane |
+
+**Exit:** every hidden affordance that EXISTS has one calm, dismissible, replayable mark; none fires
+alongside another ack; and no mark points at a control the user cannot reach.
+
+## 3.5.8 — CYCLE 8: the mechanics are fixed, and they revealed the real defect (2026-08-07)
+
+Run `app-preview-20260807-08` (31202129089), green in 27m05s. Frame-by-frame review → the audit doc's
+**"Capture verification — CYCLE 8"** section, which carries the full table and the byte sizes.
+
+**The three cycle-7 fixes all worked:** the contact sheet renders, the accurate seek returned 8 of 10
+frames instead of 3 of 5, and **the `$1,747` did not reproduce** — beat 5 reads `$2,000`, matching every
+web reference. Closed as not-reproducing rather than explained.
+
+### ❌ And the video is still not usable — for a bigger reason than the in-point
+
+The frames, at `MOUNT=8.00s`: **8.20s black · 11.30s Money painted · 15.30s Today with an EMPTY BODY ·
+20.30s Progress with its Skia geometry ABSENT · 25.30s Progress fully painted · 28.20s the payoff beat,
+correct.** The pairs at 11.30/12.20, 15.30/17.20 and 20.30/22.20 are **byte-identical**, so those were not
+mid-animation samples — the screen was genuinely static and blank across each window.
+
+Two thirds of a 25-second store video is an app that has not finished rendering.
+
+### The anchor was never a constant, and two cycles prove it
+
+Cycle 7 (allowance 9) worked back to a paint at **under 8.2s**. Cycle 8 (allowance 5) measured a paint at
+**~11s** — same build, same recipe, ~3s apart. `LAUNCH_ALLOWANCE` cannot be tuned into correctness because
+it is estimating a quantity that moves.
+
+### One cause under all of it
+
+`CaptureAutoStart` fires on the root layout's mount and `playDemoRun` starts its wall clock there, seconds
+before a cold launch on a shared runner paints anything. **The script runs ahead of the screen.** Black
+opening, empty Today, geometry-less Progress — all one fact, which is also why three attempts to *infer*
+the anchor from the recording each failed differently. The recording cannot be asked when the app was
+ready; only the app knows.
+
+⚠️ **The 2026-08-06 hypothesis that the unpainted Skia was web-only is DISPROVED** — it is on the native
+simulator, at two consecutive samples, on the beat the whole video exists for.
+
+⚠️ **`warm.png` looks flawless and does not discriminate.** Same script, same per-stage re-seeds, perfect
+at 25s — but that is a settled frame, not an arrival frame. So it says the app is fine and says nothing
+about the arrival lag, and 3.5.8.8 (sim vs device) is not decidable from it: runner CPU starvation would
+vanish on a device, `seedSandbox` blanking the tree on every stage would not.
+
+**Residual, smaller:** `beat-5-settled` (31.30s) still extracts nothing — the same static-tail shape the
+accurate seek fixed everywhere else.
+
+## 3.5.8.9 — the app states the moment, and the pipeline stops guessing it (2026-08-07)
+
+Jason chose the **slate** over settle-only and a log timestamp: white is unambiguous against a near-black
+theme, it is a fact the app *asserts* rather than one inferred from pixels, and it is trimmed out by
+construction.
+
+**What shipped.** `playDemoRun` now separates "the opening state exists" from "the clock is running" and
+returns the starter; `demoSession` holds it in `startClock` and `releaseClock()` runs it once.
+`CaptureSlate` waits for two frames plus a drained interaction queue, shows one opaque white view for
+350ms, and hides-and-releases in the same commit — so the frame the slate stops covering IS the script's
+t=0. The workflow finds it with `negate,blackdetect` (there is no `whitedetect`; `pic_th=0.90` because the
+Dynamic Island inverts to a bright ~1% patch), derives the trim and every extraction offset from it, and
+**fails loudly with no fallback** if it is absent. `LAUNCH_ALLOWANCE` is deleted rather than retuned.
+
+### Why deletion, not a better constant
+
+Cycle 7 worked back to a paint under 8.2s; cycle 8 measured ~11s. Same build, same recipe. Four strategies
+had tried to recover that number FROM the recording — a guessed constant, `blackdetect`, screenshot
+polling, a declared allowance — and the two independent measurements settle the question: the recording
+does not contain it. Only the app knows, so the app says so.
+
+⚠️ **The property that matters is not precision, it is the failure shape.** If the settle before the slate
+is too short, the slate lands early and the cut opens early — graded. The old constant being wrong by 3s
+put the trim on black and every extracted frame on the wrong beat, with nothing in the artifact saying so.
+
+### ❌ The bug this introduced, and the rule it produced
+
+The hold was keyed on `?capture=1` and the release on `CAPTURE_DEMO`. Those are not the same condition:
+`CaptureSlate` is inlined out of every non-capture build, so on the web export the e2e drives
+`/demo?capture=1` into a run whose clock nothing could ever start. Two specs failed on a demo frozen at
+beat 1.
+
+**Two conditions that must agree are one condition.** The hold now reads `CAPTURE_DEMO`, the same flag that
+decides whether a releaser exists; `?capture=1` keeps only the job it can do alone (stripping chrome,
+which 3.5.7's embed will want without being a capture build). And the releaser is deliberately NOT gated on
+`CAPTURE_DEMO`, so "anything held is always released" holds by construction rather than by two flags
+staying in sync.
+
+Also caught by inspection: the slate is mounted **last** in the layout. It had been placed beside
+`CaptureAutoStart`, where four overlays render after it — and a slate with anything showing through is a
+slate the detector cannot trust.
+
+### ✅ Proved before spending a cycle
+
+A capture-flagged web export, served, driven by a ~40-line script: the white overlay appeared at **1.32s**
+(after the app painted), held to 1.59s, cleared, and the script ran through to its closing caption. The
+JPEG of those frames collapsed to **3,147 bytes** against 19,265 for the transitional one — independent
+confirmation the frame really is flat white, which is the detector's entire premise.
+
+Four minutes, and it would have caught the condition split before CI. Eight cycles at ~27 minutes have
+been spent on this class of thing. Filed to the backlog as a permanent pre-flight rather than folded in —
+it has to handle the `EXPO_PUBLIC_*` cache footgun and restore the clean bundle, which is a workstream.
+(The flagged bundle was replaced with `expo export --clear` and the leak verified absent; the serve on
+:4321 was identified by PID and closed.)
+
+### What this does NOT fix
+
+The empty Today on beats 2–3 is a **post-navigation** paint lag, not a launch one — the slate anchors the
+timeline, it does not make a screen render faster. So the contact sheet went 1fps → **2fps**: the next
+artifact measures how long each screen actually takes to paint after the script moves, which is the
+evidence 3.5.8.8 (simulator vs device) needs and does not currently have.
+
+**Gate:** `lint:rn` · `test:regression` · `test:app` (29 assertions, up from 18) · `test:scenarios` ·
+`test:e2e:rn` **133/133**.

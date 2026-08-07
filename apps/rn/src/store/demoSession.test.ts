@@ -99,6 +99,65 @@ function run() {
   assert(DEMO_STAGES[0].at === 0, 'the opening stage is applied synchronously');
   assert(DEMO_STAGES.every((s, i) => i === 0 || s.at > DEMO_STAGES[i - 1].at), 'stages are strictly ordered in time');
 
+  // ── 3.5.8.9 — the held clock ────────────────────────────────────────────────────────────────────
+  //
+  // `stage.at` is measured from the moment the timers begin, and until cycle 8 that moment was the root
+  // layout's MOUNT — seconds before a cold launch on a shared CI runner paints anything. The script ran
+  // ahead of the screen: the store video opened on black, and two of its five beats were captured against
+  // a tree that had not rendered.
+  //
+  // Asserted on WHETHER TIMERS WERE SCHEDULED, not by waiting for one. A test that slept four seconds to
+  // watch a beat land would be slow and would still only prove the happy path; what actually breaks under
+  // a refactor is the count — nothing scheduled while held, everything scheduled once on release, and
+  // never twice.
+  const realSetTimeout = globalThis.setTimeout;
+  let scheduled = 0;
+  globalThis.setTimeout = ((fn: unknown, ms?: number) => {
+    scheduled += 1;
+    void fn;
+    void ms;
+    // A real (immediately-resolved, empty) timer, so `clearStoryTimers` still has something to clear.
+    return realSetTimeout(() => {}, 0);
+  }) as typeof globalThis.setTimeout;
+
+  const BEATS_AFTER_THE_FIRST = DEMO_STAGES.length - 1;
+
+  try {
+    scheduled = 0;
+    demoSession.getState().start({ holdClock: true });
+    assert(demoSession.getState().startClock !== null, 'holdClock leaves a clock to be started');
+    assert(scheduled === 0, 'a HELD clock schedules nothing — the beats wait for the screen');
+    assert(demoSession.getState().stage === DEMO_STAGES[0].id, 'the opening state is applied anyway, so the slate has something to cover');
+
+    demoSession.getState().releaseClock();
+    assert(scheduled === BEATS_AFTER_THE_FIRST, 'releasing schedules every remaining beat');
+    assert(demoSession.getState().startClock === null, 'a released clock is no longer holdable');
+
+    demoSession.getState().releaseClock();
+    assert(scheduled === BEATS_AFTER_THE_FIRST, 'releasing twice does not run the script twice');
+    demoSession.getState().end();
+    assert(demoSession.getState().startClock === null, 'end() clears a pending clock');
+
+    // Unheld is the app's path and must be untouched: the clock starts at `start()`, exactly as before.
+    scheduled = 0;
+    demoSession.getState().start();
+    assert(demoSession.getState().startClock === null, 'without holdClock there is nothing to release');
+    assert(scheduled === BEATS_AFTER_THE_FIRST, 'without holdClock every beat is scheduled immediately');
+    demoSession.getState().end();
+
+    // A starter that outlives its session must not resurrect it. Reachable in principle: the slate's
+    // timeout is cancelled on unmount, but a release racing a teardown would otherwise schedule a whole
+    // script over a sandbox that no longer exists.
+    demoSession.getState().start({ holdClock: true });
+    const stale = demoSession.getState().startClock!;
+    demoSession.getState().end();
+    scheduled = 0;
+    stale();
+    assert(scheduled === 0, 'a starter that outlives its session cannot resurrect the script');
+  } finally {
+    globalThis.setTimeout = realSetTimeout;
+  }
+
   console.log(`✅ demo session: ${passed} assertions passed.\n`);
 }
 

@@ -42,9 +42,9 @@ on:
   workflow_dispatch:
     inputs:
       start_offset:
-        description: 'Seconds to trim off the front of the RAW file. Must clear the pre-roll (3s) plus the launch/redirect frames.'
+        description: 'Override the in-point (seconds into the RAW file). Leave EMPTY — the slate is found automatically. Only set this after watching a cut and wanting a different opening frame.'
         required: false
-        default: '3.6'
+        default: ''
       duration:
         description: 'Length of the conformed video in seconds (Apple allows 15-30)'
         required: false
@@ -83,10 +83,12 @@ jobs:
       APP_ID: 'com.jasonsnyder.debtplanner'
       # Seconds the recorder runs BEFORE the app is launched.
       PREROLL: '3'
-      # How long the app is assumed to take from launch to first painted frame. A DECLARED CONSTANT, after
-      # two attempts to measure it automatically were withdrawn (see the record step). Verify it against
-      # `contact-sheet.jpg` in the artifact and change this one number if the cut opens wrong.
-      LAUNCH_ALLOWANCE: '5'
+      # ⚠️ `LAUNCH_ALLOWANCE` IS GONE (3.5.8.9), and deleting it rather than retuning it is the fix.
+      #
+      # It was the fourth attempt to answer "where does the script start in the raw file", after a guessed
+      # constant, `blackdetect` and screenshot polling. Cycles 7 and 8 then measured the same build's paint
+      # moment **3 seconds apart** — so it was not a number that was set wrong, it was a number that does
+      # not exist. The app now marks the moment itself (`CaptureSlate`), and the step below FINDS it.
     defaults:
       run:
         working-directory: apps/rn
@@ -213,85 +215,117 @@ jobs:
           # here and every offset downstream is derived from it.
           sleep "$PREROLL"
 
-          # A LAUNCH, not an open — no system dialog. The build enters `/demo?capture=1` by itself, so the
-          # script's t=0 is when it PAINTS, which is what the poll below measures.
-          LAUNCH_AT=$(date +%s.%N)
+          # A LAUNCH, not an open — no system dialog. The build enters `/demo?capture=1` by itself, holds
+          # the script's clock until the opening screen has painted, flashes one white frame at that
+          # moment, and starts the beats as it clears. Nothing here has to estimate any of that.
           xcrun simctl launch booted "$APP_ID"
 
-          # ⚠️ A FIXED ALLOWANCE, and the reasons the two "smarter" answers were withdrawn.
-          #
-          # `blackdetect` (cycle 5): this app's dark theme is nearly black, so the end of the leading
-          # black run lands on a faint frame before content renders — 8.6s on one cycle, 4.2s on the next,
-          # for the same build.
-          #
-          # Screenshot polling (cycle 6): `simctl io screenshot` costs ~1.4s per call, so a loop written as
-          # "0.5s intervals, 20s maximum" actually ran **54.7 seconds** — the demo's entire 20s script
-          # played out while the poll was still looking for its start, and the run produced no usable
-          # frames at all. The guard caught it; the idea was simply wrong.
-          #
-          # So: a generous constant, declared as a constant. It is verifiable from the contact sheet the
-          # conform step emits, and correctable in one place — which beats a clever measurement that is
-          # wrong in a way nobody can see.
-          MOUNT=$(awk -v p="$PREROLL" -v l="$LAUNCH_ALLOWANCE" 'BEGIN{printf "%.2f", p + l}')
-          echo "MOUNT_SOURCE=fixed-allowance" >> "$GITHUB_ENV"
-          echo "MOUNT=$MOUNT" >> "$GITHUB_ENV"
-          echo "assuming the app paints ${LAUNCH_ALLOWANCE}s after launch → raw ${MOUNT}s (verify on the contact sheet)"
-
-          # DEMO_STAGES: 0 / 4 / 9 / 14 / 20s — but the script's clock starts at MOUNT, and a cold launch
-          # spends several seconds black before that. Cycle 3 measured the whole timeline landing ~5s later
-          # than a preroll-only model predicted, which put the closing beat past the end of the cut. The
-          # tail is generous on purpose; the conform trims it, and that is far cheaper than discovering the
-          # video stopped before its own ending.
-          sleep 40
+          # DEMO_STAGES: 0 / 4 / 9 / 14 / 20s, measured from the slate — plus a cold launch, plus the
+          # settle before the slate. The tail is generous on purpose; the conform trims it, and that is far
+          # cheaper than discovering the video stopped before its own ending. It also has to outlast the
+          # LAST settled frame (slate + 20 + 3.3), or the extraction below falls back to a stale frame.
+          sleep 45
 
           kill -INT "$REC_PID" 2>/dev/null || true
           wait "$REC_PID" 2>/dev/null || true
           ls -la capture-out/
 
+      # ⚠️ THE SHEET COMES FIRST, BEFORE ANYTHING CAN FAIL.
+      #
+      # Every wrong anchor so far was discovered by downloading the artifact and opening a PNG, and the one
+      # cycle that produced the sheet is the one that made the timeline legible in a glance. So it is
+      # emitted immediately after the recording — if the anchor step below fails, the sheet is still in the
+      # artifact to say why.
+      #
+      # **TWO frames per second, not one** (3.5.8.9). Cycle 8's 1fps sheet proved the beats were landing on
+      # unpainted screens but could not say for how long — and "how long does this app take to paint after
+      # a navigation on a shared runner" is exactly the measurement 3.5.8.8 (simulator vs device) needs.
+      - name: Contact sheet (the first 40s, two frames per second)
+        if: always()
+        run: |
+          ffmpeg -y -hide_banner -loglevel error -i capture-out/raw.mov \
+            -vf "fps=2,scale=176:-2,tile=10x8" \
+            -frames:v 1 capture-out/contact-sheet.jpg || echo "(contact sheet unavailable)"
+          ls -la capture-out/contact-sheet.jpg || true
+
+      # ⚠️ THE ANCHOR IS FOUND, NOT DECLARED — and this is the fifth attempt, which is why it works
+      # differently from the four before it (3.5.8.9).
+      #
+      # A guessed constant, `blackdetect`, screenshot polling and a declared `LAUNCH_ALLOWANCE` all tried to
+      # RECOVER the script's start from the recording. Cycles 7 and 8 then measured the same build's paint
+      # moment 3 seconds apart, which settles it: the recording does not contain that number. So the app
+      # states it — `CaptureSlate` holds one full-white frame for 350ms once the opening screen has
+      # actually painted, and starts the beats as it clears.
+      #
+      # `negate` then `blackdetect`, because there is no `whitedetect`. Inverted, the slate is the only run
+      # of near-black in a file whose content is a dark UI — the exact inversion of why `blackdetect` alone
+      # failed on this app. `pic_th=0.90` (not the 0.98 default) because the Dynamic Island renders as a
+      # black pill, which inverts to a bright patch of about 1% of the frame.
+      - name: Find the slate (the frame the app said "I am painted")
+        run: |
+          DET=$(ffmpeg -hide_banner -nostats -i capture-out/raw.mov \
+                  -vf "negate,blackdetect=d=0.15:pix_th=0.12:pic_th=0.90" -an -f null - 2>&1 || true)
+          echo "$DET" | grep -o 'black_start:[0-9.]* black_end:[0-9.]* black_duration:[0-9.]*' || true
+          T0=$(echo "$DET" | grep -o 'black_end:[0-9.]*' | head -1 | cut -d: -f2)
+
+          # ⚠️ NO FALLBACK. Four cycles shipped a confident wrong number and reported success; a silent
+          # default here would make that five. If the slate is not in the file, the run has nothing to
+          # anchor to and says so — the contact sheet is already uploaded.
+          if [ -z "$T0" ]; then
+            echo "❌ No slate found in the recording."
+            echo "   The capture build should flash one full-white frame the moment its opening screen"
+            echo "   paints. Not finding it means one of: the app never reached /demo?capture=1, the"
+            echo "   opening screen never painted, or EXPO_PUBLIC_CAPTURE_DEMO did not reach the bundle."
+            echo "   Open contact-sheet.jpg in the artifact — a white tile answers which."
+            exit 1
+          fi
+
+          echo "T0=$T0" >> "$GITHUB_ENV"
+          echo "✅ slate ends at ${T0}s — the script's t=0, measured rather than assumed"
+
       # 3.5.8.7's evidence, taken from the RAW recording rather than the trimmed one so the offsets are
       # the script's own. The hard requirement this exists for: an empty Skia chart in a store video is
       # worse than no video, and the unpainted-canvas defect (3.5.8.4b) is a FIRST-FRAME artifact — so
       # each frame is pulled just after its beat lands, where the defect would be, not mid-beat where it
-      # would have healed.
+      # would have healed. **Cycle 8 confirmed it is NOT web-only**, so this evidence is the gate.
       - name: Pull the first frame of every beat
         run: |
-          # Beat times are the SCRIPT's (DEMO_STAGES); raw-file time is that plus MOUNT — the measured
-          # moment the app painted, not a guess. Named per beat so a reviewer opening the artifact sees
-          # which beat they are looking at without doing the arithmetic.
-          # ⚠️ `-ss` goes AFTER `-i`, which is the slow accurate seek rather than the fast keyframe one.
-          # Cycle 7 extracted only 3 of 5 settled frames: once the script ends the screen is static, the
-          # encoder emits almost no frames, and a keyframe seek into that tail lands on nothing. Decoding
-          # from the start costs a second on a 45s file and always yields the requested frame.
+          # Beat times are the SCRIPT's (DEMO_STAGES); raw-file time is that plus T0, the slate.
+          #
+          # `-ss` goes AFTER `-i` — the accurate seek, not the fast keyframe one (cycle 7's fix). But that
+          # is not sufficient on its own: once the script ends the screen is static and the recorder emits
+          # NO further frames, so cycle 8 still lost the last settled frame. Seeking past the final frame
+          # cannot return anything.
+          #
+          # So when a seek comes back empty, fall back to the last frame at or BEFORE the target. On a
+          # static screen that is not an approximation — it is literally what was on screen at that moment,
+          # and it is a far better answer than the silent gap that made cycle 8's evidence partial.
+          grab() {
+            ffmpeg -y -hide_banner -loglevel error -i capture-out/raw.mov -ss "$1" -frames:v 1 "$2" 2>/dev/null || true
+            if [ ! -s "$2" ]; then
+              ffmpeg -y -hide_banner -loglevel error -i capture-out/raw.mov \
+                -vf "select='lte(t,$1)'" -fps_mode passthrough -update 1 "$2" 2>/dev/null || true
+              if [ -s "$2" ]; then
+                echo "  ↳ $(basename "$2"): no frame at ${1}s, used the last one before it (the screen was static)"
+              else
+                echo "  ↳ $(basename "$2"): NO FRAME at ${1}s and none before it"
+              fi
+            fi
+          }
+
           beats="1-debts:0 2-held:4 3-absorbed:9 4-trajectory:14 5-payoff:20"
           for entry in $beats; do
             name="${entry%%:*}"; at="${entry##*:}"
-            first=$(awk -v p="$MOUNT" -v a="$at" 'BEGIN { printf "%.2f", p + a + 0.20 }')
-            late=$(awk -v p="$MOUNT" -v a="$at"  'BEGIN { printf "%.2f", p + a + 3.30 }')
+            first=$(awk -v p="$T0" -v a="$at" 'BEGIN { printf "%.2f", p + a + 0.20 }')
+            late=$(awk -v p="$T0" -v a="$at"  'BEGIN { printf "%.2f", p + a + 3.30 }')
             # The FIRST frame after the beat lands is the one that matters: 3.5.8.4b's unpainted Skia is a
             # first-frame artifact, so a mid-beat sample would show it already healed and report a defect
             # as absent.
-            ffmpeg -y -hide_banner -loglevel error -i capture-out/raw.mov -ss "$first" -frames:v 1 \
-              "capture-out/beat-${name}-FIRST.png" || echo "(no frame for $name at ${first}s)"
+            grab "$first" "capture-out/beat-${name}-FIRST.png"
             # …and a settled frame, so "never painted" can be told apart from "painted a moment later".
-            ffmpeg -y -hide_banner -loglevel error -i capture-out/raw.mov -ss "$late" -frames:v 1 \
-              "capture-out/beat-${name}-settled.png" || echo "(no frame for $name at ${late}s)"
+            grab "$late"  "capture-out/beat-${name}-settled.png"
           done
           ls -la capture-out/
-
-      # ⚠️ THE THING THAT MAKES A WRONG ANCHOR VISIBLE IN ONE GLANCE.
-      #
-      # Three anchor strategies have now been wrong (a guessed constant, `blackdetect`, screenshot polling)
-      # and each was discovered only by downloading the artifact and opening a PNG. A single sheet of the
-      # first 40 seconds at 1s intervals answers "when did the app actually appear, and is the trim in the
-      # right place" without a download-and-inspect loop — and it makes `LAUNCH_ALLOWANCE` a number anyone
-      # can check rather than a number I asserted.
-      - name: Contact sheet (the first 40s, one frame per second)
-        if: always()
-        run: |
-          ffmpeg -y -hide_banner -loglevel error -i capture-out/raw.mov \
-            -vf "fps=1,scale=220:-2,tile=8x5" \
-            -frames:v 1 capture-out/contact-sheet.jpg || echo "(contact sheet unavailable)"
-          ls -la capture-out/contact-sheet.jpg || true
 
       # ⚠️ THE GUARD CYCLE 1 DID NOT HAVE, and the reason it shipped a green run with no capture in it.
       #
@@ -341,19 +375,23 @@ jobs:
           # workflow_dispatch, so on a tag push these expand to empty strings. Empty would fall through to
           # the script's own defaults — which is exactly the kind of quiet divergence that produces a
           # correct-looking video trimmed from the wrong place.
-          # Start from the MEASURED paint moment, not a constant. Cycle 3 trimmed at a guessed 3.6s and the
-          # video opened on ~4.5 seconds of black — the single frame a store listing is judged by. The
-          # small margin lets the opening beat settle rather than catching its very first painted frame.
+          # Start at the SLATE, which is the app's own statement that its opening screen is painted. Cycle
+          # 3 trimmed at a guessed 3.6s and opened on ~4.5s of black; cycle 8 trimmed at a declared 8.4s
+          # and opened on black again. Neither was a bad guess — both were guesses at a quantity that
+          # moves.
+          #
+          # The +0.05 clears the slate's own last frame (3 frames at 60fps, imperceptible) so no white
+          # flash survives into the cut.
           #
           # An explicit dispatch input still wins, for the case where a human has watched the cut and wants
-          # a different in-point. Empty on a tag push, so the measured value is the normal path.
+          # a different in-point. Empty on a tag push, so the found value is the normal path.
           OVERRIDE="${{ inputs.start_offset }}"
           if [ -n "$OVERRIDE" ]; then
             START="$OVERRIDE"
             echo "trimming from ${START}s (explicit override)"
           else
-            START=$(awk -v m="$MOUNT" 'BEGIN { printf "%.2f", m + 0.40 }')
-            echo "trimming from ${START}s (app painted at ${MOUNT}s)"
+            START=$(awk -v t="$T0" 'BEGIN { printf "%.2f", t + 0.05 }')
+            echo "trimming from ${START}s (the slate ended at ${T0}s)"
           fi
           DUR="${{ inputs.duration }}"
           [ -n "$DUR" ] || DUR=25
@@ -372,7 +410,7 @@ jobs:
             echo "entry: EXPO_PUBLIC_CAPTURE_DEMO=1 build, launched (no deep link — iOS prompts on those)"
             # The `||` fallbacks again — cycle 1's notes read "trim: start=s duration=s" because `inputs`
             # is empty on a tag push and this line, unlike the conform's, had no default.
-            echo "app painted at: ${MOUNT:-unknown}s (${MOUNT_SOURCE:-unknown} — 'fallback' means the app never rendered content and this is a GUESS)"
+            echo "script t=0 (slate found at): ${T0:-NOT FOUND}s — the app's own mark, not an estimate"
             echo "trim: start=${{ inputs.start_offset || 'measured' }} duration=${{ inputs.duration || '25' }}s"
             echo "conformed: 886x1920 (covers every modern iPhone slot — 6.9/6.5/6.3/6.1)"
             echo "NOT captured: the payoff confirmation tap — see this workflow's header."

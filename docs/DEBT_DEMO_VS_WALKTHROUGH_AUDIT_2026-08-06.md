@@ -410,3 +410,57 @@ stage timings.
 
 Beat 1 shows *$2,260 across 2 debts*. The approved storyboard imagined a number a viewer recognises. This
 is a taste call about who the app is for, so it is Jason's rather than a defect. → 3.5.8 storyboard review.
+
+---
+
+## Capture verification — CYCLE 8 (2026-08-07), the native simulator, reviewed frame by frame
+
+Run `app-preview-20260807-08` (31202129089), green in 27m05s. `PREROLL=3`, `LAUNCH_ALLOWANCE=5` →
+`MOUNT=8.00s`; trim `8.40s + 25s`. Frames pulled at `MOUNT + stage.at + 0.20` (FIRST) and `+ 3.30`
+(settled). **Every finding below came from opening the PNGs, not from the exit code — which was green.**
+
+### What the frames actually show
+
+| raw t | frame | what is on screen |
+|---|---|---|
+| 8.20 | `beat-1-debts-FIRST` | **black** — status bar only, 28 KB |
+| 11.30 / 12.20 | `beat-1-settled` / `beat-2-FIRST` | **Money, painted** — byte-identical (435,646 B) |
+| 15.30 / 17.20 | `beat-2-settled` / `beat-3-FIRST` | **Today: header + "Example money", body EMPTY** — byte-identical (59,768 B) |
+| 20.30 / 22.20 | `beat-3-settled` / `beat-4-FIRST` | **Progress: cards, labels and axes present, Skia geometry ABSENT** (ring arc, cash-flow bars, trajectory line) — byte-identical (425,935 B) |
+| 25.30 | `beat-4-settled` | **Progress, fully painted** — ring, bars, curve |
+| 28.20 | `beat-5-FIRST` | **Today, correct** — payoff invitation + the `$2,000` paycheck |
+| 31.30 | `beat-5-settled` | **no frame extracted** |
+
+**The byte-identity is the load-bearing evidence.** Two samples 0.9–1.9s apart being the *same bytes* means
+the screen was static across that window — so the empty Today and the geometry-less Progress are not
+mid-animation samples that would have healed on the next frame. They are seconds of held blankness.
+
+### Against the three checks this cycle was run to answer
+
+- ❌ **`beat-1-debts-FIRST` is Money** — it is black. The in-point is ~3s ahead of the app.
+- ❌ **all five settled frames extracted** — four. The `-ss`-after-`-i` accurate seek fixed 8 of 10
+  extractions; the tail one still yields nothing.
+- ✅ **`contact-sheet.jpg` exists** — and it is the thing that made the timeline legible in one glance.
+
+### Resolved by this cycle
+
+- **The `$1,747` did not reproduce.** Beat 5 reads `$2,000`, matching every web reference. Cycle 7's
+  anomaly is closed as not-reproducing rather than explained.
+- **The unpainted-Skia artifact is NOT web-only** — the hypothesis this doc recorded on 2026-08-06. It is
+  right there on the native simulator, at two consecutive samples, on the beat the video exists for.
+
+### Root cause — one cause, three symptoms
+
+`CaptureAutoStart` fires on the root layout's mount and `playDemoRun` starts its wall clock there. On a
+cold launch on a shared macOS runner the app paints seconds later, so **the script runs ahead of the
+screen** — the beats are advancing against a tree that has not rendered. That single fact produces the
+black opening frame, the empty Today, and the geometry-less Progress; and it is why three successive
+attempts to *guess* the anchor (`blackdetect`, screenshot polling, a fixed allowance) each failed
+differently. `LAUNCH_ALLOWANCE` is not a number that can be tuned into correctness — it is measuring the
+wrong thing.
+
+⚠️ **`warm.png` does not discriminate sim-from-device.** The warm run played the same script with the same
+per-stage re-seeds and its 25s screenshot is flawless — but that is a *settled* frame, not an arrival
+frame, so it tells us the app is not broken and nothing about the arrival lag. The open question for
+3.5.8.8 stays open: runner CPU starvation would vanish on a device; `seedSandbox` blanking the tree on
+every stage (F-B's neighbour) would not.
