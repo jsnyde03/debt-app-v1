@@ -16,8 +16,11 @@ name: Native E2E (Maestro · iOS Simulator)
 on:
   # MANUAL ONLY — never auto-runs on push (a ~40-min mac job is overkill per-commit, free or not). Use
   # the "Run workflow" button in GitHub → Actions → Native E2E, and pick the branch (v1.7-dev) to test.
-  # ⚠️ That button only appears once THIS file exists on the DEFAULT branch (master), so the file is
-  # committed to master too (it runs the SELECTED branch's code, not master's).
+  # ⚠️ That button only appears once THIS file exists on the DEFAULT branch, so the file is committed
+  # there too (it runs the SELECTED branch's code, not the default branch's).
+  # ⚠️ CORRECTED 2026-08-07: this repo's default branch is **release/v1**, not `master` — `master` does
+  # not exist. This file is on release/v1, which is why the button works; the old note named a branch
+  # that never carried it.
   workflow_dispatch: {}
   push:
     tags: ['v*'] # release tags → a gated native smoke before shipping

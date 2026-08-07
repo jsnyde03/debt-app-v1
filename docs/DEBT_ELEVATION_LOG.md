@@ -2634,3 +2634,66 @@ artifact and the 2026-08-06 Maestro run showed the native Skia path painting cor
 runner, not the web export. Carried to the CI steps.
 
 **Gate:** tsc · `lint:rn` (0 errors) · regression · app-layer · scenarios · **e2e 131/131**.
+
+---
+
+## 3.5.8.5 + 3.5.8.6 — the capture pipeline, authored against what this Maestro build can actually do (2026-08-07)
+
+`.github/workflows/app-preview.yml` + `scripts/conform-app-preview.sh`. One dispatch: boot the largest
+iPhone → force DARK → install → deep-link into the scripted demo → `simctl io recordVideo` → ffmpeg
+conform → upload the video, the per-beat frames and a notes file.
+
+### ⭐ The before-scan finding that reshaped the design: Maestro CANNOT wait
+
+`06-tutorial-interactions.yaml` records it, established over three CI cycles at ~40 minutes each: **this
+Maestro build rejects `extendedWaitUntilVisible` (unknown command) and `timeout` on assertions (unknown
+property)**, and Maestro validates an ENTIRE FILE before executing any of it, so one bad command costs
+every step in the file.
+
+The demo run is timed and does not reach the payoff invitation until **t=20s**. So Maestro cannot drive
+the confirm tap — not for want of fidelity, but because it has no way to wait for a timed sequence. That
+flow's own header says it plainly: *"An assertion that races a timed sequence is worse than none."*
+
+**Decision: cycle 1 captures WITHOUT the tap.** The run is self-playing, so `simctl` alone captures it end
+to end with no driver in the loop at all. The alternatives were both worse for a first cycle — a coordinate
+tap through `idb` (whose install is `|| true` on the runner, i.e. allowed to fail silently), or a pre-warmed
+Maestro driver, both unproven machinery standing between us and the artifact. The third option —
+auto-confirming from the script — is the one that needs Jason, because `demoRun.ts` explicitly reserves
+that tap for the capture driver on honesty grounds, and quietly reinterpreting that invariant is not a
+call to make inside a CI change.
+
+### The plan's technical claim, corrected in code
+
+The conform is **load-bearing, not a trim**: every modern iPhone slot takes one fixed **886×1920** file,
+which is not a device resolution. The script scales with `force_original_aspect_ratio=increase` and centre
+-crops, rather than the obvious `scale=886:-2` — the sim device is chosen at runtime, so its aspect ratio
+is not something the script gets to assume, and the bare version silently produces a short frame if the
+source is wider than 2.167:1. It then **fails loud** on anything ASC would reject, because the entire point
+is that Jason drops the file straight into App Store Connect.
+
+### Verified as far as it can be without a Mac
+
+- Both workflows **parse** (js-yaml).
+- The frame-extraction loop **dry-run against a stubbed ffmpeg**, and it caught a real off-by-three: the
+  recorder pre-rolls 3s before the deep link, so the beats sit at raw 3/7/12/17/23s, not the script's
+  0/4/9/14/20. The first draft extracted the wrong frames and would have done so *silently* — the PNGs
+  still appear, just of the wrong beats. `PREROLL` is now one env var every offset derives from.
+- The conform's validation branches **dry-run against a stubbed ffprobe** across three cases (correct /
+  wrong width / over-length); the two bad ones exit 1 as intended under `set -euo pipefail`.
+- `-fps_mode cfr` rather than the deprecated `-vsync cfr`, since this runs against whatever Homebrew
+  installs on the day.
+- ffmpeg confirmed **not preinstalled** on `macos-15`; Homebrew is. Install step added.
+
+### After-scan
+
+- **⚠️ Found: `native-e2e.yml`'s dispatch note named the wrong branch.** It says the workflow must be on
+  "the DEFAULT branch (master)" — **`master` does not exist in this repo**; the default is **`release/v1`**,
+  which is where that file actually sits and why its button works. Corrected in both files. This is
+  operationally load-bearing for 3.5.8.6: **`app-preview.yml` must land on `release/v1` before the Run-
+  workflow button appears at all**, even though the work lives on `v1.7-dev` (dispatch then runs the
+  selected branch's copy).
+- **→ Deferred backlog:** the ~60-line simulator build recipe is now **duplicated** between `native-e2e.yml`
+  and `app-preview.yml`, and it carries expensive native fixes (the ios-utilities rootcontentview plugin,
+  `SENTRY_DISABLE_AUTO_UPLOAD`, pod-install-as-its-own-step). Extracting a composite action is the correct
+  shape and was deliberately NOT done in the change that first proves the pipeline — a bug in the
+  extraction would break the proven native gate as well as this one. Filed rather than left implicit.

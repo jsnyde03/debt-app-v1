@@ -1,0 +1,255 @@
+# 3.5.8 — the App-Preview capture pipeline. One dispatch produces the submittable video, with no Mac in
+# Jason's hands: boot the largest iPhone simulator → force DARK → install → deep-link straight into the
+# scripted demo → `xcrun simctl io recordVideo` → ffmpeg conform to Apple's 886x1920 → upload.
+#
+# ⚠️ THE TOOLING WAS RESEARCHED, NOT ASSUMED ([D20], 2026-08-06). Maestro is already wired for native e2e,
+# which made it the convenient answer and not the right one. `maestro record` composites its flow-command
+# panel beside the app, defaults to 2x speed, and renders in the cloud behind a signed URL — a
+# share-your-test artifact, not marketing footage. So Maestro records nothing here; `simctl` does, through
+# the simulator's real Metal/Skia path, which is also the path that painted correctly in the 2026-08-06
+# Maestro run when the web CanvasKit one did not.
+#
+# ⚠️ NOTHING DRIVES THE APP, AND THAT IS DELIBERATE. The demo run is TIMED (`DEMO_STAGES`: 0/4/9/14/20s),
+# so it plays itself and the capture only has to watch. The one interaction the storyboard wants — tapping
+# the payoff invitation at t=20s to fire the real celebration — is NOT here, because this Maestro build
+# cannot wait out a timed sequence: `extendedWaitUntilVisible` is absent and `timeout` is not a valid
+# assertion property, established over three CI cycles at ~40 minutes each (see
+# `apps/rn/.maestro/06-tutorial-interactions.yaml`). Adding a coordinate tap or a pre-warmed driver would
+# put unproven machinery in the way of the artifact. Decide from the first cut whether the celebration is
+# worth a second cycle.
+#
+# ⚠️ THE BUILD RECIPE BELOW IS DUPLICATED FROM `native-e2e.yml`, ON PURPOSE AND WITH A COST. That recipe
+# carries expensive native fixes (the ios-utilities rootcontentview plugin, SENTRY_DISABLE_AUTO_UPLOAD,
+# pod install as its own step because prebuild masks its errors with exit 0). Extracting a shared
+# composite action is the right long-term shape and is FILED — it was not done in the same change that
+# first proves this pipeline, because a bug in the extraction would break the proven native gate as well
+# as this. Keep the two in sync until the extraction lands.
+name: App Preview (capture · iOS Simulator)
+
+on:
+  # MANUAL ONLY. This produces a marketing asset, not a gate — it should run when the UI has changed
+  # enough to be worth re-shooting, not on a schedule and never on push.
+  #
+  # ⚠️ THE "Run workflow" BUTTON ONLY APPEARS ONCE THIS FILE IS ON THE DEFAULT BRANCH, which in this repo
+  # is **release/v1** — not `master`, which does not exist (the comment in `native-e2e.yml` saying so is
+  # wrong; that file is on release/v1, which is why its button works). Dispatch then RUNS the selected
+  # branch's copy, so the file has to be on release/v1 even though the work lives on v1.7-dev.
+  workflow_dispatch:
+    inputs:
+      start_offset:
+        description: 'Seconds to trim off the front of the RAW file. Must clear the pre-roll (3s) plus the launch/redirect frames.'
+        required: false
+        default: '3.6'
+      duration:
+        description: 'Length of the conformed video in seconds (Apple allows 15-30)'
+        required: false
+        default: '25'
+
+concurrency:
+  group: app-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    name: Build · boot · record · conform
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      # The demo's own entry, and the only thing that reaches the scripted run. `?capture=1` strips the
+      # dock — see `demo.tsx`. Both halves already exist; 3.5.8.3 is verification, not construction.
+      DEMO_URL: 'debtplannerrn:///demo?capture=1'
+      APP_ID: 'com.jasonsnyder.debtplanner'
+      # Seconds the recorder runs BEFORE the deep link fires. Every raw-file timestamp is this plus the
+      # script's own beat time — see the record step.
+      PREROLL: '3'
+    defaults:
+      run:
+        working-directory: apps/rn
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies (root + apps/rn)
+        working-directory: .
+        run: |
+          npm install --prefer-offline --no-audit --no-fund
+          npm --prefix apps/rn install --prefer-offline --no-audit --no-fund
+
+      - name: Cache CocoaPods + Swift-PM downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+            ~/Library/Caches/org.swift.swiftpm
+          key: pods-spm-${{ runner.os }}-${{ hashFiles('apps/rn/package-lock.json') }}
+          restore-keys: |
+            pods-spm-${{ runner.os }}-
+
+      - name: Select newest Xcode
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+          xcodebuild -version
+
+      # ffmpeg is NOT preinstalled on the macos-15 image (verified against actions/runner-images on
+      # 2026-08-06); Homebrew is. This is the one practicality the plan flagged as unknown.
+      - name: Install ffmpeg
+        run: brew install ffmpeg
+
+      - name: Link ./core so tsc can resolve @core before Metro runs
+        run: |
+          [ -e core ] || ln -s ../../packages/core core
+          ls -la core
+
+      - name: Fail fast (typecheck before the slow native build)
+        run: npx tsc --noEmit
+
+      - name: Generate the native iOS project (expo prebuild)
+        run: npx expo prebuild --platform ios
+
+      - name: Install CocoaPods (fail loud — prebuild masks pod errors with exit 0)
+        working-directory: apps/rn/ios
+        run: pod install
+
+      - name: Build for the iOS Simulator (no signing)
+        run: |
+          set -o pipefail
+          ARCH="$(uname -m)"
+          echo "Building single simulator arch: $ARCH"
+          xcodebuild \
+            -workspace ios/DebtPlannerRN.xcworkspace \
+            -scheme DebtPlannerRN \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -derivedDataPath ios/build \
+            -destination 'generic/platform=iOS Simulator' \
+            ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
+            CODE_SIGNING_ALLOWED=NO \
+            SWIFT_OPTIMIZATION_LEVEL='-Onone' GCC_OPTIMIZATION_LEVEL=0 \
+            build 2>&1 | tee xcodebuild.log
+
+      - name: Surface the build error
+        if: failure()
+        run: |
+          echo "──────── errors / failures ────────"
+          grep -nE "error:|fatal error:|\*\* BUILD FAILED \*\*|The following build commands failed|^ld: |clang: error" \
+            xcodebuild.log | tail -60 || echo "(no error-shaped line matched — see the tail below)"
+          echo
+          tail -80 xcodebuild.log
+
+      # ⚠️ The device choice decides the recording's aspect ratio, so it is PRINTED and carried into the
+      # artifact notes. The conform handles either direction, but a reviewer needs to know what was shot.
+      - name: Boot the largest iPhone, in DARK mode
+        run: |
+          DEVICE=$(xcrun simctl list devices available | grep -oE 'iPhone [0-9]+[A-Za-z ]*Pro Max' | sed 's/ *$//' | sort -V | tail -1)
+          if [ -z "$DEVICE" ]; then
+            echo "No 'Pro Max' simulator found — falling back to the newest iPhone available."
+            DEVICE=$(xcrun simctl list devices available | grep -oE 'iPhone [0-9]+[A-Za-z ]*' | sed 's/ *$//' | sort -V | tail -1)
+          fi
+          echo "Booting: ${DEVICE:-<none found>}"
+          echo "SIM_DEVICE=$DEVICE" >> "$GITHUB_ENV"
+          xcrun simctl boot "$DEVICE" || true
+          xcrun simctl bootstatus "$DEVICE" -b || true
+          # Dark mode is Jason's standing preference for store assets — it reads more premium, and a shot
+          # that renders light breaks the set.
+          xcrun simctl ui booted appearance dark
+          xcrun simctl install booted ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
+
+      # Cold-launch once and throw it away. The FIRST launch of a fresh install pays for Metro-less bundle
+      # evaluation, font registration and the first Skia surface — exactly the costs that would otherwise
+      # be paid inside the recording, on the opening frame the video is judged by.
+      - name: Warm the app, then reset it
+        run: |
+          mkdir -p capture-out
+          xcrun simctl launch booted "$APP_ID" || true
+          sleep 20
+          xcrun simctl io booted screenshot capture-out/warm.png || true
+          xcrun simctl terminate booted "$APP_ID" || true
+
+      - name: Record the scripted demo
+        run: |
+          mkdir -p capture-out
+          # `--codec h264` because ASC takes H.264; `--mask ignored` drops the rounded-corner device mask,
+          # which Apple does not want baked into in-app footage.
+          xcrun simctl io booted recordVideo --codec h264 --mask ignored capture-out/raw.mov &
+          REC_PID=$!
+          # Let the recorder actually attach before anything happens on screen. Without this the opening
+          # beat is the frame most likely to be lost, and it is the one a viewer decides on.
+          #
+          # ⚠️ This PRE-ROLL shifts every subsequent timestamp in the raw file, and getting that wrong is
+          # silent: the frames still extract, they are just of the wrong beats. So it is written down once
+          # here and every offset downstream is derived from it.
+          sleep "$PREROLL"
+
+          # The deep link BOTH launches the app and starts the run, so the script's t=0 is HERE — which is
+          # raw-file time $PREROLL, not 0.
+          xcrun simctl openurl booted "$DEMO_URL"
+
+          # DEMO_STAGES: 0 / 4 / 9 / 14 / 20s, then hold the closing beat long enough to be read. The
+          # generous tail is trimmed by the conform, which is cheaper than discovering the video ended
+          # mid-beat.
+          sleep 28
+
+          kill -INT "$REC_PID" 2>/dev/null || true
+          wait "$REC_PID" 2>/dev/null || true
+          ls -la capture-out/
+
+      # 3.5.8.7's evidence, taken from the RAW recording rather than the trimmed one so the offsets are
+      # the script's own. The hard requirement this exists for: an empty Skia chart in a store video is
+      # worse than no video, and the unpainted-canvas defect (3.5.8.4b) is a FIRST-FRAME artifact — so
+      # each frame is pulled just after its beat lands, where the defect would be, not mid-beat where it
+      # would have healed.
+      - name: Pull the first frame of every beat
+        run: |
+          # Beat times are the SCRIPT's (DEMO_STAGES); raw-file time is that plus the pre-roll. Named per
+          # beat rather than per timestamp, so a reviewer opening the artifact sees which beat they are
+          # looking at without doing the arithmetic.
+          beats="1-debts:0 2-held:4 3-absorbed:9 4-trajectory:14 5-payoff:20"
+          for entry in $beats; do
+            name="${entry%%:*}"; at="${entry##*:}"
+            first=$(awk -v p="$PREROLL" -v a="$at" 'BEGIN { printf "%.2f", p + a + 0.20 }')
+            late=$(awk -v p="$PREROLL" -v a="$at"  'BEGIN { printf "%.2f", p + a + 3.30 }')
+            # The FIRST frame after the beat lands is the one that matters: 3.5.8.4b's unpainted Skia is a
+            # first-frame artifact, so a mid-beat sample would show it already healed and report a defect
+            # as absent.
+            ffmpeg -y -hide_banner -loglevel error -ss "$first" -i capture-out/raw.mov -frames:v 1 \
+              "capture-out/beat-${name}-FIRST.png" || echo "(no frame for $name at ${first}s)"
+            # …and a settled frame, so "never painted" can be told apart from "painted a moment later".
+            ffmpeg -y -hide_banner -loglevel error -ss "$late" -i capture-out/raw.mov -frames:v 1 \
+              "capture-out/beat-${name}-settled.png" || echo "(no frame for $name at ${late}s)"
+          done
+          ls -la capture-out/
+
+      - name: Conform to Apple's App Preview spec
+        run: |
+          chmod +x ../../scripts/conform-app-preview.sh
+          ../../scripts/conform-app-preview.sh \
+            capture-out/raw.mov \
+            capture-out/app-preview-6.9in.mp4 \
+            "${{ inputs.start_offset }}" \
+            "${{ inputs.duration }}"
+
+      - name: What was shot
+        if: always()
+        run: |
+          {
+            echo "device: ${SIM_DEVICE:-unknown}"
+            echo "appearance: dark"
+            echo "deep link: $DEMO_URL"
+            echo "trim: start=${{ inputs.start_offset }}s duration=${{ inputs.duration }}s"
+            echo "conformed: 886x1920 (covers every modern iPhone slot — 6.9/6.5/6.3/6.1)"
+            echo "NOT captured: the payoff confirmation tap — see this workflow's header."
+          } > capture-out/SHOT-NOTES.txt
+          cat capture-out/SHOT-NOTES.txt
+
+      - name: Upload the preview + the per-beat frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-preview
+          if-no-files-found: warn
+          path: apps/rn/capture-out/**
