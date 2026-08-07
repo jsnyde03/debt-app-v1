@@ -58,17 +58,37 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
   const [firstDay, setFirstDay] = useState(paycheck.semiMonthlyFirstDay || '1');
   const [secondDay, setSecondDay] = useState(paycheck.semiMonthlySecondDay || '15');
   const [payDay, setPayDay] = useState(paycheck.monthlyPayDay || '1');
+  // 3.7.A9 — these two had NO user-facing control anywhere in the app until now. `incomeVaries` is read by
+  // six engine modules and was written by nothing, so it sat `false` for every user and took the whole
+  // variable-income feature set down with it (the VIS-5 band, income learning, §2.0.a lean verification,
+  // the variable cold-start holdback). The e2e that "covers" VIS-5 seeds the flag straight into the store,
+  // which is exactly why a green suite never noticed the front door was missing.
+  const [varies, setVaries] = useState(paycheck.incomeVaries === true);
+  const [lean, setLean] = useState(paycheck.leanAmount ? String(paycheck.leanAmount) : '');
   const [error, setError] = useState('');
+  const [leanError, setLeanError] = useState('');
 
   const nextDate = computeNext(payCycle, firstDay, secondDay, payDay);
 
   function submit() {
     if (!amount || Number(amount) <= 0) return setError('Enter your paycheck amount.');
+    // ⚠️ A lean figure is REQUIRED once the switch is on, and that is the point of the whole item rather
+    // than form politeness. `selectDebtFreeBand` needs `incomeVaries && leanAmount > 0`; turn the switch on
+    // without a floor and every downstream feature stays silent, so the user changes a setting, sees
+    // nothing happen and concludes it is broken. That is the same defect A9 fixes, one layer in.
+    if (varies) {
+      if (!lean || Number(lean) <= 0) return setLeanError('Enter the amount you can count on.');
+      if (Number(lean) > Number(amount)) return setLeanError('Your lean paycheck should be no more than a typical one.');
+    }
     store_.getState().updatePaycheck({
       amount,
       payCycle,
       currentDate: todayLocalISO(),
       nextPaycheckDate: nextDate,
+      incomeVaries: varies,
+      // Cleared rather than left behind when the switch goes off: a stale floor would keep feeding the
+      // engine a number the user has stopped standing behind.
+      leanAmount: varies ? Number(lean) : 0,
       ...(payCycle === 'semimonthly' ? { semiMonthlyFirstDay: firstDay, semiMonthlySecondDay: secondDay } : {}),
       ...(payCycle === 'monthly' ? { monthlyPayDay: payDay } : {}),
     });
@@ -91,6 +111,32 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
         keyboardType="decimal-pad"
         error={error || undefined}
       />
+
+      {/* 3.7.A9 — directly under the amount it qualifies, and deliberately NOT beside "This paycheck
+          didn't arrive": variability is a standing property of the job, a missed paycheck is a fact about
+          this cycle, and a reader should not have to sort one from the other. */}
+      <View style={styles.group}>
+        <SwitchRow
+          label="My income varies"
+          value={varies}
+          onValueChange={(v) => { setVaries(v); setLeanError(''); }}
+        />
+        {varies ? (
+          <>
+            <TextField
+              label="The amount you can count on"
+              value={lean}
+              onChangeText={(t) => { setLean(t); setLeanError(''); }}
+              placeholder="e.g. 1200"
+              keyboardType="decimal-pad"
+              error={leanError || undefined}
+            />
+            <Text style={[textStyles.footnote, { color: c.text.secondary }]}>
+              Your plan runs on this floor, so a lighter paycheck never breaks it.
+            </Text>
+          </>
+        ) : null}
+      </View>
 
       <View style={styles.group}>
         <Text style={[textStyles.footnote, styles.groupLabel, { color: c.text.secondary }]}>Pay cycle</Text>

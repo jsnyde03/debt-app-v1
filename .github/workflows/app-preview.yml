@@ -250,14 +250,25 @@ jobs:
           ffmpeg -hide_banner -i capture-out/raw.mov -vf "blackdetect=d=0.20:pix_th=0.10" -an -f null - 2>&1 \
             | grep -o "black_start:[0-9.]* black_end:[0-9.]*" | head -5 | tee capture-out/blackdetect.txt || true
 
-          # The first black run that STARTS at (or almost at) the top of the file is the launch. A later
-          # black run would be something else entirely and must not be mistaken for it.
-          MOUNT=$(awk '{ for (i=1;i<=NF;i++) { split($i,kv,":"); if (kv[1]=="black_start") s=kv[2]; if (kv[1]=="black_end") e=kv[2] } if (s < 1.5) { print e; exit } }' capture-out/blackdetect.txt)
+          # ⚠️ The launch blackout does NOT start at the top of the file, and assuming it did cost a cycle.
+          # During the pre-roll the simulator is showing its HOME SCREEN — not black — so black begins when
+          # the app launches and ends when it paints. Cycle 4 measured exactly one run,
+          # `black_start:3.525 black_end:11.655`, against a guard that demanded `start < 1.5`; nothing
+          # matched, the fallback fired, and the step then reported the fallback as a measurement.
+          #
+          # So: take the first run that ENDS after the launch. That is the blackout by construction,
+          # wherever it happens to begin.
+          MOUNT=$(awk -v p="$PREROLL" '{ for (i=1;i<=NF;i++) { split($i,kv,":"); if (kv[1]=="black_end") e=kv[2] } if (e > p) { print e; exit } }' capture-out/blackdetect.txt)
           if [ -z "$MOUNT" ]; then
-            echo "⚠️  No leading black run found — falling back to the pre-roll. Check after-launch.png."
+            # Loud, and distinguishable downstream. A fallback that reads like a measurement is how cycle 4
+            # produced a confident, wrong number.
+            echo "⚠️  FALLBACK: no black run ends after the launch — using the pre-roll. Check after-launch.png."
             MOUNT="$PREROLL"
+            echo "MOUNT_SOURCE=fallback" >> "$GITHUB_ENV"
+          else
+            echo "MOUNT_SOURCE=measured" >> "$GITHUB_ENV"
           fi
-          echo "app painted at raw ${MOUNT}s (pre-roll was ${PREROLL}s → launch cost $(awk -v m="$MOUNT" -v p="$PREROLL" 'BEGIN{printf "%.1f", m-p}')s)"
+          echo "app painted at raw ${MOUNT}s (launch was at ${PREROLL}s → cold-launch cost $(awk -v m="$MOUNT" -v p="$PREROLL" 'BEGIN{printf "%.1f", m-p}')s)"
           echo "MOUNT=$MOUNT" >> "$GITHUB_ENV"
 
       - name: Pull the first frame of every beat
@@ -360,7 +371,7 @@ jobs:
             echo "entry: EXPO_PUBLIC_CAPTURE_DEMO=1 build, launched (no deep link — iOS prompts on those)"
             # The `||` fallbacks again — cycle 1's notes read "trim: start=s duration=s" because `inputs`
             # is empty on a tag push and this line, unlike the conform's, had no default.
-            echo "app painted at: ${MOUNT:-unknown}s (measured by blackdetect, not assumed)"
+            echo "app painted at: ${MOUNT:-unknown}s (${MOUNT_SOURCE:-unknown} — 'fallback' means blackdetect found nothing usable and this is a GUESS)"
             echo "trim: start=${{ inputs.start_offset || 'measured' }} duration=${{ inputs.duration || '25' }}s"
             echo "conformed: 886x1920 (covers every modern iPhone slot — 6.9/6.5/6.3/6.1)"
             echo "NOT captured: the payoff confirmation tap — see this workflow's header."

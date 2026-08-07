@@ -2941,3 +2941,74 @@ black) drops back to the pre-roll rather than producing an empty offset.
 **Still owed at 3.5.8.7/.8:** the beats' true first frames, now that they will actually be of the right
 beats; and whether ~1s of first-mount lag per navigating beat (measured on web, visible again here) wants
 the script re-paced.
+
+---
+
+## 3.7.A9 — the variable-income controls, and the front door that never existed (2026-08-07)
+
+Found by 3.5.5's coach-mark inventory scan, which set out to check whether an "income-varies toggle" was
+real enough to deserve a mark. It was not real at all.
+
+`incomeVaries` was **read by six engine modules and written by no `.tsx` in the app.** It defaults `false`,
+so for every real user it stayed false forever — taking the whole variable-income feature set with it: the
+VIS-5 debt-free band, `incomeLearning`, §2.0.a lean verification, and the variable cold-start holdback.
+`leanAmount` and `typicalAmount` had no UI either, so this was three missing inputs rather than a toggle.
+
+**Why a green suite never noticed:** `vis5-cone.spec.ts` seeds `incomeVaries: true` **straight into the
+store** and asserts the band renders. It passes, correctly. The test and the user were entering through
+different doors, and only the test's door existed.
+
+### What shipped (Jason ✅ 2026-08-07 — fold in, both surfaces)
+
+`SwitchRow` "My income varies" + a conditional "The amount you can count on" field, in **`PaycheckSheet`**
+and **onboarding's `PaycheckStep`**.
+
+- **Both, not one.** `PaycheckSheet` is the non-negotiable half: every existing v1.6 user migrates with
+  `incomeVaries: false`, so onboarding-only would have stranded the entire installed base at false — the
+  same unreachability, re-created for the people most likely to have irregular income. Onboarding is where
+  it gets *discovered*, since nobody goes looking for a setting they were never asked about.
+- **The floor is REQUIRED once the switch is on**, and that is the item's real content rather than form
+  politeness: `selectDebtFreeBand` needs `leanAmount > 0`, so a switch with no floor leaves everything
+  silent and reads as "I turned it on and nothing happened."
+- **Cleared, not remembered, when switched off** — a stale floor would keep feeding the engine a number
+  the user has stopped standing behind.
+- Placed directly under the amount it qualifies, deliberately away from "This paycheck didn't arrive":
+  variability is a standing property of the job, a missed paycheck is a fact about this cycle.
+
+### The test drives the UI, and four wrong turns getting there
+
+`variable-income.spec.ts` touches only controls a finger can reach. Every failure on the way was mine, and
+each is worth keeping because each looked like a broken feature:
+
+1. **A too-thin fixture** — no debts or bills, so both income runs produced one date and `hasBand` was
+   correctly false.
+2. **Copied calendar literals** from `vis5-cone`, which the seed helper explicitly forbids. That spec
+   survives its literals only because it never opens a sheet; saving re-stamps `currentDate` to today and
+   left every seeded bill overdue.
+3. **⚠️ Compared a RAW store** to work out why the band was missing — while Progress computes on
+   `withProjectedBalances`. That is precisely the error diagnosed and written up in **3.5.8.4a the same
+   morning**, repeated within one session. Writing a lesson down does not install it.
+4. **The actual cause: `page.goto` is a full reload**, which re-hydrates from localStorage and races the
+   debounced persist. A user tapping the Progress tab never reloads. The test now navigates by tab, which
+   is both more truthful and not a race.
+
+**Gate:** `lint:rn` (0 errors) · regression · app-layer · scenarios · **e2e 133/133, zero `error-context.md`**.
+
+---
+
+## 3.5.8 — CYCLE 4: green, and its anchor was a fallback wearing a measurement's clothes (2026-08-07)
+
+blackdetect reported exactly one run — `black_start:3.525 black_end:11.655` — against a guard that demanded
+`black_start < 1.5`. **Nothing matched.** The pre-roll shows the simulator's HOME SCREEN, not black; the
+blackout begins when the app *launches*. So the fallback fired, `MOUNT` became the pre-roll, and the step
+announced *"app painted at raw 3s (launch cost 0.0s)"* while `SHOT-NOTES.txt` recorded
+*"measured by blackdetect, not assumed."* It was assumed.
+
+**That is this item's own recurring defect, built into the step written to prevent it** — a confident number
+with nothing behind it. The correction is two-part: take the first black run that **ends after the launch**
+(the blackout by construction, wherever it starts), and make a fallback **loud and labelled a guess** in
+both the log and the notes, via `MOUNT_SOURCE`.
+
+Dry-run against cycle 4's real output: MOUNT=11.655, trim at 12.05s, beats at 11.85 / 15.85 / 20.86 /
+25.86 / 31.86 — all inside the 43s recording. **The true cold-launch cost is 8.6 seconds**, which no
+constant would have guessed and which is exactly why the anchor has to be measured.

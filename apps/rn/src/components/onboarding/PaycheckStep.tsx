@@ -5,6 +5,7 @@ import { getNextPaycheckDate, type PayCycle } from '@core/payCycle/getNextPayche
 
 import { Button } from '@/components/ui/Button';
 import { RadioGroup } from '@/components/ui/RadioGroup';
+import { SwitchRow } from '@/components/ui/SwitchRow';
 import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -48,7 +49,14 @@ export function PaycheckStep({ onNext, onSkip }: { onNext: () => void; onSkip: (
   const [firstDay, setFirstDay] = useState('1');
   const [secondDay, setSecondDay] = useState('15');
   const [payDay, setPayDay] = useState('1');
+  // 3.7.A9 — asked at SETUP, because income variability is a property of the job and someone who is never
+  // asked will not go looking. `PaycheckSheet` carries the same control for everyone already onboarded —
+  // onboarding alone would have stranded the entire installed base at `false` forever, which is how this
+  // gap existed in the first place.
+  const [varies, setVaries] = useState(false);
+  const [lean, setLean] = useState('');
   const [error, setError] = useState('');
+  const [leanError, setLeanError] = useState('');
 
   const nextDate = computeNext(payCycle, firstDay, secondDay, payDay);
 
@@ -58,11 +66,20 @@ export function PaycheckStep({ onNext, onSkip }: { onNext: () => void; onSkip: (
       return;
     }
     setError('');
+    // Required once the switch is on — see `PaycheckSheet`. A floor of 0 leaves every variable-income
+    // feature silent, which reads as "I turned it on and nothing happened."
+    if (varies) {
+      if (!lean || Number(lean) <= 0) { setLeanError('Enter the amount you can count on.'); return; }
+      if (Number(lean) > Number(amount)) { setLeanError('Your lean paycheck should be no more than a typical one.'); return; }
+    }
+    setLeanError('');
     appStore.getState().updatePaycheck({
       amount,
       payCycle,
       currentDate: todayLocalISO(),
       nextPaycheckDate: nextDate,
+      incomeVaries: varies,
+      leanAmount: varies ? Number(lean) : 0,
       ...(payCycle === 'semimonthly' ? { semiMonthlyFirstDay: firstDay, semiMonthlySecondDay: secondDay } : {}),
       ...(payCycle === 'monthly' ? { monthlyPayDay: payDay } : {}),
     });
@@ -97,6 +114,29 @@ export function PaycheckStep({ onNext, onSkip }: { onNext: () => void; onSkip: (
         keyboardType="decimal-pad"
         error={error}
       />
+
+      {/* 3.7.A9 — one switch, and the floor field only when it is on, so the step does not grow a third
+          question for the fixed-income majority. */}
+      <SwitchRow
+        label="My income varies"
+        value={varies}
+        onValueChange={(v) => { setVaries(v); setLeanError(''); }}
+      />
+      {varies ? (
+        <>
+          <TextField
+            label="The amount you can count on"
+            value={lean}
+            onChangeText={(t) => { setLean(t); setLeanError(''); }}
+            placeholder="e.g. 1200"
+            keyboardType="decimal-pad"
+            error={leanError}
+          />
+          <Text style={[textStyles.footnote, { color: c.text.secondary }]}>
+            Your plan runs on this floor, so a lighter paycheck never breaks it.
+          </Text>
+        </>
+      ) : null}
 
       <View style={styles.cycleGroup}>
         <Text style={[textStyles.footnote, styles.groupLabel, { color: c.text.secondary }]}>Pay cycle</Text>
