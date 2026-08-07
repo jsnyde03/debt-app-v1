@@ -9,8 +9,10 @@
 ## ▶ NOW
 
 - **Active build:** **Phase 3.5 — interactive tutorial + bounded demo.** 3.5.0–3.5.3 ✅ done, incl. the 3.5.3.9 audit gate **CLOSED at round 10** (2026-08-05). **Phases 0–3 ✅ COMPLETE.**
-- **▶ ACTIVE BUILD: 3.5.8 — the App-Preview capture pipeline,** decomposed below. Research done 2026-08-06 → **[D20]** Maestro drives · `simctl` records · ffmpeg conforms (`maestro record` rejected: 2× speed + a composited command panel). ⚠️ **The plan's "simulator capture yields exact store pixel dimensions" was FALSE** — every modern iPhone slot takes one fixed **886×1920** file, so the ffmpeg conform is load-bearing. Detail + all three decisions → log 3.5.8.
-- **⏭ Deferred behind it (re-sequenced by Jason 2026-08-06):** 3.5.5 coach-marks · 3.5.6 verify+close · 3.5.7 marketing embed. They resume after 3.5.8.
+- **▶ ACTIVE BUILD: 3.5.5 — feature-discovery coach-marks,** decomposed below. .1 (primitive + registry app-wide) and .2 (one-interruption-at-a-time, re-scoped) ✅ done 2026-08-07; **.3 → .6 remain.**
+- **⏳ 3.5.8 — build COMPLETE, awaiting review.** Cycles 1–7 on the free GH-macOS lane; native Skia proven to render faithfully (3.5.8.4b answered). Only the video's IN-POINT is unsettled — three auto-detect strategies failed, so it is now a declared `LAUNCH_ALLOWANCE` + a contact sheet to verify it. **🎯 Two decisions owed:** the payoff-confirmation tap (3.5.8.6b) and draft-vs-submitted (3.5.8.8).
+- **⏭ Then:** 3.5.6 verify+close (incl. the 3.5.3.9-L ledger, 8 open) · 3.5.7 marketing embed (needs a hosting + privacy call).
+- **⚠️ 3.7.A9 folded in 2026-08-07** — `incomeVaries`/`leanAmount` had no UI at all, so the whole variable-income feature set was unreachable. Shipped in `PaycheckSheet` + onboarding.
 - **⏳ Owed on hardware:** the native lane for 3.5.4.10, and the CM build against §12 of `DEBT_3.5_DEVICE_QA_CHECKLIST.md` (which flags one KNOWN-BAD item, already fixed in repo).
 - **⏸ Parallel (Jason):** cut a fresh `v1.7-dev` build (⚠️ current device build `c050173`/3.6.1 is STALE — predates the whole closeout + fold) → the consolidated **Phase-6 device pass** (the accumulated device-QA ledger, under Phase 6).
 - **⚠️ Launch gating:** v1.7 ships as ONE release — nothing launches until Phase 6 is done + Jason is satisfied. The whole Elevation (through Phase 6) is the release.
@@ -85,8 +87,8 @@ Calm · one-at-a-time · dismissible · replayable · iOS-16-safe · rendered OU
 
 | # | Step |
 |---|---|
-| 3.5.5.1 | **The coach-mark primitive** — one-at-a-time, dismissible, iOS-16-safe, outside gesture handlers. Reuses `tutorialTargets`' geometry publishing; the walkthrough's `measure` retry/staleness lessons apply unchanged |
-| 3.5.5.2 | **Single-ack coordination, RE-SCOPED** — decide between a genuine app-wide "one interruption at a time" authority and a narrower honest claim (a mark never fires on a screen already showing an ack or the invite). The Today-local slot cannot carry the app-wide claim as written |
+| 3.5.5.1 | ✅ **DONE 2026-08-07** — `coachMarks` (one-at-a-time BY SHAPE) + `CoachMarkLayer` (no scrim, nothing fenced) + the registry moved to the ROOT so marks can reach Money/Progress/More. Its inertness comment rewritten, not relocated. Walkthrough suite 28/28 first, then gate 133/133. Log: 3.5.5.1 |
+| 3.5.5.2 | ✅ **DONE 2026-08-07** — chose the narrower true claim: a screen declares while interrupting, a mark refuses during one. An app-wide authority would have exactly one subject. Counter not boolean (two surfaces mount at once); `celebration` read directly since `activeAck` is null during the finale. Log: 3.5.5.2 |
 | 3.5.5.3 | **Seen-persistence + a replay entry** in More, mirroring the walkthrough's. A discovery layer nobody can re-open is a one-shot |
 | 3.5.5.4 | **The corrected inventory** — long-press menu · Cash-Runway scrub · Can-I-Afford · swipe-to-delete · chart scrub · **What-If** (the collapsed extra-payment tool, distinct from the scrub) · Log-payment · scan-a-statement · **income-varies (new, via A9)** · widget/Lock-Screen/Siri. Each verified reachable before it gets a mark |
 | 3.5.5.5 | **Payoff schedule: fix L5, then mark it** — the entry 3.7.A0 moved for discoverability is off-screen on the biggest phone Apple sells, directly above a destructive Remove |
