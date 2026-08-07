@@ -20,7 +20,11 @@ set -euo pipefail
 
 RAW="${1:?usage: conform-app-preview.sh <raw.mov> <out.mp4> [start] [duration]}"
 OUT="${2:?usage: conform-app-preview.sh <raw.mov> <out.mp4> [start] [duration]}"
-START="${3:-1.0}"
+# Defaults MATCH the pipeline's (`app-preview.yml`): 3.6s clears the recorder's 3s pre-roll plus the
+# launch/redirect frames. They are duplicated rather than derived because this script is also usable by
+# hand on a recording made some other way — but a mismatch between the two would trim from the wrong
+# place while still producing a valid-looking file, so they are called out on both sides.
+START="${3:-3.6}"
 DUR="${4:-25}"
 
 W=886
