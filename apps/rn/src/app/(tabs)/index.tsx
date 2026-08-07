@@ -38,6 +38,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { StoreProvider, useActiveStore } from '@/store/StoreContext';
 import { isSandboxStore } from '@/store/sandboxStore';
+import { useSuppressCoachMarks } from '@/store/coachMarks';
 import { TutorialTarget, useTutorialTargets } from '@/store/tutorialTargets';
 import { useTutorialShell } from '@/store/tutorialShell';
 import { useInert } from '@/hooks/use-inert';
@@ -206,6 +207,13 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
                   : tutorialInvite
                     ? 'tutorial'
                     : null;
+
+  // 3.5.5.2 — Today declares while it is already interrupting, so a coach-mark refuses to fire on top of
+  // an ack, the walkthrough invitation or a celebration. `activeAck` covers the first two (the invite is
+  // its last rank) and `celebration` is checked directly because it SUPPRESSES the slot rather than
+  // ranking within it — reading `activeAck` alone would let a mark land during the finale, which is the
+  // one moment on this screen that owns the whole surface.
+  useSuppressCoachMarks(!!activeAck || !!celebration || !!tutorialInvite);
 
   let content: React.ReactNode = null;
   if (planState === 'no-paycheck') {

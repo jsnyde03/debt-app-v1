@@ -3123,3 +3123,38 @@ rather than one I asserted. Correcting it is a one-line change.
 
 Less clever on purpose. A measurement that is wrong in a way nobody can see is worse than a constant that is
 wrong in a way everybody can.
+
+---
+
+## 3.5.5.2 — "one at a time" re-scoped, because the slot it named cannot carry the claim (2026-08-07)
+
+The parked step read *"register in the VIS-4 single-ack slot — 'one at a time' is a claim about the whole
+app, not about this component."* The instruction is right about the claim and wrong about the mechanism, and
+the drift is worth recording rather than quietly routing around:
+
+- The VIS-4 slot is a **ternary chain inside Today's component**, not a coordinator anything can register
+  with.
+- Its own comment already concedes the erosion: *"That ranking only governs the FALLBACK now"* — since
+  [D5]/3.5.3.5.8 the walkthrough invitation's normal home is below the Guardian card with no slot
+  condition, so **it and an ack already render together.**
+- Coach-marks live on Money, Progress and More. The slot cannot see those screens at all.
+
+### The smaller claim was chosen deliberately over the thorough one
+
+A genuine app-wide interruption authority is the complete answer, and it would have **exactly one subject**:
+coach-marks are the only cross-screen interruption that exists. Building a coordinator for one client is
+architecture written against an imagined second caller — the same shape 3.5.4.6 refused when it declined to
+extract a shared API before its second consumer existed.
+
+So: **a screen declares while it is interrupting; a mark refuses to fire during one.** Central enforcement
+(`coachMarks` decides), local knowledge (Today knows what an ack is; the store must not have to).
+
+Two details that are load-bearing rather than incidental:
+- **A COUNTER, not a boolean.** Two surfaces can be mounted at once — Today behind an iPad detail pane, a
+  screen behind a sheet — and a boolean lets whichever unmounts second clear a suppression the other still
+  needs.
+- **`celebration` is read directly, not inferred from `activeAck`.** The celebration *suppresses* the slot
+  rather than ranking inside it, so `activeAck` is null during the finale; keying on it alone would let a
+  coach-mark land on the one moment that owns the whole surface.
+
+**Gate:** `lint:rn` (0 errors) · **e2e 133/133, zero `error-context.md`**.
