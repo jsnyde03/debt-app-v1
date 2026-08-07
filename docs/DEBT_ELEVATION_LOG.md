@@ -3158,3 +3158,29 @@ Two details that are load-bearing rather than incidental:
   coach-mark land on the one moment that owns the whole surface.
 
 **Gate:** `lint:rn` (0 errors) · **e2e 133/133, zero `error-context.md`**.
+
+---
+
+## 3.5.8 — CYCLE 7: green, and the frames finally say what is wrong (2026-08-07)
+
+Run 31200718573 passed. The declared anchor worked as designed — it reported itself plainly
+(*"assuming the app paints 9s after launch → raw 12.00s (verify on the contact sheet)"*) and the frames then
+showed it was too late: **the frame labelled `beat-1` is Today, which is beat 2.** Working back from beat 2
+starting at paint+4s, the true paint is under 8.2s, so the allowance is **~5, not 9**.
+
+That is the loop working. A wrong constant that announces itself and is contradicted by its own evidence in
+one glance is a different thing from a wrong measurement that looks authoritative.
+
+**Three corrections, all small:**
+- `LAUNCH_ALLOWANCE` 9 → **5**.
+- **The contact sheet failed to render** — `drawtext` needs libfreetype, which this Homebrew ffmpeg lacks.
+  The timestamps were a nicety; the tiled sheet is the point, so the filter is dropped rather than the step.
+- **Only 3 of 5 settled frames extracted**, and the cause is real: `-ss` BEFORE `-i` is a fast keyframe
+  seek, and once the script ends the screen is static so the encoder emits almost nothing to seek to. Moved
+  `-ss` after `-i` (accurate seek). Costs about a second on a 45s file and always returns the frame asked
+  for — the same class of silent-partial-evidence this pipeline keeps generating.
+
+**Also visible, and good:** the beat-2 frame renders beautifully on device — the Guardian card, its
+"Nudge your line down anytime" line, the safety-net/cushion split, Can-I-Afford below. ⚠️ **Noted for the
+review step:** the paycheck reads **$1,747**, not the persona's $2,000 that every web reference shows.
+Unexplained, and not chased here — but a store video must not show a number nobody can account for.

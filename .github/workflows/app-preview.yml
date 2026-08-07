@@ -86,7 +86,7 @@ jobs:
       # How long the app is assumed to take from launch to first painted frame. A DECLARED CONSTANT, after
       # two attempts to measure it automatically were withdrawn (see the record step). Verify it against
       # `contact-sheet.jpg` in the artifact and change this one number if the cut opens wrong.
-      LAUNCH_ALLOWANCE: '9'
+      LAUNCH_ALLOWANCE: '5'
     defaults:
       run:
         working-directory: apps/rn
@@ -258,6 +258,10 @@ jobs:
           # Beat times are the SCRIPT's (DEMO_STAGES); raw-file time is that plus MOUNT — the measured
           # moment the app painted, not a guess. Named per beat so a reviewer opening the artifact sees
           # which beat they are looking at without doing the arithmetic.
+          # ⚠️ `-ss` goes AFTER `-i`, which is the slow accurate seek rather than the fast keyframe one.
+          # Cycle 7 extracted only 3 of 5 settled frames: once the script ends the screen is static, the
+          # encoder emits almost no frames, and a keyframe seek into that tail lands on nothing. Decoding
+          # from the start costs a second on a 45s file and always yields the requested frame.
           beats="1-debts:0 2-held:4 3-absorbed:9 4-trajectory:14 5-payoff:20"
           for entry in $beats; do
             name="${entry%%:*}"; at="${entry##*:}"
@@ -266,10 +270,10 @@ jobs:
             # The FIRST frame after the beat lands is the one that matters: 3.5.8.4b's unpainted Skia is a
             # first-frame artifact, so a mid-beat sample would show it already healed and report a defect
             # as absent.
-            ffmpeg -y -hide_banner -loglevel error -ss "$first" -i capture-out/raw.mov -frames:v 1 \
+            ffmpeg -y -hide_banner -loglevel error -i capture-out/raw.mov -ss "$first" -frames:v 1 \
               "capture-out/beat-${name}-FIRST.png" || echo "(no frame for $name at ${first}s)"
             # …and a settled frame, so "never painted" can be told apart from "painted a moment later".
-            ffmpeg -y -hide_banner -loglevel error -ss "$late" -i capture-out/raw.mov -frames:v 1 \
+            ffmpeg -y -hide_banner -loglevel error -i capture-out/raw.mov -ss "$late" -frames:v 1 \
               "capture-out/beat-${name}-settled.png" || echo "(no frame for $name at ${late}s)"
           done
           ls -la capture-out/
@@ -285,7 +289,7 @@ jobs:
         if: always()
         run: |
           ffmpeg -y -hide_banner -loglevel error -i capture-out/raw.mov \
-            -vf "fps=1,scale=220:-2,drawtext=text='%{eif\:n\:d}s':x=6:y=6:fontsize=22:fontcolor=yellow:box=1:boxcolor=black@0.6,tile=8x5" \
+            -vf "fps=1,scale=220:-2,tile=8x5" \
             -frames:v 1 capture-out/contact-sheet.jpg || echo "(contact sheet unavailable)"
           ls -la capture-out/contact-sheet.jpg || true
 
