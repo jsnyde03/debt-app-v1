@@ -3648,3 +3648,45 @@ the diagnosis only came apart by reading the DOM order in the failure snapshot r
 
 **Proved the guard fires:** with the fix stashed and a `--clear` re-export, the new test fails; restored,
 6/6. Confirming a guard fails on the defect it names is the only thing that separates it from decoration.
+
+### The coach-mark half — built, looked at, and PARKED not-green (branch `3.5.5.5-coach-mark`)
+
+**Why it needed building at all:** `CoachMarkLayer` is mounted at the app ROOT by design, and a root-level
+overlay is a **sibling** of a presented `Modal` — so on device it renders *behind* the sheet. That is not a
+hypothesis; it is the failure `payoff-schedule.spec.ts` opens by describing, and it killed 3.7.A0's header
+button. Every one of the six previously registered targets is on Today's main screen, so nothing in the app
+had ever exercised this. **The web cannot see the difference** (one DOM tree), so it would have shown a
+working mark either way. 🎯 Jason chose the nested layer over re-siting the mark, because .4's inventory has
+several more sheet-resident affordances (What-If, log-payment, scan, Can-I-Afford) that hit the same wall.
+
+**Three findings, all kept on the branch:**
+
+1. **The "no orphan targets" invariant assumed a single consumer.** `spotlight.test.ts` asserted every
+   registered `TutorialTarget` is coached by some beat — true until coach-marks existed. Widened to name
+   *both* consumers (a beat, or an entry in `COACH_MARKS`) rather than deleted, so it keeps its teeth.
+2. ⚠️ **Two mounted layers rendered the SAME callout.** On device the root copy is merely hidden behind the
+   sheet — but it stays a live `accessibilityRole="alert"` in the tree, so **VoiceOver meets the hint
+   twice.** A purely visual reading would have called this harmless. The innermost host now draws and the
+   root stands down (a `hosts` count in the store).
+3. ⚠️ **A coach-mark could fire DURING the walkthrough**, covering the very subject a beat is explaining.
+   3.5.5.2's suppressors are declared by *screens* for their own acks, and the walkthrough is not a screen —
+   it is an arc that owns the whole surface for seven beats. The e2e suite caught it the instant a real mark
+   existed to fire, by failing "a user who actually DOES the interactive beats completes the whole arc".
+
+**Verified by looking:** both themes at 440×956 — the callout anchors directly above its subject, reads
+correctly, and the row stays tappable underneath (a hint, not a modal).
+
+### ⚠️ Why it is parked rather than shipped
+
+`validate:release:rn` fails under load in a way an isolated `test:e2e:rn` does not — **135/135 green
+isolated, twice; 1–2 failures inside the gate.** The decisive experiment was the control: running the GATE
+with the four files stashed fails **only the tests of the feature itself**, so the interference is ours and
+not pre-existing load-sensitivity. The `tutorialSession` guard reduced it but did not clear it.
+
+**Prime suspect: the trigger.** `useCoachMark` fires on sheet mount behind a 600ms timer — a wall-clock
+guess at "the presentation has settled", which is the same class of mistake 3.5.8 spent fourteen cycles
+removing from the capture pipeline. It wants replacing with something the app *states* (a layout/settle
+signal) rather than something the clock hopes for.
+
+**Not merged to `v1.7-dev`**, which carries the L5 fix alone and is green at 134/134. A known-flaky gate is
+worse than an unbuilt feature: it teaches everyone to ignore red.
