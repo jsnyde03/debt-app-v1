@@ -3477,3 +3477,20 @@ last frame is at ~30.3s yields what is actually there. It covers the whole arc a
 
 ⚠️ And `T0` was **9.195s** here against cycle 10's **5.267s** — the launch-to-paint variance, again, on the
 same build. Every cycle keeps re-proving why the declared allowance had to go.
+
+### ✅ CYCLE 12 — the deliverable opens on the app (2026-08-08)
+
+`T0 = 10.645s` (slate held 0.413s), trim from 10.70s, **886×1920 / 24.30s / CFR 30 / H.264 high@4.0**. Both
+content assertions passed silently.
+
+Verified **on the mp4**, decoded frame by frame rather than inferred from the evidence beside it:
+
+| video t | cycle 10 | cycle 12 |
+|---|---|---|
+| 0 → 3.0s | 0.3 (black) | **27.0 (the app)** |
+| 3.9s | 251.1 (the slate) | 27.1 |
+
+**Frame zero is a fully painted Money screen** — `$19,440` across 3 debts, all three cards, the Focus badge.
+No dead air, no slate.
+
+`T0` across three cycles: **5.267 · 9.195 · 10.645** — same build, same recipe.
