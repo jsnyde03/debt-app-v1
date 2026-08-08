@@ -100,14 +100,25 @@ fi
 # 2. IT MUST NOT OPEN ON BLACK. The first frame is what a store listing is judged by, and dead air at the
 #    head is exactly what a mis-seek produces. Compared numerically rather than grepped for a literal
 #    `black_start:0`, because ffmpeg's formatting of that zero is not something to bet the check on.
+#    ⚠️ `|| true` is REQUIRED, not defensive noise. Under this script's `set -euo pipefail`, a `grep` that
+#    matches nothing exits 1, `pipefail` propagates it, and the command substitution takes the whole script
+#    down — so on cycle 11 the check ABORTED THE BUILD BY PASSING: no black to find, no output, exit 1.
+#    A guard whose success is indistinguishable from a failure is worse than no guard.
 FIRST_BLACK=$(ffmpeg -hide_banner -nostats -i "$OUT" -t 2 \
                 -vf "blackdetect=d=0.20:pix_th=0.10:pic_th=0.98" -an -f null - 2>&1 \
-                | grep -o 'black_start:[0-9.]*' | head -1 | cut -d: -f2)
+                | grep -o 'black_start:[0-9.]*' | head -1 | cut -d: -f2 || true)
 if [ -n "$FIRST_BLACK" ] && awk -v s="$FIRST_BLACK" 'BEGIN{exit !(s < 0.10)}'; then
   echo "❌ the conformed video opens on black (a black run starts at ${FIRST_BLACK}s)."
   echo "   The in-point is before the app is on screen."
   fail=1
 fi
+
+# 3. SAY SO IF THE CUT CAME UP SHORT. Not a failure — Apple's window is 15-30s and a short cut can be
+#    entirely correct — but silence here would hide the cause. `simctl` records variable-frame-rate and a
+#    static screen emits NO frames, so once the script ends the recording simply stops advancing: asking
+#    for 25s from a file whose last frame is at 30.3s yields whatever is actually there. Cycle 11 asked for
+#    25 and got 21.1, which covers the whole arc and is worth knowing rather than wondering about.
+awk -v a="$ACTUAL_D" -v r="$DUR" 'BEGIN { if (a < r - 1) printf "ℹ️  asked for %ss, got %.1fs — the recording ran out of frames (a static screen emits none). Still inside Apple’s window.\n", r, a }'
 
 [ "$fail" = 0 ] || { echo "❌ the conformed file would be REJECTED by App Store Connect, or is not worth submitting"; exit 1; }
 

@@ -3443,3 +3443,37 @@ Both fail the build. Neither could have passed on cycle 10.
 *(Decoding note for anyone reproducing this locally: no ffmpeg on the Windows box can read H.264 —
 Playwright's bundled build is `--disable-everything`. Edge decoded it, seeking and drawing each frame to a
 canvas for the luma readings above.)*
+
+### ❌ CYCLE 11 — and the new guard aborted the build by PASSING
+
+The trim fix worked (`T0 = 9.195s`, found; the conform honoured it). The run still failed, with **no error
+message at all**.
+
+The cause is in the guard I had just written: `FIRST_BLACK=$(ffmpeg … | grep -o 'black_start:…')`. A `grep`
+that matches nothing exits 1, `pipefail` propagates it, and under `set -euo pipefail` the command
+substitution takes the whole script down. **There was no black to find — so the check succeeded, and
+killed the run.** A guard whose success is indistinguishable from its failure is worse than no guard.
+
+Fixed with `|| true`, and reproduced locally in four lines before touching CI.
+
+### ✅ `scripts/test-conform-assertions.sh` — because reading it was not enough
+
+The conform's assertions have now been wrong twice at ~17 minutes a cycle, and the second failure was
+invisible to review: the bug was in shell semantics, not in logic anyone could see by reading. So the
+assertions now have a test that stubs `ffmpeg`/`ffprobe` on `PATH` and runs the real script — clean video
+exits 0, surviving slate exits 1, black open exits 1, out-of-window durations exit 1. Runs in about a
+second, anywhere, no Mac.
+
+It asserts CONTROL FLOW, which is the part that broke. Whether `blackdetect` finds a real slate is still
+what the CI cycle is for. **Not wired into `validate:release:rn`** — that gate is JS and adding a shell
+runner to it is a decision, not a side effect of this fix.
+
+### Also learned: the cut is shorter than requested, and that is fine
+
+Cycle 11 asked for 25s and produced **21.1s**. `simctl` records variable-frame-rate and a static screen
+emits NO frames, so once the script ends the recording stops advancing — asking for 25s from a file whose
+last frame is at ~30.3s yields what is actually there. It covers the whole arc and sits inside Apple's
+15–30s window, so it is not a failure; the conform now SAYS it rather than leaving it to be wondered about.
+
+⚠️ And `T0` was **9.195s** here against cycle 10's **5.267s** — the launch-to-paint variance, again, on the
+same build. Every cycle keeps re-proving why the declared allowance had to go.
