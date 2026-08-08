@@ -3494,3 +3494,40 @@ Verified **on the mp4**, decoded frame by frame rather than inferred from the ev
 No dead air, no slate.
 
 `T0` across three cycles: **5.267 · 9.195 · 10.645** — same build, same recipe.
+
+🎯 **APPROVED 2026-08-08: *"The video looks good. Approved."*** — the CUT. Both remaining decisions were
+put to Jason with the evidence, and both are now answered.
+
+## 3.5.8.6b + 3.5.8.8 — RESOLVED (Jason, 2026-08-08)
+
+### 6b — the closing beat confirms itself (`useCaptureAutoConfirm`)
+
+The arc is situation → mechanism → proof → trajectory → **triumph**, and the triumph was an un-pressed
+button. `demoRun` had reserved that tap for an external driver on honesty grounds — **and that ground had
+moved**: the constraint was written to stop a demo that would SHIP from claiming an action its viewer had
+not taken, and [D19] pulled the demo out of the app entirely. A marketing video showing what the app does
+claims nothing about the viewer. The strictly-more-truthful option (a driven coordinate tap) is the
+machinery that already cost three CI cycles at ~40 minutes without landing; chosen against on cost, with
+the reasoning recorded rather than the choice quietly made.
+
+Scoped as narrowly as it goes: capture builds only, a live demo only, the FINAL stage only, once — calling
+the screen's own `confirmPayoff`, so there is no second definition of "a payoff was confirmed".
+
+⚠️ **It is the per-debt `VanquishedBeat`, not the full-screen `PaidOffFinale`.** The persona carries three
+debts and `isLastLiveDebt` is false, so paying one off fires "Store card · Vanquished · Paid off" with the
+freed payment. That is the *correct* celebration here and it is consistent with the demo's day-one bound —
+the finale would show a viewer a total debt freedom the run has not earned.
+
+### 8 — ship the simulator capture, and make the failure impossible to miss
+
+The simulator's risk was never Skia fidelity (3.5.8.4b) — it is that the chart reveals are ~850ms entrance
+animations that **do not start at all on a starved runner** (cycle 8), and nothing in a green run said
+which runner you got. A device re-run needs a Mac that does not exist here.
+
+So the guard states it directly: **the Progress beat must CHANGE between its arrival frame and its settled
+frame.** If they are byte-identical the reveal never ran — which is precisely the fingerprint cycle 8 left.
+Fails the build, with the advice to re-run and, if it repeats, shoot on a device.
+
+**Pre-flighted before the cycle** (the third time this has paid): a capture-flagged web export served
+locally reached the closing beat and rendered "Vanquished" unaided. Gate green — `lint:rn` ·
+`test:regression` · `test:app` · `test:scenarios` · `test:e2e:rn` **133/133** · conform assertions 5/5.

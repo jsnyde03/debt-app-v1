@@ -101,8 +101,8 @@ One dispatch on the free GH-macOS lane produces the submittable file. **[D20]:**
 | # | Step |
 |---|---|
 | **3.5.8.9** | **▶ ACTIVE BUILD — start the clock at PAINT, not at mount.** Decomposed below |
-| 3.5.8.6b | 🎯 **[DECISION] the payoff-confirmation tap** — the celebration needs something to press Confirm; `demoRun` reserves that for the capture driver on honesty grounds, so auto-confirming is Jason's call |
-| 3.5.8.8 | 🎯 **[DECISION] draft-vs-submitted** — ✅ **now decidable, and the evidence points at the device.** The risk was never Skia fidelity (3.5.8.4b settled that); it is that a shared runner's speed decides whether the 850ms chart reveals *play at all*, and **nothing in a green run says which one you got** — a fast cycle looks perfect, ships, and the next re-shoot could silently produce a video whose charts never draw. Rec: simulator lane = draft/iteration, device = the submitted asset |
+| 3.5.8.6b | ✅ **RESOLVED + BUILT 2026-08-08 — auto-confirm in capture builds.** The honesty ground moved: it was written to stop a SHIPPED demo claiming an action its viewer had not taken, and [D19] pulled the demo out of the app. `useCaptureAutoConfirm` calls the screen's own `confirmPayoff` 2.5s into the final stage — capture only, once. ⚠️ Fires the per-debt **`VanquishedBeat`**, not the finale (3 debts, so not the last) — which is the right beat and keeps the day-one bound. Log: 3.5.8.6b |
+| 3.5.8.8 | ✅ **RESOLVED + BUILT 2026-08-08 — ship the simulator capture, guarded.** A device re-run needs a Mac that does not exist here, so the invisible failure is made loud instead: **the Progress beat must CHANGE between its arrival and settled frames.** Byte-identical = the ~850ms chart reveals never ran (cycle 8's exact fingerprint) → build fails, advising a re-run and a device if it repeats. Log: 3.5.8.8 |
 
 #### 3.5.8.9 — start the clock at PAINT, not at mount ▶ ACTIVE BUILD
 
@@ -112,7 +112,7 @@ The one cause under the black in-point, the empty Today and the geometry-less Pr
 |---|---|
 | 3.5.8.9.1–.4 | ✅ **DONE 2026-08-07** — the clock is held until the route paints and released by a 350ms white slate; the workflow FINDS it (`negate,blackdetect`) and fails loud without it; `LAUNCH_ALLOWANCE` deleted; extraction falls back to the last frame before a target so a static tail stops producing silent gaps; contact sheet 1fps → 2fps. Gate green (133/133 e2e) and **proved locally against a flagged web export before spending a cycle**. Log: 3.5.8.9 |
 | 3.5.8.10 | ✅ **DONE 2026-08-08 (cycle 12)** — `-ss` after `-i` so the conform honours the anchor; the deliverable now asserts no surviving slate + no black open. Cycle 11's trim was right and still failed — the new guard aborted the build by PASSING (`grep` finds nothing → exit 1 under `pipefail`) — so the assertions got a stubbed test, 5/5. **Frame zero of the mp4 is a painted Money screen**, verified by decoding it. Log: 3.5.8 cycles 11–12 |
-| 3.5.8.11 | 🎯 **Re-watch `app-preview-6.9in.mp4` (run 31241463896).** Opens straight on Money, 24.3s. ⚠️ Beat 1 then holds still ~4s before the first transition — [D19] pacing, cheap to change if it still reads slow |
+| 3.5.8.11 | ✅ **APPROVED 2026-08-08** — 🎯 *"The video looks good. Approved."* Cycle 12's cut (run 31241463896). ⚠️ Approval of the CUT; 6b and .8 below are still open |
 | 3.5.8.9.5–.6 | ✅ **DONE 2026-08-07 — cycle 9 fixed the anchor, cycle 10 proved it.** Cycle 9's slate fired before the window was composited (350ms held, 205ms recorded) → `AppState`-active gate + settle, and the shortfall is now asserted; FIRST offset +0.20 → +0.80. **Cycle 10: `T0`=5.267s, slate 0.377s, 5/5 distinct settled frames, and `beat-1-FIRST` is a fully painted Money screen** — the check cycles 8 and 9 failed. Log: 3.5.8 cycles 9–10 |
 
 **Exit:** a CI artifact that passes ASC validation, whose every beat's first frame is painted and correct, reviewed by Jason as premium.

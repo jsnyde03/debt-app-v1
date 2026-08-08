@@ -25,6 +25,7 @@ import { PaydayGuardianCard } from '@/components/plan/PaydayGuardianCard';
 import { PlanHero } from '@/components/plan/PlanHero';
 import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
 import { RequiredActionsCard } from '@/components/plan/RequiredActionsCard';
+import { useCaptureAutoConfirm } from '@/components/plan/useCaptureAutoConfirm';
 import { WindfallSheet } from '@/components/plan/WindfallSheet';
 import { Motion } from '@/motion';
 import { haptics } from '@/motion/haptics';
@@ -168,6 +169,10 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
         : { kind: 'beat', debtName: d.name, amount: d.originalBalance ?? null, freed: d.minimumPayment, nextDebtName: next?.name ?? null },
     );
   }
+  // 3.5.8.6b — in a CAPTURE build the closing beat confirms itself, so the App Preview actually contains
+  // the celebration instead of an un-pressed button. Inert in every other build; see the hook.
+  useCaptureAutoConfirm(provisionalPayoffs[0], confirmPayoff);
+
   const [paycheckSheet, setPaycheckSheet] = useState(false);
   const [windfallSheet, setWindfallSheet] = useState(false);
   const [addDebtOpen, setAddDebtOpen] = useState(false);

@@ -9,14 +9,17 @@
 # the simulator's real Metal/Skia path, which is also the path that painted correctly in the 2026-08-06
 # Maestro run when the web CanvasKit one did not.
 #
-# ⚠️ NOTHING DRIVES THE APP, AND THAT IS DELIBERATE. The demo run is TIMED (`DEMO_STAGES`: 0/4/9/14/20s),
-# so it plays itself and the capture only has to watch. The one interaction the storyboard wants — tapping
-# the payoff invitation at t=20s to fire the real celebration — is NOT here, because this Maestro build
-# cannot wait out a timed sequence: `extendedWaitUntilVisible` is absent and `timeout` is not a valid
-# assertion property, established over three CI cycles at ~40 minutes each (see
-# `apps/rn/.maestro/06-tutorial-interactions.yaml`). Adding a coordinate tap or a pre-warmed driver would
-# put unproven machinery in the way of the artifact. Decide from the first cut whether the celebration is
-# worth a second cycle.
+# ⚠️ NOTHING EXTERNAL DRIVES THE APP, AND THAT IS DELIBERATE. The demo run is TIMED (`DEMO_STAGES`:
+# 0/4/9/14/20s), so it plays itself and the capture only has to watch.
+#
+# The one interaction the storyboard wants — the payoff invitation being confirmed so the real celebration
+# fires — is now done BY THE APP (`useCaptureAutoConfirm`, 3.5.8.6b), not by a driver. A coordinate tap was
+# the more truthful option and is the machinery that already cost three CI cycles at ~40 minutes each
+# without landing: this Maestro build cannot wait out a timed sequence (`extendedWaitUntilVisible` is
+# absent, `timeout` is not a valid assertion property — see `apps/rn/.maestro/06-tutorial-interactions.yaml`).
+# The honesty objection that first withheld it no longer applies: it was written to stop a SHIPPED demo
+# claiming an action its viewer had not taken, and [D19] pulled the demo out of the app entirely.
+# Jason, 2026-08-08.
 #
 # ⚠️ THE BUILD RECIPE BELOW IS DUPLICATED FROM `native-e2e.yml`, ON PURPOSE AND WITH A COST. That recipe
 # carries expensive native fixes (the ios-utilities rootcontentview plugin, SENTRY_DISABLE_AUTO_UPLOAD,
@@ -389,6 +392,34 @@ jobs:
           fi
           echo "✅ the screen actually changed across beats"
 
+          # ⚠️ THE CHART REVEAL MUST ACTUALLY RUN, and this is the guard that decided 3.5.8.8.
+          #
+          # The Progress beat's ring, cash-flow bars and payoff curve are ~850ms entrance animations
+          # (`TrajectorySkiaChart`, `CushionBarChart`, `JourneyRingChart`). On a fast runner they play and
+          # the footage is the best shot in the video. On a STARVED one they never start: cycle 8 caught
+          # the same screen, byte-identical, 1.9s apart with nothing drawn.
+          #
+          # Nothing in a green run said which one you got — so a fast cycle looked perfect, and the next
+          # re-shoot after a UI tweak could silently ship a video whose charts never draw. That invisibility
+          # is the entire reason simulator capture was in question (Jason, 2026-08-08: ship the sim capture,
+          # but make this impossible to miss).
+          #
+          # The check is the cheapest possible statement of it: between arrival and 2.5s later, the Progress
+          # beat MUST have changed. If those two frames are identical, the reveal did not happen.
+          if [ -s beat-4-trajectory-FIRST.png ] && [ -s beat-4-trajectory-settled.png ]; then
+            if [ "$(md5 -q beat-4-trajectory-FIRST.png)" = "$(md5 -q beat-4-trajectory-settled.png)" ]; then
+              echo "❌ The Progress beat did not change between its arrival and its settled frame."
+              echo "   Its charts are ~850ms entrance animations, so identical frames mean the reveal never"
+              echo "   ran — a starved runner, not a layout problem. The cut would show empty charts on the"
+              echo "   beat the whole preview builds to. Re-run; if it repeats, shoot on a device."
+              exit 1
+            fi
+            echo "✅ the chart reveal ran (the Progress beat changed as it settled)"
+          else
+            echo "❌ the Progress beat's frames are missing — cannot tell whether the chart reveal ran."
+            exit 1
+          fi
+
       - name: Conform to Apple's App Preview spec
         run: |
           chmod +x ../../scripts/conform-app-preview.sh
@@ -434,7 +465,7 @@ jobs:
             echo "script t=0 (slate found at): ${T0:-NOT FOUND}s — the app's own mark, not an estimate"
             echo "trim: start=${{ inputs.start_offset || 'measured' }} duration=${{ inputs.duration || '25' }}s"
             echo "conformed: 886x1920 (covers every modern iPhone slot — 6.9/6.5/6.3/6.1)"
-            echo "NOT captured: the payoff confirmation tap — see this workflow's header."
+            echo "closing beat: the invitation is confirmed by the app itself 2.5s in (3.5.8.6b), so the celebration IS in the cut."
           } > capture-out/SHOT-NOTES.txt
           cat capture-out/SHOT-NOTES.txt
 
