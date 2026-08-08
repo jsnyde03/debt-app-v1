@@ -2,6 +2,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { scrollDelta } from './spotlightGeometry';
+import { COACH_MARKS } from '@/store/coachMarkCopy';
 import { TUTORIAL_STEPS } from '@/store/tutorialPath';
 
 /**
@@ -76,11 +77,19 @@ function run() {
     assert(!step.target || REGISTERED.includes(step.target), `beat "${step.id}" points at a registered subject`);
     assert(!step.payoffTarget || REGISTERED.includes(step.payoffTarget), `beat "${step.id}" payoff points at a registered subject`);
   }
-  // And the inverse, which is what would have caught `guardian-line`: nothing may register a subject the
-  // arc never points at. A target that no beat coaches is dead weight on a screen every user loads.
+  // And the inverse, which is what would have caught `guardian-line`: nothing may register a subject
+  // NOTHING points at. A target no one coaches is dead weight on a screen every user loads.
+  //
+  // 3.5.5.5 — the registry now has TWO consumers. A coach-mark points at a control with an entry in
+  // `COACH_MARKS` and no beat anywhere, which is not an orphan; it is the other half of what this
+  // registry is for. The invariant keeps its teeth by naming both consumers rather than by dropping the
+  // check: a subject claimed by neither is still dead weight.
   const COACHED = new Set(TUTORIAL_STEPS.flatMap((s) => [s.target, s.payoffTarget]).filter(Boolean));
   for (const id of REGISTERED) {
-    assert(COACHED.has(id), `registered subject "${id}" is actually coached by some beat (no orphan targets)`);
+    assert(
+      COACHED.has(id) || id in COACH_MARKS,
+      `registered subject "${id}" is coached by a beat or carries coach-mark copy (no orphan targets)`,
+    );
   }
 
   console.log(`✅ spotlight geometry: ${passed} assertions passed.\n`);

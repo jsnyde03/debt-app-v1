@@ -101,6 +101,27 @@ test.describe('payoff schedule — the entry is reachable without scrolling [L5]
     expect(facts.saveAfterEntry).toBe(true);
     expect(facts.removeAfterSave).toBe(true);
   });
+
+  /**
+   * 3.5.5.5 — the entry is also the first coach-mark subject, and the mark is rendered by a layer
+   * `FormSheet` mounts INSIDE its Modal (the root layer would sit behind a presented Modal on device).
+   *
+   * ⚠️ Web proves the wiring only — the copy resolves, the layer renders, the control stays live under
+   * it. It cannot prove the layering it exists for, because react-native-web has no native Modal. That
+   * proof is the Maestro lane's.
+   */
+  test('the schedule entry carries its coach-mark, and the control stays live under it', async ({ page }) => {
+    await seedStore(page, scenario());
+    await page.goto('/money');
+    await page.getByText('Card', { exact: true }).first().click();
+
+    await expect(page.getByText('See the whole payoff')).toBeVisible();
+    await expect(page.getByText('Every payment from here to debt-free, month by month.')).toBeVisible();
+
+    // A hint, not a modal: the thing it names is still tappable while it is up.
+    await page.getByTestId('debt-view-schedule').click();
+    await expect(page).toHaveURL(/\/schedule\/d0/);
+  });
 });
 
 test.describe('payoff schedule — expanded/iPad (3.7.A0)', () => {

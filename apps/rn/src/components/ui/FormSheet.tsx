@@ -4,6 +4,7 @@ import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-ha
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CoachMarkLayer } from '@/components/plan/CoachMarkLayer';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { SheetBackdrop } from '@/components/ui/SheetBackdrop';
@@ -173,6 +174,15 @@ export function FormSheet({
             </View>
           </Animated.View>
         </KeyboardAvoidingView>
+        {/* 3.5.5.5 — the coach-mark layer, a SECOND time, inside this Modal.
+            `CoachMarkLayer` is mounted at the app root by design, and a root-level overlay is a SIBLING
+            of a presented Modal, so on device it renders BEHIND it — the same geometry that killed
+            3.7.A0's header button, which `payoff-schedule.spec.ts` opens by describing. The web cannot
+            show the difference (one DOM tree), so this is device-lane truth rather than a web finding.
+            It sits inside the full-screen gesture root rather than inside the sheet, so a subject's
+            window coordinates and the callout's frame share one space. The store is shared, so "one at a
+            time" still holds across both mounts, and the layer renders null unless something is marked. */}
+        <CoachMarkLayer nested />
       </GestureHandlerRootView>
     </Modal>
   );

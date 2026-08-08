@@ -14,6 +14,8 @@ import { todayLocalISO } from '@/data/defaults';
 import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useActiveStore } from '@/store/StoreContext';
+import { useCoachMark } from '@/store/coachMarks';
+import { TutorialTarget } from '@/store/tutorialTargets';
 import { selectDebtBalanceView } from '@/store/balanceSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
@@ -99,6 +101,10 @@ export function DebtSheet({
   const snapshot = JSON.stringify({ name, balance, minimumPayment, apr, dueDate, type, recurrence, autopay, remainingPayments, scheduledPaymentAmount, bnplProvider });
   const initialSnapshot = useRef(snapshot);
   const dirty = snapshot !== initialSnapshot.current;
+
+  // 3.5.5.5 — offer the payoff-schedule mark once the edit sheet is up. Editing only: on an ADD there is
+  // no schedule to point at, and the row itself is not rendered.
+  useCoachMark('payoff-schedule', isEdit);
 
   // A BNPL's balance is DERIVED from its plan (installment × payments left), not typed (2.7.3).
   const bnplSched = Number(scheduledPaymentAmount);
@@ -209,14 +215,18 @@ export function DebtSheet({
       // nearest neighbour. Pinned, the submit button separates the two.
       footerAccessory={
         isEdit && editing ? (
-          <Pressable
-            testID="debt-view-schedule"
-            onPress={() => onViewSchedule(editing.id)}
-            accessibilityRole="button"
-            style={({ pressed }) => [styles.scheduleRow, { borderColor: c.border.subtle, opacity: pressed ? 0.7 : 1 }]}>
-            <Text style={[textStyles.body, { color: c.accent.primary }]}>View payoff schedule</Text>
-            <AppIcon name="chevron-right" size={20} color={c.accent.primary} />
-          </Pressable>
+          // 3.5.5.5 — and it is a coach-mark subject. `TutorialTarget` is a bare measuring wrapper; the
+          // mark itself is rendered by the layer FormSheet mounts inside its Modal.
+          <TutorialTarget id="payoff-schedule">
+            <Pressable
+              testID="debt-view-schedule"
+              onPress={() => onViewSchedule(editing.id)}
+              accessibilityRole="button"
+              style={({ pressed }) => [styles.scheduleRow, { borderColor: c.border.subtle, opacity: pressed ? 0.7 : 1 }]}>
+              <Text style={[textStyles.body, { color: c.accent.primary }]}>View payoff schedule</Text>
+              <AppIcon name="chevron-right" size={20} color={c.accent.primary} />
+            </Pressable>
+          </TutorialTarget>
         ) : null
       }
       >

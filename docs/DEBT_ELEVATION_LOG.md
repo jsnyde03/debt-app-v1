@@ -3649,7 +3649,7 @@ the diagnosis only came apart by reading the DOM order in the failure snapshot r
 **Proved the guard fires:** with the fix stashed and a `--clear` re-export, the new test fails; restored,
 6/6. Confirming a guard fails on the defect it names is the only thing that separates it from decoration.
 
-### The coach-mark half — built, looked at, and PARKED not-green (branch `3.5.5.5-coach-mark`)
+### The coach-mark half — the first real mark, and what it cost to land
 
 **Why it needed building at all:** `CoachMarkLayer` is mounted at the app ROOT by design, and a root-level
 overlay is a **sibling** of a presented `Modal` — so on device it renders *behind* the sheet. That is not a
@@ -3676,17 +3676,27 @@ several more sheet-resident affordances (What-If, log-payment, scan, Can-I-Affor
 **Verified by looking:** both themes at 440×956 — the callout anchors directly above its subject, reads
 correctly, and the row stays tappable underneath (a hint, not a modal).
 
-### ⚠️ Why it is parked rather than shipped
+### ⚠️ It was parked not-green for one night, and the cause was the trigger
 
-`validate:release:rn` fails under load in a way an isolated `test:e2e:rn` does not — **135/135 green
-isolated, twice; 1–2 failures inside the gate.** The decisive experiment was the control: running the GATE
-with the four files stashed fails **only the tests of the feature itself**, so the interference is ours and
-not pre-existing load-sensitivity. The `tutorialSession` guard reduced it but did not clear it.
+`validate:release:rn` failed under load in a way an isolated `test:e2e:rn` did not — **135/135 green
+isolated, twice; 1–2 failures inside the gate, 2 gate runs out of 2.** The decisive experiment was the
+control: running the GATE with the four files stashed failed **only the tests of the feature itself**, so
+the interference was ours rather than pre-existing load-sensitivity. That one run is what turned "the suite
+is flaky" into "we broke something", and the two readings are not distinguishable without it.
 
-**Prime suspect: the trigger.** `useCoachMark` fires on sheet mount behind a 600ms timer — a wall-clock
-guess at "the presentation has settled", which is the same class of mistake 3.5.8 spent fourteen cycles
-removing from the capture pipeline. It wants replacing with something the app *states* (a layout/settle
-signal) rather than something the clock hopes for.
+**The cause: `useCoachMark` fired on sheet mount behind a 600ms timer.** `CoachMarkLayer` renders nothing
+on a miss or a 0×0 measure, so a mark asked for too early silently never appears — which made "has the
+sheet finished presenting?" a question answered by a wall-clock guess. Under load the guess drifts, the
+mark lands somewhere it was never meant to, and only a loaded machine ever sees it.
 
-**Not merged to `v1.7-dev`**, which carries the L5 fix alone and is green at 134/134. A known-flaky gate is
-worse than an unbuilt feature: it teaches everyone to ignore red.
+**The fix: ask when the subject LAYS OUT.** `invalidate(id)` is the fact the timer was approximating —
+[E5] made `TutorialTarget` fire it on every layout precisely because layout covers mount, reflow and
+resize alike. **Three consecutive green gate runs at 135/135**, against 2-for-2 failures before.
+
+> This is the same correction 3.5.8 made fourteen times in a row, in a different file and a different
+> week: a quantity that MOVES was being guessed at by the clock, and the fix was never a better constant —
+> it was finding the signal the app already emits. Launch time, the anchor, the stage timing, and now a
+> sheet's presentation. **When a timer's number feels like it needs tuning, look for what the app could
+> state instead.**
+
+Merged to `v1.7-dev` green. The branch `3.5.5.5-coach-mark` keeps the not-green history.

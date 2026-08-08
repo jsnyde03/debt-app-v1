@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppColors } from '@/hooks/use-app-colors';
 import { COACH_MARKS } from '@/store/coachMarkCopy';
-import { coachMarks, useActiveCoachMark } from '@/store/coachMarks';
+import { coachMarks, useActiveCoachMark, useCoachMarkHosts } from '@/store/coachMarks';
 import { useTutorialTargets, type TargetRect } from '@/store/tutorialTargets';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -29,13 +29,22 @@ import { textStyles } from '@/theme/typography';
  *
  * Renders nothing unless something is actively marked.
  */
-export function CoachMarkLayer() {
+export function CoachMarkLayer({ nested = false }: { nested?: boolean } = {}) {
   const c = useAppColors();
   const insets = useSafeAreaInsets();
   const { height: winH } = useWindowDimensions();
   const targets = useTutorialTargets();
   const active = useActiveCoachMark();
+  const hosts = useCoachMarkHosts();
   const [rect, setRect] = useState<TargetRect | null>(null);
+
+  // 3.5.5.5 — a nested host announces itself so the root layer can stand down. Both rendering the same
+  // callout is not merely a duplicate drawing: the root copy hides behind the sheet on device but stays
+  // a live `alert` in the accessibility tree, so the hint is met twice.
+  useEffect(() => {
+    if (!nested) return;
+    return coachMarks.getState().addHost();
+  }, [nested]);
 
   useEffect(() => {
     if (!active || !targets) {
@@ -54,6 +63,8 @@ export function CoachMarkLayer() {
     };
   }, [active, targets]);
 
+  // The innermost host draws. Outside any sheet `hosts` is 0 and the root layer behaves exactly as before.
+  if (!nested && hosts > 0) return null;
   if (!active || !rect) return null;
   const copy = COACH_MARKS[active];
   if (!copy) return null;
