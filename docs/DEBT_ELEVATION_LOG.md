@@ -3396,3 +3396,50 @@ draft/iteration path; the submitted asset wants a device.
 
 **Exit met:** a CI artifact that passes the ASC conform, whose every beat's first frame is painted and
 correct. What remains is Jason's review of the cut and the two decisions.
+
+## 3.5.8 — the conform ignored the anchor, and I checked the evidence instead of the deliverable (2026-08-08)
+
+🎯 **Jason watched cycle 10's video: *"There is some time before it starts but what's there looks good."***
+
+Measured rather than guessed — mean luminance of the conformed file, decoded frame by frame:
+
+| video t | mean luma | what |
+|---|---|---|
+| 0 → 3.0s | **0.3** | black |
+| 3.9s | **251.1** | **the capture slate, in the shipped file** |
+| 4.3s onward | 27.0 | the app |
+
+So the deliverable opened on ~3.6s of black, then flashed the internal timing mark, then started. Nearly
+four seconds before anything appears — exactly what he saw.
+
+### The cause: `-ss` before `-i`, in the conform
+
+`conform-app-preview.sh` seeked with `-ss "$START" -i "$RAW"`. Before `-i` that is an INPUT seek, which on
+a variable-frame-rate simulator `.mov` lands on the nearest keyframe rather than the moment asked for. The
+workflow passed `5.32s`; the file began around raw `1.2s`.
+
+**This is the same lesson the frame extraction learned at cycle 7, in this same pipeline, never carried
+across to the step that makes the actual deliverable.** Moved after `-i` (accurate seek).
+
+### ⚠️ The real miss is not the flag — it is what was never examined
+
+Three cycles were spent making the anchor exact, and the step that consumes it was throwing it away. That
+survived because **every check in this pipeline looked at PNGs pulled from `raw.mov`, and nothing ever
+looked at a pixel of the mp4 being shipped.** The container was asserted thoroughly — dimensions, duration,
+frame rate, profile — and the container was fine. The content was never asked about.
+
+The pipeline's own history says this out loud: a green Maestro run that wrote no screenshots, an artifact
+glob that skipped a hidden path, a web-e2e red for a month against a retired app, cycle 1's spec-perfect
+recording of the Home Screen. Every one is the same shape — *check the artifact, not the exit code* — and
+this is that shape one level further in: check the ARTIFACT YOU SHIP, not the evidence beside it.
+
+**So the assertions now run on the conformed file:**
+- **the slate must not survive** (`negate,blackdetect` over the output — a full white frame is the one
+  artifact this pipeline deliberately creates, and it must never leave it), and
+- **it must not open on black** (a black run starting within 100ms of t=0).
+
+Both fail the build. Neither could have passed on cycle 10.
+
+*(Decoding note for anyone reproducing this locally: no ffmpeg on the Windows box can read H.264 —
+Playwright's bundled build is `--disable-everything`. Edge decoded it, seeking and drawing each frame to a
+canvas for the luma readings above.)*
