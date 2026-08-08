@@ -58,8 +58,13 @@ interface TargetRegistry {
    *  pass. A ref write plus a walk of an empty Set is nothing. Returns an unsubscribe.
    *  (`activeId` below IS state, which does not contradict this: the constraint that matters is "nothing
    *  on the LAYOUT path", and `activeId` changes once per beat, not once per layout. Constraint 1 at the
-   *  top of the file — inert outside a session — also still holds, but for a different reason than
-   *  statelessness: the provider is mounted only inside a running session.) */
+   *  top of the file — inert outside a session — also still holds, and for the reason given THERE: the
+   *  provider is app-wide since 3.5.5.1, so what keeps it inert is that registration touches only refs,
+   *  NOT that it goes unmounted.)
+   *
+   *  ⚠️ 3.5.5.5 — `subscribe` has a second consumer now: `useCoachMark` waits on it to learn that a
+   *  subject has laid out, replacing a 600ms timer that guessed. So this fires for marks as well as
+   *  beats, and the "nothing on the layout path" constraint above is what makes that free. */
   subscribe(listener: (id: string) => void): () => void;
   /** Which subject the current beat coaches, or null outside a session. Published by the screen and read
    *  by `TutorialTarget` so a control that ISN'T this beat's subject can fence itself — see `control`. */
