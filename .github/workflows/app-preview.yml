@@ -49,9 +49,9 @@ on:
         required: false
         default: ''
       duration:
-        description: 'Length of the conformed video in seconds (Apple allows 15-30)'
+        description: 'Length ceiling for the conformed video (Apple allows 15-30). A CEILING, not a pad — the cut ends when the recording runs out of frames.'
         required: false
-        default: '25'
+        default: '29'
 
   # The way this actually runs today. A push trigger is evaluated on the pushed REF, so it does not need
   # the default branch — which is what lets the capture run from `v1.7-dev` without putting anything on
@@ -349,6 +349,13 @@ jobs:
             # …and a settled frame, so "never painted" can be told apart from "painted a moment later".
             grab "$late"  "capture-out/beat-${name}-settled.png"
           done
+
+          # The celebration (3.5.8.6b) is not a DEMO_STAGE — the app confirms the invitation itself 2s into
+          # the closing beat, so it lands at roughly T0+22. Sampled LATE (T0+26) on purpose: the stage
+          # timers drift when the runner is loaded (cycle 13 was ~4s behind), and a sample placed at the
+          # nominal moment would miss the very thing it exists to prove.
+          celebration=$(awk -v p="$T0" 'BEGIN { printf "%.2f", p + 26.0 }')
+          grab "$celebration" "capture-out/beat-6-celebration.png"
           ls -la capture-out/
 
       # ⚠️ THE GUARD CYCLE 1 DID NOT HAVE, and the reason it shipped a green run with no capture in it.
@@ -420,6 +427,23 @@ jobs:
             exit 1
           fi
 
+          # ⚠️ THE CELEBRATION MUST ACTUALLY FIRE (3.5.8.6b). The arc's whole point is the triumph, and the
+          # thing that produces it is an in-app timer that a loaded runner can delay or a refactor can
+          # strand. If it never fires, the closing screen stays the un-pressed invitation — so the late
+          # sample and the settled closing beat would be the SAME frame.
+          if [ -s beat-6-celebration.png ] && [ -s beat-5-payoff-settled.png ]; then
+            if [ "$(md5 -q beat-6-celebration.png)" = "$(md5 -q beat-5-payoff-settled.png)" ]; then
+              echo "❌ The closing beat never changed — the payoff was never confirmed."
+              echo "   useCaptureAutoConfirm should press it 2s in, so the celebration plays. An"
+              echo "   identical frame 26s in means it did not, and the preview has no ending."
+              exit 1
+            fi
+            echo "✅ the celebration fired (the closing beat resolved)"
+          else
+            echo "❌ the closing beat's frames are missing — cannot tell whether the celebration fired."
+            exit 1
+          fi
+
       - name: Conform to Apple's App Preview spec
         run: |
           chmod +x ../../scripts/conform-app-preview.sh
@@ -445,8 +469,17 @@ jobs:
             START=$(awk -v t="$T0" 'BEGIN { printf "%.2f", t + 0.05 }')
             echo "trimming from ${START}s (the slate ended at ${T0}s)"
           fi
+          # ⚠️ 29, not 25, and it is a CEILING rather than a pad (Apple's window is 15-30).
+          #
+          # The script's stage timers fire late when the runner is loaded: cycle 13 still had the Progress
+          # beat on screen at 23.8s against a declared 20s, so the closing celebration landed in the final
+          # TENTH OF A SECOND of a 25s cut — present, and effectively absent. A fixed 25s window silently
+          # amputates the ending exactly when the machine is slow.
+          #
+          # This costs nothing when the runner is fast: `simctl` stops emitting frames once the screen is
+          # static, so the cut ends where the content does (cycle 12 asked for 25 and got 24.3).
           DUR="${{ inputs.duration }}"
-          [ -n "$DUR" ] || DUR=25
+          [ -n "$DUR" ] || DUR=29
           ../../scripts/conform-app-preview.sh \
             capture-out/raw.mov \
             capture-out/app-preview-6.9in.mp4 \

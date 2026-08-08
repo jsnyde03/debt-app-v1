@@ -9,10 +9,15 @@ import { demoSession } from '@/store/demoSession';
  * How long the invitation is left on screen before it is confirmed.
  *
  * The closing beat has to READ before it resolves — a viewer needs to see the debt reach zero and the
- * offer to make it official, or the celebration is a firework with no cause. 2.5s is the walkthrough's
- * "time to understand a change" (~2s) plus a beat, and it leaves the finale roughly 1.5s of the cut.
+ * offer to make it official, or the celebration is a firework with no cause. 2s is the walkthrough's
+ * settled "time to understand a change".
+ *
+ * ⚠️ Trimmed from 2.5s after cycle 13, where the celebration landed in the final TENTH of a second of the
+ * cut. The real cause was the script's stage timers running ~4s late on a loaded runner (the conform's
+ * ceiling went 25s → 29s for that), but the closing beat is the one place where every accumulated delay
+ * lands at once, so it gets the margin too.
  */
-const CONFIRM_AFTER_MS = 2500;
+const CONFIRM_AFTER_MS = 2000;
 
 /**
  * 3.5.8.6b — in a CAPTURE build, the closing beat confirms itself.
