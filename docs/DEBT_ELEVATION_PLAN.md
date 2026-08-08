@@ -91,12 +91,14 @@ The interactive tutorial + the bounded marketing/demo showcase (+ folded-in feat
 
 One calm, dismissible, replayable mark for every hidden affordance that EXISTS. .1 (the primitive + the registry at the ROOT) and .2 (one-interruption-at-a-time, re-scoped to the narrower true claim) ✅ done 2026-08-07; the 2026-08-07 switch-in re-verification → log 3.5.5.
 
-| # | Step |
-|---|---|
-| **3.5.5.3** | **▶ NEXT — seen-persistence + a replay entry** in More, mirroring the walkthrough's. A discovery layer nobody can re-open is a one-shot |
-| 3.5.5.4 | **The corrected inventory** — long-press menu · Cash-Runway scrub · Can-I-Afford · swipe-to-delete · chart scrub · **What-If** · Log-payment · scan-a-statement · **income-varies (new, via A9)** · widget/Lock-Screen/Siri. Each verified reachable before it gets a mark. ⚠️ **Start from a FRESH read of the code** — this inventory has been wrong once already (it promised an income-varies toggle that did not exist → 3.7.A9, now built) |
-| 3.5.5.5 | **Payoff schedule: fix L5, then mark it** — the entry 3.7.A0 moved for discoverability is off-screen on the biggest phone Apple sells, directly above a destructive Remove |
-| 3.5.5.6 | **Verify + close** — both themes · a11y (a mark must not fence the control it points at) · e2e · native lane |
+⚠️ **.5 runs BEFORE .3 (Jason 2026-08-08).** `COACH_MARKS` holds one entry and it is registered nowhere, so as ordered .3 would build persistence for a layer that marks nothing and cannot be verified by looking. Ids kept stable — the log and commits reference them.
+
+| order | # | Step |
+|---|---|---|
+| **1** | **3.5.5.5** | **▶ ACTIVE — ✅ L5 FIXED 2026-08-08** (`footerAccessory` pins the entry below the fields and above the sticky actions; Save now separates it from Remove; gate 134/134, guard proven to fire). **⏳ Registering the mark is BLOCKED** — the row sits inside a presented `Modal` and `CoachMarkLayer` is mounted at the ROOT, so a mark cannot render over it on device. 🔷 **[DECISION] owed** — see log 3.5.5.5 |
+| 2 | 3.5.5.3 | **Seen-persistence + a replay entry** in More, mirroring the walkthrough's row. A discovery layer nobody can re-open is a one-shot. ⚠️ **Must NOT join `TUTORIAL_WRITABLE_PREFS`** — a mark seen in the Example world would burn the real user's hint. Lands under schema **v7**, which has not shipped, so no second bump |
+| 3 | 3.5.5.4 | **The corrected inventory** — long-press menu · Cash-Runway scrub · Can-I-Afford · swipe-to-delete · chart scrub · **What-If** · Log-payment · scan-a-statement · **income-varies (new, via A9)** · widget/Lock-Screen/Siri. Each verified reachable before it gets a mark. ⚠️ **Start from a FRESH read of the code** — this inventory has been wrong once already (→ 3.7.A9, now built) |
+| 4 | 3.5.5.6 | **Verify + close** — both themes · a11y (a mark must not fence the control it points at) · e2e · native lane |
 
 **Exit:** every hidden affordance that EXISTS has one calm, dismissible, replayable mark; none fires alongside another ack; and no mark points at a control the user cannot reach.
 

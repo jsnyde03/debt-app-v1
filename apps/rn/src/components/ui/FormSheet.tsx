@@ -34,6 +34,7 @@ export function FormSheet({
   onRemove,
   onClose,
   headerAction,
+  footerAccessory,
   dirty,
   inline = false,
   children,
@@ -47,6 +48,19 @@ export function FormSheet({
   onClose: () => void;
   /** Optional pressable pinned in the header row, just left of the close button (e.g. "View schedule"). */
   headerAction?: ReactNode;
+  /**
+   * [L5] A navigation affordance pinned BELOW the scrolling fields and ABOVE the sticky submit — always
+   * on screen, never a scroll away.
+   *
+   * It exists because the alternative placements both failed on real hardware. As the last child of the
+   * scroll, "View payoff schedule" was below the fold on the largest iPhone at default type (native
+   * hierarchy 2026-08-06: row at `[20,877][420,925]`) and its nearest neighbour was the destructive
+   * Remove. In the header — where 3.7.A0 originally put it — it was occluded by a presented Modal.
+   *
+   * Here it is neither: the submit button sits between it and Remove, so a mis-tap on a secondary
+   * navigation row can no longer land on a destroy.
+   */
+  footerAccessory?: ReactNode;
   /** When the form has unsaved edits, a tap/swipe dismiss asks to confirm before discarding (3.4.5.5). */
   dirty?: boolean;
   /** 3.6.2 — render as an in-tree PANE (the iPad Money master-detail detail) instead of a Modal: same
@@ -85,6 +99,7 @@ export function FormSheet({
           showsVerticalScrollIndicator={false}>
           {children}
         </ScrollView>
+        {footerAccessory}
         <View style={styles.actions}>
           <Button label={submitLabel} onPress={onSubmit} />
           {onRemove ? (
@@ -145,6 +160,8 @@ export function FormSheet({
             <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
               {children}
             </ScrollView>
+
+            {footerAccessory}
 
             <View style={styles.actions}>
               <Button label={submitLabel} onPress={onSubmit} />

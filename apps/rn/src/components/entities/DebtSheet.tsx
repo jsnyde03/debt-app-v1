@@ -198,6 +198,27 @@ export function DebtSheet({
       onRemove={isEdit ? remove : undefined}
       onClose={onClose}
       dirty={dirty}
+      // 3.7.A0 — the cross-platform way into the payoff schedule (the iOS row long-press menu is the fast
+      // path, but RowContextMenu is a passthrough on web/Android). This NAVIGATES rather than opening a
+      // sheet-from-a-sheet: close this sheet first, then push, so nothing can be occluded by a presented
+      // Modal — the failure that killed the old header button on device.
+      //
+      // [L5] It rides `footerAccessory` rather than sitting last in the scroll. As a scrolling child it
+      // was off-screen at default type on the largest iPhone — 3.7.A0 moved it here FOR discoverability,
+      // and on the biggest phone Apple sells you could not see it — with the destructive Remove as its
+      // nearest neighbour. Pinned, the submit button separates the two.
+      footerAccessory={
+        isEdit && editing ? (
+          <Pressable
+            testID="debt-view-schedule"
+            onPress={() => onViewSchedule(editing.id)}
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.scheduleRow, { borderColor: c.border.subtle, opacity: pressed ? 0.7 : 1 }]}>
+            <Text style={[textStyles.body, { color: c.accent.primary }]}>View payoff schedule</Text>
+            <AppIcon name="chevron-right" size={20} color={c.accent.primary} />
+          </Pressable>
+        ) : null
+      }
       >
       <TextField label="Name" value={name} onChangeText={(t) => { setName(t); setError(''); }} placeholder={type === 'bnpl' ? 'Affirm — Sofa' : 'Visa, Car Loan'} />
       <Select
@@ -255,20 +276,6 @@ export function DebtSheet({
         </>
       )}
       <SwitchRow label="Autopay" value={autopay} onValueChange={setAutopay} />
-      {/* 3.7.A0 — the cross-platform way into the payoff schedule (the iOS row long-press menu is the
-          fast path, but RowContextMenu is a passthrough on web/Android). This NAVIGATES rather than
-          opening a sheet-from-a-sheet: close this sheet first, then push, so nothing can be occluded by
-          a presented Modal — the failure that killed the old header button on device. */}
-      {isEdit && editing ? (
-        <Pressable
-          testID="debt-view-schedule"
-          onPress={() => onViewSchedule(editing.id)}
-          accessibilityRole="button"
-          style={({ pressed }) => [styles.scheduleRow, { borderColor: c.border.subtle, opacity: pressed ? 0.7 : 1 }]}>
-          <Text style={[textStyles.body, { color: c.accent.primary }]}>View payoff schedule</Text>
-          <AppIcon name="chevron-right" size={20} color={c.accent.primary} />
-        </Pressable>
-      ) : null}
       {error ? <Text style={[textStyles.caption, { color: c.accent.danger }]}>{error}</Text> : null}
     </FormSheet>
     </>

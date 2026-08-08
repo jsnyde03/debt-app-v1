@@ -3590,3 +3590,61 @@ The CI artifact expires ~90 days from 2026-08-08. The cut is deterministic (froz
 pipeline reproduces it — but the UI **will** change before submit (3.5.5, 3.7, the cohesion audit, the
 Phase-6 finish sweep), so **the submitted asset is a re-shoot of this pipeline, not this file.** What
 cycle 14 establishes is that the pipeline produces an approvable one.
+
+## 3.5.5 resumed — and .5 runs before .3 (2026-08-08)
+
+3.5.8 closed, so 3.5.5 took the active slot. **Order changed at switch-in (Jason):** `COACH_MARKS` holds
+one entry and it is registered nowhere, so .3 would have built seen-persistence and a replay entry for a
+layer that marks nothing — unverifiable by looking, on a project where looking is what has caught the last
+four defects. .5 goes first to make one real mark exist. Ids kept stable; the log and commits reference
+them.
+
+### Switch-in findings, against the current code
+
+- **Persistence has a clean home.** `prefs.tutorialSeen`/`tutorialStep` landed under schema **v7**, and
+  `models.ts` records that v7 **has not shipped** — so coach-mark seen-state joins v7 without a second
+  bump, additive and backfilled by the prefs merge.
+- ⚠️ **A trap for .3:** `StoreContext`'s `TUTORIAL_WRITABLE_PREFS = ['tutorialStep','tutorialSeen']` lets
+  those two escape the sandbox to the real store, because tutorial resume state must outlive it.
+  Coach-mark seen-state **must not join that list** — a mark seen in the Example world would burn a real
+  user's one-time hint. It is exactly the entry that gets added by symmetry, so it needs to be a stated
+  decision rather than an omission.
+
+## 3.5.5.5 — [L5] the payoff-schedule entry stops being a scroll away (2026-08-08)
+
+**The defect:** 3.7.A0 moved "View payoff schedule" into the debt sheet's body *for discoverability*, and
+on the largest iPhone at default type it was below the fold — with the destructive Remove as its nearest
+neighbour (native hierarchy 2026-08-06: row at `[20,877][420,925]`). Remove now confirms via
+`confirmDelete`, so this is a reachability defect, not the data-loss one the Maestro lane caught.
+
+**The fix:** a `footerAccessory` slot on `FormSheet`, rendered between the scrolling field body and the
+sticky actions, in both the Modal and the inline-pane paths. The row moves out of the scroll into it. The
+submit button now sits between the entry and Remove, so a mis-tap on a secondary navigation row can no
+longer land on a destroy. Both alternatives were already ruled out by hardware: last-in-scroll is the
+defect, and the header is where 3.7.A0 started before a presented Modal occluded it.
+
+Gate green — **`validate:release:rn` 134/134**.
+
+### ⚠️ The test I wrote first was unsound, and it passed
+
+`toBeVisible()` cannot express L5 — it is satisfied by a box anywhere in the document, and Playwright
+scrolls to an element before clicking it, so the existing spec passed throughout the defect's life
+([[feedback_green_suite_often_means_untested]]).
+
+My replacement asserted `y + height <= viewportH` — and that is **not measurable on the web**, because
+react-native-web renders the sheet in normal document flow, so the row's absolute `y` tracks the height of
+the Money list behind it. It passed once (`y=777`) and failed later (`y=1421`) on the same correct build,
+with the DOM order right both times. The number was never about the sheet.
+
+Rewritten to assert the structural claim the web genuinely holds: **the entry is not a descendant of any
+scroll container**, and Save precedes Remove after it. That is the thing that changed, and no amount of
+form content can undo it. Where the row lands in device points stays the Maestro lane's question — which
+is what this spec's own header said before I started.
+
+⚠️ **Also real, and separate:** one run genuinely measured a stale bundle (schedule ordered *after* Remove,
+which the fixed source cannot produce). `export:web` is `expo export --platform web` with **no `--clear`**,
+and `reuseExistingServer` can skip the re-export entirely. Two different causes wearing the same red X —
+the diagnosis only came apart by reading the DOM order in the failure snapshot rather than the coordinate.
+
+**Proved the guard fires:** with the fix stashed and a `--clear` re-export, the new test fails; restored,
+6/6. Confirming a guard fails on the defect it names is the only thing that separates it from decoration.

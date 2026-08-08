@@ -44,6 +44,65 @@ test.describe('payoff schedule — compact (3.7.A0)', () => {
   });
 });
 
+/**
+ * [L5] The entry has to be REACHABLE, which is a different claim from the one above.
+ *
+ * `toBeVisible()` is satisfied by a node with a box anywhere in the document, and Playwright scrolls to
+ * an element before clicking it — so the test above passed while the row sat below the fold on the
+ * largest iPhone at default type, with a destructive Remove as its nearest neighbour. An entry nobody
+ * scrolls to is the defect 3.7.A0 moved it to fix.
+ *
+ * ⚠️ **This deliberately does NOT assert viewport coordinates.** The web renders the sheet in normal
+ * document flow, so the row's absolute `y` tracks the height of the Money list behind it, not any real
+ * sheet position — the same "web has no native Modal" limit this file's header opens with. An earlier
+ * draft asserted `y + height <= viewportH` and passed only by an accident of document height.
+ *
+ * What the web CAN prove is the structural change, which is the whole fix: the row is no longer a child
+ * of the scrolling field body, so no amount of form content can push it out of reach. Where it lands in
+ * device points stays the Maestro lane's question.
+ */
+test.describe('payoff schedule — the entry is reachable without scrolling [L5]', () => {
+  // iPhone 17 Pro Max logical points — the device the L5 hierarchy dump came from.
+  test.use({ viewport: { width: 440, height: 956 } });
+
+  test('the schedule entry sits outside the scrolling body, ahead of the sticky actions', async ({ page }) => {
+    await seedStore(page, scenario());
+    await page.goto('/money');
+    await page.getByText('Card', { exact: true }).first().click();
+    await expect(page.getByText('Edit debt')).toBeVisible();
+
+    const facts = await page.evaluate(() => {
+      const entry = document.querySelector('[data-testid="debt-view-schedule"]');
+      if (!entry) return null;
+      // Walk up looking for a scroll container — that ancestry is precisely what the fix removed.
+      let insideScroll = false;
+      for (let n = entry.parentElement; n; n = n.parentElement) {
+        const oy = getComputedStyle(n).overflowY;
+        if (oy === 'auto' || oy === 'scroll') { insideScroll = true; break; }
+      }
+      const label = (t: string) =>
+        Array.from(document.querySelectorAll('div,span')).find(
+          (n) => n.textContent?.trim() === t && n.children.length === 0,
+        );
+      const follows = (a: Element | undefined, b: Element | undefined) =>
+        !!a && !!b && !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+      return {
+        insideScroll,
+        saveAfterEntry: follows(entry, label('Save')),
+        removeAfterSave: follows(label('Save')!, label('Remove')),
+      };
+    });
+
+    if (!facts) throw new Error('the sheet did not render the schedule entry');
+
+    // The fix: pinned below the fields rather than last in the scroll.
+    expect(facts.insideScroll).toBe(false);
+    // And the destructive control is no longer its nearest neighbour — the submit sits between them.
+    expect(facts.saveAfterEntry).toBe(true);
+    expect(facts.removeAfterSave).toBe(true);
+  });
+});
+
 test.describe('payoff schedule — expanded/iPad (3.7.A0)', () => {
   test.use({ viewport: { width: 1194, height: 834 } });
 
