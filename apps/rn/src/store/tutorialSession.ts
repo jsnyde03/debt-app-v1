@@ -4,6 +4,7 @@ import { useStore } from 'zustand';
 
 import { track } from '@/analytics/funnel';
 
+import { coachMarks } from './coachMarks';
 import { runBeats, scriptSurprise, TUTORIAL_MAX_CYCLES } from './sandboxBeats';
 import { claimRun, clearStoryTimers, releaseRun, scheduleStoryStep } from './sandboxRun';
 import { harnessScenario, publishSandbox, unpublishSandbox } from './sandboxHarness';
@@ -69,6 +70,10 @@ interface TutorialSessionState extends TutorialSession {
  * to survive `start`, which previously used it and dropped it), and the harness pin.
  */
 let staging: { realStore: DebtStore; opts: { premium: boolean; maxGenuineCycles: number }; pinned: SandboxState | null } | null = null;
+/** 3.5.5.3 — releases this session's coach-mark suppression. Module-scope alongside `staging` because a
+ *  session is a singleton (`claimRun` enforces it), and `end()` must be able to release what `start()`
+ *  took even when the two are called from different screens. */
+let releaseCoachMarks: (() => void) | null = null;
 
 /**
  * 3.5.3.5 — the scripted reserve story's timers now live in `sandboxRun`, shared with the demo's run.
@@ -122,6 +127,10 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
     // sessions rather than at one, because "the other one cannot be running" is a claim each has to make
     // for itself; asserting it in a single place is how a class ends up closed in one direction only.
     if (!claimRun('tutorial')) return;
+    // 3.5.5.3 — the arc owns the whole surface for seven beats, so it declares itself an interruption
+    // exactly as a screen with an ack does. A coach-mark landing mid-beat covers the subject the beat is
+    // explaining; the e2e suite found that the moment a real mark existed to fire.
+    releaseCoachMarks = coachMarks.getState().addSuppressor();
     // [D9] (Jason 2026-07-31) — the SANDBOX runs premium for every audience, whatever the user's own
     // tier. It used to mirror them (`run === 'premium'`), and verification showed what that cost: a free
     // Guardian is never held to its floor and its cold-start hedges are premium-only by design, so a free
@@ -245,6 +254,8 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
     unpublishSandbox();
     releaseRun('tutorial');
     clearStoryTimers();
+    releaseCoachMarks?.();
+    releaseCoachMarks = null;
     staging = null;
     // Drop the sandbox so it can be collected; a later session builds a fresh, deterministic one.
     set({ active: false, sandbox: null, index: 0, floorBefore: null });

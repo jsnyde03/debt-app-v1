@@ -14,7 +14,7 @@ import { todayLocalISO } from '@/data/defaults';
 import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useActiveStore } from '@/store/StoreContext';
-import { useCoachMark } from '@/store/coachMarks';
+import { useCoachMark } from '@/hooks/use-coach-mark';
 import { TutorialTarget } from '@/store/tutorialTargets';
 import { selectDebtBalanceView } from '@/store/balanceSelectors';
 import { useAppStore } from '@/store/useAppStore';

@@ -125,6 +125,17 @@ export interface Preferences {
    * strand a returning user on a step that no longer exists.
    */
   tutorialStep: number | null;
+  /**
+   * 3.5.5.3 — which feature-discovery coach-marks this user has already been offered.
+   *
+   * A LIST of ids rather than a count or a flag: marks are added over versions, and each one is its own
+   * "have you met this yet". A count would re-offer everything the moment the list grew.
+   *
+   * Persisted because the alternative is once-per-LAUNCH, and a hint that returns every launch is worse
+   * than no hint — it teaches the user to dismiss without reading. More → "Show feature tips again"
+   * clears it, which is the whole reason a discovery layer needs a replay entry at all.
+   */
+  coachMarksSeen: string[];
 }
 
 /** Bump when the persisted shape changes; `runMigrations` brings older blobs forward.
@@ -134,7 +145,10 @@ export interface Preferences {
  *  backfills them to `null`, which is exactly right — every existing user becomes eligible for the
  *  tutorial invitation exactly once, and starts it at the beginning. (Both land under v7 rather than
  *  bumping twice: v7 has not shipped, so there is no blob in the wild that has one field but not the
- *  other.) */
+ *  other.)
+ *  v7 also carries `prefs.coachMarksSeen` (3.5.5.3), for the same reason and on the same terms: v7 is
+ *  still unshipped, the prefs merge backfills it to `[]`, and an empty list is the correct starting
+ *  state — every existing user is eligible for every mark exactly once. */
 export const CURRENT_STORE_VERSION = 7;
 
 /** v1.7 (2.4.D): the store-level current-cycle notification carrier. Lives here — NOT on

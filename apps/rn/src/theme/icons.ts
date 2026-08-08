@@ -56,6 +56,9 @@ export const appIconSF: Partial<Record<MaterialGlyph, SFSymbol>> = {
   assignment: 'doc.text.fill',
   history: 'clock.arrow.circlepath',
   schedule: 'clock', // the Payday Countdown toggle (3.5.3)
+  // 3.5.5.3 — "Show feature tips again". `lightbulb` (not `.fill`) has been in SF Symbols since iOS 13,
+  // so it clears the min target without the §3.1.2 iOS-16 caveat the newer glyphs carry.
+  'lightbulb-outline': 'lightbulb',
   'phone-iphone': 'iphone',
   // status / trust (gpp-* = the shield family)
   'gpp-good': 'checkmark.shield.fill',

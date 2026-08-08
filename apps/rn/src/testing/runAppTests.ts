@@ -99,6 +99,11 @@ async function main() {
   // store. The failure mode is a tutorial silently editing real money, so it gets an explicit assert.
   await import('../store/storeContext.test');
 
+  // 3.5.5.3 — a coach-mark is offered ONCE, and every failure here is silent: nobody reports a hint
+  // they never saw, or one that came back. The two session fences (walkthrough, demo) are pinned too —
+  // the demo one also keeps a sandbox from writing to the real store.
+  await import('../store/coachMarks.test');
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');

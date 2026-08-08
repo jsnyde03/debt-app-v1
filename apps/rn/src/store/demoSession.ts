@@ -2,6 +2,7 @@ import { createStore } from 'zustand/vanilla';
 
 import { track } from '@/analytics/funnel';
 
+import { coachMarks } from './coachMarks';
 import { DEMO_STAGES, demoScenario, playDemoRun } from './demoRun';
 import { claimRun, clearStoryTimers, releaseRun } from './sandboxRun';
 import { createSandboxStore, type SandboxStoreInstance } from './sandboxStore';
@@ -51,6 +52,10 @@ interface DemoSessionState {
   end: () => void;
 }
 
+/** 3.5.5.3 — releases this run's coach-mark suppression; see `start`. Module-scope because a run is a
+ *  singleton (`claimRun`) and `end()` must release what `start()` took. */
+let releaseCoachMarks: (() => void) | null = null;
+
 export const demoSession = createStore<DemoSessionState>((set, get) => ({
   active: false,
   sandbox: null,
@@ -64,6 +69,11 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
     // replay link and the invite are both withheld while `isExample` — but `/tutorial` sits inside the
     // block this demo's own route guard opens, so a deep link can reach it.
     if (!claimRun('demo')) return;
+    // 3.5.5.3 — declare the run an interruption, on the same seam a screen uses for its acks. A demo is a
+    // SANDBOX and a coach-mark records itself to the REAL store, which `useNoRealWritesGuard` would
+    // rightly call a bug; it is also the App-Preview capture vehicle, so an unguarded mark would appear
+    // in the store video on the next re-shoot.
+    releaseCoachMarks = coachMarks.getState().addSuppressor();
     const sandbox = createSandboxStore(demoScenario(DEMO_STAGES[0]));
     const hold = opts?.holdClock === true;
     set({ active: true, sandbox, stage: DEMO_STAGES[0].id, chrome: opts?.chrome !== false, startClock: null });
@@ -110,6 +120,8 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
     // backstop.
     clearStoryTimers();
     releaseRun('demo');
+    releaseCoachMarks?.();
+    releaseCoachMarks = null;
     // `startClock` is cleared here too: a held clock outliving its session would be a starter that
     // schedules a whole script over a sandbox that no longer exists. Its own staleness guard refuses that
     // anyway — this makes the teardown the reason rather than the backstop, exactly as the ordering above.

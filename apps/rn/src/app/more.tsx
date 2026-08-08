@@ -16,6 +16,7 @@ import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import type { ThemeMode } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
+import { resetCoachMarks } from '@/store/coachMarks';
 import { useAppStore } from '@/store/useAppStore';
 import { useLayout } from '@/hooks/use-layout';
 import { QA_TOOLS } from '@/config/qa';
@@ -48,6 +49,9 @@ export default function MoreScreen() {
   const { isExpanded } = useLayout(); // 3.6.5 — a wider settings column on iPad
   const [sheet, setSheet] = useState<'export' | 'import' | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // 3.5.5.3 — the reset is instantaneous and invisible (the next mark appears on some other screen,
+  // later), so the row confirms in place. Without it the tap reads as a no-op and gets repeated.
+  const [tipsReset, setTipsReset] = useState(false);
 
   // Enabling requires OS permission first — only flip the pref if granted (a denied prompt leaves it
   // off). Disabling flips immediately; the sync hook then cancels the schedule. (Web: permission
@@ -134,6 +138,19 @@ export default function MoreScreen() {
           // move can be missed — agreeing copies are still copies.
           // "Replay the short walkthrough" — from the start, not from a stranded step.
           onPress={() => startTutorial(tutorialRunFor(appStore.getState().store), { resume: false })}
+        />
+        {/* 3.5.5.3 — the coach-marks' equivalent, and it sits beside the walkthrough's rather than in
+            Preferences because they answer the same question: "show me how this works again". A mark is
+            offered ONCE ever, so without a way back the whole discovery layer is a one-shot a user can
+            lose to a mis-tap. Deliberately not a toggle — there is nothing to configure, only to redo. */}
+        <SettingRow
+          icon="lightbulb-outline"
+          label="Show feature tips again"
+          subtitle={tipsReset ? 'Tips will appear again as you go.' : 'Re-offer the one-line hints on hidden features.'}
+          onPress={() => {
+            resetCoachMarks();
+            setTipsReset(true);
+          }}
           last
         />
       </SettingGroup>

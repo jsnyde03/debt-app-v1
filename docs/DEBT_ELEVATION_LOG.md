@@ -3700,3 +3700,50 @@ resize alike. **Three consecutive green gate runs at 135/135**, against 2-for-2 
 > state instead.**
 
 Merged to `v1.7-dev` green. The branch `3.5.5.5-coach-mark` keeps the not-green history.
+
+## 3.5.5.3 — offered once EVER, and re-offerable (2026-08-08)
+
+`prefs.coachMarksSeen: string[]`, under the **unshipped v7** so no second bump; the prefs merge backfills
+it to `[]`, which is the correct starting state (every existing user eligible for every mark, once). A
+LIST rather than a flag or a count because marks arrive over versions and each is its own "have you met
+this yet" — a count re-offers everything the moment the list grows.
+
+**Recorded on OFFER, not on dismissal**, following the tutorial invitation's rule: a user who saw the hint
+and ignored it has been told, and re-offering it because they never tapped "Got it" would punish the
+reading they actually did.
+
+**More → "Show feature tips again"**, beside the walkthrough's replay row because they answer the same
+question. It clears **both** records — the persisted list and the session set — or it does not work at
+all: clearing only the pref leaves a replay entry that appears to do nothing until the app is quit. The
+row confirms in place, because the reset is otherwise invisible (the next mark appears on some other
+screen, later) and a silent tap gets repeated.
+
+### The fence moved to a better seam, and a test-runner constraint is why
+
+The walkthrough and demo guards were first written as direct reads inside `show()` —
+`tutorialSession.getState().active`. That broke `npm run test:app` outright: `tutorialSession` imports
+`expo-router`, the app-layer runner runs under `tsx` with no React Native runtime, and `runAppTests.ts`
+states the constraint at the top ("the store + selectors are PURE").
+
+The constraint produced the better design. **A bounded run now declares itself through the same
+`addSuppressor()` seam a screen uses for its acks** — one mechanism instead of three, no session lookups
+inside the store, and the store stays cheap to test. `useCoachMark` moved to `hooks/` for the same reason.
+
+What each fence protects: the walkthrough owns the whole surface for seven beats, so a hint landing
+mid-beat covers the subject the beat explains. The demo is a **sandbox** — a mark records itself to the
+REAL store, which `useNoRealWritesGuard` would rightly call a bug — **and it is the App-Preview capture
+vehicle**, so an unguarded mark would have appeared in the store video on the next re-shoot.
+
+### ⚠️ Two e2e-harness facts that cost three runs
+
+- **`seedStore` installs an `addInitScript`, which Playwright re-runs on every document load.** So
+  `page.reload()` does not model a relaunch — it restores the seeded blob and erases whatever the app
+  just persisted. A relaunch is expressed by SEEDING the seen state; after a reset, all navigation must
+  be client-side or the harness silently undoes it.
+- **Store saves are DEBOUNCED** (`persistence.ts`), so a test that reloads immediately after a write
+  reloads a blob that never got it. (Minor product corollary: a force-quit inside the debounce window
+  loses the record and the mark is offered once more. Acceptable — it is true of every pref.)
+
+Coverage: `coachMarks.test.ts` (16 assertions — the persisted refusal, the per-id independence, the reset
+clearing both records, the suppressor fence not recording a refused mark) + `coach-marks.spec.ts` (4 e2e).
+**Gate 139/139.**

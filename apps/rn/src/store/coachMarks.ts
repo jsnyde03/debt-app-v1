@@ -2,8 +2,7 @@ import { useEffect } from 'react';
 import { createStore } from 'zustand/vanilla';
 import { useStore } from 'zustand';
 
-import { tutorialSession } from '@/store/tutorialSession';
-import { useTutorialTargets } from '@/store/tutorialTargets';
+import { appStore } from '@/store/appStore';
 
 /**
  * 3.5.5.1 — the feature-discovery coach-marks' session state.
@@ -24,18 +23,30 @@ export interface CoachMarkState {
   /** The target id currently being marked, or null. Never a queue — see the note above. */
   active: string | null;
   /**
-   * How many screens are currently showing an interruption of their own (an ack, the walkthrough
-   * invitation, a celebration). A COUNT rather than a boolean because two surfaces can be mounted at once
-   * — Today under an iPad detail pane, a screen behind a sheet — and a boolean would let whichever
-   * unmounted second clear a suppression the other still needs.
+   * How many things are currently interrupting: a screen showing an interruption of its own (an ack, the
+   * walkthrough invitation, a celebration), or a BOUNDED RUN. A COUNT rather than a boolean because two
+   * surfaces can be mounted at once — Today under an iPad detail pane, a screen behind a sheet — and a
+   * boolean would let whichever unmounted second clear a suppression the other still needs.
+   *
+   * ⚠️ 3.5.5.3 — the walkthrough and the demo declare themselves HERE rather than being special-cased
+   * inside `show`. Two reasons, and the second is load-bearing:
+   *  - it is the same claim a screen already makes ("I am interrupting"), so there is one mechanism
+   *    rather than three;
+   *  - `show` would otherwise have to READ `tutorialSession`, which imports `expo-router` — and this
+   *    store is imported by the app-layer test runner, which runs under `tsx` with no React Native
+   *    runtime. A store that reaches for a session is a store that can no longer be tested cheaply.
+   *
+   * What each run protects: the walkthrough owns the whole surface for seven beats, so a hint landing
+   * mid-beat covers the subject the beat is explaining. The demo is a SANDBOX — a mark records itself to
+   * the REAL store, which `useNoRealWritesGuard` would rightly call a bug — and it is also the
+   * App-Preview capture vehicle, so an unguarded mark would appear in the store video on the next
+   * re-shoot, teaching a viewer about a control the footage never uses.
    */
   suppressors: number;
   /**
-   * Ids already offered in this app run. 3.5.5.3 replaces this with a persisted pref so a mark is
-   * once-EVER rather than once-per-launch; until then it is at least not a nag within a session.
-   *
-   * ⚠️ Session-scoped on purpose, not a stand-in that quietly ships: a mark that reappears every launch
-   * is worse than no mark, so .3 is what makes this feature honest.
+   * Ids already offered in this app run, backing the once-per-RUN refusal. `prefs.coachMarksSeen` is
+   * what makes it once-EVER; this set is what stops a mark returning within a single launch, and both
+   * are needed — see `resetCoachMarks`.
    */
   shown: Set<string>;
   /**
@@ -65,16 +76,20 @@ export const coachMarks = createStore<CoachMarkState>((set, get) => ({
     if (get().active) return;
     // 3.5.5.2 — and refused while any screen is already interrupting.
     if (get().suppressors > 0) return;
-    // 3.5.5.5 — and never DURING the walkthrough. The suppressor mechanism is declared by screens for
-    // their own acks, and the walkthrough is not a screen: it is an arc that owns the whole surface for
-    // seven beats. A discovery hint landing mid-beat covers the subject the beat is explaining — which
-    // is exactly how the e2e suite caught this, by failing "a user who actually DOES the interactive
-    // beats completes the whole arc" the moment a real mark existed to fire.
-    if (tutorialSession.getState().active) return;
-    // Offered once. The caller is a mount effect, so without this the mark returns every time the user
+    // Offered once. The caller is a layout signal, so without this the mark returns every time the user
     // reopens the sheet — which is the definition of nagging about a thing they have already been told.
     if (get().shown.has(id)) return;
+    // 3.5.5.3 — and once EVER, not once per launch. Read from the REAL store deliberately, never the
+    // active one: a mark met inside the Example world would otherwise burn the hint the real user has
+    // not been shown. This is also why `coachMarksSeen` must never join `TUTORIAL_WRITABLE_PREFS`.
+    const prefs = appStore.getState().store.prefs;
+    if (prefs.coachMarksSeen.includes(id)) return;
+
     set((s) => ({ active: id, shown: new Set(s.shown).add(id) }));
+    // Recorded on OFFER, not on dismissal — the same rule the tutorial invitation follows. A user who
+    // saw the hint and ignored it has been told; re-offering it because they never tapped "Got it"
+    // would punish the reading they actually did.
+    appStore.getState().updatePrefs({ coachMarksSeen: [...prefs.coachMarksSeen, id] });
   },
 
   dismiss() {
@@ -91,6 +106,18 @@ export const coachMarks = createStore<CoachMarkState>((set, get) => ({
     return () => set((s) => ({ hosts: Math.max(0, s.hosts - 1) }));
   },
 }));
+
+/**
+ * 3.5.5.3 — "Show feature tips again" (More).
+ *
+ * Clears BOTH records or it does not work: the persisted list is what survives a relaunch, and the
+ * session `shown` set is what would otherwise swallow every mark until the user quit the app — so
+ * resetting only the pref would produce a replay entry that appears to do nothing.
+ */
+export function resetCoachMarks(): void {
+  appStore.getState().updatePrefs({ coachMarksSeen: [] });
+  coachMarks.setState({ shown: new Set<string>(), active: null });
+}
 
 /** Is THIS target the one currently marked? Subscribes narrowly so an unrelated mark re-renders nothing. */
 export function useIsCoachMarked(id: string): boolean {
@@ -123,37 +150,6 @@ export function useCoachMarkHosts(): number {
  *
  * Call it with `true` while the screen is showing an ack, the invitation, or a celebration.
  */
-/**
- * Offer a mark when its subject has actually LAID OUT.
- *
- * ⚠️ This was a 600ms mount timer, and the timer was the defect. `CoachMarkLayer` renders nothing on a
- * miss or a 0×0 measure, so a mark asked for too early silently never appears — which made "has the sheet
- * finished presenting?" a question answered by a wall-clock guess. Under load the guess drifts, and the
- * suite found it: the mark landed mid-walkthrough and covered the subject a beat was explaining, and the
- * gate failed where an isolated run did not.
- *
- * `invalidate(id)` is the fact the guess was approximating — [E5] made `TutorialTarget` fire it on every
- * layout precisely because layout is the one signal that covers mount, reflow and resize. Asking then is
- * not merely better-timed; it is asking a question the app can answer, which is the same correction
- * 3.5.8 applied fourteen times to the capture pipeline.
- *
- * Fires ONCE per mount of the subject. The store's own `shown` set is what makes it once per run, and
- * 3.5.5.3's persisted pref is what will make it once ever.
- */
-export function useCoachMark(id: string, ready: boolean): void {
-  const targets = useTutorialTargets();
-  useEffect(() => {
-    if (!ready || !targets) return;
-    let asked = false;
-    const unsubscribe = targets.subscribe((laidOut) => {
-      if (asked || laidOut !== id) return;
-      asked = true;
-      coachMarks.getState().show(id);
-    });
-    return unsubscribe;
-  }, [id, ready, targets]);
-}
-
 export function useSuppressCoachMarks(active: boolean): void {
   useEffect(() => {
     if (!active) return;

@@ -51,6 +51,7 @@ export function createDefaultStore(): DebtStore {
       debtFreeSoundEnabled: false,
       tutorialSeen: null,
       tutorialStep: null,
+      coachMarksSeen: [],
     },
     lastSavedAt: '',
     lastHandledPaydayDate: null,
