@@ -556,3 +556,42 @@ predicted: the simulator lane is the draft/iteration path, and the submitted ass
 
 ⚠️ Note what would happen without this: a cycle that ran fast would look perfect, ship, and the next
 re-shoot after a UI tweak could silently produce a video whose charts never draw.
+
+## Capture verification — CYCLE 14 (2026-08-08): ✅ APPROVED, and the ending has its room
+
+Run `app-preview-20260808-14` (31244485894), green in 18m59s. **`T0 = 6.176667s`, slate held `0.36s`
+against the app's `0.350s`.** Cycles 11–13's frame reviews are in `DEBT_ELEVATION_LOG.md`; this is the
+approved cut, so its verification returns to this series.
+
+**Every guard green:** the screen changed across beats · the chart reveal ran (the Progress beat changed
+as it settled) · the celebration fired (the closing beat resolved) · conform `886x1920, 28.933008s,
+constant 30fps, H.264 high@4.0 — within Apple's App Preview spec`.
+
+### The check no guard covers, measured rather than assumed
+
+Cycle 13 put the celebration in the file and in its final **0.1s** — present, and effectively absent. The
+guards cannot see that: they compare frames, and a frame one tenth of a second before the end is a frame.
+So the tail was decoded by hand (Edge, per [[reference_no_local_h264_decoder]]) and the celebration's
+on-screen life measured directly.
+
+| | |
+|---|---|
+| celebration enters | **24.13s** (transition frame at 24.13, settled from 24.19) |
+| file ends | **28.93s** |
+| **room** | **4.80s** — against cycle 13's 0.1s |
+| final frame | the composed card, not a fade |
+| frame `0.05s` | a painted **Money** screen — no black open, no surviving slate |
+
+`beat-6-celebration.png` shows the correct beat: **Store card · Vanquished · $1,900**, "Freed $45/mo now
+flows to Credit card." — the per-debt `VanquishedBeat` that 3.5.8.6b intends, not the finale.
+
+### ⚠️ A flat aggregate is not evidence of a still frame
+
+The gold-fraction and mean-luma readings were **byte-constant to five decimals across the last 4.7s**,
+which reads exactly like a video ending on a freeze — and would have been reported as one. Checksumming
+the frames instead showed continuous change from `0.2s` through the end: after its entrance the
+celebration settles into a small ~0.3s looping element that a whole-frame average cannot see.
+
+The aggregate was insensitive, not the footage static. **When the question is "did anything move", diff
+the frames; do not infer it from a summary statistic** — the statistic was chosen to answer a different
+question (is the celebration on screen) and it answered that one correctly.

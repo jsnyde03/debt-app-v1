@@ -480,6 +480,11 @@ jobs:
           # static, so the cut ends where the content does (cycle 12 asked for 25 and got 24.3).
           DUR="${{ inputs.duration }}"
           [ -n "$DUR" ] || DUR=29
+          # Hand the values that ACTUALLY ran to the notes step. Cycle 14's notes claimed a 25s cut for a
+          # 28.93s file because that step carried its own copy of this default and nobody moved it when the
+          # ceiling went 25 -> 29. A duplicated default is a second source of truth, and it drifted.
+          echo "TRIM_START=$START" >> "$GITHUB_ENV"
+          echo "TRIM_DUR=$DUR" >> "$GITHUB_ENV"
           ../../scripts/conform-app-preview.sh \
             capture-out/raw.mov \
             capture-out/app-preview-6.9in.mp4 \
@@ -493,10 +498,12 @@ jobs:
             echo "device: ${SIM_DEVICE:-unknown}"
             echo "appearance: dark"
             echo "entry: EXPO_PUBLIC_CAPTURE_DEMO=1 build, launched (no deep link — iOS prompts on those)"
-            # The `||` fallbacks again — cycle 1's notes read "trim: start=s duration=s" because `inputs`
-            # is empty on a tag push and this line, unlike the conform's, had no default.
+            # These read the values the conform step published, not a second copy of its defaults — see the
+            # note there. The DURATION is a ceiling, so it is reported next to the file's measured length:
+            # the request and the result are different facts and the notes should not conflate them.
             echo "script t=0 (slate found at): ${T0:-NOT FOUND}s — the app's own mark, not an estimate"
-            echo "trim: start=${{ inputs.start_offset || 'measured' }} duration=${{ inputs.duration || '25' }}s"
+            ACTUAL=$(ffprobe -v error -show_entries format=duration -of csv=p=0 capture-out/app-preview-6.9in.mp4 2>/dev/null || echo "not measured")
+            echo "trim: start=${TRIM_START:-NOT SET}s ceiling=${TRIM_DUR:-NOT SET}s → actual ${ACTUAL}s"
             echo "conformed: 886x1920 (covers every modern iPhone slot — 6.9/6.5/6.3/6.1)"
             echo "closing beat: the invitation is confirmed by the app itself 2.5s in (3.5.8.6b), so the celebration IS in the cut."
           } > capture-out/SHOT-NOTES.txt

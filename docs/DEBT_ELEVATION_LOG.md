@@ -3187,8 +3187,9 @@ Unexplained, and not chased here — but a store video must not show a number no
 
 ## 3.5.5 — the remaining decomposition, parked while 3.5.8.9 runs (2026-08-07)
 
-The plan carries 3.5.5 as one terse row while 3.5.8.9 is the live sequence; the steps live here and are
-retrieved at resume.
+⚠️ **PROMOTED 2026-08-08** — 3.5.8 closed, 3.5.5 is the active build, and the steps below now live in the
+plan. What remains here is the **switch-in re-verification**, which is the part worth re-reading at resume;
+the step table is kept only as the record of what was parked. **The plan is the live copy.**
 
 **Switch-in re-verification, done 2026-08-07 against the current code** (the parked decomposition was dated
 2026-08-06): **.1 was de-risked** — `store/tutorialTargets.tsx` had been built for this by design (*"3.5.5
@@ -3531,3 +3532,61 @@ Fails the build, with the advice to re-run and, if it repeats, shoot on a device
 **Pre-flighted before the cycle** (the third time this has paid): a capture-flagged web export served
 locally reached the closing beat and rendered "Vanquished" unaided. Gate green — `lint:rn` ·
 `test:regression` · `test:app` · `test:scenarios` · `test:e2e:rn` **133/133** · conform assertions 5/5.
+
+## 3.5.8 CLOSED — CYCLES 13 & 14: ✅ APPROVED (Jason, 2026-08-08)
+
+Frame-level verification of the approved cut → `DEBT_DEMO_VS_WALKTHROUGH_AUDIT_2026-08-06.md`,
+**"Capture verification — CYCLE 14"**.
+
+### Cycle 13 — the celebration reached the file, in its final tenth of a second
+
+6b worked: the app confirmed its own invitation and the celebration was recorded. It landed at the very
+end of a 25s cut — **present, and effectively absent.**
+
+The cause is not the celebration; it is that **the script's stage timers are wall-clock and the runner is
+not.** On a loaded machine they fire late — cycle 13 still had the Progress beat on screen at 23.8s
+against a declared 20s — so a *fixed* 25s trim amputates the ending exactly when the machine is slow, and
+only then. The failure is invisible on a fast runner, which is the worst shape a defect can take here.
+
+**Fix: the duration becomes a 29s CEILING rather than a 25s pad** (Apple's window is 15–30). It costs
+nothing when the runner is fast, because `simctl` stops emitting frames once the screen is static, so the
+cut ends where the content does — cycle 12 asked for 25 and got 24.3.
+
+### Cycle 14 — green, and the one check no guard covers was measured
+
+Run `app-preview-20260808-14` (31244485894), 18m59s. Every guard green; conform `886x1920, 28.933008s,
+constant 30fps, H.264 high@4.0`.
+
+**The celebration enters at 24.13s and holds to the 28.93s end — 4.80s of room, against cycle 13's 0.1s.**
+Measured by decoding the tail in Edge, because no guard can express "long enough to land": a frame one
+tenth of a second before the end is still a frame, and every frame-comparison guard passes on it.
+
+⚠️ **A flat aggregate is not evidence of a still frame.** The gold/luma readings were byte-constant across
+the last 4.7s — the exact signature of a video ending on a freeze, and it would have been reported as one.
+Checksumming the frames showed continuous change throughout: the celebration settles into a small ~0.3s
+looping element that a whole-frame average cannot see. The metric was insensitive, not the footage static.
+
+### ⚠️ The defect found at review: the notes were describing a different file
+
+`SHOT-NOTES.txt` reported `trim: start=measured duration=25s` for a **28.933s** file. The notes step
+carried **its own copy** of the conform's default and nobody moved it when the ceiling went 25 → 29 — a
+duplicated default, sitting three lines under a comment warning about precisely that kind of quiet
+divergence.
+
+Fixed at the root rather than by editing the number: the conform step publishes `TRIM_START`/`TRIM_DUR` to
+`GITHUB_ENV` and the notes read those, reporting the **ceiling beside the file's `ffprobe`-measured
+length** — the request and the result are different facts and the notes had been conflating them. YAML
+re-parses clean; the step is `if: always()` and every value falls back loudly (`NOT SET`, `not measured`).
+Not worth an 18-minute cycle to prove on its own — it rides the next capture run.
+
+> **The rule this extends.** [[feedback_check_the_shipped_artifact]] says assert on what leaves the
+> building. Cycle 14 adds: **the evidence file beside the deliverable is not automatically true either.**
+> It is produced by a different step, which can drift from the one that did the work — and a plausible,
+> confident sidecar is harder to doubt than a missing one.
+
+### Retrieval
+
+The CI artifact expires ~90 days from 2026-08-08. The cut is deterministic (frozen base date), so the
+pipeline reproduces it — but the UI **will** change before submit (3.5.5, 3.7, the cohesion audit, the
+Phase-6 finish sweep), so **the submitted asset is a re-shoot of this pipeline, not this file.** What
+cycle 14 establishes is that the pipeline produces an approvable one.
