@@ -71,6 +71,16 @@ function run() {
   // `tutorialSession.start`/`end` and `demoSession.start`/`end`, which cannot be imported here:
   // `tutorialSession` pulls in `expo-router`, and this runner has no React Native runtime. That
   // limitation is exactly why the fence lives on this seam rather than as a session lookup inside `show`.
+  // A run starting while a mark is UP must clear it, not merely block the next one — the mark would
+  // otherwise sit over the arc it is supposed to yield to. Found by the tutorial e2e, which failed the
+  // moment a Progress mark existed to still be on screen when the walkthrough began.
+  freshStore();
+  coachMarks.getState().show('trajectory-scrub');
+  assert(coachMarks.getState().active === 'trajectory-scrub', 'a mark is up before the run starts');
+  const clearing = coachMarks.getState().addSuppressor();
+  assert(coachMarks.getState().active === null, '…and starting an interruption dismisses it');
+  clearing();
+
   freshStore();
   const releaseRun = coachMarks.getState().addSuppressor();
   coachMarks.getState().show('payoff-schedule');

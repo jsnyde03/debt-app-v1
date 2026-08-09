@@ -29,4 +29,16 @@ export const COACH_MARKS: Record<string, CoachMarkCopy> = {
     title: 'See the whole payoff',
     body: 'Every payment from here to debt-free, month by month.',
   },
+  // 3.5.5.4 — the highest-value reveal in the app: one invisible gesture hiding FOUR actions. ⚠️ iOS
+  // only. `RowContextMenu` is a transparent passthrough on Android and web, so the mark is fired behind
+  // a platform check — a hint that teaches a gesture which does nothing is worse than no hint.
+  'debt-row-actions': {
+    title: 'Press and hold a debt',
+    body: 'Log a payment, see its payoff schedule, or edit it without leaving this list.',
+  },
+  // The premium interaction on Progress, and invisible until touched.
+  'trajectory-scrub': {
+    title: 'Drag the curve',
+    body: 'Scrub any month to see what you owe and when you land.',
+  },
 };

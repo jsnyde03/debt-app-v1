@@ -18,6 +18,39 @@ import { scenario, seedStore } from './helpers/seed';
  */
 test.use({ viewport: { width: 402, height: 874 } });
 
+/**
+ * Move the cushion line and WAIT until it has actually moved.
+ *
+ * ⚠️ This existed as a bare `page.mouse.click` on the track, and it was the suite's only genuinely flaky
+ * step. The slider is a gesture-handler view whose `Pan.onBegin` sets the value on touch-DOWN; a tap that
+ * lands before the sheet's presentation has settled sets nothing, Save on an unchanged value is a
+ * deliberate no-op (it produces no `floor-impact` by design), and the assertion three lines later fails
+ * for a product that works. Under load it cost one of the two beat-3 tests per gate run, and WHICH one
+ * varied — which is what made it read as a code regression rather than as flake.
+ *
+ * The tap is idempotent (the same coordinate sets the same value), so retrying until the amount changes
+ * is safe and turns a race into a wait.
+ *
+ * ⚠️ It watches the sheet's displayed amount, NOT the slider. The control cannot report itself on web:
+ * react-native-web drops `accessibilityValue`, so it renders `role="slider"` with no `aria-valuenow` —
+ * measured 2026-08-08, after a first version of this helper polled that attribute and timed out on every
+ * run. Native maps `accessibilityValue` properly, so this is a web-only gap.
+ */
+async function dragLineTo(
+  page: import('@playwright/test').Page,
+  box: { x: number; y: number; width: number; height: number },
+  fraction: number,
+) {
+  const amount = page.getByTestId('floor-sheet-value');
+  const before = await amount.textContent();
+  await expect
+    .poll(async () => {
+      await page.mouse.click(box.x + box.width * fraction, box.y + box.height / 2);
+      return amount.textContent();
+    }, { timeout: 10_000 })
+    .not.toBe(before);
+}
+
 const newUser = (over: Record<string, unknown> = {}) =>
   scenario({ prefs: { onboardingComplete: true }, ...over });
 
@@ -279,7 +312,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
       await page.getByText('Adjust your line').click();
       const slider = page.getByLabel('Cushion line amount');
       const box = (await slider.boundingBox())!;
-      await page.mouse.click(box.x + box.width * 0.2, box.y + box.height / 2);
+      await dragLineTo(page, box, 0.2);
 
       await page.getByText('Save', { exact: true }).click();
       // The payoff: a before→after the user produced themselves. Asserting the FREED-money caption, not
@@ -433,7 +466,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
     // done anything, on the test whose entire premise is a user who DOES the interactive beats.
     const floorSlider = page.getByLabel('Cushion line amount');
     const floorBox = (await floorSlider.boundingBox())!;
-    await page.mouse.click(floorBox.x + floorBox.width * 0.8, floorBox.y + floorBox.height / 2);
+    await dragLineTo(page, floorBox, 0.8);
     await page.getByText('Save', { exact: true }).click();
     await expect(page.getByTestId('floor-impact')).toBeVisible();
 

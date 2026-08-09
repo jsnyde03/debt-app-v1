@@ -66,6 +66,7 @@ export function DebtSheet({
   prefill,
   inline,
   onViewSchedule,
+  onLogPayment,
 }: {
   editing: Debt | null;
   onClose: () => void;
@@ -75,6 +76,13 @@ export function DebtSheet({
    *  route (compact) or swap the iPad detail pane. Opening it from inside this sheet is what failed on
    *  device twice; the sheet no longer owns that presentation at all. */
   onViewSchedule: (debtId: string) => void;
+  /** 3.5.5.4 — same contract as `onViewSchedule`: the HOST decides the presentation and closes this
+   *  sheet first, so a log-payment sheet is never presented over this one.
+   *
+   *  OPTIONAL, and the row renders only when it is supplied — a host that cannot log a payment should not
+   *  offer the entry. Today opens this sheet add-only and owns no log-payment sheet, so it passes nothing
+   *  rather than carrying a handler that routes somewhere to do the work. */
+  onLogPayment?: (debt: Debt) => void;
 }) {
   // 3.5.3.0 — write to the store this subtree resolves to (sandbox under the tutorial, real otherwise).
   const store_ = useActiveStore();
@@ -215,18 +223,34 @@ export function DebtSheet({
       // nearest neighbour. Pinned, the submit button separates the two.
       footerAccessory={
         isEdit && editing ? (
-          // 3.5.5.5 — and it is a coach-mark subject. `TutorialTarget` is a bare measuring wrapper; the
-          // mark itself is rendered by the layer FormSheet mounts inside its Modal.
-          <TutorialTarget id="payoff-schedule">
+          <>
+            {/* 3.5.5.4 — the cross-platform way to log a payment. It had exactly one trigger before this:
+                the row long-press menu, which is a passthrough off iOS — so on Android and web a primary
+                action had no path at all. Same shape as the schedule row above it, and for the same
+                reason: the host closes this sheet first, so no sheet is ever presented over a sheet. */}
+            {onLogPayment ? (
             <Pressable
-              testID="debt-view-schedule"
-              onPress={() => onViewSchedule(editing.id)}
+              testID="debt-log-payment"
+              onPress={() => onLogPayment(editing)}
               accessibilityRole="button"
               style={({ pressed }) => [styles.scheduleRow, { borderColor: c.border.subtle, opacity: pressed ? 0.7 : 1 }]}>
-              <Text style={[textStyles.body, { color: c.accent.primary }]}>View payoff schedule</Text>
+              <Text style={[textStyles.body, { color: c.accent.primary }]}>Log a payment</Text>
               <AppIcon name="chevron-right" size={20} color={c.accent.primary} />
             </Pressable>
-          </TutorialTarget>
+            ) : null}
+            {/* 3.5.5.5 — and this one is a coach-mark subject. `TutorialTarget` is a bare measuring
+                wrapper; the mark itself is rendered by the layer FormSheet mounts inside its Modal. */}
+            <TutorialTarget id="payoff-schedule">
+              <Pressable
+                testID="debt-view-schedule"
+                onPress={() => onViewSchedule(editing.id)}
+                accessibilityRole="button"
+                style={({ pressed }) => [styles.scheduleRow, { borderColor: c.border.subtle, opacity: pressed ? 0.7 : 1 }]}>
+                <Text style={[textStyles.body, { color: c.accent.primary }]}>View payoff schedule</Text>
+                <AppIcon name="chevron-right" size={20} color={c.accent.primary} />
+              </Pressable>
+            </TutorialTarget>
+          </>
         ) : null
       }
       >

@@ -97,7 +97,11 @@ export const coachMarks = createStore<CoachMarkState>((set, get) => ({
   },
 
   addSuppressor() {
-    set((s) => ({ suppressors: s.suppressors + 1 }));
+    // ⚠️ Also DISMISSES whatever is up. Blocking new marks was not enough: a mark stays active until the
+    // user dismisses it, so one raised on Progress was still on screen when the walkthrough started —
+    // covering the arc it was supposed to yield to. Something more important taking over should clear the
+    // hint, not queue behind it. The mark stays recorded as offered; it does not come back.
+    set((s) => ({ suppressors: s.suppressors + 1, active: null }));
     return () => set((s) => ({ suppressors: Math.max(0, s.suppressors - 1) }));
   },
 

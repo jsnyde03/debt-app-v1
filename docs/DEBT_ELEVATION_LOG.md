@@ -3795,3 +3795,39 @@ the same experiment that settled 3.5.5.5.
 occlusion, and the obvious suspect is wrong. Next step is a bisect over the .4 diff — the candidates that
 touch a path the tutorial uses are few, and `addSuppressor` is not one of them (it made things better).
 `v1.7-dev` stays green at 3.5.5.3.
+
+### ⚠️ CORRECTION (same day): the attribution above was WRONG — the flake is pre-existing
+
+The bisect immediately contradicted it. Reverting `progress.tsx` (the only .4 change that runs during an
+in-situ walkthrough) did not fix the gate — **a different beat-3 slider test failed instead.** Both
+failures were the same interaction, which is the signature of flake rather than a deterministic break.
+
+So the control was re-run, this time more than once. **The committed 3.5.5.3 state — no .4 work at all —
+also fails "completes the whole arc" in the gate.** The single green control run that produced the
+original attribution was luck.
+
+> **The lesson, and it is the sharper half of the one recorded at 3.5.5.5.** A stashed control run is the
+> right instrument for separating "the suite is flaky" from "we broke something" — but **one sample cannot
+> establish stability for an intermittent failure.** A green control at n=1 is exactly as consistent with
+> flake as with innocence, and reading it as proof produced a confident, wrong attribution that sent a
+> whole item to a branch. Sample the control until it fails or until the run count exceeds the observed
+> failure rate.
+
+### The real defect: the suite's one genuinely flaky step
+
+`page.mouse.click` on the cushion-line track, immediately followed by Save. The slider is a
+gesture-handler view whose `Pan.onBegin` sets the value on touch-DOWN; a tap landing before the sheet's
+presentation settles sets nothing, **Save on an unchanged value is a deliberate no-op** (it renders no
+`floor-impact` by design — an earlier audit gated that on purpose), and the assertion three lines later
+fails for a product that works.
+
+Fixed by waiting for the line to have actually moved: the tap is idempotent, so it is retried until the
+sheet's displayed amount changes. A race turned into a wait.
+
+⚠️ **The first version of that helper polled `aria-valuenow` and failed every run.** Measured rather than
+assumed the second time: **react-native-web drops `accessibilityValue` entirely**, so the control renders
+`role="slider"` with an `aria-label` and *no* value attributes. Native maps it properly, so this is a
+web-only gap — but it means a `role="slider"` with no reported value is what the web a11y suite sees, and
+`a11y-axe` does not currently flag it. **→ backlog (web-only; the app ships native).**
+
+**3.5.5.4 merged to `v1.7-dev`.**

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
-import { Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { bnplPaymentsRemaining, bnplPaymentsTotal, isInstallmentNative } from '@core/debt/bnplInstallment';
@@ -11,6 +11,8 @@ import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { AmortizationPane } from '@/components/entities/AmortizationView';
 import { DebtSheet } from '@/components/entities/DebtSheet';
+import { useCoachMark } from '@/hooks/use-coach-mark';
+import { TutorialTarget } from '@/store/tutorialTargets';
 import { onAddDebtRequested } from '@/keyCommands/keyCommandBus';
 import { LogPaymentSheet } from '@/components/entities/LogPaymentSheet';
 import { ExpenseSheet } from '@/components/entities/ExpenseSheet';
@@ -110,6 +112,15 @@ function DebtsSection() {
   // and fires the bus, which this subscription turns into the same "add" the button does.
   useEffect(() => onAddDebtRequested(() => openEditor({ editing: null })), []);
 
+  // 3.5.5.4 — the row long-press hides four actions, and the gesture is invisible. ⚠️ **iOS only**:
+  // `RowContextMenu` is a transparent passthrough on Android and web, so off-iOS this would teach a
+  // gesture that does nothing. Gated at the OFFER rather than in the copy, so the mark stays owed if that
+  // platform ever grows the affordance. Requires a row to exist — the subject is the first one.
+  //
+  // Placed ABOVE the empty-state early return: hooks cannot be called conditionally, and this screen
+  // returns before the list when there are no debts.
+  useCoachMark('debt-row-actions', Platform.OS === 'ios' && view.order.length > 0);
+
   /** Opening the editor clears any schedule in the pane — the detail pane has exactly one owner. */
   const openEditor = (next: { editing: Debt | null; prefill?: Partial<Debt> }) => {
     setScheduleFor(null);
@@ -130,6 +141,20 @@ function DebtsSection() {
     }
     setSheet(null);
     router.push(`/schedule/${debtId}`);
+  };
+
+  /**
+   * 3.5.5.4 — the ONE way into "log a payment", from both entry points (the row long-press menu and the
+   * edit sheet's row), on the same terms `viewSchedule` set: **never a sheet from a sheet.**
+   *
+   * ⚠️ Why the sheet needed an entry at all: until now `LogPaymentSheet` had exactly ONE trigger in the
+   * app — `menuActions` inside `RowContextMenu`, which is a passthrough off iOS. So a primary action was
+   * reachable only by an invisible long-press, and on Android and web it was not reachable at all. Same
+   * class as 3.7.A9 (a built feature with no way in), found by 3.5.5.4's reachability pass.
+   */
+  const logPayment = (debt: Debt) => {
+    setSheet(null);
+    setLogPaymentFor(debt);
   };
 
   // §2.8 scan-to-prefill (free): scan a statement → OCR text → parse → open the sheet PREFILLED for the
@@ -153,7 +178,7 @@ function DebtsSection() {
           onCta={() => openEditor({ editing: null })}
         />
         {isScanAvailable() ? <View style={styles.scanEmpty}><AddRow label="Scan a statement" icon="document-scanner" onPress={handleScan} /></View> : null}
-        {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} onViewSchedule={viewSchedule} /> : null}
+        {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} onViewSchedule={viewSchedule} onLogPayment={logPayment} /> : null}
       </>
     );
   }
@@ -204,9 +229,15 @@ function DebtsSection() {
             <Text style={[textStyles.footnote, styles.groupLabel, { color: c.text.tertiary }]}>{section.title}</Text>
           ) : null
         }
-        renderItem={({ item }) => (
-          <DebtRow debt={item} focus={item.id === focusId} selected={isExpanded && (sheet?.editing?.id === item.id || scheduleFor === item.id)} currentDate={currentDate} isPremium={isPremium} onEdit={(x) => openEditor({ editing: x })} onLogPayment={setLogPaymentFor} onViewSchedule={viewSchedule} />
-        )}
+        renderItem={({ item, index }) => {
+          const row = (
+            <DebtRow debt={item} focus={item.id === focusId} selected={isExpanded && (sheet?.editing?.id === item.id || scheduleFor === item.id)} currentDate={currentDate} isPremium={isPremium} onEdit={(x) => openEditor({ editing: x })} onLogPayment={logPayment} onViewSchedule={viewSchedule} />
+          );
+          // 3.5.5.4 — the FIRST row only is the coach-mark subject. A `TutorialTarget` id is a key in one
+          // registry map, so registering every row would have each overwrite the last and the mark would
+          // point at whichever laid out most recently.
+          return index === 0 ? <TutorialTarget id="debt-row-actions">{row}</TutorialTarget> : row;
+        }}
         ListFooterComponent={
           <View style={styles.listFooter}>
             <AddRow label="Add debt" onPress={() => openEditor({ editing: null })} />
@@ -223,7 +254,7 @@ function DebtsSection() {
   // The iPad detail pane shows whichever the user last asked for — the schedule (read) or the editor.
   // They're mutually exclusive: opening one clears the other, so the pane never has two owners.
   const editor = sheet ? (
-    <DebtSheet inline={isExpanded} editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} onViewSchedule={viewSchedule} />
+    <DebtSheet inline={isExpanded} editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} onViewSchedule={viewSchedule} onLogPayment={logPayment} />
   ) : null;
   const detail = scheduleFor ? <AmortizationPane debtId={scheduleFor} /> : editor;
 

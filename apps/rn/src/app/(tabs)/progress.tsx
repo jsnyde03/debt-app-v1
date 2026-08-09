@@ -4,6 +4,8 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { MoreButton } from '@/components/more-button';
 import { TrajectoryChart } from '@/components/payoff/TrajectoryChart';
+import { useCoachMark } from '@/hooks/use-coach-mark';
+import { TutorialTarget } from '@/store/tutorialTargets';
 import { CashFlowSection } from '@/components/progress/CashFlowSection';
 import { type JourneyRingChartProps, type MilestoneState } from '@/components/progress/JourneyRingChart';
 import { JourneyRingCanvas } from '@/components/progress/JourneyRingCanvas';
@@ -63,6 +65,11 @@ export default function ProgressScreen() {
   const isPremium = store.subscriptionPlan === 'premium';
   const engineStore = useMemo(() => withProjectedBalances(store, isPremium), [store, isPremium]);
   const view = useMemo(() => selectPayoffView(engineStore), [engineStore]);
+
+  // 3.5.5.4 — the trajectory scrub. Unlike the row long-press this is cross-platform (the chart handles
+  // touch and pointer alike), so there is no platform gate; the mark simply waits for the chart to lay
+  // out, which on an empty portfolio never happens and is exactly right.
+  useCoachMark('trajectory-scrub', true);
 
   // What-If state — folded into the projection card (the extra drives its overlay + controls). Only THIS
   // recomputes per keystroke now, off the stable engineStore.
@@ -178,6 +185,9 @@ export default function ProgressScreen() {
 
       <CashFlowSection cycles={cashCycles} floor={cushionFloor} />
 
+      {/* 3.5.5.4 — the scrub is the premium interaction on this screen and it is invisible until touched.
+          The wrapper is a bare measuring View; it must not change the chart's layout. */}
+      <TutorialTarget id="trajectory-scrub">
       <TrajectoryChart
         snowball={view.snowball}
         avalanche={view.avalanche}
@@ -194,6 +204,7 @@ export default function ProgressScreen() {
         extra={extra}
         onExtraChange={setExtra}
       />
+      </TutorialTarget>
 
       <VanquishedArchive debts={vanquished} />
     </Screen>

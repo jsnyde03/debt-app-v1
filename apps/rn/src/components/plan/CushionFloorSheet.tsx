@@ -59,7 +59,10 @@ export function CushionFloorSheet({
             {coach}
           </Text>
         ) : null}
-        <Text maxFontSizeMultiplier={1.4} style={[textStyles.heroNumber, styles.value, { color: c.text.primary }]}>${value.toLocaleString('en-US')}</Text>
+        {/* `testID` so the e2e can wait for the line to have actually MOVED before saving. The slider
+            itself cannot answer that on web: react-native-web drops `accessibilityValue`, so the control
+            renders `role="slider"` with no `aria-valuenow` — measured 2026-08-08. */}
+        <Text testID="floor-sheet-value" maxFontSizeMultiplier={1.4} style={[textStyles.heroNumber, styles.value, { color: c.text.primary }]}>${value.toLocaleString('en-US')}</Text>
         <Slider value={value} onChange={setValue} min={0} max={500} step={25} accessibilityLabel="Cushion line amount" testID="cushion-floor-slider" />
         <View style={styles.scaleRow}>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>$0</Text>
