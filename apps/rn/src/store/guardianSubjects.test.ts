@@ -1,7 +1,9 @@
+import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectBillsAttestation, selectPaydayGuardian, selectTightTopUp } from '@/store/guardianSelectors';
 import { guardianSubjects, GUARDIAN_CARD_SUBJECTS } from '@/store/guardianSubjects';
 import { selectRecoveryPlan } from '@/store/recoverySelectors';
 import { personaScenario, personalScenario, type SandboxState } from '@/store/sandboxScenarios';
+import { TUTORIAL_MAX_CYCLES } from '@/store/sandboxBeats';
 import { createSandboxStore } from '@/store/sandboxStore';
 import { TUTORIAL_STEPS } from '@/store/tutorialPath';
 
@@ -37,14 +39,25 @@ function subjectsForState(state: SandboxState, personal: boolean) {
   // [D9] the sandbox runs premium for EVERY audience — the walkthrough teaches a premium Guardian and
   // the finale settles up about it. So the invariant is checked under the conditions the arc actually
   // runs in, which is the only reading that means anything.
-  const base = createSandboxStore(personaScenario('clear', { premium: true }));
+  //
+  // ⚠️ [L3b] `maxGenuineCycles` is part of "the conditions the arc actually runs in", and this test used
+  // to omit it. `tutorialSession.start` passes `TUTORIAL_MAX_CYCLES` (= `DISCOVERY_CYCLES` = 3); without
+  // it the sandbox falls back to `SANDBOX_MAX_GENUINE_CYCLES` (1). That is not a cosmetic difference —
+  // the discovery holdback is active below 3 cycles, so it decides whether a safety net is held at all,
+  // and `guardian-reserve` is a coached SUBJECT. The invariant was proving the arc against a Guardian in
+  // a different state from the one the walkthrough shows.
+  const OPTS = { premium: true, maxGenuineCycles: TUTORIAL_MAX_CYCLES };
+  const base = createSandboxStore(personaScenario('clear', OPTS));
   const seeded = personal
     ? // 3.5.3.11 — `personalScenario` seeds the user's REAL debts by name into fabricated states. Same
       // states, different debt set, so the render conditions must hold for both or the invariant only
       // covers the persona the tests happen to use.
-      createSandboxStore(personalScenario(base.getState().store, state, { premium: true }))
-    : createSandboxStore(personaScenario(state, { premium: true }));
-  const store = seeded.getState().store;
+      createSandboxStore(personalScenario(base.getState().store, state, OPTS))
+    : createSandboxStore(personaScenario(state, OPTS));
+  // ⚠️ [L3b, second half] Today computes the Guardian from `withProjectedBalances(store, isPremium)`
+  // (`index.tsx:115`), not from the raw store. Reading the raw store here meant the predicate saw
+  // balances the screen never shows it.
+  const store = withProjectedBalances(seeded.getState().store, true);
   const brief = selectPaydayGuardian(store);
   assert(brief !== null, `[${personal ? 'personal' : 'persona'}/${state}] the Guardian has a brief to render at all`);
   return guardianSubjects({
