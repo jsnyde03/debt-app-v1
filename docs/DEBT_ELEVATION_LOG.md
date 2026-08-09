@@ -3747,3 +3747,51 @@ vehicle**, so an unguarded mark would have appeared in the store video on the ne
 Coverage: `coachMarks.test.ts` (16 assertions — the persisted refusal, the per-id independence, the reset
 clearing both records, the suppressor fence not recording a refused mark) + `coach-marks.spec.ts` (4 e2e).
 **Gate 139/139.**
+
+## 3.5.5.4 — the inventory was wrong in three ways, and hid a real defect (2026-08-08)
+
+The step exists because the parked list had already been wrong once (→ 3.7.A9). Verified against the
+current code, it was wrong again — and not by drift so much as by category.
+
+- **Three "hidden" affordances are plainly visible.** Can-I-Afford is a rendered card on Today
+  (`index.tsx:380`), "Scan a statement" is a dashed button on Money, and the income-varies toggle sits in
+  view inside `PaycheckSheet`. Marking any of them would be pointing at something already on screen.
+- **⚠️ Widget · Lock Screen · Siri cannot be coach-marked at all.** They have no on-screen subject, and
+  `CoachMarkLayer` measures a registered view and renders nothing when it cannot. That is a category
+  error in the parked list, not a stale entry: those features need a different surface entirely.
+- **🎯 Three marks (Jason):** payoff-schedule (shipped) · the row long-press menu · the trajectory scrub.
+  Skipped swipe-to-delete (a standard iOS idiom, and destructive) and the Cash-Runway scrub (deep inside a
+  pushed route). The long-press earns its mark by revealing **four** actions behind one invisible gesture;
+  it is **iOS-gated at the offer**, because `RowContextMenu` is a transparent passthrough elsewhere and a
+  hint teaching a gesture that does nothing is worse than no hint.
+
+### ⚠️ The defect the pass was for: log-payment had one door, and it was invisible
+
+`LogPaymentSheet` had exactly ONE trigger in the whole app — `menuActions` inside `RowContextMenu`
+(`ListRow.tsx:151`). Off iOS that component is a passthrough, so **on Android and web there was no way to
+log a payment at all**, and on iOS only an invisible long-press. Same class as 3.7.A9: a built feature
+with no way in, invisible because nothing tracked reachability until something asked.
+
+Fixed by mirroring 3.7.A0 exactly — a visible row in the debt sheet's footer, with the HOST closing the
+sheet before presenting, so no sheet is ever presented over a sheet. The prop is **optional** and the row
+renders only when supplied: Today opens this sheet add-only, so it passes nothing rather than carrying a
+handler that routes elsewhere to do the work.
+
+### A suppressor blocked new marks but did not clear one already up
+
+A mark raised on Progress was still on screen when the walkthrough started — covering the arc it was
+supposed to yield to. Blocking the next mark was never the whole claim; **something more important taking
+over should dismiss the hint.** `addSuppressor` now clears `active` too. That fixed one of two failing
+tutorial tests, which is how the gap was found at all.
+
+### ⚠️ Parked NOT-GREEN on `3.5.5.4-inventory`
+
+`validate:release:rn` fails ONE test under load — tutorial-invite's "completes the whole arc", where
+`floor-impact` never appears after the cushion-line slider save. **139/139 green in an isolated e2e run,
+twice; the control — this work stashed, i.e. the committed 3.5.5.3 — gates 139/139.** So it is ours, by
+the same experiment that settled 3.5.5.5.
+
+⚠️ **No coach-mark is on screen in the failure snapshot**, so the mechanism is timing rather than
+occlusion, and the obvious suspect is wrong. Next step is a bisect over the .4 diff — the candidates that
+touch a path the tutorial uses are few, and `addSuppressor` is not one of them (it made things better).
+`v1.7-dev` stays green at 3.5.5.3.
