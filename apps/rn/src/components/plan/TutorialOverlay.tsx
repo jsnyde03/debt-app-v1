@@ -69,6 +69,7 @@ function useAnnounceBeat(position: number, run: TutorialRun) {
 export function TutorialOverlay({
   position,
   total,
+  hideProgress = false,
   title,
   body,
   onBack,
@@ -83,6 +84,15 @@ export function TutorialOverlay({
 }: {
   position: number;
   total: number;
+  /**
+   * [E4] Withhold the step counter and rail — a run that opens on the finale alone (the upgrader's
+   * offer) would otherwise read "Step 7 of 7" for an arc it never walked.
+   *
+   * ⚠️ The Example-money marker rides the SAME line and must survive: it is the one thing marking the
+   * whole canvas as fictional, and 3.5.3.2 made it persistent on purpose. So this drops the counter and
+   * the rail, not the line.
+   */
+  hideProgress?: boolean;
   title: string;
   body: string;
   onBack?: () => void;
@@ -307,11 +317,13 @@ export function TutorialOverlay({
                     session, keyed on `isSandboxStore` rather than on any session, and it withholds itself
                     while this line is on screen so the two never double. */}
                 <Text style={[textStyles.caption, { color: c.text.tertiary }]} testID="tutorial-progress">
-                  Step {position} of {total} · Example money
+                  {hideProgress ? 'Example money' : `Step ${position} of ${total} · Example money`}
                 </Text>
-                <View style={[styles.rail, { backgroundColor: c.border.subtle }]}>
-                  <View style={[styles.railFill, { backgroundColor: c.accent.primary, width: `${(position / total) * 100}%` }]} />
-                </View>
+                {hideProgress ? null : (
+                  <View style={[styles.rail, { backgroundColor: c.border.subtle }]}>
+                    <View style={[styles.railFill, { backgroundColor: c.accent.primary, width: `${(position / total) * 100}%` }]} />
+                  </View>
+                )}
               </View>
               <Text {...headerProps()} style={[textStyles.title3, { color: c.text.primary }]} testID="tutorial-step-title">
                 {title}

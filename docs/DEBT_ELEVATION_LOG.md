@@ -3858,3 +3858,39 @@ defect, which is exactly what the 3.5.6 both-theme sweep is for.
    positioned layer into view. Not a reachability defect — the screenshots show it correctly placed.
 
 All three are written into the Phase-6 device ledger by 3.5.6.3 rather than left as prose here.
+
+## 3.5.6.1 — the 3.5.3.9-L ledger, worked (2026-08-08)
+
+### 🎯 [L1 / E4] RESOLVED — the upgrader is offered the FINALE, not the arc (Jason 2026-08-08)
+
+The design call the ledger recorded as *unowned*, routed to a 3.5.1 gate that round 4 had already found
+closed — so nothing would ever have resurfaced it.
+
+**Why finale-only.** [D9] made the sandbox run a premium Guardian for *every* audience, which means an
+upgrader has already seen all seven beats on the same money. The runs now diverge only in the finale's
+`bodyByRun`. Replaying the arc would charge a customer's attention — immediately after they paid — for one
+changed paragraph, while the finale is genuinely the beat written for who they now are.
+
+Implemented as a start INDEX rather than a second one-beat arc, so the beat, its scenario and its copy stay
+the single definition every other entry point uses. Two dock affordances had to go quiet with it: **"Step 7
+of 7" describes an arc this run never walked, and Back would lead into six beats it never showed.** ⚠️ The
+Example-money marker rides the same line and is deliberately kept — 3.5.3.2 made it persistent on purpose,
+and it is the one thing marking the canvas as fictional.
+
+Pinned twice, because the two failures are different: the selector test proves the flag; an e2e JOURNEY
+proves the user lands on the hand-back beat with the right chrome — the selector cannot see chrome, and a
+green matrix would have passed either way (the original assertion read `?.run` and was satisfied by both
+shapes).
+
+### The rest of the ledger
+
+| ID | Outcome |
+|---|---|
+| **L5** | ✅ **Closed by 3.5.5.5** — the entry is pinned above the sticky actions. ⏳ Its *device* re-verify is still owed: the finding came from a native hierarchy dump, and the fix is verified structurally on web |
+| **L3a** | ✅ **Closed on inspection** — the constant now states both findings at the site and points at `spotlight.test.ts`, which derives the registered set by scanning source rather than trusting the literal. The drift it warned about cannot hurt |
+| **L3b** | ✅ **Fixed, and it was undersold as "LOW".** `tutorialSession.start` passes `maxGenuineCycles: TUTORIAL_MAX_CYCLES` (3); the invariant passed nothing and fell back to `SANDBOX_MAX_GENUINE_CYCLES` (1). **The discovery holdback flips at 3**, so that bound decides whether a safety net is held — and `guardian-reserve` is a coached SUBJECT. The arc's build-time invariant was proving every beat's subject against a Guardian in a different state from the one the walkthrough shows. Second half: Today computes from `withProjectedBalances(store, isPremium)`; the invariant read the raw store. Still 39/39 after both — the arc holds under the *shipped* shape, which is a stronger claim |
+| **L2c** | ✅ **Evidence captured** — `tests/shots/floor-impact.shot.ts` samples `FloorImpactBar` through its spring. Criterion 5 had been judged from code and END states across three reviews, which is the one claim a still of the settled bar cannot support. The frames show the fill travelling (~78% at 60ms → ~45% at 140ms): the [D4] spring is doing its job |
+| **L4** | ⏳ **Cannot be recovered here** — round 10's three native-lane sections are gone. Routed to 3.5.6.3 and the Phase-6 device ledger, with the standing instruction: **do not assume the native surface was reviewed** |
+| **L2a · L2b · L2d** | ⏳ **Remaining** — three measurable polish items (beat-4 ring spacing · Guardian card bottom padding · beat-1's withheld-replay gap). L2d is explicitly *unconfirmed*: measure before treating it as a defect |
+
+**Gate 141/141.**

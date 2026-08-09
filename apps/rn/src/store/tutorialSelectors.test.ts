@@ -41,9 +41,20 @@ function run() {
   const v16 = store({ subscriptionPlan: 'premium' }, { guardianIntroSeen: true });
   eq(selectTutorialInvite(v16)?.run, 'premium', 'an existing v1.6 user IS offered it (the old intro flag does not gate it)');
 
-  // An upgrader: saw the free run, then bought premium → offered the premium run once.
+  // An upgrader: saw the free run, then bought premium → offered the premium FINALE once.
   const upgrader = store({ subscriptionPlan: 'premium' }, { tutorialSeen: 'free' });
   eq(selectTutorialInvite(upgrader)?.run, 'premium', 'a free→premium upgrader is re-offered the PREMIUM run');
+  // [E4] — and the finale ALONE. Since [D9] the runs are beat-identical for them, so replaying seven
+  // beats would charge a customer's attention, right after they paid, for one changed paragraph. Pinned
+  // because it is invisible from the outside: both shapes return a truthy invite naming the same run,
+  // and only this flag distinguishes "offer the arc" from "offer the beat written for who they now are".
+  eq(selectTutorialInvite(upgrader)?.finaleOnly, true, 'an upgrader is offered the FINALE, not the whole arc');
+  // …and nobody else is. A first-run user must still walk all seven beats.
+  eq(
+    selectTutorialInvite(store({ subscriptionPlan: 'premium' }, { tutorialSeen: null }))?.finaleOnly,
+    undefined,
+    'a first-run premium user gets the whole arc, not the finale',
+  );
 
   // ── And the cases that must NOT be offered. ───────────────────────────────────────────────────
   eq(selectTutorialInvite(store({ subscriptionPlan: 'free' }, { tutorialSeen: 'free' })), null, 'a free user who saw the free run is not re-offered');

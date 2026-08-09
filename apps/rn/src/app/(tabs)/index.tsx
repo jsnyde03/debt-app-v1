@@ -368,7 +368,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
         {tutorialInvite && guardian ? (
           <Motion delay={50}>
             <TutorialInviteCard
-              onStart={() => startTutorial(tutorialInvite.run)}
+              onStart={() => startTutorial(tutorialInvite.run, { finaleOnly: tutorialInvite.finaleOnly })}
               onDismiss={() => store_.getState().updatePrefs(markTutorialSeen(store.prefs, tutorialInvite.run))}
             />
           </Motion>
@@ -544,7 +544,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
           newest audience it's aimed at. */}
       {tutorialInvite && activeAck === 'tutorial' && !guardian ? (
         <TutorialInviteCard
-          onStart={() => startTutorial(tutorialInvite.run)}
+          onStart={() => startTutorial(tutorialInvite.run, { finaleOnly: tutorialInvite.finaleOnly })}
           onDismiss={() => store_.getState().updatePrefs(markTutorialSeen(store.prefs, tutorialInvite.run))}
         />
       ) : null}

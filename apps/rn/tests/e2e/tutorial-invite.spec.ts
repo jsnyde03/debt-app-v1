@@ -706,3 +706,38 @@ test.describe('tutorial invitation + in-situ shell', () => {
     expect(await page.locator('[inert]').count()).toBeGreaterThan(0);
   });
 });
+
+/**
+ * [E4] The upgrader is offered the FINALE, not the arc (Jason 2026-08-08).
+ *
+ * Pinned as a JOURNEY because the selector test cannot show what the user actually gets: it proves the
+ * flag, not that the overlay opens on the right beat with the right chrome. Since [D9] the seven beats
+ * are identical for this audience, so replaying them would charge a customer's attention — right after
+ * they paid — for one changed paragraph.
+ */
+test.describe('[E4] the upgrade re-offer opens the finale alone', () => {
+  test('an upgrader lands on the hand-back beat, with no step counter and no way back', async ({ page }) => {
+    await seedStore(page, newUser({ subscriptionPlan: 'premium', prefs: { onboardingComplete: true, tutorialSeen: 'free' } }));
+    await page.goto('/');
+
+    await expect(page.getByTestId('tutorial-invite')).toBeVisible();
+    await page.getByText('Show me').click();
+
+    // Straight to the beat written for who they now are.
+    await expect(page.getByTestId('tutorial-step-title')).toHaveText('Over to your plan');
+    // Next reads Finish, because this beat IS the end.
+    await expect(page.getByText('Finish', { exact: true })).toBeVisible();
+
+    // The two affordances that would describe an arc this run never walked.
+    await expect(page.getByTestId('tutorial-progress')).toHaveText('Example money');
+    await expect(page.getByText('Back', { exact: true })).toHaveCount(0);
+  });
+
+  test('a first-run user still gets the whole arc', async ({ page }) => {
+    await seedStore(page, newUser({ subscriptionPlan: 'premium' }));
+    await page.goto('/');
+    await page.getByText('Show me').click();
+
+    await expect(page.getByTestId('tutorial-progress')).toContainText('Step 1 of');
+  });
+});

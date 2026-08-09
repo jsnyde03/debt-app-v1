@@ -33,6 +33,14 @@ export type TutorialRun = 'free' | 'premium';
 export interface TutorialInvite {
   /** Which run to open — also what gets recorded when they finish or dismiss it. */
   run: TutorialRun;
+  /**
+   * [E4] Open the FINALE alone rather than the whole arc (Jason 2026-08-08).
+   *
+   * Only the upgrader sets this, and only because [D9] made the runs beat-identical for them: replaying
+   * seven beats would charge a customer's attention — immediately after they paid — for one changed
+   * paragraph. The finale is the part that is genuinely new to them, so it is the part they are offered.
+   */
+  finaleOnly?: boolean;
 }
 
 /** The run this user would get right now, based purely on their tier. */
@@ -54,8 +62,9 @@ export function selectTutorialInvite(store: DebtStore): TutorialInvite | null {
 
   // Never offered → offer.
   if (seen === null) return { run };
-  // Saw the free run, now premium → offer the premium run once (its finale is the one written for them).
-  if (seen === 'free' && run === 'premium') return { run: 'premium' };
+  // [E4] Saw the free run, now premium → offer the FINALE once. Not the arc: since [D9] they have
+  // already seen all seven beats, on the same premium Guardian, and only the finale differs.
+  if (seen === 'free' && run === 'premium') return { run: 'premium', finaleOnly: true };
   // Otherwise they've had the run they'd get. Replay stays reachable from the card's "How this works"
   // link and from More. (Said "the '?'" — a glyph that was considered and never built.)
   return null;

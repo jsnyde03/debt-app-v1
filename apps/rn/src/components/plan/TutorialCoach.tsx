@@ -27,6 +27,10 @@ export function TutorialCoach() {
   const step = TUTORIAL_STEPS[index];
   if (!step) return null;
   const last = isLastStep(index);
+  // [E4] The upgrader's offer is the finale ALONE. Both of the dock's position affordances have to go
+  // quiet for it: "Step 7 of 7" describes an arc this run never walked, and Back would lead into six
+  // beats it never showed. `isLast` already makes Next read "Finish" and hides Skip, which is right.
+  const finaleOnly = tutorialSession.getState().finaleOnly;
 
   const leave = () => {
     const prefs = appStore.getState().store.prefs;
@@ -42,6 +46,7 @@ export function TutorialCoach() {
     <TutorialOverlay
       position={index + 1}
       total={TUTORIAL_STEP_COUNT}
+      hideProgress={finaleOnly}
       title={step.title}
       body={stepBody(step, run)}
       isLast={last}
@@ -52,7 +57,7 @@ export function TutorialCoach() {
       passThrough={shell.passThrough}
       onDockLayout={shell.setDockH}
       impact={shell.impact}
-      onBack={index > 0 ? () => goTo(prevIndex(index)) : undefined}
+      onBack={index > 0 && !finaleOnly ? () => goTo(prevIndex(index)) : undefined}
       onNext={() => (last ? leave() : goTo(nextIndex(index)))}
       onSkip={leave}
     />

@@ -45,6 +45,15 @@ export interface TutorialSession {
   /** Which beat is showing (index into `TUTORIAL_STEPS`). */
   index: number;
   /**
+   * [E4] This run opens on the FINALE alone — the upgrader's offer, whose other six beats they have
+   * already seen ([D9] made the runs beat-identical for them).
+   *
+   * The dock reads it: a one-beat run must not claim "Step 7 of 7", and must not offer Back into beats
+   * this session never showed. Everything else — the beat, its scenario, its copy — stays the single
+   * definition every other entry point uses.
+   */
+  finaleOnly: boolean;
+  /**
    * 3.5.3.4.4 — what the plan looked like immediately BEFORE the user moved their line, so the payoff
    * can show the change rather than just the result. Captured at the moment of the write because by the
    * time anything renders, the "before" is gone — the store has already re-solved.
@@ -53,7 +62,7 @@ export interface TutorialSession {
 }
 
 interface TutorialSessionState extends TutorialSession {
-  start(realStore: DebtStore, run: TutorialRun, startIndex: number): void;
+  start(realStore: DebtStore, run: TutorialRun, startIndex: number, finaleOnly?: boolean): void;
   goTo(index: number): void;
   end(): void;
   /** Record the pre-change read so the impact payoff has a "before" to show. */
@@ -120,9 +129,10 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
   run: 'free',
   sandbox: null,
   index: 0,
+  finaleOnly: false,
   floorBefore: null,
 
-  start(realStore, run, startIndex) {
+  start(realStore, run, startIndex, finaleOnly = false) {
     // The other half of the one-bounded-run-at-a-time rule — see `sandboxRun`'s `claimRun`. Stated at both
     // sessions rather than at one, because "the other one cannot be running" is a claim each has to make
     // for itself; asserting it in a single place is how a class ends up closed in one direction only.
@@ -164,7 +174,7 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
       scenarioForBeat(realStore, 'clear', { ...opts, pinned })!;
     const sandbox = createSandboxStore(opening);
     publishSandbox(sandbox, opening.id);
-    set({ active: true, run, sandbox, index: startIndex, floorBefore: null });
+    set({ active: true, run, sandbox, index: startIndex, floorBefore: null, finaleOnly });
     track({ name: 'tutorial_started', audience: run });
   },
 
@@ -258,7 +268,7 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
     releaseCoachMarks = null;
     staging = null;
     // Drop the sandbox so it can be collected; a later session builds a fresh, deterministic one.
-    set({ active: false, sandbox: null, index: 0, floorBefore: null });
+    set({ active: false, sandbox: null, index: 0, floorBefore: null, finaleOnly: false });
   },
 }));
 
@@ -309,7 +319,7 @@ export function useTutorialSession<T>(selector: (s: TutorialSessionState) => T):
  * wherever the caller happened to be. Since the session is global state, the caller can simply start it
  * and let Today render the overlay when it's on screen.
  */
-export function startTutorial(run: TutorialRun, opts: { resume?: boolean } = {}): void {
+export function startTutorial(run: TutorialRun, opts: { resume?: boolean; finaleOnly?: boolean } = {}): void {
   const real = appStore.getState().store;
   // RESUMING and REPLAYING are different intentions, and collapsing them broke the replay entries.
   //
@@ -324,14 +334,18 @@ export function startTutorial(run: TutorialRun, opts: { resume?: boolean } = {})
   //
   // So the caller says which it means. Resume stays the DEFAULT, because the invitation legitimately
   // picks up an interrupted first run; the explicit replay affordances opt out.
-  const from = opts.resume === false ? 0 : resumeIndex(real.prefs.tutorialStep);
+  // [E4] The upgrader's offer opens the FINALE alone. It is a start INDEX rather than a separate
+  // one-beat arc, so the beat, its scenario and its copy stay the single definition every other entry
+  // uses — but the dock must then stop claiming "Step 7 of 7" and stop offering Back into six beats
+  // this run never showed, which is what `finaleOnly` on the session is for.
+  const from = opts.finaleOnly ? TUTORIAL_STEPS.length - 1 : opts.resume === false ? 0 : resumeIndex(real.prefs.tutorialStep);
   // …and CLEAR the stale step, not just start past it. Starting at 0 left `prefs.tutorialStep` pointing
   // at the abandoned beat, so the original bug survived one exit away: replay from the card → quit on
   // beat 1 without pressing Next (which is what writes the pref) → the next invitation resumes onto the
   // at-risk beat 5 they were never on. Fixing where the session STARTS without fixing what the store
   // REMEMBERS just moved the trap one step further out.
   if (opts.resume === false) appStore.getState().updatePrefs({ tutorialStep: null });
-  tutorialSession.getState().start(real, run, from);
+  tutorialSession.getState().start(real, run, from, opts.finaleOnly === true);
   // 3.5.3.5.7 — land on Today, here rather than at each call site. Every caller happened to do this
   // already (the More row navigated after starting), but that was an invariant held by convention: once
   // the overlay mounts above the NAVIGATOR it renders whatever tab you are on, so a future entry point
