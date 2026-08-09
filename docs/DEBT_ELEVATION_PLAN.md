@@ -9,9 +9,9 @@
 ## ▶ NOW
 
 - **Active build:** **Phase 3.5 — interactive tutorial + bounded demo.** 3.5.0–3.5.3 ✅ done, incl. the 3.5.3.9 audit gate **CLOSED at round 10** (2026-08-05). **Phases 0–3 ✅ COMPLETE.**
-- **▶ ACTIVE BUILD: 3.5.5 — feature-discovery coach-marks,** decomposed below. .1 and .2 ✅ done 2026-08-07; **.3 → .6 remain.** ⚠️ **Start .4 with a FRESH read of the code** — its whole job is verifying each affordance is reachable, and that inventory has already been wrong once (it promised an income-varies toggle that did not exist → 3.7.A9).
+- **▶ ACTIVE BUILD: 3.5.6 — verify + close Phase 3.5,** decomposed below. **3.5.5 ✅ COMPLETE 2026-08-08** — three marks, offered once ever, re-offerable from More; gate **139/139 × 3**.
 - **✅ 3.5.8 CLOSED 2026-08-08 — the App-Preview capture pipeline delivers.** 🎯 Cycle 14 **APPROVED**: every guard green, and the celebration measured at **4.80s of room** (cycle 13 landed it in the final 0.1s). ⚠️ **The submitted asset is a re-shoot of this pipeline, not this file** — the UI still changes before Phase 6. Detail → log 3.5.8 cycles 13–14; frame verification → the audit doc's CYCLE 14 section.
-- **⏭ Then:** 3.5.6 verify+close (incl. the 3.5.3.9-L ledger, 8 open) · 3.5.7 marketing embed (needs a hosting + privacy call).
+- **⏭ Then:** 3.5.7 marketing embed (needs a hosting + privacy call) → the whole-app cohesion audit.
 - **⚠️ 3.7.A9 folded in 2026-08-07** — `incomeVaries`/`leanAmount` had no UI at all, so the whole variable-income feature set was unreachable. Shipped in `PaycheckSheet` + onboarding.
 - **⏳ Owed on hardware:** the native lane for 3.5.4.10, and the CM build against §12 of `DEBT_3.5_DEVICE_QA_CHECKLIST.md` (which flags one KNOWN-BAD item, already fixed in repo).
 - **⏸ Parallel (Jason):** cut a fresh `v1.7-dev` build (⚠️ current device build `c050173`/3.6.1 is STALE — predates the whole closeout + fold) → the consolidated **Phase-6 device pass** (the accumulated device-QA ledger, under Phase 6).
@@ -87,20 +87,24 @@ The interactive tutorial + the bounded marketing/demo showcase (+ folded-in feat
 
 - **3.5.8 — the App-Preview capture pipeline ✅ CLOSED 2026-08-08.** One tag-triggered dispatch on the free GH-macOS lane produces the submittable file ([D20]: the build starts itself, `simctl` records, ffmpeg conforms to 886×1920). **Cycle 14 APPROVED** — every guard green and the celebration measured at 4.80s of room. 14 cycles; the recurring lesson is that each guess at a moving quantity (launch time, anchor, stage timing) had to become something the app *asserts* or the pipeline *measures*. ⚠️ **Constraints that outlive it:** Apple takes ONE 886×1920 file, 15–30s, ≤30fps (re-verified 2026-08-06 vs ASC Help) · **the submitted asset is a re-shoot of this pipeline, not cycle 14's file** — the UI changes through 3.5.5, 3.7 and the audit gates · a device re-run stays the fallback if the runner's speed ever costs the chart reveals (3.5.8.8's guard makes that loud). Detail → log 3.5.8; frame verification → the audit doc's per-cycle sections.
 
-#### 3.5.5 — feature-discovery coach-marks ▶ ACTIVE BUILD
+#### 3.5.5 — feature-discovery coach-marks ✅ COMPLETE 2026-08-08
 
-One calm, dismissible, replayable mark for every hidden affordance that EXISTS. .1 (the primitive + the registry at the ROOT) and .2 (one-interruption-at-a-time, re-scoped to the narrower true claim) ✅ done 2026-08-07; the 2026-08-07 switch-in re-verification → log 3.5.5.
+Three calm, dismissible, replayable marks — payoff-schedule · the row long-press (iOS-only) · the trajectory scrub — offered once ever, re-offerable from More, and refused during any bounded run. **Gate 139/139 × 3.** Detail → log 3.5.5.x.
 
-⚠️ **.5 runs BEFORE .3 (Jason 2026-08-08).** `COACH_MARKS` holds one entry and it is registered nowhere, so as ordered .3 would build persistence for a layer that marks nothing and cannot be verified by looking. Ids kept stable — the log and commits reference them.
+⏳ **Owed to the Phase-6 device lane:** the in-sheet coach-mark layer (a root overlay renders *behind* a presented Modal on device, which is why it exists — and web cannot show the difference) · the **iOS-only** row-long-press mark · the "Got it" dismiss, unclickable in web e2e for the same flow-layout reason.
 
-| order | # | Step |
-|---|---|---|
-| ✅ | 3.5.5.3 | **DONE 2026-08-08 — a mark is offered once EVER, and More can re-offer them.** `prefs.coachMarksSeen` under the unshipped v7 · recorded on OFFER (not dismissal) · **More → "Show feature tips again"** clears both records · the walkthrough and the demo now DECLARE themselves through the existing suppressor seam instead of being special-cased. Gate 139/139. Log: 3.5.5.3 |
-| ✅ | 3.5.5.5 | **DONE 2026-08-08 — the payoff schedule is reachable AND marked.** [L5] `footerAccessory` pins the entry below the fields and above the sticky actions, so Save separates it from a destructive Remove · the first real coach-mark ships, rendered by a layer `FormSheet` mounts inside its own Modal (a root overlay renders behind a presented Modal on device) · the trigger waits for **layout**, not a timer. Both themes verified by looking; **gate 135/135, three consecutive runs.** Log: 3.5.5.5 |
-| ✅ | 3.5.5.4 | **DONE 2026-08-08 — the inventory, corrected.** 🎯 **3 marks** (payoff-schedule · row long-press, iOS-gated · trajectory scrub); 3 "hidden" entries were plainly visible, and widget/Siri have **no on-screen subject** so a mark cannot point at them. ⚠️ **Found + fixed a 3.7.A9-class defect: `LogPaymentSheet` was reachable ONLY via the iOS long-press** (no path at all on Android/web) → a visible row in the debt sheet. Also fixed the suite's one genuinely flaky step (the beat-3 slider tap). Gate **139/139 × 3**. Log: 3.5.5.4 |
-| **1** | **3.5.5.6** | **▶ NEXT — verify + close** — both themes · a11y (a mark must not fence the control it points at) · e2e · native lane. ⚠️ **Owed to the device lane by .5:** the in-sheet layer exists *because* a root overlay renders behind a presented Modal, and the web cannot see that — the mark's device layering is unproven until Maestro runs it |
+#### 3.5.6 — verify + close Phase 3.5 ▶ ACTIVE BUILD
 
-**Exit:** every hidden affordance that EXISTS has one calm, dismissible, replayable mark; none fires alongside another ack; and no mark points at a control the user cannot reach.
+The last step before the whole-app cohesion audit. Everything 3.5 built is now in; this is where its residue is cleared and the phase is signed off.
+
+| # | Step |
+|---|---|
+| **3.5.6.1** | **▶ NEXT — work the 3.5.3.9-L ledger** (`DEBT_TUTORIAL_AUDIT_2026-08-02.md` §T, **8 open**): triage each, fix what web can prove, route the rest to the device lane. ⚠️ Includes **[E4], a 🎯 design call** — surface it with a recommendation rather than deciding it |
+| 3.5.6.2 | **Whole-3.5 both-theme + a11y sweep** — the tutorial, the demo and the coach-marks together (VoiceOver end-to-end where web allows; the rest stated as device-owed rather than assumed) |
+| 3.5.6.3 | **Consolidate the 3.5 device-QA debt** into the Phase-6 ledger — the walkthrough's §3.5.3 block, the demo's native lane, and 3.5.5's three owed items, in one place a device pass can actually be run from |
+| 3.5.6.4 | **Whole-PHASE after-scan** (not just this item) — cross-item coherence across 3.5, the accumulated deferral ledger, and lessons that apply retroactively to earlier items. Feeds the whole-app cohesion audit |
+
+**Exit:** Phase 3.5 signed off — no open ledger items that web can settle, every device-owed item written down where the device pass will find it, and the phase's own after-scan folded into the plan.
 
 **🔷 [DECISION]s — ✅ ALL RESOLVED = DO (Jason executive decision 2026-07-30: "everything found in the audits + enhancements will be done, no backlog", [[feedback_fix_everything_one_block]]):** **D-A** wire the privacy-first opt-out ~8-event funnel instrumentation seam (no financial data) · **D-B** replace the legacy `demoSeed` (one honest demo system) · **D-C** free-tier tutorial + demo access · **+ all 13 best-in-class enhancements** + **every coverage gap** — nothing filed to backlog.
 **Restraint (best-in-class audit) — STILL HOLDS with everything IN:** no Tier-3 spectacle/confetti/sound · no gamification chrome · no fake-chat theater · Recovery stays a glimpse · the in-app tutorial ≤7 beats. ("Everything done" = build all the found work, folded into existing beats by design — NOT add fireworks to a teaching surface.)

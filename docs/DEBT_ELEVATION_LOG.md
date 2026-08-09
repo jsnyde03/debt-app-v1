@@ -3831,3 +3831,30 @@ web-only gap — but it means a `role="slider"` with no reported value is what t
 `a11y-axe` does not currently flag it. **→ backlog (web-only; the app ships native).**
 
 **3.5.5.4 merged to `v1.7-dev`.**
+
+## 3.5.5.6 — verified, and 3.5.5 closes (2026-08-08)
+
+All three marks looked at in both themes at 440×956: each anchors directly above its subject, reads
+correctly, and the control stays live underneath (a hint, not a modal — proved by tapping the marked row
+while its mark is up and landing on the route).
+
+**Coverage:** 16 unit assertions (`coachMarks.test.ts`) + 4 e2e (`coach-marks.spec.ts`) + the
+payoff-schedule structural tests. **Gate 139/139, three consecutive runs.**
+
+⚠️ **Observation for the cohesion audit:** in LIGHT theme the callout is a near-white card on a near-white
+surface, separated only by a hairline border — legible, and noticeably weaker than the dark theme's
+separation. It matches the app's existing card language, so it is a coherence question rather than a
+defect, which is exactly what the 3.5.6 both-theme sweep is for.
+
+### ⏳ Three things web structurally cannot answer, owed to the device lane
+
+1. **The in-sheet layer's whole reason for existing.** A root overlay is a sibling of a presented Modal and
+   renders behind it on device; react-native-web has one DOM tree and shows no difference. The fix is
+   unverified where it matters.
+2. **The row long-press mark is iOS-only** — `RowContextMenu` is a passthrough elsewhere, so the web e2e
+   never sees that mark at all.
+3. **The "Got it" dismiss** is unclickable in web e2e: RN-web lays the sheet out in normal document flow,
+   so the callout lands ~1590px down a 956px viewport and Playwright cannot scroll an absolutely-
+   positioned layer into view. Not a reachability defect — the screenshots show it correctly placed.
+
+All three are written into the Phase-6 device ledger by 3.5.6.3 rather than left as prose here.
