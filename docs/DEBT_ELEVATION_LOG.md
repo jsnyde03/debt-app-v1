@@ -4064,3 +4064,65 @@ one runnable source, everything else an index pointing at it. (b) The checklist'
 promised "next I build 3.5.5 (App Intents / Siri)" — from a build cadence two months gone, and pointing at
 a number since reused for the coach-marks; replaced with the real exit and a priority order for a single
 sitting. (c) Nothing here needed code, so the gate is unchanged at 145/145.
+
+---
+
+## 3.5.6.4 — the whole-PHASE after-scan (2026-08-10)
+
+**Gate 145/145 → 146/146.** The pass that looks at 3.5 as one thing rather than as eleven items.
+
+### ⚠️ It found a shipped gap: nothing asserted the Example marker was THERE
+
+The suite proved the marker never leaks onto real money (`never appears on the real card`) and stopped.
+The claim it actually carries — the marker is on the card for the whole run — rested on having looked at
+screenshots. **An assertion for the absence of a thing cannot notice the thing has stopped appearing.**
+
+This is the phase's own highest-severity claim: `DEBT_3.5_DEVICE_QA_CHECKLIST.md` §11.9 calls a missing
+marker on beat 5 *"the highest-severity result in this entire checklist"*, because that beat renders an
+invented shortfall **using the user's own debt names**, and the marker is the only thing between that and
+a genuine warning about their money. Now asserted on **all seven beats** (3.5.3.2 made it persistent on
+purpose, and a marker that survives six beats and drops on the seventh is the same defect arriving late).
+Proved by rendering the marker `false` and confirming the test names the failing beat.
+
+### The cross-item pattern: "which store does this read?"
+
+3.5 introduced a second store, which gave every piece of state a new question. The phase answered it
+**explicitly and well** in several places — `coachMarksSeen` reads the REAL store, with the reasoning at
+the call site (*"a mark met inside the Example world would otherwise burn the hint the real user has not
+been shown"*); `tutorialStep`/`tutorialSeen` are a two-key writable allowlist; money is sandbox-only
+behind a purity guard and a write backstop; `inWalkthrough` reads the session rather than the registry.
+
+⚡ **The question was asked for identity, progress and money state — and never for PRESENTATION state.**
+That gap is precisely where 3.5.6.2 found the theme flip. Swept the rest of `prefs` to see whether the
+class was wider, and it is not: `hasSavingsElsewhere` feeds `skipStarterEmergency`, so the sandbox
+default is correct (the persona's money is scripted); `debtFreeSoundEnabled`'s default is right for both
+the tutorial's no-sound restraint and capture determinism; the remaining four do not render in a run.
+**`themeMode` was the only one. The class is closed with evidence, not assumed shut.**
+
+### The deferral ledger, re-verified rather than re-copied
+
+Each checked against current code: `prefs.isDemoMode` is still inert (only defaults, models and a test
+asserting the sandbox never sets it) · `guardianIntroSeen` is still reader-less · `typicalAmount` still
+has no writer in any `.tsx`. All three deferrals remain true and keep their destinations (Phase 5's
+migration for the two persisted keys, the wording/voice gate for `typicalAmount`).
+
+### ⚠️ Phase 3.5 is NOT closed by this — 3.5.7 is still open
+
+3.5.6's exit line said "Phase 3.5 signed off", and the phase's own build order carries **3.5.7, the
+web-embeddable marketing demo**, which is unbuilt and gated on a hosting + privacy call Jason owns. Two
+statements in one document disagreeing about whether a phase is finished is exactly the drift this scan
+exists to catch, so: **3.5.6.4 closes the 3.5 BUILD; 3.5.7 remains, blocked on a decision.**
+
+### The phase's three recurring defect classes, for the cohesion audit
+
+Named here because the whole-app audit is the next place they can be hunted at scale:
+
+1. **An assertion that passes either way** — 4 instances (the invite's `?.run`, the coach-mark's
+   `toBeVisible`, this item's absence-without-presence, and one I wrote and deleted myself).
+2. **Evidence cited but never committed** — the coach-mark screenshots, round 10's lost lens outputs (L4,
+   unrecoverable).
+3. **Two records of one thing, drifting** — the ledger vs the checklist, the two screenshot mechanisms,
+   the audit round vs the code, and a stale §12 describing a demo that had been rebuilt.
+
+All three are the same failure at different altitudes: **a claim kept somewhere other than where it is
+checked.**

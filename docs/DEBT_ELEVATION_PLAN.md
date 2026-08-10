@@ -9,7 +9,9 @@
 ## ▶ NOW
 
 - **Active build:** **Phase 3.5 — interactive tutorial + bounded demo.** 3.5.0–3.5.3 ✅ done, incl. the 3.5.3.9 audit gate **CLOSED at round 10** (2026-08-05). **Phases 0–3 ✅ COMPLETE.**
-- **▶ ACTIVE BUILD: 3.5.6 — verify + close Phase 3.5,** decomposed below. **3.5.6.1–3.5.6.3 ✅ DONE 2026-08-10.** **▶ 3.5.6.4 (the whole-PHASE after-scan) is the last sub-step**, and it closes Phase 3.5. **3.5.5 ✅ COMPLETE.** Gate **145/145**.
+- **✅ 3.5.6 CLOSED 2026-08-10 — the Phase 3.5 BUILD is done.** Gate **146/146**.
+- **▶ ACTIVE BUILD: Phase 3.7 Wave A — correctness / honesty,** decomposed below. Promoted because **A1 and A2 are money-correctness defects in the shipped engine** (a biweekly BNPL retires ~2× too slow; a weekly obligation under a monthly payer is under-reserved) — every projected debt-free date in the app is downstream of them, and the cohesion audit should review a *correct* app.
+- **🎯 [DECISION] 3.5.7 — the web-embeddable marketing demo is the ONE unbuilt item left in Phase 3.5**, and it needs your call on **hosting + the privacy stance for a public web surface** before it can start. Recommendation: **build it after Phase 3.7, immediately before the cohesion audit** — it is a marketing surface, not a product one, and the ⚠️ web-only `Slider` a11y gap in the backlog becomes real the moment a web surface ships.
 - **📱 The device pass is now ONE document — `DEBT_3.5_DEVICE_QA_CHECKLIST.md` §11 · §12 · §13.** Run it against the fresh `v1.7-dev` build; **§11.15 first** (the iPad highlight is the only check that can hold a fix no web test can observe).
 - **⚠️ A method lesson from 3.5.6.1 (2026-08-10):** two of its three items had been FIXED two days before the ledger recorded them open — **a ledger entry transcribed from an audit round carries the round's state, not the code's.** What was owed was the re-judge, and re-reading the diff could not supply it: the complaint was geometry, so it took an instrument (`tests/shots/guardian-spacing.shot.ts`). One of the three then measured as **not a defect at all**.
 - **⚡ And the one from 3.5.6.2 (2026-08-10) — the sharpest of the phase:** the walkthrough had been ignoring the user's in-app theme and following the OS instead, and **every previous both-theme review looked correct** because the reviewing harness set the OS scheme and the preference together. **A screenshot pass cannot find a defect that only appears when two inputs DISAGREE, if the harness always agrees them.** Vary one input at a time. The same session then deleted its own new iPad assertion for the mirror-image sin — claiming to guard something it could not observe.
@@ -97,27 +99,9 @@ Three calm, dismissible, replayable marks — payoff-schedule · the row long-pr
 
 ⏳ **Owed to the Phase-6 device lane:** the in-sheet coach-mark layer (a root overlay renders *behind* a presented Modal on device, which is why it exists — and web cannot show the difference) · the **iOS-only** row-long-press mark · the "Got it" dismiss, unclickable in web e2e for the same flow-layout reason.
 
-#### 3.5.6 — verify + close Phase 3.5 ▶ ACTIVE BUILD
+- **3.5.6 — verify + close ✅ DONE 2026-08-10.** Four sub-steps: the 3.5.3.9-L ledger closed (all 8 disposed, one measured as never a defect) · the both-theme + a11y sweep, which **found the walkthrough following the OS instead of the user's in-app theme** · the device debt consolidated into `DEBT_3.5_DEVICE_QA_CHECKLIST.md` §11–§13 · the whole-phase after-scan, which **found the Example marker asserted only by its absence** and closed the "which store does this read?" class with evidence. Gate 141→**146**. Detail → log 3.5.6.1–.4.
 
-The last step before the whole-app cohesion audit. Everything 3.5 built is now in; this is where its residue is cleared and the phase is signed off.
-
-| # | Step |
-|---|---|
-| **3.5.6.1** | ✅ **DONE 2026-08-10 — the 3.5.3.9-L ledger is CLOSED.** All 8 items disposed: [E4] 🎯 finale-only · L5 · L3a · L3b · L2c · **L2a fixed to +6.0pt · L2b answered at 45/48pt · L2d disproven** by `tests/shots/guardian-spacing.shot.ts`, which measures the geometry rather than judging it. L4 unrecoverable → 3.5.6.3. Gate 141/141. Log: 3.5.6.1 |
-| **3.5.6.2** | ✅ **DONE 2026-08-10 — whole-3.5 both-theme + a11y sweep.** One committed sweep (`tests/shots/phase35-themes.shot.ts`) replaced a stale, ad-hoc set. ⚠️ **Found: the walkthrough followed the OS, not the user's in-app theme** (the sandbox carries default prefs) — fixed + pinned; and a coach-mark assertion that could not fail. a11y extended over both coach-marks. Gate **145/145**. Log: 3.5.6.2 |
-| **3.5.6.3** | ✅ **DONE 2026-08-10 — the 3.5 device debt is in ONE runnable place.** Target corrected at switch-in: the runnable doc already existed, so it all folded into `DEBT_3.5_DEVICE_QA_CHECKLIST.md` (**§11** walkthrough · **§12** demo · **§13** coach-marks, new) and this file's ledger collapsed to an index. ⚠️ Found §12 **stale** — it described the 3-stage single-screen demo that 3.5.4.11 replaced with a 5-beat multi-screen arc. Log: 3.5.6.3 |
-| **3.5.6.4** | **▶ IN PROGRESS — whole-PHASE after-scan** (not just this item) — cross-item coherence across 3.5, the accumulated deferral ledger, and lessons that apply retroactively to earlier items. Feeds the whole-app cohesion audit |
-
-**▶ 3.5.6.4 — decomposed (the ACTIVE sub-step):**
-
-| # | Step |
-|---|---|
-| 3.5.6.4.1 | **Read 3.5 end to end as ONE phase** — the substrate, the 7-beat arc, the demo, the coach-marks, the capture pipeline — and name what only shows when they are viewed together: cross-item inconsistencies (voice · spacing · marker · dock), and anything two items each solved differently |
-| 3.5.6.4.2 | **Sweep this phase's lessons BACKWARD** over items already closed — the archetype is Freedom's RN-lessons sweep, which caught 4 already-shipped bugs. Candidates: the "assertion that passes either way" class (3 instances now), "evidence cited but never committed", and 3.5.6.2's disagreeing-inputs lesson |
-| 3.5.6.4.3 | **Reconcile the accumulated deferral ledger** — every 3.5 after-scan's deferrals in one list, each still true against the current code, each with a real destination (5.5.1 · Phase 5 · the cohesion audit) |
-| 3.5.6.4.4 | **Write the phase's exit** — what 3.5 shipped, what is device-owed, what is deferred and where; the input the whole-app cohesion audit reads |
-
-**Exit (3.5.6.4):** Phase 3.5 signed off — and the cohesion audit has a written starting point rather than a re-read of the log.
+⚠️ **Phase 3.5's BUILD is complete; the PHASE is not — `3.5.7` is unbuilt and blocked on a 🎯 decision** (hosting + the privacy call for a public web surface). See the ▶ NOW block.
 
 **Exit (3.5.6):** Phase 3.5 signed off — no open ledger items that web can settle, every device-owed item written down where the device pass will find it, and the phase's own after-scan folded into the plan.
 
@@ -186,6 +170,19 @@ Acquisition-grade store presence (screenshots · app-preview video · listing se
 ## Phase 3.7 — the FOLD-IN block (ledger clearance)
 
 _**New standing rule (Jason 2026-07-30):** stop deferring — if an item needs no Phase-6 device pass and can truly land in v1.7, fold it in. The whole deferred backlog was retro-triaged against it on 2026-07-30; what follows is what folded. Runs AFTER Phase 3.5 (don't interrupt a half-built substrate) and BEFORE the whole-app cohesion + wording/voice audit gate, so the audit reviews the final state. Two items folded straight into Phase 3.5 instead (the impact viz → 3.5.3, sandbox-purity enforcement → 3.5.0.3). Sequence lives in `MASTER_PLAN.md`; this is the spec._
+
+**▶ Wave A is the ACTIVE BUILD — decomposed (2026-08-10):**
+
+| # | Step |
+|---|---|
+| **3.7.A.1** | **Verify Wave A against the CURRENT engine before touching it.** Every item below was written 2026-07-30; A0/A9 have since shipped and A7 may already be answered. Treat each as a hypothesis — confirm the defect still reproduces, and **write the failing test first**, because A1/A2 are arithmetic claims and a repro is the only thing that distinguishes a real undercount from a stale note |
+| **3.7.A.2** | **A1 — BNPL payoff-RATE undercount.** A monthly projection pays a biweekly BNPL 1×/month, so it retires ~2× too slow. Normalize to a monthly equivalent. Highest-value: it moves debt-free dates |
+| **3.7.A.3** | **A2 — general sub-cycle obligation undercount.** The allocator counts each obligation once per paycheck cycle, so a weekly/biweekly `RequiredExpense` under a monthly payer is under-reserved (the non-BNPL half of the same gap). Clean fix = expand obligations into per-occurrence instances |
+| **3.7.A.4** | **A3 — the Guardian honesty/coherence ledger** (9 parked items: attestation affordance gating · the starter-EF "keeps it as cushion" overstatement · `selectTightTopUp` preferring a goal over the EF · hero-vs-Guardian number coherence · no-undo on the tight top-up · "hold your line" offered twice · an applied purchase reading as a deferrable bill · `GoalSheet` name-dedupe · affordability density) |
+| **3.7.A.5** | **A4 · A5 · A6 · A7** — the BNPL seam polish · the offline Lifetime mislabel (`premiumResolved` gate) · drift type hygiene · confirm no third debt-free-date producer survives |
+| **3.7.A.6** | **A8.1–A8.3 — the Siri phrase.** `INAlternativeAppNames` so "in Debt" works, shorter phrase variants, and [D4] stays *when* to rename, not whether. A8.4 is device-only → the checklist |
+
+**Exit (Wave A):** the money is right — A1 and A2 have failing-then-passing tests, the honesty ledger is empty, and the gate is green. Wave B/C follow; C merges into the cohesion + wording gate.
 
 **Wave A — correctness / honesty (highest value, do first):**
 - **⚠️ A0 · "View Payoff Schedule" is dead on device — REDESIGN (ship-blocker, Jason 2026-07-30, 3rd report).** Two fixes have already landed and BOTH are in the `c050173` device build Jason tested, so this is not a patch problem — the nesting pattern itself has to go.

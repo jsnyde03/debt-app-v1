@@ -581,6 +581,31 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(page.getByTestId('guardian-example-marker')).toHaveCount(0);
   });
 
+  /**
+   * 3.5.6.4 — …and the POSITIVE, which nothing asserted.
+   *
+   * The suite proved the marker never leaks onto real money and stopped there, so the claim it actually
+   * carries — that the marker is on the card for the WHOLE run — rested on having looked at screenshots.
+   * The device checklist calls a missing marker on beat 5 "the highest-severity result in this entire
+   * checklist" for a real reason: that beat renders an invented shortfall using the user's OWN debt
+   * names, and the marker is the only thing standing between that and a genuine warning about their
+   * money. An assertion for the absence of a thing cannot notice the thing has stopped appearing.
+   *
+   * Every beat, not just beat 5: 3.5.3.2 made the marker persistent deliberately, and a marker that
+   * survives six beats and drops on the seventh is the same defect arriving later.
+   */
+  test('the Example marker is on the card for EVERY beat of the run', async ({ page }) => {
+    await seedStore(page, newUser());
+    await page.goto('/tutorial');
+    await expect(page.getByTestId('tutorial-step-title')).toBeVisible();
+
+    for (let beat = 1; beat <= 7; beat++) {
+      const title = await page.getByTestId('tutorial-step-title').textContent();
+      await expect(page.getByTestId('guardian-example-marker'), `beat ${beat} (${title}) marks the card as example money`).toHaveCount(1);
+      if (beat < 7) await page.getByText('Next', { exact: true }).click();
+    }
+  });
+
   test('Back works, and Skip ends the session from a mid beat', async ({ page }) => {
     await seedStore(page, newUser());
     await page.goto('/tutorial');
