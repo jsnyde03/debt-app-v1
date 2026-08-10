@@ -338,6 +338,10 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   _⚠️ **Intermittent on web — it appeared in some captures and not others**, which is what a paint race
   looks like. Step 1 spotlights that exact card, so a late paint is the app's first impression. Count it;
   don't just answer yes/no._
+  _⚠️ **This is NOT a web-only curiosity, and do not test it as one.** 3.5.8's capture cycles found
+  unpainted Skia **on the native simulator**, at two consecutive samples, and named the cause: a script
+  starting on mount while the app paints seconds later — the screen lagging its own arrival. A cold launch
+  is therefore the condition most likely to show it, which is why this item says to force-quit first._
 
 - [ ] **§11.14 — the tab bar's press feedback, iOS** _(any iPhone.)_
   Press and hold each tab, watching the icon+label under your finger.
