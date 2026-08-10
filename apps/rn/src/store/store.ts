@@ -68,6 +68,14 @@ export interface DebtAppState {
   addExpense(expense: RequiredExpense): void;
   updateExpense(id: string, updates: Partial<RequiredExpense>): void;
   removeExpense(id: string): void;
+  /**
+   * 3.7.A10.2 — move a mis-filed obligation from `requiredExpenses` into `debts`, in ONE write.
+   *
+   * Two writes would leave a window where the money exists twice (still reserved as an expense, already
+   * projected as a debt) or not at all — and this runs on the user's real plan, where a half-applied
+   * move is worse than the mistake it corrects.
+   */
+  convertExpenseToDebt(expenseId: string, debt: Debt): void;
 
   // Goals
   addGoal(goal: Goal): void;
@@ -318,6 +326,27 @@ export function createDebtStore(opts?: { now?: () => string; bound?: (store: Deb
       set((s) => ({
         store: stampInputsFresh({ ...s.store, requiredExpenses: s.store.requiredExpenses.filter((e) => e.id !== id) }),
       }));
+    },
+    convertExpenseToDebt(expenseId, debt) {
+      set((s) => {
+        const now = s.store.paycheck.currentDate;
+        // The same stamping `addDebt` does — the balance was just entered by hand, so it is verified NOW.
+        // Reproduced rather than shared because `addDebt` also normalizes BNPL installments, and a
+        // conversion never arrives in that shape (an expense has no installment schedule to derive from).
+        const stored: Debt = {
+          ...debt,
+          originalBalance: debt.originalBalance ?? debt.balance,
+          lastVerifiedDate: debt.lastVerifiedDate ?? now,
+          balanceAsOfDate: debt.balanceAsOfDate ?? now,
+        };
+        return {
+          store: stampInputsFresh({
+            ...s.store,
+            debts: [...s.store.debts, stored],
+            requiredExpenses: s.store.requiredExpenses.filter((e) => e.id !== expenseId),
+          }),
+        };
+      });
     },
 
     addGoal(goal) {

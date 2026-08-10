@@ -38,6 +38,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { appStore } from '@/store/appStore';
 import { selectDebtBalanceView, buildEstimateCaption } from '@/store/balanceSelectors';
+import { looksLikeDebt } from '@/store/looksLikeDebt';
 import { selectPayoffView } from '@/store/payoffSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
@@ -76,6 +77,8 @@ export default function MoneyScreen() {
   // own editor. The sheets stay OWNED by their sections (they hold the list, the store writes and the
   // edit path), so routing is all the screen needs to know about.
   const [autoOpen, setAutoOpen] = useState<AddKind | null>(null);
+  // 3.7.A10.2 — the mis-filed expense being moved into Debts, in flight between the two sections.
+  const [convertFrom, setConvertFrom] = useState<RequiredExpense | null>(null);
   const { isExpanded } = useLayout();
 
   // The answer must visibly LAND somewhere: switching the section as well as opening the editor is what
@@ -101,9 +104,25 @@ export default function MoneyScreen() {
         ]}
       />
       {view === 'debts' ? (
-        <DebtsSection autoOpen={autoOpen === 'debts'} onAutoOpened={() => setAutoOpen(null)} onAdd={() => setChooser(true)} />
+        <DebtsSection
+          autoOpen={autoOpen === 'debts'}
+          onAutoOpened={() => setAutoOpen(null)}
+          onAdd={() => setChooser(true)}
+          convertFrom={convertFrom}
+          onConvertHandled={() => setConvertFrom(null)}
+        />
       ) : view === 'bills' ? (
-        <BillsSection autoOpen={autoOpen === 'bills'} onAutoOpened={() => setAutoOpen(null)} onAdd={() => setChooser(true)} />
+        <BillsSection
+          autoOpen={autoOpen === 'bills'}
+          onAutoOpened={() => setAutoOpen(null)}
+          onAdd={() => setChooser(true)}
+          // Route to Debts and open the form there, the same shape as the chooser — the move has to LAND
+          // where the thing is going, or "Move to Debts" is a claim the screen never demonstrates.
+          onConvert={(expense) => {
+            setView('debts');
+            setConvertFrom(expense);
+          }}
+        />
       ) : (
         <GoalsSection autoOpen={autoOpen === 'goals'} onAutoOpened={() => setAutoOpen(null)} onAdd={() => setChooser(true)} />
       )}
@@ -114,6 +133,43 @@ export default function MoneyScreen() {
 
 /** Every Money section takes the same three: the chooser routed here · clear the flag · reopen the chooser. */
 type SectionProps = { autoOpen: boolean; onAutoOpened: () => void; onAdd: () => void };
+
+/**
+ * 3.7.A10.2 — the quiet "is this a debt?" row, under an expense whose NAME names a borrowing instrument.
+ *
+ * ⚠️ **It suggests; it never re-files** ([D22c]). An automatic move would be a guess about someone's
+ * money, and the two fields that make an obligation payoff-able — balance and APR — are exactly the two
+ * an expense does not carry. So this opens the debt form prefilled and lets them finish it.
+ *
+ * ⚠️ **And it is not a warning.** The detector's false positive is telling someone their rent is secretly
+ * a debt; that costs more trust than a miss costs money. Hence tertiary text, no icon, no colour, an
+ * explicit "Not a debt" that is remembered — and no count, badge or nag anywhere else in the app.
+ */
+function MisfiledHint({ expense, onConvert }: { expense: RequiredExpense; onConvert: () => void }) {
+  const c = useAppColors();
+  return (
+    <View style={[styles.misfiledHint, { borderColor: c.border.subtle }]}>
+      <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+        Is this a debt you&apos;re paying down? Debts count toward your debt-free date — expenses don&apos;t.
+      </Text>
+      <View style={styles.misfiledActions}>
+        <Pressable onPress={onConvert} accessibilityRole="button" testID={`misfiled-convert-${expense.id}`} hitSlop={8}>
+          <Text style={[textStyles.caption, styles.misfiledCta, { color: c.accent.primary }]}>Move to Debts</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            const seen = appStore.getState().store.prefs.notDebtExpenseIds ?? [];
+            appStore.getState().updatePrefs({ notDebtExpenseIds: [...seen, expense.id] });
+          }}
+          accessibilityRole="button"
+          testID={`misfiled-dismiss-${expense.id}`}
+          hitSlop={8}>
+          <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Not a debt</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
 
 /** Open this section's own editor once, when the chooser routed here. */
 function useAutoOpen(autoOpen: boolean, onAutoOpened: () => void, open: () => void) {
@@ -129,7 +185,13 @@ function useAutoOpen(autoOpen: boolean, onAutoOpened: () => void, open: () => vo
 
 // ── Debts (the hero section) — the debts + the payoff plan (strategy · order · focus, moved here
 //    from Progress: management belongs in Money per the IA). Elevated visually at 1.5.
-function DebtsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
+function DebtsSection({
+  autoOpen,
+  onAutoOpened,
+  onAdd,
+  convertFrom,
+  onConvertHandled,
+}: SectionProps & { convertFrom?: RequiredExpense | null; onConvertHandled?: () => void }) {
   const store = useAppStore((s) => s.store);
   const strategy = store.payoffStrategy;
   // Memoized on the store so re-renders that don't change the plan (e.g. the parent's Debts/Bills/Goals
@@ -154,6 +216,20 @@ function DebtsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
   // what they want, in words, and re-asking would be pedantry.
   useEffect(() => onAddDebtRequested(() => openEditor({ editing: null })), []);
   useAutoOpen(autoOpen, onAutoOpened, () => openEditor({ editing: null }));
+
+  // 3.7.A10.2 — a conversion arriving from Bills. Prefills everything the expense already knows; the
+  // user supplies the balance and the APR, which is the whole reason this is a form and not a re-file.
+  const [converting, setConverting] = useState<string | null>(null);
+  useEffect(() => {
+    if (!convertFrom) return;
+    setConverting(convertFrom.id);
+    openEditor({
+      editing: null,
+      prefill: { name: convertFrom.name, minimumPayment: convertFrom.amount, dueDate: convertFrom.dueDate, recurrence: convertFrom.recurrence },
+    });
+    onConvertHandled?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [convertFrom?.id]);
 
   // 3.5.5.4 — the row long-press hides four actions, and the gesture is invisible. ⚠️ **iOS only**:
   // `RowContextMenu` is a transparent passthrough on Android and web, so off-iOS this would teach a
@@ -222,7 +298,7 @@ function DebtsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
           ctaTestID="money-add"
         />
         {isScanAvailable() ? <View style={styles.scanEmpty}><AddRow label="Scan a statement" icon="document-scanner" onPress={handleScan} /></View> : null}
-        {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} onViewSchedule={viewSchedule} onLogPayment={logPayment} /> : null}
+        {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} convertingExpenseId={converting ?? undefined} onViewSchedule={viewSchedule} onLogPayment={logPayment} /> : null}
       </>
     );
   }
@@ -298,7 +374,7 @@ function DebtsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
   // The iPad detail pane shows whichever the user last asked for — the schedule (read) or the editor.
   // They're mutually exclusive: opening one clears the other, so the pane never has two owners.
   const editor = sheet ? (
-    <DebtSheet inline={isExpanded} editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} onViewSchedule={viewSchedule} onLogPayment={logPayment} />
+    <DebtSheet inline={isExpanded} editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} convertingExpenseId={converting ?? undefined} onViewSchedule={viewSchedule} onLogPayment={logPayment} />
   ) : null;
   const detail = scheduleFor ? <AmortizationPane debtId={scheduleFor} /> : editor;
 
@@ -427,8 +503,9 @@ type BillGroup = {
   data: RequiredExpense[];
 };
 
-function BillsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
+function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps & { onConvert: (e: RequiredExpense) => void }) {
   const expenses = useAppStore((s) => s.store.requiredExpenses);
+  const dismissedHints = useAppStore((s) => s.store.prefs.notDebtExpenseIds ?? []);
   const living = useAppStore((s) => s.store.livingExpenses);
   const payCycle = useAppStore((s) => s.store.paycheck.payCycle);
   const [sheet, setSheet] = useState<{ editing: RequiredExpense | null } | null>(null);
@@ -617,14 +694,19 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
         }
         renderSectionFooter={grouped ? () => <View style={styles.rowGap} /> : undefined}
         renderItem={({ item }) => (
-          <ListRow
-            title={item.name}
-            meta={`Due ${shortDate(item.dueDate)} · ${item.recurrence}${item.expenseType === 'variable' ? ' · Variable' : ''}${item.isTrial && item.fullChargeDate ? ` · Trial → ${formatCurrency(item.fullAmount ?? 0)} ${shortDate(item.fullChargeDate)}` : ''}`}
-            amount={formatCurrency(item.amount)}
-            badges={item.isAutopay ? <Pill label="Autopay" tone="autopay" /> : undefined}
-            onPress={() => setSheet({ editing: item })}
-            onDelete={() => appStore.getState().removeExpense(item.id)}
-          />
+          <>
+            <ListRow
+              title={item.name}
+              meta={`Due ${shortDate(item.dueDate)} · ${item.recurrence}${item.expenseType === 'variable' ? ' · Variable' : ''}${item.isTrial && item.fullChargeDate ? ` · Trial → ${formatCurrency(item.fullAmount ?? 0)} ${shortDate(item.fullChargeDate)}` : ''}`}
+              amount={formatCurrency(item.amount)}
+              badges={item.isAutopay ? <Pill label="Autopay" tone="autopay" /> : undefined}
+              onPress={() => setSheet({ editing: item })}
+              onDelete={() => appStore.getState().removeExpense(item.id)}
+            />
+            {looksLikeDebt(item) && !dismissedHints.includes(item.id) ? (
+              <MisfiledHint expense={item} onConvert={() => onConvert(item)} />
+            ) : null}
+          </>
         )}
         ListEmptyComponent={
           searching ? (
@@ -846,6 +928,11 @@ function MoneyHero({ value, sub, caption, bar, onPress }: { value: string; sub: 
 }
 
 const styles = StyleSheet.create({
+  // Indented and hairline-bordered so it reads as a note attached to the row above it, not as a row of
+  // its own competing for the same list.
+  misfiledHint: { marginTop: -spacing.xs, marginBottom: spacing.sm, marginLeft: spacing.base, paddingLeft: spacing.md, paddingVertical: spacing.sm, borderLeftWidth: StyleSheet.hairlineWidth, gap: spacing.sm },
+  misfiledActions: { flexDirection: 'row', gap: spacing.lg },
+  misfiledCta: { fontWeight: '600' },
   flex: { flex: 1 },
   detailEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.xl },
   detailEmptyText: { textAlign: 'center' },

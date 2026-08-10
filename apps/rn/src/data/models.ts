@@ -136,6 +136,16 @@ export interface Preferences {
    * clears it, which is the whole reason a discovery layer needs a replay entry at all.
    */
   coachMarksSeen: string[];
+  /**
+   * 3.7.A10.2 — expense ids the user has told us are NOT a debt, so the "is this a debt?" suggestion
+   * stays gone. Optional so a store persisted before this field simply reads as "nothing dismissed"
+   * rather than needing a migration of its own.
+   *
+   * ⚠️ Ids the DETECTOR flagged and the user waved off — not a list of expenses in general. It exists
+   * because the suggestion is a guess about someone's money, and a guess that cannot be silenced is an
+   * accusation repeated forever.
+   */
+  notDebtExpenseIds?: string[];
 }
 
 /** Bump when the persisted shape changes; `runMigrations` brings older blobs forward.

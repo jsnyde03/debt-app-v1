@@ -4280,3 +4280,60 @@ Capacitor tree**. RN's `ExpenseSheet` does not use it, so it is **not a live def
 bill, one tap. So migrating users arrive **already mis-filed**, and Phase 5's bridge will import that
 wholesale — which is why A10.6 hands the detector to the migration rather than leaving it a Money-page
 feature.
+
+---
+
+## 3.7.A10.1–A10.2 — the chooser, and the way back (2026-08-10)
+
+**Gate 153/153 → 156/156**, plus 17 app-layer asserts. Frames: `capture-ref/add-chooser/`, `capture-ref/misfiled/`.
+
+### A10.1 — one Add, and the answer routes
+
+The section used to BE the routing. Money now has one Add that asks *"does this have a balance you're
+paying down?"* — the terminating/perpetual distinction in the user's own words, about a fact they know —
+with three cards carrying concrete nouns, because a noun someone recognises does the classifying that a
+definition asks them to do. Picking also switches the section, so the answer visibly lands.
+
+All six entry points replaced: three `AddRow`s and three empty-state CTAs, **including the Debts empty
+state**, which is the default landing section and so had the strongest pull toward mis-filing. One
+carve-out: **⌘N still opens the debt editor directly** — [D22a] removed the shortcuts because the section
+classified *silently*; a keyboard accelerator pressed on purpose is the opposite.
+
+⚠️ **Two defects found by looking at the render, not the diff.** `FormSheet` forces a primary submit,
+which put a full-width accent **"Cancel"** at the foot of a screen whose real actions are the three cards
+→ switched to `AnimatedSheet`. That shell clamps its subtitle to one line where `FormSheet` allows two, so
+the copy **truncated mid-word** on the screen whose whole job is clarity → shortened.
+
+### A10.2 — the half that reaches backward
+
+⚠️ **Category as a detector conjunct was rejected on inspection, contradicting my own earlier
+recommendation to Jason.** Requiring category AND name would catch a mortgage (`housing`) and miss every
+credit card and car loan, which land in `other` — it destroys recall for no precision gain, because the
+name does all the work either way. Said so rather than quietly implementing something different.
+
+Precision comes from a **tight, word-boundary** list of borrowing instruments instead. `Discovery+` must
+not match `discover`; `Cardio Gym` must not match `card`; a bare `Payment` matches nothing. Both halves
+are pinned, because both fail silently — a miss says nothing, and an over-fire tells someone their rent is
+secretly a debt, which is worse.
+
+**The conversion is one write.** `convertExpenseToDebt` removes the expense and adds the debt in a single
+`set`: two writes would leave a window where the same money is reserved as an expense *and* projected as a
+debt, on the user's real plan. It is **not** silent — an expense carries no balance and no APR, the two
+fields that make an obligation payoff-able, so the debt form opens prefilled and the user supplies them
+([D22c]).
+
+The hint is tertiary text with no icon, no colour and no badge anywhere else in the app, and **"Not a
+debt" is remembered** in `prefs.notDebtExpenseIds` (optional, so a store persisted before this reads as
+"nothing dismissed" without a migration). A suggestion that cannot be silenced is an accusation repeated
+forever.
+
+### After-scan
+
+(a) The e2e for both items asserts **where the record landed**, not that an editor opened — an editor
+proves nothing about which list it writes to, and which list is the entire bug. (b) The gate caught a
+regression the diff did not: `sheet-polish` opened its sheet via the old "Add debt" label. (c) `Button`'s
+accessible name comes from child text, which `getByLabel` does not match on web — `testID` threaded
+through `AddRow`, `Button` and `EmptyState` so a label change cannot silently orphan a test. (d) Remaining
+in A10: the rename (A10.3), under-header definitions (A10.4), and **A10.6, handing the detector to Phase
+5's migration** — the item with the largest affected population, since v1.6 taught that a credit card is a
+bill.

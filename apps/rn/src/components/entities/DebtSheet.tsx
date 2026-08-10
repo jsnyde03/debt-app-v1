@@ -67,6 +67,7 @@ export function DebtSheet({
   inline,
   onViewSchedule,
   onLogPayment,
+  convertingExpenseId,
 }: {
   editing: Debt | null;
   onClose: () => void;
@@ -83,6 +84,15 @@ export function DebtSheet({
    *  offer the entry. Today opens this sheet add-only and owns no log-payment sheet, so it passes nothing
    *  rather than carrying a handler that routes somewhere to do the work. */
   onLogPayment?: (debt: Debt) => void;
+  /**
+   * 3.7.A10.2 — the id of a mis-filed EXPENSE this debt is replacing.
+   *
+   * Set it and saving converts instead of adding: one store write moves the money out of
+   * `requiredExpenses` and into `debts`. The form is unchanged — an expense has no balance and no APR,
+   * which are exactly the two fields that make an obligation payoff-able, so the user has to supply them
+   * and a silent re-file would be a guess about their money ([D22c]).
+   */
+  convertingExpenseId?: string;
 }) {
   // 3.5.3.0 — write to the store this subtree resolves to (sandbox under the tutorial, real otherwise).
   const store_ = useActiveStore();
@@ -184,8 +194,12 @@ export function DebtSheet({
       scheduledPaymentAmount: undefined,
       bnplProvider: undefined,
     };
+    const fresh = { id: `debt-${Date.now()}`, originalBalance: Number(balance), isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields };
     if (isEdit && editing) store_.getState().updateDebt(editing.id, fields);
-    else store_.getState().addDebt({ id: `debt-${Date.now()}`, originalBalance: Number(balance), isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields });
+    // 3.7.A10.2 — a conversion is ONE write, not an add followed by a delete: two writes leave a window
+    // where the same money is reserved as an expense and projected as a debt at the same time.
+    else if (convertingExpenseId) store_.getState().convertExpenseToDebt(convertingExpenseId, fresh);
+    else store_.getState().addDebt(fresh);
     onClose();
   }
   // 3.5.6b — the Remove in the sheet's sticky action bar now confirms, like every other delete path.

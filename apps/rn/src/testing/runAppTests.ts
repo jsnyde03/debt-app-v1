@@ -103,6 +103,7 @@ async function main() {
   // they never saw, or one that came back. The two session fences (walkthrough, demo) are pinned too —
   // the demo one also keeps a sandbox from writing to the real store.
   await import('../store/coachMarks.test');
+  await import('../store/looksLikeDebt.test');
 
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.

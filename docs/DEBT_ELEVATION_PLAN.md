@@ -23,8 +23,8 @@ evidence that labels alone cannot carry it: the author of the split mis-filed un
 
 | # | Step | State |
 |---|---|---|
-| **A10.1** | **Single-entry Add** — one "Add" that asks *"Does this have a balance you're paying down?"* with concrete examples, then shows the right fields. **Fully replaces** the per-section Add rows ([D22a]) — a shortcut back into pre-classifying is the failure mode. Must route to **three** destinations; Goals forks first (saving vs owing) | ▶ next |
-| **A10.2** | **Recovery for what is ALREADY mis-filed** — a detector (category + name signals) and a `convertExpenseToDebt` path; none exists today. **Surfaces on the row, never auto-acts** ([D22c]); runs **retroactively at rollout** ([D22b]) | |
+| **A10.1** | ✅ **DONE 2026-08-10** — one Add asking *"does this have a balance you're paying down?"*, replacing all six entry points (3 rows + 3 empty-state CTAs). Picking also switches section, so the answer lands visibly. ⌘N stays direct — a typed accelerator is not a silent classification | |
+| **A10.2** | ✅ **DONE 2026-08-10** — `looksLikeDebt` (name-only; **category as a conjunct was rejected on inspection** — it would catch a mortgage and miss every card) + an atomic `convertExpenseToDebt` + a quiet row hint with a remembered "Not a debt". Retroactive by construction: the detector reads the existing list | |
 | **A10.3** | **Rename Bills → Expenses** in user-facing copy. ⚠️ The Guardian's "bills" vernacular is deliberately OUT of scope → the wording/voice gate ([D22d]) | |
 | **A10.4** | **Teach at the point of decision** — a one-line definition under each section header, and concrete nouns in empty states ("Rent · Phone · Netflix" vs "Visa · Car loan · Mortgage") | |
 | **A10.5** | **Cover it** — e2e for the chooser's three routes, the conversion, and both themes. ⚠️ Assert the DOORS, not just the destinations |
