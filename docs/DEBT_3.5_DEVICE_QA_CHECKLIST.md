@@ -8,9 +8,26 @@
 > in this document is the **native block** (Live Activity · widget · App Intents). There is a *different*
 > `§3.5.3` in `DEBT_ELEVATION_PLAN.md`: the **Guardian walkthrough** (the in-situ tutorial). They are
 > unrelated, and the closing line of this checklist ("3.5.3/3.5.4 are device-verified") means the native
-> block, **not** the walkthrough. The walkthrough's device-owed items live in the **Phase-6 Device-QA
-> ledger** under "§3.5.3 the Guardian WALKTHROUGH" — added 2026-08-04, when a round-4 audit found the
-> whole set had been recorded nowhere durable.
+> block, **not** the walkthrough.
+>
+> 🎯 **THIS FILE IS THE ONE PLACE A DEVICE PASS IS RUN FROM (3.5.6.3, 2026-08-10).** Phase 3.5's device
+> debt had accumulated across four documents, a spec docblock and several code comments; it is now all
+> here — **§11** the walkthrough, **§12** the demo, **§13** the coach-marks. The plan's Phase-6 Device-QA
+> ledger is the INDEX and points here; where the two disagree, this file is the runnable truth.
+>
+> ⚠️ **Two things this pass CANNOT settle, so do not read a clean run as covering them:**
+> - **Round 10's native-lane review was lost** (ledger item L4 — the lens outputs were never written down
+>   and are unrecoverable). **Do not assume the native surface was reviewed.** §11 and §13 are a fresh
+>   derivation, not a re-run of it.
+> - **Android** is v1.8 and is not in scope here. Two known Android-only risks are parked for that lane:
+>   `measureInWindow` window coords vs. edge-to-edge insets can park the walkthrough's highlight high or
+>   low, and `expo-blur` renders no real blur without `experimentalBlurMethod`, which silently reverts the
+>   dock from a material to a flat overlay.
+>
+> **Also owed on this build, from elsewhere in the plan:** 3.7 **A0.4** — the payoff-schedule route
+> re-verify **and** the iOS long-press "Payoff schedule" menu item (no web equivalent at all); ledger
+> **L5** — that the "View payoff schedule" row sits above the fold on the largest iPhone at default text
+> size, now pinned above the sticky actions but verified only structurally.
 >
 > **Legend:** ✅ = expected pass · ⚠️ = watch-out · 🅿️ = needs premium (turn on Simulate Premium, §2) · 📱 = 14 Pro/15 Pro/16 Pro only (Dynamic Island).
 
@@ -294,6 +311,107 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   **FAIL:** the slider doesn't respond to a drag (it is a gesture-handler control, which the browser suite
   cannot exercise at all), or nothing animates after Save.
 
+- [ ] **§11.11 — scrolling near the slider must not MOVE it** _(any iPhone. The counterpart to §11.10:
+  that one proves the drag works, this one proves it doesn't fire when you didn't mean it.)_
+  On **Step 3 of 7**, open **"Adjust your line →"**. Put your finger down **on the slider strip itself**
+  and immediately **swipe UP or DOWN** as if scrolling the sheet.
+  **PASS:** the sheet scrolls and the amount does not change.
+  **FAIL:** the number jumps the instant you touch down, or the value changes while you are scrolling.
+  _(The pan sets its value on touch-DOWN with no horizontal threshold, inside a vertical scroll view, so
+  the two gestures race. There is no competing native scroll on the web, and the browser suite never
+  drags — this is unobservable off-device.)_
+
+- [ ] **§11.12 — the highlight must keep up, not just arrive** _(the OLDEST iPhone in the matrix AND a
+  ProMotion one; both themes.)_
+  Step 1 → 7 without pausing, watching the bright rectangle as it TRAVELS between steps.
+  **PASS:** the movement is smooth on both phones.
+  **FAIL:** visible stutter or a stepped/juddering slide. Note the phone and the steps.
+  _(Four animations drive the highlight's top/height/left/width — layout properties, not transforms — so
+  each frame costs a re-layout. Fine in principle; the question is whether it drops frames in practice,
+  and a screenshot cannot show a frame rate.)_
+
+- [ ] **§11.13 — beat 1's cushion bar must be PAINTED when the step arrives** _(any iPhone; do it from a
+  cold launch, several times.)_
+  Force-quit, launch, open the walkthrough, and look at the bar inside the card on **Step 1 of 7**.
+  **PASS:** the bar is drawn the moment the step is readable.
+  **FAIL:** the bar is blank/white for a beat and fills in late. Note how many launches out of how many.
+  _⚠️ **Intermittent on web — it appeared in some captures and not others**, which is what a paint race
+  looks like. Step 1 spotlights that exact card, so a late paint is the app's first impression. Count it;
+  don't just answer yes/no._
+
+- [ ] **§11.14 — the tab bar's press feedback, iOS** _(any iPhone.)_
+  Press and hold each tab, watching the icon+label under your finger.
+  **PASS:** it dims/responds while held, like every other control in the app.
+  **FAIL:** nothing happens visually until you release. _(Android's ripple was restored explicitly; iOS's
+  press opacity was not, so this may be dead on iOS only.)_
+
+- [ ] **§11.15 — the highlight lands on its subject at iPad width** _(iPad, both orientations, both
+  themes.)_ ⚠️ **Highest-value item added in 3.5.6.2 — this fix is currently guarded by NOTHING.**
+  Step through all 7 and check WHICH element the bright rectangle is drawn around.
+  **PASS:** every step rings the element its words are about — the Guardian card, its bar, "Adjust your
+  line →", the bills line.
+  **FAIL:** the rectangle sits over an unrelated card, especially one in the **other column**. Photograph
+  it and note the step.
+  _(On iPad the tab bar becomes a left sidebar, which puts window and local coordinates ~700pt apart; a
+  regression draws every ring that far to the right, onto the wrong column. Measured 2026-08-10: removing
+  the correction changes **nothing** on the web at any width, because the overlay's origin is 0 there — so
+  no browser test can hold this fix, and this check is the only thing that can.)_
+
+- [ ] **§11.16 — Step 5 on iPad LANDSCAPE** _(iPad, landscape, both themes.)_
+  Go to **Step 5 of 7** ("When it won't stretch") and look at the bottom edge of the bright rectangle.
+  **PASS:** the card reads as a complete, composed panel.
+  **FAIL/JUDGE:** the rectangle's bottom border cuts through the small print under the "Defer it" button,
+  with the card continuing below it into the dark. Known on web at 1194×834; **portrait is clean**. This
+  is a composition call — say whether it reads as a deliberate crop or as a rendering fault.
+
+---
+
+## §13 — the feature-discovery COACH-MARKS (3.5.5) — ⚠️ nothing here is web-observable
+
+_Three one-sentence hints, offered once ever, re-offerable from **More → Show feature tips again**. The
+web suite can prove a mark is OFFERED and that only one exists; it cannot show WHERE any of them lands,
+and one of the three cannot render on the web at all._
+
+- [ ] **§13.1 — the payoff-schedule mark, inside a sheet** _(any iPhone. Reset first: More → Show feature
+  tips again.)_ Money → tap a debt to open **Edit debt**.
+  **PASS:** a small card reading **"See the whole payoff"** appears **over the sheet**, near the "View
+  payoff schedule" row it names, with a **"Got it"** that dismisses it.
+  **FAIL:** it appears BEHIND the sheet, off the bottom of the screen, or not at all.
+  _⚠️ **This is the item the whole nested-host mechanism exists for**: a root-level overlay is a sibling
+  of a presented Modal on iOS, so it renders behind it. Measured on web 2026-08-10: the callout lands
+  **1266pt down an 874pt screen** — the browser puts it in normal document flow, so the web literally
+  cannot answer where it goes._
+
+- [ ] **§13.2 — "Got it" actually dismisses, and stays gone** _(any iPhone.)_
+  Tap **Got it** on the mark from §13.1. Force-quit and reopen the same debt.
+  **PASS:** it closes on tap, and does NOT come back on the second visit.
+  **FAIL:** the tap misses (nothing happens), or the mark returns. _(Web e2e can never click this button —
+  same flow-layout reason as §13.1 — so the dismiss is unverified off-device.)_
+
+- [ ] **§13.3 — the iOS-ONLY row long-press mark** _(iPhone/iPad only; it cannot exist anywhere else.)_
+  With tips reset, open **Money** and wait on the debts list without touching it.
+  **PASS:** a hint about long-pressing a row appears, and long-pressing a debt row does open a context menu.
+  **FAIL:** no hint appears, or the hint appears and the long-press does nothing.
+  _(Gated on `Platform.OS === 'ios'`, so neither the web suite nor an Android run can see it.)_
+
+- [ ] **§13.4 — the trajectory mark does not bury a different chart** _(any iPhone, both themes.)_
+  With tips reset, open **Progress**.
+  **PASS:** the **"Drag the curve"** hint is readable and the payoff trajectory it names is still visible.
+  **FAIL/JUDGE:** it covers the cash-flow chart above so completely that the screen reads as broken. It is
+  placed ABOVE its subject deliberately (a hint must not cover the thing it explains); the judgement is
+  whether obscuring the neighbouring chart is an acceptable price. Say which.
+
+- [ ] **§13.5 — a mark is a hint, not a modal** _(any iPhone.)_
+  While any mark is showing, use the screen underneath — scroll it, tap a field.
+  **PASS:** everything behind stays fully usable; the mark does not block touches.
+  **FAIL:** taps land on nothing, or the screen is frozen until you dismiss.
+
+- [ ] **§13.6 — VoiceOver hears each hint ONCE** _(VoiceOver ON.)_
+  Reset tips, then open Edit debt (§13.1) and Progress (§13.4).
+  **PASS:** the hint is announced as **one** sentence, once.
+  **FAIL:** you hear it **twice** — that means both the root layer and the sheet's own copy are live, which
+  is a screen-reader defect long before it is a visual one.
+
 ---
 
 ## §12 — the bounded DEMO (3.5.4) — ⚠️ device-only, and one KNOWN defect
@@ -343,9 +461,13 @@ native modal presentation, VoiceOver, and real StoreKit prices._
 - [ ] **"Example money"** is visible at the top of the screen, under the "Today" title, on **every** stage.
 - [ ] **Scroll the content hard.** The marker **does not move** — it sits above the scroller.
 - [ ] It is said **once** in the dock too? **No** — it must appear in exactly ONE place. Two is a defect.
-- [ ] The scripted run advances **clear → tight → at-risk** on its own, about 3 seconds apart, with the
-      headline figure and colour changing each time. Watch that the Skia cushion bar **repaints** rather
-      than blanking on a stage change.
+- [ ] The scripted run is **5 beats and it MOVES BETWEEN SCREENS by itself**: Money → Today → Today →
+      Progress → Today, at roughly 0s · 4s · 9s · 14s · 20s. The states go clear → clear → **tight** →
+      clear → clear, and the run ends on a debt one tap from zero.
+      **PASS:** each navigation lands on the right screen with its content painted before the next beat
+      fires. **FAIL:** a beat arrives on a half-painted screen, or the run never leaves Today.
+      _⚠️ Watch the Skia cushion bar and the Progress ring/curve **repaint** rather than blanking on
+      arrival — a late paint here is the same class as §11.13, and beat 4 is entirely about the curve._
 
 ### §12.6 — VoiceOver (the demo's audience includes screen-reader users evaluating the app)
 - [ ] Turn VoiceOver on, then enter the demo. You hear **"Example money. This is a demonstration with
@@ -353,7 +475,9 @@ native modal presentation, VoiceOver, and real StoreKit prices._
 - [ ] Rotor → **Headings**: "Example money" is listed as a heading, reachable without swiping to it.
 - [ ] Swipe through the whole screen: you can reach the dock's two exits, and you **cannot** reach a tab
       bar or the ••• More button.
-- [ ] The dock reads as **one** utterance ("Example money. Demonstration, 1 of 3."), not as fragments.
+- [ ] The dock reads as **one** utterance — **"Example money. Demonstration, 1 of 5."** — not as fragments.
+      _(Five, not three: 3.5.4.11 rebuilt the run as a 5-beat multi-screen arc. A dock still saying "of 3"
+      is a real defect, not a stale instruction.)_
 
 ### §12.7 — the opt-out control
 - [ ] ••• More → Preferences → **"Share anonymous usage"** is present, ON by default, and toggling it
@@ -364,7 +488,11 @@ native modal presentation, VoiceOver, and real StoreKit prices._
 
 ## §9 — Report back
 - [ ] Jot anything that failed (which §, what you did, a screenshot). I fix in-repo → you rebuild → re-run only the failed items.
-- [ ] When this is clean, 3.5.3/3.5.4 are **device-verified**; next I build **3.5.5 (App Intents / Siri)**, which reuses the payday-landed bridge you just tested — then one more signed build closes the block.
+- [ ] **§11 · §12 · §13 clean = Phase 3.5 is device-verified**, which is the last thing standing between
+      3.5 and its sign-off. The native block (§4–§7) is the separate, earlier claim.
+- [ ] **Priority order if you only have one sitting:** **§11.15** (the iPad highlight — the only check that
+      can hold that fix), then **§13.1** (the mark the nested-host mechanism exists for), then **§11.9**
+      (the missing "Example" marker, the highest-severity failure in this file), then the rest.
 
 ---
 

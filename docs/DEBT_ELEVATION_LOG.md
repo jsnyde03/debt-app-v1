@@ -4010,3 +4010,57 @@ there rather than deleted mid-sweep. (b) The beat-1 unpainted cushion bar is **i
 reliably reproducible: it appeared in 3.5.6.1's frames and in one light beat-1 here, and not in the
 re-shoot. Wording corrected in the device ledger. (c) The demo shares `seedSandbox`, so it inherited the
 theme fix for free.
+
+---
+
+## 3.5.6.3 — the 3.5 device debt, consolidated into one runnable place (2026-08-10)
+
+**The switch-in corrected the item's own target.** The step said "consolidate into the Phase-6 device-QA
+ledger," but `DEBT_3.5_DEVICE_QA_CHECKLIST.md` already existed and is what a device pass is actually run
+from — 371 lines of §0–§12 written for a human with a phone, each item carrying steps + PASS + FAIL. The
+plan's ledger was a *second* copy of the same material in a different form. Consolidating into the ledger
+would have produced a third. So the checklist became the target and the ledger collapsed to an index.
+
+### What was gathered, and where it had been hiding
+
+| Source | Items |
+|---|---|
+| plan ledger §3.5.3 only (never in the checklist) | scrim-band frame cost · slider gesture arbitration · beat-1 Skia paint · iOS tab-bar press opacity · 2 Android-only |
+| 3.5.5's "owed to the device lane" | the in-sheet mark behind a presented Modal · the iOS-only long-press mark · the "Got it" dismiss |
+| 3.5.6.2 | the iPad ring-origin invariant · beat 5 on iPad landscape · the coach-mark's off-screen placement |
+| the ledger's L4 / L5, and 3.7 A0.4 | round 10's lost native review · the payoff row above the fold · the route + long-press re-verify |
+
+Landed as **§11.11–§11.16** (six new walkthrough checks) and a new **§13** for the coach-marks (six
+checks — the surface had no device section at all). L4, L5, A0.4 and the Android carve-out went to the
+file's header, because they qualify the whole pass rather than sitting inside one step.
+
+### ⚠️ §12 was stale, and would have produced false failures
+
+The demo section still described the **3-stage, single-screen, clear→tight→at-risk** script that
+**3.5.4.11 replaced on 2026-08-06** with a 5-beat arc navigating Money → Today → Today → Progress →
+Today. §12.6 had the dock reading *"Demonstration, 1 of 3"* — it now says 1 of **5**, so a tester
+following the old text would have reported the correct app as broken, or worse, ticked it off. Rewritten
+against `DEMO_STAGES`.
+
+⚡ Worth naming: this is the same failure as the 3.5.3.9-L ledger recording two already-fixed items. **A
+document that describes work carries the state of the day it was written, and nothing tells a reader it
+has expired.** Checked, not assumed — the demo entries turned out to be *fine* (`QA_TOOLS = true` ships in
+TestFlight, so both doors still open), and only the arc had moved.
+
+### 3.5.6.3.3 — what a simulator lane could take off the device's plate
+
+`native-e2e.yml` boots the newest **iPhone** simulator only, so every iPad claim in the app is verified by
+a human or not at all. An iPad target plus a beat-stepping flow would take **four** items off the list,
+including the ring-origin invariant that nothing currently guards. Filed to the backlog rather than built
+here: a CI lane is its own workstream and wants batching with the next native build. **Recommended as the
+next active build once 3.5 signs off.**
+
+### After-scan
+
+(a) The plan's ledger had **drifted from the checklist while both claimed to hold the same list** — the
+generalisable form of the two-screenshot-mechanism finding from 3.5.6.2 and the ledger finding from
+3.5.6.1: three times in one item, the defect was *two records of one thing*. The rule earning its keep is
+one runnable source, everything else an index pointing at it. (b) The checklist's closing line still
+promised "next I build 3.5.5 (App Intents / Siri)" — from a build cadence two months gone, and pointing at
+a number since reused for the coach-marks; replaced with the real exit and a priority order for a single
+sitting. (c) Nothing here needed code, so the gate is unchanged at 145/145.
