@@ -1,7 +1,9 @@
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useStore } from 'zustand';
 
 import { useAppColors } from '@/hooks/use-app-colors';
+import { exitDemo } from '@/store/demoExit';
+import { demoSession } from '@/store/demoSession';
 import { isSandboxStore } from '@/store/sandboxStore';
 import { useActiveStore } from '@/store/StoreContext';
 import { tutorialSession } from '@/store/tutorialSession';
@@ -35,6 +37,7 @@ export function ExampleCanvasMarker() {
   // The walkthrough's dock already says this on every beat, in a line that is always on screen. Two
   // markers is chrome, and [D6] settled that the disclosure should be quiet.
   const inWalkthrough = useStore(tutorialSession, (s) => s.active);
+  const inExplore = useStore(demoSession, (s) => s.active && s.mode === 'explore');
   if (!isExample || inWalkthrough) return null;
 
   return (
@@ -45,10 +48,31 @@ export function ExampleCanvasMarker() {
     //
     // `header` role, not decorative: it is the one thing a screen-reader user needs in order to trust
     // everything below it, and the rotor is how they would find it after arriving mid-screen.
-    <View accessibilityRole="header" style={{ paddingHorizontal: spacing.base, paddingBottom: spacing.xs }}>
+    <View
+      accessibilityRole="header"
+      style={{
+        paddingHorizontal: spacing.base,
+        paddingBottom: spacing.xs,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: spacing.md,
+      }}>
       <Text testID="example-canvas-marker" style={[textStyles.caption, { color: c.text.tertiary }]}>
         {EXAMPLE_MONEY}
       </Text>
+      {/* 3.5.10 — the EXPLORE run's way out.
+          The scripted run has a dock carrying its exits; explore has no dock, and a demo a user can walk
+          around needs an exit that is on screen wherever they walked TO. This row already is: `Screen`
+          mounts it above the scroller on every surface a sandbox can reach, so the exit inherits that
+          reach for free rather than needing its own always-on chrome.
+          ⚠️ `exitDemo` ends the session BEFORE navigating ([D18]) — the destination must never render with
+          the sandbox still mounted. */}
+      {inExplore ? (
+        <Pressable onPress={() => exitDemo('/onboarding')} accessibilityRole="button" testID="demo-explore-exit" hitSlop={8}>
+          <Text style={[textStyles.caption, { color: c.accent.primary, fontWeight: '600' }]}>Start my real plan</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }

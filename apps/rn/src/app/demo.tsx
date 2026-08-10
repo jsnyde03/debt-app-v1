@@ -25,7 +25,7 @@ export default function DemoEntry() {
   // `isDemoReachable()`, not a second copy of its expression. This route had its own inline version while
   // `qa.ts` claimed to be the one definition — the claim was false the moment the second one was written,
   // and it is the shape that lets an entry point outlive its destination.
-  const { from, capture } = useLocalSearchParams<{ from?: string; capture?: string }>();
+  const { from, capture, mode } = useLocalSearchParams<{ from?: string; capture?: string; mode?: string }>();
   const enabled = isDemoReachable();
   // Start in an effect, not during render: `demoSession.start()` sets state, and the route guard in the
   // root layout reads it — writing another store mid-render is the loop this codebase has already paid
@@ -46,7 +46,24 @@ export default function DemoEntry() {
     //
     // Two conditions that must agree are one condition. `?capture=1` keeps the job it can do alone —
     // stripping the chrome, which 3.5.7's marketing embed will also want without being a capture build.
-    demoSession.getState().start({ chrome: capture !== '1', holdClock: CAPTURE_DEMO });
+    // 3.5.10 — WHICH demo, decided here, by who is watching.
+    //
+    // A real user gets `explore`: the sandbox seeded and then left alone, tabs live, no script. The
+    // SCRIPTED run is for the two audiences that need a fixed 25 seconds — the App-Preview capture and
+    // 3.5.7's marketing embed — and both arrive with `?mode=scripted` or the capture flag.
+    //
+    // ⚠️ This is the fix for one artifact doing two jobs. The scripted run was built to be a video, then
+    // shipped to users as "try it"; the video's requirements won because they came first, and what a user
+    // got was an app-preview they could not touch.
+    // `?capture=1` implies scripted: stripping the chrome only makes sense for a recording, and the e2e
+    // drives that param against a web export where `CAPTURE_DEMO` is false — so keying on the flag alone
+    // would hand the capture path an explore run with no script to record.
+    const scripted = CAPTURE_DEMO || capture === '1' || mode === 'scripted';
+    demoSession.getState().start({
+      chrome: capture !== '1',
+      holdClock: CAPTURE_DEMO,
+      mode: scripted ? 'scripted' : 'explore',
+    });
     setStarted(true);
     // `?from=` names the entry, because the funnel's first question is which door people come through and
     // the route cannot infer it. Anything unrecognised is `direct` rather than trusted — a query string is
@@ -57,7 +74,7 @@ export default function DemoEntry() {
     // is the transition that brought them here. The written and spoken halves share `EXAMPLE_MONEY` so
     // they cannot drift into saying different things about the same money.
     announce(`${EXAMPLE_MONEY}. This is a demonstration with sample figures.`);
-  }, [enabled, from, capture]);
+  }, [enabled, from, capture, mode]);
 
   if (!enabled) return <Redirect href="/" />;
   if (!started) return null;

@@ -46,7 +46,19 @@ interface DemoSessionState {
    * the guarantee cycle 8 proved the mount-time clock could not give.
    */
   startClock: (() => void) | null;
-  start: (opts?: { chrome?: boolean; holdClock?: boolean }) => void;
+  /**
+   * 3.5.10 — what this run IS.
+   *
+   * `'scripted'` drives itself through `DEMO_STAGES` on timers and holds the tabs: it is the App-Preview
+   * vehicle and 3.5.7's embed, where the viewer watches. `'explore'` seeds the same persona money and then
+   * gets out of the way: no script, no director, tabs live, the user drives.
+   *
+   * ⚠️ The two are not variations on a theme — they answer different questions. A 25-second video needs a
+   * script; a person deciding whether to trust the app with their money needs to be able to poke at it.
+   * One artifact was doing both jobs and the video's requirements won, because they came first.
+   */
+  mode: 'scripted' | 'explore';
+  start: (opts?: { chrome?: boolean; holdClock?: boolean; mode?: 'scripted' | 'explore' }) => void;
   /** Begin the script's clock. Idempotent, and a no-op when nothing was held. */
   releaseClock: () => void;
   end: () => void;
@@ -61,6 +73,7 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
   sandbox: null,
   stage: null,
   chrome: true,
+  mode: 'scripted',
   startClock: null,
 
   start(opts) {
@@ -76,7 +89,14 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
     releaseCoachMarks = coachMarks.getState().addSuppressor();
     const sandbox = createSandboxStore(demoScenario(DEMO_STAGES[0]));
     const hold = opts?.holdClock === true;
-    set({ active: true, sandbox, stage: DEMO_STAGES[0].id, chrome: opts?.chrome !== false, startClock: null });
+    const mode = opts?.mode ?? 'scripted';
+    set({ active: true, sandbox, stage: DEMO_STAGES[0].id, chrome: opts?.chrome !== false, startClock: null, mode });
+
+    // 3.5.10 — EXPLORE stops here. The sandbox is seeded with the same persona money the script opens on,
+    // and then nothing drives it: no timers, no `DemoDirector` navigation, no stage changes. Returning
+    // before `playDemoRun` is what makes that true — a mode flag checked inside the run would leave the
+    // timers scheduled and merely ignored, which is the shape that strands a run when one of them fires.
+    if (mode === 'explore') return;
     // Scheduled against THIS sandbox: if the demo ends and another starts, the old run's steps must not
     // land on the new one's store.
     //
@@ -125,7 +145,7 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
     // `startClock` is cleared here too: a held clock outliving its session would be a starter that
     // schedules a whole script over a sandbox that no longer exists. Its own staleness guard refuses that
     // anyway — this makes the teardown the reason rather than the backstop, exactly as the ordering above.
-    set({ active: false, sandbox: null, stage: null, chrome: true, startClock: null });
+    set({ active: false, sandbox: null, stage: null, chrome: true, startClock: null, mode: 'scripted' });
   },
 }));
 

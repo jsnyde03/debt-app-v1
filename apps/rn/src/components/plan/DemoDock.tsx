@@ -31,7 +31,13 @@ export function DemoDock() {
   // Withheld for the App-Preview capture. The dock is a way OUT, and a video has nobody to let out — while
   // it covered two of the five frames the video exists to show.
   const chrome = useStore(demoSession, (s) => s.chrome);
-  if (!active || !chrome) return null;
+  // 3.5.10 — SCRIPTED only. This dock narrates a run that drives itself ("1 of 5", the beat sentence) and
+  // carries the exits a viewer with no tab bar would otherwise lack. In an explore run all three of those
+  // are wrong: there are no beats to count, the exit already rides the marker row on every screen, and the
+  // dock sits over the tab bar the user now needs — the exact clipping 3.5.4.10 hid the bar to avoid.
+  // Found by looking at the render; no assertion here was watching the dock.
+  const mode = useStore(demoSession, (s) => s.mode);
+  if (!active || !chrome || mode !== 'scripted') return null;
 
   const position = Math.max(1, DEMO_STAGES.findIndex((s) => s.id === stage) + 1);
 

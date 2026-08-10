@@ -4470,3 +4470,63 @@ a sub-cycle expense at all**, which is precisely why the defect survived this lo
 test DATA, not in the assertions, and no amount of assertion review would have found it. Worth carrying
 into the Phase-6 financial-correctness audit: ask what INPUT SHAPES the suite has never seen, not just
 what claims it makes.
+
+---
+
+## 3.5.10 — the interactive demo, and the scripted run goes back to being a video (2026-08-10)
+
+🎯 Jason: *"The demo that's there now is more of an app preview video than a demo… let's create the
+interactive demo and then pull the current demo and use it for its intended app preview purpose."*
+
+**Gate 156/156 → 158/158.** Frames: `capture-ref/explore-demo/`.
+
+**The diagnosis.** [D19] pulled the demo from users *because* its remaining job was the store video; 3.5.4.11
+then rebuilt it as a 25-second self-driving arc tuned for capture; [D21] re-shipped **that same artifact** to
+users as "try before you commit". One artifact, two jobs — and the video's requirements won because they
+came first. What a user got was an app preview they could not touch.
+
+Now `demoSession` has a **mode**: `scripted` (App-Preview + 3.5.7's embed) and `explore` (a person). The
+route decides from who is watching — `CAPTURE_DEMO`, `?capture=1` or `?mode=scripted` get the script;
+everyone else gets the sandbox and is left alone in it.
+
+### ⚠️ The predicate did NOT get forked, and the codebase said so first
+
+The plan was to split `useInBoundedRun`. Its own docblock pre-empted that: *"If a fence ever needs to
+distinguish which run is on screen, that is a different question — ask the session directly; do not fork
+this predicate."* That is better guidance than mine and it was already written down.
+
+So `useInBoundedRun` is untouched and still means **"sandbox money is on screen"** — the marker, the
+no-real-writes guard, coach-mark suppression, the walkthrough not offering itself, and **More staying
+fenced even in explore** (it carries Reset and preferences that write the REAL store; settings is not part
+of the product story). A new, separately-named `useNavigationHeld()` answers the *other* question, and only
+the two navigation fences read it.
+
+The two predicates were ever one only because, until now, every bounded run happened to mean both. The
+paired tests say which half broke if someone re-merges them: the kiosk test stays green, the explore test
+goes red.
+
+### The exit rides the marker row
+
+Explore has no dock, and a demo a user can walk around needs an exit wherever they walked TO. `Screen`
+already mounts `ExampleCanvasMarker` above the scroller on **every** surface a sandbox can reach — keyed on
+the money being fictional, never on a session — so the exit inherits that reach instead of needing its own
+always-on chrome. One exit, deliberately: "Start my real plan". Premium is sold inside the real app, not
+from behind a sandbox.
+
+### ⚠️ Found by looking, not by the suite
+
+The first explore render still had the **scripted dock on it** — narrating "1 of 5" for a run with no
+beats, duplicating the exit, and sitting over the tab bar the user now needs (the exact clipping 3.5.4.10
+hid the bar to avoid). Ten green containment assertions and not one of them was watching the dock. Gated
+to scripted.
+
+### After-scan
+
+- **A web-only limit, measured:** after a tab switch the RN-web tab navigator leaves the previous screen
+  mounted *and painted*, so two markers/exits are visible where a device renders only the focused tab. The
+  "exactly one on screen" claim is therefore **device-owed** (§12.5 already asks it of the marker); web can
+  only prove the exit is present wherever the user navigated.
+- The More fence is asserted across **every** matching node rather than `.first()` — a fence that held on
+  one of two mounted copies is the "class closed at some of its members" defect this phase kept finding.
+- ⏳ **Device debt:** §12 is now two runs, not one. The checklist needs an explore section — free
+  navigation, the marker on every screen, More still fenced, the exit reachable from each tab.

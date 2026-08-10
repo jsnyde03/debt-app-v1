@@ -8,7 +8,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLayout } from '@/hooks/use-layout';
 import { useStore } from 'zustand';
 
-import { useInBoundedRun } from '@/store/boundedRun';
+import { useNavigationHeld } from '@/store/boundedRun';
 import { demoSession } from '@/store/demoSession';
 
 /**
@@ -35,13 +35,17 @@ export default function TabsLayout() {
   //
   // 3.5.4.1 — and for a demo it is not defence in depth, it is the whole fence: a demo renders no scrim,
   // so this is the only thing between a stray tap and the real (usually empty) plan one tab over.
-  const inBoundedRun = useInBoundedRun();
-  const holdTabs = { tabPress: (e: { preventDefault(): void }) => { if (inBoundedRun) e.preventDefault(); } };
+  const navigationHeld = useNavigationHeld();
+  const holdTabs = { tabPress: (e: { preventDefault(): void }) => { if (navigationHeld) e.preventDefault(); } };
   // 3.5.4.10 — a DEMO hides the tab bar; a walkthrough does not. Not an inconsistency: the walkthrough
   // coaches over the real app and the tabs are part of what it is teaching you to use, fenced but present.
   // A demo is a kiosk with its own dock, and the dock sat over the tab bar and cut the labels in half —
   // a viewer's first impression of the app was a clipped control strip. Held AND hidden, not held alone.
-  const inDemo = useStore(demoSession, (s) => s.active);
+  // 3.5.10 — the bar is hidden for the SCRIPTED run only. It was hidden because the beat dock sat over it
+  // and cut the labels in half, and because the App-Preview capture must not photograph a dead control
+  // strip — both of which are properties of the script, not of the sandbox. The explore demo has no dock
+  // and navigating IS the point, so it keeps its tabs.
+  const inScriptedDemo = useStore(demoSession, (s) => s.active && s.mode === 'scripted');
 
   // 3.5.3.5.7 — the coaching overlay is deliberately NOT mounted here. Wrapping `<Tabs>` in a container
   // View to make room for a sibling broke tab presses outright (the BNPL specs' "Money" click timed
@@ -62,7 +66,7 @@ export default function TabsLayout() {
         tabBarBackground: isRegular
           ? undefined
           : () => <BlurView tint={scheme === 'dark' ? 'dark' : 'light'} intensity={70} style={StyleSheet.absoluteFill} />,
-        tabBarStyle: inDemo
+        tabBarStyle: inScriptedDemo
           ? { display: 'none' }
           : isRegular
             ? { backgroundColor: c.background.secondary, borderRightColor: c.border.subtle }

@@ -77,9 +77,11 @@ test('the PAYWALL door — "See it in action" reaches the demo', async ({ page }
   await expect.poll(() => visibleMarkers(page), { timeout: 15_000 }).toBe(1);
 });
 
-test('a not-yet-onboarded user reaches the demo, and it is contained', async ({ page }) => {
+test('a not-yet-onboarded user reaches the demo, and the SCRIPTED run is contained', async ({ page }) => {
   await seedStore(page, NOT_ONBOARDED);
-  await page.goto('/demo');
+  // 3.5.10 — `?mode=scripted` explicitly: kiosk containment is a property of the RUN THAT DRIVES ITSELF,
+  // not of the sandbox. A user now gets `explore` from `/demo`, which is deliberately navigable.
+  await page.goto('/demo?mode=scripted');
 
   // 1 — admitted, and the DIRECTOR moved. [D19]'s arc opens on the problem, so a demo that lands on
   // Today and stays there means the script is not driving the camera. Asserted on the URL rather than on
@@ -111,6 +113,84 @@ test('a not-yet-onboarded user reaches the demo, and it is contained', async ({ 
   await expect(page.getByText('Payday Guardian')).toBeVisible();
 });
 
+/**
+ * 3.5.10 — the EXPLORE run: every money fence intact, and the navigation fence deliberately open.
+ *
+ * This is the test the predicate split exists for. `useInBoundedRun` used to mean two things at once —
+ * "sandbox money is on screen" AND "you may not navigate" — only because, until now, every bounded run
+ * meant both. Explore breaks that coincidence, so this asserts the two halves SEPARATELY: the money half
+ * still holds everywhere, and only the navigation half has moved.
+ *
+ * If someone later re-merges the predicates, this goes red and the kiosk test above stays green — which
+ * is the pair that says which half broke.
+ */
+test('the EXPLORE run: the money is still fenced, the navigation is not', async ({ page }) => {
+  await seedStore(page, NOT_ONBOARDED);
+  await page.goto('/demo');
+
+  await expect(page.getByTestId('example-canvas-marker').first()).toBeVisible({ timeout: 15_000 });
+
+  // The navigation half — OPEN. Tabs are rendered, and pressing one actually moves: `holdTabs` used to
+  // preventDefault on every press, so "visible" alone would pass against a bar that does nothing.
+  await expect(page.getByTestId('tab-money')).toBeVisible();
+  await page.getByTestId('tab-progress').click();
+  await expect(page).toHaveURL(/progress/, { timeout: 10_000 });
+
+  // …and the marker followed. `Screen` renders it on every surface a sandbox can reach, which is what
+  // makes a free-roaming demo honest: the disclosure cannot be left behind on the screen you started on.
+  await expect(page.getByTestId('example-canvas-marker').first()).toBeVisible();
+
+  // The money half — INTACT. More stays fenced even here: it carries Reset and preferences that write the
+  // REAL store, so it is settings rather than part of the product story.
+  //
+  // ⚠️ EVERY match, not `.first()`. Navigating between tabs leaves the previous screen mounted, so there
+  // are two More buttons in the document — and a fence that held on one of them and not the other is
+  // exactly the "class closed at some of its members" defect this phase kept finding. Asserting the count
+  // first means a future third mount cannot slip past a locator that only ever looked at one.
+  const more = page.getByLabel('More', { exact: true });
+  const moreCount = await more.count();
+  expect(moreCount).toBeGreaterThan(0);
+  for (let i = 0; i < moreCount; i++) {
+    await expect(more.nth(i)).toBeDisabled();
+    await expect(more.nth(i)).toHaveAttribute('aria-hidden', 'true');
+  }
+
+  // And the real plan is untouched — the sin the sandbox exists to retire.
+  const persisted = await page.evaluate(() => window.localStorage.getItem('debtPlanner.rnStore'));
+  expect(JSON.parse(persisted ?? '{}').prefs.onboardingComplete).toBe(false);
+});
+
+test('the EXPLORE run carries its own way out, on whatever screen you wandered to', async ({ page }) => {
+  // The scripted run's dock holds its exits; explore has no dock. The exit rides the marker row, which
+  // `Screen` already mounts everywhere — so this checks it on a screen the user NAVIGATED to, not the one
+  // they landed on, because "there is an exit" is only true if it is true where they are.
+  // ⚠️ Asserts AT LEAST ONE visible, not exactly one — and the difference is a web artifact, measured
+  // 2026-08-10: after a tab switch the RN-web tab navigator leaves the previous screen mounted AND
+  // painted, so two exits are visible in the document where a device renders only the focused tab. The
+  // "exactly one on screen" claim is therefore device-owed (checklist §12.5 already asks it of the
+  // marker); what web can prove is that the exit is present wherever the user navigated to.
+  const exitsOnScreen = async () => {
+    const all = page.getByTestId('demo-explore-exit');
+    const n = await all.count();
+    let seen = 0;
+    for (let i = 0; i < n; i++) if (await all.nth(i).isVisible()) seen++;
+    return seen;
+  };
+
+  await seedStore(page, NOT_ONBOARDED);
+  await page.goto('/demo');
+  await expect.poll(exitsOnScreen, { timeout: 15_000 }).toBeGreaterThan(0);
+
+  await page.getByTestId('tab-progress').click();
+  await expect(page).toHaveURL(/progress/, { timeout: 10_000 });
+  await expect.poll(exitsOnScreen, { timeout: 10_000 }).toBeGreaterThan(0);
+
+  // Terminal, like every other demo exit ([D18]): the session ends BEFORE the destination renders.
+  await page.getByTestId('demo-explore-exit').first().click();
+  await expect(page).toHaveURL(/onboarding/, { timeout: 10_000 });
+  await expect(page.getByTestId('example-canvas-marker')).toHaveCount(0);
+});
+
 test('the canvas is marked as example money, above the scroll and in the a11y tree', async ({ page }) => {
   await seedStore(page, NOT_ONBOARDED);
   await page.goto('/demo');
@@ -132,9 +212,13 @@ test('the canvas is marked as example money, above the scroll and in the a11y tr
   expect(after?.y).toBe(before?.y);
 });
 
-test('both exits are terminal — the demo is over before the destination renders', async ({ page }) => {
+test('both SCRIPTED exits are terminal — the demo is over before the destination renders', async ({ page }) => {
   await seedStore(page, NOT_ONBOARDED);
-  await page.goto('/demo');
+  // 3.5.10 — the two exits tested here live in the DOCK, which is scripted-only. Explore carries a single
+  // exit on the marker row ("Start my real plan"), asserted separately above: one clear way out is right
+  // for a run whose job is "decide whether to trust this app", and premium is sold inside the real app
+  // rather than from behind a sandbox.
+  await page.goto('/demo?mode=scripted');
   await expect(page.getByTestId('example-canvas-marker')).toBeVisible({ timeout: 15_000 });
 
   // "Unlock Premium" is the exit that matters: /paywall writes the real store by design, so reaching it

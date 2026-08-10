@@ -31,3 +31,25 @@ export function useInBoundedRun(): boolean {
 export function isBoundedRunActive(): boolean {
   return tutorialSession.getState().active || demoSession.getState().active;
 }
+
+/**
+ * 3.5.10 — is the run also holding NAVIGATION?
+ *
+ * ⚠️ **A separate question, asked separately — `useInBoundedRun` is deliberately NOT forked.** The note
+ * above says a fence needing to distinguish which run is on screen should ask the session directly, and
+ * this is that case: "sandbox money is on screen" and "you may not leave this screen" were one predicate
+ * only because, until now, every bounded run happened to mean both.
+ *
+ * The explore demo breaks that coincidence. It is every bit as bounded — fake money, no real writes, the
+ * Example marker, coach-marks suppressed — and it is the opposite of kiosk: navigating IS the point. So
+ * the money fences keep reading `useInBoundedRun`, and only the two navigation fences read this.
+ *
+ * True for: the walkthrough (it owns the screen for seven beats and a stray tab press loses the arc) and
+ * the SCRIPTED demo (a kiosk by [D18], and the App-Preview capture must not photograph a tab bar).
+ */
+export function useNavigationHeld(): boolean {
+  const inTutorial = useStore(tutorialSession, (s) => s.active);
+  const inDemo = useStore(demoSession, (s) => s.active);
+  const demoMode = useStore(demoSession, (s) => s.mode);
+  return inTutorial || (inDemo && demoMode === 'scripted');
+}
