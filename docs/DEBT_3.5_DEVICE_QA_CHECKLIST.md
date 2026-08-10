@@ -442,11 +442,16 @@ native modal presentation, VoiceOver, and real StoreKit prices._
 - [ ] Start the **walkthrough** (More → How the Guardian works). Its tab bar **is still visible** — that
       difference is deliberate, and this confirms the demo-only change did not leak into it.
 
-### §12.3 — ⚠️ KNOWN BAD in this build: the dock and the home indicator
-- [ ] **Expect this to fail.** "Unlock Premium" sits too low, overlapping the home-indicator swipe zone —
-      a swipe-up to leave the app may fight the button. The dock was missing `insets.bottom`, the same
-      omission audit finding [B4] caught in the walkthrough's dock. **Already fixed in the repo; it will
-      be right in the next build.** Just confirm you see it, so we know the fix targets the real symptom.
+### §12.3 — the dock and the home indicator — ⚠️ **this is the build where the fix arrives**
+- [ ] **Expect this to PASS now.** It was known-bad on the `c050173` build: "Unlock Premium" sat too low,
+      overlapping the home-indicator swipe zone, because the dock was missing `insets.bottom` — the same
+      omission audit finding [B4] caught in the walkthrough's dock. The fix is in the repo
+      (`DemoDock.tsx:47`, `paddingBottom: insets.bottom + spacing.base`) and this build is the first to
+      carry it.
+      **PASS:** the two dock buttons sit clear of the home-indicator strip, and a swipe-up to leave the app
+      does not fight the button.
+      **FAIL:** still overlapping — which would mean the fix does not address the real symptom, so say so
+      rather than re-reporting it as known.
 
 ### §12.4 — the exits are terminal
 - [ ] **"Unlock Premium"** → the paywall presents **as a modal**, and the "Example money" line at the top
