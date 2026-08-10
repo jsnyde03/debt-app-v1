@@ -543,10 +543,16 @@ const styles = StyleSheet.create({
   // copy above it. Caught by looking at beat 4, not by the geometry — the rows measure identically
   // either way. 4pt does not clear the ring, which is why `attest` carries 8.
   row: { minHeight: 44, justifyContent: 'center' },
-  // §M nit 1 — `sm`, not `xs`, on the attestation. The spotlight ring insets 6pt beyond its subject, and
-  // at 4pt the premium judge still read the ring's top edge as crowding the "Your call" label above it.
-  // 8pt clears it with the 2pt to spare that makes it read as deliberate rather than as a near-miss.
-  attest: { marginTop: spacing.sm },
+  // §M nit 1 / [L2a] — `md`, not `sm`, on the attestation. The spotlight ring insets 6pt beyond its
+  // subject, so this margin minus 6 IS the clear air between the copy above and the ring's top edge.
+  //
+  // At `xs` that arithmetic was NEGATIVE (4−6): the ring overlapped the line above, which is what round 4
+  // saw. `sm` made it +2 and was signed off as "2pt to spare" — but the number that decides whether a
+  // caption looks crowded is not its own clearance, it is the COMPARISON. "Your call" sits 4pt below the
+  // sentence it belongs to, so at +2 it was nearer the ring than its own paragraph and read as attached
+  // to the wrong thing. `md` puts it at +6: further from the ring than from its sentence, which is the
+  // grouping the copy actually has. Measured, both times — `tests/shots/guardian-spacing.shot.ts`.
+  attest: { marginTop: spacing.md },
   adjust: { fontWeight: '600' },
   adjustGroup: { marginTop: spacing.xs },
   adjustLabel: { fontWeight: '600' },

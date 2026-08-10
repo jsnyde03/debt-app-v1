@@ -912,7 +912,19 @@ own."* A named ledger with no contents is that failure mode with a label on it.
 **Every item below was re-verified against the code on 2026-08-06, not carried on the doc's word.** That
 check moved four items to closed and one to "the evidence is gone".
 
-### Open
+### Open — ✅ **CLOSED 2026-08-10.** The table below is the ledger AS WRITTEN; dispositions → log 3.5.6.1
+
+**L1/[E4]** finale-only · **L5** closed by 3.5.5.5 · **L3a** closed on inspection · **L3b** fixed (undersold as
+LOW) · **L2c** evidence captured · **L4** unrecoverable → the Phase-6 device ledger · **L2a** `attest`
+`sm`→`md`, clearance measured −2 → +2 → **+6.0pt** · **L2b** measured **45.0pt** against a 48.0pt row pitch,
+answered by `lastRowSpacer` · **L2d** ⛔ **NOT A DEFECT** — withholding removes the row whole (the
+adjust→forecast pitch is 48.0pt, identical to attest→adjust; a retained slot would read 96pt).
+
+⚠️ **L2a and L2b had already been FIXED when this table was written.** `66782de` (2026-08-04) raised
+`attest` and added `lastRowSpacer`, both citing these nits by name — two days before a ledger that says
+every item was "re-verified against the code". Transcribing a round's finding carries the ROUND's state,
+not the code's, and the re-verify did not reach these two. The re-judge is what was genuinely owed, and it
+needed geometry: `tests/shots/guardian-spacing.shot.ts` now measures all three claims.
 
 | ID | Item | Class | Goes to |
 |---|---|---|---|

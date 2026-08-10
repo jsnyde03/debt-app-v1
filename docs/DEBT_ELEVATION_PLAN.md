@@ -9,7 +9,8 @@
 ## ▶ NOW
 
 - **Active build:** **Phase 3.5 — interactive tutorial + bounded demo.** 3.5.0–3.5.3 ✅ done, incl. the 3.5.3.9 audit gate **CLOSED at round 10** (2026-08-05). **Phases 0–3 ✅ COMPLETE.**
-- **▶ ACTIVE BUILD: 3.5.6 — verify + close Phase 3.5,** decomposed below. **3.5.6.1 is mid-flight**: the ledger's 🎯 [E4] is resolved (upgraders get the **finale only**) and 5 of 8 items are closed; **next up are L2a · L2b · L2d**, three measurable spacing nits. **3.5.5 ✅ COMPLETE.** Gate **141/141**.
+- **▶ ACTIVE BUILD: 3.5.6 — verify + close Phase 3.5,** decomposed below. **3.5.6.1 ✅ DONE 2026-08-10** — the 3.5.3.9-L ledger is closed, all 8 items disposed. **▶ 3.5.6.2 (both-theme + a11y sweep) is now the active sub-step.** **3.5.5 ✅ COMPLETE.** Gate **141/141**.
+- **⚠️ A method lesson from 3.5.6.1 (2026-08-10):** two of its three items had been FIXED two days before the ledger recorded them open — **a ledger entry transcribed from an audit round carries the round's state, not the code's.** What was owed was the re-judge, and re-reading the diff could not supply it: the complaint was geometry, so it took an instrument (`tests/shots/guardian-spacing.shot.ts`). One of the three then measured as **not a defect at all**.
 - **⚠️ A method lesson worth keeping (2026-08-08):** a stashed control run separates "the suite is flaky" from "we broke something" — **but SAMPLE IT MORE THAN ONCE.** One green control read as proof produced a confident wrong attribution and parked a finished item on a branch for a defect it had not caused. The suite's real flake (the beat-3 slider tap) is now fixed at the source.
 - **✅ 3.5.8 CLOSED 2026-08-08 — the App-Preview capture pipeline delivers.** 🎯 Cycle 14 **APPROVED**: every guard green, and the celebration measured at **4.80s of room** (cycle 13 landed it in the final 0.1s). ⚠️ **The submitted asset is a re-shoot of this pipeline, not this file** — the UI still changes before Phase 6. Detail → log 3.5.8 cycles 13–14; frame verification → the audit doc's CYCLE 14 section.
 - **⏭ Then:** 3.5.7 marketing embed (needs a hosting + privacy call) → the whole-app cohesion audit.
@@ -100,12 +101,23 @@ The last step before the whole-app cohesion audit. Everything 3.5 built is now i
 
 | # | Step |
 |---|---|
-| **3.5.6.1** | **▶ IN PROGRESS — the 3.5.3.9-L ledger.** ✅ **[E4] 🎯 RESOLVED = finale-only** for upgraders · L5 · L3a · L3b (fixed; "LOW" undersold it) · L2c (evidence captured). **Remaining: L2a · L2b · L2d** — three measurable spacing nits; ⚠️ **L2d is UNCONFIRMED, measure before treating it as a defect.** L4 is unrecoverable → 3.5.6.3. Log: 3.5.6.1 |
-| 3.5.6.2 | **Whole-3.5 both-theme + a11y sweep** — the tutorial, the demo and the coach-marks together (VoiceOver end-to-end where web allows; the rest stated as device-owed rather than assumed) |
+| **3.5.6.1** | ✅ **DONE 2026-08-10 — the 3.5.3.9-L ledger is CLOSED.** All 8 items disposed: [E4] 🎯 finale-only · L5 · L3a · L3b · L2c · **L2a fixed to +6.0pt · L2b answered at 45/48pt · L2d disproven** by `tests/shots/guardian-spacing.shot.ts`, which measures the geometry rather than judging it. L4 unrecoverable → 3.5.6.3. Gate 141/141. Log: 3.5.6.1 |
+| **3.5.6.2** | **▶ IN PROGRESS — whole-3.5 both-theme + a11y sweep**, decomposed below |
 | 3.5.6.3 | **Consolidate the 3.5 device-QA debt** into the Phase-6 ledger — the walkthrough's §3.5.3 block, the demo's native lane, and 3.5.5's three owed items, in one place a device pass can actually be run from |
 | 3.5.6.4 | **Whole-PHASE after-scan** (not just this item) — cross-item coherence across 3.5, the accumulated deferral ledger, and lessons that apply retroactively to earlier items. Feeds the whole-app cohesion audit |
 
-**Exit:** Phase 3.5 signed off — no open ledger items that web can settle, every device-owed item written down where the device pass will find it, and the phase's own after-scan folded into the plan.
+**▶ 3.5.6.2 — decomposed (the ACTIVE sub-step):**
+
+| # | Step |
+|---|---|
+| 3.5.6.2.1 | **Inventory what 3.5 actually built** — tutorial (7 beats + both finales) · demo (5 beats) · 3 coach-marks · the invite card · More's re-offer entries — and mark which already have both-theme frames vs. which have never been looked at in one theme |
+| 3.5.6.2.2 | **Both-theme pass** over everything .1 found uncovered: shoot light + dark, and LOOK — the 3.5 defects that mattered were all found by looking, not by an assertion |
+| 3.5.6.2.3 | **The a11y pass web CAN settle** — `a11y-axe` extended over the 3.5 surfaces · focus order · no tabbable inside `aria-hidden` · label-in-name on every 3.5 control |
+| 3.5.6.2.4 | **Name what web CANNOT settle** — `announceForAccessibility` is a literal no-op on RN-web, so VO announcement delivery, the rotor and haptic weights are unobservable here. Write them down as device-owed rather than reporting a green web sweep as an a11y result ([[green-suite-often-means-untested]]) → feeds 3.5.6.3 |
+
+**Exit (3.5.6.2):** every 3.5 surface seen in both themes, the web-settleable a11y checks green, and the device-owed remainder named rather than assumed.
+
+**Exit (3.5.6):** Phase 3.5 signed off — no open ledger items that web can settle, every device-owed item written down where the device pass will find it, and the phase's own after-scan folded into the plan.
 
 **🔷 [DECISION]s — ✅ ALL RESOLVED = DO (Jason executive decision 2026-07-30: "everything found in the audits + enhancements will be done, no backlog", [[feedback_fix_everything_one_block]]):** **D-A** wire the privacy-first opt-out ~8-event funnel instrumentation seam (no financial data) · **D-B** replace the legacy `demoSeed` (one honest demo system) · **D-C** free-tier tutorial + demo access · **+ all 13 best-in-class enhancements** + **every coverage gap** — nothing filed to backlog.
 **Restraint (best-in-class audit) — STILL HOLDS with everything IN:** no Tier-3 spectacle/confetti/sound · no gamification chrome · no fake-chat theater · Recovery stays a glimpse · the in-app tutorial ≤7 beats. ("Everything done" = build all the found work, folded into existing beats by design — NOT add fireworks to a teaching surface.)
@@ -172,7 +184,7 @@ Acquisition-grade store presence (screenshots · app-preview video · listing se
   - **`expo-blur` DOCK** — Android renders no real blur without `experimentalBlurMethod` (falls back to a translucent overlay), so [D1]'s "a material, not a claim" silently reverts on Android. The existing expo-blur line below names the tab bar + sheet scrims only; it predates the dock.
   - **Touch during the stage-scroll** — a finger cancels the programmatic scroll natively; the 380ms settle then measures a half-scrolled position and parks the ring/hole off-subject until the next beat.
   - **AX3/AX5 + landscape + small phone** — `headerHeight()` caps at 2× while AX5 is ~3.1× (deliberate, unverified); `dockMaxH` in iPhone landscape leaves a very short stage; beat 5's ring already peeks beside the dock at default type.
-  - **Skia cushion-bar paint timing on beat 1** — the first captured frame of the walkthrough showed the bar unpainted (a CanvasKit artifact on web, but beat 1 spotlights that exact card, so a late paint on device is a poor first impression).
+  - **Skia cushion-bar paint timing on beat 1** — the first captured frame of the walkthrough showed the bar unpainted (a CanvasKit artifact on web, but beat 1 spotlights that exact card, so a late paint on device is a poor first impression). ⚠️ **Reproduced independently 2026-08-10** (3.5.6.1's spacing frames, 600ms after the beat settled) — so it is not a one-off capture artifact but a repeatable web behaviour, and the device question is correspondingly more live.
   - **iOS press-opacity parity on the tab bar** — the `tabBarButton` override is a plain `Pressable`; Android's ripple was restored explicitly, iOS's press opacity was not.
 - **§3.6 native iPad:** both orientations · Split View · Stage Manager · pointer/keyboard incl. first-responder + tab-nav · per-screen re-layout · both themes.
 - **§VIS-6 sound + notifications:** the opt-in chime plays (swap the synthesized placeholder for a mastered asset) · interactive-notification delivery + action buttons + tap-routing · risk-notification delivery + rollover-while-backgrounded.

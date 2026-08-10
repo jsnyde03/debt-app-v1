@@ -3891,6 +3891,36 @@ shapes).
 | **L3b** | ✅ **Fixed, and it was undersold as "LOW".** `tutorialSession.start` passes `maxGenuineCycles: TUTORIAL_MAX_CYCLES` (3); the invariant passed nothing and fell back to `SANDBOX_MAX_GENUINE_CYCLES` (1). **The discovery holdback flips at 3**, so that bound decides whether a safety net is held — and `guardian-reserve` is a coached SUBJECT. The arc's build-time invariant was proving every beat's subject against a Guardian in a different state from the one the walkthrough shows. Second half: Today computes from `withProjectedBalances(store, isPremium)`; the invariant read the raw store. Still 39/39 after both — the arc holds under the *shipped* shape, which is a stronger claim |
 | **L2c** | ✅ **Evidence captured** — `tests/shots/floor-impact.shot.ts` samples `FloorImpactBar` through its spring. Criterion 5 had been judged from code and END states across three reviews, which is the one claim a still of the settled bar cannot support. The frames show the fill travelling (~78% at 60ms → ~45% at 140ms): the [D4] spring is doing its job |
 | **L4** | ⏳ **Cannot be recovered here** — round 10's three native-lane sections are gone. Routed to 3.5.6.3 and the Phase-6 device ledger, with the standing instruction: **do not assume the native surface was reviewed** |
-| **L2a · L2b · L2d** | ⏳ **Remaining** — three measurable polish items (beat-4 ring spacing · Guardian card bottom padding · beat-1's withheld-replay gap). L2d is explicitly *unconfirmed*: measure before treating it as a defect |
+| **L2a · L2b · L2d** | ✅ **Closed 2026-08-10 — measured.** See below |
 
 **Gate 141/141.**
+
+### L2a · L2b · L2d — the three spacing items, settled by measurement (2026-08-10)
+
+All three were geometry claims made by looking at a picture, so they were closed by building the
+instrument that reads the geometry: **`apps/rn/tests/shots/guardian-spacing.shot.ts`** drives the
+walkthrough to beats 1 and 4 and prints real bounding boxes. It asserts nothing (evidence, like
+`floor-impact.shot.ts`) — pinning a pt value as a gate would freeze a judgement call as a contract.
+
+⚠️ **Two of the three had already been fixed before the ledger recorded them open.** `66782de`
+(2026-08-04) raised `attest` to `sm` and added `lastRowSpacer`, each citing round 4's nit by name — and
+the ledger, written 2026-08-06 and stating that every item was "re-verified against the code", still
+carried both as open. **A ledger entry transcribed from an audit round carries the ROUND's state, not the
+code's.** Same family as [[feedback_check_the_shipped_artifact]]: the evidence beside the thing is not the
+thing. What was genuinely owed was the RE-JUDGE — the fixes were never put back in front of the geometry
+that produced the complaint — and no amount of re-reading the diff could supply it.
+
+| ID | Measured | Outcome |
+|---|---|---|
+| **L2a** | "Your call" bottom → ring top = **+2.0pt** (`RING_INSET` 6 confirmed applied) | **Fixed further → +6.0pt.** `sm`→`md` on `attest`. The `sm` fix had been signed off as "2pt to spare", but the number that decides *crowded* is the COMPARISON, not the clearance: "Your call" sits 4pt under the sentence it belongs to, so at +2 it was nearer the ring than its own paragraph and read as attached to the wrong thing. At +6 the grouping matches the copy. Row pitch untouched — the margin sits above the tail, not between rows |
+| **L2b** | card bottom below the last text = **45.0pt**, against a row pitch measured at a uniform **48.0pt** | ✅ **Answered.** Round 4 saw ~37 against ~48; `lastRowSpacer` closed it to within 3pt |
+| **L2d** | adjust→forecast pitch = **48.0pt**, identical to attest→adjust | ⛔ **NOT A DEFECT — disproven.** A retained slot would read ~96pt. Withholding the replay link removes the row whole. Filed as *unconfirmed, measure before treating it as a defect*, and measuring is what retired it |
+
+**Gate 141/141, zero `error-context.md`.** Frames: `apps/rn/capture-ref/spacing-beat{1,4}.png`.
+
+**After-scan.** (a) The instrument is the durable part — the next spacing complaint gets measured rather
+than argued, and the two prior rounds of "is it tight?" cost more than writing it did. (b) ⚠️ **Beat 1's
+cushion bar rendered UNPAINTED again**, independently, 600ms after the beat settled — the Phase-6 device
+ledger (§3.5.3) has it as a single capture-time observation, and it is now **reproducible on web**, which
+is a stronger claim than the one filed. Noted there; still device-owed, since CanvasKit-on-web is not the
+shipping renderer. (c) Nothing else surfaced that earns a queue slot.
