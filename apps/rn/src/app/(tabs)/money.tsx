@@ -70,8 +70,22 @@ const CADENCE_SUFFIX: Record<Recurrence, string> = {
   'one-time': '',
 };
 
+/**
+ * 3.7.A10.4 — what belongs in each section, in the same words the add chooser uses.
+ *
+ * Deliberately phrased by the TEST rather than by example: the chooser carries the nouns (rent, Visa,
+ * a car loan) because a person choosing needs recognition, while a person already looking at the list
+ * needs the rule that explains why the thing they expected isn't in it.
+ */
+const SECTION_CAPTION: Record<MoneyView, string> = {
+  debts: 'Balances you’re paying down. These have an end date, and they set your debt-free date.',
+  bills: 'Ongoing costs that don’t end. Reserved from every paycheck before anything goes to debt.',
+  goals: 'Money you’re setting aside — saved for, not owed.',
+};
+
 export default function MoneyScreen() {
   const [view, setView] = useState<MoneyView>('debts');
+  const c = useAppColors();
   const [chooser, setChooser] = useState(false);
   // 3.7.A10.1 — set when the chooser has decided; the destination section reads it once and opens its
   // own editor. The sheets stay OWNED by their sections (they hold the list, the store writes and the
@@ -99,10 +113,14 @@ export default function MoneyScreen() {
         onChange={setView}
         options={[
           { value: 'debts', label: 'Debts' },
-          { value: 'bills', label: 'Bills' },
+          { value: 'bills', label: 'Expenses' },
           { value: 'goals', label: 'Goals' },
         ]}
       />
+      {/* 3.7.A10.4 — one line under the toggle, so the distinction is taught to someone BROWSING and not
+          only to someone adding. The chooser catches the classification at the moment it is made; this
+          catches the reader who is wondering why their mortgage isn't in the list they're looking at. */}
+      <Text style={[textStyles.caption, styles.sectionCaption, { color: c.text.tertiary }]}>{SECTION_CAPTION[view]}</Text>
       {view === 'debts' ? (
         <DebtsSection
           autoOpen={autoOpen === 'debts'}
@@ -634,7 +652,7 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
         <EmptyState
           icon="receipt-long"
           title="Build your paycheck plan"
-          body="Add a required bill or payment so your plan knows what’s due."
+          body="Add an ongoing cost — rent, utilities, a subscription — so your plan knows what’s due."
           cta="Add"
           onCta={onAdd}
           ctaTestID="money-add"
@@ -749,7 +767,7 @@ function BillSearch({ value, onChange }: { value: string; onChange: (t: string) 
       <TextInput
         value={value}
         onChangeText={onChange}
-        placeholder="Search bills"
+        placeholder="Search expenses"
         placeholderTextColor={c.text.tertiary}
         style={[textStyles.body, styles.searchInput, { color: c.text.primary }]}
         returnKeyType="search"
@@ -931,6 +949,7 @@ const styles = StyleSheet.create({
   // Indented and hairline-bordered so it reads as a note attached to the row above it, not as a row of
   // its own competing for the same list.
   misfiledHint: { marginTop: -spacing.xs, marginBottom: spacing.sm, marginLeft: spacing.base, paddingLeft: spacing.md, paddingVertical: spacing.sm, borderLeftWidth: StyleSheet.hairlineWidth, gap: spacing.sm },
+  sectionCaption: { marginTop: spacing.sm, marginBottom: spacing.xs, lineHeight: 17 },
   misfiledActions: { flexDirection: 'row', gap: spacing.lg },
   misfiledCta: { fontWeight: '600' },
   flex: { flex: 1 },

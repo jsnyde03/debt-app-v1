@@ -15,7 +15,7 @@ test.use({ viewport: { width: 402, height: 874 } });
 const onboarded = () => scenario({ prefs: { onboardingComplete: true } });
 
 /** Open the chooser from the section a user happens to be standing in. */
-async function openChooser(page: import('@playwright/test').Page, from: 'Debts' | 'Bills' | 'Goals') {
+async function openChooser(page: import('@playwright/test').Page, from: 'Debts' | 'Expenses' | 'Goals') {
   await page.goto('/money');
   if (from !== 'Debts') await page.getByText(from, { exact: true }).click();
   // By testID, not by label: the copy is "Add" today and this change is *about* the copy, and the
@@ -28,7 +28,7 @@ async function openChooser(page: import('@playwright/test').Page, from: 'Debts' 
 test('the chooser is reachable from every section — the section no longer decides', async ({ page }) => {
   // The point of [D22a]: standing in Goals must not pre-commit you to adding a goal. If any of these
   // three stopped opening the chooser, the section would silently be doing the classifying again.
-  for (const from of ['Debts', 'Bills', 'Goals'] as const) {
+  for (const from of ['Debts', 'Expenses', 'Goals'] as const) {
     await seedStore(page, onboarded());
     await openChooser(page, from);
     await expect(page.getByTestId('add-choice-debt')).toBeVisible();
@@ -37,10 +37,10 @@ test('the chooser is reachable from every section — the section no longer deci
   }
 });
 
-test('"a debt" routes to Debts and writes a DEBT — from the Bills section', async ({ page }) => {
+test('"a debt" routes to Debts and writes a DEBT — from the Expenses section', async ({ page }) => {
   await seedStore(page, onboarded());
-  // Deliberately starting in Bills: the old behaviour would have produced an expense from here.
-  await openChooser(page, 'Bills');
+  // Deliberately starting in Expenses: the old behaviour would have produced an expense from here.
+  await openChooser(page, 'Expenses');
   await page.getByTestId('add-choice-debt').click();
 
   // The debt editor, not the expense one — asserted on a field only a debt has.
@@ -48,7 +48,7 @@ test('"a debt" routes to Debts and writes a DEBT — from the Bills section', as
   await expect(page.getByText('APR %')).toBeVisible();
 });
 
-test('"an expense" routes to Bills and writes an EXPENSE — from the Debts section', async ({ page }) => {
+test('"an expense" routes to Expenses and writes an EXPENSE — from the Debts section', async ({ page }) => {
   await seedStore(page, onboarded());
   await openChooser(page, 'Debts');
   await page.getByTestId('add-choice-expense').click();
@@ -73,7 +73,7 @@ test('a MORTGAGE entered through the chooser lands in Debts, where it counts', a
   // amount, same "housing" — and only one of them ever ends. This walks the whole flow and then reads
   // the persisted store, because the payoff plan reads `debts` and nothing else.
   await seedStore(page, onboarded());
-  await openChooser(page, 'Bills');
+  await openChooser(page, 'Expenses');
   await page.getByTestId('add-choice-debt').click();
   await expect(page.getByText('APR %')).toBeVisible({ timeout: 10_000 });
 

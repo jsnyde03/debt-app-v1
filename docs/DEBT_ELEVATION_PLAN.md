@@ -25,10 +25,10 @@ evidence that labels alone cannot carry it: the author of the split mis-filed un
 |---|---|---|
 | **A10.1** | ✅ **DONE 2026-08-10** — one Add asking *"does this have a balance you're paying down?"*, replacing all six entry points (3 rows + 3 empty-state CTAs). Picking also switches section, so the answer lands visibly. ⌘N stays direct — a typed accelerator is not a silent classification | |
 | **A10.2** | ✅ **DONE 2026-08-10** — `looksLikeDebt` (name-only; **category as a conjunct was rejected on inspection** — it would catch a mortgage and miss every card) + an atomic `convertExpenseToDebt` + a quiet row hint with a remembered "Not a debt". Retroactive by construction: the detector reads the existing list | |
-| **A10.3** | **Rename Bills → Expenses** in user-facing copy. ⚠️ The Guardian's "bills" vernacular is deliberately OUT of scope → the wording/voice gate ([D22d]) | |
-| **A10.4** | **Teach at the point of decision** — a one-line definition under each section header, and concrete nouns in empty states ("Rent · Phone · Netflix" vs "Visa · Car loan · Mortgage") | |
-| **A10.5** | **Cover it** — e2e for the chooser's three routes, the conversion, and both themes. ⚠️ Assert the DOORS, not just the destinations |
-| **A10.6** | **Hand the detector to Phase 5** — v1.6's Capacitor app offered "Credit Card Payment" and "Loan Payment" as one-tap BILL presets, so migrating users arrive **already mis-filed**. The migration bridge must run the detector, not just the Money page |
+| **A10.3** | ✅ **DONE 2026-08-10** — Bills → **Expenses** across the Money surface + the sheet + **onboarding's first-run fork**, which A10.1 had missed and is the first classification anyone makes. Guardian/Today/tutorial vernacular deliberately untouched → [D22d] | |
+| **A10.4** | ✅ **DONE 2026-08-10** — a one-line caption under the section toggle, phrased by the TEST (what makes it that kind of thing) rather than by example, since a browser needs the rule and a chooser needs the nouns | |
+| **A10.5** | **Whole-item after-scan + both-theme review.** e2e already covers the three routes, the conversion and the dismissal | ▶ next |
+| **A10.6** | ✅ **HANDED OFF 2026-08-10** — filed into **Phase 5** beside the migration bridge, where the affected population actually arrives |
 
 **Exit:** a user cannot file a terminating obligation as a perpetual one without being asked the question,
 existing mis-files are surfaced non-accusingly, and Today's required-actions merge is untouched.
@@ -154,7 +154,8 @@ _All three audits fan out on Fable 5._
 The migration bridge (WKWebView `localStorage` → RN storage), **proven on a real populated upgraded
 device**, then cutover to the RN app as the shipping app.
 - **⭐ [AUDIT GATE] Adversarial migration/upgrade audit — the EXIT gate, no cutover until green.** Every prior data shape: v1–v6 schemas · partial/corrupt/empty/huge portfolios · malformed dates & numbers · mid-migration interruption. Upgrade data-loss is catastrophic AND irreversible.
-- **⭐ E2EE iCloud backup** — native iCloud/document-picker/share-sheet restore over the existing store serialization. NOT premium-gated ("never lose your data" is a baseline). ✅ Proven template: Freedom v1's `ICLOUD_BACKUP_SETUP.md` + `cloudBackup.ts`.
+- **⭐ E2EE iCloud backup** — native iCloud/document-picker/share-sheet restore over the existing store serialization. NOT premium-gated ("never lose your data" is a baseline). ✅ Proven template: Freedom v1's `ICLOUD_BACKUP_SETUP.md` + `cloudBackup.ts`. ⚠️ Also **replace the paste-JSON import** with a real file picker (`BackupSheets.tsx` is text-only today, and its own comment calls the file flow the intended upgrade) — 🎯 Jason 2026-08-10 reported it and scoped it here.
+- **⚠️ [3.7.A10.6] Run the mis-filed-obligation detector over MIGRATED data.** v1.6's Capacitor app offered **"Credit Card Payment"** and **"Loan Payment"** as one-tap BILL presets (`packages/core/constants/requiredExpensePresets.ts:10-59`, still wired into the legacy `AddExpenseModal`), so upgrading users arrive with debts already filed as expenses — and their debt-free date silently omits them. `looksLikeDebt()` + `convertExpenseToDebt()` already exist (3.7.A10.2); the bridge has to *use* them, because the Money-page hint only reaches someone who happens to open that list. **This is the largest affected population in the app.**
 - **Drop two INERT persisted prefs with the migration** — `prefs.isDemoMode` and `prefs.guardianIntroSeen`.
 
 ## Phase 5.5 — Repo consolidation

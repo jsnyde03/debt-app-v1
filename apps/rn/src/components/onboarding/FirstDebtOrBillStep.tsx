@@ -91,16 +91,21 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
         </>
       }>
       <View style={s.copy}>
-        <Text style={[textStyles.title1, { color: c.text.primary }]}>Add your first debt or bill</Text>
+        <Text style={[textStyles.title1, { color: c.text.primary }]}>Add your first debt or expense</Text>
         <Text style={[textStyles.body, { color: c.text.secondary }]}>
           See your plan come to life right away. You can add more any time.
         </Text>
       </View>
 
+      {/* 3.7.A10.3 — the SAME fork the Money chooser asks, at the moment the user has the least context.
+          A10.1 replaced Money's entry points and left this one, which is the FIRST classification anyone
+          makes; unexplained, it is the most likely place to mis-file. It stays a toggle rather than
+          becoming the chooser — onboarding is a guided single-purpose step, not a menu — but it now says
+          which is which in the same words, because the distinction is the app's to explain either way. */}
       <SegmentedToggle
         options={[
           { value: 'debt', label: 'Debt' },
-          { value: 'expense', label: 'Bill' },
+          { value: 'expense', label: 'Expense' },
         ]}
         value={type}
         onChange={(v) => {
@@ -109,8 +114,14 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
         }}
       />
 
+      <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+        {type === 'debt'
+          ? 'Something with a balance you’re paying down — a card, a loan, a mortgage. It ends.'
+          : 'An ongoing cost that doesn’t end — rent, phone, a subscription.'}
+      </Text>
+
       <TextField
-        label={type === 'debt' ? 'Debt name' : 'Bill name'}
+        label={type === 'debt' ? 'Debt name' : 'Expense name'}
         value={name}
         onChangeText={(t) => {
           setName(t);

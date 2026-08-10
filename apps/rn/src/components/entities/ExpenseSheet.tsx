@@ -89,9 +89,12 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
   return (
     <FormSheet
       visible
-      title={isEdit ? 'Edit bill' : 'Add a bill'}
-      subtitle="A required bill or payment due each cycle."
-      submitLabel={isEdit ? 'Save' : 'Add bill'}
+      // 3.7.A10.3 [D22d] — "expense", not "bill". A credit card BILL is a debt, so the word collided with
+      // every item in the other list and invited the mis-file this whole item exists to stop. The clause
+      // is the distinguishing one, not a description: what makes this not-a-debt is that it never ends.
+      title={isEdit ? 'Edit expense' : 'Add an expense'}
+      subtitle="An ongoing cost that doesn't end."
+      submitLabel={isEdit ? 'Save' : 'Add expense'}
       onSubmit={submit}
       onRemove={isEdit ? remove : undefined}
       onClose={onClose}

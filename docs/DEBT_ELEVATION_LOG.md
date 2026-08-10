@@ -4337,3 +4337,44 @@ through `AddRow`, `Button` and `EmptyState` so a label change cannot silently or
 in A10: the rename (A10.3), under-header definitions (A10.4), and **A10.6, handing the detector to Phase
 5's migration** — the item with the largest affected population, since v1.6 taught that a credit card is a
 bill.
+
+---
+
+## 3.7.A10.3–A10.6 — the words, and where the mistake actually arrives (2026-08-10)
+
+**Gate 156/156**, zero `error-context.md`. Frames: `capture-ref/money-sections/`.
+
+### A10.3 — Bills → Expenses, and the fork A10.1 missed
+
+The Money surface, the sheet (`Add an expense` · `An ongoing cost that doesn't end.`), the search
+placeholder and the empty state. **The Guardian's, Today's and the tutorial's "bills" vernacular is
+deliberately untouched** — [D22d] routed it to the wording/voice gate, and a sprawling copy change on the
+eve of a device build is exactly how an unrelated regression gets in.
+
+⚠️ **And a hole in A10.1, found by the string sweep rather than by the item's own after-scan.**
+`FirstDebtOrBillStep` has its own `Debt` / `Bill` toggle — **the first classification any user ever
+makes**, at the moment they have the least context, with no explanation beyond a placeholder. A10.1
+replaced Money's six entry points and left the one that runs before Money is ever opened. It keeps its
+toggle (onboarding is a guided single-purpose step, not a menu) but now names the distinction in the same
+words the chooser uses.
+
+### A10.4 — the caption is phrased by the TEST, not by example
+
+The chooser carries nouns — rent, Visa, a car loan — because someone *choosing* needs recognition. The
+section caption carries the rule, because someone *already looking at the list* needs to know why the
+thing they expected isn't in it. Same distinction, two jobs, deliberately different wording.
+
+### ⚠️ A10.6 — the population that matters is not on the Money page
+
+v1.6's Capacitor app offered **"Credit Card Payment"** and **"Loan Payment"** as one-tap BILL presets
+(`requiredExpensePresets.ts:10-59`, still wired into the legacy `AddExpenseModal`). It *taught* that a
+credit card is a bill. So upgrading users do not merely risk the mistake — many arrive having already made
+it, at the app's own invitation, with a debt-free date that silently omits their largest debt.
+
+`looksLikeDebt()` and `convertExpenseToDebt()` exist now; the **migration bridge has to run them**, because
+the row hint only ever reaches someone who happens to open that list. Filed into **Phase 5**, beside the
+migration and its adversarial audit — not left in A10, where it would have looked done.
+
+**Also filed to Phase 5 in the same edit:** 🎯 Jason's report that Import Backup asks you to paste JSON.
+Scoped there because Phase 5 already owns the native file/share-sheet work, and `BackupSheets.tsx`'s own
+comment names the document-picker flow as the intended upgrade to its text-only stopgap.

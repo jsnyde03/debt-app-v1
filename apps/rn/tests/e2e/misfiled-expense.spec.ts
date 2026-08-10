@@ -19,16 +19,16 @@ const RENT = { id: 'e-rent', name: 'Rent', amount: 1600, dueDate: '2026-09-01', 
 
 const seeded = (expenses: unknown[]) => scenario({ requiredExpenses: expenses, prefs: { onboardingComplete: true } });
 
-async function openBills(page: import('@playwright/test').Page) {
+async function openExpenses(page: import('@playwright/test').Page) {
   await page.goto('/money');
-  await page.getByText('Bills', { exact: true }).click();
+  await page.getByText('Expenses', { exact: true }).click();
 }
 
 test('a mis-filed mortgage is offered a way out — and rent beside it is not accused', async ({ page }) => {
   // Both are housing, monthly, and $1,600. The ONLY thing separating them is the name, which is exactly
   // the claim the detector makes — so they are tested together or the precision claim is untested.
   await seedStore(page, seeded([MORTGAGE, RENT]));
-  await openBills(page);
+  await openExpenses(page);
 
   await expect(page.getByTestId('misfiled-convert-e-mortgage')).toBeVisible();
   await expect(page.getByTestId('misfiled-convert-e-rent')).toHaveCount(0);
@@ -36,7 +36,7 @@ test('a mis-filed mortgage is offered a way out — and rent beside it is not ac
 
 test('"Move to Debts" converts it in ONE write — the expense is gone and the debt exists', async ({ page }) => {
   await seedStore(page, seeded([MORTGAGE]));
-  await openBills(page);
+  await openExpenses(page);
   await page.getByTestId('misfiled-convert-e-mortgage').click();
 
   // It lands in Debts, on the form, prefilled with everything the expense already knew.
@@ -65,7 +65,7 @@ test('"Move to Debts" converts it in ONE write — the expense is gone and the d
 
 test('"Not a debt" is remembered — a suggestion that cannot be silenced is an accusation', async ({ page }) => {
   await seedStore(page, seeded([MORTGAGE]));
-  await openBills(page);
+  await openExpenses(page);
   await page.getByTestId('misfiled-dismiss-e-mortgage').click();
   await expect(page.getByTestId('misfiled-convert-e-mortgage')).toHaveCount(0);
 

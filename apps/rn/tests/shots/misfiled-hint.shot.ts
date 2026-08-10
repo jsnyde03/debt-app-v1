@@ -22,7 +22,7 @@ for (const theme of ['light', 'dark'] as const) {
   test(`the mis-filed hint beside untouched expenses (${theme})`, async ({ page }) => {
     await seedStore(page, scenario({ requiredExpenses: [MORTGAGE, RENT, PHONE], prefs: { onboardingComplete: true, themeMode: theme } }));
     await page.goto('/money');
-    await page.getByText('Bills', { exact: true }).click();
+    await page.getByText('Expenses', { exact: true }).click();
     await page.waitForTimeout(700);
     await page.screenshot({ path: path.join(OUT, `hint-${theme}.png`) });
   });
