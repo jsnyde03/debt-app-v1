@@ -9,22 +9,6 @@
 export const QA_TOOLS = true;
 
 /**
- * Is the bounded demo reachable in this build?
- *
- * ONE definition, read by the `/demo` route AND every affordance that offers it, so an entry can never
- * outlive the destination it points at. The legacy demo was the opposite shape: a Welcome button wired
- * straight to `importStore(demoStore())`, with nothing tying the offer to what it opened.
- *
- * **[D19], Jason 2026-08-06: the demo does NOT ship to users.** It briefly did. The walkthrough is the
- * only in-app teaching surface, because both showed the same feature with the same persona money on the
- * same screen — in the app, that is one thing said twice. The demo's remaining job is the App Preview
- * (3.5.8) and the marketing embed (3.5.7), so it rides `QA_TOOLS` and leaves the shipped app at the
- * Phase-6 flip along with every entry to it.
- *
- * A function rather than a constant because this is the lever: reachability is one decision in one place,
- * and the entries read it too, so an entry can never outlive its destination.
- */
-/**
  * 3.5.8.3 — is THIS build an App-Preview capture build?
  *
  * `EXPO_PUBLIC_*` is inlined by Metro at BUILD time, so this is a constant in the bundle: a real build
@@ -57,8 +41,31 @@ export const CAPTURE_DEMO = process.env.EXPO_PUBLIC_CAPTURE_DEMO === '1';
  * After running the capture export locally, `--clear` before trusting anything you build next.
  */
 
+/**
+ * Is the bounded demo reachable in this build? **Yes — it ships to users.**
+ *
+ * ONE definition, read by the `/demo` route AND every affordance that offers it, so an entry can never
+ * outlive the destination it points at. The legacy demo was the opposite shape: a Welcome button wired
+ * straight to `importStore(demoStore())`, with nothing tying the offer to what it opened.
+ *
+ * **[D21], 🎯 Jason 2026-08-10 — this reverses [D19].** [D19] pulled the demo's user-facing entries on the
+ * grounds that it duplicated the walkthrough: *"as built it never leaves Today, which makes it a Guardian
+ * demo, not a Debt demo."* True then. The same decision ordered the rebuild (3.5.4.11) that made it a
+ * five-beat arc across Money, Today and Progress — **so the premise was repaired the same day and the
+ * pull was never revisited.**
+ *
+ * What that cost, measured: `tutorialSelectors` will not offer the walkthrough until `onboardingComplete`,
+ * so with the entries gone a new user had **no way to see what the app does before entering their real
+ * financial data.** The demo was built for exactly that (its route guard handles a not-yet-onboarded user,
+ * and device checklist §12.1 tests the fresh-install door) — the door was built, verified, then unhandled.
+ *
+ * The division of labour that keeps it from being "one thing said twice":
+ *   - **demo** — BEFORE you commit anything. Sandboxed persona money, terminal exits. Welcome + paywall.
+ *   - **walkthrough** — AFTER onboarding. Teaches the Guardian on the user's own money, in situ.
+ *
+ * ⚠️ It no longer rides `QA_TOOLS`, so the Phase-6 flip does not take it out of the app. That coupling was
+ * the point of the old expression and is exactly what must not be re-introduced.
+ */
 export function isDemoReachable(): boolean {
-  // `CAPTURE_DEMO` is included so a capture build still works after the Phase-6 `QA_TOOLS` flip — the
-  // App Preview will need re-shooting for exactly the releases where `QA_TOOLS` is false.
-  return (typeof __DEV__ !== 'undefined' && __DEV__) || QA_TOOLS || CAPTURE_DEMO;
+  return true;
 }

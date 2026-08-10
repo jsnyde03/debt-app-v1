@@ -38,10 +38,9 @@ app is downstream of them,** and the cohesion audit should review a correct app.
 - **3.5.7's hosting + privacy specifics** (the *when* is settled: after 3.7).
 - **[D2]** `minimumPaidThisCycle` ownership — gates B4. · **[D3]** Money hero language. · **[D1]** Control Center (rec: stay deferred).
 
-### ⚠️ Open defects that block later work
+### ⚠️ Open defects
 
-- **The demo's debt-free date shifts a YEAR on the closing beat** — `balanceAsOfDate` suspected, unproven. Blocks **both** the App-Preview re-shoot and 3.5.7 (same `DEMO_STAGES` run). Audit doc §OPEN.
-- **A transient `$790` on Today's arrival** during the demo — same class, settle before the asset is cut.
+- **A transient `$790` on Today's arrival** during the demo — a half-rendered Guardian card for ~0.5s at beat 2. Now **user-facing** under [D21], not just a store-video concern. Settle before the asset is cut.
 
 **Gate:** `validate:release:rn` — **146/146**, zero `error-context.md`. CI runs it on every push.
 **Env:** `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` + `serve apps/rn/dist -l 4319 -s` · e2e `npm run test:e2e:rn`. ⚠️ Capture-pipeline and H.264-inspection recipes → log §"Working notes".
@@ -82,8 +81,28 @@ signed off, because its OUTPUT is not final:**
 |---|---|---|
 | 1 | **3.5.7 — web-embeddable marketing demo** | the only unbuilt build item. After 3.7. ⛔ Does **not** wait on the device pass — the embed is live code, the App Preview is a frozen video, and the device pass verifies native behaviour a browser does not have. It waits on the debt-free-date defect, hosting/privacy, and the web-only `Slider` a11y gap |
 | 2 | **The device pass** | `DEBT_3.5_DEVICE_QA_CHECKLIST.md` §11 walkthrough · §12 demo · §13 coach-marks, against the fresh build |
-| 3 | **The debt-free-date defect** | see ▶ NOW · blocks the re-shoot and 3.5.7 |
+| 3 | **3.5.9 — reinstate the demo as a shipped surface** | ▶ **ACTIVE**, decomposed below. [D21] reverses [D19] |
 | 4 | **The App-Preview asset must be RE-SHOT** | the pipeline is proven and cycle 14 approved, but the submitted file is shot after the UI settles → Phase 6 |
+
+### ▶ 3.5.9 — reinstate the demo (ACTIVE)
+
+**[D21] 🎯 Jason 2026-08-10 reverses [D19].** [D19] pulled the demo's user-facing entries because it
+duplicated the walkthrough — *"as built it never leaves Today."* The same decision ordered the rebuild
+(3.5.4.11) into a five-beat arc across Money · Today · Progress, **so the premise was repaired the same
+day and the pull was never revisited.** Cost, measured: `tutorialSelectors` withholds the walkthrough until
+`onboardingComplete`, so a new user had **no way to see what the app does before entering real financial
+data** — while the demo's route guard and checklist §12.1 were built and verified for exactly that door.
+
+**Division of labour:** demo = BEFORE you commit (Welcome + paywall, sandboxed, terminal exits) ·
+walkthrough = AFTER onboarding, on your own money.
+
+| # | Step |
+|---|---|
+| **3.5.9.1** | ✅ `isDemoReachable()` returns true and no longer rides `QA_TOOLS` — the Phase-6 flip must not take the demo out of the app |
+| **3.5.9.2** | **Test the DOORS, not just the destination** — every existing demo spec navigates straight to `/demo`, so nothing would have failed when the entries were pulled. Cover Welcome → demo and paywall → demo, for a cold un-onboarded user |
+| **3.5.9.3** | **Re-verify containment now that it is user-reachable** — terminal exits, no real writes, the a11y announcement, both themes |
+| **3.5.9.4** | **Raise §12's stakes in the device checklist** — it was written for a QA-gated surface; a demo bug is now in front of every new user |
+| **3.5.9.5** | Whole-item after-scan + the `$790` transient, which is now user-facing |
 
 **Restraint that still governs the tutorial/demo:** no Tier-3 spectacle, confetti or sound · no
 gamification chrome · Recovery stays a glimpse · the in-app tutorial stays ≤7 beats.
@@ -185,6 +204,7 @@ measured hotspot)* · Dynamic-Type device QA.
 
 **Tooling / hygiene:**
 - **⭐ Extend the Maestro lane to an iPad simulator** — `native-e2e.yml` boots iPhone only, so every iPad claim is verified by a human or not at all. Would take **four** items off the device's plate, incl. the ring-origin invariant that nothing guards. Wants batching with the next native build. **Strongest candidate once Wave A closes.**
+- **⚠️ The gate still asserts the RETIRED demo-mode contract** — `runRegressionTests.ts:59` imports `testDemoModeSeed`, which asserts the Capacitor key `debtPlanner.isDemoMode` that `seedPlannerState.ts` writes. It passes (the legacy tree still exists) but it is a green test defending a feature the RN app no longer has, which reads as a live contract → delete with the Capacitor tree at **5.5.1**.
 - **⚠️ `apps/rn/package-lock.json` is out of sync** — `npm ci` refuses it; both CI lanes work around it with `npm install`, so **installs are not reproducible.** Regenerate deliberately and re-run the full gate → before the Phase-5 cutover.
 - **Simulator build recipe DUPLICATED** across `native-e2e.yml` and `app-preview.yml` (~60 lines of expensive native fixes) — extract a composite action → with the iPad lane.
 - **No local pre-flight for the capture path** — a flagged web export + ~40-line check would have caught several CI cycles' worth of defects → with the above.

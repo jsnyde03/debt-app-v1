@@ -384,17 +384,24 @@ came from looking at the frames.
 two of the five frames the video exists for. `?capture=1` now strips it. Its Guardian-specific copy sitting
 over the Money list at beat 1 goes with it.
 
-### ⚠️ OPEN — the debt-free date shifts a year on the closing beat only
+### ✅ CLOSED 2026-08-06 (`085af3b`) — the debt-free date does NOT shift, and cannot start
 
-**Measured, not inferred:** unprimed Today reads *"debt-free by September 2029"* and Progress reads
-*"September 2029"* — **they agree**, so there is no second producer and plan item A7 stays closed. The
-2030 appears **only** on beat 5, after `primePayoff` runs.
+**Measured on screen at both beats of the real run: November 2029 on the trajectory beat, November 2029
+on the closing one.** The date does not move.
 
-Raising `minimumPayment` was the first cause and is fixed; the date still moves, so the remaining suspect
-is `balanceAsOfDate` being anchored 35 days back — **suspected, not proven.** A year-worse date between
-two consecutive shots is the kind of thing a viewer registers without being able to name, so it needs
-settling before the capture is cut. Cheapest next probe: prime with the anchor left at `currentDate` and a
-balance already at zero-projection, and see whether the date holds.
+The report above was right about the arithmetic and wrong about its subject. It compared
+`selectDebtFreeDate` on RAW stores, while Today renders its summary on `withProjectedBalances(store, …)`
+— the projection that consumes the very `balanceAsOfDate` that `primePayoff` moves 35 days back. So it
+described a five-month shift on a store no screen uses. That also settles 3.5.4.11's note:
+**`balanceAsOfDate` is the right mechanism, it just lands back on the same month.**
+
+The guard lives in `demo-containment.spec.ts` — it walks the real script and reads the dates the viewer
+actually sees, set-based across the two beats, so a NEW date appearing fails while the screens stay free
+to show different numbers of them.
+
+⚠️ **This section kept its "OPEN" heading for four days after the fix**, and on 2026-08-10 that heading was
+read twice as live: once into the plan's "what's left in 3.5" table, and once into the risk list for
+reinstating the demo. A finding's status belongs where the finding is, or the heading becomes the answer.
 
 ### ⚠️ OPEN — Skia canvases were UNPAINTED in one capture-mode frame
 

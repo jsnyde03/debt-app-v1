@@ -26,6 +26,57 @@ const NOT_ONBOARDED = scenario({
   prefs: { onboardingComplete: false },
 });
 
+/**
+ * [D21] 3.5.9.2 — the DOORS, which nothing covered.
+ *
+ * Every other spec in this file navigates straight to `/demo`, so all of them kept passing while the app
+ * offered no way to get there: [D19] pulled both entries and the suite did not notice for four days. A
+ * destination with no tested door is the defect class this repo has now shipped three times.
+ *
+ * These two tests are the reason [D21] cannot be un-done silently. They fail if `isDemoReachable()` goes
+ * back to riding `QA_TOOLS`, which is exactly what the Phase-6 flip would otherwise do to it.
+ */
+/**
+ * Exactly ONE marker the user can SEE.
+ *
+ * ⚠️ Not a DOM count. Measured 2026-08-10: entering from the paywall leaves **2 marker nodes in the
+ * document and 1 visible** — the route beneath is still mounted — where the other two doors leave 1 and 1.
+ * A bare `toBeVisible()` therefore fails strict mode on that path only, and a `.first()` would have hidden
+ * the difference instead of describing it. Visible-count is also the property §12.5 actually cares about:
+ * the marker must appear in exactly one place on screen.
+ *
+ * ⏳ The invisible node is web layout, so whether a screen reader can still reach it is a DEVICE question
+ * (an inactive RN stack screen is `display:none` on web, which does remove it from the a11y tree).
+ */
+async function visibleMarkers(page: import('@playwright/test').Page): Promise<number> {
+  const all = page.getByTestId('example-canvas-marker');
+  const n = await all.count();
+  let seen = 0;
+  for (let i = 0; i < n; i++) if (await all.nth(i).isVisible()) seen++;
+  return seen;
+}
+
+test('the WELCOME door — a brand-new user can try the app before entering any data', async ({ page }) => {
+  await seedStore(page, NOT_ONBOARDED);
+  await page.goto('/onboarding');
+
+  // The whole point of [D21]: this is the only surface a cold user can reach, because the walkthrough is
+  // withheld until `onboardingComplete`. If this button is gone, the app cannot be evaluated before it is
+  // trusted with someone's real money.
+  await page.getByText('Try with Sample Data').click();
+  await expect(page).toHaveURL(/money/, { timeout: 15_000 });
+  await expect.poll(() => visibleMarkers(page), { timeout: 15_000 }).toBe(1);
+});
+
+test('the PAYWALL door — "See it in action" reaches the demo', async ({ page }) => {
+  await seedStore(page, scenario({ subscriptionPlan: 'free', prefs: { onboardingComplete: true } }));
+  await page.goto('/paywall');
+
+  await page.getByText('See it in action').click();
+  await expect(page).toHaveURL(/money/, { timeout: 15_000 });
+  await expect.poll(() => visibleMarkers(page), { timeout: 15_000 }).toBe(1);
+});
+
 test('a not-yet-onboarded user reaches the demo, and it is contained', async ({ page }) => {
   await seedStore(page, NOT_ONBOARDED);
   await page.goto('/demo');
