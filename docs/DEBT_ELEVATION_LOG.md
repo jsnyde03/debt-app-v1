@@ -3924,3 +3924,89 @@ cushion bar rendered UNPAINTED again**, independently, 600ms after the beat sett
 ledger (§3.5.3) has it as a single capture-time observation, and it is now **reproducible on web**, which
 is a stronger claim than the one filed. Noted there; still device-owed, since CanvasKit-on-web is not the
 shipping renderer. (c) Nothing else surfaced that earns a queue slot.
+
+---
+
+## 3.5.6.2 — the whole-3.5 both-theme + a11y sweep (2026-08-10)
+
+**Gate 141/141 → 145/145**, zero `error-context.md`. The sweep is
+`apps/rn/tests/shots/phase35-themes.shot.ts`; frames → `apps/rn/capture-ref/phase35/<theme>/`.
+
+### .1 The inventory — the coverage was not what the docs implied
+
+| Surface | Had frames? |
+|---|---|
+| the 7-beat arc · the finales | ✅ but from `tests/visual/*.cjs`, a parallel root-level mechanism — and **stale** (arc 08-05, finales 08-04, while [E4] changed the upgrader on 08-08) |
+| the demo's 5 beats | ✅ current, and from an in-repo harness (`demo-beats.shot.ts`) |
+| **the coach-marks** | ⛔ **none anywhere**, though `coach-marks.spec.ts` said "the both-theme screenshots show the card correctly placed" |
+| **the walkthrough at iPad width** | ⛔ **nothing at any width above 440**, though `TutorialOverlay` carries bespoke iPad origin math |
+
+### ⚠️ The find: the walkthrough followed the OS, not the user's chosen theme
+
+`createSandboxBase` starts from `createDefaultStore()`, whose `themeMode` is `'system'` — so every
+surface rendered under the sandbox provider ignored the in-app appearance override while the dock, the
+tab bar and everything outside it honoured it. **A user who set Dark on a Light phone got a walkthrough
+that flipped mid-session**, on the app's flagship teaching surface.
+
+Measured before the fix, and it inverts, which is what proved the mechanism rather than merely fitting it:
+
+| | real card | walkthrough card |
+|---|---|---|
+| `themeMode=dark`, OS light | `rgb(7,17,31)` | `rgb(230,235,243)` |
+| `themeMode=light`, OS dark | `rgb(230,235,243)` | `rgb(7,17,31)` |
+
+⚡ **It survived every prior both-theme review because the reviewing harness set the OS scheme and the
+pref TOGETHER** — `rn-tutorial-arc-theme.cjs` passes `colorScheme` to the browser context *and* seeds
+`themeMode`. The pinned 08-05 dark frame is correct-looking for the wrong reason. A reviewer's laptop has
+them agreeing too, so nothing about looking harder would have found this; the sweep found it by setting
+one and not the other, unintentionally at first.
+
+Fixed in `seedSandbox`, applied AFTER `assertScenarioPurity` so `build` stays pure and re-seed
+determinism (the demo loop, "start over") is untouched. Theme is the only pref carried: the isolation
+exists to keep money out and writes in, and appearance is neither — while `debtFreeSoundEnabled` staying
+at its default is the tutorial's no-sound restraint working, so a general prefs merge would have quietly
+undone it. Pinned by an e2e that pits the two against each other.
+
+### The second find: an assertion that could not fail
+
+`coach-marks.spec.ts` proved "an unseen mark is offered" with `toBeVisible()`. **Measured: the callout
+lands at y≈1266 in an 874pt viewport** — 392pt below the fold, in both themes — and the assertion passed
+anyway, because RN-web satisfies `toBeVisible` with a node anywhere in the document. Third instance of
+this class in the repo.
+
+Rewritten to what web genuinely proves: exactly ONE callout, and it is the Modal's own copy — which is
+precisely what 3.5.5.5 built. Verified by deleting `<CoachMarkLayer nested />` and confirming the test
+goes red; the old assertion would have stayed green. Needed a `testID` on the callout and one on the
+sheet's modal root. ⚠️ Asserting the callout was inside *the sheet* failed against correct code: the
+nested layer is a SIBLING of the sheet inside the Modal's gesture root, deliberately, so subject window
+coordinates and the callout frame share one space.
+
+### .3 a11y — extended, and one honest limit
+
+`a11y-axe` covered Today, the demo, a sheet and both beat kinds, but never a coach-mark. Two cases added:
+a mark on a screen, and the in-sheet mark — a live `alert` inside a Modal, where a second hidden-but-
+focusable copy is exactly what `aria-hidden-focus` exists to catch. The in-sheet case is pinned to a
+COMPACT viewport: at desktop width Money is the iPad master-detail, the debt form is an in-tree pane,
+there is no Modal, and the nested host correctly never mounts. Label-in-name across the 3.5 controls is
+clean — the dock and invite derive their names from their visible text, so they cannot diverge.
+
+### ⚠️ .4 What web cannot settle — including one I tried to fix and could not
+
+- **The iPad ring-origin invariant is NOT web-observable.** An assertion for it was written, then
+  **deleted for claiming a guarantee it could not give**: reintroducing the bug (dropping `- origin.x`)
+  and re-running at 1194×834 changed nothing, because the overlay's origin is 0 on RN-web at every width.
+  The rail is a native layout, not a viewport one. The fix that a comment says "a phone-only screenshot
+  pass would have shipped" is currently held by **nothing automated** → the Maestro/iPad lane.
+- Beat 5's ring on **iPad landscape** clamps to a short stage and its bottom border cuts through the
+  card's closing disclaimer. Portrait is clean. Composition call for the device pass.
+- VoiceOver announcement delivery, the rotor, haptic weights: `announceForAccessibility` is a literal
+  no-op on RN-web. Unchanged, restated so a green web sweep is not read as an a11y result.
+
+### After-scan
+
+(a) **Two screenshot mechanisms now exist** — `tests/visual/*.cjs` at the root and `apps/rn/tests/shots/`
+— and the stale set is the one that masked the theme defect. The root tree is 5.5.1's to remove; filed
+there rather than deleted mid-sweep. (b) The beat-1 unpainted cushion bar is **intermittent**, not
+reliably reproducible: it appeared in 3.5.6.1's frames and in one light beat-1 here, and not in the
+re-shoot. Wording corrected in the device ledger. (c) The demo shares `seedSandbox`, so it inherited the
+theme fix for free.

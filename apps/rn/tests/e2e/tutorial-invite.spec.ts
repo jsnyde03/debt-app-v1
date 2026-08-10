@@ -715,6 +715,53 @@ test.describe('tutorial invitation + in-situ shell', () => {
  * are identical for this audience, so replaying them would charge a customer's attention — right after
  * they paid — for one changed paragraph.
  */
+/**
+ * 3.5.6.2 — the walkthrough honours the user's in-app appearance choice.
+ *
+ * The sandbox is built from `createDefaultStore()`, whose `themeMode` is `'system'`, so the coached
+ * screens used to follow the OS while the dock and every other surface followed the user. It only shows
+ * when the two DISAGREE, which is why a year of both-theme reviews never saw it: a reviewing harness sets
+ * the OS scheme and the pref together, and so does a real reviewer's laptop.
+ *
+ * Hence `emulateMedia` — the OS is pinned AGAINST the preference on purpose. Asserting a computed
+ * background rather than a screenshot: the failure is a colour, and a still of the wrong colour looks
+ * exactly as composed as a still of the right one.
+ */
+test.describe('the walkthrough follows the in-app theme, not the OS', () => {
+  const CARD_BG = async (page: import('@playwright/test').Page) =>
+    page.evaluate(() => {
+      const el = [...document.querySelectorAll('div')].find((d) => d.textContent?.startsWith('PAYDAY GUARDIAN'));
+      let n: HTMLElement | null = el as HTMLElement;
+      while (n) {
+        const bg = getComputedStyle(n).backgroundColor;
+        if (bg && bg !== 'rgba(0, 0, 0, 0)') return bg;
+        n = n.parentElement;
+      }
+      return 'none';
+    });
+
+  for (const [themeMode, os] of [
+    ['dark', 'light'],
+    ['light', 'dark'],
+  ] as const) {
+    test(`themeMode=${themeMode} on an OS set to ${os}: the tutorial matches the app, not the OS`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: os });
+      await seedStore(page, newUser({ prefs: { onboardingComplete: true, themeMode } }));
+
+      // The real card first — it is the reference the walkthrough has to match. Comparing the two
+      // rendered values, rather than pinning a literal colour, keeps this true if the palette moves.
+      await page.goto('/');
+      await page.getByText('PAYDAY GUARDIAN').first().waitFor();
+      const real = await CARD_BG(page);
+
+      await page.goto('/tutorial');
+      await page.getByTestId('tutorial-step-title').waitFor();
+      await page.waitForTimeout(700);
+      expect(await CARD_BG(page)).toBe(real);
+    });
+  }
+});
+
 test.describe('[E4] the upgrade re-offer opens the finale alone', () => {
   test('an upgrader lands on the hand-back beat, with no step counter and no way back', async ({ page }) => {
     await seedStore(page, newUser({ subscriptionPlan: 'premium', prefs: { onboardingComplete: true, tutorialSeen: 'free' } }));

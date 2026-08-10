@@ -115,7 +115,10 @@ export function FormSheet({
 
   return (
     <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={onBackdrop}>
-      <GestureHandlerRootView style={sheetStyles.flex}>
+      {/* 3.5.6.2 — named so a test can assert the nested coach-mark is THIS Modal's copy. The layer is a
+          sibling of the sheet, not a descendant of it (see the note on `CoachMarkLayer nested` below), so
+          "inside the sheet" is the wrong containment question and quietly fails. */}
+      <GestureHandlerRootView testID="sheet-modal-root" style={sheetStyles.flex}>
         {/* KeyboardAvoidingView lifts the sheet (and its sticky submit) above the keyboard — the
             decimal-pad has no return key, so an un-lifted submit is unreachable on device (RN lesson #9). */}
         <KeyboardAvoidingView style={sheetStyles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

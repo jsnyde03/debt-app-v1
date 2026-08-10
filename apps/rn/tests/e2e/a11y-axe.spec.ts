@@ -122,4 +122,37 @@ test.describe('a11y tree invariants', () => {
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
     await focusNeverEntersAFence(page);
   });
+
+  /**
+   * 3.5.6.2 — the coach-marks. 3.5's third discovery surface, and the only one this scanner never saw:
+   * the cases above cover the tutorial and the demo, and the sheet case opens a sheet with no mark up.
+   *
+   * A mark is an `accessibilityRole="alert"` overlay that deliberately does NOT fence the screen ("a hint
+   * is not a modal"), which is the opposite posture from every other case here — so the invariant worth
+   * checking is that the thing underneath stays fully reachable while an alert is live.
+   */
+  test('a coach-mark on a screen — a live alert that fences nothing', async ({ page }) => {
+    await seedStore(page, newUser());
+    await page.goto('/progress');
+    await expect(page.getByTestId('coach-mark')).toHaveCount(1);
+    expect(await violations(page)).toEqual([]);
+  });
+
+  test('a coach-mark inside a sheet — the alert the Modal owns', async ({ page }) => {
+    // The nested host (3.5.5.5). Two copies of this alert would be met TWICE by a screen reader, which is
+    // an a11y defect long before it is a drawing one — and `aria-hidden-focus` is exactly the rule a
+    // second, hidden-but-focusable copy behind a Modal would trip.
+    //
+    // ⚠️ COMPACT on purpose. At this file's default desktop width Money is the iPad master-detail, where
+    // the debt form is an in-tree PANE and there is no Modal at all — so the nested host never mounts and
+    // the root layer legitimately owns the mark. The Modal path is a compact-layout claim, and asserting
+    // it at desktop width tests a layout that does not have the thing being asserted.
+    await page.setViewportSize({ width: 440, height: 956 });
+    await seedStore(page, newUser());
+    await page.goto('/money');
+    await page.getByText('Card', { exact: true }).first().click();
+    await expect(page.getByText('Edit debt')).toBeVisible();
+    await expect(page.getByTestId('sheet-modal-root').getByTestId('coach-mark')).toHaveCount(1);
+    expect(await violations(page)).toEqual([]);
+  });
 });

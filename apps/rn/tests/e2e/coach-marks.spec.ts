@@ -29,14 +29,36 @@ test.describe('coach-marks — offered once, and re-offerable', () => {
    *
    * The offer is also deliberately never dismissed via "Got it": the record is written on OFFER, and on
    * the web that button is not clickable anyway — RN-web lays the sheet out in normal document flow, so
-   * the callout lands ~1590px down a 956px viewport and Playwright cannot scroll an absolutely-positioned
-   * layer into view. Same flow-layout artifact `payoff-schedule.spec.ts` documents, not a reachability
-   * defect; the both-theme screenshots show the card correctly placed, and the dismiss is device-lane.
+   * the callout lands far below the fold and Playwright cannot scroll an absolutely-positioned layer into
+   * view. Same flow-layout artifact `payoff-schedule.spec.ts` documents, not a reachability defect.
+   *
+   * ⚠️ **Measured 2026-08-10 (3.5.6.2): the callout lands at y≈1266 in an 874pt viewport** — 392pt below
+   * the fold, in both themes. So WHERE this mark sits is a question web cannot answer at all, and it is
+   * device-owed; frames are pinned at `apps/rn/capture-ref/phase35/<theme>/coach-payoff-schedule.png`.
+   *
+   * That is also why `toBeVisible()` cannot carry this test: RN-web satisfies it with a node anywhere in
+   * the document, off-screen included. The assertions below say what web genuinely proves — exactly ONE
+   * callout, and it is the Modal's own copy, which is precisely what 3.5.5.5 built. Both were checked by
+   * deleting `<CoachMarkLayer nested />` and confirming this test goes red.
    */
-  test('an unseen mark is offered', async ({ page }) => {
+  test("an unseen mark is offered — exactly one, from the sheet's own host", async ({ page }) => {
     await seedStore(page, scenario());
     await openDebt(page);
     await expect(page.getByText(MARK)).toBeVisible();
+
+    // ONE. The root layer stands down when a nested host announces itself (3.5.5.5); two callouts is not
+    // a double drawing but a hint met twice by a screen reader, since the root copy stays a live `alert`.
+    // Counted explicitly — the old text lookup only got this by accident, via strict-mode ambiguity.
+    await expect(page.getByTestId('coach-mark')).toHaveCount(1);
+
+    // …and it is the MODAL's copy, not the app root's — the assertion that would have failed had the
+    // nested host never been built, which is the defect 3.5.5.5 exists to fix.
+    //
+    // ⚠️ "Inside the sheet" is the wrong containment question and this test asserted it first: the nested
+    // layer is a SIBLING of the sheet inside the Modal's gesture root, deliberately, so a subject's window
+    // coordinates and the callout's frame share one space. Asserting the intuitive nesting failed against
+    // correct code — the structure has to be read, not assumed.
+    await expect(page.getByTestId('sheet-modal-root').getByTestId('coach-mark')).toHaveCount(1);
   });
 
   test('a mark already recorded as seen is NOT offered again on a cold start', async ({ page }) => {

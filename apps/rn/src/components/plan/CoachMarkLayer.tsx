@@ -78,6 +78,10 @@ export function CoachMarkLayer({ nested = false }: { nested?: boolean } = {}) {
   return (
     <View style={[styles.wrap, { top }]} pointerEvents="box-none">
       <View
+        // 3.5.6.2 — the callout is identifiable so a test can count it. The nested-host handoff (3.5.5.5)
+        // is a claim about there being exactly ONE of these, and a text lookup cannot express that
+        // without also matching whatever the copy happens to say.
+        testID="coach-mark"
         style={[styles.card, { backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}
         // One utterance — a screen reader should hear a sentence about a control, not three fragments.
         accessible

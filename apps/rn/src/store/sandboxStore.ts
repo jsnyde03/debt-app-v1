@@ -3,6 +3,8 @@ import { getNextPaycheckDate } from '@core/payCycle/getNextPaycheckDate';
 import { createDefaultStore } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
 
+import { appStore } from './appStore';
+
 import { createDebtStore, type DebtAppState, type DebtStoreInstance } from './store';
 
 /**
@@ -234,10 +236,26 @@ export function seedSandbox(store: SandboxStoreInstance, scenario: SandboxScenar
   const built = scenario.build(createSandboxBase(scenario.baseDate));
   assertScenarioPurity(scenario, built);
 
+  // 3.5.6.2 — the user's APPEARANCE choice crosses into the sandbox, and only it.
+  //
+  // `createSandboxBase` starts from `createDefaultStore()`, whose `themeMode` is `'system'`. Every other
+  // surface reads the real store, so a user whose in-app theme disagrees with their OS — Dark chosen on a
+  // Light phone — got a walkthrough that FLIPPED: measured 2026-08-10 at `themeMode=dark, os=light` →
+  // real card `rgb(7,17,31)`, walkthrough card `rgb(230,235,243)`, and inverted in the mirror case. It
+  // survived every prior both-theme review because the reviewing harness set the OS scheme and the pref
+  // together, as a human's machine does, and the two only disagree when a user deliberately overrides.
+  //
+  // Applied AFTER `assertScenarioPurity` on purpose: `build` stays a pure function of the base, so the
+  // purity contract and the re-seed determinism that "start over" depends on are untouched. Theme is the
+  // only pref carried — the isolation exists to keep MONEY out and writes in, and appearance is neither.
+  // ⚠️ Not a general prefs merge: `debtFreeSoundEnabled` staying at its default is the tutorial's
+  // no-sound restraint working, and inheriting it would quietly undo that.
+  const appearance = appStore.getState().store.prefs.themeMode;
+
   // The seed is bounded by the wrapped `setState` installed in `createSandboxStore` — a scenario cannot
   // hand-seed a matured Guardian (6 cycles of history) straight past the ceiling.
   store.setState({
-    store: built,
+    store: { ...built, prefs: { ...built.prefs, themeMode: appearance } },
     // A sandbox has nothing to hydrate FROM; declaring it hydrated keeps every `isHydrated` gate in the
     // shared UI satisfied so the tutorial renders the real screens rather than a loading state.
     isHydrated: true,
