@@ -4126,3 +4126,87 @@ Named here because the whole-app audit is the next place they can be hunted at s
 
 All three are the same failure at different altitudes: **a claim kept somewhere other than where it is
 checked.**
+
+---
+
+## Plan-file cleanup, 2026-08-10 — the narrative the driver was carrying
+
+🎯 Jason: *"Clean up the debt elevation plan. I cannot find what's active, what's next or anything in it."*
+Fair, and self-inflicted: this session appended four analysis blocks to a file whose one job is to be
+scannable. **Three structural faults, all of which made the first question unanswerable:**
+
+1. **`▶ ACTIVE` was on Phase 3.5, which was finished**, while the real active build — 3.7 Wave A — sat at
+   line 183, *below* Phases 4, 5, 5.5 and 6. The reading order contradicted the build order.
+2. **`## ▶ NOW` had grown to 19 bullets** mixing the active build with closed items, method lessons, env
+   recipes and capture-pipeline lore. Four of the nineteen were things I appended today.
+3. **Completed phases carried their full narrative inline** — Phases 0–3 as four dense paragraphs, Phase
+   3.5 as ~15 bullets of finished work, A0 as a seven-bullet root-cause essay on a shipped fix.
+
+The rewrite puts the active build and its decomposition **first**, then "then, in order", then what is
+blocked on Jason, then the phases in sequence. Everything below moved here rather than being deleted.
+
+### Working notes (moved out of ▶ NOW — operational, not directional)
+
+- **⚠️ No ffmpeg on this machine can read H.264.** Playwright's bundled build is `--disable-everything`, so
+  inspecting a capture MP4 locally means Edge: `chromium.launch({ channel: 'msedge', args:
+  ['--allow-file-access-from-files'] })`, `goto` the `file://` URL, seek, draw to canvas, read
+  `getImageData`. Without the flag the canvas is tainted and luma readings are unavailable. It is how
+  cycle 10's black-and-slate opening was found. ⚠️ For "did anything MOVE", **checksum the frames, never a
+  whole-frame average** — cycle 14's luma was byte-constant across 4.7s of footage that was not still.
+- **⚡ Prove capture-build changes LOCALLY before spending a cycle** (~18 min each; this has paid three
+  times): `EXPO_PUBLIC_CAPTURE_DEMO=1 npx expo export --platform web --clear`, serve, drive with
+  Playwright. ⚠️ Then re-export **with `--clear`** and verify the flag did not leak.
+- **CI history:** `web-e2e` had been red for a month gating the retired Next app; since 2026-08-05 it runs
+  `validate:release:rn` on every push. The native lane (`native-e2e.yml`) stays manual.
+
+### Method lessons (kept in the log where lessons belong)
+
+- **A stashed control run separates "the suite is flaky" from "we broke something" — but SAMPLE IT MORE
+  THAN ONCE** (2026-08-08). One green control read as proof produced a confident wrong attribution and
+  parked a finished item on a branch for a defect it had not caused.
+- **A ledger entry transcribed from an audit round carries the ROUND's state, not the code's** (3.5.6.1).
+- **A screenshot pass cannot find a defect that only appears when two inputs DISAGREE, if the harness
+  always agrees them** (3.5.6.2) — the sharpest of the phase.
+
+### Phase 0–3, as the plan used to state them
+
+- **Phase 0 ✅** — IA (3-tab Today · Progress · Money + "•••" More) · visual language (cool slate/navy,
+  constant navy hero panels) · motion spec · premium reshape (one Premium + Lifetime + portfolio-sub seam)
+  · readiness audit · a11y standard.
+- **Phase 1 ✅** — every surface elevated: Today · Progress (Skia ring + trajectory) · Money
+  (Debts/Bills/Goals, virtualized) · More (TrustCard).
+- **Phase 2 ✅** — the Payday Cushion Guardian (engine · §2.0 confidence governance · cash-flow brain ·
+  graduation · calibration scorecard + Cash Runway · proactive notification · Safety-net reserve lifecycle)
+  + smart obligations/trials + Recovery Plan + Can-I-Afford-This + BNPL first-class + scan-to-prefill +
+  the revenue spine. Locked via the Guardian convergence audit + the Premium-framework audit.
+- **Phase 3 ✅** — Wave A foundation/perf · Wave B delight (celebration · milestone-cross · proof-of-work ·
+  impact viz · tactility · onboarding reframe) · Wave C (trajectory + chart interactivity · `expo-blur`
+  glass · swipe-to-delete · FormSheet polish) · the native block (Live Activity + Dynamic Island · widgets
+  + StandBy · App Intents/Siri · context menu) · genuinely-native iPad · the variable-income band ·
+  Guardian Tier-3 · VIS-1 finale + AHAP · VIS-2/B2 branded share · VIS-6 Windfall + notifications + Skia
+  mesh + sound + Sentry scaffold. Closed by the closeout audit → 3-round Fable-5 re-audit at CONSENSUS.
+
+### Phase 3.5's build order, as completed
+
+**3.5.0–3.5.3** the sandbox substrate · trigger/intro matrix + replay entries · interactive-a11y scaffold ·
+the 7-beat in-situ arc with 2 interactive beats, the persistent Example marker and the E1 hand-back finale;
+closed by the 3.5.3.9 gate at round 10. **3.5.3.9-L** the residue ledger (8 open → all disposed at 3.5.6.1).
+**3.5.4** bounded demo + GTM funnel: kiosk containment [D18] · sandbox seam + hoisted provider · canvas
+marker · the funnel seam with no sink attached. **3.5.4.11** the demo reimagined for the App Preview — the
+5-beat multi-screen arc via `DemoDirector`, `?capture=1` stripping chrome. **3.5.5** three coach-marks,
+offered once ever, re-offerable from More, refused during any bounded run. **3.5.6b** the native Maestro
+lane, 6/6 on real UIKit — caught a data-loss bug (`FormSheet`'s Remove destroyed a record unconfirmed).
+**3.5.8** the App-Preview capture pipeline, 14 cycles, cycle 14 approved with 4.80s of celebration room.
+**3.5.6** verify + close, four sub-steps (see 3.5.6.1–.4 above).
+
+### A0's root cause, kept because the pattern recurs
+
+`AmortizationSheet overlay` rendered `<View style={absoluteFill}>` as a **SIBLING of** the FormSheet
+`<Modal>`, not inside it. On iOS a Modal is a separately-presented view controller, so a sibling overlay
+renders **behind** it — the tap fires, state flips, nothing is visible. On web it is one DOM tree, so it
+looked correct, which is why the web e2e passed. Two prior fixes missed: `70c8879` fixed a real
+gesture-swallow; `2ad1531` swapped nested-Modal → overlay but placed it outside the Modal's tree, moving
+the symptom from "tap swallowed" to "tap works, nothing appears". Fixed at A0.2–A0.3 by making the
+schedule a real pushed route and deleting `AnimatedSheet.overlay` + `AmortizationSheet` outright, so the
+failure class is unreachable rather than merely unused. **This is the same geometry that later explained
+the coach-mark nested host (3.5.5.5).**
