@@ -63,7 +63,7 @@ test('the WELCOME door — a brand-new user can try the app before entering any 
   // The whole point of [D21]: this is the only surface a cold user can reach, because the walkthrough is
   // withheld until `onboardingComplete`. If this button is gone, the app cannot be evaluated before it is
   // trusted with someone's real money.
-  await page.getByText('Try with Sample Data').click();
+  await page.getByText('See it in action').first().click();
   await expect(page).toHaveURL(/money/, { timeout: 15_000 });
   await expect.poll(() => visibleMarkers(page), { timeout: 15_000 }).toBe(1);
 });

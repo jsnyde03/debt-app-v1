@@ -27,7 +27,16 @@ export function WelcomeStep({ onNext, onDemo }: { onNext: () => void; onDemo?: (
           {/* Optional since 3.5.4.8: withheld where the demo isn't reachable, rather than rendered dead.
               A secondary CTA that does nothing is the "nothing renders dead" rule from the round-8
               overlay-less review, one screen earlier. */}
-          {onDemo ? <Button label="Try with Sample Data" variant="secondary" onPress={onDemo} /> : null}
+          {/* 🎯 Jason 2026-08-10 — "Try with Sample Data" was a fossil of the LEGACY demo, which imported a
+              fabricated plan into the real store and could therefore genuinely be tried. What it opens now
+              is a scripted, self-driving demonstration: five timed beats, the tab bar hidden, More
+              disabled. You watch it.
+
+              "See it in action" is the paywall's existing wording for this same destination, so both doors
+              now promise the same thing. ⚠️ Deliberately NOT "see how it works" — that collides with the
+              WALKTHROUGH ("How this works" on the Guardian card, "How the Guardian works" in More), and
+              the walkthrough is the surface a user actually operates. The two had their words backwards. */}
+          {onDemo ? <Button label="See it in action" variant="secondary" onPress={onDemo} /> : null}
         </>
       }>
       <View style={[s.hero, { backgroundColor: c.background.secondary }]}>

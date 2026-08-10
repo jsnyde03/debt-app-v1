@@ -97,7 +97,7 @@
 
 ## §1 — Launch & foundation
 - [ ] **App launches** past the splash — **no white screen, no crash** (this is the New-Architecture + all-native-modules runtime; a crash here = an autolink/New-Arch problem).
-- [ ] Lands on **Today** (if you have data) or **onboarding** (fresh install). If onboarding, either complete it or tap **"Try with Sample Data"** to get a populated app fast.
+- [ ] Lands on **Today** (if you have data) or **onboarding** (fresh install). If onboarding, either complete it or tap **"See it in action"** for the scripted demo (it does NOT populate your app — it is a demonstration).
 - [ ] **Both themes render:** More → Preferences → Appearance → toggle **Light / Dark** → the app recolors cleanly, no unreadable text, no white flashes.
 
 ---
@@ -461,11 +461,11 @@ native modal presentation, VoiceOver, and real StoreKit prices._
 > so you can confirm the symptom rather than waste time reporting it. Everything else is a genuine check.
 
 **Reach it (two doors, test both):**
-- **Fresh install / not onboarded:** first screen → **"Try with Sample Data"**.
+- **Fresh install / not onboarded:** first screen → **"See it in action"**.
 - **Any state:** ••• More → **Unlock Premium** → scroll to **"See it in action"** below the buy button.
 
 ### §12.1 — the route guard (the one most likely to be wrong)
-- [ ] From a **fresh install with no data**, "Try with Sample Data" lands on **Today showing a $2,000
+- [ ] From a **fresh install with no data**, "See it in action" lands on **Today showing a $2,000
       paycheck and MAR 16** — *not* on onboarding, and not on a blank screen.
 - [ ] Force-quit mid-demo and relaunch → you land on **onboarding**, with **no demo running** and no
       example figures anywhere.
