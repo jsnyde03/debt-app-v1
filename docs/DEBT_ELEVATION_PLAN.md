@@ -9,7 +9,8 @@
 ## ▶ NOW
 
 - **Active build:** **Phase 3.5 — interactive tutorial + bounded demo.** 3.5.0–3.5.3 ✅ done, incl. the 3.5.3.9 audit gate **CLOSED at round 10** (2026-08-05). **Phases 0–3 ✅ COMPLETE.**
-- **▶ ACTIVE BUILD: 3.5.6 — verify + close Phase 3.5,** decomposed below. **3.5.5 ✅ COMPLETE 2026-08-08** — three marks, offered once ever, re-offerable from More; gate **139/139 × 3**.
+- **▶ ACTIVE BUILD: 3.5.6 — verify + close Phase 3.5,** decomposed below. **3.5.6.1 is mid-flight**: the ledger's 🎯 [E4] is resolved (upgraders get the **finale only**) and 5 of 8 items are closed; **next up are L2a · L2b · L2d**, three measurable spacing nits. **3.5.5 ✅ COMPLETE.** Gate **141/141**.
+- **⚠️ A method lesson worth keeping (2026-08-08):** a stashed control run separates "the suite is flaky" from "we broke something" — **but SAMPLE IT MORE THAN ONCE.** One green control read as proof produced a confident wrong attribution and parked a finished item on a branch for a defect it had not caused. The suite's real flake (the beat-3 slider tap) is now fixed at the source.
 - **✅ 3.5.8 CLOSED 2026-08-08 — the App-Preview capture pipeline delivers.** 🎯 Cycle 14 **APPROVED**: every guard green, and the celebration measured at **4.80s of room** (cycle 13 landed it in the final 0.1s). ⚠️ **The submitted asset is a re-shoot of this pipeline, not this file** — the UI still changes before Phase 6. Detail → log 3.5.8 cycles 13–14; frame verification → the audit doc's CYCLE 14 section.
 - **⏭ Then:** 3.5.7 marketing embed (needs a hosting + privacy call) → the whole-app cohesion audit.
 - **⚠️ 3.7.A9 folded in 2026-08-07** — `incomeVaries`/`leanAmount` had no UI at all, so the whole variable-income feature set was unreachable. Shipped in `PaycheckSheet` + onboarding.
@@ -99,7 +100,7 @@ The last step before the whole-app cohesion audit. Everything 3.5 built is now i
 
 | # | Step |
 |---|---|
-| **3.5.6.1** | **▶ NEXT — work the 3.5.3.9-L ledger** (`DEBT_TUTORIAL_AUDIT_2026-08-02.md` §T, **8 open**): triage each, fix what web can prove, route the rest to the device lane. ⚠️ Includes **[E4], a 🎯 design call** — surface it with a recommendation rather than deciding it |
+| **3.5.6.1** | **▶ IN PROGRESS — the 3.5.3.9-L ledger.** ✅ **[E4] 🎯 RESOLVED = finale-only** for upgraders · L5 · L3a · L3b (fixed; "LOW" undersold it) · L2c (evidence captured). **Remaining: L2a · L2b · L2d** — three measurable spacing nits; ⚠️ **L2d is UNCONFIRMED, measure before treating it as a defect.** L4 is unrecoverable → 3.5.6.3. Log: 3.5.6.1 |
 | 3.5.6.2 | **Whole-3.5 both-theme + a11y sweep** — the tutorial, the demo and the coach-marks together (VoiceOver end-to-end where web allows; the rest stated as device-owed rather than assumed) |
 | 3.5.6.3 | **Consolidate the 3.5 device-QA debt** into the Phase-6 ledger — the walkthrough's §3.5.3 block, the demo's native lane, and 3.5.5's three owed items, in one place a device pass can actually be run from |
 | 3.5.6.4 | **Whole-PHASE after-scan** (not just this item) — cross-item coherence across 3.5, the accumulated deferral ledger, and lessons that apply retroactively to earlier items. Feeds the whole-app cohesion audit |
