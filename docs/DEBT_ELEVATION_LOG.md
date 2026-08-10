@@ -4210,3 +4210,73 @@ the symptom from "tap swallowed" to "tap works, nothing appears". Fixed at A0.2�
 schedule a real pushed route and deleting `AnimatedSheet.overlay` + `AmortizationSheet` outright, so the
 failure class is unreachable rather than merely unused. **This is the same geometry that later explained
 the coach-mark nested host (3.5.5.5).**
+
+---
+
+## 3.5.9 — [D21] the demo ships to users again (2026-08-10)
+
+🎯 Jason: *"I am concerned about us nixing the demo mode completely. That removed a useful feature for the
+user to try out the app beforehand."*
+
+**[D19] was correct when made and its premise was repaired the same day.** It pulled the demo's entries
+because it duplicated the walkthrough — *"as built it never leaves Today, which makes it a Guardian demo,
+not a Debt demo"* — and in the same breath ordered the rebuild (3.5.4.11) into a five-beat arc across
+Money, Today and Progress. The rebuild landed; the pull never got revisited.
+
+**The measured cost:** `tutorialSelectors.ts:58` returns null unless `onboardingComplete`, so the
+walkthrough cannot be offered to a new user. With the demo's entries gone, a shipped build offered **no
+way to see what the app does before handing it your financial data.** The demo was built for exactly that
+door — its route guard handles a not-yet-onboarded user and checklist §12.1 tests the fresh-install path.
+The door was built, verified, and then unhandled.
+
+Fixed by making `isDemoReachable()` unconditional so the Phase-6 `QA_TOOLS` flip cannot take the demo out
+of the app — that coupling was the whole point of the old expression and is what must not return.
+
+**And the doors are covered now.** Every existing demo spec navigated straight to `/demo`, so the entire
+suite stayed green while the app offered no way to reach it — a destination with no tested door, the class
+this repo has now shipped three times. Two tests added, both verified to go red when `isDemoReachable()`
+is forced false.
+
+⚠️ **Asserting VISIBLE marker count, not `toBeVisible()`.** Measured: the paywall path leaves **2 marker
+nodes in the document and 1 visible** (the route beneath stays mounted) where the other two doors leave 1
+and 1. A bare `toBeVisible()` fails strict mode on that path only; a `.first()` would have hidden the
+difference rather than describing it. Visible-count is also what §12.5 actually cares about.
+
+**Gate 146/146 → 148/148.**
+
+---
+
+## 3.7.A10 switch-in — the Money page review, and what it changed (2026-08-10)
+
+Jason: *"When I enter a bill it's showing up as a required action but not as an actual debt."*
+
+⚠️ **My first response was wrong and worth recording as such.** I explained the bill/debt split as
+correct-by-design and located the problem in the user's mental model. Jason: *"That's wrong. Debts and
+bills are still owed. Bills shouldn't be excluded."* He was right that I had defended a constraint instead
+of testing whether it was binding.
+
+**Where it landed, after two sharpenings.** The axis the engine actually uses is **terminating vs
+perpetual** — does this obligation have a balance that can reach zero? Jason then supplied the decisive
+input: that IS his original intent (*"I originally split Expenses and debts… Expenses do not have an end
+date… Debts are the items that we want to track"*). **So the model is right and the model-merge hypothesis
+is closed** — [D22].
+
+What is wrong is **naming and entry**. The perpetual bucket ships as "Bills", and *bill* is the one word
+that collides with every item in the debt list — a credit card bill, a mortgage bill. The sharpest case is
+**rent vs mortgage**: same category, same cadence, same fixed amount, one perpetual and one terminating,
+and `RequiredExpenseCategory` offers "housing" to both.
+
+⚡ **The load-bearing evidence for why a rename cannot carry this alone: the author of the taxonomy
+mis-filed under his own taxonomy.** Hence [D22a] — stop asking the user to classify at all, and ask the
+one question they can answer about a fact they know: *does this have a balance you're paying down?*
+
+**⚠️ An agent finding I corrected before relaying it.** The review anchored on
+`requiredExpensePresets.ts` offering "Credit Card Payment" and "Loan Payment" as one-tap BILL presets. The
+list is real, but its only importer is `components/RequiredExpenses/AddExpenseModal.tsx` — the **legacy
+Capacitor tree**. RN's `ExpenseSheet` does not use it, so it is **not a live defect**. Same rule as
+[[measure-agent-mechanisms]]: the recommendation was sound, the severity was not.
+
+⚡ **But it produced something better than it claimed.** The v1.6 app *taught* that a credit card is a
+bill, one tap. So migrating users arrive **already mis-filed**, and Phase 5's bridge will import that
+wholesale — which is why A10.6 hands the detector to the migration rather than leaving it a Money-page
+feature.

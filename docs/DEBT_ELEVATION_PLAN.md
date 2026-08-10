@@ -8,29 +8,41 @@
 
 ---
 
-## ▶ BUILDING NOW — Phase 3.7 Wave A · correctness / honesty
+## ▶ BUILDING NOW — 3.7.A10 · obligations: entry, naming, recovery
 
-**Why this one:** A1 and A2 are money defects in the shipped engine — a biweekly BNPL retires ~2× too
-slow, a weekly obligation under a monthly payer is under-reserved. **Every projected debt-free date in the
-app is downstream of them,** and the cohesion audit should review a correct app.
+**Why this one, ahead of Wave A's engine work:** a debt filed as an expense is reserved correctly every
+payday and **silently omitted from the payoff plan and the debt-free date** — the number the whole app
+exists to produce. Fixing the allocator's arithmetic (A1/A2) does not help an obligation that is in the
+wrong bucket entirely. Presentation-layer only, so the engine is untouched. Review:
+[`docs/audits/2026-08-10-money-ia-review/`](audits/2026-08-10-money-ia-review/README.md).
+
+**🎯 [D22] Jason 2026-08-10 — the MODEL is right, the naming and the entry are not.** Expenses = no end
+date (rent, utilities, subscriptions). Debts = the things we track because they end (card, BNPL, loan,
+mortgage). That is the terminating/perpetual axis and it stays. ⛔ **Do not merge the models.** The
+evidence that labels alone cannot carry it: the author of the split mis-filed under his own split.
 
 | # | Step | State |
 |---|---|---|
-| **A.1** | **Verify Wave A against the CURRENT engine.** It was written 2026-07-30; A0/A9 have shipped since. Each item is a hypothesis — reproduce it, and **write the failing test first** | ▶ next |
-| **A.2** | **A1** — BNPL payoff-RATE undercount in `projectDebtPayoff`; normalize the monthly equivalent | |
-| **A.3** | **A2** — sub-cycle obligation undercount in the allocator; expand obligations into per-occurrence instances | |
-| **A.4** | **A3** — the 9-item Guardian honesty/coherence ledger | |
-| **A.5** | **A4 · A5 · A6 · A7** — BNPL seam polish · offline Lifetime mislabel · drift type hygiene · confirm no third debt-free-date producer | |
-| **A.6** | **A8.1–A8.3** — the Siri phrase (`INAlternativeAppNames` + shorter variants; [D4] is *when* to rename, not whether) | |
+| **A10.1** | **Single-entry Add** — one "Add" that asks *"Does this have a balance you're paying down?"* with concrete examples, then shows the right fields. **Fully replaces** the per-section Add rows ([D22a]) — a shortcut back into pre-classifying is the failure mode. Must route to **three** destinations; Goals forks first (saving vs owing) | ▶ next |
+| **A10.2** | **Recovery for what is ALREADY mis-filed** — a detector (category + name signals) and a `convertExpenseToDebt` path; none exists today. **Surfaces on the row, never auto-acts** ([D22c]); runs **retroactively at rollout** ([D22b]) | |
+| **A10.3** | **Rename Bills → Expenses** in user-facing copy. ⚠️ The Guardian's "bills" vernacular is deliberately OUT of scope → the wording/voice gate ([D22d]) | |
+| **A10.4** | **Teach at the point of decision** — a one-line definition under each section header, and concrete nouns in empty states ("Rent · Phone · Netflix" vs "Visa · Car loan · Mortgage") | |
+| **A10.5** | **Cover it** — e2e for the chooser's three routes, the conversion, and both themes. ⚠️ Assert the DOORS, not just the destinations |
+| **A10.6** | **Hand the detector to Phase 5** — v1.6's Capacitor app offered "Credit Card Payment" and "Loan Payment" as one-tap BILL presets, so migrating users arrive **already mis-filed**. The migration bridge must run the detector, not just the Money page |
 
-**Exit:** A1 and A2 have failing-then-passing tests, the honesty ledger is empty, gate green.
+**Exit:** a user cannot file a terminating obligation as a perpetual one without being asked the question,
+existing mis-files are surfaced non-accusingly, and Today's required-actions merge is untouched.
+
+⛔ **Not in scope:** silently re-filing on a keyword match · touching `selectRequiredRows` /
+`RequiredActionView` (that merge is CORRECT — rent and a card minimum are both owed this paycheck).
 
 ### ⏭ Then, in order
 
-1. **Wave B** — B1 drag-the-curve · B2 streak/milestone surfacing · B3 greeting · B4 swipe-to-mark-paid *(needs [D2])*
-2. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
-3. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
-4. **Phase 5** (data continuity, ship-blocker) → **5.5** (repo consolidation) → **Phase 6** (launch)
+1. **Phase 3.7 Wave A** — the engine correctness block: **A1** BNPL payoff-rate undercount · **A2** sub-cycle obligation undercount · **A3** the 9-item Guardian honesty ledger · **A4–A7** · **A8** the Siri phrase. ⚠️ Written 2026-07-30 — verify each against the current engine and write the failing test first
+2. **Wave B** — B1 drag-the-curve · B2 streak/milestone surfacing · B3 greeting · B4 swipe-to-mark-paid *(needs [D2])*
+3. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
+4. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
+5. **Phase 5** (data continuity, ship-blocker) → **5.5** (repo consolidation) → **Phase 6** (launch)
 
 ### ⏸ Waiting on Jason
 
@@ -81,28 +93,11 @@ signed off, because its OUTPUT is not final:**
 |---|---|---|
 | 1 | **3.5.7 — web-embeddable marketing demo** | the only unbuilt build item. After 3.7. ⛔ Does **not** wait on the device pass — the embed is live code, the App Preview is a frozen video, and the device pass verifies native behaviour a browser does not have. It waits on the debt-free-date defect, hosting/privacy, and the web-only `Slider` a11y gap |
 | 2 | **The device pass** | `DEBT_3.5_DEVICE_QA_CHECKLIST.md` §11 walkthrough · §12 demo · §13 coach-marks, against the fresh build |
-| 3 | **3.5.9 — reinstate the demo as a shipped surface** | ▶ **ACTIVE**, decomposed below. [D21] reverses [D19] |
+| 3 | **3.5.9 — reinstate the demo ✅ DONE 2026-08-10** | [D21] reverses [D19]. `isDemoReachable()` no longer rides `QA_TOOLS`; both doors restored and now **tested** — nothing covered them before, which is how they were pulled unnoticed. Log: 3.5.9 |
 | 4 | **The App-Preview asset must be RE-SHOT** | the pipeline is proven and cycle 14 approved, but the submitted file is shot after the UI settles → Phase 6 |
 
-### ▶ 3.5.9 — reinstate the demo (ACTIVE)
-
-**[D21] 🎯 Jason 2026-08-10 reverses [D19].** [D19] pulled the demo's user-facing entries because it
-duplicated the walkthrough — *"as built it never leaves Today."* The same decision ordered the rebuild
-(3.5.4.11) into a five-beat arc across Money · Today · Progress, **so the premise was repaired the same
-day and the pull was never revisited.** Cost, measured: `tutorialSelectors` withholds the walkthrough until
-`onboardingComplete`, so a new user had **no way to see what the app does before entering real financial
-data** — while the demo's route guard and checklist §12.1 were built and verified for exactly that door.
-
-**Division of labour:** demo = BEFORE you commit (Welcome + paywall, sandboxed, terminal exits) ·
-walkthrough = AFTER onboarding, on your own money.
-
-| # | Step |
-|---|---|
-| **3.5.9.1** | ✅ `isDemoReachable()` returns true and no longer rides `QA_TOOLS` — the Phase-6 flip must not take the demo out of the app |
-| **3.5.9.2** | **Test the DOORS, not just the destination** — every existing demo spec navigates straight to `/demo`, so nothing would have failed when the entries were pulled. Cover Welcome → demo and paywall → demo, for a cold un-onboarded user |
-| **3.5.9.3** | **Re-verify containment now that it is user-reachable** — terminal exits, no real writes, the a11y announcement, both themes |
-| **3.5.9.4** | **Raise §12's stakes in the device checklist** — it was written for a QA-gated surface; a demo bug is now in front of every new user |
-| **3.5.9.5** | Whole-item after-scan + the `$790` transient, which is now user-facing |
+**Division of labour, now settled:** demo = BEFORE you commit (Welcome + paywall, sandboxed, terminal
+exits) · walkthrough = AFTER onboarding, on your own money.
 
 **Restraint that still governs the tutorial/demo:** no Tier-3 spectacle, confetti or sound · no
 gamification chrome · Recovery stays a glimpse · the in-app tutorial stays ≤7 beats.
@@ -226,7 +221,9 @@ measured hotspot)* · Dynamic-Type device QA.
 - **Revenue spine ✅ (2026-07-25)** — Monthly $4.99 · Annual $29.99 · Lifetime $79.99 (excludes Connected/Ava). **NO free trial.** Reuses the existing RevenueCat project — v1.6 subs must restore.
 - **Phase-3 scope ✅ (2026-07-27)** — pull EVERYTHING into v1.7 unless it genuinely can't ship. Analytics OUT of the core (privacy moat), but the 3.5 demo re-opened it → D-A wires a privacy-first funnel seam.
 - **Executive "fix everything, no backlog" ✅ (2026-07-29/30)** — fold every audit finding now; only hardware verification waits for Phase 6.
-- **[D19] ✅ (2026-08-06)** — the walkthrough is the ONLY in-app teaching surface; the demo becomes the App-Preview/embed vehicle and rides `QA_TOOLS` out of the shipped app.
+- **[D22] ✅ (2026-08-10)** — **the debt/expense split is CORRECT and stays** (terminating vs perpetual); the defect is naming + entry. **[D22a]** the single-entry chooser fully replaces the per-section Adds · **[D22b]** the mis-file detector runs retroactively at rollout · **[D22c]** it surfaces, never silently re-files · **[D22d]** the Guardian's "bills" vernacular → the wording/voice gate. → 3.7.A10.
+- **[D21] ✅ (2026-08-10)** — **the demo SHIPS to users again, reversing [D19].** Demo = before you commit (Welcome + paywall); walkthrough = after onboarding, on your own money. It no longer rides `QA_TOOLS`.
+- **⛔ [D19] REVERSED (2026-08-06 → 2026-08-10)** — it pulled the demo's entries as a duplicate of the walkthrough, and the rebuild it ordered (3.5.4.11) repaired that premise the same day. Superseded by [D21].
 - **[D20] capture pipeline ✅ (2026-08-06)** — Maestro drives · `simctl` records · ffmpeg conforms. `maestro record` rejected.
 - **[E4] ✅ (2026-08-08)** — an upgrader is offered the FINALE alone, not a replay of the arc.
 - **3.5.7 sequencing ✅ (2026-08-10)** — built after Phase 3.7. Hosting + privacy specifics still open.
