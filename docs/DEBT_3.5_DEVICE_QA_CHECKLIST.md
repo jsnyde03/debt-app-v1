@@ -370,6 +370,39 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
 
 ---
 
+## §14 — Money: adding things, and the mis-file rescue (3.7.A10) — ⚠️ NEW, and the flow changed
+
+_Money no longer asks you to pick a section before you type. One **Add** asks what you're adding; the
+answer routes. "Bills" is now **"Expenses"**. Nothing here existed on the `c050173` build._
+
+- [ ] **§14.1 — one Add, from all three sections.** Money → **Add** from **Debts**, then from
+      **Expenses**, then from **Goals**.
+      **PASS:** every one opens the same "What are you adding?" sheet with three cards.
+      **FAIL:** any section opens an editor directly — the section would be classifying silently again.
+- [ ] **§14.2 — the answer lands where it says.** Standing in **Expenses**, tap Add → **"A debt"**.
+      **PASS:** you end up in **Debts**, on the debt form, with an APR field.
+      **FAIL:** you get the expense form, or stay in Expenses.
+- [ ] **§14.3 — the first-run fork** _(fresh install / Reset, so onboarding runs)._ ⏳ **Web e2e cannot
+      reach this step — it is verified here or nowhere.** Walk onboarding to **"Add your first debt or
+      expense"**.
+      **PASS:** the toggle reads **Debt / Expense** (not "Bill"), and the line under it changes when you
+      switch — a balance-you're-paying-down clause vs an ongoing-cost clause.
+      **FAIL:** it still says "Bill", or the clause doesn't change with the toggle.
+- [ ] **§14.4 — the mis-file rescue** _(add an expense named **"Mortgage"** and one named **"Rent"**,
+      same amount)._
+      **PASS:** a quiet line appears under **Mortgage** only — *"Is this a debt you're paying down?"* —
+      with **Move to Debts** and **Not a debt**. **Rent is untouched.**
+      **FAIL:** it appears under Rent too (an accusation), under neither, or it reads as a warning.
+- [ ] **§14.5 — Move to Debts.** Tap it on the Mortgage.
+      **PASS:** the debt form opens **prefilled** with the name and the payment; after you add a balance
+      and APR and save, the Mortgage is in **Debts** and **gone from Expenses** — not in both.
+      **FAIL:** it appears in both lists, or the expense survives.
+- [ ] **§14.6 — "Not a debt" stays gone.** Tap it on the Mortgage, force-quit, reopen.
+      **PASS:** the suggestion does not come back. **FAIL:** it returns — a hint that cannot be silenced
+      is an accusation on a loop.
+
+---
+
 ## §13 — the feature-discovery COACH-MARKS (3.5.5) — ⚠️ nothing here is web-observable
 
 _Three one-sentence hints, offered once ever, re-offerable from **More → Show feature tips again**. The

@@ -4378,3 +4378,46 @@ migration and its adversarial audit — not left in A10, where it would have loo
 **Also filed to Phase 5 in the same edit:** 🎯 Jason's report that Import Backup asks you to paste JSON.
 Scoped there because Phase 5 already owns the native file/share-sheet work, and `BackupSheets.tsx`'s own
 comment names the document-picker flow as the intended upgrade to its text-only stopgap.
+
+---
+
+## 3.7.A10.5 — the item's after-scan, and A10 closed (2026-08-10)
+
+**Gate 156/156**, zero `error-context.md`. Frames: `capture-ref/{add-chooser,misfiled,money-sections}/`.
+
+### ⏳ One thing A10 could not verify, stated as a limit rather than skipped
+
+**The first-run fork is not covered by web e2e**, and that is measured, not assumed. Three attempts to
+reach `FirstDebtOrBillStep` failed for two separate reasons: the paycheck step **will not advance without
+a valid amount**, and **"Skip for now" walks straight past the debt step** to "You're all set". A walk
+bent around both would be precisely the fragile flow-shaped test this repo has been burned by — so the
+test was deleted rather than tuned, its copy is verified by typecheck and reading, and its behaviour is
+routed to **checklist §14.3**, which now says exactly what to look for.
+
+That is the same call as 3.5.6.2's deleted iPad assertion: **do not ship a guard you have not seen fail.**
+
+### After-scan across A10
+
+- **The item found a hole in its own first sub-step.** A10.1 replaced Money's six entry points; the A10.3
+  string sweep found the seventh — onboarding's fork, which runs *before* Money is ever opened and is the
+  first classification anyone makes. An item's after-scan is scoped to what it touched; the sweep looked
+  at the vocabulary and saw further. Worth remembering that a *string* pass catches entry points a
+  *screen* pass cannot.
+- **Two design defects came from looking at the render, neither from the diff:** a full-width accent
+  "Cancel" as the loudest thing on the chooser, and a subtitle truncating mid-word on the screen whose one
+  job is clarity. Both were invisible in code review and obvious in a screenshot.
+- **`MoneyView`'s internal value is still `'bills'`** while the label reads "Expenses". Deliberate — the
+  route/state key is not user-facing, and renaming it would churn the section plumbing for no user gain.
+  Named here so it is not later mistaken for a missed rename. → the wording/voice gate, with [D22d].
+- **The detector is name-only, and its list is a judgement call that Jason should spot-check on real
+  data** — it is the one part of A10 whose failure mode is telling someone their rent is secretly a debt.
+- **Device debt added:** checklist **§14** (6 checks) covering the chooser's three doors, the routing, the
+  first-run fork, the rescue, the conversion and the remembered dismissal. All of it is new since
+  `c050173`, so none of it has ever run on hardware.
+
+### Queue replenishment
+
+**Wave A returns to the active slot**, unchanged in scope — it was displaced by A10, not superseded.
+⚡ A10 sharpened the case for it: A10 makes sure an obligation lands in the right bucket; **A1/A2 decide
+whether the arithmetic applied to that bucket is right.** Both have to hold, or the debt-free date is
+wrong for a different reason.

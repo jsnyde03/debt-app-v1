@@ -68,6 +68,19 @@ test('"a savings goal" routes to Goals — the third destination, on its own axi
   await expect(page.getByText('APR %')).toHaveCount(0);
 });
 
+/**
+ * ⏳ **The first-run fork is NOT covered here, and that is a measured limit rather than an oversight.**
+ *
+ * `FirstDebtOrBillStep` carries the same Debt/Expense choice at the moment a user has the least context,
+ * and A10.3 gave it the chooser's words. Three attempts to reach it from a web e2e failed for two
+ * separate reasons: the paycheck step will not advance without a valid amount, and "Skip for now" walks
+ * straight past the debt step to "You're all set". A walk bent around both would be exactly the fragile,
+ * flow-shaped test this suite has been burned by before.
+ *
+ * So its copy is verified by typecheck and by reading, and its behaviour is **device-owed** — the Phase-6
+ * pass walks onboarding anyway, and the checklist now says what to look for.
+ */
+
 test('a MORTGAGE entered through the chooser lands in Debts, where it counts', async ({ page }) => {
   // The case that started this. Rent and a mortgage look identical in a list — same cadence, same fixed
   // amount, same "housing" — and only one of them ever ends. This walks the whole flow and then reads

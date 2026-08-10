@@ -8,7 +8,29 @@
 
 ---
 
-## ▶ BUILDING NOW — 3.7.A10 · obligations: entry, naming, recovery
+## ▶ BUILDING NOW — 3.7 Wave A · engine correctness
+
+**A10 is ✅ COMPLETE (2026-08-10)** — the entry, the naming and the rescue all shipped; detail below and
+in log 3.7.A10. **Wave A is promoted back into the slot it was displaced from**, unchanged in scope:
+
+| # | Step | State |
+|---|---|---|
+| **A.1** | **Verify Wave A against the CURRENT engine.** Written 2026-07-30; A0/A9/A10 have shipped since. Each item is a hypothesis — reproduce it, and **write the failing test first**, because A1/A2 are arithmetic claims and a repro is the only thing separating a real undercount from a stale note | ▶ next |
+| **A.2** | **A1** — BNPL payoff-RATE undercount in `projectDebtPayoff`; a monthly projection pays a biweekly plan 1×/mo, so it retires ~2× too slow | |
+| **A.3** | **A2** — sub-cycle obligation undercount in the allocator; a weekly/biweekly obligation under a monthly payer is under-reserved | |
+| **A.4** | **A3** — the 9-item Guardian honesty/coherence ledger | |
+| **A.5** | **A4 · A5 · A6 · A7** — BNPL seam polish · offline Lifetime mislabel · drift type hygiene · confirm no third debt-free-date producer | |
+| **A.6** | **A8.1–A8.3** — the Siri phrase (`INAlternativeAppNames` + shorter variants; [D4] is *when* to rename, not whether) | |
+
+**Exit:** A1 and A2 have failing-then-passing tests, the honesty ledger is empty, gate green.
+
+⚡ **A10 sharpened the case for A1/A2:** the entry fix makes sure an obligation lands in the right bucket;
+A1/A2 decide whether the arithmetic applied to that bucket is right. Both have to hold or the debt-free
+date is wrong for a different reason.
+
+---
+
+## ✅ 3.7.A10 — obligations: entry, naming, recovery (COMPLETE 2026-08-10)
 
 **Why this one, ahead of Wave A's engine work:** a debt filed as an expense is reserved correctly every
 payday and **silently omitted from the payoff plan and the debt-free date** — the number the whole app
@@ -27,7 +49,7 @@ evidence that labels alone cannot carry it: the author of the split mis-filed un
 | **A10.2** | ✅ **DONE 2026-08-10** — `looksLikeDebt` (name-only; **category as a conjunct was rejected on inspection** — it would catch a mortgage and miss every card) + an atomic `convertExpenseToDebt` + a quiet row hint with a remembered "Not a debt". Retroactive by construction: the detector reads the existing list | |
 | **A10.3** | ✅ **DONE 2026-08-10** — Bills → **Expenses** across the Money surface + the sheet + **onboarding's first-run fork**, which A10.1 had missed and is the first classification anyone makes. Guardian/Today/tutorial vernacular deliberately untouched → [D22d] | |
 | **A10.4** | ✅ **DONE 2026-08-10** — a one-line caption under the section toggle, phrased by the TEST (what makes it that kind of thing) rather than by example, since a browser needs the rule and a chooser needs the nouns | |
-| **A10.5** | **Whole-item after-scan + both-theme review.** e2e already covers the three routes, the conversion and the dismissal | ▶ next |
+| **A10.5** | ✅ **DONE 2026-08-10** — both-theme frames for the chooser, the hint and all three sections; whole-item after-scan. ⏳ **The first-run fork is device-owed** → checklist **§14.3**: web e2e cannot reach that step (the paycheck step won't advance without input, and "Skip for now" walks past the debt step to the end) | |
 | **A10.6** | ✅ **HANDED OFF 2026-08-10** — filed into **Phase 5** beside the migration bridge, where the affected population actually arrives |
 
 **Exit:** a user cannot file a terminating obligation as a perpetual one without being asked the question,
