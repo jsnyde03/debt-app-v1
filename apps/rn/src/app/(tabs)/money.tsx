@@ -9,6 +9,7 @@ import { parseStatementText } from '@core/scan/parseStatementText';
 import type { Recurrence } from '@core/types/recurrence';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
+import { AddObligationSheet, type AddKind } from '@/components/entities/AddObligationSheet';
 import { AmortizationPane } from '@/components/entities/AmortizationView';
 import { DebtSheet } from '@/components/entities/DebtSheet';
 import { useCoachMark } from '@/hooks/use-coach-mark';
@@ -70,7 +71,21 @@ const CADENCE_SUFFIX: Record<Recurrence, string> = {
 
 export default function MoneyScreen() {
   const [view, setView] = useState<MoneyView>('debts');
+  const [chooser, setChooser] = useState(false);
+  // 3.7.A10.1 — set when the chooser has decided; the destination section reads it once and opens its
+  // own editor. The sheets stay OWNED by their sections (they hold the list, the store writes and the
+  // edit path), so routing is all the screen needs to know about.
+  const [autoOpen, setAutoOpen] = useState<AddKind | null>(null);
   const { isExpanded } = useLayout();
+
+  // The answer must visibly LAND somewhere: switching the section as well as opening the editor is what
+  // teaches the distinction. "I said it has a balance" → "…so it went in Debts" is the whole lesson, and
+  // it is free here.
+  const pick = (kind: AddKind) => {
+    setChooser(false);
+    setView(kind);
+    setAutoOpen(kind);
+  };
 
   return (
     // 3.6.2 — the Debts master-detail needs the full iPad canvas; Bills/Goals stay the centered column
@@ -85,14 +100,36 @@ export default function MoneyScreen() {
           { value: 'goals', label: 'Goals' },
         ]}
       />
-      {view === 'debts' ? <DebtsSection /> : view === 'bills' ? <BillsSection /> : <GoalsSection />}
+      {view === 'debts' ? (
+        <DebtsSection autoOpen={autoOpen === 'debts'} onAutoOpened={() => setAutoOpen(null)} onAdd={() => setChooser(true)} />
+      ) : view === 'bills' ? (
+        <BillsSection autoOpen={autoOpen === 'bills'} onAutoOpened={() => setAutoOpen(null)} onAdd={() => setChooser(true)} />
+      ) : (
+        <GoalsSection autoOpen={autoOpen === 'goals'} onAutoOpened={() => setAutoOpen(null)} onAdd={() => setChooser(true)} />
+      )}
+      {chooser ? <AddObligationSheet onPick={pick} onClose={() => setChooser(false)} /> : null}
     </Screen>
   );
 }
 
+/** Every Money section takes the same three: the chooser routed here · clear the flag · reopen the chooser. */
+type SectionProps = { autoOpen: boolean; onAutoOpened: () => void; onAdd: () => void };
+
+/** Open this section's own editor once, when the chooser routed here. */
+function useAutoOpen(autoOpen: boolean, onAutoOpened: () => void, open: () => void) {
+  useEffect(() => {
+    if (!autoOpen) return;
+    open();
+    onAutoOpened();
+    // `open` is re-created each render; depending on it would re-fire the editor on every keystroke in
+    // the sheet it just opened. The flag is the trigger, and it is cleared immediately.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpen]);
+}
+
 // ── Debts (the hero section) — the debts + the payoff plan (strategy · order · focus, moved here
 //    from Progress: management belongs in Money per the IA). Elevated visually at 1.5.
-function DebtsSection() {
+function DebtsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
   const store = useAppStore((s) => s.store);
   const strategy = store.payoffStrategy;
   // Memoized on the store so re-renders that don't change the plan (e.g. the parent's Debts/Bills/Goals
@@ -110,7 +147,13 @@ function DebtsSection() {
 
   // 3.6.6 — ⌘N (iPad keyboard) opens the add-debt sheet; the root key-command listener navigates here
   // and fires the bus, which this subscription turns into the same "add" the button does.
+  //
+  // ⚠️ 3.7.A10.1 deliberately leaves this going STRAIGHT to the debt editor rather than through the
+  // chooser. [D22a] removed the section-shaped shortcuts because the section was doing the classifying
+  // silently; a keyboard accelerator a user pressed on purpose is the opposite — they have already said
+  // what they want, in words, and re-asking would be pedantry.
   useEffect(() => onAddDebtRequested(() => openEditor({ editing: null })), []);
+  useAutoOpen(autoOpen, onAutoOpened, () => openEditor({ editing: null }));
 
   // 3.5.5.4 — the row long-press hides four actions, and the gesture is invisible. ⚠️ **iOS only**:
   // `RowContextMenu` is a transparent passthrough on Android and web, so off-iOS this would teach a
@@ -174,8 +217,9 @@ function DebtsSection() {
           icon="credit-card"
           title="Start your debt-free plan"
           body="Add a loan, credit card, or BNPL balance to see your debt-free date."
-          cta="Add your first debt"
-          onCta={() => openEditor({ editing: null })}
+          cta="Add"
+          onCta={onAdd}
+          ctaTestID="money-add"
         />
         {isScanAvailable() ? <View style={styles.scanEmpty}><AddRow label="Scan a statement" icon="document-scanner" onPress={handleScan} /></View> : null}
         {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} onViewSchedule={viewSchedule} onLogPayment={logPayment} /> : null}
@@ -240,7 +284,7 @@ function DebtsSection() {
         }}
         ListFooterComponent={
           <View style={styles.listFooter}>
-            <AddRow label="Add debt" onPress={() => openEditor({ editing: null })} />
+            <AddRow label="Add" onPress={onAdd} testID="money-add" />
             {/* §2.8 — scan a statement to prefill a new debt (free). Hidden where no native scanner. */}
             {isScanAvailable() ? <AddRow label="Scan a statement" icon="document-scanner" onPress={handleScan} /> : null}
             {/* §2.7.5 — the consolidated BNPL calendar (renders only when there are upcoming installments). */}
@@ -383,11 +427,12 @@ type BillGroup = {
   data: RequiredExpense[];
 };
 
-function BillsSection() {
+function BillsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
   const expenses = useAppStore((s) => s.store.requiredExpenses);
   const living = useAppStore((s) => s.store.livingExpenses);
   const payCycle = useAppStore((s) => s.store.paycheck.payCycle);
   const [sheet, setSheet] = useState<{ editing: RequiredExpense | null } | null>(null);
+  useAutoOpen(autoOpen, onAutoOpened, () => setSheet({ editing: null }));
   const [query, setQuery] = useState('');
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [breakdownOpen, setBreakdownOpen] = useState(false);
@@ -513,8 +558,9 @@ function BillsSection() {
           icon="receipt-long"
           title="Build your paycheck plan"
           body="Add a required bill or payment so your plan knows what’s due."
-          cta="Add your first bill"
-          onCta={() => setSheet({ editing: null })}
+          cta="Add"
+          onCta={onAdd}
+          ctaTestID="money-add"
         />
         {sheet ? <ExpenseSheet editing={sheet.editing} onClose={() => setSheet(null)} /> : null}
       </>
@@ -587,7 +633,7 @@ function BillsSection() {
         }
         ListFooterComponent={
           <View style={styles.listFooter}>
-            <AddRow label="Add bill" onPress={() => setSheet({ editing: null })} />
+            <AddRow label="Add" onPress={onAdd} testID="money-add" />
             {livingTotal > 0 ? <LivingReserve total={livingTotal} /> : null}
           </View>
         }
@@ -700,9 +746,10 @@ function LivingReserve({ total }: { total: number }) {
 }
 
 // ── Goals ─────────────────────────────────────────────────────────────────────
-function GoalsSection() {
+function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
   const goals = useAppStore((s) => s.store.goals);
   const [sheet, setSheet] = useState<{ editing: Goal | null } | null>(null);
+  useAutoOpen(autoOpen, onAutoOpened, () => setSheet({ editing: null }));
 
   if (goals.length === 0) {
     return (
@@ -711,8 +758,9 @@ function GoalsSection() {
           icon="flag"
           title="Start a savings goal"
           body="Add an emergency fund or savings goal to start tracking progress."
-          cta="Add your first goal"
-          onCta={() => setSheet({ editing: null })}
+          cta="Add"
+          onCta={onAdd}
+          ctaTestID="money-add"
         />
         {sheet ? <GoalSheet editing={sheet.editing} onClose={() => setSheet(null)} /> : null}
       </>
@@ -750,7 +798,7 @@ function GoalsSection() {
           );
         })}
       </View>
-      <AddRow label="Add goal" onPress={() => setSheet({ editing: null })} />
+      <AddRow label="Add" onPress={onAdd} testID="money-add" />
       {sheet ? <GoalSheet editing={sheet.editing} onClose={() => setSheet(null)} /> : null}
     </>
   );

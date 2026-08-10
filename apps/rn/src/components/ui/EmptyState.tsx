@@ -14,12 +14,14 @@ export function EmptyState({
   body,
   cta,
   onCta,
+  ctaTestID,
 }: {
   icon: IconGlyph;
   title: string;
   body: string;
   cta: string;
   onCta: () => void;
+  ctaTestID?: string;
 }) {
   const c = useAppColors();
   return (
@@ -29,7 +31,7 @@ export function EmptyState({
       </View>
       <Text style={[textStyles.title3, styles.center, { color: c.text.primary }]}>{title}</Text>
       <Text style={[textStyles.subhead, styles.center, { color: c.text.secondary }]}>{body}</Text>
-      <Button label={cta} onPress={onCta} style={styles.cta} />
+      <Button label={cta} onPress={onCta} style={styles.cta} testID={ctaTestID} />
     </Card>
   );
 }

@@ -18,6 +18,7 @@ export function Button({
   disabled,
   onDark = false,
   style,
+  testID,
 }: {
   label: string;
   onPress: () => void;
@@ -25,6 +26,9 @@ export function Button({
   disabled?: boolean;
   onDark?: boolean;
   style?: StyleProp<ViewStyle>;
+  /** The accessible NAME comes from the child text, which `getByLabel` does not match on web — so a
+   *  button whose copy is expected to change needs a stable handle for tests. */
+  testID?: string;
 }) {
   const themeColors = useAppColors();
   // On a constant-dark surface, resolve from the dark tokens directly so light-mode doesn't render a
@@ -50,6 +54,7 @@ export function Button({
 
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"

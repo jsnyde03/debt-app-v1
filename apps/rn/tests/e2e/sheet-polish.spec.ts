@@ -18,7 +18,10 @@ const SEED = scenario({
 async function openAddSheet(page: import('@playwright/test').Page) {
   await seedStore(page, SEED);
   await page.goto('/money');
-  await page.getByText('Add debt', { exact: true }).first().click(); // the AddRow (sheet isn't open yet)
+  // 3.7.A10.1 [D22a] — Money's add rows no longer name a type; they open the chooser, which routes.
+  // This spec is about the SHEET's dismissal affordances, so it takes the real user path to get one.
+  await page.getByTestId('money-add').first().click();
+  await page.getByTestId('add-choice-debt').click();
   await expect(page.getByText('Add a debt')).toBeVisible();
   await page.waitForTimeout(400); // let the spring-in settle
 }

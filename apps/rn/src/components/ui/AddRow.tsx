@@ -10,10 +10,23 @@ import { textStyles } from '@/theme/typography';
  * bolted-on button. Replaces the chunky secondary button at the foot of the Money sections. `icon`
  * defaults to "add" but can name any glyph (e.g. "document-scanner" for the §2.8 scan entry).
  */
-export function AddRow({ label, onPress, icon = 'add' }: { label: string; onPress: () => void; icon?: IconGlyph }) {
+export function AddRow({
+  label,
+  onPress,
+  icon = 'add',
+  testID,
+}: {
+  label: string;
+  onPress: () => void;
+  icon?: IconGlyph;
+  /** For a row whose LABEL is expected to change (3.7.A10 made every Money add row read "Add"), so a
+   *  test can name the affordance rather than the copy. */
+  testID?: string;
+}) {
   const c = useAppColors();
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
