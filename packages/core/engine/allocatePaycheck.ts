@@ -179,8 +179,64 @@ export function allocatePaycheck({
 		return due < next;
 	};
 
+	/**
+	 * [A2] How many times does this obligation come due inside THIS pay cycle?
+	 *
+	 * The window is `[dueDate, nextPaycheckDate)`. A monthly bill under a monthly payer answers 1, which
+	 * is what every caller assumed before this existed — but a WEEKLY bill under a monthly payer answers
+	 * 4, and the allocator was reserving for one of them. That is not a rounding difference: the Guardian
+	 * called a paycheck clear while three of the four occurrences were unfunded, and the user found out
+	 * by going short.
+	 *
+	 * Counted by stepping the real calendar rather than dividing days by a nominal period, so months of
+	 * different lengths and a cycle that straddles one behave correctly.
+	 */
+	const occurrencesThisCycle = (dueDate: string, recurrence: Recurrence): number => {
+		if (!isDueBeforeNextPaycheck(dueDate)) return 0;
+		// Cadences at or above the cycle length can only land once in it. Stepping them would be
+		// harmless but pointless, and `one-time` must never repeat by definition.
+		if (
+			recurrence === "one-time" ||
+			recurrence === "monthly" ||
+			recurrence === "quarterly" ||
+			recurrence === "annually"
+		) {
+			return 1;
+		}
+
+		const stepDays = recurrence === "weekly" ? 7 : 14; // biweekly and per-paycheck both step a fortnight
+		const next = new Date(`${nextPaycheckDate}T00:00:00`);
+		const cursor = new Date(`${dueDate}T00:00:00`);
+		let count = 0;
+		// A guard, not a limit: 60 fortnights is >2 years, so hitting it means the dates are nonsense
+		// rather than that the loop needs to run longer.
+		while (cursor < next && count < 60) {
+			count++;
+			cursor.setDate(cursor.getDate() + stepDays);
+		}
+		return count;
+	};
+
+	// [A2] Expanded into ONE ENTRY PER OCCURRENCE, deliberately, rather than by multiplying the amount.
+	// Everything downstream — the unfunded-item list, the partial-coverage ordering, the affordable-skip
+	// count — reads these as discrete items, and a single row carrying 4× the money would fund
+	// "Groceries" all-or-nothing instead of one shop at a time.
 	const upcomingExpenses = expenses
-		.filter((expense) => isDueBeforeNextPaycheck(expense.dueDate))
+		.flatMap((expense) => {
+			const times = occurrencesThisCycle(expense.dueDate, expense.recurrence);
+			return Array.from({ length: times }, (_, i) => {
+				if (i === 0) return expense;
+				const when = new Date(`${expense.dueDate}T00:00:00`);
+				when.setDate(when.getDate() + i * (expense.recurrence === "weekly" ? 7 : 14));
+				// A distinct id per occurrence: `isPaidThisCycle` and the unfunded list are keyed by it,
+				// so reusing the original would mark every occurrence paid when one of them was.
+				return {
+					...expense,
+					id: `${expense.id}__occ${i}`,
+					dueDate: when.toISOString().slice(0, 10),
+				};
+			});
+		})
 		.sort(
 			(a, b) =>
 				new Date(a.dueDate).getTime() -

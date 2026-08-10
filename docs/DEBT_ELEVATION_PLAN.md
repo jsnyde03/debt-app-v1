@@ -15,10 +15,10 @@ in log 3.7.A10. **Wave A is promoted back into the slot it was displaced from**,
 
 | # | Step | State |
 |---|---|---|
-| **A.1** | **Verify Wave A against the CURRENT engine.** Written 2026-07-30; A0/A9/A10 have shipped since. Each item is a hypothesis — reproduce it, and **write the failing test first**, because A1/A2 are arithmetic claims and a repro is the only thing separating a real undercount from a stale note | ▶ next |
-| **A.2** | **A1** — BNPL payoff-RATE undercount in `projectDebtPayoff`; a monthly projection pays a biweekly plan 1×/mo, so it retires ~2× too slow | |
-| **A.3** | **A2** — sub-cycle obligation undercount in the allocator; a weekly/biweekly obligation under a monthly payer is under-reserved | |
-| **A.4** | **A3** — the 9-item Guardian honesty/coherence ledger | |
+| **A.1** | ✅ **DONE for A1/A2 2026-08-10** — verified against the current engine before touching it, and it paid: **A1 was already fixed.** ⚠️ **The same check is owed for A4–A7** before any of them is treated as real | |
+| **A.2** | ⛔ **A1 CLOSED — already fixed, no work needed.** `611a4fb` (2026-07-27) scales BNPL minimums by cadence (`bnplMonthlyEquivalentMinimum`) **three days before Wave A was written**, and it is guarded by three assertions in `testDebtProjection.ts`. The plan item described a defect that no longer existed | |
+| **A.3** | ✅ **A2 FIXED 2026-08-10** — the allocator counted a sub-cycle obligation ONCE per cycle. Reproduced first (**$50 reserved where $200 was owed** — a weekly bill in a 31-day cycle), then fixed by expanding obligations into per-occurrence instances. Gate 156/156 | |
+| **A.4** | **A3** — the 9-item Guardian honesty/coherence ledger | ▶ next |
 | **A.5** | **A4 · A5 · A6 · A7** — BNPL seam polish · offline Lifetime mislabel · drift type hygiene · confirm no third debt-free-date producer | |
 | **A.6** | **A8.1–A8.3** — the Siri phrase (`INAlternativeAppNames` + shorter variants; [D4] is *when* to rename, not whether) | |
 

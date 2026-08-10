@@ -4421,3 +4421,52 @@ That is the same call as 3.5.6.2's deleted iPad assertion: **do not ship a guard
 ⚡ A10 sharpened the case for it: A10 makes sure an obligation lands in the right bucket; **A1/A2 decide
 whether the arithmetic applied to that bucket is right.** Both have to hold, or the debt-free date is
 wrong for a different reason.
+
+---
+
+## 3.7 Wave A · A1 and A2 (2026-08-10)
+
+**Gate 156/156**, core regression green, +3 allocator asserts.
+
+### ⛔ A1 — already fixed, and the verification step is what found it
+
+`projectDebtPayoff` scales BNPL minimums by cadence via `bnplMonthlyEquivalentMinimum`, landed in
+**`611a4fb` on 2026-07-27 — three days BEFORE Wave A was written on 07-30.** It is also guarded, well:
+`testDebtProjection.ts` asserts a biweekly pay-in-4 clears in **2 months not 4**, that the same numbers
+labelled `monthly` still take 4 (so the scaling is cadence-specific rather than a blanket BNPL bump), and
+that the payoff CHART agrees with the debt-free DATE (R2.1).
+
+So the plan item described a defect that no longer existed. **A.1 — "verify against the current engine
+before touching it" — is the step that caught it**, and it is the fifth time today a document has outlived
+what it described. ⚠️ **A4–A7 were authored in the same pass and have not been re-verified**; treat each as
+a hypothesis, not a defect, before writing code against it.
+
+### ✅ A2 — real, reproduced, fixed
+
+`allocatePaycheck` filtered obligations on a single `dueDate` and summed `amount` **once**. `recurrence`
+was on the type and read by nobody in that path. Measured before the fix: a **weekly $50 bill in a 31-day
+cycle reserved $50 where $200 was owed** — a 4× under-reserve on the most common sub-cycle cadence.
+
+This is money, not presentation: the Guardian called a paycheck **clear** while three of four occurrences
+were unfunded, and the user found out by going short.
+
+**Fixed by expanding obligations into one entry per occurrence, deliberately — not by multiplying the
+amount.** Everything downstream reads these as discrete items (the unfunded-item list, partial-coverage
+ordering, the affordable-skip count), so a single row carrying 4× the money would fund "Groceries"
+all-or-nothing instead of one shop at a time. Each occurrence gets a distinct id, because
+`isPaidThisCycle` is keyed by it and reusing the original would mark all four paid when one was.
+
+Occurrences are counted by **stepping the real calendar**, not by dividing days by a nominal period, so
+months of different lengths and a cycle straddling one behave correctly.
+
+⚠️ **Two guards against over-correcting shipped with it**, because "expand every obligation" would
+otherwise double the app's most common case: a **monthly** bill in a monthly cycle still counts once, and
+one whose next occurrence falls after the next payday still counts zero.
+
+### After-scan
+
+⚡ **The whole core regression suite passed untouched.** That is not reassurance — **no existing test used
+a sub-cycle expense at all**, which is precisely why the defect survived this long. The gap was in the
+test DATA, not in the assertions, and no amount of assertion review would have found it. Worth carrying
+into the Phase-6 financial-correctness audit: ask what INPUT SHAPES the suite has never seen, not just
+what claims it makes.

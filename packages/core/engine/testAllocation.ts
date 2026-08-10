@@ -293,6 +293,102 @@ function runAllocationRegressionTests() {
     assertMoney(paced.allocations.find((a) => a.goalId === "couch")?.amount ?? 0, 75, "the per-paycheck cap paces the sinking fund ($75, not the full $200)");
     assertMoney(paced.allocations.filter((a) => a.category === "snowball").reduce((s, a) => s + a.amount, 0), 375, "the uncapped remainder still reaches debt this cycle");
 
+    // ── [A2] Sub-cycle obligations occur MORE THAN ONCE inside one pay cycle. ────────────────────────
+    //
+    // The allocator filtered on a single `dueDate` and summed `amount` once, so a weekly bill under a
+    // monthly payer was reserved for ONCE — a ~4× under-reserve on the most common sub-cycle cadence.
+    // `recurrence` was on the type and read by nobody.
+    //
+    // This is money, not presentation: under-reserving means the Guardian says a paycheck is clear when
+    // three of the four occurrences have not been funded, and the user finds out by going short.
+    const weeklyUnderMonthly = allocatePaycheck({
+        paycheckAmount: 3000,
+        currentDate: "2026-05-01",
+        nextPaycheckDate: "2026-06-01", // a 31-day cycle
+        strategy: "snowball",
+        expenses: [
+            {
+                id: "expense-groceries",
+                name: "Groceries",
+                amount: 50,
+                dueDate: "2026-05-04",
+                recurrence: "weekly",
+                isPaidThisCycle: false,
+            },
+        ],
+        debts: [],
+        goals: [],
+    });
+
+    // May 4, 11, 18, 25 all fall before June 1 — four occurrences, $200.
+    assertMoney(
+        weeklyUnderMonthly.totalRequired,
+        200,
+        "[A2] a weekly bill inside a monthly cycle is reserved for EVERY occurrence"
+    );
+
+    // Biweekly: May 4 and May 18 → two occurrences.
+    const biweeklyUnderMonthly = allocatePaycheck({
+        paycheckAmount: 3000,
+        currentDate: "2026-05-01",
+        nextPaycheckDate: "2026-06-01",
+        strategy: "snowball",
+        expenses: [
+            {
+                id: "expense-sitter",
+                name: "Sitter",
+                amount: 120,
+                dueDate: "2026-05-04",
+                recurrence: "biweekly",
+                isPaidThisCycle: false,
+            },
+        ],
+        debts: [],
+        goals: [],
+    });
+
+    assertMoney(
+        biweeklyUnderMonthly.totalRequired,
+        240,
+        "[A2] a biweekly bill inside a monthly cycle counts twice"
+    );
+
+    // …and the guard against over-correcting: a MONTHLY bill in a monthly cycle still counts ONCE, and a
+    // bill whose next occurrence lands after the next payday still counts ZERO. Without these, "expand
+    // every obligation" would quietly double the most common case in the app.
+    const monthlyStaysOnce = allocatePaycheck({
+        paycheckAmount: 3000,
+        currentDate: "2026-05-01",
+        nextPaycheckDate: "2026-06-01",
+        strategy: "snowball",
+        expenses: [
+            {
+                id: "expense-rent",
+                name: "Rent",
+                amount: 1500,
+                dueDate: "2026-05-04",
+                recurrence: "monthly",
+                isPaidThisCycle: false,
+            },
+            {
+                id: "expense-later",
+                name: "Due after payday",
+                amount: 90,
+                dueDate: "2026-06-04",
+                recurrence: "weekly",
+                isPaidThisCycle: false,
+            },
+        ],
+        debts: [],
+        goals: [],
+    });
+
+    assertMoney(
+        monthlyStaysOnce.totalRequired,
+        1500,
+        "[A2] a monthly bill counts once, and one due after the next payday counts zero"
+    );
+
     console.log("✅ Allocation regression tests passed.");
 }
 
