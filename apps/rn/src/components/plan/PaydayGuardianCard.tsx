@@ -38,6 +38,8 @@ export function PaydayGuardianCard({
   onSeeForecast,
   topUp,
   onTopUp,
+  appliedTopUp,
+  onUndoTopUp,
   onReplayTutorial,
   onSetFloor,
   attestation,
@@ -66,6 +68,9 @@ export function PaydayGuardianCard({
   /** §2.10 tight-case (2.4.11.2) — the "move $X from savings to hold your line" one-tap, when available. */
   topUp?: TightTopUp | null;
   onTopUp?: () => void;
+  /** 3.7.A3.5 — a live, reversible top-up for this cycle (null when there is nothing to undo). */
+  appliedTopUp?: { amount: number; goalName: string } | null;
+  onUndoTopUp?: () => void;
   /** §2.0.c (2.4.11.4c) — the "bills complete" attestation affordance: shown while a discovery safety net
    *  is held; toggling reduces / restores the reserve. */
   attestation?: { show: boolean; attested: boolean };
@@ -339,7 +344,28 @@ export function PaydayGuardianCard({
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
             You have {money(topUp.available)} in {topUp.goalName} — moving {money(topUp.topUp)} over holds your line this paycheck.
           </Text>
-          <Button label={`Move ${money(topUp.topUp)} from savings`} variant="secondary" onPress={() => onTopUp?.()} style={styles.topUpBtn} />
+          {/* 3.7.A3.3 [D24] — the label said "from savings" unconditionally, including when the source
+              was the EMERGENCY fund. A control that calls the safety net "savings" while spending it is
+              the dishonest half of this affordance; the selector now flags which pot it picked. */}
+          <Button
+            label={`Move ${money(topUp.topUp)} from ${topUp.isEmergencyFund ? 'your emergency fund' : 'savings'}`}
+            variant="secondary"
+            onPress={() => onTopUp?.()}
+            style={styles.topUpBtn}
+          />
+        </View>
+      ) : null}
+      {/* 3.7.A3.5 — the way back. The missed-paycheck roll has had an undo since 2.3.1 and this move did
+          not, which left the Guardian's only cash-moving one-tap as the one action a user could not take
+          back. Rendered where the offer WAS, so the place that spent the money is the place that returns
+          it. Withheld when the record predates `goalId` — a control that cannot complete is worse than
+          no control. */}
+      {isPremium && appliedTopUp ? (
+        <View style={styles.topUp}>
+          <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+            {money(appliedTopUp.amount)} moved from {appliedTopUp.goalName} to hold your line this paycheck.
+          </Text>
+          <Button label="Undo the move" variant="text" onPress={() => onUndoTopUp?.()} style={styles.topUpBtn} />
         </View>
       ) : null}
       {/* §2.0.c (2.4.11.4c) — while a discovery safety net is held, let an organized user confirm their bills.

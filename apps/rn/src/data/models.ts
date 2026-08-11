@@ -244,7 +244,11 @@ export interface DebtStore {
    *  moved + the cycle it's for. Cycle-KEYED (not just reset at rollover) so a stale top-up self-corrects:
    *  `selectPaydayGuardian` only applies it when `forCycle` matches the current cycle. Optional +
    *  fallback-to-none, so pre-2.4.11 stores parse unchanged (no migration needed). */
-  cycleTopUp?: { forCycle: string; amount: number };
+  /** 3.7.A3.5 — `goalId` is what makes the top-up UNDOABLE. Without it the record says money moved but
+   *  not from where, so only a caller holding the goal in component state could reverse it — which is
+   *  exactly why the affordability path had an undo and the Guardian card did not. Optional and
+   *  backfill-safe: an older blob parses with it undefined and simply offers no undo. */
+  cycleTopUp?: { forCycle: string; amount: number; goalId?: string };
   /** §2.0.c settling-in reserve (2.4.11.4b) — the reserve-held state (`deriveConfidenceContext.provisional`)
    *  as of the last rollover, so the next rollover can detect the held → free transition (mirrors
    *  `priorGuardianBand`). Undefined on old/new stores → the pre-rollover value is computed as the fallback. */

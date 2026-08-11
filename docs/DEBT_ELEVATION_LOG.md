@@ -5221,3 +5221,45 @@ file. Only the Home-Screen name was ever at risk.
 `expo prebuild` against it. The Home-Screen name and the shortened Siri phrases are confirmed on the next
 build → checklist §1. ⚠️ `\(.applicationName)` resolving to `CFBundleDisplayName` is the one link I have
 not measured; A8.4 is already device-only, so it lands in the same pass either way.
+
+### 3.7 Wave A · A.4 + A.5 — A3.3, A3.5, A3.8 (2026-08-11)
+
+**Gate: 158/158, zero `error-context.md`**, plus lint · tsc · core regression · app · scenarios.
+
+**A3.3 [D24] — preference, not find-order.** `selectTightTopUp` was a bare `find` over
+(emergency | savings), so the source was whichever goal the user happened to create FIRST. It now prefers
+a discretionary goal and keeps the EF as a **fallback** — excluding it would delete the one-tap for anyone
+whose only savings is the emergency fund.
+
+⚡ **And the copy defect was worse than the selector's.** The button read **"Move $X from savings"
+unconditionally** — including when it was spending the emergency fund. Calling the safety net "savings"
+while drawing on it is the dishonest half; `isEmergencyFund` now drives *"Move $X from your emergency
+fund"*. The test seeds the EF **first in the array** so find-order would pick it, which is the only
+arrangement that can fail if the preference regresses.
+
+**A3.5 — bigger than filed, for a structural reason.** The item read "no undo for the top-up". The cause
+was not a missing button: **`cycleTopUp` recorded `{forCycle, amount}` and no SOURCE**, so nothing reading
+only the store could hand the money back. That is exactly why the affordability card *had* an undo — it
+keeps the goal in component state — and the Guardian card, the same move on the same money, did not.
+
+`goalId` added (optional, backfill-safe: an older blob offers no undo rather than a control that cannot
+complete), dropped again when the accumulated amount returns to 0 so a spent record cannot offer an undo
+of nothing. `selectAppliedTopUp` exposes the reversible record; the card renders the undo **where the
+offer was**, so the place that spent the money is the place that returns it. **One mechanism, two callers**
+— the undo is the same `applyTightTopUp` with a negative amount the affordability path already used.
+
+**A3.8 — one namespace, two writers, one guard.** `GoalSheet` now dedupes names like
+`AffordabilityCard.tsx:56`. Case-insensitive and trimmed, and an EDIT ignores itself so renaming a goal to
+its own name is not a collision. Without it a save-for-it fund and a hand-made goal could share a name and
+then compete for the same priority-capped funding while reading as one goal.
+
+### After-scan
+
+- ⚠️ **`cycleTopUp` accumulates across multiple top-ups but `goalId` holds only the LAST source.** Two
+  top-ups from two different goals in one cycle → the undo returns the whole sum to the second goal.
+  Narrow (it needs two funded goals and two taps in one cycle) and it cannot lose money — but it can move
+  it to the wrong pot. **Filed to the Phase-6 financial-correctness audit**, whose brief is exactly
+  boundary inputs across the engine. Not fixed here: the honest repair is a per-source ledger, which is
+  more shape than this item earns.
+- ⚠️ **A3.8's guard is per-sheet, not per-store.** A third writer would need its own copy — the same shape
+  the A3.8 defect *was*. `addGoal` is the real chokepoint. → the audit gate, with the sibling sweep.

@@ -577,7 +577,13 @@ export function createDebtStore(opts?: { now?: () => string; bound?: (store: Deb
             goals: s.store.goals.map((g) =>
               g.id === goalId ? { ...g, currentAmount: Math.max(0, Math.round((g.currentAmount - amount) * 100) / 100) } : g,
             ),
-            cycleTopUp: { forCycle, amount: Math.round((prior + amount) * 100) / 100 },
+            // 3.7.A3.5 — record WHICH goal, so the move can be reversed by anything holding only the
+            // store. `goalId` is dropped once the accumulated amount returns to 0 (a full undo), so a
+            // spent record cannot offer an undo of nothing.
+            cycleTopUp: (() => {
+              const total = Math.round((prior + amount) * 100) / 100;
+              return total > 0 ? { forCycle, amount: total, goalId } : { forCycle, amount: total };
+            })(),
           },
         };
       });

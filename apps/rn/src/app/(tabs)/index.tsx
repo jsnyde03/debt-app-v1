@@ -48,7 +48,7 @@ import { startTutorial, tutorialSession, useTutorialSession } from '@/store/tuto
 import { INTERACTIVE_STEP_IDS, TUTORIAL_STEPS } from '@/store/tutorialPath';
 import type { DebtStoreInstance } from '@/store/store';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
-import { selectBillsAttestation, selectBnplBetweenPaycheck, selectGuardianProofOfWork, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
+import { selectAppliedTopUp, selectBillsAttestation, selectBnplBetweenPaycheck, selectGuardianProofOfWork, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
 import { selectRecoveryPlan } from '@/store/recoverySelectors';
 import { selectLeanSuggestion } from '@/store/incomeLearning';
 import {
@@ -146,6 +146,8 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   const trialConversion = trialConvRaw && !dismissedTrials.includes(trialConvRaw.id) ? trialConvRaw : null;
   // 2.4.11.2 — the tight-case "move $X from savings to hold your line" one-tap (null unless tight + savings).
   const tightTopUp = selectTightTopUp(engineStore);
+  // 3.7.A3.5 — the reversible record of a top-up already applied this cycle (null when nothing to undo).
+  const appliedTopUp = selectAppliedTopUp(engineStore);
   // 2.4.7.8 — the income-learning nudge (premium + variable income, material change only), off the raw store.
   const leanNudge = selectLeanSuggestion(store);
 
@@ -300,6 +302,10 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               onSeeForecast={() => router.push('/cushion-forecast')}
               topUp={tightTopUp}
               onTopUp={() => tightTopUp && store_.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
+              appliedTopUp={appliedTopUp}
+              // Reversed exactly as the affordability card reverses its cover: a NEGATIVE top-up hands
+              // the money back to the goal and unwinds the cycle record. One mechanism, two callers.
+              onUndoTopUp={() => appliedTopUp && store_.getState().applyTightTopUp(appliedTopUp.goalId, -appliedTopUp.amount)}
               // Withheld on example money: "How this works" restarts the walkthrough, and offering that
               // FROM INSIDE the walkthrough is incoherent: an offer to restart something you are in.
               // Not a reachability question: taps pass through the CUTOUT only, and this link sits under

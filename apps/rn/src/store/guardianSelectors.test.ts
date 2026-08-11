@@ -106,6 +106,24 @@ function run() {
   const capped = selectTightTopUp(store({ premium: true, amount: '2000', debts: [{ balance: 5000, min: 100 }], bills: [1870], floor: 200, goals: [{ type: 'emergency', current: 20 }] }));
   assert(capped !== null && capped.topUp === 20, 'savings < gap → topUp capped at the balance');
 
+  // ── 3.7.A3.3 [D24] — a DISCRETIONARY goal is preferred; the EF is the fallback, never the first pick ──
+  // The old selector was a bare `find` over (emergency | savings), so the source was decided by array
+  // ORDER — i.e. by whichever the user happened to create first. Raiding the safety net for a
+  // covered-but-tight cushion dip should never be the default when a discretionary pot exists.
+  const bothPots = selectTightTopUp(
+    store({
+      premium: true, amount: '2000', debts: [{ balance: 5000, min: 100 }], bills: [1750], floor: 200,
+      // EF FIRST in the array — so find-order would pick it, and preference must override that.
+      goals: [{ type: 'emergency', current: 1000 }, { type: 'savings', current: 1000 }],
+    }),
+  );
+  eq(bothPots?.goalName, 'Savings 1', 'A3.3 — a discretionary goal wins over the EF even when the EF is first');
+  eq(bothPots?.isEmergencyFund, false, '…and it is not flagged as the emergency fund');
+
+  // EF-only → still offered (a covered-but-tight cycle is what a cushion is for), but FLAGGED so the
+  // copy can name it instead of calling it "savings".
+  eq(tu?.isEmergencyFund, true, 'A3.3 — EF-only → still offered, and flagged as the emergency fund');
+
   // ── selectRiskNotification (2.4.10) — premium, risk-only, off the band ──
   const now = createDefaultStore().paycheck.currentDate;
   const riskStore = store({ premium: true, amount: '2000', debts: [{ balance: 5000, min: 100 }], bills: [1870], floor: 200 }); // at-risk (discretionary ~30)

@@ -27,7 +27,17 @@ export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose:
   function submit() {
     if (!name.trim()) return setError('Enter a name.');
     if (!target || Number(target) <= 0) return setError('Enter a target amount.');
-    const fields = { name: name.trim(), targetAmount: Number(target), currentAmount: Number(current) || 0, type };
+    // 3.7.A3.8 — dedupe goal names, matching the save-for-it flow (`AffordabilityCard.tsx:56`). Two
+    // creation paths write the SAME namespace, and only one of them guarded it — so "New couch" could be
+    // created here beside an identical sinking fund, and the two would then compete for the same
+    // priority-capped funding while reading as one goal to the user. Case-insensitive, trimmed; an EDIT
+    // ignores itself so renaming a goal to its own name is not a collision.
+    const effName = name.trim();
+    const clash = appStore
+      .getState()
+      .store.goals.some((g) => g.id !== editing?.id && g.name.trim().toLowerCase() === effName.toLowerCase());
+    if (clash) return setError(`You already have a goal called "${effName}".`);
+    const fields = { name: effName, targetAmount: Number(target), currentAmount: Number(current) || 0, type };
     if (isEdit && editing) appStore.getState().updateGoal(editing.id, fields);
     else appStore.getState().addGoal({ id: `goal-${Date.now()}`, ...fields });
     onClose();

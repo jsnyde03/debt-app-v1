@@ -225,6 +225,28 @@ export interface TightTopUp {
   topUp: number;
   goalId: string;
   goalName: string;
+  /** 3.7.A3.3 [D24] — the source is the EMERGENCY fund (no discretionary pot was available). Drives the
+   *  copy: a control that says "from savings" while drawing on the safety net is the dishonest half. */
+  isEmergencyFund: boolean;
+}
+
+/**
+ * 3.7.A3.5 — the applied top-up, in a form that can be REVERSED.
+ *
+ * ⚠️ The Guardian's one-tap had no undo while the affordability card's did, and the reason was structural
+ * rather than an oversight in the UI: the affordability flow keeps the goal it drew from in component
+ * state, so it can hand it back; `cycleTopUp` recorded an amount and no source, so nothing reading only
+ * the store could reverse it. `goalId` (A3.5) is what makes this selector possible.
+ *
+ * Null unless there is a live, reversible top-up for THIS cycle — so a record from an older blob (no
+ * `goalId`) correctly offers nothing rather than a control that would fail.
+ */
+export function selectAppliedTopUp(store: DebtStore): { amount: number; goalId: string; goalName: string } | null {
+  const rec = store.cycleTopUp;
+  if (!rec || rec.forCycle !== store.paycheck.nextPaycheckDate || rec.amount <= 0 || !rec.goalId) return null;
+  const goal = store.goals.find((g) => g.id === rec.goalId);
+  if (!goal) return null;
+  return { amount: rec.amount, goalId: rec.goalId, goalName: goal.name };
 }
 
 /** The top-up already applied for the CURRENT cycle (cycle-keyed → a stale one self-corrects). */
@@ -246,11 +268,20 @@ export function selectTightTopUp(store: DebtStore): TightTopUp | null {
   const cushion = selectDiscretionary(allocation) + appliedTopUp(store);
   const gap = Math.round((floor - cushion) * 100) / 100;
   if (gap <= 0) return null; // at or above the line already
-  const goal = store.goals.find((g) => (g.type === 'emergency' || g.type === 'savings') && g.currentAmount > 0);
+  // 3.7.A3.3 [D24] — PREFERENCE, not find-order. This was a bare `find` over (emergency | savings), so
+  // the source was whichever the user happened to create first: a covered-but-tight cushion dip could
+  // raid the safety net while a discretionary pot sat untouched.
+  //
+  // ⚠️ The EF stays a FALLBACK rather than being excluded. Excluding it would make the one-tap vanish for
+  // anyone whose only savings IS the emergency fund — most people early on — and a tight-but-covered
+  // cycle is what a cushion is for. The dishonesty was never drawing on it; it was drawing on it
+  // silently and FIRST, which is why `isEmergencyFund` rides along for the copy.
+  const funded = store.goals.filter((g) => (g.type === 'emergency' || g.type === 'savings') && g.currentAmount > 0);
+  const goal = funded.find((g) => g.type === 'savings') ?? funded.find((g) => g.type === 'emergency');
   if (!goal) return null;
   const topUp = Math.round(Math.min(gap, goal.currentAmount) * 100) / 100;
   if (topUp <= 0) return null;
-  return { gap, available: goal.currentAmount, topUp, goalId: goal.id, goalName: goal.name };
+  return { gap, available: goal.currentAmount, topUp, goalId: goal.id, goalName: goal.name, isEmergencyFund: goal.type === 'emergency' };
 }
 
 /** "Aug 5" — mirrors the cash-flow bars' label so the Guardian's lookahead reads consistently. */

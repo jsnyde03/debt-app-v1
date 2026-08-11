@@ -1,7 +1,7 @@
 import { applyCapture, applyRollover } from '@/store/payday';
 
 import { createDefaultStore } from '@/data/defaults';
-import { selectBillsAttestation, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback } from '@/store/guardianSelectors';
+import { selectAppliedTopUp, selectBillsAttestation, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback } from '@/store/guardianSelectors';
 import { recordSurpriseOutflow } from '@/store/substrateProducers';
 import { runMigrations } from '@/data/migrations';
 import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
@@ -149,6 +149,26 @@ function run() {
     // over-draw clamps the goal at zero (break-it: amount > balance)
     s.getState().applyTightTopUp('g0', 99999);
     eq(s.getState().store.goals[0].currentAmount, 0, 'over-draw → goal clamped at 0 (never negative)');
+  }
+
+  // ── 3.7.A3.5 — the top-up is REVERSIBLE from the store alone ──
+  // It was not, and the reason was structural: `cycleTopUp` recorded an amount and no SOURCE, so only a
+  // caller holding the goal in component state could hand it back. That is why the affordability card
+  // had an undo and the Guardian card — the same move, the same money — did not.
+  {
+    const s = inst();
+    const before = s.getState().store.goals[0].currentAmount;
+    s.getState().applyTightTopUp('g0', 200);
+
+    const rec = selectAppliedTopUp(s.getState().store);
+    assert(rec !== null, 'A3.5 — an applied top-up is exposed as a reversible record');
+    eq(rec?.goalId, 'g0', '…naming the goal it drew from');
+    eq(rec?.amount, 200, '…and the amount');
+
+    // Undo = the SAME action with a negative amount, exactly as the affordability card reverses a cover.
+    s.getState().applyTightTopUp(rec!.goalId, -rec!.amount);
+    eq(s.getState().store.goals[0].currentAmount, before, '…undo restores the goal to where it started');
+    eq(selectAppliedTopUp(s.getState().store), null, '…and there is nothing left to undo');
   }
 
   // ── risk-notified (2.4.10) ──
