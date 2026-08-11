@@ -1,0 +1,106 @@
+# Maestro E2E — §13: the feature-discovery COACH-MARKS (3.5.5) — 4.1.2
+#
+# The checklist's §13 header says "nothing here is web-observable", and gives the measurement behind it:
+# the payoff-schedule mark lands "1266pt down an 874pt screen" in the browser, because react-native-web
+# puts a root-level overlay in normal document flow. So the web suite can prove a mark is OFFERED and that
+# only one exists, and can never show WHERE any of them lands.
+#
+# ⚡ WHY A SIMULATOR ANSWERS IT. §13.1 is a UIKit PRESENTATION question, not a device question. A
+# root-level overlay is a sibling of a presented Modal on iOS, so it renders BEHIND it — that is the
+# entire reason `CoachMarkLayer` grew a nested host (3.5.5.5), and it is the same class of bug flow 04
+# exists for. The simulator has genuine presentation semantics; the browser has one DOM tree.
+#
+# ⚠️ WHAT STAYS DEVICE-OWED, so a green here is not read as more than it is:
+#   • §13.6 (VoiceOver hears each hint ONCE) — the doubling it hunts is a root copy AND a sheet copy both
+#     live in the accessibility tree. `testID="coach-mark"` exists so a test can COUNT them
+#     (CoachMarkLayer.tsx:81-84), but counting matching elements is unproven on this build → probe p06.
+#     Until that lands, this flow asserts the mark's PRESENCE, never its uniqueness. Asserting "visible"
+#     and calling it "exactly one" is how a check that proves nothing gets recorded as coverage.
+#   • The judgement halves of §13.4 (does the hint bury the neighbouring chart?) — a human reads the frame.
+#
+# Depends on 07 having run: it leaves a real portfolio (a Visa Test debt, Rent, a converted Mortgage), and
+# `money.tsx:259` gates the row-actions mark on a non-empty debts list.
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: false
+
+# ══ §13.3 · the iOS-ONLY row long-press mark ════════════════════════════════════════════════════
+# Gated on `Platform.OS === 'ios'` (money.tsx:259), so neither the web suite nor an Android run can ever
+# see it. It fires on the debts list without being asked for, which is why it is checked first — landing
+# on Money is the whole trigger.
+- tapOn:
+    id: "tab-money"
+- assertVisible: "Press and hold a debt"
+- takeScreenshot: maestro-debug/s13-3-row-actions-mark
+
+# §13.5 · a mark is a hint, not a modal. `CoachMarkLayer`'s wrapper is `pointerEvents="box-none"` with
+# nothing full-screen behind it, and the docblock is explicit that a user who ignores the hint and taps
+# the thing is a SUCCESS. So the screen underneath must still work with the mark up — proven by driving
+# a control while it is showing, not by looking at it.
+- tapOn: "Expenses"
+- assertVisible:
+    text: ".*Rent.*"
+- takeScreenshot: maestro-debug/s13-5-screen-live-under-mark
+- tapOn: "Debts"
+
+# Dismiss it so it cannot be confused with the mark under test below — `coachMarks.show` refuses to queue
+# a second mark behind a live one (coachMarks.ts:103), so leaving this up would make §13.1 fail for a
+# reason that has nothing to do with §13.1.
+- tapOn: "Got it"
+- assertNotVisible: "Press and hold a debt"
+
+# ══ §13.1 · the payoff-schedule mark, INSIDE a sheet ════════════════════════════════════════════
+# ⭐ The item the whole nested-host mechanism exists for.
+#
+# ⚠️ BEFORE-SCAN CORRECTION (2026-08-11): `coachMarkCopy.ts:26-27` says this mark "is not registered
+# anywhere until L5 puts the row where a finger can reach it". That comment has outlived what it
+# described — `DebtSheet.tsx:125` calls `useCoachMark('payoff-schedule', isEdit)` and `:257` registers the
+# `TutorialTarget`. The mark IS wired, on the EDIT sheet only. A flow written from the comment would have
+# opened Add and waited for a mark that is correctly never offered there.
+- tapOn: ".*Visa Test.*"
+- assertVisible: "Edit debt"
+
+# PASS: the callout is over the sheet, near the row it names. FAIL on device would be BEHIND the sheet —
+# which, on a simulator, means simply not visible, because a sibling rendered under a presented Modal is
+# not in the visible hierarchy at all. That is what makes this assertable rather than a judgement.
+- assertVisible:
+    id: "coach-mark"
+- assertVisible: "See the whole payoff"
+- takeScreenshot: maestro-debug/s13-1-mark-over-sheet
+
+# ══ §13.2 · "Got it" actually dismisses, and stays gone ═════════════════════════════════════════
+# The checklist notes the web suite "can never click this button — same flow-layout reason as §13.1 — so
+# the dismiss is unverified off-device". The tap landing IS the check.
+- tapOn: "Got it"
+- assertNotVisible:
+    id: "coach-mark"
+- tapOn:
+    id: "sheet-close"
+
+# Once ever, not once per visit: `coachMarks` persists the shown set to `prefs.coachMarksSeen`, so the
+# check that means anything is a real process restart, exactly as §14.6 does for the mis-file dismissal.
+- killApp
+- launchApp
+- tapOn:
+    id: "tab-money"
+- tapOn: ".*Visa Test.*"
+- assertVisible: "Edit debt"
+- assertNotVisible:
+    id: "coach-mark"
+- takeScreenshot: maestro-debug/s13-2-stays-dismissed
+- tapOn:
+    id: "sheet-close"
+
+# ══ §13.4 · the trajectory mark does not bury a different chart ═════════════════════════════════
+# Offered unconditionally on Progress (progress.tsx:72). It is placed ABOVE its subject deliberately — a
+# hint must not cover the thing it explains — and the open question is whether obscuring the chart above
+# is an acceptable price.
+#
+# ⚠️ That question is a COMPOSITION CALL and is not assertable. What IS assertable is the half that would
+# make it a defect rather than a judgement: the hint is readable AND the trajectory it names is still on
+# screen. The screenshot carries the judgement to a human; the assertions carry the part that can fail.
+- tapOn:
+    id: "tab-progress"
+- assertVisible: "Drag the curve"
+- takeScreenshot: maestro-debug/s13-4-trajectory-mark

@@ -1,0 +1,222 @@
+# Maestro E2E — §14: one Add, the answer routes, and the mis-file rescue (3.7.A10) — 4.1.2
+#
+# Six device-checklist checks, §14.1 through §14.6. None of them existed on the `c050173` build, so none
+# has ever run on hardware, and one of them is marked in the checklist as unreachable by any automation:
+#
+#   §14.3 — "⏳ Web e2e cannot reach this step — it is verified here or nowhere."
+#
+# That was true of the WEB lane and was recorded as a limit on automation. Its two stated blockers are
+# that the paycheck step will not advance without input and that "Skip for now" walks past the debt step
+# to the end (`onboarding.tsx:36` — PaycheckStep's onSkip goes to step 3, not step 2). Maestro has
+# `inputText`, so it types the paycheck and walks the fork properly. See
+# `docs/audits/2026-08-11-maestro-coverage/` finding ③.
+#
+# ⚠️ RUNS AFTER 01–06 AND CLEARS STATE. It must: §14.3 is a first-run fork and only exists on a fresh
+# install. Placing it at 07 means the demo data flows 02–06 depend on has already done its work. Flow 08
+# then runs on the portfolio this flow builds, which is why the debt added below is not incidental.
+#
+# ⚠️ FIRST-RUN TUNING: `inputText`, `hideKeyboard` and `killApp` are all documented core commands but this
+# repo has never driven any of them, so one of them may need an adjustment on the first run — like every
+# other flow here did. They are a much lower risk than the probe set: the two commands this build actually
+# rejected were a name that never existed (`extendedWaitUntilVisible`) and a property on the wrong command
+# (`timeout` on an assertion), not real capability gaps. A red here does not mask a compile crash — flow
+# 01 covers that — and a parse failure costs this file's six checks and nothing else.
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: true
+
+# ══ §14.3 · the first-run fork ══════════════════════════════════════════════════════════════════
+- assertVisible: "Will you make it to payday?"
+- tapOn: "Get Started"
+
+# The paycheck step is the gate that stopped the web lane. Type a real amount rather than skipping — the
+# skip is precisely what walks past the step under test.
+- assertVisible: "When do you get paid?"
+# `TextField` sets `accessibilityLabel={label}` (TextField.tsx:30), so the field is addressable by its
+# visible label without needing a testID added for the test's benefit.
+- tapOn: "Paycheck amount"
+- inputText: "2000"
+- hideKeyboard
+- tapOn: "Continue"
+
+- assertVisible: "Add your first debt or expense"
+
+# PASS is two things: the toggle says Debt/Expense (never "Bill"), and the clause underneath CHANGES with
+# it. The second half is the real check — a toggle that renames itself while explaining nothing is the
+# defect A10.3 was fixed to remove.
+- assertVisible: "Debt"
+- assertVisible: "Expense"
+
+# Matched on apostrophe-free fragments deliberately: the clauses use CURLY apostrophes (’) in the source
+# (`FirstDebtOrBillStep.tsx:119-120`), and a straight one would silently never match.
+- assertVisible:
+    text: ".*It ends\\..*"
+- assertNotVisible:
+    text: ".*rent, phone, a subscription.*"
+
+- tapOn: "Expense"
+- assertVisible:
+    text: ".*rent, phone, a subscription.*"
+# The other direction, which is what makes this a change and not just an appearance. Asserting only that
+# the new clause showed would pass even if both were on screen at once.
+- assertNotVisible:
+    text: ".*It ends\\..*"
+- takeScreenshot: maestro-debug/s14-3-first-run-fork
+
+# Back to Debt and actually add one — flow 08's coach-mark needs a non-empty debts list
+# (`money.tsx:259` gates 'debt-row-actions' on `view.order.length > 0`).
+- tapOn: "Debt"
+- tapOn: "Debt name"
+- inputText: "Visa Test"
+- hideKeyboard
+- tapOn: "Current balance"
+- inputText: "2400"
+- hideKeyboard
+- tapOn: "Minimum payment"
+- inputText: "65"
+- hideKeyboard
+- tapOn: "Add & Continue"
+- tapOn: "See My Plan  →"
+
+# ══ §14.1 · one Add, from all three sections ════════════════════════════════════════════════════
+# PASS: every section opens the SAME chooser. FAIL: any section opens an editor directly — which would
+# mean the section is silently classifying again, the exact defect [D22a] removed.
+- tapOn:
+    id: "tab-money"
+
+- tapOn:
+    id: "money-add"
+- assertVisible: "What are you adding?"
+- tapOn:
+    id: "sheet-close"
+
+- tapOn: "Expenses"
+- tapOn:
+    id: "money-add"
+- assertVisible: "What are you adding?"
+- tapOn:
+    id: "sheet-close"
+
+- tapOn: "Goals"
+- tapOn:
+    id: "money-add"
+- assertVisible: "What are you adding?"
+- tapOn:
+    id: "sheet-close"
+
+# ══ §14.2 · the answer lands where it says ══════════════════════════════════════════════════════
+# Standing in EXPENSES, ask for a debt. PASS: you end up on the debt form, which is provable by a field
+# an expense does not have.
+- tapOn: "Expenses"
+- tapOn:
+    id: "money-add"
+- tapOn:
+    id: "add-choice-debt"
+- assertVisible: "Add a debt"
+- assertVisible: "APR %"
+- takeScreenshot: maestro-debug/s14-2-answer-routes
+- tapOn:
+    id: "sheet-close"
+
+# ══ §14.4 · the mis-file rescue, proved in TWO PHASES ═══════════════════════════════════════════
+# The checklist asks for Mortgage and Rent added together, then for the hint under Mortgage ONLY. Proving
+# "only" that way needs a COUNT, and counting elements is unproven on this build (probe p06).
+#
+# So the same claim is made in two phases instead, and it is a STRONGER proof: Rent alone must produce
+# NOTHING. A count could pass with one hint on the wrong row; this cannot. "Rent" contains no word in
+# `DEBT_WORDS` (looksLikeDebt.ts:25-38) and "Mortgage" contains one.
+- tapOn: "Expenses"
+- tapOn:
+    id: "money-add"
+- tapOn:
+    id: "add-choice-expense"
+- assertVisible: "Add an expense"
+- tapOn: "Name"
+- inputText: "Rent"
+- hideKeyboard
+- tapOn: "Amount"
+- inputText: "1200"
+- hideKeyboard
+- tapOn: "Add expense"
+
+# Phase 1 — the accusation guard. A hint here would be the app telling someone their rent is secretly a
+# debt, which the detector's docblock names as costing more trust than a miss costs money.
+- assertNotVisible: "Move to Debts"
+- takeScreenshot: maestro-debug/s14-4-rent-untouched
+
+- tapOn:
+    id: "money-add"
+- tapOn:
+    id: "add-choice-expense"
+- tapOn: "Name"
+- inputText: "Mortgage"
+- hideKeyboard
+- tapOn: "Amount"
+- inputText: "1200"
+- hideKeyboard
+- tapOn: "Add expense"
+
+# Phase 2 — the hint arrives, and it reads as a question rather than a warning.
+- assertVisible: "Move to Debts"
+- assertVisible:
+    text: ".*count toward your debt-free date.*"
+- takeScreenshot: maestro-debug/s14-4-mortgage-hint
+
+# ══ §14.5 · Move to Debts ═══════════════════════════════════════════════════════════════════════
+# The move has to LAND where it says. `money.tsx:138` routes to Debts and opens the form there precisely
+# so the claim is demonstrated — and the prefilled NAME is what proves the hint belonged to the Mortgage
+# row rather than to Rent, which is the other half of §14.4 that phase 1 could not reach.
+- tapOn: "Move to Debts"
+- assertVisible: "Add a debt"
+- assertVisible: "Mortgage"
+- tapOn: "Current balance"
+- inputText: "180000"
+- hideKeyboard
+- tapOn: "APR %"
+- inputText: "6.5"
+- hideKeyboard
+- tapOn: "Add debt"
+
+# In Debts…
+- assertVisible:
+    text: ".*Mortgage.*"
+# …and GONE from Expenses. "Not in both" is the whole point: a conversion that copies rather than moves
+# double-counts the obligation in the plan the app exists to produce.
+- tapOn: "Expenses"
+- assertNotVisible:
+    text: ".*Mortgage.*"
+- assertVisible:
+    text: ".*Rent.*"
+- takeScreenshot: maestro-debug/s14-5-moved-not-copied
+
+# ══ §14.6 · "Not a debt" stays gone ═════════════════════════════════════════════════════════════
+# A hint that cannot be silenced is an accusation on a loop. "Car Loan" matches DEBT_WORDS on "loan".
+- tapOn:
+    id: "money-add"
+- tapOn:
+    id: "add-choice-expense"
+- tapOn: "Name"
+- inputText: "Car Loan"
+- hideKeyboard
+- tapOn: "Amount"
+- inputText: "300"
+- hideKeyboard
+- tapOn: "Add expense"
+- assertVisible: "Not a debt"
+
+- tapOn: "Not a debt"
+- assertNotVisible: "Move to Debts"
+
+# The dismissal is persisted to `prefs.notDebtExpenseIds`, so the check that matters is whether it
+# survives a real process restart — not whether it survives a re-render. `stopApp` is the default, which
+# is what is wanted here and is the OPPOSITE of flow 06's deliberate `stopApp: false`.
+- killApp
+- launchApp
+- tapOn:
+    id: "tab-money"
+- tapOn: "Expenses"
+- assertVisible:
+    text: ".*Car Loan.*"
+- assertNotVisible: "Move to Debts"
+- takeScreenshot: maestro-debug/s14-6-not-a-debt-persists

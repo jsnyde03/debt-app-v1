@@ -4637,3 +4637,59 @@ Not yet re-verified: A3.2 (starter-EF "keeps it as cushion"), A3.4 (hero-vs-Guar
 ("hold your line" twice — both sites located: `AffordabilityCard.tsx:117` and the Guardian's top-up),
 A3.7 (applied purchase reads deferrable), A3.8 (`GoalSheet` name-dedupe), A3.9 (affordability density).
 **Resume here — do not re-run the three above.**
+
+### 4.1.2 — §14 and §13 onto the lane (2026-08-11)
+
+Two flows, 11 checks: `07-money-add-and-rescue.yaml` (§14.1–§14.6) and `08-coach-marks.yaml`
+(§13.1–§13.5). Both run after 01–06; 07 clears state because §14.3 only exists on a fresh install, and it
+leaves the portfolio 08 runs on.
+
+**§14.3 is the point of the exercise.** The checklist marks it *"⏳ Web e2e cannot reach this step — it is
+verified here or nowhere"*, and names its two blockers: the paycheck step will not advance without input,
+and "Skip for now" walks past the debt step (`onboarding.tsx:36` — PaycheckStep's `onSkip` goes to step 3,
+not step 2). `inputText` types the paycheck and the fork is walked properly. The assertion is the *change*,
+not the appearance: the debt clause must be visible AND the expense clause absent, then the reverse after
+the toggle — asserting only that the new clause showed would pass with both on screen at once.
+
+⚠️ **Matched on apostrophe-free fragments.** `FirstDebtOrBillStep.tsx:119-120` uses CURLY apostrophes; a
+straight one would silently never match, and a selector that can only ever fail is the same class of
+useless as one that can only ever pass.
+
+### §14.4 proved in two phases instead of by a count
+
+The checklist asks for Mortgage and Rent added together and the hint under **Mortgage only**. "Only" needs
+an element count, and counting is unproven on this build (probe p06) — so the claim is made as **Rent
+first, alone, asserting nothing appears**, then Mortgage. That is strictly stronger than a count: a count
+of one passes even if the hint is on the wrong row. The names are chosen against `DEBT_WORDS`
+(`looksLikeDebt.ts:25-38`) — "Rent" matches nothing, "Mortgage" and "Car Loan" each match one.
+
+The other half of §14.4 — that the hint *belonged* to Mortgage — is then carried by §14.5: the converted
+debt form opens **prefilled with the name**, so the prefill is the proof of ownership.
+
+### ⚠️ Before-scan caught a comment that had outlived what it described
+
+`coachMarkCopy.ts:26-27` states the payoff-schedule mark *"is not registered anywhere until L5 puts the
+row where a finger can reach it."* It is registered: `DebtSheet.tsx:125` calls
+`useCoachMark('payoff-schedule', isEdit)` and `:257` mounts the `TutorialTarget`. A flow written from the
+comment would have opened the **Add** sheet and waited for a mark that is correctly never offered there —
+failing for a reason with nothing to do with §13.1.
+
+**Fifth instance this session of a document outliving its subject**, and the same shape as A1 (fixed three
+days before the plan item describing it was written). The before-scan is the cheapest step in every item
+and it has now paid twice in two days.
+
+### What was deliberately NOT claimed
+
+- **§13.6 (VoiceOver hears each hint once)** — the doubling it hunts is a root copy *and* a sheet copy both
+  live in the a11y tree. `testID="coach-mark"` exists precisely so a test can count them
+  (`CoachMarkLayer.tsx:81-84`), but counting is unproven → the flow asserts **presence, never uniqueness**.
+  Asserting "visible" and recording it as "exactly one" is how a check that proves nothing becomes coverage.
+- **§13.4's judgement half** (does the hint bury the chart above it?) — a composition call. The flow
+  asserts the part that can fail and hands the frame to a human.
+- **§12.0.3's counterpart** in these sections, for the same reason.
+
+⏳ **Both flows are unrun.** `inputText` · `hideKeyboard` · `killApp` are documented core commands this repo
+has never driven, so first-run tuning is expected — but they are a different risk class from the probe set:
+the two commands this build actually rejected were a name that never existed and a property on the wrong
+command, not capability gaps. Batched with the probe's repairs for the next cycle rather than spending a
+third one.

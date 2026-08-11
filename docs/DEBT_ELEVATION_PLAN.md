@@ -18,7 +18,7 @@ per-section map: [`docs/audits/2026-08-11-maestro-coverage/`](audits/2026-08-11-
 | # | Step | State |
 |---|---|---|
 | **4.1.1** | ✅ **BUILT 2026-08-11, awaiting its cycle** — 7 files, **one command per file** (Maestro validates a whole file before running any of it), each run in its own invocation so verdicts can't mask each other. `extendedWaitUntil` · `openLink` → the scripted demo · `setOrientation` · `assertScreenshot` · `repeat` · `evalScript` · `simctl ui content_size`+`appearance`. `native-e2e.yml` gains a `mode: probe` input. ⏳ **Run:** `gh workflow run native-e2e.yml --ref v1.7-dev -f mode=probe` | ▶ now |
-| **4.1.2** | **§14 (6) + §13 (5)** — iPhone sim, no new conditions. The cheapest real coverage in the file; **§14.3 stops being "verified here or nowhere"** | |
+| **4.1.2** | ✅ **BUILT 2026-08-11** — flows `07-money-add-and-rescue` (§14.1–§14.6) + `08-coach-marks` (§13.1–§13.5). **§14.3 stops being "verified here or nowhere"**; §14.4's "under Mortgage only" is proved in **two phases** rather than by an unproven element count. ⚠️ **§13.6 deliberately NOT claimed** — it needs counting (probe p06). Before-scan caught a stale comment: `coachMarkCopy.ts` says the payoff-schedule mark "is not registered anywhere", but `DebtSheet.tsx:125` registers it | |
 | **4.1.3** | **The iPad boot** — **§11.15** ⭐ · §11.16 · §10's two layout checks · §11.8's rotation half | |
 | **4.1.4** | **§12.0 explore (7)** — a run that has never been on hardware; incl. §12.0.3, which web cannot answer | |
 | **4.1.5** | **§12.1–§12.7 scripted (15)** — ⚠️ **GATED on 4.1.1's `openLink` result.** Currently owed to nobody | |
