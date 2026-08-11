@@ -498,6 +498,7 @@ const BILL_CATEGORY_LABEL: Record<RequiredExpenseCategory, string> = {
   utilities: 'Utilities',
   insurance: 'Insurance',
   subscriptions: 'Subscriptions',
+  discretionary: 'Discretionary',
   medical: 'Medical',
   other: 'Other',
 };
@@ -506,6 +507,7 @@ const BILL_CATEGORY_ORDER: RequiredExpenseCategory[] = [
   'utilities',
   'insurance',
   'subscriptions',
+  'discretionary',
   'medical',
   'other',
 ];

@@ -70,7 +70,11 @@ export function AffordabilityCard() {
   function apply(r: Affordability) {
     const id = localId('purchase', store.paycheck.currentDate);
     const purchaseName = name.trim() || 'Purchase';
-    store_.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' });
+    // 3.7.A3.7 [D25] — an EXPLICIT category, not an uncategorized fallthrough. ⚠️ The ledger had this
+    // backwards: uncategorized defaults to ESSENTIAL (MF.1 / audit #3, so a migrated rent is never
+    // pre-suggested for deferral), so an applied "New couch" was as un-cuttable as the electricity bill.
+    // [D25]'s rule — a discretionary buy should be FIRST to cut in a shortfall — is now stated.
+    store_.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time', category: 'discretionary' });
     haptics.success(); // 3.3.5.3 — a commit is a felt moment
     setApplied({ id, name: purchaseName });
   }
@@ -80,7 +84,7 @@ export function AffordabilityCard() {
     if (!r.coverFromSavings) return apply(r);
     const id = localId('purchase', store.paycheck.currentDate);
     const purchaseName = name.trim() || 'Purchase';
-    store_.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' });
+    store_.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time', category: 'discretionary' });
     store_.getState().applyTightTopUp(r.coverFromSavings.goalId, r.coverFromSavings.amount);
     haptics.success(); // 3.3.5.3
     setApplied({ id, name: purchaseName, cover: { goalId: r.coverFromSavings.goalId, amount: r.coverFromSavings.amount, goalName: r.coverFromSavings.goalName, holdsLine: r.coverFromSavings.holdsLine } });

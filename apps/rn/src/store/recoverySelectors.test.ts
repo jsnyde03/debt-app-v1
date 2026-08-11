@@ -111,6 +111,32 @@ function run() {
   eq(s2.getState().store.inputsAsOf, '2020-01-01', '…without re-stamping read-freshness (stale stays stale)');
   void beforeStamp;
 
+  // ── 3.7.A3.7 [D25] — an applied affordability purchase is safe to defer, and says so ──
+  // ⚠️ The honesty ledger filed this backwards ("uncategorized → deferrable, so a couch reads as a
+  // deferrable bill"). The real default is ESSENTIAL, so a "New couch" applied to the paycheck was as
+  // un-cuttable as the rent: Recovery would sooner defer Netflix AND the music subscription than touch
+  // it. [D25] gives the purchase an explicit `discretionary` category, deferrable by stated rule.
+  {
+    const today = createDefaultStore().paycheck.currentDate;
+    const couch = { id: 'purchase-1', name: 'New couch', amount: 40, dueDate: today, recurrence: 'one-time' as const };
+    const withCouch = shortfallStore({
+      requiredExpenses: [
+        ...shortfallStore().requiredExpenses,
+        { ...couch, category: 'discretionary' as const },
+      ],
+    });
+    const plan = selectRecoveryPlan(withCouch);
+    assert(!!plan?.safeToDefer.some((c) => c.id === 'purchase-1'), 'A3.7 — an applied purchase is offered as safe-to-defer');
+    assert(!plan?.coverNow.some((c) => c.id === 'purchase-1'), '…and is not filed as cover-now beside the rent');
+
+    // The pre-[D25] shape, pinned so a dropped `category` can never silently regress it.
+    const uncategorized = shortfallStore({
+      requiredExpenses: [...shortfallStore().requiredExpenses, couch],
+    });
+    const stale = selectRecoveryPlan(uncategorized);
+    assert(!!stale?.coverNow.some((c) => c.id === 'purchase-1'), '…while an UNcategorized one-off is still essential (the unknown-default guard stands)');
+  }
+
   console.log(`✅ Recovery Plan (2.6.4 + MF.1) tests passed (${passed} asserts).`);
 }
 

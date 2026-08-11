@@ -25,6 +25,9 @@ const CATEGORY: { value: RequiredExpenseCategory; label: string }[] = [
   { value: 'utilities', label: 'Utilities' },
   { value: 'insurance', label: 'Insurance' },
   { value: 'subscriptions', label: 'Subscriptions' },
+  // [D25] — also the only forward way a user can mark a NON-subscription deferrable; Recovery's
+  // "Keep essential" toggle only ever moves a bill the other way.
+  { value: 'discretionary', label: 'Discretionary' },
   { value: 'medical', label: 'Medical' },
   { value: 'other', label: 'Other' },
 ];

@@ -5,6 +5,10 @@ export type RequiredExpenseCategory =
 	| "utilities"
 	| "insurance"
 	| "subscriptions"
+	// v1.7 [D25] (3.7.A3.7) — a one-off discretionary buy (the affordability card's "apply to this
+	// paycheck"). Deferrable BY RULE: in a shortfall a couch should be cut before the electricity bill.
+	// Optional + additive, so older blobs parse unchanged and simply never carry it.
+	| "discretionary"
 	| "medical"
 	| "other";
 
