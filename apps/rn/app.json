@@ -13,6 +13,10 @@
       "infoPlist": {
         "CFBundleDisplayName": "Debt Planner",
         "ITSAppUsesNonExemptEncryption": false,
+        "INAlternativeAppNames": [
+          { "INAlternativeAppName": "Debt Plan" },
+          { "INAlternativeAppName": "My Debt Planner" }
+        ],
         "NSCameraUsageDescription": "Scan a statement or bill to prefill your debt details — the scan stays on your device."
       },
       "entitlements": {

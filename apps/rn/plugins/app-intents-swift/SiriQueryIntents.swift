@@ -75,12 +75,30 @@ struct PaycheckCheckIntent: AppIntent {
 }
 
 /// Registers the queries as auto-discoverable App Shortcuts (zero setup; surface in Spotlight/Shortcuts).
+///
+/// 3.7.A8 — every phrase must contain `\(.applicationName)`; that is Apple's rule and it does not bend.
+/// The plan read that as "the phrases can only shrink by shrinking the NAME", which is not so — there
+/// are two other levers, and both are used here:
+///
+///   A8.1 — `INAlternativeAppNames` (Info.plist, set in app.json). The token matches the display name
+///          AND any declared alternates, so "Debt Plan" is now a valid substitution without touching
+///          `CFBundleDisplayName`. The name itself stays "Debt Planner" ([D4] / A.0).
+///   A8.2 — phrase STRUCTURE. "When am I debt-free in Debt Planner" is seven words with the app name
+///          buried at the end. Leading with the name — "Debt Planner debt-free date" — is four, and
+///          Siri matches on any listed phrase, so the natural long forms stay for people who speak
+///          that way. Shortest-first, because that is the one worth learning.
+///
+/// ⚠️ A8.4 (device) still owes the confirmation that `\(.applicationName)` renders "Debt Planner" and
+/// not `expo.name`'s "Debt Planner (RN)" — the rename went via `CFBundleDisplayName`, which is what
+/// the token is documented to resolve, but that is a claim about Apple's substitution and has not been
+/// run on hardware. Nothing here can verify it; the checklist must.
 @available(iOS 16.0, *)
 struct DebtPlannerAppShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: DebtFreeDateIntent(),
             phrases: [
+                "\(.applicationName) debt-free date",
                 "When am I debt-free in \(.applicationName)",
                 "What's my debt-free date in \(.applicationName)",
             ],
@@ -90,6 +108,7 @@ struct DebtPlannerAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: RemainingDebtIntent(),
             phrases: [
+                "\(.applicationName) balance",
                 "How much debt is left in \(.applicationName)",
                 "How much do I owe in \(.applicationName)",
             ],
@@ -99,12 +118,15 @@ struct DebtPlannerAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: PaycheckCheckIntent(),
             phrases: [
+                "\(.applicationName) paycheck check",
                 "Am I okay this paycheck in \(.applicationName)",
                 "Check my paycheck in \(.applicationName)",
             ],
             shortTitle: "This paycheck",
             systemImageName: "checkmark.shield"
         )
+        // No leading-name short form here, deliberately: this is the one ACTION intent, and people
+        // reach for an action by its verb. "Debt Planner log a payment" is shorter and reads worse.
         AppShortcut(
             intent: LogPaymentIntent(),
             phrases: [

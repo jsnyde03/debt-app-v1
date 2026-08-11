@@ -84,6 +84,12 @@
 - [ ] **Discoverable** — the **Shortcuts** app (and Settings → Siri & Search → Debt Planner) lists all four: debt-free date · remaining · this paycheck · log a payment.
 - [ ] ⚠️ **Siri caveat:** first registration can lag, and phrasing varies — if "in Debt Planner" isn't caught, try the exact phrase or run it from the Shortcuts app. A miss here is usually Siri phrasing, not the intent.
 
+#### 🆕 3.7.A8.4 — the phrase work, and the one claim nothing off-device can settle
+- [ ] ⭐ **`\(.applicationName)` renders "Debt Planner", NOT "Debt Planner (RN)".** ⚠️ **The load-bearing check.** A.0 renamed via `ios.infoPlist.CFBundleDisplayName` while `expo.name` deliberately stays `"Debt Planner (RN)"` (it derives the Xcode project name, hardcoded 10× across three pipelines). The token is documented to resolve the DISPLAY name — but that is Apple's substitution, not ours, and **no test on any machine here can prove it.** Read the phrases as listed in **Shortcuts → Debt Planner**: if any reads "…in Debt Planner (RN)", A8 is not done and the rename needs a second lever.
+- [ ] **A8.2 short forms are caught** — *"Hey Siri, Debt Planner debt-free date"* · *"…Debt Planner balance"* · *"…Debt Planner paycheck check"*. These lead with the name instead of burying it, 4 words vs 7. The long natural forms above must **still** work — they were kept, not replaced.
+- [ ] **A8.1 alternative names** — *"Hey Siri, Debt Plan balance"* and *"…My Debt Planner balance"* (`INAlternativeAppNames`). ⚠️ If these miss, it is not a defect in the shortcuts: note it and the key gets dropped. This was the lever that let the phrases shrink **without** renaming the app, so it is worth knowing whether it actually works.
+- [ ] **Log-a-payment has no short form, on purpose** — it is the one ACTION intent and people reach for actions by the verb. Confirm the two "Log a payment…" phrases still work; nothing else changed there.
+
 ---
 
 ## §0 — Get the build on your phone
