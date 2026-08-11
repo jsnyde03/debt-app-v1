@@ -5078,3 +5078,26 @@ before Wave B builds anything.**
 **Nothing else surfaced.** A7's "retire the portfolio-level follow-on note" turned out to have no
 external note to retire — the note was the plan line itself, now closed. Verified rather than assumed:
 grepped the code, `FUTURE_VERSIONS.md` and the docs tree; no other reference exists.
+
+### 4.1.3 (parked item) — `hideKeyboard` deleted, not replaced (2026-08-11)
+
+🎯 Jason, watching the run live: *"All of the flows on Wave 2 will fail I think since 01 did. It said
+that it could not hide the keyboard."* Correct on both counts — 01 seeds the suite, so its failure
+cascades.
+
+⛔ **The command should never have been in the flows.** `OnboardingLayout.tsx:23` states the reason in its
+own comment: a `KeyboardAvoidingView` is there **"so the decimal-pad keyboard (which has no return key on
+iOS) never covers"** the CTAs, and the ScrollView carries `keyboardShouldPersistTaps="handled"` — so a tap
+on the next field or on a button lands **with the keyboard up**. The app had already solved the problem I
+added the step to solve.
+
+And on a decimal pad with **no return key** there is no dismiss affordance at all, which is very likely
+why Maestro could not hide it. **24 occurrences deleted across flows 01 and 07. Not replaced.**
+
+⚡ **The lesson is the general one:** before adding a step that fights the UI, check whether the UI
+already handled it. Three of this lane's failures now share a shape — a step added on an assumption the
+codebase had already answered in a comment (`useInBoundedRun`'s docblock, `coachMarkCopy`'s stale note,
+and now `OnboardingLayout`'s). **The codebase keeps being right first.**
+
+Run 31514348038 cancelled rather than left to finish: flow 01 fails at step 5 of ~30, so the remaining
+~20 minutes of mac time would only re-confirm the cascade.

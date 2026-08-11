@@ -15,12 +15,18 @@
 # install. Placing it at 07 means the demo data flows 02–06 depend on has already done its work. Flow 08
 # then runs on the portfolio this flow builds, which is why the debt added below is not incidental.
 #
-# ⚠️ FIRST-RUN TUNING: `inputText`, `hideKeyboard` and `killApp` are all documented core commands but this
-# repo has never driven any of them, so one of them may need an adjustment on the first run — like every
-# other flow here did. They are a much lower risk than the probe set: the two commands this build actually
-# rejected were a name that never existed (`extendedWaitUntilVisible`) and a property on the wrong command
-# (`timeout` on an assertion), not real capability gaps. A red here does not mask a compile crash — flow
-# 01 covers that — and a parse failure costs this file's six checks and nothing else.
+# ⛔ `hideKeyboard` IS GONE FROM THIS FILE, AND IT SHOULD NEVER HAVE BEEN IN IT. It failed on the suite
+# run ("could not hide the keyboard") and took flow 01 down with it — but the real error was adding it at
+# all. `OnboardingLayout.tsx:23` states the reason in its own comment: a `KeyboardAvoidingView` is there
+# **"so the decimal-pad keyboard (which has no return key on iOS) never covers"** the CTAs, and the
+# ScrollView sets `keyboardShouldPersistTaps="handled"`, so a tap on the next field or on a button lands
+# with the keyboard UP.
+#
+# So the app had already solved the problem the command was added to solve — and on a decimal pad with no
+# return key there is nothing for a dismiss to act on, which is very likely why it could not. **Deleted,
+# not replaced.** Before adding a step that fights the UI, check whether the UI already handled it.
+#
+# ⚠️ Still first-run-unproven here: `inputText` and `killApp`.
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
@@ -52,7 +58,6 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-paycheck-amount"
 - inputText: "2000"
-- hideKeyboard
 - tapOn: "Continue"
 
 - assertVisible: "Add your first debt or expense"
@@ -85,15 +90,12 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-onboarding-name"
 - inputText: "Visa Test"
-- hideKeyboard
 - tapOn:
     id: "field-onboarding-balance"
 - inputText: "2400"
-- hideKeyboard
 - tapOn:
     id: "field-onboarding-minimum"
 - inputText: "65"
-- hideKeyboard
 - tapOn: "Add & Continue"
 - tapOn: "See My Plan  →"
 
@@ -153,11 +155,9 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-expense-name"
 - inputText: "Rent"
-- hideKeyboard
 - tapOn:
     id: "field-expense-amount"
 - inputText: "1200"
-- hideKeyboard
 - tapOn: "Add expense"
 
 # Phase 1 — the accusation guard. A hint here would be the app telling someone their rent is secretly a
@@ -172,11 +172,9 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-expense-name"
 - inputText: "Mortgage"
-- hideKeyboard
 - tapOn:
     id: "field-expense-amount"
 - inputText: "1200"
-- hideKeyboard
 - tapOn: "Add expense"
 
 # Phase 2 — the hint arrives, and it reads as a question rather than a warning.
@@ -195,11 +193,9 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-debt-balance"
 - inputText: "180000"
-- hideKeyboard
 - tapOn:
     id: "field-debt-apr"
 - inputText: "6.5"
-- hideKeyboard
 - tapOn: "Add debt"
 
 # In Debts…
@@ -223,11 +219,9 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-expense-name"
 - inputText: "Car Loan"
-- hideKeyboard
 - tapOn:
     id: "field-expense-amount"
 - inputText: "300"
-- hideKeyboard
 - tapOn: "Add expense"
 - assertVisible: "Not a debt"
 

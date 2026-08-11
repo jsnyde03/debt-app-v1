@@ -48,7 +48,6 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-paycheck-amount"
 - inputText: "2000"
-- hideKeyboard
 - tapOn: "Continue"
 
 # Debt 1 of 3 — "Visa" is the row flows 03 and 04 long-press and tap.
@@ -56,19 +55,15 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-onboarding-name"
 - inputText: "Visa"
-- hideKeyboard
 - tapOn:
     id: "field-onboarding-balance"
 - inputText: "2400"
-- hideKeyboard
 - tapOn:
     id: "field-onboarding-minimum"
 - inputText: "65"
-- hideKeyboard
 - tapOn:
     id: "field-onboarding-apr"
 - inputText: "26.99"
-- hideKeyboard
 - tapOn: "Add & Continue"
 - tapOn: "See My Plan  →"
 
@@ -94,15 +89,12 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-debt-name"
 - inputText: "Store Card"
-- hideKeyboard
 - tapOn:
     id: "field-debt-balance"
 - inputText: "800"
-- hideKeyboard
 - tapOn:
     id: "field-debt-minimum"
 - inputText: "25"
-- hideKeyboard
 - tapOn: "Add debt"
 
 - tapOn:
@@ -112,15 +104,12 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-debt-name"
 - inputText: "Car Loan"
-- hideKeyboard
 - tapOn:
     id: "field-debt-balance"
 - inputText: "8380"
-- hideKeyboard
 - tapOn:
     id: "field-debt-minimum"
 - inputText: "210"
-- hideKeyboard
 - tapOn: "Add debt"
 
 # The invariant the rest of the suite depends on. If this fails, do NOT patch the later flows — the seed
