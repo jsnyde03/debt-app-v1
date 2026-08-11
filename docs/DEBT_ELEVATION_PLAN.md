@@ -19,9 +19,9 @@
 | **A.1** | ✅ **DONE** — A1 closed (already fixed, `611a4fb`); A2 reproduced + fixed, gate 156/156 | |
 | **A.2** | ✅ **DONE 2026-08-11** — A3's before-scan: **the ledger of nine is SEVEN.** A3.4 and A3.9 were already fixed on 2026-07-29, the day before the ledger was written. Per-item evidence → log | |
 | **A.3** | ✅ **DONE 2026-08-11** — A4–A7 before-scan. ⛔ **A7 CLOSES** (confirmed: one engine, one funnel, no third producer) · ⛔ A6's dead re-export is already gone · ⚠️ live: A4 ×3 · A5 · A6a. Evidence → log | |
-| **A.4** | ✅ **A3.1 DONE 2026-08-11** — the attestation is gated on whether attesting actually lowers the hold, not on the cycle count. Failing-then-passing test; gate **158/158**, zero `error-context.md`. ⏸ **A3.3 BLOCKED on [D24]** below | ◐ |
-| **A.5** | **A3.5 · A3.8** — cheap correctness. A3.5's undo mechanism **already exists** on the other caller; surface it, don't build it | |
-| **A.6** | **A3.6** — one cover offer, not two | |
+| **A.4** | ✅ **DONE 2026-08-11** — **A3.1** gated on whether attesting actually lowers the hold, not on a cycle count · **A3.3** [D24] prefers a discretionary goal, EF as fallback, **and the button no longer calls the EF "savings"** | |
+| **A.5** | ✅ **DONE 2026-08-11** — **A3.5** the undo was structurally impossible (`cycleTopUp` had no source); `goalId` added, backfill-safe, undo rendered where the offer was · **A3.8** `GoalSheet` dedupes like the save-for-it flow | |
+| **A.6** | **A3.6** — one cover offer, not two. `coverFromSavings` and `selectTightTopUp` have no mutual guard and both cards render on Today (`index.tsx:295` · `:380`) | ▶ next |
 | **A.7** | **A3.2** — ⚠️ **measure the figure first**, then write the copy. Currently a direction, not a number | |
 | **A.8** | **[DECISION] A3.7** — an applied purchase reads as a deferrable bill. Coherent by rule; the question is whether it confuses a person. **Jason's call, not a silent fix** | |
 | **A.9** | **A4 ×3 · A5 · A6a.** ⚡ After-scan: A6a is a **divergence** — `buildPayoffTrajectory` already carries `recurrence?`, so match the sibling. ⚠️ A5: **scope the gate first** — "RevenueCat hasn't answered yet" affects every premium surface on a cold offline launch, not just one row. ⚠️ A4a needs measuring before it earns work | |
@@ -37,7 +37,7 @@ failing-then-passing test, gate green.
 ### ⏭ Then, in order
 
 1. **Wave B** — ⚠️ **B.0 = a before-scan FIRST, same as Wave A's.** B1–B4 are from the same 2026-07-30 era and have never been verified; **5 of 14 Wave A items did not survive contact with the code.** B2 ("dropped streak/milestone surfacing") is the likeliest already-built — `pendingMilestone` and `activeAck` both exist. Then B1 drag-the-curve · B2 · B3 greeting · B4 swipe-to-mark-paid *(needs [D2])*
-2. **4.1 — the Maestro coverage lane ⏸ PAUSED at 4.1.3**, resumes after 3.7. ✅ 4.1.1 answered (6 capabilities proven) · ✅ 4.1.2 built (11 checks) · ⏳ 4.1.3's suite repair is **built but unverified — the native lane is RED until it lands.** Remaining 4.1.4–4.1.11 + the exit criterion → log
+2. **4.1 — the Maestro coverage lane ⏸ PAUSED at 4.1.3**, resumes after 3.7. ✅ 4.1.1 answered (6 capabilities proven) · ✅ 4.1.2 built (11 checks) · ⚠️ **4.1.3 still RED — 8/8, run `31516616133`.** ⚡ But flow 07 walked onboarding *and* the debt form, so **`inputText` + the `field-*` testIDs WORK and `hideKeyboard` was never needed.** Two known next fixes: the `"See My Plan  →"` selector (double space + arrow glyph) and flow 01 failing its FIRST assertion at 1m44s when probe p01 passes the identical opening — **pull the artifact before theorising.** Remaining 4.1.4–4.1.11 + the exit criterion → log
 3. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
 4. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
 5. **Phase 5** (data continuity, ship-blocker) → **5.5** (repo consolidation) → **Phase 6** (launch)

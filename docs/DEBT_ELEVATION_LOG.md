@@ -5263,3 +5263,39 @@ then compete for the same priority-capped funding while reading as one goal.
   more shape than this item earns.
 - ⚠️ **A3.8's guard is per-sheet, not per-store.** A third writer would need its own copy — the same shape
   the A3.8 defect *was*. `addGoal` is the real chokepoint. → the audit gate, with the sibling sweep.
+
+### Session close — 2026-08-11
+
+**Wave A: A.0 through A.5 closed. Next is A.6.** All decisions settled except 3.5.7's hosting/privacy.
+
+### 4.1.3's parked run — red, but the failures moved (run `31516616133`)
+
+```
+[Failed] 01-launch-smoke (1m44s)  "Will you make it to payday?" not visible
+[Failed] 07-money-add-and-rescue  Element not found: "See My Plan  →"
+[Failed] 02 · 03 · 04 · 08        tab-money not found       [Failed] 05 · 06  "How this works"
+```
+
+⚡ **Read flow 07 before reading the count.** It walked the paycheck step **and** the debt form and died at
+the *completion* button — which means **`inputText` works, the `field-*` testIDs work, and dropping
+`hideKeyboard` was correct.** Three of the four unproven commands are now proven by a flow getting past
+them. 02/03/04/08 and 05/06 remain downstream symptoms of 01.
+
+**Two known next moves, and one of them is a trap:**
+1. `"See My Plan  →"` — the label has a **double space** and an arrow glyph (`CompletionStep.tsx:25`).
+   Maestro matches an element's full text as a regex, so this is a selector problem, not a UI one.
+2. ⚠️ **Flow 01 failed its FIRST assertion after 1m44s — while probe `p01` passes the byte-identical
+   opening.** Do **not** theorise about that. Pull the artifact and read the hierarchy dump first; the two
+   times a story was invented to fit a verdict table this session, the story was wrong both times.
+
+### What this session actually produced
+
+- **3.7 Wave A:** A.0 (the rename, via `CFBundleDisplayName` — the literal instruction would have broken
+  three pipelines) · A.2 + A.3 (both before-scans) · A.4 (A3.1, A3.3) · A.5 (A3.5, A3.8). Gate 158/158.
+- **Seven decisions settled:** [D24] [D25] [D2] [D3] [D4] locked; [D1] deferred **with a named trigger**;
+  [D22]–[D23] untouched.
+- **4.1** built from nothing to two answered probe cycles, 11 new checks, and a suite repair — plus the
+  discovery that **the suite had been broken and green-by-never-running since 2026-08-10.**
+- **⚡ The number worth carrying forward: of 14 items verified from the 2026-07-30 pass, FIVE did not
+  survive contact with the code.** A1 · A3.4 · A3.9 · A7 · A6's re-export half. The before-scan costs
+  minutes per item and has never been wasted.
