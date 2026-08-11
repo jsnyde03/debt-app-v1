@@ -5151,3 +5151,39 @@ cushion is for. The dishonesty is not drawing on it; it is drawing on it **silen
 prefer a discretionary goal, fall back to the EF, and have the copy name it when it is the EF.
 
 ⚠️ A3.7 likewise filed as **[D25]** rather than fixed quietly.
+
+### Five decisions settled (2026-08-11)
+
+🎯 Jason: *"Agree with all your recs except D1."* [D24] · [D25] · [D2] · [D3] · [D4] locked as recommended;
+terse forms in the plan's Decisions section. Two consequences worth stating:
+
+- **[D2] came with a live defect attached.** Researching the ownership question found that four readers
+  use `minimumPaidThisCycle ?? isPaidThisCycle ?? false` while **`planSelectors.ts:136` filters on
+  `d.minimumPaidThisCycle` with no fallback** — so a debt marked paid through the other flag is already
+  invisible to that one surface. The decision fixes a real inconsistency, not just a future one.
+- **[D4] creates a step, not just an answer.** The rename moves ahead of everything else in Wave A as
+  **A.0**, because A8's Siri phrases embed `\(.applicationName)` and cannot be finalised or device-tested
+  against a name that is going to change.
+
+### [D1] iOS-18 Control Center — the ORIGINAL REASON HAS EXPIRED
+
+⚠️ Recorded before the discussion, because the premise is what changed. It was deferred during the
+3.5.3/3.5.5 sequencing on a **cost** argument — the AppIntent-mutation machinery was unbuilt, and the
+marginal cost of a Control Center control was ~4–5× the query-intent baseline.
+
+**That is no longer true.** Every piece it needed now exists: the widget extension
+(`apps/rn/targets/widget/`, signing proven), the App Group, `DebtProvider.swift` for data, and
+`PaydayLandedIntent.swift` — an App Intent already living *inside* that extension, which is exactly what
+a `ControlWidget` binds to. The marginal cost today is closer to one Swift file plus an availability gate.
+
+**So the deferral needs a new reason or a reversal.** The two that survive scrutiny:
+
+1. **Deployment target is `16.1`** (`targets/widget/expo-target.config.js:25`); Control Center controls
+   are **iOS 18+**. Additive, no regression — but a slice of users never see it.
+2. ⚡ **There may be no control-SHAPED job.** Control Center is for frequent, one-tap, unambiguous
+   actions. This app's actions are either **multi-step** (log a payment needs a debt *and* an amount) or
+   **rare and dated** (payday landed, which already has a Live Activity button). A glance-only control —
+   "here is your debt-free date" — is a widget's job, and the app already ships that widget.
+
+**Standing recommendation: stay deferred, on reason 2 rather than on cost** — and revisit the moment a
+genuine one-tap emerges. B4 (swipe-to-mark-paid) is the likeliest source of one.

@@ -15,6 +15,7 @@
 
 | # | Step | State |
 |---|---|---|
+| **A.0** | **[D4] THE RENAME** — `app.json` `"Debt Planner (RN)"` → **"Debt Planner"**, before the next device build. Retires a Phase-6 ship blocker and unblocks A8's phrases, which cannot be finalised or device-tested against a non-final name | |
 | **A.1** | ✅ **DONE** — A1 closed (already fixed, `611a4fb`); A2 reproduced + fixed, gate 156/156 | |
 | **A.2** | ✅ **DONE 2026-08-11** — A3's before-scan: **the ledger of nine is SEVEN.** A3.4 and A3.9 were already fixed on 2026-07-29, the day before the ledger was written. Per-item evidence → log | |
 | **A.3** | ✅ **DONE 2026-08-11** — A4–A7 before-scan. ⛔ **A7 CLOSES** (confirmed: one engine, one funnel, no third producer) · ⛔ A6's dead re-export is already gone · ⚠️ live: A4 ×3 · A5 · A6a. Evidence → log | |
@@ -239,7 +240,13 @@ belongs on this ledger · Dynamic-Type device QA.
 - **3.5.7 sequencing ✅ (2026-08-10)** — built after Phase 3.7. Hosting + privacy specifics still open.
 - **Legacy gate RETIRED ✅ (2026-07-24)** — `validate:release` → the RN gate.
 
-**Open:** **[D24] may the tight top-up draw from the EMERGENCY fund?** *(rec: **EF last, not never** — "never" makes the one-tap vanish for anyone whose only savings IS the EF, which is most people early on, and a covered-but-tight cycle is what a cushion is for; the dishonesty is drawing on it **silently and first**. So: prefer a discretionary goal, fall back to the EF, and name it in the copy when it is the EF.)* **→ gates A3.3** · **[D25] A3.7** — an applied purchase reads as a deferrable bill; coherent by rule, but does it confuse a person? · [D1] Control Center · [D2] `minimumPaidThisCycle` ownership · [D3] Money hero language · [D4] *when* to rename the app · 3.5.7 hosting + privacy.
+- **[D24] ✅ (2026-08-11)** — the tight top-up prefers a **discretionary savings goal; the EF is the fallback, not the first pick, and the copy names it when it IS the EF.** "Never" would make the one-tap vanish for anyone whose only savings is the EF. The dishonesty was drawing on it *silently and first*. → **A3.3**
+- **[D25] ✅ (2026-08-11)** — an applied purchase **keeps** its deferrable behaviour (a discretionary buy *should* be first to cut in a shortfall) but gets an **explicit category**, so it is a stated rule rather than an uncategorized fallthrough. → **A3.7**
+- **[D2] ✅ (2026-08-11)** — **`minimumPaidThisCycle` is the owner** ("minimum covered"); `isPaidThisCycle` means paid in full. ⚠️ Fix `planSelectors.ts:136`, the one reader with **no** `?? isPaidThisCycle` fallback — it disagrees with the other four today. B4's swipe writes through `bulkMarkRequired`, not a third writer. → unblocks **B4**
+- **[D3] ✅ (2026-08-11)** — the calm-micro-viz hero language **extends to Debts** (a paydown bar via the existing `HeroProgressBar`). Bare read as an omission next to Bills and Goals, on the page whose subject it is.
+- **[D4] ✅ (2026-08-11)** — **rename NOW, before the next device build.** Every App Shortcut phrase contains `\(.applicationName)`, so A8's phrases cannot be finalised or device-tested until the name is final, and `app.json`'s "Debt Planner (RN)" is a Phase-6 ship blocker regardless. → new step **A.0**
+
+**Open:** [D1] iOS-18 Control Center *(under discussion 2026-08-11 — the original cost premise has expired; see log)* · 3.5.7 hosting + privacy.
 
 ---
 
