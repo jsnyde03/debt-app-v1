@@ -69,7 +69,7 @@ path does. Detail in the log; do not re-derive them.
 
 ### ⏭ Then, in order
 
-1. **Phase 3.7 Wave A** — ✅ A1 (already fixed, `611a4fb`) · ✅ A2 (fixed 2026-08-10) · **A3** the 9-item honesty ledger — switch-in verification **done 2026-08-11**, see log · **A4–A7** · **A8** the Siri phrase. ⚠️ Written 2026-07-30 — verify each against the current engine and write the failing test first
+1. **Phase 3.7 Wave A** — ✅ A1 (already fixed, `611a4fb`) · ✅ A2 (fixed 2026-08-10) · **A3 — before-scan COMPLETE 2026-08-11: the ledger of nine is SEVEN.** ⛔ A3.4 and A3.9 were already fixed on **2026-07-29, the day before the ledger was written** (`b8c15d3`, `0336e3f`). Live: A3.1 attestation gating · A3.2 starter-EF overstatement · A3.3 EF-raiding top-up · A3.5 no-undo *(mechanism already exists on the other caller)* · A3.6 double cover offer · A3.7 applied-purchase deferrability **[DECISION — design call, not a defect]** · A3.8 `GoalSheet` dedupe. Evidence per item → log · **A4–A7** · **A8** the Siri phrase. ⚠️ Same 2026-07-30 pass — verify A4–A7 too
 2. **Wave B** — B1 drag-the-curve · B2 streak/milestone surfacing · B3 greeting · B4 swipe-to-mark-paid *(needs [D2])*
 3. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
 4. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*

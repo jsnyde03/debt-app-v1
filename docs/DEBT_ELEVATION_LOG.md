@@ -4926,3 +4926,55 @@ source*) is a **working prototype of 4.1.4's selector guard**. Build 4.1.4 from 
 
 ⚠️ **Not yet re-run.** Six of the eight flows have never executed past onboarding, so their own selectors
 are still unverified — expect more first-run tuning, and expect it to be *shallower* each cycle.
+
+### 3.7 Wave A · A3 — the before-scan is COMPLETE. The ledger of nine is seven. (2026-08-11)
+
+Verified all nine against current code before building any of them. **Two were already fixed — both on
+2026-07-29, the day BEFORE the ledger was written on 07-30**, and both by the same `closeout VIS-4` pass,
+so the ledger was assembled from notes that predated the work that resolved them.
+
+| # | item | verdict |
+|---|---|---|
+| **A3.1** | attestation affordance gating | ⚠️ **LIVE** |
+| **A3.2** | starter-EF "keeps it as cushion" overstatement | ⚠️ **LIVE** |
+| **A3.3** | `selectTightTopUp` prefers the EF | ⚠️ **LIVE** |
+| **A3.4** | hero-vs-Guardian number coherence | ⛔ **ALREADY FIXED** — `b8c15d3` (07-29) |
+| **A3.5** | no undo on the tight top-up | ⚠️ **LIVE** (cheaper than filed) |
+| **A3.6** | "hold your line" offered twice | ⚠️ **LIVE** |
+| **A3.7** | applied purchase reads as a deferrable bill | ⚠️ **LIVE** (design call, not a bug) |
+| **A3.8** | `GoalSheet` name-dedupe | ⚠️ **LIVE** |
+| **A3.9** | affordability/ack density → the ack coordinator | ⛔ **ALREADY FIXED** — `0336e3f` (07-29) |
+
+**The two closed:**
+- **A3.4** — `b8c15d3` *"Today hero third bucket 'Free' → 'Flexible' (Jason ✓)"*. `PlanHero.tsx:81` carries
+  the reason inline: *"names the discretionary money, distinct from the Guardian's protected 'Cushion'"*.
+  That IS the coherence complaint, answered and signed off.
+- **A3.9** — `0336e3f` *"ack-density coordinator — single priority ack-slot on Today"*. `activeAck`
+  (`index.tsx:197`) is a single union that admits ONE ack, exactly the coordinator the item proposed.
+
+**The seven that are real, with the evidence:**
+- **A3.1** `selectBillsAttestation` shows on `discoveryHoldbackActive` alone (`guardianSelectors.ts:144`),
+  never checking whether attesting reduces anything. Discovery/cold-start/variable-buffer compose by
+  **`max`** (`holdbackComposition.ts:54`), so 0.4 → 0.15 can be fully absorbed by a 0.25 cold-start or the
+  variable buffer. **The affordance can promise a smaller safety net and deliver zero.**
+- **A3.2** `allocatePaycheck:495` funds the starter EF from `remaining` **before** debt deploy, so a spare
+  that all goes to the EF leaves `deployedToDebt = 0` → the `deployedToDebt <= 0` branch
+  (`buildGuardianBrief.ts:297`) says *"this paycheck keeps all of it as your cushion"*. It did not: it
+  went into a GOAL. ⚠️ Measure the exact figure before writing copy — the claim is directional so far.
+- **A3.3** `guardianSelectors.ts:219` — `find(g => (g.type === 'emergency' || g.type === 'savings') && …)`.
+  Find-order, no preference. Raids the safety net for a covered-but-tight cushion dip.
+- **A3.5** an undo EXISTS, on the other caller only: `AffordabilityCard.tsx:92` calls `applyTightTopUp`
+  with a **negative** amount. The Guardian's own top-up (`index.tsx:302`) has none. Surface the existing
+  mechanism rather than build one.
+- **A3.6** `coverFromSavings` (`guardianSelectors.ts:299`) and `selectTightTopUp` are independent, with no
+  mutual guard, and **both cards render on Today** (`index.tsx:295` Guardian, `:380` Affordability). Two
+  offers of the same move.
+- **A3.7** `AffordabilityCard.tsx:73,83` — `addExpense({… recurrence: 'one-time' })` with **no category**,
+  so it defaults to uncategorized → **deferrable** under `classifyDeferability` (2.6.2). "New couch" reads
+  as a deferrable bill in Recovery. Coherent by rule; the open question is whether it reads that way to a
+  person. **Design call for Jason, not a defect to fix silently.**
+- **A3.8** `AffordabilityCard.tsx:56` dedupes goal names; `GoalSheet` does not. Inconsistent across two
+  creation flows for the same namespace.
+
+⚡ **Three of nine ledger items across Wave A have now turned out to be already-fixed** (A1, A3.4, A3.9).
+The switch-in verification has paid on every single item it has been applied to, and it costs minutes.
