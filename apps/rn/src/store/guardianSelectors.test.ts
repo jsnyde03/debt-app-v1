@@ -156,6 +156,43 @@ function run() {
     eq(selectTrialConversion({ ...withTrial({}), subscriptionPlan: 'free' })?.name, 'Netflix', 'free tier also gets the prompt (accuracy for all)');
   }
 
+  // ── 3.7.A3.2 — the clear branch must not call money "cushion" when it went into a GOAL ──
+  // The §2.5 waterfall funds the starter EF (and any PRIORITY savings goal) BEFORE the snowball, so a
+  // spare wholly absorbed by either leaves `deployedToDebt` at 0 — and the brief then said "this
+  // paycheck keeps ALL of it as your cushion, right at your $200 line", a sentence that contradicts
+  // itself in its own clause. Measured overstatement: (discretionary − kept), up to the $1,000 starter
+  // target. Both rungs are asserted, because fixing only the EF would leave the class open.
+  {
+    const efSoaks = selectPaydayGuardian(
+      store({ premium: true, amount: '2000', debts: [{ balance: 8000, min: 100 }], bills: [900], floor: 200, goals: [{ type: 'emergency', current: 0, target: 1000 }] }),
+    );
+    eq(efSoaks?.deployedToDebt, 0, 'A3.2 — the starter EF absorbs the whole spare, so nothing reaches debt');
+    eq(efSoaks?.cushion, 200, '…and the real cushion is the $200 floor, not the $1,000 headroom');
+    assert(!efSoaks?.detail.includes('keeps all of it as your cushion'), '…so the brief must NOT claim it keeps all of it as cushion');
+    assert(!!efSoaks?.detail.includes('$800') && !!efSoaks?.detail.includes('Emergency Fund'), '…it names the $800 and where it went');
+    assert(!!efSoaks?.detail.includes('funds before debt payoff'), '…and why debt got nothing');
+    // The old safe move promised nudging the floor down frees money "for debt". It frees it for the EF.
+    assert(!!efSoaks?.safeMove.includes('Emergency Fund'), '…and the safe move points at the rung that actually receives it');
+
+    // The SAME defect through the other pre-debt rung — a prioritized savings goal.
+    const base = store({ premium: true, amount: '2000', debts: [{ balance: 8000, min: 100 }], bills: [900], floor: 200 });
+    const goalSoaks = selectPaydayGuardian({
+      ...base,
+      goals: [{ id: 'vac', name: 'Vacation', targetAmount: 5000, currentAmount: 0, type: 'savings', priority: true }],
+    });
+    eq(goalSoaks?.deployedToDebt, 0, 'A3.2 — a PRIORITY savings goal absorbs the spare the same way');
+    assert(!goalSoaks?.detail.includes('keeps all of it as your cushion'), '…and gets the same honest treatment, not just the EF');
+    assert(!!goalSoaks?.detail.includes('Vacation'), '…naming the goal that actually received it');
+
+    // Regression guard the other way: a genuinely all-cushion CLEAR cycle keeps the original copy.
+    // Discretionary lands exactly ON the floor, so the buffer takes it all and no rung sees a cent —
+    // the one shape in which "keeps all of it as your cushion" is literally true.
+    const noRung = selectPaydayGuardian(store({ premium: true, amount: '2000', debts: [{ balance: 8000, min: 100 }], bills: [1700], floor: 200 }));
+    eq(noRung?.state, 'clear', 'discretionary exactly at the floor → clear (not tight)');
+    eq(noRung?.deployedToDebt, 0, '…with no pre-debt rung and no spare to debt');
+    assert(!!noRung?.detail.includes('keeps all of it as your cushion'), '…still says so, because this time it is true');
+  }
+
   console.log(`✅ Guardian selector (RS.2) tests passed (${passed} asserts).`);
 }
 

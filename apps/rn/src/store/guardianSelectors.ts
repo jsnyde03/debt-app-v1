@@ -8,7 +8,7 @@ import { ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS, type EstimateStaleness } from
 import type { DebtStore } from '@/data/models';
 
 import { classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './guardianPredictionCore';
-import { selectDeployedToSavings, selectDiscretionary, selectExtraToDebt, selectHeldReserve, selectLiquidCushion } from './planSelectors';
+import { selectDeployedToSavings, selectDiscretionary, selectExtraToDebt, selectHeldReserve, selectLiquidCushion, selectDeployedBeforeDebt, selectDeployedBeforeDebtGoalId } from './planSelectors';
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
 import { selectAllocation, selectPaycheckMissed, type Allocation } from './selectors';
 import type { AllocationCategory } from '@core/engine/allocatePaycheck';
@@ -597,6 +597,15 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     heldReserve: selectHeldReserve(allocation),
     // The "deployed" figure: extra-to-debt while owing, spare-to-savings once debt-free (2.4.8).
     deployedToDebt: debtFree ? selectDeployedToSavings(allocation) : selectExtraToDebt(allocation),
+    // 3.7.A3.2 — the pre-debt rungs (starter EF, priority goals) fund BEFORE the snowball, so they can
+    // drive `deployedToDebt` to 0 while real money left the cushion. Only meaningful while owing: once
+    // debt-free the figure above already counts every savings rung, and passing it here would
+    // double-name the same dollars.
+    deployedBeforeDebt: debtFree ? 0 : selectDeployedBeforeDebt(allocation),
+    deployedBeforeDebtName: (() => {
+      const id = selectDeployedBeforeDebtGoalId(allocation);
+      return (id && store.goals.find((g) => g.id === id)?.name) || undefined;
+    })(),
     // The extra fills targets in order, so it spans >1 when it exceeds the first target's need.
     deploySpread: debtFree ? savingsItems.length > 1 : snowballItems.length > 1,
     shortfall: allocation.shortfall,

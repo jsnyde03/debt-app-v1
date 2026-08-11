@@ -40,6 +40,26 @@ export function selectDeployedToSavings(allocation: Allocation): number {
   return sumCategory(allocation, 'starter_emergency', 'emergency', 'optional_goal');
 }
 
+/** 3.7.A3.2 — the rungs that fund BEFORE the snowball: the starter EF and any PRIORITY savings goal.
+ *  Distinct from the sibling above, which also counts the post-debt rungs. These two are the ones that
+ *  can zero `selectExtraToDebt` while real money leaves the cushion — which is what made the Guardian's
+ *  clear-branch copy untrue ("keeps all of it as your cushion" over an $800 transfer into a goal). */
+export function selectDeployedBeforeDebt(allocation: Allocation): number {
+  return sumCategory(allocation, 'starter_emergency', 'optional_goal');
+}
+
+/** The single goal those rungs funded, for the copy — `null` when none or more than one took a share
+ *  (the caller then says "your savings" rather than naming one of several). */
+export function selectDeployedBeforeDebtGoalId(allocation: Allocation): string | null {
+  const ids = new Set(
+    allocation.allocations
+      .filter((a) => (a.category === 'starter_emergency' || a.category === 'optional_goal') && a.amount > 0)
+      .map((a) => a.goalId)
+      .filter((id): id is string => !!id),
+  );
+  return ids.size === 1 ? [...ids][0] : null;
+}
+
 /** The protected cushion the plan KEEPS this cycle — ALL held buckets (§2.2 canonical: cushion_buffer +
  *  prefunded_reserve + discovery_holdback + true_leftover), what the floor protects. NOT the buffer alone
  *  (round-6 F1: held reserves must count as cushion or "put to work" over-counts them). */

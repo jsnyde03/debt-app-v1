@@ -101,6 +101,14 @@ export interface GuardianInput {
   /** §2.10 tight-case (2.4.11.2) — the user held their line by moving cash from savings this cycle. The
    *  boosted cushion reads as clear; the copy acknowledges the top-up instead of a plain "looks clear". */
   toppedUp?: boolean;
+  /** 3.7.A3.2 — spare the §2.5 waterfall put into a goal that funds BEFORE debt payoff: the starter EF
+   *  and any PRIORITY savings goal. Both rungs sit ahead of the snowball, so either can drive
+   *  `deployedToDebt` to 0 while real money left the cushion — and the clear branch then reported the
+   *  whole headroom as cushion. Measured at up to $1,000 (the starter target) of money called cushion
+   *  while it sat in a goal, and reproduced identically through a priority goal. Name where it went. */
+  deployedBeforeDebt?: number;
+  /** What it funded — the goal's own name, or "your savings" when more than one rung took a share. */
+  deployedBeforeDebtName?: string;
 }
 
 /** A finite, non-negative number or 0 — the guard against `$NaN`/`$Infinity` ever reaching a screen. */
@@ -295,6 +303,30 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   }
   // Clear — floor held; deploy the spare (if any) to debt.
   if (deployedToDebt <= 0) {
+    // 3.7.A3.2 — "keeps ALL of it as your cushion" was false whenever a pre-debt rung of the §2.5
+    // waterfall absorbed the spare. Both the starter EF and a PRIORITY savings goal fund ahead of the
+    // snowball, so `deployedToDebt` reads 0 while the money went into a GOAL. Measured on a $2,000
+    // paycheck / $900 rent / $200 floor: the card said "About $1,000 … keeps all of it as your cushion,
+    // right at your $200 line" over an $800 transfer — a sentence that contradicts itself in its own
+    // clause — and the priority-goal rung reproduced it exactly. The overstatement is
+    // (discretionary − kept), so the worst case is the full $1,000 starter target.
+    const beforeDebt = money(input.deployedBeforeDebt ?? 0);
+    if (beforeDebt > 0) {
+      const target = input.deployedBeforeDebtName ?? "your savings";
+      return withHedge(
+        {
+          state,
+          title: "Looks clear this paycheck",
+          detail: `About ${amt(discretionary)} after everything required — ${amt(kept)} stays as your cushion and the spare ${amt(beforeDebt)} goes into ${target}, which funds before debt payoff.`,
+          // The old line promised nudging the floor down would free money "for debt". It would not: the
+          // pre-debt rung is next in the waterfall, so freed cash goes THERE until it is full.
+          safeMove: `Nudge your line down anytime to put more into ${target} — once that's funded, the spare starts going ${debtFree ? "to your goals" : "to debt"}.`,
+          lookahead: look,
+          ...viz,
+        },
+        hedge,
+      );
+    }
     return withHedge(
       {
         state,
