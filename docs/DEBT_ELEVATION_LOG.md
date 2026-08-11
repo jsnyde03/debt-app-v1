@@ -4978,3 +4978,41 @@ so the ledger was assembled from notes that predated the work that resolved them
 
 ⚡ **Three of nine ledger items across Wave A have now turned out to be already-fixed** (A1, A3.4, A3.9).
 The switch-in verification has paid on every single item it has been applied to, and it costs minutes.
+
+### 4.1 ⏸ PAUSED at 4.1.3 — 3.7 finishes first (2026-08-11)
+
+🎯 Jason: *"We need to finish 3.7 before moving on to Phase 4."* The lane is paused **mid-item**, not
+abandoned, and Wave A retakes the active slot. Parking the full decomposition here because the plan
+carries exactly one decomposed section and it is now Wave A's.
+
+⚠️ **The state it is paused IN matters: the native lane is RED.** 4.1.3's suite repair is built, pushed
+and **unverified** — run 31514348038 was still in flight at the pause. The suite had been broken since
+2026-08-10 and green-by-never-running, so pausing does not make anything worse than it was, but the lane
+cannot be described as working until that run lands. **Record the result when it does, even though the
+item is parked** — an unverified repair is exactly the "claim kept where nothing checks it" shape.
+
+**Done:** 4.1.1 (six capabilities proven over two cycles) · 4.1.2 (flows 07/08, 11 checks, unrun) ·
+4.1.3 (the repair + `TextField` testIDs, unrun).
+
+**Remaining, in the ranked order established 2026-08-11 (confidence, not check count):**
+
+| # | step |
+|---|---|
+| 4.1.4 | the selector guard — every text selector in `.maestro/**` must exist in app source, wired into `validate:release:rn`. ⚡ Prototype already written (the `field-*` cross-check) |
+| 4.1.5 | the iPad boot — §11.15 ⭐ · §11.16 · §10's two layout checks · §11.8's rotation half |
+| 4.1.6 | §12.0 explore (7) |
+| 4.1.7 | AX + theme conditions — §11.1 · §11.5 · §8's half. Reduce Motion needs an app-side observable first |
+| 4.1.8 | §11's remainder — §11.9 · §11.13 · §11.11 |
+| 4.1.9 | the Appium supplement — §11.15 as numeric frame containment · §10's ⌘ keys · `autoAcceptAlerts` |
+| 4.1.10 | §12.1–§12.7 (15) — blocked on the deep-link door |
+| 4.1.11 | reconcile — the exit |
+
+**The exit criterion, unchanged** (🎯 *"confident enough to move on"*): every check in
+`DEBT_3.5_DEVICE_QA_CHECKLIST.md` sits in exactly one of three buckets, written down — **automated and
+green** · **Phase-6-owed with the reason stated** · **judged not worth automating with the reason**. None
+left unclassified. ⛔ Voided by any check moved into bucket 1 by weakening it until it passes.
+
+⛔ **The deep-link door, measured both ways:** iOS 26 raises the "Open in …?" confirmation for a custom
+scheme via Maestro's `openLink` **and** via `xcrun simctl openurl`, and the alert is SpringBoard's — it
+never enters the flow's hierarchy. A coordinate tap is staged in `p09` and untried; if it fails, the door
+is 4.1.9's.

@@ -8,69 +8,35 @@
 
 ---
 
-## ▶ BUILDING NOW — 4.1 · the Maestro coverage lane
+## ▶ BUILDING NOW — 3.7 Wave A · engine correctness + honesty
 
-🎯 **Jason 2026-08-11, promoted over Wave A.** Measured: of the device checklist's 127 real checks,
-a Maestro iOS-Simulator lane can fully carry **68 (54%)**, partly carry 26, and never touch 33 —
-including **§11.15**, the item the checklist itself calls *"guarded by NOTHING"*. Full analysis +
-per-section map: [`docs/audits/2026-08-11-maestro-coverage/`](audits/2026-08-11-maestro-coverage/README.md).
+🎯 **Jason 2026-08-11: "We need to finish 3.7 before moving on to Phase 4."** The Maestro lane (4.1) is
+**paused mid-item**, not abandoned — state below.
 
 | # | Step | State |
 |---|---|---|
-| **4.1.1** | ✅ **ANSWERED over 2 cycles 2026-08-11.** ✅ `extendedWaitUntil` *(the `06-tutorial-interactions.yaml` limit was never real)* · ✅ `evalScript`+`assertTrue` · ✅ `setOrientation` · ✅ `assertScreenshot` · ✅ `repeat` · ✅ **AX5+dark does not break the app**. ⛔ Only the deep-link door is open (below). ⚡ Cycle 1's five reds were **one leaked SpringBoard modal**, not five gaps — the repair was ORDERING; log carries the wrong-diagnosis correction | |
-| **4.1.2** | ✅ **BUILT 2026-08-11** — flows `07-money-add-and-rescue` (§14.1–§14.6) + `08-coach-marks` (§13.1–§13.5). **§14.3 stops being "verified here or nowhere"**; §14.4's "under Mortgage only" is proved in **two phases** rather than by an unproven element count. ⚠️ **§13.6 deliberately NOT claimed** — it needs counting (probe p06). Before-scan caught a stale comment: `coachMarkCopy.ts` says the payoff-schedule mark "is not registered anywhere", but `DebtSheet.tsx:125` registers it | |
-| **4.1.3** | ⚠️ **THE SUITE WAS BROKEN — repair ✅ BUILT 2026-08-11, unrun.** Flow 01 tapped **"Try with Sample Data"** (deleted `b67cf5d`) and flow 02 tapped **"Add debt"** (replaced by the A10.1 chooser) — **two commits on 2026-08-10, two broken flows, neither noticed.** Worse than selectors: the deleted button *imported a plan into the real store*, which is the seed flows 02–06 all declare a dependency on; its replacement persists nothing. Flow 01 now **walks onboarding and adds Visa · Store Card · Car Loan for real** | |
-| **4.1.4** | **A SELECTOR GUARD, so it cannot rot again** — the lane is manual-dispatch only, so a stale flow reports *nothing* rather than red, and it decayed for a day unseen. A cheap static check on the free lane (every text selector in `.maestro/**` must exist in app source), wired into `validate:release:rn` beside `check-rn-style-divergence.ts`. ⚡ **This is the plan's own "a claim kept somewhere other than where it is checked" defect class** | |
-| **4.1.5** | **The iPad boot** — **§11.15** ⭐ · §11.16 · §10's two layout checks · §11.8's rotation half. ✅ Unblocked: `setOrientation` **and** `assertScreenshot` both passed cycle 2. ⛔ §10's three ⌘-key checks are NOT in scope — Appium-shaped, see 4.1.9 | |
-| **4.1.6** | **§12.0 explore (7)** — a user-facing run that has never been on hardware; incl. §12.0.3, which web cannot answer | |
-| **4.1.7** | **AX + theme conditions** — §11.1 · §11.5 · §8's automatable half, via `simctl ui`. Accessibility is a stated **WCAG 2.2 AA floor**, so it ranks above raw check count. ⚡ Cycle 2 already showed the app does **not** break at AX5+dark. ⚠️ Reduce Motion needs an app-side observable first | |
-| **4.1.8** | **§11's remainder** — §11.9 · §11.13 · **§11.11, which nothing on either lane covers today** | |
-| **4.1.9** | **The Appium supplement** — 🎯 promoted from the backlog 2026-08-11. ⚠️ **My original trigger did NOT fire** — `assertScreenshot` and `setOrientation` both passed, so this is no longer a gap-filler. It stands on: **§11.15 as a numeric frame-containment assertion** · **§10's three ⌘-key checks** · and one **measured** gap — `autoAcceptAlerts`, the only clean way through the deep-link dialog, which gates §12.1–§12.7 | |
-| **4.1.10** | **§12.1–§12.7 scripted (15)** — ⚠️ **BLOCKED on the deep-link door** (below). Ranked last deliberately: it is the App-Preview/embed vehicle, so it raises confidence in the *asset*, not in the app | |
-| **4.1.11** | **Reconcile — and this IS the exit** (see below). Mark what the lane holds in the checklist, and **ledger anything the probes refuted as Phase-6-owed rather than weakening it to pass** | |
+| **A.1** | ✅ **DONE** — A1 closed (already fixed, `611a4fb`); A2 reproduced + fixed, gate 156/156 | |
+| **A.2** | ✅ **DONE 2026-08-11** — A3's before-scan: **the ledger of nine is SEVEN.** A3.4 and A3.9 were already fixed on 2026-07-29, the day before the ledger was written. Per-item evidence → log | |
+| **A.3** | **A4–A7 BEFORE-SCAN** — verify against the current engine before building. ⚠️ **3 of the 10 items checked from this 2026-07-30 pass were already fixed**; treat each as a hypothesis | ▶ next |
+| **A.4** | **A3.1 · A3.3** — the honesty defects proper: the Guardian claiming something it does not do | |
+| **A.5** | **A3.5 · A3.8** — cheap correctness. A3.5's undo mechanism **already exists** on the other caller; surface it, don't build it | |
+| **A.6** | **A3.6** — one cover offer, not two | |
+| **A.7** | **A3.2** — ⚠️ **measure the figure first**, then write the copy. Currently a direction, not a number | |
+| **A.8** | **[DECISION] A3.7** — an applied purchase reads as a deferrable bill. Coherent by rule; the question is whether it confuses a person. **Jason's call, not a silent fix** | |
+| **A.9** | **A4–A7** — whatever survives A.3 | |
+| **A.10** | **A8.1–A8.3** — the Siri phrase *(gated on [D4]: every shortcut phrase contains the app name, so it can only shrink by shrinking the NAME)* | |
 
-⛔ **The deep-link door — measured, both ways.** iOS 26 raises **"Open in "Debt Planner (RN)"? · Cancel /
-Open"** for a custom scheme delivered by Maestro's `openLink` **or** by `xcrun simctl openurl`, so it is
-OS behaviour, not a tooling artefact. The alert is SpringBoard's and never enters the flow's hierarchy.
-Cycle 3 tries a **coordinate tap** (cheap, one file, 15 checks); if that fails the door is 4.1.9's.
+**Exit:** the honesty ledger is empty, A4–A7 are each closed or refuted **with evidence**, every fix has a
+failing-then-passing test, gate green.
 
-### 🎯 Exit criterion — "confident enough to move on" (Jason 2026-08-11)
-
-🎯 *"The more that we can prove with Appium/Maestro the better. Real device is important but we have a
-whole phase dedicated to that. I want us to just be confident enough here to be able to move on."*
-
-So the bar is **not** a coverage percentage, and not exhaustiveness. **4.1 is done when every check in
-`DEBT_3.5_DEVICE_QA_CHECKLIST.md` sits in exactly one of three buckets, with the bucket written down:**
-
-1. **Automated** — green in CI, on an iPhone sim and an iPad sim.
-2. **Phase-6-owed** — with the reason it cannot be automated *stated*, not implied.
-3. **Judged not worth automating** — with the reason.
-
-**No check is left unclassified.** That is what makes moving on a decision rather than a hope: Phase 6
-still runs the hardware pass, and this lane's job is that nothing reaches it *unexamined*.
-
-⚠️ **The one thing that voids the exit:** a check moved into bucket 1 by weakening it until it passes.
-`06-tutorial-interactions.yaml` names four assertions that already shipped confidence nobody earned; this
-item roughly doubles the surface for that mistake, and cycle 1 already produced one false verdict
-(p07's red read as "the app breaks at AX5" when it never ran).
-
-⚡ **Why now, over Wave A:** the checks this recovers regress *silently between builds* today, and the
-device build is already stale by a whole phase. 🎯 **And the spend amortises past v1.7** (Jason
-2026-08-11): the lane is reusable — `native-e2e.yml` already mirrors Freedom's — so it serves v1.8,
-the Android lane and the portfolio, and **the findings travel too** (the `extendedWaitUntil` correction
-and the run-state-leaking-file rule apply to any repo using this setup).
-
-⚠️ **Wave A is displaced, not superseded** — A3's switch-in verification is done and **three of its nine
-are confirmed live**: the attestation can promise a smaller safety net and reduce it by zero ·
-`selectTightTopUp` raids the EF by find-order · the Guardian top-up has no undo while the affordability
-path does. Detail in the log; do not re-derive them.
+⚠️ **A0.4** (payoff-schedule device re-verify) and **A8.4** stay device-owed → the checklist.
 
 ---
 
 ### ⏭ Then, in order
 
-1. **Phase 3.7 Wave A** — ✅ A1 (already fixed, `611a4fb`) · ✅ A2 (fixed 2026-08-10) · **A3 — before-scan COMPLETE 2026-08-11: the ledger of nine is SEVEN.** ⛔ A3.4 and A3.9 were already fixed on **2026-07-29, the day before the ledger was written** (`b8c15d3`, `0336e3f`). Live: A3.1 attestation gating · A3.2 starter-EF overstatement · A3.3 EF-raiding top-up · A3.5 no-undo *(mechanism already exists on the other caller)* · A3.6 double cover offer · A3.7 applied-purchase deferrability **[DECISION — design call, not a defect]** · A3.8 `GoalSheet` dedupe. Evidence per item → log · **A4–A7** · **A8** the Siri phrase. ⚠️ Same 2026-07-30 pass — verify A4–A7 too
-2. **Wave B** — B1 drag-the-curve · B2 streak/milestone surfacing · B3 greeting · B4 swipe-to-mark-paid *(needs [D2])*
+1. **Wave B** — B1 drag-the-curve · B2 streak/milestone surfacing · B3 greeting · B4 swipe-to-mark-paid *(needs [D2])*
+2. **4.1 — the Maestro coverage lane ⏸ PAUSED at 4.1.3**, resumes after 3.7. ✅ 4.1.1 answered (6 capabilities proven) · ✅ 4.1.2 built (11 checks) · ⏳ 4.1.3's suite repair is **built but unverified — the native lane is RED until it lands.** Remaining 4.1.4–4.1.11 + the exit criterion → log
 3. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
 4. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
 5. **Phase 5** (data continuity, ship-blocker) → **5.5** (repo consolidation) → **Phase 6** (launch)
@@ -101,9 +67,9 @@ log 3.7.A10; the migration half → Phase 5.
 |---|---|---|
 | 0–3 | Design foundation · surface · premium substance · delight + native | ✅ COMPLETE |
 | 3.5 | Interactive tutorial + bounded demo | **BUILD COMPLETE**; 3.5.7 + the device pass remain (below) |
-| **3.7** | **Fold-in block (ledger clearance)** | Wave A open (A1/A2 ✅) — **displaced by 4.1**, resumes after it |
+| **3.7** | **Fold-in block (ledger clearance)** | **▶ ACTIVE — Wave A** (A1/A2/A9/A10 ✅) |
 | — | Whole-app cohesion + best-in-class + wording audit gate | after 3.7 |
-| **4** | **Quality (test harness)** | **▶ ACTIVE — 4.1, the Maestro coverage lane** |
+| 4 | Quality (test harness) | RS baseline; **4.1 ⏸ paused at 4.1.3** — 🎯 3.7 finishes first |
 | 5 | Data continuity + cutover | 🔒 ship-blocker, upcoming |
 | 5.5 | Repo consolidation | before the release gate |
 | 6 | Launch-ready | final |
@@ -147,9 +113,8 @@ _Standing rule (Jason 2026-07-30): stop deferring — if an item needs no device
 fold it in. Runs after 3.5 and BEFORE the audit gate, so the audit reviews the final state._
 
 **Wave A — correctness / honesty** *(decomposed at the top of this file)*
-- **A1 · BNPL payoff-RATE undercount** in `projectDebtPayoff` — a monthly projection pays a biweekly BNPL 1×/mo. 2.7.4 fixed the cash READ, not the payoff rate.
-- **A2 · sub-cycle obligation undercount** — the allocator counts each obligation once per paycheck cycle, so a weekly/biweekly `RequiredExpense` under a monthly payer is under-reserved.
-- **A3 · Guardian honesty ledger** — attestation gating · starter-EF "keeps it as cushion" overstatement · `selectTightTopUp` preferring a goal over the EF · hero-vs-Guardian coherence · no-undo on the tight top-up · "hold your line" twice · applied purchase reads as deferrable · `GoalSheet` name-dedupe · affordability density.
+- ✅ **A1** BNPL payoff-rate undercount — **CLOSED, was already fixed** (`611a4fb`, three days before the item was written). ✅ **A2** sub-cycle obligation undercount — reproduced ($50 reserved where $200 was owed) and fixed.
+- **A3 · Guardian honesty ledger — SEVEN live**, verified 2026-08-11: attestation gating · starter-EF "keeps it as cushion" · `selectTightTopUp` raids the EF · no-undo on the tight top-up · "hold your line" twice · applied purchase reads as deferrable **[DECISION]** · `GoalSheet` dedupe. ⛔ hero-vs-Guardian coherence and affordability density were **already fixed 2026-07-29**.
 - **A4** BNPL seam polish · **A5** offline Lifetime mislabel (`premiumResolved` gate) · **A6** drift type hygiene · **A7** confirm no third debt-free-date producer.
 - **A8 · Siri phrase** — every App Shortcut phrase must contain `\(.applicationName)`, so it can only shrink by shrinking the NAME. A8.1 synonyms · A8.2 shorter variants · A8.3 [D4] *when* to rename · A8.4 device-only.
 - ✅ **A0** payoff-schedule redesign **DONE** (`c8a94a3`) — ⏳ only **A0.4**, the device re-verify, remains → the checklist. ✅ **A9** variable-income controls **DONE** 2026-08-07.
@@ -178,9 +143,9 @@ _All three audits fan out on Fable 5._
 
 ---
 
-## Phase 4 — Quality ▶ ACTIVE
+## Phase 4 — Quality
 
-- **4.1 — the Maestro coverage lane ▶ BUILDING** *(decomposed at the top of this file)*. 68 of the device checklist's 127 real checks, moved onto the free GH-Actions sim lane. Audit: [`2026-08-11-maestro-coverage/`](audits/2026-08-11-maestro-coverage/README.md).
+- **4.1 — the Maestro coverage lane ⏸ PAUSED at 4.1.3** *(🎯 3.7 finishes first)*. 68 of the device checklist's 127 real checks onto the free GH-Actions sim lane. ⚠️ **The native lane is RED until 4.1.3's repair is verified** — the suite had been broken since 2026-08-10 and green-by-never-running. Audit: [`2026-08-11-maestro-coverage/`](audits/2026-08-11-maestro-coverage/README.md); step-by-step + the exit criterion → log.
 - ✅ Largely delivered by the RS baseline (tsx app-layer harness · core engine fuzz · RN-web e2e), green-gated by `validate:release:rn`.
 - **Residual coverage:** `testEngineFuzz` → `holdbackComposition` · RN e2e for missed/stale/debt-free states + a mobile viewport · app-layer CRUD coverage.
 - **e2e harness race:** `webServer` re-exports and spawns its own `serve` on :4319, racing a hand-started one. ⚠️ Corollary: `reuseExistingServer` reusing a STALE serve serves an OUTDATED `dist` — force a fresh `export:web` when adding a route.
