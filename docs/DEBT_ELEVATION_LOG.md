@@ -5040,3 +5040,41 @@ rather than a description.
 
 **Wave A's real remaining surface:** A3 ×7 · A4 ×3 · A5 · A6a · A8 — and two of those are gated
 (**A3.7** on a design call, **A8** on [D4]).
+
+### A.3 AFTER-SCAN (2026-08-11) — 🎯 *"Don't forget to do after scans too"*
+
+⚠️ **Jason is right that these had been getting skipped.** Discoveries were being folded in
+opportunistically as they appeared, and the *completion* scan — the pass that asks what only became
+visible once the work was done — was not being run at each boundary. That is precisely how adjacent items
+get lost, since a before-scan structurally cannot see them. Four things this one surfaced:
+
+**① A6a is a DIVERGENCE, not an omission — and it makes the fix obvious.** The before-scan established
+that `buildDriftBaseline` (`computeDrift.ts:120`) takes
+`debts: Array<{ balance; minimumPayment; apr; type? }>`. What only shows on comparison: its sibling
+`buildPayoffTrajectory` (`buildPayoffTrajectory.ts:11`) takes the same conceptual input **and already
+carries `recurrence?`**. Two functions in one directory disagreeing about the shape of a debt. → **folds
+into A6a**: match the sibling rather than invent a shape, and the risk drops to nil.
+
+**② `selectWhatIf*` is a second entry point into the engine, and A7's closure should say so.** A7
+confirms one *funnel* (`selectDebtFreeDate`) — but `selectWhatIfBaseline`/`selectWhatIf` call
+`projectDebtPayoff` **directly**, bypassing it. Correct today (What-If is a deliberate alternate
+scenario, not a rogue producer), and a latent trap: **if the funnel ever gains a guard, a floor or a
+rounding rule, What-If silently will not have it.** → **filed to the audit gate** (cross-surface number
+coherence), not fixed now — there is nothing wrong yet.
+
+**③ A5's gate is probably not one row.** `premiumResolved` is being added to stop ONE mislabel, but the
+condition it represents — "RevenueCat has not answered yet" — applies to every premium-dependent surface
+that renders before resolution. → **folds into A5's build step as a scoping question**: enumerate what
+else reads `plan`/`premiumIsLifetime` on a cold offline launch *before* writing the gate, so it lands
+once rather than as row-by-row whack-a-mole.
+
+**④ ⚡ WAVE B HAS NEVER BEEN VERIFIED, and it comes from the same era.** This is the strongest finding
+here and only visible now that the rate is known: **5 of 14** Wave A items did not survive contact with
+the code. B1–B4 were written in the same period and have had **no** before-scan. B2 in particular
+("dropped streak/milestone surfacing") describes something as *missing* — and `pendingMilestone` +
+`activeAck` both exist today, so it may well be partly built already. → **added as a numbered step
+before Wave B builds anything.**
+
+**Nothing else surfaced.** A7's "retire the portfolio-level follow-on note" turned out to have no
+external note to retire — the note was the plan line itself, now closed. Verified rather than assumed:
+grepped the code, `FUTURE_VERSIONS.md` and the docs tree; no other reference exists.

@@ -23,7 +23,7 @@
 | **A.6** | **A3.6** — one cover offer, not two | |
 | **A.7** | **A3.2** — ⚠️ **measure the figure first**, then write the copy. Currently a direction, not a number | |
 | **A.8** | **[DECISION] A3.7** — an applied purchase reads as a deferrable bill. Coherent by rule; the question is whether it confuses a person. **Jason's call, not a silent fix** | |
-| **A.9** | **A4 ×3 · A5 · A6a** — A5 is a one-line `premiumResolved` gate; A6a adds `recurrence?` to a narrowed type; A4's third part is a copy clarification. ⚠️ A4a needs measuring before it earns work | |
+| **A.9** | **A4 ×3 · A5 · A6a.** ⚡ After-scan: A6a is a **divergence** — `buildPayoffTrajectory` already carries `recurrence?`, so match the sibling. ⚠️ A5: **scope the gate first** — "RevenueCat hasn't answered yet" affects every premium surface on a cold offline launch, not just one row. ⚠️ A4a needs measuring before it earns work | |
 | **A.10** | **A8.1–A8.3** — the Siri phrase *(gated on [D4]: every shortcut phrase contains the app name, so it can only shrink by shrinking the NAME)* | |
 
 **Exit:** the honesty ledger is empty, A4–A7 are each closed or refuted **with evidence**, every fix has a
@@ -35,7 +35,7 @@ failing-then-passing test, gate green.
 
 ### ⏭ Then, in order
 
-1. **Wave B** — B1 drag-the-curve · B2 streak/milestone surfacing · B3 greeting · B4 swipe-to-mark-paid *(needs [D2])*
+1. **Wave B** — ⚠️ **B.0 = a before-scan FIRST, same as Wave A's.** B1–B4 are from the same 2026-07-30 era and have never been verified; **5 of 14 Wave A items did not survive contact with the code.** B2 ("dropped streak/milestone surfacing") is the likeliest already-built — `pendingMilestone` and `activeAck` both exist. Then B1 drag-the-curve · B2 · B3 greeting · B4 swipe-to-mark-paid *(needs [D2])*
 2. **4.1 — the Maestro coverage lane ⏸ PAUSED at 4.1.3**, resumes after 3.7. ✅ 4.1.1 answered (6 capabilities proven) · ✅ 4.1.2 built (11 checks) · ⏳ 4.1.3's suite repair is **built but unverified — the native lane is RED until it lands.** Remaining 4.1.4–4.1.11 + the exit criterion → log
 3. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
 4. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
@@ -132,6 +132,7 @@ entry · C9 `router.back()` cold-entry sweep · C10 doc disambiguation of the ov
 ## Audit gate — whole-app _(after 3.7, before Phase 5)_
 
 - [ ] **Cohesion** — the same adversarial rigor for the ENTIRE app (Phases 0–3.7), criterion: does every element work TOGETHER? Cross-surface voice · visual · motion · numbers.
+  - ⚠️ **[3.7.A.3 after-scan] `selectWhatIf*` bypasses the debt-free-date funnel** — it calls `projectDebtPayoff` directly rather than going through `selectDebtFreeDate`. Correct today (a deliberate alternate scenario), and a trap: **if the funnel ever gains a guard, a floor or a rounding rule, What-If silently will not have it.** Nothing to fix yet — check it here.
 - [ ] **Best-in-class enhancement pass** — aspirational, app-wide: is each surface genuinely top-of-class, and what makes it unforgettable? Benchmark vs category leaders; restraint, not fireworks.
 - [ ] **Wording / voice** — every user-facing string, both tiers, all states, against the house voice. Absorbs Wave C's copy items.
 
