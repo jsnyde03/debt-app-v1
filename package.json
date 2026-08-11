@@ -21,7 +21,8 @@
     "test:scenarios": "npm --prefix apps/rn run test:scenarios",
     "test:all": "npm run test:regression && npm run test:app && npm run test:scenarios",
     "lint:rn": "npm --prefix apps/rn run lint && npm run lint:a11y-props && npm run lint:comments && npm run lint:rn-style",
-    "validate:release:rn": "npm run lint:rn && npm run test:regression && npm run test:app && npm run test:scenarios && npm run test:e2e:rn",
+    "typecheck:rn": "npm --prefix apps/rn run typecheck",
+    "validate:release:rn": "npm run typecheck:rn && npm run lint:rn && npm run test:regression && npm run test:app && npm run test:scenarios && npm run test:e2e:rn",
     "validate:release": "npm run validate:release:rn",
     "validate:release:legacy": "npm run lint && npm run test:regression && npm run test:app && npm run test:e2e",
     "test:regression": "tsx packages/core/testing/runRegressionTests"

@@ -172,7 +172,7 @@ function run() {
     assert(!!efSoaks?.detail.includes('$800') && !!efSoaks?.detail.includes('Emergency Fund'), '…it names the $800 and where it went');
     assert(!!efSoaks?.detail.includes('funds before debt payoff'), '…and why debt got nothing');
     // The old safe move promised nudging the floor down frees money "for debt". It frees it for the EF.
-    assert(!!efSoaks?.safeMove.includes('Emergency Fund'), '…and the safe move points at the rung that actually receives it');
+    assert(!!efSoaks?.safeMove?.includes('Emergency Fund'), '…and the safe move points at the rung that actually receives it');
 
     // The SAME defect through the other pre-debt rung — a prioritized savings goal.
     const base = store({ premium: true, amount: '2000', debts: [{ balance: 8000, min: 100 }], bills: [900], floor: 200 });

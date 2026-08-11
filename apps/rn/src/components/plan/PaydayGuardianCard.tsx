@@ -69,7 +69,8 @@ export function PaydayGuardianCard({
   topUp?: TightTopUp | null;
   onTopUp?: () => void;
   /** 3.7.A3.5 — a live, reversible top-up for this cycle (null when there is nothing to undo). */
-  appliedTopUp?: { amount: number; goalName: string } | null;
+  /** 3.7.A3.6 — `holdsLine` says whether the move actually reached the floor; a capped draw did not. */
+  appliedTopUp?: { amount: number; goalName: string; holdsLine: boolean } | null;
   onUndoTopUp?: () => void;
   /** §2.0.c (2.4.11.4c) — the "bills complete" attestation affordance: shown while a discovery safety net
    *  is held; toggling reduces / restores the reserve. */

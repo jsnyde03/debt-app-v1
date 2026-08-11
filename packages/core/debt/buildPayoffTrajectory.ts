@@ -5,10 +5,21 @@ export type TrajectoryPoint = { month: number; balance: number };
 /** The month a single debt's balance first reaches zero (for per-debt "Visa gone — Aug 2027" waypoints). */
 export type DebtClearPoint = { id?: string; name?: string; month: number };
 
+/**
+ * The debt shape this simulation needs. **Exported so callers share it instead of re-declaring it** —
+ * 3.7.A6a: `buildDriftBaseline` had its own narrower copy that omitted `recurrence`, then passed its
+ * array straight into here. Correct at runtime (callers pass whole `Debt` objects), but the declared
+ * type said the field was absent, so a `.map()` that dropped it would have type-checked clean and
+ * silently un-rated every BNPL by cadence. Two functions in one directory disagreeing about what a
+ * debt is; one exported type is what stops that recurring.
+ *
+ * `recurrence` is required to rate BNPL by cadence, matching projectDebtPayoff (R2.1). `id`/`name` are
+ * used only for waypoints.
+ */
+export type PayoffSimDebt = { id?: string; name?: string; balance: number; minimumPayment: number; apr: number; type?: string; recurrence?: string };
+
 type SimInput = {
-    // `recurrence` is required to rate BNPL by cadence, matching projectDebtPayoff (R2.1). Callers pass
-    // full Debt objects, so `id`/`name` (used only for waypoints) are present at runtime.
-    debts: Array<{ id?: string; name?: string; balance: number; minimumPayment: number; apr: number; type?: string; recurrence?: string }>;
+    debts: PayoffSimDebt[];
     monthlyExtraPayment: number;
     strategy: "snowball" | "avalanche";
 };

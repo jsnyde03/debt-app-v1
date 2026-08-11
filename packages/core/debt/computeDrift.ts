@@ -1,4 +1,4 @@
-import { buildPayoffTrajectory, type TrajectoryPoint } from "./buildPayoffTrajectory";
+import { buildPayoffTrajectory, type PayoffSimDebt, type TrajectoryPoint } from "./buildPayoffTrajectory";
 
 /**
  * Drift Tracker core (v1.7 Phase C.4) — the premium_plus accountability carrot.
@@ -117,7 +117,10 @@ export function computeDrift(
  */
 export function buildDriftBaseline(input: {
   anchorDate: string;
-  debts: Array<{ balance: number; minimumPayment: number; apr: number; type?: string }>;
+  // 3.7.A6a — the SIBLING's exported shape, not a private narrower copy. This array is handed straight
+  // to `buildPayoffTrajectory`, which needs `recurrence` to rate BNPL by cadence; the old local type
+  // omitted it, so dropping the field would have type-checked clean.
+  debts: PayoffSimDebt[];
   payoffStrategy: "snowball" | "avalanche";
   monthlyExtraPayment: number;
   projectedDebtFreeDate: string;
