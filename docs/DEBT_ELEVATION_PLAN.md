@@ -20,18 +20,43 @@ per-section map: [`docs/audits/2026-08-11-maestro-coverage/`](audits/2026-08-11-
 | **4.1.1** | ⚙️ **CYCLE 1 RUN 2026-08-11 — 2 answers, 5 masked.** ✅ **`extendedWaitUntil` EXISTS** (the `06-tutorial-interactions.yaml` limit was never real) · ✅ `evalScript`+`assertTrue`. ⛔ The other five never reached their command: `openLink` raised a **SpringBoard "Open in…?" alert** nothing could dismiss, and it persisted for the whole run — Maestro saw 3 status-bar nodes and no app UI. Cycle 2: deep link moves to `simctl openurl` and runs **LAST**. ⏳ `gh workflow run native-e2e.yml --ref v1.7-dev -f mode=probe` | ▶ now |
 | **4.1.2** | ✅ **BUILT 2026-08-11** — flows `07-money-add-and-rescue` (§14.1–§14.6) + `08-coach-marks` (§13.1–§13.5). **§14.3 stops being "verified here or nowhere"**; §14.4's "under Mortgage only" is proved in **two phases** rather than by an unproven element count. ⚠️ **§13.6 deliberately NOT claimed** — it needs counting (probe p06). Before-scan caught a stale comment: `coachMarkCopy.ts` says the payoff-schedule mark "is not registered anywhere", but `DebtSheet.tsx:125` registers it | |
 | **4.1.3** | **The iPad boot** — **§11.15** ⭐ · §11.16 · §10's two layout checks · §11.8's rotation half. ⛔ **§10's three ⌘-key checks are NOT in scope** — `pressKey` has no modifier chords; they are Appium-shaped, see the backlog | |
-| **4.1.4** | **§12.0 explore (7)** — a run that has never been on hardware; incl. §12.0.3, which web cannot answer | |
-| **4.1.5** | **§12.1–§12.7 scripted (15)** — ⚠️ **GATED on 4.1.1's `openLink` result.** Currently owed to nobody | |
-| **4.1.6** | **AX + theme conditions** — §11.1 · §11.5 · §8's automatable half, via `simctl ui`. ⚠️ **Reduce Motion needs an app-side observable first** — it was cut from the probe rather than set-and-not-checked | |
-| **4.1.7** | **§11's remainder** — §11.9 · §11.13 · **§11.11, which nothing on either lane covers today** | |
-| **4.1.8** | **Reconcile** — mark what the lane now holds in the checklist, correct the backlog's "four items" understatement, and **ledger anything the probe refuted as device-owed rather than weakening it to pass** | |
+| **4.1.4** | **§12.0 explore (7)** — a user-facing run that has never been on hardware; incl. §12.0.3, which web cannot answer | |
+| **4.1.5** | **AX + theme conditions** — §11.1 · §11.5 · §8's automatable half, via `simctl ui`. Accessibility is a stated **WCAG 2.2 AA floor**, so it ranks above raw check count. ⚠️ Reduce Motion needs an app-side observable first — cut from the probe rather than set-and-not-checked | |
+| **4.1.6** | **§11's remainder** — §11.9 · §11.13 · **§11.11, which nothing on either lane covers today** | |
+| **4.1.7** | **§12.1–§12.7 scripted (15)** — ⚠️ **GATED on 4.1.1's deep-link result.** Ranked below the above deliberately: it is the App-Preview/embed vehicle, so it raises confidence in the *asset*, not in the app | |
+| **4.1.8** | **The Appium supplement** — 🎯 **promoted from the backlog 2026-08-11.** Scoped to the gap 4.1.1 *measures*, not a guessed one: **§11.15 as a numeric frame-containment assertion** (stronger than any screenshot compare) + **§10's three ⌘-key checks** (`mobile: keys`+`modifierFlags`). Second lane, not a replacement — Maestro keeps everything it already carries | |
+| **4.1.9** | **Reconcile — and this IS the exit** (see below). Mark what the lane holds in the checklist, and **ledger anything the probes refuted as Phase-6-owed rather than weakening it to pass** | |
 
-**Exit:** the named checks are green in CI on an iPhone **and** an iPad sim, the checklist says which
-items the lane holds, and nothing was weakened to go green.
+### 🎯 Exit criterion — "confident enough to move on" (Jason 2026-08-11)
 
-⚡ **Why now, over Wave A:** the checks this recovers are ones that regress *silently between builds*
-today, and the device build is already stale by a whole phase. ⚠️ **Wave A is displaced, not
-superseded** — A3's switch-in verification is done and three of its nine are confirmed live (below).
+🎯 *"The more that we can prove with Appium/Maestro the better. Real device is important but we have a
+whole phase dedicated to that. I want us to just be confident enough here to be able to move on."*
+
+So the bar is **not** a coverage percentage, and not exhaustiveness. **4.1 is done when every check in
+`DEBT_3.5_DEVICE_QA_CHECKLIST.md` sits in exactly one of three buckets, with the bucket written down:**
+
+1. **Automated** — green in CI, on an iPhone sim and an iPad sim.
+2. **Phase-6-owed** — with the reason it cannot be automated *stated*, not implied.
+3. **Judged not worth automating** — with the reason.
+
+**No check is left unclassified.** That is what makes moving on a decision rather than a hope: Phase 6
+still runs the hardware pass, and this lane's job is that nothing reaches it *unexamined*.
+
+⚠️ **The one thing that voids the exit:** a check moved into bucket 1 by weakening it until it passes.
+`06-tutorial-interactions.yaml` names four assertions that already shipped confidence nobody earned; this
+item roughly doubles the surface for that mistake, and cycle 1 already produced one false verdict
+(p07's red read as "the app breaks at AX5" when it never ran).
+
+⚡ **Why now, over Wave A:** the checks this recovers regress *silently between builds* today, and the
+device build is already stale by a whole phase. 🎯 **And the spend amortises past v1.7** (Jason
+2026-08-11): the lane is reusable — `native-e2e.yml` already mirrors Freedom's — so it serves v1.8,
+the Android lane and the portfolio, and **the findings travel too** (the `extendedWaitUntil` correction
+and the run-state-leaking-file rule apply to any repo using this setup).
+
+⚠️ **Wave A is displaced, not superseded** — A3's switch-in verification is done and **three of its nine
+are confirmed live**: the attestation can promise a smaller safety net and reduce it by zero ·
+`selectTightTopUp` raids the EF by find-order · the Guardian top-up has no undo while the affordability
+path does. Detail in the log; do not re-derive them.
 
 ---
 
@@ -205,7 +230,7 @@ a later version/tier**._
 measured hotspot)* · Dynamic-Type device QA.
 
 **Tooling / hygiene:**
-- **A supplemental APPIUM lane — ⏳ TRIGGERED, not scheduled (evaluated 2026-08-11, rec: NO for now).** Buys ~3 checks + one quality upgrade: **§10's ⌘N / ⌘1-3 / ⌘ HUD** (`mobile: keys` + `modifierFlags`, iPad-only, Xcode 15+) · system-alert handling · and **§11.15 as a numeric frame-containment assertion** rather than a screenshot compare. Costs a WebDriverAgent build, session management, ~10× the code — and on a real device, *signing*, which forfeits the free GH lane. ⚠️ **Corrects the audit: 3 of its "33 impossible" were MAESTRO limits, not automation limits.** ⏳ **The trigger:** if 4.1.1 returns `assertScreenshot` or `setOrientation` missing, §11.15's geometry has no Maestro answer and this becomes the right call. → `audits/2026-08-11-maestro-coverage/` §7.
+- ⛔ **PROMOTED 2026-08-11 → the active build (4.1.8).** *(Was: a supplemental Appium lane, filed as triggered-not-scheduled with a "NO for now" recommendation. 🎯 Jason reversed it the same day — "the more that we can prove with Appium/Maestro the better" — and the amortisation argument carried it: the lane outlives v1.7.)* → `audits/2026-08-11-maestro-coverage/` §7.
 - ⛔ **PROMOTED 2026-08-11 → the active build (4.1).** *(Was: "extend the Maestro lane to an iPad simulator — would take **four** items off the device's plate." Measured 2026-08-11: the iPad boot alone carries six, and the whole lane carries 68 of 127. The "four" was a guess, and it undersold the item by an order of magnitude.)*
 - **⚠️ The gate still asserts the RETIRED demo-mode contract** — `runRegressionTests.ts:59` imports `testDemoModeSeed`, which asserts the Capacitor key `debtPlanner.isDemoMode` that `seedPlannerState.ts` writes. It passes (the legacy tree still exists) but it is a green test defending a feature the RN app no longer has, which reads as a live contract → delete with the Capacitor tree at **5.5.1**.
 - **⚠️ `apps/rn/package-lock.json` is out of sync** — `npm ci` refuses it; both CI lanes work around it with `npm install`, so **installs are not reproducible.** Regenerate deliberately and re-run the full gate → before the Phase-5 cutover.

@@ -4766,3 +4766,49 @@ live, and the question cycle 2 asks is now narrower: does `simctl openurl` promp
 ⚠️ p09 also splits its assertion in two — the **marker** (renders in both modes → did the link route at
 all?) then the **dock** (scripted only → did it select the mode?). One assertion could not tell apart two
 repairs, which cycle 1 demonstrated by producing exactly that ambiguity.
+
+### 4.1 re-scoped — the bar is CONFIDENCE, and Appium is promoted (2026-08-11)
+
+🎯 Jason: *"The more that we can prove with Appium/Maestro the better. Real device is important but we
+have a whole phase dedicated to that. I want us to just be confident enough here to be able to move on."*
+· *"Setting up tooling now will save us so much time in the future as well."*
+
+**Two decisions, and both reverse a recommendation I had made an hour earlier.**
+
+**① The exit criterion is no longer a coverage number.** I had proposed capping 4.1 at 4.1.3 and
+returning to Wave A, on the grounds that six more tooling sub-steps was too much to do while three
+confirmed live correctness defects sat in A3. That argument assumed the value was **v1.7-local**. It is
+not: `native-e2e.yml` already mirrors Freedom's lane, so the harness serves v1.8, the Android lane and
+the portfolio — **and the findings travel with it**, since the `extendedWaitUntil` correction and the
+"a file that leaks device state runs last" rule apply to any repo on this setup. Amortised, the spend
+is cheaper than my framing made it look, and the cap was the wrong call.
+
+**② Appium is promoted from the backlog to 4.1.8**, having been filed as *triggered-not-scheduled* with
+an explicit "NO for now" the same day. The trigger I wrote (`assertScreenshot`/`setOrientation` coming
+back missing) was the right gate for a *replacement* and the wrong one for a *supplement*: it is a second
+lane scoped to the gap Maestro cannot close, and Maestro keeps everything it already carries. Scoped to
+**§11.15 as a numeric frame-containment assertion** — `rect`/`frame` are exposed element attributes, so
+the highest-value item in the checklist stops being a screenshot comparison — plus **§10's three ⌘-key
+checks** (`mobile: keys` + `modifierFlags`, iPad-only, Xcode 15/iOS 17+). ⚠️ Scoped against what 4.1.1
+**measures**, not against a guess.
+
+### The exit criterion, stated so it can be checked
+
+**Every check in `DEBT_3.5_DEVICE_QA_CHECKLIST.md` sits in exactly one of three buckets, written down:**
+automated and green in CI · Phase-6-owed *with the reason stated* · judged not worth automating *with the
+reason*. **No check left unclassified.**
+
+That is what turns "confident enough to move on" into a decision rather than a hope. Phase 6 still runs
+the hardware pass; this lane's job is that nothing arrives there **unexamined**.
+
+⚠️ **What voids it:** a check moved into bucket 1 by weakening it until it passes.
+`06-tutorial-interactions.yaml` already names four assertions that shipped confidence nobody earned, this
+item roughly doubles the surface for that mistake, and cycle 1 produced one false verdict already —
+p07's red read as *"the app breaks at AX5"* when it had never run.
+
+### Ranking changed with the criterion
+
+§12.1–§12.7 dropped from second to seventh despite being the largest single block (15 checks): it is the
+App-Preview/embed vehicle, so it raises confidence in the **asset**, not in the app. The AX/theme
+conditions rose, because WCAG 2.2 AA is a stated floor. **Ranking by check count and ranking by
+confidence are different orders**, and only the second one answers the question that was actually asked.
