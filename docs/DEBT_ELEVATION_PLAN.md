@@ -18,7 +18,7 @@ in log 3.7.A10. **Wave A is promoted back into the slot it was displaced from**,
 | **A.1** | ✅ **DONE for A1/A2 2026-08-10** — verified against the current engine before touching it, and it paid: **A1 was already fixed.** ⚠️ **The same check is owed for A4–A7** before any of them is treated as real | |
 | **A.2** | ⛔ **A1 CLOSED — already fixed, no work needed.** `611a4fb` (2026-07-27) scales BNPL minimums by cadence (`bnplMonthlyEquivalentMinimum`) **three days before Wave A was written**, and it is guarded by three assertions in `testDebtProjection.ts`. The plan item described a defect that no longer existed | |
 | **A.3** | ✅ **A2 FIXED 2026-08-10** — the allocator counted a sub-cycle obligation ONCE per cycle. Reproduced first (**$50 reserved where $200 was owed** — a weekly bill in a 31-day cycle), then fixed by expanding obligations into per-occurrence instances. Gate 156/156 | |
-| **A.4** | **A3** — the 9-item Guardian honesty/coherence ledger | ▶ next |
+| **A.4** | **A3** — the 9-item Guardian honesty/coherence ledger. ⚠️ **Verify each against current code first** — A1 turned out to have been fixed three days before Wave A was written, and A3's nine came from the same 2026-07-30 pass | ▶ next |
 | **A.5** | **A4 · A5 · A6 · A7** — BNPL seam polish · offline Lifetime mislabel · drift type hygiene · confirm no third debt-free-date producer | |
 | **A.6** | **A8.1–A8.3** — the Siri phrase (`INAlternativeAppNames` + shorter variants; [D4] is *when* to rename, not whether) | |
 
@@ -116,6 +116,7 @@ signed off, because its OUTPUT is not final:**
 | 1 | **3.5.7 — web-embeddable marketing demo** | the only unbuilt build item. After 3.7. ⛔ Does **not** wait on the device pass — the embed is live code, the App Preview is a frozen video, and the device pass verifies native behaviour a browser does not have. It waits on the debt-free-date defect, hosting/privacy, and the web-only `Slider` a11y gap |
 | 2 | **The device pass** | `DEBT_3.5_DEVICE_QA_CHECKLIST.md` §11 walkthrough · §12 demo · §13 coach-marks, against the fresh build |
 | 3 | **3.5.9 — reinstate the demo ✅ DONE 2026-08-10** | [D21] reverses [D19]. `isDemoReachable()` no longer rides `QA_TOOLS`; both doors restored and now **tested** — nothing covered them before, which is how they were pulled unnoticed. Log: 3.5.9 |
+| 5 | **3.5.10 — the INTERACTIVE demo ✅ DONE 2026-08-11** | 🎯 **[D23]**: the demo is now two runs. **`explore`** (a user: live tabs, no script, exit on the marker row) · **`scripted`** (the App-Preview + 3.5.7's embed only). One artifact had been doing both jobs and the video's requirements won. ⚠️ `useInBoundedRun` was deliberately **not** forked — a separate `useNavigationHeld()` answers the other question. Gate 158/158. Log: 3.5.10 |
 | 4 | **The App-Preview asset must be RE-SHOT** | the pipeline is proven and cycle 14 approved, but the submitted file is shot after the UI settles → Phase 6 |
 
 **Division of labour, now settled:** demo = BEFORE you commit (Welcome + paywall, sandboxed, terminal
@@ -244,6 +245,7 @@ measured hotspot)* · Dynamic-Type device QA.
 - **Revenue spine ✅ (2026-07-25)** — Monthly $4.99 · Annual $29.99 · Lifetime $79.99 (excludes Connected/Ava). **NO free trial.** Reuses the existing RevenueCat project — v1.6 subs must restore.
 - **Phase-3 scope ✅ (2026-07-27)** — pull EVERYTHING into v1.7 unless it genuinely can't ship. Analytics OUT of the core (privacy moat), but the 3.5 demo re-opened it → D-A wires a privacy-first funnel seam.
 - **Executive "fix everything, no backlog" ✅ (2026-07-29/30)** — fold every audit finding now; only hardware verification waits for Phase 6.
+- **[D23] ✅ (2026-08-11)** — **the demo is TWO runs.** `explore` ships to users (navigable, no script, one exit); `scripted` is the App-Preview + embed vehicle and leaves the user-facing doors. Resolves one artifact serving two jobs with different requirements.
 - **[D22] ✅ (2026-08-10)** — **the debt/expense split is CORRECT and stays** (terminating vs perpetual); the defect is naming + entry. **[D22a]** the single-entry chooser fully replaces the per-section Adds · **[D22b]** the mis-file detector runs retroactively at rollout · **[D22c]** it surfaces, never silently re-files · **[D22d]** the Guardian's "bills" vernacular → the wording/voice gate. → 3.7.A10.
 - **[D21] ✅ (2026-08-10)** — **the demo SHIPS to users again, reversing [D19].** Demo = before you commit (Welcome + paywall); walkthrough = after onboarding, on your own money. It no longer rides `QA_TOOLS`.
 - **⛔ [D19] REVERSED (2026-08-06 → 2026-08-10)** — it pulled the demo's entries as a duplicate of the walkthrough, and the rebuild it ordered (3.5.4.11) repaired that premise the same day. Superseded by [D21].

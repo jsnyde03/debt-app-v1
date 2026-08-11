@@ -451,18 +451,59 @@ and one of the three cannot render on the web at all._
 
 ---
 
-## §12 — the bounded DEMO (3.5.4) — ⚠️ device-only, and one KNOWN defect
+## §12 — the bounded DEMO (3.5.4 + 3.5.10) — ⚠️ device-only, and now **TWO RUNS**
 
-_Everything in 3.5.4 was verified on web (129/129) and both themes were checked by looking. What follows
-is only the part a browser structurally cannot judge: safe-area insets, RN layout for a hidden tab bar,
-native modal presentation, VoiceOver, and real StoreKit prices._
+_Everything here was verified on web and both themes were checked by looking. What follows is only the
+part a browser structurally cannot judge: safe-area insets, RN layout, native modal presentation,
+VoiceOver, and real StoreKit prices._
 
-> ⚠️ **One item below is ALREADY KNOWN BAD in this build and is fixed in the repo** — §12.3. It is listed
-> so you can confirm the symptom rather than waste time reporting it. Everything else is a genuine check.
+> 🎯 **3.5.10 (2026-08-11) split the demo in two, and they are checked separately.**
+> - **EXPLORE** — what a real user gets. The sandbox seeded and then left alone: **live tab bar**, no
+>   script, no dock, and a quiet **"Start my real plan"** beside the "Example money" line. **→ §12.0.**
+> - **SCRIPTED** — the App-Preview vehicle and 3.5.7's embed. Self-driving, 5 beats, tab bar hidden, its
+>   own dock. **Not reachable from any user-facing door**; the sections below assume it.
+>
+> ⚠️ **§12.1–§12.7 describe the SCRIPTED run.** On a device build you cannot pass `?mode=scripted`, so
+> treat those as **owed to the capture/embed lane** rather than runnable from the app's own doors — with
+> the exception of §12.5's disclosure and §12.6's VoiceOver, which §12.0 re-asks for explore.
 
-**Reach it (two doors, test both):**
-- **Fresh install / not onboarded:** first screen → **"See it in action"**.
-- **Any state:** ••• More → **Unlock Premium** → scroll to **"See it in action"** below the buy button.
+### §12.0 — the EXPLORE run (what a user actually gets) — ⚠️ ALL NEW, never on hardware
+
+**Reach it (two doors, test both):** fresh install → **"See it in action"** · ••• More → **Unlock
+Premium** → **"See it in action"**.
+
+- [ ] **§12.0.1 — you can walk around.** The **tab bar is visible**, and Today / Progress / Money all
+      switch when tapped.
+      **PASS:** all three navigate, showing example figures on each.
+      **FAIL:** the bar is missing, or a tap does nothing (the old kiosk fence still holding).
+- [ ] **§12.0.2 — the disclosure follows you.** On **every** screen you land on, **"Example money"** is at
+      the top, above the scroll.
+      **FAIL:** any screen without it. ⚠️ **Highest-severity item in §12** — this run shows invented money
+      on the real app, and the marker is the only thing saying so.
+- [ ] **§12.0.3 — exactly ONE marker on screen.** ⏳ Web cannot answer this (its tab navigator leaves the
+      previous screen painted, so two are visible); a device renders only the focused tab.
+      **PASS:** one. **FAIL:** two stacked or overlapping.
+- [ ] **§12.0.4 — the way out is wherever you are.** **"Start my real plan"** sits beside the marker on
+      every tab. Tap it from **Progress**, not Today.
+      **PASS:** onboarding opens and **no example figures survive anywhere**.
+      **FAIL:** it is missing on some tab, or example money is still visible after exiting.
+- [ ] **§12.0.5 — settings stay shut.** The **•••** More button is **greyed and unresponsive** on every
+      tab. **FAIL:** it opens — More carries **Reset** and preferences that write your REAL plan.
+- [ ] **§12.0.6 — your real plan is untouched.** Exit, then force-quit and reopen.
+      **PASS:** your own data (or a genuinely empty app) — no persona debts, no $2,000 paycheck.
+      **FAIL:** anything from the demo survived. ⚠️ This is the failure the whole sandbox exists to
+      prevent, and the legacy demo shipped it.
+- [ ] **§12.0.7 — poke at it.** Open a debt row, scrub the trajectory, try Can-I-Afford-This.
+      **PASS:** it behaves like the real app. **FAIL:** anything crashes, or a change escapes to your plan.
+- [ ] **§12.0.8 — VoiceOver.** Turn it on and enter the demo.
+      **PASS:** "Example money. This is a demonstration with sample figures." on arrival; the marker is
+      reachable as a **heading** in the rotor on each tab; More is **not** focusable.
+
+---
+
+### The SCRIPTED run (§12.1–§12.7) — the App-Preview / embed vehicle
+
+> ⚠️ **One item below was KNOWN BAD on `c050173` and is fixed in the repo** — §12.3.
 
 ### §12.1 — the route guard (the one most likely to be wrong)
 - [ ] From a **fresh install with no data**, "See it in action" lands on **Today showing a $2,000

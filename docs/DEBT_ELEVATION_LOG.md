@@ -4530,3 +4530,22 @@ to scripted.
   one of two mounted copies is the "class closed at some of its members" defect this phase kept finding.
 - ⏳ **Device debt:** §12 is now two runs, not one. The checklist needs an explore section — free
   navigation, the marker on every screen, More still fenced, the exit reachable from each tab.
+
+### 3.5.10 close-out (2026-08-11)
+
+Device checklist **§12 restructured into two runs**, because it described one and there are now two.
+**§12.0 is the EXPLORE run — eight checks, all new, none ever on hardware**: free navigation, the marker
+following you across tabs, exactly one marker on screen (⏳ web cannot answer that — its tab navigator
+leaves the previous screen painted, so this is device-only), the exit reachable from a tab you navigated
+TO rather than landed on, More staying shut, the real plan untouched after a force-quit, poking at real
+controls, and VoiceOver.
+
+⚠️ **§12.1–§12.7 were re-scoped honestly rather than left ambiguous.** They describe the SCRIPTED run, and
+a device build cannot pass `?mode=scripted` — so they are owed to the capture/embed lane, not runnable
+from the app's own doors. Leaving them looking runnable would have produced a tester hunting a tab bar
+that is deliberately hidden in a run they cannot reach.
+
+**Queue replenished:** back to **Wave A · A.4 (the A3 honesty ledger)**, with a warning attached — A1 was
+fixed three days before Wave A was written, and A3's nine items came out of the same 2026-07-30 pass, so
+each is a hypothesis until re-verified. That check is now the cheapest step in the item rather than an
+afterthought.
