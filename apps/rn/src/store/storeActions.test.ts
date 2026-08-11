@@ -244,6 +244,21 @@ function run() {
     eq(selectBillsAttestation({ ...held, subscriptionPlan: 'free' }).show, false, 'free → no attestation affordance');
     eq(selectBillsAttestation({ ...held, billsAttested: true }).attested, true, '…reflects the attested state');
 
+    // ── 3.7.A3.1 — the affordance is gated on whether attesting REDUCES anything ──
+    // The offer says "I'll hold a smaller safety net". `discoveryHoldbackActive` is a pure CYCLE COUNT
+    // (`guardianPredictionCore.ts:34`), so it stays true on paychecks where the reserve cannot shrink at
+    // all — the holdbacks compose by `max` over above-floor headroom (`holdbackComposition.ts:54`), so
+    // with no headroom the hold is 0 either way and the tap does nothing.
+    //
+    // The first assertion states the PRECONDITION rather than assuming the allocator's arithmetic: if the
+    // construction stops producing a no-reduction cycle, this fails first and says so, instead of the
+    // real check passing for the wrong reason.
+    const noRoom = plan({ genuineCycleCount: 1, paycheck: { ...createDefaultStore().paycheck, amount: '300' } });
+    const noRoomHeld = selectPaydayGuardian(noRoom)?.heldReserve ?? 0;
+    const noRoomHeldAttested = selectPaydayGuardian({ ...noRoom, billsAttested: true })?.heldReserve ?? 0;
+    eq(noRoomHeldAttested, noRoomHeld, 'no above-floor headroom → attesting changes the hold by nothing');
+    eq(selectBillsAttestation(noRoom).show, false, 'A3.1 — …so the affordance is WITHHELD, not offered');
+
     // walk-back: a surprise outflow AFTER attesting restores the hold + flags the notice
     const walked = recordSurpriseOutflow({ ...held, billsAttested: true }, { cycleEndDate: '2026-07-01', amount: 90 } as DebtStore['surpriseOutflowLog'][number]);
     eq(walked.billsAttested, false, 'surprise after attesting → un-attests (restores the full hold)');

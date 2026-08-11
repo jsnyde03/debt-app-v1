@@ -5101,3 +5101,53 @@ and now `OnboardingLayout`'s). **The codebase keeps being right first.**
 
 Run 31514348038 cancelled rather than left to finish: flow 01 fails at step 5 of ~30, so the remaining
 ~20 minutes of mac time would only re-confirm the cascade.
+
+### 3.7 Wave A · A.4 — A3.1 fixed; A3.3 blocked on a decision (2026-08-11)
+
+**Gate: 158/158, zero `error-context.md`.** lint · tsc · core regression · app · scenarios · RN-web e2e.
+
+### A3.1 — the affordance now answers the question its own copy asks
+
+The offer reads *"All your regular bills entered? I'll hold a smaller safety net."* That is a promise
+about an **outcome**, and `discoveryHoldbackActive` could not keep it — it is a pure cycle count
+(`guardianPredictionCore.ts:34`) that knows nothing about the money. The three uncertainty reserves
+compose by **`max`** over above-floor headroom (`holdbackComposition.ts:54`), so attesting drops discovery
+0.4 → 0.15 and changes the combined hold by **nothing** whenever a cold-start reserve, a variable-bill
+buffer or a prefunded reserve is already the max — and by nothing at all when there is no headroom.
+
+`selectBillsAttestation` now compares the two worlds and shows only when attesting **lowers** the hold.
+
+⚡ **The test states its own precondition**, which is the part worth copying. It asserts *first* that the
+constructed cycle has no reduction available (`attesting changes the hold by nothing`) and only then that
+the affordance is withheld. If the construction ever stops producing that cycle, the precondition fails
+and says so, instead of the real assertion passing for the wrong reason — the "assertion that passes
+either way" defect class this phase keeps hunting.
+
+**Cost: one extra allocation**, not two — `selectAllocation` memoises per store object and the current
+store's is already computed for the card this sits on; only the counterfactual store is new. Filed to the
+existing memoization backlog entry rather than left implicit.
+
+⚠️ **What made this safe was an existing test, not care.** `guardianSubjects.test.ts` asserts at build
+time that each walkthrough beat can find its subject — including beat 4's attestation line. Had the fix
+over-corrected, that test would have gone red before any human looked at beat 4. It stayed green. This is
+the same test the device checklist cites for why §11.3's old "a beat that can't find its control" check is
+now unreachable by construction.
+
+### After-scan
+
+- ⚠️ **The defect class generalises: an affordance that promises an OUTCOME, gated on a PROXY.** Filed to
+  the audit gate (wording/voice) as a sweep of the siblings — `selectReserveRelease`,
+  `selectReserveWalkback`, `selectRiskAcknowledgment`, `selectTrialConversion`,
+  `selectGuardianProofOfWork`: is each gated on the thing it claims, or on something that merely
+  correlates? A3.1 is one instance; nothing says it is the only one.
+- The extra allocation → the memoization backlog entry.
+
+### ⏸ A3.3 is blocked, deliberately
+
+The original finding flagged "EF last-or-never" as a **design call**, so it is [D24] rather than my pick.
+**Recommendation on the record: EF last, not never** — "never" makes the one-tap vanish for anyone whose
+only savings IS the emergency fund, which is most people early on, and a covered-but-tight cycle is what a
+cushion is for. The dishonesty is not drawing on it; it is drawing on it **silently and first**. So:
+prefer a discretionary goal, fall back to the EF, and have the copy name it when it is the EF.
+
+⚠️ A3.7 likewise filed as **[D25]** rather than fixed quietly.

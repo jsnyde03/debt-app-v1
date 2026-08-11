@@ -140,10 +140,40 @@ export function selectReserveRelease(store: DebtStore): ReserveRelease | null {
  * §2.0.c "bills complete" attestation affordance (2.4.11.4c) — show it while a DISCOVERY safety net is
  * being held (premium): the user can confirm their bills are all entered to hold a reduced reserve.
  * `attested` reflects the current state so the card's copy reads confirm-vs-undo.
+ *
+ * ⚠️ **3.7.A3.1 — gated on whether attesting actually REDUCES the hold, not on the cycle count alone.**
+ * The offer says *"All your regular bills entered? I'll hold a smaller safety net."* That is a promise
+ * about an outcome, and `discoveryHoldbackActive` cannot keep it: it is a pure cycle count
+ * (`guardianPredictionCore.ts:34`) that knows nothing about the money.
+ *
+ * The three uncertainty reserves compose by **`max`**, over above-floor headroom
+ * (`holdbackComposition.ts:54`), so attesting drops discovery 0.4 → 0.15 and changes the COMBINED hold by
+ * nothing whenever something else is already the max — a cold-start reserve, a variable-bill buffer, or a
+ * prefunded reserve that has eaten the headroom. With no headroom at all the hold is 0 either way.
+ *
+ * So the affordance could ask the user to vouch for their bills and hand back a reduction of exactly
+ * zero. It now asks the counterfactual instead, which is the same question the copy asks.
+ *
+ * ⚡ **Cost: ONE extra allocation, not two.** `selectAllocation` memoises per store object, and the
+ * current store's allocation is already computed for the card this sits on — only the counterfactual
+ * store is new. (If Today is ever measured as a hotspot, this is one of the selectors the deferred
+ * memoization item covers.)
  */
 export function selectBillsAttestation(store: DebtStore): { show: boolean; attested: boolean } {
+  const attested = store.billsAttested === true;
   if (store.subscriptionPlan !== 'premium') return { show: false, attested: false };
-  return { show: deriveConfidenceContext(store).discoveryHoldbackActive === true, attested: store.billsAttested === true };
+  if (deriveConfidenceContext(store).discoveryHoldbackActive !== true) return { show: false, attested };
+  const held = (s: DebtStore): number => {
+    const allocation = selectAllocation(s);
+    return allocation ? selectHeldReserve(allocation) : 0;
+  };
+  // Compare the two worlds, not the current one: the affordance is honest iff attesting LOWERS the hold,
+  // which is the same claim whether they have attested yet or not.
+  const here = held(store);
+  const other = held({ ...store, billsAttested: !attested });
+  const attestedHold = attested ? here : other;
+  const unattestedHold = attested ? other : here;
+  return { show: unattestedHold > attestedHold, attested };
 }
 
 /** §2.0.c attestation walk-back notice (2.4.11.4c) — a surprise restored the safety net after the user

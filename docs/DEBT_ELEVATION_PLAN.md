@@ -18,7 +18,7 @@
 | **A.1** | ✅ **DONE** — A1 closed (already fixed, `611a4fb`); A2 reproduced + fixed, gate 156/156 | |
 | **A.2** | ✅ **DONE 2026-08-11** — A3's before-scan: **the ledger of nine is SEVEN.** A3.4 and A3.9 were already fixed on 2026-07-29, the day before the ledger was written. Per-item evidence → log | |
 | **A.3** | ✅ **DONE 2026-08-11** — A4–A7 before-scan. ⛔ **A7 CLOSES** (confirmed: one engine, one funnel, no third producer) · ⛔ A6's dead re-export is already gone · ⚠️ live: A4 ×3 · A5 · A6a. Evidence → log | |
-| **A.4** | **A3.1 · A3.3** — the honesty defects proper: the Guardian claiming something it does not do | |
+| **A.4** | ✅ **A3.1 DONE 2026-08-11** — the attestation is gated on whether attesting actually lowers the hold, not on the cycle count. Failing-then-passing test; gate **158/158**, zero `error-context.md`. ⏸ **A3.3 BLOCKED on [D24]** below | ◐ |
 | **A.5** | **A3.5 · A3.8** — cheap correctness. A3.5's undo mechanism **already exists** on the other caller; surface it, don't build it | |
 | **A.6** | **A3.6** — one cover offer, not two | |
 | **A.7** | **A3.2** — ⚠️ **measure the figure first**, then write the copy. Currently a direction, not a number | |
@@ -135,6 +135,7 @@ entry · C9 `router.back()` cold-entry sweep · C10 doc disambiguation of the ov
   - ⚠️ **[3.7.A.3 after-scan] `selectWhatIf*` bypasses the debt-free-date funnel** — it calls `projectDebtPayoff` directly rather than going through `selectDebtFreeDate`. Correct today (a deliberate alternate scenario), and a trap: **if the funnel ever gains a guard, a floor or a rounding rule, What-If silently will not have it.** Nothing to fix yet — check it here.
 - [ ] **Best-in-class enhancement pass** — aspirational, app-wide: is each surface genuinely top-of-class, and what makes it unforgettable? Benchmark vs category leaders; restraint, not fireworks.
 - [ ] **Wording / voice** — every user-facing string, both tiers, all states, against the house voice. Absorbs Wave C's copy items.
+  - ⚠️ **[3.7.A3.1 after-scan] Sweep every Guardian affordance for a PROXY gate.** A3.1's defect class: an affordance that promises an **outcome** ("I'll hold a smaller safety net") was gated on a **proxy** (a cycle count), so it could promise and deliver zero. Check the siblings — `selectReserveRelease` · `selectReserveWalkback` · `selectRiskAcknowledgment` · `selectTrialConversion` · `selectGuardianProofOfWork` — for the same shape: **is each gated on the thing it claims, or on something that merely correlates with it?**
 
 ⚡ **Input from 3.5's phase after-scan — three defect classes to hunt at scale:** ① an assertion that
 passes either way ② evidence cited but never committed ③ two records of one thing, drifting. All three are
@@ -200,7 +201,9 @@ _Post-triage under the fold-don't-defer rule — only two carve-outs remain: **d
 a later version/tier**._
 
 **Device-gated → the Phase-6 pass:** Today/cushion-forecast selector memoization *(conditional on a real
-measured hotspot)* · Dynamic-Type device QA.
+measured hotspot)* — ⚠️ **A3.1 added one extra allocation** on Today whenever the discovery hold is active
+(the attestation counterfactual). Cheap, and the current store's allocation is already memoised, but it
+belongs on this ledger · Dynamic-Type device QA.
 
 **Tooling / hygiene:**
 - ⛔ **PROMOTED 2026-08-11 → the active build (4.1.8).** *(Was: a supplemental Appium lane, filed as triggered-not-scheduled with a "NO for now" recommendation. 🎯 Jason reversed it the same day — "the more that we can prove with Appium/Maestro the better" — and the amortisation argument carried it: the lane outlives v1.7.)* → `audits/2026-08-11-maestro-coverage/` §7.
@@ -236,7 +239,7 @@ measured hotspot)* · Dynamic-Type device QA.
 - **3.5.7 sequencing ✅ (2026-08-10)** — built after Phase 3.7. Hosting + privacy specifics still open.
 - **Legacy gate RETIRED ✅ (2026-07-24)** — `validate:release` → the RN gate.
 
-**Open:** [D1] Control Center · [D2] `minimumPaidThisCycle` ownership · [D3] Money hero language · [D4] *when* to rename the app · 3.5.7 hosting + privacy.
+**Open:** **[D24] may the tight top-up draw from the EMERGENCY fund?** *(rec: **EF last, not never** — "never" makes the one-tap vanish for anyone whose only savings IS the EF, which is most people early on, and a covered-but-tight cycle is what a cushion is for; the dishonesty is drawing on it **silently and first**. So: prefer a discretionary goal, fall back to the EF, and name it in the copy when it is the EF.)* **→ gates A3.3** · **[D25] A3.7** — an applied purchase reads as a deferrable bill; coherent by rule, but does it confuse a person? · [D1] Control Center · [D2] `minimumPaidThisCycle` ownership · [D3] Money hero language · [D4] *when* to rename the app · 3.5.7 hosting + privacy.
 
 ---
 
