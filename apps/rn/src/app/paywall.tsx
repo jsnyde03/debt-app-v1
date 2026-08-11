@@ -9,6 +9,7 @@ import { Screen } from '@/components/screen';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { MANAGE_SUBSCRIPTION_URL, PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '@/premium/legal';
 import { getPurchasesClient, isPremiumActive, type PackageLike } from '@/premium/purchases';
+import { canManageSubscription, premiumKind } from '@/premium/premiumKind';
 import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
@@ -89,6 +90,10 @@ export default function PaywallScreen() {
   const c = useAppColors();
   const isPremium = useAppStore((s) => s.store.subscriptionPlan === 'premium');
   const premiumIsLifetime = useAppStore((s) => s.premiumIsLifetime);
+  // 3.7.A5 — has the entitlement actually resolved this launch? Offline it never does.
+  const premiumResolved = useAppStore((s) => s.premiumResolved);
+  const plan = useAppStore((s) => s.store.subscriptionPlan);
+  const kind = premiumKind({ plan, premiumResolved, premiumIsLifetime });
   const client = getPurchasesClient();
 
   const [plans, setPlans] = useState<PlanView[]>(STATIC_PLANS);
@@ -232,11 +237,13 @@ export default function PaywallScreen() {
           <View style={[styles.premiumBanner, { backgroundColor: c.background.secondary, borderColor: c.border.default }]}>
             <AppIcon name="check-circle" size={20} color={c.accent.primary} />
             <Text style={[textStyles.bodyMedium, styles.flex1, { color: c.text.primary }]}>
-              {premiumIsLifetime ? 'You’re on Premium — Lifetime. Thanks for the support.' : 'You’re on Premium — thanks for the support.'}
+              {/* 3.7.A5 — only name the KIND once RevenueCat has answered; offline it never does. */}
+              {kind === 'lifetime' ? 'You’re on Premium — Lifetime. Thanks for the support.' : 'You’re on Premium — thanks for the support.'}
             </Text>
           </View>
-          {/* Lifetime has no subscription to manage — don't deep-link to the (empty) App Store subs page (R2.3). */}
-          {premiumIsLifetime ? null : (
+          {/* Lifetime has no subscription to manage — don't deep-link to the (empty) App Store subs page (R2.3).
+              3.7.A5: withheld while unresolved too, since it might be a Lifetime owner. */}
+          {!canManageSubscription(kind) ? null : (
             <Button label="Manage subscription" variant="secondary" onPress={() => void openLink(MANAGE_SUBSCRIPTION_URL)} />
           )}
         </>

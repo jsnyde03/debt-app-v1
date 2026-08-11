@@ -261,6 +261,10 @@ export function seedSandbox(store: SandboxStoreInstance, scenario: SandboxScenar
     isHydrated: true,
     isSaving: false,
     premiumIsLifetime: false,
+    // 3.7.A5 — same reasoning as `isHydrated` above: a sandbox has no RevenueCat to wait on, so declaring
+    // the entitlement resolved keeps the shared UI out of its "we don't know yet" state inside a scripted
+    // run. A scripted premium scenario IS a subscription, not an unresolved one.
+    premiumResolved: true,
     intentRollback: null,
   });
 }

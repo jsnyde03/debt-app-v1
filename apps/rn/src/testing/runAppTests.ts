@@ -67,6 +67,10 @@ async function main() {
   // §3.3.3 — the premium Guardian proof-of-work read (held streak · cumulative-to-debt · gating).
   await import('../store/proofOfWork.test');
 
+  // 3.7.A5 — which KIND of premium is active, incl. the "RevenueCat hasn't answered" third state that
+  // four surfaces used to render as "subscription". Nothing covered the Lifetime row before this.
+  await import('../premium/premiumKind.test');
+
   // §3.5.1 — the iOS widget App-Group bridge (snapshot builder + startWidgetSync mirror/idempotency).
   await import('../widget/widgetSync.test');
 

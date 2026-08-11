@@ -24,6 +24,7 @@ import { LiveActivityQA } from '@/components/more/LiveActivityQA';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { PREMIUM_PURCHASABLE } from '@/premium/config';
+import { canManageSubscription, premiumKind } from '@/premium/premiumKind';
 import { MANAGE_SUBSCRIPTION_URL, PRIVACY_POLICY_URL, SUPPORT_URL, TERMS_OF_USE_URL } from '@/premium/legal';
 
 const LINKS = {
@@ -46,6 +47,9 @@ export default function MoreScreen() {
   const prefs = useAppStore((s) => s.store.prefs);
   const plan = useAppStore((s) => s.store.subscriptionPlan);
   const premiumIsLifetime = useAppStore((s) => s.premiumIsLifetime);
+  // 3.7.A5 — has the entitlement actually resolved this launch? Offline it never does.
+  const premiumResolved = useAppStore((s) => s.premiumResolved);
+  const kind = premiumKind({ plan, premiumResolved, premiumIsLifetime });
   const { isExpanded } = useLayout(); // 3.6.5 — a wider settings column on iPad
   const [sheet, setSheet] = useState<'export' | 'import' | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -88,7 +92,16 @@ export default function MoreScreen() {
       {plan === 'premium' || PREMIUM_PURCHASABLE ? (
         <SettingGroup>
           {plan === 'premium' ? (
-            premiumIsLifetime ? (
+            // 3.7.A5 — THREE states, not two; the rule lives in `premiumKind` so this screen and the
+            // paywall cannot drift apart on it.
+            kind === 'unresolved' ? (
+              <SettingRow
+                icon="workspace-premium"
+                label="Premium"
+                subtitle="Active — thanks for the support."
+                last
+              />
+            ) : kind === 'lifetime' ? (
               // A7 — Lifetime is a one-time purchase; there's no subscription to manage, so don't deep-link
               // to the App Store subscriptions page (it'd be empty for a non-consumable).
               <SettingRow
@@ -251,8 +264,9 @@ export default function MoreScreen() {
           <SettingRow icon="description" label="Terms of Use" onPress={() => Linking.openURL(LINKS.terms)} />
           <SettingRow icon="help-outline" label="Support" onPress={() => Linking.openURL(LINKS.support)} />
           {/* Only real subscribers manage a subscription — a free user or a Lifetime owner would land on an
-              empty App Store subscriptions page (R2.3). */}
-          {plan === 'premium' && !premiumIsLifetime ? (
+              empty App Store subscriptions page (R2.3). 3.7.A5: and an UNRESOLVED entitlement might be
+              either, so it is withheld too — a dead link is worse than a missing one. */}
+          {canManageSubscription(kind) ? (
             <SettingRow icon="card-membership" label="Manage Subscription" onPress={() => Linking.openURL(LINKS.subscription)} />
           ) : null}
           <SettingRow icon="info-outline" label="Version" right={<Text style={[textStyles.caption, { color: c.text.tertiary }]}>{APP_VERSION}</Text>} last />

@@ -39,6 +39,15 @@ export interface DebtAppState {
    *  Recomputed from the RevenueCat entitlement each launch by premiumSync — so it can't be stomped by
    *  hydrate and needs no migration. */
   premiumIsLifetime: boolean;
+  /** 3.7.A5 — has RevenueCat actually ANSWERED this launch? Transient, like the flag above.
+   *
+   *  ⚠️ `premiumIsLifetime` defaults to false and is only ever set from the entitlement callback, so
+   *  "not answered yet" and "answered: not Lifetime" were indistinguishable. On a cold OFFLINE launch
+   *  `getCustomerInfo()` rejects into a catch that deliberately does not downgrade — which means the
+   *  flag stays false for the WHOLE session, and a Lifetime owner was shown subscription wording plus a
+   *  "Manage Subscription" link into an empty App Store page. Four surfaces read this pair; the honest
+   *  third state is "we don't know yet", and it must never claim either kind. */
+  premiumResolved: boolean;
   /** 3.5.3.5 / 3.5.5 — the pre-mutation store snapshot for a one-tap Undo of an AppIntent-driven change
    *  (a payday-landed roll, or a logged payment), tagged by `kind` so the Today card words it right.
    *  Transient (never persisted; resets to null each launch → the Undo is session-brief); null when
@@ -119,6 +128,8 @@ export interface DebtAppState {
   // Prefs / subscription / onboarding
   updatePrefs(updates: Partial<Preferences>): void;
   setSubscriptionPlan(plan: SubscriptionPlan): void;
+  /** 3.7.A5 — sets `premiumIsLifetime` AND marks the entitlement resolved: the only call site is the
+   *  RevenueCat callback, so answering is exactly what this action means. */
   setPremiumIsLifetime(isLifetime: boolean): void;
   setCushionFloor(floor: number): void;
   completeOnboarding(): void;
@@ -191,6 +202,7 @@ export function createDebtStore(opts?: { now?: () => string; bound?: (store: Deb
     isHydrated: false,
     isSaving: false,
     premiumIsLifetime: false,
+    premiumResolved: false,
     intentRollback: null,
 
     async hydrate(adapter) {
@@ -482,7 +494,9 @@ export function createDebtStore(opts?: { now?: () => string; bound?: (store: Deb
       set((s) => ({ store: { ...s.store, subscriptionPlan: plan } }));
     },
     setPremiumIsLifetime(isLifetime) {
-      set({ premiumIsLifetime: isLifetime });
+      // 3.7.A5 — resolved is set HERE rather than by a second action, so the two can never disagree:
+      // reaching this line IS RevenueCat having answered.
+      set({ premiumIsLifetime: isLifetime, premiumResolved: true });
     },
     setCushionFloor(floor) {
       // Clamp to a sane, snapped range — the "alert line" a user would actually set. Guard NaN → 200.
