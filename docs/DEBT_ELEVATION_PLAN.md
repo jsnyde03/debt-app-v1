@@ -8,39 +8,37 @@
 
 ---
 
-## ▶ BUILDING NOW — 3.7 Wave A · engine correctness + honesty
+## ▶ BUILDING NOW — 3.7 Wave B · features that belong in v1.7
 
-🎯 **Jason 2026-08-11: "We need to finish 3.7 before moving on to Phase 4."** The Maestro lane (4.1) is
-**paused mid-item**, not abandoned — state below.
+✅ **Wave A CLOSED 2026-08-11** — A.0–A.10, gate 158/158, tsc clean. Every fix carries a
+failing-then-passing test. Detail + the wave-level after-scan → log "3.7 Wave A — CLOSED".
+
+⚡ **The wave's headline number: of 14 ledger items, 5 did not exist and 4 more were materially
+misdescribed** — A3.6 (wrong mechanism), A3.7 (**inverted**), A8 (wrong premise), A4a (refuted by
+measurement). Only ~5 of 14 were both real and accurately described. **This is why B.0 comes first.**
 
 | # | Step | State |
 |---|---|---|
-| **A.0** | ✅ **[D4] RENAMED 2026-08-11 — via `CFBundleDisplayName`, NOT `expo.name`.** ⚠️ Before-scan caught the coupling: `expo.name` **derives the Xcode project name**, and `DebtPlannerRN` is hardcoded **10× across three pipelines** incl. the signed Codemagic build. `CFBundleDisplayName: "Debt Planner"` flips the Home-Screen name and `\(.applicationName)` while leaving every pipeline intact. ⏳ **Effect is build-verified** — checklist §1 | |
-| **A.1** | ✅ **DONE** — A1 closed (already fixed, `611a4fb`); A2 reproduced + fixed, gate 156/156 | |
-| **A.2** | ✅ **DONE 2026-08-11** — A3's before-scan: **the ledger of nine is SEVEN.** A3.4 and A3.9 were already fixed on 2026-07-29, the day before the ledger was written. Per-item evidence → log | |
-| **A.3** | ✅ **DONE 2026-08-11** — A4–A7 before-scan. ⛔ **A7 CLOSES** (confirmed: one engine, one funnel, no third producer) · ⛔ A6's dead re-export is already gone · ⚠️ live: A4 ×3 · A5 · A6a. Evidence → log | |
-| **A.4** | ✅ **DONE 2026-08-11** — **A3.1** gated on whether attesting actually lowers the hold, not on a cycle count · **A3.3** [D24] prefers a discretionary goal, EF as fallback, **and the button no longer calls the EF "savings"** | |
-| **A.5** | ✅ **DONE 2026-08-11** — **A3.5** the undo was structurally impossible (`cycleTopUp` had no source); `goalId` added, backfill-safe, undo rendered where the offer was · **A3.8** `GoalSheet` dedupes like the save-for-it flow | |
-| **A.6** | ✅ **DONE 2026-08-11** — **A3.6**. ⛔ "two offers of the same move" **REFUTED** (the cover subsumes the top-up; either tap clears the other). ⚡ The real defect was a **double-count** — `selectAffordability` ignored `appliedTopUp`, so the two cards disagreed on one cushion and re-offered money already moved. Plus a **capped-outcome** copy lie in both cards. Gate 158/158 | |
-| **A.7** | **A3.2** — ⚠️ **measure the figure first**, then write the copy. Currently a direction, not a number | ▶ next |
-| **A.8** | **[DECISION] A3.7** — an applied purchase reads as a deferrable bill. Coherent by rule; the question is whether it confuses a person. **Jason's call, not a silent fix** | |
-| **A.9** | **A4 ×3 · A5 · A6a.** ⚡ After-scan: A6a is a **divergence** — `buildPayoffTrajectory` already carries `recurrence?`, so match the sibling. ⚠️ A5: **scope the gate first** — "RevenueCat hasn't answered yet" affects every premium surface on a cold offline launch, not just one row. ⚠️ A4a needs measuring before it earns work | |
-| **A.10** | **A8.1–A8.3** — the Siri phrase *(gated on [D4]: every shortcut phrase contains the app name, so it can only shrink by shrinking the NAME)* | |
+| **B.0** | **Before-scan the whole wave** — B1–B4 are 2026-07-30-era and have NEVER been verified. Treat each as a hypothesis: grep/read, then correct its scope + wording on the spot | ▶ next |
+| **B.1** | **B2 dropped streak/milestone surfacing** — the likeliest already-built (`pendingMilestone` + `activeAck` both exist), so it is verified first and may close outright | |
+| **B.2** | **B3 name→greeting** — smallest real build; lands the wave's first shipped feature early | |
+| **B.3** | **B1 drag-the-curve What-If** — the largest. ⚠️ `selectWhatIf*` bypasses the debt-free-date funnel (audit-gate note) — do not deepen that coupling | |
+| **B.4** | **B4 swipe-to-mark-paid** — [D2] is ✅ settled (`minimumPaidThisCycle` owns "minimum covered"). ⚠️ First fix `planSelectors.ts:136`, the one reader with **no** `?? isPaidThisCycle` fallback | |
 
-**Exit:** the honesty ledger is empty, A4–A7 are each closed or refuted **with evidence**, every fix has a
-failing-then-passing test, gate green.
+**Exit:** each of B1–B4 closed or refuted **with evidence**, every fix has a failing-then-passing test,
+gate green.
 
-⚠️ **A0.4** (payoff-schedule device re-verify) and **A8.4** stay device-owed → the checklist.
+⚠️ **A0.4** (payoff-schedule device re-verify) and **A8.4** (the Siri phrase work — incl. the
+load-bearing `\(.applicationName)` check) stay device-owed → the checklist.
 
 ---
 
 ### ⏭ Then, in order
 
-1. **Wave B** — ⚠️ **B.0 = a before-scan FIRST, same as Wave A's.** B1–B4 are from the same 2026-07-30 era and have never been verified; **5 of 14 Wave A items did not survive contact with the code.** B2 ("dropped streak/milestone surfacing") is the likeliest already-built — `pendingMilestone` and `activeAck` both exist. Then B1 drag-the-curve · B2 · B3 greeting · B4 swipe-to-mark-paid *(needs [D2])*
-2. **4.1 — the Maestro coverage lane ⏸ PAUSED at 4.1.3**, resumes after 3.7. ✅ 4.1.1 answered (6 capabilities proven) · ✅ 4.1.2 built (11 checks) · ⚠️ **4.1.3 still RED — 8/8, run `31516616133`.** ⚡ But flow 07 walked onboarding *and* the debt form, so **`inputText` + the `field-*` testIDs WORK and `hideKeyboard` was never needed.** Two known next fixes: the `"See My Plan  →"` selector (double space + arrow glyph) and flow 01 failing its FIRST assertion at 1m44s when probe p01 passes the identical opening — **pull the artifact before theorising.** Remaining 4.1.4–4.1.11 + the exit criterion → log
-3. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
-4. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
-5. **Phase 5** (data continuity, ship-blocker) → **5.5** (repo consolidation) → **Phase 6** (launch)
+1. **4.1 — the Maestro coverage lane ⏸ PAUSED at 4.1.3**, resumes after 3.7. ✅ 4.1.1 answered (6 capabilities proven) · ✅ 4.1.2 built (11 checks) · ⚠️ **4.1.3 still RED — 8/8, run `31516616133`.** ⚡ But flow 07 walked onboarding *and* the debt form, so **`inputText` + the `field-*` testIDs WORK and `hideKeyboard` was never needed.** Two known next fixes: the `"See My Plan  →"` selector (double space + arrow glyph) and flow 01 failing its FIRST assertion at 1m44s when probe p01 passes the identical opening — **pull the artifact before theorising.** Remaining 4.1.4–4.1.11 + the exit criterion → log
+2. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
+3. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
+4. **Phase 5** (data continuity, ship-blocker) → **5.5** (repo consolidation) → **Phase 6** (launch)
 
 ✅ **3.7.A10 — obligations: entry, naming, recovery. COMPLETE 2026-08-10** — the single Add chooser
 replacing all six entry points, the retroactive mis-file detector + atomic conversion, Bills →
@@ -57,7 +55,9 @@ log 3.7.A10; the migration half → Phase 5.
 
 - **A transient `$790` on Today's arrival** during the demo — a half-rendered Guardian card for ~0.5s at beat 2. Now **user-facing** under [D21], not just a store-video concern. Settle before the asset is cut.
 
-**Gate:** `validate:release:rn` — **146/146**, zero `error-context.md`. CI runs it on every push.
+**Gate:** `validate:release:rn` — **158/158 + tsc clean on BOTH trees**, zero `error-context.md`. CI runs
+it on every push. ⚠️ It gained `typecheck:core` + `typecheck:rn` on 2026-08-11; before that it ran no
+`tsc` at all.
 **Env:** `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` + `serve apps/rn/dist -l 4319 -s` · e2e `npm run test:e2e:rn`. ⚠️ Capture-pipeline and H.264-inspection recipes → log §"Working notes".
 
 ---
@@ -113,15 +113,13 @@ gamification chrome · Recovery stays a glimpse · the in-app tutorial stays ≤
 _Standing rule (Jason 2026-07-30): stop deferring — if an item needs no device pass and can land in v1.7,
 fold it in. Runs after 3.5 and BEFORE the audit gate, so the audit reviews the final state._
 
-**Wave A — correctness / honesty** *(decomposed at the top of this file)*
-- ✅ **A1** BNPL payoff-rate undercount — **CLOSED, was already fixed** (`611a4fb`, three days before the item was written). ✅ **A2** sub-cycle obligation undercount — reproduced ($50 reserved where $200 was owed) and fixed.
-- **A3 · Guardian honesty ledger — SEVEN live**, verified 2026-08-11: attestation gating · starter-EF "keeps it as cushion" · `selectTightTopUp` raids the EF · no-undo on the tight top-up · "hold your line" twice · applied purchase reads as deferrable **[DECISION]** · `GoalSheet` dedupe. ⛔ hero-vs-Guardian coherence and affordability density were **already fixed 2026-07-29**.
-- **A4** BNPL seam polish · **A5** offline Lifetime mislabel (`premiumResolved` gate) · **A6** drift type hygiene · **A7** confirm no third debt-free-date producer.
-- **A8 · Siri phrase** — every App Shortcut phrase must contain `\(.applicationName)`, so it can only shrink by shrinking the NAME. A8.1 synonyms · A8.2 shorter variants · A8.3 [D4] *when* to rename · A8.4 device-only.
-- ✅ **A0** payoff-schedule redesign **DONE** (`c8a94a3`) — ⏳ only **A0.4**, the device re-verify, remains → the checklist. ✅ **A9** variable-income controls **DONE** 2026-08-07.
+✅ **Wave A — correctness / honesty. CLOSED 2026-08-11.** A0–A10: the payoff-schedule redesign, the two
+undercounts, the seven-item Guardian honesty ledger, the BNPL seam, the offline Lifetime mislabel, drift
+type hygiene, and the Siri phrases. Gate 158/158, tsc clean. **Detail + the wave-level after-scan → log.**
 
-**Wave B — features that belong in v1.7:** B1 drag-the-curve What-If · B2 dropped streak/milestone
-surfacing · B3 name→greeting · B4 swipe-to-mark-paid *(⚠️ gated on [D2])*.
+**Wave B — features that belong in v1.7** *(decomposed at the top of this file)*: B1 drag-the-curve
+What-If · B2 dropped streak/milestone surfacing · B3 name→greeting · B4 swipe-to-mark-paid *([D2] ✅
+settled, so B4 is unblocked)*.
 
 **Wave C — coherence sweeps, MERGED INTO the audit gate:** C1 cents-formatter · C2 gold usage · C3 Money
 hero language [D3] · C4 paywall copy · C5 chart VO labels · C6 iPad More two-column · C7 dead code
@@ -138,6 +136,8 @@ entry · C9 `router.back()` cold-entry sweep · C10 doc disambiguation of the ov
 - [ ] **Wording / voice** — every user-facing string, both tiers, all states, against the house voice. Absorbs Wave C's copy items.
   - ⚠️ **[3.7.A3.1 after-scan] Sweep every Guardian affordance for a PROXY gate.** A3.1's defect class: an affordance that promises an **outcome** ("I'll hold a smaller safety net") was gated on a **proxy** (a cycle count), so it could promise and deliver zero. Check the siblings — `selectReserveRelease` · `selectReserveWalkback` · `selectRiskAcknowledgment` · `selectTrialConversion` · `selectGuardianProofOfWork` — for the same shape: **is each gated on the thing it claims, or on something that merely correlates with it?**
   - ⚡ **[3.7.A3.6 after-scan] …and for a CAPPED OUTCOME — the second shape of the same family.** Not a proxy gate: the gate is right, but the **resource is bounded**, so the affordance delivers less than it promised. `selectTightTopUp`/`coverFromSavings` claimed "holds your line" while `Math.min(gap, balance)` capped the draw short (fixed in A.6 via `holdsLine`). Sweep for the pattern: **any copy asserting a completed outcome over a value that is `Math.min`'d, clamped or floored.**
+  - ⚡ **[Wave-A after-scan] "Two places, one rule" hit THREE times in one wave** — A6a (two debt shapes in one directory), A5 (the premium ternary on two screens), A3.6 (one claim in four strings). Each was fixed by extracting a single authority (`PayoffSimDebt`, `premiumKind`, `holdsLine`). Sweep for the shape: **a rule re-derived at each call site rather than owned once.** Agreeing copies are still copies — they just haven't diverged yet.
+  - ⚠️ **[Wave-A after-scan] A STALE COMMENT GENERATED FALSE WORK.** `testClassifyDeferability`'s header described the opposite of its own assertions, and A3.7 was filed matching the header rather than the code — an inverted defect that would have made a discretionary purchase *less* cuttable. This is 3.5's defect class ③ ("two records of one thing, drifting") with a measured consequence. **Docs that disagree with adjacent code are not cosmetic; they manufacture defects.**
 
 ⚡ **Input from 3.5's phase after-scan — three defect classes to hunt at scale:** ① an assertion that
 passes either way ② evidence cited but never committed ③ two records of one thing, drifting. All three are
@@ -219,6 +219,7 @@ belongs on this ledger · Dynamic-Type device QA.
 **Tooling / hygiene:**
 - ⛔ **PROMOTED 2026-08-11 → the active build (4.1.8).** *(Was: a supplemental Appium lane, filed as triggered-not-scheduled with a "NO for now" recommendation. 🎯 Jason reversed it the same day — "the more that we can prove with Appium/Maestro the better" — and the amortisation argument carried it: the lane outlives v1.7.)* → `audits/2026-08-11-maestro-coverage/` §7.
 - ⛔ **PROMOTED 2026-08-11 → the active build (4.1).** *(Was: "extend the Maestro lane to an iPad simulator — would take **four** items off the device's plate." Measured 2026-08-11: the iPad boot alone carries six, and the whole lane carries 68 of 127. The "four" was a guess, and it undersold the item by an order of magnitude.)*
+- ✅ **CLOSED 2026-08-11 (Wave-A after-scan) — the gate now typechecks, both trees.** *(Was: nothing. `validate:release:rn` never ran `tsc` at all, and A.6/A.7 were both committed green carrying real type errors. `packages/core` was worse — excluded from apps/rn's tsconfig on the premise that "the Capacitor app typechecks it", a premise that expired when `validate:release:legacy` was retired 2026-07-24, leaving the money engine the least type-checked code in the repo.)* Measured at 14 errors, all legacy-tree coupling, zero in the engine. `typecheck:core` + `typecheck:rn` now run FIRST. ⚠️ `packages/core/tsconfig.json`'s `@/*` alias and the three `@/lib/*` importers go together at **5.5.1**.
 - **⚠️ The gate still asserts the RETIRED demo-mode contract** — `runRegressionTests.ts:59` imports `testDemoModeSeed`, which asserts the Capacitor key `debtPlanner.isDemoMode` that `seedPlannerState.ts` writes. It passes (the legacy tree still exists) but it is a green test defending a feature the RN app no longer has, which reads as a live contract → delete with the Capacitor tree at **5.5.1**.
 - **⚠️ `apps/rn/package-lock.json` is out of sync** — `npm ci` refuses it; both CI lanes work around it with `npm install`, so **installs are not reproducible.** Regenerate deliberately and re-run the full gate → before the Phase-5 cutover.
 - **Simulator build recipe DUPLICATED** across `native-e2e.yml` and `app-preview.yml` (~60 lines of expensive native fixes) — extract a composite action → with the iPad lane.

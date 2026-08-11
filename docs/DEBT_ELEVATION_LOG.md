@@ -5389,3 +5389,76 @@ through `effectivePaycheckBuffer` and are not derivable by inspection.
   Search target: *any copy asserting a completed outcome over a value that is `Math.min`'d, clamped or
   floored.*
 - **Queue replenished:** A.7 (A3.2) takes the active slot.
+
+---
+
+## 3.7 Wave A — CLOSED (2026-08-11)
+
+**A.0 – A.10. Gate 158/158, tsc clean on both trees.** Every fix carries a failing-then-passing test,
+verified by reverting the source and re-running. Per-item detail is in the A.6 / A.7 entries above and
+the commits `72c790d · ce81541 · 0e2331c · d8ab54b · f4b5737 · 700161b · ba77303`.
+
+### ⚡ The number that matters, now final
+
+Fourteen ledger items were carried into Wave A from 2026-07-30. **Five did not exist** (A1, A3.4, A3.9,
+A7, A6's re-export half). **Four more were materially misdescribed** — and this half only became visible
+during the BUILD, which is the part a before-scan structurally cannot reach:
+
+| item | what the ledger said | what the code said |
+|---|---|---|
+| **A3.6** | two offers of the same move, no mutual guard | the offers are DIFFERENT and either resolves the other; the real defect was a **double-count** the ledger never mentioned |
+| **A3.7** | uncategorized → **deferrable**, so a couch reads as a deferrable bill | uncategorized → **ESSENTIAL**. Exactly inverted: the couch was as un-cuttable as the rent |
+| **A8** | phrases "can only shrink by shrinking the NAME" | `INAlternativeAppNames` and phrase STRUCTURE are two other levers; neither touches the name |
+| **A4a** | a mid-curve divergence worth fixing | measured: $371 = 4.37% of start, 8.7pt on a 200pt chart, endpoint agrees to 0.23 months. Refuted |
+
+**So roughly 5 of 14 were both real and accurately described.** The before-scan catches the
+already-fixed; only building catches the misdescribed. Both passes earn their cost, and **B.0 exists
+because B1–B4 come from the identical pass.**
+
+### ⚠️ The gate ran no `tsc`. At all.
+
+Found at A.9.1 while typechecking a shared-type change. `validate:release:rn` chained lint → regression →
+app → scenarios → e2e, and never called TypeScript. **A.6 and A.7 had both gone green and been committed
+with real type errors in them** (a missing `holdsLine` on a prop type; a possibly-undefined `safeMove`).
+The pre-Wave-A baseline was verified clean, so this was a hole actively being filled, not a backlog.
+
+`packages/core` was the worse half, and it took the wave-level after-scan to see it. `apps/rn/tsconfig`
+excludes `core` with the comment *"the shared core is typechecked by the Capacitor app, where its interim
+`@/lib` backward-deps resolve."* That was true when written — and **`validate:release:legacy` was retired
+2026-07-24**, so the money engine had silently had no typecheck for over two weeks. The root `tsconfig` is
+broken (it tries to compile `apps/rn` with the wrong aliases) and referenced by no script.
+
+Measured before wiring: **14 errors, every one legacy-tree coupling, zero in the engine.** 8 × the DOM
+`Storage` type in legacy seeds → `lib: ["ES2020","DOM"]`. 6 × `@/lib/*` importers → the alias is
+RESOLVED, not excluded. ⚠️ Excluding them **silently does nothing** — the core tests import them, so they
+come back in through `include`; an exclude that doesn't apply is worse than none, and the first attempt
+made exactly that mistake before the re-run caught it.
+
+`typecheck:core && typecheck:rn` now run FIRST in the gate. The alias and the three importers go together
+at 5.5.1.
+
+### The wave's other cross-item findings
+
+- **"Two places, one rule" hit three times** — A6a (two debt shapes in one directory, one omitting
+  `recurrence`), A5 (the premium ternary duplicated across More and the paywall), A3.6 (one "holds your
+  line" claim in four strings). Each was closed by extracting a single authority: `PayoffSimDebt`,
+  `premiumKind`, `holdsLine`. → filed to the audit gate as a sweep.
+- **A stale comment generated a false ledger entry.** `testClassifyDeferability`'s header described
+  `other`/uncategorized as deferrable; its own assertions had said the opposite since MF.1. A3.7 was
+  filed matching the header. Had it been built as written, a discretionary purchase would have been made
+  *less* cuttable. → filed to the audit gate: docs that disagree with adjacent code manufacture defects.
+- **`appliedTopUp` is a manual-opt-in invariant** — three cushion readers, each of which must remember
+  `+ appliedTopUp`; two did. → deferred backlog (Engine structure), Phase-6 financial-correctness gate.
+- **A4 was logged as "3 parts" and only two are recoverable from the record.** Reported rather than
+  invented. Both are resolved (one built, one refuted).
+- **One intermittent e2e red** during A.10, on a `toContainText`, which did not reproduce across two
+  subsequent full runs. ⚠️ The output was filtered and the test name was lost — a small process miss
+  worth not repeating. A.10 touched only iOS Info.plist and Swift, neither of which the web e2e loads.
+
+### Wave A after-scan → the queue
+
+**Wave B takes the active slot, and B.0 is a before-scan of the whole wave** — the same treatment that
+paid on every Wave A item it was applied to. Ordered so the likeliest-already-built (B2) is verified
+first and the largest (B1) comes after the cheap win (B3) has shipped. [D2] is settled, so B4 is
+unblocked; its first move is `planSelectors.ts:136`, the one reader with no `?? isPaidThisCycle`
+fallback.

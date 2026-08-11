@@ -1,0 +1,36 @@
+{
+  // 3.7 Wave-A after-scan — `packages/core` had NO typecheck in any live gate.
+  //
+  // `apps/rn/tsconfig.json` explicitly excludes `core` (its comment says the shared core "is
+  // typechecked by the Capacitor app, where its interim @/lib backward-deps resolve"), the root
+  // tsconfig is broken and referenced by no script, and `validate:release:legacy` was retired
+  // 2026-07-24. So the premise behind that exclusion had already expired: the money engine was the
+  // LEAST type-checked code in the repo. A.9.1 had just shown what a missing typecheck costs — two
+  // commits went green carrying real type errors.
+  //
+  // Measured before wiring it up: 14 errors, every one of them legacy-tree coupling, zero in the
+  // engine itself. Both causes are handled below and both disappear at 5.5.1.
+  "compilerOptions": {
+    "target": "ES2020",
+    // DOM for the browser `Storage` type used by the legacy `testing/*` seeds (8 of the 14).
+    "lib": ["ES2020", "DOM"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": ["./*"],
+      // The remaining 6: three files import `@/lib/*` from the Capacitor tree at the repo root — the
+      // "interim backward-deps" apps/rn's tsconfig mentions. RESOLVED rather than excluded, because
+      // excluding them does nothing: they are pulled back in by the core tests that import them, and
+      // an exclude that silently doesn't apply is worse than no exclude. Both this alias and those
+      // dependencies go at 5.5.1 with the Capacitor surface.
+      "@/*": ["../../*"]
+    }
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}
