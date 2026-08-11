@@ -15,7 +15,7 @@
 
 | # | Step | State |
 |---|---|---|
-| **A.0** | **[D4] THE RENAME** — `app.json` `"Debt Planner (RN)"` → **"Debt Planner"**, before the next device build. Retires a Phase-6 ship blocker and unblocks A8's phrases, which cannot be finalised or device-tested against a non-final name | |
+| **A.0** | ✅ **[D4] RENAMED 2026-08-11 — via `CFBundleDisplayName`, NOT `expo.name`.** ⚠️ Before-scan caught the coupling: `expo.name` **derives the Xcode project name**, and `DebtPlannerRN` is hardcoded **10× across three pipelines** incl. the signed Codemagic build. `CFBundleDisplayName: "Debt Planner"` flips the Home-Screen name and `\(.applicationName)` while leaving every pipeline intact. ⏳ **Effect is build-verified** — checklist §1 | |
 | **A.1** | ✅ **DONE** — A1 closed (already fixed, `611a4fb`); A2 reproduced + fixed, gate 156/156 | |
 | **A.2** | ✅ **DONE 2026-08-11** — A3's before-scan: **the ledger of nine is SEVEN.** A3.4 and A3.9 were already fixed on 2026-07-29, the day before the ledger was written. Per-item evidence → log | |
 | **A.3** | ✅ **DONE 2026-08-11** — A4–A7 before-scan. ⛔ **A7 CLOSES** (confirmed: one engine, one funnel, no third producer) · ⛔ A6's dead re-export is already gone · ⚠️ live: A4 ×3 · A5 · A6a. Evidence → log | |
@@ -179,7 +179,7 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
 - **⭐ [AUDIT GATE] Pre-Release Best-in-Class FINISH sweep — runs FIRST, on the FROZEN app.** Every screen · sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. Lenses: truncation · copy · premium bar · theme parity · state completeness · cross-surface consistency · layout · tap targets · a11y · motion · honesty. Complements, not replaces, the after-3.7 gate.
 - **⭐ [AUDIT GATE] Privacy / data-flow audit** — trace EVERY egress and prove "financial data never leaves your device" is literally true: network · RevenueCat · Sentry · iCloud · scan OCR · logs.
 - **⭐ [AUDIT GATE] Pre-submit functional-correctness audit + FINANCIAL-CORRECTNESS money lens** — boundary inputs across the engine: zero/negative income · date-boundary/leap-year/timezone · rounding drift · month-vs-cycle stepping · cross-cadence BNPL · huge/partial portfolios.
-- **⚠️ SHIP-BLOCKER · flip the DISPLAY NAME** — `app.json` is `"name": "Debt Planner (RN)"`, which would ship as the Home Screen + App Store name. Flip to **"Debt Planner"**. Paired with A8.
+- ✅ **SHIP-BLOCKER RETIRED 2026-08-11 (A.0)** — the Home-Screen name is **"Debt Planner"** via `ios.infoPlist.CFBundleDisplayName`. ⚠️ `expo.name` deliberately stays `"Debt Planner (RN)"`: it derives the Xcode project name, hardcoded 10× across three pipelines. ⛔ **The old wording said "Home Screen + App Store name" — the App Store name is set in App Store Connect and was never in this file.** ⏳ Confirm on the next build (checklist §1).
 - **⚠️ SHIP-BLOCKER · flip `QA_TOOLS` to false** (see Standing constraints).
 - **Sentry — scaffold done; Phase 6 = flip it on:** set `EXPO_PUBLIC_SENTRY_DSN`, CI source-map care, verify capture on a real build, add a `beforeBreadcrumb` PII scrub.
 - **App-Preview asset** — re-shoot off the proven pipeline once the UI is frozen. Apple takes ONE 886×1920 file, 15–30s, ≤30fps.
@@ -246,7 +246,9 @@ belongs on this ledger · Dynamic-Type device QA.
 - **[D3] ✅ (2026-08-11)** — the calm-micro-viz hero language **extends to Debts** (a paydown bar via the existing `HeroProgressBar`). Bare read as an omission next to Bills and Goals, on the page whose subject it is.
 - **[D4] ✅ (2026-08-11)** — **rename NOW, before the next device build.** Every App Shortcut phrase contains `\(.applicationName)`, so A8's phrases cannot be finalised or device-tested until the name is final, and `app.json`'s "Debt Planner (RN)" is a Phase-6 ship blocker regardless. → new step **A.0**
 
-**Open:** [D1] iOS-18 Control Center *(under discussion 2026-08-11 — the original cost premise has expired; see log)* · 3.5.7 hosting + privacy.
+- **[D1] ✅ (2026-08-11) — stays DEFERRED, on a new reason.** ⛔ The original reason (cost: the AppIntent machinery was unbuilt, ~4–5× the query-intent baseline) **has expired** — the widget extension, App Group, `DebtProvider` and an in-extension App Intent all exist now, so it is ~one Swift file plus an availability gate. It stays deferred because **there is no control-SHAPED job**: this app's actions are multi-step (log a payment needs a debt *and* an amount) or rare and dated (payday landed, already on the Live Activity), and a glance is a widget's job — which already ships. 🎯 **Revisit trigger: a genuine one-tap emerges during the build. B4 (swipe-to-mark-paid) is the likeliest source.**
+
+**Open:** 3.5.7 hosting + privacy *(the only one left)*.
 
 ---
 

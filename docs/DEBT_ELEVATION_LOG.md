@@ -5187,3 +5187,37 @@ a `ControlWidget` binds to. The marginal cost today is closer to one Swift file 
 
 **Standing recommendation: stay deferred, on reason 2 rather than on cost** — and revisit the moment a
 genuine one-tap emerges. B4 (swipe-to-mark-paid) is the likeliest source of one.
+
+### [D1] deferred with a trigger · A.0 the rename (2026-08-11)
+
+🎯 Jason: *"We'll leave it deferred and revisit if it becomes viable during the build."* [D1] closes as a
+deferral with a **stated revisit trigger** rather than an open question — the difference from its previous
+state being that the reason is now *"no control-shaped job"* instead of the expired cost argument, and the
+trigger is named: **a genuine one-tap emerging, most likely from B4.**
+
+### A.0 — renamed via `CFBundleDisplayName`, and the before-scan is why
+
+The plan said: flip `app.json`'s `"name"` to `"Debt Planner"`. **Doing that literally would have broken
+three CI pipelines.** `expo.name` derives the generated Xcode project name, and `DebtPlannerRN` is
+hardcoded **10×**:
+
+- `.github/workflows/native-e2e.yml` — workspace, scheme, the installed `.app` path, and the log predicate
+- `.github/workflows/app-preview.yml` — workspace, scheme, `.app` path
+- `codemagic.yaml` — `xcodeproj`, workspace, scheme … **the signed TestFlight build**, and the one that
+  cannot be validated without spending a build
+
+⚠️ **`codemagic.yaml:12` documents the derivation in its own comment.** That is the fourth time this
+session the codebase had already written down the thing that was about to bite.
+
+**So the rename went in as `ios.infoPlist.CFBundleDisplayName: "Debt Planner"`**, leaving `expo.name`
+alone. It flips the Home-Screen name and the `\(.applicationName)` that every App Shortcut phrase embeds
+— both goals [D4] was about — while every pipeline keeps building.
+
+⛔ **The ship-blocker's wording was also wrong and is corrected:** it said `app.json` "would ship as the
+Home Screen + App Store name". The **App Store name is set in App Store Connect** and was never in this
+file. Only the Home-Screen name was ever at risk.
+
+⏳ **Honest status: structurally correct, effect NOT yet observed.** No macOS here, so nothing has run
+`expo prebuild` against it. The Home-Screen name and the shortened Siri phrases are confirmed on the next
+build → checklist §1. ⚠️ `\(.applicationName)` resolving to `CFBundleDisplayName` is the one link I have
+not measured; A8.4 is already device-only, so it lands in the same pass either way.
