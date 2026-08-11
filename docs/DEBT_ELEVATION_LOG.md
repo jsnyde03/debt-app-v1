@@ -5462,3 +5462,37 @@ paid on every Wave A item it was applied to. Ordered so the likeliest-already-bu
 first and the largest (B1) comes after the cheap win (B3) has shipped. [D2] is settled, so B4 is
 unblocked; its first move is `planSelectors.ts:136`, the one reader with no `?? isPaidThisCycle`
 fallback.
+
+### Session close 2026-08-11 (second session) — Wave A closed, Wave B queued
+
+**Shipped:** A.6 → A.10, then the wave-level after-scan. **8 commits**, `72c790d` … `f002df2`.
+Gate **158/158 + tsc clean on both trees** at every commit; every fix has a failing-then-passing test
+verified by reverting **only the source** (`git stash` takes the test with it and proves nothing — that
+mistake was made once and caught).
+
+**The wave's result, stated plainly:** of 14 ledger items, **5 did not exist and 4 more were materially
+misdescribed.** The before-scan catches the first kind; only building catches the second. Written up
+above under "3.7 Wave A — CLOSED", and now in `CLAUDE.md` so it survives the session.
+
+**The find worth remembering:** the gate had **never run `tsc`**, and `packages/core` — the money engine
+— had been unchecked since `validate:release:legacy` was retired on 2026-07-24. Two commits from *this
+session* shipped green carrying real type errors before it was noticed. Both typechecks now run first.
+
+**Also this session:** `CLAUDE.md` was one line (`@AGENTS.md`, five lines of Next.js boilerplate about
+the tree 5.5.1 deletes). A fresh session opening this repo was pointed at Next docs and nothing else. It
+now carries the reading order, the gate, the environment quirks that cost real time, and the two rules
+the engine keeps re-teaching.
+
+**State on close:** tree clean, `v1.7-dev` pushed, no stray dev servers (:4319 / :8081 / Metro all clear).
+
+**⏭ Next session starts at 3.7 Wave B, step B.0** — a before-scan of the whole wave, decomposed in the
+plan. B1–B4 are from the same 2026-07-30 pass that produced the 5-of-14 miss rate, so every one is a
+hypothesis. **B2 is the prime candidate to close outright**: it describes streak/milestone surfacing as
+*dropped*, while `pendingMilestone` and `activeAck` both exist today.
+
+**Still device-owed:** **A0.4** (payoff-schedule re-verify) and **A8.4**. ⚠️ A8.4 now carries the
+load-bearing check — that `\(.applicationName)` renders "Debt Planner" and **not** `expo.name`'s
+"Debt Planner (RN)". Nothing off-device can settle it, and if Shortcuts shows "(RN)", A8 is not done.
+
+**⏸ Still waiting on Jason:** cut the CodeMagic build (the device build `c050173`/3.6.1 is stale by a
+whole phase) · 3.5.7's hosting + privacy specifics · the transient `$790` Guardian flash on Today.
