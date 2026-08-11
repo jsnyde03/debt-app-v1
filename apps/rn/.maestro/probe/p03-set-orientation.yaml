@@ -14,7 +14,14 @@ appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
     clearState: true
-- assertVisible: "Will you make it to payday?"
+# ⚠️ `extendedWaitUntil`, not a bare `assertVisible` — proven necessary by the first probe run
+# (2026-08-11): p01 was the ONLY file that waited, and the ONLY one that passed. A cold `clearState`
+# launch of this app on a CI simulator takes longer than Maestro's default assertion timeout, which is
+# why the workflow's own boot step sleeps 25s before it screenshots. Every file below the first one
+# failed on THIS line for that reason and no other.
+- extendedWaitUntil:
+    visible: "Will you make it to payday?"
+    timeout: 20000
 
 - setOrientation: LANDSCAPE_LEFT
 - assertVisible: "Will you make it to payday?"

@@ -22,7 +22,10 @@ appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
     clearState: true
-- assertVisible: "Will you make it to payday?"
+# See p03 — a cold `clearState` launch outruns the default assertion timeout on a CI sim.
+- extendedWaitUntil:
+    visible: "Will you make it to payday?"
+    timeout: 20000
 
 # Baseline. Maestro resolves a screenshot path relative to the FLOW FILE's directory (the workflow's
 # collection step exists because of that rule), so this lands in `.maestro/probe/`.

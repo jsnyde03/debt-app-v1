@@ -24,6 +24,13 @@ appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
     clearState: false
+# ⚠️ Wait for the shell before driving it. Established by the 2026-08-11 probe run: a cold launch of this
+# app on a CI simulator outruns Maestro's default timeout, and every probe file that did not wait failed
+# on its first assertion. `tapOn` races the same way an assertion does.
+- extendedWaitUntil:
+    visible:
+      id: "tab-money"
+    timeout: 20000
 
 # ══ §13.3 · the iOS-ONLY row long-press mark ════════════════════════════════════════════════════
 # Gated on `Platform.OS === 'ios'` (money.tsx:259), so neither the web suite nor an Android run can ever
@@ -82,6 +89,10 @@ appId: com.jasonsnyder.debtplanner
 # check that means anything is a real process restart, exactly as §14.6 does for the mis-file dismissal.
 - killApp
 - launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-money"
+    timeout: 20000
 - tapOn:
     id: "tab-money"
 - tapOn: ".*Visa Test.*"

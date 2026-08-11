@@ -27,7 +27,19 @@ appId: com.jasonsnyder.debtplanner
     clearState: true
 
 # ══ §14.3 · the first-run fork ══════════════════════════════════════════════════════════════════
-- assertVisible: "Will you make it to payday?"
+# ⚠️ `extendedWaitUntil`, established by the 2026-08-11 probe run. THE MEASUREMENT: every probe file that
+# used a bare `assertVisible` on this string failed on that line; the one file that waited 20s passed. So
+# a `clearState` launch of this app on a CI simulator needs longer than Maestro's default assertion
+# timeout — reliably, not just on the first launch of the session.
+#
+# ⚠️ The MECHANISM is not established, and is deliberately not asserted here: flow 01 does the same bare
+# assertion after the same `clearState` launch and has been green, which the simple story does not
+# explain. Do not build on an explanation until someone measures one. The remedy stands on the
+# observation alone, and it is the right shape regardless — wait for the app to say it is ready rather
+# than racing it.
+- extendedWaitUntil:
+    visible: "Will you make it to payday?"
+    timeout: 20000
 - tapOn: "Get Started"
 
 # The paycheck step is the gate that stopped the web lane. Type a real amount rather than skipping — the
@@ -213,6 +225,11 @@ appId: com.jasonsnyder.debtplanner
 # is what is wanted here and is the OPPOSITE of flow 06's deliberate `stopApp: false`.
 - killApp
 - launchApp
+# Cold launch again — wait for the shell before driving it, same reason as §14.3 above.
+- extendedWaitUntil:
+    visible:
+      id: "tab-money"
+    timeout: 20000
 - tapOn:
     id: "tab-money"
 - tapOn: "Expenses"

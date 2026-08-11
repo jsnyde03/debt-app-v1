@@ -19,5 +19,10 @@ appId: com.jasonsnyder.debtplanner
     commands:
       - launchApp:
           clearState: true
-      - assertVisible: "Will you make it to payday?"
+      # See p03. This file is the one where waiting matters MOST: three cold launches in a row is the
+      # §11.13 shape, and a bare assertion here would report a paint race that is really a race with the
+      # test runner's own patience.
+      - extendedWaitUntil:
+          visible: "Will you make it to payday?"
+          timeout: 20000
       - takeScreenshot: maestro-debug/probe-repeat-launch

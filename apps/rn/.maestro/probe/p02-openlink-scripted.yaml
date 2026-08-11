@@ -22,14 +22,44 @@ appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
     clearState: true
+# See p03 — a cold `clearState` launch outruns the default assertion timeout on a CI sim. Waiting for the
+# app to be UP before deep-linking also removes a second race: an `openLink` fired at an app that has not
+# finished mounting its router is a different failure from a link that does not route, and this probe has
+# to be able to tell those apart.
+- extendedWaitUntil:
+    visible: "Will you make it to payday?"
+    timeout: 20000
 
 - openLink: debtplannerrn:///demo?mode=scripted
 
-# `DemoDock` sets `accessible` + an accessibilityLabel, so it surfaces as ONE composite element whose full
-# text is this exact sentence — the same composite-element behaviour flows 03 and 04 document for
-# `ListRow`. Maestro matches an element's FULL text, so this is an exact match rather than a substring.
-# It doubles as the §12.6 "the dock reads as one utterance" check, which is why the string is spelled out
-# in full here rather than matched loosely.
-- assertVisible: "Example money. Demonstration, 1 of 5."
+# ⚠️ TWO ASSERTIONS, NOT ONE — added after the 2026-08-11 run, where `openLink` reported COMPLETED and the
+# dock assertion then failed. "Completed" only means Maestro issued the open; it says nothing about
+# whether the app ROUTED. A single assertion on the dock cannot distinguish the two repairs this file's
+# header already names, so it now asks them in order:
+#
+#   1. did the link reach a demo AT ALL?     → the marker, which renders in BOTH modes
+#   2. did it select the SCRIPTED mode?      → the dock, which renders in scripted only
+#
+# A failure at (1) means the deep link never routed — look at expo-router's linking config, not at the
+# mode. A failure at (2) means it routed and landed in EXPLORE — look at `demo.tsx:61`. Same red, two
+# entirely different investigations, which is why one assertion was the wrong instrument.
+- takeScreenshot: maestro-debug/probe-openlink-landed
+
+# (1) `ExampleCanvasMarker` (testID at `ExampleCanvasMarker.tsx:61`) is keyed on the money being
+#     fictional, not on a session mode — so it is the widest possible evidence that a sandbox is on screen.
+- extendedWaitUntil:
+    visible:
+      id: "example-canvas-marker"
+    timeout: 20000
+
+# (2) `DemoDock` sets `accessible` + an accessibilityLabel, so it surfaces as ONE composite element whose
+#     full text is this exact sentence — the same composite behaviour flows 03/04 document for `ListRow`.
+#     Maestro matches an element's FULL text, so this is exact rather than a substring. It doubles as the
+#     §12.6 "the dock reads as one utterance" check, which is why it is spelled out in full.
+#     ⚠️ `DEMO_STAGES` has 5 entries (`demoRun.ts:90-95`) — verified, not assumed, since a stale count
+#     here would fail identically to a mode that never engaged.
+- extendedWaitUntil:
+    visible: "Example money. Demonstration, 1 of 5."
+    timeout: 20000
 
 - takeScreenshot: maestro-debug/probe-openlink-scripted
