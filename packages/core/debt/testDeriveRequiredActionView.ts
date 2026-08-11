@@ -159,6 +159,39 @@ function testMissingItemDoesNotCrash() {
     assert(view.isPaid === false && view.overdue === false && view.expense === undefined, "unresolved item → safe defaults, no crash");
 }
 
+/**
+ * 3.7.A4 — the row has to say what a scaled BNPL amount is MADE OF.
+ *
+ * §2.7.4 scales an installment-native BNPL's minimum to the installments landing inside the pay window,
+ * so a biweekly Klarna plan under a monthly paycheck puts $200 on a row the user knows as a $100
+ * payment. Measured: exactly 2× on a monthly cycle, 3× when the window catches a third charge. The
+ * figure was correct and completely unexplained.
+ *
+ * `debts` here is the UNSCALED store list while `item.amount` is the scaled allocation figure, so the
+ * ratio between them IS the count — no window plumbing required.
+ */
+function testBnplInstallmentBreakdown() {
+    const bnpl = debtItem({
+        id: "klarna", name: "Klarna — Sofa", balance: 600, minimumPayment: 100,
+        type: "bnpl", recurrence: "biweekly", scheduledPaymentAmount: 100, remainingPayments: 6,
+    });
+    const row = (amount: number) =>
+        deriveRequiredActionView({ category: "minimum_debt", targetId: "klarna", debtId: "klarna", label: "Pay minimum on Klarna — Sofa", amount }, [], [bnpl], NOW);
+
+    const two = row(200).installments;
+    assert(two?.count === 2 && two.each === 100, "a 2-installment window → '2 × $100'");
+    assert(row(300).installments?.count === 3, "a 3-installment window → 3");
+
+    assert(row(100).installments === undefined, "a single installment says nothing extra (the amount already IS the payment)");
+    // The final installment is capped at the remaining balance, so there is no clean N × $X to state —
+    // and inventing one would be the inverse of the defect being fixed.
+    assert(row(250).installments === undefined, "a balance-capped amount that doesn't divide → no claim");
+    assert(
+        deriveRequiredActionView({ category: "minimum_debt", targetId: "d1", debtId: "d1", label: "Pay minimum on Card", amount: 400 }, [], [debtItem({ id: "d1", minimumPayment: 100 })], NOW).installments === undefined,
+        "a plain debt has no installments to break down",
+    );
+}
+
 export function runDeriveRequiredActionViewTests() {
     console.log("Running derive-required-action-view tests...");
 
@@ -169,6 +202,7 @@ export function runDeriveRequiredActionViewTests() {
     testOverdueOnlyWhenUnpaid();
     testPresumedPaidAutopayNotOverdue();
     testMissingItemDoesNotCrash();
+    testBnplInstallmentBreakdown();
 
     console.log("✅ All derive-required-action-view tests passed.");
 }

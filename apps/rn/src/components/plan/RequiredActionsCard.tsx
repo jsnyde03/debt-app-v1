@@ -220,6 +220,14 @@ function RequiredRowView({
         <View style={styles.metaRow}>
           {showOverdue ? <Pill label="Overdue" tone="overdue" /> : null}
           {due ? <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Due {due}</Text> : null}
+          {/* 3.7.A4 — §2.7.4 scales an installment-native BNPL to the installments landing inside this
+              pay window, so a biweekly plan under a monthly paycheck shows $200 on a row the user knows
+              as a $100 payment. The number was right and unexplained; this says what it is made of. */}
+          {view.installments ? (
+            <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+              {view.installments.count} × {formatCurrency(view.installments.each)} this cycle
+            </Text>
+          ) : null}
         </View>
       </View>
       <View style={styles.itemRight}>

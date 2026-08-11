@@ -28,6 +28,17 @@ export type RequiredActionView = {
      *  as autopay and behaves like a manual owed bill (Overdue + Mark-Paid) until
      *  resolved — but keeps `isAutopay`, so autopay resumes next cycle once paid. */
     autopayFailed: boolean;
+    /**
+     * 3.7.A4 — when this row's amount is MORE than one BNPL installment, what it is actually made of.
+     *
+     * §2.7.4 scales an installment-native BNPL's minimum to the number of installments falling inside
+     * the pay window, so a biweekly Klarna plan under a monthly paycheck shows $200 on a row the user
+     * knows as a $100 payment. The figure is right and the row said nothing about why — measured at 2×
+     * on a monthly cycle, 3× when the window catches a third charge. `undefined` for everything else,
+     * including a final installment capped by the remaining balance (there is no clean "N × $X" to
+     * state, and inventing one would be the inverse error).
+     */
+    installments?: { count: number; each: number };
 };
 
 export function isOverdue(dueDate: string, currentDate: string): boolean {
@@ -94,7 +105,19 @@ export function deriveRequiredActionView(
     // `isAutopay` stays true so the bill returns to autopay next cycle once paid.
     const autopayFailed = isAutopay && source?.autopayFailedThisCycle === true;
 
-    return { expense, debt, isPaid, dueDate, overdue, isAutopay, presumedPaid, autopayFailed };
+    // 3.7.A4 — `debts` here is the UNSCALED store list, while `item.amount` came off the window-scaled
+    // allocation, so the ratio between them IS the in-window installment count. Only stated when it
+    // divides exactly: a balance-capped final installment has no honest "N × $X" form.
+    const scheduled = debt?.scheduledPaymentAmount;
+    let installments: { count: number; each: number } | undefined;
+    if (typeof scheduled === "number" && scheduled > 0 && item.amount > scheduled) {
+        const count = Math.round(item.amount / scheduled);
+        if (count >= 2 && Math.abs(count * scheduled - item.amount) < 0.005) {
+            installments = { count, each: scheduled };
+        }
+    }
+
+    return { expense, debt, isPaid, dueDate, overdue, isAutopay, presumedPaid, autopayFailed, installments };
 }
 
 /**
