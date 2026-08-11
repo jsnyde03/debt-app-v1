@@ -341,8 +341,14 @@ export function PaydayGuardianCard({
       {/* §2.10 tight-case one-tap (2.4.11.2): a REAL move to hold the line — only when the user has savings to tap. */}
       {isPremium && !recovery && topUp ? (
         <View style={styles.topUp}>
+          {/* 3.7.A3.6 — "holds your line" was unconditional, but the draw is capped at the goal's
+              balance: a $20 pot against a $70 gap moved $20 and still claimed the line was held. Same
+              defect class as A3.1 — an affordance promising an OUTCOME it cannot always deliver. When it
+              falls short it now says what it actually does, and names where that leaves them. */}
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-            You have {money(topUp.available)} in {topUp.goalName} — moving {money(topUp.topUp)} over holds your line this paycheck.
+            {topUp.holdsLine
+              ? `You have ${money(topUp.available)} in ${topUp.goalName} — moving ${money(topUp.topUp)} over holds your line this paycheck.`
+              : `${topUp.goalName} has ${money(topUp.available)} — moving all of it over gets you to ${money(topUp.cushionAfter)} of your ${money(topUp.floor)} line. It won't close the gap, but it narrows it.`}
           </Text>
           {/* 3.7.A3.3 [D24] — the label said "from savings" unconditionally, including when the source
               was the EMERGENCY fund. A control that calls the safety net "savings" while spending it is
@@ -363,7 +369,11 @@ export function PaydayGuardianCard({
       {isPremium && appliedTopUp ? (
         <View style={styles.topUp}>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-            {money(appliedTopUp.amount)} moved from {appliedTopUp.goalName} to hold your line this paycheck.
+            {/* 3.7.A3.6 — the confirmation claimed the line was held even when the draw was capped short
+                of the gap, which is the same untrue promise the OFFER made. */}
+            {appliedTopUp.holdsLine
+              ? `${money(appliedTopUp.amount)} moved from ${appliedTopUp.goalName} to hold your line this paycheck.`
+              : `${money(appliedTopUp.amount)} moved from ${appliedTopUp.goalName} — it narrows the gap, but you're still under your line this paycheck.`}
           </Text>
           <Button label="Undo the move" variant="text" onPress={() => onUndoTopUp?.()} style={styles.topUpBtn} />
         </View>

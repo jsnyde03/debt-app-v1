@@ -21,8 +21,8 @@
 | **A.3** | ✅ **DONE 2026-08-11** — A4–A7 before-scan. ⛔ **A7 CLOSES** (confirmed: one engine, one funnel, no third producer) · ⛔ A6's dead re-export is already gone · ⚠️ live: A4 ×3 · A5 · A6a. Evidence → log | |
 | **A.4** | ✅ **DONE 2026-08-11** — **A3.1** gated on whether attesting actually lowers the hold, not on a cycle count · **A3.3** [D24] prefers a discretionary goal, EF as fallback, **and the button no longer calls the EF "savings"** | |
 | **A.5** | ✅ **DONE 2026-08-11** — **A3.5** the undo was structurally impossible (`cycleTopUp` had no source); `goalId` added, backfill-safe, undo rendered where the offer was · **A3.8** `GoalSheet` dedupes like the save-for-it flow | |
-| **A.6** | **A3.6** — one cover offer, not two. `coverFromSavings` and `selectTightTopUp` have no mutual guard and both cards render on Today (`index.tsx:295` · `:380`) | ▶ next |
-| **A.7** | **A3.2** — ⚠️ **measure the figure first**, then write the copy. Currently a direction, not a number | |
+| **A.6** | ✅ **DONE 2026-08-11** — **A3.6**. ⛔ "two offers of the same move" **REFUTED** (the cover subsumes the top-up; either tap clears the other). ⚡ The real defect was a **double-count** — `selectAffordability` ignored `appliedTopUp`, so the two cards disagreed on one cushion and re-offered money already moved. Plus a **capped-outcome** copy lie in both cards. Gate 158/158 | |
+| **A.7** | **A3.2** — ⚠️ **measure the figure first**, then write the copy. Currently a direction, not a number | ▶ next |
 | **A.8** | **[DECISION] A3.7** — an applied purchase reads as a deferrable bill. Coherent by rule; the question is whether it confuses a person. **Jason's call, not a silent fix** | |
 | **A.9** | **A4 ×3 · A5 · A6a.** ⚡ After-scan: A6a is a **divergence** — `buildPayoffTrajectory` already carries `recurrence?`, so match the sibling. ⚠️ A5: **scope the gate first** — "RevenueCat hasn't answered yet" affects every premium surface on a cold offline launch, not just one row. ⚠️ A4a needs measuring before it earns work | |
 | **A.10** | **A8.1–A8.3** — the Siri phrase *(gated on [D4]: every shortcut phrase contains the app name, so it can only shrink by shrinking the NAME)* | |
@@ -137,6 +137,7 @@ entry · C9 `router.back()` cold-entry sweep · C10 doc disambiguation of the ov
 - [ ] **Best-in-class enhancement pass** — aspirational, app-wide: is each surface genuinely top-of-class, and what makes it unforgettable? Benchmark vs category leaders; restraint, not fireworks.
 - [ ] **Wording / voice** — every user-facing string, both tiers, all states, against the house voice. Absorbs Wave C's copy items.
   - ⚠️ **[3.7.A3.1 after-scan] Sweep every Guardian affordance for a PROXY gate.** A3.1's defect class: an affordance that promises an **outcome** ("I'll hold a smaller safety net") was gated on a **proxy** (a cycle count), so it could promise and deliver zero. Check the siblings — `selectReserveRelease` · `selectReserveWalkback` · `selectRiskAcknowledgment` · `selectTrialConversion` · `selectGuardianProofOfWork` — for the same shape: **is each gated on the thing it claims, or on something that merely correlates with it?**
+  - ⚡ **[3.7.A3.6 after-scan] …and for a CAPPED OUTCOME — the second shape of the same family.** Not a proxy gate: the gate is right, but the **resource is bounded**, so the affordance delivers less than it promised. `selectTightTopUp`/`coverFromSavings` claimed "holds your line" while `Math.min(gap, balance)` capped the draw short (fixed in A.6 via `holdsLine`). Sweep for the pattern: **any copy asserting a completed outcome over a value that is `Math.min`'d, clamped or floored.**
 
 ⚡ **Input from 3.5's phase after-scan — three defect classes to hunt at scale:** ① an assertion that
 passes either way ② evidence cited but never committed ③ two records of one thing, drifting. All three are
@@ -205,6 +206,15 @@ a later version/tier**._
 measured hotspot)* — ⚠️ **A3.1 added one extra allocation** on Today whenever the discovery hold is active
 (the attestation counterfactual). Cheap, and the current store's allocation is already memoised, but it
 belongs on this ledger · Dynamic-Type device QA.
+
+**Engine structure:**
+- **⚡ [3.7.A3.6 after-scan] `appliedTopUp` is a manual-opt-in invariant.** Cash moved from savings this
+  cycle lives only in `store.cycleTopUp` — the allocation never sees it, so **every** cushion reader has to
+  remember `+ appliedTopUp(store)`. Three readers exist; two had it, `selectAffordability` did not (A.6's
+  double-count). The next reader will miss it too. Structural fix: fold the top-up into the allocation so
+  it cannot be forgotten — **engine-wide blast radius, so not a Wave-A item.** → the Phase-6 financial-
+  correctness audit gate. *(Checked and NOT a defect: `selectSaveForItOptions:482` omits it correctly — it
+  paces a recurring per-paycheck save, which a one-cycle borrow must not inflate.)*
 
 **Tooling / hygiene:**
 - ⛔ **PROMOTED 2026-08-11 → the active build (4.1.8).** *(Was: a supplemental Appium lane, filed as triggered-not-scheduled with a "NO for now" recommendation. 🎯 Jason reversed it the same day — "the more that we can prove with Appium/Maestro the better" — and the amortisation argument carried it: the lane outlives v1.7.)* → `audits/2026-08-11-maestro-coverage/` §7.

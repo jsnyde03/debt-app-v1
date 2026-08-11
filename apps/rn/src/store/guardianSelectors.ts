@@ -228,6 +228,14 @@ export interface TightTopUp {
   /** 3.7.A3.3 [D24] — the source is the EMERGENCY fund (no discretionary pot was available). Drives the
    *  copy: a control that says "from savings" while drawing on the safety net is the dishonest half. */
   isEmergencyFund: boolean;
+  /** 3.7.A3.6 — the move actually REACHES the floor (`topUp === gap`). False when the goal's balance is
+   *  smaller than the gap and the draw is capped: the move still helps, but it does not hold the line,
+   *  and copy that says it does is the same promise-an-outcome-deliver-less defect as A3.1. */
+  holdsLine: boolean;
+  /** The user's cushion line, and where this move actually leaves them — so a capped move can state the
+   *  truth ("gets you to $X of your $Y line") instead of claiming the line is held. */
+  floor: number;
+  cushionAfter: number;
 }
 
 /**
@@ -241,12 +249,19 @@ export interface TightTopUp {
  * Null unless there is a live, reversible top-up for THIS cycle — so a record from an older blob (no
  * `goalId`) correctly offers nothing rather than a control that would fail.
  */
-export function selectAppliedTopUp(store: DebtStore): { amount: number; goalId: string; goalName: string } | null {
+export function selectAppliedTopUp(
+  store: DebtStore,
+): { amount: number; goalId: string; goalName: string; holdsLine: boolean } | null {
   const rec = store.cycleTopUp;
   if (!rec || rec.forCycle !== store.paycheck.nextPaycheckDate || rec.amount <= 0 || !rec.goalId) return null;
   const goal = store.goals.find((g) => g.id === rec.goalId);
   if (!goal) return null;
-  return { amount: rec.amount, goalId: rec.goalId, goalName: goal.name };
+  // 3.7.A3.6 — did the move actually reach the line? A draw capped by the goal's balance does not, and
+  // the confirmation used to say "to hold your line" either way. Measured from the post-move cushion, so
+  // it stays true if anything else in the cycle changes underneath it.
+  const allocation = selectAllocation(store);
+  const holdsLine = !!allocation && selectDiscretionary(allocation) + rec.amount >= (store.cushionFloor ?? 200);
+  return { amount: rec.amount, goalId: rec.goalId, goalName: goal.name, holdsLine };
 }
 
 /** The top-up already applied for the CURRENT cycle (cycle-keyed → a stale one self-corrects). */
@@ -281,7 +296,13 @@ export function selectTightTopUp(store: DebtStore): TightTopUp | null {
   if (!goal) return null;
   const topUp = Math.round(Math.min(gap, goal.currentAmount) * 100) / 100;
   if (topUp <= 0) return null;
-  return { gap, available: goal.currentAmount, topUp, goalId: goal.id, goalName: goal.name, isEmergencyFund: goal.type === 'emergency' };
+  return {
+    gap, available: goal.currentAmount, topUp, goalId: goal.id, goalName: goal.name,
+    isEmergencyFund: goal.type === 'emergency',
+    holdsLine: topUp >= gap,
+    floor,
+    cushionAfter: Math.round((cushion + topUp) * 100) / 100,
+  };
 }
 
 /** "Aug 5" — mirrors the cash-flow bars' label so the Guardian's lookahead reads consistently. */
@@ -329,8 +350,12 @@ export interface Affordability {
   extraToDebtDelta: number;
   /** §2.9.5 cover-a-tight-dip: for a TIGHT purchase, the smallest move to hold the floor — draw the gap
    *  from a discretionary savings goal (never the emergency fund, for a discretionary buy). Null unless
-   *  tight AND a savings goal has a balance. */
-  coverFromSavings: { goalId: string; goalName: string; amount: number } | null;
+   *  tight AND a savings goal has a balance.
+   *
+   *  ⚠️ 3.7.A3.6 — this gap is measured against the cushion INCLUDING any top-up already taken this
+   *  cycle, so it covers the whole remaining dip (today's + the purchase's) and can never re-offer money
+   *  that has already been moved. `holdsLine` is false when the goal's balance caps the draw short. */
+  coverFromSavings: { goalId: string; goalName: string; amount: number; holdsLine: boolean } | null;
 }
 
 /** The ephemeral one-off used to re-solve the plan WITH the purchase (never persisted — the preview). */
@@ -346,7 +371,12 @@ const AFFORD_PREVIEW_ID = '__afford_preview__';
 export function selectAffordability(store: DebtStore, amount: number): Affordability | null {
   const base = selectAllocation(store);
   if (!base || !Number.isFinite(amount) || amount <= 0) return null;
-  const discretionaryNow = selectDiscretionary(base);
+  // 3.7.A3.6 — `+ appliedTopUp`, exactly as the Guardian brief does (`discretionary:` below at the
+  // buildGuardianBrief call). Without it the two cards sat on ONE screen disagreeing about the same
+  // cushion: the Guardian read "$200, at your line" while this card, still on the pre-top-up $50, told
+  // the user a $30 purchase would dip them to $20 and offered to move the SAME $150 out of the SAME goal
+  // a second time. Cash moved from savings is in checking — every read of the cushion has to see it.
+  const discretionaryNow = selectDiscretionary(base) + appliedTopUp(store);
   const floor = store.cushionFloor ?? 200;
   const { verdict, cushionAfter, shortBy } = computeAffordability(discretionaryNow, amount, floor);
 
@@ -362,7 +392,8 @@ export function selectAffordability(store: DebtStore, amount: number): Affordabi
     const gap = Math.round((floor - cushionAfter) * 100) / 100;
     const goal = store.goals.find((g) => g.type === 'savings' && g.currentAmount > 0);
     if (gap > 0 && goal) {
-      coverFromSavings = { goalId: goal.id, goalName: goal.name, amount: Math.min(gap, Math.round(goal.currentAmount * 100) / 100) };
+      const amount = Math.min(gap, Math.round(goal.currentAmount * 100) / 100);
+      coverFromSavings = { goalId: goal.id, goalName: goal.name, amount, holdsLine: amount >= gap };
     }
   }
 

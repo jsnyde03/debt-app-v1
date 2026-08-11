@@ -1,6 +1,6 @@
 import { createDefaultStore } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
-import { selectAffordability, selectSaveForItOptions } from '@/store/guardianSelectors';
+import { selectAffordability, selectAppliedTopUp, selectSaveForItOptions } from '@/store/guardianSelectors';
 
 /**
  * §2.9 Can-I-Afford-This? — the app-layer selectors over the engine. The pure verdict + priority-goal
@@ -54,6 +54,43 @@ function run() {
   const efOnly: DebtStore = { ...s, goals: [{ id: 'ef', name: 'Emergency Fund', targetAmount: 1000, currentAmount: 500, type: 'emergency' }] };
   assert(selectAffordability(efOnly, 1800)?.coverFromSavings === null, 'never raids the emergency fund for a discretionary buy');
   assert(selectAffordability(withSavings, 500)?.coverFromSavings === null, 'a comfortable purchase has no cover option');
+  assert(tightCover?.coverFromSavings?.holdsLine === true, '…and a fully-funded cover reports holdsLine');
+
+  // ── 3.7.A3.6 — the cushion this card reads must INCLUDE a top-up already taken this cycle ──
+  // The Guardian's brief adds `appliedTopUp`; this selector did not, so after the user tapped the
+  // Guardian's one-tap the two cards sat on one screen disagreeing about the same cushion — and this one
+  // offered to move the SAME money out of the SAME goal a second time.
+  // $1750 of rent drops the $1900 discretionary to $150, under the $200 floor — the exact state in which
+  // the Guardian ALSO offers its own top-up, which is what makes the double-count reachable.
+  const tightBase: DebtStore = {
+    ...s,
+    requiredExpenses: [{ id: 'rent', name: 'Rent', amount: 1750, dueDate: '2026-08-05', recurrence: 'monthly' }],
+    goals: [{ id: 'vac', name: 'Vacation', targetAmount: 1000, currentAmount: 450, type: 'savings' }],
+  };
+  const preTopUp = selectAffordability(tightBase, 100);
+  assert(preTopUp?.discretionaryNow === 150, 'pre-top-up: the cushion is $150 (under the $200 floor)');
+  assert(preTopUp?.coverFromSavings?.amount === 150, '…and a $100 purchase needs the full $150 gap covered');
+
+  // Now the user taps the GUARDIAN's one-tap first: $50 moves from Vacation into this cycle.
+  const toppedUp: DebtStore = { ...tightBase, cycleTopUp: { forCycle: '2026-09-01', amount: 50, goalId: 'vac' } };
+  const afterTopUp = selectAffordability(toppedUp, 100);
+  assert(afterTopUp?.discretionaryNow === 200, 'A3.6 — the $50 already moved from savings counts toward the cushion ($150 + $50)');
+  assert(afterTopUp?.cushionAfter === 100, '…so the same $100 purchase dips to $100, not the stale $50');
+  // The regression this pins: unfixed, the cover still asked for $150 on top of the $50 already moved —
+  // $200 drawn to close a $150 gap, $50 of it a second draw for money that was already in checking.
+  assert(afterTopUp?.coverFromSavings?.amount === 100, '…and the cover asks the REMAINING $100, never re-offering the $50 already moved');
+
+  // A cover capped by the goal's balance must not claim to hold the line (A3.1's defect class).
+  const thinPot: DebtStore = { ...tightBase, goals: [{ id: 'vac', name: 'Vacation', targetAmount: 1000, currentAmount: 20, type: 'savings' }] };
+  const capped = selectAffordability(thinPot, 100);
+  assert(capped?.coverFromSavings?.amount === 20, 'a thin savings pot caps the cover at its balance');
+  assert(capped?.coverFromSavings?.holdsLine === false, '…and reports holdsLine=false — $20 against a $150 gap does not hold the line');
+
+  // The applied-top-up confirmation carries the same outcome flag, so "to hold your line" can't persist
+  // as a lie after a capped move.
+  assert(selectAppliedTopUp(toppedUp)?.holdsLine === true, 'an applied top-up that reaches the floor reports holdsLine');
+  const cappedApplied: DebtStore = { ...thinPot, goals: [{ id: 'vac', name: 'Vacation', targetAmount: 1000, currentAmount: 0, type: 'savings' }], cycleTopUp: { forCycle: '2026-09-01', amount: 20, goalId: 'vac' } };
+  assert(selectAppliedTopUp(cappedApplied)?.holdsLine === false, '…a capped one does not, even once the goal is drained to $0');
 
   // Save-for-it options for a short purchase: prioritized paces + a debt-first path.
   const opts = selectSaveForItOptions(s, 2500);

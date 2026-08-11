@@ -5299,3 +5299,93 @@ them. 02/03/04/08 and 05/06 remain downstream symptoms of 01.
 - **⚡ The number worth carrying forward: of 14 items verified from the 2026-07-30 pass, FIVE did not
   survive contact with the code.** A1 · A3.4 · A3.9 · A7 · A6's re-export half. The before-scan costs
   minutes per item and has never been wasted.
+
+---
+
+## 3.7 A.6 — A3.6 · one cover offer, not two (2026-08-11)
+
+**Gate: 158/158, 0 errors.** Touched `guardianSelectors.ts` · `PaydayGuardianCard.tsx` ·
+`AffordabilityCard.tsx` · `affordability.test.ts`.
+
+### ⛔ The ledger's premise was half wrong — REFUTED, with the mechanism
+
+A3.6 read: *"`coverFromSavings` and `selectTightTopUp` are independent, with no mutual guard, and both
+cards render on Today. **Two offers of the same move.**"*
+
+They are **not** the same move, and no mutual guard should be built:
+
+- The Guardian's top-up closes **today's** dip: `gap = floor − cushion`.
+- The affordability cover closes **today's dip + the purchase**: `gap = floor − cushionAfter`, and
+  `cushionAfter ≤ cushion`, so the cover's gap **strictly subsumes** the top-up's.
+- Tapping the cover lifts the cushion to the floor → `selectTightTopUp` returns null → the Guardian's
+  offer disappears on the next render. Tapping the top-up shrinks the cover's gap by exactly that amount.
+  **Either tap resolves the other.** A guard would delete the better-informed of the two offers.
+
+This is Law IV again (`measure-agent-mechanisms`): the recommendation ("there is something wrong here")
+was sound; the stated mechanism was wrong. **Sixth of the 2026-07-30 items not to survive contact.**
+
+### ⚡ The real defect the ledger missed: a DOUBLE-COUNT
+
+`selectAffordability` read `selectDiscretionary(base)` with **no `+ appliedTopUp(store)`**, while
+`buildGuardianBrief`'s call site (`guardianSelectors.ts`, `discretionary:`) *did* add it. Cash moved from
+savings is really in checking, so a reader that omits it is reading a stale cushion.
+
+**Measured on the fixture** (paycheck $2000, min $100, rent $1750 → discretionary **$150**, floor $200,
+Vacation $450):
+
+| | Guardian card | Affordability card, $100 purchase |
+|---|---|---|
+| before any tap | cushion $150, offers to move $50 | dips to $50, cover asks **$150** |
+| after the $50 top-up, **unfixed** | cushion **$200 — "at your line"** | dips to **$50**, cover asks **$150** again |
+| after the $50 top-up, **fixed** | cushion $200 | dips to $100, cover asks **$100** |
+
+Unfixed, the two cards state different cushions **on one screen**, and the second offer draws $150 more
+for a $150 gap that $50 has already been paid into — **$200 out of the goal to close $150.** Fixed, the
+two draws sum to exactly the gap.
+
+⚠️ **No test had ever constructed a store with `cycleTopUp` set** — the whole interaction was
+green-by-never-exercised.
+
+### ⚡ Sibling found in the same code path: a CAPPED OUTCOME
+
+`topUp = Math.min(gap, goal.currentAmount)`, but the copy was unconditional:
+
+- `PaydayGuardianCard:345` — *"moving $20 over **holds your line** this paycheck."* A $20 pot against a
+  $150 gap does not.
+- `:366` the applied confirmation repeated it, and **persisted** the lie: once a capped move drains the
+  goal to $0, `selectTightTopUp` returns null (no funded goal), so the offer vanishes while the
+  confirmation still claims the line is held.
+- `AffordabilityCard:117` + the button verb **"Cover"** — a completion claim over a capped amount.
+
+Fix: `holdsLine` on `TightTopUp`, `selectAppliedTopUp` and `coverFromSavings` (plus `floor`/`cushionAfter`
+so capped copy can name where the move actually leaves you). All four strings now branch on it; the button
+verb drops from "Cover" to "Move" when it doesn't cover.
+
+⚠️ `selectAppliedTopUp` computes `holdsLine` from the **post-move cushion**, not from a flag stored at
+apply time — so it stays true if anything else in the cycle moves underneath it. (A stored flag would be
+"a claim kept somewhere other than where it is checked", which is 3.5's after-scan defect class ③.)
+
+### Tests — failing-then-passing, verified by reverting
+
+`affordability.test.ts` 15 → 23 asserts. The double-count assertion was confirmed to **fail** against the
+pre-fix selector (reverted the one line, re-ran, `❌ FAIL [A3.6 — the $50 already moved … counts toward
+the cushion]`, restored). `holdsLine` is a new field, so pre-fix the capped case had no gate at all.
+
+⚠️ **The fixture's arithmetic was wrong on the first attempt** — assumed a $100 purchase on a $150 cushion
+was `short`; it is `tight` (`computeAffordability` only says short when `after < 0`). Measured with a
+throwaway probe rather than reasoned about. Worth repeating: the numbers in these selectors compose
+through `effectivePaycheckBuffer` and are not derivable by inspection.
+
+### After-scan
+
+- **Checked, NOT a defect:** `selectSaveForItOptions:482` omits the top-up too, and correctly — it paces a
+  **recurring** per-paycheck save, which a one-cycle borrow must not inflate. Recorded so it is not
+  re-flagged by a future sweep.
+- **→ Deferred backlog (Engine structure):** `appliedTopUp` is a **manual-opt-in invariant** — three
+  cushion readers, each of which must remember to add it, two of which did. The next one will miss it.
+  Folding the top-up into the allocation is the structural fix and has engine-wide blast radius → the
+  Phase-6 financial-correctness gate.
+- **→ Audit gate (wording/voice):** the **capped-outcome** shape added alongside A3.1's proxy-gate sweep.
+  Search target: *any copy asserting a completed outcome over a value that is `Math.min`'d, clamped or
+  floored.*
+- **Queue replenished:** A.7 (A3.2) takes the active slot.

@@ -44,7 +44,7 @@ export function AffordabilityCard() {
   const isPremium = store.subscriptionPlan === 'premium';
   const [amount, setAmount] = useState('');
   const [name, setName] = useState('');
-  const [applied, setApplied] = useState<{ id: string; name: string; cover?: { goalId: string; amount: number; goalName: string } } | null>(null);
+  const [applied, setApplied] = useState<{ id: string; name: string; cover?: { goalId: string; amount: number; goalName: string; holdsLine: boolean } } | null>(null);
   const [saveSheet, setSaveSheet] = useState(false);
   const [saved, setSaved] = useState<SavedInfo | null>(null);
   const [nameError, setNameError] = useState('');
@@ -83,7 +83,7 @@ export function AffordabilityCard() {
     store_.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' });
     store_.getState().applyTightTopUp(r.coverFromSavings.goalId, r.coverFromSavings.amount);
     haptics.success(); // 3.3.5.3
-    setApplied({ id, name: purchaseName, cover: { goalId: r.coverFromSavings.goalId, amount: r.coverFromSavings.amount, goalName: r.coverFromSavings.goalName } });
+    setApplied({ id, name: purchaseName, cover: { goalId: r.coverFromSavings.goalId, amount: r.coverFromSavings.amount, goalName: r.coverFromSavings.goalName, holdsLine: r.coverFromSavings.holdsLine } });
   }
   function undo() {
     if (applied) {
@@ -113,8 +113,11 @@ export function AffordabilityCard() {
           <View style={styles.readHead}>
             <AppIcon name="check-circle" size={18} color={c.accent.primary} />
             <Text style={[textStyles.subhead, styles.readText, { color: c.text.primary }]}>
+              {/* 3.7.A3.6 — a cover capped by the goal's balance does not hold the line; say so. */}
               {applied.cover
-                ? `Added ${applied.name} + moved ${money(applied.cover.amount)} from ${applied.cover.goalName} to hold your line — your plan updated below.`
+                ? applied.cover.holdsLine
+                  ? `Added ${applied.name} + moved ${money(applied.cover.amount)} from ${applied.cover.goalName} to hold your line — your plan updated below.`
+                  : `Added ${applied.name} + moved all ${money(applied.cover.amount)} of ${applied.cover.goalName} — it narrows the dip but doesn't hold your line. Your plan updated below.`
                 : `Added ${applied.name} to this paycheck — your plan updated below.`}
             </Text>
           </View>
@@ -199,7 +202,13 @@ export function AffordabilityCard() {
               apply anyway and accept the tighter cushion. Comfortable buys just apply. */}
           {result.verdict === 'tight' && result.coverFromSavings ? (
             <Button
-              label={`Cover ${money(result.coverFromSavings.amount)} from ${result.coverFromSavings.goalName} & apply`}
+              // 3.7.A3.6 — "Cover" is a completion claim. When the goal's balance caps the draw short of
+              // the dip it moves money without covering anything, so the verb changes with the outcome.
+              label={
+                result.coverFromSavings.holdsLine
+                  ? `Cover ${money(result.coverFromSavings.amount)} from ${result.coverFromSavings.goalName} & apply`
+                  : `Move ${money(result.coverFromSavings.amount)} from ${result.coverFromSavings.goalName} & apply`
+              }
               variant="secondary"
               onPress={() => coverAndApply(result)}
               style={styles.action}
