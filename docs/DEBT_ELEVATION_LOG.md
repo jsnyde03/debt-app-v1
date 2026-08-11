@@ -4879,3 +4879,50 @@ into `validate:release:rn` beside `check-rn-style-divergence.ts`.
 ⚡ **This is the plan's own audit-gate defect class arriving in the test suite itself:** *a claim kept
 somewhere other than where it is checked.* The flows assert against strings the app owns, and nothing
 was checking that the strings still existed.
+
+### 4.1.3 cycle 1 (suite) — 8/8 failed, ONE cause, and a step that lied (2026-08-11)
+
+```
+[Failed] 01-launch-smoke      (Assertion is false: "Add your first debt or expense" is visible)
+[Failed] 07-money-add-and-rescue  (same)
+[Failed] 02 · 03 · 04         (Element not found: Id matching regex: tab-money)
+[Failed] 08-coach-marks       (Assertion is false: id: tab-money is visible)
+[Failed] 05-tutorial-walkthrough  (No visible element found: "How this works")
+8/8 Flows Failed
+```
+
+⚡ **Six of the eight are SYMPTOMS**, and flow 01's own header predicted them: *"If this fails, do NOT
+patch the later flows — the seed is what broke, and every red after it would be a symptom."* 02/03/04/08
+cannot find a tab bar and 05 cannot find the Guardian's replay link because onboarding never completed,
+so the app never left the first-run stack. Written down before the run, and it held.
+
+### The one cause: a selector that matched two nodes, only one of them focusable
+
+`TextField` renders a `<Text>` label **and** sets `accessibilityLabel={label}` on the `TextInput` — the
+**same string on two nodes**. `tapOn: "Paycheck amount"` resolved to the non-focusable label, nothing took
+focus, and `inputText` typed into the void.
+
+⛔ **And every step reported COMPLETED**, including the `inputText`. Maestro's `inputText` succeeds
+whether or not anything receives it. So the flow walked on and died three steps later at *"Add your first
+debt or expense"*, and the only clue on screen was the app's own validation — **"Enter your paycheck
+amount to continue"** — which is the app behaving correctly.
+
+**That is the worst shape a test failure can take: it reported success at the step that was broken, and
+red at a step that was fine.** The failure screenshot showed the field still holding its placeholder,
+which is what settled it; the per-step `commands.json` showed every command COMPLETED, which is what made
+the screenshot necessary.
+
+### Fix: unambiguous by construction
+
+`TextField` gains an optional `testID` forwarded to the `TextInput`, and the **11 fields the lane types
+into** carry explicit ids (`field-paycheck-amount`, `field-debt-balance`, …) across `PaycheckStep`,
+`FirstDebtOrBillStep`, `DebtSheet` and `ExpenseSheet`. Flows 01 and 07 now target ids, not labels. `tsc`
+clean. The component's docblock records **why** the prop exists, so nobody removes it as decoration.
+
+⚠️ **A label is not a selector when the label is also rendered as text.** This is the same class as the
+`.maestro` staleness found an hour earlier — a claim about the app kept somewhere the app does not check
+— and the cross-check written to verify the wiring (*every `field-*` id used in a flow must exist in app
+source*) is a **working prototype of 4.1.4's selector guard**. Build 4.1.4 from it.
+
+⚠️ **Not yet re-run.** Six of the eight flows have never executed past onboarding, so their own selectors
+are still unverified — expect more first-run tuning, and expect it to be *shallower* each cycle.

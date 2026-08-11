@@ -45,23 +45,28 @@ appId: com.jasonsnyder.debtplanner
 # The paycheck is not optional dressing: flows 05 and 06 need a Guardian card, and the Guardian needs a
 # paycheck. "Skip for now" would land on the completion step with no income and no card to coach.
 - assertVisible: "When do you get paid?"
-- tapOn: "Paycheck amount"
+- tapOn:
+    id: "field-paycheck-amount"
 - inputText: "2000"
 - hideKeyboard
 - tapOn: "Continue"
 
 # Debt 1 of 3 — "Visa" is the row flows 03 and 04 long-press and tap.
 - assertVisible: "Add your first debt or expense"
-- tapOn: "Debt name"
+- tapOn:
+    id: "field-onboarding-name"
 - inputText: "Visa"
 - hideKeyboard
-- tapOn: "Current balance"
+- tapOn:
+    id: "field-onboarding-balance"
 - inputText: "2400"
 - hideKeyboard
-- tapOn: "Minimum payment"
+- tapOn:
+    id: "field-onboarding-minimum"
 - inputText: "65"
 - hideKeyboard
-- tapOn: "APR % (optional)"
+- tapOn:
+    id: "field-onboarding-apr"
 - inputText: "26.99"
 - hideKeyboard
 - tapOn: "Add & Continue"
@@ -86,13 +91,16 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "add-choice-debt"
 - assertVisible: "Add a debt"
-- tapOn: "Name"
+- tapOn:
+    id: "field-debt-name"
 - inputText: "Store Card"
 - hideKeyboard
-- tapOn: "Current balance"
+- tapOn:
+    id: "field-debt-balance"
 - inputText: "800"
 - hideKeyboard
-- tapOn: "Minimum payment"
+- tapOn:
+    id: "field-debt-minimum"
 - inputText: "25"
 - hideKeyboard
 - tapOn: "Add debt"
@@ -101,13 +109,16 @@ appId: com.jasonsnyder.debtplanner
     id: "money-add"
 - tapOn:
     id: "add-choice-debt"
-- tapOn: "Name"
+- tapOn:
+    id: "field-debt-name"
 - inputText: "Car Loan"
 - hideKeyboard
-- tapOn: "Current balance"
+- tapOn:
+    id: "field-debt-balance"
 - inputText: "8380"
 - hideKeyboard
-- tapOn: "Minimum payment"
+- tapOn:
+    id: "field-debt-minimum"
 - inputText: "210"
 - hideKeyboard
 - tapOn: "Add debt"

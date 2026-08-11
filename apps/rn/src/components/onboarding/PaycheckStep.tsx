@@ -104,6 +104,7 @@ export function PaycheckStep({ onNext, onSkip }: { onNext: () => void; onSkip: (
       </View>
 
       <TextField
+        testID="field-paycheck-amount"
         label="Paycheck amount"
         value={amount}
         onChangeText={(t) => {

@@ -99,8 +99,8 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
       onRemove={isEdit ? remove : undefined}
       onClose={onClose}
       dirty={dirty}>
-      <TextField label="Name" value={name} onChangeText={(t) => { setName(t); setError(''); }} placeholder="Rent, phone, utilities" />
-      <TextField label={trial ? 'Amount now (0 for a free trial)' : 'Amount'} value={amount} onChangeText={(t) => { setAmount(t); setError(''); }} placeholder={trial ? 'e.g. 0' : 'e.g. 850'} keyboardType="decimal-pad" error={error || undefined} />
+      <TextField testID="field-expense-name" label="Name" value={name} onChangeText={(t) => { setName(t); setError(''); }} placeholder="Rent, phone, utilities" />
+      <TextField testID="field-expense-amount" label={trial ? 'Amount now (0 for a free trial)' : 'Amount'} value={amount} onChangeText={(t) => { setAmount(t); setError(''); }} placeholder={trial ? 'e.g. 0' : 'e.g. 850'} keyboardType="decimal-pad" error={error || undefined} />
       <TextField label="Due date (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate} placeholder="2026-07-01" />
       <Select label="Recurrence" value={recurrence} options={RECURRENCE} onChange={setRecurrence} />
       <Select label="Category" value={category} options={CATEGORY} onChange={setCategory} />

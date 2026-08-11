@@ -268,7 +268,7 @@ export function DebtSheet({
         ) : null
       }
       >
-      <TextField label="Name" value={name} onChangeText={(t) => { setName(t); setError(''); }} placeholder={type === 'bnpl' ? 'Affirm — Sofa' : 'Visa, Car Loan'} />
+      <TextField testID="field-debt-name" label="Name" value={name} onChangeText={(t) => { setName(t); setError(''); }} placeholder={type === 'bnpl' ? 'Affirm — Sofa' : 'Visa, Car Loan'} />
       <Select
         label="Type"
         value={type}
@@ -292,7 +292,7 @@ export function DebtSheet({
         </>
       ) : (
         <>
-          <TextField label="Current balance" value={balance} onChangeText={(t) => { setBalance(t); setError(''); }} placeholder="e.g. 2400" keyboardType="decimal-pad" />
+          <TextField testID="field-debt-balance" label="Current balance" value={balance} onChangeText={(t) => { setBalance(t); setError(''); }} placeholder="e.g. 2400" keyboardType="decimal-pad" />
           {/* §2.8 premium keeps-current: re-scan a statement to update the balance without retyping. */}
           {canRescan ? (
             <Pressable onPress={handleRescan} accessibilityRole="button" accessibilityLabel="Re-scan a statement to update this balance" hitSlop={6} style={{ marginTop: -4, alignSelf: 'flex-start' }}>
@@ -317,8 +317,8 @@ export function DebtSheet({
           ) : isEdit && !isPremium && estimate?.lastVerifiedDate ? (
             <Text style={[textStyles.caption, { color: c.text.tertiary, marginTop: -4 }]}>Updated {shortDate(estimate.lastVerifiedDate)}</Text>
           ) : null}
-          <TextField label="Minimum payment" value={minimumPayment} onChangeText={(t) => { setMinimumPayment(t); setError(''); }} placeholder="e.g. 65" keyboardType="decimal-pad" />
-          <TextField label="APR %" value={apr} onChangeText={setApr} placeholder="e.g. 22.99" keyboardType="decimal-pad" />
+          <TextField testID="field-debt-minimum" label="Minimum payment" value={minimumPayment} onChangeText={(t) => { setMinimumPayment(t); setError(''); }} placeholder="e.g. 65" keyboardType="decimal-pad" />
+          <TextField testID="field-debt-apr" label="APR %" value={apr} onChangeText={setApr} placeholder="e.g. 22.99" keyboardType="decimal-pad" />
           <TextField label="Due date" value={dueDate} onChangeText={setDueDate} placeholder="2026-07-01" />
           <Select label="Recurrence" value={recurrence} options={RECURRENCE} onChange={setRecurrence} />
         </>

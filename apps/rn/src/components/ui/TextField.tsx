@@ -4,7 +4,19 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
-/** Labeled themed text input with an optional inline error. */
+/**
+ * Labeled themed text input with an optional inline error.
+ *
+ * ⚠️ **`testID` exists because the LABEL is ambiguous to a test runner, and it cost a CI cycle.** The
+ * visible `<Text>` and the `TextInput`'s `accessibilityLabel` carry the SAME string, so a selector
+ * matching that string can resolve to either — and only one of them is focusable. Maestro tapped the
+ * label, `inputText` typed into nothing, and every step still reported COMPLETED: the flow walked on and
+ * failed three steps later at "Add your first debt or expense", with the app's own validation
+ * ("Enter your paycheck amount to continue") the only clue on screen.
+ *
+ * That is the worst shape a test failure can have — it reported success at the step that was actually
+ * broken. Pass a `testID` for any field a flow types into; it is unambiguous by construction.
+ */
 export function TextField({
   label,
   value,
@@ -12,6 +24,7 @@ export function TextField({
   placeholder,
   keyboardType,
   error,
+  testID,
 }: {
   label: string;
   value: string;
@@ -19,12 +32,14 @@ export function TextField({
   placeholder?: string;
   keyboardType?: KeyboardTypeOptions;
   error?: string;
+  testID?: string;
 }) {
   const c = useAppColors();
   return (
     <View style={styles.field}>
       <Text style={[textStyles.footnote, styles.label, { color: c.text.secondary }]}>{label}</Text>
       <TextInput
+        testID={testID}
         value={value}
         onChangeText={onChangeText}
         accessibilityLabel={label}

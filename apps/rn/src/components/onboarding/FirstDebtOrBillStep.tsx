@@ -121,6 +121,7 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
       </Text>
 
       <TextField
+        testID="field-onboarding-name"
         label={type === 'debt' ? 'Debt name' : 'Expense name'}
         value={name}
         onChangeText={(t) => {
@@ -133,6 +134,7 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
       {type === 'debt' ? (
         <>
           <TextField
+            testID="field-onboarding-balance"
             label="Current balance"
             value={balance}
             onChangeText={(t) => {
@@ -145,6 +147,7 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
           <View style={styles.pair}>
             <View style={styles.pairItem}>
               <TextField
+                testID="field-onboarding-minimum"
                 label="Minimum payment"
                 value={minimumPayment}
                 onChangeText={(t) => {
@@ -156,12 +159,13 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
               />
             </View>
             <View style={styles.pairItem}>
-              <TextField label="APR % (optional)" value={apr} onChangeText={setApr} placeholder="e.g. 22.99" keyboardType="decimal-pad" />
+              <TextField testID="field-onboarding-apr" label="APR % (optional)" value={apr} onChangeText={setApr} placeholder="e.g. 22.99" keyboardType="decimal-pad" />
             </View>
           </View>
         </>
       ) : (
         <TextField
+          testID="field-onboarding-amount"
           label="Amount"
           value={amount}
           onChangeText={(t) => {

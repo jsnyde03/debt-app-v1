@@ -43,9 +43,14 @@ appId: com.jasonsnyder.debtplanner
 # The paycheck step is the gate that stopped the web lane. Type a real amount rather than skipping — the
 # skip is precisely what walks past the step under test.
 - assertVisible: "When do you get paid?"
-# `TextField` sets `accessibilityLabel={label}` (TextField.tsx:30), so the field is addressable by its
-# visible label without needing a testID added for the test's benefit.
-- tapOn: "Paycheck amount"
+# ⛔ THAT CLAIM COST A CI CYCLE. This said the field was "addressable by its visible label without needing
+# a testID added for the test's benefit". `TextField` does set `accessibilityLabel={label}` — but it also
+# renders a `<Text>` carrying THE SAME STRING, so the selector matched two nodes and only one was
+# focusable. Maestro tapped the label, `inputText` typed into nothing, **and every step still reported
+# COMPLETED** — the flow walked on and died three steps later, with the app's own "Enter your paycheck
+# amount to continue" the only clue. Fields a flow types into now carry explicit testIDs.
+- tapOn:
+    id: "field-paycheck-amount"
 - inputText: "2000"
 - hideKeyboard
 - tapOn: "Continue"
@@ -77,13 +82,16 @@ appId: com.jasonsnyder.debtplanner
 # Back to Debt and actually add one — flow 08's coach-mark needs a non-empty debts list
 # (`money.tsx:259` gates 'debt-row-actions' on `view.order.length > 0`).
 - tapOn: "Debt"
-- tapOn: "Debt name"
+- tapOn:
+    id: "field-onboarding-name"
 - inputText: "Visa Test"
 - hideKeyboard
-- tapOn: "Current balance"
+- tapOn:
+    id: "field-onboarding-balance"
 - inputText: "2400"
 - hideKeyboard
-- tapOn: "Minimum payment"
+- tapOn:
+    id: "field-onboarding-minimum"
 - inputText: "65"
 - hideKeyboard
 - tapOn: "Add & Continue"
@@ -142,10 +150,12 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "add-choice-expense"
 - assertVisible: "Add an expense"
-- tapOn: "Name"
+- tapOn:
+    id: "field-expense-name"
 - inputText: "Rent"
 - hideKeyboard
-- tapOn: "Amount"
+- tapOn:
+    id: "field-expense-amount"
 - inputText: "1200"
 - hideKeyboard
 - tapOn: "Add expense"
@@ -159,10 +169,12 @@ appId: com.jasonsnyder.debtplanner
     id: "money-add"
 - tapOn:
     id: "add-choice-expense"
-- tapOn: "Name"
+- tapOn:
+    id: "field-expense-name"
 - inputText: "Mortgage"
 - hideKeyboard
-- tapOn: "Amount"
+- tapOn:
+    id: "field-expense-amount"
 - inputText: "1200"
 - hideKeyboard
 - tapOn: "Add expense"
@@ -180,10 +192,12 @@ appId: com.jasonsnyder.debtplanner
 - tapOn: "Move to Debts"
 - assertVisible: "Add a debt"
 - assertVisible: "Mortgage"
-- tapOn: "Current balance"
+- tapOn:
+    id: "field-debt-balance"
 - inputText: "180000"
 - hideKeyboard
-- tapOn: "APR %"
+- tapOn:
+    id: "field-debt-apr"
 - inputText: "6.5"
 - hideKeyboard
 - tapOn: "Add debt"
@@ -206,10 +220,12 @@ appId: com.jasonsnyder.debtplanner
     id: "money-add"
 - tapOn:
     id: "add-choice-expense"
-- tapOn: "Name"
+- tapOn:
+    id: "field-expense-name"
 - inputText: "Car Loan"
 - hideKeyboard
-- tapOn: "Amount"
+- tapOn:
+    id: "field-expense-amount"
 - inputText: "300"
 - hideKeyboard
 - tapOn: "Add expense"
