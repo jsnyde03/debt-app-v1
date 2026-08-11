@@ -5016,3 +5016,27 @@ left unclassified. ⛔ Voided by any check moved into bucket 1 by weakening it u
 scheme via Maestro's `openLink` **and** via `xcrun simctl openurl`, and the alert is SpringBoard's — it
 never enters the flow's hierarchy. A coordinate tap is staged in `p09` and untried; if it fails, the door
 is 4.1.9's.
+
+### 3.7 Wave A · A.3 — the A4–A7 before-scan (2026-08-11)
+
+Same treatment as A3, same result shape: **one item closes outright, one half-closes, two are real.**
+
+| # | verdict | evidence |
+|---|---|---|
+| **A4** BNPL seam polish | ⚠️ **LIVE** (3 parts) | the required row's amount comes from `allocation.allocations`, and the allocation is built on `scaleBnplMinimumsForWindow(store.debts, …)` (`selectors.ts:65`) — so a biweekly BNPL under a monthly payer **does** show the summed figure ($300) where the user knows a $100 installment. The proposed "for 3 installments" clarification is **unbuilt** — no such copy exists anywhere. ⚠️ A4a (month-stepped vs per-cycle mid-curve divergence) is **cosmetic by its own description** ("they agree at the payoff endpoint") and needs measuring before it earns work |
+| **A5** offline Lifetime mislabel | ⚠️ **LIVE** | `premiumResolved` does not exist anywhere in the app. `more.tsx:255` gates the row on `plan === 'premium' && !premiumIsLifetime`, and `premiumIsLifetime` is the **transient** flag derived from `productIdentifier` (2.11.8, deliberately no migration) — so offline, before RevenueCat resolves, a Lifetime owner has `plan='premium'` from storage and `premiumIsLifetime=false`, and briefly sees **"Manage Subscription"** |
+| **A6** drift type hygiene | ◐ **HALF** | ⚠️ LIVE: `buildDriftBaseline` (`computeDrift.ts:120`) takes `debts: Array<{ balance; minimumPayment; apr; type? }>` — **no `recurrence`**, exactly as filed. Cadence-correct at runtime because callers pass real debts; the narrowed type is what would let a future `.map` drop it silently. ⛔ CLOSED: **the dead `DriftResult` re-export does not exist** — the type is declared and consumed in `computeDrift.ts` only, with no barrel re-export. Likely went with `DriftCard` (2.11.8 B-F1) |
+| **A7** third debt-free-date producer | ⛔ **CLOSE — confirmed clean** | `selectPayoffView.debtFreeDate` → `selectDebtFreeDate` · `selectDebtFreeBand` → the same funnel twice (typical + lean) · the widget (`widget/snapshot.ts:76`) reads `selectPayoffView` · `selectWhatIf*` wraps `projectDebtPayoff` directly, which is a deliberate second SCENARIO, not a rogue producer · the drift baseline stores a **frozen** date, not a computed one. **One engine, one app-layer funnel, no third producer.** Retire the portfolio-level follow-on note |
+
+### ⚡ The pattern is now large enough to state as a number
+
+Across the 2026-07-30 pass, **fourteen items have been verified before building. Five did not survive
+contact with the code**: A1 (fixed 3 days before the item was written) · A3.4 and A3.9 (fixed the day
+before) · A7 (never a defect — a confirmation that confirms clean) · A6's re-export half (gone).
+
+**That is better than one in three.** The verification costs minutes per item and has never yet been
+wasted. It is also the reason the remaining nine are worth trusting: each now carries a file and a line
+rather than a description.
+
+**Wave A's real remaining surface:** A3 ×7 · A4 ×3 · A5 · A6a · A8 — and two of those are gated
+(**A3.7** on a design call, **A8** on [D4]).

@@ -17,13 +17,13 @@
 |---|---|---|
 | **A.1** | ✅ **DONE** — A1 closed (already fixed, `611a4fb`); A2 reproduced + fixed, gate 156/156 | |
 | **A.2** | ✅ **DONE 2026-08-11** — A3's before-scan: **the ledger of nine is SEVEN.** A3.4 and A3.9 were already fixed on 2026-07-29, the day before the ledger was written. Per-item evidence → log | |
-| **A.3** | **A4–A7 BEFORE-SCAN** — verify against the current engine before building. ⚠️ **3 of the 10 items checked from this 2026-07-30 pass were already fixed**; treat each as a hypothesis | ▶ next |
+| **A.3** | ✅ **DONE 2026-08-11** — A4–A7 before-scan. ⛔ **A7 CLOSES** (confirmed: one engine, one funnel, no third producer) · ⛔ A6's dead re-export is already gone · ⚠️ live: A4 ×3 · A5 · A6a. Evidence → log | |
 | **A.4** | **A3.1 · A3.3** — the honesty defects proper: the Guardian claiming something it does not do | |
 | **A.5** | **A3.5 · A3.8** — cheap correctness. A3.5's undo mechanism **already exists** on the other caller; surface it, don't build it | |
 | **A.6** | **A3.6** — one cover offer, not two | |
 | **A.7** | **A3.2** — ⚠️ **measure the figure first**, then write the copy. Currently a direction, not a number | |
 | **A.8** | **[DECISION] A3.7** — an applied purchase reads as a deferrable bill. Coherent by rule; the question is whether it confuses a person. **Jason's call, not a silent fix** | |
-| **A.9** | **A4–A7** — whatever survives A.3 | |
+| **A.9** | **A4 ×3 · A5 · A6a** — A5 is a one-line `premiumResolved` gate; A6a adds `recurrence?` to a narrowed type; A4's third part is a copy clarification. ⚠️ A4a needs measuring before it earns work | |
 | **A.10** | **A8.1–A8.3** — the Siri phrase *(gated on [D4]: every shortcut phrase contains the app name, so it can only shrink by shrinking the NAME)* | |
 
 **Exit:** the honesty ledger is empty, A4–A7 are each closed or refuted **with evidence**, every fix has a
