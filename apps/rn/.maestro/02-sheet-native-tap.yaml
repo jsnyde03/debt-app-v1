@@ -14,12 +14,26 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "tab-money"
 
-# The "Add debt" AddRow may sit below the demo debts — scroll it into view, then open the sheet.
+# ⛔ FIXED 2026-08-11 — this flow was BROKEN and nothing reported it. It scrolled to and tapped a row
+# labelled "Add debt", which `A10.1` (2026-08-10) deleted: Money's three per-section Add rows were
+# replaced by ONE "Add" that asks what you are adding and routes ([D22a]). The commit updated the app and
+# left the lane behind, exactly as `b67cf5d` did to flow 01 the same day. Neither was noticed, because
+# this workflow is manual-dispatch only — a stale flow reports nothing rather than reporting red.
+#
+# The row may sit below the seeded debts, so scroll it in by testID rather than by a label that can move.
 - scrollUntilVisible:
     element:
-      text: "Add debt"
+      id: "money-add"
     direction: DOWN
-- tapOn: "Add debt"
+- tapOn:
+    id: "money-add"
+
+# The chooser now stands between the Add row and the form. Answering it is not incidental to this flow's
+# purpose — it is the first sheet, so reaching the debt form at all proves one native Modal presented and
+# dismissed before the one under test even opens.
+- assertVisible: "What are you adding?"
+- tapOn:
+    id: "add-choice-debt"
 
 # The FormSheet sprang up (native Modal + grabber).
 - assertVisible: "Add a debt"

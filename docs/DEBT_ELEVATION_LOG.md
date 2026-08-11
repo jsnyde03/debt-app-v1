@@ -4812,3 +4812,70 @@ p07's red read as *"the app breaks at AX5"* when it had never run.
 App-Preview/embed vehicle, so it raises confidence in the **asset**, not in the app. The AX/theme
 conditions rose, because WCAG 2.2 AA is a stated floor. **Ranking by check count and ranking by
 confidence are different orders**, and only the second one answers the question that was actually asked.
+
+### 4.1.1 cycle 2 + 4.1.3 — five commands proven, and the suite turns out to be broken (2026-08-11)
+
+```
+PASS  p01-extended-wait  PASS  p03-set-orientation  PASS  p04-assert-screenshot
+PASS  p05-repeat         PASS  p06-evalscript
+FAIL  p07-ax5-dark       FAIL  p09-deeplink-scripted
+```
+
+⚡ **The ordering repair worked.** p09 ran last and poisoned nothing, which is the only reason the five
+passes are trustworthy. Cycle 1's five reds really were one leaked modal.
+
+**Proven:** `extendedWaitUntil` · `evalScript`+`assertTrue` · `setOrientation` · `assertScreenshot` ·
+`repeat`. **4.1.5's iPad boot — and §11.15 with it — is fully unblocked.**
+
+⚠️ **My Appium trigger did not fire.** I wrote it as "if `assertScreenshot` or `setOrientation` come back
+missing"; both passed. Appium is no longer a gap-filler, and 4.1.9 was re-justified accordingly rather
+than left standing on a condition that never happened.
+
+### p07 — my stale selector, and the real result underneath it
+
+Failed on `tapOn: "Try with Sample Data"`. **The assertion above it passed**, which is the actual finding:
+the copy is still findable at **AX5 + dark**, so the app does not break under reflow, and
+`simctl ui content_size`/`appearance` reach it. I verified every selector in the flows written that same
+hour and copied this one out of flow 01 without checking it.
+
+### p09 — the door is the OS, not the tool
+
+`xcrun simctl openurl` raises the **identical** "Open in "Debt Planner (RN)"?" dialog. So the confirmation
+is iOS 26 behaviour for a custom scheme however the URL is delivered — not an artefact of `openLink`. It
+failed at assertion **(1)**, the marker, so the link never reached a demo at all; splitting that assertion
+turned what would have been an investigation into one line. Cycle 3 tries a **coordinate tap** (the alert
+is not in the hierarchy, but a coordinate tap does not need it). If that fails, the door is Appium's, via
+`autoAcceptAlerts` — **a measured gap, replacing the guessed one.**
+
+### ⛔ 4.1.3 — THE SUITE WAS BROKEN, AND GREEN BY NEVER RUNNING
+
+Found only because a probe file had copied a selector out of flow 01.
+
+- **`b67cf5d` (2026-08-10)** deleted **"Try with Sample Data"**. It updated the web e2e spec and the
+  device checklist and **never touched `01-launch-smoke.yaml`.**
+- **`A10.1`, the same day**, replaced Money's three per-section Add rows with one chooser, breaking
+  **`02-sheet-native-tap.yaml`**'s selectors.
+
+**Two commits, two broken flows, neither noticed.**
+
+⚠️ **And the selector was the smaller half.** The deleted button called `importStore(demoStore())` — a
+fabricated plan written into the REAL store, which persisted, which is the seed **flows 02–06 each
+declare a dependency on**. What replaced it opens a sandbox that deliberately persists nothing. A fixed
+selector would have left five flows running against an empty app and failing for reasons that look like
+product defects.
+
+**Flow 01 now walks onboarding and adds Visa · Store Card · Car Loan through the real UI.** That is
+strictly better than the import it replaces: the fixture was a state no user's fingers could produce,
+while this exercises the first-run path, so a break in onboarding fails the suite at step one instead of
+hiding behind a seeded shortcut. The three names are load-bearing — flows 03/04 match rows by them.
+
+### The root cause is the lane's trigger, so 4.1.4 guards it
+
+This lane is **manual-dispatch only** (mac minutes), so a stale flow reports **nothing** rather than red,
+and it decayed for a day unseen. Fixing the two flows does not stop the third. **4.1.4** adds a cheap
+static check on the free lane — every text selector in `.maestro/**` must exist in app source — wired
+into `validate:release:rn` beside `check-rn-style-divergence.ts`.
+
+⚡ **This is the plan's own audit-gate defect class arriving in the test suite itself:** *a claim kept
+somewhere other than where it is checked.* The flows assert against strings the app owns, and nothing
+was checking that the strings still existed.

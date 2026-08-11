@@ -36,7 +36,16 @@ appId: com.jasonsnyder.debtplanner
 # The §11.1-shaped half: a control must still be HITTABLE at the largest accessibility size, not merely
 # present. A button pushed off its container by reflow is exactly the §11.1 failure mode, and it is
 # invisible to a visibility assertion — so the proof is that the tap lands and the app moves on.
-- tapOn: "Try with Sample Data"
-- assertVisible:
-    id: "tab-money"
-- takeScreenshot: maestro-debug/probe-ax5-dark-tabs
+#
+# ⛔ CYCLE 2 FAILED HERE, AND IT WAS MY SELECTOR, NOT THE APP. This tapped "Try with Sample Data", a
+# control deleted on 2026-08-10 — copied from flow 01 without checking it, while the selectors for the
+# flows written the same hour were all verified against current code. The assertion ABOVE passed, which is
+# the actual result: the copy is still findable at AX5 in dark, so the app does not break under reflow.
+#
+# Retargeted to "Get Started" — always present, always the first control, and advancing to the paycheck
+# step proves the tap landed. It also removes a dependency on the demo, which this probe never needed.
+- tapOn: "Get Started"
+- extendedWaitUntil:
+    visible: "When do you get paid?"
+    timeout: 20000
+- takeScreenshot: maestro-debug/probe-ax5-dark-tapped-through

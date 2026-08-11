@@ -1,21 +1,123 @@
-# Maestro E2E — the cold-launch smoke: the RN app boots on the iOS Simulator, onboarding renders, and
-# the Try-with-Sample-Data path lands on the populated tab shell. This alone catches New-Architecture
-# launch crashes + autolink failures (incl. @bacons/apple-targets + the widget-sync launch path) that
-# the web gate structurally cannot. Runs in filename order.
+# Maestro E2E — the cold-launch smoke, AND the seed the rest of the suite runs on.
+#
+# ⛔ REWRITTEN 2026-08-11. THE SUITE WAS BROKEN AND GREEN-BY-NEVER-RUNNING.
+#
+# This flow used to tap **"Try with Sample Data"**, which called `importStore(demoStore())` — a fabricated
+# plan written into the REAL store, which persisted, which is why flows 02–06 each say "depends on 01
+# having seeded the demo data".
+#
+# `b67cf5d` (2026-08-10) deleted that button. It updated the web e2e spec and the device checklist and
+# **never touched this file**. So the tap targeted a control that no longer exists — and worse, the thing
+# that replaced it ("See it in action") opens a SANDBOX that deliberately persists nothing. Even a fixed
+# selector would have left flows 02–06 running against an empty app.
+#
+# ⚠️ It was not the only one. `A10.1` the same day replaced Money's three per-section "Add debt"/"Add
+# bill"/"Add goal" rows with ONE "Add" chooser, which broke flow 02's selectors too. **Two commits, two
+# broken flows, neither noticed** — because this lane is manual-dispatch only, so nothing runs it on push
+# and a stale flow reports nothing at all rather than reporting red. Found by probe cycle 2 (4.1.1), and
+# only because a probe file had copied a selector from here.
+#
+# ── WHAT IT DOES NOW ────────────────────────────────────────────────────────────────────────────
+# The seed is built by WALKING ONBOARDING and adding debts through the real UI. That is strictly better
+# than the import it replaces: the fabricated store was a fixture nobody's fingers could produce, while
+# this exercises the same path a first-run user takes — so a break in onboarding now fails the suite at
+# step one instead of hiding behind a seeded shortcut.
+#
+# The three debt NAMES are load-bearing: flows 03 and 04 match rows by them, and flow 04 asserts all three
+# before and after its journey as a read-only invariant. Change a name here and those flows go red.
 appId: com.jasonsnyder.debtplanner
 ---
+# ══ THE SMOKE — the part that catches a New-Architecture launch crash or an autolink failure ═════
+# Kept first and kept minimal, so a launch failure is unambiguous. Everything below this is the seed.
 - launchApp:
     clearState: true
 
-# The app launched + rendered the first onboarding screen (WelcomeStep) — the core "did New Arch boot
-# without a fatal JS throw" assertion.
-- assertVisible: "Will you make it to payday?"
+# ⚠️ `extendedWaitUntil`, not a bare assertion. Probe p01 (4.1.1) proved the command exists on this build,
+# which the flows previously recorded as impossible. Waiting for a stated signal beats racing a launch.
+- extendedWaitUntil:
+    visible: "Will you make it to payday?"
+    timeout: 20000
+- takeScreenshot: maestro-debug/smoke-cold-launch
 
-# Demo path → importStore(demoStore()) flips onboardingComplete → the _layout route-guard swaps to the
-# tabs.
-- tapOn: "Try with Sample Data"
+# ══ THE SEED — onboarding, for real ═════════════════════════════════════════════════════════════
+- tapOn: "Get Started"
 
-# The tab shell rendered. Assert via a stable testID — react-navigation groups tab buttons into
-# composite a11y elements on iOS, so the "Money"/"Today" LABELS aren't reliably text-matchable.
-- assertVisible:
+# The paycheck is not optional dressing: flows 05 and 06 need a Guardian card, and the Guardian needs a
+# paycheck. "Skip for now" would land on the completion step with no income and no card to coach.
+- assertVisible: "When do you get paid?"
+- tapOn: "Paycheck amount"
+- inputText: "2000"
+- hideKeyboard
+- tapOn: "Continue"
+
+# Debt 1 of 3 — "Visa" is the row flows 03 and 04 long-press and tap.
+- assertVisible: "Add your first debt or expense"
+- tapOn: "Debt name"
+- inputText: "Visa"
+- hideKeyboard
+- tapOn: "Current balance"
+- inputText: "2400"
+- hideKeyboard
+- tapOn: "Minimum payment"
+- inputText: "65"
+- hideKeyboard
+- tapOn: "APR % (optional)"
+- inputText: "26.99"
+- hideKeyboard
+- tapOn: "Add & Continue"
+- tapOn: "See My Plan  →"
+
+# The tab shell rendered. Asserted by testID: react-navigation groups tab buttons into composite a11y
+# elements on iOS, so the "Money"/"Today" LABELS are not reliably text-matchable.
+- extendedWaitUntil:
+    visible:
+      id: "tab-money"
+    timeout: 20000
+
+# ══ Debts 2 and 3, through the A10.1 chooser ════════════════════════════════════════════════════
+# ⚠️ There is no "Add debt" row any more — one "Add" asks what you are adding and routes ([D22a]). This
+# is the selector change that broke flow 02, and it is spelled out here because every later flow that
+# adds anything goes through the same two taps.
+- tapOn:
     id: "tab-money"
+
+- tapOn:
+    id: "money-add"
+- tapOn:
+    id: "add-choice-debt"
+- assertVisible: "Add a debt"
+- tapOn: "Name"
+- inputText: "Store Card"
+- hideKeyboard
+- tapOn: "Current balance"
+- inputText: "800"
+- hideKeyboard
+- tapOn: "Minimum payment"
+- inputText: "25"
+- hideKeyboard
+- tapOn: "Add debt"
+
+- tapOn:
+    id: "money-add"
+- tapOn:
+    id: "add-choice-debt"
+- tapOn: "Name"
+- inputText: "Car Loan"
+- hideKeyboard
+- tapOn: "Current balance"
+- inputText: "8380"
+- hideKeyboard
+- tapOn: "Minimum payment"
+- inputText: "210"
+- hideKeyboard
+- tapOn: "Add debt"
+
+# The invariant the rest of the suite depends on. If this fails, do NOT patch the later flows — the seed
+# is what broke, and every red after it would be a symptom.
+- assertVisible:
+    text: ".*Visa.*"
+- assertVisible:
+    text: ".*Store Card.*"
+- assertVisible:
+    text: ".*Car Loan.*"
+- takeScreenshot: maestro-debug/smoke-seeded-portfolio

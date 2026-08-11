@@ -35,6 +35,30 @@ appId: com.jasonsnyder.debtplanner
 # No `launchApp`: the workflow has already launched the app and opened the URL. Adding one here would
 # restart the process and discard the very navigation under test.
 
+# ── CYCLE 2: `simctl openurl` PROMPTS TOO ───────────────────────────────────────────────────────
+# The identical **"Open in "Debt Planner (RN)"? · Cancel / Open"** dialog, from a URL delivered through
+# the system rather than through a link tap. So the confirmation is iOS 26 behaviour for a custom scheme,
+# not an artefact of how Maestro opens it, and it failed at assertion (1) below — the link never reached
+# a demo at all. ⚡ The ordering change DID work: p09 ran last and poisoned nothing, which is why the five
+# passes in that cycle are trustworthy.
+#
+# So the dialog has to be answered. It is not in the accessibility hierarchy this flow can see (it belongs
+# to SpringBoard; cycle 1's dump held three status-bar nodes), and Maestro cannot match what it cannot
+# see — but a COORDINATE tap does not need the hierarchy. That is the whole reason to try it.
+#
+# ⚠️ Coordinates read off cycle 2's own failure screenshot (1320×2868, iPhone 17 Pro Max): the Open button
+# centres at roughly x=67%, y=54%. Percentages rather than points so a different simulator size still
+# lands. This IS brittle, and it is deliberately the cheap option — one file against 15 checks.
+#
+# ⚠️ If the dialog is absent (iOS may remember the choice), this taps empty space on the onboarding
+# screen, which is harmless, and the assertions below still decide the outcome.
+#
+# ⏳ THE FALLBACK IS ALREADY SCOPED: Appium's `autoAcceptAlerts` handles exactly this case, and that is
+# now a MEASURED gap rather than the guessed one filed at 4.1.8. If this tap does not work, the deep-link
+# door — and §12.1–§12.7's 15 checks with it — belongs to that lane.
+- tapOn:
+    point: "67%,54%"
+
 # (1) Did the link reach a demo AT ALL? `ExampleCanvasMarker` (testID at `ExampleCanvasMarker.tsx:61`) is
 #     keyed on the money being fictional rather than on a session mode, so it is the widest evidence that
 #     a sandbox is on screen. A failure HERE means the URL never routed — look at expo-router's linking
