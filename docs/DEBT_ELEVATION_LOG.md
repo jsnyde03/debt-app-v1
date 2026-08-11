@@ -4549,3 +4549,91 @@ that is deliberately hidden in a run they cannot reach.
 fixed three days before Wave A was written, and A3's nine items came out of the same 2026-07-30 pass, so
 each is a hypothesis until re-verified. That check is now the cheapest step in the item rather than an
 afterthought.
+
+---
+
+## 4.1 promoted over Wave A — the Maestro coverage lane (2026-08-11)
+
+🎯 Jason: *"How much of the 3.5-device-qa-checklist can be verified through Maestro?"* → *"Promote and
+let's do this now."*
+
+**Measured, not estimated:** `DEBT_3.5_DEVICE_QA_CHECKLIST.md` carries **136 checkboxes**, 9 of which are
+not checks (install steps, "report back", two "if it fails note it" clauses). Of the **127 real checks**,
+a Maestro iOS-Simulator lane can **fully carry 68 (54%)**, partly carry **26**, and never touch **33**.
+Per-section map + the itemised walkthrough table: `docs/audits/2026-08-11-maestro-coverage/`.
+
+### ⚡ The finding that cost the most to not know
+
+`06-tutorial-interactions.yaml` records, as a lesson bought with **three CI cycles at ~40 minutes each**,
+that *"this build rejects `extendedWaitUntilVisible` (unknown command) and `timeout` on assertions
+(unknown property)"* — and concludes from it that a timed sequence cannot be waited for. So beat 4's
+release ack is asserted by nobody and was **ledgered as device-QA-owed**.
+
+Both rejections were real. **The conclusion was not.** The command is **`extendedWaitUntil`**;
+`extendedWaitUntilVisible` has never existed in Maestro, and `timeout` is invalid on an assertion
+*precisely because* it belongs to `extendedWaitUntil`. Two wrong spellings of one command produced a
+documented capability limit that isn't one, and it is currently written into the flow files as a rule.
+
+Seven further commands the repo has never used, verified against the docs rather than recalled:
+`assertScreenshot` · `setOrientation` · `repeat` · `retry` · `runScript`/`evalScript` ·
+`waitForAnimationToEnd` · `startRecording`. ⚠️ **This is the [[measure-agent-mechanisms]] shape from the
+other direction:** the *observations* were right and correctly recorded, and the mechanism inferred from
+them was wrong — so the lane was scoped against a limit that was never measured, only deduced.
+
+### Four checks the documents declare unreachable, and are not
+
+- **§14.3 the first-run fork** — *"web e2e cannot reach this step — it is verified here or nowhere."* Its
+  stated blockers are that the paycheck step needs input and "Skip for now" walks past. Maestro has
+  `clearState: true` and `inputText`.
+- **§12.0.3 exactly one Example marker** — *"web cannot answer this"* because RN-web's tab navigator
+  leaves the previous screen painted. A simulator renders only the focused tab.
+- **§11.15 the iPad ring origin** — the checklist's own highest-priority item, *"guarded by NOTHING"*. The
+  mechanism is the sidebar putting window and local coords ~700pt apart; **an iPad simulator has that
+  sidebar.** "No browser test can hold this fix" was true and was read as "nothing automated can".
+- **§12.1–§12.7 the scripted demo** — re-scoped 2026-08-11 as owed to the capture lane because *"a device
+  build cannot pass `?mode=scripted`"*. True for a human holding a phone; `app.json` declares
+  `"scheme": "debtplannerrn"` and `demo.tsx:61` reads `mode` off the route, so `openLink` should reach it.
+  **17 checks currently owed to nobody.** Gated on 4.1.1's probe.
+
+**The pattern in all four: a limit that is real for the WEB lane was recorded as a limit on automation.**
+Web and simulator are both "not a device", and the documents stopped distinguishing them.
+
+### The honest floor
+
+33 checks are permanently a human with a phone: haptics · Siri · camera · every springboard surface
+(widget placement, Lock Screen, StandBy, Live-Activity render) · real StoreKit prices · iPad hardware
+keyboard + pointer · Split View/Stage Manager · old-hardware frame rate · VoiceOver speech and rotor
+traits. ⚠️ **Nuance kept:** Maestro drives the **accessibility tree**, so exposure and one-utterance
+grouping (§12.6's dock, §11.4's reachability behind the scrim) are machine-checkable — flows 03/04
+already document composite elements surfacing as one full-text string. Announcement *timing* and rotor
+*traits* stay device-owed.
+
+### Deferred-backlog correction
+
+The entry scoping this said an iPad lane *"would take **four** items off the device's plate."* Measured:
+the iPad boot alone carries six, and the whole lane carries 68. The four was a guess and it undersold the
+item by an order of magnitude — the entry is retired into the active build with that noted.
+
+### ⏸ Wave A · A3 — switch-in verification DONE, item displaced mid-flight
+
+A3's before-scan ran before the redirect and its result must not be re-derived. The nine items were
+recovered verbatim from the pre-rewrite plan (`3a75835^`), since the current plan carries only their
+short names. **Three are confirmed live against current code:**
+
+- **A3.1 attestation gating** — `selectBillsAttestation` shows on `discoveryHoldbackActive` alone
+  (`guardianSelectors.ts:144-146`), with no check that attesting would actually reduce the hold. Discovery,
+  cold-start and the variable-bill buffer compose by **`max`** (`holdbackComposition.ts:54`), so attesting
+  drops discovery 0.4 → 0.15 while cold-start 0.25 or the variable buffer can still dominate. **The
+  affordance can promise a smaller safety net and deliver a reduction of exactly zero.** Live.
+- **A3.3 `selectTightTopUp` prefers the EF** — `guardianSelectors.ts:219` is
+  `find(g => (g.type === 'emergency' || g.type === 'savings') && g.currentAmount > 0)`: **find-order, with
+  no preference at all.** Raiding the emergency fund for a covered-but-tight cushion dip. Live.
+- **A3.5 no undo on the tight top-up** — an undo path *exists* but only in the affordability flow
+  (`AffordabilityCard.tsx:92` calls `applyTightTopUp` with a negative amount). The Guardian card's own
+  top-up (`index.tsx:302`) has none. **Live, and cheaper than it looked** — the mechanism is already built
+  and only needs surfacing on the other caller.
+
+Not yet re-verified: A3.2 (starter-EF "keeps it as cushion"), A3.4 (hero-vs-Guardian coherence), A3.6
+("hold your line" twice — both sites located: `AffordabilityCard.tsx:117` and the Guardian's top-up),
+A3.7 (applied purchase reads deferrable), A3.8 (`GoalSheet` name-dedupe), A3.9 (affordability density).
+**Resume here — do not re-run the three above.**

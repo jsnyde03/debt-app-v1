@@ -21,7 +21,21 @@ on:
   # ⚠️ CORRECTED 2026-08-07: this repo's default branch is **release/v1**, not `master` — `master` does
   # not exist. This file is on release/v1, which is why the button works; the old note named a branch
   # that never carried it.
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      # 4.1.1 — the CAPABILITY PROBE lane. `.maestro/probe/` holds one unproven command per file and is
+      # NOT part of the suite: its files are expected to fail until each command is confirmed to work on
+      # this Maestro build, which is the entire point of running them.
+      #
+      # ⚠️ This input exists so a probe run cannot disturb flows 01–06. Those depend on each other through
+      # filename order and on 01's seeded state; a probe file dropped among them would both break that
+      # chain and take the whole suite down with its own parse failure (Maestro validates a FILE before
+      # executing any of it — see the header of 06-tutorial-interactions.yaml).
+      mode:
+        description: 'suite = the real flows 01-06 · probe = the 4.1.1 capability probe (each file run separately, all verdicts collected)'
+        type: choice
+        options: [suite, probe]
+        default: suite
   push:
     tags: ['v*'] # release tags → a gated native smoke before shipping
 
@@ -216,10 +230,58 @@ jobs:
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
       - name: Run Maestro flows
+        if: inputs.mode != 'probe'
         env:
           # Maestro's iOS driver often exceeds its default startup timeout on a cold CI sim.
           MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
         run: maestro test .maestro/ --format junit --output maestro-report.xml --debug-output ./maestro-debug
+
+      # ── 4.1.1 · THE CAPABILITY PROBE ────────────────────────────────────────────────────────────
+      # Each file runs in its OWN maestro invocation, and a failure is recorded rather than fatal.
+      #
+      # That is the whole design. A probe that stops at the first red teaches ONE thing per 40-minute
+      # cycle, and this repo has already spent three cycles learning one command name at a time. Every
+      # file here answers an independent question, so they must not be able to mask each other — the
+      # verdict table at the end is the deliverable, not the exit code.
+      - name: Probe · run each unproven command separately
+        if: inputs.mode == 'probe'
+        env:
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
+        run: |
+          mkdir -p maestro-debug
+          : > maestro-debug/probe-verdicts.txt
+          for f in .maestro/probe/*.yaml; do
+            name=$(basename "$f")
+            echo "──────── probe: $name ────────"
+            if maestro test "$f" --debug-output ./maestro-debug; then
+              echo "PASS  $name" >> maestro-debug/probe-verdicts.txt
+            else
+              echo "FAIL  $name" >> maestro-debug/probe-verdicts.txt
+            fi
+          done
+          # AX text size + theme are simctl one-liners the app has never been driven under. Applied here,
+          # after the default-condition probes, so a reflow crash cannot be mistaken for one of theirs.
+          echo "──────── applying AX5 + dark, then re-running the conditions probe ────────"
+          xcrun simctl ui booted content_size accessibility-extra-extra-extra-large || echo "(content_size unsupported on this Xcode)"
+          xcrun simctl ui booted appearance dark || echo "(appearance unsupported on this Xcode)"
+          for f in .maestro/probe-conditions/*.yaml; do
+            name=$(basename "$f")
+            echo "──────── probe: $name (AX5 · dark) ────────"
+            if maestro test "$f" --debug-output ./maestro-debug; then
+              echo "PASS  $name (AX5·dark)" >> maestro-debug/probe-verdicts.txt
+            else
+              echo "FAIL  $name (AX5·dark)" >> maestro-debug/probe-verdicts.txt
+            fi
+          done
+
+      - name: Probe · the verdict table
+        if: always() && inputs.mode == 'probe'
+        run: |
+          echo "════════ 4.1.1 PROBE VERDICTS ════════"
+          cat maestro-debug/probe-verdicts.txt 2>/dev/null || echo "(none recorded — the probe step did not run)"
+          echo "══════════════════════════════════════"
+          echo "A FAIL here is a RESULT, not a broken build. Read docs/audits/2026-08-11-maestro-coverage/"
+          echo "§5, and ledger anything that failed as device-owed — do NOT weaken a check to make it pass."
 
       # Maestro resolves a `takeScreenshot` path relative to the FLOW FILE's directory, not the working
       # directory — so `takeScreenshot: maestro-debug/tut-beat-1` lands in `.maestro/maestro-debug/`,
@@ -236,7 +298,7 @@ jobs:
         run: |
           mkdir -p maestro-debug
           echo "── screenshots found ──"
-          find . "$HOME/.maestro" -name 'tut-*.png' -not -path '*/node_modules/*' 2>/dev/null | tee /tmp/shots.txt
+          find . "$HOME/.maestro" \( -name 'tut-*.png' -o -name 'probe-*.png' \) -not -path '*/node_modules/*' 2>/dev/null | tee /tmp/shots.txt
           while IFS= read -r f; do [ -f "$f" ] && cp -f "$f" maestro-debug/ || true; done < /tmp/shots.txt
           echo "── collected into maestro-debug/ ──"
           ls -la maestro-debug/ || true

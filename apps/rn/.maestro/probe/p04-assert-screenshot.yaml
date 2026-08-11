@@ -1,0 +1,33 @@
+# PROBE · `assertScreenshot` — 4.1.1
+#
+# Gates the visual half of the lane: §11.5 (the header eating the highlight at AX5), §11.15's ring
+# geometry, §11.16's composition call, and theme parity. Today those are all "take a frame and have a
+# human look", which does not hold a fix between builds.
+#
+# Documented form:
+#   - assertScreenshot:
+#       path: screen.png
+#       cropOn: { id: banner }
+#       thresholdPercentage: 98        # default 95
+#
+# ⚠️ WHAT THIS FILE PROVES, AND WHAT IT DOES NOT. It writes a baseline and immediately compares against
+# it, so a green proves the command PARSES and RUNS and that path resolution works. It does NOT prove the
+# comparison can DETECT a difference — a self-compare passes trivially.
+#
+# That second question is deliberately not asked here, because asking it requires a file that is EXPECTED
+# to fail, and a probe whose expected result is red cannot be told apart from a probe that broke. It is
+# answered in 4.1.3 instead, where a real committed baseline meets a real changed screen and the
+# distinction is meaningful. Recording that limit here so nobody reads this green as more than it is.
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Will you make it to payday?"
+
+# Baseline. Maestro resolves a screenshot path relative to the FLOW FILE's directory (the workflow's
+# collection step exists because of that rule), so this lands in `.maestro/probe/`.
+- takeScreenshot: probe-baseline
+
+- assertScreenshot:
+    path: probe-baseline.png
+    thresholdPercentage: 95

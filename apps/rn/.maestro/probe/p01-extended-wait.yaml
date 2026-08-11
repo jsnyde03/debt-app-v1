@@ -1,0 +1,32 @@
+# PROBE · `extendedWaitUntil` — 4.1.1
+#
+# ⚡ THE QUESTION THIS EXISTS TO SETTLE. `06-tutorial-interactions.yaml` records, as a lesson bought with
+# three CI cycles at ~40 minutes each, that this build "rejects `extendedWaitUntilVisible` (unknown
+# command) and `timeout` on assertions (unknown property)" — and concludes from those two rejections that
+# a timed sequence cannot be waited for at all. Beat 4's release ack is therefore asserted by nobody and
+# was ledgered as device-QA-owed.
+#
+# Both rejections were real. The conclusion drawn from them was not:
+#   • `extendedWaitUntilVisible` has never existed in Maestro — the command is `extendedWaitUntil`;
+#   • `timeout` is invalid on an assertion PRECISELY BECAUSE it belongs to `extendedWaitUntil`.
+#
+# Two wrong spellings of one command produced a documented capability limit that isn't one. If this file
+# goes green, every timed payoff in the suite (the release ack, the scripted beats, the paint races)
+# becomes assertable instead of screenshot-and-hope.
+#
+# If it goes RED: the command genuinely is absent from this build, the flows' existing note stands, and
+# those checks stay device-owed. Do NOT then reach for a sleep-shaped substitute — an assertion that
+# races a timed sequence goes green or red on machine speed, which is the exact failure 06 refuses.
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: true
+
+# The target is deliberately the most boring thing in the app: the first onboarding screen, which flow 01
+# already proves renders. A probe must fail for ONE reason — if this used a genuinely slow element, a red
+# would not distinguish "the command is unsupported" from "the element never arrived".
+- extendedWaitUntil:
+    visible: "Will you make it to payday?"
+    timeout: 20000
+
+- takeScreenshot: maestro-debug/probe-extended-wait

@@ -8,63 +8,45 @@
 
 ---
 
-## ▶ BUILDING NOW — 3.7 Wave A · engine correctness
+## ▶ BUILDING NOW — 4.1 · the Maestro coverage lane
 
-**A10 is ✅ COMPLETE (2026-08-10)** — the entry, the naming and the rescue all shipped; detail below and
-in log 3.7.A10. **Wave A is promoted back into the slot it was displaced from**, unchanged in scope:
+🎯 **Jason 2026-08-11, promoted over Wave A.** Measured: of the device checklist's 127 real checks,
+a Maestro iOS-Simulator lane can fully carry **68 (54%)**, partly carry 26, and never touch 33 —
+including **§11.15**, the item the checklist itself calls *"guarded by NOTHING"*. Full analysis +
+per-section map: [`docs/audits/2026-08-11-maestro-coverage/`](audits/2026-08-11-maestro-coverage/README.md).
 
 | # | Step | State |
 |---|---|---|
-| **A.1** | ✅ **DONE for A1/A2 2026-08-10** — verified against the current engine before touching it, and it paid: **A1 was already fixed.** ⚠️ **The same check is owed for A4–A7** before any of them is treated as real | |
-| **A.2** | ⛔ **A1 CLOSED — already fixed, no work needed.** `611a4fb` (2026-07-27) scales BNPL minimums by cadence (`bnplMonthlyEquivalentMinimum`) **three days before Wave A was written**, and it is guarded by three assertions in `testDebtProjection.ts`. The plan item described a defect that no longer existed | |
-| **A.3** | ✅ **A2 FIXED 2026-08-10** — the allocator counted a sub-cycle obligation ONCE per cycle. Reproduced first (**$50 reserved where $200 was owed** — a weekly bill in a 31-day cycle), then fixed by expanding obligations into per-occurrence instances. Gate 156/156 | |
-| **A.4** | **A3** — the 9-item Guardian honesty/coherence ledger. ⚠️ **Verify each against current code first** — A1 turned out to have been fixed three days before Wave A was written, and A3's nine came from the same 2026-07-30 pass | ▶ next |
-| **A.5** | **A4 · A5 · A6 · A7** — BNPL seam polish · offline Lifetime mislabel · drift type hygiene · confirm no third debt-free-date producer | |
-| **A.6** | **A8.1–A8.3** — the Siri phrase (`INAlternativeAppNames` + shorter variants; [D4] is *when* to rename, not whether) | |
+| **4.1.1** | ✅ **BUILT 2026-08-11, awaiting its cycle** — 7 files, **one command per file** (Maestro validates a whole file before running any of it), each run in its own invocation so verdicts can't mask each other. `extendedWaitUntil` · `openLink` → the scripted demo · `setOrientation` · `assertScreenshot` · `repeat` · `evalScript` · `simctl ui content_size`+`appearance`. `native-e2e.yml` gains a `mode: probe` input. ⏳ **Run:** `gh workflow run native-e2e.yml --ref v1.7-dev -f mode=probe` | ▶ now |
+| **4.1.2** | **§14 (6) + §13 (5)** — iPhone sim, no new conditions. The cheapest real coverage in the file; **§14.3 stops being "verified here or nowhere"** | |
+| **4.1.3** | **The iPad boot** — **§11.15** ⭐ · §11.16 · §10's two layout checks · §11.8's rotation half | |
+| **4.1.4** | **§12.0 explore (7)** — a run that has never been on hardware; incl. §12.0.3, which web cannot answer | |
+| **4.1.5** | **§12.1–§12.7 scripted (15)** — ⚠️ **GATED on 4.1.1's `openLink` result.** Currently owed to nobody | |
+| **4.1.6** | **AX + theme conditions** — §11.1 · §11.5 · §8's automatable half, via `simctl ui`. ⚠️ **Reduce Motion needs an app-side observable first** — it was cut from the probe rather than set-and-not-checked | |
+| **4.1.7** | **§11's remainder** — §11.9 · §11.13 · **§11.11, which nothing on either lane covers today** | |
+| **4.1.8** | **Reconcile** — mark what the lane now holds in the checklist, correct the backlog's "four items" understatement, and **ledger anything the probe refuted as device-owed rather than weakening it to pass** | |
 
-**Exit:** A1 and A2 have failing-then-passing tests, the honesty ledger is empty, gate green.
+**Exit:** the named checks are green in CI on an iPhone **and** an iPad sim, the checklist says which
+items the lane holds, and nothing was weakened to go green.
 
-⚡ **A10 sharpened the case for A1/A2:** the entry fix makes sure an obligation lands in the right bucket;
-A1/A2 decide whether the arithmetic applied to that bucket is right. Both have to hold or the debt-free
-date is wrong for a different reason.
+⚡ **Why now, over Wave A:** the checks this recovers are ones that regress *silently between builds*
+today, and the device build is already stale by a whole phase. ⚠️ **Wave A is displaced, not
+superseded** — A3's switch-in verification is done and three of its nine are confirmed live (below).
 
 ---
 
-## ✅ 3.7.A10 — obligations: entry, naming, recovery (COMPLETE 2026-08-10)
-
-**Why this one, ahead of Wave A's engine work:** a debt filed as an expense is reserved correctly every
-payday and **silently omitted from the payoff plan and the debt-free date** — the number the whole app
-exists to produce. Fixing the allocator's arithmetic (A1/A2) does not help an obligation that is in the
-wrong bucket entirely. Presentation-layer only, so the engine is untouched. Review:
-[`docs/audits/2026-08-10-money-ia-review/`](audits/2026-08-10-money-ia-review/README.md).
-
-**🎯 [D22] Jason 2026-08-10 — the MODEL is right, the naming and the entry are not.** Expenses = no end
-date (rent, utilities, subscriptions). Debts = the things we track because they end (card, BNPL, loan,
-mortgage). That is the terminating/perpetual axis and it stays. ⛔ **Do not merge the models.** The
-evidence that labels alone cannot carry it: the author of the split mis-filed under his own split.
-
-| # | Step | State |
-|---|---|---|
-| **A10.1** | ✅ **DONE 2026-08-10** — one Add asking *"does this have a balance you're paying down?"*, replacing all six entry points (3 rows + 3 empty-state CTAs). Picking also switches section, so the answer lands visibly. ⌘N stays direct — a typed accelerator is not a silent classification | |
-| **A10.2** | ✅ **DONE 2026-08-10** — `looksLikeDebt` (name-only; **category as a conjunct was rejected on inspection** — it would catch a mortgage and miss every card) + an atomic `convertExpenseToDebt` + a quiet row hint with a remembered "Not a debt". Retroactive by construction: the detector reads the existing list | |
-| **A10.3** | ✅ **DONE 2026-08-10** — Bills → **Expenses** across the Money surface + the sheet + **onboarding's first-run fork**, which A10.1 had missed and is the first classification anyone makes. Guardian/Today/tutorial vernacular deliberately untouched → [D22d] | |
-| **A10.4** | ✅ **DONE 2026-08-10** — a one-line caption under the section toggle, phrased by the TEST (what makes it that kind of thing) rather than by example, since a browser needs the rule and a chooser needs the nouns | |
-| **A10.5** | ✅ **DONE 2026-08-10** — both-theme frames for the chooser, the hint and all three sections; whole-item after-scan. ⏳ **The first-run fork is device-owed** → checklist **§14.3**: web e2e cannot reach that step (the paycheck step won't advance without input, and "Skip for now" walks past the debt step to the end) | |
-| **A10.6** | ✅ **HANDED OFF 2026-08-10** — filed into **Phase 5** beside the migration bridge, where the affected population actually arrives |
-
-**Exit:** a user cannot file a terminating obligation as a perpetual one without being asked the question,
-existing mis-files are surfaced non-accusingly, and Today's required-actions merge is untouched.
-
-⛔ **Not in scope:** silently re-filing on a keyword match · touching `selectRequiredRows` /
-`RequiredActionView` (that merge is CORRECT — rent and a card minimum are both owed this paycheck).
-
 ### ⏭ Then, in order
 
-1. **Phase 3.7 Wave A** — the engine correctness block: **A1** BNPL payoff-rate undercount · **A2** sub-cycle obligation undercount · **A3** the 9-item Guardian honesty ledger · **A4–A7** · **A8** the Siri phrase. ⚠️ Written 2026-07-30 — verify each against the current engine and write the failing test first
+1. **Phase 3.7 Wave A** — ✅ A1 (already fixed, `611a4fb`) · ✅ A2 (fixed 2026-08-10) · **A3** the 9-item honesty ledger — switch-in verification **done 2026-08-11**, see log · **A4–A7** · **A8** the Siri phrase. ⚠️ Written 2026-07-30 — verify each against the current engine and write the failing test first
 2. **Wave B** — B1 drag-the-curve · B2 streak/milestone surfacing · B3 greeting · B4 swipe-to-mark-paid *(needs [D2])*
 3. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
 4. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
 5. **Phase 5** (data continuity, ship-blocker) → **5.5** (repo consolidation) → **Phase 6** (launch)
+
+✅ **3.7.A10 — obligations: entry, naming, recovery. COMPLETE 2026-08-10** — the single Add chooser
+replacing all six entry points, the retroactive mis-file detector + atomic conversion, Bills →
+Expenses incl. onboarding's first-run fork, the section caption, both-theme frames. [D22]. Detail →
+log 3.7.A10; the migration half → Phase 5.
 
 ### ⏸ Waiting on Jason
 
@@ -87,9 +69,9 @@ existing mis-files are surfaced non-accusingly, and Today's required-actions mer
 |---|---|---|
 | 0–3 | Design foundation · surface · premium substance · delight + native | ✅ COMPLETE |
 | 3.5 | Interactive tutorial + bounded demo | **BUILD COMPLETE**; 3.5.7 + the device pass remain (below) |
-| **3.7** | **Fold-in block (ledger clearance)** | **▶ ACTIVE — Wave A** |
+| **3.7** | **Fold-in block (ledger clearance)** | Wave A open (A1/A2 ✅) — **displaced by 4.1**, resumes after it |
 | — | Whole-app cohesion + best-in-class + wording audit gate | after 3.7 |
-| 4 | Quality (test harness) | delivered by the RS baseline; continuous |
+| **4** | **Quality (test harness)** | **▶ ACTIVE — 4.1, the Maestro coverage lane** |
 | 5 | Data continuity + cutover | 🔒 ship-blocker, upcoming |
 | 5.5 | Repo consolidation | before the release gate |
 | 6 | Launch-ready | final |
@@ -164,8 +146,9 @@ _All three audits fan out on Fable 5._
 
 ---
 
-## Phase 4 — Quality
+## Phase 4 — Quality ▶ ACTIVE
 
+- **4.1 — the Maestro coverage lane ▶ BUILDING** *(decomposed at the top of this file)*. 68 of the device checklist's 127 real checks, moved onto the free GH-Actions sim lane. Audit: [`2026-08-11-maestro-coverage/`](audits/2026-08-11-maestro-coverage/README.md).
 - ✅ Largely delivered by the RS baseline (tsx app-layer harness · core engine fuzz · RN-web e2e), green-gated by `validate:release:rn`.
 - **Residual coverage:** `testEngineFuzz` → `holdbackComposition` · RN e2e for missed/stale/debt-free states + a mobile viewport · app-layer CRUD coverage.
 - **e2e harness race:** `webServer` re-exports and spawns its own `serve` on :4319, racing a hand-started one. ⚠️ Corollary: `reuseExistingServer` reusing a STALE serve serves an OUTDATED `dist` — force a fresh `export:web` when adding a route.
@@ -222,7 +205,7 @@ a later version/tier**._
 measured hotspot)* · Dynamic-Type device QA.
 
 **Tooling / hygiene:**
-- **⭐ Extend the Maestro lane to an iPad simulator** — `native-e2e.yml` boots iPhone only, so every iPad claim is verified by a human or not at all. Would take **four** items off the device's plate, incl. the ring-origin invariant that nothing guards. Wants batching with the next native build. **Strongest candidate once Wave A closes.**
+- ⛔ **PROMOTED 2026-08-11 → the active build (4.1).** *(Was: "extend the Maestro lane to an iPad simulator — would take **four** items off the device's plate." Measured 2026-08-11: the iPad boot alone carries six, and the whole lane carries 68 of 127. The "four" was a guess, and it undersold the item by an order of magnitude.)*
 - **⚠️ The gate still asserts the RETIRED demo-mode contract** — `runRegressionTests.ts:59` imports `testDemoModeSeed`, which asserts the Capacitor key `debtPlanner.isDemoMode` that `seedPlannerState.ts` writes. It passes (the legacy tree still exists) but it is a green test defending a feature the RN app no longer has, which reads as a live contract → delete with the Capacitor tree at **5.5.1**.
 - **⚠️ `apps/rn/package-lock.json` is out of sync** — `npm ci` refuses it; both CI lanes work around it with `npm install`, so **installs are not reproducible.** Regenerate deliberately and re-run the full gate → before the Phase-5 cutover.
 - **Simulator build recipe DUPLICATED** across `native-e2e.yml` and `app-preview.yml` (~60 lines of expensive native fixes) — extract a composite action → with the iPad lane.

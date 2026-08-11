@@ -1,0 +1,36 @@
+# PROBE · does the app actually reflow under `simctl ui content_size` + `appearance`? — 4.1.1
+#
+# Runs in its own directory because the workflow applies the simulator conditions BETWEEN the two probe
+# passes: AX5 text (`content_size accessibility-extra-extra-extra-large`) and dark appearance. Keeping it
+# separate means a crash under AX5 reflow cannot be mistaken for a failure of one of the command probes.
+#
+# WHY IT MATTERS. §11.1 (Skip stays on screen at AX3/AX5, both themes), §11.5 (the header must not eat the
+# highlight at AX5) and §8's theme parity are all hand-run loops today, and the checklist says why the web
+# lane cannot take them: react-native-web has "no OS text scaling — `PixelRatio.getFontScale()` is always
+# 1". The NATIVE renderer does honour it. If that holds here, three laborious human passes become a
+# `simctl` one-liner.
+#
+# ⚠️ HOW THE VERDICT IS READ, because a green here is NOT the answer on its own. Every assertion below
+# would also pass if `content_size` never reached the app — text is still text at any size. The actual
+# question is whether the frame CHANGED, and that is read by comparing this run's screenshot against
+# `probe-baseline.png` from p04, which was captured on the same screen at default size in the same run.
+# Identical frames = the condition did not reach the app, and §11.1/§11.5 stay hand-run.
+#
+# Stating that explicitly because "a screenshot was taken" is how a check that proves nothing gets
+# recorded as coverage.
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: true
+
+# Still findable at AX5 — the app did not crash on reflow and the copy did not vanish into a clipped row.
+- assertVisible: "Will you make it to payday?"
+- takeScreenshot: maestro-debug/probe-ax5-dark-onboarding
+
+# The §11.1-shaped half: a control must still be HITTABLE at the largest accessibility size, not merely
+# present. A button pushed off its container by reflow is exactly the §11.1 failure mode, and it is
+# invisible to a visibility assertion — so the proof is that the tap lands and the app moves on.
+- tapOn: "Try with Sample Data"
+- assertVisible:
+    id: "tab-money"
+- takeScreenshot: maestro-debug/probe-ax5-dark-tabs

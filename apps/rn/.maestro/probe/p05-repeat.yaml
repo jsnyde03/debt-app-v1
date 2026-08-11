@@ -1,0 +1,23 @@
+# PROBE · `repeat` — 4.1.1
+#
+# Gates §11.2 (run the walkthrough ten times, watch for a silently skipped beat) and §11.13 (force-quit
+# and relaunch repeatedly, watch for a Skia bar that paints late).
+#
+# ⚠️ The value of `repeat` here is specifically for the INTERMITTENT checks, and their honest scope needs
+# stating with the capability. §11.2's real condition is slow hardware, which a desktop-class runner does
+# not reproduce — so a green ten-run loop holds the INVARIANT ("no beat is skipped") without reproducing
+# the CONDITION, and the checklist item stays partly device-owed. §11.13 is different: 3.5.8 found
+# unpainted Skia on the native simulator at two consecutive samples, so that condition demonstrably does
+# reproduce here and a loop is a genuine detector.
+#
+# This file exercises the cold-launch shape §11.13 needs, three times, which is also the cheapest
+# available proof that a repeated `clearState` launch is stable in this environment.
+appId: com.jasonsnyder.debtplanner
+---
+- repeat:
+    times: 3
+    commands:
+      - launchApp:
+          clearState: true
+      - assertVisible: "Will you make it to payday?"
+      - takeScreenshot: maestro-debug/probe-repeat-launch
