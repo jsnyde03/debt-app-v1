@@ -22,7 +22,9 @@ appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
     clearState: true
-# See p03 — a cold `clearState` launch outruns the default assertion timeout on a CI sim.
+# See p03 — the first diagnosis of this line (a slow cold launch) was WRONG. The cycle-1 cause was a
+# SpringBoard alert leaked by p02, which took the app's UI out of the accessibility tree entirely. The
+# wait is kept because it is the right shape, not because it is the fix.
 - extendedWaitUntil:
     visible: "Will you make it to payday?"
     timeout: 20000

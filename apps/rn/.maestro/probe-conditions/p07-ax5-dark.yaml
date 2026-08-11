@@ -24,9 +24,10 @@ appId: com.jasonsnyder.debtplanner
     clearState: true
 
 # Still findable at AX5 — the app did not crash on reflow and the copy did not vanish into a clipped row.
-# ⚠️ `extendedWaitUntil` for the same reason as p03: a cold `clearState` launch outruns the default
-# assertion timeout on a CI sim. It matters doubly here — a reflow at AX5 is SLOWER than the default
-# layout, so a bare assertion would report "the copy vanished at AX5" when the truth is "we did not wait".
+# ⚠️ See p03 — the cycle-1 failure of this line was a SpringBoard alert leaked by p02, NOT a slow launch.
+# ⚠️ AND NOTE WHAT THAT COST HERE SPECIFICALLY: this file's red looked exactly like "the app broke, or the
+# copy vanished, under AX5 reflow" — the most alarming possible reading, and completely wrong. It never
+# reached its own question. An unrelated file's side effect produced a false verdict about accessibility.
 - extendedWaitUntil:
     visible: "Will you make it to payday?"
     timeout: 20000

@@ -20,17 +20,42 @@ an entire file before executing any of it, so risk ordering only works at file g
 workflow records a verdict per file rather than stopping at the first red, because every file here
 answers an independent question.
 
+⛔ **That isolation was incomplete, and cycle 1 proved it.** It covered what a file fails to PARSE and not
+what a file leaves BEHIND on the device. A leaked system modal is invisible to the design above: every
+later file reports a red for its own command, and the verdict table reads as five capability gaps. **Any
+file that can change device state outside the app under test runs LAST**, and the ordering is the
+isolation — there is no per-file cleanup that can be relied on here.
+
 ## What each file settles
 
-| file | gates | if it fails |
+| file | gates | cycle 1 (2026-08-11) |
 |---|---|---|
-| `p01-extended-wait.yaml` | every timed payoff currently asserted by screenshot-and-hope | the existing note in `06-tutorial-interactions.yaml` stands; those checks stay device-owed |
-| `p02-openlink-scripted.yaml` | **§12.1–§12.7 — 15 checks** | the scripted run really is capture-lane-only; check the hierarchy for *which* failure it was |
-| `p03-set-orientation.yaml` | §10's layout checks · §11.8's rotation half | 4.1.3's iPad boot loses rotation but keeps §11.15 |
-| `p04-assert-screenshot.yaml` | §11.5 · §11.15 · §11.16 · theme parity, held between builds | visual checks stay "a human looks at a frame" |
-| `p05-repeat.yaml` | §11.2's ten runs · §11.13's cold launches | both stay single-shot |
-| `p06-evalscript.yaml` | derived assertions (§13.6's count, §12.0.3's count) | those two stay judged by eye |
-| `../probe-conditions/p07-ax5-dark.yaml` | §11.1 · §11.5 · §8's theme half | three hand-run passes stay hand-run |
+| `p01-extended-wait.yaml` | every timed payoff currently asserted by screenshot-and-hope | ✅ **PASS — `extendedWaitUntil` exists.** The limit recorded in `06-tutorial-interactions.yaml` was never real |
+| `p06-evalscript.yaml` | derived assertions (§13.6's count, §12.0.3's count) | ✅ **PASS — `evalScript` + `assertTrue` work** |
+| `p03-set-orientation.yaml` | §10's layout checks · §11.8's rotation half | ⛔ **never reached its command** — see below |
+| `p04-assert-screenshot.yaml` | §11.5 · §11.15 · §11.16 · theme parity, held between builds | ⛔ **never reached its command** |
+| `p05-repeat.yaml` | §11.2's ten runs · §11.13's cold launches | ⛔ **never reached its command** |
+| `../probe-conditions/p07-ax5-dark.yaml` | §11.1 · §11.5 · §8's theme half | ⛔ **never reached its question** — and its red read as "the app breaks at AX5", which was false |
+| `../probe-deeplink/p09-deeplink-scripted.yaml` | **§12.1–§12.7 — 15 checks** | ⛔ rewritten for cycle 2 — was `p02`, using Maestro's `openLink` |
+
+## ⚡ What cycle 1 actually found
+
+**One file's side effect masked five files' questions.** `p02` used Maestro's `openLink`, which made iOS
+raise a SpringBoard-owned **"Open in "Debt Planner (RN)"? · Cancel / Open"** confirmation. Nothing
+dismissed it. Maestro could not: the flow is scoped to the app, and the hierarchy captured at the next
+failure contained **three elements, all status bar** — not the alert's buttons, and not the app's UI.
+
+So every file after `p02` failed on its first assertion with its target text plainly rendered in the
+screenshot. `p06` survived only because it asserts nothing about the screen.
+
+⚠️ **The first diagnosis fit the verdict table perfectly and was wrong.** "p01 is the only file that
+waited, so cold launches outrun the default timeout" explained every PASS and every FAIL — and the
+contradicting evidence was already in hand, because flow 01 does the same bare assertion after the same
+launch and has always been green. The hierarchy dump settled it; the table never could have.
+
+**Two facts were confirmed anyway:** the URL scheme IS registered (iOS recognised it and offered the app
+by name), and `openLink` works as a command. Only the confirmation is in the way — hence `simctl openurl`
+in cycle 2, with the deep-link probe ordered **last** so a leaked modal cannot poison anything after it.
 
 ## ⛔ The rule that governs what happens next
 

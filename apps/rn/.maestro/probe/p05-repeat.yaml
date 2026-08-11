@@ -19,9 +19,10 @@ appId: com.jasonsnyder.debtplanner
     commands:
       - launchApp:
           clearState: true
-      # See p03. This file is the one where waiting matters MOST: three cold launches in a row is the
-      # §11.13 shape, and a bare assertion here would report a paint race that is really a race with the
-      # test runner's own patience.
+      # See p03 — the slow-cold-launch story was wrong; a leaked SpringBoard alert from p02 was the
+      # cycle-1 cause. Waiting is still right here, for a different reason: three cold launches in a row
+      # is the §11.13 shape, and that check is about PAINT timing, so it must never race the runner's
+      # own patience or it will report the wrong thing.
       - extendedWaitUntil:
           visible: "Will you make it to payday?"
           timeout: 20000

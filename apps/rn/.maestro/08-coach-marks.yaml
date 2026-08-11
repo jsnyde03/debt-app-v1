@@ -24,9 +24,9 @@ appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
     clearState: false
-# ⚠️ Wait for the shell before driving it. Established by the 2026-08-11 probe run: a cold launch of this
-# app on a CI simulator outruns Maestro's default timeout, and every probe file that did not wait failed
-# on its first assertion. `tapOn` races the same way an assertion does.
+# ⚠️ Wait for a stated signal before driving the shell — `tapOn` races the same way an assertion does.
+# (Not because cold launches are slow: that reading of the 2026-08-11 probe run was wrong. The failures
+# were a leaked SpringBoard alert. See flow 07's note.)
 - extendedWaitUntil:
     visible:
       id: "tab-money"

@@ -14,11 +14,22 @@ appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
     clearState: true
-# ⚠️ `extendedWaitUntil`, not a bare `assertVisible` — proven necessary by the first probe run
-# (2026-08-11): p01 was the ONLY file that waited, and the ONLY one that passed. A cold `clearState`
-# launch of this app on a CI simulator takes longer than Maestro's default assertion timeout, which is
-# why the workflow's own boot step sleeps 25s before it screenshots. Every file below the first one
-# failed on THIS line for that reason and no other.
+# ⚠️ THE FIRST DIAGNOSIS OF THIS LINE WAS WRONG, and the correction is worth more than the fix.
+#
+# Cycle 1 (2026-08-11): p01 passed and every later file failed here. The obvious story — "p01 is the only
+# file that waited, so a cold launch outruns the default timeout" — fit the verdict table exactly and was
+# false. The failure SCREENSHOT shows "Will you make it to payday?" plainly rendered, and the hierarchy
+# dump Maestro captured at that moment contains THREE nodes, all status bar: "No signal", the Wi-Fi bars,
+# "Not charging". The app's UI was on screen and not in the accessibility tree at all.
+#
+# The real cause was p02, one file earlier: its `openLink` raised the iOS "Open in …?" confirmation, a
+# SpringBoard-owned modal that nothing dismissed. It took over the a11y hierarchy for the rest of the run.
+# p06 passed through the same conditions only because it asserts nothing about the screen.
+#
+# `extendedWaitUntil` is KEPT — it is the right shape regardless (wait for a stated signal, don't race)
+# and p01 proved it works. But it is not why this line failed, and a comment claiming otherwise would have
+# entered the record as measured fact. The signal that the story was wrong was already visible: flow 01
+# does the same bare assertion after the same launch and has always been green.
 - extendedWaitUntil:
     visible: "Will you make it to payday?"
     timeout: 20000

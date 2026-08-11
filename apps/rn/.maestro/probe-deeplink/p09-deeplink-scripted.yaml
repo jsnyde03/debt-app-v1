@@ -1,0 +1,58 @@
+# PROBE · reaching the SCRIPTED demo by deep link — 4.1.1, cycle 2
+#
+# ⚡ 15 checks (§12.1–§12.7) hang on this one. The checklist re-scoped them as "owed to the capture/embed
+# lane" because "a device build cannot pass `?mode=scripted`" — true for a human, and the question is
+# whether it is true for a runner.
+#
+# ── WHAT CYCLE 1 MEASURED, AND WHY THIS FILE LOOKS NOTHING LIKE ITS PREDECESSOR ─────────────────
+#
+# The first version used Maestro's `openLink`. The command COMPLETED and the assertion failed, and the
+# artifacts said why: iOS raised a **"Open in "Debt Planner (RN)"?" · Cancel / Open** confirmation, and
+# nothing dismissed it. Maestro could not dismiss it either — the alert belongs to SpringBoard, this flow
+# is scoped to `com.jasonsnyder.debtplanner`, and the hierarchy dump proves the point: at the moment of
+# failure Maestro could see THREE elements, all status bar ("No signal", the Wi-Fi bars, "Not charging").
+# Not the alert's own buttons, and not the app.
+#
+# ⚠️ TWO THINGS THAT COST MORE THAN THE FAILURE ITSELF:
+#   1. The alert PERSISTED for the rest of the run and failed every file after it — including the AX5
+#      accessibility probe, whose red then read as "the app breaks under large text". A file that never
+#      reached its own question produced a false verdict about something else entirely.
+#   2. Two useful facts were confirmed anyway: the scheme IS registered (iOS recognised it and offered
+#      the app by name), and `openLink` itself works. Only the CONFIRMATION is in the way.
+#
+# ── SO: `simctl openurl`, and this file runs LAST ───────────────────────────────────────────────
+#
+# The workflow launches the app and fires `xcrun simctl openurl booted …` before running this flow, which
+# is why there is no `launchApp` and no `openLink` below. `simctl openurl` delivers the URL through the
+# system rather than through a link tap, and is expected not to prompt. If it prompts anyway, this file
+# fails with the dialog in its own screenshot — and because it is ordered last, it poisons nothing.
+#
+# That ordering is the real repair. The probe was built so a parse failure in one file could not mask
+# another's answer; DEVICE STATE was a dimension it did not consider, and one file's leaked modal masked
+# five files' questions. Isolation has to cover what a file leaves BEHIND, not just what it fails to parse.
+appId: com.jasonsnyder.debtplanner
+---
+# No `launchApp`: the workflow has already launched the app and opened the URL. Adding one here would
+# restart the process and discard the very navigation under test.
+
+# (1) Did the link reach a demo AT ALL? `ExampleCanvasMarker` (testID at `ExampleCanvasMarker.tsx:61`) is
+#     keyed on the money being fictional rather than on a session mode, so it is the widest evidence that
+#     a sandbox is on screen. A failure HERE means the URL never routed — look at expo-router's linking
+#     config, or at the screenshot for another system dialog.
+- extendedWaitUntil:
+    visible:
+      id: "example-canvas-marker"
+    timeout: 20000
+- takeScreenshot: maestro-debug/probe-deeplink-routed
+
+# (2) Did it select the SCRIPTED mode? `DemoDock` renders only when `mode === 'scripted'`
+#     (`DemoDock.tsx:40`), so it is the one element that cannot appear in an explore run. A failure HERE
+#     means the link routed but landed in EXPLORE — look at `demo.tsx:61`. Same red as (1), entirely
+#     different repair, which is why these are two assertions and not one.
+#
+#     The string is the dock's composite accessibilityLabel, so this doubles as §12.6's "the dock reads as
+#     ONE utterance". `DEMO_STAGES` has 5 entries (`demoRun.ts:90-95`) — verified, not assumed.
+- extendedWaitUntil:
+    visible: "Example money. Demonstration, 1 of 5."
+    timeout: 20000
+- takeScreenshot: maestro-debug/probe-deeplink-scripted

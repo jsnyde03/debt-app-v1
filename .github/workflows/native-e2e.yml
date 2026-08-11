@@ -273,6 +273,31 @@ jobs:
               echo "FAIL  $name (AX5·dark)" >> maestro-debug/probe-verdicts.txt
             fi
           done
+          # Restore default conditions so the deep-link probe below is not also answering an AX5 question.
+          xcrun simctl ui booted content_size medium || true
+          xcrun simctl ui booted appearance light || true
+
+          # ── The DEEP-LINK probe runs LAST, and through `simctl` rather than Maestro ─────────────
+          #
+          # Cycle 1 established that Maestro's `openLink` makes iOS raise a SpringBoard-owned
+          # "Open in …?" confirmation. Nothing dismissed it, Maestro could not see it (the flow is scoped
+          # to the app; the failure hierarchy held three status-bar nodes and nothing else), and it
+          # persisted for the REST OF THE RUN — failing every later file, including the AX5 accessibility
+          # probe, whose red then read as "the app breaks under large text".
+          #
+          # So: `simctl openurl` delivers the URL through the system instead of through a link tap, and
+          # this probe is ORDERED LAST so that if it still leaks a modal, it poisons nothing after it.
+          # That ordering is the actual repair. The per-file isolation above was built against parse
+          # failures and did not account for what a file leaves BEHIND on the device.
+          echo "──────── probe: p09-deeplink-scripted.yaml (via simctl openurl) ────────"
+          xcrun simctl launch booted com.jasonsnyder.debtplanner || true
+          sleep 15
+          xcrun simctl openurl booted "debtplannerrn:///demo?mode=scripted" || echo "(simctl openurl returned non-zero)"
+          if maestro test .maestro/probe-deeplink/p09-deeplink-scripted.yaml --debug-output ./maestro-debug; then
+            echo "PASS  p09-deeplink-scripted.yaml (simctl openurl)" >> maestro-debug/probe-verdicts.txt
+          else
+            echo "FAIL  p09-deeplink-scripted.yaml (simctl openurl)" >> maestro-debug/probe-verdicts.txt
+          fi
 
       - name: Probe · the verdict table
         if: always() && inputs.mode == 'probe'

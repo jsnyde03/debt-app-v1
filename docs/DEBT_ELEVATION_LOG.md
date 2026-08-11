@@ -4693,3 +4693,76 @@ has never driven, so first-run tuning is expected — but they are a different r
 the two commands this build actually rejected were a name that never existed and a property on the wrong
 command, not capability gaps. Batched with the probe's repairs for the next cycle rather than spending a
 third one.
+
+### 4.1.1 cycle 1 — two answers, five masked, and a diagnosis that fit the evidence and was wrong (2026-08-11)
+
+`gh workflow run native-e2e.yml -f mode=probe` → run 31500975624, ~35 min. Verdicts:
+
+```
+PASS  p01-extended-wait      FAIL  p02-openlink-scripted   FAIL  p03-set-orientation
+FAIL  p04-assert-screenshot  FAIL  p05-repeat              PASS  p06-evalscript
+FAIL  p07-ax5-dark (AX5·dark)
+```
+
+### ✅ Two capabilities proven
+
+**`extendedWaitUntil` exists and works.** That closes the finding that started 4.1: the limit recorded in
+`06-tutorial-interactions.yaml` — bought with three CI cycles and written into the flows as a rule — was
+never real. `extendedWaitUntilVisible` is a name that has never existed, and `timeout` is invalid on an
+assertion because it belongs to `extendedWaitUntil`. Every timed payoff in the suite becomes assertable.
+
+**`evalScript` + `assertTrue` work**, which is what §13.6's and §12.0.3's counts need.
+
+### ⛔ The five reds were ONE cause, and it was not any of their commands
+
+`p02` used Maestro's `openLink`. iOS raised **"Open in "Debt Planner (RN)"? · Cancel / Open"** — a
+SpringBoard-owned confirmation — and nothing dismissed it. Maestro could not: the flow is scoped to
+`com.jasonsnyder.debtplanner`, and the hierarchy it captured at the next failure contains **three
+elements, all status bar** (`"No signal"`, the Wi-Fi bars, `"Not charging"`). Not the alert's own buttons.
+Not one node of the app.
+
+The modal **persisted for the rest of the run.** p03/p04/p05/p07 each failed on their first assertion with
+the target text plainly rendered in their own failure screenshots. p06 passed through the identical
+conditions only because it asserts nothing about the screen — an accidental control, and the cleanest
+evidence available.
+
+⚠️ **The cost was not the lost cycle. It was the false verdicts.** `p07-ax5-dark`'s red read as *"the app
+breaks, or its copy vanishes, under AX5 reflow"* — an alarming and entirely wrong claim about
+accessibility, produced by a file that never reached its own question.
+
+### ⚡ The diagnosis that fit everything and was wrong
+
+First reading: *p01 is the only file that waited, so a `clearState` launch outruns the default assertion
+timeout.* It explained every PASS and every FAIL in the table exactly. It was false, and **the
+contradicting evidence was already in hand** — flow 01 does the same bare assertion after the same
+`clearState` launch and has always been green. That contradiction was noticed, written down as an open
+question, and the story was acted on anyway because the table fit.
+
+**Fitting the verdict table is not evidence.** The artifacts were: a screenshot showing the text on
+screen, and a hierarchy dump showing it absent from the tree. Both were one download away the whole time.
+This is [[measure-agent-mechanisms]] arriving from the inside — the recommendation (wait for a stated
+signal) was sound and shipped; the mechanism attached to it was invented, and would have entered the
+record as measured fact in five files' comments. The comments were corrected in place rather than
+quietly, because the wrong story is the more instructive artifact.
+
+### The repair is ORDERING, not cleanup
+
+The probe was built so a parse failure in one file could not mask another's answer. **Device state was a
+dimension that design did not consider**, and it defeated it completely: a leaked modal is invisible to
+per-file isolation, and the table reads as five capability gaps.
+
+- The deep-link probe moves to **`xcrun simctl openurl`** (through the system, not a link tap) and is
+  rewritten as `probe-deeplink/p09-deeplink-scripted.yaml`.
+- It runs **LAST**, after the conditions pass, so that if it still leaks a modal it poisons nothing.
+- Standing rule added to the probe README: **any file that can change device state outside the app under
+  test runs last**, because ordering is the only isolation available here.
+
+### Two facts recovered from the failure
+
+`openLink` **works as a command**, and the **scheme is registered** — iOS recognised `debtplannerrn://`
+and offered the app by name. Only the confirmation was in the way, so §12.1–§12.7's 15 checks are still
+live, and the question cycle 2 asks is now narrower: does `simctl openurl` prompt?
+
+⚠️ p09 also splits its assertion in two — the **marker** (renders in both modes → did the link route at
+all?) then the **dock** (scripted only → did it select the mode?). One assertion could not tell apart two
+repairs, which cycle 1 demonstrated by producing exactly that ambiguity.
