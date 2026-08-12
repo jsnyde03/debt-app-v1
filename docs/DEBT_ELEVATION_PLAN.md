@@ -19,7 +19,7 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 | **4.1.3b** | **Flow ORDER is explicit** — the directory argument ran `01→05→02→06→03→08→07→04` (measured), so 04 ran after 07's `clearState` and 08 before it. Maestro specifies no ordering for a directory. ⏳ unverified | ▶ awaiting dispatch |
 | **4.1.3a** | **Cache the built `.app`** — measured: prebuild + pods + compile = **17m03s of a 31m47s job**, and **648 of ~650 compiles are third-party pods** that change only with the lockfile. Skips all three when no app input changed, which is the whole 4.1.4→4.1.11 loop. ⛔ Guarded against the stale-binary hazard: exhaustive key · **no `restore-keys`** · provenance printed every run + into the artifact · tags and `rebuild:true` bypass it. Built 2026-08-12, ⏳ unverified. Detail → log | ▶ with 4.1.3 |
 | **4.1.4** | **The selector guard** — every text selector in `.maestro/**` must exist in app source, wired into `validate:release:rn`. ⚡ A working prototype (the `field-*` cross-check) is already written → log. ⚡ **Now also flags any `inputText` with no write-verification** — 4.1.3 proved a selector can resolve, tap, report COMPLETED and do nothing | |
-| **4.1.5** | **The iPad boot** — §11.15 ⭐ · §11.16 · §10's two layout checks · §11.8's rotation half | |
+| **4.1.5** | **The iPad boot** — §11.15 ⭐ · §11.16 · §10's two layout checks · §11.8's rotation half. ✅ **[D30] shape settled 2026-08-12: THREE TIERS IN ONE DIRECTORY** — shared / iPhone-only / iPad-only, device as a workflow input. ⛔ Not a duplicated flow set. Design + evidence → log | |
 | **4.1.6** | §12.0 explore (7 checks) | |
 | **4.1.7** | **AX + theme conditions** — §11.1 · §11.5 · §8's half. ⚠️ Reduce Motion needs an app-side observable first | |
 | **4.1.8** | §11's remainder — §11.9 · §11.13 · §11.11 | |
@@ -288,6 +288,8 @@ belongs on this ledger · Dynamic-Type device QA.
 - **[D27] ✅ (2026-08-11)** — port the free on-plan streak **only** (milestone surfacing already ships). Calm house voice, **no flame**, and never rendered beside the premium "Held your line · N paychecks" — two streaks on one screen read as one feature stated twice. → **B.3**
 - **[D28] ✅ (2026-08-11)** — B4's swipe **ships, as a pure accelerator** over the existing one-tap `CheckCircle`. The infra exists (`ListRow`'s `ReanimatedSwipeable`), the gesture is unused on required rows, and legacy carried pill **+** swipe too. → **B.4**
 - **[D29] ✅ (2026-08-11)** — **B1 is CLOSED as refuted.** The delta between "drag the curve" and what ships is a gesture, and §3.4.1's scrub-to-read already owns it.
+
+- **[D30] ✅ (2026-08-12)** — **the iPad lane is THREE TIERS IN ONE DIRECTORY**, not a second flow set: shared (testID-driven, device-agnostic) · iPhone-only (where the compact presentation IS the subject) · iPad-only (the checks with no iPhone equivalent). Device is a **workflow input** with its own explicit flow list. ⚡ Forced by `use-layout.ts`: `isExpanded` is width-derived and branches in **seven** places, so on a wide iPad the debt sheet is **inline, not modal** — flow 02 would pass while testing nothing. ⛔ A duplicated set was rejected on this repo's own measured cost of parallel test surfaces (the two screenshot mechanisms; Wave A's "two places, one rule" ×3). → **4.1.5**
 
 **Open:** 3.5.7 hosting + privacy *(the only one left)*.
 

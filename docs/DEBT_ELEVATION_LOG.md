@@ -6046,3 +6046,60 @@ artifact's start times are the check, and the workflow says so rather than assum
   two audit passes did not**, because the defect was on a path they exercised for data and not for words.
 - ⚠️ **`app-preview.yml` builds the same app and has neither the `.app` cache nor this ordering fix** →
   already filed with the composite-action extraction.
+
+## [D30] — the iPad lane's shape, settled before 4.1.5 is built (2026-08-12)
+
+🎯 Jason, looking ahead at 4.1.5: *"would it make sense to set up a separate Maestro script for iPad runs
+instead of using the current one?"*
+
+### The premise that decided it — checked, not assumed
+
+`use-layout.ts` derives **`isExpanded` from WIDTH**, and it branches in **seven** places: `MasterDetail`,
+`TwoColumn`, Today, Money, Progress, More, and the debt sheet's `inline` prop (`money.tsx:395`). A wide
+iPad is therefore **not the same UI with bigger margins** — Money becomes master-detail and the sheet
+renders **inline instead of as a modal**.
+
+That rules out both of the tidy answers:
+
+- ⛔ **One identical set won't do.** `02-sheet-native-tap.yaml` exists to prove a header button *inside a
+  modal sheet's swipe-gesture area* is tappable — the bug found on the first device build. On iPad there
+  is no modal, so the flow would go **green while testing nothing**. That is bucket-1-by-weakening, the
+  named void condition of 4.1's own exit criterion.
+- ⛔ **A duplicated `.maestro-ipad/` set is worse**, and this repo has priced it twice: the **two
+  screenshot mechanisms**, where the root set's stale frames masked the sandbox theme defect, and Wave A's
+  *"two places, one rule"* landing three times in one wave — *"agreeing copies are still copies, they just
+  haven't diverged yet."* Eight duplicated flows on a rarely-run lane drift **invisibly**, which is the
+  exact mechanism that left this suite green-by-never-running for two days.
+
+### [D30] The shape — three tiers, one directory
+
+| tier | contents |
+|---|---|
+| **shared** | testID-driven, device-agnostic — 01 (the seed) · 03 · 07 · 08 |
+| **iPhone-only** | where the compact presentation IS the subject — 02's modal-sheet header button |
+| **iPad-only** | no iPhone equivalent — §11.15's ring origin · §11.16 · §10's layout checks · §11.8's rotation · master-detail + two-column |
+
+Device is a **workflow input** carrying its own explicit flow list — which composes directly with
+4.1.3b, where the list already *is* the ordering contract.
+
+⚡ **Most of 4.1.5 is ADDITIVE, not a fork.** Its four named items are all iPad-only checks needing new
+flows regardless; splitting the existing eight is the smaller half of the item.
+
+⚡ **4.1.3a pays for this.** The `.app` is device-agnostic and the cache key doesn't mention the device, so
+two matrix jobs restore the **same binary** — the marginal cost of an iPad run is ~11 min of Maestro, not
+another 17-min build. It moves "run both" from special-occasion to routine.
+
+### ⚠️ Carried forward as a hypothesis, not a fact
+
+Today's geometry is **iPhone-specific**: the swipe percentages come from a 440×956 viewport where the
+keyboard covered the form. On iPad the keyboard takes proportionally less and the form may not need
+scrolling at all — the swipe *should* clamp harmlessly, and "should" is the word that cost a cycle this
+morning. **Read the first iPad run's hierarchy dump before believing any of it carried over.**
+
+⚠️ **And the 68/26/33 split is NOT a fact** (🎯 Jason, same session: *"Do not treat the 33 never figure as
+fact"*). It is an authored estimate of the same vintage as the ledger items that came apart in Waves A
+and B. This repo has refuted that class of number repeatedly: `extendedWaitUntilVisible` was a documented
+capability limit that turned out to be two misspellings of one command; **§11.15 went from "nothing
+automated can hold" to a numeric frame-containment assertion in a day**; the iPad lane was filed as worth
+**four** checks and measured at 68. **Bucket 3's reason must name a MEASUREMENT**, and anything filed
+impossible before Appium lands (4.1.9) has to be re-asked after it. → re-derive the split at **4.1.11**.
