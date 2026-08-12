@@ -389,7 +389,14 @@ export function createDebtStore(opts?: { now?: () => string; bound?: (store: Deb
       set((s) => ({
         store: {
           ...s.store,
-          requiredExpenses: s.store.requiredExpenses.map((e) => (e.id === id ? { ...e, isPaidThisCycle: paid } : e)),
+          // Marking paid also clears a reported autopay failure, exactly as the payday checkpoint's
+          // `applyRequiredReconciliation` does — an item the user is now confirming paid is no longer a
+          // reported failure. Nothing else clears it (the rollover doesn't), so leaving it set kept the
+          // row "Overdue" while struck through and permanently blocked `isAutopayPresumedPaid`.
+          // Un-marking does NOT re-flag: reporting a failed autopay is the checkpoint's job, not an undo's.
+          requiredExpenses: s.store.requiredExpenses.map((e) =>
+            e.id === id ? { ...e, isPaidThisCycle: paid, ...(paid ? { autopayFailedThisCycle: false } : {}) } : e,
+          ),
         },
       }));
     },
@@ -422,7 +429,13 @@ export function createDebtStore(opts?: { now?: () => string; bound?: (store: Deb
       set((s) => ({
         store: {
           ...s.store,
-          debts: s.store.debts.map((d) => (d.id === id ? { ...d, minimumPaidThisCycle: paid } : d)),
+          // Clears a reported autopay failure on mark-paid — see `markExpensePaid` for why.
+          // ⚠️ Deliberately does NOT set `isPaidThisCycle`: [D2] reserves that for paid IN FULL, and a
+          // covered minimum is not that. Core's bulk paths still set both (pre-[D2] semantics, inert —
+          // no debt reader keys on `isPaidThisCycle` alone) → the Phase-6 financial-correctness gate.
+          debts: s.store.debts.map((d) =>
+            d.id === id ? { ...d, minimumPaidThisCycle: paid, ...(paid ? { autopayFailedThisCycle: false } : {}) } : d,
+          ),
         },
       }));
     },

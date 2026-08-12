@@ -2,13 +2,25 @@ import type { Debt, RequiredExpense } from "@core/storage/debtPlannerStorage";
 
 /**
  * "Paid all required" — the payday checkpoint's one-tap happy path. Marks every
- * required item in the given id sets paid, using the SAME paid-state semantics as
- * the Plan tab's per-item toggles (so the two surfaces can never drift):
- *   • expense  → `isPaidThisCycle: true`            (mirrors `handleMarkExpensePaid`)
+ * required item in the given id sets paid:
+ *   • expense  → `isPaidThisCycle: true`
  *   • debt min → `minimumPaidThisCycle` + `isPaidThisCycle: true`
- *                                                    (mirrors `handleMarkDebtMinimumPaid`)
  * Marking paid also clears any `autopayFailedThisCycle` flag — an item the user is
- * now confirming paid is no longer a reported failure.
+ * now confirming paid is no longer a reported failure. Nothing else clears it (the
+ * rollover does not), so every mark-paid writer must.
+ *
+ * ⚠️ This header used to claim these were "the SAME paid-state semantics as the Plan
+ * tab's per-item toggles (so the two surfaces can never drift)". They HAVE drifted, and
+ * the claim was load-bearing enough to author a plan item off (3.7 B.0, 2026-08-11):
+ * the RN toggle `markDebtMinimumPaid` sets `minimumPaidThisCycle` ONLY, because [D2]
+ * reserves `isPaidThisCycle` for paid IN FULL and a covered minimum is not that. The
+ * bulk paths below keep the pre-[D2] both-flags write. It is INERT — measured: no debt
+ * reader in either tree keys on `isPaidThisCycle` alone, they all fall back
+ * (`minimumPaidThisCycle ?? isPaidThisCycle`) — so this is a false assertion in persisted
+ * data rather than a live defect, and it is pinned by `testMarksDebtMinimumsBothFlags`.
+ * Reconciling it is an engine-semantics change on data Phase 5 migrates → the Phase-6
+ * financial-correctness audit gate. `bulkMarkRequiredPaid` is legacy-only and dies at 5.5.1;
+ * `applyRequiredReconciliation` is the one the RN app still calls.
  *
  * The id sets are the required-THIS-CYCLE items (derived from the allocation at the
  * call site); selection stays out of this pure mutation so it's trivially testable.

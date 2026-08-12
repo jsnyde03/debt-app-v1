@@ -1,3 +1,4 @@
+import { computeStreak } from '@core/debt/computeStreak';
 import { deriveRequiredActionView, type RequiredActionView, type RequiredAllocationItem } from '@core/debt/deriveRequiredActionView';
 import { PROTECTED_CUSHION_CATEGORIES } from '@core/engine/allocatePaycheck';
 import { projectDebtPayoff } from '@core/debt/projectDebtPayoff';
@@ -152,12 +153,47 @@ export function selectRequiredRows(store: DebtStore, allocation: Allocation): Re
     ...store.requiredExpenses
       .filter((e) => e.isPaidThisCycle && !shownExpenses.has(e.id))
       .map((e) => build({ category: 'expense', targetId: e.id, label: `Pay ${e.name}`, amount: e.amount })),
+    // `?? isPaidThisCycle` matches every other reader of a debt's paid state (the allocator,
+    // `deriveRequiredActionView`, the rollover, autopay reconcile). `minimumPaidThisCycle` is optional
+    // and pre-[D2] data carries only `isPaidThisCycle` — without the fallback the allocator drops such
+    // a debt and this re-add declines to restore it, so the paid row vanishes instead of striking out.
     ...store.debts
-      .filter((d) => d.minimumPaidThisCycle && d.balance > 0 && !shownDebts.has(d.id))
+      .filter((d) => (d.minimumPaidThisCycle ?? d.isPaidThisCycle) && d.balance > 0 && !shownDebts.has(d.id))
       .map((d) => build({ category: 'minimum_debt', targetId: d.id, debtId: d.id, label: `Pay minimum on ${d.name}`, amount: d.minimumPayment })),
   ];
 
   return [...rows, ...paidRows];
+}
+
+// ── On-plan streak (3.7.B.3 / F10.3) ─────────────────────────────────────────────
+
+/**
+ * A streak reads as a claim about the user's track record, so it does not start at one. At `1` the line
+ * would appear the first time anyone completes a cycle and read as celebration of the ordinary; from `2`
+ * it is describing an actual run. It is also what keeps the line off the demo **by construction** rather
+ * than by a flag: `SANDBOX_MAX_HISTORY` clamps a sandbox to ONE cycle of history, so a day-one demo
+ * cannot reach this floor however many rollovers are scripted through it.
+ */
+export const ON_PLAN_STREAK_MIN = 2;
+
+/** Consecutive most-recent cycles where every AFFORDABLE required action was completed. Free-tier. */
+export function selectOnPlanStreak(store: DebtStore): number {
+  return computeStreak(store.cycleHistory);
+}
+
+/**
+ * The Progress hero's streak caption, or `null` when there is nothing honest to say.
+ *
+ * ⚠️ [D27] — this is the FREE on-plan streak and it must never render beside the premium Guardian's
+ * "Held your line · N paychecks" (`GuardianProofStrip`, inside `PaydayGuardianCard` on **Today**). They
+ * are different claims — this one is "you did everything you could afford", that one is "your confirmed
+ * cushion held" — but two streaks on one screen read as one feature said twice. Progress hosts this;
+ * Today hosts that. ⚠️ The STRINGS are the wording/voice gate's, like B.2's greeting.
+ */
+export function selectOnPlanStreakLabel(store: DebtStore): string | null {
+  const streak = selectOnPlanStreak(store);
+  if (streak < ON_PLAN_STREAK_MIN) return null;
+  return `${streak} paychecks on plan`;
 }
 
 // ── Required-action bucketing (Today scale, 1.5.4) ───────────────────────────────

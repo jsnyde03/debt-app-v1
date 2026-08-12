@@ -296,6 +296,58 @@ function run() {
     eq(s.getState().store.pendingReserveWalkback, null, 'acknowledgeReserveWalkback → clears it');
   }
 
+  // ── 3.7.B.1 — marking paid CLEARS a reported autopay failure (both toggles) ──
+  // Core has always done this (`bulkMarkRequired`: "an item the user is now confirming paid is no longer
+  // a reported failure"), and the rollover never clears the flag — so a Today toggle that left it set
+  // kept the row showing "Overdue" while struck through, and permanently blocked `isAutopayPresumedPaid`
+  // from ever presuming that autopay ran again.
+  {
+    const today = createDefaultStore().paycheck.currentDate;
+    const s = inst({
+      debts: [{ id: 'd0', name: 'Card', balance: 5000, minimumPayment: 100, apr: 20, dueDate: today, type: 'debt', recurrence: 'monthly', isAutopay: true, autopayFailedThisCycle: true } as DebtStore['debts'][number]],
+      requiredExpenses: [{ id: 'e0', name: 'Power', amount: 90, dueDate: today, recurrence: 'monthly', category: 'utilities', isAutopay: true, autopayFailedThisCycle: true } as DebtStore['requiredExpenses'][number]],
+    });
+
+    s.getState().markDebtMinimumPaid('d0', true);
+    eq(s.getState().store.debts[0].minimumPaidThisCycle, true, 'markDebtMinimumPaid(true) → the minimum reads covered');
+    eq(s.getState().store.debts[0].autopayFailedThisCycle, false, '…and clears the reported autopay failure');
+
+    s.getState().markExpensePaid('e0', true);
+    eq(s.getState().store.requiredExpenses[0].isPaidThisCycle, true, 'markExpensePaid(true) → the bill reads paid');
+    eq(s.getState().store.requiredExpenses[0].autopayFailedThisCycle, false, '…and clears the reported autopay failure');
+
+    // Un-marking must NOT resurrect the failure — the user reporting "autopay didn't run" is the payday
+    // checkpoint's job, not an undo's. Core's manual-unpaid branch leaves the flag alone for the same reason.
+    s.getState().markDebtMinimumPaid('d0', false);
+    eq(s.getState().store.debts[0].minimumPaidThisCycle, false, 'un-marking → no longer covered');
+    eq(s.getState().store.debts[0].autopayFailedThisCycle, false, '…and the cleared failure stays cleared');
+  }
+
+  // ── 3.7.B.1a — a reported autopay failure rides the OCCURRENCE, and the rollover must not drop it ──
+  // The flag reads `…ThisCycle` and nothing clears it at the cycle boundary — which is CORRECT, and worth
+  // pinning because it looks like a leak: a still-unpaid failed autopay carries forward flagged so the next
+  // `reconcileAutopayForRollover` withholds the presumption. Clear it and a bill the user told us never ran
+  // gets silently auto-marked paid — the inverse of the root-cause bug `reconcileAutopay` was built to fix.
+  // The real leak was the paid path (a Today toggle left the flag set and the item advanced carrying it);
+  // that is closed at the source above, so a PAID item reaches the boundary already clear.
+  {
+    const today = createDefaultStore().paycheck.currentDate;
+    const flagged = {
+      ...plan(),
+      requiredExpenses: [{ id: 'e0', name: 'Power', amount: 90, dueDate: today, recurrence: 'monthly', category: 'utilities', isAutopay: true, autopayFailedThisCycle: true } as DebtStore['requiredExpenses'][number]],
+    };
+    const rolled = applyRollover(flagged);
+    eq(rolled.requiredExpenses[0].autopayFailedThisCycle, true, 'an UNPAID failed autopay carries its flag forward — never falsely presumed paid');
+    eq(rolled.requiredExpenses[0].isPaidThisCycle, false, '…and stays owed across the boundary');
+
+    // The same bill, once the user confirms it on Today: the flag is cleared at the toggle, so the next
+    // occurrence advances clean and autopay is presumed normally again.
+    const s = inst({ requiredExpenses: flagged.requiredExpenses });
+    s.getState().markExpensePaid('e0', true);
+    const cleared = applyRollover(s.getState().store);
+    eq(cleared.requiredExpenses[0].autopayFailedThisCycle, false, '…but a confirmed one advances CLEAN, so autopay is presumed again next cycle');
+  }
+
   // ── reset ──
   {
     const s = inst({ debts: plan().debts });

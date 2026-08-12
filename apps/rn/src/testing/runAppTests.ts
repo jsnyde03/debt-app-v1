@@ -46,6 +46,13 @@ async function main() {
   // §2.6 Recovery Plan — the selector split (essential/deferrable + minimums) + defer action loop.
   await import('../store/recoverySelectors.test');
 
+  // 3.7.B.1 — the paid-required-row re-add, on BOTH paid-state shapes. A pre-[D2] debt carrying only
+  // `isPaidThisCycle` was dropped by the allocator and not re-added, so the row vanished from Today.
+  await import('../store/planSelectors.test');
+
+  // 3.7.B.2 (F10.1) — Today's time-aware greeting: every band boundary + the name normalisation.
+  await import('../store/greeting.test');
+
   // MF.4 (audit #5) — the debt-free projection runs on the steady-state (holdback-stripped) deploy.
   await import('../store/steadyStateProjection.test');
 
