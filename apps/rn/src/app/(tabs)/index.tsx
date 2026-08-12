@@ -4,7 +4,7 @@ import { StyleSheet, Text, View, useWindowDimensions, type ScrollView, type Scro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MoreButton } from '@/components/more-button';
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
 
 import { useGoToTab } from '@/hooks/use-go-to-tab';
 import { maybeRequestReview } from '@/lib/review';
@@ -227,10 +227,26 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   // its last rank) and `celebration` is checked directly because it SUPPRESSES the slot rather than
   // ranking within it — reading `activeAck` alone would let a mark land during the finale, which is the
   // one moment on this screen that owns the whole surface.
-  // ⚠️ 4.1.4c — the reason is COMPUTED, not a constant, because the probe's job here is to say which of
-  // the three raised it. `refused(suppressors=1)` was compatible with all three plus two other holders.
+  // ⛔ 4.1.4c — GATED ON FOCUS, not merely on mount, and that is the fix rather than a refinement.
+  //
+  // Today is a TAB: it stays mounted for the entire session, so this suppressor was held the whole time
+  // an ack / celebration / walkthrough invitation was pending — including while the user was looking at
+  // Money, Progress or More. The measured consequence: `debt-row-actions` was refused on every Money
+  // render with `refused(suppressors=1)`, which is why five separate mechanisms were proposed and
+  // refuted before the probe printed the guard's own name.
+  //
+  // ⚡ The store's contract already said this — *"a screen declares while it is INTERRUPTING"* — and a
+  // tab you are not looking at is interrupting nobody. The count (rather than a boolean) correctly
+  // handles two surfaces being mounted at once; what was wrong was the **lifetime**.
+  //
+  // ⚠️ Deliberately NOT applied to the demo and walkthrough suppressors (`demoSession`,
+  // `tutorialSession`): a bounded run genuinely owns the whole surface, whichever screen is focused.
+  //
+  // The reason string is COMPUTED so the probe names which of the three raised it — `refused(…)` alone
+  // was compatible with all three, plus the two session holders.
+  const todayFocused = useIsFocused();
   useSuppressCoachMarks(
-    !!activeAck || !!celebration || !!tutorialInvite,
+    todayFocused && (!!activeAck || !!celebration || !!tutorialInvite),
     celebration ? 'today:celebration' : activeAck ? `today:ack=${activeAck}` : 'today:invite',
   );
 

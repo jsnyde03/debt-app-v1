@@ -7083,3 +7083,51 @@ measurement after it.
 ⚡ **The recurring lesson this session, now three for three:** the probe, the iPad picker and the flow
 order all failed the same way — **each assumed the happy path while being the thing built to survive the
 unhappy one.**
+
+## 4.1.4c‴ — the fix, and a correction to my own caution (2026-08-12)
+
+🎯 Jason, on the run I had just dispatched: *"so this build will not go green"*. Correct, and it should
+not have been dispatched that way.
+
+⚡ **The "do not stack a speculative fix" rule was right for the PREVIOUS run and wrong for this one, and
+the difference is what the probe now emits.** When the output was a single bit, a green would have been
+uninformative — a fix and a flake are indistinguishable. Now the probe emits a **reason string**, so a fix
+riding alongside stays informative in both directions:
+
+- mark fires **and** the trace reads `suppress+ today:invite` → holder confirmed *and* defect closed;
+- mark still refused **and** the trace names `walkthrough-session` → the focus fix was inert, and the real
+  holder is a leaked session release.
+
+Either way the cycle produces the diagnosis. I was about to spend a third ~35-minute run to learn one
+string. **Cancelled `31635145613` three minutes in.**
+
+### The fix
+
+`useSuppressCoachMarks` on Today is now gated on **`useIsFocused()`**, not on mount. *(Export verified by
+reading `expo-router/build/exports.d.ts:20` rather than assumed — `useFocusEffect` was already in use in
+`RequiredActionsCard`, `useIsFocused` was not.)*
+
+Today is a **tab**: it stays mounted for the entire session, so its suppressor was held the whole time an
+ack, celebration or walkthrough invitation was pending — including while the user was on Money, Progress
+or More. The store's contract already said *"a screen declares while it is INTERRUPTING"*, and a tab
+nobody is looking at is interrupting nobody. **The count was never the bug; the lifetime was.**
+
+⛔ **Deliberately NOT applied to `demoSession` / `tutorialSession`.** A bounded run genuinely owns the
+whole surface whichever screen is focused, which is the distinction the count exists to express.
+
+⚠️ **It relaxes "one interruption at a time" ACROSS screens, and that is a product judgement, not a
+side effect.** A user with a pending ack on Today can now meet a coach mark on Money. They are never seen
+together, and the alternative is the measured status quo: the discovery layer dead for every newly
+onboarded user. Flagged for the wording/UX gate rather than buried.
+
+⚠️ **A green web suite proves nothing here** — the mark is `Platform.OS === 'ios'`, so no web test can
+reach it. 167/167 says nothing else broke; it does not say the fix works. Only the native run can.
+
+### The reading, pre-registered
+
+| next run shows | meaning |
+|---|---|
+| `suppress+ today:invite` (or `today:ack=…`) **and the mark renders** | ⭐ holder confirmed, defect closed, 8/8 |
+| `suppress+ walkthrough-session` / `demo-run` **and still refused** | a session leaked its release — the focus fix is inert and correct anyway; hunt the unreleased suppressor |
+| **no `suppress+` at all** and still refused | the holder registered before the trace was cleared — move the probe's reset earlier |
+| mark renders **and** no `suppress+` line | it was Today all along and the invite had already been answered — weakest outcome, re-run to confirm |
