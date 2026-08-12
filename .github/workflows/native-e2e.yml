@@ -527,3 +527,9 @@ jobs:
           path: |
             apps/rn/maestro-report.xml
             apps/rn/maestro-debug/**
+            # ⛔ 300 MB of run 31603811840's 322 MB artifact was this one file per flow — Maestro's dump
+            # of the ENTIRE simulator syslog, 118 MB for flow 01 alone. It has never been read once: the
+            # app-filtered unified log is captured separately as `maestro-debug/os-log.txt`, and native
+            # crashes have their own collection step. Excluding it takes the download from ~7 minutes to
+            # seconds, and the diagnose loop is the thing this lane's speed actually depends on.
+            '!apps/rn/maestro-debug/**/device-simulator.log'

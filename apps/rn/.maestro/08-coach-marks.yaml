@@ -21,11 +21,20 @@
 # Depends on 07 having run: it leaves a real portfolio (a Visa Test debt, Rent, a converted Mortgage), and
 # `money.tsx:259` gates the row-actions mark on a non-empty debts list.
 #
-# ⛔ AND ON 07'S `clearState` SPECIFICALLY, which is the half that was never written down. Coach marks are
-# offered ONCE EVER, so by the time flows 02-06 have walked Money and the tutorial, the marks this file
-# asserts have already been consumed — 07's clear is what resets them. On run 31598337615 the directory
-# argument put 08 BEFORE 07 and this flow failed at its first assertion for exactly that reason. The
-# order is now explicit in `native-e2e.yml`; do not reorder these two.
+# ⛔ AND IT CANNOT INHERIT THE MARK FROM 07 — I got this wrong TWICE before measuring it.
+# First I said 08 failed because the directory order put it BEFORE 07, so 07's `clearState` had not yet
+# reset the once-ever flags. The order was fixed, 08 ran after 07, and it failed identically. The actual
+# mechanism, read out of the source rather than fitted to a verdict table:
+#   • `coachMarks.ts:86` refuses a mark already in `prefs.coachMarksSeen`, and `:92` PERSISTS it on show;
+#   • `money.tsx:259` fires this very mark whenever Money renders with a non-empty debts list;
+#   • 07 clears state — and then walks Money with debts in it. **07 consumes the mark itself.**
+# No ordering can fix that, because the flow that builds the portfolio must visit the screen that spends
+# the mark. So this flow resets the record through the app's OWN affordance before asserting.
+#
+# ⚡ That is not a workaround, it is coverage this file did not have. `more.tsx:161` says the reset exists
+# because "a mark is offered ONCE ever, so without a way back the whole discovery layer is a one-shot a
+# user can lose to a mis-tap." Nothing tested that path. Now the mark's re-offer is the setup for the
+# mark's assertion, so a broken reset fails here loudly.
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
@@ -37,6 +46,18 @@ appId: com.jasonsnyder.debtplanner
     visible:
       id: "tab-money"
     timeout: 20000
+
+# ══ SETUP · re-offer the marks 07 already spent (and test the re-offer while we are here) ═══════
+# `more.tsx:164`. The subtitle changing to "Tips will appear again as you go." is the app confirming it
+# did the thing, so it is asserted rather than assumed — a reset that silently no-ops would otherwise
+# leave every assertion below failing for a reason that looks like the marks are broken.
+- tapOn:
+    id: "more-button"
+- assertVisible: "Show feature tips again"
+- tapOn: "Show feature tips again"
+- assertVisible: "Tips will appear again as you go."
+- tapOn:
+    id: "screen-back"
 
 # ══ §13.3 · the iOS-ONLY row long-press mark ════════════════════════════════════════════════════
 # Gated on `Platform.OS === 'ios'` (money.tsx:259), so neither the web suite nor an Android run can ever

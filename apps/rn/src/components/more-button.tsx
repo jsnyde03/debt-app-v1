@@ -43,6 +43,10 @@ export function MoreButton() {
       hitSlop={12}
       accessibilityRole="button"
       accessibilityLabel="More"
+      // 4.1.3 — an explicit testID rather than matching the label. Maestro's text match is CONTAINS, so
+      // "More" would also match copy like "More than the balance — this will clear it to $0." The lane
+      // has already lost a cycle to an ambiguous label selector (`field-paycheck-amount`).
+      testID="more-button"
       {...a11yHidden(inBoundedRun)}>
       {/* Routed through AppIcon so iOS gets the SF-Symbol ellipsis (more-horiz → ellipsis). */}
       {/* Dimmed while held, so it doesn't read as live-but-broken under the scrim. */}

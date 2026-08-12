@@ -248,9 +248,25 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-debt-balance"
 - inputText: "180000"
+
+# ⛔ `FormSheet` HAS THE SAME COVERED-FIELD DEFECT, and it cost a submitted debt to learn.
+# Run 31598337615 proved flow 01's `field-debt-name` assertion passes inside this sheet, and I read that
+# as "the sheet is fine". It is not — NAME simply sits at the TOP, above the sticky footer. On run
+# 31603811840 the tap on `field-debt-apr` landed on **"Add debt"** instead, which SUBMITTED the form:
+# the Mortgage was created at **$180,000 · 0% APR**, the `6.5` typed into a dismissed sheet, and the
+# assertion below failed because there was no sheet left to assert against.
+# ⚠️ A fact about one field is not a fact about the sheet. Same generalisation that put the scan copy on
+# the reclassify path, two files away from here.
+- swipe:
+    start: "50%, 40%"
+    end: "50%, 18%"
+
 - tapOn:
     id: "field-debt-apr"
 - inputText: "6.5"
+# ⚡ THIS ASSERTION EARNED ITS PLACE. I filed it as probably-my-own-bug when it went red; it was the only
+# thing standing between a silently mis-created debt and a green suite. Anchored, and on a numeric field
+# deliberately — the value is user-typed and unformatted while the field has focus.
 - assertVisible:
     id: "field-debt-balance"
     text: "^180000$"
