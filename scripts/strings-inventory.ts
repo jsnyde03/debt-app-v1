@@ -171,6 +171,40 @@ function originOf(node: ts.Node, sf: ts.SourceFile): string {
   return 'other';
 }
 
+/**
+ * T3 — copy that CHANGES based on a condition, paired with the condition it changes on.
+ *
+ * The audit gate carries two filed sweeps of one shape: copy that asserts an OUTCOME while being gated
+ * on something that merely CORRELATES with it (3.7.A3.1's proxy gate, 3.7.A3.6's capped outcome). On
+ * 2026-08-12 the native lane found a live instance — `DebtSheet` said **"Add from scan"** whenever
+ * `prefill` was truthy, which stopped meaning "scanned" the moment A10 gave `prefill` a second producer.
+ * Two audit passes and three green web specs had missed it.
+ *
+ * ⛔ A script cannot judge whether a gate is a proxy — that is a semantic question about what the words
+ * claim. What it CAN do is put the condition next to the copy it controls, turning "read 400 files and
+ * notice" into "read N pairs and ask: is this gate the thing the copy is about?" The defect above reads,
+ * in one line, as `prefill → "Add from scan" / "Add a debt"`.
+ *
+ * Nested chains decompose naturally because each `?:` is recorded separately and branch collection stops
+ * at the next one — so `isEdit ? … : convertingExpenseId ? … : prefill ? …` yields three judgeable pairs
+ * rather than one unreadable blob.
+ */
+type Conditional = { file: string; line: number; condition: string; whenTrue: string[]; whenFalse: string[] };
+const conditionals: Conditional[] = [];
+
+/** Immediate string branches only — stop at nested JSX (visited on its own) and at the next ternary. */
+function branchLiterals(node: ts.Node): string[] {
+  const out: string[] = [];
+  const visit = (n: ts.Node) => {
+    if (ts.isJsxElement(n) || ts.isJsxSelfClosingElement(n) || ts.isJsxFragment(n)) return;
+    if (ts.isConditionalExpression(n) && n !== node) return;
+    if ((ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) && isReviewable(n.text)) out.push(n.text.trim());
+    ts.forEachChild(n, visit);
+  };
+  visit(node);
+  return out;
+}
+
 const entries: Entry[] = [];
 
 for (const root of ROOTS) {
@@ -199,6 +233,16 @@ for (const root of ROOTS) {
           for (const lit of literalsIn(node.initializer)) {
             push((lit as ts.StringLiteral).text, lit, `prop:${prop}`, bucket);
           }
+        }
+      }
+
+      // T3 — record every ternary whose branches carry copy, with the condition that selects between them.
+      if (ts.isConditionalExpression(node)) {
+        const whenTrue = branchLiterals(node.whenTrue);
+        const whenFalse = branchLiterals(node.whenFalse);
+        if (whenTrue.length || whenFalse.length) {
+          const condition = node.condition.getText(sf).replace(/\s+/g, ' ').slice(0, 90);
+          conditionals.push({ file: rel, line: lineOf(node), condition, whenTrue, whenFalse });
         }
       }
 
@@ -292,6 +336,28 @@ if (duplicates.length) {
   md.push('_None._');
 }
 md.push('');
+md.push('## Copy gated on a condition — is the gate the thing the copy claims?');
+md.push('');
+md.push('The audit gate\'s proxy-gate sweep, as a list. For each row ask one question: **does the');
+md.push('condition actually establish what the words assert, or does it merely correlate with it?**');
+md.push('');
+md.push('The live instance this was built from read exactly like a row here —');
+md.push('`prefill` → `"Add from scan"` / `"Add a debt"` — where `prefill` had stopped meaning "scanned"');
+md.push('the moment a second producer was added. Two audit passes and three green web specs missed it.');
+md.push('');
+md.push('| file | condition | when true | when false |');
+md.push('|---|---|---|---|');
+// ⚠️ A gate earns a row only if it selects between strings T1 ALREADY classified as copy. That reuses
+// one classification instead of inventing a second heuristic here — otherwise this table would need its
+// own idea of "is this a word or an id", and the two would drift. Ternaries over `"reserve-release"` or
+// `"en-US"` are real gates over machinery, and judging them is not this sweep's job.
+const copyText = new Set(copy.map((e) => e.text));
+const judgeable = conditionals.filter((c) => [...c.whenTrue, ...c.whenFalse].some((s) => copyText.has(s)));
+for (const c of judgeable) {
+  const cell = (xs: string[]) => (xs.length ? xs.map((s) => JSON.stringify(s)).join(' · ').replace(/\|/g, '\\|') : '—');
+  md.push(`| \`${c.file}:${c.line}\` | \`${c.condition.replace(/\|/g, '\\|')}\` | ${cell(c.whenTrue)} | ${cell(c.whenFalse)} |`);
+}
+md.push('');
 md.push('## Every string, by file');
 md.push('');
 let currentFile = '';
@@ -314,5 +380,6 @@ writeFileSync(
   JSON.stringify({ generated: 'npm run audit:strings', counts: { copy: copy.length, unclassified: unclassified.length, duplicates: duplicates.length }, entries }, null, 2) + '\n',
 );
 
+console.log(`conditional copy (T3): ${judgeable.length} of ${conditionals.length} gates carry copy`);
 console.log(`strings-inventory: ${copy.length} copy · ${unclassified.length} unclassified (${unclassifiedProps.length} props) · ${duplicates.length} cross-file duplicates`);
 console.log(`→ docs/audits/strings-inventory.md`);

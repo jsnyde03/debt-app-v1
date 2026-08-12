@@ -148,7 +148,7 @@ _Built during 4.1's CI waits, not instead of it. Each one turns an expensive rea
 |---|---|---|
 | **T1** | **`npm run audit:strings`** → `docs/audits/strings-inventory.md` — every user-facing string, by file, **plus the cross-file duplicate sweep**. The wording gate's input. | ✅ **DONE 2026-08-12.** 793 copy · 210 cross-file duplicates · 923 unclassified, listed not dropped. Detail + both scans → log |
 | **T2** | **Promote the duplicate sweep to a GATE** — fail `validate:release:rn` on a NEW cross-file duplicate string. Report-only today; 210 existing means it needs a baseline first | open |
-| **T3** | **The proxy-gate sweep, scripted** — find copy asserting an outcome while gated on something that merely correlates. Today's "Add from scan" was exactly this, and two audit passes missed it | open |
+| **T3** | **The proxy-gate sweep** — every ternary that selects between COPY, printed next to the condition that selects it. One question per row: *does the gate establish what the words assert, or merely correlate?* | ✅ **DONE 2026-08-12.** **77 of 179** gates carry copy. ⚡ **Validated by reproducing the defect it was built from** as one row: `DebtSheet.tsx:238 · prefill · "Add from scan" / "Add a debt"`. Folded into T1's script — a second walker would be "two places, one rule". Scans → log |
 | **T4** | **A surface/component inventory** — the cohesion gate's equivalent of T1 | open |
 
 ⚠️ **The 210 duplicates and the 923 unclassified are both work, not noise** — the first is the wording

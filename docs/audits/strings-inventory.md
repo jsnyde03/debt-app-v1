@@ -561,6 +561,95 @@ here is how a surface goes unreviewed while the count looks complete.
 - **"Groceries"** — `apps/rn/src/store/sandboxScenarios.ts:154` · `packages/core/constants/livingExpensePresets.ts:5`
 - **"Childcare"** — `packages/core/constants/livingExpensePresets.ts:30` · `packages/core/constants/requiredExpensePresets.ts:71`
 
+## Copy gated on a condition — is the gate the thing the copy claims?
+
+The audit gate's proxy-gate sweep, as a list. For each row ask one question: **does the
+condition actually establish what the words assert, or does it merely correlate with it?**
+
+The live instance this was built from read exactly like a row here —
+`prefill` → `"Add from scan"` / `"Add a debt"` — where `prefill` had stopped meaning "scanned"
+the moment a second producer was added. Two audit passes and three green web specs missed it.
+
+| file | condition | when true | when false |
+|---|---|---|---|
+| `apps/rn/src/app/(tabs)/money.tsx:478` | `isBnpl` | "/mo" | "/mo" |
+| `apps/rn/src/app/(tabs)/money.tsx:628` | `searching` | — | "one-time" |
+| `apps/rn/src/app/(tabs)/money.tsx:670` | `recurring.length === 0` | — | "reserved per paycheck" |
+| `apps/rn/src/app/(tabs)/money.tsx:893` | `funded` | "Funded" | — |
+| `apps/rn/src/app/(tabs)/progress.tsx:150` | `reached.length` | — | "no milestones reached yet" |
+| `apps/rn/src/app/(tabs)/progress.tsx:151` | `nextT` | — | "all milestones reached" |
+| `apps/rn/src/app/(tabs)/progress.tsx:151` | `nextT === 100` | "debt-free" | — |
+| `apps/rn/src/app/more.tsx:166` | `tipsReset` | "Tips will appear again as you go." | "Re-offer the one-line hints on hidden features." |
+| `apps/rn/src/app/paywall.tsx:168` | `error instanceof Error` | — | "Something went wrong. Please try again." |
+| `apps/rn/src/app/paywall.tsx:190` | `error instanceof Error` | — | "Something went wrong. Please try again." |
+| `apps/rn/src/components/AppLockGate.tsx:37` | `authing` | "Unlocking…" | "Unlock" |
+| `apps/rn/src/components/entities/DebtSheet.tsx:238` | `isEdit` | "Edit debt" | "Add a debt" |
+| `apps/rn/src/components/entities/DebtSheet.tsx:238` | `convertingExpenseId` | "Add a debt" | "Add from scan" · "Add a debt" |
+| `apps/rn/src/components/entities/DebtSheet.tsx:238` | `prefill` | "Add from scan" | "Add a debt" |
+| `apps/rn/src/components/entities/DebtSheet.tsx:240` | `isEdit` | — | "Moving this from Expenses. Add the balance so it counts toward your debt-free date." |
+| `apps/rn/src/components/entities/DebtSheet.tsx:242` | `convertingExpenseId` | "Moving this from Expenses. Add the balance so it counts toward your debt-free date." | "Review the scanned details, then add." · "A loan, credit card, or BNPL balance." |
+| `apps/rn/src/components/entities/DebtSheet.tsx:244` | `prefill` | "Review the scanned details, then add." | "A loan, credit card, or BNPL balance." |
+| `apps/rn/src/components/entities/DebtSheet.tsx:248` | `isEdit` | "Save" | "Add debt" |
+| `apps/rn/src/components/entities/DebtSheet.tsx:295` | `type === 'bnpl'` | "Affirm — Sofa" | "Visa, Car Loan" |
+| `apps/rn/src/components/entities/ExpenseSheet.tsx:98` | `isEdit` | "Edit expense" | "Add an expense" |
+| `apps/rn/src/components/entities/ExpenseSheet.tsx:100` | `isEdit` | "Save" | "Add expense" |
+| `apps/rn/src/components/entities/ExpenseSheet.tsx:106` | `trial` | "Amount now (0 for a free trial)" | "Amount" |
+| `apps/rn/src/components/entities/ExpenseSheet.tsx:106` | `trial` | "e.g. 0" | "e.g. 850" |
+| `apps/rn/src/components/entities/GoalSheet.tsx:57` | `isEdit` | "Edit goal" | "Add a goal" |
+| `apps/rn/src/components/entities/GoalSheet.tsx:59` | `isEdit` | "Save" | "Add goal" |
+| `apps/rn/src/components/entities/LivingExpenseSheet.tsx:46` | `isEdit` | "Edit spending item" | "Add a spending item" |
+| `apps/rn/src/components/entities/LivingExpenseSheet.tsx:48` | `isEdit` | "Save" | "Add item" |
+| `apps/rn/src/components/more/BackupSheets.tsx:40` | `copied` | "Copied ✓" | "Copy to clipboard" |
+| `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:125` | `type === 'debt'` | "Debt name" | "Expense name" |
+| `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:131` | `type === 'debt'` | "e.g. Visa Card" | "e.g. Rent" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:240` | `preMarkAllPaid` | "Undo" | "Mark all paid" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:259` | `row.view.isAutopay` | "Autopay · ran" · "Autopay" | "Required" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:260` | `row.view.presumedPaid` | "Autopay · ran" | "Autopay" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:263` | `row.view.dueDate` | — | "Required" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:269` | `paid` | "Paid" | "Didn't pay" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:406` | `skipped` | "Skipped" | "Paid" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:424` | `hasAdjustedRequired \|\| extrasAdjusted` | "Confirm what I paid" | "I followed the plan" |
+| `apps/rn/src/components/payoff/TrajectoryChart.tsx:288` | `debtFreeDate` | — | "projected balance over time" |
+| `apps/rn/src/components/payoff/TrajectoryChart.tsx:289` | `showMinimums` | "your plan clears faster than minimum payments" | — |
+| `apps/rn/src/components/plan/AffordabilityCard.tsx:222` | `result.verdict === 'tight'` | "Apply anyway" | "Apply to this paycheck" |
+| `apps/rn/src/components/plan/LeanSuggestionCard.tsx:32` | `up` | "Raise your income floor" | "Adjust your income floor" |
+| `apps/rn/src/components/plan/PaydayGuardianCard.tsx:181` | `isExample` | "Example" | — |
+| `apps/rn/src/components/plan/PaydayGuardianCard.tsx:201` | `brief.debtFree` | "To savings" | "To debt" |
+| `apps/rn/src/components/plan/PaydayGuardianCard.tsx:278` | `brief.debtFree` | "To savings" | "To debt" |
+| `apps/rn/src/components/plan/PaydayGuardianCard.tsx:358` | `topUp.isEmergencyFund` | "your emergency fund" | — |
+| `apps/rn/src/components/plan/PaydayGuardianCard.tsx:398` | `attestation?.attested` | "Undoes the confirmation and restores the full safety net" | "Tells your Guardian your bills are all entered, so it holds less back" |
+| `apps/rn/src/components/plan/PlanHero.tsx:119` | `onEditPaycheck` | "Edit paycheck" | — |
+| `apps/rn/src/components/plan/PlanHero.tsx:177` | `windfall > 0` | — | "Add extra income" |
+| `apps/rn/src/components/plan/PlanHero.tsx:181` | `windfall > 0` | — | "Add extra income" |
+| `apps/rn/src/components/plan/RequiredActionsCard.tsx:216` | `paid` | "Undo, mark unpaid" | "Mark paid" |
+| `apps/rn/src/components/plan/RequiredActionsCard.tsx:219` | `paid` | "Undo" | "Paid" |
+| `apps/rn/src/components/plan/ShareCard.tsx:51` | `data.amount != null` | — | "Paid off" |
+| `apps/rn/src/components/plan/TutorialOverlay.tsx:344` | `isLast` | "Finish" | "Next" |
+| `apps/rn/src/components/plan/WindfallSheet.tsx:79` | `isPremium && hasSplit` | "Confirm" | "Add" |
+| `apps/rn/src/components/progress/CashFlowSection.tsx:27` | `dark` | "#fda4af" · "#fb7185" · "rgba(251,113,133,0.5)" · "#fb7185" | "#f87171" · "#dc2626" · "rgba(220,38,38,0.38)" · "#dc2626" |
+| `apps/rn/src/components/progress/CashFlowSection.tsx:32` | `dark` | "#fcd34d" · "#f59e0b" · "rgba(251,191,36,0.45)" · "#fbbf24" | "#f59e0b" · "#d97706" · "rgba(217,119,6,0.34)" · "#b45309" |
+| `apps/rn/src/components/progress/CashFlowSection.tsx:36` | `dark` | "#5b6b86" · "#3f4d68" · "#a6b9d4" | "#aab6c9" · "#8b99b0" · "#5a6b82" |
+| `apps/rn/src/components/progress/VanquishedArchive.tsx:60` | `d.amount != null` | — | "Cleared" |
+| `apps/rn/src/components/progress/VanquishedArchive.tsx:65` | `d.amount != null` | — | "Cleared" |
+| `apps/rn/src/components/ui/ListRow.tsx:76` | `onPress` | "Opens the editor" | — |
+| `apps/rn/src/components/ui/ListRow.tsx:151` | `onLogPayment` | "Log payment" · "dollarsign.circle" | — |
+| `apps/rn/src/components/ui/ListRow.tsx:152` | `onViewSchedule` | "Payoff schedule" | — |
+| `apps/rn/src/components/ui/ListRow.tsx:153` | `onPress` | "Edit" | — |
+| `apps/rn/src/store/planSelectors.ts:276` | `store.debts.length > 0` | "debt-free" | "no-debts" |
+| `packages/core/guardian/buildGuardianBrief.ts:246` | `debtFree` | — | "bills and minimums" |
+| `packages/core/guardian/buildGuardianBrief.ts:247` | `isPremium` | "— this one needs a plan." | — |
+| `packages/core/guardian/buildGuardianBrief.ts:263` | `state === "clear"` | "Looks clear this paycheck" | "A little tight this paycheck" · "Tight this paycheck" |
+| `packages/core/guardian/buildGuardianBrief.ts:263` | `state === "tight"` | "A little tight this paycheck" | "Tight this paycheck" |
+| `packages/core/guardian/buildGuardianBrief.ts:264` | `state === "clear"` | — | "— a bit tight this one, so keep an eye on the essentials." |
+| `packages/core/guardian/buildGuardianBrief.ts:278` | `state === "at-risk"` | "Very tight this paycheck" | "A little tight this paycheck" |
+| `packages/core/guardian/buildGuardianBrief.ts:283` | `state === "at-risk"` | — | "a little under" |
+| `packages/core/guardian/buildGuardianBrief.ts:323` | `debtFree` | "to your goals" | "to debt" |
+| `packages/core/guardian/buildGuardianBrief.ts:346` | `input.deployTradeoff && !debtFree` | "your debts" · "your emergency fund" | — |
+| `packages/core/insights/buildSmartInsights.ts:57` | `amountToHold > 0` | — | "Run minimum-only until the next paycheck if any new expenses appear." |
+| `packages/core/insights/buildSmartInsights.ts:95` | `projectedBuffer < 200` | "Focus on restoring cushion first, then target this payoff opportunity once cash pressure improves." | "Make this payment after handling required bills and minimums to immediately free up that monthly minimum." |
+| `packages/core/insights/buildSmartInsights.ts:97` | `canFullyCover` | "Make this payment after handling required bills and minimums to immediately free up that monthly minimum." | — |
+| `packages/core/insights/buildSmartInsights.ts:110` | `highestAprDebt` | — | "Prioritize the highest APR debt first to reduce long-term interest cost." |
+
 ## Every string, by file
 
 

@@ -6194,3 +6194,34 @@ component, and invisible to any JSX-only scan.
 ⚠️ **Deliberate:** the generated `.md`/`.json` are **committed**, so a copy change shows up as a readable
 diff in review. Exclusions are printed in the report rather than applied silently — "not copy" is a claim
 that can be challenged, not an absence nobody can see.
+
+## Audit tooling T3 — the proxy-gate sweep ( [D31] ) (2026-08-12)
+
+### Before-scan
+
+- **Is the premise real?** Measured before building: **164 copy-bearing ternaries** in `apps/rn/src`
+  alone, and the samples are exactly the shape — `tipsReset ? … : …`,
+  `isEdit ? … : convertingExpenseId ? … : prefill ? …`. Not a hypothetical pattern.
+- **Can a script judge it?** ⛔ **No, and pretending otherwise would be the trap.** "Is this gate a proxy"
+  is a semantic question about what the words *claim*. What a script can do is put the condition next to
+  the copy it selects, turning *"read 400 files and notice"* into *"read 77 rows and ask one question"* —
+  which is [D31]'s pattern exactly: **the script extracts, the expensive reader judges a short list.**
+- **New script or extend T1?** ⚡ **Extend.** Same walker, same file set, and it needs T1's copy
+  classification to tell a word from an id. A second script would re-derive both — the "two places, one
+  rule" shape that hit three times in Wave A.
+- **Existing tooling?** None of the four `scripts/check-*.ts` covers conditionals.
+
+### After-scan
+
+- ⚡ **Validated by reproducing the defect it was built from.** The row
+  `DebtSheet.tsx:238 · prefill · "Add from scan" / "Add a debt"` is the 2026-08-12 live defect, as one
+  line. An instrument that cannot re-find the thing that motivated it is not evidence of anything.
+- **Nested chains decompose for free.** Branch collection stops at the next ternary, so
+  `isEdit ? … : convertingExpenseId ? … : prefill ? …` yields **three** judgeable pairs rather than one
+  unreadable blob. That mattered more than expected — the defect lived in the *third* link of a chain.
+- ⚡ **The copy/machinery filter reuses T1's classification rather than inventing a second heuristic**
+  (`102 of 179` gates dropped as machinery — ternaries over `"reserve-release"`, `"en-US"`). Had this
+  grown its own idea of "word vs id", the two would have drifted, which is the defect class the sweep
+  exists to find.
+- ⚠️ **Surfaced, not fixed:** the 77 rows have not been *judged* yet. The instrument is built; running it
+  is the wording gate's work, and it is now a short read rather than a fan-out.
