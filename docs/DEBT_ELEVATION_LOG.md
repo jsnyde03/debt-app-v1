@@ -6951,3 +6951,71 @@ conflated. Now `!cancelled() && …`.
 diagnoses is still broken.** Both misses assumed a green run — one asserted a bottom-of-screen element as
 if the flow would arrive there anyway, the other scheduled the iPad tier behind a step that was expected
 to fail. The probe design was right; its delivery assumed success.
+
+## W2 — the classification pass (2026-08-12)
+
+W1 asked *"which duplicates are copy?"*; this asks *"which of the 946 unclassified are copy at all?"* —
+because the `copy` bucket **is** the wording gate's scope claim, and a claim nobody has checked is not one.
+
+### Before-scan — the gap was not cosmetic, it had already cost W1
+
+⭐ **The classification gap made W1's triage structurally incomplete, and this is measured.**
+`key:periodLabel` sat in `unclassified`, so `paywall.tsx:59/75`'s **`"one time"`** never reached the
+duplicate list W1 worked from — on the very day W1 settled the `one-time` spelling. *(Different context:
+"$79.99 one time" is price prose, not the recurrence option label, so it is a wording-gate judgement
+rather than an obvious defect. The structural point stands and is the item's whole justification.)*
+
+⚠️ **Guardian first-person voice was unclassified.** `"Payment logged — I updated your balance."` and
+`"Payday landed — I rolled your plan forward to this paycheck."` sat in `other`. The house-voice rule —
+*the Guardian is the sole first-person "I"* — is the single thing the wording gate exists to check, and
+its input could not see the Guardian speaking.
+
+**Measured before building** (not estimated): 946 unclassified across 307 origins · `other` alone was 318,
+of which 253 were identifier-shaped · 444 identifier-shaped overall · 79 hex literals, 6 already in `copy`.
+
+### What was built
+
+- **W2.1 — value-shaped exclusions.** Lowercase kebab/snake tokens and hex/`rgba()` are never copy. Case
+  is the discriminator and it is load-bearing: `one-time` is the enum, **"One-time"** is what a user reads.
+- **W2.2 — `jsx-expr` → copy.** A literal inside a JSX expression container is rendered text. Ordering is
+  what keeps it safe rather than a flood: technical props resolve to `key:justifyContent` etc. above it, so
+  only a literal with *no* named context at all falls that far.
+- **W2.3 — eleven origins promoted**, each read at its site first, never by which prop name sounds copy-ish.
+
+### ⛔ W2.4 — the verification caught two false negatives in my own rule
+
+**`copy → anything else: 0`**, and 13 entries left the report while classified copy — 6 chart tones, two
+`RECURRENCE_LABEL['one-time']` index keys *(which exist only because W1's extraction created them)*, and
+the `PlanState`/`GuardianState` values. All correct. But the diff also found two the counts hid:
+
+1. **A literal interpolated into a template is prose.** `` `next milestone ${nextT === 100 ? 'debt-free' :
+   …}` `` is a VoiceOver label (`progress.tsx:151`), while `'debt-free'` two files away is a `PlanState`
+   value. Shape cannot tell them apart; position can.
+2. **JSX text is split around every `{}` interpolation**, so *"Plus $X in N one-time bills — not part of
+   your ongoing reserve"* yields the bare fragment `one-time` — identical to the enum by shape, plainly
+   prose by position. Found only on a second reading of the drop list, after fixing (1).
+
+⚡ **The principle both share, and it is the transferable one: context, not shape.** It is the same rule
+`jsx-expr` is built on. And the method matters more than the rule — **a count moving is not evidence a
+rule is right.** Reading all 13 drops and all 99 promotions is what turned two silent losses into two
+exemptions.
+
+**Result: unclassified 946 → 346 · copy 740 → 826 · T3 gates 77/184 → 90/139 · copy duplicates 83 → 75.**
+T2 baseline unchanged at 5, zero fresh gate findings — the promotions introduced no new ≥20-char
+cross-file duplicate.
+
+### After-scan
+
+- ⚠️ **`EXAMPLE_MONEY` already exists as an exported constant, and three sites bypass it.**
+  `ExampleCanvasMarker.tsx:14` owns the phrase; `TutorialOverlay.tsx:320`, `DemoDock.tsx:57` and
+  `tutorialPath.ts:242` write the literal. ⚡ **The single authority was already created and the copies
+  were written anyway** — a sharper version of "two places, one rule". **Filed, not folded:** the clean fix
+  moves the constant to an RN-free module, because `tutorialPath.ts` is run by the `tsx` app-layer runner
+  and cannot import a component. That is a layering change, not cheap adjacent polish, and all four sites
+  agree today. → the wording gate.
+- ⚠️ **`"PayPal"` reads as a duplicate and is not one** — `DebtSheet`'s BNPL provider label vs
+  `parseStatementText`'s OCR matcher token. The `copy+unclassified` bucket tag is what makes that
+  judgeable at a glance, which is why W1.1 added it.
+- ⚡ **346 unclassified remain, and they are now the honest number.** The next pass has a much better
+  starting point than 946, and nothing was dropped silently — every exclusion is a rule stated in the
+  script and printed in the report.

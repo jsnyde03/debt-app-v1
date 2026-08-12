@@ -167,41 +167,55 @@ are not copy at all** (`space-between`, `decimal-pad`, `chevron-right`, `/paywal
 `:389` already states the rule it breaks (*"reuses one classification instead of inventing a second
 heuristic"*). The 928 unclassified still stand as a classification pass.
 
-## ▶ INTERIM BUILD — W1 · the duplicate-copy triage _(while 4.1.4c's run `31626109780` is in flight)_
+✅ **W1 — the duplicate-copy triage. CLOSED 2026-08-12.** Report scoped to copy (110 of 210) · triaged
+→ [`2026-08-12-duplicate-copy-triage.md`](audits/2026-08-12-duplicate-copy-triage.md) · 🎯 all four
+clusters extracted into `paycheckForm.ts` + `obligationForm.ts`. Fixed a **shipped** defect (`one-time`
+had two user-facing spellings). Copy dups **110 → 83**, copy sites **794 → 740**, T2 baseline **11 → 5**.
+Detail + both scans → log.
+
+## ▶ INTERIM BUILD — W2 · the classification pass _(while 4.1.4c′'s run `31630150499` is in flight)_
+
+_The same lens as W1, pointed the other way: W1 asked "which duplicates are copy?", this asks "which of
+the 946 unclassified are copy at all?" — because the `copy` bucket **is** the wording gate's scope claim._
 
 | # | Step | State |
 |---|---|---|
-| **W1.1** | Scope T1's duplicate section to copy-bearing duplicates + annotate buckets | ✅ **DONE 2026-08-12** — 110 of 210. T2's gate deliberately untouched (11 baselined, still green) |
-| **W1.2** | Triage the 110 → [`2026-08-12-duplicate-copy-triage.md`](audits/2026-08-12-duplicate-copy-triage.md) | ✅ **DONE 2026-08-12.** 4 extract-clusters · 3 leave-groups · 11 to the gate. ⭐ **Found a live defect** *(cluster 2)* |
-| **W1.3** | **[DECISION]** which extractions fold into v1.7 | ✅ **ALL FOUR CLUSTERS, 2026-08-12 (🎯 Jason).** `one-time` standardised on **"One-time"**; the choice itself is flagged to the wording gate |
-| **W1.4** | Execute the extractions, re-run the gate | ✅ **DONE 2026-08-12.** Two authorities — `paycheckForm.ts` · `obligationForm.ts`. Copy duplicates **110 → 83**, copy sites **794 → 740**, T2 baseline **11 → 5**. Gate 167/167 |
+| **W2.1** | Value-shaped non-copy rules — identifier tokens + hex/`rgba()` | ✅ **DONE 2026-08-12.** 711 non-copy entries dropped from review |
+| **W2.2** | `jsx-expr` → copy — a literal in a JSX expression container is rendered text | ✅ **DONE 2026-08-12** |
+| **W2.3** | Promote the copy-bearing origins measurement found (11 of them) | ✅ **DONE 2026-08-12** |
+| **W2.4** | **Verify by diffing the bucket changes, both directions** | ✅ **DONE 2026-08-12.** ⛔ **It caught TWO false negatives in my own rule** — see below. `copy → anything else: 0` |
+| **W2.5** | Re-triage what became visible, refresh baseline, gate | ✅ **DONE 2026-08-12.** 2 newly-visible dups · baseline unchanged at 5 · 0 fresh gate findings |
 
-⭐ **[W1.2] A SHIPPED wording defect, not a latent duplicate — `one-time` has two user-facing spellings.**
-A user sets a bill to **"One time"** (`ExpenseSheet.tsx:19`) and Money files it under a heading called
-**"One-time"** (`money.tsx:631`, matching `DebtSheet.tsx:46`). One object, two spellings, one screen apart.
+**Result: unclassified 946 → 346 · copy 740 → 826 · T3 gates 77/184 → 90/139.** Every exclusion is a
+stated rule; every promotion was read at its site.
 
-⚠️ **[W1.2] T1 over-reports the `copy` bucket two ways** — `key:label` when the value is a **hex chart
-tone** (`CashFlowSection.tsx:28`, 6 colours) and `return` when the function returns an **enum union**
-(`computeState.ts:33/49/54`). Matters because 794 "copy" is the wording gate's scope claim → folds into
-the 928-unclassified classification pass, which is the same lens pointed the other way.
+⛔ **[W2.4] The diff caught two false negatives the counts hid — "context, not shape".** ① a literal
+interpolated into a template is prose: `` `next milestone ${… ? 'debt-free' : …}` `` is a VoiceOver label
+(`progress.tsx:151`) while `'debt-free'` two files away is a `PlanState` value. ② **JSX text is split
+around every `{}`**, so *"Plus $X in N **one-time** bills — not part of your ongoing reserve"* yields the
+bare fragment `one-time`, identical in shape to the enum and plainly prose by position. Both exempted.
+⚡ **A count moving is not evidence a rule is right** — only reading what moved is.
 
-⚡ **[W1.4 after-scan] The SHRINKING BASELINE is what caught my own misses.** Regenerating T2's baseline
-after the extraction left 4 stale entries and 0 fresh — and two of them were strings I thought I had
-de-duplicated: a **fifth** site for *"Enter an amount greater than 0."* (`WindfallSheet.tsx:61`, absent
-from my triage list) and the lean-floor footnote still written twice. ⚡ **A gate whose baseline only ever
-grows cannot do this.** Both fixed; baseline now 5, and every survivor is something the triage
-deliberately left.
+⚠️ **[W2.5 after-scan] `EXAMPLE_MONEY` already exists as an exported constant and THREE sites bypass it**
+(`ExampleCanvasMarker.tsx:14` owns it; `TutorialOverlay.tsx:320`, `DemoDock.tsx:57` and
+`tutorialPath.ts:242` write the literal). Newly visible only because W2 promoted `jsx-expr`. **Filed, not
+folded:** the clean fix moves the constant to an RN-free module — `tutorialPath.ts` is run by the `tsx`
+app-layer runner and cannot import a component — which is a layering change, not cheap polish. All four
+agree today, so it is hygiene → **the wording gate**.
 
-⚠️ **[W1.4 after-scan] A SECOND live divergence, kept on purpose and now stated** — the identical
-"no amount entered" condition reads *"Enter your paycheck amount **to continue**."* in onboarding and
-*"Enter your paycheck amount."* in the sheet. Defensible (a step in a flow may say "to continue"), so it
-stays per-host with the reason written down → confirm at the wording gate.
+⭐ **[W2 before-scan] The classification gap made W1's triage STRUCTURALLY incomplete — measured, not
+supposed.** `key:periodLabel` is unclassified, so `paywall.tsx:59/75`'s **`"one time"`** never reached the
+duplicate list W1 worked from. *(Different context — "$79.99 one time" is price prose, not the recurrence
+option label — so it is a **wording-gate judgement**, not an obvious defect. The structural point stands:
+real user-facing copy was invisible to the gate's input.)*
 
-⚠️ **[W1.4 after-scan] The repo is CRLF, and multi-line codemods must normalise.** My first rewrite pass
-silently matched nothing on every multi-line pattern while single-line ones succeeded — a partial edit that
-typechecked. Normalise to LF, replace, restore. → working notes.
+⚠️ **[W2 before-scan] Guardian first-person voice is currently unclassified** — `"Payment logged — I
+updated your balance."` and `"Payday landed — I rolled your plan forward…"` sit in `other`. The house-voice
+rule (*the Guardian is the sole first-person "I"*) is exactly what the wording gate checks, and its input
+cannot see them.
 
-**Exit:** ✅ the wording gate opens on a filtered, triaged list instead of a raw 210.
+**Exit:** the `copy` bucket is a defensible scope claim — every exclusion a stated rule, every promotion
+verified against the rendered site.
 
 ## Audit gate — whole-app _(after 3.7, before Phase 5)_
 

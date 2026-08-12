@@ -41,6 +41,18 @@ const COPY_ORIGINS = new Set([
   'key:label', 'key:title', 'key:body', 'key:subtitle', 'key:heading', 'key:message', 'key:caption',
   'key:hint', 'key:description', 'key:cta', 'key:empty', 'key:note',
   'call:setError', 'return', 'key:detail', 'key:action', 'call:groupLabel', 'key:summary', 'key:headline',
+  // W2 — promoted after MEASURING what was sitting in `unclassified`, not by guessing which props sound
+  // copy-ish. Each was read at its site before being listed:
+  //   `key:periodLabel`  paywall "per year" / "one time" / "per month" — and this one is why W1's triage
+  //                      was structurally incomplete: unclassified strings never reach the duplicate list.
+  //   `key:badge`        "Best value" · "Pay once"        `key:subnote`   "Billed yearly · just $2.50/mo"
+  //   `key:meta`         "· Variable" · "Emergency fund"  `key:text`      the premium feature lines
+  //   `key:beat`         the demo's narration            `key:safeMove`  Guardian instructions
+  //   `key:countdownLabel` "in 2 days" / "Tomorrow"       `key:sublabel`  "e.g. 1st & 15th"
+  //   `var:ISSUERS`      "American Express" — a user-facing picker, not an enum
+  //   `var:AUTO_RENEW_DISCLOSURE` the App-Store-required subscription legal text
+  'jsx-expr', 'key:periodLabel', 'key:badge', 'key:subnote', 'key:meta', 'key:text', 'key:beat',
+  'key:safeMove', 'key:countdownLabel', 'key:sublabel', 'var:ISSUERS', 'var:AUTO_RENEW_DISCLOSURE',
 ]);
 
 const COPY_PROPS = new Set([
@@ -134,6 +146,60 @@ function literalsIn(node: ts.Node): ts.Node[] {
   return found;
 }
 
+/**
+ * W2 — a value that is an IDENTIFIER, not a sentence. Two shapes, both measured before being written:
+ *
+ *  - **kebab / snake tokens, all lowercase** — `at-risk`, `autopay_expense`, `space-between`,
+ *    `decimal-pad`, `chevron-right`, `debt-row-actions`. **444 of the 946 unclassified**, and the reason
+ *    the copy bucket had `return "at-risk"` in it: `return` is a legitimate copy origin ("Today",
+ *    "a while ago") and the enum values ride in on it.
+ *  - **hex and `rgba()` colours** — 79 of them, six of which had reached `copy` because
+ *    `CashFlowSection`'s `barTone()` returns `{ grad, glow, label }` and `label` holds a chart tone.
+ *
+ * ⚠️ **Case is the whole discriminator, and it is load-bearing.** `one-time` is the enum value;
+ * `"One-time"` is the label a user reads. `at-risk` is a `GuardianState`; a capitalised or spaced variant
+ * would not match here. Verified against the bucket diff at W2.4 rather than asserted — every string this
+ * moved out of `copy` was read.
+ */
+function isIdentifierValue(t: string): boolean {
+  if (/^#[0-9a-fA-F]{3,8}$/.test(t)) return true;
+  if (/^rgba?\([\d\s.,%]+\)$/.test(t)) return true;
+  return /^[a-z][a-z0-9]*([-_][a-z0-9]+)+$/.test(t);
+}
+
+/**
+ * ⛔ **The identifier rule needs ONE exemption, and the bucket diff is what found it.** A literal
+ * interpolated into a template is part of a sentence, whatever it looks like on its own:
+ * `` `next milestone ${nextT === 100 ? 'debt-free' : `${nextT}%`}` `` is a VoiceOver label
+ * (`progress.tsx:151`), and the shape rule had silently dropped it while correctly dropping the
+ * `PlanState` enum value `'debt-free'` two files away.
+ *
+ * ⚡ So the discriminator is **context, not shape** — the same principle as `jsx-expr` above. `return
+ * "at-risk"` is the whole value and is machinery; a token spliced into prose is prose. Verified by
+ * reading every string the rule moved in both directions, which is the only reason this is here: a
+ * count moving is not evidence a rule is right.
+ */
+function insideTemplate(node: ts.Node): boolean {
+  for (let n: ts.Node | undefined = node.parent, hops = 0; n && hops < 5; hops++, n = n.parent) {
+    if (ts.isTemplateExpression(n) || ts.isTemplateSpan(n)) return true;
+  }
+  return false;
+}
+
+/**
+ * A value that is an identifier AND is not spliced into rendered prose.
+ *
+ * ⚠️ `jsx-text` is exempt for the SAME reason templates are, and it took a second pass to see it: JSX
+ * text is split around every `{}` interpolation, so
+ * `Plus {total} in {n} one-time {n === 1 ? 'bill' : 'bills'} — not part of your ongoing reserve.`
+ * yields the bare fragment `one-time`, which is indistinguishable from the enum by shape and is plainly
+ * prose by position. **Text between tags is rendered text; nothing about its shape can override that.**
+ */
+function isNonCopyValue(text: string, node: ts.Node, origin?: string): boolean {
+  if (origin === 'jsx-text') return false;
+  return isIdentifierValue(text.trim()) && !insideTemplate(node);
+}
+
 /** Punctuation, single glyphs and format fragments are not copy to review. */
 function isReviewable(s: string): boolean {
   const t = s.trim();
@@ -168,6 +234,18 @@ function originOf(node: ts.Node, sf: ts.SourceFile): string {
     if (ts.isCallExpression(n)) return `call:${n.expression.getText(sf).split('.').slice(-2).join('.')}`;
     if (ts.isPropertyDeclaration(n) || ts.isFunctionDeclaration(n)) break;
   }
+  // W2 — LAST RESORT, and only once every named context above has failed: a literal sitting inside a JSX
+  // expression container is text the user reads. `{onboarded ? "You're all set" : 'Your plan is ready…'}`
+  // has no property, variable or call to name it, so it landed in `other` — together with the Guardian's
+  // "Payment logged — I updated your balance." **The house-voice rule is the one thing the wording gate
+  // exists to check, and its input could not see the Guardian's own first person.**
+  //
+  // ⚠️ Ordering is what makes this safe rather than a flood. Technical props are skipped by rule ② and
+  // reach the sweep, but their literals resolve to `key:justifyContent` / `key:fontFamily` above and
+  // never get here; only a literal with NO named context at all falls this far.
+  for (let n: ts.Node | undefined = p, hops = 0; n && hops < 4; hops++, n = n.parent) {
+    if (ts.isJsxExpression(n)) return 'jsx-expr';
+  }
   return 'other';
 }
 
@@ -198,7 +276,13 @@ function branchLiterals(node: ts.Node): string[] {
   const visit = (n: ts.Node) => {
     if (ts.isJsxElement(n) || ts.isJsxSelfClosingElement(n) || ts.isJsxFragment(n)) return;
     if (ts.isConditionalExpression(n) && n !== node) return;
-    if ((ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) && isReviewable(n.text)) out.push(n.text.trim());
+    if (
+      (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) &&
+      isReviewable(n.text) &&
+      // T3 asks "does this gate establish what the copy claims?" — a branch that selects an ENUM is not
+      // a copy decision, so the same rule applies here or the table fills with `'at-risk' / 'tight'`.
+      !isNonCopyValue(n.text, n)
+    ) out.push(n.text.trim());
     ts.forEachChild(n, visit);
   };
   visit(node);
@@ -218,7 +302,9 @@ for (const root of ROOTS) {
     const captured: number[] = [];
     const push = (text: string, node: ts.Node, origin: string, bucket: Entry['bucket']) => {
       captured.push(node.getStart(sf));
-      if (isReviewable(text)) entries.push({ text: text.trim(), file: rel, line: lineOf(node), origin, bucket });
+      if (isReviewable(text) && !isNonCopyValue(text, node, origin)) {
+        entries.push({ text: text.trim(), file: rel, line: lineOf(node), origin, bucket });
+      }
     };
 
     const visit = (node: ts.Node) => {
