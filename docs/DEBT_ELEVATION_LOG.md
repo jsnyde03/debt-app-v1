@@ -6668,3 +6668,26 @@ working, stop asking why the fix failed and check whether the premise is true.**
 ⚠️ Its sibling: **a documented mechanism is not a measured one.** "Maestro matches contains" was written
 into three files as proven, from a single observation that had a second explanation. The codebase already
 used `.*` wrappers — the convention was right there and I read past it.
+
+### Run `31621553581` — the coach-mark fix is REFUTED (2026-08-12, after close)
+
+**7/8, still red at `.*Press and hold a debt.*`.** The subscription-race mechanism is **eliminated**.
+
+⚡ **This is the cleanest negative result of the session, and only because the meaning of a red was
+written down BEFORE the run:** *"the subscription race is eliminated as a cause, and the remaining suspect
+is `CoachMarkLayer:68`."* No story had to be invented after the fact to accommodate it — which is exactly
+what went wrong four times earlier today.
+
+**The replay change stays.** It is correct independently — a subscriber that arrives after an event should
+still learn about it — and 167/167 says it costs nothing. It simply was not *this* defect.
+
+▶ **Next session starts here, with the suspect already located rather than rediscovered:**
+`CoachMarkLayer.tsx:68` returns null when `targets.measure()` resolves null, while `coachMarks.ts:92`
+records the mark as offered **before** the layer ever tries to draw. A mark would therefore **burn itself
+without rendering** — which fits every observation, including why no amount of resetting helped and why
+the fresh-install screenshot showed nothing. First check: whether `measure()` succeeds for a **list row**
+(`tutorialTargets.tsx:88` bails when the node lacks `measureInWindow`, and its timeout path also resolves
+null).
+
+⚠️ **Five mechanisms asserted here, four refuted. PROBE IT, DO NOT REASON AT IT** — a targeted probe flow
+or an app-layer test, not a sixth confident explanation.
