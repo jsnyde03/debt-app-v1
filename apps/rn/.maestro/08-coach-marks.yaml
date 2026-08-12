@@ -20,6 +20,12 @@
 #
 # Depends on 07 having run: it leaves a real portfolio (a Visa Test debt, Rent, a converted Mortgage), and
 # `money.tsx:259` gates the row-actions mark on a non-empty debts list.
+#
+# ⛔ AND ON 07'S `clearState` SPECIFICALLY, which is the half that was never written down. Coach marks are
+# offered ONCE EVER, so by the time flows 02-06 have walked Money and the tutorial, the marks this file
+# asserts have already been consumed — 07's clear is what resets them. On run 31598337615 the directory
+# argument put 08 BEFORE 07 and this flow failed at its first assertion for exactly that reason. The
+# order is now explicit in `native-e2e.yml`; do not reorder these two.
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:

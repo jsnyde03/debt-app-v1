@@ -11,7 +11,7 @@
 # has genuine UIKit presentation semantics: EDIT an existing debt → tap the schedule entry → the schedule
 # screen is actually VISIBLE, and the edit sheet is gone rather than covering it.
 #
-# Depends on 01 having run first (Maestro runs flows in filename order → the demo data persists).
+# Depends on 01 having run first (the ORDER IS EXPLICIT in native-e2e.yml — Maestro does NOT sort a directory argument; measured 2026-08-12).
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:

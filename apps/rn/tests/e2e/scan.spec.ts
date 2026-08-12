@@ -24,7 +24,13 @@ test('scan a statement opens the debt sheet prefilled with the parsed values', a
   await expect(page.getByText('Add from scan')).toBeVisible();
   await expect(page.getByText('Review the scanned details, then add.')).toBeVisible();
 
-  // "Add from scan" mode + its subtitle are reachable ONLY through the scan→parse→prefill path, so the
+  // "Add from scan" mode + its subtitle are reachable only through the scan→parse→prefill path, so the
   // two assertions above prove the wiring end-to-end; the parser's exact field extraction is covered by
   // its 18 unit tests + the both-theme screenshots (Chase / 2431.09 / 56 / 24.99 populate the fields).
+  //
+  // ⛔ THAT CLAIM WAS FALSE FOR TWO DAYS AND THIS TEST STAYED GREEN THROUGHOUT. 3.7.A10's "Move to Debts"
+  // became a second producer of `prefill`, and because `DebtSheet` keyed the scan copy on `prefill`
+  // alone, the reclassify path ALSO reached this mode — telling users they were reviewing scanned
+  // details they never scanned. A green assertion on the correct path says nothing about who else can
+  // reach it. Re-earned 2026-08-12: the copy is now gated on `convertingExpenseId`, not on `prefill`.
 });

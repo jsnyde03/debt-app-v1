@@ -5978,3 +5978,71 @@ cache by definition cannot.
 - ⚡ **The npm install (1m13s) and Maestro install (1m29s) still run on a cache hit.** npm has to: the
   typecheck fail-fast needs `node_modules`, and that gate is worth keeping. `~/.maestro` is cacheable and
   is the next ~1m30s if turnaround still matters after this. → filed as tooling, not promoted.
+
+## 4.1.3 VERIFIED, 4.1.3b, and the lane's first real find (2026-08-12 · run `31598337615`)
+
+**0/8 → 5/8, and flow 01 is green** — the seed the whole suite runs on. Both 4.1.3 fixes are confirmed by
+the thing they were aimed at: the swipe reached the covered fields, the 180 s wait held, and every
+anchored write-verification passed.
+
+⚡ **The half I deliberately left unmeasured came back negative, which is the point.** Flow 01's
+`^Store Card$` / `^Car Loan$` assertions inside `FormSheet` **passed** — the modal sheet does *not* share
+the onboarding step's covered-field defect. Asserting rather than patching on a resemblance was right: a
+speculative swipe there would have been a fix with no defect under it.
+
+### ⚡ The find — "Move to Debts" told users it had scanned something
+
+Flow 07 walked to command **72** (from 26) and failed asserting `"Add a debt"`. It was not a test bug. The
+screenshot shows the debt form, correctly prefilled from the Mortgage expense, headed **"Add from scan"**
+and subtitled *"Review the scanned details, then add."* Nothing was scanned. The user tapped a hint saying
+their expense looked like a debt.
+
+**Mechanism, exactly:** `DebtSheet.tsx:222` keyed that copy on **`prefill` being truthy**. True by accident
+— `prefill` had one producer, §2.8's scanner (`money.tsx:304`). **3.7.A10 added a second**
+(`money.tsx:246`, the mis-file rescue) and the reclassify path inherited the scanner's words.
+
+⛔ **This is the audit gate's proxy-gate shape, found in the wild:** copy asserting an **outcome**
+("scanned details") gated on something that merely **correlated** with it. The fix needed no new prop —
+`convertingExpenseId` was already passed and already drives `convertExpenseToDebt`. **The sheet knew; the
+copy never asked.**
+
+**Two stale claims travelled with it**, both the "docs that disagree with adjacent code manufacture
+defects" class:
+- `scan.spec.ts:27`: *"'Add from scan' mode + its subtitle are reachable **ONLY** through the
+  scan→parse→prefill path."* **False since A10 — and the test stayed green the whole time.** ⚡ A green
+  assertion on the correct path says nothing about who *else* can reach it.
+- `DebtSheet.tsx:62`'s docblock still described `prefill` as scan-only. Both corrected.
+
+**Regression guard put on the FAST lane, not the 30-minute one.** `misfiled-expense.spec.ts` covered the
+conversion's **data** and never its **words** — which is how this shipped invisibly. It now asserts the
+scan copy is **absent**; the negative is the load-bearing half, since the positive would still pass if the
+scan copy came back alongside it. **Gate 167/167, tsc clean both trees.**
+
+⚠️ The convert strings are **placeholders** → the wording/voice gate, per [D26]'s mechanism/strings split.
+
+### 4.1.3b — the suite's order was never guaranteed
+
+Measured from each flow's own start timestamp: `01 → 05 → 02 → 06 → 03 → 08 → 07 → 04`. Not filename
+order. Maestro's docs **specify no ordering for a directory argument**, so the suite was depending on
+unspecified behaviour, and four flow headers asserted *"Maestro runs flows in filename order"* as fact.
+
+Both remaining failures are that, and nothing else:
+- **04** ran **after** 07's `clearState: true` wiped the seed it asserts → no "Store Card".
+- **08** ran **before** the same clear. Coach marks are offered **once ever**, so 02–06 had already
+  consumed them; **07's clear is what resets the flags 08 needs.** That half was never written down.
+
+⚡ **So every green this suite ever showed was order-luck.** Fixed by listing the eight flows explicitly in
+`native-e2e.yml`; the four stale header claims are corrected in place.
+
+⚠️ **ONE invocation, not a loop of eight** — the 42.7 s stall is a *first-snapshot-per-driver-session*
+cost, so per-flow invocations would restart the driver and re-pay it every time, turning one flake into
+eight. The trade is that Maestro documents no ordering guarantee for a multi-path argument either; the
+artifact's start times are the check, and the workflow says so rather than assuming.
+
+### After-scan
+
+- ⚡ **The lane has now paid for itself.** It was promoted to carry 68 of 127 device checks; before running
+  a single one of them to completion it found a user-facing honesty defect that **three green web specs and
+  two audit passes did not**, because the defect was on a path they exercised for data and not for words.
+- ⚠️ **`app-preview.yml` builds the same app and has neither the `.app` cache nor this ordering fix** →
+  already filed with the composite-action extraction.

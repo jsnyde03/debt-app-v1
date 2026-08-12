@@ -29,7 +29,7 @@
 # background/foreground cycle, the scripted story) lives in `06-tutorial-interactions.yaml`, where a
 # parse failure costs that flow alone and leaves these screenshots intact.
 #
-# Depends on 01 having run first (Maestro runs flows in filename order → the demo data persists), exactly
+# Depends on 01 having run first (the ORDER IS EXPLICIT in native-e2e.yml — Maestro does NOT sort a directory argument; measured 2026-08-12), exactly
 # like flows 02–04. The demo user is not premium, so this exercises the FREE run — which is the more
 # valuable one: its finale is the conversion-honesty beat, and [D9] means all seven beats render
 # identically for both audiences anyway.

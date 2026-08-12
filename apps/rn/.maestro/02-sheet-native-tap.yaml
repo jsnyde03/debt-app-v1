@@ -4,7 +4,7 @@
 # This opens the sheet and taps its ✕-in-circle (a header button) — proving header buttons are tappable
 # on native, so that regression can't reach a device build silently again.
 #
-# Depends on 01 having run first (Maestro runs flows in filename order → the demo data persists).
+# Depends on 01 having run first (the ORDER IS EXPLICIT in native-e2e.yml — Maestro does NOT sort a directory argument; measured 2026-08-12).
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:

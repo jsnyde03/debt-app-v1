@@ -16,7 +16,8 @@
 # device-QA-owed instead. An assertion that cannot fail is worse than an absent one: it reports
 # confidence nobody earned. This gate has already shipped four of those.
 #
-# Runs after 05 in filename order, so the tutorial has been seen and the demo data is in place.
+# Runs after 05 — by the EXPLICIT order in native-e2e.yml, not by filename — so the tutorial has been
+# seen and the demo data is in place.
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:

@@ -3,7 +3,7 @@
 # on the New Architecture). Flow 02 already proves the rows MOUNT without crashing (the money tab
 # renders every ListRow wrapped in ContextMenuView); this flow proves the menu itself opens + renders.
 #
-# Depends on 01 having seeded the demo data (Maestro runs flows in filename order → demo debts persist).
+# Depends on 01 having seeded the demo data (the ORDER IS EXPLICIT in native-e2e.yml — Maestro does NOT sort a directory argument; measured 2026-08-12).
 # ⚠️ FIRST-RUN TUNING: whether Maestro's longPressOn triggers UIContextMenuInteraction and whether the
 # UIMenu actions surface as matchable a11y text may each need one adjustment on the first GH run — like
 # every other flow here did. A red here does NOT mask a compile crash (flow 02 covers that).

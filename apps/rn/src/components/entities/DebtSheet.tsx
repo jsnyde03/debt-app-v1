@@ -59,7 +59,10 @@ const PROVIDERS: { value: string; label: string }[] = [
 ];
 
 /** Unified add/edit sheet for a debt. BNPL fields are now editable in both modes (redesign fix).
- *  `prefill` (§2.8) seeds a NEW debt's fields from a scanned statement — the user reviews/edits, then Adds. */
+ *  `prefill` seeds a NEW debt's fields — the user reviews/edits, then Adds. ⚠️ It has TWO producers, and
+ *  this docblock claiming only one is what let the scan copy leak into the other: §2.8's scanner
+ *  (`money.tsx:304`) and 3.7.A10's mis-file rescue (`money.tsx:246`). Use `convertingExpenseId`, not the
+ *  presence of `prefill`, to tell them apart. */
 export function DebtSheet({
   editing,
   onClose,
@@ -216,11 +219,32 @@ export function DebtSheet({
 
   return (
     <>
+    {/* ⛔ `prefill` IS NOT A PROXY FOR "SCANNED" (the title/subtitle below). It had one producer when
+        this was written — §2.8's scanner — so keying the scan copy on it was true by accident. 3.7.A10
+        added a second (`money.tsx:246`, the mis-file rescue), and the reclassify path silently inherited
+        the scanner's words: tapping "Move to Debts" on a Mortgage opened a sheet headed **"Add from
+        scan"**, subtitled "Review the scanned details, then add.", when nothing was scanned. Caught by
+        Maestro flow 07 on run 31598337615 — the native lane's first real find.
+        The sheet already knew: `convertingExpenseId` is set only on the convert path and is what drives
+        `convertExpenseToDebt` below. The copy just never asked it.
+        ⚠️ Same shape as the audit gate's proxy-gate sweep: copy asserting an OUTCOME gated on something
+        that merely CORRELATED with it. The gate is now the claim itself.
+        ⚠️ The convert STRINGS are placeholders owned by the wording/voice gate ([D26] splits mechanism
+        from strings). The title deliberately stays "Add a debt" rather than echoing the button the user
+        just tapped — an assertion that repeats its own trigger passes even when the tap did nothing. */}
     <FormSheet
       visible
       inline={inline}
-      title={isEdit ? 'Edit debt' : prefill ? 'Add from scan' : 'Add a debt'}
-      subtitle={isEdit ? undefined : prefill ? 'Review the scanned details, then add.' : 'A loan, credit card, or BNPL balance.'}
+      title={isEdit ? 'Edit debt' : convertingExpenseId ? 'Add a debt' : prefill ? 'Add from scan' : 'Add a debt'}
+      subtitle={
+        isEdit
+          ? undefined
+          : convertingExpenseId
+            ? 'Moving this from Expenses. Add the balance so it counts toward your debt-free date.'
+            : prefill
+              ? 'Review the scanned details, then add.'
+              : 'A loan, credit card, or BNPL balance.'
+      }
       submitLabel={isEdit ? 'Save' : 'Add debt'}
       onSubmit={submit}
       onRemove={isEdit ? remove : undefined}

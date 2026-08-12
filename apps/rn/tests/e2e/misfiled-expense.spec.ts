@@ -44,6 +44,15 @@ test('"Move to Debts" converts it in ONE write — the expense is gone and the d
   await expect(page.getByPlaceholder('Visa, Car Loan')).toHaveValue('Mortgage');
   await expect(page.getByPlaceholder('e.g. 65')).toHaveValue('1600');
 
+  // ⛔ AND IT DOES NOT CLAIM A SCAN HAPPENED. This test covered the conversion's DATA and never its
+  // WORDS, which is how the sheet shipped headed "Add from scan" / "Review the scanned details, then
+  // add." on a path where nothing was scanned — `DebtSheet` keyed that copy on `prefill`, and A10 made
+  // this a second producer of it. The negative assertion is the load-bearing half: the positive one
+  // would still pass if the scan copy came back alongside it.
+  await expect(page.getByText('Add from scan')).toHaveCount(0);
+  await expect(page.getByText('Review the scanned details, then add.')).toHaveCount(0);
+  await expect(page.getByText(/Moving this from Expenses/)).toBeVisible();
+
   // The two fields an expense cannot carry — and the reason this is a form, not a silent re-file.
   await page.getByPlaceholder('e.g. 2400').fill('240000');
   await page.getByPlaceholder('e.g. 22.99').fill('6.5');

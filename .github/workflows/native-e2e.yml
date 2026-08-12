@@ -381,7 +381,32 @@ jobs:
         env:
           # Maestro's iOS driver often exceeds its default startup timeout on a cold CI sim.
           MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
-        run: maestro test .maestro/ --format junit --output maestro-report.xml --debug-output ./maestro-debug
+        # ⛔ THE ORDER IS EXPLICIT, AND IT HAS TO BE. Passing the DIRECTORY ran the flows in
+        # `01 → 05 → 02 → 06 → 03 → 08 → 07 → 04` on run 31598337615 — measured from each flow's own
+        # start timestamp, not inferred. Maestro's docs specify no ordering for a directory argument, so
+        # the suite was depending on unspecified behaviour, and two flows failed on it: 04 ran AFTER 07's
+        # `clearState: true` wiped the seed it asserts, and 08 ran BEFORE the same clear that resets the
+        # coach-mark "once ever" flags it needs. Every green this suite has ever shown was order-luck.
+        #
+        # `<flowFiles>...` is documented as "one or more flow files or folders", so the list below is the
+        # order. The dependency chain it encodes: 01 seeds → 02-06 consume that seed → 07 CLEARS and
+        # rebuilds → 08 runs on what 07 built. Adding a flow means deciding where in that chain it sits.
+        #
+        # ⚠️ ONE invocation, not a loop of eight. The 42.7 s stall that reds a cold assertion is a
+        # FIRST-SNAPSHOT-PER-DRIVER-SESSION cost (see 01's timeout comment); separate invocations would
+        # restart the driver and re-pay it on every flow, turning one flake into eight.
+        # ⚠️ VERIFY, don't assume: the artifact's per-flow start times say whether this order was honoured.
+        run: |
+          maestro test \
+            .maestro/01-launch-smoke.yaml \
+            .maestro/02-sheet-native-tap.yaml \
+            .maestro/03-row-context-menu.yaml \
+            .maestro/04-payoff-schedule.yaml \
+            .maestro/05-tutorial-walkthrough.yaml \
+            .maestro/06-tutorial-interactions.yaml \
+            .maestro/07-money-add-and-rescue.yaml \
+            .maestro/08-coach-marks.yaml \
+            --format junit --output maestro-report.xml --debug-output ./maestro-debug
 
       # ── 4.1.1 · THE CAPABILITY PROBE ────────────────────────────────────────────────────────────
       # Each file runs in its OWN maestro invocation, and a failure is recorded rather than fatal.
