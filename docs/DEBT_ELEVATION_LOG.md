@@ -6363,3 +6363,45 @@ by the bogus include patterns rather than by excluding anything — so the artif
 ⚠️ **Local verification stops at the parse.** Whether the exclusion actually drops the file is a fact
 about the runner, and the next artifact's size is the only thing that settles it. Claiming it fixed once
 already was the mistake.
+
+## ⛔ Maestro matches LITERAL EQUALITY or a FULL REGEX — never "contains" (2026-08-12)
+
+**A mechanism I documented as proven, in three files, was wrong.** Corrected by measurement, and the
+correction changes how every selector in the lane has to be written.
+
+**What I claimed** *(flows 01 and 07, `more-button.tsx`, the T2 rationale)*: Maestro's text match is
+CONTAINS, "proven" because `"Will you make it to payday?"` matched — which full-match semantics appear to
+forbid, since the trailing `?` is a regex quantifier and nothing consumes the literal `?`.
+
+**What the run measured.** After the `SettingRow` a11y fix, `assertVisible: "Show feature tips again"`
+went **RED** against a node whose text is *"Show feature tips again. Re-offer the one-line hints on hidden
+features."* A contains matcher passes that. A full matcher does not.
+
+**The model that fits every observation this session:** Maestro tries **literal equality**, then a **full
+regex**. So `"Will you make it to payday?"` passes by *equality*, never reaching the regex — which is
+exactly what made "contains" look established. `".*It ends\..*"` passes by full regex. `"Debt"` passes by
+equality against the segmented option. `"Show feature tips again"` fails both.
+
+⚡ **The codebase already had this right and I read past it.** The existing flows wrap fragments in `.*` —
+that *is* the contains idiom here. I invented a rule that contradicted the convention in front of me.
+
+### What it cost, and what it caught
+
+- Flow 08 had **TWO independent blockers**, and the second was invisible until the first was fixed:
+  `CoachMarkLayer.tsx:89` composes `` `${copy.title}. ${copy.body}` `` exactly as `SettingRow` now does, so
+  `assertVisible: "Press and hold a debt"` **was never going to pass** — with or without the a11y change.
+  Found by reading the component instead of dispatching; otherwise it is one more 20-minute cycle.
+- Three selectors in 08 rewritten to the `.*` idiom; the `^…$` anchors in 01/07 are **redundant rather
+  than load-bearing** and stay only to state intent.
+- ⚠️ **The `.*` requirement is systemic**, and it lands on **4.1.4**: every bare-string selector aimed at a
+  composed `accessibilityLabel` is a latent red. Flows 01–07 pass because their targets happen to be
+  exact-text nodes — *happen to be* is not a property anyone chose.
+
+### Two self-inflicted errors while fixing it, both caught by tooling rather than by care
+
+- A `perl -0pi` replacement containing `$/` **corrupted flow 01**, splicing the file's own header into the
+  middle of a comment. Caught by the YAML parse check; reverted and redone with a precise edit.
+- `".*…go\..*"` is an **invalid escape in a double-quoted YAML scalar**. The existing convention is `\.`
+  (`".*It ends\..*"`). Also caught by the parse check.
+⚡ **Both would have burned a full CI cycle**, and neither was caught by reading. Parse-checking every flow
+before dispatch is now the cheapest habit in this lane.

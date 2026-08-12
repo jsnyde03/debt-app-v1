@@ -89,10 +89,12 @@ appId: com.jasonsnyder.debtplanner
 # — `tapOn` and `inputText` both report COMPLETED regardless — but a field holding the wrong string is
 # not. The seed the whole suite depends on is exactly where that must not go unnoticed.
 #
-# ⛔ THE ANCHORS ARE THE ASSERTION. Maestro's text match is CONTAINS, not equals — proven by this same
-# run: `"Will you make it to payday?"` matched, and under full-match semantics it could not have (the
-# trailing `?` is a quantifier, so the pattern ends at "payda" + optional "y"). Unanchored, `text: "Visa"`
-# would happily match **"Visa240065"** — the exact corruption this is here to catch. `^…$` or nothing.
+# ⛔ MAESTRO MATCHES LITERAL EQUALITY OR A FULL REGEX — NEVER "CONTAINS". Corrected 2026-08-12; this
+# comment previously asserted the opposite as proven, and it was wrong. Full note in flow 07 at the same
+# step. In short: `"Will you make it to payday?"` passes by literal equality, never reaching the regex,
+# which is what made "contains" look established.
+# ⚡ A fragment therefore needs `.*` on both ends; a bare string matches only a node whose ENTIRE text it
+# is. The anchors below are redundant rather than load-bearing, and stay to state intent.
 # Only the NAME field is checked: it is where every mis-aimed `inputText` accumulates, and its value is
 # the one confirmed unformatted in the hierarchy dump. A numeric field could be re-formatted for display
 # and red for a reason that is not a defect.

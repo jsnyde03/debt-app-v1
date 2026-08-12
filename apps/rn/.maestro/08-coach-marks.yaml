@@ -53,9 +53,12 @@ appId: com.jasonsnyder.debtplanner
 # leave every assertion below failing for a reason that looks like the marks are broken.
 - tapOn:
     id: "more-button"
-- assertVisible: "Show feature tips again"
-- tapOn: "Show feature tips again"
-- assertVisible: "Tips will appear again as you go."
+- assertVisible:
+    text: ".*Show feature tips again.*"
+- tapOn:
+    text: ".*Show feature tips again.*"
+- assertVisible:
+    text: ".*Tips will appear again as you go\\..*"
 - tapOn:
     id: "screen-back"
 
@@ -65,7 +68,8 @@ appId: com.jasonsnyder.debtplanner
 # on Money is the whole trigger.
 - tapOn:
     id: "tab-money"
-- assertVisible: "Press and hold a debt"
+- assertVisible:
+    text: ".*Press and hold a debt.*"
 - takeScreenshot: maestro-debug/s13-3-row-actions-mark
 
 # §13.5 · a mark is a hint, not a modal. `CoachMarkLayer`'s wrapper is `pointerEvents="box-none"` with
@@ -82,7 +86,8 @@ appId: com.jasonsnyder.debtplanner
 # a second mark behind a live one (coachMarks.ts:103), so leaving this up would make §13.1 fail for a
 # reason that has nothing to do with §13.1.
 - tapOn: "Got it"
-- assertNotVisible: "Press and hold a debt"
+- assertNotVisible:
+    text: ".*Press and hold a debt.*"
 
 # ══ §13.1 · the payoff-schedule mark, INSIDE a sheet ════════════════════════════════════════════
 # ⭐ The item the whole nested-host mechanism exists for.
@@ -100,7 +105,8 @@ appId: com.jasonsnyder.debtplanner
 # not in the visible hierarchy at all. That is what makes this assertable rather than a judgement.
 - assertVisible:
     id: "coach-mark"
-- assertVisible: "See the whole payoff"
+- assertVisible:
+    text: ".*See the whole payoff.*"
 - takeScreenshot: maestro-debug/s13-1-mark-over-sheet
 
 # ══ §13.2 · "Got it" actually dismisses, and stays gone ═════════════════════════════════════════

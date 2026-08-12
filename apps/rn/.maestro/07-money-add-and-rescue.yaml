@@ -132,10 +132,18 @@ appId: com.jasonsnyder.debtplanner
 # is not. This would have failed run 31516616133 HERE, at the cause, instead of three steps later at
 # "See My Plan  →" — which was never a selector bug at all.
 #
-# ⛔ THE ANCHORS ARE THE ASSERTION. Maestro's text match is CONTAINS, not equals — proven by this same
-# run: `"Will you make it to payday?"` matched, which full-match semantics forbid (the trailing `?` is a
-# quantifier). Unanchored, `text: "Visa Test"` matches the corrupt **"Visa Test240065"** and the guard
-# tests nothing. The NAME field is the sentinel: it is where every mis-aimed `inputText` accumulates.
+# ⛔ MAESTRO MATCHES LITERAL EQUALITY OR A FULL REGEX — NEVER "CONTAINS". Corrected 2026-08-12; this
+# comment previously asserted the opposite as proven, and it was wrong.
+# Measured: `assertVisible: "Show feature tips again"` went RED against a node reading "Show feature tips
+# again. Re-offer the one-line hints on hidden features." A contains matcher passes that; a full matcher
+# does not. What misled me was `"Will you make it to payday?"` passing — it passes by LITERAL EQUALITY,
+# never reaching the regex, where the trailing `?` would have been a quantifier.
+#
+# ⚡ THE PRACTICAL RULE, and this file already followed it: a fragment needs `.*` on both ends
+# (`".*It ends\\..*"` above). A bare string only matches a node whose ENTIRE text is that string — which
+# is why every selector aimed at a composed `accessibilityLabel` fails. The anchors below are therefore
+# redundant rather than load-bearing; they stay because they state the intent, not because they enforce it.
+# The NAME field is the sentinel: it is where every mis-aimed `inputText` accumulates.
 - assertVisible:
     id: "field-onboarding-name"
     text: "^Visa Test$"

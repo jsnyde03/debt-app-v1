@@ -43,9 +43,11 @@ export function MoreButton() {
       hitSlop={12}
       accessibilityRole="button"
       accessibilityLabel="More"
-      // 4.1.3 — an explicit testID rather than matching the label. Maestro's text match is CONTAINS, so
-      // "More" would also match copy like "More than the balance — this will clear it to $0." The lane
-      // has already lost a cycle to an ambiguous label selector (`field-paycheck-amount`).
+      // 4.1.3 — an explicit testID rather than matching the label. Still the right call, though the
+      // reason first given here was wrong: Maestro matches literal equality or a full regex, not
+      // "contains", so `"More"` would NOT have matched "More than the balance…". What it would match is
+      // any other element whose entire label is exactly "More" — and a screen header is a likely one.
+      // A testID says which control is meant instead of relying on no sibling sharing its name.
       testID="more-button"
       {...a11yHidden(inBoundedRun)}>
       {/* Routed through AppIcon so iOS gets the SF-Symbol ellipsis (more-horiz → ellipsis). */}
