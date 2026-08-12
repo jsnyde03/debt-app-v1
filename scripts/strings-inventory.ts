@@ -21,7 +21,7 @@
  *
  * Usage: npm run audit:strings   → docs/audits/strings-inventory.{md,json}
  */
-import { readFileSync, readdirSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join, extname, relative, sep } from 'node:path';
 import ts from 'typescript';
 
@@ -300,6 +300,45 @@ const unclassified = entries.filter((e) => e.bucket === 'unclassified');
 const unclassifiedProps = [...new Set(unclassified.map((e) => e.origin))].sort();
 
 // ── Output ─────────────────────────────────────────────────────────────────────────────────────
+// ── T2 · THE GATE ──────────────────────────────────────────────────────────────────────────────
+// [D31]: a finding that becomes a TEST is paid for once; a finding that stays prose gets re-discovered
+// and paid for again. This is the first audit lens to become a gate rather than a report.
+//
+// ⚠️ THE THRESHOLD IS MEASURED, NOT CHOSEN. Cross-file duplicate copy strings by minimum length:
+// 74 at any length · 30 at ≥12 · **9 at ≥20** · 2 at ≥30. Below 20 the set is "Add" / "Save" / "Done" /
+// "/mo" — words two screens are entitled to share, and a gate that fires on them gets suppressed, which
+// is worse than no gate. At 20 every survivor is a phrase carrying voice, including three Guardian band
+// strings ("A little tight this paycheck") written in two files each. 20 is where the distribution
+// separates; it is a dial, not a law, and moving it is a decision rather than a fix.
+const DUP_MIN_LEN = 20;
+const BASELINE_PATH = join(REPO_ROOT, 'scripts', 'duplicate-copy-baseline.json');
+
+const gateFindings = duplicates
+  .filter(([text, es]) => text.length >= DUP_MIN_LEN && es.some((e) => e.bucket === 'copy'))
+  .map(([text, es]) => ({ text, files: [...new Set(es.map((e) => e.file))].sort() }));
+
+if (process.argv.includes('--update-baseline')) {
+  writeFileSync(BASELINE_PATH, JSON.stringify(gateFindings.map((f) => f.text).sort(), null, 2) + '\n');
+  console.log(`duplicate-copy baseline updated: ${gateFindings.length} accepted`);
+} else if (process.argv.includes('--gate')) {
+  const baseline = new Set<string>(existsSync(BASELINE_PATH) ? JSON.parse(readFileSync(BASELINE_PATH, 'utf8')) : []);
+  const fresh = gateFindings.filter((f) => !baseline.has(f.text));
+  if (fresh.length) {
+    console.error(`\n❌ duplicate copy: ${fresh.length} phrase(s) of ${DUP_MIN_LEN}+ chars now live in more than one file.\n`);
+    for (const f of fresh) console.error(`  ${JSON.stringify(f.text)}\n    ${f.files.join('\n    ')}`);
+    console.error(
+      '\n  Agreeing copies are still copies — they just have not diverged yet. Extract one authority,\n' +
+        '  or, if the repetition is deliberate, accept it with:\n' +
+        '    npm run audit:strings -- --update-baseline\n',
+    );
+    process.exit(1);
+  }
+  console.log(`✅ duplicate copy: no new cross-file phrases (${baseline.size} baselined).`);
+  // ⚠️ Gate mode writes NOTHING. A lint step that regenerates two committed artifacts would leave CI
+  // with a dirty tree of its own making, and every local gate run would churn a diff nobody asked for.
+  process.exit(0);
+}
+
 const OUT_DIR = join(REPO_ROOT, 'docs', 'audits');
 mkdirSync(OUT_DIR, { recursive: true });
 

@@ -6265,3 +6265,52 @@ that can be challenged, not an absence nobody can see.
 - ⚠️ **Stated limit, in the report itself:** this is **reachability, not rendering** — a conditional
   branch counts. It over-reports rather than under-reports, which is the right direction for an audit
   input, and saying so stops a reader crediting it with precision it does not have.
+
+## Audit tooling T2 — the duplicate-copy GATE ( [D31] ) (2026-08-12)
+
+⚡ **The first audit lens to become a gate rather than a report.** [D31]'s point in practice: a finding
+that becomes a test is paid for once; a finding that stays prose gets re-discovered and paid for again.
+
+### Before-scan
+
+- ⛔ **"Blocked on triaging the 210" was MY mischaracterisation, corrected here.** A baseline is exactly
+  how a gate ships against existing debt, and **this repo already has the pattern**:
+  `scripts/webkit-flex-controls-baseline.json` + `check-webkit-flex-controls.ts`, which loads a baseline,
+  reports only *fresh* findings, and accepts new ones via `--update-baseline`. Followed it rather than
+  inventing a shape. **The item was never blocked; I had not looked.**
+- ⚠️ **Would the obvious gate be noise?** Yes — and that was worth measuring rather than assuming. Of the
+  74 cross-file duplicate COPY strings, the short ones are `"Add"`, `"Save"`, `"Done"`, `"/mo"`, `"More"`
+  — words two screens are entitled to share. **A gate that fires on those gets suppressed, which is worse
+  than no gate.**
+- **Extend T1 or write new?** Extend — it needs T1's copy classification, which is a *rule*. Same test
+  that folded T3 in and kept T4 out.
+
+### The threshold is measured, not chosen
+
+Cross-file duplicate copy strings by minimum length: **74** at any length · **30** at ≥12 · **9** at ≥20 ·
+**2** at ≥30. Twenty is where the distribution separates — below it, single words; at and above it, every
+survivor is a phrase carrying voice. ⚠️ **It is a dial, not a law** — recorded as where the knee sits so a
+future change is a decision rather than a silent drift *(the `measured-outcome-is-not-a-target` mistake:
+2,589 words was once "where a cut landed" and became a gate that outlived its mechanism)*.
+
+### ⛔ The gate was proven to FAIL before it was trusted
+
+Planted `"A deliberately duplicated audit-gate probe string"` in `more.tsx` and `ExpenseSheet.tsx`, ran
+the gate, and confirmed **exit 1** with both file paths named; reverted, confirmed **exit 0**.
+⚠️ The first check reported `GATE EXIT=0` and that was *my measurement error* — `$?` after a pipe reports
+`tail`'s status, not the command's. Re-run without the pipe: exit **1**. ⚡ **A gate believed green because
+the harness around it was wrong is precisely this repo's recurring defect** — it nearly happened while
+building the instrument against it.
+
+**Baselined (11):** the three Guardian band phrases (`"A little tight this paycheck"`, `"Looks clear this
+paycheck"`, `"Very tight this paycheck"`), four validation messages, and
+`"Your plan runs on this floor, so a lighter paycheck never breaks it."` → each is real drift risk and
+goes to the wording gate; the baseline records them as *accepted for now*, not as fine.
+
+### After-scan
+
+- ⚠️ **Gate mode writes nothing.** A lint step that regenerates two committed artifacts would leave CI
+  with a dirty tree of its own making, and churn a diff locally on every run. Caught before wiring it in.
+- **Wired into `lint:rn`** → so it runs inside `validate:release:rn` and on every CI push.
+- ⚡ **The three Guardian band phrases living in two files each is a live [D26] item** — the band words
+  are a stated product choice, and a product choice written twice diverges. → the wording/voice gate.
