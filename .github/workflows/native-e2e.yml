@@ -418,6 +418,16 @@ jobs:
         # restart the driver and re-pay it on every flow, turning one flake into eight.
         # ⚠️ VERIFY, don't assume: the artifact's per-flow start times say whether this order was honoured.
         run: |
+          # ⛔ A SECOND, LONG-LIVED LOG STREAM. The one in the boot step is killed after 25 s — it exists to
+          # capture a cold-launch crash and does its job — which means `os-log.txt` covers the launch and
+          # NOTHING of the test run. Any diagnostic the app logs while Maestro drives it was being thrown
+          # away, including 4.1.4c's coach-mark trace. This one lives for the whole suite.
+          mkdir -p maestro-debug
+          xcrun simctl spawn booted log stream --level debug --style compact \
+            --predicate 'processImagePath CONTAINS "DebtPlannerRN" OR senderImagePath CONTAINS "DebtPlannerRN"' \
+            > maestro-debug/os-log-maestro.txt 2>&1 &
+          RUN_LOG_PID=$!
+          STATUS=0
           maestro test \
             .maestro/01-launch-smoke.yaml \
             .maestro/02-sheet-native-tap.yaml \
@@ -427,7 +437,11 @@ jobs:
             .maestro/06-tutorial-interactions.yaml \
             .maestro/07-money-add-and-rescue.yaml \
             .maestro/08-coach-marks.yaml \
-            --format junit --output maestro-report.xml --debug-output ./maestro-debug
+            --format junit --output maestro-report.xml --debug-output ./maestro-debug || STATUS=$?
+          kill "$RUN_LOG_PID" 2>/dev/null || true
+          echo "=== app log — the coach-mark probe trace, whatever screen the run died on ==="
+          grep -F "[coach-probe]" maestro-debug/os-log-maestro.txt | tail -40 || echo "(no probe lines — console may be stripped in Release)"
+          exit $STATUS
 
       # ── 4.1.5.1 · THE IPAD TIER ( [D30] ) ───────────────────────────────────────────────────────
       # ⛔ `continue-on-error` ON PURPOSE, and it is not laziness. This step's deliverable is a hierarchy
@@ -492,6 +506,12 @@ jobs:
                 done | head -1)
             W=$(plutil -extract mainScreenWidth raw "$PROF" 2>/dev/null)
             S=$(plutil -extract mainScreenScale raw "$PROF" 2>/dev/null)
+            # ⛔ `mainScreenScale` comes back as a FLOAT on most device types — "2.000000" — and as "2" on
+            # a few. Bash arithmetic cannot divide by "2.000000", so run 31642490867 computed 0pt for every
+            # wide iPad and 744pt for the mini (the one integer), then correctly refused to run.
+            # ⚡ The fail-loud guard caught my own parse bug instead of quietly testing the phone layout on
+            # an iPad — which is precisely the failure it was written to prevent, one layer up.
+            S=${S%%.*}
             PT=0
             if [ -n "$W" ] && [ -n "$S" ] && [ "$S" -gt 0 ] 2>/dev/null; then PT=$(( W / S )); fi
             echo "   $N → ${W:-?}px / ${S:-?}x = ${PT}pt"

@@ -7202,3 +7202,51 @@ fallback to name-matching is what put a 744pt iPad mini through this lane to beg
 ⚡ **The through-line for the whole session:** every one of these was a case of *the instrument being
 authored for the world in which the thing it measures already works.* The probe, the iPad picker, the
 flow order, and now three flow edits written against a button that does not exist as an element.
+
+## Run `31642490867` — 7/8, and the iPad guard caught MY bug (2026-08-12)
+
+**01–07 all green**, including the two flows repaired from the artifact. 08 reached **§13.1** — deeper
+than it has ever been — and failed on `assertVisible: id: coach-mark`.
+
+### 08 — the payoff-schedule mark is not merely mispositioned, it is ABSENT
+
+Hierarchy at `step-030`: `coach-mark` **0** · `See the whole payoff` **0** · `Edit debt` **2** ·
+`debt-view-schedule` **1**. The sheet is open and the subject row is registered; the callout does not
+exist. Verified in source rather than assumed: `DebtSheet.tsx:128` calls the hook and `:281` registers
+`<TutorialTarget id="payoff-schedule">`, so it is wired.
+
+⛔ **No sixth mechanism is offered here.** §13.1 has never executed before, so this is new ground, and the
+instrument that should answer it was pointed at the previous question — the probe read sits EARLIER in
+flow 08, so its trace covers `debt-row-actions` and is blind to this attempt.
+
+### ⚡ The probe could not survive being unreachable — fixed two ways
+
+1. **`probeCoachMark` now also writes to the unified log.** The rendered readout can only be read where a
+   flow can NAVIGATE to it; a console line is in the artifact whatever screen the run dies on. Kept
+   alongside the readout, not instead of it — whether console survives `-configuration Release` is
+   unverified, and the next run settles that at no cost if it does not.
+2. ⛔ **And `os-log.txt` was covering the WRONG WINDOW.** The boot step's `log stream` is killed after
+   25 s — correct for catching a cold-launch crash, which is its job — so the capture ended **before
+   Maestro ever started.** Every diagnostic the app logged during the suite was being discarded. The
+   Maestro step now runs its own long-lived stream (`os-log-maestro.txt`) and **greps the probe trace
+   into the CI log**, so the next reading needs no artifact download at all.
+
+### ⭐ The iPad guard fired on my own parse bug — exactly as designed
+
+| device | plist | computed |
+|---|---|---|
+| iPad Pro 13-inch (M4) | 2064px / 2.000000x | **0pt** |
+| iPad Air 13-inch (M3) | 2048px / 2.000000x | **0pt** |
+| iPad mini (A17 Pro) | 1488px / **2**x | **744pt** |
+
+`mainScreenScale` is a FLOAT on most device types and an integer on a few. Bash cannot divide by
+`2.000000`, so every wide iPad computed 0pt, the mini "won" at 744pt, and the step **refused to run.**
+
+⚡ **That is the guard working, one layer up from where it was aimed.** It was written to stop a compact
+iPad being tested as if it were expanded; what it actually caught was the measurement code being wrong —
+and it printed the table that named the cause. A silent fallback would have run the phone layout a second
+time. `S=${S%%.*}` fixes it: iPad Pro 13-inch → **1032pt**, above the 1024pt threshold.
+
+⚠️ Also now measured rather than assumed: **only 13-inch iPads are `isExpanded` in portrait.** Pro 11-inch
+is 834pt, Air 11-inch and iPad (A16) are 820pt — all `regular`, none expanded. Any future claim about
+"the iPad layout" has to say which iPad.

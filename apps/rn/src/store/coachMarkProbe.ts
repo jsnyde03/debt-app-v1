@@ -53,6 +53,17 @@ export const coachMarkProbe = createStore<CoachMarkProbeState>(() => ({ entries:
  */
 export function probeCoachMark(entry: string): void {
   if (!qaEnabled()) return;
+  // ⛔ ALSO to the unified log, because the on-screen readout can only be read where the flow can NAVIGATE
+  // to it. Run 31642490867 died at §13.1 asserting the payoff-schedule mark, and the probe read sits
+  // earlier in that flow — so the one instrument built to answer "why was this mark not offered?" was
+  // pointed at the previous question. The trace has to survive being unreachable.
+  //
+  // `native-e2e.yml` streams the app's unified log to `maestro-debug/os-log.txt` for the whole run, so a
+  // console line is in the artifact whatever screen the flow dies on. ⚠️ Kept ALONGSIDE the rendered
+  // readout rather than replacing it: this lane builds `-configuration Release`, and whether console
+  // survives there is unverified — the next run's `os-log.txt` is what settles that, at no cost if it
+  // does not.
+  console.log(`[coach-probe] ${entry}`);
   coachMarkProbe.setState((s) => ({
     entries: [...s.entries, entry].slice(-MAX_ENTRIES),
   }));
