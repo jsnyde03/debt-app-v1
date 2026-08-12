@@ -4,7 +4,7 @@
 > This is the **input** to the wording/voice gate, not its output. Findings belong in a dated
 > audit folder; this file is only ever the current state of the codebase.
 
-**793** copy · **923** unclassified · **260** excluded as machinery · **210** strings appearing in more than one file.
+**794** copy · **928** unclassified · **261** excluded as machinery · **110** copy strings appearing in more than one file (of 210 repeated strings overall).
 
 <details><summary>Excluded as machinery — the contexts, so the exclusions can be challenged</summary>
 
@@ -14,6 +14,7 @@
 - `key:categories`
 - `key:category`
 - `key:dark`
+- `key:fontFamily`
 - `key:fontVariant`
 - `key:grad`
 - `key:icon`
@@ -86,6 +87,7 @@ here is how a surface goes unreviewed while the count looks complete.
         .filter`
 - `call:payCycle, cycleWindowStart, projNextDate), projNextDate)
             .filter`
+- `call:probeCoachMark`
 - `call:reportError`
 - `call:require`
 - `call:requireNativeModule`
@@ -347,219 +349,129 @@ here is how a surface goes unreviewed while the count looks complete.
 - `var:targetName`
 - `var:title`
 - `var:verb`
+- `var:verdict`
 
-## Duplicated across files
+## Duplicated across files — copy only
 
-- **"one-time"** — `apps/rn/src/app/(tabs)/money.tsx:70` · `apps/rn/src/app/(tabs)/money.tsx:544` · `apps/rn/src/app/(tabs)/money.tsx:545` · `apps/rn/src/app/(tabs)/money.tsx:602` · `apps/rn/src/app/(tabs)/money.tsx:603` · `apps/rn/src/app/(tabs)/money.tsx:628` · `apps/rn/src/app/(tabs)/money.tsx:630` · `apps/rn/src/components/entities/DebtSheet.tsx:46` · `apps/rn/src/components/entities/ExpenseSheet.tsx:19` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:35` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:35` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:95` · `apps/rn/src/components/plan/AffordabilityCard.tsx:77` · `apps/rn/src/components/plan/AffordabilityCard.tsx:87` · `apps/rn/src/store/guardianSelectors.ts:384` · `apps/rn/src/utils/format.ts:9` · `apps/rn/src/utils/format.ts:23` · `packages/core/debt/bnplPayoffPace.ts:35` · `packages/core/engine/allocatePaycheck.ts:199` · `packages/core/imports/debtCsv.ts:9` · `packages/core/recurrence/rolloverPayCycle.ts:59` · `packages/core/recurrence/rolloverPayCycle.ts:71` · `packages/core/recurrence/rolloverPayCycle.ts:104` · `packages/core/recurrence/rolloverPayCycle.ts:132` · `packages/core/timeline/buildMultiCycleTimeline.ts:148` · `packages/core/timeline/buildMultiCycleTimeline.ts:153` · `packages/core/timeline/buildMultiCycleTimeline.ts:224` · `packages/core/timeline/buildMultiCycleTimeline.ts:229` · `packages/core/types/recurrence.ts:2`
-- **"space-between"** — `apps/rn/src/app/(tabs)/money.tsx:964` · `apps/rn/src/app/(tabs)/money.tsx:976` · `apps/rn/src/app/history.tsx:106` · `apps/rn/src/app/history.tsx:107` · `apps/rn/src/app/living-expenses.tsx:78` · `apps/rn/src/components/entities/AmortizationView.tsx:116` · `apps/rn/src/components/entities/AmortizationView.tsx:123` · `apps/rn/src/components/entities/DebtSheet.tsx:361` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:113` · `apps/rn/src/components/money/BnplCalendarSection.tsx:104` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:485` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:496` · `apps/rn/src/components/payoff/TrajectoryChart.tsx:482` · `apps/rn/src/components/payoff/TrajectoryChart.tsx:486` · `apps/rn/src/components/payoff/TrajectoryChart.tsx:494` · `apps/rn/src/components/payoff/TrajectoryChart.tsx:502` · `apps/rn/src/components/plan/AffordabilityImpactBar.tsx:75` · `apps/rn/src/components/plan/CashRunwayChart.tsx:223` · `apps/rn/src/components/plan/CashRunwayChart.tsx:232` · `apps/rn/src/components/plan/CashRunwayChart.tsx:234` · `apps/rn/src/components/plan/CushionFloorSheet.tsx:80` · `apps/rn/src/components/plan/ExampleCanvasMarker.tsx:58` · `apps/rn/src/components/screen.tsx:130` · `apps/rn/src/components/ui/ChartSkeleton.tsx:23` · `apps/rn/src/components/ui/Select.tsx:68` · `apps/rn/src/components/ui/Select.tsx:72` · `apps/rn/src/components/ui/sheet-styles.ts:35` · `apps/rn/src/components/ui/SwitchRow.tsx:21`
-- **"decimal-pad"** — `apps/rn/src/components/entities/DebtSheet.tsx:307` · `apps/rn/src/components/entities/DebtSheet.tsx:319` · `apps/rn/src/components/entities/DebtSheet.tsx:344` · `apps/rn/src/components/entities/DebtSheet.tsx:345` · `apps/rn/src/components/entities/ExpenseSheet.tsx:106` · `apps/rn/src/components/entities/ExpenseSheet.tsx:114` · `apps/rn/src/components/entities/GoalSheet.tsx:65` · `apps/rn/src/components/entities/GoalSheet.tsx:66` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:59` · `apps/rn/src/components/entities/LogPaymentSheet.tsx:43` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:145` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:158` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:162` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:176` · `apps/rn/src/components/onboarding/PaycheckStep.tsx:115` · `apps/rn/src/components/onboarding/PaycheckStep.tsx:133` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:306` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:394` · `apps/rn/src/components/plan/AffordabilityCard.tsx:164` · `apps/rn/src/components/plan/PaycheckSheet.tsx:111` · `apps/rn/src/components/plan/PaycheckSheet.tsx:131` · `apps/rn/src/components/plan/SaveForItSheet.tsx:149` · `apps/rn/src/components/plan/WindfallSheet.tsx:91`
-- **"at-risk"** — `apps/rn/src/components/more/LiveActivityQA.tsx:39` · `apps/rn/src/components/plan/CashRunwayChart.tsx:42` · `apps/rn/src/components/plan/CashRunwayChart.tsx:102` · `apps/rn/src/components/plan/PaydayGuardianCard.tsx:104` · `apps/rn/src/components/plan/PaydayGuardianCard.tsx:294` · `apps/rn/src/store/guardianSubjects.ts:64` · `apps/rn/src/store/sandboxScenarios.ts:32` · `apps/rn/src/store/sandboxScenarios.ts:77` · `apps/rn/src/store/sandboxScenarios.ts:193` · `apps/rn/src/store/sandboxScenarios.ts:351` · `apps/rn/src/store/tutorialPath.ts:149` · `packages/core/guardian/buildGuardianBrief.ts:17` · `packages/core/guardian/buildGuardianBrief.ts:278` · `packages/core/guardian/buildGuardianBrief.ts:283` · `packages/core/guardian/computeState.ts:33` · `packages/core/guardian/computeState.ts:47` · `packages/core/guardian/computeState.ts:49` · `packages/core/guardian/computeState.ts:54` · `packages/core/guardian/notificationDecision.ts:23` · `packages/core/guardian/notificationDecision.ts:68` · `packages/core/storage/debtPlannerStorage.ts:133`
-- **"en-US"** — `apps/rn/src/app/(tabs)/index.tsx:484` · `apps/rn/src/app/(tabs)/index.tsx:532` · `apps/rn/src/components/entities/AmortizationView.tsx:15` · `apps/rn/src/components/payoff/TrajectoryChart.tsx:228` · `apps/rn/src/components/payoff/TrajectoryChart.tsx:387` · `apps/rn/src/components/plan/AffordabilityCard.tsx:21` · `apps/rn/src/components/plan/CushionFloorSheet.tsx:65` · `apps/rn/src/components/plan/LeanSuggestionCard.tsx:13` · `apps/rn/src/components/plan/PaydayGuardianCard.tsx:493` · `apps/rn/src/components/plan/PlanHero.tsx:27` · `apps/rn/src/components/plan/RecoveryPlanSection.tsx:13` · `apps/rn/src/components/plan/SaveForItSheet.tsx:16` · `apps/rn/src/store/guardianSelectors.ts:332` · `apps/rn/src/utils/format.ts:6` · `packages/core/debt/projectDebtPayoff.ts:34` · `packages/core/forecast/projectForecast.ts:120` · `packages/core/guardian/buildGuardianBrief.ts:125` · `packages/core/insights/buildSmartInsights.ts:144` · `packages/core/utils/formatCurrency.ts:15` · `packages/core/utils/formatDisplayAmount.ts:3`
-- **"tabular-nums"** — `apps/rn/src/app/(tabs)/money.tsx:965` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:106` · `apps/rn/src/components/money/BnplCalendarSection.tsx:107` · `apps/rn/src/components/money/BnplCalendarSection.tsx:109` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:506` · `apps/rn/src/components/plan/CashRunwayChart.tsx:217` · `apps/rn/src/components/plan/PaidOffFinale.tsx:212` · `apps/rn/src/components/plan/PaidOffFinale.tsx:216` · `apps/rn/src/components/plan/PaydayGuardianCard.tsx:545` · `apps/rn/src/components/plan/PlanHero.tsx:198` · `apps/rn/src/components/plan/PlanHero.tsx:205` · `apps/rn/src/components/plan/RecoveryPlanSection.tsx:141` · `apps/rn/src/components/plan/SaveForItSheet.tsx:168` · `apps/rn/src/components/plan/ShareCard.tsx:94` · `apps/rn/src/components/plan/ShareCard.tsx:98` · `apps/rn/src/components/plan/VanquishedBeat.tsx:173` · `apps/rn/src/components/progress/CashFlowSection.tsx:151` · `apps/rn/src/components/progress/TimelineLedger.tsx:128` · `apps/rn/src/components/progress/TimelineLedger.tsx:134` · `apps/rn/src/theme/typography.ts:17`
-- **"optional_goal"** — `apps/rn/src/store/guardianSelectors.ts:424` · `apps/rn/src/store/guardianSelectors.ts:565` · `apps/rn/src/store/planSelectors.ts:41` · `apps/rn/src/store/planSelectors.ts:49` · `apps/rn/src/store/planSelectors.ts:57` · `apps/rn/src/store/planSelectors.ts:309` · `packages/core/debt/applyPaydayCapture.ts:26` · `packages/core/debt/buildPaydayCaptureItems.ts:6` · `packages/core/debt/selectActiveRecommendedActions.ts:76` · `packages/core/engine/allocatePaycheck.ts:65` · `packages/core/engine/allocatePaycheck.ts:82` · `packages/core/engine/allocatePaycheck.ts:525` · `packages/core/engine/allocatePaycheck.ts:603` · `packages/core/engine/recommendedActions.ts:7` · `packages/core/engine/recommendedActions.ts:74` · `packages/core/engine/recommendedActions.ts:106` · `packages/core/storage/debtPlannerStorage.ts:124` · `packages/core/timeline/buildMultiCycleTimeline.ts:274` · `packages/core/timeline/buildTimelineItems.ts:20` · `packages/core/timeline/buildTimelineItems.ts:125`
-- **"autopay_expense"** — `apps/rn/src/app/(tabs)/index.tsx:75` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:39` · `apps/rn/src/store/guardianSelectors.ts:421` · `apps/rn/src/store/planSelectors.ts:16` · `apps/rn/src/store/planSelectors.ts:128` · `apps/rn/src/store/planSelectors.ts:135` · `apps/rn/src/store/planSelectors.ts:145` · `apps/rn/src/store/planSelectors.ts:211` · `packages/core/debt/deriveRequiredActionView.ts:62` · `packages/core/debt/deriveRequiredActionView.ts:81` · `packages/core/engine/allocatePaycheck.ts:57` · `packages/core/engine/allocatePaycheck.ts:97` · `packages/core/engine/allocatePaycheck.ts:354` · `packages/core/engine/allocatePaycheck.ts:372` · `packages/core/timeline/buildTimelineItems.ts:15` · `packages/core/timeline/buildTimelineItems.ts:80`
-- **"flex-start"** — `apps/rn/src/app/paywall.tsx:344` · `apps/rn/src/components/entities/DebtSheet.tsx:322` · `apps/rn/src/components/entities/DebtSheet.tsx:334` · `apps/rn/src/components/onboarding/OnboardingLayout.tsx:54` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:485` · `apps/rn/src/components/plan/AffordabilityCard.tsx:243` · `apps/rn/src/components/plan/GuardianProofStrip.tsx:46` · `apps/rn/src/components/plan/MilestoneAckCard.tsx:54` · `apps/rn/src/components/plan/PlanHero.tsx:196` · `apps/rn/src/components/plan/PlanHero.tsx:210` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:346` · `apps/rn/src/components/progress/VanquishedArchive.tsx:99` · `apps/rn/src/components/ui/sheet-styles.ts:35` · `apps/rn/src/components/ui/TwoColumn.tsx:46`
-- **"per-paycheck"** — `apps/rn/src/app/(tabs)/money.tsx:67` · `apps/rn/src/components/entities/DebtSheet.tsx:34` · `apps/rn/src/components/entities/ExpenseSheet.tsx:18` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:39` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:73` · `apps/rn/src/store/guardianSelectors.ts:198` · `apps/rn/src/utils/format.ts:9` · `apps/rn/src/utils/format.ts:24` · `packages/core/debt/bnplPayoffPace.ts:26` · `packages/core/imports/debtCsv.ts:9` · `packages/core/recurrence/rolloverPayCycle.ts:58` · `packages/core/recurrence/rolloverPayCycle.ts:75` · `packages/core/types/recurrence.ts:6`
-- **"autopay_debt"** — `apps/rn/src/store/guardianSelectors.ts:421` · `apps/rn/src/store/planSelectors.ts:16` · `apps/rn/src/store/planSelectors.ts:135` · `apps/rn/src/store/planSelectors.ts:149` · `packages/core/debt/deriveRequiredActionView.ts:64` · `packages/core/debt/deriveRequiredActionView.ts:81` · `packages/core/engine/allocatePaycheck.ts:58` · `packages/core/engine/allocatePaycheck.ts:97` · `packages/core/engine/allocatePaycheck.ts:327` · `packages/core/engine/allocatePaycheck.ts:404` · `packages/core/engine/allocatePaycheck.ts:423` · `packages/core/timeline/buildTimelineItems.ts:17` · `packages/core/timeline/buildTimelineItems.ts:98`
-- **"minimum_debt"** — `apps/rn/src/store/guardianSelectors.ts:421` · `apps/rn/src/store/planSelectors.ts:16` · `apps/rn/src/store/planSelectors.ts:149` · `apps/rn/src/store/planSelectors.ts:162` · `packages/core/debt/deriveRequiredActionView.ts:64` · `packages/core/engine/allocatePaycheck.ts:56` · `packages/core/engine/allocatePaycheck.ts:97` · `packages/core/engine/allocatePaycheck.ts:326` · `packages/core/engine/allocatePaycheck.ts:404` · `packages/core/engine/allocatePaycheck.ts:423` · `packages/core/timeline/buildTimelineItems.ts:16` · `packages/core/timeline/buildTimelineItems.ts:98`
-- **"check-circle"** — `apps/rn/src/app/(tabs)/index.tsx:467` · `apps/rn/src/app/paywall.tsx:238` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:364` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:462` · `apps/rn/src/components/plan/AffordabilityCard.tsx:106` · `apps/rn/src/components/plan/AffordabilityCard.tsx:118` · `apps/rn/src/components/plan/AffordabilityCard.tsx:142` · `apps/rn/src/components/plan/PayoffInvitationCard.tsx:36` · `apps/rn/src/components/plan/PlanHero.tsx:169` · `apps/rn/src/components/plan/WindfallSheet.tsx:20` · `apps/rn/src/theme/icons.ts:41`
-- **"chevron-right"** — `apps/rn/src/app/(tabs)/money.tsx:815` · `apps/rn/src/app/(tabs)/money.tsx:841` · `apps/rn/src/app/(tabs)/money.tsx:930` · `apps/rn/src/components/entities/DebtSheet.tsx:276` · `apps/rn/src/components/entities/DebtSheet.tsx:288` · `apps/rn/src/components/more/SettingRow.tsx:52` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:170` · `apps/rn/src/components/premium/PremiumInvite.tsx:28` · `apps/rn/src/components/ui/ListRow.tsx:126` · `apps/rn/src/theme/icons.ts:35`
-- **"starter_emergency"** — `apps/rn/src/store/guardianSelectors.ts:423` · `apps/rn/src/store/guardianSelectors.ts:565` · `apps/rn/src/store/planSelectors.ts:41` · `apps/rn/src/store/planSelectors.ts:49` · `apps/rn/src/store/planSelectors.ts:57` · `packages/core/debt/selectActiveRecommendedActions.ts:66` · `packages/core/engine/allocatePaycheck.ts:62` · `packages/core/engine/allocatePaycheck.ts:79` · `packages/core/engine/allocatePaycheck.ts:504` · `packages/core/timeline/buildMultiCycleTimeline.ts:274`
-- **"log-payment"** — `apps/rn/src/app/(tabs)/index.tsx:513` · `apps/rn/src/app/(tabs)/index.tsx:515` · `apps/rn/src/appIntents/pendingActions.ts:15` · `apps/rn/src/appIntents/pendingActions.ts:18` · `apps/rn/src/appIntents/pendingActions.ts:52` · `apps/rn/src/appIntents/pendingActions.ts:58` · `apps/rn/src/appIntents/pendingActions.ts:73` · `apps/rn/src/store/store.ts:55` · `apps/rn/src/store/store.ts:476`
-- **"gpp-good"** — `apps/rn/src/app/(tabs)/index.tsx:481` · `apps/rn/src/app/(tabs)/index.tsx:500` · `apps/rn/src/app/(tabs)/index.tsx:530` · `apps/rn/src/app/more.tsx:150` · `apps/rn/src/components/onboarding/WelcomeStep.tsx:43` · `apps/rn/src/components/plan/GuardianScorecard.tsx:35` · `apps/rn/src/components/plan/PaydayGuardianCard.tsx:102` · `apps/rn/src/theme/icons.ts:64`
-- **"flex-end"** — `apps/rn/src/app/paywall.tsx:354` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:494` · `apps/rn/src/components/plan/PaydayGuardianCard.tsx:604` · `apps/rn/src/components/plan/TutorialOverlay.tsx:544` · `apps/rn/src/components/progress/CashFlowSection.tsx:149` · `apps/rn/src/components/progress/CashFlowSection.tsx:152` · `apps/rn/src/components/progress/TimelineLedger.tsx:133` · `apps/rn/src/components/ui/sheet-styles.ts:12`
-- **"Unable to estimate"** — `apps/rn/src/store/analysisSelectors.ts:110` · `apps/rn/src/store/analysisSelectors.ts:111` · `apps/rn/src/store/drift.ts:62` · `apps/rn/src/store/planSelectors.ts:96` · `packages/core/debt/computeInterestSaved.ts:47` · `packages/core/debt/computeInterestSaved.ts:48` · `packages/core/debt/projectDebtPayoff.ts:122` · `packages/core/debt/projectDebtPayoff.ts:214`
-- **"guardian-card"** — `apps/rn/src/app/(tabs)/index.tsx:303` · `apps/rn/src/store/guardianSubjects.ts:40` · `apps/rn/src/store/guardianSubjects.ts:61` · `apps/rn/src/store/tutorialPath.ts:108` · `apps/rn/src/store/tutorialPath.ts:149` · `apps/rn/src/store/tutorialPath.ts:155` · `apps/rn/src/store/tutorialPath.ts:185`
-- **"Add"** — `apps/rn/src/app/(tabs)/money.tsx:314` · `apps/rn/src/app/(tabs)/money.tsx:381` · `apps/rn/src/app/(tabs)/money.tsx:658` · `apps/rn/src/app/(tabs)/money.tsx:738` · `apps/rn/src/app/(tabs)/money.tsx:863` · `apps/rn/src/app/(tabs)/money.tsx:903` · `apps/rn/src/components/plan/WindfallSheet.tsx:79`
-- **"shopping-cart"** — `apps/rn/src/app/living-expenses.tsx:41` · `apps/rn/src/app/more.tsx:276` · `apps/rn/src/app/paywall.tsx:22` · `apps/rn/src/components/onboarding/WelcomeStep.tsx:15` · `apps/rn/src/components/plan/AffordabilityCard.tsx:160` · `apps/rn/src/components/progress/TimelineLedger.tsx:16` · `apps/rn/src/theme/icons.ts:52`
-- **"workspace-premium"** — `apps/rn/src/app/more.tsx:103` · `apps/rn/src/app/more.tsx:112` · `apps/rn/src/app/more.tsx:119` · `apps/rn/src/app/more.tsx:128` · `apps/rn/src/app/paywall.tsx:210` · `apps/rn/src/components/premium/PremiumInvite.tsx:26` · `apps/rn/src/theme/icons.ts:73`
-- **"/paywall"** — `apps/rn/src/app/more.tsx:131` · `apps/rn/src/components/plan/DemoDock.tsx:75` · `apps/rn/src/components/premium/PremiumInvite.tsx:21` · `apps/rn/src/store/demoExit.ts:8` · `apps/rn/src/store/demoExit.ts:28` · `apps/rn/src/store/demoExit.ts:39` · `apps/rn/src/store/demoExit.ts:39`
-- **"Monthly"** — `apps/rn/src/app/paywall.tsx:60` · `apps/rn/src/app/paywall.tsx:77` · `apps/rn/src/components/entities/DebtSheet.tsx:31` · `apps/rn/src/components/entities/DebtSheet.tsx:44` · `apps/rn/src/components/entities/ExpenseSheet.tsx:15` · `apps/rn/src/components/onboarding/PaycheckStep.tsx:22` · `apps/rn/src/components/plan/PaycheckSheet.tsx:22`
-- **"number-pad"** — `apps/rn/src/components/entities/DebtSheet.tsx:308` · `apps/rn/src/components/onboarding/PaycheckStep.tsx:150` · `apps/rn/src/components/onboarding/PaycheckStep.tsx:153` · `apps/rn/src/components/onboarding/PaycheckStep.tsx:159` · `apps/rn/src/components/plan/PaycheckSheet.tsx:149` · `apps/rn/src/components/plan/PaycheckSheet.tsx:152` · `apps/rn/src/components/plan/PaycheckSheet.tsx:158`
-- **"#ffffff"** — `apps/rn/src/components/plan/CaptureSlate.tsx:160` · `apps/rn/src/components/plan/CashRunwayChart.tsx:94` · `apps/rn/src/components/ui/ListRow.tsx:189` · `apps/rn/src/theme/colors.ts:28` · `apps/rn/src/theme/colors.ts:30` · `apps/rn/src/theme/colors.ts:42` · `apps/rn/src/theme/colors.ts:43`
-- **"Undo"** — `apps/rn/src/app/(tabs)/index.tsx:521` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:240` · `apps/rn/src/components/plan/AffordabilityCard.tsx:128` · `apps/rn/src/components/plan/AffordabilityCard.tsx:149` · `apps/rn/src/components/plan/RecommendedActionsCard.tsx:70` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:219`
-- **"/mo"** — `apps/rn/src/app/(tabs)/money.tsx:64` · `apps/rn/src/app/(tabs)/money.tsx:478` · `apps/rn/src/app/(tabs)/money.tsx:478` · `apps/rn/src/components/entities/AmortizationView.tsx:67` · `apps/rn/src/components/payoff/WhatIfControls.tsx:83` · `apps/rn/src/store/guardianSelectors.ts:201`
-- **"Autopay"** — `apps/rn/src/app/(tabs)/money.tsx:468` · `apps/rn/src/app/(tabs)/money.tsx:722` · `apps/rn/src/components/entities/DebtSheet.tsx:350` · `apps/rn/src/components/entities/ExpenseSheet.tsx:118` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:262` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:258`
-- **"discretionary"** — `apps/rn/src/app/(tabs)/money.tsx:510` · `apps/rn/src/components/entities/ExpenseSheet.tsx:30` · `apps/rn/src/components/plan/AffordabilityCard.tsx:77` · `apps/rn/src/components/plan/AffordabilityCard.tsx:87` · `packages/core/obligations/classifyDeferability.ts:15` · `packages/core/storage/debtPlannerStorage.ts:11`
-- **"expand-more"** — `apps/rn/src/app/(tabs)/money.tsx:815` · `apps/rn/src/components/payoff/TrajectoryChart.tsx:474` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:170` · `apps/rn/src/components/progress/TimelineLedger.tsx:86` · `apps/rn/src/components/ui/Select.tsx:32` · `apps/rn/src/theme/icons.ts:37`
-- **"payday-landed"** — `apps/rn/src/appIntents/pendingActions.ts:14` · `apps/rn/src/appIntents/pendingActions.ts:18` · `apps/rn/src/appIntents/pendingActions.ts:61` · `apps/rn/src/appIntents/pendingActions.ts:70` · `apps/rn/src/store/store.ts:55` · `apps/rn/src/store/store.ts:465`
-- **"#f7cf5f"** — `apps/rn/src/components/payoff/TrajectoryChart.tsx:258` · `apps/rn/src/components/plan/PaidOffFinale.tsx:36` · `apps/rn/src/components/plan/PaidOffFinale.tsx:38` · `apps/rn/src/components/plan/PaidOffFinale.tsx:44` · `apps/rn/src/theme/colors.ts:63` · `apps/rn/src/theme/colors.ts:63`
-- **"box-none"** — `apps/rn/src/components/plan/CoachMarkLayer.tsx:79` · `apps/rn/src/components/plan/TutorialOverlay.tsx:180` · `apps/rn/src/components/plan/TutorialOverlay.tsx:256` · `apps/rn/src/components/plan/TutorialOverlay.tsx:477` · `apps/rn/src/components/plan/TutorialOverlay.tsx:487` · `apps/rn/src/components/plan/VanquishedBeat.tsx:108`
-- **"false_clear"** — `apps/rn/src/components/plan/GuardianScorecard.tsx:49` · `packages/core/guardian/calibrationScore.ts:28` · `packages/core/guardian/calibrationScore.ts:40` · `packages/core/guardian/calibrationScore.ts:63` · `packages/core/guardian/calibrationScore.ts:110` · `packages/core/guardian/calibrationScore.ts:119`
-- **"cushion_buffer"** — `apps/rn/src/store/guardianSelectors.ts:422` · `packages/core/debt/selectActiveRecommendedActions.ts:98` · `packages/core/engine/allocatePaycheck.ts:59` · `packages/core/engine/allocatePaycheck.ts:71` · `packages/core/engine/allocatePaycheck.ts:435` · `packages/core/timeline/buildTimelineItems.ts:106`
-- **"prefunded_reserve"** — `apps/rn/src/store/guardianSelectors.ts:422` · `apps/rn/src/store/planSelectors.ts:79` · `packages/core/debt/selectActiveRecommendedActions.ts:100` · `packages/core/engine/allocatePaycheck.ts:60` · `packages/core/engine/allocatePaycheck.ts:72` · `packages/core/engine/allocatePaycheck.ts:476`
-- **"discovery_holdback"** — `apps/rn/src/store/guardianSelectors.ts:422` · `apps/rn/src/store/planSelectors.ts:79` · `packages/core/debt/selectActiveRecommendedActions.ts:99` · `packages/core/engine/allocatePaycheck.ts:61` · `packages/core/engine/allocatePaycheck.ts:73` · `packages/core/engine/allocatePaycheck.ts:483`
-- **"Got it"** — `apps/rn/src/app/(tabs)/index.tsx:470` · `apps/rn/src/app/(tabs)/index.tsx:488` · `apps/rn/src/app/(tabs)/index.tsx:505` · `apps/rn/src/components/plan/CoachMarkLayer.tsx:95` · `apps/rn/src/components/plan/CoachMarkLayer.tsx:98`
-- **"subscriptions"** — `apps/rn/src/app/(tabs)/money.tsx:509` · `apps/rn/src/components/entities/ExpenseSheet.tsx:27` · `apps/rn/src/store/sandboxScenarios.ts:114` · `packages/core/obligations/classifyDeferability.ts:15` · `packages/core/storage/debtPlannerStorage.ts:7`
-- **"trending-down"** — `apps/rn/src/app/(tabs)/progress.tsx:112` · `apps/rn/src/app/history.tsx:88` · `apps/rn/src/components/onboarding/WelcomeStep.tsx:14` · `apps/rn/src/components/plan/WindfallSheet.tsx:21` · `apps/rn/src/theme/icons.ts:54`
-- **"trending-up"** — `apps/rn/src/app/history.tsx:88` · `apps/rn/src/components/plan/GraduationCards.tsx:48` · `apps/rn/src/components/plan/LeanSuggestionCard.tsx:34` · `apps/rn/src/theme/icons.ts:17` · `apps/rn/src/theme/icons.ts:53`
-- **"/onboarding"** — `apps/rn/src/app/paywall.tsx:208` · `apps/rn/src/components/plan/DemoDock.tsx:73` · `apps/rn/src/components/plan/ExampleCanvasMarker.tsx:72` · `apps/rn/src/store/demoExit.ts:8` · `apps/rn/src/store/demoExit.ts:38`
-- **"/money"** — `apps/rn/src/app/schedule/[id].tsx:31` · `apps/rn/src/keyCommands/KeyCommandListener.ios.tsx:37` · `apps/rn/src/keyCommands/KeyCommandListener.ios.tsx:48` · `apps/rn/src/store/demoRun.ts:23` · `apps/rn/src/store/demoRun.ts:90`
-- **"Enter a name."** — `apps/rn/src/components/entities/DebtSheet.tsx:157` · `apps/rn/src/components/entities/ExpenseSheet.tsx:56` · `apps/rn/src/components/entities/GoalSheet.tsx:28` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:27` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:36`
-- **"Save"** — `apps/rn/src/components/entities/DebtSheet.tsx:248` · `apps/rn/src/components/entities/ExpenseSheet.tsx:100` · `apps/rn/src/components/entities/GoalSheet.tsx:59` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:48` · `apps/rn/src/components/plan/CushionFloorSheet.tsx:48`
-- **"Looks clear this paycheck"** — `apps/rn/src/components/more/LiveActivityQA.tsx:24` · `packages/core/guardian/buildGuardianBrief.ts:263` · `packages/core/guardian/buildGuardianBrief.ts:319` · `packages/core/guardian/buildGuardianBrief.ts:333` · `packages/core/guardian/buildGuardianBrief.ts:354`
-- **"guardian-adjust"** — `apps/rn/src/components/plan/PaydayGuardianCard.tsx:132` · `apps/rn/src/components/plan/PaydayGuardianCard.tsx:418` · `apps/rn/src/store/guardianSubjects.ts:40` · `apps/rn/src/store/guardianSubjects.ts:64` · `apps/rn/src/store/tutorialPath.ts:121`
-- **"guardian-reserve"** — `apps/rn/src/components/plan/PaydayGuardianCard.tsx:156` · `apps/rn/src/components/plan/PaydayGuardianCard.tsx:388` · `apps/rn/src/store/guardianSubjects.ts:40` · `apps/rn/src/store/guardianSubjects.ts:66` · `apps/rn/src/store/tutorialPath.ts:140`
-- **"Today"** — `apps/rn/src/app/(tabs)/_layout.tsx:82` · `apps/rn/src/components/more/LiveActivityQA.tsx:39` · `apps/rn/src/components/more/LiveActivityQA.tsx:43` · `apps/rn/src/liveActivity/paydayActivityContent.ts:53`
-- **"Progress"** — `apps/rn/src/app/(tabs)/_layout.tsx:87` · `apps/rn/src/app/(tabs)/progress.tsx:95` · `apps/rn/src/app/(tabs)/progress.tsx:110` · `apps/rn/src/app/(tabs)/progress.tsx:158`
-- **"account-balance-wallet"** — `apps/rn/src/app/(tabs)/index.tsx:236` · `apps/rn/src/components/plan/WindfallSheet.tsx:25` · `apps/rn/src/theme/icons.ts:18` · `apps/rn/src/theme/icons.ts:50`
-- **"Add a debt"** — `apps/rn/src/app/(tabs)/index.tsx:251` · `apps/rn/src/app/(tabs)/progress.tsx:115` · `apps/rn/src/components/entities/DebtSheet.tsx:238` · `apps/rn/src/components/entities/DebtSheet.tsx:238`
-- **"debt-free"** — `apps/rn/src/app/(tabs)/index.tsx:261` · `apps/rn/src/app/(tabs)/progress.tsx:151` · `apps/rn/src/store/planSelectors.ts:270` · `apps/rn/src/store/planSelectors.ts:276`
-- **"credit-card"** — `apps/rn/src/app/(tabs)/money.tsx:311` · `apps/rn/src/app/(tabs)/money.tsx:408` · `apps/rn/src/components/progress/TimelineLedger.tsx:19` · `apps/rn/src/components/progress/TimelineLedger.tsx:20`
-- **"BNPL"** — `apps/rn/src/app/(tabs)/money.tsx:468` · `apps/rn/src/store/guardianSelectors.ts:329` · `packages/core/debt/bnplSchedule.ts:42` · `packages/core/debt/bnplSchedule.ts:65`
-- **"Other"** — `apps/rn/src/app/(tabs)/money.tsx:503` · `apps/rn/src/components/entities/DebtSheet.tsx:58` · `apps/rn/src/components/entities/DebtSheet.tsx:58` · `apps/rn/src/components/entities/ExpenseSheet.tsx:32`
-- **"verified-user"** — `apps/rn/src/app/more.tsx:334` · `apps/rn/src/components/plan/GuardianProofStrip.tsx:30` · `apps/rn/src/components/plan/ShareCard.tsx:71` · `apps/rn/src/theme/icons.ts:68`
-- **"Payoff schedule"** — `apps/rn/src/app/schedule/[id].tsx:25` · `apps/rn/src/app/schedule/[id].tsx:31` · `apps/rn/src/components/entities/AmortizationView.tsx:102` · `apps/rn/src/components/ui/ListRow.tsx:152`
-- **"Weekly"** — `apps/rn/src/components/entities/DebtSheet.tsx:32` · `apps/rn/src/components/entities/ExpenseSheet.tsx:16` · `apps/rn/src/components/onboarding/PaycheckStep.tsx:19` · `apps/rn/src/components/plan/PaycheckSheet.tsx:19`
-- **"Name"** — `apps/rn/src/components/entities/DebtSheet.tsx:295` · `apps/rn/src/components/entities/ExpenseSheet.tsx:105` · `apps/rn/src/components/entities/GoalSheet.tsx:64` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:53`
-- **"Amount"** — `apps/rn/src/components/entities/ExpenseSheet.tsx:106` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:169` · `apps/rn/src/components/plan/AffordabilityCard.tsx:164` · `apps/rn/src/components/plan/WindfallSheet.tsx:84`
-- **"/paycheck"** — `apps/rn/src/components/money/BillBreakdownSheet.tsx:70` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:84` · `apps/rn/src/components/plan/SaveForItSheet.tsx:123` · `apps/rn/src/store/guardianSelectors.ts:198`
-- **"guardian-bar"** — `apps/rn/src/components/plan/PaydayGuardianCard.tsx:244` · `apps/rn/src/store/guardianSubjects.ts:40` · `apps/rn/src/store/guardianSubjects.ts:61` · `apps/rn/src/store/tutorialPath.ts:113`
-- **"on-track"** — `apps/rn/src/components/plan/PlanHero.tsx:91` · `apps/rn/src/components/plan/PlanHero.tsx:169` · `apps/rn/src/store/planSelectors.ts:280` · `apps/rn/src/store/planSelectors.ts:337`
-- **"true_leftover"** — `apps/rn/src/store/guardianSelectors.ts:426` · `packages/core/engine/allocatePaycheck.ts:66` · `packages/core/engine/allocatePaycheck.ts:74` · `packages/core/engine/allocatePaycheck.ts:615`
-- **"USD"** — `apps/rn/src/utils/format.ts:6` · `packages/core/forecast/projectForecast.ts:122` · `packages/core/insights/buildSmartInsights.ts:146` · `packages/core/utils/formatCurrency.ts:17`
-- **"no-paycheck"** — `apps/rn/src/app/(tabs)/index.tsx:233` · `apps/rn/src/store/planSelectors.ts:270` · `apps/rn/src/store/planSelectors.ts:274`
-- **"no-debts"** — `apps/rn/src/app/(tabs)/index.tsx:244` · `apps/rn/src/store/planSelectors.ts:270` · `apps/rn/src/store/planSelectors.ts:276`
-- **"add-circle-outline"** — `apps/rn/src/app/(tabs)/index.tsx:247` · `apps/rn/src/components/plan/PlanHero.tsx:179` · `apps/rn/src/theme/icons.ts:44`
-- **"today-ack"** — `apps/rn/src/app/(tabs)/index.tsx:478` · `apps/rn/src/app/(tabs)/index.tsx:497` · `apps/rn/src/store/tutorialPath.ts:141`
-- **"Not now"** — `apps/rn/src/app/(tabs)/index.tsx:544` · `apps/rn/src/components/plan/LeanSuggestionCard.tsx:41` · `apps/rn/src/components/plan/TutorialInviteCard.tsx:44`
-- **"debt-row-actions"** — `apps/rn/src/app/(tabs)/money.tsx:259` · `apps/rn/src/app/(tabs)/money.tsx:377` · `apps/rn/src/store/coachMarkCopy.ts:35`
-- **"Utilities"** — `apps/rn/src/app/(tabs)/money.tsx:498` · `apps/rn/src/components/entities/ExpenseSheet.tsx:25` · `apps/rn/src/store/sandboxScenarios.ts:100`
-- **"Insurance"** — `apps/rn/src/app/(tabs)/money.tsx:499` · `apps/rn/src/components/entities/ExpenseSheet.tsx:26` · `packages/core/constants/requiredExpensePresets.ts:41`
-- **"Subscriptions"** — `apps/rn/src/app/(tabs)/money.tsx:500` · `apps/rn/src/components/entities/ExpenseSheet.tsx:27` · `apps/rn/src/store/sandboxScenarios.ts:114`
-- **"Emergency fund"** — `apps/rn/src/app/(tabs)/money.tsx:892` · `apps/rn/src/components/entities/GoalSheet.tsx:70` · `apps/rn/src/store/sandboxScenarios.ts:160`
-- **"trajectory-scrub"** — `apps/rn/src/app/(tabs)/progress.tsx:73` · `apps/rn/src/app/(tabs)/progress.tsx:202` · `apps/rn/src/store/coachMarkCopy.ts:40`
-- **"Premium"** — `apps/rn/src/app/more.tsx:104` · `apps/rn/src/app/more.tsx:120` · `apps/rn/src/app/paywall.tsx:208`
-- **"Every 2 weeks"** — `apps/rn/src/components/entities/DebtSheet.tsx:33` · `apps/rn/src/components/entities/DebtSheet.tsx:43` · `apps/rn/src/components/entities/ExpenseSheet.tsx:17`
-- **"Klarna"** — `apps/rn/src/components/entities/DebtSheet.tsx:52` · `apps/rn/src/components/entities/DebtSheet.tsx:52` · `packages/core/scan/parseStatementText.ts:28`
-- **"Affirm"** — `apps/rn/src/components/entities/DebtSheet.tsx:53` · `apps/rn/src/components/entities/DebtSheet.tsx:53` · `packages/core/scan/parseStatementText.ts:28`
-- **"Afterpay"** — `apps/rn/src/components/entities/DebtSheet.tsx:54` · `apps/rn/src/components/entities/DebtSheet.tsx:54` · `packages/core/scan/parseStatementText.ts:28`
-- **"Zip"** — `apps/rn/src/components/entities/DebtSheet.tsx:56` · `apps/rn/src/components/entities/DebtSheet.tsx:56` · `packages/core/scan/parseStatementText.ts:28`
-- **"Sezzle"** — `apps/rn/src/components/entities/DebtSheet.tsx:57` · `apps/rn/src/components/entities/DebtSheet.tsx:57` · `packages/core/scan/parseStatementText.ts:28`
-- **"payoff-schedule"** — `apps/rn/src/components/entities/DebtSheet.tsx:128` · `apps/rn/src/components/entities/DebtSheet.tsx:281` · `apps/rn/src/store/coachMarkCopy.ts:28`
-- **"Enter an amount greater than 0."** — `apps/rn/src/components/entities/ExpenseSheet.tsx:64` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:28` · `apps/rn/src/components/plan/WindfallSheet.tsx:61`
-- **"A little tight this paycheck"** — `apps/rn/src/components/more/LiveActivityQA.tsx:35` · `packages/core/guardian/buildGuardianBrief.ts:263` · `packages/core/guardian/buildGuardianBrief.ts:278`
-- **"e.g. 1200"** — `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:175` · `apps/rn/src/components/onboarding/PaycheckStep.tsx:132` · `apps/rn/src/components/plan/PaycheckSheet.tsx:130`
-- **"Paid"** — `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:269` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:406` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:219`
-- **"Close"** — `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:327` · `apps/rn/src/components/ui/AnimatedSheet.tsx:82` · `apps/rn/src/components/ui/FormSheet.tsx:157`
-- **"payoff-enabling"** — `apps/rn/src/components/payoff/TrajectoryChart.tsx:136` · `packages/core/debt/computeInterestSaved.ts:17` · `packages/core/debt/computeInterestSaved.ts:54`
-- **"Savings goal"** — `apps/rn/src/components/plan/AffordabilityCard.tsx:55` · `apps/rn/src/components/plan/SaveForItSheet.tsx:92` · `apps/rn/src/components/plan/SaveForItSheet.tsx:99`
-- **"Purchase"** — `apps/rn/src/components/plan/AffordabilityCard.tsx:72` · `apps/rn/src/components/plan/AffordabilityCard.tsx:86` · `apps/rn/src/store/guardianSelectors.ts:384`
-- **"error-outline"** — `apps/rn/src/components/plan/AffordabilityCard.tsx:107` · `apps/rn/src/components/plan/PlanHero.tsx:169` · `apps/rn/src/theme/icons.ts:70`
-- **"Cushion"** — `apps/rn/src/components/plan/FloorImpactBar.tsx:76` · `apps/rn/src/components/plan/PaydayGuardianCard.tsx:277` · `apps/rn/src/components/progress/CashFlowSection.tsx:65`
-- **"#fb7185"** — `apps/rn/src/components/progress/CashFlowSection.tsx:28` · `apps/rn/src/components/progress/CashFlowSection.tsx:28` · `apps/rn/src/theme/colors.ts:53`
-- **"#dc2626"** — `apps/rn/src/components/progress/CashFlowSection.tsx:29` · `apps/rn/src/components/progress/CashFlowSection.tsx:29` · `apps/rn/src/theme/colors.ts:53`
-- **"Delete"** — `apps/rn/src/components/ui/ListRow.tsx:144` · `apps/rn/src/components/ui/ListRow.tsx:154` · `apps/rn/src/utils/confirm.ts:18`
-- **"/progress"** — `apps/rn/src/keyCommands/KeyCommandListener.ios.tsx:36` · `apps/rn/src/store/demoRun.ts:23` · `apps/rn/src/store/demoRun.ts:93`
-- **"not-risk"** — `apps/rn/src/store/guardianSelectors.ts:94` · `packages/core/guardian/notificationDecision.ts:40` · `packages/core/guardian/notificationDecision.ts:68`
-- **"start_real_plan"** — `apps/rn/src/analytics/funnel.ts:30` · `apps/rn/src/store/demoExit.ts:28`
-- **"unlock_premium"** — `apps/rn/src/analytics/funnel.ts:30` · `apps/rn/src/store/demoExit.ts:28`
-- **"demo_started"** — `apps/rn/src/analytics/funnel.ts:37` · `apps/rn/src/app/demo.tsx:71`
-- **"demo_stage"** — `apps/rn/src/analytics/funnel.ts:38` · `apps/rn/src/store/demoSession.ts:114`
-- **"demo_completed"** — `apps/rn/src/analytics/funnel.ts:39` · `apps/rn/src/store/demoSession.ts:117`
-- **"demo_exited"** — `apps/rn/src/analytics/funnel.ts:40` · `apps/rn/src/store/demoExit.ts:28`
-- **"tutorial_started"** — `apps/rn/src/analytics/funnel.ts:41` · `apps/rn/src/store/tutorialSession.ts:178`
-- **"tutorial_completed"** — `apps/rn/src/analytics/funnel.ts:42` · `apps/rn/src/store/tutorialSession.ts:261`
-- **"tutorial_skipped"** — `apps/rn/src/analytics/funnel.ts:43` · `apps/rn/src/store/tutorialSession.ts:262`
-- **"tab-today"** — `apps/rn/src/app/(tabs)/_layout.tsx:82` · `apps/rn/src/keyCommands/KeyCommandListener.ios.tsx:35`
-- **"tab-progress"** — `apps/rn/src/app/(tabs)/_layout.tsx:87` · `apps/rn/src/keyCommands/KeyCommandListener.ios.tsx:36`
-- **"Money"** — `apps/rn/src/app/(tabs)/_layout.tsx:92` · `apps/rn/src/app/(tabs)/money.tsx:110`
-- **"tab-money"** — `apps/rn/src/app/(tabs)/_layout.tsx:92` · `apps/rn/src/keyCommands/KeyCommandListener.ios.tsx:37`
-- **"/wk"** — `apps/rn/src/app/(tabs)/money.tsx:65` · `apps/rn/src/store/guardianSelectors.ts:196`
-- **"/qtr"** — `apps/rn/src/app/(tabs)/money.tsx:68` · `apps/rn/src/store/guardianSelectors.ts:199`
-- **"/yr"** — `apps/rn/src/app/(tabs)/money.tsx:69` · `apps/rn/src/store/guardianSelectors.ts:200`
-- **"Housing"** — `apps/rn/src/app/(tabs)/money.tsx:497` · `apps/rn/src/components/entities/ExpenseSheet.tsx:24`
-- **"Discretionary"** — `apps/rn/src/app/(tabs)/money.tsx:501` · `apps/rn/src/components/entities/ExpenseSheet.tsx:30`
-- **"Medical"** — `apps/rn/src/app/(tabs)/money.tsx:502` · `apps/rn/src/components/entities/ExpenseSheet.tsx:31`
-- **"One-time"** — `apps/rn/src/app/(tabs)/money.tsx:631` · `apps/rn/src/components/entities/DebtSheet.tsx:46`
-- **"receipt-long"** — `apps/rn/src/app/(tabs)/money.tsx:655` · `apps/rn/src/components/progress/TimelineLedger.tsx:17`
-- **"reserved per paycheck"** — `apps/rn/src/app/(tabs)/money.tsx:675` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:57`
-- **"/living-expenses"** — `apps/rn/src/app/(tabs)/money.tsx:832` · `apps/rn/src/app/more.tsx:276`
-- **"Savings"** — `apps/rn/src/app/(tabs)/money.tsx:892` · `apps/rn/src/components/entities/GoalSheet.tsx:70`
-- **"Living Expenses"** — `apps/rn/src/app/living-expenses.tsx:34` · `apps/rn/src/app/more.tsx:276`
-- **"More"** — `apps/rn/src/app/more.tsx:89` · `apps/rn/src/components/more-button.tsx:45`
-- **"Unlock Premium"** — `apps/rn/src/app/more.tsx:129` · `apps/rn/src/components/plan/DemoDock.tsx:79`
-- **"lightbulb-outline"** — `apps/rn/src/app/more.tsx:164` · `apps/rn/src/theme/icons.ts:61`
-- **"Export backup"** — `apps/rn/src/app/more.tsx:177` · `apps/rn/src/components/more/BackupSheets.tsx:35`
-- **"Import backup"** — `apps/rn/src/app/more.tsx:178` · `apps/rn/src/components/more/BackupSheets.tsx:77`
-- **"Your name"** — `apps/rn/src/app/more.tsx:200` · `apps/rn/src/components/onboarding/CompletionStep.tsx:66`
-- **"About"** — `apps/rn/src/app/more.tsx:280` · `apps/rn/src/components/plan/AffordabilityCard.tsx:202`
-- **"Privacy Policy"** — `apps/rn/src/app/more.tsx:282` · `apps/rn/src/app/paywall.tsx:331`
-- **"Private by design"** — `apps/rn/src/app/more.tsx:337` · `apps/rn/src/components/onboarding/CompletionStep.tsx:17`
-- **"Cancel"** — `apps/rn/src/app/more.tsx:355` · `apps/rn/src/utils/confirm.ts:17`
-- **"auto-graph"** — `apps/rn/src/app/paywall.tsx:24` · `apps/rn/src/theme/icons.ts:55`
-- **"See it in action"** — `apps/rn/src/app/paywall.tsx:315` · `apps/rn/src/components/onboarding/WelcomeStep.tsx:39`
-- **"LiveActivity"** — `apps/rn/src/appIntents/pendingActionBridge.native.ts:19` · `apps/rn/src/liveActivity/liveActivityBridge.native.ts:25`
-- **"An ongoing cost that doesn't end."** — `apps/rn/src/components/entities/AddObligationSheet.tsx:41` · `apps/rn/src/components/entities/ExpenseSheet.tsx:99`
-- **"Every paycheck"** — `apps/rn/src/components/entities/DebtSheet.tsx:34` · `apps/rn/src/components/entities/ExpenseSheet.tsx:18`
-- **"Quarterly"** — `apps/rn/src/components/entities/DebtSheet.tsx:35` · `apps/rn/src/components/entities/ExpenseSheet.tsx:20`
-- **"Yearly"** — `apps/rn/src/components/entities/DebtSheet.tsx:36` · `apps/rn/src/components/entities/ExpenseSheet.tsx:21`
-- **"PayPal"** — `apps/rn/src/components/entities/DebtSheet.tsx:55` · `packages/core/scan/parseStatementText.ts:28`
-- **"Enter the current balance."** — `apps/rn/src/components/entities/DebtSheet.tsx:184` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:41`
-- **"Enter the minimum payment."** — `apps/rn/src/components/entities/DebtSheet.tsx:185` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:45`
-- **"Log a payment"** — `apps/rn/src/components/entities/DebtSheet.tsx:275` · `apps/rn/src/components/entities/LogPaymentSheet.tsx:34`
-- **"Type"** — `apps/rn/src/components/entities/DebtSheet.tsx:297` · `apps/rn/src/components/entities/GoalSheet.tsx:68`
-- **"e.g. 100"** — `apps/rn/src/components/entities/DebtSheet.tsx:307` · `apps/rn/src/components/plan/SaveForItSheet.tsx:149`
-- **"Current balance"** — `apps/rn/src/components/entities/DebtSheet.tsx:319` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:138`
-- **"e.g. 2400"** — `apps/rn/src/components/entities/DebtSheet.tsx:319` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:144`
-- **"Minimum payment"** — `apps/rn/src/components/entities/DebtSheet.tsx:344` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:151`
-- **"e.g. 22.99"** — `apps/rn/src/components/entities/DebtSheet.tsx:345` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:162`
-- **"Recurrence"** — `apps/rn/src/components/entities/DebtSheet.tsx:347` · `apps/rn/src/components/entities/ExpenseSheet.tsx:108`
-- **"Log payment"** — `apps/rn/src/components/entities/LogPaymentSheet.tsx:46` · `apps/rn/src/components/ui/ListRow.tsx:151`
-- **"Done"** — `apps/rn/src/components/more/BackupSheets.tsx:37` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:279`
-- **"Tomorrow"** — `apps/rn/src/components/more/LiveActivityQA.tsx:35` · `apps/rn/src/liveActivity/paydayActivityContent.ts:54`
-- **"Very tight this paycheck"** — `apps/rn/src/components/more/LiveActivityQA.tsx:39` · `packages/core/guardian/buildGuardianBrief.ts:278`
-- **"phone-iphone"** — `apps/rn/src/components/onboarding/CompletionStep.tsx:19` · `apps/rn/src/theme/icons.ts:62`
-- **"Bi-Weekly"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:20` · `apps/rn/src/components/plan/PaycheckSheet.tsx:20`
-- **"Semi-Monthly"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:21` · `apps/rn/src/components/plan/PaycheckSheet.tsx:21`
-- **"e.g. 1st & 15th"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:21` · `apps/rn/src/components/plan/PaycheckSheet.tsx:21`
-- **"Enter the amount you can count on."** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:72` · `apps/rn/src/components/plan/PaycheckSheet.tsx:80`
-- **"Your lean paycheck should be no more than a typical one."** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:73` · `apps/rn/src/components/plan/PaycheckSheet.tsx:81`
-- **"Continue"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:95` · `apps/rn/src/components/plan/PaidOffFinale.tsx:128`
-- **"Paycheck amount"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:108` · `apps/rn/src/components/plan/PaycheckSheet.tsx:107`
-- **"e.g. 1500"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:114` · `apps/rn/src/components/plan/PaycheckSheet.tsx:110`
-- **"My income varies"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:122` · `apps/rn/src/components/plan/PaycheckSheet.tsx:120`
-- **"The amount you can count on"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:129` · `apps/rn/src/components/plan/PaycheckSheet.tsx:127`
-- **"Your plan runs on this floor, so a lighter paycheck never breaks it."** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:137` · `apps/rn/src/components/plan/PaycheckSheet.tsx:135`
-- **"Pay cycle"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:143` · `apps/rn/src/components/plan/PaycheckSheet.tsx:142`
-- **"First payday"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:150` · `apps/rn/src/components/plan/PaycheckSheet.tsx:149`
-- **"Second payday"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:153` · `apps/rn/src/components/plan/PaycheckSheet.tsx:152`
-- **"Payday (day of month)"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:159` · `apps/rn/src/components/plan/PaycheckSheet.tsx:158`
-- **"Next paycheck"** — `apps/rn/src/components/onboarding/PaycheckStep.tsx:163` · `apps/rn/src/components/plan/PaycheckSheet.tsx:162`
-- **"Required"** — `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:265` · `apps/rn/src/components/plan/PlanHero.tsx:79`
-- **"rgba(91,157,255,0)"** — `apps/rn/src/components/payoff/TrajectoryChart.tsx:265` · `apps/rn/src/components/plan/CashRunwayChart.tsx:89`
-- **"rgba(47,102,234,0)"** — `apps/rn/src/components/payoff/TrajectoryChart.tsx:265` · `apps/rn/src/components/plan/CashRunwayChart.tsx:89`
-- **"expand-less"** — `apps/rn/src/components/payoff/TrajectoryChart.tsx:474` · `apps/rn/src/components/progress/TimelineLedger.tsx:86`
-- **"Start my real plan"** — `apps/rn/src/components/plan/DemoDock.tsx:73` · `apps/rn/src/components/plan/ExampleCanvasMarker.tsx:73`
-- **"Example money"** — `apps/rn/src/components/plan/ExampleCanvasMarker.tsx:14` · `apps/rn/src/components/plan/TutorialOverlay.tsx:320`
-- **"Keep going"** — `apps/rn/src/components/plan/MilestoneAckCard.tsx:45` · `apps/rn/src/components/plan/VanquishedBeat.tsx:138`
-- **"rgba(255,255,255,0.12)"** — `apps/rn/src/components/plan/PaidOffFinale.tsx:35` · `apps/rn/src/theme/colors.ts:70`
-- **"Share your win"** — `apps/rn/src/components/plan/PaidOffFinale.tsx:127` · `apps/rn/src/components/plan/VanquishedBeat.tsx:89`
-- **"gpp-maybe"** — `apps/rn/src/components/plan/PaydayGuardianCard.tsx:103` · `apps/rn/src/theme/icons.ts:66`
-- **"gpp-bad"** — `apps/rn/src/components/plan/PaydayGuardianCard.tsx:104` · `apps/rn/src/theme/icons.ts:65`
-- **"Safety net"** — `apps/rn/src/components/plan/PaydayGuardianCard.tsx:272` · `packages/core/engine/allocatePaycheck.ts:483`
-- **"your emergency fund"** — `apps/rn/src/components/plan/PaydayGuardianCard.tsx:358` · `packages/core/guardian/buildGuardianBrief.ts:348`
-- **"line-through"** — `apps/rn/src/components/plan/RecommendedActionsCard.tsx:105` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:273`
-- **"Overdue"** — `apps/rn/src/components/plan/RequiredActionsCard.tsx:278` · `apps/rn/src/store/planSelectors.ts:247`
-- **"Vanquished"** — `apps/rn/src/components/plan/ShareCard.tsx:50` · `apps/rn/src/components/plan/VanquishedBeat.tsx:116`
-- **"Paid off"** — `apps/rn/src/components/plan/ShareCard.tsx:51` · `apps/rn/src/components/plan/VanquishedBeat.tsx:126`
-- **"Back"** — `apps/rn/src/components/plan/TutorialOverlay.tsx:345` · `apps/rn/src/components/screen.tsx:67`
-- **"Share"** — `apps/rn/src/components/plan/VanquishedBeat.tsx:137` · `apps/rn/src/components/progress/VanquishedArchive.tsx:73`
-- **"cushionStatus"** — `apps/rn/src/components/progress/CashFlowSection.tsx:19` · `apps/rn/src/store/planSelectors.ts:323`
-- **"#fbbf24"** — `apps/rn/src/components/progress/CashFlowSection.tsx:33` · `apps/rn/src/theme/colors.ts:52`
-- **"#b45309"** — `apps/rn/src/components/progress/CashFlowSection.tsx:34` · `apps/rn/src/theme/colors.ts:52`
-- **"#a6b9d4"** — `apps/rn/src/components/progress/CashFlowSection.tsx:37` · `apps/rn/src/theme/colors.ts:38`
-- **"#5a6b82"** — `apps/rn/src/components/progress/CashFlowSection.tsx:38` · `apps/rn/src/theme/colors.ts:38`
-- **"sheet-close"** — `apps/rn/src/components/ui/AnimatedSheet.tsx:79` · `apps/rn/src/components/ui/FormSheet.tsx:154`
-- **"group.com.jasonsnyder.debtplanner"** — `apps/rn/src/liveActivity/liveActivityKeys.ts:11` · `apps/rn/src/widget/widgetKeys.ts:16`
-- **"payday-actions"** — `apps/rn/src/notifications/notifications.ts:27` · `apps/rn/src/notifications/notifications.web.ts:33`
-- **"risk-actions"** — `apps/rn/src/notifications/notifications.ts:28` · `apps/rn/src/notifications/notifications.web.ts:34`
-- **"bills-actions"** — `apps/rn/src/notifications/notifications.ts:29` · `apps/rn/src/notifications/notifications.web.ts:35`
-- **"your savings"** — `apps/rn/src/store/guardianSelectors.ts:135` · `packages/core/guardian/buildGuardianBrief.ts:315`
-- **"to your goals"** — `apps/rn/src/store/planSelectors.ts:310` · `packages/core/guardian/buildGuardianBrief.ts:323`
-- **"Internet"** — `apps/rn/src/store/sandboxScenarios.ts:102` · `packages/core/constants/requiredExpensePresets.ts:31`
-- **"Groceries"** — `apps/rn/src/store/sandboxScenarios.ts:154` · `packages/core/constants/livingExpensePresets.ts:5`
-- **"Childcare"** — `packages/core/constants/livingExpensePresets.ts:30` · `packages/core/constants/requiredExpensePresets.ts:71`
+**110** of 210 cross-file duplicate strings carry copy.
+The other 100 are style tokens, icon names,
+routes and enum ids — repeated by design, and nothing a wording pass judges. They are excluded
+here for the same reason the T2 gate and the T3 table exclude them: one classification, reused.
+
+⚠️ A `copy+unclassified` tag means the SAME text is both a user-facing string somewhere and a
+non-copy literal elsewhere (`"at-risk"` is a Guardian state id and a QA label). Judge the copy
+instance; the others are coincidence, not divergence.
+
+- **"one-time"** _(copy+technical+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:70` · `apps/rn/src/app/(tabs)/money.tsx:544` · `apps/rn/src/app/(tabs)/money.tsx:545` · `apps/rn/src/app/(tabs)/money.tsx:602` · `apps/rn/src/app/(tabs)/money.tsx:603` · `apps/rn/src/app/(tabs)/money.tsx:628` · `apps/rn/src/app/(tabs)/money.tsx:630` · `apps/rn/src/components/entities/DebtSheet.tsx:46` · `apps/rn/src/components/entities/ExpenseSheet.tsx:19` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:35` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:35` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:95` · `apps/rn/src/components/plan/AffordabilityCard.tsx:77` · `apps/rn/src/components/plan/AffordabilityCard.tsx:87` · `apps/rn/src/store/guardianSelectors.ts:384` · `apps/rn/src/utils/format.ts:9` · `apps/rn/src/utils/format.ts:23` · `packages/core/debt/bnplPayoffPace.ts:35` · `packages/core/engine/allocatePaycheck.ts:199` · `packages/core/imports/debtCsv.ts:9` · `packages/core/recurrence/rolloverPayCycle.ts:59` · `packages/core/recurrence/rolloverPayCycle.ts:71` · `packages/core/recurrence/rolloverPayCycle.ts:104` · `packages/core/recurrence/rolloverPayCycle.ts:132` · `packages/core/timeline/buildMultiCycleTimeline.ts:148` · `packages/core/timeline/buildMultiCycleTimeline.ts:153` · `packages/core/timeline/buildMultiCycleTimeline.ts:224` · `packages/core/timeline/buildMultiCycleTimeline.ts:229` · `packages/core/types/recurrence.ts:2`
+- **"at-risk"** _(copy+unclassified)_ — `apps/rn/src/components/more/LiveActivityQA.tsx:39` · `apps/rn/src/components/plan/CashRunwayChart.tsx:42` · `apps/rn/src/components/plan/CashRunwayChart.tsx:102` · `apps/rn/src/components/plan/PaydayGuardianCard.tsx:104` · `apps/rn/src/components/plan/PaydayGuardianCard.tsx:294` · `apps/rn/src/store/guardianSubjects.ts:64` · `apps/rn/src/store/sandboxScenarios.ts:32` · `apps/rn/src/store/sandboxScenarios.ts:77` · `apps/rn/src/store/sandboxScenarios.ts:193` · `apps/rn/src/store/sandboxScenarios.ts:351` · `apps/rn/src/store/tutorialPath.ts:149` · `packages/core/guardian/buildGuardianBrief.ts:17` · `packages/core/guardian/buildGuardianBrief.ts:278` · `packages/core/guardian/buildGuardianBrief.ts:283` · `packages/core/guardian/computeState.ts:33` · `packages/core/guardian/computeState.ts:47` · `packages/core/guardian/computeState.ts:49` · `packages/core/guardian/computeState.ts:54` · `packages/core/guardian/notificationDecision.ts:23` · `packages/core/guardian/notificationDecision.ts:68` · `packages/core/storage/debtPlannerStorage.ts:133`
+- **"Add"** _(copy)_ — `apps/rn/src/app/(tabs)/money.tsx:314` · `apps/rn/src/app/(tabs)/money.tsx:381` · `apps/rn/src/app/(tabs)/money.tsx:658` · `apps/rn/src/app/(tabs)/money.tsx:738` · `apps/rn/src/app/(tabs)/money.tsx:863` · `apps/rn/src/app/(tabs)/money.tsx:903` · `apps/rn/src/components/plan/WindfallSheet.tsx:79`
+- **"Monthly"** _(copy)_ — `apps/rn/src/app/paywall.tsx:60` · `apps/rn/src/app/paywall.tsx:77` · `apps/rn/src/components/entities/DebtSheet.tsx:31` · `apps/rn/src/components/entities/DebtSheet.tsx:44` · `apps/rn/src/components/entities/ExpenseSheet.tsx:15` · `apps/rn/src/components/onboarding/PaycheckStep.tsx:22` · `apps/rn/src/components/plan/PaycheckSheet.tsx:22`
+- **"Undo"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/index.tsx:521` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:240` · `apps/rn/src/components/plan/AffordabilityCard.tsx:128` · `apps/rn/src/components/plan/AffordabilityCard.tsx:149` · `apps/rn/src/components/plan/RecommendedActionsCard.tsx:70` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:219`
+- **"/mo"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:64` · `apps/rn/src/app/(tabs)/money.tsx:478` · `apps/rn/src/app/(tabs)/money.tsx:478` · `apps/rn/src/components/entities/AmortizationView.tsx:67` · `apps/rn/src/components/payoff/WhatIfControls.tsx:83` · `apps/rn/src/store/guardianSelectors.ts:201`
+- **"Autopay"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:468` · `apps/rn/src/app/(tabs)/money.tsx:722` · `apps/rn/src/components/entities/DebtSheet.tsx:350` · `apps/rn/src/components/entities/ExpenseSheet.tsx:118` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:262` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:258`
+- **"Got it"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:470` · `apps/rn/src/app/(tabs)/index.tsx:488` · `apps/rn/src/app/(tabs)/index.tsx:505` · `apps/rn/src/components/plan/CoachMarkLayer.tsx:111` · `apps/rn/src/components/plan/CoachMarkLayer.tsx:114`
+- **"Enter a name."** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:157` · `apps/rn/src/components/entities/ExpenseSheet.tsx:56` · `apps/rn/src/components/entities/GoalSheet.tsx:28` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:27` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:36`
+- **"Save"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:248` · `apps/rn/src/components/entities/ExpenseSheet.tsx:100` · `apps/rn/src/components/entities/GoalSheet.tsx:59` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:48` · `apps/rn/src/components/plan/CushionFloorSheet.tsx:48`
+- **"Looks clear this paycheck"** _(copy)_ — `apps/rn/src/components/more/LiveActivityQA.tsx:24` · `packages/core/guardian/buildGuardianBrief.ts:263` · `packages/core/guardian/buildGuardianBrief.ts:319` · `packages/core/guardian/buildGuardianBrief.ts:333` · `packages/core/guardian/buildGuardianBrief.ts:354`
+- **"Today"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/_layout.tsx:82` · `apps/rn/src/components/more/LiveActivityQA.tsx:39` · `apps/rn/src/components/more/LiveActivityQA.tsx:43` · `apps/rn/src/liveActivity/paydayActivityContent.ts:53`
+- **"Progress"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/_layout.tsx:87` · `apps/rn/src/app/(tabs)/progress.tsx:95` · `apps/rn/src/app/(tabs)/progress.tsx:110` · `apps/rn/src/app/(tabs)/progress.tsx:158`
+- **"Add a debt"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:251` · `apps/rn/src/app/(tabs)/progress.tsx:115` · `apps/rn/src/components/entities/DebtSheet.tsx:238` · `apps/rn/src/components/entities/DebtSheet.tsx:238`
+- **"debt-free"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/index.tsx:261` · `apps/rn/src/app/(tabs)/progress.tsx:151` · `apps/rn/src/store/planSelectors.ts:270` · `apps/rn/src/store/planSelectors.ts:276`
+- **"BNPL"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:468` · `apps/rn/src/store/guardianSelectors.ts:329` · `packages/core/debt/bnplSchedule.ts:42` · `packages/core/debt/bnplSchedule.ts:65`
+- **"Other"** _(copy+technical+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:503` · `apps/rn/src/components/entities/DebtSheet.tsx:58` · `apps/rn/src/components/entities/DebtSheet.tsx:58` · `apps/rn/src/components/entities/ExpenseSheet.tsx:32`
+- **"Payoff schedule"** _(copy+unclassified)_ — `apps/rn/src/app/schedule/[id].tsx:25` · `apps/rn/src/app/schedule/[id].tsx:31` · `apps/rn/src/components/entities/AmortizationView.tsx:102` · `apps/rn/src/components/ui/ListRow.tsx:152`
+- **"Weekly"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:32` · `apps/rn/src/components/entities/ExpenseSheet.tsx:16` · `apps/rn/src/components/onboarding/PaycheckStep.tsx:19` · `apps/rn/src/components/plan/PaycheckSheet.tsx:19`
+- **"Name"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:295` · `apps/rn/src/components/entities/ExpenseSheet.tsx:105` · `apps/rn/src/components/entities/GoalSheet.tsx:64` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:53`
+- **"Amount"** _(copy)_ — `apps/rn/src/components/entities/ExpenseSheet.tsx:106` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:169` · `apps/rn/src/components/plan/AffordabilityCard.tsx:164` · `apps/rn/src/components/plan/WindfallSheet.tsx:84`
+- **"/paycheck"** _(copy)_ — `apps/rn/src/components/money/BillBreakdownSheet.tsx:70` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:84` · `apps/rn/src/components/plan/SaveForItSheet.tsx:123` · `apps/rn/src/store/guardianSelectors.ts:198`
+- **"no-paycheck"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/index.tsx:233` · `apps/rn/src/store/planSelectors.ts:270` · `apps/rn/src/store/planSelectors.ts:274`
+- **"Not now"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:544` · `apps/rn/src/components/plan/LeanSuggestionCard.tsx:41` · `apps/rn/src/components/plan/TutorialInviteCard.tsx:44`
+- **"Utilities"** _(copy+technical+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:498` · `apps/rn/src/components/entities/ExpenseSheet.tsx:25` · `apps/rn/src/store/sandboxScenarios.ts:100`
+- **"Insurance"** _(copy+technical+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:499` · `apps/rn/src/components/entities/ExpenseSheet.tsx:26` · `packages/core/constants/requiredExpensePresets.ts:41`
+- **"Subscriptions"** _(copy+technical+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:500` · `apps/rn/src/components/entities/ExpenseSheet.tsx:27` · `apps/rn/src/store/sandboxScenarios.ts:114`
+- **"Premium"** _(copy)_ — `apps/rn/src/app/more.tsx:105` · `apps/rn/src/app/more.tsx:121` · `apps/rn/src/app/paywall.tsx:208`
+- **"Every 2 weeks"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:33` · `apps/rn/src/components/entities/DebtSheet.tsx:43` · `apps/rn/src/components/entities/ExpenseSheet.tsx:17`
+- **"Klarna"** _(copy+technical+unclassified)_ — `apps/rn/src/components/entities/DebtSheet.tsx:52` · `apps/rn/src/components/entities/DebtSheet.tsx:52` · `packages/core/scan/parseStatementText.ts:28`
+- **"Affirm"** _(copy+technical+unclassified)_ — `apps/rn/src/components/entities/DebtSheet.tsx:53` · `apps/rn/src/components/entities/DebtSheet.tsx:53` · `packages/core/scan/parseStatementText.ts:28`
+- **"Afterpay"** _(copy+technical+unclassified)_ — `apps/rn/src/components/entities/DebtSheet.tsx:54` · `apps/rn/src/components/entities/DebtSheet.tsx:54` · `packages/core/scan/parseStatementText.ts:28`
+- **"Zip"** _(copy+technical+unclassified)_ — `apps/rn/src/components/entities/DebtSheet.tsx:56` · `apps/rn/src/components/entities/DebtSheet.tsx:56` · `packages/core/scan/parseStatementText.ts:28`
+- **"Sezzle"** _(copy+technical+unclassified)_ — `apps/rn/src/components/entities/DebtSheet.tsx:57` · `apps/rn/src/components/entities/DebtSheet.tsx:57` · `packages/core/scan/parseStatementText.ts:28`
+- **"Enter an amount greater than 0."** _(copy)_ — `apps/rn/src/components/entities/ExpenseSheet.tsx:64` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:28` · `apps/rn/src/components/plan/WindfallSheet.tsx:61`
+- **"A little tight this paycheck"** _(copy)_ — `apps/rn/src/components/more/LiveActivityQA.tsx:35` · `packages/core/guardian/buildGuardianBrief.ts:263` · `packages/core/guardian/buildGuardianBrief.ts:278`
+- **"e.g. 1200"** _(copy)_ — `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:175` · `apps/rn/src/components/onboarding/PaycheckStep.tsx:132` · `apps/rn/src/components/plan/PaycheckSheet.tsx:130`
+- **"Paid"** _(copy+unclassified)_ — `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:269` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:406` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:219`
+- **"Close"** _(copy)_ — `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:327` · `apps/rn/src/components/ui/AnimatedSheet.tsx:82` · `apps/rn/src/components/ui/FormSheet.tsx:157`
+- **"Cushion"** _(copy+unclassified)_ — `apps/rn/src/components/plan/FloorImpactBar.tsx:76` · `apps/rn/src/components/plan/PaydayGuardianCard.tsx:277` · `apps/rn/src/components/progress/CashFlowSection.tsx:65`
+- **"#fb7185"** _(copy+technical)_ — `apps/rn/src/components/progress/CashFlowSection.tsx:28` · `apps/rn/src/components/progress/CashFlowSection.tsx:28` · `apps/rn/src/theme/colors.ts:53`
+- **"#dc2626"** _(copy+technical)_ — `apps/rn/src/components/progress/CashFlowSection.tsx:29` · `apps/rn/src/components/progress/CashFlowSection.tsx:29` · `apps/rn/src/theme/colors.ts:53`
+- **"Delete"** _(copy)_ — `apps/rn/src/components/ui/ListRow.tsx:144` · `apps/rn/src/components/ui/ListRow.tsx:154` · `apps/rn/src/utils/confirm.ts:18`
+- **"Money"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/_layout.tsx:92` · `apps/rn/src/app/(tabs)/money.tsx:110`
+- **"/wk"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:65` · `apps/rn/src/store/guardianSelectors.ts:196`
+- **"/qtr"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:68` · `apps/rn/src/store/guardianSelectors.ts:199`
+- **"/yr"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:69` · `apps/rn/src/store/guardianSelectors.ts:200`
+- **"Housing"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:497` · `apps/rn/src/components/entities/ExpenseSheet.tsx:24`
+- **"Discretionary"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:501` · `apps/rn/src/components/entities/ExpenseSheet.tsx:30`
+- **"Medical"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:502` · `apps/rn/src/components/entities/ExpenseSheet.tsx:31`
+- **"One-time"** _(copy)_ — `apps/rn/src/app/(tabs)/money.tsx:631` · `apps/rn/src/components/entities/DebtSheet.tsx:46`
+- **"reserved per paycheck"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:675` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:57`
+- **"Living Expenses"** _(copy)_ — `apps/rn/src/app/living-expenses.tsx:34` · `apps/rn/src/app/more.tsx:277`
+- **"More"** _(copy)_ — `apps/rn/src/app/more.tsx:90` · `apps/rn/src/components/more-button.tsx:45`
+- **"Unlock Premium"** _(copy)_ — `apps/rn/src/app/more.tsx:130` · `apps/rn/src/components/plan/DemoDock.tsx:79`
+- **"Export backup"** _(copy)_ — `apps/rn/src/app/more.tsx:178` · `apps/rn/src/components/more/BackupSheets.tsx:35`
+- **"Import backup"** _(copy)_ — `apps/rn/src/app/more.tsx:179` · `apps/rn/src/components/more/BackupSheets.tsx:77`
+- **"Your name"** _(copy)_ — `apps/rn/src/app/more.tsx:201` · `apps/rn/src/components/onboarding/CompletionStep.tsx:66`
+- **"About"** _(copy)_ — `apps/rn/src/app/more.tsx:281` · `apps/rn/src/components/plan/AffordabilityCard.tsx:202`
+- **"Privacy Policy"** _(copy)_ — `apps/rn/src/app/more.tsx:283` · `apps/rn/src/app/paywall.tsx:331`
+- **"Private by design"** _(copy)_ — `apps/rn/src/app/more.tsx:339` · `apps/rn/src/components/onboarding/CompletionStep.tsx:17`
+- **"Cancel"** _(copy)_ — `apps/rn/src/app/more.tsx:357` · `apps/rn/src/utils/confirm.ts:17`
+- **"See it in action"** _(copy)_ — `apps/rn/src/app/paywall.tsx:315` · `apps/rn/src/components/onboarding/WelcomeStep.tsx:39`
+- **"An ongoing cost that doesn't end."** _(copy+unclassified)_ — `apps/rn/src/components/entities/AddObligationSheet.tsx:41` · `apps/rn/src/components/entities/ExpenseSheet.tsx:99`
+- **"Every paycheck"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:34` · `apps/rn/src/components/entities/ExpenseSheet.tsx:18`
+- **"Quarterly"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:35` · `apps/rn/src/components/entities/ExpenseSheet.tsx:20`
+- **"Yearly"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:36` · `apps/rn/src/components/entities/ExpenseSheet.tsx:21`
+- **"Enter the current balance."** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:184` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:41`
+- **"Enter the minimum payment."** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:185` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:45`
+- **"Log a payment"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:275` · `apps/rn/src/components/entities/LogPaymentSheet.tsx:34`
+- **"Type"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:297` · `apps/rn/src/components/entities/GoalSheet.tsx:68`
+- **"e.g. 100"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:307` · `apps/rn/src/components/plan/SaveForItSheet.tsx:149`
+- **"Current balance"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:319` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:138`
+- **"e.g. 2400"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:319` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:144`
+- **"Minimum payment"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:344` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:151`
+- **"e.g. 22.99"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:345` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:162`
+- **"Recurrence"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:347` · `apps/rn/src/components/entities/ExpenseSheet.tsx:108`
+- **"Log payment"** _(copy)_ — `apps/rn/src/components/entities/LogPaymentSheet.tsx:46` · `apps/rn/src/components/ui/ListRow.tsx:151`
+- **"Done"** _(copy)_ — `apps/rn/src/components/more/BackupSheets.tsx:37` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:279`
+- **"Tomorrow"** _(copy+unclassified)_ — `apps/rn/src/components/more/LiveActivityQA.tsx:35` · `apps/rn/src/liveActivity/paydayActivityContent.ts:54`
+- **"Very tight this paycheck"** _(copy)_ — `apps/rn/src/components/more/LiveActivityQA.tsx:39` · `packages/core/guardian/buildGuardianBrief.ts:278`
+- **"Bi-Weekly"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:20` · `apps/rn/src/components/plan/PaycheckSheet.tsx:20`
+- **"Semi-Monthly"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:21` · `apps/rn/src/components/plan/PaycheckSheet.tsx:21`
+- **"Continue"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:95` · `apps/rn/src/components/plan/PaidOffFinale.tsx:128`
+- **"Paycheck amount"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:108` · `apps/rn/src/components/plan/PaycheckSheet.tsx:107`
+- **"e.g. 1500"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:114` · `apps/rn/src/components/plan/PaycheckSheet.tsx:110`
+- **"My income varies"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:122` · `apps/rn/src/components/plan/PaycheckSheet.tsx:120`
+- **"The amount you can count on"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:129` · `apps/rn/src/components/plan/PaycheckSheet.tsx:127`
+- **"Your plan runs on this floor, so a lighter paycheck never breaks it."** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:137` · `apps/rn/src/components/plan/PaycheckSheet.tsx:135`
+- **"Pay cycle"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:143` · `apps/rn/src/components/plan/PaycheckSheet.tsx:142`
+- **"First payday"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:150` · `apps/rn/src/components/plan/PaycheckSheet.tsx:149`
+- **"Second payday"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:153` · `apps/rn/src/components/plan/PaycheckSheet.tsx:152`
+- **"Payday (day of month)"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:159` · `apps/rn/src/components/plan/PaycheckSheet.tsx:158`
+- **"Next paycheck"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:163` · `apps/rn/src/components/plan/PaycheckSheet.tsx:162`
+- **"Required"** _(copy+unclassified)_ — `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:265` · `apps/rn/src/components/plan/PlanHero.tsx:79`
+- **"Start my real plan"** _(copy)_ — `apps/rn/src/components/plan/DemoDock.tsx:73` · `apps/rn/src/components/plan/ExampleCanvasMarker.tsx:73`
+- **"Keep going"** _(copy)_ — `apps/rn/src/components/plan/MilestoneAckCard.tsx:45` · `apps/rn/src/components/plan/VanquishedBeat.tsx:138`
+- **"Share your win"** _(copy+unclassified)_ — `apps/rn/src/components/plan/PaidOffFinale.tsx:127` · `apps/rn/src/components/plan/VanquishedBeat.tsx:89`
+- **"Safety net"** _(copy)_ — `apps/rn/src/components/plan/PaydayGuardianCard.tsx:272` · `packages/core/engine/allocatePaycheck.ts:483`
+- **"your emergency fund"** _(copy+unclassified)_ — `apps/rn/src/components/plan/PaydayGuardianCard.tsx:358` · `packages/core/guardian/buildGuardianBrief.ts:348`
+- **"Overdue"** _(copy)_ — `apps/rn/src/components/plan/RequiredActionsCard.tsx:278` · `apps/rn/src/store/planSelectors.ts:247`
+- **"Vanquished"** _(copy)_ — `apps/rn/src/components/plan/ShareCard.tsx:50` · `apps/rn/src/components/plan/VanquishedBeat.tsx:116`
+- **"Paid off"** _(copy+unclassified)_ — `apps/rn/src/components/plan/ShareCard.tsx:51` · `apps/rn/src/components/plan/VanquishedBeat.tsx:126`
+- **"Back"** _(copy)_ — `apps/rn/src/components/plan/TutorialOverlay.tsx:345` · `apps/rn/src/components/screen.tsx:67`
+- **"Share"** _(copy)_ — `apps/rn/src/components/plan/VanquishedBeat.tsx:137` · `apps/rn/src/components/progress/VanquishedArchive.tsx:73`
+- **"#fbbf24"** _(copy+technical)_ — `apps/rn/src/components/progress/CashFlowSection.tsx:33` · `apps/rn/src/theme/colors.ts:52`
+- **"#b45309"** _(copy+technical)_ — `apps/rn/src/components/progress/CashFlowSection.tsx:34` · `apps/rn/src/theme/colors.ts:52`
+- **"#a6b9d4"** _(copy+technical)_ — `apps/rn/src/components/progress/CashFlowSection.tsx:37` · `apps/rn/src/theme/colors.ts:38`
+- **"#5a6b82"** _(copy+technical)_ — `apps/rn/src/components/progress/CashFlowSection.tsx:38` · `apps/rn/src/theme/colors.ts:38`
+- **"to your goals"** _(copy+unclassified)_ — `apps/rn/src/store/planSelectors.ts:310` · `packages/core/guardian/buildGuardianBrief.ts:323`
 
 ## Copy gated on a condition — is the gate the thing the copy claims?
 
@@ -579,7 +491,7 @@ the moment a second producer was added. Two audit passes and three green web spe
 | `apps/rn/src/app/(tabs)/progress.tsx:150` | `reached.length` | — | "no milestones reached yet" |
 | `apps/rn/src/app/(tabs)/progress.tsx:151` | `nextT` | — | "all milestones reached" |
 | `apps/rn/src/app/(tabs)/progress.tsx:151` | `nextT === 100` | "debt-free" | — |
-| `apps/rn/src/app/more.tsx:166` | `tipsReset` | "Tips will appear again as you go." | "Re-offer the one-line hints on hidden features." |
+| `apps/rn/src/app/more.tsx:167` | `tipsReset` | "Tips will appear again as you go." | "Re-offer the one-line hints on hidden features." |
 | `apps/rn/src/app/paywall.tsx:168` | `error instanceof Error` | — | "Something went wrong. Please try again." |
 | `apps/rn/src/app/paywall.tsx:190` | `error instanceof Error` | — | "Something went wrong. Please try again." |
 | `apps/rn/src/components/AppLockGate.tsx:37` | `authing` | "Unlocking…" | "Unlock" |
@@ -910,95 +822,95 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 89 | prop:title | More |
-| 103 | other ⚠️ | workspace-premium |
-| 104 | prop:label | Premium |
-| 105 | prop:subtitle | Active — thanks for the support. |
-| 112 | other ⚠️ | workspace-premium |
-| 113 | prop:label | Premium — Lifetime |
-| 114 | prop:subtitle | Active — a one-time purchase, yours forever. Thanks for the support. |
-| 119 | other ⚠️ | workspace-premium |
-| 120 | prop:label | Premium |
-| 121 | prop:subtitle | Active — thanks for the support. Tap to manage your subscription. |
-| 128 | other ⚠️ | workspace-premium |
-| 129 | prop:label | Unlock Premium |
-| 130 | prop:subtitle | The Payday Guardian, Can I Afford It & more. |
-| 131 | prop:onPress ⚠️ | /paywall |
-| 142 | prop:label | Pay cycle history |
-| 143 | prop:subtitle | Look back at your finished pay cycles. |
-| 144 | prop:onPress ⚠️ | /history |
-| 150 | other ⚠️ | gpp-good |
-| 151 | prop:label | How the Guardian works |
-| 152 | prop:subtitle | Replay the short walkthrough. |
-| 164 | other ⚠️ | lightbulb-outline |
-| 165 | prop:label | Show feature tips again |
-| 166 | prop:subtitle | Tips will appear again as you go. |
-| 166 | prop:subtitle | Re-offer the one-line hints on hidden features. |
-| 175 | prop:title | Data |
-| 177 | prop:label | Export backup |
-| 177 | prop:subtitle | Save a copy of your data. |
-| 177 | other ⚠️ | ios-share |
-| 178 | prop:label | Import backup |
-| 178 | prop:subtitle | Restore from a saved backup. |
-| 178 | other ⚠️ | file-download |
-| 180 | other ⚠️ | cloud-off |
-| 181 | prop:label | iCloud backup |
-| 182 | prop:subtitle | Automatic cloud backup — coming soon. |
-| 183 | jsx-text | Soon |
-| 188 | prop:label | Delete all data |
-| 188 | other ⚠️ | delete-outline |
-| 193 | prop:title | Preferences |
-| 199 | other ⚠️ | field-preferences-display-name |
-| 200 | prop:label | Your name |
-| 204 | prop:placeholder | Used to greet you on Today |
-| 210 | jsx-text | Appearance |
-| 215 | prop:options ⚠️ | Auto |
-| 216 | prop:options ⚠️ | Light |
-| 217 | prop:options ⚠️ | Dark |
-| 224 | other ⚠️ | notifications-none |
-| 225 | prop:label | Notifications |
-| 226 | prop:subtitle | Paycheck-eve reminder and bill alerts. |
-| 227 | prop:accessibilityLabel | Notifications |
-| 230 | other ⚠️ | lock-outline |
-| 231 | prop:label | App Lock |
-| 232 | prop:subtitle | Require Face ID / passcode to open. |
-| 233 | prop:accessibilityLabel | App Lock |
-| 242 | prop:label | Share anonymous usage |
-| 243 | prop:subtitle | Which screens get used — never your balances, debts, or amounts. |
-| 246 | prop:accessibilityLabel | Share anonymous usage |
-| 255 | prop:label | I have savings elsewhere |
-| 256 | prop:subtitle | Skip building a starter emergency fund — put more toward debt first. |
-| 257 | prop:accessibilityLabel | I have savings elsewhere |
-| 264 | prop:label | Payday countdown |
-| 265 | prop:subtitle | Show a Live Activity in the ~3 days before payday. |
-| 266 | prop:accessibilityLabel | Payday countdown |
-| 272 | prop:label | Debt-free sound |
-| 273 | prop:subtitle | Play a chime when you clear your last debt. |
-| 274 | prop:accessibilityLabel | Debt-free sound |
-| 276 | prop:label | Living Expenses |
-| 276 | prop:subtitle | Everyday spending reserved each paycheck. |
-| 276 | prop:onPress ⚠️ | /living-expenses |
-| 276 | other ⚠️ | shopping-cart |
-| 280 | prop:title | About |
-| 282 | prop:label | Privacy Policy |
-| 282 | other ⚠️ | privacy-tip |
-| 283 | prop:label | Terms of Use |
-| 284 | prop:label | Support |
-| 284 | other ⚠️ | help-outline |
-| 289 | prop:label | Manage Subscription |
-| 289 | other ⚠️ | card-membership |
-| 291 | prop:label | Version |
-| 291 | other ⚠️ | info-outline |
-| 299 | prop:title | Developer / QA |
-| 303 | prop:label | Simulate Premium |
-| 304 | prop:subtitle | Unlock premium features for testing (dev / TestFlight QA). |
-| 307 | prop:accessibilityLabel | Simulate Premium |
-| 334 | other ⚠️ | verified-user |
-| 337 | jsx-text | Private by design |
-| 339 | jsx-text | Your financial data stays on this device — no account needed. And we&apos;ll never sell you more debt. |
-| 351 | jsx-text | All debts, bills, goals, and settings will be permanently erased. This cannot be undone. |
-| 355 | prop:label | Cancel |
-| 358 | prop:label | Delete Everything |
+| 90 | prop:title | More |
+| 104 | other ⚠️ | workspace-premium |
+| 105 | prop:label | Premium |
+| 106 | prop:subtitle | Active — thanks for the support. |
+| 113 | other ⚠️ | workspace-premium |
+| 114 | prop:label | Premium — Lifetime |
+| 115 | prop:subtitle | Active — a one-time purchase, yours forever. Thanks for the support. |
+| 120 | other ⚠️ | workspace-premium |
+| 121 | prop:label | Premium |
+| 122 | prop:subtitle | Active — thanks for the support. Tap to manage your subscription. |
+| 129 | other ⚠️ | workspace-premium |
+| 130 | prop:label | Unlock Premium |
+| 131 | prop:subtitle | The Payday Guardian, Can I Afford It & more. |
+| 132 | prop:onPress ⚠️ | /paywall |
+| 143 | prop:label | Pay cycle history |
+| 144 | prop:subtitle | Look back at your finished pay cycles. |
+| 145 | prop:onPress ⚠️ | /history |
+| 151 | other ⚠️ | gpp-good |
+| 152 | prop:label | How the Guardian works |
+| 153 | prop:subtitle | Replay the short walkthrough. |
+| 165 | other ⚠️ | lightbulb-outline |
+| 166 | prop:label | Show feature tips again |
+| 167 | prop:subtitle | Tips will appear again as you go. |
+| 167 | prop:subtitle | Re-offer the one-line hints on hidden features. |
+| 176 | prop:title | Data |
+| 178 | prop:label | Export backup |
+| 178 | prop:subtitle | Save a copy of your data. |
+| 178 | other ⚠️ | ios-share |
+| 179 | prop:label | Import backup |
+| 179 | prop:subtitle | Restore from a saved backup. |
+| 179 | other ⚠️ | file-download |
+| 181 | other ⚠️ | cloud-off |
+| 182 | prop:label | iCloud backup |
+| 183 | prop:subtitle | Automatic cloud backup — coming soon. |
+| 184 | jsx-text | Soon |
+| 189 | prop:label | Delete all data |
+| 189 | other ⚠️ | delete-outline |
+| 194 | prop:title | Preferences |
+| 200 | other ⚠️ | field-preferences-display-name |
+| 201 | prop:label | Your name |
+| 205 | prop:placeholder | Used to greet you on Today |
+| 211 | jsx-text | Appearance |
+| 216 | prop:options ⚠️ | Auto |
+| 217 | prop:options ⚠️ | Light |
+| 218 | prop:options ⚠️ | Dark |
+| 225 | other ⚠️ | notifications-none |
+| 226 | prop:label | Notifications |
+| 227 | prop:subtitle | Paycheck-eve reminder and bill alerts. |
+| 228 | prop:accessibilityLabel | Notifications |
+| 231 | other ⚠️ | lock-outline |
+| 232 | prop:label | App Lock |
+| 233 | prop:subtitle | Require Face ID / passcode to open. |
+| 234 | prop:accessibilityLabel | App Lock |
+| 243 | prop:label | Share anonymous usage |
+| 244 | prop:subtitle | Which screens get used — never your balances, debts, or amounts. |
+| 247 | prop:accessibilityLabel | Share anonymous usage |
+| 256 | prop:label | I have savings elsewhere |
+| 257 | prop:subtitle | Skip building a starter emergency fund — put more toward debt first. |
+| 258 | prop:accessibilityLabel | I have savings elsewhere |
+| 265 | prop:label | Payday countdown |
+| 266 | prop:subtitle | Show a Live Activity in the ~3 days before payday. |
+| 267 | prop:accessibilityLabel | Payday countdown |
+| 273 | prop:label | Debt-free sound |
+| 274 | prop:subtitle | Play a chime when you clear your last debt. |
+| 275 | prop:accessibilityLabel | Debt-free sound |
+| 277 | prop:label | Living Expenses |
+| 277 | prop:subtitle | Everyday spending reserved each paycheck. |
+| 277 | prop:onPress ⚠️ | /living-expenses |
+| 277 | other ⚠️ | shopping-cart |
+| 281 | prop:title | About |
+| 283 | prop:label | Privacy Policy |
+| 283 | other ⚠️ | privacy-tip |
+| 284 | prop:label | Terms of Use |
+| 285 | prop:label | Support |
+| 285 | other ⚠️ | help-outline |
+| 290 | prop:label | Manage Subscription |
+| 290 | other ⚠️ | card-membership |
+| 292 | prop:label | Version |
+| 292 | other ⚠️ | info-outline |
+| 300 | prop:title | Developer / QA |
+| 304 | prop:label | Simulate Premium |
+| 305 | prop:subtitle | Unlock premium features for testing (dev / TestFlight QA). |
+| 308 | prop:accessibilityLabel | Simulate Premium |
+| 336 | other ⚠️ | verified-user |
+| 339 | jsx-text | Private by design |
+| 341 | jsx-text | Your financial data stays on this device — no account needed. And we&apos;ll never sell you more debt. |
+| 353 | jsx-text | All debts, bills, goals, and settings will be permanently erased. This cannot be undone. |
+| 357 | prop:label | Cancel |
+| 360 | prop:label | Delete Everything |
 
 ### `apps/rn/src/app/onboarding.tsx`
 
@@ -1371,7 +1283,7 @@ the moment a second producer was added. Two audit passes and three green web spe
 |---|---|---|
 | 36 | prop:onPress ⚠️ | /more |
 | 45 | prop:accessibilityLabel | More |
-| 49 | other ⚠️ | more-button |
+| 51 | other ⚠️ | more-button |
 
 ### `apps/rn/src/components/more/BackupSheets.tsx`
 
@@ -1389,6 +1301,14 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 78 | prop:subtitle | Paste a backup you exported before. This replaces your current data. |
 | 79 | prop:submitLabel | Restore backup |
 | 85 | prop:placeholder | Paste your backup JSON here |
+
+### `apps/rn/src/components/more/CoachMarkProbeReadout.tsx`
+
+| line | origin | string |
+|---|---|---|
+| 33 | jsx-text | Coach-mark probe (4.1.4c) |
+| 38 | other ⚠️ | coach-probe |
+| 40 | other ⚠️ | EMPTY |
 
 ### `apps/rn/src/components/more/LiveActivityQA.tsx`
 
@@ -1720,10 +1640,13 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 79 | prop:pointerEvents ⚠️ | box-none |
-| 84 | other ⚠️ | coach-mark |
-| 95 | prop:accessibilityLabel | Got it |
-| 98 | jsx-text | Got it |
+| 64 | call:probeCoachMark ⚠️ | NULL |
+| 64 | call:probeCoachMark ⚠️ | (cancelled) |
+| 78 | var:verdict ⚠️ | DREW |
+| 95 | prop:pointerEvents ⚠️ | box-none |
+| 100 | other ⚠️ | coach-mark |
+| 111 | prop:accessibilityLabel | Got it |
+| 114 | jsx-text | Got it |
 
 ### `apps/rn/src/components/plan/CushionBarCanvas.web.tsx`
 

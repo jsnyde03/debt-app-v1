@@ -6817,3 +6817,59 @@ pass, which is itself the answer.
 ⚠️ **The iPad half is read separately and cannot fail this reading.** `01` going red on iPad answers
 [D30]'s carried hypothesis directly (the iPhone-tuned swipes did NOT clamp harmlessly), and `ipad-00-boot.png`'s
 measured pixel width is what turns "a wide iPad" from a premise into a number.
+
+## W1 — the duplicate-copy triage (2026-08-12)
+
+The interim build during 4.1.4c's CI wait. Full triage → `docs/audits/2026-08-12-duplicate-copy-triage.md`.
+
+### Before-scan — and it corrected the item's own headline number
+
+⛔ **"210 cross-file duplicates, the wording gate's first task" overstated the input by ~2×.** Measured
+from the JSON sidecar rather than re-quoted: **210 repeated strings, 110 copy-bearing, 100 not copy at
+all** — `space-between`, `decimal-pad`, `chevron-right`, `/paywall`, `optional_goal`.
+
+⚡ **The rule was already written down inside the file that broke it.** The T2 gate filters
+`bucket === 'copy'` (`:317`); the report section did not (`:292`); and the T3 table's note twelve lines
+below says a row is earned *"only if it selects between strings T1 ALREADY classified as copy — that
+reuses one classification instead of inventing a second heuristic."* One file, one rule, followed in two
+places out of three. `feedback_the_codebase_already_said_it`, firing on a document one day old.
+
+⚠️ Also caught in the before-scan, and worth recording because it wasted a step: **the shell cwd resets
+between turns.** `npm run audit:strings` reported *"Missing script"* and `strings-inventory.md` appeared
+not to exist — from `/c/Users/Jason/Hearthlight`. The plan's own Env line already says *"cwd drifts"*.
+I nearly filed "T1's output does not exist" as a finding.
+
+### W1.1 — the fix
+
+`copyDuplicates` added as a **separate** list rather than narrowing `duplicates` in place: the T2 gate
+reads that one, and a gate whose input silently changes shape is how a baseline stops meaning what it was
+accepted for. Verified: gate still reports 11 baselined, unchanged. Each row now carries its bucket mix,
+because `copy+unclassified` means *the same text is copy in one place and an enum id in another* — a
+coincidence to skip, not a divergence to fix.
+
+### W1.2 — what the triage found
+
+⭐ **A live, user-facing defect rather than a latent one.** `one-time` has **two shipped spellings**: a
+user sets a bill to **"One time"** (`ExpenseSheet.tsx:19`) and Money files it under a heading called
+**"One-time"** (`money.tsx:631`, matching `DebtSheet.tsx:46`). The "agreeing copies are still copies —
+they just have not diverged yet" claim, with the divergence already in the build.
+
+⭐ **The paycheck form is implemented twice, verbatim** — `PaycheckStep` (onboarding) and `PaycheckSheet`
+(edit) share ~13 strings including a byte-identical `CYCLES` array, sublabel and all. The largest single
+instance of the shape in the app. `FirstDebtOrBillStep` does the same thing to `DebtSheet`'s fields.
+
+**Three groups deliberately left alone**, each on a reason that was already measured: generic UI verbs
+(T2's own threshold note — *"words two screens are entitled to share"*), the Guardian band strings (the
+second copy is `LiveActivityQA`'s sample content, which **dies at the Phase-6 `QA_TOOLS` flip**), and the
+`copy+unclassified` coincidences.
+
+⚠️ **T1 over-reports `copy` two identifiable ways**, both measured: `key:label` when the value is a hex
+chart tone (`CashFlowSection.tsx:25-30`'s `barTone()` returns `{grad, glow, label}` where `label` is a
+colour — six hexes in the copy bucket), and `return` when the function returns an enum union
+(`computeState.ts` bare-returns `"at-risk"`/`"tight"`/`"clear"`). It matters because **794 "copy" is the
+wording gate's scope claim**, and this script's line 121 already says an inventory that over-reports is as
+useless as one that under-reports. → the 928-unclassified classification pass.
+
+⚡ **The pattern across W1 and the 4.1.4c before-scan, in one session:** three separate premises checked,
+**three corrected** — the coach-mark replay mechanism, the 210 figure, and T1's own bucket accuracy. The
+before-scan has now paid for itself a third time this session.

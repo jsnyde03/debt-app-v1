@@ -158,8 +158,33 @@ _Built during 4.1's CI waits, not instead of it. Each one turns an expensive rea
 | **T3** | **The proxy-gate sweep** — every ternary that selects between COPY, printed next to the condition that selects it. One question per row: *does the gate establish what the words assert, or merely correlate?* | ✅ **DONE 2026-08-12.** **77 of 179** gates carry copy. ⚡ **Validated by reproducing the defect it was built from** as one row: `DebtSheet.tsx:238 · prefill · "Add from scan" / "Add a debt"`. Folded into T1's script — a second walker would be "two places, one rule". Scans → log |
 | **T4** | **`npm run audit:surfaces`** → `docs/audits/surface-inventory.md` — per screen, TRANSITIVELY, which `ui` primitives and which money formatter it reaches. The cohesion gate's input | ✅ **DONE 2026-08-12.** 15 surfaces · **4 reach BOTH `formatCurrency` and `formatWhole`** *(C1 as data, not a hunch)* · 6 single-use primitives *(C7)*. ⚠️ Reachability, not rendering. Scans → log |
 
-⚠️ **The 210 duplicates and the 923 unclassified are both work, not noise** — the first is the wording
-gate's first task, the second is a classification pass that shrinks every future run.
+⛔ **CORRECTED 2026-08-12 by W1's before-scan — "210 duplicates" overstated the wording gate's input by
+~2×.** Measured from the JSON sidecar: **210 cross-file duplicates, of which 110 are copy-bearing and 100
+are not copy at all** (`space-between`, `decimal-pad`, `chevron-right`, `/paywall`, `optional_goal`…).
+⚡ The cause is a one-line inconsistency inside T1: the **T2 gate** filters `bucket === 'copy'`
+(`strings-inventory.ts:317`), the **report section** does not (`:292`) — and the script's own comment at
+`:389` already states the rule it breaks (*"reuses one classification instead of inventing a second
+heuristic"*). The 928 unclassified still stand as a classification pass.
+
+## ▶ INTERIM BUILD — W1 · the duplicate-copy triage _(while 4.1.4c's run `31626109780` is in flight)_
+
+| # | Step | State |
+|---|---|---|
+| **W1.1** | Scope T1's duplicate section to copy-bearing duplicates + annotate buckets | ✅ **DONE 2026-08-12** — 110 of 210. T2's gate deliberately untouched (11 baselined, still green) |
+| **W1.2** | Triage the 110 → [`2026-08-12-duplicate-copy-triage.md`](audits/2026-08-12-duplicate-copy-triage.md) | ✅ **DONE 2026-08-12.** 4 extract-clusters · 3 leave-groups · 11 to the gate. ⭐ **Found a live defect** *(cluster 2)* |
+| **W1.3** | **[DECISION]** which extractions fold into v1.7 *(rec: clusters 1–4)* | ⏳ **Jason** |
+| **W1.4** | Execute the approved extractions, re-run the gate | |
+
+⭐ **[W1.2] A SHIPPED wording defect, not a latent duplicate — `one-time` has two user-facing spellings.**
+A user sets a bill to **"One time"** (`ExpenseSheet.tsx:19`) and Money files it under a heading called
+**"One-time"** (`money.tsx:631`, matching `DebtSheet.tsx:46`). One object, two spellings, one screen apart.
+
+⚠️ **[W1.2] T1 over-reports the `copy` bucket two ways** — `key:label` when the value is a **hex chart
+tone** (`CashFlowSection.tsx:28`, 6 colours) and `return` when the function returns an **enum union**
+(`computeState.ts:33/49/54`). Matters because 794 "copy" is the wording gate's scope claim → folds into
+the 928-unclassified classification pass, which is the same lens pointed the other way.
+
+**Exit:** the wording gate opens on a filtered, triaged list instead of a raw 210.
 
 ## Audit gate — whole-app _(after 3.7, before Phase 5)_
 

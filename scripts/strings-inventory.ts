@@ -293,6 +293,21 @@ const duplicates = [...byText.entries()]
   .filter(([, es]) => new Set(es.map((e) => e.file)).size > 1)
   .sort((a, b) => b[1].length - a[1].length);
 
+// ⚠️ **THE REPORT AND THE GATE SCOPED THIS DIFFERENTLY, and only one of them was right.** The section
+// headed "Duplicated across files" is the WORDING gate's input, but it printed every repeated string in
+// the codebase — so **100 of its 210 rows were not copy at all**: `space-between`, `decimal-pad`,
+// `chevron-right`, `/paywall`, `optional_goal`. Style tokens, icon names, routes and enum ids that no
+// wording pass will ever judge, presented as the wording gate's first task.
+//
+// ⚡ The rule was already written down HERE, twelve lines below the offending line: the T2 gate filters
+// `bucket === 'copy'`, and the T3 table's note says a row is earned "only if it selects between strings
+// T1 ALREADY classified as copy — that reuses one classification instead of inventing a second
+// heuristic". The report was the one place in this file that did not follow its own rule.
+//
+// Kept as a SEPARATE list rather than narrowing `duplicates` in place: the T2 gate reads that one, and a
+// gate whose input silently changes shape is how a baseline stops meaning what it was accepted for.
+const copyDuplicates = duplicates.filter(([, es]) => es.some((e) => e.bucket === 'copy'));
+
 const copy = entries.filter((e) => e.bucket === 'copy');
 const technical = entries.filter((e) => e.bucket === 'technical');
 const technicalOrigins = [...new Set(technical.map((e) => e.origin))].sort();
@@ -349,7 +364,7 @@ md.push('> ⛔ **GENERATED. Do not edit.** Regenerate with `npm run audit:string
 md.push('> This is the **input** to the wording/voice gate, not its output. Findings belong in a dated');
 md.push('> audit folder; this file is only ever the current state of the codebase.');
 md.push('');
-md.push(`**${copy.length}** copy · **${unclassified.length}** unclassified · **${technical.length}** excluded as machinery · **${duplicates.length}** strings appearing in more than one file.`);
+md.push(`**${copy.length}** copy · **${unclassified.length}** unclassified · **${technical.length}** excluded as machinery · **${copyDuplicates.length}** copy strings appearing in more than one file (of ${duplicates.length} repeated strings overall).`);
 md.push('');
 md.push('<details><summary>Excluded as machinery — the contexts, so the exclusions can be challenged</summary>');
 md.push('');
@@ -365,11 +380,23 @@ md.push('here is how a surface goes unreviewed while the count looks complete.')
 md.push('');
 md.push(unclassifiedProps.length ? unclassifiedProps.map((p) => `- \`${p}\``).join('\n') : '_None._');
 md.push('');
-md.push('## Duplicated across files');
+md.push('## Duplicated across files — copy only');
 md.push('');
-if (duplicates.length) {
-  for (const [text, es] of duplicates) {
-    md.push(`- **${JSON.stringify(text)}** — ${es.map((e) => `\`${e.file}:${e.line}\``).join(' · ')}`);
+md.push(`**${copyDuplicates.length}** of ${duplicates.length} cross-file duplicate strings carry copy.`);
+md.push('The other ' + (duplicates.length - copyDuplicates.length) + ' are style tokens, icon names,');
+md.push('routes and enum ids — repeated by design, and nothing a wording pass judges. They are excluded');
+md.push('here for the same reason the T2 gate and the T3 table exclude them: one classification, reused.');
+md.push('');
+md.push('⚠️ A `copy+unclassified` tag means the SAME text is both a user-facing string somewhere and a');
+md.push('non-copy literal elsewhere (`"at-risk"` is a Guardian state id and a QA label). Judge the copy');
+md.push('instance; the others are coincidence, not divergence.');
+md.push('');
+if (copyDuplicates.length) {
+  for (const [text, es] of copyDuplicates) {
+    const buckets = [...new Set(es.map((e) => e.bucket))].sort().join('+');
+    md.push(
+      `- **${JSON.stringify(text)}** _(${buckets})_ — ${es.map((e) => `\`${e.file}:${e.line}\``).join(' · ')}`,
+    );
   }
 } else {
   md.push('_None._');
@@ -420,5 +447,5 @@ writeFileSync(
 );
 
 console.log(`conditional copy (T3): ${judgeable.length} of ${conditionals.length} gates carry copy`);
-console.log(`strings-inventory: ${copy.length} copy · ${unclassified.length} unclassified (${unclassifiedProps.length} props) · ${duplicates.length} cross-file duplicates`);
+console.log(`strings-inventory: ${copy.length} copy · ${unclassified.length} unclassified (${unclassifiedProps.length} props) · ${copyDuplicates.length} cross-file COPY duplicates (${duplicates.length} repeated strings overall)`);
 console.log(`→ docs/audits/strings-inventory.md`);

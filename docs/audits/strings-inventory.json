@@ -1,8 +1,8 @@
 {
   "generated": "npm run audit:strings",
   "counts": {
-    "copy": 793,
-    "unclassified": 923,
+    "copy": 794,
+    "unclassified": 928,
     "duplicates": 210
   },
   "entries": [
@@ -1479,623 +1479,623 @@
     {
       "text": "More",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 89,
+      "line": 90,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "workspace-premium",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 103,
+      "line": 104,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Premium",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 104,
+      "line": 105,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Active — thanks for the support.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 105,
+      "line": 106,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "workspace-premium",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 112,
+      "line": 113,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Premium — Lifetime",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 113,
+      "line": 114,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Active — a one-time purchase, yours forever. Thanks for the support.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 114,
+      "line": 115,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "workspace-premium",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 119,
+      "line": 120,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Premium",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 120,
+      "line": 121,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Active — thanks for the support. Tap to manage your subscription.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 121,
+      "line": 122,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "workspace-premium",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 128,
+      "line": 129,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Unlock Premium",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 129,
+      "line": 130,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "The Payday Guardian, Can I Afford It & more.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 130,
+      "line": 131,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "/paywall",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 131,
+      "line": 132,
       "origin": "prop:onPress",
       "bucket": "unclassified"
     },
     {
       "text": "Pay cycle history",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 142,
+      "line": 143,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Look back at your finished pay cycles.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 143,
+      "line": 144,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "/history",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 144,
+      "line": 145,
       "origin": "prop:onPress",
       "bucket": "unclassified"
     },
     {
       "text": "gpp-good",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 150,
+      "line": 151,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "How the Guardian works",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 151,
+      "line": 152,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Replay the short walkthrough.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 152,
+      "line": 153,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "lightbulb-outline",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 164,
+      "line": 165,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Show feature tips again",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 165,
+      "line": 166,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Tips will appear again as you go.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 166,
+      "line": 167,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Re-offer the one-line hints on hidden features.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 166,
+      "line": 167,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Data",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 175,
+      "line": 176,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Export backup",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 177,
+      "line": 178,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Save a copy of your data.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 177,
+      "line": 178,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "ios-share",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 177,
+      "line": 178,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Import backup",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 178,
+      "line": 179,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Restore from a saved backup.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 178,
+      "line": 179,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "file-download",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 178,
+      "line": 179,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "cloud-off",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 180,
+      "line": 181,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "iCloud backup",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 181,
+      "line": 182,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Automatic cloud backup — coming soon.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 182,
+      "line": 183,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Soon",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 183,
+      "line": 184,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Delete all data",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 188,
+      "line": 189,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "delete-outline",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 188,
+      "line": 189,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Preferences",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 193,
+      "line": 194,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "field-preferences-display-name",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 199,
+      "line": 200,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Your name",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 200,
+      "line": 201,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Used to greet you on Today",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 204,
+      "line": 205,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Appearance",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 210,
+      "line": 211,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Auto",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 215,
+      "line": 216,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Light",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 216,
+      "line": 217,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Dark",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 217,
+      "line": 218,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "notifications-none",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 224,
+      "line": 225,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Notifications",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 225,
+      "line": 226,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Paycheck-eve reminder and bill alerts.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 226,
+      "line": 227,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Notifications",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 227,
+      "line": 228,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "lock-outline",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 230,
+      "line": 231,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "App Lock",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 231,
+      "line": 232,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Require Face ID / passcode to open.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 232,
+      "line": 233,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "App Lock",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 233,
+      "line": 234,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "Share anonymous usage",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 242,
+      "line": 243,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Which screens get used — never your balances, debts, or amounts.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 243,
+      "line": 244,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Share anonymous usage",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 246,
+      "line": 247,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "I have savings elsewhere",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 255,
+      "line": 256,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Skip building a starter emergency fund — put more toward debt first.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 256,
+      "line": 257,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "I have savings elsewhere",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 257,
+      "line": 258,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "Payday countdown",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 264,
+      "line": 265,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Show a Live Activity in the ~3 days before payday.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 265,
+      "line": 266,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Payday countdown",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 266,
+      "line": 267,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "Debt-free sound",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 272,
+      "line": 273,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Play a chime when you clear your last debt.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 273,
+      "line": 274,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Debt-free sound",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 274,
+      "line": 275,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "Living Expenses",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 276,
+      "line": 277,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Everyday spending reserved each paycheck.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 276,
+      "line": 277,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "/living-expenses",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 276,
+      "line": 277,
       "origin": "prop:onPress",
       "bucket": "unclassified"
     },
     {
       "text": "shopping-cart",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 276,
+      "line": 277,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "About",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 280,
+      "line": 281,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Privacy Policy",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 282,
+      "line": 283,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "privacy-tip",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 282,
+      "line": 283,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Terms of Use",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 283,
+      "line": 284,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Support",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 284,
+      "line": 285,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "help-outline",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 284,
+      "line": 285,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Manage Subscription",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 289,
+      "line": 290,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "card-membership",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 289,
+      "line": 290,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Version",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 291,
+      "line": 292,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "info-outline",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 291,
+      "line": 292,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Developer / QA",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 299,
+      "line": 300,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Simulate Premium",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 303,
+      "line": 304,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Unlock premium features for testing (dev / TestFlight QA).",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 304,
+      "line": 305,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Simulate Premium",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 307,
+      "line": 308,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "verified-user",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 334,
+      "line": 336,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Private by design",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 337,
+      "line": 339,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Your financial data stays on this device — no account needed. And we&apos;ll never sell you more debt.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 339,
+      "line": 341,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "All debts, bills, goals, and settings will be permanently erased. This cannot be undone.",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 351,
+      "line": 353,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Cancel",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 355,
+      "line": 357,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Delete Everything",
       "file": "apps/rn/src/app/more.tsx",
-      "line": 358,
+      "line": 360,
       "origin": "prop:label",
       "bucket": "copy"
     },
@@ -4314,7 +4314,7 @@
     {
       "text": "more-button",
       "file": "apps/rn/src/components/more-button.tsx",
-      "line": 49,
+      "line": 51,
       "origin": "other",
       "bucket": "unclassified"
     },
@@ -4401,6 +4401,34 @@
       "line": 85,
       "origin": "prop:placeholder",
       "bucket": "copy"
+    },
+    {
+      "text": "Coach-mark probe (4.1.4c)",
+      "file": "apps/rn/src/components/more/CoachMarkProbeReadout.tsx",
+      "line": 33,
+      "origin": "jsx-text",
+      "bucket": "copy"
+    },
+    {
+      "text": "coach-probe",
+      "file": "apps/rn/src/components/more/CoachMarkProbeReadout.tsx",
+      "line": 38,
+      "origin": "other",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "EMPTY",
+      "file": "apps/rn/src/components/more/CoachMarkProbeReadout.tsx",
+      "line": 40,
+      "origin": "other",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Menlo",
+      "file": "apps/rn/src/components/more/CoachMarkProbeReadout.tsx",
+      "line": 50,
+      "origin": "key:fontFamily",
+      "bucket": "technical"
     },
     {
       "text": "in 2 days",
@@ -6335,30 +6363,51 @@
       "bucket": "technical"
     },
     {
+      "text": "NULL",
+      "file": "apps/rn/src/components/plan/CoachMarkLayer.tsx",
+      "line": 64,
+      "origin": "call:probeCoachMark",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "(cancelled)",
+      "file": "apps/rn/src/components/plan/CoachMarkLayer.tsx",
+      "line": 64,
+      "origin": "call:probeCoachMark",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "DREW",
+      "file": "apps/rn/src/components/plan/CoachMarkLayer.tsx",
+      "line": 78,
+      "origin": "var:verdict",
+      "bucket": "unclassified"
+    },
+    {
       "text": "box-none",
       "file": "apps/rn/src/components/plan/CoachMarkLayer.tsx",
-      "line": 79,
+      "line": 95,
       "origin": "prop:pointerEvents",
       "bucket": "unclassified"
     },
     {
       "text": "coach-mark",
       "file": "apps/rn/src/components/plan/CoachMarkLayer.tsx",
-      "line": 84,
+      "line": 100,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Got it",
       "file": "apps/rn/src/components/plan/CoachMarkLayer.tsx",
-      "line": 95,
+      "line": 111,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "Got it",
       "file": "apps/rn/src/components/plan/CoachMarkLayer.tsx",
-      "line": 98,
+      "line": 114,
       "origin": "jsx-text",
       "bucket": "copy"
     },
