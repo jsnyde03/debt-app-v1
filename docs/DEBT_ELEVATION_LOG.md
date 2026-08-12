@@ -6532,3 +6532,51 @@ durability.
 **Each fix was necessary; none was sufficient.** Three of the four were plausible stopping points, and
 stopping at any of them would have shipped a flow that passes for the wrong reason or fails for a
 misattributed one.
+
+## ⛔ Flow 08 was never about the reset — the coach mark does not appear at all (2026-08-12)
+
+**Four explanations, all wrong, all about the same non-problem.** Ordering · the mark spent by 07 · the
+composed `accessibilityLabel` · the 500 ms persistence race. Each was plausible, each fixed something
+real, and none was the cause — because every one of them explained *why the RESET failed*, and the reset
+was never involved.
+
+### The evidence that ended it
+
+Flow 01's own `smoke-seeded-portfolio` screenshot — **taken on a fresh install** (`clearState: true`),
+sitting on Money with three debts. `show()`'s guard chain at that moment:
+
+| guard | state |
+|---|---|
+| another mark active | none |
+| suppressors | none |
+| session `shown` set | empty (fresh launch) |
+| persisted `coachMarksSeen` | **empty by definition — nothing has ever run** |
+
+…and `Platform.OS === 'ios'`, `view.order.length > 0`. **Every gate open, and no mark.** It was in an
+artifact I had already downloaded, from a flow that was passing.
+
+⚡ **The lesson is where I looked.** I read the FAILING flow's dump four times and never once checked
+whether the thing it asserts happens anywhere else. A passing flow's screenshot answered it in one look.
+**When a fix keeps not working, stop asking why the fix failed and check whether the premise is true.**
+
+### The likely mechanism — filed as likely, not settled
+
+`useCoachMark(id, ready)` returns early while `ready` is false and subscribes only once it flips true.
+`money.tsx:259` makes `ready` depend on `view.order.length > 0`, and the store hydrates **async** — so on
+mount there are no debts and no subscription, and by the time debts land and the effect re-runs, the row's
+single `onLayout` → `targets.invalidate(id)` has already fired. `listeners` is a plain `Set` with **no
+replay** (`tutorialTargets.tsx:111-119`), so the event is simply missed.
+
+⚠️ **Stated as a hypothesis on purpose.** Four confident mechanisms in a row were wrong here; a fifth
+asserted the same way would be worth nothing. It needs a probe or an app-layer test, not another guess.
+
+### What it changes
+
+- **A shipped feature does not work** — the highest-value coach mark in the app *("one invisible gesture
+  hiding FOUR actions")* is never offered on iOS. → open defects.
+- **Flow 08's §13.3/§13.4 are blocked on the app**, not on the flow. Patching the flow further would be
+  writing a test around a defect.
+- ⚡ **The lane's value statement gets stronger, not weaker:** this is the second live product defect the
+  native lane has surfaced today *(after "Add from scan")*, and both were invisible to a green web suite —
+  one because it exercised the path for data and not words, this one because a coach mark cannot render in
+  a browser at all.
