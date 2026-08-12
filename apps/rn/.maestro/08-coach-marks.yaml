@@ -59,8 +59,20 @@ appId: com.jasonsnyder.debtplanner
     text: ".*Show feature tips again.*"
 - assertVisible:
     text: ".*Tips will appear again as you go\\..*"
-- tapOn:
-    id: "screen-back"
+
+# ⛔ RELAUNCH, DO NOT JUST NAVIGATE BACK. `resetCoachMarks` is not the problem — it correctly clears both
+# records (`coachMarks.ts:120-124`), and its own docblock explains why both are needed. The problem is
+# that nothing re-ASKS for the mark: `use-coach-mark.ts` fires "once per mount of the subject", latching
+# an `asked` flag and waiting on a `laidOut` event. `/more` is PUSHED over Money, so Money never
+# unmounts, no layout event follows, and `show()` is never called again however clean the record is.
+# A relaunch is the mount. `coachMarksSeen: []` is persisted, so it survives — proven by §13.2 below,
+# which relies on the same kill/launch to check the opposite direction.
+- killApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-money"
+    timeout: 20000
 
 # ══ §13.3 · the iOS-ONLY row long-press mark ════════════════════════════════════════════════════
 # Gated on `Platform.OS === 'ios'` (money.tsx:259), so neither the web suite nor an Android run can ever

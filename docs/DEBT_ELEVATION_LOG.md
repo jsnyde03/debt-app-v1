@@ -6460,3 +6460,29 @@ is worse than none.** Now finds all three: `SettingRow`, `CoachMarkLayer`, `AddO
 third was news)*.
 
 **Green at 8 flows · 50 testIDs known**, wired into `lint:rn` → `validate:release:rn`.
+
+## Run `31614389654` — 7/8, the artifact fix VERIFIED, and 08's third mechanism (2026-08-12)
+
+⚡ **The artifact is 17 MB, down from 364 MB.** Measured off the API rather than asserted this time. The
+`.*` selector fix also worked: flow 08 now clears the reset setup that failed the run before.
+
+### Flow 08, third mechanism — and the reset was never the problem
+
+`.*Press and hold a debt.*` still red. `resetCoachMarks` is correct: `coachMarks.ts:120-124` clears BOTH
+the persisted list and the session `shown` set, and its docblock explains why both are required.
+
+**Nothing re-ASKS for the mark.** `use-coach-mark.ts` fires *"once per mount of the subject"* — it latches
+an `asked` flag inside a subscription waiting on a `laidOut` event. `/more` is **pushed over** Money, so
+Money never unmounts, no layout event follows, and `show()` is never called again however clean the record
+is. Fixed with `killApp` + `launchApp`, which is the mount — and which §13.2 below already relies on for
+the opposite check, so the command is proven in this very file.
+
+⚠️ **A small product observation falls out of it:** a user who taps "Show feature tips again" and returns
+to the screen they were on sees **nothing happen**. The copy says *"Tips will appear again as you go"*,
+which is defensible, but the effect is deferred to the next mount of each subject. → best-in-class /
+wording gate, low priority.
+
+⚡ **Three separate mechanisms for one red flow**, each invisible until the one before it was fixed:
+ordering *(wrong)* → the mark being spent by 07 *(right, but incomplete)* → the composed label
+*(`.*`)* → no remount to fire against. **Each fix was necessary and none was sufficient**, which is the
+argument for reading the artifact every cycle rather than pattern-matching a verdict table.
