@@ -6486,3 +6486,49 @@ wording gate, low priority.
 ordering *(wrong)* → the mark being spent by 07 *(right, but incomplete)* → the composed label
 *(`.*`)* → no remount to fire against. **Each fix was necessary and none was sufficient**, which is the
 argument for reading the artifact every cycle rather than pattern-matching a verdict table.
+
+## Run `31617084361` — ⚡ THE CACHE WORKS, and flow 08's fourth mechanism (2026-08-12)
+
+### ✅ 4.1.3a VERIFIED — 17m03s of build became 2 seconds
+
+| step | |
+|---|---|
+| Restore the built `.app` | **1 s** |
+| Verify the restored `.app` | **1 s**, passed |
+| expo prebuild · pod install · Build · Save | **skipped** |
+
+The first true test of the hit path — every earlier run was a deliberate miss, because each touched
+`src/**` or the workflow, both of which are in the key **by design**. This dispatch changed only
+`.maestro/**` and docs, which is exactly the loop 4.1.5→4.1.11 will run in.
+⚡ **And the artifact fix is verified too: 17 MB, from 364 MB** — a 3-minute download became one minute,
+and the layout returned to `maestro-debug/…` as the action's docs said it would.
+
+⚠️ 🎯 Jason read the run as stalled at ten minutes with no flows started. It was not — the flows were
+already running; the build had simply finished in *seconds* rather than seventeen minutes, so the run
+reached Maestro far earlier than the previous six had trained us to expect.
+
+### ⛔ Flow 08, fourth mechanism — a 500 ms race, and it is a real product defect
+
+`show()`'s guard chain (`coachMarks.ts:75-86`) is: another mark active · a suppressor · the session
+`shown` set · **the persisted `coachMarksSeen`**. After a relaunch the first three are clean, so the
+refusal has to be the fourth — the cleared record never reached disk.
+
+**`persistence.ts:14` debounces the autosave by 500 ms**, and `flushPendingSave` (`_layout.tsx:103`) fires
+on AppState *background*, which a hard `killApp` never sends. The kill landed ~400 ms after the tap.
+
+⚡ **One mechanism explains BOTH failing runs**, which is what makes it credible where three earlier
+stories were not: *without* a relaunch nothing re-asks for the mark; *with an immediate* relaunch the
+question is asked before the answer is durable. Fixed by navigating back through the UI first — well over
+500 ms, and what a user does anyway.
+
+⚠️ **Filed as a product defect, not just a test fix:** a pref changed and then force-quit within 500 ms is
+**silently lost**, on a setting whose confirmation the user just watched appear. → Phase 5, which owns
+durability.
+
+### The count worth keeping
+
+**Four mechanisms for one red flow**, each invisible until the one before it was fixed: ordering *(wrong)*
+· the mark spent by 07 *(right, incomplete)* · the composed `accessibilityLabel` · the persistence race.
+**Each fix was necessary; none was sufficient.** Three of the four were plausible stopping points, and
+stopping at any of them would have shipped a flow that passes for the wrong reason or fails for a
+misattributed one.

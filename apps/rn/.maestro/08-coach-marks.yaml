@@ -65,8 +65,17 @@ appId: com.jasonsnyder.debtplanner
 # that nothing re-ASKS for the mark: `use-coach-mark.ts` fires "once per mount of the subject", latching
 # an `asked` flag and waiting on a `laidOut` event. `/more` is PUSHED over Money, so Money never
 # unmounts, no layout event follows, and `show()` is never called again however clean the record is.
-# A relaunch is the mount. `coachMarksSeen: []` is persisted, so it survives — proven by §13.2 below,
-# which relies on the same kill/launch to check the opposite direction.
+# A relaunch is the mount. But the relaunch alone was NOT enough, and the reason is a race:
+# `persistence.ts:14` debounces the autosave by **500 ms**, and `flushPendingSave` (`_layout.tsx:103`)
+# fires on AppState background — which a hard `killApp` never sends. Killing ~400 ms after the tap threw
+# the cleared record away, so the mark was refused on relaunch by the LAST guard in `show()`'s chain
+# (`coachMarks.ts:86`, the persisted list) with everything else already clean.
+#
+# ⚠️ Both failing runs are one mechanism: without a relaunch nothing re-asks for the mark; with an
+# immediate relaunch the answer is asked before the reset is durable. Going back through the UI first
+# spends well over 500 ms and is what a user does anyway.
+- tapOn:
+    id: "screen-back"
 - killApp
 - launchApp
 - extendedWaitUntil:
