@@ -6,3 +6,6 @@
 /capture-ref/
 # 3.5.8 — the CI capture pipeline writes here on the runner.
 /capture-out/
+
+# 4.1.3a — the native-e2e .app cache provenance stamp, written in CI only.
+.appcache-provenance.txt

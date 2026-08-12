@@ -36,6 +36,13 @@ on:
         type: choice
         options: [suite, probe]
         default: suite
+      # 4.1.3a — the escape hatch for the .app cache below. Ticking this forces a full prebuild + pod
+      # install + compile even when the key hits. It exists because "I do not trust that binary" must
+      # always have a one-click answer that does not involve editing the workflow.
+      rebuild:
+        description: 'Force a clean native build (ignore the cached .app)'
+        type: boolean
+        default: false
   push:
     tags: ['v*'] # release tags → a gated native smoke before shipping
 
@@ -83,7 +90,13 @@ jobs:
       run:
         working-directory: apps/rn
     steps:
+      # ⚠️ `fetch-depth: 0` (4.1.3a) — the default depth-1 checkout cannot diff against the commit a
+      # cached .app was built at, which is precisely the audit the provenance step exists to print.
+      # A shallow clone would leave that safeguard printing "(cannot diff)" forever, which is worse
+      # than not having it: it looks like a check.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -126,7 +139,72 @@ jobs:
       - name: Fail fast (typecheck before the slow native build)
         run: npx tsc --noEmit
 
+      # ── 4.1.3a · THE BUILT-.app CACHE ───────────────────────────────────────────────────────────
+      # Measured on run 31516616133: prebuild + pod install + compile = 17m03s of a 31m47s job, and
+      # **648 of ~650 CompileC tasks belong to third-party pods** (RNScreens 103, RNReanimated 103,
+      # RNSVG 94, ReactCodegen 57, RNWorklets 44, MMKVCore 33, Skia 27 …). The app's own native code does
+      # not reach the top 15. That work is identical on every run until a dependency changes, and the
+      # 4.1.4→4.1.11 loop edits `.maestro/**` YAML against an unchanged app.
+      #
+      # ⛔ THE HAZARD IS THE WHOLE DESIGN. A stale .app silently reused after app code changed is a suite
+      # that passes against the wrong binary — this lane's signature failure (a green Maestro run that
+      # wrote no screenshots; a suite green because it never ran). Four rules keep that impossible:
+      #   ① the key hashes EVERY input that reaches the binary — JS, native, config, plugins, assets,
+      #      the widget target, `packages/core` (the `@core` alias is bundled), and THIS FILE, because
+      #      the build flags live in it;
+      #   ② NO `restore-keys`. A partial-key fallback is exactly how a stale binary gets in. Exact or nothing;
+      #   ③ every run prints the binary's provenance — hit or miss, key, and the commit it was built at —
+      #      and that record is written into the uploaded artifact, not just the console;
+      #   ④ tags never use it, and `rebuild: true` overrides it.
+      - name: Compute the .app cache key
+        id: appkey
+        run: |
+          echo "key=app-${{ runner.os }}-x1-${{ hashFiles(
+            'apps/rn/package-lock.json',
+            'apps/rn/package.json',
+            'apps/rn/app.json',
+            'apps/rn/index.js',
+            'apps/rn/metro.config.js',
+            'apps/rn/babel.config.js',
+            'apps/rn/src/**',
+            'apps/rn/plugins/**',
+            'apps/rn/assets/**',
+            'apps/rn/targets/**',
+            'packages/core/**',
+            'package-lock.json',
+            '.github/workflows/native-e2e.yml'
+          ) }}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the built .app
+        id: appcache
+        if: github.ref_type != 'tag' && inputs.rebuild != true
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            apps/rn/ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
+            apps/rn/.appcache-provenance.txt
+          key: ${{ steps.appkey.outputs.key }}
+          # ⛔ Deliberately no `restore-keys` — see rule ② above.
+
+      # A restored directory that is missing its binary, or whose Info.plist will not parse, must fall
+      # through to a real build rather than be installed. `simctl install` would take a broken bundle and
+      # the failure would surface much later, as something else.
+      - name: Verify the restored .app (a corrupt hit falls back to a full build)
+        id: appverify
+        if: steps.appcache.outputs.cache-hit == 'true'
+        run: |
+          APP="ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app"
+          if [ -x "$APP/DebtPlannerRN" ] && plutil -lint "$APP/Info.plist" >/dev/null 2>&1; then
+            echo "usable=true" >> "$GITHUB_OUTPUT"
+            echo "✅ restored .app verified: binary present, Info.plist parses"
+          else
+            echo "usable=false" >> "$GITHUB_OUTPUT"
+            echo "⚠️ restored .app is unusable (missing binary or bad Info.plist) — rebuilding from source"
+            rm -rf ios/build/Build/Products/Release-iphonesimulator
+          fi
+
       - name: Generate the native iOS project (expo prebuild)
+        if: steps.appverify.outputs.usable != 'true'
         run: npx expo prebuild --platform ios
 
       # `expo prebuild` runs pod install but treats it as BEST-EFFORT — it prints CocoaPods errors yet
@@ -135,10 +213,12 @@ jobs:
       # CocoaPods error (e.g. a third-party podspec pinning an incompatible RCT-Folly) is the failing
       # step, with the actual message. Idempotent — a no-op re-install when prebuild already succeeded.
       - name: Install CocoaPods (fail loud — prebuild masks pod errors with exit 0)
+        if: steps.appverify.outputs.usable != 'true'
         working-directory: apps/rn/ios
         run: pod install
 
       - name: Build for the iOS Simulator (no signing)
+        if: steps.appverify.outputs.usable != 'true'
         run: |
           # `pipefail` is LOAD-BEARING with the `tee` below: without it the pipeline's exit status is
           # tee's (always 0) and a failed compile would sail through as a green step.
@@ -156,6 +236,10 @@ jobs:
           #  • Clang explicit modules ON (Xcode 26 default) — pinned OFF while stabilizing; now green across
           #    3 runs, so we take the module-reuse speedup. Revert to CLANG_ENABLE_EXPLICIT_MODULES=NO build
           #    if a pod's module map trips explicit modules.
+          # 2026-08-12 (4.1.3a) — two more, both free and both measured from run 31516616133's log:
+          #  • DEBUG_INFORMATION_FORMAT=dwarf — the log runs 4 `GenerateDSYMFile` tasks producing dSYMs
+          #    that NOTHING in this lane reads. Symbolication belongs to the signed Codemagic build.
+          #  • COMPILER_INDEX_STORE_ENABLE=NO — index-while-building serves an IDE. There isn't one here.
           xcodebuild \
             -workspace ios/DebtPlannerRN.xcworkspace \
             -scheme DebtPlannerRN \
@@ -166,6 +250,8 @@ jobs:
             ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
             CODE_SIGNING_ALLOWED=NO \
             SWIFT_OPTIMIZATION_LEVEL='-Onone' GCC_OPTIMIZATION_LEVEL=0 \
+            DEBUG_INFORMATION_FORMAT=dwarf \
+            COMPILER_INDEX_STORE_ENABLE=NO \
             build 2>&1 | tee xcodebuild.log
 
       # xcodebuild emits thousands of lines and buries the ONE that matters in the middle of them, under
@@ -199,6 +285,67 @@ jobs:
           name: xcodebuild-log
           path: apps/rn/xcodebuild.log
           if-no-files-found: ignore
+
+      # Written INSIDE the cached directory, so it travels with the binary. This is what makes rule ③
+      # answerable at all: without it, a cache hit can say the inputs matched but nothing can say which
+      # commit the bytes came from.
+      - name: Stamp the .app's provenance
+        if: steps.appverify.outputs.usable != 'true'
+        run: |
+          cat > .appcache-provenance.txt << PROV
+          built_at_sha=${{ github.sha }}
+          built_by_run=${{ github.run_id }}
+          built_on_ref=${{ github.ref }}
+          cache_key=${{ steps.appkey.outputs.key }}
+          PROV
+          cat .appcache-provenance.txt
+
+      - name: Save the built .app
+        if: steps.appverify.outputs.usable != 'true' && github.ref_type != 'tag'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            apps/rn/ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
+            apps/rn/.appcache-provenance.txt
+          key: ${{ steps.appkey.outputs.key }}
+
+      # ⛔ RULE ③, AND IT RUNS ON EVERY EXECUTION — hit or miss, cached or fresh. A speed optimisation
+      # that cannot be audited from the log is how "green" stops meaning anything, and this lane has
+      # already shipped that defect twice. If this step ever goes quiet, distrust the run.
+      - name: Report which binary is about to be tested
+        run: |
+          PROV=".appcache-provenance.txt"
+          echo "──────── BINARY PROVENANCE ────────"
+          if [ "${{ steps.appverify.outputs.usable }}" = "true" ]; then
+            echo "SOURCE      : RESTORED FROM CACHE (prebuild + pods + compile were SKIPPED)"
+          else
+            echo "SOURCE      : COMPILED IN THIS RUN"
+          fi
+          echo "cache-hit   : ${{ steps.appcache.outputs.cache-hit || 'false' }}"
+          echo "key         : ${{ steps.appkey.outputs.key }}"
+          echo "HEAD        : ${{ github.sha }}"
+          cat "$PROV" 2>/dev/null || echo "(no provenance file — treat this binary as unidentified)"
+          BUILT_SHA=$(sed -n 's/^built_at_sha=//p' "$PROV" 2>/dev/null)
+          if [ -n "$BUILT_SHA" ] && [ "$BUILT_SHA" != "${{ github.sha }}" ]; then
+            echo
+            echo "NOTE: this binary was compiled at $BUILT_SHA, not at HEAD."
+            echo "The key hashes every input that reaches the binary, so a different commit here should"
+            echo "mean only UNHASHED files moved (docs, .maestro flows)."
+            echo
+            echo "⚠️ READ THIS LIST. It is every file changed since that build — deliberately NOT filtered"
+            echo "to the hashed paths, because filtering by the same list the key uses could only ever"
+            echo "agree with itself. A path here that plausibly reaches the binary means the key is"
+            echo "MISSING it: re-run with rebuild=true, then add the path to the key."
+            git diff --name-only "$BUILT_SHA" "${{ github.sha }}" 2>/dev/null | head -40 \
+              || echo "(cannot diff — $BUILT_SHA is not in this checkout; needs fetch-depth: 0)"
+          fi
+          echo "───────────────────────────────────"
+          # Into the uploaded artifact too, so the record survives the log's retention.
+          mkdir -p maestro-debug
+          cp "$PROV" maestro-debug/PROVENANCE.txt 2>/dev/null || true
+          # And the size, because a cache that costs more to move than the build costs to run is not a
+          # speed-up. If this is large, narrow the path before reaching for a bigger runner.
+          du -sh ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app 2>/dev/null || true
 
       - name: Boot, install, launch, capture the app log
         run: |

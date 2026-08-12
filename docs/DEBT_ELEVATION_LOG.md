@@ -5898,3 +5898,83 @@ would pass on the clipped element"* — and it was never generalised past that o
   guard should also flag any flow that `inputText`s without a write-verification on the target field.
 - ⚠️ **Unverifiable locally.** There is no Mac here, so the repair is verified only by the next dispatch.
   YAML parse-checked against `js-yaml` for all 8 flows + 5 probes; the semantics are argued from the dump.
+
+## 4.1.3a — the built-`.app` cache, and the safeguards are the item (2026-08-12)
+
+🎯 Jason: *"Is there anything that we can do to speed up the 'Build for the iOS simulator' step?"*
+
+**Measured first, from run `31516616133`.** Build = **15m36s of a 31m47s job**; with prebuild (57s) and
+pod install (30s) the skippable block is **17m03s**. The rest: boot/install/launch 3m08s · Maestro install
+1m29s · npm 1m13s · flows 7m30s.
+
+⚡ **What the build actually spends itself on: other people's pods.** Of ~650 `CompileC` tasks —
+
+| target | tasks | | target | tasks |
+|---|---|---|---|---|
+| RNScreens | 103 | | MMKVCore | 33 |
+| RNReanimated | 103 | | react-native-skia | 27 |
+| RNSVG | 94 | | RNGestureHandler / RNSentry / ios-utilities | 25 each |
+| ReactCodegen | 57 | | NitroModules | 21 |
+| RNWorklets | 44 | | | |
+
+The app's own native code does not reach the top 15. **All of it is invariant until `package-lock.json`
+moves** — while the 4.1.4→4.1.11 loop edits `.maestro/**` YAML against an unchanged app.
+
+### The before-scan killed the obvious answer
+
+The workflow already carries it: **ccache was tried and removed 2026-07-28** — RN's wiring set a
+compiler-launcher path that did not resolve for the widget-extension target (`@bacons/apple-targets`,
+in the app project rather than Pods), failing the `DebtWidget` link with *"unable to spawn
+ccache-clang.sh"*, and it conflicted with Xcode 26's explicit modules. ⚡ **The idea I was about to
+recommend as the follow-up was already-answered work with a documented mechanism.** Also recorded there,
+and worth keeping in view: *"this is the FREE unlimited pipeline, so wall-clock isn't a $ cost"* — the
+case for caching is **turnaround**, not money.
+
+### ⛔ The hazard IS the design
+
+A stale `.app` silently reused after app code changed is a suite passing against the wrong binary — this
+lane's signature failure, already shipped twice (a green Maestro run that wrote no screenshots; a suite
+green because it never ran). Four rules, and they are the deliverable:
+
+1. **The key hashes every input that reaches the binary** — `package-lock.json` (both trees) · `app.json`
+   · `package.json` · `index.js` · `metro.config.js` · `babel.config.js` · `src/**` · `plugins/**`
+   *(prebuild config plugins)* · `assets/**` · `targets/**` *(the widget)* · `packages/core/**` *(the
+   `@core` alias is bundled)* · **and this workflow file, because the build flags live in it.** Every path
+   was checked to exist — a typo contributes nothing to `hashFiles` **silently**.
+2. **No `restore-keys`.** A partial-key fallback is precisely how a stale binary gets in. Exact or nothing.
+3. **Provenance printed on EVERY run** — hit or miss, cached or fresh: source, cache-hit, the key, HEAD,
+   and the commit the bytes were built at, copied into `maestro-debug/` so it outlives the log.
+4. **Tags never use it**, and a `rebuild` dispatch input forces a clean build — "I don't trust that
+   binary" needs a one-click answer that isn't editing the workflow.
+
+⚡ **The first draft of ③ was circular and would have proved nothing.** It diffed the build-commit against
+HEAD *filtered to the hashed paths* — the same list the key uses, so it could only ever agree with itself
+and could never surface a **forgotten** path. It now prints **every** changed file, unfiltered, with the
+instruction to look for anything that plausibly reaches the binary. That is the check that can actually
+catch the key being wrong.
+
+Two more guards fell out of building it:
+- **A corrupt hit falls through to a full build.** `-x` on the binary + `plutil -lint` on the Info.plist;
+  on failure the directory is deleted and the build runs. This is not hypothetical — cache round-trips
+  through tar, and a lost executable bit would otherwise reach `simctl install` and fail as something else.
+- **`fetch-depth: 0`.** The default depth-1 checkout cannot diff against the build commit, which would
+  leave ③ printing "(cannot diff)" forever — *worse* than absent, because it still looks like a check.
+
+### Also folded in — two free flags, both measured
+
+`DEBUG_INFORMATION_FORMAT=dwarf` (the log runs **4 `GenerateDSYMFile` tasks**; nothing in this lane reads
+a dSYM — symbolication is the signed Codemagic build's job) and `COMPILER_INDEX_STORE_ENABLE=NO`
+(index-while-building serves an IDE, and there isn't one). These help the cache-MISS path, which the
+cache by definition cannot.
+
+### After-scan
+
+- ⚠️ **Scope corrected mid-build.** The first draft cached the whole `Release-iphonesimulator` products
+  directory — every pod's build output, plausibly GBs, against a 10 GB repo cache ceiling and an upload
+  cost that eats the win. Narrowed to the `.app` plus a provenance sidecar: the only thing `simctl
+  install` needs. The run now prints `du -sh` of the bundle so the trade stays visible instead of assumed.
+- ⚠️ **Unverified.** No macOS here; the first dispatch after this lands is the test, and its FIRST run is a
+  guaranteed miss (it populates the cache) — the saving shows on the second.
+- ⚡ **The npm install (1m13s) and Maestro install (1m29s) still run on a cache hit.** npm has to: the
+  typecheck fail-fast needs `node_modules`, and that gate is worth keeping. `~/.maestro` is cacheable and
+  is the next ~1m30s if turnaround still matters after this. → filed as tooling, not promoted.
