@@ -6225,3 +6225,43 @@ that can be challenged, not an absence nobody can see.
   exists to find.
 - ⚠️ **Surfaced, not fixed:** the 77 rows have not been *judged* yet. The instrument is built; running it
   is the wording gate's work, and it is now a short read rather than a fan-out.
+
+## Audit tooling T4 — the surface inventory ( [D31] ) (2026-08-12)
+
+### Before-scan
+
+- **What does the cohesion gate actually compare?** Cross-surface voice · visual · motion · numbers. T1
+  covers voice. Of the rest, **numbers is the sharpest deterministic lens**: measured before building,
+  **three** money formatters exist — `formatCurrency`, `formatDisplayAmount` (core) and `formatWhole`
+  (rn) — and Wave C's **C1 "cents-formatter"** is already filed against exactly this. Which surface uses
+  which turns a hunch into a table.
+- **Is the graph traceable?** Yes — ES imports, with `@/*` → `apps/rn/src` and `@core/*` →
+  `packages/core` per `apps/rn/tsconfig.json:11-14`. Verified rather than assumed.
+- **Direct or transitive?** ⛔ **Transitive.** A screen renders `Card` three imports down through a
+  feature component; direct imports describe a file's neighbours, not a surface's vocabulary, and would
+  have reported Today as using almost nothing.
+- **Extend T1's script or write a new one?** New. T3 was folded into T1 because it needed T1's *copy
+  classification* — a rule. This shares no rule with it, only a directory walk. **The "two places, one
+  rule" test is about rules being re-derived, not about code looking similar.**
+
+### After-scan
+
+- ⛔ **THE FIRST FINDING WAS THE TOOL'S OWN DEFECT.** It reported `ChartSkeleton` as reached by no
+  surface — dead code, a C7 hit. It is imported by `AllocationBarCanvas.web.tsx`,
+  `TrajectoryCanvas.web.tsx` and `CashRunwayCanvas.web.tsx`. The resolver returned the **first** matching
+  file, so `./AllocationBarCanvas` resolved to the `.tsx` and the `.web.tsx` sibling was never followed —
+  **every module reachable only through a platform variant was invisible.**
+  ⚡ Caught only because the strings inventory had shown this codebase lazy-loads charts via
+  `getComponent`, so "dead chart component" was a claim with a known reason to doubt it. **A tool's own
+  output is not evidence until the tool has been checked against something known.** Resolution now unions
+  every variant: a bundler picks one per platform, an audit input must not, because the gate's question
+  spans platforms. `unreached` went 1 → **0**.
+- ⚡ **Real, and now data instead of a hunch: 4 of 15 surfaces reach BOTH `formatCurrency` and
+  `formatWhole`** — Today, Money, Progress and History. That is precisely where the same amount can start
+  rendering two ways, which is what C1 was filed to ask. → the cohesion gate.
+- **6 single-use primitives** — `AddRow`, `AnimatedSheet`, `MasterDetail` (Money), `CheckCircle`,
+  `TwoColumn` (Today), `PressableScale` (More). Each is either bespoke work that wants sharing or shared
+  code that wants localising; both are the gate's judgement, not the script's.
+- ⚠️ **Stated limit, in the report itself:** this is **reachability, not rendering** — a conditional
+  branch counts. It over-reports rather than under-reports, which is the right direction for an audit
+  input, and saying so stops a reader crediting it with precision it does not have.

@@ -28,6 +28,7 @@
     "validate:release": "npm run validate:release:rn",
     "validate:release:legacy": "npm run lint && npm run test:regression && npm run test:app && npm run test:e2e",
     "audit:strings": "tsx scripts/strings-inventory.ts",
+    "audit:surfaces": "tsx scripts/surface-inventory.ts",
     "test:regression": "tsx packages/core/testing/runRegressionTests"
   },
   "dependencies": {
