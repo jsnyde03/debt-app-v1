@@ -8,25 +8,40 @@
 
 ---
 
-## ▶ BUILDING NOW — 3.7 Wave B · features that belong in v1.7
+## ▶ BUILDING NOW — 4.1 · the Maestro coverage lane *(resumes; 3.7 is closed)*
 
-✅ **Wave A CLOSED 2026-08-11** — A.0–A.10, gate 158/158, tsc clean. Every fix carries a
-failing-then-passing test. Detail + the wave-level after-scan → log "3.7 Wave A — CLOSED".
-
-⚡ **The wave's headline number: of 14 ledger items, 5 did not exist and 4 more were materially
-misdescribed** — A3.6 (wrong mechanism), A3.7 (**inverted**), A8 (wrong premise), A4a (refuted by
-measurement). Only ~5 of 14 were both real and accurately described. **This is why B.0 comes first.**
+✅ **3.7 CLOSED 2026-08-11.** Wave A (A0–A10) · Wave B (B.0–B.4) · Wave C merged into the audit gate.
+Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-level after-scan → log.
 
 | # | Step | State |
 |---|---|---|
-| **B.0** | **Before-scan the whole wave** — B1–B4 are 2026-07-30-era and have NEVER been verified. Treat each as a hypothesis: grep/read, then correct its scope + wording on the spot | ▶ next |
-| **B.1** | **B2 dropped streak/milestone surfacing** — the likeliest already-built (`pendingMilestone` + `activeAck` both exist), so it is verified first and may close outright | |
-| **B.2** | **B3 name→greeting** — smallest real build; lands the wave's first shipped feature early | |
-| **B.3** | **B1 drag-the-curve What-If** — the largest. ⚠️ `selectWhatIf*` bypasses the debt-free-date funnel (audit-gate note) — do not deepen that coupling | |
-| **B.4** | **B4 swipe-to-mark-paid** — [D2] is ✅ settled (`minimumPaidThisCycle` owns "minimum covered"). ⚠️ First fix `planSelectors.ts:136`, the one reader with **no** `?? isPaidThisCycle` fallback | |
+| **4.1.3** | **Repair the RED native lane** — 8/8 failing, run `31516616133`. ⚡ `inputText` + the `field-*` testIDs WORK and `hideKeyboard` was never needed (flow 07 walked onboarding *and* the debt form). Two known fixes: the `"See My Plan  →"` selector (double space + arrow glyph) and flow 01 failing its FIRST assertion at 1m44s while probe p01 passes the identical opening — **pull the artifact before theorising** | ▶ next |
+| **4.1.4** | **The selector guard** — every text selector in `.maestro/**` must exist in app source, wired into `validate:release:rn`. ⚡ A working prototype (the `field-*` cross-check) is already written → log | |
+| **4.1.5** | **The iPad boot** — §11.15 ⭐ · §11.16 · §10's two layout checks · §11.8's rotation half | |
+| **4.1.6** | §12.0 explore (7 checks) | |
+| **4.1.7** | **AX + theme conditions** — §11.1 · §11.5 · §8's half. ⚠️ Reduce Motion needs an app-side observable first | |
+| **4.1.8** | §11's remainder — §11.9 · §11.13 · §11.11 | |
+| **4.1.9** | **The Appium supplement** — §11.15 as numeric frame containment · §10's ⌘ keys · `autoAcceptAlerts` | |
+| **4.1.10** | §12.1–§12.7 (15) — ⚠️ blocked on the deep-link door | |
+| **4.1.11** | **Reconcile — the exit** | |
 
-**Exit:** each of B1–B4 closed or refuted **with evidence**, every fix has a failing-then-passing test,
-gate green.
+⚠️ **[3.7.B.2] flow 07's onboarding walk now crosses one extra field** — `CompletionStep` gained the
+optional name input above `"See My Plan  →"`. Nothing asserts it, but the CTA sits lower on a small sim;
+if 07 regresses at that tap, this is why.
+
+**Exit** *(🎯 "confident enough to move on")* — unchanged, → log.
+
+---
+
+## ✅ CLOSED — Phase 3.7, the fold-in block
+
+✅ **Wave A** (A.0–A.10) and ✅ **Wave B** (B.0–B.4), both closed 2026-08-11. Wave C merged into the
+audit gate. Detail + both wave-level after-scans → log.
+
+⚡ **The number both waves produced, and the reason B.0 existed: a pre-authored ledger item is wrong
+about as often as it is right.** Wave A — of 14 items, **5 did not exist and 4 more were materially
+misdescribed** (one *inverted*). Wave B — of 4 items, **1 refuted outright, 1 half-shipped already, 1
+wrong in 3 of its 4 stated premises, 1 clean.** The before-scan is now paid for twice.
 
 ⚠️ **A0.4** (payoff-schedule device re-verify) and **A8.4** (the Siri phrase work — incl. the
 load-bearing `\(.applicationName)` check) stay device-owed → the checklist.
@@ -35,15 +50,9 @@ load-bearing `\(.applicationName)` check) stay device-owed → the checklist.
 
 ### ⏭ Then, in order
 
-1. **4.1 — the Maestro coverage lane ⏸ PAUSED at 4.1.3**, resumes after 3.7. ✅ 4.1.1 answered (6 capabilities proven) · ✅ 4.1.2 built (11 checks) · ⚠️ **4.1.3 still RED — 8/8, run `31516616133`.** ⚡ But flow 07 walked onboarding *and* the debt form, so **`inputText` + the `field-*` testIDs WORK and `hideKeyboard` was never needed.** Two known next fixes: the `"See My Plan  →"` selector (double space + arrow glyph) and flow 01 failing its FIRST assertion at 1m44s when probe p01 passes the identical opening — **pull the artifact before theorising.** Remaining 4.1.4–4.1.11 + the exit criterion → log
-2. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
-3. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
-4. **Phase 5** (data continuity, ship-blocker) → **5.5** (repo consolidation) → **Phase 6** (launch)
-
-✅ **3.7.A10 — obligations: entry, naming, recovery. COMPLETE 2026-08-10** — the single Add chooser
-replacing all six entry points, the retroactive mis-file detector + atomic conversion, Bills →
-Expenses incl. onboarding's first-run fork, the section caption, both-theme frames. [D22]. Detail →
-log 3.7.A10; the migration half → Phase 5.
+1. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
+2. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
+3. **Phase 5** (data continuity, ship-blocker) → **5.5** (repo consolidation) → **Phase 6** (launch)
 
 ### ⏸ Waiting on Jason
 
@@ -55,7 +64,7 @@ log 3.7.A10; the migration half → Phase 5.
 
 - **A transient `$790` on Today's arrival** during the demo — a half-rendered Guardian card for ~0.5s at beat 2. Now **user-facing** under [D21], not just a store-video concern. Settle before the asset is cut.
 
-**Gate:** `validate:release:rn` — **158/158 + tsc clean on BOTH trees**, zero `error-context.md`. CI runs
+**Gate:** `validate:release:rn` — **167/167 + tsc clean on BOTH trees** *(158 → 167 across Wave B)*, zero `error-context.md`. CI runs
 it on every push. ⚠️ It gained `typecheck:core` + `typecheck:rn` on 2026-08-11; before that it ran no
 `tsc` at all.
 **Env:** `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` + `serve apps/rn/dist -l 4319 -s` · e2e `npm run test:e2e:rn`. ⚠️ Capture-pipeline and H.264-inspection recipes → log §"Working notes".
@@ -117,13 +126,14 @@ fold it in. Runs after 3.5 and BEFORE the audit gate, so the audit reviews the f
 undercounts, the seven-item Guardian honesty ledger, the BNPL seam, the offline Lifetime mislabel, drift
 type hygiene, and the Siri phrases. Gate 158/158, tsc clean. **Detail + the wave-level after-scan → log.**
 
-**Wave B — features that belong in v1.7** *(decomposed at the top of this file)*: B1 drag-the-curve
-What-If · B2 dropped streak/milestone surfacing · B3 name→greeting · B4 swipe-to-mark-paid *([D2] ✅
-settled, so B4 is unblocked)*.
+**Wave B — features that belong in v1.7** *(decomposed at the top of this file)*. ✅ B.0 before-scanned
+it 2026-08-11: **B1 refuted · B2 half-shipped · B3 real but mis-sequenced · B4 real with 3 of 4 premises
+wrong.** [D26]–[D29] are open on the survivors.
 
 **Wave C — coherence sweeps, MERGED INTO the audit gate:** C1 cents-formatter · C2 gold usage · C3 Money
 hero language [D3] · C4 paywall copy · C5 chart VO labels · C6 iPad More two-column · C7 dead code
-(`ProgressRing`/`MilestonesRow`, orphaned `guardianIntroSeen`, `FormSheet.headerAction`) · C8 web scan
+(`ProgressRing`/`MilestonesRow`, orphaned `guardianIntroSeen`, `FormSheet.headerAction`) ⛔ *`computeStreak`
+came OFF this list at B.3 — [D27] ported it, so it now has a live RN reader* · C8 web scan
 entry · C9 `router.back()` cold-entry sweep · C10 doc disambiguation of the overloaded "3.5.3.x".
 
 ---
@@ -137,6 +147,7 @@ entry · C9 `router.back()` cold-entry sweep · C10 doc disambiguation of the ov
   - ⚠️ **[3.7.A3.1 after-scan] Sweep every Guardian affordance for a PROXY gate.** A3.1's defect class: an affordance that promises an **outcome** ("I'll hold a smaller safety net") was gated on a **proxy** (a cycle count), so it could promise and deliver zero. Check the siblings — `selectReserveRelease` · `selectReserveWalkback` · `selectRiskAcknowledgment` · `selectTrialConversion` · `selectGuardianProofOfWork` — for the same shape: **is each gated on the thing it claims, or on something that merely correlates with it?**
   - ⚡ **[3.7.A3.6 after-scan] …and for a CAPPED OUTCOME — the second shape of the same family.** Not a proxy gate: the gate is right, but the **resource is bounded**, so the affordance delivers less than it promised. `selectTightTopUp`/`coverFromSavings` claimed "holds your line" while `Math.min(gap, balance)` capped the draw short (fixed in A.6 via `holdsLine`). Sweep for the pattern: **any copy asserting a completed outcome over a value that is `Math.min`'d, clamped or floored.**
   - ⚡ **[Wave-A after-scan] "Two places, one rule" hit THREE times in one wave** — A6a (two debt shapes in one directory), A5 (the premium ternary on two screens), A3.6 (one claim in four strings). Each was fixed by extracting a single authority (`PayoffSimDebt`, `premiumKind`, `holdsLine`). Sweep for the shape: **a rule re-derived at each call site rather than owned once.** Agreeing copies are still copies — they just haven't diverged yet.
+  - ⚠️ **[3.7.B.2 after-scan] The greeting's STRINGS are owed here** *(per [D26])* — the three band words, the band boundaries as a product choice, the onboarding ask ("What should we call you? (optional)") and More's "Used to greet you on Today". Also decide whether the name belongs anywhere ELSE it is currently absent (notifications, the finale, the Guardian's address) — it is one pref and every surface can read it.
   - ⚠️ **[Wave-A after-scan] A STALE COMMENT GENERATED FALSE WORK.** `testClassifyDeferability`'s header described the opposite of its own assertions, and A3.7 was filed matching the header rather than the code — an inverted defect that would have made a discretionary purchase *less* cuttable. This is 3.5's defect class ③ ("two records of one thing, drifting") with a measured consequence. **Docs that disagree with adjacent code are not cosmetic; they manufacture defects.**
 
 ⚡ **Input from 3.5's phase after-scan — three defect classes to hunt at scale:** ① an assertion that
@@ -153,7 +164,7 @@ _All three audits fan out on Fable 5._
 - ✅ Largely delivered by the RS baseline (tsx app-layer harness · core engine fuzz · RN-web e2e), green-gated by `validate:release:rn`.
 - **Residual coverage:** `testEngineFuzz` → `holdbackComposition` · RN e2e for missed/stale/debt-free states + a mobile viewport · app-layer CRUD coverage.
 - **e2e harness race:** `webServer` re-exports and spawns its own `serve` on :4319, racing a hand-started one. ⚠️ Corollary: `reuseExistingServer` reusing a STALE serve serves an OUTDATED `dist` — force a fresh `export:web` when adding a route.
-- **⚠️ One unexplained intermittent (2026-08-10):** `tutorial-invite › the tabs are held while a session is running` failed through its retry in CI, 1 red in 25 runs, on a commit that changed a 4pt margin. The session had ended when the test expected it running. Not the port-4319 hazard. If it recurs, the question is what ends a session early.
+- **⚠️ The intermittent RECURRED — twice now, and it is no longer "one":** `tutorial-invite › the tabs are held while a session is running`. 2026-08-10 in CI (1 red in 25, on a commit that changed a 4pt margin) and **2026-08-11 locally** during Wave B's close. Both times the session had ENDED when the test expected it running; both times a re-run of the spec alone passed (33/33), so it is timing, not state. Not the port-4319 hazard. **The question is what ends a session early** — and it now has two data points instead of one. → 4.1.11's reconcile, or sooner if it reds a third time.
 - **Known web-e2e limits:** cannot reliably drive gestures, `SectionList` row taps, or stacked modals → prefer seed + deep-link; push gesture flows to Maestro/device.
 
 ## Phase 5 — Data continuity + cutover 🔒 ship-blocker
@@ -191,6 +202,8 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
 **📋 Device-QA ledger — verify on real hardware; web cannot cover these:**
 - **🎯 ALL of Phase 3.5's device debt → `DEBT_3.5_DEVICE_QA_CHECKLIST.md` §11 · §12 · §13.** That file is the runnable truth; this is the index. Highest value: **§11.15**, the iPad ring-origin invariant, which nothing automated can hold.
 - **⭐ [SUB-AUDIT] Premium-accessibility:** VoiceOver rotor + a full walk · Dynamic Type AX3/AX5 reflow · reduce-motion · contrast both themes · focus order · touch targets. WCAG 2.2 AA is the FLOOR.
+  - ⚠️ **[3.7.B.4] `ListRow`'s swipe-to-delete announces a hidden Delete button on EVERY row.** Its action pane is mounted whether or not the row is open and carries `accessibilityRole="button"` + `Delete {title}` with no a11y guard — so VoiceOver offers a destructive control the user cannot see, once per row. B.4's swipe-to-mark-paid hit the same shape and fixed it (`a11yHidden` + `useInert`, released on open); `ListRow` predates that and was **not** touched. Same fix, but it is a live list of destructive actions → verify on device before changing.
+  - ⚠️ **[3.7.B.4] `CheckCircle` reports no checked state on WEB.** It sets `accessibilityState={{ checked }}` and react-native-web does not render `aria-checked` — measured, and it is the exact prop-allowlist trap `utils/a11y.ts` documents. Native is **unverified**: `accessibilityState` is expected to work on iOS, so this may be web-only (like the `Slider` gap) or may not. **Check it with VoiceOver here** — a checkbox that never says whether it is checked is an AA failure, and it matters on web the moment 3.5.7's embed ships.
 - **⭐ [SUB-AUDIT] Performance-feel:** 120fps ProMotion · Skia redraw cost · cold-start TTI · list jank · optimistic-UI feel. Includes the Today/cushion-forecast memoization check.
 - **§3.1.2** SF Symbols on the min-iOS target (some are iOS-16+) · **§2.8** native scan (Vision autolink, OCR quality, camera permission) · **§2.11** RevenueCat real purchases + restore + offering marked current · **§3.3.1** the AHAP crescendo FEEL + celebration · **§VIS-2/B2** share on all three surfaces rasterizes fully · **§3.4** `expo-blur` real material + gesture touch + detent haptics · **§3.5** Live Activity / Dynamic Island / widgets / App Intents / App Group · **§3.6** iPad both orientations, Split View, Stage Manager, pointer/keyboard · **§VIS-6** sound + notification delivery.
 - Native Skia render + draw-on motion on all surfaces · `boxShadow`+`overflow:hidden` native clip · `<Motion>`/`<CountUp>` native runtime.
@@ -208,6 +221,13 @@ measured hotspot)* — ⚠️ **A3.1 added one extra allocation** on Today whene
 belongs on this ledger · Dynamic-Type device QA.
 
 **Engine structure:**
+- **⚠️ [3.7.B.1] The core bulk paths still write pre-[D2] paid semantics.** `bulkMarkRequired.ts` sets
+  `isPaidThisCycle: true` on a debt whose **minimum** was covered — which [D2] reserves for paid in full.
+  **Inert today** (measured: no debt reader in either tree keys on that field alone; all fall back
+  `minimumPaidThisCycle ?? isPaidThisCycle`), and pinned by `testMarksDebtMinimumsBothFlags`. It is a false
+  assertion in **data Phase 5 migrates**, and unpinning it is an engine-semantics change → **the Phase-6
+  financial-correctness gate.** *(`bulkMarkRequiredPaid` is legacy-only and dies at 5.5.1;
+  `applyRequiredReconciliation` is the live one.)*
 - **⚡ [3.7.A3.6 after-scan] `appliedTopUp` is a manual-opt-in invariant.** Cash moved from savings this
   cycle lives only in `store.cycleTopUp` — the allocation never sees it, so **every** cushion reader has to
   remember `+ appliedTopUp(store)`. Three readers exist; two had it, `selectAffordability` did not (A.6's
@@ -253,11 +273,16 @@ belongs on this ledger · Dynamic-Type device QA.
 
 - **[D24] ✅ (2026-08-11)** — the tight top-up prefers a **discretionary savings goal; the EF is the fallback, not the first pick, and the copy names it when it IS the EF.** "Never" would make the one-tap vanish for anyone whose only savings is the EF. The dishonesty was drawing on it *silently and first*. → **A3.3**
 - **[D25] ✅ (2026-08-11)** — an applied purchase **keeps** its deferrable behaviour (a discretionary buy *should* be first to cut in a shortfall) but gets an **explicit category**, so it is a stated rule rather than an uncategorized fallthrough. → **A3.7**
-- **[D2] ✅ (2026-08-11)** — **`minimumPaidThisCycle` is the owner** ("minimum covered"); `isPaidThisCycle` means paid in full. ⚠️ Fix `planSelectors.ts:136`, the one reader with **no** `?? isPaidThisCycle` fallback — it disagrees with the other four today. B4's swipe writes through `bulkMarkRequired`, not a third writer. → unblocks **B4**
+- **[D2] ✅ (2026-08-11)** — **`minimumPaidThisCycle` is the owner** ("minimum covered"); `isPaidThisCycle` means paid in full. ⚠️ **Corrected by B.0:** the fallback-less reader is `planSelectors.ts:`**`156`**, and Today's mark-paid writes through `handleMark` → `markDebtMinimumPaid`, **not** `bulkMarkRequired` (that is the payday path, and it violates this decision by also setting `isPaidThisCycle`). → **B.1**
 - **[D3] ✅ (2026-08-11)** — the calm-micro-viz hero language **extends to Debts** (a paydown bar via the existing `HeroProgressBar`). Bare read as an omission next to Bills and Goals, on the page whose subject it is.
 - **[D4] ✅ (2026-08-11)** — **rename NOW, before the next device build.** Every App Shortcut phrase contains `\(.applicationName)`, so A8's phrases cannot be finalised or device-tested until the name is final, and `app.json`'s "Debt Planner (RN)" is a Phase-6 ship blocker regardless. → new step **A.0**
 
-- **[D1] ✅ (2026-08-11) — stays DEFERRED, on a new reason.** ⛔ The original reason (cost: the AppIntent machinery was unbuilt, ~4–5× the query-intent baseline) **has expired** — the widget extension, App Group, `DebtProvider` and an in-extension App Intent all exist now, so it is ~one Swift file plus an availability gate. It stays deferred because **there is no control-SHAPED job**: this app's actions are multi-step (log a payment needs a debt *and* an amount) or rare and dated (payday landed, already on the Live Activity), and a glance is a widget's job — which already ships. 🎯 **Revisit trigger: a genuine one-tap emerges during the build. B4 (swipe-to-mark-paid) is the likeliest source.**
+- **[D1] ✅ (2026-08-11) — stays DEFERRED, on a new reason.** ⛔ The original reason (cost: the AppIntent machinery was unbuilt, ~4–5× the query-intent baseline) **has expired** — the widget extension, App Group, `DebtProvider` and an in-extension App Intent all exist now, so it is ~one Swift file plus an availability gate. It stays deferred because **there is no control-SHAPED job**: this app's actions are multi-step (log a payment needs a debt *and* an amount) or rare and dated (payday landed, already on the Live Activity), and a glance is a widget's job — which already ships. ⛔ **Trigger SPENT (B.0, 2026-08-11)** — B4 creates no new one-tap; `RequiredActionsCard.tsx:209`'s `CheckCircle` has been that one-tap since the card shipped. Deferral stands on its stated reason, with nothing pending.
+
+- **[D26] ✅ (2026-08-11)** — B3's greeting **mechanism** ships in Wave B; its **strings are owned by the wording/voice gate**, which is where 2026-07-30 deferred it. Splitting the two honours both. → **B.2**
+- **[D27] ✅ (2026-08-11)** — port the free on-plan streak **only** (milestone surfacing already ships). Calm house voice, **no flame**, and never rendered beside the premium "Held your line · N paychecks" — two streaks on one screen read as one feature stated twice. → **B.3**
+- **[D28] ✅ (2026-08-11)** — B4's swipe **ships, as a pure accelerator** over the existing one-tap `CheckCircle`. The infra exists (`ListRow`'s `ReanimatedSwipeable`), the gesture is unused on required rows, and legacy carried pill **+** swipe too. → **B.4**
+- **[D29] ✅ (2026-08-11)** — **B1 is CLOSED as refuted.** The delta between "drag the curve" and what ships is a gesture, and §3.4.1's scrub-to-read already owns it.
 
 **Open:** 3.5.7 hosting + privacy *(the only one left)*.
 

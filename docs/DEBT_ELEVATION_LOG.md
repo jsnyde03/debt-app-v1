@@ -5496,3 +5496,319 @@ load-bearing check — that `\(.applicationName)` renders "Debt Planner" and **n
 
 **⏸ Still waiting on Jason:** cut the CodeMagic build (the device build `c050173`/3.6.1 is stale by a
 whole phase) · 3.5.7's hosting + privacy specifics · the transient `$790` Guardian flash on Today.
+
+### Session close 2026-08-11 (third session) — Wave B closed, and with it Phase 3.7
+
+**Shipped:** B.0 → B.4, then the wave-level after-scan. **5 commits**, `1881d39` … `5ffad33`.
+Gate **158 → 167**, tsc clean on both trees at every commit, zero `error-context.md`.
+
+**The wave in one line:** of 4 ledger items, **1 was refuted outright, 1 was already half shipped, 1 was
+wrong in 3 of its 4 stated premises, and 1 was clean** — plus **3 defects that were on no ledger at all**
+(the vanishing paid row's `autopayFailedThisCycle` sibling, an `aria-hidden-focus` violation in B.4's own
+first draft, and `ListRow`'s always-announced destructive Delete).
+
+**The find worth carrying:** ⚡ **the same failure mode applies to claims written THIS session.** B.1a was
+authored, tested and nearly shipped before measurement refuted it; B.4's "re-rendering resets the pan" was
+a confident inference from a failure whose real cause (viewport-relative CDP coordinates) was somewhere
+else entirely. Both were caught by checking the mechanism rather than the symptom. **A claim's age is not
+what makes it wrong** — now in `CLAUDE.md` so it survives the session.
+
+**⚠️ Everything this wave shipped is Today/Progress UI verified against a WEB-ONLY suite**, because the
+Maestro native lane has been RED since 2026-08-10. That is why **4.1 takes the active slot** rather than
+3.5.7 — it is decomposed 4.1.3 → 4.1.11 at the top of the plan.
+
+**Also recorded:** the `tutorial-invite › the tabs are held while a session is running` intermittent
+**recurred** (CI 2026-08-10, local 2026-08-11). Both times the session had ended when the test expected it
+running; both times a spec-only re-run passed 33/33. It is timing, not state, and it now has two data
+points instead of one.
+
+**State on close:** tree clean, `v1.7-dev`, no stray dev servers (:4319 / :8081 / :8082 / :19000-19006 all
+free). **⏭ Next session starts at 4.1.3** — pull the failing run's artifact **before** theorising.
+
+**⏸ Still waiting on Jason:** cut the CodeMagic build (the device build `c050173`/3.6.1 is now stale by
+**two** phases) · 3.5.7's hosting + privacy specifics · the transient `$790` Guardian flash on Today.
+
+## 3.7 Wave B · B.0 — the wave before-scan — COMPLETE (2026-08-11)
+
+Every B item read against the current code before anything was built, the treatment that paid on
+Wave A. **Result: 1 of 4 survives as written.** One is refuted, one is half-shipped, one is real but
+mis-sequenced, and one is real with **three of its four stated premises wrong**. Sources traced:
+B1/B2/B3 are `DEBT_PHASE3_ENHANCEMENT_AUDIT_2026-07-27.md:68` (3-F · F10.3 · F10.1); B4 is the
+3.4.4 swipe-delete after-scan (log line ~315).
+
+### B1 — drag-the-curve What-If → **REFUTED, on two independent grounds**
+
+The 2026-07-30 premise was: *"collapsed behind a toggle is exactly the hidden-affordance shape this
+item exists for."* Both halves of that fail today.
+
+- ⛔ **It is not a hidden affordance.** `TrajectoryChart.tsx:465-475` is a full-width `Pressable` row
+  reading **"What if you paid extra?"** in plain language, with a chevron, `accessibilityRole="button"`
+  and `accessibilityState={{ expanded }}`. That is a labelled disclosure, not a hidden one.
+- ⛔ **The gesture is already taken, and the item never knew it.** §3.4.1 shipped scrub-on-drag —
+  horizontal drag on the trajectory reads a date at that point (`trajectory-interactivity.spec.ts:24`,
+  both themes). "Drag the curve to bend it" would need the same axis on the same Skia surface. Building
+  it means a mode switch or stealing a shipped gesture.
+- ⚡ **And the outcome it wanted already exists.** `WhatIfControls.tsx` is no longer a slider in a
+  drawer: the amount is a **directly editable** numeric field (uncapped by design — "nobody can know
+  what a given person can afford"), the slider max **adapts** to what is typed, and either input bends
+  the dashed green overlay live. Direct manipulation of the number, without the gesture collision.
+
+**Verdict: closed as refuted.** The delta between "drag the curve" and what ships is a gesture, not a
+capability, and the gesture is occupied.
+
+### B2 — dropped streak/milestone surfacing → **HALF ALREADY SHIPPED**
+
+- ✅ **Milestone: built.** `MilestoneAckCard` on Today gated through the ack coordinator
+  (`index.tsx:453`), the ring pulse on Progress (`progress.tsx:161`, `pulseThreshold`), dedup + the
+  100%-excluded rule covered by `milestoneCross.test.ts`. Nothing to port.
+- ⛔ **Streak: genuinely absent.** `packages/core/debt/computeStreak.ts` exists, is tested
+  (`testComputeStreak.ts`), and has **zero importers in `apps/rn`** — the only consumer is the legacy
+  Capacitor tree (`app/page.tsx:283`, surfaced at `:1175` as a 🔥 flame + count stat). It is dead code
+  in the shipping app.
+- ⚠️ **Two design constraints the item predates.** (1) The premium Guardian proof strip already shows
+  **"Held your line · N paychecks"** (`GuardianProofStrip.tsx:21`) — a different claim (confirmed
+  cushion reached target) than `computeStreak`'s (every required action met), but visually a second
+  streak. (2) The legacy treatment is a flame counter, which is the gamification chrome the house
+  restraint rules out. A port would carry both problems in.
+
+### B3 — name → time-aware greeting → **REAL, wholly unbuilt, mis-sequenced**
+
+No name is captured anywhere: onboarding is four steps (`Welcome` · `Paycheck` · `FirstDebtOrBill` ·
+`Completion`), none asks; there is no `userName`/`firstName` on the store or in `Preferences`; Today's
+header is the static `<Screen title="Today">`. Nothing to reuse — this is capture + persistence +
+greeting from scratch.
+⚠️ **`DEBT_PHASE3_CLOSEOUT_REAUDIT_2026-07-30/02-bestinclass-coherence.md:55` deferred it explicitly
+"waits on the wording audit"** — and the wording/voice gate runs **after** 3.7. Wave B schedules it
+before its own gate. The mechanism can ship now; the strings are audit-owned.
+
+### B4 — swipe-to-mark-paid → **the defect is real; 3 of 4 stated premises are wrong**
+
+| the plan said | the code says |
+|---|---|
+| "`planSelectors.ts:136`" | ⛔ **:156.** :136 is `const isExpense = …`. The fallback-less reader is `.filter((d) => d.minimumPaidThisCycle && …)` at **:156** |
+| "B4's swipe writes through `bulkMarkRequired`" | ⛔ **No.** Today's mark-paid is `handleMark` (`index.tsx:73`) → `markDebtMinimumPaid` / `markExpensePaid`. `bulkMarkRequired` is the **payday-checkpoint** path. The swipe would reuse `handleMark` — still not a third writer, but not that function |
+| implied: mark-paid needs the swipe | ⛔ **The row already has a one-tap.** `RequiredActionsCard.tsx:209` renders a `CheckCircle` on every non-autopay required row. The swipe is a **second** affordance for an action that already takes one tap — and legacy was the same (`components/RequiredActionItem.tsx:36`: "Mark-Paid pill **+** swipe") |
+| "the one reader with no `?? isPaidThisCycle` fallback" | ✅ **Confirmed, and it bites.** Every other reader has it: `allocatePaycheck.ts:279/298/315`, `deriveRequiredActionView.ts:76`, `applyRolloverPayment.ts:41`, `reconcileAutopay.ts:52`, `recoverySelectors.ts:46`, `getDebtsWithDisplayBalances.ts:26` |
+
+**The live defect, stated precisely.** `minimumPaidThisCycle?` is **optional** (`debtPlannerStorage.ts:67`).
+For a debt carrying only `isPaidThisCycle: true`, the allocator *drops* the row (`:279` fallback) and
+`planSelectors.ts:156` *declines to re-add it* — so the paid row **vanishes from Today** instead of
+showing struck-through and undo-able, which is the exact behaviour the block at `:151-158` exists to
+guarantee. ⚡ **The affected population is the Phase-5 migration**, where v1.6 data predates the field.
+
+⚠️ **New find, from the same dig — a stale header of the Wave-A class.** `bulkMarkRequired.ts:3-9`
+claims it uses "the SAME paid-state semantics as the Plan tab's per-item toggles (so the two surfaces
+can never drift)" — they have drifted. The payday path sets `minimumPaidThisCycle: true` **and**
+`isPaidThisCycle: true` (`:36-37`, `:82-83`); `markDebtMinimumPaid` (`store.ts:421`) sets only the
+former. Under [D2] that makes the payday path assert **paid in full** on a debt where only the minimum
+was covered. **Latent, not live** — measured: no debt reader keys on `isPaidThisCycle` alone today, so
+nothing currently mis-reads it. But it is a comment asserting an invariant that the code stopped
+holding, which is precisely what manufactured A3.7's inverted item.
+
+## 3.7 Wave B · B.1 — the paid-state readers agree — COMPLETE (2026-08-11)
+
+**Shipped three fixes, all one family: a rule about "is this required item paid" re-derived at each
+call site instead of owned once.** Gate 158/158 + tsc clean, 12 new asserts across
+`planSelectors.test.ts` (new, wired into `runAppTests`) and `storeActions.test.ts`.
+
+**① `planSelectors.ts:156` — the vanishing paid row.** Added `?? isPaidThisCycle`, matching every other
+reader (`allocatePaycheck:279/298/315` · `deriveRequiredActionView:76` · `applyRolloverPayment:41` ·
+`reconcileAutopay:52` · `recoverySelectors:46` · `getDebtsWithDisplayBalances:26`). `minimumPaidThisCycle`
+is **optional**, so for a debt carrying only `isPaidThisCycle` the allocator dropped the row and this
+re-add declined to restore it — the paid row disappeared from Today instead of striking through, which is
+the one thing that block exists to prevent. Test fails on the legacy shape before the fix, passes after.
+
+**② Both Today toggles now clear `autopayFailedThisCycle`.** Found while checking ①: core has always
+cleared it on mark-paid ("an item the user is now confirming paid is no longer a reported failure") and
+**nothing else clears it** — not the rollover. `markDebtMinimumPaid`/`markExpensePaid` did not, so a user
+whose autopay failed and who then confirmed it on Today kept a struck-through row still showing
+**"Overdue"** (`showOverdue` reads `view.autopayFailed`), and — worse — the item **advanced to the next
+occurrence carrying the flag**, permanently blocking `isAutopayPresumedPaid`. It reappeared as a manual
+to-do every cycle, for good. Un-marking deliberately does **not** re-flag: reporting a failed autopay is
+the payday checkpoint's job, not an undo's.
+
+**③ The stale header, corrected in place.** `bulkMarkRequired.ts` claimed its writes used "the SAME
+paid-state semantics as the Plan tab's per-item toggles (so the two surfaces can never drift)". They have
+drifted — the RN toggle sets `minimumPaidThisCycle` only, because [D2] reserves `isPaidThisCycle` for paid
+**in full**. ⚠️ Verified the direction before touching anything: legacy's `useDebts.ts:144` sets **both**,
+so the comment was true when written and the RN store is what narrowed — correctly. The core divergence is
+**inert** (measured: no debt reader in either tree keys on `isPaidThisCycle` alone) and pinned by
+`testMarksDebtMinimumsBothFlags`, so it is filed, not flipped → **Phase-6 financial-correctness gate**.
+
+## 3.7 Wave B · B.2 — B3, the name and the greeting — COMPLETE (2026-08-11)
+
+**[D26]: the mechanism ships now, the strings belong to the wording gate.** Gate **161/161** (was 158)
++ tsc clean, 25 app-layer asserts + 3 e2e.
+
+- **`prefs.displayName?: string`** — optional, so an existing blob migrates by *not having the key*. Same
+  additive rationale the `analyticsOptOut?` comment already sets out; no `CURRENT_STORE_VERSION` bump.
+- **`store/greeting.ts` — pure.** `selectGreeting(name, hour)` + `greetingBand(hour)` +
+  `normalizeDisplayName`. The **hour is a parameter**: the single `new Date().getHours()` lives at the
+  render edge in Today, so every band boundary is unit-testable and no module needs mocking.
+  Bands: morning 05–11 · afternoon 12–16 · evening 17–04. Normalisation collapses interior whitespace and
+  returns `undefined` for empty, so **"cleared it" and "never set it" are one state** — no reader handles both.
+- **Capture in two places, because one would not work.** Optional field at onboarding's finish (committed
+  on the CTA, not per keystroke — a persisted write per character for a value only the header reads), and
+  editable/clearable in **More → Preferences** (committed on blur, same reason). A name settable only by
+  digging into More would never be set; a name that could not be changed would be a defect.
+- **The sandbox carries it, exactly like `themeMode`.** `seedSandbox` already copies one pref on the test
+  "is this about the person or about the money" — appearance passes, `debtFreeSoundEnabled` deliberately
+  does not. `displayName` passes the same test. Without it the walkthrough (which runs over the REAL Today)
+  would drop the user's name at beat 1 and hand it back at the end, reading as a glitch.
+- **Determinism, deliberately.** The e2e pins the clock with **`clock.setFixedTime`, never `clock.install`**
+  — install fakes the timer queue and the Motion/CountUp layer would sit unrendered. `explore-demo.shot.ts`
+  is pinned the same way: Today's frame is now time-of-day dependent, and an unpinned reference capture that
+  changes for reasons that are not app changes is how the root `tests/visual` set masked a theme defect.
+  ⚠️ `helpers/seed.ts` already carried a scar about exactly this class (nine specs queued to fail overnight).
+
+**Three things the after-scan caught that the before-scan could not:**
+1. **`useAppStore` resolves to the ACTIVE store, not the real one.** My first comment claimed it read real
+   prefs — false, and it would have been a lie sitting next to the code. Corrected, and it is what led to
+   the `seedSandbox` carry-over being the right fix rather than reaching for the singleton.
+2. **Onboarding already has a testID convention** — `field-onboarding-name` / `field-paycheck-amount`, i.e.
+   `field-<context>-<thing>`. My first pass used the same bare `field-display-name` on **both** screens;
+   renamed to `field-onboarding-display-name` / `field-preferences-display-name`, which also removes a
+   duplicate id across two surfaces before any flow had to disambiguate it.
+3. **`TextField` gained `maxLength` / `autoCapitalize` / `onBlur`** (all optional, no call site changed).
+   Capping at the input rather than on save matters: a value silently truncated on write reads as data loss.
+
+## 3.7 Wave B · B.3 — B2, the on-plan streak — COMPLETE (2026-08-11)
+
+**[D27]: the streak half only.** Milestone surfacing was already shipped (B.0 established that), and
+`computeStreak` had been sitting in `packages/core` with **zero RN importers** since the migration — live
+only in the Capacitor tree, where it rendered as a 🔥 flame and a count. Gate **164/164** + tsc clean.
+
+- **`selectOnPlanStreakLabel(store)`** in `planSelectors.ts` — the raw count plus the display rule, so the
+  rule is testable rather than living in JSX.
+- **On PROGRESS, not Today.** [D27]'s constraint is satisfied structurally, not by a conditional: the
+  premium `GuardianProofStrip` ("Held your line · N paychecks") renders inside `PaydayGuardianCard` on
+  **Today**, and this renders in the Progress hero's meta column. They state different things — "you did
+  everything you could afford" vs "your confirmed cushion held" — but two streaks on one screen read as
+  one feature said twice.
+- **A caption, not chrome.** Same `textStyles.caption` and colour as the "Next milestone: 50%" line beside
+  it. The port that mattered was the read; the badge was the part worth leaving behind.
+- **⚡ The floor is the honesty rule.** `ON_PLAN_STREAK_MIN = 2`: at 1 the line fires the first time anyone
+  finishes a cycle, celebrating the ordinary. It also does something better than restraint — **it makes the
+  claim unreachable on a day-one demo by construction.** `SANDBOX_MAX_HISTORY` clamps a sandbox to ONE
+  cycle of history, so no number of scripted rollovers can reach a floor of 2. Pinned as **Channel 2b** in
+  `sandboxStore.test.ts`, beside the existing proof-of-work channel — the free streak is the same class of
+  claim on a different screen and deserved the same guarantee.
+- **Legacy snapshots pinned too.** `isCycleOnPlan` defaults a snapshot with no `allRequiredMet` to on-plan
+  (so a later fix never retroactively zeroes a real streak). The display rule now depends on that default,
+  so it is asserted here rather than left implicit two files away.
+
+**After-scan → one ledger correction, made atomically:** Wave C7's dead-code list named `computeStreak` as
+a deletion candidate *"if [D27] cuts it"*. [D27] ported it instead, so it now has a live reader — it came
+off that list in the same edit that marked B.3 done, rather than surviving as a stale instruction to delete
+working code.
+
+## 3.7 Wave B · B.4 — swipe-to-mark-paid — COMPLETE (2026-08-11)
+
+**[D28]: an accelerator, never a second way in.** The `CheckCircle` is untouched and remains the
+accessible path — the legacy app shipped a Mark-Paid pill *and* a swipe for the same reason. Gate
+**167/167** + tsc clean, 3 e2e.
+
+- **One predicate drives both affordances.** `canMark = !(isAutopay && !view.autopayFailed)` gates the
+  checkbox AND the swipe, so a row the user cannot mark by hand cannot be swiped either. The alternative —
+  repeating the branch — is how the two would come to disagree about who owns a row.
+- **One write path, haptic included.** `checkOffHaptic` was extracted from `CheckCircle` and is now shared,
+  rather than the "success on check, light on undo" rule being re-derived in the swipe handler. Wave A's
+  lesson applied prospectively: agreeing copies are still copies.
+- **No confirm**, unlike swipe-to-delete — this is reversible by the same gesture, and the action's own
+  label flips to **Undo**.
+- **`ListRow`'s swipe was NOT reusable**, contrary to the plan's wording: it is welded to `confirmDelete`
+  and the iOS `RowContextMenu`. The *pattern* transferred (`ReanimatedSwipeable` · `overshootRight={false}`
+  · `rightThreshold={40}` · an `overflow: hidden` container); the component did not.
+
+### ⚡ B.4 found a live a11y defect — in its own first draft, and one in `ListRow`
+
+`ReanimatedSwipeable` **mounts the action pane whether or not the row is open** (that is how the reveal
+animates). Left unguarded that puts a second control for the same action in the accessibility tree of
+every row, permanently: VoiceOver announces each bill twice and offers a control nobody can see.
+
+Getting it right took three passes, and each failure taught something worth keeping:
+1. **`aria-hidden` alone is not enough.** `a11y-axe` failed with **`aria-hidden-focus`** — react-native-web
+   gives every enabled `Pressable` `tabIndex=0`, so the pane was hidden from the reader *and reachable by
+   Tab*, which is worse than either alone because it announces nothing when focused.
+2. **`focusable={false}` does not clear that tabIndex** (measured, not assumed).
+3. **`inert` closes both — and kills pointer events**, so a permanently-inert action is dead to the very
+   gesture it exists for. Native is unaffected (`useInert` no-ops off web), but **3.5.7's embed ships this
+   build**, so "web only" is not "nobody".
+
+**Final shape:** the pane is `aria-hidden` + `inert` while CLOSED and released on open, via a real
+component (`SwipeMarkAction`) because `renderRightActions` is a render callback and hooks cannot live there.
+
+⚠️ **The same shape exists in `ListRow` and was left alone** — its Delete pane is always announced, once
+per row, and it is *destructive*. Filed to the premium-accessibility sub-audit rather than fixed blind.
+
+### ⚠️ Two corrections I had to make to my own reasoning, mid-item
+
+- **"Re-rendering resets the pan, so the row snaps shut."** I inferred that from a failing test and
+  designed around it. **It was wrong.** The real cause was that **CDP touch coordinates are
+  viewport-relative** and Required Actions sits ~1588px down an 874px viewport — the touch landed on
+  nothing, the gesture never activated, and the symptom ("the checkbox intercepts pointer events") read
+  exactly like a z-order bug. `scrollIntoViewIfNeeded` fixed it, the state-based a11y gate works fine, and
+  §3.4.4's swipe-to-delete had only ever escaped this because its row is near the top of /money.
+- **The a11y test passed for the wrong reason once.** `{...a11yHidden}` spreads the *function* — no props.
+  The assertion still went green because I had also removed the accessible name, so a name-filtered query
+  found nothing. `a11yHidden(true)`. **A green assertion is not evidence until you know which failure it
+  would have caught.**
+
+## 3.7 Wave B — WAVE-LEVEL after-scan (2026-08-11)
+
+**The wave's result:** 4 ledger items → **1 refuted**, **1 already half-shipped**, **1 wrong in 3 of its 4
+premises**, **1 clean**. Plus 3 defects that were never on any ledger (the vanishing paid row's sibling
+`autopayFailedThisCycle` leak, the `aria-hidden-focus` violation, `ListRow`'s always-announced Delete).
+Gate **158 → 167**.
+
+**① The pattern across both waves, stated once:** *the ledger is reliable about WHERE to look and
+unreliable about WHAT is there.* Every Wave-B item pointed at real code; three of four described it wrong.
+B.0 caught the stale half in an hour; the misdescribed half only fell out of writing the fix — which is
+`preauthored-items-fail-two-ways`, now measured twice.
+
+**② The failure mode is not limited to pre-authored items — it is mine too.** B.1a was authored, tested and
+nearly shipped **this session** before measurement refuted it, and the "re-render resets the pan" claim in
+B.4 was a confident inference from a misread failure. Both were caught the same way: by checking the
+mechanism instead of the symptom. **A claim's age is not what makes it wrong.**
+
+**③ Three surfaces gained a rule that keeps a claim honest by CONSTRUCTION rather than by care** — worth
+naming because it is now a repeatable move:
+- B.3's streak floor of 2 makes the claim unreachable on a day-one demo, because the sandbox clamps history
+  to 1. No flag, no conditional, nothing to forget.
+- B.4's single `canMark` predicate makes the swipe and the checkbox unable to disagree.
+- B.2's `normalizeDisplayName` makes "cleared" and "never set" one state, so no reader handles both.
+
+**④ Wording debt is accumulating in ONE place, deliberately.** B.2's greeting strings and B.3's streak
+caption are both new user-facing copy shipped under [D26]/[D27] with the strings explicitly deferred to the
+wording/voice gate. That gate now owns them, and it is captured there — not left as a comment in a
+component nobody re-reads.
+
+**⑤ The lane the wave did NOT touch:** every one of these is Today/Progress UI, and the **Maestro native
+lane has been RED since 2026-08-10**. Four items shipped against a web-only suite. That is precisely what
+4.1 exists to fix, which is why it takes the active slot rather than 3.5.7.
+
+### ⛔ B.1a — REFUTED by measurement, after the test was already written
+
+The after-scan surfaced what looked like a fourth defect: `autopayFailedThisCycle` is named per-cycle,
+and the rollover never clears it. A failing test was written asserting the boundary should clear it.
+**It was wrong, and the code was right.** A still-**unpaid** failed autopay must carry its flag forward —
+that is the only thing stopping the next `reconcileAutopayForRollover` from silently presuming a bill the
+user *told us never ran* had been paid. Clearing it re-opens the inverse of the root-cause bug
+`reconcileAutopay` was built to fix. The flag rides the **occurrence**, not the cycle; the genuine leak was
+the paid path, closed at source by ②.
+⚡ **The test was kept, inverted** — it now pins the persistence *and* proves ② propagates across the
+boundary (a confirmed bill advances clean), so the assertion **depends on** the fix rather than merely
+surviving it.
+⚠️ **The lesson is the one Wave A taught, applied to my own work:** a name asserting a scope (`…ThisCycle`)
+is a claim, and claims get measured. Two of the three real fixes here came from checking a comment against
+its code; the one item that came from *trusting* a name was the false one.
+
+### Two ledger corrections this scan forces
+
+- **[D1]'s revisit trigger is already spent.** It stands on *"revisit the moment a genuine one-tap
+  emerges — B4 is the likeliest source."* B4 creates no new one-tap; the `CheckCircle` has been that
+  one-tap since the card shipped. [D1] stays deferred on its stated reason (no control-shaped job),
+  now with the trigger closed rather than pending.
+- **The Wave-A rate held.** 14 items → 5 absent + 4 misdescribed. Wave B: 4 items → 1 refuted, 1
+  half-shipped, 1 misdescribed in 3 of 4 premises, 1 clean. Both authoring passes are 2026-07-27/30.
+  The before-scan is now paid for twice.
