@@ -34,9 +34,18 @@ appId: com.jasonsnyder.debtplanner
 
 # ⚠️ `extendedWaitUntil`, not a bare assertion. Probe p01 (4.1.1) proved the command exists on this build,
 # which the flows previously recorded as impossible. Waiting for a stated signal beats racing a launch.
+#
+# ⛔ 180 s, NOT 20 s — and the reason is the DRIVER, not the app. Measured in run 31516616133's
+# `device-xctest.log`: the FIRST `/viewHierarchy` snapshot of a run, on a freshly booted sim, took
+# **42.7 s** (17:41:18.828 → 17:42:01.550) — longer than the whole 20 s budget, so the wait expired
+# before a single sample was ever evaluated. Every later snapshot in that run took 60–120 ms. The app was
+# up the entire time: the failure screenshot, taken 0.4 s after the timeout, shows the screen rendered,
+# and the failure hierarchy contains the element verbatim.
+# ⚠️ It is a FLAKE, not a constant — the same first snapshot took 10 s in run 31514348038. A wait long
+# enough to survive the slow tail is the fix; shortening it back will re-red this at random.
 - extendedWaitUntil:
     visible: "Will you make it to payday?"
-    timeout: 20000
+    timeout: 180000
 - takeScreenshot: maestro-debug/smoke-cold-launch
 
 # ══ THE SEED — onboarding, for real ═════════════════════════════════════════════════════════════
@@ -55,6 +64,17 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-onboarding-name"
 - inputText: "Visa"
+
+# ⛔ THE SWIPE IS LOAD-BEARING. Full mechanism in `07-money-add-and-rescue.yaml` at the same point, from
+# run 31516616133's hierarchy dump: with the keyboard up, `OnboardingLayout`'s ScrollView viewport ends
+# at the sticky CTA stack, the fields below it are clipped out while STILL reporting on-screen frames,
+# and `tapOn` therefore taps the "Add & Continue" button instead of the field. Focus never moves, and
+# every later `inputText` appends to the name field. `hideKeyboard` cannot substitute — this build cannot
+# dismiss a decimal pad (run 31514348038). Percentages, so the iPad lane inherits it.
+- swipe:
+    start: "50%, 40%"
+    end: "50%, 18%"
+
 - tapOn:
     id: "field-onboarding-balance"
 - inputText: "2400"
@@ -64,7 +84,25 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-onboarding-apr"
 - inputText: "26.99"
+
+# ⚡ Write-verification: assert the text landed in the field it was aimed at. A tap that misses is silent
+# — `tapOn` and `inputText` both report COMPLETED regardless — but a field holding the wrong string is
+# not. The seed the whole suite depends on is exactly where that must not go unnoticed.
+#
+# ⛔ THE ANCHORS ARE THE ASSERTION. Maestro's text match is CONTAINS, not equals — proven by this same
+# run: `"Will you make it to payday?"` matched, and under full-match semantics it could not have (the
+# trailing `?` is a quantifier, so the pattern ends at "payda" + optional "y"). Unanchored, `text: "Visa"`
+# would happily match **"Visa240065"** — the exact corruption this is here to catch. `^…$` or nothing.
+# Only the NAME field is checked: it is where every mis-aimed `inputText` accumulates, and its value is
+# the one confirmed unformatted in the hierarchy dump. A numeric field could be re-formatted for display
+# and red for a reason that is not a defect.
+- assertVisible:
+    id: "field-onboarding-name"
+    text: "^Visa$"
+
 - tapOn: "Add & Continue"
+# ⚠️ NOT a defect: byte-identical to `CompletionStep.tsx:39` (two spaces + U+2192). Ledgered as a "known
+# fix" from the failing run; flow 07 simply never reached this screen.
 - tapOn: "See My Plan  →"
 
 # The tab shell rendered. Asserted by testID: react-navigation groups tab buttons into composite a11y
@@ -95,6 +133,15 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-debt-minimum"
 - inputText: "25"
+
+# ⚡ Write-verification, and here it is doing a SECOND job: `FormSheet` has the same shape that broke the
+# onboarding step — a ScrollView above a sticky footer inside a KeyboardAvoidingView — so a covered field
+# is plausible here too. It is NOT measured, and this lane's rule is to measure rather than to patch on a
+# resemblance. So: no speculative swipe. If the sheet has the same defect, this assertion names it, at
+# the right step, and the geometry comes from that run's hierarchy dump.
+- assertVisible:
+    id: "field-debt-name"
+    text: "^Store Card$"
 - tapOn: "Add debt"
 
 - tapOn:
@@ -110,6 +157,9 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-debt-minimum"
 - inputText: "210"
+- assertVisible:
+    id: "field-debt-name"
+    text: "^Car Loan$"
 - tapOn: "Add debt"
 
 # The invariant the rest of the suite depends on. If this fails, do NOT patch the later flows — the seed

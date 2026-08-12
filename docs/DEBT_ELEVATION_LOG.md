@@ -5812,3 +5812,89 @@ its code; the one item that came from *trusting* a name was the false one.
 - **The Wave-A rate held.** 14 items → 5 absent + 4 misdescribed. Wave B: 4 items → 1 refuted, 1
   half-shipped, 1 misdescribed in 3 of 4 premises, 1 clean. Both authoring passes are 2026-07-27/30.
   The before-scan is now paid for twice.
+
+---
+
+## 4.1.3 cycle 2 — the artifact was pulled first, and it refuted both of the ledger's "known fixes" (2026-08-12)
+
+**Method: the run's own artifacts before any theory** — `gh run download 31516616133 -n maestro-report`,
+then the per-flow `commands.json`, `screen-hierarchy/*.json`, `logs/device-xctest.log` and the failure
+screenshots. Both of the two moves the plan carried forward were wrong, and neither failure was where the
+verdict table pointed.
+
+### ① Flow 01 — a DRIVER stall, not the app, not the selector
+
+`device-xctest.log` times it exactly. The assertion ran 17:41:17.876 → 17:42:07.077 on a `timeout: 20000`,
+and inside that window the driver made **one** `/viewHierarchy` call: 17:41:18.828 → **17:42:01.550 —
+42.7 seconds**. Maestro checks elapsed time *between* polls, so the budget was already spent when the
+first sample returned and **the sample was never evaluated**. Every later snapshot in the same run took
+60–120 ms.
+
+The app was fine the whole time: the failure screenshot (0.4 s later) shows the screen rendered, and the
+failure hierarchy carries `"Will you make it to payday?"` verbatim. ⚠️ **It is a flake, not a constant** —
+the same first snapshot took 10 s in run 31514348038. First-hierarchy-of-the-run cost is the thing that
+varies. Fix: that one wait is now **180 s**, with the measurement in the file so it is not trimmed back.
+
+### ② Flow 07 — ⛔ THE OPPOSITE OF WHAT THE LEDGER RECORDED
+
+The plan read: *"⚡ `inputText` + the `field-*` testIDs WORK and `hideKeyboard` was never needed (flow 07
+walked onboarding **and** the debt form)."* The dump says otherwise. `field-onboarding-name` holds
+
+> **`"Visa Test240065"`**
+
+— the name, the balance and the minimum **concatenated into one field**. The balance and minimum taps
+never moved focus; all three `inputText`s went to the name.
+
+**The mechanism, from the frames.** `OnboardingLayout` is a `KeyboardAvoidingView` (behavior=padding)
+holding a ScrollView above a **sticky CTA stack**. Keyboard up → the container shrinks → the ScrollView's
+viewport ends at the CTA stack (~y450 pt) → `field-onboarding-balance` is clipped out of it. But XCUITest
+still reports its frame — **`[20,474][419,526]`, directly under "Add & Continue" `[20,457][420,509]`** — so
+`tapOn` finds the element, taps its coordinates, and hits the button.
+
+`"See My Plan  →"` is **not** a defect: the selector is byte-identical to `CompletionStep.tsx:39` (two
+spaces + U+2192, confirmed with `cat -A`). The flow never reached that screen. It was ledgered as a known
+fix because it was the step the run *stopped* at.
+
+### ③ Why the earlier reading went wrong — and it is this lane's recurring shape
+
+**A flow reaching a later step was read as proof the earlier steps worked.** `tapOn` and `inputText`
+report COMPLETED whether or not they land — the same lying-step that already cost a cycle at
+`field-paycheck-amount`. And the `hideKeyboard` deletion note generalised a comment about **one** element
+to **another**: `OnboardingLayout.tsx:23` says the KAV keeps the keyboard off the **CTAs**; it says nothing
+about the fields, and the fields are what broke. *(The deletion itself was right — run 31514348038 has the
+driver's words: "Couldn't hide the keyboard … doesn't expose a standard dismiss action." It cannot be
+restored.)* ⚡ **Flow 04 already carried this exact lesson in a comment** — *"a visibility assertion here
+would pass on the clipped element"* — and it was never generalised past that one file.
+
+### The repair
+
+- **The swipe.** After the name, one `swipe: start "50%, 40%" → end "50%, 18%"` bottoms the form out
+  inside the shrunken viewport, clearing all remaining fields of the CTA stack. Percentages, so the iPad
+  lane inherits it; the ScrollView clamps at its content end, and these fields *are* the end of the step.
+  ⚡ **Proven syntax, not assumed:** flow 04 already uses `swipe: start/end` and failed at *runtime*
+  (`tab-money`) in this run — Maestro validates a whole file before executing it, so the file parsed.
+  ⛔ `scrollUntilVisible` was rejected: Maestro judges visibility against **screen** bounds, and a clipped
+  element with an on-screen frame reads as 100 % visible, so it would no-op.
+- **Write-verification.** Each form now asserts the typed text is in the field it was aimed at.
+  ⛔ **Anchored — `^Visa$`, not `Visa`.** Maestro's text match is **contains**, proven by this run:
+  `"Will you make it to payday?"` matched, which full-match semantics forbid (the trailing `?` is a
+  quantifier). Unanchored, the guard matches the corrupt `"Visa Test240065"` and tests nothing. The NAME
+  field is the sentinel — it is where every mis-aimed `inputText` accumulates — and it is the one value
+  confirmed unformatted in the dump.
+- **`FormSheet` gets assertions but NO swipe.** It has the same ScrollView-above-a-sticky-footer shape, so
+  the same defect is plausible — but it is **unmeasured**, and a swipe inside a modal with a
+  swipe-to-dismiss gesture is a guess. The assertions name it at the right step if it is there, and the
+  geometry then comes from that run's dump.
+
+### After-scan
+
+- ⚠️ **A user-facing UX defect, not just a test problem.** With the keyboard up on a small screen a real
+  person also cannot see the balance / minimum / APR fields on the onboarding debt step — they must scroll,
+  unprompted, on the app's first data-entry screen. RN's usual remedy (`automaticallyAdjustKeyboardInsets`,
+  or scrolling the focused input into view) is absent, and the KAV's own comment shows the CTA was the only
+  case considered. → **the audit gate** (best-in-class / first-run), with the device pass to judge severity.
+- ⚡ **4.1.4's selector guard earns a second job.** It was scoped to "every text selector exists in app
+  source". This run proves a selector can exist, resolve, tap, report COMPLETED **and do nothing**. The
+  guard should also flag any flow that `inputText`s without a write-verification on the target field.
+- ⚠️ **Unverifiable locally.** There is no Mac here, so the repair is verified only by the next dispatch.
+  YAML parse-checked against `js-yaml` for all 8 flows + 5 probes; the semantics are argued from the dump.

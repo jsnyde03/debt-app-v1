@@ -15,18 +15,24 @@
 # install. Placing it at 07 means the demo data flows 02–06 depend on has already done its work. Flow 08
 # then runs on the portfolio this flow builds, which is why the debt added below is not incidental.
 #
-# ⛔ `hideKeyboard` IS GONE FROM THIS FILE, AND IT SHOULD NEVER HAVE BEEN IN IT. It failed on the suite
-# run ("could not hide the keyboard") and took flow 01 down with it — but the real error was adding it at
-# all. `OnboardingLayout.tsx:23` states the reason in its own comment: a `KeyboardAvoidingView` is there
-# **"so the decimal-pad keyboard (which has no return key on iOS) never covers"** the CTAs, and the
-# ScrollView sets `keyboardShouldPersistTaps="handled"`, so a tap on the next field or on a button lands
-# with the keyboard UP.
+# ⛔ `hideKeyboard` IS GONE AND STAYS GONE — but the reason recorded here was WRONG, and the wrong reason
+# is what left the flow broken. Corrected 2026-08-12 from run 31516616133's hierarchy dump.
 #
-# So the app had already solved the problem the command was added to solve — and on a decimal pad with no
-# return key there is nothing for a dismiss to act on, which is very likely why it could not. **Deleted,
-# not replaced.** Before adding a step that fights the UI, check whether the UI already handled it.
+# It cannot work: run 31514348038 says so in the driver's own words — *"Couldn't hide the keyboard. This
+# can happen if the app uses a custom input or doesn't expose a standard dismiss action."* That much held.
 #
-# ⚠️ Still first-run-unproven here: `inputText` and `killApp`.
+# What did NOT hold is the conclusion drawn from it. This header argued that `OnboardingLayout.tsx:23`'s
+# KeyboardAvoidingView plus `keyboardShouldPersistTaps="handled"` meant "the app had already solved the
+# problem", so no dismiss was needed. The comment it quoted says the KAV keeps the keyboard off the
+# **CTAs** — it says nothing about the FIELDS, and the fields are what broke. With the keyboard up the
+# ScrollView's viewport ends at the sticky CTA stack and every field below it is clipped out while still
+# reporting an on-screen frame, so `tapOn` taps the CTA instead. See the swipe block below for the
+# measured geometry. **A quote about one element was generalised to another.**
+#
+# ⚡ And the run that followed did not catch it, because `tapOn` and `inputText` report COMPLETED whether
+# or not they land. The flow reaching a later step was read as proof the earlier ones worked. It is not.
+#
+# ⚠️ Still first-run-unproven here: `killApp`. (`inputText` is proven — it typed, just into one field.)
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
@@ -90,13 +96,53 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-onboarding-name"
 - inputText: "Visa Test"
+
+# ⛔ THE SWIPE IS LOAD-BEARING — measured from run 31516616133's hierarchy dump, not inferred.
+# `OnboardingLayout` is a KeyboardAvoidingView (behavior=padding) holding a ScrollView above a STICKY CTA
+# stack. When the keyboard rises the container shrinks, the ScrollView's viewport ends at the CTA stack
+# (~y450pt), and `field-onboarding-balance` (frame [20,474][419,526]) is CLIPPED OUT of it — while
+# XCUITest still reports its on-screen frame, which now sits under "Add & Continue" ([20,457][420,509]).
+# So `tapOn` FINDS the element, taps its coordinates, and hits the button. Focus never leaves the name
+# field and every later `inputText` appends to it: the dump shows `field-onboarding-name` holding
+# **"Visa Test240065"** — the name, the balance and the minimum concatenated into one field.
+#
+# ⚠️ This REFUTES the note that shipped with the `hideKeyboard` deletion: *"`inputText` works, the
+# `field-*` testIDs work, and dropping `hideKeyboard` was correct."* Only the FIRST half is true. Flow 07
+# walked past those steps because Maestro's `tapOn`+`inputText` report COMPLETED whether or not they
+# landed — the same lying-step that already cost this lane a cycle at `field-paycheck-amount` above.
+# `hideKeyboard` is still not the answer: run 31514348038 proves this build cannot dismiss the pad
+# ("Couldn't hide the keyboard … doesn't expose a standard dismiss action").
+#
+# The swipe bottoms the form out inside the shrunken viewport, so all three remaining fields clear the
+# CTA stack. Start/end are percentages so this holds on the iPad lane too, and the ScrollView clamps at
+# its content end — over-scrolling is harmless because these fields ARE the end of the step.
+- swipe:
+    start: "50%, 40%"
+    end: "50%, 18%"
+
 - tapOn:
     id: "field-onboarding-balance"
 - inputText: "2400"
 - tapOn:
     id: "field-onboarding-minimum"
 - inputText: "65"
+
+# ⚡ THE WRITE-VERIFICATION, and it is the general guard against the whole defect class above: assert the
+# text landed IN THE FIELD IT WAS AIMED AT. A tap that misses is silent; a field holding the wrong string
+# is not. This would have failed run 31516616133 HERE, at the cause, instead of three steps later at
+# "See My Plan  →" — which was never a selector bug at all.
+#
+# ⛔ THE ANCHORS ARE THE ASSERTION. Maestro's text match is CONTAINS, not equals — proven by this same
+# run: `"Will you make it to payday?"` matched, which full-match semantics forbid (the trailing `?` is a
+# quantifier). Unanchored, `text: "Visa Test"` matches the corrupt **"Visa Test240065"** and the guard
+# tests nothing. The NAME field is the sentinel: it is where every mis-aimed `inputText` accumulates.
+- assertVisible:
+    id: "field-onboarding-name"
+    text: "^Visa Test$"
+
 - tapOn: "Add & Continue"
+# ⚠️ NOT a defect: the label is byte-identical to `CompletionStep.tsx:39` (two spaces + U+2192). It was
+# ledgered as a "known fix" from the failing run; the flow simply never reached this screen.
 - tapOn: "See My Plan  →"
 
 # ══ §14.1 · one Add, from all three sections ════════════════════════════════════════════════════
@@ -158,6 +204,12 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-expense-amount"
 - inputText: "1200"
+# ⚡ Write-verification — see the onboarding block above. `FormSheet` carries the same ScrollView-above-a-
+# sticky-footer shape that hid the onboarding fields; whether it hides these is UNMEASURED, so this
+# asserts rather than assumes. A miss here would otherwise sail on and fail at "Move to Debts".
+- assertVisible:
+    id: "field-expense-name"
+    text: "^Rent$"
 - tapOn: "Add expense"
 
 # Phase 1 — the accusation guard. A hint here would be the app telling someone their rent is secretly a
@@ -175,6 +227,9 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-expense-amount"
 - inputText: "1200"
+- assertVisible:
+    id: "field-expense-name"
+    text: "^Mortgage$"
 - tapOn: "Add expense"
 
 # Phase 2 — the hint arrives, and it reads as a question rather than a warning.
@@ -196,6 +251,9 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-debt-apr"
 - inputText: "6.5"
+- assertVisible:
+    id: "field-debt-balance"
+    text: "^180000$"
 - tapOn: "Add debt"
 
 # In Debts…
@@ -222,6 +280,9 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "field-expense-amount"
 - inputText: "300"
+- assertVisible:
+    id: "field-expense-name"
+    text: "^Car Loan$"
 - tapOn: "Add expense"
 - assertVisible: "Not a debt"
 
