@@ -45,19 +45,29 @@ appId: com.jasonsnyder.debtplanner
     id: "tab-money"
 - takeScreenshot: maestro-debug/ipad-02-money-master-detail
 
-# ── The debt sheet. `money.tsx:395` passes `inline` when expanded, so this should render INTO the detail
-#    pane rather than presenting a modal. That is exactly why `02-sheet-native-tap.yaml` is iPhone-only
-#    under [D30]: its subject is a header button inside a modal's swipe area, and there is no modal here
-#    to put one in — it would go green while testing nothing. ─────────────────────────────────────────
-- tapOn: ".*Visa.*"
-- takeScreenshot: maestro-debug/ipad-03-debt-sheet-inline-or-modal
-
 # ── Progress and More, for the two-column checks (§10, C6) that have no iPhone equivalent. No assertion
 #    about column count: this build has not been shown to express one, and inventing a selector that
 #    happens to match is how a check that proves nothing gets recorded as coverage. ───────────────────
+#
+# ⛔ THESE COME BEFORE THE DEBT SHEET, and the order is a fix. Run 31630150499 died here at
+# `Element not found: tab-progress` — because tapping a debt on a COMPACT-width device presents a modal
+# that covers the tab bar, and every measurement after it was lost. A measurement flow must not stake its
+# remaining output on a step that can swallow the navigation.
 - tapOn:
     id: "tab-progress"
 - takeScreenshot: maestro-debug/ipad-04-progress
 - tapOn:
     id: "more-button"
 - takeScreenshot: maestro-debug/ipad-05-more-two-column
+- tapOn:
+    id: "screen-back"
+
+# ── The debt sheet, LAST. `money.tsx:395` passes `inline` when expanded, so this should render INTO the
+#    detail pane rather than presenting a modal. That is exactly why `02-sheet-native-tap.yaml` is
+#    iPhone-only under [D30]: its subject is a header button inside a modal's swipe-gesture area, and on
+#    an expanded iPad there is no modal to put one in — it would go green while testing nothing.
+#    ⭐ This screenshot is the one that CONFIRMS the [D30] premise: inline pane, or modal? ────────────
+- tapOn:
+    id: "tab-money"
+- tapOn: ".*Visa.*"
+- takeScreenshot: maestro-debug/ipad-03-debt-sheet-inline-or-modal

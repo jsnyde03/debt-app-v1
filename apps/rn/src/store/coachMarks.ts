@@ -59,15 +59,25 @@ export interface CoachMarkState {
    * accessibility tree, so VoiceOver meets the hint twice.
    */
   hosts: number;
+  /**
+   * 4.1.4c — WHO is suppressing, in the order they registered.
+   *
+   * ⛔ The probe measured `refused(suppressors=1)` and could not say which of three holders it was —
+   * Today's own interruption, a bounded demo run, or a walkthrough session. A count answers "was it
+   * suppressed"; only a name answers "by what", and this defect has already consumed five confident
+   * guesses. The reason is carried rather than inferred.
+   */
+  suppressorReasons: string[];
   show(id: string): void;
   dismiss(): void;
-  addSuppressor(): () => void;
+  addSuppressor(reason?: string): () => void;
   addHost(): () => void;
 }
 
 export const coachMarks = createStore<CoachMarkState>((set, get) => ({
   active: null,
   suppressors: 0,
+  suppressorReasons: [],
   shown: new Set<string>(),
   hosts: 0,
 
@@ -79,7 +89,11 @@ export const coachMarks = createStore<CoachMarkState>((set, get) => ({
     // user who dismissed one hint does not want a second appearing in its place.
     if (get().active) return probeCoachMark(`show:${id}=refused(active=${get().active})`);
     // 3.5.5.2 — and refused while any screen is already interrupting.
-    if (get().suppressors > 0) return probeCoachMark(`show:${id}=refused(suppressors=${get().suppressors})`);
+    if (get().suppressors > 0) {
+      return probeCoachMark(
+        `show:${id}=refused(suppressors=${get().suppressors}: ${get().suppressorReasons.join(' + ') || 'unnamed'})`,
+      );
+    }
     // Offered once. The caller is a layout signal, so without this the mark returns every time the user
     // reopens the sheet — which is the definition of nagging about a thing they have already been told.
     if (get().shown.has(id)) return probeCoachMark(`show:${id}=refused(shownThisRun)`);
@@ -101,13 +115,29 @@ export const coachMarks = createStore<CoachMarkState>((set, get) => ({
     set({ active: null });
   },
 
-  addSuppressor() {
+  addSuppressor(reason = 'unnamed') {
     // ⚠️ Also DISMISSES whatever is up. Blocking new marks was not enough: a mark stays active until the
     // user dismisses it, so one raised on Progress was still on screen when the walkthrough started —
     // covering the arc it was supposed to yield to. Something more important taking over should clear the
     // hint, not queue behind it. The mark stays recorded as offered; it does not come back.
-    set((s) => ({ suppressors: s.suppressors + 1, active: null }));
-    return () => set((s) => ({ suppressors: Math.max(0, s.suppressors - 1) }));
+    probeCoachMark(`suppress+ ${reason}`);
+    set((s) => ({ suppressors: s.suppressors + 1, suppressorReasons: [...s.suppressorReasons, reason], active: null }));
+    let released = false;
+    return () => {
+      // ⚠️ Idempotent. The release is a React effect cleanup, and a double-invoked effect (StrictMode, a
+      // remount) would otherwise decrement twice and free a suppression somebody else still holds — the
+      // same class of bug the COUNT exists to prevent in the first place.
+      if (released) return;
+      released = true;
+      probeCoachMark(`suppress- ${reason}`);
+      set((s) => {
+        const i = s.suppressorReasons.indexOf(reason);
+        return {
+          suppressors: Math.max(0, s.suppressors - 1),
+          suppressorReasons: i < 0 ? s.suppressorReasons : [...s.suppressorReasons.slice(0, i), ...s.suppressorReasons.slice(i + 1)],
+        };
+      });
+    };
   },
 
   addHost() {
@@ -163,9 +193,9 @@ export function useCoachMarkHosts(): number {
  *
  * Call it with `true` while the screen is showing an ack, the invitation, or a celebration.
  */
-export function useSuppressCoachMarks(active: boolean): void {
+export function useSuppressCoachMarks(active: boolean, reason = 'screen'): void {
   useEffect(() => {
     if (!active) return;
-    return coachMarks.getState().addSuppressor();
-  }, [active]);
+    return coachMarks.getState().addSuppressor(reason);
+  }, [active, reason]);
 }

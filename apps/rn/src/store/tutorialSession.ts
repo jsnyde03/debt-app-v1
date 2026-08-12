@@ -140,7 +140,7 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
     // 3.5.5.3 — the arc owns the whole surface for seven beats, so it declares itself an interruption
     // exactly as a screen with an ack does. A coach-mark landing mid-beat covers the subject the beat is
     // explaining; the e2e suite found that the moment a real mark existed to fire.
-    releaseCoachMarks = coachMarks.getState().addSuppressor();
+    releaseCoachMarks = coachMarks.getState().addSuppressor('walkthrough-session');
     // [D9] (Jason 2026-07-31) — the SANDBOX runs premium for every audience, whatever the user's own
     // tier. It used to mirror them (`run === 'premium'`), and verification showed what that cost: a free
     // Guardian is never held to its floor and its cold-start hedges are premium-only by design, so a free

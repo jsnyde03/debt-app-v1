@@ -86,7 +86,7 @@ export const demoSession = createStore<DemoSessionState>((set, get) => ({
     // SANDBOX and a coach-mark records itself to the REAL store, which `useNoRealWritesGuard` would
     // rightly call a bug; it is also the App-Preview capture vehicle, so an unguarded mark would appear
     // in the store video on the next re-shoot.
-    releaseCoachMarks = coachMarks.getState().addSuppressor();
+    releaseCoachMarks = coachMarks.getState().addSuppressor('demo-run');
     const sandbox = createSandboxStore(demoScenario(DEMO_STAGES[0]));
     const hold = opts?.holdClock === true;
     const mode = opts?.mode ?? 'scripted';

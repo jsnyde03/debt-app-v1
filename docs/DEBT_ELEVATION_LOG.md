@@ -7019,3 +7019,67 @@ cross-file duplicate.
 - ⚡ **346 unclassified remain, and they are now the honest number.** The next pass has a much better
   starting point than 946, and nothing was dropped silently — every exclusion is a rule stated in the
   script and printed in the report.
+
+## Run `31630150499` — ⭐ THE PROBE ANSWERED IT (2026-08-12)
+
+**iPhone 7/8**, and this time flow 08 walked *past* the probe assertion and failed at the real one — which
+means the readout rendered and the pipeline was measured:
+
+```
+hook:debt-row-actions ready=1 registry=1 · layout:debt-row-actions
+  · show:debt-row-actions=refused(suppressors=1)
+```
+
+⭐ **Every stage worked and `show()` refused on the SUPPRESSOR guard.** The hook armed, the subject laid
+out, the listener heard it. **All five previously-asserted mechanisms are eliminated** — including
+`CoachMarkLayer:68`, the one written down as the leading suspect, which never even ran because `active`
+was never set.
+
+⚡ **The pre-registration paid off exactly as intended.** The reading table written before the run said
+`show:…=refused(<guard>)` → *"the guard names itself — four mutually exclusive causes collapse to one."*
+No story had to be invented afterwards; the row was already there.
+
+### The defect class — a suppressor outlives the screen you can see
+
+`useSuppressCoachMarks` is held for as long as a screen is **MOUNTED**, and `index.tsx:230` is **Today —
+a tab**, which stays mounted for the entire session. So while Today is interrupting (an ack, a
+celebration, or a pending walkthrough invitation), **coach marks are suppressed app-wide, on every other
+screen.**
+
+⚡ The count-not-boolean design already anticipated two surfaces being mounted at once. What is wrong is
+the **lifetime**: it is tied to mount, not to visibility. A backgrounded tab holds a global suppression.
+
+⚠️ **Which of the three holders it is has NOT been measured** — Today's own flags, a leaked `demo-run`, or
+a leaked `walkthrough-session`. Five confident guesses have already died on this defect, so the fix is a
+measurement, not a sixth: `addSuppressor(reason)` now carries a name, Today computes which of its three
+raised it, and the refusal prints `refused(suppressors=1: today:invite)`.
+
+⚠️ **A prediction, recorded before the next run:** if the holder is Today's flag, then *every* coach mark
+is suppressed in this state, not just this one — and flow 08 has never reached §13.1 or §13.4, so those
+two marks are **untested, not passing.**
+
+### ⛔ The iPad tier ran — and measured the wrong device, which was my bug
+
+Infrastructure is proven end to end: booted, installed, streamed the app log, ran Maestro, uploaded.
+**`01-launch-smoke` PASSED on iPad**, which answers [D30]'s carried hypothesis — the iPhone-tuned swipes
+clamped harmlessly rather than mis-firing.
+
+But it booted **iPad mini (A17 Pro)**: the selector preferred `grep -i pro` and matched the **chip name**.
+Measured **1488px ÷ 2 = 744pt**, and `sizeClass.ts` puts `regular` at ≥768 and `isExpanded` at ≥1024 — so
+**744pt is compact.** The run exercised the **phone layout on an iPad**.
+
+⚡ **That is [D30]'s own named void condition — "it would go green while testing nothing" — committed by
+the workflow step written to implement [D30].** It also explains `i01`'s failure at `tab-progress`: at
+compact width the debt row presents a **modal**, which covered the tab bar and swallowed every
+measurement after it.
+
+**Both fixes are the same shape as the defect they close:**
+- **Select by MEASURED width, never by name.** Each candidate iPad is booted, screenshotted and measured;
+  the widest wins; and the step **fails loud below 1024pt** rather than reporting a pass for checks that
+  did not run. A compact "iPad" run is worse than no iPad run.
+- **`i01` reordered** so Progress/More/back are measured *before* the debt sheet. A measurement flow must
+  not stake its remaining output on a step that can swallow the navigation.
+
+⚡ **The recurring lesson this session, now three for three:** the probe, the iPad picker and the flow
+order all failed the same way — **each assumed the happy path while being the thing built to survive the
+unhappy one.**

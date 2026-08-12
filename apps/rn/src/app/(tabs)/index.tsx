@@ -227,7 +227,12 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   // its last rank) and `celebration` is checked directly because it SUPPRESSES the slot rather than
   // ranking within it — reading `activeAck` alone would let a mark land during the finale, which is the
   // one moment on this screen that owns the whole surface.
-  useSuppressCoachMarks(!!activeAck || !!celebration || !!tutorialInvite);
+  // ⚠️ 4.1.4c — the reason is COMPUTED, not a constant, because the probe's job here is to say which of
+  // the three raised it. `refused(suppressors=1)` was compatible with all three plus two other holders.
+  useSuppressCoachMarks(
+    !!activeAck || !!celebration || !!tutorialInvite,
+    celebration ? 'today:celebration' : activeAck ? `today:ack=${activeAck}` : 'today:invite',
+  );
 
   let content: React.ReactNode = null;
   if (planState === 'no-paycheck') {

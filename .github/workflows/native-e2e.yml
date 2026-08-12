@@ -454,19 +454,49 @@ jobs:
           MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
         run: |
           xcrun simctl shutdown all || true
-          # Prefer an iPad PRO: [D30]'s premise is about WIDTH (`use-layout.ts` derives `isExpanded` from
-          # it), so the widest available iPad is the one that actually exercises the expanded branches.
+          # ⛔ SELECT BY MEASURED WIDTH, NEVER BY NAME. Run 31630150499 preferred `grep -i pro` and booted
+          # **iPad mini (A17 Pro)** — the match was the CHIP name. At 1488px/2 = 744pt that device is
+          # `compact` (`sizeClass.ts`: regular ≥ 768, expanded ≥ 1024), so the run exercised the PHONE
+          # layout on an iPad and passed. That is [D30]'s own named void condition — "green while testing
+          # nothing" — committed by the step written to implement [D30].
+          #
           # ⚠️ The name itself CONTAINS parentheses on every current iPad ("iPad Pro 13-inch (M4)"), so a
           # pattern that stops at the first `(` matches nothing at all. Anchor on the 36-char UDID and
           # take everything before it as the name.
           AVAIL=$(xcrun simctl list devices available | grep -E '^[[:space:]]+iPad' \
             | sed -E 's/^[[:space:]]*(.+) \(([0-9A-Fa-f-]{36})\) \(.*/\2|\1/')
           echo "── iPads available ──"; echo "$AVAIL"
-          TARGET=$(echo "$AVAIL" | grep -i 'pro' | tail -1)
-          [ -z "$TARGET" ] && TARGET=$(echo "$AVAIL" | tail -1)
-          if [ -z "$TARGET" ]; then echo "::error::no iPad simulator available on this runner"; exit 1; fi
-          UDID="${TARGET%%|*}"; NAME="${TARGET#*|}"
-          echo "Booting iPad: $NAME ($UDID)"
+          if [ -z "$AVAIL" ]; then echo "::error::no iPad simulator available on this runner"; exit 1; fi
+
+          # Boot each candidate and MEASURE it. `simctl` will not report a window size for a shut device,
+          # and the point-width is the only thing that decides which branches run — so this asks the
+          # device rather than its marketing name.
+          BEST_UDID=""; BEST_NAME=""; BEST_PT=0
+          while IFS= read -r row; do
+            [ -z "$row" ] && continue
+            U="${row%%|*}"; N="${row#*|}"
+            xcrun simctl boot "$U" >/dev/null 2>&1 || true
+            xcrun simctl bootstatus "$U" -b >/dev/null 2>&1 || true
+            xcrun simctl io "$U" screenshot /tmp/probe-"$U".png >/dev/null 2>&1 || true
+            PX=$(sips -g pixelWidth /tmp/probe-"$U".png 2>/dev/null | awk '/pixelWidth/{print $2}')
+            PT=$(( ${PX:-0} / 2 ))
+            echo "   $N → ${PX:-?}px = ${PT}pt"
+            if [ "$PT" -gt "$BEST_PT" ]; then BEST_PT=$PT; BEST_UDID=$U; BEST_NAME=$N; fi
+            xcrun simctl shutdown "$U" >/dev/null 2>&1 || true
+          done <<< "$AVAIL"
+
+          # ⛔ FAIL LOUD rather than measure the wrong thing. A compact "iPad" run is worse than no iPad
+          # run: it reports a pass for checks it never executed. If no wide iPad exists on this image,
+          # that is a fact to act on (pin a runtime, or add a device), not something to paper over.
+          echo "Widest available iPad: $BEST_NAME at ${BEST_PT}pt"
+          if [ "$BEST_PT" -lt 1024 ]; then
+            echo "::error::widest available iPad is ${BEST_PT}pt — below the 1024pt \`isExpanded\` threshold."
+            echo "::error::[D30]'s checks (master-detail, inline sheet) do not run below 1024pt, so this"
+            echo "::error::would be a green run that tested the compact layout. See sizeClass.ts."
+            exit 1
+          fi
+          UDID="$BEST_UDID"; NAME="$BEST_NAME"
+          echo "Booting iPad: $NAME ($UDID) — ${BEST_PT}pt, expanded"
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b || true
           xcrun simctl install "$UDID" ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
