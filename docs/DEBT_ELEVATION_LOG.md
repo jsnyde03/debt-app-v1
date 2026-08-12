@@ -6405,3 +6405,58 @@ that *is* the contains idiom here. I invented a rule that contradicted the conve
   (`".*It ends\..*"`). Also caught by the parse check.
 ⚡ **Both would have burned a full CI cycle**, and neither was caught by reading. Parse-checking every flow
 before dispatch is now the cheapest habit in this lane.
+
+## 4.1.4 — the selector guard ( `npm run lint:selectors` ) (2026-08-12)
+
+**A Maestro flow is a claim about the app kept somewhere the app never checks.** Three ways that has bitten
+this lane, and the guard is one check per way:
+
+| | the failure | the check |
+|---|---|---|
+| ① | **Stale** — `b67cf5d` deleted "Try with Sample Data", `A10.1` replaced Money's Add rows; both left the flows behind and the suite was broken for two days reporting nothing | ids and copy must still exist in app source |
+| ② | **Lying** — `tapOn`/`inputText` report COMPLETED whether or not they land; flow 07 concatenated three values into one field and "passed" those steps | a flow that types must write-verify |
+| ③ | **Fragmentary** — Maestro matches equality or a FULL regex, so a bare selector aimed at a composed label can never match | advisory listing composed-label components |
+
+### Before-scan
+
+- ⛔ **The "working prototype" the plan promised does not exist.** The log says a `field-*` cross-check was
+  written during 4.1.1 and to "build 4.1.4 from it" — it was **ad-hoc, never committed**. Checked before
+  planning around it. *(The pre-authored-item failure rate holds: this is another one.)*
+- Followed the repo's `scripts/check-*.ts` + `lint:rn` convention; `js-yaml` is already a dependency.
+
+### After-scan — the guard's own first outputs were four false-positive classes
+
+**Every one would have got it switched off, which is how ① happens again with a straight face:**
+
+1. **`tab-money` "is in no testID"** — flagged in four flows that demonstrably tap it and pass.
+   react-navigation sets it as `tabBarButtonTestID:` (an object property, `(tabs)/_layout.tsx:92`), not a
+   JSX `testID=`. Both spellings now count.
+2. **Screenshot paths as selectors** — `takeScreenshot: maestro-debug/s13-…` is an output path, and
+   `inputText: "2400"` is data. Neither can be in app source.
+3. **Multi-line copy read as stale** — `".*count toward your debt-free date.*"` IS in the app, wrapped
+   across lines, and the check matched discrete single-line literals. Now searches one
+   whitespace-normalised blob.
+4. **Seed data and templated text** — `"Visa Test"` is created by the suite *(elegantly, exactly the set of
+   `inputText` values)*, and `"Step 4 of 7"` is built from `Step ${n} of ${total}` so it never appears
+   whole. Digits are the tell; those advise rather than fail.
+
+⛔ **And one fabricated finding from the guard itself.** It reported both typing flows as unverified.
+`selectorsOf` emitted `{id}` and `{text}` as **separate** entries, so `s.id && s.text` was unsatisfiable
+and the check could never clear. ⚡ **A confident, specific, entirely invented defect — produced by the
+tool built to stop exactly that.** Fixed to emit one entry carrying both.
+
+### ⛔ All three proven to FAIL before being trusted
+
+Planted a bogus `id` → **exit 1**. Planted stale copy → **exit 1**, naming it. Removed a write-verification
+→ **exit 0**, and that is the honest result: the flag clears on *any* later verification in the same flow,
+so it catches a flow that verifies **nothing** — the state all eight were in this morning — not a single
+missing assertion. ⚡ **Renamed `unverified-input` → `no-write-verification` so the name matches what it
+enforces**, with the per-form strengthening filed rather than silently skipped.
+
+⚠️ **The advisory initially MISSED `SettingRow`** — the very component whose composed label broke flow 08
+and prompted this guard — because the pattern required the template to follow `accessibilityLabel={`
+immediately, and SettingRow's sits behind a ternary. **An advisory that omits the case that motivated it
+is worse than none.** Now finds all three: `SettingRow`, `CoachMarkLayer`, `AddObligationSheet` *(the
+third was news)*.
+
+**Green at 8 flows · 50 testIDs known**, wired into `lint:rn` → `validate:release:rn`.
