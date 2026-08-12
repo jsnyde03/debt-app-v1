@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
+import { TextField } from '@/components/ui/TextField';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { appStore } from '@/store/appStore';
+import { MAX_DISPLAY_NAME, normalizeDisplayName } from '@/store/greeting';
 import { selectPayoffView } from '@/store/payoffSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { textStyles } from '@/theme/typography';
@@ -17,12 +21,29 @@ const STATS: { icon: IconGlyph; label: string; body: string }[] = [
 
 export function CompletionStep({ onComplete }: { onComplete: () => void }) {
   const c = useAppColors();
+  // 3.7.B.2 (F10.1) — an OPTIONAL name, asked at the one moment the setup is already done, so skipping it
+  // costs nothing and answering it costs one field. Held locally and committed on the CTA rather than
+  // written per keystroke: every keystroke would be a persisted store write for a value nothing reads
+  // until Today renders. Editable afterwards in More → Preferences.
+  const [name, setName] = useState('');
   // 3.3.6a — land the aspirational anchor at the finish: their real projected debt-free date (the onboarding
   // has already written the paycheck + first debt to the store). Falls back gracefully if there's no date yet.
   const store = useAppStore((st) => st.store);
   const debtFreeDate = selectPayoffView(store).debtFreeDate;
   return (
-    <OnboardingLayout step={3} total={4} ctas={<Button label="See My Plan  →" onPress={onComplete} />}>
+    <OnboardingLayout
+      step={3}
+      total={4}
+      ctas={
+        <Button
+          label="See My Plan  →"
+          onPress={() => {
+            const displayName = normalizeDisplayName(name);
+            if (displayName) appStore.getState().updatePrefs({ displayName });
+            onComplete();
+          }}
+        />
+      }>
       <View style={[s.hero, { backgroundColor: c.background.secondary }]}>
         <AppIcon name="celebration" size={34} color={c.accent.success} />
       </View>
@@ -35,6 +56,17 @@ export function CompletionStep({ onComplete }: { onComplete: () => void }) {
             ? "That's your target — stay the course. Tap below to see exactly what to do with your next paycheck."
             : 'Your plan is ready. Tap below to see exactly what to do with your next paycheck.'}
         </Text>
+      </View>
+      <View style={s.list}>
+        <TextField
+          testID="field-onboarding-display-name"
+          label="What should we call you? (optional)"
+          value={name}
+          onChangeText={setName}
+          placeholder="Your name"
+          maxLength={MAX_DISPLAY_NAME}
+          autoCapitalize="words"
+        />
       </View>
       <View style={s.list}>
         {STATS.map((stat) => (

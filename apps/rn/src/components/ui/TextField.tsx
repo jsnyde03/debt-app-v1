@@ -25,14 +25,21 @@ export function TextField({
   keyboardType,
   error,
   testID,
+  maxLength,
+  autoCapitalize,
+  onBlur,
 }: {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
+  onBlur?: () => void;
   placeholder?: string;
   keyboardType?: KeyboardTypeOptions;
   error?: string;
   testID?: string;
+  /** Cap at the INPUT rather than on save — a value silently truncated on write reads as data loss. */
+  maxLength?: number;
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
 }) {
   const c = useAppColors();
   return (
@@ -42,10 +49,13 @@ export function TextField({
         testID={testID}
         value={value}
         onChangeText={onChangeText}
+        onBlur={onBlur}
         accessibilityLabel={label}
         placeholder={placeholder}
         placeholderTextColor={c.text.tertiary}
         keyboardType={keyboardType}
+        maxLength={maxLength}
+        autoCapitalize={autoCapitalize}
         style={[
           textStyles.body,
           styles.input,

@@ -250,12 +250,17 @@ export function seedSandbox(store: SandboxStoreInstance, scenario: SandboxScenar
   // only pref carried — the isolation exists to keep MONEY out and writes in, and appearance is neither.
   // ⚠️ Not a general prefs merge: `debtFreeSoundEnabled` staying at its default is the tutorial's
   // no-sound restraint working, and inheriting it would quietly undo that.
-  const appearance = appStore.getState().store.prefs.themeMode;
+  //
+  // 3.7.B.2 — `displayName` joins it on the same test, and only that test: it is a fact about the PERSON
+  // holding the device, not about the scenario's money. Without it the walkthrough — which runs over the
+  // real Today screen — would drop the user's name out of the header at beat 1 and hand it back at the
+  // end, reading as a glitch. Every FIGURE stays example money; what they are called does not change.
+  const { themeMode: appearance, displayName } = appStore.getState().store.prefs;
 
   // The seed is bounded by the wrapped `setState` installed in `createSandboxStore` — a scenario cannot
   // hand-seed a matured Guardian (6 cycles of history) straight past the ceiling.
   store.setState({
-    store: { ...built, prefs: { ...built.prefs, themeMode: appearance } },
+    store: { ...built, prefs: { ...built.prefs, themeMode: appearance, displayName } },
     // A sandbox has nothing to hydrate FROM; declaring it hydrated keeps every `isHydrated` gate in the
     // shared UI satisfied so the tutorial renders the real screens rather than a loading state.
     isHydrated: true,

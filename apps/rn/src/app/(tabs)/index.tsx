@@ -40,6 +40,7 @@ import { usePaydayCapture } from '@/hooks/use-payday-capture';
 import { StoreProvider, useActiveStore } from '@/store/StoreContext';
 import { isSandboxStore } from '@/store/sandboxStore';
 import { useSuppressCoachMarks } from '@/store/coachMarks';
+import { selectGreeting } from '@/store/greeting';
 import { TutorialTarget, useTutorialTargets } from '@/store/tutorialTargets';
 import { useTutorialShell } from '@/store/tutorialShell';
 import { useInert } from '@/hooks/use-inert';
@@ -105,6 +106,12 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   // must key on this and anything about the MONEY being fictional must key on `isExample`.
   const inWalkthrough = useTutorialSession((s) => s.active);
   const store = useAppStore((s) => s.store);
+  // 3.7.B.2 (F10.1) — the header greets by time of day, and by name once the user has given one. The
+  // wall-clock read is the ONLY impure part and it lives here at the edge, so `selectGreeting` stays pure
+  // and every band boundary is unit-tested. Read through the normal hook (so it resolves to the ACTIVE
+  // store, per the read/write rule); `seedSandbox` carries `displayName` across alongside `themeMode`,
+  // so a walkthrough keeps the user's name in the header while every figure on it stays example money.
+  const greeting = selectGreeting(store.prefs.displayName, new Date().getHours());
   const isPremium = store.subscriptionPlan === 'premium';
   // 2.4 — the payday engine reads projected-current balances (premium) so the plan reflects where the
   // user actually is between verifications; free stays on the verified anchor (no-op wrap). The
@@ -424,7 +431,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   return (
     // 3.6.3 — a wider centered column on the expanded iPad so the two-column content has room (but not
     // full-bleed — a dashboard reads better contained; the ack cards above also cap here).
-    <Screen title="Today" right={<MoreButton />} maxWidth={isExpanded ? 900 : undefined} scrollRef={scrollRef} onScroll={onScroll}>
+    <Screen title={greeting} right={<MoreButton />} maxWidth={isExpanded ? 900 : undefined} scrollRef={scrollRef} onScroll={onScroll}>
       {provisionalPayoffs.map((d) => (
         <TutorialFence key={d.id}>
         <PayoffInvitationCard

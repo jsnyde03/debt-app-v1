@@ -13,6 +13,8 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
+import { TextField } from '@/components/ui/TextField';
+import { MAX_DISPLAY_NAME, normalizeDisplayName } from '@/store/greeting';
 import type { ThemeMode } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
@@ -45,6 +47,8 @@ const APP_VERSION = Constants.expoConfig?.version ?? '—';
 export default function MoreScreen() {
   const c = useAppColors();
   const prefs = useAppStore((s) => s.store.prefs);
+  // 3.7.B.2 — a draft seeded once from the stored value; committed on blur (see the field below).
+  const [nameDraft, setNameDraft] = useState(prefs.displayName ?? '');
   const plan = useAppStore((s) => s.store.subscriptionPlan);
   const premiumIsLifetime = useAppStore((s) => s.premiumIsLifetime);
   // 3.7.A5 — has the entitlement actually resolved this launch? Offline it never does.
@@ -187,6 +191,21 @@ export default function MoreScreen() {
       </Section>
 
       <Section title="Preferences">
+        {/* 3.7.B.2 (F10.1) — the greeting's name, editable and clearable. Committed on blur rather than
+            per keystroke: a persisted store write per character, for a value only Today's header reads.
+            Clearing it to empty normalises to `undefined`, so "cleared" and "never set" stay one state. */}
+        <Card style={styles.appearance}>
+          <TextField
+            testID="field-preferences-display-name"
+            label="Your name"
+            value={nameDraft}
+            onChangeText={setNameDraft}
+            onBlur={() => appStore.getState().updatePrefs({ displayName: normalizeDisplayName(nameDraft) })}
+            placeholder="Used to greet you on Today"
+            maxLength={MAX_DISPLAY_NAME}
+            autoCapitalize="words"
+          />
+        </Card>
         <Card style={styles.appearance}>
           <Text style={[textStyles.body, { color: c.text.primary }]}>Appearance</Text>
           <SegmentedToggle<ThemeMode>

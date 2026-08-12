@@ -91,6 +91,16 @@ export interface Preferences {
    * telemetry, not the guarantee — the guarantee is that the events cannot carry money in the first place.
    */
   analyticsOptOut?: boolean;
+  /**
+   * 3.7.B.2 (F10.1) — what Today calls the user, optional and user-supplied. Optional for the same
+   * reason as `analyticsOptOut`: an existing blob migrates by simply not having the key, which is the
+   * additive half of a schema change and carries none of the risk of removing one.
+   *
+   * Stored NORMALISED (`normalizeDisplayName`) — trimmed, interior whitespace collapsed, capped, and
+   * `undefined` rather than `''` when cleared, so "cleared it" and "never set it" are one state and no
+   * reader has to handle both. Never leaves the device; it is only ever rendered into the greeting.
+   */
+  displayName?: string;
   themeMode: ThemeMode;
   onboardingComplete: boolean;
   /** §2.5 D5.3 gate (2.4.7.6): the user has an emergency buffer in a separate account, so the plan
