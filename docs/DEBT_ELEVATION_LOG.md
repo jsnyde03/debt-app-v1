@@ -6790,3 +6790,30 @@ step's entire output.
 
 **Gate 167/167**, tsc clean both trees, zero `error-context.md`, no stray dev servers. `lint:selectors`
 validates the new `coach-probe` id and all of `i01`'s selectors.
+
+### Run `31626109780` — the reading, PRE-REGISTERED (written before the run landed)
+
+⚡ The previous entry's cleanest result was clean *only* because the meaning of a red was written down
+first — *"no story had to be invented after the fact to accommodate it, which is exactly what went wrong
+four times earlier today."* So, before this run reports:
+
+| `coach-probe` shows | what it means | next move |
+|---|---|---|
+| `EMPTY` | the hook never armed — `useCoachMark`'s effect did not run on Money | the mark is not wired on the path the flow walks; read Money's mount, not the mark |
+| `hook:… ready=0` | the debts list was empty when Money mounted | a SEEDING/timing defect, not a coach-mark defect — the flow's premise is wrong |
+| `hook:… registry=0` | no `TutorialTargetsProvider` above the caller | a mount-order defect in `_layout.tsx` |
+| `hook:…` but **no** `layout:` | the subject never laid out, or `invalidate` never reached the listener | back to `TutorialTarget`/`SectionList`; the replay fix would then be necessary but insufficient |
+| `show:…=refused(<guard>)` | **the guard names itself** | four mutually exclusive causes collapse to one, whichever is printed |
+| `show:…=ACCEPTED` + `measure:…=NULL` | ⭐ **the standing suspect, confirmed** — the mark burns at `coachMarks.ts:92` without ever drawing | fix is to record on DRAW, not on offer; `measure()` on a list row is the thing to repair |
+| `measure:…=<rect>` + `draw:…=DREW` | the callout renders and the ASSERTION is what is wrong | the defect is in the flow/selector, not the app — five mechanisms were all aimed at the wrong half |
+
+⛔ **`draw:…=stoodDownFor(hosts=N)` on Money would be its own finding** — a nested `FormSheet` host
+outliving its sheet, which would mean the root layer stands down permanently.
+
+**And what a GREEN would mean:** that the trip to More perturbed the outcome. The probe navigates before
+the assertion, so a suddenly-passing check is not a fix — it is evidence the mark needs a second layout
+pass, which is itself the answer.
+
+⚠️ **The iPad half is read separately and cannot fail this reading.** `01` going red on iPad answers
+[D30]'s carried hypothesis directly (the iPhone-tuned swipes did NOT clamp harmlessly), and `ipad-00-boot.png`'s
+measured pixel width is what turns "a wide iPad" from a premise into a number.
