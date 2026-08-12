@@ -6623,3 +6623,48 @@ disturb the path that already worked. ⏳ **The iOS path is verified by the next
 ⚡ **Where the earlier reads went wrong, stated plainly:** all four looked at the flow. This one looked at
 the app and asked what distinguishes a working instance from a broken one. The failing artifact could
 never have answered that — only the passing case could.
+
+---
+
+## Session close — 2026-08-12
+
+**The native lane went 0/8 → 7/8, and its infrastructure is now proven rather than assumed.**
+Commits `4a5078e` … `beba173`, all pushed to `v1.7-dev`. Gate **167/167**, tsc clean both trees, tree
+clean, no stray dev servers.
+
+### Shipped
+
+| | |
+|---|---|
+| **4.1.3** | the RED lane repaired — a **42.7 s first hierarchy snapshot** and a **sticky CTA stack covering the form fields**. Both ledgered "known fixes" were refuted |
+| **4.1.3a** | the `.app` cache — **17m03s → 2 s**, verified on a real hit, with provenance printed every run |
+| **4.1.3b** | flow order made explicit — Maestro specifies none for a directory; the suite had been order-lucky |
+| **4.1.4** | the selector guard — three checks, each proven to FAIL on a planted defect |
+| **T1–T4** | the audit tooling: strings inventory · proxy-gate sweep · surface inventory · the duplicate-copy **gate** |
+| **[D31]** | the audits change METHOD, not just model |
+| **[D30]** | the iPad lane is three tiers in one directory |
+
+**Three product defects found by the lane, all invisible to a green web suite:** the mis-file rescue
+claiming *"Add from scan"* · `SettingRow` dropping every subtitle from the accessibility tree · the
+`debt-row-actions` coach mark never rendering. Plus a 500 ms pref-durability hole → Phase 5.
+
+### ⚠️ What the next session picks up
+
+1. **Run `31621553581`** — in flight at close. It verifies the coach-mark fix. If still red, the next
+   suspect is already written down (`CoachMarkLayer:68` vs `show()`'s record-on-offer at `:92`), and it
+   was deliberately left unfixed so a green run stays informative.
+2. **4.1.5 — the iPad boot**, under [D30]. ⚠️ Today's geometry is iPhone-specific (440×956); read the
+   first iPad hierarchy dump before trusting any of it.
+3. **The wording gate now has its inputs** — 793 strings, 210 cross-file duplicates, 77 copy-bearing
+   gates to judge. Surfaced, not judged.
+
+### ⚡ The lesson worth carrying, because it cost the most
+
+**Four confident mechanisms for flow 08 were wrong, and all four looked at the failing flow.** What
+settled it was looking at a *passing* one — flow 01's screenshot showed the mark absent in the cleanest
+possible state, which no amount of re-reading the failure could have revealed. **When a fix keeps not
+working, stop asking why the fix failed and check whether the premise is true.**
+
+⚠️ Its sibling: **a documented mechanism is not a measured one.** "Maestro matches contains" was written
+into three files as proven, from a single observation that had a second explanation. The codebase already
+used `.*` wrappers — the convention was right there and I read past it.
