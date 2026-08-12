@@ -6314,3 +6314,39 @@ goes to the wording gate; the baseline records them as *accepted for now*, not a
 - **Wired into `lint:rn`** → so it runs inside `validate:release:rn` and on every CI push.
 - ⚡ **The three Guardian band phrases living in two files each is a live [D26] item** — the band words
   are a stated product choice, and a product choice written twice diverges. → the wording/voice gate.
+
+## Run `31607274947` — 7/8, and flow 08 found an accessibility defect (2026-08-12)
+
+**7/8.** ⚡ **Flow 07 PASSES** — the `FormSheet` swipe worked and the anchored balance assertion held, so
+the covered-field defect is closed on both forms. Order held again.
+
+### ⚡ Flow 08's setup step found a real defect — in the app, not the flow
+
+The reset itself worked: the screenshot shows **"Show feature tips again — Tips will appear again as you
+go."** on screen. The assertion still failed, because the failure hierarchy contains the label and **not
+the subtitle**.
+
+`SettingRow.tsx:59` set `accessibilityLabel={label}` on the pressable. That makes the row ONE accessibility
+element and **replaces** what its children contribute — so every subtitle in More was rendered and absent
+from the tree. VoiceOver announced *"Show feature tips again"* and never *"Tips will appear again as you
+go."*; likewise *"Look back at your finished pay cycles"*, *"Save a copy of your data"*, and
+*"Automatic cloud backup — coming soon"*. **The label says what a row is; the subtitle is the only place
+that says what it does — or that it is not available yet.** Sighted users got both.
+
+Fixed as one utterance (`${label}. ${subtitle}`), the house pattern from A4's finale-stat grouping.
+
+⚡ **This is the fourth member of a family already on the ledger** — `CheckCircle`'s unreported checked
+state, `Slider`'s dropped `accessibilityValue`, `ListRow`'s always-announced Delete. All four are *a prop
+that looks like it exposes something and does not*. ⚠️ **And the native lane keeps finding them first,
+because Maestro reads the same accessibility tree a screen reader does** — the web suite cannot see this
+class at all.
+
+### ⛔ The artifact exclusion I shipped did nothing
+
+The artifact was **364 MB** and took 3m11s. `device-simulator.log` is still in it, ×8.
+**The bug is mine and it is a YAML one:** the `#` comment lines were written INSIDE the `path: |` block
+scalar, where every line is literal text — so they became path patterns — and the exclusion itself was
+quoted when `upload-artifact` wants it bare. ⚠️ **I stated the fix would take downloads "to seconds" and
+never verified it.** The one measurable effect it did have: adding a second entry changed the action's
+common-root calculation, so the artifact layout moved from `maestro-debug/…` to `apps/rn/maestro-debug/…`.
+→ rides the next change that touches the workflow, since that file is in the cache key.

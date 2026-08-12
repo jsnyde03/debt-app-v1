@@ -56,7 +56,19 @@ export function SettingRow({
 
   if (!onPress) return body;
   return (
-    <PressableScale onPress={onPress} accessibilityLabel={label}>
+    // ⛔ THE SUBTITLE HAS TO BE IN THE LABEL. Setting `accessibilityLabel` on the pressable makes it one
+    // accessibility element and REPLACES what its children contribute — so the subtitle rendered above
+    // was on screen and absent from the tree. VoiceOver announced "Show feature tips again" and never
+    // "Tips will appear again as you go.", and the same held for every row in More: "Look back at your
+    // finished pay cycles", "Save a copy of your data", "Automatic cloud backup — coming soon". The
+    // label says what a row IS; the subtitle is the only place that says what it DOES, or that it is not
+    // available yet. Sighted users got both, VoiceOver users got half.
+    //
+    // Found 2026-08-12 by Maestro flow 08, which asserts the subtitle as its state confirmation and
+    // could not see it either — the accessibility tree is what both a screen reader and the native lane
+    // read, which is why a11y gaps surface there first.
+    // One utterance rather than two elements: the house pattern from A4's finale-stat grouping.
+    <PressableScale onPress={onPress} accessibilityLabel={subtitle ? `${label}. ${subtitle}` : label}>
       {body}
     </PressableScale>
   );
