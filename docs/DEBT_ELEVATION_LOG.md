@@ -6103,3 +6103,94 @@ capability limit that turned out to be two misspellings of one command; **§11.1
 automated can hold" to a numeric frame-containment assertion in a day**; the iPad lane was filed as worth
 **four** checks and measured at 68. **Bucket 3's reason must name a MEASUREMENT**, and anything filed
 impossible before Appium lands (4.1.9) has to be re-asked after it. → re-derive the split at **4.1.11**.
+
+## Run `31603811840` — 6/8, the order held, and both reds were mine to understand (2026-08-12)
+
+**6/8, up from 5/8. Execution order was exactly `01→02→03→04→05→06→07→08`** — 4.1.3b confirmed, and 04
+went green purely from it. The "Add from scan" fix is confirmed on device too: flow 07 walked *past* the
+`"Add a debt"` assertion that failed the run before.
+
+**4.1.3a's four safeguards all fired**: `cache-hit: false` (correct — the populating run), key computed,
+`built_at_sha=7e6b056` stamped, save succeeded. ⚠️ **The next two dispatches were NOT cache tests** —
+both touched `src/**` or the workflow, which are *in the key* by design. The hit path only runs when
+nothing but `.maestro/**` changed.
+
+### ⛔ Flow 07 — the assertion caught a real defect; I had guessed it was my own test bug
+
+`tapOn: field-debt-apr` landed on the sticky **"Add debt"** button covering it and **submitted the form**.
+The Mortgage was created at **$180,000 · 0% APR**, the `6.5` typed into a dismissed sheet, and the
+assertion failed because there was no sheet left.
+
+⚡ **So `FormSheet` HAS the covered-field defect, and my earlier "it does not" was an over-generalisation
+from one field.** Flow 01's `field-debt-name` passes because NAME sits at the TOP, above the footer. I
+took a fact about one element and applied it to the sheet — **the identical error I had criticised in the
+`hideKeyboard` note that same morning**, where a comment about the CTAs was generalised to the fields.
+Fixed with the same swipe. ⚡ The anchored write-verification, added the previous cycle, is what caught it.
+
+### ⛔ Flow 08 — wrong TWICE, and only the source settled it
+
+I said it failed because the directory order put it before 07's `clearState`. Order fixed; it failed
+identically. The measured mechanism: `coachMarks.ts:86` refuses a mark already in `prefs.coachMarksSeen`
+and `:92` **persists** it on show, while `money.tsx:259` fires this mark on **any** Money render with a
+non-empty debts list. **07 spends the mark itself**, and no ordering can fix that — the flow that builds
+the portfolio must visit the screen that spends it.
+
+08 now resets through the app's own **"Show feature tips again"** (`more.tsx:164`) and asserts the
+confirmation subtitle. ⚡ That is coverage, not a workaround: `more.tsx` says the affordance exists because
+*"a mark is offered ONCE ever, so without a way back the whole discovery layer is a one-shot a user can
+lose to a mis-tap"* — and **nothing tested it.**
+
+⚠️ Also fixed: `MoreButton` gets an explicit `testID`. Maestro's text match is CONTAINS, so `"More"` would
+also match *"More than the balance — this will clear it to $0."*
+
+### The artifact was 322 MB, and 300 MB of it was one file per flow
+
+`device-simulator.log` — Maestro's dump of the **entire simulator syslog**, 118 MB for flow 01 alone,
+**never read once.** The app-filtered log is captured separately as `os-log.txt` and crashes have their
+own step. Excluded from the upload: ~7 minutes of download per cycle → seconds. ⚡ **The diagnose loop is
+what this lane's speed actually depends on** — the build cache saves 17 minutes once, this saves 7 every
+time something goes red.
+
+## Audit tooling T1 — the strings inventory ( [D31] ) (2026-08-12)
+
+⚠️ **Documented late, and that is itself the miss.** 🎯 Jason: *"There should be no work completed that is
+not documented."* The before-scan below was genuinely run before building; it simply was not written down
+until after, which is the part that breaks — an unrecorded scan cannot be checked by anyone, including me.
+
+### Before-scan
+
+- **Existing tooling?** `scripts/check-*.ts` is an established convention (`check-comment-convention`,
+  `check-native-a11y-props`, `check-rn-style-divergence`, `check-webkit-flex-controls`), run via `tsx` and
+  wired into `lint:rn`. **Followed it rather than inventing a shape.**
+- **i18n?** None. Every string is an inline literal — which is *why* the gate is expensive and why an
+  extraction step is worth building at all.
+- **Gate or report?** Report. It is the audit's INPUT, so it must not fail a build. → T2 files the
+  gate-shaped half separately.
+- **Verified every premise** rather than assuming: `typescript` resolves from the repo root (so the AST is
+  available), 282 RN + 126 core source files (so a parse is cheap).
+
+### After-scan — four failures, all one shape: **looking complete while not being**
+
+1. **Double-count.** Node-valued props (`ctas={<Button label="…"/>}`) harvested nested strings the walker
+   already visits independently. ⚡ **Over-reporting is as useless as under-reporting; it just fails in the
+   direction that looks thorough.**
+2. **⛔ A whole category missing.** `setError('Enter the current balance.')` — validation copy lives in
+   function bodies, not JSX, and no rule could see it. **Found only by grepping the output for a message I
+   had watched the app render in a screenshot an hour earlier.** Now: every string literal is either
+   captured or excluded by a *stated* rule.
+3. **Both test conventions leaked in** — `apps/rn`'s `*.test.ts` inside `src/`, and `packages/core`'s
+   `testXxx.ts`, which is not a `.test.` file at all. ~1,600 assertion labels drowning the copy.
+4. **Useless labels.** `array`/`expr`/`other` held 658 strings under three names nobody could judge.
+   Origins now walk to the nearest *named* ancestor, so a string reads as `var:ISSUERS` or `key:detail`.
+
+**Surfaced, and filed:** 210 cross-file duplicates → the wording gate's first task · 923 unclassified
+(mostly analytics ids) → a classification pass · the duplicate sweep as a **gate** → **T2** · a scripted
+proxy-gate sweep → **T3** · a surface inventory for cohesion → **T4**.
+
+⚡ **What it found immediately:** Guardian copy in plain object keys — `key:detail`, `key:action`
+(*"Funds before debt — pauses most of your extra debt payoff while you save."*) — nowhere near a
+component, and invisible to any JSX-only scan.
+
+⚠️ **Deliberate:** the generated `.md`/`.json` are **committed**, so a copy change shows up as a readable
+diff in review. Exclusions are printed in the report rather than applied silently — "not copy" is a claim
+that can be challenged, not an absence nobody can see.

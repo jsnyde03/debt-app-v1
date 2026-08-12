@@ -140,6 +140,20 @@ entry · C9 `router.back()` cold-entry sweep · C10 doc disambiguation of the ov
 
 ---
 
+## Audit tooling — the instruments the gate runs ON _( [D31] )_
+
+_Built during 4.1's CI waits, not instead of it. Each one turns an expensive read into a cheap lookup._
+
+| | Instrument | State |
+|---|---|---|
+| **T1** | **`npm run audit:strings`** → `docs/audits/strings-inventory.md` — every user-facing string, by file, **plus the cross-file duplicate sweep**. The wording gate's input. | ✅ **DONE 2026-08-12.** 793 copy · 210 cross-file duplicates · 923 unclassified, listed not dropped. Detail + both scans → log |
+| **T2** | **Promote the duplicate sweep to a GATE** — fail `validate:release:rn` on a NEW cross-file duplicate string. Report-only today; 210 existing means it needs a baseline first | open |
+| **T3** | **The proxy-gate sweep, scripted** — find copy asserting an outcome while gated on something that merely correlates. Today's "Add from scan" was exactly this, and two audit passes missed it | open |
+| **T4** | **A surface/component inventory** — the cohesion gate's equivalent of T1 | open |
+
+⚠️ **The 210 duplicates and the 923 unclassified are both work, not noise** — the first is the wording
+gate's first task, the second is a classification pass that shrinks every future run.
+
 ## Audit gate — whole-app _(after 3.7, before Phase 5)_
 
 - [ ] **Cohesion** — the same adversarial rigor for the ENTIRE app (Phases 0–3.7), criterion: does every element work TOGETHER? Cross-surface voice · visual · motion · numbers.
@@ -158,7 +172,12 @@ entry · C9 `router.back()` cold-entry sweep · C10 doc disambiguation of the ov
 passes either way ② evidence cited but never committed ③ two records of one thing, drifting. All three are
 **a claim kept somewhere other than where it is checked.**
 
-_All three audits fan out on Fable 5._
+⛔ **"All three audits fan out on Fable 5" is RETIRED — see [D31].** 🎯 Jason 2026-08-12: *"that's very
+very expensive and eats up my session time within like 20 minutes."* The method is now: **scripted lenses
+where the question is deterministic · a GENERATED artifact as the agent's input, never the raw codebase ·
+cheap models for extraction, the expensive tier only for judgement on a pre-filtered set · run
+out-of-session with incremental writes.** ✅ First instrument built 2026-08-12: **`npm run audit:strings`**
+→ `docs/audits/strings-inventory.md`, the wording gate's input.
 
 ---
 
@@ -289,6 +308,7 @@ belongs on this ledger · Dynamic-Type device QA.
 - **[D28] ✅ (2026-08-11)** — B4's swipe **ships, as a pure accelerator** over the existing one-tap `CheckCircle`. The infra exists (`ListRow`'s `ReanimatedSwipeable`), the gesture is unused on required rows, and legacy carried pill **+** swipe too. → **B.4**
 - **[D29] ✅ (2026-08-11)** — **B1 is CLOSED as refuted.** The delta between "drag the curve" and what ships is a gesture, and §3.4.1's scrub-to-read already owns it.
 
+- **[D31] ✅ (2026-08-12)** — **the audits change METHOD, not just model.** 🎯 the Fable-5 fan-out costs a session in ~20 minutes. ⚡ The reframe that decided it: reading is the **expensive half and the weak half** — Hearthlight's 8 adversarial rounds produced *"one good cut, two tests worth keeping, and then recurrence"*, Law IV found **2 of 4** agent-stated mechanisms wrong while all 4 recommendations were sound, and today's live defect survived **two audit passes and three green web specs** before an 11-minute Maestro run caught it. So: deterministic lenses become **scripts**; agents get a **generated artifact** instead of the codebase (~10× less input, which dwarfs any model discount); cheap tier extracts, expensive tier judges a short list; runs go out-of-session with incremental writes. ⚡ **And every finding that becomes a TEST is paid for once** — audit spend as capital, not rent. → **audit tooling**, below.
 - **[D30] ✅ (2026-08-12)** — **the iPad lane is THREE TIERS IN ONE DIRECTORY**, not a second flow set: shared (testID-driven, device-agnostic) · iPhone-only (where the compact presentation IS the subject) · iPad-only (the checks with no iPhone equivalent). Device is a **workflow input** with its own explicit flow list. ⚡ Forced by `use-layout.ts`: `isExpanded` is width-derived and branches in **seven** places, so on a wide iPad the debt sheet is **inline, not modal** — flow 02 would pass while testing nothing. ⛔ A duplicated set was rejected on this repo's own measured cost of parallel test surfaces (the two screenshot mechanisms; Wave A's "two places, one rule" ×3). → **4.1.5**
 
 **Open:** 3.5.7 hosting + privacy *(the only one left)*.
