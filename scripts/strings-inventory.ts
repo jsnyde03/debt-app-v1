@@ -31,6 +31,18 @@ const ROOTS = [join(REPO_ROOT, 'apps', 'rn', 'src'), join(REPO_ROOT, 'packages',
 const EXTS = new Set(['.ts', '.tsx']);
 
 /** JSX attributes whose string value is read by a human. */
+/**
+ * Non-JSX contexts that ARE copy, promoted after reading them: `key:label` is "Monthly" / "Every 2
+ * weeks", `key:title` is "PAID OFF", `key:body` is "your financial data stays on your device.",
+ * `call:setError` is every validation message, and `return` is "a while ago" / "Today" / "Tomorrow".
+ * None of these live in a JSX attribute, and all of them are read by a user.
+ */
+const COPY_ORIGINS = new Set([
+  'key:label', 'key:title', 'key:body', 'key:subtitle', 'key:heading', 'key:message', 'key:caption',
+  'key:hint', 'key:description', 'key:cta', 'key:empty', 'key:note',
+  'call:setError', 'return', 'key:detail', 'key:action', 'call:groupLabel', 'key:summary', 'key:headline',
+]);
+
 const COPY_PROPS = new Set([
   'label', 'title', 'subtitle', 'heading', 'header', 'caption', 'body', 'description', 'message',
   'placeholder', 'submitLabel', 'confirmLabel', 'cancelLabel', 'removeLabel', 'actionLabel',
@@ -50,13 +62,31 @@ const TECHNICAL_PROPS = new Set([
   'keyboardDismissMode', 'keyboardShouldPersistTaps', 'testProp', 'format', 'locale', 'timeZone',
 ]);
 
+/**
+ * Contexts whose strings are machinery, established by READING them (see the counts in each comment,
+ * measured on the first full sweep). Listed rather than filtered silently: the generated report prints
+ * this set, so an exclusion is a claim someone can challenge, not an absence nobody can see.
+ */
+const TECHNICAL_ORIGINS = new Set([
+  'call:console.log',
+  'call:getState().show', // coach-mark ids
+  'key:name', // analytics event names — demo_started, autopay_expense
+  'key:id', 'key:kind', 'key:category', 'key:value', 'key:recurrence', 'key:icon',
+  'key:light', 'key:dark', // theme hex pairs
+  'key:justifyContent', 'key:alignItems', 'key:flexDirection', 'key:textAlign', 'key:position',
+  'key:fontFamily', 'key:fontWeight', 'key:overflow', 'key:resizeMode',
+  'prop:onPress', 'prop:onBack', 'prop:onDemo', 'prop:onSeeForecast', // route paths in handlers
+  'prop:colors', 'prop:ctaTestID', 'prop:getComponent', 'prop:previewConfig', 'prop:pointerEvents',
+  'key:fontVariant', 'key:grad', 'key:categories', 'key:alignSelf', 'call:sumCategory', 'key:reason',
+]);
+
 type Entry = {
   text: string;
   file: string;
   line: number;
-  /** `jsx-text` · `prop:<name>` · `alert` */
+  /** `jsx-text` · `prop:<name>` · `alert` · `call:<fn>` · `key:<prop>` · `return` · `array` · `expr` */
   origin: string;
-  bucket: 'copy' | 'unclassified';
+  bucket: 'copy' | 'technical' | 'unclassified';
 };
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -64,7 +94,18 @@ function walk(dir: string, out: string[] = []): string[] {
     if (entry === 'node_modules' || entry === 'testing' || entry.startsWith('.')) continue;
     const p = join(dir, entry);
     if (statSync(p).isDirectory()) walk(p, out);
-    else if (EXTS.has(extname(p)) && !p.endsWith('.d.ts') && !p.includes(`${sep}tests${sep}`)) out.push(p);
+    // ⚠️ TWO test-file conventions live here, and missing either floods the report. `apps/rn` uses
+    // `*.test.ts` INSIDE `src/` (`src/store/coachMarks.test.ts`), so excluding a `tests/` directory is
+    // not enough; `packages/core` uses `testXxx.ts` (`cashflow/testDetectCrunches.ts`), which is not a
+    // `.test.` file at all. Between them they contributed ~1,600 assertion labels — "no crunch when all
+    // >= floor" — drowning the real copy on the first full sweep.
+    else if (
+      EXTS.has(extname(p)) &&
+      !p.endsWith('.d.ts') &&
+      !/\.test\.tsx?$/.test(p) &&
+      !/[\\/]test[A-Z][^\\/]*\.tsx?$/.test(p) &&
+      !p.includes(`${sep}tests${sep}`)
+    ) out.push(p);
   }
   return out;
 }
@@ -116,8 +157,17 @@ function originOf(node: ts.Node, sf: ts.SourceFile): string {
   if (ts.isPropertyAssignment(p)) return `key:${p.name.getText(sf)}`;
   if (ts.isVariableDeclaration(p) && ts.isIdentifier(p.name)) return `var:${p.name.getText(sf)}`;
   if (ts.isReturnStatement(p)) return 'return';
-  if (ts.isArrayLiteralExpression(p)) return 'array';
-  if (ts.isConditionalExpression(p) || ts.isBinaryExpression(p)) return 'expr';
+  // ⚠️ `array` / `expr` / `other` were useless labels — 658 strings under three names nobody could
+  // judge. A string inside an array inside `const ANALYTICS_EVENTS = [...]` is obviously machinery once
+  // you can SEE that it is in `ANALYTICS_EVENTS`, and unjudgeable while it is called "array". So walk up
+  // to the nearest thing with a name; the label is only worth having if it supports a decision.
+  let n: ts.Node | undefined = p;
+  for (let hops = 0; n && hops < 6; hops++, n = n.parent) {
+    if (ts.isPropertyAssignment(n)) return `key:${n.name.getText(sf)}`;
+    if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name)) return `var:${n.name.getText(sf)}`;
+    if (ts.isCallExpression(n)) return `call:${n.expression.getText(sf).split('.').slice(-2).join('.')}`;
+    if (ts.isPropertyDeclaration(n) || ts.isFunctionDeclaration(n)) break;
+  }
   return 'other';
 }
 
@@ -174,7 +224,9 @@ for (const root of ROOTS) {
     const sweep = (node: ts.Node) => {
       if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) return; // module paths, never copy
       if (ts.isStringLiteral(node) && !seen.has(node.getStart(sf)) && isReviewable(node.text)) {
-        push(node.text, node, originOf(node, sf), 'unclassified');
+        const origin = originOf(node, sf);
+        const bucket = COPY_ORIGINS.has(origin) ? 'copy' : TECHNICAL_ORIGINS.has(origin) ? 'technical' : 'unclassified';
+        push(node.text, node, origin, bucket);
       }
       ts.forEachChild(node, sweep);
     };
@@ -198,6 +250,8 @@ const duplicates = [...byText.entries()]
   .sort((a, b) => b[1].length - a[1].length);
 
 const copy = entries.filter((e) => e.bucket === 'copy');
+const technical = entries.filter((e) => e.bucket === 'technical');
+const technicalOrigins = [...new Set(technical.map((e) => e.origin))].sort();
 const unclassified = entries.filter((e) => e.bucket === 'unclassified');
 const unclassifiedProps = [...new Set(unclassified.map((e) => e.origin))].sort();
 
@@ -212,7 +266,13 @@ md.push('> ⛔ **GENERATED. Do not edit.** Regenerate with `npm run audit:string
 md.push('> This is the **input** to the wording/voice gate, not its output. Findings belong in a dated');
 md.push('> audit folder; this file is only ever the current state of the codebase.');
 md.push('');
-md.push(`**${copy.length}** strings in known copy props · **${unclassified.length}** unclassified · **${duplicates.length}** appearing in more than one file.`);
+md.push(`**${copy.length}** copy · **${unclassified.length}** unclassified · **${technical.length}** excluded as machinery · **${duplicates.length}** strings appearing in more than one file.`);
+md.push('');
+md.push('<details><summary>Excluded as machinery — the contexts, so the exclusions can be challenged</summary>');
+md.push('');
+md.push(technicalOrigins.map((o) => `- \`${o}\``).join('\n'));
+md.push('');
+md.push('</details>');
 md.push('');
 md.push('## ⚠️ Unclassified — a prop nobody has sorted yet');
 md.push('');
@@ -235,7 +295,7 @@ md.push('');
 md.push('## Every string, by file');
 md.push('');
 let currentFile = '';
-for (const e of entries) {
+for (const e of entries.filter((x) => x.bucket !== "technical")) {
   if (e.file !== currentFile) {
     currentFile = e.file;
     md.push('');
