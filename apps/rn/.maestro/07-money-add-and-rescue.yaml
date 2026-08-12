@@ -159,6 +159,14 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "tab-money"
 
+# ⚡ 07 `clearState`s and re-onboards, so the once-ever record is wiped and it meets a FRESH
+# `debt-row-actions` — the same landing 01 now handles, and measured the same way: run 31636187156 died
+# on the very next line (`assertVisible "What are you adding?"`) because the callout took the
+# `money-add` tap. Dismissed rather than re-asserted; 01 already proves the mark appears on a fresh
+# portfolio, and repeating that claim here would be one rule kept in two places.
+- tapOn:
+    id: "coach-mark-dismiss"
+
 - tapOn:
     id: "money-add"
 - assertVisible: "What are you adding?"

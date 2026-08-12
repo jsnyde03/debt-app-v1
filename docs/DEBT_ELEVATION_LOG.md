@@ -7131,3 +7131,74 @@ reach it. 167/167 says nothing else broke; it does not say the fix works. Only t
 | `suppress+ walkthrough-session` / `demo-run` **and still refused** | a session leaked its release — the focus fix is inert and correct anyway; hunt the unreleased suppressor |
 | **no `suppress+` at all** and still refused | the holder registered before the trace was cleared — move the probe's reset earlier |
 | mark renders **and** no `suppress+` line | it was Today all along and the invite had already been answered — weakest outcome, re-run to confirm |
+
+## Run `31636187156` — the fix landed, and immediately exposed a second defect (2026-08-12)
+
+🎯 Jason, while I was mid-edit on three flows: *"I wouldn't make changes until you can verify from the
+error log."* **That call saved the cycle** — all three edits used `tapOn: "Got it"`, and the artifact
+proves that could never have worked. The edits were reverted unrun.
+
+### ⭐ The suppressor fix WORKS
+
+Flow 08 walked past `.*Press and hold a debt.*` — red for three runs — and died further along. **The mark
+renders.** Everything below follows from that.
+
+### The four failures, from the artifact rather than from reasoning
+
+| flow | died at | cause |
+|---|---|---|
+| **01** | `tapOn add-choice-debt` | the callout at **[16,556][424,701]** took the `money-add` tap |
+| **04** | `assertVisible ".*Store Card.*"` | ⚠️ **CASCADE** — 01 never created Store Card. Not a coach-mark failure |
+| **07** | `assertVisible "What are you adding?"` | same interception as 01 |
+| **08** | `tapOn "Got it"` | the dismiss button is not an addressable element |
+
+⚠️ **01 died one step AFTER the real fault**, and that lag is this suite's recurring trap: `tapOn` reports
+COMPLETED whether or not it lands on what you meant. The hierarchy is what settles it — `Press and hold a
+debt` present, `add-choice-debt` and `What are you adding` **absent**, so the chooser never opened.
+
+⚡ **04 is the one my hypothesis got wrong**, and only the artifact could say so. I had written an
+assert-and-dismiss block for a payoff-schedule mark it never reached. **It is deliberately left unchanged**
+— if the payoff mark does fire there, the next run will say so at `debt-view-schedule`, and that will be
+evidence rather than another prediction.
+
+### ⭐ The second defect — `accessible` swallowed the dismiss button
+
+```
+resource-id: coach-mark   bounds [16,556][424,701]   children: 0
+accessibilityText: "Press and hold a debt. Log a payment, see its payoff schedule, …"
+```
+
+Marking the card `accessible` collapses its whole subtree into ONE element on iOS. So the callout is a
+**leaf**: one composed label, no children, and no "Got it" at any depth.
+
+**Two things broken by one prop, and only one of them was a test problem:**
+- **VoiceOver got a single `alert` with no way to dismiss it.** The container is not pressable and the
+  button inside is not focusable, so a double-tap did nothing. `more.tsx` describes this affordance as the
+  discovery layer's escape hatch — *"a mark is offered ONCE ever, so without a way back the whole
+  discovery layer is a one-shot a user can lose to a mis-tap"* — and it could not be operated.
+- Maestro could not address it either, which is how it was found.
+
+⚡ **It hid for months because nothing ever DREW the mark.** The suppressor defect meant every prior native
+run refused it, and the web suite structurally cannot reach an iOS-only mark. **A control can be
+unreachable indefinitely if nothing renders it** — and fixing the first defect is what made the second
+one observable at all.
+
+Fixed by moving `accessible` onto the SENTENCE (which is what should read as one utterance) and leaving
+the `Pressable` a sibling, plus `testID="coach-mark-dismiss"` so no flow has to match the word "Got it" —
+Today's acks use it too (`index.tsx:470/488/505`).
+
+### The iPad tier — correct selection, unusable method
+
+The width-measuring loop **booted every candidate iPad**, and run 31636187156 spent 20+ minutes there
+before the job hit its 60-minute wall and was cancelled mid-tier. The `if: always()` collect/upload steps
+still ran so the artifact survived — **luck, not design.**
+
+Replaced with a disk read: every device type ships `mainScreenWidth` / `mainScreenScale` in its
+`.simdevicetype` profile, so selection is ~1 second and exactly ONE boot. ⚠️ A failed plist read yields
+0pt and lands in the same fail-loud branch as a too-narrow device, with the table printed — a silent
+fallback to name-matching is what put a 744pt iPad mini through this lane to begin with. Timeout raised
+60 → 75 as headroom against the next surprise.
+
+⚡ **The through-line for the whole session:** every one of these was a case of *the instrument being
+authored for the world in which the thing it measures already works.* The probe, the iPad picker, the
+flow order, and now three flow edits written against a button that does not exist as an element.

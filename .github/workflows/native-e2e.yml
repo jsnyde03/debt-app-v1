@@ -70,7 +70,12 @@ jobs:
   maestro:
     name: Compile · boot · Maestro
     runs-on: macos-15
-    timeout-minutes: 60
+    # ⚠️ 75, raised from 60 on 2026-08-12. Run 31636187156 hit the 60-minute wall mid-iPad-tier and was
+    # cancelled — the `if: always()` collect/upload steps still ran, so the artifact survived, but that
+    # was luck rather than design and the tier produced no result at all. The iPad boot loop that caused
+    # it is gone (geometry is read from disk now), so this is headroom against the NEXT surprise, not a
+    # licence for a slow step.
+    timeout-minutes: 75
     env:
       # `@sentry/react-native/expo` hooks the Xcode "Bundle React Native code and images" phase and runs
       # `sentry-cli` to upload source maps AFTER bundling. On this runner there is no org slug and no auth
@@ -468,29 +473,41 @@ jobs:
           echo "── iPads available ──"; echo "$AVAIL"
           if [ -z "$AVAIL" ]; then echo "::error::no iPad simulator available on this runner"; exit 1; fi
 
-          # Boot each candidate and MEASURE it. `simctl` will not report a window size for a shut device,
-          # and the point-width is the only thing that decides which branches run — so this asks the
-          # device rather than its marketing name.
+          # ⛔ READ THE GEOMETRY, DO NOT BOOT FOR IT. The first version of this booted every candidate iPad
+          # to screenshot and measure it — and run 31636187156 spent **20+ minutes** in that loop before
+          # the job hit its 60-minute timeout and was cancelled mid-tier. Correct selection, unusable
+          # method: a runner image carries six to eight iPads and each boot is 30-60 s.
+          #
+          # Every device type ships its screen geometry on disk, so this is a file read per candidate
+          # (~1 s total) and exactly ONE boot — the winner.
           BEST_UDID=""; BEST_NAME=""; BEST_PT=0
           while IFS= read -r row; do
             [ -z "$row" ] && continue
             U="${row%%|*}"; N="${row#*|}"
-            xcrun simctl boot "$U" >/dev/null 2>&1 || true
-            xcrun simctl bootstatus "$U" -b >/dev/null 2>&1 || true
-            xcrun simctl io "$U" screenshot /tmp/probe-"$U".png >/dev/null 2>&1 || true
-            PX=$(sips -g pixelWidth /tmp/probe-"$U".png 2>/dev/null | awk '/pixelWidth/{print $2}')
-            PT=$(( ${PX:-0} / 2 ))
-            echo "   $N → ${PX:-?}px = ${PT}pt"
+            # Match the device to its .simdevicetype bundle by name, then read points = width / scale.
+            PROF=$(ls -d /Library/Developer/CoreSimulator/Profiles/DeviceTypes/*.simdevicetype 2>/dev/null \
+              | while read -r B; do
+                  DN=$(plutil -extract CFBundleName raw "$B/Contents/Info.plist" 2>/dev/null)
+                  [ "$DN" = "$N" ] && echo "$B/Contents/Resources/profile.plist"
+                done | head -1)
+            W=$(plutil -extract mainScreenWidth raw "$PROF" 2>/dev/null)
+            S=$(plutil -extract mainScreenScale raw "$PROF" 2>/dev/null)
+            PT=0
+            if [ -n "$W" ] && [ -n "$S" ] && [ "$S" -gt 0 ] 2>/dev/null; then PT=$(( W / S )); fi
+            echo "   $N → ${W:-?}px / ${S:-?}x = ${PT}pt"
             if [ "$PT" -gt "$BEST_PT" ]; then BEST_PT=$PT; BEST_UDID=$U; BEST_NAME=$N; fi
-            xcrun simctl shutdown "$U" >/dev/null 2>&1 || true
           done <<< "$AVAIL"
 
           # ⛔ FAIL LOUD rather than measure the wrong thing. A compact "iPad" run is worse than no iPad
           # run: it reports a pass for checks it never executed. If no wide iPad exists on this image,
           # that is a fact to act on (pin a runtime, or add a device), not something to paper over.
           echo "Widest available iPad: $BEST_NAME at ${BEST_PT}pt"
+          # ⚠️ 0pt means the plist READ failed (a renamed key, a bundle whose CFBundleName does not match
+          # simctl's device name), not that the device is tiny. It lands in the same fail-loud branch on
+          # purpose — the printed table above says which, and a silent fallback to name-matching is what
+          # put a 744pt iPad mini through this lane in the first place.
           if [ "$BEST_PT" -lt 1024 ]; then
-            echo "::error::widest available iPad is ${BEST_PT}pt — below the 1024pt \`isExpanded\` threshold."
+            echo "::error::widest available iPad measured ${BEST_PT}pt — below the 1024pt \`isExpanded\` threshold (0 = plist read failed; see the table above)."
             echo "::error::[D30]'s checks (master-detail, inline sheet) do not run below 1024pt, so this"
             echo "::error::would be a green run that tested the compact layout. See sizeClass.ts."
             exit 1

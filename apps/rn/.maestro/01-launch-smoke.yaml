@@ -121,6 +121,33 @@ appId: com.jasonsnyder.debtplanner
 - tapOn:
     id: "tab-money"
 
+# ══ The row-actions coach mark now APPEARS here, and it lands on `money-add` ════════════════════
+# ⚡ This is a FIX ARRIVING, not a regression. Until 2026-08-12 the mark was refused on every Money
+# render: Today is a TAB, it never unmounts, and its `useSuppressCoachMarks` was held for the whole
+# session while the walkthrough invitation was pending. The probe printed
+# `show:debt-row-actions=refused(suppressors=1)`; the fix gated Today's suppressor on FOCUS.
+#
+# ⛔ MEASURED, not assumed — run 31636187156's hierarchy at the failing step: the callout occupies
+# **[16,556][424,701]**, `Press and hold a debt` is present, and `add-choice-debt` / `What are you
+# adding` are ABSENT. So `tapOn: money-add` hit the callout, the chooser never opened, and the failure
+# surfaced one step later. ⚠️ That lag is the recurring trap in this suite: `tapOn` reports COMPLETED
+# whether or not it lands on what you meant.
+#
+# ⛔ THIS FLOW PASSED FOR MONTHS BECAUSE THE FEATURE WAS BROKEN. The suite encoded the defect, so
+# repairing the app reddened the test — the correct direction of causation, and the reason this is
+# written as coverage (§13.3) rather than as a workaround.
+#
+# ⚠️ Dismissed by testID, NOT by the text "Got it": Today's acks use that same word
+# (`index.tsx:470/488/505`), and the button only became addressable at all once `accessible` came off the
+# card — with it there, iOS collapsed the callout to a leaf and the button did not exist to tap.
+- assertVisible:
+    text: ".*Press and hold a debt.*"
+- takeScreenshot: maestro-debug/smoke-row-actions-mark
+- tapOn:
+    id: "coach-mark-dismiss"
+- assertNotVisible:
+    text: ".*Press and hold a debt.*"
+
 - tapOn:
     id: "money-add"
 - tapOn:

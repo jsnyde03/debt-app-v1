@@ -98,14 +98,35 @@ export function CoachMarkLayer({ nested = false }: { nested?: boolean } = {}) {
         // is a claim about there being exactly ONE of these, and a text lookup cannot express that
         // without also matching whatever the copy happens to say.
         testID="coach-mark"
-        style={[styles.card, { backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}
-        // One utterance — a screen reader should hear a sentence about a control, not three fragments.
-        accessible
-        accessibilityRole="alert"
-        accessibilityLabel={`${copy.title}. ${copy.body}`}>
-        <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>{copy.title}</Text>
-        <Text style={[textStyles.subhead, { color: c.text.secondary }]}>{copy.body}</Text>
+        style={[styles.card, { backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}>
+        {/* ⛔ `accessible` MOVED OFF THE CARD AND ONTO THE SENTENCE — it was swallowing the dismiss button.
+            Marking a container `accessible` collapses its whole subtree into ONE element on iOS, so with
+            it on the card the hierarchy showed `coach-mark` as a leaf: `children: 0`, one composed label,
+            and **no "Got it" anywhere.** Measured in run 31636187156's dump, at the step that failed
+            trying to tap it.
+
+            Two things were broken by one prop, and only one of them was a test problem:
+              • VoiceOver got a single `alert` and the dismiss control was neither focusable nor
+                activatable — the container is not pressable, so a double-tap did nothing. The affordance
+                `more.tsx` calls the whole discovery layer's escape hatch could not be operated.
+              • Maestro could not address it either, which is how it was found.
+
+            ⚠️ It stayed invisible because the mark had never RENDERED on a device: the suppressor defect
+            meant every prior native run refused it, and the web suite cannot reach an iOS-only mark. A
+            control can be unreachable for months if nothing ever draws it.
+
+            The one-utterance property that `accessible` was there for is preserved — it just belongs on
+            the TEXT, which is what should be read as one sentence, not on the card that also holds a
+            button. */}
+        <View accessible accessibilityRole="alert" accessibilityLabel={`${copy.title}. ${copy.body}`}>
+          <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>{copy.title}</Text>
+          <Text style={[textStyles.subhead, { color: c.text.secondary }]}>{copy.body}</Text>
+        </View>
         <Pressable
+          // Addressable in its own right. The label already existed; what it lacked was an element to
+          // hang on — and a testID so a flow never has to match the word "Got it", which Today's acks
+          // also use (`index.tsx:470/488/505`).
+          testID="coach-mark-dismiss"
           onPress={() => coachMarks.getState().dismiss()}
           accessibilityRole="button"
           accessibilityLabel="Got it"
