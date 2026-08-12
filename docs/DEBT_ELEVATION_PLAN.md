@@ -172,8 +172,8 @@ heuristic"*). The 928 unclassified still stand as a classification pass.
 |---|---|---|
 | **W1.1** | Scope T1's duplicate section to copy-bearing duplicates + annotate buckets | ✅ **DONE 2026-08-12** — 110 of 210. T2's gate deliberately untouched (11 baselined, still green) |
 | **W1.2** | Triage the 110 → [`2026-08-12-duplicate-copy-triage.md`](audits/2026-08-12-duplicate-copy-triage.md) | ✅ **DONE 2026-08-12.** 4 extract-clusters · 3 leave-groups · 11 to the gate. ⭐ **Found a live defect** *(cluster 2)* |
-| **W1.3** | **[DECISION]** which extractions fold into v1.7 *(rec: clusters 1–4)* | ⏳ **Jason** |
-| **W1.4** | Execute the approved extractions, re-run the gate | |
+| **W1.3** | **[DECISION]** which extractions fold into v1.7 | ✅ **ALL FOUR CLUSTERS, 2026-08-12 (🎯 Jason).** `one-time` standardised on **"One-time"**; the choice itself is flagged to the wording gate |
+| **W1.4** | Execute the extractions, re-run the gate | ✅ **DONE 2026-08-12.** Two authorities — `paycheckForm.ts` · `obligationForm.ts`. Copy duplicates **110 → 83**, copy sites **794 → 740**, T2 baseline **11 → 5**. Gate 167/167 |
 
 ⭐ **[W1.2] A SHIPPED wording defect, not a latent duplicate — `one-time` has two user-facing spellings.**
 A user sets a bill to **"One time"** (`ExpenseSheet.tsx:19`) and Money files it under a heading called
@@ -184,7 +184,23 @@ tone** (`CashFlowSection.tsx:28`, 6 colours) and `return` when the function retu
 (`computeState.ts:33/49/54`). Matters because 794 "copy" is the wording gate's scope claim → folds into
 the 928-unclassified classification pass, which is the same lens pointed the other way.
 
-**Exit:** the wording gate opens on a filtered, triaged list instead of a raw 210.
+⚡ **[W1.4 after-scan] The SHRINKING BASELINE is what caught my own misses.** Regenerating T2's baseline
+after the extraction left 4 stale entries and 0 fresh — and two of them were strings I thought I had
+de-duplicated: a **fifth** site for *"Enter an amount greater than 0."* (`WindfallSheet.tsx:61`, absent
+from my triage list) and the lean-floor footnote still written twice. ⚡ **A gate whose baseline only ever
+grows cannot do this.** Both fixed; baseline now 5, and every survivor is something the triage
+deliberately left.
+
+⚠️ **[W1.4 after-scan] A SECOND live divergence, kept on purpose and now stated** — the identical
+"no amount entered" condition reads *"Enter your paycheck amount **to continue**."* in onboarding and
+*"Enter your paycheck amount."* in the sheet. Defensible (a step in a flow may say "to continue"), so it
+stays per-host with the reason written down → confirm at the wording gate.
+
+⚠️ **[W1.4 after-scan] The repo is CRLF, and multi-line codemods must normalise.** My first rewrite pass
+silently matched nothing on every multi-line pattern while single-line ones succeeded — a partial edit that
+typechecked. Normalise to LF, replace, restore. → working notes.
+
+**Exit:** ✅ the wording gate opens on a filtered, triaged list instead of a raw 210.
 
 ## Audit gate — whole-app _(after 3.7, before Phase 5)_
 

@@ -1,9 +1,9 @@
 {
   "generated": "npm run audit:strings",
   "counts": {
-    "copy": 794,
-    "unclassified": 928,
-    "duplicates": 210
+    "copy": 740,
+    "unclassified": 946,
+    "duplicates": 183
   },
   "entries": [
     {
@@ -520,651 +520,588 @@
     {
       "text": "/mo",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 64,
+      "line": 65,
       "origin": "key:'monthly'",
       "bucket": "unclassified"
     },
     {
       "text": "/wk",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 65,
+      "line": 66,
       "origin": "key:'weekly'",
       "bucket": "unclassified"
     },
     {
       "text": "/2 wks",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 66,
+      "line": 67,
       "origin": "key:'biweekly'",
       "bucket": "unclassified"
     },
     {
       "text": "per-paycheck",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 67,
+      "line": 68,
       "origin": "key:'per-paycheck'",
       "bucket": "unclassified"
     },
     {
       "text": "/check",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 67,
+      "line": 68,
       "origin": "key:'per-paycheck'",
       "bucket": "unclassified"
     },
     {
       "text": "/qtr",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 68,
+      "line": 69,
       "origin": "key:'quarterly'",
       "bucket": "unclassified"
     },
     {
       "text": "/yr",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 69,
+      "line": 70,
       "origin": "key:'annually'",
       "bucket": "unclassified"
     },
     {
       "text": "one-time",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 70,
+      "line": 71,
       "origin": "key:'one-time'",
       "bucket": "unclassified"
     },
     {
       "text": "Balances you’re paying down. These have an end date, and they set your debt-free date.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 81,
+      "line": 82,
       "origin": "key:debts",
       "bucket": "unclassified"
     },
     {
       "text": "Ongoing costs that don’t end. Reserved from every paycheck before anything goes to debt.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 82,
+      "line": 83,
       "origin": "key:bills",
       "bucket": "unclassified"
     },
     {
       "text": "Money you’re setting aside — saved for, not owed.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 83,
+      "line": 84,
       "origin": "key:goals",
       "bucket": "unclassified"
     },
     {
       "text": "Money",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 110,
+      "line": 111,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Debts",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 115,
+      "line": 116,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Expenses",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 116,
+      "line": 117,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Goals",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 117,
+      "line": 118,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Is this a debt you&apos;re paying down? Debts count toward your debt-free date — expenses don&apos;t.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 171,
+      "line": 172,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Move to Debts",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 175,
+      "line": 176,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Not a debt",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 185,
+      "line": 186,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "debt-row-actions",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 259,
+      "line": 260,
       "origin": "call:useCoachMark",
       "bucket": "unclassified"
     },
     {
       "text": "credit-card",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 311,
+      "line": 312,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Start your debt-free plan",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 312,
+      "line": 313,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add a loan, credit card, or BNPL balance to see your debt-free date.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 313,
+      "line": 314,
       "origin": "prop:body",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 314,
+      "line": 315,
       "origin": "prop:cta",
       "bucket": "copy"
     },
     {
       "text": "money-add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 316,
+      "line": 317,
       "origin": "prop:ctaTestID",
       "bucket": "unclassified"
     },
     {
       "text": "Scan a statement",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 318,
+      "line": 319,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "document-scanner",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 318,
+      "line": 319,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "PAID OFF",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 333,
+      "line": 334,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "Snowball",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 346,
+      "line": 347,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Avalanche",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 347,
+      "line": 348,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Smallest balance first — quick wins. Your debts are listed in payoff order.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 352,
+      "line": 353,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Highest APR first — least interest. Your debts are listed in payoff order.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 353,
+      "line": 354,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "debt-row-actions",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 377,
+      "line": 378,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 381,
+      "line": 382,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "money-add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 381,
+      "line": 382,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Scan a statement",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 383,
+      "line": 384,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "document-scanner",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 383,
+      "line": 384,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "credit-card",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 408,
+      "line": 409,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Select a debt to edit, or add one.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 409,
+      "line": 410,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "estimated · tap to verify",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 451,
+      "line": 452,
       "origin": "var:captionText",
       "bucket": "unclassified"
     },
     {
       "text": "Focus",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 467,
+      "line": 468,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "BNPL",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 468,
+      "line": 469,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Autopay",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 468,
+      "line": 469,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "/mo",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 478,
+      "line": 479,
       "origin": "prop:amountSuffix",
       "bucket": "unclassified"
     },
     {
       "text": "/mo",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 478,
+      "line": 479,
       "origin": "prop:amountSuffix",
       "bucket": "unclassified"
     },
     {
-      "text": "Housing",
-      "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 497,
-      "origin": "key:housing",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Utilities",
-      "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 498,
-      "origin": "key:utilities",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Insurance",
-      "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 499,
-      "origin": "key:insurance",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Subscriptions",
-      "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 500,
-      "origin": "key:subscriptions",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Discretionary",
-      "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 501,
-      "origin": "key:discretionary",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Medical",
-      "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 502,
-      "origin": "key:medical",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Other",
-      "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 503,
-      "origin": "key:other",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "subscriptions",
-      "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 509,
-      "origin": "var:BILL_CATEGORY_ORDER",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "discretionary",
-      "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 510,
-      "origin": "var:BILL_CATEGORY_ORDER",
-      "bucket": "unclassified"
-    },
-    {
       "text": "one-time",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 544,
+      "line": 528,
       "origin": "call:expenses.filter",
       "bucket": "unclassified"
     },
     {
       "text": "one-time",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 545,
+      "line": 529,
       "origin": "call:expenses.filter",
       "bucket": "unclassified"
     },
     {
       "text": "one-time",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 602,
+      "line": 586,
       "origin": "call:expenses.filter",
       "bucket": "unclassified"
     },
     {
       "text": "one-time",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 603,
+      "line": 587,
       "origin": "call:expenses.filter",
       "bucket": "unclassified"
     },
     {
       "text": "one-time",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 628,
+      "line": 612,
       "origin": "call:collapsed.has",
       "bucket": "unclassified"
     },
     {
       "text": "one-time",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 630,
+      "line": 614,
       "origin": "key:key",
       "bucket": "unclassified"
     },
     {
-      "text": "One-time",
+      "text": "one-time",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 631,
+      "line": 615,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "receipt-long",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 655,
+      "line": 639,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Build your paycheck plan",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 656,
+      "line": 640,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add an ongoing cost — rent, utilities, a subscription — so your plan knows what’s due.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 657,
+      "line": 641,
       "origin": "prop:body",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 658,
+      "line": 642,
       "origin": "prop:cta",
       "bucket": "copy"
     },
     {
       "text": "money-add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 660,
+      "line": 644,
       "origin": "prop:ctaTestID",
       "bucket": "unclassified"
     },
     {
       "text": "reserved per paycheck",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 675,
+      "line": 659,
       "origin": "key:sub",
       "bucket": "unclassified"
     },
     {
       "text": "· Variable",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 720,
+      "line": 704,
       "origin": "prop:meta",
       "bucket": "unclassified"
     },
     {
       "text": "Autopay",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 722,
+      "line": 706,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "No bills match “",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 733,
+      "line": 717,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 738,
+      "line": 722,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "money-add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 738,
+      "line": 722,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Search expenses",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 772,
+      "line": 756,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Clear search",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 779,
+      "line": 763,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "expand-more",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 815,
+      "line": 799,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "chevron-right",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 815,
+      "line": 799,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "/living-expenses",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 832,
+      "line": 816,
       "origin": "prop:onPress",
       "bucket": "unclassified"
     },
     {
       "text": "Everyday spending reserve",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 838,
+      "line": 822,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "chevron-right",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 841,
+      "line": 825,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Reserved each paycheck · tap to manage",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 844,
+      "line": 828,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Start a savings goal",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 861,
+      "line": 845,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add an emergency fund or savings goal to start tracking progress.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 862,
+      "line": 846,
       "origin": "prop:body",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 863,
+      "line": 847,
       "origin": "prop:cta",
       "bucket": "copy"
     },
     {
       "text": "money-add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 865,
+      "line": 849,
       "origin": "prop:ctaTestID",
       "bucket": "unclassified"
     },
     {
       "text": "Emergency fund",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 892,
+      "line": 876,
       "origin": "prop:meta",
       "bucket": "unclassified"
     },
     {
       "text": "Savings",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 892,
+      "line": 876,
       "origin": "prop:meta",
       "bucket": "unclassified"
     },
     {
       "text": "Funded",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 893,
+      "line": 877,
       "origin": "prop:amount",
       "bucket": "unclassified"
     },
     {
       "text": "Funded",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 895,
+      "line": 879,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 903,
+      "line": 887,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "money-add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 903,
+      "line": 887,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "chevron-right",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 930,
+      "line": 914,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "space-between",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 964,
+      "line": 948,
       "origin": "key:justifyContent",
       "bucket": "technical"
     },
     {
       "text": "tabular-nums",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 965,
+      "line": 949,
       "origin": "key:fontVariant",
       "bucket": "technical"
     },
     {
       "text": "space-between",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 976,
+      "line": 960,
       "origin": "key:justifyContent",
       "bucket": "technical"
     },
@@ -2933,67 +2870,11 @@
       "bucket": "technical"
     },
     {
-      "text": "Monthly",
-      "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 31,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Weekly",
-      "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 32,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Every 2 weeks",
-      "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 33,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
       "text": "per-paycheck",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
       "line": 34,
-      "origin": "key:value",
-      "bucket": "technical"
-    },
-    {
-      "text": "Every paycheck",
-      "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 34,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Quarterly",
-      "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 35,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Yearly",
-      "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 36,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Every 2 weeks",
-      "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 43,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Monthly",
-      "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 44,
-      "origin": "key:label",
-      "bucket": "copy"
+      "origin": "call:recurrenceOptions",
+      "bucket": "unclassified"
     },
     {
       "text": "Every 3 months",
@@ -3010,7 +2891,7 @@
       "bucket": "technical"
     },
     {
-      "text": "One-time",
+      "text": "one-time",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
       "line": 46,
       "origin": "key:label",
@@ -3129,13 +3010,6 @@
       "bucket": "unclassified"
     },
     {
-      "text": "Enter a name.",
-      "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 157,
-      "origin": "call:setError",
-      "bucket": "copy"
-    },
-    {
       "text": "Enter the payment amount.",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
       "line": 162,
@@ -3146,20 +3020,6 @@
       "text": "Enter how many payments are left.",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
       "line": 163,
-      "origin": "call:setError",
-      "bucket": "copy"
-    },
-    {
-      "text": "Enter the current balance.",
-      "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 184,
-      "origin": "call:setError",
-      "bucket": "copy"
-    },
-    {
-      "text": "Enter the minimum payment.",
-      "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 185,
       "origin": "call:setError",
       "bucket": "copy"
     },
@@ -3563,548 +3423,401 @@
       "bucket": "technical"
     },
     {
-      "text": "Monthly",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 15,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Weekly",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 16,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Every 2 weeks",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 17,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
       "text": "per-paycheck",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 18,
-      "origin": "key:value",
-      "bucket": "technical"
-    },
-    {
-      "text": "Every paycheck",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 18,
-      "origin": "key:label",
-      "bucket": "copy"
+      "line": 17,
+      "origin": "call:recurrenceOptions",
+      "bucket": "unclassified"
     },
     {
       "text": "one-time",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 19,
-      "origin": "key:value",
-      "bucket": "technical"
-    },
-    {
-      "text": "One time",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 19,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Quarterly",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 20,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Yearly",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 21,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Housing",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 24,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Utilities",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 25,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Insurance",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 26,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "subscriptions",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 27,
-      "origin": "key:value",
-      "bucket": "technical"
-    },
-    {
-      "text": "Subscriptions",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 27,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "discretionary",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 30,
-      "origin": "key:value",
-      "bucket": "technical"
-    },
-    {
-      "text": "Discretionary",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 30,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Medical",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 31,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Other",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 32,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Enter a name.",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 56,
-      "origin": "call:setError",
-      "bucket": "copy"
+      "line": 17,
+      "origin": "call:recurrenceOptions",
+      "bucket": "unclassified"
     },
     {
       "text": "Enter the amount you pay now (0 for a free trial).",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 59,
+      "line": 44,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Enter the full price after the trial.",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 60,
+      "line": 45,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Enter when the full price starts (YYYY-MM-DD).",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 62,
-      "origin": "call:setError",
-      "bucket": "copy"
-    },
-    {
-      "text": "Enter an amount greater than 0.",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 64,
+      "line": 47,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Edit expense",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 98,
+      "line": 83,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add an expense",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 98,
+      "line": 83,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "An ongoing cost that doesn't end.",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 99,
+      "line": 84,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Save",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 100,
+      "line": 85,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Add expense",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 100,
+      "line": 85,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Name",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 105,
+      "line": 90,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Rent, phone, utilities",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 105,
+      "line": 90,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "field-expense-name",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 105,
+      "line": 90,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Amount now (0 for a free trial)",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 106,
+      "line": 91,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Amount",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 106,
+      "line": 91,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 0",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 106,
+      "line": 91,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "e.g. 850",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 106,
+      "line": 91,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "field-expense-amount",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 106,
+      "line": 91,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "decimal-pad",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 106,
+      "line": 91,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Due date (YYYY-MM-DD)",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 107,
+      "line": 92,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Recurrence",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 108,
+      "line": 93,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Category",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 109,
+      "line": 94,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Variable amount (estimate)",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 110,
+      "line": 95,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Free trial or intro price",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 111,
+      "line": 96,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Full price after the trial",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 114,
+      "line": 99,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 15.99",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 114,
+      "line": 99,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "decimal-pad",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 114,
+      "line": 99,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Full price starts (YYYY-MM-DD)",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 115,
+      "line": 100,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Autopay",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 118,
+      "line": 103,
       "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Enter a name.",
-      "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 28,
-      "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Enter a target amount.",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 29,
+      "line": 30,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Edit goal",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 57,
+      "line": 58,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add a goal",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 57,
+      "line": 58,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "A savings or emergency-fund target.",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 58,
+      "line": 59,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Save",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 59,
+      "line": 60,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Add goal",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 59,
+      "line": 60,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Name",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 64,
+      "line": 65,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Emergency Fund, Vacation",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 64,
+      "line": 65,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Target amount",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 65,
+      "line": 66,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 1000",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 65,
+      "line": 66,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "decimal-pad",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 65,
+      "line": 66,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Current amount saved",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 66,
+      "line": 67,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 250",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 66,
+      "line": 67,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "decimal-pad",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 66,
+      "line": 67,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Type",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 68,
+      "line": 69,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Emergency fund",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 70,
+      "line": 71,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Savings",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 70,
+      "line": 71,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
-      "text": "Enter a name.",
-      "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 27,
-      "origin": "call:setError",
-      "bucket": "copy"
-    },
-    {
-      "text": "Enter an amount greater than 0.",
-      "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 28,
-      "origin": "call:setError",
-      "bucket": "copy"
-    },
-    {
       "text": "Edit spending item",
       "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 46,
+      "line": 47,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add a spending item",
       "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 46,
+      "line": 47,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Everyday spending you reserve each paycheck (groceries, gas, fun).",
       "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 47,
+      "line": 48,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Save",
       "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 48,
+      "line": 49,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Add item",
       "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 48,
+      "line": 49,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Name",
       "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 53,
+      "line": 54,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Groceries, gas, fun",
       "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 53,
+      "line": 54,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Amount per paycheck",
       "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 55,
+      "line": 56,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 300",
       "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 58,
+      "line": 59,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "decimal-pad",
       "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 59,
+      "line": 60,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Count toward my reserve",
       "file": "apps/rn/src/components/entities/LivingExpenseSheet.tsx",
-      "line": 62,
+      "line": 63,
       "origin": "prop:label",
       "bucket": "copy"
     },
@@ -4704,233 +4417,212 @@
       "bucket": "copy"
     },
     {
-      "text": "Enter a name.",
-      "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 36,
-      "origin": "call:setError",
-      "bucket": "copy"
-    },
-    {
-      "text": "Enter the current balance.",
-      "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 41,
-      "origin": "call:setError",
-      "bucket": "copy"
-    },
-    {
-      "text": "Enter the minimum payment.",
-      "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 45,
-      "origin": "call:setError",
-      "bucket": "copy"
-    },
-    {
       "text": "Enter the amount.",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 49,
+      "line": 50,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Add & Continue",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 89,
+      "line": 90,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Skip, I'll add later",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 90,
+      "line": 91,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Add your first debt or expense",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 94,
+      "line": 95,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "See your plan come to life right away. You can add more any time.",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 96,
+      "line": 97,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Debt",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 107,
+      "line": 108,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Expense",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 108,
+      "line": 109,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Something with a balance you’re paying down — a card, a loan, a mortgage. It ends.",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 119,
+      "line": 120,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "An ongoing cost that doesn’t end — rent, phone, a subscription.",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 120,
+      "line": 121,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "field-onboarding-name",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 124,
+      "line": 125,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Debt name",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 125,
+      "line": 126,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Expense name",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 125,
+      "line": 126,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. Visa Card",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 131,
+      "line": 132,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "e.g. Rent",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 131,
+      "line": 132,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "field-onboarding-balance",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 137,
+      "line": 138,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Current balance",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 138,
+      "line": 139,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 2400",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 144,
+      "line": 145,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "decimal-pad",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 145,
+      "line": 146,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "field-onboarding-minimum",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 150,
+      "line": 151,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Minimum payment",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 151,
+      "line": 152,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 35",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 157,
+      "line": 158,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "decimal-pad",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 158,
+      "line": 159,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "APR % (optional)",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 162,
+      "line": 163,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 22.99",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 162,
+      "line": 163,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "field-onboarding-apr",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 162,
+      "line": 163,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "decimal-pad",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 162,
+      "line": 163,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "field-onboarding-amount",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 168,
+      "line": 169,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Amount",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 169,
+      "line": 170,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 1200",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 175,
+      "line": 176,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "decimal-pad",
       "file": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
-      "line": 176,
+      "line": 177,
       "origin": "other",
       "bucket": "unclassified"
     },
@@ -4942,207 +4634,81 @@
       "bucket": "technical"
     },
     {
-      "text": "Weekly",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 19,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Bi-Weekly",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 20,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Semi-Monthly",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 21,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "e.g. 1st & 15th",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 21,
-      "origin": "key:sublabel",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Monthly",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 22,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
       "text": "Enter your paycheck amount to continue.",
       "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 65,
+      "line": 39,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
-      "text": "Enter the amount you can count on.",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 72,
-      "origin": "call:setLeanError",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Your lean paycheck should be no more than a typical one.",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 73,
-      "origin": "call:setLeanError",
-      "bucket": "unclassified"
-    },
-    {
       "text": "Continue",
       "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 95,
+      "line": 69,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Skip for now",
       "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 96,
+      "line": 70,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "When do you get paid?",
       "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 100,
+      "line": 74,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "This sets up your pay cycle so your plan knows which bills are due next.",
       "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 102,
+      "line": 76,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "field-paycheck-amount",
       "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
+      "line": 81,
+      "origin": "other",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "decimal-pad",
+      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
+      "line": 89,
+      "origin": "other",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "decimal-pad",
+      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
       "line": 107,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
-      "text": "Paycheck amount",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 108,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "e.g. 1500",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 114,
-      "origin": "prop:placeholder",
-      "bucket": "copy"
-    },
-    {
-      "text": "decimal-pad",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 115,
-      "origin": "other",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "My income varies",
+      "text": "number-pad",
       "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
       "line": 122,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "The amount you can count on",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 129,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "e.g. 1200",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 132,
-      "origin": "prop:placeholder",
-      "bucket": "copy"
-    },
-    {
-      "text": "decimal-pad",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 133,
       "origin": "other",
       "bucket": "unclassified"
-    },
-    {
-      "text": "Your plan runs on this floor, so a lighter paycheck never breaks it.",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 137,
-      "origin": "jsx-text",
-      "bucket": "copy"
-    },
-    {
-      "text": "Pay cycle",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 143,
-      "origin": "jsx-text",
-      "bucket": "copy"
-    },
-    {
-      "text": "First payday",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 150,
-      "origin": "prop:label",
-      "bucket": "copy"
     },
     {
       "text": "number-pad",
       "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 150,
+      "line": 125,
       "origin": "other",
       "bucket": "unclassified"
-    },
-    {
-      "text": "Second payday",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 153,
-      "origin": "prop:label",
-      "bucket": "copy"
     },
     {
       "text": "number-pad",
       "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 153,
+      "line": 131,
       "origin": "other",
       "bucket": "unclassified"
-    },
-    {
-      "text": "Payday (day of month)",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 159,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "number-pad",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 159,
-      "origin": "other",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Next paycheck",
-      "file": "apps/rn/src/components/onboarding/PaycheckStep.tsx",
-      "line": 163,
-      "origin": "jsx-text",
-      "bucket": "copy"
     },
     {
       "text": "A guardian for every payday",
@@ -7042,198 +6608,72 @@
       "bucket": "technical"
     },
     {
-      "text": "Weekly",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 19,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Bi-Weekly",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 20,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Semi-Monthly",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 21,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "e.g. 1st & 15th",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 21,
-      "origin": "key:sublabel",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Monthly",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 22,
-      "origin": "key:label",
-      "bucket": "copy"
-    },
-    {
       "text": "Enter your paycheck amount.",
       "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 74,
+      "line": 49,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
-      "text": "Enter the amount you can count on.",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 80,
-      "origin": "call:setLeanError",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Your lean paycheck should be no more than a typical one.",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 81,
-      "origin": "call:setLeanError",
-      "bucket": "unclassified"
-    },
-    {
       "text": "Paycheck & pay cycle",
       "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 101,
+      "line": 76,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Your income and when it lands — the foundation of every plan.",
       "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 102,
+      "line": 77,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Save paycheck",
       "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 103,
+      "line": 78,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
-      "text": "Paycheck amount",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 107,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "e.g. 1500",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 110,
-      "origin": "prop:placeholder",
-      "bucket": "copy"
-    },
-    {
       "text": "decimal-pad",
       "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 111,
+      "line": 86,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
-      "text": "My income varies",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 120,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "The amount you can count on",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 127,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "e.g. 1200",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 130,
-      "origin": "prop:placeholder",
-      "bucket": "copy"
-    },
-    {
       "text": "decimal-pad",
+      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
+      "line": 106,
+      "origin": "other",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "number-pad",
+      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
+      "line": 122,
+      "origin": "other",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "number-pad",
+      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
+      "line": 125,
+      "origin": "other",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "number-pad",
       "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
       "line": 131,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
-      "text": "Your plan runs on this floor, so a lighter paycheck never breaks it.",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 135,
-      "origin": "jsx-text",
-      "bucket": "copy"
-    },
-    {
-      "text": "Pay cycle",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 142,
-      "origin": "jsx-text",
-      "bucket": "copy"
-    },
-    {
-      "text": "First payday",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 149,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "number-pad",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 149,
-      "origin": "other",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Second payday",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 152,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "number-pad",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 152,
-      "origin": "other",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Payday (day of month)",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 158,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "number-pad",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 158,
-      "origin": "other",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "Next paycheck",
-      "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 162,
-      "origin": "jsx-text",
-      "bucket": "copy"
-    },
-    {
       "text": "This paycheck didn't arrive",
       "file": "apps/rn/src/components/plan/PaycheckSheet.tsx",
-      "line": 170,
+      "line": 143,
       "origin": "prop:label",
       "bucket": "copy"
     },
@@ -8472,133 +7912,126 @@
     {
       "text": "Covers your bills & essentials first",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 20,
+      "line": 21,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "check-circle",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 20,
+      "line": 21,
       "origin": "key:icon",
       "bucket": "technical"
     },
     {
       "text": "Extra to your debt",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 21,
+      "line": 22,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "trending-down",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 21,
+      "line": 22,
       "origin": "key:icon",
       "bucket": "technical"
     },
     {
       "text": "To your emergency fund",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 22,
+      "line": 23,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "Toward your goals",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 23,
+      "line": 24,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "Held as your safety net",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 24,
+      "line": 25,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "Left as spare cash",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 25,
+      "line": 26,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "account-balance-wallet",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 25,
+      "line": 26,
       "origin": "key:icon",
       "bucket": "technical"
     },
     {
-      "text": "Enter an amount greater than 0.",
-      "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 61,
-      "origin": "call:setError",
-      "bucket": "copy"
-    },
-    {
       "text": "Extra income",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 77,
+      "line": 78,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "A bonus, refund, or side gig — added to this paycheck only.",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 78,
+      "line": 79,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Confirm",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 79,
+      "line": 80,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 79,
+      "line": 80,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Amount",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 84,
+      "line": 85,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 500",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 90,
+      "line": 91,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "decimal-pad",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 91,
+      "line": 92,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "HERE&apos;S HOW THE APP WILL ROUTE",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 99,
+      "line": 100,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Confirm to route it this way — your whole plan updates. Your call.",
       "file": "apps/rn/src/components/plan/WindfallSheet.tsx",
-      "line": 110,
+      "line": 111,
       "origin": "jsx-text",
       "bucket": "copy"
     },
@@ -10301,6 +9734,286 @@
       "file": "apps/rn/src/store/guardianSubjects.ts",
       "line": 66,
       "origin": "call:ids.add",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Monthly",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 24,
+      "origin": "key:'monthly'",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Weekly",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 25,
+      "origin": "key:'weekly'",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Every 2 weeks",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 26,
+      "origin": "key:'biweekly'",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "per-paycheck",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 27,
+      "origin": "key:'per-paycheck'",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Every paycheck",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 27,
+      "origin": "key:'per-paycheck'",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Quarterly",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 28,
+      "origin": "key:'quarterly'",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Yearly",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 29,
+      "origin": "key:'annually'",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "one-time",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 30,
+      "origin": "key:'one-time'",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "One-time",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 30,
+      "origin": "key:'one-time'",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "subscriptions",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 46,
+      "origin": "var:BILL_CATEGORY_ORDER",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "discretionary",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 49,
+      "origin": "var:BILL_CATEGORY_ORDER",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Housing",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 55,
+      "origin": "key:housing",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Utilities",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 56,
+      "origin": "key:utilities",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Insurance",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 57,
+      "origin": "key:insurance",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Subscriptions",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 58,
+      "origin": "key:subscriptions",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Discretionary",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 59,
+      "origin": "key:discretionary",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Medical",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 60,
+      "origin": "key:medical",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Other",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 61,
+      "origin": "key:other",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Enter a name.",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 77,
+      "origin": "key:nameRequired",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Enter an amount greater than 0.",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 78,
+      "origin": "key:amountPositive",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Enter the current balance.",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 79,
+      "origin": "key:balanceRequired",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Enter the minimum payment.",
+      "file": "apps/rn/src/store/obligationForm.ts",
+      "line": 80,
+      "origin": "key:minimumRequired",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Weekly",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 31,
+      "origin": "key:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "Bi-Weekly",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 32,
+      "origin": "key:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "Semi-Monthly",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 33,
+      "origin": "key:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "e.g. 1st & 15th",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 33,
+      "origin": "key:sublabel",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Monthly",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 34,
+      "origin": "key:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "Paycheck amount",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 39,
+      "origin": "key:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "e.g. 1500",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 39,
+      "origin": "key:placeholder",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "My income varies",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 40,
+      "origin": "key:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "The amount you can count on",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 41,
+      "origin": "key:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "e.g. 1200",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 41,
+      "origin": "key:placeholder",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "First payday",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 42,
+      "origin": "key:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "Second payday",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 43,
+      "origin": "key:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "Payday (day of month)",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 44,
+      "origin": "key:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "Your plan runs on this floor, so a lighter paycheck never breaks it.",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 52,
+      "origin": "var:PAYCHECK_LEAN_HELP",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Pay cycle",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 56,
+      "origin": "key:cycle",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Next paycheck",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 57,
+      "origin": "key:next",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Enter the amount you can count on.",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 65,
+      "origin": "key:leanRequired",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Your lean paycheck should be no more than a typical one.",
+      "file": "apps/rn/src/store/paycheckForm.ts",
+      "line": 66,
+      "origin": "key:leanAboveTypical",
       "bucket": "unclassified"
     },
     {

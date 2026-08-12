@@ -5,6 +5,7 @@ import { SwitchRow } from '@/components/ui/SwitchRow';
 import { TextField } from '@/components/ui/TextField';
 import type { LivingExpense } from '@/data/models';
 import { appStore } from '@/store/appStore';
+import { FORM_ERRORS } from '@/store/obligationForm';
 import { confirmDelete } from '@/utils/confirm';
 
 /**
@@ -24,8 +25,8 @@ export function LivingExpenseSheet({ editing, onClose }: { editing: LivingExpens
   const dirty = snapshot !== initialSnapshot.current;
 
   function submit() {
-    if (!name.trim()) return setError('Enter a name.');
-    if (!amount || Number(amount) <= 0) return setError('Enter an amount greater than 0.');
+    if (!name.trim()) return setError(FORM_ERRORS.nameRequired);
+    if (!amount || Number(amount) <= 0) return setError(FORM_ERRORS.amountPositive);
     const fields = { name: name.trim(), amount: Number(amount), enabled };
     if (isEdit && editing) appStore.getState().updateLivingExpense(editing.id, fields);
     else appStore.getState().addLivingExpense({ id: `living-${Date.now()}`, ...fields });

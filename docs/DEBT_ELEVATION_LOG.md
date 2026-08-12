@@ -6873,3 +6873,44 @@ useless as one that under-reports. → the 928-unclassified classification pass.
 ⚡ **The pattern across W1 and the 4.1.4c before-scan, in one session:** three separate premises checked,
 **three corrected** — the coach-mark replay mechanism, the 210 figure, and T1's own bucket accuracy. The
 before-scan has now paid for itself a third time this session.
+
+### W1.3–W1.4 — the extractions ( 🎯 all four clusters )
+
+Two authorities, both in `store/` following `coachMarkCopy.ts`'s one-subject-per-file precedent:
+
+- **`paycheckForm.ts`** — the paycheck form was written **twice, verbatim**: `PAY_CYCLE_OPTIONS` (sublabel
+  and all), every field label and placeholder, two validation messages, the lean-floor help text, and
+  `nextPaycheckFrom`/`formatPaycheckDate` — the last two being **duplicated logic**, not just copy, which
+  is why they came along rather than being left beside de-duplicated strings.
+- **`obligationForm.ts`** — `RECURRENCE_LABEL` · `BILL_CATEGORY_ORDER`/`LABEL` · `FORM_ERRORS`.
+
+⚡ **The design decision that made cluster 2 safe: labels are shared, the OPTION LIST is not.**
+`DebtSheet` offers six recurrences and deliberately omits `one-time` (a debt terminates by definition);
+`ExpenseSheet` offers seven. Extracting one shared *array* would have silently added an option to the
+debt form — a product change nobody asked for. So the module owns a `Record<Recurrence, string>` and each
+form keeps its own ordered list of values. The same reasoning kept `BNPL_CADENCE`'s *"Every 3 months"* as
+a **stated override** of `RECURRENCE_LABEL.quarterly` rather than a second spelling nobody chose.
+
+**Measured:** copy duplicates **110 → 83** · copy literal sites **794 → 740** · T2 baseline **11 → 5**.
+Gate **167/167**, tsc clean both trees, zero `error-context.md`.
+
+### After-scan
+
+- ⚡ **The SHRINKING baseline caught two misses of my own.** Regenerating T2's baseline after the
+  extraction produced 4 stale entries and 0 fresh — and two were strings I believed were already
+  de-duplicated: a **fifth** site for *"Enter an amount greater than 0."* (`WindfallSheet.tsx:61`, which
+  never appeared in the triage list I worked from) and the lean-floor footnote, still written twice
+  because I had extracted the field copy *around* it. **A baseline that only ever grows cannot report
+  this.** Worth generalising: after any de-duplication, re-derive the gate's baseline and read what
+  *disappeared*, not only what appeared.
+- ⚠️ **A second live divergence, kept deliberately and now stated.** The identical "no amount entered"
+  condition reads *"Enter your paycheck amount to continue."* in onboarding and *"Enter your paycheck
+  amount."* in the sheet. A step in a flow may legitimately say "to continue"; the fix was to make it a
+  documented per-host difference rather than an accident. → confirm at the wording gate.
+- ⚠️ **The repo is CRLF and my first codemod pass silently matched nothing multi-line** while every
+  single-line replacement succeeded — a *partial* edit that still typechecked, which is the dangerous
+  shape. Normalise to LF, replace, restore the original ending. → working notes.
+- ⚡ **The five survivors in T2's baseline are now exactly the five the triage said to leave** — three
+  Guardian band strings whose duplicate is `LiveActivityQA` sample content (it dies at the Phase-6
+  `QA_TOOLS` flip) and two phrases owed to the wording gate. The gate's baseline and the audit's judgement
+  agree, which is what makes the baseline readable rather than a list of accepted debt.

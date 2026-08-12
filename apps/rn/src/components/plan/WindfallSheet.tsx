@@ -10,6 +10,7 @@ import { haptics } from '@/motion';
 import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectWindfallSplit, type WindfallBucketKey } from '@/store/guardianSelectors';
+import { FORM_ERRORS } from '@/store/obligationForm';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -58,7 +59,7 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
   const hasSplit = split != null && split.items.length > 0;
 
   function submit() {
-    if (!validAmount) return setError('Enter an amount greater than 0.');
+    if (!validAmount) return setError(FORM_ERRORS.amountPositive);
     store_.getState().setWindfall(n);
     haptics.success(); // a windfall landing is a positive beat
     onClose();

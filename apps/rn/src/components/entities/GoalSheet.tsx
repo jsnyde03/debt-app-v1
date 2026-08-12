@@ -6,6 +6,7 @@ import { Select } from '@/components/ui/Select';
 import { TextField } from '@/components/ui/TextField';
 import type { Goal } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { FORM_ERRORS } from '@/store/obligationForm';
 import { appStore } from '@/store/appStore';
 import { textStyles } from '@/theme/typography';
 import { confirmDelete } from '@/utils/confirm';
@@ -25,7 +26,7 @@ export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose:
   const dirty = snapshot !== initialSnapshot.current;
 
   function submit() {
-    if (!name.trim()) return setError('Enter a name.');
+    if (!name.trim()) return setError(FORM_ERRORS.nameRequired);
     if (!target || Number(target) <= 0) return setError('Enter a target amount.');
     // 3.7.A3.8 — dedupe goal names, matching the save-for-it flow (`AffordabilityCard.tsx:56`). Two
     // creation paths write the SAME namespace, and only one of them guarded it — so "New couch" could be

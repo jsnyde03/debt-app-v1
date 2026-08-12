@@ -33,11 +33,12 @@ import { ListRow } from '@/components/ui/ListRow';
 import { MasterDetail } from '@/components/ui/MasterDetail';
 import { Pill } from '@/components/ui/Pill';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
-import type { Debt, Goal, RequiredExpense, RequiredExpenseCategory } from '@/data/models';
+import type { Debt, Goal, RequiredExpense } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { appStore } from '@/store/appStore';
 import { selectDebtBalanceView, buildEstimateCaption } from '@/store/balanceSelectors';
+import { BILL_CATEGORY_LABEL, BILL_CATEGORY_ORDER, RECURRENCE_LABEL } from '@/store/obligationForm';
 import { looksLikeDebt } from '@/store/looksLikeDebt';
 import { selectPayoffView } from '@/store/payoffSelectors';
 import { useAppStore } from '@/store/useAppStore';
@@ -493,24 +494,7 @@ function DebtRow({
 //    familiar frame). One-time bills aren't part of that steady load, so they're summed + surfaced
 //    on their own (never as "$0/mo"). Once long, it groups by category (collapsible, count +
 //    per-paycheck subtotal) + a "One-time" group, and offers search. Own virtualized scroll. (1.5.2)
-const BILL_CATEGORY_LABEL: Record<RequiredExpenseCategory, string> = {
-  housing: 'Housing',
-  utilities: 'Utilities',
-  insurance: 'Insurance',
-  subscriptions: 'Subscriptions',
-  discretionary: 'Discretionary',
-  medical: 'Medical',
-  other: 'Other',
-};
-const BILL_CATEGORY_ORDER: RequiredExpenseCategory[] = [
-  'housing',
-  'utilities',
-  'insurance',
-  'subscriptions',
-  'discretionary',
-  'medical',
-  'other',
-];
+
 /** Below this, a flat list reads fine; at/above it, grouping + search earn their chrome. */
 const BILL_GROUPING_THRESHOLD = 8;
 
@@ -628,7 +612,7 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
         const open = searching ? true : !collapsed.has('one-time');
         groups.push({
           key: 'one-time',
-          title: 'One-time',
+          title: RECURRENCE_LABEL['one-time'],
           count: summ.length,
           subtotal: `${formatWhole(amt)} one-time`,
           subtotalA11y: `${formatWhole(amt)} in one-time bills`,

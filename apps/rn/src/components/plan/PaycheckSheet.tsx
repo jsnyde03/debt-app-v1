@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { getNextPaycheckDate, type PayCycle } from '@core/payCycle/getNextPaycheckDate';
+import { type PayCycle } from '@core/payCycle/getNextPaycheckDate';
 
 import { FormSheet } from '@/components/ui/FormSheet';
 import { RadioGroup } from '@/components/ui/RadioGroup';
@@ -10,36 +10,11 @@ import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useActiveStore } from '@/store/StoreContext';
+import { formatPaycheckDate, nextPaycheckFrom, PAY_CYCLE_OPTIONS, PAYCHECK_ERRORS, PAYCHECK_FIELDS, PAYCHECK_LEAN_HELP, PAYCHECK_SECTIONS } from '@/store/paycheckForm';
 import { selectPaycheckMissed } from '@/store/selectors';
 import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-
-const CYCLES: { value: PayCycle; label: string; sublabel?: string }[] = [
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'biweekly', label: 'Bi-Weekly' },
-  { value: 'semimonthly', label: 'Semi-Monthly', sublabel: 'e.g. 1st & 15th' },
-  { value: 'monthly', label: 'Monthly' },
-];
-
-function computeNext(payCycle: PayCycle, firstDay: string, secondDay: string, payDay: string): string {
-  const currentDate = todayLocalISO();
-  try {
-    return getNextPaycheckDate({
-      payCycle,
-      currentDate,
-      semiMonthlyFirstDay: Number(firstDay),
-      semiMonthlySecondDay: Number(secondDay),
-      monthlyPayDay: Number(payDay),
-    });
-  } catch {
-    return getNextPaycheckDate({ payCycle: 'biweekly', currentDate });
-  }
-}
-
-function formatDate(iso: string): string {
-  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-}
 
 /**
  * Edit the paycheck + pay cycle from the Plan tab (the IA-EVOLVE "promote paycheck out of settings"
@@ -68,7 +43,7 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState('');
   const [leanError, setLeanError] = useState('');
 
-  const nextDate = computeNext(payCycle, firstDay, secondDay, payDay);
+  const nextDate = nextPaycheckFrom(payCycle, firstDay, secondDay, payDay);
 
   function submit() {
     if (!amount || Number(amount) <= 0) return setError('Enter your paycheck amount.');
@@ -77,8 +52,8 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
     // without a floor and every downstream feature stays silent, so the user changes a setting, sees
     // nothing happen and concludes it is broken. That is the same defect A9 fixes, one layer in.
     if (varies) {
-      if (!lean || Number(lean) <= 0) return setLeanError('Enter the amount you can count on.');
-      if (Number(lean) > Number(amount)) return setLeanError('Your lean paycheck should be no more than a typical one.');
+      if (!lean || Number(lean) <= 0) return setLeanError(PAYCHECK_ERRORS.leanRequired);
+      if (Number(lean) > Number(amount)) return setLeanError(PAYCHECK_ERRORS.leanAboveTypical);
     }
     store_.getState().updatePaycheck({
       amount,
@@ -104,10 +79,10 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
       onSubmit={submit}
       onClose={onClose}>
       <TextField
-        label="Paycheck amount"
+        label={PAYCHECK_FIELDS.amount.label}
         value={amount}
         onChangeText={(t) => { setAmount(t); setError(''); }}
-        placeholder="e.g. 1500"
+        placeholder={PAYCHECK_FIELDS.amount.placeholder}
         keyboardType="decimal-pad"
         error={error || undefined}
       />
@@ -117,50 +92,48 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
           this cycle, and a reader should not have to sort one from the other. */}
       <View style={styles.group}>
         <SwitchRow
-          label="My income varies"
+          label={PAYCHECK_FIELDS.varies.label}
           value={varies}
           onValueChange={(v) => { setVaries(v); setLeanError(''); }}
         />
         {varies ? (
           <>
             <TextField
-              label="The amount you can count on"
+              label={PAYCHECK_FIELDS.lean.label}
               value={lean}
               onChangeText={(t) => { setLean(t); setLeanError(''); }}
-              placeholder="e.g. 1200"
+              placeholder={PAYCHECK_FIELDS.lean.placeholder}
               keyboardType="decimal-pad"
               error={leanError || undefined}
             />
-            <Text style={[textStyles.footnote, { color: c.text.secondary }]}>
-              Your plan runs on this floor, so a lighter paycheck never breaks it.
-            </Text>
+            <Text style={[textStyles.footnote, { color: c.text.secondary }]}>{PAYCHECK_LEAN_HELP}</Text>
           </>
         ) : null}
       </View>
 
       <View style={styles.group}>
-        <Text style={[textStyles.footnote, styles.groupLabel, { color: c.text.secondary }]}>Pay cycle</Text>
-        <RadioGroup options={CYCLES} value={payCycle} onChange={setPayCycle} />
+        <Text style={[textStyles.footnote, styles.groupLabel, { color: c.text.secondary }]}>{PAYCHECK_SECTIONS.cycle}</Text>
+        <RadioGroup options={PAY_CYCLE_OPTIONS} value={payCycle} onChange={setPayCycle} />
       </View>
 
       {payCycle === 'semimonthly' ? (
         <View style={styles.pair}>
           <View style={styles.pairItem}>
-            <TextField label="First payday" value={firstDay} onChangeText={setFirstDay} placeholder="1" keyboardType="number-pad" />
+            <TextField label={PAYCHECK_FIELDS.firstPayday.label} value={firstDay} onChangeText={setFirstDay} placeholder={PAYCHECK_FIELDS.firstPayday.placeholder} keyboardType="number-pad" />
           </View>
           <View style={styles.pairItem}>
-            <TextField label="Second payday" value={secondDay} onChangeText={setSecondDay} placeholder="15" keyboardType="number-pad" />
+            <TextField label={PAYCHECK_FIELDS.secondPayday.label} value={secondDay} onChangeText={setSecondDay} placeholder={PAYCHECK_FIELDS.secondPayday.placeholder} keyboardType="number-pad" />
           </View>
         </View>
       ) : null}
 
       {payCycle === 'monthly' ? (
-        <TextField label="Payday (day of month)" value={payDay} onChangeText={setPayDay} placeholder="1" keyboardType="number-pad" />
+        <TextField label={PAYCHECK_FIELDS.monthlyPayday.label} value={payDay} onChangeText={setPayDay} placeholder={PAYCHECK_FIELDS.monthlyPayday.placeholder} keyboardType="number-pad" />
       ) : null}
 
       <View style={[styles.nextCard, { backgroundColor: c.background.tertiary, borderColor: c.border.subtle }]}>
-        <Text style={[textStyles.footnote, styles.groupLabel, { color: c.text.secondary }]}>Next paycheck</Text>
-        <Text style={[textStyles.title3, { color: c.text.primary }]}>{formatDate(nextDate)}</Text>
+        <Text style={[textStyles.footnote, styles.groupLabel, { color: c.text.secondary }]}>{PAYCHECK_SECTIONS.next}</Text>
+        <Text style={[textStyles.title3, { color: c.text.primary }]}>{formatPaycheckDate(nextDate)}</Text>
       </View>
 
       {/* §2.3.1 (2.4.7.7): report a missed paycheck → the Guardian pauses deploy + protects the cushion

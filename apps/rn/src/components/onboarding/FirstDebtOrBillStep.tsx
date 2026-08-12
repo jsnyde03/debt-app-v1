@@ -6,6 +6,7 @@ import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import { TextField } from '@/components/ui/TextField';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
+import { FORM_ERRORS } from '@/store/obligationForm';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
@@ -33,16 +34,16 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
 
   function handleAdd() {
     if (!name.trim()) {
-      setError('Enter a name.');
+      setError(FORM_ERRORS.nameRequired);
       return;
     }
     if (type === 'debt') {
       if (!balance || Number(balance) <= 0) {
-        setError('Enter the current balance.');
+        setError(FORM_ERRORS.balanceRequired);
         return;
       }
       if (!minimumPayment || Number(minimumPayment) <= 0) {
-        setError('Enter the minimum payment.');
+        setError(FORM_ERRORS.minimumRequired);
         return;
       }
     } else if (!amount || Number(amount) <= 0) {

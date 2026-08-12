@@ -15,6 +15,7 @@ import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useActiveStore } from '@/store/StoreContext';
 import { useCoachMark } from '@/hooks/use-coach-mark';
+import { FORM_ERRORS, RECURRENCE_LABEL, recurrenceOptions } from '@/store/obligationForm';
 import { TutorialTarget } from '@/store/tutorialTargets';
 import { selectDebtBalanceView } from '@/store/balanceSelectors';
 import { useAppStore } from '@/store/useAppStore';
@@ -27,23 +28,22 @@ function shortDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-const RECURRENCE: { value: Recurrence; label: string }[] = [
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'biweekly', label: 'Every 2 weeks' },
-  { value: 'per-paycheck', label: 'Every paycheck' },
-  { value: 'quarterly', label: 'Quarterly' },
-  { value: 'annually', label: 'Yearly' },
-];
+// ⚠️ No 'one-time' here, and that is deliberate rather than an omission: a debt is terminating by
+// definition, so its cadence describes the repayment rhythm. The LABELS are shared (W1); which values a
+// form offers stays the form's own call.
+const RECURRENCE = recurrenceOptions(['monthly', 'weekly', 'biweekly', 'per-paycheck', 'quarterly', 'annually']);
 
 // BNPL payment cadence — how often an installment is due. A plan's LENGTH is the number of payments
 // (a "48-month" Affirm plan = Monthly × 48), so this list stays the realistic set of intervals plus
 // one-time (Klarna pay-in-30), not a per-duration enum. Covers biweekly pay-in-4 → long financing.
 const BNPL_CADENCE: { value: Recurrence; label: string }[] = [
-  { value: 'biweekly', label: 'Every 2 weeks' },
-  { value: 'monthly', label: 'Monthly' },
+  { value: 'biweekly', label: RECURRENCE_LABEL.biweekly },
+  { value: 'monthly', label: RECURRENCE_LABEL.monthly },
+  // ⚠️ Deliberately NOT `RECURRENCE_LABEL.quarterly` ("Quarterly"): an installment plan is described by
+  // its interval, not by a calendar name. Stated as an override so the difference is a decision on the
+  // page rather than a second spelling nobody chose.
   { value: 'quarterly', label: 'Every 3 months' },
-  { value: 'one-time', label: 'One-time' },
+  { value: 'one-time', label: RECURRENCE_LABEL['one-time'] },
 ];
 
 // BNPL plans a user is likely to hold; '' = not specified (the row falls back to a generic "BNPL").
@@ -154,7 +154,7 @@ export function DebtSheet({
   }
 
   function submit() {
-    if (!name.trim()) return setError('Enter a name.');
+    if (!name.trim()) return setError(FORM_ERRORS.nameRequired);
 
     if (type === 'bnpl') {
       // Installment-native (2.7.2/2.7.3): the plan is "N payments of $X" — capture those two and
@@ -181,8 +181,8 @@ export function DebtSheet({
       return;
     }
 
-    if (!balance || Number(balance) <= 0) return setError('Enter the current balance.');
-    if (!minimumPayment || Number(minimumPayment) <= 0) return setError('Enter the minimum payment.');
+    if (!balance || Number(balance) <= 0) return setError(FORM_ERRORS.balanceRequired);
+    if (!minimumPayment || Number(minimumPayment) <= 0) return setError(FORM_ERRORS.minimumRequired);
     if (Number(minimumPayment) > Number(balance)) return setError('Minimum payment can’t exceed the balance.');
     const fields = {
       name: name.trim(),

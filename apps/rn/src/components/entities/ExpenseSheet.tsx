@@ -8,29 +8,14 @@ import { SwitchRow } from '@/components/ui/SwitchRow';
 import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import type { RequiredExpense, RequiredExpenseCategory } from '@/data/models';
+import { billCategoryOptions, FORM_ERRORS, recurrenceOptions } from '@/store/obligationForm';
 import { appStore } from '@/store/appStore';
 import { confirmDelete } from '@/utils/confirm';
 
-const RECURRENCE: { value: Recurrence; label: string }[] = [
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'biweekly', label: 'Every 2 weeks' },
-  { value: 'per-paycheck', label: 'Every paycheck' },
-  { value: 'one-time', label: 'One time' },
-  { value: 'quarterly', label: 'Quarterly' },
-  { value: 'annually', label: 'Yearly' },
-];
-const CATEGORY: { value: RequiredExpenseCategory; label: string }[] = [
-  { value: 'housing', label: 'Housing' },
-  { value: 'utilities', label: 'Utilities' },
-  { value: 'insurance', label: 'Insurance' },
-  { value: 'subscriptions', label: 'Subscriptions' },
-  // [D25] — also the only forward way a user can mark a NON-subscription deferrable; Recovery's
-  // "Keep essential" toggle only ever moves a bill the other way.
-  { value: 'discretionary', label: 'Discretionary' },
-  { value: 'medical', label: 'Medical' },
-  { value: 'other', label: 'Other' },
-];
+// ⛔ 'one-time' read "One time" HERE and "One-time" in DebtSheet + Money's section header — one object,
+// two spellings, one screen apart. Settled at "One-time" in `obligationForm` (W1).
+const RECURRENCE = recurrenceOptions(['monthly', 'weekly', 'biweekly', 'per-paycheck', 'one-time', 'quarterly', 'annually']);
+const CATEGORY = billCategoryOptions();
 
 /** Unified add/edit sheet for a required bill (one form, both modes). */
 export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | null; onClose: () => void }) {
@@ -53,7 +38,7 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
   const dirty = snapshot !== initialSnapshot.current;
 
   function submit() {
-    if (!name.trim()) return setError('Enter a name.');
+    if (!name.trim()) return setError(FORM_ERRORS.nameRequired);
     if (trial) {
       // A free trial charges $0 now, so allow a blank/0 intro amount here; the full price is what matters.
       if (amount !== '' && !(Number(amount) >= 0)) return setError('Enter the amount you pay now (0 for a free trial).');
@@ -61,7 +46,7 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
       if (!/^\d{4}-\d{2}-\d{2}$/.test(fullChargeDate) || Number.isNaN(Date.parse(`${fullChargeDate}T00:00:00`)))
         return setError('Enter when the full price starts (YYYY-MM-DD).');
     } else if (!amount || Number(amount) <= 0) {
-      return setError('Enter an amount greater than 0.');
+      return setError(FORM_ERRORS.amountPositive);
     }
     const fields = {
       name: name.trim(),
