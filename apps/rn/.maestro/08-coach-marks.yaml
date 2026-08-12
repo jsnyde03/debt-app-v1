@@ -89,6 +89,30 @@ appId: com.jasonsnyder.debtplanner
 # on Money is the whole trigger.
 - tapOn:
     id: "tab-money"
+
+# ══ 4.1.4c · THE PROBE — read the pipeline BEFORE the assertion that has been red for five cycles ══
+# ⛔ ORDER IS THE WHOLE POINT. A failed assertion ABORTS the flow, so anything placed after
+# `.*Press and hold a debt.*` is unreachable on exactly the run that needs it. Five mechanisms have been
+# asserted for this mark and four refuted, every one of them a reading of the code fitted to a single bit
+# of information ("it failed"). This reads five bits instead.
+#
+# ⚠️ The trip to More is a PERTURBATION and is treated as one: Money's screenshot is taken first, so the
+# state the assertion below will judge is recorded before anything navigates. `/more` is pushed over
+# Money, so Money does not unmount and the trace — a module singleton — survives the round trip.
+- takeScreenshot: maestro-debug/s13-3a-money-as-the-assertion-sees-it
+- tapOn:
+    id: "more-button"
+- assertVisible:
+    id: "coach-probe"
+- takeScreenshot: maestro-debug/s13-3b-PROBE-coach-mark-pipeline
+- tapOn:
+    id: "screen-back"
+
+# The check itself. Reading it against the probe screenshot above: `EMPTY` = the hook never armed ·
+# `ready=0` = the debts list was empty when Money mounted · `registry=0` = no provider above the caller ·
+# no `layout:` = the subject never laid out · `show:…=refused(<guard>)` names the guard · `measure:…=NULL`
+# = the suspect already written down (`CoachMarkLayer.tsx:68` vs the burn at `coachMarks.ts:92`) ·
+# `draw:…=DREW` with the assertion still red would mean the callout renders somewhere unassertable.
 - assertVisible:
     text: ".*Press and hold a debt.*"
 - takeScreenshot: maestro-debug/s13-3-row-actions-mark

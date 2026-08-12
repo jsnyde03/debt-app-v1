@@ -1,4 +1,4 @@
-import { QA_TOOLS } from '@/config/qa';
+import { qaEnabled } from '@/config/qa';
 
 import { personaScenario, SANDBOX_STATES, type SandboxState } from './sandboxScenarios';
 import type { SandboxScenario, SandboxStoreInstance } from './sandboxStore';
@@ -39,14 +39,8 @@ interface SandboxHarnessGlobal {
   } | null;
 }
 
-/** Is the harness allowed to exist in this build at all? */
-function harnessEnabled(): boolean {
-  const dev = typeof __DEV__ !== 'undefined' && __DEV__;
-  return dev || QA_TOOLS;
-}
-
 function harnessGlobal(): SandboxHarnessGlobal | null {
-  if (!harnessEnabled()) return null;
+  if (!qaEnabled()) return null;
   const g = globalThis as typeof globalThis & { __debtSandboxHarness?: SandboxHarnessGlobal };
   if (!g.__debtSandboxHarness) g.__debtSandboxHarness = {};
   return g.__debtSandboxHarness;

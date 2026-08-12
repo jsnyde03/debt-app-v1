@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { appStore } from '@/store/appStore';
 import { resumeIndex } from '@/store/tutorialPath';
 import { tutorialSession } from '@/store/tutorialSession';
-import { QA_TOOLS } from '@/config/qa';
+import { qaEnabled } from '@/config/qa';
 import { tutorialRunFor, type TutorialRun } from '@/store/tutorialSelectors';
 
 /**
@@ -36,7 +36,7 @@ export default function TutorialLauncher() {
     //
     // Gated behind the same `__DEV__ || QA_TOOLS` switch as the scenario harness, so both test hooks on
     // this route disappear together at the Phase-6 flip. Outside QA the run always follows the tier.
-    const qa = (typeof __DEV__ !== 'undefined' && __DEV__) || QA_TOOLS;
+    const qa = qaEnabled();
     const run: TutorialRun =
       qa && params.run === 'premium' ? 'premium' : qa && params.run === 'free' ? 'free' : tutorialRunFor(real);
 

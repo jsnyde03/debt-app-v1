@@ -3,6 +3,7 @@ import { createStore } from 'zustand/vanilla';
 import { useStore } from 'zustand';
 
 import { appStore } from '@/store/appStore';
+import { probeCoachMark, resetCoachMarkProbe } from '@/store/coachMarkProbe';
 
 /**
  * 3.5.5.1 — the feature-discovery coach-marks' session state.
@@ -71,20 +72,24 @@ export const coachMarks = createStore<CoachMarkState>((set, get) => ({
   hosts: 0,
 
   show(id) {
+    // 4.1.4c — every refusal below names ITSELF in the probe trace. Four wrong mechanisms for
+    // `debt-row-actions` were all compatible with "show() was refused for some reason"; naming the guard
+    // makes the four mutually exclusive. Inert outside a QA build.
     // Refused, not queued. A mark that waits its turn arrives detached from whatever prompted it, and a
     // user who dismissed one hint does not want a second appearing in its place.
-    if (get().active) return;
+    if (get().active) return probeCoachMark(`show:${id}=refused(active=${get().active})`);
     // 3.5.5.2 — and refused while any screen is already interrupting.
-    if (get().suppressors > 0) return;
+    if (get().suppressors > 0) return probeCoachMark(`show:${id}=refused(suppressors=${get().suppressors})`);
     // Offered once. The caller is a layout signal, so without this the mark returns every time the user
     // reopens the sheet — which is the definition of nagging about a thing they have already been told.
-    if (get().shown.has(id)) return;
+    if (get().shown.has(id)) return probeCoachMark(`show:${id}=refused(shownThisRun)`);
     // 3.5.5.3 — and once EVER, not once per launch. Read from the REAL store deliberately, never the
     // active one: a mark met inside the Example world would otherwise burn the hint the real user has
     // not been shown. This is also why `coachMarksSeen` must never join `TUTORIAL_WRITABLE_PREFS`.
     const prefs = appStore.getState().store.prefs;
-    if (prefs.coachMarksSeen.includes(id)) return;
+    if (prefs.coachMarksSeen.includes(id)) return probeCoachMark(`show:${id}=refused(seenPref)`);
 
+    probeCoachMark(`show:${id}=ACCEPTED`);
     set((s) => ({ active: id, shown: new Set(s.shown).add(id) }));
     // Recorded on OFFER, not on dismissal — the same rule the tutorial invitation follows. A user who
     // saw the hint and ignored it has been told; re-offering it because they never tapped "Got it"
@@ -121,6 +126,10 @@ export const coachMarks = createStore<CoachMarkState>((set, get) => ({
 export function resetCoachMarks(): void {
   appStore.getState().updatePrefs({ coachMarksSeen: [] });
   coachMarks.setState({ shown: new Set<string>(), active: null });
+  // 4.1.4c — the trace describes ONE attempt. Carrying the pre-reset entries forward would make the
+  // readout show a `refused(seenPref)` from before the reset beside the attempt that followed it, which
+  // is precisely the ambiguity the probe exists to remove.
+  resetCoachMarkProbe();
 }
 
 /** Is THIS target the one currently marked? Subscribes narrowly so an unrelated mark re-renders nothing. */

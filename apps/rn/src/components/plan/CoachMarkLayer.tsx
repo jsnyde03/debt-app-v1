@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppColors } from '@/hooks/use-app-colors';
 import { COACH_MARKS } from '@/store/coachMarkCopy';
+import { probeCoachMark } from '@/store/coachMarkProbe';
 import { coachMarks, useActiveCoachMark, useCoachMarkHosts } from '@/store/coachMarks';
 import { useTutorialTargets, type TargetRect } from '@/store/tutorialTargets';
 import { layout, spacing } from '@/theme/spacing';
@@ -56,12 +57,27 @@ export function CoachMarkLayer({ nested = false }: { nested?: boolean } = {}) {
     // reported as not-ready rather than as an empty rect. A null here means the mark simply does not show,
     // which is the right failure: a hint pointing at nothing is worse than a hint that waited.
     void targets.measure(active).then((r) => {
+      // 4.1.4c — the measure result, recorded whether or not this effect was cancelled. A cancelled
+      // measurement is itself a candidate mechanism (the layer re-running and discarding the only rect it
+      // ever got), so suppressing the record here would hide the thing it is meant to catch.
+      probeCoachMark(
+        `measure:${active}=${r ? `${Math.round(r.width)}x${Math.round(r.height)}@${Math.round(r.x)},${Math.round(r.y)}` : 'NULL'}${cancelled ? ' (cancelled)' : ''}`,
+      );
       if (!cancelled) setRect(r);
     });
     return () => {
       cancelled = true;
     };
   }, [active, targets]);
+
+  // 4.1.4c — the layer's final verdict, recorded from an EFFECT rather than from the render body: this
+  // component renders on every host/rect change, and a side effect in a render path is exactly the kind
+  // of instrument that reports something other than what shipped. Mirrors the returns below.
+  useEffect(() => {
+    if (!active) return;
+    const verdict = !nested && hosts > 0 ? `stoodDownFor(hosts=${hosts})` : !rect ? 'noRect' : !COACH_MARKS[active] ? 'noCopy' : 'DREW';
+    probeCoachMark(`draw:${active}=${verdict} nested=${nested ? 1 : 0}`);
+  }, [active, rect, hosts, nested]);
 
   // The innermost host draws. Outside any sheet `hosts` is 0 and the root layer behaves exactly as before.
   if (!nested && hosts > 0) return null;

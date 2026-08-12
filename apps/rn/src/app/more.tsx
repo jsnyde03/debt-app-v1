@@ -21,7 +21,8 @@ import { appStore } from '@/store/appStore';
 import { resetCoachMarks } from '@/store/coachMarks';
 import { useAppStore } from '@/store/useAppStore';
 import { useLayout } from '@/hooks/use-layout';
-import { QA_TOOLS } from '@/config/qa';
+import { qaEnabled } from '@/config/qa';
+import { CoachMarkProbeReadout } from '@/components/more/CoachMarkProbeReadout';
 import { LiveActivityQA } from '@/components/more/LiveActivityQA';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -295,7 +296,7 @@ export default function MoreScreen() {
       {/* On-DEVICE QA tools only (Live Activities are iOS-only; the Simulate-Premium toggle is for
           TestFlight). Kept off web — it's the e2e surface, and the "Unlock premium features…" subtitle
           otherwise collides with the paywall's "Unlock Premium" entry. */}
-      {(__DEV__ || QA_TOOLS) && Platform.OS !== 'web' ? (
+      {qaEnabled() && Platform.OS !== 'web' ? (
         <Section title="Developer / QA">
           <SettingGroup>
             <SettingRow
@@ -316,6 +317,7 @@ export default function MoreScreen() {
           {/* 3.5.3 device-QA — trigger the Payday Countdown Live Activity states + the payday-landed drain
               on demand (no need to hand-tune the paycheck date). Removed with QA_TOOLS before submission. */}
           <LiveActivityQA />
+          <CoachMarkProbeReadout />
         </Section>
       ) : null}
 

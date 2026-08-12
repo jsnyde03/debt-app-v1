@@ -6691,3 +6691,102 @@ null).
 
 ⚠️ **Five mechanisms asserted here, four refuted. PROBE IT, DO NOT REASON AT IT** — a targeted probe flow
 or an app-layer test, not a sixth confident explanation.
+
+## 4.1.4c — the coach-mark PROBE, and 4.1.5.1 the iPad boot (2026-08-12)
+
+🎯 The instruction the previous entry closed on: *"PROBE IT, DO NOT REASON AT IT."* This entry is that
+probe. **Nothing here attempts to fix the defect**, and the restraint is the design — a fix riding the
+same run would make a green uninformative, which is the mistake the session before last named.
+
+### Before-scan — the pre-authored suspect, verified rather than assumed
+
+The ledgered suspect (`CoachMarkLayer.tsx:68` returns null while `coachMarks.ts:92` has already burned
+the mark) **survives contact with the code**, unchanged. Two of its neighbours were ruled out:
+
+- ⛔ **A mismatched registry is impossible.** `CoachMarkLayer` (`_layout.tsx:208`) and the
+  `TutorialTarget` are both inside the same `TutorialTargetsProvider` (`:151`–`:214`).
+- ⚡ **Why the replay fix was irrelevant is now EXPLICABLE, not merely observed.** Entering Money after
+  hydration makes `ready` true on the *first* render, so `useCoachMark`'s effect subscribes during commit
+  and `onLayout` fires after it — the listener was already there. Run `31621553581`'s refutation and the
+  source now agree, which is the first time in this defect that two things have.
+
+**Two findings, both filed to the plan in the same edit:**
+
+- ⚠️ **`SectionList`'s `index` is per-SECTION, so `debt-row-actions` can register TWICE.** `money.tsx:377`
+  wraps `index === 0`, which is also the first **PAID OFF** row — two `TutorialTarget`s sharing one
+  registry key, and the `Map` keeps whichever laid out last. The comment at `:374-376` anticipated exactly
+  this hazard *for rows* and missed *sections*. **Latent** (the failing flows carry no paid-off debt), so
+  it is not this defect and was deliberately **not** fixed here.
+- ⚡ **The mark is unobservable to every automated surface except an iOS sim run.** `Platform.OS === 'ios'`
+  (`money.tsx:259`) puts it beyond the web e2e and the `tsx` app-layer runner, and
+  `phase35-themes.shot.ts:106` already recorded that. **That is why it shipped broken**, and it is the
+  whole argument for instrumenting rather than guessing a sixth time.
+
+### What was built
+
+**Five stages, each reported separately** — `hook` (armed, with `ready` and whether a registry was above
+it) · `layout` (the subject laid out and the listener heard it) · `show` (accepted, or refused **naming
+the guard**) · `measure` (the rect, or `NULL`) · `draw` (the layer's verdict). Recorded into a tiny
+RN-free store (`coachMarkProbe.ts`) and rendered on More as `testID="coach-probe"`.
+
+⚡ **Why a RENDERED node rather than a `console.log`.** The lane builds `-configuration Release`, so a
+console call *probably* survives to `os-log.txt` — and "probably" is what has already cost this defect
+five cycles. A rendered node is in the view hierarchy Maestro dumps on every flow anyway, it can be
+asserted on, and it is legible in a screenshot without downloading the artifact.
+
+⚠️ **Mounted on More, not as an overlay.** An always-on readout was the obvious shape and would have put
+the seven currently-green flows at risk from a `pointerEvents` slip or an overlapping bound — a
+diagnostic that becomes a cause. Flow 08 already visits More to reset the marks, so this costs the suite
+nothing it was not already paying.
+
+⛔ **Flow 08 reads the probe BEFORE the assertion, and the order is the whole point.** A failed assertion
+aborts the flow, so anything after `.*Press and hold a debt.*` is unreachable on precisely the run that
+needs it. Money is screenshotted first, so the state the assertion will judge is recorded before the
+navigation perturbs anything.
+
+**Folded in — `qaEnabled()`.** `__DEV__ || QA_TOOLS` was open-coded in **three** places
+(`sandboxHarness.ts`, `more.tsx:298`, `tutorial.tsx:39`) and the probe was about to make it four. The
+failure mode is specific rather than aesthetic: the Phase-6 shutdown is `git grep QA_TOOLS`, so **a copy
+that spells the guard differently is a copy the flip can miss.** Wave A's *"a rule re-derived at each call
+site rather than owned once"*, caught before it became a fourth.
+
+### 4.1.5.1 — the iPad boot, batched onto the same run
+
+🎯 Jason chose to batch it. The reasoning that made it nearly free: the probe touches `src/**`, which is
+in the `.app` cache key, so a full rebuild was being paid **regardless** — and 4.1.3a made the binary
+device-agnostic, so the iPad tier's marginal cost is Maestro time, not another 17 minutes of compile.
+
+[D30] implemented as written: a **`device` workflow input** (`iphone` / `ipad` / `both`) carrying its own
+explicit flow list, which is also the tiering — `01-launch-smoke.yaml` is the shared tier, the new
+`i01-ipad-boot.yaml` is the iPad-only tier, and **02 is absent because it is iPhone-only by design** (its
+subject is a header button inside a modal sheet's swipe area; on a wide iPad the sheet is inline, so it
+would pass while testing nothing).
+
+⛔ **`i01` is a MEASUREMENT, not coverage, and says so in its own header.** Every assertion in it holds on
+both layouts by design — they exist to carry the flow to the next screenshot. Recording it as coverage
+would be 3.5's defect class ① (*"an assertion that passes either way"*).
+
+⚠️ **Rotation is deliberately absent.** §11.8's half needs a command this build has not been shown to
+have, and 4.1.1's rule sends unproven commands through `.maestro/probe/` first — a suite flow that dies on
+a missing command takes the hierarchy dump down with it.
+
+⚡ **Two authoring bugs caught before the run, both in the step I had just written.** Current iPad names
+contain parentheses (*"iPad Pro 13-inch (M4)"*), so the UDID pattern that stopped at the first `(` would
+have matched **nothing**; and GitHub runs `run:` under `bash -e`, so a bare `maestro test` followed by
+`$?` would have aborted the step before the status line — discarding the "how far did it get" that is the
+step's entire output.
+
+### After-scan
+
+- ⚠️ **The coverage split must not count measurement flows.** `lint:selectors` now reports **9 flows**
+  because `i01` is one. Any re-derivation of 68/127 that counts files will overstate itself → filed onto
+  **4.1.11**, which already owns re-deriving that split.
+- ⚡ **The generalizable half of the probe's design:** when the only surface that can observe a defect
+  reports one bit, add stages — not theories. Four wrong mechanisms were all compatible with "the
+  assertion failed"; no arrangement of these five values supports more than one story.
+- ⚠️ **`i01` asserts nothing about column count** (§10, C6) because this build has not been shown to
+  express one. Inventing a selector that happens to match is how a check that proves nothing gets recorded
+  as coverage → the real §10 checks stay owed to **4.1.5**.
+
+**Gate 167/167**, tsc clean both trees, zero `error-context.md`, no stray dev servers. `lint:selectors`
+validates the new `coach-probe` id and all of `i01`'s selectors.

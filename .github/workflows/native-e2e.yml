@@ -43,6 +43,22 @@ on:
         description: 'Force a clean native build (ignore the cached .app)'
         type: boolean
         default: false
+      # 4.1.5 / [D30] — the iPad lane is THREE TIERS IN ONE DIRECTORY, and the device is an INPUT
+      # carrying its own explicit flow list. Not a duplicated `.maestro-ipad/` set: this repo has priced
+      # parallel test surfaces twice (the two screenshot mechanisms, whose stale frames masked the
+      # sandbox theme defect; Wave A's "two places, one rule" landing three times in one wave).
+      #
+      # ⚡ 4.1.3a is what makes `both` affordable. The `.app` is device-agnostic and the cache key does
+      # not mention the device, so the iPad run restores the SAME binary — its marginal cost is Maestro
+      # time, not another 17-minute build.
+      #
+      # ⚠️ A tag push supplies no inputs, so `inputs.device` is empty there and only the iPhone list
+      # runs. That is deliberate for now — the iPad tier is a measurement lane, not yet a release gate.
+      device:
+        description: 'iphone = flows 01-08 · ipad = the [D30] iPad tier (shared seed + iPad-only) · both'
+        type: choice
+        options: [iphone, ipad, both]
+        default: iphone
   push:
     tags: ['v*'] # release tags → a gated native smoke before shipping
 
@@ -377,7 +393,7 @@ jobs:
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
       - name: Run Maestro flows
-        if: inputs.mode != 'probe'
+        if: inputs.mode != 'probe' && inputs.device != 'ipad'
         env:
           # Maestro's iOS driver often exceeds its default startup timeout on a cold CI sim.
           MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
@@ -407,6 +423,67 @@ jobs:
             .maestro/07-money-add-and-rescue.yaml \
             .maestro/08-coach-marks.yaml \
             --format junit --output maestro-report.xml --debug-output ./maestro-debug
+
+      # ── 4.1.5.1 · THE IPAD TIER ( [D30] ) ───────────────────────────────────────────────────────
+      # ⛔ `continue-on-error` ON PURPOSE, and it is not laziness. This step's deliverable is a hierarchy
+      # dump and five screenshots, not a verdict — 4.1.5's whole first question is whether the iPhone-
+      # tuned shared flows survive a 1024pt-wide layout, and "they did not" is a RESULT to read, not a
+      # reason to fail a job that is also carrying the 4.1.4c coach-mark probe. A red here must not take
+      # the iPhone lane's answer down with it.
+      #
+      # ⚠️ ONE simulator booted at a time. Maestro targets the booted device, so with two up it would
+      # pick one and this step would silently re-run the iPhone suite on the iPhone. `--device` exists as
+      # a CLI flag but is UNPROVEN on this build, and 4.1.1's rule is that unproven commands go through
+      # the probe lane first — shutting the iPhone down needs nothing unproven.
+      #
+      # The flow list is explicit for 4.1.3b's reason (Maestro specifies no ordering for a directory) and
+      # it IS the [D30] tiering: `01` is the shared tier, `i01` is the iPad-only tier. 02 is absent
+      # because it is iPhone-only by design — its subject is a header button inside a modal sheet's
+      # swipe area, and on a wide iPad the sheet is inline, so it would pass while testing nothing.
+      - name: Boot an iPad simulator and run the [D30] iPad tier
+        if: inputs.mode != 'probe' && (inputs.device == 'ipad' || inputs.device == 'both')
+        continue-on-error: true
+        env:
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
+        run: |
+          xcrun simctl shutdown all || true
+          # Prefer an iPad PRO: [D30]'s premise is about WIDTH (`use-layout.ts` derives `isExpanded` from
+          # it), so the widest available iPad is the one that actually exercises the expanded branches.
+          # ⚠️ The name itself CONTAINS parentheses on every current iPad ("iPad Pro 13-inch (M4)"), so a
+          # pattern that stops at the first `(` matches nothing at all. Anchor on the 36-char UDID and
+          # take everything before it as the name.
+          AVAIL=$(xcrun simctl list devices available | grep -E '^[[:space:]]+iPad' \
+            | sed -E 's/^[[:space:]]*(.+) \(([0-9A-Fa-f-]{36})\) \(.*/\2|\1/')
+          echo "── iPads available ──"; echo "$AVAIL"
+          TARGET=$(echo "$AVAIL" | grep -i 'pro' | tail -1)
+          [ -z "$TARGET" ] && TARGET=$(echo "$AVAIL" | tail -1)
+          if [ -z "$TARGET" ]; then echo "::error::no iPad simulator available on this runner"; exit 1; fi
+          UDID="${TARGET%%|*}"; NAME="${TARGET#*|}"
+          echo "Booting iPad: $NAME ($UDID)"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b || true
+          xcrun simctl install "$UDID" ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
+          mkdir -p maestro-debug
+          xcrun simctl spawn "$UDID" log stream --level debug --style compact \
+            --predicate 'processImagePath CONTAINS "DebtPlannerRN" OR senderImagePath CONTAINS "DebtPlannerRN"' \
+            > maestro-debug/os-log-ipad.txt 2>&1 &
+          LOG_PID=$!
+          # ⚡ MEASURE the frame rather than assuming it. [D30]'s carried hypothesis is entirely about
+          # width, and this is the cheapest possible way to stop it being a hypothesis: the screenshot's
+          # pixel width, printed into the log beside the device name.
+          xcrun simctl io "$UDID" screenshot maestro-debug/ipad-00-boot.png || true
+          sips -g pixelWidth -g pixelHeight maestro-debug/ipad-00-boot.png || true
+          # ⚠️ `|| STATUS=$?`, not a bare call then `$?`. GitHub runs `run:` under `bash -e`, so a red
+          # Maestro would abort the step on the spot — skipping the log kill and the status line, and
+          # throwing away the "it failed, here is how far it got" that is this step's entire output.
+          STATUS=0
+          maestro test \
+            .maestro/01-launch-smoke.yaml \
+            .maestro/i01-ipad-boot.yaml \
+            --format junit --output maestro-report-ipad.xml --debug-output ./maestro-debug-ipad || STATUS=$?
+          kill "$LOG_PID" 2>/dev/null || true
+          echo "iPad tier exit status: $STATUS (recorded, not fatal — see the step comment)"
+          exit 0
 
       # ── 4.1.1 · THE CAPABILITY PROBE ────────────────────────────────────────────────────────────
       # Each file runs in its OWN maestro invocation, and a failure is recorded rather than fatal.
@@ -541,4 +618,7 @@ jobs:
           path: |
             apps/rn/maestro-report.xml
             apps/rn/maestro-debug/**
+            apps/rn/maestro-report-ipad.xml
+            apps/rn/maestro-debug-ipad/**
             !apps/rn/maestro-debug/**/device-simulator.log
+            !apps/rn/maestro-debug-ipad/**/device-simulator.log

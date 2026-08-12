@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { coachMarks } from '@/store/coachMarks';
+import { probeCoachMark } from '@/store/coachMarkProbe';
 import { useTutorialTargets } from '@/store/tutorialTargets';
 
 /**
@@ -27,11 +28,16 @@ import { useTutorialTargets } from '@/store/tutorialTargets';
 export function useCoachMark(id: string, ready: boolean): void {
   const targets = useTutorialTargets();
   useEffect(() => {
+    // 4.1.4c — record the ARM separately from the layout event. "The mark never appeared" is compatible
+    // with `ready` never flipping, with no registry above the caller, and with the subject never laying
+    // out; those are three different defects and this is what tells them apart.
+    probeCoachMark(`hook:${id} ready=${ready ? 1 : 0} registry=${targets ? 1 : 0}`);
     if (!ready || !targets) return;
     let asked = false;
     const unsubscribe = targets.subscribe((laidOut) => {
       if (asked || laidOut !== id) return;
       asked = true;
+      probeCoachMark(`layout:${id}`);
       coachMarks.getState().show(id);
     });
     return unsubscribe;

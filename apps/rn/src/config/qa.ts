@@ -9,6 +9,22 @@
 export const QA_TOOLS = true;
 
 /**
+ * Is QA tooling allowed to exist in this build at all — `__DEV__` OR the shipped `QA_TOOLS` switch?
+ *
+ * ⚠️ **Extracted because it was already written three times** (`sandboxHarness.ts`'s `harnessEnabled`,
+ * `more.tsx:298`, `tutorial.tsx:39`) and the coach-mark probe was about to make it four. This repo has
+ * priced that shape three times in one wave — *"a rule re-derived at each call site rather than owned
+ * once"* — and the failure mode here is specific: the Phase-6 flip is `git grep QA_TOOLS`, so a copy that
+ * spells the guard differently is a copy the flip can miss. **Agreeing copies are still copies.**
+ *
+ * `typeof` guard rather than a bare `__DEV__`: this module is reachable from the app-layer test runner,
+ * which runs under `tsx` with no React Native global.
+ */
+export function qaEnabled(): boolean {
+  return (typeof __DEV__ !== 'undefined' && __DEV__) || QA_TOOLS;
+}
+
+/**
  * 3.5.8.3 — is THIS build an App-Preview capture build?
  *
  * `EXPO_PUBLIC_*` is inlined by Metro at BUILD time, so this is a constant in the bundle: a real build
