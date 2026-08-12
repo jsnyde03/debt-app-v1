@@ -12,6 +12,7 @@ import {
   type SandboxScenario,
 } from '@/store/sandboxStore';
 import { selectGuardianProofOfWork, selectPaydayGuardian } from '@/store/guardianSelectors';
+import { selectOnPlanStreakLabel } from '@/store/planSelectors';
 import { deriveConfidenceContext } from '@/store/guardianPredictionCore';
 import { bootstrapPersistence } from '@/store/persistence';
 import { createDebtStore } from '@/store/store';
@@ -229,6 +230,15 @@ async function run() {
   assert(
     pow === null || pow.heldStreak <= SANDBOX_MAX_HISTORY,
     'the proof-of-work strip cannot announce a multi-paycheck held streak on a day-one demo',
+  );
+
+  // Channel 2b (3.7.B.3) — the FREE on-plan streak is the same class of claim on a different screen, so it
+  // gets the same guarantee. Structural, not a flag: the caption's floor is 2 and `cycleHistory` is clamped
+  // to `SANDBOX_MAX_HISTORY` (1), so a scripted demo cannot reach it however many rollovers are driven.
+  eq(
+    selectOnPlanStreakLabel(s),
+    null,
+    'the Progress hero cannot announce an on-plan streak on a day-one demo either',
   );
 
   // Channel 3 — a variable-income scenario cannot clear the cold-start holdback either.

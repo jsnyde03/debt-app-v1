@@ -21,6 +21,7 @@ import { selectWhatIf, selectWhatIfBaseline } from '@/store/analysisSelectors';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectVanquishedDebts } from '@/store/celebrationSelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
+import { selectOnPlanStreakLabel } from '@/store/planSelectors';
 import { effectivePaycheckBuffer } from '@/store/selectors';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
@@ -138,6 +139,10 @@ export default function ProgressScreen() {
   // next milestone IS Free and the DEBT-FREE date already says it.
   const nextMilestoneLabel = nextT && nextT < 100 ? `Next milestone: ${nextT}%` : null;
 
+  // 3.7.B.3 (F10.3) — the free on-plan streak. Read from the RAW store: the streak is a fact about what
+  // the user did in past cycles, so the projected-balance wrapper has no bearing on it.
+  const onPlanStreakLabel = selectOnPlanStreakLabel(store);
+
   // One collapsed screen-reader utterance for the ring (which is otherwise a decorative canvas).
   const reached = MILE_TS.filter((t) => pct >= t && t < 100).map((t) => `${t}%`);
   const ringA11y = groupLabel(
@@ -178,6 +183,13 @@ export default function ProgressScreen() {
             {/* 3.4.2.1 — the next milestone, read as a clean caption (the ring's glowing node marks it visually). */}
             {nextMilestoneLabel ? (
               <Text style={[textStyles.caption, styles.nextMile, { color: surf.heroSub }]}>{nextMilestoneLabel}</Text>
+            ) : null}
+            {/* 3.7.B.3 (F10.3) [D27] — the free on-plan streak, ported from the Capacitor app WITHOUT its
+                flame + count badge: a caption in the same voice as the line above it, not gamification
+                chrome. Lives here rather than on Today, where the premium "Held your line" strip already
+                states a (different) streak — see `selectOnPlanStreakLabel`. Null below 2 cycles. */}
+            {onPlanStreakLabel ? (
+              <Text style={[textStyles.caption, styles.nextMile, { color: surf.heroSub }]}>{onPlanStreakLabel}</Text>
             ) : null}
           </View>
         </View>
