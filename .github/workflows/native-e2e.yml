@@ -440,8 +440,15 @@ jobs:
       # it IS the [D30] tiering: `01` is the shared tier, `i01` is the iPad-only tier. 02 is absent
       # because it is iPhone-only by design — its subject is a header button inside a modal sheet's
       # swipe area, and on a wide iPad the sheet is inline, so it would pass while testing nothing.
+      # ⛔ `!cancelled()` IS LOAD-BEARING — without it this step never runs on the day it matters. Run
+      # 31626109780 skipped it entirely: a bare `if:` gets an implicit `success()`, and the iPhone
+      # Maestro step had failed (flow 08, as expected — that run existed to diagnose it). So the iPad
+      # measurement was silently dropped by the very condition that was supposed to schedule it.
+      # ⚠️ `continue-on-error` does NOT cover this. It stops THIS step's failure from failing the job;
+      # it says nothing about whether the step runs after an EARLIER failure. Two different mechanisms,
+      # and I conflated them.
       - name: Boot an iPad simulator and run the [D30] iPad tier
-        if: inputs.mode != 'probe' && (inputs.device == 'ipad' || inputs.device == 'both')
+        if: ${{ !cancelled() && inputs.mode != 'probe' && (inputs.device == 'ipad' || inputs.device == 'both') }}
         continue-on-error: true
         env:
           MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'

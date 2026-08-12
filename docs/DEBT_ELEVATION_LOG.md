@@ -6914,3 +6914,40 @@ Gate **167/167**, tsc clean both trees, zero `error-context.md`.
   Guardian band strings whose duplicate is `LiveActivityQA` sample content (it dies at the Phase-6
   `QA_TOOLS` flip) and two phrases owed to the wording gate. The gate's baseline and the audit's judgement
   agree, which is what makes the baseline readable rather than a list of accepted debt.
+
+## Run `31626109780` — 7/8, and BOTH failures were mine, in the diagnostic itself (2026-08-12)
+
+Flows 01–07 green. **08 failed at `Assertion is false: id: coach-probe is visible`** — the probe readout,
+not the coach mark. The run produced no reading of the pipeline at all.
+
+### ⛔ Miss 1 — the probe was below the fold, and I asserted it without scrolling
+
+"Developer / QA" is the **last** section on More (`more.tsx:300`), so on a phone the readout sits off
+screen. **The same class as the sticky-CTA-covering-the-fields defect 4.1.3 found** — committed by the
+very flow written to diagnose something else. `scrollUntilVisible` was proven on this build in **three
+existing flows** (02, 05, 06) and I did not look. `feedback_the_codebase_already_said_it`, again.
+
+### ⚠️ And the artifact nearly produced a WRONG diagnosis — read what is MISSING, carefully
+
+`coach-probe` appears **zero** times in the failing step's hierarchy dump, which reads as *"the element
+never rendered"*. It is not: **`Version` — an unconditional row in More's About section — is also
+absent**, while `Show feature tips` and `Export backup` (both higher up the same screen) are present.
+
+⚡ **Maestro's iOS hierarchy reports on-screen nodes only, so absence from a dump is not evidence of
+absence from the tree.** Without the `Version` control I would have "confirmed" that the QA section does
+not render in a Release build and gone looking for a `qaEnabled()` bug that does not exist. The check that
+settled it was finding a KNOWN-rendered element in the same off-screen region — the same move that settled
+flow 08 last session: **compare against a case you already understand.**
+
+### ⛔ Miss 2 — the iPad tier was skipped by its own condition
+
+`if: inputs.mode != 'probe' && (...)` gets an **implicit `success()`** in GitHub Actions, and the iPhone
+Maestro step had just failed — *as that run was designed to do*. So the iPad measurement was dropped by the
+condition meant to schedule it. ⚠️ **`continue-on-error` does not cover this**: it stops this step's own
+failure from failing the job and says nothing about running after an earlier one. Two mechanisms,
+conflated. Now `!cancelled() && …`.
+
+⚡ **The pattern worth naming: a diagnostic run has to be authored for the world in which the thing it
+diagnoses is still broken.** Both misses assumed a green run — one asserted a bottom-of-screen element as
+if the flow would arrive there anyway, the other scheduled the iPad tier behind a step that was expected
+to fail. The probe design was right; its delivery assumed success.

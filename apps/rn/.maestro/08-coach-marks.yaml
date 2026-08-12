@@ -102,6 +102,15 @@ appId: com.jasonsnyder.debtplanner
 - takeScreenshot: maestro-debug/s13-3a-money-as-the-assertion-sees-it
 - tapOn:
     id: "more-button"
+# ⛔ SCROLL FIRST. Run 31626109780 failed right here — `Assertion is false: id: coach-probe is visible` —
+# and the readout was rendering correctly the whole time: "Developer / QA" is the LAST section on More
+# (`more.tsx:300`), so the probe sits below the fold on a phone. Asserting a bottom-of-screen element
+# without scrolling to it is the same class as the sticky-CTA defect 4.1.3 found, committed by the very
+# flow written to diagnose one. `scrollUntilVisible` is proven on this build — flows 02, 05 and 06 use it.
+- scrollUntilVisible:
+    element:
+      id: "coach-probe"
+    direction: DOWN
 - assertVisible:
     id: "coach-probe"
 - takeScreenshot: maestro-debug/s13-3b-PROBE-coach-mark-pipeline
