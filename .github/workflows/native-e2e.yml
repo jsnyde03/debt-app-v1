@@ -524,12 +524,21 @@ jobs:
         with:
           name: maestro-report
           include-hidden-files: true
+          # ⛔ DROP `device-simulator.log` — 300 MB of run 31603811840's 322 MB was this one file per
+          # flow, Maestro's dump of the ENTIRE simulator syslog, 118 MB for flow 01 alone. Never read
+          # once: the app-filtered unified log is captured separately as `maestro-debug/os-log.txt`, and
+          # native crashes have their own step. The diagnose loop is what this lane's speed depends on.
+          #
+          # ⚠️ THE COMMENTS BELONG HERE, NOT IN THE BLOCK. The first attempt at this put them inside
+          # `path: |`, where every line is literal text — so each `#` line became a path PATTERN. The
+          # exclusion was also quoted, which upload-artifact does not accept. Net effect on run
+          # 31607274947: still 364 MB, and because the bogus patterns did not share the `apps/rn` prefix,
+          # the artifact's common root moved to the workspace root and every debug path gained an
+          # `apps/rn/` segment mid-investigation.
+          # Syntax verified against the action's own docs: bare `!`, unquoted, AFTER the includes — and
+          # "exclude paths do not affect the directory structure", so the layout returns to
+          # `maestro-debug/…` at the artifact root once the bogus includes are gone.
           path: |
             apps/rn/maestro-report.xml
             apps/rn/maestro-debug/**
-            # ⛔ 300 MB of run 31603811840's 322 MB artifact was this one file per flow — Maestro's dump
-            # of the ENTIRE simulator syslog, 118 MB for flow 01 alone. It has never been read once: the
-            # app-filtered unified log is captured separately as `maestro-debug/os-log.txt`, and native
-            # crashes have their own collection step. Excluding it takes the download from ~7 minutes to
-            # seconds, and the diagnose loop is the thing this lane's speed actually depends on.
-            '!apps/rn/maestro-debug/**/device-simulator.log'
+            !apps/rn/maestro-debug/**/device-simulator.log

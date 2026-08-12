@@ -6350,3 +6350,16 @@ quoted when `upload-artifact` wants it bare. ⚠️ **I stated the fix would tak
 never verified it.** The one measurable effect it did have: adding a second entry changed the action's
 common-root calculation, so the artifact layout moved from `maestro-debug/…` to `apps/rn/maestro-debug/…`.
 → rides the next change that touches the workflow, since that file is in the cache key.
+
+### The artifact exclusion, second attempt (2026-08-12)
+
+Comments moved above the `path:` key; exclusion written bare and unquoted after the includes. **Syntax
+verified against the action's own docs** *(`!` prefix, multi-line block, exclusions last)* and the parse
+checked locally: `path` now yields exactly three entries, no `#` lines, no quoted patterns. The docs also
+say **"exclude paths do not affect the directory structure"**, which confirms the layout shift was caused
+by the bogus include patterns rather than by excluding anything — so the artifact root returns to
+`maestro-debug/…`.
+
+⚠️ **Local verification stops at the parse.** Whether the exclusion actually drops the file is a fact
+about the runner, and the next artifact's size is the only thing that settles it. Claiming it fixed once
+already was the mistake.
