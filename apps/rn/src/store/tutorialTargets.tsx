@@ -77,9 +77,31 @@ const TutorialTargetsContext = createContext<TargetRegistry | null>(null);
 export function TutorialTargetsProvider({ children }: { children: ReactNode }) {
   const nodes = useRef(new Map<string, View>());
 
+  /**
+   * Ids that have laid out and are still mounted — the replay backing `subscribe`.
+   *
+   * ⛔ WITHOUT THIS, A LATE SUBSCRIBER MISSES ITS ONLY EVENT, and one shipped hint never appeared.
+   * `invalidate` fires into a plain listener Set, so a subscriber that arrives after the layout learns
+   * nothing. `useCoachMark(id, ready)` subscribes only once `ready` is true, and
+   * `money.tsx:259` makes `ready` depend on `view.order.length > 0` — which the async store hydration
+   * flips AFTER the row has laid out. The mark was therefore never offered on iOS at all.
+   *
+   * ⚡ The contrast that identified it: `trajectory-scrub` is offered unconditionally, so its `ready`
+   * never changes, its subscription exists from mount, and it works — proven green on web
+   * (`a11y-axe.spec.ts:137`). `debt-row-actions` is the only mark whose `ready` is data-gated, and the
+   * only one that never fires. Same code path, one structural difference.
+   *
+   * Replaying makes "has this laid out" a STATE a subscriber can ask about, rather than an instant it
+   * had to be present for. Unregistering clears it, so an unmounted target is never replayed.
+   */
+  const laidOut = useRef(new Set<string>());
+
   const register = useCallback((id: string, node: View | null) => {
     if (node) nodes.current.set(id, node);
-    else nodes.current.delete(id);
+    else {
+      nodes.current.delete(id);
+      laidOut.current.delete(id);
+    }
   }, []);
 
   const measure = useCallback((id: string) => {
@@ -110,10 +132,14 @@ export function TutorialTargetsProvider({ children }: { children: ReactNode }) {
   
   const listeners = useRef(new Set<(id: string) => void>());
   const invalidate = useCallback((id: string) => {
+    laidOut.current.add(id);
     listeners.current.forEach((fn) => fn(id));
   }, []);
   const subscribe = useCallback((listener: (id: string) => void) => {
     listeners.current.add(listener);
+    // Replay what already happened. A re-measure request is idempotent, so a subscriber that was present
+    // all along simply asks again for something it has already handled.
+    laidOut.current.forEach((id) => listener(id));
     return () => {
       listeners.current.delete(listener);
     };

@@ -6580,3 +6580,46 @@ asserted the same way would be worth nothing. It needs a probe or an app-layer t
   native lane has surfaced today *(after "Add from scan")*, and both were invisible to a green web suite —
   one because it exercised the path for data and not words, this one because a coach mark cannot render in
   a browser at all.
+
+## ⛔ FIX — a late subscriber missed its only event, so one hint never shipped (2026-08-12)
+
+🎯 Jason, overruling my recommendation to defer it: *"leaving a blocker out there is just bad practice."*
+Correct — a shipped feature that does not work is a blocker whatever its surface area.
+
+### What identified it: a CONTRAST, not another story
+
+Four mechanisms had already been asserted and refuted here, so the fifth needed something structural. The
+web suite supplied it — `a11y-axe.spec.ts:137` proves a coach mark **does** render (`toHaveCount(1)` on
+`/progress`, green). So the machinery works, and the question narrows to what is different about the one
+that fails:
+
+| | `trajectory-scrub` — works | `debt-row-actions` — never fires |
+|---|---|---|
+| `ready` | **unconditional** — constant `true` | `Platform.OS === 'ios' && view.order.length > 0` |
+| subscription exists | from mount | only after async hydration flips `ready` |
+
+**The only mark with a data-gated `ready` is the only mark that never appears.** Same code path, one
+structural difference — which is a comparison rather than a narrative, and that is why it is worth acting
+on where the previous four were not.
+
+### The mechanism
+
+`useCoachMark` returns early while `ready` is false and subscribes when it flips. `invalidate` fires into
+a plain listener `Set` with **no replay**, and a row lays out exactly once. So the event arrives before
+the listener exists and is simply lost — permanently, because nothing lays out again.
+
+⚠️ It is a **class** defect, not an instance: any future mark gated on loaded data has it, and would fail
+the same silent way.
+
+### The fix — make it a STATE, not an instant
+
+`TutorialTargetsProvider` now records which ids have laid out, and `subscribe` replays them to a new
+listener. Unregistering clears the id, so an unmounted target is never replayed. A re-measure request is
+idempotent, so a subscriber that was there all along just asks again for something it has handled.
+
+**Gate 167/167**, including the two web coach-mark tests — which is the evidence that the replay does not
+disturb the path that already worked. ⏳ **The iOS path is verified by the next native run, not by this.**
+
+⚡ **Where the earlier reads went wrong, stated plainly:** all four looked at the flow. This one looked at
+the app and asked what distinguishes a working instance from a broken one. The failing artifact could
+never have answered that — only the passing case could.
