@@ -1,14 +1,16 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Card } from '@/components/ui/Card';
-import { CheckCircle } from '@/components/ui/CheckCircle';
+import { CheckCircle, checkOffHaptic } from '@/components/ui/CheckCircle';
 import { Pill } from '@/components/ui/Pill';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useInert } from '@/hooks/use-inert';
 import {
   bucketRequiredRows,
   requiredRowKey,
@@ -17,6 +19,7 @@ import {
   type RequiredRow,
 } from '@/store/planSelectors';
 import type { Allocation } from '@/store/selectors';
+import { a11yHidden } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -186,6 +189,40 @@ function BucketBlock({
   );
 }
 
+/**
+ * The revealed swipe action (3.7.B.4). Its own component because it needs hooks, and `renderRightActions`
+ * is a render callback rather than a component — hooks called there are hooks outside a component.
+ *
+ * Hidden from the a11y tree AND the tab order while the row is CLOSED, and released when it opens.
+ *
+ * Both halves are needed and neither is enough alone. `aria-hidden` by itself leaves the control tabbable
+ * — react-native-web gives every enabled `Pressable` `tabIndex=0` — which is the `aria-hidden-focus`
+ * violation `a11y-axe` caught: worse than either alone, because the element announces nothing when it
+ * receives focus. `focusable={false}` does not clear that tabIndex (measured). `inert` closes both, which
+ * is why it cannot be permanent: `inert` also kills POINTER events, so a permanently-inert action is dead
+ * to the very gesture it exists for (native is unaffected — `useInert` no-ops off web — but 3.5.7's embed
+ * ships this build, so "web only" is not "nobody").
+ */
+function SwipeMarkAction({ testID, paid, open, onPress }: { testID: string; paid: boolean; open: boolean; onPress: () => void }) {
+  const c = useAppColors();
+  const ref = useRef<View>(null);
+  useInert(ref, !open);
+  return (
+    <View ref={ref} testID={`${testID}-fence`} {...a11yHidden(!open)}>
+      <Pressable
+        testID={testID}
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={paid ? 'Undo, mark unpaid' : 'Mark paid'}
+        style={[styles.markAction, { backgroundColor: paid ? c.background.tertiary : c.accent.success }]}>
+        <Text style={[textStyles.subhead, styles.markText, { color: paid ? c.text.secondary : c.text.onAccent }]}>
+          {paid ? 'Undo' : 'Paid'}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
 function RequiredRowView({
   row,
   onMark,
@@ -196,21 +233,41 @@ function RequiredRowView({
   divider: boolean;
 }) {
   const c = useAppColors();
+  const swipeRef = useRef<SwipeableMethods>(null);
+  const [open, setOpen] = useState(false);
   const { view, item, isAutopay, dueDate } = row;
   const due = shortDate(dueDate);
   const showOverdue = (view.overdue && !isAutopay) || view.autopayFailed;
 
+  // 3.7.B.4 [D28] — one predicate, two affordances. A row the user cannot mark by hand (a healthy autopay,
+  // which reports its own state) must not be swipeable either; deriving both from this rather than
+  // repeating the branch is what stops the swipe and the checkbox disagreeing about who owns a row.
+  const canMark = !(isAutopay && !view.autopayFailed);
+
+  // The single write path for BOTH affordances, haptic included (`checkOffHaptic` is CheckCircle's own
+  // rule, exported). The swipe is an accelerator: it must not be able to do anything the tap cannot.
+  const mark = () => {
+    checkOffHaptic(view.isPaid);
+    onMark(row, !view.isPaid);
+  };
+
   let control: React.ReactNode;
   if (isAutopay && view.presumedPaid && !view.autopayFailed) {
     control = <Pill label="Auto-paid" tone="paid" />;
-  } else if (isAutopay && !view.autopayFailed) {
+  } else if (!canMark) {
     control = <Pill label="Autopay" tone="autopay" />;
   } else {
+    // CheckCircle fires the haptic itself, so it takes the bare write.
     control = <CheckCircle checked={view.isPaid} onPress={() => onMark(row, !view.isPaid)} label={`Mark ${item.label} paid`} />;
   }
 
-  return (
-    <View style={[styles.itemRow, divider && { borderBottomColor: c.border.subtle, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+  const body = (
+    <View
+      style={[
+        styles.itemRow,
+        { backgroundColor: c.background.primary }, // the swipe reveals BEHIND the row; it must not show through
+        divider && { borderBottomColor: c.border.subtle, borderBottomWidth: StyleSheet.hairlineWidth },
+      ]}>
       <View style={styles.itemLeft}>
         <Text
           style={[textStyles.bodyMedium, { color: c.text.primary, textDecorationLine: view.isPaid ? 'line-through' : 'none' }]}
@@ -237,6 +294,49 @@ function RequiredRowView({
         {control}
       </View>
     </View>
+  );
+
+  // 3.7.B.4 [D28] — swipe-to-mark-paid: an ACCELERATOR over the one-tap `CheckCircle`, never the only way
+  // in. The checkbox stays exactly as it was, which is what keeps the action reachable by VoiceOver and by
+  // anyone who never discovers a hidden gesture (the legacy app shipped a Mark-Paid pill AND a swipe for
+  // the same reason). No confirm, unlike swipe-to-delete: this is reversible by the same gesture.
+  if (!canMark) return body;
+
+  // ⚠️ The action pane is MOUNTED whether or not the row is open — that is how the reveal animates — so
+  // left unguarded it puts a SECOND control for the same action in the accessibility tree of every row at
+  // all times: VoiceOver announces each bill twice and offers a control nobody can see.
+  //
+  // It is hidden from the a11y tree PERMANENTLY rather than only while closed. Two reasons, and the second
+  // is not a preference: (1) the `CheckCircle` is the accessible path and it is always present, so nothing
+  // is lost — a swipe is a gesture affordance by definition; (2) gating it on open/closed needs component
+  // state, and re-rendering during the open animation resets `ReanimatedSwipeable`'s pan — the row snaps
+  // shut the instant it opens. That was measured here, not assumed.
+  //
+  // The `testID` is what keeps it testable without an accessible name: react-native-web renders it as
+  // `data-testid`, which a test can address per row while a screen reader still cannot reach it.
+  const renderRightActions = () => (
+    <SwipeMarkAction
+      testID={`swipe-mark-${item.category}-${item.targetId}`}
+      paid={view.isPaid}
+      open={open}
+      onPress={() => {
+        mark();
+        swipeRef.current?.close();
+      }}
+    />
+  );
+
+  return (
+    <ReanimatedSwipeable
+      ref={swipeRef}
+      renderRightActions={renderRightActions}
+      onSwipeableWillOpen={() => setOpen(true)}
+      onSwipeableWillClose={() => setOpen(false)}
+      overshootRight={false}
+      rightThreshold={40}
+      containerStyle={styles.swipeContainer}>
+      {body}
+    </ReanimatedSwipeable>
   );
 }
 
@@ -270,6 +370,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.cardPaddingH,
     paddingVertical: spacing.md,
   },
+  // Matches ListRow's delete action so the two swipes on this app feel like one mechanism.
+  swipeContainer: { overflow: 'hidden' },
+  markAction: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: spacing.lg },
+  markText: { fontWeight: '700' },
   itemLeft: { flex: 1, gap: spacing.xs },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   itemRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },

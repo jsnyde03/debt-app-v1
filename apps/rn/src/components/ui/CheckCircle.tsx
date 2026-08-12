@@ -14,6 +14,17 @@ import { duration, spring } from '@/theme/motion';
  * are an accessibility channel, not decoration). `tone` picks the fill: success (paid) or accent
  * (a recommended extra). Accessible as a checkbox.
  */
+/**
+ * The check-off feedback rule: a success pop on check, a light tick on undo. Exported so an ALTERNATE
+ * affordance for the same action (3.7.B.4's swipe-to-mark-paid) feels identical rather than re-deriving
+ * it — an agreeing copy is still a copy, it just has not diverged yet (Wave-A after-scan).
+ *
+ * Haptics are an accessibility channel, not decoration, so this fires under Reduce Motion too.
+ */
+export function checkOffHaptic(checked: boolean) {
+  (checked ? haptics.light : haptics.success)();
+}
+
 export function CheckCircle({
   checked,
   onPress,
@@ -38,8 +49,7 @@ export function CheckCircle({
 
   const handlePress = onPress
     ? () => {
-        // Immediate, felt feedback: a success pop on check, a light tick on undo.
-        (checked ? haptics.light : haptics.success)();
+        checkOffHaptic(checked); // immediate, felt feedback — the rule lives above, shared with the swipe
         onPress();
       }
     : undefined;
