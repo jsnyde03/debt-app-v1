@@ -163,15 +163,18 @@ it on every push. ⚠️ It gained `typecheck:core` + `typecheck:rn` on 2026-08-
 
 ### ⚠️ Standing constraints
 
-- **⛔ BATCH THE NATIVE LANE. Local gate on every change; native at a BATCH BOUNDARY.** 🎯 Jason
-  2026-08-13: *"It feels like we're waiting more than designing."* Measured that day: **~12 native
-  dispatches, several cancelled, for about three runs' worth of distinct information.** `validate:release:rn`
-  is 168/168 in ~6 min locally and catches nearly everything; the native lane's unique value is
-  device-specific, and it is **batchable by nature**. A batch boundary is an event, not a mood: the end of
-  a numbered item, or a change to `.maestro/**` / the workflow / native config. **Put `[skip native]` in
-  the commit message otherwise** — the job-level guard honours it, and `workflow_dispatch` ignores it.
-  ⚠️ The counter-risk is real and is why this is written here rather than remembered: a lane skipped by
-  habit rots green-by-never-running, which is the exact thing the push trigger exists to prevent.
+- **⛔ BATCH THE NATIVE LANE — it is `workflow_dispatch` + tags ONLY, and stays that way.** 🎯 Jason
+  2026-08-13: *"It feels like we're waiting more than designing"* · *"e2e running on push is fine. We just
+  need to not kick off the manual Maestro build every time."* Measured that day: **~12 native dispatches,
+  several cancelled, for about three runs' worth of distinct information.** `web-e2e` on push is the right
+  fast gate; `validate:release:rn` is **168/168 in ~6 min locally** and catches nearly everything. The
+  native lane is ~22 min and its unique value is device-specific — **batchable by nature.** Run it at a
+  batch boundary chosen by a human: the end of a numbered item, or a change only it can verify
+  (`.maestro/**`, the workflow, native config). ⛔ **A branch-push "rot guard" was added and reverted the
+  same day** — it was mine, it spawned a macOS job per commit, and its `paths:` filter also silently broke
+  the release-tag trigger. ⚠️ The rot risk it existed for is real and now unguarded → **a nightly at
+  4.1.11**, which does not tax a working afternoon and also catches out-of-repo rot a path filter never
+  could.
 
 - **Native version pins — do NOT bump:** `react-native-ios-context-menu@3.1.3` EXACT (3.2.x ships broken) · `react-native-ios-utilities ^5.2.0`.
 - **v1.7 ships as ONE release.** Nothing launches until Phase 6 is done and Jason is satisfied.
