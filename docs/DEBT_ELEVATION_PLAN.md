@@ -39,27 +39,24 @@ device-specific yet — that is this item.
 |---|---|---|
 | **4.1.5.2** | **§11.15 ⭐ the ring-origin invariant** — the overlay measures its rendered ring against the subject's window rect; flow `05` asserts it and joins the iPad list. ⛔ **All three premises refuted**, incl. **`org 0,0` on a 1032pt iPad — the correction is an identity and the ~700pt defect cannot occur.** Detail → log | ✅ **DONE 2026-08-13.** Run `31720514061`: **8/8 iPhone + 3/3 iPad**, `d 0,0`. §11.15 + §13.1 off the manual checklist |
 | **4.1.5.3** | **§10's layout checks** — `TwoColumn`/`MasterDetail` now name the branch they took, so `i01` asserts the expanded ids and iPhone-only `02` asserts their negatives. Folds in 4.1.5.6. ⛔ The sidebar rail stays unassertable (position-only difference) | ✅ **DONE 2026-08-13.** Run `31728370881`: **8/8 + 3/3** |
-| **4.1.5.4** | ▶ **ACTIVE — the route-push coach mark** (🎯 agreed). Reproduced on web; mechanism deliberately undiagnosed. Decomposed below | ▶ |
-| **4.1.5.5** | **§11.16** — ⚠️ a **judgement** ("deliberate crop or rendering fault"), not a pass/fail; scope to producing the landscape frame | |
-| **4.1.5.6** | **§11.8's rotation half** — ⛔ the "unproven command" block is STALE; `setOrientation` passed in 4.1.1 cycle 2. Unblocked, and it unblocks 4.1.5.5's frame | |
+| **4.1.5.4** | **The route-push coach mark** — a mark no longer outlives the screen its subject is on. ⚡ **4.1.4c's defect ① again on the other side of the boundary**: that fixed the *suppressor* with `useIsFocused`, and the *offer* was left on mount semantics. ⛔ My stale-rect mechanism was **refuted by the probe** before I built on it. Detail → log | ✅ **DONE 2026-08-13.** Gate **168/168**; the `test.fail()` reproduction is now the regression gate |
+| **4.1.5.5** | ▶ **ACTIVE — §11.16, the landscape frame.** Decomposed below | ▶ |
+| **4.1.5.6** | **§11.8's rotation half** — ⛔ the "unproven command" block is STALE; `setOrientation` passed in 4.1.1 cycle 2 | |
 
-#### ▶ 4.1.5.4 — the route-push coach mark _(active)_
+#### ▶ 4.1.5.5 — §11.16, and the iPad mark's other half _(active)_
 
-⚡ **Already reproduced, on web, locally** — `probe-mark-route-push.spec.ts`. Progress → More with
-`trajectory-scrub` up and the hint is still over the settings list. ⚠️ **Mechanism NOT diagnosed and not to
-be guessed at**: four have been refuted in `CoachMarkLayer`. The reproduction is `test.fail()`, so it reds
-the day it is fixed.
+⚠️ **§11.16 is a JUDGEMENT, not a pass/fail** — the checklist asks whether the ring's bottom edge *"reads
+as a deliberate crop or as a rendering fault"*. Automating a verdict would be a check invented to be
+passable. So the deliverable is **the frame**, put in front of Jason. `setOrientation` is proven, so this
+is unblocked.
 
-1. **4.1.5.4.1** — **probe, don't reason.** Extend the reproduction to print what the store believes:
-   `coachMarks.active`, whether the subject is still registered, and what `CoachMarkLayer` decided to
-   render. The 4.1.4c trace already exists — point it at this.
-2. **4.1.5.4.2** — fix at the named stage, and **only** that stage. Two speculative fixes make a green
-   uninformative (4.1.3's lesson, paid for).
-3. **4.1.5.4.3** — delete the `test.fail()` marker; the reproduction becomes the regression gate.
-4. **4.1.5.4.4** — re-check the iPad's **window-space/rail** half against the fix: it may fall out of the
-   same change, and if it does not it is a separate item with its own evidence.
+1. **4.1.5.5.1** — an iPad-only flow that reaches walkthrough step 5, rotates to landscape, and shoots it.
+2. **4.1.5.5.2** — 🎯 **[DECISION] Jason judges the frame.** Crop or fault. Nothing automated decides it.
+3. **4.1.5.5.3** — **the iPad mark's window-space half** *(carried from 4.1.5.4.4)*: the callout drawn
+   across the sidebar rail while its subject is in the content column. ⚠️ **Re-check it against the focus
+   fix first** — it may already be gone, and if it is not it needs its own evidence, not a second guess.
 
-**Exit:** a mark cannot outlive the screen its subject is on, and a test says so.
+**Exit:** §11.16 has a judged verdict, and the iPad mark's geometry is either fixed or filed with evidence.
 
 **Iterate with `-f device=ipad`** — it skips the ~10-minute iPhone suite entirely, and flow-only edits hit
 the `.app` cache. No workflow change needed; [D30]'s input already does it. ⚠️ **4.1.5.2 changes `src/**`,
