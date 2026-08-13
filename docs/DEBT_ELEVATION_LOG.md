@@ -7250,3 +7250,51 @@ time. `S=${S%%.*}` fixes it: iPad Pro 13-inch → **1032pt**, above the 1024pt t
 ⚠️ Also now measured rather than assumed: **only 13-inch iPads are `isExpanded` in portrait.** Pro 11-inch
 is 834pt, Air 11-inch and iPad (A16) are 820pt — all `regular`, none expanded. Any future claim about
 "the iPad layout" has to say which iPad.
+
+## Run `31646289268` — ⭐ THE IPAD TIER LANDED; the iPhone lane never started (2026-08-12)
+
+### ⭐ 4.1.5.1 is real — an expanded iPad, booted and driven
+
+```
+iPad Pro 13-inch (M5) → 2064px / 2x = 1032pt   ← selected, expanded
+[Passed] 01-launch-smoke (2m 14s)    [Passed] i01-ipad-boot (52s)    exit 0
+```
+
+`01` passing on a **1032pt** device settles [D30]'s carried hypothesis in the affirmative: the shared
+tier's iPhone-tuned swipes clamp harmlessly on a wide iPad, exactly as hoped and explicitly not assumed.
+
+⚡ **The width table is now measured fact, and it changes how "iPad" may be said:**
+
+| class | devices | pt | layout |
+|---|---|---|---|
+| 13-inch | Air 13 (M2/M3) · Pro 13 (M4/M5) | 1024–1032 | **expanded** |
+| 11-inch | Pro 11 (M4/M5) | 834 | regular |
+| 10.9″ | iPad (A16) · iPad (10th) · Air 11 (M2/M3) | 820 | regular |
+| mini | iPad mini (A17 Pro) | 744 | **compact — the PHONE layout** |
+
+⚠️ **Only 13-inch iPads are `isExpanded` in portrait.** Every `[D30]` check about master-detail or the
+inline sheet is a claim about *those two sizes*, not about "iPad". And **iPad mini renders the compact
+layout** — a tablet getting the phone UI, which is a product question nobody has asked → filed to the
+cohesion gate.
+
+### The iPhone lane lost the whole cycle to a driver stall
+
+`iOS driver not ready in time` at 240 s, **before a single flow ran** — build included, ~35 minutes for
+zero information. The iPad tier started its own driver minutes later on the same runner and came up fine,
+so this is the known cold-sim flake rather than anything new.
+
+Two fixes, and the second is the one that matters:
+- Timeout 240 s → **420 s**.
+- **A retry bounded to the driver-startup signature.** ⛔ Never on a red flow: a blind retry would double
+  the cost of every genuine failure and re-run flows whose `clearState` ordering is load-bearing. Matching
+  the message keeps it to the one case that is safe to repeat.
+
+### ⚠️ And my own diagnostic was lying by omission
+
+`grep -F "[coach-probe]" … | tail -40 || echo "(no probe lines)"` — the `||` guards the PIPELINE, whose
+status is `tail`'s, and `tail` always succeeds. So the fallback never fired: the step printed a header and
+nothing at all, which reads exactly like *"the app logged no probe lines"* when in truth nothing had been
+searched, because no flow had run. Fixed with `set -o pipefail`.
+
+⚡ **Same family as the defect this lane exists to catch** — a check that cannot say "I found nothing" is
+indistinguishable from a check that found nothing.
