@@ -355,17 +355,20 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   **FAIL:** nothing happens visually until you release. _(Android's ripple was restored explicitly; iOS's
   press opacity was not, so this may be dead on iOS only.)_
 
-- [ ] **§11.15 — the highlight lands on its subject at iPad width** _(iPad, both orientations, both
-  themes.)_ ⚠️ **Highest-value item added in 3.5.6.2 — this fix is currently guarded by NOTHING.**
-  Step through all 7 and check WHICH element the bright rectangle is drawn around.
-  **PASS:** every step rings the element its words are about — the Guardian card, its bar, "Adjust your
-  line →", the bills line.
-  **FAIL:** the rectangle sits over an unrelated card, especially one in the **other column**. Photograph
-  it and note the step.
-  _(On iPad the tab bar becomes a left sidebar, which puts window and local coordinates ~700pt apart; a
-  regression draws every ring that far to the right, onto the wrong column. Measured 2026-08-10: removing
-  the correction changes **nothing** on the web at any width, because the overlay's origin is 0 there — so
-  no browser test can hold this fix, and this check is the only thing that can.)_
+- [x] **§11.15 — the highlight lands on its subject at iPad width** — ✅ **AUTOMATED 2026-08-13 (4.1.5.2).**
+  `TutorialOverlay` measures its rendered ring in window space against the subject's own window rect;
+  flow `05` asserts `tutorial-ring-audit-ok` on beats 1, 2 and 5, on both tiers.
+  ⛔ **AND ITS STATED MECHANISM IS REFUTED — measured, run `31716361639`: `org 0,0` on a 1032pt iPad.**
+  This item said *"the tab bar becomes a left sidebar, which puts window and local coordinates ~700pt
+  apart."* That was true when written, and **3.5.3.5.7 then moved the overlay to the ROOT above the
+  navigator** so its scrim would cover that rail — which puts its origin at the window's. The correction
+  is currently an identity, the ~700pt regression **cannot occur in this arrangement**, and the item has
+  been carrying "highest-value, guarded by NOTHING" on a premise that expired underneath it.
+  ⚠️ **Still worth the assertion, for a different reason than the one written here:** it holds the ring on
+  its subject against *any* future coordinate-space change — a re-nested overlay, Android's
+  `measureInWindow` including the status bar, or the stage clamp — rather than against the specific
+  sidebar story. **Judged by looking, still owed:** whether the ring is on the *right* element per beat is
+  a numeric check now; whether it *reads* well is not.
 
 - [ ] **§11.16 — Step 5 on iPad LANDSCAPE** _(iPad, landscape, both themes.)_
   Go to **Step 5 of 7** ("When it won't stretch") and look at the bottom edge of the bright rectangle.
@@ -579,9 +582,11 @@ Premium** → **"See it in action"**.
 - [ ] Jot anything that failed (which §, what you did, a screenshot). I fix in-repo → you rebuild → re-run only the failed items.
 - [ ] **§11 · §12 · §13 clean = Phase 3.5 is device-verified**, which is the last thing standing between
       3.5 and its sign-off. The native block (§4–§7) is the separate, earlier claim.
-- [ ] **Priority order if you only have one sitting:** **§11.15** (the iPad highlight — the only check that
-      can hold that fix), then **§13.1** (the mark the nested-host mechanism exists for), then **§11.9**
-      (the missing "Example" marker, the highest-severity failure in this file), then the rest.
+- [ ] **Priority order if you only have one sitting:** **§11.9** (the missing "Example" marker, the
+      highest-severity failure in this file), then **§11.16** (a composition judgement nothing can
+      automate), then the rest. ⛔ **§11.15 and §13.1 came OFF this list 2026-08-13** — both are automated
+      now, and §11.15's "only check that can hold that fix" was resting on a mechanism that had already
+      been designed out (see the item).
 
 ---
 

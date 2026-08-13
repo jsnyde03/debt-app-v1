@@ -37,7 +37,7 @@ device-specific yet — that is this item.
 
 | # | Step | State |
 |---|---|---|
-| **4.1.5.2** | **§11.15 ⭐ the ring-origin invariant** — the overlay measures its RENDERED ring in window space against the subject's own window rect and publishes the verdict as `tutorial-ring-audit-ok`/`-off`; flow `05` joins the iPad list and asserts it. ⛔ **Both stated premises were refuted at switch-in** — see below | 🔨 **BUILT, unrun.** Gate + planted-defect proof owed |
+| **4.1.5.2** | **§11.15 ⭐ the ring-origin invariant**, as an app-side measurement asserted by flow `05` on both tiers. ⛔ **All THREE premises refuted** — two at switch-in, and the third by the run: **`org 0,0` on a 1032pt iPad, so the correction is an identity and the ~700pt defect cannot occur.** ⛔ Its own first red was mine (`d 2,2` = the ring's 2pt border) | ⏳ **Fix pushed, awaiting the re-run.** Run `31716361639` proved it renders, measures and reports |
 | **4.1.5.3** | **§10's two layout checks** — master-detail (**confirmed**: rail + list + detail pane) and the **sidebar rail replacing the bottom tab bar** (confirmed). ⛔ **NOT "More's two-column"** — see below | |
 | **4.1.5.4** | **§11.16** — ⚠️ it is a **judgement** ("deliberate crop or rendering fault"), not a pass/fail; scope it to producing the landscape frame | |
 | **4.1.5.5** | **§11.8's rotation half** — ⛔ **the "unproven command" block is STALE.** `setOrientation` PASSED in 4.1.1 cycle 2 (log: *"Proven: extendedWaitUntil · evalScript+assertTrue · setOrientation · assertScreenshot · repeat"*). Unblocked, and it also unblocks 4.1.5.4's landscape frame | |

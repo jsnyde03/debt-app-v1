@@ -132,10 +132,19 @@ export function TutorialOverlay({
   useEffect(() => () => onDockLayout?.(0), [onDockLayout]);
 
   // 3.5.3.3.4.3 — subjects are measured in WINDOW coordinates, but this overlay draws in its own local
-  // space, and the two are only the same on a phone. On the iPad regular layout the tab bar becomes a
-  // left sidebar RAIL, so the overlay's origin sits ~700pt to the right of the window's — and the ring
-  // was drawn that far right of its subject, landing on an unrelated row in the other column. Caught by
-  // shooting the walkthrough at 1024×768; a phone-only screenshot pass would have shipped it.
+  // space, so every ring, hole and touch band is `subject − origin`.
+  //
+  // ⛔ **MEASURED 2026-08-13 (run `31716361639`): `origin` is {0,0} on the expanded iPad too, so this
+  // subtraction is currently an IDENTITY.** The comment here used to say the origin sits "~700pt to the
+  // right" because the tab bar becomes a sidebar rail — true when it was written, and **3.5.3.5.7 then
+  // moved this overlay to the ROOT, above the navigator, precisely so its scrim would cover that rail**
+  // (`_layout.tsx:194`). The stated defect cannot occur in this arrangement, and the stale comment is
+  // what put "§11.15, the highest-value unguarded item" on the plan and kept it there.
+  //
+  // ⚠️ It is NOT dead code, and do not delete it on that basis: `origin` is measured at runtime, so this
+  // stays correct if the overlay is ever re-nested, and on Android `measureInWindow` can include the
+  // status bar. It is a live guard that currently measures zero. What changed is the CLAIM: this is
+  // defence against re-nesting, not a fix for a defect the current tree can exhibit.
   const rootRef = useRef<View>(null);
   const [dockH, setDockH] = useState(0);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
@@ -202,9 +211,15 @@ export function TutorialOverlay({
   const win = ringWin && ringWin.key === ringKey ? ringWin : null;
 
   // The ring's OUTER box starts `RING_INSET` above and left of the subject, so the subject's window
-  // position is the measured ring plus that inset back.
-  const dx = win && spotlight ? win.x + RING_INSET - spotlight.x : null;
-  const dy = win && spotlight ? win.y + RING_INSET - spotlight.y : null;
+  // position is the measured probe plus that inset back — LESS the border.
+  //
+  // ⛔ `RING_BORDER` is not a fudge factor, and the first version of this omitted it and red both tiers on
+  // run `31716361639` with `d 2,2`. `StyleSheet.absoluteFill` resolves against the PADDING box, so a probe
+  // child of a 2pt-bordered view sits 2pt inside its outer edge — on both axes, on every device. That the
+  // error was identical on iPhone and iPad, and identical in x and y, is what named it: a real
+  // coordinate-space fault varies with the layout, a constant inset does not.
+  const dx = win && spotlight ? win.x - RING_BORDER + RING_INSET - spotlight.x : null;
+  const dy = win && spotlight ? win.y - RING_BORDER + RING_INSET - spotlight.y : null;
   // ⚠️ The Y axis is legitimately allowed to disagree when the stage CLAMPED an over-tall subject — the
   // at-risk Guardian card is ~697pt against a ~530pt stage, and the ring is deliberately drawn only as far
   // as the dock. X is never clamped, which is why X carries the assertion and Y is conditional. Judging
@@ -472,6 +487,11 @@ const RING_AUDIT = Platform.OS !== 'web' && qaEnabled();
 
 /** How far the ring stands off the subject, so it frames rather than crops it. */
 const RING_INSET = 6;
+/** The ring's stroke. Named because 4.1.5.2's audit has to subtract it — `StyleSheet.absoluteFill` inside
+ *  a bordered view resolves against the padding box, so the probe child sits this far in from the outer
+ *  edge. It was inline in `styles.ring`, the audit assumed zero, and both tiers red with `d 2,2`. One
+ *  owner now: the style below reads this constant. */
+const RING_BORDER = 2;
 /** The hole's corner radius. ONE constant, shared with the ring — they disagreed, and four bright square
  *  nubs at every rounded corner is what that disagreement looked like. */
 const HOLE_RADIUS = 14;
@@ -625,7 +645,7 @@ const styles = StyleSheet.create({
   hole: { borderWidth: BLEED, borderRadius: BLEED + HOLE_RADIUS, overflow: 'hidden' },
   // A quiet outline, not a glow: this is a reference surface being explained, so the highlight informs
   // rather than performs ([[match motion to the surface's job]]).
-  ring: { position: 'absolute', borderWidth: 2, borderRadius: HOLE_RADIUS },
+  ring: { position: 'absolute', borderWidth: RING_BORDER, borderRadius: HOLE_RADIUS },
   // 4.1.5.2's readout. Top-LEFT on purpose: on the expanded iPad that is over the sidebar rail, the one
   // band of the screen the walkthrough never coaches, so it cannot sit on a subject it is measuring.
   // Opaque and monospaced because its consumers are a Maestro assertion and a human squinting at a

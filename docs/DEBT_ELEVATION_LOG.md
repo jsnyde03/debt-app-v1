@@ -7660,3 +7660,64 @@ run) or promoting the tier once it stops being a measurement lane → **4.1.11**
 ⚠️ **What a path filter structurally cannot see:** rot from outside the repo — an Xcode image bump, a
 Maestro release (the installer fetches latest every run), a simulator runtime change. That is the nightly's
 one genuine advantage, and it is the same argument as pinning Maestro. Both → 4.1.11.
+
+## Run `31716361639` — §11.15's mechanism is gone, and the check's first red was mine (2026-08-13)
+
+**Both tiers red at `tutorial-ring-audit-ok`**, which is the outcome that says the *instrument* is wrong,
+not the app. The readout said which, in one line, on each tier:
+
+```
+iPhone   ring  16,407  subj  20,411   org 0,0   d 2,2
+iPad     ring 384,369  subj 388,373   org 0,0   d 2,2
+```
+
+### ⭐ `org 0,0` on a 1032pt iPad — the correction is an identity
+
+§11.15 has said since 3.5.6.2 that *"the tab bar becomes a left sidebar, which puts window and local
+coordinates ~700pt apart"*, and that it was **"guarded by NOTHING"**. The first half is no longer true:
+**3.5.3.5.7 moved the overlay to the ROOT, above the navigator, precisely so its scrim would cover that
+rail** (`_layout.tsx:194`). An overlay spanning the window has its origin at the window's, so
+`spotlight − origin` is `spotlight`, and the ~700pt regression **cannot occur in this arrangement.**
+
+⛔ **A stale comment generated a work item, and the work item survived ten weeks of planning.** This is the
+Wave-A defect class with a second measured instance — *"docs that disagree with adjacent code are not
+cosmetic; they manufacture defects"* — except here the doc and the code did not visibly disagree: the
+comment described a **layout** that a later commit had changed, which no amount of reading either file
+catches. Only measuring `origin` catches it.
+
+⚠️ **The correction is not dead code and was not deleted.** `origin` is measured at runtime, so it stays
+correct if the overlay is re-nested, and Android's `measureInWindow` can include the status bar. What
+changed is the *claim*: defence against re-nesting, not a fix for something the current tree can exhibit.
+
+### ⛔ The first red was the instrument's, and the number named it
+
+`d 2,2` — identical on both tiers **and** on both axes. `StyleSheet.absoluteFill` resolves against the
+PADDING box, so the probe child of a 2pt-bordered ring sits 2pt inside its outer edge. A real
+coordinate-space fault varies with the layout; a constant inset does not, and that is what identified it
+without a second run. `RING_BORDER` is now a named constant read by both the style and the audit.
+
+⚡ **This is the third of ~ten cycles in this lane spent on my own instrument** — and the cheap part is
+that the trace was designed to survive being wrong: it printed `ring`, `subj`, `org` and `d` on a FAILING
+assertion, so one artifact answered "is it broken", "which way", and "by how much".
+
+### 🎯 The redirect that saved the run
+
+Jason: *"wait, we're not running this against 1.7-dev?"* — I had dispatched the planted-defect branch
+first. **That run would have gone green on both tiers** (with `org` at 0, deleting the correction changes
+nothing), and I would have read green/green as *"the instrument is broken"* — the right conclusion for the
+wrong reason, with the real finding still invisible. Running the shipping build first produced `org` **and**
+the confirmation **and** the tolerance bug, in one 22-minute run.
+
+**The general form, and it is now twice in one session:** the cheapest question was *"what is the number?"*,
+and I had sequenced a *"does it fail?"* run ahead of it. **Ask the measuring question before the proving
+question** — a proof against an unmeasured premise can only confirm the premise.
+
+### What this leaves
+
+- ✅ The instrument **works**: renders, measures, stamps, reports, and survives its own subject failing.
+- ✅ The app is **correct** on both tiers — the beat-1 frame shows the ring tight on the Guardian card, and
+  Today's two-column iPad layout renders as §10 describes.
+- ⏳ The tolerance fix is pushed; the re-run is the confirmation.
+- ⛔ **The planted-defect run is now pointless** and is not being spent: with `org 0,0` it cannot fail, so
+  it would prove nothing. The bite proof would need a *different* planted defect — perturbing the ring's
+  own offset rather than the origin correction → **fold into 4.1.11 if it is still wanted.**
