@@ -1,12 +1,13 @@
 import { BlurView } from 'expo-blur';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeIn, ReduceMotion, useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FloorImpactBar } from '@/components/plan/FloorImpactBar';
+import { qaEnabled } from '@/config/qa';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLayout } from '@/hooks/use-layout';
@@ -162,6 +163,55 @@ export function TutorialOverlay({
       })()
     : null;
 
+  // 4.1.5.2 — §11.15's ring-origin invariant, MEASURED, because nothing else can hold it.
+  //
+  // The subtraction above is the whole fix, and it is guarded by nothing: the checklist calls §11.15 its
+  // highest-value item for exactly that reason, and *"removing the correction changes nothing on the web
+  // at any width, because the overlay's origin is 0 there"* — so no Playwright run can fail on it.
+  //
+  // ⛔ NOT a recomputation of the subtraction. Asserting `origin + (spotlight − origin) === spotlight` is
+  // algebra, and algebra passes whatever the layout did. What this compares are two INDEPENDENT numbers:
+  // where the layout system actually put the ring in window space (`measureInWindow` on a child of it),
+  // against where the registry measured the subject (`spotlight`, also window space). Delete the
+  // correction and the first moves by the sidebar's width while the second does not.
+  //
+  // ⚠️ It reports rather than corrects. A diagnostic that repairs what it measures cannot fail, and this
+  // repo has already paid for instruments that could not survive the world being broken.
+
+  // ONE expression for "which ring is this", used as the `Animated.View`'s remount key AND as the stamp on
+  // the measurement below. Two copies of it would be the shape this repo keeps paying for — and here the
+  // divergence would be silent in the worst direction: a verdict from the PREVIOUS beat, still on screen,
+  // still green.
+  //
+  // All four dimensions. `width` was missing, so a subject that changed only in width — an iPad Split View
+  // drag is exactly that — kept the old key and never re-entered.
+  const ringKey = clamped
+    ? `${Math.round(clamped.x)}:${Math.round(clamped.y)}:${Math.round(clamped.width)}:${Math.round(clamped.height)}`
+    : null;
+  const ringProbeRef = useRef<View>(null);
+  const [ringWin, setRingWin] = useState<{ key: string; x: number; y: number } | null>(null);
+  const measureRing = () => {
+    ringProbeRef.current?.measureInWindow?.((x, y, w, h) => {
+      // A zero-area read is the measurement missing, not the ring being at the origin — and recording it
+      // as {0,0} would publish a spurious ~sidebar-width failure on every beat.
+      if (w <= 0 || h <= 0 || !ringKey) return;
+      setRingWin((prev) => (prev && prev.key === ringKey && prev.x === x && prev.y === y ? prev : { key: ringKey, x, y }));
+    });
+  };
+  // Stamped, so a measurement is only ever read against the ring it was taken from.
+  const win = ringWin && ringWin.key === ringKey ? ringWin : null;
+
+  // The ring's OUTER box starts `RING_INSET` above and left of the subject, so the subject's window
+  // position is the measured ring plus that inset back.
+  const dx = win && spotlight ? win.x + RING_INSET - spotlight.x : null;
+  const dy = win && spotlight ? win.y + RING_INSET - spotlight.y : null;
+  // ⚠️ The Y axis is legitimately allowed to disagree when the stage CLAMPED an over-tall subject — the
+  // at-risk Guardian card is ~697pt against a ~530pt stage, and the ring is deliberately drawn only as far
+  // as the dock. X is never clamped, which is why X carries the assertion and Y is conditional. Judging
+  // both unconditionally would red on beat 5 for doing the right thing.
+  const clampedY = !!(local && clamped && clamped.y !== local.y);
+  const ringOnSubject = dx !== null && Math.abs(dx) <= 1 && (clampedY || (dy !== null && Math.abs(dy) <= 1));
+
   return (
     // `box-none` lets touches fall through to Today everywhere the overlay has no child; the scrim
     // below re-blocks them on scripted beats. Without this, even the pass-through beats would swallow.
@@ -227,9 +277,8 @@ export function TutorialOverlay({
           and `Motion`'s reduce-motion handling applies as everywhere else. */}
       {clamped && clamped.height > 0 ? (
         <Animated.View
-          // All four dimensions. `width` was missing, so a subject that changed only in width — an iPad
-          // Split View drag is exactly that — kept the old key and never re-entered.
-          key={`${Math.round(clamped.x)}:${Math.round(clamped.y)}:${Math.round(clamped.width)}:${Math.round(clamped.height)}`}
+          // The rounded rect, so a new subject re-enters rather than sliding. See `ringKey`.
+          key={ringKey ?? undefined}
           entering={FadeIn.duration(180).reduceMotion(ReduceMotion.System)}
           pointerEvents="none"
           style={[
@@ -242,8 +291,51 @@ export function TutorialOverlay({
               borderColor: c.accent.primary,
             },
           ]}
-          testID="tutorial-spotlight"
-        />
+          testID="tutorial-spotlight">
+          {/* 4.1.5.2 — a plain View is what gets measured, not the `Animated.View` around it. Reanimated
+              wraps the host component, and whether its ref exposes `measureInWindow` is a question this
+              lane cannot answer for the price of a CI cycle; a host `View` unambiguously does.
+              `collapsable={false}` for the reason the overlay root carries it — a layout-only View with no
+              background is exactly what Android's flattener removes, and a flattened probe reports
+              nothing while looking like a pass.
+              ⚡ Re-measuring on move is free: the ring's `key` above is its rounded rect, so a subject
+              change REMOUNTS this child and `onLayout` fires again. A ref that only measured on mount
+              would publish beat 1's verdict for all seven. */}
+          {RING_AUDIT ? (
+            <View
+              ref={ringProbeRef}
+              style={StyleSheet.absoluteFill}
+              pointerEvents="none"
+              collapsable={false}
+              onLayout={measureRing}
+            />
+          ) : null}
+        </Animated.View>
+      ) : null}
+
+      {/* 4.1.5.2 — the verdict, where a Maestro flow can assert on it and a human can read it in the
+          screenshot beside it. The id carries the answer; the text carries the evidence, so a red names
+          the offset instead of only denying the invariant.
+          ⚠️ NOT `{...decorative}`, and that is deliberate: `aria-hidden` maps to
+          `accessibilityElementsHidden` on iOS, and Maestro reads the XCUITest accessibility tree — hiding
+          this from VoiceOver hides it from the only thing that checks it. The cost is that a QA build
+          speaks one extra line during §11's VoiceOver pass; it leaves with `QA_TOOLS` at Phase 6. */}
+      {RING_AUDIT && win ? (
+        <Text
+          testID={ringOnSubject ? 'tutorial-ring-audit-ok' : 'tutorial-ring-audit-off'}
+          pointerEvents="none"
+          style={[styles.audit, { top: insets.top + 4, color: c.text.primary, backgroundColor: c.background.primary }]}>
+          {/* ⭐ `org` is here so a GREEN run is self-evidencing rather than merely quiet. `d 0,0` proves
+              nothing on its own — it is what a build with no correction at all reports on a phone, where
+              the overlay's origin is already {0,0}. `org 360,0` beside `d 0,0` can only both be true if
+              the subtraction ran. It is also the honest statement of which TIER can hold §11.15: on the
+              iPhone lane this prints `org 0,0` and the X assertion is vacuous by construction. */}
+          {`ring ${Math.round(win.x)},${Math.round(win.y)} subj ${Math.round(spotlight?.x ?? -1)},${Math.round(
+            spotlight?.y ?? -1,
+          )} org ${Math.round(origin.x)},${Math.round(origin.y)} d ${dx === null ? '-' : Math.round(dx)},${
+            dy === null ? '-' : Math.round(dy)
+          }${clampedY ? ' clampY' : ''}`}
+        </Text>
       ) : null}
 
       {/* [B4] `paddingBottom` carries the bottom safe-area inset. The dock is pinned to `bottom: 0` with
@@ -360,6 +452,23 @@ export function TutorialOverlay({
     </View>
   );
 }
+
+/**
+ * 4.1.5.2 — is the §11.15 ring-origin audit present in this build?
+ *
+ * ⚠️ **Not on web, and that is the point.** react-native-web puts the overlay's origin at 0 at every
+ * width, so the invariant holds there whether or not the correction exists — an assertion that passes
+ * either way, which is defect class ① from 3.5's phase after-scan and something this repo has already
+ * paid for. Native is the only surface where the question has two possible answers.
+ *
+ * ⚠️ Android is deliberately IN. The origin comes from `measureInWindow` on a view the flattener is
+ * entitled to remove (see the note on the overlay root), and on the window configurations where
+ * `measureInWindow` includes the status bar every coordinate shifts. That is the same defect wearing a
+ * different hat, and the Android lane is v1.7's.
+ *
+ * `qaEnabled()` — the ONE spelling, so the Phase-6 `git grep QA_TOOLS` cannot miss it.
+ */
+const RING_AUDIT = Platform.OS !== 'web' && qaEnabled();
 
 /** How far the ring stands off the subject, so it frames rather than crops it. */
 const RING_INSET = 6;
@@ -517,6 +626,11 @@ const styles = StyleSheet.create({
   // A quiet outline, not a glow: this is a reference surface being explained, so the highlight informs
   // rather than performs ([[match motion to the surface's job]]).
   ring: { position: 'absolute', borderWidth: 2, borderRadius: HOLE_RADIUS },
+  // 4.1.5.2's readout. Top-LEFT on purpose: on the expanded iPad that is over the sidebar rail, the one
+  // band of the screen the walkthrough never coaches, so it cannot sit on a subject it is measuring.
+  // Opaque and monospaced because its consumers are a Maestro assertion and a human squinting at a
+  // 2064px screenshot. It renders only under `RING_AUDIT` and leaves with `QA_TOOLS`.
+  audit: { position: 'absolute', left: 4, paddingHorizontal: 4, fontFamily: 'Menlo', fontSize: 10, lineHeight: 14 },
   // Docked to the bottom so the coached surface above stays visible.
   dock: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: spacing.base },
   // 7.7 — a centred, width-capped column on the roomy layout, like every other surface in the app.

@@ -44,9 +44,20 @@ const sourceText = SRC_DIRS.flatMap((d) => walk(d)).map((f) => readFileSync(f, '
 // first version of this guard flagged `tab-money` as unknown in four flows that demonstrably tap it and
 // pass. A guard whose first output is four false positives on the most-used id in the suite is one that
 // gets switched off, so both spellings count.
+// ⚠️ And an id can be CHOSEN rather than written: `testID={ok ? 'a-ok' : 'a-off'}` puts the verdict of a
+// check into the id, which is how 4.1.5.2's ring audit is asserted without the flow needing to read
+// numbers. Both patterns above require a quote immediately after `=`, so an expression container matched
+// neither and the guard's first output was three false positives on ids that were plainly in the source.
+// Same failure as the `tabBarButtonTestID` case this file already carries — the guard was right that it
+// could not see them and wrong about what that meant.
+// ⚠️ Scope: quoted literals inside the container only. A template-literal id (`testID={`row-${id}`}`) is
+// composed at runtime and is not something this check can verify — `[^}]` stops at its first `}` and the
+// literal is skipped, which is the correct outcome rather than a missed case.
+const testIDExpressions = [...sourceText.matchAll(/testID=\{([^}]*)\}/g)].map((m) => m[1]);
 const knownTestIDs = new Set([
   ...[...sourceText.matchAll(/testID=["'`]([^"'`]+)["'`]/g)].map((m) => m[1]),
   ...[...sourceText.matchAll(/[Tt]estID["']?\s*[:=]\s*["'`]([^"'`]+)["'`]/g)].map((m) => m[1]),
+  ...testIDExpressions.flatMap((expr) => [...expr.matchAll(/["']([^"']+)["']/g)].map((m) => m[1])),
 ]);
 /**
  * Source with all whitespace collapsed, for "does this copy still exist".

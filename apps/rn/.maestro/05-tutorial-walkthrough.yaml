@@ -59,6 +59,25 @@ appId: com.jasonsnyder.debtplanner
 # "beat lands on nothing" failure; here it also catches the iOS-only case where the scrim's fill fails.
 - assertVisible:
     id: "tutorial-spotlight"
+# ── 4.1.5.2 · §11.15, THE RING-ORIGIN INVARIANT ────────────────────────────────────────────────────
+# "the ring is drawn AROUND ITS SUBJECT", as a number rather than as a look. `TutorialOverlay` measures
+# the rendered ring in window space and compares it with the subject's own window rect; the id carries
+# the verdict and the text beside it carries `ring`/`subj`/`org`/`d` so a red names the offset.
+#
+# ⛔ THIS FLOW IS IN BOTH TIERS, AND THE TIERS ARE NOT EQUAL. On the iPhone the overlay's origin is
+# already {0,0}, so the X comparison is satisfied by a build with no correction at all — it prints
+# `org 0,0` and proves nothing about §11.15. On the expanded iPad the tab bar is a left RAIL and the
+# origin sits a sidebar-width to the right, which is the only arrangement where the assertion can fail.
+# Reading the iPhone pass as coverage of §11.15 would be exactly the "assertion that passes either way"
+# this repo has already paid for. ⚠️ Read `org` in the screenshot before believing a green.
+#
+# `assertNotVisible` on the failing id as well as `assertVisible` on the passing one: the two ids are
+# mutually exclusive by construction, so this is not redundancy — it distinguishes "the invariant held"
+# from "the audit never rendered", which are different findings with the same green.
+- assertVisible:
+    id: "tutorial-ring-audit-ok"
+- assertNotVisible:
+    id: "tutorial-ring-audit-off"
 
 - tapOn: "Next"
 - assertVisible:
@@ -66,6 +85,8 @@ appId: com.jasonsnyder.debtplanner
 - takeScreenshot: maestro-debug/tut-beat-2
 - assertVisible:
     id: "tutorial-spotlight"
+- assertVisible:
+    id: "tutorial-ring-audit-ok"
 
 - tapOn: "Next"
 - assertVisible:
@@ -84,6 +105,13 @@ appId: com.jasonsnyder.debtplanner
 - assertVisible:
     text: ".*Step 5 of 7.*"
 - takeScreenshot: maestro-debug/tut-beat-5
+# 4.1.5.2 — the beat worth asserting on most, and the one that had to be exempted in one axis to be
+# assertable at all. Beat 5's subject (~697pt) is TALLER than the stage (~530pt), so the ring is
+# deliberately clamped to stop at the dock — its Y legitimately disagrees with the subject's, and the
+# readout says `clampY` when that is why. X is never clamped, so X still carries the whole assertion
+# here. Judging Y unconditionally would have gone red for the overlay doing exactly the right thing.
+- assertVisible:
+    id: "tutorial-ring-audit-ok"
 
 - tapOn: "Next"
 - assertVisible:

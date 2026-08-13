@@ -37,18 +37,30 @@ device-specific yet — that is this item.
 
 | # | Step | State |
 |---|---|---|
-| **4.1.5.2** | **§11.15 ⭐ the ring-origin invariant** — as numeric frame containment, from the first expanded-iPad hierarchy dump. The item the checklist calls the highest-value thing nothing automated can hold | |
+| **4.1.5.2** | **§11.15 ⭐ the ring-origin invariant** — the overlay measures its RENDERED ring in window space against the subject's own window rect and publishes the verdict as `tutorial-ring-audit-ok`/`-off`; flow `05` joins the iPad list and asserts it. ⛔ **Both stated premises were refuted at switch-in** — see below | 🔨 **BUILT, unrun.** Gate + planted-defect proof owed |
 | **4.1.5.3** | **§10's two layout checks** — master-detail (**confirmed rendering**: sidebar rail + list + detail pane) and More's two-column | |
 | **4.1.5.4** | **§11.16** | |
 | **4.1.5.5** | **§11.8's rotation half** — ⛔ blocked: rotation is an **unproven command**, so it goes through `.maestro/probe/` first (4.1.1's rule) | |
 | **4.1.5.6** | **Reconcile `i01`** — retire the measurement-only assertions it still carries, or state plainly what they cover | |
 
 **Iterate with `-f device=ipad`** — it skips the ~10-minute iPhone suite entirely, and flow-only edits hit
-the `.app` cache. No workflow change needed; [D30]'s input already does it.
+the `.app` cache. No workflow change needed; [D30]'s input already does it. ⚠️ **4.1.5.2 changes `src/**`,
+so it busts that cache** — one ~17-min rebuild each way.
 
-⚠️ **[4.1.4c after-scan] The probe stays in the app, and must be verified to LEAVE.** `probeCoachMark`,
-the `coach-probe` readout and `suppressorReasons` are all `qaEnabled()`-gated, so they vanish with the
-Phase-6 `QA_TOOLS` flip — **confirm that in the flip's `git grep`, or a diagnostic ships.**
+⛔ **[4.1.5.2 before-scan] BOTH of its stated premises were wrong, and measured so.** ① *"from the first
+expanded-iPad hierarchy dump"* — **there is no dump.** Maestro writes one only on a FAILED command and
+`i01` passed; run `31705617155`'s iPad artifact is 5 PNGs, `commands.json` and two logs, with **zero**
+`frame`/`bounds` occurrences in any of them. ② *"as numeric frame containment"* in the Maestro tier — that
+phrasing came from the log's **Appium** scoping, and 4.1.9 already owns it; Maestro's flow language has no
+element-frame access (`evalScript` sees `output` and `maestro.copiedText`, not the hierarchy). 🎯 Resolved
+by app-side measurement. ✅ **Master-detail confirmed** in `ipad-02` (rail · list · detail pane) — 4.1.5.3's
+premise is now pinned to an image. Detail → log.
+
+⚠️ **[4.1.4c + 4.1.5.2 after-scan] The instruments stay in the app, and must be verified to LEAVE.**
+`probeCoachMark`, the `coach-probe` readout, `suppressorReasons` and **4.1.5.2's `RING_AUDIT`** are all
+`qaEnabled()`-gated, so they vanish with the Phase-6 `QA_TOOLS` flip — **confirm that in the flip's `git
+grep`, or a diagnostic ships.** ⚠️ The ring readout is deliberately **not** a11y-hidden (Maestro reads the
+accessibility tree), so until the flip a QA build speaks one extra line during §11's VoiceOver pass.
 
 ⚠️ **[4.1.4c after-scan] Flow 01 now asserts a coach mark**, so the seed flow every other flow depends on
 is coupled to the discovery layer: if the mark regresses, 01 reds and takes the suite with it. Accepted —
@@ -96,7 +108,6 @@ load-bearing `\(.applicationName)` check) stay device-owed → the checklist.
 
 ### ⚠️ Open defects
 
-- **⛔ [4.1.3] The `debt-row-actions` coach mark never appears — STILL OPEN. Run `31621553581` REFUTED the subscription-race fix** *(still red at `.*Press and hold a debt.*`; the replay change was kept — a late subscriber SHOULD still learn, and 167/167 says it costs nothing)*. ⚡ **The race is now eliminated as a cause, which is clean information because the meaning of a red was written down before the run.** ▶ **NEXT SUSPECT, already located:** `CoachMarkLayer.tsx:68` returns null when `targets.measure()` resolves null, while `coachMarks.ts:92` records the mark as offered **before** any of that — so it would **burn itself without ever drawing**, which fits every observation including why no reset ever helped. **Check `measure()` on a list row first** (`tutorialTargets.tsx:88` bails when the node has no `measureInWindow`; there is also a timeout path that resolves null). ⚠️ **Five mechanisms have now been asserted here and four refuted — probe it, do not reason at it.** A **product** defect: flow 01's `smoke-seeded-portfolio` screenshot is a fresh install on Money with three debts, every `show()` guard clean, and **no mark**. ⚡ Identified by CONTRAST, not narrative: `trajectory-scrub` is offered unconditionally and renders (proven on web, `a11y-axe.spec.ts:137`); `debt-row-actions` is the only mark whose `ready` is **data-gated**, and the only one that never fires — so a late subscriber missed the row's single `onLayout`. `subscribe` now replays. **Class fix**: any future mark gated on loaded data had it. ⚠️ **If still red, the next suspect is `CoachMarkLayer:68`** — it renders nothing when `measure()` resolves null, while `show()` has already recorded the mark as offered at `:92`, so it would burn without drawing. Deliberately NOT fixed at the same time: two speculative fixes make a green run uninformative.
 - **⚠️ [4.1.4c before-scan] `SectionList`'s `index` is per-SECTION, so `debt-row-actions` can register TWICE.** `money.tsx:377` wraps `index === 0`, which is also the first **PAID OFF** row — two `TutorialTarget`s sharing one registry key, and the Map keeps whichever laid out last. The comment at `:374-376` anticipated exactly this hazard for rows and missed sections. **Latent** (needs a paid-off debt; the failing flows have none), so **not** the mark's current defect and deliberately not fixed on the probe run. One-line scope: gate on the active section too.
 - **⚡ [4.1.4c before-scan] This mark is unobservable to EVERY automated surface except an iOS sim run** — `Platform.OS === 'ios'` (`money.tsx:259`) puts it out of reach of the web e2e and the app-layer runner, and `phase35-themes.shot.ts:106` already records that. It is why the defect shipped, and it is the argument for instrumenting rather than guessing a sixth time.
 - **⚡ [4.1.3] A pref changed and then force-quit within 500 ms is LOST.** `persistence.ts:14` debounces the autosave by 500 ms, and `flushPendingSave` (`_layout.tsx:103`) only fires on AppState *background* — a force-quit sends no such event. Narrow, but it is silent data loss on a setting the user watched confirm itself on screen. **Measured, not theorised:** it is what made flow 08's coach-mark reset evaporate across a `killApp`. Fix is to flush critical prefs immediately rather than on the debounce → **Phase 5** (data continuity), which owns durability.
@@ -156,27 +167,6 @@ gamification chrome · Recovery stays a glimpse · the in-app tutorial stays ≤
 
 ---
 
-## Phase 3.7 — the fold-in block ▶ ACTIVE
-
-_Standing rule (Jason 2026-07-30): stop deferring — if an item needs no device pass and can land in v1.7,
-fold it in. Runs after 3.5 and BEFORE the audit gate, so the audit reviews the final state._
-
-✅ **Wave A — correctness / honesty. CLOSED 2026-08-11.** A0–A10: the payoff-schedule redesign, the two
-undercounts, the seven-item Guardian honesty ledger, the BNPL seam, the offline Lifetime mislabel, drift
-type hygiene, and the Siri phrases. Gate 158/158, tsc clean. **Detail + the wave-level after-scan → log.**
-
-**Wave B — features that belong in v1.7** *(decomposed at the top of this file)*. ✅ B.0 before-scanned
-it 2026-08-11: **B1 refuted · B2 half-shipped · B3 real but mis-sequenced · B4 real with 3 of 4 premises
-wrong.** [D26]–[D29] are open on the survivors.
-
-**Wave C — coherence sweeps, MERGED INTO the audit gate:** C1 cents-formatter · C2 gold usage · C3 Money
-hero language [D3] · C4 paywall copy · C5 chart VO labels · C6 iPad More two-column · C7 dead code
-(`ProgressRing`/`MilestonesRow`, orphaned `guardianIntroSeen`, `FormSheet.headerAction`) ⛔ *`computeStreak`
-came OFF this list at B.3 — [D27] ported it, so it now has a live RN reader* · C8 web scan
-entry · C9 `router.back()` cold-entry sweep · C10 doc disambiguation of the overloaded "3.5.3.x".
-
----
-
 ## Audit tooling — the instruments the gate runs ON _( [D31] )_
 
 _Built during 4.1's CI waits, not instead of it. Each one turns an expensive read into a cheap lookup._
@@ -203,57 +193,27 @@ clusters extracted into `paycheckForm.ts` + `obligationForm.ts`. Fixed a **shipp
 had two user-facing spellings). Copy dups **110 → 83**, copy sites **794 → 740**, T2 baseline **11 → 5**.
 Detail + both scans → log.
 
-## ▶ INTERIM BUILD — W2 · the classification pass _(while 4.1.4c′'s run `31630150499` is in flight)_
-
-_The same lens as W1, pointed the other way: W1 asked "which duplicates are copy?", this asks "which of
-the 946 unclassified are copy at all?" — because the `copy` bucket **is** the wording gate's scope claim._
-
-| # | Step | State |
-|---|---|---|
-| **W2.1** | Value-shaped non-copy rules — identifier tokens + hex/`rgba()` | ✅ **DONE 2026-08-12.** 711 non-copy entries dropped from review |
-| **W2.2** | `jsx-expr` → copy — a literal in a JSX expression container is rendered text | ✅ **DONE 2026-08-12** |
-| **W2.3** | Promote the copy-bearing origins measurement found (11 of them) | ✅ **DONE 2026-08-12** |
-| **W2.4** | **Verify by diffing the bucket changes, both directions** | ✅ **DONE 2026-08-12.** ⛔ **It caught TWO false negatives in my own rule** — see below. `copy → anything else: 0` |
-| **W2.5** | Re-triage what became visible, refresh baseline, gate | ✅ **DONE 2026-08-12.** 2 newly-visible dups · baseline unchanged at 5 · 0 fresh gate findings |
-
-**Result: unclassified 946 → 346 · copy 740 → 826 · T3 gates 77/184 → 90/139.** Every exclusion is a
-stated rule; every promotion was read at its site.
-
-⛔ **[W2.4] The diff caught two false negatives the counts hid — "context, not shape".** ① a literal
-interpolated into a template is prose: `` `next milestone ${… ? 'debt-free' : …}` `` is a VoiceOver label
-(`progress.tsx:151`) while `'debt-free'` two files away is a `PlanState` value. ② **JSX text is split
-around every `{}`**, so *"Plus $X in N **one-time** bills — not part of your ongoing reserve"* yields the
-bare fragment `one-time`, identical in shape to the enum and plainly prose by position. Both exempted.
-⚡ **A count moving is not evidence a rule is right** — only reading what moved is.
-
-⚠️ **[W2.5 after-scan] `EXAMPLE_MONEY` already exists as an exported constant and THREE sites bypass it**
-(`ExampleCanvasMarker.tsx:14` owns it; `TutorialOverlay.tsx:320`, `DemoDock.tsx:57` and
-`tutorialPath.ts:242` write the literal). Newly visible only because W2 promoted `jsx-expr`. **Filed, not
-folded:** the clean fix moves the constant to an RN-free module — `tutorialPath.ts` is run by the `tsx`
-app-layer runner and cannot import a component — which is a layering change, not cheap polish. All four
-agree today, so it is hygiene → **the wording gate**.
-
-⭐ **[W2 before-scan] The classification gap made W1's triage STRUCTURALLY incomplete — measured, not
-supposed.** `key:periodLabel` is unclassified, so `paywall.tsx:59/75`'s **`"one time"`** never reached the
-duplicate list W1 worked from. *(Different context — "$79.99 one time" is price prose, not the recurrence
-option label — so it is a **wording-gate judgement**, not an obvious defect. The structural point stands:
-real user-facing copy was invisible to the gate's input.)*
-
-⚠️ **[W2 before-scan] Guardian first-person voice is currently unclassified** — `"Payment logged — I
-updated your balance."` and `"Payday landed — I rolled your plan forward…"` sit in `other`. The house-voice
-rule (*the Guardian is the sole first-person "I"*) is exactly what the wording gate checks, and its input
-cannot see them.
-
-**Exit:** the `copy` bucket is a defensible scope claim — every exclusion a stated rule, every promotion
-verified against the rendered site.
+✅ **W2 — the classification pass. CLOSED 2026-08-12.** The `copy` bucket is now a defensible scope claim:
+unclassified **946 → 346**, copy **740 → 826**, T3 gates **77/184 → 90/139**, every exclusion a stated rule
+and every promotion read at its site. ⚡ Verifying by **diffing both directions** caught two false negatives
+the counts hid. Detail + both scans → log.
 
 ## Audit gate — whole-app _(after 3.7, before Phase 5)_
+
+**Wave C's coherence sweeps land here:** C1 cents-formatter · C2 gold usage · C3 Money hero language [D3] ·
+C4 paywall copy · C5 chart VO labels · C6 iPad More two-column · C7 dead code (`ProgressRing`/
+`MilestonesRow`, orphaned `guardianIntroSeen`, `FormSheet.headerAction`) ⛔ *`computeStreak` came OFF this
+list at B.3 — [D27] ported it, so it now has a live RN reader* · C8 web scan entry · C9 `router.back()`
+cold-entry sweep · C10 doc disambiguation of the overloaded "3.5.3.x".
 
 - [ ] **Cohesion** — the same adversarial rigor for the ENTIRE app (Phases 0–3.7), criterion: does every element work TOGETHER? Cross-surface voice · visual · motion · numbers.
   - ⚠️ **[3.7.A.3 after-scan] `selectWhatIf*` bypasses the debt-free-date funnel** — it calls `projectDebtPayoff` directly rather than going through `selectDebtFreeDate`. Correct today (a deliberate alternate scenario), and a trap: **if the funnel ever gains a guard, a floor or a rounding rule, What-If silently will not have it.** Nothing to fix yet — check it here.
 - [ ] **Best-in-class enhancement pass** — aspirational, app-wide: is each surface genuinely top-of-class, and what makes it unforgettable? Benchmark vs category leaders; restraint, not fireworks.
   - ⚠️ **[4.1.3 after-scan] The onboarding debt step hides its own fields behind the keyboard.** With the pad up on a small screen, balance / minimum / APR are clipped out of `OnboardingLayout`'s ScrollView by the sticky CTA stack — the user must scroll, unprompted, on the app's **first data-entry screen**. The KAV's own comment shows only the CTA case was considered; the standard remedy (`automaticallyAdjustKeyboardInsets`, or scrolling the focused input into view) is absent. Measured on the sim, severity to be judged on device.
 - [ ] **Wording / voice** — every user-facing string, both tiers, all states, against the house voice. Absorbs Wave C's copy items.
+  - ⚠️ **[W2] Guardian first-person voice is UNCLASSIFIED, so this gate's own input cannot see it** — *"Payment logged — I updated your balance."* and *"Payday landed — I rolled your plan forward…"* sit in `other`. The house rule (the Guardian is the sole first-person "I") is exactly what is checked here.
+  - ⚠️ **[W2] `paywall.tsx:59/75`'s `"one time"`** — price prose vs. the recurrence option label. A judgement, not an obvious defect; it never reached W1's duplicate list.
+  - ⚠️ **[W2.5] `EXAMPLE_MONEY` exists as an exported constant and THREE sites bypass it** (`TutorialOverlay.tsx`, `DemoDock.tsx:57`, `tutorialPath.ts:242`; `ExampleCanvasMarker.tsx:14` owns it). All four agree today. The clean fix moves the constant to an RN-free module — `tutorialPath.ts` runs under `tsx` and cannot import a component — so it is a layering change, not cheap polish.
   - ⚠️ **[3.7.A3.1 after-scan] Sweep every Guardian affordance for a PROXY gate.** A3.1's defect class: an affordance that promises an **outcome** ("I'll hold a smaller safety net") was gated on a **proxy** (a cycle count), so it could promise and deliver zero. Check the siblings — `selectReserveRelease` · `selectReserveWalkback` · `selectRiskAcknowledgment` · `selectTrialConversion` · `selectGuardianProofOfWork` — for the same shape: **is each gated on the thing it claims, or on something that merely correlates with it?**
   - ⚡ **[3.7.A3.6 after-scan] …and for a CAPPED OUTCOME — the second shape of the same family.** Not a proxy gate: the gate is right, but the **resource is bounded**, so the affordance delivers less than it promised. `selectTightTopUp`/`coverFromSavings` claimed "holds your line" while `Math.min(gap, balance)` capped the draw short (fixed in A.6 via `holdsLine`). Sweep for the pattern: **any copy asserting a completed outcome over a value that is `Math.min`'d, clamped or floored.**
   - ⚡ **[Wave-A after-scan] "Two places, one rule" hit THREE times in one wave** — A6a (two debt shapes in one directory), A5 (the premium ternary on two screens), A3.6 (one claim in four strings). Each was fixed by extracting a single authority (`PayoffSimDebt`, `premiumKind`, `holdsLine`). Sweep for the shape: **a rule re-derived at each call site rather than owned once.** Agreeing copies are still copies — they just haven't diverged yet.

@@ -7452,3 +7452,100 @@ genuinely so: §13.6's "VoiceOver hears each hint ONCE" (counting matching eleme
 p06) and §13.4's judgement half (does the hint bury the chart). 🎯 *"Haptics etc. can only be tested on
 device"* — agreed, and the split that survives is **whether it fires** (assertable) versus **whether it
 feels right** (yours).
+
+## 4.1.5.2 — §11.15's ring-origin invariant, and two premises that did not survive the switch-in (2026-08-13)
+
+The checklist calls §11.15 its highest-value item and says the fix is *"guarded by NOTHING"*. The plan's
+answer was one line: *"as numeric frame containment, from the first expanded-iPad hierarchy dump."*
+**Neither half of that sentence was true**, and both were cheap to check.
+
+### ⛔ Premise ① — there is no hierarchy dump
+
+Maestro writes a view-hierarchy dump only on a **failed** command, and `i01-ipad-boot.yaml` passed. Run
+`31705617155`'s `maestro-debug-ipad/` is five PNGs, `commands.json`, `maestro.log` and
+`device-xctest.log` — and `grep -c '"frame"\|"bounds"'` returns **0** on all three text files. The
+evidence 4.1.5.2 said to derive numbers from is a set of screenshots.
+
+⚡ The general form is worth keeping: **a passing measurement flow produces less evidence than a failing
+one.** `i01` was deliberately written as a measurement rather than a check, and the artifact it yields on
+success is the *weaker* one. Anything that needs the hierarchy has to make the run fail, or get the
+numbers from the app.
+
+### ⛔ Premise ② — "numeric frame containment" is Appium's capability, not Maestro's
+
+The phrase came from this log's own **Appium** scoping (§4.1.9: *"`rect`/`frame` are exposed element
+attributes"*), and the plan already lists §11.15-as-frame-containment under 4.1.9. Maestro's flow language
+has no element-frame access — `evalScript` sees `output` and `maestro.copiedText`, not the hierarchy — so
+as written the item imported a capability its tier does not have, and duplicated an item three rows below
+it.
+
+**This is the ledger failing in the documented direction**: reliable about *where* to look (§11.15 really
+is unguarded, and the iPad tier really is the only place it can be held), unreliable about *what is there.*
+
+### What was built instead — the overlay measures its own ring
+
+🎯 Jason chose the app-side instrument over deferring to Appium: it guards the item this phase and reuses
+the pattern that ended five rounds of refuted coach-mark theories.
+
+`TutorialOverlay` now measures the **rendered** ring in window space and compares it with the subject's
+own window rect, publishing `tutorial-ring-audit-ok` / `-off` plus the numbers as text.
+
+⛔ **It is not a recomputation of the correction.** Asserting `origin + (spotlight − origin) === spotlight`
+is algebra and passes whatever the layout did. The two numbers compared here are independent: where the
+layout system actually placed the ring (`measureInWindow` on a host `View` child of it) against where the
+registry measured the subject. Remove the correction and the first moves by a sidebar width; the second
+does not.
+
+Four things the build had to get right, each of which would have produced a green that meant nothing:
+
+- **A host `View`, not the `Animated.View`.** Whether Reanimated's wrapper ref exposes `measureInWindow`
+  is not a question worth a CI cycle. `collapsable={false}` on it for the reason the overlay root already
+  carries it — Android's flattener removes exactly this shape, and a flattened probe reports nothing while
+  looking like a pass.
+- **The measurement is STAMPED with the ring's key.** The ring's remount key is its rounded rect, so a new
+  subject remounts the probe and re-measures; without the stamp, a beat change could leave the *previous*
+  beat's verdict on screen, green.
+- **Y is exempt when the stage clamped.** Beat 5's subject (~697pt) is taller than the stage (~530pt) and
+  the ring is deliberately cut at the dock. X is never clamped, so X carries the assertion and the readout
+  prints `clampY` when Y is excused. Judging both would have gone red for the overlay behaving correctly.
+- **⭐ The readout prints `org`.** `d 0,0` proves nothing alone — it is exactly what a build with *no*
+  correction reports on a phone, where the origin is already {0,0}. `org 360,0` beside `d 0,0` can only
+  both be true if the subtraction ran. It also states plainly which tier can hold §11.15: on the iPhone
+  lane this prints `org 0,0` and the X assertion is vacuous by construction.
+
+**Not on web** — react-native-web puts the origin at 0 at every width, so the assertion would pass either
+way there (defect class ①). **Android is in**, because the flattening/status-bar hazard is the same defect
+in a different hat.
+
+⚠️ **Deliberately NOT `{...decorative}`.** `aria-hidden` maps to `accessibilityElementsHidden` on iOS and
+Maestro reads the XCUITest accessibility tree — hiding the readout from VoiceOver would hide it from the
+only thing that checks it. Cost: a QA build speaks one extra line during §11's VoiceOver pass. It leaves
+with `QA_TOOLS`, and belongs in the Phase-6 flip's `git grep` alongside the coach-mark probe.
+
+### The flow, and why it is in both tiers unequally
+
+`05-tutorial-walkthrough.yaml` gains the audit assertions at beats 1, 2 and 5, and **joins the iPad list**
+(`01 → i01 → 05`, ordered so the measurement flow keeps its clean position). `assertNotVisible` on the
+failing id sits beside `assertVisible` on the passing one — the ids are mutually exclusive by construction,
+so this distinguishes *"the invariant held"* from *"the audit never rendered"*, which are different
+findings behind the same green.
+
+⚠️ **The iPhone pass is not coverage of §11.15** and the flow says so at the assertion. Reading it as
+coverage would be the "assertion that passes either way" this repo has already paid for.
+
+### `lint:selectors` could not see a chosen id — fixed, and re-proven
+
+The guard's first output was three false positives: both of its patterns require a quote immediately after
+`testID=`, so `testID={ok ? 'a-ok' : 'a-off'}` matched neither. Same failure as the `tabBarButtonTestID`
+case the file already documents — right that it could not see them, wrong about what that meant. It now
+also pulls quoted literals out of a `testID={…}` expression container (a template-literal id is composed at
+runtime and is correctly still skipped). **Re-proven to fail** on a planted unknown id before being
+trusted, per T2's rule: 54 testIDs known, and `tutorial-ring-audit-nope` still reds.
+
+### ⚠️ What is still owed
+
+**The planted-defect proof.** Nothing here has run on a simulator yet, and the check is native-only, so the
+usual local "prove it fails first" is not available. The order that costs the same and teaches more: run
+**with the correction deleted first** — if that comes back `-ok`, the instrument is broken and it is better
+to learn that before trusting a green — then restore and run again. Two cycles, ~20 min each, because a
+`src/**` change busts the `.app` cache both ways.

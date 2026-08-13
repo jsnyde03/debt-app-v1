@@ -580,9 +580,19 @@ jobs:
           # Maestro would abort the step on the spot — skipping the log kill and the status line, and
           # throwing away the "it failed, here is how far it got" that is this step's entire output.
           STATUS=0
+          # ⭐ 4.1.5.2 — `05` joins the iPad list, and it is the FIRST check here that can actually fail
+          # for an iPad-specific reason. `i01` asserts nothing device-specific by design, so until now this
+          # tier was infrastructure without coverage. §11.15's ring-origin invariant is the opposite: on
+          # the iPhone the overlay's origin is {0,0} and the assertion is satisfied by a build with no
+          # correction at all, while here the tab bar is a left RAIL and the origin sits a sidebar-width
+          # right — the only arrangement in which the check has two possible answers.
+          # ORDER: `05` runs after `i01` so the measurement flow keeps its clean position — `05` finishes
+          # the walkthrough and marks it seen, which changes what Today renders. It relaunches with
+          # `clearState: false`, so `i01` leaving the debt sheet open costs it nothing.
           maestro test \
             .maestro/01-launch-smoke.yaml \
             .maestro/i01-ipad-boot.yaml \
+            .maestro/05-tutorial-walkthrough.yaml \
             --format junit --output maestro-report-ipad.xml --debug-output ./maestro-debug-ipad || STATUS=$?
           kill "$LOG_PID" 2>/dev/null || true
           echo "iPad tier exit status: $STATUS (recorded, not fatal — see the step comment)"
