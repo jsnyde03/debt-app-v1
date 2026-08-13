@@ -38,12 +38,31 @@ appId: com.jasonsnyder.debtplanner
 # ── Today. The reference frame for everything else: if the shared flows' swipes went wrong, they went
 #    wrong here first. ────────────────────────────────────────────────────────────────────────────────
 - takeScreenshot: maestro-debug/ipad-01-today
+# 4.1.5.3 — §10's "Today = two columns". A STRUCTURAL id, not "are these two cards both on screen":
+# `TwoColumn` names the branch it took, so this cannot pass on a stacked layout however the content
+# happens to land. Its counterpart `layout-stacked` is asserted in `02`, which is iPhone-only by design —
+# that pair is what proves this discriminates, in the same suite, rather than a human comparing frames.
+- assertVisible:
+    id: "layout-two-column"
 
 # ── Money. ⭐ THE ONE THAT DECIDES [D30]'s premise. On a wide iPad this should be MASTER-DETAIL, not the
 #    single scrolling list the iPhone flows drive. The hierarchy dump is the evidence. ────────────────
 - tapOn:
     id: "tab-money"
 - takeScreenshot: maestro-debug/ipad-02-money-master-detail
+# 4.1.5.3 — §10's master-detail, and [D30]'s load-bearing premise, as three assertions that each fail on
+# the compact layout by construction rather than by luck:
+#   · the split itself rendered;
+#   · the detail pane exists beside the list;
+#   · and it is showing its EMPTY state — that copy lives inside `money.tsx`'s `isExpanded` branch
+#     (`:402-412`), so it cannot exist on a phone at all.
+# Together they are the difference between "the app booted on an iPad" (which is all this flow used to
+# say) and "the iPad LAYOUT rendered".
+- assertVisible:
+    id: "layout-master-detail"
+- assertVisible:
+    id: "layout-detail-pane"
+- assertVisible: "Select a debt to edit, or add one."
 
 # ── Progress and More, for the two-column checks (§10, C6) that have no iPhone equivalent. No assertion
 #    about column count: this build has not been shown to express one, and inventing a selector that

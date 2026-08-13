@@ -7800,3 +7800,40 @@ this component already.
 gate stays green while the defect is open and **the test reds the moment it is fixed** — delete the marker
 and it is the regression gate. A `skip` rots silently; a bare failure reddens the gate and gets muted.
 This is the one shape that cannot become a lie in either direction.
+
+## 4.1.5.3 — §10's layout checks, and the id that had to exist first (2026-08-13)
+
+🎯 Both recommendations agreed: **C6 retired** (More stays a single centred column) and **the route-push
+mark admitted as the next active build**.
+
+### The gap was that nothing NAMED the branch
+
+`i01` could not assert §10 because the adaptive layout published nothing to assert on. `TwoColumn` and
+`MasterDetail` *are* the iPad layout, and neither carried a testID — so the only available check was "are
+these two cards on screen together", which tests where content happened to land, not which layout ran.
+That is the "assertion that passes either way" class, and this repo has already paid for it.
+
+**Both branches are now named** — `layout-two-column` / `layout-stacked`, `layout-master-detail` /
+`layout-detail-pane` — and naming the *compact* side is the point: `02-sheet-native-tap.yaml` is
+iPhone-only by design, so it asserts `layout-stacked` and `assertNotVisible: layout-master-detail`.
+⚡ **That is the discrimination proof running in the suite on every run, rather than a human comparing two
+screenshots once.** A single id would have been half a check.
+
+`i01` now asserts the split, the detail pane, and `"Select a debt to edit, or add one."` — copy that lives
+inside `money.tsx`'s `isExpanded` branch and **cannot exist on a phone**. The flow stops being a
+measurement and becomes coverage, which retires its own disclaimer (4.1.5.6, folded in).
+
+⛔ **The sidebar rail is still NOT assertable.** `tabBarPosition: isRegular ? 'left' : 'bottom'`
+(`(tabs)/_layout.tsx:59`) with identical testIDs either way — a position-only difference, and Maestro
+cannot read a frame. Same wall as §11.15's original framing. → Appium (4.1.9) or never; stated rather than
+quietly dropped.
+
+### ⚠️ Caught before it cost a run — `MasterDetail`'s compact branch is unreachable
+
+The first version asserted `layout-single-pane` on the iPhone. It would have red: `money.tsx:402` decides
+`isExpanded ? <MasterDetail…> : <>{list}{editor}</>`, so on a phone the component **never mounts** and its
+own `!isExpanded` check is a second owner of a rule already decided above it — *"two places, one rule"*,
+the shape Wave A hit three times. The testID was removed rather than left advertising coverage of a path
+nothing can reach, and the compact side asserts the negative instead.
+
+Gate **168/168** *(167 + the `test.fail()` route-push reproduction)*, tsc clean both trees.

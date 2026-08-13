@@ -10,9 +10,30 @@ appId: com.jasonsnyder.debtplanner
 - launchApp:
     clearState: false
 
+# ── 4.1.5.3 · THE OTHER HALF OF §10, AND THE ONLY REASON THE iPAD ASSERTIONS MEAN ANYTHING ─────────
+# `i01` asserts `layout-two-column` / `layout-master-detail` on the expanded iPad. On their own those
+# prove the ids exist somewhere, not that they track the layout. These are their negatives, and they live
+# HERE because 02 is iPhone-only by design (its subject is a header button inside a modal's swipe area,
+# and on an expanded iPad the sheet is inline, so there is no modal to put one in).
+#
+# ⚡ That is the discrimination proof running IN THE SUITE, every time, rather than a human comparing two
+# screenshots once. If a branch ever stops being conditional, one side goes red the same day.
+#
+# Today first, BEFORE the Money tap — `index.tsx` renders `<TwoColumn>` unconditionally and the component
+# picks its own branch, so the stacked id is genuinely reachable here.
+- assertVisible:
+    id: "layout-stacked"
+
 # Money tab via testID (labels aren't reliably matchable on iOS).
 - tapOn:
     id: "tab-money"
+
+# ⚠️ The negative only — there is no positive counterpart to assert. `MasterDetail`'s own compact branch
+# is UNREACHABLE: `money.tsx:402` decides `isExpanded ? <MasterDetail…> : <>{list}{editor}</>`, so on a
+# phone the component never mounts. Asserting an id inside it would have been coverage of a path nothing
+# can reach — caught before this cost a run, and the duplicated `isExpanded` check is filed.
+- assertNotVisible:
+    id: "layout-master-detail"
 
 # ⛔ FIXED 2026-08-11 — this flow was BROKEN and nothing reported it. It scrolled to and tapped a row
 # labelled "Add debt", which `A10.1` (2026-08-10) deleted: Money's three per-section Add rows were

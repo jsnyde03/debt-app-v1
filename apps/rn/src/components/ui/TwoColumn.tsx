@@ -24,9 +24,20 @@ export function TwoColumn({
 }) {
   const { isExpanded } = useLayout();
 
+  // 4.1.5.3 — the BRANCH is named, on both sides, and that is what makes §10 assertable at all.
+  //
+  // ⛔ The alternative was asserting that two particular cards are on screen together, which is a test of
+  // where content happened to land rather than of which layout ran — the "assertion that passes either
+  // way" class this repo has already paid for. `tabBarPosition: isRegular ? 'left' : 'bottom'`
+  // (`(tabs)/_layout.tsx:59`) is the same problem one level up and is why the sidebar rail is still NOT
+  // assertable: identical ids either way, a position-only difference, and Maestro cannot read a frame.
+  //
+  // ⚡ Naming BOTH branches rather than only the expanded one is the point: `layout-stacked` on an
+  // iPhone-only flow is what proves the expanded assertion discriminates, in the same suite, instead of a
+  // human comparing screenshots. A single id would have been half a check.
   if (!isExpanded) {
     return (
-      <View style={styles.stack}>
+      <View style={styles.stack} testID="layout-stacked">
         {left}
         {right}
       </View>
@@ -34,7 +45,7 @@ export function TwoColumn({
   }
 
   return (
-    <View style={styles.row}>
+    <View style={styles.row} testID="layout-two-column">
       {/* minWidth:0 lets each column shrink so long content wraps instead of overflowing the row. */}
       <View style={[styles.col, { flex: ratio }]}>{left}</View>
       <View style={[styles.col, { flex: 1 }]}>{right}</View>

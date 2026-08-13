@@ -28,12 +28,25 @@ export function MasterDetail({
   const { isExpanded } = useLayout();
   const c = useAppColors();
 
+  // 4.1.5.3 — both branches named, for the reason spelled out in `TwoColumn`: an id that exists on only
+  // one layout is what makes a device-specific check discriminate, and naming the OTHER branch is what
+  // proves it does. ⚠️ `layout-detail-pane` is separate from `layout-master-detail` deliberately — the
+  // pane is where [D30]'s inline-sheet premise lives (`money.tsx:396` passes `inline` when expanded), so
+  // "the split rendered" and "the detail pane is showing the right thing" are different questions and one
+  // id for both would make each assertion silently ambiguous.
+  // ⚠️ [4.1.5.3] THIS BRANCH IS UNREACHABLE FROM THE ONLY CALLER, and deliberately carries no testID.
+  // `money.tsx:402` decides `isExpanded ? <MasterDetail…> : <>{list}{editor}</>` — so on compact this
+  // component never mounts and the check below is a second owner of a rule already decided above it
+  // ("two places, one rule", the shape Wave A hit three times). An id here would advertise coverage of a
+  // path nothing can reach; the compact assertion is `assertNotVisible: layout-master-detail` instead.
+  // Left in place rather than deleted — it is a correct fallback if a second caller ever appears — but
+  // the duplication is filed, not endorsed.
   if (!isExpanded) return <View style={styles.flex}>{list}</View>;
 
   return (
-    <View style={styles.row}>
+    <View style={styles.row} testID="layout-master-detail">
       <View style={[styles.listPane, { borderRightColor: c.border.subtle }]}>{list}</View>
-      <View style={styles.detailPane}>{hasSelection ? detail : detailEmpty}</View>
+      <View style={styles.detailPane} testID="layout-detail-pane">{hasSelection ? detail : detailEmpty}</View>
     </View>
   );
 }
