@@ -154,7 +154,10 @@ export function TutorialOverlay({
   // unclamped rect), because clipping what a user can TOUCH to what happens to be visible would silently
   // shrink the tap area of a control the beat is asking them to operate.
   const stage = stageBounds(insets.top, windowH, dockH);
-  const local = spotlight ? { ...spotlight, x: spotlight.x - origin.x, y: spotlight.y - origin.y } : null;
+  // ⛔ 4.1.5.2 PLANTED DEFECT — the origin correction, DELETED. Throwaway branch, never merged.
+  // If the ring audit comes back `-ok` on the expanded iPad with this in place, the instrument is broken
+  // and no green from it is worth anything.
+  const local = spotlight ? { ...spotlight } : null;
   const clamped = local
     ? (() => {
         const top = Math.max(local.y, stage.top - origin.y);
