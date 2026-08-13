@@ -135,6 +135,23 @@ concurrency:
 jobs:
   maestro:
     name: Compile · boot · Maestro
+    # ── 2026-08-13 · `[skip native]` — THE ROT GUARD MUST NOT TAX ACTIVE DEVELOPMENT ─────────────────
+    # 🎯 Jason: *"Can we batch some fixes together instead of pushing so many long running CI builds? It
+    # feels like we're waiting more than designing."* Measured on the day the guard landed: **~12 native
+    # dispatches, several cancelled, for maybe three runs' worth of distinct information.**
+    #
+    # The guard is right for quiet weeks and wrong for a working afternoon, and the two cases are told
+    # apart by the person committing — so they get a switch rather than the workflow guessing. A push whose
+    # HEAD COMMIT says `[skip native]` does not spawn a run; `workflow_dispatch` ignores this entirely,
+    # because asking for a run by hand is unambiguous.
+    #
+    # ⛔ THE HAZARD IS THE POINT OF THE GUARD ITSELF: a lane that is skipped by habit is a lane that rots
+    # green-by-never-running, which is what the trigger exists to prevent. So the discipline is written
+    # down beside it rather than left to memory — **local gate on every change
+    # (`validate:release:rn`, 168/168, ~6 min), native lane at a BATCH boundary.** The batch boundary is
+    # a real event, not a feeling: the end of a numbered item, or any change to `.maestro/**`, the
+    # workflow, or native config.
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip native]')
     runs-on: macos-15
     # ⚠️ 75, raised from 60 on 2026-08-12. Run 31636187156 hit the 60-minute wall mid-iPad-tier and was
     # cancelled — the `if: always()` collect/upload steps still ran, so the artifact survived, but that

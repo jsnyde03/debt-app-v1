@@ -163,6 +163,16 @@ it on every push. ⚠️ It gained `typecheck:core` + `typecheck:rn` on 2026-08-
 
 ### ⚠️ Standing constraints
 
+- **⛔ BATCH THE NATIVE LANE. Local gate on every change; native at a BATCH BOUNDARY.** 🎯 Jason
+  2026-08-13: *"It feels like we're waiting more than designing."* Measured that day: **~12 native
+  dispatches, several cancelled, for about three runs' worth of distinct information.** `validate:release:rn`
+  is 168/168 in ~6 min locally and catches nearly everything; the native lane's unique value is
+  device-specific, and it is **batchable by nature**. A batch boundary is an event, not a mood: the end of
+  a numbered item, or a change to `.maestro/**` / the workflow / native config. **Put `[skip native]` in
+  the commit message otherwise** — the job-level guard honours it, and `workflow_dispatch` ignores it.
+  ⚠️ The counter-risk is real and is why this is written here rather than remembered: a lane skipped by
+  habit rots green-by-never-running, which is the exact thing the push trigger exists to prevent.
+
 - **Native version pins — do NOT bump:** `react-native-ios-context-menu@3.1.3` EXACT (3.2.x ships broken) · `react-native-ios-utilities ^5.2.0`.
 - **v1.7 ships as ONE release.** Nothing launches until Phase 6 is done and Jason is satisfied.
 - **`QA_TOOLS = true` ships in TestFlight and MUST be flipped false before submission** (`git grep QA_TOOLS`). It is what makes the demo reachable at all.
