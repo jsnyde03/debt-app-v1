@@ -7582,3 +7582,50 @@ Read off run `31705617155`'s iPad frames, which had been sitting in the artifact
 ⚡ The pattern across 4.1.5 so far: **five stated premises checked, four wrong** — and the two findings that
 matter most this session came from *looking at an artifact that had already been produced*, not from
 running anything new.
+
+### The caching batch, measured — and it was pointed at 6% of the job (2026-08-13)
+
+🎯 Jason: *"I want to start adding additional caching to the next run as well since we've gotten green
+across the board."* Right moment — a workflow edit busts the `.app` key (rule ① hashes this file), and the
+next run rebuilds anyway. Wrong batch, as it turns out.
+
+**Step durations, run `31709717569` — a `.app` cache HIT, total job 1326s (22m06s):**
+
+```
+650s  49%   Run Maestro flows
+529s  40%   Boot, install, launch, capture the app log     ← nothing had ever costed this
+ 59s   4%   Install dependencies (root + apps/rn)
+ 22s   2%   Install Maestro (+ idb)
+```
+
+⛔ **`~/.maestro`'s filed "measured 1m29s/run" is refuted — it is 22s.** The batch's two speed items total
+**81s of 1326s**, and caching can recover only a fraction of that. ⚡ **The step nobody had measured is 6.5×
+both of them combined.**
+
+⚡ **The pattern, and it is the same one 4.1.5's before-scan produced twice today: the numbers that get
+optimised are the numbers somebody wrote down.** 17m03s was measured, so the `.app` cache got built and
+was worth it. 1m29s and "npm install" were the next two written down, so they became the batch. 529s was
+never written down, so it was never a candidate — despite being second-largest in the job.
+
+**What was folded in:**
+
+- ✅ **`cache: npm` on `setup-node`** — the one item that survives its own measurement (59s, and
+  `--prefer-offline` can only honour the flag if `~/.npm` is populated). ⚠️ **Both lockfiles** in
+  `cache-dependency-path`: there are no workspaces here, so naming one produces a key that does not move
+  when the other does — the `.app` key's rule ① failure, one tier down. ⛔ Caches the npm *download* cache,
+  not `node_modules`: `apps/rn/package-lock.json` is known out of sync, and caching a resolved tree against
+  a lockfile that does not describe it is how a build gets dependencies nobody chose.
+- ✅ **The 529s step now says where its time goes** — `⏱` laps at device-picked / boot-returned /
+  bootstatus / installed / launched / up, plus `simctl bootstatus -b` so the boot wait lands on the boot
+  line instead of leaking into whatever runs next.
+- ✅ **The flat `sleep 25` is now a poll on the app's own log signal** (`Running application` /
+  `RCTContentDidAppear`) with 25s as the ceiling — [[replace timers with stated signals]]. The
+  fallthrough is deliberate: if the predicate never matches it behaves exactly like the old sleep and
+  still takes the screenshot, because that frame is the diagnostic for the case where the app did not
+  come up.
+
+**Not built, with reasons rather than silence:** `~/.maestro` (22s, and it pins the version by accident) ·
+**DerivedData** (the largest theoretical win for the `src/**` loop we are actually in — and multi-GB
+against GitHub's 10GB per-repo cap, where LRU eviction could take out the 17MB `.app` cache that is saving
+17m03s: the optimisation eating the optimisation) · the **nightly / path-filtered trigger**, which is not a
+speed item at all — it is rot-prevention, on a `macos-15` runner at a 10× minute multiplier.

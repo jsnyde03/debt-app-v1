@@ -119,9 +119,26 @@ jobs:
         with:
           fetch-depth: 0
 
+      # `cache: npm` — the one item of the filed caching batch that survived its own measurement. The
+      # dependency install is 59s on a `.app` cache HIT (run 31709717569), and `--prefer-offline` below
+      # can only honour that flag if `~/.npm` is actually populated.
+      #
+      # ⚠️ BOTH lockfiles, and that is the whole risk of this line. There are no npm workspaces here — the
+      # root tree and `apps/rn` are installed separately — so a `cache-dependency-path` naming only one of
+      # them produces a key that does not change when the other moves, which is a stale cache that looks
+      # like a fresh one. Same failure the `.app` key's rule ① exists to prevent, one tier down.
+      #
+      # ⛔ It caches the npm DOWNLOAD cache, not `node_modules`. `apps/rn/package-lock.json` is known out of
+      # sync (`npm ci` refuses it, which is why both lanes use `npm install`), and caching a resolved
+      # `node_modules` against a lockfile that does not describe it is how a build gets dependencies
+      # nobody chose. → the lockfile regeneration already on the backlog.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/rn/package-lock.json
 
       # No npm workspaces — install root (core/tooling) then the RN app's own node_modules. `@core` is a
       # Metro source alias, so it needs no build/link.
@@ -368,13 +385,32 @@ jobs:
           # speed-up. If this is large, narrow the path before reaching for a bigger runner.
           du -sh ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app 2>/dev/null || true
 
+      # ⚡ MEASURED 2026-08-13, run 31709717569 (a `.app` cache HIT): this step is **529s of a 1326s job —
+      # 40%**, second only to Maestro itself and **6.5× everything the filed caching batch targeted put
+      # together** (npm install 59s + Maestro install 22s). Nothing had ever costed it, and the batch was
+      # authored against the two small numbers because those were the ones somebody had written down.
+      #
+      # Caching cannot touch any of it. So before anything is optimised here, the step says where its own
+      # time goes — a first simulator boot on a cold macos-15 runner is genuinely slow and may be most of
+      # it, in which case there is nothing to win and that is worth knowing too. The `sleep 25` below is
+      # the one part that is definitely not measurement, and it is a timer standing in for "the app is
+      # up", which this repo has a rule about.
       - name: Boot, install, launch, capture the app log
         run: |
+          T0=$(date +%s); lap() { echo "⏱  $1: $(( $(date +%s) - T0 ))s cumulative"; }
           # Pick the newest available iPhone simulator by name (the lineup shifts across Xcode versions).
           DEVICE=$(xcrun simctl list devices available | grep -oE 'iPhone [0-9]+[A-Za-z ]*' | sed 's/ *$//' | sort -V | tail -1)
           echo "Booting simulator: ${DEVICE:-<none found>}"
+          lap "device picked"
           xcrun simctl boot "$DEVICE" || true
+          lap "boot returned"
+          # `bootstatus -b` blocks until the device reports booted. Without it `boot` returns early and the
+          # install races a device that is not ready — and the wait moves into whatever runs next, where it
+          # is invisible. This makes the boot cost land on the boot line.
+          xcrun simctl bootstatus "$DEVICE" -b || true
+          lap "bootstatus complete"
           xcrun simctl install booted ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
+          lap "app installed"
           mkdir -p maestro-debug
           # Stream the app's unified log so a fatal JS throw's message + stack is captured (the crash
           # report has the native abort stack but not the JS message).
@@ -383,9 +419,21 @@ jobs:
             > maestro-debug/os-log.txt 2>&1 &
           LOG_PID=$!
           xcrun simctl launch booted com.jasonsnyder.debtplanner || true
-          sleep 25
+          lap "app launched"
+          # ⚠️ Was a flat `sleep 25`. A timer standing in for "it is ready" drifts under load and reads as
+          # flake — the app emits a signal, so poll for it and keep 25s only as the ceiling. On a warm
+          # runner this returns in a few seconds; on a slow one it still waits the full time rather than
+          # screenshotting a splash. The `||` fallthrough matters: if the predicate never matches, this
+          # must behave exactly like the old sleep and still take the screenshot, because that frame is
+          # the diagnostic for the case where the app did NOT come up.
+          for i in $(seq 1 25); do
+            grep -qE "Running application|RCTContentDidAppear" maestro-debug/os-log.txt 2>/dev/null && break
+            sleep 1
+          done
+          lap "app reported up (or 25s ceiling)"
           xcrun simctl io booted screenshot maestro-debug/cold-launch.png || true
           kill "$LOG_PID" 2>/dev/null || true
+          lap "step complete"
           echo "=== app log — error/exception/fatal lines ==="
           grep -iE "fatal|exception|invariant|undefined is not|is not a function|cannot read|TypeError|ReferenceError|RCTFatal" maestro-debug/os-log.txt | head -80 || true
           echo "=== app log — last 60 lines ==="
