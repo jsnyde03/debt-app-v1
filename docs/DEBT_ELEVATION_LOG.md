@@ -7990,3 +7990,52 @@ a needless full build is a cost while a wrongly-skipped one is a defect.
 ⛔ **Caught before it ran: `[ "$OLD_SHA" = "$NEW_SHA" ] && echo …`** would have failed the step on every
 successful fast-path run. GitHub runs `run:` under `bash -e`, so a `&&` chain whose test is false returns 1
 — and false is the NORMAL case here, since the shas differ whenever any JS changed.
+
+## ✅ 4.1.5.4 — the route-push coach mark. Probed, refuted, fixed (2026-08-13)
+
+⛔ **The probe refuted my mechanism before I could build on it, which is the whole reason it exists.** I
+expected a STALE RECT: subject unmounts, nothing re-measures, layer draws at coordinates for a screen that
+is gone. The reproduction printed the opposite —
+
+```
+on Progress — mark @ y=454 · subject nodes=1
+on More     — mark visible=true @ y=454 · subject nodes=1
+STAGE: subject STILL PRESENT · rect UNCHANGED
+```
+
+That would have been the **fifth** mechanism asserted at `CoachMarkLayer` and the fifth refuted. It cost a
+43-second local run instead of a 22-minute CI cycle, because `trajectory-scrub` is offered
+**unconditionally** while `debt-row-actions` is `Platform.OS === 'ios'`.
+
+⚠️ **And I discounted half of my own probe.** "Subject still mounted" cannot be trusted as evidence about
+native: this log already records that **RN-web leaves the previous screen painted while a simulator renders
+only the focused tab.** What holds on both platforms is narrower and sufficient — *the mark rendered*, and
+the layer cannot render without `active` being set. That named the stage without the DOM's mount count
+being load-bearing.
+
+### ⚡ It is 4.1.4c's defect ① again, on the other side of the same boundary
+
+Defect ① was a **suppressor** held by a MOUNTED tab — Today never unmounts, so an ack suppressed coach
+marks app-wide. It was fixed by gating on `useIsFocused()`. **The offer was left on mount semantics**, so
+the identical confusion — *mount ≠ visible* — survived in the mark itself. `CoachMarkLayer` is mounted at
+the ROOT, above the navigator, so a pushed route changes nothing it can see: only the HOST screen knows it
+has stopped being the one you are looking at.
+
+**A class fix was applied to one instance and not swept.** Same shape as "two places, one rule", and the
+same cost: the second instance shipped.
+
+**The fix:** `useCoachMark` gains a focus gate that `dismiss()`es its own mark on blur.
+- `dismiss()`, not `suppress()` — suppressors are a COUNT held by something mounted and owe a matching
+  release, which is exactly what made ① app-wide and undebuggable. This is one-shot.
+- Nothing is lost by standing down: the once-ever record is written by the LAYER on `DREW` (4.1.4c moved
+  it there from OFFER), so a mark that reached the screen is already recorded as seen, and one that never
+  drew keeps its turn.
+
+### ⭐ `test.fail()` paid for itself in a single session
+
+The reproduction carried it for the few hours the defect was open, and Playwright reported **"Expected to
+fail, but passed"** the moment the gate landed. Marker deleted, assertion unchanged, and it is now the
+regression gate. A `skip` rots silently; a bare failure reds the gate and gets muted. **Gate 168/168.**
+
+⚠️ **Still owed:** the iPad's window-space half — the mark drawn across the sidebar rail while its subject
+sits in the content column. Not touched by this fix, and it needs its own evidence → 4.1.5.4.4.

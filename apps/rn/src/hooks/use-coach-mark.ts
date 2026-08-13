@@ -1,3 +1,4 @@
+import { useIsFocused } from 'expo-router';
 import { useEffect } from 'react';
 
 import { coachMarks } from '@/store/coachMarks';
@@ -27,6 +28,42 @@ import { useTutorialTargets } from '@/store/tutorialTargets';
  */
 export function useCoachMark(id: string, ready: boolean): void {
   const targets = useTutorialTargets();
+  const isFocused = useIsFocused();
+
+  /**
+   * 4.1.5.4 — a mark must not outlive the screen its subject is on.
+   *
+   * ⛔ **The defect this fixes, reproduced before it was explained:** with the `trajectory-scrub` hint up
+   * on Progress, opening More left *"Drag the curve · Scrub any month…"* lying across the settings list.
+   * Seen first on the iPad (`ipad-04` → `ipad-05`) and then in Chrome, so it is a cross-platform product
+   * defect, not a layout artifact.
+   *
+   * ⚡ **It is 4.1.4c's defect ① again, on the other side of the same boundary.** That one was a
+   * *suppressor* held by a MOUNTED tab, and it was fixed by gating on focus — because Today never
+   * unmounts. The offer was left on mount semantics, so the identical confusion (mount ≠ visible) survived
+   * in the mark itself. `CoachMarkLayer` is mounted at the ROOT, above the navigator, so a pushed route
+   * changes nothing it can see: only the HOST screen knows it has stopped being the one you are looking at.
+   *
+   * ⛔ Do NOT infer the mechanism from what a browser shows here. `probe-mark-route-push.spec.ts` reports
+   * the subject as still mounted on More — but RN-web leaves the previous screen painted while a simulator
+   * renders only the focused tab, which is a documented difference. What holds on BOTH is that the mark
+   * renders at all, and that requires `active` to still be set. That is the stage; the DOM's mount count
+   * is not evidence about native.
+   *
+   * `dismiss()`, not `suppress()`: suppressors are a COUNT held by something mounted and owe a matching
+   * release — which is precisely what made ① app-wide and undebuggable. This is one-shot.
+   *
+   * ⚠️ Nothing is lost by standing down. The once-ever record is written by the LAYER on `DREW`
+   * (4.1.4c moved it there from OFFER), so a mark that reached the screen is already recorded as seen; a
+   * mark that never drew keeps its turn.
+   */
+  useEffect(() => {
+    if (isFocused) return;
+    if (coachMarks.getState().active !== id) return;
+    probeCoachMark(`blur:${id}=dismissed`);
+    coachMarks.getState().dismiss();
+  }, [isFocused, id]);
+
   useEffect(() => {
     // 4.1.4c — record the ARM separately from the layout event. "The mark never appeared" is compatible
     // with `ready` never flipping, with no registry above the caller, and with the subject never laying
