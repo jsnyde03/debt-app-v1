@@ -7865,3 +7865,33 @@ per-repo cap, where LRU eviction could take out the 17MB `.app` cache saving 17m
 (`cache: npm`), one refuted (`~/.maestro`, filed at 1m29s, measured 22s), one refused (DerivedData), one
 built with its hazards named (the rot guard). **The step that turned out to matter most was not on the
 list**, because nobody had costed it.
+
+## ✅ 4.1.5.3 CLOSED — run `31728370881`, 8/8 iPhone + 3/3 iPad (2026-08-13)
+
+The paired assertions hold in both directions in one run: `layout-two-column`, `layout-master-detail`,
+`layout-detail-pane` and the empty-state copy pass on the expanded iPad, while iPhone-only `02` passes
+`layout-stacked` and `assertNotVisible: layout-master-detail`. **`i01` is coverage now, not a
+measurement** — its disclaimer retires with it (4.1.5.6 folded in).
+
+⚠️ **A 6× outlier worth keeping.** That run's boot step was **547s**, with `app launched` alone at
+**+384s** against 22s and 66s in the two prior readings — same code, same step. Nothing was changed that
+could explain it. ⚡ It is the strongest evidence yet that **single-run comparisons in this lane are
+noise**, and it is why the ccache experiment was built behind an input rather than as a before/after.
+
+## The ccache experiment — cold run `31730150194`
+
+**131 pod xcconfigs patched**, the zero-match guard did not fire, and `Build for the iOS Simulator` came
+back at **593s against a 771s baseline.**
+
+⛔ **That number is not evidence and must not be reported as a win.** A COLD ccache should be neutral or
+slower — it is writing the cache, not reading it. 593 vs 771 is most likely the same runner variance the
+boot step just demonstrated at 6×.
+
+⚠️ **And there is a way this run is a silent no-op that the wall-clock cannot rule out.** The guard proved
+the xcconfigs were *patched*; it did **not** prove Xcode *honoured* `CC`. If the setting was ignored, the
+build compiled with the default clang, everything passed, and 593s means nothing at all. `ccache -s` is
+the only thing that separates those — thousands of cacheable calls versus ~0 — which is why that step runs
+`always()`. ⚠️ `brew install ccache` also printed *"Would install 1 formula"* under a tap-trust warning,
+which is a second reason to read the stats rather than the clock.
+
+**The decision waits on two numbers: the hit rate, and a WARM build.** Nothing adopts on one run.
