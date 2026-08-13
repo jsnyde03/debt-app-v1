@@ -48,9 +48,21 @@ on:
       # parallel test surfaces twice (the two screenshot mechanisms, whose stale frames masked the
       # sandbox theme defect; Wave A's "two places, one rule" landing three times in one wave).
       #
-      # ⚡ 4.1.3a is what makes `both` affordable. The `.app` is device-agnostic and the cache key does
-      # not mention the device, so the iPad run restores the SAME binary — its marginal cost is Maestro
-      # time, not another 17-minute build.
+      # ⚡ 4.1.3a is what keeps `both` from doubling the BUILD. The `.app` is device-agnostic and the cache
+      # key does not mention the device, so the iPad run restores the SAME binary.
+      #
+      # ⚠️ **MEASURED 2026-08-13, run `31720514061`: the iPad tier is 666s (11m06s) against the iPhone
+      # suite's 808s.** The sentence here used to stop at "its marginal cost is Maestro time, not another
+      # 17-minute build" — true about the build, and it undersold the rest by a lot. Three flows cost 82%
+      # of what eight cost, because the tier pays a **second full simulator boot and install** (~90s + ~54s
+      # by the laps in the iPhone step) and re-runs `01`, the heaviest flow in the suite.
+      # ⛔ `01` is NOT duplication to cut: [D30] put it on the iPad list because whether the iPhone-tuned
+      # swipe geometry survives a 1024pt layout IS the question. The boot/install duplication is the
+      # candidate → 4.1.11.
+      #
+      # So `both` is for changes whose evidence spans the tiers — 4.1.5.3's paired layout assertions are
+      # the archetype, since `i01`'s expanded ids mean nothing without `02`'s compact negatives. Routine
+      # iteration stays on one tier.
       #
       # ⚠️ NO PUSH SUPPLIES INPUTS — neither a tag nor the rot-guard filter above — so `inputs.device` is
       # empty there and only the iPhone list runs. Deliberate for now: the iPad tier is a measurement
