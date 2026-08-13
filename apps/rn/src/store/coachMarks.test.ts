@@ -33,12 +33,29 @@ function run() {
   assert(Array.isArray(appStore.getState().store.prefs.coachMarksSeen), 'coachMarksSeen defaults to an array');
   assert(appStore.getState().store.prefs.coachMarksSeen.length === 0, '…and it starts empty, so every mark is eligible');
 
-  // Offer → active, and recorded on OFFER rather than on dismissal.
+  // ⛔ 4.1.4c — OFFERED IS NOT SHOWN. The record is written when the callout DRAWS, not when `show()`
+  // accepts it. This changed: it used to be written inside `show()`, and run 31700074087 measured the
+  // cost — the payoff-schedule subject laid out while its sheet was still a full sheet-height below its
+  // seated position (y=1702 on a 956pt screen), so the mark was recorded as seen and then drawn
+  // off-screen. The user lost that hint permanently, having never seen a pixel of it.
   coachMarks.getState().show('payoff-schedule');
   assert(coachMarks.getState().active === 'payoff-schedule', 'a first offer becomes the active mark');
   assert(
+    appStore.getState().store.prefs.coachMarksSeen.length === 0,
+    '…and is NOT yet recorded: an offer the layer may fail to draw must stay owed to the user',
+  );
+
+  // The layer reports back once it has actually rendered. THAT is what spends the once-ever offer.
+  coachMarks.getState().markDrawn('payoff-schedule');
+  assert(
     appStore.getState().store.prefs.coachMarksSeen.includes('payoff-schedule'),
-    '…and is recorded to the real store immediately, not on dismissal',
+    '…and drawing records it immediately, without waiting for a dismissal',
+  );
+  // Idempotent — the layer re-renders on every host/rect change and must not append a duplicate.
+  coachMarks.getState().markDrawn('payoff-schedule');
+  assert(
+    appStore.getState().store.prefs.coachMarksSeen.filter((m) => m === 'payoff-schedule').length === 1,
+    '…once, however many times the layer re-renders',
   );
 
   // Dismissing does not un-record it: the user has been told.

@@ -7298,3 +7298,55 @@ searched, because no flow had run. Fixed with `set -o pipefail`.
 
 ⚡ **Same family as the defect this lane exists to catch** — a check that cannot say "I found nothing" is
 indistinguishable from a check that found nothing.
+
+## 4.1.4c — the payoff-schedule mark: measured against a position it never occupies (2026-08-13)
+
+### ⭐ The probe named it, and arithmetic confirmed it
+
+```
+hook:payoff-schedule ready=1 registry=1 · layout:payoff-schedule
+show:payoff-schedule=ACCEPTED
+measure:payoff-schedule=400x48@20,1702      ← on a 440×956 screen
+draw:payoff-schedule=DREW nested=1
+```
+
+The mark was offered, accepted, measured and **drawn** — the nested host (3.5.5.5) worked perfectly. It
+drew at `max(insets.top + 8, 1702 − 132) ≈ 1570pt`, entirely off-screen, which is why `coach-mark` was
+absent from a hierarchy dump that carries only on-screen nodes.
+
+⚡ **`use-sheet-presentation.ts:112` explains 1702 exactly:**
+`translateY: interpolate(progress, [0,1], [sheetH, 0])`. The sheet enters translated down by its **own
+full height**. The footer row seats near y≈880; the sheet is ≈820 tall; 880 + 820 = **1700**. The measure
+was taken at `progress ≈ 0` — the first frame of the entrance spring.
+
+⛔ **So it is a TIMING defect, not a layout one, and two stale comments sent me the wrong way first.**
+`coachMarkCopy.ts:25` still says the control "is currently off-screen … not registered anywhere until L5
+puts the row where a finger can reach it", and flow 04's note describes the row as "the last child of the
+sheet's ScrollView". **Both describe a layout that no longer exists** — [L5] moved it to
+`footerAccessory`, pinned, precisely so it could not be off-screen. I repeated both before checking the
+component. *Docs that disagree with adjacent code manufacture defects* — Wave A's lesson, a third time.
+
+⚡ **The real shape: `onLayout` answers "does this exist", never "has this arrived."** It is the same
+error `use-coach-mark` already corrected once when it replaced a 600 ms mount timer with the layout
+event — the right signal for existence, the wrong one for arrival.
+
+### Fix 1 — re-measure on a STATED signal
+
+`useSheetPresentation` now exposes `settled`, flipped by the entrance spring's own completion callback
+(and `true` immediately under Reduce Motion, which snaps). `FormSheet` passes it to the nested layer as
+`remeasureOn`, which joins the measure effect's deps. Not a delay — the animation says when it is done.
+
+### Fix 2 — the once-ever record moves from OFFER to DRAW
+
+`show()` no longer writes `coachMarksSeen`; the layer calls `markDrawn(id)` at the one moment it puts
+pixels on screen, keyed off the same `DREW` verdict the probe prints — so the trace and the record can
+never disagree. Idempotent, since the layer re-renders on every host/rect change.
+
+⚡ **The intent the old placement protected is untouched:** recording still does not wait for a dismissal,
+because *"a user who saw the hint and ignored it has been told."* What no longer counts is
+drawn-into-the-void. `coachMarks.test.ts` now pins the new contract in three assertions, including the
+one that was silently false: **an offer the layer fails to draw stays owed to the user.**
+
+⚠️ Filed, not fixed: an undrawable mark stays `active`, and `show()` refuses while anything is active — so
+one stuck mark can block the rest for a session. Pre-existing, not introduced here, and fix 1 removes the
+only known cause → the cohesion gate.

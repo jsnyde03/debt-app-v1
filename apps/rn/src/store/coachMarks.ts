@@ -69,6 +69,8 @@ export interface CoachMarkState {
    */
   suppressorReasons: string[];
   show(id: string): void;
+  /** Record the once-ever offer — called by the LAYER when the callout renders. See the implementation. */
+  markDrawn(id: string): void;
   dismiss(): void;
   addSuppressor(reason?: string): () => void;
   addHost(): () => void;
@@ -105,9 +107,26 @@ export const coachMarks = createStore<CoachMarkState>((set, get) => ({
 
     probeCoachMark(`show:${id}=ACCEPTED`);
     set((s) => ({ active: id, shown: new Set(s.shown).add(id) }));
-    // Recorded on OFFER, not on dismissal — the same rule the tutorial invitation follows. A user who
-    // saw the hint and ignored it has been told; re-offering it because they never tapped "Got it"
-    // would punish the reading they actually did.
+  },
+
+  /**
+   * ⛔ 4.1.4c — THE ONCE-EVER RECORD IS WRITTEN WHEN THE CALLOUT ACTUALLY DRAWS, not when it is offered.
+   *
+   * It used to be written inside `show()`, and the difference is not academic: run 31700074087 measured
+   * `payoff-schedule` at **y=1702 on a 956pt screen** — the sheet was still a full sheet-height below its
+   * seated position when the subject laid out — so the mark was recorded as seen and then drawn where
+   * nobody could ever see it. **Offered ≠ shown**, and the user lost that hint permanently.
+   *
+   * ⚡ The intent the old placement protected is UNCHANGED and still holds: recording does not wait for a
+   * dismissal, because *"a user who saw the hint and ignored it has been told"*. Drawn-and-ignored still
+   * counts as told. What no longer counts is drawn-into-the-void.
+   *
+   * Idempotent: the layer re-renders freely, and a mark already in the list is left alone.
+   */
+  markDrawn(id) {
+    const prefs = appStore.getState().store.prefs;
+    if (prefs.coachMarksSeen.includes(id)) return;
+    probeCoachMark(`record:${id}`);
     appStore.getState().updatePrefs({ coachMarksSeen: [...prefs.coachMarksSeen, id] });
   },
 

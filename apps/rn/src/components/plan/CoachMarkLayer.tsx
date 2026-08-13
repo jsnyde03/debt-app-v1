@@ -30,7 +30,15 @@ import { textStyles } from '@/theme/typography';
  *
  * Renders nothing unless something is actively marked.
  */
-export function CoachMarkLayer({ nested = false }: { nested?: boolean } = {}) {
+export function CoachMarkLayer({
+  nested = false,
+  /**
+   * 4.1.4c — flips when the host has finished PRESENTING, so the subject can be re-measured where it
+   * actually came to rest. `onLayout` answers "does this exist"; it does not answer "has it arrived",
+   * and a sheet that springs up from its own height apart makes those two very different questions.
+   */
+  remeasureOn,
+}: { nested?: boolean; remeasureOn?: unknown } = {}) {
   const c = useAppColors();
   const insets = useSafeAreaInsets();
   const { height: winH } = useWindowDimensions();
@@ -68,7 +76,7 @@ export function CoachMarkLayer({ nested = false }: { nested?: boolean } = {}) {
     return () => {
       cancelled = true;
     };
-  }, [active, targets]);
+  }, [active, targets, remeasureOn]);
 
   // 4.1.4c — the layer's final verdict, recorded from an EFFECT rather than from the render body: this
   // component renders on every host/rect change, and a side effect in a render path is exactly the kind
@@ -77,6 +85,10 @@ export function CoachMarkLayer({ nested = false }: { nested?: boolean } = {}) {
     if (!active) return;
     const verdict = !nested && hosts > 0 ? `stoodDownFor(hosts=${hosts})` : !rect ? 'noRect' : !COACH_MARKS[active] ? 'noCopy' : 'DREW';
     probeCoachMark(`draw:${active}=${verdict} nested=${nested ? 1 : 0}`);
+    // 4.1.4c — the once-ever record is written HERE, by the layer that actually put pixels on screen,
+    // rather than by `show()` which only ever knew a mark had been asked for. `DREW` is the same verdict
+    // the probe prints, so the trace and the record can never disagree about what happened.
+    if (verdict === 'DREW') coachMarks.getState().markDrawn(active);
   }, [active, rect, hosts, nested]);
 
   // The innermost host draws. Outside any sheet `hosts` is 0 and the root layer behaves exactly as before.

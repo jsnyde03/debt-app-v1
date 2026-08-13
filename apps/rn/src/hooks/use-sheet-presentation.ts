@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Keyboard, type LayoutChangeEvent, useWindowDimensions } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
 import { interpolate, runOnJS, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
@@ -26,8 +26,34 @@ export function useSheetPresentation(onClose: () => void, dirty?: boolean) {
   const progress = useSharedValue(reduce ? 1 : 0); // 0 = off-screen / scrim-clear → 1 = seated / scrim-full
   const dragY = useSharedValue(0);
 
+  /**
+   * 4.1.4c — has the entrance finished, i.e. is the sheet's content where it will actually stay?
+   *
+   * ⛔ **A coached control inside this sheet measures WRONG until this flips.** The enter animates
+   * `translateY` from `sheetH` to 0, so at the first frame the whole sheet — footer accessory included —
+   * is a full sheet-height BELOW its seated position. `TutorialTarget`'s `onLayout` fires there, and
+   * `measureInWindow` faithfully reports that transient position: run 31700074087 measured the payoff
+   * schedule row at **y=1702** on a 956pt screen (≈880 seated + ≈820 of sheet height), so the coach mark
+   * drew ~1570pt down and was never visible. Nothing re-measured, because layout had not changed — only
+   * position had.
+   *
+   * ⚡ It is a STATED SIGNAL rather than a delay, which is the same correction `use-coach-mark` already
+   * made once when it replaced a 600 ms mount timer with the layout event. Layout was the right signal
+   * for "the subject exists"; it is the wrong one for "the subject has arrived".
+   *
+   * Reduce Motion snaps, so there is no transient and this is true immediately.
+   */
+  const [settled, setSettled] = useState(reduce);
+
   useEffect(() => {
-    progress.value = reduce ? 1 : withSpring(1, ENTER);
+    if (reduce) {
+      progress.value = 1;
+      setSettled(true);
+      return;
+    }
+    progress.value = withSpring(1, ENTER, (finished) => {
+      if (finished) runOnJS(setSettled)(true);
+    });
   }, [reduce, progress]);
 
   const keyboardUp = useRef(false);
@@ -92,5 +118,5 @@ export function useSheetPresentation(onClose: () => void, dirty?: boolean) {
     [sheetH, insets.bottom],
   );
 
-  return { pan, scrimStyle, sheetStyle, onBackdrop, requestClose, onSheetLayout };
+  return { pan, scrimStyle, sheetStyle, onBackdrop, requestClose, onSheetLayout, settled };
 }

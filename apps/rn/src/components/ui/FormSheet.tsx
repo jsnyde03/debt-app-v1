@@ -72,7 +72,7 @@ export function FormSheet({
   const c = useAppColors();
   const scheme = useColorScheme();
   const insets = useSafeAreaInsets();
-  const { pan, scrimStyle, sheetStyle, onBackdrop, requestClose, onSheetLayout } = useSheetPresentation(onClose, dirty);
+  const { pan, scrimStyle, sheetStyle, onBackdrop, requestClose, onSheetLayout, settled } = useSheetPresentation(onClose, dirty);
 
   // 3.6.2 — inline pane (iPad Money master-detail): the same header + fields + submit/remove, but no
   // Modal / scrim / grabber / swipe / ✕ (a pane isn't a dismissible sheet). `useSheetPresentation` is
@@ -185,7 +185,11 @@ export function FormSheet({
             It sits inside the full-screen gesture root rather than inside the sheet, so a subject's
             window coordinates and the callout's frame share one space. The store is shared, so "one at a
             time" still holds across both mounts, and the layer renders null unless something is marked. */}
-        <CoachMarkLayer nested />
+        {/* ⚠️ `remeasureOn` carries the entrance-spring completion. A subject inside this sheet lays out
+            while the sheet is still a full sheet-height BELOW its seated position, so its first measure
+            is of a place it never stays — see `use-sheet-presentation`'s `settled`. Layout does not fire
+            again (position changed, layout did not), so without this the callout is frozen off-screen. */}
+        <CoachMarkLayer nested remeasureOn={settled} />
       </GestureHandlerRootView>
     </Modal>
   );
