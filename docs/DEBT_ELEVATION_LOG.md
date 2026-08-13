@@ -7549,3 +7549,36 @@ usual local "prove it fails first" is not available. The order that costs the sa
 **with the correction deleted first** — if that comes back `-ok`, the instrument is broken and it is better
 to learn that before trusting a green — then restore and run again. Two cycles, ~20 min each, because a
 `src/**` change busts the `.app` cache both ways.
+
+### 4.1.5.3–4.1.5.5 before-scan — three more premises, and two defects the screenshots were already carrying
+
+Read off run `31705617155`'s iPad frames, which had been sitting in the artifact since 4.1.5.1 closed.
+
+- ⛔ **"More's two-column" does not exist and was never specified.** `ipad-05` is a single centred settings
+  column, and **§10's own text says so** — *"More = a wider centered settings column."* C6 (*"iPad More
+  two-column"*) is a Wave-C **aspiration**; the plan had promoted it to a *check*. A flow written from that
+  row would have asserted behaviour the app has never had. → whether it *should* be two-column is a
+  decision for the audit gate.
+- ⛔ **4.1.5.5's "rotation is an unproven command" is stale.** `setOrientation` PASSED in 4.1.1 cycle 2
+  alongside `extendedWaitUntil`, `evalScript`+`assertTrue`, `assertScreenshot` and `repeat`. The block had
+  outlived the probe that cleared it — and it was also gating 4.1.5.4, which needs a landscape frame.
+- ⚠️ **§11.16 is a judgement, not a check.** The checklist asks whether the crop *"reads as a deliberate
+  crop or as a rendering fault"*. Automating it can only mean producing the landscape frame; a pass/fail
+  here would be a check invented to be passable.
+
+⚡ **And two things the frames show that nothing was looking for.** Both concern `CoachMarkLayer`, which
+4.1.5.2's ring audit does **not** cover:
+
+1. **The `trajectory-scrub` mark survives a route push.** The same *"Drag the curve"* card is in
+   `ipad-04-progress` (subject present) **and** in `ipad-05-more-two-column`, lying across the More
+   settings list where its subject does not exist. ⚠️ **Recorded as an observation with no mechanism.**
+   This is the exact component in which five mechanisms were asserted and four refuted; the rule that came
+   out of that is *probe it, do not reason at it.* Not obviously iPad-specific — More is a pushed route on
+   both layouts.
+2. **It is drawn in WINDOW space on the expanded iPad**, starting at the window's left edge and lying
+   across the **sidebar rail**, while its subject is entirely inside the content column. That is §11.15's
+   coordinate-space failure wearing a different component's name.
+
+⚡ The pattern across 4.1.5 so far: **five stated premises checked, four wrong** — and the two findings that
+matter most this session came from *looking at an artifact that had already been produced*, not from
+running anything new.

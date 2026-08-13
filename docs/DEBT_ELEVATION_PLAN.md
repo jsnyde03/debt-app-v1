@@ -38,9 +38,9 @@ device-specific yet — that is this item.
 | # | Step | State |
 |---|---|---|
 | **4.1.5.2** | **§11.15 ⭐ the ring-origin invariant** — the overlay measures its RENDERED ring in window space against the subject's own window rect and publishes the verdict as `tutorial-ring-audit-ok`/`-off`; flow `05` joins the iPad list and asserts it. ⛔ **Both stated premises were refuted at switch-in** — see below | 🔨 **BUILT, unrun.** Gate + planted-defect proof owed |
-| **4.1.5.3** | **§10's two layout checks** — master-detail (**confirmed rendering**: sidebar rail + list + detail pane) and More's two-column | |
-| **4.1.5.4** | **§11.16** | |
-| **4.1.5.5** | **§11.8's rotation half** — ⛔ blocked: rotation is an **unproven command**, so it goes through `.maestro/probe/` first (4.1.1's rule) | |
+| **4.1.5.3** | **§10's two layout checks** — master-detail (**confirmed**: rail + list + detail pane) and the **sidebar rail replacing the bottom tab bar** (confirmed). ⛔ **NOT "More's two-column"** — see below | |
+| **4.1.5.4** | **§11.16** — ⚠️ it is a **judgement** ("deliberate crop or rendering fault"), not a pass/fail; scope it to producing the landscape frame | |
+| **4.1.5.5** | **§11.8's rotation half** — ⛔ **the "unproven command" block is STALE.** `setOrientation` PASSED in 4.1.1 cycle 2 (log: *"Proven: extendedWaitUntil · evalScript+assertTrue · setOrientation · assertScreenshot · repeat"*). Unblocked, and it also unblocks 4.1.5.4's landscape frame | |
 | **4.1.5.6** | **Reconcile `i01`** — retire the measurement-only assertions it still carries, or state plainly what they cover | |
 
 **Iterate with `-f device=ipad`** — it skips the ~10-minute iPhone suite entirely, and flow-only edits hit
@@ -55,6 +55,13 @@ phrasing came from the log's **Appium** scoping, and 4.1.9 already owns it; Maes
 element-frame access (`evalScript` sees `output` and `maestro.copiedText`, not the hierarchy). 🎯 Resolved
 by app-side measurement. ✅ **Master-detail confirmed** in `ipad-02` (rail · list · detail pane) — 4.1.5.3's
 premise is now pinned to an image. Detail → log.
+
+⛔ **[4.1.5.3 before-scan] "More's two-column" DOES NOT EXIST, and was never specified.** `ipad-05` shows a
+single centred settings column, and **§10's own text agrees** — *"**More** = a wider centered settings
+column."* **C6 is a Wave-C aspiration, not a current behaviour**, so asserting it would have been a flow
+claiming something the app has never done. The two §10 checks that ARE real: master-detail, and the
+sidebar rail replacing the bottom tab bar. **Whether More SHOULD be two-column is a [DECISION] → the audit
+gate**, not a check.
 
 ⚠️ **[4.1.4c + 4.1.5.2 after-scan] The instruments stay in the app, and must be verified to LEAVE.**
 `probeCoachMark`, the `coach-probe` readout, `suppressorReasons` and **4.1.5.2's `RING_AUDIT`** are all
@@ -107,6 +114,9 @@ load-bearing `\(.applicationName)` check) stay device-owed → the checklist.
 - **[D2]** `minimumPaidThisCycle` ownership — gates B4. · **[D3]** Money hero language. · **[D1]** Control Center (rec: stay deferred).
 
 ### ⚠️ Open defects
+
+- **⛔ [4.1.5.3 before-scan] The `trajectory-scrub` coach mark SURVIVES a route push — observed, iPad run `31705617155`.** The same *"Drag the curve · Scrub any month…"* card is on screen in **`ipad-04-progress`** (subject present) and still on screen in **`ipad-05-more-two-column`**, lying across the More settings list where its subject does not exist. **Observation only — the mechanism is NOT diagnosed**, and this is the component (`CoachMarkLayer`) where five mechanisms were asserted and four refuted. Probe it, do not reason at it. ⚠️ Not iPad-specific on its face: More is a pushed route on both layouts, so the iPhone lane may have the same defect and no flow looks.
+- **⚠️ [4.1.5.3 before-scan] That mark is drawn in WINDOW space on the expanded iPad**, so it starts at the window's left edge and lies **across the sidebar rail**, while its subject (the payoff-trajectory chart) is entirely inside the content column. That is §11.15's coordinate-space failure in a **different component** — `CoachMarkLayer`, which 4.1.5.2's audit does not cover. ⚠️ Whether a full-window callout is *wrong* here is a composition call; that it sits outside its subject's column is not.
 
 - **⚠️ [4.1.4c before-scan] `SectionList`'s `index` is per-SECTION, so `debt-row-actions` can register TWICE.** `money.tsx:377` wraps `index === 0`, which is also the first **PAID OFF** row — two `TutorialTarget`s sharing one registry key, and the Map keeps whichever laid out last. The comment at `:374-376` anticipated exactly this hazard for rows and missed sections. **Latent** (needs a paid-off debt; the failing flows have none), so **not** the mark's current defect and deliberately not fixed on the probe run. One-line scope: gate on the active section too.
 - **⚡ [4.1.4c before-scan] This mark is unobservable to EVERY automated surface except an iOS sim run** — `Platform.OS === 'ios'` (`money.tsx:259`) puts it out of reach of the web e2e and the app-layer runner, and `phase35-themes.shot.ts:106` already records that. It is why the defect shipped, and it is the argument for instrumenting rather than guessing a sixth time.
