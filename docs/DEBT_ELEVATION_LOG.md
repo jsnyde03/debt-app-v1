@@ -7895,3 +7895,44 @@ the only thing that separates those — thousands of cacheable calls versus ~0 �
 which is a second reason to read the stats rather than the clock.
 
 **The decision waits on two numbers: the hit rate, and a WARM build.** Nothing adopts on one run.
+
+## ⛔ ccache — CLOSED by measurement. It cannot cache this build at all (2026-08-13)
+
+Two runs on `perf/ccache-pods`, and the verdict is not a trade-off, it is a wall.
+
+| run | config | build | ccache |
+|---|---|---|---|
+| baseline `31720514061` | modules ON, no ccache | **771s** | — |
+| `31730150194` | modules ON + ccache | 593s | **0/648 cacheable** |
+| `31733238482` | modules **OFF** + ccache | **888s** | **0/648 cacheable · "Could not use modules 647/648 (99.85%)"** |
+
+⭐ **`-sv` named the reason, and it refuted BOTH stated mechanisms — mine and the July note's.** That note
+said ccache *"conflicted with Xcode 26's **explicit** modules"*. Turning `CLANG_ENABLE_EXPLICIT_MODULES=NO`
+changed **nothing**: still 647/648 rejected with *"Could not use modules"*. The blocker is **modules at
+all** — React Native's pods compile with implicit `CLANG_ENABLE_MODULES`, ccache declines those by design,
+and disabling modules outright is not available because RN's Objective-C depends on them.
+
+⛔ **And the wrong diagnosis cost time to hold: 888s against a 771s baseline.** Giving up explicit modules
+surrendered real module reuse and bought zero cacheable compilations. ⚠️ **My own recommendation was
+optimistic and wrong** — I estimated a large win from a warm cache; the measured ceiling is zero, because
+there is no warm cache to be had.
+
+**What WAS proven, and is worth keeping:** the wiring was exactly right. ccache saw **648** invocations —
+matching the documented *"648 of ~650 CompileC tasks are pods"* precisely — so scoping via the generated
+Pods xcconfigs captured the correct set and never touched the widget target that broke it in July. The
+mechanism was sound; the premise underneath it was not.
+
+⛔ **`sloppiness=modules` is refused, not overlooked.** It would let ccache cache them by ceasing to hash
+module contents — the stale-binary hazard the `.app` cache's rule ② was written to prevent. A faster build
+that might be the *wrong* build is not a trade this lane makes.
+
+### So 771s is the floor, and the branch stays unmerged as the record
+
+The one remaining avenue is **prebuilt pod binaries** (RN already does this for its core via
+`RCT_USE_PREBUILT_RNCORE=1`; extending it to the rest would stop them being compiled at all rather than
+trying to cache the compilation). That is a substantial dependency-packaging change, not a CI tweak →
+filed, not scheduled.
+
+⚡ **The session's pattern held to the last measurement: five stated mechanisms today, and the ones that
+arrived with the most confidence were the ones that were wrong.** The `.app` cache remains the real win
+(17m03s → 2s on flow-only iteration), and flow-only iteration is what the remaining 4.1.5 items are.
