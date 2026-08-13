@@ -7837,3 +7837,31 @@ the shape Wave A hit three times. The testID was removed rather than left advert
 nothing can reach, and the compact side asserts the negative instead.
 
 Gate **168/168** *(167 + the `test.fail()` route-push reproduction)*, tsc clean both trees.
+
+### The poll fix worked, and the second laps reading refuses DerivedData (2026-08-13)
+
+`RCTScrollViewComponentView` matched well inside the ceiling: **`app reported up` +37s → +11s.** The step
+now detects readiness instead of silently timing out; ~26s cheaper is the side effect, not the goal.
+
+| lap | `31720514061` | `31725219145` |
+|---|---|---|
+| bootstatus | 87s | 104s |
+| install | 54s | 96s |
+| launch | 66s | 22s |
+| **wait** | **37s** | **11s** |
+| rest | 17s | 31s |
+| **total** | **261s** | **273s** |
+
+⚠️ **Totals are stable; composition is not.** Install swung 54→96s and launch 66→22s on shared runners —
+so a single-lap comparison is noise, and anyone optimising against one reading will be chasing variance.
+That is the main reason to have taken two.
+
+⛔ **DerivedData REFUSED (🎯 agreed).** **~70% of the step is boot + install, which DerivedData cannot
+touch**; it helps the compile alone, and the compile is already covered by the `.app` cache for flow-only
+iteration — which is what every remaining 4.1.5 item is. Against a benefit that small: multi-GB in a 10GB
+per-repo cap, where LRU eviction could take out the 17MB `.app` cache saving 17m03s.
+
+⚡ **The whole caching batch, closed out by measurement rather than by intuition:** one item folded in
+(`cache: npm`), one refuted (`~/.maestro`, filed at 1m29s, measured 22s), one refused (DerivedData), one
+built with its hazards named (the rot guard). **The step that turned out to matter most was not on the
+list**, because nobody had costed it.
