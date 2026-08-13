@@ -263,18 +263,37 @@ jobs:
       - name: Compute the .app cache key
         id: appkey
         run: |
-          echo "key=app-${{ runner.os }}-x1-${{ hashFiles(
+          # ── 2026-08-13 · SPLIT INTO A NATIVE TIER, BECAUSE THE CACHE WAS HITTING 8% OF THE TIME ──────
+          #
+          # ⚡ MEASURED over the last 13 non-cancelled runs: **12 paid the full 771s build; exactly ONE hit
+          # this cache.** The 4.1.3a note calls the cache "the whole 4.1.4→4.1.11 loop" — that was authored
+          # on the premise that the loop is flow-only YAML iteration, and the loop is actually 92%
+          # `src/**`. The saving was real and almost never collected.
+          #
+          # ⭐ The cause is that `src/**` and `packages/core/**` were in this key, and **neither reaches a
+          # single line of native code.** They are TypeScript: they change `main.jsbundle`, a RESOURCE
+          # inside the .app. So a one-line copy edit was recompiling 648 identical pod targets.
+          #
+          # They are gone from the key, and the JS is regenerated + swapped in on every cache hit by the
+          # re-bundle step below. ⛔ That step is what makes this safe — without it a hit would test the
+          # JavaScript from whenever the binary was built, which is rule ②'s stale-binary hazard wearing a
+          # different hat. It fails loudly and falls through to a full build rather than guessing.
+          #
+          # ⚠️ `index.js`, `metro.config.js` and `babel.config.js` STAY here even though they too are
+          # JS-only. Conservative on purpose: they change rarely, and a needless full build is a cost while
+          # a wrongly-skipped one is a defect. `assets/**` stays for a load-bearing reason — asset FILES are
+          # copied into the .app by the native build, and the re-bundle step deliberately does not sync
+          # them, so an asset change must bust the binary.
+          echo "key=app-${{ runner.os }}-x2native-${{ hashFiles(
             'apps/rn/package-lock.json',
             'apps/rn/package.json',
             'apps/rn/app.json',
             'apps/rn/index.js',
             'apps/rn/metro.config.js',
             'apps/rn/babel.config.js',
-            'apps/rn/src/**',
             'apps/rn/plugins/**',
             'apps/rn/assets/**',
             'apps/rn/targets/**',
-            'packages/core/**',
             'package-lock.json',
             '.github/workflows/native-e2e.yml'
           ) }}" >> "$GITHUB_OUTPUT"
@@ -293,19 +312,67 @@ jobs:
       # A restored directory that is missing its binary, or whose Info.plist will not parse, must fall
       # through to a real build rather than be installed. `simctl install` would take a broken bundle and
       # the failure would surface much later, as something else.
-      - name: Verify the restored .app (a corrupt hit falls back to a full build)
+      # The JS re-bundle lives INSIDE this step on purpose. `usable` is the single gate every downstream
+      # `if:` reads, so folding the new failure mode into it means there is still exactly ONE answer to
+      # "can this cache be used" — rather than a second output that four conditions would each have to
+      # remember. "Two places, one rule" has cost this repo three defects in one wave.
+      #
+      # ⛔ EVERY failure path here ends in `usable=false` and a full build. That is the whole safety
+      # argument: the cache is now keyed WITHOUT `src/**`, so a hit whose bundle was not replaced would run
+      # the JavaScript from whenever the binary was built and go green against stale code. There is no
+      # branch that proceeds on doubt.
+      - name: Verify the restored .app, and re-bundle the JS into it
         id: appverify
         if: steps.appcache.outputs.cache-hit == 'true'
         run: |
+          set -o pipefail
           APP="ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app"
-          if [ -x "$APP/DebtPlannerRN" ] && plutil -lint "$APP/Info.plist" >/dev/null 2>&1; then
-            echo "usable=true" >> "$GITHUB_OUTPUT"
-            echo "✅ restored .app verified: binary present, Info.plist parses"
-          else
-            echo "usable=false" >> "$GITHUB_OUTPUT"
-            echo "⚠️ restored .app is unusable (missing binary or bad Info.plist) — rebuilding from source"
-            rm -rf ios/build/Build/Products/Release-iphonesimulator
+          BUNDLE="$APP/main.jsbundle"
+
+          fail() { echo "⚠️ $1 — rebuilding from source"; echo "usable=false" >> "$GITHUB_OUTPUT"; rm -rf ios/build/Build/Products/Release-iphonesimulator; exit 0; }
+
+          [ -x "$APP/DebtPlannerRN" ] && plutil -lint "$APP/Info.plist" >/dev/null 2>&1 \
+            || fail "restored .app is unusable (missing binary or bad Info.plist)"
+          echo "✅ restored .app verified: binary present, Info.plist parses"
+
+          # ⚠️ ASSERT THE ASSUMPTION RATHER THAN ACT ON IT. This whole design rests on the JS being a
+          # swappable resource at this exact path. No macOS here to check that, so if it is not there the
+          # premise is wrong and the answer is a full build — never "create it and hope".
+          [ -f "$BUNDLE" ] || fail "no main.jsbundle in the restored .app — the swap premise is wrong"
+          OLD_SHA=$(shasum -a 256 "$BUNDLE" | cut -d' ' -f1)
+          OLD_MAGIC=$(xxd -p -l 8 "$BUNDLE")
+
+          TMP="$RUNNER_TEMP/jsbundle"; rm -rf "$TMP"; mkdir -p "$TMP/assets"
+          echo "Re-bundling JS from the working tree…"
+          npx expo export:embed \
+            --platform ios --dev false --entry-file index.js \
+            --bundle-output "$TMP/main.jsbundle" --assets-dest "$TMP/assets" \
+            || fail "expo export:embed failed"
+
+          [ -s "$TMP/main.jsbundle" ] || fail "re-bundled JS is empty"
+
+          # ⛔ THE ENGINE CHECK. Hermes ships BYTECODE; a plain-JS bundle in a Hermes app is a launch crash
+          # 20 minutes downstream, reported as a Maestro timeout. Comparing the new bundle's magic against
+          # the one that was already in the .app asserts "same format as what this binary expects" without
+          # this workflow needing to know which engine is configured.
+          NEW_MAGIC=$(xxd -p -l 8 "$TMP/main.jsbundle")
+          [ "$NEW_MAGIC" = "$OLD_MAGIC" ] || fail "bundle format changed ($OLD_MAGIC → $NEW_MAGIC) — engine mismatch"
+
+          mv "$TMP/main.jsbundle" "$BUNDLE" || fail "could not swap main.jsbundle into the .app"
+          NEW_SHA=$(shasum -a 256 "$BUNDLE" | cut -d' ' -f1)
+
+          # ⚡ Printed every run, hit or miss, exactly like the binary's provenance (rule ③). An UNCHANGED
+          # sha is not an error — a run that only touched `.maestro/**` legitimately produces byte-identical
+          # JS — but it is the one number that says which JavaScript is about to be tested, and it belongs
+          # in the log rather than in an assumption.
+          echo "js-bundle sha: $OLD_SHA → $NEW_SHA"
+          # ⛔ An `if`, NOT `[ … ] && echo`. GitHub runs this under `bash -e`, so a `&&` chain whose test is
+          # FALSE returns 1 and kills the step — and the false case here is the NORMAL one (the shas differ
+          # whenever any JS changed). That would have turned every successful fast-path run into a failure.
+          if [ "$OLD_SHA" = "$NEW_SHA" ]; then
+            echo "   (identical — no JS input changed since this binary was built)"
           fi
+          echo "usable=true" >> "$GITHUB_OUTPUT"
 
       - name: Generate the native iOS project (expo prebuild)
         if: steps.appverify.outputs.usable != 'true'

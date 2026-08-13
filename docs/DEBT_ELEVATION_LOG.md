@@ -7936,3 +7936,57 @@ filed, not scheduled.
 ⚡ **The session's pattern held to the last measurement: five stated mechanisms today, and the ones that
 arrived with the most confidence were the ones that were wrong.** The `.app` cache remains the real win
 (17m03s → 2s on flow-only iteration), and flow-only iteration is what the remaining 4.1.5 items are.
+
+## ⭐ The `.app` cache was hitting 8% of the time — split it, and re-bundle the JS (2026-08-13)
+
+🎯 *"Let's move forward now with prebuilt pod binaries. It will pay off quickly with how many CI builds we
+run."* The instinct was right and the measurement redirected the means.
+
+**Measured across the last 13 non-cancelled runs: 12 paid the full 771s build. Exactly ONE hit the cache.**
+
+⛔ **4.1.3a's headline is therefore overstated and is corrected here.** It calls the `.app` cache *"the
+whole 4.1.4→4.1.11 loop"* and prices it at 17m03s → 2s. Both numbers are true; the premise underneath them
+is not. It assumed the loop is flow-only YAML iteration. **The loop is 92% `src/**`.** The saving was real
+and almost never collected — the same shape as every other number this session: authored once, believed
+after, never re-measured.
+
+### Why prebuilt pods was the wrong lever, and this is the right one
+
+`apps/rn/src/**` and `packages/core/**` were in the cache key, and **neither reaches a line of native
+code.** They are TypeScript. They change `main.jsbundle` — a RESOURCE inside the .app. So a one-line copy
+edit was recompiling **648 identical pod targets**.
+
+Prebuilt pod binaries would have attacked those 648 compilations, kept the app-target compile and link,
+required a CocoaPods plugin inside a Podfile that `expo prebuild` regenerates every run, and taken on
+New-Architecture/codegen/`use_frameworks!` interactions. **Removing two JS-only paths from a cache key
+avoids the entire build instead, on the 92% case, with no dependency-packaging change at all.**
+
+### The hazard this creates, and the guard
+
+A cache keyed without `src/**` that did NOT replace the bundle would run the JavaScript from whenever the
+binary was built and **go green against stale code** — rule ②'s stale-binary hazard wearing a different
+hat. So the re-bundle lives INSIDE `appverify`, keeping `usable` the single gate every downstream `if:`
+reads (one rule, one owner), and **every failure path ends in `usable=false` and a full build.** There is
+no branch that proceeds on doubt. Six of them:
+
+- the .app has no `main.jsbundle` → **the swap premise itself is wrong**, so full build. Asserted rather
+  than assumed, because there is no macOS here to check it;
+- `expo export:embed` fails, or produces an empty bundle;
+- ⛔ **the bundle's MAGIC BYTES differ from the one already in the .app** — Hermes ships bytecode, and a
+  plain-JS bundle inside a Hermes app is a launch crash twenty minutes downstream reported as a Maestro
+  timeout. Comparing against what the binary already contained asserts "same format this binary expects"
+  without the workflow needing to know which engine is configured;
+- the swap itself fails.
+
+The bundle's sha is printed `old → new` every run, exactly like the binary's provenance (rule ③): an
+unchanged sha is legitimate (a `.maestro/**`-only run produces identical JS), but it is the one number that
+says which JavaScript is about to be tested.
+
+⚠️ **`assets/**` deliberately stays in the native key** — asset files are copied into the .app by the
+native build and the re-bundle does not sync them, so an asset change must bust the binary. `index.js`,
+`metro.config.js` and `babel.config.js` stay too, conservatively: they are JS-only, they change rarely, and
+a needless full build is a cost while a wrongly-skipped one is a defect.
+
+⛔ **Caught before it ran: `[ "$OLD_SHA" = "$NEW_SHA" ] && echo …`** would have failed the step on every
+successful fast-path run. GitHub runs `run:` under `bash -e`, so a `&&` chain whose test is false returns 1
+— and false is the NORMAL case here, since the shas differ whenever any JS changed.
