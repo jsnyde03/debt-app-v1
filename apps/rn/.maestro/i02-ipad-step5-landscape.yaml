@@ -1,0 +1,81 @@
+# Maestro E2E — 4.1.5.5 · §11.16, THE STEP-5 LANDSCAPE FRAME. iPad tier.
+#
+# ⛔ THIS FLOW PRODUCES A FRAME, NOT A VERDICT, AND THAT IS THE WHOLE SCOPE. §11.16 asks whether the
+# ring's bottom edge "reads as a deliberate crop or as a rendering fault" — a composition judgement.
+# Automating a pass/fail for it would be a check invented to be passable, which is defect class ① from
+# 3.5's phase after-scan and something this repo has already paid for twice. The deliverable is
+# `ipad-step5-landscape.png`, and 🎯 Jason judges it.
+#
+# ⚡ WHY IT CAN EXIST NOW. The plan carried "§11.8's rotation half is blocked — rotation is an unproven
+# command" long after it stopped being true: `setOrientation` PASSED in 4.1.1 cycle 2, alongside
+# `extendedWaitUntil`, `evalScript`+`assertTrue`, `assertScreenshot` and `repeat`. The block had outlived
+# the probe that cleared it, and it was gating this frame too.
+#
+# ⚠️ ROTATES BEFORE WALKING, deliberately. §11.8 asks a DIFFERENT question — what happens when you rotate
+# *mid-step*, with a beat's subject already highlighted — and that is 4.1.5.6's. Rotating first means this
+# flow measures a settled landscape layout and cannot be mistaken for having answered §11.8. Two questions,
+# two flows, neither one quietly standing in for the other.
+appId: com.jasonsnyder.debtplanner
+---
+# `clearState: false` — `01` runs ahead of this on the iPad list and leaves an onboarded portfolio, exactly
+# as `i01` depends on. Clearing here would drop the app into onboarding and the walkthrough is unreachable
+# from there.
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible:
+      id: "tab-today"
+    timeout: 20000
+
+- setOrientation: LANDSCAPE_LEFT
+# The layout reflows on rotate; drive nothing until it has. `tab-today` is the shell, not the content, so
+# it survives the reflow and is the honest thing to wait on.
+- extendedWaitUntil:
+    visible:
+      id: "tab-today"
+    timeout: 20000
+- takeScreenshot: maestro-debug/ipad-landscape-today
+
+# Entry via the Guardian card's replay link, for flow 05's reason: the invitation card disappears once
+# seen and is not a stable target across re-runs, while "How this works" always is.
+- scrollUntilVisible:
+    element:
+      text: "How this works"
+    direction: DOWN
+- tapOn: "How this works"
+- assertVisible:
+    id: "tutorial-overlay"
+- assertVisible:
+    text: ".*Step 1 of 7.*"
+
+# ── To beat 5. Each Next is asserted rather than blind-tapped: a missed tap would otherwise shoot beat 4
+#    and file it as beat 5, and the whole point of this flow is which composition Jason is looking at. ──
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 2 of 7.*"
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 3 of 7.*"
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 4 of 7.*"
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 5 of 7.*"
+
+# ⭐ THE DELIVERABLE. Beat 5 is where the subject is TALLER than the stage (~697pt against ~530pt), so the
+# ring is deliberately clamped to stop at the dock — §11.16 is asking whether that clamp reads as intent.
+- takeScreenshot: maestro-debug/ipad-step5-landscape
+
+# The ring must at least be drawn, or the frame shows nothing to judge and the run wasted its slot. This is
+# the one assertion here that can fail, and it is about the frame's usefulness, not about §11.16.
+- assertVisible:
+    id: "tutorial-spotlight"
+# 4.1.5.2's invariant, on the axis the clamp does not touch — beat 5 is exactly the case its `clampY`
+# exemption exists for, so asserting it here is free coverage of the exemption itself.
+- assertVisible:
+    id: "tutorial-ring-audit-ok"
+
+# Leave the device as it was found. A file that leaks orientation into the next flow is the same class as
+# the leaked modal that poisoned cycle 1 of the 4.1.1 probe and made five reds read as capability failures.
+- setOrientation: PORTRAIT

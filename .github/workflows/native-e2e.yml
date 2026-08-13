@@ -749,6 +749,7 @@ jobs:
           maestro test \
             .maestro/01-launch-smoke.yaml \
             .maestro/i01-ipad-boot.yaml \
+            .maestro/i02-ipad-step5-landscape.yaml \
             .maestro/05-tutorial-walkthrough.yaml \
             --format junit --output maestro-report-ipad.xml --debug-output ./maestro-debug-ipad || STATUS=$?
           kill "$LOG_PID" 2>/dev/null || true

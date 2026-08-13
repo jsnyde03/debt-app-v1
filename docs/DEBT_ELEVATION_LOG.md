@@ -8039,3 +8039,53 @@ regression gate. A `skip` rots silently; a bare failure reds the gate and gets m
 
 ⚠️ **Still owed:** the iPad's window-space half — the mark drawn across the sidebar rail while its subject
 sits in the content column. Not touched by this fix, and it needs its own evidence → 4.1.5.4.4.
+
+## 4.1.5.5 — the iPad callout's other axis, fixed without a native run (2026-08-13)
+
+🎯 *"Let's go as far as we can without pushing a native build."* Everything below is local: two Playwright
+probes at an iPad viewport, the gate, and a flow authored ready for the next batch. **Gate 169/169.**
+
+### ⭐ One axis was anchored to the subject and the other to the window
+
+`probe-mark-ipad-rail.spec.ts` at 1194×834, before any explanation:
+
+```
+subject column: x=388..1166
+mark          : x= 33..1161      ← the full window
+⇒ the hint about the trajectory chart started 355px LEFT of its subject
+```
+
+The cause reads off the code the moment the two axes are put side by side: `top` was derived from `rect`
+with real care — below the subject when there is room, above it otherwise — and `left`/`right` were `0`.
+**On a phone that is invisible**, because the subject spans the full width and the two answers coincide.
+It took an iPad width to separate them, which is exactly why it shipped.
+
+Fixed by deriving the horizontal band from `rect` too, widening evenly when a narrow subject would squeeze
+the sentence into a ribbon, with `spacing.base` as the floor. ⚠️ `wrap`'s static `paddingHorizontal` was
+REMOVED in the same edit — left in place it would have doubled the gutter on every phone, which is the
+kind of regression a fix aimed at iPad quietly ships.
+
+⚡ **Second defect in a row where the mechanism was in the diff and not in my head**, and both were
+reproduced in Chrome in seconds because `trajectory-scrub` is offered unconditionally. The iOS-only mark
+next to it cost five CI cycles for the same class of question.
+
+### §11.16 — authored, unrun, and deliberately verdict-free
+
+`i02-ipad-step5-landscape.yaml` rotates FIRST and then walks to beat 5, so it cannot be mistaken for having
+answered §11.8 (rotation *mid-step*, which is 4.1.5.6's question — two questions, two flows, neither
+standing in for the other). It asserts only what makes the frame worth having: the ring is drawn, and
+4.1.5.2's invariant holds on the axis the clamp does not touch — free coverage of the `clampY` exemption
+itself. It restores PORTRAIT on the way out, because a file that leaks device state is what made cycle 1
+of the 4.1.1 probe read as five capability failures.
+
+**The verdict is Jason's.** §11.16 asks whether the crop reads as deliberate or as a rendering fault, and
+a pass/fail here would be a check invented to be passable.
+
+### `lint:selectors` — second false-positive class, same shape as the first
+
+It read `setOrientation: LANDSCAPE_LEFT` as **copy** and reported it stale. The file already keeps an
+exclusion list for exactly this (`takeScreenshot`, `inputText`, `openLink`, `runScript`) and it grew by
+three: `setOrientation` takes an enum, `evalScript`/`assertTrue` carry JS. ⛔ `repeat` was deliberately
+left OUT despite also taking a non-selector argument — it NESTS commands, so excluding it would silently
+drop every selector inside the loop from all three checks. Re-proven to fail on a planted stale string
+before being trusted, per T2.

@@ -129,7 +129,21 @@ for (const name of flowFiles) {
     // ⚠️ Not every string argument is a selector. `takeScreenshot: maestro-debug/s13-…` is an output
     // PATH, and `inputText: "2400"` is data the flow is about to create — neither can exist in app
     // source, and flagging them made the first run unreadable.
-    if (cmd === 'takeScreenshot' || cmd === 'inputText' || cmd === 'openLink' || cmd === 'runScript') {
+    // ⚠️ 4.1.5.5 added three more, all found the same way this list was found in the first place — by a
+    // guard producing confident false positives on the first flow to use a command. `setOrientation:
+    // LANDSCAPE_LEFT` is an ENUM, and `evalScript`/`assertTrue` carry JS expressions; none of the three
+    // can exist in app source, and reporting them as stale copy is the guard failing, not the flow.
+    // ⛔ `repeat` is deliberately NOT here despite also taking a non-selector argument — it NESTS real
+    // commands, so excluding it would silently drop every selector inside the loop from all three checks.
+    if (
+      cmd === 'takeScreenshot' ||
+      cmd === 'inputText' ||
+      cmd === 'openLink' ||
+      cmd === 'runScript' ||
+      cmd === 'setOrientation' ||
+      cmd === 'evalScript' ||
+      cmd === 'assertTrue'
+    ) {
       if (cmd === 'inputText') pendingInput = i;
       return;
     }

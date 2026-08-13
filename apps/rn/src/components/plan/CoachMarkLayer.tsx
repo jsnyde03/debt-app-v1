@@ -41,7 +41,7 @@ export function CoachMarkLayer({
 }: { nested?: boolean; remeasureOn?: unknown } = {}) {
   const c = useAppColors();
   const insets = useSafeAreaInsets();
-  const { height: winH } = useWindowDimensions();
+  const { width: winW, height: winH } = useWindowDimensions();
   const targets = useTutorialTargets();
   const active = useActiveCoachMark();
   const hosts = useCoachMarkHosts();
@@ -103,8 +103,28 @@ export function CoachMarkLayer({
   const roomBelow = winH - below - insets.bottom > 140;
   const top = roomBelow ? below : Math.max(insets.top + 8, rect.y - 132);
 
+  // 4.1.5.5 — anchor the HORIZONTAL axis to the subject too.
+  //
+  // ⛔ The defect, measured at 1194×834 before it was explained: subject column `x=388..1166`, callout
+  // `x=33..1161` — **the hint about the trajectory chart started 355px left of it, lying across the
+  // sidebar rail.** Seen first on a real iPad (`ipad-04`), then reproduced in Chrome in seconds.
+  //
+  // ⚡ The cause reads clearly once the two axes are put side by side: `top` was derived from `rect` with
+  // care, and `left`/`right` were `0`. **One axis was anchored to the subject and the other to the
+  // window.** On a phone that is invisible, because the subject spans the full width and the two answers
+  // coincide — which is exactly why it shipped and why only an iPad width could show it.
+  //
+  // ⚠️ A narrow subject must not squeeze the sentence into a ribbon, so the band widens evenly until it
+  // can hold one, and never past the screen edge. `spacing.base` is the floor on both sides, which is
+  // what `wrap`'s `paddingHorizontal` used to provide — it is removed there so the two cannot double up.
+  const rawLeft = Math.max(spacing.base, rect.x);
+  const rawRight = Math.max(spacing.base, winW - (rect.x + rect.width));
+  const deficit = Math.max(0, MIN_CALLOUT_W - (winW - rawLeft - rawRight));
+  const left = Math.max(spacing.base, rawLeft - deficit / 2);
+  const right = Math.max(spacing.base, rawRight - deficit / 2);
+
   return (
-    <View style={[styles.wrap, { top }]} pointerEvents="box-none">
+    <View style={[styles.wrap, { top, left, right }]} pointerEvents="box-none">
       <View
         // 3.5.6.2 — the callout is identifiable so a test can count it. The nested-host handoff (3.5.5.5)
         // is a claim about there being exactly ONE of these, and a text lookup cannot express that
@@ -151,10 +171,17 @@ export function CoachMarkLayer({
   );
 }
 
+/** Narrow enough for a phone gutter, wide enough that one sentence is not a ribbon. Only binds when the
+ *  subject is narrower than this — a full-width card never reaches it. */
+const MIN_CALLOUT_W = 260;
+
 const styles = StyleSheet.create({
   // `box-none` on the wrapper and nothing full-screen behind it: the screen underneath stays fully
   // interactive, which is what makes this a hint rather than a modal.
-  wrap: { position: 'absolute', left: 0, right: 0, paddingHorizontal: spacing.base },
+  // ⚠️ NO `left`/`right`/`paddingHorizontal` here — they are computed per-mark from the subject's rect
+  // (see the note above `rawLeft`). A static inset here is what put the callout across the iPad rail, and
+  // leaving one would silently double the gutter on every phone.
+  wrap: { position: 'absolute' },
   card: {
     gap: spacing.xxs,
     padding: spacing.base,
