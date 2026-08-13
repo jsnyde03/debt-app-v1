@@ -475,13 +475,27 @@ jobs:
           xcrun simctl launch booted com.jasonsnyder.debtplanner || true
           lap "app launched"
           # ⚠️ Was a flat `sleep 25`. A timer standing in for "it is ready" drifts under load and reads as
-          # flake — the app emits a signal, so poll for it and keep 25s only as the ceiling. On a warm
-          # runner this returns in a few seconds; on a slow one it still waits the full time rather than
-          # screenshotting a splash. The `||` fallthrough matters: if the predicate never matches, this
-          # must behave exactly like the old sleep and still take the screenshot, because that frame is
-          # the diagnostic for the case where the app did NOT come up.
-          for i in $(seq 1 25); do
-            grep -qE "Running application|RCTContentDidAppear" maestro-debug/os-log.txt 2>/dev/null && break
+          # flake, so this polls for a signal — but ONLY a signal that was measured in this build's own
+          # log, which the first attempt was not.
+          #
+          # ⛔ **`Running application` and `RCTContentDidAppear` DO NOT EXIST HERE.** Run `31720514061`:
+          # zero matches for either across 3,590 lines. This lane builds `-configuration Release` and RN's
+          # JS console lines do not survive it — a fact `native-e2e.yml:471` already half-states about the
+          # coach probe. I invented the predicate instead of grepping the artifact I had already
+          # downloaded, and the loop silently ran to its ceiling.
+          #
+          # ⚡ MEASURED instead: `RCTScrollViewComponentView` lands **5.2s after launch** (16:43:20 →
+          # 16:43:25.241) — a UIKit focus notice emitted when a scroll view is on screen, i.e. content has
+          # actually rendered. ⚠️ Incidental, not a contract: it is a warning UIKit happens to log, and it
+          # assumes the first screen has a ScrollView (Today does). That is why the ceiling still governs
+          # and the fallthrough still takes the screenshot — a frame of a splash is the diagnostic for the
+          # case where the app did NOT come up, and must not be traded away for a faster green.
+          #
+          # ⛔ TIME-BOUNDED, not iteration-counted. `for i in $(seq 1 25)` with a grep over an 800KB log
+          # each pass cost **37s** for a "25 second" wait — longer than the sleep it replaced.
+          DEADLINE=$(( $(date +%s) + 25 ))
+          until grep -qa "RCTScrollViewComponentView" maestro-debug/os-log.txt 2>/dev/null; do
+            [ "$(date +%s)" -ge "$DEADLINE" ] && break
             sleep 1
           done
           lap "app reported up (or 25s ceiling)"

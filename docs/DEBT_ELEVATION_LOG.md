@@ -7721,3 +7721,63 @@ question** — a proof against an unmeasured premise can only confirm the premis
 - ⛔ **The planted-defect run is now pointless** and is not being spent: with `org 0,0` it cannot fail, so
   it would prove nothing. The bite proof would need a *different* planted defect — perturbing the ring's
   own offset rather than the origin correction → **fold into 4.1.11 if it is still wanted.**
+
+## ✅ 4.1.5.2 CLOSED — run `31720514061`, 8/8 iPhone + 3/3 iPad (2026-08-13)
+
+```
+iPad   ring 384,369  subj 388,373  org 0,0  d 0,0
+```
+
+Zero offset, ring tight on the Guardian card in the beat-1 frame, both tiers green, zero failures. The
+`RING_BORDER` fix was the whole of it.
+
+⚠️ **What §11.15 now holds is NOT what it said it held.** With `org 0,0` the sidebar story is gone; the
+assertion's value is that it pins the ring to its subject against *any* future coordinate-space change — a
+re-nested overlay, Android's `measureInWindow` including the status bar, the stage clamp. Worth keeping,
+worth describing honestly.
+
+### The laps — the 529s step is 261s, and the wait was mine again
+
+```
+device picked          3s
+boot returned          5s   (+2)
+bootstatus complete   92s   (+87)   ← simulator boot
+app installed        146s   (+54)
+app launched         212s   (+66)   ← cold start of a Release RN app
+app reported up      249s   (+37)   ⛔ the poll, and it never matched
+step complete        261s   (+12)
+```
+
+⚠️ **529s → 261s, and I am NOT claiming the change caused it.** n=1 against n=1, on shared runners; the
+laps are what make the next comparison meaningful, not this one.
+
+⛔ **The `sleep 25` replacement failed, twice over.**
+
+1. **The signal does not exist in this build.** `Running application` and `RCTContentDidAppear`: **zero
+   matches across 3,590 lines.** This lane builds `-configuration Release` and RN's JS console lines do
+   not survive it — something `native-e2e.yml:471` already half-states about the coach probe. ⚡ **The
+   evidence was already on my disk**: the previous run's `os-log.txt`, downloaded an hour earlier. I
+   asserted a predicate instead of grepping it. [[the codebase already said it]], one layer out — the
+   *artifact* already said it.
+2. **An iteration count is not a time bound.** `for i in $(seq 1 25)` with a grep over an 800KB log each
+   pass cost **37s** — longer than the sleep it replaced. Now `until … [ $(date +%s) -ge $DEADLINE ]`.
+
+⚡ **Measured replacement:** `RCTScrollViewComponentView` at **5.2s after launch** (16:43:20 → 16:43:25.241)
+— a UIKit focus notice emitted once a scroll view is on screen. ⚠️ Incidental rather than a contract, so
+the ceiling still governs and the fallthrough still takes the screenshot: a frame of a splash is the
+diagnostic for the case where the app did not come up, and must not be traded for a faster green.
+
+### ⚠️ Filed — the warmup step duplicates flow 01
+
+`app launched` (66s) + the wait (5–25s) exist to produce `cold-launch.png` and an error grep. **Flow 01
+then does its own `launchApp` and `extendedWaitUntil`, and takes `smoke-cold-launch` itself.** The
+non-duplicated value is catching a cold-launch crash *before* Maestro, so a fatal JS error reads as an
+error grep rather than a Maestro timeout — real, but not obviously worth ~70s. → **4.1.11.**
+
+### The session's own pattern, stated because it repeated three times
+
+**Every wrong thing today was a premise nobody had measured, and every one was cheap to measure:**
+the hierarchy dump that did not exist · "numeric frame containment" that belonged to Appium · "More's
+two-column" that §10 never asked for · `~/.maestro`'s 1m29s that was 22s · §11.15's ~700pt that had been
+designed out · and twice, my own instrument (`d 2,2`, and a predicate with zero matches). ⚡ **Six of the
+seven were answerable from an artifact already in the repo or already downloaded.**
