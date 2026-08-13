@@ -76,6 +76,15 @@ on:
         type: choice
         options: [iphone, ipad, both]
         default: iphone
+      # An INPUT rather than always-on, and that is the measurement design. Runner variance here is real —
+      # two readings of the same boot step had install swing 54s→96s and launch 66s→22s — so "it got
+      # faster" from one run against a remembered number is not evidence. This lets the same commit be run
+      # both ways, which is the only comparison that controls for the machine.
+      # Pair it with `rebuild: true`: with a `.app` cache hit there is no compile to measure.
+      ccache:
+        description: 'Compile the Pods through ccache (speed experiment — measure with rebuild:true)'
+        type: boolean
+        default: false
   push:
     # ⚠️ THE `paths:` FILTER BELOW APPLIES TO THESE TAGS TOO, and GitHub gives no way to say
     # "tags unfiltered, branches filtered" inside one `push:` block. A tag pushed onto an existing commit
@@ -321,6 +330,89 @@ jobs:
         working-directory: apps/rn/ios
         run: pod install
 
+      # ── ccache · THE SPEED EXPERIMENT ( revisiting the 2026-07-28 removal, on its own terms ) ────────
+      #
+      # 🎯 The note that removed it said: *"Revisit a correct ccache setup (widget target excluded) later
+      # as a deliberate speed pass if build time becomes painful."* Measured: `Build for the iOS Simulator`
+      # is **771s** on a cache miss, while prebuild is 39s and pod install 25s — the compile is the whole
+      # cost, and the build log records **648 of ~650 `CompileC` tasks belonging to third-party pods**
+      # that change only with the lockfile. A one-line JS edit currently recompiles all of them.
+      #
+      # ⭐ WHY ccache AND NOT A DerivedData CACHE. Xcode invalidates on file **mtime**, and
+      # `actions/checkout` stamps every file with the checkout time — so a restored DerivedData carries a
+      # build database full of stale mtimes, Xcode considers every source changed, and you pay the cache
+      # transfer AND the compile. ccache sits BELOW Xcode's dependency graph, at the compiler invocation,
+      # keyed on preprocessed **content**: Xcode can decide to rebuild everything and ccache still returns
+      # the objects. That is the whole reason this is the right tool and DerivedData is not.
+      #
+      # ⛔ SCOPED TO PODS BY CONSTRUCTION, WHICH IS HOW THE 2026-07-28 FAILURE IS AVOIDED RATHER THAN
+      # HOPED AWAY. That removal was a widget-extension link dying on `unable to spawn ccache-clang.sh` —
+      # `@bacons/apple-targets` puts DebtWidget in the APP project, not Pods. Appending to the generated
+      # `Pods/Target Support Files/**/*.xcconfig` after `pod install` cannot reach it. It also costs
+      # nothing in coverage, since the pods ARE the 648.
+      # ⚠️ `CC`/`CXX` only — never `LD`/`LDPLUSPLUS`. The thing that broke was a LINK step, and a linker
+      # has nothing to cache.
+      # ⛔ `restore-keys` IS CORRECT HERE, and it is the exact inverse of the `.app` cache's rule ②. There,
+      # a partial-key match risks testing a STALE BINARY, so it is forbidden. Here the cache is
+      # content-addressed: a stale entry cannot produce a wrong object file, only a miss. A ccache with no
+      # fallback key is an empty ccache on every lockfile bump, which is most of its value gone.
+      # ⚠️ RESTORED BEFORE THE WIRING STEP, deliberately: `ccache --set-config` writes `ccache.conf` INSIDE
+      # this directory, so restoring afterwards would drop the restored copy on top of the config that was
+      # just written and silently undo the `sloppiness` settings the hit rate depends on.
+      - name: Cache the ccache directory
+        if: inputs.ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/ccache
+          key: ccache-${{ runner.os }}-${{ hashFiles('apps/rn/package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            ccache-${{ runner.os }}-${{ hashFiles('apps/rn/package-lock.json') }}-
+            ccache-${{ runner.os }}-
+
+      - name: Wire ccache into the Pods targets
+        id: ccache
+        if: inputs.ccache && steps.appverify.outputs.usable != 'true'
+        run: |
+          set -euo pipefail
+          brew install ccache
+          mkdir -p "$HOME/.ccache-bin"
+          # Wrapper scripts rather than `CC = ccache clang`: Xcode treats the setting as a single
+          # executable path, so a two-word value is looked up verbatim and fails to spawn — which is the
+          # same class of error the 2026-07-28 removal reported, and worth not reproducing.
+          printf '#!/bin/sh\nexec ccache clang "$@"\n'   > "$HOME/.ccache-bin/ccache-clang"
+          printf '#!/bin/sh\nexec ccache clang++ "$@"\n' > "$HOME/.ccache-bin/ccache-clang++"
+          chmod +x "$HOME/.ccache-bin/ccache-clang" "$HOME/.ccache-bin/ccache-clang++"
+
+          # ⚠️ `sloppiness` is LOAD-BEARING on CI, for the same mtime reason ccache is being used at all.
+          # In direct mode ccache's manifest records include-file mtimes; a fresh checkout changes every
+          # one of them, so without these the hit rate collapses to near zero and the experiment would
+          # read as "ccache does not help here" when what it measured was checkout.
+          ccache --set-config=sloppiness=include_file_mtime,include_file_ctime,file_stat_matches,time_macros,pch_defines
+          ccache --set-config=max_size=2G
+          # Paths are stable on a runner, but this makes the cache portable across working directories and
+          # costs nothing.
+          ccache --set-config=base_dir="$GITHUB_WORKSPACE"
+          ccache --zero-stats
+
+          CONF_COUNT=0
+          while IFS= read -r x; do
+            {
+              echo ""
+              echo "// 4.1.x speed experiment — compile through ccache. Appended after \`pod install\`."
+              echo "CC = \$(HOME)/.ccache-bin/ccache-clang"
+              echo "CXX = \$(HOME)/.ccache-bin/ccache-clang++"
+            } >> "$x"
+            CONF_COUNT=$((CONF_COUNT + 1))
+          done < <(find ios/Pods/Target\ Support\ Files -name '*.release.xcconfig')
+          echo "patched $CONF_COUNT pod xcconfig(s)"
+          # ⛔ Zero patched would mean the glob missed and the build below would be a NORMAL build reported
+          # as a ccache one — a silently meaningless measurement, which is the failure this lane keeps
+          # paying for. Fail loudly instead.
+          if [ "$CONF_COUNT" -eq 0 ]; then
+            echo "::error::ccache wiring matched no pod xcconfigs — the measurement would be a lie."
+            exit 1
+          fi
+
       - name: Build for the iOS Simulator (no signing)
         if: steps.appverify.outputs.usable != 'true'
         run: |
@@ -357,6 +449,16 @@ jobs:
             DEBUG_INFORMATION_FORMAT=dwarf \
             COMPILER_INDEX_STORE_ENABLE=NO \
             build 2>&1 | tee xcodebuild.log
+
+      # ⛔ THE ACTUAL DELIVERABLE OF THE EXPERIMENT, and it must run on failure too. Wall-clock alone
+      # cannot distinguish "ccache did not help" from "ccache never got a hit because the wiring missed" —
+      # and this lane has already spent cycles on a diagnostic that could not survive the thing it
+      # measured being broken. The hit RATE is the number that decides adoption; the elapsed time only
+      # says what it bought on this particular runner.
+      # ⚠️ A first (cold) run should read ~0% and populate; the SECOND run is the measurement.
+      - name: ccache statistics (the number this experiment is for)
+        if: always() && inputs.ccache
+        run: ccache -s || echo "(ccache not installed — the wiring step did not run)"
 
       # xcodebuild emits thousands of lines and buries the ONE that matters in the middle of them, under
       # a pile of benign warnings — the React prebuilt core's "umbrella header does not include header
