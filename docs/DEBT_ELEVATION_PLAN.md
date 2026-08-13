@@ -19,19 +19,45 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 | **4.1.3b** | **Flow ORDER is explicit** — the directory argument ran `01→05→02→06→03→08→07→04` (measured); Maestro specifies no ordering for a directory, so the suite was on unspecified behaviour and 04 ran after 07 wiped its seed | ✅ **DONE 2026-08-12.** Order held `01→…→08` across three runs; 04 green from this alone |
 | **4.1.3a** | **Cache the built `.app`** — measured: prebuild + pods + compile = **17m03s of a 31m47s job**, and **648 of ~650 compiles are third-party pods** that change only with the lockfile. Skips all three when no app input changed, which is the whole 4.1.4→4.1.11 loop. ⛔ Guarded against the stale-binary hazard: exhaustive key · **no `restore-keys`** · provenance printed every run + into the artifact · tags and `rebuild:true` bypass it. Detail → log | ✅ **DONE + VERIFIED 2026-08-12** — run `31617084361` hit: restore 1s, verify 1s, prebuild/pods/build/save all SKIPPED. **17m03s → 2s.** Artifact also 364 MB → 17 MB |
 | **4.1.4** | **`npm run lint:selectors`** — a flow is a claim about the app kept where the app never checks it. THREE enforced checks (ids exist · copy still exists · a typing flow must write-verify) + an advisory listing composed-label components whose text needs `.*`. In `lint:rn` → `validate:release:rn` | ✅ **DONE 2026-08-12.** All three proven to FAIL on planted defects before being trusted. ⚠️ Check ③ is weaker than its name suggested and was renamed to match; per-form scoping filed below. Scans → log |
-| **4.1.4c⁗** | **⭐ A SECOND defect, exposed the moment the mark could render: the callout's "Got it" is not an ELEMENT.** `accessible` on the card collapsed the subtree — the dump shows `coach-mark` as a leaf, `children: 0`, no "Got it" anywhere. **VoiceOver could not dismiss the hint**, and neither could Maestro. Moved `accessible` onto the sentence; the button gets `coach-mark-dismiss`. ⚠️ Invisible for months because nothing ever DREW the mark | ⏳ **RUNNING** |
-| **4.1.4c‴** | **THE FIX — Today's suppressor is gated on FOCUS, not mount** (`useIsFocused`, verified exported by expo-router). A tab you are not looking at interrupts nobody; the store's own contract already said *"a screen declares while it is INTERRUPTING"*. ⛔ **Not** applied to the demo/walkthrough suppressors — a bounded run does own the whole surface. ⚠️ Relaxes "one interruption at a time" across screens: a pending ack on Today no longer blocks a mark on Money — **deliberate**, and the two are never seen together | ⏳ **RUNNING** |
-| **4.1.4c″** | **⭐ THE PROBE ANSWERED IT — `refused(suppressors=1)`.** Hook armed, subject laid out, listener heard it; `show()` refused on the **suppressor** guard. **All five prior mechanisms eliminated.** ⚡ The class: a suppressor is held by a screen that is **MOUNTED, not VISIBLE**, and Today is a *tab* — so while Today interrupts, coach marks are suppressed **app-wide**. ⚠️ Which of 3 holders is **not yet measured**; `addSuppressor(reason)` now names it | ⏳ **RUNNING** |
-| **4.1.4c′** | Run `31626109780` produced no reading — both failures were in the diagnostic. Probe asserted **below the fold**; iPad tier **skipped** by an implicit `success()`. ⚡ *A diagnostic run must be authored for the world in which the thing it diagnoses is still broken.* → log | ✅ **FIXED 2026-08-12** |
-| **4.1.4c** | **The coach-mark PROBE** — five mechanisms asserted, four refuted, so this measures instead of fixing: a `qaEnabled()` readout of all five stages (`hook` · `layout` · `show`+guard · `measure` · `draw`), read by flow 08 **before** the assertion that aborts it. ⛔ **No fix rides it.** Folded in: `qaEnabled()` extracted — the guard was open-coded 3× and the Phase-6 flip is a `git grep` | ✅ **BUILT 2026-08-12**, gate 167/167. ⏳ Awaiting the run |
-| **4.1.5.1** | **The iPad boot** — [D30]'s `device` input + `i01-ipad-boot.yaml`. ⛔ **First run measured the WRONG DEVICE:** the picker preferred `Pro` and matched **iPad mini (A17 Pro)** — the *chip* name — at **744pt**, which is `compact` (regular ≥768, expanded ≥1024). It ran the **phone layout on an iPad and passed**: [D30]'s own named void condition, committed by the step implementing [D30]. Now selects by **measured width** and **fails loud** below 1024pt | ⏳ **RE-RUNNING.** ✅ Infra proven: booted, installed, ran, uploaded; `01` **passed on iPad** |
-| **4.1.5** | **The iPad boot, remainder** — §11.15 ⭐ · §11.16 · §10's two layout checks · §11.8's rotation half *(⚠️ rotation needs a probe first — unproven command)*. Design + evidence → log | |
+| **4.1.4c** | **⭐ THE COACH-MARK PROBE — and the three shipped defects it found.** A five-stage trace (`hook`·`layout`·`show`+guard·`measure`·`draw`) to both a QA readout and the unified log. It ended five rounds of refuted theories in one run. **① the suppressor was held by a MOUNTED tab, killing discovery for every new user · ② `accessible` collapsed the callout so VoiceOver could not dismiss it · ③ the subject measured mid-entrance (y=1702 on a 956pt screen) and drew off-screen.** Each was invisible until the one before it was fixed. Detail + all scans → log | ✅ **CLOSED 2026-08-13** |
+| **4.1.5.1** | **The iPad boot** — [D30]'s `device` input + `i01-ipad-boot.yaml`, selecting by **measured width** and failing loud below 1024pt. Detail → log | ✅ **DONE 2026-08-13.** iPad Pro 13-inch @ **1032pt**; `01` + `i01` green. ⚡ Measured: **only 13-inch iPads are `isExpanded`**; iPad mini is 744pt = the PHONE layout |
+| **4.1.5** | ▶ **ACTIVE — the iPad tier's REAL checks.** `i01` asserts nothing device-specific by design, so the tier is infrastructure without coverage. Decomposed below | ▶ |
 | **4.1.6** | §12.0 explore (7 checks) | |
 | **4.1.7** | **AX + theme conditions** — §11.1 · §11.5 · §8's half. ⚠️ Reduce Motion needs an app-side observable first | |
 | **4.1.8** | §11's remainder — §11.9 · §11.13 · §11.11 | |
 | **4.1.9** | **The Appium supplement** — §11.15 as numeric frame containment · §10's ⌘ keys · `autoAcceptAlerts` | |
 | **4.1.10** | §12.1–§12.7 (15) — ⚠️ blocked on the deep-link door | |
 | **4.1.11** | **Reconcile — the exit.** ⚠️ **[4.1.5.1 after-scan] the coverage split must NOT count measurement flows** — `lint:selectors` now reports **9 flows** because `i01-ipad-boot.yaml` is one, and it is explicitly not coverage (every assertion in it holds on both layouts by design). Any 68/127 re-derivation that counts files will overstate itself | |
+
+### ▶ 4.1.5 — the iPad tier's real checks _(active)_
+
+⭐ **The lane is 8/8 on iPhone as of 2026-08-13** (run `31709717569`, `cache-hit: true`). §13's six
+coach-mark checks come off the manual checklist. The iPad tier boots the right device and proves nothing
+device-specific yet — that is this item.
+
+| # | Step | State |
+|---|---|---|
+| **4.1.5.2** | **§11.15 ⭐ the ring-origin invariant** — as numeric frame containment, from the first expanded-iPad hierarchy dump. The item the checklist calls the highest-value thing nothing automated can hold | |
+| **4.1.5.3** | **§10's two layout checks** — master-detail (**confirmed rendering**: sidebar rail + list + detail pane) and More's two-column | |
+| **4.1.5.4** | **§11.16** | |
+| **4.1.5.5** | **§11.8's rotation half** — ⛔ blocked: rotation is an **unproven command**, so it goes through `.maestro/probe/` first (4.1.1's rule) | |
+| **4.1.5.6** | **Reconcile `i01`** — retire the measurement-only assertions it still carries, or state plainly what they cover | |
+
+**Iterate with `-f device=ipad`** — it skips the ~10-minute iPhone suite entirely, and flow-only edits hit
+the `.app` cache. No workflow change needed; [D30]'s input already does it.
+
+⚠️ **[4.1.4c after-scan] The probe stays in the app, and must be verified to LEAVE.** `probeCoachMark`,
+the `coach-probe` readout and `suppressorReasons` are all `qaEnabled()`-gated, so they vanish with the
+Phase-6 `QA_TOOLS` flip — **confirm that in the flip's `git grep`, or a diagnostic ships.**
+
+⚠️ **[4.1.4c after-scan] Flow 01 now asserts a coach mark**, so the seed flow every other flow depends on
+is coupled to the discovery layer: if the mark regresses, 01 reds and takes the suite with it. Accepted —
+`optional:` / `runFlow when:` are unproven here, and unconditional is honest since the mark is
+deterministic. A probed `runFlow when:` would decouple it → 4.1.11.
+
+⚠️ **[4.1.4c after-scan] An undrawable mark stays `active` and blocks every other mark for the session**
+(`show()` refuses while anything is active). Pre-existing, and fix ③ removed the only known cause → the
+cohesion gate.
 
 ⚠️ **[3.7.B.2] flow 07's onboarding walk now crosses one extra field** — `CompletionStep` gained the
 optional name input above `"See My Plan  →"`. Nothing asserts it, but the CTA sits lower on a small sim;
@@ -92,7 +118,7 @@ it on every push. ⚠️ It gained `typecheck:core` + `typecheck:rn` on 2026-08-
 | 3.5 | Interactive tutorial + bounded demo | **BUILD COMPLETE**; 3.5.7 + the device pass remain (below) |
 | 3.7 | Fold-in block (ledger clearance) | ✅ COMPLETE 2026-08-11 (Waves A + B; C merged into the audit gate) |
 | — | Whole-app cohesion + best-in-class + wording audit gate | after 3.7 |
-| **4** | **Quality (test harness)** | **▶ ACTIVE.** 4.1.3 · 3a · 3b · 4 done; lane at **7/8**. Next: **4.1.5** (iPad, [D30]) |
+| **4** | **Quality (test harness)** | **▶ ACTIVE.** ⭐ iPhone lane **8/8** 2026-08-13. Next: **4.1.5** (the iPad tier's real checks) |
 | 5 | Data continuity + cutover | 🔒 ship-blocker, upcoming |
 | 5.5 | Repo consolidation | before the release gate |
 | 6 | Launch-ready | final |

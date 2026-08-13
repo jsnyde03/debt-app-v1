@@ -7396,3 +7396,59 @@ selects the `iphone` default with no workflow edit, so the `.app` cache is untou
 Today / Money / Progress / More — and for the whole of 4.1.5, whose named items *are* the iPad checks.
 ⚡ Also honest: `i01` asserts nothing device-specific by design, so today the tier costs 8 minutes for a
 boot check. It earns regular runs once 4.1.5 gives it §11.15, §10 and §11.16.
+
+## ⭐ Run `31709717569` — 8/8. THE LANE IS GREEN (2026-08-13)
+
+```
+01 1m46s · 02 19s · 03 14s · 04 49s · 05 54s · 06 57s · 07 3m25s · 08 1m34s   |  cache-hit: true
+draw:debt-row-actions=DREW  nested=0   record:debt-row-actions
+draw:payoff-schedule =DREW  nested=1   record:payoff-schedule
+draw:trajectory-scrub=DREW  nested=0   record:trajectory-scrub
+```
+
+**All three coach marks draw and record**, including `payoff-schedule` at `nested=1` — the nested host
+(3.5.5.5) doing the exact job it was built for, proven on a simulator for the first time. §13's six checks
+come off the manual device checklist.
+
+### What 4.1.4c actually cost, and what it bought
+
+Eight dispatches over two days. **Three shipped product defects**, each invisible until the one before it
+was fixed:
+
+1. **The suppressor was held by a MOUNTED tab.** Today never unmounts, so while it carried an ack,
+   celebration or pending walkthrough invitation, coach marks were suppressed **app-wide** — the discovery
+   layer was dead for every newly-onboarded user, which is precisely its audience. Five mechanisms were
+   asserted and refuted before the probe printed `refused(suppressors=1)`.
+2. **`accessible` on the callout collapsed its subtree**, so the dismiss control was neither focusable nor
+   activatable. **VoiceOver users could not dismiss a coach mark.** WCAG 2.2 AA is this app's stated floor.
+3. **The subject measured mid-entrance** — y=1702 on a 956pt screen, because the sheet enters translated
+   down by its own full height — so the callout drew off-screen while being recorded as seen.
+
+⛔ **None was reachable by reading.** #1 survived five reasoned mechanisms, two audit passes and three
+green web specs; #2 could not exist as an observation until #1 was fixed; #3 could not until #2 was.
+
+⚡ **And the honest other half: roughly a third of the cycles went to MY instrument bugs**, not the app —
+the probe asserted below the fold when `scrollUntilVisible` was already in three flows; the iPad step
+skipped itself on an implicit `success()`; the picker matched a *chip* name; a boot-everything loop ate
+the 60-minute timeout; `mainScreenScale` parsed as a float; and a `grep | tail || echo` could not report
+"found nothing". Every one shares a shape, now written down: **I kept authoring the instrument for the
+world in which the thing it measures already works.**
+
+⚡ **The one change that ended it** was making the probe survive being unreachable — writing the trace to
+the unified log as well as the screen, and keeping a log stream alive for the whole suite rather than the
+first 25 seconds. From that run on, every fix landed first try.
+
+### 🎯 Two calibrations from Jason worth keeping
+
+- *"I wouldn't make changes until you can verify from the error log."* — saved a cycle outright: all three
+  flow edits I had staged used `tapOn: "Got it"`, and the artifact proved that could never have worked.
+- *"One missing haptic isn't going to make or break the app."* — the coverage split was made on
+  **automatability**, never on **consequence**. Those are different axes and only one is tracked → 4.1.11.
+
+### Where the manual checklist stands
+
+§13 (6) and §14 (6) are now automated, plus the tutorial walk and interactions. ⚠️ Still device-owed and
+genuinely so: §13.6's "VoiceOver hears each hint ONCE" (counting matching elements is unproven → probe
+p06) and §13.4's judgement half (does the hint bury the chart). 🎯 *"Haptics etc. can only be tested on
+device"* — agreed, and the split that survives is **whether it fires** (assertable) versus **whether it
+feels right** (yours).
