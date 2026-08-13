@@ -7629,3 +7629,34 @@ never written down, so it was never a candidate — despite being second-largest
 against GitHub's 10GB per-repo cap, where LRU eviction could take out the 17MB `.app` cache that is saving
 17m03s: the optimisation eating the optimisation) · the **nightly / path-filtered trigger**, which is not a
 speed item at all — it is rot-prevention, on a `macos-15` runner at a 10× minute multiplier.
+
+### The rot guard — path-filtered, and the two things it does not cover (2026-08-13)
+
+🎯 Path-filtered over nightly: it fires when what it guards moves and costs nothing on the days it does
+not, which matters on `macos-15` at a 10× minute multiplier. The lane's real failure mode was never going
+red — it was going green by never running, and it has been dispatched by hand all through 4.1.
+
+**Two hazards found while building it, both stated in the file rather than left to be discovered:**
+
+⛔ **A push would have cancelled a manual investigation run.** `concurrency: native-e2e-${{ github.ref }}`
+with `cancel-in-progress` plus a push trigger means a routine commit kills a dispatched run on the same
+branch. Not hypothetical: three commits landed on `v1.7-dev` today while a dispatched run was mid-build,
+and the third touched the workflow file — under a shared group it would have been cancelled **by its own
+rot guard**, throwing away the ~17 minutes it had already spent. Fixed by scoping the group on
+`github.event_name`, which keeps "supersede the previous push" and leaves a deliberate run alone.
+
+⛔ **`paths:` applies to the tag trigger too, and GitHub cannot express "tags unfiltered, branches
+filtered" in one `push:` block.** A tag pushed onto an existing commit carries no changed files, so the
+release-gate trigger may now never fire. **Accepted, having checked what it was worth: all 40 runs of this
+lane to date are `workflow_dispatch`** — the tag gate has never fired once, and Phase 6 is a human pressing
+the button. It was a decorative safety net; the rot guard is a working one. If the tag gate is ever made
+load-bearing it needs its own workflow, not a `paths` tweak.
+
+⚠️ **And the guard does not cover the iPad tier.** No push supplies inputs, so `inputs.device` is empty and
+automatic runs execute flows 01–08 only — `i01`, flow `05`'s iPad half and §11.15 can still rot
+green-by-never-running. Closing it means defaulting pushes to `both` (≈10 extra minutes every automatic
+run) or promoting the tier once it stops being a measurement lane → **4.1.11**.
+
+⚠️ **What a path filter structurally cannot see:** rot from outside the repo — an Xcode image bump, a
+Maestro release (the installer fetches latest every run), a simulator runtime change. That is the nightly's
+one genuine advantage, and it is the same argument as pinning Maestro. Both → 4.1.11.

@@ -52,18 +52,72 @@ on:
       # not mention the device, so the iPad run restores the SAME binary — its marginal cost is Maestro
       # time, not another 17-minute build.
       #
-      # ⚠️ A tag push supplies no inputs, so `inputs.device` is empty there and only the iPhone list
-      # runs. That is deliberate for now — the iPad tier is a measurement lane, not yet a release gate.
+      # ⚠️ NO PUSH SUPPLIES INPUTS — neither a tag nor the rot-guard filter above — so `inputs.device` is
+      # empty there and only the iPhone list runs. Deliberate for now: the iPad tier is a measurement
+      # lane, not yet a release gate. ⛔ But say the consequence out loud, because it is the shape this
+      # repo keeps paying for: **the rot guard does not guard the iPad tier.** Automatic runs cover flows
+      # 01–08 and nothing else, so `i01` and §11.15 can still rot green-by-never-running. Closing that
+      # means either defaulting pushes to `both` (≈10 extra minutes on every automatic run) or promoting
+      # the tier once it stops being a measurement lane → 4.1.11.
       device:
         description: 'iphone = flows 01-08 · ipad = the [D30] iPad tier (shared seed + iPad-only) · both'
         type: choice
         options: [iphone, ipad, both]
         default: iphone
   push:
+    # ⚠️ THE `paths:` FILTER BELOW APPLIES TO THESE TAGS TOO, and GitHub gives no way to say
+    # "tags unfiltered, branches filtered" inside one `push:` block. A tag pushed onto an existing commit
+    # carries no changed files for the filter to match, so **this trigger may now never fire.**
+    #
+    # Accepted, with the reason stated rather than discovered later: it has never fired anyway. All 40
+    # runs of this lane to date are `workflow_dispatch` (checked 2026-08-13) — the release gate has been a
+    # human pressing the button since the lane existed, and that is what Phase 6 will do too. What this
+    # costs is a decorative safety net, and what it buys is the rot guard actually working.
+    # ⛔ If the tag gate is ever made load-bearing, it needs its own workflow — not a `paths` tweak here.
     tags: ['v*'] # release tags → a gated native smoke before shipping
+    # ── 2026-08-13 · THE ROT GUARD ( 🎯 path-filtered, not nightly ) ────────────────────────────────
+    # The lane's real failure mode is not going red — it is going green by never running. It has been
+    # dispatched by hand all through 4.1, which works exactly as long as somebody remembers.
+    #
+    # Path-filtered rather than a `schedule:`, deliberately: it fires when the things it guards actually
+    # move and costs nothing on the days they do not, which matters on `macos-15` at a 10× minute
+    # multiplier. ⚠️ What that CANNOT see is rot from outside the repo — an Xcode image bump, a Maestro
+    # release (the installer fetches latest), a simulator runtime change. Those need a nightly or a
+    # version pin, and are filed rather than pretended away.
+    #
+    # ⛔ THIS LIST IS COUPLED TO THE `.app` CACHE KEY and must be maintained with it. The key hashes every
+    # input that reaches the binary (rule ① below); this fires when any of them changes, plus the flows.
+    # A path here that the key lacks re-runs the suite against an identical binary — wasteful but honest.
+    # A key input MISSING here is the rot case itself: a native dependency swapped in `package-lock.json`
+    # rebuilds the binary and the lane never notices. YAML cannot share the two lists, so they are checked
+    # by reading. ⚠️ `packages/core/**` is here because the `@core` alias is BUNDLED, not linked.
+    branches: [v1.7-dev]
+    paths:
+      - 'apps/rn/src/**'
+      - 'apps/rn/plugins/**'
+      - 'apps/rn/assets/**'
+      - 'apps/rn/targets/**'
+      - 'apps/rn/.maestro/**'
+      - 'apps/rn/app.json'
+      - 'apps/rn/index.js'
+      - 'apps/rn/metro.config.js'
+      - 'apps/rn/babel.config.js'
+      - 'apps/rn/package.json'
+      - 'apps/rn/package-lock.json'
+      - 'packages/core/**'
+      - 'package-lock.json'
+      - '.github/workflows/native-e2e.yml'
 
+# ⛔ `github.event_name` IS IN THE GROUP, and it is not decoration. With the push trigger above, a group of
+# `native-e2e-<ref>` plus `cancel-in-progress` means **a routine push kills a manual investigation run on
+# the same branch.** That is not hypothetical: on 2026-08-13 three commits landed on `v1.7-dev` while a
+# dispatched run was mid-build, and the third touched this file — under a shared group it would have been
+# cancelled by its own rot guard, and the ~17 minutes it had already spent would have been thrown away
+# with it. Scoping by event keeps "supersede the previous push" while leaving a deliberate run alone.
+# ⚠️ The cost is that a push run and a dispatched run CAN now overlap. They are separate runners with
+# separate simulators, so there is no device contention — only minutes.
 concurrency:
-  group: native-e2e-${{ github.ref }}
+  group: native-e2e-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
