@@ -37,11 +37,26 @@ device-specific yet — that is this item.
 
 | # | Step | State |
 |---|---|---|
-| **4.1.5.2** | **§11.15 ⭐ the ring-origin invariant**, as an app-side measurement asserted by flow `05` on both tiers. ⛔ **All THREE premises refuted** — two at switch-in, and the third by the run: **`org 0,0` on a 1032pt iPad, so the correction is an identity and the ~700pt defect cannot occur.** ⛔ Its own first red was mine (`d 2,2` = the ring's 2pt border) | ⏳ **Fix pushed, awaiting the re-run.** Run `31716361639` proved it renders, measures and reports |
-| **4.1.5.3** | **§10's two layout checks** — master-detail (**confirmed**: rail + list + detail pane) and the **sidebar rail replacing the bottom tab bar** (confirmed). ⛔ **NOT "More's two-column"** — see below | |
-| **4.1.5.4** | **§11.16** — ⚠️ it is a **judgement** ("deliberate crop or rendering fault"), not a pass/fail; scope it to producing the landscape frame | |
-| **4.1.5.5** | **§11.8's rotation half** — ⛔ **the "unproven command" block is STALE.** `setOrientation` PASSED in 4.1.1 cycle 2 (log: *"Proven: extendedWaitUntil · evalScript+assertTrue · setOrientation · assertScreenshot · repeat"*). Unblocked, and it also unblocks 4.1.5.4's landscape frame | |
-| **4.1.5.6** | **Reconcile `i01`** — retire the measurement-only assertions it still carries, or state plainly what they cover | |
+| **4.1.5.2** | **§11.15 ⭐ the ring-origin invariant** — the overlay measures its rendered ring against the subject's window rect; flow `05` asserts it and joins the iPad list. ⛔ **All three premises refuted**, incl. **`org 0,0` on a 1032pt iPad — the correction is an identity and the ~700pt defect cannot occur.** Detail → log | ✅ **DONE 2026-08-13.** Run `31720514061`: **8/8 iPhone + 3/3 iPad**, `d 0,0`. §11.15 + §13.1 off the manual checklist |
+| **4.1.5.3** | ▶ **ACTIVE — §10's layout checks.** Decomposed below | ▶ |
+| **4.1.5.4** | **§11.16** — ⚠️ a **judgement** ("deliberate crop or rendering fault"), not a pass/fail; scope to producing the landscape frame | |
+| **4.1.5.5** | **§11.8's rotation half** — ⛔ the "unproven command" block is STALE; `setOrientation` passed in 4.1.1 cycle 2. Unblocked, and it unblocks 4.1.5.4's frame | |
+| **4.1.5.6** | **Reconcile `i01`** — retire the measurement-only assertions it carries, or state plainly what they cover | |
+
+#### ▶ 4.1.5.3 — §10's layout checks _(active)_
+
+⚠️ **Two of §10's four claims are already confirmed by images** (`ipad-02`, `tut-beat-1`), so this item is
+asserting what has been seen, not discovering it. **1.** master-detail on Money — rail · list · detail pane
+· `"Select a debt to edit, or add one."` **2.** the sidebar rail replaces the bottom tab bar. **3.** Today
+in two columns (Guardian/paycheck left · Required Actions + Recommended right) — **newly confirmed in
+`tut-beat-1`, and not previously on this list.** **4.** ⛔ NOT More's two-column — it does not exist.
+
+1. **4.1.5.3.1** — assert 1–3 in `i01`, replacing its measurement-only assertions *(folds 4.1.5.6 in: the
+   flow stops being a measurement and becomes coverage, so its header comment must stop disclaiming one)*.
+2. **4.1.5.3.2** — `lint:selectors` counts `i01` as a flow; **once it carries real assertions the 4.1.5.1
+   after-scan note about not counting measurement flows is void** — correct it rather than leave it.
+3. **4.1.5.3.3** — one run, batched with the poll-predicate fix. Exit: `i01` fails if the iPad layout
+   regresses, and its comment says what it covers.
 
 **Iterate with `-f device=ipad`** — it skips the ~10-minute iPhone suite entirely, and flow-only edits hit
 the `.app` cache. No workflow change needed; [D30]'s input already does it. ⚠️ **4.1.5.2 changes `src/**`,
