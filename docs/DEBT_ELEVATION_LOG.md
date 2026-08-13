@@ -7781,3 +7781,22 @@ the hierarchy dump that did not exist · "numeric frame containment" that belong
 two-column" that §10 never asked for · `~/.maestro`'s 1m29s that was 22s · §11.15's ~700pt that had been
 designed out · and twice, my own instrument (`d 2,2`, and a predicate with zero matches). ⚡ **Six of the
 seven were answerable from an artifact already in the repo or already downloaded.**
+
+### The route-push mark — reproduced on web in one local run (2026-08-13)
+
+The iPad frames showed it; `probe-mark-route-push.spec.ts` proved it. Navigate Progress → More with the
+`trajectory-scrub` mark up and **the mark is still visible over the settings list**, subject long gone.
+
+⚡ **It cost nothing to reproduce, and the reason is the contrast that matters.** `debt-row-actions` is
+`Platform.OS === 'ios'`, which is why it consumed five CI cycles and a bespoke five-stage probe.
+`trajectory-scrub` is offered **unconditionally** (`progress.tsx:73`) — so the same class of defect, in the
+same component, was answerable in Chrome in under a minute. **Before assuming a coach-mark question needs
+the simulator, check whether THAT mark is platform-gated.**
+
+⚠️ **The mechanism is still not diagnosed and this entry does not guess at one.** Four have been refuted in
+this component already.
+
+⛔ **The reproduction is `test.fail()`, deliberately.** The assertion states the correct behaviour, so the
+gate stays green while the defect is open and **the test reds the moment it is fixed** — delete the marker
+and it is the regression gate. A `skip` rots silently; a bare failure reddens the gate and gets muted.
+This is the one shape that cannot become a lie in either direction.
