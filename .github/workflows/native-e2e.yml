@@ -423,6 +423,27 @@ jobs:
           # the compile); we only need the slice matching the sim we boot.
           ARCH="$(uname -m)"
           echo "Building single simulator arch: $ARCH"
+
+          # ⛔ ccache AND EXPLICIT MODULES ARE ALTERNATIVES, NOT ADDITIONS — so the input selects between
+          # two whole configurations rather than toggling one factor inside a fixed one.
+          #
+          # Run `31730150194` measured **0/648 cacheable, 648/648 uncacheable** with modules ON. ccache
+          # declines `-fmodules` compilations by default, which is precisely what the 2026-07-28 removal
+          # note predicted (*"it also conflicted with Xcode 26's explicit modules"*). Leaving modules on
+          # while `ccache=true` would keep re-running that same null result forever.
+          #
+          # ⚠️ It DOES mean the comparison is configuration-vs-configuration, not a clean single-variable
+          # A/B — a slower ccache run could be ccache's overhead or the loss of module reuse, and this run
+          # cannot separate them. That is the right trade here: the decision is "which configuration do we
+          # ship", and the honest baseline is the 771s the lane actually costs today with modules on.
+          # ⛔ `sloppiness=modules` would let ccache cache them anyway and is deliberately NOT used: it
+          # stops hashing module contents, which is the stale-binary hazard the `.app` cache's rule ② was
+          # written to prevent. A faster build that might be the wrong build is not a trade this lane makes.
+          MODULES_FLAG=""
+          if [ "${{ inputs.ccache }}" = "true" ]; then
+            MODULES_FLAG="CLANG_ENABLE_EXPLICIT_MODULES=NO"
+            echo "ccache run → explicit modules OFF (they make every compile uncacheable)"
+          fi
           # 2026-07-29 speed pass — two compiler-level cuts to the ~13-min sim compile, both safe for a
           # FUNCTIONAL e2e (the signed Codemagic build is the optimized final sanity check):
           #  • Optimization OFF (SWIFT_OPTIMIZATION_LEVEL=-Onone / GCC_OPTIMIZATION_LEVEL=0) — skips the
@@ -448,6 +469,7 @@ jobs:
             SWIFT_OPTIMIZATION_LEVEL='-Onone' GCC_OPTIMIZATION_LEVEL=0 \
             DEBUG_INFORMATION_FORMAT=dwarf \
             COMPILER_INDEX_STORE_ENABLE=NO \
+            $MODULES_FLAG \
             build 2>&1 | tee xcodebuild.log
 
       # ⛔ THE ACTUAL DELIVERABLE OF THE EXPERIMENT, and it must run on failure too. Wall-clock alone
@@ -456,9 +478,14 @@ jobs:
       # measured being broken. The hit RATE is the number that decides adoption; the elapsed time only
       # says what it bought on this particular runner.
       # ⚠️ A first (cold) run should read ~0% and populate; the SECOND run is the measurement.
+      # `-sv`, not `-s`. Run `31730150194` came back **0/648 cacheable, 648/648 UNCACHEABLE** — the wiring
+      # was perfect (648 matches the documented "648 of ~650 CompileC tasks are pods" exactly) and ccache
+      # declined every one. `-s` says THAT it refused; `-v` says WHY, broken down by reason. The leading
+      # explanation is the one the 2026-07-28 removal note already gave — *"it also conflicted with Xcode
+      # 26's explicit modules"* — and a stated mechanism is still a hypothesis in this repo until measured.
       - name: ccache statistics (the number this experiment is for)
         if: always() && inputs.ccache
-        run: ccache -s || echo "(ccache not installed — the wiring step did not run)"
+        run: ccache -sv || ccache -s || echo "(ccache not installed — the wiring step did not run)"
 
       # xcodebuild emits thousands of lines and buries the ONE that matters in the middle of them, under
       # a pile of benign warnings — the React prebuilt core's "umbrella header does not include header
