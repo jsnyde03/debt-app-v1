@@ -7350,3 +7350,49 @@ one that was silently false: **an offer the layer fails to draw stays owed to th
 ⚠️ Filed, not fixed: an undrawable mark stays `active`, and `show()` refuses while anything is active — so
 one stuck mark can block the rest for a session. Pre-existing, not introduced here, and fix 1 removes the
 only known cause → the cohesion gate.
+
+## Run `31705617155` — both fixes WORKED; 08 fell at the final assertion, on a selector (2026-08-13)
+
+**01–07 green. 08 reached §13.4, the last check in the file.** iPad tier green again: iPad Pro 13-inch at
+1032pt, `01` and `i01` both passing, exit 0.
+
+### ⭐ Three device-owed checks passed for the first time ever
+
+- **§13.1** — the payoff-schedule callout renders **over** a presented Modal rather than behind it. That
+  is the whole justification for the nested host (3.5.5.5), and it had never once been asserted on a
+  simulator. **Fix 1 (re-measure on the entrance spring's completion) works.**
+- **§13.2** — "Got it" dismisses it, and the dismissal survives a real `killApp` → relaunch. **Fix 2
+  (record on DRAW) did not disturb the once-ever contract.**
+- The hierarchy also confirms the a11y repair in the tree: `coach-mark-dismiss` is now its own node
+  carrying `accessibilityText: "Got it"`, where the card used to be a childless leaf.
+
+### §13.4 — the mark was ON SCREEN and the assertion still failed
+
+```
+show:trajectory-scrub=ACCEPTED · measure:400x333@20,625 · draw=DREW · record:trajectory-scrub
+hierarchy: coach-mark at [16,493][424,635]
+```
+
+Drawn, on screen, recorded. The assertion failed because the callout exposes **one composed label** —
+`"Drag the curve. Scrub any month to see what you owe and when you land."` — and §13.4 asserted the bare
+title. **Maestro matches literal equality or a FULL regex, never "contains."**
+
+⚡ **This file documents that rule twice, and §13.4 still had the wrong form** — because it had never
+executed. Its two siblings (§13.3, §13.1) already use `.*…*` wrappers. A rule written down is not a rule
+applied; only running the check applies it. ⚠️ Not a regression from the a11y fix either: the composed
+label previously lived on the card, so a bare title could never have matched there either.
+
+Fixed with the wrapped form. Flow-only, so the `.app` cache hits.
+
+### 🎯 The iPad tier goes dormant between investments
+
+Jason: *"there's no reason to continuously add another ~8 minutes to the build if it's green."* Agreed —
+and it costs nothing to arrange, because [D30] made device a **workflow input**: dropping `-f device=both`
+selects the `iphone` default with no workflow edit, so the `.app` cache is untouched.
+
+⚠️ **With a stated trigger, because "until there's a need" is how this suite rotted the first time.** Run
+`device=both` whenever a change touches a width-branching surface — `use-layout.ts`, `sizeClass.ts`,
+`MasterDetail`, `TwoColumn`, `FormSheet`'s inline-pane path, and the seven `isExpanded` sites across
+Today / Money / Progress / More — and for the whole of 4.1.5, whose named items *are* the iPad checks.
+⚡ Also honest: `i01` asserts nothing device-specific by design, so today the tier costs 8 minutes for a
+boot check. It earns regular runs once 4.1.5 gives it §11.15, §10 and §11.16.

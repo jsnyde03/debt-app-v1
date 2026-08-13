@@ -200,5 +200,13 @@ appId: com.jasonsnyder.debtplanner
 # screen. The screenshot carries the judgement to a human; the assertions carry the part that can fail.
 - tapOn:
     id: "tab-progress"
-- assertVisible: "Drag the curve"
+# ⛔ `.*` WRAPPERS, like its two siblings. Run 31705617155 proved the mark is on screen — trace
+# `draw:trajectory-scrub=DREW`, hierarchy `coach-mark` at [16,493][424,635] — and the assertion still
+# failed, because the callout exposes ONE composed label:
+#   "Drag the curve. Scrub any month to see what you owe and when you land."
+# Maestro matches literal equality or a FULL regex, never "contains", so a bare title can never match.
+# ⚡ This file documents that rule twice and §13.4 was written before it was understood — it simply never
+# executed until today, so nothing corrected it. §13.3 and §13.1 already use the wrapped form.
+- assertVisible:
+    text: ".*Drag the curve.*"
 - takeScreenshot: maestro-debug/s13-4-trajectory-mark
