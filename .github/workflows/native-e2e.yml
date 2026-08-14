@@ -832,7 +832,15 @@ jobs:
         if: ${{ !cancelled() && inputs.mode != 'probe' && (inputs.device == 'ipad' || inputs.device == 'both') }}
         continue-on-error: true
         env:
-          MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
+          # ⛔ 420 s, RAISED FROM 240 s 2026-08-14 — PARITY WITH THE IPHONE STEP, WHICH ALREADY HAD IT.
+          # Run 31822453981's iPad tier died on `iOS driver not ready in time` with ZERO flows run, 14m40s
+          # spent, and nothing measured. That is the identical exception the iPhone step was raised to
+          # 420 s for after run 31646289268 — the fix was applied to one of the two places that needed it,
+          # and this tier kept the old value for a day and then paid the same cost.
+          # ⚡ It IS a timing problem, not a broken driver: the dark-theme `i02` re-run minutes later came
+          # up fine on the same simulator ("Running on iPad Pro 13-inch (M4) - iOS 18.5", app launched).
+          # The driver was coming; the 240 s gate fired first.
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: '420000'
         run: |
           xcrun simctl shutdown all || true
           # ⛔ SELECT BY MEASURED WIDTH, NEVER BY NAME. Run 31630150499 preferred `grep -i pro` and booted
@@ -922,13 +930,36 @@ jobs:
           # ORDER: `05` runs after `i01` so the measurement flow keeps its clean position — `05` finishes
           # the walkthrough and marks it seen, which changes what Today renders. It relaunches with
           # `clearState: false`, so `i01` leaving the debt sheet open costs it nothing.
-          maestro test \
-            .maestro/01-launch-smoke.yaml \
-            .maestro/i01-ipad-boot.yaml \
-            .maestro/i02-ipad-step5-landscape.yaml \
-            .maestro/i03-ipad-rotate-midstep.yaml \
-            .maestro/05-tutorial-walkthrough.yaml \
-            --format junit --output maestro-report-ipad.xml --debug-output ./maestro-debug-ipad || STATUS=$?
+          # ⛔ THE RETRY, ALSO PARITY — and it is the half that actually saves the cycle. Same rule as the
+          # iPhone step: retry ONLY on the driver-startup signature, never on a red flow. An infrastructure
+          # stall is indistinguishable from a green tier in cost and from a real failure in exit code, and
+          # run 31822453981 spent the whole tier on one. A blind retry would instead double the cost of
+          # every genuine red and re-run flows whose ordering matters.
+          # ⛔ A SUBSHELL `( … )`, NOT `{ … }`, AND `pipefail` INSIDE IT. Without pipefail the pipeline
+          # reports TEE's status — always 0 — so STATUS would be 0 on every failure: the retry would never
+          # fire and the tier would report success for a stall. But `set -o pipefail` at STEP scope would
+          # reach the device-selection pipelines above, where `simctl list | grep | sed` finding nothing is
+          # a handled case (`if [ -z "$AVAIL" ]`) that would instead abort the step under `bash -e`.
+          # Shell options are global, so the subshell is what keeps it local to this call.
+          run_ipad_tier() (
+            set -o pipefail
+            maestro test \
+              .maestro/01-launch-smoke.yaml \
+              .maestro/i01-ipad-boot.yaml \
+              .maestro/i02-ipad-step5-landscape.yaml \
+              .maestro/i03-ipad-rotate-midstep.yaml \
+              .maestro/05-tutorial-walkthrough.yaml \
+              --format junit --output maestro-report-ipad.xml --debug-output ./maestro-debug-ipad 2>&1 | tee "$1"
+          )
+          run_ipad_tier /tmp/maestro-ipad-1.txt || STATUS=$?
+          if [ "$STATUS" -ne 0 ] && grep -q "iOS driver not ready in time" /tmp/maestro-ipad-1.txt; then
+            echo "::warning::iPad tier: iOS driver failed to start and NO flow ran — retrying the tier once."
+            # ⚠️ Deliberately NOT rebooting the simulator, for the iPhone step's reason: the failure is the
+            # XCTest runner install, which `maestro test` reattempts itself, and the .app is already on
+            # this device. Cycling the sim would risk the install for no stated benefit.
+            STATUS=0
+            run_ipad_tier /tmp/maestro-ipad-2.txt || STATUS=$?
+          fi
           kill "$LOG_PID" 2>/dev/null || true
 
           # ⚠️ 4.1.5.6 — §11.16 ASKS FOR BOTH THEMES, and [D33] judged only LIGHT. Rather than fork the

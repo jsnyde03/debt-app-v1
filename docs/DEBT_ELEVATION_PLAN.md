@@ -68,7 +68,7 @@ the lane will carry, how much it carries today, and the residual that is permane
 | **.7.4b** | **Compile the bundle** — a separate, non-fatal `build-for-testing` | ⛔ **FAILED on the runner, FIXED 2026-08-14.** `pbxCreateGroup(name, path)` set the group's path and the file repeated it → `ios/CoverageProbeUITests/CoverageProbeUITests/…swift`, `Build input file cannot be found`, exit 65. ⚠️ **31 pre-flight checks passed on that same project** — membership was asserted, the resolved PATH never was. Pre-flight now **33**, and the new check fails on the old line |
 | **.7.4c** | ⭐ **RUN it** — `test-without-building` on the booted sim, between the iPhone suite and the iPad tier | ✅ **BUILT 2026-08-14**, correctly **skipped** in `31822453981` (gated on `.7.4b`'s `outcome`). Never yet executed |
 | **.7.4d** | **Dispatch and read the verdict** | ◐ **`31822453981` — ⭐ the scheme mod WORKS** (`✅ the testable IS in the scheme`, BlueprintIdentifier landed). Probe unrun; flows 09/10 + iPad tier still to read |
-| **.7.4e** | ▶ **Re-dispatch with the path fix** — the probe's first actual execution | ▶ **NEXT** |
+| **.7.4e** | ▶ **Re-dispatch** — carries the pbxproj path fix · flow 10's `eraseText: 80` · the iPad tier's timeout+retry parity | ▶ **NEXT.** Three unknowns in one cycle: the probe's first execution, flow 10 end-to-end, the iPad tier's first real content |
 | **.7.5** | **Re-verdict** whatever it proves, and settle 4.1.9's [DECISION] | |
 
 ⚠️ **[.7.1 risk note] The app target does NOT depend on the test bundle** (the direction was inverted on

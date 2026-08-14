@@ -142,7 +142,11 @@ for (const name of flowFiles) {
       cmd === 'runScript' ||
       cmd === 'setOrientation' ||
       cmd === 'evalScript' ||
-      cmd === 'assertTrue'
+      cmd === 'assertTrue' ||
+      // ⚠️ 2026-08-14 — the eighth, and found the way this comment predicts: `eraseText: 80` takes a
+      // CHARACTER COUNT, not a selector. Bare `- eraseText` was a plain string command and never
+      // reached here; giving it an argument turns it into an object whose value is a number.
+      cmd === 'eraseText'
     ) {
       if (cmd === 'inputText') pendingInput = i;
       return;

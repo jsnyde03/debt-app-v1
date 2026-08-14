@@ -8963,3 +8963,75 @@ not the step status.
 
 The probe cannot execute this cycle, but flows 09 + 10's inverted fence assertions and the iPad tier
 (`i03` + the dark `i02`) are both live in it and have never run. Left to finish rather than cancelled.
+
+---
+
+## 2026-08-14 (late) — judging `31822453981`: one real defect, one non-result, and my two edits held
+
+### ⭐ Flow 10's failure was in the CLEANUP, so everything before it PASSED
+
+```
+[Failed] 10-walkthrough-edges (2m 9s)
+  (Assertion is false: "^Visa$", id: field-debt-name is visible)
+```
+
+That selector occurs exactly once in the file — the §11.9 rename-back at the very END. Maestro halts a
+flow at its first failed command, so lines 1–218 all passed: the setup rename, §11.11, §11.13, the
+Money-tab positive **and the beat-5 `assertNotVisible` inversion**. ⭐ **The `a11yHidden` fence premise
+was right** — the coached regions really are absent from the accessibility tree at beat 5, and the
+paired present-here/absent-there construction did not pass vacuously. ⚠️ Inferred from execution
+ordering, not read from the per-command trace; that trace is in the artifact under
+`maestro-debug/.maestro/tests/` if it ever needs nailing down.
+
+### ⛔ The defect is arithmetic: `eraseText` erases a BOUNDED number of characters
+
+The name is **64 characters**. Bare `eraseText` uses Maestro's default, which is smaller — so the
+cleanup cleared part of it, `inputText: "Visa"` appended to the residue (`Chase Sapphire` + `Visa`), and
+the anchored `^Visa$` failed. ⚡ **The SETUP erase, same command in the same file, worked** — it was
+clearing the 4-character `"Visa"`. Same command, opposite outcomes, and LENGTH is the whole
+discriminator. Both calls now pass `eraseText: 80`, which is correct **whatever the default is** — the
+point is to stop depending on it.
+
+✅ **And `eraseText` is now PROVEN SUPPORTED**, which it never was. The file's risk-ordering rationale
+(isolate the unproven command in its own file, because Maestro validates a whole file before executing
+any of it) was correct and paid off; the header is updated rather than deleted.
+⚠️ `lint:selectors` gained an eighth exclusion — `eraseText: 80` takes a COUNT, and bare `- eraseText`
+was a plain string that never reached the selector check. Found exactly the way that list's own comment
+predicts: a guard producing confident false positives on the first flow to use a command.
+
+### ⛔ The iPad tier is a NON-RESULT, and the cause is a fix applied to one of two places
+
+```
+iOS driver not ready in time … LocalXCTestInstaller$IOSDriverTimeoutException
+iPad tier exit status: 1
+```
+
+Zero flows ran in 14m40s. Everything up to Maestro was correct — it selected **iPad Pro 13-inch (M4) at
+1032pt** over four 1024pt candidates and the 744pt mini, booted, installed, and screenshotted at
+**2064×2752**. ⚡ **It is a timing problem, not a broken driver:** the dark-theme `i02` re-run minutes
+later came up fine on that same simulator (`Running on iPad Pro 13-inch (M4) - iOS 18.5`, app launched,
+assertions started). The driver was coming; the gate fired first.
+
+⛔ **The iPhone step has run `MAESTRO_DRIVER_STARTUP_TIMEOUT: 420000` plus a retry-on-this-exact-signature
+since run 31646289268 lost a cycle to this exact exception. The iPad tier still had 240 s and no retry.**
+One rule, two places, and the second one paid the same cost a day later. Both now at parity.
+
+⚠️ **The retry needed `pipefail` and could not have it at step scope.** `maestro test … | tee` reports
+TEE's status — always 0 — so `STATUS` would have been 0 on every failure and the retry could never fire.
+But `set -o pipefail` at step scope reaches the device-selection pipelines above, where
+`simctl list | grep | sed` finding nothing is a HANDLED case (`if [ -z "$AVAIL" ]`) that would instead
+abort the step under `bash -e`. Shell options are global, so the runner is a **subshell** `( … )` with
+pipefail inside it. Both halves proven locally before commit: the retry fires, and pipefail does not leak.
+
+### ⚠️ [after-scan] Filed, not fixed
+
+- **The 4.1.1 probe lane still has `MAESTRO_DRIVER_STARTUP_TIMEOUT: 240000`** — the third of three, and
+  the same stall would produce the same non-result there. Left alone deliberately: it runs only under
+  `mode=probe`, nothing is queued on it, and changing an untouched lane in a dispatch that already
+  carries three fixes widens the blast radius for no answer this cycle.
+- **The `.app` cache HIT this run and the fast path still fell back** on `hermesc not found in this
+  tree`, even though `apps/rn/node_modules/hermes-compiler/hermesc/osx-bin/hermesc` exists here and is
+  the first candidate tested. The `-x` test failing on a non-executable extracted file is the leading
+  hypothesis and it is **UNMEASURED** — do not act on it without printing what the runner actually sees.
+  ⚠️ It also means "the workflow edit busts the `.app` key, so this rebuilds" was wrong: the key hit and
+  the rebuild came from the hermesc fallback instead.

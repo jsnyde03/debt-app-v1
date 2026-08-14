@@ -6,13 +6,22 @@
 # the RUN ORDER puts it ninth; `native-e2e.yml` specifies the sequence explicitly because Maestro does
 # not sort a directory argument (measured 2026-08-12), so the number is a name, not a position.
 #
-# ⚠️ THIS FILE USES ONE UNPROVEN COMMAND — `eraseText`, which this repo has never exercised against this
-# Maestro build (grepped, zero hits outside this file). Maestro validates an ENTIRE FILE before executing
-# any of it, so if `eraseText` is unsupported, every check below dies with it. That is why it lives here
-# in a NEW file rather than being added to 05 or 06: risk ordering works at FILE granularity, and a parse
-# failure costs this flow alone. ⛔ If it fails to parse, do NOT weaken the rename into something that
-# passes — §11.9 needs a 60+ character name to exist, and appending to "Visa" is not that. Ledger the
-# check as device-owed instead, exactly as `06-tutorial-interactions.yaml`'s standing rule says.
+# ✅ `eraseText` IS SUPPORTED — measured, run 31822453981. It parsed, it ran, and the setup rename at
+# §11.9 worked. The risk-ordering rationale below stands as written and is left intact; it was correct
+# and it paid off.
+#
+# ⛔ BUT IT ERASES A BOUNDED NUMBER OF CHARACTERS, AND THE BOUND IS THE DEFECT. Bare `- eraseText` uses
+# Maestro's default, which is smaller than this flow's 64-character name — so the CLEANUP rename-back
+# cleared part of it, `inputText: "Visa"` appended to the residue, and the run died on
+# `Assertion is false: "^Visa$", id: field-debt-name is visible`. ⚡ The SETUP erase worked on the same
+# command in the same file because it was clearing the 4-character "Visa": same command, opposite
+# outcomes, and the LENGTH is the whole discriminator.
+# ⭐ Both calls now pass an explicit count, which is correct whatever the default happens to be — the
+# point is to stop depending on it. Any future rename here must keep the count above the name's length.
+#
+# ⛔ If a rename ever cannot be made to work, do NOT weaken it into something that passes — §11.9 needs
+# a 60+ character name to exist, and appending to "Visa" is not that. Ledger the check as device-owed
+# instead, exactly as `06-tutorial-interactions.yaml`'s standing rule says.
 #
 # ⛔ §11.13 IS NOT ASSERTED HERE, DELIBERATELY. "Beat 1's cushion bar must be PAINTED when the step
 # arrives" is a RENDER question — painted vs blank — and the only Maestro answer is `assertScreenshot`,
@@ -51,7 +60,9 @@ appId: com.jasonsnyder.debtplanner
     id: "field-debt-name"
 - tapOn:
     id: "field-debt-name"
-- eraseText
+# 80 > the 64 characters written below, and > the 4 ("Visa") this one actually clears. Extra
+# backspaces on an already-empty field are inert; too few are the defect that failed run 31822453981.
+- eraseText: 80
 - inputText: "Chase Sapphire Preferred Visa Signature Card ending 4429 (joint)"
 # ⛔ VERIFY THE WRITE BEFORE MOVING ON — `inputText` reports COMPLETED whether or not it lands, and flow
 # 07 once walked four commands past a tap that missed and concatenated three values into one field.
@@ -210,7 +221,9 @@ appId: com.jasonsnyder.debtplanner
 - tapOn: ".*Chase Sapphire Preferred.*"
 - tapOn:
     id: "field-debt-name"
-- eraseText
+# ⛔ THIS is the call that failed run 31822453981 — the field holds the 64-character name here, and the
+# default erase left "Chase Sapphire" behind for `inputText` to append to.
+- eraseText: 80
 - inputText: "Visa"
 # Same write-verification as the setup rename, and for the same reason: a cleanup that silently fails
 # leaves a 64-character name in the seed for whatever runs next, and the failure surfaces somewhere else.
