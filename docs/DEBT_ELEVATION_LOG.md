@@ -9198,3 +9198,49 @@ that `eraseText` is not clearing the field at all, and that the real discriminat
 matches with `Visa` left in front of it, while the cleanup's `^Visa$` cannot tolerate any residue.
 ⚠️ **Not asserting that either — the failure hierarchy in the artifact records the field's actual text,
 and that string decides it.** This is the second mechanism I have offered here without measuring first.
+
+---
+
+## 2026-08-14 (late) — flow 10 solved: `eraseText` deletes BACKWARDS FROM THE CURSOR
+
+The failure hierarchy from run `31827409093` — the only place this answer existed:
+
+```
+before : "Chase Sapphire Preferred Visa Signature Card ending 4429 (joint)"   (64 chars)
+after  : "Visa Visa Signature Card ending 4429 (joint)"
+```
+
+Exactly the first **24** characters — `Chase Sapphire Preferred` — were removed, and `Visa` was inserted
+at index 0. Everything from index 24 on survived. So the erase consumed only what was BEHIND the cursor
+that `tapOn` had placed mid-text.
+
+⚡ **Both of my earlier mechanisms were wrong, and in opposite directions.** It is not a bounded count
+(80 was ample; only 24 went) and it is not inert (24 really were deleted). ⭐ **The SETUP erase works for
+exactly one reason:** `"Visa"` is 4 characters, so a centre-tap lands PAST the text and the cursor goes
+to the end. Text longer than the tap point is the entire difference — and that is also why raising the
+count from the default to 80 changed nothing, which is the observation that should have redirected me a
+cycle earlier.
+
+⚠️ It also proves the SETUP rename fully cleared: the 39 surviving characters are exactly
+`original[24:]`, so the field held the clean 64-char name when cleanup started.
+
+**Fix:** a `repeat` of tap-then-erase. Each round deletes everything before the cursor, the text
+shortens, and once it is shorter than the tap point the cursor lands at the end and the final round
+clears the remainder. By the observed geometry (~24 chars to the tap point) 64 chars needs three rounds;
+`times: 4` is the margin, and `^Visa$` stays as the gate so a non-converging future fails loudly.
+
+⭐ **`repeat` was proven and the file said otherwise.** §11.13's note read *"`repeat`, which is unproven
+on this build"* — it was cleared in 4.1.1 cycle 2 alongside `setOrientation`, `extendedWaitUntil`,
+`evalScript`/`assertTrue` and `assertScreenshot`. **A stale block that outlived the probe clearing it**,
+which is precisely the defect `i02`'s header documents for §11.8's rotation half. Corrected in place.
+
+### ⭐ The verification run is free-ish, and it tests the fast path
+
+`.maestro/**` is **NOT in the `.app` cache key** — verified against the key's file list. So a flow-only
+change does not bust the binary: once the in-flight fast-lane run saves its `.app`, the flow-10
+verification should be a cache **HIT**, skipping the 485–866s build entirely.
+
+⚡ **Which makes it the first run ever to exercise the `hermesc` fast path.** That block is gated on
+`cache-hit == 'true'` and has never executed. So one dispatch answers two questions: whether the `repeat`
+erase converges, and whether the re-bundle path works. If hermesc fails it falls back to a full build and
+prints why — informative either way.

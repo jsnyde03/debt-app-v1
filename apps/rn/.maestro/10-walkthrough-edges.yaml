@@ -180,8 +180,11 @@ appId: com.jasonsnyder.debtplanner
 
 # ══ §11.13 · cold-launch frames for a human ══════════════════════════════════════════════════════
 # Two cold launches, because 3.5.8 found unpainted Skia ON THE SIMULATOR — the condition demonstrably
-# reproduces here, it is just not machine-readable. Written as explicit launches rather than `repeat`,
-# which is unproven on this build.
+# reproduces here, it is just not machine-readable. Written as explicit launches rather than `repeat`.
+# ⚠️ CORRECTED 2026-08-14: this note used to say `repeat` "is unproven on this build". It was cleared in
+# 4.1.1 cycle 2 and the claim outlived the probe that cleared it — the same way the plan carried
+# "§11.8's rotation half is blocked" long after `setOrientation` passed (see `i02`'s header). The
+# explicit launches stay because two named steps read better here, not because `repeat` is unavailable.
 - killApp
 - launchApp
 - extendedWaitUntil:
@@ -221,9 +224,32 @@ appId: com.jasonsnyder.debtplanner
 - tapOn: ".*Chase Sapphire Preferred.*"
 - tapOn:
     id: "field-debt-name"
-# ⛔ THIS is the call that failed run 31822453981 — the field holds the 64-character name here, and the
-# default erase left "Chase Sapphire" behind for `inputText` to append to.
-- eraseText: 80
+# ⛔ `eraseText` DELETES BACKWARDS FROM THE CURSOR, AND `tapOn` PUTS THE CURSOR MID-TEXT. Measured from
+# run 31827409093's failure hierarchy, which is the only place the answer existed:
+#
+#     before : "Chase Sapphire Preferred Visa Signature Card ending 4429 (joint)"   (64 chars)
+#     after  : "Visa Visa Signature Card ending 4429 (joint)"
+#
+# Exactly the first 24 characters went — `Chase Sapphire Preferred` — and everything from index 24
+# survived. So the erase consumed only what was BEHIND the cursor the tap had placed at index 24.
+# ⚡ Two earlier explanations were wrong and both are worth naming: it is NOT a bounded count (80 was
+# ample, and only 24 were removed) and it is NOT inert (24 really were deleted). The SETUP erase above
+# works for one reason only — `"Visa"` is 4 characters, so a centre-tap lands PAST the text and the
+# cursor goes to the end. Text longer than the tap point is the whole difference.
+#
+# ⭐ So: tap-and-erase REPEATEDLY. Each round deletes everything before the cursor, the text shortens,
+# and once it is shorter than the tap point the cursor lands at the end and the last round clears the
+# rest. By the observed geometry (~24 chars to the tap point) 64 chars needs three rounds; four is the
+# margin. ⚠️ `^Visa$` below is the gate — if this ever stops converging it fails loudly rather than
+# leaving a half-erased name behind.
+# ⚠️ `repeat` IS proven: it passed in 4.1.1 cycle 2 alongside `setOrientation`, `extendedWaitUntil`,
+# `evalScript`/`assertTrue` and `assertScreenshot`. §11.13's note below claiming otherwise was stale.
+- repeat:
+    times: 4
+    commands:
+      - tapOn:
+          id: "field-debt-name"
+      - eraseText: 80
 - inputText: "Visa"
 # Same write-verification as the setup rename, and for the same reason: a cleanup that silently fails
 # leaves a 64-character name in the seed for whatever runs next, and the failure surfaces somewhere else.

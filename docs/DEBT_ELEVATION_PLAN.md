@@ -23,7 +23,7 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 | **4.1.6a** | ✅ **The instrument is DONE** (.1–.6). ▶ **Live part: 4.1.6a.7**, the XCUITest target — decomposed below | ▶ |
 | **4.1.6** | **§12.0 explore** — `09-demo-explore.yaml`, runs LAST and clears state (it needs the fresh-install door) | ✅ **BUILT 2026-08-14**, awaiting a dispatch. Covers §12.0.1 · .2 · .4 · .5 · .6 · .7. ⚠️ **.3 and .8 do NOT automate** — see below |
 | **4.1.7** | **AX + theme conditions** — §11.1 · §11.5 · §8's half. ⚠️ Reduce Motion needs an app-side observable. ⛔ **HOLD for 4.1.6a.7** — `performAccessibilityAudit()` covers most of §11.1/§11.5, so part of this may belong in XCUITest, not Maestro conditions | |
-| **4.1.8** | **§11's remainder** — `10-walkthrough-edges.yaml` (§11.9 · §11.11 · §11.13 frames) | ✅ **BUILT 2026-08-14**, awaiting its dispatch. All three verdicts → `[M◐]`; ⚠️ uses `eraseText`, unproven on this build |
+| **4.1.8** | **§11's remainder** — `10-walkthrough-edges.yaml` (§11.9 · §11.11 · §11.13 frames) | ◐ **9/10 — only the §11.9 CLEANUP fails.** ⭐ Everything before it passes, incl. the beat-5 fence inversion. ⛔ `eraseText` deletes **backwards from the cursor** and `tapOn` lands mid-text (measured: exactly 24 of 64 chars went) — now a `repeat` of tap+erase. ⚠️ Verification is a **flow-only** change, so it should hit the `.app` cache and also give `hermesc` its first-ever exercise |
 | **4.1.9** | ⛔ **RE-SCOPED 2026-08-14 — was "the Appium supplement".** ⚡ **Appium's whole unique value is THREE checks** (§10.5 ⌘N · §10.6 ⌘1/2/3 · §10.7 the ⌘ HUD) — measured, not estimated. An **XCUITest target** buys those same 3 natively, **plus ~16 springboard rows**, **plus 4 of the 6 premium-a11y bullets** via `performAccessibilityAudit()`, on the sim this lane already boots. ⚠️ §11.15 came off this row — 4.1.5.2 settled it app-side. **[DECISION] pending 4.1.6a.7's probe** | |
 | **4.1.9b** | ⭐ **CI wall-clock: the composite action AND the tier split, as ONE pass** *(🎯 approved 2026-08-14; repo is PUBLIC so macOS runners are free)*. ① The `.app` key hashes the whole of `native-e2e.yml`, so the **flow list** busts the binary — both of today's runs paid ~771s of compile for pure YAML edits. ② The two tiers run **sequentially in one job** (no `matrix`), so `device=both` pays iPhone **+** iPad (~650s + ~666s) instead of `max`. ⚡ They merge: the extracted composite is exactly what two parallel jobs must both call. Also folds in `app-preview.yml`'s duplicated recipe + its missing cache. **Together: ~22 min → ~12 on a cache hit.** ⚠️ Loosens a key 4.1.3a hardened — safe only because the composite holds every build flag and `maestro test` lines cannot affect a binary. ⛔ **[.7.4c after-scan] The split must keep the XCUITest probe step in the iPhone job** — it sits between the two tiers today, and a step that stops running looks exactly like a probe that found nothing. ⚠️ Cache the `.xctestrun` + `-Runner.app` beside the `.app`, or the probe keeps skipping on every hit | ▶ **next, after the run** |
 
@@ -354,6 +354,13 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
 
 _Post-triage under the fold-don't-defer rule — only two carve-outs remain: **device-gated**, or **genuinely
 a later version/tier**._
+
+**[4.1.8 after-scan, 2026-08-14] Upload the failure hierarchy as its OWN small artifact.** Diagnosing
+flow 10 twice today required pulling `maestro-report` — **48 MB compressed, 122 MB extracted, ~5 minutes**
+— to read a single string. The deciding file (`screen-hierarchy/*.json`) is **72 KB**; `commands.json` is
+44 KB. The screenshots and os-log are what make the artifact large and neither answered anything. A second
+`upload-artifact` step scoped to `**/screen-hierarchy/**` + `**/commands.json` would turn "why did that
+flow fail" into a ten-second question. ⚠️ Fold into **4.1.9b**'s workflow pass so the file is touched once.
 
 **Device-gated → the Phase-6 pass:** Today/cushion-forecast selector memoization *(conditional on a real
 measured hotspot)* — ⚠️ **A3.1 added one extra allocation** on Today whenever the discovery hold is active
