@@ -9450,3 +9450,24 @@ first time.
 `scope=full device=iphone` with a rebuild. My estimate was ~33; the honest number is ~43. `01-launch-smoke`
 alone took **4m** against 2m11s on the previous run — same flow, same lane, so runner variance is real and
 worth remembering before reading any single duration as a measurement.
+
+### 3.5.7.3 — the embed persists nothing (2026-08-14)
+
+`createAdapter.web.ts` wrote one JSON blob to `localStorage` *"so reloads persist"* — correct for the
+app, and B.1–B.8 verified against exactly that. [D32] requires the embed to use `sessionStorage` only.
+
+**One binding, four call sites.** `backing()` resolves to `sessionStorage` when `EXPO_PUBLIC_EMBED === '1'`
+and `localStorage` otherwise; the four `getItem`/`setItem`/`removeItem` sites now go through it. ⛔ It is
+**build-time**: `EXPO_PUBLIC_*` is inlined by the bundler, so the built embed carries a constant and no
+runtime switch survives in the artifact — the same *"a toggle can be flipped, a flag cannot"* reasoning
+[D32] gave for analytics, applied to the one item that actually had something to bite on.
+
+⚠️ **Read lazily inside the existing guards, never at module scope.** Touching `sessionStorage` eagerly
+throws in private-mode and sandboxed-iframe environments — precisely where an embed runs — and the
+try/catch degradation already in this file is why it survives disabled storage at all. A module-scope
+const would have traded that away for nothing.
+
+**Both modes proven** before commit: unset → `localStorage` (app default intact), `=1` → `sessionStorage`.
+⚠️ There are no adapter unit tests, so that behavioural check is the evidence today; **the real proof is
+3.5.7.4's gate**, which asserts it against the BUILT artifact. Per [D32], the claim is a gate, not a
+promise — and a comment saying "we use sessionStorage" is exactly the promise it refuses to accept.
