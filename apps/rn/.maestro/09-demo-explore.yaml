@@ -72,12 +72,19 @@ appId: com.jasonsnyder.debtplanner
 - assertVisible:
     id: "example-canvas-marker"
 
-# ── §12.0.5 — settings stay shut. This is a TAP followed by a negative: More carries Reset and
-#    preferences that write the REAL plan, so "greyed" is not the claim — "does not open" is. If the
-#    button ever becomes live mid-demo, the marker assertion below is what survives to say so. ─────
-- tapOn:
+# ── §12.0.5 — settings stay shut. ⛔ REWRITTEN 2026-08-14: THE TAP CAN NEVER LAND, BY DESIGN.
+#    Run 31816919840 failed here on `Element not found: more-button`, and the button is not missing —
+#    it is `a11yHidden(inBoundedRun)` (`more-button.tsx:52`), because `/more` carries Reset and must not
+#    be one tap from a marketing run. Maestro reads the accessibility tree, so a control removed from
+#    that tree is unreachable to it however the tap is written.
+#
+# ⚡ The fence is a STRONGER claim than the row's own "does not open", and unlike the tap it is
+#    assertable: absent from the tree, More cannot be opened by a finger OR by a VoiceOver double-tap,
+#    which is the leak the fence was added for. `disabled` alone would have failed that second case.
+# ⚠️ Paired with the marker assertion so this is not a lone negative — a screen that failed to render
+#    would also satisfy `assertNotVisible` on its own.
+- assertNotVisible:
     id: "more-button"
-- assertNotVisible: "Preferences"
 - assertVisible:
     id: "example-canvas-marker"
 

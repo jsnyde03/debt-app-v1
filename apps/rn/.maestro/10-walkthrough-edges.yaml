@@ -63,6 +63,13 @@ appId: com.jasonsnyder.debtplanner
     text: ".*Chase Sapphire Preferred.*"
 - tapOn: "Save"
 
+# ⭐ THE "FENCE OFF" HALF of the beat-5 inversion below, and it is what stops that check passing
+# vacuously. Here — Money tab, no walkthrough — the renamed debt IS in the accessibility tree. At beat 5
+# it must NOT be. One string, required present on this screen and absent on that one, so a build that
+# simply lost the rename fails HERE rather than quietly satisfying an assertNotVisible.
+- assertVisible:
+    text: ".*Chase Sapphire Preferred.*"
+
 # ══ §11.9 · the marker must survive to beat 5 ════════════════════════════════════════════════════
 # ⚠️ THE CHECKLIST CALLS A MISSING MARKER HERE "the highest-severity result in this entire checklist":
 # step 5 shows a made-up shortfall using the user's REAL debt names, and the marker is the only thing
@@ -137,8 +144,22 @@ appId: com.jasonsnyder.debtplanner
 - assertVisible:
     text: ".*Example money.*"
 
-# The long name itself reached the card. Contains-regex: the row renders it inside a longer utterance.
-- assertVisible:
+# ⛔ INVERTED 2026-08-14, AND THE INVERSION IS THE CHECK — run 31816919840 measured this.
+# The name IS on screen at beat 5 (read it in the frame below, in the COVER NOW line) and is NOT in the
+# accessibility tree: the failure hierarchy held 25 nodes — app shell, tab bar, the ring audit, the
+# tutorial dock, the status bar — and no card content at all. `TutorialFence` (`TutorialFence.tsx:36`)
+# and `PaydayGuardianCard.tsx:469` apply `a11yHidden(inWalkthrough)` to the coached regions, closing the
+# VoiceOver double-tap leak round 5 found. Maestro reads that same tree (`TutorialOverlay.tsx:335`).
+#
+# ⚡ So "the name is visible at beat 5" is NOT assertable here by any selector, and never was. What IS
+# assertable is the fence itself — and that is worth more, because the leak it closes is the kind that
+# comes back. Paired with the Money-tab assertion above (fence OFF, name present), this cannot pass
+# vacuously: the same string is required present on one screen and absent on the other.
+#
+# ⚠️ §11.9's STATED subject — whether a 60-character name collides with a number — stays a human layout
+# judgement read from the frame. That half was always device-owed; this flow sets the condition up and
+# captures it.
+- assertNotVisible:
     text: ".*Chase Sapphire Preferred.*"
 - takeScreenshot: maestro-debug/s11-9-beat5-long-name
 

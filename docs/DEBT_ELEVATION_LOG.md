@@ -8767,3 +8767,85 @@ invariant, `d 0,0`) · **4.1.5.3** (§10's layout checks) · **4.1.5.4** (the ro
 anchored to the window on one axis; both axes now from `rect`). **Remaining: 4.1.5.6** (§11.8's rotation
 half) and **4.1.5.5.2** (Jason's verdict). Their before-scans — four refuted premises including "More's
 two-column", which §10 never specified — are recorded in the 2026-08-13 entries above.
+
+---
+
+## 2026-08-14 (late) — 4.1.6a.7.4b/.7.4c: the probe stops being a compile
+
+Resumed an edit that was interrupted mid-flight. Nothing was lost — five files uncommitted, plugin
+`node --check` clean, all three YAML files parsing, `preflight:xcuitest` **31/31**. The interrupted work
+was the reaction to run `31816919840`, and it had two halves finished and one not.
+
+### What the interrupted edit had already done
+
+⭐ **Flows 09 and 10 stopped guessing and started asserting the fence.** Both of `31816919840`'s failures
+were the same discovery: the elements are `a11yHidden` in the contexts the flows drive them in —
+`more-button` under `inBoundedRun` (`more-button.tsx:52`), the coached regions under `inWalkthrough`
+(`TutorialFence.tsx:36`, `PaydayGuardianCard.tsx:469`). Maestro reads the accessibility tree, so those
+controls are unreachable to it **by design and by any selector**. Both checks are inverted to assert the
+fence, which is the stronger claim — absent from the tree, More cannot be opened by a finger *or* by a
+VoiceOver double-tap, and `disabled` alone would not have closed the second. ⚠️ Flow 10 pairs it with a
+positive assertion on the Money tab, so one string is required **present** on one screen and **absent** on
+the other and the `assertNotVisible` cannot pass vacuously on a build that simply lost the rename.
+
+⭐ **The scheme write moved out of the dangerous mod.** `withIosBaseMods` declares `dangerous` before
+`xcodeproj`, so the original dangerous mod read `project.pbxproj` from disk *before* this plugin's target
+existed — which is why it could only ever emit a `BlueprintName`. Written from inside the `xcodeproj` mod,
+`applyXcuitestTarget`'s return value is in hand and the `BlueprintIdentifier` lands. `applyTestableToScheme`
+is exported for the same reason `applyXcuitestTarget` is, and the pre-flight went **16 → 31 checks** across
+the three scheme shapes. ⚠️ A self-closing `<Testables/>` branch was added and the count check widened from
+`/<Testables[\s>]/` to `/<Testables/` — the narrow pattern could not match the self-closing form, so it was
+blind to the exact defect it existed for. Caught by planting it.
+
+### What it had NOT done, and it was the deliverable
+
+⛔ **`build-for-testing` produces a `.xctestrun` and executes nothing.** The session close had already
+named this the single biggest outstanding gap; the interrupted edit added the compile and stopped before
+the run. As it stood, `.7.4` would have spent a full rebuild cycle and returned **no verdict on either
+question the probe exists to answer** — compiling proves Xcode accepts the target, only running proves
+SpringBoard is reachable and `performAccessibilityAudit()` executes.
+
+⭐ **Added: `Run the XCUITest probe`**, between the iPhone suite and the iPad tier. That position is the
+edit, not an accident: XCUITest activates SpringBoard and relaunches the app under test, so ahead of
+Maestro it would mutate the state the flows assert against; after the iPhone suite it cannot, and the iPad
+tier shuts every simulator down and boots its own, so it inherits nothing either. `!cancelled()` for
+4.1.5.1's already-paid-for reason — a bare `if:` carries an implicit `success()`, and a red suite would
+skip this on exactly the runs where a second independent signal is worth most.
+
+⚡ **The session close's open question is answered: the workflow picks its simulator BY NAME and the
+variable does not survive the step boundary.** So the destination is read back from `simctl list devices
+booted` rather than re-derived — `-destination` has no `booted` shorthand, and re-running the name pick
+would be a second premise to keep in step with the first.
+
+⚡ **The verdict table is the output, not the exit code** — 4.1.1's rule, and `CoverageProbeUITests` is
+already written to match it (both tests report rather than fail on absence). The `PROBE …` lines are
+`print()` from the Swift, which lands in xcodebuild's own stdout, so **no xcresult parsing is needed**;
+they are copied to `maestro-debug/xcuitest-verdicts.txt` because the log's retention is shorter than the
+answer's shelf life.
+
+### ⛔ A bug the interrupted edit left live, measured not assumed
+
+The scheme-assertion warning wrote `` `xcodebuild test` `` in **prose backticks inside a double-quoted
+string**, which bash reads as command substitution — on the failure path it would have *executed*
+`xcodebuild test` in `apps/rn` before printing the warning about it. Verified locally by running the exact
+construct, not by reading it. Single-quoted now. ⚠️ The `#` lines in the same block are safe: bash does not
+expand comments.
+
+### [before-scan] The build-for-testing log was written and never uploaded
+
+`tee xcodebuild-test.log` with nothing collecting it, and `Surface the build error` cannot help — its
+`failure()` can never fire for a `continue-on-error` step. So a Swift error in the probe would have
+presented as 60 tailed lines in an expiring log. Both new logs are on the upload step now. ⛔ Comments were
+kept OUT of the `path: |` block, where every line is a literal pattern — the mistake already made once at
+the artifact step.
+
+### ⚠️ [after-scan] A coupling 4.1.9b must not drop
+
+The new step sits between the iPhone suite and the iPad tier **in one sequential job.** When 4.1.9b splits
+the tiers into parallel jobs, it has to land in the iPhone job or in the composite, or it silently
+disappears — a step that stops running looks exactly like a probe that found nothing.
+
+⚠️ **It still skips on a `.app` cache hit**, for the reason the build step documents: no `ios/` exists on a
+hit, so there is no workspace and no `.xctestrun`. Gating on `steps.xctestbuild.outcome` rather than on
+`usable` keeps the two in step by construction. Caching the `.xctestrun` + `-Runner.app` beside the `.app`
+lifts it, and it belongs to 4.1.9b with the rest of the cache work.

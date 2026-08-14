@@ -26,8 +26,14 @@ const path = require('path');
  *      it. The Sources phase is therefore created explicitly, or nothing compiles.
  *
  * ⚠️ AND ONE OUTSIDE IT. `.xcscheme` files are not modelled by the `xcode` lib at all. Without a Test
- * action referencing this target, `xcodebuild test` cannot run it — so the scheme is written by hand in
- * a second dangerous mod.
+ * action referencing this target, `xcodebuild test` cannot run it — so the scheme is written by hand.
+ *
+ * ⛔ THE SCHEME WRITE LIVES INSIDE THE XCODEPROJECT MOD, NOT A DANGEROUS ONE, AND THAT IS MEASURED.
+ * `withIosBaseMods` declares `dangerous` (line 142) before `xcodeproj` (line 220), and the mod compiler
+ * runs them in that order — so a dangerous mod reading `project.pbxproj` from disk sees the file as it
+ * was BEFORE this plugin's target was added. The first version wrote the scheme from a dangerous mod,
+ * which is why it could only ever emit a `BlueprintName`: the uuid it needed did not exist yet. Written
+ * here, `applyXcuitestTarget`'s return value is in hand.
  *
  * Idempotent: re-running against a project that already has the target is a no-op.
  */
@@ -119,6 +125,48 @@ function applyXcuitestTarget(project, { appTargetName, bundleId }) {
   return target.uuid;
 }
 
+/**
+ * Insert a `<TestableReference>` for this target into a scheme's Test action. Pure: XML in, XML out.
+ *
+ * ⚠️ EXPORTED for the same reason `applyXcuitestTarget` is — the pre-flight applies THIS function, so
+ * the checks cover the shipping code. Until 2026-08-14 the scheme half was the only part of this plugin
+ * nothing asserted, and it is the half most likely to make `xcodebuild test` find nothing to run.
+ *
+ * `blueprintId` is the target's pbxproj uuid. ⚠️ Xcode writes one on every `BuildableReference` it
+ * generates; whether `xcodebuild` REQUIRES it is unmeasured (no macOS to ask). It is supplied because
+ * matching what Xcode emits costs nothing here, and the alternative is spending a ~22-minute cycle to
+ * find out. Do not record it as a known requirement — it is not one yet.
+ *
+ * Returns the XML unchanged when the target is already referenced.
+ */
+function applyTestableToScheme(xml, { targetName, appName, blueprintId }) {
+  if (xml.includes(targetName)) return xml; // idempotent
+
+  const testable = [
+    '      <TestableReference',
+    '         skipped = "NO">',
+    '         <BuildableReference',
+    '            BuildableIdentifier = "primary"',
+    ...(blueprintId ? [`            BlueprintIdentifier = "${blueprintId}"`] : []),
+    `            BuildableName = "${targetName}.xctest"`,
+    `            BlueprintName = "${targetName}"`,
+    `            ReferencedContainer = "container:${appName}.xcodeproj">`,
+    '         </BuildableReference>',
+    '      </TestableReference>',
+  ].join('\n');
+
+  // Insert into the existing <Testables> block, or create one inside <TestAction>.
+  if (/<Testables>[\s\S]*?<\/Testables>/.test(xml)) {
+    return xml.replace('</Testables>', `${testable}\n      </Testables>`);
+  }
+  // ⚠️ Self-closing `<Testables/>` is what an empty Test action actually contains, and the branch below
+  // would not match it — the `<TestAction …>` fallback would then add a SECOND Testables block.
+  if (/<Testables\s*\/>/.test(xml)) {
+    return xml.replace(/<Testables\s*\/>/, `<Testables>\n${testable}\n      </Testables>`);
+  }
+  return xml.replace(/(<TestAction[^>]*>)/, `$1\n      <Testables>\n${testable}\n      </Testables>`);
+}
+
 const withXcuitestTarget = (config) => {
   // 1) Place the Swift sources under ios/<TARGET_NAME>/ at prebuild time.
   config = withDangerousMod(config, [
@@ -134,60 +182,51 @@ const withXcuitestTarget = (config) => {
     },
   ]);
 
-  // 2) Create the target, patch it into a UI-test bundle, and wire it to the app.
+  // 2) Create the target, patch it into a UI-test bundle, wire it to the app — and, with its uuid in
+  //    hand, add the scheme's Test action. Without that action `xcodebuild test` has nothing to run.
   config = withXcodeProject(config, (cfg) => {
-    applyXcuitestTarget(cfg.modResults, {
-      appTargetName: cfg.modRequest.projectName,
+    const appName = cfg.modRequest.projectName;
+    const uuid = applyXcuitestTarget(cfg.modResults, {
+      appTargetName: appName,
       bundleId: cfg.ios?.bundleIdentifier ?? 'com.jasonsnyder.debtplanner',
     });
+    // On the idempotent path `applyXcuitestTarget` returns null, but the scheme may still need
+    // patching — a prebuild regenerates the scheme from the template while the pbxproj persists.
+    const blueprintId = uuid ?? findTarget(cfg.modResults, TARGET_NAME);
+
+    const schemePath = path.join(
+      cfg.modRequest.platformProjectRoot,
+      `${appName}.xcodeproj`,
+      'xcshareddata',
+      'xcschemes',
+      `${appName}.xcscheme`,
+    );
+    // ⚠️ LOUD, NOT SILENT, AND STILL NOT FATAL. A missing scheme means the target ships unrunnable, and
+    // this plugin's whole failure mode is being discovered ~20 minutes downstream as something else. But
+    // throwing here would take the Maestro suite down with it for a premise about prebuild's ordering
+    // that has never been checked on a runner — so it warns, and the workflow asserts the scheme
+    // separately, where the blast radius is the probe alone.
+    if (!fs.existsSync(schemePath)) {
+      console.warn(`⚠️  ${TARGET_NAME}: no scheme at ${schemePath} — \`xcodebuild test\` will find nothing to run.`);
+      return cfg;
+    }
+    fs.writeFileSync(
+      schemePath,
+      applyTestableToScheme(fs.readFileSync(schemePath, 'utf8'), {
+        targetName: TARGET_NAME,
+        appName,
+        blueprintId,
+      }),
+      'utf8',
+    );
     return cfg;
   });
-
-  // 3) The scheme. Not modelled by the `xcode` lib, so it is written directly — without a Test action
-  //    referencing this target, `xcodebuild test` has nothing to run.
-  config = withDangerousMod(config, [
-    'ios',
-    (cfg) => {
-      const appName = cfg.modRequest.projectName;
-      const schemeDir = path.join(
-        cfg.modRequest.platformProjectRoot,
-        `${appName}.xcodeproj`,
-        'xcshareddata',
-        'xcschemes',
-      );
-      const schemePath = path.join(schemeDir, `${appName}.xcscheme`);
-      if (!fs.existsSync(schemePath)) return cfg; // prebuild has not written it yet — nothing to patch
-
-      let xml = fs.readFileSync(schemePath, 'utf8');
-      if (xml.includes(TARGET_NAME)) return cfg; // idempotent
-
-      const testable = [
-        '      <TestableReference',
-        '         skipped = "NO">',
-        '         <BuildableReference',
-        '            BuildableIdentifier = "primary"',
-        `            BlueprintName = "${TARGET_NAME}"`,
-        `            BuildableName = "${TARGET_NAME}.xctest"`,
-        `            ReferencedContainer = "container:${appName}.xcodeproj">`,
-        '         </BuildableReference>',
-        '      </TestableReference>',
-      ].join('\n');
-
-      // Insert into the existing <Testables> block, or create one inside <TestAction>.
-      if (/<Testables>[\s\S]*?<\/Testables>/.test(xml)) {
-        xml = xml.replace('</Testables>', `${testable}\n      </Testables>`);
-      } else {
-        xml = xml.replace(/(<TestAction[^>]*>)/, `$1\n      <Testables>\n${testable}\n      </Testables>`);
-      }
-      fs.writeFileSync(schemePath, xml, 'utf8');
-      return cfg;
-    },
-  ]);
 
   return config;
 };
 
 module.exports = withXcuitestTarget;
 module.exports.applyXcuitestTarget = applyXcuitestTarget;
+module.exports.applyTestableToScheme = applyTestableToScheme;
 module.exports.TARGET_NAME = TARGET_NAME;
 module.exports.SWIFT_FILES = SWIFT_FILES;

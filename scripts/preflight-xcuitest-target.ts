@@ -25,7 +25,7 @@ const require = createRequire(import.meta.url);
 const REPO_ROOT = join(import.meta.dirname, '..');
 const xcode = require(join(REPO_ROOT, 'apps/rn/node_modules/xcode')) as any;
 const plugin = require(join(REPO_ROOT, 'apps/rn/plugins/with-xcuitest-target.js'));
-const { applyXcuitestTarget, TARGET_NAME, SWIFT_FILES } = plugin;
+const { applyXcuitestTarget, applyTestableToScheme, TARGET_NAME, SWIFT_FILES } = plugin;
 
 const FIXTURE = join(REPO_ROOT, 'ios/App/App.xcodeproj/project.pbxproj');
 const WORK_DIR = join(REPO_ROOT, 'node_modules', '.cache', 'xcuitest-preflight');
@@ -116,6 +116,51 @@ check('the written project round-trips through the parser', roundTripped,
 // ── idempotency ───────────────────────────────────────────────────────────────────────────────────
 const again = applyXcuitestTarget(project, { appTargetName, bundleId: 'com.jasonsnyder.debtplanner' });
 check('re-running is a no-op', again === null, 'prebuild runs the plugin every time');
+
+// ── the SCHEME half ───────────────────────────────────────────────────────────────────────────────
+//
+// ⚠️ Until 2026-08-14 this file asserted nothing about the scheme, and the scheme is the half that
+// decides whether `xcodebuild test` finds anything to run at all. The pbxproj can be perfect and the
+// run still does nothing.
+//
+// ⛔ WHAT THIS CANNOT DO, STATED PLAINLY: there is no real Expo-generated `.xcscheme` in this repo
+// (`find . -name '*.xcscheme'` → nothing; `ios/` is not committed and prebuild writes the scheme from a
+// template on the runner). So these inputs are the three SHAPES the function branches on, not a sample
+// of Expo's actual output. They prove the function handles each shape correctly; they do NOT prove
+// Expo emits one of them. That last step is a one-second grep on the runner, and it belongs there —
+// a fixture invented here to match an assumption could only ever agree with the assumption.
+const BLUEPRINT = 'ABCD1234ABCD1234ABCD1234';
+const schemeShapes: Array<[string, string]> = [
+  ['a populated <Testables> block', '<TestAction a="1">\n      <Testables>\n         <TestableReference/>\n      </Testables>\n   </TestAction>'],
+  ['a self-closing <Testables/>', '<TestAction a="1">\n      <Testables/>\n   </TestAction>'],
+  ['a TestAction with no Testables at all', '<TestAction a="1">\n   </TestAction>'],
+];
+
+for (const [label, xml] of schemeShapes) {
+  const out = applyTestableToScheme(xml, {
+    targetName: TARGET_NAME,
+    appName: appTargetName,
+    blueprintId: BLUEPRINT,
+  });
+  check(`scheme · ${label}: the testable is inserted`, out.includes(`BlueprintName = "${TARGET_NAME}"`),
+    'without a TestableReference, `xcodebuild test` runs nothing and reports success');
+  // ⚠️ `/<Testables/`, NOT `/<Testables[\s>]/`. The narrower pattern cannot match `<Testables/>` — the
+  // self-closing form — so it was blind to the exact defect this check exists for: with the
+  // self-closing branch disabled, the function emits a new block AND leaves `<Testables/>` behind, and
+  // the check reported one block and passed. Caught by planting that defect 2026-08-14. `</Testables>`
+  // does not match either form, so opening tags are still counted once each.
+  check(`scheme · ${label}: exactly one <Testables> block`,
+    (out.match(/<Testables/g) ?? []).length === 1,
+    `got ${(out.match(/<Testables/g) ?? []).length} — a second block is silently ignored by Xcode`);
+  check(`scheme · ${label}: BlueprintIdentifier is carried`, out.includes(`BlueprintIdentifier = "${BLUEPRINT}"`),
+    'Xcode writes one on every BuildableReference it generates');
+  check(`scheme · ${label}: the testable is inside the Test action`,
+    /<TestAction[\s\S]*TestableReference[\s\S]*<\/TestAction>/.test(out),
+    'inserted outside <TestAction> it is inert');
+  check(`scheme · ${label}: re-running is a no-op`,
+    applyTestableToScheme(out, { targetName: TARGET_NAME, appName: appTargetName, blueprintId: BLUEPRINT }) === out,
+    'prebuild runs the plugin every time');
+}
 
 for (const line of ok) console.log(`  ✅ ${line}`);
 if (problems.length) {
