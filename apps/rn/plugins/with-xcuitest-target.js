@@ -93,10 +93,18 @@ function applyXcuitestTarget(project, { appTargetName, bundleId }) {
   project.addBuildPhase([], 'PBXFrameworksBuildPhase', 'Frameworks', target.uuid);
   project.addBuildPhase([], 'PBXResourcesBuildPhase', 'Resources', target.uuid);
 
+  // ⛔ edge ③: THE GROUP ALREADY CARRIES THE DIRECTORY, so the file must NOT repeat it.
+  // `pbxCreateGroup(name, path)` sets BOTH — this group is named `CoverageProbeUITests` and has
+  // `path = CoverageProbeUITests`. Xcode resolves a file reference as group.path + fileRef.path, so
+  // passing `${TARGET_NAME}/${file}` here produced
+  // `ios/CoverageProbeUITests/CoverageProbeUITests/CoverageProbeUITests.swift` and run 31822453981 died
+  // on `Build input file cannot be found`. ⚠️ The pre-flight passed 31 checks on that same project:
+  // it asserted the file was in the Sources phase and never asserted where the phase pointed. It now
+  // asserts the RESOLVED path, and that check fails against the old line.
   const groupKey = project.pbxCreateGroup(TARGET_NAME, TARGET_NAME);
   project.addToPbxGroup(groupKey, project.getFirstProject().firstProject.mainGroup);
   for (const file of SWIFT_FILES) {
-    project.addSourceFile(`${TARGET_NAME}/${file}`, { target: target.uuid }, groupKey);
+    project.addSourceFile(file, { target: target.uuid }, groupKey);
   }
 
   // Build settings on BOTH configurations — a UI-test bundle with no TEST_TARGET_NAME does not run.

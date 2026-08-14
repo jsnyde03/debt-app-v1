@@ -8907,3 +8907,59 @@ mis-count. The writer must insert **before** the line terminator, and this is th
 flow claiming this row passed" from "that run happened". It was accurate this time only because whoever
 placed the 24 excluded the red flows by hand. The writer must derive stamps from per-flow results, or it
 will reproduce by machine the error a human happened not to make.
+
+---
+
+## 2026-08-14 (late) — run `31822453981`: the scheme works, the target does not compile
+
+### ⭐ The scheme mod is PROVEN, and it was the half nothing could check locally
+
+```
+✅ the testable IS in the scheme
+   <TestableReference skipped="NO">
+     <BuildableReference BlueprintIdentifier="E9E79FA2DF894A359E111A7B"
+                         BuildableName="CoverageProbeUITests.xctest" …>
+```
+
+Relocating the write out of the dangerous mod and into the `xcodeproj` mod was correct: the uuid was in
+hand and `BlueprintIdentifier` landed. ⚡ **Expo's generated scheme already carries a
+`DebtPlannerRNTests` testable**, so the insert took the "existing `<Testables>` block" branch — the
+shape the pre-flight covers, now confirmed against the real prebuild output rather than an assumed one.
+The workflow's one-second grep was worth writing: it converted the last untestable premise into a
+printed fact in the same run that everything else failed.
+
+### ⛔ The target does not compile — a doubled path, and the pre-flight was blind to exactly it
+
+```
+error: Build input file cannot be found:
+  '…/ios/CoverageProbeUITests/CoverageProbeUITests/CoverageProbeUITests.swift'
+** TEST BUILD FAILED **  (exit 65)
+```
+
+`pbxCreateGroup(TARGET_NAME, TARGET_NAME)` sets the group's **name AND path**, and Xcode resolves a file
+reference as `group.path + fileRef.path`. The file was then added as `${TARGET_NAME}/${file}`, so the
+directory appeared twice. One-line fix: the group carries the directory, the file is the bare name.
+
+⚡ **31 checks passed against that exact project.** They asserted the Swift was *in the Sources phase*
+and never asserted *what path the phase pointed at* — two different structures, and the file's own
+header already warns that a structural gate only proves the structures it names. The new check computes
+the resolved path and compares it to where the dangerous mod actually writes the file. ⭐ **It fails on
+the old line and passes on the new**, reproducing the runner's error string locally: pre-flight **33**.
+
+### ⛔ My watcher reported that failed step as SUCCESS, and the reason generalises
+
+`continue-on-error: true` makes the REST API report the step's **conclusion** as `success`; only the
+workflow-expression **`outcome`** keeps the real result. The monitor polls the API, so it announced
+"SUCCESS Build the XCUITest bundle" on a step that exited 65 — and I reported "Xcode accepts the target"
+on that basis. ⚠️ **The two steps most likely to fail in this lane are both `continue-on-error`**, which
+is precisely where the API's masking bites. The gating itself was right: `.7.4c` reads `outcome`, so the
+probe correctly skipped rather than running against a bundle that had not been built.
+
+⭐ **The lesson is the monitor's own rule arriving in practice** — *silence is not success*, and here it
+was worse: a positive report on a failure. A watcher over a `continue-on-error` step must read the LOG,
+not the step status.
+
+### What this run still buys
+
+The probe cannot execute this cycle, but flows 09 + 10's inverted fence assertions and the iPad tier
+(`i03` + the dark `i02`) are both live in it and have never run. Left to finish rather than cancelled.

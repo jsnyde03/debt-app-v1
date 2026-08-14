@@ -71,6 +71,45 @@ for (const f of SWIFT_FILES) {
     'the Swift would not compile into the bundle');
 }
 
+// ── ⛔ WHERE THE FILE RESOLVES TO, WHICH IS NOT THE SAME QUESTION ──────────────────────────────────
+//
+// Run 31822453981 failed `** TEST BUILD FAILED **` on:
+//   Build input file cannot be found: 'ios/CoverageProbeUITests/CoverageProbeUITests/CoverageProbeUITests.swift'
+//
+// ⚡ **31 checks passed on that exact project.** Membership in the Sources phase was asserted; the PATH
+// the file resolves to never was — and a `PBXFileReference` under a group with its own `path` is
+// resolved by Xcode as group.path + fileRef.path. The group was created as
+// `pbxCreateGroup(TARGET_NAME, TARGET_NAME)` (name AND path), and the file was then added with the
+// target name prefixed a second time, so the two concatenated into a directory that does not exist.
+//
+// ⚠️ This is the pre-flight's own stated limit arriving in practice — "it proves a declared id exists,
+// it cannot prove the flow really tests it". A structural gate is only as good as the structures it
+// names, and "is it in the phase" and "does it point at a real file" are two different structures.
+// The dangerous mod writes to `ios/<TARGET_NAME>/<file>`, so THAT is the string this must produce.
+const groups = project.hash.project.objects.PBXGroup ?? {};
+const fileRefs = project.hash.project.objects.PBXFileReference ?? {};
+for (const f of SWIFT_FILES) {
+  const refEntry = Object.entries(fileRefs).find(
+    ([k, v]: [string, any]) => !k.endsWith('_comment') && typeof v === 'object' && String(v.path).includes(f),
+  );
+  check(`${f} has a file reference`, !!refEntry, 'addSourceFile did not create one');
+  if (!refEntry) continue;
+  const [refKey, ref] = refEntry as [string, any];
+  const owning = Object.entries(groups).find(
+    ([k, g]: [string, any]) => !k.endsWith('_comment') && typeof g === 'object'
+      && (g.children ?? []).some((c: any) => c.value === refKey),
+  );
+  const groupPath = owning ? String((owning[1] as any).path ?? '').replace(/"/g, '') : '';
+  const refPath = String(ref.path ?? '').replace(/"/g, '');
+  const resolved = [groupPath, refPath].filter(Boolean).join('/');
+  check(
+    `${f} resolves to ios/${TARGET_NAME}/${f}, not a doubled path`,
+    resolved === `${TARGET_NAME}/${f}`,
+    `resolves to "${resolved}" — Xcode joins the group's path ("${groupPath}") with the file ref's ("${refPath}"). ` +
+      'This is the exact shape that failed run 31822453981 with "Build input file cannot be found".',
+  );
+}
+
 // ── build settings, on BOTH configurations ────────────────────────────────────────────────────────
 const configs = project.pbxXCBuildConfigurationSection();
 const list = project.pbxXCConfigurationList()[t.buildConfigurationList];
