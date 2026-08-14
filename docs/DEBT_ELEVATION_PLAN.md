@@ -10,7 +10,7 @@
 
 ## ▶ BUILDING NOW — 4.1 · the Maestro coverage lane *(resumes; 3.7 is closed)*
 
-⏳ **SESSION CLOSE 2026-08-14 — run `31816228911` is IN FLIGHT** (iPhone-only, flows 09 + 10 selector fixes). **Read it first.** ▶ **Next three, in order: 4.1.9b** (one workflow pass — composite action · tier split · **the missing `xcodebuild test` step** · results file) → **4.1.9c** (covered must mean proven) → **4.1.10** (the deep-link door, 15 rows, the largest unclaimed block). ⚠️ Full handoff, including three premises NOT to build on, → the log's **SESSION CLOSE 2026-08-14** entry.
+⏳ **SESSION CLOSE 2026-08-14 — run `31816919840` is IN FLIGHT** (iPhone-only; flows 09 + 10 selector fixes **and** the hermesc fix). **Read it first.** ⚠️ It REBUILDS — the fix edits `native-e2e.yml`, which is in the `.app` cache key, so **the run AFTER it is the first that can exercise the fast path.** ▶ **Next three, in order: 4.1.9b** (one workflow pass — composite action · tier split · **the missing `xcodebuild test` step** · results file) → **4.1.9c** (covered must mean proven) → **4.1.10** (the deep-link door, 15 rows, the largest unclaimed block). ⚠️ Full handoff, including three premises NOT to build on, → the log's **SESSION CLOSE 2026-08-14** entry.
 
 
 ✅ **3.7 CLOSED 2026-08-11.** Wave A (A0–A10) · Wave B (B.0–B.4) · Wave C merged into the audit gate.
