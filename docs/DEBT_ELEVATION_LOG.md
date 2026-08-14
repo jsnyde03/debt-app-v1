@@ -8678,6 +8678,69 @@ supports `setOrientation`, which cost three CI cycles to establish locally.
 natural moment is the pre-submit pass where "does this work on an SE" is a ship question rather than a
 coverage metric.
 
+## 🔚 SESSION CLOSE 2026-08-14 — read this first next session
+
+**17 commits, all pushed to `v1.7-dev`, tree clean.** ⏳ **Run `31816228911` was in flight at close**
+(iPhone-only, carrying flows 09 and 10's selector fixes). **Read its result before anything else** — if
+green it proves 8 more rows (§12.0.1/.2/.4/.5/.6 · §11.9 · §11.11 · §11.13).
+
+### What exists now that did not this morning
+
+⭐ **The device checklist is an instrument.** 140 rows, every one with a stable id and an automation
+verdict; 13 flows declare `COVERS:`/`PARTIAL:`; `npm run audit:coverage` → `docs/audits/coverage-split.md`;
+`lint:coverage` gates it in `lint:rn`, proven 4/4 on planted defects. **24 rows carry `✅auto·<runId>`
+proof stamps**, and the 8 hand-recorded human `[x]` are untouched by design.
+
+⭐ **`lint:a11y-collapse` (T5)**, which found a shipped defect on its first run and is now in `lint:rn`.
+
+⭐ **An XCUITest target** (`with-xcuitest-target.js` + `CoverageProbeUITests.swift`), CNG-safe, with a
+16-check local pre-flight (`npm run preflight:xcuitest`). ⛔ **It BUILDS but has never RUN — there is no
+`xcodebuild test` step in the workflow.** That is the single biggest outstanding gap.
+
+### ▶ THE NEXT THREE THINGS, in order
+
+1. **4.1.9b — one workflow pass.** Composite action (the `.app` key hashes the whole of
+   `native-e2e.yml`, so editing the FLOW LIST rebuilds the binary — both of today's dispatches paid
+   ~771s for pure YAML edits) · tier split (`build → [iphone ‖ ipad]`, sum → max, ~11 min; repo is
+   PUBLIC so macOS runners are free) · **the missing `xcodebuild test` step** · a durable results file.
+   ⚠️ **I could not find how the workflow selects and boots its simulator** — that is the first thing to
+   read, because a wrong `-destination` makes the probe step silently useless.
+2. **4.1.9c — "covered" must mean PROVEN.** `coverage-split.md` still counts declarations: it says 33
+   while 24 are proven. Make it read the stamps so report and checklist stop being two records of one fact.
+3. **The deep-link door (4.1.10) — 15 rows, the largest unclaimed block**, parked on one unproven
+   `openLink` probe. Worth a real attempt rather than staying "blocked".
+
+### ⚠️ Three things NOT to build on without checking first
+
+⛔ **"The tier split fixes the iPad flakiness" is DOUBTFUL.** `native-e2e.yml:588` records that run
+`31646289268`'s stall hit the **iPhone** tier *"while the iPad tier, starting its driver minutes later on
+the same runner, came up fine"* — the opposite of "second tier suffers". ⚡ New data today: the stall
+warning appeared AND the iPad tier still finished 3/3, so **the retry recovered it**, where 2026-08-14
+records "the retry failed too". Intermittent and sometimes self-healing. **Read the
+`xctest_runner_*.log` in the iPad artifacts before theorising again.** Do the split for the ~11 minutes,
+not for flakiness.
+
+⚠️ **Two selectors are unestablished and deliberately un-guessed** — which marker component renders at
+walkthrough beat 5 (`example-canvas-marker` vs `guardian-example-marker`; the TEXT assertion passes
+either way), and the demo persona's **Money-tab** debt names (`.*Visa.*` came from the TODAY tab and does
+not match). §12.0.7 is unclaimed until a frame settles it; flow 09 now captures one.
+
+⚠️ **§12.6.1's arrival announcement may not exist anywhere** — `ExampleCanvasMarker` has no
+`accessibilityLabel`, and the dock's *"Example money."* prefix was removed today as a §12.5.3 duplication.
+→ the wording gate.
+
+### ⚡ The day's shape, worth naming once
+
+**Measurement beat reasoning every single time it was tried, including against me.** Killed today:
+`@bacons/apple-targets` as the cheap path · the `xcode` lib's `ui_test_bundle` · §11.16's "wrong subject"
+(refuted by a frame already on disk) · [D33]'s crop-nudge (`TutorialOverlay` never scrolls) · the plan's
+"529s cost centre" (**it is 148s** — the laps had been sitting unread) · and my own verifier, which shared
+a bug with the code it verified.
+
+⚡ **And the honest number went DOWN five times** — the device pass 55 → 56 → 57 → 60, and covered 34 → 33
+as a claim was withdrawn. Every move was the instrument converging on the truth. **A report that only ever
+improves is not measuring anything.**
+
 ### 4.1.5's decomposed section retired to here
 
 Per the one-decomposed-section rule, 4.1.5's sub-table collapsed to a single plan row on 4.1.6a's

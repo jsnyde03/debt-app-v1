@@ -10,6 +10,9 @@
 
 ## ▶ BUILDING NOW — 4.1 · the Maestro coverage lane *(resumes; 3.7 is closed)*
 
+⏳ **SESSION CLOSE 2026-08-14 — run `31816228911` is IN FLIGHT** (iPhone-only, flows 09 + 10 selector fixes). **Read it first.** ▶ **Next three, in order: 4.1.9b** (one workflow pass — composite action · tier split · **the missing `xcodebuild test` step** · results file) → **4.1.9c** (covered must mean proven) → **4.1.10** (the deep-link door, 15 rows, the largest unclaimed block). ⚠️ Full handoff, including three premises NOT to build on, → the log's **SESSION CLOSE 2026-08-14** entry.
+
+
 ✅ **3.7 CLOSED 2026-08-11.** Wave A (A0–A10) · Wave B (B.0–B.4) · Wave C merged into the audit gate.
 Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-level after-scan → log.
 
