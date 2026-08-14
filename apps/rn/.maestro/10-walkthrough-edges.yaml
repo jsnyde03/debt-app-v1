@@ -1,0 +1,196 @@
+# Maestro E2E — §11's remainder: the long-name shortfall and the slider that must not move. 4.1.8.
+#
+# ⛔ RUNS BEFORE 09, AND THE ORDER IS LOAD-BEARING. This flow re-seeds nothing — it needs 07's portfolio
+# (a Visa debt to rename) and a committed plan to reach the walkthrough. **09 is TERMINAL**: it clears
+# state and exits to onboarding, so anything needing a plan must precede it. The file NUMBER says 10 and
+# the RUN ORDER puts it ninth; `native-e2e.yml` specifies the sequence explicitly because Maestro does
+# not sort a directory argument (measured 2026-08-12), so the number is a name, not a position.
+#
+# ⚠️ THIS FILE USES ONE UNPROVEN COMMAND — `eraseText`, which this repo has never exercised against this
+# Maestro build (grepped, zero hits outside this file). Maestro validates an ENTIRE FILE before executing
+# any of it, so if `eraseText` is unsupported, every check below dies with it. That is why it lives here
+# in a NEW file rather than being added to 05 or 06: risk ordering works at FILE granularity, and a parse
+# failure costs this flow alone. ⛔ If it fails to parse, do NOT weaken the rename into something that
+# passes — §11.9 needs a 60+ character name to exist, and appending to "Visa" is not that. Ledger the
+# check as device-owed instead, exactly as `06-tutorial-interactions.yaml`'s standing rule says.
+#
+# ⛔ §11.13 IS NOT ASSERTED HERE, DELIBERATELY. "Beat 1's cushion bar must be PAINTED when the step
+# arrives" is a RENDER question — painted vs blank — and the only Maestro answer is `assertScreenshot`,
+# which is unproven on this build (probe p04) and would need a committed baseline that a legitimate
+# design change invalidates. Cold-launch frames are captured below for a human instead, and §11.13's
+# verdict is corrected to [M◐] to say so. Asserting "the step is visible" and filing it as §11.13 would
+# be a check invented to be passable — the exact thing this lane's standing rule forbids.
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+# DEVICE-CHECKLIST COVERAGE (4.1.6a) — parsed by `npm run audit:coverage`. Each line is a CLAIM about
+# what this flow proves, written against its assertions. ⚠️ The gate checks these STRUCTURALLY (the id
+# exists, its verdict allows automation); it cannot check that the assertion below really tests it.
+# PARTIAL: §11.11 — a vertical swipe starting ON the slider strip leaves the sheet open and the floor
+#          control still reporting a value; Maestro cannot compare the value ACROSS two moments, so
+#          "the number did not jump" is read by a human from the two frames
+# PARTIAL: §11.9 — a 60+ character debt name reaches beat 5 with the "Example" marker still on screen;
+#          whether the name COLLIDES with a number is a layout judgement a human reads from the frame
+# PARTIAL: §11.13 — cold-launch frames of beat 1 are captured; whether the cushion bar is PAINTED is a
+#          render judgement, and assertScreenshot is unproven on this build
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible:
+      id: "tab-money"
+    timeout: 30000
+
+# ══ §11.9 · SETUP — a 60+ character debt name ════════════════════════════════════════════════════
+# The checklist's own example string, verbatim, so the check tests the length it specifies rather than a
+# shorter one that happens to fit.
+- tapOn:
+    id: "tab-money"
+- tapOn: ".*Visa.*"
+- assertVisible:
+    id: "field-debt-name"
+- tapOn:
+    id: "field-debt-name"
+- eraseText
+- inputText: "Chase Sapphire Preferred Visa Signature Card ending 4429 (joint)"
+# ⛔ VERIFY THE WRITE BEFORE MOVING ON — `inputText` reports COMPLETED whether or not it lands, and flow
+# 07 once walked four commands past a tap that missed and concatenated three values into one field.
+# Asserting here means a failed rename fails HERE, not twenty steps later at beat 5 where it would read
+# as a missing "Example" marker — the highest-severity result in the whole checklist, reported for
+# entirely the wrong reason.
+- assertVisible:
+    id: "field-debt-name"
+    text: ".*Chase Sapphire Preferred.*"
+- tapOn: "Save"
+
+# ══ §11.9 · the marker must survive to beat 5 ════════════════════════════════════════════════════
+# ⚠️ THE CHECKLIST CALLS A MISSING MARKER HERE "the highest-severity result in this entire checklist":
+# step 5 shows a made-up shortfall using the user's REAL debt names, and the marker is the only thing
+# stopping it reading as a genuine warning about their money. That is why this flow exists at all.
+- tapOn:
+    id: "tab-today"
+- scrollUntilVisible:
+    element:
+      text: "How this works"
+    direction: DOWN
+- tapOn: "How this works"
+- assertVisible:
+    text: ".*Step 1 of 7.*"
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 2 of 7.*"
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 3 of 7.*"
+
+# ══ §11.11 · the slider must not move on a vertical swipe ════════════════════════════════════════
+# The counterpart to §11.10 (flow 06 proves the drag WORKS; this proves it does not fire unasked). The
+# pan sets its value on touch-DOWN with no horizontal threshold, inside a vertical scroll view, so the
+# two gestures race — unobservable off-device, since the browser suite never drags.
+- tapOn: ".*Adjust your line.*"
+- assertVisible:
+    id: "floor-sheet-coach"
+- assertVisible:
+    id: "floor-sheet-value"
+- takeScreenshot: maestro-debug/s11-11a-floor-before-scroll
+
+# ⛔ THE SWIPE MUST START ON THE STRIP ITSELF — that is the entire check. A swipe anywhere else tests
+# nothing, because the race only exists where the pan responder lives.
+- swipe:
+    from:
+      id: "cushion-floor-slider"
+    direction: UP
+- takeScreenshot: maestro-debug/s11-11b-floor-after-scroll
+
+# ⚠️ THE ASSERTION IS DELIBERATELY WEAKER THAN "the value is unchanged", and this comment exists so the
+# gap is not mistaken for coverage. Maestro cannot read an element's text into a variable and compare it
+# across two moments — `evalScript` is unproven here and sees only `output`/`copiedText`, never the
+# hierarchy. What IS assertable: the sheet is still open and the floor control still reports a value, so
+# a swipe that dismissed the sheet or blanked the control fails loudly. A value that JUMPED but is still
+# present would pass — which is why §11.11 keeps a device-owed half and the two frames above are
+# captured for a human to compare.
+- assertVisible:
+    id: "floor-sheet-value"
+- assertVisible:
+    id: "cushion-floor-slider"
+- tapOn: "Save"
+
+# ══ §11.9 · beat 5, with the long name in play ═══════════════════════════════════════════════════
+- assertVisible:
+    text: ".*Step 3 of 7.*"
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 4 of 7.*"
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 5 of 7.*"
+
+# The marker, asserted two ways because the checklist accepts either: the panel's "Step 5 of 7 · Example
+# money" line, or the marker on the card. Asserting the panel text alone would pass on a build where the
+# card's own marker vanished.
+- assertVisible:
+    text: ".*Example money.*"
+- assertVisible:
+    id: "guardian-example-marker"
+
+# The long name itself reached the card. Contains-regex: the row renders it inside a longer utterance.
+- assertVisible:
+    text: ".*Chase Sapphire Preferred.*"
+- takeScreenshot: maestro-debug/s11-9-beat5-long-name
+
+- tapOn: "Skip"
+- assertNotVisible:
+    id: "tutorial-overlay"
+
+# ══ §11.13 · cold-launch frames for a human ══════════════════════════════════════════════════════
+# Two cold launches, because 3.5.8 found unpainted Skia ON THE SIMULATOR — the condition demonstrably
+# reproduces here, it is just not machine-readable. Written as explicit launches rather than `repeat`,
+# which is unproven on this build.
+- killApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-today"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: "How this works"
+    direction: DOWN
+- tapOn: "How this works"
+- assertVisible:
+    text: ".*Step 1 of 7.*"
+- takeScreenshot: maestro-debug/s11-13a-beat1-cold-launch-1
+- tapOn: "Skip"
+
+- killApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-today"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: "How this works"
+    direction: DOWN
+- tapOn: "How this works"
+- assertVisible:
+    text: ".*Step 1 of 7.*"
+- takeScreenshot: maestro-debug/s11-13b-beat1-cold-launch-2
+- tapOn: "Skip"
+
+# ══ §11.9 · CLEANUP — the checklist says rename it back, and a flow that leaks a 60-char name into
+#    whatever runs next is the same class as a flow that leaks device orientation. ═════════════════
+- tapOn:
+    id: "tab-money"
+- tapOn: ".*Chase Sapphire Preferred.*"
+- tapOn:
+    id: "field-debt-name"
+- eraseText
+- inputText: "Visa"
+# Same write-verification as the setup rename, and for the same reason: a cleanup that silently fails
+# leaves a 64-character name in the seed for whatever runs next, and the failure surfaces somewhere else.
+- assertVisible:
+    id: "field-debt-name"
+    text: "^Visa$"
+- tapOn: "Save"
+- assertVisible: ".*Visa.*"

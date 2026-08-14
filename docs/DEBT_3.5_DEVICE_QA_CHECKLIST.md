@@ -297,7 +297,7 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   **FAIL:** the rectangle sits over an unrelated part of the screen for a noticeable moment; or the tap in
   (a) opens a panel, ticks something, or changes any number. Note exactly what it hit.
 
-- [ ] `[M]` **§11.9 — long debt names inside the scripted shortfall** _(any iPhone, AX3, both themes.)_
+- [ ] `[M◐]` **§11.9 — long debt names inside the scripted shortfall** _(any iPhone, AX3, both themes.)_
   **Setup:** Money tab → rename one debt to 60+ characters, e.g.
   `Chase Sapphire Preferred Visa Signature Card ending 4429 (joint)`. Save.
   Go to **Step 5 of 7** ("When it won't stretch") and read the whole card.
@@ -317,7 +317,7 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   **FAIL:** the slider doesn't respond to a drag (it is a gesture-handler control, which the browser suite
   cannot exercise at all), or nothing animates after Save.
 
-- [ ] `[M]` **§11.11 — scrolling near the slider must not MOVE it** _(any iPhone. The counterpart to §11.10:
+- [ ] `[M◐]` **§11.11 — scrolling near the slider must not MOVE it** _(any iPhone. The counterpart to §11.10:
   that one proves the drag works, this one proves it doesn't fire when you didn't mean it.)_
   On **Step 3 of 7**, open **"Adjust your line →"**. Put your finger down **on the slider strip itself**
   and immediately **swipe UP or DOWN** as if scrolling the sheet.
@@ -336,7 +336,7 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   each frame costs a re-layout. Fine in principle; the question is whether it drops frames in practice,
   and a screenshot cannot show a frame rate.)_
 
-- [ ] `[M]` **§11.13 — beat 1's cushion bar must be PAINTED when the step arrives** _(any iPhone; do it from a
+- [ ] `[M◐]` **§11.13 — beat 1's cushion bar must be PAINTED when the step arrives** _(any iPhone; do it from a
   cold launch, several times.)_
   Force-quit, launch, open the walkthrough, and look at the bar inside the card on **Step 1 of 7**.
   **PASS:** the bar is drawn the moment the step is readable.

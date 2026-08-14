@@ -633,6 +633,7 @@ jobs:
               .maestro/06-tutorial-interactions.yaml \
               .maestro/07-money-add-and-rescue.yaml \
               .maestro/08-coach-marks.yaml \
+              .maestro/10-walkthrough-edges.yaml \
               .maestro/09-demo-explore.yaml \
               --format junit --output maestro-report.xml --debug-output ./maestro-debug 2>&1 | tee "$1"
           }

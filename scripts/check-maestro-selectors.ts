@@ -162,7 +162,12 @@ for (const name of flowFiles) {
         // conveniently, exactly the set of `inputText` values. And text the app BUILDS from a template
         // ("Step 4 of 7" from `Step ${n} of ${total}`) never appears whole; digits are the tell, so
         // those advise rather than fail.
-        const isSeeded = [...seededValues].some((v) => bare.includes(v));
+        // ⚠️ CONTAINMENT RUNS BOTH WAYS, and checking only one direction was a third false-positive
+        // class (2026-08-14, flow 10). A flow may assert a PREFIX of what it typed: §11.9 types a
+        // 64-character debt name and asserts `.*Chase Sapphire Preferred.*`, because the row renders the
+        // name inside a longer composed utterance and Maestro needs a contains-regex. `bare.includes(v)`
+        // is false there — the selector is shorter than the seeded value, not longer.
+        const isSeeded = [...seededValues].some((v) => bare.includes(v) || v.includes(bare));
         const isTemplated = /\d/.test(bare);
         if (!looksRegex && !isSeeded && bare.length > 2 && !normalizedSource.includes(bare)) {
           const p = { flow: name, kind: 'stale-copy', detail: `text ${JSON.stringify(sel.text)} appears nowhere in app source` };

@@ -8,14 +8,14 @@
 
 | | checks | |
 |---|---:|---|
-| **Covered today** | **31** | a flow claims it |
-| **Coverable, not yet built** | **66** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
+| **Covered today** | **34** | a flow claims it |
+| **Coverable, not yet built** | **63** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
 | **Permanently device-owed** | **34** | `[D]` — no lane will ever carry it |
 | | | |
-| **🎯 The device pass** | **57** | `[D]` **+** the human half of every `[M◐]` (23) |
+| **🎯 The device pass** | **60** | `[D]` **+** the human half of every `[M◐]` (26) |
 | Real checks | 131 | 9 further rows are `[—]` — install steps and report-back prompts |
 
-**Verdict spread:** `[M]` 71 · `[M◐]` 23 · `[A]` 3 · `[D]` 34
+**Verdict spread:** `[M]` 68 · `[M◐]` 26 · `[A]` 3 · `[D]` 34
 
 ⚠️ **`[M◐]` rows appear in BOTH the coverage columns and the device pass.** That is not double-counting —
 a partial is automated in one half and manual in the other, and reporting only `[D]` would overstate
@@ -23,7 +23,7 @@ what comes off the device pass.
 
 ---
 
-## ▶ Coverable, not yet built — the remaining work (66)
+## ▶ Coverable, not yet built — the remaining work (63)
 
 | id | verdict | check | claimed by |
 |---|---|---|---|
@@ -70,9 +70,6 @@ what comes off the device pass.
 | §11.3 | `[M◐]` | the coaching text NEVER rewrites itself (same device as §11.2.) | — |
 | §11.4 | `[M◐]` | VoiceOver, end to end (Settings → Accessibility → VoiceOver: ON.) | — |
 | §11.5 | `[M]` | the header must not eat the highlight at AX5 (any iPhone, AX5, both themes.) | — |
-| §11.9 | `[M]` | long debt names inside the scripted shortfall (any iPhone, AX3, both themes.) | — |
-| §11.11 | `[M]` | scrolling near the slider must not MOVE it (any iPhone. The counterpart to §11.10: | — |
-| §11.13 | `[M]` | beat 1's cushion bar must be PAINTED when the step arrives (any iPhone; do it from a | — |
 | §12.0.3 | `[M◐]` | exactly ONE marker on screen. ⏳ Web cannot answer this (its tab navigator leaves the | — |
 | §12.0.8 | `[M◐]` | VoiceOver. Turn it on and enter the demo. | — |
 | §12.1.1 | `[M]` | From a fresh install with no data, "See it in action" lands on Today showing a $2,000 | — |
@@ -96,7 +93,7 @@ what comes off the device pass.
 
 ---
 
-## ✅ Covered today (31)
+## ✅ Covered today (34)
 
 | id | verdict | check | claimed by |
 |---|---|---|---|
@@ -110,7 +107,10 @@ what comes off the device pass.
 | §10.2 | `[M]` | Portrait / narrow: everything stacks into the single centered column with the bottom tab bar (sa | `02-sheet-native-tap` *(partial)* |
 | §11.7 | `[M◐]` | Reduce Motion, and interruption mid-story (any iPhone, dark theme.) | `06-tutorial-interactions` *(partial)* |
 | §11.8 | `[M◐]` | rotation and Split View mid-step (iPad, any.) | `i03-ipad-rotate-midstep` *(partial)* |
+| §11.9 | `[M◐]` | long debt names inside the scripted shortfall (any iPhone, AX3, both themes.) | `10-walkthrough-edges` *(partial)* |
 | §11.10 | `[M]` | the walkthrough's one required gesture (any iPhone.) | `06-tutorial-interactions` |
+| §11.11 | `[M◐]` | scrolling near the slider must not MOVE it (any iPhone. The counterpart to §11.10: | `10-walkthrough-edges` *(partial)* |
+| §11.13 | `[M◐]` | beat 1's cushion bar must be PAINTED when the step arrives (any iPhone; do it from a | `10-walkthrough-edges` *(partial)* |
 | §11.15 | `[M]` | the highlight lands on its subject at iPad width — ✅ AUTOMATED 2026-08-13 (4.1.5.2). | `05-tutorial-walkthrough` |
 | §11.16 | `[M◐]` | Step 5 on iPad LANDSCAPE (iPad, landscape, both themes.) | `i02-ipad-step5-landscape` *(partial)* |
 | §14.1 | `[M]` | one Add, from all three sections. Money → Add from Debts, then from | `07-money-add-and-rescue` |
@@ -175,7 +175,7 @@ what comes off the device pass.
 
 ---
 
-## ◐ Partials — automated in one half, yours in the other (23)
+## ◐ Partials — automated in one half, yours in the other (26)
 
 - **§B3.1** — Fires + feels premium — the full-screen finale appears: two-wave confetti · gold bloom · the Ski
   ⚠️ *no flow claims even the automatable half yet*
@@ -213,6 +213,12 @@ what comes off the device pass.
   06-tutorial-interactions: the INTERRUPTION half — backgrounding mid-story returns to step 3 intact. Reduce Motion is
 - **§11.8** — rotation and Split View mid-step (iPad, any.)
   i03-ipad-rotate-midstep: the ROTATION half of (a): the ring re-finds its subject after a mid-step rotate, and
+- **§11.9** — long debt names inside the scripted shortfall (any iPhone, AX3, both themes.)
+  10-walkthrough-edges: a 60+ character debt name reaches beat 5 with the "Example" marker still on screen;
+- **§11.11** — scrolling near the slider must not MOVE it (any iPhone. The counterpart to §11.10:
+  10-walkthrough-edges: a vertical swipe starting ON the slider strip leaves the sheet open and the floor
+- **§11.13** — beat 1's cushion bar must be PAINTED when the step arrives (any iPhone; do it from a
+  10-walkthrough-edges: cold-launch frames of beat 1 are captured; whether the cushion bar is PAINTED is a
 - **§11.16** — Step 5 on iPad LANDSCAPE (iPad, landscape, both themes.)
   i02-ipad-step5-landscape: the landscape frame is captured and the ring invariant holds on the clamp-free axis; the
 - **§13.4** — the trajectory mark does not bury a different chart (any iPhone, both themes.)
