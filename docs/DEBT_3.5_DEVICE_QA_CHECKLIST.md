@@ -308,7 +308,7 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   visible anywhere on this step.** ⚠️ **Treat a missing marker here as the highest-severity result in this
   entire checklist** — step 5 deliberately shows a made-up shortfall using your REAL debt names, and the
   marker is the only thing stopping it reading as a genuine warning about your money.
-  **Cleanup:** rename the debt back.
+  **Cleanup:** rename the debt back. `✅auto·31832030295`
 
 - [x] `[M]` **§11.10 — the walkthrough's one required gesture** _(any iPhone.)_ `✅auto·31812114150`
   On **Step 3 of 7**, tap **"Adjust your line →"**, then **drag** the slider in the sheet and press Save.
@@ -325,7 +325,7 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   **FAIL:** the number jumps the instant you touch down, or the value changes while you are scrolling.
   _(The pan sets its value on touch-DOWN with no horizontal threshold, inside a vertical scroll view, so
   the two gestures race. There is no competing native scroll on the web, and the browser suite never
-  drags — this is unobservable off-device.)_
+  drags — this is unobservable off-device.)_ `✅auto·31832030295`
 
 - [ ] `[D]` **§11.12 — the highlight must keep up, not just arrive** _(the OLDEST iPhone in the matrix AND a
   ProMotion one; both themes.)_
@@ -347,7 +347,7 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   _⚠️ **This is NOT a web-only curiosity, and do not test it as one.** 3.5.8's capture cycles found
   unpainted Skia **on the native simulator**, at two consecutive samples, and named the cause: a script
   starting on mount while the app paints seconds later — the screen lagging its own arrival. A cold launch
-  is therefore the condition most likely to show it, which is why this item says to force-quit first._
+  is therefore the condition most likely to show it, which is why this item says to force-quit first._ `✅auto·31832030295`
 
 - [ ] `[D]` **§11.14 — the tab bar's press feedback, iOS** _(any iPhone.)_
   Press and hold each tab, watching the icon+label under your finger.

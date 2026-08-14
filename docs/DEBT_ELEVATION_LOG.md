@@ -9390,3 +9390,63 @@ one item over.** That is what .3 now carries, and it is the substantive half of 
 
 ⚠️ The `.web.ts` platform-split is the repo's proven pattern for exactly this shape, so the variant has a
 precedent to follow rather than a new mechanism to invent.
+
+---
+
+## 2026-08-14 — `31832030295`: the suite goes 10/10 and the a11y audit is MAPPED
+
+### ⭐ Flow 10 passes — the cursor diagnosis held
+
+`[Passed] 10-walkthrough-edges (2m 56s)`, and the whole iPhone suite is **10/10** for the first time.
+The `repeat` of tap-then-erase converged exactly as the geometry predicted: each round clears what is
+behind the cursor, the text shortens, and the last round lands past the end and clears the rest.
+
+### ⭐ The audit map — and it answers more than it was asked
+
+```
+PROBE a11y type=contrast    status=completed seconds=0.8 findings=0
+PROBE a11y type=hitRegion   status=completed seconds=0.2 findings=0
+PROBE a11y type=textClipped status=completed seconds=1.6 findings=0
+PROBE a11y type=trait       status=completed seconds=0.3 findings=0
+PROBE springboard.reachable=true springboard.elements=215
+```
+
+⚡ **All four complete in 2.9 seconds combined**, against `.all` timing out at **47.7s**. So the
+bottleneck is **not** the audit mechanism and not the app's tree — it is one of the types deliberately
+left out (`elementDetection`, `dynamicType`, `sufficientElementDescription`, `parentChild`, `action`).
+**The four bullets the premium-a11y sub-audit actually needs are the cheap ones.** Mapping beat guessing:
+a single narrowed guess would have returned one bit, and this returned the shape of the whole space.
+
+⚠️ **`findings=0` on all four deserves one more check before it is called a clean bill.** It is plausible
+— this app has had `a11y-axe`, `lint:a11y-props`, `lint:a11y-collapse` and the 3.5.3.9 audit over it —
+but "0 findings" and "0 content audited" are indistinguishable from here. The probe waits for
+`.runningForeground`, which is not the same as *rendered*. ▶ **Fold into .7.5: assert a known element is
+present before auditing**, so a zero can only mean a zero.
+
+### ⛔ The result forced a correction to 4.1.9c's reader, two hours after writing it
+
+Flow 10's three rows are `[M◐]` claimed `PARTIAL` — and the reader counted a ticked partial exactly like
+a ticked full row. Left alone it would have moved the headline **30 → 33** on this pass while three
+device-owed halves were still outstanding, which is the precise overstatement 4.1.9c exists to kill
+(*"partials count only for their automatable half"*).
+
+⛔ **And the gate was wrong in the same place:** it errored on "a stamp without a tick". For an `[M◐]`
+row that is the CORRECT record — the automatable half is green and the box belongs to whoever runs the
+device pass. Auto-ticking it would claim a human verified something no human has looked at. The rule was
+right for full rows and wrong for partials, and only real partial data exposed it.
+
+| | before | now |
+|---|---:|---:|
+| ✅ Covered — PROVEN (outright) | 30 | **24** (23 auto · 1 human) |
+| ◐ Automatable half proven `[M◐]` | — | **9** |
+| ⚠️ Claimed but UNPROVEN | 3 | **0** |
+
+⚡ **PROVEN went DOWN, and that is the instrument working.** Six rows moved out of a column they never
+belonged in. **Every claim the lane makes is now backed by a run** — the unproven column is empty for the
+first time.
+
+### ⏱ 43m33s
+
+`scope=full device=iphone` with a rebuild. My estimate was ~33; the honest number is ~43. `01-launch-smoke`
+alone took **4m** against 2m11s on the previous run — same flow, same lane, so runner variance is real and
+worth remembering before reading any single duration as a measurement.

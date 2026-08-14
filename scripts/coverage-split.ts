@@ -169,7 +169,13 @@ function gate(checks: Check[], claims: Claim[], problems: string[]): string[] {
     if (!AUTOMATABLE.includes(c.verdict)) {
       out.push(`${CHECKLIST}:${c.line} — ${c.id} carries \`✅auto·${c.stamp}\` but its verdict is [${c.verdict}]. A ${c.verdict === '—' ? 'not-a-check' : 'device-only'} row cannot be machine-proven.`);
     }
-    if (!c.done) {
+    // ⛔ NOT FOR `[M◐]`, AND THAT EXEMPTION IS THE POINT. 🎯's rule — "as items are proven, they should
+    // be checked off" — is right for a row automation can prove OUTRIGHT. A partial has a device-owed
+    // half, so its box belongs to whoever runs the device pass; an auto-tick there would claim a human
+    // verified something no human has looked at. For a partial, a stamp WITHOUT a tick is the correct
+    // and complete record: the automatable half is green, the other half is still owed.
+    // ⚠️ Written the other way two hours earlier, and flow 10's three `[M◐]` rows are what exposed it.
+    if (!c.done && c.verdict !== 'M◐') {
       out.push(`${CHECKLIST}:${c.line} — ${c.id} carries \`✅auto·${c.stamp}\` but its box is unticked. 🎯's rule is that proving an item checks it off; a stamp without a tick is half a record.`);
     }
   }
@@ -185,10 +191,17 @@ function build(checks: Check[], claims: Claim[]): string {
   const claimed = real.filter((c) => AUTOMATABLE.includes(c.verdict) && claimsById.has(c.id));
   // ⭐ 4.1.9c's whole point: a claim is proven only once the row is TICKED. Split by provenance —
   // machine-earned rows are automation's to manage, the bare `[x]` are Jason's and are never touched.
-  const proven = claimed.filter((c) => c.done);
+  // ⛔ A PARTIAL IS NOT A PASS, AND COUNTING IT AS ONE IS THE EXACT OVERSTATEMENT 4.1.9c EXISTS TO KILL.
+  // The rule: "partials count only for their automatable half." An `[M◐]` row keeps a device-owed half
+  // however green the lane goes, so it can never be *fully* proven by automation — it earns a third
+  // column, not a place in the headline. ⚠️ The first version of this reader lumped them, which would
+  // have moved the headline 30 → 33 on flow 10's pass while three human halves were still outstanding.
+  const isPartial = (c: Check) => c.verdict === 'M◐';
+  const proven = claimed.filter((c) => c.done && !isPartial(c));
+  const halfProven = claimed.filter((c) => isPartial(c) && (c.done || c.stamp));
   const autoProven = proven.filter((c) => c.stamp);
   const humanProven = proven.filter((c) => !c.stamp);
-  const claimedUnproven = claimed.filter((c) => !c.done);
+  const claimedUnproven = claimed.filter((c) => !c.done && !c.stamp);
   const notBuilt = real.filter((c) => AUTOMATABLE.includes(c.verdict) && !claimsById.has(c.id));
   const deviceOnly = real.filter((c) => c.verdict === 'D');
   const partials = real.filter((c) => c.verdict === 'M◐');
@@ -221,7 +234,8 @@ function build(checks: Check[], claims: Claim[]): string {
 
 | | checks | |
 |---|---:|---|
-| **✅ Covered — PROVEN** | **${proven.length}** | a flow claims it **and** the row is ticked: ${autoProven.length} machine-earned \`✅auto·<runId>\` · ${humanProven.length} human-earned \`[x]\` |
+| **✅ Covered — PROVEN** | **${proven.length}** | proved OUTRIGHT: ${autoProven.length} machine-earned \`✅auto·<runId>\` · ${humanProven.length} human-earned \`[x]\` |
+| **◐ Automatable half proven** | **${halfProven.length}** | \`[M◐]\` — the lane's half is green; **the device-owed half is still owed** and its box stays for the human |
 | **⚠️ Claimed but UNPROVEN** | **${claimedUnproven.length}** | a flow declares it; no run has ever passed it. **These were counted as covered before 4.1.9c** |
 | **▶ Coverable, not yet built** | **${notBuilt.length}** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
 | **🎯 Permanently device-owed** | **${deviceOnly.length}** | \`[D]\` — no lane will ever carry it |
@@ -301,12 +315,14 @@ if (gateOnly) {
   const real = checks.filter((c) => c.verdict !== '—');
   const claimedIds = new Set(claims.map((c) => c.id));
   const claimed = real.filter((c) => AUTOMATABLE.includes(c.verdict) && claimedIds.has(c.id));
-  const proven = claimed.filter((c) => c.done);
+  const half = claimed.filter((c) => c.verdict === 'M◐' && (c.done || c.stamp));
+  const proven = claimed.filter((c) => c.done && c.verdict !== 'M◐');
   const notBuilt = real.filter((c) => AUTOMATABLE.includes(c.verdict) && !claimedIds.has(c.id)).length;
   const device = real.filter((c) => c.verdict === 'D').length;
   const partial = real.filter((c) => c.verdict === 'M◐').length;
   console.log(`wrote ${OUT}`);
   console.log(`  PROVEN ${proven.length} (${proven.filter((c) => c.stamp).length} auto · ${proven.filter((c) => !c.stamp).length} human)`);
-  console.log(`  claimed but unproven ${claimed.length - proven.length} · coverable-not-built ${notBuilt} · device-only ${device}`);
+  console.log(`  automatable half proven ${half.length} [M◐] · claimed but unproven ${claimed.length - proven.length - half.length}`);
+  console.log(`  coverable-not-built ${notBuilt} · device-only ${device}`);
   console.log(`  the device pass is ${device + partial} rows (${device} [D] + ${partial} [M◐] halves)`);
 }

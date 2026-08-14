@@ -7,12 +7,13 @@
 ## The answer
 
 🎯 **2026-08-14: *"Nothing should be marked covered unless it's proven to be."*** So the headline is
-**30**, not 33. The difference is the row below it, and it is the honest gap.
+**24**, not 33. The difference is the row below it, and it is the honest gap.
 
 | | checks | |
 |---|---:|---|
-| **✅ Covered — PROVEN** | **30** | a flow claims it **and** the row is ticked: 29 machine-earned `✅auto·<runId>` · 1 human-earned `[x]` |
-| **⚠️ Claimed but UNPROVEN** | **3** | a flow declares it; no run has ever passed it. **These were counted as covered before 4.1.9c** |
+| **✅ Covered — PROVEN** | **24** | proved OUTRIGHT: 23 machine-earned `✅auto·<runId>` · 1 human-earned `[x]` |
+| **◐ Automatable half proven** | **9** | `[M◐]` — the lane's half is green; **the device-owed half is still owed** and its box stays for the human |
+| **⚠️ Claimed but UNPROVEN** | **0** | a flow declares it; no run has ever passed it. **These were counted as covered before 4.1.9c** |
 | **▶ Coverable, not yet built** | **64** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
 | **🎯 Permanently device-owed** | **34** | `[D]` — no lane will ever carry it |
 | | | |
@@ -20,11 +21,11 @@
 | Real checks | 131 | 9 further rows are `[—]` — install steps and report-back prompts |
 
 ⛔ **A declaration is an author's claim, not a result.** `COVERS:` says what a flow is *meant* to test;
-it cannot say whether the flow has ever executed, let alone passed. The 3 unproven rows are all
+it cannot say whether the flow has ever executed, let alone passed. The 0 unproven rows are all
 claimed by flows that have never gone green — and each one used to be indistinguishable, in this
 report, from a check that passes on every run.
 
-**Machine-earned rows by run:** `31812114150` 24 · `31822453981` 5
+**Machine-earned rows by run:** `31812114150` 18 · `31822453981` 5
 
 
 **Verdict spread:** `[M]` 68 · `[M◐]` 26 · `[A]` 3 · `[D]` 34
@@ -106,36 +107,27 @@ what comes off the device pass.
 
 ---
 
-## ⚠️ Claimed but UNPROVEN — declared by a flow, never passed (3)
+## ⚠️ Claimed but UNPROVEN — declared by a flow, never passed (0)
 
 **Read this list before quoting a coverage number.** Each row has a flow that says it covers it and no
 run that has ever passed it. Until one does, it is a plan, not coverage.
 
-| id | verdict | check | claimed by | proof |
-|---|---|---|---|---|
-| §11.9 | `[M◐]` | long debt names inside the scripted shortfall (any iPhone, AX3, both themes.) | `10-walkthrough-edges` *(partial)* | ⚠️ **none** |
-| §11.11 | `[M◐]` | scrolling near the slider must not MOVE it (any iPhone. The counterpart to §11.10: | `10-walkthrough-edges` *(partial)* | ⚠️ **none** |
-| §11.13 | `[M◐]` | beat 1's cushion bar must be PAINTED when the step arrives (any iPhone; do it from a | `10-walkthrough-edges` *(partial)* | ⚠️ **none** |
+*(none — every claim is proven)*
 
 ---
 
-## ✅ Covered — PROVEN (30)
+## ✅ Covered — PROVEN (24)
 
 | id | verdict | check | claimed by | proof |
 |---|---|---|---|---|
 | §B2.1 | `[M]` | "View Payoff Schedule" now opens — Money → tap a debt (edit sheet) → tap "View Payoff Schedule"  | `04-payoff-schedule` | `✅auto·31812114150` |
-| §B2.3 | `[M◐]` | The menu action — long-press a debt row → the context menu now has "Log payment" (first, above E | `03-row-context-menu` *(partial)* | `✅auto·31812114150` |
 | §1.1 | `[M]` | App launches past the splash — no white screen, no crash (this is the New-Architecture + all-nat | `01-launch-smoke` *(partial)* | `✅auto·31812114150` |
 | §1.2 | `[M]` | Lands on Today (if you have data) or onboarding (fresh install). If onboarding, either complete  | `01-launch-smoke` | `✅auto·31812114150` |
 | §3.1 | `[M]` | ⭐ FormSheet header buttons (the owed re-verify): open Add debt (Money → Debts → Add debt) → tap  | `02-sheet-native-tap` *(partial)* | `✅auto·31812114150` |
-| §4.1 | `[M◐]` | Long-press a debt row (press and hold ~0.5s) → a native UIMenu pops with Edit and Delete. ✅ Dele | `03-row-context-menu` *(partial)* | `✅auto·31812114150` |
 | §10.1 | `[M]` | Landscape / full-screen (expanded): Money → Debts shows the list on the left + the edit form INL | `i01-ipad-boot` | `✅auto·31812114150` |
 | §10.2 | `[M]` | Portrait / narrow: everything stacks into the single centered column with the bottom tab bar (sa | `02-sheet-native-tap` *(partial)* | `✅auto·31812114150` |
-| §11.7 | `[M◐]` | Reduce Motion, and interruption mid-story (any iPhone, dark theme.) | `06-tutorial-interactions` *(partial)* | `✅auto·31812114150` |
-| §11.8 | `[M◐]` | rotation and Split View mid-step (iPad, any.) | `i03-ipad-rotate-midstep` *(partial)* | `✅auto·31812114150` |
 | §11.10 | `[M]` | the walkthrough's one required gesture (any iPhone.) | `06-tutorial-interactions` | `✅auto·31812114150` |
 | §11.15 | `[M]` | the highlight lands on its subject at iPad width — ✅ AUTOMATED 2026-08-13 (4.1.5.2). | `05-tutorial-walkthrough` | *human* `[x]` |
-| §11.16 | `[M◐]` | Step 5 on iPad LANDSCAPE (iPad, landscape, both themes.) | `i02-ipad-step5-landscape` *(partial)* | `✅auto·31812114150` |
 | §14.1 | `[M]` | one Add, from all three sections. Money → Add from Debts, then from | `07-money-add-and-rescue` | `✅auto·31812114150` |
 | §14.2 | `[M]` | the answer lands where it says. Standing in Expenses, tap Add → "A debt". | `07-money-add-and-rescue` | `✅auto·31812114150` |
 | §14.3 | `[M]` | the first-run fork (fresh install / Reset, so onboarding runs). ⏳ Web e2e cannot | `07-money-add-and-rescue` | `✅auto·31812114150` |
@@ -145,7 +137,6 @@ run that has ever passed it. Until one does, it is a plan, not coverage.
 | §13.1 | `[M]` | the payoff-schedule mark, inside a sheet (any iPhone. Reset first: More → Show feature | `08-coach-marks` | `✅auto·31812114150` |
 | §13.2 | `[M]` | "Got it" actually dismisses, and stays gone (any iPhone.) | `08-coach-marks` | `✅auto·31812114150` |
 | §13.3 | `[M]` | the iOS-ONLY row long-press mark (iPhone/iPad only; it cannot exist anywhere else.) | `01-launch-smoke` *(partial)* · `08-coach-marks` | `✅auto·31812114150` |
-| §13.4 | `[M◐]` | the trajectory mark does not bury a different chart (any iPhone, both themes.) | `08-coach-marks` *(partial)* | `✅auto·31812114150` |
 | §13.5 | `[M]` | a mark is a hint, not a modal (any iPhone.) | `08-coach-marks` | `✅auto·31812114150` |
 | §13.6 | `[M]` | VoiceOver hears each hint ONCE (VoiceOver ON.) | `08-coach-marks` | `✅auto·31812114150` |
 | §12.0.1 | `[M]` | you can walk around. The tab bar is visible, and Today / Progress / Money all | `09-demo-explore` | `✅auto·31822453981` |
