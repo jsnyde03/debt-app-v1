@@ -8,14 +8,14 @@
 
 | | checks | |
 |---|---:|---|
-| **Covered today** | **25** | a flow claims it |
-| **Coverable, not yet built** | **72** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
+| **Covered today** | **31** | a flow claims it |
+| **Coverable, not yet built** | **66** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
 | **Permanently device-owed** | **34** | `[D]` — no lane will ever carry it |
 | | | |
-| **🎯 The device pass** | **56** | `[D]` **+** the human half of every `[M◐]` (22) |
+| **🎯 The device pass** | **57** | `[D]` **+** the human half of every `[M◐]` (23) |
 | Real checks | 131 | 9 further rows are `[—]` — install steps and report-back prompts |
 
-**Verdict spread:** `[M]` 72 · `[M◐]` 22 · `[A]` 3 · `[D]` 34
+**Verdict spread:** `[M]` 71 · `[M◐]` 23 · `[A]` 3 · `[D]` 34
 
 ⚠️ **`[M◐]` rows appear in BOTH the coverage columns and the device pass.** That is not double-counting —
 a partial is automated in one half and manual in the other, and reporting only `[D]` would overstate
@@ -23,7 +23,7 @@ what comes off the device pass.
 
 ---
 
-## ▶ Coverable, not yet built — the remaining work (72)
+## ▶ Coverable, not yet built — the remaining work (66)
 
 | id | verdict | check | claimed by |
 |---|---|---|---|
@@ -73,13 +73,7 @@ what comes off the device pass.
 | §11.9 | `[M]` | long debt names inside the scripted shortfall (any iPhone, AX3, both themes.) | — |
 | §11.11 | `[M]` | scrolling near the slider must not MOVE it (any iPhone. The counterpart to §11.10: | — |
 | §11.13 | `[M]` | beat 1's cushion bar must be PAINTED when the step arrives (any iPhone; do it from a | — |
-| §12.0.1 | `[M]` | you can walk around. The tab bar is visible, and Today / Progress / Money all | — |
-| §12.0.2 | `[M]` | the disclosure follows you. On every screen you land on, "Example money" is at | — |
-| §12.0.3 | `[M]` | exactly ONE marker on screen. ⏳ Web cannot answer this (its tab navigator leaves the | — |
-| §12.0.4 | `[M]` | the way out is wherever you are. "Start my real plan" sits beside the marker on | — |
-| §12.0.5 | `[M]` | settings stay shut. The ••• More button is greyed and unresponsive on every | — |
-| §12.0.6 | `[M]` | your real plan is untouched. Exit, then force-quit and reopen. | — |
-| §12.0.7 | `[M]` | poke at it. Open a debt row, scrub the trajectory, try Can-I-Afford-This. | — |
+| §12.0.3 | `[M◐]` | exactly ONE marker on screen. ⏳ Web cannot answer this (its tab navigator leaves the | — |
 | §12.0.8 | `[M◐]` | VoiceOver. Turn it on and enter the demo. | — |
 | §12.1.1 | `[M]` | From a fresh install with no data, "See it in action" lands on Today showing a $2,000 | — |
 | §12.1.2 | `[M]` | Force-quit mid-demo and relaunch → you land on onboarding, with no demo running and no | — |
@@ -102,7 +96,7 @@ what comes off the device pass.
 
 ---
 
-## ✅ Covered today (25)
+## ✅ Covered today (31)
 
 | id | verdict | check | claimed by |
 |---|---|---|---|
@@ -131,6 +125,12 @@ what comes off the device pass.
 | §13.4 | `[M◐]` | the trajectory mark does not bury a different chart (any iPhone, both themes.) | `08-coach-marks` *(partial)* |
 | §13.5 | `[M]` | a mark is a hint, not a modal (any iPhone.) | `08-coach-marks` |
 | §13.6 | `[M]` | VoiceOver hears each hint ONCE (VoiceOver ON.) | `08-coach-marks` |
+| §12.0.1 | `[M]` | you can walk around. The tab bar is visible, and Today / Progress / Money all | `09-demo-explore` |
+| §12.0.2 | `[M]` | the disclosure follows you. On every screen you land on, "Example money" is at | `09-demo-explore` |
+| §12.0.4 | `[M]` | the way out is wherever you are. "Start my real plan" sits beside the marker on | `09-demo-explore` |
+| §12.0.5 | `[M]` | settings stay shut. The ••• More button is greyed and unresponsive on every | `09-demo-explore` |
+| §12.0.6 | `[M]` | your real plan is untouched. Exit, then force-quit and reopen. | `09-demo-explore` |
+| §12.0.7 | `[M]` | poke at it. Open a debt row, scrub the trajectory, try Can-I-Afford-This. | `09-demo-explore` |
 
 ---
 
@@ -175,7 +175,7 @@ what comes off the device pass.
 
 ---
 
-## ◐ Partials — automated in one half, yours in the other (22)
+## ◐ Partials — automated in one half, yours in the other (23)
 
 - **§B3.1** — Fires + feels premium — the full-screen finale appears: two-wave confetti · gold bloom · the Ski
   ⚠️ *no flow claims even the automatable half yet*
@@ -217,6 +217,8 @@ what comes off the device pass.
   i02-ipad-step5-landscape: the landscape frame is captured and the ring invariant holds on the clamp-free axis; the
 - **§13.4** — the trajectory mark does not bury a different chart (any iPhone, both themes.)
   08-coach-marks: the trajectory mark is asserted not to occlude the chart; whether it READS as buried is a
+- **§12.0.3** — exactly ONE marker on screen. ⏳ Web cannot answer this (its tab navigator leaves the
+  ⚠️ *no flow claims even the automatable half yet*
 - **§12.0.8** — VoiceOver. Turn it on and enter the demo.
   ⚠️ *no flow claims even the automatable half yet*
 - **§12.6.1** — Turn VoiceOver on, then enter the demo. You hear "Example money. This is a demonstration with

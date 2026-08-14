@@ -8561,6 +8561,66 @@ that beat — a different change with a different owner, and a composition call 
 to the audit gate's best-in-class pass with the dark frame as its second data point. **§11.16 already
 PASSES; this is polish.**
 
+### ⛔ Run 31800305248 — the probe was destroying the thing it was built to observe (2026-08-14)
+
+**7 of 8 green; `08-coach-marks` failed** at §13.3, `assertVisible: ".*Press and hold a debt.*"`. ⚠️ First
+check per the standing note: **not the iOS driver stall** — no such warning in the artifact, and flows
+01–07 all ran. Flow 01 asserts the *same* mark successfully eight minutes earlier.
+
+⭐ **4.1.4c's probe paid for itself by naming the cause instead of leaving a bare red:**
+
+```
+hook:debt-row-actions ready=1 registry=1 → layout: → measure:400x109@20,436 → draw:DREW
+→ blur:debt-row-actions=dismissed → draw:…=noRect
+```
+
+Every stage succeeded. The mark measured to a sane on-screen rect (unlike the `y=1702` defect 4.1.4c
+fixed) and **drew**. Then it was dismissed on blur.
+
+⚡ **The blur is the probe's own detour.** The readout lives in More's LAST section, so reading it means
+navigating to More — and flow 08 did exactly that between the draw and the assertion. **The diagnostic
+destroyed its own subject.**
+
+⚡ **And 4.1.4c's placement argument was right when written.** Its comment reasoned the detour was safe
+because *"`/more` is pushed over Money, so Money does not unmount"* — still true. **4.1.5.4 then keyed
+dismissal on FOCUS, and blur is not unmount.** A perturbation proven safe on the axis that mattered, with
+a new axis appearing underneath it a week later. This is the sharpest example yet of why a comment stating
+*why* something is safe is worth more than one stating *that* it is: the reasoning was checkable, so the
+moment the premise changed the failure was diagnosable in one read.
+
+**Fix: the probe moved to the END of the file.** ⛔ It could not simply move past the assertion — §13.5
+requires the row mark still UP, and §13.1's payoff-schedule mark is live immediately after
+(`draw:payoff-schedule=stoodDownFor(hosts=1)` in the same readout), so a route push anywhere in the middle
+would dismiss the *next* mark by the same mechanism. The end is the only position that perturbs nothing.
+**The trade is stated in the file:** probe output is no longer available on a run where an assertion above
+it fails — that was its original job, and that job is done.
+
+### 4.1.6 — §12.0's explore run (2026-08-14)
+
+`09-demo-explore.yaml`, runs LAST and clears state because it needs the fresh-install door. Covers
+**§12.0.1 · .2 · .4 · .5 · .6 · .7**. The marker assertion repeats per tab deliberately — §12.0.2 is
+flagged the highest-severity row in §12 (*"this run shows invented money on the real app and the marker is
+the only thing saying so"*), and one check on Today would not be that claim.
+
+⚠️ **Two more verdicts corrected by building it**, both the same shape as §B2.3's:
+
+- **§12.0.3 → `[M◐]`** — *"exactly ONE marker on screen"* is a **cardinality** claim and Maestro asserts
+  presence. `assertVisible` passes with two markers stacked, which is the defect the row exists to catch.
+  Counting is unproven on this build (probe p06) — the same limit flow 08's header already records for
+  §13.6, so this is a known boundary rather than a new one.
+- **§12.0.8** expects *"Example money. This is a demonstration with sample figures."* on arrival —
+  **`ExampleCanvasMarker` carries no `accessibilityLabel`**, only `accessibilityRole="header"` and the
+  text. Not asserted, because asserting a string I could not locate is how a check that proves nothing
+  gets recorded as coverage. Whether that announcement lives on `DemoCaption` instead is unchecked.
+
+⚠️ Also unreachable and stated in the flow: §12.0's **second door** (More → Unlock Premium → "See it in
+action"). More is greyed during the run, and reaching the paywall needs a committed plan — the opposite of
+the fresh install this flow requires. That door stays device-owed.
+
+**Coverage after both: 31 covered today · 66 coverable-not-built · 34 device-only; the device pass is 57.**
+⚡ It has now risen three times (55 → 56 → 57) as building each flow revealed what Maestro genuinely
+cannot assert. That is the instrument converging on the truth rather than on a flattering number.
+
 ### 4.1.5's decomposed section retired to here
 
 Per the one-decomposed-section rule, 4.1.5's sub-table collapsed to a single plan row on 4.1.6a's

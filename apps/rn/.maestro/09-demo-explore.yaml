@@ -1,0 +1,111 @@
+# Maestro E2E — §12.0, the EXPLORE run (3.5.10 / [D23]) — 4.1.6.
+#
+# ⚠️ THIS RUN HAS NEVER BEEN ON HARDWARE. [D23] split the demo in two: `explore` is what a user gets
+# (live tabs, no script, one exit) and `scripted` is the App-Preview/embed vehicle. §12.0 is the explore
+# half, and every row in it is new.
+#
+# ⚠️ RUNS LAST AND CLEARS STATE. `07` already clears, `08` follows it, and this needs the FRESH-INSTALL
+# door ("See it in action" on Welcome). Anything added after this must re-seed.
+#
+# ⛔ §12.0.6 IS THE REASON THE SANDBOX EXISTS — "the legacy demo shipped it". The relaunch at the end is
+# not a tidy-up; it is the check. Do not delete it to shorten the flow.
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+# DEVICE-CHECKLIST COVERAGE (4.1.6a) — parsed by `npm run audit:coverage`. Each line is a CLAIM about
+# what this flow proves, written against its assertions. ⚠️ The gate checks these STRUCTURALLY (the id
+# exists, its verdict allows automation); it cannot check that the assertion below really tests it.
+# COVERS: §12.0.1 — the tab bar is present and all three tabs navigate inside the demo
+# COVERS: §12.0.2 — the "Example money" marker is on every tab the run lands on
+# COVERS: §12.0.4 — the exit sits beside the marker on a NON-Today tab, and no example figure survives it
+# COVERS: §12.0.5 — the ••• More button does not open while the demo holds navigation
+# COVERS: §12.0.6 — a force-quit after exiting leaves no persona data behind
+# COVERS: §12.0.7 — a debt row opens inside the demo without crashing
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+appId: com.jasonsnyder.debtplanner
+---
+# Fresh install → the Welcome door. §12.0's other door (More → Unlock Premium → "See it in action") is
+# unreachable from here: More is greyed during the run, and reaching the paywall needs a committed plan,
+# which is the opposite of a fresh install. That door stays device-owed.
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      text: "See it in action"
+    timeout: 30000
+- tapOn: "See it in action"
+
+# ── §12.0.2 on arrival, and §12.0.1's first leg. ─────────────────────────────────────────────────
+- extendedWaitUntil:
+    visible:
+      id: "example-canvas-marker"
+    timeout: 20000
+- takeScreenshot: maestro-debug/demo-explore-01-today
+
+# ── §12.0.1 + §12.0.2 — every tab navigates, and the marker follows. The marker assertion is repeated
+#    per tab ON PURPOSE: §12.0.2 is flagged the highest-severity item in §12, because this run shows
+#    invented money on the real app and the marker is the only thing saying so. One check on Today
+#    would not be that claim. ─────────────────────────────────────────────────────────────────────
+- tapOn:
+    id: "tab-progress"
+- assertVisible:
+    id: "example-canvas-marker"
+- takeScreenshot: maestro-debug/demo-explore-02-progress
+
+- tapOn:
+    id: "tab-money"
+- assertVisible:
+    id: "example-canvas-marker"
+
+# ── §12.0.7 — poke at it. A debt row must open like the real app rather than crash. Matched by
+#    contains-regex for flow 03's reason: ListRow is a composite a11y element whose full text is the
+#    whole sentence, so a bare "Visa" can never match. ─────────────────────────────────────────────
+- tapOn: ".*Visa.*"
+- takeScreenshot: maestro-debug/demo-explore-03-debt-open
+- tapOn:
+    id: "sheet-close"
+- assertVisible:
+    id: "example-canvas-marker"
+
+- tapOn:
+    id: "tab-today"
+- assertVisible:
+    id: "example-canvas-marker"
+
+# ── §12.0.5 — settings stay shut. This is a TAP followed by a negative: More carries Reset and
+#    preferences that write the REAL plan, so "greyed" is not the claim — "does not open" is. If the
+#    button ever becomes live mid-demo, the marker assertion below is what survives to say so. ─────
+- tapOn:
+    id: "more-button"
+- assertNotVisible: "Preferences"
+- assertVisible:
+    id: "example-canvas-marker"
+
+# ── §12.0.4 — the way out, taken from PROGRESS rather than Today, exactly as the row specifies. ───
+- tapOn:
+    id: "tab-progress"
+- assertVisible:
+    id: "demo-explore-exit"
+- tapOn:
+    id: "demo-explore-exit"
+
+# Onboarding, and no example figure survives. `$2,000` is the persona's paycheck — the single most
+# recognisable demo number, and the one §12.0.6 names.
+- extendedWaitUntil:
+    visible:
+      text: "See it in action"
+    timeout: 20000
+- assertNotVisible:
+    id: "example-canvas-marker"
+- assertNotVisible: ".*\\$2,000.*"
+
+# ── §12.0.6 — the failure the whole sandbox exists to prevent. A real process restart, not a
+#    navigation: `08` established that only a relaunch proves persistence. ──────────────────────────
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible:
+      text: "See it in action"
+    timeout: 30000
+- assertNotVisible:
+    id: "example-canvas-marker"
+- assertNotVisible: ".*\\$2,000.*"
+- takeScreenshot: maestro-debug/demo-explore-04-after-restart

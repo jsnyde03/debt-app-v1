@@ -23,7 +23,7 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 | **4.1.5.1** | **The iPad boot** — [D30]'s `device` input + `i01-ipad-boot.yaml`, selecting by **measured width** and failing loud below 1024pt. Detail → log | ✅ **DONE 2026-08-13.** iPad Pro 13-inch @ **1032pt**; `01` + `i01` green. ⚡ Measured: **only 13-inch iPads are `isExpanded`**; iPad mini is 744pt = the PHONE layout |
 | **4.1.5** | **The iPad tier's REAL checks.** 4.1.5.1–4.1.5.4 and **4.1.5.5 all closed** — 🎯 §11.16 judged 2026-08-14, **both edges PASS**, evidence + reasoning → [`evidence/2026-08-14-p11.16-ipad-landscape/`](evidence/2026-08-14-p11.16-ipad-landscape/README.md). **4.1.5.6 built 2026-08-14, awaiting its dispatch** — `i03-ipad-rotate-midstep.yaml` (§11.8(a)) + the dark-theme `i02` re-run. ⛔ The "nudge the scroll offset" fold-in was **refuted**: `TutorialOverlay` measures but never scrolls, so there is no offset — see the open defect below | ⏸ |
 | **4.1.6a** | ▶ **ACTIVE — `audit:coverage`, the definitive checklist.** Decomposed below | ▶ |
-| **4.1.6** | §12.0 explore (7 checks) | |
+| **4.1.6** | **§12.0 explore** — `09-demo-explore.yaml`, runs LAST and clears state (it needs the fresh-install door) | ✅ **BUILT 2026-08-14**, awaiting a dispatch. Covers §12.0.1 · .2 · .4 · .5 · .6 · .7. ⚠️ **.3 and .8 do NOT automate** — see below |
 | **4.1.7** | **AX + theme conditions** — §11.1 · §11.5 · §8's half. ⚠️ Reduce Motion needs an app-side observable first | |
 | **4.1.8** | §11's remainder — §11.9 · §11.13 · §11.11 | |
 | **4.1.9** | ⛔ **RE-SCOPED 2026-08-14 — was "the Appium supplement".** ⚡ **Appium's whole unique value is THREE checks** (§10.5 ⌘N · §10.6 ⌘1/2/3 · §10.7 the ⌘ HUD) — measured, not estimated. An **XCUITest target** buys those same 3 natively, **plus ~16 springboard rows**, **plus 4 of the 6 premium-a11y bullets** via `performAccessibilityAudit()`, on the sim this lane already boots. ⚠️ §11.15 came off this row — 4.1.5.2 settled it app-side. **[DECISION] pending 4.1.6a.7's probe** | |
@@ -227,6 +227,8 @@ it on every push. ⚠️ It gained `typecheck:core` + `typecheck:rn` on 2026-08-
   the release-tag trigger. ⚠️ The rot risk it existed for is real and now unguarded → **a nightly at
   4.1.11**, which does not tax a working afternoon and also catches out-of-repo rot a path filter never
   could.
+
+- ✅ **STANDING PERMISSION, 4.1 ONLY (🎯 Jason 2026-08-14):** *"You have standing permission to continue without requiring my input on every step for 4.1 only… The same goes for standing permission to push and dispatch when it makes sense."* ⚠️ **The boundary is real** — Phase 3.5, 5, 5.5, 6, the audit gate, and any product/content call (e.g. [D33]'s crop, beat subjects, copy) still come to Jason. Batching judgement still applies to dispatches; the permission removes the ask, not the discipline.
 
 - **Native version pins — do NOT bump:** `react-native-ios-context-menu@3.1.3` EXACT (3.2.x ships broken) · `react-native-ios-utilities ^5.2.0`.
 - **v1.7 ships as ONE release.** Nothing launches until Phase 6 is done and Jason is satisfied.

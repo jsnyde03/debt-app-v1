@@ -489,7 +489,7 @@ Premium** → **"See it in action"**.
       the top, above the scroll.
       **FAIL:** any screen without it. ⚠️ **Highest-severity item in §12** — this run shows invented money
       on the real app, and the marker is the only thing saying so.
-- [ ] `[M]` **§12.0.3 — exactly ONE marker on screen.** ⏳ Web cannot answer this (its tab navigator leaves the
+- [ ] `[M◐]` **§12.0.3 — exactly ONE marker on screen.** ⏳ Web cannot answer this (its tab navigator leaves the
       previous screen painted, so two are visible); a device renders only the focused tab.
       **PASS:** one. **FAIL:** two stacked or overlapping.
 - [ ] `[M]` **§12.0.4 — the way out is wherever you are.** **"Start my real plan"** sits beside the marker on
