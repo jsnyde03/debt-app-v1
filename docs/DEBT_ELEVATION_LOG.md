@@ -8128,3 +8128,347 @@ predicate with zero matches, a stale-rect story the probe refuted, and reading a
 cross-platform defects fell out of Chrome in under a minute each, in the same component that previously
 cost five CI cycles — the difference was noticing that one mark is `Platform.OS === 'ios'` and the other
 is not.
+
+## 2026-08-14 — 4.1.5 collapses; 4.1.6a (`audit:coverage`) is promoted ahead of 4.1.6
+
+### The redirect that created the item
+
+Opening ask was *"close out 4.1 and Phase 3.5 today"*. I proposed cutting the CodeMagic build first so it
+baked in parallel with the 4.1 work. 🎯 **Jason refused, and the refusal is the item:** *"I'm not cutting
+the CodeMagic build until we have a definitive checklist that covers everything that Maestro and Appium
+can verify. That's the whole point of 4.1."*
+
+⚡ **He is right and the parallelism I proposed was the exact waste 4.1 exists to prevent** — a device pass
+cut before the lane's exit spends a human sitting with a phone on checks the lane is meant to absorb, and
+then needs a *second* pass once it does. **Phase 3.5 is downstream of 4.1 closing, not parallel to it.**
+That ordering is now the plan's.
+
+### 4.1.5.5.2 — the frame is recoverable, and needed no CI cycle
+
+The plan had the §11.16 verdict pending on `maestro-debug/ipad-step5-landscape.png` with no local copy.
+Run `31740873224`'s `maestro-report` artifact had **not expired** — pulled with `gh run download`, so the
+decision costs nothing. Pinned to
+[`evidence/2026-08-14-p11.16-ipad-landscape/`](evidence/2026-08-14-p11.16-ipad-landscape/README.md).
+
+⚠️ **The capture is stored PORTRAIT with a landscape frame inside it** — the same sideways-screenshot trap
+this log named the day before. Both files are pinned: as-captured and rotated, with the rotation stated.
+⚠️ **The artifact path is ~290 chars** and Windows tooling reports the file *missing* rather than
+*too long* — copy to a short path first. Cost three failed reads before the cause was obvious.
+
+**My two recommendations, for Jason's verdict (still open):** ① the BOTTOM edge passes — the border
+encloses the Defer CTA, both small-print paragraphs and "See your forecast →" with padding below the last
+line, and the web-at-1194×834 failure does not reproduce natively. ② A finding §11.16 did not ask for: the
+ring opens at *"$200 · Your line"*, so **that label is inside the frame while the bar it labels is
+outside**, and beat 5's copy (*"Some paychecks come up short…"*) has its setup sentence — the red *"This
+paycheck won't cover everything"* — excluded from the highlight. `RING_AUDIT` reads `d 0,0`, so the
+geometry is right and the question is the SUBJECT. ⚠️ Flagged to Jason that ② is a *content* call landing
+inside a coverage item; filing it to the audit gate is the honest alternative.
+
+### 4.1.6a's before-scan — four findings, one of which reshaped the item
+
+**① ⚡ Most of the checklist is not addressable.** Measured: **140 checkbox rows, 37 with an id, 103
+without.** Ids exist only in §11/§12.0/§13/§14 — precisely the sections that were being automated. So
+"which checks does the lane already carry" is unanswerable *in principle* today, not merely unmeasured.
+Giving every check a stable id became step 1 rather than an implementation detail.
+
+**② ⛔ The coverage audit's "127 real checks" is STALE.** 140 rows today against its 2026-08-11 accounting
+of 136 (127 checks + 9 non-checks). Not a large drift, but it means every number quoted from
+`audits/2026-08-11-maestro-coverage/` is now approximate — which is itself the argument for a *generated*
+artifact over a re-counted one. Same lesson as T1: a report that has to be re-derived by hand gets quoted
+long after it stops being true.
+
+**③ ⚠️ The checklist carries state that is not regenerable.** 8 rows are already `[x]` from prior device
+passes, and at least one carries an inline finding written by hand (§4's *"— NO SYSTEM BLUR"*). The
+instrument therefore **reads** the checklist and emits a separate report. It must never rewrite it. Same
+class as Hearthlight's review log: the one artifact in the loop that regenerating destroys.
+
+**④ ⚠️ An id in a row's body is not that row's id.** First parse reported `§11.9×2`. The second "definition"
+is §9's *"Priority order if you only have one sitting"* row **citing** §11.9. Tightening the rule to the
+row's leading token (`- [ ] **§X.Y —`) takes 37 ided rows and zero duplicates. ⚡ Worth keeping because it
+is the failure the whole instrument is built to prevent, committed by the instrument's own first draft:
+**a mention is not a claim.** It is also why 4.1.6a.2 uses explicit `COVERS:` / `PARTIAL:` / `DEVICE-OWED:`
+markers rather than counting §mentions in flows — flow 08 cites §13.4 and then says in prose that its
+judgement half stays device-owed, so a mention-counter would have scored it as covered.
+
+**⑤ ✅ The declaration seam is viable.** The ten flows already cite §ids consistently in comments — 15
+distinct ids, uniform spelling — so the convention is established and 4.1.6a.2 is a formalisation rather
+than an imposition.
+
+### 🎯 The clarification that made it a THREE-way split
+
+Mid-build, Jason: *"by definitive checklist I meant that the point of 4.1 is to see how much of the 3.5
+checklist that I currently have for the device build will be covered by Maestro and/or Appium."*
+
+⚡ **That is a different artifact from the one I had decomposed.** I had "every check, its owner" — one
+axis. His question needs two: **verdict** *(can this ever be automated, by either lane)* and **status**
+*(is it automated yet)*. Crossing them gives the three columns that actually answer it:
+
+| column | what it is | who reads it |
+|---|---|---|
+| **covered today** | a flow declares it and the lane is green | the regression story |
+| **coverable, not built** | verdict `[M]`/`[A]`, no flow claims it | ⚡ **this IS 4.1.6–4.1.9's remaining work, enumerated** |
+| **device-owed** | verdict `[D]`, or the human half of a partial | 🎯 **the checklist he takes to the phone** |
+
+⚠️ **The second input did not exist.** The 2026-08-11 audit recorded its ✅/◐/❌ verdicts as **section-level
+counts in a prose table** — 68/26/33 — plus per-class lists for the floor and eight itemised walkthrough
+rows. Per *check*, it is mostly absent, so "will be covered" was not derivable row by row from it. Hence
+4.1.6a.2: seed a verdict on every row, tagged **on the row itself** so one row owns both its id and its
+verdict rather than a second file drifting against the first (defect class ③, named in 3.5's phase
+after-scan and hit again by W1's `210 duplicates`).
+
+⚠️ **And the verdict column is the risky half.** It is a claim about what is *possible*, which is exactly
+the claim this lane keeps getting wrong: the audit filed §10's ⌘-key checks as impossible when they are
+merely Maestro-impossible (Appium's `mobile: keys` does them); `~/.maestro`'s "1m29s" was 22s; the
+"expanded-iPad hierarchy dump" did not exist; ccache's blocker was named wrong twice. A row wrongly marked
+`[D]` keeps a check on the manual pass **forever**, and nothing ever re-examines it. Seeded verdicts are
+therefore recorded as a hypothesis per row and flagged for Jason's correction, not as a settled split.
+
+### Why it runs BEFORE 4.1.6 rather than as part of 4.1.11
+
+4.1.11 was authored to reconcile the coverage split at the END, after 4.1.6–4.1.10 add roughly five more
+flows. Built first, every remaining item's exit line becomes *"these specific rows flipped to covered"*;
+built last, it is an archaeology pass across fifteen flows whose claims were never recorded as they were
+made. It costs zero CI cycles either way. Admitted to the active queue on **Category 2** — dramatically
+cheaper now than to re-enter later — not as a ship-blocker.
+
+### 4.1.6a.1 — every check is addressable (2026-08-14)
+
+One-shot codemod, deliberately **not** added to `scripts/`: the permanent instrument only ever reads the
+checklist, per before-scan finding ③. **104 ids inserted, 140 rows now carry 140 distinct ids.**
+
+**Verified rather than asserted.** The check re-derives the file from `git show HEAD:` and requires every
+changed line to satisfy `before === head + body` with only the id span between them: **104 lines changed,
+104 of them pure id insertions**, checkbox count 140 → 140, hand-recorded `[x]` 8 → 8, zero duplicate ids.
+Line endings confirmed unchanged (593 LF before and after) — git's `LF will be replaced by CRLF` warning
+is pre-existing autocrlf, not the edit.
+
+**Two id spellings are now legal, deliberately.** The 36 pre-existing ids sit INSIDE the row's bold title
+span (`**§11.1 — Skip must stay…**`); rewriting those would churn a file holding hand-recorded results for
+cosmetics. New ids get their own span (`**§4.2** Tap **Edit** → …`). The parser accepts both.
+
+⚠️ **[4.1.6a.1 after-scan] The verifier's own id charset was too narrow and reported 14 false failures**
+against ids the codemod had written correctly — `§6a.N`/`§6b.N` match neither `\d+` nor `B\d+`, because
+§6's two subsections are lettered. ⚡ **This is the third pattern-too-narrow miss in one item** (39 → 37 →
+36 on the id rule, then this), and it has a consequence for 4.1.6a.5: **the charset must be single-sourced
+between the codemod and the gate**, or they will disagree exactly where the lettered subsections live —
+two records of one rule, drifting, which is the class this instrument exists to kill.
+
+### 4.1.6a.2 — a verdict on every row (2026-08-14)
+
+Vocabulary: `[M]` Maestro outright · `[M◐]` Maestro carries part, the rest device-owed · `[A]` needs
+Appium (Maestro structurally cannot) · `[D]` permanently a human with a phone · `[—]` not a check.
+
+Tag sits at the **head** of the row, before the id, because §11's rows wrap across many lines and "end of
+row" is not well defined there. All 140 resolved with **no row unverdicted and no seeded verdict matching
+no row** — the codemod refuses to write unless both are empty.
+
+| | `[M]` | `[M◐]` | `[A]` | `[D]` | `[—]` |
+|---|---:|---:|---:|---:|---:|
+| **seeded 2026-08-14** | **69** | **20** | **3** | **39** | **9** |
+| audit 2026-08-11 | 68 ✅ | 26 ◐ | — | 33 ❌ | 9 — |
+
+**The reconcile corroborates both passes and locates the drift exactly.** `[—]` matches 9/9 — two
+independent passes agreeing on which rows are not checks. The +4 total is **entirely BUILD 2's Siri
+block** (`§B2.11`–`§B2.14`: the `\(.applicationName)` check and A8.1/A8.2's phrase forms), added by Wave A
+*after* the audit was written — confirming the earlier hypothesis about where the staleness sat. The
+remaining ~5-row shift from ◐ to `[D]` is a genuine disagreement: §3's blur/haptics/StoreKit/camera rows
+and §6's Lock-Screen halves, which the audit scored partial and I score device-only because their
+automatable half is either already covered elsewhere or is not what the row actually asks.
+
+⭐ **The finding that prices a queued item: `[A]` totals THREE.** §10.5, §10.6, §10.7 — ⌘N, ⌘1/2/3, and the
+⌘ HUD. Nothing else in 140 rows needs a capability Maestro lacks. **4.1.9 is a whole second automation
+lane, its dependencies, and its CI wiring, for three modifier-key checks.** The plan already carried a
+note that `XCUIApplication.performAccessibilityAudit()` is *"arguably a better use of 4.1.9's slot"*; this
+turns that from a hunch into an arithmetic comparison. Filed as a [DECISION] at 4.1.9 rather than decided
+here — the Appium promotion was Jason's reversal on 2026-08-11 and the amortisation argument ("the lane
+outlives v1.7") is his to re-weigh, now against a real number instead of the estimate that carried it.
+
+⚠️ **And the relief is smaller than the headline.** 20 `[M◐]` rows keep a device-owed half, so the pass is
+**59 rows he still touches**, not 39. Reporting `[D]` alone would overstate what comes off his plate —
+the same overstatement 4.1.11 already warns about for counting flow files, in a new place.
+
+### 4.1.6a.2b — attacking the `[D]` count (2026-08-14)
+
+🎯 Jason, on being shown the split: *"It's D that I want to research more. How or what can we do to get
+that 39 count lower."* ⚡ **The right thing to attack, because a wrong `[D]` is permanent by
+construction** — nothing ever re-examines a row marked impossible.
+
+**The structural finding: 39 was never 39 checks.** Most `[D]` rows bundle two questions — *did the
+mechanism do the right thing* (observable) and *does it feel/look right* (human) — and seeding by the
+harder half buries the provable one. `§B3.2` is the clearest: it asks the tester to feel the difference
+between **nothing** (the module didn't autolink), **one buzz** (fell back to expo-haptics) and **a
+crescendo**. That is a request to *diagnose which code path ran*, and a finger is a worse instrument for
+it than an assertion. Splitting those needs no new infrastructure.
+
+**Five corrected from evidence already on disk — 39 → 34:**
+
+| row | was | now | evidence |
+|---|---|---|---|
+| §12.6.2 rotor headings | `[D]` | `[M]` | `ExampleCanvasMarker.tsx:52` already sets `accessibilityRole="header"`. Maestro reads the a11y tree; **the rotor is iOS rendering a trait the app declares**, and the trait is the check |
+| §B2.11 `\(.applicationName)` | `[D]` | `[M]` | `CFBundleDisplayName: "Debt Planner"` vs `expo.name: "Debt Planner (RN)"` — resolved from the plist, and CI already holds the built `.app` |
+| §B2.13 alternative names | `[D]` | `[M]` | `INAlternativeAppNames` declares exactly `"Debt Plan"` + `"My Debt Planner"`, verbatim what the row asks |
+| §B2.14 no short form | `[D]` | `[M]` | `SiriQueryIntents.swift` declares exactly two `"Log a payment…"` phrases, neither a short form |
+| §B2.12 short forms | `[D]` | `[M◐]` | the phrase declarations are static; Siri's **recogniser** is not |
+
+**Totals: 73 `[M]` · 21 `[M◐]` · 3 `[A]` · 34 `[D]` · 9 `[—]`.** Of 131 real checks, **97 now have some
+automation available.**
+
+**Filed as hypotheses, not applied** *(per Law IV — 2 of 4 stated mechanisms were wrong last time while
+all 4 recommendations were sound)*: snapshot-testing the widget/Live-Activity SwiftUI **render** rather
+than its Home-Screen placement (~8 rows, since §6a.1's "green dot, *'Looks clear this paycheck'*, the
+cushion line" and §6a.5's "the state dot is the only thing that changes colour" are claims about rendered
+content) · instrumenting haptic/audio **engine + pattern** and leaving the feel (`§B3.2`, `§B3.5`, `§3.5`,
+`§3.6`, `§11.6`, `§11.14`) · and `§11.2` *"no beat is silently skipped"*, which is a **state-machine**
+property drivable in the app-layer harness — the slow-hardware framing was borrowed from `§11.12`, which
+genuinely is perceptual.
+
+**Honest floor, if every avenue lands: ~8–12 rows** — real StoreKit prices (`§3.7`, `§12.4.2`: the sim
+serving local config *is* the check), the camera capture (`§3.8`), pointer hover (`§10.4`, `§10.8`),
+perceptual performance (`§11.12`), Siri's recogniser, and the judgement halves of everything above.
+
+### 4.1.6a.7 — the XCUITest target, and the convergence that re-scoped 4.1.9
+
+**Three separately-filed workstreams turn out to need ONE piece of infrastructure.** §5 (widget ×7),
+§6a + §6b.3 (Live Activity + Dynamic Island ×8) and §10.3 (Split View) are all `[D]` for a single stated
+reason — *"springboard surfaces outside the app under test"*. That is true of **Maestro**, not of
+**XCUITest**, which drives `XCUIApplication(bundleIdentifier: "com.apple.springboard")`. The same target
+also carries `performAccessibilityAudit()` (filed 2026-08-13, covering 4 of the 6 premium-a11y bullets)
+and the 3 `[A]` modifier-key rows natively.
+
+⛔ **So 4.1.9 was the wrong shape, and the number is what shows it.** Appium's entire unique value is
+**three checks**. An XCUITest target is 3 + ~16 + half the a11y sub-audit, in Apple's own framework rather
+than a second driver stack. Re-scoped; the [DECISION] waits on the probe rather than being taken on the
+estimate that promoted Appium in the first place.
+
+⛔ **My cheap-path mechanism was HALF WRONG and measurement caught it before any code.** I proposed that
+`@bacons/apple-targets` — already installed at `^5.0.0`, already driving `apps/rn/targets/widget` — made
+the target nearly free. **Its supported-types table is app extensions only; there is no `ui-test` or
+`unit-test` entry.** ✅ What survived: `with-app-intents.js` is a *shipped* precedent for CNG-safe pbxproj
+work in this repo (`withDangerousMod` to place Swift + `withXcodeProject` to create groups and add build
+phases), so the pattern is proven here even though the specific package was the wrong tool.
+
+⚠️ **Two concrete obstacles, both found locally:** the `xcode` lib's `PRODUCTTYPE_BY_TARGETTYPE` maps
+`unit_test_bundle` but has **no `ui_test_bundle`** — `com.apple.product-type.bundle.ui-testing` is absent,
+so the target must be created as a unit-test bundle and its `productType` patched afterwards. And
+**`.xcscheme` files are not managed by that lib at all**, so the Test action needs its own
+`withDangerousMod` writing XML.
+
+⚠️ **Windows constrains the loop, and that shapes the decomposition.** `expo prebuild` for iOS and
+`xcodebuild test` are macOS-only, but the plugin is JS operating on a project file — so a **local
+pre-flight against a fixture `project.pbxproj`** can prove the transformation is valid, leaving the runner
+to answer only *"does Xcode accept it"*. That split is what keeps this to one CI cycle instead of the
+several this lane has historically spent discovering syntax errors twenty minutes downstream.
+
+### [D33] — §11.16 judged, and the iPad PORTRAIT frame refuted my own reading (2026-08-14)
+
+I put two verdicts to Jason: ① the bottom edge, rec PASS; ② a "new finding" that the ring excluded the
+Guardian card's header, which I framed as *"the question is what beat 5's subject should be."*
+
+⛔ **② was wrong, and the artifact already on disk disproved it.** Pulling `tut-beat-5.png` to compare
+device widths, the frame turned out to be **iPad PORTRAIT** — 2064×2752 is iPad Pro 13″ @2x, and run
+`31740873224` is the driver-stall run where **zero iPhone flows executed**, so no iPhone frame exists in
+that artifact at all. ⚡ Which made it the *better* comparison: same device, same beat, orientation the
+only variable. Portrait reads `ring 384,363 subj 388,367` and **encloses the entire Guardian card** —
+`PAYDAY GUARDIAN` eyebrow, the red headline, the `Example` chip, the bar and `Cushion $0` included.
+
+**So the subject was never wrong.** The real mechanism: in landscape the viewport is ~834pt, the card is
+taller than that, and the ring **must** be cropped — the only choice is which end. Current anchoring
+favours the card's bottom, and that is correct: beat 5 teaches *"what has to be covered now, and what can
+safely wait"*, which is the COVER NOW / SAFE TO DEFER / Defer CTA block. Cropping those to reveal a
+headline the user already met would hide the thing the beat exists to show.
+
+⚡ **Both verdicts PASS.** ⚠️ Two residuals folded into 4.1.5.6 rather than closed silently: the crop
+currently lands *between* "$200 · Your line" and the bar it labels, which is the one thing in the frame
+that reads accidental (nudge the landscape scroll offset to a component boundary); and **§11.16 asks for
+BOTH themes while only light was judged** — the dark landscape frame is still owed.
+
+⚡ **The lesson, which is this project's own Law IV again and this time it was mine:** I shipped a
+mechanism (*"the subject is mis-chosen"*) with a confident framing, and the refutation was sitting in a
+file I had already downloaded. **Measure the cheapest artifact first** — the counter-pattern this log
+named on 2026-08-13 — applies to my own conclusions, not only to pre-authored items.
+
+### [D32] — 3.5.7's hosting and privacy stance (2026-08-14)
+
+**GitHub Pages.** No new vendor relationship, the repo is already there, CI already produces `dist` from
+`expo export --platform web`, and it is **static-only by construction** — it cannot run server code, which
+is precisely the property the privacy claim asserts. Vercel and Cloudflare each buy a CDN and an analytics
+surface that a marketing demo needs neither of, and each becomes another ASC privacy-label entry.
+
+**The privacy stance is a GATE, not a promise** — the embed is the one surface where *"financial data never
+leaves your device"* is easiest to doubt, because it is a web page:
+
+- **No analytics in the embed build** — a build flag, not a runtime toggle. ⚡ The distinction matters: a
+  toggle can be flipped, a flag that omits the code cannot.
+- **No persistent storage** — no `localStorage`/`IndexedDB`; `sessionStorage` only, cleared on exit.
+- **Zero network requests after asset load.**
+- **A Playwright spec holds all three** and fails `validate:release:rn` if the embed requests anything
+  beyond its own static assets or writes persistent storage. Per [D31]: a finding that becomes a test is
+  paid for once, and this one re-proves the claim on every push instead of at review time.
+
+⚠️ **Wording caution recorded for the voice gate:** every host logs IPs, GitHub Pages included. *"Financial
+data never leaves your device"* stays literally true — none is transmitted. *"100% private"* would
+overclaim if read as "no server logs anywhere".
+
+⚠️ **3.5.7 still does not start yet.** Two blockers survive [D32]: the debt-free-date defect, and the
+web-only `Slider` gap (react-native-web drops `accessibilityValue`, and `a11y-axe` does not flag it). The
+second is a WCAG AA failure — a slider that never reports its value — and it matters *because* the embed
+is the surface that makes it public.
+
+### 4.1.6a.3–.6 — the instrument lands, and the question has a number (2026-08-14)
+
+⭐ **`npm run audit:coverage` → [`docs/audits/coverage-split.md`](audits/coverage-split.md).**
+
+| | checks | |
+|---|---:|---|
+| **Covered today** | **23** | a flow claims it |
+| **Coverable, not yet built** | **74** | ⚡ **this is 4.1's remaining work, enumerated per row** |
+| **Permanently device-owed** | **34** | |
+| 🎯 **The device pass** | **55** | 34 `[D]` **+** the human half of all 21 `[M◐]` |
+
+**The declarations were written against ASSERTIONS, not prose headers**, and that distinction produced
+real findings. Three flows (03, 04, 06) cited no §id at all and had to be read command by command:
+
+- **04** covers `§B2.1` outright — it walks Money → a debt → the schedule entry and asserts both that the
+  schedule is visible *and* that the edit sheet is gone.
+- **06** covers `§11.10` (the cushion-floor slider drag is the walkthrough's one required gesture) and
+  **partially** `§11.7` — the *interruption* half is asserted (background, relaunch, step 3 intact);
+  Reduce Motion belongs to 4.1.7.
+- **03** is only `PARTIAL §4.1` — it asserts the UIMenu opens with Edit + Delete; "red/destructive", the
+  system blur and the haptic are feel and stay device-owed.
+
+⛔ **A REAL COVERAGE GAP, found by declaring honestly.** `§B2.3` requires the context menu to carry
+**"Log payment" first, above Edit/Delete** — and flow 03 asserts only `Edit` and `Delete`. **The flow
+passes with "Log payment" missing entirely.** Exactly the class `lint:selectors` exists for, one level up:
+the flow was written before A8's menu addition and nothing re-read it. Not fixed here — it is a flow edit
+that wants the native lane to confirm it → **4.1.5.6's batch**.
+
+**Design decisions worth keeping:**
+
+⚠️ **The declaration is a header block, not an inline banner, and the gate's limits are named in the file.**
+The claim sits where a reader editing the flow will see it, but the gate can only check it
+**structurally** — that the id exists and that its verdict permits automation. It cannot check that the
+assertions really test it. That limit is written into the script's own header, following the precedent of
+`lint:selectors` check ③, which was **renamed** when it turned out weaker than its name implied. A gate
+that overstates itself is how a green suite starts meaning "nothing else broke".
+
+⚠️ **The script is READ-ONLY on the checklist**, and says so. Ids and verdicts got there by one-shot
+codemods under review; the permanent instrument never writes to a file holding hand-recorded `[x]`
+results.
+
+⚠️ **`IDCHARS` is single-sourced** — the fix demanded by 4.1.6a.1's after-scan, where a second copy of the
+id charset omitted `§6a`/`§6b` and produced 14 false failures.
+
+**Proven to fail before being trusted, per T2 — 4 of 4 planted defects caught**, each with a message that
+names the fix: a `COVERS` on an id that is not a check · a `COVERS` on a `[D]` row (*"if the verdict is
+wrong, change the verdict deliberately and say why"*) · a `COVERS` on an `[M◐]` row where `PARTIAL` is
+correct · a checklist row stripped of its verdict tag. Baseline green before, tree restored green after.
+
+### 4.1.5's decomposed section retired to here
+
+Per the one-decomposed-section rule, 4.1.5's sub-table collapsed to a single plan row on 4.1.6a's
+promotion. Closed within it: **4.1.5.1** (iPad boot, 1032pt) · **4.1.5.2** (§11.15's ring-origin
+invariant, `d 0,0`) · **4.1.5.3** (§10's layout checks) · **4.1.5.4** (the route-push coach mark, gate
+168/168) · **4.1.5.5.1** (`i02-ipad-step5-landscape.yaml`, iPad 4/4 first try) · **4.1.5.5.3** (the callout
+anchored to the window on one axis; both axes now from `rect`). **Remaining: 4.1.5.6** (§11.8's rotation
+half) and **4.1.5.5.2** (Jason's verdict). Their before-scans — four refuted premises including "More's
+two-column", which §10 never specified — are recorded in the 2026-08-13 entries above.
