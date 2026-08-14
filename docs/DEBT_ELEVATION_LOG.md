@@ -9156,3 +9156,45 @@ four of the six premium-a11y bullets, which is the sub-audit 🎯 has said is ha
 
 ▶ **Order from here: `.7.4g`** (Info.plist fix on the fast lane) → **`.7.5`** (re-verdict + settle
 4.1.9's `[DECISION]`) → **4.1.9b** → **4.1.9c's writer** → **4.1.10**.
+
+---
+
+## 2026-08-14 (late) — ⭐ the iPad tier produces content for the first time (run `31827409093`)
+
+```
+[Passed] 01-launch-smoke (1m 32s)          [Passed] i01-ipad-boot (21s)
+[Passed] i02-ipad-step5-landscape (24s)    [Passed] i03-ipad-rotate-midstep (26s)
+[Passed] 05-tutorial-walkthrough (32s)
+```
+
+**5/5, and the whole tier ran in ~3 minutes of flow time.** ⚡ **The retry never fired** — no
+`iOS driver not ready in time`, no `retrying the tier` warning — so **the 420s raise alone was the fix**
+and the retry is now insurance rather than the mechanism. That is worth stating precisely, because both
+were shipped together and the cheap half is what worked.
+
+⛔ **Both prior iPad "results" were non-results.** The tier had never once produced a flow verdict: it
+stalled on driver startup and exited 1, which reads in every summary exactly like a failing tier. The
+cause was a 240s timeout that the iPhone step had already had raised to 420s after run 31646289268 lost
+a cycle to the identical exception — **the fix existed in the repo for a day, in one of the two places
+that needed it.** ⚠️ This is the third "two places, one rule" defect in this lane.
+
+✅ **4.1.5.6 CLOSES** — `i03-ipad-rotate-midstep.yaml` (§11.8(a)) and the dark-theme `i02` re-run both
+had their first real execution here.
+
+⚠️ **Open, and worth checking before trusting the iPad stamps:** §10.1 · §11.16 · §11.8 carry
+`✅auto·31812114150`, and that run's iPad tier reports `success` for 9m31s — but `continue-on-error`
+masks its true outcome, and the two runs on either side of it were stalls. Those three stamps may
+record a run in which the flows never executed. 4.1.9c's writer must derive stamps from per-flow
+results precisely so this cannot happen; until it exists, treat those three as unverified.
+
+### ⛔ Flow 10 failed identically, and my mechanism is refuted
+
+`[Failed] 10-walkthrough-edges (1m 45s) (Assertion is false: "^Visa$", id: field-debt-name is visible)`
+
+Same assertion, same selector, **with `eraseText: 80` in place**. So "the erase is bounded at ~50 and 64
+characters overflow it" is **wrong** — raising the count changed nothing. The surviving hypothesis is
+that `eraseText` is not clearing the field at all, and that the real discriminator is
+**anchored-vs-contains**, not length: the setup asserts `.*Chase Sapphire Preferred.*`, which still
+matches with `Visa` left in front of it, while the cleanup's `^Visa$` cannot tolerate any residue.
+⚠️ **Not asserting that either — the failure hierarchy in the artifact records the field's actual text,
+and that string decides it.** This is the second mechanism I have offered here without measuring first.
