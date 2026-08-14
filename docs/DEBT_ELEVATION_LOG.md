@@ -9034,11 +9034,14 @@ pipefail inside it. Both halves proven locally before commit: the retry fires, a
   `hermesc` appears **zero times**, `Verify the restored .app` is **skipped** (it is gated on
   `cache-hit == 'true'`), and the provenance line reads `SOURCE : COMPILED IN THIS RUN`. The cache
   **missed**, exactly as the key predicts.
-  ⚡ **The cause was mis-attribution, not mis-measurement:** the log text I reasoned from was pasted
-  from an *earlier* run — it matches `31816228911`, the pre-fix run that MOTIVATED commit `a4c1241` —
-  and I read it as the live one. 🎯 Jason caught it: *"I think the hermesc issue was resolved in the
-  last session."* ⚠️ **A pasted excerpt carries no run id.** Attribute it before building on it; two
-  conclusions were stacked on this one, including a needless retraction of a correct prediction.
+  ⚡ **The cause was mis-attribution, not mis-measurement:** the text was stale in Jason's clipboard
+  from a PREVIOUS SESSION — it matches `31816228911`, the pre-fix run that MOTIVATED `a4c1241` — and I
+  read it as the live run.
+  ⛔ **AND HE HAD ALREADY SAID SO.** *"I pasted the wrong thing"* came before I wrote any of this down,
+  and I treated it as superseding only the immediate reading while keeping every conclusion derived
+  from it — including a needless retraction of a prediction that had been correct. **When an input is
+  withdrawn, withdraw what was built on it**, not just the interpretation of it. That is the lesson;
+  "a pasted excerpt carries no run id" is the lesser one.
 - ⚠️ **The hermesc fix is written but UNEXERCISED.** All three runs since `a4c1241` — `31816919840`,
   `31822453981`, `31827409093` — missed the cache, so the re-bundle block never executed once. It is
   plausible and unproven, and only a cache-HIT run can settle it.
