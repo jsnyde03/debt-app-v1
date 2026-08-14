@@ -15,112 +15,59 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 
 | # | Step | State |
 |---|---|---|
-| **4.1.3** | ✅ **DONE 2026-08-12** — the lane went **0/8 → 5/8**, and flow 01 (the seed everything depends on) is green. Both ledgered "known fixes" were refuted; the real causes were a **42.7 s first hierarchy snapshot** and a **sticky CTA stack covering the form fields**. Detail → log | ✅ |
-| **4.1.3b** | **Flow ORDER is explicit** — the directory argument ran `01→05→02→06→03→08→07→04` (measured); Maestro specifies no ordering for a directory, so the suite was on unspecified behaviour and 04 ran after 07 wiped its seed | ✅ **DONE 2026-08-12.** Order held `01→…→08` across three runs; 04 green from this alone |
-| **4.1.3a** | **Cache the built `.app`** — measured: prebuild + pods + compile = **17m03s of a 31m47s job**, and **648 of ~650 compiles are third-party pods** that change only with the lockfile. Skips all three when no app input changed, which is the whole 4.1.4→4.1.11 loop. ⛔ Guarded against the stale-binary hazard: exhaustive key · **no `restore-keys`** · provenance printed every run + into the artifact · tags and `rebuild:true` bypass it. Detail → log | ✅ **DONE + VERIFIED 2026-08-12** — run `31617084361` hit: restore 1s, verify 1s, prebuild/pods/build/save all SKIPPED. **17m03s → 2s.** Artifact also 364 MB → 17 MB |
-| **4.1.4** | **`npm run lint:selectors`** — a flow is a claim about the app kept where the app never checks it. THREE enforced checks (ids exist · copy still exists · a typing flow must write-verify) + an advisory listing composed-label components whose text needs `.*`. In `lint:rn` → `validate:release:rn` | ✅ **DONE 2026-08-12.** All three proven to FAIL on planted defects before being trusted. ⚠️ Check ③ is weaker than its name suggested and was renamed to match; per-form scoping filed below. Scans → log |
-| **4.1.4c** | **⭐ THE COACH-MARK PROBE — and the three shipped defects it found.** A five-stage trace (`hook`·`layout`·`show`+guard·`measure`·`draw`) to both a QA readout and the unified log. It ended five rounds of refuted theories in one run. **① the suppressor was held by a MOUNTED tab, killing discovery for every new user · ② `accessible` collapsed the callout so VoiceOver could not dismiss it · ③ the subject measured mid-entrance (y=1702 on a 956pt screen) and drew off-screen.** Each was invisible until the one before it was fixed. Detail + all scans → log | ✅ **CLOSED 2026-08-13** |
-| **4.1.5.1** | **The iPad boot** — [D30]'s `device` input + `i01-ipad-boot.yaml`, selecting by **measured width** and failing loud below 1024pt. Detail → log | ✅ **DONE 2026-08-13.** iPad Pro 13-inch @ **1032pt**; `01` + `i01` green. ⚡ Measured: **only 13-inch iPads are `isExpanded`**; iPad mini is 744pt = the PHONE layout |
+| **4.1.3 – 4.1.5.1** | ✅ **CLOSED 2026-08-12/13.** The lane 0/8 → **8/8 on iPhone**: flow order made explicit · the `.app` cache (17m03s → 2s) · `lint:selectors` · ⭐ the coach-mark probe and the **three shipped defects** it found · the iPad boot at 1032pt. Detail + every scan → log | ✅ |
 | **4.1.5** | **The iPad tier's REAL checks.** 4.1.5.1–4.1.5.4 and **4.1.5.5 all closed** — 🎯 §11.16 judged 2026-08-14, **both edges PASS**, evidence + reasoning → [`evidence/2026-08-14-p11.16-ipad-landscape/`](evidence/2026-08-14-p11.16-ipad-landscape/README.md). **4.1.5.6 built 2026-08-14, awaiting its dispatch** — `i03-ipad-rotate-midstep.yaml` (§11.8(a)) + the dark-theme `i02` re-run. ⛔ The "nudge the scroll offset" fold-in was **refuted**: `TutorialOverlay` measures but never scrolls, so there is no offset — see the open defect below | ⏸ |
-| **4.1.6a** | ▶ **ACTIVE — `audit:coverage`, the definitive checklist.** Decomposed below | ▶ |
+| **4.1.6a** | ✅ **The instrument is DONE** (.1–.6). ▶ **Live part: 4.1.6a.7**, the XCUITest target — decomposed below | ▶ |
 | **4.1.6** | **§12.0 explore** — `09-demo-explore.yaml`, runs LAST and clears state (it needs the fresh-install door) | ✅ **BUILT 2026-08-14**, awaiting a dispatch. Covers §12.0.1 · .2 · .4 · .5 · .6 · .7. ⚠️ **.3 and .8 do NOT automate** — see below |
-| **4.1.7** | **AX + theme conditions** — §11.1 · §11.5 · §8's half. ⚠️ Reduce Motion needs an app-side observable first | |
-| **4.1.8** | §11's remainder — §11.9 · §11.13 · §11.11 | |
+| **4.1.7** | **AX + theme conditions** — §11.1 · §11.5 · §8's half. ⚠️ Reduce Motion needs an app-side observable. ⛔ **HOLD for 4.1.6a.7** — `performAccessibilityAudit()` covers most of §11.1/§11.5, so part of this may belong in XCUITest, not Maestro conditions | |
+| **4.1.8** | **§11's remainder** — `10-walkthrough-edges.yaml` (§11.9 · §11.11 · §11.13 frames) | ✅ **BUILT 2026-08-14**, awaiting its dispatch. All three verdicts → `[M◐]`; ⚠️ uses `eraseText`, unproven on this build |
 | **4.1.9** | ⛔ **RE-SCOPED 2026-08-14 — was "the Appium supplement".** ⚡ **Appium's whole unique value is THREE checks** (§10.5 ⌘N · §10.6 ⌘1/2/3 · §10.7 the ⌘ HUD) — measured, not estimated. An **XCUITest target** buys those same 3 natively, **plus ~16 springboard rows**, **plus 4 of the 6 premium-a11y bullets** via `performAccessibilityAudit()`, on the sim this lane already boots. ⚠️ §11.15 came off this row — 4.1.5.2 settled it app-side. **[DECISION] pending 4.1.6a.7's probe** | |
 | **4.1.10** | §12.1–§12.7 (15) — ⚠️ blocked on the deep-link door | |
 | **4.1.11** | **Reconcile — the exit.** ⚠️ **[4.1.5.1 after-scan] the coverage split must NOT count measurement flows** — `lint:selectors` now reports **9 flows** because `i01-ipad-boot.yaml` is one, and it is explicitly not coverage (every assertion in it holds on both layouts by design). Any 68/127 re-derivation that counts files will overstate itself | |
 
 ### ▶ 4.1.6a — `audit:coverage`, the definitive checklist _(active)_
 
-🎯 **Jason 2026-08-14:** *"I'm not cutting the CodeMagic build until we have a definitive checklist that
-covers everything that Maestro and Appium can verify. That's the whole point of 4.1."* ⛔ **That artifact
-does not exist, and today it cannot — measured: 103 of the checklist's 140 checkbox rows carry no id at
-all**, so a flow cannot name them, and the ten flows that exist cite just **15** distinct §ids in
-free-text comments nothing enforces. Same defect class `lint:selectors` was built for: *a claim kept
-somewhere other than where it is checked.* Runs **before 4.1.6** so every later item's exit is "these rows
-flipped", not archaeology across ten more flows at 4.1.11. Costs no CI cycles.
+🎯 **Why it exists** *(Jason 2026-08-14)*: *"I'm not cutting the CodeMagic build until we have a
+definitive checklist that covers everything that Maestro and Appium can verify"* — and *"the point of 4.1
+is to see how much of the 3.5 checklist I currently have for the device build will be covered."*
 
-🎯 **Clarified by Jason the same day:** *"the point of 4.1 is to see how much of the 3.5 checklist that I
-currently have for the device build will be covered by Maestro and/or Appium."* ⚡ **So the report is a
-THREE-way split, not two** — *covered today* · *coverable, not yet built* (= 4.1.6–4.1.9's remaining work)
-· *permanently device-owed* (= the checklist he takes to the phone). Verdict *(can it ever be automated)*
-and status *(is it automated yet)* are separate axes, and only the second comes from the flows.
+⭐ **Delivered:** [`audits/coverage-split.md`](audits/coverage-split.md), regenerated by `npm run
+audit:coverage` and gated by `lint:coverage`. A **three-way** split — *covered today* · *coverable, not
+yet built* (= 4.1's remaining work, enumerated per row) · *permanently device-owed* (= the pass Jason
+runs). **34 · 63 · 34; the device pass is 60 rows.** ⚠️ It has risen four times as each flow revealed what
+Maestro cannot assert — convergence, not drift. Full rationale + every scan → log.
 
 | # | Step | State |
 |---|---|---|
-| **4.1.6a.1** | **Give every check a stable id** — additive edit only; `[x]` state and inline device notes untouched, proven by a diff carrying nothing but id insertions | ✅ **DONE 2026-08-14.** 140 rows, 140 distinct ids, 104 inserted; verified 104/104 changed lines are pure id insertions and the 8 hand-recorded `[x]` survive |
-| **4.1.6a.2** | **Seed a per-check VERDICT** — `[M]` · `[M◐]` · `[A]` · `[D]` · `[—]`, tagged on the row so one row owns both facts. ⚠️ The 2026-08-11 audit recorded verdicts as **section counts**, not per check, so most are freshly judged. **Jason's to correct; mine to seed** | ✅ **DONE 2026-08-14.** All 140 resolved, no row unverdicted and no verdict unmatched: **69 `[M]` · 20 `[M◐]` · 3 `[A]` · 39 `[D]` · 9 `[—]`** |
-| **4.1.6a.2b** | 🎯 **Attack the `[D]` count** *(Jason: "how or what can we do to get that 39 lower")*. Five corrected from evidence already on disk — §12.6.2 (the header trait is in the a11y tree Maestro reads) · §B2.11 · §B2.13 · §B2.14 (plist/source facts) · §B2.12 → `[M◐]`. Detail → log | ✅ **DONE 2026-08-14. 39 → 34**, and totals are now **73 `[M]` · 21 `[M◐]` · 3 `[A]` · 34 `[D]` · 9 `[—]`** |
+| **4.1.6a.1 – .6** | ✅ **DONE 2026-08-14.** Every check given a stable id and an automation verdict (140 rows, additive, `[x]` preserved) · `COVERS:`/`PARTIAL:` declared across all 13 flows · `audit:coverage` → [`coverage-split.md`](audits/coverage-split.md) · `lint:coverage` in `lint:rn`, proven 4/4 on planted defects. ⭐ **34 covered · 63 to build · 34 device-only; the device pass is 60.** Detail + all scans → log | ✅ |
 | **4.1.6a.7** | ⭐ **The XCUITest-target probe — it gates ~16 more `[D]` rows.** §5 (widget ×7) · §6a/§6b.3 (Live Activity + Island ×8) · §10.3 are all `[D]` for one reason: *"springboard surfaces outside the app under test"* — true of Maestro, **not** of XCUITest, which drives `XCUIApplication(bundleIdentifier: "com.apple.springboard")`. Decomposed below | ▶ |
-| **4.1.6a.3** | **The declaration seam** — `COVERS:`/`PARTIAL:` per flow, written against each flow's **assertions**, not its prose header | ✅ **DONE 2026-08-14.** All 10 flows declared; every one re-parsed (`appId` + command counts intact) since Maestro validates a whole file before running any of it |
-| **4.1.6a.4** | **`npm run audit:coverage`** → [`audits/coverage-split.md`](audits/coverage-split.md) — the three-way split | ✅ **DONE 2026-08-14** |
-| **4.1.6a.5** | **Make it a GATE** — `lint:coverage`, in `lint:rn` → `validate:release:rn` | ✅ **DONE 2026-08-14. Proven 4/4 on planted defects** (unknown id · claiming a `[D]` · `COVERS` on an `[M◐]` · a row stripped of its verdict), tree restored green after |
-| **4.1.6a.6** | **Backfill + reconcile** — the real number, derived | ✅ **DONE 2026-08-14.** ⭐ **23 covered today · 74 coverable-not-built · 34 device-only.** 🎯 **The device pass is 55 rows** (34 `[D]` + 21 `[M◐]` halves) |
 
 **Exit:** `coverage-split.md` answers 🎯's question as a derived number — how much of the device checklist
 the lane will carry, how much it carries today, and the residual that is permanently a human with a phone.
 
 #### ▶ 4.1.6a.7 — the XCUITest target _(active)_
 
-| # | Step |
-|---|---|
+| # | Step | State |
+|---|---|---|
 | **.7.1** | **The config plugin** — `with-xcuitest-target.js` | ✅ **DONE 2026-08-14.** Registered in `app.json`; the pbxproj mutation is an exported pure function so .7.2 tests the shipping code, not a copy |
 | **.7.2** | **A LOCAL pre-flight** — `npm run preflight:xcuitest` | ✅ **DONE 2026-08-14. 16 structural checks pass** against a real `project.pbxproj`, and it caught **4 defects** in the plugin before any CI cycle. Detail → log |
 | **.7.3** | **`CoverageProbeUITests.swift`** — one springboard reach assertion + one `performAccessibilityAudit()` call, the smallest thing that proves both payoffs | ✅ **DONE 2026-08-14.** Deliberately non-failing on a11y *findings* — this run establishes the mechanism executes, not a verdict on 40 pre-existing issues |
-| **.7.4** | ▶ **Batch onto the native lane** with 4.1.5.6, flow 03's §B2.3 gap, and the Hermes fast-path's second run | ▶ **the next dispatch** |
+| **.7.4** | **Batch onto the native lane** | ▶ **DISPATCHED 2026-08-14** — run `31812114150`, carrying flow 08's probe relocation · flows 09 + 10 (first run ever) · `i03` + the dark frame · the springboard/a11y probe |
 | **.7.5** | **Re-verdict** whatever it proves, and settle 4.1.9's [DECISION] | |
 
 ⚠️ **[.7.1 risk note] The app target does NOT depend on the test bundle** (the direction was inverted on
 the first pass and the pre-flight caught it), so `xcodebuild build` is unaffected — only `xcodebuild test`
 reaches the new target. That is what keeps .7.4 from being able to red the whole lane.
 
-⛔ **[4.1.6a.7 before-scan] My own mechanism was HALF WRONG, and measuring caught it before I built.** I
-proposed that `@bacons/apple-targets` (already installed, `^5.0.0`, already driving `targets/widget`) made
-this cheap. **It has no `ui-test` or `unit-test` type** — its table is app *extensions* only. ✅ What IS
-real: `with-app-intents.js` already does CNG-safe pbxproj work via `withXcodeProject`, so the *pattern* is
-shipped here. ⚠️ And the `xcode` lib maps `unit_test_bundle` but **not** `ui_test_bundle` — no
-`com.apple.product-type.bundle.ui-testing` in `PRODUCTTYPE_BY_TARGETTYPE`, so the target is created as a
-unit-test bundle and its `productType` patched after. **The `.xcscheme` Test action is not managed by that
-lib at all** and needs its own `withDangerousMod`. The filed item's *"its own item, not an add-on"* was
-right; its *"pbxproj surgery"* framing overstates it given the precedent.
-
-⚠️ **[4.1.6a.7 before-scan] This workstation is Windows** — `expo prebuild` for iOS and `xcodebuild test`
-are macOS-only. The plugin is JS operating on a project file, so **.7.2 can prove it locally**; only "does
-Xcode accept the target" needs the runner. That split is what keeps this to one CI cycle.
-
 ⚠️ **The verdict column is a CLAIM ABOUT WHAT IS POSSIBLE, and this lane has been wrong about that
 repeatedly** — the audit's own ⌘-key correction, `~/.maestro`'s 1m29s that was 22s, "no hierarchy dump",
 ccache's two wrong mechanisms. A `[D]` that is really an unproven `[M]` silently keeps a check on the
 manual pass forever. Seeded verdicts are a **hypothesis per row**, not a settled split.
 
-⭐ **[4.1.6a.2 after-scan] THE APPIUM LANE IS WORTH THREE CHECKS.** `[A]` totals **3 of 140** — §10.5
-(⌘N), §10.6 (⌘1/2/3), §10.7 (the ⌘ HUD) — and nothing else in the file needs a capability Maestro lacks.
-**4.1.9 is an entire second automation lane for three modifier-key rows.** The plan already flags
-`performAccessibilityAudit()` as "arguably a better use of 4.1.9's slot"; this prices it. → **[DECISION]
-at 4.1.9**, on the reconciled numbers rather than the estimate that promoted it.
-
-⚠️ **[4.1.6a.2 after-scan] The device pass is 59 rows, not 39.** 20 `[M◐]` rows keep a device-owed half,
-so "how much comes off my plate" is **not** the `[D]` count — every partial still needs a human for the
-part the lane cannot reach. `coverage-split.md` must report the partials as their own column or it
-overstates the relief, which is exactly 4.1.11's warning in a new place.
-
 ⚠️ **[4.1.6a.2 after-scan] Two verdicts are CONDITIONAL on an item that is not built.** `§B3.6` and
 `§11.7` are `[M◐]` only if RN's `AccessibilityInfo` observes the `simctl` Reduce-Motion write — the source
 audit's own "least certain" probe item. **If 4.1.7 finds it does not, both fall back to `[D]`** and the
 floor rises by two.
-
-⛔ **[4.1.6a before-scan] The audit's "127 real checks" is already STALE** — 140 checkbox rows today
-against its 2026-08-11 accounting of 136. Every number quoted from
-`audits/2026-08-11-maestro-coverage/` is now approximate, which is the argument for a generated artifact
-rather than a re-counted one.
-
-⚠️ **[4.1.6a before-scan] The checklist holds state that is NOT regenerable** — 8 rows carry hand-recorded
-`[x]` device results and at least one carries an inline finding (§4's *"NO SYSTEM BLUR"*). The instrument
-**reads** it and emits a separate report; it never rewrites it. Same class as a review log.
-
-⚠️ **[4.1.6a before-scan] An id in a row's body is not that row's id.** §9's "priority order" row cites
-§11.9 and a naive parse read it as a second definition. The id must be the row's **leading token** —
-measured, that takes 39 → **37** and the false duplicate disappears.
 
 **Iterate with `-f device=ipad`** — skips the ~10-minute iPhone suite; flow-only edits hit the `.app`
 cache. [D30]'s input already does it, no workflow change. ⚠️ Any `src/**` change busts that cache — one
