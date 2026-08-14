@@ -328,8 +328,18 @@ jobs:
           # magic check (both are Hermes) and fail at launch instead. The binary that built the cached
           # .app is the one in this checkout's pods/node_modules, and the lockfile is in the cache key, so
           # they cannot drift apart.
+          # ⛔ THE FIRST CANDIDATE IS THE ONLY ONE THAT EXISTS ON RN 0.85, and its absence is why the fast
+          # path had never once executed. Run 31816228911 hit the cache, verified the .app and bundled the
+          # JS in 34s — then fell back to a full rebuild on "hermesc not found in this tree". The three
+          # paths below it are correct for RN ~0.7x, where the compiler lived in `react-native/sdks/`.
+          # On 0.85 it moved into its OWN package: `react-native/sdks/` now contains only `hermes-engine`,
+          # and the compiler ships at `node_modules/hermes-compiler/hermesc/`. Measured in this tree.
+          # ⚠️ The older paths are KEPT, not replaced — they cost one `-x` test each and they are what a
+          # different RN version would need. The list is ordered most-current first.
           HERMESC=""
           for cand in \
+            "node_modules/hermes-compiler/hermesc/osx-bin/hermesc" \
+            "../../node_modules/hermes-compiler/hermesc/osx-bin/hermesc" \
             "ios/Pods/hermes-engine/destroot/bin/hermesc" \
             "node_modules/react-native/sdks/hermesc/osx-bin/hermesc" \
             "../../node_modules/react-native/sdks/hermesc/osx-bin/hermesc"; do
