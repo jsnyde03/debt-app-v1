@@ -51,24 +51,32 @@ export function DemoDock() {
       style={[
         styles.dock,
         { backgroundColor: c.background.secondary, borderTopColor: c.border.subtle, paddingBottom: insets.bottom + spacing.base },
-      ]}
-      // One utterance: a screen reader should hear what this is and where it is, not three fragments.
-      accessible
-      accessibilityLabel={`Example money. Demonstration, ${position} of ${DEMO_STAGES.length}.`}>
-      {/* Position only — the "Example money" disclosure belongs to `ExampleCanvasMarker`, which sits at
+      ]}>
+      {/* ⛔ `accessible` USED TO LIVE ON THIS OUTER VIEW, and it collapsed both exits out of existence.
+          iOS treats `accessible` as "this subtree is ONE element", so the Button and the Pressable below
+          stopped being reachable for VoiceOver entirely — §12.6.3 requires exactly the opposite ("you can
+          reach the dock's two exits"). Found by `lint:a11y-collapse` (T5) on its first run, 2026-08-14;
+          the same shape as 4.1.4c's defect ② on the coach-mark card and B.4's swipe pane.
+          ⚡ §12.6.4 ("reads as ONE utterance") and §12.6.3 were never actually in conflict — the grouping
+          only ever needed to cover the TEXT. The controls were inside it by container accident. */}
+      <View
+        accessible
+        accessibilityLabel={`Demonstration, ${position} of ${DEMO_STAGES.length}.`}>
+        {/* Position only — the "Example money" disclosure belongs to `ExampleCanvasMarker`, which sits at
           the TOP of the screen beside the figures it is about. Both said it at first, which is the same
           doubling [D6] refused in the walkthrough, arriving from the other direction: there the dock owns
           the marker and the canvas withholds, here the canvas owns it because it cannot scroll away from
           the money. Caught by looking at the render, not by a test. */}
-      <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-        {position} of {DEMO_STAGES.length}
-      </Text>
+        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+          {position} of {DEMO_STAGES.length}
+        </Text>
 
-      {/* Approved 2026-08-06. The primary exit is the honest one — this was a demonstration, here is YOUR
+        {/* Approved 2026-08-06. The primary exit is the honest one — this was a demonstration, here is YOUR
           empty plan — and Premium is offered without being the way out. */}
-      <Text style={[textStyles.body, { color: c.text.primary }]}>
-        This is what your Guardian does with a paycheck.
-      </Text>
+        <Text style={[textStyles.body, { color: c.text.primary }]}>
+          This is what your Guardian does with a paycheck.
+        </Text>
+      </View>
 
       <Button label="Start my real plan" onPress={() => exitDemo('/onboarding')} />
       <Pressable
