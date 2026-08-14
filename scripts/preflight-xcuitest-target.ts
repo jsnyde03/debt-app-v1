@@ -121,8 +121,47 @@ for (const id of cfgIds) {
   check(`${name}: TEST_TARGET_NAME binds to the app`, s.TEST_TARGET_NAME === `"${appTargetName}"`,
     `got ${s.TEST_TARGET_NAME} — without this the bundle is not runnable as a UI test`);
   check(`${name}: SWIFT_VERSION is set`, !!s.SWIFT_VERSION);
+  // ⛔ `addTarget` SETS BOTH, AND XCODE OBEYS THE ONE THAT NAMES A FILE NOBODY WRITES.
+  // Run 31827409093 got past the doubled source path and died one layer out:
+  //   ProcessInfoPlistFile … CoverageProbeUITests-Info.plist
+  //   error: Build input file cannot be found: '…/ios/CoverageProbeUITests/CoverageProbeUITests-Info.plist'
+  // `GENERATE_INFOPLIST_FILE = YES` is the modern answer and needs no file on disk — but the lib also
+  // writes `INFOPLIST_FILE = <Target>/<Target>-Info.plist`, and a stale INFOPLIST_FILE wins. The plugin
+  // deletes it; this asserts the deletion, because "we set GENERATE_INFOPLIST_FILE" was already true
+  // when the build failed. ⚠️ Two settings for one decision is the "two places, one rule" shape again.
+  check(`${name}: no stale INFOPLIST_FILE alongside GENERATE_INFOPLIST_FILE`,
+    s.GENERATE_INFOPLIST_FILE === 'YES' && s.INFOPLIST_FILE === undefined,
+    `GENERATE=${s.GENERATE_INFOPLIST_FILE} INFOPLIST_FILE=${s.INFOPLIST_FILE} — Xcode will try to read that path, and nothing writes it`);
   check(`${name}: iPad is a target device family`, String(s.TARGETED_DEVICE_FAMILY).includes('2'),
     'the springboard + §10 checks are iPad-side');
+}
+
+// ── ⭐ THE GENERAL FORM OF THE LAST TWO FAILURES — stop paying a CI cycle per layer ────────────────
+//
+// Runs 31822453981 and 31827409093 failed on the same shape twice, one layer apart: a reference to a
+// path under `CoverageProbeUITests/` that NOTHING WRITES. First a source file (the group's path was
+// repeated), then an Info.plist (`addTarget` names one and the plugin never creates it). Each cost a
+// ~40-minute cycle to discover, and each was fully determined by the pbxproj this script already holds.
+//
+// So: every build-setting value that points INTO the target's directory must name a file the plugin
+// actually produces. The dangerous mod writes exactly SWIFT_FILES there and nothing else.
+// ⚠️ SEPARATORS ARE NORMALISED. The `xcode` lib builds these with `path.join`, so the same code yields
+// `CoverageProbeUITests\…` here and `CoverageProbeUITests/…` on the runner — comparing the raw string
+// would make this check pass on macOS and fail on Windows, or the reverse.
+const WRITTEN = new Set<string>(SWIFT_FILES.map((f: string) => `${TARGET_NAME}/${f}`));
+for (const id of cfgIds) {
+  const s = configs[id].buildSettings;
+  const name = configs[id].name;
+  const dangling = Object.entries(s)
+    .map(([k, v]) => [k, String(v).replace(/"/g, '').replace(/\\/g, '/')] as [string, string])
+    .filter(([, v]) => v.includes(`${TARGET_NAME}/`) && !v.includes('$('))
+    .filter(([, v]) => !WRITTEN.has(v));
+  check(
+    `${name}: no build setting points at a file nothing writes`,
+    dangling.length === 0,
+    dangling.map(([k, v]) => `${k}=${v}`).join(', ') +
+      ` — the plugin writes only ${[...WRITTEN].join(', ')}. This is the general form of the doubled source path AND the missing Info.plist.`,
+  );
 }
 
 // ── the dependency, AND its direction ─────────────────────────────────────────────────────────────

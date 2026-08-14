@@ -9035,3 +9035,62 @@ pipefail inside it. Both halves proven locally before commit: the retry fires, a
   hypothesis and it is **UNMEASURED** — do not act on it without printing what the runner actually sees.
   ⚠️ It also means "the workflow edit busts the `.app` key, so this rebuilds" was wrong: the key hit and
   the rebuild came from the hermesc fallback instead.
+
+---
+
+## 2026-08-14 (late) — `31827409093`: the path fix worked, and the probe failed one layer out
+
+### ⭐ Confirmed fixed
+
+```
+SwiftEmitModule normal arm64 Emitting module for CoverageProbeUITests
+SwiftCompile   normal arm64 …/ios/CoverageProbeUITests/CoverageProbeUITests.swift
+```
+
+The doubled path is gone and **the Swift compiled** — the group-path fix was right, and the pre-flight
+check that reproduced it locally is now permanent. The scheme testable landed again (new
+`BlueprintIdentifier`, as expected — uuids are regenerated per prebuild).
+
+### ⛔ And then died on an Info.plist nothing writes
+
+```
+ProcessInfoPlistFile …/CoverageProbeUITests-Runner.app/…/Info.plist …/ios/CoverageProbeUITests/CoverageProbeUITests-Info.plist
+error: Build input file cannot be found: '…/ios/CoverageProbeUITests/CoverageProbeUITests-Info.plist'
+```
+
+Measured locally rather than guessed — dumping the generated settings shows `addTarget` writes **both**:
+
+```
+GENERATE_INFOPLIST_FILE = YES
+INFOPLIST_FILE = "CoverageProbeUITests/CoverageProbeUITests-Info.plist"
+```
+
+⚠️ **Setting `GENERATE_INFOPLIST_FILE` was never enough — Xcode obeys the key that names a file, and the
+stale key has to GO.** Two settings expressing one decision, and the loser wins. The plugin now deletes
+`INFOPLIST_FILE`; after the delete **no build setting on the target references a file path at all** —
+every remaining value is a flag, an identifier or a `$(…)` variable.
+
+### ⭐ The general lesson, and the check that ends the pattern
+
+⛔ **Three CI cycles have now each bought exactly ONE layer**, and both build failures were the same
+shape: *a reference to a path under `CoverageProbeUITests/` that nothing writes* — first a source file,
+then an Info.plist. Both were **fully determined by the pbxproj the pre-flight already holds**, and each
+cost ~40 minutes to learn from a runner instead.
+
+So the pre-flight gained a **general** guard: every build-setting value pointing into the target's
+directory must name a file the plugin actually produces (the dangerous mod writes exactly `SWIFT_FILES`
+there). Planting the Info.plist regression back trips **4 assertions**; the clean plugin passes.
+⚠️ **Separators are normalised** — the lib builds these with `path.join`, so identical code yields
+`CoverageProbeUITests\…` here and `…/…` on the runner. Comparing the raw string would make the check
+pass on macOS and fail on Windows, which is a pre-flight that lies about the thing it exists to check.
+
+**Pre-flight: 16 → 31 → 33 → 37.** ⚠️ I cannot promise there is no fourth layer — only that the two
+that have appeared, and the general shape they share, are now caught in one second instead of forty
+minutes.
+
+### What `31827409093` is still worth
+
+The probe is dead for this cycle (`.7.4c` correctly skips on the compile's `outcome`), but the run was
+already past that step and still carries **flow 10's `eraseText: 80`** and **the iPad tier's
+timeout+retry parity** — the two questions it was dispatched to answer. Left to finish; the Info.plist
+fix rides `.7.4f`.

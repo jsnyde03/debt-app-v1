@@ -114,6 +114,12 @@ function applyXcuitestTarget(project, { appTargetName, bundleId }) {
   const list = project.pbxXCConfigurationList()[listId];
   for (const { value: cfgId } of list.buildConfigurations) {
     Object.assign(configs[cfgId].buildSettings, settings);
+    // ⛔ edge ④: `addTarget` ALSO writes `INFOPLIST_FILE = <Target>/<Target>-Info.plist`, and Xcode
+    // obeys it over `GENERATE_INFOPLIST_FILE = YES`. Nothing in this plugin creates that file, so run
+    // 31827409093 compiled the Swift and then died on
+    // `ProcessInfoPlistFile … error: Build input file cannot be found`. Assigning GENERATE was never
+    // enough — the stale key has to GO. ⚠️ Two settings expressing one decision, and the loser wins.
+    delete configs[cfgId].buildSettings.INFOPLIST_FILE;
   }
 
   // ⚠️ `addTargetDependency` writes into the PBXTargetDependency and PBXContainerItemProxy sections and
