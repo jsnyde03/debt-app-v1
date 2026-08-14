@@ -9244,3 +9244,56 @@ verification should be a cache **HIT**, skipping the 485–866s build entirely.
 `cache-hit == 'true'` and has never executed. So one dispatch answers two questions: whether the `repeat`
 erase converges, and whether the re-bundle path works. If hermesc fails it falls back to a full build and
 prints why — informative either way.
+
+---
+
+## 2026-08-14 (late) — ⭐ THE PROBE RAN. SpringBoard reach is PROVEN.
+
+Run `31830120940`, the first `scope=xcuitest` dispatch. `** TEST BUILD SUCCEEDED **`, a real
+`.xctestrun` (`DebtPlannerRN_iphonesimulator26.2-arm64.xctestrun`), **2 tests executed**.
+
+### ⭐ ① SpringBoard reach — PROVEN, and it is the half that gates the most
+
+```
+PROBE springboard.reachable=true springboard.elements=241
+Test Case '…testSpringboardIsReachable' passed (1.948 seconds)
+```
+
+**Reachable AND inspectable.** The element count was the real question — activating SpringBoard is not
+the same as being able to READ its tree, and reach without inspection would have unlocked nothing. 241
+nodes is an inspectable tree.
+
+⚡ **This releases the single stated reason §5 (widget ×7), §6a/§6b.3 (Live Activity + Dynamic Island ×8)
+and §10.3 are filed device-only** — *"springboard surfaces outside the app under test"*, which is true of
+Maestro and false of XCUITest. ~16 `[D]` rows become reclassifiable. ⚠️ **Reach is not coverage:** this
+authorises building those checks, it does not pass them.
+
+⚡ It also substantially settles **4.1.9's `[DECISION]`**: Appium's whole unique value was three checks,
+and XCUITest delivers the springboard capability those needed plus ~16 rows Appium never offered.
+
+### ⛔ ② The accessibility audit EXECUTES and TIMES OUT — a scoping problem, not a capability one
+
+```
+CoverageProbeUITests.swift:59: error: … failed: caught error:
+"Error Domain=com.apple.xcode.xctest.accessibilityAudit Code=-56
+ "Audit failed to complete in time""
+Test Case '…testAccessibilityAuditRuns' failed (47.657 seconds)
+```
+
+⚠️ **Read this precisely.** `performAccessibilityAudit` is present, was invoked, and ran for **47
+seconds** before XCTest's own limit stopped it. That is not "unavailable" and not "unsupported" — the
+mechanism works and the whole-app `.all` audit of Today is simply too much for it on a CI simulator
+running a Release RN build. The probe's own design held: it reported rather than concealing, and the
+failure is legible.
+
+▶ **Next is a MEASUREMENT, not a guess** (`.7.4h`): audit **per type** with timing, catching each
+separately, so one run says which audit types complete and which are slow — rather than betting a cycle
+on one narrowed combination. The four types that matter to the premium-a11y sub-audit are contrast,
+hit-target size, clipped text at AX sizes, and traits; knowing which of those individually complete is
+the actual answer, and a per-type map gives it in a single dispatch.
+
+### ⏱ The fast lane, measured
+
+**20m24s** (18:45:09 → 19:05:33) against ~45–55 for a full `both` cycle — with a full rebuild included,
+since the plugin change busted the `.app` key. ⚠️ **My estimate was ~15; the honest number is ~20.**
+`Install Maestro` and `Run Maestro flows` both show `skipped`, so the lane did exactly what it claimed.
