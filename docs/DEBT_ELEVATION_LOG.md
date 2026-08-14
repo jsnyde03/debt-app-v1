@@ -8849,3 +8849,61 @@ disappears — a step that stops running looks exactly like a probe that found n
 hit, so there is no workspace and no `.xctestrun`. Gating on `steps.xctestbuild.outcome` rather than on
 `usable` keeps the two in step by construction. Caching the `.xctestrun` + `-Runner.app` beside the `.app`
 lifts it, and it belongs to 4.1.9b with the rest of the cache work.
+
+---
+
+## 2026-08-14 (late) — 4.1.9c's reader: claimed is not proven, and two of the item's premises were wrong
+
+Built during the wait on run `31822453981` (no CI available — `concurrency.cancel-in-progress` means a
+second dispatch on `v1.7-dev` would have killed it).
+
+### ⛔ The item was a hypothesis, and measuring it moved two numbers and killed one mechanism
+
+- **"Today's 34"** — 34 is the count of `COVERS:`/`PARTIAL:` **declarations**, which is what
+  `lint:coverage` prints. The number of distinct **checks** claimed is **33**. The plan row and the
+  session close disagreed (34 vs 33) because they were quoting two different quantities.
+- **"10 of them have never executed once"** — measured **8**: `§12.0.1 · .2 · .4 · .5 · .6` (flow 09)
+  and `§11.9 · §11.11 · §11.13` (flow 10). Both flows have never gone green.
+- ⛔ **"flow 08's six were red on the last two runs while still counting" — REFUTED.** Pulled run
+  `31812114150`'s failed-step log: `01`–`08` all `[Passed]`, and only `09` (`Element not found: Text
+  matching regex: .*Visa.*`) and `10` (`id: guardian-example-marker is visible`) failed. Flow 08 passed
+  in **1m 40s**. All 24 existing stamps trace to a flow that passed.
+- So **"~23" was near-right for a wrong reason** — the measured figure is **25**, and the gap is the 8
+  never-run rows, not six phantom red ones. ⚡ Same shape as `[[measure-agent-mechanisms]]`: the
+  recommendation was sound, the stated mechanism was not.
+
+### What shipped
+
+`coverage-split.ts` now reads the `✅auto·<runId>` stamp and separates **claimed** from **proven**:
+
+| | |
+|---|---:|
+| ✅ Covered — **PROVEN** | **25** (24 machine-earned · 1 human) |
+| ⚠️ Claimed but **UNPROVEN** | **8** |
+| ▶ Coverable, not built | 64 |
+| 🎯 Device-owed | 34 (the pass is 60) |
+
+⭐ **Three new gate checks on the stamp's own integrity**, none of which existed: a stamp on a row no
+flow declares (untraceable) · a stamp on a `[D]`/`[—]` row (cannot be machine-proven) · a stamp on an
+unticked box (half a record, against 🎯's "as items are proven, they should be checked off").
+**All three proven on planted defects, 3/3, with the clean file still passing** — the standard the
+original gate was held to. The planting harness reverts through `git checkout` and refuses to run on a
+dirty checklist, because that file's hand-recorded results are not regenerable.
+
+⚡ **The report now prints machine-earned rows BY RUN**, and the first thing it says is that all 24 come
+from one. One run is one sample: it proves those flows passed once, at one commit, on one runner. A
+regression cannot be seen until a second run disagrees — which the report now makes visible rather than
+leaving as an assumption behind a single number.
+
+### ⚠️ [after-scan] For 4.1.9b's writer
+
+⛔ **A stamp written past the CR makes the row unparseable.** The checklist is CRLF; appending a stamp
+after the `\r` puts it outside `(.*)$` (JS `.` does not match `\r`) and the row stops matching `ROW_RE`
+entirely. Found by my own planting harness doing exactly that. ⭐ **The gate catches it loudly** —
+"checkbox row without a `[verdict]` + `**§id**`" — so the failure mode is a red gate, not a silent
+mis-count. The writer must insert **before** the line terminator, and this is the test for it.
+
+⚠️ **The stamp records a RUN, not a flow verdict.** Nothing in `✅auto·31812114150` distinguishes "the
+flow claiming this row passed" from "that run happened". It was accurate this time only because whoever
+placed the 24 excluded the red flows by hand. The writer must derive stamps from per-flow results, or it
+will reproduce by machine the error a human happened not to make.
