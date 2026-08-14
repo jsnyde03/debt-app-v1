@@ -234,8 +234,8 @@ precedence explicitly on 2026-08-14. When either closes, its section collapses t
 | # | Step | State |
 |---|---|---|
 | **.1** | **`Slider` reports its value on web** — the WCAG AA blocker | ✅ **DONE 2026-08-14.** `a11yAdjustableValue` in `utils/a11y.ts`; `aria-value*` is the form RN expands to BOTH platforms, so it is one rule in one place. Explicit e2e assertions — `a11y-axe` cannot see this class |
-| **.2** | **The embed build FLAG that omits analytics** — a flag, not a runtime toggle | |
-| **.3** | **Storage discipline** — `sessionStorage` only, no `localStorage`/`IndexedDB` | |
+| **.2** | ~~The embed build FLAG that omits analytics~~ | ⛔ **COLLAPSED 2026-08-14 — nothing to omit.** Verified across 7 surfaces: the funnel has **no sink and no SDK** (closed literal union), Sentry is `.web.ts` no-op, RevenueCat is stubbed, `expo-updates` absent, CanvasKit `locateFile`s to the local wasm, no CDN host in `dist/`, and the only absolute URLs are two *link targets*. A flag would add a second mechanism where a stronger one already holds |
+| **.3** | ⭐ **Storage discipline** — `sessionStorage` only, no `localStorage`/`IndexedDB` | ▶ **NEXT, and this is where the build variant genuinely belongs.** `createAdapter.web.ts` writes one JSON blob to `localStorage` *"so reloads persist"* — deliberate for the app, disallowed for the embed |
 | **.4** | ⭐ **The zero-egress Playwright gate** holding all three claims, in `validate:release:rn` | ⚠️ **Before .6, deliberately** — the gate exists before anything is public, not after |
 | **.5** | **Embed entry** — the `scripted` run as the default route | |
 | **.6** | **GitHub Pages deploy** of `dist` | |

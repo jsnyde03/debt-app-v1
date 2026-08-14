@@ -9360,3 +9360,33 @@ the displayed amount changed.
 a WCAG failure the embed makes public — applies to any of them on the embed's surface.** Not folded in:
 the Slider is the stated blocker and the audit gate already owns [3.7.B.4]. Re-check at **.5**, when the
 embed's actual surface is known.
+
+### [3.5.7.2 before-scan] The analytics flag has nothing to omit — and the mechanism belongs to .3
+
+[D32] asked for *"No analytics in the embed build — a build flag, not a runtime toggle"*, on the
+reasoning that *"a toggle can be flipped, a flag that omits the code cannot."* The reasoning is sound;
+the premise is not. **Seven surfaces checked, all already clean:**
+
+| surface | state |
+|---|---|
+| the funnel | **no sink, no vendor SDK** — *"track forwards to a sink that is null until something installs one, and nothing does yet"*; payloads are a closed union of literals, so financial data cannot pass even by mistake |
+| Sentry | `sentry.web.ts` is a no-op and keeps `@sentry/react-native` out of the web bundle entirely |
+| RevenueCat | `purchasesClient.web.ts` stub |
+| `expo-updates` | not installed (it would phone home) |
+| CanvasKit wasm | `locateFile: (file) => "/" + file` — pinned to the locally-served copy in BOTH web canvases |
+| CDN hosts | none referenced anywhere in built `dist/` |
+| absolute URLs | two, both **link targets** in `legal.ts` — a link is not a request until tapped |
+
+⛔ **So a build flag would add machinery to omit code that does not exist**, and would put a second
+mechanism behind a claim a stronger one already holds — no SDK at all beats a flag that removes one.
+**.2 collapses.**
+
+### ⭐ And the inversion: the variant IS needed, for storage
+
+`createAdapter.web.ts` writes **one JSON blob to `localStorage`** — *"so reloads persist (real persistence
+on web)"*. Correct and deliberate for the app; **disallowed for the embed**, which [D32] requires to use
+`sessionStorage` only, cleared on exit. ⚡ **The mechanism [D32] wanted for analytics is genuinely needed
+one item over.** That is what .3 now carries, and it is the substantive half of the privacy stance.
+
+⚠️ The `.web.ts` platform-split is the repo's proven pattern for exactly this shape, so the variant has a
+precedent to follow rather than a new mechanism to invent.
