@@ -64,11 +64,15 @@ the lane will carry, how much it carries today, and the residual that is permane
 
 | # | Step |
 |---|---|
-| **.7.1** | **The config plugin** — `with-xcuitest-target.js`, patterned on `with-app-intents.js` (the shipped precedent: `withDangerousMod` to place sources + `withXcodeProject` to touch the pbxproj) |
-| **.7.2** | **A LOCAL pre-flight** — apply the plugin to a fixture `project.pbxproj` and assert the resulting structure. ⚡ The repo's own lesson: *"No local pre-flight for the capture path — a ~40-line check would have caught several CI cycles' worth of defects"* |
-| **.7.3** | **One springboard assertion + one `performAccessibilityAudit()` call** — the smallest thing that proves both payoffs, not a suite |
-| **.7.4** | **Batch it onto the native lane** with 4.1.5.6 and the Hermes fast-path's second run |
-| **.7.5** | **Re-verdict** whatever it proves, and settle 4.1.9's [DECISION] |
+| **.7.1** | **The config plugin** — `with-xcuitest-target.js` | ✅ **DONE 2026-08-14.** Registered in `app.json`; the pbxproj mutation is an exported pure function so .7.2 tests the shipping code, not a copy |
+| **.7.2** | **A LOCAL pre-flight** — `npm run preflight:xcuitest` | ✅ **DONE 2026-08-14. 16 structural checks pass** against a real `project.pbxproj`, and it caught **4 defects** in the plugin before any CI cycle. Detail → log |
+| **.7.3** | **`CoverageProbeUITests.swift`** — one springboard reach assertion + one `performAccessibilityAudit()` call, the smallest thing that proves both payoffs | ✅ **DONE 2026-08-14.** Deliberately non-failing on a11y *findings* — this run establishes the mechanism executes, not a verdict on 40 pre-existing issues |
+| **.7.4** | ▶ **Batch onto the native lane** with 4.1.5.6, flow 03's §B2.3 gap, and the Hermes fast-path's second run | ▶ **the next dispatch** |
+| **.7.5** | **Re-verdict** whatever it proves, and settle 4.1.9's [DECISION] | |
+
+⚠️ **[.7.1 risk note] The app target does NOT depend on the test bundle** (the direction was inverted on
+the first pass and the pre-flight caught it), so `xcodebuild build` is unaffected — only `xcodebuild test`
+reaches the new target. That is what keeps .7.4 from being able to red the whole lane.
 
 ⛔ **[4.1.6a.7 before-scan] My own mechanism was HALF WRONG, and measuring caught it before I built.** I
 proposed that `@bacons/apple-targets` (already installed, `^5.0.0`, already driving `targets/widget`) made

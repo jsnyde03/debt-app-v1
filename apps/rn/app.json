@@ -46,6 +46,7 @@
       "./plugins/with-ios-utilities-rootcontentview-fix.js",
       "./plugins/with-live-activities.js",
       "./plugins/with-app-intents.js",
+      "./plugins/with-xcuitest-target.js",
       [
         "expo-audio",
         {

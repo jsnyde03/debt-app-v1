@@ -8463,6 +8463,54 @@ names the fix: a `COVERS` on an id that is not a check · a `COVERS` on a `[D]` 
 wrong, change the verdict deliberately and say why"*) · a `COVERS` on an `[M◐]` row where `PARTIAL` is
 correct · a checklist row stripped of its verdict tag. Baseline green before, tree restored green after.
 
+### 4.1.6a.7.1–.7.3 — the XCUITest target, and what the pre-flight caught (2026-08-14)
+
+`apps/rn/plugins/with-xcuitest-target.js` + `apps/rn/plugins/xcuitest-swift/CoverageProbeUITests.swift`,
+registered in `app.json`. `npm run preflight:xcuitest` → **16 structural checks against a real
+`project.pbxproj`**, on Windows, where neither `expo prebuild --platform ios` nor `xcodebuild` can run.
+
+⭐ **The pre-flight paid for itself four times before a single CI minute was spent.**
+
+**① The dependency direction was inverted.** `addTargetDependency(t, deps)` makes `t` depend on `deps`,
+and I had written `addTargetDependency(appTarget, [testTarget])` — every app build would have dragged the
+test bundle in. Caught by an assertion written to check the direction specifically, not merely that a
+dependency existed.
+
+**② `addTargetDependency` silently adds NOTHING when the sections are absent.** It writes into
+`PBXTargetDependency` and `PBXContainerItemProxy` and does not create them. A single-target project has
+neither, so the call returned without error and the target came out with `dependencies: []`. Expo's
+prebuild output happens to have both sections — relying on that would have made the plugin **correct by
+luck**, and correct-by-luck is what breaks the first time the generator changes.
+
+**③ ⚡ `pbxTargetByName` cannot find targets this library creates.** `addTarget` stores the name
+double-quoted (`"\"CoverageProbeUITests\""`) and writes the same quoted string as the comment key, while
+`pbxTargetByName` looks the comment up **unquoted**. Pre-existing targets are stored unquoted, so the
+helper works for every target you did not add and fails for the one you did. **The idempotency guard
+therefore never fired** — and `expo prebuild` runs plugins on every invocation, so this would have
+appended a duplicate target on each run.
+
+**④ My own verifier was wrong in the same way as the code it verified.** The round-trip check used
+`pbxTargetByName` and reported a parse failure against a file that had written and re-parsed perfectly
+(`writeSync` was fine all along). ⚠️ **A verifier that shares a bug with its subject is worse than no
+verifier** — it manufactures a false negative that sends you looking in the wrong place. Both now use an
+explicit both-spellings lookup, and the reason is written at each site.
+
+**Two library edges, worked around and documented in the plugin:** `PRODUCTTYPE_BY_TARGETTYPE` has no
+`ui_test_bundle` and `addTarget` **throws** on an unknown type, so the target is created as a unit-test
+bundle and its `productType` patched to `com.apple.product-type.bundle.ui-testing`; and `addTarget`
+returns `buildPhases: []` for everything except `app_extension`, so Sources/Frameworks/Resources are added
+explicitly or nothing compiles. `.xcscheme` is not modelled by the lib at all — the Test action is written
+as XML in a second dangerous mod, because without it `xcodebuild test` has nothing to run.
+
+**The probe is deliberately small.** One springboard-reach assertion (activate SpringBoard *and* count its
+descendants — fronting it is not the same as being able to read it, and only the second unlocks §5/§6) and
+one `performAccessibilityAudit()` call that is **non-failing on findings**. A probe that reds on 40
+pre-existing contrast issues would tell us nothing about whether the mechanism works, and would cost a
+20-minute cycle to learn it.
+
+⚠️ **Risk on the next dispatch is bounded:** with the dependency direction correct, the app target does not
+depend on the test bundle, so `xcodebuild build` cannot be affected. Only `xcodebuild test` reaches it.
+
 ### 4.1.5's decomposed section retired to here
 
 Per the one-decomposed-section rule, 4.1.5's sub-table collapsed to a single plan row on 4.1.6a's

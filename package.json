@@ -33,6 +33,7 @@
     "audit:strings": "tsx scripts/strings-inventory.ts",
     "audit:surfaces": "tsx scripts/surface-inventory.ts",
     "audit:coverage": "tsx scripts/coverage-split.ts",
+    "preflight:xcuitest": "tsx scripts/preflight-xcuitest-target.ts",
     "test:regression": "tsx packages/core/testing/runRegressionTests"
   },
   "dependencies": {
