@@ -31,10 +31,13 @@ test.use({ viewport: { width: 402, height: 874 } });
  * The tap is idempotent (the same coordinate sets the same value), so retrying until the amount changes
  * is safe and turns a race into a wait.
  *
- * ⚠️ It watches the sheet's displayed amount, NOT the slider. The control cannot report itself on web:
- * react-native-web drops `accessibilityValue`, so it renders `role="slider"` with no `aria-valuenow` —
- * measured 2026-08-08, after a first version of this helper polled that attribute and timed out on every
- * run. Native maps `accessibilityValue` properly, so this is a web-only gap.
+ * ⚠️ It watches the sheet's displayed amount, NOT the slider — and the reason CHANGED on 2026-08-14.
+ * It used to be that the control could not report itself at all: react-native-web drops
+ * `accessibilityValue`, so it rendered `role="slider"` with no `aria-valuenow`, and a first version of
+ * this helper polled that attribute and timed out on every run. **That gap is fixed** (3.5.7.1, via
+ * `a11yAdjustableValue`), and the caller now asserts the attribute directly.
+ * This helper still watches the displayed amount because that is the string the user actually reads, and
+ * because a drag helper and a value assertion failing for the same reason would prove one thing twice.
  */
 async function dragLineTo(
   page: import('@playwright/test').Page,
@@ -311,8 +314,28 @@ test.describe('tutorial invitation + in-situ shell', () => {
       // sets the value, so clicking at ~20% of its width lowers the line.
       await page.getByText('Adjust your line').click();
       const slider = page.getByLabel('Cushion line amount');
+
+      // ⭐ 3.5.7.1 — THE SLIDER REPORTS ITS VALUE ON WEB. It did not until 2026-08-14: react-native-web's
+      // allowlist drops `accessibilityValue`, so this rendered `role="slider"` with no `aria-valuenow` —
+      // a slider that never reports its value, a WCAG AA failure. ⚠️ `a11y-axe` does NOT flag it, which
+      // is why it survived a green suite; this explicit assertion is the only thing that holds it.
+      // It matters because 3.5.7's embed is the surface that makes it public.
+      await expect(slider).toHaveAttribute('aria-valuenow', /\d+/);
+      await expect(slider).toHaveAttribute('aria-valuemin', '0');
+      await expect(slider).toHaveAttribute('aria-valuemax', '500');
+      // `text` is load-bearing: `now` alone is spoken as a bare number, meaningless for money (3.5.3.9).
+      await expect(slider).toHaveAttribute('aria-valuetext', /^\$\d+$/);
+
+      // ⚠️ Captured, not hardcoded — the starting value comes from the seeded scenario and asserting a
+      // literal here would be a guess about someone else's fixture.
+      const valueBefore = await slider.getAttribute('aria-valuenow');
+
       const box = (await slider.boundingBox())!;
       await dragLineTo(page, box, 0.2);
+
+      // And it TRACKS. A static correct value would satisfy every assertion above while the control
+      // never reported a change — which is the half a screen-reader user actually depends on.
+      await expect.poll(() => slider.getAttribute('aria-valuenow'), { timeout: 5000 }).not.toBe(valueBefore);
 
       await page.getByText('Save', { exact: true }).click();
       // The payoff: a before→after the user produced themselves. Asserting the FREED-money caption, not

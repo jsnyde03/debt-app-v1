@@ -216,7 +216,7 @@ signed off, because its OUTPUT is not final:**
 
 | | Item | State |
 |---|---|---|
-| 1 | **3.5.7 — web-embeddable marketing demo** | the only unbuilt build item. ✅ **[D32] settles hosting + privacy 2026-08-14** — GitHub Pages, and the zero-egress stance is a **gate**, not a promise. ⛔ Does **not** wait on the device pass. Still waits on the debt-free-date defect and the web-only `Slider` a11y gap (a WCAG AA failure that only matters *because* the embed is public) |
+| 1 | **3.5.7 — web-embeddable marketing demo** | ▶ **ACTIVE 2026-08-14 as the parallel track** (4.1 keeps precedence; this fills the waits). ✅ [D32] settles hosting + privacy. ⛔ **The "debt-free-date defect" blocker is STALE** — no live defect exists; the only match is filed *"the cohesion audit, not a defect"* and its two relatives are closed. Decomposed below |
 | 2 | **The device pass** | `DEBT_3.5_DEVICE_QA_CHECKLIST.md` §11 walkthrough · §12 demo · §13 coach-marks, against the fresh build |
 | 3 | **3.5.9 — reinstate the demo ✅ DONE 2026-08-10** | [D21] reverses [D19]. `isDemoReachable()` no longer rides `QA_TOOLS`; both doors restored and now **tested** — nothing covered them before, which is how they were pulled unnoticed. Log: 3.5.9 |
 | 5 | **3.5.10 — the INTERACTIVE demo ✅ DONE 2026-08-11** | 🎯 **[D23]**: the demo is now two runs. **`explore`** (a user: live tabs, no script, exit on the marker row) · **`scripted`** (the App-Preview + 3.5.7's embed only). One artifact had been doing both jobs and the video's requirements won. ⚠️ `useInBoundedRun` was deliberately **not** forked — a separate `useNavigationHeld()` answers the other question. Gate 158/158. Log: 3.5.10 |
@@ -224,6 +224,32 @@ signed off, because its OUTPUT is not final:**
 
 **Division of labour, now settled:** demo = BEFORE you commit (Welcome + paywall, sandboxed, terminal
 exits) · walkthrough = AFTER onboarding, on your own money.
+
+#### ▶ 3.5.7 — the embed _(the PARALLEL track; 4.1 has precedence and this fills its waits)_
+
+⚠️ **Two decomposed sections exist deliberately** (this and 4.1.6a.7). The one-decomposed-section rule
+targets *stale* sequences aging while attention is elsewhere; both of these are live, and 🎯 set the
+precedence explicitly on 2026-08-14. When either closes, its section collapses to one line.
+
+| # | Step | State |
+|---|---|---|
+| **.1** | **`Slider` reports its value on web** — the WCAG AA blocker | ✅ **DONE 2026-08-14.** `a11yAdjustableValue` in `utils/a11y.ts`; `aria-value*` is the form RN expands to BOTH platforms, so it is one rule in one place. Explicit e2e assertions — `a11y-axe` cannot see this class |
+| **.2** | **The embed build FLAG that omits analytics** — a flag, not a runtime toggle | |
+| **.3** | **Storage discipline** — `sessionStorage` only, no `localStorage`/`IndexedDB` | |
+| **.4** | ⭐ **The zero-egress Playwright gate** holding all three claims, in `validate:release:rn` | ⚠️ **Before .6, deliberately** — the gate exists before anything is public, not after |
+| **.5** | **Embed entry** — the `scripted` run as the default route | |
+| **.6** | **GitHub Pages deploy** of `dist` | |
+| **.7** | **[DECISION] the privacy wording** — 🎯's call | ⚠️ *"financial data never leaves your device"* is literally true; *"100% private"* overclaims if read as "no server logs anywhere" |
+
+**Exit:** a public embed whose privacy claim is enforced by a test that runs on every push, not asserted
+in prose.
+
+⚠️ **[.1 before-scan] The same defect class is UNFIXED on three more controls.** `CheckCircle`
+(`accessibilityState={{ checked }}` → no `aria-checked`, already filed as [3.7.B.4]), plus `RadioGroup`
+and `SegmentedToggle` (both `accessibilityState={{ selected }}`). ⚡ **The argument that made the Slider a
+3.5.7 blocker applies to any of them that appear in the embed's surface** — a public WCAG failure. Not
+folded in: the Slider is the stated blocker and the rest belong to the audit gate, which already owns
+[3.7.B.4]. **Re-check at .5 once the embed's actual surface is known.**
 
 **Restraint that still governs the tutorial/demo:** no Tier-3 spectacle, confetti or sound · no
 gamification chrome · Recovery stays a glimpse · the in-app tutorial stays ≤7 beats.

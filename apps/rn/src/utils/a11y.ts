@@ -52,6 +52,33 @@ export function a11yHidden(hidden: boolean): AccessibilityProps {
 export const decorative: AccessibilityProps = { 'aria-hidden': true };
 
 /**
+ * The value of an `adjustable` control (a slider), cross-platform.
+ *
+ * ⛔ `accessibilityValue` IS THE NATIVE-ONLY HALF OF THE ASYMMETRY THIS FILE EXISTS TO DOCUMENT.
+ * react-native-web's prop allowlist does not contain it, so `createDOMProps` drops it silently and the
+ * control renders `role="slider"` with **no `aria-valuenow`** — a slider that never reports its value,
+ * which is a WCAG AA failure. Measured on the cushion slider 2026-08-08 and recorded in
+ * `CushionFloorSheet`; `a11y-axe` does not flag it, so nothing caught it either.
+ *
+ * ⭐ The `aria-*` form is the one that covers BOTH: RN 0.85 types `aria-valuemin/max/now/valuetext`
+ * directly off `AccessibilityValue` and expands them to the native prop itself — the same aliasing that
+ * makes `aria-hidden` work everywhere. So this is one rule in one place, not the same rule written twice.
+ *
+ * ⚠️ Deliberately NOT paired with `accessibilityValue`. Setting both would be the "two places, one rule"
+ * shape this repo has repeatedly paid for; the aliasing is what makes the pair unnecessary.
+ * ⚠️ `text` is load-bearing and not decoration: `now` alone is spoken as a bare number ("200"), which is
+ * meaningless for money. The 3.5.3.9 audit is what established that.
+ */
+export function a11yAdjustableValue(
+  min: number,
+  max: number,
+  now: number,
+  text: string,
+): AccessibilityProps {
+  return { 'aria-valuemin': min, 'aria-valuemax': max, 'aria-valuenow': now, 'aria-valuetext': text };
+}
+
+/**
  * Announce a transient change to screen readers — a new onboarding step, a crossed milestone, a
  * validation error, a blocking state that swaps in silently. Web-safe. Retained under Reduce Motion
  * (haptics + announcements are accessibility channels, not decoration).

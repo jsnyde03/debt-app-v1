@@ -4,6 +4,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { useAppColors } from '@/hooks/use-app-colors';
 import { haptics } from '@/motion';
+import { a11yAdjustableValue } from '@/utils/a11y';
 
 const THUMB = 26;
 const TRACK_H = 6;
@@ -87,8 +88,13 @@ export function Slider({
         testID={testID}
         accessibilityRole="adjustable"
         accessibilityLabel={accessibilityLabel}
-        // `text` too: `now` alone is spoken as a bare number ("200"), which is meaningless for money.
-        accessibilityValue={{ min, max, now: value, text: `$${value}` }}
+        // ⛔ VIA THE HELPER, NOT `accessibilityValue`. That prop is native-only — react-native-web's
+        // allowlist drops it silently, so this rendered `role="slider"` with no `aria-valuenow`: a
+        // slider that never reports its value, a WCAG AA failure, and invisible to `a11y-axe`. It
+        // matters now because 3.5.7's public embed is the surface that makes it public.
+        // `text` is load-bearing, not decoration: `now` alone is spoken as a bare number ("200"),
+        // which is meaningless for money. See `a11yAdjustableValue`.
+        {...a11yAdjustableValue(min, max, value, `$${value}`)}
         accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
         onAccessibilityAction={(ev) => {
           if (ev.nativeEvent.actionName === 'increment') onChange(clampStep(value + step));

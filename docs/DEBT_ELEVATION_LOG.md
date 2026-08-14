@@ -9297,3 +9297,66 @@ the actual answer, and a per-type map gives it in a single dispatch.
 **20m24s** (18:45:09 → 19:05:33) against ~45–55 for a full `both` cycle — with a full rebuild included,
 since the plugin change busted the `.app` key. ⚠️ **My estimate was ~15; the honest number is ~20.**
 `Install Maestro` and `Run Maestro flows` both show `skipped`, so the lane did exactly what it claimed.
+
+---
+
+## 2026-08-14 — 3.5.7 opens as the PARALLEL track, and one of its two blockers was stale
+
+🎯 Jason: *"Are there any other parts of 1.7 that we can do in parallel as we continue to work through
+4.1?"* → then, on the pick: *"4.1 is still the precedent… 3.5.7 continues during waits."*
+
+⛔ **One candidate had to be ruled OUT first, and it was the intuitive one:** the device pass is
+**not** parallelisable — the plan states *"Phase 3.5's device pass is downstream of 4.1's exit, not
+parallel to it"*, because cutting the CodeMagic build early spends a pass on rows the lane is meant to
+absorb and then needs a second one.
+
+⚡ **CI is not the constraint for anything except 4.1.** `validate:release:rn` is 168/168 in ~6 min
+locally and `web-e2e` runs on push, so product work never touches the native lane. The real constraint is
+that the 4.1-only standing permission excludes 3.5, 5, 5.5, 6 and every product/content call.
+
+### ⛔ The switch-in audit found one blocker stale — and one statement of mine wrong
+
+Row 219 said 3.5.7 *"still waits on the debt-free-date defect and the web-only `Slider` a11y gap."* I had
+told 🎯 its blockers "cleared today", which was true only of [D32]. Correcting that, then checking both:
+
+- **The debt-free-date blocker is STALE.** No live defect matches it. The only candidate is filed under
+  *Genuinely a later version / tier* as *"Honest per screen; the question is the app-wide effect → **the
+  cohesion audit, not a defect**"*, and its two relatives are closed: A7's third debt-free-date producer
+  is `⛔ CLOSE — confirmed clean`, and `selectWhatIf*`'s funnel bypass is *"Correct today… Nothing to fix
+  yet."* ⚠️ The [D32] entry naming it was written the SAME DAY — a same-session claim failing the same way
+  an old one does. 🎯 *"I don't know about the debt free blocker"*, so it is recorded as stale with the
+  search shown; if a real one surfaces it becomes 3.5.7.0.
+- **The `Slider` gap is REAL**, and precisely as described.
+
+### ⭐ 3.5.7.1 — the fix was already doctrine in this repo
+
+`utils/a11y.ts` documents the asymmetry exactly: `aria-hidden` is **not** a web-only prop — RN expands it
+to the native pair, *"so ONE prop covers iOS and Android. The reverse is not true"*, because
+react-native-web's allowlist drops unrecognised native props **silently**. That asymmetry *"cost this
+codebase a whole class of invisible defects — fences written longhand fenced NOTHING on web, and a
+Playwright suite running on that platform reported them all green."*
+
+The Slider was the same shape one layer over: `accessibilityValue` set correctly, dropped on web,
+`role="slider"` with no `aria-valuenow`. ⭐ **RN 0.85 types `aria-valuemin/max/now/valuetext` directly off
+`AccessibilityValue`** — verified in `ViewAccessibility.d.ts`, not assumed — so the aria form aliases to
+the native prop and one set covers both. `a11yAdjustableValue` joins `a11yHidden` in the one file the
+linter exempts, and the Slider no longer hand-rolls anything.
+
+⚠️ **Deliberately NOT paired with `accessibilityValue`.** Setting both would be the "two places, one
+rule" shape that produced three defects in the native lane today; the aliasing is what makes the pair
+unnecessary.
+
+⚠️ **`a11y-axe` does not flag this**, which is how it survived a green suite — so the coverage is
+explicit assertions in `tutorial-invite.spec.ts`: the four attributes, plus a **before/after** check that
+the value TRACKS. ⚠️ The before-value is captured, not hardcoded: asserting a literal would be a guess
+about a fixture someone else seeded. ⭐ That spec's own helper carried a comment saying the attribute
+could not be polled *"and timed out on every run"* — now corrected in place, since the reason it watches
+the displayed amount changed.
+
+### ⚠️ [.1 before-scan] The same defect class is unfixed on three more controls
+
+`CheckCircle` (already filed as [3.7.B.4]), `RadioGroup` and `SegmentedToggle` all set
+`accessibilityState`, which web drops the same way. **The argument that made the Slider a 3.5.7 blocker —
+a WCAG failure the embed makes public — applies to any of them on the embed's surface.** Not folded in:
+the Slider is the stated blocker and the audit gate already owns [3.7.B.4]. Re-check at **.5**, when the
+embed's actual surface is known.
