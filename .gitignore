@@ -55,3 +55,4 @@ apps/rn/web-build/
 apps/rn/expo-env.d.ts
 # ./core is an auto-created link to ../../packages/core (see apps/rn/metro.config.js) — never commit it
 apps/rn/core
+apps/rn/dist-embed/

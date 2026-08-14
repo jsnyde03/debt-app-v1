@@ -9471,3 +9471,163 @@ const would have traded that away for nothing.
 ⚠️ There are no adapter unit tests, so that behavioural check is the evidence today; **the real proof is
 3.5.7.4's gate**, which asserts it against the BUILT artifact. Per [D32], the claim is a gate, not a
 promise — and a comment saying "we use sessionStorage" is exactly the promise it refuses to accept.
+
+### 3.5.7.4 — the privacy claims become a gate (2026-08-14)
+
+[D32]: *"A Playwright spec holds all three and fails `validate:release:rn`… a finding that becomes a test
+is paid for once, and this one re-proves the claim on every push instead of at review time."* Built.
+
+⛔ **IT NEEDED ITS OWN CONFIG, AND THAT IS THE LOAD-BEARING DECISION.** `EXPO_PUBLIC_EMBED` is inlined by
+the bundler, so the embed and the app are **different artifacts** — `playwright.config.ts`'s server
+builds without the flag. A spec added to the main suite would have asserted all three claims against the
+build that does **not** ship publicly: green, and testing nothing. That is [D30]'s named void condition
+and the 744pt-iPad-mini run that committed it, one domain over. So: `playwright.embed.config.ts`, its own
+`--output-dir dist-embed`, its own port 4320, its own `tests/embed/`.
+
+⚠️ **Two assumptions checked rather than carried.** `cross-env` is **not a dependency of this repo** — the
+first draft used it, and adding a package to set one variable Playwright already supports setting is not
+a trade worth making; the config uses `webServer.env`, which is also portable to Windows where a
+`VAR=1 cmd` prefix is not. And `apps/rn/dist-embed/` was **not** covered by `.gitignore` (only `dist/`),
+so the build would have been offered for commit on the next `git add -A`.
+
+**The three claims, and how each is kept honest:**
+
+- **No foreign request** — hooked on `request`, not `response`: a request that LEAVES is the claim, and
+  whether anyone answered is not the user's concern. The page is *exercised*, not merely booted, because
+  CanvasKit loads lazily on a chart's first mount and a load-only check would miss it.
+- **No persistent storage** — `localStorage` empty and no IndexedDB… ⭐ **plus `sessionStorage` NON-empty**,
+  which is what stops the other two passing vacuously. A build that never persisted anything — a broken
+  store, a crashed boot — satisfies "no localStorage" perfectly. Requiring state in the ephemeral store
+  proves the app IS running and storing, and that 3.5.7.3's flag *routed* it rather than switching
+  persistence off.
+- **No analytics transport** — asserts no `Sentry`/`ga`/`gtag`/`dataLayer` global reached the bundle.
+  ⚠️ 3.5.7.2 established there is nothing to omit; this holds that true. The claim is cheap to keep and
+  expensive to notice losing.
+
+**3 passed (34.2s).**
+
+### ⛔ …AND THEN THE PLANTED DEFECT PASSED TOO. The gate is VACUOUS as written.
+
+Rebuilt with `EXPO_PUBLIC_EMBED: '0'` — the flag dropped, so the artifact should use `localStorage` and
+test 2 should go red. **All three passed again (31.1s).** ⚠️ Verified it was not a stale server being
+reused: port 4320 was free afterwards and `dist-embed/` carries a fresh build timestamp from the plant
+run. The build really did run with the flag off, and the test really did pass.
+
+⛔ **AND THE FIRST CONCLUSION FROM THAT WAS WRONG TOO — the PLANT was invalid, not the gate.**
+
+I wrote "the gate is vacuous" and started diagnosing the test. Then measured the artifact instead of
+reasoning about it. The bundle built during the plant run — flag set to `'0'` — contains:
+
+```
+sessionStorage = 1     localStorage = 0
+```
+
+**The flag-off build still compiled to sessionStorage-only.** The plant never changed the artifact, so the
+test was correctly reporting on a flag=1 build. ⚡ **The gate's non-vacuity is therefore UNPROVEN, not
+disproven** — a materially different state, and I had already committed to the wrong one in prose.
+
+⭐ **And the invalid plant is itself the more valuable finding.** If an `EXPO_PUBLIC_*` change does not
+bust Metro's transform cache, then **a CI run can build the embed from transforms produced by the app
+build** — silently shipping an artifact with the wrong storage backing while the gate reports green
+against it. That is the identical failure shape as testing the app build instead of the embed build, one
+layer lower, and it would be invisible.
+
+**Confirmed by rebuilding the same source both ways:**
+
+| build | `sessionStorage` | `localStorage` | |
+|---|---:|---:|---|
+| flag=0, **no** `--clear` | 1 | 0 | ⛔ the app-build transforms, reused |
+| flag=0, **with** `--clear` | 0 | 1 | ✅ the flag actually applied |
+
+⛔ **Metro's transform cache does not invalidate on an `EXPO_PUBLIC_*` change.** Without `--clear` the
+flag is advisory, and a CI run can export the embed from transforms produced by the app build — shipping
+the wrong storage backing under a green gate. `--clear` is now in the embed config, and it costs a cold
+export on every gate run: correctness over speed, because a cached artifact is the one failure a privacy
+gate cannot survive.
+
+⚡ **The gate's own shape would have caught the DANGEROUS direction anyway**, which is worth recording:
+an embed wrongly built with `localStorage` fails assertion 1 immediately. The false pass ran the other
+way — asked for `localStorage`, got `sessionStorage` — a direction that cannot ship. That is luck rather
+than design, and `--clear` replaces the luck.
+
+### ⭐ Re-planted with `--clear`, and the gate FAILS exactly where it must
+
+```
+ok 1  makes NO request beyond its own static assets
+x  2  writes NO persistent storage — sessionStorage only     ← Received +3 (localStorage keys)
+ok 3  carries no analytics or crash-reporter transport
+1 failed, 2 passed (1.9m)
+```
+
+**Non-vacuity proven.** Test 2 reds on a genuinely flag-off artifact; 1 and 3 stay green, correctly —
+egress and analytics do not depend on the flag, and a plant that reddened all three would have meant the
+build was simply broken rather than differently configured.
+
+⏱ **1.9m against 34s warm** — the cold-export cost of `--clear`, now measured rather than estimated. It
+puts `validate:release:rn` at roughly 8–9 min against ~6. [D32] put the gate in that script deliberately,
+so it stays there; ⚠️ if the minutes start to bite, the fallback is a separate `gate:embed` in CI and
+before deploy — but a privacy claim checked only at deploy time is the *promise* [D32] refused.
+
+⚠️ **The whole detour is the standing rule paying for itself twice in one item.** Plant before trusting a
+guard, and *measure the artifact rather than reasoning about the test* — the first conclusion ("vacuous")
+and the near-second ("Metro caches env vars") were both settled by one `grep` of a file already on disk.
+
+⚠️ **Twice in ten minutes I stated a conclusion before measuring** — "the gate is vacuous", then nearly
+"Metro caches env vars". The artifact was on disk and one `grep` answered it both times.
+
+### ⚠️ [3.5.7.1 after-scan] The a11y guards cover half the class they were written for
+
+Measured: `eslint`'s `no-restricted-syntax` and `check-native-a11y-props.ts` both ban exactly
+`accessibilityElementsHidden|importantForAccessibility`. Neither bans **`accessibilityValue`** (3.5.7.1's
+defect) or **`accessibilityState`** (`CheckCircle`'s, filed as [3.7.B.4]) — and react-native-web drops all
+four identically. ⚡ **The guard written for one instance of the class does not cover the class**, which is
+why this same defect has now been found three separate times by hand, each time by someone noticing
+rather than by a tool.
+
+⛔ **Not extended now, deliberately:** `accessibilityState` appears in **11 files**, so enabling the guard
+reds the gate until they are converted — and that conversion is the premium-a11y sub-audit's work, which
+already owns [3.7.B.4]. Filed there with the counts.
+
+### ⚠️ [3.5.7.3 after-scan] The storage adapters have no unit tests at all
+
+`apps/rn/src/storage/` holds `adapter.ts`, `createAdapter.ts`, `createAdapter.web.ts` and **no test file**.
+The web path is now covered end-to-end by 3.5.7.4's gate, and the native path is covered by nothing —
+which matters more after Phase 5 starts moving persistence. Filed for Phase 5, not folded in.
+
+---
+
+## 2026-08-14 — ⭐ `31835736974`: the fast path works, and the runtime problem has a number
+
+🎯 earlier: *"We're going to have to do something about these runtimes."* This is the answer.
+
+```
+✅ restored .app verified: binary present, Info.plist parses
+Re-bundling JS from the working tree…
+iOS Bundled 52054ms index.js (2828 modules)
+hermesc: node_modules/hermes-compiler/hermesc/osx-bin/hermesc
+[Passed] ×10 — the whole iPhone suite, on a RESTORED binary
+```
+
+| | |
+|---|---:|
+| rebuild run (`31832030295`) | **43m33s** |
+| cache-hit run (`31835736974`) | **20m57s** |
+| **saved** | **22m36s — 52%** |
+
+⭐ **`hermesc` executed for the first time in this project's history**, and resolved to exactly the path
+`a4c1241` added as its first candidate. That fix has been in the tree since the previous session, called
+"written but unexercised" this morning — **now proven.** ⭐ The `.app` cache's saving has likewise been
+true in design and uncollected on every run to date; this is the first time it was actually banked.
+
+⚡ **Four things were proven by one run**, which is why it was worth dispatching rather than assuming:
+1. the cache restores a usable binary (`Info.plist` parses, binary present);
+2. `hermesc` resolves and produces bytecode the magic-byte guard accepts — no `bundle format changed`;
+3. the re-bundled JS **carried a `src/**` change** (3.5.7.1's Slider fix) into the restored `.app`, so the
+   swap genuinely delivers new source rather than merely running;
+4. the suite holds **10/10** on a restored binary — and flow 10 passed for the **second consecutive run**,
+   so the `repeat`-erase fix is stable rather than a fluke.
+
+▶ **The operational consequence:** flow-only iteration — `.maestro/**` edits, which are most of 4.1's
+remaining work — now costs **~21 min, not ~43**, because `.maestro/**` is not in the `.app` cache key.
+⚠️ It does NOT help probe iteration: every probe fix touches `apps/rn/plugins/**`, which IS in the key, so
+those stay full rebuilds until 4.1.9b caches the `.xctestrun` + `-Runner.app`.
