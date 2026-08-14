@@ -9106,3 +9106,53 @@ The probe is dead for this cycle (`.7.4c` correctly skips on the compile's `outc
 already past that step and still carries **flow 10's `eraseText: 80`** and **the iPad tier's
 timeout+retry parity** — the two questions it was dispatched to answer. Left to finish; the Info.plist
 fix rides `.7.4f`.
+
+---
+
+## 2026-08-14 (late) — the fast lane, and 🎯's call on 4.1's scope
+
+🎯 Jason: *"We're going to have to do something about these runtimes. We're spending 40 min each time
+just to verify a fix. The whole 1.7 just seems stalled at this point."*
+
+### ⛔ The waste was costed, and two thirds of every probe cycle answered nothing
+
+Measured across `31822453981` and `31827409093`:
+
+| step | run 1 | run 2 | needed to verify an XCUITest fix? |
+|---|---:|---:|---|
+| build the app | 866s | 485s | **yes** — the floor |
+| XCUITest bundle | 64s | — | **yes** |
+| boot / install / launch | 297s | 141s | **yes** |
+| install Maestro | 55s | — | no |
+| run Maestro flows | **949s** | **721s** | **no** |
+| iPad tier | **880s** | — | **no** |
+
+⚡ **Verifying a Swift compile needs ~12 minutes of work and I was buying ~45**, because I dispatched
+`device=both` for runs whose entire question was whether Xcode accepts a target. That is a dispatch
+discipline failure, not a workflow limitation — the `device` input could already have halved it.
+
+⭐ **`scope=xcuitest`** now skips Maestro install, the flows and the iPad tier, keeping build → bundle →
+boot → probe. **~45 → ~15 min.** Gating proven by evaluating every relevant `if:` across four input
+combinations before commit. ⚠️ **The tag-push case is the one that mattered**: a tag supplies NO inputs,
+so `inputs.scope` is empty — every condition is written `!= 'xcuitest'` so empty means FULL, and the
+release smoke cannot be narrowed by accident. Verified, not assumed.
+
+⚠️ **Nothing planned touches the floor.** 4.1.9b's composite action deduplicates the recipe and its tier
+split parallelises TIERS; neither speeds compilation. Only DerivedData caching would, and it is GB-scale
+and unmeasured. The honest ceiling is ~45 → ~15, not to zero.
+
+### 🎯 DECISION — 4.1 runs to completion, with the fast lane in place
+
+Offered four options: bound the probe at two cycles · stop 4.1 now and return to product · **fast lane +
+finish 4.1 properly** · attack the compile first. 🎯 chose **finish 4.1 properly**.
+
+⚠️ **The argument against, recorded because it was real and was overruled deliberately:** 4.1 is
+instrumentation, not product. Its founding question — 🎯's own *"how much of the 3.5 checklist will be
+covered"* — is **already answered**: 30 proven · 3 claimed-unproven · 64 coverable-not-built · 34
+device-owed · the device pass is 60 rows. Everything remaining (the probe, 4.1.9b, 4.1.10's 15 rows)
+RAISES coverage rather than answering the question. Against that: the probe carries ~16 `[D]` rows and
+four of the six premium-a11y bullets, which is the sub-audit 🎯 has said is hardest to test by hand
+(*"VoiceOver pretty much locks down my phone"*), and three quarters of its cost is already sunk.
+
+▶ **Order from here: `.7.4g`** (Info.plist fix on the fast lane) → **`.7.5`** (re-verdict + settle
+4.1.9's `[DECISION]`) → **4.1.9b** → **4.1.9c's writer** → **4.1.10**.

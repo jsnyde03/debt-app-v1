@@ -73,6 +73,32 @@ on:
         type: choice
         options: [iphone, ipad, both]
         default: iphone
+      # ⭐ 4.1.6a.7.4g — THE FAST LANE, AND IT IS COSTED, NOT GUESSED. Measured across runs 31822453981
+      # and 31827409093, a full `both` cycle is ~45-55 min and splits like this:
+      #
+      #   build the app        866s / 485s   ← unavoidable floor for ANY native verification
+      #   XCUITest bundle       64s          ← the thing being verified
+      #   boot / install       297s / 141s   ← needed: test-without-building wants a booted sim
+      #   install Maestro       55s          ← NOT needed
+      #   run Maestro flows    949s / 721s   ← NOT needed
+      #   iPad tier            880s          ← NOT needed
+      #
+      # ⛔ So verifying an XCUITest fix needs ~12 minutes of work and was buying ~45. Two thirds of every
+      # probe cycle went to a Maestro suite and an iPad tier that CANNOT answer the question the run was
+      # dispatched for. 🎯 Jason 2026-08-14: *"We're spending 40 min each time just to verify a fix."*
+      #
+      # ⚠️ NOTHING PLANNED TOUCHES THE FLOOR. 4.1.9b's composite action deduplicates the recipe and its
+      # tier split parallelises TIERS — neither speeds compilation. Only DerivedData caching would, and
+      # that is GB-scale and unmeasured. The honest ceiling here is ~45 min → ~15, not to zero.
+      #
+      # ⚠️ A TAG PUSH SUPPLIES NO INPUTS, so `inputs.scope` is empty there. Every condition below is
+      # written as `!= 'xcuitest'`, so empty means FULL — the release smoke cannot be narrowed by
+      # accident. Same defensive shape as the `device` note above.
+      scope:
+        description: 'full = build + flows (+ tier) · xcuitest = build + the XCUITest probe ONLY (~15 min, skips Maestro entirely)'
+        type: choice
+        options: [full, xcuitest]
+        default: full
   push:
     # ⛔ TAGS ONLY. The branch-push "rot guard" added earlier on 2026-08-13 is REVERTED — it was mine, it
     # lasted a few hours, and it generated a 20-minute macOS job on every commit.
@@ -660,13 +686,14 @@ jobs:
           tail -60 maestro-debug/os-log.txt || true
 
       - name: Install Maestro (+ idb for the iOS driver)
+        if: inputs.scope != 'xcuitest'
         run: |
           brew tap facebook/fb && brew install idb-companion || true
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
       - name: Run Maestro flows
-        if: inputs.mode != 'probe' && inputs.device != 'ipad'
+        if: inputs.mode != 'probe' && inputs.device != 'ipad' && inputs.scope != 'xcuitest'
         env:
           # Maestro's iOS driver often exceeds its default startup timeout on a cold CI sim.
           # ⚠️ 420 s, raised from 240 s: run 31646289268 lost a whole ~35-minute cycle to
@@ -764,7 +791,9 @@ jobs:
       # no `.xctestrun` to run — the same known limit the build step documents, lifting with 4.1.9b's
       # cache work. Gating on the build step's outcome rather than on `usable` keeps the two in step.
       - name: Run the XCUITest probe (non-fatal — the verdict is the deliverable)
-        if: ${{ !cancelled() && steps.xctestbuild.outcome == 'success' && inputs.mode != 'probe' && inputs.device != 'ipad' }}
+        # ⚠️ `|| scope == 'xcuitest'` on the device clause: the fast lane exists to run THIS step, so it
+        # must not be silently skipped by a device value that is irrelevant to it.
+        if: ${{ !cancelled() && steps.xctestbuild.outcome == 'success' && inputs.mode != 'probe' && (inputs.device != 'ipad' || inputs.scope == 'xcuitest') }}
         continue-on-error: true
         run: |
           set -o pipefail
@@ -829,7 +858,7 @@ jobs:
       # it says nothing about whether the step runs after an EARLIER failure. Two different mechanisms,
       # and I conflated them.
       - name: Boot an iPad simulator and run the [D30] iPad tier
-        if: ${{ !cancelled() && inputs.mode != 'probe' && (inputs.device == 'ipad' || inputs.device == 'both') }}
+        if: ${{ !cancelled() && inputs.mode != 'probe' && inputs.scope != 'xcuitest' && (inputs.device == 'ipad' || inputs.device == 'both') }}
         continue-on-error: true
         env:
           # ⛔ 420 s, RAISED FROM 240 s 2026-08-14 — PARITY WITH THE IPHONE STEP, WHICH ALREADY HAD IT.

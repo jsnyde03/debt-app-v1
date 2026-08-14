@@ -69,7 +69,8 @@ the lane will carry, how much it carries today, and the residual that is permane
 | **.7.4c** | ⭐ **RUN it** — `test-without-building` on the booted sim, between the iPhone suite and the iPad tier | ✅ **BUILT 2026-08-14**, correctly **skipped** in `31822453981` (gated on `.7.4b`'s `outcome`). Never yet executed |
 | **.7.4d** | **Dispatch and read the verdict** | ◐ **`31822453981` — ⭐ the scheme mod WORKS** (`✅ the testable IS in the scheme`, BlueprintIdentifier landed). Probe unrun; flows 09/10 + iPad tier still to read |
 | **.7.4e** | **Re-dispatch** — pbxproj path fix · `eraseText: 80` · iPad timeout+retry parity | ⏳ **`31827409093` IN FLIGHT.** ⭐ The path fix WORKED — the Swift compiled. ⛔ The probe died one layer out on a missing `Info.plist`; **fixed**. Flows 10 + the iPad tier still to read |
-| **.7.4f** | ▶ **Dispatch the `Info.plist` fix** — the probe's first actual execution | ▶ **NEXT.** ⚠️ Three cycles have each bought exactly ONE layer, so the pre-flight now carries a **general** check for the shape both failures shared: 16 → **37** |
+| **.7.4f** | ⭐ **THE FAST LANE — `scope=xcuitest`** — build + probe only, no Maestro, no iPad | ✅ **BUILT 2026-08-14.** Costed from two runs: verifying a probe fix needs ~12 min of work and was buying ~45. **~45 → ~15 min.** Gating proven across 4 input combinations incl. the empty tag-push case |
+| **.7.4g** | ▶ **Dispatch the `Info.plist` fix on the fast lane** — the probe's first actual execution | ▶ **NEXT.** ⚠️ Three cycles have each bought exactly ONE layer, so the pre-flight now carries a **general** check for the shape both failures shared: 16 → **37** |
 | **.7.5** | **Re-verdict** whatever it proves, and settle 4.1.9's [DECISION] | |
 
 ⚠️ **[.7.1 risk note] The app target does NOT depend on the test bundle** (the direction was inverted on
