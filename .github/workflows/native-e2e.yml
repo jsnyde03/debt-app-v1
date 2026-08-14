@@ -313,6 +313,35 @@ jobs:
 
           [ -s "$TMP/main.jsbundle" ] || fail "re-bundled JS is empty"
 
+          # ── HERMES. `expo export:embed` emits PLAIN JS; Xcode's build phase then compiles it to
+          #    bytecode, and re-bundling by hand has to do that second half too. ──────────────────────
+          #
+          # ⚡ MEASURED, run `31800305248`: the magic-byte guard caught this on the fast path's first ever
+          # execution — `c61fbc03c103191f` (Hermes) in the .app versus `766172205f5f4255` (ASCII
+          # `var __BU`) from the bundler. Without that check this run would have installed a Hermes binary
+          # carrying plain JS, crashed on launch, and surfaced as an unexplained Maestro timeout twenty
+          # minutes later. Those bytes are also what proves the app IS Hermes — `app.json` declares no
+          # `jsEngine`, so the engine was an assumption until the guard printed it.
+          #
+          # ⛔ `hermesc` MUST come from this tree, not from a PATH lookup. Hermes bytecode is versioned and
+          # the runtime refuses a bundle built by a different compiler version — which would sail past the
+          # magic check (both are Hermes) and fail at launch instead. The binary that built the cached
+          # .app is the one in this checkout's pods/node_modules, and the lockfile is in the cache key, so
+          # they cannot drift apart.
+          HERMESC=""
+          for cand in \
+            "ios/Pods/hermes-engine/destroot/bin/hermesc" \
+            "node_modules/react-native/sdks/hermesc/osx-bin/hermesc" \
+            "../../node_modules/react-native/sdks/hermesc/osx-bin/hermesc"; do
+            [ -x "$cand" ] && HERMESC="$cand" && break
+          done
+          [ -n "$HERMESC" ] || fail "hermesc not found in this tree — cannot produce the bytecode this binary expects"
+          echo "hermesc: $HERMESC"
+          "$HERMESC" -emit-binary -max-diagnostic-width=80 -out "$TMP/main.jsbundle.hbc" "$TMP/main.jsbundle" \
+            || fail "hermesc failed"
+          [ -s "$TMP/main.jsbundle.hbc" ] || fail "hermesc produced an empty bundle"
+          mv "$TMP/main.jsbundle.hbc" "$TMP/main.jsbundle"
+
           # ⛔ THE ENGINE CHECK. Hermes ships BYTECODE; a plain-JS bundle in a Hermes app is a launch crash
           # 20 minutes downstream, reported as a Maestro timeout. Comparing the new bundle's magic against
           # the one that was already in the .app asserts "same format as what this binary expects" without
@@ -753,6 +782,21 @@ jobs:
             .maestro/05-tutorial-walkthrough.yaml \
             --format junit --output maestro-report-ipad.xml --debug-output ./maestro-debug-ipad || STATUS=$?
           kill "$LOG_PID" 2>/dev/null || true
+
+          # ⚠️ 4.1.5.5 — STRAIGHTEN THE LANDSCAPE FRAME. `takeScreenshot` captures the device FRAMEBUFFER,
+          # which stays in the physical portrait orientation however the app is rotated, so `i02`'s beat-5
+          # frame lands on its side. That flow's ONLY deliverable is a composition judgement, and judging a
+          # composition sideways is not judging it — the first frame had to be rotated by hand before it
+          # could be read, and reading it sideways produced a wrong first answer.
+          #
+          # `sips -r 270` (counter-clockwise) matches `LANDSCAPE_LEFT`. ⛔ Scoped by FILENAME to the frames
+          # that are actually landscape — a blanket rotate would tip every portrait screenshot in the
+          # artifact on its side, turning one fixed diagnostic into a dozen broken ones.
+          # `|| true` throughout: a rotation failure must not lose the frame it was trying to improve.
+          for f in maestro-debug/ipad-landscape-*.png maestro-debug/ipad-step5-landscape.png; do
+            [ -f "$f" ] && sips -r 270 "$f" >/dev/null 2>&1 && echo "straightened $f" || true
+          done
+
           echo "iPad tier exit status: $STATUS (recorded, not fatal — see the step comment)"
           exit 0
 

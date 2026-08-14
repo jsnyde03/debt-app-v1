@@ -79,3 +79,7 @@ appId: com.jasonsnyder.debtplanner
 # Leave the device as it was found. A file that leaks orientation into the next flow is the same class as
 # the leaked modal that poisoned cycle 1 of the 4.1.1 probe and made five reds read as capability failures.
 - setOrientation: PORTRAIT
+# ⚠️ THE FRAME COMES OUT ROTATED, and the workflow straightens it — see the `sips -r` step in
+# `native-e2e.yml`. `takeScreenshot` captures the device FRAMEBUFFER, which stays in the physical
+# portrait orientation however the app is rotated, so a landscape beat lands on its side. Judging a
+# composition sideways is not judging it, and this flow's only deliverable is a composition judgement.
