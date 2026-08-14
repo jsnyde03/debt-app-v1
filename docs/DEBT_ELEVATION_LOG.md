@@ -8621,6 +8621,63 @@ the fresh install this flow requires. That door stays device-owed.
 ⚡ It has now risen three times (55 → 56 → 57) as building each flow revealed what Maestro genuinely
 cannot assert. That is the instrument converging on the truth rather than on a flattering number.
 
+### The second-lane question: Appium, XCUITest, or a device farm (2026-08-14)
+
+🎯 Jason opened it: *"we're also going to be introducing Appium, and if there's a better tool than Appium
+that would provide more coverage we should discuss."*
+
+⚡ **The nine flows built today reframed the problem, and the reframe is the whole answer.** I had assumed
+the gap was about **driving** the app. It is not — Maestro drives this app fine. Every uncovered row is
+blocked on **observation**:
+
+| missing capability | rows | evidence |
+|---|---|---|
+| cardinality | §12.0.3, §13.6 | `assertVisible` passes with two markers stacked |
+| cross-moment comparison | §11.11 | cannot read a value, act, and compare |
+| element frames | §11.15-class | ⭐ the app had to **build its own `RING_AUDIT`** because no flow can read a rect |
+| springboard | ~16 (§5, §6, §10.3) | "surfaces outside the app under test" |
+| render state | §11.13 | painted vs blank |
+| system audits | 4 of 6 a11y bullets | contrast, hit targets, AX clipping |
+
+⛔ **That decides Appium against itself: its iOS driver IS XCUITest underneath**, so it inherits the same
+observation ceiling and adds a WebDriverAgent build per run, a server process and a second driver stack —
+for capabilities XCUITest has natively and which are already built and pre-flighted here. **Appium returns
+to the backlog with three written triggers:** Android at v1.8 · real-device cloud becomes a requirement ·
+XCUITest's Swift authoring surface proves costly enough that a friendlier API earns the server.
+
+⚠️ **One open check, deliberately not asserted:** Detox's `getAttributes()` reportedly returns frames and
+values, which would answer §11.11 and the frame checks grey-box. That is from memory, not measured, and
+four of my mechanisms died this session — it is the only thing that could change the recommendation.
+
+**Maestro stays for journeys** — 34 of the 97 automatable rows are walkthrough/demo/CRUD, which it is
+genuinely good at. This is not replace-Maestro; it is give-it-eyes.
+
+### Real-device cloud testing — 🎯 revisit in Phase 6 (2026-08-14)
+
+⛔ **It is not a way to shrink the manual pass, and that is the instinct worth killing early.** Against
+this checklist it moves **3–6 of 34** `[D]` rows: old-hardware performance (§11.2, §11.12 — the one class
+structurally about real hardware), camera image injection (§3.8), and Split View (§10.3) if no physical
+iPad. **Haptics cannot be felt through a video stream · sandbox StoreKit needs an Apple ID signed into the
+device · pointer hover needs a trackpad peripheral · Siri is unreliable on shared hardware.**
+
+⭐ **The argument that does hold is one nobody had made: everything runs on ONE simulator configuration.**
+§11.1's own text — *"a 375pt phone… do NOT substitute a Pro Max — this is width-driven and a wide phone
+can pass while an SE fails"* — is a prediction about the 97 rows being automated, not the 34 that are not.
+Same for iPad mini at 744pt, which this project measured as taking the PHONE layout, meaning `isExpanded`
+has a boundary nothing exercises.
+
+⚡ **Maestro Cloud is the zero-rewrite path.** Thirteen flows exist; mobile.dev runs the same YAML on real
+devices. Every other farm (BrowserStack, Sauce, AWS Device Farm) requires the suite to exist in Appium or
+XCUITest **first**, which is the expensive half. So the comparison is not "cloud vs no cloud" — it is one
+subscription versus a subscription plus writing everything again.
+
+⚠️ Verify before committing: pricing (it moves, and my knowledge has a cutoff) and whether the cloud tier
+supports `setOrientation`, which cost three CI cycles to establish locally.
+
+**Deferred to Phase 6 on the honest reason:** it unblocks nothing in 4.1, it is a recurring cost, and the
+natural moment is the pre-submit pass where "does this work on an SE" is a ship question rather than a
+coverage metric.
+
 ### 4.1.5's decomposed section retired to here
 
 Per the one-decomposed-section rule, 4.1.5's sub-table collapsed to a single plan row on 4.1.6a's
