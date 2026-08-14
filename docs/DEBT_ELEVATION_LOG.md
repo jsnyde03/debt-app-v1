@@ -8680,9 +8680,26 @@ coverage metric.
 
 ## 🔚 SESSION CLOSE 2026-08-14 — read this first next session
 
-**17 commits, all pushed to `v1.7-dev`, tree clean.** ⏳ **Run `31816228911` was in flight at close**
-(iPhone-only, carrying flows 09 and 10's selector fixes). **Read its result before anything else** — if
-green it proves 8 more rows (§12.0.1/.2/.4/.5/.6 · §11.9 · §11.11 · §11.13).
+**20 commits, all pushed to `v1.7-dev`, tree clean.** ⏳ **Run `31816919840` was in flight at close**
+(iPhone-only; flows 09 + 10's selector fixes **and** the hermesc fix). `31816228911` was cancelled and
+superseded. **Read its result before anything else** — green proves 8 more rows (§12.0.1/.2/.4/.5/.6 ·
+§11.9 · §11.11 · §11.13). ⚠️ **It REBUILDS by design** — the hermesc fix edits `native-e2e.yml`, which is
+in the `.app` cache key — so **the run AFTER it is the first that can exercise the JS fast path.**
+
+### ⛔ Late finding: the JS fast path had NEVER executed, and the cause was a moved package
+
+`31816228911` hit the `.app` cache, verified the binary and re-bundled the JS in 34s — then fell back to a
+full rebuild on *"hermesc not found in this tree"*. **All three candidate paths were correct for RN ~0.7x
+and absent on 0.85**: `react-native/sdks/` now holds only `hermes-engine`, and the compiler ships in its
+own package at `node_modules/hermes-compiler/hermesc/osx-bin/hermesc`. Fixed, most-current path first,
+the older ones kept for other RN versions.
+
+⭐ **The guard behaved correctly throughout** — it refused to swap a plain-JS bundle into a Hermes binary
+rather than failing at launch 20 minutes downstream as an unexplained Maestro timeout, which is the most
+expensive failure shape this lane has. ⚡ **So "the `.app` cache saves 771s" has been true in DESIGN and
+false in PRACTICE on every run to date.** The first genuinely fast run will also be the first proof the
+mechanism works — and that is a stronger argument for 4.1.9b than the wall-clock estimate was, because it
+removes the two-runs-from-proof tax that has hidden this for weeks.
 
 ### What exists now that did not this morning
 
