@@ -43,7 +43,21 @@ device-specific yet — that is this item.
 | **4.1.5.5** | ▶ **ACTIVE — §11.16, the landscape frame.** Decomposed below | ▶ |
 | **4.1.5.6** | **§11.8's rotation half** — ⛔ the "unproven command" block is STALE; `setOrientation` passed in 4.1.1 cycle 2 | |
 
-#### ▶ 4.1.5.5 — §11.16, and the iPad mark's other half _(active)_
+#### ▶ 4.1.5.5 — §11.16, and the iPad mark's other half _(active — 2 of 3 done)_
+
+✅ **4.1.5.5.1 DONE 2026-08-14.** `i02-ipad-step5-landscape.yaml` — iPad tier **4/4** on run `31740873224`,
+first try. ✅ **4.1.5.5.3 DONE** — the callout was anchored to the subject vertically and to the WINDOW
+horizontally (measured `x=33..1161` against a subject column of `388..1166`); both axes now come from
+`rect`. Fixed and gated locally, no native run. Detail → log.
+
+🎯 **4.1.5.5.2 IS THE ONLY THING LEFT AND IT IS JASON'S** — two verdicts on
+`maestro-debug/ipad-step5-landscape.png`:
+1. **§11.16 as written (the BOTTOM edge)** — rec: **PASS.** The border sits below the Defer button and both
+   paragraphs of small print; the web-at-1194×834 failure does not reproduce natively.
+2. ⚠️ **NEW, not what §11.16 asked (the TOP edge)** — the ring starts at *"$200 · Your line"*, leaving the
+   Guardian card's header outside the highlight. ⭐ The audit proves the GEOMETRY is right (`d 0,0`, no
+   `clampY`), so the question is **what beat 5's subject should be**, not whether the ring is drawn
+   correctly.
 
 ⚠️ **§11.16 is a JUDGEMENT, not a pass/fail** — the checklist asks whether the ring's bottom edge *"reads
 as a deliberate crop or as a rendering fault"*. Automating a verdict would be a check invented to be
@@ -129,6 +143,8 @@ load-bearing `\(.applicationName)` check) stay device-owed → the checklist.
 - **[D2]** `minimumPaidThisCycle` ownership — gates B4. · **[D3]** Money hero language. · **[D1]** Control Center (rec: stay deferred).
 
 ### ⚠️ Open defects
+
+- **⛔ [2026-08-14] The iOS driver stall has now happened TWICE, and the built-in retry does not clear it.** Run `31740873224`: *"iOS driver failed to start and NO flow ran — retrying the suite once"*, and the retry failed too — **zero iPhone flows ran**, after paying the full build. First seen at run `31646289268`. ⚡ **Not the app**: the iPad tier ran **4/4 in the same job**, including `01`'s full onboarding and `05`'s walkthrough. ⚠️ It is indistinguishable from a real red in exit code and identical in cost, so it can burn a whole batch — **check for that warning line before diagnosing any iPhone-tier failure.** → 4.1.11.
 
 - **⛔ [4.1.5.3 before-scan] The `trajectory-scrub` coach mark SURVIVES a route push — ⚡ REPRODUCED ON WEB 2026-08-13, locally, no CI cycle.** Seen first on the iPad (`ipad-04` → `ipad-05`, the card lying across the More settings list); `probe-mark-route-push.spec.ts` then reproduced it in Chrome. **Cross-platform product defect, not an iPad artifact** — every user who opens More while a mark is up sees a hint about the Progress chart over their settings. ⚡ Reproducible at all because `trajectory-scrub` is offered **unconditionally** (`progress.tsx:73`), unlike `debt-row-actions`, whose iOS-only gate cost five CI cycles. ⚠️ **Mechanism still NOT diagnosed** — `CoachMarkLayer` is where five were asserted and four refuted. The reproduction is `test.fail()`, so it reds the day it is fixed. **→ recommended as the next active build.**
 - **⚠️ [4.1.5.3 before-scan] That mark is drawn in WINDOW space on the expanded iPad**, so it starts at the window's left edge and lies **across the sidebar rail**, while its subject (the payoff-trajectory chart) is entirely inside the content column. That is §11.15's coordinate-space failure in a **different component** — `CoachMarkLayer`, which 4.1.5.2's audit does not cover. ⚠️ Whether a full-window callout is *wrong* here is a composition call; that it sits outside its subject's column is not.

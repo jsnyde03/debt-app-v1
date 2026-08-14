@@ -8089,3 +8089,42 @@ three: `setOrientation` takes an enum, `evalScript`/`assertTrue` carry JS. ⛔ `
 left OUT despite also taking a non-selector argument — it NESTS commands, so excluding it would silently
 drop every selector inside the loop from all three checks. Re-proven to fail on a planted stale string
 before being trusted, per T2.
+
+## Session close 2026-08-14 — where the fast path actually stands
+
+**Run `31800305248` hit the cache, restored the `.app`, verified the binary, re-bundled the JS — and the
+magic-byte guard stopped it on its FIRST live execution:**
+
+```
+bundle format changed (c61fbc03c103191f → 766172205f5f4255) — engine mismatch — rebuilding from source
+```
+
+`c61fbc03` is Hermes bytecode; `766172205f5f4255` is ASCII `var __BU`. **`expo export:embed` emits plain
+JS**, and Xcode's build phase compiles it to bytecode afterwards — re-bundling by hand has to do that
+second half too. Fixed with `hermesc -emit-binary`, resolved from THIS tree rather than `PATH` because
+Hermes bytecode is versioned and a mismatched compiler would sail past the magic check (both Hermes) and
+fail at launch instead.
+
+⭐ **What the run bought, for the price of a full build:** the cache mechanism works end to end; the guard
+works, catching a defect whose natural presentation is *an unexplained Maestro timeout twenty minutes
+downstream* — the most expensive failure shape this lane has; and **the app is provably Hermes**, which was
+an assumption until those bytes printed (`app.json` declares no `jsEngine`).
+
+⚠️ **Two runs from proof, not one.** The workflow file is in the `.app` cache key by design (build flags
+live there), so every iteration ON the cache mechanism costs a full build: the next dispatch rebuilds and
+repopulates under the new key, and the one after it is the first that can skip the 771s. **Do not spend a
+run on that alone** — fold it into 4.1.5.6's batch.
+
+### The day's shape, worth naming once
+
+**Every wrong thing was an unmeasured premise, and almost all were answerable from something already on
+disk:** the hierarchy dump that did not exist · "numeric frame containment" that belonged to Appium ·
+"More's two-column" that §10 never asked for · `~/.maestro`'s 1m29s that was 22s · §11.15's ~700pt that
+3.5.3.5.7 had designed out · the `.app` cache described as "the whole loop" while hitting **8%** · ccache's
+blocker being modules-at-all rather than *explicit* modules · and four of mine (the `d 2,2` border, a
+predicate with zero matches, a stale-rect story the probe refuted, and reading a sideways screenshot).
+
+⚡ **The counter-pattern that worked every time: measure the cheapest artifact first.** Two shipped
+cross-platform defects fell out of Chrome in under a minute each, in the same component that previously
+cost five CI cycles — the difference was noticing that one mark is `Platform.OS === 'ios'` and the other
+is not.
