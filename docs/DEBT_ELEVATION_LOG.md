@@ -9029,12 +9029,21 @@ pipefail inside it. Both halves proven locally before commit: the retry fires, a
   the same stall would produce the same non-result there. Left alone deliberately: it runs only under
   `mode=probe`, nothing is queued on it, and changing an untouched lane in a dispatch that already
   carries three fixes widens the blast radius for no answer this cycle.
-- **The `.app` cache HIT this run and the fast path still fell back** on `hermesc not found in this
-  tree`, even though `apps/rn/node_modules/hermes-compiler/hermesc/osx-bin/hermesc` exists here and is
-  the first candidate tested. The `-x` test failing on a non-executable extracted file is the leading
-  hypothesis and it is **UNMEASURED** — do not act on it without printing what the runner actually sees.
-  ⚠️ It also means "the workflow edit busts the `.app` key, so this rebuilds" was wrong: the key hit and
-  the rebuild came from the hermesc fallback instead.
+- ⛔ **RETRACTED, same day.** This bullet claimed the `.app` cache HIT and the fast path fell back on
+  `hermesc not found in this tree`. **Both halves are false.** Measured on `31822453981`'s own log:
+  `hermesc` appears **zero times**, `Verify the restored .app` is **skipped** (it is gated on
+  `cache-hit == 'true'`), and the provenance line reads `SOURCE : COMPILED IN THIS RUN`. The cache
+  **missed**, exactly as the key predicts.
+  ⚡ **The cause was mis-attribution, not mis-measurement:** the log text I reasoned from was pasted
+  from an *earlier* run — it matches `31816228911`, the pre-fix run that MOTIVATED commit `a4c1241` —
+  and I read it as the live one. 🎯 Jason caught it: *"I think the hermesc issue was resolved in the
+  last session."* ⚠️ **A pasted excerpt carries no run id.** Attribute it before building on it; two
+  conclusions were stacked on this one, including a needless retraction of a correct prediction.
+- ⚠️ **The hermesc fix is written but UNEXERCISED.** All three runs since `a4c1241` — `31816919840`,
+  `31822453981`, `31827409093` — missed the cache, so the re-bundle block never executed once. It is
+  plausible and unproven, and only a cache-HIT run can settle it.
+  ⛔ **Which cannot be a probe run:** every probe fix edits `apps/rn/plugins/**`, which is in the key,
+  so probe iteration forces a miss by construction. The two questions cannot share a cycle.
 
 ---
 
