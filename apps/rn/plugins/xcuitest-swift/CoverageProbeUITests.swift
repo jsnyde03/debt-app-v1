@@ -51,16 +51,50 @@ final class CoverageProbeUITests: XCTestCase {
             throw XCTSkip("performAccessibilityAudit needs iOS 17+")
         }
 
-        // ⚠️ Deliberately NON-FAILING on findings. This run establishes that the audit EXECUTES and what
-        // it reports on the first screen; turning its findings into a gate is a separate, later decision
+        // ⚠️ Deliberately NON-FAILING on findings. This establishes that the audit EXECUTES and what it
+        // reports on the first screen; turning its findings into a gate is a separate, later decision
         // once the volume is known. A probe that reds on 40 pre-existing contrast findings tells us
         // nothing about whether the mechanism works.
-        var findings = 0
-        try app.performAccessibilityAudit { issue in
-            findings += 1
-            print("PROBE a11yIssue type=\(issue.auditType) detail=\(issue.detailedDescription ?? "—")")
-            return true // handled — do not fail the test
+        //
+        // ⛔ PER TYPE, BECAUSE THE WHOLE-APP AUDIT TIMED OUT AND ONE GUESS WOULD ONLY TEACH ONE THING.
+        // Run 31830120940 ran the default `.all` audit for 47.7s and XCTest stopped it:
+        //   Error Domain=com.apple.xcode.xctest.accessibilityAudit Code=-56 "Audit failed to complete in time"
+        // ⚡ That is a SCOPING result, not a capability one — the mechanism is present and was invoked.
+        // Narrowing to one guessed combination would cost a cycle and answer only whether THAT
+        // combination fits. Auditing each type separately, timed, maps the whole space in one run: which
+        // types complete, how slow each is, and how many findings each carries.
+        //
+        // These four are exactly the premium-a11y sub-audit's automatable bullets — contrast, hit-target
+        // size, text clipped at AX sizes, and traits. Other types exist (`.dynamicType`,
+        // `.elementDetection`, `.sufficientElementDescription`, `.action`, `.parentChild`); they are left
+        // out deliberately, because every additional case is Swift that CANNOT be compile-checked off a
+        // Mac and a wrong name costs a whole cycle. Add them once these four are known good.
+        //
+        // ⚠️ EVERY TYPE IS CAUGHT SEPARATELY AND NOTHING RETHROWS. One slow type must not abort the map —
+        // that is the exact failure being diagnosed, and a probe that stops at the first red teaches one
+        // thing per 20-minute cycle (4.1.1's rule).
+        let auditTypes: [(String, XCUIAccessibilityAuditType)] = [
+            ("contrast", .contrast),
+            ("hitRegion", .hitRegion),
+            ("textClipped", .textClipped),
+            ("trait", .trait),
+        ]
+
+        for (name, auditType) in auditTypes {
+            var findings = 0
+            let started = Date()
+            do {
+                try app.performAccessibilityAudit(for: auditType) { _ in
+                    findings += 1
+                    return true // handled — do not fail the test
+                }
+                let secs = String(format: "%.1f", Date().timeIntervalSince(started))
+                print("PROBE a11y type=\(name) status=completed seconds=\(secs) findings=\(findings)")
+            } catch {
+                let secs = String(format: "%.1f", Date().timeIntervalSince(started))
+                print("PROBE a11y type=\(name) status=FAILED seconds=\(secs) findings=\(findings) error=\(error.localizedDescription)")
+            }
         }
-        print("PROBE a11yAudit=ran findings=\(findings)")
+        print("PROBE a11yAudit=mapped types=\(auditTypes.count)")
     }
 }
