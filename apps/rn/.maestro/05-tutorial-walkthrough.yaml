@@ -33,6 +33,12 @@
 # like flows 02–04. The demo user is not premium, so this exercises the FREE run — which is the more
 # valuable one: its finale is the conversion-honesty beat, and [D9] means all seven beats render
 # identically for both audiences anyway.
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+# DEVICE-CHECKLIST COVERAGE (4.1.6a) — parsed by `npm run audit:coverage`. Each line is a CLAIM about
+# what this flow proves, written against its assertions. ⚠️ The gate checks these STRUCTURALLY (the id
+# exists, its verdict allows automation); it cannot check that the assertion below really tests it.
+# COVERS: §11.15 — the ring-origin invariant, asserted against the subject rect on both device tiers
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:

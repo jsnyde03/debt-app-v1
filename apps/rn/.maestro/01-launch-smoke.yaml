@@ -25,6 +25,15 @@
 #
 # The three debt NAMES are load-bearing: flows 03 and 04 match rows by them, and flow 04 asserts all three
 # before and after its journey as a read-only invariant. Change a name here and those flows go red.
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+# DEVICE-CHECKLIST COVERAGE (4.1.6a) — parsed by `npm run audit:coverage`. Each line is a CLAIM about
+# what this flow proves, written against its assertions. ⚠️ The gate checks these STRUCTURALLY (the id
+# exists, its verdict allows automation); it cannot check that the assertion below really tests it.
+# COVERS: §1.2 — a fresh install lands on onboarding; the walk reaches Today with a seeded plan
+# PARTIAL: §1.1 — reaching "Get Started" proves the launch; "no white screen / no crash" is not asserted
+#                 directly
+# PARTIAL: §13.3 — the row-actions mark is asserted to be OFFERED; 08 owns its dismissal and persistence
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
 appId: com.jasonsnyder.debtplanner
 ---
 # ══ THE SMOKE — the part that catches a New-Architecture launch crash or an autolink failure ═════

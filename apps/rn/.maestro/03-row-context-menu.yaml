@@ -7,6 +7,13 @@
 # ⚠️ FIRST-RUN TUNING: whether Maestro's longPressOn triggers UIContextMenuInteraction and whether the
 # UIMenu actions surface as matchable a11y text may each need one adjustment on the first GH run — like
 # every other flow here did. A red here does NOT mask a compile crash (flow 02 covers that).
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+# DEVICE-CHECKLIST COVERAGE (4.1.6a) — parsed by `npm run audit:coverage`. Each line is a CLAIM about
+# what this flow proves, written against its assertions. ⚠️ The gate checks these STRUCTURALLY (the id
+# exists, its verdict allows automation); it cannot check that the assertion below really tests it.
+# PARTIAL: §4.1 — the native UIMenu opens with Edit + Delete; "red/destructive", the system blur and the haptic
+#                 are feel/judgement and stay device-owed
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:

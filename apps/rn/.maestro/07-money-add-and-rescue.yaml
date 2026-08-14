@@ -33,6 +33,17 @@
 # or not they land. The flow reaching a later step was read as proof the earlier ones worked. It is not.
 #
 # ⚠️ Still first-run-unproven here: `killApp`. (`inputText` is proven — it typed, just into one field.)
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+# DEVICE-CHECKLIST COVERAGE (4.1.6a) — parsed by `npm run audit:coverage`. Each line is a CLAIM about
+# what this flow proves, written against its assertions. ⚠️ The gate checks these STRUCTURALLY (the id
+# exists, its verdict allows automation); it cannot check that the assertion below really tests it.
+# COVERS: §14.1 — one Add, from all three sections
+# COVERS: §14.2 — the answer lands where it says
+# COVERS: §14.3 — the first-run fork
+# COVERS: §14.4 — the mis-file rescue, both phases
+# COVERS: §14.5 — Move to Debts
+# COVERS: §14.6 — "Not a debt" stays gone across a process restart
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:

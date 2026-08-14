@@ -15,6 +15,14 @@
 # *mid-step*, with a beat's subject already highlighted — and that is 4.1.5.6's. Rotating first means this
 # flow measures a settled landscape layout and cannot be mistaken for having answered §11.8. Two questions,
 # two flows, neither one quietly standing in for the other.
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+# DEVICE-CHECKLIST COVERAGE (4.1.6a) — parsed by `npm run audit:coverage`. Each line is a CLAIM about
+# what this flow proves, written against its assertions. ⚠️ The gate checks these STRUCTURALLY (the id
+# exists, its verdict allows automation); it cannot check that the assertion below really tests it.
+# PARTIAL: §11.16 — the landscape frame is captured and the ring invariant holds on the clamp-free axis; the
+#                   crop is a composition JUDGEMENT — given by Jason 2026-08-14 [D33], both edges PASS. Dark
+#                   theme still owed → 4.1.5.6
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
 appId: com.jasonsnyder.debtplanner
 ---
 # `clearState: false` — `01` runs ahead of this on the iPad list and leaves an onboarded portfolio, exactly

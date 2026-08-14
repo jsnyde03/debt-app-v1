@@ -22,7 +22,8 @@
     "test:all": "npm run test:regression && npm run test:app && npm run test:scenarios",
     "lint:copy": "tsx scripts/strings-inventory.ts --gate",
     "lint:selectors": "tsx scripts/check-maestro-selectors.ts",
-    "lint:rn": "npm --prefix apps/rn run lint && npm run lint:a11y-props && npm run lint:comments && npm run lint:rn-style && npm run lint:copy && npm run lint:selectors",
+    "lint:coverage": "tsx scripts/coverage-split.ts --gate",
+    "lint:rn": "npm --prefix apps/rn run lint && npm run lint:a11y-props && npm run lint:comments && npm run lint:rn-style && npm run lint:copy && npm run lint:selectors && npm run lint:coverage",
     "typecheck:rn": "npm --prefix apps/rn run typecheck",
     "typecheck:core": "tsc --noEmit -p packages/core/tsconfig.json",
     "typecheck": "npm run typecheck:core && npm run typecheck:rn",
@@ -31,6 +32,7 @@
     "validate:release:legacy": "npm run lint && npm run test:regression && npm run test:app && npm run test:e2e",
     "audit:strings": "tsx scripts/strings-inventory.ts",
     "audit:surfaces": "tsx scripts/surface-inventory.ts",
+    "audit:coverage": "tsx scripts/coverage-split.ts",
     "test:regression": "tsx packages/core/testing/runRegressionTests"
   },
   "dependencies": {

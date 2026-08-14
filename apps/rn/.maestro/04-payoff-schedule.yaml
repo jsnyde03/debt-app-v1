@@ -12,6 +12,12 @@
 # screen is actually VISIBLE, and the edit sheet is gone rather than covering it.
 #
 # Depends on 01 having run first (the ORDER IS EXPLICIT in native-e2e.yml — Maestro does NOT sort a directory argument; measured 2026-08-12).
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+# DEVICE-CHECKLIST COVERAGE (4.1.6a) — parsed by `npm run audit:coverage`. Each line is a CLAIM about
+# what this flow proves, written against its assertions. ⚠️ The gate checks these STRUCTURALLY (the id
+# exists, its verdict allows automation); it cannot check that the assertion below really tests it.
+# COVERS: §B2.1 — Money → a debt → the schedule entry → the schedule is visible AND the edit sheet is gone
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
 appId: com.jasonsnyder.debtplanner
 ---
 - launchApp:
