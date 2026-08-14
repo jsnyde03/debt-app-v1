@@ -481,27 +481,27 @@ VoiceOver, and real StoreKit prices._
 **Reach it (two doors, test both):** fresh install → **"See it in action"** · ••• More → **Unlock
 Premium** → **"See it in action"**.
 
-- [ ] `[M]` **§12.0.1 — you can walk around.** The **tab bar is visible**, and Today / Progress / Money all
+- [x] `[M]` **§12.0.1 — you can walk around.** The **tab bar is visible**, and Today / Progress / Money all
       switch when tapped.
       **PASS:** all three navigate, showing example figures on each.
-      **FAIL:** the bar is missing, or a tap does nothing (the old kiosk fence still holding).
-- [ ] `[M]` **§12.0.2 — the disclosure follows you.** On **every** screen you land on, **"Example money"** is at
+      **FAIL:** the bar is missing, or a tap does nothing (the old kiosk fence still holding). `✅auto·31822453981`
+- [x] `[M]` **§12.0.2 — the disclosure follows you.** On **every** screen you land on, **"Example money"** is at
       the top, above the scroll.
       **FAIL:** any screen without it. ⚠️ **Highest-severity item in §12** — this run shows invented money
-      on the real app, and the marker is the only thing saying so.
+      on the real app, and the marker is the only thing saying so. `✅auto·31822453981`
 - [ ] `[M◐]` **§12.0.3 — exactly ONE marker on screen.** ⏳ Web cannot answer this (its tab navigator leaves the
       previous screen painted, so two are visible); a device renders only the focused tab.
       **PASS:** one. **FAIL:** two stacked or overlapping.
-- [ ] `[M]` **§12.0.4 — the way out is wherever you are.** **"Start my real plan"** sits beside the marker on
+- [x] `[M]` **§12.0.4 — the way out is wherever you are.** **"Start my real plan"** sits beside the marker on
       every tab. Tap it from **Progress**, not Today.
       **PASS:** onboarding opens and **no example figures survive anywhere**.
-      **FAIL:** it is missing on some tab, or example money is still visible after exiting.
-- [ ] `[M]` **§12.0.5 — settings stay shut.** The **•••** More button is **greyed and unresponsive** on every
-      tab. **FAIL:** it opens — More carries **Reset** and preferences that write your REAL plan.
-- [ ] `[M]` **§12.0.6 — your real plan is untouched.** Exit, then force-quit and reopen.
+      **FAIL:** it is missing on some tab, or example money is still visible after exiting. `✅auto·31822453981`
+- [x] `[M]` **§12.0.5 — settings stay shut.** The **•••** More button is **greyed and unresponsive** on every
+      tab. **FAIL:** it opens — More carries **Reset** and preferences that write your REAL plan. `✅auto·31822453981`
+- [x] `[M]` **§12.0.6 — your real plan is untouched.** Exit, then force-quit and reopen.
       **PASS:** your own data (or a genuinely empty app) — no persona debts, no $2,000 paycheck.
       **FAIL:** anything from the demo survived. ⚠️ This is the failure the whole sandbox exists to
-      prevent, and the legacy demo shipped it.
+      prevent, and the legacy demo shipped it. `✅auto·31822453981`
 - [ ] `[M]` **§12.0.7 — poke at it.** Open a debt row, scrub the trajectory, try Can-I-Afford-This.
       **PASS:** it behaves like the real app. **FAIL:** anything crashes, or a change escapes to your plan.
 - [ ] `[M◐]` **§12.0.8 — VoiceOver.** Turn it on and enter the demo.

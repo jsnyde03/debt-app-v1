@@ -7,12 +7,12 @@
 ## The answer
 
 🎯 **2026-08-14: *"Nothing should be marked covered unless it's proven to be."*** So the headline is
-**25**, not 33. The difference is the row below it, and it is the honest gap.
+**30**, not 33. The difference is the row below it, and it is the honest gap.
 
 | | checks | |
 |---|---:|---|
-| **✅ Covered — PROVEN** | **25** | a flow claims it **and** the row is ticked: 24 machine-earned `✅auto·<runId>` · 1 human-earned `[x]` |
-| **⚠️ Claimed but UNPROVEN** | **8** | a flow declares it; no run has ever passed it. **These were counted as covered before 4.1.9c** |
+| **✅ Covered — PROVEN** | **30** | a flow claims it **and** the row is ticked: 29 machine-earned `✅auto·<runId>` · 1 human-earned `[x]` |
+| **⚠️ Claimed but UNPROVEN** | **3** | a flow declares it; no run has ever passed it. **These were counted as covered before 4.1.9c** |
 | **▶ Coverable, not yet built** | **64** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
 | **🎯 Permanently device-owed** | **34** | `[D]` — no lane will ever carry it |
 | | | |
@@ -20,13 +20,11 @@
 | Real checks | 131 | 9 further rows are `[—]` — install steps and report-back prompts |
 
 ⛔ **A declaration is an author's claim, not a result.** `COVERS:` says what a flow is *meant* to test;
-it cannot say whether the flow has ever executed, let alone passed. The 8 unproven rows are all
+it cannot say whether the flow has ever executed, let alone passed. The 3 unproven rows are all
 claimed by flows that have never gone green — and each one used to be indistinguishable, in this
 report, from a check that passes on every run.
 
-**Machine-earned rows by run:** `31812114150` 24
-
-⚠️ **Every machine-earned row traces to a single run.** One run is one sample: it proves those flows passed once, on one runner, at one commit — not that they are stable. A regression is only visible once a second run disagrees.
+**Machine-earned rows by run:** `31812114150` 24 · `31822453981` 5
 
 
 **Verdict spread:** `[M]` 68 · `[M◐]` 26 · `[A]` 3 · `[D]` 34
@@ -108,7 +106,7 @@ what comes off the device pass.
 
 ---
 
-## ⚠️ Claimed but UNPROVEN — declared by a flow, never passed (8)
+## ⚠️ Claimed but UNPROVEN — declared by a flow, never passed (3)
 
 **Read this list before quoting a coverage number.** Each row has a flow that says it covers it and no
 run that has ever passed it. Until one does, it is a plan, not coverage.
@@ -118,15 +116,10 @@ run that has ever passed it. Until one does, it is a plan, not coverage.
 | §11.9 | `[M◐]` | long debt names inside the scripted shortfall (any iPhone, AX3, both themes.) | `10-walkthrough-edges` *(partial)* | ⚠️ **none** |
 | §11.11 | `[M◐]` | scrolling near the slider must not MOVE it (any iPhone. The counterpart to §11.10: | `10-walkthrough-edges` *(partial)* | ⚠️ **none** |
 | §11.13 | `[M◐]` | beat 1's cushion bar must be PAINTED when the step arrives (any iPhone; do it from a | `10-walkthrough-edges` *(partial)* | ⚠️ **none** |
-| §12.0.1 | `[M]` | you can walk around. The tab bar is visible, and Today / Progress / Money all | `09-demo-explore` | ⚠️ **none** |
-| §12.0.2 | `[M]` | the disclosure follows you. On every screen you land on, "Example money" is at | `09-demo-explore` | ⚠️ **none** |
-| §12.0.4 | `[M]` | the way out is wherever you are. "Start my real plan" sits beside the marker on | `09-demo-explore` | ⚠️ **none** |
-| §12.0.5 | `[M]` | settings stay shut. The ••• More button is greyed and unresponsive on every | `09-demo-explore` | ⚠️ **none** |
-| §12.0.6 | `[M]` | your real plan is untouched. Exit, then force-quit and reopen. | `09-demo-explore` | ⚠️ **none** |
 
 ---
 
-## ✅ Covered — PROVEN (25)
+## ✅ Covered — PROVEN (30)
 
 | id | verdict | check | claimed by | proof |
 |---|---|---|---|---|
@@ -155,6 +148,11 @@ run that has ever passed it. Until one does, it is a plan, not coverage.
 | §13.4 | `[M◐]` | the trajectory mark does not bury a different chart (any iPhone, both themes.) | `08-coach-marks` *(partial)* | `✅auto·31812114150` |
 | §13.5 | `[M]` | a mark is a hint, not a modal (any iPhone.) | `08-coach-marks` | `✅auto·31812114150` |
 | §13.6 | `[M]` | VoiceOver hears each hint ONCE (VoiceOver ON.) | `08-coach-marks` | `✅auto·31812114150` |
+| §12.0.1 | `[M]` | you can walk around. The tab bar is visible, and Today / Progress / Money all | `09-demo-explore` | `✅auto·31822453981` |
+| §12.0.2 | `[M]` | the disclosure follows you. On every screen you land on, "Example money" is at | `09-demo-explore` | `✅auto·31822453981` |
+| §12.0.4 | `[M]` | the way out is wherever you are. "Start my real plan" sits beside the marker on | `09-demo-explore` | `✅auto·31822453981` |
+| §12.0.5 | `[M]` | settings stay shut. The ••• More button is greyed and unresponsive on every | `09-demo-explore` | `✅auto·31822453981` |
+| §12.0.6 | `[M]` | your real plan is untouched. Exit, then force-quit and reopen. | `09-demo-explore` | `✅auto·31822453981` |
 
 ---
 

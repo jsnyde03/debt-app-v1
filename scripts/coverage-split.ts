@@ -98,9 +98,19 @@ function parseChecklist(): { checks: Check[]; problems: string[] } {
       problems.push(`${CHECKLIST}:${i + 1} — unknown verdict [${verdict}] on §${id}`);
       continue;
     }
-    // ⚠️ The stamp is read from the RAW LINE, not from `title` — the title is sliced to 96 chars and a
-    // stamp sits at the end of the row, so a long check would silently lose its own provenance.
-    const stamp = lines[i].match(STAMP_RE)?.[1];
+    // ⚠️ THE STAMP IS READ FROM THE WHOLE LOGICAL ROW, NOT FROM THIS LINE. Two reasons, and the second
+    // was measured the hard way: `title` is sliced to 96 chars, so a long check would lose its own
+    // provenance; and a checklist row WRAPS onto indented continuation lines, which is where a stamp
+    // naturally belongs — a row's first line usually ends mid-sentence. Reading only `lines[i]` counted
+    // five freshly machine-stamped rows as human-earned, collapsing the exact provenance distinction
+    // this file exists to keep. A block ends at the next row, a blank line, a heading, or a table.
+    let end = i;
+    while (end + 1 < lines.length) {
+      const nxt = lines[end + 1];
+      if (/^\s*-\s*\[[ xX]\]/.test(nxt) || /^\s*$/.test(nxt) || /^#{1,6}\s/.test(nxt) || /^\s*\|/.test(nxt)) break;
+      end++;
+    }
+    const stamp = lines.slice(i, end + 1).join('\n').match(STAMP_RE)?.[1];
     checks.push({
       id: `§${id}`, verdict: verdict as Verdict, section, done: box.toLowerCase() === 'x',
       title: title.replace(STAMP_RE, '').replace(/\*\*/g, '').replace(/[_`]/g, '').replace(/\s+/g, ' ').trim().slice(0, 96),
