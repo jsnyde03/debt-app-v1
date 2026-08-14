@@ -72,7 +72,7 @@
 - [ ] `[M◐]` **§B2.2** **Long-press blur is back** — long-press a debt row → ✅ the background **dims/blurs** behind the Edit/Delete menu. ⚠️ **Best-effort fix** — if there's *still* no blur, it's likely a library/New-Arch limitation (not a config miss) → tell me and I'll look at alternatives.
 
 ### 🆕 In-app "Log payment" (3.5.5)
-- [ ] `[M]` **§B2.3** **The menu action** — long-press a **debt** row → the context menu now has **"Log payment"** (first, above Edit/Delete) → tap → an **amount sheet** opens ("Log a payment · {debt} · ${balance} owed").
+- [ ] `[M◐]` **§B2.3** **The menu action** — long-press a **debt** row → the context menu now has **"Log payment"** (first, above Edit/Delete) → tap → an **amount sheet** opens ("Log a payment · {debt} · ${balance} owed").
 - [ ] `[M]` **§B2.4** **Logging works** — enter an amount → **Log payment** → ✅ the balance drops by that amount + a **"Payment logged — Undo / Keep"** card appears on **Today** → tap **Undo** → the balance restores.
 - [ ] `[M]` **§B2.5** **Overpay clamps** — enter more than the balance → the field notes it'll clear to $0 → confirm the debt goes to **$0** (never negative).
 

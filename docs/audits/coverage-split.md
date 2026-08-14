@@ -8,14 +8,14 @@
 
 | | checks | |
 |---|---:|---|
-| **Covered today** | **23** | a flow claims it |
-| **Coverable, not yet built** | **74** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
+| **Covered today** | **25** | a flow claims it |
+| **Coverable, not yet built** | **72** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
 | **Permanently device-owed** | **34** | `[D]` — no lane will ever carry it |
 | | | |
-| **🎯 The device pass** | **55** | `[D]` **+** the human half of every `[M◐]` (21) |
+| **🎯 The device pass** | **56** | `[D]` **+** the human half of every `[M◐]` (22) |
 | Real checks | 131 | 9 further rows are `[—]` — install steps and report-back prompts |
 
-**Verdict spread:** `[M]` 73 · `[M◐]` 21 · `[A]` 3 · `[D]` 34
+**Verdict spread:** `[M]` 72 · `[M◐]` 22 · `[A]` 3 · `[D]` 34
 
 ⚠️ **`[M◐]` rows appear in BOTH the coverage columns and the device pass.** That is not double-counting —
 a partial is automated in one half and manual in the other, and reporting only `[D]` would overstate
@@ -23,7 +23,7 @@ what comes off the device pass.
 
 ---
 
-## ▶ Coverable, not yet built — the remaining work (74)
+## ▶ Coverable, not yet built — the remaining work (72)
 
 | id | verdict | check | claimed by |
 |---|---|---|---|
@@ -38,7 +38,6 @@ what comes off the device pass.
 | §B3.11 | `[M]` | Progress → the Vanquished archive (needs ≥1 paid-off debt) → tap Share → ✅ the branded trophy-sh | — |
 | §B3.12 | `[M]` | Launch is clean — the app opens past the splash with Sentry initialized, no new launch crash fro | — |
 | §B2.2 | `[M◐]` | Long-press blur is back — long-press a debt row → ✅ the background dims/blurs behind the Edit/De | — |
-| §B2.3 | `[M]` | The menu action — long-press a debt row → the context menu now has "Log payment" (first, above E | — |
 | §B2.4 | `[M]` | Logging works — enter an amount → Log payment → ✅ the balance drops by that amount + a "Payment  | — |
 | §B2.5 | `[M]` | Overpay clamps — enter more than the balance → the field notes it'll clear to $0 → confirm the d | — |
 | §B2.11 | `[M]` | ⭐ \(.applicationName) renders "Debt Planner", NOT "Debt Planner (RN)". ⚠️ The load-bearing check | — |
@@ -71,7 +70,6 @@ what comes off the device pass.
 | §11.3 | `[M◐]` | the coaching text NEVER rewrites itself (same device as §11.2.) | — |
 | §11.4 | `[M◐]` | VoiceOver, end to end (Settings → Accessibility → VoiceOver: ON.) | — |
 | §11.5 | `[M]` | the header must not eat the highlight at AX5 (any iPhone, AX5, both themes.) | — |
-| §11.8 | `[M◐]` | rotation and Split View mid-step (iPad, any.) | — |
 | §11.9 | `[M]` | long debt names inside the scripted shortfall (any iPhone, AX3, both themes.) | — |
 | §11.11 | `[M]` | scrolling near the slider must not MOVE it (any iPhone. The counterpart to §11.10: | — |
 | §11.13 | `[M]` | beat 1's cushion bar must be PAINTED when the step arrives (any iPhone; do it from a | — |
@@ -104,11 +102,12 @@ what comes off the device pass.
 
 ---
 
-## ✅ Covered today (23)
+## ✅ Covered today (25)
 
 | id | verdict | check | claimed by |
 |---|---|---|---|
 | §B2.1 | `[M]` | "View Payoff Schedule" now opens — Money → tap a debt (edit sheet) → tap "View Payoff Schedule"  | `04-payoff-schedule` |
+| §B2.3 | `[M◐]` | The menu action — long-press a debt row → the context menu now has "Log payment" (first, above E | `03-row-context-menu` *(partial)* |
 | §1.1 | `[M]` | App launches past the splash — no white screen, no crash (this is the New-Architecture + all-nat | `01-launch-smoke` *(partial)* |
 | §1.2 | `[M]` | Lands on Today (if you have data) or onboarding (fresh install). If onboarding, either complete  | `01-launch-smoke` |
 | §3.1 | `[M]` | ⭐ FormSheet header buttons (the owed re-verify): open Add debt (Money → Debts → Add debt) → tap  | `02-sheet-native-tap` *(partial)* |
@@ -116,6 +115,7 @@ what comes off the device pass.
 | §10.1 | `[M]` | Landscape / full-screen (expanded): Money → Debts shows the list on the left + the edit form INL | `i01-ipad-boot` |
 | §10.2 | `[M]` | Portrait / narrow: everything stacks into the single centered column with the bottom tab bar (sa | `02-sheet-native-tap` *(partial)* |
 | §11.7 | `[M◐]` | Reduce Motion, and interruption mid-story (any iPhone, dark theme.) | `06-tutorial-interactions` *(partial)* |
+| §11.8 | `[M◐]` | rotation and Split View mid-step (iPad, any.) | `i03-ipad-rotate-midstep` *(partial)* |
 | §11.10 | `[M]` | the walkthrough's one required gesture (any iPhone.) | `06-tutorial-interactions` |
 | §11.15 | `[M]` | the highlight lands on its subject at iPad width — ✅ AUTOMATED 2026-08-13 (4.1.5.2). | `05-tutorial-walkthrough` |
 | §11.16 | `[M◐]` | Step 5 on iPad LANDSCAPE (iPad, landscape, both themes.) | `i02-ipad-step5-landscape` *(partial)* |
@@ -175,7 +175,7 @@ what comes off the device pass.
 
 ---
 
-## ◐ Partials — automated in one half, yours in the other (21)
+## ◐ Partials — automated in one half, yours in the other (22)
 
 - **§B3.1** — Fires + feels premium — the full-screen finale appears: two-wave confetti · gold bloom · the Ski
   ⚠️ *no flow claims even the automatable half yet*
@@ -187,6 +187,8 @@ what comes off the device pass.
   ⚠️ *no flow claims even the automatable half yet*
 - **§B2.2** — Long-press blur is back — long-press a debt row → ✅ the background dims/blurs behind the Edit/De
   ⚠️ *no flow claims even the automatable half yet*
+- **§B2.3** — The menu action — long-press a debt row → the context menu now has "Log payment" (first, above E
+  03-row-context-menu: "Log payment" is present in the menu and opens the amount sheet; its POSITION ("first,
 - **§B2.12** — A8.2 short forms are caught — *"Hey Siri, Debt Planner debt-free date"* · *"…Debt Planner balanc
   ⚠️ *no flow claims even the automatable half yet*
 - **§3.2** — Sheet gestures: open any add/edit sheet → swipe it down → it dismisses. The grabber shows. Keybo
@@ -210,7 +212,7 @@ what comes off the device pass.
 - **§11.7** — Reduce Motion, and interruption mid-story (any iPhone, dark theme.)
   06-tutorial-interactions: the INTERRUPTION half — backgrounding mid-story returns to step 3 intact. Reduce Motion is
 - **§11.8** — rotation and Split View mid-step (iPad, any.)
-  ⚠️ *no flow claims even the automatable half yet*
+  i03-ipad-rotate-midstep: the ROTATION half of (a): the ring re-finds its subject after a mid-step rotate, and
 - **§11.16** — Step 5 on iPad LANDSCAPE (iPad, landscape, both themes.)
   i02-ipad-step5-landscape: the landscape frame is captured and the ring invariant holds on the clamp-free axis; the
 - **§13.4** — the trajectory mark does not bury a different chart (any iPhone, both themes.)

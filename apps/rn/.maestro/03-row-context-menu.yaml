@@ -13,6 +13,8 @@
 # exists, its verdict allows automation); it cannot check that the assertion below really tests it.
 # PARTIAL: §4.1 — the native UIMenu opens with Edit + Delete; "red/destructive", the system blur and the haptic
 #                 are feel/judgement and stay device-owed
+# PARTIAL: §B2.3 — "Log payment" is present in the menu and opens the amount sheet; its POSITION ("first,
+#                 above Edit/Delete") is not assertable in Maestro and stays device-owed
 # ──────────────────────────────────────────────────────────────────────────────────────────────────
 appId: com.jasonsnyder.debtplanner
 ---
@@ -35,3 +37,25 @@ appId: com.jasonsnyder.debtplanner
 # The UIMenu rendered with both actions (exact labels → full-string match; Delete is the destructive one).
 - assertVisible: "Edit"
 - assertVisible: "Delete"
+
+# ── §B2.3, added 2026-08-14 (4.1.5.6). ⛔ THIS FLOW USED TO PASS WITH "Log payment" MISSING ENTIRELY. ──
+# 3.5.5.2 added a third action to the debt row's menu and `ListRow.tsx:151` PREPENDS it, so the menu is
+# "Log payment · Edit · Delete". The flow asserted only Edit and Delete and was never re-read, so the
+# checklist's §B2.3 was verified by nobody — found by 4.1.6a's coverage pass, not by a red run.
+#
+# ⚠️ ORDER ("first, above Edit/Delete") IS NOT ASSERTED. Maestro matches elements, not their sequence,
+# and there is no honest way to express "above" here. Presence is asserted; the ordering half stays
+# device-owed, which is why §B2.3's verdict is [M◐] rather than [M]. Do not strengthen this comment
+# into a claim the assertion does not make.
+- assertVisible: "Log payment"
+
+# …and it actually opens the amount sheet. Presence in a menu is not proof the action is wired —
+# `LogPaymentSheet.tsx:34` titles the sheet "Log a payment", distinct from the menu's "Log payment".
+- tapOn: "Log payment"
+- assertVisible: "Log a payment"
+
+# Leave no sheet open: flow 04 opens the debt EDIT sheet next and a stacked presentation is exactly the
+# nesting bug that flow's whole history is about.
+- tapOn:
+    id: "sheet-close"
+- assertNotVisible: "Log a payment"

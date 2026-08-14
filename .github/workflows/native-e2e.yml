@@ -779,9 +779,29 @@ jobs:
             .maestro/01-launch-smoke.yaml \
             .maestro/i01-ipad-boot.yaml \
             .maestro/i02-ipad-step5-landscape.yaml \
+            .maestro/i03-ipad-rotate-midstep.yaml \
             .maestro/05-tutorial-walkthrough.yaml \
             --format junit --output maestro-report-ipad.xml --debug-output ./maestro-debug-ipad || STATUS=$?
           kill "$LOG_PID" 2>/dev/null || true
+
+          # ⚠️ 4.1.5.6 — §11.16 ASKS FOR BOTH THEMES, and [D33] judged only LIGHT. Rather than fork the
+          # flow, re-run `i02` alone under a dark appearance into its OWN debug directory: same
+          # assertions, different theme, no second file to keep in step with the first. `simctl ui` is
+          # the same mechanism the AX/theme conditions at 4.1.7 will use, so this also exercises it once
+          # cheaply before that item depends on it.
+          # `|| true` — a missing dark frame must not red a tier whose light half already passed.
+          #
+          # ⛔ `takeScreenshot` writes RELATIVE TO THE WORKING DIRECTORY, not into `--debug-output`, so a
+          # second run of the same flow OVERWRITES the first flow's frames. The light frame is therefore
+          # parked before the dark run and restored after it, and the dark one is renamed on the way out.
+          # Without this the tier would ship one frame and call it two.
+          cp maestro-debug/ipad-step5-landscape.png /tmp/ipad-step5-light.png 2>/dev/null || true
+          xcrun simctl ui booted appearance dark || true
+          maestro test .maestro/i02-ipad-step5-landscape.yaml \
+            --debug-output ./maestro-debug-ipad-dark || echo "dark-theme i02 did not pass (recorded, not fatal)"
+          mv maestro-debug/ipad-step5-landscape.png maestro-debug/ipad-step5-landscape-dark.png 2>/dev/null || true
+          cp /tmp/ipad-step5-light.png maestro-debug/ipad-step5-landscape.png 2>/dev/null || true
+          xcrun simctl ui booted appearance light || true
 
           # ⚠️ 4.1.5.5 — STRAIGHTEN THE LANDSCAPE FRAME. `takeScreenshot` captures the device FRAMEBUFFER,
           # which stays in the physical portrait orientation however the app is rotated, so `i02`'s beat-5
@@ -793,7 +813,10 @@ jobs:
           # that are actually landscape — a blanket rotate would tip every portrait screenshot in the
           # artifact on its side, turning one fixed diagnostic into a dozen broken ones.
           # `|| true` throughout: a rotation failure must not lose the frame it was trying to improve.
-          for f in maestro-debug/ipad-landscape-*.png maestro-debug/ipad-step5-landscape.png; do
+          # ⚠️ The trailing `*` on the second pattern is load-bearing — it catches the dark frame written
+          # above (`…-landscape-dark.png`). Named without it, the dark half would ship on its side, which
+          # is the exact failure the light half already cost a wrong first answer to.
+          for f in maestro-debug/ipad-landscape-*.png maestro-debug/ipad-step5-landscape*.png; do
             [ -f "$f" ] && sips -r 270 "$f" >/dev/null 2>&1 && echo "straightened $f" || true
           done
 

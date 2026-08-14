@@ -1,0 +1,110 @@
+# Maestro E2E — §11.8(a): ROTATION MID-STEP. The highlight must find its subject again, and the tap
+# that lands during the reflow must not reach the app. 4.1.5.6.
+#
+# ⚠️ NOT what `i02` does. `i02` rotates FIRST and then walks to beat 5, so nothing about it is mid-step —
+# its own header says so. This flow reaches step 3, rotates while the overlay is up, and asserts what
+# happens next. Two questions, two flows, neither standing in for the other.
+#
+# ⭐ WHY THIS IS ASSERTABLE AT ALL. 4.1.5.2 put the ring's verdict INTO an id —
+# `tutorial-ring-audit-ok` when the drawn ring matches its subject's rect, `…-off` when it does not
+# (`TutorialOverlay.tsx:340`). §11.8's "the bright rectangle settles back onto 'Adjust your line →'" is
+# therefore a real assertion rather than a screenshot for a human. Asserting BOTH the ok id present and
+# the off id absent is deliberate: a missing element and a failing one are different states, and only
+# checking for `ok` would pass on a build where the audit stopped rendering entirely.
+#
+# ⛔ `point:` IS DELIBERATELY NOT USED, though §11.8 says "tap once in the middle of the screen". It
+# appears in this repo only inside `probe-deeplink/p09`, which has never gone green — so it is an
+# unproven command, and Maestro validates a whole FILE before executing any of it. More importantly, a
+# coordinate tap makes "the tap did nothing" a weak claim: nothing visibly changed could mean the tap
+# was swallowed OR that it landed somewhere inert. Tapping the PROGRESS rail instead makes the claim
+# falsifiable — if the overlay let it through, the app navigates off Today and "Step 3 of 7" is gone.
+#
+# ⚠️ WHAT THIS FLOW CANNOT HOLD: §11.8 says the tap must come "within one second" of the rotation.
+# Maestro gives no sub-second scheduling, so this taps as the next command with no wait between. That is
+# the closest honest approximation and it is NOT the stated timing — if the swallow window turns out to
+# be shorter than Maestro's command latency, this passes while a real finger fails. §11.8 therefore
+# stays [M◐] and its (b) half — Split View — is not scriptable at all.
+#
+# Depends on 01 having seeded (the ORDER IS EXPLICIT in native-e2e.yml — Maestro does NOT sort a
+# directory argument; measured 2026-08-12). Restores PORTRAIT on the way out: a file that leaks device
+# state is what made cycle 1 of the 4.1.1 probe read as five capability failures.
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+# DEVICE-CHECKLIST COVERAGE (4.1.6a) — parsed by `npm run audit:coverage`. Each line is a CLAIM about
+# what this flow proves, written against its assertions. ⚠️ The gate checks these STRUCTURALLY (the id
+# exists, its verdict allows automation); it cannot check that the assertion below really tests it.
+# PARTIAL: §11.8 — the ROTATION half of (a): the ring re-finds its subject after a mid-step rotate, and
+#          a tap during the reflow does not reach the app. The one-second window is approximated, and
+#          (b) Split View is not scriptable — both stay device-owed
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+appId: com.jasonsnyder.debtplanner
+---
+- launchApp:
+    clearState: false
+
+# ── To step 3, in portrait. Entry via the replay link for flow 05's reason: the invitation card
+#    disappears once seen and is not a stable target across re-runs. ──────────────────────────────────
+- setOrientation: PORTRAIT
+- extendedWaitUntil:
+    visible:
+      id: "tab-today"
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: "How this works"
+    direction: DOWN
+- tapOn: "How this works"
+- assertVisible:
+    id: "tutorial-overlay"
+- assertVisible:
+    text: ".*Step 1 of 7.*"
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 2 of 7.*"
+- tapOn: "Next"
+- assertVisible:
+    text: ".*Step 3 of 7.*"
+
+# Baseline BEFORE the rotation. Without this a post-rotation `ok` proves nothing — the ring could have
+# been correct throughout and the rotation could be doing nothing at all.
+- assertVisible:
+    id: "tutorial-ring-audit-ok"
+- assertNotVisible:
+    id: "tutorial-ring-audit-off"
+- takeScreenshot: maestro-debug/ipad-rotate-01-before
+
+# ── §11.8(a). Rotate, then tap immediately — no wait, deliberately. ────────────────────────────────
+- setOrientation: LANDSCAPE_LEFT
+- tapOn:
+    id: "tab-progress"
+
+# The tap must have been swallowed. If it reached the rail, the app is on Progress and the overlay is
+# gone — so this assertion IS the "does nothing at all" half, and it fails loudly rather than silently.
+- assertVisible:
+    text: ".*Step 3 of 7.*"
+- assertVisible:
+    id: "tutorial-overlay"
+
+# …and the highlight must have found its subject again in the new geometry.
+- extendedWaitUntil:
+    visible:
+      id: "tutorial-ring-audit-ok"
+    timeout: 10000
+- assertNotVisible:
+    id: "tutorial-ring-audit-off"
+- takeScreenshot: maestro-debug/ipad-landscape-rotate-02-after
+
+# ── Restore, and prove the return trip too — the reflow runs in both directions. ───────────────────
+- setOrientation: PORTRAIT
+- extendedWaitUntil:
+    visible:
+      id: "tutorial-ring-audit-ok"
+    timeout: 10000
+- assertNotVisible:
+    id: "tutorial-ring-audit-off"
+- assertVisible:
+    text: ".*Step 3 of 7.*"
+
+# Leave the walkthrough closed so the next flow starts from a known state.
+- tapOn: "Skip"
+- assertNotVisible:
+    id: "tutorial-overlay"

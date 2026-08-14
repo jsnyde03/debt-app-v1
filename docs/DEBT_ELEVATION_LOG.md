@@ -8511,6 +8511,56 @@ pre-existing contrast issues would tell us nothing about whether the mechanism w
 ⚠️ **Risk on the next dispatch is bounded:** with the dependency direction correct, the app target does not
 depend on the test bundle, so `xcodebuild build` cannot be affected. Only `xcodebuild test` reaches it.
 
+### 4.1.5.6 — §11.8's rotation half, the dark frame, and flow 03's shipped gap (2026-08-14)
+
+**`i03-ipad-rotate-midstep.yaml`** — reach step 3, rotate while the overlay is up, and assert what
+happens. ⭐ Assertable at all only because 4.1.5.2 put the ring's verdict **into an id**
+(`tutorial-ring-audit-ok` / `-off`, `TutorialOverlay.tsx:340`), so §11.8's *"the bright rectangle settles
+back onto 'Adjust your line →'"* is a real assertion rather than a screenshot for a human. Both ids are
+asserted — present and absent — because a missing element and a failing one are different states, and
+checking only for `ok` would pass on a build where the audit stopped rendering.
+
+⛔ **`point:` deliberately avoided** even though §11.8 says "tap in the middle of the screen". It exists
+in this repo only inside `probe-deeplink/p09`, which has never gone green — an unproven command, and
+Maestro validates a whole file before executing any of it. ⚡ **The substitute is stronger, not weaker:**
+tapping `tab-progress` makes "the tap does nothing" **falsifiable** — if the overlay let it through, the
+app navigates off Today and "Step 3 of 7" is gone. A coordinate tap could pass by landing somewhere inert.
+
+⚠️ **Stated in the file rather than papered over:** §11.8 wants the tap "within one second" of the
+rotation, and Maestro has no sub-second scheduling. This taps as the next command with no wait — the
+closest honest approximation, and NOT the stated timing. If the swallow window is shorter than Maestro's
+latency, this passes where a finger fails. §11.8 stays `[M◐]`; its (b) Split View half is not scriptable.
+
+**The dark frame** — rather than fork `i02`, it re-runs under `simctl ui appearance dark` into its own
+debug directory: same assertions, one file. ⛔ **A collision was caught while writing it:**
+`takeScreenshot` writes **relative to the working directory, not into `--debug-output`**, so the second
+run would have overwritten the first's frames and the tier would have shipped one frame while claiming
+two. The light frame is parked and restored around the dark run. The `sips` straightening pattern also
+gained a trailing `*` so the dark frame is rotated too — without it the dark half would ship sideways,
+which is precisely what cost the light half a wrong first answer.
+
+⛔ **FLOW 03 PASSED WITH "Log payment" MISSING ENTIRELY.** §B2.3 requires the debt row's menu to carry it
+first, above Edit/Delete; `ListRow.tsx:151` prepends it; and the flow asserted only `Edit` and `Delete`.
+3.5.5.2 added the action and nobody re-read the flow. ⚡ **Found by the coverage pass, not by a red run** —
+which is the argument for 4.1.6a in one line. Now asserted present *and* proven to open the sheet
+(`LogPaymentSheet.tsx:34` titles it "Log a payment", distinct from the menu's "Log payment" — presence in
+a menu is not proof the action is wired), and the sheet is closed so flow 04 does not meet a stacked
+presentation, which is the exact nesting bug that flow's history is about.
+
+⚠️ **§B2.3's verdict DROPPED from `[M]` to `[M◐]`** — Maestro matches elements, not their sequence, so
+"first, above Edit/Delete" is not assertable and stays device-owed. ⚡ **The device pass therefore went UP
+by one, 55 → 56.** That is the instrument working: a more accurate number, not a flattering one. Coverage
+moved 23 → **25 covered today**, 74 → **72 coverable-not-built**.
+
+⛔ **[D33]'s crop-nudge fold-in was REFUTED before it was built — a fourth mechanism of mine this session.**
+I had recommended nudging the landscape scroll offset so the crop lands on a component boundary.
+`TutorialOverlay` **measures and never scrolls** — there is no offset. The ring draws where the subject
+is; the subject is a card taller than the ~834pt landscape viewport; the crop is the viewport edge, and
+the label/bar split is just where it falls. Making it land elsewhere means scrolling the Today page at
+that beat — a different change with a different owner, and a composition call rather than a defect. Filed
+to the audit gate's best-in-class pass with the dark frame as its second data point. **§11.16 already
+PASSES; this is polish.**
+
 ### 4.1.5's decomposed section retired to here
 
 Per the one-decomposed-section rule, 4.1.5's sub-table collapsed to a single plan row on 4.1.6a's
