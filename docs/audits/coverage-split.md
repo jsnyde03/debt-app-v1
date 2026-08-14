@@ -8,8 +8,8 @@
 
 | | checks | |
 |---|---:|---|
-| **Covered today** | **34** | a flow claims it |
-| **Coverable, not yet built** | **63** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
+| **Covered today** | **33** | a flow claims it |
+| **Coverable, not yet built** | **64** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
 | **Permanently device-owed** | **34** | `[D]` — no lane will ever carry it |
 | | | |
 | **🎯 The device pass** | **60** | `[D]` **+** the human half of every `[M◐]` (26) |
@@ -23,7 +23,7 @@ what comes off the device pass.
 
 ---
 
-## ▶ Coverable, not yet built — the remaining work (63)
+## ▶ Coverable, not yet built — the remaining work (64)
 
 | id | verdict | check | claimed by |
 |---|---|---|---|
@@ -71,6 +71,7 @@ what comes off the device pass.
 | §11.4 | `[M◐]` | VoiceOver, end to end (Settings → Accessibility → VoiceOver: ON.) | — |
 | §11.5 | `[M]` | the header must not eat the highlight at AX5 (any iPhone, AX5, both themes.) | — |
 | §12.0.3 | `[M◐]` | exactly ONE marker on screen. ⏳ Web cannot answer this (its tab navigator leaves the | — |
+| §12.0.7 | `[M]` | poke at it. Open a debt row, scrub the trajectory, try Can-I-Afford-This. | — |
 | §12.0.8 | `[M◐]` | VoiceOver. Turn it on and enter the demo. | — |
 | §12.1.1 | `[M]` | From a fresh install with no data, "See it in action" lands on Today showing a $2,000 | — |
 | §12.1.2 | `[M]` | Force-quit mid-demo and relaunch → you land on onboarding, with no demo running and no | — |
@@ -93,7 +94,7 @@ what comes off the device pass.
 
 ---
 
-## ✅ Covered today (34)
+## ✅ Covered today (33)
 
 | id | verdict | check | claimed by |
 |---|---|---|---|
@@ -130,7 +131,6 @@ what comes off the device pass.
 | §12.0.4 | `[M]` | the way out is wherever you are. "Start my real plan" sits beside the marker on | `09-demo-explore` |
 | §12.0.5 | `[M]` | settings stay shut. The ••• More button is greyed and unresponsive on every | `09-demo-explore` |
 | §12.0.6 | `[M]` | your real plan is untouched. Exit, then force-quit and reopen. | `09-demo-explore` |
-| §12.0.7 | `[M]` | poke at it. Open a debt row, scrub the trajectory, try Can-I-Afford-This. | `09-demo-explore` |
 
 ---
 

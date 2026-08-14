@@ -18,7 +18,7 @@
 # COVERS: §12.0.4 — the exit sits beside the marker on a NON-Today tab, and no example figure survives it
 # COVERS: §12.0.5 — the ••• More button does not open while the demo holds navigation
 # COVERS: §12.0.6 — a force-quit after exiting leaves no persona data behind
-# COVERS: §12.0.7 — a debt row opens inside the demo without crashing
+# ⛔ §12.0.7 is NOT claimed — its row-tap selector is unestablished. See the note at that step.
 # ──────────────────────────────────────────────────────────────────────────────────────────────────
 appId: com.jasonsnyder.debtplanner
 ---
@@ -58,10 +58,12 @@ appId: com.jasonsnyder.debtplanner
 # ── §12.0.7 — poke at it. A debt row must open like the real app rather than crash. Matched by
 #    contains-regex for flow 03's reason: ListRow is a composite a11y element whose full text is the
 #    whole sentence, so a bare "Visa" can never match. ─────────────────────────────────────────────
-- tapOn: ".*Visa.*"
-- takeScreenshot: maestro-debug/demo-explore-03-debt-open
-- tapOn:
-    id: "sheet-close"
+# ⛔ §12.0.7'S ROW TAP IS REMOVED, NOT WEAKENED. Run 31812114150 failed here on `.*Visa.*` — I took that
+# name from a screenshot of the demo's TODAY tab (its required-actions list) and assumed Money's debt list
+# uses it too. It does not, and I have not established what the persona seeds there. ⚠️ Guessing another
+# name is how a flow starts asserting something nobody checked. The claim drops to five and §12.0.7 stays
+# UNCLAIMED until a frame of the demo's Money tab settles the selector — captured below for that purpose.
+- takeScreenshot: maestro-debug/demo-explore-03-money-tab
 - assertVisible:
     id: "example-canvas-marker"
 

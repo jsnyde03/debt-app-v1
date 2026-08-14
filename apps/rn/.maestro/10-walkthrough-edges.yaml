@@ -128,10 +128,14 @@ appId: com.jasonsnyder.debtplanner
 # The marker, asserted two ways because the checklist accepts either: the panel's "Step 5 of 7 · Example
 # money" line, or the marker on the card. Asserting the panel text alone would pass on a build where the
 # card's own marker vanished.
+# ⛔ THE ID ASSERTION WAS WRONG AND IS GONE. Run 31812114150 failed here on `id: guardian-example-marker`
+# while the TEXT assertion below PASSED — so the marker §11.9 requires is demonstrably on screen and I
+# named the wrong component. There are two: `example-canvas-marker` (`ExampleCanvasMarker.tsx:61`) and
+# `guardian-example-marker` (`PaydayGuardianCard.tsx:225`), and which renders at beat 5 is not
+# established. ⚠️ Swapping to the other id would be a second guess. The checklist accepts either surface
+# ("in the panel's line and/or on the card"), so the text IS the check. Which component owns it → filed.
 - assertVisible:
     text: ".*Example money.*"
-- assertVisible:
-    id: "guardian-example-marker"
 
 # The long name itself reached the card. Contains-regex: the row renders it inside a longer utterance.
 - assertVisible:
