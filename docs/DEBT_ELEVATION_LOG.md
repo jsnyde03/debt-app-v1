@@ -11223,9 +11223,26 @@ simply wrong** — one of them written into a comment while it was false.
 ⚠️ **And the oldest lesson recurred:** `web-e2e.yml` already documented the install recipe the Pages
 deploy needed. *The codebase already said it* — **the sibling file is part of the before-scan.**
 
+### ▶ AFTER THIS CLOSE — three entries follow, and all three change 3.8
+
+**Read them; this entry is no longer the last word.**
+
+1. **The plan compacted, 705 → 427 lines.** The length was the symptom; **four stale figures, three of them
+   contradicting each other**, were the cause. Everything removed is in this log, and that entry says where.
+2. **3.8.1 REVERSED** *(🎯: "3.8 will allow the app to back it")* — the hero is **re-pointed at the real
+   reserve, not removed**, and moved from step 1 to step 4, because a hero reading the pot cannot precede
+   the pot. ⛔ Its stated premise was also wrong: the figure has **three readers**, not none.
+3. **Rent was an EXAMPLE** *(🎯)* — the decomposition had been written as a rent story. The general defect
+   is the hero smoothing the **whole recurring load** while the engine funds each expense in full in its own
+   cycle. ⭐ The correction surfaced the ordering question a single-bill framing hides, **already answered by
+   `allocatePaycheck:224–244`**: due-date order, per occurrence.
+
+⚡ **Both 🎯 notes corrected 3.8 before a line of it was written, and both were about what the words
+IMPLIED rather than what they said.** *A worked example in a spec quietly becomes the spec.*
+
 ---
 
-## 2026-08-17 — the plan compacted, 705 → ~330 lines (🎯: *"it's hard to find what's going on"*)
+## 2026-08-17 — the plan compacted, 705 → 427 lines (🎯: *"it's hard to find what's going on"*)
 
 **Where things went**, because "I remember that being on the plan" is the question this entry answers.
 

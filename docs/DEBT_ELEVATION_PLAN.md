@@ -18,7 +18,8 @@
 | **The embed** | live — https://jsnyde03.github.io/debt-app-v1/ |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` · live embed `EMBED_LIVE_URL=… npm run test:e2e:embed` |
 
-⚠️ **Read the SESSION CLOSE 2026-08-17 (night) log entry before building** — it carries what NOT to build on.
+⚠️ **Read the SESSION CLOSE 2026-08-17 (night) log entry before building** — it carries what NOT to build
+on, and its closing block points at the **three entries after it that change 3.8**.
 
 ### ▶ 3.8 — the expense reserve _(active, and the only decomposed item on this doc)_
 
