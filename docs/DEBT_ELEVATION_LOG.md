@@ -11261,3 +11261,43 @@ The formatting convention says the collapse is **part of the edit, not a later p
 collapsed on completion, but their **before/after-scan blocks were left inline**, and eleven of those in
 one session is what rebuilt the wall. ⚡ *A scan finding is detail the moment its item closes* — it either
 became a filed item with an owner, or it belongs here.
+
+---
+
+## 2026-08-17 — 3.8.1 reversed: the number is not the lie, the verb is
+
+🎯, on being asked which hero .1 removes: ***"3.8 will allow the app to back it as it will give the option
+for the reserve."*** ⚡ **That reverses his own earlier *"It must be removed."*** and it is right.
+
+`$350/month ÷ 2 paychecks = $175` is correct arithmetic. The false part was never the number — it is
+**"reserved"**, a verb nothing in the app honoured. **3.8 is precisely what makes the word true**, so the
+hero survives and changes *source*:
+
+| | today | after 3.8 |
+|---|---|---|
+| shows | `perPaycheckTotal` — the **recommendation** | the **pot** — what was actually set aside |
+| range | always `$175` | `$0 … $175` |
+
+⛔ **And that is why it moved from first to fourth.** A hero reading the pot cannot precede the pot (.1) or
+the draw-down (.2). ⚠️ Keeping `perPaycheckTotal` after 3.8 would still lie to everyone who ignored the
+nudge or reserved less than offered — .3 explicitly caps the offer at *what this paycheck can spare* —
+so it would be **backable and still wrong**.
+
+⚠️ **The trade, stated:** one edit to that block instead of two, and the intermediate state never ships
+because v1.7 ships as ONE release. **If 3.8 is ever cut back mid-flight, strip the claim first** — removal
+is safe at every commit in a way re-pointing is not.
+
+### ⛔ AND THE ROW'S OWN PREMISE WAS WRONG — the figure is NOT "read by nothing"
+
+The plan said *"computed inside `money.tsx` for that hero alone, read by nothing."* Measured — three
+readers: `perPaycheckTotal` → `breakdownData` → **`BillBreakdownSheet`**, which prints it again as its own
+headline · `categoryBreakdown[].perPaycheck` → `barTotal` → `segments` → **the `AllocationBar` inside the
+hero** · per-bill `perPaycheck` → **every row of the breakdown sheet**.
+
+The accurate statement is **nothing in the ENGINE reads it** — it never becomes a plan input, which is the
+whole defect. ⚡ A naive "remove the hero" would have taken the allocation bar and the receipt sheet with
+it, and the step's own warning (*"check what else that block feeds"*) was pointing at a real hazard while
+the sentence above it said there was none.
+
+⚠️ *Answering "which hero?" was worth more than building it would have been.* The question surfaced a
+reversed decision, a wrong premise and a wrong step order, at the cost of two greps.

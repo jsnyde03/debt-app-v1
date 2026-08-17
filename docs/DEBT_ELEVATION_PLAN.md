@@ -30,12 +30,33 @@ the wrong thing correctly."*
 
 | # | Step | State |
 |---|---|---|
-| **.1** | **Remove the misleading hero.** ⚠️ Check what else that block feeds first (`categoryBreakdown`, `barTotal`, `segments`) — the per-category `perPaycheck` figures drive the category bar | |
-| **.2** | **The pot, in the store** — ONE aggregate number, not per-bill envelopes. Keeps Phase 5's migration to *absent ⇒ today's behaviour* | |
-| **.3** | **The draw-down in `allocatePaycheck`** — ⛔ **the invariant is the hard part**: money set aside in cycle 1 must be *gone* from cycle 1's spendable **and** reduce rent in cycle 2. Honour only the second and the model invents $175 | |
-| **.4** | **The recommended action**, never required. ⛔ **Offer only what this paycheck can spare** — promising $175 and reserving less is the capped-outcome shape [A3.6] exists for | |
+| **.1** | **The pot, in the store** — ONE aggregate number, not per-bill envelopes. Keeps Phase 5's migration to *absent ⇒ today's behaviour* | |
+| **.2** | **The draw-down in `allocatePaycheck`** — ⛔ **the invariant is the hard part**: money set aside in cycle 1 must be *gone* from cycle 1's spendable **and** reduce rent in cycle 2. Honour only the second and the model invents $175 | |
+| **.3** | **The recommended action**, never required. ⛔ **Offer only what this paycheck can spare** — promising $175 and reserving less is the capped-outcome shape [A3.6] exists for | |
+| **.4** | **Re-point the Expenses hero at the REAL reserve** *(🎯 2026-08-17, replacing "remove it")* — `money.tsx:653–672` keeps saying *"reserved"*, and 3.8 is what makes the word true. ⛔ **It must read the POT, not `perPaycheckTotal`** | |
 | **.5** | **The Guardian bar + the tap** — the set-aside joins the everyday segment; tapping splits living-expenses vs expenses. ⚠️ **[DECISION] the segment's new name** is 🎯's | |
 | **.6** | **Coverage** — engine tests for the draw-down and conservation; e2e for the tick and the tap. ⚠️ The reserve must NOT land in the `safetyNet` windfall bucket unexamined | |
+
+⚡ **[.4 — 🎯 2026-08-17, reversing "it must be removed"] THE NUMBER IS NOT THE LIE; THE VERB IS.**
+`$350/month ÷ 2 paychecks = $175` is correct arithmetic. What the app cannot back is **"reserved"** —
+nothing reserves it. **3.8 makes the word true**, so the hero survives and changes *source*:
+
+| | today | after 3.8 |
+|---|---|---|
+| shows | `perPaycheckTotal` — the **recommendation**, always | the **pot** — what was actually set aside |
+| range | always `$175` | `$0 … $175` |
+
+⛔ **Which is why it moved from first to fourth.** A hero that reads the pot cannot precede the pot. And
+reading `perPaycheckTotal` after 3.8 would still lie to everyone who ignored the nudge or reserved less —
+*backable* and still wrong. ⚠️ One edit to that block instead of two; the intermediate state never ships
+because v1.7 ships as ONE release. **If 3.8 is ever cut back mid-flight, strip the claim first.**
+
+⛔ **[before-scan] AND THE ROW'S OWN PREMISE WAS WRONG — it is NOT "read by nothing".** Three readers:
+`perPaycheckTotal` → `breakdownData` → **`BillBreakdownSheet`**, which prints it again as its headline ·
+`categoryBreakdown[].perPaycheck` → `barTotal` → `segments` → **the `AllocationBar` inside the hero** ·
+per-bill `perPaycheck` → **every row of the breakdown sheet**. The accurate statement is **nothing in the
+ENGINE reads it** — it never becomes a plan input. A naive removal would have taken the bar and the receipt
+sheet with it.
 
 **Exit:** the number the app shows is the number the app honours, and a user who acts on it sees the plan
 change. **Open:** the segment's name (.5), and whether the tap is a sheet or an inline expand.
