@@ -9911,3 +9911,86 @@ action's hash, the namespace, the Xcode tag), so every existing entry is unreach
   and inventing one instead of grepping the artifact already cost a cycle. → 4.1.11.
 - **`app-preview.yml`'s cache will usually miss** — it runs rarely and entries evict in a week. Near-zero
   benefit, zero added risk (the re-bundle guard is what makes a hit safe at all), kept for symmetry.
+
+---
+
+## 2026-08-17 — 3.5.7.5: the embed enters the demo by itself (built during 4.1.9b's CI wait)
+
+`EXPO_PUBLIC_EMBED` now decides the app's entry as well as its storage: the embed build replaces its
+initial route with `/demo?mode=scripted`, so a visitor sees the product rather than a Welcome screen.
+
+### ⛔ ONE auto-entry component, not two
+
+`CaptureAutoStart` became **`DemoAutoEntry`** and serves both self-entering builds. Its original comment
+stated the rule it was protecting — *"a second starter would be a second definition of entering the demo
+— the exact shape `isDemoReachable()` was written to prevent"* — so adding an `EmbedAutoStart` beside it
+would have broken that rule while quoting it. The component answers one question (*does this build enter
+the demo on its own, and where*) and `demo.tsx` stays the single entry that starts the session, decides
+chrome, fires the funnel event and announces.
+
+| build | destination | chrome | clock |
+|---|---|---|---|
+| App-Preview capture | `/demo?capture=1` | stripped | held (`CaptureSlate` releases it) |
+| web marketing embed | `/demo?mode=scripted` | **kept** — the dock is a viewer's only exit | free |
+
+⚠️ Capture wins if both flags are somehow set, and the tie-break is explicit: a recording that gained a
+dock is a visible defect in an asset **Apple reviews**; an embed that lost its dock is a page with no
+exit. Both are wrong, only one is reviewed.
+
+⚡ `demo.tsx` had already anticipated this exactly — *"the SCRIPTED run is for the two audiences that need
+a fixed 25 seconds — the App-Preview capture and 3.5.7's marketing embed — and both arrive with
+`?mode=scripted` or the capture flag."* The route needed no change at all.
+
+### ⭐ Proven, not asserted — and the plant reds only what it should
+
+Two specs in the embed gate (`tests/embed/entry.spec.ts`): it lands on the arc's opening screen with the
+example-money marker AND the dock at `1 of N`, and the beats advance to `2 of N` **with no interaction**.
+⛔ The dock is asserted rather than just the marker because three runs can show a marker — explore
+(sits still), scripted, and the capture (chrome stripped) — and only the dock's position readout says
+*scripted, with its chrome*. **Non-vacuity proven:** disabling the embed arm reds exactly those two and
+leaves the three zero-egress specs green. App e2e re-run after the root-layout change: **169/169**.
+
+### ⚡ MEASURED: dead-code elimination only happens WITHIN a module
+
+Deciding where `EMBED_DEMO` should live turned on a question worth measuring rather than assuming.
+Counted in the shipped artifacts:
+
+| | `dist` | `dist-embed` |
+|---|---:|---:|
+| `EXPO_PUBLIC` (any runtime env read) | 0 | 0 |
+| `sessionStorage` / `localStorage` (same-module ternary) | 0 / 1 | 1 / 0 |
+| `CAPTURE_DEMO` (cross-module constant) | **6** | **6** |
+
+Metro inlines the env var everywhere, but the minifier only folds the branch away when the constant is
+in the **same module**. The storage adapter's ternary is eliminated outright; `qa.ts`'s cross-module
+constant survives as a constant-false check that ships. Both are unreachable at runtime — only one is
+*absent*.
+
+⛔ So `createAdapter.web.ts` **keeps its own local `EMBED`** rather than importing `EMBED_DEMO`. The
+obvious tidy would have quietly broken 3.5.7.4's proven property (*"no switch survives in the
+artifact"*), and it would have looked like an improvement in review. **An agreeing copy is usually a
+defect; this one is a measurement**, and it is commented as such at both sites.
+
+### ⛔ WHAT .5 SURFACED AND CANNOT DECIDE: both of the embed's exits are wrong
+
+The dock's exits — `exitDemo('/onboarding')` *("Start my real plan")* and `exitDemo('/paywall')*
+*("Unlock Premium")* — were approved 2026-08-06 **for the app**, where they are right. In a public embed
+neither is:
+
+- **onboarding** is a financial data-entry form inside a marketing iframe **that discards what is typed**
+  — sessionStorage only, by .3's own design. Inviting a stranger to enter their balances there is worse
+  than offering no exit at all, and it is the one thing an embed must not do given [D32]'s privacy stance.
+- **the paywall's** purchase path is stubbed on web (verified at .2), so it is a buy button that cannot
+  transact.
+
+▶ Recommended: in an embed both collapse to **one outbound CTA to the App Store**, with the terminal beat
+saying so. ⚠️ That is a product/content call and its wording is 🎯's, so it settles with **.7** rather
+than being invented here. **It blocks .6** — this is not something to deploy publicly and fix after.
+
+### ⚠️ Filed
+
+- The rename leaves `CaptureAutoStart` in historical log/audit entries. Deliberately not rewritten —
+  they are records of what was true then; `DemoAutoEntry`'s own header names the predecessor so a grep
+  from either direction lands.
+- The embed's zero-egress specs now exercise the **demo** surface rather than a cold app start, because
+  that is what the artifact now boots into. Strictly stronger coverage of what ships, gained for free.

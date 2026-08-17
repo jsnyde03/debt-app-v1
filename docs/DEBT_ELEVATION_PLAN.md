@@ -307,12 +307,38 @@ precedence explicitly on 2026-08-14. When either closes, its section collapses t
 | **.2** | ~~The embed build FLAG that omits analytics~~ | ⛔ **COLLAPSED 2026-08-14 — nothing to omit.** Verified across 7 surfaces: the funnel has **no sink and no SDK** (closed literal union), Sentry is `.web.ts` no-op, RevenueCat is stubbed, `expo-updates` absent, CanvasKit `locateFile`s to the local wasm, no CDN host in `dist/`, and the only absolute URLs are two *link targets*. A flag would add a second mechanism where a stronger one already holds |
 | **.3** | ⭐ **Storage discipline** — `sessionStorage` only | ✅ **DONE 2026-08-14.** One backing binding, four call sites, gated on the bundler-inlined `EXPO_PUBLIC_EMBED` so no switch survives in the artifact. Read lazily inside the existing guards — an eager `sessionStorage` touch throws in private mode and sandboxed iframes, which is exactly where an embed lives. Both modes proven; app default unchanged |
 | **.4** | ⭐ **The zero-egress Playwright gate** — all three [D32] claims, in `validate:release:rn` | ✅ **DONE 2026-08-14.** Own config + own build (`EXPO_PUBLIC_EMBED` is inlined, so a spec in the main suite would test the artifact that does **not** ship). ⛔ **`--clear` is load-bearing: Metro's cache does NOT bust on an `EXPO_PUBLIC_*` change** — measured, and without it the flag is advisory. **Non-vacuity proven**: the plant reds test 2 only. ⏱ 1.9m cold |
-| **.5** | **Embed entry** — the `scripted` run as the default route | |
-| **.6** | **GitHub Pages deploy** of `dist` | |
+| **.5** | **Embed entry** — the `scripted` run as the default route | ✅ **DONE 2026-08-17.** `EMBED_DEMO` in `qa.ts` → `DemoAutoEntry` (the renamed `CaptureAutoStart`, now serving BOTH self-entering builds — a second starter would have been a second definition of "entering the demo"). Two new specs in the embed gate, **non-vacuity proven** on a planted regression: they red, zero-egress stays green. App e2e 169/169 unaffected |
+| **.6** | **GitHub Pages deploy** of `dist` | ⛔ **BLOCKED — the embed's EXITS, [DECISION] below.** Not a wiring gap; a product call |
 | **.7** | **[DECISION] the privacy wording** — 🎯's call | ⚠️ *"financial data never leaves your device"* is literally true; *"100% private"* overclaims if read as "no server logs anywhere" |
 
 **Exit:** a public embed whose privacy claim is enforced by a test that runs on every push, not asserted
 in prose.
+
+⛔ **[.5 after-scan] [DECISION] THE EMBED'S TWO EXITS BOTH LEAD SOMEWHERE WRONG — and this blocks .6.**
+The dock's exits are `exitDemo('/onboarding')` *("Start my real plan")* and `exitDemo('/paywall')`
+*("Unlock Premium")* — approved 2026-08-06 **for the app**, where both are right. In a public embed:
+① onboarding is a **financial data-entry form inside a marketing iframe that discards what is typed**
+(sessionStorage only, by .3's own design) — inviting it is worse than offering no exit at all;
+② the paywall's purchase path is **stubbed on web** (verified at .2), so it cannot transact.
+▶ **Rec: in an embed both collapse to ONE outbound CTA to the App Store**, and the demo's terminal beat
+says so. ⚠️ Wording is 🎯's and belongs with **.7**, so these settle together.
+
+⚠️ **[.5 after-scan] The deferred [.1] a11y question is now ANSWERED, and 2 of the 3 controls are in the
+embed's public surface.** The scripted arc is `/money` → `/` → `/progress`: **`SegmentedToggle`** (Money
+×2, Progress's `CashFlowSection` ×1) and **`CheckCircle`** (Today's Required/Recommended action cards)
+both render there; **`RadioGroup` does not** (onboarding + a sheet). ▶ **Rec: fix both before .6** — .1's
+own argument was "a public WCAG failure", and .6 is the moment it becomes public. Not folded into .5:
+`CheckCircle` is already owned by [3.7.B.4] at the audit gate, and splitting one fix across two items is
+how it gets done twice.
+
+⚡ **[.5 after-scan] MEASURED — a build flag is only dead-code-ELIMINATED when it is read in the SAME
+module.** `EXPO_PUBLIC` appears **0** times in either built bundle (Metro inlines it), and the storage
+adapter's same-module ternary is gone outright (`dist` 0 × `sessionStorage`, `dist-embed` 0 ×
+`localStorage`) — but `qa.ts`'s cross-module `CAPTURE_DEMO` **survives 6×** as a constant-false check.
+Both are unreachable at runtime; only one is absent from the artifact. ⛔ So `createAdapter.web.ts`
+**keeps its own local `EMBED` constant** rather than importing `EMBED_DEMO` — the tidy-looking merge
+would have quietly broken 3.5.7.4's proven *"no switch survives in the artifact"*. An agreeing copy is
+usually a defect; this one is a measurement.
 
 ⚠️ **[.1 before-scan] The same defect class is UNFIXED on three more controls.** `CheckCircle`
 (`accessibilityState={{ checked }}` → no `aria-checked`, already filed as [3.7.B.4]), plus `RadioGroup`

@@ -20,7 +20,7 @@ import { addNotificationResponseListener, registerNotificationCategories } from 
 import { initErrorReporting, wrapRoot } from '@/utils/sentry';
 import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
 import { DemoDirector } from '@/components/plan/DemoDirector';
-import { CaptureAutoStart } from '@/components/plan/CaptureAutoStart';
+import { DemoAutoEntry } from '@/components/plan/DemoAutoEntry';
 import { CaptureSlate } from '@/components/plan/CaptureSlate';
 import { DemoCaption } from '@/components/plan/DemoCaption';
 import { DemoDock } from '@/components/plan/DemoDock';
@@ -193,8 +193,10 @@ function RootLayout() {
           {/* 3.5.4.7 — the demo's chrome, mounted beside the Stack for the same reason the walkthrough's
               overlay is: it must sit above the navigator (so it covers the iPad rail too) and cannot live
               inside a tab screen. Renders nothing unless a demo is running. */}
-          {/* 3.5.8.3 — a capture build enters the demo on its own; inert everywhere else. */}
-          <CaptureAutoStart />
+          {/* 3.5.8.3 + 3.5.7.5 — the capture and embed builds enter the demo on their own; inert
+              everywhere else. ONE component for both: a second auto-starter would be a second definition
+              of "entering the demo", which is the shape `isDemoReachable()` exists to prevent. */}
+          <DemoAutoEntry />
           <DemoDirector />
           <DemoDock />
           {/* 3.5.8.2 — the closing caption. Beside the dock rather than inside it because it renders on

@@ -43,6 +43,30 @@ export function qaEnabled(): boolean {
 export const CAPTURE_DEMO = process.env.EXPO_PUBLIC_CAPTURE_DEMO === '1';
 
 /**
+ * 3.5.7.5 — is THIS build the web marketing EMBED?
+ *
+ * Same mechanism as `CAPTURE_DEMO` and the same reason: an embed is a page that must show the product
+ * within a second of loading, and the two ways to arrange that are a deep link or a build that knows
+ * what it is. The capture lane already established that a URL is the fragile option.
+ *
+ * The embed and the capture want DIFFERENT runs, which is why this is a second flag and not a rename:
+ *   - capture  → `/demo?capture=1`      chrome STRIPPED, clock HELD (a recording, `CaptureSlate` releases it)
+ *   - embed    → `/demo?mode=scripted`  chrome KEPT (the dock is a viewer's only exit), clock free
+ *
+ * ⛔ THIS IS NOT THE FLAG `createAdapter.web.ts` READS, AND THAT DUPLICATION IS DELIBERATE AND MEASURED.
+ * The obvious tidy — one exported `EMBED` here, imported there — would break a property 3.5.7.4 proved:
+ * *no switch survives in the artifact*. Metro inlines `EXPO_PUBLIC_*` (0 occurrences of `EXPO_PUBLIC` in
+ * either built bundle), but the minifier only folds the branch away when the constant is in the SAME
+ * module. Measured 2026-08-17 on the shipped artifacts: the storage adapter's same-module ternary is
+ * fully eliminated (`dist` has 0 × `sessionStorage`, `dist-embed` 0 × `localStorage`), while this file's
+ * cross-module `CAPTURE_DEMO` survives **6 times** as a constant-false check. Both are unreachable at
+ * runtime; only one is absent from the bundle. Storage is the one where absence was the claim, so
+ * storage keeps its own local constant. **An "agreeing copy" is usually a defect — this one is a
+ * measurement.**
+ */
+export const EMBED_DEMO = process.env.EXPO_PUBLIC_EMBED === '1';
+
+/**
  * ⚠️ **A FLAGGED BUILD CAN LEAK INTO THE NEXT ONE. Clear the bundler cache after any capture export.**
  *
  * `EXPO_PUBLIC_*` is inlined at build time, and Metro's export cache does **not** treat it as a cache key.
