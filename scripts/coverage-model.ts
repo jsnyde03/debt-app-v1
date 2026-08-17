@@ -161,16 +161,19 @@ export function parseChecklist(path = CHECKLIST): { checks: Check[]; problems: s
       continue;
     }
     const end = blockEnd(lines, i);
-    const stamp = lines.slice(i, end + 1).join('\n').match(STAMP_RE)?.[1];
+    const block = lines.slice(i, end + 1).join('\n');
+    const stamp = block.match(STAMP_RE)?.[1];
+    const gate = GATE_RE.test(block);
     checks.push({
       id: `§${id}`,
       verdict: verdict as Verdict,
       section,
       done: box.toLowerCase() === 'x',
-      title: title.replace(STAMP_RE, '').replace(/\*\*/g, '').replace(/[_`]/g, '').replace(/\s+/g, ' ').trim().slice(0, 96),
+      title: title.replace(STAMP_RE, '').replace(GATE_RE, '').replace(/\*\*/g, '').replace(/[_`]/g, '').replace(/\s+/g, ' ').trim().slice(0, 96),
       line: i + 1,
       block: [i, end],
       stamp,
+      gate: gate || undefined,
     });
   }
   const seen = new Map<string, number>();
@@ -181,19 +184,67 @@ export function parseChecklist(path = CHECKLIST): { checks: Check[]; problems: s
   return { checks, problems, lines, eol };
 }
 
-export const CLAIM_RE = new RegExp(String.raw`^#\s*(COVERS|PARTIAL):\s*§(${IDCHARS})\s*—\s*(.*)$`);
+/**
+ * ⚠️ ONE GRAMMAR, TWO COMMENT LEADERS. A YAML flow writes `# COVERS: §x — why` and a spec writes
+ * `// COVERS: §x — why`. Accepting both here is what stops the second harness arriving with a second
+ * slightly-different claim syntax — the shape this repo has been bitten by repeatedly.
+ */
+export const CLAIM_RE = new RegExp(String.raw`^\s*(?:#|\/\/)\s*(COVERS|PARTIAL):\s*§(${IDCHARS})\s*—\s*(.*)$`);
 
-export function parseFlows(dir = FLOW_DIR): Claim[] {
-  const claims: Claim[] = [];
-  for (const f of readdirSync(dir).filter((x) => x.endsWith('.yaml'))) {
-    const lines = readFileSync(join(dir, f), 'utf8').split(/\r?\n/);
-    for (let i = 0; i < lines.length; i++) {
-      const m = lines[i].match(CLAIM_RE);
-      if (!m) continue;
-      claims.push({ kind: m[1] as Claim['kind'], id: `§${m[2]}`, why: m[3].trim(), flow: f, line: i + 1 });
-    }
+function claimsIn(path: string, name: string, harness: Harness): Claim[] {
+  const out: Claim[] = [];
+  const lines = readFileSync(path, 'utf8').split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(CLAIM_RE);
+    if (!m) continue;
+    out.push({ kind: m[1] as Claim['kind'], id: `§${m[2]}`, why: m[3].trim(), flow: name, harness, line: i + 1 });
   }
-  return claims;
+  return out;
+}
+
+/**
+ * Maestro claims only. ⚠️ `stamp-coverage.ts` calls THIS, deliberately: it stamps from a native run, and
+ * a spec-claimed row is never proven by a run id (see `GATE_RE`). Widening it would let a native run's
+ * stamp land on a row no flow can account for.
+ */
+export function parseFlows(dir = FLOW_DIR): Claim[] {
+  return readdirSync(dir)
+    .filter((x) => x.endsWith('.yaml'))
+    .flatMap((f) => claimsIn(join(dir, f), f, 'maestro'));
+}
+
+/** Playwright claims — the app suite and the embed gate. */
+export function parseSpecs(dirs = SPEC_DIRS): Claim[] {
+  return dirs.filter((d) => existsSync(d)).flatMap((d) =>
+    readdirSync(d)
+      .filter((x) => x.endsWith('.spec.ts'))
+      .flatMap((f) => claimsIn(join(d, f), f, 'playwright')),
+  );
+}
+
+/** Every claim, from every harness — what the REPORT reads. */
+export function parseAllClaims(): Claim[] {
+  return [...parseFlows(), ...parseSpecs()];
+}
+
+/**
+ * 4.1.10 — ⛔ **IS THIS ROW ONLY HALF-PROVEN? OWNED ONCE, BECAUSE THE THREE CALLERS DISAGREED.**
+ *
+ * A row is partial for either of two independent reasons, and the instrument used to know only the first:
+ *   ① its VERDICT is `[M◐]` — a device-owed half exists by nature;
+ *   ② every claim on it is `PARTIAL:` — the harnesses themselves say they test only part of it.
+ *
+ * ⚡ The second was measured on 2026-08-17: §1.1 · §3.1 · §10.2 sat in the PROVEN column while their only
+ * claims said *"'no white screen / no crash' is not asserted"*, *"the EDIT-sheet half is not walked"*,
+ * *"rotation is not"*. It is 4.1.9c's defect one level down — *declared ≠ proven* became *partly tested ≠
+ * fully proven*.
+ *
+ * ⚠️ AND IT MUST BE ONE FUNCTION. The report, the gate and the writer all ask this question, and when the
+ * writer learned ② while the gate still only knew ①, the gate rejected five rows the writer had just
+ * written correctly — caught on the first run, which is the only reason it is a footnote rather than a bug.
+ */
+export function isPartialRow(check: Check, claims: Claim[]): boolean {
+  return check.verdict === 'M◐' || !claims.some((c) => c.kind === 'COVERS');
 }
 
 export function claimsById(claims: Claim[]): Map<string, Claim[]> {

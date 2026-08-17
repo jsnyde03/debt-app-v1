@@ -45,57 +45,42 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 ⛔ **[4.1.9b, standing] The boot lap is 148s, not 529s — do not spend anything else there.** ⚠️ But the poll that replaced the `sleep 25` **is not firing** (`launched 119s → reported up 144s` is exactly the 25s ceiling): a fix believed to work that does not. Deliberately unfixed — inventing a log predicate instead of grepping the artifact already cost a cycle → **4.1.11**.
 
 | **4.1.9c** | ⭐ **"Covered" must mean PROVEN, and proof ticks the checklist** *(🎯 2026-08-14)* | ✅ **CLOSED 2026-08-17.** Reader (2026-08-14) + **the WRITER**: `npm run stamp:coverage` turns a run's `native-lane-results-*.json` into stamps and **revokes them when a flow reds**; grammar shared with the reader via `coverage-model.ts`, proven inert byte-for-byte; **`npm run test:stamp` — 8 scenarios, every rule fired on a planted input, every plant `plant-applied=YES`**; in `validate:release:rn`. ⛔ **Its own premise was refuted first: it adds ZERO covered rows** — `claimed-but-unproven` was already 0, so the run applied 32 refreshes and the headline stayed **24**. Detail + every scan → log |
-| **4.1.10** | §12.1–§12.7 (15) — the SCRIPTED run | ✅ **[DECISION] ROUTED BY WHERE THE RUN ACTUALLY SHIPS (🎯 2026-08-17).** ⛔ **No `qaEnabled()` door** — a QA door would manufacture a path the product does not have, prove the rows against it, then lose it at the Phase-6 flip. ⚡ **The scripted run is not user-reachable on iOS at all** ([D23]: users get `explore`); it exists for the capture and the embed, exactly as the checklist says. ▶ **§12.2 · §12.5 → the EMBED's Playwright gate** (3.5.7.5 boots it into `/demo?mode=scripted`). ⛔ **CORRECTED 2026-08-17 by 3.5.7.7's after-scan: §12.4.1/.3/.4 came OFF this list** — they are about *"Unlock Premium"* and *"Start my real plan"*, and the embed now has neither. **→ normal-app automation**, where `demo-containment.spec.ts` already clicks one of them. ▶ **§12.7.1 + §12.1.1 → normal-app automation — both are MIS-FILED** (§12.7.1 is the analytics opt-out, nothing to do with the demo; §12.1.1 tests the "See it in action" door, which yields *explore*). ▶ **§12.3.1 · §12.2.2 · §12.6.x · §12.4.2 stay device-owed.** Detail → log |
+| **4.1.10** | §12.1–§12.7 (15) — the SCRIPTED run | ✅ **CLOSED 2026-08-17.** ⛔ **The blocker was the instrument, not the rows: `audit:coverage` could not SEE a Playwright-proven row**, so the morning's routing would have proven them and left them reading "never built" forever. Now reads claims from specs too, with a second proof mark **`✅gate`** (a push-gate holds it, which is stronger than naming one run of a batched lane). ⚡ **Most of §12 was already tested and merely undeclared** — 12 rows claimed, 6 new tests for the real gaps, 2 re-verdicted `[D]`. **26 proven · device pass 52.** Detail + every scan → log | ⛔ **No `qaEnabled()` door** — a QA door would manufacture a path the product does not have, prove the rows against it, then lose it at the Phase-6 flip. ⚡ **The scripted run is not user-reachable on iOS at all** ([D23]: users get `explore`); it exists for the capture and the embed, exactly as the checklist says. ▶ **§12.2 · §12.5 → the EMBED's Playwright gate** (3.5.7.5 boots it into `/demo?mode=scripted`). ⛔ **CORRECTED 2026-08-17 by 3.5.7.7's after-scan: §12.4.1/.3/.4 came OFF this list** — they are about *"Unlock Premium"* and *"Start my real plan"*, and the embed now has neither. **→ normal-app automation**, where `demo-containment.spec.ts` already clicks one of them. ▶ **§12.7.1 + §12.1.1 → normal-app automation — both are MIS-FILED** (§12.7.1 is the analytics opt-out, nothing to do with the demo; §12.1.1 tests the "See it in action" door, which yields *explore*). ▶ **§12.3.1 · §12.2.2 · §12.6.x · §12.4.2 stay device-owed.** Detail → log |
 | **4.1.11** | **Reconcile — the exit.** ⚠️ **[4.1.5.1 after-scan] the coverage split must NOT count measurement flows** — `lint:selectors` reports 15 flow files of which **two measure rather than cover** (`i01-ipad-boot`, `11-reduce-motion`). Any re-derivation that counts files will overstate itself | |
 
-### ▶ 4.1.10 — §12's fifteen rows, and the instrument that cannot currently see them _(active)_
+### ▶ 4.1.11 — reconcile, and the exit _(active)_
+
+The number 4.1 exists to produce, and the residual ledger that must not be carried into Phase 6 unread.
 
 | # | Step | State |
 |---|---|---|
-| **.1** | ⛔ **The blocker the before-scan found: teach `audit:coverage` to read `COVERS:`/`PARTIAL:` from PLAYWRIGHT specs**, not only `.maestro/*.yaml`, recording which harness claims each row | |
-| **.2** | **[DECISION] how a spec-proven row earns "proven"** — *rec: a new `✅gate` marker* (see below) | |
-| **.3** | **Declare what is ALREADY proven and undeclared** — measured, not assumed: §12.2.1 · §12.4.3 · §12.5.2 · §12.6.2 and the two demo doors | |
-| **.4** | **Build the real gaps** — §12.4.4 (the dock's *"Start my real plan"* is never clicked) · §12.5.3 · §12.5.4 · §12.2.3 · §12.7.1 · §12.1.2 | |
-| **.5** | **Correct the rows whose TEXT has drifted** — §12.1.1 describes an arc that was rebuilt (see below) | |
-| **.6** | **Re-verdict the genuinely device-owed remainder** (§12.3.1 · §12.2.2 · §12.4.2 · §12.6.x) and regenerate | |
+| **.1** | **Re-derive the exit number** from `coverage-split.md`, not from any doc quoting it. ⚠️ Two of the 15 flow files MEASURE rather than cover (`i01-ipad-boot`, `11-reduce-motion`) — a count of files overstates itself | |
+| **.2** | **The a11y `hitRegion` finding** — 2 real findings on both tiers, unlocated. One line: print each finding's element instead of only incrementing | |
+| **.3** | **The residual ledger** — the driver stall · the boot poll that does not fire · the probe's 1 min → 11 min · the `tutorial-invite` intermittent (twice now) · the nightly rot guard. Each either fixed, or filed with an owner | |
+| **.4** | **[DECISION] does 3.5's device pass merge into Phase 6's?** They now overlap. *(rec: fold it in — deciding late means running rows twice)* | |
+| **.5** | **The exit statement** — what the lane carries, what it never will, and what 🎯 ticks by hand. Unblocks the CodeMagic build | |
 
-**Exit:** every §12 row is either claimed by a named harness and proven, or carries a verdict that says
-why no harness can reach it — and `audit:coverage` counts the web-proven ones instead of reporting them as
-never built.
+**Exit:** 🎯's question from 2026-08-14 answered as a derived number, and the CodeMagic build released.
 
-⛔ **[before-scan] `audit:coverage` CANNOT SEE A PLAYWRIGHT-PROVEN ROW AT ALL.** `parseFlows` reads
-`apps/rn/.maestro/*.yaml` and nothing else, so the routing decided this morning — *"§12.2 · §12.5 → the
-embed's Playwright gate"* — would have proven those rows and left them reading **"coverable, not yet
-built"** forever, understating 4.1.11's exit number by ~10 rows. ⚡ **The routing was right and the
-instrument could not express it.** This is .1, and it comes first.
+⛔ **[4.1.10 after-scan] THE GATE AND THE WRITER DISAGREED ABOUT "PARTIAL" ON THE FIRST RUN — five rows
+rejected that the writer had just written CORRECTLY.** The writer learned that a partial-only claim
+withholds the tick while `lint:coverage` still exempted only `[M◐]`. Both now call one `isPartialRow`
+in the model. ⚡ *Three callers asking the same question is three chances to answer it differently*, and
+this is the third time in two items that extracting the shared authority was the fix.
 
-⚡ **[before-scan] MOST OF §12 IS ALREADY TESTED AND SIMPLY UNDECLARED.** `demo-containment.spec.ts` has
-ten tests that nothing in the coverage instrument knows about: §12.2.1's *"no tab bar at all"* is
-`toBeHidden` at `:112`; §12.5.2's *"scroll hard, the marker does not move"* is a **boundingBox before/after**
-at `:207`; §12.6.2's *"rotor → Headings"* is `role="heading"` at `:203`; §12.4.3's *"go back → no demo"* is
-`:234`. **4.1.10 is mostly a declaration exercise with four real gaps** — which is the cheapest shape this
-item could have had, and nobody knew because claims and specs live in different worlds.
+⛔ **[4.1.10 after-scan] THE CONSOLE SUMMARY WAS RECOMPUTING EVERY FIGURE, and it silently disagreed the
+moment the report's rules changed** — `build()` had stopped counting partial-only claims as proven while
+the line a human reads still said **24**. It now comes from `build()`'s own tally: one definition, two
+renderings. ⚠️ That console line is the number that gets quoted into docs.
 
-⛔ **[before-scan] §12.1.1's TEXT IS STALE AND WOULD HAVE GENERATED FALSE WORK.** It says *"'See it in
-action' lands on **Today** showing a $2,000 paycheck and MAR 16"*. 3.5.4.11 rebuilt the run as a 5-beat
-arc that **opens on Money** ([D19]: open on the problem), and the existing test asserts `/money`. Testing
-against the row as written would have "found" a defect that is the row being out of date — the Wave-A
-lesson (*a stale comment generated false work*) with a checklist row standing in for the comment.
+⚡ **[4.1.10 after-scan] THE HEADLINE MOVED 24 → 21 → 26, and every step of that is the instrument getting
+more honest.** −3 when partial-only claims stopped counting as fully proven; +5 when the Playwright suites
+became visible to it at all. ⚠️ **The device pass went 50 → 52**, because two rows were re-verdicted `[D]`.
 
-⛔ **[before-scan] AND A LIVE OVERSTATEMENT IN THE CURRENT 24: three rows are counted FULLY PROVEN whose
-only claim says it tests PART of them.** §1.1 · §3.1 · §10.2 are `[M]` rows claimed **only** by a
-`PARTIAL:`, and the report's partial-ness keys on the row's *verdict* (`[M◐]`), never on the claim's kind
-— so `PARTIAL` on an `[M]` row counts exactly like `COVERS`. ⚡ **It is 4.1.9c's defect one level down:**
-that fixed *declared ≠ proven*; this is *partly tested ≠ fully proven*. → **fold into .1**, since the
-report is being changed there anyway.
-
-⚡ **[.2 rec] A SPEC-PROVEN ROW SHOULD CARRY `✅gate`, NOT A RUN ID — and that is STRONGER, not weaker.**
-`✅auto·<runId>` exists because the native lane is **dispatch-only and batched**, so it can be
-green-by-never-running — it literally was, for three days in August. The Playwright suites are in
-`validate:release:rn` and run **on every push**: a declared-but-never-run spec is impossible there by
-construction. Naming one run of a thing that runs constantly would record less than saying *"a gate holds
-this."* ⚠️ The reader must then treat `✅gate` as proof, and `lint:coverage` must reject it on a row no
-spec claims — same integrity rules as the stamp.
+⚠️ **[4.1.10 after-scan] §12.6.x were NOT re-verdicted, deliberately.** The routing calls them device-owed
+and they are unclaimed, so they already sit in Phase 6's human pass — but `[D]` asserts *no lane will
+ever carry this*, and nobody has probed whether Maestro can read those utterances. **.7.5's warning cuts
+both ways:** a `[D]` that is really an unproven `[M]` keeps a check on the manual pass forever.
 
 ### 📌 4.1.6a — `audit:coverage`, the definitive checklist _(closed 2026-08-17; standing guidance)_
 

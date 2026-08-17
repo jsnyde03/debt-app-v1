@@ -10792,3 +10792,100 @@ change.
 not wrong when it was made; it was made against a dock that was already scheduled to change, by an item on
 the other live track. That is the specific cost of two parallel tracks, and it is cheap only because the
 after-scan runs before the next item starts.
+
+---
+
+## 2026-08-17 — 4.1.10: the blocker was the instrument, and most of §12 was already tested
+
+### ⛔ `audit:coverage` COULD NOT SEE A PLAYWRIGHT-PROVEN ROW AT ALL
+
+The routing decided that morning sent §12.2 · §12.5 to the embed's Playwright gate and §12.4/§12.7/§12.1
+to normal-app automation. `parseFlows` read `apps/rn/.maestro/*.yaml` **and nothing else**, so every one of
+those rows would have been proven by a passing spec and gone on reading **"coverable, not yet built"**
+forever — understating 4.1.11's exit number by about ten rows.
+
+⚡ **The routing was right and the instrument could not express it.** That is a different failure from a
+wrong decision, and it is only visible if you check what the report can represent before trusting where it
+sends work.
+
+### ⚡ AND MOST OF §12 WAS ALREADY TESTED — SIMPLY UNDECLARED
+
+`demo-containment.spec.ts` had ten tests nothing in the instrument knew about. §12.2.1's *"no tab bar at
+all"* is a `toBeHidden`; §12.5.2's *"scroll hard, the marker does not move"* is a **boundingBox
+before/after**; §12.6.2's *"rotor → Headings"* is `role="heading"`; §12.4.3's *"go back → no demo"* was
+already there. **4.1.10 turned out to be a declaration exercise with six real gaps** — which nobody could
+have known, because claims and specs lived in different worlds.
+
+⛔ **§12.1.1's TEXT IS STALE AND WOULD HAVE GENERATED FALSE WORK.** It says *"'See it in action' lands on
+**Today**"*; 3.5.4.11 rebuilt the run as a 5-beat arc that **opens on Money** ([D19]: open on the problem),
+and the existing test asserts `/money`. Testing against the row as written would have "found" a defect that
+is the row being out of date — the Wave-A lesson with a checklist row standing in for the comment.
+
+### ⭐ `✅gate` — the second proof mark, and it records MORE than a run id
+
+`✅auto·<runId>` exists because the native lane is dispatch-only and batched, so it can be
+green-by-never-running — it was, for three days. The Playwright suites are in `validate:release:rn` and run
+on **every push**: a declared-but-never-executed spec is impossible there by construction. Naming one run
+of a thing that runs constantly would record *less*. `✅gate` says the stronger thing, and carries the same
+integrity gates as the stamp plus one of its own: **it may only sit on a row a PLAYWRIGHT spec claims**, and
+a row may never carry both marks.
+
+### ⛔ A LIVE OVERSTATEMENT IN THE STANDING 24, FOUND ON THE WAY
+
+Partial-ness was read off the row's VERDICT (`[M◐]`) and never off the claim's KIND, so `PARTIAL:` on an
+`[M]` row counted exactly like `COVERS:`. **§1.1 · §3.1 · §10.2 sat in the PROVEN column** while their only
+claims said, in their own words: *"'no white screen / no crash' is not asserted"* · *"the EDIT-sheet half of
+the row is not walked"* · *"rotation is not"*.
+
+⚡ **It is 4.1.9c's defect one level down** — that fixed *declared ≠ proven*, this is *partly tested ≠ fully
+proven*.
+
+### ⛔ THE GATE AND THE WRITER THEN DISAGREED ABOUT "PARTIAL", ON THE FIRST RUN
+
+The writer learned rule ② (partial-only claims withhold the tick) while `lint:coverage` still exempted only
+`[M◐]` — so the gate **rejected five rows the writer had just written correctly**. Both now call one
+`isPartialRow` in `coverage-model.ts`. ⚡ *Three callers asking the same question is three chances to answer
+it differently*, and extracting the shared authority has now been the fix three times across two items.
+Scenario ⑩ of `test:stamp` exists specifically to hold it: **apply the marks, then run the real gate over
+the result.**
+
+### ⛔ AND THE CONSOLE SUMMARY WAS RECOMPUTING EVERY FIGURE INDEPENDENTLY
+
+`build()` had already stopped counting partial-only claims as proven while the console line — the number a
+human reads and quotes into docs — still said **24**. It now comes from `build()`'s own tally: one
+definition, two renderings.
+
+### THE NUMBERS, and every move is the instrument getting more honest
+
+| | before | after | why |
+|---|---:|---:|---|
+| **PROVEN** | 24 | **26** | −3 partial-only stopped counting · +5 push-gate rows became visible |
+| by native run | 23 | 20 | the three partial-only rows moved out |
+| by push-gate | — | **5** | new: the Playwright suites can be counted at all |
+| human | 1 | 1 | §11.15, untouched by design |
+| half proven | 9 | **19** | the partial-only three, plus 7 new partial spec claims |
+| coverable, not built | 74 | **60** | 12 rows claimed · 2 re-verdicted |
+| device-owed `[D]` | 24 | **26** | §12.2.2 · §12.3.1 |
+| **the device pass** | 50 | **52** | |
+
+### WHAT WAS BUILT, not just declared
+
+Six tests for the genuine gaps: **§12.4.4** (the dock's *"Start my real plan"* — nothing had ever clicked
+it; the explore run's exit is a different control) · **§12.5.3** (the dock must not also say "Example
+money" — T5's a11y fix removed the duplicate and nothing was watching it) · **§12.5.4** (all five beats in
+order, asserting the **screen sequence** `/money → / → / → /progress → /`, because a run that fired five
+beats without navigating would satisfy a beat-counter and still be the failure the row names) ·
+**§12.2.3** (the walkthrough KEEPS its tab bar — the contrast that says the demo-only hide did not leak) ·
+**§12.1.2** (a reload mid-demo lands on onboarding) · **§12.7.1** (the analytics opt-out, in its own file
+because the row was mis-filed under the demo and has nothing to do with it).
+
+### ⚠️ Two rows re-verdicted, and the ones deliberately NOT re-verdicted
+
+`[M]` → `[D]`: **§12.2.2** (a dead-gap look-and-judge — the row literally says *"Report it if you see
+it"*) and **§12.3.1** (whether a swipe-up to leave the app fights the button, against real system UI).
+
+⛔ **§12.6.x stay `[M]`, unclaimed.** The routing calls them device-owed and they already sit in Phase 6's
+human pass either way — but `[D]` asserts *no lane will ever carry this*, and nobody has probed whether
+Maestro can read those utterances. **.7.5's warning cuts both ways:** a `[D]` that is really an unproven
+`[M]` keeps a check on the manual pass forever. Re-verdicting on expectation is the overstatement 4.1.9c
+exists to stop, wearing a different hat.

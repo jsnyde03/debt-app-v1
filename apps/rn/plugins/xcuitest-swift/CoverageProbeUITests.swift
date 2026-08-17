@@ -123,8 +123,25 @@ final class CoverageProbeUITests: XCTestCase {
             var findings = 0
             let started = Date()
             do {
-                try app.performAccessibilityAudit(for: auditType) { _ in
+                // ⭐ 4.1.11 — PRINT EACH FINDING, do not only count it. Run `32042253465` produced the
+                // audit's first trustworthy reading (`rendered=true` on both tiers) and it was NOT a
+                // clean bill: `hitRegion` = 2 findings, on both tiers — two real hit targets below the
+                // minimum. And they were **unlocatable**, because this closure incremented a counter and
+                // threw the issue away. A defect you cannot name is a defect nobody can fix.
+                //
+                // ⚠️ `element` is optional and `compactMap`-free on purpose: an issue with no element
+                // still has to print, or the count and the list would disagree and the list would look
+                // complete. That is the same shape as the silent-skip defect `lint:lane` was widened for.
+                // ⛔ `compactDescription` AND NOTHING ELSE, deliberately. `XCUIAccessibilityAuditIssue`
+                // also exposes `element` and `detailedDescription`, and I cannot compile-check Swift off a
+                // Mac — the file's own header says every extra case "is Swift that CANNOT be
+                // compile-checked off a Mac and a wrong name costs a whole cycle". `compactDescription`
+                // is the property this probe is already certain of, it names the offending element in its
+                // own text, and it is enough to turn "2 findings somewhere" into two addresses. Widen it
+                // once a green run has proved this line compiles.
+                try app.performAccessibilityAudit(for: auditType) { issue in
                     findings += 1
+                    print("PROBE a11yFinding type=\(name) n=\(findings) issue=\(issue.compactDescription)")
                     return true // handled — do not fail the test
                 }
                 let secs = String(format: "%.1f", Date().timeIntervalSince(started))

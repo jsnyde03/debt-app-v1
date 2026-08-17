@@ -516,21 +516,21 @@ Premium** → **"See it in action"**.
 
 ### §12.1 — the route guard (the one most likely to be wrong)
 - [ ] `[M]` **§12.1.1** From a **fresh install with no data**, "See it in action" lands on **Today showing a $2,000
-      paycheck and MAR 16** — *not* on onboarding, and not on a blank screen.
+      paycheck and MAR 16** — *not* on onboarding, and not on a blank screen. `✅gate`
 - [ ] `[M]` **§12.1.2** Force-quit mid-demo and relaunch → you land on **onboarding**, with **no demo running** and no
-      example figures anywhere.
+      example figures anywhere. `✅gate`
 
 ### §12.2 — the tab bar is HIDDEN, not just fenced
 - [ ] `[M]` **§12.2.1** During the demo there is **no tab bar at all** — no Today/Progress/Money strip, and no empty band
-      where it used to be.
-- [ ] `[M]` **§12.2.2** **Check for a dead gap** between the end of the content and the dock. `Screen` pads the scroll by
+      where it used to be. `✅gate`
+- [ ] `[D]` **§12.2.2** **Check for a dead gap** between the end of the content and the dock. `Screen` pads the scroll by
       `insets.bottom + 64` to clear a tab bar that is no longer there, so a large blank space at the
       bottom of the scroll is the expected shape of that bug. Report it if you see it.
-- [ ] `[M]` **§12.2.3** Start the **walkthrough** (More → How the Guardian works). Its tab bar **is still visible** — that
-      difference is deliberate, and this confirms the demo-only change did not leak into it.
+- [x] `[M]` **§12.2.3** Start the **walkthrough** (More → How the Guardian works). Its tab bar **is still visible** — that
+      difference is deliberate, and this confirms the demo-only change did not leak into it. `✅gate`
 
 ### §12.3 — the dock and the home indicator — ⚠️ **this is the build where the fix arrives**
-- [ ] `[M]` **§12.3.1** **Expect this to PASS now.** It was known-bad on the `c050173` build: "Unlock Premium" sat too low,
+- [ ] `[D]` **§12.3.1** **Expect this to PASS now.** It was known-bad on the `c050173` build: "Unlock Premium" sat too low,
       overlapping the home-indicator swipe zone, because the dock was missing `insets.bottom` — the same
       omission audit finding [B4] caught in the walkthrough's dock. The fix is in the repo
       (`DemoDock.tsx:47`, `paddingBottom: insets.bottom + spacing.base`) and this build is the first to
@@ -542,29 +542,29 @@ Premium** → **"See it in action"**.
 
 ### §12.4 — the exits are terminal
 - [ ] `[M]` **§12.4.1** **"Unlock Premium"** → the paywall presents **as a modal**, and the "Example money" line at the top
-      of the screen is **gone** the moment it appears.
+      of the screen is **gone** the moment it appears. `✅gate`
 - [ ] `[D]` **§12.4.2** The paywall shows **real prices from the App Store** (not $4.99/$29.99/$79.99 exactly — those are
       the web fallback). If you see the fallback prices on a device, the offering is not marked current.
-- [ ] `[M]` **§12.4.3** **Swipe the modal down / go back** → you do **not** return to a demo. No example figures, no dock.
-- [ ] `[M]` **§12.4.4** **"Start my real plan"** → onboarding, no demo running, and your own plan is **untouched** —
-      no debts, bills or paycheck invented by the demo.
+- [ ] `[M]` **§12.4.3** **Swipe the modal down / go back** → you do **not** return to a demo. No example figures, no dock. `✅gate`
+- [x] `[M]` **§12.4.4** **"Start my real plan"** → onboarding, no demo running, and your own plan is **untouched** —
+      no debts, bills or paycheck invented by the demo. `✅gate`
 
 ### §12.5 — the disclosure, on the surface that matters
 - [ ] `[M]` **§12.5.1** **"Example money"** is visible at the top of the screen, under the "Today" title, on **every** stage.
-- [ ] `[M]` **§12.5.2** **Scroll the content hard.** The marker **does not move** — it sits above the scroller.
-- [ ] `[M]` **§12.5.3** It is said **once** in the dock too? **No** — it must appear in exactly ONE place. Two is a defect.
+- [x] `[M]` **§12.5.2** **Scroll the content hard.** The marker **does not move** — it sits above the scroller. `✅gate`
+- [x] `[M]` **§12.5.3** It is said **once** in the dock too? **No** — it must appear in exactly ONE place. Two is a defect. `✅gate`
 - [ ] `[M]` **§12.5.4** The scripted run is **5 beats and it MOVES BETWEEN SCREENS by itself**: Money → Today → Today →
       Progress → Today, at roughly 0s · 4s · 9s · 14s · 20s. The states go clear → clear → **tight** →
       clear → clear, and the run ends on a debt one tap from zero.
       **PASS:** each navigation lands on the right screen with its content painted before the next beat
       fires. **FAIL:** a beat arrives on a half-painted screen, or the run never leaves Today.
       _⚠️ Watch the Skia cushion bar and the Progress ring/curve **repaint** rather than blanking on
-      arrival — a late paint here is the same class as §11.13, and beat 4 is entirely about the curve._
+      arrival — a late paint here is the same class as §11.13, and beat 4 is entirely about the curve._ `✅gate`
 
 ### §12.6 — VoiceOver (the demo's audience includes screen-reader users evaluating the app)
 - [ ] `[M◐]` **§12.6.1** Turn VoiceOver on, then enter the demo. You hear **"Example money. This is a demonstration with
       sample figures."** on arrival.
-- [ ] `[M]` **§12.6.2** Rotor → **Headings**: "Example money" is listed as a heading, reachable without swiping to it.
+- [ ] `[M]` **§12.6.2** Rotor → **Headings**: "Example money" is listed as a heading, reachable without swiping to it. `✅gate`
 - [ ] `[M]` **§12.6.3** Swipe through the whole screen: you can reach the dock's two exits, and you **cannot** reach a tab
       bar or the ••• More button.
 - [ ] `[M]` **§12.6.4** The dock reads as **one** utterance — **"Example money. Demonstration, 1 of 5."** — not as fragments.
@@ -572,9 +572,9 @@ Premium** → **"See it in action"**.
       is a real defect, not a stale instruction.)_
 
 ### §12.7 — the opt-out control
-- [ ] `[M]` **§12.7.1** ••• More → Preferences → **"Share anonymous usage"** is present, ON by default, and toggling it
+- [x] `[M]` **§12.7.1** ••• More → Preferences → **"Share anonymous usage"** is present, ON by default, and toggling it
       persists across a force-quit. (Nothing is transmitted in this build either way — there is no sink
-      attached. This is confirming the control exists and sticks.)
+      attached. This is confirming the control exists and sticks.) `✅gate`
 
 ---
 

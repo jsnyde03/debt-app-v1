@@ -41,10 +41,18 @@
  * inline findings that are not regenerable. So: **dry-run by default**, edits confined to the stamp token
  * and the single checkbox character, and no line is ever re-emitted from parsed parts.
  *
+ * ── 4.1.10 ADDED A SECOND MODE, `--gate-marks`, AND IT NEEDS NO RUN DATA ─────────────────────────────
+ *
+ * A row claimed by a PLAYWRIGHT spec is proven by a different mechanism: those suites are in
+ * `validate:release:rn` and run on every push, so a declared-but-never-executed spec is impossible by
+ * construction. There is no run to name — the honest mark is `✅gate`, and it is derived entirely from
+ * the claims. Same dry-run default, same surgical edits, same never-touch-a-bare-`[x]` rule.
+ *
  * Usage:
  *   npm run stamp:coverage -- --results a.json b.json          # dry run — prints the plan, writes nothing
  *   npm run stamp:coverage -- --results a.json b.json --write
  *   npm run stamp:coverage -- --run 32042253465 [--write]      # pulls both tiers' artifacts via `gh`
+ *   npm run stamp:coverage -- --gate-marks [--write]           # the Playwright half; no run data needed
  *   [--checklist <path>] [--flow-dir <path>]                   # for the planted-defect proofs
  */
 import { readFileSync, writeFileSync, mkdtempSync, existsSync } from 'node:fs';
@@ -52,8 +60,9 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  parseChecklist, parseFlows, claimsById, blockEnd,
-  AUTOMATABLE, CHECKLIST, FLOW_DIR, ROW, STAMP_RE, STAMP_TOKEN_RE, stampToken,
+  parseChecklist, parseFlows, parseSpecs, claimsById, blockEnd,
+  AUTOMATABLE, CHECKLIST, FLOW_DIR, ROW, STAMP_RE, STAMP_TOKEN_RE, stampToken, isPartialRow,
+  GATE_RE, GATE_TOKEN,
   type Check, type Claim,
 } from './coverage-model.ts';
 
@@ -107,8 +116,10 @@ function download(runId: string): string[] {
   return found;
 }
 
-const resultPaths = opt('run') ? download(opt('run')!) : list('results');
-if (!resultPaths.length) die('nothing to read. Pass --results <files...> or --run <id>.');
+const GATE_MODE = flag('gate-marks');
+
+const resultPaths = GATE_MODE ? [] : opt('run') ? download(opt('run')!) : list('results');
+if (!GATE_MODE && !resultPaths.length) die('nothing to read. Pass --results <files...>, --run <id>, or --gate-marks.');
 
 const all: Results[] = resultPaths.map((p) => {
   try { return JSON.parse(readFileSync(p, 'utf8')) as Results; }
@@ -129,7 +140,7 @@ if (all.some((r) => r.unresolved.length)) {
 }
 
 const runIds = [...new Set(all.map((r) => r.runId).filter(Boolean))] as string[];
-if (runIds.length !== 1) {
+if (!GATE_MODE && runIds.length !== 1) {
   die(runIds.length === 0
     ? 'these results carry no `runId` (a local run). A stamp records a CI run; there is nothing to record.'
     : `these results come from different runs (${runIds.join(', ')}). One stamp cannot name two runs — pass one run's files.`);
@@ -151,16 +162,50 @@ for (const r of all) {
 }
 
 // ── the plan ──────────────────────────────────────────────────────────────────────────────────────
-type Action = 'stamp' | 'refresh' | 'revoke' | 'skip';
+type Action = 'stamp' | 'refresh' | 'revoke' | 'gate' | 'skip';
 interface Step { check: Check; action: Action; why: string; tick?: boolean }
 
 const { checks, problems, lines, eol } = parseChecklist(checklistPath);
 if (problems.length) die(`the checklist does not parse:\n   ${problems.join('\n   ')}`);
-const claims = parseFlows(flowDir);
+const claims = GATE_MODE ? parseSpecs() : parseFlows(flowDir);
 const byId = claimsById(claims);
 
 const steps: Step[] = [];
-for (const check of checks) {
+
+/**
+ * ⭐ `--gate-marks` — the Playwright half. No run data, and none is needed: the mark asserts that a spec
+ * in `validate:release:rn` holds the row on every push, which is a property of WHERE the spec lives, not
+ * of any one execution.
+ *
+ * ⚠️ Every rule from the stamp path carries over unchanged, because they were never about run data:
+ * a bare `[x]` is still a human's and untouched · a `[M◐]` still gets the mark and never the tick · and
+ * a row whose claims are all `PARTIAL:` gets the mark and no tick either, because 4.1.10 measured that
+ * partly-tested was being counted as fully proven.
+ */
+if (GATE_MODE) {
+  for (const check of checks) {
+    const cl = byId.get(check.id) ?? [];
+    if (!cl.length) {
+      if (check.gate) steps.push({ check, action: 'revoke', why: 'no spec claims it any more', tick: check.verdict === 'M◐' ? undefined : false });
+      continue;
+    }
+    if (check.done && !check.gate && !check.stamp) { steps.push({ check, action: 'skip', why: 'human `[x]` — not automation\'s to touch' }); continue; }
+    if (check.stamp) { steps.push({ check, action: 'skip', why: `already proven by a native run (\`${check.stamp}\`) — one row, one proof mark` }); continue; }
+    if (!AUTOMATABLE.includes(check.verdict)) { steps.push({ check, action: 'skip', why: `verdict [${check.verdict}] cannot be machine-proven` }); continue; }
+
+    const partial = isPartialRow(check, cl);
+    const tick = partial || check.done ? undefined : true;
+    if (check.gate && tick === undefined) { steps.push({ check, action: 'skip', why: 'already marked' }); continue; }
+    steps.push({
+      check,
+      action: 'gate',
+      why: `${partial ? 'partial — mark, no tick' : 'proven'} by ${cl.map((c) => `\`${c.flow.replace(/\.spec\.ts$/, '')}\``).join(' · ')}`,
+      tick,
+    });
+  }
+}
+
+for (const check of GATE_MODE ? [] : checks) {
   const cl: Claim[] = byId.get(check.id) ?? [];
   const ran = cl.map((c) => ({ c, v: flowVerdict.get(c.flow) })).filter((x) => x.v !== undefined);
 
@@ -187,7 +232,7 @@ for (const check of checks) {
    * earned on real hardware for the device-owed half, and a partial's box belongs to whoever ran it.
    * `undefined` means "do not touch the box", which is not the same value as `false`.
    */
-  const isPartial = check.verdict === 'M◐';
+  const isPartial = isPartialRow(check, cl);
 
   const bad = ran.filter((x) => x.v !== 'pass');
   if (bad.length) {
@@ -238,19 +283,29 @@ function applyStep(buf: string[], step: Step): void {
   }
 
   for (let i = start; i <= end; i++) {
-    if (!STAMP_RE.test(buf[i])) continue;
-    if (step.action === 'revoke') buf[i] = buf[i].replace(STAMP_TOKEN_RE, '').replace(/[ \t]+$/, '');
-    if (step.action === 'refresh') buf[i] = buf[i].replace(STAMP_RE, `✅auto·${RUN}`);
+    if (step.action === 'revoke') {
+      // ⚠️ Both marks, because `--gate-marks` revokes a `✅gate` and the stamp path revokes a `✅auto·`.
+      // A revoke that only knew one of them would leave the other behind as a claim nothing supports.
+      buf[i] = buf[i].replace(STAMP_TOKEN_RE, '').replace(/[ \t]*`✅gate`/, '').replace(/[ \t]+$/, '');
+      continue;
+    }
+    if (step.action === 'refresh' && STAMP_RE.test(buf[i])) buf[i] = buf[i].replace(STAMP_RE, `✅auto·${RUN}`);
   }
   if (step.action === 'stamp') buf[end] = `${buf[end].replace(/\s+$/, '')} ${stampToken(RUN)}`;
+  if (step.action === 'gate' && !GATE_RE.test(buf.slice(start, end + 1).join('\n'))) {
+    buf[end] = `${buf[end].replace(/\s+$/, '')} ${GATE_TOKEN}`;
+  }
 }
 
 // ── report ────────────────────────────────────────────────────────────────────────────────────────
 const acted = steps.filter((s) => s.action !== 'skip');
-const icon: Record<Action, string> = { stamp: '⭐', refresh: '🔁', revoke: '⛔', skip: '·' };
+const icon: Record<Action, string> = { stamp: '⭐', refresh: '🔁', revoke: '⛔', gate: '⭐', skip: '·' };
 
-console.log(`\n── stamp-coverage · run \`${RUN}\` · ${all.map((r) => `${r.tier} ${r.totals.pass}/${r.flows.length}`).join(' · ')} ──`);
-console.log(`   sha ${all[0].sha?.slice(0, 8) ?? '(local)'} · ${flowVerdict.size} flows with a verdict · checklist ${checklistPath}\n`);
+console.log(
+  GATE_MODE
+    ? `\n── stamp-coverage · \`✅gate\` marks from ${claims.length} Playwright claim(s) ──\n   checklist ${checklistPath}\n`
+    : `\n── stamp-coverage · run \`${RUN}\` · ${all.map((r) => `${r.tier} ${r.totals.pass}/${r.flows.length}`).join(' · ')} ──\n   sha ${all[0].sha?.slice(0, 8) ?? '(local)'} · ${flowVerdict.size} flows with a verdict · checklist ${checklistPath}\n`,
+);
 
 for (const s of acted) {
   const box = s.tick === true ? '☑ tick ' : s.tick === false ? '☐ untick' : `· box \`[${s.check.done ? 'x' : ' '}]\` kept`;
@@ -260,7 +315,7 @@ if (!acted.length) console.log('  (nothing to change — every claimed row alrea
 
 const skipped = steps.filter((s) => s.action === 'skip');
 const human = skipped.filter((s) => s.why.startsWith('human'));
-console.log(`\n  ${acted.filter((s) => s.action === 'stamp').length} stamped · ${acted.filter((s) => s.action === 'refresh').length} refreshed · ${acted.filter((s) => s.action === 'revoke').length} REVOKED · ${skipped.length} untouched (${human.length} human-earned)`);
+console.log(`\n  ${acted.filter((s) => s.action === 'stamp').length} stamped · ${acted.filter((s) => s.action === 'gate').length} gate-marked · ${acted.filter((s) => s.action === 'refresh').length} refreshed · ${acted.filter((s) => s.action === 'revoke').length} REVOKED · ${skipped.length} untouched (${human.length} human-earned)`);
 
 if (!WRITE) {
   console.log(`\n  ⚠️  DRY RUN — nothing written. Re-run with \`--write\` to apply.\n`);

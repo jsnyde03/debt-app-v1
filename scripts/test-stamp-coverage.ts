@@ -221,5 +221,50 @@ const rowOf = (path: string, id: string) => parseChecklist(path).checks.find((c)
   rmSync(sb.dir, { recursive: true, force: true });
 }
 
+// ── ⑨ `--gate-marks` KEEPS EVERY RULE THE STAMP PATH HAS ──────────────────────────────────────────
+{
+  console.log('\n  ⑨ --gate-marks: a partial-only claim gets the mark and NOT the tick');
+  const sb = sandbox();
+  const before = parseChecklist(sb.checklist);
+  // §12.2.1 is claimed PARTIAL-only by a spec; §12.7.1 is claimed COVERS by one.
+  const partialRow = before.checks.find((c) => c.id === '§12.2.1');
+  const fullRow = before.checks.find((c) => c.id === '§12.7.1');
+  const planted = Boolean(partialRow && fullRow);
+  console.log(`      plant-applied=${planted ? 'YES' : 'NO'} (§12.2.1 PARTIAL-only · §12.7.1 COVERS — both claimed by Playwright specs)`);
+  if (!planted) failures++;
+
+  const args = ['tsx', 'scripts/stamp-coverage.ts', '--gate-marks', '--checklist', sb.checklist, '--write'];
+  execFileSync('npx', args, { encoding: 'utf8', stdio: 'pipe', shell: process.platform === 'win32' });
+  const after = parseChecklist(sb.checklist);
+  const a = (id: string) => after.checks.find((c) => c.id === id)!;
+
+  check('§12.2.1 marked `✅gate`', Boolean(a('§12.2.1').gate));
+  check('§12.2.1 NOT ticked — its only claim is PARTIAL', !a('§12.2.1').done);
+  check('§12.7.1 marked and ticked — a COVERS claim proves the whole row', Boolean(a('§12.7.1').gate) && a('§12.7.1').done);
+  // ⛔ The mark must never land on a row the NATIVE lane proves: one row, one proof mark.
+  check('§13.1 (native-stamped) untouched by gate mode', !a('§13.1').gate && a('§13.1').stamp === before.checks.find((c) => c.id === '§13.1')!.stamp);
+  check('§11.15 (human `[x]`, no mark) still untouched', a('§11.15').done && !a('§11.15').gate && !a('§11.15').stamp);
+  rmSync(sb.dir, { recursive: true, force: true });
+}
+
+// ── ⑩ THE GATE AND THE WRITER AGREE ABOUT WHAT "PARTIAL" MEANS ────────────────────────────────────
+{
+  console.log('\n  ⑩ what the writer writes, `lint:coverage` accepts');
+  const sb = sandbox();
+  console.log('      plant-applied=YES (gate marks applied, then the real gate is run over the result)');
+  execFileSync('npx', ['tsx', 'scripts/stamp-coverage.ts', '--gate-marks', '--checklist', sb.checklist, '--write'],
+    { encoding: 'utf8', stdio: 'pipe', shell: process.platform === 'win32' });
+
+  // ⚡ THIS IS THE SCENARIO THAT EXISTS BECAUSE IT ALREADY CAUGHT SOMETHING. The writer learned that a
+  // partial-only claim withholds the tick while the gate still exempted only `[M◐]`, so the gate rejected
+  // five rows the writer had just written correctly. Both now call `isPartialRow`, and this proves it.
+  let code = 0;
+  try {
+    execFileSync('npx', ['tsx', 'scripts/coverage-split.ts', '--gate'], { encoding: 'utf8', stdio: 'pipe', shell: process.platform === 'win32' });
+  } catch (e) { code = (e as { status?: number }).status ?? 1; }
+  check('the coverage gate accepts the repo checklist after a gate-mark pass', code === 0, `exit=${code}`);
+  rmSync(sb.dir, { recursive: true, force: true });
+}
+
 console.log(`\n${failures ? `❌ stamp-coverage proof: ${failures} assertion(s) failed\n` : '✅ stamp-coverage proof: every rule fires on a planted input, and every plant landed\n'}`);
 process.exit(failures ? 1 : 0);

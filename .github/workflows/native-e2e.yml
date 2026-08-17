@@ -112,9 +112,27 @@ on:
     # tags too, and a tag pushed onto an existing commit carries no changed files — so the tag trigger was
     # documented as "may now never fire". With the filter gone it is unconditional again.
     #
-    # ⚠️ The rot risk the guard existed for is REAL and now unguarded: this lane can go green by never
-    # running. Revisit at 4.1.11 — a nightly is the shape that does not tax a working afternoon.
+    # ⚠️ The rot risk the guard existed for is REAL. ✅ Closed at 4.1.11 by the `schedule:` below —
+    # a nightly, which is the shape that does not tax a working afternoon.
     tags: ['v*'] # release tags → a gated native smoke before shipping
+
+  # ⭐ 4.1.11 — THE NIGHTLY, and it closes the rot risk the reverted push-guard was reaching for.
+  #
+  # ⛔ The guard's failure was its CADENCE, not its intent: a 20-minute macOS job per commit, and
+  # `cancel-in-progress` killing runs mid-flight — two of them while they were populating the cache.
+  # Once a night costs one run and cancels nothing, because nobody is pushing at 07:00 UTC.
+  #
+  # ⚡ AND IT CATCHES WHAT A `paths:` FILTER NEVER COULD. The lane's real rot is mostly OUT of this repo:
+  # a runner image bump, a new Xcode, a Maestro release, an expired simulator runtime. None of those
+  # changes a file here, so no path filter would ever have fired on them — and this lane has already been
+  # broken-and-green-by-never-running once, for three days in August.
+  #
+  # ⚠️ Defaults to `device=both`: a nightly that checked one tier would let the other rot, which is the
+  # exact asymmetry that cost a day when the iPad tier kept a 240s timeout the iPhone tier had raised.
+  # ⚠️ GitHub disables scheduled workflows after 60 days of repository inactivity — if this stops
+  # reporting, check that before diagnosing the lane.
+  schedule:
+    - cron: '0 7 * * *' # 07:00 UTC daily — outside any working afternoon in the Americas
 
 concurrency:
   group: native-e2e-${{ github.ref }}-${{ github.event_name }}
@@ -641,7 +659,19 @@ jobs:
   ipad:
     name: iPad tier
     needs: build
-    if: ${{ inputs.mode != 'probe' && inputs.scope != 'xcuitest' && (inputs.device == 'ipad' || inputs.device == 'both') }}
+    # ⛔ 4.1.11 — `inputs.*` ARE EMPTY ON EVERY TRIGGER EXCEPT `workflow_dispatch`, and this line was
+    # written as if they were not. On a **release tag** — the one trigger whose whole job is a gated smoke
+    # before shipping — `inputs.device` is `''`, so it matched neither `'ipad'` nor `'both'` and **the
+    # iPad tier has never run on a tag.** Not a regression from the nightly; the nightly is what made it
+    # visible, because it would have inherited the same silence.
+    #
+    # ⚡ The iPhone tier reads the negative (`inputs.device != 'ipad'`) and therefore ran anyway — which is
+    # why nobody noticed: the run was green, on one tier, and looked complete.
+    #
+    # `inputs.device || 'both'` is the fix and it states the intent: an un-parameterised trigger — a tag,
+    # the nightly — means BOTH tiers. A single-tier default would let the other rot, which is exactly the
+    # asymmetry that cost a day when the iPad kept a 240s timeout the iPhone had already raised.
+    if: ${{ inputs.mode != 'probe' && inputs.scope != 'xcuitest' && ((inputs.device || 'both') == 'ipad' || (inputs.device || 'both') == 'both') }}
     runs-on: macos-15
     timeout-minutes: 45
     defaults:

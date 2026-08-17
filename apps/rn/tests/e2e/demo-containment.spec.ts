@@ -56,6 +56,8 @@ async function visibleMarkers(page: import('@playwright/test').Page): Promise<nu
   return seen;
 }
 
+// PARTIAL: §12.1.1 — the Welcome door reaches the demo and lands on the arc's opening screen; the specific
+// seeded figures ($2,000 · MAR 16) are not asserted here
 test('the WELCOME door — a brand-new user can try the app before entering any data', async ({ page }) => {
   await seedStore(page, NOT_ONBOARDED);
   await page.goto('/onboarding');
@@ -77,6 +79,8 @@ test('the PAYWALL door — "See it in action" reaches the demo', async ({ page }
   await expect.poll(() => visibleMarkers(page), { timeout: 15_000 }).toBe(1);
 });
 
+// PARTIAL: §12.2.1 — the tab bar is not merely fenced but HIDDEN (`toBeHidden` = out of layout, hit-testing
+// and the a11y tree); the row's "no empty BAND where it used to be" is a geometry claim web cannot make
 test('a not-yet-onboarded user reaches the demo, and the SCRIPTED run is contained', async ({ page }) => {
   await seedStore(page, NOT_ONBOARDED);
   // 3.5.10 — `?mode=scripted` explicitly: kiosk containment is a property of the RUN THAT DRIVES ITSELF,
@@ -191,6 +195,10 @@ test('the EXPLORE run carries its own way out, on whatever screen you wandered t
   await expect(page.getByTestId('example-canvas-marker')).toHaveCount(0);
 });
 
+// COVERS: §12.5.2 — the marker's boundingBox is identical before and after a hard scroll, which is the
+// row's exact claim (it sits above the scroller rather than inside it)
+// PARTIAL: §12.6.2 — the marker carries role="heading", which is what puts it in VoiceOver's Headings
+// rotor; that the ROTOR lists it is device-owed
 test('the canvas is marked as example money, above the scroll and in the a11y tree', async ({ page }) => {
   await seedStore(page, NOT_ONBOARDED);
   await page.goto('/demo');
@@ -212,6 +220,10 @@ test('the canvas is marked as example money, above the scroll and in the a11y tr
   expect(after?.y).toBe(before?.y);
 });
 
+// PARTIAL: §12.4.1 — "Unlock Premium" reaches the paywall with the example-money marker gone; that it
+// presents AS A MODAL is an iOS presentation style web cannot observe
+// PARTIAL: §12.4.3 — the GO-BACK branch is proven (no example figures, no dock); the swipe-the-modal-down
+// branch is a gesture web cannot drive
 test('both SCRIPTED exits are terminal — the demo is over before the destination renders', async ({ page }) => {
   await seedStore(page, NOT_ONBOARDED);
   // 3.5.10 — the two exits tested here live in the DOCK, which is scripted-only. Explore carries a single
@@ -236,11 +248,82 @@ test('both SCRIPTED exits are terminal — the demo is over before the destinati
 
   // The demo is torn down, not merely navigated away from: no marker, and no dock.
   await expect(page.getByTestId('example-canvas-marker')).toHaveCount(0);
+  // §12.4.3 names the dock separately from the figures, so assert it separately — the dock is what a
+  // returning viewer would see if the session survived the navigation.
+  await expect(page.getByLabel(/Demonstration, \d+ of \d+\./)).toHaveCount(0);
 
   // `replace`, not `push` — going back must not resurrect a torn-down run as a screen of sandbox figures
   // with no session behind it.
   await page.goBack();
   await expect(page.getByTestId('example-canvas-marker')).toHaveCount(0);
+  await expect(page.getByLabel(/Demonstration, \d+ of \d+\./)).toHaveCount(0);
+});
+
+// COVERS: §12.4.4 — the DOCK's "Start my real plan" reaches onboarding with no demo running and the real
+// plan untouched. ⚠️ The explore run's exit is a DIFFERENT control (`demo-explore-exit`, asserted above);
+// this row is about the dock's, which nothing clicked until 4.1.10.
+test('the dock\'s "Start my real plan" lands on onboarding with the real plan untouched', async ({ page }) => {
+  await seedStore(page, NOT_ONBOARDED);
+  await page.goto('/demo?mode=scripted');
+  await expect(page.getByTestId('example-canvas-marker')).toBeVisible({ timeout: 15_000 });
+
+  await page.getByText('Start my real plan', { exact: true }).click();
+  await expect(page).toHaveURL(/onboarding/, { timeout: 10_000 });
+
+  // Terminal, per [D18] — the session ends BEFORE the destination renders.
+  await expect(page.getByTestId('example-canvas-marker')).toHaveCount(0);
+  await expect(page.getByLabel(/Demonstration, \d+ of \d+\./)).toHaveCount(0);
+
+  // "your own plan is untouched — no debts, bills or paycheck invented by the demo" is the half of this
+  // row that matters most, and it is the sin the sandbox exists to retire.
+  const persisted = await page.evaluate(() => window.localStorage.getItem('debtPlanner.rnStore'));
+  const store = JSON.parse(persisted ?? '{}');
+  expect(store.prefs.onboardingComplete).toBe(false);
+  expect(store.debts ?? []).toHaveLength(0);
+  expect(store.expenses ?? []).toHaveLength(0);
+});
+
+// COVERS: §12.5.3 — "Example money" appears in exactly ONE place. The dock must not say it too; T5's
+// a11y-collapse fix removed the duplicate prefix from the dock's label, and nothing was watching it.
+test('"Example money" is said exactly once — the marker owns it, the dock does not', async ({ page }) => {
+  await seedStore(page, NOT_ONBOARDED);
+  await page.goto('/demo?mode=scripted');
+
+  const dock = page.getByLabel(/Demonstration, \d+ of \d+\./);
+  await expect(dock).toBeVisible({ timeout: 15_000 });
+
+  // ⚠️ The DOCK's own subtree, not the page: the marker legitimately says it, once, at the top.
+  await expect(dock).not.toContainText('Example money');
+  // …and the a11y LABEL is where the duplicate used to live, which a text query would never have seen.
+  await expect(dock).toHaveAttribute('aria-label', /^Demonstration, \d+ of \d+\.$/);
+
+  await expect.poll(() => visibleMarkers(page), { timeout: 10_000 }).toBe(1);
+});
+
+// PARTIAL: §12.1.2 — a RELOAD mid-demo lands on onboarding with no demo and no example figures; a true
+// force-quit is device-owed (the demo session is in-memory, so a reload is the closest web analogue)
+test('a relaunch mid-demo lands on onboarding with no demo running', async ({ page }) => {
+  await seedStore(page, NOT_ONBOARDED);
+  await page.goto('/demo?mode=scripted');
+  await expect(page.getByTestId('example-canvas-marker')).toBeVisible({ timeout: 15_000 });
+
+  await page.reload();
+
+  await expect(page).toHaveURL(/onboarding/, { timeout: 15_000 });
+  await expect(page.getByTestId('example-canvas-marker')).toHaveCount(0);
+  await expect(page.getByLabel(/Demonstration, \d+ of \d+\./)).toHaveCount(0);
+});
+
+// COVERS: §12.2.3 — the walkthrough KEEPS its tab bar. The demo hides it (§12.2.1) and that difference is
+// deliberate; this is the assertion that says the demo-only change did not leak into the walkthrough.
+test('the walkthrough keeps its tab bar — the demo-only hide did not leak', async ({ page }) => {
+  await seedStore(page, scenario({ prefs: { onboardingComplete: true, tutorialSeen: false } }));
+  await page.goto('/tutorial');
+
+  await expect(page.getByTestId('tutorial-progress')).toBeVisible({ timeout: 15_000 });
+  // Visible, not merely present: `holdTabs` fences the PRESS during a walkthrough by design, and the bar
+  // staying on screen is the whole point of the contrast with §12.2.1's `toBeHidden`.
+  await expect(page.getByTestId('tab-money')).toBeVisible();
 });
 
 test('the walkthrough does not double the marker', async ({ page }) => {

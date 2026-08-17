@@ -34,9 +34,23 @@ import { join } from 'node:path';
  * across the extraction.**
  */
 import {
-  parseChecklist, parseFlows, REPO_ROOT, CHECKLIST, AUTOMATABLE,
+  parseChecklist, parseAllClaims, claimsById, isPartialRow, REPO_ROOT, CHECKLIST, AUTOMATABLE,
   type Verdict, type Check, type Claim,
 } from './coverage-model.ts';
+
+/**
+ * 4.1.10 — ⛔ **A `PARTIAL:` CLAIM DOES NOT PROVE A ROW, AND THIS FILE USED TO LET IT.**
+ *
+ * Partial-ness was read off the row's VERDICT (`[M◐]`) and never off the claim's KIND, so `PARTIAL:` on
+ * an `[M]` row counted exactly like `COVERS:`. Measured 2026-08-17: **§1.1 · §3.1 · §10.2 were in the
+ * PROVEN 24** while their only claims say, in their own words, *"'no white screen / no crash' is not
+ * asserted"*, *"the EDIT-sheet half of the row is not walked"*, *"rotation is not"*.
+ *
+ * ⚡ **It is 4.1.9c's defect one level down.** That one fixed *declared ≠ proven*; this is *partly tested
+ * ≠ fully proven*. A row is fully proven only if some claim covers the WHOLE of it.
+ */
+// (the test itself is `isPartialRow` in `coverage-model.ts` — the report, the gate and the writer all
+// ask it, and when they each had their own copy the gate rejected five rows the writer wrote correctly)
 
 const OUT = join(REPO_ROOT, 'docs', 'audits', 'coverage-split.md');
 
@@ -66,6 +80,11 @@ const OUT = join(REPO_ROOT, 'docs', 'audits', 'coverage-split.md');
 function gate(checks: Check[], claims: Claim[], problems: string[]): string[] {
   const byId = new Map(checks.map((c) => [c.id, c]));
   const out = [...problems];
+  // ⚠️ THE SAME PARTIAL TEST THE WRITER USES, and it has to be. When the writer learned that partial-only
+  // claims withhold the tick and this gate still only knew `[M◐]`, the gate rejected five rows the writer
+  // had just written correctly. One function, three callers — see `isPartialRow`.
+  const claimsFor = claimsById(claims);
+  const partial = (c: Check) => isPartialRow(c, claimsFor.get(c.id) ?? []);
   for (const cl of claims) {
     const check = byId.get(cl.id);
     if (!check) { out.push(`${cl.flow}:${cl.line} — ${cl.kind} ${cl.id}, which is not a check in the checklist`); continue; }
@@ -96,8 +115,31 @@ function gate(checks: Check[], claims: Claim[], problems: string[]): string[] {
     // verified something no human has looked at. For a partial, a stamp WITHOUT a tick is the correct
     // and complete record: the automatable half is green, the other half is still owed.
     // ⚠️ Written the other way two hours earlier, and flow 10's three `[M◐]` rows are what exposed it.
-    if (!c.done && c.verdict !== 'M◐') {
+    if (!c.done && !partial(c)) {
       out.push(`${CHECKLIST}:${c.line} — ${c.id} carries \`✅auto·${c.stamp}\` but its box is unticked. 🎯's rule is that proving an item checks it off; a stamp without a tick is half a record.`);
+    }
+  }
+
+  // ── 4.1.10 · `✅gate`'s integrity — the same three rules, plus the one that is specific to it ──────
+  const specClaimed = new Set(claims.filter((c) => c.harness === 'playwright').map((c) => c.id));
+  for (const c of checks) {
+    if (!c.gate) continue;
+    // ⛔ THE RULE THAT IS ONLY TRUE OF THIS MARK: `✅gate` means *a spec in `validate:release:rn` holds
+    // this on every push*. A row claimed only by a Maestro flow is proven by a RUN, not by a gate — the
+    // native lane is dispatch-only, and calling that continuous is the overstatement the mark must not
+    // be allowed to make.
+    if (!specClaimed.has(c.id)) {
+      out.push(`${CHECKLIST}:${c.line} — ${c.id} carries \`✅gate\` but no PLAYWRIGHT spec declares COVERS/PARTIAL for it. That mark asserts a push-gate holds the row; only a spec in \`validate:release:rn\` can. Use \`✅auto·<runId>\` for a row the native lane proves.`);
+    }
+    if (!AUTOMATABLE.includes(c.verdict)) {
+      out.push(`${CHECKLIST}:${c.line} — ${c.id} carries \`✅gate\` but its verdict is [${c.verdict}]. A ${c.verdict === '—' ? 'not-a-check' : 'device-only'} row cannot be machine-proven.`);
+    }
+    if (c.stamp) {
+      out.push(`${CHECKLIST}:${c.line} — ${c.id} carries BOTH \`✅gate\` and \`✅auto·${c.stamp}\`. One row, one proof mark: a reader cannot tell which mechanism is being relied on, and they have different guarantees.`);
+    }
+    // Same exemption, same reason as the stamp's: a partial's box belongs to whoever owns the other half.
+    if (!c.done && !partial(c)) {
+      out.push(`${CHECKLIST}:${c.line} — ${c.id} carries \`✅gate\` but its box is unticked. 🎯's rule is that proving an item checks it off.`);
     }
   }
   return out;
@@ -127,7 +169,12 @@ function staleNote(byRun: Map<string, number>, autoProven: Check[]): string {
 }
 
 // ── the report ────────────────────────────────────────────────────────────────────────────────────
-function build(checks: Check[], claims: Claim[]): string {
+interface Totals {
+  proven: number; auto: number; gate: number; human: number; half: number; unproven: number;
+  notBuilt: number; deviceOnly: number; partials: number; devicePass: number;
+}
+
+function build(checks: Check[], claims: Claim[]): { markdown: string; totals: Totals } {
   const claimsById = new Map<string, Claim[]>();
   for (const c of claims) claimsById.set(c.id, [...(claimsById.get(c.id) ?? []), c]);
 
@@ -140,12 +187,14 @@ function build(checks: Check[], claims: Claim[]): string {
   // however green the lane goes, so it can never be *fully* proven by automation — it earns a third
   // column, not a place in the headline. ⚠️ The first version of this reader lumped them, which would
   // have moved the headline 30 → 33 on flow 10's pass while three human halves were still outstanding.
-  const isPartial = (c: Check) => c.verdict === 'M◐';
+  // ⛔ 4.1.10 — partial by VERDICT *or* by the claims being partial-only. See `isPartialRow`.
+  const isPartial = (c: Check) => isPartialRow(c, claimsById.get(c.id) ?? []);
   const proven = claimed.filter((c) => c.done && !isPartial(c));
-  const halfProven = claimed.filter((c) => isPartial(c) && (c.done || c.stamp));
+  const halfProven = claimed.filter((c) => isPartial(c) && (c.done || c.stamp || c.gate));
   const autoProven = proven.filter((c) => c.stamp);
-  const humanProven = proven.filter((c) => !c.stamp);
-  const claimedUnproven = claimed.filter((c) => !c.done && !c.stamp);
+  const gateProven = proven.filter((c) => !c.stamp && c.gate);
+  const humanProven = proven.filter((c) => !c.stamp && !c.gate);
+  const claimedUnproven = claimed.filter((c) => !c.done && !c.stamp && !c.gate);
   const notBuilt = real.filter((c) => AUTOMATABLE.includes(c.verdict) && !claimsById.has(c.id));
   const deviceOnly = real.filter((c) => c.verdict === 'D');
   const partials = real.filter((c) => c.verdict === 'M◐');
@@ -154,10 +203,16 @@ function build(checks: Check[], claims: Claim[]): string {
   const byRun = new Map<string, number>();
   for (const c of autoProven) byRun.set(c.stamp!, (byRun.get(c.stamp!) ?? 0) + 1);
 
-  const proof = (c: Check) => (c.stamp ? `\`✅auto·${c.stamp}\`` : c.done ? '*human* `[x]`' : '⚠️ **none**');
+  const proof = (c: Check) =>
+    c.stamp ? `\`✅auto·${c.stamp}\`` : c.gate ? '`✅gate`' : c.done ? '*human* `[x]`' : '⚠️ **none**';
   const row = (c: Check) => {
     const cl = claimsById.get(c.id) ?? [];
-    const by = cl.length ? cl.map((x) => `\`${x.flow.replace(/\.yaml$/, '')}\`${x.kind === 'PARTIAL' ? ' *(partial)*' : ''}`).join(' · ') : '—';
+    // ⚠️ The HARNESS is named, not just the file. Two suites now claim rows and they are proven by
+    // different mechanisms — a run id for the batched native lane, a continuously-running gate for the
+    // web suites. A reader who cannot tell which one holds a row cannot judge how much the tick is worth.
+    const by = cl.length
+      ? cl.map((x) => `\`${x.flow.replace(/\.(yaml|spec\.ts)$/, '')}\`${x.harness === 'playwright' ? ' ᵂ' : ''}${x.kind === 'PARTIAL' ? ' *(partial)*' : ''}`).join(' · ')
+      : '—';
     return `| ${c.id} | \`[${c.verdict}]\` | ${c.title} | ${by} | ${proof(c)} |`;
   };
   const table = (rows: Check[]) =>
@@ -165,7 +220,13 @@ function build(checks: Check[], claims: Claim[]): string {
 
   const byVerdict = (v: Verdict) => real.filter((c) => c.verdict === v).length;
 
-  return `# Device-checklist coverage split
+  const totals: Totals = {
+    proven: proven.length, auto: autoProven.length, gate: gateProven.length, human: humanProven.length,
+    half: halfProven.length, unproven: claimedUnproven.length, notBuilt: notBuilt.length,
+    deviceOnly: deviceOnly.length, partials: partials.length, devicePass,
+  };
+
+  const markdown = `# Device-checklist coverage split
 
 > ⚙️ **GENERATED — do not edit.** \`npm run audit:coverage\`. Source of truth is
 > [\`DEBT_3.5_DEVICE_QA_CHECKLIST.md\`](../DEBT_3.5_DEVICE_QA_CHECKLIST.md) (ids + verdicts) and the
@@ -178,7 +239,7 @@ function build(checks: Check[], claims: Claim[]): string {
 
 | | checks | |
 |---|---:|---|
-| **✅ Covered — PROVEN** | **${proven.length}** | proved OUTRIGHT: ${autoProven.length} machine-earned \`✅auto·<runId>\` · ${humanProven.length} human-earned \`[x]\` |
+| **✅ Covered — PROVEN** | **${proven.length}** | proved OUTRIGHT: ${autoProven.length} by a native run \`✅auto·<runId>\` · ${gateProven.length} by a push-gate spec \`✅gate\` · ${humanProven.length} human-earned \`[x]\` |
 | **◐ Automatable half proven** | **${halfProven.length}** | \`[M◐]\` — the lane's half is green; **the device-owed half is still owed** and its box stays for the human |
 | **⚠️ Claimed but UNPROVEN** | **${claimedUnproven.length}** | a flow declares it; no run has ever passed it. **These were counted as covered before 4.1.9c** |
 | **▶ Coverable, not yet built** | **${notBuilt.length}** | verdict permits automation, nothing claims it — 🎯 2026-08-17: **PHASE 6 device-pass work, ticked by a human; automating any of it is optional and non-gating.** ⛔ Most of these have never been verified by ANYONE, so this is verification debt, not automation debt. Exception: §12.1–§12.7 stay in 4.1.10 |
@@ -236,15 +297,16 @@ ${table(deviceOnly)}
 ## ◐ Partials — automated in one half, yours in the other (${partials.length})
 
 ${partials.map((c) => {
-    const cl = (claimsById.get(c.id) ?? []).map((x) => `${x.flow.replace(/\.yaml$/, '')}: ${x.why}`).join(' · ');
+    const cl = (claimsById.get(c.id) ?? []).map((x) => `${x.flow.replace(/\.(yaml|spec\.ts)$/, '')}: ${x.why}`).join(' · ');
     return `- **${c.id}** — ${c.title}\n  ${cl || '⚠️ *no flow claims even the automatable half yet*'}`;
   }).join('\n')}
 `;
+  return { markdown, totals };
 }
 
 // ── main ──────────────────────────────────────────────────────────────────────────────────────────
 const { checks, problems } = parseChecklist();
-const claims = parseFlows();
+const claims = parseAllClaims();
 const failures = gate(checks, claims, problems);
 const gateOnly = process.argv.includes('--gate');
 
@@ -258,18 +320,15 @@ if (failures.length) {
 if (gateOnly) {
   console.log(`✅ coverage gate: ${checks.length} checks, ${claims.length} claims, no structural defects.`);
 } else {
-  writeFileSync(OUT, build(checks, claims), 'utf8');
-  const real = checks.filter((c) => c.verdict !== '—');
-  const claimedIds = new Set(claims.map((c) => c.id));
-  const claimed = real.filter((c) => AUTOMATABLE.includes(c.verdict) && claimedIds.has(c.id));
-  const half = claimed.filter((c) => c.verdict === 'M◐' && (c.done || c.stamp));
-  const proven = claimed.filter((c) => c.done && c.verdict !== 'M◐');
-  const notBuilt = real.filter((c) => AUTOMATABLE.includes(c.verdict) && !claimedIds.has(c.id)).length;
-  const device = real.filter((c) => c.verdict === 'D').length;
-  const partial = real.filter((c) => c.verdict === 'M◐').length;
+  // ⛔ 4.1.10 — THIS SUMMARY USED TO RECOMPUTE EVERY FIGURE, and it silently disagreed with the report
+  // the moment the report's rules changed: `build()` had already stopped counting partial-only claims as
+  // proven while this block still said 24. The console line is the number a human reads and quotes.
+  // It now comes from `build()`'s own tally — one definition, two renderings.
+  const { markdown, totals } = build(checks, claims);
+  writeFileSync(OUT, markdown, 'utf8');
   console.log(`wrote ${OUT}`);
-  console.log(`  PROVEN ${proven.length} (${proven.filter((c) => c.stamp).length} auto · ${proven.filter((c) => !c.stamp).length} human)`);
-  console.log(`  automatable half proven ${half.length} [M◐] · claimed but unproven ${claimed.length - proven.length - half.length}`);
-  console.log(`  coverable-not-built ${notBuilt} · device-only ${device}`);
-  console.log(`  the device pass is ${device + partial} rows (${device} [D] + ${partial} [M◐] halves)`);
+  console.log(`  PROVEN ${totals.proven} (${totals.auto} native-run · ${totals.gate} push-gate · ${totals.human} human)`);
+  console.log(`  automatable half proven ${totals.half} · claimed but unproven ${totals.unproven}`);
+  console.log(`  coverable-not-built ${totals.notBuilt} · device-only ${totals.deviceOnly}`);
+  console.log(`  the device pass is ${totals.devicePass} rows (${totals.deviceOnly} [D] + ${totals.partials} [M◐] halves)`);
 }

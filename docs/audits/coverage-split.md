@@ -7,17 +7,17 @@
 ## The answer
 
 🎯 **2026-08-14: *"Nothing should be marked covered unless it's proven to be."*** So the headline is
-**24**, not 33. The difference is the row below it, and it is the honest gap.
+**26**, not 45. The difference is the row below it, and it is the honest gap.
 
 | | checks | |
 |---|---:|---|
-| **✅ Covered — PROVEN** | **24** | proved OUTRIGHT: 23 machine-earned `✅auto·<runId>` · 1 human-earned `[x]` |
-| **◐ Automatable half proven** | **9** | `[M◐]` — the lane's half is green; **the device-owed half is still owed** and its box stays for the human |
+| **✅ Covered — PROVEN** | **26** | proved OUTRIGHT: 20 by a native run `✅auto·<runId>` · 5 by a push-gate spec `✅gate` · 1 human-earned `[x]` |
+| **◐ Automatable half proven** | **19** | `[M◐]` — the lane's half is green; **the device-owed half is still owed** and its box stays for the human |
 | **⚠️ Claimed but UNPROVEN** | **0** | a flow declares it; no run has ever passed it. **These were counted as covered before 4.1.9c** |
-| **▶ Coverable, not yet built** | **74** | verdict permits automation, nothing claims it — 🎯 2026-08-17: **PHASE 6 device-pass work, ticked by a human; automating any of it is optional and non-gating.** ⛔ Most of these have never been verified by ANYONE, so this is verification debt, not automation debt. Exception: §12.1–§12.7 stay in 4.1.10 |
-| **🎯 Permanently device-owed** | **24** | `[D]` — no lane will ever carry it |
+| **▶ Coverable, not yet built** | **60** | verdict permits automation, nothing claims it — 🎯 2026-08-17: **PHASE 6 device-pass work, ticked by a human; automating any of it is optional and non-gating.** ⛔ Most of these have never been verified by ANYONE, so this is verification debt, not automation debt. Exception: §12.1–§12.7 stay in 4.1.10 |
+| **🎯 Permanently device-owed** | **26** | `[D]` — no lane will ever carry it |
 | | | |
-| **🎯 The device pass** | **50** | `[D]` **+** the human half of every `[M◐]` (26) |
+| **🎯 The device pass** | **52** | `[D]` **+** the human half of every `[M◐]` (26) |
 | Real checks | 131 | 9 further rows are `[—]` — install steps and report-back prompts |
 
 ⛔ **A declaration is an author's claim, not a result.** `COVERS:` says what a flow is *meant* to test;
@@ -25,12 +25,12 @@ it cannot say whether the flow has ever executed, let alone passed. The 0 unprov
 claimed by flows that have never gone green — and each one used to be indistinguishable, in this
 report, from a check that passes on every run.
 
-**Machine-earned rows by run:** `32042253465` 23
+**Machine-earned rows by run:** `32042253465` 20
 
 ✅ **Every machine-earned row was re-proved by the same run**, which is what `npm run stamp:coverage` produces from a green lane. ⚠️ It says *proved at that commit*, not *stable* — the checklist keeps no history.
 
 
-**Verdict spread:** `[M]` 68 · `[M◐]` 26 · `[A]` 3 · `[X]` 10 · `[D]` 24
+**Verdict spread:** `[M]` 66 · `[M◐]` 26 · `[A]` 3 · `[X]` 10 · `[D]` 26
 
 `[X]` = a **native driver** (XCUITest) can carry it. ⚠️ A verdict, not a status: these rows moved OUT of
 the device pass and INTO *coverable, not yet built*. Nothing about them is covered yet.
@@ -41,7 +41,7 @@ what comes off the device pass.
 
 ---
 
-## ▶ Coverable, not yet built — the remaining work (74)
+## ▶ Coverable, not yet built — the remaining work (60)
 
 | id | verdict | check | claimed by | proof |
 |---|---|---|---|---|
@@ -101,24 +101,10 @@ what comes off the device pass.
 | §12.0.3 | `[M◐]` | exactly ONE marker on screen. ⏳ Web cannot answer this (its tab navigator leaves the | — | ⚠️ **none** |
 | §12.0.7 | `[M]` | poke at it. Open a debt row, scrub the trajectory, try Can-I-Afford-This. | — | ⚠️ **none** |
 | §12.0.8 | `[M◐]` | VoiceOver. Turn it on and enter the demo. | — | ⚠️ **none** |
-| §12.1.1 | `[M]` | From a fresh install with no data, "See it in action" lands on Today showing a $2,000 | — | ⚠️ **none** |
-| §12.1.2 | `[M]` | Force-quit mid-demo and relaunch → you land on onboarding, with no demo running and no | — | ⚠️ **none** |
-| §12.2.1 | `[M]` | During the demo there is no tab bar at all — no Today/Progress/Money strip, and no empty band | — | ⚠️ **none** |
-| §12.2.2 | `[M]` | Check for a dead gap between the end of the content and the dock. Screen pads the scroll by | — | ⚠️ **none** |
-| §12.2.3 | `[M]` | Start the walkthrough (More → How the Guardian works). Its tab bar is still visible — that | — | ⚠️ **none** |
-| §12.3.1 | `[M]` | Expect this to PASS now. It was known-bad on the c050173 build: "Unlock Premium" sat too low, | — | ⚠️ **none** |
-| §12.4.1 | `[M]` | "Unlock Premium" → the paywall presents as a modal, and the "Example money" line at the top | — | ⚠️ **none** |
-| §12.4.3 | `[M]` | Swipe the modal down / go back → you do not return to a demo. No example figures, no dock. | — | ⚠️ **none** |
-| §12.4.4 | `[M]` | "Start my real plan" → onboarding, no demo running, and your own plan is untouched — | — | ⚠️ **none** |
 | §12.5.1 | `[M]` | "Example money" is visible at the top of the screen, under the "Today" title, on every stage. | — | ⚠️ **none** |
-| §12.5.2 | `[M]` | Scroll the content hard. The marker does not move — it sits above the scroller. | — | ⚠️ **none** |
-| §12.5.3 | `[M]` | It is said once in the dock too? No — it must appear in exactly ONE place. Two is a defect. | — | ⚠️ **none** |
-| §12.5.4 | `[M]` | The scripted run is 5 beats and it MOVES BETWEEN SCREENS by itself: Money → Today → Today → | — | ⚠️ **none** |
 | §12.6.1 | `[M◐]` | Turn VoiceOver on, then enter the demo. You hear "Example money. This is a demonstration with | — | ⚠️ **none** |
-| §12.6.2 | `[M]` | Rotor → Headings: "Example money" is listed as a heading, reachable without swiping to it. | — | ⚠️ **none** |
 | §12.6.3 | `[M]` | Swipe through the whole screen: you can reach the dock's two exits, and you cannot reach a tab | — | ⚠️ **none** |
 | §12.6.4 | `[M]` | The dock reads as one utterance — "Example money. Demonstration, 1 of 5." — not as fragments. | — | ⚠️ **none** |
-| §12.7.1 | `[M]` | ••• More → Preferences → "Share anonymous usage" is present, ON by default, and toggling it | — | ⚠️ **none** |
 
 ---
 
@@ -131,16 +117,13 @@ run that has ever passed it. Until one does, it is a plan, not coverage.
 
 ---
 
-## ✅ Covered — PROVEN (24)
+## ✅ Covered — PROVEN (26)
 
 | id | verdict | check | claimed by | proof |
 |---|---|---|---|---|
 | §B2.1 | `[M]` | "View Payoff Schedule" now opens — Money → tap a debt (edit sheet) → tap "View Payoff Schedule"  | `04-payoff-schedule` | `✅auto·32042253465` |
-| §1.1 | `[M]` | App launches past the splash — no white screen, no crash (this is the New-Architecture + all-nat | `01-launch-smoke` *(partial)* | `✅auto·32042253465` |
 | §1.2 | `[M]` | Lands on Today (if you have data) or onboarding (fresh install). If onboarding, either complete  | `01-launch-smoke` | `✅auto·32042253465` |
-| §3.1 | `[M]` | ⭐ FormSheet header buttons (the owed re-verify): open Add debt (Money → Debts → Add debt) → tap  | `02-sheet-native-tap` *(partial)* | `✅auto·32042253465` |
 | §10.1 | `[M]` | Landscape / full-screen (expanded): Money → Debts shows the list on the left + the edit form INL | `i01-ipad-boot` | `✅auto·32042253465` |
-| §10.2 | `[M]` | Portrait / narrow: everything stacks into the single centered column with the bottom tab bar (sa | `02-sheet-native-tap` *(partial)* | `✅auto·32042253465` |
 | §11.10 | `[M]` | the walkthrough's one required gesture (any iPhone.) | `06-tutorial-interactions` | `✅auto·32042253465` |
 | §11.15 | `[M]` | the highlight lands on its subject at iPad width — ✅ AUTOMATED 2026-08-13 (4.1.5.2). | `05-tutorial-walkthrough` | *human* `[x]` |
 | §14.1 | `[M]` | one Add, from all three sections. Money → Add from Debts, then from | `07-money-add-and-rescue` | `✅auto·32042253465` |
@@ -159,10 +142,15 @@ run that has ever passed it. Until one does, it is a plan, not coverage.
 | §12.0.4 | `[M]` | the way out is wherever you are. "Start my real plan" sits beside the marker on | `09-demo-explore` | `✅auto·32042253465` |
 | §12.0.5 | `[M]` | settings stay shut. The ••• More button is greyed and unresponsive on every | `09-demo-explore` | `✅auto·32042253465` |
 | §12.0.6 | `[M]` | your real plan is untouched. Exit, then force-quit and reopen. | `09-demo-explore` | `✅auto·32042253465` |
+| §12.2.3 | `[M]` | Start the walkthrough (More → How the Guardian works). Its tab bar is still visible — that | `demo-containment` ᵂ | `✅gate` |
+| §12.4.4 | `[M]` | "Start my real plan" → onboarding, no demo running, and your own plan is untouched — | `demo-containment` ᵂ | `✅gate` |
+| §12.5.2 | `[M]` | Scroll the content hard. The marker does not move — it sits above the scroller. | `demo-containment` ᵂ | `✅gate` |
+| §12.5.3 | `[M]` | It is said once in the dock too? No — it must appear in exactly ONE place. Two is a defect. | `demo-containment` ᵂ | `✅gate` |
+| §12.7.1 | `[M]` | ••• More → Preferences → "Share anonymous usage" is present, ON by default, and toggling it | `analytics-optout` ᵂ | `✅gate` |
 
 ---
 
-## 🎯 Permanently device-owed (24)
+## 🎯 Permanently device-owed (26)
 
 | id | verdict | check | claimed by | proof |
 |---|---|---|---|---|
@@ -189,6 +177,8 @@ run that has ever passed it. Until one does, it is a plan, not coverage.
 | §11.6 | `[D]` | haptics (any iPhone, silent switch OFF, held in hand.) | — | ⚠️ **none** |
 | §11.12 | `[D]` | the highlight must keep up, not just arrive (the OLDEST iPhone in the matrix AND a | — | ⚠️ **none** |
 | §11.14 | `[D]` | the tab bar's press feedback, iOS (any iPhone.) | — | ⚠️ **none** |
+| §12.2.2 | `[D]` | Check for a dead gap between the end of the content and the dock. Screen pads the scroll by | — | ⚠️ **none** |
+| §12.3.1 | `[D]` | Expect this to PASS now. It was known-bad on the c050173 build: "Unlock Premium" sat too low, | — | ⚠️ **none** |
 | §12.4.2 | `[D]` | The paywall shows real prices from the App Store (not $4.99/$29.99/$79.99 exactly — those are | — | ⚠️ **none** |
 
 ---

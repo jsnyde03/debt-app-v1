@@ -386,6 +386,101 @@ for (const [label, raw] of [['native-e2e.yml', wfRaw], ['app-preview.yml', previ
   );
 }
 
+/**
+ * ⛔ 4.1.11 — `inputs.*` ARE EMPTY ON EVERY TRIGGER EXCEPT `workflow_dispatch`, AND THIS LANE SHIPPED A
+ * JOB THAT FORGOT IT.
+ *
+ * The iPad tier was gated on `inputs.device == 'ipad' || inputs.device == 'both'`. On a **release tag** —
+ * the trigger whose entire job is a gated native smoke before shipping — `inputs.device` is `''`, so it
+ * matched neither and **the iPad tier never ran on a tag.** The iPhone tier read the negative
+ * (`!= 'ipad'`) and ran anyway, so the run came back green on one tier and looked complete. Adding the
+ * nightly would have inherited exactly the same silence.
+ *
+ * ⚡ THE GENERAL RULE, and it is what makes this a check rather than a fix: **a job gated on an input must
+ * state what that input means when there is no input.** `inputs.x || 'default'` does; a bare equality
+ * does not, and fails closed — the most expensive direction, because a job that does not run looks
+ * exactly like a job that found nothing. That is this lane's signature failure mode, one level up.
+ */
+/**
+ * ⚠️ IT EVALUATES THE CONDITION, IT DOES NOT PATTERN-MATCH IT — and the first version did the latter,
+ * reddening correct code within a minute of being written. The iPhone tier's `if` contains two bare
+ * `inputs.X ==` comparisons and is still perfectly safe, because they are ORed with `inputs.device !=
+ * 'ipad'`, which an empty input satisfies. A checker that flagged the fragments would have demanded a
+ * change that fixes nothing.
+ *
+ * ⚡ 4.1.9b.8 logged this exact shape — *"two of my own checks were wrong first time, both reddening
+ * correct code — a verifier whose SCOPE is wider than the rule it enforces"* — and the remedy was the
+ * same: read the structure, not the text. So this models GitHub's expression semantics for the operators
+ * these conditions actually use. `||` and `&&` return a VALUE (not a boolean), which is what makes
+ * `inputs.device || 'both'` work at all, and the model reproduces that rather than approximating it.
+ *
+ * ⛔ Anything it cannot parse yields `undefined` and the check is SKIPPED WITH A STATED REASON. A checker
+ * that silently passed on syntax it did not understand would be the blind gate all over again.
+ */
+function evalGhExpr(src: string, inputs: Record<string, string>): boolean | undefined {
+  const toks = src.match(/'[^']*'|\|\||&&|==|!=|!|\(|\)|[\w.]+/g);
+  if (!toks) return undefined;
+  let i = 0;
+  const truthy = (v: unknown) => v !== '' && v !== false && v !== undefined && v !== null;
+  let bad = false;
+
+  const primary = (): unknown => {
+    const t = toks[i++];
+    if (t === undefined) { bad = true; return undefined; }
+    if (t === '!') return !truthy(primary());
+    if (t === '(') { const v = orExpr(); if (toks[i] !== ')') bad = true; else i++; return v; }
+    if (t.startsWith("'")) return t.slice(1, -1);
+    if (t.startsWith('inputs.')) return inputs[t.slice(7)] ?? '';
+    if (t === 'true') return true;
+    if (t === 'false') return false;
+    bad = true; // `needs.*`, `github.*`, `cancelled()` — not modelled, so the whole check bows out
+    return undefined;
+  };
+  const cmp = (): unknown => {
+    let left = primary();
+    while (toks[i] === '==' || toks[i] === '!=') {
+      const op = toks[i++];
+      const right = primary();
+      left = op === '==' ? left === right : left !== right;
+    }
+    return left;
+  };
+  const andExpr = (): unknown => {
+    let left = cmp();
+    while (toks[i] === '&&') { i++; const right = cmp(); left = truthy(left) ? right : left; }
+    return left;
+  };
+  function orExpr(): unknown {
+    let left = andExpr();
+    while (toks[i] === '||') { i++; const right = andExpr(); left = truthy(left) ? left : right; }
+    return left;
+  }
+  const value = orExpr();
+  if (bad || i !== toks.length) return undefined;
+  return truthy(value);
+}
+
+{
+  const src = readFileSync(join(WORKFLOWS, 'native-e2e.yml'), 'utf8');
+  const doc = parse(src) as { on?: Record<string, unknown>; jobs?: Record<string, { if?: string }> };
+  const inputless = Object.keys(doc.on ?? {}).filter((t) => t !== 'workflow_dispatch');
+  for (const [id, job] of Object.entries(doc.jobs ?? {})) {
+    const cond = job.if?.replace(/^\$\{\{|\}\}$/g, '').trim();
+    if (!cond || !cond.includes('inputs.')) continue;
+    const runs = evalGhExpr(cond, {}); // every input absent — a tag push, or the nightly
+    if (runs === undefined) {
+      check(`job \`${id}\`'s condition could be evaluated for an input-less trigger`, false,
+        'the expression uses syntax this model does not cover, so nothing here can vouch for it — widen the model or simplify the condition');
+      continue;
+    }
+    check(
+      `job \`${id}\` still runs on the ${inputless.join(' / ')} trigger(s), which supply NO inputs`,
+      runs,
+      `its \`if\` evaluates FALSE when every input is absent, so the job silently does not run — the shape that hid the iPad tier on every release tag. Use \`(inputs.x || 'default')\`.`,
+    );
+  }
+}
+
 for (const line of ok) console.log(`  ✅ ${line}`);
 if (problems.length) {
   console.error(`\n⛔ native-lane pre-flight — ${problems.length} problem${problems.length > 1 ? 's' : ''}:`);

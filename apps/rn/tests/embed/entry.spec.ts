@@ -44,4 +44,23 @@ test.describe('the embed shows the product on arrival', () => {
     // the confusion [D23] split the two runs to end.
     await expect(page.getByLabel(dockAt(2))).toBeVisible({ timeout: 15_000 });
   });
+
+  // PARTIAL: §12.5.4 — all five beats fire in order and the run MOVES BETWEEN SCREENS by itself, in the
+  // stated sequence. ⚠️ The row's other half — that each screen's content is PAINTED before the next beat
+  // fires (the Skia cushion bar, the Progress curve) — is a rendering question web cannot answer, and it
+  // is the same class as §11.13.
+  test('all five beats fire in order, and the run moves Money → Today → Today → Progress → Today', async ({ page }) => {
+    // ⛔ THE SCREEN SEQUENCE IS THE ASSERTION, not just the count. A run that fired five beats without
+    // navigating would satisfy a beat-counter perfectly and still be the failure the row names ("the run
+    // never leaves Today"). `DEMO_STAGES` declares `/money · / · / · /progress · /`.
+    const expected = [/\/money/, /\/$/, /\/$/, /\/progress/, /\/$/];
+
+    await page.goto('/');
+    for (let beat = 1; beat <= 5; beat++) {
+      // Generous per-beat: the arc's own cadence is 0s · 4s · 9s · 14s · 20s, so beat 5 lands ~20s in and
+      // a cold first paint sits in front of beat 1.
+      await expect(page.getByLabel(dockAt(beat))).toBeVisible({ timeout: 20_000 });
+      await expect(page).toHaveURL(expected[beat - 1]);
+    }
+  });
 });
