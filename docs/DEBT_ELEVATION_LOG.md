@@ -11156,3 +11156,69 @@ deploy is `workflow_dispatch`-only deliberately, but **nothing checks that the d
 With [D35] folding its device pass into Phase 6's, 3.5.7.8 was the last open step. Tutorial · bounded demo
 · coach-marks · capture pipeline · and now a public embed whose privacy claim is enforced by a test that
 runs on every push **and** can be re-run against production on demand.
+
+---
+
+## 🔚 SESSION CLOSE 2026-08-17 (night) — read this first next session
+
+**Everything committed and pushed to `v1.7-dev`; tree clean; no dev servers listening.**
+`validate:release:rn` green: **179 e2e · 10 embed · 10 `test:stamp` scenarios · 83 lane checks**, tsc +
+lint clean, zero `error-context.md`.
+
+### ⭐ TWO PHASES CLOSED
+
+| | |
+|---|---|
+| **Phase 4** | ✅ on a green **`32051842661`** (build · iPad · iPhone). 🎯 **cut the CodeMagic build.** |
+| **Phase 3.5** | ✅ — the embed is **LIVE**: https://jsnyde03.github.io/debt-app-v1/ |
+| **The lane's answer** | **26 proven** (20 native-run · **5 push-gate** · 1 human) · 19 half · 60 coverable-not-built · **device pass 52** of 131 real checks |
+| **[D34]** | the embed CTA names the **destination** — *"Get it on the App Store"* |
+| **[D35]** | 3.5's device pass **folds into Phase 6's** — one sitting, no row run twice |
+| **3.8** | 🎯: *"definitely in 1.7."* Now the **active build**, decomposed on the plan |
+
+### ⛔ Do NOT build on these — each was measured wrong once today
+
+- ⛔ **A `PARTIAL:` claim does not prove a row.** Partial-ness now keys on the claim's KIND as well as the
+  row's verdict; §1.1 · §3.1 · §10.2 had been in the PROVEN column while their own claims said otherwise.
+- ⛔ **`inputs.*` are EMPTY on every trigger except `workflow_dispatch`.** The iPad tier had never run on a
+  release tag. `lint:lane` now **evaluates** each job's condition with all inputs absent.
+- ⛔ **Only the `EXPO_PUBLIC_` prefix reaches the browser.** `app.config.js` runs in Node and sees
+  everything; the bundle sees only that prefix. `EXPO_BASE_URL` rewrote the HTML perfectly and left
+  `canvaskit.wasm` 404ing at root.
+- ⛔ **`npm ci` at the root leaves `apps/rn` with no `node_modules`** — no workspaces here — and `npm ci`
+  does not work in `apps/rn` either (lockfile out of sync). Use the two-step in `web-e2e.yml`.
+- ⛔ **The `github-pages` environment has a branch-allow-list.** A blocked deploy looks like a failed one
+  with a perfectly green build. ⚠️ `v1.7-dev` is on it **temporarily**.
+- ⚠️ **A stamp/gate mark is machine-managed; a bare `[x]` is Jason's** and automation never touches it.
+
+### ▶ Open, and each one costs something
+
+1. **`hitRegion` = 2 real a11y findings, both tiers** — now *characterised* (`"Hit area is too small"`)
+   and still *unlocated*: `compactDescription` does not name the element. The probe compiles now, so
+   `issue.element` can be added at low risk — **and the nightly will answer it for free.** → Phase 6.
+2. **The Pages branch-allow-list must flip at launch** — build from `release/v1`, drop `v1.7-dev`, or a
+   dev branch can publish to a public marketing URL indefinitely.
+3. **Nothing checks that a deployed SHA is green.** The deploy is `workflow_dispatch`-only deliberately,
+   but *"deployed"* and *"passed the gate"* are held together by discipline, not a check.
+4. **The residual lane ledger**, riding into Phase 6 as known issues: the iOS driver stall (twice, retry
+   does not clear it — check for its warning line before diagnosing an iPhone red) · the boot poll that
+   does not fire · the probe's 1 min → 11 min on iPhone · the `tutorial-invite` intermittent (twice).
+5. **~5 more `toISOString().slice(0,10)` sites** are the same off-by-one, including
+   `packages/core/payCycle/getNextPaycheckDate` — **the engine**. Filed, not swept.
+6. **[D2]** `minimumPaidThisCycle` ownership (gates B4) · **[D3]** Money hero language — **cheaper decided
+   with 3.8**, which touches that hero · **[D1]** Control Center (rec: stay deferred).
+
+### ⚡ The day's shape, worth naming once
+
+**Three shapes of ONE mistake, and every one failed toward *nothing to see here*:** a truncated `grep`
+that read like a complete search (3 of 6 `locateFile` sites — the fix shipped an embed where Today did not
+draw) · a driver stall that reads like a green suite · a 404 that reads like an empty tier (my own
+`stamp:coverage`, which turned a wrong-repo lookup into *"that tier is simply absent"*).
+
+⚡ **And three times the thing that found the defect was an ARTIFACT, not reasoning:** a dry run showed six
+human ticks about to be wiped, a word-diff showed 593 line endings about to be rewritten, a probe printed
+`HTTP 404 /canvaskit.wasm` while the document sat happily on the base path. **Twice a stated mechanism was
+simply wrong** — one of them written into a comment while it was false.
+
+⚠️ **And the oldest lesson recurred:** `web-e2e.yml` already documented the install recipe the Pages
+deploy needed. *The codebase already said it* — **the sibling file is part of the before-scan.**

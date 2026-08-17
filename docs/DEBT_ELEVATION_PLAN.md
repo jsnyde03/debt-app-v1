@@ -8,26 +8,23 @@
 
 ---
 
-## ▶ BUILDING NOW — TWO LIVE TRACKS: **4.1** (precedence) · **3.5.7** (fills its waits)
+## ▶ BUILDING NOW — **3.8, the expense reserve** _(decomposed below)_
 
-🎯 2026-08-17: *"4.1 is still the precedent… 3.5.7 continues during waits."*
+⭐ **2026-08-17 closed TWO PHASES.** **Phase 4** exited on a green `32051842661`; **Phase 3.5** closed when
+the embed went live. 🎯 cut the **CodeMagic build** and confirmed **3.8 is in v1.7**.
 
-✅ **Nothing is in flight. Last two native runs GREEN**, tree clean. ⭐ **The lane is BUILT and PROVEN** —
-15/15 both runs, zero unresolved names, the probe on both tiers, tiers starting the same second.
+| | |
+|---|---|
+| **The lane's answer, derived** | **26 proven** (20 native-run · 5 push-gate · 1 human) · 19 half · 60 coverable-not-built · **the device pass is 52** of 131 real checks. ⚠️ Read it from `audits/coverage-split.md`, never from a doc quoting it |
+| **The embed** | **live** — https://jsnyde03.github.io/debt-app-v1/ · **10/10 against the deployed page** |
+| **Next** | **3.8** → the audit gate → **Phase 5** (ship-blocker) → 5.5 → **Phase 6** |
 
-▶ **ACTIVE — 3.5.7.7**, decomposed below, and it holds the slot **despite 4.1's precedence** because
-4.1.10 is sequenced behind it: 🎯's routing sends §12.2 · §12.4 · §12.5 to the **embed's** Playwright
-gate, and **.7 is about to replace the two exits some of those rows assert on.** Writing them first means
-writing them against exits with hours to live.
-🎯 supplied the unblocking fact 2026-08-17: **`https://apps.apple.com/us/app/paycheck-debt-planner/id6773201250`**
-· app id **`6773201250`** · listing **"Paycheck Debt Planner"**. Then **.8** deploy → **4.1.10** →
-**4.1.11** the exit. ⚠️ **[D34]** — which name the CTA says — is 🎯's, and blocks nothing.
-
-⚠️ **Read the SESSION CLOSE 2026-08-17 (evening) log entry first** — it carries what NOT to build on.
-
+⚠️ **Read the SESSION CLOSE 2026-08-17 (night) log entry first** — it carries what NOT to build on.
 
 ✅ **3.7 CLOSED 2026-08-11.** Wave A (A0–A10) · Wave B (B.0–B.4) · Wave C merged into the audit gate.
 Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-level after-scan → log.
+
+<details><summary>✅ <b>PHASE 4 — CLOSED 2026-08-17.</b> The Maestro/XCUITest coverage lane, item by item.</summary>
 
 | # | Step | State |
 |---|---|---|
@@ -46,47 +43,40 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 
 | **4.1.9c** | ⭐ **"Covered" must mean PROVEN, and proof ticks the checklist** *(🎯 2026-08-14)* | ✅ **CLOSED 2026-08-17.** Reader (2026-08-14) + **the WRITER**: `npm run stamp:coverage` turns a run's `native-lane-results-*.json` into stamps and **revokes them when a flow reds**; grammar shared with the reader via `coverage-model.ts`, proven inert byte-for-byte; **`npm run test:stamp` — 8 scenarios, every rule fired on a planted input, every plant `plant-applied=YES`**; in `validate:release:rn`. ⛔ **Its own premise was refuted first: it adds ZERO covered rows** — `claimed-but-unproven` was already 0, so the run applied 32 refreshes and the headline stayed **24**. Detail + every scan → log |
 | **4.1.10** | §12.1–§12.7 (15) — the SCRIPTED run | ✅ **CLOSED 2026-08-17.** ⛔ **The blocker was the instrument, not the rows: `audit:coverage` could not SEE a Playwright-proven row**, so the morning's routing would have proven them and left them reading "never built" forever. Now reads claims from specs too, with a second proof mark **`✅gate`** (a push-gate holds it, which is stronger than naming one run of a batched lane). ⚡ **Most of §12 was already tested and merely undeclared** — 12 rows claimed, 6 new tests for the real gaps, 2 re-verdicted `[D]`. **26 proven · device pass 52.** Detail + every scan → log | ⛔ **No `qaEnabled()` door** — a QA door would manufacture a path the product does not have, prove the rows against it, then lose it at the Phase-6 flip. ⚡ **The scripted run is not user-reachable on iOS at all** ([D23]: users get `explore`); it exists for the capture and the embed, exactly as the checklist says. ▶ **§12.2 · §12.5 → the EMBED's Playwright gate** (3.5.7.5 boots it into `/demo?mode=scripted`). ⛔ **CORRECTED 2026-08-17 by 3.5.7.7's after-scan: §12.4.1/.3/.4 came OFF this list** — they are about *"Unlock Premium"* and *"Start my real plan"*, and the embed now has neither. **→ normal-app automation**, where `demo-containment.spec.ts` already clicks one of them. ▶ **§12.7.1 + §12.1.1 → normal-app automation — both are MIS-FILED** (§12.7.1 is the analytics opt-out, nothing to do with the demo; §12.1.1 tests the "See it in action" door, which yields *explore*). ▶ **§12.3.1 · §12.2.2 · §12.6.x · §12.4.2 stay device-owed.** Detail → log |
-| **4.1.11** | **Reconcile — the exit.** ⚠️ **[4.1.5.1 after-scan] the coverage split must NOT count measurement flows** — `lint:selectors` reports 15 flow files of which **two measure rather than cover** (`i01-ipad-boot`, `11-reduce-motion`). Any re-derivation that counts files will overstate itself | |
+| **4.1.11** | **Reconcile — the exit** | ✅ **CLOSED 2026-08-17 on a green `32051842661`** (build · iPad · iPhone). The number re-derived, the stamps refreshed to it, the **nightly** landed, and the a11y probe now prints its findings. ⚠️ Two of the 15 flow files MEASURE rather than cover (`i01-ipad-boot`, `11-reduce-motion`) — a count of files overstates itself. Detail + every scan → log |
 
-### ▶ 4.1.11 — reconcile, and the exit _(active)_
+</details>
 
-The number 4.1 exists to produce, and the residual ledger that must not be carried into Phase 6 unread.
+### ▶ 3.8 — the expense reserve _(active)_
+
+🎯 **IN v1.7** *(2026-08-17: "3.8 is definitely in 1.7")*. ⛔ **The app coaches a habit it cannot record
+and then plans as if you had not followed it:** Money's Expenses hero says *"$175 reserved per paycheck"*
+— computed inside `money.tsx` for that hero alone, read by nothing — while `allocatePaycheck` demands the
+**full $350** in the cycle rent is due. Found by 🎯 using the app; no coverage split models *"the app does
+the wrong thing correctly."*
 
 | # | Step | State |
 |---|---|---|
-| **.1** | **Re-derive the exit number** from `coverage-split.md`, never from a doc quoting it | ✅ **26 proven** (20 native-run · 5 push-gate · 1 human) · 19 half · 60 coverable-not-built · **the device pass is 52** · 131 real checks |
-| **.2** | **The a11y `hitRegion` finding** — 2 real findings on both tiers, unlocated | ◐ **The line compiles and prints** (run `32051842661`, both tiers) — and `compactDescription` says only *"Hit area is too small"*, so the findings are **characterised, not located**. See below |
-| **.3** | **The residual ledger** — each item fixed or filed with an owner | ✅ **the nightly landed** (07:00 UTC, `device=both`) and immediately surfaced a shipped defect — see below. Remaining residuals filed under *Open defects* |
-| **.4** | **[D35] 3.5's device pass FOLDS INTO Phase 6's** *(🎯 2026-08-17)* | ✅ **SETTLED.** One sitting, one checklist. The overlap disappears rather than being managed, and **3.5 now closes on its BUILD being done** — which it is. No row is run twice |
-| **.5** | **The exit statement**, and the CodeMagic build | ✅ **🎯 2026-08-17: 4.1 exits on a green `32051842661`.** The residual ledger rides into Phase 6 as known issues, not blockers — none of it moves the coverage number |
+| **.1** | **Remove the misleading hero.** ⚠️ Check what else that block feeds first (`categoryBreakdown`, `barTotal`, `segments`) — the per-category `perPaycheck` figures drive the category bar | |
+| **.2** | **The pot, in the store** — ONE aggregate number, not per-bill envelopes. Keeps Phase 5's migration to *absent ⇒ today's behaviour* | |
+| **.3** | **The draw-down in `allocatePaycheck`** — ⛔ **the invariant is the hard part**: money set aside in cycle 1 must be *gone* from cycle 1's spendable **and** reduce rent in cycle 2. Honour only the second and the model invents $175 | |
+| **.4** | **The recommended action**, never required. ⛔ **Offer only what this paycheck can spare** — promising $175 and reserving less is the capped-outcome shape [A3.6] exists for | |
+| **.5** | **The Guardian bar + the tap** — the set-aside joins the everyday segment; tapping splits living-expenses vs expenses. ⚠️ **[DECISION] the segment's new name** is 🎯's | |
+| **.6** | **Coverage** — engine tests for the draw-down and conservation; e2e for the tick and the tap. ⚠️ The reserve must NOT land in the `safetyNet` windfall bucket unexamined | |
 
-⛔ **[.3] THE NIGHTLY SURFACED A SHIPPED DEFECT BEFORE IT EVER RAN: `inputs.*` ARE EMPTY ON EVERY TRIGGER
-EXCEPT `workflow_dispatch`, SO THE IPAD TIER HAS NEVER RUN ON A RELEASE TAG** — the one trigger whose
-entire job is a gated native smoke before shipping. ⚡ **The iPhone tier read the NEGATIVE**
-(`inputs.device != 'ipad'`), so it ran anyway and the run came back green on one tier looking complete.
-`lint:lane` now **evaluates** each job's condition with every input absent. ⚠️ Its first version
-*pattern-matched* and reddened the iPhone job, which is correct code — 4.1.9b.8's *"a verifier whose SCOPE
-is wider than the rule it enforces"*, inside ten minutes. Proven on a planted revert.
+**Exit:** the number the app shows is the number the app honours, and a user who acts on it sees the plan
+change. **Open:** the segment's name (.5), and whether the tap is a sheet or an inline expand.
 
-**Exit:** ✅ **MET 2026-08-17 — run `32051842661` GREEN on all three jobs** (build · iPad · iPhone), the
-stamps refreshed to it, and the CodeMagic build released. **PHASE 4 IS COMPLETE.**
+⚡ **It also closes 🎯's SECOND report for free** — *"living expenses are hidden in More"*. Two doors exist
+(More's settings row **and** a `LivingReserve` card on Money), so the report is not literally right and
+the code is **worse** than it: ⛔ **the Money card is gated on `livingTotal > 0`**, so it appears only to
+users who already found the feature. The Guardian tap is the unconditional door.
+⚠️ **Independent of 3.8 and cheap: drop that gate, or give the card an empty state.** A feature whose only
+unconditional door is a settings row is undiscovered by construction.
 
-⚠️ **[.2 after-scan] THE PROBE'S ANSWER IS HALF AN ANSWER, AND THE HALF IT IS MISSING IS THE ADDRESS.**
-`compactDescription` prints **`"Hit area is too small"`** — twice, both tiers, and nothing about *which*
-element. So the defect is now **characterised and still unlocated**. ⚡ The comment in the probe already
-names the next move and its precondition: *"widen it once a green run has proved this line compiles"* —
-which this run just did, so `issue.element`'s identifier and frame can be added at much lower risk.
-⛔ **Do NOT spend a dedicated ~50-minute dispatch on it: the NIGHTLY now exists and costs nothing.** →
-Phase 6 / the audit gate, as a real two-target a11y defect with a one-line diagnostic in front of it.
-
-⛔ **[.2 after-scan] `stamp:coverage --run` REPORTED A PRESENT ARTIFACT AS ABSENT — my own bug, and it
-failed in the safe-looking direction.** `gh` infers the repo from the **current directory**, the shell had
-drifted out of it (the hazard this plan's Env note already documents), and the `catch` announced *"that
-tier is simply absent (rule ②), not failed"* for a run whose artifacts were sitting there. ⚡ **Rule ② is
-right and was being applied to the wrong question.** Fixed: the run's artifacts are **enumerated** first,
-`cwd` is pinned to the repo root, a genuine absence is still an absence, and anything else stops the
-script. ⚠️ It then caught a real **HTTP 503** on its first outing — hence a 3-attempt retry, so a transient
-looks like neither an absence nor a failure.
+⚡ **The engine already supports the hold** — `prefundedReserve` is an existing `allocatePaycheck` input
+(`min(reserve, remaining)`, its own allocation row). The new part is a **persisted pot and its
+draw-down**, not a new capability. Full pre-authored detail → log, 2026-08-17.
 
 ### 🎯 THE ANSWER — what the lane carries, and what it never will
 
@@ -339,7 +329,7 @@ it on every push. ⚠️ It gained `typecheck:core` + `typecheck:rn` on 2026-08-
 | 3.5 | Interactive tutorial + bounded demo | ✅ **COMPLETE 2026-08-17.** The embed is **live** and verified against the deployed page; the device pass folded into Phase 6 at [D35] |
 | 3.7 | Fold-in block (ledger clearance) | ✅ COMPLETE 2026-08-11 (Waves A + B; C merged into the audit gate) |
 | — | Whole-app cohesion + best-in-class + wording audit gate | after 3.7 |
-| **4** | **Quality (test harness)** | **▶ EXITING.** 4.1.3–4.1.10 all closed; **4.1.11 is the reconcile**, and 🎯 released the CodeMagic build on it. ⭐ **26 proven · the device pass is 52 · derived, not asserted** |
+| **4** | **Quality (test harness)** | ✅ **COMPLETE 2026-08-17**, on a green `32051842661`. ⭐ **26 proven · the device pass is 52 · derived, not asserted.** The CodeMagic build is cut |
 | 5 | Data continuity + cutover | 🔒 ship-blocker, upcoming |
 | 5.5 | Repo consolidation | before the release gate |
 | 6 | Launch-ready **+ the 60 coverable-not-built rows AND 3.5's folded-in pass, as DEVICE-PASS work** *(🎯 2026-08-17, [D35])* | final |
