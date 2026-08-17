@@ -215,10 +215,22 @@ load-bearing `\(.applicationName)` check) stay device-owed → the checklist.
 
 ---
 
+### 🎯 Reported from the app, 2026-08-17 — found by USING it, not by the lane
+
+| | Report | State |
+|---|---|---|
+| **R1** | **Money's edit sheets had no date PICKER** — the field asked the user to type `YYYY-MM-DD` | ✅ **DONE.** `DateField` (native `@react-native-community/datetimepicker` + a `.web.tsx` `<input type="date">`, because the embed and all 171 specs run in a browser) at all 4 sites. ⛔ **Folded in: `todayLocalISO()` returned YESTERDAY east of UTC** — it built local midnight then `toISOString()`'d it. 3 new specs; the fields had **zero** coverage before, which is why it shipped |
+| **R2** | **The expense set-aside is uncoachable** — and **living expenses are undiscoverable** | ▶ **= 3.8 below.** Both are the same fix |
+
+⚡ **Neither was reachable by 4.1.** The lane checks that built behaviour keeps working; these are *design*
+gaps — a control that never existed, a number the plan contradicts, a door gated on already knowing. No
+coverage split models "the app does the wrong thing correctly", and the device pass is the only instrument
+that can find it.
+
 ### ⏭ Then, in order
 
 1. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
-2. **3.8 — the expense reserve** *(🎯 2026-08-17, NEW)*. ⛔ **The app coaches a habit it cannot record and then plans as if you had not followed it**: Money's Expenses hero says *"$175 reserved per paycheck"* (a display-only average, read by nothing) while `allocatePaycheck` demands the **full $350** in the cycle rent is due. 🎯's design: **remove that number**, and make the set-aside a **recommended (never required) action** whose reserve joins the Guardian's `PlanHero` bar beside the everyday reserve, with the segment **tappable to split living-expenses vs expenses**. Opt-in and additive — no tick, no stored reserve, behaviour byte-identical to today. ⚡ **`prefundedReserve` is ALREADY an engine input**, so the hold is supported; the new part is a persisted pot and its **draw-down**. Decomposed → log *(one-section rule: 4.1.7 holds the active slot)*
+2. **3.8 — the expense reserve** *(🎯 2026-08-17, NEW)*. ⛔ **The app coaches a habit it cannot record and then plans as if you had not followed it**: Money's Expenses hero says *"$175 reserved per paycheck"* (a display-only average, read by nothing) while `allocatePaycheck` demands the **full $350** in the cycle rent is due. 🎯's design: **remove that number**, and make the set-aside a **recommended (never required) action** whose reserve joins the Guardian's `PlanHero` bar beside the everyday reserve, with the segment **tappable to split living-expenses vs expenses**. Opt-in and additive — no tick, no stored reserve, behaviour byte-identical to today. ⚡ **`prefundedReserve` is ALREADY an engine input**, so the hold is supported; the new part is a persisted pot and its **draw-down**. ⭐ **It also closes 🎯's second report — "living expenses are hidden in More"**: two doors exist (More + a Money card), but ⛔ **the Money card is gated on `livingTotal > 0`, so it shows only to users who already found the feature.** The Guardian tap is the unconditional door. Decomposed → log *(one-section rule: 4.1.7 holds the active slot)*
 3. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
 4. **Phase 5** (data continuity, ship-blocker) → **5.5** (repo consolidation) → **Phase 6** (launch)
 

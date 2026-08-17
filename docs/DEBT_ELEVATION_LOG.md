@@ -10011,6 +10011,55 @@ than being invented here. **It blocks .6** — this is not something to deploy p
 
 ---
 
+## 2026-08-17 — R1: a date picker for the Money sheets, and a date helper that returned yesterday
+
+🎯, from using the app: *"The Money tabs edit pages do not have a date picker in the date field. They
+should."* Correct, and for once the class was **exactly** as reported — four fields in two files
+(`DebtSheet` ×2, `ExpenseSheet` ×2). Onboarding computes its date and `PaycheckSheet` derives one, so
+neither has a typed date field.
+
+### ⛔ THE CONSTRAINT THAT DECIDED THE BUILD: this app ships on web
+
+`@react-native-community/datetimepicker` has **no web implementation**, and this app's web surface is not
+a side channel — it is `dist/`, the 171-spec Playwright suite, and 3.5.7's public marketing embed.
+Importing the native picker unguarded would have taken all three down. So `DateField` is platform-split
+the way the codebase already splits (`use-color-scheme.web.ts`, `createAdapter.web.ts`, Sentry's
+`.web.ts`): the native file uses the picker, `DateField.web.tsx` uses `<input type="date">` — which emits
+exactly `YYYY-MM-DD`, localises its own display, and is labelled and keyboard-accessible for free.
+
+### ⛔ THE HELPER THAT SEEDS THREE OF THE FOUR FIELDS RETURNED THE WRONG DAY
+
+```js
+new Date(t.getFullYear(), t.getMonth(), t.getDate()).toISOString().slice(0, 10)   // todayLocalISO
+```
+
+It builds **local** midnight and then converts to **UTC**. East of UTC — all of Europe in summer, Asia,
+Australia — local midnight is the previous day in UTC, so this returned **yesterday**. Invisible from the
+Americas, which is why it survived. ⚠️ The app stores **calendar dates**, not instants; any trip through
+UTC is a category error here, not a rounding detail. `DateField` therefore hand-rolls both directions and
+never calls `toISOString()`.
+
+⚠️ **It is one of ~12 `toISOString().slice(0,10)` sites, and at least five are the same bug** —
+`use-payday-capture`'s `todayISO()`, `guardianSelectors.addPaychecks`, `SaveForItSheet.addPaychecks` (a
+verbatim duplicate of it), and **`packages/core/payCycle/getNextPaycheckDate`**, which is the engine.
+Only the one seeding these fields was fixed here; the rest is filed rather than swept, because a wrong
+next-paycheck date shifts the whole plan and deserves its own item with its own tests.
+
+### ⚠️ THE FIELDS HAD ZERO COVERAGE, WHICH IS WHY IT SHIPPED
+
+Searching the whole suite and every Maestro flow for "Due date", "Next payment" and "Full price starts"
+returned **nothing**. Three specs now assert a real `type="date"` control, correct seeding, and a
+round-trip with no timezone drift — deliberately against a FIXED date (`2027-03-09`), because a test
+written against "today" cannot detect a one-day slip.
+
+⛔ **The first version of the round-trip test failed, and it was the TEST that was wrong.** It reopened
+the sheet with `page.goto()`, and `seedStore` installs its blob via `addInitScript` — which re-runs on
+every navigation and re-seeded the store, wiping the save. It failed with the seeded `2026-07-01`, which
+reads exactly like the app discarding the edit. Reopening without navigating fixed it. ⚠️ **A test that
+resets the state it is asserting on looks identical to a broken feature.**
+
+---
+
 ## 2026-08-17 — 3.8 the expense reserve: the decomposition, and what the code already gives us
 
 🎯 reported it from the app: *"Rent is 350 a month… it would recommend to set aside $175/paycheck. How/where
@@ -10064,6 +10113,16 @@ Generalising from "a reserve mechanism exists" to "this case is handled" is the 
    into living-expenses vs expenses. ⚠️ **The segment is labelled "Everyday" and would no longer be** — a
    wording call, 🎯's, and it collides with `PlanHero`'s existing note that "Flexible" was renamed to stay
    distinct from the Guardian's "Cushion".
+   - ⭐ **AND IT CLOSES A SECOND 🎯 REPORT FOR FREE** *(2026-08-17: "Living expenses are hidden in More.
+     Unless a user knows it's there they won't know how to access it.")*. Two entry points actually exist
+     — More's settings row **and** a `LivingReserve` card on Money — so the report is not literally right,
+     but the code is worse than it: ⛔ **the Money card is gated on `livingTotal > 0`**, so it appears only
+     for users who have ALREADY set up the feature, and the one user who needs the entry point is the one
+     who cannot see it. It also sits inside the Expenses section, inheriting the same silo. **The tap
+     target here is the fix**: the Guardian's everyday segment is the same money, on the surface every
+     user sees every launch, and it is not conditional on a non-zero value.
+   - ⚠️ Independent of 3.8 and cheap: **drop the `livingTotal > 0` gate**, or give the card an empty state.
+     A feature whose only unconditional door is a settings row is undiscovered by construction.
 6. **Coverage.** Engine tests for the draw-down and the conservation invariant; an e2e for the tick and
    the tap. ⚠️ The reserve must NOT land in the `safetyNet` windfall bucket unexamined —
    `guardianSelectors` currently groups `prefunded_reserve` with the cushion, and earmarked rent money is
