@@ -10011,6 +10011,69 @@ than being invented here. **It blocks .6** — this is not something to deploy p
 
 ---
 
+## 2026-08-17 — 3.8 the expense reserve: the decomposition, and what the code already gives us
+
+🎯 reported it from the app: *"Rent is 350 a month… it would recommend to set aside $175/paycheck. How/where
+in the app can I actually track that I reserved that amount for rent?"* **Answer: nowhere.** Then the
+design call: *"give a bit of a nudge on the Plan tab… a recommended action. Not required… If they do it
+then future plans update with that knowledge. If not, status quo — $350 owed."* Plus: put it on the
+Guardian's Reserved bar beside living expenses, and make the column tap to reveal the split.
+
+### ⛔ THE DEFECT, STATED PRECISELY — the app coaches a habit it cannot record
+
+| | |
+|---|---|
+| Money → Expenses hero | `monthlyEquivalent(350,'monthly',2) / 2 = $175`, computed **inside `money.tsx`** for that hero alone. **Nothing else reads it.** Not stored, not a plan input |
+| `allocatePaycheck` | funds each upcoming expense with `min(expense.amount, remaining)` — the **full $350** in the cycle rent is due. Never $175 twice. Any shortfall becomes an `unfundedRequiredItems` row, *"Finish Rent"* |
+| per-expense state | `isPaidThisCycle`, a **boolean**. No reserved amount, no partial, no running balance |
+
+So one screen coaches $175/paycheck, another demands $350 in one cycle, and following the first changes
+nothing about the second. ⚠️ **I got this wrong first** and said "the plan already does this, it just
+never says so." That is true of `prefunded_reserve` — a **global** water-fill against an upcoming tight
+cycle — and false of rent: it is not per-bill, not driven by the $175, and cannot be pointed at anything.
+Generalising from "a reserve mechanism exists" to "this case is handled" is the error.
+
+### ⚡ WHAT THE CODE ALREADY GIVES US — this is smaller than it first looked
+
+- **`prefundedReserve` is already a first-class engine INPUT** (`allocatePaycheck` param, clamped
+  `min(reserve, remaining)`, emitted as its own allocation row). Its docblock: *"injected as an INPUT from
+  the §2.5 smoothing layer — never a rung inside single-cycle allocatePaycheck."* The architectural
+  question *can the engine hold money back on instruction* is already answered **yes**.
+- **`PlanHero` already renders the bar** 🎯 means: three segments — **Required · Everyday · Flexible** —
+  where "Everyday" IS `allocation.livingExpenseReserve`. The set-aside joins that segment.
+- **`RecommendedActionsCard` already exists**, and `PlanHero` already takes a `recommended` prop it sums
+  as *"a SUGGESTED use of the safe money… from the actual recommended action"*. The nudge has a home.
+
+### ▶ THE DECOMPOSITION (retrieve at switch-in)
+
+1. **Remove the misleading hero.** Money's Expenses "$X reserved per paycheck" goes — 🎯: *"It must be
+   removed."* ⚠️ Check what else that block feeds (`categoryBreakdown`, `barTotal`, `segments`) before
+   cutting; the per-category `perPaycheck` figures drive the category bar too.
+2. **The pot, in the store.** ONE aggregate number, not per-bill envelopes — 🎯 wrote it as *"for
+   expenses"*, the user is smoothing a lumpy month rather than managing envelopes, and one field keeps
+   Phase 5's migration to "absent ⇒ today's behaviour".
+3. **The draw-down, in `allocatePaycheck`.** The genuinely new mechanic: an upcoming expense consumes the
+   pot before it consumes the paycheck. ⛔ **THE INVARIANT IS THE HARD PART** — money set aside in cycle 1
+   must be *gone* from cycle 1's spendable AND reduce rent in cycle 2. Honour only the second and the
+   model invents $175. The engine's own F1 note already names this shape (*"held reserves must count as
+   cushion or 'put to work' over-counts them"*), so the reconciliation test has to learn about the pot.
+4. **The recommended action.** *"Set aside $175 for upcoming expenses"* — never required. ⛔ **Offer only
+   what this paycheck can spare**: promising $175 and silently reserving less is precisely the
+   capped-outcome shape the A3.6 sweep exists for. Reversible, like mark-paid.
+5. **The Guardian bar + the tap.** The set-aside joins the everyday segment; tapping the segment splits it
+   into living-expenses vs expenses. ⚠️ **The segment is labelled "Everyday" and would no longer be** — a
+   wording call, 🎯's, and it collides with `PlanHero`'s existing note that "Flexible" was renamed to stay
+   distinct from the Guardian's "Cushion".
+6. **Coverage.** Engine tests for the draw-down and the conservation invariant; an e2e for the tick and
+   the tap. ⚠️ The reserve must NOT land in the `safetyNet` windfall bucket unexamined —
+   `guardianSelectors` currently groups `prefunded_reserve` with the cushion, and earmarked rent money is
+   not a safety net.
+
+**Exit:** the number the app shows is the number the app honours, and a user who acts on it sees the plan
+change. **Open:** the segment's new name (5), and whether the tap is a sheet or an inline expand.
+
+---
+
 ## 2026-08-17 — 4.1.7 built: the three questions, and one of them answered itself on the way
 
 🎯 approved building all three plus an iPad probe, with standing permission to dispatch until 4.1 closes.

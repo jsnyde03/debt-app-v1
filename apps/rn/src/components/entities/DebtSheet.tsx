@@ -9,6 +9,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { Select } from '@/components/ui/Select';
 import { SwitchRow } from '@/components/ui/SwitchRow';
+import { DateField } from '@/components/ui/DateField';
 import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import type { Debt } from '@/data/models';
@@ -307,7 +308,7 @@ export function DebtSheet({
           <TextField label="Payment amount" value={scheduledPaymentAmount} onChangeText={(t) => { setScheduledPaymentAmount(t); setError(''); }} placeholder="e.g. 100" keyboardType="decimal-pad" />
           <TextField label="Payments remaining" value={remainingPayments} onChangeText={(t) => { setRemainingPayments(t); setError(''); }} placeholder="e.g. 4" keyboardType="number-pad" />
           <Select label="How often" value={recurrence} options={BNPL_CADENCE} onChange={setRecurrence} />
-          <TextField label="Next payment" value={dueDate} onChangeText={setDueDate} placeholder="2026-07-01" />
+          <DateField testID="field-bnpl-next-payment" label="Next payment" value={dueDate} onChange={setDueDate} />
           {bnplTotal != null ? (
             <Text style={[textStyles.caption, { color: c.text.tertiary, marginTop: -4 }]}>
               {bnplRem} {bnplRem === 1 ? 'payment' : 'payments'} of {formatWhole(bnplSched)} · {formatWhole(bnplTotal)} left · interest-free
@@ -343,7 +344,7 @@ export function DebtSheet({
           ) : null}
           <TextField testID="field-debt-minimum" label="Minimum payment" value={minimumPayment} onChangeText={(t) => { setMinimumPayment(t); setError(''); }} placeholder="e.g. 65" keyboardType="decimal-pad" />
           <TextField testID="field-debt-apr" label="APR %" value={apr} onChangeText={setApr} placeholder="e.g. 22.99" keyboardType="decimal-pad" />
-          <TextField label="Due date" value={dueDate} onChangeText={setDueDate} placeholder="2026-07-01" />
+          <DateField testID="field-debt-due-date" label="Due date" value={dueDate} onChange={setDueDate} />
           <Select label="Recurrence" value={recurrence} options={RECURRENCE} onChange={setRecurrence} />
         </>
       )}

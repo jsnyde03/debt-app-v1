@@ -5,6 +5,7 @@ import type { Recurrence } from '@core/types/recurrence';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { Select } from '@/components/ui/Select';
 import { SwitchRow } from '@/components/ui/SwitchRow';
+import { DateField } from '@/components/ui/DateField';
 import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import type { RequiredExpense, RequiredExpenseCategory } from '@/data/models';
@@ -89,7 +90,8 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
       dirty={dirty}>
       <TextField testID="field-expense-name" label="Name" value={name} onChangeText={(t) => { setName(t); setError(''); }} placeholder="Rent, phone, utilities" />
       <TextField testID="field-expense-amount" label={trial ? 'Amount now (0 for a free trial)' : 'Amount'} value={amount} onChangeText={(t) => { setAmount(t); setError(''); }} placeholder={trial ? 'e.g. 0' : 'e.g. 850'} keyboardType="decimal-pad" error={error || undefined} />
-      <TextField label="Due date (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate} placeholder="2026-07-01" />
+      {/* The label no longer has to teach a format — the control produces one. */}
+      <DateField testID="field-expense-due-date" label="Due date" value={dueDate} onChange={setDueDate} />
       <Select label="Recurrence" value={recurrence} options={RECURRENCE} onChange={setRecurrence} />
       <Select label="Category" value={category} options={CATEGORY} onChange={setCategory} />
       <SwitchRow label="Variable amount (estimate)" value={variable} onValueChange={setVariable} />
@@ -97,7 +99,7 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
       {trial ? (
         <>
           <TextField label="Full price after the trial" value={fullAmount} onChangeText={(t) => { setFullAmount(t); setError(''); }} placeholder="e.g. 15.99" keyboardType="decimal-pad" />
-          <TextField label="Full price starts (YYYY-MM-DD)" value={fullChargeDate} onChangeText={(t) => { setFullChargeDate(t); setError(''); }} placeholder="2026-09-01" />
+          <DateField testID="field-expense-full-price-date" label="Full price starts" value={fullChargeDate} onChange={(d) => { setFullChargeDate(d); setError(''); }} />
         </>
       ) : null}
       <SwitchRow label="Autopay" value={autopay} onValueChange={setAutopay} />

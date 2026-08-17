@@ -218,8 +218,9 @@ load-bearing `\(.applicationName)` check) stay device-owed → the checklist.
 ### ⏭ Then, in order
 
 1. **3.5.7 — the marketing embed** *(🎯 needs hosting + the privacy stance)*
-2. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
-3. **Phase 5** (data continuity, ship-blocker) → **5.5** (repo consolidation) → **Phase 6** (launch)
+2. **3.8 — the expense reserve** *(🎯 2026-08-17, NEW)*. ⛔ **The app coaches a habit it cannot record and then plans as if you had not followed it**: Money's Expenses hero says *"$175 reserved per paycheck"* (a display-only average, read by nothing) while `allocatePaycheck` demands the **full $350** in the cycle rent is due. 🎯's design: **remove that number**, and make the set-aside a **recommended (never required) action** whose reserve joins the Guardian's `PlanHero` bar beside the everyday reserve, with the segment **tappable to split living-expenses vs expenses**. Opt-in and additive — no tick, no stored reserve, behaviour byte-identical to today. ⚡ **`prefundedReserve` is ALREADY an engine input**, so the hold is supported; the new part is a persisted pot and its **draw-down**. Decomposed → log *(one-section rule: 4.1.7 holds the active slot)*
+3. **The audit gate** — whole-app cohesion + best-in-class + wording/voice *(Wave C merges in here)*
+4. **Phase 5** (data continuity, ship-blocker) → **5.5** (repo consolidation) → **Phase 6** (launch)
 
 ### ⏸ Waiting on Jason
 

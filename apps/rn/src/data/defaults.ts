@@ -4,8 +4,16 @@ import { CURRENT_STORE_VERSION, type DebtStore } from './models';
 
 /** Local (not UTC) today as YYYY-MM-DD — mirrors the Capacitor `getCurrentDate`. */
 export function todayLocalISO(): string {
+  // ⛔ NO `toISOString()`. Its name promised a local date and it delivered a UTC one: the old body built
+  // local midnight and then converted, so anywhere EAST of UTC — all of Europe in summer, Asia,
+  // Australia — local midnight is the PREVIOUS day in UTC and this returned yesterday. Invisible from
+  // the Americas, which is why it survived; found 2026-08-17 while adding the date picker that seeds
+  // three fields from it.
+  // ⚠️ The app stores CALENDAR DATES (`YYYY-MM-DD`), not instants. Any conversion through UTC is a
+  // category error here, not a rounding detail.
   const t = new Date();
-  return new Date(t.getFullYear(), t.getMonth(), t.getDate()).toISOString().slice(0, 10);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
 }
 
 /** A fresh, empty store — first launch / after "reset all data". `onboardingComplete: false`. */
