@@ -14,12 +14,22 @@
  * carries hand-recorded results that are not regenerable, and the reader must be unable to touch it even
  * by accident.
  */
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 export const REPO_ROOT = join(import.meta.dirname, '..');
 export const CHECKLIST = join(REPO_ROOT, 'docs', 'DEBT_3.5_DEVICE_QA_CHECKLIST.md');
 export const FLOW_DIR = join(REPO_ROOT, 'apps', 'rn', '.maestro');
+/**
+ * 4.1.10 — ⛔ **A PLAYWRIGHT-PROVEN ROW USED TO BE INVISIBLE TO THIS INSTRUMENT.** Claims were read from
+ * `.maestro/*.yaml` and nowhere else, so 4.1.10's routing — *"§12.2 · §12.5 → the embed's Playwright
+ * gate"* — would have proven those rows and left them reading **"coverable, not yet built"** forever.
+ * The routing was right and the instrument could not express it.
+ */
+export const SPEC_DIRS = [
+  join(REPO_ROOT, 'apps', 'rn', 'tests', 'e2e'),
+  join(REPO_ROOT, 'apps', 'rn', 'tests', 'embed'),
+];
 
 /**
  * ⚠️ SINGLE SOURCE. §6's two subsections are lettered (`§6a.N`, `§6b.N`) and the BUILD deltas are
@@ -61,6 +71,21 @@ export const BARE_ROW = /^\s*-\s*\[[ xX]\]/;
 
 /** the provenance mark. ⚠️ Both scripts must agree on it exactly — see the file header. */
 export const STAMP_RE = /✅auto·(\d+)/;
+
+/**
+ * 4.1.10 — ⭐ **THE SECOND PROOF MARK, AND IT RECORDS MORE THAN A RUN ID, NOT LESS.**
+ *
+ * `✅auto·<runId>` exists because the native lane is **dispatch-only and batched**, so it can be
+ * green-by-never-running — it literally was, for three days in August 2026. Naming the run that proved a
+ * row is the only way to know one ever did.
+ *
+ * The Playwright suites are different in the one way that matters: they are in `validate:release:rn` and
+ * run **on every push**. A declared-but-never-executed spec is impossible there by construction, so a run
+ * id would name one run of a thing that runs constantly. `✅gate` says the stronger thing — *a gate holds
+ * this, continuously* — and it is machine-managed under the same integrity rules as the stamp.
+ */
+export const GATE_RE = /✅gate/;
+export const GATE_TOKEN = '`✅gate`';
 /** the same token with its leading space and backticks, for removal */
 export const STAMP_TOKEN_RE = /[ \t]*`✅auto·\d+`/;
 export const stampToken = (runId: string) => `\`✅auto·${runId}\``;
@@ -77,13 +102,19 @@ export interface Check {
   block: [number, number];
   /** the run id from a `✅auto·<runId>` stamp; undefined for a bare `[x]` or an unticked row */
   stamp?: string;
+  /** 4.1.10 — the row carries `✅gate`: a spec in `validate:release:rn` holds it on every push */
+  gate?: boolean;
 }
+
+export type Harness = 'maestro' | 'playwright';
 
 export interface Claim {
   id: string;
   kind: 'COVERS' | 'PARTIAL';
   why: string;
+  /** the declaring file's basename — a flow's `.yaml` or a spec's `.spec.ts` */
   flow: string;
+  harness: Harness;
   line: number;
 }
 

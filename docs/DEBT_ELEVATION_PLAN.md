@@ -45,8 +45,57 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 ⛔ **[4.1.9b, standing] The boot lap is 148s, not 529s — do not spend anything else there.** ⚠️ But the poll that replaced the `sleep 25` **is not firing** (`launched 119s → reported up 144s` is exactly the 25s ceiling): a fix believed to work that does not. Deliberately unfixed — inventing a log predicate instead of grepping the artifact already cost a cycle → **4.1.11**.
 
 | **4.1.9c** | ⭐ **"Covered" must mean PROVEN, and proof ticks the checklist** *(🎯 2026-08-14)* | ✅ **CLOSED 2026-08-17.** Reader (2026-08-14) + **the WRITER**: `npm run stamp:coverage` turns a run's `native-lane-results-*.json` into stamps and **revokes them when a flow reds**; grammar shared with the reader via `coverage-model.ts`, proven inert byte-for-byte; **`npm run test:stamp` — 8 scenarios, every rule fired on a planted input, every plant `plant-applied=YES`**; in `validate:release:rn`. ⛔ **Its own premise was refuted first: it adds ZERO covered rows** — `claimed-but-unproven` was already 0, so the run applied 32 refreshes and the headline stayed **24**. Detail + every scan → log |
-| **4.1.10** | §12.1–§12.7 (15) — the SCRIPTED run | ✅ **[DECISION] ROUTED BY WHERE THE RUN ACTUALLY SHIPS (🎯 2026-08-17).** ⛔ **No `qaEnabled()` door** — a QA door would manufacture a path the product does not have, prove the rows against it, then lose it at the Phase-6 flip. ⚡ **The scripted run is not user-reachable on iOS at all** ([D23]: users get `explore`); it exists for the capture and the embed, exactly as the checklist says. ▶ **§12.2 · §12.4.1/.3/.4 · §12.5 → the EMBED's Playwright gate** (3.5.7.5 already boots it into `/demo?mode=scripted`). ▶ **§12.7.1 + §12.1.1 → normal-app automation — both are MIS-FILED** (§12.7.1 is the analytics opt-out, nothing to do with the demo; §12.1.1 tests the "See it in action" door, which yields *explore*). ▶ **§12.3.1 · §12.2.2 · §12.6.x · §12.4.2 stay device-owed.** Detail → log |
-| **4.1.11** | **Reconcile — the exit.** ⚠️ **[4.1.5.1 after-scan] the coverage split must NOT count measurement flows** — `lint:selectors` now reports **9 flows** because `i01-ipad-boot.yaml` is one, and it is explicitly not coverage (every assertion in it holds on both layouts by design). Any 68/127 re-derivation that counts files will overstate itself | |
+| **4.1.10** | §12.1–§12.7 (15) — the SCRIPTED run | ✅ **[DECISION] ROUTED BY WHERE THE RUN ACTUALLY SHIPS (🎯 2026-08-17).** ⛔ **No `qaEnabled()` door** — a QA door would manufacture a path the product does not have, prove the rows against it, then lose it at the Phase-6 flip. ⚡ **The scripted run is not user-reachable on iOS at all** ([D23]: users get `explore`); it exists for the capture and the embed, exactly as the checklist says. ▶ **§12.2 · §12.5 → the EMBED's Playwright gate** (3.5.7.5 boots it into `/demo?mode=scripted`). ⛔ **CORRECTED 2026-08-17 by 3.5.7.7's after-scan: §12.4.1/.3/.4 came OFF this list** — they are about *"Unlock Premium"* and *"Start my real plan"*, and the embed now has neither. **→ normal-app automation**, where `demo-containment.spec.ts` already clicks one of them. ▶ **§12.7.1 + §12.1.1 → normal-app automation — both are MIS-FILED** (§12.7.1 is the analytics opt-out, nothing to do with the demo; §12.1.1 tests the "See it in action" door, which yields *explore*). ▶ **§12.3.1 · §12.2.2 · §12.6.x · §12.4.2 stay device-owed.** Detail → log |
+| **4.1.11** | **Reconcile — the exit.** ⚠️ **[4.1.5.1 after-scan] the coverage split must NOT count measurement flows** — `lint:selectors` reports 15 flow files of which **two measure rather than cover** (`i01-ipad-boot`, `11-reduce-motion`). Any re-derivation that counts files will overstate itself | |
+
+### ▶ 4.1.10 — §12's fifteen rows, and the instrument that cannot currently see them _(active)_
+
+| # | Step | State |
+|---|---|---|
+| **.1** | ⛔ **The blocker the before-scan found: teach `audit:coverage` to read `COVERS:`/`PARTIAL:` from PLAYWRIGHT specs**, not only `.maestro/*.yaml`, recording which harness claims each row | |
+| **.2** | **[DECISION] how a spec-proven row earns "proven"** — *rec: a new `✅gate` marker* (see below) | |
+| **.3** | **Declare what is ALREADY proven and undeclared** — measured, not assumed: §12.2.1 · §12.4.3 · §12.5.2 · §12.6.2 and the two demo doors | |
+| **.4** | **Build the real gaps** — §12.4.4 (the dock's *"Start my real plan"* is never clicked) · §12.5.3 · §12.5.4 · §12.2.3 · §12.7.1 · §12.1.2 | |
+| **.5** | **Correct the rows whose TEXT has drifted** — §12.1.1 describes an arc that was rebuilt (see below) | |
+| **.6** | **Re-verdict the genuinely device-owed remainder** (§12.3.1 · §12.2.2 · §12.4.2 · §12.6.x) and regenerate | |
+
+**Exit:** every §12 row is either claimed by a named harness and proven, or carries a verdict that says
+why no harness can reach it — and `audit:coverage` counts the web-proven ones instead of reporting them as
+never built.
+
+⛔ **[before-scan] `audit:coverage` CANNOT SEE A PLAYWRIGHT-PROVEN ROW AT ALL.** `parseFlows` reads
+`apps/rn/.maestro/*.yaml` and nothing else, so the routing decided this morning — *"§12.2 · §12.5 → the
+embed's Playwright gate"* — would have proven those rows and left them reading **"coverable, not yet
+built"** forever, understating 4.1.11's exit number by ~10 rows. ⚡ **The routing was right and the
+instrument could not express it.** This is .1, and it comes first.
+
+⚡ **[before-scan] MOST OF §12 IS ALREADY TESTED AND SIMPLY UNDECLARED.** `demo-containment.spec.ts` has
+ten tests that nothing in the coverage instrument knows about: §12.2.1's *"no tab bar at all"* is
+`toBeHidden` at `:112`; §12.5.2's *"scroll hard, the marker does not move"* is a **boundingBox before/after**
+at `:207`; §12.6.2's *"rotor → Headings"* is `role="heading"` at `:203`; §12.4.3's *"go back → no demo"* is
+`:234`. **4.1.10 is mostly a declaration exercise with four real gaps** — which is the cheapest shape this
+item could have had, and nobody knew because claims and specs live in different worlds.
+
+⛔ **[before-scan] §12.1.1's TEXT IS STALE AND WOULD HAVE GENERATED FALSE WORK.** It says *"'See it in
+action' lands on **Today** showing a $2,000 paycheck and MAR 16"*. 3.5.4.11 rebuilt the run as a 5-beat
+arc that **opens on Money** ([D19]: open on the problem), and the existing test asserts `/money`. Testing
+against the row as written would have "found" a defect that is the row being out of date — the Wave-A
+lesson (*a stale comment generated false work*) with a checklist row standing in for the comment.
+
+⛔ **[before-scan] AND A LIVE OVERSTATEMENT IN THE CURRENT 24: three rows are counted FULLY PROVEN whose
+only claim says it tests PART of them.** §1.1 · §3.1 · §10.2 are `[M]` rows claimed **only** by a
+`PARTIAL:`, and the report's partial-ness keys on the row's *verdict* (`[M◐]`), never on the claim's kind
+— so `PARTIAL` on an `[M]` row counts exactly like `COVERS`. ⚡ **It is 4.1.9c's defect one level down:**
+that fixed *declared ≠ proven*; this is *partly tested ≠ fully proven*. → **fold into .1**, since the
+report is being changed there anyway.
+
+⚡ **[.2 rec] A SPEC-PROVEN ROW SHOULD CARRY `✅gate`, NOT A RUN ID — and that is STRONGER, not weaker.**
+`✅auto·<runId>` exists because the native lane is **dispatch-only and batched**, so it can be
+green-by-never-running — it literally was, for three days in August. The Playwright suites are in
+`validate:release:rn` and run **on every push**: a declared-but-never-run spec is impossible there by
+construction. Naming one run of a thing that runs constantly would record less than saying *"a gate holds
+this."* ⚠️ The reader must then treat `✅gate` as proof, and `lint:coverage` must reject it on a row no
+spec claims — same integrity rules as the stamp.
 
 ### 📌 4.1.6a — `audit:coverage`, the definitive checklist _(closed 2026-08-17; standing guidance)_
 
@@ -308,92 +357,22 @@ signed off, because its OUTPUT is not final:**
 **Division of labour, now settled:** demo = BEFORE you commit (Welcome + paywall, sandboxed, terminal
 exits) · walkthrough = AFTER onboarding, on your own money.
 
-#### ▶ 3.5.7 — the embed _(the PARALLEL track; 4.1 has precedence and this fills its waits)_
+#### 3.5.7 — the embed _(closed except the deploy)_
 
-⚠️ **One of the doc's TWO decomposed sections** — the sanctioned exception for 🎯's two live tracks; 4.1's
-is 4.1.9c. Everything else is a single row. 🎯 set the precedence 2026-08-14: 4.1 first, this fills its waits.
+✅ **.1–.7 and .9 DONE 2026-08-14/17.** `Slider` a11y · the analytics flag COLLAPSED (nothing to omit) ·
+`sessionStorage`-only storage · the **zero-egress Playwright gate** in `validate:release:rn` · the embed
+entry · the a11y state fix · ⭐ **the two exits → ONE App Store CTA**, a real `<a>`, gated on `EMBED_DEMO` ·
+the privacy line **settled and rendered**. Detail + every scan → log.
 
-| # | Step | State |
-|---|---|---|
-| **.1** | **`Slider` reports its value on web** — the WCAG AA blocker | ✅ **DONE 2026-08-14.** `a11yAdjustableValue` in `utils/a11y.ts`; `aria-value*` is the form RN expands to BOTH platforms, so it is one rule in one place. Explicit e2e assertions — `a11y-axe` cannot see this class |
-| **.2** | ~~The embed build FLAG that omits analytics~~ | ⛔ **COLLAPSED 2026-08-14 — nothing to omit.** Verified across 7 surfaces: the funnel has **no sink and no SDK** (closed literal union), Sentry is `.web.ts` no-op, RevenueCat is stubbed, `expo-updates` absent, CanvasKit `locateFile`s to the local wasm, no CDN host in `dist/`, and the only absolute URLs are two *link targets*. A flag would add a second mechanism where a stronger one already holds |
-| **.3** | ⭐ **Storage discipline** — `sessionStorage` only | ✅ **DONE 2026-08-14.** One backing binding, four call sites, gated on the bundler-inlined `EXPO_PUBLIC_EMBED` so no switch survives in the artifact. Read lazily inside the existing guards — an eager `sessionStorage` touch throws in private mode and sandboxed iframes, which is exactly where an embed lives. Both modes proven; app default unchanged |
-| **.4** | ⭐ **The zero-egress Playwright gate** — all three [D32] claims, in `validate:release:rn` | ✅ **DONE 2026-08-14.** Own config + own build (`EXPO_PUBLIC_EMBED` is inlined, so a spec in the main suite would test the artifact that does **not** ship). ⛔ **`--clear` is load-bearing: Metro's cache does NOT bust on an `EXPO_PUBLIC_*` change** — measured, and without it the flag is advisory. **Non-vacuity proven**: the plant reds test 2 only. ⏱ 1.9m cold |
-| **.5** | **Embed entry** — the `scripted` run as the default route | ✅ **DONE 2026-08-17.** `EMBED_DEMO` in `qa.ts` → `DemoAutoEntry` (the renamed `CaptureAutoStart`, now serving BOTH self-entering builds — a second starter would have been a second definition of "entering the demo"). Two new specs in the embed gate, **non-vacuity proven** on a planted regression: they red, zero-egress stays green. App e2e 169/169 unaffected |
-| **.6** | **The a11y state fix** — the two controls in the embed's surface | ✅ **DONE 2026-08-17.** `a11yChecked`/`a11ySelected` in `utils/a11y.ts`; `CheckCircle` → `aria-checked`, `SegmentedToggle` → **`radiogroup`/`radio`** (the role is load-bearing — see below). Two explicit e2e assertions, **non-vacuity proven** on a planted revert; a11y-axe 10/10 |
-| **.7** | **The embed's exits → ONE App Store CTA** *(🎯 approved 2026-08-17)* | ▶ **NEXT — UNBLOCKED 2026-08-17.** 🎯 supplied it: `https://apps.apple.com/us/app/paycheck-debt-planner/id6773201250` · id **`6773201250`** · listing **"Paycheck Debt Planner"**. ⚠️ The listing name differs from the in-app name — decide which the CTA says. Both dock exits collapse to one outbound link; it belongs beside Freedom's in `ecosystem.ts`, not inlined |
-| **.8** | **GitHub Pages deploy** of `dist` | ⛔ blocked on .7 |
-| **.9** | ~~[DECISION] the privacy wording~~ | ✅ **SETTLED 2026-08-17 — "Your money stays on your device."** 🎯's pick. It is exactly what the zero-egress gate enforces, it is the house's direct "you", and it avoids the absolute [D32] warned about (every host logs IPs, so *"100% private"* overclaims). ⚠️ **The sample-data disclosure is NOT this line's job** — `ExampleCanvasMarker` owns "Example money", and [D6]'s "exactly one place" rule applies. ⚠️ The line is a claim about the PRODUCT shown on the embed, not about the viewer's own data: in the embed there is none |
+▶ **REMAINING: .8 — the GitHub Pages deploy of `dist-embed`.** Unblocked. ⚠️ It is the moment the privacy
+claim becomes public, which is why .4's gate had to exist first.
 
 **Exit:** a public embed whose privacy claim is enforced by a test that runs on every push, not asserted
 in prose.
 
-⛔ **[.7 before-scan] THE SWAP MUST BE GATED ON `EMBED_DEMO` — "both dock exits collapse to one link" is
-UNCONDITIONAL as written, and that would put "Get it on the App Store" inside the app.** `DemoDock`
-renders on `mode === 'scripted' && chrome`, and **`mode` comes from a QUERY PARAM** (`demo.tsx:61`), not
-from the embed flag: `debtplannerrn:///demo?mode=scripted` reaches it in the shipping iOS app — the
-`p09-deeplink` probe drives exactly that URL — and `/demo?mode=scripted` reaches it in the ordinary web
-build, where the e2e suite already drives it. ⚡ [D23] is about which door a *user* is offered, not about
-what the route can render. **The App Store CTA is correct only where the product is not already installed,
-which is the embed and nowhere else.**
-
-✅ **[.7 before-scan] The embed's scripted surface has EXACTLY these two exits — verified, not assumed.**
-`ExampleCanvasMarker`'s *"Start my real plan"* is gated `inExplore` (`:71`), so it cannot appear in a
-scripted run. Nothing else calls `exitDemo` in that surface.
-
-⛔ **[.5 after-scan] THE EMBED'S TWO EXITS BOTH LEAD SOMEWHERE WRONG — 🎯 SETTLED 2026-08-17, now .7, and
-it blocks the deploy at .8.**
-The dock's exits are `exitDemo('/onboarding')` *("Start my real plan")* and `exitDemo('/paywall')`
-*("Unlock Premium")* — approved 2026-08-06 **for the app**, where both are right. In a public embed:
-① onboarding is a **financial data-entry form inside a marketing iframe that discards what is typed**
-(sessionStorage only, by .3's own design) — inviting it is worse than offering no exit at all;
-② the paywall's purchase path is **stubbed on web** (verified at .2), so it cannot transact.
-▶ **Rec: in an embed both collapse to ONE outbound CTA to the App Store**, and the demo's terminal beat
-says so. ⚠️ Wording is 🎯's and belongs with **.7**, so these settle together.
-
-⚠️ **[.5 after-scan] The deferred [.1] a11y question is now ANSWERED, and 2 of the 3 controls are in the
-embed's public surface.** The scripted arc is `/money` → `/` → `/progress`: **`SegmentedToggle`** (Money
-×2, Progress's `CashFlowSection` ×1) and **`CheckCircle`** (Today's Required/Recommended action cards)
-both render there; **`RadioGroup` does not** (onboarding + a sheet). ✅ **Both fixed at .7 → now .6** —
-.1's own argument was "a public WCAG failure", and the deploy is the moment it becomes public.
-
-⚡ **[.5 after-scan] MEASURED — a build flag is only dead-code-ELIMINATED when it is read in the SAME
-module.** `EXPO_PUBLIC` appears **0** times in either built bundle (Metro inlines it), and the storage
-adapter's same-module ternary is gone outright (`dist` 0 × `sessionStorage`, `dist-embed` 0 ×
-`localStorage`) — but `qa.ts`'s cross-module `CAPTURE_DEMO` **survives 6×** as a constant-false check.
-Both are unreachable at runtime; only one is absent from the artifact. ⛔ So `createAdapter.web.ts`
-**keeps its own local `EMBED` constant** rather than importing `EMBED_DEMO` — the tidy-looking merge
-would have quietly broken 3.5.7.4's proven *"no switch survives in the artifact"*. An agreeing copy is
-usually a defect; this one is a measurement.
-
-⛔ **[.6 after-scan] THE CLASS IS 13 SITES IN 11 FILES, NOT "three more controls" — and 11 remain.**
-Measured: `selected` ×7 (`paywall`, `PaydayCaptureSheet` ×2, `SaveForItSheet` ×2, `RadioGroup`,
-`SegmentedToggle`) · `checked` ×2 (`RecoveryPlanSection`, `CheckCircle`) · ⚠️ **`expanded` ×4**
-(`money.tsx`, `TrajectoryChart`, `RequiredActionsCard`, `TimelineLedger`) — a state key .1 never
-mentioned, and every disclosure carrying it announces nothing about being open. **Only the 2 in the
-embed's surface are fixed.** ▶ The remaining 11 → the audit gate, with [3.7.B.4]. ⛔ **The `lint:rn`
-rule that would close the class is deliberately NOT added yet** — extending `no-restricted-syntax` to
-`accessibilityState` reds all 11 at once, so it lands WITH the sweep, exactly as the existing rule's own
-comment prescribes (*"a rule, not a convention, because the convention failed"*).
-
-⚡ **[.6 after-scan] ADDING `aria-selected` WOULD HAVE LOOKED LIKE A FIX AND CHANGED NOTHING.** It is only
-honoured on `tab`/`option`/`row`/`gridcell`/`treeitem`; on the `button` role `SegmentedToggle` used, it is
-ignored — so the control would have carried a correct-looking attribute and still announced no state.
-⛔ And `aria-pressed`, the right web attribute for a toggle button, is **not in RN's aria vocabulary**
-(measured against RN 0.85's `ViewAccessibility.d.ts`: checked/selected/expanded/busy/disabled — no
-pressed), so it would be web-only and re-open the asymmetry from the other side. **The role had to change
-too**: a 2–3 option single-choice set is a `radiogroup`. ⚠️ `tab` was rejected — true of the two view
-switchers, false of the Snowball/Avalanche strategy picker, and one primitive cannot hold two semantics.
-
-⚠️ **[.1 before-scan] The same defect class is UNFIXED on three more controls.** `CheckCircle`
-(`accessibilityState={{ checked }}` → no `aria-checked`, already filed as [3.7.B.4]), plus `RadioGroup`
-and `SegmentedToggle` (both `accessibilityState={{ selected }}`). ⚡ **The argument that made the Slider a
-3.5.7 blocker applies to any of them that appear in the embed's surface** — a public WCAG failure. Not
-folded in: the Slider is the stated blocker and the rest belong to the audit gate, which already owns
-[3.7.B.4]. **Re-check at .5 once the embed's actual surface is known.**
-
-**Restraint that still governs the tutorial/demo:** no Tier-3 spectacle, confetti or sound · no
-gamification chrome · Recovery stays a glimpse · the in-app tutorial stays ≤7 beats.
+⛔ **[.7 after-scan, STANDING] The embed's dock is NOT the app's dock.** Any checklist row that names
+*"Unlock Premium"* or *"Start my real plan"* is unprovable on the embed — see 4.1.10, whose routing this
+corrected the same day.
 
 ---
 

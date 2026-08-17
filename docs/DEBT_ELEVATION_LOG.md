@@ -10717,3 +10717,78 @@ the opposite condition. After the write it reads the healthy line.
 to the **embed's** Playwright gate, and .7 replaces the two dock exits that some of those rows assert on.
 Writing them first means writing them against exits with hours to live. So the active build becomes
 **3.5.7.7** — 4.1 keeps precedence in principle and yields it here for a stated, checkable reason.
+
+---
+
+## 2026-08-17 — 3.5.7.7: the embed gets one exit, and it invalidates a routing decision from this morning
+
+🎯 supplied the one fact that was blocking it: `https://apps.apple.com/us/app/paycheck-debt-planner/id6773201250`.
+
+### ⛔ THE BEFORE-SCAN CORRECTED THE ITEM'S OWN SCOPE — "both dock exits collapse to one link" is unconditional, and it must not be
+
+The row said the exits *collapse*. Read against the code, that would have put **"Get it on the App Store"
+inside the shipping app.** `DemoDock` renders on `mode === 'scripted' && chrome`, and **`mode` is a QUERY
+PARAM** (`demo.tsx:61`) — not the embed flag:
+
+- `debtplannerrn:///demo?mode=scripted` reaches this dock in the shipping iOS app. The `p09-deeplink`
+  probe drives exactly that URL, so it is not hypothetical.
+- `/demo?mode=scripted` reaches it in the ordinary web build, where `demo-containment.spec.ts` drives it.
+
+⚡ **[D23] is about which door a *user* is offered, not about what the route can render.** The CTA is
+correct only where the product is not already installed — the embed, and nowhere else. So the swap is
+gated on **`EMBED_DEMO`, the build flag**, which is the only thing that means "not installed here".
+
+✅ And the other half of the scope checked out: the embed's scripted surface has **exactly** these two
+exits. `ExampleCanvasMarker`'s *"Start my real plan"* is gated `inExplore` (`:71`) and cannot appear in a
+scripted run.
+
+### ⚠️ [D34] — the CTA names the DESTINATION, and that is what dissolves the naming problem
+
+The store listing is **"Paycheck Debt Planner"**; the app calls itself **"Debt Planner"** on the home
+screen and across eight copy sites. This CTA was the one surface where the two would have had to be
+reconciled. 🎯 took the option that names neither: **"Get it on the App Store"** — the conventional
+phrasing, and the divergence stays intentional and unresolved, exactly as it is in Hearthlight.
+
+### ⭐ THE WEB HALF IS A REAL `<a>`, AND THAT IS FUNCTIONAL, NOT TIDINESS
+
+A `div role="button"` calling `window.open` gets this wrong in three ways *in the place it ships*:
+① a sandboxed iframe without `allow-popups` blocks `window.open` **silently** — the single CTA on a
+marketing page does nothing and nobody finds out; ② ⌘-click, middle-click and "copy link address" do not
+exist on a `div`; ③ a screen reader announces "button" for something that leaves the page. The spec
+asserts `tagName === 'A'` for that reason. The precedent is `DateField.web.tsx`: where the web has the
+right primitive, the `.web.tsx` uses the real DOM element rather than reconstructing it.
+
+⚠️ The native `AppStoreCta.tsx` **never runs** — `EMBED_DEMO` is inlined false in every app build — and
+exists so the native bundle can **resolve the import**. A web-only file would be a build break, not dead
+code. ⚠️ Its styles read the same tokens `Button` reads rather than copying `Button`: a second consumer of
+the design system, not a second copy of a rule.
+
+### ⭐ THE DISCRIMINATION PROOF WAS ALREADY HALF-WRITTEN
+
+`demo-containment.spec.ts` already drove `/demo?mode=scripted` against the app build and asserted both
+exits, so the "this must not leak into the app" half cost **one line**. Both plants landed and each reds
+exactly one side:
+
+| plant | `plant-applied` | result |
+|---|---|---|
+| `EMBED_DEMO` → `false` | YES | **3 embed specs red**, `entry` + `zero-egress` green (5 passed) |
+| the gate removed (`true`) | YES | **the app spec red**, 9 others green |
+
+⚡ *Neither plant could have passed for a wrong reason: one proves the CTA is really there, the other
+proves it is really gated.*
+
+### ⛔⛔ AND THE AFTER-SCAN INVALIDATED A ROUTING DECISION MADE SIX HOURS EARLIER
+
+4.1.10 routed **§12.4.1 · §12.4.3 · §12.4.4** to *the embed's Playwright gate*. All three are about
+**"Unlock Premium"** and **"Start my real plan"** — and the embed no longer has either. They became
+**unprovable on the surface they had just been assigned to.**
+
+▶ Re-routed to **normal-app automation**, where they are not merely provable but nearly proven already:
+`demo-containment.spec.ts` drives the scripted run against the app build and **clicks "Unlock Premium"** in
+the very test .7 extended. §12.2 · §12.5 · §12.4.2 are unaffected — the marker and the beat script did not
+change.
+
+⚡ **A routing decision is a claim about a surface, and this surface moved the same day.** The decision was
+not wrong when it was made; it was made against a dock that was already scheduled to change, by an item on
+the other live track. That is the specific cost of two parallel tracks, and it is cheap only because the
+after-scan runs before the next item starts.

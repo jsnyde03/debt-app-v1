@@ -9,6 +9,19 @@ const FREEDOM_SCHEME_URL = 'ffp://';
 const FREEDOM_STORE_URL = 'https://apps.apple.com/us/app/freedom-date-fire-planner/id6789297671';
 
 /**
+ * 3.5.7.7 — **this app's own App Store page** (🎯 Jason 2026-08-17), for the marketing embed's one CTA.
+ *
+ * ⚠️ THE LISTING NAME IS NOT THE APP'S NAME. The store says **"Paycheck Debt Planner"**; the product
+ * calls itself **"Debt Planner"** on the home screen and in every string it owns. The divergence is
+ * deliberate and stays — which is exactly why the CTA's label names the **destination** ("Get it on the
+ * App Store") rather than either name ([D34], 🎯 2026-08-17). Nothing has to reconcile them.
+ *
+ * ⛔ It lives here rather than inline in the dock because a store URL is the kind of fact that gets
+ * pasted into a second place the day someone needs it in a footer.
+ */
+export const APP_STORE_URL = 'https://apps.apple.com/us/app/paycheck-debt-planner/id6773201250';
+
+/**
  * Graduation handoff (2.4.8) — open Financial Freedom if installed, else its App Store page. This is the
  * debt app's first cross-app link and the ecosystem on-ramp: a convenient next step once debt-free,
  * never required. `canOpenURL` is deliberately NOT used (a custom scheme needs `LSApplicationQueriesSchemes`

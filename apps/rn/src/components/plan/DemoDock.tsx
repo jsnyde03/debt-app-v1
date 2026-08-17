@@ -2,7 +2,9 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from 'zustand';
 
+import { AppStoreCta } from '@/components/plan/AppStoreCta';
 import { Button } from '@/components/ui/Button';
+import { EMBED_DEMO } from '@/config/qa';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { DEMO_STAGES } from '@/store/demoRun';
 import { exitDemo } from '@/store/demoExit';
@@ -78,14 +80,46 @@ export function DemoDock() {
         </Text>
       </View>
 
-      <Button label="Start my real plan" onPress={() => exitDemo('/onboarding')} />
-      <Pressable
-        onPress={() => exitDemo('/paywall')}
-        accessibilityRole="button"
-        hitSlop={10}
-        style={styles.secondary}>
-        <Text style={[textStyles.subhead, { color: c.accent.primary }]}>Unlock Premium</Text>
-      </Pressable>
+      {/* ⛔ 3.5.7.7 — IN THE EMBED, BOTH OF THE APP'S EXITS LEAD SOMEWHERE WRONG (🎯 2026-08-17).
+          `/onboarding` is a financial data-entry form inside a marketing iframe that DISCARDS what is
+          typed (3.5.7.3 made the embed sessionStorage-only, deliberately) — inviting it is worse than
+          offering no exit at all. `/paywall`'s purchase path is stubbed on web (verified at 3.5.7.2), so
+          it cannot transact. Both are right in the app, where this dock also renders.
+
+          ⚠️ GATED ON THE BUILD, NOT ON THE MODE, and the distinction is load-bearing. This dock renders
+          on `mode === 'scripted'`, and `mode` comes from a QUERY PARAM (`demo.tsx:61`) — so
+          `debtplannerrn:///demo?mode=scripted` reaches it inside the shipping iOS app (the p09 probe
+          drives exactly that), and `/demo?mode=scripted` reaches it in the ordinary web build, where the
+          e2e suite drives it. An unconditional swap would offer "Get it on the App Store" to someone who
+          already has the app open. `EMBED_DEMO` is the only flag that means "not installed here."
+
+          ⚠️ [D34] — the label names the DESTINATION, not the product: the store listing is "Paycheck Debt
+          Planner" and the app calls itself "Debt Planner", and this CTA is the one surface where the two
+          would have had to be reconciled. Naming the App Store means neither has to move. */}
+      {EMBED_DEMO ? (
+        <>
+          <AppStoreCta label="Get it on the App Store" testID="embed-app-store-cta" />
+          {/* 3.5.7.9's settled line, and the dock is where it goes — the embed's only persistent chrome,
+              so the claim is on screen beside the ask. It is what the zero-egress gate ENFORCES rather
+              than a promise, and it deliberately avoids [D32]'s absolute ("100% private" overclaims: every
+              host logs IPs). ⚠️ Outside the `accessible` group above, which has an explicit label and
+              would otherwise swallow it. */}
+          <Text testID="embed-privacy-line" style={[textStyles.caption, styles.privacy, { color: c.text.tertiary }]}>
+            Your money stays on your device.
+          </Text>
+        </>
+      ) : (
+        <>
+          <Button label="Start my real plan" onPress={() => exitDemo('/onboarding')} />
+          <Pressable
+            onPress={() => exitDemo('/paywall')}
+            accessibilityRole="button"
+            hitSlop={10}
+            style={styles.secondary}>
+            <Text style={[textStyles.subhead, { color: c.accent.primary }]}>Unlock Premium</Text>
+          </Pressable>
+        </>
+      )}
     </View>
   );
 }
@@ -100,4 +134,5 @@ const styles = StyleSheet.create({
   },
   // 44pt, like the Guardian card's rows after 3.5.3.10 — a secondary exit is still an exit.
   secondary: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+  privacy: { textAlign: 'center' },
 });

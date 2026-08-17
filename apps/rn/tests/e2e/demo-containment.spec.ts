@@ -221,6 +221,13 @@ test('both SCRIPTED exits are terminal — the demo is over before the destinati
   await page.goto('/demo?mode=scripted');
   await expect(page.getByTestId('example-canvas-marker')).toBeVisible({ timeout: 15_000 });
 
+  // ⭐ 3.5.7.7 — THE OTHER HALF OF THE EMBED SWAP'S DISCRIMINATION PROOF. The embed replaces both exits
+  // below with one App Store CTA, gated on `EMBED_DEMO` — a BUILD flag, not the mode. `mode` is a query
+  // param, so this very URL reaches the same dock inside the shipping app, where "Get it on the App
+  // Store" would be offered to someone who already has it open. `tests/embed/cta.spec.ts` asserts the CTA
+  // is present there; this asserts it is absent here, and only both together prove the gate discriminates.
+  await expect(page.getByTestId('embed-app-store-cta')).toHaveCount(0);
+
   // "Unlock Premium" is the exit that matters: /paywall writes the real store by design, so reaching it
   // with the sandbox still mounted would report a working checkout as a real-plan leak — at Phase 6, a
   // Sentry alert for a purchase. [D18]'s ordering is what prevents that.
