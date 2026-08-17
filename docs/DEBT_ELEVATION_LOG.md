@@ -10011,6 +10011,52 @@ than being invented here. **It blocks .6** — this is not something to deploy p
 
 ---
 
+## 2026-08-17 — [DECISION] 4.1.10: route §12 by where the scripted run actually ships
+
+The question was *"which door lets the lane reach the scripted demo"*, and reading the fifteen rows
+answered a different one: **most of them do not belong on the iOS lane at all.**
+
+### ⛔ A QA DOOR WOULD HAVE MANUFACTURED A PATH THE PRODUCT DOES NOT HAVE
+
+[D23] settled that a real user gets **`explore`** — live tabs, no script. **`scripted` exists for exactly
+two vehicles: the App-Preview capture and the web embed.** It is not reachable from any door in the
+shipping iOS app. So a `qaEnabled()` control in More would have invented an entry that no user has,
+proven §12.1–§12.7 through it, and then lost it at the Phase-6 flip — leaving fifteen rows green in the
+lane and unverifiable in the artifact that ships. The checklist had already said this: *"treat those as
+owed to the capture/embed lane rather than runnable from the app's own doors."*
+
+⚡ **The flip trap dissolved rather than being solved.** With no §12 row riding a QA door, Phase 6's
+`QA_TOOLS = false` is a non-issue for this item. ⛔ **The general rule this near-miss bought: never let a
+coverage row depend on a QA-gated door.** The instruments may be QA-gated — `probeCoachMark`,
+`coach-probe`, `suppressorReasons`, `RING_AUDIT`, `rm-probe` — but a *checklist row* must not be.
+
+### ⛔ TWO OF THE FIFTEEN ARE MIS-FILED, and reading them is what found it
+
+- **§12.7.1** — *"More → Preferences → Share anonymous usage is present, ON by default, and toggling it…"*
+  That is the **analytics opt-out**. It has nothing to do with the demo, needs no demo run of any kind,
+  and is automatable on the normal app today. It sits in the scripted section for no reason anyone wrote
+  down.
+- **§12.1.1** — *"From a fresh install, **See it in action** lands on Today showing a $2,000…"* That door
+  yields **`explore`**, not `scripted`. It is a §12.0 row filed under §12.1, and §12.0 is already covered
+  by flow `09`.
+
+### ▶ THE ROUTING
+
+| rows | where | why |
+|---|---|---|
+| §12.2 · §12.4.1/.3/.4 · §12.5 | **the embed's Playwright gate** | 3.5.7.5 already boots the embed into `/demo?mode=scripted`; it has its own config, build and passing entry specs. The scripted run *is* what ships there |
+| §12.7.1 · §12.1.1 | **normal-app automation** | neither needs the scripted run; both were mis-filed |
+| §12.3.1 · §12.2.2 · §12.6.x · §12.4.2 | **device-owed** | home-indicator geometry, a dead gap on a real screen, real VoiceOver (rotor · swipe order · one utterance), real App Store prices |
+
+⚠️ **The honest limit:** the embed is web, so this proves the scripted run's LOGIC and surface, not iOS
+rendering. That is the same trade the checklist proposed, and the device-owed remainder above is exactly
+the part that does not transfer.
+
+⚠️ **4.1.10 is now partly 3.5.7's gate rather than 4.1's lane.** The work crosses tracks; the rows stay
+4.1's to reconcile at 4.1.11, but the specs land in `tests/embed/`.
+
+---
+
 ## 2026-08-17 — R1: a date picker for the Money sheets, and a date helper that returned yesterday
 
 🎯, from using the app: *"The Money tabs edit pages do not have a date picker in the date field. They
