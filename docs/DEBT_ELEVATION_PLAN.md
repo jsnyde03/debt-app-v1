@@ -12,7 +12,20 @@
 
 🎯 2026-08-17: *"4.1 is still the precedent… 3.5.7 continues during waits."*
 
-✅ **Nothing is in flight. Last three runs all GREEN**, tree clean, everything pushed.
+✅ **Nothing is in flight. Last four runs all GREEN**, tree clean, everything pushed.
+
+⭐ **4.1.9b VERIFIED IN RUN `32037021903` — the split works and the lane is 15/15.** `build` 19m42s →
+**both tiers started at the same instant**, iPad 18m02s ‖ iPhone 24m49s; **44m39s wall for ~62m of job
+time.** iPhone **10/10** · iPad **5/5** · the XCUITest probe **ran on the tier** (the .3 fix) ·
+`native-lane-results-*.json` resolved **every** flow to its filename, 0 unresolved · the 9.6 MB diagnosis
+bundle carries the hidden `.maestro/tests/` hierarchy the `include-hidden-files` fix rescued, against a
+122 MB full artifact.
+
+⛔ **THE PLAN'S "~22 min → ~12 on a cache hit" IS RETIRED — it was never derived, and it is wrong in both
+terms.** Measured: the iPhone tier ALONE is 24m49s, so no arrangement of these jobs reaches 12. A
+cache-hit `device=both` should land near **~30m** (a ~5m build job + `max(25, 18)`), against ~45–60m
+sequential. **The saving is real and it is the tier overlap, not the build.** ⚠️ Unmeasured until the
+next dispatch actually hits the cache.
 
 ⭐ **The state that matters:** iPhone suite **10/10** · iPad tier **5/5** · the XCUITest probe **runs**,
 springboard reach proven · coverage reads **24 proven · 9 automatable-half · 74 coverable-not-built ·
@@ -214,6 +227,18 @@ load-bearing `\(.applicationName)` check) stay device-owed → the checklist.
 
 ### ⚠️ Open defects
 
+- **⛔ [run 32037021903] THE A11Y AUDIT'S `findings=0` IS NOT A CLEAN BILL — the anchor guard fired on its
+  first ever execution.** `PROBE a11yAnchor id=tab-today rendered=false elements=58`, then four
+  `findings=0`. The guard shipped at .7.4h *specifically* so a zero could be told apart from an audit of
+  an empty screen, and the first run that could exercise it says **the app was not showing Today.**
+  ⚡ Springboard reach re-confirmed in the same run (`reachable=true elements=215`), so this is not a
+  broken probe. ⚠️ **Hypothesis, NOT a diagnosis** *(Law IV — a mechanism that arrives with a finding still
+  needs measuring)*: the probe runs after the suite, and flow `09` is terminal and **clears state**, so the
+  app it relaunches may have no tab bar to find. 58 elements says *a* screen rendered. ▶ Cheapest next
+  step: have the probe print the frontmost screen's identifiers before auditing, or run it before `09`.
+  ⛔ **Until then no a11y row may be marked covered from this probe** — that is exactly the overstatement
+  4.1.9c exists to stop.
+
 - **⚠️ [run 31812114150] Two selectors are UNESTABLISHED, and both are filed rather than guessed.** ① **Which marker component renders at walkthrough beat 5** — the flow asserted `guardian-example-marker` (`PaydayGuardianCard.tsx:225`) and it was absent, while the `.*Example money.*` TEXT assertion passed; the other candidate is `example-canvas-marker` (`ExampleCanvasMarker.tsx:61`). §11.9 is satisfied by the text either way. ② **The demo persona's Money-tab debt names** — `.*Visa.*` came from a screenshot of the demo's TODAY tab and does not match Money, so **§12.0.7 is unclaimed**. Both are answerable from one frame each; `09` now captures `demo-explore-03-money-tab` for exactly that.
 
 
@@ -308,8 +333,10 @@ precedence explicitly on 2026-08-14. When either closes, its section collapses t
 | **.3** | ⭐ **Storage discipline** — `sessionStorage` only | ✅ **DONE 2026-08-14.** One backing binding, four call sites, gated on the bundler-inlined `EXPO_PUBLIC_EMBED` so no switch survives in the artifact. Read lazily inside the existing guards — an eager `sessionStorage` touch throws in private mode and sandboxed iframes, which is exactly where an embed lives. Both modes proven; app default unchanged |
 | **.4** | ⭐ **The zero-egress Playwright gate** — all three [D32] claims, in `validate:release:rn` | ✅ **DONE 2026-08-14.** Own config + own build (`EXPO_PUBLIC_EMBED` is inlined, so a spec in the main suite would test the artifact that does **not** ship). ⛔ **`--clear` is load-bearing: Metro's cache does NOT bust on an `EXPO_PUBLIC_*` change** — measured, and without it the flag is advisory. **Non-vacuity proven**: the plant reds test 2 only. ⏱ 1.9m cold |
 | **.5** | **Embed entry** — the `scripted` run as the default route | ✅ **DONE 2026-08-17.** `EMBED_DEMO` in `qa.ts` → `DemoAutoEntry` (the renamed `CaptureAutoStart`, now serving BOTH self-entering builds — a second starter would have been a second definition of "entering the demo"). Two new specs in the embed gate, **non-vacuity proven** on a planted regression: they red, zero-egress stays green. App e2e 169/169 unaffected |
-| **.6** | **GitHub Pages deploy** of `dist` | ⛔ **BLOCKED — the embed's EXITS, [DECISION] below.** Not a wiring gap; a product call |
-| **.7** | **[DECISION] the privacy wording** — 🎯's call | ⚠️ *"financial data never leaves your device"* is literally true; *"100% private"* overclaims if read as "no server logs anywhere" |
+| **.6** | **The a11y state fix** — the two controls in the embed's surface | ✅ **DONE 2026-08-17.** `a11yChecked`/`a11ySelected` in `utils/a11y.ts`; `CheckCircle` → `aria-checked`, `SegmentedToggle` → **`radiogroup`/`radio`** (the role is load-bearing — see below). Two explicit e2e assertions, **non-vacuity proven** on a planted revert; a11y-axe 10/10 |
+| **.7** | **The embed's exits → ONE App Store CTA** *(🎯 approved 2026-08-17)* | ▶ **NEXT.** Both dock exits collapse to a single outbound link; the terminal beat says so. ⚠️ Its WORDS are owed to .9, and ⛔ **there is no Debt Planner App Store URL in the repo** (only Freedom's, in `ecosystem.ts`) — the link target is a real prerequisite, not a copy detail |
+| **.8** | **GitHub Pages deploy** of `dist` | ⛔ blocked on .7 |
+| **.9** | **[DECISION] the privacy wording** — 🎯's call, and now the CTA's words with it | ⚠️ *"financial data never leaves your device"* is literally true; *"100% private"* overclaims if read as "no server logs anywhere" |
 
 **Exit:** a public embed whose privacy claim is enforced by a test that runs on every push, not asserted
 in prose.
@@ -339,6 +366,25 @@ Both are unreachable at runtime; only one is absent from the artifact. ⛔ So `c
 **keeps its own local `EMBED` constant** rather than importing `EMBED_DEMO` — the tidy-looking merge
 would have quietly broken 3.5.7.4's proven *"no switch survives in the artifact"*. An agreeing copy is
 usually a defect; this one is a measurement.
+
+⛔ **[.6 after-scan] THE CLASS IS 13 SITES IN 11 FILES, NOT "three more controls" — and 11 remain.**
+Measured: `selected` ×7 (`paywall`, `PaydayCaptureSheet` ×2, `SaveForItSheet` ×2, `RadioGroup`,
+`SegmentedToggle`) · `checked` ×2 (`RecoveryPlanSection`, `CheckCircle`) · ⚠️ **`expanded` ×4**
+(`money.tsx`, `TrajectoryChart`, `RequiredActionsCard`, `TimelineLedger`) — a state key .1 never
+mentioned, and every disclosure carrying it announces nothing about being open. **Only the 2 in the
+embed's surface are fixed.** ▶ The remaining 11 → the audit gate, with [3.7.B.4]. ⛔ **The `lint:rn`
+rule that would close the class is deliberately NOT added yet** — extending `no-restricted-syntax` to
+`accessibilityState` reds all 11 at once, so it lands WITH the sweep, exactly as the existing rule's own
+comment prescribes (*"a rule, not a convention, because the convention failed"*).
+
+⚡ **[.6 after-scan] ADDING `aria-selected` WOULD HAVE LOOKED LIKE A FIX AND CHANGED NOTHING.** It is only
+honoured on `tab`/`option`/`row`/`gridcell`/`treeitem`; on the `button` role `SegmentedToggle` used, it is
+ignored — so the control would have carried a correct-looking attribute and still announced no state.
+⛔ And `aria-pressed`, the right web attribute for a toggle button, is **not in RN's aria vocabulary**
+(measured against RN 0.85's `ViewAccessibility.d.ts`: checked/selected/expanded/busy/disabled — no
+pressed), so it would be web-only and re-open the asymmetry from the other side. **The role had to change
+too**: a 2–3 option single-choice set is a `radiogroup`. ⚠️ `tab` was rejected — true of the two view
+switchers, false of the Snowball/Avalanche strategy picker, and one primitive cannot hold two semantics.
 
 ⚠️ **[.1 before-scan] The same defect class is UNFIXED on three more controls.** `CheckCircle`
 (`accessibilityState={{ checked }}` → no `aria-checked`, already filed as [3.7.B.4]), plus `RadioGroup`

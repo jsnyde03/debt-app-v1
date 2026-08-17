@@ -79,6 +79,41 @@ export function a11yAdjustableValue(
 }
 
 /**
+ * The on/off state of a checkbox-like control, cross-platform.
+ *
+ * ⛔ `accessibilityState` IS THE SAME ASYMMETRY AS `accessibilityValue` ABOVE — the one this file exists
+ * to document — and it is a WIDER class than it looked. **Measured 2026-08-17 against the installed
+ * react-native-web 0.21.2:** the string `accessibilityState` appears in its `dist/` only twice — once in
+ * `TouchableWithoutFeedback`'s forwarded-props allowlist, and once as the LEGACY plural
+ * `accessibilityStates` in `isDisabled`. There is **no mapping to `aria-checked` / `aria-selected`
+ * anywhere in `createDOMProps`**, so a control written longhand announces its role and never its state:
+ * a checkbox that never says whether it is checked. As with the slider, `a11y-axe` does not flag it.
+ *
+ * ⭐ The `aria-*` form covers BOTH, for the same reason `aria-hidden` and `aria-value*` do: RN aliases it
+ * onto the native `accessibilityState` itself. One rule in one place — deliberately NOT paired with
+ * `accessibilityState`, which would be the "two places, one rule" shape.
+ */
+export function a11yChecked(checked: boolean): AccessibilityProps {
+  return { 'aria-checked': checked };
+}
+
+/**
+ * The chosen-ness of a control in a set — a segmented toggle's active segment, a radio, a picker row.
+ *
+ * Same mechanism and same measurement as {@link a11yChecked}; `selected` is simply the state key that
+ * this codebase reaches for most (7 of the 13 longhand sites at the time of writing).
+ *
+ * ⚠️ `aria-selected` is only valid on a handful of roles (`tab`, `option`, `row`, `gridcell`, `treeitem`).
+ * On a plain `role="button"` it is ignored by assistive tech, so a segmented control that is really a set
+ * of buttons wants `aria-pressed`. This helper does not choose for the caller: it reports the state the
+ * caller already claimed, and picking the right ROLE remains the caller's job. Stated because the
+ * alternative — silently rewriting a role from a state helper — is how a fix becomes a new defect.
+ */
+export function a11ySelected(selected: boolean): AccessibilityProps {
+  return { 'aria-selected': selected };
+}
+
+/**
  * Announce a transient change to screen readers — a new onboarding step, a crossed milestone, a
  * validation error, a blocking state that swaps in silently. Web-safe. Retained under Reduce Motion
  * (haptics + announcements are accessibility channels, not decoration).

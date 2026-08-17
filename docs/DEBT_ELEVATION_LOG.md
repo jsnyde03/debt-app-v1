@@ -9994,3 +9994,119 @@ than being invented here. **It blocks .6** — this is not something to deploy p
   from either direction lands.
 - The embed's zero-egress specs now exercise the **demo** surface rather than a cold app start, because
   that is what the artifact now boots into. Strictly stronger coverage of what ships, gained for free.
+
+---
+
+## 2026-08-17 — 3.5.7.6: the two controls in the embed's surface report their state
+
+🎯 approved fixing both before any public deploy. `a11yChecked` / `a11ySelected` join
+`a11yAdjustableValue` in `utils/a11y.ts` — the one file allowed to write `aria-*`, enforced by the
+existing `no-restricted-syntax` rule.
+
+### ⚡ THE MEASUREMENT FIRST, because the mechanism was the whole question
+
+**react-native-web 0.21.2 has no `accessibilityState` → `aria-*` mapping.** The name appears in its
+`dist/` exactly twice: once in `TouchableWithoutFeedback`'s forwarded-props allowlist, once as the legacy
+plural `accessibilityStates` in `isDisabled`. Nothing in `createDOMProps` translates it. So every
+longhand site announced its role and never its state — a checkbox that never says whether it is checked.
+Same asymmetry `a11yAdjustableValue` was written for at .1, and `a11y-axe` is blind to both: an attribute
+that was never emitted violates no rule.
+
+### ⛔ `aria-selected` ALONE WOULD HAVE LOOKED LIKE A FIX AND CHANGED NOTHING
+
+This is the part worth keeping. `aria-selected` is only honoured on `tab`/`option`/`row`/`gridcell`/
+`treeitem`; `SegmentedToggle` was `role="button"`, where it is **ignored**. The control would have gained
+a correct-looking attribute and still announced nothing — a fix that passes review and fails users.
+
+And the web's right answer for a toggle button, `aria-pressed`, is **not in RN's aria vocabulary**
+(measured against RN 0.85's `ViewAccessibility.d.ts`: busy/checked/disabled/expanded/selected/valuemin/
+max/now/text/hidden/modal/label/labelledby/live — no `pressed`). Using it would be web-only and re-open
+the same asymmetry from the other side.
+
+**So the ROLE had to change too.** A 2–3 option single-choice set is a `radiogroup` of `radio`s, and
+`aria-checked` is valid there on the web and aliased onto the native state by RN. ⚠️ `tab` was rejected
+on inspection of the call sites: true of the Money view switcher and Progress's cushion/timeline, **false
+of the Snowball/Avalanche strategy picker** — one primitive cannot hold two semantics honestly. Nothing
+selects these by role (checked before changing it), and axe's `aria-required-children` accepts the group
+with its animated thumb: a11y-axe 10/10.
+
+### ⛔ THE CLASS IS 13 SITES IN 11 FILES, NOT THREE — and 11 remain
+
+.1 filed this as "three more controls". Enumerated: **`selected` ×7** (`paywall`, `PaydayCaptureSheet`
+×2, `SaveForItSheet` ×2, `RadioGroup`, `SegmentedToggle`) · **`checked` ×2** (`RecoveryPlanSection`,
+`CheckCircle`) · ⚠️ **`expanded` ×4** (`money.tsx`, `TrajectoryChart`, `RequiredActionsCard`,
+`TimelineLedger`) — a state key .1 never mentioned, and every disclosure carrying it currently announces
+nothing about being open. Only the two in the embed's surface are fixed; the other 11 → the audit gate
+with [3.7.B.4].
+
+⛔ **The lint rule that would close the class is deliberately NOT added yet.** Extending
+`no-restricted-syntax` to `accessibilityState` reds all 11 at once, so it must land WITH the sweep — which
+is what the existing rule's own comment prescribes: *"a rule, not a convention, because the convention
+failed… the linter knows every site; a person does not."*
+
+### ⚠️ THE FIRST VERSION OF THE CHECKBOX TEST WAS VACUOUS, and it is worth recording
+
+It seeded the default persona, found no action rows, and called `test.skip` — **a green run that asserted
+nothing**, inside the very test written to close a silent gap. That is defect class ① from 3.5's phase
+after-scan ("an assertion that passes either way") reappearing in its own remedy. Re-seeded from
+`swipe-mark-paid.spec.ts`'s persona (a due obligation inside the cycle, a future payday) so a row really
+renders. **Non-vacuity proven on both new specs**: reverting each control to `accessibilityState` reds
+exactly them, with the plant confirmed applied by grep before the run.
+
+---
+
+## 2026-08-17 — run 32037021903: 4.1.9b verified on the runner, and the probe's guard earns its keep
+
+**Green, all three jobs, 15/15 flows.** The structural claim is now measured rather than argued.
+
+| job | span | |
+|---|---|---|
+| `build` | 13:52:55 → 14:12:37 | **19m42s** — a full compile, and the cache MISS was predicted |
+| `ipad` | 14:12:41 → 14:30:43 | 18m02s |
+| `iphone` | 14:12:41 → 14:37:30 | 24m49s |
+| **wall** | 13:52:51 → 14:37:30 | **44m39s for ~62m of job time** |
+
+⭐ **Both tiers started at the same second** — that is the whole item, visible in one timestamp. Every
+new piece did its job: the XCUITest probe **ran inside the iPhone tier** off the shipped tarball (the
+thing a cache hit used to make impossible), both `native-lane-results-*.json` resolved **every** flow to
+its filename with **0 unresolved**, and the diagnosis bundle came out at **9.6 MB against 122 MB** while
+carrying the hidden `.maestro/tests/…` hierarchy — the file `lint:lane` caught us about to drop.
+
+⭐ The MANIFEST states what it left out rather than implying completeness: two `device-simulator.log`
+files at **49 MB and 47 MB**, excluded by name, plus every screenshot. That is where the 122 MB went.
+
+### ⛔ THE PLAN'S "~22 min → ~12" IS RETIRED — never derived, and wrong in both terms
+
+The iPhone tier **alone** is 24m49s, so no arrangement of these jobs reaches 12 minutes. A cache-hit
+`device=both` should land near **~30m** (a ~5m build job + `max(25, 18)`), against ~45–60m sequential.
+The saving is real, and it is the **tier overlap**, not the build. ⚠️ Still unmeasured until a dispatch
+actually hits the cache — recorded as an expectation, not a result. *A number copied into prose goes
+stale silently; this one had never been measured at all.*
+
+### ⭐ THE GUARD THAT SHIPPED LAST SESSION FIRED ON ITS FIRST EXECUTION — and the news is bad
+
+```
+PROBE a11yAnchor id=tab-today rendered=false elements=58
+PROBE a11y type=contrast    status=completed seconds=0.7 findings=0
+PROBE a11y type=hitRegion   status=completed seconds=0.3 findings=0
+PROBE a11y type=textClipped status=completed seconds=1.7 findings=0
+PROBE a11y type=trait       status=completed seconds=0.3 findings=0
+PROBE springboard.reachable=true springboard.elements=215
+```
+
+.7.4h added the anchor wait for exactly one reason: `.runningForeground` means the process is frontmost,
+**not** that React has rendered, so *"audited and clean"* and *"audited an empty screen"* were
+indistinguishable. It shipped unexercised and the session close flagged it as such. Its first real run
+says **`rendered=false`** — so **the four zeros are not a clean bill**, and any row marked covered from
+them would have been the precise overstatement 4.1.9c exists to eliminate.
+
+⚡ Not a broken probe: springboard reach re-confirmed in the same run at 215 elements, and all four audit
+types completed in under 2s each.
+
+⚠️ **Hypothesis, not a diagnosis** — Law IV, and this lane has been wrong about mechanisms four times.
+The probe runs after the suite; flow `09` is terminal and **clears state**; an app relaunched into a
+fresh install has no tab bar for `tab-today` to match. `elements=58` says *a* screen rendered, which fits
+a Welcome or onboarding screen. ▶ Cheapest disambiguation: print the frontmost screen's identifiers
+before auditing (one line, no new capability), or move the probe ahead of `09`. ⛔ Deliberately not
+"fixed" on a guess — inventing a predicate instead of reading the artifact is a mistake this lane has
+already paid for twice.

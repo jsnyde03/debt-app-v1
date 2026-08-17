@@ -6,6 +6,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { haptics, useReduceMotion } from '@/motion';
 import { duration, spring } from '@/theme/motion';
+import { a11yChecked } from '@/utils/a11y';
 
 /**
  * A calm circular check-off — the premium alternative to a repeated "Mark Paid" button. Empty ring
@@ -60,7 +61,10 @@ export function CheckCircle({
       disabled={!onPress}
       hitSlop={10}
       accessibilityRole="checkbox"
-      accessibilityState={{ checked }}
+      // ⛔ `aria-checked`, not `accessibilityState={{ checked }}` — react-native-web 0.21.2 has no
+      // mapping for the latter (measured 2026-08-17), so this checkbox announced its role and never
+      // whether it was checked. The role was already right; only the state was missing.
+      {...a11yChecked(checked)}
       accessibilityLabel={label}
       style={({ pressed }) => [styles.circle, { borderColor: checked ? fill : c.border.strong, opacity: pressed ? 0.7 : 1 }]}>
       <Animated.View style={[StyleSheet.absoluteFill, styles.fill, fillStyle, { backgroundColor: fill }]} />

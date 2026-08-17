@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { day, scenario, seedStore } from './helpers/seed';
 
 /**
  * Accessibility-tree invariants, checked by a scanner rather than by assertions someone remembered to
@@ -73,6 +73,56 @@ test.describe('a11y tree invariants', () => {
     await seedStore(page, newUser());
     await page.goto('/');
     expect(await violations(page)).toEqual([]);
+  });
+
+  // ⛔ EXPLICIT ATTRIBUTE ASSERTIONS, BECAUSE `violations()` CANNOT SEE THIS CLASS. axe checks that an
+  // attribute is *valid for its role*; it has no opinion about a state attribute that was never emitted.
+  // So a control announcing its role and never its state passes every scan in this file — which is how
+  // the slider shipped with no `aria-valuenow` (3.5.7.1) and how these two shipped with no state at all.
+  //
+  // ⚡ MEASURED 2026-08-17: react-native-web 0.21.2 has NO `accessibilityState` → `aria-*` mapping (the
+  // name appears in its `dist/` only in `TouchableWithoutFeedback`'s forwarded-props list and in the
+  // legacy plural `accessibilityStates`), so every longhand site was dropped silently on web. 13 sites in
+  // 11 files carried it; these are the two the marketing embed's surface renders.
+  test('a segmented control reports WHICH segment is chosen, not just that it exists', async ({ page }) => {
+    await seedStore(page, newUser());
+    await page.goto('/money');
+    // `radio` inside a `radiogroup`, not a row of buttons: `aria-selected` is ignored on a button and
+    // `aria-pressed` is not in RN's aria vocabulary, so the role is load-bearing for the state to mean
+    // anything. See the note in `SegmentedToggle`.
+    const group = page.getByRole('radiogroup').first();
+    await expect(group).toBeVisible();
+    const chosen = group.getByRole('radio', { checked: true });
+    await expect(chosen).toHaveCount(1);
+    // …and it tracks the selection rather than being hardcoded true on the first segment.
+    const first = await chosen.textContent();
+    await group.getByRole('radio', { checked: false }).first().click();
+    await expect.poll(() => group.getByRole('radio', { checked: true }).textContent()).not.toBe(first);
+  });
+
+  test('a checkbox reports whether it is checked', async ({ page }) => {
+    // ⛔ A SEEDED DUE OBLIGATION, NOT THE DEFAULT PERSONA. Against `newUser()` this finds no action rows
+    // and skips — a green run that asserts nothing, which is defect class ① ("an assertion that passes
+    // either way") landing inside the very test written to close a silent gap. The seed is
+    // `swipe-mark-paid.spec.ts`'s, which is known to render a required row: a `dueDate` inside the cycle
+    // and a `nextPaycheckDate` that has not passed.
+    await seedStore(
+      page,
+      newUser({
+        paycheck: { amount: '2000', nextPaycheckDate: day(10) },
+        requiredExpenses: [
+          { id: 'e0', name: 'Power', amount: 90, dueDate: day(3), recurrence: 'monthly', category: 'utilities' },
+        ],
+        prefs: { onboardingComplete: true, guardianIntroSeen: true },
+      }),
+    );
+    await page.goto('/');
+    // Today's Required/Recommended action rows are the `CheckCircle` sites, and they are in the embed's
+    // surface. The attribute's PRESENCE is the assertion — its absence was the defect, and axe is blind
+    // to it because an attribute that was never emitted violates no rule.
+    const box = page.getByRole('checkbox').first();
+    await expect(box).toBeVisible();
+    await expect(box).toHaveAttribute('aria-checked', 'false');
   });
 
   test('the demo — a new surface with its own dock and marker', async ({ page }) => {
