@@ -20,9 +20,27 @@ import { defineConfig, devices } from '@playwright/test';
  * other. `dist-embed/` is generated; it is git-ignored alongside `dist/`.
  */
 
+/**
+ * ⭐ 3.5.7.8 — THE GATE NOW SERVES FROM THE BASE PATH, because that is what ships.
+ *
+ * GitHub Pages serves a **project** site under `/<repo>/`, and until this the gate proved the embed works
+ * at ROOT — so the one configuration that actually ships was the one nothing tested. That is
+ * `feedback_check_the_shipped_artifact` precisely: the App-Preview pipeline spent seven cycles asserting
+ * evidence beside the deliverable while the deliverable opened on black.
+ *
+ * The build goes into `dist-embed/<BASE>` and the server is pointed at `dist-embed`, so the app answers
+ * on `/<BASE>/` exactly as Pages will.
+ *
+ * ⛔ NO `-s` ANY MORE, AND THAT IS THE POINT. `serve -s` rewrites every 404 to `index.html` — which would
+ * hand a missing `/debt-app-v1/_expo/…js` a 200 and an HTML body, making the local gate strictly MORE
+ * forgiving than production. Pages does no such rewriting. The embed never needs it either: it only ever
+ * loads the base URL and its router moves by `history`, with no further server round-trip.
+ */
 const PORT = 4320;
+const BASE_SEGMENT = 'debt-app-v1'; // the repo name — GitHub Pages' project-site path
 const RN_DIR = __dirname;
-const OUT = path.join(RN_DIR, 'dist-embed');
+const SERVE_ROOT = path.join(RN_DIR, 'dist-embed');
+const OUT = path.join(SERVE_ROOT, BASE_SEGMENT);
 
 export default defineConfig({
   testDir: './tests/embed',
@@ -30,7 +48,11 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   forbidOnly: !!process.env.CI,
   use: {
-    baseURL: `http://localhost:${PORT}`,
+    // ⚠️ THE TRAILING SLASH IS LOAD-BEARING, and so is how the specs navigate. Playwright resolves a URL
+    // with `new URL(url, baseURL)`, so `goto('/')` against this base resolves to `http://localhost:4320/`
+    // — ABOVE the base path, where nothing is served. The specs use `goto('./')`, which stays inside it
+    // and, being relative, does not repeat the base segment anywhere a rename would have to find it.
+    baseURL: `http://localhost:${PORT}/${BASE_SEGMENT}/`,
     trace: 'on-first-retry',
   },
   webServer: {
@@ -47,15 +69,20 @@ export default defineConfig({
     // behind a public privacy claim, and a cached artifact is the one failure it cannot survive.
     command:
       `npm --prefix "${RN_DIR}" run export:web -- --output-dir "${OUT}" --clear ` +
-      `&& npx serve "${OUT}" -l ${PORT} -s`,
+      `&& npx serve "${SERVE_ROOT}" -l ${PORT}`,
     // ⭐ THE FLAG IS SET HERE AND NOWHERE ELSE. It is what makes this build the embed: `sessionStorage`
     // instead of `localStorage` (3.5.7.3). Drop it and the storage assertion fails — the intended
     // failure, not a flake.
     // ⚠️ Playwright's own `env`, deliberately NOT a `VAR=1 cmd` prefix and NOT `cross-env`: the prefix
     // form is not portable to Windows shells, and `cross-env` is not a dependency of this repo (checked,
     // not assumed) — adding one to set a single variable Playwright already supports setting.
-    env: { EXPO_PUBLIC_EMBED: '1' },
-    url: `http://localhost:${PORT}`,
+    // ⚠️ `EXPO_PUBLIC_BASE_URL` does TWO jobs, which is why it carries the public prefix: `app.config.js`
+    // reads it in Node to set `experiments.baseUrl` (rewriting `/_expo/…` → `/debt-app-v1/_expo/…`), and
+    // Metro inlines it into the bundle so CanvasKit's `locateFile` can find the wasm under the base path.
+    // ⛔ Named `EXPO_BASE_URL` at first: the HTML came out right and `canvaskit.wasm` still 404'd at root,
+    // because only `EXPO_PUBLIC_*` reaches the client.
+    env: { EXPO_PUBLIC_EMBED: '1', EXPO_PUBLIC_BASE_URL: `/${BASE_SEGMENT}` },
+    url: `http://localhost:${PORT}/${BASE_SEGMENT}/`,
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,
     gracefulShutdown: { signal: 'SIGTERM', timeout: 5_000 },

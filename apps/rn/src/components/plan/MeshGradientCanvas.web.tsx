@@ -1,5 +1,7 @@
 import { WithSkiaWeb } from '@shopify/react-native-skia/lib/module/web';
 
+import { canvasKitOpts } from '@/utils/canvaskit';
+
 import type { MeshGradientChartProps } from './MeshGradientChart';
 
 /** Web mesh-gradient canvas — lazy-loads CanvasKit (served from public/) on mount. Transparent fallback
@@ -8,7 +10,7 @@ export function MeshGradientCanvas(props: MeshGradientChartProps) {
   return (
     <WithSkiaWeb
       getComponent={() => import('./MeshGradientChart')}
-      opts={{ locateFile: (file: string) => `/${file}` }}
+      opts={canvasKitOpts}
       componentProps={props}
       fallback={null}
     />

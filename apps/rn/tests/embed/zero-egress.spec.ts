@@ -33,7 +33,7 @@ test.describe('the embed is private by construction', () => {
       if (!isLocal(r.url(), origin)) foreign.push(`${r.method()} ${r.url()}`);
     });
 
-    await page.goto('/');
+    await page.goto('./');
     await page.waitForLoadState('networkidle');
 
     // Exercise it rather than only booting it: a page that egresses on interaction would pass a
@@ -45,7 +45,7 @@ test.describe('the embed is private by construction', () => {
   });
 
   test('writes NO persistent storage — sessionStorage only', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('./');
     await page.waitForLoadState('networkidle');
     // Give the store's debounced autosave (500 ms, `persistence.ts:14`) room to actually fire, or this
     // asserts nothing: an empty localStorage before the first write is not evidence of anything.
@@ -77,7 +77,7 @@ test.describe('the embed is private by construction', () => {
   });
 
   test('carries no analytics or crash-reporter transport', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('./');
     await page.waitForLoadState('networkidle');
 
     // ⚠️ 3.5.7.2's before-scan established there is nothing to omit: the funnel has no sink and no vendor

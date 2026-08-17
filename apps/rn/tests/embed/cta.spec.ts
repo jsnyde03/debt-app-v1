@@ -19,7 +19,7 @@ const dockAt = (n: number) => new RegExp(`Demonstration, ${n} of \\d+\\.`);
 
 test.describe("the embed's only way out is the App Store", () => {
   test('the CTA is a real link to the real listing, opening in a new tab', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('./');
     await expect(page.getByLabel(dockAt(1))).toBeVisible({ timeout: 15_000 });
 
     const cta = page.getByTestId('embed-app-store-cta');
@@ -37,7 +37,7 @@ test.describe("the embed's only way out is the App Store", () => {
   });
 
   test('neither of the app\'s exits survives here', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('./');
     await expect(page.getByTestId('embed-app-store-cta')).toBeVisible({ timeout: 15_000 });
 
     // Both are correct in the app and wrong in an embed. Asserting their ABSENCE is what stops the swap
@@ -47,7 +47,7 @@ test.describe("the embed's only way out is the App Store", () => {
   });
 
   test('the privacy claim is on screen beside the ask', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('./');
     await expect(page.getByLabel(dockAt(1))).toBeVisible({ timeout: 15_000 });
 
     // 3.5.7.9's settled wording, and it is exactly what `zero-egress.spec.ts` enforces on every push —

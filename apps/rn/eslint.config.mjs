@@ -45,9 +45,23 @@ export default defineConfig([
           message:
             'Dropped silently by react-native-web (fences native only). Use a11yHidden(flag) or `decorative` from @/utils/a11y.',
         },
+        {
+          // ⛔ 3.5.7.8 — A CLASS CLOSED AT SOME OF ITS MEMBERS, MEASURED. `locateFile` was hand-written in
+          // **six** `.web.tsx` canvases; a `grep | head -5` found three, and fixing those three shipped an
+          // embed where Money and Progress drew and **Today did not** — `CushionBarCanvas` was in the
+          // half nobody looked at. The probe printed `HTTP 404 /canvaskit.wasm` while the document sat on
+          // the base path, which is the only reason it was caught before deploy.
+          //
+          // A rule, not a convention, for the same reason as the one above: the linter knows every site.
+          selector: "Property[key.name='locateFile']",
+          message:
+            "CanvasKit's wasm path is owned by `canvasKitOpts` in @/utils/canvaskit — it has to honour the marketing embed's base path, and six hand-written copies is how five of them get fixed.",
+        },
       ],
     },
   },
+  // The one file that legitimately writes `locateFile` — it is what the rule above points everything at.
+  { files: ['src/utils/canvaskit.ts'], rules: { 'no-restricted-syntax': 'off' } },
   // `utils/a11y.ts` is where the two props are legitimately written — it is the one file that knows what
   // `aria-hidden` expands to, and the rule above exists to keep it that way.
   { files: ['src/utils/a11y.ts'], rules: { 'no-restricted-syntax': 'off' } },

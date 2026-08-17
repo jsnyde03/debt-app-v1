@@ -377,11 +377,68 @@ exits) · walkthrough = AFTER onboarding, on your own money.
 entry · the a11y state fix · ⭐ **the two exits → ONE App Store CTA**, a real `<a>`, gated on `EMBED_DEMO` ·
 the privacy line **settled and rendered**. Detail + every scan → log.
 
-▶ **REMAINING: .8 — the GitHub Pages deploy of `dist-embed`.** Unblocked. ⚠️ It is the moment the privacy
-claim becomes public, which is why .4's gate had to exist first.
+### ▶ 3.5.7.8 — the GitHub Pages deploy _(active)_
+
+⚠️ This is the moment the privacy claim becomes public, which is why .4's gate had to exist first.
+
+| # | Step | State |
+|---|---|---|
+| **.1** | **`app.config.js` overlay** — `experiments.baseUrl` from `EXPO_PUBLIC_BASE_URL`, byte-inert when unset | ✅ |
+| **.2** | **CanvasKit's `locateFile` base-aware and owned ONCE** | ✅ **SIX sites, not three** — `canvasKitOpts` + a `no-restricted-syntax` rule, proven on a plant |
+| **.3** | **The embed gate serves from the BASE PATH** | ✅ build → `dist-embed/debt-app-v1`, served without `-s`, **10/10** · a new spec fails on ANY response ≥ 400 |
+| **.4** | **The Pages workflow** | ✅ `embed-pages.yml` — base URL derived from the repo name, and it **asserts its own artifact** before publishing |
+| **.5** | **Enable Pages, verify the live URL** | ⛔ **BLOCKED ON 🎯 — see below** |
+
+⛔ **[.5] BLOCKED, AND IT IS THE `release/v1` RULE DOING ITS JOB.** `workflow_dispatch` only appears once
+the workflow exists on the **DEFAULT branch**, which is `release/v1` — *never pushed to*. And **Pages is
+not enabled** on the repo (`GET /pages` → 404). Both are 🎯's: land `embed-pages.yml` on `release/v1`
+(`native-e2e.yml` is there for exactly this reason) and switch Pages to **Source: GitHub Actions**.
+⚠️ Surfaced rather than worked around, per the standing rule — the workaround is a `push:` trigger, and
+that would publish states no gate had passed.
 
 **Exit:** a public embed whose privacy claim is enforced by a test that runs on every push, not asserted
-in prose.
+in prose — and which is verified against the path it is actually served from.
+
+⛔ **[before-scan] DEPLOYING AS-IS WOULD SHIP A BLANK PAGE — measured, not feared.** The embed's assets are
+absolute from ROOT (`src="/_expo/static/js/web/…"`) and a GitHub Pages **project** site serves under
+`/debt-app-v1/`, so every one of them 404s. That is this repo's nastiest regression class — the one
+`route-smoke.spec.ts` exists for — arriving by deployment rather than by code. ⚡ **The fix is measured
+too:** `experiments.baseUrl` via an `app.config.js` overlay rewrites them to `/debt-app-v1/_expo/…`.
+
+⛔ **[before-scan] AND CANVASKIT WOULD STILL BREAK, because `locateFile` is hardcoded to root in THREE
+FILES** — `AllocationBarCanvas.web.tsx`, `TrajectoryCanvas.web.tsx`, `CashRunwayCanvas.web.tsx`, each
+carrying its own `(file) => \`/${file}\``. Under a base path the wasm 404s and **every Skia chart on the
+embed's arc fails**, including beat 4, which is entirely about the curve. ⚡ It is already *three places,
+one rule* — the shape this repo has been bitten by repeatedly — so .2 extracts it rather than editing it
+three times.
+
+⛔ **[before-scan] THE GATE PROVES THE EMBED WORKS AT ROOT; PAGES SERVES IT AT A SUBPATH.** The one
+configuration that ships is the one nothing tests — `feedback_check_the_shipped_artifact` exactly, and the
+reason .3 exists rather than being optional polish.
+
+⛔⛔ **[.2 after-scan] THE CLASS WAS SIX SITES, NOT THREE — AND MY OWN `grep … | head -5` IS WHAT HID THE
+OTHER THREE.** Fixing the three I could see produced an embed where **Money and Progress drew and Today
+did not**: `CushionBarCanvas` was in the half nobody looked at. ⚡ Caught by a probe printing
+`HTTP 404 /canvaskit.wasm` while the document sat happily on the base path — *not* by re-reading the code.
+**Now a `no-restricted-syntax` rule**, proven on a planted seventh copy. ⚠️ *A truncated search reads
+exactly like a complete one.*
+
+⛔ **[.1 after-scan] MY OWN STATED MECHANISM WAS WRONG, AND THE ARTIFACT SAID SO.** The file claimed
+`EXPO_BASE_URL` is *"inlined by the bundler, exactly like `EXPO_PUBLIC_EMBED`"*. **Metro inlines only
+`EXPO_PUBLIC_*`** — so the HTML came out perfectly base-pathed while the browser read `undefined` and the
+wasm 404'd at root. Renamed to **`EXPO_PUBLIC_BASE_URL`: one variable, two consumers** (`app.config.js` in
+Node, the bundle in the browser). *A stated mechanism is a hypothesis until an artifact agrees with it.*
+
+⚠️ **[.3 after-scan] `serve -s` WAS DROPPED DELIBERATELY, and dropping it is the assertion.** SPA rewriting
+answers a missing `/debt-app-v1/_expo/…js` with **index.html and a 200**, making the local gate strictly
+more forgiving than Pages, which does no rewriting at all. ⚠️ Also: `goto('/')` resolves **above** a
+baseURL subpath (`new URL('/', base)`), so the specs use `goto('./')` — which is base-agnostic and repeats
+the segment nowhere.
+
+⚠️ **[before-scan] Git Bash mangles a leading-slash env value into a Windows path** — `EXPO_BASE_URL=/debt-app-v1`
+became `C:/Program Files/Git/debt-app-v1` in the emitted HTML. Measured on the first probe. CI is Linux and
+unaffected; a local Windows build needs `MSYS_NO_PATHCONV=1`, and without it the artifact looks plausible
+and is wrong.
 
 ⛔ **[.7 after-scan, STANDING] The embed's dock is NOT the app's dock.** Any checklist row that names
 *"Unlock Premium"* or *"Start my real plan"* is unprovable on the embed — see 4.1.10, whose routing this
@@ -522,6 +579,11 @@ runs today (no `COVERS:`; `i02`'s light run *is* recorded), so nothing is curren
 same hazard `maestro-results.mjs`'s header documents for flow `09`: **the next flow added in its own
 invocation disappears from the record silently.** ⚠️ `lint:lane` is where this becomes a check —
 *every `maestro test` call either writes a JUnit or declares itself a measurement.*
+
+**[3.5.7.8 before-scan, 2026-08-17] The embed's public URL names the repo — `jsnyde03.github.io/debt-app-v1/`.**
+Fine for an iframe, whose src nobody reads, and slightly off for anything a person lands on directly. A
+custom domain (or a repo rename) removes it. **Not a blocker and deliberately not folded in** — it is a
+brand call with a DNS dependency, and the deploy works either way. → 🎯 whenever the marketing page exists.
 
 **Device-gated → the Phase-6 pass:** Today/cushion-forecast selector memoization *(conditional on a real
 measured hotspot)* — ⚠️ **A3.1 added one extra allocation** on Today whenever the discovery hold is active
