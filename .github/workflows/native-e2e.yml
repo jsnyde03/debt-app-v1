@@ -300,8 +300,17 @@ jobs:
         # coach-mark "once ever" flags it needs. Every green this suite has ever shown was order-luck.
         #
         # The dependency chain the list encodes: 01 seeds → 02-06 consume that seed → 07 CLEARS and
-        # rebuilds → 08 runs on what 07 built → 10 precedes 09 → 09 is terminal (it clears state).
-        # Adding a flow means deciding where in that chain it sits.
+        # rebuilds → 08 runs on what 07 built → 10. Adding a flow means deciding where in that chain it sits.
+        #
+        # ⛔ 4.1.7 — `09` LEFT THIS INVOCATION AND RUNS IN ITS OWN STEP AT THE END, and the reason is a
+        # defect its own header predicted. `09` begins `clearState: true` and states: *"RUNS LAST AND
+        # CLEARS STATE… anything added after this must re-seed."* The XCUITest probe was later added
+        # after it and does NOT re-seed — so the probe relaunched into a fresh install with no tab bar,
+        # which is precisely the `rendered=false` its anchor reported in run 32037021903. Everything that
+        # needs an onboarded app (the probe, the Reduce-Motion readout in More) now runs BEFORE `09`, and
+        # `09` is still genuinely last.
+        # ⚠️ The cost is one extra driver start (~40s, the first-snapshot cost). The chain is unchanged —
+        # `09` was always terminal and self-contained, so nothing depends on it running in this call.
         #
         # ⚠️ ONE invocation, not a loop of ten. The 42.7 s stall that reds a cold assertion is a
         # FIRST-SNAPSHOT-PER-DRIVER-SESSION cost; separate invocations would restart the driver and
@@ -332,7 +341,6 @@ jobs:
               .maestro/07-money-add-and-rescue.yaml \
               .maestro/08-coach-marks.yaml \
               .maestro/10-walkthrough-edges.yaml \
-              .maestro/09-demo-explore.yaml \
               --format junit --output maestro-report.xml --debug-output ./maestro-debug 2>&1 | tee "$1"
           }
 
@@ -412,6 +420,63 @@ jobs:
           echo "xcodebuild exit: $STATUS (recorded, not fatal — see the step comment)"
           exit 0
 
+      # ── 4.1.7① · IS REDUCE MOTION OBSERVABLE FROM OUTSIDE THE APP? ──────────────────────────────
+      #
+      # Two checklist verdicts hang on this: §B3.6 and §11.7 are `[M◐]` only if the app observes a
+      # Reduce-Motion setting the lane can write, and fall to `[D]` — device pass +2 — if it does not.
+      #
+      # ⚠️ THE PLAN ASKED THIS AS "does RN's `AccessibilityInfo` observe it", and that is the wrong
+      # question: the app gates every animation on `useReduceMotion()`, which is Reanimated's
+      # `useReducedMotion()`. `AccessibilityInfo` could see the write while the app still animates. The
+      # readout reports BOTH, and which way they disagree decides whether the fix is "switch the hook" or
+      # "the rows are device-owed".
+      #
+      # ⛔ WRITE, THEN RELAUNCH. Reanimated snapshots the value at init, so a mid-session toggle would
+      # report false for a reason unrelated to the question.
+      # ⚠️ `simctl ui` has no reduce-motion key on this Xcode, so the preference is written directly. That
+      # is an UNPROVEN command by 4.1.1's rule, which is why the step reads it back: "the write did not
+      # take" and "the app cannot see it" are different answers and must not be conflated.
+      # ⛔ RESTORED TO OFF before `09` runs, so the terminal flow is not silently measured under a
+      # non-default accessibility setting.
+      - name: Reduce-Motion observability (4.1.7① — reports, never fails)
+        if: ${{ !cancelled() && inputs.mode != 'probe' && inputs.scope != 'xcuitest' }}
+        continue-on-error: true
+        env:
+          # ⛔ PARITY, AND THIS OMISSION IS THE LANE'S OLDEST REPEAT DEFECT. The iPhone suite was raised
+          # 240 s → 420 s after run 31646289268 lost a whole cycle to `iOS driver not ready in time`; the
+          # iPad tier kept the old value and paid the identical cost a day later at run 31822453981. This
+          # step is a THIRD driver start, and it shipped with no timeout at all until the 4.1.7 after-scan
+          # caught it. **When a fix is written into one step of a symmetric set, the SET is the unit.**
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: '420000'
+        run: |
+          APP_ID=com.jasonsnyder.debtplanner
+          echo "── writing the preference ──"
+          xcrun simctl spawn booted defaults write com.apple.Accessibility ReduceMotionEnabled -bool true || true
+          READBACK=$(xcrun simctl spawn booted defaults read com.apple.Accessibility ReduceMotionEnabled 2>/dev/null || echo "unreadable")
+          echo "PROBE reduceMotion.pref.written=$READBACK"
+          xcrun simctl terminate booted "$APP_ID" || true
+          xcrun simctl launch booted "$APP_ID" || true
+          maestro test .maestro/11-reduce-motion.yaml --debug-output ./maestro-debug \
+            || echo "::warning::the reduce-motion readout could not be reached — see rm-probe-readout.png"
+          echo "── restoring the default ──"
+          xcrun simctl spawn booted defaults write com.apple.Accessibility ReduceMotionEnabled -bool false || true
+          xcrun simctl terminate booted "$APP_ID" || true
+          echo "⚠️ The VALUE is in the view hierarchy (lane-diagnostics) and in rm-probe-readout.png."
+          echo "   reanimated=1 → the lane can drive it · reanimated=0 a11yInfo=1 → switch the hook ·"
+          echo "   both 0 → §B3.6 and §11.7 fall back to [D] and the device pass rises by 2."
+
+      # ⛔ `09` IS GENUINELY LAST, IN ITS OWN INVOCATION. See the note on the suite step: it opens with
+      # `clearState: true` and its header requires anything after it to re-seed, so everything that needs
+      # an onboarded app runs above and this closes the tier.
+      - name: Run the terminal flow (09 — clears state, needs the fresh-install door)
+        if: ${{ !cancelled() && inputs.mode != 'probe' && inputs.scope != 'xcuitest' }}
+        env:
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: '420000'
+        run: |
+          set -o pipefail
+          maestro test .maestro/09-demo-explore.yaml \
+            --format junit --output maestro-report-09.xml --debug-output ./maestro-debug
+
       # ── 4.1.1 · THE CAPABILITY PROBE ────────────────────────────────────────────────────────────
       # Each file runs in its OWN maestro invocation, and a failure is recorded rather than fatal.
       #
@@ -421,7 +486,10 @@ jobs:
       - name: Probe · run each unproven command separately
         if: ${{ inputs.mode == 'probe' }}
         env:
-          MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
+          # ⚠️ WAS 240 s — the value both tiers were raised FROM, left behind here. Same set, same fix:
+          # a probe lane that dies on driver startup burns a full cycle and reports nothing, which is the
+          # one outcome 4.1.1's design exists to prevent.
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: '420000'
         run: |
           mkdir -p maestro-debug
           : > maestro-debug/probe-verdicts.txt
@@ -555,6 +623,7 @@ jobs:
           # the includes.
           path: |
             apps/rn/maestro-report.xml
+            apps/rn/maestro-report-09.xml
             apps/rn/maestro-debug/**
             apps/rn/xcodebuild-xctest.log
             !apps/rn/maestro-debug/**/device-simulator.log
@@ -737,6 +806,54 @@ jobs:
           done
 
           echo "iPad tier exit status: $STATUS (recorded, not fatal — see the step comment)"
+          exit 0
+
+      # ── 4.1.7② · THE ⌘-KEY PROBE, ON THE TIER WHOSE ROWS IT DECIDES ────────────────────────────
+      #
+      # ⛔ THE IPAD JOB, NOT THE IPHONE ONE. §10 is the iPad section of the checklist ("needs an iPad AND
+      # a 3.6-inclusive build") and the three `[A]` rows are §10.5 ⌘N · §10.6 ⌘1/2/3 · §10.7 the hold-⌘
+      # HUD. Proving `typeKey` on an iPhone sim would prove a CAPABILITY and claim iPad ROWS — the exact
+      # "reach is not coverage" overstatement .7.5 caught when sixteen rows nearly moved on springboard
+      # reach alone.
+      #
+      # ⚡ IT ALSO A/Bs 4.1.7③ FOR FREE. The same probe runs on the iPhone tier, where the a11y anchor
+      # measured `rendered=false`. This tier does NOT run flow `09` — it ends on `05-tutorial-walkthrough`
+      # — so if the anchor renders here and not there, the "09 cleared state" hypothesis holds; if it is
+      # empty on both, the hypothesis is wrong and the fix would have been aimed at nothing.
+      #
+      # ⚠️ Same gates as the iPhone copy: `!cancelled()` so a red tier does not silently skip the second
+      # signal, and `continue-on-error` because the verdict table is the deliverable, not the exit code.
+      - name: Run the XCUITest probe on the iPad (non-fatal — the verdict is the deliverable)
+        if: ${{ !cancelled() && needs.build.outputs.xctest == 'true' }}
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mkdir -p maestro-debug
+          XCTESTRUN=$(ls ios/build/Build/Products/*.xctestrun 2>/dev/null | head -1)
+          if [ -z "$XCTESTRUN" ]; then
+            echo "::warning::no .xctestrun — the build job reported one but it did not arrive in the tarball"
+            exit 0
+          fi
+          # The iPad this tier booted is the one that must answer §10, so the destination is read back
+          # from the booted device rather than re-derived. If the tier failed before booting, there is
+          # nothing to probe and that is reported, not guessed at.
+          UDID=$(xcrun simctl list devices booted | grep -oE '[0-9A-F]{8}-[0-9A-F-]{27}' | head -1)
+          echo "xctestrun : $XCTESTRUN"
+          echo "destination: $UDID (iPad)"
+          if [ -z "$UDID" ]; then
+            echo "::warning::no booted simulator — the iPad tier did not get far enough to probe"
+            exit 0
+          fi
+          STATUS=0
+          xcodebuild test-without-building \
+            -xctestrun "$XCTESTRUN" \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            2>&1 | tee xcodebuild-xctest-ipad.log | tail -60 || STATUS=$?
+          echo "════════ 4.1.7 XCUITEST PROBE VERDICTS (iPad) ════════"
+          grep -E "^ *PROBE " xcodebuild-xctest-ipad.log | tee maestro-debug/xcuitest-verdicts-ipad.txt \
+            || echo "(no PROBE lines — the tests did not execute; check TEST EXECUTE FAILED / 'no tests' above)"
+          echo "══════════════════════════════════════════════════════"
+          echo "xcodebuild exit: $STATUS (recorded, not fatal — see the step comment)"
           exit 0
 
       - name: Screenshot the final simulator state

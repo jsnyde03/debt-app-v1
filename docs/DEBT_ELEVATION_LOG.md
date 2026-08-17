@@ -9997,6 +9997,83 @@ than being invented here. **It blocks .6** — this is not something to deploy p
 
 ---
 
+## 2026-08-17 — 4.1.7 built: the three questions, and one of them answered itself on the way
+
+🎯 approved building all three plus an iPad probe, with standing permission to dispatch until 4.1 closes.
+
+### ⭐ ③ WAS DIAGNOSED WITHOUT A DISPATCH — flow `09`'s header had already written the answer
+
+Its opening comment: *"⚠️ RUNS LAST AND CLEARS STATE. `07` already clears, `08` follows it, and this
+needs the FRESH-INSTALL door… **Anything added after this must re-seed.**"* The XCUITest probe was added
+after it, and does not re-seed. So `app.launch()` came up in a fresh install with no tab bar — which is
+precisely `PROBE a11yAnchor id=tab-today rendered=false elements=58`.
+
+⚡ **The fix is ORDERING, not a new capability.** `09` now runs in its own final invocation and
+everything that needs an onboarded app — the XCUITest probe, and the Reduce-Motion readout that lives in
+More — runs before it. ⚠️ One extra driver start (~40s, the first-snapshot cost); the dependency chain is
+untouched because `09` opens `clearState: true` and was always self-contained. ⛔ `lint:lane` now encodes
+the rule as two checks, so the next thing appended after `09` fails locally instead of in twenty minutes.
+The Swift also dumps the first 40 element identifiers when the anchor misses, so a future miss says what
+was on screen instead of only that something was.
+
+⚠️ Still to confirm on the runner. The iPad tier never ran `09`, so its probe is a free A/B: an anchor
+that renders there and not on iPhone confirms the mechanism; empty on both refutes it.
+
+### ⚠️ ① THE PLAN ASKED THE WRONG QUESTION, and the before-scan caught it
+
+It read: *"§B3.6 and §11.7 are `[M◐]` only if RN's `AccessibilityInfo` observes the `simctl`
+Reduce-Motion write."* **The app does not use `AccessibilityInfo` for this.** Every animation gates on
+`useReduceMotion()` → Reanimated's `useReducedMotion()` (`src/motion/hooks.ts`). So the plan's question
+could be answered YES while the app still animates — which is what the two rows are actually about.
+
+⭐ **So the readout reports BOTH, and the disagreement is the finding:**
+
+| reanimated | a11yInfo | meaning |
+|---|---|---|
+| 1 | 1 | the lane can drive Reduce Motion; both rows stay automatable |
+| 0 | 1 | the setting IS observable, the app's hook is not reactive → **switch the hook** |
+| 0 | 0 | nothing outside the app can set it here → both rows fall to `[D]`, **device pass +2** |
+
+⚠️ Reanimated snapshots the value at init, so the step writes the preference and **relaunches** before
+reading. `simctl ui` has no reduce-motion key on this Xcode, so the pref is written directly — an
+unproven command by 4.1.1's rule, which is why the step **reads it back**: *"the write did not take"* and
+*"the app cannot see it"* are different answers and must not be conflated. Restored to off before `09`.
+
+### ⭐ ② THE ⌘-KEY PROBE RUNS ON THE IPAD, and that is the whole point
+
+§10 is the iPad section of the checklist, and the three `[A]` rows are §10.5 ⌘N · §10.6 ⌘1/2/3 · §10.7
+the hold-⌘ HUD. Proving `typeKey` on an iPhone sim would prove a **capability** and claim **iPad rows** —
+the same overstatement .7.5 caught when sixteen rows nearly moved on springboard reach alone. So the iPad
+job gained its own probe step; it already receives the `.xctestrun` in 4.1.9b's tarball, so it was a step,
+not a rebuild.
+
+⚠️ **Delivery and handling are reported separately.** `treeChanged` says the keystroke reached the app at
+all; `opened` says the app acted on it. `KeyCommandsModule`'s own header names holding first responder
+inside RN's view tree as the part that cannot be verified in simulator flows — so a red could be either,
+and conflating them would file a product defect as a tooling limit or the reverse.
+
+⛔ **§10.7's HUD is explicitly NOT probed.** `typeKey` sends a keystroke, not a held modifier, and there
+is no XCUITest API for "hold ⌘ without a key". It needs its own probe or stays device-owed — the same
+discipline that kept StandBy permanently `[D]`.
+
+### ⛔ A SELECTOR I INVENTED, CAUGHT BEFORE IT COST A CYCLE
+
+The first draft of the ⌘N assertion matched `identifier: "debt-sheet"` — **which does not exist anywhere
+in the app.** The Maestro flows detect that sheet with `assertVisible: "Add a debt"` and it carries no
+testID. A selector that matches nothing reports *"the key was not handled"*, which would have filed a
+tooling verdict against a product that works. Found by grepping the app before dispatching rather than
+by reading an artifact afterwards. ⚠️ The title is a ternary on `prefill` (T3's row: "Add from scan" /
+"Add a debt"); ⌘N carries no prefill.
+
+### ⚠️ AND THE SPLIT NEARLY DROPPED A FLOW FROM ITS OWN RECORD
+
+Moving `09` into its own invocation gives it its own JUnit file, and `collect-lane-diagnostics` read
+exactly one report per tier — so `native-lane-results-iphone.json` would have listed 9 flows where 10
+ran, with nothing saying a report had been missed. The reader takes a **list** of reports now. ⚡ The
+instrument built to stop silent overstatement was one edit away from silently understating.
+
+---
+
 ## 2026-08-17 — 🎯 the 74 "coverable, not yet built" move to Phase 6 — and .10 does not
 
 🎯 Jason: *"I believe that the coverable-not-built tasks should be a part of Phase 6. Agreed?"* — then,

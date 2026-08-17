@@ -39,7 +39,13 @@ const FLOW_DIR = join(RN, '.maestro');
 // Per-tier inputs. The iPad tier writes its own report and TWO debug directories (light and the
 // 4.1.5.6 dark re-run); the iPhone tier writes one of each.
 const TIERS = {
-  iphone: { junit: join(RN, 'maestro-report.xml'), debug: [join(RN, 'maestro-debug')] },
+  // ⚠️ TWO REPORTS. 4.1.7 split flow `09` into its own `maestro test` call (it opens `clearState: true`,
+  // so the probe and the Reduce-Motion readout must run before it), and that call writes its own JUnit.
+  // Listing only the first would drop `09` from the durable record without anything saying so.
+  iphone: {
+    junit: [join(RN, 'maestro-report.xml'), join(RN, 'maestro-report-09.xml')],
+    debug: [join(RN, 'maestro-debug')],
+  },
   ipad: {
     junit: join(RN, 'maestro-report-ipad.xml'),
     debug: [join(RN, 'maestro-debug-ipad'), join(RN, 'maestro-debug-ipad-dark'), join(RN, 'maestro-debug')],

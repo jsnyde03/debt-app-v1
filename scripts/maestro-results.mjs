@@ -70,8 +70,14 @@ export function parseJunit(xml) {
 }
 
 export function buildResults({ junitPath, tier = 'unknown', flowDir }) {
-  const xml = junitPath && existsSync(junitPath) ? readFileSync(junitPath, 'utf8') : '';
-  const cases = xml ? parseJunit(xml) : [];
+  // ⛔ SEVERAL REPORTS PER TIER, because a tier is not always one `maestro test` call. 4.1.7 moved flow
+  // `09` into its own invocation (it opens `clearState: true`, so everything needing an onboarded app has
+  // to run before it) and that call writes its own JUnit. Reading only the first file would have dropped
+  // `09` from the record silently — the results file would say 9 flows where 10 ran, and nothing would
+  // report the gap. The reader takes a list for exactly that reason.
+  const paths = (Array.isArray(junitPath) ? junitPath : [junitPath]).filter((p) => p && existsSync(p));
+  const xml = paths.map((p) => readFileSync(p, 'utf8')).join('\n');
+  const cases = paths.flatMap((p) => parseJunit(readFileSync(p, 'utf8')));
 
   // Resolve each testcase back to the flow FILE, because that is the key `coverage-split.ts` reads
   // `COVERS:` out of. Stem match first (today's behaviour), then an exact filename, then give up loudly.

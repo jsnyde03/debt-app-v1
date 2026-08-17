@@ -212,18 +212,63 @@ if (wf?.jobs) {
 
   // ⛔ .7.4c's REQUIREMENT, WRITTEN DOWN AS A CHECK. The probe sat between the two tiers before the
   // split; a split that drops it looks exactly like a probe that found nothing.
-  check(
-    'the XCUITest probe step is in the iphone job',
-    steps(jobs.iphone).some((s) => /XCUITest probe/i.test(String(s?.name ?? ''))),
-    'a probe that stops running is indistinguishable from a probe that finds nothing',
+  // ⚠️ BOTH TIERS now, since 4.1.7: the iPad copy is what decides §10's three ⌘-key rows, and proving
+  // `typeKey` on the iPhone while claiming iPad rows is the "reach is not coverage" error .7.5 caught.
+  for (const tier of ['iphone', 'ipad']) {
+    const probeStep = steps(jobs[tier]).find((s) => /XCUITest probe/i.test(String(s?.name ?? '')));
+    check(
+      `the ${tier} job runs the XCUITest probe`,
+      !!probeStep,
+      'a probe that stops running is indistinguishable from a probe that finds nothing',
+    );
+    // …and it must survive a red suite. A bare `if:` carries an implicit success(); run 31626109780.
+    check(
+      `the ${tier} probe still runs after a red suite`,
+      String(probeStep?.if ?? '').includes('!cancelled()'),
+      'a bare `if:` carries an implicit success(), so a red suite would skip the second independent signal',
+    );
+  }
+
+  // ⛔ THE LANE'S OLDEST REPEAT DEFECT, NOW A CHECK. `MAESTRO_DRIVER_STARTUP_TIMEOUT` was raised
+  // 240 s → 420 s on the iPhone suite after run 31646289268 lost a whole cycle to `iOS driver not ready
+  // in time`. The iPad tier kept the old value and paid the identical cost at run 31822453981. The 4.1.1
+  // probe lane still held 240 s months later, and 4.1.7's Reduce-Motion step shipped with none at all —
+  // caught by an after-scan, not by anything automatic. Four instances of one fix applied piecemeal.
+  // ⚡ A driver stall is indistinguishable from a green suite in cost and from a real failure in exit
+  // code, so the cost of each instance is a whole cycle. Every step that runs `maestro test` declares the
+  // same timeout, or this fails locally in one second.
+  const maestroSteps = Object.entries(wf?.jobs ?? {}).flatMap(([job, j]: [string, any]) =>
+    steps(j)
+      .filter((s) => /maestro test/.test(String(s?.run ?? '')))
+      .map((s) => ({ job, name: String(s.name ?? '?'), timeout: s.env?.MAESTRO_DRIVER_STARTUP_TIMEOUT })),
   );
-  // …and it must survive a red suite. A bare `if:` carries an implicit success(); run 31626109780.
-  const probeStep = steps(jobs.iphone).find((s) => /XCUITest probe/i.test(String(s?.name ?? '')));
+  const timeouts = new Set(maestroSteps.map((s) => String(s.timeout)));
   check(
-    'the probe still runs after a red Maestro suite',
-    String(probeStep?.if ?? '').includes('!cancelled()'),
-    'a bare `if:` carries an implicit success(), so a red suite would skip the second independent signal',
+    'every `maestro test` step declares the same driver-startup timeout',
+    maestroSteps.length > 0 && timeouts.size === 1 && !timeouts.has('undefined'),
+    maestroSteps.map((s) => `${s.job}/"${s.name}"=${s.timeout ?? 'MISSING'}`).join(', ') +
+      ' — a stall costs a whole cycle and reads as a real failure',
   );
+
+  // ⛔ 4.1.7 — EVERYTHING THAT NEEDS AN ONBOARDED APP MUST PRECEDE `09`. Its header states the rule
+  // ("runs last and clears state… anything added after this must re-seed") and the XCUITest probe broke
+  // it, which is what produced `rendered=false`. This encodes the rule so the next addition cannot.
+  const iphoneSteps = steps(jobs.iphone);
+  const idxOf = (re: RegExp) => iphoneSteps.findIndex((s) => re.test(String(s?.name ?? '')));
+  const terminalIdx = idxOf(/terminal flow/i);
+  if (terminalIdx !== -1) {
+    for (const [label, re] of [
+      ['the XCUITest probe', /XCUITest probe/i],
+      ['the Reduce-Motion readout', /Reduce-Motion/i],
+    ] as const) {
+      const i = idxOf(re);
+      check(
+        `${label} runs BEFORE the terminal flow (09)`,
+        i !== -1 && i < terminalIdx,
+        '09 opens `clearState: true`; anything after it meets a fresh install with no onboarded state',
+      );
+    }
+  }
 
   // ⚡ upload-artifact v4 ERRORS on a duplicate name, and it does so after the work is done — a whole
   // run's evidence lost at the last step. Two jobs uploading `maestro-report` is exactly what the split
@@ -274,11 +319,14 @@ check(
 // in the FILE, so the iPad tier's `01` and `05` landed on the end of the list and it reported that flow
 // 09 does not run last — against a workflow where it does. A verifier that reads a wider scope than the
 // rule it enforces produces exactly this: a confident red on correct code.
-const iphoneSuiteRun = String(
-  steps(wf?.jobs?.iphone).find((s) => /Run Maestro flows/i.test(String(s?.name ?? '')))?.run ?? '',
-);
-const iphoneList = [...iphoneSuiteRun.matchAll(/\.maestro\/([\w-]+\.yaml)/g)]
-  .map((m) => m[1])
+//
+// ⚠️ READ ACROSS EVERY MAESTRO STEP IN THE JOB, IN STEP ORDER — a tier is no longer one invocation.
+// 4.1.7 moved `09` into its own step because it opens `clearState: true` and everything needing an
+// onboarded app must precede it. A check that read only "Run Maestro flows" would have declared `09`
+// missing and, worse, would have gone quiet about the ordering rule it exists to enforce.
+const iphoneList = steps(wf?.jobs?.iphone)
+  .filter((s) => /maestro test/.test(String(s?.run ?? '')))
+  .flatMap((s) => [...String(s.run).matchAll(/\.maestro\/([\w-]+\.yaml)/g)].map((m) => m[1]))
   .filter((f) => /^\d\d-/.test(f));
 const at = (prefix: string) => iphoneList.findIndex((f) => f.startsWith(prefix));
 if (iphoneList.length) {

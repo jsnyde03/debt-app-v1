@@ -49,7 +49,7 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 | **4.1.5** | **The iPad tier's REAL checks.** 4.1.5.1–4.1.5.4 and **4.1.5.5 all closed** — 🎯 §11.16 judged 2026-08-14, **both edges PASS**, evidence + reasoning → [`evidence/2026-08-14-p11.16-ipad-landscape/`](evidence/2026-08-14-p11.16-ipad-landscape/README.md). ⭐ **4.1.5.6 CLOSED 2026-08-14 — the iPad tier is 5/5 in run `31827409093`**, its first content ever: `01` · `i01` · `i02` · `i03` · `05` all pass. ⛔ The two prior "results" were **non-results** (`iOS driver not ready`, zero flows); the cause was a 240s timeout the iPhone step had already had raised to 420s. ⚡ **The raise alone sufficed** — the retry never fired. ⛔ The "nudge the scroll offset" fold-in was **refuted**: `TutorialOverlay` measures but never scrolls — see the open defect below | ✅ |
 | **4.1.6a** | ✅ **CLOSED 2026-08-17.** `audit:coverage` + `lint:coverage` (.1–.6) and the XCUITest target (.7). Its standing guidance is kept below the active section | ✅ |
 | **4.1.6** | **§12.0 explore** — `09-demo-explore.yaml` | ✅ **CLOSED 2026-08-17 — dispatched and GREEN** in run `32037021903`, its first execution. Covers §12.0.1 · .2 · .4 · .5 · .6 · .7. ⚠️ **.3 and .8 do NOT automate** — see below |
-| **4.1.7** | **The THREE questions that still move the number** *(was "AX + theme conditions")* — ① does RN's `AccessibilityInfo` observe the `simctl` Reduce-Motion write (§B3.6 · §11.7 fall to `[D]`, **+2**, if not) · ② a `typeKey` probe for the three `[A]` ⌘-key rows (**+3** if it fails) · ③ the a11y audit's anchor, now measured `rendered=false` | ▶ **THE REAL EXIT.** All three fit **one dispatch**, and until they land the answer is *50 ± 5 with one instrument in doubt* — the same overstatement 4.1.9c exists to stop, one level up |
+| **4.1.7** | **The THREE questions that still move the number** — ① Reduce-Motion observability (§B3.6 · §11.7 fall to `[D]`, **+2**, if not) · ② a `typeKey` probe for the three `[A]` ⌘-key rows (**+3** if it fails) · ③ the a11y anchor's `rendered=false` | ✅ **BUILT 2026-08-17** — `ReduceMotionProbeReadout` (reports **both** sources) + `11-reduce-motion.yaml` · the ⌘-key probe **on the iPad tier** · the anchor now dumps what IS on screen. ⛔ **③ is diagnosed, and flow `09`'s own header predicted it** — see below. ▶ **Awaiting one `device=both` dispatch** |
 | **4.1.8** | **§11's remainder** — `10-walkthrough-edges.yaml` | ✅ **CLOSED 2026-08-17 — 10/10, third consecutive green.** The `repeat` tap+erase fix for §11.9's cleanup is stable, not a fluke |
 | **4.1.9** | ✅ **[DECISION] SETTLED 2026-08-17 — XCUITest, and NO Appium.** The probe proved both capabilities Appium was wanted for a *subset* of: springboard reachable **and inspectable** (`elements=241`), and `performAccessibilityAudit` completing on all four needed types in **2.9s**. **10 rows re-verdicted `[D]`→`[X]`; the device pass drops 60 → 50.** ⛔ Appium adds a second driver, a second language and a server process to buy 3 checks a driver we now have can plausibly do. ⚠️ Those 3 stay `[A]`, NOT `[X]` — XCUITest's `typeKey` is unproven here, and re-verdicting them on expectation is the overstatement 4.1.9c exists to stop. Detail → log | ✅ |
 | **4.1.9b** | ⭐ **CI wall-clock: the composite action AND the tier split, as ONE pass** *(🎯 approved 2026-08-14; repo is PUBLIC so macOS runners are free)*. ① The `.app` key hashes the whole of `native-e2e.yml`, so the **flow list** busts the binary — both of today's runs paid ~771s of compile for pure YAML edits. ② The two tiers run **sequentially in one job** (no `matrix`), so `device=both` pays iPhone **+** iPad (~650s + ~666s) instead of `max`. ⚡ They merge: the extracted composite is exactly what two parallel jobs must both call. Also folds in `app-preview.yml`'s duplicated recipe + its missing cache. **Together: ~22 min → ~12 on a cache hit.** ⚠️ Loosens a key 4.1.3a hardened — safe only because the composite holds every build flag and `maestro test` lines cannot affect a binary. ⛔ **[.7.4c after-scan] The split must keep the XCUITest probe step in the iPhone job** — it sits between the two tiers today, and a step that stops running looks exactly like a probe that found nothing. ⚠️ Cache the `.xctestrun` + `-Runner.app` beside the `.app`, or the probe keeps skipping on every hit | ▶ **ACTIVE — decomposed below** |
@@ -237,6 +237,36 @@ load-bearing `\(.applicationName)` check) stay device-owed → the checklist.
 - **[D2]** `minimumPaidThisCycle` ownership — gates B4. · **[D3]** Money hero language. · **[D1]** Control Center (rec: stay deferred).
 
 ### ⚠️ Open defects
+
+- **⛔ [4.1.7 after-scan] THE DRIVER-TIMEOUT FIX HAD BEEN APPLIED PIECEMEAL **FOUR** TIMES — now a gate.**
+  Raised 240→420s on the iPhone suite (run 31646289268), the iPad tier kept 240s and paid the identical
+  cost a day later (31822453981), **the 4.1.1 probe lane still held 240s**, and 4.1.7's own Reduce-Motion
+  step shipped with **none at all** — I nearly repeated the exact pattern I logged as a lesson this
+  morning. All four aligned; `lint:lane` now fails if any `maestro test` step diverges. ⚡ *When a fix is
+  written into one step of a symmetric set, the SET is the unit of the fix.*
+
+- **⚠️ [4.1.7 after-scan] The ⌘-key probe will also run on the IPHONE tier, and its output there is not
+  evidence for §10.** Both tiers run the same bundle, so `cmdKey` lines appear twice. iPhone tells you
+  whether `typeKey` *delivers*; only the iPad's lines may move §10.5/§10.6. Reading the iPhone copy as
+  coverage is the "reach is not coverage" trap in its newest costume.
+
+- **⚠️ [4.1.7 after-scan] Wall-clock headroom shrank.** The iPad tier gains a probe (~1–2 min) and the
+  iPhone tier gains two extra driver starts (~40s each, for `09` and the Reduce-Motion flow). iPad was
+  18m02s against iPhone's 24m49s, so `device=both` should still cost `max` — but the margin is now ~5
+  min, not ~7. If the iPad tier ever overtakes, the split stops being free.
+
+- **⚠️ [4.1.7 after-scan] `11-reduce-motion.yaml` is a MEASUREMENT flow, like `i01`** — it declares no
+  `COVERS:` and must not be counted at 4.1.11's re-derivation. `lint:selectors`' flow count is now 15
+  files, of which two measure rather than cover.
+
+- **⭐ [4.1.7 before-scan] THE ANCHOR DEFECT IS DIAGNOSED, AND FLOW `09`'s OWN HEADER PREDICTED IT.** It
+  reads: *"RUNS LAST AND CLEARS STATE… **anything added after this must re-seed.**"* The XCUITest probe
+  was added after it and does not re-seed, so `app.launch()` met a fresh install with no tab bar — the
+  `rendered=false` exactly. ▶ Fixed by ORDERING, not by a new capability: `09` moved into its own final
+  invocation, and everything needing an onboarded app (the probe, the Reduce-Motion readout in More) now
+  runs before it. ⚠️ Costs one extra driver start (~40s); the chain is unchanged because `09` opens
+  `clearState: true` and was always self-contained. **`lint:lane` now encodes the rule** so the next
+  addition cannot repeat it. ⚡ The iPad probe A/Bs it for free — that tier never ran `09`.
 
 - **⛔ [run 32037021903] THE A11Y AUDIT'S `findings=0` IS NOT A CLEAN BILL — the anchor guard fired on its
   first ever execution.** `PROBE a11yAnchor id=tab-today rendered=false elements=58`, then four

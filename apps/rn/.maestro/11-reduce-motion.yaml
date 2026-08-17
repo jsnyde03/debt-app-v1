@@ -1,0 +1,40 @@
+appId: com.jasonsnyder.debtplanner
+---
+# Maestro E2E — 4.1.7①, the Reduce-Motion OBSERVABILITY measurement.
+#
+# ⛔ A MEASUREMENT FLOW, NOT COVERAGE — and it declares NO `COVERS:` lines on purpose. It exists to read
+# one fact off the screen: does this build observe a Reduce-Motion setting written from outside it? The
+# answer decides two VERDICTS (§B3.6 and §11.7 are `[M◐]` only if it does, and fall to `[D]` if it does
+# not, raising the device pass by 2). ⚠️ Declaring coverage here would be a claim about a question that
+# is still open — the exact shape 4.1.9c exists to stop. `i01-ipad-boot.yaml` is the precedent: a flow
+# that measures rather than covers, and the coverage split must not count it.
+#
+# ⚠️ THE PREFERENCE IS WRITTEN BY THE WORKFLOW, NOT HERE. Maestro cannot run `simctl`, and the setting
+# has to be in place BEFORE the app launches: `useReduceMotion()` is Reanimated's `useReducedMotion()`,
+# which snapshots the system value when it initialises. A mid-session toggle could read false for a
+# reason that has nothing to do with the question. The step that drives this writes the pref, relaunches,
+# and then runs this file.
+#
+# ⛔ IT RUNS BEFORE `09`, AND THAT IS LOAD-BEARING. `09` starts `clearState: true` and its own header
+# says "anything added after this must re-seed" — the readout lives in More, which a fresh install
+# cannot reach. The XCUITest probe was added after `09` without re-seeding, and that is exactly why its
+# anchor reported `rendered=false`.
+#
+# ⚠️ ASSERTS PRESENCE, NEVER A VALUE. Both answers are legitimate results, so a flow that failed on
+# `reanimated=0` would be reporting the finding as a defect. The VALUE is read from the view hierarchy
+# in the diagnosis bundle and from the screenshot below.
+- launchApp:
+    clearState: false
+
+# ⛔ SCROLL FIRST. "Developer / QA" is the LAST section on More and this readout sits below the coach
+# probe, so it is under the fold on a phone — run 31626109780 failed on exactly that, one element higher
+# up the same card stack.
+- tapOn:
+    id: "more-button"
+- scrollUntilVisible:
+    element:
+      id: "rm-probe"
+    direction: DOWN
+- assertVisible:
+    id: "rm-probe"
+- takeScreenshot: maestro-debug/rm-probe-readout

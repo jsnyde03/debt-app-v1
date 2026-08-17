@@ -23,6 +23,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { useLayout } from '@/hooks/use-layout';
 import { qaEnabled } from '@/config/qa';
 import { CoachMarkProbeReadout } from '@/components/more/CoachMarkProbeReadout';
+import { ReduceMotionProbeReadout } from '@/components/more/ReduceMotionProbeReadout';
 import { LiveActivityQA } from '@/components/more/LiveActivityQA';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -318,6 +319,9 @@ export default function MoreScreen() {
               on demand (no need to hand-tune the paycheck date). Removed with QA_TOOLS before submission. */}
           <LiveActivityQA />
           <CoachMarkProbeReadout />
+          {/* 4.1.7① — reports what THIS build sees for Reduce Motion, from both sources. Beside the
+              coach probe because More is a screen the suite already visits, so it costs no new flow. */}
+          <ReduceMotionProbeReadout />
         </Section>
       ) : null}
 
