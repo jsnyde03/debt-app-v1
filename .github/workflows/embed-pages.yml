@@ -1,0 +1,88 @@
+# 3.5.7.8 — THE MARKETING EMBED, DEPLOYED TO GITHUB PAGES.
+#
+# [D32] chose Pages for one reason worth restating: it is **static-only by construction**. It cannot run
+# server code, which is exactly the property 3.5.7's privacy claim asserts — so the host enforces the
+# claim rather than being trusted to honour it. Vercel/Cloudflare would buy a CDN and an analytics
+# surface a marketing demo needs neither of, and each adds an ASC privacy-label entry.
+#
+# ⛔ THE BASE PATH IS NOT OPTIONAL AND NOT COSMETIC. A Pages *project* site serves under `/<repo>/`, and
+# `expo export` emits asset paths absolute from ROOT unless `experiments.baseUrl` is set — so a deploy
+# without `EXPO_PUBLIC_BASE_URL` renders a **blank page with a 200 on the document**. Measured before it
+# could ship, along with its sequel: the variable must carry the `EXPO_PUBLIC_` prefix, because Metro
+# inlines only that prefix into the bundle and CanvasKit's `locateFile` needs the same value in the
+# browser. Named `EXPO_BASE_URL` first, and `canvaskit.wasm` went on 404-ing at root while the HTML was
+# perfectly correct.
+#
+# ⚠️ THE SAME VALUE IS IN `playwright.embed.config.ts`, deliberately, and that is the point rather than a
+# duplication to tidy: the gate builds and serves the embed under this exact base path, so the
+# configuration that is TESTED is the configuration that SHIPS. Until 3.5.7.8 the gate proved the embed
+# worked at root and Pages served it from a subpath — the one arrangement nothing exercised.
+name: Deploy the marketing embed (GitHub Pages)
+
+on:
+  # ⛔ MANUAL + `main-line pushes that touch the embed`. Not every push: a deploy is outward-facing, and
+  # the privacy claim it publishes is gated by `validate:release:rn`, which runs separately. Publishing on
+  # every commit would mean publishing states no gate had passed yet.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; never cancel one in flight, because a half-finished Pages publish is a live site.
+concurrency:
+  group: embed-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+
+      - run: npm ci
+
+      # ⚠️ `--clear` IS LOAD-BEARING, and it is measured (3.5.7.4). Metro's transform cache does NOT
+      # invalidate on an `EXPO_PUBLIC_*` change, so an embed export can silently reuse transforms from a
+      # non-embed build — which is how `dist` and `dist-embed` once came out with the same content hash.
+      # A cold runner would probably be fine; "probably" is not what should stand behind a privacy claim.
+      - name: Export the embed build
+        working-directory: apps/rn
+        env:
+          EXPO_PUBLIC_EMBED: '1'
+          # ⚠️ Derived from the repo name, not hardcoded — a rename would otherwise produce a blank site
+          # whose only symptom is 404s in a console nobody has open.
+          EXPO_PUBLIC_BASE_URL: /${{ github.event.repository.name }}
+        run: npm run export:web -- --output-dir ../../_site --clear
+
+      # ⛔ THE ARTIFACT MUST CONTAIN THE BASE PATH. `upload-pages-artifact` will happily ship a blank site,
+      # and Pages will serve it with a 200 — the failure this whole item exists to avoid, arriving at the
+      # one step no test covers. So the deploy asserts on its own output before publishing it.
+      - name: Prove the artifact is base-pathed before publishing it
+        run: |
+          set -euo pipefail
+          BASE="/${{ github.event.repository.name }}"
+          echo "expecting asset paths under ${BASE}"
+          grep -q "src=\"${BASE}/_expo/" _site/index.html \
+            || { echo "⛔ index.html does not reference ${BASE}/_expo — this artifact would render blank"; \
+                 grep -o 'src="[^"]*"' _site/index.html | head; exit 1; }
+          test -f _site/canvaskit.wasm || { echo "⛔ canvaskit.wasm missing — every Skia chart would fail"; exit 1; }
+          echo "✅ base path present, wasm present"
+
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: _site }
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
