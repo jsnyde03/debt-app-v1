@@ -10011,6 +10011,72 @@ than being invented here. **It blocks .6** — this is not something to deploy p
 
 ---
 
+## 🔚 SESSION CLOSE 2026-08-17 (evening) — read this first next session
+
+**Everything committed and pushed to `v1.7-dev`; tree clean; nothing in flight; the last two native runs
+green.** `validate:release:rn` green locally (typecheck · lint:rn incl. the new `lint:lane` · 171 e2e ·
+5 embed). No dev servers left listening.
+
+### ⭐ What exists now that did not this morning
+
+| | |
+|---|---|
+| **The lane's shape** | `build → [iphone ‖ ipad]`. Recipe in a composite action shared with `app-preview.yml`; the `.app` key hashes the ACTION, so **a flow-list edit no longer recompiles the binary** |
+| **Measured** | `32037021903`: build 19m42s, tiers **started the same second**, 44m39s wall for ~62m of job time. `device=both` now costs `max`, not `sum` |
+| **`lint:lane`** | **81 static checks** over the workflow graph, in `lint:rn`, each proven on a planted defect |
+| **The durable record** | `native-lane-results-<tier>.json` (90-day artifact) + a **9.6 MB** diagnosis bundle against a 122 MB artifact |
+| **4.1.7 answered** | Reduce Motion observable · `typeKey` works · the anchor renders. Detail in its own entry |
+| **3.5.7** | `.5` embed entry · `.6` the a11y state fix · `.9` wording **settled** ("Your money stays on your device.") |
+| **R1** | a real date picker in the Money sheets, + `todayLocalISO()` fixed |
+| **Filed** | **3.8** the expense reserve, fully decomposed |
+
+### ⛔ Do NOT build on these — each was measured wrong once already
+
+- ⛔ **A probe edit ALWAYS costs a full rebuild.** `plugins/xcuitest-swift/**` is in the `.app` key, and
+  caching the xctest products does **not** change that — it lets the probe RUN on a hit, not be REBUILT
+  cheaply. Splitting the key does not help either: rebuilding the test bundle needs `ios/` and compiled
+  pods, which a cache hit does not have. **The only lever is DerivedData caching, which is unmeasured.**
+- ⛔ **"~22 min → ~12 on a cache hit" is retired.** The iPhone tier ALONE is 24m49s. A cache-hit
+  `device=both` should land near **~30m** — and that is still an expectation, not a measurement.
+- ⛔ **Never let a coverage row ride a `qaEnabled()` door.** Phase 6 flips `QA_TOOLS` false and the device
+  pass runs against that build. 4.1.10 was about to depend on one; its routing removed the dependency.
+- ⛔ **The 74 coverable-not-built rows are PHASE 6 device-pass work, ticked by a human.** Automating any
+  of them is optional and non-gating. ⚠️ **§12.1–§12.7 are the exception and stay in 4.1.10.**
+- ⚠️ **`seedStore` re-seeds on EVERY navigation** (`addInitScript`). A spec that `goto()`s to re-check
+  persisted state wipes what it is asserting, and fails looking exactly like a broken feature.
+- ⚠️ **A plant that does not land looks identical to a blind gate.** Print `plant-applied=YES|NO`.
+
+### ⚠️ Open, and each one costs something
+
+1. **🎯 OWES ONE FACT: the App Store URL / app id.** It is the entire remainder of 3.5.7.7, and .8 is
+   blocked behind it.
+2. **`hitRegion` = 2 findings, both tiers** — the a11y audit's first trustworthy reading, and it is a real
+   defect. **Unlocated**: the probe counts findings without printing them. One line fixes that.
+3. **The XCUITest probe went 1 min → 11 min** on the iPhone (iPad: 85s, same bundle). Prime suspect is my
+   own `descendants(matching: .any).count` ×3 plus `allElementsBoundByIndex` in the miss path. Unconfirmed.
+4. **The probe's answer was only in a PNG.** Maestro dumps a hierarchy on FAILURE only, so a passing flow
+   captured no value. Assert the VALUE or echo it to the step log.
+5. **~5 more `toISOString().slice(0,10)` sites are the same off-by-one**, including
+   `packages/core/payCycle/getNextPaycheckDate` — the ENGINE. A wrong next-paycheck date shifts the whole
+   plan. Filed, not swept.
+6. **Two device passes now overlap** — the 74 landed in Phase 6 and span §11/§12, which is what 3.5's pass
+   covers. Undecided; deciding late means running rows twice. *(Rec: fold 3.5's into Phase 6's.)*
+7. **3.8 needs a v1.7-or-v1.8 call** against [2.7].
+
+### ⚡ The day's shape, worth naming once
+
+**Two defects were found by 🎯 USING the app, and neither was reachable by anything 4.1 builds.** A date
+field that asked the user to type `YYYY-MM-DD`; a number the plan contradicts. The lane checks that built
+behaviour keeps working — these were cases of the built behaviour being wrong. **No coverage split models
+"the app does the wrong thing correctly."** That is the argument for keeping the human pass rich rather
+than treating it as residue to be automated away.
+
+⭐ And the recurring lesson got a fourth instance: **the driver-startup timeout had been fixed piecemeal
+in three places and was missing from a fourth I wrote myself, hours after logging the lesson.** It is now
+a gate. *When a fix is written into one step of a symmetric set, the SET is the unit of the fix.*
+
+---
+
 ## 2026-08-17 — [DECISION] 4.1.10: route §12 by where the scripted run actually ships
 
 The question was *"which door lets the lane reach the scripted demo"*, and reading the fifteen rows

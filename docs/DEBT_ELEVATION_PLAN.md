@@ -12,32 +12,24 @@
 
 🎯 2026-08-17: *"4.1 is still the precedent… 3.5.7 continues during waits."*
 
-✅ **Nothing is in flight. Last four runs all GREEN**, tree clean, everything pushed.
+✅ **Nothing is in flight. Last two runs GREEN**, tree clean, everything pushed.
 
-⭐ **4.1.9b VERIFIED IN RUN `32037021903` — the split works and the lane is 15/15.** `build` 19m42s →
-**both tiers started at the same instant**, iPad 18m02s ‖ iPhone 24m49s; **44m39s wall for ~62m of job
-time.** iPhone **10/10** · iPad **5/5** · the XCUITest probe **ran on the tier** (the .3 fix) ·
-`native-lane-results-*.json` resolved **every** flow to its filename, 0 unresolved · the 9.6 MB diagnosis
-bundle carries the hidden `.maestro/tests/` hierarchy the `include-hidden-files` fix rescued, against a
-122 MB full artifact.
+⭐ **The lane is BUILT and PROVEN.** 4.1.9b's split verified in `32037021903`; 4.1.7's three questions
+answered in `32042253465`. **15/15 flows both runs** (iPhone 10 · iPad 5), the XCUITest probe runs on
+**both** tiers, and the tiers start the same second — `device=both` costs `max`, not `sum`.
 
-⛔ **THE PLAN'S "~22 min → ~12 on a cache hit" IS RETIRED — it was never derived, and it is wrong in both
-terms.** Measured: the iPhone tier ALONE is 24m49s, so no arrangement of these jobs reaches 12. A
-cache-hit `device=both` should land near **~30m** (a ~5m build job + `max(25, 18)`), against ~45–60m
-sequential. **The saving is real and it is the tier overlap, not the build.** ⚠️ Unmeasured until the
-next dispatch actually hits the cache.
+⚡ **4.1.7's answers, all favourable:** Reduce Motion **is** observable (`reanimated=1 a11yInfo=1`) so
+§B3.6/§11.7 keep their `[M◐]` · `typeKey` **works** (⌘N opened the sheet; ⌘1/2/3 switched tabs) so
+§10.5/§10.6 → `[X]` while **§10.7 falls to `[D]`, +1** · the a11y anchor now reads **`rendered=true` on
+both tiers**, so the audit is trustworthy — and its first honest reading is **not** all zeros.
 
-⭐ **The state that matters:** iPhone suite **10/10** · iPad tier **5/5** · the XCUITest probe **runs**,
-springboard reach proven · coverage reads **24 proven · 9 automatable-half · 74 coverable-not-built ·
-24 device-owed**, the device pass **50** · ⚡ **flow-only iteration is ~21 min, not ~43** — the `.app`
-cache and `hermesc` both worked for the first time in `31835736974`.
+▶ **NEXT — 4.1.9c's WRITER.** No runner needed: it turns the two green runs into stamped `✅auto·<runId>`
+rows off `native-lane-results-*.json`, which is what 4.1.11's final number depends on. Then **4.1.10**
+(routed 2026-08-17 — most of §12 goes to the embed gate, not the lane) → **4.1.11** the exit.
+▶ **In parallel — 3.5.7.7** (the exits → one App Store CTA). ⛔ **Blocked on ONE fact from 🎯: the App
+Store URL / numeric app id**, which is nowhere in this repo. Then **.8** deploy · **.9** ✅ wording settled.
 
-▶ **BUILDING — 4.1.9b** (composite action · tier split · the caches that make both safe), **decomposed
-below**. Then **4.1.7** (the three questions that still move the number — one dispatch) → **4.1.9c's
-writer** → **4.1.10** (§12's scripted run, 15 rows, unblocked 2026-08-17) → **4.1.11** the exit.
-▶ **In parallel — 3.5.7.5** (embed entry) → **.6** (Pages deploy) → **.7** (🎯's wording call).
-
-⚠️ **Read the SESSION CLOSE 2026-08-17 log entry first** — it carries what NOT to build on.
+⚠️ **Read the SESSION CLOSE 2026-08-17 (evening) log entry first** — it carries what NOT to build on.
 
 
 ✅ **3.7 CLOSED 2026-08-11.** Wave A (A0–A10) · Wave B (B.0–B.4) · Wave C merged into the audit gate.
