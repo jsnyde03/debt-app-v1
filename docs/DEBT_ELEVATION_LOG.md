@@ -9632,6 +9632,20 @@ remaining work — now costs **~21 min, not ~43**, because `.maestro/**` is not 
 ⚠️ It does NOT help probe iteration: every probe fix touches `apps/rn/plugins/**`, which IS in the key, so
 those stay full rebuilds until 4.1.9b caches the `.xctestrun` + `-Runner.app`.
 
+> ⛔ **CORRECTED 2026-08-17 — the second half of that sentence is WRONG, and it misled the next session
+> into predicting a cache hit that could not happen** (🎯 caught it: *"This build won't hit the .app cache.
+> Too much changed."* — in fact **one file** did: `plugins/xcuitest-swift/CoverageProbeUITests.swift`).
+> Caching the xctest products lets the probe **RUN** on a cache hit, which is a real fix and is why the
+> probe executed on the tier in run 32037021903. It does nothing for **REBUILDING** the probe, because the
+> edit that rebuilds it is the edit that busts the key. Two different problems, one sentence.
+> ⚠️ And the obvious remedy does not survive either: splitting the caches so the `.app` key excludes
+> `plugins/xcuitest-swift/**` is sound in principle — that Swift compiles into the test bundle and the
+> pre-flight already proves the app target does not depend on it — but rebuilding only the test bundle
+> needs `ios/` and compiled pods, and an app-cache HIT skips prebuild and carries no DerivedData. The 648
+> pod targets get recompiled regardless. **Probe iteration costs a full rebuild; the only lever is
+> DerivedData caching**, which is GB-scale and unmeasured. ▶ Cheapest honest next step: print
+> `du -sh ios/build` (workflow-only, not in the key) so a future run says whether that is even feasible.
+
 ---
 
 ## 2026-08-17 — 4.1.6a.7.5: the re-verdict, and 4.1.9's [DECISION] settled
