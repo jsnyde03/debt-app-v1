@@ -19,8 +19,8 @@ springboard reach proven · coverage reads **24 proven · 9 automatable-half · 
 24 device-owed**, the device pass **50** · ⚡ **flow-only iteration is ~21 min, not ~43** — the `.app`
 cache and `hermesc` both worked for the first time in `31835736974`.
 
-▶ **NEXT — 4.1.9b** (composite action · tier split · durable results file), decomposed in the log's
-**SESSION CLOSE 2026-08-17** entry. Then **4.1.9c's writer** → **4.1.10** (deep-link door, 15 rows).
+▶ **BUILDING — 4.1.9b** (composite action · tier split · the caches that make both safe), **decomposed
+below**. Then **4.1.9c's writer** → **4.1.10** (deep-link door, 15 rows).
 ▶ **In parallel — 3.5.7.5** (embed entry) → **.6** (Pages deploy) → **.7** (🎯's wording call).
 
 ⚠️ **Read the SESSION CLOSE 2026-08-17 log entry first** — it carries what NOT to build on.
@@ -33,12 +33,12 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 |---|---|---|
 | **4.1.3 – 4.1.5.1** | ✅ **CLOSED 2026-08-12/13.** The lane 0/8 → **8/8 on iPhone**: flow order made explicit · the `.app` cache (17m03s → 2s) · `lint:selectors` · ⭐ the coach-mark probe and the **three shipped defects** it found · the iPad boot at 1032pt. Detail + every scan → log | ✅ |
 | **4.1.5** | **The iPad tier's REAL checks.** 4.1.5.1–4.1.5.4 and **4.1.5.5 all closed** — 🎯 §11.16 judged 2026-08-14, **both edges PASS**, evidence + reasoning → [`evidence/2026-08-14-p11.16-ipad-landscape/`](evidence/2026-08-14-p11.16-ipad-landscape/README.md). ⭐ **4.1.5.6 CLOSED 2026-08-14 — the iPad tier is 5/5 in run `31827409093`**, its first content ever: `01` · `i01` · `i02` · `i03` · `05` all pass. ⛔ The two prior "results" were **non-results** (`iOS driver not ready`, zero flows); the cause was a 240s timeout the iPhone step had already had raised to 420s. ⚡ **The raise alone sufficed** — the retry never fired. ⛔ The "nudge the scroll offset" fold-in was **refuted**: `TutorialOverlay` measures but never scrolls — see the open defect below | ✅ |
-| **4.1.6a** | ✅ **The instrument is DONE** (.1–.6). ▶ **Live part: 4.1.6a.7**, the XCUITest target — decomposed below | ▶ |
+| **4.1.6a** | ✅ **CLOSED 2026-08-17.** `audit:coverage` + `lint:coverage` (.1–.6) and the XCUITest target (.7). Its standing guidance is kept below the active section | ✅ |
 | **4.1.6** | **§12.0 explore** — `09-demo-explore.yaml`, runs LAST and clears state (it needs the fresh-install door) | ✅ **BUILT 2026-08-14**, awaiting a dispatch. Covers §12.0.1 · .2 · .4 · .5 · .6 · .7. ⚠️ **.3 and .8 do NOT automate** — see below |
 | **4.1.7** | **AX + theme conditions** — §11.1 · §11.5 · §8's half. ⚠️ Reduce Motion needs an app-side observable. ⛔ **HOLD for 4.1.6a.7** — `performAccessibilityAudit()` covers most of §11.1/§11.5, so part of this may belong in XCUITest, not Maestro conditions | |
 | **4.1.8** | **§11's remainder** — `10-walkthrough-edges.yaml` (§11.9 · §11.11 · §11.13 frames) | ◐ **9/10 — only the §11.9 CLEANUP fails.** ⭐ Everything before it passes, incl. the beat-5 fence inversion. ⛔ `eraseText` deletes **backwards from the cursor** and `tapOn` lands mid-text (measured: exactly 24 of 64 chars went) — now a `repeat` of tap+erase. ⚠️ Verification is a **flow-only** change, so it should hit the `.app` cache and also give `hermesc` its first-ever exercise |
 | **4.1.9** | ✅ **[DECISION] SETTLED 2026-08-17 — XCUITest, and NO Appium.** The probe proved both capabilities Appium was wanted for a *subset* of: springboard reachable **and inspectable** (`elements=241`), and `performAccessibilityAudit` completing on all four needed types in **2.9s**. **10 rows re-verdicted `[D]`→`[X]`; the device pass drops 60 → 50.** ⛔ Appium adds a second driver, a second language and a server process to buy 3 checks a driver we now have can plausibly do. ⚠️ Those 3 stay `[A]`, NOT `[X]` — XCUITest's `typeKey` is unproven here, and re-verdicting them on expectation is the overstatement 4.1.9c exists to stop. Detail → log | ✅ |
-| **4.1.9b** | ⭐ **CI wall-clock: the composite action AND the tier split, as ONE pass** *(🎯 approved 2026-08-14; repo is PUBLIC so macOS runners are free)*. ① The `.app` key hashes the whole of `native-e2e.yml`, so the **flow list** busts the binary — both of today's runs paid ~771s of compile for pure YAML edits. ② The two tiers run **sequentially in one job** (no `matrix`), so `device=both` pays iPhone **+** iPad (~650s + ~666s) instead of `max`. ⚡ They merge: the extracted composite is exactly what two parallel jobs must both call. Also folds in `app-preview.yml`'s duplicated recipe + its missing cache. **Together: ~22 min → ~12 on a cache hit.** ⚠️ Loosens a key 4.1.3a hardened — safe only because the composite holds every build flag and `maestro test` lines cannot affect a binary. ⛔ **[.7.4c after-scan] The split must keep the XCUITest probe step in the iPhone job** — it sits between the two tiers today, and a step that stops running looks exactly like a probe that found nothing. ⚠️ Cache the `.xctestrun` + `-Runner.app` beside the `.app`, or the probe keeps skipping on every hit | ▶ **next, after the run** |
+| **4.1.9b** | ⭐ **CI wall-clock: the composite action AND the tier split, as ONE pass** *(🎯 approved 2026-08-14; repo is PUBLIC so macOS runners are free)*. ① The `.app` key hashes the whole of `native-e2e.yml`, so the **flow list** busts the binary — both of today's runs paid ~771s of compile for pure YAML edits. ② The two tiers run **sequentially in one job** (no `matrix`), so `device=both` pays iPhone **+** iPad (~650s + ~666s) instead of `max`. ⚡ They merge: the extracted composite is exactly what two parallel jobs must both call. Also folds in `app-preview.yml`'s duplicated recipe + its missing cache. **Together: ~22 min → ~12 on a cache hit.** ⚠️ Loosens a key 4.1.3a hardened — safe only because the composite holds every build flag and `maestro test` lines cannot affect a binary. ⛔ **[.7.4c after-scan] The split must keep the XCUITest probe step in the iPhone job** — it sits between the two tiers today, and a step that stops running looks exactly like a probe that found nothing. ⚠️ Cache the `.xctestrun` + `-Runner.app` beside the `.app`, or the probe keeps skipping on every hit | ▶ **ACTIVE — decomposed below** |
 
 ⛔ **[4.1.9b scan] THE PLAN'S "529s / 40% COST CENTRE" IS STALE — measured 148s.** The laps landed in run `31808439691` and nobody had read them, though the note said to: `boot returned 10s · bootstatus 62s · installed 79s · launched 119s · reported-up 144s · complete 148s`. The instrumentation and the `sleep 25` → poll fix **worked**; the 529s predates them. ⛔ Do not spend anything else here.
 
@@ -50,7 +50,74 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 | **4.1.10** | §12.1–§12.7 (15) — ⚠️ blocked on the deep-link door | |
 | **4.1.11** | **Reconcile — the exit.** ⚠️ **[4.1.5.1 after-scan] the coverage split must NOT count measurement flows** — `lint:selectors` now reports **9 flows** because `i01-ipad-boot.yaml` is one, and it is explicitly not coverage (every assertion in it holds on both layouts by design). Any 68/127 re-derivation that counts files will overstate itself | |
 
-### ▶ 4.1.6a — `audit:coverage`, the definitive checklist _(active)_
+### ▶ 4.1.9b — the composite action, the tier split, and the caches that make both safe _(active)_
+
+✅ **.1–.8 ALL BUILT 2026-08-17.** Composite `rn-ios-sim-build` (recipe owned once) · the key hashes the
+ACTION not the workflow, plus the Xcode tag and a per-lane namespace · the XCUITest products cached and
+shipped as a **tar** · `build → iphone ‖ ipad` · `native-lane-results-<tier>.json` (90-day artifact) ·
+the small diagnosis bundle · `app-preview.yml` adopted · ⭐ **`npm run lint:lane` — 76 static checks,
+proven on 9 planted defects, in `lint:rn`.** Detail + every scan → log.
+
+▶ **REMAINING: one `device=both` dispatch.** ⛔ **It WILL miss the `.app` cache and pay a full build** —
+the key changed shape three ways, so every entry is unreachable by construction. That is the change
+working. **The run AFTER it is the one that demonstrates the saving.**
+
+**Exit:** that dispatch green, with `~22 min → ~12` on the following (cache-hit) run and the probe
+running on that hit.
+
+⛔ **[.1 before-scan] The "keep the two in sync" note ALREADY FAILED.** `app-preview.yml` is missing
+`DEBUG_INFORMATION_FORMAT=dwarf` and `COMPILER_INDEX_STORE_ENABLE=NO` (added to the other recipe at
+4.1.3a, 2026-08-12), `cache: npm`, and `fetch-depth: 0`. Measured, not assumed — the duplication drifted
+inside five days, which is the argument for .7 rather than another sync note.
+
+⛔ **[.3 before-scan] A cross-job split CANNOT ship the `.app` through the cache.** The re-bundled binary
+is never saved (`cache/save` is gated on the rebuild path), so a tier job restoring by key would test the
+JavaScript from whenever the binary was compiled — rule ②'s stale-binary hazard with a job boundary
+standing in for a partial key. ⚠️ And `upload-artifact` **does not preserve the executable bit**, so the
+products move as a **tar**, never as a raw directory.
+
+⚡ **[.4 before-scan] The split makes the tier jobs cheaper than the plan claimed.** They need no npm
+install, no pods, no Xcode select and no `tsc` — only the tarball, `simctl` and Maestro. ⚠️ Two jobs
+cannot upload one artifact name: it becomes `maestro-report-iphone` / `maestro-report-ipad`, and anything
+quoting `maestro-report` goes stale. ⚡ `!cancelled()` on the iPad step becomes **structural** — as its own
+job it cannot inherit the iPhone tier's failure at all.
+
+⛔ **[.6 after-scan] `lint:lane` FOUND A LIVE DEFECT ON ITS FIRST RUN** — the diagnosis bundle keeps
+Maestro's `.maestro/tests/…` layout, a **hidden** path, and `upload-artifact` v4 drops those silently. The
+72 KB bundle would have shipped without the one file it exists for. Fixed; the rule was then widened from
+"paths mentioning `maestro-debug`" to **any recursive glob**, which is the general form.
+
+⚡ **[.8 after-scan] A PLANT THAT DOES NOT LAND LOOKS EXACTLY LIKE A GATE THAT IS BLIND** — and it fails
+in the *safe-looking* direction. Three of the first eight plants reported "gate missed it" while the
+files were byte-identical to their backups. Planting now prints `plant-applied=YES|NO` beside the verdict.
+⚠️ Two of my own checks were also wrong first time, **both reddening correct code** — a verifier whose
+SCOPE is wider than the rule it enforces. Both now read parsed structure, not raw text.
+
+⛔⛔ **[item after-scan] THE WEB E2E SUITE WAS TESTING THE EMBED BUILD — ~60 specs red, and the cause was
+already written down in the sibling file.** 3.5.7.4 MEASURED that Metro's transform cache does not
+invalidate on an `EXPO_PUBLIC_*` change (`flag=0, no --clear → sessionStorage`) and applied `--clear` to
+`playwright.embed.config.ts` — **one of the two configs that needed it.** `playwright.config.ts` had
+none, so after `test:e2e:embed` runs once on a machine, every later `export:web` reuses the embed's
+transforms: `dist/` and `dist-embed/` came out with the **same content hash**, and `dist/`'s storage was
+inlined as `()=>globalThis.sessionStorage`. The suite seeds through localStorage → the app boots empty.
+⚡ **Proven by grepping the artifact, then fixed and re-measured: `dist` sessionStorage 0 / localStorage 1,
+`dist-embed` 1 / 0.** ⚠️ **CI was green only by ORDERING** — `test:e2e:rn` runs before `test:e2e:embed`
+on a cold cache — so it was broken from the **second local run onward**, the run a human does. Identical
+shape to the iPad 240s→420s parity bug: *the fix applied to one of the two places that needed it.*
+
+⛔ **[item after-scan] A SHIPPED DEFECT, found because it blocked this item's own gate: `lint:rn` was
+broken locally, 7,578 errors.** 3.5.7.4 added `apps/rn/dist-embed/` to `.gitignore` and **not** to
+eslint's `globalIgnores`. CI never saw it — `lint:rn` runs *before* `test:e2e:embed`, so a clean checkout
+has no such directory — so the gate was only broken from the **second local run onward**, which is the run
+a human does. Fixed here.
+
+⚠️ **[item after-scan] Filed, not fixed:** the split doubles *concurrent* macOS minutes (free while the
+repo is public; the sum-vs-max trade reverses if it ever goes private) · the boot step's poll still does
+not fire, and stays unfixed **deliberately** — inventing a log predicate instead of grepping the artifact
+already cost a cycle → **4.1.11** · `app-preview.yml`'s new cache will usually miss (it runs rarely,
+entries evict in a week), kept for symmetry at zero added risk.
+
+### 📌 4.1.6a — `audit:coverage`, the definitive checklist _(closed 2026-08-17; standing guidance)_
 
 🎯 **Why it exists** *(Jason 2026-08-14)*: *"I'm not cutting the CodeMagic build until we have a
 definitive checklist that covers everything that Maestro and Appium can verify"* — and *"the point of 4.1
@@ -64,10 +131,8 @@ never from a doc quoting them: this line alone has been stale twice. ⚡ **The h
 and that is the instrument working** — 4.1.9c stopped counting declarations as passes, and .7.5's
 re-verdict moved 10 rows out of the device pass without adding one to *covered*. Rationale + scans → log.
 
-| # | Step | State |
-|---|---|---|
-| **4.1.6a.1 – .6** | ✅ **DONE 2026-08-14.** Every check given a stable id and an automation verdict (140 rows, additive, `[x]` preserved) · `COVERS:`/`PARTIAL:` declared across all 13 flows · `audit:coverage` → [`coverage-split.md`](audits/coverage-split.md) · `lint:coverage` in `lint:rn`, proven 4/4 on planted defects. ⭐ **34 covered · 63 to build · 34 device-only; the device pass is 60.** Detail + all scans → log | ✅ |
-| **4.1.6a.7** | ✅ **CLOSED 2026-08-17 — the XCUITest target exists, runs, and paid.** ⭐ **Springboard reach PROVEN** (`elements=241`) and the a11y audit **mapped** (4 types, 2.9s, vs `.all` timing out at 47.7s). **10 rows `[D]`→`[X]`, device pass 60 → 50**, and 4.1.9 settled: XCUITest, no Appium. ⚡ Also produced the **fast lane** (`scope=xcuitest`, ~45 → ~20 min) and a pre-flight that went **16 → 37** checks, each addition written against a defect a CI cycle had already cost. Detail + every scan → log | ✅ |
+✅ **.1–.6 (2026-08-14)** the instrument · ✅ **.7 (2026-08-17)** the XCUITest target, springboard reach
+proven and the a11y audit mapped. Detail + every scan → log.
 
 **Exit:** `coverage-split.md` answers 🎯's question as a derived number — how much of the device checklist
 the lane will carry, how much it carries today, and the residual that is permanently a human with a phone.

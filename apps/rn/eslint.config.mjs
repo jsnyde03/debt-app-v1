@@ -52,5 +52,10 @@ export default defineConfig([
   // `aria-hidden` expands to, and the rule above exists to keep it that way.
   { files: ['src/utils/a11y.ts'], rules: { 'no-restricted-syntax': 'off' } },
   // Build output, the native/e2e trees, and the Playwright harness (node/@playwright — its own tsconfig).
-  globalIgnores(['dist/**', '.expo/**', 'node_modules/**', 'core/**', 'tests/**', 'playwright.config.ts']),
+  // ⛔ `dist-embed/**` — 3.5.7.4's embed build. It was added to `.gitignore` and NOT here, so `lint:rn`
+  // stayed green on a clean checkout and exploded with **7,578 errors** on any machine that had run
+  // `test:e2e:embed` even once. CI never saw it because `lint:rn` runs BEFORE `test:e2e:embed` in
+  // `validate:release:rn` — so the gate was only broken for the second local run onward, which is the
+  // run a human does. "Two places, one rule": one build output, two ignore lists.
+  globalIgnores(['dist/**', 'dist-embed/**', '.expo/**', 'node_modules/**', 'core/**', 'tests/**', 'playwright.config.ts']),
 ]);

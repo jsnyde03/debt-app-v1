@@ -1,0 +1,536 @@
+# 4.1.9b.1 — THE iOS-SIMULATOR BUILD RECIPE, OWNED ONCE.
+#
+# ⚠️ This recipe was duplicated between `native-e2e.yml` and `app-preview.yml`, with a comment in the
+# latter promising to keep the two in sync. **That promise had already been broken when this action was
+# extracted** (2026-08-17): the capture lane was missing `DEBUG_INFORMATION_FORMAT=dwarf` and
+# `COMPILER_INDEX_STORE_ENABLE=NO` (added to the other copy at 4.1.3a on 2026-08-12), `cache: npm`, and
+# `fetch-depth: 0`. Five days, four divergences. "Two places, one rule" has now cost this repo four
+# defects; this is the fourth extraction.
+#
+# ⭐ THE OTHER HALF OF WHY THIS EXISTS: the `.app` cache key used to hash the WHOLE of `native-e2e.yml`,
+# because the build flags lived in it. So editing a Maestro flow list — the most common edit in 4.1 —
+# busted the binary and paid ~771s of compile for a YAML change. With the flags here, the key hashes
+# THIS file and the workflow drops out of it entirely.
+#
+# ⛔ THE CALLER MUST CHECK OUT THE REPO WITH `fetch-depth: 0`. The provenance audit below diffs against
+# the commit a cached .app was built at, and a shallow clone would leave that safeguard printing
+# "(cannot diff)" forever — which looks like a check.
+name: Build the RN app for the iOS Simulator
+description: >
+  expo prebuild → pod install → xcodebuild (unsigned, single-arch) with the 4.1.3a .app cache and its
+  JS re-bundle fast path. Optionally builds the XCUITest bundle beside it.
+
+inputs:
+  cache-namespace:
+    description: >
+      Segregates the .app cache. Two lanes that build DIFFERENT binaries from the same sources (the e2e
+      build vs. the EXPO_PUBLIC_CAPTURE_DEMO capture build) must never share a key — the key hashes
+      files, and an env var that changes the bundle is invisible to it.
+    required: true
+  build-tests:
+    description: 'Also build the XCUITest bundle (build-for-testing) into the same derived data.'
+    required: false
+    default: 'false'
+  rebuild:
+    description: 'Force a clean build, ignoring the cached .app.'
+    required: false
+    default: 'false'
+  use-cache:
+    description: 'Restore/save the .app cache at all. Tags set this false — a release smoke compiles.'
+    required: false
+    default: 'true'
+  log-artifact-name:
+    description: 'Artifact name for the raw xcodebuild logs.'
+    required: false
+    default: 'xcodebuild-log'
+
+outputs:
+  cache-hit:
+    description: 'Whether the .app cache key matched.'
+    value: ${{ steps.appcache.outputs.cache-hit }}
+  usable:
+    description: 'true when the restored .app was verified AND had fresh JS swapped into it.'
+    value: ${{ steps.appverify.outputs.usable }}
+  xctest:
+    description: 'true when a .xctestrun is present in the products directory (built or restored).'
+    value: ${{ steps.products.outputs.xctest }}
+  key:
+    description: 'The .app cache key this run computed.'
+    value: ${{ steps.appkey.outputs.key }}
+
+runs:
+  using: composite
+  steps:
+    # `cache: npm` — the one item of the filed caching batch that survived its own measurement. The
+    # dependency install is 59s on a `.app` cache HIT (run 31709717569), and `--prefer-offline` below
+    # can only honour that flag if `~/.npm` is actually populated.
+    #
+    # ⚠️ BOTH lockfiles, and that is the whole risk of this line. There are no npm workspaces here — the
+    # root tree and `apps/rn` are installed separately — so a `cache-dependency-path` naming only one of
+    # them produces a key that does not change when the other moves, which is a stale cache that looks
+    # like a fresh one. Same failure the `.app` key's rule ① exists to prevent, one tier down.
+    #
+    # ⛔ It caches the npm DOWNLOAD cache, not `node_modules`. `apps/rn/package-lock.json` is known out of
+    # sync (`npm ci` refuses it, which is why both lanes use `npm install`), and caching a resolved
+    # `node_modules` against a lockfile that does not describe it is how a build gets dependencies
+    # nobody chose. → the lockfile regeneration already on the backlog.
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+        cache-dependency-path: |
+          package-lock.json
+          apps/rn/package-lock.json
+
+    # No npm workspaces — install root (core/tooling) then the RN app's own node_modules. `@core` is a
+    # Metro source alias, so it needs no build/link.
+    - name: Install dependencies (root + apps/rn)
+      shell: bash
+      working-directory: .
+      run: |
+        npm install --prefer-offline --no-audit --no-fund
+        npm --prefix apps/rn install --prefer-offline --no-audit --no-fund
+
+    # Cache the CocoaPods + Swift-PM DOWNLOADS (not the compile) so cold runs don't re-fetch the native
+    # deps (incl. @bacons/apple-targets). Keyed on the RN lockfile.
+    - name: Cache CocoaPods + Swift-PM downloads
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/Library/Caches/CocoaPods
+          ~/.cocoapods
+          ~/Library/Caches/org.swift.swiftpm
+        key: pods-spm-${{ runner.os }}-${{ hashFiles('apps/rn/package-lock.json') }}
+        restore-keys: |
+          pods-spm-${{ runner.os }}-
+
+    - name: Select newest Xcode
+      id: xcode
+      shell: bash
+      working-directory: .
+      run: |
+        sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+        xcodebuild -version
+        # ⭐ 4.1.9b.2 — THE XCODE BUILD NUMBER JOINS THE CACHE KEY, and it is the `.xctestrun` that forces
+        # it. A cached `.app` surviving an Xcode bump is benign (it is a simulator bundle, and the runner
+        # image only ever moves forward). A cached `.xctestrun` is not: it names platform test frameworks
+        # by placeholder and is consumed by `xcodebuild test-without-building` from a DIFFERENT Xcode.
+        # That failure would present as the probe running nothing, which is indistinguishable from the
+        # probe finding nothing — the exact confusion .7.4c already paid for once.
+        echo "tag=$(xcodebuild -version | tr '\n' '-' | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+    - name: Link ./core so tsc can resolve @core before Metro runs
+      # tsconfig maps `@core/*` → `./core/*`, a symlink Metro creates at startup (NOT committed). tsc
+      # runs before any Metro invocation here, so on a fresh checkout the link is absent → every @core
+      # import fails. Create it up front (Metro's own `if (!exists)` guard then no-ops later).
+      shell: bash
+      working-directory: apps/rn
+      run: |
+        [ -e core ] || ln -s ../../packages/core core
+        ls -la core
+
+    - name: Fail fast (typecheck before the slow native build)
+      shell: bash
+      working-directory: apps/rn
+      run: npx tsc --noEmit
+
+    # ── 4.1.3a · THE BUILT-.app CACHE ───────────────────────────────────────────────────────────
+    # Measured on run 31516616133: prebuild + pod install + compile = 17m03s of a 31m47s job, and
+    # **648 of ~650 CompileC tasks belong to third-party pods** (RNScreens 103, RNReanimated 103,
+    # RNSVG 94, ReactCodegen 57, RNWorklets 44, MMKVCore 33, Skia 27 …). The app's own native code does
+    # not reach the top 15. That work is identical on every run until a dependency changes.
+    #
+    # ⛔ THE HAZARD IS THE WHOLE DESIGN. A stale .app silently reused after app code changed is a suite
+    # that passes against the wrong binary — this lane's signature failure (a green Maestro run that
+    # wrote no screenshots; a suite green because it never ran). Four rules keep that impossible:
+    #   ① the key hashes EVERY input that reaches the binary — native, config, plugins, assets, the
+    #      widget target, and THIS ACTION, because the build flags live in it;
+    #   ② NO `restore-keys`. A partial-key fallback is exactly how a stale binary gets in. Exact or nothing;
+    #   ③ every run prints the binary's provenance — hit or miss, key, and the commit it was built at —
+    #      and that record is written into the uploaded artifact, not just the console;
+    #   ④ tags never use it (`use-cache: false`), and `rebuild: true` overrides it.
+    - name: Compute the .app cache key
+      id: appkey
+      shell: bash
+      working-directory: .
+      run: |
+        # ── 2026-08-13 · SPLIT INTO A NATIVE TIER, BECAUSE THE CACHE WAS HITTING 8% OF THE TIME ──────
+        #
+        # ⚡ MEASURED over 13 non-cancelled runs: **12 paid the full 771s build; exactly ONE hit this
+        # cache.** The cause is that `src/**` and `packages/core/**` were in this key, and **neither
+        # reaches a single line of native code.** They are TypeScript: they change `main.jsbundle`, a
+        # RESOURCE inside the .app. So a one-line copy edit was recompiling 648 identical pod targets.
+        #
+        # They are gone from the key, and the JS is regenerated + swapped in on every cache hit by the
+        # re-bundle step below. ⛔ That step is what makes this safe — without it a hit would test the
+        # JavaScript from whenever the binary was built, which is rule ②'s stale-binary hazard wearing a
+        # different hat. It fails loudly and falls through to a full build rather than guessing.
+        #
+        # ⚠️ `index.js`, `metro.config.js` and `babel.config.js` STAY here even though they too are
+        # JS-only. Conservative on purpose: they change rarely, and a needless full build is a cost while
+        # a wrongly-skipped one is a defect. `assets/**` stays for a load-bearing reason — asset FILES are
+        # copied into the .app by the native build, and the re-bundle step deliberately does not sync
+        # them, so an asset change must bust the binary.
+        #
+        # ⛔ `native-e2e.yml` IS NO LONGER HASHED, and that is 4.1.9b's first deliverable rather than an
+        # omission. It was here because the build flags were in it; they are in THIS FILE now. Hashing
+        # the workflow meant every Maestro flow-list edit — the most common edit in 4.1 — recompiled the
+        # binary. ⚠️ If a build input ever moves back into a workflow, it must come back into this list.
+        echo "key=app-${{ runner.os }}-${{ steps.xcode.outputs.tag }}-${{ inputs.cache-namespace }}-x3-${{ hashFiles(
+          'apps/rn/package-lock.json',
+          'apps/rn/package.json',
+          'apps/rn/app.json',
+          'apps/rn/index.js',
+          'apps/rn/metro.config.js',
+          'apps/rn/babel.config.js',
+          'apps/rn/plugins/**',
+          'apps/rn/assets/**',
+          'apps/rn/targets/**',
+          'package-lock.json',
+          '.github/actions/rn-ios-sim-build/action.yml'
+        ) }}" >> "$GITHUB_OUTPUT"
+
+    # ⭐ 4.1.9b.3 — THE XCUITEST PRODUCTS ARE CACHED BESIDE THE .app. Until this landed, a cache hit made
+    # the probe UNRUNNABLE: `ios/` is untracked and regenerated by `expo prebuild`, which a hit skips, so
+    # there was no `.xctestrun` to run and the probe silently reported nothing on exactly the fast runs.
+    # ⛔ The paths are enumerated, never `Products/**` — that directory also holds every pod's static
+    # library and its `include/` symlink tree, which is GB-scale and would cost more to move than the
+    # build costs to run.
+    - name: Restore the built .app
+      id: appcache
+      if: inputs.use-cache == 'true' && inputs.rebuild != 'true'
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          apps/rn/ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
+          apps/rn/ios/build/Build/Products/Release-iphonesimulator/*-Runner.app
+          apps/rn/ios/build/Build/Products/Release-iphonesimulator/*.xctest
+          apps/rn/ios/build/Build/Products/*.xctestrun
+          apps/rn/.appcache-provenance.txt
+        key: ${{ steps.appkey.outputs.key }}
+        # ⛔ Deliberately no `restore-keys` — see rule ② above.
+
+    # A restored directory that is missing its binary, or whose Info.plist will not parse, must fall
+    # through to a real build rather than be installed. `simctl install` would take a broken bundle and
+    # the failure would surface much later, as something else.
+    # The JS re-bundle lives INSIDE this step on purpose. `usable` is the single gate every downstream
+    # `if:` reads, so folding the new failure mode into it means there is still exactly ONE answer to
+    # "can this cache be used" — rather than a second output that four conditions would each have to
+    # remember. "Two places, one rule" has cost this repo three defects in one wave.
+    #
+    # ⛔ EVERY failure path here ends in `usable=false` and a full build. That is the whole safety
+    # argument: the cache is keyed WITHOUT `src/**`, so a hit whose bundle was not replaced would run the
+    # JavaScript from whenever the binary was built and go green against stale code. There is no branch
+    # that proceeds on doubt.
+    - name: Verify the restored .app, and re-bundle the JS into it
+      id: appverify
+      if: steps.appcache.outputs.cache-hit == 'true'
+      shell: bash
+      working-directory: apps/rn
+      run: |
+        set -o pipefail
+        APP="ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app"
+        BUNDLE="$APP/main.jsbundle"
+
+        fail() { echo "⚠️ $1 — rebuilding from source"; echo "usable=false" >> "$GITHUB_OUTPUT"; rm -rf ios/build/Build/Products/Release-iphonesimulator; exit 0; }
+
+        [ -x "$APP/DebtPlannerRN" ] && plutil -lint "$APP/Info.plist" >/dev/null 2>&1 \
+          || fail "restored .app is unusable (missing binary or bad Info.plist)"
+        echo "✅ restored .app verified: binary present, Info.plist parses"
+
+        # ⚠️ ASSERT THE ASSUMPTION RATHER THAN ACT ON IT. This whole design rests on the JS being a
+        # swappable resource at this exact path. If it is not there the premise is wrong and the answer
+        # is a full build — never "create it and hope".
+        [ -f "$BUNDLE" ] || fail "no main.jsbundle in the restored .app — the swap premise is wrong"
+        OLD_SHA=$(shasum -a 256 "$BUNDLE" | cut -d' ' -f1)
+        OLD_MAGIC=$(xxd -p -l 8 "$BUNDLE")
+
+        TMP="$RUNNER_TEMP/jsbundle"; rm -rf "$TMP"; mkdir -p "$TMP/assets"
+        echo "Re-bundling JS from the working tree…"
+        npx expo export:embed \
+          --platform ios --dev false --entry-file index.js \
+          --bundle-output "$TMP/main.jsbundle" --assets-dest "$TMP/assets" \
+          || fail "expo export:embed failed"
+
+        [ -s "$TMP/main.jsbundle" ] || fail "re-bundled JS is empty"
+
+        # ── HERMES. `expo export:embed` emits PLAIN JS; Xcode's build phase then compiles it to
+        #    bytecode, and re-bundling by hand has to do that second half too. ──────────────────────
+        #
+        # ⚡ MEASURED, run `31800305248`: the magic-byte guard caught this on the fast path's first ever
+        # execution — `c61fbc03c103191f` (Hermes) in the .app versus `766172205f5f4255` (ASCII
+        # `var __BU`) from the bundler. Without that check this run would have installed a Hermes binary
+        # carrying plain JS, crashed on launch, and surfaced as an unexplained Maestro timeout twenty
+        # minutes later. Those bytes are also what proves the app IS Hermes — `app.json` declares no
+        # `jsEngine`, so the engine was an assumption until the guard printed it.
+        #
+        # ⛔ `hermesc` MUST come from this tree, not from a PATH lookup. Hermes bytecode is versioned and
+        # the runtime refuses a bundle built by a different compiler version — which would sail past the
+        # magic check (both are Hermes) and fail at launch instead. The binary that built the cached
+        # .app is the one in this checkout's pods/node_modules, and the lockfile is in the cache key, so
+        # they cannot drift apart.
+        # ⛔ THE FIRST CANDIDATE IS THE ONLY ONE THAT EXISTS ON RN 0.85, and its absence is why the fast
+        # path had never once executed before run 31835736974. The three paths below it are correct for
+        # RN ~0.7x, where the compiler lived in `react-native/sdks/`. They are KEPT, not replaced — they
+        # cost one `-x` test each. The list is ordered most-current first.
+        HERMESC=""
+        for cand in \
+          "node_modules/hermes-compiler/hermesc/osx-bin/hermesc" \
+          "../../node_modules/hermes-compiler/hermesc/osx-bin/hermesc" \
+          "ios/Pods/hermes-engine/destroot/bin/hermesc" \
+          "node_modules/react-native/sdks/hermesc/osx-bin/hermesc" \
+          "../../node_modules/react-native/sdks/hermesc/osx-bin/hermesc"; do
+          [ -x "$cand" ] && HERMESC="$cand" && break
+        done
+        [ -n "$HERMESC" ] || fail "hermesc not found in this tree — cannot produce the bytecode this binary expects"
+        echo "hermesc: $HERMESC"
+        "$HERMESC" -emit-binary -max-diagnostic-width=80 -out "$TMP/main.jsbundle.hbc" "$TMP/main.jsbundle" \
+          || fail "hermesc failed"
+        [ -s "$TMP/main.jsbundle.hbc" ] || fail "hermesc produced an empty bundle"
+        mv "$TMP/main.jsbundle.hbc" "$TMP/main.jsbundle"
+
+        # ⛔ THE ENGINE CHECK. Comparing the new bundle's magic against the one already in the .app
+        # asserts "same format as what this binary expects" without this action needing to know which
+        # engine is configured.
+        NEW_MAGIC=$(xxd -p -l 8 "$TMP/main.jsbundle")
+        [ "$NEW_MAGIC" = "$OLD_MAGIC" ] || fail "bundle format changed ($OLD_MAGIC → $NEW_MAGIC) — engine mismatch"
+
+        mv "$TMP/main.jsbundle" "$BUNDLE" || fail "could not swap main.jsbundle into the .app"
+        NEW_SHA=$(shasum -a 256 "$BUNDLE" | cut -d' ' -f1)
+
+        # ⚡ Printed every run, hit or miss, exactly like the binary's provenance (rule ③). An UNCHANGED
+        # sha is not an error — a run that only touched `.maestro/**` legitimately produces byte-identical
+        # JS — but it is the one number that says which JavaScript is about to be tested.
+        echo "js-bundle sha: $OLD_SHA → $NEW_SHA"
+        # ⛔ An `if`, NOT `[ … ] && echo`. GitHub runs this under `bash -e`, so a `&&` chain whose test is
+        # FALSE returns 1 and kills the step — and the false case here is the NORMAL one (the shas differ
+        # whenever any JS changed). That would have turned every successful fast-path run into a failure.
+        if [ "$OLD_SHA" = "$NEW_SHA" ]; then
+          echo "   (identical — no JS input changed since this binary was built)"
+        fi
+        echo "usable=true" >> "$GITHUB_OUTPUT"
+
+    - name: Generate the native iOS project (expo prebuild)
+      if: steps.appverify.outputs.usable != 'true'
+      shell: bash
+      working-directory: apps/rn
+      run: npx expo prebuild --platform ios
+
+    # `expo prebuild` runs pod install but treats it as BEST-EFFORT — it prints CocoaPods errors yet
+    # still exits 0, so a pod failure silently yields no .xcworkspace and the build step fails later
+    # with a misleading "workspace does not exist". Re-run pod install as its OWN step so any real
+    # CocoaPods error is the failing step, with the actual message. Idempotent.
+    - name: Install CocoaPods (fail loud — prebuild masks pod errors with exit 0)
+      if: steps.appverify.outputs.usable != 'true'
+      shell: bash
+      working-directory: apps/rn/ios
+      run: pod install
+
+    - name: Build for the iOS Simulator (no signing)
+      if: steps.appverify.outputs.usable != 'true'
+      shell: bash
+      working-directory: apps/rn
+      run: |
+        # `pipefail` is LOAD-BEARING with the `tee` below: without it the pipeline's exit status is
+        # tee's (always 0) and a failed compile would sail through as a green step.
+        set -o pipefail
+        # Build ONLY the runner's native arch — Release defaults to both arm64 + x86_64 sim slices (≈2×
+        # the compile); we only need the slice matching the sim we boot.
+        ARCH="$(uname -m)"
+        echo "Building single simulator arch: $ARCH"
+        # 2026-07-29 speed pass — two compiler-level cuts to the ~13-min sim compile, both safe for a
+        # FUNCTIONAL e2e (the signed Codemagic build is the optimized final sanity check):
+        #  • Optimization OFF (SWIFT_OPTIMIZATION_LEVEL=-Onone / GCC_OPTIMIZATION_LEVEL=0) — skips the
+        #    expensive Release -O passes while KEEPING the Release config's embedded self-contained JS
+        #    bundle (bundling is gated on the config NAME, not opt level), so the app still runs on the
+        #    sim with no Metro. Maestro tests behavior, not perf → unoptimized is fine.
+        #  • Clang explicit modules ON (Xcode 26 default) — green across 3 runs, so we take the
+        #    module-reuse speedup. Revert to CLANG_ENABLE_EXPLICIT_MODULES=NO if a pod's module map trips
+        #    explicit modules.
+        # 2026-08-12 (4.1.3a) — two more, both free and both measured from run 31516616133's log:
+        #  • DEBUG_INFORMATION_FORMAT=dwarf — the log runs 4 `GenerateDSYMFile` tasks producing dSYMs
+        #    that NOTHING in this lane reads. Symbolication belongs to the signed Codemagic build.
+        #  • COMPILER_INDEX_STORE_ENABLE=NO — index-while-building serves an IDE. There isn't one here.
+        # ⚠️ 2026-08-17: the capture lane had NEITHER of the 4.1.3a pair until this action was extracted.
+        xcodebuild \
+          -workspace ios/DebtPlannerRN.xcworkspace \
+          -scheme DebtPlannerRN \
+          -configuration Release \
+          -sdk iphonesimulator \
+          -derivedDataPath ios/build \
+          -destination 'generic/platform=iOS Simulator' \
+          ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
+          CODE_SIGNING_ALLOWED=NO \
+          SWIFT_OPTIMIZATION_LEVEL='-Onone' GCC_OPTIMIZATION_LEVEL=0 \
+          DEBUG_INFORMATION_FORMAT=dwarf \
+          COMPILER_INDEX_STORE_ENABLE=NO \
+          build 2>&1 | tee xcodebuild.log
+
+    # ── 4.1.6a.7.4b · THE XCUITEST BUNDLE — A SEPARATE, NON-FATAL COMPILE ───────────────────────
+    #
+    # ⛔ DELIBERATELY NOT `build-for-testing` ON THE STEP ABOVE. That would fold the test target's
+    # compilation into the app build, so a Swift error in a diagnostic probe would red the whole lane —
+    # the Maestro suite included. The plugin's risk note is explicit that the app does not depend on the
+    # test bundle precisely so this step cannot do that.
+    #
+    # Incremental: pods and the app are already compiled into the same `-derivedDataPath`, so this is
+    # the test bundle and its link, not another 771s.
+    - name: Build the XCUITest bundle (non-fatal — see the step comment)
+      id: xctestbuild
+      if: inputs.build-tests == 'true' && steps.appverify.outputs.usable != 'true'
+      continue-on-error: true
+      shell: bash
+      working-directory: apps/rn
+      run: |
+        set -o pipefail
+        # ⭐ ASSERT THE SCHEME FIRST, because it is the half nothing could check locally. The pre-flight
+        # covers the pbxproj and the three scheme SHAPES the mutation branches on, but there is no real
+        # Expo-generated `.xcscheme` in the repo to test against. One grep converts an assumption into a
+        # printed fact, and it is the difference between "xcodebuild ran nothing" and "xcodebuild ran
+        # nothing BECAUSE the testable never landed".
+        SCHEME="ios/DebtPlannerRN.xcodeproj/xcshareddata/xcschemes/DebtPlannerRN.xcscheme"
+        echo "──────── the scheme's Test action ────────"
+        if [ -f "$SCHEME" ]; then
+          sed -n '/<TestAction/,/<\/TestAction>/p' "$SCHEME"
+          # ⚠️ SINGLE QUOTES ON THE WARNING, and it is not style. Backticks inside a double-quoted string
+          # are COMMAND SUBSTITUTION — the first draft wrote `xcodebuild test` in prose backticks and bash
+          # would have EXECUTED it on the failure path. Measured locally 2026-08-14, not assumed.
+          grep -q "CoverageProbeUITests" "$SCHEME" \
+            && echo "✅ the testable IS in the scheme" \
+            || echo '::warning::CoverageProbeUITests is NOT in the scheme — the config plugin scheme mod did not land, and `xcodebuild test` will run nothing'
+        else
+          echo "::warning::no scheme at $SCHEME — prebuild's output is not shaped as assumed"
+        fi
+        echo "──────────────────────────────────────────"
+        ARCH="$(uname -m)"
+        xcodebuild \
+          -workspace ios/DebtPlannerRN.xcworkspace \
+          -scheme DebtPlannerRN \
+          -configuration Release \
+          -sdk iphonesimulator \
+          -derivedDataPath ios/build \
+          -destination 'generic/platform=iOS Simulator' \
+          ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
+          CODE_SIGNING_ALLOWED=NO \
+          SWIFT_OPTIMIZATION_LEVEL='-Onone' GCC_OPTIMIZATION_LEVEL=0 \
+          DEBUG_INFORMATION_FORMAT=dwarf \
+          COMPILER_INDEX_STORE_ENABLE=NO \
+          build-for-testing 2>&1 | tee xcodebuild-test.log | tail -40
+        echo "──────── .xctestrun produced ────────"
+        ls -la ios/build/Build/Products/*.xctestrun || echo "(none — nothing to run later)"
+
+    # xcodebuild emits thousands of lines and buries the ONE that matters in the middle of them, under a
+    # pile of benign warnings — the React prebuilt core's "umbrella header does not include header
+    # RCTTrackingAnimatedNode.h" is the loudest, appears on every build including successful ones, and
+    # reads exactly like a cause when you are scrolling a failed log looking for one.
+    - name: Surface the build error
+      if: failure()
+      shell: bash
+      working-directory: apps/rn
+      run: |
+        echo "──────── errors / failures ────────"
+        grep -nE "error:|fatal error:|\*\* BUILD FAILED \*\*|The following build commands failed|^ld: |clang: error|No space left on device|Command .* failed with a nonzero exit code" \
+          xcodebuild.log | tail -60 || echo "(no error-shaped line matched — see the tail below)"
+        echo
+        echo "──────── failing build commands ────────"
+        sed -n '/The following build commands failed/,$p' xcodebuild.log | head -40 || true
+        echo
+        echo "──────── last 80 lines ────────"
+        tail -80 xcodebuild.log
+        echo
+        echo "NOTE: if NOTHING above looks like a compile error, the step did not fail from one —"
+        echo "check the job for a timeout, a cancelled runner, or disk exhaustion."
+
+    # ⚠️ BOTH LOGS, not just the app's. The XCUITest bundle compiles in its own `continue-on-error` step,
+    # so a Swift error in the probe never reds the job and never reaches `Surface the build error` either
+    # (that step's `failure()` cannot fire for a step allowed to fail). Without this file the probe's
+    # failure mode is a tail of 40 lines in an expiring log, which is how a cycle gets spent twice.
+    # ⛔ NO `#` COMMENTS INSIDE `path: |` — every line there is a literal pattern, not YAML.
+    - name: Upload the raw build log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.log-artifact-name }}
+        path: |
+          apps/rn/xcodebuild.log
+          apps/rn/xcodebuild-test.log
+        if-no-files-found: ignore
+
+    # Written INSIDE the cached set, so it travels with the binary. This is what makes rule ③ answerable
+    # at all: without it, a cache hit can say the inputs matched but nothing can say which commit the
+    # bytes came from.
+    - name: Stamp the .app's provenance
+      if: steps.appverify.outputs.usable != 'true'
+      shell: bash
+      working-directory: apps/rn
+      run: |
+        cat > .appcache-provenance.txt << PROV
+        built_at_sha=${{ github.sha }}
+        built_by_run=${{ github.run_id }}
+        built_on_ref=${{ github.ref }}
+        cache_key=${{ steps.appkey.outputs.key }}
+        PROV
+        cat .appcache-provenance.txt
+
+    - name: Save the built .app
+      if: steps.appverify.outputs.usable != 'true' && inputs.use-cache == 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          apps/rn/ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
+          apps/rn/ios/build/Build/Products/Release-iphonesimulator/*-Runner.app
+          apps/rn/ios/build/Build/Products/Release-iphonesimulator/*.xctest
+          apps/rn/ios/build/Build/Products/*.xctestrun
+          apps/rn/.appcache-provenance.txt
+        key: ${{ steps.appkey.outputs.key }}
+
+    # ⛔ RULE ③, AND IT RUNS ON EVERY EXECUTION — hit or miss, cached or fresh. A speed optimisation that
+    # cannot be audited from the log is how "green" stops meaning anything, and this lane has already
+    # shipped that defect twice. If this step ever goes quiet, distrust the run.
+    - name: Report which binary is about to be tested
+      id: products
+      shell: bash
+      working-directory: apps/rn
+      run: |
+        PROV=".appcache-provenance.txt"
+        echo "──────── BINARY PROVENANCE ────────"
+        if [ "${{ steps.appverify.outputs.usable }}" = "true" ]; then
+          echo "SOURCE      : RESTORED FROM CACHE (prebuild + pods + compile were SKIPPED)"
+        else
+          echo "SOURCE      : COMPILED IN THIS RUN"
+        fi
+        echo "cache-hit   : ${{ steps.appcache.outputs.cache-hit || 'false' }}"
+        echo "key         : ${{ steps.appkey.outputs.key }}"
+        echo "HEAD        : ${{ github.sha }}"
+        cat "$PROV" 2>/dev/null || echo "(no provenance file — treat this binary as unidentified)"
+        BUILT_SHA=$(sed -n 's/^built_at_sha=//p' "$PROV" 2>/dev/null)
+        if [ -n "$BUILT_SHA" ] && [ "$BUILT_SHA" != "${{ github.sha }}" ]; then
+          echo
+          echo "NOTE: this binary was compiled at $BUILT_SHA, not at HEAD."
+          echo "The key hashes every input that reaches the binary, so a different commit here should"
+          echo "mean only UNHASHED files moved (docs, .maestro flows)."
+          echo
+          echo "⚠️ READ THIS LIST. It is every file changed since that build — deliberately NOT filtered"
+          echo "to the hashed paths, because filtering by the same list the key uses could only ever"
+          echo "agree with itself. A path here that plausibly reaches the binary means the key is"
+          echo "MISSING it: re-run with rebuild=true, then add the path to the key."
+          git diff --name-only "$BUILT_SHA" "${{ github.sha }}" 2>/dev/null | head -40 \
+            || echo "(cannot diff — $BUILT_SHA is not in this checkout; needs fetch-depth: 0)"
+        fi
+        echo "───────────────────────────────────"
+        mkdir -p maestro-debug
+        cp "$PROV" maestro-debug/PROVENANCE.txt 2>/dev/null || true
+        du -sh ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app 2>/dev/null || true
+
+        # ⭐ 4.1.9b.3 — THE PROBE'S GATE IS "IS THERE AN .xctestrun", NOT "DID THE BUILD STEP RUN".
+        # Those were the same question only while the products could not be cached. Now a cache HIT
+        # legitimately carries a restored `.xctestrun` while the build step is `skipped`, and gating on
+        # the step's outcome would skip the probe on precisely the fast runs the cache exists to create.
+        # ⚠️ Reported, never fatal: a missing bundle is a verdict about the probe, not about the suite.
+        if ls ios/build/Build/Products/*.xctestrun >/dev/null 2>&1; then
+          echo "xctest=true" >> "$GITHUB_OUTPUT"
+          echo "xctest products: $(ls ios/build/Build/Products/*.xctestrun | tr '\n' ' ')"
+        else
+          echo "xctest=false" >> "$GITHUB_OUTPUT"
+          echo "xctest products: NONE (the probe will report that it had nothing to run)"
+        fi

@@ -9749,3 +9749,165 @@ and read the ARTIFACT rather than reasoning about the test.** The pre-flight wen
 session and *every* addition was written against a defect a CI cycle had already paid for — the doubled
 source path, the stale `INFOPLIST_FILE`, and then the general form both shared. That is the loop worth
 keeping: each cycle's failure becomes a check that costs one second forever after.
+
+---
+
+## 2026-08-17 — 4.1.9b: the composite action, the tier split, and the caches that make both safe
+
+**Built: .1–.8, all eight.** Nothing is verified on macOS yet — the exit is one `device=both` dispatch —
+but every failure mode that is *static* now has a gate in front of it, and one of them caught a live
+defect before a cycle was spent on it.
+
+### ⭐ What the shape is now
+
+```
+build  ──┬──▶  iPhone tier  (flows 01-10 · the XCUITest probe · the 4.1.1 capability lane)
+         └──▶  iPad  tier   ([D30]: 01 · i01 · i02 · i03 · 05, plus i02 again in dark)
+```
+
+| | before | after |
+|---|---|---|
+| the build recipe | duplicated in two workflows | `.github/actions/rn-ios-sim-build` |
+| the `.app` key | hashed **all of `native-e2e.yml`** | hashes the ACTION; the workflow drops out |
+| a flow-list edit | ~771s of compile | nothing — it is not in the key |
+| the two tiers | sequential in one job (sum) | parallel jobs (max) |
+| a tier job's setup | npm install · pods · Xcode · tsc | a tarball, `simctl`, Maestro |
+| the probe on a cache hit | **unrunnable** (no `ios/`, no `.xctestrun`) | the products are cached and shipped |
+
+### ⛔ THE "KEEP THE TWO IN SYNC" NOTE HAD ALREADY FAILED — measured, not assumed
+
+`app-preview.yml` carried a comment promising to keep its copy of the recipe in step with
+`native-e2e.yml`. In the five days since 4.1.3a it had lost **four** things:
+`DEBUG_INFORMATION_FORMAT=dwarf`, `COMPILER_INDEX_STORE_ENABLE=NO`, `cache: npm`, and `fetch-depth: 0`.
+⚡ **A comment asking a human to remember is not a mechanism** — "two places, one rule" for the fifth
+time in this repo, and the first time the duplication was *documented as deliberate* and still drifted.
+
+### ⛔ A CROSS-JOB SPLIT CANNOT SHIP THE `.app` THROUGH THE CACHE
+
+The obvious design — each tier restores the `.app` cache by key — is wrong, and wrong in this lane's
+signature way. On a hit the build job re-bundles the working tree's JS into the restored binary, and
+**that swapped `.app` is never saved back** (the save is gated on the rebuild path). A tier restoring by
+key would install the JavaScript from whenever the binary was COMPILED and go green against stale code:
+rule ②'s hazard with a job boundary standing in for a partial key.
+
+So the build job publishes what it will actually test, as a **tar** — because `upload-artifact` does not
+preserve the executable bit, and a `.app` whose Mach-O is not `+x` installs cleanly and then never
+launches. The receiving action asserts `-x` rather than trusting it.
+
+### ⭐ `lint:lane` — 76 static checks, and it found a defect on its first run
+
+`npm run lint:lane` (`scripts/preflight-native-lane.ts`, in `lint:rn`). The same instrument as the
+XCUITest pre-flight, one layer out: the lane costs ~20 minutes and its characteristic failure is *a step
+that quietly did not run*, which is indistinguishable from a step that found nothing.
+
+⭐ **It caught a real one immediately.** The 4.1.9b.6 diagnosis bundle preserves Maestro's own layout,
+which puts the view hierarchy under `.maestro/tests/…` — a **hidden** segment. `upload-artifact` v4 drops
+those by default, so the bundle whose entire purpose is "the 72 KB file you download first" would have
+shipped without it, looking exactly like a run that produced no hierarchy. The rule was then widened
+from "any path mentioning `maestro-debug`" to **"any recursive glob"**, which is the general form.
+
+**Proven on nine planted defects**, each reverted: a composite step losing `shell:` · the bundle losing
+`include-hidden-files` · two jobs claiming one artifact name · `restore-keys` reappearing · flow 09 no
+longer last · a save path the restore still lists · a flow renamed in the workflow only · the key no
+longer hashing the action · the tar omitting `-Runner.app`.
+
+### ⚡ THE LESSON OF THE PLANTING PASS, and it is a new one
+
+**Three of the first eight plants reported "gate missed it" — and all three plants had never applied.**
+The `perl` substitutions matched nothing, the files were byte-identical to their backups, and the gate
+was correctly silent about a defect that was not there. ⚠️ **A plant that does not land is
+indistinguishable from a guard that is blind**, and it fails in the *safe-looking* direction: it invites
+you to go add checks you already have. The fix is one line — `diff` the planted file against its backup
+and print `plant-applied=YES|NO` beside the verdict. That is now how planting is done here.
+
+### ⚠️ TWO OF MY OWN CHECKS WERE WRONG, both producing a confident red on correct code
+
+① The flow-order check read every `.maestro/*.yaml` in the FILE, so the iPad tier's `01` and `05` landed
+on the end of the iPhone list and it reported that flow 09 does not run last — against a workflow where
+it does. ② The `include-hidden-files` check split the raw text on `- name: `, which attributes a step's
+**leading comment block to the previous step**, and it reported a missing flag on a step that had one.
+⚡ Both are the pre-flight's own filed lesson — *a verifier that is wrong in the same way as the code it
+verifies is worse than no verifier* — in its other form: **a verifier whose SCOPE is wider than the rule
+it enforces.** Both now read parsed structure rather than raw text.
+
+### ⛔⛔ THE BIGGER ONE: the web e2e suite was testing the EMBED build
+
+Running `validate:release:rn` to verify this item produced **~60 red specs**, every one of them a missing
+element (`waiting for getByText('Add extra income')`). Nothing in my change touches app source, so the
+question was what the suite was actually loading.
+
+⚡ **Grepping the artifact answered it in one command**, which is the loop this repo keeps re-learning:
+`dist/` and `dist-embed/` had the **identical content hash**, and `dist/`'s storage backing was inlined
+as `()=>globalThis.sessionStorage` — the embed branch. The ordinary web build *was* the embed build.
+
+⛔ **The cause was already measured and written down — in the sibling file.** 3.5.7.4 established that
+Metro's transform cache does NOT invalidate on an `EXPO_PUBLIC_*` change, and recorded the matrix in
+`playwright.embed.config.ts`:
+
+```
+flag=0, no --clear  →  sessionStorage=1  localStorage=0   ⛔ wrong artifact
+flag=0, --clear     →  sessionStorage=0  localStorage=1   ✅ correct
+```
+
+…and then applied `--clear` to **one of the two configs.** The embed build (flag=1, `--clear`) was safe.
+`playwright.config.ts` is the flag=0 row and had no `--clear`, so once `test:e2e:embed` had run on a
+machine, every subsequent `export:web` inherited the embed's transforms. The suite seeds through
+localStorage; the app read sessionStorage; it booted with no data.
+
+⚠️ **CI never saw it, and that is luck rather than design:** `test:e2e:rn` runs BEFORE `test:e2e:embed`
+in `validate:release:rn`, and each CI job starts with a cold cache. **The gate was broken only from the
+second LOCAL run onward — which is the run a human does.**
+
+**Fixed and re-measured, not assumed:** with `--clear` on the app config, `dist` is sessionStorage 0 /
+localStorage 1 and `dist-embed` is 1 / 0 — the matrix's correct rows, and different content hashes.
+
+⚡ **This is the iPad 240s→420s parity bug again, exactly:** *a fix applied to one of the two places that
+needed it, where the second place then pays the same cost later.* The plan already names that shape for
+the driver timeout. Two occurrences in four days makes it a pattern worth a sweep: **when a fix is
+written into one config/step of a symmetric pair, the pair is the unit of the fix.**
+
+### ⛔ A SHIPPED DEFECT, found while trying to run the gate: `lint:rn` was broken locally
+
+`npm run lint:rn` returned **7,578 errors**, none of them mine. 3.5.7.4 added `apps/rn/dist-embed/` to
+`.gitignore` and **not** to eslint's `globalIgnores`, so the embed build output gets linted. ⚡ CI never
+saw it because `lint:rn` runs BEFORE `test:e2e:embed` in `validate:release:rn` — on a clean checkout the
+directory does not exist yet. **The gate was only broken from the second local run onward, which is the
+run a human does.** One build output, two ignore lists; fixed here because it blocked this item's own
+verification.
+
+### The decisions inside the item
+
+- **"Durable" means a 90-day artifact, not a commit.** `native-lane-results-<tier>.json` is 4.1.9c's
+  writer's input. CI does **not** push to the repo — a bot commit into `v1.7-dev` is a new mechanism with
+  its own race against a human push, bought for a file the writer can take as an argument. The stamped
+  checklist is what gets committed, by a human, as it already is.
+- **`<skipped/>` is its own state, not a pass.** Maestro emits it for a flow it never ran — the exact
+  shape of the driver stall that has burned two cycles — and counting it as a pass would let a stall
+  stamp the checklist.
+- **The testcase→flow mapping is an assumption, and it is recorded as one.** Maestro names a testcase
+  after the flow's `name:` and falls back to the file stem; no flow here sets `name:`, so today the stem
+  IS the name. Every unresolved name is written into the results file rather than dropped.
+- **`app-preview.yml` gets its OWN cache namespace.** The key hashes FILES, and `EXPO_PUBLIC_CAPTURE_DEMO`
+  is an env var Metro inlines — the two lanes build different binaries from identical sources. A shared
+  namespace could let the e2e lane restore a build that boots straight into the demo, and go green.
+- **The Xcode build number joins the key.** A cached `.app` surviving an Xcode bump is benign; a cached
+  `.xctestrun` consumed by a different Xcode is not, and it would present as the probe running nothing.
+
+### ⚠️ What to expect on the first dispatch, so it is not misread
+
+**The `.app` cache will MISS and the run will pay a full build.** The key's shape changed three ways (the
+action's hash, the namespace, the Xcode tag), so every existing entry is unreachable by construction.
+⛔ That is the change working, not the cache being broken. The run AFTER it is the one that demonstrates
+4.1.9b's saving.
+
+### ⚠️ Filed, not fixed
+
+- **`maestro-report` is now `maestro-report-iphone` / `maestro-report-ipad`.** Two jobs cannot upload one
+  artifact name — v4 errors on the collision, *after* the work is done. Anything quoting the old name is
+  stale.
+- **The split doubles concurrent macOS minutes** (two runners for one wall-clock span). Free today
+  because the repo is public; if it ever goes private, the sum-vs-max trade reverses.
+- **The boot step's poll still does not fire** — unchanged, deliberately. Fixing it means a log predicate,
+  and inventing one instead of grepping the artifact already cost a cycle. → 4.1.11.
+- **`app-preview.yml`'s cache will usually miss** — it runs rarely and entries evict in a week. Near-zero
+  benefit, zero added risk (the re-bundle guard is what makes a hit safe at all), kept for symmetry.

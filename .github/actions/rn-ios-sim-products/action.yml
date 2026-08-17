@@ -1,0 +1,58 @@
+# 4.1.9b.3 — RECEIVE THE BUILT PRODUCTS IN A TIER JOB.
+#
+# ⛔ WHY AN ARTIFACT AND NOT THE CACHE. The tiers could restore the `.app` cache by key themselves — and
+# it would be wrong. On a cache HIT the build job re-bundles the working tree's JavaScript into the
+# restored binary and that swapped `.app` is never saved back (the save is gated on the rebuild path).
+# A tier restoring by key would therefore install the JavaScript from whenever the binary was COMPILED
+# and go green against stale code: rule ②'s stale-binary hazard with a job boundary standing in for a
+# partial key. The build job publishes what it will actually test; the tiers install exactly that.
+#
+# ⛔ AND WHY A TAR. `actions/upload-artifact` does not preserve the executable bit. Uploading the `.app`
+# as a directory strips `+x` from the Mach-O, `simctl install` accepts the bundle anyway, and the failure
+# arrives later as a launch that never happens — this lane's signature shape. Tar carries the mode. The
+# assertion below is what turns that from a claim into a checked fact.
+name: Unpack the iOS simulator products
+description: Download and unpack the build job's .app (+ XCUITest products) into the expected path.
+
+inputs:
+  artifact:
+    description: 'Artifact name published by the build job.'
+    required: false
+    default: ios-products
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact }}
+        path: ${{ runner.temp }}/ios-products
+
+    - name: Unpack, and prove the binary survived the round trip
+      shell: bash
+      working-directory: .
+      run: |
+        set -euo pipefail
+        DEST="apps/rn/ios/build/Build/Products"
+        mkdir -p "$DEST"
+        tar -xf "$RUNNER_TEMP/ios-products/ios-products.tar" -C "$DEST"
+
+        APP="$DEST/Release-iphonesimulator/DebtPlannerRN.app"
+        # ⛔ `-x`, NOT `-f`. The permission bit is the whole reason this travels as a tar, so it is the
+        # thing asserted. A readable-but-not-executable binary installs cleanly and never launches.
+        if [ ! -x "$APP/DebtPlannerRN" ]; then
+          echo "::error::$APP/DebtPlannerRN is missing or not executable — the tar did not carry the mode bit."
+          ls -la "$APP" || true
+          exit 1
+        fi
+        plutil -lint "$APP/Info.plist" >/dev/null || { echo "::error::Info.plist does not parse"; exit 1; }
+        echo "✅ .app unpacked, binary executable, Info.plist parses"
+
+        # The provenance file rides in the tar so rule ③ is answerable in the tier that actually runs the
+        # flows, not only in the job that produced the binary.
+        mkdir -p apps/rn/maestro-debug
+        cp "$DEST/.appcache-provenance.txt" apps/rn/maestro-debug/PROVENANCE.txt 2>/dev/null || true
+        echo "──────── BINARY PROVENANCE (as received) ────────"
+        cat "$DEST/.appcache-provenance.txt" 2>/dev/null || echo "(none — treat this binary as unidentified)"
+        echo "─────────────────────────────────────────────────"
+        ls -la "$DEST" || true

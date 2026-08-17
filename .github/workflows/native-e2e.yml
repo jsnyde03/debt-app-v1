@@ -1,16 +1,28 @@
-# Native E2E on a GitHub-Actions macOS runner: expo prebuild → compile the RN app for the iOS
-# Simulator (unsigned) → boot → run Maestro flows. This is the Codemagic-FREE native-verification loop
-# (GH macOS minutes are separate from the Codemagic 500) — it catches native-only bugs the web
-# Playwright gate structurally can't (gesture/tap behavior, New-Arch launch crashes, autolinked native
-# modules, the widget/App-Group compile), WITHOUT a signed device build. Mirrors Freedom's native-e2e.
+# Native E2E on a GitHub-Actions macOS runner: build the RN app for the iOS Simulator (unsigned) → boot
+# → run Maestro flows. This is the Codemagic-FREE native-verification loop (GH macOS minutes are separate
+# from the Codemagic 500) — it catches native-only bugs the web Playwright gate structurally can't
+# (gesture/tap behavior, New-Arch launch crashes, autolinked native modules, the widget/App-Group
+# compile), WITHOUT a signed device build.
 #
-# Builds the EXPO RN app in apps/rn (NOT the retired Capacitor app). Manual / release-gated only — mac
-# minutes are ~10× Linux, so never every-push.
+# ⭐ 4.1.9b (2026-08-17) — THE SHAPE CHANGED, AND THE SHAPE IS THE POINT.
 #
-# ⚠️ FIRST-RUN TUNING (not locally verifiable — no macOS here): the generated scheme/workspace name
-# (app.json name "Debt Planner (RN)" → expected "DebtPlannerRN"), the simulator device name, whether
-# Maestro needs idb-companion on this runner, and the .maestro selectors may each need one adjustment
-# on the first GH-Actions run — exactly as Freedom's first run did.
+#   build  ──┬──▶  iPhone tier  (flows 01-10 · the XCUITest probe · the 4.1.1 capability lane)
+#            └──▶  iPad  tier   ([D30]: 01 · i01 · i02 · i03 · 05, plus i02 again in dark)
+#
+#   ① The BUILD RECIPE lives in `.github/actions/rn-ios-sim-build` and is shared with `app-preview.yml`,
+#      which had drifted four ways from its copy in five days.
+#   ② The `.app` cache key no longer hashes THIS FILE — the build flags moved into the action — so
+#      editing a Maestro flow list, the most common edit in 4.1, stops recompiling the binary.
+#   ③ The two tiers used to run SEQUENTIALLY in one job, so `device=both` paid iPhone + iPad
+#      (~650s + ~666s). They are now parallel jobs: the cost is `max`, not `sum`.
+#   ④ The tiers install a tarball and need no npm, no pods, no Xcode select and no tsc.
+#
+# ⛔ THE PROBE STAYS IN THE IPHONE JOB. It used to sit between the two tiers; a split that dropped it
+# would look exactly like a probe that found nothing.
+#
+# ⛔ DO NOT SHARD THE IPHONE TIER. Its flows carry a real dependency chain — `01` seeds · `07` clears
+# state · `08` depends on `07` · `10` must precede `09` · `09` is terminal. Splitting it is how the suite
+# starts lying. The TIER split is safe for the opposite reason: each tier already runs its own `01`.
 name: Native E2E (Maestro · iOS Simulator)
 
 on:
@@ -19,57 +31,50 @@ on:
   # ⚠️ That button only appears once THIS file exists on the DEFAULT branch, so the file is committed
   # there too (it runs the SELECTED branch's code, not the default branch's).
   # ⚠️ CORRECTED 2026-08-07: this repo's default branch is **release/v1**, not `master` — `master` does
-  # not exist. This file is on release/v1, which is why the button works; the old note named a branch
-  # that never carried it.
+  # not exist.
   workflow_dispatch:
     inputs:
       # 4.1.1 — the CAPABILITY PROBE lane. `.maestro/probe/` holds one unproven command per file and is
       # NOT part of the suite: its files are expected to fail until each command is confirmed to work on
       # this Maestro build, which is the entire point of running them.
       #
-      # ⚠️ This input exists so a probe run cannot disturb flows 01–06. Those depend on each other through
-      # filename order and on 01's seeded state; a probe file dropped among them would both break that
+      # ⚠️ This input exists so a probe run cannot disturb flows 01–10. Those depend on each other through
+      # an explicit order and on 01's seeded state; a probe file dropped among them would both break that
       # chain and take the whole suite down with its own parse failure (Maestro validates a FILE before
       # executing any of it — see the header of 06-tutorial-interactions.yaml).
       mode:
-        description: 'suite = the real flows 01-06 · probe = the 4.1.1 capability probe (each file run separately, all verdicts collected)'
+        description: 'suite = the real flows · probe = the 4.1.1 capability probe (each file run separately, all verdicts collected)'
         type: choice
         options: [suite, probe]
         default: suite
-      # 4.1.3a — the escape hatch for the .app cache below. Ticking this forces a full prebuild + pod
-      # install + compile even when the key hits. It exists because "I do not trust that binary" must
-      # always have a one-click answer that does not involve editing the workflow.
+      # 4.1.3a — the escape hatch for the .app cache. Ticking this forces a full prebuild + pod install +
+      # compile even when the key hits. It exists because "I do not trust that binary" must always have a
+      # one-click answer that does not involve editing the workflow.
       rebuild:
         description: 'Force a clean native build (ignore the cached .app)'
         type: boolean
         default: false
-      # 4.1.5 / [D30] — the iPad lane is THREE TIERS IN ONE DIRECTORY, and the device is an INPUT
-      # carrying its own explicit flow list. Not a duplicated `.maestro-ipad/` set: this repo has priced
-      # parallel test surfaces twice (the two screenshot mechanisms, whose stale frames masked the
-      # sandbox theme defect; Wave A's "two places, one rule" landing three times in one wave).
+      # 4.1.5 / [D30] — the iPad lane is THREE TIERS IN ONE DIRECTORY, and the device is an INPUT carrying
+      # its own explicit flow list. Not a duplicated `.maestro-ipad/` set: this repo has priced parallel
+      # test surfaces twice (the two screenshot mechanisms, whose stale frames masked the sandbox theme
+      # defect; Wave A's "two places, one rule" landing three times in one wave).
       #
-      # ⚡ 4.1.3a is what keeps `both` from doubling the BUILD. The `.app` is device-agnostic and the cache
-      # key does not mention the device, so the iPad run restores the SAME binary.
+      # ⚡ 4.1.3a is what keeps `both` from doubling the BUILD, and 4.1.9b is what keeps it from doubling
+      # the TIME. The `.app` is device-agnostic and the cache key does not mention the device, so both
+      # tiers receive the SAME binary — and they now receive it concurrently.
       #
       # ⚠️ **MEASURED 2026-08-13, run `31720514061`: the iPad tier is 666s (11m06s) against the iPhone
-      # suite's 808s.** The sentence here used to stop at "its marginal cost is Maestro time, not another
-      # 17-minute build" — true about the build, and it undersold the rest by a lot. Three flows cost 82%
-      # of what eight cost, because the tier pays a **second full simulator boot and install** (~90s + ~54s
-      # by the laps in the iPhone step) and re-runs `01`, the heaviest flow in the suite.
+      # suite's 808s.** Three flows cost 82% of what eight cost, because the tier pays a second full
+      # simulator boot and install (~90s + ~54s) and re-runs `01`, the heaviest flow in the suite.
       # ⛔ `01` is NOT duplication to cut: [D30] put it on the iPad list because whether the iPhone-tuned
-      # swipe geometry survives a 1024pt layout IS the question. The boot/install duplication is the
-      # candidate → 4.1.11.
+      # swipe geometry survives a 1024pt layout IS the question. Under the split, the second boot is paid
+      # on a second machine and costs wall-clock nothing.
       #
-      # So `both` is for changes whose evidence spans the tiers — 4.1.5.3's paired layout assertions are
-      # the archetype, since `i01`'s expanded ids mean nothing without `02`'s compact negatives. Routine
-      # iteration stays on one tier.
-      #
-      # ⚠️ A TAG PUSH SUPPLIES NO INPUTS, so `inputs.device` is empty there and only the iPhone list runs.
-      # Deliberate for now: the iPad tier is a measurement lane, not yet a release gate — which means the
-      # release smoke would not cover `i01`, flow `05`'s iPad half, or §11.15. Promoting the tier, or
+      # ⚠️ A TAG PUSH SUPPLIES NO INPUTS, so `inputs.device` is empty there and only the iPhone job runs.
+      # Deliberate for now: the iPad tier is a measurement lane, not yet a release gate. Promoting it, or
       # defaulting the tag path to `both`, is a 4.1.11 decision.
       device:
-        description: 'iphone = flows 01-08 · ipad = the [D30] iPad tier (shared seed + iPad-only) · both'
+        description: 'iphone = flows 01-10 · ipad = the [D30] iPad tier (shared seed + iPad-only) · both'
         type: choice
         options: [iphone, ipad, both]
         default: iphone
@@ -83,37 +88,32 @@ on:
       #   run Maestro flows    949s / 721s   ← NOT needed
       #   iPad tier            880s          ← NOT needed
       #
-      # ⛔ So verifying an XCUITest fix needs ~12 minutes of work and was buying ~45. Two thirds of every
-      # probe cycle went to a Maestro suite and an iPad tier that CANNOT answer the question the run was
-      # dispatched for. 🎯 Jason 2026-08-14: *"We're spending 40 min each time just to verify a fix."*
+      # ⛔ So verifying an XCUITest fix needs ~12 minutes of work and was buying ~45.
       #
-      # ⚠️ NOTHING PLANNED TOUCHES THE FLOOR. 4.1.9b's composite action deduplicates the recipe and its
-      # tier split parallelises TIERS — neither speeds compilation. Only DerivedData caching would, and
-      # that is GB-scale and unmeasured. The honest ceiling here is ~45 min → ~15, not to zero.
+      # ⚠️ NOTHING HERE TOUCHES THE FLOOR. The composite action deduplicates the recipe and the tier split
+      # parallelises TIERS — neither speeds compilation. Only DerivedData caching would, and that is
+      # GB-scale and unmeasured.
       #
       # ⚠️ A TAG PUSH SUPPLIES NO INPUTS, so `inputs.scope` is empty there. Every condition below is
       # written as `!= 'xcuitest'`, so empty means FULL — the release smoke cannot be narrowed by
       # accident. Same defensive shape as the `device` note above.
       scope:
-        description: 'full = build + flows (+ tier) · xcuitest = build + the XCUITest probe ONLY (~15 min, skips Maestro entirely)'
+        description: 'full = build + flows (+ tier) · xcuitest = build + the XCUITest probe ONLY (skips Maestro entirely)'
         type: choice
         options: [full, xcuitest]
         default: full
   push:
-    # ⛔ TAGS ONLY. The branch-push "rot guard" added earlier on 2026-08-13 is REVERTED — it was mine, it
-    # lasted a few hours, and it generated a 20-minute macOS job on every commit.
+    # ⛔ TAGS ONLY. The branch-push "rot guard" added on 2026-08-13 is REVERTED — it was mine, it lasted a
+    # few hours, and it generated a 20-minute macOS job on every commit.
     # 🎯 Jason: *"e2e running on push is fine. We just need to not kick off the manual Maestro build every
-    # time."* The fast Playwright gate (`web-e2e`) is what belongs on a push; this lane is ~22 minutes and
-    # belongs at a batch boundary, chosen by a human.
+    # time."* The fast Playwright gate (`web-e2e`) is what belongs on a push.
     #
     # ⚡ Reverting also REPAIRS the release gate. The guard needed a `paths:` filter, `paths:` applies to
     # tags too, and a tag pushed onto an existing commit carries no changed files — so the tag trigger was
     # documented as "may now never fire". With the filter gone it is unconditional again.
     #
     # ⚠️ The rot risk the guard existed for is REAL and now unguarded: this lane can go green by never
-    # running. It is filed rather than solved, and the honest mitigation today is that the lane is being
-    # dispatched constantly by hand. Revisit at 4.1.11 — a nightly is the shape that does not tax a
-    # working afternoon, and it also catches the out-of-repo rot a path filter never could.
+    # running. Revisit at 4.1.11 — a nightly is the shape that does not tax a working afternoon.
     tags: ['v*'] # release tags → a gated native smoke before shipping
 
 concurrency:
@@ -121,15 +121,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  maestro:
-    name: Compile · boot · Maestro
+  # ══════════════════════════════════════════════════════════════════════════════════════════════
+  # BUILD — the only job that compiles anything. Both tiers consume its tarball.
+  # ══════════════════════════════════════════════════════════════════════════════════════════════
+  build:
+    name: Build (or restore) the .app
     runs-on: macos-15
-    # ⚠️ 75, raised from 60 on 2026-08-12. Run 31636187156 hit the 60-minute wall mid-iPad-tier and was
-    # cancelled — the `if: always()` collect/upload steps still ran, so the artifact survived, but that
-    # was luck rather than design and the tier produced no result at all. The iPad boot loop that caused
-    # it is gone (geometry is read from disk now), so this is headroom against the NEXT surprise, not a
-    # licence for a slow step.
-    timeout-minutes: 75
+    timeout-minutes: 60
+    outputs:
+      # ⭐ The probe's gate. Before the products could be cached these two were the same question; now a
+      # cache HIT carries a restored `.xctestrun` while the build step is `skipped`, so gating the probe
+      # on the build step's outcome would skip it on exactly the fast runs.
+      xctest: ${{ steps.build.outputs.xctest }}
+      cache-hit: ${{ steps.build.outputs.cache-hit }}
+      key: ${{ steps.build.outputs.key }}
     env:
       # `@sentry/react-native/expo` hooks the Xcode "Bundle React Native code and images" phase and runs
       # `sentry-cli` to upload source maps AFTER bundling. On this runner there is no org slug and no auth
@@ -141,29 +146,9 @@ jobs:
       # BUNDLING error, and the log's most prominent line is React's benign umbrella-header warning.
       #
       # Disabling upload is the right answer here, not a workaround: this is an unsigned, unoptimized
-      # simulator build that exists to be driven by Maestro for ~10 minutes and thrown away. Source maps
-      # for it have no consumer. The SIGNED Codemagic build is where symbolication matters, and it has
-      # the credentials — this variable is scoped to this workflow and does not touch it.
+      # simulator build that exists to be driven by Maestro for ~10 minutes and thrown away. The SIGNED
+      # Codemagic build is where symbolication matters, and it has the credentials.
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
-    # RN 0.85's PREBUILT React core (the fast default, RCT_USE_PREBUILT_RNCORE=1) doesn't export every
-    # legacy ObjC class, so react-native-ios-utilities' reference to `_OBJC_CLASS_$_RCTRootContentView`
-    # (pulled in by react-native-ios-context-menu) was undefined at LINK for arm64. FIX = the prebuild
-    # config plugin `plugins/with-ios-utilities-rootcontentview-fix.js`, which strips that reference — so
-    # the symbol's absence no longer matters and we keep the FAST prebuilt core. NOTE: setting
-    # RCT_USE_PREBUILT_RNCORE=0 (build core from source) was tried first (commit 199c384) and STILL failed
-    # at link — the env approach was ineffective + slower; the plugin is the real fix. ⚠️ Codemagic's
-    # signed RN build therefore does NOT need any RCT_USE_PREBUILT_RNCORE override — the plugin runs at its
-    # prebuild too.
-    # (default RCT_USE_PREBUILT_RNCORE=1 — no override needed.)
-    # NOTE: ccache was removed (2026-07-28) — RN's ccache wiring set a compiler-launcher path that DIDN'T
-    # resolve for the widget-extension target (`@bacons/apple-targets`, in the app project not Pods),
-    # failing the DebtWidget link with "unable to spawn ccache-clang.sh"; it also conflicted with
-    # Xcode 26's explicit modules. Its only benefit was incremental compile caching. This is the FREE
-    # unlimited pipeline, so wall-clock isn't a $ cost. Revisit a correct ccache setup (widget target
-    # excluded) later as a deliberate speed pass if build time becomes painful.
-    defaults:
-      run:
-        working-directory: apps/rn
     steps:
       # ⚠️ `fetch-depth: 0` (4.1.3a) — the default depth-1 checkout cannot diff against the commit a
       # cached .app was built at, which is precisely the audit the provenance step exists to print.
@@ -173,460 +158,81 @@ jobs:
         with:
           fetch-depth: 0
 
-      # `cache: npm` — the one item of the filed caching batch that survived its own measurement. The
-      # dependency install is 59s on a `.app` cache HIT (run 31709717569), and `--prefer-offline` below
-      # can only honour that flag if `~/.npm` is actually populated.
-      #
-      # ⚠️ BOTH lockfiles, and that is the whole risk of this line. There are no npm workspaces here — the
-      # root tree and `apps/rn` are installed separately — so a `cache-dependency-path` naming only one of
-      # them produces a key that does not change when the other moves, which is a stale cache that looks
-      # like a fresh one. Same failure the `.app` key's rule ① exists to prevent, one tier down.
-      #
-      # ⛔ It caches the npm DOWNLOAD cache, not `node_modules`. `apps/rn/package-lock.json` is known out of
-      # sync (`npm ci` refuses it, which is why both lanes use `npm install`), and caching a resolved
-      # `node_modules` against a lockfile that does not describe it is how a build gets dependencies
-      # nobody chose. → the lockfile regeneration already on the backlog.
-      - uses: actions/setup-node@v4
+      - id: build
+        uses: ./.github/actions/rn-ios-sim-build
         with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            apps/rn/package-lock.json
+          cache-namespace: e2e
+          build-tests: 'true'
+          rebuild: ${{ inputs.rebuild }}
+          # Rule ④ — tags never use the cache. A release smoke compiles.
+          use-cache: ${{ github.ref_type != 'tag' }}
 
-      # No npm workspaces — install root (core/tooling) then the RN app's own node_modules. `@core` is a
-      # Metro source alias, so it needs no build/link.
-      - name: Install dependencies (root + apps/rn)
+      # ⛔ TAR, NOT A DIRECTORY UPLOAD — `upload-artifact` drops the executable bit, and a `.app` whose
+      # Mach-O is not `+x` installs cleanly and then never launches. The receiving action asserts `-x`.
+      # ⛔ ENUMERATED PATHS, NEVER `Products/**`: that directory also holds every pod's static library and
+      # its `include/` symlink tree, which is GB-scale and would cost more to move than the build costs
+      # to run.
+      - name: Pack the products for the tier jobs
         working-directory: .
         run: |
-          npm install --prefer-offline --no-audit --no-fund
-          npm --prefix apps/rn install --prefer-offline --no-audit --no-fund
-
-      # Cache the CocoaPods + Swift-PM DOWNLOADS (not the compile) so cold runs don't re-fetch the native
-      # deps (incl. @bacons/apple-targets). Keyed on the RN lockfile.
-      - name: Cache CocoaPods + Swift-PM downloads
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
-            ~/Library/Caches/org.swift.swiftpm
-          key: pods-spm-${{ runner.os }}-${{ hashFiles('apps/rn/package-lock.json') }}
-          restore-keys: |
-            pods-spm-${{ runner.os }}-
-
-      - name: Select newest Xcode
-        run: |
-          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
-          xcodebuild -version
-
-      - name: Link ./core so tsc can resolve @core before Metro runs
-        # tsconfig maps `@core/*` → `./core/*`, a symlink Metro creates at startup (NOT committed). tsc
-        # runs before any Metro invocation here, so on a fresh checkout the link is absent → every @core
-        # import fails. Create it up front (Metro's own `if (!exists)` guard then no-ops later).
-        run: |
-          [ -e core ] || ln -s ../../packages/core core
-          ls -la core
-
-      - name: Fail fast (typecheck before the slow native build)
-        run: npx tsc --noEmit
-
-      # ── 4.1.3a · THE BUILT-.app CACHE ───────────────────────────────────────────────────────────
-      # Measured on run 31516616133: prebuild + pod install + compile = 17m03s of a 31m47s job, and
-      # **648 of ~650 CompileC tasks belong to third-party pods** (RNScreens 103, RNReanimated 103,
-      # RNSVG 94, ReactCodegen 57, RNWorklets 44, MMKVCore 33, Skia 27 …). The app's own native code does
-      # not reach the top 15. That work is identical on every run until a dependency changes, and the
-      # 4.1.4→4.1.11 loop edits `.maestro/**` YAML against an unchanged app.
-      #
-      # ⛔ THE HAZARD IS THE WHOLE DESIGN. A stale .app silently reused after app code changed is a suite
-      # that passes against the wrong binary — this lane's signature failure (a green Maestro run that
-      # wrote no screenshots; a suite green because it never ran). Four rules keep that impossible:
-      #   ① the key hashes EVERY input that reaches the binary — JS, native, config, plugins, assets,
-      #      the widget target, `packages/core` (the `@core` alias is bundled), and THIS FILE, because
-      #      the build flags live in it;
-      #   ② NO `restore-keys`. A partial-key fallback is exactly how a stale binary gets in. Exact or nothing;
-      #   ③ every run prints the binary's provenance — hit or miss, key, and the commit it was built at —
-      #      and that record is written into the uploaded artifact, not just the console;
-      #   ④ tags never use it, and `rebuild: true` overrides it.
-      - name: Compute the .app cache key
-        id: appkey
-        run: |
-          # ── 2026-08-13 · SPLIT INTO A NATIVE TIER, BECAUSE THE CACHE WAS HITTING 8% OF THE TIME ──────
-          #
-          # ⚡ MEASURED over the last 13 non-cancelled runs: **12 paid the full 771s build; exactly ONE hit
-          # this cache.** The 4.1.3a note calls the cache "the whole 4.1.4→4.1.11 loop" — that was authored
-          # on the premise that the loop is flow-only YAML iteration, and the loop is actually 92%
-          # `src/**`. The saving was real and almost never collected.
-          #
-          # ⭐ The cause is that `src/**` and `packages/core/**` were in this key, and **neither reaches a
-          # single line of native code.** They are TypeScript: they change `main.jsbundle`, a RESOURCE
-          # inside the .app. So a one-line copy edit was recompiling 648 identical pod targets.
-          #
-          # They are gone from the key, and the JS is regenerated + swapped in on every cache hit by the
-          # re-bundle step below. ⛔ That step is what makes this safe — without it a hit would test the
-          # JavaScript from whenever the binary was built, which is rule ②'s stale-binary hazard wearing a
-          # different hat. It fails loudly and falls through to a full build rather than guessing.
-          #
-          # ⚠️ `index.js`, `metro.config.js` and `babel.config.js` STAY here even though they too are
-          # JS-only. Conservative on purpose: they change rarely, and a needless full build is a cost while
-          # a wrongly-skipped one is a defect. `assets/**` stays for a load-bearing reason — asset FILES are
-          # copied into the .app by the native build, and the re-bundle step deliberately does not sync
-          # them, so an asset change must bust the binary.
-          echo "key=app-${{ runner.os }}-x2native-${{ hashFiles(
-            'apps/rn/package-lock.json',
-            'apps/rn/package.json',
-            'apps/rn/app.json',
-            'apps/rn/index.js',
-            'apps/rn/metro.config.js',
-            'apps/rn/babel.config.js',
-            'apps/rn/plugins/**',
-            'apps/rn/assets/**',
-            'apps/rn/targets/**',
-            'package-lock.json',
-            '.github/workflows/native-e2e.yml'
-          ) }}" >> "$GITHUB_OUTPUT"
-
-      - name: Restore the built .app
-        id: appcache
-        if: github.ref_type != 'tag' && inputs.rebuild != true
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            apps/rn/ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
-            apps/rn/.appcache-provenance.txt
-          key: ${{ steps.appkey.outputs.key }}
-          # ⛔ Deliberately no `restore-keys` — see rule ② above.
-
-      # A restored directory that is missing its binary, or whose Info.plist will not parse, must fall
-      # through to a real build rather than be installed. `simctl install` would take a broken bundle and
-      # the failure would surface much later, as something else.
-      # The JS re-bundle lives INSIDE this step on purpose. `usable` is the single gate every downstream
-      # `if:` reads, so folding the new failure mode into it means there is still exactly ONE answer to
-      # "can this cache be used" — rather than a second output that four conditions would each have to
-      # remember. "Two places, one rule" has cost this repo three defects in one wave.
-      #
-      # ⛔ EVERY failure path here ends in `usable=false` and a full build. That is the whole safety
-      # argument: the cache is now keyed WITHOUT `src/**`, so a hit whose bundle was not replaced would run
-      # the JavaScript from whenever the binary was built and go green against stale code. There is no
-      # branch that proceeds on doubt.
-      - name: Verify the restored .app, and re-bundle the JS into it
-        id: appverify
-        if: steps.appcache.outputs.cache-hit == 'true'
-        run: |
-          set -o pipefail
-          APP="ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app"
-          BUNDLE="$APP/main.jsbundle"
-
-          fail() { echo "⚠️ $1 — rebuilding from source"; echo "usable=false" >> "$GITHUB_OUTPUT"; rm -rf ios/build/Build/Products/Release-iphonesimulator; exit 0; }
-
-          [ -x "$APP/DebtPlannerRN" ] && plutil -lint "$APP/Info.plist" >/dev/null 2>&1 \
-            || fail "restored .app is unusable (missing binary or bad Info.plist)"
-          echo "✅ restored .app verified: binary present, Info.plist parses"
-
-          # ⚠️ ASSERT THE ASSUMPTION RATHER THAN ACT ON IT. This whole design rests on the JS being a
-          # swappable resource at this exact path. No macOS here to check that, so if it is not there the
-          # premise is wrong and the answer is a full build — never "create it and hope".
-          [ -f "$BUNDLE" ] || fail "no main.jsbundle in the restored .app — the swap premise is wrong"
-          OLD_SHA=$(shasum -a 256 "$BUNDLE" | cut -d' ' -f1)
-          OLD_MAGIC=$(xxd -p -l 8 "$BUNDLE")
-
-          TMP="$RUNNER_TEMP/jsbundle"; rm -rf "$TMP"; mkdir -p "$TMP/assets"
-          echo "Re-bundling JS from the working tree…"
-          npx expo export:embed \
-            --platform ios --dev false --entry-file index.js \
-            --bundle-output "$TMP/main.jsbundle" --assets-dest "$TMP/assets" \
-            || fail "expo export:embed failed"
-
-          [ -s "$TMP/main.jsbundle" ] || fail "re-bundled JS is empty"
-
-          # ── HERMES. `expo export:embed` emits PLAIN JS; Xcode's build phase then compiles it to
-          #    bytecode, and re-bundling by hand has to do that second half too. ──────────────────────
-          #
-          # ⚡ MEASURED, run `31800305248`: the magic-byte guard caught this on the fast path's first ever
-          # execution — `c61fbc03c103191f` (Hermes) in the .app versus `766172205f5f4255` (ASCII
-          # `var __BU`) from the bundler. Without that check this run would have installed a Hermes binary
-          # carrying plain JS, crashed on launch, and surfaced as an unexplained Maestro timeout twenty
-          # minutes later. Those bytes are also what proves the app IS Hermes — `app.json` declares no
-          # `jsEngine`, so the engine was an assumption until the guard printed it.
-          #
-          # ⛔ `hermesc` MUST come from this tree, not from a PATH lookup. Hermes bytecode is versioned and
-          # the runtime refuses a bundle built by a different compiler version — which would sail past the
-          # magic check (both are Hermes) and fail at launch instead. The binary that built the cached
-          # .app is the one in this checkout's pods/node_modules, and the lockfile is in the cache key, so
-          # they cannot drift apart.
-          # ⛔ THE FIRST CANDIDATE IS THE ONLY ONE THAT EXISTS ON RN 0.85, and its absence is why the fast
-          # path had never once executed. Run 31816228911 hit the cache, verified the .app and bundled the
-          # JS in 34s — then fell back to a full rebuild on "hermesc not found in this tree". The three
-          # paths below it are correct for RN ~0.7x, where the compiler lived in `react-native/sdks/`.
-          # On 0.85 it moved into its OWN package: `react-native/sdks/` now contains only `hermes-engine`,
-          # and the compiler ships at `node_modules/hermes-compiler/hermesc/`. Measured in this tree.
-          # ⚠️ The older paths are KEPT, not replaced — they cost one `-x` test each and they are what a
-          # different RN version would need. The list is ordered most-current first.
-          HERMESC=""
-          for cand in \
-            "node_modules/hermes-compiler/hermesc/osx-bin/hermesc" \
-            "../../node_modules/hermes-compiler/hermesc/osx-bin/hermesc" \
-            "ios/Pods/hermes-engine/destroot/bin/hermesc" \
-            "node_modules/react-native/sdks/hermesc/osx-bin/hermesc" \
-            "../../node_modules/react-native/sdks/hermesc/osx-bin/hermesc"; do
-            [ -x "$cand" ] && HERMESC="$cand" && break
+          set -euo pipefail
+          P="apps/rn/ios/build/Build/Products"
+          [ -d "$P/Release-iphonesimulator/DebtPlannerRN.app" ] \
+            || { echo "::error::no .app to pack — the build produced nothing to test"; exit 1; }
+          ITEMS=(Release-iphonesimulator/DebtPlannerRN.app)
+          for p in "$P"/*.xctestrun "$P"/Release-iphonesimulator/*-Runner.app "$P"/Release-iphonesimulator/*.xctest; do
+            [ -e "$p" ] && ITEMS+=("${p#"$P/"}")
           done
-          [ -n "$HERMESC" ] || fail "hermesc not found in this tree — cannot produce the bytecode this binary expects"
-          echo "hermesc: $HERMESC"
-          "$HERMESC" -emit-binary -max-diagnostic-width=80 -out "$TMP/main.jsbundle.hbc" "$TMP/main.jsbundle" \
-            || fail "hermesc failed"
-          [ -s "$TMP/main.jsbundle.hbc" ] || fail "hermesc produced an empty bundle"
-          mv "$TMP/main.jsbundle.hbc" "$TMP/main.jsbundle"
+          echo "packing: ${ITEMS[*]}"
+          cp apps/rn/.appcache-provenance.txt "$P/.appcache-provenance.txt" 2>/dev/null || true
+          [ -e "$P/.appcache-provenance.txt" ] && ITEMS+=(.appcache-provenance.txt)
+          tar -cf apps/rn/ios-products.tar -C "$P" "${ITEMS[@]}"
+          ls -lh apps/rn/ios-products.tar
 
-          # ⛔ THE ENGINE CHECK. Hermes ships BYTECODE; a plain-JS bundle in a Hermes app is a launch crash
-          # 20 minutes downstream, reported as a Maestro timeout. Comparing the new bundle's magic against
-          # the one that was already in the .app asserts "same format as what this binary expects" without
-          # this workflow needing to know which engine is configured.
-          NEW_MAGIC=$(xxd -p -l 8 "$TMP/main.jsbundle")
-          [ "$NEW_MAGIC" = "$OLD_MAGIC" ] || fail "bundle format changed ($OLD_MAGIC → $NEW_MAGIC) — engine mismatch"
-
-          mv "$TMP/main.jsbundle" "$BUNDLE" || fail "could not swap main.jsbundle into the .app"
-          NEW_SHA=$(shasum -a 256 "$BUNDLE" | cut -d' ' -f1)
-
-          # ⚡ Printed every run, hit or miss, exactly like the binary's provenance (rule ③). An UNCHANGED
-          # sha is not an error — a run that only touched `.maestro/**` legitimately produces byte-identical
-          # JS — but it is the one number that says which JavaScript is about to be tested, and it belongs
-          # in the log rather than in an assumption.
-          echo "js-bundle sha: $OLD_SHA → $NEW_SHA"
-          # ⛔ An `if`, NOT `[ … ] && echo`. GitHub runs this under `bash -e`, so a `&&` chain whose test is
-          # FALSE returns 1 and kills the step — and the false case here is the NORMAL one (the shas differ
-          # whenever any JS changed). That would have turned every successful fast-path run into a failure.
-          if [ "$OLD_SHA" = "$NEW_SHA" ]; then
-            echo "   (identical — no JS input changed since this binary was built)"
-          fi
-          echo "usable=true" >> "$GITHUB_OUTPUT"
-
-      - name: Generate the native iOS project (expo prebuild)
-        if: steps.appverify.outputs.usable != 'true'
-        run: npx expo prebuild --platform ios
-
-      # `expo prebuild` runs pod install but treats it as BEST-EFFORT — it prints CocoaPods errors yet
-      # still exits 0, so a pod failure silently yields no .xcworkspace and the build step fails later
-      # with a misleading "workspace does not exist". Re-run pod install as its OWN step so any real
-      # CocoaPods error (e.g. a third-party podspec pinning an incompatible RCT-Folly) is the failing
-      # step, with the actual message. Idempotent — a no-op re-install when prebuild already succeeded.
-      - name: Install CocoaPods (fail loud — prebuild masks pod errors with exit 0)
-        if: steps.appverify.outputs.usable != 'true'
-        working-directory: apps/rn/ios
-        run: pod install
-
-      - name: Build for the iOS Simulator (no signing)
-        if: steps.appverify.outputs.usable != 'true'
-        run: |
-          # `pipefail` is LOAD-BEARING with the `tee` below: without it the pipeline's exit status is
-          # tee's (always 0) and a failed compile would sail through as a green step.
-          set -o pipefail
-          # Build ONLY the runner's native arch — Release defaults to both arm64 + x86_64 sim slices (≈2×
-          # the compile); we only need the slice matching the sim we boot.
-          ARCH="$(uname -m)"
-          echo "Building single simulator arch: $ARCH"
-          # 2026-07-29 speed pass — two compiler-level cuts to the ~13-min sim compile, both safe for a
-          # FUNCTIONAL e2e (the signed Codemagic build is the optimized final sanity check):
-          #  • Optimization OFF (SWIFT_OPTIMIZATION_LEVEL=-Onone / GCC_OPTIMIZATION_LEVEL=0) — skips the
-          #    expensive Release -O passes while KEEPING the Release config's embedded self-contained JS
-          #    bundle (bundling is gated on the config NAME, not opt level), so the app still runs on the
-          #    sim with no Metro. Maestro tests behavior, not perf → unoptimized is fine.
-          #  • Clang explicit modules ON (Xcode 26 default) — pinned OFF while stabilizing; now green across
-          #    3 runs, so we take the module-reuse speedup. Revert to CLANG_ENABLE_EXPLICIT_MODULES=NO build
-          #    if a pod's module map trips explicit modules.
-          # 2026-08-12 (4.1.3a) — two more, both free and both measured from run 31516616133's log:
-          #  • DEBUG_INFORMATION_FORMAT=dwarf — the log runs 4 `GenerateDSYMFile` tasks producing dSYMs
-          #    that NOTHING in this lane reads. Symbolication belongs to the signed Codemagic build.
-          #  • COMPILER_INDEX_STORE_ENABLE=NO — index-while-building serves an IDE. There isn't one here.
-          xcodebuild \
-            -workspace ios/DebtPlannerRN.xcworkspace \
-            -scheme DebtPlannerRN \
-            -configuration Release \
-            -sdk iphonesimulator \
-            -derivedDataPath ios/build \
-            -destination 'generic/platform=iOS Simulator' \
-            ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
-            CODE_SIGNING_ALLOWED=NO \
-            SWIFT_OPTIMIZATION_LEVEL='-Onone' GCC_OPTIMIZATION_LEVEL=0 \
-            DEBUG_INFORMATION_FORMAT=dwarf \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            build 2>&1 | tee xcodebuild.log
-
-      # ── 4.1.6a.7.4b · THE XCUITEST BUNDLE — A SEPARATE, NON-FATAL COMPILE ───────────────────────
-      #
-      # ⛔ DELIBERATELY NOT `build-for-testing` ON THE STEP ABOVE. That would fold the test target's
-      # compilation into the app build, so a Swift error in a diagnostic probe would red the whole lane —
-      # the Maestro suite included. The plugin's risk note is explicit that the app does not depend on the
-      # test bundle precisely so this step cannot do that, and turning the app's build into a
-      # build-for-testing would hand that property back. Separate step, `continue-on-error`, and the
-      # suite's fate is unchanged whatever happens here.
-      #
-      # ⚠️ IT ONLY RUNS ON THE REBUILD PATH, AND THAT IS A KNOWN LIMIT, NOT AN OVERSIGHT. On a `.app`
-      # cache hit there is no `ios/` at all — it is untracked (0 files in git) and regenerated by
-      # `expo prebuild`, which is skipped on a hit — so there is no workspace to build from. Caching the
-      # `.xctestrun` + `-Runner.app` beside the `.app` is what lifts that, and it belongs to 4.1.9b with
-      # the rest of the cache work. This item's exit is a VERDICT on whether Xcode accepts the target,
-      # and this edit forces a rebuild anyway, so the verdict arrives either way.
-      #
-      # Incremental: pods and the app are already compiled into the same `-derivedDataPath`, so this is
-      # the test bundle and its link, not another 771s.
-      - name: Build the XCUITest bundle (non-fatal — see the step comment)
-        id: xctestbuild
-        if: steps.appverify.outputs.usable != 'true'
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          # ⭐ ASSERT THE SCHEME FIRST, because it is the half nothing could check locally. The pre-flight
-          # covers the pbxproj and the three scheme SHAPES the mutation branches on, but there is no real
-          # Expo-generated `.xcscheme` in the repo to test against — so whether prebuild's scheme is one
-          # of those shapes has been an assumption. One grep converts it into a printed fact, and it is
-          # the difference between "xcodebuild ran nothing" and "xcodebuild ran nothing BECAUSE the
-          # testable never landed".
-          SCHEME="ios/DebtPlannerRN.xcodeproj/xcshareddata/xcschemes/DebtPlannerRN.xcscheme"
-          echo "──────── the scheme's Test action ────────"
-          if [ -f "$SCHEME" ]; then
-            sed -n '/<TestAction/,/<\/TestAction>/p' "$SCHEME"
-            # ⚠️ SINGLE QUOTES ON THE WARNING, and it is not style. Backticks inside a double-quoted
-            # string are COMMAND SUBSTITUTION — the first draft of this line wrote `xcodebuild test` in
-            # prose backticks and bash would have EXECUTED it on the failure path, in this directory,
-            # before printing the warning about it. Measured locally 2026-08-14, not assumed.
-            grep -q "CoverageProbeUITests" "$SCHEME" \
-              && echo "✅ the testable IS in the scheme" \
-              || echo '::warning::CoverageProbeUITests is NOT in the scheme — the config plugin scheme mod did not land, and `xcodebuild test` will run nothing'
-          else
-            echo "::warning::no scheme at $SCHEME — prebuild's output is not shaped as assumed"
-          fi
-          echo "──────────────────────────────────────────"
-          ARCH="$(uname -m)"
-          xcodebuild \
-            -workspace ios/DebtPlannerRN.xcworkspace \
-            -scheme DebtPlannerRN \
-            -configuration Release \
-            -sdk iphonesimulator \
-            -derivedDataPath ios/build \
-            -destination 'generic/platform=iOS Simulator' \
-            ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
-            CODE_SIGNING_ALLOWED=NO \
-            SWIFT_OPTIMIZATION_LEVEL='-Onone' GCC_OPTIMIZATION_LEVEL=0 \
-            DEBUG_INFORMATION_FORMAT=dwarf \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            build-for-testing 2>&1 | tee xcodebuild-test.log | tail -40
-          echo "──────── .xctestrun produced ────────"
-          ls -la ios/build/Build/Products/*.xctestrun || echo "(none — nothing to run later)"
-
-      # xcodebuild emits thousands of lines and buries the ONE that matters in the middle of them, under
-      # a pile of benign warnings — the React prebuilt core's "umbrella header does not include header
-      # RCTTrackingAnimatedNode.h" is the loudest, appears on every build including successful ones, and
-      # reads exactly like a cause when you are scrolling a failed log looking for one. So the failure
-      # says what failed, rather than leaving it to a search.
-      #
-      # Same lesson as the pod-install step above: a tool that reports failure quietly gets its own loud
-      # wrapper.
-      - name: Surface the build error
-        if: failure()
-        run: |
-          echo "──────── errors / failures ────────"
-          grep -nE "error:|fatal error:|\*\* BUILD FAILED \*\*|The following build commands failed|^ld: |clang: error|No space left on device|Command .* failed with a nonzero exit code" \
-            xcodebuild.log | tail -60 || echo "(no error-shaped line matched — see the tail below)"
-          echo
-          echo "──────── failing build commands ────────"
-          sed -n '/The following build commands failed/,$p' xcodebuild.log | head -40 || true
-          echo
-          echo "──────── last 80 lines ────────"
-          tail -80 xcodebuild.log
-          echo
-          echo "NOTE: if NOTHING above looks like a compile error, the step did not fail from one —"
-          echo "check the job for a timeout (60 min), a cancelled runner, or disk exhaustion."
-
-      # ⚠️ ALL THREE LOGS, not just the app's. The XCUITest bundle compiles in its own step and runs in
-      # another, and both are `continue-on-error` — so a Swift error in the probe never reds the job and
-      # never reaches `Surface the build error` either (that step's `failure()` cannot fire for a step
-      # allowed to fail). Without these two files the probe's failure mode is a tail of 60 lines in an
-      # expiring log, which is how a ~20-minute cycle gets spent twice.
-      # ⛔ NO `#` COMMENTS INSIDE `path: |` — every line there is a literal pattern, not YAML. See the
-      # upload step at the end of this file for what that already cost once.
-      - name: Upload the raw build log
-        if: always()
+      - name: Upload the products
         uses: actions/upload-artifact@v4
         with:
-          name: xcodebuild-log
-          path: |
-            apps/rn/xcodebuild.log
-            apps/rn/xcodebuild-test.log
-            apps/rn/xcodebuild-xctest.log
-          if-no-files-found: ignore
+          name: ios-products
+          path: apps/rn/ios-products.tar
+          # It exists to cross a job boundary inside one run. Keeping it a week would store a ~150 MB
+          # binary per dispatch for nothing.
+          retention-days: 1
 
-      # Written INSIDE the cached directory, so it travels with the binary. This is what makes rule ③
-      # answerable at all: without it, a cache hit can say the inputs matched but nothing can say which
-      # commit the bytes came from.
-      - name: Stamp the .app's provenance
-        if: steps.appverify.outputs.usable != 'true'
+  # ══════════════════════════════════════════════════════════════════════════════════════════════
+  # IPHONE TIER — the suite, the XCUITest probe, and the 4.1.1 capability lane.
+  # ⚠️ THE CONDITION IS THE UNION OF WHAT USED TO BE THREE STEP-LEVEL `if:`s, and it keeps the
+  # tag-push shape: every clause is `!=`, so empty inputs mean FULL.
+  # ══════════════════════════════════════════════════════════════════════════════════════════════
+  iphone:
+    name: iPhone tier
+    needs: build
+    if: ${{ inputs.mode == 'probe' || inputs.device != 'ipad' || inputs.scope == 'xcuitest' }}
+    runs-on: macos-15
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: apps/rn
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/rn-ios-sim-products
+
+      - name: Install Maestro (+ idb for the iOS driver)
+        if: ${{ inputs.scope != 'xcuitest' || inputs.mode == 'probe' }}
         run: |
-          cat > .appcache-provenance.txt << PROV
-          built_at_sha=${{ github.sha }}
-          built_by_run=${{ github.run_id }}
-          built_on_ref=${{ github.ref }}
-          cache_key=${{ steps.appkey.outputs.key }}
-          PROV
-          cat .appcache-provenance.txt
+          brew tap facebook/fb && brew install idb-companion || true
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
-      - name: Save the built .app
-        if: steps.appverify.outputs.usable != 'true' && github.ref_type != 'tag'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            apps/rn/ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
-            apps/rn/.appcache-provenance.txt
-          key: ${{ steps.appkey.outputs.key }}
-
-      # ⛔ RULE ③, AND IT RUNS ON EVERY EXECUTION — hit or miss, cached or fresh. A speed optimisation
-      # that cannot be audited from the log is how "green" stops meaning anything, and this lane has
-      # already shipped that defect twice. If this step ever goes quiet, distrust the run.
-      - name: Report which binary is about to be tested
-        run: |
-          PROV=".appcache-provenance.txt"
-          echo "──────── BINARY PROVENANCE ────────"
-          if [ "${{ steps.appverify.outputs.usable }}" = "true" ]; then
-            echo "SOURCE      : RESTORED FROM CACHE (prebuild + pods + compile were SKIPPED)"
-          else
-            echo "SOURCE      : COMPILED IN THIS RUN"
-          fi
-          echo "cache-hit   : ${{ steps.appcache.outputs.cache-hit || 'false' }}"
-          echo "key         : ${{ steps.appkey.outputs.key }}"
-          echo "HEAD        : ${{ github.sha }}"
-          cat "$PROV" 2>/dev/null || echo "(no provenance file — treat this binary as unidentified)"
-          BUILT_SHA=$(sed -n 's/^built_at_sha=//p' "$PROV" 2>/dev/null)
-          if [ -n "$BUILT_SHA" ] && [ "$BUILT_SHA" != "${{ github.sha }}" ]; then
-            echo
-            echo "NOTE: this binary was compiled at $BUILT_SHA, not at HEAD."
-            echo "The key hashes every input that reaches the binary, so a different commit here should"
-            echo "mean only UNHASHED files moved (docs, .maestro flows)."
-            echo
-            echo "⚠️ READ THIS LIST. It is every file changed since that build — deliberately NOT filtered"
-            echo "to the hashed paths, because filtering by the same list the key uses could only ever"
-            echo "agree with itself. A path here that plausibly reaches the binary means the key is"
-            echo "MISSING it: re-run with rebuild=true, then add the path to the key."
-            git diff --name-only "$BUILT_SHA" "${{ github.sha }}" 2>/dev/null | head -40 \
-              || echo "(cannot diff — $BUILT_SHA is not in this checkout; needs fetch-depth: 0)"
-          fi
-          echo "───────────────────────────────────"
-          # Into the uploaded artifact too, so the record survives the log's retention.
-          mkdir -p maestro-debug
-          cp "$PROV" maestro-debug/PROVENANCE.txt 2>/dev/null || true
-          # And the size, because a cache that costs more to move than the build costs to run is not a
-          # speed-up. If this is large, narrow the path before reaching for a bigger runner.
-          du -sh ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app 2>/dev/null || true
-
-      # ⚡ MEASURED 2026-08-13, run 31709717569 (a `.app` cache HIT): this step is **529s of a 1326s job —
-      # 40%**, second only to Maestro itself and **6.5× everything the filed caching batch targeted put
-      # together** (npm install 59s + Maestro install 22s). Nothing had ever costed it, and the batch was
-      # authored against the two small numbers because those were the ones somebody had written down.
+      # ⚡ MEASURED 2026-08-17, run 31808439691 — the laps landed and nobody had read them:
+      #   boot returned 10s · bootstatus 62s · installed 79s · launched 119s · reported-up 144s ·
+      #   complete 148s. The plan's "529s / 40% cost centre" was STALE by 3.5×; the instrumentation and
+      #   the `sleep 25` → poll change had already fixed it. ⛔ Do not spend anything else here.
       #
-      # Caching cannot touch any of it. So before anything is optimised here, the step says where its own
-      # time goes — a first simulator boot on a cold macos-15 runner is genuinely slow and may be most of
-      # it, in which case there is nothing to win and that is worth knowing too. The `sleep 25` below is
-      # the one part that is definitely not measurement, and it is a timer standing in for "the app is
-      # up", which this repo has a rule about.
+      # ⚠️ …but the poll that replaced the sleep is NOT firing. `launched 119s → reported up 144s` is
+      # exactly the 25s ceiling, so it never detected the app's own log signal and fell through to the
+      # timeout — functionally the `sleep 25` it was written to replace. Worth ~20s, and more importantly
+      # it is a fix believed to work that does not. Filed at 4.1.11 rather than guessed at again: the
+      # last predicate here was INVENTED rather than grepped out of the artifact, and it cost a cycle.
       - name: Boot, install, launch, capture the app log
         run: |
           T0=$(date +%s); lap() { echo "⏱  $1: $(( $(date +%s) - T0 ))s cumulative"; }
@@ -652,25 +258,18 @@ jobs:
           LOG_PID=$!
           xcrun simctl launch booted com.jasonsnyder.debtplanner || true
           lap "app launched"
-          # ⚠️ Was a flat `sleep 25`. A timer standing in for "it is ready" drifts under load and reads as
-          # flake, so this polls for a signal — but ONLY a signal that was measured in this build's own
-          # log, which the first attempt was not.
-          #
           # ⛔ **`Running application` and `RCTContentDidAppear` DO NOT EXIST HERE.** Run `31720514061`:
           # zero matches for either across 3,590 lines. This lane builds `-configuration Release` and RN's
-          # JS console lines do not survive it — a fact `native-e2e.yml:471` already half-states about the
-          # coach probe. I invented the predicate instead of grepping the artifact I had already
-          # downloaded, and the loop silently ran to its ceiling.
+          # JS console lines do not survive it. I invented the predicate instead of grepping the artifact
+          # I had already downloaded, and the loop silently ran to its ceiling.
           #
-          # ⚡ MEASURED instead: `RCTScrollViewComponentView` lands **5.2s after launch** (16:43:20 →
-          # 16:43:25.241) — a UIKit focus notice emitted when a scroll view is on screen, i.e. content has
-          # actually rendered. ⚠️ Incidental, not a contract: it is a warning UIKit happens to log, and it
-          # assumes the first screen has a ScrollView (Today does). That is why the ceiling still governs
-          # and the fallthrough still takes the screenshot — a frame of a splash is the diagnostic for the
-          # case where the app did NOT come up, and must not be traded away for a faster green.
+          # ⚡ MEASURED instead: `RCTScrollViewComponentView` lands 5.2s after launch — a UIKit focus
+          # notice emitted when a scroll view is on screen. ⚠️ Incidental, not a contract, which is why
+          # the ceiling still governs and the fallthrough still takes the screenshot: a frame of a splash
+          # is the diagnostic for the case where the app did NOT come up.
           #
           # ⛔ TIME-BOUNDED, not iteration-counted. `for i in $(seq 1 25)` with a grep over an 800KB log
-          # each pass cost **37s** for a "25 second" wait — longer than the sleep it replaced.
+          # each pass cost 37s for a "25 second" wait — longer than the sleep it replaced.
           DEADLINE=$(( $(date +%s) + 25 ))
           until grep -qa "RCTScrollViewComponentView" maestro-debug/os-log.txt 2>/dev/null; do
             [ "$(date +%s)" -ge "$DEADLINE" ] && break
@@ -685,21 +284,13 @@ jobs:
           echo "=== app log — last 60 lines ==="
           tail -60 maestro-debug/os-log.txt || true
 
-      - name: Install Maestro (+ idb for the iOS driver)
-        if: inputs.scope != 'xcuitest'
-        run: |
-          brew tap facebook/fb && brew install idb-companion || true
-          curl -Ls "https://get.maestro.mobile.dev" | bash
-          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
-
       - name: Run Maestro flows
-        if: inputs.mode != 'probe' && inputs.device != 'ipad' && inputs.scope != 'xcuitest'
+        if: ${{ inputs.mode != 'probe' && inputs.scope != 'xcuitest' }}
         env:
           # Maestro's iOS driver often exceeds its default startup timeout on a cold CI sim.
           # ⚠️ 420 s, raised from 240 s: run 31646289268 lost a whole ~35-minute cycle to
-          # `iOS driver not ready in time` before a single flow ran — while the iPad tier, starting its
-          # driver minutes later on the same runner, came up fine. See the retry below; the timeout is the
-          # cheap half of the fix and the retry is the half that actually saves the cycle.
+          # `iOS driver not ready in time` before a single flow ran. See the retry below; the timeout is
+          # the cheap half of the fix and the retry is the half that actually saves the cycle.
           MAESTRO_DRIVER_STARTUP_TIMEOUT: '420000'
         # ⛔ THE ORDER IS EXPLICIT, AND IT HAS TO BE. Passing the DIRECTORY ran the flows in
         # `01 → 05 → 02 → 06 → 03 → 08 → 07 → 04` on run 31598337615 — measured from each flow's own
@@ -708,14 +299,13 @@ jobs:
         # `clearState: true` wiped the seed it asserts, and 08 ran BEFORE the same clear that resets the
         # coach-mark "once ever" flags it needs. Every green this suite has ever shown was order-luck.
         #
-        # `<flowFiles>...` is documented as "one or more flow files or folders", so the list below is the
-        # order. The dependency chain it encodes: 01 seeds → 02-06 consume that seed → 07 CLEARS and
-        # rebuilds → 08 runs on what 07 built. Adding a flow means deciding where in that chain it sits.
+        # The dependency chain the list encodes: 01 seeds → 02-06 consume that seed → 07 CLEARS and
+        # rebuilds → 08 runs on what 07 built → 10 precedes 09 → 09 is terminal (it clears state).
+        # Adding a flow means deciding where in that chain it sits.
         #
-        # ⚠️ ONE invocation, not a loop of eight. The 42.7 s stall that reds a cold assertion is a
-        # FIRST-SNAPSHOT-PER-DRIVER-SESSION cost (see 01's timeout comment); separate invocations would
-        # restart the driver and re-pay it on every flow, turning one flake into eight.
-        # ⚠️ VERIFY, don't assume: the artifact's per-flow start times say whether this order was honoured.
+        # ⚠️ ONE invocation, not a loop of ten. The 42.7 s stall that reds a cold assertion is a
+        # FIRST-SNAPSHOT-PER-DRIVER-SESSION cost; separate invocations would restart the driver and
+        # re-pay it on every flow, turning one flake into ten.
         run: |
           # ⛔ A SECOND, LONG-LIVED LOG STREAM. The one in the boot step is killed after 25 s — it exists to
           # capture a cold-launch crash and does its job — which means `os-log.txt` covers the launch and
@@ -723,8 +313,7 @@ jobs:
           # away, including 4.1.4c's coach-mark trace. This one lives for the whole suite.
           # ⚠️ `pipefail` — without it a pipeline reports the LAST command's status, which silently broke
           # the probe-trace fallback below: `grep … | tail || echo` never fired its echo, because `tail`
-          # always succeeds. The step printed a header and nothing, which reads exactly like "the app
-          # logged no probe lines" when in fact nothing had been searched.
+          # always succeeds.
           set -o pipefail
           mkdir -p maestro-debug
           xcrun simctl spawn booted log stream --level debug --style compact \
@@ -758,7 +347,6 @@ jobs:
             echo "::warning::iOS driver failed to start and NO flow ran — retrying the suite once."
             # ⚠️ Deliberately NOT rebooting the simulator: the failure is the XCTest runner install, which
             # `maestro test` reattempts on its own, and the .app is already installed on that device.
-            # Cycling the sim would risk the install for no stated benefit.
             STATUS=0
             run_suite /tmp/maestro-2.txt || STATUS=$?
           fi
@@ -771,36 +359,27 @@ jobs:
 
       # ── 4.1.6a.7.4c · RUN THE PROBE. Compiling it was never the deliverable. ────────────────────
       #
-      # ⛔ THE STEP ABOVE ONLY BUILT IT. `build-for-testing` produces a `.xctestrun` and executes nothing,
-      # so without this step .7.4 spends a full rebuild cycle and returns no verdict on either question
-      # the probe exists to answer. Compiling proves Xcode ACCEPTS the target; only running proves
-      # SpringBoard is reachable and `performAccessibilityAudit()` executes — and those are what gate the
-      # ~16 `[D]` rows and 4.1.9's [DECISION].
-      #
-      # ⛔ PLACED AFTER THE IPHONE SUITE AND BEFORE THE IPAD TIER, deliberately. XCUITest activates
-      # SpringBoard and relaunches the app under test, so ahead of Maestro it would be mutating the device
-      # state the flows assert against. Here it cannot: the suite is done, and the iPad tier shuts every
-      # simulator down and boots its own, so it inherits nothing from this step either.
+      # ⛔ PLACED AFTER THE SUITE, deliberately. XCUITest activates SpringBoard and relaunches the app
+      # under test, so ahead of Maestro it would be mutating the device state the flows assert against.
+      # The iPad tier is a different job on a different machine and inherits nothing from it either.
       #
       # ⚠️ `!cancelled()` FOR 4.1.5.1's REASON, ALREADY PAID FOR ONCE. A bare `if:` carries an implicit
       # `success()`, so a red Maestro suite would silently skip this — on exactly the runs where a second
       # independent signal is worth the most. `continue-on-error` is a different mechanism and does not
       # cover it; run 31626109780 is what that conflation cost.
       #
-      # ⚠️ SKIPS ON A `.app` CACHE HIT, because `steps.xctestbuild.outcome` is then `skipped` and there is
-      # no `.xctestrun` to run — the same known limit the build step documents, lifting with 4.1.9b's
-      # cache work. Gating on the build step's outcome rather than on `usable` keeps the two in step.
+      # ⭐ 4.1.9b: the gate is now `needs.build.outputs.xctest`, i.e. "is there an .xctestrun", rather
+      # than "did the build step run". Those were the same question only while the products could not be
+      # cached — and gating on the step outcome skipped the probe on every cache hit.
       - name: Run the XCUITest probe (non-fatal — the verdict is the deliverable)
-        # ⚠️ `|| scope == 'xcuitest'` on the device clause: the fast lane exists to run THIS step, so it
-        # must not be silently skipped by a device value that is irrelevant to it.
-        if: ${{ !cancelled() && steps.xctestbuild.outcome == 'success' && inputs.mode != 'probe' && (inputs.device != 'ipad' || inputs.scope == 'xcuitest') }}
+        if: ${{ !cancelled() && needs.build.outputs.xctest == 'true' && inputs.mode != 'probe' }}
         continue-on-error: true
         run: |
           set -o pipefail
           mkdir -p maestro-debug
           XCTESTRUN=$(ls ios/build/Build/Products/*.xctestrun 2>/dev/null | head -1)
           if [ -z "$XCTESTRUN" ]; then
-            echo "::warning::no .xctestrun — the build-for-testing step reported success but produced nothing to run"
+            echo "::warning::no .xctestrun — the build job reported one but it did not arrive in the tarball"
             exit 0
           fi
           # The boot step picked its device by name and that variable did not survive the step boundary,
@@ -823,7 +402,6 @@ jobs:
           # to match it: both tests report rather than fail on absence, so a green here and a red here can
           # BOTH be informative and neither is a reason to red the lane. The `PROBE …` lines are `print()`
           # from the Swift, which lands in xcodebuild's own stdout, so no xcresult parsing is needed.
-          # Copied into the artifact because the log's retention is shorter than this answer's shelf life.
           echo "════════ 4.1.6a.7 XCUITEST PROBE VERDICTS ════════"
           grep -E "^ *PROBE " xcodebuild-xctest.log | tee maestro-debug/xcuitest-verdicts.txt \
             || echo "(no PROBE lines — the tests did not execute; check TEST EXECUTE FAILED / 'no tests' above)"
@@ -834,211 +412,14 @@ jobs:
           echo "xcodebuild exit: $STATUS (recorded, not fatal — see the step comment)"
           exit 0
 
-      # ── 4.1.5.1 · THE IPAD TIER ( [D30] ) ───────────────────────────────────────────────────────
-      # ⛔ `continue-on-error` ON PURPOSE, and it is not laziness. This step's deliverable is a hierarchy
-      # dump and five screenshots, not a verdict — 4.1.5's whole first question is whether the iPhone-
-      # tuned shared flows survive a 1024pt-wide layout, and "they did not" is a RESULT to read, not a
-      # reason to fail a job that is also carrying the 4.1.4c coach-mark probe. A red here must not take
-      # the iPhone lane's answer down with it.
-      #
-      # ⚠️ ONE simulator booted at a time. Maestro targets the booted device, so with two up it would
-      # pick one and this step would silently re-run the iPhone suite on the iPhone. `--device` exists as
-      # a CLI flag but is UNPROVEN on this build, and 4.1.1's rule is that unproven commands go through
-      # the probe lane first — shutting the iPhone down needs nothing unproven.
-      #
-      # The flow list is explicit for 4.1.3b's reason (Maestro specifies no ordering for a directory) and
-      # it IS the [D30] tiering: `01` is the shared tier, `i01` is the iPad-only tier. 02 is absent
-      # because it is iPhone-only by design — its subject is a header button inside a modal sheet's
-      # swipe area, and on a wide iPad the sheet is inline, so it would pass while testing nothing.
-      # ⛔ `!cancelled()` IS LOAD-BEARING — without it this step never runs on the day it matters. Run
-      # 31626109780 skipped it entirely: a bare `if:` gets an implicit `success()`, and the iPhone
-      # Maestro step had failed (flow 08, as expected — that run existed to diagnose it). So the iPad
-      # measurement was silently dropped by the very condition that was supposed to schedule it.
-      # ⚠️ `continue-on-error` does NOT cover this. It stops THIS step's failure from failing the job;
-      # it says nothing about whether the step runs after an EARLIER failure. Two different mechanisms,
-      # and I conflated them.
-      - name: Boot an iPad simulator and run the [D30] iPad tier
-        if: ${{ !cancelled() && inputs.mode != 'probe' && inputs.scope != 'xcuitest' && (inputs.device == 'ipad' || inputs.device == 'both') }}
-        continue-on-error: true
-        env:
-          # ⛔ 420 s, RAISED FROM 240 s 2026-08-14 — PARITY WITH THE IPHONE STEP, WHICH ALREADY HAD IT.
-          # Run 31822453981's iPad tier died on `iOS driver not ready in time` with ZERO flows run, 14m40s
-          # spent, and nothing measured. That is the identical exception the iPhone step was raised to
-          # 420 s for after run 31646289268 — the fix was applied to one of the two places that needed it,
-          # and this tier kept the old value for a day and then paid the same cost.
-          # ⚡ It IS a timing problem, not a broken driver: the dark-theme `i02` re-run minutes later came
-          # up fine on the same simulator ("Running on iPad Pro 13-inch (M4) - iOS 18.5", app launched).
-          # The driver was coming; the 240 s gate fired first.
-          MAESTRO_DRIVER_STARTUP_TIMEOUT: '420000'
-        run: |
-          xcrun simctl shutdown all || true
-          # ⛔ SELECT BY MEASURED WIDTH, NEVER BY NAME. Run 31630150499 preferred `grep -i pro` and booted
-          # **iPad mini (A17 Pro)** — the match was the CHIP name. At 1488px/2 = 744pt that device is
-          # `compact` (`sizeClass.ts`: regular ≥ 768, expanded ≥ 1024), so the run exercised the PHONE
-          # layout on an iPad and passed. That is [D30]'s own named void condition — "green while testing
-          # nothing" — committed by the step written to implement [D30].
-          #
-          # ⚠️ The name itself CONTAINS parentheses on every current iPad ("iPad Pro 13-inch (M4)"), so a
-          # pattern that stops at the first `(` matches nothing at all. Anchor on the 36-char UDID and
-          # take everything before it as the name.
-          AVAIL=$(xcrun simctl list devices available | grep -E '^[[:space:]]+iPad' \
-            | sed -E 's/^[[:space:]]*(.+) \(([0-9A-Fa-f-]{36})\) \(.*/\2|\1/')
-          echo "── iPads available ──"; echo "$AVAIL"
-          if [ -z "$AVAIL" ]; then echo "::error::no iPad simulator available on this runner"; exit 1; fi
-
-          # ⛔ READ THE GEOMETRY, DO NOT BOOT FOR IT. The first version of this booted every candidate iPad
-          # to screenshot and measure it — and run 31636187156 spent **20+ minutes** in that loop before
-          # the job hit its 60-minute timeout and was cancelled mid-tier. Correct selection, unusable
-          # method: a runner image carries six to eight iPads and each boot is 30-60 s.
-          #
-          # Every device type ships its screen geometry on disk, so this is a file read per candidate
-          # (~1 s total) and exactly ONE boot — the winner.
-          BEST_UDID=""; BEST_NAME=""; BEST_PT=0
-          while IFS= read -r row; do
-            [ -z "$row" ] && continue
-            U="${row%%|*}"; N="${row#*|}"
-            # Match the device to its .simdevicetype bundle by name, then read points = width / scale.
-            PROF=$(ls -d /Library/Developer/CoreSimulator/Profiles/DeviceTypes/*.simdevicetype 2>/dev/null \
-              | while read -r B; do
-                  DN=$(plutil -extract CFBundleName raw "$B/Contents/Info.plist" 2>/dev/null)
-                  [ "$DN" = "$N" ] && echo "$B/Contents/Resources/profile.plist"
-                done | head -1)
-            W=$(plutil -extract mainScreenWidth raw "$PROF" 2>/dev/null)
-            S=$(plutil -extract mainScreenScale raw "$PROF" 2>/dev/null)
-            # ⛔ `mainScreenScale` comes back as a FLOAT on most device types — "2.000000" — and as "2" on
-            # a few. Bash arithmetic cannot divide by "2.000000", so run 31642490867 computed 0pt for every
-            # wide iPad and 744pt for the mini (the one integer), then correctly refused to run.
-            # ⚡ The fail-loud guard caught my own parse bug instead of quietly testing the phone layout on
-            # an iPad — which is precisely the failure it was written to prevent, one layer up.
-            S=${S%%.*}
-            PT=0
-            if [ -n "$W" ] && [ -n "$S" ] && [ "$S" -gt 0 ] 2>/dev/null; then PT=$(( W / S )); fi
-            echo "   $N → ${W:-?}px / ${S:-?}x = ${PT}pt"
-            if [ "$PT" -gt "$BEST_PT" ]; then BEST_PT=$PT; BEST_UDID=$U; BEST_NAME=$N; fi
-          done <<< "$AVAIL"
-
-          # ⛔ FAIL LOUD rather than measure the wrong thing. A compact "iPad" run is worse than no iPad
-          # run: it reports a pass for checks it never executed. If no wide iPad exists on this image,
-          # that is a fact to act on (pin a runtime, or add a device), not something to paper over.
-          echo "Widest available iPad: $BEST_NAME at ${BEST_PT}pt"
-          # ⚠️ 0pt means the plist READ failed (a renamed key, a bundle whose CFBundleName does not match
-          # simctl's device name), not that the device is tiny. It lands in the same fail-loud branch on
-          # purpose — the printed table above says which, and a silent fallback to name-matching is what
-          # put a 744pt iPad mini through this lane in the first place.
-          if [ "$BEST_PT" -lt 1024 ]; then
-            echo "::error::widest available iPad measured ${BEST_PT}pt — below the 1024pt \`isExpanded\` threshold (0 = plist read failed; see the table above)."
-            echo "::error::[D30]'s checks (master-detail, inline sheet) do not run below 1024pt, so this"
-            echo "::error::would be a green run that tested the compact layout. See sizeClass.ts."
-            exit 1
-          fi
-          UDID="$BEST_UDID"; NAME="$BEST_NAME"
-          echo "Booting iPad: $NAME ($UDID) — ${BEST_PT}pt, expanded"
-          xcrun simctl boot "$UDID"
-          xcrun simctl bootstatus "$UDID" -b || true
-          xcrun simctl install "$UDID" ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
-          mkdir -p maestro-debug
-          xcrun simctl spawn "$UDID" log stream --level debug --style compact \
-            --predicate 'processImagePath CONTAINS "DebtPlannerRN" OR senderImagePath CONTAINS "DebtPlannerRN"' \
-            > maestro-debug/os-log-ipad.txt 2>&1 &
-          LOG_PID=$!
-          # ⚡ MEASURE the frame rather than assuming it. [D30]'s carried hypothesis is entirely about
-          # width, and this is the cheapest possible way to stop it being a hypothesis: the screenshot's
-          # pixel width, printed into the log beside the device name.
-          xcrun simctl io "$UDID" screenshot maestro-debug/ipad-00-boot.png || true
-          sips -g pixelWidth -g pixelHeight maestro-debug/ipad-00-boot.png || true
-          # ⚠️ `|| STATUS=$?`, not a bare call then `$?`. GitHub runs `run:` under `bash -e`, so a red
-          # Maestro would abort the step on the spot — skipping the log kill and the status line, and
-          # throwing away the "it failed, here is how far it got" that is this step's entire output.
-          STATUS=0
-          # ⭐ 4.1.5.2 — `05` joins the iPad list, and it is the FIRST check here that can actually fail
-          # for an iPad-specific reason. `i01` asserts nothing device-specific by design, so until now this
-          # tier was infrastructure without coverage. §11.15's ring-origin invariant is the opposite: on
-          # the iPhone the overlay's origin is {0,0} and the assertion is satisfied by a build with no
-          # correction at all, while here the tab bar is a left RAIL and the origin sits a sidebar-width
-          # right — the only arrangement in which the check has two possible answers.
-          # ORDER: `05` runs after `i01` so the measurement flow keeps its clean position — `05` finishes
-          # the walkthrough and marks it seen, which changes what Today renders. It relaunches with
-          # `clearState: false`, so `i01` leaving the debt sheet open costs it nothing.
-          # ⛔ THE RETRY, ALSO PARITY — and it is the half that actually saves the cycle. Same rule as the
-          # iPhone step: retry ONLY on the driver-startup signature, never on a red flow. An infrastructure
-          # stall is indistinguishable from a green tier in cost and from a real failure in exit code, and
-          # run 31822453981 spent the whole tier on one. A blind retry would instead double the cost of
-          # every genuine red and re-run flows whose ordering matters.
-          # ⛔ A SUBSHELL `( … )`, NOT `{ … }`, AND `pipefail` INSIDE IT. Without pipefail the pipeline
-          # reports TEE's status — always 0 — so STATUS would be 0 on every failure: the retry would never
-          # fire and the tier would report success for a stall. But `set -o pipefail` at STEP scope would
-          # reach the device-selection pipelines above, where `simctl list | grep | sed` finding nothing is
-          # a handled case (`if [ -z "$AVAIL" ]`) that would instead abort the step under `bash -e`.
-          # Shell options are global, so the subshell is what keeps it local to this call.
-          run_ipad_tier() (
-            set -o pipefail
-            maestro test \
-              .maestro/01-launch-smoke.yaml \
-              .maestro/i01-ipad-boot.yaml \
-              .maestro/i02-ipad-step5-landscape.yaml \
-              .maestro/i03-ipad-rotate-midstep.yaml \
-              .maestro/05-tutorial-walkthrough.yaml \
-              --format junit --output maestro-report-ipad.xml --debug-output ./maestro-debug-ipad 2>&1 | tee "$1"
-          )
-          run_ipad_tier /tmp/maestro-ipad-1.txt || STATUS=$?
-          if [ "$STATUS" -ne 0 ] && grep -q "iOS driver not ready in time" /tmp/maestro-ipad-1.txt; then
-            echo "::warning::iPad tier: iOS driver failed to start and NO flow ran — retrying the tier once."
-            # ⚠️ Deliberately NOT rebooting the simulator, for the iPhone step's reason: the failure is the
-            # XCTest runner install, which `maestro test` reattempts itself, and the .app is already on
-            # this device. Cycling the sim would risk the install for no stated benefit.
-            STATUS=0
-            run_ipad_tier /tmp/maestro-ipad-2.txt || STATUS=$?
-          fi
-          kill "$LOG_PID" 2>/dev/null || true
-
-          # ⚠️ 4.1.5.6 — §11.16 ASKS FOR BOTH THEMES, and [D33] judged only LIGHT. Rather than fork the
-          # flow, re-run `i02` alone under a dark appearance into its OWN debug directory: same
-          # assertions, different theme, no second file to keep in step with the first. `simctl ui` is
-          # the same mechanism the AX/theme conditions at 4.1.7 will use, so this also exercises it once
-          # cheaply before that item depends on it.
-          # `|| true` — a missing dark frame must not red a tier whose light half already passed.
-          #
-          # ⛔ `takeScreenshot` writes RELATIVE TO THE WORKING DIRECTORY, not into `--debug-output`, so a
-          # second run of the same flow OVERWRITES the first flow's frames. The light frame is therefore
-          # parked before the dark run and restored after it, and the dark one is renamed on the way out.
-          # Without this the tier would ship one frame and call it two.
-          cp maestro-debug/ipad-step5-landscape.png /tmp/ipad-step5-light.png 2>/dev/null || true
-          xcrun simctl ui booted appearance dark || true
-          maestro test .maestro/i02-ipad-step5-landscape.yaml \
-            --debug-output ./maestro-debug-ipad-dark || echo "dark-theme i02 did not pass (recorded, not fatal)"
-          mv maestro-debug/ipad-step5-landscape.png maestro-debug/ipad-step5-landscape-dark.png 2>/dev/null || true
-          cp /tmp/ipad-step5-light.png maestro-debug/ipad-step5-landscape.png 2>/dev/null || true
-          xcrun simctl ui booted appearance light || true
-
-          # ⚠️ 4.1.5.5 — STRAIGHTEN THE LANDSCAPE FRAME. `takeScreenshot` captures the device FRAMEBUFFER,
-          # which stays in the physical portrait orientation however the app is rotated, so `i02`'s beat-5
-          # frame lands on its side. That flow's ONLY deliverable is a composition judgement, and judging a
-          # composition sideways is not judging it — the first frame had to be rotated by hand before it
-          # could be read, and reading it sideways produced a wrong first answer.
-          #
-          # `sips -r 270` (counter-clockwise) matches `LANDSCAPE_LEFT`. ⛔ Scoped by FILENAME to the frames
-          # that are actually landscape — a blanket rotate would tip every portrait screenshot in the
-          # artifact on its side, turning one fixed diagnostic into a dozen broken ones.
-          # `|| true` throughout: a rotation failure must not lose the frame it was trying to improve.
-          # ⚠️ The trailing `*` on the second pattern is load-bearing — it catches the dark frame written
-          # above (`…-landscape-dark.png`). Named without it, the dark half would ship on its side, which
-          # is the exact failure the light half already cost a wrong first answer to.
-          for f in maestro-debug/ipad-landscape-*.png maestro-debug/ipad-step5-landscape*.png; do
-            [ -f "$f" ] && sips -r 270 "$f" >/dev/null 2>&1 && echo "straightened $f" || true
-          done
-
-          echo "iPad tier exit status: $STATUS (recorded, not fatal — see the step comment)"
-          exit 0
-
       # ── 4.1.1 · THE CAPABILITY PROBE ────────────────────────────────────────────────────────────
       # Each file runs in its OWN maestro invocation, and a failure is recorded rather than fatal.
       #
       # That is the whole design. A probe that stops at the first red teaches ONE thing per 40-minute
       # cycle, and this repo has already spent three cycles learning one command name at a time. Every
-      # file here answers an independent question, so they must not be able to mask each other — the
-      # verdict table at the end is the deliverable, not the exit code.
+      # file here answers an independent question, so they must not be able to mask each other.
       - name: Probe · run each unproven command separately
-        if: inputs.mode == 'probe'
+        if: ${{ inputs.mode == 'probe' }}
         env:
           MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
         run: |
@@ -1074,15 +455,12 @@ jobs:
           # ── The DEEP-LINK probe runs LAST, and through `simctl` rather than Maestro ─────────────
           #
           # Cycle 1 established that Maestro's `openLink` makes iOS raise a SpringBoard-owned
-          # "Open in …?" confirmation. Nothing dismissed it, Maestro could not see it (the flow is scoped
-          # to the app; the failure hierarchy held three status-bar nodes and nothing else), and it
-          # persisted for the REST OF THE RUN — failing every later file, including the AX5 accessibility
-          # probe, whose red then read as "the app breaks under large text".
+          # "Open in …?" confirmation. Nothing dismissed it, Maestro could not see it, and it persisted
+          # for the REST OF THE RUN — failing every later file, including the AX5 accessibility probe,
+          # whose red then read as "the app breaks under large text".
           #
           # So: `simctl openurl` delivers the URL through the system instead of through a link tap, and
           # this probe is ORDERED LAST so that if it still leaks a modal, it poisons nothing after it.
-          # That ordering is the actual repair. The per-file isolation above was built against parse
-          # failures and did not account for what a file leaves BEHIND on the device.
           echo "──────── probe: p09-deeplink-scripted.yaml (via simctl openurl) ────────"
           xcrun simctl launch booted com.jasonsnyder.debtplanner || true
           sleep 15
@@ -1094,7 +472,7 @@ jobs:
           fi
 
       - name: Probe · the verdict table
-        if: always() && inputs.mode == 'probe'
+        if: ${{ always() && inputs.mode == 'probe' }}
         run: |
           echo "════════ 4.1.1 PROBE VERDICTS ════════"
           cat maestro-debug/probe-verdicts.txt 2>/dev/null || echo "(none recorded — the probe step did not run)"
@@ -1107,11 +485,7 @@ jobs:
       # which is outside this job's artifact glob.
       #
       # The first fully green run therefore passed every assertion and uploaded NO screenshots at all:
-      # a gate that reported success while producing none of the evidence it exists to produce. Assertions
-      # were never the point here — the whole reason for a native lane is to LOOK at the real renderer.
-      #
-      # So this collects them from wherever Maestro actually wrote them, and prints the paths, so the next
-      # person does not have to re-derive the resolution rule.
+      # a gate that reported success while producing none of the evidence it exists to produce.
       - name: Collect the Maestro screenshots
         if: always()
         run: |
@@ -1134,36 +508,271 @@ jobs:
           latest=$(ls -t maestro-debug/crash/*.ips 2>/dev/null | head -1)
           [ -n "$latest" ] && head -200 "$latest" || echo "(no .ips crash file found)"
 
+      - name: Per-flow results + the small diagnosis bundle
+        if: always()
+        working-directory: .
+        run: node scripts/collect-lane-diagnostics.mjs --tier iphone
+
+      - name: Upload the small diagnosis bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lane-diagnostics-iphone
+          path: apps/rn/lane-diagnostics/**
+          # ⛔ CAUGHT BY `lint:lane` BEFORE IT COST A CYCLE. The collector preserves Maestro's own layout,
+          # which puts the view hierarchy under `.maestro/tests/…` — a HIDDEN segment. Without this flag
+          # upload-artifact v4 drops exactly the files this bundle exists to ship, and the artifact would
+          # arrive looking like a run that produced no hierarchy.
+          include-hidden-files: true
+          if-no-files-found: warn
+          # ⭐ 4.1.9b.5 — 90 days, against `maestro-report`'s default. 4.1.9c's writer stamps the checklist
+          # from `native-lane-results.json`, and an input that expires in a week is an input that has to
+          # be regenerated by re-running a 20-minute lane.
+          retention-days: 90
+
       # ⚠️ `include-hidden-files` is load-bearing, not hygiene. Maestro's `--debug-output ./maestro-debug`
       # writes everything worth having — per-command logs, the VIEW HIERARCHY at the failure, and its own
       # failure screenshots — under `maestro-debug/.maestro/tests/<run>/`, a HIDDEN path. upload-artifact
-      # v4 skips hidden files by default, so this step shipped its own name's worth of nothing: the 04
-      # failure had to be diagnosed from a single end-of-run screenshot because the hierarchy never left
-      # the runner.
+      # v4 skips hidden files by default, so this step shipped its own name's worth of nothing.
+      #
+      # ⚠️ RENAMED from `maestro-report` at 4.1.9b — two jobs cannot upload one artifact name. Anything
+      # quoting the old name is stale.
       - name: Upload Maestro report + debug (screenshots + view hierarchy)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-report
+          name: maestro-report-iphone
           include-hidden-files: true
           # ⛔ DROP `device-simulator.log` — 300 MB of run 31603811840's 322 MB was this one file per
           # flow, Maestro's dump of the ENTIRE simulator syslog, 118 MB for flow 01 alone. Never read
           # once: the app-filtered unified log is captured separately as `maestro-debug/os-log.txt`, and
-          # native crashes have their own step. The diagnose loop is what this lane's speed depends on.
+          # native crashes have their own step.
           #
-          # ⚠️ THE COMMENTS BELONG HERE, NOT IN THE BLOCK. The first attempt at this put them inside
-          # `path: |`, where every line is literal text — so each `#` line became a path PATTERN. The
-          # exclusion was also quoted, which upload-artifact does not accept. Net effect on run
-          # 31607274947: still 364 MB, and because the bogus patterns did not share the `apps/rn` prefix,
-          # the artifact's common root moved to the workspace root and every debug path gained an
-          # `apps/rn/` segment mid-investigation.
-          # Syntax verified against the action's own docs: bare `!`, unquoted, AFTER the includes — and
-          # "exclude paths do not affect the directory structure", so the layout returns to
-          # `maestro-debug/…` at the artifact root once the bogus includes are gone.
+          # ⚠️ THE COMMENTS BELONG HERE, NOT IN THE BLOCK. The first attempt put them inside `path: |`,
+          # where every line is literal text — so each `#` line became a path PATTERN, the artifact's
+          # common root moved to the workspace root, and every debug path gained an `apps/rn/` segment
+          # mid-investigation. Syntax verified against the action's own docs: bare `!`, unquoted, AFTER
+          # the includes.
           path: |
             apps/rn/maestro-report.xml
             apps/rn/maestro-debug/**
+            apps/rn/xcodebuild-xctest.log
+            !apps/rn/maestro-debug/**/device-simulator.log
+
+  # ══════════════════════════════════════════════════════════════════════════════════════════════
+  # IPAD TIER ( [D30] ) — its own machine, its own boot, its own answer.
+  #
+  # ⚡ `!cancelled()` used to be load-bearing on this step and is now STRUCTURAL: as a separate job it
+  # cannot inherit the iPhone tier's failure at all. Run 31626109780 skipped the iPad measurement
+  # entirely because a bare `if:` gets an implicit `success()` and flow 08 had failed — a whole class of
+  # accident the split removes rather than guards.
+  # ⛔ Its deliverable is a hierarchy dump and five screenshots, not a verdict: "they did not survive a
+  # 1024pt layout" is a RESULT to read. The job still reports its own exit status honestly.
+  # ══════════════════════════════════════════════════════════════════════════════════════════════
+  ipad:
+    name: iPad tier
+    needs: build
+    if: ${{ inputs.mode != 'probe' && inputs.scope != 'xcuitest' && (inputs.device == 'ipad' || inputs.device == 'both') }}
+    runs-on: macos-15
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: apps/rn
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/rn-ios-sim-products
+
+      - name: Install Maestro (+ idb for the iOS driver)
+        run: |
+          brew tap facebook/fb && brew install idb-companion || true
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Boot an iPad simulator and run the [D30] iPad tier
+        continue-on-error: true
+        env:
+          # ⛔ 420 s, RAISED FROM 240 s 2026-08-14 — PARITY WITH THE IPHONE STEP, WHICH ALREADY HAD IT.
+          # Run 31822453981's iPad tier died on `iOS driver not ready in time` with ZERO flows run, 14m40s
+          # spent, and nothing measured. That is the identical exception the iPhone step was raised to
+          # 420 s for after run 31646289268 — the fix was applied to one of the two places that needed it.
+          # ⚡ It IS a timing problem, not a broken driver: the dark-theme `i02` re-run minutes later came
+          # up fine on the same simulator. The driver was coming; the 240 s gate fired first.
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: '420000'
+        run: |
+          # ⛔ SELECT BY MEASURED WIDTH, NEVER BY NAME. Run 31630150499 preferred `grep -i pro` and booted
+          # **iPad mini (A17 Pro)** — the match was the CHIP name. At 1488px/2 = 744pt that device is
+          # `compact` (`sizeClass.ts`: regular ≥ 768, expanded ≥ 1024), so the run exercised the PHONE
+          # layout on an iPad and passed. That is [D30]'s own named void condition — "green while testing
+          # nothing" — committed by the step written to implement [D30].
+          #
+          # ⚠️ The name itself CONTAINS parentheses on every current iPad ("iPad Pro 13-inch (M4)"), so a
+          # pattern that stops at the first `(` matches nothing at all. Anchor on the 36-char UDID and
+          # take everything before it as the name.
+          AVAIL=$(xcrun simctl list devices available | grep -E '^[[:space:]]+iPad' \
+            | sed -E 's/^[[:space:]]*(.+) \(([0-9A-Fa-f-]{36})\) \(.*/\2|\1/')
+          echo "── iPads available ──"; echo "$AVAIL"
+          if [ -z "$AVAIL" ]; then echo "::error::no iPad simulator available on this runner"; exit 1; fi
+
+          # ⛔ READ THE GEOMETRY, DO NOT BOOT FOR IT. The first version of this booted every candidate iPad
+          # to screenshot and measure it — and run 31636187156 spent **20+ minutes** in that loop before
+          # the job hit its timeout and was cancelled mid-tier. Correct selection, unusable method: a
+          # runner image carries six to eight iPads and each boot is 30-60 s.
+          #
+          # Every device type ships its screen geometry on disk, so this is a file read per candidate
+          # (~1 s total) and exactly ONE boot — the winner.
+          BEST_UDID=""; BEST_NAME=""; BEST_PT=0
+          while IFS= read -r row; do
+            [ -z "$row" ] && continue
+            U="${row%%|*}"; N="${row#*|}"
+            # Match the device to its .simdevicetype bundle by name, then read points = width / scale.
+            PROF=$(ls -d /Library/Developer/CoreSimulator/Profiles/DeviceTypes/*.simdevicetype 2>/dev/null \
+              | while read -r B; do
+                  DN=$(plutil -extract CFBundleName raw "$B/Contents/Info.plist" 2>/dev/null)
+                  [ "$DN" = "$N" ] && echo "$B/Contents/Resources/profile.plist"
+                done | head -1)
+            W=$(plutil -extract mainScreenWidth raw "$PROF" 2>/dev/null)
+            S=$(plutil -extract mainScreenScale raw "$PROF" 2>/dev/null)
+            # ⛔ `mainScreenScale` comes back as a FLOAT on most device types — "2.000000" — and as "2" on
+            # a few. Bash arithmetic cannot divide by "2.000000", so run 31642490867 computed 0pt for every
+            # wide iPad and 744pt for the mini (the one integer), then correctly refused to run.
+            # ⚡ The fail-loud guard caught my own parse bug instead of quietly testing the phone layout on
+            # an iPad — which is precisely the failure it was written to prevent, one layer up.
+            S=${S%%.*}
+            PT=0
+            if [ -n "$W" ] && [ -n "$S" ] && [ "$S" -gt 0 ] 2>/dev/null; then PT=$(( W / S )); fi
+            echo "   $N → ${W:-?}px / ${S:-?}x = ${PT}pt"
+            if [ "$PT" -gt "$BEST_PT" ]; then BEST_PT=$PT; BEST_UDID=$U; BEST_NAME=$N; fi
+          done <<< "$AVAIL"
+
+          # ⛔ FAIL LOUD rather than measure the wrong thing. A compact "iPad" run is worse than no iPad
+          # run: it reports a pass for checks it never executed.
+          echo "Widest available iPad: $BEST_NAME at ${BEST_PT}pt"
+          # ⚠️ 0pt means the plist READ failed (a renamed key, a bundle whose CFBundleName does not match
+          # simctl's device name), not that the device is tiny. It lands in the same fail-loud branch on
+          # purpose — the printed table above says which, and a silent fallback to name-matching is what
+          # put a 744pt iPad mini through this lane in the first place.
+          if [ "$BEST_PT" -lt 1024 ]; then
+            echo "::error::widest available iPad measured ${BEST_PT}pt — below the 1024pt \`isExpanded\` threshold (0 = plist read failed; see the table above)."
+            echo "::error::[D30]'s checks (master-detail, inline sheet) do not run below 1024pt, so this"
+            echo "::error::would be a green run that tested the compact layout. See sizeClass.ts."
+            exit 1
+          fi
+          UDID="$BEST_UDID"; NAME="$BEST_NAME"
+          echo "Booting iPad: $NAME ($UDID) — ${BEST_PT}pt, expanded"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b || true
+          xcrun simctl install "$UDID" ios/build/Build/Products/Release-iphonesimulator/DebtPlannerRN.app
+          mkdir -p maestro-debug
+          xcrun simctl spawn "$UDID" log stream --level debug --style compact \
+            --predicate 'processImagePath CONTAINS "DebtPlannerRN" OR senderImagePath CONTAINS "DebtPlannerRN"' \
+            > maestro-debug/os-log-ipad.txt 2>&1 &
+          LOG_PID=$!
+          # ⚡ MEASURE the frame rather than assuming it. [D30]'s carried hypothesis is entirely about
+          # width, and this is the cheapest possible way to stop it being a hypothesis.
+          xcrun simctl io "$UDID" screenshot maestro-debug/ipad-00-boot.png || true
+          sips -g pixelWidth -g pixelHeight maestro-debug/ipad-00-boot.png || true
+          # ⚠️ `|| STATUS=$?`, not a bare call then `$?`. GitHub runs `run:` under `bash -e`, so a red
+          # Maestro would abort the step on the spot — skipping the log kill and the status line, and
+          # throwing away the "it failed, here is how far it got" that is this step's entire output.
+          STATUS=0
+          # ⭐ 4.1.5.2 — `05` joins the iPad list, and it is the FIRST check here that can actually fail
+          # for an iPad-specific reason. `i01` asserts nothing device-specific by design, so until then
+          # this tier was infrastructure without coverage. §11.15's ring-origin invariant is the opposite:
+          # on the iPhone the overlay's origin is {0,0} and the assertion is satisfied by a build with no
+          # correction at all, while here the tab bar is a left RAIL and the origin sits a sidebar-width
+          # right — the only arrangement in which the check has two possible answers.
+          # ORDER: `05` runs after `i01` so the measurement flow keeps its clean position — `05` finishes
+          # the walkthrough and marks it seen, which changes what Today renders. It relaunches with
+          # `clearState: false`, so `i01` leaving the debt sheet open costs it nothing.
+          # ⛔ THE RETRY, ALSO PARITY — retry ONLY on the driver-startup signature, never on a red flow.
+          # ⛔ A SUBSHELL `( … )`, NOT `{ … }`, AND `pipefail` INSIDE IT. Without pipefail the pipeline
+          # reports TEE's status — always 0 — so STATUS would be 0 on every failure: the retry would never
+          # fire and the tier would report success for a stall. But `set -o pipefail` at STEP scope would
+          # reach the device-selection pipelines above, where `simctl list | grep | sed` finding nothing is
+          # a handled case (`if [ -z "$AVAIL" ]`) that would instead abort the step under `bash -e`.
+          run_ipad_tier() (
+            set -o pipefail
+            maestro test \
+              .maestro/01-launch-smoke.yaml \
+              .maestro/i01-ipad-boot.yaml \
+              .maestro/i02-ipad-step5-landscape.yaml \
+              .maestro/i03-ipad-rotate-midstep.yaml \
+              .maestro/05-tutorial-walkthrough.yaml \
+              --format junit --output maestro-report-ipad.xml --debug-output ./maestro-debug-ipad 2>&1 | tee "$1"
+          )
+          run_ipad_tier /tmp/maestro-ipad-1.txt || STATUS=$?
+          if [ "$STATUS" -ne 0 ] && grep -q "iOS driver not ready in time" /tmp/maestro-ipad-1.txt; then
+            echo "::warning::iPad tier: iOS driver failed to start and NO flow ran — retrying the tier once."
+            STATUS=0
+            run_ipad_tier /tmp/maestro-ipad-2.txt || STATUS=$?
+          fi
+          kill "$LOG_PID" 2>/dev/null || true
+
+          # ⚠️ 4.1.5.6 — §11.16 ASKS FOR BOTH THEMES, and [D33] judged only LIGHT. Rather than fork the
+          # flow, re-run `i02` alone under a dark appearance into its OWN debug directory: same
+          # assertions, different theme, no second file to keep in step with the first.
+          #
+          # ⛔ `takeScreenshot` writes RELATIVE TO THE WORKING DIRECTORY, not into `--debug-output`, so a
+          # second run of the same flow OVERWRITES the first flow's frames. The light frame is therefore
+          # parked before the dark run and restored after it, and the dark one is renamed on the way out.
+          cp maestro-debug/ipad-step5-landscape.png /tmp/ipad-step5-light.png 2>/dev/null || true
+          xcrun simctl ui booted appearance dark || true
+          maestro test .maestro/i02-ipad-step5-landscape.yaml \
+            --debug-output ./maestro-debug-ipad-dark || echo "dark-theme i02 did not pass (recorded, not fatal)"
+          mv maestro-debug/ipad-step5-landscape.png maestro-debug/ipad-step5-landscape-dark.png 2>/dev/null || true
+          cp /tmp/ipad-step5-light.png maestro-debug/ipad-step5-landscape.png 2>/dev/null || true
+          xcrun simctl ui booted appearance light || true
+
+          # ⚠️ 4.1.5.5 — STRAIGHTEN THE LANDSCAPE FRAME. `takeScreenshot` captures the device FRAMEBUFFER,
+          # which stays in the physical portrait orientation however the app is rotated, so `i02`'s beat-5
+          # frame lands on its side. That flow's ONLY deliverable is a composition judgement, and judging a
+          # composition sideways is not judging it.
+          #
+          # `sips -r 270` (counter-clockwise) matches `LANDSCAPE_LEFT`. ⛔ Scoped by FILENAME to the frames
+          # that are actually landscape — a blanket rotate would tip every portrait screenshot in the
+          # artifact on its side. ⚠️ The trailing `*` on the second pattern is load-bearing — it catches
+          # the dark frame written above.
+          for f in maestro-debug/ipad-landscape-*.png maestro-debug/ipad-step5-landscape*.png; do
+            [ -f "$f" ] && sips -r 270 "$f" >/dev/null 2>&1 && echo "straightened $f" || true
+          done
+
+          echo "iPad tier exit status: $STATUS (recorded, not fatal — see the step comment)"
+          exit 0
+
+      - name: Screenshot the final simulator state
+        if: always()
+        run: xcrun simctl io booted screenshot maestro-debug/final-screen-ipad.png || true
+
+      - name: Per-flow results + the small diagnosis bundle
+        if: always()
+        working-directory: .
+        run: node scripts/collect-lane-diagnostics.mjs --tier ipad
+
+      - name: Upload the small diagnosis bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lane-diagnostics-ipad
+          path: apps/rn/lane-diagnostics/**
+          # ⛔ CAUGHT BY `lint:lane` BEFORE IT COST A CYCLE. The collector preserves Maestro's own layout,
+          # which puts the view hierarchy under `.maestro/tests/…` — a HIDDEN segment. Without this flag
+          # upload-artifact v4 drops exactly the files this bundle exists to ship, and the artifact would
+          # arrive looking like a run that produced no hierarchy.
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Upload Maestro report + debug (screenshots + view hierarchy)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-report-ipad
+          include-hidden-files: true
+          path: |
             apps/rn/maestro-report-ipad.xml
+            apps/rn/maestro-debug/**
             apps/rn/maestro-debug-ipad/**
+            apps/rn/maestro-debug-ipad-dark/**
             !apps/rn/maestro-debug/**/device-simulator.log
             !apps/rn/maestro-debug-ipad/**/device-simulator.log
+            !apps/rn/maestro-debug-ipad-dark/**/device-simulator.log

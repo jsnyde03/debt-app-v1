@@ -21,12 +21,13 @@
 # claiming an action its viewer had not taken, and [D19] pulled the demo out of the app entirely.
 # Jason, 2026-08-08.
 #
-# ⚠️ THE BUILD RECIPE BELOW IS DUPLICATED FROM `native-e2e.yml`, ON PURPOSE AND WITH A COST. That recipe
-# carries expensive native fixes (the ios-utilities rootcontentview plugin, SENTRY_DISABLE_AUTO_UPLOAD,
-# pod install as its own step because prebuild masks its errors with exit 0). Extracting a shared
-# composite action is the right long-term shape and is FILED — it was not done in the same change that
-# first proves this pipeline, because a bug in the extraction would break the proven native gate as well
-# as this. Keep the two in sync until the extraction lands.
+# ⭐ 4.1.9b.7 (2026-08-17) — THE BUILD RECIPE IS NO LONGER DUPLICATED. It lives in
+# `.github/actions/rn-ios-sim-build` and is shared with `native-e2e.yml`.
+#
+# ⛔ THE "KEEP THE TWO IN SYNC" NOTE THAT USED TO SIT HERE HAD ALREADY FAILED, and measuring it is what
+# made the extraction non-optional. In the five days since 4.1.3a this copy was missing
+# `DEBUG_INFORMATION_FORMAT=dwarf`, `COMPILER_INDEX_STORE_ENABLE=NO`, `cache: npm` and `fetch-depth: 0`.
+# A comment asking a human to remember is not a mechanism.
 name: App Preview (capture · iOS Simulator)
 
 on:
@@ -96,79 +97,27 @@ jobs:
       run:
         working-directory: apps/rn
     steps:
+      # `fetch-depth: 0` — the shared action's provenance audit diffs against the commit a cached .app
+      # was built at. This lane did not have it, so that safeguard would have printed "(cannot diff)".
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          fetch-depth: 0
 
-      - name: Install dependencies (root + apps/rn)
-        working-directory: .
-        run: |
-          npm install --prefer-offline --no-audit --no-fund
-          npm --prefix apps/rn install --prefer-offline --no-audit --no-fund
-
-      - name: Cache CocoaPods + Swift-PM downloads
-        uses: actions/cache@v4
+      # ⛔ ITS OWN CACHE NAMESPACE, AND THIS IS THE ONE THING THE SHARED ACTION CANNOT INFER. The key
+      # hashes FILES; `EXPO_PUBLIC_CAPTURE_DEMO=1` is an ENV VAR that Metro inlines at build time, so
+      # this lane and the e2e lane produce DIFFERENT binaries from byte-identical sources. Sharing a
+      # namespace would let the capture build restore the e2e binary, or — worse, because it goes green
+      # — let the e2e lane restore a build that boots straight into the demo.
+      - uses: ./.github/actions/rn-ios-sim-build
         with:
-          path: |
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
-            ~/Library/Caches/org.swift.swiftpm
-          key: pods-spm-${{ runner.os }}-${{ hashFiles('apps/rn/package-lock.json') }}
-          restore-keys: |
-            pods-spm-${{ runner.os }}-
-
-      - name: Select newest Xcode
-        run: |
-          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
-          xcodebuild -version
+          cache-namespace: capture
+          build-tests: 'false'
+          log-artifact-name: xcodebuild-log-preview
 
       # ffmpeg is NOT preinstalled on the macos-15 image (verified against actions/runner-images on
       # 2026-08-06); Homebrew is. This is the one practicality the plan flagged as unknown.
       - name: Install ffmpeg
         run: brew install ffmpeg
-
-      - name: Link ./core so tsc can resolve @core before Metro runs
-        run: |
-          [ -e core ] || ln -s ../../packages/core core
-          ls -la core
-
-      - name: Fail fast (typecheck before the slow native build)
-        run: npx tsc --noEmit
-
-      - name: Generate the native iOS project (expo prebuild)
-        run: npx expo prebuild --platform ios
-
-      - name: Install CocoaPods (fail loud — prebuild masks pod errors with exit 0)
-        working-directory: apps/rn/ios
-        run: pod install
-
-      - name: Build for the iOS Simulator (no signing)
-        run: |
-          set -o pipefail
-          ARCH="$(uname -m)"
-          echo "Building single simulator arch: $ARCH"
-          xcodebuild \
-            -workspace ios/DebtPlannerRN.xcworkspace \
-            -scheme DebtPlannerRN \
-            -configuration Release \
-            -sdk iphonesimulator \
-            -derivedDataPath ios/build \
-            -destination 'generic/platform=iOS Simulator' \
-            ARCHS="$ARCH" ONLY_ACTIVE_ARCH=YES \
-            CODE_SIGNING_ALLOWED=NO \
-            SWIFT_OPTIMIZATION_LEVEL='-Onone' GCC_OPTIMIZATION_LEVEL=0 \
-            build 2>&1 | tee xcodebuild.log
-
-      - name: Surface the build error
-        if: failure()
-        run: |
-          echo "──────── errors / failures ────────"
-          grep -nE "error:|fatal error:|\*\* BUILD FAILED \*\*|The following build commands failed|^ld: |clang: error" \
-            xcodebuild.log | tail -60 || echo "(no error-shaped line matched — see the tail below)"
-          echo
-          tail -80 xcodebuild.log
 
       # ⚠️ The device choice decides the recording's aspect ratio, so it is PRINTED and carried into the
       # artifact notes. The conform handles either direction, but a reviewer needs to know what was shot.
