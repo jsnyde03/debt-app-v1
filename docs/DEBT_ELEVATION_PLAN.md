@@ -353,7 +353,7 @@ signed off, because its OUTPUT is not final:**
 | | Item | State |
 |---|---|---|
 | 1 | **3.5.7 — web-embeddable marketing demo** | ▶ **ACTIVE 2026-08-14 as the parallel track** (4.1 keeps precedence; this fills the waits). ✅ [D32] settles hosting + privacy. ⛔ **The "debt-free-date defect" blocker is STALE** — no live defect exists; the only match is filed *"the cohesion audit, not a defect"* and its two relatives are closed. Decomposed below |
-| 2 | **The device pass** | `DEBT_3.5_DEVICE_QA_CHECKLIST.md` §11 walkthrough · §12 demo · §13 coach-marks, against the fresh build |
+| 2 | **The device pass** | `DEBT_3.5_DEVICE_QA_CHECKLIST.md` §11 walkthrough · §12 demo · §13 coach-marks, against the fresh build. ⛔ Downstream of 4.1's exit, not parallel to it. ⚠️ **[OPEN, raised 2026-08-17] Is this still a SEPARATE pass from Phase 6's?** Today's call sent the 74 coverable-not-built rows to Phase 6 as human-ticked work, and they span §11/§12 among others — so the two passes now overlap and nobody has said whether 3.5's simply becomes part of Phase 6's. Deciding it late means running some rows twice |
 | 3 | **3.5.9 — reinstate the demo ✅ DONE 2026-08-10** | [D21] reverses [D19]. `isDemoReachable()` no longer rides `QA_TOOLS`; both doors restored and now **tested** — nothing covered them before, which is how they were pulled unnoticed. Log: 3.5.9 |
 | 5 | **3.5.10 — the INTERACTIVE demo ✅ DONE 2026-08-11** | 🎯 **[D23]**: the demo is now two runs. **`explore`** (a user: live tabs, no script, exit on the marker row) · **`scripted`** (the App-Preview + 3.5.7's embed only). One artifact had been doing both jobs and the video's requirements won. ⚠️ `useInBoundedRun` was deliberately **not** forked — a separate `useNavigationHeld()` answers the other question. Gate 158/158. Log: 3.5.10 |
 | 4 | **The App-Preview asset must be RE-SHOT** | the pipeline is proven and cycle 14 approved, but the submitted file is shot after the UI settles → Phase 6 |
@@ -363,9 +363,9 @@ exits) · walkthrough = AFTER onboarding, on your own money.
 
 #### ▶ 3.5.7 — the embed _(the PARALLEL track; 4.1 has precedence and this fills its waits)_
 
-⚠️ **Two decomposed sections exist deliberately** (this and 4.1.6a.7). The one-decomposed-section rule
-targets *stale* sequences aging while attention is elsewhere; both of these are live, and 🎯 set the
-precedence explicitly on 2026-08-14. When either closes, its section collapses to one line.
+⚠️ **This is the one decomposed section on the doc.** 4.1.6a.7's closed 2026-08-17 and collapsed; 4.1's
+remaining steps are single rows in its table. 🎯 set the precedence on 2026-08-14: 4.1 first, this fills
+its waits.
 
 | # | Step | State |
 |---|---|---|
@@ -382,7 +382,8 @@ precedence explicitly on 2026-08-14. When either closes, its section collapses t
 **Exit:** a public embed whose privacy claim is enforced by a test that runs on every push, not asserted
 in prose.
 
-⛔ **[.5 after-scan] [DECISION] THE EMBED'S TWO EXITS BOTH LEAD SOMEWHERE WRONG — and this blocks .6.**
+⛔ **[.5 after-scan] THE EMBED'S TWO EXITS BOTH LEAD SOMEWHERE WRONG — 🎯 SETTLED 2026-08-17, now .7, and
+it blocks the deploy at .8.**
 The dock's exits are `exitDemo('/onboarding')` *("Start my real plan")* and `exitDemo('/paywall')`
 *("Unlock Premium")* — approved 2026-08-06 **for the app**, where both are right. In a public embed:
 ① onboarding is a **financial data-entry form inside a marketing iframe that discards what is typed**
@@ -394,10 +395,8 @@ says so. ⚠️ Wording is 🎯's and belongs with **.7**, so these settle toget
 ⚠️ **[.5 after-scan] The deferred [.1] a11y question is now ANSWERED, and 2 of the 3 controls are in the
 embed's public surface.** The scripted arc is `/money` → `/` → `/progress`: **`SegmentedToggle`** (Money
 ×2, Progress's `CashFlowSection` ×1) and **`CheckCircle`** (Today's Required/Recommended action cards)
-both render there; **`RadioGroup` does not** (onboarding + a sheet). ▶ **Rec: fix both before .6** — .1's
-own argument was "a public WCAG failure", and .6 is the moment it becomes public. Not folded into .5:
-`CheckCircle` is already owned by [3.7.B.4] at the audit gate, and splitting one fix across two items is
-how it gets done twice.
+both render there; **`RadioGroup` does not** (onboarding + a sheet). ✅ **Both fixed at .7 → now .6** —
+.1's own argument was "a public WCAG failure", and the deploy is the moment it becomes public.
 
 ⚡ **[.5 after-scan] MEASURED — a build flag is only dead-code-ELIMINATED when it is read in the SAME
 module.** `EXPO_PUBLIC` appears **0** times in either built bundle (Metro inlines it), and the storage
