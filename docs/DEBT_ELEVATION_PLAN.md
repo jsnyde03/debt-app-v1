@@ -23,15 +23,20 @@
 ### ▶ 3.8 — the expense reserve _(active, and the only decomposed item on this doc)_
 
 🎯 **IN v1.7** *(2026-08-17: "3.8 is definitely in 1.7")*. ⛔ **The app coaches a habit it cannot record and
-then plans as if you had not followed it:** Money's Expenses hero says *"$175 reserved per paycheck"* —
-computed inside `money.tsx` for that hero alone, read by nothing — while `allocatePaycheck` demands the
-**full $350** in the cycle rent is due. Found by 🎯 *using* the app; no coverage split models *"the app does
-the wrong thing correctly."*
+then plans as if you had not followed it.** The Expenses hero **smooths the WHOLE recurring load** — rent,
+utilities, subscriptions, every one of them — into a per-paycheck figure and calls it *"reserved"*, while
+`allocatePaycheck` funds **each expense in full in the cycle it actually falls**. So the smoothing is
+advice the plan never takes. Found by 🎯 *using* the app; no coverage split models *"the app does the wrong
+thing correctly."*
+
+⚠️ **Rent is an EXAMPLE, not the case** *(🎯 2026-08-17)*. The pot is *"for expenses"* — one aggregate
+across the whole section. Any wording, test or invariant phrased around a single bill is describing a
+special case of a general defect, and will be wrong the first time two expenses fall in one cycle.
 
 | # | Step | State |
 |---|---|---|
 | **.1** | **The pot, in the store** — ONE aggregate number, not per-bill envelopes. Keeps Phase 5's migration to *absent ⇒ today's behaviour* | |
-| **.2** | **The draw-down in `allocatePaycheck`** — ⛔ **the invariant is the hard part**: money set aside in cycle 1 must be *gone* from cycle 1's spendable **and** reduce rent in cycle 2. Honour only the second and the model invents $175 | |
+| **.2** | **The draw-down in `allocatePaycheck`** — the pot is consumed by **whatever falls due**, across all categories. ⛔ **The invariant is the hard part**: money set aside in cycle 1 must be *gone* from cycle 1's spendable **and** reduce the cycle-2 demand. Honour only the second and the model invents money | |
 | **.3** | **The recommended action**, never required. ⛔ **Offer only what this paycheck can spare** — promising $175 and reserving less is the capped-outcome shape [A3.6] exists for | |
 | **.4** | **Re-point the Expenses hero at the REAL reserve** *(🎯 2026-08-17, replacing "remove it")* — `money.tsx:653–672` keeps saying *"reserved"*, and 3.8 is what makes the word true. ⛔ **It must read the POT, not `perPaycheckTotal`** | |
 | **.5** | **The Guardian bar + the tap** — the set-aside joins the everyday segment; tapping splits living-expenses vs expenses. ⚠️ **[DECISION] the segment's new name** is 🎯's | |
@@ -50,6 +55,13 @@ nothing reserves it. **3.8 makes the word true**, so the hero survives and chang
 reading `perPaycheckTotal` after 3.8 would still lie to everyone who ignored the nudge or reserved less —
 *backable* and still wrong. ⚠️ One edit to that block instead of two; the intermediate state never ships
 because v1.7 ships as ONE release. **If 3.8 is ever cut back mid-flight, strip the claim first.**
+
+⭐ **[.2 before-scan] THE DRAW-DOWN ORDER IS ALREADY DECIDED — do not invent one.** `allocatePaycheck`
+builds `upcomingExpenses` from **every** expense due before the next paycheck, expands weekly/biweekly ones
+into **separate occurrences with distinct ids**, and **sorts by due date** (`:224–244`). The pot draws down
+in that same order, against **occurrences, not expenses** — a fortnightly bill is two draws, and
+`isPaidThisCycle` is already keyed per occurrence for exactly this reason. ⚠️ Reusing the engine's existing
+sort is what keeps the reserve and the funding from disagreeing about which bill got paid.
 
 ⛔ **[before-scan] AND THE ROW'S OWN PREMISE WAS WRONG — it is NOT "read by nothing".** Three readers:
 `perPaycheckTotal` → `breakdownData` → **`BillBreakdownSheet`**, which prints it again as its headline ·

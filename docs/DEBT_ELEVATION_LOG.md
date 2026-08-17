@@ -11301,3 +11301,37 @@ the sentence above it said there was none.
 
 ⚠️ *Answering "which hero?" was worth more than building it would have been.* The question surfaced a
 reversed decision, a wrong premise and a wrong step order, at the cost of two greps.
+
+---
+
+## 2026-08-17 — 3.8: rent was an EXAMPLE, and the framing was hiding a design question
+
+🎯: ***"That was just an example expense. I expect that section will hold rent + utilities + subscriptions
+etc."***
+
+The decomposition had been written as a rent story — *"$175 reserved… while `allocatePaycheck` demands the
+full $350 in the cycle rent is due"* — and the invariant as *"reduce rent in cycle 2."* That is a special
+case of the actual defect, and it would have been wrong the first time two expenses fell in one cycle.
+
+⚡ **The general statement:** the Expenses hero smooths the **whole recurring load** into a per-paycheck
+figure and calls it *"reserved"*, while `allocatePaycheck` funds **each expense in full in the cycle it
+actually falls**. The smoothing is advice the plan never takes. Nothing about that is rent-specific — the
+hero already sums every recurring expense (`recurring.reduce(…)`), so it was never a single-bill number in
+the first place.
+
+### ⭐ AND THE CORRECTION SURFACED A QUESTION THE RENT FRAMING HAD HIDDEN — already answered by the engine
+
+With one bill there is no ordering question. With rent + utilities + subscriptions there is: **which
+expense consumes the pot first?** Read rather than invented — `allocatePaycheck:224–244` already builds
+`upcomingExpenses` from **every** expense due before the next paycheck, expands weekly/biweekly ones into
+**separate occurrences with distinct ids**, and **sorts by due date**.
+
+So the pot draws down in that same order, against **occurrences, not expenses** — a fortnightly bill is two
+draws — and `isPaidThisCycle` is already keyed per occurrence for precisely this reason (its own comment:
+*"reusing the original would mark every occurrence paid when one of them was"*). ⚠️ Reusing the engine's
+existing sort is what stops the reserve and the funding disagreeing about which bill got paid.
+
+⚡ *A worked example in a spec quietly becomes the spec.* Hearthlight's Law II in a different costume —
+**any concrete instance in a brief becomes the case the reader builds for.** Two 🎯 notes in a row have now
+corrected 3.8's decomposition before a line of it was written, and both were about what the words implied
+rather than what they said.
