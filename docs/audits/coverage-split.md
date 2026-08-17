@@ -14,7 +14,7 @@
 | **✅ Covered — PROVEN** | **24** | proved OUTRIGHT: 23 machine-earned `✅auto·<runId>` · 1 human-earned `[x]` |
 | **◐ Automatable half proven** | **9** | `[M◐]` — the lane's half is green; **the device-owed half is still owed** and its box stays for the human |
 | **⚠️ Claimed but UNPROVEN** | **0** | a flow declares it; no run has ever passed it. **These were counted as covered before 4.1.9c** |
-| **▶ Coverable, not yet built** | **74** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
+| **▶ Coverable, not yet built** | **74** | verdict permits automation, nothing claims it — 🎯 2026-08-17: **PHASE 6 device-pass work, ticked by a human; automating any of it is optional and non-gating.** ⛔ Most of these have never been verified by ANYONE, so this is verification debt, not automation debt. Exception: §12.1–§12.7 stay in 4.1.10 |
 | **🎯 Permanently device-owed** | **24** | `[D]` — no lane will ever carry it |
 | | | |
 | **🎯 The device pass** | **50** | `[D]` **+** the human half of every `[M◐]` (26) |

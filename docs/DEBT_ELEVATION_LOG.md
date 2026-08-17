@@ -9997,6 +9997,73 @@ than being invented here. **It blocks .6** — this is not something to deploy p
 
 ---
 
+## 2026-08-17 — 🎯 the 74 "coverable, not yet built" move to Phase 6 — and .10 does not
+
+🎯 Jason: *"I believe that the coverable-not-built tasks should be a part of Phase 6. Agreed?"* — then,
+on the follow-up: *"I agree as long as you believe that we've answered everything that we've wanted to
+with 4.1. I am a bit hesitant pushing .10 to Phase 6 but if it's for the best I'll back it."*
+
+### ⭐ THE LABEL WAS HIDING TWO DIFFERENT OBLIGATIONS
+
+Read from the generated split rather than the prose quoting it: of the 74, **~67 have never been verified
+by anyone** — no `✅auto·<runId>`, no human `[x]`. Only ~8 carry a hand-tick. So this was never automation
+debt over work a human already does. It is **verification debt**, and it decomposes:
+
+| | | |
+|---|---|---|
+| ① | **verify the check at all** | a launch obligation → **Phase 6's device pass** |
+| ② | **automate it so it stays verified** | an investment whose payoff is **v1.8 onward** |
+
+Calling all 74 "4.1's remaining work" asserted that ② must precede ①. **That is what kept the CodeMagic
+build blocked** — the device build waits on 4.1's exit, and 4.1's exit was defined as writing 74 flows
+against surfaces the audit gate and Phase 5 are about to change.
+
+⛔ **In Phase 6 they are rows a human TICKS. Automating any of them is optional and non-gating** — if they
+arrive there as automation work they delay submission for a payoff that lands after it.
+
+⚠️ **The cost, stated rather than buried:** the v1.7 human pass grows **50 → ~105**. Derived (50 is `[D]`
++ the `[M◐]` halves; the 74 overlap it by 17), not measured — `audit:coverage` can produce it exactly.
+Still the right trade: one pass is cheaper than 74 flows against moving surfaces.
+
+### ⛔ .10 STAYS IN 4.1 — the hesitation was right, and I reversed
+
+I had recommended pushing §12.1–§12.7 with the rest. Two things say otherwise:
+
+1. **Its blocker's premise died the same afternoon.** The checklist states it as *"on a device build you
+   cannot pass `?mode=scripted`, so treat those as owed to the capture/embed lane."* **3.5.7.5 made that
+   false**: `DemoAutoEntry` enters the scripted run from a **build flag with no URL**, proven in the
+   capture lane and now in the embed gate. ▶ Cheapest door in the native lane is a `qaEnabled()`-gated
+   control in More — no second binary, and it vanishes with the Phase-6 flip. *This is the pre-authored-plan
+   rule firing exactly as intended: a blocker that was real when written and stale when read.*
+2. ⚡ **§12 now guards a PUBLIC surface.** The demo is the marketing embed's own screen as of today, so
+   these 15 rows protect a web page a stranger can open, not just an app screen. That raises the priority
+   rather than lowering it.
+
+### ⛔ AND 4.1 IS NOT DONE — three questions still move the number
+
+🎯's condition was *"as long as we've answered everything we wanted to with 4.1."* Honestly: not yet.
+The headline is **50**, and three unresolved items each move it:
+
+| | question | if it fails |
+|---|---|---|
+| ① | does RN's `AccessibilityInfo` observe the `simctl` Reduce-Motion write? | §B3.6 + §11.7 → `[D]`, **+2** |
+| ② | does XCUITest's `typeKey` work here? (the three `[A]` ⌘-key rows) | → `[D]`, **+3** |
+| ③ | the a11y audit's anchor measured `rendered=false` today | its four `findings=0` are not a clean bill |
+
+So the answer today is **"50 ± 5, with one instrument in doubt"** — and shipping that as *definitive*
+would be the exact overstatement 4.1.9c was built to eliminate, one level up. ⚡ All three fit in **one
+dispatch**, which is why 4.1.7 was rewritten from "AX + theme conditions" into precisely these three and
+promoted to the real exit.
+
+### Also closed by run `32037021903`, without new work
+
+**4.1.6** — `09-demo-explore.yaml` was "built, awaiting a dispatch" since 2026-08-14; it ran for the
+first time and passed. **4.1.8** — flow `10` is green for a **third consecutive run**, so §11.9's
+`repeat` tap+erase fix is stable rather than a fluke. Both were closable on evidence that already
+existed and had not been read — the same shape as the "529s cost centre" that was stale by 3.5×.
+
+---
+
 ## 2026-08-17 — 3.5.7.6: the two controls in the embed's surface report their state
 
 🎯 approved fixing both before any public deploy. `a11yChecked` / `a11ySelected` join

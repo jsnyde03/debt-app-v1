@@ -33,7 +33,8 @@ springboard reach proven · coverage reads **24 proven · 9 automatable-half · 
 cache and `hermesc` both worked for the first time in `31835736974`.
 
 ▶ **BUILDING — 4.1.9b** (composite action · tier split · the caches that make both safe), **decomposed
-below**. Then **4.1.9c's writer** → **4.1.10** (deep-link door, 15 rows).
+below**. Then **4.1.7** (the three questions that still move the number — one dispatch) → **4.1.9c's
+writer** → **4.1.10** (§12's scripted run, 15 rows, unblocked 2026-08-17) → **4.1.11** the exit.
 ▶ **In parallel — 3.5.7.5** (embed entry) → **.6** (Pages deploy) → **.7** (🎯's wording call).
 
 ⚠️ **Read the SESSION CLOSE 2026-08-17 log entry first** — it carries what NOT to build on.
@@ -47,9 +48,9 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 | **4.1.3 – 4.1.5.1** | ✅ **CLOSED 2026-08-12/13.** The lane 0/8 → **8/8 on iPhone**: flow order made explicit · the `.app` cache (17m03s → 2s) · `lint:selectors` · ⭐ the coach-mark probe and the **three shipped defects** it found · the iPad boot at 1032pt. Detail + every scan → log | ✅ |
 | **4.1.5** | **The iPad tier's REAL checks.** 4.1.5.1–4.1.5.4 and **4.1.5.5 all closed** — 🎯 §11.16 judged 2026-08-14, **both edges PASS**, evidence + reasoning → [`evidence/2026-08-14-p11.16-ipad-landscape/`](evidence/2026-08-14-p11.16-ipad-landscape/README.md). ⭐ **4.1.5.6 CLOSED 2026-08-14 — the iPad tier is 5/5 in run `31827409093`**, its first content ever: `01` · `i01` · `i02` · `i03` · `05` all pass. ⛔ The two prior "results" were **non-results** (`iOS driver not ready`, zero flows); the cause was a 240s timeout the iPhone step had already had raised to 420s. ⚡ **The raise alone sufficed** — the retry never fired. ⛔ The "nudge the scroll offset" fold-in was **refuted**: `TutorialOverlay` measures but never scrolls — see the open defect below | ✅ |
 | **4.1.6a** | ✅ **CLOSED 2026-08-17.** `audit:coverage` + `lint:coverage` (.1–.6) and the XCUITest target (.7). Its standing guidance is kept below the active section | ✅ |
-| **4.1.6** | **§12.0 explore** — `09-demo-explore.yaml`, runs LAST and clears state (it needs the fresh-install door) | ✅ **BUILT 2026-08-14**, awaiting a dispatch. Covers §12.0.1 · .2 · .4 · .5 · .6 · .7. ⚠️ **.3 and .8 do NOT automate** — see below |
-| **4.1.7** | **AX + theme conditions** — §11.1 · §11.5 · §8's half. ⚠️ Reduce Motion needs an app-side observable. ⛔ **HOLD for 4.1.6a.7** — `performAccessibilityAudit()` covers most of §11.1/§11.5, so part of this may belong in XCUITest, not Maestro conditions | |
-| **4.1.8** | **§11's remainder** — `10-walkthrough-edges.yaml` (§11.9 · §11.11 · §11.13 frames) | ◐ **9/10 — only the §11.9 CLEANUP fails.** ⭐ Everything before it passes, incl. the beat-5 fence inversion. ⛔ `eraseText` deletes **backwards from the cursor** and `tapOn` lands mid-text (measured: exactly 24 of 64 chars went) — now a `repeat` of tap+erase. ⚠️ Verification is a **flow-only** change, so it should hit the `.app` cache and also give `hermesc` its first-ever exercise |
+| **4.1.6** | **§12.0 explore** — `09-demo-explore.yaml` | ✅ **CLOSED 2026-08-17 — dispatched and GREEN** in run `32037021903`, its first execution. Covers §12.0.1 · .2 · .4 · .5 · .6 · .7. ⚠️ **.3 and .8 do NOT automate** — see below |
+| **4.1.7** | **The THREE questions that still move the number** *(was "AX + theme conditions")* — ① does RN's `AccessibilityInfo` observe the `simctl` Reduce-Motion write (§B3.6 · §11.7 fall to `[D]`, **+2**, if not) · ② a `typeKey` probe for the three `[A]` ⌘-key rows (**+3** if it fails) · ③ the a11y audit's anchor, now measured `rendered=false` | ▶ **THE REAL EXIT.** All three fit **one dispatch**, and until they land the answer is *50 ± 5 with one instrument in doubt* — the same overstatement 4.1.9c exists to stop, one level up |
+| **4.1.8** | **§11's remainder** — `10-walkthrough-edges.yaml` | ✅ **CLOSED 2026-08-17 — 10/10, third consecutive green.** The `repeat` tap+erase fix for §11.9's cleanup is stable, not a fluke |
 | **4.1.9** | ✅ **[DECISION] SETTLED 2026-08-17 — XCUITest, and NO Appium.** The probe proved both capabilities Appium was wanted for a *subset* of: springboard reachable **and inspectable** (`elements=241`), and `performAccessibilityAudit` completing on all four needed types in **2.9s**. **10 rows re-verdicted `[D]`→`[X]`; the device pass drops 60 → 50.** ⛔ Appium adds a second driver, a second language and a server process to buy 3 checks a driver we now have can plausibly do. ⚠️ Those 3 stay `[A]`, NOT `[X]` — XCUITest's `typeKey` is unproven here, and re-verdicting them on expectation is the overstatement 4.1.9c exists to stop. Detail → log | ✅ |
 | **4.1.9b** | ⭐ **CI wall-clock: the composite action AND the tier split, as ONE pass** *(🎯 approved 2026-08-14; repo is PUBLIC so macOS runners are free)*. ① The `.app` key hashes the whole of `native-e2e.yml`, so the **flow list** busts the binary — both of today's runs paid ~771s of compile for pure YAML edits. ② The two tiers run **sequentially in one job** (no `matrix`), so `device=both` pays iPhone **+** iPad (~650s + ~666s) instead of `max`. ⚡ They merge: the extracted composite is exactly what two parallel jobs must both call. Also folds in `app-preview.yml`'s duplicated recipe + its missing cache. **Together: ~22 min → ~12 on a cache hit.** ⚠️ Loosens a key 4.1.3a hardened — safe only because the composite holds every build flag and `maestro test` lines cannot affect a binary. ⛔ **[.7.4c after-scan] The split must keep the XCUITest probe step in the iPhone job** — it sits between the two tiers today, and a step that stops running looks exactly like a probe that found nothing. ⚠️ Cache the `.xctestrun` + `-Runner.app` beside the `.app`, or the probe keeps skipping on every hit | ▶ **ACTIVE — decomposed below** |
 
@@ -60,7 +61,7 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 ⛔ **[4.1.9b scan] Do NOT shard the iPhone tier.** The flows carry a real, documented dependency chain — `01` seeds · `07` clears state · `08` depends on `07` · `10` must precede `09` · `09` is terminal. Splitting it is how the suite starts lying. The tier SPLIT is safe for the opposite reason: each tier already runs its own `01`.
 
 | **4.1.9c** | ⭐ **"Covered" must mean PROVEN, and proof ticks the checklist** *(🎯 2026-08-14: "Nothing should be marked covered unless it's proven to be. And as items are proven, they should be checked off")*. ✅ **READER DONE 2026-08-14** — the report now splits **PROVEN 25** (24 `✅auto·` · 1 human) from **claimed-but-unproven 8**; 3 new stamp-integrity gates, each proven on a planted defect. ⛔ **Two of this row's own premises were REFUTED by measuring:** the number was 33 claimed, not 34 (34 is *claims*, not checks), and **flow 08 PASSED** in the run the stamps came from — `~23` was near-right for a wrong reason. ▶ **Remaining: the WRITER**, which needs a durable per-flow results file → lands with **4.1.9b**. ⚠️ Provenance preserved: automation manages only rows carrying its own stamp, never a bare `[x]`. Detail → log | ◐ |
-| **4.1.10** | §12.1–§12.7 (15) — ⚠️ blocked on the deep-link door | |
+| **4.1.10** | §12.1–§12.7 (15) — the SCRIPTED run | ⭐ **UNBLOCKED 2026-08-17, and it STAYS in 4.1** *(🎯 hesitated at pushing it to Phase 6; the hesitation was right)*. ⛔ Its blocker was the checklist's *"on a device build you cannot pass `?mode=scripted`"* — **false since 3.5.7.5**: `DemoAutoEntry` enters the scripted run from a **build flag, no URL**, proven in the capture lane and the embed gate. ▶ Cheapest door is a `qaEnabled()`-gated control in More — no second binary, and it vanishes with the Phase-6 flip. ⚡ **And §12 now guards a PUBLIC surface**: the demo is the marketing embed's own screen, so these 15 rows protect a web page, not just an app screen |
 | **4.1.11** | **Reconcile — the exit.** ⚠️ **[4.1.5.1 after-scan] the coverage split must NOT count measurement flows** — `lint:selectors` now reports **9 flows** because `i01-ipad-boot.yaml` is one, and it is explicitly not coverage (every assertion in it holds on both layouts by design). Any 68/127 re-derivation that counts files will overstate itself | |
 
 ### ▶ 4.1.9b — the composite action, the tier split, and the caches that make both safe _(active)_
@@ -222,6 +223,16 @@ load-bearing `\(.applicationName)` check) stay device-owed → the checklist.
 
 ### ⏸ Waiting on Jason
 
+- 🎯 **2026-08-17 — "COVERABLE, NOT YET BUILT" MOVES TO PHASE 6, AND THE LABEL WAS HIDING TWO JOBS.** Of
+  the 74, **~67 have never been verified by anyone** — no automation stamp, no human tick. So it was never
+  automation debt over work a human already does; it was **verification debt**. ① *verify the check at all*
+  is a launch obligation → Phase 6's device pass. ② *automate it so it stays verified* is an investment
+  whose payoff is v1.8 onward. Calling all 74 "4.1's remaining work" asserted that ② must precede ①, and
+  that is what kept the CodeMagic build blocked. ⛔ **In Phase 6 they are rows a human TICKS — automating
+  any of them is optional and NON-GATING**; arriving there as automation work would delay submission for a
+  payoff that lands after it. ⚠️ Cost, stated: the v1.7 human pass grows **50 → ~105** (derived, not
+  measured — `audit:coverage` can produce it exactly). ⛔ **4.1.10's 15 rows are the EXCEPTION and stay in
+  4.1** — see its row.
 - ⛔ **The CodeMagic build is BLOCKED ON 4.1, deliberately** — 🎯 Jason 2026-08-14: *"I'm not cutting the CodeMagic build until we have a definitive checklist that covers everything that Maestro and Appium can verify. That's the whole point of 4.1."* Cutting it early spends a device pass on rows the lane is meant to absorb, then needs a second pass. **Phase 3.5's device pass is downstream of 4.1's exit, not parallel to it.**
 - **[D2]** `minimumPaidThisCycle` ownership — gates B4. · **[D3]** Money hero language. · **[D1]** Control Center (rec: stay deferred).
 
@@ -275,7 +286,7 @@ it on every push. ⚠️ It gained `typecheck:core` + `typecheck:rn` on 2026-08-
 | **4** | **Quality (test harness)** | **▶ ACTIVE.** ⭐ iPhone lane **8/8** 2026-08-13. Next: **4.1.5** (the iPad tier's real checks) |
 | 5 | Data continuity + cutover | 🔒 ship-blocker, upcoming |
 | 5.5 | Repo consolidation | before the release gate |
-| 6 | Launch-ready | final |
+| 6 | Launch-ready **+ the ~59 coverable-not-built rows, as DEVICE-PASS work** *(🎯 2026-08-17)* | final |
 
 **Phase 0–3 detail → the log.** Canonical specs → Reference docs at the foot of this file.
 
