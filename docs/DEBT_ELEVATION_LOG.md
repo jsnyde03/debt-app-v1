@@ -11222,3 +11222,42 @@ simply wrong** — one of them written into a comment while it was false.
 
 ⚠️ **And the oldest lesson recurred:** `web-e2e.yml` already documented the install recipe the Pages
 deploy needed. *The codebase already said it* — **the sibling file is part of the before-scan.**
+
+---
+
+## 2026-08-17 — the plan compacted, 705 → ~330 lines (🎯: *"it's hard to find what's going on"*)
+
+**Where things went**, because "I remember that being on the plan" is the question this entry answers.
+
+| removed from the plan | lines | where it lives now |
+|---|---:|---|
+| `▶ 3.5.7.8 — the GitHub Pages deploy _(active)_` | 87 | the 3.5.7.8 log entry. ⛔ It was still marked **active** hours after closing |
+| `📌 4.1.6a — standing guidance` | 69 | the 4.1.6a entry. Its forward-looking halves were **relocated, not dropped** — see below |
+| `🎯 THE ANSWER` (Phase 4's exit table) | 39 | the 4.1.11 entry, and `audits/coverage-split.md` regenerates it |
+| `Phase 3.5 — what is LEFT` | 16 | the phase is COMPLETE; the Phases table says so |
+| `Phase 4 — Quality` | 9 | ⛔ said *"PAUSED at 4.1.3"*. Phase 4 closed 2026-08-17 |
+| closed entries under `Open defects` | ~35 | the driver-timeout piecemeal fix, the anchor defect, and `findings=0` are all **resolved**; their entries are in the log |
+
+**Relocated rather than deleted:** the five `[D]` rows' reasons and the *"a verdict is a CLAIM about what is
+possible"* warning → **Phase 6's device ledger** and **Standing constraints**, which is where they are
+actually read. Both are durable guidance that happened to be filed under a closed item.
+
+### ⛔ FOUR FIGURES ON THE PLAN WERE STALE, AND THREE OF THEM CONTRADICTED EACH OTHER
+
+- the gate line said **167/167** — it is **179 e2e + 10 embed**
+- Standing constraints said **168/168**
+- 4.1.6a said **24 · 9 · 74 · 24, device pass 50** — it is **26 · 19 · 60 · 26, device pass 52**
+- the forward queue still led with *"3.5.7 — the marketing embed"*, which shipped that afternoon
+
+⚡ **This is what "hard to find what's going on" actually was.** Not length on its own — a reader could not
+tell which of three coverage numbers was live, and the top of the queue named finished work. The generated
+file has been right the whole time, which is exactly why the rule is *read it from `coverage-split.md`,
+never from a doc quoting it*.
+
+### ⚠️ And the compaction is the rule failing, not the rule working
+
+The formatting convention says the collapse is **part of the edit, not a later pass** — 🎯 2026-07-06:
+*"we shouldn't have to constantly go back and perform this cleanup over and over."* Today's items were
+collapsed on completion, but their **before/after-scan blocks were left inline**, and eleven of those in
+one session is what rebuilt the wall. ⚡ *A scan finding is detail the moment its item closes* — it either
+became a filed item with an owner, or it belongs here.
