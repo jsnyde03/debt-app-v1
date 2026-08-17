@@ -54,13 +54,40 @@ The number 4.1 exists to produce, and the residual ledger that must not be carri
 
 | # | Step | State |
 |---|---|---|
-| **.1** | **Re-derive the exit number** from `coverage-split.md`, not from any doc quoting it. ⚠️ Two of the 15 flow files MEASURE rather than cover (`i01-ipad-boot`, `11-reduce-motion`) — a count of files overstates itself | |
-| **.2** | **The a11y `hitRegion` finding** — 2 real findings on both tiers, unlocated. One line: print each finding's element instead of only incrementing | |
-| **.3** | **The residual ledger** — the driver stall · the boot poll that does not fire · the probe's 1 min → 11 min · the `tutorial-invite` intermittent (twice now) · the nightly rot guard. Each either fixed, or filed with an owner | |
-| **.4** | **[DECISION] does 3.5's device pass merge into Phase 6's?** They now overlap. *(rec: fold it in — deciding late means running rows twice)* | |
-| **.5** | **The exit statement** — what the lane carries, what it never will, and what 🎯 ticks by hand. Unblocks the CodeMagic build | |
+| **.1** | **Re-derive the exit number** from `coverage-split.md`, never from a doc quoting it | ✅ **26 proven** (20 native-run · 5 push-gate · 1 human) · 19 half · 60 coverable-not-built · **the device pass is 52** · 131 real checks |
+| **.2** | **The a11y `hitRegion` finding** — 2 real findings on both tiers, unlocated | ✅ the probe now prints each finding's `compactDescription` instead of only incrementing. ⚠️ Verified by run `32051842661` |
+| **.3** | **The residual ledger** — each item fixed or filed with an owner | ✅ **the nightly landed** (07:00 UTC, `device=both`) and immediately surfaced a shipped defect — see below. Remaining residuals filed under *Open defects* |
+| **.4** | **[D35] 3.5's device pass FOLDS INTO Phase 6's** *(🎯 2026-08-17)* | ✅ **SETTLED.** One sitting, one checklist. The overlap disappears rather than being managed, and **3.5 now closes on its BUILD being done** — which it is. No row is run twice |
+| **.5** | **The exit statement**, and the CodeMagic build | ✅ **🎯 2026-08-17: 4.1 exits on a green `32051842661`.** The residual ledger rides into Phase 6 as known issues, not blockers — none of it moves the coverage number |
+
+⛔ **[.3] THE NIGHTLY SURFACED A SHIPPED DEFECT BEFORE IT EVER RAN: `inputs.*` ARE EMPTY ON EVERY TRIGGER
+EXCEPT `workflow_dispatch`, SO THE IPAD TIER HAS NEVER RUN ON A RELEASE TAG** — the one trigger whose
+entire job is a gated native smoke before shipping. ⚡ **The iPhone tier read the NEGATIVE**
+(`inputs.device != 'ipad'`), so it ran anyway and the run came back green on one tier looking complete.
+`lint:lane` now **evaluates** each job's condition with every input absent. ⚠️ Its first version
+*pattern-matched* and reddened the iPhone job, which is correct code — 4.1.9b.8's *"a verifier whose SCOPE
+is wider than the rule it enforces"*, inside ten minutes. Proven on a planted revert.
 
 **Exit:** 🎯's question from 2026-08-14 answered as a derived number, and the CodeMagic build released.
+
+### 🎯 THE ANSWER — what the lane carries, and what it never will
+
+*From `coverage-split.md`, regenerated. ⚠️ Read it there, never from a doc quoting it: this line has gone
+stale twice.*
+
+| | rows | |
+|---|---:|---|
+| **✅ Proven** | **26** | 20 by a native run · **5 by a push-gate spec** · 1 human. Every one ticked, every tick carrying its provenance |
+| **◐ Half proven** | 19 | the lane's half is green; the other half is a human's |
+| **▶ Coverable, not built** | 60 | 🎯 2026-08-17 → **Phase 6, ticked by a human. Automating any of it is optional and NON-GATING** |
+| **🎯 Permanently device-owed** | 26 | haptics · real VoiceOver · StandBy · Stage Manager · real App Store prices |
+| **🎯 THE DEVICE PASS** | **52** | `[D]` + the human half of every `[M◐]` |
+| Real checks | 131 | 9 further rows are `[—]` |
+
+⚡ **The headline went DOWN twice on the way here and that is the instrument working** — 4.1.9c stopped
+counting declarations as passes, 4.1.10 stopped counting a `PARTIAL:` claim as a whole row. It went up
+once, when the Playwright suites became visible to it at all. **Nothing was marked covered to make a
+number look better, and three separate mechanisms now exist to take a row back out.**
 
 ⛔ **[4.1.10 after-scan] THE GATE AND THE WRITER DISAGREED ABOUT "PARTIAL" ON THE FIRST RUN — five rows
 rejected that the writer had just written CORRECTLY.** The writer learned that a partial-only claim
@@ -197,7 +224,8 @@ that can find it.
   payoff that lands after it. ⚠️ Cost, stated: the v1.7 human pass grows **50 → ~105** (derived, not
   measured — `audit:coverage` can produce it exactly). ⛔ **4.1.10's 15 rows are the EXCEPTION and stay in
   4.1** — see its row.
-- ⛔ **The CodeMagic build is BLOCKED ON 4.1, deliberately** — 🎯 Jason 2026-08-14: *"I'm not cutting the CodeMagic build until we have a definitive checklist that covers everything that Maestro and Appium can verify. That's the whole point of 4.1."* Cutting it early spends a device pass on rows the lane is meant to absorb, then needs a second pass. **Phase 3.5's device pass is downstream of 4.1's exit, not parallel to it.**
+- ✅ **THE CODEMAGIC BUILD IS RELEASED — 🎯 2026-08-17, on 4.1's exit.** The definitive checklist exists and is **derived**, not asserted: `npm run audit:coverage`. ▶ **Cut it once `32051842661` is green.**
+- ✅ **[D35] 3.5's device pass FOLDS INTO Phase 6's** *(🎯 2026-08-17)* — they overlapped the moment the 74 went to Phase 6. One sitting, no row run twice.
 - **[D34] The embed CTA's wording, and which NAME it says.** 🎯 gave the link 2026-08-17; the listing is **"Paycheck Debt Planner"** and the app calls itself something else in every string this repo owns. A CTA that names the store listing is findable; one that names the in-app product is consistent. Blocks nothing — .7 ships behind a single constant. *(Rec: the listing name, since the CTA's only job is getting someone to that page.)*
 - **[D2]** `minimumPaidThisCycle` ownership — gates B4. · **[D3]** Money hero language. · **[D1]** Control Center (rec: stay deferred).
 
@@ -290,13 +318,13 @@ it on every push. ⚠️ It gained `typecheck:core` + `typecheck:rn` on 2026-08-
 | Phase | Scope | Status |
 |---|---|---|
 | 0–3 | Design foundation · surface · premium substance · delight + native | ✅ COMPLETE |
-| 3.5 | Interactive tutorial + bounded demo | **BUILD COMPLETE**; 3.5.7 + the device pass remain (below) |
+| 3.5 | Interactive tutorial + bounded demo | **BUILD COMPLETE.** Only **3.5.7.8** (the Pages deploy) remains — the device pass folded into Phase 6 at [D35] |
 | 3.7 | Fold-in block (ledger clearance) | ✅ COMPLETE 2026-08-11 (Waves A + B; C merged into the audit gate) |
 | — | Whole-app cohesion + best-in-class + wording audit gate | after 3.7 |
-| **4** | **Quality (test harness)** | **▶ ACTIVE.** ⭐ iPhone lane **8/8** 2026-08-13. Next: **4.1.5** (the iPad tier's real checks) |
+| **4** | **Quality (test harness)** | **▶ EXITING.** 4.1.3–4.1.10 all closed; **4.1.11 is the reconcile**, and 🎯 released the CodeMagic build on it. ⭐ **26 proven · the device pass is 52 · derived, not asserted** |
 | 5 | Data continuity + cutover | 🔒 ship-blocker, upcoming |
 | 5.5 | Repo consolidation | before the release gate |
-| 6 | Launch-ready **+ the ~59 coverable-not-built rows, as DEVICE-PASS work** *(🎯 2026-08-17)* | final |
+| 6 | Launch-ready **+ the 60 coverable-not-built rows AND 3.5's folded-in pass, as DEVICE-PASS work** *(🎯 2026-08-17, [D35])* | final |
 
 **Phase 0–3 detail → the log.** Canonical specs → Reference docs at the foot of this file.
 
@@ -334,7 +362,7 @@ signed off, because its OUTPUT is not final:**
 | | Item | State |
 |---|---|---|
 | 1 | **3.5.7 — web-embeddable marketing demo** | ▶ **ACTIVE 2026-08-14 as the parallel track** (4.1 keeps precedence; this fills the waits). ✅ [D32] settles hosting + privacy. ⛔ **The "debt-free-date defect" blocker is STALE** — no live defect exists; the only match is filed *"the cohesion audit, not a defect"* and its two relatives are closed. Decomposed below |
-| 2 | **The device pass** | `DEBT_3.5_DEVICE_QA_CHECKLIST.md` §11 walkthrough · §12 demo · §13 coach-marks, against the fresh build. ⛔ Downstream of 4.1's exit, not parallel to it. ⚠️ **[OPEN, raised 2026-08-17] Is this still a SEPARATE pass from Phase 6's?** Today's call sent the 74 coverable-not-built rows to Phase 6 as human-ticked work, and they span §11/§12 among others — so the two passes now overlap and nobody has said whether 3.5's simply becomes part of Phase 6's. Deciding it late means running some rows twice |
+| 2 | ~~The device pass~~ | ✅ **[D35] FOLDED INTO PHASE 6's, 🎯 2026-08-17.** The two overlapped the moment the 74 coverable-not-built rows went to Phase 6, and they span §11/§12 — exactly what this pass covered. One sitting, one checklist, no row run twice. ⚡ **3.5 now closes on its BUILD being done**, which it is |
 | 3 | **3.5.9 — reinstate the demo ✅ DONE 2026-08-10** | [D21] reverses [D19]. `isDemoReachable()` no longer rides `QA_TOOLS`; both doors restored and now **tested** — nothing covered them before, which is how they were pulled unnoticed. Log: 3.5.9 |
 | 5 | **3.5.10 — the INTERACTIVE demo ✅ DONE 2026-08-11** | 🎯 **[D23]**: the demo is now two runs. **`explore`** (a user: live tabs, no script, exit on the marker row) · **`scripted`** (the App-Preview + 3.5.7's embed only). One artifact had been doing both jobs and the video's requirements won. ⚠️ `useInBoundedRun` was deliberately **not** forked — a separate `useNavigationHeld()` answers the other question. Gate 158/158. Log: 3.5.10 |
 | 4 | **The App-Preview asset must be RE-SHOT** | the pipeline is proven and cycle 14 approved, but the submitted file is shot after the UI settles → Phase 6 |
