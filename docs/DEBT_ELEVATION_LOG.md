@@ -11105,3 +11105,54 @@ promptly caught a real **HTTP 503** — twice — on an artifact that downloaded
 ⚡ **Three shapes of the same mistake in one day**, and it is worth naming as one: a truncated grep that
 read like a complete one, a driver stall that reads like a green suite, and a 404 that reads like an
 empty tier. **Every one of them fails toward "nothing to see here."**
+
+---
+
+## 2026-08-17 — 3.5.7.8 LIVE: https://jsnyde03.github.io/debt-app-v1/
+
+🎯 authorised the two prerequisites (the `release/v1` rule is his to lift). `embed-pages.yml` landed on
+the default branch as a **single-file, 88-line** commit — a `workflow_dispatch`-only workflow triggers
+nothing by existing, and dispatching still runs the *selected* ref's copy and code — and Pages was enabled
+with `build_type=workflow`. ⚡ The URL it returned, `https://jsnyde03.github.io/debt-app-v1/`,
+independently confirmed the base path derived from the repo name.
+
+### ⭐ THE GATE NOW RUNS AGAINST THE DEPLOYED PAGE
+
+`EMBED_LIVE_URL=… npm run test:e2e:embed` drops the local build and server and points the same ten specs
+at the live site. **10/10** — boot, the five-beat arc with its screen sequence, no-404s, the App Store CTA
+as a real anchor, and **all three [D32] privacy claims holding on the page a stranger opens**: zero
+foreign requests, no persistent storage, no analytics transport.
+
+⚡ *A green deploy proves the bytes landed and nothing about the page.* This is
+`feedback_check_the_shipped_artifact` closed properly rather than gestured at.
+
+### ⛔ THREE FAILURES BEFORE GREEN, AND ONLY THE FIRST WAS A CODE FAULT
+
+**① `npm ci` at the root leaves `apps/rn` with no `node_modules`.** `expo export` died on *"Failed to
+resolve plugin for module `expo-router`"*. There are **no npm workspaces** here — root and the RN app are
+two installs — and `web-e2e.yml` **already says so in a comment**, including the half that would have been
+the next mistake: `npm ci` works at the root but **not** in `apps/rn`, whose lockfile is out of sync
+(~12 missing transitive entries), so `npm install --prefer-offline` is what both other lanes use.
+
+⚡ *The codebase already said it* — logged as a lesson twice before, and a new workflow was still written
+without reading the one that solves the same problem. **The sibling file is part of the before-scan.**
+
+**② The deploy job was blocked by an environment policy, not by anything in the run.** The build was green
+end to end, including the artifact assertion; `deploy` simply failed. The `github-pages` environment
+carries a **custom deployment-branch policy allowing only `release/v1`**, and the dispatch was from
+`v1.7-dev`. ⚠️ The job's logs had already expired (`BlobNotFound`), so this was found by **reading the
+environment's policy** rather than the run — *when the log is gone, the configuration is still there.*
+⛔ Deploying from `release/v1` instead would have been the wrong fix: it would publish a demo built from
+v1.6-era code, a product that no longer exists.
+
+**③ And the policy is right in shape, wrong in duration.** `v1.7-dev` is the embed's truth *today*. Once
+v1.7 ships it should build from `release/v1` and **`v1.7-dev` must come off the list**, or a dev branch
+can publish to a public marketing URL indefinitely. → Phase 6, alongside the other loose thread: the
+deploy is `workflow_dispatch`-only deliberately, but **nothing checks that the dispatched SHA is green** —
+"deployed" and "passed `validate:release:rn`" are two facts currently held together by discipline.
+
+### ✅ PHASE 3.5 IS COMPLETE
+
+With [D35] folding its device pass into Phase 6's, 3.5.7.8 was the last open step. Tutorial · bounded demo
+· coach-marks · capture pipeline · and now a public embed whose privacy claim is enforced by a test that
+runs on every push **and** can be re-run against production on demand.

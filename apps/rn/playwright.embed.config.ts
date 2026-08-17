@@ -42,6 +42,21 @@ const RN_DIR = __dirname;
 const SERVE_ROOT = path.join(RN_DIR, 'dist-embed');
 const OUT = path.join(SERVE_ROOT, BASE_SEGMENT);
 
+/**
+ * ⭐ 3.5.7.8 — POINT THE WHOLE GATE AT THE DEPLOYED SITE.
+ *
+ *   EMBED_LIVE_URL=https://jsnyde03.github.io/debt-app-v1/ npm run test:e2e:embed
+ *
+ * A green deploy proves the bytes landed; it proves nothing about the page. This runs the SAME ten specs
+ * — boot, the five-beat arc, no-404s, the CTA, the three privacy claims — against the thing a stranger
+ * actually opens. `feedback_check_the_shipped_artifact`: the App-Preview pipeline spent seven cycles
+ * asserting evidence beside the deliverable while the deliverable opened on black.
+ *
+ * ⚠️ It builds and serves nothing in this mode — pointing a `webServer` at a remote URL would rebuild
+ * locally and then test the remote, which is two artifacts and one set of assertions.
+ */
+const LIVE = process.env.EMBED_LIVE_URL;
+
 export default defineConfig({
   testDir: './tests/embed',
   timeout: 60_000,
@@ -52,10 +67,10 @@ export default defineConfig({
     // with `new URL(url, baseURL)`, so `goto('/')` against this base resolves to `http://localhost:4320/`
     // — ABOVE the base path, where nothing is served. The specs use `goto('./')`, which stays inside it
     // and, being relative, does not repeat the base segment anywhere a rename would have to find it.
-    baseURL: `http://localhost:${PORT}/${BASE_SEGMENT}/`,
+    baseURL: LIVE ?? `http://localhost:${PORT}/${BASE_SEGMENT}/`,
     trace: 'on-first-retry',
   },
-  webServer: {
+  webServer: LIVE ? undefined : {
     // ⛔ `--clear` IS LOAD-BEARING, AND IT IS MEASURED. Metro's transform cache does NOT invalidate on an
     // `EXPO_PUBLIC_*` change, so an embed export can silently reuse transforms produced by the APP build:
     //

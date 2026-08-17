@@ -336,7 +336,7 @@ it on every push. ⚠️ It gained `typecheck:core` + `typecheck:rn` on 2026-08-
 | Phase | Scope | Status |
 |---|---|---|
 | 0–3 | Design foundation · surface · premium substance · delight + native | ✅ COMPLETE |
-| 3.5 | Interactive tutorial + bounded demo | **BUILD COMPLETE.** Only **3.5.7.8** (the Pages deploy) remains — the device pass folded into Phase 6 at [D35] |
+| 3.5 | Interactive tutorial + bounded demo | ✅ **COMPLETE 2026-08-17.** The embed is **live** and verified against the deployed page; the device pass folded into Phase 6 at [D35] |
 | 3.7 | Fold-in block (ledger clearance) | ✅ COMPLETE 2026-08-11 (Waves A + B; C merged into the audit gate) |
 | — | Whole-app cohesion + best-in-class + wording audit gate | after 3.7 |
 | **4** | **Quality (test harness)** | **▶ EXITING.** 4.1.3–4.1.10 all closed; **4.1.11 is the reconcile**, and 🎯 released the CodeMagic build on it. ⭐ **26 proven · the device pass is 52 · derived, not asserted** |
@@ -388,7 +388,7 @@ signed off, because its OUTPUT is not final:**
 **Division of labour, now settled:** demo = BEFORE you commit (Welcome + paywall, sandboxed, terminal
 exits) · walkthrough = AFTER onboarding, on your own money.
 
-#### 3.5.7 — the embed _(closed except the deploy)_
+#### ✅ 3.5.7 — the embed _(CLOSED 2026-08-17 — **live at https://jsnyde03.github.io/debt-app-v1/**)_
 
 ✅ **.1–.7 and .9 DONE 2026-08-14/17.** `Slider` a11y · the analytics flag COLLAPSED (nothing to omit) ·
 `sessionStorage`-only storage · the **zero-egress Playwright gate** in `validate:release:rn` · the embed
@@ -405,14 +405,32 @@ the privacy line **settled and rendered**. Detail + every scan → log.
 | **.2** | **CanvasKit's `locateFile` base-aware and owned ONCE** | ✅ **SIX sites, not three** — `canvasKitOpts` + a `no-restricted-syntax` rule, proven on a plant |
 | **.3** | **The embed gate serves from the BASE PATH** | ✅ build → `dist-embed/debt-app-v1`, served without `-s`, **10/10** · a new spec fails on ANY response ≥ 400 |
 | **.4** | **The Pages workflow** | ✅ `embed-pages.yml` — base URL derived from the repo name, and it **asserts its own artifact** before publishing |
-| **.5** | **Enable Pages, verify the live URL** | ⛔ **BLOCKED ON 🎯 — see below** |
+| **.5** | **Enable Pages, verify the live URL** | ✅ **LIVE 2026-08-17 — https://jsnyde03.github.io/debt-app-v1/** · **10/10 against the DEPLOYED page**, via `EMBED_LIVE_URL=… npm run test:e2e:embed` |
 
-⛔ **[.5] BLOCKED, AND IT IS THE `release/v1` RULE DOING ITS JOB.** `workflow_dispatch` only appears once
-the workflow exists on the **DEFAULT branch**, which is `release/v1` — *never pushed to*. And **Pages is
-not enabled** on the repo (`GET /pages` → 404). Both are 🎯's: land `embed-pages.yml` on `release/v1`
-(`native-e2e.yml` is there for exactly this reason) and switch Pages to **Source: GitHub Actions**.
-⚠️ Surfaced rather than worked around, per the standing rule — the workaround is a `push:` trigger, and
-that would publish states no gate had passed.
+⭐ **[.5] LIVE, AND VERIFIED WHERE IT IS SERVED.** 🎯 authorised the two prerequisites 2026-08-17 (the
+`release/v1` rule is his to lift): `embed-pages.yml` landed there as a **single-file, 88-line** commit —
+a `workflow_dispatch`-only workflow triggers nothing by existing — and Pages was enabled with
+`build_type=workflow`. ⚡ **`EMBED_LIVE_URL` points the whole gate at the deployed page**, so the ten
+specs — boot, the five-beat arc, no-404s, the CTA, all three [D32] privacy claims — ran against
+*jsnyde03.github.io*, not a local rebuild of it. A green deploy proves the bytes landed; this proves the
+page.
+
+⛔ **[.5 after-scan] THREE FAILURES BEFORE GREEN, AND ONLY THE FIRST WAS A CODE FAULT.**
+① **`npm ci` at the root leaves `apps/rn` with no `node_modules`** — no workspaces here — and
+`web-e2e.yml` **already documents this in a comment**, including that `npm ci` does *not* work in
+`apps/rn` (its lockfile is out of sync). *The codebase already said it*, and a new workflow was written
+without reading the one solving the same problem.
+② **The `github-pages` environment carried a custom branch policy allowing only `release/v1`**, so the
+deploy job was blocked while the build was perfectly green. ⚠️ Logs had already expired (`BlobNotFound`),
+so it was found by **reading the environment's policy**, not the run. `v1.7-dev` added.
+③ ⚠️ **THAT POLICY MUST BE REVISITED AT LAUNCH.** The embed's truth is `v1.7-dev` today; once v1.7 ships
+it should build from `release/v1` and **`v1.7-dev` should come back off the list**, or a dev branch can
+publish to a public marketing URL indefinitely. → **Phase 6.**
+
+⚠️ **[.5 after-scan] "DEPLOYED" AND "PASSED THE GATE" ARE TWO FACTS HELD TOGETHER BY DISCIPLINE.** The
+deploy is `workflow_dispatch`-only *deliberately* — a `push:` trigger would publish states no gate had
+passed — but nothing checks that the dispatched SHA is green. The artifact assertion catches a blank site;
+it cannot catch a regression that builds. → **Phase 6**, with the branch-policy flip.
 
 **Exit:** a public embed whose privacy claim is enforced by a test that runs on every push, not asserted
 in prose — and which is verified against the path it is actually served from.
