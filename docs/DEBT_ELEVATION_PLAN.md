@@ -8,9 +8,22 @@
 
 ---
 
-## ▶ BUILDING NOW — 4.1 · the Maestro coverage lane *(resumes; 3.7 is closed)*
+## ▶ BUILDING NOW — TWO LIVE TRACKS: **4.1** (precedence) · **3.5.7** (fills its waits)
 
-⏳ **RUN `31822453981` IS IN FLIGHT** (`both`, rebuilds; expect ~53 min — the last two rebuilds were 42m/40m iPhone-only + the measured 666s iPad tier, NOT the plan's cache-hit ~22). **Read it first.** Its three unproven-in-CI parts: the XCUITest probe (never run), flows 09 + 10's inverted fence assertions, and the relocated scheme mod. Predecessor `31816919840` came back with flows 09 + 10 red; both failures were **`a11yHidden` fences, not selectors** — the elements are absent from the tree by design, so both checks now assert the fence (10 pairs it with a Money-tab positive so it cannot pass vacuously). ⭐ **The probe now RUNS** — `build-for-testing` compiled it and nothing executed it; that was the session close's named biggest gap. ⚠️ It REBUILDS, and **skips on a `.app` cache hit** (no `ios/`, no `.xctestrun`). ▶ **Next three: 4.1.9b** (composite action · tier split · results file — ⚠️ the split must keep the probe step in the iPhone job) → **4.1.9c** (covered must mean proven) → **4.1.10** (the deep-link door, 15 rows). ⚠️ Full handoff, incl. three premises NOT to build on, → the log's **SESSION CLOSE 2026-08-14** + the entry after it.
+🎯 2026-08-17: *"4.1 is still the precedent… 3.5.7 continues during waits."*
+
+✅ **Nothing is in flight. Last three runs all GREEN**, tree clean, everything pushed.
+
+⭐ **The state that matters:** iPhone suite **10/10** · iPad tier **5/5** · the XCUITest probe **runs**,
+springboard reach proven · coverage reads **24 proven · 9 automatable-half · 74 coverable-not-built ·
+24 device-owed**, the device pass **50** · ⚡ **flow-only iteration is ~21 min, not ~43** — the `.app`
+cache and `hermesc` both worked for the first time in `31835736974`.
+
+▶ **NEXT — 4.1.9b** (composite action · tier split · durable results file), decomposed in the log's
+**SESSION CLOSE 2026-08-17** entry. Then **4.1.9c's writer** → **4.1.10** (deep-link door, 15 rows).
+▶ **In parallel — 3.5.7.5** (embed entry) → **.6** (Pages deploy) → **.7** (🎯's wording call).
+
+⚠️ **Read the SESSION CLOSE 2026-08-17 log entry first** — it carries what NOT to build on.
 
 
 ✅ **3.7 CLOSED 2026-08-11.** Wave A (A0–A10) · Wave B (B.0–B.4) · Wave C merged into the audit gate.
@@ -54,31 +67,17 @@ re-verdict moved 10 rows out of the device pass without adding one to *covered*.
 | # | Step | State |
 |---|---|---|
 | **4.1.6a.1 – .6** | ✅ **DONE 2026-08-14.** Every check given a stable id and an automation verdict (140 rows, additive, `[x]` preserved) · `COVERS:`/`PARTIAL:` declared across all 13 flows · `audit:coverage` → [`coverage-split.md`](audits/coverage-split.md) · `lint:coverage` in `lint:rn`, proven 4/4 on planted defects. ⭐ **34 covered · 63 to build · 34 device-only; the device pass is 60.** Detail + all scans → log | ✅ |
-| **4.1.6a.7** | ⭐ **The XCUITest-target probe — it gates ~16 more `[D]` rows.** §5 (widget ×7) · §6a/§6b.3 (Live Activity + Island ×8) · §10.3 are all `[D]` for one reason: *"springboard surfaces outside the app under test"* — true of Maestro, **not** of XCUITest, which drives `XCUIApplication(bundleIdentifier: "com.apple.springboard")`. Decomposed below | ▶ |
+| **4.1.6a.7** | ✅ **CLOSED 2026-08-17 — the XCUITest target exists, runs, and paid.** ⭐ **Springboard reach PROVEN** (`elements=241`) and the a11y audit **mapped** (4 types, 2.9s, vs `.all` timing out at 47.7s). **10 rows `[D]`→`[X]`, device pass 60 → 50**, and 4.1.9 settled: XCUITest, no Appium. ⚡ Also produced the **fast lane** (`scope=xcuitest`, ~45 → ~20 min) and a pre-flight that went **16 → 37** checks, each addition written against a defect a CI cycle had already cost. Detail + every scan → log | ✅ |
 
 **Exit:** `coverage-split.md` answers 🎯's question as a derived number — how much of the device checklist
 the lane will carry, how much it carries today, and the residual that is permanently a human with a phone.
 
-#### ▶ 4.1.6a.7 — the XCUITest target _(active)_
-
-| # | Step | State |
-|---|---|---|
-| **.7.1** | **The config plugin** — `with-xcuitest-target.js` | ✅ **DONE 2026-08-14.** Registered in `app.json`; the pbxproj mutation is an exported pure function so .7.2 tests the shipping code, not a copy |
-| **.7.2** | **A LOCAL pre-flight** — `npm run preflight:xcuitest` | ✅ **DONE 2026-08-14. 31 checks pass** against a real `project.pbxproj` (16, + the scheme half across its three shapes). Caught **5 defects** pre-CI, incl. a count regex blind to `<Testables/>`. Detail → log |
-| **.7.3** | **`CoverageProbeUITests.swift`** — one springboard reach assertion + one `performAccessibilityAudit()` call, the smallest thing that proves both payoffs | ✅ **DONE 2026-08-14.** Deliberately non-failing on a11y *findings* — this run establishes the mechanism executes, not a verdict on 40 pre-existing issues |
-| **.7.4a** | **Batch onto the native lane** | ✅ **RUN 2026-08-14** — `31812114150`, then `31816919840`. Flows 09 + 10 red on both; diagnosed as `a11yHidden` fences and re-asserted as such, not re-guessed. Detail → log |
-| **.7.4b** | **Compile the bundle** — a separate, non-fatal `build-for-testing` | ⛔ **FAILED on the runner, FIXED 2026-08-14.** `pbxCreateGroup(name, path)` set the group's path and the file repeated it → `ios/CoverageProbeUITests/CoverageProbeUITests/…swift`, `Build input file cannot be found`, exit 65. ⚠️ **31 pre-flight checks passed on that same project** — membership was asserted, the resolved PATH never was. Pre-flight now **33**, and the new check fails on the old line |
-| **.7.4c** | ⭐ **RUN it** — `test-without-building` on the booted sim, between the iPhone suite and the iPad tier | ✅ **BUILT 2026-08-14**, correctly **skipped** in `31822453981` (gated on `.7.4b`'s `outcome`). Never yet executed |
-| **.7.4d** | **Dispatch and read the verdict** | ◐ **`31822453981` — ⭐ the scheme mod WORKS** (`✅ the testable IS in the scheme`, BlueprintIdentifier landed). Probe unrun; flows 09/10 + iPad tier still to read |
-| **.7.4e** | **Re-dispatch** — pbxproj path fix · `eraseText: 80` · iPad timeout+retry parity | ⏳ **`31827409093` IN FLIGHT.** ⭐ The path fix WORKED — the Swift compiled. ⛔ The probe died one layer out on a missing `Info.plist`; **fixed**. Flows 10 + the iPad tier still to read |
-| **.7.4f** | ⭐ **THE FAST LANE — `scope=xcuitest`** — build + probe only, no Maestro, no iPad | ✅ **BUILT 2026-08-14.** Costed from two runs: verifying a probe fix needs ~12 min of work and was buying ~45. **~45 → ~15 min.** Gating proven across 4 input combinations incl. the empty tag-push case |
-| **.7.4g** | **The probe's first actual execution** | ✅ **DONE — `31830120940`, `TEST BUILD SUCCEEDED`, 2 tests executed.** ⭐ **SPRINGBOARD REACH PROVEN: `reachable=true elements=241`** → §5 ×7 · §6a/§6b.3 ×8 · §10.3 are reclassifiable. ⛔ The a11y audit **executes but times out** (`Code=-56`, 47.7s on Today) — a scoping problem, not a capability one. ⏱ Fast lane measured **20m24s** vs ~45–55 |
-| **.7.4h** | **Map the a11y audit per type** | ✅ **DONE — `31832030295`.** ⭐ **All four COMPLETE in 2.9s total, 0 findings** (`contrast` 0.8s · `hitRegion` 0.2s · `textClipped` 1.6s · `trait` 0.3s) vs `.all` timing out at 47.7s — **the bottleneck is a type we don't need.** ⭐ **iPhone suite 10/10**, flow 10's `repeat` erase fixed. ⏱ 43m33s |
-| **.7.5** | **Re-verdict, and settle 4.1.9's `[DECISION]`** | ✅ **DONE 2026-08-17.** New `[X]` verdict (a native driver can carry it); **10 of the 16 moved**, device pass **60 → 50**, covered column **unchanged** — a verdict is not a status. 4.1.9 settled: XCUITest, no Appium |
-
-⛔ **[.7.5] "~16 rows" was too broad, and the row-by-row check is the item.** Reach was proven; five rows need capabilities that were **never probed**, so they stay `[D]`:
-**§5.4 StandBy is PERMANENT** — *"put the phone **on a charger**"* is physical state a simulator has no concept of, and springboard reach is irrelevant to it. **§5.1** (widget gallery) · **§5.3** (Lock-Screen Customize) · **§6a.2** (Dynamic Island long-press, needs a 15/16 Pro sim) · **§10.3** (Stage Manager drag-to-resize) each need their own probe before moving. ⚡ Moving all 16 on a 241-element tree would have booked StandBy as automatable — the same overstatement, one layer up.
-| **.7.5** | **Re-verdict** whatever it proves, and settle 4.1.9's [DECISION] | |
+⛔ **[.7.5] FIVE ROWS STAY `[D]`, and the reasons are forward guidance.** Reach was proven; these need
+capabilities that were **never probed**. **§5.4 StandBy is PERMANENT** — *"put the phone **on a charger**"*
+is physical state a simulator has no concept of. **§5.1** (widget gallery) · **§5.3** (Lock-Screen
+Customize) · **§6a.2** (Island long-press, needs a 15/16 Pro sim) · **§10.3** (Stage Manager drag) each
+need their own probe first. ⚠️ **The three `[A]` rows also stay `[A]`** — `typeKey` is unproven here, and
+with Appium declined that letter is now a placeholder for a ⌘-key probe, not a plan.
 
 ⚠️ **[.7.1 risk note] The app target does NOT depend on the test bundle** (the direction was inverted on
 the first pass and the pre-flight caught it), so `xcodebuild build` is unaffected — only `xcodebuild test`
