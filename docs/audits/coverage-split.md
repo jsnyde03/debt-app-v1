@@ -25,7 +25,9 @@ it cannot say whether the flow has ever executed, let alone passed. The 0 unprov
 claimed by flows that have never gone green — and each one used to be indistinguishable, in this
 report, from a check that passes on every run.
 
-**Machine-earned rows by run:** `31812114150` 18 · `31822453981` 5
+**Machine-earned rows by run:** `32042253465` 23
+
+✅ **Every machine-earned row was re-proved by the same run**, which is what `npm run stamp:coverage` produces from a green lane. ⚠️ It says *proved at that commit*, not *stable* — the checklist keeps no history.
 
 
 **Verdict spread:** `[M]` 68 · `[M◐]` 26 · `[A]` 3 · `[X]` 10 · `[D]` 24
@@ -133,30 +135,30 @@ run that has ever passed it. Until one does, it is a plan, not coverage.
 
 | id | verdict | check | claimed by | proof |
 |---|---|---|---|---|
-| §B2.1 | `[M]` | "View Payoff Schedule" now opens — Money → tap a debt (edit sheet) → tap "View Payoff Schedule"  | `04-payoff-schedule` | `✅auto·31812114150` |
-| §1.1 | `[M]` | App launches past the splash — no white screen, no crash (this is the New-Architecture + all-nat | `01-launch-smoke` *(partial)* | `✅auto·31812114150` |
-| §1.2 | `[M]` | Lands on Today (if you have data) or onboarding (fresh install). If onboarding, either complete  | `01-launch-smoke` | `✅auto·31812114150` |
-| §3.1 | `[M]` | ⭐ FormSheet header buttons (the owed re-verify): open Add debt (Money → Debts → Add debt) → tap  | `02-sheet-native-tap` *(partial)* | `✅auto·31812114150` |
-| §10.1 | `[M]` | Landscape / full-screen (expanded): Money → Debts shows the list on the left + the edit form INL | `i01-ipad-boot` | `✅auto·31812114150` |
-| §10.2 | `[M]` | Portrait / narrow: everything stacks into the single centered column with the bottom tab bar (sa | `02-sheet-native-tap` *(partial)* | `✅auto·31812114150` |
-| §11.10 | `[M]` | the walkthrough's one required gesture (any iPhone.) | `06-tutorial-interactions` | `✅auto·31812114150` |
+| §B2.1 | `[M]` | "View Payoff Schedule" now opens — Money → tap a debt (edit sheet) → tap "View Payoff Schedule"  | `04-payoff-schedule` | `✅auto·32042253465` |
+| §1.1 | `[M]` | App launches past the splash — no white screen, no crash (this is the New-Architecture + all-nat | `01-launch-smoke` *(partial)* | `✅auto·32042253465` |
+| §1.2 | `[M]` | Lands on Today (if you have data) or onboarding (fresh install). If onboarding, either complete  | `01-launch-smoke` | `✅auto·32042253465` |
+| §3.1 | `[M]` | ⭐ FormSheet header buttons (the owed re-verify): open Add debt (Money → Debts → Add debt) → tap  | `02-sheet-native-tap` *(partial)* | `✅auto·32042253465` |
+| §10.1 | `[M]` | Landscape / full-screen (expanded): Money → Debts shows the list on the left + the edit form INL | `i01-ipad-boot` | `✅auto·32042253465` |
+| §10.2 | `[M]` | Portrait / narrow: everything stacks into the single centered column with the bottom tab bar (sa | `02-sheet-native-tap` *(partial)* | `✅auto·32042253465` |
+| §11.10 | `[M]` | the walkthrough's one required gesture (any iPhone.) | `06-tutorial-interactions` | `✅auto·32042253465` |
 | §11.15 | `[M]` | the highlight lands on its subject at iPad width — ✅ AUTOMATED 2026-08-13 (4.1.5.2). | `05-tutorial-walkthrough` | *human* `[x]` |
-| §14.1 | `[M]` | one Add, from all three sections. Money → Add from Debts, then from | `07-money-add-and-rescue` | `✅auto·31812114150` |
-| §14.2 | `[M]` | the answer lands where it says. Standing in Expenses, tap Add → "A debt". | `07-money-add-and-rescue` | `✅auto·31812114150` |
-| §14.3 | `[M]` | the first-run fork (fresh install / Reset, so onboarding runs). ⏳ Web e2e cannot | `07-money-add-and-rescue` | `✅auto·31812114150` |
-| §14.4 | `[M]` | the mis-file rescue (add an expense named "Mortgage" and one named "Rent", | `07-money-add-and-rescue` | `✅auto·31812114150` |
-| §14.5 | `[M]` | Move to Debts. Tap it on the Mortgage. | `07-money-add-and-rescue` | `✅auto·31812114150` |
-| §14.6 | `[M]` | "Not a debt" stays gone. Tap it on the Mortgage, force-quit, reopen. | `07-money-add-and-rescue` | `✅auto·31812114150` |
-| §13.1 | `[M]` | the payoff-schedule mark, inside a sheet (any iPhone. Reset first: More → Show feature | `08-coach-marks` | `✅auto·31812114150` |
-| §13.2 | `[M]` | "Got it" actually dismisses, and stays gone (any iPhone.) | `08-coach-marks` | `✅auto·31812114150` |
-| §13.3 | `[M]` | the iOS-ONLY row long-press mark (iPhone/iPad only; it cannot exist anywhere else.) | `01-launch-smoke` *(partial)* · `08-coach-marks` | `✅auto·31812114150` |
-| §13.5 | `[M]` | a mark is a hint, not a modal (any iPhone.) | `08-coach-marks` | `✅auto·31812114150` |
-| §13.6 | `[M]` | VoiceOver hears each hint ONCE (VoiceOver ON.) | `08-coach-marks` | `✅auto·31812114150` |
-| §12.0.1 | `[M]` | you can walk around. The tab bar is visible, and Today / Progress / Money all | `09-demo-explore` | `✅auto·31822453981` |
-| §12.0.2 | `[M]` | the disclosure follows you. On every screen you land on, "Example money" is at | `09-demo-explore` | `✅auto·31822453981` |
-| §12.0.4 | `[M]` | the way out is wherever you are. "Start my real plan" sits beside the marker on | `09-demo-explore` | `✅auto·31822453981` |
-| §12.0.5 | `[M]` | settings stay shut. The ••• More button is greyed and unresponsive on every | `09-demo-explore` | `✅auto·31822453981` |
-| §12.0.6 | `[M]` | your real plan is untouched. Exit, then force-quit and reopen. | `09-demo-explore` | `✅auto·31822453981` |
+| §14.1 | `[M]` | one Add, from all three sections. Money → Add from Debts, then from | `07-money-add-and-rescue` | `✅auto·32042253465` |
+| §14.2 | `[M]` | the answer lands where it says. Standing in Expenses, tap Add → "A debt". | `07-money-add-and-rescue` | `✅auto·32042253465` |
+| §14.3 | `[M]` | the first-run fork (fresh install / Reset, so onboarding runs). ⏳ Web e2e cannot | `07-money-add-and-rescue` | `✅auto·32042253465` |
+| §14.4 | `[M]` | the mis-file rescue (add an expense named "Mortgage" and one named "Rent", | `07-money-add-and-rescue` | `✅auto·32042253465` |
+| §14.5 | `[M]` | Move to Debts. Tap it on the Mortgage. | `07-money-add-and-rescue` | `✅auto·32042253465` |
+| §14.6 | `[M]` | "Not a debt" stays gone. Tap it on the Mortgage, force-quit, reopen. | `07-money-add-and-rescue` | `✅auto·32042253465` |
+| §13.1 | `[M]` | the payoff-schedule mark, inside a sheet (any iPhone. Reset first: More → Show feature | `08-coach-marks` | `✅auto·32042253465` |
+| §13.2 | `[M]` | "Got it" actually dismisses, and stays gone (any iPhone.) | `08-coach-marks` | `✅auto·32042253465` |
+| §13.3 | `[M]` | the iOS-ONLY row long-press mark (iPhone/iPad only; it cannot exist anywhere else.) | `01-launch-smoke` *(partial)* · `08-coach-marks` | `✅auto·32042253465` |
+| §13.5 | `[M]` | a mark is a hint, not a modal (any iPhone.) | `08-coach-marks` | `✅auto·32042253465` |
+| §13.6 | `[M]` | VoiceOver hears each hint ONCE (VoiceOver ON.) | `08-coach-marks` | `✅auto·32042253465` |
+| §12.0.1 | `[M]` | you can walk around. The tab bar is visible, and Today / Progress / Money all | `09-demo-explore` | `✅auto·32042253465` |
+| §12.0.2 | `[M]` | the disclosure follows you. On every screen you land on, "Example money" is at | `09-demo-explore` | `✅auto·32042253465` |
+| §12.0.4 | `[M]` | the way out is wherever you are. "Start my real plan" sits beside the marker on | `09-demo-explore` | `✅auto·32042253465` |
+| §12.0.5 | `[M]` | settings stay shut. The ••• More button is greyed and unresponsive on every | `09-demo-explore` | `✅auto·32042253465` |
+| §12.0.6 | `[M]` | your real plan is untouched. Exit, then force-quit and reopen. | `09-demo-explore` | `✅auto·32042253465` |
 
 ---
 

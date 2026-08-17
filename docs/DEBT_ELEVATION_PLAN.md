@@ -12,22 +12,16 @@
 
 🎯 2026-08-17: *"4.1 is still the precedent… 3.5.7 continues during waits."*
 
-✅ **Nothing is in flight. Last two runs GREEN**, tree clean, everything pushed.
+✅ **Nothing is in flight. Last two native runs GREEN**, tree clean. ⭐ **The lane is BUILT and PROVEN** —
+15/15 both runs, zero unresolved names, the probe on both tiers, tiers starting the same second.
 
-⭐ **The lane is BUILT and PROVEN.** 4.1.9b's split verified in `32037021903`; 4.1.7's three questions
-answered in `32042253465`. **15/15 flows both runs** (iPhone 10 · iPad 5), the XCUITest probe runs on
-**both** tiers, and the tiers start the same second — `device=both` costs `max`, not `sum`.
-
-⚡ **4.1.7's answers, all favourable:** Reduce Motion **is** observable (`reanimated=1 a11yInfo=1`) so
-§B3.6/§11.7 keep their `[M◐]` · `typeKey` **works** (⌘N opened the sheet; ⌘1/2/3 switched tabs) so
-§10.5/§10.6 → `[X]` while **§10.7 falls to `[D]`, +1** · the a11y anchor now reads **`rendered=true` on
-both tiers**, so the audit is trustworthy — and its first honest reading is **not** all zeros.
-
-▶ **NEXT — 4.1.9c's WRITER.** No runner needed: it turns the two green runs into stamped `✅auto·<runId>`
-rows off `native-lane-results-*.json`, which is what 4.1.11's final number depends on. Then **4.1.10**
-(routed 2026-08-17 — most of §12 goes to the embed gate, not the lane) → **4.1.11** the exit.
-▶ **In parallel — 3.5.7.7** (the exits → one App Store CTA). ⛔ **Blocked on ONE fact from 🎯: the App
-Store URL / numeric app id**, which is nowhere in this repo. Then **.8** deploy · **.9** ✅ wording settled.
+▶ **ACTIVE — 3.5.7.7**, decomposed below, and it holds the slot **despite 4.1's precedence** because
+4.1.10 is sequenced behind it: 🎯's routing sends §12.2 · §12.4 · §12.5 to the **embed's** Playwright
+gate, and **.7 is about to replace the two exits some of those rows assert on.** Writing them first means
+writing them against exits with hours to live.
+🎯 supplied the unblocking fact 2026-08-17: **`https://apps.apple.com/us/app/paycheck-debt-planner/id6773201250`**
+· app id **`6773201250`** · listing **"Paycheck Debt Planner"**. Then **.8** deploy → **4.1.10** →
+**4.1.11** the exit. ⚠️ **[D34]** — which name the CTA says — is 🎯's, and blocks nothing.
 
 ⚠️ **Read the SESSION CLOSE 2026-08-17 (evening) log entry first** — it carries what NOT to build on.
 
@@ -44,84 +38,15 @@ Gate **167/167** + tsc clean, zero `error-context.md`. Wave B detail + its wave-
 | **4.1.7** | **The THREE questions that still move the number** | ✅ **CLOSED 2026-08-17, run `32042253465` — all three answered, all favourably.** ① **Reduce Motion IS observable**: `reanimated=1 a11yInfo=1` after a `simctl` pref write + relaunch, so §B3.6/§11.7 stay `[M◐]` and the floor does **not** rise by 2. ② **`typeKey` WORKS**: `cmd-N opened=true`, `cmd-1/2/3 selected=true` on the iPad → §10.5 · §10.6 become `[X]`; ⛔ **§10.7 falls to `[D]`** (no XCUITest API for a HELD modifier), **+1**. ③ **anchor `rendered=true` on BOTH tiers** — the `09` reorder fixed it, so the audit numbers are trustworthy at last. Detail → log |
 | **4.1.8** | **§11's remainder** — `10-walkthrough-edges.yaml` | ✅ **CLOSED 2026-08-17 — 10/10, third consecutive green.** The `repeat` tap+erase fix for §11.9's cleanup is stable, not a fluke |
 | **4.1.9** | ✅ **[DECISION] SETTLED 2026-08-17 — XCUITest, and NO Appium.** The probe proved both capabilities Appium was wanted for a *subset* of: springboard reachable **and inspectable** (`elements=241`), and `performAccessibilityAudit` completing on all four needed types in **2.9s**. **10 rows re-verdicted `[D]`→`[X]`; the device pass drops 60 → 50.** ⛔ Appium adds a second driver, a second language and a server process to buy 3 checks a driver we now have can plausibly do. ⚠️ Those 3 stay `[A]`, NOT `[X]` — XCUITest's `typeKey` is unproven here, and re-verdicting them on expectation is the overstatement 4.1.9c exists to stop. Detail → log | ✅ |
-| **4.1.9b** | ⭐ **CI wall-clock: the composite action AND the tier split, as ONE pass** *(🎯 approved 2026-08-14; repo is PUBLIC so macOS runners are free)*. ① The `.app` key hashes the whole of `native-e2e.yml`, so the **flow list** busts the binary — both of today's runs paid ~771s of compile for pure YAML edits. ② The two tiers run **sequentially in one job** (no `matrix`), so `device=both` pays iPhone **+** iPad (~650s + ~666s) instead of `max`. ⚡ They merge: the extracted composite is exactly what two parallel jobs must both call. Also folds in `app-preview.yml`'s duplicated recipe + its missing cache. **Together: ~22 min → ~12 on a cache hit.** ⚠️ Loosens a key 4.1.3a hardened — safe only because the composite holds every build flag and `maestro test` lines cannot affect a binary. ⛔ **[.7.4c after-scan] The split must keep the XCUITest probe step in the iPhone job** — it sits between the two tiers today, and a step that stops running looks exactly like a probe that found nothing. ⚠️ Cache the `.xctestrun` + `-Runner.app` beside the `.app`, or the probe keeps skipping on every hit | ▶ **ACTIVE — decomposed below** |
+| **4.1.9b** | ⭐ **CI wall-clock: the composite action AND the tier split, as ONE pass** *(🎯 approved 2026-08-14; repo is PUBLIC so macOS runners are free)*. ① The `.app` key hashes the whole of `native-e2e.yml`, so the **flow list** busts the binary — both of today's runs paid ~771s of compile for pure YAML edits. ② The two tiers run **sequentially in one job** (no `matrix`), so `device=both` pays iPhone **+** iPad (~650s + ~666s) instead of `max`. ⚡ They merge: the extracted composite is exactly what two parallel jobs must both call. Also folds in `app-preview.yml`'s duplicated recipe + its missing cache. **Together: ~22 min → ~12 on a cache hit.** ⚠️ Loosens a key 4.1.3a hardened — safe only because the composite holds every build flag and `maestro test` lines cannot affect a binary. ⛔ **[.7.4c after-scan] The split must keep the XCUITest probe step in the iPhone job** — it sits between the two tiers today, and a step that stops running looks exactly like a probe that found nothing. ⚠️ Cache the `.xctestrun` + `-Runner.app` beside the `.app` | ✅ **CLOSED 2026-08-17.** Composite action · tier split · results file · `lint:lane` (76→81 checks). ⚡ **Measured on the cache hit: build 19m42s → 11m15s (−43%)**, tiers start the same second. ⛔ **"~22 → ~12 total" is RETIRED** — the iPhone tier grew 24m49s → 35m09s from the probe regression, so wall-clock did not improve. Detail + every scan → log |
 
-⛔ **[4.1.9b scan] THE PLAN'S "529s / 40% COST CENTRE" IS STALE — measured 148s.** The laps landed in run `31808439691` and nobody had read them, though the note said to: `boot returned 10s · bootstatus 62s · installed 79s · launched 119s · reported-up 144s · complete 148s`. The instrumentation and the `sleep 25` → poll fix **worked**; the 529s predates them. ⛔ Do not spend anything else here.
+⛔ **[4.1.9b, standing] Do NOT shard the iPhone tier.** The flows carry a real dependency chain — `01` seeds · `07` clears state · `08` depends on `07` · `10` must precede `09` · `09` is terminal. Splitting it is how the suite starts lying. The tier SPLIT is safe for the opposite reason: each tier already runs its own `01`.
 
-⚠️ **[4.1.9b scan] …but the poll that replaced the sleep is not firing.** `launched 119s → reported up 144s` is **exactly** the 25s ceiling, so it never detected the app's own log signal and fell through to the timeout — functionally the `sleep 25` it was written to replace. Worth ~20s, and more importantly it is a fix believed to work that does not.
+⛔ **[4.1.9b, standing] The boot lap is 148s, not 529s — do not spend anything else there.** ⚠️ But the poll that replaced the `sleep 25` **is not firing** (`launched 119s → reported up 144s` is exactly the 25s ceiling): a fix believed to work that does not. Deliberately unfixed — inventing a log predicate instead of grepping the artifact already cost a cycle → **4.1.11**.
 
-⛔ **[4.1.9b scan] Do NOT shard the iPhone tier.** The flows carry a real, documented dependency chain — `01` seeds · `07` clears state · `08` depends on `07` · `10` must precede `09` · `09` is terminal. Splitting it is how the suite starts lying. The tier SPLIT is safe for the opposite reason: each tier already runs its own `01`.
-
-| **4.1.9c** | ⭐ **"Covered" must mean PROVEN, and proof ticks the checklist** *(🎯 2026-08-14: "Nothing should be marked covered unless it's proven to be. And as items are proven, they should be checked off")*. ✅ **READER DONE 2026-08-14** — the report now splits **PROVEN 25** (24 `✅auto·` · 1 human) from **claimed-but-unproven 8**; 3 new stamp-integrity gates, each proven on a planted defect. ⛔ **Two of this row's own premises were REFUTED by measuring:** the number was 33 claimed, not 34 (34 is *claims*, not checks), and **flow 08 PASSED** in the run the stamps came from — `~23` was near-right for a wrong reason. ▶ **Remaining: the WRITER**, which needs a durable per-flow results file → lands with **4.1.9b**. ⚠️ Provenance preserved: automation manages only rows carrying its own stamp, never a bare `[x]`. Detail → log | ◐ |
+| **4.1.9c** | ⭐ **"Covered" must mean PROVEN, and proof ticks the checklist** *(🎯 2026-08-14)* | ✅ **CLOSED 2026-08-17.** Reader (2026-08-14) + **the WRITER**: `npm run stamp:coverage` turns a run's `native-lane-results-*.json` into stamps and **revokes them when a flow reds**; grammar shared with the reader via `coverage-model.ts`, proven inert byte-for-byte; **`npm run test:stamp` — 8 scenarios, every rule fired on a planted input, every plant `plant-applied=YES`**; in `validate:release:rn`. ⛔ **Its own premise was refuted first: it adds ZERO covered rows** — `claimed-but-unproven` was already 0, so the run applied 32 refreshes and the headline stayed **24**. Detail + every scan → log |
 | **4.1.10** | §12.1–§12.7 (15) — the SCRIPTED run | ✅ **[DECISION] ROUTED BY WHERE THE RUN ACTUALLY SHIPS (🎯 2026-08-17).** ⛔ **No `qaEnabled()` door** — a QA door would manufacture a path the product does not have, prove the rows against it, then lose it at the Phase-6 flip. ⚡ **The scripted run is not user-reachable on iOS at all** ([D23]: users get `explore`); it exists for the capture and the embed, exactly as the checklist says. ▶ **§12.2 · §12.4.1/.3/.4 · §12.5 → the EMBED's Playwright gate** (3.5.7.5 already boots it into `/demo?mode=scripted`). ▶ **§12.7.1 + §12.1.1 → normal-app automation — both are MIS-FILED** (§12.7.1 is the analytics opt-out, nothing to do with the demo; §12.1.1 tests the "See it in action" door, which yields *explore*). ▶ **§12.3.1 · §12.2.2 · §12.6.x · §12.4.2 stay device-owed.** Detail → log |
 | **4.1.11** | **Reconcile — the exit.** ⚠️ **[4.1.5.1 after-scan] the coverage split must NOT count measurement flows** — `lint:selectors` now reports **9 flows** because `i01-ipad-boot.yaml` is one, and it is explicitly not coverage (every assertion in it holds on both layouts by design). Any 68/127 re-derivation that counts files will overstate itself | |
-
-### ▶ 4.1.9b — the composite action, the tier split, and the caches that make both safe _(active)_
-
-✅ **.1–.8 ALL BUILT 2026-08-17.** Composite `rn-ios-sim-build` (recipe owned once) · the key hashes the
-ACTION not the workflow, plus the Xcode tag and a per-lane namespace · the XCUITest products cached and
-shipped as a **tar** · `build → iphone ‖ ipad` · `native-lane-results-<tier>.json` (90-day artifact) ·
-the small diagnosis bundle · `app-preview.yml` adopted · ⭐ **`npm run lint:lane` — 76 static checks,
-proven on 9 planted defects, in `lint:rn`.** Detail + every scan → log.
-
-▶ **REMAINING: one `device=both` dispatch.** ⛔ **It WILL miss the `.app` cache and pay a full build** —
-the key changed shape three ways, so every entry is unreachable by construction. That is the change
-working. **The run AFTER it is the one that demonstrates the saving.**
-
-**Exit:** that dispatch green, with `~22 min → ~12` on the following (cache-hit) run and the probe
-running on that hit.
-
-⛔ **[.1 before-scan] The "keep the two in sync" note ALREADY FAILED.** `app-preview.yml` is missing
-`DEBUG_INFORMATION_FORMAT=dwarf` and `COMPILER_INDEX_STORE_ENABLE=NO` (added to the other recipe at
-4.1.3a, 2026-08-12), `cache: npm`, and `fetch-depth: 0`. Measured, not assumed — the duplication drifted
-inside five days, which is the argument for .7 rather than another sync note.
-
-⛔ **[.3 before-scan] A cross-job split CANNOT ship the `.app` through the cache.** The re-bundled binary
-is never saved (`cache/save` is gated on the rebuild path), so a tier job restoring by key would test the
-JavaScript from whenever the binary was compiled — rule ②'s stale-binary hazard with a job boundary
-standing in for a partial key. ⚠️ And `upload-artifact` **does not preserve the executable bit**, so the
-products move as a **tar**, never as a raw directory.
-
-⚡ **[.4 before-scan] The split makes the tier jobs cheaper than the plan claimed.** They need no npm
-install, no pods, no Xcode select and no `tsc` — only the tarball, `simctl` and Maestro. ⚠️ Two jobs
-cannot upload one artifact name: it becomes `maestro-report-iphone` / `maestro-report-ipad`, and anything
-quoting `maestro-report` goes stale. ⚡ `!cancelled()` on the iPad step becomes **structural** — as its own
-job it cannot inherit the iPhone tier's failure at all.
-
-⛔ **[.6 after-scan] `lint:lane` FOUND A LIVE DEFECT ON ITS FIRST RUN** — the diagnosis bundle keeps
-Maestro's `.maestro/tests/…` layout, a **hidden** path, and `upload-artifact` v4 drops those silently. The
-72 KB bundle would have shipped without the one file it exists for. Fixed; the rule was then widened from
-"paths mentioning `maestro-debug`" to **any recursive glob**, which is the general form.
-
-⚡ **[.8 after-scan] A PLANT THAT DOES NOT LAND LOOKS EXACTLY LIKE A GATE THAT IS BLIND** — and it fails
-in the *safe-looking* direction. Three of the first eight plants reported "gate missed it" while the
-files were byte-identical to their backups. Planting now prints `plant-applied=YES|NO` beside the verdict.
-⚠️ Two of my own checks were also wrong first time, **both reddening correct code** — a verifier whose
-SCOPE is wider than the rule it enforces. Both now read parsed structure, not raw text.
-
-⛔⛔ **[item after-scan] THE WEB E2E SUITE WAS TESTING THE EMBED BUILD — ~60 specs red, and the cause was
-already written down in the sibling file.** 3.5.7.4 MEASURED that Metro's transform cache does not
-invalidate on an `EXPO_PUBLIC_*` change (`flag=0, no --clear → sessionStorage`) and applied `--clear` to
-`playwright.embed.config.ts` — **one of the two configs that needed it.** `playwright.config.ts` had
-none, so after `test:e2e:embed` runs once on a machine, every later `export:web` reuses the embed's
-transforms: `dist/` and `dist-embed/` came out with the **same content hash**, and `dist/`'s storage was
-inlined as `()=>globalThis.sessionStorage`. The suite seeds through localStorage → the app boots empty.
-⚡ **Proven by grepping the artifact, then fixed and re-measured: `dist` sessionStorage 0 / localStorage 1,
-`dist-embed` 1 / 0.** ⚠️ **CI was green only by ORDERING** — `test:e2e:rn` runs before `test:e2e:embed`
-on a cold cache — so it was broken from the **second local run onward**, the run a human does. Identical
-shape to the iPad 240s→420s parity bug: *the fix applied to one of the two places that needed it.*
-
-⛔ **[item after-scan] A SHIPPED DEFECT, found because it blocked this item's own gate: `lint:rn` was
-broken locally, 7,578 errors.** 3.5.7.4 added `apps/rn/dist-embed/` to `.gitignore` and **not** to
-eslint's `globalIgnores`. CI never saw it — `lint:rn` runs *before* `test:e2e:embed`, so a clean checkout
-has no such directory — so the gate was only broken from the **second local run onward**, which is the run
-a human does. Fixed here.
-
-⚠️ **[item after-scan] Filed, not fixed:** the split doubles *concurrent* macOS minutes (free while the
-repo is public; the sum-vs-max trade reverses if it ever goes private) · the boot step's poll still does
-not fire, and stays unfixed **deliberately** — inventing a log predicate instead of grepping the artifact
-already cost a cycle → **4.1.11** · `app-preview.yml`'s new cache will usually miss (it runs rarely,
-entries evict in a week), kept for symmetry at zero added risk.
 
 ### 📌 4.1.6a — `audit:coverage`, the definitive checklist _(closed 2026-08-17; standing guidance)_
 
@@ -239,6 +164,7 @@ that can find it.
   measured — `audit:coverage` can produce it exactly). ⛔ **4.1.10's 15 rows are the EXCEPTION and stay in
   4.1** — see its row.
 - ⛔ **The CodeMagic build is BLOCKED ON 4.1, deliberately** — 🎯 Jason 2026-08-14: *"I'm not cutting the CodeMagic build until we have a definitive checklist that covers everything that Maestro and Appium can verify. That's the whole point of 4.1."* Cutting it early spends a device pass on rows the lane is meant to absorb, then needs a second pass. **Phase 3.5's device pass is downstream of 4.1's exit, not parallel to it.**
+- **[D34] The embed CTA's wording, and which NAME it says.** 🎯 gave the link 2026-08-17; the listing is **"Paycheck Debt Planner"** and the app calls itself something else in every string this repo owns. A CTA that names the store listing is findable; one that names the in-app product is consistent. Blocks nothing — .7 ships behind a single constant. *(Rec: the listing name, since the CTA's only job is getting someone to that page.)*
 - **[D2]** `minimumPaidThisCycle` ownership — gates B4. · **[D3]** Money hero language. · **[D1]** Control Center (rec: stay deferred).
 
 ### ⚠️ Open defects
@@ -384,9 +310,8 @@ exits) · walkthrough = AFTER onboarding, on your own money.
 
 #### ▶ 3.5.7 — the embed _(the PARALLEL track; 4.1 has precedence and this fills its waits)_
 
-⚠️ **This is the one decomposed section on the doc.** 4.1.6a.7's closed 2026-08-17 and collapsed; 4.1's
-remaining steps are single rows in its table. 🎯 set the precedence on 2026-08-14: 4.1 first, this fills
-its waits.
+⚠️ **One of the doc's TWO decomposed sections** — the sanctioned exception for 🎯's two live tracks; 4.1's
+is 4.1.9c. Everything else is a single row. 🎯 set the precedence 2026-08-14: 4.1 first, this fills its waits.
 
 | # | Step | State |
 |---|---|---|
@@ -396,12 +321,25 @@ its waits.
 | **.4** | ⭐ **The zero-egress Playwright gate** — all three [D32] claims, in `validate:release:rn` | ✅ **DONE 2026-08-14.** Own config + own build (`EXPO_PUBLIC_EMBED` is inlined, so a spec in the main suite would test the artifact that does **not** ship). ⛔ **`--clear` is load-bearing: Metro's cache does NOT bust on an `EXPO_PUBLIC_*` change** — measured, and without it the flag is advisory. **Non-vacuity proven**: the plant reds test 2 only. ⏱ 1.9m cold |
 | **.5** | **Embed entry** — the `scripted` run as the default route | ✅ **DONE 2026-08-17.** `EMBED_DEMO` in `qa.ts` → `DemoAutoEntry` (the renamed `CaptureAutoStart`, now serving BOTH self-entering builds — a second starter would have been a second definition of "entering the demo"). Two new specs in the embed gate, **non-vacuity proven** on a planted regression: they red, zero-egress stays green. App e2e 169/169 unaffected |
 | **.6** | **The a11y state fix** — the two controls in the embed's surface | ✅ **DONE 2026-08-17.** `a11yChecked`/`a11ySelected` in `utils/a11y.ts`; `CheckCircle` → `aria-checked`, `SegmentedToggle` → **`radiogroup`/`radio`** (the role is load-bearing — see below). Two explicit e2e assertions, **non-vacuity proven** on a planted revert; a11y-axe 10/10 |
-| **.7** | **The embed's exits → ONE App Store CTA** *(🎯 approved 2026-08-17)* | ▶ **NEXT, and buildable.** Both dock exits collapse to one outbound link to the **live App Store page** (🎯 2026-08-17). ⛔ **BLOCKED ON ONE FACT: the URL / numeric app id, which exists nowhere in this repo** — only Freedom's, in `ecosystem.ts`. Everything else is ready; the link target is the whole remainder |
+| **.7** | **The embed's exits → ONE App Store CTA** *(🎯 approved 2026-08-17)* | ▶ **NEXT — UNBLOCKED 2026-08-17.** 🎯 supplied it: `https://apps.apple.com/us/app/paycheck-debt-planner/id6773201250` · id **`6773201250`** · listing **"Paycheck Debt Planner"**. ⚠️ The listing name differs from the in-app name — decide which the CTA says. Both dock exits collapse to one outbound link; it belongs beside Freedom's in `ecosystem.ts`, not inlined |
 | **.8** | **GitHub Pages deploy** of `dist` | ⛔ blocked on .7 |
 | **.9** | ~~[DECISION] the privacy wording~~ | ✅ **SETTLED 2026-08-17 — "Your money stays on your device."** 🎯's pick. It is exactly what the zero-egress gate enforces, it is the house's direct "you", and it avoids the absolute [D32] warned about (every host logs IPs, so *"100% private"* overclaims). ⚠️ **The sample-data disclosure is NOT this line's job** — `ExampleCanvasMarker` owns "Example money", and [D6]'s "exactly one place" rule applies. ⚠️ The line is a claim about the PRODUCT shown on the embed, not about the viewer's own data: in the embed there is none |
 
 **Exit:** a public embed whose privacy claim is enforced by a test that runs on every push, not asserted
 in prose.
+
+⛔ **[.7 before-scan] THE SWAP MUST BE GATED ON `EMBED_DEMO` — "both dock exits collapse to one link" is
+UNCONDITIONAL as written, and that would put "Get it on the App Store" inside the app.** `DemoDock`
+renders on `mode === 'scripted' && chrome`, and **`mode` comes from a QUERY PARAM** (`demo.tsx:61`), not
+from the embed flag: `debtplannerrn:///demo?mode=scripted` reaches it in the shipping iOS app — the
+`p09-deeplink` probe drives exactly that URL — and `/demo?mode=scripted` reaches it in the ordinary web
+build, where the e2e suite already drives it. ⚡ [D23] is about which door a *user* is offered, not about
+what the route can render. **The App Store CTA is correct only where the product is not already installed,
+which is the embed and nowhere else.**
+
+✅ **[.7 before-scan] The embed's scripted surface has EXACTLY these two exits — verified, not assumed.**
+`ExampleCanvasMarker`'s *"Start my real plan"* is gated `inExplore` (`:71`), so it cannot appear in a
+scripted run. Nothing else calls `exitDemo` in that surface.
 
 ⛔ **[.5 after-scan] THE EMBED'S TWO EXITS BOTH LEAD SOMEWHERE WRONG — 🎯 SETTLED 2026-08-17, now .7, and
 it blocks the deploy at .8.**
@@ -586,12 +524,12 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
 _Post-triage under the fold-don't-defer rule — only two carve-outs remain: **device-gated**, or **genuinely
 a later version/tier**._
 
-**[4.1.8 after-scan, 2026-08-14] Upload the failure hierarchy as its OWN small artifact.** Diagnosing
-flow 10 twice today required pulling `maestro-report` — **48 MB compressed, 122 MB extracted, ~5 minutes**
-— to read a single string. The deciding file (`screen-hierarchy/*.json`) is **72 KB**; `commands.json` is
-44 KB. The screenshots and os-log are what make the artifact large and neither answered anything. A second
-`upload-artifact` step scoped to `**/screen-hierarchy/**` + `**/commands.json` would turn "why did that
-flow fail" into a ten-second question. ⚠️ Fold into **4.1.9b**'s workflow pass so the file is touched once.
+**[4.1.9c before-scan, 2026-08-17] Two `maestro test` calls write no JUnit, so their verdicts never reach
+the durable record** — `11-reduce-motion.yaml` and the iPad's dark re-run of `i02`. Both are measurement
+runs today (no `COVERS:`; `i02`'s light run *is* recorded), so nothing is currently mis-stated. It is the
+same hazard `maestro-results.mjs`'s header documents for flow `09`: **the next flow added in its own
+invocation disappears from the record silently.** ⚠️ `lint:lane` is where this becomes a check —
+*every `maestro test` call either writes a JUnit or declares itself a measurement.*
 
 **Device-gated → the Phase-6 pass:** Today/cushion-forecast selector memoization *(conditional on a real
 measured hotspot)* — ⚠️ **A3.1 added one extra allocation** on Today whenever the discovery hold is active

@@ -10502,3 +10502,218 @@ a Welcome or onboarding screen. ▶ Cheapest disambiguation: print the frontmost
 before auditing (one line, no new capability), or move the probe ahead of `09`. ⛔ Deliberately not
 "fixed" on a guess — inventing a predicate instead of reading the artifact is a mistake this lane has
 already paid for twice.
+
+---
+
+## 2026-08-17 — 4.1.9b CLOSED, and its exit criterion was wrong about the thing it measured
+
+**Exit as written:** *"that dispatch green, with `~22 min → ~12` on the following (cache-hit) run and the
+probe running on that hit."* Two of those three are met. The number is not, and it was retired before it
+could be checked — the session close had already killed it on arithmetic (the iPhone tier alone is 24m49s).
+
+### ⚡ WHAT THE CACHE HIT ACTUALLY BOUGHT — measured from the two runs' job timings
+
+| | `32037021903` (cold) | `32042253465` (hit) | |
+|---|---:|---:|---|
+| Build (or restore) the `.app` | **19m42s** | **11m15s** | ⭐ **−8m27s, −43%** |
+| iPad tier | 18m02s | 17m36s | flat |
+| iPhone tier | 24m49s | **35m09s** | ⛔ **+10m20s** |
+| wall-clock | 44m35s | 46m27s | **worse** |
+
+⭐ **The composite action and the split both work exactly as designed** — the tiers start the same second
+in both runs (`14:12:41` / `15:36:18`), so `device=both` costs `max`, and the key change made the hit
+reachable at all. ⛔ **And the item still shows no wall-clock win, because a different regression landed in
+the same window:** the XCUITest probe went 1 min → 11 min on the iPhone tier (iPad: 85s, same bundle).
+The saving is real and is being spent by something else.
+
+⚠️ *An exit criterion phrased as a total is hostage to every other change in flight.* "Build 19m42s →
+11m15s" is this item's result; "22 → 12" was never an assertion about this item alone.
+
+### ✅ Delivered
+
+Composite `rn-ios-sim-build` · a key that hashes the ACTION plus the Xcode tag and a per-lane namespace ·
+the XCUITest products cached and shipped as a **tar** (`upload-artifact` drops the executable bit) ·
+`build → iphone ‖ ipad` · `native-lane-results-<tier>.json` on 90-day retention · the 9.6 MB diagnosis
+bundle against a 122 MB artifact · `app-preview.yml` adopted onto the same recipe · **`lint:lane`, 81
+static checks over the workflow graph, each proven on a planted defect.**
+
+⛔ **Its own gate found a live defect on its first run** — the diagnosis bundle kept Maestro's
+`.maestro/tests/…` layout, a **hidden** path, and `upload-artifact` v4 drops those silently: the bundle
+would have shipped without the one file it exists for. The rule was then widened from "paths mentioning
+`maestro-debug`" to **any recursive glob**.
+
+⛔ **Two shipped defects fell out of it, both of the same shape — broken from the SECOND local run
+onward, which is the run a human does, and invisible to CI because of step ORDER.** ① `playwright.config.ts`
+had no `--clear`, so once `test:e2e:embed` ran on a machine every later `export:web` reused the embed's
+transforms and ~60 specs went red (proven by grepping the artifact: `dist` sessionStorage 0 / localStorage
+1, `dist-embed` 1 / 0). ② `apps/rn/dist-embed/` was added to `.gitignore` and not to eslint's
+`globalIgnores` — `lint:rn`, 7,578 errors locally, green in CI. Both are *the fix applied to one of the two
+places that needed it*, the same shape as the iPad's 240s→420s parity bug.
+
+⚡ **A PLANT THAT DOES NOT LAND LOOKS EXACTLY LIKE A GATE THAT IS BLIND**, and it fails in the
+*safe-looking* direction: three of the first eight plants reported "gate missed it" against files that were
+byte-identical to their backups. Planting now prints `plant-applied=YES|NO` beside every verdict. ⚠️ Two of
+my own checks were wrong first time and **both reddened correct code** — a verifier whose SCOPE is wider
+than the rule it enforces. Both now read parsed structure rather than raw text.
+
+⚠️ **Filed, not fixed:** the split doubles *concurrent* macOS minutes (free while the repo is public; the
+sum-vs-max trade reverses if it ever goes private) · the boot step's poll still does not fire and stays
+unfixed deliberately → **4.1.11** · `app-preview.yml`'s new cache will usually miss, kept for symmetry at
+zero added risk.
+
+⭐ **The backlog item this closed:** *"[4.1.8 after-scan] upload the failure hierarchy as its own small
+artifact"* — delivered as `lane-diagnostics-<tier>`, 220–790 KB against the 24–31 MB report. Removed from
+the deferred backlog rather than left to be re-read.
+
+---
+
+## 2026-08-17 — 4.1.9c's WRITER: the before-scan, and the premise it refuted
+
+### ⛔ THE ROW'S OWN HEADLINE CLAIM IS FALSE — the writer adds ZERO covered rows
+
+The plan said the writer *"turns the two green runs into stamped rows, which is what 4.1.11's final number
+depends on."* Measured against the checklist and the flows, before writing any code:
+
+| | |
+|---|---:|
+| claims in `.maestro/*.yaml` | **34** |
+| distinct ids claimed | **33** *(§13.3 is claimed twice)* |
+| already carrying `✅auto·` | **32** |
+| human `[x]`, no stamp | **1** *(§11.15)* |
+| **claimed but unproven** | **0** |
+
+Both green runs are **15/15 with zero unresolved testcase names**, so every claiming flow passed. The
+writer's entire output on today's data is a **refresh of 32 runIds**. The headline stays **24**.
+
+⚡ **That is not an argument against building it — it relocates the argument.** The writer's value is
+forward-looking and has nothing to do with the current number: **a red flow must be able to take a row
+back out**, and a stamp should say *"proven at HEAD"* rather than *"proven by a run five days and forty
+commits ago."* Today the stamps say `31812114150` ×24, `31822453981` ×5, `31832030295` ×3 — three runs, none
+of them the two that are green now. Nothing in the instrument can currently notice that.
+
+### ⚠️ §11.15 — the boundary case that proves the provenance rule
+
+`[x]`, **no stamp**, claimed by `05-tutorial-walkthrough`, which passed in both runs. A writer that stamps
+"every claimed row whose flow passed" converts the report's one human-earned row into a machine-earned one
+and the provenance split — the thing 4.1.9c exists to keep — quietly stops meaning anything. **Automation
+manages only rows carrying its own stamp.**
+
+### ⚡ THE READER'S SINGLE-RUN WARNING INVERTS THE MOMENT THE WRITER EXISTS
+
+`coverage-split.ts` warns when `byRun.size === 1`: *"every machine-earned row traces to a single run… one
+run is one sample."* True while stamps were placed by hand from whichever run happened to prove each row.
+Once a writer refreshes them all from the latest green run, **one run becomes the healthy state** and
+`> 1` becomes the interesting signal — *some rows were not re-proven*. Left alone the warning fires forever
+on a report whose only job is honesty.
+
+### ⛔ ABSENCE IS NOT FAILURE, and this one could wipe the record
+
+The iPad results carry 5 flows, the iPhone 10. A writer handed one tier sees ~20 claiming flows with **no
+verdict at all**; treating that as a red revokes two dozen stamps in a single run of a script. Only an
+explicit `fail`/`skipped` may revoke, and `junitFound: false` — this lane's signature failure, the driver
+stall that produces zero flows — must refuse to write anything at all.
+
+### ⚠️ AND IT IS THE FIRST THING EVER TO WRITE TO THE CHECKLIST
+
+`coverage-split.ts`'s header states the file is read-only *by design*: it carries hand-recorded `[x]`
+results and inline findings that are not regenerable. So the writer is dry-run by default, edits only the
+stamp token and the checkbox character, and is proven on planted results files before it is ever pointed
+at the real one.
+
+### ⚠️ Filed rather than fixed
+
+**§13.3 is claimed by two flows** (`01` PARTIAL · `08` COVERS), so "did it pass?" needs a stated rule:
+**every claiming flow that RAN must have passed.** Understating is the only direction this instrument is
+allowed to be wrong in. · **Two `maestro test` calls write no JUnit** (`11-reduce-motion`, the iPad's dark
+re-run of `i02`), so their verdicts never reach the durable record — harmless today, and the same hazard
+`maestro-results.mjs`'s header documents for flow `09`. → the deferred backlog, as a `lint:lane` check.
+
+---
+
+## 2026-08-17 — 4.1.9c's WRITER built and closed: two defects caught before the real file was touched
+
+`npm run stamp:coverage` reads a run's `native-lane-results-<tier>.json`, resolves every passing flow's
+`COVERS:`/`PARTIAL:` claims to checklist rows, and **places or revokes** the `✅auto·<runId>` stamp.
+Dry-run by default; `--results <files…>` or `--run <id>` (which pulls the artifacts itself via `gh`).
+
+### ⛔ THE GRAMMAR MOVED OUT FIRST, AND THAT WAS NOT OPTIONAL
+
+The reader and the writer have to agree about what a row is, what an id is, and where a stamp lives —
+down to the byte, because one places what the other counts. Two private copies would have been *agreeing
+copies*, which is this repo's most-repeated defect shape: Wave A hit "two places, one rule" three times in
+a single wave. So `scripts/coverage-model.ts` owns the grammar and both scripts import it.
+
+⚡ **Proven inert the only way that means anything: `coverage-split.md` is byte-identical across the
+extraction.** A refactor of a reporting instrument that changes its report is not a refactor.
+
+### ⭐ THE DRY RUN PAID FOR ITSELF ON ITS FIRST EXECUTION — six human `[x]` were one flag from being wiped
+
+Rule ⑤ was written down as *"a partial is never ticked"* and encoded as `tick = verdict !== 'M◐'` — which
+for a partial yields `false`, and **`false` does not mean "leave it alone", it means "untick"**. §B2.3 ·
+§4.1 · §11.7 · §11.8 · §11.16 · §13.4 each carry a human `[x]` earned on real hardware for their
+device-owed half. The dry run printed six `−tick` lines against them and cost nothing to read.
+
+⚡ **The rule was right and its encoding inverted the half the rule did not mention.** `undefined` — *do
+not touch the box* — is a third value, and a boolean cannot hold it. The report now prints
+``· box `[x]` kept`` explicitly rather than leaving "no change" as the blank case.
+
+### ⭐ AND THE FORMAT-PRESERVATION SCENARIO CAUGHT A WHOLE-FILE REWRITE
+
+`DEBT_3.5_DEVICE_QA_CHECKLIST.md` is **CRLF — 593 of them, zero bare LFs.** The writer split on `/\r?\n/`
+and joined on `'\n'`, so its first real write would have reformatted every line ending in a hand-maintained
+document: a 593-line diff from a script whose entire design goal is *one character and one token*.
+
+⚠️ **No content assertion could have seen this.** Every other check asks whether the right rows changed;
+only *"normalise the stamps on both sides and the rest must be identical"* asks whether anything **else**
+did. That scenario existed because the file is not regenerable, and it is the one that found the defect.
+
+### THE EIGHT SCENARIOS, each against a planted input in a temp copy
+
+`npm run test:stamp`, in `validate:release:rn`. ⛔ Every scenario prints `plant-applied=YES|NO` — 4.1.9b.8
+measured that a plant which does not land looks *exactly* like a gate that is blind, and fails in the
+safe-looking direction.
+
+| | proves | how it is planted |
+|---|---|---|
+| ① | a red flow revokes its rows, and a `[M◐]`'s box survives | `08-coach-marks` marked `fail` |
+| ② | a bare `[x]` is untouched on pass, on red, and on absence | §11.15, the one such row in the file |
+| ③ | a partial is stamped and never ticked | §11.9's stamp stripped, forcing the STAMP path |
+| ④ | one tier alone revokes nothing | iPad results only — 32 stamps must survive |
+| ⑤ | idempotent | two writes, byte-compared |
+| ⑥ | a driver stall writes nothing at all | `junitFound: false` |
+| ⑦ | two runs cannot be mixed into one stamp | mismatched `runId`s |
+| ⑧ | **nothing but the run ids changed** | normalise stamps both sides, compare |
+
+### ▶ THE REAL RUN — and the before-scan's refutation held exactly
+
+`--run 32042253465 --write`: **32 refreshed · 0 stamped · 0 revoked · 1 untouched (human-earned).** The
+word-diff is 32 removed stamp tokens and 32 added ones and **nothing else**. `audit:coverage` afterwards:
+**PROVEN 24 (23 auto · 1 human) · half-proven 9 · not-built 74 · device-only 24** — every figure unchanged,
+which is what the measurement said would happen before a line was written.
+
+### ⚡ THE RE-SCOPED STALENESS NOTE FOUND REAL STALENESS ON ITS FIRST RUN
+
+The reader warned when `byRun.size === 1` (*"one sample, stability unproven"*). With a writer refreshing
+every row from the run it is given, one run is the **healthy** state and `> 1` is the signal. Re-scoped, it
+immediately reported **18 of 23 machine-earned rows had not been re-proved by the newest run they
+themselves named** — a fact the old shape was structurally incapable of stating, because it fired only on
+the opposite condition. After the write it reads the healthy line.
+
+### ⚠️ Filed, not fixed
+
+- **The checklist keeps no history.** A stamp says *proved at run N*, never *green for N runs running*, so
+  a row that passed, reddened and passed again is indistinguishable from one that never reddened. The
+  90-day results artifacts do carry it; the checklist is not the place to duplicate them.
+- **A non-partial's tick dies with its stamp on revocation.** The reader's gate forces stamp ⇒ tick, so the
+  two are placed together and cannot be told apart afterwards — the stamp claims the row. Stated in the
+  code, and precisely why a partial's box is left alone in both directions.
+- ⛔ **Deliberately NOT wired into CI.** A bot committing to the branch is a different decision with its own
+  failure modes, and this is a five-second local command run at the same batch boundary as the lane itself.
+  → **4.1.11** if it ever earns it.
+
+### ⚡ Replenishment — and it moves 3.5.7 ahead of 4.1's own next step
+
+**4.1.10 is sequenced behind 3.5.7.7**, and the routing decision is what does it: §12.2 · §12.4 · §12.5 go
+to the **embed's** Playwright gate, and .7 replaces the two dock exits that some of those rows assert on.
+Writing them first means writing them against exits with hours to live. So the active build becomes
+**3.5.7.7** — 4.1 keeps precedence in principle and yields it here for a stated, checkable reason.

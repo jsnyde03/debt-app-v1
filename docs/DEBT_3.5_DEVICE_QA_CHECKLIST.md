@@ -68,11 +68,11 @@
 > Everything here is **new or fixed since your last device pass**. Do this section first; §1–§9 below are unchanged and only need a re-walk if you want. Install the new TestFlight build first (§0). Premium items need **Simulate Premium ON** (More → Developer / QA). _(Widget signing is already proven from the last build — no signing watch-out this time.)_
 
 ### 🔧 Re-verify the 2 fixes you flagged
-- [x] `[M]` **§B2.1** **"View Payoff Schedule" now opens** — Money → tap a debt (edit sheet) → tap **"View Payoff Schedule"** in the header → ✅ the payoff schedule appears. _(Was a modal-over-modal that silently failed on device; now renders in-place.)_ `✅auto·31812114150`
+- [x] `[M]` **§B2.1** **"View Payoff Schedule" now opens** — Money → tap a debt (edit sheet) → tap **"View Payoff Schedule"** in the header → ✅ the payoff schedule appears. _(Was a modal-over-modal that silently failed on device; now renders in-place.)_ `✅auto·32042253465`
 - [ ] `[M◐]` **§B2.2** **Long-press blur is back** — long-press a debt row → ✅ the background **dims/blurs** behind the Edit/Delete menu. ⚠️ **Best-effort fix** — if there's *still* no blur, it's likely a library/New-Arch limitation (not a config miss) → tell me and I'll look at alternatives.
 
 ### 🆕 In-app "Log payment" (3.5.5)
-- [x] `[M◐]` **§B2.3** **The menu action** — long-press a **debt** row → the context menu now has **"Log payment"** (first, above Edit/Delete) → tap → an **amount sheet** opens ("Log a payment · {debt} · ${balance} owed"). `✅auto·31812114150`
+- [x] `[M◐]` **§B2.3** **The menu action** — long-press a **debt** row → the context menu now has **"Log payment"** (first, above Edit/Delete) → tap → an **amount sheet** opens ("Log a payment · {debt} · ${balance} owed"). `✅auto·32042253465`
 - [ ] `[M]` **§B2.4** **Logging works** — enter an amount → **Log payment** → ✅ the balance drops by that amount + a **"Payment logged — Undo / Keep"** card appears on **Today** → tap **Undo** → the balance restores.
 - [ ] `[M]` **§B2.5** **Overpay clamps** — enter more than the balance → the field notes it'll clear to $0 → confirm the debt goes to **$0** (never negative).
 
@@ -102,8 +102,8 @@
 ---
 
 ## §1 — Launch & foundation
-- [x] `[M]` **§1.1** **App launches** past the splash — **no white screen, no crash** (this is the New-Architecture + all-native-modules runtime; a crash here = an autolink/New-Arch problem). `✅auto·31812114150`
-- [x] `[M]` **§1.2** Lands on **Today** (if you have data) or **onboarding** (fresh install). If onboarding, either complete it or tap **"See it in action"** for the scripted demo (it does NOT populate your app — it is a demonstration). `✅auto·31812114150`
+- [x] `[M]` **§1.1** **App launches** past the splash — **no white screen, no crash** (this is the New-Architecture + all-native-modules runtime; a crash here = an autolink/New-Arch problem). `✅auto·32042253465`
+- [x] `[M]` **§1.2** Lands on **Today** (if you have data) or **onboarding** (fresh install). If onboarding, either complete it or tap **"See it in action"** for the scripted demo (it does NOT populate your app — it is a demonstration). `✅auto·32042253465`
 - [ ] `[M]` **§1.3** **Both themes render:** More → Preferences → Appearance → toggle **Light / Dark** → the app recolors cleanly, no unreadable text, no white flashes.
 
 ---
@@ -117,7 +117,7 @@
 
 ## §3 — v1.7 app surface — quick re-sanity (already passed on build #1)
 _Just confirm nothing regressed with all the new native modules added since build #1._
-- [x] `[M]` **§3.1** **⭐ FormSheet header buttons (the owed re-verify):** open **Add debt** (Money → Debts → Add debt) → tap the **✕** (top-right circle) → the sheet closes. Open a debt → tap **"View Payoff Schedule"** in the sheet header → it opens. _(This is the header-tap fix from build #1 — confirm both header buttons are tappable and NOT swallowed by the swipe gesture.)_ - DOES NOT WORK `✅auto·31812114150`
+- [x] `[M]` **§3.1** **⭐ FormSheet header buttons (the owed re-verify):** open **Add debt** (Money → Debts → Add debt) → tap the **✕** (top-right circle) → the sheet closes. Open a debt → tap **"View Payoff Schedule"** in the sheet header → it opens. _(This is the header-tap fix from build #1 — confirm both header buttons are tappable and NOT swallowed by the swipe gesture.)_ - DOES NOT WORK `✅auto·32042253465`
 - [ ] `[M◐]` **§3.2** **Sheet gestures:** open any add/edit sheet → **swipe it down** → it dismisses. The grabber shows. Keyboard doesn't cover the Save button.
 - [ ] `[M]` **§3.3** **Swipe-to-delete:** on a debt row, **swipe left** → a red **Delete** appears → tap → confirm → row removed.
 - [ ] `[D]` **§3.4** **Blur:** the tab bar + a sheet backdrop show real UIKit blur (richer than web).
@@ -129,7 +129,7 @@ _Just confirm nothing regressed with all the new native modules added since buil
 ---
 
 ## §4 — 3.5.2 iOS context menu (long-press)
-- [x] `[M◐]` **§4.1** **Long-press a debt row** (press and hold ~0.5s) → a **native UIMenu** pops with **Edit** and **Delete**. ✅ Delete is **red / destructive**, with a system blur behind the menu + a subtle haptic. - NO SYSTEM BLUR `✅auto·31812114150`
+- [x] `[M◐]` **§4.1** **Long-press a debt row** (press and hold ~0.5s) → a **native UIMenu** pops with **Edit** and **Delete**. ✅ Delete is **red / destructive**, with a system blur behind the menu + a subtle haptic. - NO SYSTEM BLUR `✅auto·32042253465`
 - [ ] `[M]` **§4.2** Tap **Edit** → the debt editor opens.
 - [ ] `[M]` **§4.3** Long-press again → tap **Delete** → the confirm → the row is removed.
 - [ ] `[M]` **§4.4** **Tap (not long-press)** a row → still opens the editor (long-press didn't break the tap).
@@ -188,8 +188,8 @@ _The 3.6 native-iPad work is web-verified (layout + hover render in both themes)
 > ⚠️ **This needs a NEW build cut AFTER the 3.6 commits** — the current 3.5 CM build predates 3.6, and it's the **first compile of the new local `KeyCommands` native module** (structured identically to the working `live-activity`/`scan-vision` modules, so low CI risk, but watch the first iOS build). The ⌘-shortcut checks below only apply to that 3.6-inclusive build.
 
 **Adaptive layout (rotate the iPad to hit each):**
-- [x] `[M]` **§10.1** **Landscape / full-screen (expanded):** **Money → Debts** shows the **list on the left + the edit form INLINE in a right pane** (tap a row → it fills the pane, the row highlights; no bottom-sheet). **Today** = two columns (Guardian/payday left · action lists right). **Progress** = one **wide** centered column (ring + charts using the room). **More** = a wider centered settings column. A left **sidebar rail** replaces the bottom tab bar. `✅auto·31812114150`
-- [x] `[M]` **§10.2** **Portrait / narrow:** everything **stacks** into the single centered column with the **bottom tab bar** (same as iPhone). **Rotate back and forth** → layouts reflow cleanly, no clipped/stranded content. `✅auto·31812114150`
+- [x] `[M]` **§10.1** **Landscape / full-screen (expanded):** **Money → Debts** shows the **list on the left + the edit form INLINE in a right pane** (tap a row → it fills the pane, the row highlights; no bottom-sheet). **Today** = two columns (Guardian/payday left · action lists right). **Progress** = one **wide** centered column (ring + charts using the room). **More** = a wider centered settings column. A left **sidebar rail** replaces the bottom tab bar. `✅auto·32042253465`
+- [x] `[M]` **§10.2** **Portrait / narrow:** everything **stacks** into the single centered column with the **bottom tab bar** (same as iPhone). **Rotate back and forth** → layouts reflow cleanly, no clipped/stranded content. `✅auto·32042253465`
 - [ ] `[D]` **§10.3** **Split View + Stage Manager:** drag the app **narrow** → it becomes the compact (bottom-bar) layout · **wide** → the sidebar + expanded panes return. No blank/frozen frame at the breakpoint.
 
 **Pointer (trackpad / mouse):**
@@ -275,7 +275,7 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   **FAIL:** no haptics at all; the same strength everywhere; or a strong tap on a step where you did
   nothing. (Neither web nor the simulator can feel these — this is the only way to check.)
 
-- [x] `[M◐]` **§11.7 — Reduce Motion, and interruption mid-story** _(any iPhone, dark theme.)_ `✅auto·31812114150`
+- [x] `[M◐]` **§11.7 — Reduce Motion, and interruption mid-story** _(any iPhone, dark theme.)_ `✅auto·32042253465`
   **(a)** Settings → Accessibility → Motion → **Reduce Motion: ON**. Press Next through all 7.
   **PASS:** transitions are instant. **FAIL:** on any step the whole screen goes uniformly dark with
   nothing highlighted, holds for about a third of a second, then snaps open. Note the steps.
@@ -288,7 +288,7 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   **(c)** Turn **App Lock** on (More → App Lock) and **VoiceOver** on, then repeat (b).
   **FAIL:** the phone speaks a sentence about a safety net **while the locked screen is showing**.
 
-- [x] `[M◐]` **§11.8 — rotation and Split View mid-step** _(iPad, any.)_ `✅auto·31812114150`
+- [x] `[M◐]` **§11.8 — rotation and Split View mid-step** _(iPad, any.)_ `✅auto·32042253465`
   Go to **Step 3 of 7**; the row **"Adjust your line →"** is highlighted.
   **(a)** Rotate 90°, then **within one second** tap once in the middle of the screen, away from that row.
   **(b)** Rotate back, open Split View, and drag the divider narrower then wider while step 3 shows.
@@ -308,9 +308,9 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   visible anywhere on this step.** ⚠️ **Treat a missing marker here as the highest-severity result in this
   entire checklist** — step 5 deliberately shows a made-up shortfall using your REAL debt names, and the
   marker is the only thing stopping it reading as a genuine warning about your money.
-  **Cleanup:** rename the debt back. `✅auto·31832030295`
+  **Cleanup:** rename the debt back. `✅auto·32042253465`
 
-- [x] `[M]` **§11.10 — the walkthrough's one required gesture** _(any iPhone.)_ `✅auto·31812114150`
+- [x] `[M]` **§11.10 — the walkthrough's one required gesture** _(any iPhone.)_ `✅auto·32042253465`
   On **Step 3 of 7**, tap **"Adjust your line →"**, then **drag** the slider in the sheet and press Save.
   **PASS:** the slider follows your finger, the sheet closes, and a short bar animates in the bottom panel
   showing what changed.
@@ -325,7 +325,7 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   **FAIL:** the number jumps the instant you touch down, or the value changes while you are scrolling.
   _(The pan sets its value on touch-DOWN with no horizontal threshold, inside a vertical scroll view, so
   the two gestures race. There is no competing native scroll on the web, and the browser suite never
-  drags — this is unobservable off-device.)_ `✅auto·31832030295`
+  drags — this is unobservable off-device.)_ `✅auto·32042253465`
 
 - [ ] `[D]` **§11.12 — the highlight must keep up, not just arrive** _(the OLDEST iPhone in the matrix AND a
   ProMotion one; both themes.)_
@@ -347,7 +347,7 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   _⚠️ **This is NOT a web-only curiosity, and do not test it as one.** 3.5.8's capture cycles found
   unpainted Skia **on the native simulator**, at two consecutive samples, and named the cause: a script
   starting on mount while the app paints seconds later — the screen lagging its own arrival. A cold launch
-  is therefore the condition most likely to show it, which is why this item says to force-quit first._ `✅auto·31832030295`
+  is therefore the condition most likely to show it, which is why this item says to force-quit first._ `✅auto·32042253465`
 
 - [ ] `[D]` **§11.14 — the tab bar's press feedback, iOS** _(any iPhone.)_
   Press and hold each tab, watching the icon+label under your finger.
@@ -370,7 +370,7 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
   sidebar story. **Judged by looking, still owed:** whether the ring is on the *right* element per beat is
   a numeric check now; whether it *reads* well is not.
 
-- [x] `[M◐]` **§11.16 — Step 5 on iPad LANDSCAPE** _(iPad, landscape, both themes.)_ `✅auto·31812114150`
+- [x] `[M◐]` **§11.16 — Step 5 on iPad LANDSCAPE** _(iPad, landscape, both themes.)_ `✅auto·32042253465`
   Go to **Step 5 of 7** ("When it won't stretch") and look at the bottom edge of the bright rectangle.
   **PASS:** the card reads as a complete, composed panel.
   **FAIL/JUDGE:** the rectangle's bottom border cuts through the small print under the "Defer it" button,
@@ -384,29 +384,29 @@ Accessibility Sizes* → drag the slider fully **right** (= AX5; one notch in fr
 _Money no longer asks you to pick a section before you type. One **Add** asks what you're adding; the
 answer routes. "Bills" is now **"Expenses"**. Nothing here existed on the `c050173` build._
 
-- [x] `[M]` **§14.1 — one Add, from all three sections.** Money → **Add** from **Debts**, then from `✅auto·31812114150`
+- [x] `[M]` **§14.1 — one Add, from all three sections.** Money → **Add** from **Debts**, then from `✅auto·32042253465`
       **Expenses**, then from **Goals**.
       **PASS:** every one opens the same "What are you adding?" sheet with three cards.
       **FAIL:** any section opens an editor directly — the section would be classifying silently again.
-- [x] `[M]` **§14.2 — the answer lands where it says.** Standing in **Expenses**, tap Add → **"A debt"**. `✅auto·31812114150`
+- [x] `[M]` **§14.2 — the answer lands where it says.** Standing in **Expenses**, tap Add → **"A debt"**. `✅auto·32042253465`
       **PASS:** you end up in **Debts**, on the debt form, with an APR field.
       **FAIL:** you get the expense form, or stay in Expenses.
-- [x] `[M]` **§14.3 — the first-run fork** _(fresh install / Reset, so onboarding runs)._ ⏳ **Web e2e cannot `✅auto·31812114150`
+- [x] `[M]` **§14.3 — the first-run fork** _(fresh install / Reset, so onboarding runs)._ ⏳ **Web e2e cannot `✅auto·32042253465`
       reach this step — it is verified here or nowhere.** Walk onboarding to **"Add your first debt or
       expense"**.
       **PASS:** the toggle reads **Debt / Expense** (not "Bill"), and the line under it changes when you
       switch — a balance-you're-paying-down clause vs an ongoing-cost clause.
       **FAIL:** it still says "Bill", or the clause doesn't change with the toggle.
-- [x] `[M]` **§14.4 — the mis-file rescue** _(add an expense named **"Mortgage"** and one named **"Rent"**, `✅auto·31812114150`
+- [x] `[M]` **§14.4 — the mis-file rescue** _(add an expense named **"Mortgage"** and one named **"Rent"**, `✅auto·32042253465`
       same amount)._
       **PASS:** a quiet line appears under **Mortgage** only — *"Is this a debt you're paying down?"* —
       with **Move to Debts** and **Not a debt**. **Rent is untouched.**
       **FAIL:** it appears under Rent too (an accusation), under neither, or it reads as a warning.
-- [x] `[M]` **§14.5 — Move to Debts.** Tap it on the Mortgage. `✅auto·31812114150`
+- [x] `[M]` **§14.5 — Move to Debts.** Tap it on the Mortgage. `✅auto·32042253465`
       **PASS:** the debt form opens **prefilled** with the name and the payment; after you add a balance
       and APR and save, the Mortgage is in **Debts** and **gone from Expenses** — not in both.
       **FAIL:** it appears in both lists, or the expense survives.
-- [x] `[M]` **§14.6 — "Not a debt" stays gone.** Tap it on the Mortgage, force-quit, reopen. `✅auto·31812114150`
+- [x] `[M]` **§14.6 — "Not a debt" stays gone.** Tap it on the Mortgage, force-quit, reopen. `✅auto·32042253465`
       **PASS:** the suggestion does not come back. **FAIL:** it returns — a hint that cannot be silenced
       is an accusation on a loop.
 
@@ -418,7 +418,7 @@ _Three one-sentence hints, offered once ever, re-offerable from **More → Show 
 web suite can prove a mark is OFFERED and that only one exists; it cannot show WHERE any of them lands,
 and one of the three cannot render on the web at all._
 
-- [x] `[M]` **§13.1 — the payoff-schedule mark, inside a sheet** _(any iPhone. Reset first: More → Show feature `✅auto·31812114150`
+- [x] `[M]` **§13.1 — the payoff-schedule mark, inside a sheet** _(any iPhone. Reset first: More → Show feature `✅auto·32042253465`
   tips again.)_ Money → tap a debt to open **Edit debt**.
   **PASS:** a small card reading **"See the whole payoff"** appears **over the sheet**, near the "View
   payoff schedule" row it names, with a **"Got it"** that dismisses it.
@@ -428,31 +428,31 @@ and one of the three cannot render on the web at all._
   **1266pt down an 874pt screen** — the browser puts it in normal document flow, so the web literally
   cannot answer where it goes._
 
-- [x] `[M]` **§13.2 — "Got it" actually dismisses, and stays gone** _(any iPhone.)_ `✅auto·31812114150`
+- [x] `[M]` **§13.2 — "Got it" actually dismisses, and stays gone** _(any iPhone.)_ `✅auto·32042253465`
   Tap **Got it** on the mark from §13.1. Force-quit and reopen the same debt.
   **PASS:** it closes on tap, and does NOT come back on the second visit.
   **FAIL:** the tap misses (nothing happens), or the mark returns. _(Web e2e can never click this button —
   same flow-layout reason as §13.1 — so the dismiss is unverified off-device.)_
 
-- [x] `[M]` **§13.3 — the iOS-ONLY row long-press mark** _(iPhone/iPad only; it cannot exist anywhere else.)_ `✅auto·31812114150`
+- [x] `[M]` **§13.3 — the iOS-ONLY row long-press mark** _(iPhone/iPad only; it cannot exist anywhere else.)_ `✅auto·32042253465`
   With tips reset, open **Money** and wait on the debts list without touching it.
   **PASS:** a hint about long-pressing a row appears, and long-pressing a debt row does open a context menu.
   **FAIL:** no hint appears, or the hint appears and the long-press does nothing.
   _(Gated on `Platform.OS === 'ios'`, so neither the web suite nor an Android run can see it.)_
 
-- [x] `[M◐]` **§13.4 — the trajectory mark does not bury a different chart** _(any iPhone, both themes.)_ `✅auto·31812114150`
+- [x] `[M◐]` **§13.4 — the trajectory mark does not bury a different chart** _(any iPhone, both themes.)_ `✅auto·32042253465`
   With tips reset, open **Progress**.
   **PASS:** the **"Drag the curve"** hint is readable and the payoff trajectory it names is still visible.
   **FAIL/JUDGE:** it covers the cash-flow chart above so completely that the screen reads as broken. It is
   placed ABOVE its subject deliberately (a hint must not cover the thing it explains); the judgement is
   whether obscuring the neighbouring chart is an acceptable price. Say which.
 
-- [x] `[M]` **§13.5 — a mark is a hint, not a modal** _(any iPhone.)_ `✅auto·31812114150`
+- [x] `[M]` **§13.5 — a mark is a hint, not a modal** _(any iPhone.)_ `✅auto·32042253465`
   While any mark is showing, use the screen underneath — scroll it, tap a field.
   **PASS:** everything behind stays fully usable; the mark does not block touches.
   **FAIL:** taps land on nothing, or the screen is frozen until you dismiss.
 
-- [x] `[M]` **§13.6 — VoiceOver hears each hint ONCE** _(VoiceOver ON.)_ `✅auto·31812114150`
+- [x] `[M]` **§13.6 — VoiceOver hears each hint ONCE** _(VoiceOver ON.)_ `✅auto·32042253465`
   Reset tips, then open Edit debt (§13.1) and Progress (§13.4).
   **PASS:** the hint is announced as **one** sentence, once.
   **FAIL:** you hear it **twice** — that means both the root layer and the sheet's own copy are live, which
@@ -484,24 +484,24 @@ Premium** → **"See it in action"**.
 - [x] `[M]` **§12.0.1 — you can walk around.** The **tab bar is visible**, and Today / Progress / Money all
       switch when tapped.
       **PASS:** all three navigate, showing example figures on each.
-      **FAIL:** the bar is missing, or a tap does nothing (the old kiosk fence still holding). `✅auto·31822453981`
+      **FAIL:** the bar is missing, or a tap does nothing (the old kiosk fence still holding). `✅auto·32042253465`
 - [x] `[M]` **§12.0.2 — the disclosure follows you.** On **every** screen you land on, **"Example money"** is at
       the top, above the scroll.
       **FAIL:** any screen without it. ⚠️ **Highest-severity item in §12** — this run shows invented money
-      on the real app, and the marker is the only thing saying so. `✅auto·31822453981`
+      on the real app, and the marker is the only thing saying so. `✅auto·32042253465`
 - [ ] `[M◐]` **§12.0.3 — exactly ONE marker on screen.** ⏳ Web cannot answer this (its tab navigator leaves the
       previous screen painted, so two are visible); a device renders only the focused tab.
       **PASS:** one. **FAIL:** two stacked or overlapping.
 - [x] `[M]` **§12.0.4 — the way out is wherever you are.** **"Start my real plan"** sits beside the marker on
       every tab. Tap it from **Progress**, not Today.
       **PASS:** onboarding opens and **no example figures survive anywhere**.
-      **FAIL:** it is missing on some tab, or example money is still visible after exiting. `✅auto·31822453981`
+      **FAIL:** it is missing on some tab, or example money is still visible after exiting. `✅auto·32042253465`
 - [x] `[M]` **§12.0.5 — settings stay shut.** The **•••** More button is **greyed and unresponsive** on every
-      tab. **FAIL:** it opens — More carries **Reset** and preferences that write your REAL plan. `✅auto·31822453981`
+      tab. **FAIL:** it opens — More carries **Reset** and preferences that write your REAL plan. `✅auto·32042253465`
 - [x] `[M]` **§12.0.6 — your real plan is untouched.** Exit, then force-quit and reopen.
       **PASS:** your own data (or a genuinely empty app) — no persona debts, no $2,000 paycheck.
       **FAIL:** anything from the demo survived. ⚠️ This is the failure the whole sandbox exists to
-      prevent, and the legacy demo shipped it. `✅auto·31822453981`
+      prevent, and the legacy demo shipped it. `✅auto·32042253465`
 - [ ] `[M]` **§12.0.7 — poke at it.** Open a debt row, scrub the trajectory, try Can-I-Afford-This.
       **PASS:** it behaves like the real app. **FAIL:** anything crashes, or a change escapes to your plan.
 - [ ] `[M◐]` **§12.0.8 — VoiceOver.** Turn it on and enter the demo.

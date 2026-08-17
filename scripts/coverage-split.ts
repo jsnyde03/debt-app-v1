@@ -24,36 +24,21 @@
  * Usage:  npm run audit:coverage          → writes docs/audits/coverage-split.md
  *         npm run lint:coverage           → gate only, exits 1 on a structural defect
  */
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+/**
+ * ⛔ THE GRAMMAR MOVED OUT AT 4.1.9c, and the move is the point. The writer (`stamp-coverage.ts`) has to
+ * agree with this file about what a row is, what an id is, and where a stamp lives — down to the byte.
+ * Two private copies would have been agreeing copies, which is this repo's most-repeated defect shape
+ * (Wave A hit it three times in one wave). ⚡ **Proven inert: `coverage-split.md` is byte-identical
+ * across the extraction.**
+ */
+import {
+  parseChecklist, parseFlows, REPO_ROOT, CHECKLIST, AUTOMATABLE,
+  type Verdict, type Check, type Claim,
+} from './coverage-model.ts';
 
-const REPO_ROOT = join(import.meta.dirname, '..');
-const CHECKLIST = join(REPO_ROOT, 'docs', 'DEBT_3.5_DEVICE_QA_CHECKLIST.md');
-const FLOW_DIR = join(REPO_ROOT, 'apps', 'rn', '.maestro');
 const OUT = join(REPO_ROOT, 'docs', 'audits', 'coverage-split.md');
-
-/**
- * ⚠️ SINGLE SOURCE. §6's two subsections are lettered (`§6a.N`, `§6b.N`) and the BUILD deltas are
- * `§B2.N`/`§B3.N`. The first verifier written against these ids used `\d+|B\d+` and reported 14 false
- * failures against ids that were perfectly well formed. Every id regex in this file derives from here.
- */
-const IDCHARS = String.raw`(?:\d+[ab]?|B\d+)(?:\.\d+)*`;
-
-/**
- * ⭐ `X` JOINED THE TAXONOMY 2026-08-17 (4.1.6a.7.5) — a row a NATIVE DRIVER can carry.
- *
- * The letters are tools, not grades: `M` Maestro · `M◐` its automatable half · `A` Appium (exactly the
- * three ⌘-key rows) · `D` device-only · `—` not a check. Springboard rows could never become `[M]`,
- * because Maestro genuinely cannot see outside the app under test — that is the whole reason they were
- * filed `[D]`. Run `31830120940` measured `springboard.reachable=true springboard.elements=241`, so the
- * stated reason is false for XCUITest and those rows need a letter that says so.
- *
- * ⚠️ `X` IS A VERDICT, NOT A STATUS. It claims the row CAN be automated by this lane, never that it is —
- * exactly the axis this file separates. Re-verdicting moves rows out of the device pass and INTO
- * "coverable, not yet built"; it adds nothing to the covered column and is not supposed to.
- */
-type Verdict = 'M' | 'M◐' | 'A' | 'X' | 'D' | '—';
-const AUTOMATABLE: Verdict[] = ['M', 'M◐', 'A', 'X'];
 
 /**
  * 4.1.9c — ⭐ **CLAIMED IS NOT PROVEN, AND THIS FILE USED TO CONFLATE THEM.**
@@ -72,87 +57,10 @@ const AUTOMATABLE: Verdict[] = ['M', 'M◐', 'A', 'X'];
  *   a bare `[x]`      — a human ran it on real hardware. ⚠️ Never touched by automation, by design.
  *
  * ⚠️ The stamp records a RUN, not a flow verdict, which is exactly how the current 24 came to include
- * six from a red flow. The writer that fixes that needs a durable per-flow results file from the
- * workflow and lands with 4.1.9b; THIS half is the reader, and it makes the gap countable meanwhile.
+ * six from a red flow. ✅ **The writer landed at 4.1.9c — `scripts/stamp-coverage.ts`**, which reads the
+ * lane's durable `native-lane-results-<tier>.json` and can both place and REVOKE a stamp. The grammar
+ * both halves share lives in `coverage-model.ts`.
  */
-const STAMP_RE = /✅auto·(\d+)/;
-
-interface Check {
-  id: string; verdict: Verdict; section: string; done: boolean; title: string; line: number;
-  /** the run id from a `✅auto·<runId>` stamp; undefined for a bare `[x]` or an unticked row */
-  stamp?: string;
-}
-interface Claim { id: string; kind: 'COVERS' | 'PARTIAL'; why: string; flow: string; line: number }
-
-// ── the checklist ─────────────────────────────────────────────────────────────────────────────────
-/**
- * ⚠️ A row's id is its LEADING token, and even that is not sufficient on its own: §9 carries a prose row
- * opening `**§11 · §12 · §13 clean = …`, which is a citation, not a definition. A real id is always
- * followed by ` — ` (legacy, id inside the title span) or closed by `**` (id in its own span).
- */
-const ROW_RE = new RegExp(
-  String.raw`^\s*-\s*\[( |x|X)\]\s*\x60\[([^\]]+)\]\x60\s+\*\*§(${IDCHARS})(?:\*\*\s*|\s+—\s*)(.*)$`,
-);
-
-function parseChecklist(): { checks: Check[]; problems: string[] } {
-  const problems: string[] = [];
-  const checks: Check[] = [];
-  const lines = readFileSync(CHECKLIST, 'utf8').split(/\r?\n/);
-  let section = '(preamble)';
-  for (let i = 0; i < lines.length; i++) {
-    const h = lines[i].match(/^#{2,3}\s+(.*)$/);
-    if (h) { section = h[1].replace(/\s+—.*$/, '').replace(/[*_`]/g, '').trim(); continue; }
-    const bare = lines[i].match(/^\s*-\s*\[[ xX]\]/);
-    if (!bare) continue;
-    const m = lines[i].match(ROW_RE);
-    if (!m) { problems.push(`${CHECKLIST}:${i + 1} — checkbox row without a \`[verdict]\` + \`**§id**\`: ${lines[i].slice(0, 88)}`); continue; }
-    const [, box, verdict, id, title] = m;
-    if (!(['M', 'M◐', 'A', 'X', 'D', '—'] as string[]).includes(verdict)) {
-      problems.push(`${CHECKLIST}:${i + 1} — unknown verdict [${verdict}] on §${id}`);
-      continue;
-    }
-    // ⚠️ THE STAMP IS READ FROM THE WHOLE LOGICAL ROW, NOT FROM THIS LINE. Two reasons, and the second
-    // was measured the hard way: `title` is sliced to 96 chars, so a long check would lose its own
-    // provenance; and a checklist row WRAPS onto indented continuation lines, which is where a stamp
-    // naturally belongs — a row's first line usually ends mid-sentence. Reading only `lines[i]` counted
-    // five freshly machine-stamped rows as human-earned, collapsing the exact provenance distinction
-    // this file exists to keep. A block ends at the next row, a blank line, a heading, or a table.
-    let end = i;
-    while (end + 1 < lines.length) {
-      const nxt = lines[end + 1];
-      if (/^\s*-\s*\[[ xX]\]/.test(nxt) || /^\s*$/.test(nxt) || /^#{1,6}\s/.test(nxt) || /^\s*\|/.test(nxt)) break;
-      end++;
-    }
-    const stamp = lines.slice(i, end + 1).join('\n').match(STAMP_RE)?.[1];
-    checks.push({
-      id: `§${id}`, verdict: verdict as Verdict, section, done: box.toLowerCase() === 'x',
-      title: title.replace(STAMP_RE, '').replace(/\*\*/g, '').replace(/[_`]/g, '').replace(/\s+/g, ' ').trim().slice(0, 96),
-      line: i + 1, stamp,
-    });
-  }
-  const seen = new Map<string, number>();
-  for (const c of checks) {
-    if (seen.has(c.id)) problems.push(`duplicate id ${c.id} — lines ${seen.get(c.id)} and ${c.line}`);
-    seen.set(c.id, c.line);
-  }
-  return { checks, problems };
-}
-
-// ── the flows ─────────────────────────────────────────────────────────────────────────────────────
-const CLAIM_RE = new RegExp(String.raw`^#\s*(COVERS|PARTIAL):\s*§(${IDCHARS})\s*—\s*(.*)$`);
-
-function parseFlows(): Claim[] {
-  const claims: Claim[] = [];
-  for (const f of readdirSync(FLOW_DIR).filter((x) => x.endsWith('.yaml'))) {
-    const lines = readFileSync(join(FLOW_DIR, f), 'utf8').split(/\r?\n/);
-    for (let i = 0; i < lines.length; i++) {
-      const m = lines[i].match(CLAIM_RE);
-      if (!m) continue;
-      claims.push({ kind: m[1] as Claim['kind'], id: `§${m[2]}`, why: m[3].trim(), flow: f, line: i + 1 });
-    }
-  }
-  return claims;
-}
 
 // ── the gate ──────────────────────────────────────────────────────────────────────────────────────
 function gate(checks: Check[], claims: Claim[], problems: string[]): string[] {
@@ -193,6 +101,29 @@ function gate(checks: Check[], claims: Claim[], problems: string[]): string[] {
     }
   }
   return out;
+}
+
+/**
+ * ⚡ 4.1.9c — THIS NOTE INVERTED THE DAY THE WRITER LANDED, and left alone it would have become a
+ * permanent false alarm on a report whose only job is honesty.
+ *
+ * While stamps were placed by hand, each one named whichever run happened to prove that row, so
+ * *"everything traces to one run"* meant **one sample, stability unproven**. `stamp-coverage.ts`
+ * refreshes every row it can from the run it is given — so **one run is now the healthy state**: it says
+ * every machine-earned row was re-proved together, at one commit. **More than one run is the signal**,
+ * and it names rows whose claiming flow did not run in the latest pass.
+ *
+ * ⚠️ The assumption, stated: GitHub run ids increase monotonically, so the largest is the most recent.
+ * ⚠️ And what neither shape can tell you: the checklist keeps **no history**. A stamp says *proved at
+ * that run*, never *green for N runs running*.
+ */
+function staleNote(byRun: Map<string, number>, autoProven: Check[]): string {
+  if (byRun.size <= 1) {
+    return byRun.size === 0 ? '' : `\n✅ **Every machine-earned row was re-proved by the same run**, which is what \`npm run stamp:coverage\` produces from a green lane. ⚠️ It says *proved at that commit*, not *stable* — the checklist keeps no history.\n`;
+  }
+  const newest = [...byRun.keys()].reduce((a, b) => (Number(b) > Number(a) ? b : a));
+  const stale = autoProven.filter((c) => c.stamp !== newest);
+  return `\n⚠️ **${stale.length} machine-earned row(s) were NOT re-proved by the latest run (\`${newest}\`)** — ${stale.map((c) => c.id).join(' · ')}. Their claiming flow did not run in it (a single-tier dispatch does this), so each is proved against an older commit. ⛔ Not a failure; a red flow **revokes** its rows outright.\n`;
 }
 
 // ── the report ────────────────────────────────────────────────────────────────────────────────────
@@ -261,8 +192,8 @@ it cannot say whether the flow has ever executed, let alone passed. The ${claime
 claimed by flows that have never gone green — and each one used to be indistinguishable, in this
 report, from a check that passes on every run.
 
-**Machine-earned rows by run:** ${byRun.size ? [...byRun].map(([r, n]) => `\`${r}\` ${n}`).join(' · ') : '*(none)*'}
-${byRun.size === 1 ? `\n⚠️ **Every machine-earned row traces to a single run.** One run is one sample: it proves those flows passed once, on one runner, at one commit — not that they are stable. A regression is only visible once a second run disagrees.\n` : ''}
+**Machine-earned rows by run:** ${byRun.size ? [...byRun].sort((a, b) => Number(b[0]) - Number(a[0])).map(([r, n]) => `\`${r}\` ${n}`).join(' · ') : '*(none)*'}
+${staleNote(byRun, autoProven)}
 
 **Verdict spread:** \`[M]\` ${byVerdict('M')} · \`[M◐]\` ${byVerdict('M◐')} · \`[A]\` ${byVerdict('A')} · \`[X]\` ${byVerdict('X')} · \`[D]\` ${byVerdict('D')}
 
