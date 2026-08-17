@@ -43,9 +43,27 @@ jobs:
         with: { fetch-depth: 0 }
 
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
+        with: { node-version: 22, cache: npm }
 
-      - run: npm ci
+      # ⛔ THE SIBLING WORKFLOW ALREADY WROTE THIS DOWN, AND THE FIRST DEPLOY FAILED BECAUSE I DID NOT READ
+      # IT. A bare `npm ci` at the root leaves `apps/rn` with no `node_modules`, and `expo export` dies on
+      # `Failed to resolve plugin for module "expo-router"`. There are **no npm workspaces** here: root
+      # (core/tooling) and the RN app are two installs.
+      #
+      # ⚠️ And `npm ci` works at the root but NOT in `apps/rn` — that lockfile is out of sync with its
+      # package.json (~12 missing transitive entries), so `npm install --prefer-offline` is what the native
+      # lane and `web-e2e` both use there. Filed separately as its own fix; an unusable lockfile means
+      # installs are not reproducible, which deserves correcting deliberately rather than as a side effect.
+      - name: Install dependencies (root + apps/rn)
+        run: |
+          npm ci --no-audit --no-fund
+          npm --prefix apps/rn install --prefer-offline --no-audit --no-fund
+
+      # `tsconfig` maps `@core/*` → `apps/rn/core/*`, a symlink Metro creates at startup and does not
+      # commit. Harmless if Metro would make it anyway; required if anything reads it first.
+      - name: Link ./core so the bundler can resolve @core
+        working-directory: apps/rn
+        run: '[ -e core ] || ln -s ../../packages/core core'
 
       # ⚠️ `--clear` IS LOAD-BEARING, and it is measured (3.5.7.4). Metro's transform cache does NOT
       # invalidate on an `EXPO_PUBLIC_*` change, so an embed export can silently reuse transforms from a
