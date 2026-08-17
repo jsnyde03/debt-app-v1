@@ -14,10 +14,10 @@
 | **✅ Covered — PROVEN** | **24** | proved OUTRIGHT: 23 machine-earned `✅auto·<runId>` · 1 human-earned `[x]` |
 | **◐ Automatable half proven** | **9** | `[M◐]` — the lane's half is green; **the device-owed half is still owed** and its box stays for the human |
 | **⚠️ Claimed but UNPROVEN** | **0** | a flow declares it; no run has ever passed it. **These were counted as covered before 4.1.9c** |
-| **▶ Coverable, not yet built** | **64** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
-| **🎯 Permanently device-owed** | **34** | `[D]` — no lane will ever carry it |
+| **▶ Coverable, not yet built** | **74** | verdict permits automation, nothing claims it — **this is 4.1's remaining work** |
+| **🎯 Permanently device-owed** | **24** | `[D]` — no lane will ever carry it |
 | | | |
-| **🎯 The device pass** | **60** | `[D]` **+** the human half of every `[M◐]` (26) |
+| **🎯 The device pass** | **50** | `[D]` **+** the human half of every `[M◐]` (26) |
 | Real checks | 131 | 9 further rows are `[—]` — install steps and report-back prompts |
 
 ⛔ **A declaration is an author's claim, not a result.** `COVERS:` says what a flow is *meant* to test;
@@ -28,7 +28,10 @@ report, from a check that passes on every run.
 **Machine-earned rows by run:** `31812114150` 18 · `31822453981` 5
 
 
-**Verdict spread:** `[M]` 68 · `[M◐]` 26 · `[A]` 3 · `[D]` 34
+**Verdict spread:** `[M]` 68 · `[M◐]` 26 · `[A]` 3 · `[X]` 10 · `[D]` 24
+
+`[X]` = a **native driver** (XCUITest) can carry it. ⚠️ A verdict, not a status: these rows moved OUT of
+the device pass and INTO *coverable, not yet built*. Nothing about them is covered yet.
 
 ⚠️ **`[M◐]` rows appear in BOTH the coverage columns and the device pass.** That is not double-counting —
 a partial is automated in one half and manual in the other, and reporting only `[D]` would overstate
@@ -36,7 +39,7 @@ what comes off the device pass.
 
 ---
 
-## ▶ Coverable, not yet built — the remaining work (64)
+## ▶ Coverable, not yet built — the remaining work (74)
 
 | id | verdict | check | claimed by | proof |
 |---|---|---|---|---|
@@ -68,10 +71,20 @@ what comes off the device pass.
 | §4.4 | `[M]` | Tap (not long-press) a row → still opens the editor (long-press didn't break the tap). | — | ⚠️ **none** |
 | §4.5 | `[M]` | Swipe-to-delete still works alongside the long-press (both gestures coexist). | — | ⚠️ **none** |
 | §4.6 | `[M]` | Repeat the long-press on a Bill row and a Goal row (Money → Bills / Goals) — same menu. | — | ⚠️ **none** |
+| §5.2 | `[X]` | ✅ Each widget shows real data — your debt-free date, the payoff ring / % paid, and remaining bal | — | ⚠️ **none** |
+| §5.5 | `[X]` | Live update: in the app, pay down / edit a debt → within a minute (WidgetKit budget) the widget' | — | ⚠️ **none** |
+| §5.6 | `[X]` | ✅ Read-only: the widget has no buttons (by design — the interactive action lives on the Live Act | — | ⚠️ **none** |
+| §5.7 | `[X]` | Tap the widget → it opens the app. | — | ⚠️ **none** |
+| §6a.1 | `[X]` | "Clear · 2 days" → Lock Screen shows: a checkered-flag header ("PAYDAY IN 2 DAYS"), a green stat | — | ⚠️ **none** |
+| §6a.3 | `[X]` | "Tight · tomorrow" → amber/gold dot, "A little tight this paycheck", "Move $200 from savings to  | — | ⚠️ **none** |
+| §6a.4 | `[X]` | "At-risk · today" → red dot, "Very tight this paycheck", "$180 short of your obligations", "Toda | — | ⚠️ **none** |
+| §6a.5 | `[X]` | ✅ The state dot is the only thing that changes color across the three — the rest stays calm navy | — | ⚠️ **none** |
 | §6a.7 | `[M◐]` | Tap the "Payday landed" button (on the Live Activity itself) → open the app → ✅ the cycle has ro | — | ⚠️ **none** |
+| §6a.8 | `[X]` | "End activity" → the Live Activity disappears from the Lock Screen. | — | ⚠️ **none** |
 | §6a.9 | `[M]` | "Simulate 'Payday landed'" (the last QA button) → an alert confirms → Today shows the Undo / Kee | — | ⚠️ **none** |
 | §6b.1 | `[M]` | With Simulate Premium ON, set your next paycheck to ~2 days out: on Today, tap the "THIS PAYCHEC | — | ⚠️ **none** |
 | §6b.2 | `[M◐]` | Background the app, then reopen it → ✅ the Live Activity auto-starts (premium + within ~3 days). | — | ⚠️ **none** |
+| §6b.3 | `[X]` | Deep link: tap the Live Activity (Lock Screen or Island) → ✅ it opens the app to Today. | — | ⚠️ **none** |
 | §6b.4 | `[M◐]` | Toggle off: More → Preferences → Payday countdown → OFF → reopen → ✅ the activity doesn't start  | — | ⚠️ **none** |
 | §6b.5 | `[M◐]` | ⚠️ Note: on a free account (Simulate Premium OFF) the auto-start should not happen (premium-only | — | ⚠️ **none** |
 | §7.1 | `[M]` | 🅿️ More → Preferences → "Payday countdown" row is present only when premium (turn Simulate Prem | — | ⚠️ **none** |
@@ -147,7 +160,7 @@ run that has ever passed it. Until one does, it is a plan, not coverage.
 
 ---
 
-## 🎯 Permanently device-owed (34)
+## 🎯 Permanently device-owed (24)
 
 | id | verdict | check | claimed by | proof |
 |---|---|---|---|---|
@@ -163,20 +176,10 @@ run that has ever passed it. Until one does, it is a plan, not coverage.
 | §3.7 | `[D]` | 🅿️ RevenueCat paywall (only if testing IAP): open the paywall → the three plans render with rea | — | ⚠️ **none** |
 | §3.8 | `[D]` | Scanner: Money → Debts → Scan a statement → the camera/document scanner opens (permission prompt | — | ⚠️ **none** |
 | §5.1 | `[D]` | Add to Home Screen: long-press an empty Home area → + (top-left) → search "Debt Planner" → the " | — | ⚠️ **none** |
-| §5.2 | `[D]` | ✅ Each widget shows real data — your debt-free date, the payoff ring / % paid, and remaining bal | — | ⚠️ **none** |
 | §5.3 | `[D]` | Add to Lock Screen: long-press the Lock Screen → Customize → Lock Screen → add a widget → pick a | — | ⚠️ **none** |
 | §5.4 | `[D]` | StandBy: put the phone on a charger, landscape → the widget appears in StandBy. | — | ⚠️ **none** |
-| §5.5 | `[D]` | Live update: in the app, pay down / edit a debt → within a minute (WidgetKit budget) the widget' | — | ⚠️ **none** |
-| §5.6 | `[D]` | ✅ Read-only: the widget has no buttons (by design — the interactive action lives on the Live Act | — | ⚠️ **none** |
-| §5.7 | `[D]` | Tap the widget → it opens the app. | — | ⚠️ **none** |
-| §6a.1 | `[D]` | "Clear · 2 days" → Lock Screen shows: a checkered-flag header ("PAYDAY IN 2 DAYS"), a green stat | — | ⚠️ **none** |
 | §6a.2 | `[D]` | 📱 Dynamic Island: the same activity shows compact (dot + "in 2 days"); long-press it → expanded | — | ⚠️ **none** |
-| §6a.3 | `[D]` | "Tight · tomorrow" → amber/gold dot, "A little tight this paycheck", "Move $200 from savings to  | — | ⚠️ **none** |
-| §6a.4 | `[D]` | "At-risk · today" → red dot, "Very tight this paycheck", "$180 short of your obligations", "Toda | — | ⚠️ **none** |
-| §6a.5 | `[D]` | ✅ The state dot is the only thing that changes color across the three — the rest stays calm navy | — | ⚠️ **none** |
 | §6a.6 | `[D]` | "Payday day (button)" → on the Lock Screen card, a "Payday landed" button appears (📱 iOS 17+ on | — | ⚠️ **none** |
-| §6a.8 | `[D]` | "End activity" → the Live Activity disappears from the Lock Screen. | — | ⚠️ **none** |
-| §6b.3 | `[D]` | Deep link: tap the Live Activity (Lock Screen or Island) → ✅ it opens the app to Today. | — | ⚠️ **none** |
 | §10.3 | `[D]` | Split View + Stage Manager: drag the app narrow → it becomes the compact (bottom-bar) layout · w | — | ⚠️ **none** |
 | §10.4 | `[D]` | Move the pointer over a debt/bill row and a button → ✅ a subtle highlight (row raises to a light | — | ⚠️ **none** |
 | §10.8 | `[D]` | Both Light + Dark: the hover highlight + focus ring read on-brand, legible. | — | ⚠️ **none** |

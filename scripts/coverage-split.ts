@@ -39,8 +39,21 @@ const OUT = join(REPO_ROOT, 'docs', 'audits', 'coverage-split.md');
  */
 const IDCHARS = String.raw`(?:\d+[ab]?|B\d+)(?:\.\d+)*`;
 
-type Verdict = 'M' | 'M◐' | 'A' | 'D' | '—';
-const AUTOMATABLE: Verdict[] = ['M', 'M◐', 'A'];
+/**
+ * ⭐ `X` JOINED THE TAXONOMY 2026-08-17 (4.1.6a.7.5) — a row a NATIVE DRIVER can carry.
+ *
+ * The letters are tools, not grades: `M` Maestro · `M◐` its automatable half · `A` Appium (exactly the
+ * three ⌘-key rows) · `D` device-only · `—` not a check. Springboard rows could never become `[M]`,
+ * because Maestro genuinely cannot see outside the app under test — that is the whole reason they were
+ * filed `[D]`. Run `31830120940` measured `springboard.reachable=true springboard.elements=241`, so the
+ * stated reason is false for XCUITest and those rows need a letter that says so.
+ *
+ * ⚠️ `X` IS A VERDICT, NOT A STATUS. It claims the row CAN be automated by this lane, never that it is —
+ * exactly the axis this file separates. Re-verdicting moves rows out of the device pass and INTO
+ * "coverable, not yet built"; it adds nothing to the covered column and is not supposed to.
+ */
+type Verdict = 'M' | 'M◐' | 'A' | 'X' | 'D' | '—';
+const AUTOMATABLE: Verdict[] = ['M', 'M◐', 'A', 'X'];
 
 /**
  * 4.1.9c — ⭐ **CLAIMED IS NOT PROVEN, AND THIS FILE USED TO CONFLATE THEM.**
@@ -94,7 +107,7 @@ function parseChecklist(): { checks: Check[]; problems: string[] } {
     const m = lines[i].match(ROW_RE);
     if (!m) { problems.push(`${CHECKLIST}:${i + 1} — checkbox row without a \`[verdict]\` + \`**§id**\`: ${lines[i].slice(0, 88)}`); continue; }
     const [, box, verdict, id, title] = m;
-    if (!(['M', 'M◐', 'A', 'D', '—'] as string[]).includes(verdict)) {
+    if (!(['M', 'M◐', 'A', 'X', 'D', '—'] as string[]).includes(verdict)) {
       problems.push(`${CHECKLIST}:${i + 1} — unknown verdict [${verdict}] on §${id}`);
       continue;
     }
@@ -251,7 +264,10 @@ report, from a check that passes on every run.
 **Machine-earned rows by run:** ${byRun.size ? [...byRun].map(([r, n]) => `\`${r}\` ${n}`).join(' · ') : '*(none)*'}
 ${byRun.size === 1 ? `\n⚠️ **Every machine-earned row traces to a single run.** One run is one sample: it proves those flows passed once, on one runner, at one commit — not that they are stable. A regression is only visible once a second run disagrees.\n` : ''}
 
-**Verdict spread:** \`[M]\` ${byVerdict('M')} · \`[M◐]\` ${byVerdict('M◐')} · \`[A]\` ${byVerdict('A')} · \`[D]\` ${byVerdict('D')}
+**Verdict spread:** \`[M]\` ${byVerdict('M')} · \`[M◐]\` ${byVerdict('M◐')} · \`[A]\` ${byVerdict('A')} · \`[X]\` ${byVerdict('X')} · \`[D]\` ${byVerdict('D')}
+
+\`[X]\` = a **native driver** (XCUITest) can carry it. ⚠️ A verdict, not a status: these rows moved OUT of
+the device pass and INTO *coverable, not yet built*. Nothing about them is covered yet.
 
 ⚠️ **\`[M◐]\` rows appear in BOTH the coverage columns and the device pass.** That is not double-counting —
 a partial is automated in one half and manual in the other, and reporting only \`[D]\` would overstate

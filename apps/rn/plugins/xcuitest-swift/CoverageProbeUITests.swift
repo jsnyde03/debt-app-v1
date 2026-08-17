@@ -46,6 +46,18 @@ final class CoverageProbeUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 30), "the app under test never reached the foreground")
 
+        // ⛔ WAIT FOR CONTENT, NOT JUST FOREGROUND — otherwise `findings=0` is unreadable.
+        // Run 31832030295 returned 0 findings on all four types, which is plausible (this app has
+        // `a11y-axe`, `lint:a11y-props`, `lint:a11y-collapse` and the 3.5.3.9 audit over it) and
+        // indistinguishable from *auditing an empty screen*: `.runningForeground` means the process is
+        // frontmost, NOT that React has rendered. Requiring a known element first makes a zero mean
+        // "audited and clean" instead of "audited nothing".
+        // ⚠️ Reported, not asserted: if the element never appears the audit numbers below are not
+        // trustworthy, and saying so is more useful than failing a probe whose job is to report.
+        let anchor = app.descendants(matching: .any).matching(identifier: "tab-today").firstMatch
+        let rendered = anchor.waitForExistence(timeout: 20)
+        print("PROBE a11yAnchor id=tab-today rendered=\(rendered) elements=\(app.descendants(matching: .any).count)")
+
         guard #available(iOS 17.0, *) else {
             print("PROBE a11yAudit=unavailable reason=ios<17")
             throw XCTSkip("performAccessibilityAudit needs iOS 17+")

@@ -141,12 +141,12 @@ _Just confirm nothing regressed with all the new native modules added since buil
 
 ## §5 — 3.5.1 + 3.5.4 Widget (proves the App-Group data bridge)
 - [ ] `[D]` **§5.1** **Add to Home Screen:** long-press an empty Home area → **+** (top-left) → search **"Debt Planner"** → the **"Debt-Free Date"** widget → add the **small**, then **medium**, then **large**.
-- [ ] `[D]` **§5.2** ✅ Each widget shows **real data** — your **debt-free date**, the **payoff ring / % paid**, and **remaining balance** — and they **match what the app shows**. _(This is the whole App-Group test: if the widget shows an empty/"open the app" state or zeros while the app has data, the shared container isn't wired — tell me.)_
+- [ ] `[X]` **§5.2** ✅ Each widget shows **real data** — your **debt-free date**, the **payoff ring / % paid**, and **remaining balance** — and they **match what the app shows**. _(This is the whole App-Group test: if the widget shows an empty/"open the app" state or zeros while the app has data, the shared container isn't wired — tell me.)_
 - [ ] `[D]` **§5.3** **Add to Lock Screen:** long-press the Lock Screen → **Customize → Lock Screen** → add a widget → pick a Debt Planner **accessory** (circular / rectangular / inline).
 - [ ] `[D]` **§5.4** **StandBy:** put the phone **on a charger, landscape** → the widget appears in StandBy.
-- [ ] `[D]` **§5.5** **Live update:** in the app, pay down / edit a debt → within a minute (WidgetKit budget) the widget's numbers update.
-- [ ] `[D]` **§5.6** ✅ **Read-only:** the widget has **no buttons** (by design — the interactive action lives on the Live Activity).
-- [ ] `[D]` **§5.7** **Tap the widget** → it opens the app.
+- [ ] `[X]` **§5.5** **Live update:** in the app, pay down / edit a debt → within a minute (WidgetKit budget) the widget's numbers update.
+- [ ] `[X]` **§5.6** ✅ **Read-only:** the widget has **no buttons** (by design — the interactive action lives on the Live Activity).
+- [ ] `[X]` **§5.7** **Tap the widget** → it opens the app.
 
 ---
 
@@ -154,20 +154,20 @@ _Just confirm nothing regressed with all the new native modules added since buil
 
 ### 6a — via the QA trigger (fastest; no premium/date tuning)
 Go to **More → Developer / QA → Live Activity QA**. For each button, then **lock the phone** / pull down the Lock Screen to see the card:
-- [ ] `[D]` **§6a.1** **"Clear · 2 days"** → Lock Screen shows: a **checkered-flag** header ("PAYDAY IN 2 DAYS"), a **green** state dot, the title **"Looks clear this paycheck"**, the line **"Cushion safe · $420 free to deploy"**, and a **gold progress bar**.
+- [ ] `[X]` **§6a.1** **"Clear · 2 days"** → Lock Screen shows: a **checkered-flag** header ("PAYDAY IN 2 DAYS"), a **green** state dot, the title **"Looks clear this paycheck"**, the line **"Cushion safe · $420 free to deploy"**, and a **gold progress bar**.
 - [ ] `[D]` **§6a.2** 📱 **Dynamic Island:** the same activity shows **compact** (dot + "in 2 days"); **long-press** it → **expanded** (dot · countdown · title · line); the **minimal** state (dot) when another activity shares the Island.
-- [ ] `[D]` **§6a.3** **"Tight · tomorrow"** → **amber/gold** dot, "A little tight this paycheck", "Move $200 from savings to hold your line", "Tomorrow".
-- [ ] `[D]` **§6a.4** **"At-risk · today"** → **red** dot, "Very tight this paycheck", "$180 short of your obligations", "Today".
-- [ ] `[D]` **§6a.5** ✅ **The state dot is the only thing that changes color** across the three — the rest stays calm navy/gold. That's the intended "calm data-viz."
+- [ ] `[X]` **§6a.3** **"Tight · tomorrow"** → **amber/gold** dot, "A little tight this paycheck", "Move $200 from savings to hold your line", "Tomorrow".
+- [ ] `[X]` **§6a.4** **"At-risk · today"** → **red** dot, "Very tight this paycheck", "$180 short of your obligations", "Today".
+- [ ] `[X]` **§6a.5** ✅ **The state dot is the only thing that changes color** across the three — the rest stays calm navy/gold. That's the intended "calm data-viz."
 - [ ] `[D]` **§6a.6** **"Payday day (button)"** → on the Lock Screen card, a **"Payday landed"** button appears (📱 iOS 17+ only). 
 - [ ] `[M◐]` **§6a.7** **Tap the "Payday landed" button** (on the Live Activity itself) → open the app → ✅ the cycle has **rolled forward** and a **"Payday landed — Undo / Keep"** card is on **Today**. Tap **Undo** → it reverts. _(This is the AppIntent → App-Group queue → app-drains-on-foreground path — the machinery 3.5.5 will reuse.)_
-- [ ] `[D]` **§6a.8** **"End activity"** → the Live Activity **disappears** from the Lock Screen.
+- [ ] `[X]` **§6a.8** **"End activity"** → the Live Activity **disappears** from the Lock Screen.
 - [ ] `[M]` **§6a.9** **"Simulate 'Payday landed'"** (the last QA button) → an alert confirms → **Today** shows the **Undo / Keep** card → test **Undo** (reverts the roll) and, on a fresh sim, **Keep** (dismisses, roll stays).
 
 ### 6b — via the real auto-start flow 🅿️
 - [ ] `[M]` **§6b.1** With **Simulate Premium ON**, set your **next paycheck to ~2 days out**: on **Today**, tap the **"THIS PAYCHECK · <date> ✎"** row → set the next paycheck date 2 days from today → save.
 - [ ] `[M◐]` **§6b.2** **Background the app, then reopen it** → ✅ the Live Activity **auto-starts** (premium + within ~3 days). 
-- [ ] `[D]` **§6b.3** **Deep link:** tap the Live Activity (Lock Screen or Island) → ✅ it opens the app to **Today**.
+- [ ] `[X]` **§6b.3** **Deep link:** tap the Live Activity (Lock Screen or Island) → ✅ it opens the app to **Today**.
 - [ ] `[M◐]` **§6b.4** **Toggle off:** More → **Preferences → Payday countdown → OFF** → reopen → ✅ the activity **doesn't start** (and ends if running). Toggle back ON.
 - [ ] `[M◐]` **§6b.5** ⚠️ Note: on a **free** account (Simulate Premium OFF) the auto-start should **not** happen (premium-only) — the always-on widget is the free surface.
 
