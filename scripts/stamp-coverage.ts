@@ -61,7 +61,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   parseChecklist, parseFlows, parseSpecs, claimsById, blockEnd,
-  AUTOMATABLE, CHECKLIST, FLOW_DIR, ROW, STAMP_RE, STAMP_TOKEN_RE, stampToken, isPartialRow,
+  AUTOMATABLE, CHECKLIST, FLOW_DIR, REPO_ROOT, ROW, STAMP_RE, STAMP_TOKEN_RE, stampToken, isPartialRow,
   GATE_RE, GATE_TOKEN,
   type Check, type Claim,
 } from './coverage-model.ts';
@@ -101,18 +101,62 @@ interface Results {
  */
 function download(runId: string): string[] {
   const dir = mkdtempSync(join(tmpdir(), 'lane-results-'));
+
+  /**
+   * ⛔ `cwd: REPO_ROOT` AND AN EXPLICIT ARTIFACT LIST, both learned the hard way on 2026-08-17.
+   *
+   * `gh` infers the repository from the CURRENT DIRECTORY. This session's shell drifted out of the repo
+   * (a documented hazard here — the plan's Env note already says to use `git -C …`), so `gh run download`
+   * resolved a different repo, 404'd, and the `catch` below reported **"that tier is simply absent (rule
+   * ②), not failed"** — for a run whose artifacts were sitting there the whole time.
+   *
+   * ⚡ THAT IS THE EXACT FAILURE THIS SCRIPT'S RULE ② EXISTS TO CAUSE DELIBERATELY, arriving by accident:
+   * a lookup failure wearing the costume of a legitimate absence, and it fails SAFE-looking. Rule ② is
+   * right — a tier that did not run must not revoke anything — but it must apply to *a tier that did not
+   * run*, never to *a question that was asked wrongly*.
+   *
+   * So: the run's artifacts are ENUMERATED first. A name that is genuinely not in the list is an absence;
+   * anything else — a bad repo, no auth, a network failure — is an error that stops the script.
+   */
+  const gh = (args: string[]) => execFileSync('gh', args, { stdio: 'pipe', encoding: 'utf8', cwd: REPO_ROOT });
+
+  let names: string[];
+  try {
+    names = gh(['api', `repos/{owner}/{repo}/actions/runs/${runId}/artifacts`, '-q', '.artifacts[].name'])
+      .split('\n').map((s) => s.trim()).filter(Boolean);
+  } catch (e) {
+    return die(`could not list run ${runId}'s artifacts: ${(e as Error).message.trim()}\n   Not an absence — the question could not be asked. Check \`gh auth status\` and that the run id is this repo's.`);
+  }
+
   const found: string[] = [];
   for (const tier of ['iphone', 'ipad']) {
-    try {
-      execFileSync('gh', ['run', 'download', runId, '-n', `lane-diagnostics-${tier}`, '-D', join(dir, tier)], { stdio: 'pipe' });
-    } catch {
-      console.error(`⚠️  no \`lane-diagnostics-${tier}\` artifact on run ${runId} — that tier is simply absent (rule ②), not failed.`);
+    const artifact = `lane-diagnostics-${tier}`;
+    if (!names.includes(artifact)) {
+      console.error(`⚠️  run ${runId} has no \`${artifact}\` — that tier genuinely did not run (rule ②), so nothing about it is revoked.`);
       continue;
+    }
+    // ⚠️ RETRIED, because the very first run of the check above hit a genuine **HTTP 503** from GitHub's
+    // artifact API — twice — on an artifact that downloaded fine seconds later. A transient must not look
+    // like a result in either direction: not an "absence" (the bug this replaced), and not a hard failure
+    // that makes a five-second command unreliable. Three attempts, then it is a real failure and says so.
+    let downloaded = false;
+    let lastError = '';
+    for (let attempt = 1; attempt <= 3 && !downloaded; attempt++) {
+      try {
+        gh(['run', 'download', runId, '-n', artifact, '-D', join(dir, tier)]);
+        downloaded = true;
+      } catch (e) {
+        lastError = (e as Error).message.trim();
+        if (attempt < 3) console.error(`⚠️  ${artifact}: attempt ${attempt} failed, retrying…`);
+      }
+    }
+    if (!downloaded) {
+      return die(`\`${artifact}\` is listed on run ${runId} but would not download after 3 attempts: ${lastError}\n   An artifact that exists and cannot be fetched is a failure, not an absence.`);
     }
     const f = join(dir, tier, `native-lane-results-${tier}.json`);
     if (existsSync(f)) found.push(f);
   }
-  if (!found.length) die(`run ${runId} carried no \`native-lane-results-*.json\`. Older runs predate 4.1.9b.5; nothing to write from.`);
+  if (!found.length) die(`run ${runId} carried no \`native-lane-results-*.json\`. Runs before 4.1.9b.5 predate the file; nothing to write from.`);
   return found;
 }
 

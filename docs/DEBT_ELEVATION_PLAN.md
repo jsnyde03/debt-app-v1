@@ -55,7 +55,7 @@ The number 4.1 exists to produce, and the residual ledger that must not be carri
 | # | Step | State |
 |---|---|---|
 | **.1** | **Re-derive the exit number** from `coverage-split.md`, never from a doc quoting it | ✅ **26 proven** (20 native-run · 5 push-gate · 1 human) · 19 half · 60 coverable-not-built · **the device pass is 52** · 131 real checks |
-| **.2** | **The a11y `hitRegion` finding** — 2 real findings on both tiers, unlocated | ✅ the probe now prints each finding's `compactDescription` instead of only incrementing. ⚠️ Verified by run `32051842661` |
+| **.2** | **The a11y `hitRegion` finding** — 2 real findings on both tiers, unlocated | ◐ **The line compiles and prints** (run `32051842661`, both tiers) — and `compactDescription` says only *"Hit area is too small"*, so the findings are **characterised, not located**. See below |
 | **.3** | **The residual ledger** — each item fixed or filed with an owner | ✅ **the nightly landed** (07:00 UTC, `device=both`) and immediately surfaced a shipped defect — see below. Remaining residuals filed under *Open defects* |
 | **.4** | **[D35] 3.5's device pass FOLDS INTO Phase 6's** *(🎯 2026-08-17)* | ✅ **SETTLED.** One sitting, one checklist. The overlap disappears rather than being managed, and **3.5 now closes on its BUILD being done** — which it is. No row is run twice |
 | **.5** | **The exit statement**, and the CodeMagic build | ✅ **🎯 2026-08-17: 4.1 exits on a green `32051842661`.** The residual ledger rides into Phase 6 as known issues, not blockers — none of it moves the coverage number |
@@ -68,7 +68,25 @@ entire job is a gated native smoke before shipping. ⚡ **The iPhone tier read t
 *pattern-matched* and reddened the iPhone job, which is correct code — 4.1.9b.8's *"a verifier whose SCOPE
 is wider than the rule it enforces"*, inside ten minutes. Proven on a planted revert.
 
-**Exit:** 🎯's question from 2026-08-14 answered as a derived number, and the CodeMagic build released.
+**Exit:** ✅ **MET 2026-08-17 — run `32051842661` GREEN on all three jobs** (build · iPad · iPhone), the
+stamps refreshed to it, and the CodeMagic build released. **PHASE 4 IS COMPLETE.**
+
+⚠️ **[.2 after-scan] THE PROBE'S ANSWER IS HALF AN ANSWER, AND THE HALF IT IS MISSING IS THE ADDRESS.**
+`compactDescription` prints **`"Hit area is too small"`** — twice, both tiers, and nothing about *which*
+element. So the defect is now **characterised and still unlocated**. ⚡ The comment in the probe already
+names the next move and its precondition: *"widen it once a green run has proved this line compiles"* —
+which this run just did, so `issue.element`'s identifier and frame can be added at much lower risk.
+⛔ **Do NOT spend a dedicated ~50-minute dispatch on it: the NIGHTLY now exists and costs nothing.** →
+Phase 6 / the audit gate, as a real two-target a11y defect with a one-line diagnostic in front of it.
+
+⛔ **[.2 after-scan] `stamp:coverage --run` REPORTED A PRESENT ARTIFACT AS ABSENT — my own bug, and it
+failed in the safe-looking direction.** `gh` infers the repo from the **current directory**, the shell had
+drifted out of it (the hazard this plan's Env note already documents), and the `catch` announced *"that
+tier is simply absent (rule ②), not failed"* for a run whose artifacts were sitting there. ⚡ **Rule ② is
+right and was being applied to the wrong question.** Fixed: the run's artifacts are **enumerated** first,
+`cwd` is pinned to the repo root, a genuine absence is still an absence, and anything else stops the
+script. ⚠️ It then caught a real **HTTP 503** on its first outing — hence a 3-attempt retry, so a transient
+looks like neither an absence nor a failure.
 
 ### 🎯 THE ANSWER — what the lane carries, and what it never will
 

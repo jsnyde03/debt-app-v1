@@ -25,7 +25,7 @@ it cannot say whether the flow has ever executed, let alone passed. The 0 unprov
 claimed by flows that have never gone green — and each one used to be indistinguishable, in this
 report, from a check that passes on every run.
 
-**Machine-earned rows by run:** `32042253465` 20
+**Machine-earned rows by run:** `32051842661` 20
 
 ✅ **Every machine-earned row was re-proved by the same run**, which is what `npm run stamp:coverage` produces from a green lane. ⚠️ It says *proved at that commit*, not *stable* — the checklist keeps no history.
 
@@ -121,27 +121,27 @@ run that has ever passed it. Until one does, it is a plan, not coverage.
 
 | id | verdict | check | claimed by | proof |
 |---|---|---|---|---|
-| §B2.1 | `[M]` | "View Payoff Schedule" now opens — Money → tap a debt (edit sheet) → tap "View Payoff Schedule"  | `04-payoff-schedule` | `✅auto·32042253465` |
-| §1.2 | `[M]` | Lands on Today (if you have data) or onboarding (fresh install). If onboarding, either complete  | `01-launch-smoke` | `✅auto·32042253465` |
-| §10.1 | `[M]` | Landscape / full-screen (expanded): Money → Debts shows the list on the left + the edit form INL | `i01-ipad-boot` | `✅auto·32042253465` |
-| §11.10 | `[M]` | the walkthrough's one required gesture (any iPhone.) | `06-tutorial-interactions` | `✅auto·32042253465` |
+| §B2.1 | `[M]` | "View Payoff Schedule" now opens — Money → tap a debt (edit sheet) → tap "View Payoff Schedule"  | `04-payoff-schedule` | `✅auto·32051842661` |
+| §1.2 | `[M]` | Lands on Today (if you have data) or onboarding (fresh install). If onboarding, either complete  | `01-launch-smoke` | `✅auto·32051842661` |
+| §10.1 | `[M]` | Landscape / full-screen (expanded): Money → Debts shows the list on the left + the edit form INL | `i01-ipad-boot` | `✅auto·32051842661` |
+| §11.10 | `[M]` | the walkthrough's one required gesture (any iPhone.) | `06-tutorial-interactions` | `✅auto·32051842661` |
 | §11.15 | `[M]` | the highlight lands on its subject at iPad width — ✅ AUTOMATED 2026-08-13 (4.1.5.2). | `05-tutorial-walkthrough` | *human* `[x]` |
-| §14.1 | `[M]` | one Add, from all three sections. Money → Add from Debts, then from | `07-money-add-and-rescue` | `✅auto·32042253465` |
-| §14.2 | `[M]` | the answer lands where it says. Standing in Expenses, tap Add → "A debt". | `07-money-add-and-rescue` | `✅auto·32042253465` |
-| §14.3 | `[M]` | the first-run fork (fresh install / Reset, so onboarding runs). ⏳ Web e2e cannot | `07-money-add-and-rescue` | `✅auto·32042253465` |
-| §14.4 | `[M]` | the mis-file rescue (add an expense named "Mortgage" and one named "Rent", | `07-money-add-and-rescue` | `✅auto·32042253465` |
-| §14.5 | `[M]` | Move to Debts. Tap it on the Mortgage. | `07-money-add-and-rescue` | `✅auto·32042253465` |
-| §14.6 | `[M]` | "Not a debt" stays gone. Tap it on the Mortgage, force-quit, reopen. | `07-money-add-and-rescue` | `✅auto·32042253465` |
-| §13.1 | `[M]` | the payoff-schedule mark, inside a sheet (any iPhone. Reset first: More → Show feature | `08-coach-marks` | `✅auto·32042253465` |
-| §13.2 | `[M]` | "Got it" actually dismisses, and stays gone (any iPhone.) | `08-coach-marks` | `✅auto·32042253465` |
-| §13.3 | `[M]` | the iOS-ONLY row long-press mark (iPhone/iPad only; it cannot exist anywhere else.) | `01-launch-smoke` *(partial)* · `08-coach-marks` | `✅auto·32042253465` |
-| §13.5 | `[M]` | a mark is a hint, not a modal (any iPhone.) | `08-coach-marks` | `✅auto·32042253465` |
-| §13.6 | `[M]` | VoiceOver hears each hint ONCE (VoiceOver ON.) | `08-coach-marks` | `✅auto·32042253465` |
-| §12.0.1 | `[M]` | you can walk around. The tab bar is visible, and Today / Progress / Money all | `09-demo-explore` | `✅auto·32042253465` |
-| §12.0.2 | `[M]` | the disclosure follows you. On every screen you land on, "Example money" is at | `09-demo-explore` | `✅auto·32042253465` |
-| §12.0.4 | `[M]` | the way out is wherever you are. "Start my real plan" sits beside the marker on | `09-demo-explore` | `✅auto·32042253465` |
-| §12.0.5 | `[M]` | settings stay shut. The ••• More button is greyed and unresponsive on every | `09-demo-explore` | `✅auto·32042253465` |
-| §12.0.6 | `[M]` | your real plan is untouched. Exit, then force-quit and reopen. | `09-demo-explore` | `✅auto·32042253465` |
+| §14.1 | `[M]` | one Add, from all three sections. Money → Add from Debts, then from | `07-money-add-and-rescue` | `✅auto·32051842661` |
+| §14.2 | `[M]` | the answer lands where it says. Standing in Expenses, tap Add → "A debt". | `07-money-add-and-rescue` | `✅auto·32051842661` |
+| §14.3 | `[M]` | the first-run fork (fresh install / Reset, so onboarding runs). ⏳ Web e2e cannot | `07-money-add-and-rescue` | `✅auto·32051842661` |
+| §14.4 | `[M]` | the mis-file rescue (add an expense named "Mortgage" and one named "Rent", | `07-money-add-and-rescue` | `✅auto·32051842661` |
+| §14.5 | `[M]` | Move to Debts. Tap it on the Mortgage. | `07-money-add-and-rescue` | `✅auto·32051842661` |
+| §14.6 | `[M]` | "Not a debt" stays gone. Tap it on the Mortgage, force-quit, reopen. | `07-money-add-and-rescue` | `✅auto·32051842661` |
+| §13.1 | `[M]` | the payoff-schedule mark, inside a sheet (any iPhone. Reset first: More → Show feature | `08-coach-marks` | `✅auto·32051842661` |
+| §13.2 | `[M]` | "Got it" actually dismisses, and stays gone (any iPhone.) | `08-coach-marks` | `✅auto·32051842661` |
+| §13.3 | `[M]` | the iOS-ONLY row long-press mark (iPhone/iPad only; it cannot exist anywhere else.) | `01-launch-smoke` *(partial)* · `08-coach-marks` | `✅auto·32051842661` |
+| §13.5 | `[M]` | a mark is a hint, not a modal (any iPhone.) | `08-coach-marks` | `✅auto·32051842661` |
+| §13.6 | `[M]` | VoiceOver hears each hint ONCE (VoiceOver ON.) | `08-coach-marks` | `✅auto·32051842661` |
+| §12.0.1 | `[M]` | you can walk around. The tab bar is visible, and Today / Progress / Money all | `09-demo-explore` | `✅auto·32051842661` |
+| §12.0.2 | `[M]` | the disclosure follows you. On every screen you land on, "Example money" is at | `09-demo-explore` | `✅auto·32051842661` |
+| §12.0.4 | `[M]` | the way out is wherever you are. "Start my real plan" sits beside the marker on | `09-demo-explore` | `✅auto·32051842661` |
+| §12.0.5 | `[M]` | settings stay shut. The ••• More button is greyed and unresponsive on every | `09-demo-explore` | `✅auto·32051842661` |
+| §12.0.6 | `[M]` | your real plan is untouched. Exit, then force-quit and reopen. | `09-demo-explore` | `✅auto·32051842661` |
 | §12.2.3 | `[M]` | Start the walkthrough (More → How the Guardian works). Its tab bar is still visible — that | `demo-containment` ᵂ | `✅gate` |
 | §12.4.4 | `[M]` | "Start my real plan" → onboarding, no demo running, and your own plan is untouched — | `demo-containment` ᵂ | `✅gate` |
 | §12.5.2 | `[M]` | Scroll the content hard. The marker does not move — it sits above the scroller. | `demo-containment` ᵂ | `✅gate` |

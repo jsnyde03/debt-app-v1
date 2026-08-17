@@ -11052,3 +11052,56 @@ privacy claim.
 ⚠️ **The workflow asserts its own artifact before publishing** — that `index.html` references
 `/<repo>/_expo/` and that `canvaskit.wasm` is present. `upload-pages-artifact` will happily ship a blank
 site and Pages will serve it with a 200, and that step is the one place no test reaches.
+
+---
+
+## 2026-08-17 — PHASE 4 COMPLETE: run `32051842661` green, and two findings from closing it
+
+**All three jobs green** — build · iPad tier · iPhone tier. The stamps refreshed to it (32 rows), the
+headline held at **26 proven / device pass 52**, and 🎯's exit condition is met. **Phase 4 is closed and
+the CodeMagic build is released.**
+
+### ⚠️ THE a11y PROBE GAVE HALF AN ANSWER, AND SAID SO CLEANLY
+
+The change compiled and ran on both tiers, which was the open risk (Swift cannot be compile-checked off a
+Mac). It printed:
+
+```
+PROBE a11yFinding type=hitRegion n=1 issue=Hit area is too small
+PROBE a11yFinding type=hitRegion n=2 issue=Hit area is too small
+```
+
+⚡ **`compactDescription` names the problem and not the element.** So `hitRegion = 2` is now
+*characterised* — two hit targets below the minimum, reproducibly, on both tiers — and still *unlocated*.
+
+⛔ That is the honest result of deliberately shipping one property. The probe's own comment set the
+condition for widening — *"widen it once a green run has proved this line compiles"* — and this run met
+it, so `issue.element`'s identifier and frame can go in at much lower risk than before. **It does not earn
+a dedicated ~50-minute dispatch**: the nightly landed today and will answer it for free. → Phase 6 / the
+audit gate, as a real defect with a one-line diagnostic queued behind it.
+
+### ⛔ `stamp:coverage --run` CALLED A PRESENT ARTIFACT ABSENT — my bug, failing safe-looking
+
+Refreshing the stamps from the green run reported:
+
+```
+⚠️  no `lane-diagnostics-iphone` artifact on run 32051842661 — that tier is simply absent (rule ②), not failed.
+```
+
+Both artifacts were sitting on the run. `gh` infers the repository from the **current directory**, the
+shell had drifted out of the repo — a hazard this plan's own Env note documents (*"cwd drifts, use `git -C
+…`"*) — so the call 404'd against a different repo and the `catch` translated that into a legitimate
+absence.
+
+⚡ **Rule ② is correct and was being applied to the wrong question.** *A tier that did not run must not
+revoke anything* is right; *a question that could not be asked* is not an answer at all. The distinction
+is the entire subject of this item, and I built the confusion into the tool that exists to prevent it.
+
+▶ Fixed by **enumerating the run's artifacts first** (`gh api …/artifacts`), pinning `cwd` to the repo
+root so drift cannot reach it, and treating anything that is listed-but-unfetchable as a failure. ⚠️ It
+promptly caught a real **HTTP 503** — twice — on an artifact that downloaded fine seconds later, so a
+3-attempt retry went in: a transient must look like neither an absence nor a failure.
+
+⚡ **Three shapes of the same mistake in one day**, and it is worth naming as one: a truncated grep that
+read like a complete one, a driver stall that reads like a green suite, and a 404 that reads like an
+empty tier. **Every one of them fails toward "nothing to see here."**
