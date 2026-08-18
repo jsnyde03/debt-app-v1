@@ -4,6 +4,77 @@
 
 ---
 
+## T3B — the high+ sweep [D37] added (2026-08-18)
+
+**8 majors that were outside the gate**, found by auditing the plan against the findings. Closed: **7
+built, 2 verified-already-closed, 1 moved to its rightful owner.**
+
+- **L0-1 · L6-1 — VERIFIED CLOSED, not re-fixed.** Both were fixed by T1 and never recorded against
+  their ids: `scenario()` seeds a bill (the single remaining `requiredExpenses: []` carries a comment
+  saying it is deliberate), and strings-inventory rule ② consults both origin sets plus the key alias.
+  ⚡ This is [D37]'s traceability rule paying for itself — **an untraceable closure is indistinguishable
+  from an open finding**, and the cost of confirming it was two greps.
+- **L5-10** — `onSkip` sent the user to step 3, so "Skip for now" deleted the rest of setup rather than
+  deferring one question. One line.
+- **L5-3** — the everyday-spending door lived in the SectionList footer, and the zero-expense branch
+  returns before that list exists. So the card whose own comment says *"a door that only opens once you
+  are already inside is not a door"* was invisible to the one user who had nothing entered yet.
+- **L5-4** — the payoff schedule mapped every row, `MAX_MONTHS = 600`, synchronously during the push
+  transition. Now **12 rows + "Show all"**. ⚠️ NOT a `FlatList` render-prop: that would hand the host a
+  scroller and re-open the nested-scroller defect the existing comment records.
+- **L5-8** — `cushion-forecast` was two `isPremium ? … : null` lines, so a free read rendered a title, a
+  chevron and empty space: the app's only screen that could render completely dead. Now a premium card.
+- **L5-7** — font-scale caps + `numberOfLines` on all three tab heroes (13 other large-number sites
+  already had them), and the hero legend can wrap instead of pushing its third value off a 375pt row.
+- **L5-11** — the finish line is a ladder of real facts (`store/onboardingFinish.ts`): debt-free date →
+  their next payday → generic only when nothing at all is known.
+- **L4-2 → T6.** Nine money formatters is one rule; closing it here would split it across two items.
+
+### ⛔ L0-5 — the fourth member of the RNW-drops-it class
+
+The guard banned 2 of the 4 native-only a11y props. **Measured against the installed
+`react-native-web@0.21`:** its allowlist carries the FLATTENED `accessibilityChecked` /
+`accessibilityValueNow`, but **not** the object forms `accessibilityState={{…}}` / `accessibilityValue={{…}}`
+that React Native actually uses — so they are dropped, and a control announces its ROLE and never its
+STATE. On the build the entire e2e suite and the public embed run on.
+- **11 longhand sites across 9 files** migrated to `aria-*` helpers; added `a11yExpanded` (4 sites had
+  no helper). Both the script gate and the ESLint rule widened from 2 props to 4, **each
+  mutation-verified**.
+- ⚡ **`accessibilityElementsHidden` · `locateFile` · `Alert.alert` · now `accessibilityState`.** Four
+  for four. The general rule is in `CLAUDE.md`: check what RNW does with an RN API the first time you
+  use it, because the web build is what every test runs against.
+
+### L5-12 — the paywall names the reader's money *(🎯 approved)*
+
+`store/paywallLead.ts`, pure and tested: a shortfall leads with the shortfall and points at Recovery
+Plan; otherwise their flexible money plus the tier difference; `?from=` answers the feature they reached
+for; **null when there is no live plan**, because the route is deliberately open pre-onboarding.
+
+⛔ **The finding's own suggested copy was a claim this screen had already retired.** It proposed
+*"Premium keeps it at your line every payday, automatically"* — and **both halves are dead**: L1-2
+removed "autopilot" from this screen because the product says *"your Guardian suggests — it never moves
+your money"* twice elsewhere, and L1-3 removed the unconditional cushion hold because the Recovery Plan
+bullet two rows down sells the case where it does **not** hold. Written as suggested, this feature would
+have re-opened two findings T2 had just closed, on the highest-stakes screen in the app.
+- **So the offer is built from a MEASURED differentiator instead:** `effectivePaycheckBuffer` returns a
+  flat `BASE_PAYCHECK_BUFFER` ($50) for free and the user's chosen floor for premium. That is a fact
+  about the engine, it appears nowhere else on the screen, and no tight cycle can contradict it.
+- **A test pins the retired claims OUT of every branch** ("autopilot" · "automatic" · "every payday" ·
+  "keeps it at your line"), so a future copy pass cannot quietly reintroduce them.
+
+**T3B after-scan — two, both about verification:**
+
+1. ⛔ **A plant check matched the DOC COMMENT and reported success.** The mutation for the retired-claims
+   guard grepped for `every payday, automatically` — which the module's own comment quotes, at length,
+   while explaining why it is banned. `plant-applied=YES`, suite green, and **nothing had been planted**.
+   Sharpens the rule again: **grep for something unique to the plant, not for text the file may already
+   contain** — and prefer a line-numbered edit over a pattern.
+2. ⚠️ **Then the corrected mutation red on the wrong assertion** — the `$50` check sits ahead of the
+   retired-claims block, and the runner stops at the first failure, so the assertions that mattered were
+   still unproven. A second plant that SATISFIED the earlier check and violated only the later one is
+   what actually proved them. Same shape as T3.2's ordering lesson: **an assertion behind another is
+   proven only by the one in front of it.**
+
 ## T3 — WHOLE-ITEM after-scan (2026-08-18) · gate green, 187 e2e
 
 **All 7 closed**, `validate:release:rn` green end-to-end: **187 e2e** (+3) · 10 embed · +29 unit asserts ·

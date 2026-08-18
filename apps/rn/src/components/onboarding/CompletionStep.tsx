@@ -7,6 +7,7 @@ import { TextField } from '@/components/ui/TextField';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
 import { MAX_DISPLAY_NAME, normalizeDisplayName } from '@/store/greeting';
+import { finishLine } from '@/store/onboardingFinish';
 import { selectPayoffView } from '@/store/payoffSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { textStyles } from '@/theme/typography';
@@ -32,6 +33,7 @@ export function CompletionStep({ onComplete }: { onComplete: () => void }) {
   // has already written the paycheck + first debt to the store). Falls back gracefully if there's no date yet.
   const store = useAppStore((st) => st.store);
   const debtFreeDate = selectPayoffView(store).debtFreeDate;
+  const finish = finishLine(debtFreeDate, store.paycheck.nextPaycheckDate);
   return (
     <OnboardingLayout
       step={3}
@@ -50,14 +52,8 @@ export function CompletionStep({ onComplete }: { onComplete: () => void }) {
         <AppIcon name="celebration" size={34} color={c.accent.success} />
       </View>
       <View style={s.copy}>
-        <Text style={[textStyles.title1, { color: c.text.primary }]}>
-          {debtFreeDate ? `You could be debt-free by ${debtFreeDate}` : "You're all set"}
-        </Text>
-        <Text style={[textStyles.body, { color: c.text.secondary }]}>
-          {debtFreeDate
-            ? "That's your target — stay the course. Tap below to see exactly what to do with your next paycheck."
-            : 'Your plan is ready. Tap below to see exactly what to do with your next paycheck.'}
-        </Text>
+        <Text style={[textStyles.title1, { color: c.text.primary }]}>{finish.title}</Text>
+        <Text style={[textStyles.body, { color: c.text.secondary }]}>{finish.body}</Text>
       </View>
       <View style={s.list}>
         <TextField

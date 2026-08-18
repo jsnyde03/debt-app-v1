@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { CashRunwayChart } from '@/components/plan/CashRunwayChart';
 import { GuardianScorecard } from '@/components/plan/GuardianScorecard';
 import { Screen } from '@/components/screen';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectCalibrationScore } from '@/store/guardianSelectors';
 import { selectCashTimeline } from '@/store/payoffSelectors';
@@ -34,8 +35,27 @@ export default function CushionForecastScreen() {
 
   return (
     <Screen title="Your cushion forecast" onBack={() => router.back()}>
-      {isPremium ? <CashRunwayChart cycles={cycles} plan={plan} floor={floor} /> : null}
-      {isPremium ? <GuardianScorecard score={selectCalibrationScore(store)} /> : null}
+      {isPremium ? (
+        <>
+          <CashRunwayChart cycles={cycles} plan={plan} floor={floor} />
+          <GuardianScorecard score={selectCalibrationScore(store)} />
+        </>
+      ) : (
+        // T3B (audit L5-8) — the body was two `isPremium ? … : null` lines and nothing else, so a free
+        // read produced a title, a back chevron and empty space: the app's only screen that could render
+        // completely DEAD, against its own rule that nothing renders dead. Today's entry point is
+        // premium-gated, so an ordinary free user cannot arrive — but a lapsed or unresolved entitlement
+        // while the route is open, the QA toggle, and a deep link all can, and "cannot normally be
+        // reached" is not a reason to render nothing when reached.
+        <EmptyState
+          icon="insights"
+          title="Your cushion forecast is part of Premium"
+          body="See your cushion projected across the next six paydays, where it dips below your line, and how accurate your Guardian has been."
+          cta="See Premium"
+          onCta={() => router.push('/paywall?from=cushion-forecast')}
+          ctaTestID="cushion-forecast-premium-cta"
+        />
+      )}
     </Screen>
   );
 }

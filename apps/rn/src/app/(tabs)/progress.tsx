@@ -99,7 +99,7 @@ export default function ProgressScreen() {
             end={{ x: 1, y: 1 }}
             style={[styles.hero, elevation.hero[scheme]]}>
             <Text style={[textStyles.footnote, styles.eyebrow, { color: c.surface.heroSub }]}>DEBT-FREE</Text>
-            <Text style={[styles.heroDate, { color: c.surface.heroText }]}>Every balance cleared</Text>
+            <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.heroDate, { color: c.surface.heroText }]}>Every balance cleared</Text>
             <Text style={[textStyles.subhead, { color: c.surface.heroSub }]}>Your trophy shelf is below.</Text>
           </LinearGradient>
           <VanquishedArchive debts={vanquished} />
@@ -174,7 +174,7 @@ export default function ProgressScreen() {
           </View>
           <View style={styles.ringMeta}>
             <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]}>DEBT-FREE</Text>
-            <Text style={[styles.heroDate, { color: surf.heroText }]}>{view.debtFreeDate ?? '—'}</Text>
+            <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.heroDate, { color: surf.heroText }]}>{view.debtFreeDate ?? '—'}</Text>
             <Text style={[textStyles.subhead, { color: surf.heroSub }]}>
               {/* 3.3.6b — early on, lead FORWARD (the remaining as a goal) instead of a deflating "$0 paid". */}
               {/* HON-1: whole dollars on the headline journey figure — matches every other Phase-3 surface (formatWhole). */}

@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { formatCurrency } from '@core/utils/formatCurrency';
 
@@ -7,6 +8,9 @@ import { selectDebtAmortization } from '@/store/analysisSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+
+/** How many schedule rows mount before the reader asks for the rest — one year, read from the top. */
+const INITIAL_ROWS = 12;
 
 /** startDate + N months → "Aug 2026" (the month a schedule row lands in). */
 function monthLabel(startISO: string, months: number): string {
@@ -34,9 +38,13 @@ export function AmortizationView({ debtId }: { debtId: string | null }) {
   const c = useAppColors();
   const store = useAppStore((s) => s.store);
   const amort = debtId ? selectDebtAmortization(store, debtId) : null;
+  const [showAll, setShowAll] = useState(false);
 
   const schedule = amort?.schedule;
   const payoffPossible = schedule?.payoffPossible ?? false;
+  const allRows = schedule?.rows ?? [];
+  const visibleRows = showAll ? allRows : allRows.slice(0, INITIAL_ROWS);
+  const hiddenCount = allRows.length - visibleRows.length;
 
   if (!amort || !schedule) {
     return <Text style={[textStyles.body, styles.empty, { color: c.text.tertiary }]}>No schedule to show.</Text>;
@@ -72,8 +80,15 @@ export function AmortizationView({ debtId }: { debtId: string | null }) {
             <Text style={[textStyles.caption, styles.colVal, { color: c.text.tertiary }]}>BALANCE</Text>
           </View>
           {/* No inner ScrollView: both hosts (the route's Screen, the iPad pane) already scroll, and
-              nesting same-axis scrollers strands rows mid-list on device. */}
-          {schedule.rows.map((row) => (
+              nesting same-axis scrollers strands rows mid-list on device.
+              ⛔ T3B (audit L5-4) — but that left every row mounting at once, and `MAX_MONTHS = 600`: a
+              30-year mortgage is 360–600 rows × 4 `Text` nodes, built synchronously during the push
+              transition. Virtualizing is not available (it needs the scroller this deliberately does not
+              own), so the fix is to mount fewer: the first year, then on request the rest. A schedule is
+              read from the top — nobody scans month 287 first — so this costs the common reader nothing.
+              ⚠️ NOT a `FlatList` via render-prop: that would hand the host a scroller and re-open the
+              nesting defect the comment above records. */}
+          {visibleRows.map((row) => (
             <View key={row.month} style={styles.row}>
               <View style={styles.flex}>
                 <Text style={[textStyles.body, { color: c.text.primary }]}>{monthLabel(amort.startDate, row.month)}</Text>
@@ -84,6 +99,21 @@ export function AmortizationView({ debtId }: { debtId: string | null }) {
               <Text style={[textStyles.numericBody, styles.rowVal, { color: c.text.secondary }]}>{formatCurrency(row.endingBalance)}</Text>
             </View>
           ))}
+          {hiddenCount > 0 ? (
+            <Pressable
+              onPress={() => setShowAll(true)}
+              accessibilityRole="button"
+              accessibilityLabel={`Show all ${schedule.rows.length} months`}
+              testID="amortization-show-all"
+              style={styles.showAll}>
+              <Text style={[textStyles.subhead, { color: c.accent.primary }]}>
+                Show all {schedule.rows.length} months
+              </Text>
+              <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+                {hiddenCount} more {hiddenCount === 1 ? 'month' : 'months'} to {monthLabel(amort.startDate, schedule.monthsToPayoff)}
+              </Text>
+            </Pressable>
+          ) : null}
         </>
       )}
     </View>
@@ -108,6 +138,7 @@ export function AmortizationPane({ debtId }: { debtId: string | null }) {
 const styles = StyleSheet.create({
   root: { gap: spacing.sm },
   flex: { flex: 1 },
+  showAll: { paddingVertical: spacing.base, gap: 2 },
   empty: { paddingVertical: spacing.lg },
   echo: { gap: 2 },
   echoNum: { fontSize: 32, fontWeight: '800', letterSpacing: -0.5 },

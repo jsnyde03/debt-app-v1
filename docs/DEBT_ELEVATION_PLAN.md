@@ -39,7 +39,7 @@ narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those pass
 | **T3** | **Correctness** — concrete repro each | ✅ **Done 2026-08-18**, all 7 (L0-2/L5-9 · L5-2 · L5-1 · L3-3 · L5-5 · L5-6 · L5-14), **full gate green: 187 e2e** (+3), 29 new unit asserts, **every fix mutation-verified**, 2 new lint rules. ⛔ **Found while building: `Alert.alert` is a NO-OP in react-native-web** — 11 raw sites incl. the paywall behind the live embed. ⚡ **7 of 7 first-cut instruments were wrong in a way that would have PASSED** — detail → log |
 | **T4** | ⚠️ **The glossary — MUST precede every other wording edit** | L1-5/6/7/14/19/26/34 · L2-6/7/16. The cushion has **six** names, one of which is a different engine bucket. ⛔ **[T2 after-scan] NOT a copy edit — 129 exact-string copy assertions across 36 specs pin this vocabulary.** Renaming "cushion"/"expenses"/"floor" breaks tests by the dozen. **Budget for the specs, and prefer a shared copy constant or testID over re-pinning the new string** | |
 | **T5** | **Truth of claims** — promise vs delivery | L3-1/2/4/6/7 · L1-12/13/15/17/18. ⚠️ **[T2 after-scan] +1: `tutorialPath.ts:183`** — the finale's *"premium is what did the holding: your cushion kept at your line"*. Past-tense about the scripted demo, where it DID hold, so it is defensible — but it is the same claim family T2 rewrote in 3 places, and a free user reads it as what premium always does. **A judgment call, deliberately left for this step** | |
-| **T6** | **Numbers cohesion** — one rule, applied once, then enforced | L4-1/3/4/5/6/7/8/9/10 | |
+| **T6** | **Numbers cohesion** — one rule, applied once, then enforced | L4-1/3/4/5/6/7/8/9/10 · ⚠️ **[T3B] +L4-2** (nine money formatters, six hand-rolled inside Today's cards) — it was assigned nowhere; T6 owns it and it is high+, so [D37] requires it closes here | |
 | **T7** | **Voice & persona** | L1-8/9/10/11/16 | |
 | **T8** | **Drift / one-owner** — 20 dangerous, two tables **already diverged in production** | L2 ×23 · L0-3. ⚠️ **[T3.1 after-scan] +1: the `T00:00:00` parse is hand-written at ~65 sites across 39 files.** NOT a defect (it is the correct local parse) but the same one-rule-many-owners shape — and `@core/utils/localDate`'s `parseLocalDate` now exists as its owner | |
 
@@ -49,14 +49,14 @@ narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those pass
 ⛔ **Found by auditing the PLAN against the findings, 2026-08-18** — the ledger did not cover its own
 high+ set. **8 majors were parked, deferred or unassigned.**
 
-| # | Finding | Where it was |
+| # | Finding | State |
 |---|---|---|
-| **T3B.1** | **L4-2** — nine money formatters, six hand-rolled inside Today's cards | **unassigned.** Folds into **T6**, which owns numbers cohesion |
-| **T3B.2** | **L5-11** — onboarding's one memorable moment degrades to a platitude | **unassigned** |
-| **T3B.3** | **L5-3** · **L5-4** (600 unvirtualized rows) · **L5-8** (premium-only header, nothing under it) | parked at T11 |
-| **T3B.4** | **L0-5** (a11y guards cover 2 of 4 props, 11 files) · **L5-7** (no font-scale cap on 3 heroes) | parked at T9 |
-| **T3B.5** | **L5-10** ("Skip for now" skips two steps) · **L5-12** (paywall never names the user's own money) | pushed to Phase 6 |
-| **T3B.6** | **L0-1** (25 of 39 specs seed no bills) · **L6-1** (gate's origin lists skip the JSX path) | ⚠️ **look already closed by T1 — verify by id, do not re-fix** |
+| **T3B.1** | **L4-2** — nine money formatters, six hand-rolled inside Today's cards | ▶ **moved to T6**, which owns numbers cohesion — closing it here would split one rule across two items |
+| **T3B.2** | **L5-11** — onboarding's memorable moment degraded to a platitude | ✅ **Done.** A ladder of real facts (`store/onboardingFinish.ts`, pure + tested): debt-free date → their next payday → generic only when nothing is known. +6 asserts |
+| **T3B.3** | **L5-3** · **L5-4** · **L5-8** | ✅ **Done.** The everyday-spending door now renders in the zero-expense branch too · the schedule mounts **12 rows + "Show all"** (was up to 600 synchronously, on the push transition) · `cushion-forecast` has a premium card instead of a blank screen |
+| **T3B.4** | **L0-5** · **L5-7** | ✅ **Done.** Both guards widened from **2 of 4** native-only props to all four, **each mutation-verified**; 11 longhand sites across 9 files migrated to `aria-*` helpers (+ new `a11yExpanded`). Font-scale caps + `numberOfLines` on all three tab heroes, and the hero legend can now wrap |
+| **T3B.5** | **L5-10** · **L5-12** | ✅ **Both done** *(🎯 approved L5-12 2026-08-18)*. "Skip for now" defers ONE question. The paywall now leads with the reader's own money (`store/paywallLead.ts`, pure + tested): shortfall → Recovery Plan · else their flexible money + the **measured** tier difference (free protects a flat $50, premium the line you choose) · `?from=` answers the feature they reached for · **null pre-onboarding**. ⛔ **The finding's own suggested copy was the retired claim** — a test now pins "autopilot"/"automatic"/"every payday"/"keeps it at your line" OUT of every branch, mutation-verified |
+| **T3B.6** | **L0-1** · **L6-1** | ✅ **VERIFIED CLOSED by T1, not re-fixed.** `scenario()` seeds a bill (the one `requiredExpenses: []` left is documented as deliberate); rule ② consults both origin sets + the key alias |
 
 **Exit:** T1–T8 **and T3B** closed, **all 55 high+ traceable to a closure or a recorded refutation**,
 full gate green, and every fix that CAN be a lint rule IS one ([D31] — a finding that becomes a test is

@@ -13,6 +13,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { a11ySelected } from '@/utils/a11y';
 
 function money(n: number): string {
   return `$${Math.round(Math.max(0, Number.isFinite(n) ? n : 0)).toLocaleString('en-US')}`;
@@ -117,7 +118,7 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
             key={o.key}
             onPress={() => setSelected(o.key)}
             accessibilityRole="radio"
-            accessibilityState={{ selected: active }}
+            {...a11ySelected(active)}
             style={[styles.option, { borderColor: active ? c.accent.primary : c.border.default, backgroundColor: active ? c.background.secondary : 'transparent' }]}>
             <View style={styles.optHead}>
               <AppIcon name={active ? 'radio-button-checked' : 'radio-button-unchecked'} size={18} color={active ? c.accent.primary : c.text.tertiary} />
@@ -140,7 +141,7 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
         <Pressable
           onPress={() => setSelected('custom')}
           accessibilityRole="radio"
-          accessibilityState={{ selected: selected === 'custom' }}
+          {...a11ySelected(selected === 'custom')}
           style={[styles.option, { borderColor: selected === 'custom' ? c.accent.primary : c.border.default, backgroundColor: selected === 'custom' ? c.background.secondary : 'transparent' }]}>
           <View style={styles.optHead}>
             <AppIcon name={selected === 'custom' ? 'radio-button-checked' : 'radio-button-unchecked'} size={18} color={selected === 'custom' ? c.accent.primary : c.text.tertiary} />

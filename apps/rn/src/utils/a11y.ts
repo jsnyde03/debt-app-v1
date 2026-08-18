@@ -114,6 +114,21 @@ export function a11ySelected(selected: boolean): AccessibilityProps {
 }
 
 /**
+ * Whether a disclosure — a collapsible section header, a "what if" drawer, a ledger row — is open.
+ *
+ * Same mechanism and same measurement as {@link a11yChecked}: written longhand as
+ * `accessibilityState={{ expanded }}` it is dropped by react-native-web, so the header announces its
+ * role and never whether the thing it controls is open or shut. A screen-reader user is then told
+ * "button" and left to discover by trial whether anything happened.
+ *
+ * ⚠️ `expanded` describes the CONTROLLED region, not the control. It belongs on the header that toggles
+ * a section, not on the section itself.
+ */
+export function a11yExpanded(expanded: boolean): AccessibilityProps {
+  return { 'aria-expanded': expanded };
+}
+
+/**
  * Announce a transient change to screen readers — a new onboarding step, a crossed milestone, a
  * validation error, a blocking state that swaps in silently. Web-safe. Retained under Reduce Motion
  * (haptics + announcements are accessibility channels, not decoration).

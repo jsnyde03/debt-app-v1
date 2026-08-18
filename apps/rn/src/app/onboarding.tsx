@@ -33,7 +33,11 @@ export default function OnboardingScreen() {
           onDemo={isDemoReachable() ? () => router.push('/demo?from=welcome') : undefined}
         />
       ) : null}
-      {step === 1 ? <PaycheckStep onNext={() => setStep(2)} onSkip={() => setStep(3)} /> : null}
+      {/* T3B (audit L5-10) — `onSkip` went to step 3, so "Skip for now" did not defer ONE question, it
+          deleted the rest of setup: the debt/expense step was never offered, the progress dots jumped
+          from the 2nd to the 4th, and the user landed on Today with `no-paycheck` and a single prompt.
+          A skip defers the question in front of you; it does not decide the next one for you. */}
+      {step === 1 ? <PaycheckStep onNext={() => setStep(2)} onSkip={() => setStep(2)} /> : null}
       {step === 2 ? <FirstDebtOrBillStep onNext={() => setStep(3)} onSkip={() => setStep(3)} /> : null}
       {step === 3 ? <CompletionStep onComplete={() => appStore.getState().completeOnboarding()} /> : null}
     </>

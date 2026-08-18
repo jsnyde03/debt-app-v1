@@ -136,7 +136,15 @@ export function PlanHero({
       </Pressable>
 
       <View accessible accessibilityLabel={a11y}>
-        <CountUp value={shownPaycheck} format={money0} style={[styles.amount, { color: s.heroText }]} />
+        <CountUp
+          value={shownPaycheck}
+          format={money0}
+          // T3B (audit L5-7) — the three tab heroes were the ONLY large figures with no font-scale cap,
+          // while 13 other large-number sites already carry one. At AX5 a 40pt figure scales unbounded.
+          maxFontSizeMultiplier={1.3}
+          numberOfLines={1}
+          style={[styles.amount, { color: s.heroText }]}
+        />
 
         {/* the split — Required (solid, mandatory) + Safe (translucent, flexible); wipes in on mount */}
         <Animated.View style={[styles.bar, barStyle]}>
@@ -233,8 +241,10 @@ const styles = StyleSheet.create({
   amount: { fontSize: 40, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'], marginBottom: spacing.sm },
   bar: { flexDirection: 'row', height: 12, borderRadius: 6, overflow: 'hidden', gap: 3, transformOrigin: 'left' },
   seg: { height: 12, borderRadius: 3, minWidth: 6 },
-  legend: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md },
-  legendItem: { gap: 3 },
+  // T3B (audit L5-7): `flexWrap` + per-item `flexShrink`. Three 17pt five-digit values do not fit one
+  // 375pt row, and with no wrap and no shrink the third was pushed off rather than reflowed.
+  legend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg, marginTop: spacing.md },
+  legendItem: { gap: 3, flexShrink: 1 },
   legendHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   dot: { width: 8, height: 8, borderRadius: 4 },
   legendValue: { fontSize: 17, fontWeight: '700', letterSpacing: -0.3, fontVariant: ['tabular-nums'] },

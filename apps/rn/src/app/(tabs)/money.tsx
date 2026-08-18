@@ -46,7 +46,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { formatWhole, monthlyEquivalent } from '@/utils/format';
-import { decorative } from '@/utils/a11y';
+import { decorative, a11yExpanded } from '@/utils/a11y';
 
 /**
  * Money — the consolidated management hub (Elevation IA). One tab holds all three entity types as
@@ -647,6 +647,12 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
           onCta={onAdd}
           ctaTestID="money-add"
         />
+        {/* T3B (audit L5-3) — the everyday-spending door has to open on day ONE. Its own comment says
+            "a door that only opens once you are already inside is not a door", and its `livingTotal > 0`
+            gate was removed for exactly that reason — but the card lives in the SectionList footer, and
+            this branch returns before the SectionList exists. So the one user who most needs it, the one
+            with nothing entered yet, was still the one who could not see it. */}
+        <LivingReserve total={livingTotal} />
         {sheet ? <ExpenseSheet editing={sheet.editing} onClose={() => setSheet(null)} /> : null}
       </>
     );
@@ -825,7 +831,7 @@ function BillGroupHeader({
       onPress={disabled ? undefined : onToggle}
       disabled={disabled}
       accessibilityRole="button"
-      accessibilityState={{ expanded: open }}
+      {...a11yExpanded(open)}
       accessibilityLabel={`${title}, ${count} ${count === 1 ? 'bill' : 'bills'}, ${subtotalA11y}`}
       style={({ pressed }) => [styles.groupHeader, { opacity: pressed && !disabled ? 0.6 : 1 }]}>
       {!disabled ? (
@@ -954,7 +960,7 @@ function MoneyHero({ value, sub, caption, bar, onPress }: { value: string; sub: 
   const body = (
     <View style={styles.hero}>
       <View style={styles.heroTop}>
-        <Text style={[styles.heroNum, { color: c.text.primary }]}>{value}</Text>
+        <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.heroNum, { color: c.text.primary }]}>{value}</Text>
         {onPress ? <AppIcon name="chevron-right" size={22} color={c.text.tertiary} /> : null}
       </View>
       <Text style={[textStyles.subhead, { color: c.text.tertiary }]}>{sub}</Text>

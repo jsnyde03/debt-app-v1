@@ -19,7 +19,7 @@ import {
   type RequiredRow,
 } from '@/store/planSelectors';
 import type { Allocation } from '@/store/selectors';
-import { a11yHidden } from '@/utils/a11y';
+import { a11yHidden, a11yExpanded } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -163,7 +163,7 @@ function BucketBlock({
           onPress={collapsible ? onToggle : undefined}
           disabled={!collapsible}
           accessibilityRole={collapsible ? 'button' : 'header'}
-          accessibilityState={collapsible ? { expanded: open } : undefined}
+          {...(collapsible ? a11yExpanded(open) : {})}
           accessibilityLabel={`${bucket.title}, ${bucket.rows.length} ${bucket.rows.length === 1 ? 'item' : 'items'}, ${formatWhole(bucket.total)}`}
           style={styles.bucketHeader}>
           {collapsible ? (

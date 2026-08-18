@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { a11ySelected } from '@/utils/a11y';
 
 /** A vertical single-select list of options with an optional sublabel (e.g. the pay-cycle picker). */
 export function RadioGroup<T extends string>({
@@ -24,7 +25,7 @@ export function RadioGroup<T extends string>({
             key={o.value}
             onPress={() => onChange(o.value)}
             accessibilityRole="radio"
-            accessibilityState={{ selected: active }}
+            {...a11ySelected(active)}
             style={[
               styles.row,
               { backgroundColor: c.background.secondary, borderColor: active ? c.accent.primary : c.border.default },

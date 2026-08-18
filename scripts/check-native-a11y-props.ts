@@ -22,7 +22,11 @@ const REPO_ROOT = join(import.meta.dirname, '..');
 const ROOTS = [join(REPO_ROOT, 'apps', 'rn', 'src'), join(REPO_ROOT, 'apps', 'rn', 'tests')];
 /** The one place allowed to name them: the helper that maps `aria-hidden` onto the native props. */
 const EXEMPT = [join('apps', 'rn', 'src', 'utils', 'a11y.ts')];
-const BANNED = /\b(accessibilityElementsHidden|importantForAccessibility)\b/;
+// ⛔ L0-5: the guard covered 2 of the 4 native-only props. react-native-web drops all four identically —
+// `accessibilityState` and `accessibilityValue` have NO mapping to aria-* in `createDOMProps` — so a
+// control written longhand announces its role and never its state, and the whole web suite is blind to
+// it. Measured: 11 longhand sites across 9 files, incl. a checkbox that never said whether it was checked.
+const BANNED = /\b(accessibilityElementsHidden|importantForAccessibility|accessibilityState|accessibilityValue)\b/;
 const EXTS = new Set(['.ts', '.tsx', '.js', '.jsx', '.cjs', '.mjs']);
 
 function walk(dir: string, out: string[] = []): string[] {

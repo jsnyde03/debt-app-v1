@@ -134,6 +134,10 @@ is not evidence until you know which failure it would have caught.**
   `plant-applied=YES` and turned the suite red while proving nothing: the `sed` matched the same line in
   two functions and the run died on `ReferenceError`, a compile error rather than the defect.
   **Confirming a plant applied is not the same as confirming it applied ONLY where you meant.**
+  ⛔ **And grep for something UNIQUE TO THE PLANT, never for text the file may already contain.** A
+  plant check for `every payday, automatically` matched the module's own doc comment — which quotes the
+  phrase while explaining why it is banned — so it reported `plant-applied=YES` on a file where nothing
+  had been planted. Prefer a line-numbered edit (`sed -i '65c\…'`) over a pattern.
   ⚠️ These runners are throw-based and stop at the FIRST failure, so an assertion ordered behind another
   is only ever proven by that other one — put the assertion that matters most first.
 - **e2e:** `webServer` spawns its own `serve` on :4319 and can reuse a STALE one, serving an

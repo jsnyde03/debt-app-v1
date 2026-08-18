@@ -1,9 +1,12 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { isDemoReachable } from '@/config/qa';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { notify } from '@/utils/confirm';
+import { paywallLead } from '@/store/paywallLead';
+import { selectPlanSummary, selectRequiredRows } from '@/store/planSelectors';
+import { effectivePaycheckBuffer, selectAllocation } from '@/store/selectors';
 
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
@@ -16,6 +19,7 @@ import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { a11ySelected } from '@/utils/a11y';
 
 /** What Premium unlocks — effort-not-info framing: each line is a job the app DOES for you, not a fact
  * it tells you (the un-chattable test). BNPL handling is intentionally NOT here — it's free/all-tiers. */
@@ -100,6 +104,14 @@ export default function PaywallScreen() {
   const plan = useAppStore((s) => s.store.subscriptionPlan);
   const kind = premiumKind({ plan, premiumResolved, premiumIsLifetime });
   const client = getPurchasesClient();
+
+  // L5-12 — the reader's own numbers. `from` names the feature they reached for, so the offer can
+  // answer the thing they went looking for rather than a generic pitch.
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const store = useAppStore((s) => s.store);
+  const allocation = selectAllocation(store);
+  const summary = allocation ? selectPlanSummary(store, allocation, selectRequiredRows(store, allocation)) : null;
+  const lead = paywallLead(summary, effectivePaycheckBuffer(store), from);
 
   const [plans, setPlans] = useState<PlanView[]>(STATIC_PLANS);
   const [selectedKey, setSelectedKey] = useState<PlanKey>('annual');
@@ -223,6 +235,15 @@ export default function PaywallScreen() {
         </Text>
       </View>
 
+      {/* L5-12 — the reader's own money, above the abstract benefits. Renders only when a live plan
+          exists; the route is deliberately open pre-onboarding, and that viewer sees today's paywall. */}
+      {lead ? (
+        <View style={[styles.lead, { backgroundColor: c.background.tertiary, borderColor: c.border.subtle }]} testID="paywall-lead">
+          <Text style={[textStyles.subhead, styles.leadFact, { color: c.text.primary }]}>{lead.fact}</Text>
+          <Text style={[textStyles.subhead, { color: c.text.secondary }]}>{lead.offer}</Text>
+        </View>
+      ) : null}
+
       <View style={styles.benefits}>
         {PREMIUM_BENEFITS.map((b) => (
           <View key={b.text} style={styles.benefitRow}>
@@ -276,7 +297,7 @@ export default function PaywallScreen() {
                   key={plan.key}
                   onPress={() => setSelectedKey(plan.key)}
                   accessibilityRole="button"
-                  accessibilityState={{ selected: isSel }}
+                  {...a11ySelected(isSel)}
                   accessibilityLabel={`${plan.title}${plan.badge ? `, ${plan.badge}` : ''}, ${plan.priceString} ${plan.periodLabel}. ${plan.subnote}`}
                   style={[
                     styles.planRow,
@@ -350,6 +371,8 @@ const styles = StyleSheet.create({
   heroTitle: { textAlign: 'center', marginTop: spacing.xs },
   premiumBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: layout.cardRadius, borderWidth: StyleSheet.hairlineWidth },
   benefits: { gap: spacing.md },
+  lead: { gap: 4, padding: spacing.base, borderRadius: layout.cardRadius, borderWidth: StyleSheet.hairlineWidth },
+  leadFact: { fontWeight: '700' },
   benefitRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
   trust: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   loading: { marginVertical: spacing.xl },

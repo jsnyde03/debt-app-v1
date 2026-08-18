@@ -12,7 +12,7 @@ import type { DebtFreeBand } from '@/store/planSelectors';
 import type { DebtClearPoint, InterestSaved, TrajectoryPoint } from '@/store/payoffSelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-import { groupLabel } from '@/utils/a11y';
+import { groupLabel, a11yExpanded } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 
 import { TrajectoryCanvas } from './TrajectoryCanvas';
@@ -467,7 +467,7 @@ export function TrajectoryChart({
         style={[styles.whatIfToggle, { borderTopColor: c.border.subtle }]}
         accessibilityRole="button"
         accessibilityLabel="What if you paid extra?"
-        accessibilityState={{ expanded: whatIfOpen }}>
+        {...a11yExpanded(whatIfOpen)}>
         <Text style={[textStyles.subhead, styles.whatIfLabel, { color: c.text.secondary }]}>
           What if you paid extra?
         </Text>

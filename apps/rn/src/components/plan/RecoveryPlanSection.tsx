@@ -7,6 +7,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import type { RecoveryPlan } from '@/store/recoverySelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { a11yChecked } from '@/utils/a11y';
 
 /** Exact whole-dollar — matches the Guardian card's `money()` (concrete amounts the user acts on). */
 function money(n: number): string {
@@ -78,7 +79,7 @@ export function RecoveryPlanSection({
                   onPress={() => toggle(item.id)}
                   hitSlop={6}
                   accessibilityRole="checkbox"
-                  accessibilityState={{ checked: on }}
+                  {...a11yChecked(on)}
                   accessibilityLabel={`Defer ${item.name} ${money(item.amount)} to next paycheck`}
                   style={styles.rowMain}>
                   <AppIcon name={on ? 'check-box' : 'check-box-outline-blank'} size={20} color={on ? c.accent.primary : c.text.tertiary} />

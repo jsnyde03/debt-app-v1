@@ -8,6 +8,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import type { TimelineCycle, TimelineItem } from '@/store/payoffSelectors';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { a11yExpanded } from '@/utils/a11y';
 
 const LOW_CASH = 100; // running balance below this reads as a squeeze (Capacitor parity)
 
@@ -71,7 +72,7 @@ function CycleGroup({
       <Pressable
         style={styles.groupHead}
         accessibilityRole="button"
-        accessibilityState={{ expanded: open }}
+        {...a11yExpanded(open)}
         accessibilityLabel={`${title}, ${shortDate(cycle.cycleStart)} to ${shortDate(cycle.cycleEnd)}, ends ${formatCurrency(cycle.endingBalance)}`}
         onPress={onToggle}>
         <View style={styles.flex}>

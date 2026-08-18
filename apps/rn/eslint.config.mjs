@@ -40,10 +40,15 @@ export default defineConfig([
           // form (`{ 'accessibilityElementsHidden': true }`) walked straight past the rule written to
           // stop it. A computed/concatenated key remains expressible — stated plainly rather than
           // claimed closed, since the grep in `lint:a11y-props` is what actually closes the class.
+          // ⛔ L0-5 widened this from 2 props to 4. RNW drops all four identically: `accessibilityState`
+          // and `accessibilityValue` have no mapping to `aria-*` in `createDOMProps`, so a control
+          // written longhand announces its ROLE and never its STATE — a checkbox that never says whether
+          // it is checked, on the build the whole e2e suite and the public embed run on. 11 longhand
+          // sites across 9 files existed while the guard reported the class clean.
           selector:
-            "JSXAttribute[name.name=/^(accessibilityElementsHidden|importantForAccessibility)$/], Property[key.name=/^(accessibilityElementsHidden|importantForAccessibility)$/], Property[key.value=/^(accessibilityElementsHidden|importantForAccessibility)$/]",
+            "JSXAttribute[name.name=/^(accessibilityElementsHidden|importantForAccessibility|accessibilityState|accessibilityValue)$/], Property[key.name=/^(accessibilityElementsHidden|importantForAccessibility|accessibilityState|accessibilityValue)$/], Property[key.value=/^(accessibilityElementsHidden|importantForAccessibility|accessibilityState|accessibilityValue)$/]",
           message:
-            'Dropped silently by react-native-web (fences native only). Use a11yHidden(flag) or `decorative` from @/utils/a11y.',
+            'Dropped silently by react-native-web (native-only). Use a11yHidden / a11yChecked / a11ySelected / a11yExpanded / a11yAdjustableValue / `decorative` from @/utils/a11y.',
         },
         {
           // ⛔ 3.5.7.8 — A CLASS CLOSED AT SOME OF ITS MEMBERS, MEASURED. `locateFile` was hand-written in

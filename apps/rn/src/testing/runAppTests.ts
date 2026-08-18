@@ -138,6 +138,13 @@ async function main() {
   // biweekly-derived date the user did not choose.
   await import('../store/paycheckForm.test');
 
+  // T3B (L5-11) — the onboarding finish line is a ladder of real facts, never a generic reassurance.
+  await import('../store/onboardingFinish.test');
+
+  // T3B (L5-12) — the paywall leads with the reader's own money, and cannot re-introduce the two claims
+  // this screen already retired (L1-2 autopilot, L1-3 the unconditional cushion hold).
+  await import('../store/paywallLead.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

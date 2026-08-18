@@ -28,6 +28,7 @@ import type { ActiveRecommendedAction, RequiredRow } from '@/store/planSelectors
 import { spring } from '@/theme/motion';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { a11ySelected } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 
 function shortDate(iso?: string): string {
@@ -249,7 +250,7 @@ export function PaydayCaptureSheet({
                       key={id ?? row.item.label}
                       onPress={() => toggleRequired(id)}
                       accessibilityRole="button"
-                      accessibilityState={{ selected: paid }}
+                      {...a11ySelected(paid)}
                       style={[styles.reconcileRow, { borderColor: paid ? c.accent.success : c.border.default, backgroundColor: c.background.secondary }]}>
                       <View style={styles.reconcileText}>
                         <Text style={[textStyles.bodyMedium, { color: c.text.primary }]} numberOfLines={2}>
@@ -381,7 +382,7 @@ export function PaydayCaptureSheet({
                     <View key={action.key} style={[styles.extraRow, { borderColor: c.border.subtle, backgroundColor: c.background.secondary, opacity: skipped ? 0.55 : 1 }]}>
                       <View style={styles.flex}>
                         <Text style={[textStyles.bodyMedium, { color: c.text.primary }]} numberOfLines={2}>{action.label}</Text>
-                        <Pressable onPress={() => setOverride(key, { external: !external })} accessibilityRole="button" accessibilityState={{ selected: external }}>
+                        <Pressable onPress={() => setOverride(key, { external: !external })} accessibilityRole="button" {...a11ySelected(external)}>
                           <Text style={[textStyles.caption, { color: external ? c.accent.primary : c.text.tertiary }]}>
                             {external ? 'From savings ✓' : 'From savings'}
                           </Text>
