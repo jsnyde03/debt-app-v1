@@ -13,7 +13,12 @@ root, which **5.5.1 deletes**. The live app is `apps/rn` (Expo/RN) over `package
 It carries **▶ BUILDING NOW** (exactly one decomposed item), the phase table, the deferred
 backlog and the decision log. **Read it before touching anything.**
 
-**ACTIVE: audit-gate remediation — T1 · T2 · T3.1–T3.3 closed, ▶ T3.4 next.**
+**ACTIVE: audit-gate remediation — T1 · T2 · T3 · T3B closed. ▶ T4 (the glossary) is next.**
+⚠️ **T4 is NOT a copy edit** — **129 exact-string copy assertions across 36 specs** pin this vocabulary,
+and it must precede T5/T7/T8 or those passes edit the same words twice. Prefer a shared copy constant or
+a `testID` over re-pinning each new string. 🟠 **Un-reviewed new copy is on screen** — the paywall lead,
+the cushion-forecast premium card, the onboarding finish-line ladder. **Cheaper to adjust before T4
+re-pins assertions around it.**
 Phases 0–3 · 3.5 · 3.7 · 4 · **3.8** are closed, and the **whole-app audit has RUN**:
 7 lenses, **117 findings**, 12 refutations → [`docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md).
 

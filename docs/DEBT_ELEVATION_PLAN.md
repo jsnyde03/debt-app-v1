@@ -19,7 +19,7 @@
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 🎯 **2026-08-18: T1–T8 + T3B now. ⛔ [D37] every high+ closes this round; T9–T11 are SEQUENCED, not shelved.**
-✅ **T1 · T2 · T3 CLOSED 2026-08-18**, full gate green (187 e2e). ▶ **NEXT: T3B**, then T4–T8 in order.
+✅ **T1 · T2 · T3 · T3B CLOSED 2026-08-18**, full gate green (187 e2e · 10 embed · 0 error-context). ▶ **NEXT: T4 (the glossary)**, then T5–T8 in order.
 
 ⛔ **2 of 3 agent-declared blockers did NOT survive refutation, and the tally is now 3 of 4** — L1-1
 downgraded, L3-5's mechanism wrong (severity right), L1-4 downgraded (free DOES get a Guardian). Plus
@@ -44,23 +44,24 @@ narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those pass
 | **T8** | **Drift / one-owner** — 20 dangerous, two tables **already diverged in production** | L2 ×23 · L0-3. ⚠️ **[T3.1 after-scan] +1: the `T00:00:00` parse is hand-written at ~65 sites across 39 files.** NOT a defect (it is the correct local parse) but the same one-rule-many-owners shape — and `@core/utils/localDate`'s `parseLocalDate` now exists as its owner | |
 
 
-### ▶ T3B — the high+ sweep that [D37] adds _(built after T3.7, before T4)_
 
-⛔ **Found by auditing the PLAN against the findings, 2026-08-18** — the ledger did not cover its own
-high+ set. **8 majors were parked, deferred or unassigned.**
-
-| # | Finding | State |
-|---|---|---|
-| **T3B.1** | **L4-2** — nine money formatters, six hand-rolled inside Today's cards | ▶ **moved to T6**, which owns numbers cohesion — closing it here would split one rule across two items |
-| **T3B.2** | **L5-11** — onboarding's memorable moment degraded to a platitude | ✅ **Done.** A ladder of real facts (`store/onboardingFinish.ts`, pure + tested): debt-free date → their next payday → generic only when nothing is known. +6 asserts |
-| **T3B.3** | **L5-3** · **L5-4** · **L5-8** | ✅ **Done.** The everyday-spending door now renders in the zero-expense branch too · the schedule mounts **12 rows + "Show all"** (was up to 600 synchronously, on the push transition) · `cushion-forecast` has a premium card instead of a blank screen |
-| **T3B.4** | **L0-5** · **L5-7** | ✅ **Done.** Both guards widened from **2 of 4** native-only props to all four, **each mutation-verified**; 11 longhand sites across 9 files migrated to `aria-*` helpers (+ new `a11yExpanded`). Font-scale caps + `numberOfLines` on all three tab heroes, and the hero legend can now wrap |
-| **T3B.5** | **L5-10** · **L5-12** | ✅ **Both done** *(🎯 approved L5-12 2026-08-18)*. "Skip for now" defers ONE question. The paywall now leads with the reader's own money (`store/paywallLead.ts`, pure + tested): shortfall → Recovery Plan · else their flexible money + the **measured** tier difference (free protects a flat $50, premium the line you choose) · `?from=` answers the feature they reached for · **null pre-onboarding**. ⛔ **The finding's own suggested copy was the retired claim** — a test now pins "autopilot"/"automatic"/"every payday"/"keeps it at your line" OUT of every branch, mutation-verified |
-| **T3B.6** | **L0-1** · **L6-1** | ✅ **VERIFIED CLOSED by T1, not re-fixed.** `scenario()` seeds a bill (the one `requiredExpenses: []` left is documented as deliberate); rule ② consults both origin sets + the key alias |
+| **T3B** | **The high+ sweep [D37] added** | ✅ **Done 2026-08-18.** 8 majors that sat outside the gate: **7 built · 2 verified already-closed by T1 (not re-fixed) · L4-2 → T6.** ⛔ **L0-5 is the FOURTH member of the RNW-drops-it class** — `accessibilityState`/`accessibilityValue` object forms are dropped; 11 sites, 9 files, both guards widened 2→4 props. **L5-12's own suggested copy was a claim this screen had already retired twice** — built from a measured differentiator instead, with a test pinning the dead claims out. Detail → log |
 
 **Exit:** T1–T8 **and T3B** closed, **all 55 high+ traceable to a closure or a recorded refutation**,
 full gate green, and every fix that CAN be a lint rule IS one ([D31] — a finding that becomes a test is
 paid for once).
+
+### ▶ T4 — the glossary _(next; decompose at switch-in)_
+
+⚠️ **Not a copy edit.** **129 exact-string copy assertions across 36 specs** pin this vocabulary — the
+cushion has **six** names, one of which is a different engine bucket. Renaming breaks tests by the dozen;
+prefer a **shared copy constant or a `testID`** over re-pinning each new string. **Must precede T5/T7/T8**
+or those passes edit the same words twice.
+🟠 **First, though:** un-reviewed new copy is on screen from T3/T3B — the **paywall lead**, the
+**cushion-forecast premium card**, the **onboarding finish-line ladder**. Adjusting it is far cheaper
+BEFORE T4 re-pins assertions around it.
+⚠️ **Re-measure T8 at its own switch-in** — T3 collapsed several of its owners (`localDate`,
+`paydayFieldError`, `pickTopUpGoal`, `notify`), so its 23 L2 items likely overstate what remains.
 
 ⭐ **The audit paid for itself on work four hours old:** L4-1 — "Spoken for" renders `$486` on Today and
 `$486.34` in the sheet that legend opens. 184 tests and six lint gates could not see it, because both

@@ -4,6 +4,36 @@
 
 ---
 
+## Session close 2026-08-18 — T3 + T3B closed; the audit gate is half done
+
+**Closed this session:** **T3** (7 correctness findings) and **T3B** (8 high+ that were outside the
+gate). Two commits, both on a green `validate:release:rn`: `fb9a821`, `0b88483`. Gate now **187 e2e ·
+10 embed · 0 `error-context.md`**, +54 unit asserts, **3 new lint rules**, every fix mutation-verified.
+**Remaining: T4 → T5 → T6 → T7 → T8**, in that order.
+
+⚡ **The session's one durable lesson, and it is not about the app: 7 of 7 first-cut instruments in T3
+were wrong in a way that would have PASSED** — and T3B added three more misfires of the same kind (a
+plant that matched a doc comment, a plant proven by the wrong assertion, a suggested fix that carried a
+retired claim). The rate is the finding. **Treat a fresh probe, fixture, mutation or assertion as wrong
+until it has been shown to fail on the defect.** Folded into `CLAUDE.md`.
+
+⛔ **`react-native-web` silently drops native APIs — now FOUR confirmed:**
+`accessibilityElementsHidden` · `locateFile` · `Alert.alert` (`static alert() {}`) ·
+`accessibilityState`/`accessibilityValue`. Every one was invisible to the whole gate, because the gate
+runs on the web build. All four are now `no-restricted-syntax` rules. **This is the class most likely to
+produce the next one** — check RNW's handling the first time any RN API is used.
+
+**⚠️ Owed, and deliberately not done:**
+- 🟠 **New user-facing copy is un-reviewed** — the paywall lead, the cushion-forecast premium card, the
+  onboarding finish-line ladder. **Review before T4**, which re-pins assertions around this vocabulary.
+- ⚠️ **The device-pass debt grew**: storage-fault surfaces · `blocked` → Open Settings · AX5 font-scale
+  outcomes · the a11y STATE announcements. All ship on unit reasoning with **no rendered proof**, because
+  the web suite is structurally blind to native-only paths.
+- ⚠️ **Re-measure T8 at switch-in** — T3 collapsed several of its owners, so its item count overstates it.
+- ⚠️ **The verification round [D37] sets up has its conditions recorded** but has not run: verify blind
+  against the CODE (not these log entries), scope to fixes and what they introduced, stopping rule
+  written before the round.
+
 ## T3B — the high+ sweep [D37] added (2026-08-18)
 
 **8 majors that were outside the gate**, found by auditing the plan against the findings. Closed: **7
