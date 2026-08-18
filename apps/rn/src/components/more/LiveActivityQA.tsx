@@ -1,4 +1,6 @@
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+
+import { notify } from '@/utils/confirm';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -67,7 +69,7 @@ export function LiveActivityQA() {
           variant="text"
           onPress={() => {
             appStore.getState().applyPaydayLandedIntent();
-            Alert.alert('Payday landed', 'Rolled the cycle — check the Today tab for the Undo card.');
+            notify('Payday landed', 'Rolled the cycle — check the Today tab for the Undo card.');
           }}
         />
       </View>

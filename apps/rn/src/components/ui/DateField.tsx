@@ -2,6 +2,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { toLocalISODate } from '@core/utils/localDate';
+
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { layout, spacing } from '@/theme/spacing';
@@ -26,15 +28,12 @@ import { textStyles } from '@/theme/typography';
  * one. That ambiguity cost a CI cycle once already.
  */
 
-/** `YYYY-MM-DD` from a Date's LOCAL fields. Never `toISOString()` — see the note above. */
-function toLocalISO(d: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
+const toLocalISO = toLocalISODate;
 
 /**
- * Parse `YYYY-MM-DD` into a LOCAL Date. `new Date('2026-08-17')` is parsed as UTC midnight by spec,
- * which renders as the previous day west of UTC — the mirror image of the write-side bug.
+ * Parse `YYYY-MM-DD` into a LOCAL Date, tolerating a malformed value. `parseLocalDate` is the owner of
+ * the plain conversion; this adds the guard the picker needs — an unparseable stored value has to fall
+ * back to a real date rather than open the picker on `Invalid Date`.
  */
 function fromLocalISO(iso: string): Date {
   const [y, m, d] = iso.split('-').map(Number);

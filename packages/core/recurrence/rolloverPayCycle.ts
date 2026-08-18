@@ -1,12 +1,10 @@
 import type { Debt, RequiredExpense } from "@core/storage/debtPlannerStorage";
+import { parseLocalDate, toLocalISODate } from "@core/utils/localDate";
 
-function toDate(date: string) {
-    return new Date(`${date}T00:00:00`);
-}
-
-function toDateString(date: Date) {
-    return date.toISOString().slice(0, 10);
-}
+// ⚠️ The rollover advances EVERY bill and debt due date, so a date helper that is a day out here does not
+// stay a day out — it re-applies each cycle and the whole plan walks backwards.
+const toDate = parseLocalDate;
+const toDateString = toLocalISODate;
 
 function addDays(date: string, days: number) {
     const next = toDate(date);

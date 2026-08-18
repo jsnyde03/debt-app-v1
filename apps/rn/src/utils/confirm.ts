@@ -20,6 +20,33 @@ export function confirmDelete(message: string): Promise<boolean> {
   });
 }
 
+/**
+ * Tell the user something, on every platform. The one-way sibling of `confirmDelete`.
+ *
+ * ⛔ **`Alert.alert` is `static alert() {}` in react-native-web — an EMPTY FUNCTION.** Measured in
+ * `react-native-web@0.21`. So a message written with it is delivered on iOS and silently discarded on
+ * web, and no Playwright assertion can see the difference between that and a message nobody wrote. This
+ * file already knew it for the *confirm* direction; the one-way direction had no owner, so eleven call
+ * sites used the raw API.
+ *
+ * `actionLabel`/`onAction` add an optional second button (iOS), which degrades on web to a `confirm`
+ * whose OK runs the action — the same shape `confirmDelete` uses.
+ */
+export function notify(title: string, message: string, action?: { label: string; onPress: () => void }): void {
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined') return;
+    if (action && typeof window.confirm === 'function') {
+      if (window.confirm(`${title}\n\n${message}`)) action.onPress();
+      return;
+    }
+    if (typeof window.alert === 'function') window.alert(`${title}\n\n${message}`);
+    return;
+  }
+  Alert.alert(title, message, action
+    ? [{ text: 'Not now', style: 'cancel' }, { text: action.label, onPress: action.onPress }]
+    : undefined);
+}
+
 /** Confirm discarding unsaved edits before a sheet is dismissed by tap/swipe (3.4.5.5 dirty-guard). */
 export function confirmDiscard(): Promise<boolean> {
   const message = 'Discard your changes?';

@@ -12,11 +12,14 @@ export function Card({
   style,
   tone = 'default',
   padded = true,
+  testID,
 }: {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   tone?: 'default' | 'accent';
   padded?: boolean;
+  /** For a test that needs to hold "this card is present" — the contents are usually state-conditional. */
+  testID?: string;
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
@@ -24,6 +27,7 @@ export function Card({
   const border = tone === 'accent' ? c.border.default : c.border.subtle;
   return (
     <View
+      testID={testID}
       style={[
         styles.card,
         { backgroundColor: bg, borderColor: border },

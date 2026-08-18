@@ -1,6 +1,7 @@
 import { combinedHoldback } from "@core/guardian/holdbackComposition";
 import type { LivingExpense } from "@core/types/livingExpense";
 import type { Recurrence } from "@core/types/recurrence";
+import { toLocalISODate } from "@core/utils/localDate";
 
 export type Expense = {
 	id: string;
@@ -148,15 +149,9 @@ type AllocatePaycheckParams = {
 	expenseReserveContribution?: number;
 };
 
-/** A calendar date as `YYYY-MM-DD`, read from LOCAL components.
- *  ⛔ NEVER `toISOString().slice(0,10)` — `new Date("…T00:00:00")` is local midnight, which east of UTC is
- *  the PREVIOUS day once converted. This app stores calendar dates, not instants, so a UTC round-trip is a
- *  category error. Here it would shift an expanded occurrence's due date by a day and therefore reorder the
- *  due-date sort below — i.e. silently change WHICH bill the 3.8 reserve pays. */
-function localISODate(d: Date): string {
-	const pad = (n: number) => String(n).padStart(2, "0");
-	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
+/** ⚠️ Here a UTC round-trip would shift an expanded occurrence's due date by a day and therefore reorder
+ *  the due-date sort below — i.e. silently change WHICH bill the 3.8 reserve pays. */
+const localISODate = toLocalISODate;
 
 /** §2.5 default starter emergency-fund target (2.4.7.6) — the small buffer built before aggressive debt
  *  payoff (the standard sequence). [BUILD]-tunable, Phase 6. */

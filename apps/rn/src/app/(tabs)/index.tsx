@@ -271,19 +271,6 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
         onCta={() => setPaycheckSheet(true)}
       />
     );
-  } else if (planState === 'no-debts') {
-    content = (
-      <PromptCard
-        icon="add-circle-outline"
-        iconColor={c.accent.primary}
-        title="Add your first debt"
-        body="Your debt-free date is waiting. Add a debt to see your plan."
-        cta="Add a debt"
-        // Open the Add-Debt sheet right here (one tap) — no bounce to Money and a second tap. After
-        // adding, Today re-renders straight into the plan. (Jason 2026-07-25.)
-        onCta={() => setAddDebtOpen(true)}
-      />
-    );
   } else if (allocation && summary) {
     // 2.4.8 graduation — debt-free flows into the SAME autopilot (the Guardian persists, spare → savings),
     // with the calm permanent graduation banner + the ecosystem "next chapter" invite prepended. The
@@ -430,6 +417,25 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
             <TutorialFence>
               <LeanSuggestionCard nudge={leanNudge} />
             </TutorialFence>
+          </Motion>
+        ) : null}
+        {/* T3.2/L5-1 — a user with a paycheck and an expense but no debts used to get this card INSTEAD
+            of Today: no hero, no required rows, no "Spoken for", and no Guardian — even though the brief
+            was computed and thrown away. Onboarding offers "Debt | Expense" as equal choices, so that is
+            a path the product itself hands out, and it ended with the headline feature invisible until
+            you already had debt. It is an invitation now, and it sits BELOW the plan it adds to. */}
+        {planState === 'no-debts' ? (
+          <Motion delay={75}>
+            <PromptCard
+              icon="add-circle-outline"
+              iconColor={c.accent.primary}
+              title="Add your first debt"
+              body="Your plan is running. Add a debt and it will show you a debt-free date too."
+              cta="Add a debt"
+              // Open the Add-Debt sheet right here (one tap) — no bounce to Money and a second tap. After
+              // adding, Today re-renders straight into the plan. (Jason 2026-07-25.)
+              onCta={() => setAddDebtOpen(true)}
+            />
           </Motion>
         ) : null}
           </>

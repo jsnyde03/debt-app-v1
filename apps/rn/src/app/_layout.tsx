@@ -5,6 +5,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useStore } from 'zustand';
 
 import { AppLockGate } from '@/components/AppLockGate';
+import { SaveFailedBanner } from '@/components/SaveFailedBanner';
+import { StorageErrorScreen } from '@/components/StorageErrorScreen';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNotificationSync } from '@/hooks/use-notification-sync';
 import { useInitPremium } from '@/premium/premiumSync';
@@ -18,6 +20,7 @@ import { startLiveActivitySync } from '@/liveActivity/liveActivitySync';
 import { drainPendingActions } from '@/appIntents/drainPendingActions';
 import { addNotificationResponseListener, registerNotificationCategories } from '@/notifications/notifications';
 import { initErrorReporting, wrapRoot } from '@/utils/sentry';
+import { reportError } from '@/utils/reportError';
 import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
 import { DemoDirector } from '@/components/plan/DemoDirector';
 import { DemoAutoEntry } from '@/components/plan/DemoAutoEntry';
@@ -49,6 +52,27 @@ function navTheme(scheme: 'light' | 'dark') {
 }
 
 /**
+ * Open storage and hydrate, reporting a failure instead of throwing it away.
+ *
+ * ⚠️ `createStorageAdapter()` constructs MMKV SYNCHRONOUSLY, so a native-module init failure throws
+ * right here — before `bootstrapPersistence` is ever called, and therefore outside any handling
+ * `hydrate` does. That was one of the two paths that left `isHydrated` false forever; the other is a
+ * rejected `read()`, handled inside `hydrate`. Both now land on the same state, which is what lets one
+ * retry surface cover them.
+ */
+async function startPersistence(): Promise<void> {
+  let adapter;
+  try {
+    adapter = createStorageAdapter();
+  } catch (error) {
+    reportError(error, { seam: 'persistence' });
+    appStore.setState({ isHydrated: true, storageError: 'read-failed' });
+    return;
+  }
+  await bootstrapPersistence(adapter);
+}
+
+/**
  * Root layout — providers + the guarded Stack.
  *
  * The route-guard (B.3) routes on the PERSISTED `onboardingComplete` flag: onboarding until it's set,
@@ -62,6 +86,7 @@ initErrorReporting();
 function RootLayout() {
   const scheme = useColorScheme();
   const isHydrated = useAppStore((s) => s.isHydrated);
+  const storageError = useAppStore((s) => s.storageError);
   const onboardingComplete = useAppStore((s) => s.store.prefs.onboardingComplete);
   // 3.5.4.1 — read BOTH halves of the demo session here. `sandbox` supplies the store to the provider
   // below and `active` opens the route guard; `demoSession.end()` clears them in one `set`, so they
@@ -74,7 +99,11 @@ function RootLayout() {
   useEffect(() => {
     // Hydrate + autosave, THEN start mirroring the debt summary to the iOS widget's App-Group container
     // (3.5.1) — after hydrate so the first snapshot reflects real data. No-op on web/Android.
-    void bootstrapPersistence(createStorageAdapter()).then(() => {
+    void startPersistence().then(() => {
+      // A read failure stops here deliberately: none of the syncs below should mirror DEFAULTS out to
+      // the widget, a Live Activity or a queued intent while the retry surface is up — that would
+      // publish an empty plan to surfaces the user sees outside the app.
+      if (appStore.getState().storageError === 'read-failed') return;
       startWidgetSync();
       // 3.5.3 — drive the premium Payday Countdown Live Activity off the same hydrated store. No-op on
       // web/Android and when the OS/user has Live Activities off.
@@ -124,8 +153,23 @@ function RootLayout() {
     };
   }, []);
 
+  // Storage did not open. Say so and offer the retry, rather than rendering the app over defaults —
+  // the store deliberately holds no user data in this state, so the tabs would show an empty plan and
+  // read as "everything is gone".
+  if (storageError === 'read-failed') {
+    return (
+      <StorageErrorScreen
+        scheme={scheme}
+        onRetry={() => {
+          appStore.setState({ storageError: null, isHydrated: false });
+          void startPersistence();
+        }}
+      />
+    );
+  }
+
   // Render nothing until hydrate resolves, so a returning user never flashes onboarding. (On native
-  // the splash still covers this; a themed splash/retry surface lands at B.9.)
+  // the splash still covers this.)
   if (!isHydrated) return null;
 
   return (
@@ -196,6 +240,9 @@ function RootLayout() {
           {/* 3.5.8.3 + 3.5.7.5 — the capture and embed builds enter the demo on their own; inert
               everywhere else. ONE component for both: a second auto-starter would be a second definition
               of "entering the demo", which is the shape `isDemoReachable()` exists to prevent. */}
+          {/* T3.2 — above the navigator for the same reason the demo chrome is: a failed write is not a
+              property of whichever screen happened to be open when it happened. */}
+          <SaveFailedBanner />
           <DemoAutoEntry />
           <DemoDirector />
           <DemoDock />

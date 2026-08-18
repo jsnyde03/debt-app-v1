@@ -1,6 +1,7 @@
 import type { PayCycle } from "@core/payCycle/getNextPaycheckDate";
 import type { LivingExpense } from "@core/types/livingExpense";
 import type { CompletedRecommendedAction, Debt, RequiredExpense } from "@core/storage/debtPlannerStorage";
+import { toLocalISODate } from "@core/utils/localDate";
 
 export type DemoPlannerGoal = {
     id: string;
@@ -37,7 +38,7 @@ const NEXT_PAYCHECK_OFFSET = 14;
 function addDays(base: Date, days: number) {
     const result = new Date(base);
     result.setDate(result.getDate() + days);
-    return result.toISOString().slice(0, 10);
+    return toLocalISODate(result);
 }
 
 export function buildDemoPlannerState(today: Date = new Date()): DemoPlannerState {

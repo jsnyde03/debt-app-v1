@@ -1,6 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { parseLocalDate, toLocalISODate } from '@core/utils/localDate';
+
 import { AppIcon } from '@/components/ui/AppIcon';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { TextField } from '@/components/ui/TextField';
@@ -22,9 +24,9 @@ function shortDate(iso: string): string {
 
 function addPaychecks(iso: string, payCycle: string, n: number): string {
   const days = payCycle === 'weekly' ? 7 : payCycle === 'biweekly' ? 14 : payCycle === 'semimonthly' ? 15 : 30;
-  const d = new Date(`${iso}T00:00:00`);
+  const d = parseLocalDate(iso);
   d.setDate(d.getDate() + days * n);
-  return d.toISOString().slice(0, 10);
+  return toLocalISODate(d);
 }
 
 // A session-unique goal id via a module-level counter (not `Date.now()`, and not an inline global

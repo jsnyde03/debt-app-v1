@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { buildBnplSchedule, type BnplInstallmentEntry } from '@core/debt/bnplSchedule';
 import { formatCurrency } from '@core/utils/formatCurrency';
+import { parseLocalDate, toLocalISODate } from '@core/utils/localDate';
 
 import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -12,9 +13,9 @@ import { textStyles } from '@/theme/typography';
 const HORIZON_MONTHS = 6;
 
 function addMonths(iso: string, n: number): string {
-  const d = new Date(`${iso}T00:00:00`);
+  const d = parseLocalDate(iso);
   d.setMonth(d.getMonth() + n);
-  return d.toISOString().slice(0, 10);
+  return toLocalISODate(d);
 }
 
 function dayLabel(iso: string): string {

@@ -1,5 +1,7 @@
 import * as Notifications from 'expo-notifications';
 
+import { toLocalISODate } from '@core/utils/localDate';
+
 import type { RequiredExpense } from '@/data/models';
 
 /**
@@ -84,6 +86,26 @@ export async function requestNotificationPermission(): Promise<boolean> {
   return status === 'granted';
 }
 
+/**
+ * The permission outcome with the one bit a boolean cannot carry: whether asking again does anything.
+ *
+ * ⚠️ iOS shows its permission alert **once, ever**. After a decline, `requestPermissionsAsync` returns
+ * immediately with `denied` and no UI — so "the user just said no" and "the OS will never ask again"
+ * are the same `false` to a caller reading a boolean, and the only honest response to the second is to
+ * send them to Settings. `unsupported` is the web branch, where there is nothing to grant.
+ */
+export type NotificationPermission = 'granted' | 'blocked' | 'declined' | 'unsupported';
+
+export async function requestNotificationPermissionDetailed(): Promise<NotificationPermission> {
+  const current = await Notifications.getPermissionsAsync();
+  if (current.status === 'granted') return 'granted';
+  // `canAskAgain === false` means the OS will not present the prompt — a retry is silently a no-op.
+  if (!current.canAskAgain) return 'blocked';
+  const next = await Notifications.requestPermissionsAsync();
+  if (next.status === 'granted') return 'granted';
+  return next.canAskAgain ? 'declined' : 'blocked';
+}
+
 async function cancelKnown(): Promise<void> {
   await Promise.all(ALL_IDS.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));
 }
@@ -121,7 +143,7 @@ export async function syncNotifications({ nextPaycheckDate, requiredExpenses }: 
   }
 
   // Bills alert: 8pm two days before the earliest upcoming unpaid bill, unless that's the eve day.
-  const today = now.toISOString().slice(0, 10);
+  const today = toLocalISODate(now);
   const upcomingUnpaid = requiredExpenses
     .filter((e) => !e.isPaidThisCycle && e.dueDate > today)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));

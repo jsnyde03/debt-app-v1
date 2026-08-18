@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 import { scenario, seedStore, day } from './helpers/seed';
 
@@ -49,3 +49,28 @@ for (const theme of ['light', 'dark'] as const) {
     });
   }
 }
+
+/**
+ * T3.7 (audit L5-6) — the Notifications toggle must never fail in silence.
+ *
+ * `handleNotificationsToggle` used to be `if (granted) updatePrefs(...)` and nothing else. iOS presents
+ * its permission alert ONCE EVER, so for every user who declined it the first time, the switch flipped
+ * on, snapped back, and the app said nothing — a control that cannot work and never admits it.
+ *
+ * ⚠️ Web reaches the `unsupported` branch, not `blocked`, so this pins the INVARIANT (every non-granted
+ * outcome is spoken) rather than the iOS copy. The `blocked` → "Open Settings" path needs a real device
+ * and is on the Phase-6 device pass.
+ */
+test('the Notifications toggle explains itself when it cannot be turned on', async ({ page }) => {
+  const messages: string[] = [];
+  page.on('dialog', (d) => { messages.push(d.message()); void d.dismiss(); });
+
+  await seedStore(page, scenario({}));
+  await page.goto('/more');
+  await page.waitForTimeout(500);
+
+  await page.getByLabel('Notifications').click();
+  await page.waitForTimeout(500);
+
+  expect(messages.length, 'a failed enable says something (was: silent snap-back)').toBeGreaterThan(0);
+});

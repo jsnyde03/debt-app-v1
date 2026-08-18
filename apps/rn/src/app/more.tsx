@@ -7,7 +7,8 @@ import { InteractionManager, Linking, Platform, StyleSheet, Switch, Text, View }
 
 import { ExportBackupSheet, ImportBackupSheet } from '@/components/more/BackupSheets';
 import { SettingGroup, SettingRow } from '@/components/more/SettingRow';
-import { requestNotificationPermission } from '@/notifications/notifications';
+import { requestNotificationPermissionDetailed } from '@/notifications/notifications';
+import { notify } from '@/utils/confirm';
 import { Screen, Section } from '@/components/screen';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
@@ -63,16 +64,36 @@ export default function MoreScreen() {
   // later), so the row confirms in place. Without it the tap reads as a no-op and gets repeated.
   const [tipsReset, setTipsReset] = useState(false);
 
-  // Enabling requires OS permission first — only flip the pref if granted (a denied prompt leaves it
-  // off). Disabling flips immediately; the sync hook then cancels the schedule. (Web: permission
-  // returns false, so the toggle stays off — notifications are native-only.)
+  // Enabling requires OS permission first — the pref is only written on `granted`. Disabling flips
+  // immediately; the sync hook then cancels the schedule. Every non-granted outcome is SPOKEN, because
+  // a switch that springs back in silence is indistinguishable from a broken one.
   async function handleNotificationsToggle(next: boolean) {
     if (!next) {
       appStore.getState().updatePrefs({ notificationsEnabled: false });
       return;
     }
-    const granted = await requestNotificationPermission();
-    if (granted) appStore.getState().updatePrefs({ notificationsEnabled: true });
+    const result = await requestNotificationPermissionDetailed();
+    if (result === 'granted') {
+      appStore.getState().updatePrefs({ notificationsEnabled: true });
+      return;
+    }
+    // ⛔ This branch used to be `if (granted) …` and nothing else. iOS presents its permission alert
+    // ONCE EVER, so for everyone who declined it the first time the switch flipped on, snapped back,
+    // and the app said nothing at all — a control that cannot work and never admits it. Whatever the
+    // reason, say it; and when the OS will not re-prompt, the only thing that can help is Settings.
+    if (result === 'blocked') {
+      notify(
+        'Notifications are off for Debt Planner',
+        'iOS only asks once. You can turn them back on in Settings.',
+        { label: 'Open Settings', onPress: () => void Linking.openSettings() },
+      );
+      return;
+    }
+    if (result === 'declined') {
+      notify('Notifications stay off', 'You can turn them on here whenever you want a nudge before a bill is due.');
+      return;
+    }
+    notify('Not available here', 'Reminders are a feature of the iPhone app.');
   }
 
   // Reset flips `onboardingComplete=false`, which makes the root Stack.Protected guard swap

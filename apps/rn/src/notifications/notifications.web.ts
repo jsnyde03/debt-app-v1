@@ -15,6 +15,13 @@ export async function requestNotificationPermission(): Promise<boolean> {
   return false;
 }
 
+export type NotificationPermission = 'granted' | 'blocked' | 'declined' | 'unsupported';
+
+/** Web has nothing to grant — `unsupported`, so the caller says that rather than "open Settings". */
+export async function requestNotificationPermissionDetailed(): Promise<NotificationPermission> {
+  return 'unsupported';
+}
+
 export async function cancelAllNotifications(): Promise<void> {}
 
 /** Web no-op — returns false so the caller never stamps the notify-state without a delivered push. */

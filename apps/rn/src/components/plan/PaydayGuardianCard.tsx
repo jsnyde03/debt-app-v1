@@ -174,7 +174,11 @@ export function PaydayGuardianCard({
       : 'Premium works out how much to keep back each payday to protect your cushion, all on your device — no deciding each paycheck.';
 
   return (
-    <Card>
+    // `testID` on the CARD, not on a stat inside it: the stats are state-conditional (the safety-net
+    // figure does not render in `clear`), so a test asking "is the Guardian here at all" has to hold a
+    // handle that every state renders. T4 rewrites this card's vocabulary, so a string selector here
+    // would need re-pinning by the pass that renames it.
+    <Card testID="payday-guardian-card">
         <View
         {...groupLabel(
           // 3.5.3.2 — spoken FIRST, before the verdict. A VoiceOver user can't see the chip, and the

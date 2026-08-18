@@ -120,6 +120,54 @@ function run() {
   eq(bothPots?.goalName, 'Savings 1', 'A3.3 — a discretionary goal wins over the EF even when the EF is first');
   eq(bothPots?.isEmergencyFund, false, '…and it is not flagged as the emergency fund');
 
+  // ── T3.5 (audit L3-3) — WITHIN a type, the pick was still creation order ──
+  //
+  // [D24] ordered the categories and left the within-category pick on a bare `find`, i.e. on whichever
+  // pot the user created first. The user is then told a true thing about the WRONG pot: their line
+  // cannot be held, while money that would have held it sits one row down.
+  const tinyFirst = selectTightTopUp(
+    store({
+      premium: true, amount: '2000', debts: [{ balance: 5000, min: 100 }], bills: [1750], floor: 200,
+      // A  pot created BEFORE a  one, against a  gap. Find-order picks the .
+      goals: [{ type: 'savings', current: 10 }, { type: 'savings', current: 800 }],
+    }),
+  );
+  eq(tinyFirst?.goalName, 'Savings 1', 'L3-3 — prefers a pot that can COVER the gap over the one created first');
+  eq(tinyFirst?.topUp, 50, '…draws the gap, not the whole balance of the tiny pot');
+  eq(tinyFirst?.holdsLine, true, '…so the line actually holds (was: false, with  untouched)');
+
+  // ⚠️ The SAME shape with the order reversed. Without this, every case above picks the LAST goal, so a
+  // "take the last one" implementation passes the whole block — the assertion would be pinning array
+  // position rather than the rule.
+  const bigFirst = selectTightTopUp(
+    store({
+      premium: true, amount: '2000', debts: [{ balance: 5000, min: 100 }], bills: [1750], floor: 200,
+      goals: [{ type: 'savings', current: 800 }, { type: 'savings', current: 10 }],
+    }),
+  );
+  eq(bigFirst?.goalName, 'Savings 0', 'L3-3 — and it is the RULE, not the position: the big pot wins from index 0 too');
+  eq(bigFirst?.holdsLine, true, '…line holds either way round');
+
+  // No pot can cover it → the largest available, and holdsLine stays honestly false.
+  const noneSuffice = selectTightTopUp(
+    store({
+      premium: true, amount: '2000', debts: [{ balance: 5000, min: 100 }], bills: [1750], floor: 200,
+      goals: [{ type: 'savings', current: 5 }, { type: 'savings', current: 30 }],
+    }),
+  );
+  eq(noneSuffice?.topUp, 30, 'L3-3 — none sufficient → the LARGEST available, not the first');
+  eq(noneSuffice?.holdsLine, false, '…and it still says the line will not hold');
+
+  // ⚠️ [D24] is NOT reopened: a savings pot too small to hold the line still outranks a sufficient EF.
+  const smallSavingsBigEF = selectTightTopUp(
+    store({
+      premium: true, amount: '2000', debts: [{ balance: 5000, min: 100 }], bills: [1750], floor: 200,
+      goals: [{ type: 'savings', current: 10 }, { type: 'emergency', current: 5000 }],
+    }),
+  );
+  eq(smallSavingsBigEF?.isEmergencyFund, false, 'D24 holds — an insufficient SAVINGS pot still beats a sufficient EF');
+  eq(smallSavingsBigEF?.holdsLine, false, '…the line does not hold, and the safety net is left alone');
+
   // EF-only → still offered (a covered-but-tight cycle is what a cushion is for), but FLAGGED so the
   // copy can name it instead of calling it "savings".
   eq(tu?.isEmergencyFund, true, 'A3.3 — EF-only → still offered, and flagged as the emergency fund');

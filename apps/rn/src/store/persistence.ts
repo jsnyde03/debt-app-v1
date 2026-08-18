@@ -11,7 +11,9 @@ import type { DebtStoreInstance } from './store';
  * with the platform adapter; tests pass an isolated store + a `MemoryStorageAdapter`.
  */
 
-const SAVE_DEBOUNCE_MS = 500;
+/** Exported so a test can wait out the debounce rather than hard-code the same number beside it —
+ *  two copies of this constant is how a test starts passing because it out-waited nothing. */
+export const SAVE_DEBOUNCE_MS = 500;
 const bootstrapped = new WeakSet<object>();
 const flushers = new WeakMap<object, () => void>();
 
@@ -30,6 +32,15 @@ export async function bootstrapPersistence(
   bootstrapped.add(store);
 
   await store.getState().hydrate(adapter);
+
+  // ⛔ The read failed, so what is in `store` is DEFAULTS, not the user's data. Installing the autosave
+  // subscription now would let the first edit — or any startup write — overwrite a blob we merely could
+  // not open, which turns a transient storage fault into permanent data loss. Leave persistence
+  // uninstalled and drop the bootstrapped mark so the retry can run this again.
+  if (store.getState().storageError === 'read-failed') {
+    bootstrapped.delete(store);
+    return;
+  }
 
   let timer: ReturnType<typeof setTimeout> | null = null;
   const flush = () => {

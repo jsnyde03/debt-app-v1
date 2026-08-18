@@ -134,6 +134,10 @@ async function main() {
   // 3.5.4.9 — the funnel seam sends nothing without a sink, and honours opt-out at the choke point.
   await import('../analytics/funnel.test');
 
+  // T3.4 — the pay-cycle day fields are never guessed at: no date and a stated reason, never a
+  // biweekly-derived date the user did not choose.
+  await import('../store/paycheckForm.test');
+
   // (RS.6+ app-layer suites are appended here as they land.)
 
   console.log('\n✅ App-layer regression tests: ALL PASSED.\n');

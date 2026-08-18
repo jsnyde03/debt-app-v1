@@ -57,6 +57,19 @@ export default defineConfig([
           message:
             "CanvasKit's wasm path is owned by `canvasKitOpts` in @/utils/canvaskit — it has to honour the marketing embed's base path, and six hand-written copies is how five of them get fixed.",
         },
+        {
+          // ⛔ `Alert.alert` is `static alert() {}` in react-native-web — an EMPTY FUNCTION. A message
+          // written with it is delivered on iOS and silently DISCARDED on web, and no Playwright
+          // assertion can tell that apart from a message nobody wrote. `utils/confirm.ts` had known this
+          // for the confirm direction since 3.4.4; the one-way direction had no owner, so eleven call
+          // sites used the raw API — including the paywall's "purchases aren't available in this
+          // preview", which is the WEB message, on the surface behind a public marketing embed.
+          //
+          // A rule, not a convention, for the same reason as the two above: the linter knows every site.
+          selector: "MemberExpression[object.name='Alert'][property.name='alert']",
+          message:
+            'Alert.alert is a NO-OP on react-native-web (silently dropped). Use `notify` / `confirmDelete` / `confirmDiscard` from @/utils/confirm.',
+        },
       ],
     },
   },
@@ -65,6 +78,9 @@ export default defineConfig([
   // `utils/a11y.ts` is where the two props are legitimately written — it is the one file that knows what
   // `aria-hidden` expands to, and the rule above exists to keep it that way.
   { files: ['src/utils/a11y.ts'], rules: { 'no-restricted-syntax': 'off' } },
+  // `utils/confirm.ts` is the one file allowed to call `Alert.alert` — it is what the rule above points
+  // everything at, and the only place that knows the web fallback.
+  { files: ['src/utils/confirm.ts'], rules: { 'no-restricted-syntax': 'off' } },
   // Build output, the native/e2e trees, and the Playwright harness (node/@playwright — its own tsconfig).
   // ⛔ `dist-embed/**` — 3.5.7.4's embed build. It was added to `.gitignore` and NOT here, so `lint:rn`
   // stayed green on a clean checkout and exploded with **7,578 errors** on any machine that had run

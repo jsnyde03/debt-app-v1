@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { isPaydayAwaitingRollover, shouldPromptPaydayCapture } from '@core/debt/shouldPromptPaydayCapture';
 import type { PayCycle } from '@core/payCycle/getNextPaycheckDate';
+import { todayLocalISODate } from '@core/utils/localDate';
 
 import { useActiveStore } from '@/store/StoreContext';
 import { useAppStore } from '@/store/useAppStore';
@@ -13,9 +14,7 @@ function recencyWindowDays(payCycle: PayCycle): number {
   return (CYCLE_DAYS[payCycle] ?? 31) + 7;
 }
 
-function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+const todayISO = todayLocalISODate;
 
 export interface PaydayCapture {
   /** Whether the capture sheet should be shown. */

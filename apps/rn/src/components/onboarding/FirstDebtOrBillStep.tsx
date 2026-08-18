@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { toLocalISODate } from '@core/utils/localDate';
+
 import { Button } from '@/components/ui/Button';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import { TextField } from '@/components/ui/TextField';
@@ -19,7 +21,7 @@ function nextMonthFirst(): string {
   const d = new Date();
   d.setMonth(d.getMonth() + 1);
   d.setDate(1);
-  return d.toISOString().slice(0, 10);
+  return toLocalISODate(d);
 }
 
 export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {

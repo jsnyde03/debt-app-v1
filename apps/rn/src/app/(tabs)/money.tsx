@@ -692,7 +692,14 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
         bar={hasBar ? <AllocationBar segments={heroSegments} /> : undefined}
         onPress={recurring.length > 0 ? () => setBreakdownOpen(true) : undefined}
       />
-      {grouped ? <BillSearch value={query} onChange={setQuery} /> : null}
+      {/* T3.6 (audit L5-5) — `|| searching`, and that half is the fix. The field used to render on
+          `grouped` alone, but the flat branch still FILTERS by `query`: swipe-delete a bill while
+          searching, the count drops below the grouping threshold, and the field unmounts while the
+          query it wrote survives. The user is left looking at one row — or at "No bills match" — with
+          no search box and no way to clear it, and the only escape is leaving the tab.
+          The invariant, worth more than the case: never unmount the ONLY control that can undo a state
+          the user is still in. */}
+      {grouped || searching ? <BillSearch value={query} onChange={setQuery} /> : null}
 
       <SectionList
         style={styles.flex}

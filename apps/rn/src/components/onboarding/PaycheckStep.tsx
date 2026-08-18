@@ -10,7 +10,7 @@ import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
-import { formatPaycheckDate, nextPaycheckFrom, PAY_CYCLE_OPTIONS, PAYCHECK_ERRORS, PAYCHECK_FIELDS, PAYCHECK_LEAN_HELP, PAYCHECK_SECTIONS } from '@/store/paycheckForm';
+import { formatPaycheckDate, nextPaycheckFrom, paydayFieldError, PAY_CYCLE_OPTIONS, PAYCHECK_ERRORS, PAYCHECK_FIELDS, PAYCHECK_LEAN_HELP, PAYCHECK_SECTIONS } from '@/store/paycheckForm';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
@@ -31,6 +31,7 @@ export function PaycheckStep({ onNext, onSkip }: { onNext: () => void; onSkip: (
   const [lean, setLean] = useState('');
   const [error, setError] = useState('');
   const [leanError, setLeanError] = useState('');
+  const [paydayError, setPaydayError] = useState('');
 
   const nextDate = nextPaycheckFrom(payCycle, firstDay, secondDay, payDay);
 
@@ -40,6 +41,14 @@ export function PaycheckStep({ onNext, onSkip }: { onNext: () => void; onSkip: (
       return;
     }
     setError('');
+    // The cycle's day fields are as load-bearing as the amount: without them there is no next payday,
+    // and this used to continue anyway on a biweekly-derived date the user never chose.
+    const dayError = paydayFieldError(payCycle, firstDay, secondDay, payDay);
+    if (dayError || !nextDate) {
+      setPaydayError(dayError ?? PAYCHECK_ERRORS.paydayRequired);
+      return;
+    }
+    setPaydayError('');
     // Required once the switch is on — see `PaycheckSheet`. A floor of 0 leaves every variable-income
     // feature silent, which reads as "I turned it on and nothing happened."
     if (varies) {
@@ -119,16 +128,23 @@ export function PaycheckStep({ onNext, onSkip }: { onNext: () => void; onSkip: (
       {payCycle === 'semimonthly' ? (
         <View style={styles.pair}>
           <View style={styles.pairItem}>
-            <TextField label={PAYCHECK_FIELDS.firstPayday.label} value={firstDay} onChangeText={setFirstDay} placeholder={PAYCHECK_FIELDS.firstPayday.placeholder} keyboardType="number-pad" />
+            <TextField label={PAYCHECK_FIELDS.firstPayday.label} value={firstDay} onChangeText={(t) => { setFirstDay(t); setPaydayError(''); }} placeholder={PAYCHECK_FIELDS.firstPayday.placeholder} keyboardType="number-pad" />
           </View>
           <View style={styles.pairItem}>
-            <TextField label={PAYCHECK_FIELDS.secondPayday.label} value={secondDay} onChangeText={setSecondDay} placeholder={PAYCHECK_FIELDS.secondPayday.placeholder} keyboardType="number-pad" />
+            <TextField label={PAYCHECK_FIELDS.secondPayday.label} value={secondDay} onChangeText={(t) => { setSecondDay(t); setPaydayError(''); }} placeholder={PAYCHECK_FIELDS.secondPayday.placeholder} keyboardType="number-pad" />
           </View>
         </View>
       ) : null}
 
+      {/* One message under the PAIR rather than an `error` on each field: every reason the pair can be
+          wrong ("must be different", one of them blank) is a fact about the two together, and printing
+          it twice reads as two problems. Monthly has a single field, so it carries its error inline. */}
+      {payCycle === 'semimonthly' && paydayError ? (
+        <Text style={[textStyles.caption, { color: c.accent.danger }]}>{paydayError}</Text>
+      ) : null}
+
       {payCycle === 'monthly' ? (
-        <TextField label={PAYCHECK_FIELDS.monthlyPayday.label} value={payDay} onChangeText={setPayDay} placeholder={PAYCHECK_FIELDS.monthlyPayday.placeholder} keyboardType="number-pad" />
+        <TextField label={PAYCHECK_FIELDS.monthlyPayday.label} value={payDay} onChangeText={(t) => { setPayDay(t); setPaydayError(''); }} placeholder={PAYCHECK_FIELDS.monthlyPayday.placeholder} keyboardType="number-pad" error={paydayError} />
       ) : null}
 
       <View style={[styles.nextCard, { backgroundColor: c.background.tertiary, borderColor: c.border.subtle }]}>

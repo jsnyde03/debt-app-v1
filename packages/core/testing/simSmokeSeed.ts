@@ -1,3 +1,5 @@
+import { toLocalISODate } from "@core/utils/localDate";
+
 /**
  * iOS-Simulator smoke-test seed (Option A: a guarded debug seed).
  *
@@ -43,7 +45,7 @@ export function freezeClockForSimSmoke() {
 function iso(daysFromNow: number): string {
     const d = new Date();
     d.setDate(d.getDate() + daysFromNow);
-    return d.toISOString().slice(0, 10);
+    return toLocalISODate(d);
 }
 
 /** Bare-key state (gets the `debtPlanner.` prefix + JSON.stringify on apply), the

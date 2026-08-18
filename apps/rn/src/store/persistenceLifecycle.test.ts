@@ -1,7 +1,8 @@
 import { createDefaultStore } from '@/data/defaults';
 import { runMigrations } from '@/data/migrations';
 import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
-import type { StorageAdapter } from '@/storage/adapter';
+import { StorageLockedError, type StorageAdapter } from '@/storage/adapter';
+import { bootstrapPersistence, SAVE_DEBOUNCE_MS } from '@/store/persistence';
 import { createDebtStore } from '@/store/store';
 
 /**
@@ -31,7 +32,9 @@ class MockAdapter implements StorageAdapter {
   async read() {
     return this.blob;
   }
+  failWrites = false;
   async write(store: unknown) {
+    if (this.failWrites) throw new Error('disk full');
     this.writes++;
     this.blob = store;
   }
@@ -40,6 +43,18 @@ class MockAdapter implements StorageAdapter {
   }
   async clearQuarantine() {
     this.cleared++;
+  }
+}
+
+/** Storage that cannot be READ — a locked keychain, an MMKV that will not open. Counts writes so the
+ *  "must not overwrite what it could not read" assertion has something to check. */
+class ThrowingReadAdapter implements StorageAdapter {
+  writes = 0;
+  async read(): Promise<unknown | null> {
+    throw new StorageLockedError();
+  }
+  async write() {
+    this.writes++;
   }
 }
 
@@ -113,6 +128,50 @@ async function run() {
     await s.getState().save(a);
     eq(a.writes, before + 1, 'save → writes through the adapter');
     eq(s.getState().isSaving, false, '…and clears the saving flag when done');
+  }
+
+  // ── T3.2 (L5-2): a read that REJECTS is not the same as "nothing is stored" ──
+  //
+  // ⚠️ The corrupt-blob cases above look like they cover this and do not: a corrupt READ still
+  // RETURNS, so `hydrate` reaches the quarantine path and recovers. A read that THROWS never gets
+  // there. Before this, the rejection escaped `hydrate` entirely, `isHydrated` stayed false forever,
+  // and the app rendered `null` — splash to black with no message and no retry.
+  {
+    const a = new ThrowingReadAdapter();
+    const s = createDebtStore();
+    await s.getState().hydrate(a);
+    // Asserted FIRST because it is the one that costs the user their data, and this runner stops at the
+    // first failure — an assertion ordered behind a sentinel is only ever proven by the sentinel.
+    // Seeding defaults and persisting them, which is exactly what the `raw === null` branch does, would
+    // overwrite a blob we merely could not open.
+    eq(a.writes, 0, 'read throws → writes NOTHING (a failed read must never overwrite the real data)');
+    eq(s.getState().isHydrated, true, '…and hydration RESOLVES (never a permanent blank screen)');
+    eq(s.getState().storageError, 'read-failed', '…and records why, so the layout can offer a retry');
+  }
+
+  // ── …and autosave is never installed in that state, so a later edit cannot overwrite either ──
+  {
+    const a = new ThrowingReadAdapter();
+    const s = createDebtStore();
+    await bootstrapPersistence(a, s);
+    eq(s.getState().storageError, 'read-failed', 'bootstrap over a failed read → error state');
+    s.getState().updatePrefs({ themeMode: 'dark' });
+    await new Promise((r) => setTimeout(r, SAVE_DEBOUNCE_MS + 60));
+    eq(a.writes, 0, '…and an edit afterwards still writes nothing (no autosave subscription installed)');
+  }
+
+  // ── A failed WRITE is surfaced rather than swallowed, and clears when one lands ──
+  {
+    const a = new MockAdapter(null);
+    const s = createDebtStore();
+    await s.getState().hydrate(a);
+    a.failWrites = true;
+    await s.getState().save(a);
+    eq(s.getState().storageError, 'save-failed', 'write throws → recorded (was: silent, lost at next launch)');
+    eq(s.getState().isSaving, false, '…and the saving flag still clears (the finally still runs)');
+    a.failWrites = false;
+    await s.getState().save(a);
+    eq(s.getState().storageError, null, '…a later successful write clears it (transient faults stop nagging)');
   }
 
   // ── runMigrations structural edges (pure) ──

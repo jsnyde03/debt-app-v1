@@ -13,10 +13,24 @@ root, which **5.5.1 deletes**. The live app is `apps/rn` (Expo/RN) over `package
 It carries **▶ BUILDING NOW** (exactly one decomposed item), the phase table, the deferred
 backlog and the decision log. **Read it before touching anything.**
 
-**ACTIVE: audit-gate remediation — T1 + T2 closed, ▶ T3 (correctness) is next.**
+**ACTIVE: audit-gate remediation — T1 · T2 · T3.1–T3.3 closed, ▶ T3.4 next.**
 Phases 0–3 · 3.5 · 3.7 · 4 · **3.8** are closed, and the **whole-app audit has RUN**:
 7 lenses, **117 findings**, 12 refutations → [`docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md).
-T1–T8 are decomposed on the plan; T9–T11 parked; T12 → Phase 6.
+
+⛔ **[D37] EVERY high+ finding closes this round** *(🎯 2026-08-18)*. The exit is **not** "T1–T8 closed";
+it is **all 55 blocker+major closed or explicitly refuted, each traceable to its finding id.** ⚠️ Auditing
+the plan against the findings showed **the ledger did not cover its own high+ set** — 8 majors sat
+outside the gate → now **T3B**. Two more look already closed by T1 and were never recorded against their
+ids; **an untraceable closure is indistinguishable from an open finding.**
+
+⛔ **NOTHING IS PARKED** *(🎯 2026-08-18)*. **T9–T11 are SEQUENCED, not shelved** — the remaining
+minor/polish findings stay live and are re-evaluated once T1–T8 lands, because several become cheaper or
+moot by then. **A finding leaves this audit by being fixed or refuted on the record, never by aging out
+of attention.**
+
+⚠️ **Grep the plan's finding ids with the ranges EXPANDED.** It compresses them as `L1-5/6/7/14/19`, so a
+literal search for `L1-6` matches nothing — the first pass reported ~30 unassigned high+ and the real
+number was 4.
 
 ⛔ **3 of 4 agent-declared blockers did NOT survive refutation.** The lenses' self-reported *confidence* was
 reliable every time; their *severity* was not. **No finding becomes work un-refuted** — `findings/L9-refutations.md`
@@ -72,6 +86,14 @@ npm run validate:release:rn     # typecheck:core → typecheck:rn → lint → r
 errors before that was found. `packages/core` had been unchecked since `validate:release:legacy`
 was retired 2026-07-24. Both typechecks now run FIRST so they fail fast.
 
+⛔ **AND THE RULE APPLIES TO THE PROBE YOU JUST WROTE. Measured across T3: 7 of 7 first-cut instruments
+were wrong in a way that would have PASSED.** A `TZ` that never changed (5 zones measured as 1) · a
+mutation that matched two functions and died on a `ReferenceError` · a probe writing to a field that does
+not exist · a fixture whose valid answer equalled the bug's answer · assertions that would pass a
+"take the last item" implementation · a test poking `localStorage` the hydrated app never re-reads · a
+message API that no-ops on web. **Every one was caught by asking *which failure would this catch?* —
+so treat a fresh instrument as wrong until it has been shown to fail on the defect.**
+
 ⚠️ **A green suite often means untested, not correct.** Before trusting a pass, ask whether any
 test *would have failed*. The offline-Lifetime mislabel shipped green because nothing covered
 the Lifetime row, the manage link, or the offline path. The same trap works at the level of a
@@ -86,16 +108,51 @@ is not evidence until you know which failure it would have caught.**
   resolve from `apps/rn/tsconfig.json`. A probe in the scratchpad, or run from the repo root,
   dies with `MODULE_NOT_FOUND`. Core tests run the same way:
   `cd apps/rn && npx tsx ../../packages/core/debt/testX.ts`.
+- ⛔ **`TZ=… node …` through Git Bash is DROPPED here; assign `process.env.TZ` at RUNTIME instead.**
+  Measured both ways 2026-08-18: the env-prefix form left the host zone in place (offset unchanged),
+  while a runtime assignment took effect immediately. A timezone test written the natural way therefore
+  runs every case in one zone and reports a pass per case. **Assert the zone actually changed before
+  trusting anything measured in it** (`packages/core/utils/testLocalDate.ts` does). Restore the original
+  `TZ` in a `finally` — `runRegressionTests` imports every suite into one process, so a leaked zone
+  silently re-times the ones that follow.
 - **Measure, don't derive.** Engine figures compose through `effectivePaycheckBuffer` and the
   §2.5 waterfall and are **not** predictable by reading. Two test fixtures this session were
   wrong on the first try from reasoning that looked sound. Write a probe, print the numbers,
   then write the assertion.
+  ⛔ **But `tsx` does NOT typecheck, so a probe can write to a field that does not exist and print
+  confident nonsense.** One assigned `store.expenses` — the field is `requiredExpenses` — and reported
+  `totalRequired: 0` against a rent that was really being counted, which reads exactly like a finding.
+  **A probe's output is evidence about the probe until its fixture is checked.** Print the fixture back,
+  or run `tsc` over it.
+- ⚡ **On an e2e failure, read `error-context.md` BEFORE touching the code.** Its page snapshot says what
+  actually rendered. It has twice now shown the FIX working and the TEST wrong — without it the obvious
+  next move is to debug working code. ⚠️ And prefer a container `testID` over a stat inside it for
+  presence checks: `guardian-reserve-amount` renders in most Guardian states but **not** in `clear`,
+  which is exactly the state a new user is in.
 - **Prove a test fails before trusting it.** Revert *only the source* — `git stash` takes the
-  test with it and proves nothing.
+  test with it and proves nothing. ⛔ **And read WHY it went red.** A mutation here reported
+  `plant-applied=YES` and turned the suite red while proving nothing: the `sed` matched the same line in
+  two functions and the run died on `ReferenceError`, a compile error rather than the defect.
+  **Confirming a plant applied is not the same as confirming it applied ONLY where you meant.**
+  ⚠️ These runners are throw-based and stop at the FIRST failure, so an assertion ordered behind another
+  is only ever proven by that other one — put the assertion that matters most first.
 - **e2e:** `webServer` spawns its own `serve` on :4319 and can reuse a STALE one, serving an
   outdated `dist`. Force a fresh `export:web` when adding a route. ⚠️ Run the RN suite through
   its own config (`npm run test:e2e:rn`) — a bare `npx playwright test` picks up the ROOT config,
   which builds the legacy Next tree and dies on a pre-existing type error.
+- ⏱ **THE REBUILD IS THE COST, NOT THE TESTS — measured 2026-08-18.** Full suite **6.0m** for 184
+  tests; a targeted two-spec run **2.3m** for 17. The tests in that second run take ~25s — the other
+  two minutes is `export:web --clear` running again, so splitting the suite alone still pays the tax
+  every time. ⛔ And do NOT hand-run `export:web` before `test:e2e:rn`: Playwright's `webServer`
+  exports again, so you pay it **twice**.
+  **The pattern:** export once after a source change, leave `serve` up on :4319, then run targeted
+  specs against it — `reuseExistingServer` is on locally, so those runs skip the export entirely
+  (~25s). ⚠️ The guardrail is the stale-`dist` trap above, and it fails SILENTLY: specs pass against
+  the previous bundle. Re-export deliberately whenever `src/**` changes.
+  **Stagger by blast radius, not by clock:** app-wide changes (root layout, store, navigation, theme,
+  persistence) get the full suite; a single surface gets its own specs; the full suite runs at the
+  item boundary before commit. ⛔ **Do not raise `workers` to buy speed** — 4 cores, and this repo has
+  already spent three CI cycles on a timing-sensitive flake.
 - ⛔ **`force: true` does NOT mean "send this event to this element."** It skips actionability but still
   clicks **coordinates**, does not wait for the element to stop moving, and delivers to whatever is
   topmost at that instant. That flaked `tutorial-invite › the tabs are held…` **three times** (CI
@@ -123,6 +180,21 @@ is not evidence until you know which failure it would have caught.**
 - **`expo.name` stays `"Debt Planner (RN)"`** — it derives the Xcode project name, hardcoded
   10× across three pipelines. The Home-Screen name is `ios.infoPlist.CFBundleDisplayName`.
 - **House voice:** the Guardian is the sole first-person "I"; everything else is direct "you".
+
+## ⛔ react-native-web silently drops native APIs — and this class has bitten THREE times
+
+`accessibilityElementsHidden` (fences nothing) · `locateFile` (six hand-written copies) · and now
+**`Alert.alert`, which is literally `static alert() {}` in `react-native-web@0.21`** — an empty function.
+A message written with it ships on iOS and is **discarded on web**, and no Playwright assertion can tell
+that apart from a message nobody wrote. It was found only because a new e2e failed against a fix that was
+correct. **11 raw call sites existed, 8 of them in `paywall.tsx`** — behind the live public embed, where
+a visitor taps Buy and nothing happens.
+
+All three are now `no-restricted-syntax` rules in `apps/rn/eslint.config.mjs`; `notify` /
+`confirmDelete` / `confirmDiscard` in `@/utils/confirm` are the owners.
+⚡ **The general rule: the FIRST time an RN API is used, check what react-native-web does with it —
+before trusting a green suite.** The web build is what every Playwright test runs against, so anything
+RNW drops is invisible to the whole gate.
 
 ## Two rules the engine keeps re-teaching
 

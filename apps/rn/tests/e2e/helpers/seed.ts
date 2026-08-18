@@ -70,5 +70,11 @@ export async function seedStore(page: Page, store: Record<string, unknown>) {
 export function day(offset: number): string {
   const d = new Date();
   d.setDate(d.getDate() + offset);
-  return d.toISOString().slice(0, 10);
+  // ⛔ NOT `toISOString().slice(0, 10)`. The app stores calendar dates, so the fixture has to spell the
+  // same LOCAL day the app will compute — and the old form did not: west of UTC it rolls to tomorrow
+  // once the local clock passes evening, so a suite that was green all afternoon seeds a different
+  // "today" at night. `@core/utils/localDate` owns this rule; the body is inlined because this file is
+  // deliberately alias-free (it resolves under Playwright's own loader, see the header).
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }

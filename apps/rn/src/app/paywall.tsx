@@ -1,7 +1,9 @@
 import { router } from 'expo-router';
 import { isDemoReachable } from '@/config/qa';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { notify } from '@/utils/confirm';
 
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
@@ -151,7 +153,7 @@ export default function PaywallScreen() {
 
   async function handleSubscribe() {
     if (!selected?.pkg || !client) {
-      Alert.alert('Not available here', 'In-app purchases aren’t available in this preview — try it on your device.');
+      notify('Not available here', 'In-app purchases aren’t available in this preview — try it on your device.');
       return;
     }
     setPurchasing(true);
@@ -160,15 +162,15 @@ export default function PaywallScreen() {
       if (result.userCancelled) return;
       if (isPremiumActive(result.customerInfo)) {
         appStore.getState().setSubscriptionPlan('premium');
-        Alert.alert('You’re Premium 🎉', 'Your premium tools are unlocked.');
+        notify('You’re Premium 🎉', 'Your premium tools are unlocked.');
         router.back();
       } else {
         // Purchased at StoreKit but the entitlement didn't come back active (mapping issue) — don't leave
         // the user charged-and-confused with a silent no-op.
-        Alert.alert('Almost there', 'Your purchase went through, but Premium couldn’t be confirmed yet. Tap Restore, or contact support if it persists.');
+        notify('Almost there', 'Your purchase went through, but Premium couldn’t be confirmed yet. Tap Restore, or contact support if it persists.');
       }
     } catch (error) {
-      Alert.alert('Purchase didn’t complete', error instanceof Error ? error.message : 'Something went wrong. Please try again.');
+      notify('Purchase didn’t complete', error instanceof Error ? error.message : 'Something went wrong. Please try again.');
     } finally {
       setPurchasing(false);
     }
@@ -176,7 +178,7 @@ export default function PaywallScreen() {
 
   async function handleRestore() {
     if (!client) {
-      Alert.alert('Not available here', 'Restoring purchases isn’t available in this preview.');
+      notify('Not available here', 'Restoring purchases isn’t available in this preview.');
       return;
     }
     setRestoring(true);
@@ -184,13 +186,13 @@ export default function PaywallScreen() {
       const info = await client.restore();
       if (isPremiumActive(info)) {
         appStore.getState().setSubscriptionPlan('premium');
-        Alert.alert('Purchases restored', 'Your premium access is back.');
+        notify('Purchases restored', 'Your premium access is back.');
         router.back();
       } else {
-        Alert.alert('Nothing to restore', 'No active purchase was found for this Apple Account.');
+        notify('Nothing to restore', 'No active purchase was found for this Apple Account.');
       }
     } catch (error) {
-      Alert.alert('Restore didn’t complete', error instanceof Error ? error.message : 'Something went wrong. Please try again.');
+      notify('Restore didn’t complete', error instanceof Error ? error.message : 'Something went wrong. Please try again.');
     } finally {
       setRestoring(false);
     }

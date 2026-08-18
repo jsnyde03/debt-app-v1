@@ -118,6 +118,7 @@ export function PlanHero({
 
   return (
     <LinearGradient
+      testID="plan-hero"
       colors={[s.heroTop, s.heroBottom]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}

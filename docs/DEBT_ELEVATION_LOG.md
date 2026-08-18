@@ -4,6 +4,378 @@
 
 ---
 
+## T3 — WHOLE-ITEM after-scan (2026-08-18) · gate green, 187 e2e
+
+**All 7 closed**, `validate:release:rn` green end-to-end: **187 e2e** (+3) · 10 embed · +29 unit asserts ·
+tsc + lint clean on both trees · zero `error-context.md`. Every fix mutation-verified. Two new lint rules
+(`scripts/check-local-dates.ts`, the `Alert.alert` ESLint rule) — [D31] paid once.
+
+⚡ **THE HEADLINE, and it is about instruments rather than the app: 7 of 7 first-cut probes or tests were
+wrong in a way that would have PASSED.** Not one sub-item got its measurement right on the first attempt:
+
+| | what the instrument did | what it would have reported |
+|---|---|---|
+| T3.1 | `TZ=… node` is dropped through Git Bash | 5 timezones "passing" — all measured in one zone |
+| T3.2 | the mutation matched `reportError` in **two** functions | red on a `ReferenceError` — a compile error read as proof |
+| T3.3 | probe wrote `store.expenses`; the field is `requiredExpenses` | "the rent still would not show" — a finding that was the fixture |
+| T3.4 | fixture days 1 & 15; the valid answer equalled today + 14 | every row identical — bug and correct behaviour indistinguishable |
+| T3.5 | both cases put the right pot at index 1 | green for a "take the LAST goal" implementation |
+| T3.6 | poked `localStorage` the hydrated app never re-reads | green **without the fix** |
+| T3.7 | `Alert.alert` is `static alert() {}` on web | a correct fix failing, and a wrong one passing silently |
+
+**Each was caught by one question, asked deliberately: *which failure would this actually catch?*** That
+question is already in `CLAUDE.md` as a rule about green suites; T3 says it applies to **the probe you
+just wrote**, not only to inherited tests. The measured rate here is 100% — treat a first-cut instrument
+as wrong until it has been shown to fail on the defect.
+
+⚡ **Second pattern: five of seven "correctness" findings were DUPLICATION findings wearing correctness
+clothes.** T3.1 (one `localDate` owner, 3 private copies collapsed), T3.4 (`paydayFieldError` shared by
+two hosts), T3.5 (`pickTopUpGoal` for two selectors), T3.7 (`notify` for 11 sites), and T3.2's single
+`storageError`. The bug in each case was not a wrong rule — it was the same rule written more than once
+and drifting. ⚠️ **Prediction for T8 (drift/one-owner): it should now be measurably smaller than its 23
+L2 items suggest**, because T3 already collapsed several of its owners. Re-measure T8 at switch-in rather
+than trusting the count.
+
+⚠️ **Third: the web suite systematically under-covers native-only paths, and it is the WHOLE gate.**
+Three T3 outcomes cannot be verified on web at all — T3.2's storage-fault surfaces (MMKV cannot be made
+to fail), T3.7's `blocked` → Open Settings path, and any `Alert` presentation. They ship on unit
+reasoning with **no rendered proof** and are on the Phase-6 device pass. `Alert.alert` is the third
+RNW-drops-it-silently defect this project has hit; the general rule now sits in `CLAUDE.md`.
+
+⚠️ **Fourth: two of seven plan rows were wrong, and one of them was mine, written hours earlier.** T3.4's
+row said *"split the fallback, don't delete it"* — measurement said delete it. My own T3.1 row understated
+the site count (13, not 12; 4 test helpers, not 3). **Consistent with the pre-authored-item law, including
+for items authored the same session** — the plan is reliable about WHERE, not about WHAT.
+
+**Queue replenishment:** the active build does not go idle — **T3B** is decomposed on the plan and is the
+next build, ahead of T4. It exists because auditing the plan against the findings showed the ledger did
+not cover its own high+ set.
+
+## Audit-gate remediation · T3.6 + T3.7 — two silent controls, and the API that made one of them silent (2026-08-18)
+
+**T3.6 · L5-5 — the stranded filter.** The bill search rendered on `grouped` (≥ 8 expenses) alone, while
+the un-grouped branch still FILTERED by `query`. Swipe-delete a bill mid-search, the count drops below
+the threshold, the field unmounts, and the query survives: one row — or "No bills match" — with no
+control to clear it and no way out but leaving the tab. Now `grouped || searching`.
+⚡ **The invariant is worth more than the case: never unmount the ONLY control that can undo a state the
+user is still in.**
+- **Verified:** +1 e2e in `swipe-delete.spec.ts` that deletes through the **real UI**. ⚠️ The first draft
+  poked `localStorage` to drop the count — which the hydrated app never re-reads, so the assertions would
+  have passed **without the fix**. Mutation-verified after that was corrected.
+
+**T3.7 · L5-6 — the toggle that could not work and never said so.** `handleNotificationsToggle` was
+`if (granted) updatePrefs(...)` and nothing else. iOS shows its permission alert ONCE EVER, so for every
+user who declined it the first time the switch flipped on, snapped back, and the app said nothing.
+- **`requestNotificationPermissionDetailed`** returns `granted | blocked | declined | unsupported` — the
+  bit a boolean cannot carry is whether asking again does anything (`canAskAgain`). `blocked` offers
+  **Open Settings**; `declined` and `unsupported` each say their own true thing. The web stub returns
+  `unsupported`, and the two platform surfaces were diffed to confirm they match.
+
+⛔ **And the finding that only building could produce: `Alert.alert` is `static alert() {}` in
+react-native-web — an EMPTY FUNCTION.** Measured in `react-native-web@0.21` after the new e2e failed
+against a fix that was correct. So a message written with it is delivered on iOS and **silently
+discarded on web**, and no Playwright assertion can tell that apart from a message nobody wrote.
+- **`utils/confirm.ts` had known this since 3.4.4 — for the CONFIRM direction only.** The one-way
+  direction had no owner, so **11 call sites used the raw API**. Worst: **`paywall.tsx` ×8**, including
+  *"In-app purchases aren't available in this preview"* — the WEB message, on the surface sitting behind
+  the live public marketing embed. A visitor taps Buy and nothing happens at all.
+- **Fixed as a class:** new `notify(title, message, action?)` beside `confirmDelete`/`confirmDiscard`,
+  all 11 sites moved onto it, and an **ESLint rule** banning `Alert.alert` outside `confirm.ts` ([D31] —
+  a finding that becomes a rule is paid for once). **Mutation-verified:** a planted `Alert.alert` errors
+  with the rule's message; removing it goes green.
+- ⚡ **This is the third member of a class this repo keeps re-finding** — `accessibilityElementsHidden`,
+  `locateFile`, now `Alert.alert`: *a native API that no-ops on react-native-web, invisible to a suite
+  that runs on web.* All three are now `no-restricted-syntax` rules in the same block. **When a new RN
+  API is used for the first time, check what react-native-web does with it before trusting a green run.**
+
+**T3.6/T3.7 after-scan:**
+1. ⚡ **A test that mutates persisted state to simulate a change the app must observe is testing nothing**
+   — the store hydrated once at boot. Drive the real control.
+2. ⚠️ **The `blocked` → "Open Settings" path cannot be reached on web** and is therefore covered by unit
+   reasoning only. → Phase-6 device pass: decline notifications, then toggle, and confirm the alert and
+   that Settings actually opens.
+3. ⚠️ **`Platform.OS === 'web'` branches deserve the same suspicion as the props** — `notify` is now one
+   more of them. The general question for any RN API: *what does react-native-web do with this, and would
+   my suite notice if the answer were "nothing"?*
+
+## Audit-gate remediation · T3.5 — a true thing about the wrong pot (2026-08-18)
+
+**L3-3.** The tight top-up and the affordability card's cover-a-dip each ran a bare `find` over the
+goals, so the source was whichever pot the user created FIRST. With a $10 "Vacation" created before an
+$800 "New car" and a $50 gap, both picked Vacation, capped the draw at $10, and told the user their line
+could not be held this paycheck — true of that pot, needlessly false of their money.
+
+- **One owner: `pickTopUpGoal(goals, gap, preference)`.** Prefer a pot that can COVER the gap, largest
+  first; if none can, the largest available. The draw is capped at the gap either way, so this changes
+  **which** pot is used and **whether the line holds** — never how much is taken. The Guardian passes
+  `['savings','emergency']`, the affordability card passes `['savings']` (never the EF for a
+  discretionary purchase). Same rule, one definition — the two-places-one-rule class this repo keeps
+  re-teaching.
+- ⚠️ **[D24] is NOT reopened, deliberately.** L3-3's own wording scopes it: *"the fix ordered the
+  categories but left the within-category pick on creation order."* So the type preference stays
+  ABSOLUTE — a savings pot too small to hold the line still outranks a sufficient emergency fund — and a
+  test now pins that, so a later pass cannot "improve" the picker into raiding the safety net.
+- **Verified:** +8 asserts in `guardianSelectors.test.ts`. **Mutation-verified**: reverting to
+  `funded[0]` reds it (`expected "Savings 1", got "Savings 0"`).
+
+**T3.5 after-scan — one, and it is about the test rather than the code:**
+
+⚡ **Every assertion I wrote first would have passed a "take the LAST goal" implementation.** Both
+scenarios happened to put the correct pot at index 1, so the block pinned array position while reading
+like it pinned the rule. Added the mirrored case — the same shapes with the order reversed, expecting
+index 0 — before trusting any of it. **A green assertion is not evidence until you know which wrong
+implementations it rejects**, and "which failure would this catch" has to include the lazy implementation,
+not only the old one. (The mutation I then ran, `return funded[0]`, is exactly the old behaviour; the
+reversed case is what rules out the other cheap answer.)
+
+⚠️ **And the first mutation attempt silently no-op'd** — the `perl` pattern missed on whitespace and
+reported `plant-applied=NO`, which is the only reason it was not read as a passing verification. Scoped
+by line number instead. Second time this session that the plant check earned its keep.
+
+## Audit-gate remediation · T3.4 — the payday the user never chose (2026-08-18)
+
+**L5-14.** Pick Semi-monthly, clear "First payday", and `getNextPaycheckDate` threw — the `catch` returned
+`getNextPaycheckDate({payCycle:'biweekly'})`, i.e. today + 14. The preview card rendered that with full
+confidence, and Continue wrote `semimonthly` + a blank day + a biweekly-derived date. The user's very
+first fact about themselves, stored wrong, with no error anywhere.
+
+- **`nextPaycheckFrom` now returns `string | null`**, `formatPaycheckDate(null)` renders `—`, and a new
+  shared **`paydayFieldError`** blocks submit with a specific reason (which day · the 1–31 range · the
+  two days must differ). Weekly/bi-weekly carry no day fields, so they can never error.
+- **Both hosts, from one rule.** `PaycheckStep` and `PaycheckSheet` are the same form with different
+  chrome; `paycheckForm.ts` exists *because they were written twice and had already begun to diverge*.
+  A validation rule added to one of them would have been that defect re-forming, so the rule lives in the
+  shared file and both call it. Monthly's single field takes the error inline; the semi-monthly PAIR gets
+  one message beneath it, because every way the pair can be wrong is a fact about the two together.
+- ⛔ **The measurement overturned my own plan row.** T3.4 was written as *"the fallback is right for the
+  PREVIEW and wrong on Continue — split the two, don't delete the fallback"*, and the source comment
+  defended it the same way (*"a form that blanks its own preview mid-keystroke reads as broken"*).
+  Measured: `Number("1")` is a valid day, so a half-typed entry never throws — only a blank field, an
+  out-of-range day, or two identical days do. The defended case barely exists, and **a confidently WRONG
+  date is not a gentler failure than a dash.** The fallback was deleted rather than split.
+- **Verified:** new `paycheckForm.test.ts`, **21 asserts**, in `runAppTests`. Includes a grid asserting
+  the two functions agree **in both directions** — a date exists exactly when there is no error — because
+  they are read by two hosts at two different moments, and a disagreement is either a form that blocks
+  with no message or one that continues with no date. **Mutation-verified**: restoring the fallback reds
+  it. Targeted e2e (earlyjourney · variable-income · date-field · guardian) 23 passed.
+
+**T3.4 after-scan — two:**
+
+1. ⚡ **A fixture whose valid and invalid answers coincide proves nothing, and it looked fine.** The first
+   probe used the placeholder days 1 & 15 — and on the day it ran, *every* row returned `2026-09-01`,
+   because the valid semi-monthly answer and today + 14 happened to be the same date. It reported the bug
+   and correct behaviour identically. The day values in the shipped test are chosen so they cannot
+   collide, and the reason is written at the top of the file. **This is the fixture-choice lesson again**
+   (3.8's `route-smoke`), in a new shape: not a fixture too empty to show the defect, but one whose
+   arithmetic accidentally agreed with it.
+2. ⚠️ **`skipPaycheck` is adjacent and is L5-10** — onboarding's "Skip for now" jumps past the debt/expense
+   step entirely, landing the user on Today with no plan at all. Same step, same file, one-line fix, and
+   it is now in the gate under [D37] → **T3B.5**. Not folded here: it is a separate finding with its own
+   id, and closing it silently inside T3.4 is exactly the untraceable-closure problem [D37] exists to stop.
+
+## [D37] — every high+ finding closes this round, and the ledger did not cover its own set (2026-08-18)
+
+🎯 *"We're fixing all in this round."* The exit condition changes from **"T1–T8 closed"** to **"all 55
+blocker+major findings closed or explicitly refuted, each traceable to its id."*
+
+⛔ **And nothing is parked** — 🎯 2026-08-18: *"Nothing is parked. We are just going to reevaluate once we
+get through T1–T8."* T9–T11 are **sequenced, not shelved**: every remaining minor/polish finding stays
+live and is re-decided once T1–T8 lands, because several become cheaper or moot by then. The plan had
+been carrying them under a "⏸ PARKED" heading and I repeated it into [D37]; the word reads as *dropped*
+and licenses exactly the quiet-loss the enhancement-scan rules exist to prevent. **A finding leaves this
+audit by being fixed or by being refuted on the record — not by aging out of attention.**
+
+**Measured, because the denominator was never established:** 117 findings carry a severity — **6 blocker,
+48 major (55 high+ incl. 1 conditional-blocker), 39 minor, 21 polish.** Auditing the PLAN against the
+findings then showed the ledger did not cover its own high+ set: **8 majors were parked, deferred or
+unassigned** — L4-2 and L5-11 assigned nowhere; L5-3/4/8 parked at T11; L0-5 and L5-7 parked at T9;
+L5-10 and L5-12 pushed to Phase 6. Filed as **T3B**, to run after T3.7 and before T4.
+
+⚠️ **Two more (L0-1, L6-1) look already CLOSED by T1 and were never recorded against their ids** — the
+fixture that now seeds a bill, and the strings gate consulting its origin sets on the JSX path. Verify
+by id rather than re-fixing; an untraceable closure is indistinguishable from an open finding, which is
+the exact gap this decision exists to close.
+
+⛔ **A measurement error worth keeping, because it nearly shipped a bad list.** The first pass grepped
+finding ids literally against the plan and reported **~30 unassigned high+**. The plan compresses ids as
+`L1-5/6/7/14/19`, so a search for `L1-6` matches nothing — most of those 30 were false positives from my
+own instrument. Re-run with the ranges expanded (and `L2 ×23` treated as the whole lens), the real number
+is **4 unassigned**, of which 2 are already done. *A ledger that writes ids in a compressed form cannot
+be audited by a tool that reads them in an expanded one* — and the failure direction is alarming, not
+silent, which is the only reason it was caught.
+
+**The verification round this sets up** *(🎯: the next wave verifies our fixes and catches anything a fix
+introduced; the end goal is consensus that we can move on)*. Agreed shape, with the conditions that make
+it converge:
+- **Verify blind, against the CODE, not against these log entries** — a lens handed "mutation-verified,
+  three plants, all red" is grading homework from its own answer key. It re-derives whether the finding
+  is gone. (This session produced a mutation that reported success and proved nothing; a lens reading the
+  summary would have inherited that intact.)
+- **Scope is the fixes and what they introduced** — not new-scope discovery. Fixes introduce defects:
+  3.8's own record is 3 of 5 defects introduced by 3.8, and the Phase-3 closeout re-audit's round 2 caught
+  a regression created by round 1's fixes.
+- **The stopping rule is written BEFORE the round runs** — no new confirmed blocker/major on a re-checked
+  fix, and every closed high+ independently re-verified. A rule authored after the findings is a
+  description, not a rule.
+- ⚠️ **Lens agreement is not independent evidence** — they read the same code with the same priors. The
+  refutation pass stays in front of anything that becomes work; it is what moved 3 of 4 blockers.
+
+## Audit-gate remediation · T3.3 — the user who took the other onboarding path (2026-08-18)
+
+**L5-1, filed blocker and upheld.** Onboarding step 2 offers **Debt | Expense** as two equal segments.
+Choosing Expense left Today collapsed to a single "Add your first debt" card — no hero, no required
+rows, no "Spoken for", no affordability card, and **no Payday Guardian**, though the brief was computed
+and discarded. The Welcome screen's first promise is *"A guardian for every payday"*, and it was
+invisible to anyone who had not yet entered debt.
+
+- **The fix is a deletion.** The `no-debts` branch is removed, so that state falls into the existing
+  `allocation && summary` branch, and the prompt is rendered as a card **inside** the plan (below it, an
+  invitation rather than a replacement). Its copy changed from *"Your debt-free date is waiting"* to
+  *"Your plan is running. Add a debt and it will show you a debt-free date too"* — the old line was
+  written for a screen with nothing else on it.
+- ⚡ **A probe decided the shape, and corrected me twice.** `selectPlanSummary` returns non-null whenever
+  `allocation` is, and `no-debts` requires `allocation` — so the branch could fall through and **nothing
+  had to be duplicated**, which a reading of the JSX would not have settled. Measured for L5-1's exact
+  user (paycheck $2,000, one $350 rent, zero debts): hero **$750 cushion**, **1 required row**, a live
+  Guardian at `state=clear`, `debtFreeDate: null` — and `PlanHero` already guards that null.
+- **`Card` did not forward `testID`.** Found by adding one and watching it do nothing. Both new ids
+  (`payday-guardian-card`, `plan-hero`) sit on the CARD rather than a stat inside it, because the stats
+  are state-conditional — `guardian-reserve-amount` does not render in `clear`, which is what the first
+  version of the test asked for. Also T4-proof: that pass rewrites this vocabulary, so a string selector
+  would need re-pinning by the pass that renames it.
+- **Verified:** +1 e2e in `earlyjourney.spec.ts` asserting the PLAN is present (Guardian + hero + the
+  rent row) and not merely that the prompt moved — the cheap version of this fix would pass a test that
+  only looked for the hero. **Mutation-verified**: restoring the old branch reds it. `typecheck` both
+  trees, `lint:rn` 0 errors, `lint:selectors` 68 → **70** testIDs.
+
+**T3.3 after-scan — three, all about the instruments again:**
+
+1. ⚡ **`tsx` does not typecheck, so a probe can write to a field that does not exist and print confident
+   nonsense.** The first probe assigned `store.expenses` — the real field is `requiredExpenses` — and
+   reported `totalRequired: 0` with a $1,950 cushion on a $2,000 paycheck. Read as a finding, that says
+   *"even falling through, the rent still would not show."* It was the fixture. **A probe's output is
+   evidence about the probe until its fixture is checked.** → folded into `CLAUDE.md`.
+2. ⚡ **The failing run's `error-context.md` answered the question the assertion could not.** The page
+   snapshot showed the hero, the Guardian, the rent row and the demoted prompt all rendering correctly
+   — i.e. the FIX worked and the TEST was wrong. Without reading it the obvious next move is to start
+   debugging working code.
+3. ⚠️ **A state-conditional selector makes a presence test unreliable in exactly the state you care
+   about.** `guardian-reserve-amount` exists in most Guardian states and not in `clear`, which is the
+   state a brand-new no-debts user is in. Assert presence on the container.
+
+**Filed, not folded:** L5-3 (the everyday-spending door does not render with zero bills) sits one screen
+away and is the same "the door only opens once you are inside" class — it stays parked at **T11**, where
+the audit put it. Noted here only so the adjacency is on the record.
+
+## Audit-gate remediation · T3.2 — the permanent blank screen, and the silent write loss (2026-08-18)
+
+**L5-2, filed blocker and upheld.** Two live paths left `isHydrated` false forever — splash to black, no
+message, no retry, no support path — and a third lost writes in silence.
+
+- **One state, both paths.** `createStorageAdapter()` builds MMKV *synchronously*, so a native-module
+  failure throws inside the effect before `bootstrapPersistence` is ever reached; a rejected
+  `adapter.read()` escaped `hydrate` (the read sat OUTSIDE its `try`). Both now resolve to
+  `storageError: 'read-failed'`, which is what lets one surface cover them. Extracted `startPersistence()`
+  in `_layout.tsx` for the adapter half.
+- ⛔ **The load-bearing decision: a failed read writes NOTHING.** The obvious fix — catch, set hydrated,
+  carry on — falls into the `raw === null` branch, which seeds defaults **and persists them**. That turns
+  a locked keychain a second after boot into permanent data loss. `hydrate` returns early instead, and
+  `bootstrapPersistence` refuses to install the autosave subscription in that state (and drops its
+  bootstrapped mark so the retry can re-run). *"Nothing is stored" and "I could not look" are different
+  facts.*
+- **`save()` had a `finally` and no `catch`**, and autosave calls it through a `void` chain — so a failed
+  write was an unhandled rejection and the user found out at next launch. Now recorded as
+  `'save-failed'`, rendered by `SaveFailedBanner`, and **cleared by the next write that lands** (a
+  transient fault stops nagging on its own).
+- **New surfaces:** `StorageErrorScreen` (renders above the theme provider, so it reads the palette by
+  scheme) and `SaveFailedBanner` (above the navigator — a failed write is not a property of whichever
+  screen was open). ⚠️ The error copy deliberately does **not** say the data is gone: a failed read is no
+  evidence of that, and the app has deliberately written nothing so a retry can still find it.
+- **The syncs are gated too** — widget, Live Activity and `drainPendingActions` no longer run after a
+  failed read. Not in L5-2; it surfaced from reading the effect. They would have published an EMPTY plan
+  to the home-screen widget while the retry surface was up.
+- **Verified:** +7 assertions in `persistenceLifecycle.test.ts`, **three mutation-verified** — treating a
+  failed read as "no data" (`expected 0, got 1` writes), installing autosave anyway, and swallowing the
+  write failure each red the suite on the named assertion. `typecheck` both trees, `lint:rn` 0 errors.
+
+**T3.2 after-scan — four things, two of them about the instruments rather than the app:**
+
+1. ⚡ **The test that looked like coverage was testing the adjacent case.** `persistenceLifecycle.test.ts`
+   already asserted *"and we stay hydrated (never brick the app)"* — about **corrupt bytes**, which still
+   RETURN and so reach the quarantine path. A read that **throws** never gets there. Same shape as the
+   `route-smoke` fixture lesson: a guard named for the risk, exercising the neighbour of it.
+2. ⚡ **A red run is only evidence once you read WHY it went red.** The first mutation here reported
+   `plant-applied=YES` and turned the suite red — and was worthless: the `sed` matched the `reportError`
+   line in **both** `hydrate` and `save`, so it failed on `ReferenceError: raw is not defined`, a compile
+   error, not the defect. This sharpens the existing plant-verification rule: **confirming the plant
+   applied is not the same as confirming it applied ONLY where you meant.** Re-run scoped, it red on
+   the right assertion.
+3. ⚠️ **A throw-based runner stops at the first failure**, so any assertion sitting behind another is
+   only ever proven by that other one. The data-loss assertion was reordered to fire FIRST and the
+   mutation re-run to prove it specifically (`expected 0, got 1`).
+4. ⚠️ **A recorded error nobody renders is worse than not recording one** — it makes the code look fixed
+   while the silent-loss defect stands. That is why `SaveFailedBanner` shipped with this step instead of
+   being filed; storing `save-failed` alone would have been the house rule's own *"never claim an outcome
+   you only sometimes deliver"*, one layer up.
+
+⚠️ **Device-owed → Phase 6:** neither surface has been seen on a real device — MMKV cannot be made to
+fail on web, so both are covered by unit assertions and neither has a rendered proof. Add to the device
+pass: force a storage fault, confirm the retry screen renders and the retry actually recovers.
+
+## Audit-gate remediation · T3.1 — the UTC date bug, and the fixture that had it too (2026-08-18)
+
+**L0-2 · L5-9, the audit's strongest-evidenced finding (three independent lenses + two historical fixes).**
+`toISOString().slice(0, 10)` converts a LOCAL calendar date through UTC, so east of UTC every date it
+produced was a day early. Closed by giving the rule ONE owner rather than fixing sites.
+
+- **`packages/core/utils/localDate.ts`** — `toLocalISODate` · `parseLocalDate` · `todayLocalISODate`.
+  **13 sites** moved onto it (9 production, 4 test helpers — L0-2 recorded 3), and **three private
+  copies collapsed into it**: `allocatePaycheck.localISODate`, `DateField.toLocalISO`,
+  `data/defaults.todayLocalISO` (kept as a named re-export; the RN app imports it under that name
+  everywhere). `DateField.fromLocalISO` was KEPT — it guards a malformed stored value, which
+  `parseLocalDate` deliberately does not.
+- **Two sites stayed hand-rolled, both on purpose.** `apps/rn/tests/e2e/helpers/seed.ts` is
+  deliberately alias-free so it resolves under Playwright's own loader; the body is inlined with a
+  pointer to the owner. `simSmokeSeed.ts` took the import (its only consumer is the legacy
+  `app/page.tsx`, which 5.5.1 deletes).
+- **The gate: `scripts/check-local-dates.ts`**, wired into `lint:rn`. **Mutation-verified** — the banned
+  form planted in `packages/core`, `apps/rn/src` and `apps/rn/tests` in turn, plant-applied confirmed by
+  grep each time, gate red each time, tree restored clean.
+- **The test: `packages/core/utils/testLocalDate.ts`**, in `runRegressionTests`. Asserts the owner, the
+  pay-cycle boundary and the rollover across **Pacific/Kiritimati (UTC+14) · Australia/Sydney · UTC ·
+  America/Los_Angeles · Pacific/Midway (UTC−11)**, including **twelve consecutive monthly rollovers** —
+  a single-step assertion passes on an implementation that loses a day every cycle. **Proven to fail on
+  the old source**: reverting only `toDateString` at both core sites reds it with
+  *"Expected 2026-08-26, received 2026-08-25"*.
+- **Verified:** `typecheck` (both trees) · `test:regression` · `test:app` · `test:scenarios` ·
+  `lint:comments` · `lint:local-dates` all green. Full `validate:release:rn` batched to the end of T3.
+
+**T3.1 after-scan — four things the before-scan structurally could not have caught:**
+
+1. ⚡ **The e2e fixture had the MIRROR of the bug, and it fires on the developer's own machine.** The
+   audit framed this as "east of UTC gets a day early." But `day(0)` in the e2e seed used the same
+   pattern, and **west** of UTC it returns *tomorrow* once the local clock passes evening — so the RN
+   suite seeds one "today" in the afternoon and a different one at night. That is a latent flake in the
+   release gate itself, on a US machine, and the user-facing framing hid it.
+2. ⚡ **`TZ=… node …` through Git Bash is silently DROPPED on this machine; a runtime
+   `process.env.TZ` assignment works.** Measured, both ways. The natural way to write a timezone test
+   is the env prefix, and it would have run all five cases in the host zone and reported five passes —
+   the exact "a green assertion is not evidence until you know which failure it would have caught"
+   shape. The test now asserts the zone actually changed before trusting any case in it. → folded into
+   `CLAUDE.md`'s environment quirks.
+3. ⚠️ **ESLint structurally could not have closed this class, and [D31] reads as if it could.**
+   `apps/rn/eslint.config.mjs` `globalIgnores` covers `core/**` and `tests/**`, and `packages/core` has
+   no ESLint config of its own — so a rule written the obvious way would have reported the class clean
+   while `rolloverPayCycle` and `getNextPaycheckDate`, **the two worst sites**, kept the bug. Generalises:
+   **when [D31] turns a finding into a lint rule, first check whether the linter can see the engine.**
+4. ⚠️ **`freezeClockForSimSmoke` freezes to a UTC instant** and its seed dates now format locally, so a
+   golden image captured at UTC+14 would shift a day. Not acted on — its only consumer is the legacy
+   surface 5.5.1 deletes — but recorded so 5.5.1 is not surprised by it.
+
+**Filed, not folded:** the `T00:00:00` *parse* pattern is at ~65 sites across 39 files. It is not a
+defect (it is the correct local parse) but it is the same one-rule-many-owners shape T8 hunts, and
+`parseLocalDate` now exists as its owner → **T8**.
+
 ## Phase-3 Closeout block · session 4 — FOLD ROUND (re-audit findings) (2026-07-30)
 
 Jason's directive (2026-07-30): **fold in EVERY re-audit finding except the Phase-6-owed items.** Done in 6 committed waves, gate green throughout; **full `validate:release:rn` GREEN (83 e2e)** after. Detail per finding → `DEBT_PHASE3_CLOSEOUT_REAUDIT_2026-07-30/_SUMMARY.md`.

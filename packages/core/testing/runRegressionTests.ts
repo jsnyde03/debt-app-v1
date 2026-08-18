@@ -35,6 +35,7 @@ import "../recovery/testBuildRecoveryPlan";
 import "../debt/testParseDebtFormValues";
 import "@/lib/storage/testMigrateOriginalBalance";
 import "@core/recurrence/testRolloverDueDates";
+import "@core/utils/testLocalDate";
 import "../debt/testBuildPayoffTrajectory";
 import "../debt/testComputeInterestSaved";
 import "../debt/testFreedMinimumRoll";

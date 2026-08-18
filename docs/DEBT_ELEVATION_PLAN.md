@@ -13,13 +13,13 @@
 | | |
 |---|---|
 | **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **audit itself is ✅ RUN**. Remaining: **T1–T8** → **Phase 5** 🔒 → 5.5 → **Phase 6** |
-| **Gate** | `validate:release:rn` — **184 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push |
+| **Gate** | `validate:release:rn` — **187 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push |
 | **The audit** | ⭐ [`audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md) — **117 findings, 7 lenses, 8 refutations.** `findings/` per lens · `slices/` the verbatim input each lens got |
-| **Device pass** | **52 rows** + the 60 coverable-not-built, all Phase 6, human-ticked, non-gating. ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them |
+| **Device pass** | **52 rows** + the 60 coverable-not-built, all Phase 6, human-ticked, non-gating. ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them. ⚠️ **[T3.2] +1 owed row:** force a storage fault → the retry screen renders AND the retry recovers. MMKV cannot be failed on web, so both new surfaces ship on unit assertions with no rendered proof |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
-🎯 **2026-08-18: T1–T8 now · T9–T11 parked for revisit · T12 → Phase 6.**
-✅ **T1 + T2 CLOSED 2026-08-18.** ▶ **NEXT: T3 (correctness).** T3–T8 remain, in order.
+🎯 **2026-08-18: T1–T8 + T3B now. ⛔ [D37] every high+ closes this round; T9–T11 are SEQUENCED, not shelved.**
+✅ **T1 · T2 · T3 CLOSED 2026-08-18**, full gate green (187 e2e). ▶ **NEXT: T3B**, then T4–T8 in order.
 
 ⛔ **2 of 3 agent-declared blockers did NOT survive refutation, and the tally is now 3 of 4** — L1-1
 downgraded, L3-5's mechanism wrong (severity right), L1-4 downgraded (free DOES get a Guardian). Plus
@@ -36,15 +36,31 @@ narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those pass
 |---|---|---|---|
 | **T1** | **The instruments** | ✅ **Done 2026-08-18.** Strings gate: rule ② now consults the origin sets **and** the `key:`/`prop:` alias (358→333 unclassified, **+10 strings into the gate's view**, 2 new duplicates with them); TECHNICAL decided per-VALUE so MIXED props keep their copy visible; `calleeLabel` given ONE owner (there were two) + a **self-check that reds on a denormalised label**, mutation-verified. `DUP_MIN_LEN` 20→**14** — the gate saw 3 duplicates, now 12, and all 9 it had missed were found by hand in the same audit; baseline 5→16. Surface inventory now finds **hand-rolled** formatters: **7**, and Today reaches **8 money renderers**. Fixture seeds a bill: 178/184 passed, 5 specs pinned their own state, 1 assertion **strengthened** (it passed either way) | 
 | **T2** | **App Store / legal exposure** | ✅ **Done 2026-08-18.** L6-2 fixed: the shipped web sample named **Chase Freedom Unlimited** with fabricated balance/APR, in the bundle behind the public embed → fictional issuer; parser still prefills correctly (probed). 🎯-approved rewrites landed for **L1-2** (paywall sold "autopilot" the product disclaims twice elsewhere), **L1-3** (an unconditional cushion promise the next-but-one bullet contradicts) and **L1-4**. ⛔ **3 of 5 items closed as NOT defects** — L6-7 (public RC key, by design), L6-3 (`QA_TOOLS` deliberate, already a Phase-6 step), L1-4 downgraded (free DOES get a Guardian) |
-| **T3** | **Correctness** — concrete repro each | L0-2/L5-9 (UTC dates, **9 sites incl. the rollover**) · L5-2 (hydrate → black screen + silent save loss) · L5-1 (a no-debts user loses the app) · L3-3 (goal pick) · L5-5 · L5-6 · L5-14 | |
+| **T3** | **Correctness** — concrete repro each | ✅ **Done 2026-08-18**, all 7 (L0-2/L5-9 · L5-2 · L5-1 · L3-3 · L5-5 · L5-6 · L5-14), **full gate green: 187 e2e** (+3), 29 new unit asserts, **every fix mutation-verified**, 2 new lint rules. ⛔ **Found while building: `Alert.alert` is a NO-OP in react-native-web** — 11 raw sites incl. the paywall behind the live embed. ⚡ **7 of 7 first-cut instruments were wrong in a way that would have PASSED** — detail → log |
 | **T4** | ⚠️ **The glossary — MUST precede every other wording edit** | L1-5/6/7/14/19/26/34 · L2-6/7/16. The cushion has **six** names, one of which is a different engine bucket. ⛔ **[T2 after-scan] NOT a copy edit — 129 exact-string copy assertions across 36 specs pin this vocabulary.** Renaming "cushion"/"expenses"/"floor" breaks tests by the dozen. **Budget for the specs, and prefer a shared copy constant or testID over re-pinning the new string** | |
 | **T5** | **Truth of claims** — promise vs delivery | L3-1/2/4/6/7 · L1-12/13/15/17/18. ⚠️ **[T2 after-scan] +1: `tutorialPath.ts:183`** — the finale's *"premium is what did the holding: your cushion kept at your line"*. Past-tense about the scripted demo, where it DID hold, so it is defensible — but it is the same claim family T2 rewrote in 3 places, and a free user reads it as what premium always does. **A judgment call, deliberately left for this step** | |
 | **T6** | **Numbers cohesion** — one rule, applied once, then enforced | L4-1/3/4/5/6/7/8/9/10 | |
 | **T7** | **Voice & persona** | L1-8/9/10/11/16 | |
-| **T8** | **Drift / one-owner** — 20 dangerous, two tables **already diverged in production** | L2 ×23 · L0-3 | |
+| **T8** | **Drift / one-owner** — 20 dangerous, two tables **already diverged in production** | L2 ×23 · L0-3. ⚠️ **[T3.1 after-scan] +1: the `T00:00:00` parse is hand-written at ~65 sites across 39 files.** NOT a defect (it is the correct local parse) but the same one-rule-many-owners shape — and `@core/utils/localDate`'s `parseLocalDate` now exists as its owner | |
 
-**Exit:** T1–T8 closed, full gate green, and every fix that CAN be a lint rule IS one ([D31] — a finding
-that becomes a test is paid for once).
+
+### ▶ T3B — the high+ sweep that [D37] adds _(built after T3.7, before T4)_
+
+⛔ **Found by auditing the PLAN against the findings, 2026-08-18** — the ledger did not cover its own
+high+ set. **8 majors were parked, deferred or unassigned.**
+
+| # | Finding | Where it was |
+|---|---|---|
+| **T3B.1** | **L4-2** — nine money formatters, six hand-rolled inside Today's cards | **unassigned.** Folds into **T6**, which owns numbers cohesion |
+| **T3B.2** | **L5-11** — onboarding's one memorable moment degrades to a platitude | **unassigned** |
+| **T3B.3** | **L5-3** · **L5-4** (600 unvirtualized rows) · **L5-8** (premium-only header, nothing under it) | parked at T11 |
+| **T3B.4** | **L0-5** (a11y guards cover 2 of 4 props, 11 files) · **L5-7** (no font-scale cap on 3 heroes) | parked at T9 |
+| **T3B.5** | **L5-10** ("Skip for now" skips two steps) · **L5-12** (paywall never names the user's own money) | pushed to Phase 6 |
+| **T3B.6** | **L0-1** (25 of 39 specs seed no bills) · **L6-1** (gate's origin lists skip the JSX path) | ⚠️ **look already closed by T1 — verify by id, do not re-fix** |
+
+**Exit:** T1–T8 **and T3B** closed, **all 55 high+ traceable to a closure or a recorded refutation**,
+full gate green, and every fix that CAN be a lint rule IS one ([D31] — a finding that becomes a test is
+paid for once).
 
 ⭐ **The audit paid for itself on work four hours old:** L4-1 — "Spoken for" renders `$486` on Today and
 `$486.34` in the sheet that legend opens. 184 tests and six lint gates could not see it, because both
@@ -257,15 +273,21 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
 
 ## Deferred backlog
 
-**⏸ PARKED — audit-gate T9–T11, to REVISIT before the release gate** *(🎯 2026-08-18)*. Not deferred to a
-later version: parked for a decision once T1–T8 land, because several become cheaper or moot after them.
-- **T9 · a11y** — L0-5 (the guards cover 2 of 4 native-only props; `accessibilityState` spans **11 files**,
-  so the web suite is blind to state) · L1-8 · L5-7 (no font-scale cap on the three hero figures).
+⛔ **[D37] EVERY high+ finding is remediated THIS round** *(🎯 2026-08-18: "We're fixing all in this
+round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is not "T1–T8 closed", it is
+**all 55 high+ closed or explicitly refuted**, with each closure traceable to the finding id.
+
+⛔ **NOTHING IS PARKED** *(🎯 2026-08-18)*. **T9–T11 are SEQUENCED, not shelved** — every remaining
+minor/polish finding is still live and gets **re-evaluated once T1–T8 lands**, because several become
+cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped*. Detail → log.
+
+**⏳ T9–T11 — re-evaluate after T1–T8** *(high+ already pulled into the gate by [D37])*.
+- **T9 · a11y** — ⚠️ **L0-5 and L5-7 are MAJOR → in the gate now** (L1-8 was already T7's).
 - **T10 · dead code** — L0-4 (`ProgressRing`, `MilestonesRow`, **0 refs**) · L3-5 · L4-11
   (`formatDisplayAmount`) · L6-4/5 (`projectForecast`, `buildSmartInsights` — unsurfaced, and feeding 8
   off-voice strings into the wording gate's input).
-- **T11 · states & robustness** — L5-3/4/8/13/15/16. Worst: `/schedule/[id]` renders up to **600
-  unvirtualized rows** for a mortgage or student loan.
+- **T11 · states & robustness** — L5-13/15/16. ⚠️ **L5-3/4/8 are MAJOR → in the gate now**, incl.
+  `/schedule/[id]`'s up-to-**600 unvirtualized rows**.
 ⚠️ **T10 interacts with T1:** deleting dead code shrinks the surface every later instrument reads, so if T1
 surfaces more of it, fold it rather than re-entering.
 

@@ -1,3 +1,5 @@
+import { parseLocalDate, toLocalISODate } from "@core/utils/localDate";
+
 export type PayCycle = "weekly" | "biweekly" | "semimonthly" | "monthly";
 
 export type PayCycleConfig = {
@@ -8,13 +10,8 @@ export type PayCycleConfig = {
 	monthlyPayDay?: number;
 };
 
-function toDate(date: string) {
-	return new Date(`${date}T00:00:00`);
-}
-
-function toDateString(date: Date) {
-	return date.toISOString().slice(0, 10);
-}
+const toDate = parseLocalDate;
+const toDateString = toLocalISODate;
 
 function clampDay(year: number, month: number, day: number) {
 	return Math.min(day, new Date(year, month + 1, 0).getDate());

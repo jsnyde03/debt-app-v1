@@ -10,7 +10,7 @@ import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useActiveStore } from '@/store/StoreContext';
-import { formatPaycheckDate, nextPaycheckFrom, PAY_CYCLE_OPTIONS, PAYCHECK_ERRORS, PAYCHECK_FIELDS, PAYCHECK_LEAN_HELP, PAYCHECK_SECTIONS } from '@/store/paycheckForm';
+import { formatPaycheckDate, nextPaycheckFrom, paydayFieldError, PAY_CYCLE_OPTIONS, PAYCHECK_ERRORS, PAYCHECK_FIELDS, PAYCHECK_LEAN_HELP, PAYCHECK_SECTIONS } from '@/store/paycheckForm';
 import { selectPaycheckMissed } from '@/store/selectors';
 import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
@@ -42,11 +42,17 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
   const [lean, setLean] = useState(paycheck.leanAmount ? String(paycheck.leanAmount) : '');
   const [error, setError] = useState('');
   const [leanError, setLeanError] = useState('');
+  const [paydayError, setPaydayError] = useState('');
 
   const nextDate = nextPaycheckFrom(payCycle, firstDay, secondDay, payDay);
 
   function submit() {
     if (!amount || Number(amount) <= 0) return setError('Enter your paycheck amount.');
+    // Same refusal as onboarding, from the same shared rule — see `paydayFieldError`. Saving a cycle
+    // whose day fields do not describe a payday used to store a biweekly-derived date instead.
+    const dayError = paydayFieldError(payCycle, firstDay, secondDay, payDay);
+    if (dayError || !nextDate) return setPaydayError(dayError ?? PAYCHECK_ERRORS.paydayRequired);
+    setPaydayError('');
     // ⚠️ A lean figure is REQUIRED once the switch is on, and that is the point of the whole item rather
     // than form politeness. `selectDebtFreeBand` needs `incomeVaries && leanAmount > 0`; turn the switch on
     // without a floor and every downstream feature stays silent, so the user changes a setting, sees
@@ -119,16 +125,21 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
       {payCycle === 'semimonthly' ? (
         <View style={styles.pair}>
           <View style={styles.pairItem}>
-            <TextField label={PAYCHECK_FIELDS.firstPayday.label} value={firstDay} onChangeText={setFirstDay} placeholder={PAYCHECK_FIELDS.firstPayday.placeholder} keyboardType="number-pad" />
+            <TextField label={PAYCHECK_FIELDS.firstPayday.label} value={firstDay} onChangeText={(t) => { setFirstDay(t); setPaydayError(''); }} placeholder={PAYCHECK_FIELDS.firstPayday.placeholder} keyboardType="number-pad" />
           </View>
           <View style={styles.pairItem}>
-            <TextField label={PAYCHECK_FIELDS.secondPayday.label} value={secondDay} onChangeText={setSecondDay} placeholder={PAYCHECK_FIELDS.secondPayday.placeholder} keyboardType="number-pad" />
+            <TextField label={PAYCHECK_FIELDS.secondPayday.label} value={secondDay} onChangeText={(t) => { setSecondDay(t); setPaydayError(''); }} placeholder={PAYCHECK_FIELDS.secondPayday.placeholder} keyboardType="number-pad" />
           </View>
         </View>
       ) : null}
 
+      {/* One message under the PAIR — see `PaycheckStep`, same reasoning, same rule. */}
+      {payCycle === 'semimonthly' && paydayError ? (
+        <Text style={[textStyles.caption, { color: c.accent.danger }]}>{paydayError}</Text>
+      ) : null}
+
       {payCycle === 'monthly' ? (
-        <TextField label={PAYCHECK_FIELDS.monthlyPayday.label} value={payDay} onChangeText={setPayDay} placeholder={PAYCHECK_FIELDS.monthlyPayday.placeholder} keyboardType="number-pad" />
+        <TextField label={PAYCHECK_FIELDS.monthlyPayday.label} value={payDay} onChangeText={(t) => { setPayDay(t); setPaydayError(''); }} placeholder={PAYCHECK_FIELDS.monthlyPayday.placeholder} keyboardType="number-pad" error={paydayError} />
       ) : null}
 
       <View style={[styles.nextCard, { backgroundColor: c.background.tertiary, borderColor: c.border.subtle }]}>

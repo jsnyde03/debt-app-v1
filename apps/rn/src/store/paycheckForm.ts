@@ -64,37 +64,73 @@ export const PAYCHECK_SECTIONS = {
 export const PAYCHECK_ERRORS = {
   leanRequired: 'Enter the amount you can count on.',
   leanAboveTypical: 'Your lean paycheck should be no more than a typical one.',
+  paydayRequired: 'Enter which day of the month you get paid.',
+  paydayRange: 'Use a day between 1 and 31.',
+  paydaySame: 'Your two paydays must be different days.',
 } as const;
 
+/** What the preview shows when the cycle's day inputs do not yet describe a payday. */
+export const PAYCHECK_NO_DATE = '—';
+
 /**
- * The next payday for a cycle, falling back to biweekly when the day inputs do not parse.
+ * The next payday for a cycle, or `null` when the day inputs do not describe one.
  *
- * The `catch` is the honest half: a half-typed "1" in a semi-monthly day field throws inside
- * `getNextPaycheckDate`, and a form that blanks its own preview mid-keystroke reads as broken.
+ * ⛔ **It used to fall back to BIWEEKLY, and that silently corrupted the user's first fact about
+ * themselves.** Pick Semi-monthly, leave "First payday" empty, and `getNextPaycheckDate` threw — the
+ * catch then returned today + 14 days, which the preview card rendered with full confidence and
+ * Continue wrote to the store, so the plan was stored as `semimonthly` with a blank day and a
+ * biweekly-derived date. Measured: with days that cannot coincide with today + 14, four of six invalid
+ * inputs produced that fallback.
+ *
+ * ⚠️ The fallback was defended as protecting the preview from blanking mid-keystroke. Measured, that
+ * case barely exists — `Number("1")` is a valid day, so a half-typed entry does not throw; only an
+ * empty field, an out-of-range day or two identical semi-monthly days do. And a confidently WRONG date
+ * is not a gentler failure than a dash. `null` is the honest answer, and the hosts render it as one.
  */
 export function nextPaycheckFrom(
   payCycle: PayCycle,
   firstDay: string,
   secondDay: string,
   payDay: string,
-): string {
-  const currentDate = todayLocalISO();
+): string | null {
   try {
     return getNextPaycheckDate({
       payCycle,
-      currentDate,
+      currentDate: todayLocalISO(),
       semiMonthlyFirstDay: Number(firstDay),
       semiMonthlySecondDay: Number(secondDay),
       monthlyPayDay: Number(payDay),
     });
   } catch {
-    return getNextPaycheckDate({ payCycle: 'biweekly', currentDate });
+    return null;
   }
 }
 
-/** `2026-08-12` → `Wed, Aug 12`. Local-noon-safe: a bare `new Date(iso)` parses as UTC and can land a
- *  day early west of Greenwich. */
-export function formatPaycheckDate(iso: string): string {
+/**
+ * Why the day inputs do not describe a payday, as a message — or `null` when they are fine.
+ *
+ * Shared because BOTH hosts must refuse the same input for the same stated reason: this file exists
+ * because they were written twice and had already begun to diverge, and a validation rule living in two
+ * places is that defect waiting to happen again. Weekly/bi-weekly need no day, so they never error.
+ */
+export function paydayFieldError(payCycle: PayCycle, firstDay: string, secondDay: string, payDay: string): string | null {
+  const bad = (v: string) => !v.trim() || !Number.isInteger(Number(v)) || Number(v) < 1 || Number(v) > 31;
+  if (payCycle === 'monthly') {
+    if (!payDay.trim()) return PAYCHECK_ERRORS.paydayRequired;
+    return bad(payDay) ? PAYCHECK_ERRORS.paydayRange : null;
+  }
+  if (payCycle === 'semimonthly') {
+    if (!firstDay.trim() || !secondDay.trim()) return PAYCHECK_ERRORS.paydayRequired;
+    if (bad(firstDay) || bad(secondDay)) return PAYCHECK_ERRORS.paydayRange;
+    if (Number(firstDay) === Number(secondDay)) return PAYCHECK_ERRORS.paydaySame;
+  }
+  return null;
+}
+
+/** `2026-08-12` → `Wed, Aug 12`, or a dash when there is no date yet. Local-noon-safe: a bare
+ *  `new Date(iso)` parses as UTC and can land a day early west of Greenwich. */
+export function formatPaycheckDate(iso: string | null): string {
+  if (!iso) return PAYCHECK_NO_DATE;
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',

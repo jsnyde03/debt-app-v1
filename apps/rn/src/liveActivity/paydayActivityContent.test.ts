@@ -1,3 +1,5 @@
+import { parseLocalDate, toLocalISODate } from '@core/utils/localDate';
+
 import { createDefaultStore } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
 import { withProjectedBalances } from '@/store/balanceSelectors';
@@ -48,7 +50,9 @@ function store(o: {
   };
 }
 function addDays(iso: string, days: number): string {
-  return new Date(Date.parse(`${iso}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+  const d = parseLocalDate(iso);
+  d.setDate(d.getDate() + days);
+  return toLocalISODate(d);
 }
 
 // ── wholeDaysBetween ──────────────────────────────────────────────────────────

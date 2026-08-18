@@ -4,6 +4,8 @@ import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@cor
 import { reachedFloor, scoreCalibration, type CalibrationScore } from '@core/guardian/calibrationScore';
 import { decideRiskNotification, type NotifyDecision } from '@core/guardian/notificationDecision';
 import { ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS, type EstimateStaleness } from '@core/debt/projectCurrentBalance';
+import type { Goal } from '@core/storage/debtPlannerStorage';
+import { parseLocalDate, toLocalISODate } from '@core/utils/localDate';
 
 import type { DebtStore } from '@/data/models';
 
@@ -283,16 +285,7 @@ export function selectTightTopUp(store: DebtStore): TightTopUp | null {
   const cushion = selectDiscretionary(allocation) + appliedTopUp(store);
   const gap = Math.round((floor - cushion) * 100) / 100;
   if (gap <= 0) return null; // at or above the line already
-  // 3.7.A3.3 [D24] — PREFERENCE, not find-order. This was a bare `find` over (emergency | savings), so
-  // the source was whichever the user happened to create first: a covered-but-tight cushion dip could
-  // raid the safety net while a discretionary pot sat untouched.
-  //
-  // ⚠️ The EF stays a FALLBACK rather than being excluded. Excluding it would make the one-tap vanish for
-  // anyone whose only savings IS the emergency fund — most people early on — and a tight-but-covered
-  // cycle is what a cushion is for. The dishonesty was never drawing on it; it was drawing on it
-  // silently and FIRST, which is why `isEmergencyFund` rides along for the copy.
-  const funded = store.goals.filter((g) => (g.type === 'emergency' || g.type === 'savings') && g.currentAmount > 0);
-  const goal = funded.find((g) => g.type === 'savings') ?? funded.find((g) => g.type === 'emergency');
+  const goal = pickTopUpGoal(store.goals, gap, ['savings', 'emergency']);
   if (!goal) return null;
   const topUp = Math.round(Math.min(gap, goal.currentAmount) * 100) / 100;
   if (topUp <= 0) return null;
@@ -390,7 +383,9 @@ export function selectAffordability(store: DebtStore, amount: number): Affordabi
   let coverFromSavings: Affordability['coverFromSavings'] = null;
   if (verdict === 'tight') {
     const gap = Math.round((floor - cushionAfter) * 100) / 100;
-    const goal = store.goals.find((g) => g.type === 'savings' && g.currentAmount > 0);
+    // Savings only — never the emergency fund for a discretionary purchase — but the SAME within-type
+    // rule as the Guardian's top-up, from the same owner.
+    const goal = pickTopUpGoal(store.goals, gap, ['savings']);
     if (gap > 0 && goal) {
       const amount = Math.min(gap, Math.round(goal.currentAmount * 100) / 100);
       coverFromSavings = { goalId: goal.id, goalName: goal.name, amount, holdsLine: amount >= gap };
@@ -485,12 +480,43 @@ export function selectWindfallSplit(store: DebtStore, amount: number): WindfallS
   return { amount, items };
 }
 
+/**
+ * Which pot funds a top-up — the ONE rule, read by the Guardian's tight top-up and by the affordability
+ * card's cover-a-dip.
+ *
+ * 3.7.A3.3 [D24] set the TYPE preference: savings before the emergency fund, because a bare `find` over
+ * (emergency | savings) drew from whichever the user happened to create first, so a covered-but-tight dip
+ * could raid the safety net while a discretionary pot sat untouched.
+ * ⚠️ The EF stays a FALLBACK rather than being excluded. Excluding it would make the one-tap vanish for
+ * anyone whose only savings IS the emergency fund — most people early on — and a tight-but-covered cycle
+ * is what a cushion is for. The dishonesty was never drawing on it; it was drawing on it silently and
+ * FIRST, which is why `isEmergencyFund` rides along for the copy. That preference is ABSOLUTE and is not
+ * reopened here: a savings pot too small to hold the line still outranks the emergency fund.
+ *
+ * ⛔ **What this adds (audit L3-3): within a type, the pick was still creation order.** With a $10
+ * "Vacation" created before an $800 "New car" and a $70 gap, it chose Vacation, capped the draw at $10,
+ * and told the user their line could not be held this paycheck — true of that pot, and needlessly false
+ * of their money. So: prefer a pot that can actually COVER the gap, largest first; only if none can,
+ * fall back to the largest available. The draw is capped at the gap either way, so this changes WHICH
+ * pot is used and whether the line holds — never how much is taken.
+ */
+function pickTopUpGoal(goals: Goal[], gap: number, preference: readonly Goal['type'][]): Goal | null {
+  for (const type of preference) {
+    const funded = goals.filter((g) => g.type === type && g.currentAmount > 0);
+    if (funded.length === 0) continue;
+    const sufficient = funded.filter((g) => g.currentAmount >= gap);
+    const pool = sufficient.length > 0 ? sufficient : funded;
+    return pool.reduce((best, g) => (g.currentAmount > best.currentAmount ? g : best));
+  }
+  return null;
+}
+
 /** Advance an ISO date by whole paychecks of the given cadence (for a save-for-it "ready by" date). */
 function addPaychecks(iso: string, payCycle: string, n: number): string {
   const days = payCycle === 'weekly' ? 7 : payCycle === 'biweekly' ? 14 : payCycle === 'semimonthly' ? 15 : 30;
-  const d = new Date(`${iso}T00:00:00`);
+  const d = parseLocalDate(iso);
   d.setDate(d.getDate() + days * n);
-  return d.toISOString().slice(0, 10);
+  return toLocalISODate(d);
 }
 
 export interface SaveOption {

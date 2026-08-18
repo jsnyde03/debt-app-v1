@@ -1,3 +1,5 @@
+import { parseLocalDate, toLocalISODate } from '@core/utils/localDate';
+
 import { personaScenario, type SandboxState } from './sandboxScenarios';
 import { scheduleStoryStep } from './sandboxRun';
 import { seedSandbox, type SandboxScenario, type SandboxStoreInstance } from './sandboxStore';
@@ -55,9 +57,9 @@ function primePayoff(sandbox: SandboxStoreInstance): void {
   // 35 days back — comfortably past the one whole month `projectCurrentBalance` needs to apply a payment,
   // without depending on month lengths. Inline rather than a shared helper: one caller, and the repo has
   // no add-months util to borrow.
-  const back = new Date(`${store.paycheck.currentDate}T00:00:00`);
+  const back = parseLocalDate(store.paycheck.currentDate);
   back.setDate(back.getDate() - 35);
-  const anchorDate = back.toISOString().slice(0, 10);
+  const anchorDate = toLocalISODate(back);
   // ⚠️ Only the BALANCE moves. The first version also raised `minimumPayment` to guarantee the projection
   // cleared — and that pushed the debt-free date a year later between the Progress beat and this one,
   // because a bigger minimum is a bigger required obligation and less is left to attack the other debts.

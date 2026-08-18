@@ -20,6 +20,7 @@ import {
   type SubscriptionPlan,
 } from '@/data/models';
 import type { StorageAdapter } from '@/storage/adapter';
+import { reportError } from '@/utils/reportError';
 
 import { recordDriftBaseline } from './drift';
 import { stampCyclePrediction } from './guardianPrediction';
@@ -53,6 +54,17 @@ export interface DebtAppState {
    *  Transient (never persisted; resets to null each launch → the Undo is session-brief); null when
    *  there's nothing to undo. */
   intentRollback: { store: DebtStore; kind: 'payday-landed' | 'log-payment' } | null;
+  /** Durable storage is not answering. Transient (never persisted), and the two halves are NOT the same
+   *  severity:
+   *
+   *  `'read-failed'` — we could not read the blob at all. ⛔ This is NOT "there is no data": a read that
+   *  THREW tells us only that we could not see it, so falling through to defaults and saving them would
+   *  destroy a healthy store. The app shows a retry surface and autosave is never installed.
+   *
+   *  `'save-failed'` — the store is loaded and correct on screen, but a write did not land. Non-blocking:
+   *  the user keeps working and is told once, because the alternative is editing all evening and losing
+   *  it at next launch. Cleared by the next write that succeeds. */
+  storageError: 'read-failed' | 'save-failed' | null;
 
   // Lifecycle
   hydrate(adapter: StorageAdapter): Promise<void>;
@@ -209,9 +221,23 @@ export function createDebtStore(opts?: { now?: () => string; bound?: (store: Deb
     premiumIsLifetime: false,
     premiumResolved: false,
     intentRollback: null,
+    storageError: null,
 
     async hydrate(adapter) {
-      const raw = await adapter.read();
+      let raw: unknown | null;
+      try {
+        raw = await adapter.read();
+      } catch (error) {
+        // ⛔ The read THREW — do not fall through to the first-launch branch below. "Nothing is stored"
+        // and "I could not look" are different facts, and only one of them makes it safe to seed and
+        // write defaults. Treating them alike would overwrite a healthy blob with an empty store on a
+        // transient failure (a locked keychain right after boot is the ordinary case). So: declare
+        // hydration RESOLVED — nothing must sit on a blank screen forever — record why, and let the
+        // layout offer a retry. `bootstrapPersistence` reads this and never installs autosave.
+        reportError(error, { seam: 'persistence' });
+        set({ isHydrated: true, storageError: 'read-failed' });
+        return;
+      }
       if (raw === null) {
         // First launch — keep defaults, seed the blob.
         set({ isHydrated: true });
@@ -235,6 +261,15 @@ export function createDebtStore(opts?: { now?: () => string; bound?: (store: Deb
       set({ isSaving: true });
       try {
         await adapter.write(get().store);
+        // Recovered: a later write landing means the earlier failure was transient, and leaving the
+        // warning up after that would train the user to ignore it.
+        if (get().storageError === 'save-failed') set({ storageError: null });
+      } catch (error) {
+        // A write that fails silently is the worst shape this can take — the change is on screen, so
+        // the user believes it is kept, and finds out at next launch. Autosave calls this through a
+        // `void` chain, so without this catch the rejection is unhandled and NOTHING is said.
+        reportError(error, { seam: 'persistence' });
+        set({ storageError: 'save-failed' });
       } finally {
         set({ isSaving: false });
       }
