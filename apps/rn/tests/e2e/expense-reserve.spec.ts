@@ -39,7 +39,7 @@ test('the Guardian bar says "Spoken for", and it opens the split', async ({ page
   await page.getByRole('button', { name: /Spoken for/ }).click();
   await expect(page.getByText('of this paycheck is already accounted for')).toBeVisible();
   await expect(page.getByText('Everyday spending')).toBeVisible();
-  await expect(page.getByText('Upcoming bills', { exact: true })).toBeVisible();
+  await expect(page.getByText('Upcoming expenses', { exact: true })).toBeVisible();
 });
 
 test('the TICK: reserving moves the plan, and the Money hero says so', async ({ page }) => {
@@ -53,13 +53,13 @@ test('the TICK: reserving moves the plan, and the Money hero says so', async ({ 
 
   // ⛔ The whole point: the app now RECORDS the habit it coaches. Before 3.8 this number never moved, so
   // the offer disappearing (nothing left to offer) IS the evidence that the reserve landed.
-  await expect(page.getByText('Upcoming bills', { exact: true })).toBeVisible();
+  await expect(page.getByText('Upcoming expenses', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Set by / })).toHaveCount(0);
 
   // …and the Money tab's hero reads the real reserve rather than the recommendation.
   await page.goto('/money');
   await page.getByText('Expenses', { exact: true }).click(); // Money opens on Debts
-  await expect(page.getByText('reserved for upcoming bills')).toBeVisible();
+  await expect(page.getByText('reserved for upcoming expenses')).toBeVisible();
   await expect(page.getByText(/recommended each paycheck/)).toBeVisible();
 });
 
@@ -92,6 +92,6 @@ test('the Money hero shows $0 before anything is reserved — honestly', async (
 
   // The number is allowed to be zero. What it may not be is the recommendation wearing the word
   // "reserved", which is what shipped before 3.8.
-  await expect(page.getByText('reserved for upcoming bills')).toBeVisible();
+  await expect(page.getByText('reserved for upcoming expenses')).toBeVisible();
   await expect(page.getByText(/recommended each paycheck/)).toBeVisible();
 });

@@ -19,7 +19,7 @@ import { formatWhole } from '@/utils/format';
 
 /** Display meta per windfall bucket — the label + glyph (all in the iOS SF-symbol map, `@/theme/icons`). */
 const BUCKET_META: Record<WindfallBucketKey, { label: string; icon: IconGlyph }> = {
-  bills: { label: 'Covers your bills & essentials first', icon: 'check-circle' },
+  bills: { label: 'Covers your expenses & essentials first', icon: 'check-circle' },
   debt: { label: 'Extra to your debt', icon: 'trending-down' },
   emergency: { label: `To ${EMERGENCY_FUND_NOUN}`, icon: 'savings' },
   goals: { label: 'Toward your goals', icon: 'star' },
@@ -115,7 +115,7 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
       ) : !isPremium && validAmount ? (
         // Free adds the windfall as always; the invite sells the routing view, never a locked preview.
         <View style={styles.split}>
-          <PremiumInvite message={`Premium shows exactly where your ${formatWhole(n)} lands — bills, debt, and savings — before you confirm.`} />
+          <PremiumInvite message={`Premium shows exactly where your ${formatWhole(n)} lands — expenses, debt, and savings — before you confirm.`} />
         </View>
       ) : null}
     </FormSheet>

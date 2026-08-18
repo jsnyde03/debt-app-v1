@@ -112,7 +112,7 @@ function runGuardianTests() {
   // ── §2.0.d voice gate: the one-hedge budget + the stale hard-cutoff (2.4.6.1.3) ──
   const AGING = /from a little while ago/i;
   const INCOME_HEDGE = /paychecks reliably clear/i;
-  const BILLS_HEDGE = /get to know your bills/i;
+  const BILLS_HEDGE = /get to know your expenses/i;
   const countHedges = (s: string) => [AGING, INCOME_HEDGE, BILLS_HEDGE].filter((re) => re.test(s)).length;
 
   // fresh inputs + no live holdback → no hedge at all (auto-maintained-and-recent stays decisive).
@@ -181,7 +181,7 @@ function runGuardianTests() {
   assertTrue(/free up more for your goals/.test(gradHold.safeMove ?? "") && !/for debt/.test(gradHold.safeMove ?? ""), "debt-free clear-no-deploy → 'free up more for your goals'");
 
   const gradShort = buildGuardianBrief(input({ debtFree: true, shortfall: 180, discretionary: 0 }));
-  assertTrue(/\bbills\b/.test(gradShort.detail) && !/minimums/.test(gradShort.detail), "debt-free shortfall → 'bills' (no minimums exist debt-free)");
+  assertTrue(/\bexpenses\b/.test(gradShort.detail) && !/minimums/.test(gradShort.detail), "debt-free shortfall → 'expenses' (no minimums exist debt-free)");
   assertTrue(/Extra savings is paused/.test(gradShort.safeMove ?? ""), "debt-free shortfall → 'Extra savings is paused'");
 
   const gradPaused = buildGuardianBrief(input({ debtFree: true, pausedDeploy: true, discretionary: 500 }));

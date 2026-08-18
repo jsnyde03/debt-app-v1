@@ -61,7 +61,7 @@ test('§3.4.4 swipe-to-delete reveals Delete and removes the row after confirm',
  *
  * The search field rendered on `grouped` (>= 8 expenses) alone, while the un-grouped branch still
  * FILTERED by `query`. Delete a bill mid-search, the count drops below the threshold, and the field
- * unmounts with its query still live: one row (or "No bills match") and no control to clear it. The
+ * unmounts with its query still live: one row (or "No expenses match") and no control to clear it. The
  * only way out was leaving the tab.
  *
  * The invariant: never unmount the only control that can undo a state the user is still in.

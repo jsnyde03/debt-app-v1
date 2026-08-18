@@ -142,6 +142,18 @@ is not evidence until you know which failure it would have caught.**
   next move is to debug working code. ⚠️ And prefer a container `testID` over a stat inside it for
   presence checks: `guardian-reserve-amount` renders in most Guardian states but **not** in `clear`,
   which is exactly the state a new user is in.
+- ⛔ **A COPY RENAME IS NOT DONE WHEN THE APP COMPILES — sweep by RETIRED STRING, and in four places.**
+  T4.4 renamed one vocabulary and needed **four** rounds to actually land, each caught by a different
+  instrument after the previous one went green:
+  1. `head -30` on the enumeration **hid half the class** — the reported blast radius was 5× too small.
+  2. A **case-sensitive** spec grep missed `getByText(/Bills confirmed/)`.
+  3. `lint:copy` caught the rename **creating** a new 3-file duplicate ("Everyday spending").
+  4. The **Maestro** flow `06-tutorial-interactions.yaml` asserted copy no web test can see, and
+     `route-smoke` pinned a screen title nothing else did.
+  **The reliable sweep is: list every string you RETIRED, then grep each one, case-insensitively, with no
+  `head`, across `apps/rn/tests` AND `apps/rn/.maestro` AND `packages/core/**/test*.ts`.** Term-by-term
+  greps ("bill") miss the sites; retired-string greps do not. ⚠️ And the unit suites, `tsc` and 45 targeted
+  e2e were **all green** while three of those four were still broken.
 - ⛔ **A COPY-PIN ASSERTION USES `.includes()`, NEVER A REGEX — the escape does not survive the trip.** A
   `\b…\b` written through a heredoc → node → file chain landed in the spec as literal **backspace bytes**,
   so the pin read `/\x08flexible\x08/` and could never match. The suite stayed **green with the defect

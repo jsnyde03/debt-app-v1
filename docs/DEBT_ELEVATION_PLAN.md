@@ -20,7 +20,7 @@
 
 🎯 **2026-08-18: T1–T8 + T3B now. ⛔ [D37] every high+ closes this round; T9–T11 are SEQUENCED, not shelved.**
 ✅ **T1 · T2 · T3 · T3B CLOSED 2026-08-18**, full gate green (187 e2e · 10 embed · 0 error-context).
-▶ **T4 (the glossary) is ACTIVE** — **T4.0 · T4.1 · T4.1b · T4.2 · T4.3 closed 2026-08-18**; **T4.4 (expenses/everyday) is next**, then T4.5–T4.9 and T5–T8 in order.
+▶ **T4 (the glossary) is ACTIVE** — **T4.0 · T4.1 · T4.1b · T4.2 · T4.3 · T4.4 closed 2026-08-18**; **T4.5 (cash states) is next**, then T4.6–T4.9 and T5–T8 in order.
 
 ⛔ **2 of 3 agent-declared blockers did NOT survive refutation, and the tally is now 3 of 4** — L1-1
 downgraded, L3-5's mechanism wrong (severity right), L1-4 downgraded (free DOES get a Guardian). Plus
@@ -67,7 +67,7 @@ most of the rest are test names and comments. Measure user-facing STRING LITERAL
 | **T4.1b** | The defect T4.1 uncovered | ✅ **Done 2026-08-18.** Today showed **"Flexible $675"** and **"about $850 spare this paycheck"** a tap apart. New `selectSpendable` owner; `selectAffordability` uses it. Mutation-verified (reds at 1375 vs 1550) |
 | **T4.2** | Copy-constants owner — L2-6/7/8/16 | ✅ **Done 2026-08-18.** `packages/core/copy/vocabulary.ts` owns `PAYCHECK_SEGMENT` · `CUSHION_NOUN/LABEL` · `SAFETY_NET_LABEL` · `EMERGENCY_FUND_NOUN`, **11 sites across 8 files** migrated, and the **disjointness rule now lives in ONE place** (it was prose in 4). ⛔ **L2-6's mechanism REFUTED — the engine's 5 allocation labels are NEVER rendered** (every consumer filters by `category`; `buildTimelineItems` even writes its own "Cash Buffer"), so its suggested fix would have made dead strings load-bearing. They are marked diagnostic instead. **L2-8 named 2 sites — there are 6; L2-16 named 3 — there are 4.** Mutation-verified: mutating `spokenFor` reds 2 specs |
 | **T4.3** | Cushion family — L1-5 · L1-14 | ✅ **Done 2026-08-18.** ⛔ **Of L1-5's NINE cited sites, only THREE were real work.** 3 were already correct · 1 is the engine's diagnostic label (never rendered, T4.2) · 1 is `buildSmartInsights`, **dead code** (*"intentionally NOT surfaced"*, Jason 2026-07-22) · and ⚠️ **1 was MISCLASSIFIED**: L1-14 files `TrajectoryChart`'s "Safe-floor" under the *cushion* sense, but it renders `band.lean` — the **income** sense L1-14 itself says to KEEP. Built as written it would have renamed an income label into cushion vocabulary. Fixed: "Cash Buffer"→`CUSHION_LABEL` · "BREATHING ROOM"→"CUSHION BY PAYCHECK" · "Your floor's been protected"→"Your line's" |
-| **T4.4** | Expenses / everyday — L1-6 | |
+| **T4.4** | Expenses / everyday — L1-6 | ✅ **Done 2026-08-18.** ⭐ **It was finishing [D22d], not a new call** — `ExpenseSheet.tsx:81` already recorded *"'expense', not 'bill'. A credit card BILL is a debt, so the word collided with every item in the other list"*, so L1-6 proposed **reversing a documented decision** and 🎯's *"bills to me are debt"* restated one already made. **~30 sites across 15 files**, "Living Expenses"→"Everyday spending", 15 spec assertions. ⛔ **My first enumeration was TRUNCATED (`head -30`) and hid half the class**; a second, untruncated sweep found the rest, and a **case-sensitive** spec grep still missed `/Bills confirmed/`. "bill" survives only where it means one real-world charge arriving ("A surprise bill came up") |
 | **T4.5** | Cash states — L1-7. ⚡ `guardian.spec.ts` already pins "Looks clear/Very tight this paycheck" — the card already speaks the target vocabulary | |
 | **T4.6** | Paid off — L1-19 | |
 | **T4.7** | Guardian naming — L1-34 | |
@@ -193,6 +193,13 @@ of 4, **1 refuted, 1 half-shipped, 1 wrong in 3 of its 4 premises, 1 clean.** Th
   mechanisms. **A `[D]` that is really an unproven `[M]` keeps a check on the manual pass forever**, and
   re-verdicting on expectation is the overstatement 4.1.9c exists to stop. Seeded verdicts are a
   **hypothesis per row**.
+- ✅ **STANDING PERMISSION, THE AUDIT GATE** *(🎯 2026-08-18: "You have standing permission to continue
+  honestly through T4, T5, and onward until you need me. As long as you don't forget the before and after
+  scans.")* — runs through **T4 → T5 → T6 → T7 → T8**. ⚠️ **Conditional on the scans**: every step and
+  sub-step gets its before-scan (verify the finding against the CURRENT code — measured this session at
+  **4 of 6 findings materially wrong in their specifics**) and its after-scan, captured atomically with the
+  plan edit. ⛔ **Still comes to Jason:** a new product/content call, anything touching Phase 5/5.5/6, and
+  any ruling that overturns a decision he already made.
 - ✅ **STANDING PERMISSION, 3.8** *(🎯 2026-08-17: "continue through 3.8 until you need my input")*. The tap's
   shape (.5) is inside it; a **new** product/content call is not. *(4.1's grant is spent — 4.1 is closed.)*
   Everything else — Phase 5, 5.5, 6, the audit gate — comes to Jason.

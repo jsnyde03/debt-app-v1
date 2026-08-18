@@ -14,7 +14,7 @@ const ROUTES: { path: string; text?: string; onboarded: boolean }[] = [
   { path: '/money', text: 'Money', onboarded: true },
   { path: '/more', text: 'Preferences', onboarded: true },
   { path: '/history', text: 'Pay Cycle History', onboarded: true },
-  { path: '/living-expenses', text: 'Living Expenses', onboarded: true },
+  { path: '/living-expenses', text: 'Everyday spending', onboarded: true },
   { path: '/cushion-forecast', text: 'Your cushion forecast', onboarded: true },
   { path: '/schedule/d0', text: 'Payoff schedule', onboarded: true }, // 3.7.A0 — the seeded debt's id
 

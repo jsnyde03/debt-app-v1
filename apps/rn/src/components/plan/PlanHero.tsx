@@ -197,7 +197,7 @@ export function PlanHero({
               onPress={onOpenSpokenFor}
               accessibilityRole="button"
               // Names the split it opens, so the control says what it does rather than repeating the total.
-              accessibilityLabel={`${PAYCHECK_SEGMENT.spokenFor} ${money0(seg.value)}. Everyday ${money0(everyday)}, bills ${money0(billsReserve)}. See the breakdown.`}
+              accessibilityLabel={`${PAYCHECK_SEGMENT.spokenFor} ${money0(seg.value)}. Everyday ${money0(everyday)}, expenses ${money0(billsReserve)}. See the breakdown.`}
               hitSlop={8}
               style={styles.legendItem}>
               {body}

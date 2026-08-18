@@ -110,7 +110,7 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
   // AFTER bills and minimums. The old line was ~$740 of a $2,000 paycheck with the real figure in the
   // hero directly above it: a user either builds a wrong model or notices it doesn't add up and stops
   // trusting the bar. Naming the three zones also covers the "Safety net" segment the old copy ignored.
-  { id: 'bar', title: 'Where this paycheck went', body: 'After your bills and minimums, this is what was left — held back as your cushion and safety net, or sent to your debt.', target: 'guardian-bar', state: 'clear' },
+  { id: 'bar', title: 'Where this paycheck went', body: 'After your expenses and minimums, this is what was left — held back as your cushion and safety net, or sent to your debt.', target: 'guardian-bar', state: 'clear' },
   // "Your line" is the app's own term for the floor, so the beat teaches the word as well as the control.
   // Interactive. Spotlights the CONTROL, not the readout — on a beat where the user has to do something,
   // pointing at the number tells them where to look but not what to do.
@@ -136,7 +136,7 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
     // all, so the Guardian puts the net back. The honest fix is to teach it rather than hide it — this is
     // the app being protective, which is the whole point of the beat. So the copy now names the full
     // shape: you say the bills are in, it holds less, a surprise proves otherwise, it restores the net.
-    body: 'While your Guardian is learning your bills it holds a bit more back. Tell it your bills are all in and it holds less — and if a surprise proves otherwise, it puts the net straight back.',
+    body: 'While your Guardian is learning your expenses it holds a bit more back. Tell it your expenses are all in and it holds less — and if a surprise proves otherwise, it puts the net straight back.',
     target: 'guardian-reserve',
     payoffTarget: 'today-ack',
     state: 'clear',
@@ -180,7 +180,7 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
       // beat that has to land — the hand-back, where a free user learns what they just saw was premium —
       // the least readable moment in the arc. Every one of the three behaviours survives; only the words
       // around them went. (Final polish still belongs to the whole-app wording audit.)
-      free: 'That was example money — premium is what did the holding: your cushion kept at your line, a little extra held while it learns your bills, and a catch-up plan when a paycheck comes up short. Your own plan is next — your debts live in Money, your progress in Progress.',
+      free: 'That was example money — premium is what did the holding: your cushion kept at your line, a little extra held while it learns your expenses, and a catch-up plan when a paycheck comes up short. Your own plan is next — your debts live in Money, your progress in Progress.',
     },
     target: 'guardian-card',
     state: 'clear',

@@ -200,7 +200,7 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
           </View>
         </View>
         <DetailRow label="Income" value={`+${formatWhole(income)}`} color={c.text.secondary} valueColor={c.text.primary} />
-        <DetailRow label="Bills & essentials" value={`−${formatWhole(essentials)}`} color={c.text.secondary} valueColor={c.text.primary} />
+        <DetailRow label="Expenses & essentials" value={`−${formatWhole(essentials)}`} color={c.text.secondary} valueColor={c.text.primary} />
         <View style={[styles.divider, { backgroundColor: c.border.subtle }]} />
         <DetailRow
           label="Left after essentials"

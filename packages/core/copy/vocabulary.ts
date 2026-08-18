@@ -72,3 +72,11 @@ export const SAFETY_NET_LABEL = "Safety net";
  * Lower-case: it appears mid-sentence ("Move $150 from your emergency fund").
  */
 export const EMERGENCY_FUND_NOUN = "your emergency fund";
+
+/**
+ * The everyday-spending half of `PAYCHECK_SEGMENT.spokenFor` — the living-expenses reserve, and the
+ * screen that manages it. ⚠️ Added in T4.4 because **the strings gate caught the duplication as it was
+ * being created**: retiring "Living Expenses" put this phrase in three files at once. It is the tab-level
+ * name; the surrounding sentences ("…reserved each paycheck") stay local to their screens.
+ */
+export const EVERYDAY_SPENDING_LABEL = "Everyday spending";

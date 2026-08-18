@@ -82,7 +82,7 @@ export function PaycheckStep({ onNext, onSkip }: { onNext: () => void; onSkip: (
       <View style={s.copy}>
         <Text style={[textStyles.title1, { color: c.text.primary }]}>When do you get paid?</Text>
         <Text style={[textStyles.body, { color: c.text.secondary }]}>
-          This sets up your pay cycle so your plan knows which bills are due next.
+          This sets up your pay cycle so your plan knows which expenses are due next.
         </Text>
       </View>
 

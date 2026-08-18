@@ -233,7 +233,7 @@ export function PaydayCaptureSheet({
                   <Pressable onPress={() => setAdjustingRequired(false)} accessibilityRole="button">
                     <Text style={[textStyles.subhead, { color: c.accent.primary }]}>‹ Back</Text>
                   </Pressable>
-                  <Text style={[textStyles.title2, { color: c.text.primary }]}>Which bills got paid?</Text>
+                  <Text style={[textStyles.title2, { color: c.text.primary }]}>Which expenses got paid?</Text>
                   <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
                     Tap to mark what you actually paid — anything left carries to next cycle.
                   </Text>
@@ -335,7 +335,7 @@ export function PaydayCaptureSheet({
                   <View style={[styles.requiredCard, { backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}>
                     <View style={styles.requiredMain}>
                       <View style={styles.flex}>
-                        <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>Required bills & minimums</Text>
+                        <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>Required expenses & minimums</Text>
                         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{requiredSub}</Text>
                       </View>
                       <Text style={[textStyles.numericBody, { color: c.text.primary }]}>{formatCurrency(requiredTotal)}</Text>

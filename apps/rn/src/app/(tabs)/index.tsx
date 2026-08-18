@@ -518,7 +518,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
             <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
             <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>
               {reserveRelease.tapped
-                ? `Your safety net was there when a surprise came up — it helped cover about $${Math.round(reserveRelease.covered).toLocaleString('en-US')} while I got to know your bills. It's now going to work on ${reserveRelease.targetName}.`
+                ? `Your safety net was there when a surprise came up — it helped cover about $${Math.round(reserveRelease.covered).toLocaleString('en-US')} while I got to know your expenses. It's now going to work on ${reserveRelease.targetName}.`
                 : `Your safety net is free — you didn't need it, and it's now going to work on ${reserveRelease.targetName}.`}
             </Text>
           </View>
@@ -838,7 +838,7 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     const release = selectReserveRelease(s.store);
     if (release) {
       return release.tapped
-        ? `Your safety net covered about $${Math.round(release.covered)} while your Guardian learned your bills. It is now going to work on ${release.targetName}.`
+        ? `Your safety net covered about $${Math.round(release.covered)} while your Guardian learned your expenses. It is now going to work on ${release.targetName}.`
         : `Your safety net is free — it is now going to work on ${release.targetName}.`;
     }
     return selectReserveWalkback(s.store) ? 'A surprise bill came up — your Guardian has restored your safety net for now.' : null;

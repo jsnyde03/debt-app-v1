@@ -1,3 +1,4 @@
+import { EVERYDAY_SPENDING_LABEL } from '@core/copy/vocabulary';
 import { PAYCHECK_SEGMENT } from '@core/copy/vocabulary';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -49,15 +50,15 @@ export function SpokenForSheet({
       </View>
 
       <Row
-        label="Everyday spending"
+        label={EVERYDAY_SPENDING_LABEL}
         hint="Groceries, gas, fun money — reserved every paycheck."
         amount={everyday}
         onPress={onManageEveryday}
         actionLabel="Manage everyday spending"
       />
       <Row
-        label="Upcoming bills"
-        hint="Money you've set by for bills that land in a later cycle."
+        label="Upcoming expenses"
+        hint="Money you've set by for expenses that land in a later cycle."
         amount={billsReserve}
       />
 
@@ -68,18 +69,18 @@ export function SpokenForSheet({
                 what is spare, it must not quote the full recommendation — promising $231 and reserving
                 $150 is the promise-an-outcome-deliver-less defect this app has already shipped twice. */}
             {offer.coversRecommendation
-              ? `Set by ${formatCurrency(offer.offer)} for your upcoming bills?`
-              : `This paycheck can spare ${formatCurrency(offer.offer)} toward your upcoming bills.`}
+              ? `Set by ${formatCurrency(offer.offer)} for your upcoming expenses?`
+              : `This paycheck can spare ${formatCurrency(offer.offer)} toward your upcoming expenses.`}
           </Text>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
             {offer.coversRecommendation
-              ? `That's the full ${formatCurrency(offer.recommended)} your bills average out to.`
-              : `Less than the ${formatCurrency(offer.recommended)} they average out to — but it's what's genuinely free after your bills and your cushion.`}
+              ? `That's the full ${formatCurrency(offer.recommended)} your expenses average out to.`
+              : `Less than the ${formatCurrency(offer.recommended)} they average out to — but it's what's genuinely free after your expenses and your cushion.`}
           </Text>
           <Pressable
             onPress={() => onReserve(offer.alreadyReserved + offer.offer)}
             accessibilityRole="button"
-            accessibilityLabel={`Set by ${formatCurrency(offer.offer)} for upcoming bills`}
+            accessibilityLabel={`Set by ${formatCurrency(offer.offer)} for upcoming expenses`}
             style={[styles.cta, { backgroundColor: c.accent.primary }]}>
             <Text style={[textStyles.body, styles.ctaText]}>Set by {formatCurrency(offer.offer)}</Text>
           </Pressable>
@@ -92,7 +93,7 @@ export function SpokenForSheet({
         <Pressable
           onPress={() => onReserve(0)}
           accessibilityRole="button"
-          accessibilityLabel="Undo this paycheck's bill reserve"
+          accessibilityLabel="Undo this paycheck's expense reserve"
           style={styles.undo}>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Undo this paycheck’s reserve</Text>
         </Pressable>

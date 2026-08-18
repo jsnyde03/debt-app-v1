@@ -95,7 +95,7 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
         {data.oneTimeCount > 0 ? (
           <View style={[styles.oneTime, { borderColor: c.border.subtle }]}>
             <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-              Plus {formatCurrency(data.oneTimeTotal)} in {data.oneTimeCount} one-time {data.oneTimeCount === 1 ? 'bill' : 'bills'} — not part of your ongoing reserve.
+              Plus {formatCurrency(data.oneTimeTotal)} in {data.oneTimeCount} one-time {data.oneTimeCount === 1 ? 'expense' : 'expenses'} — not part of your ongoing reserve.
             </Text>
           </View>
         ) : null}

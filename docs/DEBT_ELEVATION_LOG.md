@@ -71,6 +71,56 @@ word on three different numbers, which is the defect class T4 exists to close. �
 already carried a `Jason ✓` at the call site, so the audit was proposing to overturn a settled call).
 "Leftover cash" moves to the **L1-5 cushion family**, where it belongs.
 
+### T4.4 — expenses / everyday, and the decision was already on the record
+
+⭐ **The codebase had already ruled on this, and the audit proposed reversing it.** L1-6's suggested fix
+was *"use 'bills' for recurring obligations app-wide (rename the tab)"*. But `ExpenseSheet.tsx:81` carries
+**[D22d]**, from 3.7:
+
+> *"'expense', not 'bill'. A credit card BILL is a debt, so the word collided with every item in the other
+> list and invited the mis-file this whole item exists to stop."*
+
+So 🎯's *"Bills to me are debt"* was not a new preference — it restated a call already made, already
+implemented in one sheet, and **never carried across the rest of the app.** T4.4 is therefore *finishing
+[D22d]*, not choosing between two options. That is the third time this session the codebase itself held
+the answer before the analysis did.
+
+**What changed.** ~30 sites across 15 files: the search-result "No bills match" that sat directly beneath a
+"Search expenses" placeholder (L1-6's headline defect), the Guardian's bills-completeness affordance and its
+brief hedge, the reserve's whole vocabulary in `SpokenForSheet`, the payday capture sheet, the windfall
+buckets, the notification titles, two tutorial beats, and the delete-everything confirmation. Plus
+**"Living Expenses" → "Everyday spending"** at its screen title and Settings row. 15 spec assertions moved
+with them.
+
+**What deliberately did NOT change.** "bill" survives where the copy means **one real-world charge
+arriving**, not the class of things the tab lists: *"A surprise bill came up"*, *"a nudge before a bill is
+due"*, and a user's own expense named "Phone Bill". The engine's `"Reserved for upcoming bills"` also stays
+— T4.2 established it is never rendered.
+
+⛔ **Two search failures, both mine, both the same shape.** The first enumeration ran through `head -30`
+with filters and **hid half the class** — I reported a blast radius of "~6 assertions" to 🎯 on the strength
+of it, and the real figure was five times that. The second sweep was untruncated and found the rest. Then a
+**case-sensitive** grep over the specs missed `getByText(/Bills confirmed/)`, which only surfaced when the
+e2e went red. *`truncated-search-hides-a-class` is already a written lesson here, and I hit it twice in one
+step.* The durable fix is the one the memory already states: enumerate with counts, never `head`, and
+case-fold when sweeping copy.
+
+⭐ **T1's strings gate caught T4.4 creating the exact defect T4 exists to remove — in the act.** Retiring
+"Living Expenses" put **"Everyday spending" in three files at once**, and `lint:copy` red the release gate
+with *"agreeing copies are still copies — they just have not diverged yet."* The phrase went into the T4.2
+owner as `EVERYDAY_SPENDING_LABEL`. **This is the first time in the audit gate that an instrument built by
+an earlier step caught a later step's regression**, which is the whole argument for [D31]: a finding that
+becomes a gate is paid for once. ⚠️ Note the sequencing — the unit suites, the typecheck and 45 targeted
+e2e were all green when this landed; **only the copy gate could see it.**
+
+⚡ **A near-miss worth recording: I almost filed a defect that was not there.** The full sweep showed *"All
+your regular bills entered?"* and *"Bills confirmed"* each appearing in **two** files, and I had changed
+only one copy of each — which reads exactly like the L2 divergence class. Reading them showed both second
+occurrences were **doc comments quoting the copy**, not second code paths. The comments were stale rather
+than dangerous; they were updated for accuracy. *Check the mechanism, not the symptom — including your own.*
+
+---
+
 ### T4.3 — the cushion family: nine cited sites, three real ones
 
 L1-5 is headlined *"one protected-cash concept, six user-facing names"* and lists nine sites. Verified

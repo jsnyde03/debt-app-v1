@@ -144,7 +144,7 @@ export function selectReserveRelease(store: DebtStore): ReserveRelease | null {
  * `attested` reflects the current state so the card's copy reads confirm-vs-undo.
  *
  * ⚠️ **3.7.A3.1 — gated on whether attesting actually REDUCES the hold, not on the cycle count alone.**
- * The offer says *"All your regular bills entered? I'll hold a smaller safety net."* That is a promise
+ * The offer says *"All your regular expenses entered? I'll hold a smaller safety net."* That is a promise
  * about an outcome, and `discoveryHoldbackActive` cannot keep it: it is a pure cycle count
  * (`guardianPredictionCore.ts:34`) that knows nothing about the money.
  *
@@ -478,7 +478,7 @@ export function selectWindfallSplit(store: DebtStore, amount: number): WindfallS
   }
   // C4 — round to whole dollars so the rows sum to the whole-dollar headline exactly, then drop $0 rows.
   const items = roundBucketsToWhole(raw, Math.round(amount)).filter((it) => it.amount >= 1);
-  // Bills (a caveat — "it covered your bills first") lead; then the biggest destination, so debt payoff
+  // Expenses (a caveat — "covers your expenses & essentials first") lead; then the biggest destination, so debt payoff
   // tends to headline a healthy plan.
   items.sort((a, b) => (a.key === 'bills' ? -1 : b.key === 'bills' ? 1 : b.amount - a.amount));
   return { amount, items };

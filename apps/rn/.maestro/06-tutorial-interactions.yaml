@@ -103,5 +103,5 @@ appId: com.jasonsnyder.debtplanner
 - assertVisible:
     text: ".*Step 4 of 7.*"
 - tapOn:
-    text: ".*regular bills entered.*"
+    text: ".*regular expenses entered.*"
 - takeScreenshot: maestro-debug/tut-beat-4-attested

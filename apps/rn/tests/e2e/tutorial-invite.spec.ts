@@ -350,7 +350,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
     });
   }
 
-  test('beat 4: confirming your bills shrinks the net, and the release ack is the ENGINE\'s', async ({ page }) => {
+  test('beat 4: confirming your expenses shrinks the net, and the release ack is the ENGINE\'s', async ({ page }) => {
     await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
     await page.goto('/tutorial');
     for (let i = 0; i < 3; i++) await page.getByText('Next', { exact: true }).click();
@@ -358,7 +358,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
 
     // The user's own tap on a REAL Guardian control ([D10]).
     // The net BEFORE, so the shrink this test is named for is actually asserted rather than assumed —
-    // it previously checked only that the label flipped to "Bills confirmed".
+    // it previously checked only that the label flipped to "Expenses confirmed".
     const netAmount = async () => {
       const t = await page.getByTestId('guardian-reserve-amount').textContent();
       return Number((t ?? '').replace(/[^0-9.]/g, ''));
@@ -366,10 +366,10 @@ test.describe('tutorial invitation + in-situ shell', () => {
     const netBefore = await netAmount();
     expect(netBefore).toBeGreaterThan(0);
 
-    await expect(page.getByText(/All your regular bills entered/)).toBeVisible();
-    await page.getByText(/All your regular bills entered/).click();
-    await expect(page.getByText(/Bills confirmed/)).toBeVisible();
-    // Confirming your bills holds LESS back — that is the whole claim of the beat's first half.
+    await expect(page.getByText(/All your regular expenses entered/)).toBeVisible();
+    await page.getByText(/All your regular expenses entered/).click();
+    await expect(page.getByText(/Expenses confirmed/)).toBeVisible();
+    // Confirming your expenses holds LESS back — that is the whole claim of the beat's first half.
     await expect.poll(netAmount, { timeout: 5000 }).toBeLessThan(netBefore);
 
     // Then the scripted story, driven by the real producers: a surprise the net absorbs, then three
@@ -421,7 +421,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
     expect(opening!.reserveHeld).toBe(true);
 
     for (let i = 0; i < 3; i++) await page.getByText('Next', { exact: true }).click();
-    await page.getByText(/All your regular bills entered/).click();
+    await page.getByText(/All your regular expenses entered/).click();
     await expect(page.getByText(/safety net was there when a surprise came up/)).toBeVisible({ timeout: 12_000 });
 
     // The ack is the SCREEN's account of what happened; this is the store's. DISCOVERY_CYCLES paydays
@@ -442,7 +442,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium' } }));
     await page.goto('/tutorial');
     for (let i = 0; i < 3; i++) await page.getByText('Next', { exact: true }).click();
-    await page.getByText(/All your regular bills entered/).click();
+    await page.getByText(/All your regular expenses entered/).click();
     // Leave immediately — the timers are still in flight.
     await page.getByText('Skip', { exact: true }).click();
     await expect(page.getByTestId('tutorial-overlay')).toHaveCount(0);
@@ -498,7 +498,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
     // The re-stage must have cleared the previous beat's payoff — a stale before→after here would be
     // narrating beat 3's result under beat 4's copy.
     await expect(page.getByTestId('floor-impact')).toHaveCount(0);
-    await page.getByText(/All your regular bills entered/).click();
+    await page.getByText(/All your regular expenses entered/).click();
     await expect(page.getByText(/safety net was there when a surprise came up/)).toBeVisible({ timeout: 12_000 });
 
     await page.getByText('Next', { exact: true }).click(); // → 5 short paycheck
@@ -528,7 +528,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(page.getByText(/premium is what did the holding/i)).toBeVisible();
     // [A2] All THREE premium behaviours the run demonstrated, not just the holding. Showing three and
     // crediting one is the same bait-and-switch by a smaller margin.
-    await expect(page.getByText(/learns your bills/)).toBeVisible();
+    await expect(page.getByText(/learns your expenses/)).toBeVisible();
     await expect(page.getByText(/comes up short/)).toBeVisible();
     // [A1] And the removed LIE, asserted absent. This line used to read "you decide what to hold" — a
     // free user cannot: `showAdjust` is premium-gated and that sheet is the only route to the cushion

@@ -619,7 +619,7 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
           title: RECURRENCE_LABEL['one-time'],
           count: summ.length,
           subtotal: `${formatWhole(amt)} one-time`,
-          subtotalA11y: `${formatWhole(amt)} in one-time bills`,
+          subtotalA11y: `${formatWhole(amt)} in one-time expenses`,
           data: open ? shown : [],
         });
       }
@@ -658,7 +658,9 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
     );
   }
 
-  const bills = (n: number) => (n === 1 ? 'bill' : 'bills');
+  // T4.4 (L1-6) — the tab is "Expenses", so its contents are expenses. "bills" survives only where the
+  // copy means a single real-world charge arriving, never the class of things this screen lists.
+  const expenseWord = (n: number) => (n === 1 ? 'expense' : 'expenses');
   // 3.8.4 — the hero reads the REAL reserve, not `perPaycheckTotal`.
   //
   // ⛔ The number was never the lie; the VERB was. `$500/mo ÷ 2.17 paychecks = $231` is correct arithmetic
@@ -678,10 +680,10 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
   const hero =
     recurring.length === 0
       ? // no recurring load at all — anchor honestly on the one-time sum, never "$0 per month"
-        { value: formatWhole(oneTimeTotal), sub: `${oneTime.length} one-time ${bills(oneTime.length)}`, caption: undefined as string | undefined }
+        { value: formatWhole(oneTimeTotal), sub: `${oneTime.length} one-time ${expenseWord(oneTime.length)}`, caption: undefined as string | undefined }
       : {
           value: formatWhole(reservedNow),
-          sub: 'reserved for upcoming bills',
+          sub: 'reserved for upcoming expenses',
           // The recommendation, named as a recommendation. Still shows the ≈/mo load unless the user is
           // paid monthly (per-paycheck == per-month → redundant).
           caption: monthlyRedundant
@@ -701,7 +703,7 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
       {/* T3.6 (audit L5-5) — `|| searching`, and that half is the fix. The field used to render on
           `grouped` alone, but the flat branch still FILTERS by `query`: swipe-delete a bill while
           searching, the count drops below the grouping threshold, and the field unmounts while the
-          query it wrote survives. The user is left looking at one row — or at "No bills match" — with
+          query it wrote survives. The user is left looking at one row — or at "No expenses match" — with
           no search box and no way to clear it, and the only escape is leaving the tab.
           The invariant, worth more than the case: never unmount the ONLY control that can undo a state
           the user is still in. */}
@@ -749,7 +751,7 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
         )}
         ListEmptyComponent={
           searching ? (
-            <Text style={[textStyles.subhead, styles.noResults, { color: c.text.tertiary }]}>No bills match “{query.trim()}”.</Text>
+            <Text style={[textStyles.subhead, styles.noResults, { color: c.text.tertiary }]}>No expenses match “{query.trim()}”.</Text>
           ) : null
         }
         ListFooterComponent={
@@ -832,7 +834,7 @@ function BillGroupHeader({
       disabled={disabled}
       accessibilityRole="button"
       {...a11yExpanded(open)}
-      accessibilityLabel={`${title}, ${count} ${count === 1 ? 'bill' : 'bills'}, ${subtotalA11y}`}
+      accessibilityLabel={`${title}, ${count} ${count === 1 ? 'expense' : 'expenses'}, ${subtotalA11y}`}
       style={({ pressed }) => [styles.groupHeader, { opacity: pressed && !disabled ? 0.6 : 1 }]}>
       {!disabled ? (
         <AppIcon name={open ? 'expand-more' : 'chevron-right'} size={20} color={c.text.tertiary} />

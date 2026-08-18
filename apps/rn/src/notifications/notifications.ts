@@ -155,7 +155,7 @@ export async function syncNotifications({ nextPaycheckDate, requiredExpenses }: 
     const sameDayAsEve = billAlert.toDateString() === paycheckEve.toDateString();
     if (billAlert > now && !sameDayAsEve) {
       const count = upcomingUnpaid.length;
-      const title = count === 1 ? 'Upcoming bill' : `${count} upcoming bills`;
+      const title = count === 1 ? 'Upcoming expense' : `${count} upcoming expenses`;
       const body =
         count === 1
           ? `${earliest.name} is due soon — check your plan.`

@@ -1,3 +1,4 @@
+import { EVERYDAY_SPENDING_LABEL } from '@core/copy/vocabulary';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
@@ -31,7 +32,7 @@ export default function LivingExpensesScreen() {
   const activeTotal = items.filter((i) => i.enabled).reduce((sum, i) => sum + i.amount, 0);
 
   return (
-    <Screen title="Living Expenses" onBack={() => router.back()}>
+    <Screen title={EVERYDAY_SPENDING_LABEL} onBack={() => router.back()}>
       <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
         Everyday spending reserved each paycheck, before debt and goals.
       </Text>

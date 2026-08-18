@@ -240,7 +240,7 @@ export const tutorialSession = createStore<TutorialSessionState>((set, get) => (
    * The user took their confirmation back. Nothing scripted should follow.
    *
    * The story is a consequence of an action, and the timers ran on regardless of whether that action
-   * still stood: tap "my bills are all in", tap **Undo** within 900ms, and the surprise still landed, the
+   * still stood: tap "my expenses are all in", tap **Undo** within 900ms, and the surprise still landed, the
    * walkback ack still announced that the Guardian had "restored your safety net" — restoring what the
    * user had already restored themselves — and three paydays still rolled. The beat's whole payoff
    * narrated over the top of the user's most recent decision, which is the opposite of the thing this

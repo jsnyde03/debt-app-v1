@@ -138,7 +138,7 @@ function pickHedge(isPremium: boolean, c?: GuardianConfidence): string | null {
   if (c.freshness === "aging") return "These figures are from a little while ago — a quick refresh keeps this exact.";
   if (!isPremium) return null;
   if (c.coldStartHoldbackActive) return "I'm planning from the low side while I learn what your paychecks reliably clear.";
-  if (c.discoveryHoldbackActive) return "I'm holding a small safety net while I get to know your bills.";
+  if (c.discoveryHoldbackActive) return "I'm holding a small safety net while I get to know your expenses.";
   return null;
 }
 
@@ -212,7 +212,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       state,
       title: "Let's refresh your numbers",
       detail:
-        "Your paycheck, bills, or balances are more than a few weeks old, so I can't tell you if you'll make it this paycheck with confidence.",
+        "Your paycheck, expenses, or balances are more than a few weeks old, so I can't tell you if you'll make it this paycheck with confidence.",
       safeMove: isPremium ? "Update your numbers and I'll plan from where you actually are." : undefined,
       staleAdvisory: true,
       ...viz,
@@ -244,7 +244,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       state,
       title: "This paycheck won't cover everything",
       detail: `You're about ${amt(shortfall)} short of the ${
-        debtFree ? "bills" : "bills and minimums"
+        debtFree ? "expenses" : "expenses and minimums"
       } due before your next paycheck${isPremium ? " — this one needs a plan." : "."}`,
       safeMove: isPremium
         ? `Cover the essentials first — housing, utilities, food. Extra ${deployNoun} is paused, and any income you can add this paycheck helps the most.`

@@ -162,8 +162,8 @@ export function PaydayGuardianCard({
   const attestLabel = !attestation?.show
     ? null
     : attestation.attested
-      ? 'Bills confirmed — holding a smaller safety net. Undo'
-      : "All your regular bills entered? I'll hold a smaller safety net.";
+      ? 'Expenses confirmed — holding a smaller safety net. Undo'
+      : "All your regular expenses entered? I'll hold a smaller safety net.";
 
   // MF.3 — the free invite is state-aware: in a shortfall it sells the RECOVERY value (a catch-up plan),
   // not "cushion at your line" (there's no cushion to hold when you're short — that pitch reads off-context).
@@ -403,7 +403,7 @@ export function PaydayGuardianCard({
           accessibilityHint={
             attestation?.attested
               ? 'Undoes the confirmation and restores the full safety net'
-              : 'Tells your Guardian your bills are all entered, so it holds less back'
+              : 'Tells your Guardian your expenses are all entered, so it holds less back'
           }
           style={styles.row}>
           <Text style={[textStyles.caption, { color: c.accent.primary }]}>{attestLabel}</Text>
@@ -513,7 +513,7 @@ function Stat({
   amount: number;
   label: string;
   /** For the beat-4 e2e, which has to assert the held net actually SHRINKS — the label flipping to
-   *  "Bills confirmed" was all it checked before, which the test's own name overstated. */
+   *  "Expenses confirmed" was all it checked before, which the test's own name overstated. */
   testID?: string;
 }) {
   const c = useAppColors();

@@ -1,3 +1,4 @@
+import { EVERYDAY_SPENDING_LABEL } from '@core/copy/vocabulary';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { tutorialRunFor } from '@/store/tutorialSelectors';
@@ -246,7 +247,7 @@ export default function MoreScreen() {
           <SettingRow
             icon="notifications-none"
             label="Notifications"
-            subtitle="Paycheck-eve reminder and bill alerts."
+            subtitle="Paycheck-eve reminder and due-date alerts."
             right={<Switch accessibilityLabel="Notifications" value={prefs.notificationsEnabled} onValueChange={handleNotificationsToggle} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
           <SettingRow
@@ -296,7 +297,7 @@ export default function MoreScreen() {
             subtitle="Play a chime when you clear your last debt."
             right={<Switch accessibilityLabel="Debt-free sound" value={prefs.debtFreeSoundEnabled ?? false} onValueChange={(v) => appStore.getState().updatePrefs({ debtFreeSoundEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
-          <SettingRow icon="shopping-cart" label="Living Expenses" subtitle="Everyday spending reserved each paycheck." onPress={() => router.push('/living-expenses')} last />
+          <SettingRow icon="shopping-cart" label={EVERYDAY_SPENDING_LABEL} subtitle="What you reserve for day-to-day spending each paycheck." onPress={() => router.push('/living-expenses')} last />
         </SettingGroup>
       </Section>
 
@@ -375,7 +376,7 @@ function DeleteConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfir
   return (
     <View style={styles.confirm}>
       <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
-        All debts, bills, goals, and settings will be permanently erased. This cannot be undone.
+        All debts, expenses, goals, and settings will be permanently erased. This cannot be undone.
       </Text>
       <View style={styles.confirmActions}>
         <View style={styles.confirmBtn}>
