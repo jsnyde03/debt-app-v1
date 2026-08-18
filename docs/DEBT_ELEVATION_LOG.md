@@ -71,6 +71,44 @@ word on three different numbers, which is the defect class T4 exists to close. �
 already carried a `Jason ✓` at the call site, so the audit was proposing to overturn a settled call).
 "Leftover cash" moves to the **L1-5 cushion family**, where it belongs.
 
+### T4.5 — cash states, and a pin that could not fail
+
+L1-7 says *"the tightest cash state has four different names"* and flags its own premise as **unverified**
+(*"hypothesis that all five strings render the identical `at-risk` state — I did not trace every call
+site"*). Traced:
+
+| Name | Resolves to | |
+|---|---|---|
+| "Crunch" — `CashRunwayChart:42` | `at-risk` | ✓ same state — **retired** |
+| "Very tight this paycheck" — `buildGuardianBrief:279` | `at-risk` | ✓ already the ruled word |
+| "A short payday" — `sandboxScenarios:77` | `at-risk` | ✓ same state — **retired** |
+| **"Short this paycheck"** — `PlanHero:108` | **`summary.status === 'short'`** | ⛔ **NOT this state** |
+| "At-risk · today" — `LiveActivityQA:40` | QA screen | `qaEnabled()`-gated, not shipped copy |
+
+⛔ **The fourth row is the finding's error, and it is the "don't merge things that differ" shape again.**
+`summary.status` is `shortfall > 0` — the plan cannot cover its obligations — while `at-risk` is a
+floor-relative *cushion* read that occurs with no shortfall at all. They are different conditions, the app
+already words the shortfall separately (*"This paycheck won't cover everything"*), and folding "Short this
+paycheck" into the tight vocabulary would have put one word on two states. `GUARDIAN_STATE_LABEL` carries
+that reasoning so the next pass does not re-merge them.
+
+⛔ **THE FIRST PIN WAS UNFAILABLE, AND ONLY THE PLANT SHOWED IT.** The obvious guard was
+`await expect(page.getByText('Crunch')).toHaveCount(0)` in `cushion-forecast.spec.ts`. It passed — and it
+**still passed with "Crunch" planted back into the constant**, because that spec's fixture has no
+under-the-line cycle (its own comment says *"No under-the-line cycle here"*), so no `at-risk` band ever
+renders and the assertion had nothing to find either way. *A fixture chosen for convenience decides which
+defects a guard can see* — the same mechanism as the `route-smoke` blank-Today miss already in CLAUDE.md,
+which is the sharpest version of this the project has recorded.
+
+The false guard was **deleted rather than kept** — a green assertion that cannot fail is worse than none,
+because it reads as coverage. Replaced with `glossary.test.ts`, a unit pin on the constant itself
+(`CashRunwayChart` assigns `STATE_LABEL = GUARDIAN_STATE_LABEL` directly, an alias `tsc` checks), which
+**reds correctly** under the same plant. It also pins that no word is simultaneously a paycheck segment and
+a cash state. ⚠️ The component is deliberately not imported: this runner is plain `tsx` and
+`react-native/index.js` fails esbuild's transform.
+
+---
+
 ### T4.4 — expenses / everyday, and the decision was already on the record
 
 ⭐ **The codebase had already ruled on this, and the audit proposed reversing it.** L1-6's suggested fix

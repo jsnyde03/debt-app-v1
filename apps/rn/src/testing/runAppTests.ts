@@ -144,6 +144,7 @@ async function main() {
   // T3B (L5-12) — the paywall leads with the reader's own money, and cannot re-introduce the two claims
   // this screen already retired (L1-2 autopilot, L1-3 the unconditional cushion hold).
   await import('../store/paywallLead.test');
+  await import('../store/glossary.test');
 
   // (RS.6+ app-layer suites are appended here as they land.)
 

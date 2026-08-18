@@ -74,7 +74,8 @@ const SOLVER_STEPS = 14;
 const STATE_LABEL: Record<SandboxState, string> = {
   clear: 'A clear payday',
   tight: 'A tight payday',
-  'at-risk': 'A short payday',
+  // T4.5 — "short" is the SHORTFALL state's word; this scenario is the at-risk cushion read.
+  'at-risk': 'A very tight payday',
 };
 
 /**

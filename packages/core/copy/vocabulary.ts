@@ -80,3 +80,19 @@ export const EMERGENCY_FUND_NOUN = "your emergency fund";
  * name; the surrounding sentences ("…reserved each paycheck") stay local to their screens.
  */
 export const EVERYDAY_SPENDING_LABEL = "Everyday spending";
+
+/**
+ * The Guardian's three cash states, as the user reads them (T4.5 / audit L1-7). The engine's states are
+ * `clear` | `tight` | `at-risk`; "Crunch" was a fourth name for the third one.
+ *
+ * ⛔ **A SHORTFALL IS NOT ONE OF THESE.** L1-7 lists `PlanHero`'s "Short this paycheck" among the names
+ * for this state — it is not. That string fires on `summary.status === 'short'` (`shortfall > 0`: the plan
+ * cannot cover its obligations), while `at-risk` is a floor-relative *cushion* read that can happen with
+ * no shortfall at all. Folding them together would put one word on two different conditions. The Guardian
+ * already words the shortfall separately, as *"This paycheck won't cover everything"*.
+ */
+export const GUARDIAN_STATE_LABEL = {
+    clear: "Clear",
+    tight: "Tight",
+    "at-risk": "Very tight",
+} as const;

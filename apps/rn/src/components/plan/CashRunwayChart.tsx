@@ -1,3 +1,4 @@
+import { GUARDIAN_STATE_LABEL } from '@core/copy/vocabulary';
 import { useRef, useState } from 'react';
 import { type GestureResponderEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -39,7 +40,8 @@ function shortDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-const STATE_LABEL: Record<GuardianState, string> = { clear: 'Clear', tight: 'Tight', 'at-risk': 'Crunch' };
+// T4.5 (L1-7) — "Crunch" was a fourth name for `at-risk`; the vocabulary owns the three now.
+const STATE_LABEL: Record<GuardianState, string> = GUARDIAN_STATE_LABEL;
 
 /**
  * The Cash Runway (2.4.9.6R) — the premium cushion forecast, a real data-viz (not prose). Plots each of
