@@ -1,3 +1,4 @@
+import { PAYCHECK_SEGMENT } from '@core/copy/vocabulary';
 import { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -86,9 +87,10 @@ export function PlanHero({
   // Three buckets summing to the paycheck, two hues: the green "accounted-for" family (Required =
   // solid/fixed, Everyday = translucent/variable-but-reserved) + the neutral truly-free remainder.
   const segments = [
-    { key: 'required', label: 'Required', value: required, color: onNavy.essential, ring: false, fill: 1 },
-    { key: 'spokenFor', label: 'Spoken for', value: spokenFor, color: onNavy.essential, ring: true, fill: 0.5 },
-    { key: 'free', label: 'Flexible', value: free, color: onNavy.free, ring: true, fill: 0.5 }, // VIS-4/Guardian Tier-3: "Free"→"Flexible" (Jason ✓) — names the discretionary money, distinct from the Guardian's protected "Cushion"
+    { key: 'required', label: PAYCHECK_SEGMENT.required, value: required, color: onNavy.essential, ring: false, fill: 1 },
+    { key: 'spokenFor', label: PAYCHECK_SEGMENT.spokenFor, value: spokenFor, color: onNavy.essential, ring: true, fill: 0.5 },
+    // T4.2 — the words live in @core/copy/vocabulary, which also states the cushion/safety-net disjointness rule.
+    { key: 'free', label: PAYCHECK_SEGMENT.flexible, value: free, color: onNavy.free, ring: true, fill: 0.5 },
   ].filter((seg) => seg.value > 0);
 
   // The recommendation is a SUGGESTED use of the safe money — shown as its real (small) self, from
@@ -195,7 +197,7 @@ export function PlanHero({
               onPress={onOpenSpokenFor}
               accessibilityRole="button"
               // Names the split it opens, so the control says what it does rather than repeating the total.
-              accessibilityLabel={`Spoken for ${money0(seg.value)}. Everyday ${money0(everyday)}, bills ${money0(billsReserve)}. See the breakdown.`}
+              accessibilityLabel={`${PAYCHECK_SEGMENT.spokenFor} ${money0(seg.value)}. Everyday ${money0(everyday)}, bills ${money0(billsReserve)}. See the breakdown.`}
               hitSlop={8}
               style={styles.legendItem}>
               {body}

@@ -71,6 +71,48 @@ word on three different numbers, which is the defect class T4 exists to close. �
 already carried a `Jason ✓` at the call site, so the audit was proposing to overturn a settled call).
 "Leftover cash" moves to the **L1-5 cushion family**, where it belongs.
 
+### T4.2 — the copy-constants owner, and L2-6's mechanism refuted
+
+`packages/core/copy/vocabulary.ts` now owns the shared user-facing nouns — `PAYCHECK_SEGMENT`
+(Required / Spoken for / Flexible), `CUSHION_NOUN` + `CUSHION_LABEL`, `SAFETY_NET_LABEL`,
+`EMERGENCY_FUND_NOUN` — across **11 sites in 8 files**, spanning both trees.
+
+⛔ **L2-6's stated mechanism is FALSE, and building its suggested fix would have made things worse.** It
+claimed the engine emits `"Safety net"` as an allocation `label` while the card hardcodes the same string,
+so *"a rename reaching one site and not the other puts two names on one number, on screens a tap apart."*
+Measured three ways: **every consumer of `allocation.allocations` filters by `category`, never by `label`**;
+the only labels that reach a screen are the REQUIRED ones (`expense` / `minimum_debt` / `autopay_*`), built
+per item from the user's own data; and **no e2e asserts 4 of the 5** engine labels. `buildTimelineItems`
+even finds `cushion_buffer` **by category** and writes its own `"Cash Buffer"` string. So the engine's five
+reserve labels are **never rendered**, there is no second surface, and the audit's fix — export them and
+have the card import them — would have **coupled a component to a dead string and made it load-bearing.**
+They are now marked diagnostic at the engine, with the contract stated as `category`.
+
+⚡ **The counts were low, both times.** L2-8 named **2** sites for "your emergency fund"; there are **6**
+(the Guardian card's move button, the windfall sheet, the hero framing, and *twice* in the brief — one of
+them mid-sentence in `safeMove`). L2-16 named **3** for the paycheck taxonomy; there are **4** — it missed
+`PlanHero:198`, where the a11y label retypes "Spoken for", which is exactly the site a copy pass would
+forget and a screen-reader user would hear.
+
+⚡ **L2-7 confirmed, and I had already made it worse.** The cushion/safety-net disjointness rule was prose
+in **three** files — and T4.0's own doc note added a **fourth**. One rule, four explanations, drifting
+independently: the same defect as a duplicated string, applied to the reason instead. It now lives once, on
+the constants, and the four sites point at it.
+
+**Mutation-verified.** Changing `PAYCHECK_SEGMENT.spokenFor` to a sentinel reds **2 e2e**, including *"the
+Guardian bar says 'Spoken for', and it opens the split"* — proving the constant is genuinely the rendered
+source and not a parallel definition that merely agrees.
+
+⚠️ **My own migration helper had the CRLF bug I had just written into CLAUDE.md** — it normalised the
+replacement string's line endings but not the *search* string, so three multi-line edits silently reported
+MISS against CRLF files. Writing a lesson down is not the same as applying it; the guard is that the helper
+reports MISS loudly rather than half-applying.
+
+**→ T4.8** now has a concrete job: a lint rule banning the raw literals now that the constants exist,
+otherwise the next author retypes them and the owner quietly stops being the owner.
+
+---
+
 ### T4.1b — the defect the refutation uncovered
 
 **On the Today tab**, `PlanHero` (`index.tsx:302`) renders **"Flexible $675"** and `AffordabilityCard`

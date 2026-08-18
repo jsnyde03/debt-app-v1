@@ -1,3 +1,4 @@
+import { CUSHION_LABEL, EMERGENCY_FUND_NOUN, SAFETY_NET_LABEL } from '@core/copy/vocabulary';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 
@@ -202,7 +203,7 @@ export function PaydayGuardianCard({
           // VoiceOver user heard the card's verdict and never the money it was a verdict about, and the
           // reserve beat in particular is entirely about a number they were never told. Spoken in the
           // same left→right order the bar shades them, so the two readings describe one thing.
-          hasReserve ? `Safety net ${money(brief.heldReserve)}` : undefined,
+          hasReserve ? `${SAFETY_NET_LABEL} ${money(brief.heldReserve)}` : undefined,
           `Cushion ${money(displayCushion(brief))}`,
           hasPayoff ? `${brief.debtFree ? 'To savings' : 'To debt'} ${money(brief.deployedToDebt)}` : undefined,
           // The card's FOURTH figure. [C4] added the three flow amounts and stopped there, so the floor —
@@ -275,12 +276,11 @@ export function PaydayGuardianCard({
           {/* Order matches the bar's fixed left→right shading: Set aside (tinted, far-left) → Cushion →
               To debt. The safety-net reserve is only present for a settling-in (cold-start) user. */}
           {hasReserve ? (
-            <Stat swatch={color} dim amount={brief.heldReserve} label="Safety net" testID="guardian-reserve-amount" />
+            <Stat swatch={color} dim amount={brief.heldReserve} label={SAFETY_NET_LABEL} testID="guardian-reserve-amount" />
           ) : null}
-          {/* COH-2: the held reserve is WITHIN cushion (buildGuardianBrief: heldReserve ≤ cushion). Show the
-              non-reserve remainder here so Safety net + Cushion read as disjoint segments (matching the bar)
-              and reconcile with the hero's Free above. */}
-          <Stat swatch={color} amount={displayCushion(brief)} label="Cushion" />
+          {/* COH-2 — this Stat shows the NON-RESERVE REMAINDER, not the whole pot. The rule and the
+              reason live in @core/copy/vocabulary (the disjointness rule); do not restate it here. */}
+          <Stat swatch={color} amount={displayCushion(brief)} label={CUSHION_LABEL} />
           {hasPayoff ? <Stat swatch={c.accent.primary} amount={brief.deployedToDebt} label={brief.debtFree ? 'To savings' : 'To debt'} /> : null}
         </View>
         </TutorialTarget>
@@ -361,7 +361,7 @@ export function PaydayGuardianCard({
               was the EMERGENCY fund. A control that calls the safety net "savings" while spending it is
               the dishonest half of this affordance; the selector now flags which pot it picked. */}
           <Button
-            label={`Move ${money(topUp.topUp)} from ${topUp.isEmergencyFund ? 'your emergency fund' : 'savings'}`}
+            label={`Move ${money(topUp.topUp)} from ${topUp.isEmergencyFund ? EMERGENCY_FUND_NOUN : 'savings'}`}
             variant="secondary"
             onPress={() => onTopUp?.()}
             style={styles.topUpBtn}

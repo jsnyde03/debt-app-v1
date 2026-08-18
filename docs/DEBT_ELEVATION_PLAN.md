@@ -20,7 +20,7 @@
 
 🎯 **2026-08-18: T1–T8 + T3B now. ⛔ [D37] every high+ closes this round; T9–T11 are SEQUENCED, not shelved.**
 ✅ **T1 · T2 · T3 · T3B CLOSED 2026-08-18**, full gate green (187 e2e · 10 embed · 0 error-context).
-▶ **T4 (the glossary) is ACTIVE** — **T4.0 · T4.1 · T4.1b closed 2026-08-18**; T4.2 (the copy-constants owner) is next, then T5–T8 in order.
+▶ **T4 (the glossary) is ACTIVE** — **T4.0 · T4.1 · T4.1b · T4.2 closed 2026-08-18**; **T4.3 (the cushion family) is next**, then T4.4–T4.9 and T5–T8 in order.
 
 ⛔ **2 of 3 agent-declared blockers did NOT survive refutation, and the tally is now 3 of 4** — L1-1
 downgraded, L3-5's mechanism wrong (severity right), L1-4 downgraded (free DOES get a Guardian). Plus
@@ -65,7 +65,7 @@ most of the rest are test names and comments. Measure user-facing STRING LITERAL
 | **T4.0** | Paywall lead — the un-reviewed T3B copy | ✅ **Done 2026-08-18.** It printed `summary.cushion` and called it *"flexible"* — PlanHero's word for a different, smaller number. Now "cushion"; test pins "flexible"/"buffer"/"breathing room" out, mutation-verified |
 | **T4.1** | Rule the remainder row (L1-26) | ✅ **Done 2026-08-18. L1-26 REFUTED** — its five names are **three different values**, not one; renaming them together would have put one word on three numbers. 🎯 **"Flexible" stays.** "Leftover cash" `=== summary.cushion` → reassigned to the **L1-5 cushion family** |
 | **T4.1b** | The defect T4.1 uncovered | ✅ **Done 2026-08-18.** Today showed **"Flexible $675"** and **"about $850 spare this paycheck"** a tap apart. New `selectSpendable` owner; `selectAffordability` uses it. Mutation-verified (reds at 1375 vs 1550) |
-| **T4.2** | Copy-constants owner in `packages/core` — L2-6/7/8/16, with the cushion/safety-net **disjointness rule stated on the constant** instead of re-explained in three files' comments | |
+| **T4.2** | Copy-constants owner — L2-6/7/8/16 | ✅ **Done 2026-08-18.** `packages/core/copy/vocabulary.ts` owns `PAYCHECK_SEGMENT` · `CUSHION_NOUN/LABEL` · `SAFETY_NET_LABEL` · `EMERGENCY_FUND_NOUN`, **11 sites across 8 files** migrated, and the **disjointness rule now lives in ONE place** (it was prose in 4). ⛔ **L2-6's mechanism REFUTED — the engine's 5 allocation labels are NEVER rendered** (every consumer filters by `category`; `buildTimelineItems` even writes its own "Cash Buffer"), so its suggested fix would have made dead strings load-bearing. They are marked diagnostic instead. **L2-8 named 2 sites — there are 6; L2-16 named 3 — there are 4.** Mutation-verified: mutating `spokenFor` reds 2 specs |
 | **T4.3** | Cushion family — L1-5 · L1-14 · L2-6/7/8 · + "Leftover cash" | |
 | **T4.4** | Expenses / everyday — L1-6 | |
 | **T4.5** | Cash states — L1-7. ⚡ `guardian.spec.ts` already pins "Looks clear/Very tight this paycheck" — the card already speaks the target vocabulary | |

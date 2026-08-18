@@ -494,6 +494,13 @@ export function allocatePaycheck({
 		}
 	}
 
+	// ⛔ T4.2 — THE `label` ON AN ALLOCATION IS DIAGNOSTIC, NOT COPY. Measured: every consumer of
+	// `allocations` filters by `category`; the only labels that reach a screen are the REQUIRED ones
+	// (`expense` / `minimum_debt` / `autopay_*`), built per item from the user's own data. The five
+	// reserve labels below are read by nobody — `buildTimelineItems` even finds `cushion_buffer` by
+	// category and writes its OWN "Cash Buffer" string. So renaming one of these changes NOTHING on
+	// screen, and coupling a component to one (audit L2-6's suggested fix) would make a dead string
+	// load-bearing. The words the user reads live in `@core/copy/vocabulary`.
 	if (shortfall === 0 && remaining > 0 && paycheckBuffer > 0) {
 		const amount = roundMoney(Math.min(paycheckBuffer, remaining));
 

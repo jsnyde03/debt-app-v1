@@ -42,9 +42,8 @@ export const GUARDIAN_CARD_SUBJECTS = ['guardian-card', 'guardian-bar', 'guardia
 /**
  * The number the Guardian card LABELS "Cushion".
  *
- * Not `brief.cushion`. The held reserve is WITHIN cushion, and the card deliberately shows the
- * non-reserve remainder so "Safety net" and "Cushion" read as disjoint segments matching the bar
- * (COH-2). Anything that narrates a cushion figure to the user must resolve it the same way, or it
+ * Not `brief.cushion` — see the disjointness rule in `@core/copy/vocabulary`, which owns it.
+ * Anything that narrates a cushion figure to the user must resolve it the same way, or it
  * quotes numbers that appear nowhere on screen — which is what the walkthrough's floor payoff did:
  * "Cushion $413 → $323" over a card reading "Cushion $50", on the one beat whose job is to teach this
  * vocabulary. The delta was right; the absolutes were unfindable.

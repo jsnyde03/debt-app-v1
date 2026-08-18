@@ -1,3 +1,4 @@
+import { PAYCHECK_SEGMENT } from '@core/copy/vocabulary';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -263,7 +264,7 @@ export function PaydayCaptureSheet({
                               : 'Autopay'
                             : row.view.dueDate
                               ? `Due ${row.view.dueDate}`
-                              : 'Required'}
+                              : PAYCHECK_SEGMENT.required}
                         </Text>
                       </View>
                       <Text style={[textStyles.numericBody, { color: c.text.primary }]}>{formatCurrency(row.item.amount)}</Text>

@@ -1,3 +1,4 @@
+import { PAYCHECK_SEGMENT } from '@core/copy/vocabulary';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatCurrency } from '@core/utils/formatCurrency';
@@ -41,7 +42,7 @@ export function SpokenForSheet({
   const total = everyday + billsReserve;
 
   return (
-    <AnimatedSheet visible={visible} onClose={onClose} title="Spoken for">
+    <AnimatedSheet visible={visible} onClose={onClose} title={PAYCHECK_SEGMENT.spokenFor}>
       <View style={styles.echo}>
         <Text style={[styles.echoNum, { color: c.text.primary }]}>{formatCurrency(total)}</Text>
         <Text style={[textStyles.subhead, { color: c.text.tertiary }]}>of this paycheck is already accounted for</Text>

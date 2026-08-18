@@ -1,3 +1,4 @@
+import { EMERGENCY_FUND_NOUN } from "@core/copy/vocabulary";
 import type { EstimateStaleness } from "@core/debt/projectCurrentBalance";
 import type { CushionStatus } from "@core/timeline/buildMultiCycleTimeline";
 import { computeState } from "@core/guardian/computeState";
@@ -296,7 +297,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       state,
       title: "Your line's held",
       detail: `You moved some savings over to hold your cushion right at your ${amt(floor)} line this paycheck — a tight one, but covered.`,
-      safeMove: "Nothing extra goes out this paycheck, and your emergency fund tops back up as your cushion rebuilds.",
+      safeMove: `Nothing extra goes out this paycheck, and ${EMERGENCY_FUND_NOUN} tops back up as your cushion rebuilds.`,
       lookahead: look,
       ...viz,
     };
@@ -345,7 +346,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   const safeMove =
     input.deployTradeoff && !debtFree
       ? `Apply the spare ${amt(deployedToDebt)} toward ${focusDebtName ?? "your debts"} to save on interest, or build ${
-          input.tradeoffTargetName ?? "your emergency fund"
+          input.tradeoffTargetName ?? EMERGENCY_FUND_NOUN
         } first if you'd rather strengthen your cushion — your call.`
       : `Apply the spare ${amt(deployedToDebt)} ${dest} when you're ready — your ${amt(floor)} cushion stays protected either way.`;
   return withHedge(

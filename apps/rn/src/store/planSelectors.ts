@@ -1,3 +1,4 @@
+import { EMERGENCY_FUND_NOUN } from '@core/copy/vocabulary';
 import { computeStreak } from '@core/debt/computeStreak';
 import { deriveRequiredActionView, type RequiredActionView, type RequiredAllocationItem } from '@core/debt/deriveRequiredActionView';
 import { PROTECTED_CUSHION_CATEGORIES } from '@core/engine/allocatePaycheck';
@@ -331,7 +332,7 @@ function heroFraming(allocation: Allocation): { value: number; label: string } {
   const snowball = sumCategory(allocation, 'snowball');
   if (snowball > 0) return { value: snowball, label: 'to debt this paycheck' };
   const emergency = sumCategory(allocation, 'emergency');
-  if (emergency > 0) return { value: emergency, label: 'to your emergency fund' };
+  if (emergency > 0) return { value: emergency, label: `to ${EMERGENCY_FUND_NOUN}` };
   const optional = sumCategory(allocation, 'optional_goal');
   if (optional > 0) return { value: optional, label: 'to your goals' };
   return { value: allocation.remaining, label: 'cushion this paycheck' };

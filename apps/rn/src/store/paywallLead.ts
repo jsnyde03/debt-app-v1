@@ -35,9 +35,9 @@ export interface PaywallLead {
  * ⚠️ **T4.0 (glossary) — this line says "cushion", and that is load-bearing.** It first shipped as
  * *"You have $X flexible this paycheck"* while printing `summary.cushion` (= `allocation.remaining`,
  * which `planSelectors` itself labels *"cushion this paycheck"*). But **"Flexible" is `PlanHero`'s label
- * for a DIFFERENT, smaller number** (`remainingAfterRequired − spokenFor`), renamed `Free`→`Flexible`
- * specifically to stay distinct from the protected cushion — so the screen called one figure flexible
- * and then said it was protected. ⛔ **Do not reach for "flexible", "buffer" or "breathing room" here:
+ * for a DIFFERENT, smaller number** (`remainingAfterRequired − spokenFor`) — so the screen called one
+ * figure flexible and then said it was protected. The vocabulary and the reason it is split that way
+ * live in `@core/copy/vocabulary`. ⛔ **Do not reach for "flexible", "buffer" or "breathing room" here:
  * this function only ever prints the cushion, and `paywallLead.test.ts` reds if those words return.**
  *
  * Returns `null` when there is no live plan — the route is deliberately open pre-onboarding, and a

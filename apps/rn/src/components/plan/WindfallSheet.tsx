@@ -1,3 +1,4 @@
+import { EMERGENCY_FUND_NOUN } from '@core/copy/vocabulary';
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -20,7 +21,7 @@ import { formatWhole } from '@/utils/format';
 const BUCKET_META: Record<WindfallBucketKey, { label: string; icon: IconGlyph }> = {
   bills: { label: 'Covers your bills & essentials first', icon: 'check-circle' },
   debt: { label: 'Extra to your debt', icon: 'trending-down' },
-  emergency: { label: 'To your emergency fund', icon: 'savings' },
+  emergency: { label: `To ${EMERGENCY_FUND_NOUN}`, icon: 'savings' },
   goals: { label: 'Toward your goals', icon: 'star' },
   safetyNet: { label: 'Held as your safety net', icon: 'shield' },
   cash: { label: 'Left as spare cash', icon: 'account-balance-wallet' },
