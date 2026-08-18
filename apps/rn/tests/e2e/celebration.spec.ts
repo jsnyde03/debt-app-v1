@@ -5,14 +5,14 @@ import { scenario, seedStore, day } from './helpers/seed';
 /**
  * 3.3.1 debt-paid-off celebration — drives the real confirm flow: a provisional payoff (a premium debt
  * whose projected balance has reached $0) → tap "Confirm" → the per-debt beat (another debt remains) or
- * the full-screen finale (the last debt). Plus the Progress "Debts Vanquished" archive / debt-free state.
+ * the full-screen finale (the last debt). Plus the Progress "Debts Paid Off" archive / debt-free state.
  * Captures screenshots for visual verification; also asserts the overlays actually appear.
  */
 
 test.use({ viewport: { width: 402, height: 874 } });
 
 // A debt that projects to $0 by the current date (small balance, an old anchor, a covering minimum) → it
-// surfaces as a PayoffInvitationCard on Today. originalBalance drives the celebration's "vanquished" amount.
+// surfaces as a PayoffInvitationCard on Today. originalBalance drives the celebration's "paid off" amount.
 const provisional = (id: string, name: string) => ({
   id,
   name,
@@ -85,7 +85,7 @@ for (const theme of ['light', 'dark'] as const) {
     await page.screenshot({ path: `test-results/celebration-ring-pulse-${theme}.png` });
   });
 
-  test(`vanquished archive + debt-free (${theme})`, async ({ page }) => {
+  test(`paid off archive + debt-free (${theme})`, async ({ page }) => {
     // Already-cleared debts (balance 0) → Progress shows the debt-free resting state + the archive.
     await seedStore(page, base(theme, [
       { id: 'a', name: 'Chase Freedom', balance: 0, originalBalance: 4200, minimumPayment: 120, apr: 0, dueDate: '2026-06-12', type: 'debt', recurrence: 'monthly', lastVerifiedDate: '2026-06-15', balanceAsOfDate: '2026-06-15' },
@@ -93,9 +93,9 @@ for (const theme of ['light', 'dark'] as const) {
     ]));
     await page.goto('/progress');
     await page.waitForTimeout(600);
-    // Identity-based: the eyebrow's "DEBTS VANQUISHED · N" (with the middot) is unique — the off-screen
-    // ShareCard's "N debts vanquished" has no middot, so this can't match the capture artifact.
-    await expect(page.getByText(/DEBTS VANQUISHED ·/i)).toBeVisible();
+    // Identity-based: the eyebrow's "DEBTS PAID OFF · N" (with the middot) is unique — the off-screen
+    // ShareCard's "N debts paid off" has no middot, so this can't match the capture artifact.
+    await expect(page.getByText(/DEBTS PAID OFF ·/i)).toBeVisible();
     await page.screenshot({ path: `test-results/celebration-archive-${theme}.png`, fullPage: true });
   });
 }

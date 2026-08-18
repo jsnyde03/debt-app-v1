@@ -16,7 +16,7 @@ import { TutorialInviteCard } from '@/components/plan/TutorialInviteCard';
 import { markTutorialSeen, selectTutorialInvite, tutorialRunFor } from '@/store/tutorialSelectors';
 import { a11yHidden, announce } from '@/utils/a11y';
 import { PaidOffFinale } from '@/components/plan/PaidOffFinale';
-import { VanquishedBeat } from '@/components/plan/VanquishedBeat';
+import { PaidOffBeat } from '@/components/plan/PaidOffBeat';
 import { PaydayCaptureSheet } from '@/components/payday/PaydayCaptureSheet';
 import { GraduationBanner, FreedomNextChapterCard } from '@/components/plan/GraduationCards';
 import { LeanSuggestionCard } from '@/components/plan/LeanSuggestionCard';
@@ -167,7 +167,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   // 2.3.6 — debts the premium estimate projected to $0 → the provisional "confirm to celebrate" invitation.
   const provisionalPayoffs = selectProvisionalPayoffs(store, isPremium);
 
-  // 3.3.1 celebration — confirming a payoff to $0 fires the per-debt "vanquished" beat, or the full-screen
+  // 3.3.1 celebration — confirming a payoff to $0 fires the per-debt "paid off" beat, or the full-screen
   // finale when it's the LAST live debt. Capture the beat's data BEFORE the store clears the debt.
   const [celebration, setCelebration] = useState<Celebration | null>(null);
   function confirmPayoff(d: Debt) {
@@ -481,10 +481,10 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
       ))}
 
       {celebration?.kind === 'beat' ? (
-        <VanquishedBeat
+        <PaidOffBeat
           visible
           debtName={celebration.debtName}
-          amountVanquished={celebration.amount}
+          amountPaidOff={celebration.amount}
           freedPerMonth={celebration.freed}
           nextDebtName={celebration.nextDebtName}
           onDismiss={() => setCelebration(null)}

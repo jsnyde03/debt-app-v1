@@ -12,7 +12,7 @@ import { textStyles } from '@/theme/typography';
  * Provisional debt-payoff invitation (2.3.6, Beat 1). The premium estimate reached $0 on its own → the
  * app celebrates the MOMENT immediately (gold = the debt-free moment) but explicitly PENDING: nothing
  * permanent is written until the user confirms it's actually paid off. Confirm → re-anchor the balance
- * to $0 (the confirmed signal the Phase-3 celebration spectacle + the debts-vanquished archive hang
+ * to $0 (the confirmed signal the Phase-3 celebration spectacle + the debts-paid-off archive hang
  * off). We never fire the full ceremony off an unconfirmed estimate.
  */
 export function PayoffInvitationCard({

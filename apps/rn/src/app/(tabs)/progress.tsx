@@ -9,7 +9,7 @@ import { TutorialTarget } from '@/store/tutorialTargets';
 import { CashFlowSection } from '@/components/progress/CashFlowSection';
 import { type JourneyRingChartProps, type MilestoneState } from '@/components/progress/JourneyRingChart';
 import { JourneyRingCanvas } from '@/components/progress/JourneyRingCanvas';
-import { VanquishedArchive } from '@/components/progress/VanquishedArchive';
+import { PaidOffArchive } from '@/components/progress/PaidOffArchive';
 import { Screen } from '@/components/screen';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -19,7 +19,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { CountUp } from '@/motion';
 import { selectWhatIf, selectWhatIfBaseline } from '@/store/analysisSelectors';
 import { withProjectedBalances } from '@/store/balanceSelectors';
-import { selectVanquishedDebts } from '@/store/celebrationSelectors';
+import { selectPaidOffDebts } from '@/store/celebrationSelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { selectOnPlanStreakLabel } from '@/store/planSelectors';
 import { effectivePaycheckBuffer } from '@/store/selectors';
@@ -85,12 +85,12 @@ export default function ProgressScreen() {
   // The cushion floor for the cash-flow bars' reference line (free = BASE buffer · premium = your line).
   const cushionFloor = effectivePaycheckBuffer(engineStore);
   // The permanent trophy shelf of confirmed-cleared debts (raw store — a cleared debt is cleared).
-  const vanquished = selectVanquishedDebts(store);
+  const paidOff = selectPaidOffDebts(store);
 
   if (!view.hasDebts) {
     // Debt-free WITH a history → the calm resting state (the finale already fired the spectacle) + the
     // archive. Only a truly-empty user (never any debt) gets the "add a debt" prompt.
-    if (vanquished.length > 0) {
+    if (paidOff.length > 0) {
       return (
         <Screen title="Progress" right={<MoreButton />}>
           <LinearGradient
@@ -99,10 +99,10 @@ export default function ProgressScreen() {
             end={{ x: 1, y: 1 }}
             style={[styles.hero, elevation.hero[scheme]]}>
             <Text style={[textStyles.footnote, styles.eyebrow, { color: c.surface.heroSub }]}>DEBT-FREE</Text>
-            <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.heroDate, { color: c.surface.heroText }]}>Every balance cleared</Text>
+            <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.heroDate, { color: c.surface.heroText }]}>Every balance paid off</Text>
             <Text style={[textStyles.subhead, { color: c.surface.heroSub }]}>Your trophy shelf is below.</Text>
           </LinearGradient>
-          <VanquishedArchive debts={vanquished} />
+          <PaidOffArchive debts={paidOff} />
         </Screen>
       );
     }
@@ -218,7 +218,7 @@ export default function ProgressScreen() {
       />
       </TutorialTarget>
 
-      <VanquishedArchive debts={vanquished} />
+      <PaidOffArchive debts={paidOff} />
     </Screen>
   );
 }

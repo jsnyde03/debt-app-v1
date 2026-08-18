@@ -25,7 +25,7 @@ import { decorative } from '@/utils/a11y';
  * The grand finale (3.3.1.3) — the once-ever full-screen spectacle when the LAST debt is confirmed to $0.
  * A navy takeover, the reused Skia journey ring at a gold 100% (with a "$0 balance" centre) behind a gold
  * BLOOM flash, a deepened two-wave gold confetti layer that keeps emerging so it BREATHES ~4.7s, the HONEST
- * count-up trio (total vanquished · debts cleared · months to freedom — no fabricated interest-saved), and
+ * count-up trio (total paid off · debts cleared · months to freedom — no fabricated interest-saved), and
  * the bespoke `haptics.finale()` Core-Haptics crescendo (VIS-1). Reduce Motion snaps to the final state +
  * keeps the finale haptic.
  */
@@ -116,7 +116,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
           <Text style={[styles.headline, { color: surf.heroText }]} maxFontSizeMultiplier={1.3}>You&rsquo;re debt-free</Text>
 
           <View style={styles.trio}>
-            <FinaleStat value={stats.totalPaid} label="vanquished" money surf={surf} reduce={reduce} />
+            <FinaleStat value={stats.totalPaid} label="paid off" money surf={surf} reduce={reduce} />
             <FinaleStat value={stats.debtsCleared} label={stats.debtsCleared === 1 ? 'debt' : 'debts'} surf={surf} reduce={reduce} />
             {stats.monthsToFreedom != null ? (
               <FinaleStat value={stats.monthsToFreedom} label={stats.monthsToFreedom === 1 ? 'month' : 'months'} surf={surf} reduce={reduce} />
@@ -149,7 +149,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
 function FinaleStat({ value, label, money, surf, reduce }: { value: number; label: string; money?: boolean; surf: { goldPill: string; heroSub: string }; reduce: boolean }) {
   const fmt = (n: number) => (money ? formatWhole(n) : String(Math.round(n)));
   return (
-    // A4 — one utterance ("$4,200 vanquished"), not two disconnected reads.
+    // A4 — one utterance ("$4,200 paid off"), not two disconnected reads.
     <View style={styles.stat} accessible accessibilityLabel={`${fmt(value)} ${label}`}>
       {reduce ? (
         <Text style={[styles.statVal, { color: surf.goldPill }]} maxFontSizeMultiplier={1.3}>{fmt(value)}</Text>

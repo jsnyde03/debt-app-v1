@@ -11,7 +11,7 @@ import { openFinancialFreedom } from '@/utils/ecosystem';
 /**
  * Graduation surface (2.4.8) — what Today shows once every balance is cleared. Two calm, PERMANENT cards
  * that sit above the (still-running) autopilot: a dignified debt-free banner and the ecosystem "next
- * chapter" invite. The one-time celebration spectacle + the debts-vanquished archive are Phase 3 (gated
+ * chapter" invite. The one-time celebration spectacle + the debts-paid-off archive are Phase 3 (gated
  * on the confirmed-$0 signal); this is the steady-state, so it stays calm — no count-up, no confetti.
  */
 

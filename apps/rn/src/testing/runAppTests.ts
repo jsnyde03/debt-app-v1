@@ -69,7 +69,7 @@ async function main() {
   // now" figure, the capped offer [A3.6], the rollover fold, and the category-list memberships.
   await import('../store/expenseReserve.test');
 
-  // §3.3.1 — the debt-paid-off celebration read layer (vanquished archive · finale detector · stat-trio).
+  // §3.3.1 — the debt-paid-off celebration read layer (paid off archive · finale detector · stat-trio).
   await import('../store/celebrationSelectors.test');
 
   // §3.3.2 — the portfolio milestone-cross capture at rollover (crossing · 100%-excluded · dedup).

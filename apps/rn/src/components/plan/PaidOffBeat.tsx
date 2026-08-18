@@ -18,16 +18,16 @@ import { shareDebtCard } from '@/utils/share-card';
 import { decorative } from '@/utils/a11y';
 
 /**
- * The per-debt "vanquished" beat (3.3.1.2) — a CONTAINED celebratory overlay fired each time a debt is
+ * The per-debt "paid off" beat (3.3.1.2) — a CONTAINED celebratory overlay fired each time a debt is
  * confirmed to $0 (but NOT the last; the last triggers the full-screen finale). Because a snowball clears
  * several in a row, this stays light — Reanimated + a gold check-pop, on the constant navy beat panel — so
  * it satisfies without exhausting. Reduce Motion snaps to the final state but keeps the haptic (an a11y
  * channel). The heavy Skia particle spectacle is reserved for the finale.
  */
-export function VanquishedBeat({
+export function PaidOffBeat({
   visible,
   debtName,
-  amountVanquished,
+  amountPaidOff,
   freedPerMonth,
   nextDebtName,
   onDismiss,
@@ -35,7 +35,7 @@ export function VanquishedBeat({
   visible: boolean;
   debtName: string;
   /** Original balance cleared; `null` when it was never captured (show "Paid off" instead of a figure). */
-  amountVanquished: number | null;
+  amountPaidOff: number | null;
   /** Freed minimum that now cascades to the next debt; only shown with a `nextDebtName`. */
   freedPerMonth: number;
   nextDebtName: string | null;
@@ -85,17 +85,17 @@ export function VanquishedBeat({
     try {
       await shareDebtCard(
         shareRef,
-        `I just vanquished ${debtName}${amountVanquished != null ? ` — ${formatWhole(amountVanquished)}` : ''} on my way to debt-free with Debt Planner.`,
+        `I just paid off ${debtName}${amountPaidOff != null ? ` — ${formatWhole(amountPaidOff)}` : ''} on my way to debt-free with Debt Planner.`,
         'Share your win',
       );
     } catch (e) {
-      reportError(e, { subsystem: 'share', operation: 'vanquished-beat' });
+      reportError(e, { subsystem: 'share', operation: 'paid-off-beat' });
     }
   }
 
   // R3-A1 — one VoiceOver utterance for the whole card (name · amount · cascade), which also suppresses
   // the animated CountUp reading mid-roll (a11y.ts's "final value, never mid-roll" doctrine).
-  const beatA11y = `${debtName} vanquished${amountVanquished != null ? `, ${formatWhole(amountVanquished)} cleared` : ' — paid off'}${
+  const beatA11y = `${debtName} paid off${amountPaidOff != null ? `, ${formatWhole(amountPaidOff)} paid off` : ' — paid off'}${
     showCascade ? `. ${formatWhole(freedPerMonth)} a month now flows to ${nextDebtName}.` : ''
   }`;
 
@@ -113,11 +113,11 @@ export function VanquishedBeat({
 
             <View style={styles.textGroup} accessible accessibilityLabel={beatA11y}>
               <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]} maxFontSizeMultiplier={1.4}>{debtName.toUpperCase()}</Text>
-              <Text style={[styles.gone, { color: surf.heroText }]} maxFontSizeMultiplier={1.3}>Vanquished</Text>
+              <Text style={[styles.gone, { color: surf.heroText }]} maxFontSizeMultiplier={1.3}>Paid off</Text>
 
-              {amountVanquished != null ? (
+              {amountPaidOff != null ? (
                 <CountUp
-                  value={amountVanquished}
+                  value={amountPaidOff}
                   format={(n) => formatWhole(n)}
                   maxFontSizeMultiplier={1.4}
                   style={[styles.amount, { color: surf.goldPill }]}
@@ -148,7 +148,7 @@ export function VanquishedBeat({
           pointerEvents="none"
           aria-hidden
           {...decorative}>
-          <ShareCard data={{ kind: 'debt', debtName, amount: amountVanquished, freedPerMonth }} />
+          <ShareCard data={{ kind: 'debt', debtName, amount: amountPaidOff, freedPerMonth }} />
         </View>
       </Pressable>
     </Modal>

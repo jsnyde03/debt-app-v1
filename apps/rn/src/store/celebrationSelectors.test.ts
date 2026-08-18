@@ -1,9 +1,9 @@
 import { createDefaultStore } from '@/data/defaults';
 import type { Debt, DebtStore } from '@/data/models';
-import { isLastLiveDebt, selectCelebrationStats, selectVanquishedDebts } from '@/store/celebrationSelectors';
+import { isLastLiveDebt, selectCelebrationStats, selectPaidOffDebts } from '@/store/celebrationSelectors';
 
 /**
- * 3.3.1.1 — the debt-paid-off celebration's pure read layer: the "vanquished" archive, the last-debt/finale
+ * 3.3.1.1 — the debt-paid-off celebration's pure read layer: the "paid off" archive, the last-debt/finale
  * detector, and the honest finale stat-trio (no fabricated interest-saved — see the selector's header).
  */
 
@@ -27,7 +27,7 @@ function run() {
   console.log('Running celebration selectors (3.3.1.1) tests...');
 
   // Archive — only $0 debts, most-recently-cleared first, honest amount/date, bnpl flag.
-  const arch = selectVanquishedDebts(
+  const arch = selectPaidOffDebts(
     storeWith([
       debt({ id: 'a', name: 'Chase', balance: 0, originalBalance: 4200, lastVerifiedDate: '2026-06-15' }),
       debt({ id: 'b', name: 'Klarna', balance: 0, originalBalance: 320, lastVerifiedDate: '2026-08-08', type: 'bnpl' }),
@@ -56,7 +56,7 @@ function run() {
       '2026-01-01',
     ),
   );
-  assert(stats.totalPaid === 5000, `total vanquished = 4200+800 — got ${stats.totalPaid}`);
+  assert(stats.totalPaid === 5000, `total paid off = 4200+800 — got ${stats.totalPaid}`);
   assert(stats.debtsCleared === 2, `2 cleared — got ${stats.debtsCleared}`);
   assert(stats.monthsToFreedom === 7, `Jan→Aug = 7 months — got ${stats.monthsToFreedom}`);
 

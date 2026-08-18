@@ -1,21 +1,21 @@
 import type { Debt, DebtStore } from '@/data/models';
 
 /**
- * Debt-paid-off celebration (3.3.1) — the pure read layer for the "vanquished" archive + the grand-finale
+ * Debt-paid-off celebration (3.3.1) — the pure read layer for the "paid off" archive + the grand-finale
  * stats. All derivations are HONEST facts off data that already persists: paid-off debts stay in the store
  * (`balance: 0`) carrying their `originalBalance` + the `lastVerifiedDate` they were confirmed cleared.
  *
  * Deliberately NO per-debt "interest saved" and NO finale "interest saved" — at debt-free time every balance
  * is 0 and there's no tracked cumulative interest / historical per-cycle extra to reconstruct it from, so any
  * figure would be fabricated. The moat is honest numbers (never false-precise), so the finale reports what we
- * can stand behind: total vanquished · debts cleared · months to freedom.
+ * can stand behind: total paid off · debts cleared · months to freedom.
  */
 
-/** One cleared debt in the "Debts Vanquished" archive. */
-export interface VanquishedDebt {
+/** One cleared debt in the "Debts Paid Off" archive. */
+export interface PaidOffDebt {
   id: string;
   name: string;
-  /** Amount vanquished = the original balance; `null` when it was never captured (don't fabricate). */
+  /** Amount paid off = the original balance; `null` when it was never captured (don't fabricate). */
   amount: number | null;
   /** Date confirmed cleared (`lastVerifiedDate`, else the projection anchor); `null` if unknown. */
   clearedDate: string | null;
@@ -23,7 +23,7 @@ export interface VanquishedDebt {
 }
 
 /** The archive: every debt confirmed to $0, most-recently-cleared first. */
-export function selectVanquishedDebts(store: DebtStore): VanquishedDebt[] {
+export function selectPaidOffDebts(store: DebtStore): PaidOffDebt[] {
   return store.debts
     .filter((d) => d.balance <= 0)
     .map((d) => ({
@@ -47,7 +47,7 @@ export function isLastLiveDebt(debts: Debt[], id: string): boolean {
 
 /** The grand-finale count-up trio — concrete, honest figures only. */
 export interface CelebrationStats {
-  /** Total originally owed across all debts (the sum vanquished). Unknown originals contribute 0, never overclaim. */
+  /** Total originally owed across all debts (the sum paid off). Unknown originals contribute 0, never overclaim. */
   totalPaid: number;
   debtsCleared: number;
   /** onboarding → the last debt cleared, in whole months; `null` when no onboarding anchor exists (legacy). */

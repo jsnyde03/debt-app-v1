@@ -71,6 +71,31 @@ word on three different numbers, which is the defect class T4 exists to close. �
 already carried a `Jason ✓` at the call site, so the audit was proposing to overturn a settled call).
 "Leftover cash" moves to the **L1-5 cushion family**, where it belongs.
 
+### T4.6 — "paid off", and the cost of a blanket replace
+
+🎯 approved retiring **"Vanquished"** outright: *one event, one word, everywhere.* L1-19 was the one
+finding this session that needed **no correction** — its four names ("Vanquished" · "Paid off" · "PAID OFF"
+· "Cleared") were all real, all rendered, and all the same event.
+
+**56 references across 12 files**, and unusually for this gate the identifiers moved too: `VanquishedBeat`
+→ `PaidOffBeat` and `VanquishedArchive` → `PaidOffArchive` (both `git mv`, joining the `PaidOffFinale` that
+already existed), plus `VanquishedDebt`, `selectVanquishedDebts`, `amountVanquished`, and the two
+`reportError` subsystem tags. ⭐ **Zero testIDs contained the word**, which is why a rename of this size
+touched no Maestro flow — the same property that made T4.2's testID-over-copy advice worth following.
+
+⚠️ **The blanket replace was the wrong instrument and `tsc` is what caught it.** Mapping the bare word
+`vanquished → paid off` across the file list rewrote a **local variable** in `progress.tsx` into
+`const paid off = …`, a syntax error at four sites, and mangled two comment hyphenations into
+*"the debts-paid off archive"*. Nothing about the diff *read* wrong at a glance — the typecheck is what
+made it visible, which is the argument for both typechecks running first in the gate. **A word that is
+both copy and an identifier needs the two passes separated**, not one replacement list.
+
+⚡ **And the replace surfaced a defect it did not cause.** `PaidOffBeat`'s screen-reader string was
+`` `${debtName} paid off, ${amount} cleared` `` — **both names for the same event inside one utterance**,
+which is L1-19 in miniature and invisible on screen because only VoiceOver reads it. Now consistent.
+
+---
+
 ### T4.5 — cash states, and a pin that could not fail
 
 L1-7 says *"the tightest cash state has four different names"* and flags its own premise as **unverified**

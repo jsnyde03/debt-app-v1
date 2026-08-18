@@ -13,8 +13,8 @@ import { formatWhole } from '@/utils/format';
  * (`react-native-view-shot`), the one organic-growth artifact worth posting. Three variants so the SAME
  * card serves every debt-free moment, not just the once-per-lifetime finale:
  *   • `finale`   — "I'm debt-free" + the honest stat trio (the grand finale).
- *   • `debt`     — "{Debt} vanquished" + the amount cleared (the per-debt beat, hit repeatedly).
- *   • `progress` — "N debts vanquished · $X cleared" (the persistent archive / trophy shelf).
+ *   • `debt`     — "{Debt} paid off" + the amount cleared (the per-debt beat, hit repeatedly).
+ *   • `progress` — "N debts paid off · $X cleared" (the persistent archive / trophy shelf).
  * Deliberately STATIC + View-based (no Skia/animation) so `captureRef` reliably rasterizes it; navy in
  * both themes; fixed width for a consistent image; font scaling locked (a fixed-size capture artifact).
  */
@@ -37,7 +37,7 @@ export function ShareCard({ data }: { data: ShareCardData }) {
         <>
           <Text style={[styles.headline, { color: surf.heroText }]} allowFontScaling={false}>I&rsquo;m debt-free</Text>
           <View style={styles.trio}>
-            <Stat value={formatWhole(data.totalPaid)} label="vanquished" surf={surf} />
+            <Stat value={formatWhole(data.totalPaid)} label="paid off" surf={surf} />
             <Stat value={String(data.debtsCleared)} label={data.debtsCleared === 1 ? 'debt' : 'debts'} surf={surf} />
             {data.monthsToFreedom != null ? (
               <Stat value={String(data.monthsToFreedom)} label={data.monthsToFreedom === 1 ? 'month' : 'months'} surf={surf} />
@@ -47,7 +47,7 @@ export function ShareCard({ data }: { data: ShareCardData }) {
       ) : data.kind === 'debt' ? (
         <>
           <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]} allowFontScaling={false}>{data.debtName.toUpperCase()}</Text>
-          <Text style={[styles.headline, { color: surf.heroText }]} allowFontScaling={false}>Vanquished</Text>
+          <Text style={[styles.headline, { color: surf.heroText }]} allowFontScaling={false}>Paid off</Text>
           <Text style={[styles.amount, { color: surf.goldPill }]} allowFontScaling={false}>{data.amount != null ? formatWhole(data.amount) : 'Paid off'}</Text>
           {data.freedPerMonth > 0 ? (
             <Text style={[textStyles.subhead, styles.sub, { color: surf.heroSub }]} allowFontScaling={false}>
@@ -58,10 +58,10 @@ export function ShareCard({ data }: { data: ShareCardData }) {
       ) : (
         <>
           <Text style={[styles.headline, { color: surf.heroText }]} allowFontScaling={false}>
-            {data.debtsCleared} {data.debtsCleared === 1 ? 'debt' : 'debts'} vanquished
+            {data.debtsCleared} {data.debtsCleared === 1 ? 'debt' : 'debts'} paid off
           </Text>
           {data.totalPaid > 0 ? (
-            <Text style={[styles.amount, { color: surf.goldPill }]} allowFontScaling={false}>{formatWhole(data.totalPaid)} cleared</Text>
+            <Text style={[styles.amount, { color: surf.goldPill }]} allowFontScaling={false}>{formatWhole(data.totalPaid)} paid off</Text>
           ) : null}
           <Text style={[textStyles.subhead, styles.sub, { color: surf.heroSub }]} allowFontScaling={false}>on my way to debt-free</Text>
         </>
