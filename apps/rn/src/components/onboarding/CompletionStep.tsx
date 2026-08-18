@@ -16,7 +16,9 @@ import { OnboardingLayout, onboardingStyles as s } from './OnboardingLayout';
 const STATS: { icon: IconGlyph; label: string; body: string }[] = [
   { icon: 'lock', label: 'Private by design', body: 'your financial data stays on your device.' },
   { icon: 'edit', label: 'Always editable', body: 'update amounts any time.' },
-  { icon: 'phone-iphone', label: 'Free to use', body: 'core features never require a subscription.' },
+  // ⛔ "core features never require a subscription" left "core" undefined while the Guardian's ACTING
+  // half is paid — read as a promise, then felt like a bait. Names what is actually free instead (L1-4).
+  { icon: 'phone-iphone', label: 'Free to use', body: 'your plan, your debt-free date and your payday walkthrough never require a subscription.' },
 ];
 
 export function CompletionStep({ onComplete }: { onComplete: () => void }) {

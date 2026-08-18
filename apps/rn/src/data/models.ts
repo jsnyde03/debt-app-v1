@@ -275,4 +275,27 @@ export interface DebtStore {
   /** §2.0.c attestation walk-back (2.4.11.4c): a surprise outflow arrived after the user attested → the
    *  hold was restored; a one-time notice. Cleared on dismiss. Optional/backfill-safe. */
   pendingReserveWalkback?: boolean | null;
+  /** 3.8 — the expense reserve. ONE aggregate pot for the WHOLE recurring load (rent + utilities +
+   *  subscriptions + …), never per-bill envelopes: the Expenses hero smooths every recurring expense into
+   *  one per-paycheck figure, so a per-bill model would be wrong the first time two bills fall in one cycle.
+   *
+   *  ⚠️ `balance` deliberately does NOT clear at rollover — unlike `windfall`. Carrying across cycles IS
+   *  the feature (set aside in cycle 1, spent in cycle 2); a cleared pot would be money the app took and
+   *  never gave back. `contribution` is the opposite: cycle-KEYED like `cycleTopUp`, so a stale one
+   *  self-corrects rather than re-holding cash in a cycle it was never meant for. It is held out of THIS
+   *  cycle's spendable and folded into `balance` at rollover, net of what the cycle drew.
+   *
+   *  Optional + fallback-to-none, so a pre-3.8 blob parses unchanged and reads as "no pot" — which is
+   *  exactly today's behaviour, the `absent ⇒ today's behaviour` rule Phase 5's migration relies on.
+   *  No `storeVersion` bump: purely additive, merged by `runMigrations`'s `{...base, ...r}` (the v5 precedent). */
+  expenseReserve?: ExpenseReserve;
+}
+
+/** 3.8 — see `DebtStore.expenseReserve`. */
+export interface ExpenseReserve {
+  /** Cash currently held for upcoming recurring expenses. Carries ACROSS cycles. Never negative. */
+  balance: number;
+  /** THIS cycle's set-aside, keyed by the cycle it belongs to (`paycheck.nextPaycheckDate`, matching
+   *  `cycleTopUp.forCycle`). Absent / stale key ⇒ nothing held this cycle. */
+  contribution?: { forCycle: string; amount: number };
 }

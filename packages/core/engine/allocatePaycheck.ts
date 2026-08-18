@@ -58,6 +58,8 @@ export type AllocationCategory =
 	| "autopay_debt"
 	| "cushion_buffer"     // 1 · the reserved floor
 	| "prefunded_reserve"  // 2 · cash held this cycle for a specific future crunch (§2.5)
+	| "expense_reserve"    // 2b · 3.8 — cash the USER set aside this cycle for upcoming recurring bills
+	                       //      (distinct from 2: the Guardian decides that one, the user decides this one)
 	| "discovery_holdback" // 3 · the §2.0 uncertainty reserve
 	| "starter_emergency"  // 4 · the gated starter EF
 	| "emergency"          // 5 · the fuller EF
@@ -65,11 +67,15 @@ export type AllocationCategory =
 	| "optional_goal"      // 7 · goals
 	| "true_leftover";     // 8 · genuine residual liquid cash
 
-/** Displayed "protected" cushion = held/kept buckets (1+2+3+8). NOT `cushion_buffer` alone (round-6
- *  F1: held reserves must count as cushion or "put to work" over-counts them). */
+/** Displayed "protected" cushion = held/kept buckets (1+2+2b+3+8). NOT `cushion_buffer` alone (round-6
+ *  F1: held reserves must count as cushion or "put to work" over-counts them).
+ *  3.8: `expense_reserve` belongs here because it is money KEPT, not deployed — and the membership is not
+ *  optional: `testGuardianPartition` reconciles PROTECTED + PUT_TO_WORK as EXHAUSTIVE of discretionary, so
+ *  a category in neither list silently breaks the partition. */
 export const PROTECTED_CUSHION_CATEGORIES = [
 	"cushion_buffer",
 	"prefunded_reserve",
+	"expense_reserve",
 	"discovery_holdback",
 	"true_leftover",
 ] as const satisfies readonly AllocationCategory[];
@@ -89,6 +95,10 @@ export type AllocationItem = {
 	targetId?: string;
 	debtId?: string;
 	goalId?: string;
+	/** 3.8 — how much of this obligation the expense reserve already covers. `amount` is what THIS PAYCHECK
+	 *  puts in; the biller is owed `amount + reserveCovered`. Any row rendering `amount` alone understates
+	 *  the bill, so the two travel together. */
+	reserveCovered?: number;
 };
 
 export type UnfundedRequiredItem = {
@@ -128,7 +138,25 @@ type AllocatePaycheckParams = {
 	/** §2.5 D5.3 gate (2.4.7.6) — the user has an emergency buffer elsewhere, so skip the pre-debt
 	 *  starter EF and deploy to debt first (the fuller EF still funds after debt). */
 	skipStarterEmergency?: boolean;
+	/** 3.8 — the expense-reserve POT carried in from earlier cycles. Draws down against whatever falls
+	 *  due THIS cycle, in due-date order, so the money set aside earlier actually reduces this cycle's
+	 *  demand. 0 = no pot (every pre-3.8 caller). */
+	expenseReservePot?: number;
+	/** 3.8 — what the user chose to set aside from THIS paycheck. Held out of discretionary into
+	 *  `expense_reserve`, AFTER the cushion floor, and clamped to what is actually left — a contribution
+	 *  larger than the paycheck can spare must never invent money. 0 = nothing held. */
+	expenseReserveContribution?: number;
 };
+
+/** A calendar date as `YYYY-MM-DD`, read from LOCAL components.
+ *  ⛔ NEVER `toISOString().slice(0,10)` — `new Date("…T00:00:00")` is local midnight, which east of UTC is
+ *  the PREVIOUS day once converted. This app stores calendar dates, not instants, so a UTC round-trip is a
+ *  category error. Here it would shift an expanded occurrence's due date by a day and therefore reorder the
+ *  due-date sort below — i.e. silently change WHICH bill the 3.8 reserve pays. */
+function localISODate(d: Date): string {
+	const pad = (n: number) => String(n).padStart(2, "0");
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 /** §2.5 default starter emergency-fund target (2.4.7.6) — the small buffer built before aggressive debt
  *  payoff (the standard sequence). [BUILD]-tunable, Phase 6. */
@@ -154,6 +182,8 @@ export function allocatePaycheck({
 	prefundedReserve = 0,
 	starterEmergencyTarget = STARTER_EMERGENCY_TARGET,
 	skipStarterEmergency = false,
+	expenseReservePot = 0,
+	expenseReserveContribution = 0,
 }: AllocatePaycheckParams) {
 	const roundMoney = (amount: number) => Math.round(amount * 100) / 100;
 
@@ -233,7 +263,7 @@ export function allocatePaycheck({
 				return {
 					...expense,
 					id: `${expense.id}__occ${i}`,
-					dueDate: when.toISOString().slice(0, 10),
+					dueDate: localISODate(when),
 				};
 			});
 		})
@@ -242,6 +272,34 @@ export function allocatePaycheck({
 				new Date(a.dueDate).getTime() -
 				new Date(b.dueDate).getTime()
 		);
+
+	/**
+	 * 3.8 — THE DRAW-DOWN. Money set aside in an earlier cycle is spent here, against whatever falls due
+	 * now, across ALL categories. Rent is an example, never the case: the Expenses hero smooths the whole
+	 * recurring load, so a per-bill model is wrong the first time two bills land in one cycle.
+	 *
+	 * ⚠️ The order is NOT invented here — it reuses `upcomingExpenses` exactly as built above: one entry
+	 * per OCCURRENCE (a fortnightly bill is two draws) sorted by due date. Deriving a second order would
+	 * let the reserve and the funding disagree about which bill got paid.
+	 *
+	 * ⚠️ Paid and unpaid occurrences draw alike. The pot was earmarked against the cycle's DEMAND, and
+	 * skipping already-ticked bills would mean a user who pays early never discharges the pot — it would
+	 * grow forever while they paid full price every cycle, which is the exact defect 3.8 exists to fix.
+	 */
+	let potRemaining = roundMoney(Math.max(0, expenseReservePot));
+	const reserveDrawById = new Map<string, number>();
+	for (const expense of upcomingExpenses) {
+		if (potRemaining <= 0) break;
+		const draw = roundMoney(Math.min(expense.amount, potRemaining));
+		if (draw <= 0) continue;
+		reserveDrawById.set(expense.id, draw);
+		potRemaining = roundMoney(potRemaining - draw);
+	}
+	const expenseReserveDrawn = roundMoney(Math.max(0, expenseReservePot) - potRemaining);
+	/** What this occurrence still needs FROM THIS PAYCHECK — its amount less whatever the pot covered.
+	 *  Every expense figure below reads this, never `.amount`, so the demand drops exactly once. */
+	const owedFromPaycheck = (expense: Expense) =>
+		roundMoney(expense.amount - (reserveDrawById.get(expense.id) ?? 0));
 
 	const upcomingMinimums = debts
 		.filter((debt) => isDueBeforeNextPaycheck(debt.dueDate))
@@ -252,7 +310,7 @@ export function allocatePaycheck({
 		);
 
 	const expenseRequiredTotal = upcomingExpenses.reduce(
-		(sum, expense) => sum + expense.amount,
+		(sum, expense) => sum + owedFromPaycheck(expense),
 		0
 	);
 
@@ -273,7 +331,7 @@ export function allocatePaycheck({
 
 	const paidExpenseTotal = upcomingExpenses
 		.filter((expense) => expense.isPaidThisCycle)
-		.reduce((sum, expense) => sum + expense.amount, 0);
+		.reduce((sum, expense) => sum + owedFromPaycheck(expense), 0);
 
 	const paidDebtMinimumTotal = upcomingMinimums
 		.filter((debt) => debt.minimumPaidThisCycle ?? debt.isPaidThisCycle)
@@ -299,7 +357,7 @@ export function allocatePaycheck({
 	);
 
 	const unpaidRequiredTotal = roundMoney(
-		unpaidExpenses.reduce((sum, expense) => sum + expense.amount, 0) +
+		unpaidExpenses.reduce((sum, expense) => sum + owedFromPaycheck(expense), 0) +
 		unpaidMinimums.reduce(
 			(sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance),
 			0
@@ -333,17 +391,31 @@ export function allocatePaycheck({
 	};
 
 	for (const expense of unpaidExpenses) {
-		const coveredAmount = roundMoney(Math.min(expense.amount, remaining));
-		const unfundedAmount = roundMoney(expense.amount - coveredAmount);
+		// 3.8: what this paycheck owes, i.e. net of the pot. A bill the pot covers in full owes 0 here —
+		// it needs no allocation line, and it must not be counted as an affordable skip.
+		const owed = owedFromPaycheck(expense);
+		const coveredAmount = roundMoney(Math.min(owed, remaining));
+		const unfundedAmount = roundMoney(owed - coveredAmount);
 
-		if (!expense.isAutopay && coveredAmount > 0 && unfundedAmount <= 0) {
+		// "Affordable and skipped" drives the on-plan streak. ⛔ 3.8: the old test was `coveredAmount > 0`,
+		// which silently STOPS counting a bill the pot covers in full — `owed` is 0, so nothing is allocated
+		// and the user banks an "on plan" cycle without paying rent. A pot-covered bill is the MOST
+		// affordable kind: the money is already sitting there. What matters is that the obligation is fully
+		// funded from somewhere and still unpaid, so the pot's share counts as funding like any other.
+		const potShare = reserveDrawById.get(expense.id) ?? 0;
+		if (!expense.isAutopay && unfundedAmount <= 0 && (coveredAmount > 0 || potShare > 0)) {
 			affordableUnpaidRequiredCount += 1;
 		}
 
-		if (coveredAmount > 0) {
+		// ⛔ 3.8: `coveredAmount > 0` alone made a bill the pot covers IN FULL disappear. `owed` is 0, so
+		// nothing was pushed, nothing landed in `unfundedRequiredItems` either — and the row vanished from
+		// Today. The user could not tick a bill they still owe the biller, while it counted as an affordable
+		// skip and quietly broke the streak, with no row on screen to explain why. `potShare > 0` keeps the
+		// row, carrying `amount: 0` from this paycheck — which is the truth, not an absence.
+		if (coveredAmount > 0 || potShare > 0) {
 			allocations.push({
 				label:
-					coveredAmount === expense.amount
+					coveredAmount === owed
 						? expense.isAutopay
 							? `Reserve autopay for ${expense.name}`
 							: `Pay ${expense.name}`
@@ -353,6 +425,7 @@ export function allocatePaycheck({
 				amount: coveredAmount,
 				category: expense.isAutopay ? "autopay_expense" : "expense",
 				targetId: expense.id,
+				...(potShare > 0 ? { reserveCovered: potShare } : {}),
 			});
 
 			remaining = roundMoney(remaining - coveredAmount);
@@ -438,6 +511,25 @@ export function allocatePaycheck({
 		remaining = roundMoney(remaining - amount);
 	}
 
+	// 3.8 — THE HOLD. What the user chose to set aside from THIS paycheck for upcoming recurring bills.
+	//
+	// Placed AFTER `cushion_buffer` so the floor wins: reserving for next month's rent must never push the
+	// user under the line they said they cannot go below. Placed BEFORE the §2.0 holdbacks so the user's
+	// explicit choice takes precedence over the automatic dampener, which then applies to what is genuinely
+	// left. ⚠️ Clamped to `remaining` — an offer sized against a different cycle (or an oversized manual
+	// entry) must never invent money it can then "reserve".
+	const expenseReserveHeld = roundMoney(
+		Math.max(0, Math.min(expenseReserveContribution, Math.max(0, remaining)))
+	);
+	if (expenseReserveHeld > 0) {
+		allocations.push({
+			label: "Reserved for upcoming bills",
+			amount: expenseReserveHeld,
+			category: "expense_reserve",
+		});
+		remaining = roundMoney(remaining - expenseReserveHeld);
+	}
+
 	// §2.0.b uncertainty holdback (2.4.6.1.3): with the floor already reserved, `remaining` IS the
 	// above-floor headroom. While bill-completeness / a variable lean are unproven, hold a fraction of
 	// it back BEFORE any deploy (EF / snowball / goals), so the whole plan is dampened — not just the
@@ -449,6 +541,10 @@ export function allocatePaycheck({
 		// held as extra cushion so a higher-than-typed bill doesn't breach the floor. An absolute (off the
 		// bill amounts, not headroom), composed into the uncertainty `max` below — folded into the cushion,
 		// never stacked on the discovery reserve.
+		// ⚠️ 3.8: deliberately reads GROSS `.amount`, not `owedFromPaycheck`. This buffer hedges a bill coming
+		// in HIGHER than typed, and that swing is against the real bill — the pot having pre-paid part of it
+		// does not shrink the overshoot. Netting it here would under-hold precisely when a variable bill
+		// spikes, and under-holding a safety buffer is the worse of the two failures.
 		const variableBuffer = roundMoney(
 			upcomingExpenses
 				.filter((expense) => expense.expenseType === "variable")
@@ -625,5 +721,15 @@ export function allocatePaycheck({
 		livingExpenseReserve,
 		shortfall,
 		affordableUnpaidRequiredCount,
+		/** 3.8 — how much of the pot this cycle's obligations consumed. ⚠️ Deliberately NOT an
+		 *  `AllocationItem`: the allocations partition THIS PAYCHECK, and the pot is not this paycheck's
+		 *  money. Surfaced separately as "…covered by your reserve". */
+		expenseReserveDrawn,
+		/** 3.8 — what was ACTUALLY held, after the clamp against `remaining`. The rollover folds THIS,
+		 *  never the requested contribution: one rule, one owner. Honouring the request instead would
+		 *  credit the pot money the paycheck never had. */
+		expenseReserveHeld,
+		/** 3.8 — the pot after this cycle's draw, before the hold is folded in at rollover. */
+		expenseReservePotAfterDraw: potRemaining,
 	};
 }

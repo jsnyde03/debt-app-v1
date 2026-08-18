@@ -46,6 +46,7 @@ export function PlanHero({
   windfall = 0,
   onAddWindfall,
   onEditPaycheck,
+  onOpenSpokenFor,
 }: {
   summary: PlanSummary;
   recommended: ActiveRecommendedAction[];
@@ -53,6 +54,8 @@ export function PlanHero({
   windfall?: number;
   onAddWindfall?: () => void;
   onEditPaycheck?: () => void;
+  /** 3.8.5 — opens the "Spoken for" split (everyday vs bills). Omitted → the legend item is inert. */
+  onOpenSpokenFor?: () => void;
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
@@ -60,8 +63,15 @@ export function PlanHero({
 
   const paycheck = summary.requiredTotal + summary.remainingAfterRequired;
   const required = Math.max(0, summary.requiredTotal);
+  // 3.8 [D36] — "Everyday" became "Spoken for": the segment now carries everyday spending AND the money set
+  // aside for upcoming bills. Both are accounted-for-but-not-yet-spent, which is what the translucent green
+  // has always meant. ⛔ Named "Spoken for" and not "Set aside" — that is the gig app's brand term, which
+  // this app deliberately does not borrow (see `PaydayGuardianCard`) — nor "Reserved", which would name a
+  // different figure than the Money tab's hero does.
   const everyday = Math.max(0, summary.everydayReserve);
-  const free = Math.max(0, summary.remainingAfterRequired - everyday);
+  const billsReserve = Math.max(0, summary.billsReserve);
+  const spokenFor = everyday + billsReserve;
+  const free = Math.max(0, summary.remainingAfterRequired - spokenFor);
 
   // Draw-on: the total rolls up from 0 and the split bar wipes in from the left. Reduce Motion snaps.
   const reduce = useReducedMotion();
@@ -77,7 +87,7 @@ export function PlanHero({
   // solid/fixed, Everyday = translucent/variable-but-reserved) + the neutral truly-free remainder.
   const segments = [
     { key: 'required', label: 'Required', value: required, color: onNavy.essential, ring: false, fill: 1 },
-    { key: 'everyday', label: 'Everyday', value: everyday, color: onNavy.essential, ring: true, fill: 0.5 },
+    { key: 'spokenFor', label: 'Spoken for', value: spokenFor, color: onNavy.essential, ring: true, fill: 0.5 },
     { key: 'free', label: 'Flexible', value: free, color: onNavy.free, ring: true, fill: 0.5 }, // VIS-4/Guardian Tier-3: "Free"→"Flexible" (Jason ✓) — names the discretionary money, distinct from the Guardian's protected "Cushion"
   ].filter((seg) => seg.value > 0);
 
@@ -134,10 +144,27 @@ export function PlanHero({
           ))}
         </Animated.View>
 
-        {/* legend — solid dot = obligation, ring = flexible */}
-        <View style={styles.legend}>
-          {segments.map((seg) => (
-            <View key={seg.key} style={styles.legendItem}>
+        {/* the suggested move — clearly optional, tied (blue) to the Recommended card below */}
+        {suggestLabel && suggestTotal > 0 ? (
+          <View style={styles.suggestRow}>
+            <View style={[styles.dot, { borderWidth: 1.5, borderColor: onNavy.suggest, backgroundColor: 'transparent' }]} />
+            <Text style={[textStyles.caption, styles.suggestText, { color: s.heroSub }]} numberOfLines={1}>
+              Suggested · {money0(suggestTotal)} · {suggestLabel}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+
+      {/* 3.8.5 — the legend sits OUTSIDE the `accessible` summary above, deliberately.
+          ⛔ That block is a single a11y node, so a button nested inside it is unreachable to VoiceOver —
+          a WCAG 2.2 AA failure, and exactly the "guard covers 2 of 4" shape this app keeps re-learning.
+          The summary still announces every segment and its value, so nothing is lost by moving the legend
+          out; what is gained is that "Spoken for" can be a real, focusable button. */}
+      <View style={styles.legend}>
+        {segments.map((seg) => {
+          const tappable = seg.key === 'spokenFor' && !!onOpenSpokenFor;
+          const body = (
+            <>
               <View style={styles.legendHead}>
                 <View
                   style={[
@@ -148,21 +175,28 @@ export function PlanHero({
                   ]}
                 />
                 <Text style={[textStyles.caption, { color: s.heroSub }]}>{seg.label}</Text>
+                {tappable ? <AppIcon name="chevron-right" size={13} color={s.heroSub} /> : null}
               </View>
               <Text style={[styles.legendValue, { color: s.heroText }]}>{money0(seg.value)}</Text>
+            </>
+          );
+          return tappable ? (
+            <Pressable
+              key={seg.key}
+              onPress={onOpenSpokenFor}
+              accessibilityRole="button"
+              // Names the split it opens, so the control says what it does rather than repeating the total.
+              accessibilityLabel={`Spoken for ${money0(seg.value)}. Everyday ${money0(everyday)}, bills ${money0(billsReserve)}. See the breakdown.`}
+              hitSlop={8}
+              style={styles.legendItem}>
+              {body}
+            </Pressable>
+          ) : (
+            <View key={seg.key} style={styles.legendItem} accessible accessibilityLabel={`${seg.label} ${money0(seg.value)}`}>
+              {body}
             </View>
-          ))}
-        </View>
-
-        {/* the suggested move — clearly optional, tied (blue) to the Recommended card below */}
-        {suggestLabel && suggestTotal > 0 ? (
-          <View style={styles.suggestRow}>
-            <View style={[styles.dot, { borderWidth: 1.5, borderColor: onNavy.suggest, backgroundColor: 'transparent' }]} />
-            <Text style={[textStyles.caption, styles.suggestText, { color: s.heroSub }]} numberOfLines={1}>
-              Suggested · {money0(suggestTotal)} · {suggestLabel}
-            </Text>
-          </View>
-        ) : null}
+          );
+        })}
       </View>
 
       <View style={styles.statusRow}>

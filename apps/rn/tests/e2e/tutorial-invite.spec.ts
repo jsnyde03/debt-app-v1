@@ -541,7 +541,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await page.getByText('Finish', { exact: true }).click();
     await expect(page.getByTestId('tutorial-overlay')).toHaveCount(0);
     await expect(page.getByText(/MAR 16/i)).toHaveCount(0); // the sandbox's payday is gone
-    await expect(page.getByText(/Premium keeps your cushion at your line/)).toBeVisible();
+    await expect(page.getByText(/Premium works out how much to keep back/)).toBeVisible();
   });
 
   test('the finale does NOT sell premium to someone who already has it', async ({ page }) => {
@@ -562,11 +562,26 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await page.goto('/tutorial');
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
 
-    // 3.5.3.5.7 — the scrim now covers the tab bar too, so a normal click is intercepted before it ever
-    // reaches the tab. `force` bypasses that deliberately: what's under test here is the LISTENER, the
-    // guard that has to hold even if the scrim's geometry is wrong — a stray tab tap mid-beat strands
-    // the user, and the scrim and the listener are independent defences against it.
-    await page.getByTestId('tab-money').click({ force: true });
+    // 3.5.3.5.7 — the scrim covers the tab bar too, so what's under test here is the LISTENER: the guard
+    // that has to hold even if the scrim's geometry is wrong. A stray tab tap mid-beat strands the user,
+    // and the scrim and the listener are independent defences.
+    //
+    // ⛔ `click({ force: true })` was the WRONG TOOL for that, and it red the release gate three times
+    // (CI 2026-08-10 · local 2026-08-11 · local 2026-08-18), each time with the overlay simply absent.
+    // `force` skips actionability but still clicks COORDINATES — it does not wait for the element to stop
+    // moving, and the event goes to whatever is topmost at that point at that instant. Measured
+    // 2026-08-18: at this element's centre the topmost node is `tutorial-scrim-blocker`, so the test was
+    // really asserting on the scrim's layout, and under load a stale coordinate can land elsewhere.
+    // `dispatchEvent` fires on the ELEMENT — no coordinates, no stability requirement, no topmost-node
+    // dependency — which is precisely "does the listener hold". Verified it does reach `onPress`: with no
+    // session running, the same call navigates to /money.
+    //
+    // ⚠️ Mechanism for the three failures NOT proven — a full-suite run with the state captured at the
+    // assertion came back GREEN and healthy (`overlay: true`, `progress: "Step 1 of 7"`). What IS proven
+    // is that this line depended on layout it never meant to test. If it ever reds again, the remaining
+    // suspects are `active` going false (only `leave()` does that) or `TUTORIAL_STEPS[index]` undefined —
+    // `shell` is ruled out: provider and coach are both in the ROOT layout, so it cannot be null here.
+    await page.getByTestId('tab-money').dispatchEvent('click');
     // Assert the URL and the SCREEN, not just the overlay. The overlay mounts at the root and renders
     // over whatever tab you're on, so "overlay still visible / still Step 1" held true even if the press
     // had navigated — delete `holdTabs` entirely and the old assertions stayed green. What must be true

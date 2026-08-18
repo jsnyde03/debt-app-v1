@@ -18,10 +18,13 @@ const ROUTES: { path: string; text?: string; onboarded: boolean }[] = [
   { path: '/cushion-forecast', text: 'Your cushion forecast', onboarded: true },
   { path: '/schedule/d0', text: 'Payoff schedule', onboarded: true }, // 3.7.A0 — the seeded debt's id
 
-  { path: '/paywall', text: 'Debt payoff on autopilot', onboarded: true },
+  { path: '/paywall', text: 'Every payday, worked out for you', onboarded: true },
   { path: '/onboarding', onboarded: false }, // guarded by !onboardingComplete
 ];
 
+// ⛔ The populated plan this suite needs now lives in `scenario()` itself (2026-08-18), so every spec gets
+// it rather than this one. Kept as a note because the reason is easy to lose: Today rendered blank for
+// every user with a bill while all ten of these passed, because the fixture seeded none.
 for (const { path, text, onboarded } of ROUTES) {
   test(`route smoke: ${path} renders (non-blank)`, async ({ page }) => {
     await seedStore(page, scenario({ prefs: { onboardingComplete: onboarded } }));

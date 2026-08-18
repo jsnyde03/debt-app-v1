@@ -26,7 +26,9 @@ import { PlanHero } from '@/components/plan/PlanHero';
 import { RecommendedActionsCard } from '@/components/plan/RecommendedActionsCard';
 import { RequiredActionsCard } from '@/components/plan/RequiredActionsCard';
 import { useCaptureAutoConfirm } from '@/components/plan/useCaptureAutoConfirm';
+import { SpokenForSheet } from '@/components/plan/SpokenForSheet';
 import { WindfallSheet } from '@/components/plan/WindfallSheet';
+import { selectExpenseReserveOffer } from '@/store/expenseReserveSelectors';
 import { Motion } from '@/motion';
 import { haptics } from '@/motion/haptics';
 import { Screen } from '@/components/screen';
@@ -184,6 +186,13 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
 
   const [paycheckSheet, setPaycheckSheet] = useState(false);
   const [windfallSheet, setWindfallSheet] = useState(false);
+  // 3.8.5 — the "Spoken for" split. Its everyday row is the UNCONDITIONAL door to living expenses that
+  // 🎯's "hidden in More" report was really asking for.
+  const [spokenForSheet, setSpokenForSheet] = useState(false);
+  // ⛔ Derived from `store`, NOT passed to `useAppStore` as a selector. It builds a fresh OBJECT every
+  // call, so as a store selector zustand sees a changed snapshot on every render and loops forever —
+  // which does not throw, it just renders nothing. Today came up blank; the e2e is what caught it.
+  const reserveOffer = selectExpenseReserveOffer(store);
   const [addDebtOpen, setAddDebtOpen] = useState(false);
 
   // VIS-4 — single priority ack-slot. Today shows at most ONE acknowledgment card at a time (ranked),
@@ -310,6 +319,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               windfall={store.windfall ?? 0}
               onAddWindfall={() => setWindfallSheet(true)}
               onEditPaycheck={() => setPaycheckSheet(true)}
+              onOpenSpokenFor={() => setSpokenForSheet(true)}
             />
           </TutorialFence>
         </Motion>
@@ -626,6 +636,20 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
 
       {paycheckSheet ? <PaycheckSheet onClose={() => setPaycheckSheet(false)} /> : null}
       {windfallSheet ? <WindfallSheet current={store.windfall ?? 0} onClose={() => setWindfallSheet(false)} /> : null}
+      {/* Mounted only with a live summary — the sheet is opened from the hero, which does not render
+          without one, so a null here means there is nothing for it to describe. */}
+      <SpokenForSheet
+        visible={spokenForSheet && !!summary}
+        onClose={() => setSpokenForSheet(false)}
+        everyday={summary?.everydayReserve ?? 0}
+        billsReserve={summary?.billsReserve ?? 0}
+        offer={reserveOffer}
+        onManageEveryday={() => {
+          setSpokenForSheet(false);
+          router.push('/living-expenses');
+        }}
+        onReserve={(amount) => store_.getState().setExpenseReserveContribution(amount)}
+      />
       {/* Add-only here, so the schedule row never renders — but the handler is wired anyway so this host
           stays correct if Today ever opens an EXISTING debt (3.7.A0). Close first, then push: a presented
           Modal would occlude the route. */}

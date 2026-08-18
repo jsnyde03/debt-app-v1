@@ -13,6 +13,7 @@ import { AddObligationSheet, type AddKind } from '@/components/entities/AddOblig
 import { AmortizationPane } from '@/components/entities/AmortizationView';
 import { DebtSheet } from '@/components/entities/DebtSheet';
 import { useCoachMark } from '@/hooks/use-coach-mark';
+import { selectExpenseReserveNow, selectRecurringSmoothed } from '@/store/expenseReserveSelectors';
 import { TutorialTarget } from '@/store/tutorialTargets';
 import { onAddDebtRequested } from '@/keyCommands/keyCommandBus';
 import { LogPaymentSheet } from '@/components/entities/LogPaymentSheet';
@@ -520,6 +521,9 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
   const c = useAppColors();
   const insets = useSafeAreaInsets();
 
+  // 3.8.4 — what is actually set aside right now (pot after this cycle's draw + what this paycheck held).
+  const reserveNow = useAppStore((s) => selectExpenseReserveNow(s.store));
+
   const livingTotal = living.filter((l) => l.enabled).reduce((s, l) => s + l.amount, 0);
   const cyclesPerMonth = payCyclesPerMonth(payCycle);
   const perCycle = cyclesPerMonth > 0 ? cyclesPerMonth : 1;
@@ -527,8 +531,12 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
   // Recurring bills = the ongoing per-paycheck load; one-time bills are discrete, summed separately.
   const recurring = expenses.filter((e) => e.recurrence !== 'one-time');
   const oneTime = expenses.filter((e) => e.recurrence === 'one-time');
-  const monthlyTotal = recurring.reduce((s, e) => s + monthlyEquivalent(e.amount, e.recurrence, cyclesPerMonth), 0);
-  const perPaycheckTotal = monthlyTotal / perCycle;
+  // 3.8.3 — the smoothing has ONE owner now. It used to be derived here and nowhere else, which was fine
+  // until 3.8's offer needed the same figure; a second derivation is how "two places, one rule" starts.
+  // ⛔ Called on an already-subscribed store, never handed to `useAppStore` — it returns a fresh OBJECT,
+  // and a store selector that does so re-renders forever and blanks the screen (see Today's `reserveOffer`).
+  const billsStore = useAppStore((s) => s.store);
+  const { monthlyTotal, perPaycheckTotal } = selectRecurringSmoothed(billsStore);
   const oneTimeTotal = oneTime.reduce((s, e) => s + e.amount, 0);
   const monthlyRedundant = formatWhole(perPaycheckTotal) === formatWhole(monthlyTotal); // paid monthly → ≈/mo caption is noise
 
@@ -552,13 +560,9 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
       .filter((x) => x.bills.length > 0)
       .sort((a, b) => b.perPaycheck - a.perPaycheck);
 
-  const barTotal = categoryBreakdown.reduce((s, x) => s + x.perPaycheck, 0);
-  const segCount = categoryBreakdown.length;
-  const segments: AllocationSegment[] =
-    barTotal > 0
-      ? categoryBreakdown.map((x, i) => ({ fraction: x.perPaycheck / barTotal, opacity: segCount <= 1 ? 1 : 1 - (i / (segCount - 1)) * 0.6 }))
-      : [];
-
+  // 3.8.4 — the hero bar no longer shows the load's CATEGORY MIX (that was a true picture of a different
+  // figure; under a pot headline it would read as its breakdown). `categoryBreakdown` still feeds the
+  // receipt sheet, which is where a composition belongs.
   const breakdownData: BillBreakdownData = {
     perPaycheckTotal,
     monthlyTotal,
@@ -649,16 +653,34 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
   }
 
   const bills = (n: number) => (n === 1 ? 'bill' : 'bills');
-  const hasBar = recurring.length > 0 && segments.length > 0;
+  // 3.8.4 — the hero reads the REAL reserve, not `perPaycheckTotal`.
+  //
+  // ⛔ The number was never the lie; the VERB was. `$500/mo ÷ 2.17 paychecks = $231` is correct arithmetic
+  // for a recommendation, and the app called it "reserved" while nothing reserved it. 3.8 makes the word
+  // true, so the hero survives and changes SOURCE: it now shows what is actually set aside ($0 … the
+  // recommendation) and demotes the smoothed figure to a caption, where it reads as the advice it is.
+  const reservedNow = reserveNow;
+  const barFraction = perPaycheckTotal > 0 ? Math.min(1, reservedNow / perPaycheckTotal) : 0;
+  // The bar now fills toward the recommendation, so it breaks down the hero's OWN number. It used to show
+  // the load's category mix — a true picture of a DIFFERENT figure, which under a pot headline would read
+  // as its breakdown. That composition is one tap away in the receipt sheet, which is where it belongs.
+  const hasBar = recurring.length > 0 && perPaycheckTotal > 0;
+  const heroSegments: AllocationSegment[] = [
+    { fraction: barFraction, opacity: 1 },
+    { fraction: Math.max(0, 1 - barFraction), opacity: 0.18 },
+  ].filter((s) => s.fraction > 0);
   const hero =
     recurring.length === 0
       ? // no recurring load at all — anchor honestly on the one-time sum, never "$0 per month"
         { value: formatWhole(oneTimeTotal), sub: `${oneTime.length} one-time ${bills(oneTime.length)}`, caption: undefined as string | undefined }
       : {
-          value: formatWhole(perPaycheckTotal),
-          sub: 'reserved per paycheck',
-          // Drop the ≈/mo caption when the user is paid monthly (per-paycheck == per-month → redundant).
-          caption: monthlyRedundant ? undefined : `≈ ${formatWhole(monthlyTotal)}/mo`,
+          value: formatWhole(reservedNow),
+          sub: 'reserved for upcoming bills',
+          // The recommendation, named as a recommendation. Still shows the ≈/mo load unless the user is
+          // paid monthly (per-paycheck == per-month → redundant).
+          caption: monthlyRedundant
+            ? `of ${formatWhole(perPaycheckTotal)} recommended each paycheck`
+            : `of ${formatWhole(perPaycheckTotal)} recommended each paycheck · ≈ ${formatWhole(monthlyTotal)}/mo`,
         };
 
   return (
@@ -667,7 +689,7 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
         value={hero.value}
         sub={hero.sub}
         caption={hero.caption}
-        bar={hasBar ? <AllocationBar segments={segments} /> : undefined}
+        bar={hasBar ? <AllocationBar segments={heroSegments} /> : undefined}
         onPress={recurring.length > 0 ? () => setBreakdownOpen(true) : undefined}
       />
       {grouped ? <BillSearch value={query} onChange={setQuery} /> : null}
@@ -720,7 +742,11 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
         ListFooterComponent={
           <View style={styles.listFooter}>
             <AddRow label="Add" onPress={onAdd} testID="money-add" />
-            {livingTotal > 0 ? <LivingReserve total={livingTotal} /> : null}
+            {/* 3.8.5 — the `livingTotal > 0` gate is GONE. The card was the discoverable door to everyday
+                spending and it only appeared once you already had some, so it was visible exclusively to
+                users who had already found the feature. Empty state included; the Today hero's "Spoken for"
+                tap is the other, unconditional door. */}
+            <LivingReserve total={livingTotal} />
           </View>
         }
       />
@@ -811,21 +837,32 @@ function BillGroupHeader({
 /** The everyday-spending reserve — tappable straight to its management screen (also in More). */
 function LivingReserve({ total }: { total: number }) {
   const c = useAppColors();
+  // 3.8.5 — the empty state is the entire point of removing the `> 0` gate: a door that only opens once
+  // you are already inside is not a door.
+  const empty = total <= 0;
   return (
     <Pressable
       onPress={() => router.push('/living-expenses')}
       accessibilityRole="button"
-      accessibilityLabel={`Everyday spending reserve, ${formatCurrency(total)}. Opens management.`}
+      accessibilityLabel={
+        empty
+          ? 'Everyday spending reserve, nothing set up yet. Opens management.'
+          : `Everyday spending reserve, ${formatCurrency(total)}. Opens management.`
+      }
       style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}>
       <Card tone="accent" style={styles.living}>
         <View style={styles.livingRow}>
           <Text style={[textStyles.subhead, { color: c.text.secondary }]}>Everyday spending reserve</Text>
           <View style={styles.livingRight}>
-            <Text style={[textStyles.numericBody, { color: c.text.primary }]}>{formatCurrency(total)}</Text>
+            <Text style={[textStyles.numericBody, { color: empty ? c.text.tertiary : c.text.primary }]}>
+              {empty ? 'Not set up' : formatCurrency(total)}
+            </Text>
             <AppIcon name="chevron-right" size={20} color={c.text.tertiary} />
           </View>
         </View>
-        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Reserved each paycheck · tap to manage</Text>
+        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+          {empty ? 'Groceries, gas, fun money — reserve it each paycheck' : 'Reserved each paycheck · tap to manage'}
+        </Text>
       </Card>
     </Pressable>
   );

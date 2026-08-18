@@ -17,22 +17,22 @@ test('More hub shows an always-visible "Unlock Premium" entry that opens the pay
   await expect(entry).toBeVisible();
   await page.screenshot({ path: 'test-results/more-premium-entry-light.png', fullPage: true });
   await entry.click();
-  await expect(page.getByText('Debt payoff on autopilot')).toBeVisible(); // the paywall
+  await expect(page.getByText('Every payday, worked out for you')).toBeVisible(); // the paywall
 });
 
 test('free Guardian invite is a tappable button that opens the paywall', async ({ page }) => {
   await seedStore(page, free({ prefs: { onboardingComplete: true, guardianIntroSeen: true } }));
   await page.goto('/');
-  const invite = page.getByText(/Premium keeps your cushion at your line/i);
+  const invite = page.getByText(/Premium works out how much to keep back/i);
   await expect(invite).toBeVisible();
   await page.screenshot({ path: 'test-results/guardian-free-invite-light.png', fullPage: true });
   await invite.click();
-  await expect(page.getByText('Debt payoff on autopilot')).toBeVisible();
+  await expect(page.getByText('Every payday, worked out for you')).toBeVisible();
 });
 
 test('free Guardian invite renders in dark theme', async ({ page }) => {
   await seedStore(page, free({ prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode: 'dark' } }));
   await page.goto('/');
-  await expect(page.getByText(/Premium keeps your cushion at your line/i)).toBeVisible();
+  await expect(page.getByText(/Premium works out how much to keep back/i)).toBeVisible();
   await page.screenshot({ path: 'test-results/guardian-free-invite-dark.png', fullPage: true });
 });

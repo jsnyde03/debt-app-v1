@@ -18,7 +18,10 @@ import { textStyles } from '@/theme/typography';
 /** What Premium unlocks — effort-not-info framing: each line is a job the app DOES for you, not a fact
  * it tells you (the un-chattable test). BNPL handling is intentionally NOT here — it's free/all-tiers. */
 const PREMIUM_BENEFITS: { icon: IconGlyph; text: string }[] = [
-  { icon: 'shield', text: 'The Payday Guardian — holds your cushion at your line every payday and reshapes the plan, so you don’t decide it each cycle.' },
+  // ⛔ Was "holds your cushion at your line every payday" — which the NEXT bullet but one contradicts by
+  // selling a Recovery Plan for when a cycle comes up short. Two claims on one screen, and the stronger
+  // one was the promise being paid for (L1-3).
+  { icon: 'shield', text: 'The Payday Guardian — works out how much to keep back each payday to protect your cushion, and reshapes the plan around it.' },
   { icon: 'shopping-cart', text: 'Can I Afford It? — apply any purchase to your plan in one tap, or build a plan to save for it.' },
   { icon: 'healing', text: 'Recovery Plan — a guided catch-up when a cycle comes up short.' },
   { icon: 'auto-graph', text: 'Always-current balances — projected forward or re-scanned in seconds, no monthly retyping.' },
@@ -208,9 +211,13 @@ export default function PaywallScreen() {
     <Screen title="Premium" onBack={() => (router.canGoBack() ? router.back() : router.replace('/onboarding'))}>
       <View style={styles.hero}>
         <AppIcon name="workspace-premium" size={30} color={c.accent.primary} />
-        <Text style={[textStyles.title2, styles.heroTitle, { color: c.text.primary }]}>Debt payoff on autopilot</Text>
+        <Text style={[textStyles.title2, styles.heroTitle, { color: c.text.primary }]}>Every payday, worked out for you</Text>
         <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
-          The app does the manual parts — you just confirm.
+          {/* ⛔ Was "Debt payoff on autopilot" / "the app does the manual parts". The product says the
+              opposite in two other places — "Your Guardian suggests — it never moves your money" and
+              "Your call" — so the purchase screen was promising the one thing the app refuses to do.
+              Not moving your money is the DIFFERENTIATOR; selling against it was the error (L1-2). */}
+          The app does the arithmetic — the money moves stay yours.
         </Text>
       </View>
 

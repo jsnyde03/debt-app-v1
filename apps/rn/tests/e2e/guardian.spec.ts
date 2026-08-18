@@ -50,7 +50,7 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
     await page.goto('/');
     await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
     await expect(page.getByText('Looks clear this paycheck')).toBeVisible(); // free still sees the honest read
-    await expect(page.getByText(/Premium keeps your cushion at your line/i)).toBeVisible(); // the designed invitation
+    await expect(page.getByText(/Premium works out how much to keep back/i)).toBeVisible(); // the designed invitation
   });
 
   test('premium · the static first-run intro is RETIRED (3.5.1.5) — the tutorial replaces it', async ({ page }) => {

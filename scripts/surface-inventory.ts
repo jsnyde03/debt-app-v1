@@ -11,7 +11,10 @@
  * to fixpoint per route; anything less would report Today as using almost nothing.
  *
  * What it looks for, in the gate's own terms:
- *  • **numbers** — three money formatters exist (`formatCurrency`, `formatDisplayAmount`, `formatWhole`).
+ *  • **numbers** — TWO shared formatters serve the RN app (`formatCurrency`, `formatWhole`), plus every
+ *    hand-rolled file-local one, which is where cohesion actually breaks (audit 2026-08-17 · L4-2).
+ *    ⚠️ `formatDisplayAmount` is NOT tracked here and is NOT dead: it serves the legacy Capacitor/Next
+ *    root surface (`components/ResultsSection.tsx`) only, and dies with that tree at 5.5.1.
  *    Which surface uses which is Wave C's C1 ("cents-formatter") stated as data instead of a hunch: the
  *    same amount rendering two ways on two screens is a cohesion defect nobody can see from one file.
  *  • **visual** — a `components/ui` primitive reachable from exactly ONE route is either bespoke work
@@ -106,9 +109,44 @@ function reachable(start: string): Set<string> {
 const UI_DIR = join(RN_SRC, 'components', 'ui') + sep;
 const FORMATTERS: Record<string, string> = {
   [join(CORE, 'utils', 'formatCurrency.ts')]: 'formatCurrency',
-  [join(CORE, 'utils', 'formatDisplayAmount.ts')]: 'formatDisplayAmount',
   [join(RN_SRC, 'utils', 'format.ts')]: 'formatWhole',
 };
+
+/**
+ * ⛔ Tracking the shared formatters by MODULE PATH answered the wrong question.
+ *
+ * Measured 2026-08-17 (audit L4-2): three formatters were tracked; **nine existed**. Six were
+ * hand-rolled file-locals inside `components/plan/` — four byte-identical `money()` and two `money0`
+ * variants that had ALREADY drifted their guards (`formatCurrency` refuses to print "$NaN"; two of the
+ * copies happily do). A surface row reading "one formatter" was therefore not evidence of cohesion, and
+ * the C1 cents sweep was signed off against it.
+ *
+ * So the sweep now also finds formatters DECLARED in a reached file. A cohesion instrument that can only
+ * see the shared implementation is blind to exactly the thing that breaks cohesion: the local copy.
+ */
+const LOCAL_FORMATTER = /(?:const|function)\s+(money[A-Za-z0-9_]*|fmt[A-Za-z0-9_]*|format[A-Za-z0-9_]*)\s*[=(]/g;
+const localFormatterCache = new Map<string, string[]>();
+function localFormattersIn(file: string): string[] {
+  // The two SHARED formatters are the standard, not a divergence from it.
+  if (FORMATTERS[file]) return [];
+  if (localFormatterCache.has(file)) return localFormatterCache.get(file)!;
+  let found: string[] = [];
+  try {
+    const src = readFileSync(file, 'utf8');
+    // Only count it if the body actually renders currency — a `formatDate` helper is not a money formatter.
+    for (const m of src.matchAll(LOCAL_FORMATTER)) {
+      const name = m[1];
+      const tail = src.slice(m.index ?? 0, (m.index ?? 0) + 400);
+      // A money renderer emits a literal "$" before an interpolation (`$${n}`) or configures Intl with a
+      // currency. A DATE helper also contains "$" — via `${y}-${m}` — so the negative lookahead is what
+      // separates them. Without it this over-reported `formatCycleDate` and `formatPaycheckDate` as money.
+      if (/`\$(?!\{)/.test(tail) || tail.includes('currency:')) found.push(`${name}@${rel(file)}`);
+    }
+  } catch { /* unreadable file — report nothing rather than guess */ }
+  found = [...new Set(found)];
+  localFormatterCache.set(file, found);
+  return found;
+}
 
 const perRoute = routes.map((r) => {
   const reach = reachable(r);
@@ -116,6 +154,8 @@ const perRoute = routes.map((r) => {
     route: rel(r),
     primitives: [...reach].filter((f) => f.startsWith(UI_DIR)).map((f) => f.slice(UI_DIR.length).replace(/\.(tsx?|ios\.tsx)$/, '')).sort(),
     formatters: [...reach].filter((f) => FORMATTERS[f]).map((f) => FORMATTERS[f]).sort(),
+    // L4-2: the hand-rolled copies, which are where cohesion actually breaks.
+    localFormatters: [...new Set([...reach, r].flatMap((f) => localFormattersIn(f)))].sort(),
   };
 });
 
@@ -126,7 +166,10 @@ const allPrimitives = walk(join(RN_SRC, 'components', 'ui'))
   .filter((n) => !n.endsWith('.types'));
 const unreached = [...new Set(allPrimitives)].filter((p) => !primitiveUse.has(p)).sort();
 const singleUse = [...primitiveUse.entries()].filter(([, rs]) => rs.length === 1).sort();
-const mixedFormatters = perRoute.filter((r) => r.formatters.length > 1);
+// A surface is "mixed" if it reaches more than one money renderer of ANY kind — shared or hand-rolled.
+// Counting only the shared ones is what let six local copies drift unseen (audit L4-2).
+const mixedFormatters = perRoute.filter((r) => r.formatters.length + r.localFormatters.length > 1);
+const allLocalFormatters = [...new Set(perRoute.flatMap((r) => r.localFormatters))].sort();
 
 const md: string[] = [];
 md.push('# Surfaces — what each screen is built from');
@@ -140,14 +183,25 @@ md.push('> "this screen shows all of these".');
 md.push('');
 md.push('## Numbers — which money formatter each surface reaches');
 md.push('');
-md.push('Three exist. The cohesion question is whether the same amount renders the same way everywhere;');
-md.push('a surface reaching more than one is where it can stop doing so. *(Wave C · C1.)*');
+md.push('Two are shared. The cohesion question is whether the same amount renders the same way everywhere;');
+md.push('a surface reaching more than one renderer is where it can stop doing so. *(Wave C · C1.)*');
 md.push('');
-md.push('| surface | formatters |');
-md.push('|---|---|');
-for (const r of perRoute) md.push(`| \`${r.route}\` | ${r.formatters.length ? r.formatters.join(' · ') : '—'} |`);
+md.push('> ⛔ **This table counted SHARED formatters only, and reported three.** The 2026-08-17 audit');
+md.push('> measured **nine** — six hand-rolled file-locals, two of which had already dropped the');
+md.push('> non-finite guard `formatCurrency` exists to provide. A row reading "one formatter" was never');
+md.push('> evidence of cohesion. Local copies are listed now, because they are where cohesion breaks.');
 md.push('');
-md.push(`**${mixedFormatters.length}** surfaces reach more than one formatter.`);
+md.push('| surface | shared | hand-rolled (local) |');
+md.push('|---|---|---|');
+for (const r of perRoute) {
+  const loc = r.localFormatters.length ? r.localFormatters.join(' · ') : '—';
+  const sh = r.formatters.length ? r.formatters.join(' · ') : '—';
+  md.push('| `' + r.route + '` | ' + sh + ' | ' + loc + ' |');
+}
+md.push('');
+md.push('**' + mixedFormatters.length + '** surfaces reach more than one money renderer. **' + allLocalFormatters.length + '** hand-rolled formatters exist:');
+md.push('');
+for (const f of allLocalFormatters) md.push('- `' + f + '`');
 md.push('');
 md.push('## Visual — shared primitives, and the ones that are not shared');
 md.push('');
@@ -174,5 +228,5 @@ for (const r of perRoute) {
 const OUT = join(REPO_ROOT, 'docs', 'audits');
 mkdirSync(OUT, { recursive: true });
 writeFileSync(join(OUT, 'surface-inventory.md'), md.join('\n') + '\n');
-console.log(`surface-inventory: ${perRoute.length} surfaces · ${mixedFormatters.length} reach >1 money formatter · ${singleUse.length} single-use primitives · ${unreached.length} unreached`);
+console.log(`surface-inventory: ${perRoute.length} surfaces · ${mixedFormatters.length} reach >1 money renderer · ${allLocalFormatters.length} hand-rolled · ${singleUse.length} single-use primitives · ${unreached.length} unreached`);
 console.log('→ docs/audits/surface-inventory.md');

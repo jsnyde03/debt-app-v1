@@ -416,9 +416,12 @@ export interface WindfallSplit {
 }
 
 /** The user-facing buckets a windfall lands in, mapped to the engine's canonical allocation categories.
- *  These groups partition ALL 12 categories, so the deltas sum exactly to the windfall (money conserved). */
+ *  These groups partition ALL 13 categories, so the deltas sum exactly to the windfall (money conserved).
+ *  ⚠️ A new category MUST join a group here or the windfall silently stops conserving — 3.8's
+ *  `expense_reserve` joins **bills** (a windfall reaching the pot is going toward bills), deliberately NOT
+ *  `safetyNet`, which is the Guardian's own automatic protection rather than the user's set-aside. */
 const WINDFALL_GROUPS: { key: WindfallBucketKey; categories: AllocationCategory[] }[] = [
-  { key: 'bills', categories: ['expense', 'minimum_debt', 'autopay_expense', 'autopay_debt'] },
+  { key: 'bills', categories: ['expense', 'minimum_debt', 'autopay_expense', 'autopay_debt', 'expense_reserve'] },
   { key: 'safetyNet', categories: ['cushion_buffer', 'prefunded_reserve', 'discovery_holdback'] },
   { key: 'emergency', categories: ['starter_emergency', 'emergency'] },
   { key: 'goals', categories: ['optional_goal'] },

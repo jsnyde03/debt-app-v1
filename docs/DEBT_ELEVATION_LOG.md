@@ -11352,3 +11352,882 @@ existing sort is what stops the reserve and the funding disagreeing about which 
 **any concrete instance in a brief becomes the case the reader builds for.** Two 🎯 notes in a row have now
 corrected 3.8's decomposition before a line of it was written, and both were about what the words implied
 rather than what they said.
+
+---
+
+## 2026-08-17 — 3.8 item before-scan: the reserve has no home yet, and the hold is half the job
+
+**The plan's own optimism line was its weakest claim** — *"the engine already supports the hold;
+`prefundedReserve` is an existing input. The new part is a persisted pot and its draw-down, not a new
+capability."* Measured against the current code, that is wrong four ways, and every one of them is
+load-bearing.
+
+### ⛔ `prefundedReserve` IS NOT A FREE PARAM — it is already driven
+
+`selectAllocation` (`apps/rn/src/store/selectors.ts:143–145`) feeds it `selectPrefundedReserve(store)`, the
+§2.5 water-fill's cycle-0 number. Routing the expense pot through the same input collides with it:
+
+| | what the code actually does |
+|---|---|
+| **occupied** | `selectPrefundedReserve` → `selectWaterFillPlan(store)?.prefundedReserve ?? 0` (`:134`) |
+| **premium-only** | `selectWaterFillPlan` returns `null` unless `subscriptionPlan === 'premium'` (`:116`) — a free user's pot would be **structurally impossible** |
+| **steady-state stripped** | `prefundedReserve: steadyState ? 0 : prefundedReserve` (`:80`) — the debt-free-date projection would **ignore the reserve**. Right for a cold-start dampener, wrong for a permanent reservation |
+| **composed by CLAMP, not sum** | `combinedHoldback` takes the two reserves' clamp with `prefunded` winning the collision (`holdbackComposition.ts:51`, `allocatePaycheck:457–473`) — so a $175 expense pot and a $250 crunch hold do not make $425; **one eats the other, silently** |
+| **wrong words** | the bucket prints *"Held for an upcoming tight cycle"* and lands in category `prefunded_reserve` |
+
+⚡ **So the pot gets its own store field and its own `AllocationCategory`.** That is an engineering call, not
+a product one — but it changes .1's shape and it is why the "no new capability" sentence had to go.
+
+### ⛔ AND A HOLD IS ONLY HALF OF .2's INVARIANT
+
+The plan states the invariant correctly — *gone from cycle 1's spendable **and** reduces cycle-2 demand* —
+then says the capability exists. **A hold bucket delivers only the first half.** Expenses are funded in full
+from `remaining` at `allocatePaycheck:335–375`, **before** any hold bucket is computed (`:447`). For the pot
+to reduce cycle-2 *demand*, that funding loop has to draw on the pot before charging `remaining`. That is a
+new rung in the waterfall, and it is exactly the *"honour only the second and the model invents money"*
+hazard the plan itself names — the optimism sentence was hiding the step that carries the risk.
+
+### ⚠️ .6's warning named the right hazard and the wrong mechanism
+
+The row said *"the reserve must NOT land in the `safetyNet` windfall bucket unexamined."* `safetyNet` is a
+**windfall-sheet** bucket key (`guardianSelectors.ts:404/422`) mapping
+`['cushion_buffer', 'prefunded_reserve', 'discovery_holdback']`. A **new** category is enrolled in nothing by
+default — the hazard exists only on the reuse path, where the pot would be auto-enrolled in `safetyNet` **and**
+in `PROTECTED_CUSHION_CATEGORIES` (`allocatePaycheck:70`), inflating the displayed protected cushion with money
+that is spoken for. Both lists are opt-**in**; neither is a trap for a new bucket.
+
+### ✅ What the before-scan CONFIRMED, unchanged
+
+- **`allocatePaycheck:224–244`** — occurrence expansion with distinct ids and a due-date sort. Exactly as the
+  2026-08-17 correction described it. The draw-down order is decided; do not invent one.
+- **`money.tsx:653–672`** — the hero, `sub: 'reserved per paycheck'`, value `formatWhole(perPaycheckTotal)`.
+  Line numbers still exact.
+- **The three readers**, all real: `BillBreakdownSheet.tsx:55` prints `perPaycheckTotal` as its own headline ·
+  `categoryBreakdown[].perPaycheck` → `barTotal` (`:555`) → `segments` (`:557`) → `AllocationBar` (`:670`) ·
+  per-bill `perPaycheck` (`:548`) → every breakdown row.
+- **`LivingReserve` is gated on `livingTotal > 0`** (`money.tsx:723`) — the card appears only to users who
+  already found the feature, as filed.
+- **The Guardian's everyday segment** is `summary.everydayReserve` = `allocation.livingExpenseReserve`
+  (`planSelectors.ts:334`, `PlanHero.tsx:63–80`) — a single number from living expenses only. Joining the
+  set-aside to it needs a **second `PlanSummary` field**, and the tap needs both figures.
+
+### ⭐ Folded into 3.8 by the before-scan (not deferred)
+
+1. **`allocatePaycheck:236`'s `toISOString().slice(0,10)`** — one of the filed ~5 off-by-one sites, and it is
+   *inside the code .2 builds on*: it stamps each expanded occurrence's due date, so east of UTC it can shift a
+   day and **change the sort order — i.e. which bill the pot pays.** Category 2 (deferring makes the current
+   item incorrect). Folded into .2; partially discharges the filed sweep.
+2. **Reserve against `resolveTrialAmounts`** (`selectors.ts:60`), not the raw amount, or a trial → full-price
+   transition under-reserves in the cycle it matters. Folded into .2/.6.
+3. **The `livingTotal > 0` gate** — already filed as *"independent of 3.8 and cheap"*, but it is the same
+   surface and the same 🎯 report (R2) as .5's unconditional door. Folded into **.5**, not left standing.
+
+⚡ **The pattern held again:** the ledger was reliable about **where** to look — every file, every line number,
+every reader it named was real — and unreliable about **what is there**. The one sentence written to reassure
+was the only one that was wrong.
+
+---
+
+## 2026-08-17 — [D36]: the reserve is BOTH TIERS, and the segment is "Spoken for"
+
+**Two calls, both forced by the before-scan rather than planned.**
+
+### ✅ Both tiers — because the param that would have decided it silently is premium-only
+
+The plan never stated a tier for the pot; it inherited one by assuming `prefundedReserve`. That input is
+gated at `selectWaterFillPlan` (`selectors.ts:116`), so had the assumption held, **free users would have got
+no pot at all — by accident, not by decision.** 🎯 chose both tiers: the hero says *"reserved per paycheck"*
+to a free user exactly as falsely as to a premium one, and *"no paywall on the basic core job"* is settled.
+Premium keeps its own differentiator — the §2.5 water-fill crunch reserve is a **forecast**, a different
+thing from a pot the user fills.
+
+⚡ **Worth naming: a wrong premise was about to make a revenue decision.** The tier would have been set by
+which existing param the code reused.
+
+### ✅ "Spoken for" — and both rejected names were rejected for collisions, not taste
+
+| candidate | why not |
+|---|---|
+| **"Set aside"** | 🎯: *"That's the name of my gig app."* A **portfolio** collision, invisible from inside this repo — and my recommendation, so the check I did not run was "does this name exist elsewhere in the portfolio?" |
+| **"Reserved"** | Dropped by me mid-question once the code was read: after .4 the Money hero shows the **pot** and says *"reserved per paycheck"*, while this segment shows **everyday + pot**. The same word naming two different numbers on two screens is the wording gate's *"two records of one thing, drifting"* |
+| **"Held"** | The allocation list already prints *"Held for an upcoming tight cycle"* for the §2.5 crunch reserve — trades one collision for another |
+
+**"Spoken for"** collides with nothing, covers both halves without enumerating them, and sits in the
+green *accounted-for* family the code comment already describes (`PlanHero.tsx:20`). The live set becomes
+**Required · Spoken for · Flexible**.
+
+⚠️ **The tap is still open** — sheet vs inline expand — and stays open until .5 is reached.
+
+---
+
+## 2026-08-17 — 3.8.1 shipped: the pot, and the one thing the repo already knew
+
+### ✅ What landed
+
+| | |
+|---|---|
+| `models.ts` | `expenseReserve?: { balance: number; contribution?: { forCycle, amount } }` |
+| `store.ts` | `setExpenseReserveContribution(amount)` — **SET, not add** |
+| `selectors.ts` | `selectExpenseReservePot` · `selectExpenseReserveContribution`, beside `selectPrefundedReserve` |
+
+**Two shapes in one field, and the asymmetry is the design.** `balance` deliberately does **not** clear at
+rollover the way `windfall` does — carrying across cycles *is* the feature, and a cleared pot would be money
+the app took and never gave back. `contribution` is the opposite: cycle-KEYED like `cycleTopUp`, so one left
+over from a rolled cycle can never re-hold cash in this one.
+
+⭐ **SET, not add** — `cycleTopUp` accumulates, and copying that here would have been the obvious move. It is
+wrong for this shape: the user acts on a **single** "reserve $175" offer, so an accumulating action turns a
+double-tap into a silent $350 hold. Idempotent by construction instead.
+
+**No `storeVersion` bump.** Purely additive; `runMigrations`'s `{...base, ...r}` merge leaves a pre-3.8 blob
+with `expenseReserve` undefined → reads as "no pot" → **exactly today's behaviour**, which is the
+`absent ⇒ today's behaviour` rule Phase 5's bridge depends on. The v5 substrate is the precedent.
+
+**Proved, not assumed** — a 9-assertion probe over absent / migrated / current-cycle / stale-cycle / negative
+inputs. ⚠️ Then the load-bearing one was **mutated** (dropped the `forCycle` comparison) and confirmed to red
+with `plant-applied=YES` before being reverted: *"a green assertion is not evidence until you know which
+failure it would have caught."* It catches a stale contribution re-holding $175 in a cycle it was never for.
+
+### ⛔ THE REPO HAD ALREADY WRITTEN DOWN THE ANSWER I GOT WRONG
+
+I recommended **"Set aside"** for .5's segment. 🎯 rejected it — his gig app's name. Then the before-scan
+found this, sitting in the code since well before today:
+
+> `PaydayGuardianCard.tsx:24–25` — *"…and \"Set aside\" is the GIG app's brand term, which this app
+> deliberately doesn't borrow."*
+
+⚡ **The constraint was known, enforced in code, and invisible to the docs.** Same lesson as `web-e2e.yml`
+holding the install recipe the Pages deploy needed, one session earlier: *the sibling file is part of the
+before-scan.* The check I skipped was "does this name already exist — or stand barred — elsewhere?"
+⚠️ And it is a **portfolio**-scoped constraint that only one repo records, which is why re-deriving it inside
+this repo's docs was never going to work.
+
+### ⭐ The category's home, decided while building (it is three lists, not one)
+
+- **`PROTECTED_CUSHION_CATEGORIES` → yes.** The pot is money *kept*, not deployed. And it is not optional:
+  `testGuardianPartition.ts:21` reconciles `PROTECTED_CUSHION + PUT_TO_WORK` as **exhaustive** of
+  discretionary, so a category in neither list reds the partition test. Correct behaviour by the gate.
+- **`PUT_TO_WORK_CATEGORIES` → no.** Nothing is deployed to EF, debt or goals.
+- **`WINDFALL_GROUPS` → `bills`.** Its own comment claims the groups *"partition ALL 12 categories, so the
+  deltas sum exactly to the windfall (money conserved)"* — a 13th category outside them breaks conservation
+  silently. `bills` is also the honest label: a windfall reaching the pot is going toward bills.
+  ⛔ **Not `safetyNet`** — that is the Guardian's automatic protection, and the plan's .6 warning was aimed
+  precisely at this.
+- **`selectHeldReserve` unchanged** — it means the Guardian's own §2.0 holds (discovery + prefunded), which
+  the pot is not.
+
+### ⛔ No sandbox bound, and that is a decision
+
+`boundSandboxStore` caps **track-record** channels — anything letting a scripted demo claim a maturity a
+day-one user could not have (`genuineCycleCount`, history, income actuals, milestones). The pot is **not**
+one: it is a *balance*, the same class as `goals.currentAmount` and a debt balance, neither of which is
+bounded. It asserts nothing about how long the user has been at this. Stated rather than silently omitted,
+because *"the guard written for one instance of the class does not cover the class"* cuts both ways — adding
+a field to a guard it does not belong in is its own error.
+
+### ▶ Surfaced, filed, not built
+
+- **Three reserve names will coexist after 3.8** — the Guardian card's *"Safety net"* zone, Today's
+  *"Spoken for"* segment, Money's *"reserved"* hero. Each honest alone; nobody has read them together
+  → **the wording gate**, filed.
+- ⚠️ **The demo persona's Expenses hero will read `$0`** once .4 re-points it at the pot, unless the scenario
+  seeds one. Honest, and possibly reads as broken in the shipping `explore` demo → **check at .4/.6.**
+
+---
+
+## 2026-08-17 — 3.8.2 shipped: the draw-down, and a defect the step itself was introducing
+
+### ✅ The shape that landed
+
+| where | what |
+|---|---|
+| `allocatePaycheck` | category `expense_reserve` · params `expenseReservePot` / `expenseReserveContribution` · returns `expenseReserveDrawn` / `expenseReserveHeld` / `expenseReservePotAfterDraw` |
+| `PROTECTED_CUSHION_CATEGORIES` | `expense_reserve` added (money kept, not deployed) |
+| `WINDFALL_GROUPS` | `expense_reserve` → **bills** |
+| `selectors.ts` | both inputs wired, **both stripped in `steadyState`** |
+| `payday.ts` | `nextExpenseReserve` — the rollover fold |
+
+**The draw reuses the engine's own order rather than deriving a second one.** `upcomingExpenses` is already
+one entry per OCCURRENCE, sorted by due date; the pot walks that same array. A second ordering would let the
+reserve and the funding disagree about which bill got paid — and with rent + utilities + subscriptions in one
+pot, that disagreement is not hypothetical.
+
+**`owedFromPaycheck(expense)` is the single seam.** Every expense figure — `expenseRequiredTotal`,
+`paidExpenseTotal`, `unpaidRequiredTotal`, the funding loop — reads it instead of `.amount`, so the demand
+drops exactly once. One rule, one owner.
+
+**Placement is two deliberate calls.** The hold sits **after** `cushion_buffer` (reserving for next month's
+rent must never push the user under the floor they said they cannot cross) and **before** the §2.0 dampeners
+(the user's explicit choice outranks the automatic one, which then applies to what is genuinely left).
+
+**The rollover folds the engine's numbers, never its own.** `balance − drawn + held`, where `held` is the
+CLAMPED figure. Folding the *requested* contribution would credit the pot money the paycheck never had —
+and re-deriving the draw in `payday.ts` is how the plan and the persisted balance drift apart.
+
+⭐ **Steady-state strips BOTH, and the reason is symmetric.** The pot is a one-off: you hold $175 once, not
+every cycle, so extrapolating its draw across years would show every future cycle's bills discounted by money
+that exists only now. The contribution is stripped for the mirror reason — in a true steady state it *equals*
+the draw, so the pair cancels, and carrying one without the other tilts the projection. Same shape as MF.4.
+
+### ⛔ BUILDING CAUGHT A DEFECT THE STEP WAS INTRODUCING — the streak
+
+`affordableUnpaidRequiredCount` drives the on-plan streak: *"required actions you could afford and skipped."*
+Its test was `coveredAmount > 0 && unfundedAmount <= 0`. Once the pot covers a bill **in full**, `owed` is 0,
+so `coveredAmount` is 0 — and the bill silently **stops counting as a skip**. A user with a funded pot and
+unpaid rent would have banked an "on plan" cycle.
+
+Fixed to *"fully funded from anywhere, and still unpaid"*: `unfundedAmount <= 0 && (coveredAmount > 0 ||
+potShare > 0)`. ⚠️ **Confirmed by planting the pre-fix condition** (`plant-applied=YES`): 3 affordable skips
+→ 2, exactly the bill the pot had covered.
+
+⚡ **This is the ledger lesson pointing inward.** *"The before-scan catches STALE; only BUILDING catches
+MISDESCRIBED"* — and the thing misdescribed here was **my own design**, not a pre-authored claim. The
+before-scan could not have found it: nothing was stale, and the defect did not exist until the code did.
+
+### ⚠️ Decided in passing, and written into the code so it cannot rot
+
+**The variable-bill buffer keeps reading GROSS `.amount`, not the pot-reduced figure.** That buffer hedges a
+bill arriving *higher than typed*, and the overshoot is against the real bill — pre-paying part of it does not
+shrink the swing. Netting it would under-hold exactly when a variable bill spikes, and under-holding a safety
+buffer is the worse failure. ⚠️ Documented at the site, because *a stale comment that contradicts its own
+code manufactured an inverted defect once already.*
+
+### ⭐ And the filed off-by-one was sitting inside the code this step builds on
+
+`:236` used `toISOString().slice(0,10)` to stamp each expanded occurrence's due date — one of the ~5 filed
+sites. It is not cosmetic here: east of UTC it shifts an occurrence a day, which **reorders the due-date sort
+and therefore changes which bill the pot pays.** Replaced with a local-components `localISODate`, carrying the
+`defaults.ts` warning with it. Partially discharges the filed sweep; `getNextPaycheckDate` is still open.
+
+### ⛔ Surfaced, filed to .5, NOT fixed here
+
+**The allocation rows now understate the bill.** A $120 electric bill the pot pre-paid $50 of renders
+*"Pay Electric · $70"*. $70 is the correct **paycheck** number — allocations partition the paycheck, and pot
+money is not paycheck money — but it is the wrong thing to hand someone about to pay a biller **$120**. The
+same applies to `unfundedRequiredItems`. This is the *capped-outcome* class the wording gate hunts, arriving
+from the opposite direction: not an overclaim, an **under**statement. → **.5 must name both figures.**
+
+### ✅ Verification
+
+27-assertion probe across baseline / draw / over-draw / hold / clamp / floor / paid-early / streak / a real
+two-cycle boundary, plus **two verified mutations** (draw-not-honoured → 5 reds incl. *"cycle 2 demand falls
+500 → 325"*; pre-fix streak condition → 1 red). Then `typecheck` both trees · `test:regression` ·
+`test:app` · `test:scenarios` · `lint:rn` — all green, no existing assertion disturbed.
+
+---
+
+## 2026-08-17 — 3.8.3 shipped: the offer, and a stale list that would have undone .2
+
+### ⛔ THE BEFORE-SCAN CAUGHT A BUG .2 HAD ALREADY ARMED
+
+`selectActiveRecommendedActions:95–102` computed its "non-deployable reserved cushion" from a **hand-written
+list** — `cushion_buffer | discovery_holdback | prefunded_reserve` — right under a comment saying it exists
+so *"the recommended surface doesn't offer to deploy money the plan is holding back."*
+
+3.8's `expense_reserve` was not in it. The result would have shipped as: the user reserves $175 for rent, and
+the Today tab immediately offers to throw that same $175 at their credit card. **The comment described the
+defect it was about to have.**
+
+Fixed by deriving it — `PROTECTED_CUSHION_CATEGORIES` minus `true_leftover` — so the next category cannot
+miss. ⚡ Textbook *"two places, one rule"*: a canonical list existed and this site re-stated a subset by hand.
+**Agreeing copies are still copies; they just had not diverged yet.** They diverged the moment .2 landed.
+
+### ✅ What landed
+
+**A new module, `expenseReserveSelectors.ts`**, owning 3.8's read side:
+
+- **`selectRecurringSmoothed`** — the whole recurring load → a per-paycheck figure. ⚠️ This math was
+  **inline in `money.tsx`**, computed for the hero alone. .3 needed the same number, and a second derivation
+  is how the class above starts. Moved before it could happen, not after.
+- **`selectExpenseReserveOffer`** — `recommended` · `spare` · `offer` · `alreadyReserved` · `potAfter` ·
+  **`coversRecommendation`**.
+
+⛔ **`coversRecommendation` is the [A3.6] lesson, wired in from the start.** False means the offer is capped
+by what the paycheck can spare, and copy must then state what it actually does rather than promise the whole
+figure. It mirrors `TightTopUp.holdsLine`, which exists because this app shipped that defect twice.
+
+**Null is an answer**: no plan, no recurring load, nothing spare — and, deliberately, **on a shortfall**.
+Coaching someone to set money aside for next cycle while this cycle's bills are unfunded is the same
+"advice the plan can't take" defect pointed the other way.
+
+### ⚠️ MEASURE, DON'T DERIVE — and I got it wrong TWICE in one probe
+
+Both fixtures were wrong on the first run, from reasoning that looked sound:
+
+1. **`cushionFloor: 200` is premium-only.** `effectivePaycheckBuffer` returns `BASE_PAYCHECK_BUFFER` ($50)
+   for free — and [D36] ships the reserve to **both tiers**, so free is the default path. A $700 paycheck
+   left $300 spare against a $230.77 recommendation: never capped, so the "cap" case tested nothing.
+2. **Then the premium fixture repeated it** — $900 leaves $350 spare, still more than $230.77.
+
+⚡ Neither was a code bug; both were **my arithmetic asserting what the engine should do instead of asking
+it.** The repo's own warning, earned again: *engine figures compose through `effectivePaycheckBuffer` and
+the §2.5 waterfall and are not predictable by reading.* The fix in both cases was to print the number first.
+
+⭐ **So the decisive assertion no longer derives anything**: it offers the number, runs the real engine, and
+checks the engine held exactly that — plus that **one dollar more** would not be held. That is the capped
+promise stated as a test rather than as a claim.
+
+### ✅ Verification
+
+24 assertions across smoothing / uncapped / capped / measured-against-the-engine / both tiers' floors /
+partial contribution / three null cases. **Cap mutation verified** (`plant-applied=YES`): removing
+`Math.min(recommended, spare)` reds 4, including *"engine holds the full CAPPED offer: got 150 want
+230.77"* — the app promising $230.77 while reserving $150, which is the defect in one line. Then `typecheck`
+both trees · `test:regression` · `test:app` · `test:scenarios` · `lint:rn`, all green.
+
+### ⚠️ Filed, not decided
+
+**Should a smoothed reserve target the POST-TRIAL price?** `selectRecurringSmoothed` reads raw `amount`, not
+`resolveTrialAmounts` — deliberately, because that is what the Expenses hero has always shown and diverging
+here would put a different number on the offer than on the hero. That is a real question with a product
+answer → **the wording/cohesion gate.** Changing it silently in passing would have created exactly the
+two-records split 3.8 exists to close.
+
+---
+
+## 2026-08-17 — 3.8.4 shipped: the verb is true now, and it had a second site
+
+### ⛔ THE HERO CANNOT READ `balance`, AND THAT IS THE WHOLE STEP
+
+The plan said *"it must read the POT, not `perPaycheckTotal`."* Correct in direction, and reading
+`expenseReserve.balance` would have shipped the defect back in a new costume:
+
+- `balance` is last cycle's **carry-in**. This cycle's contribution folds in at **rollover**.
+- So a user who taps "reserve $175" would watch the hero stay at **$0** — up to two weeks.
+
+⚡ **That is 3.8's own defect, restated:** the app coaching a habit it does not record. Building the hero is
+what surfaced it; the row's wording could not have.
+
+**`selectExpenseReserveNow` = `expenseReservePotAfterDraw + expenseReserveHeld`** — the pot after this
+cycle's draw, plus what this paycheck actually held. Both come from the allocation, already clamped, so the
+hero cannot show a figure the engine did not agree to. **Verified by planting the naive `balance` read**
+(`plant-applied=YES`): 5 assertions red, headed by *"hero shows 175 immediately, NOT 0: got 0"*.
+
+### ✅ The hero's new shape
+
+| | before | after |
+|---|---|---|
+| value | `perPaycheckTotal` — the recommendation, always | **what is actually set aside**, `$0 …` |
+| sub | *"reserved per paycheck"* — the false verb | *"reserved for upcoming bills"* — now true |
+| caption | `≈ $500/mo` | *"of $231 recommended each paycheck · ≈ $500/mo"* |
+
+**The smoothed figure was not deleted — it was demoted to where it reads as advice.** 🎯's correction was
+that the number is fine and the verb is not; the caption keeps the number and names it honestly.
+
+### ⭐ AND THE BAR WAS BREAKING DOWN A NUMBER THAT IS NO LONGER THERE
+
+The hero bar showed the recurring load's **category mix** — a true picture of `perPaycheckTotal`. Sitting
+directly under a pot headline it would read as that headline's breakdown, which it is not. Re-aimed to a
+two-segment fill: **reserved vs the recommendation** — it now breaks down the hero's own number. The
+category composition is one tap away in the receipt sheet, which is where a composition belongs.
+⚠️ Its three dead helpers (`barTotal`, `segCount`, `segments`) went with it; lint caught the last one.
+
+### ⛔ THE FALSE VERB HAD A SECOND SITE THE ROW DID NOT NAME
+
+The row scoped .4 to `money.tsx:653–672`. `BillBreakdownSheet.tsx:57` prints the **same number with the same
+word** — *"reserved per paycheck"* — as its own headline. Left alone, 3.8 would have fixed the claim on the
+hero and left it standing one tap below.
+
+Fixed to **"recommended per paycheck"**. ⚠️ The sheet's *source* is right and stays: it is the receipt for
+the advice, so the smoothed figure belongs there. Only the verb was wrong. ⚡ Same shape as the earlier
+before-scan finding that the figure had **three readers, not none** — the row keeps being right about where
+to look and wrong about how far it reaches.
+
+### ⭐ One owner for the smoothing, closed on the way through
+
+`monthlyTotal` / `perPaycheckTotal` were computed inline in `money.tsx`. Now `selectRecurringSmoothed`, with
+the component consuming it — so the hero, the caption, the receipt and .3's offer all read one derivation.
+Done at the moment the second caller appeared rather than after they diverged.
+
+### ✅ Verification
+
+9 assertions: day-one zero · **reserve-now-shows-now** · carried pot minus this cycle's draw · carry + draw +
+contribution together · stale contribution ignored · an over-large contribution showing what was HELD ($800,
+= 1200 − 350 rent − the free tier's $50 floor) not what was asked ($99,999) · no-plan fallback. Plus the
+naive-read mutation. `typecheck` both trees · `lint:rn` · `test:regression` · `test:app` · `test:scenarios`
+all green.
+
+---
+
+## 2026-08-17 — 3.8.5 shipped: "Spoken for", and two defects only the build could find
+
+### ⛔ DEFECT 1 — A FULLY PRE-FUNDED BILL DISAPPEARED FROM TODAY
+
+The funding loop pushed an allocation item only `if (coveredAmount > 0)`. Once the pot covers a bill **in
+full**, `owed` is 0 → `coveredAmount` is 0 → nothing pushed. It also could not land in
+`unfundedRequiredItems` (`unfunded` is 0 too). **The row simply ceased to exist.**
+
+So the best-case outcome of the entire feature — you pre-funded rent, and rent is handled — produced a
+screen where rent was **gone**, could not be ticked, and (after .2's streak fix) counted as an affordable
+skip that silently broke the on-plan streak **with no row on screen to explain it.**
+
+Fixed: push when `coveredAmount > 0 || potShare > 0`, carrying `amount: 0` from this paycheck. **Zero is the
+truth here, and an absence is not.** ⚠️ Mutation-verified (`plant-applied=YES`) — the pre-fix condition reds
+*"the rent row EXISTS: got false"*.
+
+⚡ **This is the sharpest instance yet of the ledger lesson turned inward.** .2 was green: 27 assertions, two
+verified mutations, every suite passing. The engine was correct and the *screen* was wrong, and nothing in an
+engine test asks "is the row still there."
+
+### ⛔ DEFECT 2 — THE TAP WOULD HAVE BEEN INVISIBLE TO VOICEOVER
+
+`PlanHero` wraps its amount, bar and legend in ONE `<View accessible>`. A `Pressable` added to the legend
+inside it is not reachable — the wrapper collapses its subtree into a single node. The control would have
+looked perfect and been unusable, a WCAG 2.2 AA failure on the app's most-seen surface.
+
+The legend now sits **outside** that wrapper: the summary still announces every segment and value, and
+"Spoken for" is a real focusable button naming the split it opens. ⭐ **`lint:copy`'s sibling
+`lint:a11y-collapse` is the gate for exactly this** — *"no `accessible` wrapper statically contains a
+control"* — and it passes. The finding that became a test earned its keep on a defect written after it.
+
+### ✅ What landed
+
+| | |
+|---|---|
+| `PlanSummary.billsReserve` | the reserve held this cycle, kept separate from `everydayReserve` — the tap splits them and they have different doors |
+| `PlanHero` | **Required · Spoken for · Flexible**; `free` now nets both halves |
+| `SpokenForSheet` | the split · the everyday door · the offer, with `coversRecommendation` driving the copy · an undo |
+| `RequiredActionsCard` | headline = `amount + reserveCovered`; meta = *"$50 from your reserve"* |
+| `money.tsx` | `livingTotal > 0` **gone**, plus a "Not set up" empty state |
+
+⭐ **The row fix followed a precedent already in the file.** The BNPL installments meta line exists because
+*"the number was right and unexplained"* — same shape, same solution: the headline states the **bill**, the
+meta states where it comes from. Found by reading the sibling code rather than inventing a treatment.
+
+⭐ **[D36]'s second half, delivered:** 🎯's *"living expenses are hidden in More"*. The `LivingReserve` card
+was gated on `livingTotal > 0`, so the discoverable door appeared **only to users who had already found the
+feature**. Gate removed, empty state added, and the Guardian tap is the second, unconditional door — reached
+from the hero every user sees on every open.
+
+### ⚠️ The tap is a SHEET — decided, with a reason
+
+Open since the decomposition. A sheet, because it must carry **two navigation doors and an action**; an
+inline expand under a gradient hero cannot hold that without crowding, and `AnimatedSheet` is the
+established pattern (3.4.5.7).
+
+### ✅ Verification
+
+16 assertions: the spoken-for sum · the vanishing row (exists · contributes 0 · reserve share · full bill) ·
+a partially covered bill naming both · no reserve claim when there is no pot · the reserve never leaking into
+`everydayReserve`. Plus the push-condition mutation. `typecheck` both trees · `lint:rn` · **`lint:a11y-collapse`**
+· `lint:copy` · `lint:selectors` · `lint:a11y-props` · `test:regression` · `test:app` · `test:scenarios`.
+
+---
+
+## 2026-08-17 — 3.8.6: the coverage, and the blank screen every other gate said was fine
+
+### ⛔ THE E2E CAUGHT A DEFECT THAT MADE TODAY RENDER NOTHING
+
+`selectExpenseReserveOffer` and `selectRecurringSmoothed` both build a **fresh object** on every call, and
+both were handed to `useAppStore` as store selectors. zustand's `useSyncExternalStore` then sees a changed
+snapshot on **every render** and loops forever. It does not throw. It does not warn. **The Today tab simply
+renders nothing.**
+
+At that moment the project was green on: `typecheck` (both trees) · `lint:rn` · `lint:copy` ·
+`lint:selectors` · `lint:a11y-props` · `lint:a11y-collapse` · `test:regression` · `test:app` ·
+`test:scenarios` — **67 committed assertions of my own included.** Every one of them tests a function.
+None of them mounts a screen.
+
+⚡ **This is the CLAUDE.md warning with a body count:** *"a green suite often means untested, not correct —
+ask whether any test WOULD have failed."* The answer was no, for the whole feature, right up until a browser
+loaded the page.
+
+⚠️ **And the diagnosis came from an artifact, not from reasoning.** My first instinct was a stale `dist`
+(the documented hazard). `grep "Spoken for" apps/rn/dist/` found the string in the bundle — the build was
+current, so the bug was live. **Three times last session the thing that found the defect was an artifact;
+this makes four.**
+
+Fixed by deriving both from the already-subscribed `store` rather than selecting them. Commented at both
+sites, because the failure mode is invisible: no error, no log, just an empty screen.
+
+### ✅ What is now permanently gated
+
+| file | what it locks |
+|---|---|
+| `packages/core/engine/testExpenseReserve.ts` | draw order per occurrence · demand drop · the vanishing row · over-funding · the hold · the clamp · **the floor winning** · pay-early · the streak · **conservation across a cycle** · the calendar-date fix |
+| `apps/rn/src/store/expenseReserve.test.ts` (37) | absent ⇒ today's behaviour · the cycle-keyed contribution · **the hero moving immediately** · the capped offer measured against the engine · shortfall ⇒ no offer · the Spoken-for split · the pre-funded row · **a real `applyRollover` round trip** · the windfall partition |
+| `apps/rn/tests/e2e/expense-reserve.spec.ts` (5) | the segment reads "Spoken for" · the tap opens the split · **the tick reserves and the Money hero moves** · the unconditional everyday door · a pre-funded bill still on screen |
+
+### ⛔ AND WRITING THE COMMITTED TEST CAUGHT A GREEN TEST DEFENDING A BUG
+
+Porting .2's probe, one assertion failed immediately: *"a fully covered bill owes the paycheck nothing"* —
+written against the behaviour **before** .5 fixed the vanishing row. It asserted that rent produces **no
+allocation line**, which was true, and was the defect.
+
+⚡ **Had that probe been committed when it was written, it would have been a permanently green test holding
+the bug in place** — and it would have looked like coverage. The same trap the plan already names as one of
+its three defect classes: *an assertion that passes either way*, here an assertion that passes for the wrong
+reason. Two fixtures in .3 were wrong from derivation; this one was wrong from **age**.
+
+### ⚠️ Two e2e fixture errors, both mine, both instructive
+
+`recurrence: 'subscriptions'` — a **category** value in a recurrence field, which fed the expansion loop
+nonsense. And Money opens on **Debts**, so every Expenses assertion needed the segment clicked first. Neither
+was a code defect; both cost a full run. The dump-the-page debug spec answered both in one go.
+
+---
+
+## 2026-08-17 — 3.8 WHOLE-ITEM AFTER-SCAN: the defect always lived one layer up
+
+Six steps, and **every one found a defect the step before it could not have found.** Reading them together
+is the point of this pass, and the pattern is unambiguous.
+
+| step | what it found | could the previous step have found it? |
+|---|---|---|
+| .1 | — | — |
+| .2 | the on-plan streak silently stopped counting a pot-covered bill | **no** — the defect did not exist until .2's code did |
+| .3 | `selectActiveRecommendedActions`'s hand-rolled list would offer to deploy the just-reserved cash | **no** — it went stale the moment .2 landed |
+| .4 | the false verb had a **second site**; and `balance` is the wrong number for the hero | **no** — only rendering the hero asks "which number?" |
+| .5 | a fully pre-funded bill **vanished from Today**; the tap would have been **invisible to VoiceOver** | **no** — .2's 27 engine assertions were green throughout |
+| .6 | Today rendered **blank** for every real user | **no** — 67 committed assertions and 6 lint gates were green |
+
+⚡ **Three of the six were introduced BY 3.8, not inherited.** The before-scan discipline is tuned to catch
+*stale pre-authored claims* — and it did that well (the `prefundedReserve` premise, the three readers, the
+`safetyNet` mechanism). It is **structurally incapable** of catching a defect you are about to write. The
+ledger's own lesson, turned inward: *the before-scan catches STALE; only BUILDING catches MISDESCRIBED* —
+including when the thing misdescribed is your own design.
+
+### ⛔ THE FINDING WORTH THE MOST: A GUARD THAT COULD NOT REACH ITS OWN DEFECT CLASS
+
+`route-smoke.spec.ts` exists verbatim for *"a blank route passes silently"*. Today was blank for every user
+with a bill, and route-smoke passed **10/10**. Measured, not assumed — the loop was re-planted and the suite
+run: all ten green.
+
+The mechanism is exact: the offending selector returns `null` — a **stable** reference — when there is no
+recurring load, and the smoke fixture seeded **no `requiredExpenses`**. So the guard exercised the one input
+shape that cannot trigger the class it was written to catch. ⚡ **Defect class ① from the plan —
+*"an assertion that passes either way"* — living inside the guard rather than the code.**
+
+Fixed by populating the fixture (one recurring bill + an everyday reserve), so every route smoke-tests a
+**real** plan and the derived surfaces actually execute. ⚠️ Verified by re-planting: `route smoke: /` now
+**fails**, 9 passed / 1 failed. The guard can now reach the defect.
+
+⚡ **Generalisable, and it is the single most valuable thing 3.8 produced:** *a fixture chosen for
+convenience decides which defects a guard can see.* An empty-ish scenario is not a neutral default — it is a
+narrowing of coverage that reads as breadth. Worth carrying into the audit gate's proxy-gate sweep, which
+hunts precisely this shape.
+
+### ⚡ "Two places, one rule" appeared THREE times in six steps
+
+`selectActiveRecommendedActions`'s non-deployable list vs `PROTECTED_CUSHION_CATEGORIES` · `perPaycheckTotal`
+derived inline in `money.tsx` while .3 needed the same figure · the false verb on the hero **and** the
+receipt sheet. All three were caught, all three now have one owner. Same rate as Wave A, which produced three
+in one wave — this class is not slowing down, and it is the cheapest one to find if you look for the
+canonical list before writing the local one.
+
+### ✅ The exit condition, met
+
+*"The number the app shows is the number the app honours, and a user who acts on it sees the plan change."*
+
+Reserve $175 → it leaves this paycheck's spendable · the Money hero moves the same instant · the Guardian
+bar's "Spoken for" grows · next cycle the bills that fall due draw it down and the demand drops by exactly
+that · the rows say which part came from the reserve · and the pot ends at zero. Nothing invented, nothing
+lost, at both tiers.
+
+### ▶ Carried out of 3.8 (filed, not built)
+
+1. **Three reserve names now coexist** — the Guardian card's "Safety net", Today's "Spoken for", Money's
+   "reserved" → the wording gate.
+2. **Should a smoothed reserve target the POST-TRIAL price?** → the wording/cohesion gate.
+3. **`getNextPaycheckDate`'s `toISOString().slice(0,10)`** is still open — 3.8 discharged the
+   `allocatePaycheck` site only, and that one is *the engine's next-payday date*.
+
+---
+
+## 2026-08-18 — T1: the instruments, and two bugs I put in them while fixing them
+
+**The audit's own tooling was under-reporting in three independent ways.** T1 is first in the sequence
+because every later count is measured through these, and three of them silently narrowed the audit that
+found them.
+
+### ✅ The strings gate
+
+- **Rule ② was blind to its own declarations.** It bucketed JSX attributes on `COPY_PROPS` alone while
+  rule ③ consulted both origin sets — so props ALREADY declared technical (`prop:onPress`, `prop:onBack`,
+  `prop:getComponent`, …) kept being reported as "nobody has classified this".
+- ⭐ **And the two sets are in different NAMESPACES.** Object keys are declared `key:meta`; JSX attributes
+  arrive as `prop:meta`. Consulting only the latter left `prop:meta`'s copy invisible while the same word
+  was declared copy one syntax over. Both spellings are honoured now — a name means the same thing
+  whichever syntax carries it.
+- ⛔ **TECHNICAL is decided per-VALUE, not per-prop.** `prop:onPress` is MIXED — ten route paths AND two
+  real `Alert.alert` strings — so the obvious prop-level exclusion would have made those two
+  **permanently invisible**, strictly worse than the bug being fixed. A prose value under a technical prop
+  falls through to `unclassified`, where a human still sees it.
+- **Result: 358 → 333 unclassified, and 10 more strings INTO the gate's view** — which surfaced **2 new
+  cross-file duplicates**, confirming the file's own note that unclassified strings never reach the
+  duplicate list.
+
+### ⭐ `DUP_MIN_LEN` was a coverage decision disguised as a constant
+
+At 20 chars the duplicate gate saw **3** cross-file duplicates. At 14 it sees **12** — and every one of the
+9 it had been missing was independently found by hand in the same audit: the privacy promise
+(*"Private by design"*), *"Payoff schedule"* across three files, the debt-entry field copy, the demo exit
+CTA, *"Unlock Premium"*. Lowered to 14 (not lower — below that the list fills with genuinely generic
+words). Baseline 5 → 16, which makes T8's worklist **enforced** rather than remembered.
+
+### ⭐ The surface inventory was answering the wrong question
+
+It tracked money formatters by MODULE PATH, so it could only ever see the shared implementation — and was
+blind to exactly the thing that breaks cohesion: the local copy. It reported **3**; there are **7**
+hand-rolled ones, and **Today reaches 8 money renderers on one screen**. The C1 cents sweep was signed off
+against the old number.
+
+⚠️ The detector needed two rounds of tightening, both caught by reading its output: a `$` test also matches
+a DATE template (`${y}-${m}`), so it over-reported `formatCycleDate`/`formatPaycheckDate` until the guard
+required a currency-shaped `` `$ `` not followed by `{`. Two candidates it then dropped were checked and
+correctly dropped — `buildGuardianBrief`'s `money()` returns a **number** (a clamp, not a formatter) and
+`PaidOffFinale`'s `fmt` **delegates to `formatWhole`** (a wrapper, not a divergence).
+
+### ⛔ TWO BUGS I INTRODUCED IN THE INSTRUMENTS, IN THE STEP THAT FIXES THEM
+
+1. **An eaten `\s`, twice.** Shell/heredoc escaping turned `/\s+/` into `/s+/` — so `isMachineryValue`
+   tested for *the letter s* instead of whitespace, and would have bucketed real copy as machinery. Found
+   by reading the file, not by any test.
+2. **A SECOND unnormalised `call:` label producer** at the walk-up path, which is why normalising the
+   first one left four raw-source labels standing. *"Two places, one rule" inside the audit script itself* —
+   fixed with one `calleeLabel` owner.
+
+⚡ **Nothing gates these scripts.** An instrument that is silently wrong is worse than no instrument,
+because its output is trusted — and this session proved it can go wrong in a single edit. So the L6-10
+class is now a **self-check inside the script**: any origin label containing a newline or over 48 chars
+fails the run. ⚠️ Verified by planting a denormalisation (`plant-applied=YES` → exit 1; restored → exit 0).
+⚠️ It also had to learn one legitimate case: `new Intl.NumberFormat` carries a space and is a stable
+identity, so `new ` is stripped and the check narrowed to newlines/over-long.
+
+### ⭐ The fixture change did exactly what it was supposed to
+
+`scenario()` now seeds a recurring bill. **178 of 184 passed.** Of the 6:
+- **Five pinned their own tight/shortfall/trial states** and were shifted by a flat $300 — because I had
+  also added a default everyday reserve. ⚠️ **That was scope creep**: L0-1's measured hole was
+  `requiredExpenses`, not living expenses. Reverted; all five went green. *Extend a fixture as far as the
+  measured hole and no further.*
+- **One was a better finding than a break.** `money-add-chooser` asserted `expenses: []` — which passes
+  if the mortgage went **nowhere**. Rewritten to assert it landed in debts and NOT in expenses. Class ①,
+  *an assertion that passes either way*, found by making the fixture honest.
+
+### ▶ Carried out of T1
+
+- ⛔ **Every "dead code" verdict in this audit inherits its lens's slice.** L4-11 called
+  `formatDisplayAmount` dead; it has **three live call sites** in the legacy Capacitor tree, outside every
+  slice. Removed from the RN inventory (correct), NOT deleted (would have broken that tree); it dies at
+  5.5.1. ▶ **T10 must re-check each candidate against the root tree.** Recorded as R-9.
+- **Today reaching 8 money renderers** is T6's starting point.
+
+---
+
+## 2026-08-18 — T2: the exposure items, and three of five were not defects
+
+### ✅ The one that was live on a public URL
+
+`scan.web.ts` returned a fabricated statement reading **"Chase Freedom Unlimited / Account ending 4821 /
+New Balance $2,431.09 / Purchase APR 24.99%"** — a real bank's trademarked product name attached to
+invented financial data, in the web bundle behind the marketing embed. Nothing had reviewed it: its
+strings sat in the audit's `unclassified` bucket, which is precisely the hole T1 had just closed.
+
+Replaced with a fictional issuer. ⚠️ **Probed rather than assumed** — the parser still extracts balance
+$2,431.09, minimum $56, APR 24.99% and the due date, so the scan → parse → prefill → confirm demo is
+unchanged. ⚠️ The real-issuer DICTIONARY in `parseStatementText` stays: recognising "Chase" to parse a
+user's actual statement is nominative use and necessary. The defect was *fabricating a statement in a
+bank's name*, not naming banks.
+
+### ✅ The three claims 🎯 approved, and why they were worth changing
+
+| was | now |
+|---|---|
+| *"Debt payoff on autopilot"* · *"The app does the manual parts — you just confirm"* | *"Every payday, worked out for you"* · *"The app does the arithmetic — the money moves stay yours"* |
+| *"holds your cushion at your line every payday"* · *"keeps your cushion at your line automatically"* | *"works out how much to keep back each payday to protect your cushion"* |
+| *"core features never require a subscription"* | *"your plan, your debt-free date and your payday walkthrough never require a subscription"* |
+
+⚡ **The first one was selling against the product's own differentiator.** The app says *"Your Guardian
+suggests — it never moves your money"* and *"Your call"* — then the purchase screen promised autopilot.
+The second was self-contradicting **on one screen**: an unconditional "holds your line every payday" two
+bullets above "Recovery Plan — a guided catch-up when a cycle comes up short."
+
+### ⛔ THREE OF FIVE T2 ITEMS WERE NOT DEFECTS
+
+- **L6-7** — `appl_…` is RevenueCat's **public** SDK key, designed for the bundle, and the file already
+  says so. Closed.
+- **L6-3** — `QA_TOOLS = true` ships in TestFlight **on purpose**, with the flip already a Phase-6
+  submission step. Flipping it in T2 would have broken the device pass it exists to enable.
+- **L1-4** — downgraded: `selectPaydayGuardian` has **no premium gate**, so free users do get a Guardian
+  card with a real state read. The copy conflict is real; "the marquee feature is gated" was not.
+
+⚡ **Running tally: of 4 agent-declared blockers, 3 did not survive inspection.** The lenses' *self-reported
+confidence* has been reliable — each flagged its own uncertainty accurately — while their *severity* has
+not. That is the argument for the refutation pass in one line.
+
+### ⚠️ Two things the doing surfaced
+
+1. **129 exact-string copy assertions across 36 specs.** Changing one paywall headline meant editing four
+   specs. ⛔ **This reframes T4**: renaming the cushion's six names, "expenses"/"bills" and "floor" is not
+   a copy edit, it is a copy edit plus dozens of test updates. Filed on T4's row — budget for it, and
+   prefer a shared constant or testID over re-pinning each new string.
+2. ⛔ **My own shell wrote a false "✅".** `node script && grep … || echo "✅ none found"` printed the
+   success line when *node* failed and grep never ran. An assertion that passes either way, in the
+   verification of an audit about assertions that pass either way. Re-run separately, it found the real
+   remaining matches. *A check chained with `||` reports on the chain, not on the check.*
+
+---
+
+## 🔚 SESSION CLOSE 2026-08-18 — read this first next session
+
+⛔ **SUPERSEDED — the gate is now 184/184 and the intermittent is FIXED.** This entry was written before
+that, and its "green except one known intermittent / pick it up with T3" is no longer true. **Read the
+FINAL close at the bottom of this file instead.** Left in place rather than rewritten because the
+reasoning it records (three sightings, status change) is what led to the fix.
+
+**Two items closed against the audit: T1 (the instruments) and T2 (App Store / legal exposure).**
+▶ **NEXT: T3 — correctness.** T3–T8 remain, in order, decomposed on the plan.
+
+### ⛔ The gate is GREEN except for one known intermittent, and its status changed today
+
+`validate:release:rn` — **183 passed, 1 failed**, and the failure is
+`tutorial-invite › the tabs are held while a session is running`: the documented intermittent, **third
+sighting** (CI 2026-08-10 · local 2026-08-11 · local 2026-08-18), same signature every time (the session
+had ENDED when the test expected it running), and **passes 33/33 when the spec runs alone.**
+
+⚠️ **It is filed under "Phase-6 residuals, none gating" and that is no longer true.** It red a full
+release gate on a run whose only changes were an audit script and five copy strings. Three sightings with
+one signature is a defect, not noise, and a gate that reds at random teaches people to re-run instead of
+read. Promoted on the plan; pick it up with T3.
+
+### ⭐ What the audit remediation has actually produced so far
+
+| | |
+|---|---|
+| **Instruments** | strings gate sees **+10 strings and 2 more duplicates**; `DUP_MIN_LEN` 20→14 took the duplicate gate from **3 findings to 12**; surface inventory now sees **7 hand-rolled formatters** (it reported 0) and **Today reaching 8 money renderers**; a **self-check** now reds on a denormalised origin label |
+| **Fixtures** | `scenario()` seeds a bill — 5 specs had to state their own financial premise, and **1 assertion that passed either way was strengthened** |
+| **Exposure** | a real bank's name on fabricated data removed from the public bundle; 3 approved copy rewrites that stop promising outcomes the app cannot always deliver |
+
+### ⛔ The number worth carrying: 3 of 4 agent blockers did not survive refutation
+
+L1-1 downgraded (not a contradiction — obligations funded, cushion below floor, and the site reasons it
+out) · L3-5's mechanism wrong, severity right · L1-4 downgraded (free DOES get a Guardian card) · plus
+L6-7 and L6-3 closed as not-defects. ⚡ **Their self-reported CONFIDENCE was reliable every time; their
+SEVERITY was not.** Twelve claims are re-checked in `findings/L9-refutations.md`; **anything not in that
+file carries only its own lens's confidence.**
+
+### ⚠️ Do NOT build on these
+
+- ⛔ **"Dead code" verdicts inherit their lens's slice.** L4-11 called `formatDisplayAmount` dead; it has
+  **three live call sites** in the legacy Capacitor tree, outside every slice. It dies at 5.5.1. **T10 must
+  re-check every candidate against the ROOT tree.**
+- ⛔ **129 exact-string copy assertions across 36 specs.** One paywall headline meant four spec edits, and a
+  fifth pin was missed because it differed only by a regex `/i` flag. **T4 is a copy edit PLUS dozens of
+  test updates** — budget for it, and prefer a shared constant over re-pinning each new string.
+- ⚠️ **Extend a fixture only as far as the measured hole.** Adding a default everyday reserve alongside the
+  bill broke five specs that pin tight/shortfall states, for no coverage the finding called for. Reverted.
+- ⚠️ **Escaping eats `\s` in heredoc-written scripts.** It happened twice today, producing `/s/` — a test
+  for the letter *s* — inside the audit instrument. Write replacement blocks to a FILE and splice by line.
+- ⚠️ **`cmd && check || echo "ok"` reports on the CHAIN, not the check.** It printed a false "✅ none found"
+  when the first command failed and the check never ran. Run verifications as their own statement.
+
+### ▶ Still open, and each has an owner
+
+1. **T3–T8** on the plan, in order. T3 starts with the UTC date bug — **9 production sites**, including
+   `rolloverPayCycle`, where the error compounds every cycle.
+2. **T9–T11 parked** in the Deferred backlog for a decision after T1–T8.
+3. **T12 → Phase 6's FINISH sweep**, which already re-walks every screen on the frozen build.
+4. **The `tutorial-invite` intermittent** — promoted; it is gating now.
+
+---
+
+## 2026-08-18 — the `tutorial-invite` intermittent, diagnosed after three sightings
+
+**It was the test, not the app.** Three reds with one signature (CI 2026-08-10 · local 2026-08-11 · local
+2026-08-18, the last failing a full release gate), and the mechanism had never been established.
+
+### ⛔ `click({ force: true })` was the wrong tool for what this test claims to assert
+
+The test's own comment says the subject is **the listener** — the `tabPress` guard that must hold even if
+the scrim's geometry is wrong — and that `force` is there deliberately to bypass the scrim. But `force`
+only skips *actionability*: the click is still delivered **at coordinates**, it does **not** wait for the
+element to stop moving, and it lands on whatever is topmost at that instant.
+
+**Measured** with `document.elementFromPoint` at the tab's centre during a live session: the topmost node
+is `tutorial-scrim-blocker`. So the test was asserting on the scrim's layout while believing it had
+bypassed the scrim — and under load a stale coordinate can land somewhere else entirely.
+
+Replaced with **`dispatchEvent('click')`**, which fires on the ELEMENT: no coordinates, no stability
+requirement, no topmost-node dependency. That is exactly "does the listener hold". ⚠️ **Verified it
+actually drives the tab** before relying on it — with no session running, the same call navigates to
+`/money`.
+
+### ⭐ Mutation-verified, on a test that had failed this check before
+
+Deleting `holdTabs`' `preventDefault` **reds the new version**. That matters more than usual here: the
+test carries a comment recording that an earlier version stayed green with `holdTabs` deleted entirely.
+It is now genuinely pinned to the guard.
+
+### ⚠️ Three hypotheses refuted on the way, and the mechanism is still NOT proven
+
+- **"The force-click hits Skip and ends the session"** — refuted by measurement; the topmost node is the
+  scrim blocker, not a dock control.
+- **"`shell` goes null when the tab group remounts"** — refuted by reading: `TutorialShellProvider` and
+  `TutorialCoach` are BOTH in the root layout, with the coach inside the provider, so `shell` cannot be
+  null once the app has mounted.
+- **"`finaleOnly` removes the counter"** — refuted: `testID="tutorial-progress"` renders in *both*
+  branches, so that path changes the text, never the element's existence. The failure was
+  *element(s) not found*.
+
+⚠️ **And an instrumented full-suite run came back GREEN** (`overlay: true`, `progress: "Step 1 of 7"`),
+so the failing state was never captured. **What is proven is that the assertion depended on layout it
+never meant to test; what is not proven is which layout state broke it.** The remaining suspects —
+`active` going false (only `leave()` does that) and `TUTORIAL_STEPS[index]` being undefined — are written
+at the call site so a fourth sighting starts from evidence instead of a fourth round of guessing.
+
+### ✅ After-scan: it was the only instance
+
+Swept the suite for the same coupling: **no other `click({ force: true })` exists** in any spec, and
+`tutorial-invite` is the only spec that interacts under a scrim. The class is closed rather than merely
+this instance.
+
+⚡ **The lesson worth keeping:** *`force: true` does not mean "send this event to this element" — it
+means "skip the checks and click these coordinates".* When the subject is a handler rather than a
+hit-target, `dispatchEvent` is the honest tool, and it removes a whole category of layout-timing flake.
+
+---
+
+## 🔚 FINAL SESSION CLOSE 2026-08-18 — read THIS one first
+
+⚠️ **This supersedes the earlier "SESSION CLOSE 2026-08-18" above**, which was written while the gate was
+still red and says so.
+
+### ✅ State
+
+`validate:release:rn` **exit 0 — 184 e2e + 10 embed + 10 `test:stamp` + 83 lane checks**, tsc clean on both
+trees, zero `error-context.md`. 2 pre-existing lint warnings, 0 errors. No dev servers left listening.
+**Nothing committed** — 44 changed/untracked paths, 6 of them new.
+
+### ✅ Closed this session
+
+| | |
+|---|---|
+| **3.8** | the expense reserve, both tiers [D36] — 6 steps, 5 defects found while building, +5 e2e |
+| **The audit** | 7 lenses, **117 findings**, **12 refutations** → `docs/audits/2026-08-17-v1.7-audit-gate/` |
+| **T1** | the instruments — duplicate gate 3 findings → 12 · +10 strings into the gate's view · 7 hand-rolled formatters found (it reported 0) · fixture seeds a bill · a self-check that reds on a denormalised label |
+| **T2** | a real bank's name on fabricated data out of the public bundle · 3 🎯-approved copy rewrites · **3 of 5 items closed as NOT defects** |
+| **The flake** | `tutorial-invite` intermittent — **the test, not the app**; `force: true` clicks coordinates, not elements |
+
+### ▶ NEXT: T3 — correctness
+
+Decomposed on the plan. Start with the UTC date bug: **9 production sites**, and `rolloverPayCycle` is the
+one that matters — it advances every due date, so the error compounds every cycle.
+
+### ⛔ Do NOT build on these
+
+- **"Dead code" verdicts inherit their lens's slice.** Every lens saw `apps/rn` + `packages/core` only.
+  `formatDisplayAmount` was called dead and has **three live call sites** in the legacy tree. **T10 must
+  re-check every candidate against the ROOT tree.**
+- **T4 is a copy edit PLUS ~129 test updates** — that many exact-string copy assertions across 36 specs pin
+  the vocabulary the glossary renames. One paywall headline cost four spec edits, and a fifth pin was
+  missed because it differed only by a regex `/i` flag.
+- **3 of 4 agent-declared blockers did not survive refutation.** Their self-reported CONFIDENCE was
+  reliable; their SEVERITY was not. Anything not in `findings/L9-refutations.md` carries only its own
+  lens's confidence.
+- **Heredoc-written scripts eat `\s`.** It happened twice, producing `/s/` — a test for the letter *s* —
+  inside the audit instrument. Write replacement blocks to a FILE and splice by line.
+- **`cmd && check || echo "ok"` reports on the CHAIN.** It printed a false "✅ none found" when the first
+  command failed and the check never ran.
+- **Verify a plant LANDED and landed where intended.** One insert targeted the first of seven matching
+  lines and silently instrumented the wrong test.

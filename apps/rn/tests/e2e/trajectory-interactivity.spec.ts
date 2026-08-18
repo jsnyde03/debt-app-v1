@@ -10,7 +10,11 @@ import { scenario, seedStore, day } from './helpers/seed';
 test.use({ viewport: { width: 402, height: 874 } });
 
 // A modest-extra, multi-year plan so multiple debts clear at spread-out months (waypoints have room).
+// ⚠️ `requiredExpenses: []` is DELIBERATE, not an oversight: this spec shapes a curve out of debts alone,
+// and the fixture's default bill compresses the timeline until the waypoints overlap. Stated explicitly
+// so the opt-out reads as a choice — which is the whole point of the default carrying a bill (2026-08-18).
 const PLAN = scenario({
+  requiredExpenses: [],
   paycheck: { amount: '1650', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) },
   debts: [
     { id: 'd0', name: 'Visa', balance: 6200, originalBalance: 8000, minimumPayment: 160, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },

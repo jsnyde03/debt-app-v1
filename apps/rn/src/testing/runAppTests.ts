@@ -65,6 +65,10 @@ async function main() {
   // VIS-6 — the Windfall Autopilot split (marginal diff · money conservation · multi-bucket routing).
   await import('../store/windfallSplit.test');
 
+  // 3.8 — the expense reserve above the engine: the cycle-keyed contribution, the hero's "set aside right
+  // now" figure, the capped offer [A3.6], the rollover fold, and the category-list memberships.
+  await import('../store/expenseReserve.test');
+
   // §3.3.1 — the debt-paid-off celebration read layer (vanquished archive · finale detector · stat-trio).
   await import('../store/celebrationSelectors.test');
 

@@ -13,7 +13,7 @@ import type { CompletedRecommendedAction, DebtStore, SurpriseOutflow } from '@/d
 import { deriveConfidenceContext } from './guardianPredictionCore';
 import { reconcileClosingCycle, stampCyclePrediction } from './guardianPrediction';
 import { selectHeldReserve } from './planSelectors';
-import { selectAllocation } from './selectors';
+import { selectAllocation, type Allocation } from './selectors';
 import { incrementGenuineCycle, recordCycleIncome, recordSurpriseOutflow } from './substrateProducers';
 
 /** Optional actuals the user reports at the payday check-in (2.4.D.3). Absent → fixed income records
@@ -163,6 +163,10 @@ export function applyRollover(store: DebtStore): DebtStore {
       ? { threshold: crossedPortfolio.threshold as 25 | 50 | 75, progressPercent: Math.round(crossedPortfolio.progressPercent) }
       : store.pendingMilestone,
     windfall: 0, // one-time extra income was for the closing cycle only
+    // 3.8 — the pot moves HERE and only here: the closing cycle's draw comes out, the set-aside the user
+    // actually held goes in. ⚠️ Both numbers come from `allocation`, the same object the user was shown
+    // all cycle — never re-derived. Re-deriving is how the plan and the persisted balance drift apart.
+    expenseReserve: nextExpenseReserve(store, allocation),
     currentCyclePrediction: null,
     // 2.4.6.1.2: the closing cycle's band becomes the NEW cycle's prior, for cross-cycle hysteresis
     // (so the state doesn't flap on a value hovering at a boundary). Persisted + reloaded across rollover.
@@ -182,6 +186,31 @@ export function applyRollover(store: DebtStore): DebtStore {
     ...(released ? { pendingReserveRelease: computeReserveRelease(store) } : {}),
   };
   return stampCyclePrediction(withReserve);
+}
+
+/**
+ * 3.8 — roll the expense reserve across a cycle boundary: `balance − drawn + held`.
+ *
+ * ⛔ This is the whole conservation invariant in one line, and both halves are load-bearing. Honour only
+ * the hold and the pot grows without ever paying a bill; honour only the draw and it empties without ever
+ * being filled. `drawn` is what the cycle's obligations consumed; `held` is what the paycheck ACTUALLY set
+ * aside after the engine's clamp — not what was requested, or the pot would be credited money that never
+ * existed.
+ *
+ * `contribution` is dropped on the way out: it has been folded into `balance`, and it is cycle-keyed
+ * anyway, so leaving it would only be a stale record of a cycle that has closed.
+ *
+ * A null allocation (no paycheck set) leaves the reserve untouched — there was no cycle to draw from.
+ */
+function nextExpenseReserve(store: DebtStore, allocation: Allocation | null): DebtStore['expenseReserve'] {
+  const round = (n: number) => Math.round(n * 100) / 100;
+  const prior = store.expenseReserve;
+  if (!allocation) return prior;
+  const balance = round(Math.max(0, (prior?.balance ?? 0) - allocation.expenseReserveDrawn + allocation.expenseReserveHeld));
+  // Nothing held, nothing carried, nothing drawn → stay absent rather than persisting an empty record, so
+  // a user who never touches the feature keeps a store indistinguishable from a pre-3.8 one.
+  if (balance === 0 && !prior) return undefined;
+  return { balance };
 }
 
 /** The settling-in reserve's release ack (2.4.11.4b): `tapped` = a surprise outflow drew on the reserve

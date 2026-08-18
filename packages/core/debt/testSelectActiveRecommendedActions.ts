@@ -24,7 +24,9 @@ function makeResult(over: Partial<AllocationResult> = {}): AllocationResult {
     return {
         paycheckAmount: 2000, totalRequired: 0, livingExpenseReserve: 0,
         allocations: [], unfundedRequiredItems: [], remaining: 0, shortfall: 0,
-        affordableUnpaidRequiredCount: 0, ...over,
+        affordableUnpaidRequiredCount: 0,
+        // 3.8 — no reserve in play for these cases; the selector reads none of them.
+        expenseReserveDrawn: 0, expenseReserveHeld: 0, expenseReservePotAfterDraw: 0, ...over,
     };
 }
 

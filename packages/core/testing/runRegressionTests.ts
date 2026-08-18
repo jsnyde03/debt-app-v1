@@ -1,4 +1,5 @@
 import "@core/engine/testAllocation";
+import "@core/engine/testExpenseReserve";
 import "../debt/testDebtProjection";
 import "./testPlannerStateHardening";
 import "./testStressScenarios";

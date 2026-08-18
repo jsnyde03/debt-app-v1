@@ -169,7 +169,9 @@ export function PaydayGuardianCard({
   const freeInvite =
     (brief.shortfall ?? 0) > 0
       ? 'Premium builds you a catch-up plan — what to cover first, and what (if anything) can safely wait.'
-      : 'Premium keeps your cushion at your line automatically, all on your device — no deciding each paycheck.';
+      // ⛔ Was "keeps your cushion at your line automatically" — an outcome the app cannot always deliver
+      // (the Recovery Plan exists for the cycles where it does not). States the WORK, not the guarantee.
+      : 'Premium works out how much to keep back each payday to protect your cushion, all on your device — no deciding each paycheck.';
 
   return (
     <Card>

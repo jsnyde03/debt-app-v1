@@ -106,5 +106,11 @@ test('a MORTGAGE entered through the chooser lands in Debts, where it counts', a
         expenses: (store.requiredExpenses ?? []).map((e: { name: string }) => e.name),
       };
     }, { timeout: 10_000 })
-    .toEqual({ debts: expect.arrayContaining(['Mortgage']), expenses: [] });
+    // ⛔ Was `expenses: []`, which passed for the wrong reason: with a bills-free fixture it also passed
+    // if the mortgage went NOWHERE. The claim is that it landed in debts and NOT in expenses, so it is
+    // asserted directly — the fixture now carries a bill, and the test is stronger for having to say so.
+    .toEqual({
+      debts: expect.arrayContaining(['Mortgage']),
+      expenses: expect.not.arrayContaining(['Mortgage']),
+    });
 });

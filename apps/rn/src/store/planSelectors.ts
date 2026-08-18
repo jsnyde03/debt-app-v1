@@ -24,7 +24,7 @@ export interface RequiredRow {
 }
 
 /** Sum of one or more allocation categories. */
-function sumCategory(allocation: Allocation, ...categories: string[]): number {
+export function sumCategory(allocation: Allocation, ...categories: string[]): number {
   const set = new Set(categories);
   return allocation.allocations.filter((a) => set.has(a.category)).reduce((sum, a) => sum + a.amount, 0);
 }
@@ -291,6 +291,9 @@ export interface PlanSummary {
   remainingAfterRequired: number;
   /** Everyday/living reserved this cycle (variable but essential — groceries, gas, life). */
   everydayReserve: number;
+  /** 3.8 — set aside this cycle for UPCOMING recurring bills. Joins `everydayReserve` in the hero's
+   *  "Spoken for" segment [D36]; kept separate because the tap splits them and they have different doors. */
+  billsReserve: number;
   cushionStatus: 'stable' | 'tight' | 'pressure';
   debtFreeDate: string | null;
   status: PlanStatus;
@@ -332,6 +335,7 @@ export function selectPlanSummary(store: DebtStore, allocation: Allocation, requ
     shortfall,
     remainingAfterRequired,
     everydayReserve: allocation.livingExpenseReserve,
+    billsReserve: sumCategory(allocation, 'expense_reserve'),
     cushionStatus,
     debtFreeDate: selectDebtFreeDate(store, allocation),
     status: overdue ? 'overdue' : shortfall > 0 ? 'short' : 'on-track',

@@ -200,6 +200,23 @@ function isNonCopyValue(text: string, node: ts.Node, origin?: string): boolean {
   return isIdentifierValue(text.trim()) && !insideTemplate(node);
 }
 
+/**
+ * Does this string LOOK like machinery? Used to keep a MIXED prop honest: a prop may be declared
+ * technical and still carry real copy (`onPress={() => Alert.alert('Delete this debt?', …)}`), so the
+ * exclusion is applied per-VALUE. Deliberately conservative — anything not obviously machinery stays
+ * visible, because a machinery string wrongly reviewed costs a moment and a copy string wrongly excluded
+ * ships unreviewed. Audit 2026-08-17 · L6-1.
+ */
+function isMachineryValue(text: string): boolean {
+  const t = text.trim();
+  if (!t) return true;
+  if (t.startsWith('/')) return true;                    // route paths — '/money', '/living-expenses'
+  if (/^[a-z0-9]+(?:[.:_-][a-z0-9]+)+$/i.test(t)) return true; // storage keys, event ids, dotted handles
+  if (/^#[0-9a-f]{3,8}$/i.test(t)) return true;          // colours
+  if (!/\s/.test(t) && !/[.!?]/.test(t)) return true;    // single tokens with no sentence punctuation
+  return false;                                          // has spaces or sentence punctuation → prose
+}
+
 /** Punctuation, single glyphs and format fragments are not copy to review. */
 function isReviewable(s: string): boolean {
   const t = s.trim();
@@ -210,6 +227,17 @@ function isReviewable(s: string): boolean {
 }
 
 /**
+ * The ONE way a call label is built. ⚠️ There were two — this and the walk-up in `originOf` below — and
+ * they disagreed, so normalising one left four raw-source labels standing (audit L6-10). A label is an
+ * IDENTITY: if it varies with formatting it is not one. Collapse whitespace, drop everything from the
+ * first bracket (so an inline array or options object never lands in the name), cap the length.
+ */
+function calleeLabel(expr: ts.Node, sf: ts.SourceFile): string {
+  const raw = expr.getText(sf).replace(/\s+/g, ' ').replace(/^new\s+/, '').split(/[({[]/)[0].trim();
+  const name = raw.split('.').slice(-2).join('.').slice(0, 40);
+  return `call:${name || 'anonymous'}`;
+}
+/**
  * A label for WHERE an uncaptured string sits, so rule ④'s output is reviewable by context instead of
  * one string at a time. `call:setError` is a judgement anyone can make once; 300 loose strings are not.
  */
@@ -217,8 +245,12 @@ function originOf(node: ts.Node, sf: ts.SourceFile): string {
   const p = node.parent;
   if (!p) return 'other';
   if (ts.isCallExpression(p)) {
-    const callee = p.expression.getText(sf).split('.').slice(-2).join('.');
-    return `call:${callee}`;
+    // ⚠️ `getText()` returns RAW SOURCE, so a multi-line call produced a label containing newlines and
+    // whole argument objects — four of them, which cannot be used as list keys and, worse, silently mint
+    // a NEW unclassified origin the moment anyone reformats the file (audit 2026-08-17 · L6-10). The
+    // label is an identity, so it is normalised to one: collapse whitespace, drop everything from the
+    // first bracket, and cap the length.
+    return calleeLabel(p.expression, sf);
   }
   if (ts.isPropertyAssignment(p)) return `key:${p.name.getText(sf)}`;
   if (ts.isVariableDeclaration(p) && ts.isIdentifier(p.name)) return `var:${p.name.getText(sf)}`;
@@ -231,7 +263,7 @@ function originOf(node: ts.Node, sf: ts.SourceFile): string {
   for (let hops = 0; n && hops < 6; hops++, n = n.parent) {
     if (ts.isPropertyAssignment(n)) return `key:${n.name.getText(sf)}`;
     if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name)) return `var:${n.name.getText(sf)}`;
-    if (ts.isCallExpression(n)) return `call:${n.expression.getText(sf).split('.').slice(-2).join('.')}`;
+    if (ts.isCallExpression(n)) return calleeLabel(n.expression, sf);
     if (ts.isPropertyDeclaration(n) || ts.isFunctionDeclaration(n)) break;
   }
   // W2 — LAST RESORT, and only once every named context above has failed: a literal sitting inside a JSX
@@ -315,9 +347,31 @@ for (const root of ROOTS) {
       if (ts.isJsxAttribute(node) && node.initializer) {
         const prop = node.name.getText(sf);
         if (!TECHNICAL_PROPS.has(prop)) {
-          const bucket: Entry['bucket'] = COPY_PROPS.has(prop) ? 'copy' : 'unclassified';
+          // ⛔ This path used to bucket on COPY_PROPS alone and never consult COPY_ORIGINS /
+          // TECHNICAL_ORIGINS — while rule ③ below consults both. Same file, two paths, one blind: props
+          // ALREADY declared technical (`prop:onPress`, `prop:onBack`, `prop:getComponent`, …) kept being
+          // reported as "nobody has classified this", and `prop:meta`'s copy stayed invisible even though
+          // `key:meta` was declared copy. Audit 2026-08-17 · L6-1.
+          // ⚠️ The two sets are in DIFFERENT namespaces: object-literal keys are declared as `key:meta`,
+          // JSX attributes arrive as `prop:meta`. Consulting only the latter left `prop:meta`'s copy
+          // invisible while `key:meta` was declared copy — the same word, classified once, honoured once.
+          // A name means the same thing whichever syntax carries it, so both spellings are consulted.
+          const originKey = `prop:${prop}`;
+          const keyAlias = `key:${prop}`;
+          const declaredCopy = COPY_PROPS.has(prop) || COPY_ORIGINS.has(originKey) || COPY_ORIGINS.has(keyAlias);
+          const declaredTechnical = TECHNICAL_ORIGINS.has(originKey) || TECHNICAL_ORIGINS.has(keyAlias);
           for (const lit of literalsIn(node.initializer)) {
-            push((lit as ts.StringLiteral).text, lit, `prop:${prop}`, bucket);
+            const text = (lit as ts.StringLiteral).text;
+            // ⚠️ TECHNICAL is decided by the VALUE, not by the prop. `prop:onPress` is MIXED — ten route
+            // paths AND two real `Alert.alert` strings — so a prop-level exclusion would have made those
+            // two permanently invisible, which is strictly worse than the bug being fixed. A prose value
+            // under a technical prop falls through to `unclassified`, where a human still sees it.
+            const bucket: Entry['bucket'] = declaredCopy
+              ? 'copy'
+              : declaredTechnical && isMachineryValue(text)
+                ? 'technical'
+                : 'unclassified';
+            push(text, lit, originKey, bucket);
           }
         }
       }
@@ -397,6 +451,20 @@ const copyDuplicates = duplicates.filter(([, es]) => es.some((e) => e.bucket ===
 const copy = entries.filter((e) => e.bucket === 'copy');
 const technical = entries.filter((e) => e.bucket === 'technical');
 const technicalOrigins = [...new Set(technical.map((e) => e.origin))].sort();
+// ── self-check: the instrument's own output shape ────────────────────────────────────────────────
+// ⛔ Nothing gates these scripts, and this pass introduced two bugs in them that only a human reading the
+// generated file caught: an eaten `\s` that turned a whitespace test into a letter test, and a SECOND
+// unnormalised label producer. An audit instrument that is silently wrong is worse than none, because its
+// output is trusted. So the cheap invariants are asserted here, where they cost nothing per run.
+const badOrigins = [...new Set(entries.map((e) => e.origin))].filter((o) => /[\r\n]/.test(o) || o.length > 48);
+if (badOrigins.length) {
+  console.error(`\n❌ strings-inventory: ${badOrigins.length} origin label(s) contain whitespace or exceed 48 chars.`);
+  console.error('   A label is an IDENTITY — one that varies with source formatting silently mints a new');
+  console.error('   "unclassified" bucket every time someone reformats a file. Normalise it in `calleeLabel`.\n');
+  for (const o of badOrigins.slice(0, 8)) console.error(`     ${JSON.stringify(o.slice(0, 70))}`);
+  process.exitCode = 1;
+}
+
 const unclassified = entries.filter((e) => e.bucket === 'unclassified');
 const unclassifiedProps = [...new Set(unclassified.map((e) => e.origin))].sort();
 
@@ -411,7 +479,13 @@ const unclassifiedProps = [...new Set(unclassified.map((e) => e.origin))].sort()
 // is worse than no gate. At 20 every survivor is a phrase carrying voice, including three Guardian band
 // strings ("A little tight this paycheck") written in two files each. 20 is where the distribution
 // separates; it is a dial, not a law, and moving it is a decision rather than a fix.
-const DUP_MIN_LEN = 20;
+// ⛔ Was 20, which is where the gate went blind. Measured 2026-08-17: at 20 chars the gate saw **3**
+// cross-file duplicates; at 14 it sees **12**, and every one of the 9 it had been missing was
+// independently found by hand in the same audit — the privacy promise ("Private by design"), the payoff
+// schedule across 3 files, the debt-entry field copy, the demo exit CTA, "Unlock Premium". A threshold
+// picked to keep a gate quiet is a coverage decision disguised as a constant.
+// ⚠️ 14, not lower: below it the list fills with genuinely generic single words ("Add", "Cancel").
+const DUP_MIN_LEN = 14;
 const BASELINE_PATH = join(REPO_ROOT, 'scripts', 'duplicate-copy-baseline.json');
 
 const gateFindings = duplicates

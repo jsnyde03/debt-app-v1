@@ -158,6 +158,11 @@ export interface DebtAppState {
   /** §2.10 tight-case (2.4.11.2) — hold this cycle's line by moving `amount` from a savings/EF goal to
    *  checking: reduce the goal + record the top-up for the current cycle. */
   applyTightTopUp(goalId: string, amount: number): void;
+  /** 3.8 — SET this cycle's expense-reserve contribution to `amount` (not add to it). Idempotent by
+   *  design: the user acts on a single recommended "reserve $X" offer, and an accumulating action would
+   *  silently double the hold on a double-tap. `0` clears it. Never required — the plan is correct at
+   *  every contribution level, including none. */
+  setExpenseReserveContribution(amount: number): void;
 
   // Import (shared by JSON import + iCloud restore + the Phase-D data bridge)
   importStore(store: DebtStore): void;
@@ -611,6 +616,29 @@ export function createDebtStore(opts?: { now?: () => string; bound?: (store: Deb
               const total = Math.round((prior + amount) * 100) / 100;
               return total > 0 ? { forCycle, amount: total, goalId } : { forCycle, amount: total };
             })(),
+          },
+        };
+      });
+    },
+
+    setExpenseReserveContribution(amount) {
+      // 3.8 — the user chose to hold `amount` of THIS paycheck for upcoming recurring expenses. SET, not
+      // add (see the interface note). Cycle-keyed to `nextPaycheckDate` exactly like `cycleTopUp`, so a
+      // contribution left over from a cycle that already rolled can never re-hold cash in this one.
+      set((s) => {
+        const forCycle = s.store.paycheck.nextPaycheckDate;
+        const next = Math.max(0, Math.round(amount * 100) / 100);
+        const prior = s.store.expenseReserve;
+        return {
+          store: {
+            ...s.store,
+            expenseReserve: {
+              // The pot itself is untouched here: contributing is a decision about THIS paycheck, and the
+              // money only joins the balance when the cycle actually closes (`applyRollover`). Crediting
+              // the balance now would let the same dollars be both held this cycle and spendable as pot.
+              balance: Math.max(0, prior?.balance ?? 0),
+              ...(next > 0 ? { contribution: { forCycle, amount: next } } : {}),
+            },
           },
         };
       });

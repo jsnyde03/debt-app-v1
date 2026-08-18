@@ -8,80 +8,47 @@
 
 ---
 
-## ▶ BUILDING NOW — **3.8, the expense reserve**
+## ▶ BUILDING NOW — **audit-gate remediation, T1–T8**
 
 | | |
 |---|---|
-| **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** all ✅. Remaining: **3.8** → the audit gate → **Phase 5** 🔒 → 5.5 → **Phase 6** |
-| **Gate** | `validate:release:rn` — **179 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push |
-| **Device pass** | **52 rows** + the 60 coverable-not-built, all Phase 6, human-ticked, non-gating. ⚠️ Read the figures from [`audits/coverage-split.md`](audits/coverage-split.md), **never from a doc quoting them** — that has gone stale three times |
-| **The embed** | live — https://jsnyde03.github.io/debt-app-v1/ |
-| **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` · live embed `EMBED_LIVE_URL=… npm run test:e2e:embed` |
+| **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **audit itself is ✅ RUN**. Remaining: **T1–T8** → **Phase 5** 🔒 → 5.5 → **Phase 6** |
+| **Gate** | `validate:release:rn` — **184 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push |
+| **The audit** | ⭐ [`audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md) — **117 findings, 7 lenses, 8 refutations.** `findings/` per lens · `slices/` the verbatim input each lens got |
+| **Device pass** | **52 rows** + the 60 coverable-not-built, all Phase 6, human-ticked, non-gating. ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them |
+| **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
-⚠️ **Read the SESSION CLOSE 2026-08-17 (night) log entry before building** — it carries what NOT to build
-on, and its closing block points at the **three entries after it that change 3.8**.
+🎯 **2026-08-18: T1–T8 now · T9–T11 parked for revisit · T12 → Phase 6.**
+✅ **T1 + T2 CLOSED 2026-08-18.** ▶ **NEXT: T3 (correctness).** T3–T8 remain, in order.
 
-### ▶ 3.8 — the expense reserve _(active, and the only decomposed item on this doc)_
+⛔ **2 of 3 agent-declared blockers did NOT survive refutation, and the tally is now 3 of 4** — L1-1
+downgraded, L3-5's mechanism wrong (severity right), L1-4 downgraded (free DOES get a Guardian). Plus
+L6-7 and L6-3 closed as not-defects. ⚡ **The lenses' self-reported CONFIDENCE has been reliable; their
+SEVERITY has not.** **No finding becomes work un-refuted** — `findings/L9-refutations.md` records the 12
+claims actually re-checked; anything not in it carries only its own lens's confidence.
 
-🎯 **IN v1.7** *(2026-08-17: "3.8 is definitely in 1.7")*. ⛔ **The app coaches a habit it cannot record and
-then plans as if you had not followed it.** The Expenses hero **smooths the WHOLE recurring load** — rent,
-utilities, subscriptions, every one of them — into a per-paycheck figure and calls it *"reserved"*, while
-`allocatePaycheck` funds **each expense in full in the cycle it actually falls**. So the smoothing is
-advice the plan never takes. Found by 🎯 *using* the app; no coverage split models *"the app does the wrong
-thing correctly."*
+### ▶ T1–T8 — the remediation _(the only decomposed item on this doc)_
 
-⚠️ **Rent is an EXAMPLE, not the case** *(🎯 2026-08-17)*. The pot is *"for expenses"* — one aggregate
-across the whole section. Any wording, test or invariant phrased around a single bill is describing a
-special case of a general defect, and will be wrong the first time two expenses fall in one cycle.
+⚠️ **The order is prerequisite, not preference.** T1 first or every later count is measured through a
+narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those passes would edit twice.
 
-| # | Step | State |
-|---|---|---|
-| **.1** | **The pot, in the store** — ONE aggregate number, not per-bill envelopes. Keeps Phase 5's migration to *absent ⇒ today's behaviour* | |
-| **.2** | **The draw-down in `allocatePaycheck`** — the pot is consumed by **whatever falls due**, across all categories. ⛔ **The invariant is the hard part**: money set aside in cycle 1 must be *gone* from cycle 1's spendable **and** reduce the cycle-2 demand. Honour only the second and the model invents money | |
-| **.3** | **The recommended action**, never required. ⛔ **Offer only what this paycheck can spare** — promising $175 and reserving less is the capped-outcome shape [A3.6] exists for | |
-| **.4** | **Re-point the Expenses hero at the REAL reserve** *(🎯 2026-08-17, replacing "remove it")* — `money.tsx:653–672` keeps saying *"reserved"*, and 3.8 is what makes the word true. ⛔ **It must read the POT, not `perPaycheckTotal`** | |
-| **.5** | **The Guardian bar + the tap** — the set-aside joins the everyday segment; tapping splits living-expenses vs expenses. ⚠️ **[DECISION] the segment's new name** is 🎯's | |
-| **.6** | **Coverage** — engine tests for the draw-down and conservation; e2e for the tick and the tap. ⚠️ The reserve must NOT land in the `safetyNet` windfall bucket unexamined | |
+| # | Step | Items | State |
+|---|---|---|---|
+| **T1** | **The instruments** | ✅ **Done 2026-08-18.** Strings gate: rule ② now consults the origin sets **and** the `key:`/`prop:` alias (358→333 unclassified, **+10 strings into the gate's view**, 2 new duplicates with them); TECHNICAL decided per-VALUE so MIXED props keep their copy visible; `calleeLabel` given ONE owner (there were two) + a **self-check that reds on a denormalised label**, mutation-verified. `DUP_MIN_LEN` 20→**14** — the gate saw 3 duplicates, now 12, and all 9 it had missed were found by hand in the same audit; baseline 5→16. Surface inventory now finds **hand-rolled** formatters: **7**, and Today reaches **8 money renderers**. Fixture seeds a bill: 178/184 passed, 5 specs pinned their own state, 1 assertion **strengthened** (it passed either way) | 
+| **T2** | **App Store / legal exposure** | ✅ **Done 2026-08-18.** L6-2 fixed: the shipped web sample named **Chase Freedom Unlimited** with fabricated balance/APR, in the bundle behind the public embed → fictional issuer; parser still prefills correctly (probed). 🎯-approved rewrites landed for **L1-2** (paywall sold "autopilot" the product disclaims twice elsewhere), **L1-3** (an unconditional cushion promise the next-but-one bullet contradicts) and **L1-4**. ⛔ **3 of 5 items closed as NOT defects** — L6-7 (public RC key, by design), L6-3 (`QA_TOOLS` deliberate, already a Phase-6 step), L1-4 downgraded (free DOES get a Guardian) |
+| **T3** | **Correctness** — concrete repro each | L0-2/L5-9 (UTC dates, **9 sites incl. the rollover**) · L5-2 (hydrate → black screen + silent save loss) · L5-1 (a no-debts user loses the app) · L3-3 (goal pick) · L5-5 · L5-6 · L5-14 | |
+| **T4** | ⚠️ **The glossary — MUST precede every other wording edit** | L1-5/6/7/14/19/26/34 · L2-6/7/16. The cushion has **six** names, one of which is a different engine bucket. ⛔ **[T2 after-scan] NOT a copy edit — 129 exact-string copy assertions across 36 specs pin this vocabulary.** Renaming "cushion"/"expenses"/"floor" breaks tests by the dozen. **Budget for the specs, and prefer a shared copy constant or testID over re-pinning the new string** | |
+| **T5** | **Truth of claims** — promise vs delivery | L3-1/2/4/6/7 · L1-12/13/15/17/18. ⚠️ **[T2 after-scan] +1: `tutorialPath.ts:183`** — the finale's *"premium is what did the holding: your cushion kept at your line"*. Past-tense about the scripted demo, where it DID hold, so it is defensible — but it is the same claim family T2 rewrote in 3 places, and a free user reads it as what premium always does. **A judgment call, deliberately left for this step** | |
+| **T6** | **Numbers cohesion** — one rule, applied once, then enforced | L4-1/3/4/5/6/7/8/9/10 | |
+| **T7** | **Voice & persona** | L1-8/9/10/11/16 | |
+| **T8** | **Drift / one-owner** — 20 dangerous, two tables **already diverged in production** | L2 ×23 · L0-3 | |
 
-⚡ **[.4 — 🎯 2026-08-17, reversing "it must be removed"] THE NUMBER IS NOT THE LIE; THE VERB IS.**
-`$350/month ÷ 2 paychecks = $175` is correct arithmetic. What the app cannot back is **"reserved"** —
-nothing reserves it. **3.8 makes the word true**, so the hero survives and changes *source*:
+**Exit:** T1–T8 closed, full gate green, and every fix that CAN be a lint rule IS one ([D31] — a finding
+that becomes a test is paid for once).
 
-| | today | after 3.8 |
-|---|---|---|
-| shows | `perPaycheckTotal` — the **recommendation**, always | the **pot** — what was actually set aside |
-| range | always `$175` | `$0 … $175` |
-
-⛔ **Which is why it moved from first to fourth.** A hero that reads the pot cannot precede the pot. And
-reading `perPaycheckTotal` after 3.8 would still lie to everyone who ignored the nudge or reserved less —
-*backable* and still wrong. ⚠️ One edit to that block instead of two; the intermediate state never ships
-because v1.7 ships as ONE release. **If 3.8 is ever cut back mid-flight, strip the claim first.**
-
-⭐ **[.2 before-scan] THE DRAW-DOWN ORDER IS ALREADY DECIDED — do not invent one.** `allocatePaycheck`
-builds `upcomingExpenses` from **every** expense due before the next paycheck, expands weekly/biweekly ones
-into **separate occurrences with distinct ids**, and **sorts by due date** (`:224–244`). The pot draws down
-in that same order, against **occurrences, not expenses** — a fortnightly bill is two draws, and
-`isPaidThisCycle` is already keyed per occurrence for exactly this reason. ⚠️ Reusing the engine's existing
-sort is what keeps the reserve and the funding from disagreeing about which bill got paid.
-
-⛔ **[before-scan] AND THE ROW'S OWN PREMISE WAS WRONG — it is NOT "read by nothing".** Three readers:
-`perPaycheckTotal` → `breakdownData` → **`BillBreakdownSheet`**, which prints it again as its headline ·
-`categoryBreakdown[].perPaycheck` → `barTotal` → `segments` → **the `AllocationBar` inside the hero** ·
-per-bill `perPaycheck` → **every row of the breakdown sheet**. The accurate statement is **nothing in the
-ENGINE reads it** — it never becomes a plan input. A naive removal would have taken the bar and the receipt
-sheet with it.
-
-**Exit:** the number the app shows is the number the app honours, and a user who acts on it sees the plan
-change. **Open:** the segment's name (.5), and whether the tap is a sheet or an inline expand.
-
-⚡ **It also closes 🎯's SECOND report for free** — *"living expenses are hidden in More"*. Two doors exist
-(More's settings row **and** a `LivingReserve` card on Money), so the report is not literally right and the
-code is **worse** than it: ⛔ **the Money card is gated on `livingTotal > 0`**, so it appears only to users
-who already found the feature. The Guardian tap is the unconditional door.
-⚠️ **Independent of 3.8 and cheap: drop that gate, or give the card an empty state.**
-
-⚡ **The engine already supports the hold** — `prefundedReserve` is an existing `allocatePaycheck` input.
-The new part is a **persisted pot and its draw-down**, not a new capability. Full detail → log 2026-08-17.
+⭐ **The audit paid for itself on work four hours old:** L4-1 — "Spoken for" renders `$486` on Today and
+`$486.34` in the sheet that legend opens. 184 tests and six lint gates could not see it, because both
+numbers are individually correct. It is the class 3.8's own after-scan filed, committed by its author.
 
 ---
 
@@ -89,14 +56,13 @@ The new part is a **persisted pot and its draw-down**, not a new capability. Ful
 
 - **[D2]** `minimumPaidThisCycle` ownership — gates B4 · **[D3]** Money hero language — ⚡ **cheaper decided
   with 3.8**, which touches that hero · **[D1]** Control Center *(rec: stay deferred)*.
-- **3.8's segment name** (.5 above) — the everyday segment stops being only "everyday".
 
 ## 🎯 Reported from the app — found by USING it, not by the lane
 
 | | Report | State |
 |---|---|---|
 | **R1** | Money's edit sheets had no date **picker** | ✅ **DONE.** `DateField` at all 4 sites. ⛔ Folded in: `todayLocalISO()` returned **yesterday** east of UTC. The fields had **zero** coverage before, which is why it shipped |
-| **R2** | The expense set-aside is uncoachable · living expenses undiscoverable | ▶ **= 3.8.** Both are the same fix |
+| **R2** | The expense set-aside is uncoachable · living expenses undiscoverable | ✅ **DONE = 3.8.** Both were the same fix. ⛔ The second half was **worse than reported**: the Money door existed but was gated on `livingTotal > 0`, so it showed only to users who had already found the feature |
 
 ⚡ **Neither was reachable by 4.1.** The lane checks that built behaviour keeps working; these are *design*
 gaps. **No coverage split models "the app does the wrong thing correctly"** — the device pass is the only
@@ -106,21 +72,11 @@ instrument that finds them.
 
 ## ⚠️ Open threads — each has an owner
 
+⚠️ **The coach-mark defect, the transient Guardian card and §12.6.1 now live on the ACTIVE audit-gate item
+above** — they are that gate's inputs, not separate threads. Listed here once would be a second record of one
+thing, which is the drift class the gate itself hunts.
+
 **Product defects, live:**
-- ⛔ **The `trajectory-scrub` coach mark SURVIVES a route push** — reproduced on web 2026-08-13
-  (`probe-mark-route-push.spec.ts`, a `test.fail()` that reds the day it is fixed). **Cross-platform, not an
-  iPad artifact:** every user who opens More while a mark is up sees a hint about the Progress chart over
-  their settings. ⚠️ **Mechanism NOT diagnosed** — `CoachMarkLayer` is where five were asserted and four
-  refuted. → **the audit gate**, or sooner.
-  - ⚠️ On the expanded iPad that mark is drawn in **window space**, so it lies across the sidebar rail while
-    its subject sits in the content column — §11.15's coordinate-space failure in a component 4.1.5.2's
-    audit does not cover.
-  - ⚠️ **An undrawable mark stays `active` and blocks every other mark for the session.** Pre-existing; the
-    only known cause was removed.
-  - ⚠️ **`SectionList`'s `index` is per-SECTION, so `debt-row-actions` can register TWICE** (`money.tsx:377`
-    — `index === 0` is also the first PAID OFF row). **Latent**; one-line scope: gate on the active section.
-- ⚠️ **A transient `$790` on Today's arrival** during the demo — a half-rendered Guardian card for ~0.5s at
-  beat 2. User-facing under [D21]. Settle before the App-Preview asset is cut.
 - ⚡ **A pref changed then force-quit within 500 ms is LOST** (`persistence.ts:14` debounces; `flushPendingSave`
   fires only on AppState *background*). Silent data loss on a setting the user watched confirm itself.
   **Measured, not theorised.** → **Phase 5**, which owns durability.
@@ -130,26 +86,33 @@ instrument that finds them.
   Now *characterised* (`"Hit area is too small"`) and still *unlocated*: `compactDescription` does not name
   the element. The probe compiles, so `issue.element` can be added at low risk — ⛔ **not worth a dedicated
   ~50-min dispatch; the nightly answers it for free.**
-- ⚠️ **§12.6.1's arrival announcement may not exist anywhere.** The row expects *"Example money. This is a
-  demonstration with sample figures."*; `ExampleCanvasMarker` carries only `accessibilityRole="header"` and
-  its text. Not a regression — that sentence was never in either component. → **the wording gate**, with
-  [D6]'s "exactly one place" rule.
 
 **Lane residuals — Phase 6 as known issues, none gating:**
 - ⛔ **The iOS driver stall has happened TWICE and its retry does not clear it** — zero flows after paying a
   full build, indistinguishable from a real red in exit code and cost. **Check for that warning line before
   diagnosing any iPhone-tier failure.**
+- ✅ **The `tutorial-invite` intermittent is FIXED 2026-08-18** — three sightings (CI 08-10 · local 08-11 ·
+  local 08-18, the last one red a full release gate). ⛔ **Cause: the test, not the app.**
+  `click({ force: true })` skips actionability but still clicks **coordinates**, does not wait for the
+  element to stop moving, and delivers to whatever is topmost — measured: `tutorial-scrim-blocker`. So a
+  test whose stated subject is *the tab-press LISTENER* was really asserting on the scrim's layout.
+  Replaced with `dispatchEvent('click')`, which fires on the element: no coordinates, no stability
+  requirement, no topmost-node dependency. ⚠️ **Mutation-verified** — deleting `holdTabs` reds it, which
+  the previous version famously did **not** do. ⚠️ The failure MECHANISM was never reproduced (an
+  instrumented full-suite run came back green and healthy); what is proven is that the line depended on
+  layout it never meant to test. Suspects if it recurs are recorded at the call site.
 - ⚠️ The boot poll that replaced `sleep 25` **does not fire** · the XCUITest probe went **1 min → 11 min** on
-  iPhone (suspect: `descendants(matching: .any).count` ×3) · the `tutorial-invite` intermittent has now red
+  iPhone (suspect: `descendants(matching: .any).count` ×3) · the `tutorial-invite` intermittent (see above) had red
   **twice** (both times the session had ENDED when the test expected it running).
 - ⚠️ **Two of the 15 flow files MEASURE rather than cover** (`i01-ipad-boot`, `11-reduce-motion`) — any
   re-derivation that counts files overstates itself. **§12.0.7 is unclaimed** (the demo persona's Money-tab
   debt names were never established).
 - ⚠️ **The Reduce-Motion probe's answer lives only in a PNG** — Maestro dumps a hierarchy on FAILURE only,
   so a passing flow captures no value. *A probe whose result a human must look at cannot gate anything.*
-- ⚠️ **~5 more `toISOString().slice(0,10)` sites are the same off-by-one**, including
-  `packages/core/payCycle/getNextPaycheckDate` — **the engine**. A wrong next-paycheck date shifts the whole
-  plan. Filed, not swept.
+- ⛔ **The `toISOString().slice(0,10)` off-by-one is now OWNED BY T3** — and the audit measured it at **9
+  production sites, not ~4**, including `recurrence/rolloverPayCycle` (the rollover advances every due date,
+  so the error compounds every cycle) and `payCycle/getNextPaycheckDate`. L0-2 · L5-9, corroborated by two
+  independent lenses plus two historical fixes of the same pattern.
 
 **Pages, both → Phase 6:**
 - ⚠️ **The deploy allow-list must flip at launch** — build from `release/v1`, drop `v1.7-dev`, or a dev
@@ -168,8 +131,8 @@ instrument that finds them.
 | 3.5 | Interactive tutorial + bounded demo + the marketing embed | ✅ **COMPLETE 2026-08-17** — embed live, verified against the deployed page; device pass folded into Phase 6 at [D35] |
 | 3.7 | Fold-in block (ledger clearance) | ✅ COMPLETE 2026-08-11 (Waves A + B; C merged into the audit gate) |
 | **4** | **Quality (test harness)** | ✅ **COMPLETE 2026-08-17** on a green `32051842661`. ⭐ **26 proven · device pass 52 · derived, not asserted.** CodeMagic build cut |
-| **3.8** | **The expense reserve** | ▶ **ACTIVE** |
-| — | Whole-app cohesion + best-in-class + wording audit gate | next |
+| **3.8** | **The expense reserve** | ✅ **COMPLETE 2026-08-17** — both tiers [D36]. Pot · draw-down · capped offer · "Spoken for" · honest hero. **5 defects found while building**, +5 e2e (184) |
+| **—** | **Whole-app cohesion + best-in-class + wording audit gate** | ▶ **ACTIVE** — decomposed at the top; ⛔ needs 🎯's go |
 | 5 | Data continuity + cutover | 🔒 ship-blocker |
 | 5.5 | Repo consolidation | before the release gate |
 | 6 | Launch-ready **+ the 60 coverable-not-built rows and 3.5's folded-in pass, as DEVICE-PASS work** | final |
@@ -190,8 +153,9 @@ of 4, **1 refuted, 1 half-shipped, 1 wrong in 3 of its 4 premises, 1 clean.** Th
   mechanisms. **A `[D]` that is really an unproven `[M]` keeps a check on the manual pass forever**, and
   re-verdicting on expectation is the overstatement 4.1.9c exists to stop. Seeded verdicts are a
   **hypothesis per row**.
-- ✅ **STANDING PERMISSION, 4.1 ONLY** *(🎯 2026-08-14 — spent; 4.1 is closed)*. Everything else — Phase 5,
-  5.5, 6, the audit gate, and **any product/content call** — comes to Jason.
+- ✅ **STANDING PERMISSION, 3.8** *(🎯 2026-08-17: "continue through 3.8 until you need my input")*. The tap's
+  shape (.5) is inside it; a **new** product/content call is not. *(4.1's grant is spent — 4.1 is closed.)*
+  Everything else — Phase 5, 5.5, 6, the audit gate — comes to Jason.
 - **`QA_TOOLS = true` ships in TestFlight and MUST be flipped false before submission** (`git grep QA_TOOLS`).
   ⚠️ The **instruments** are `qaEnabled()`-gated — `probeCoachMark`, the `coach-probe` readout,
   `suppressorReasons`, `RING_AUDIT`, `rm-probe` — so the flip's `git grep` must confirm they vanish **and**
@@ -201,53 +165,6 @@ of 4, **1 refuted, 1 half-shipped, 1 wrong in 3 of its 4 premises, 1 clean.** Th
 - **Native version pins — do NOT bump:** `react-native-ios-context-menu@3.1.3` EXACT · `react-native-ios-utilities ^5.2.0`.
 - **v1.7 ships as ONE release.** Nothing launches until Phase 6 is done and Jason is satisfied.
 - **House voice:** the Guardian is the sole first-person "I"; everything else is direct "you".
-
----
-
-## Audit gate — whole-app _(next, before Phase 5)_
-
-**Instruments it runs ON** *([D31] — a finding that becomes a test is paid for once)*, all ✅ 2026-08-12/14:
-`audit:strings` → the wording gate's input · `lint:copy` (the first finding to become a **gate**) · the
-proxy-gate sweep (**77 of 179** gates carry copy) · `audit:surfaces` → the cohesion gate's input ·
-`lint:a11y-collapse`, which **found a shipped defect on its first run**. W1 + W2 closed the triage and the
-classification pass. Detail → log.
-
-**Wave C's coherence sweeps land here:** C1 cents-formatter · C2 gold usage · C3 Money hero language [D3] ·
-C4 paywall copy · C5 chart VO labels · C6 iPad More two-column · C7 dead code (`ProgressRing`/`MilestonesRow`,
-orphaned `guardianIntroSeen`, `FormSheet.headerAction`) · C8 web scan entry · C9 `router.back()` cold-entry
-sweep · C10 doc disambiguation of the overloaded "3.5.3.x".
-
-- [ ] **Cohesion** — the same adversarial rigor for the ENTIRE app, criterion: does every element work
-  TOGETHER? Cross-surface voice · visual · motion · numbers.
-  - ⚠️ **`selectWhatIf*` bypasses the debt-free-date funnel** — correct today, and a trap: **if the funnel
-    ever gains a guard, a floor or a rounding rule, What-If silently will not have it.**
-- [ ] **Best-in-class enhancement pass** — is each surface genuinely top-of-class, and what makes it
-  unforgettable? Benchmark vs category leaders; restraint, not fireworks.
-  - ⚠️ **The onboarding debt step hides its own fields behind the keyboard** — balance / minimum / APR
-    clipped by the sticky CTA stack on a small screen, on the app's **first data-entry screen**.
-  - ⚠️ **[D33 residual]** beat 5's landscape crop splits *"$200 · Your line"* from the bar it labels. §11.16
-    PASSES; this is polish. ⛔ The "nudge the scroll offset" fix was **refuted** — `TutorialOverlay` measures
-    and never scrolls.
-- [ ] **Wording / voice** — every user-facing string, both tiers, all states. Absorbs Wave C's copy items.
-  - ⚠️ **Guardian first-person voice is UNCLASSIFIED, so this gate's own input cannot see it** — the house
-    rule is exactly what is checked here.
-  - ⚠️ **`EXAMPLE_MONEY` is an exported constant and THREE sites bypass it.** All four agree today; the
-    clean fix is a layering change, not cheap polish.
-  - ⚠️ The **mis-file rescue's** strings and the **greeting's** strings are placeholders, not house voice
-    *(per [D26])* · `paywall.tsx`'s `"one time"` · [D22d]'s "bills" vernacular.
-  - ⚠️ **Sweep every Guardian affordance for a PROXY gate** — an affordance promising an **outcome** gated on
-    something that merely correlates (`selectReserveRelease` · `selectReserveWalkback` ·
-    `selectRiskAcknowledgment` · `selectTrialConversion` · `selectGuardianProofOfWork`).
-  - ⚡ **…and for a CAPPED OUTCOME** — the gate is right but the resource is bounded, so the affordance
-    delivers less than it promised. **Any copy asserting a completed outcome over a `Math.min`'d value.**
-  - ⚡ **"Two places, one rule" hit THREE times in one wave** — sweep for a rule re-derived at each call site
-    rather than owned once. **Agreeing copies are still copies; they just haven't diverged yet.**
-  - ⚠️ **A STALE COMMENT GENERATED FALSE WORK** — a header describing the opposite of its own assertions
-    produced an inverted defect. **Docs that disagree with adjacent code manufacture defects.**
-
-⚡ **Three defect classes to hunt at scale** *(from 3.5's phase after-scan)*: ① an assertion that passes
-either way ② evidence cited but never committed ③ two records of one thing, drifting. All three are
-**a claim kept somewhere other than where it is checked.**
 
 ---
 
@@ -282,7 +199,12 @@ device**, then cutover to the RN app as the shipping app.
 
 Acquisition-grade store presence · cold-start excellence · the device-QA gate · submit.
 
-- **⭐ [AUDIT GATE] Pre-Release Best-in-Class FINISH sweep — runs FIRST, on the FROZEN app.** Every screen ·
+- **⭐ [AUDIT GATE] Pre-Release Best-in-Class FINISH sweep — runs FIRST, on the FROZEN app.**
+  ⭐ **ABSORBS audit-gate T12** *(🎯 2026-08-18)* — ~40 polish items from the 2026-08-17 audit: L5-10/12/17–21
+  · L1-20…35 · L2's polish tier · L4-12…16. They belong here rather than in v1.7 because this sweep already
+  re-walks every screen on the frozen build, and polish decided against a moving app gets decided twice.
+  ⭐ **The single best one: L5-12** — the paywall never mentions the user's own money, though the selectors
+  to say *"this paycheck you're $180 short"* already exist. Every screen ·
   sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. Complements, not replaces,
   the audit gate above.
 - **⭐ [AUDIT GATE] Privacy / data-flow audit** — trace EVERY egress and prove "financial data never leaves
@@ -334,6 +256,18 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
 ---
 
 ## Deferred backlog
+
+**⏸ PARKED — audit-gate T9–T11, to REVISIT before the release gate** *(🎯 2026-08-18)*. Not deferred to a
+later version: parked for a decision once T1–T8 land, because several become cheaper or moot after them.
+- **T9 · a11y** — L0-5 (the guards cover 2 of 4 native-only props; `accessibilityState` spans **11 files**,
+  so the web suite is blind to state) · L1-8 · L5-7 (no font-scale cap on the three hero figures).
+- **T10 · dead code** — L0-4 (`ProgressRing`, `MilestonesRow`, **0 refs**) · L3-5 · L4-11
+  (`formatDisplayAmount`) · L6-4/5 (`projectForecast`, `buildSmartInsights` — unsurfaced, and feeding 8
+  off-voice strings into the wording gate's input).
+- **T11 · states & robustness** — L5-3/4/8/13/15/16. Worst: `/schedule/[id]` renders up to **600
+  unvirtualized rows** for a mortgage or student loan.
+⚠️ **T10 interacts with T1:** deleting dead code shrinks the surface every later instrument reads, so if T1
+surfaces more of it, fold it rather than re-entering.
 
 _Post-triage under the fold-don't-defer rule — only two carve-outs remain: **device-gated**, or **genuinely
 a later version/tier**._
@@ -399,6 +333,9 @@ measured hotspot)* · Dynamic-Type device QA.
 - **Executive "fix everything, no backlog" ✅ (2026-07-29/30)** — fold every audit finding now; only hardware
   verification waits for Phase 6. · **Legacy gate RETIRED ✅ (2026-07-24)**.
 - **3.8 is in v1.7 ✅ (2026-08-17)** — 🎯: *"definitely in 1.7."* The app contradicts its own number.
+- **[D36] ✅ (2026-08-17)** — the reserve ships to **BOTH TIERS** (the lie is tier-blind, and `prefundedReserve`
+  is premium-only, so it needed deciding rather than inheriting) · the Guardian segment is **"Spoken for"**.
+  ⛔ *"Set aside"* is a portfolio name; *"Reserved"* would name a **different number** than the Money hero's.
 
 **The demo + the embed**
 - **[D21] ✅** the demo SHIPS to users again, reversing **[D19]**. Demo = before you commit; walkthrough =
@@ -447,7 +384,7 @@ measured hotspot)* · Dynamic-Type device QA.
 - **[D35] ✅ (2026-08-17)** — **3.5's device pass FOLDS INTO Phase 6's.** They overlapped the moment the
   coverable-not-built rows went to Phase 6. One sitting, no row run twice.
 
-**Open:** [D2]'s B4 gate · [D3]'s Money hero language · 3.8's segment name.
+**Open:** [D2]'s B4 gate · [D3]'s Money hero language.
 
 ---
 

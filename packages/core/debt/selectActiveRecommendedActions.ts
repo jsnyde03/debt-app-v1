@@ -1,4 +1,4 @@
-import type { allocatePaycheck, AllocationItem } from "@core/engine/allocatePaycheck";
+import { PROTECTED_CUSHION_CATEGORIES, type allocatePaycheck, type AllocationItem } from "@core/engine/allocatePaycheck";
 import type {
     Debt,
     Goal,
@@ -88,17 +88,17 @@ export function selectActiveRecommendedActions({
         })),
     ];
 
-    // The non-deployable reserved cushion = the floor buffer + the §2.0 held reserves (2.4.6.1.3:
-    // discovery/cold-start + prefunded). Subtracting all of it from flexible cash keeps the recommended
-    // surface from offering to deploy money the plan is holding back. `true_leftover` is excluded — it's
-    // the residual AFTER recommendations, not a reservation.
+    // The non-deployable reserved cushion — everything the plan is HOLDING. Subtracting it from flexible
+    // cash keeps the recommended surface from offering to deploy money already spoken for. `true_leftover`
+    // is excluded: it's the residual AFTER recommendations, not a reservation.
+    //
+    // ⛔ Derived from `PROTECTED_CUSHION_CATEGORIES` rather than re-listed by hand. The hand-written list
+    // had already gone stale against 3.8's `expense_reserve` — the recommended surface would have offered
+    // to deploy the cash the user had just set aside for rent, which is the precise failure the paragraph
+    // above says this exists to prevent. "Two places, one rule": agreeing copies are still copies.
+    const NON_DEPLOYABLE = PROTECTED_CUSHION_CATEGORIES.filter((c) => c !== "true_leftover");
     const bufferTotal = result.allocations
-        .filter(
-            (item) =>
-                item.category === "cushion_buffer" ||
-                item.category === "discovery_holdback" ||
-                item.category === "prefunded_reserve"
-        )
+        .filter((item) => (NON_DEPLOYABLE as readonly string[]).includes(item.category))
         .reduce((sum, item) => sum + item.amount, 0);
 
     const flexibleCashAvailable = computeFlexibleCash({

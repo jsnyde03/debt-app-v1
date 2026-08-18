@@ -13,17 +13,22 @@ root, which **5.5.1 deletes**. The live app is `apps/rn` (Expo/RN) over `package
 It carries **▶ BUILDING NOW** (exactly one decomposed item), the phase table, the deferred
 backlog and the decision log. **Read it before touching anything.**
 
-**ACTIVE: 4.1 — the Maestro coverage lane, resuming at 4.1.3.** ⚠️ **The native lane is RED and has
-been since 2026-08-10**, so everything Phase 3.7 shipped was verified against a web-only suite.
-Phase 3.7 is **CLOSED** (Wave A + Wave B; Wave C merged into the audit gate).
+**ACTIVE: audit-gate remediation — T1 + T2 closed, ▶ T3 (correctness) is next.**
+Phases 0–3 · 3.5 · 3.7 · 4 · **3.8** are closed, and the **whole-app audit has RUN**:
+7 lenses, **117 findings**, 12 refutations → [`docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md).
+T1–T8 are decomposed on the plan; T9–T11 parked; T12 → Phase 6.
 
-Read in this order:
+⛔ **3 of 4 agent-declared blockers did NOT survive refutation.** The lenses' self-reported *confidence* was
+reliable every time; their *severity* was not. **No finding becomes work un-refuted** — `findings/L9-refutations.md`
+records the 12 claims actually re-checked; anything not in it carries only its own lens's confidence.
 
-1. **`docs/DEBT_ELEVATION_PLAN.md`** — the lean driver. What is being built, what is next, what is blocked.
-2. **`docs/DEBT_ELEVATION_LOG.md`** — why every decision was made. ~4k lines, chronological. Read the entries for anything you are about to change.
-3. **`docs/DEBT_3.5_DEVICE_QA_CHECKLIST.md`** — the runnable device-owed truth. Currently owes **A0.4** and **A8.4**.
-
-If a plan item and the code disagree, **the code wins** — see below.
+⚡ **3.8 (the expense reserve) closed 2026-08-17, and its lesson generalises:** every one of its six steps found
+a defect the step before it could not have found, and **three of the five were introduced by 3.8 itself**. A
+before-scan catches *stale claims*; it structurally cannot catch a defect you are about to write.
+⛔ **The sharpest: `route-smoke.spec.ts` — which exists verbatim for "a blank route passes silently" — passed
+10/10 while Today rendered BLANK for every user with a bill**, because its fixture seeded no expenses and the
+offending selector returns a stable `null` on an empty plan. *A fixture chosen for convenience decides which
+defects a guard can see.* (Fixed in T1: `scenario()` now seeds a bill.)
 
 ## A pre-authored item is a HYPOTHESIS, and it fails two ways
 
@@ -60,7 +65,8 @@ mechanism, not the symptom — including your own.
 npm run validate:release:rn     # typecheck:core → typecheck:rn → lint → regression → app → scenarios → e2e
 ```
 
-**167/167 + tsc clean on both trees**, zero `error-context.md`. CI runs it on every push. ~5–6 min.
+**184 e2e + 10 embed + 10 `test:stamp` + 83 lane checks, tsc clean on both trees**, zero
+`error-context.md`. CI runs it on every push. ~15 min locally.
 
 ⚠️ **It ran no `tsc` at all until 2026-08-11**, and two commits shipped green with real type
 errors before that was found. `packages/core` had been unchecked since `validate:release:legacy`
@@ -90,10 +96,16 @@ is not evidence until you know which failure it would have caught.**
   outdated `dist`. Force a fresh `export:web` when adding a route. ⚠️ Run the RN suite through
   its own config (`npm run test:e2e:rn`) — a bare `npx playwright test` picks up the ROOT config,
   which builds the legacy Next tree and dies on a pre-existing type error.
-- **⚠️ One intermittent, now seen TWICE:** `tutorial-invite › the tabs are held while a session is
-  running` (CI 2026-08-10, local 2026-08-11). Both times the session had ended when the test
-  expected it running; both times re-running that spec alone passed. Capture full output rather
-  than filtering, so a flake can be named.
+- ⛔ **`force: true` does NOT mean "send this event to this element."** It skips actionability but still
+  clicks **coordinates**, does not wait for the element to stop moving, and delivers to whatever is
+  topmost at that instant. That flaked `tutorial-invite › the tabs are held…` **three times** (CI
+  2026-08-10 · local 08-11 · local 08-18, the last one red a release gate) — the test's subject was the
+  tab-press LISTENER, but measured with `elementFromPoint` the topmost node there is
+  `tutorial-scrim-blocker`, so it was really asserting on the scrim's layout. ✅ **Fixed 2026-08-18** with
+  `dispatchEvent('click')`, which fires on the ELEMENT — no coordinates, no stability requirement.
+  ⚠️ The failure mechanism was never reproduced (an instrumented full-suite run came back green), and
+  the old "the session had ended" note was never proven — **`shell` is ruled out** (provider and coach are
+  both in the root layout). **When the subject is a handler rather than a hit-target, use `dispatchEvent`.**
 - **Driving gestures in e2e:** gesture-handler's pan is a **touch** gesture — a Playwright mouse
   drag registers as a tap. Drive real touch via CDP (`Input.dispatchTouchEvent`). ⚠️ **Those
   coordinates are VIEWPORT-relative**, and `boundingBox()` on a row far down a long screen returns

@@ -78,6 +78,13 @@ function buildAllocation(store: DebtStore, prefundedReserve: number, steadyState
     // KEPT in steady-state (it's a permanent reservation, not a cold-start dampener).
     variableBillBufferFraction: isPremium ? VARIABLE_BILL_BUFFER_FRACTION : 0,
     prefundedReserve: steadyState ? 0 : prefundedReserve,
+    // 3.8: BOTH stripped in steady-state ([D36] ships to both tiers, so there is no premium gate here).
+    // The pot is a one-off — you hold $175 once, not every cycle — so extrapolating its draw across years
+    // would show every future cycle's bills discounted by money that only exists now. The contribution is
+    // stripped for the mirror reason: in a true steady state it equals the draw, so the pair cancels, and
+    // carrying only one of them would tilt the projection. Same reasoning as MF.4's cold-start strip.
+    expenseReservePot: steadyState ? 0 : selectExpenseReservePot(store),
+    expenseReserveContribution: steadyState ? 0 : selectExpenseReserveContribution(store),
     // §2.5 D5.3 gate (2.4.7.6): savings elsewhere → skip the pre-debt starter EF, deploy to debt first.
     skipStarterEmergency: store.prefs.hasSavingsElsewhere,
   });
@@ -133,6 +140,30 @@ export function selectWaterFillPlan(store: DebtStore): WaterFillResult | null {
  */
 export function selectPrefundedReserve(store: DebtStore): number {
   return selectWaterFillPlan(store)?.prefundedReserve ?? 0;
+}
+
+/**
+ * 3.8 — the expense-reserve POT: cash already held, carried in from earlier cycles, available to draw
+ * against whatever recurring expense falls due. This is what the Money hero shows after 3.8, and it is
+ * NOT `perPaycheckTotal` (the recommendation) — the whole defect was showing an offer as an outcome.
+ *
+ * ⚠️ Deliberately NOT routed through `allocatePaycheck`'s `prefundedReserve` param, even though the
+ * shapes look alike. That input is already driven by the §2.5 water-fill (`selectPrefundedReserve`), is
+ * premium-only, is zeroed in `steadyState`, and `combinedHoldback` composes holds by CLAMP not sum — so
+ * two reserves sharing it would silently cannibalise each other. The pot has its own category.
+ */
+export function selectExpenseReservePot(store: DebtStore): number {
+  return Math.max(0, store.expenseReserve?.balance ?? 0);
+}
+
+/**
+ * 3.8 — what the user chose to hold from THIS paycheck. Cycle-keyed, so a contribution belonging to a
+ * cycle that already rolled reads as 0 rather than re-holding cash in this one (the `cycleTopUp` rule).
+ */
+export function selectExpenseReserveContribution(store: DebtStore): number {
+  const c = store.expenseReserve?.contribution;
+  if (!c || c.forCycle !== store.paycheck.nextPaycheckDate) return 0;
+  return Math.max(0, c.amount);
 }
 
 /**

@@ -6,9 +6,20 @@
  * export surface as `scan.ts` ([[feedback_platform_split_reexport_gap]]).
  */
 
+/**
+ * ⛔ The sample names NO REAL INSTITUTION, and that is not stylistic.
+ *
+ * This string ships in the web bundle that backs the public marketing embed, and it previously read
+ * "Chase Freedom Unlimited / Account ending 4821 / New Balance $2,431.09 / Purchase APR 24.99%" — a
+ * real bank's trademarked product name attached to fabricated financial data, on a live URL. Nothing
+ * reviewed it: the strings that make it up sat in the audit's `unclassified` bucket (audit L6-2).
+ *
+ * "Northwind Bank" is a long-standing fictional-company name with no real issuer behind it, and the
+ * figures are obviously illustrative. The flow it demonstrates is unchanged.
+ */
 const SAMPLE_STATEMENT = [
-  'Chase Freedom Unlimited',
-  'Account ending 4821',
+  'Northwind Bank · Everyday Card',
+  'Account ending 0000',
   'New Balance $2,431.09',
   'Minimum Payment Due $56.00',
   'Payment Due Date August 22, 2026',

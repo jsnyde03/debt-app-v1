@@ -12,6 +12,10 @@ export type RequiredAllocationItem = {
     debtId?: string;
     label: string;
     amount: number;
+    /** 3.8 — the share of this obligation already covered by the expense reserve. `amount` is what THIS
+     *  PAYCHECK contributes; the biller is owed `amount + reserveCovered`. Absent on every non-expense row
+     *  and every pre-3.8 path. */
+    reserveCovered?: number;
 };
 
 export type RequiredActionView = {

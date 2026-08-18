@@ -14,7 +14,7 @@ const free = (themeMode: 'light' | 'dark') =>
 async function openPaywall(page: import('@playwright/test').Page, themeMode: 'light' | 'dark') {
   await seedStore(page, free(themeMode));
   await page.goto('/paywall');
-  await expect(page.getByText('Debt payoff on autopilot')).toBeVisible();
+  await expect(page.getByText('Every payday, worked out for you')).toBeVisible();
 }
 
 test('paywall renders the three plans + Guideline 3.1.2 elements', async ({ page }) => {

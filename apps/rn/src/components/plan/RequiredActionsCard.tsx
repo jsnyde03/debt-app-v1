@@ -238,6 +238,8 @@ function RequiredRowView({
   const { view, item, isAutopay, dueDate } = row;
   const due = shortDate(dueDate);
   const showOverdue = (view.overdue && !isAutopay) || view.autopayFailed;
+  // 3.8.5 — the share of this bill already covered by the expense reserve (0 for every pre-3.8 path).
+  const reserveCovered = Math.max(0, item.reserveCovered ?? 0);
 
   // 3.7.B.4 [D28] — one predicate, two affordances. A row the user cannot mark by hand (a healthy autopay,
   // which reports its own state) must not be swipeable either; deriving both from this rather than
@@ -285,11 +287,20 @@ function RequiredRowView({
               {view.installments.count} × {formatCurrency(view.installments.each)} this cycle
             </Text>
           ) : null}
+          {/* 3.8.5 — the same move as the installments line above, for the same reason. `item.amount` is
+              what THIS PAYCHECK puts in; the biller is owed `amount + reserveCovered`. A row showing $70
+              on a $120 bill is not a rounding nicety — it is the number the user would pay. So the
+              headline states the BILL and this says where it comes from. */}
+          {reserveCovered > 0 ? (
+            <Text style={[textStyles.caption, { color: c.accent.primary }]}>
+              {formatCurrency(reserveCovered)} from your reserve
+            </Text>
+          ) : null}
         </View>
       </View>
       <View style={styles.itemRight}>
         <Text style={[textStyles.numericBody, { color: view.isPaid ? c.text.tertiary : c.text.primary }]}>
-          {formatCurrency(item.amount)}
+          {formatCurrency(item.amount + reserveCovered)}
         </Text>
         {control}
       </View>
