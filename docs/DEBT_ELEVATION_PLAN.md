@@ -19,7 +19,8 @@
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 🎯 **2026-08-18: T1–T8 + T3B now. ⛔ [D37] every high+ closes this round; T9–T11 are SEQUENCED, not shelved.**
-✅ **T1 · T2 · T3 · T3B CLOSED 2026-08-18**, full gate green (187 e2e · 10 embed · 0 error-context). ▶ **NEXT: T4 (the glossary)**, then T5–T8 in order.
+✅ **T1 · T2 · T3 · T3B CLOSED 2026-08-18**, full gate green (187 e2e · 10 embed · 0 error-context).
+▶ **T4 (the glossary) is ACTIVE** — **T4.0 · T4.1 · T4.1b closed 2026-08-18**; T4.2 (the copy-constants owner) is next, then T5–T8 in order.
 
 ⛔ **2 of 3 agent-declared blockers did NOT survive refutation, and the tally is now 3 of 4** — L1-1
 downgraded, L3-5's mechanism wrong (severity right), L1-4 downgraded (free DOES get a Guardian). Plus
@@ -37,9 +38,9 @@ narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those pass
 | **T1** | **The instruments** | ✅ **Done 2026-08-18.** Strings gate: rule ② now consults the origin sets **and** the `key:`/`prop:` alias (358→333 unclassified, **+10 strings into the gate's view**, 2 new duplicates with them); TECHNICAL decided per-VALUE so MIXED props keep their copy visible; `calleeLabel` given ONE owner (there were two) + a **self-check that reds on a denormalised label**, mutation-verified. `DUP_MIN_LEN` 20→**14** — the gate saw 3 duplicates, now 12, and all 9 it had missed were found by hand in the same audit; baseline 5→16. Surface inventory now finds **hand-rolled** formatters: **7**, and Today reaches **8 money renderers**. Fixture seeds a bill: 178/184 passed, 5 specs pinned their own state, 1 assertion **strengthened** (it passed either way) | 
 | **T2** | **App Store / legal exposure** | ✅ **Done 2026-08-18.** L6-2 fixed: the shipped web sample named **Chase Freedom Unlimited** with fabricated balance/APR, in the bundle behind the public embed → fictional issuer; parser still prefills correctly (probed). 🎯-approved rewrites landed for **L1-2** (paywall sold "autopilot" the product disclaims twice elsewhere), **L1-3** (an unconditional cushion promise the next-but-one bullet contradicts) and **L1-4**. ⛔ **3 of 5 items closed as NOT defects** — L6-7 (public RC key, by design), L6-3 (`QA_TOOLS` deliberate, already a Phase-6 step), L1-4 downgraded (free DOES get a Guardian) |
 | **T3** | **Correctness** — concrete repro each | ✅ **Done 2026-08-18**, all 7 (L0-2/L5-9 · L5-2 · L5-1 · L3-3 · L5-5 · L5-6 · L5-14), **full gate green: 187 e2e** (+3), 29 new unit asserts, **every fix mutation-verified**, 2 new lint rules. ⛔ **Found while building: `Alert.alert` is a NO-OP in react-native-web** — 11 raw sites incl. the paywall behind the live embed. ⚡ **7 of 7 first-cut instruments were wrong in a way that would have PASSED** — detail → log |
-| **T4** | ⚠️ **The glossary — MUST precede every other wording edit** | L1-5/6/7/14/19/26/34 · L2-6/7/16. The cushion has **six** names, one of which is a different engine bucket. ⛔ **[T2 after-scan] NOT a copy edit — 129 exact-string copy assertions across 36 specs pin this vocabulary.** Renaming "cushion"/"expenses"/"floor" breaks tests by the dozen. **Budget for the specs, and prefer a shared copy constant or testID over re-pinning the new string** | |
+| **T4** | ⚠️ **The glossary — MUST precede every other wording edit** | L1-5/6/7/14/19/26/34 · L2-6/7/16. ▶ **ACTIVE, decomposed below.** ⛔ **The "129 across 36 specs" figure counts DISTINCT LITERALS; the edit-site count is 319 across 37 specs.** L1-26 **refuted**; L1-6 **reversed** (🎯: *"bills to me are debt"*) | ▶ |
 | **T5** | **Truth of claims** — promise vs delivery | L3-1/2/4/6/7 · L1-12/13/15/17/18. ⚠️ **[T2 after-scan] +1: `tutorialPath.ts:183`** — the finale's *"premium is what did the holding: your cushion kept at your line"*. Past-tense about the scripted demo, where it DID hold, so it is defensible — but it is the same claim family T2 rewrote in 3 places, and a free user reads it as what premium always does. **A judgment call, deliberately left for this step** | |
-| **T6** | **Numbers cohesion** — one rule, applied once, then enforced | L4-1/3/4/5/6/7/8/9/10 · ⚠️ **[T3B] +L4-2** (nine money formatters, six hand-rolled inside Today's cards) — it was assigned nowhere; T6 owns it and it is high+, so [D37] requires it closes here | |
+| **T6** | **Numbers cohesion** — one rule, applied once, then enforced | L4-1/3/4/5/6/7/8/9/10 · ⚠️ **[T3B] +L4-2** (nine money formatters, six hand-rolled inside Today's cards) — it was assigned nowhere; T6 owns it and it is high+, so [D37] requires it closes here. ⚠️ **[T4.1b] +4 sites**: `holdsLine`, the top-up gap, the brief's `discretionary` and `cushionStatus` all still read `selectDiscretionary` (the partition total) as spendable headroom. **Bounded** — the engine clamps the hold so `discretionary − held ≥ floor`, so they can only differ inside a narrow hysteresis window. **Measure before changing: it moves Guardian states** | |
 | **T7** | **Voice & persona** | L1-8/9/10/11/16 | |
 | **T8** | **Drift / one-owner** — 20 dangerous, two tables **already diverged in production** | L2 ×23 · L0-3. ⚠️ **[T3.1 after-scan] +1: the `T00:00:00` parse is hand-written at ~65 sites across 39 files.** NOT a defect (it is the correct local parse) but the same one-rule-many-owners shape — and `@core/utils/localDate`'s `parseLocalDate` now exists as its owner | |
 
@@ -51,15 +52,37 @@ narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those pass
 full gate green, and every fix that CAN be a lint rule IS one ([D31] — a finding that becomes a test is
 paid for once).
 
-### ▶ T4 — the glossary _(next; decompose at switch-in)_
+### ▶ T4 — the glossary _(ACTIVE · the only decomposed item on this doc)_
 
-⚠️ **Not a copy edit.** **129 exact-string copy assertions across 36 specs** pin this vocabulary — the
-cushion has **six** names, one of which is a different engine bucket. Renaming breaks tests by the dozen;
-prefer a **shared copy constant or a `testID`** over re-pinning each new string. **Must precede T5/T7/T8**
-or those passes edit the same words twice.
-🟠 **First, though:** un-reviewed new copy is on screen from T3/T3B — the **paywall lead**, the
-**cushion-forecast premium card**, the **onboarding finish-line ladder**. Adjusting it is far cheaper
-BEFORE T4 re-pins assertions around it.
+⚠️ **Not a copy edit.** ⛔ **Corrected at switch-in: "129 across 36 specs" counts DISTINCT LITERALS (133).
+The number of edit SITES is 319 across 37 specs** — 2.4× the budgeted figure. Prefer a **shared copy
+constant or a `testID`** over re-pinning each string. **Must precede T5/T7/T8.**
+⚠️ **A term count overstates this item several-fold** — `floor` greps 548× but 156 are identifiers and
+most of the rest are test names and comments. Measure user-facing STRING LITERALS, never raw hits.
+
+| # | Step | State |
+|---|---|---|
+| **T4.0** | Paywall lead — the un-reviewed T3B copy | ✅ **Done 2026-08-18.** It printed `summary.cushion` and called it *"flexible"* — PlanHero's word for a different, smaller number. Now "cushion"; test pins "flexible"/"buffer"/"breathing room" out, mutation-verified |
+| **T4.1** | Rule the remainder row (L1-26) | ✅ **Done 2026-08-18. L1-26 REFUTED** — its five names are **three different values**, not one; renaming them together would have put one word on three numbers. 🎯 **"Flexible" stays.** "Leftover cash" `=== summary.cushion` → reassigned to the **L1-5 cushion family** |
+| **T4.1b** | The defect T4.1 uncovered | ✅ **Done 2026-08-18.** Today showed **"Flexible $675"** and **"about $850 spare this paycheck"** a tap apart. New `selectSpendable` owner; `selectAffordability` uses it. Mutation-verified (reds at 1375 vs 1550) |
+| **T4.2** | Copy-constants owner in `packages/core` — L2-6/7/8/16, with the cushion/safety-net **disjointness rule stated on the constant** instead of re-explained in three files' comments | |
+| **T4.3** | Cushion family — L1-5 · L1-14 · L2-6/7/8 · + "Leftover cash" | |
+| **T4.4** | Expenses / everyday — L1-6 | |
+| **T4.5** | Cash states — L1-7. ⚡ `guardian.spec.ts` already pins "Looks clear/Very tight this paycheck" — the card already speaks the target vocabulary | |
+| **T4.6** | Paid off — L1-19 | |
+| **T4.7** | Guardian naming — L1-34 | |
+| **T4.8** | Lint rule per [D31] — a retired word that cannot come back is paid for once | |
+| **T4.9** | Full gate green; plan + log atomic | |
+
+**🎯 Rulings 2026-08-18 — the glossary:** cushion *(the pot)* · **your line** *(the threshold)* · safety net
+*(`discovery_holdback` only, disjoint)* · floor *(income sense only)* · **expenses** · everyday spending ·
+Clear / Tight / Very tight · **paid off** *(retire "Vanquished")* · your Guardian *(prose)* · **Flexible**.
+
+⛔ **L1-6 REVERSED — the audit's suggested fix was backwards.** It proposed renaming the Expenses tab to
+**Bills**. 🎯: *"Bills to me are debt."* And the code agrees: `money.tsx:117-119` already labels the segment
+**"Expenses"** (only its internal `value` is `'bills'`), and `:173` **teaches the distinction** — *"Debts count
+toward your debt-free date — expenses don't."* Renaming the tab breaks the sentence that teaches the concept.
+**Keep "Expenses"; retire "bills" as the entity noun.** Half the blast radius (~6 assertions, not ~20).
 ⚠️ **Re-measure T8 at its own switch-in** — T3 collapsed several of its owners (`localDate`,
 `paydayFieldError`, `pickTopUpGoal`, `notify`), so its 23 L2 items likely overstate what remains.
 
@@ -281,6 +304,16 @@ round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is 
 ⛔ **NOTHING IS PARKED** *(🎯 2026-08-18)*. **T9–T11 are SEQUENCED, not shelved** — every remaining
 minor/polish finding is still live and gets **re-evaluated once T1–T8 lands**, because several become
 cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped*. Detail → log.
+
+**Surfaced by T4's switch-in + T4.0/T4.1b after-scans (2026-08-18):**
+- ⚠️ **The paywall lead has NO e2e coverage** — it sits behind the **live public embed** and is pinned only
+  by `paywallLead.test.ts`. No Playwright spec asserts any branch of it. → **Phase 6** *(or T4.9 if a spec
+  is cheap once the glossary settles the words).*
+- ⚡ **Write copy-pin assertions with `.includes()`, never a regex.** A `…` written through a
+  heredoc→node→file chain landed as literal **backspace** characters (`/flexible/`), so the pin
+  could never match and **would have passed forever**. Caught only by mutation-verifying it. That is the
+  **8th** first-cut instrument in this project that was wrong in a way that PASSED. → **T4.8** owns making
+  this a rule.
 
 **⏳ T9–T11 — re-evaluate after T1–T8** *(high+ already pulled into the gate by [D37])*.
 - **T9 · a11y** — ⚠️ **L0-5 and L5-7 are MAJOR → in the gate now** (L1-8 was already T7's).

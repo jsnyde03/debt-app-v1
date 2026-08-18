@@ -32,6 +32,14 @@ export interface PaywallLead {
  * `BASE_PAYCHECK_BUFFER`, premium reserves the floor the user chose. That is a fact about the engine,
  * it is not stated anywhere else on this screen, and it cannot be contradicted by a tight cycle.
  *
+ * ⚠️ **T4.0 (glossary) — this line says "cushion", and that is load-bearing.** It first shipped as
+ * *"You have $X flexible this paycheck"* while printing `summary.cushion` (= `allocation.remaining`,
+ * which `planSelectors` itself labels *"cushion this paycheck"*). But **"Flexible" is `PlanHero`'s label
+ * for a DIFFERENT, smaller number** (`remainingAfterRequired − spokenFor`), renamed `Free`→`Flexible`
+ * specifically to stay distinct from the protected cushion — so the screen called one figure flexible
+ * and then said it was protected. ⛔ **Do not reach for "flexible", "buffer" or "breathing room" here:
+ * this function only ever prints the cushion, and `paywallLead.test.ts` reds if those words return.**
+ *
  * Returns `null` when there is no live plan — the route is deliberately open pre-onboarding, and a
  * viewer with no numbers must see today's paywall rather than an invented one.
  */
@@ -55,13 +63,13 @@ export function paywallLead(
   // They reached for the forecast specifically — answer the thing they went looking for.
   if (from === 'cushion-forecast') {
     return {
-      fact: `You have ${cushion} flexible this paycheck.`,
+      fact: `You have ${cushion} cushion this paycheck.`,
       offer: 'Premium plots it across your next six paydays, and marks where it dips below your line.',
     };
   }
 
   return {
-    fact: `You have ${cushion} flexible this paycheck.`,
+    fact: `You have ${cushion} cushion this paycheck.`,
     offer: `Your plan protects a flat ${money(freeBuffer)} of it. Premium protects the line you choose instead.`,
   };
 }

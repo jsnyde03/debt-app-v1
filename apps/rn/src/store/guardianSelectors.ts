@@ -10,7 +10,7 @@ import { parseLocalDate, toLocalISODate } from '@core/utils/localDate';
 import type { DebtStore } from '@/data/models';
 
 import { classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './guardianPredictionCore';
-import { selectDeployedToSavings, selectDiscretionary, selectExtraToDebt, selectHeldReserve, selectLiquidCushion, selectDeployedBeforeDebt, selectDeployedBeforeDebtGoalId } from './planSelectors';
+import { selectDeployedToSavings, selectDiscretionary, selectSpendable, selectExtraToDebt, selectHeldReserve, selectLiquidCushion, selectDeployedBeforeDebt, selectDeployedBeforeDebtGoalId } from './planSelectors';
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
 import { selectAllocation, selectPaycheckMissed, type Allocation } from './selectors';
 import type { AllocationCategory } from '@core/engine/allocatePaycheck';
@@ -369,7 +369,11 @@ export function selectAffordability(store: DebtStore, amount: number): Affordabi
   // cushion: the Guardian read "$200, at your line" while this card, still on the pre-top-up $50, told
   // the user a $30 purchase would dip them to $20 and offered to move the SAME $150 out of the SAME goal
   // a second time. Cash moved from savings is in checking — every read of the cushion has to see it.
-  const discretionaryNow = selectDiscretionary(base) + appliedTopUp(store);
+  // ⛔ T4.1b — `selectSpendable`, NOT `selectDiscretionary`. This card prints the figure to the user
+  // ("You have about $X spare this paycheck"), and `selectDiscretionary` is the partition TOTAL, which
+  // still contains 3.8's reserve for upcoming bills. It read $850 while `PlanHero` showed "Flexible $675"
+  // ON THE SAME SCREEN. The band selectors keep `selectDiscretionary` deliberately — see the note there.
+  const discretionaryNow = selectSpendable(base) + appliedTopUp(store);
   const floor = store.cushionFloor ?? 200;
   const { verdict, cushionAfter, shortBy } = computeAffordability(discretionaryNow, amount, floor);
 

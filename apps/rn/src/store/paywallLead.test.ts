@@ -40,9 +40,9 @@ function run() {
   assert(short!.fact.includes('$180'), 'a short cycle leads with the shortfall, in their number');
   assert(/Recovery Plan/.test(short!.offer), '…and points at the feature built for it');
 
-  // ── Otherwise: their flexible money, and the real tier difference. ──
+  // ── Otherwise: their cushion, and the real tier difference. ──
   const normal = paywallLead(summary(), BASE_PAYCHECK_BUFFER);
-  assert(normal!.fact.includes('$412'), 'no shortfall → leads with their flexible money');
+  assert(normal!.fact.includes('$412'), 'no shortfall → leads with their cushion');
   assert(normal!.offer.includes(`$${BASE_PAYCHECK_BUFFER}`), '…and names the flat amount the free tier actually protects');
 
   // ── `from` answers the thing they went looking for. ──
@@ -62,6 +62,11 @@ function run() {
     assert(!text.includes('autopilot'), `L1-2 stays fixed — no "autopilot" in: ${l.offer.slice(0, 40)}…`);
     assert(!/keeps? (it|your cushion) at your line/.test(text), `L1-3 stays fixed — no unconditional hold in: ${l.offer.slice(0, 40)}…`);
     assert(!/every payday/.test(text), `L1-3 stays fixed — no "every payday" promise in: ${l.offer.slice(0, 40)}…`);
+    // ⛔ T4.0 (glossary) — this function only ever prints `summary.cushion`. "Flexible" is PlanHero's
+    // label for a DIFFERENT, smaller number, and it shipped here once: the screen called one figure
+    // flexible and then said it was protected. "Buffer"/"breathing room" are the same retired synonyms.
+    assert(!text.includes('flexible'), `T4.0 — "flexible" names PlanHero's remainder, not the cushion, in: ${l.fact}`);
+    assert(!text.includes('buffer') && !text.includes('breathing room'), `T4.0 — retired cushion synonym in: ${l.fact}`);
   }
 
   console.log(`✅ Paywall-lead (T3B/L5-12) tests passed (${passed} asserts).`);

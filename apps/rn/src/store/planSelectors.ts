@@ -73,6 +73,29 @@ export function selectDiscretionary(allocation: Allocation): number {
   return Math.max(0, allocation.paycheckAmount - allocation.totalRequired - allocation.livingExpenseReserve);
 }
 
+/**
+ * T4.1b — cash the user can actually SPEND this cycle.
+ *
+ * ⛔ **This is NOT `selectDiscretionary`, and the difference is load-bearing.** `selectDiscretionary`
+ * is the PARTITION TOTAL: `testExpenseReserve.ts` asserts `sum(ALL_BUCKETS) === discretionary(r)`, so
+ * every bucket — including 3.8's `expense_reserve` — sums to it. The engine's own invariant is that a
+ * reserve is *"GONE from cycle 1's spendable"*, and that is asserted about `true_leftover`, never about
+ * `discretionary`. **Do not "fix" `selectDiscretionary` by subtracting the hold — it would break the
+ * partition invariant across the engine suite.**
+ *
+ * ⚠️ Measured: with $1,200 in, $350 of in-cycle rent and $175 reserved, `selectDiscretionary` reads
+ * **850** while the money the user may actually spend is **675** — and the Today tab printed BOTH, as
+ * "Flexible $675" (`PlanHero`) and "about $850 spare this paycheck" (`AffordabilityCard`), a tap apart.
+ * Both figures were individually correct, which is why six lint gates and 187 e2e could not see it.
+ *
+ * The Guardian's BAND does not use this: `computeState` compares against `effectivePaycheckBuffer`, and
+ * the engine clamps the hold so `discretionary − held ≥ floor` always ("clamp: cannot hold more than is
+ * spare"). Those sites are bounded to a narrow hysteresis window and are recorded against T6.
+ */
+export function selectSpendable(allocation: Allocation): number {
+  return Math.max(0, selectDiscretionary(allocation) - (allocation.expenseReserveHeld ?? 0));
+}
+
 /** The §2.0 held reserve within the cushion — the uncertainty/prefunded buckets the Guardian sets aside
  *  (the "Set aside" bar zone, §2.0.c). A subset of `selectLiquidCushion`; 0 when nothing is held back. */
 export function selectHeldReserve(allocation: Allocation): number {

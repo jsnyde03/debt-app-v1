@@ -4,6 +4,105 @@
 
 ---
 
+## T4 — the glossary · switch-in + T4.0 / T4.1 / T4.1b (2026-08-18)
+
+### The switch-in before-scan corrected three of T4's own premises
+
+The item was authored by T2's after-scan and is a **hypothesis**, per the standing rule. Measured against
+the current tree:
+
+| Premise | Measured | Verdict |
+|---|---|---|
+| "129 exact-string copy assertions across 36 specs" | **133 distinct literals**; **319 assertion sites** across **37** specs | The 129 counted **distinct strings**. The number of places to edit is **2.4×** that |
+| L1-5's nine cushion-name sites | 9/9 live | ✅ accurate. My first grep reported 8 — `GuardianScorecard` writes `&apos;`. **The instrument was wrong, not the finding** |
+| "Renaming breaks tests by the dozen" | cushion family ~35 assertions; expenses/bills ~20 | ✅ accurate, and understated |
+| Raw term counts as a scope proxy | `floor` greps **548×** — **156 identifiers**, `Math.floor` only 9, most of the rest **test names and comments** | ⚠️ **A term count overstates this item several-fold.** Count user-facing string literals |
+
+### 🎯 L1-6 reversed — the audit's suggested fix was backwards
+
+The finding proposed renaming the **Expenses** tab to **Bills**. 🎯: *"Bills to me are debt."* The code
+agrees, twice: `money.tsx:117-119` already labels the segment **"Expenses"** (only the internal `value` is
+`'bills'`), and `money.tsx:173` is the app **teaching the distinction** — *"Is this a debt you're paying
+down? Debts count toward your debt-free date — expenses don't."* Renaming the tab would break the one
+sentence that teaches the concept, and a credit-card bill genuinely **is** a debt. **Ruling: keep
+"Expenses", retire "bills" as the entity noun** (a user's own expense named "Phone Bill" is untouched).
+Blast radius halves: ~6 assertions instead of ~20.
+
+⚡ **The generalisable bit: the audit was right about WHERE to look and wrong about WHAT to do** — the same
+reliability profile Phase 3.7 measured for pre-authored ledger items, now observed on a finding's
+*suggested fix* rather than on an item's premises.
+
+### T4.0 — the paywall lead
+
+T3B's own new copy, four hours old and behind the live public embed, read **"You have $X flexible this
+paycheck"** while printing `summary.cushion` (= `allocation.remaining`, which `planSelectors:314` itself
+labels *"cushion this paycheck"*). But **"Flexible" is `PlanHero:91`'s label for a different, smaller
+number** (`remainingAfterRequired − spokenFor`), renamed `Free`→`Flexible` *specifically* to stay distinct
+from the protected cushion. The next sentence then said *"Your plan protects a flat $50 of it"* — so the
+screen called one figure flexible and then said it was protected. Now "cushion"; `paywallLead.test.ts` pins
+"flexible" / "buffer" / "breathing room" out of every branch. **Mutation-verified.**
+
+⛔ **And the first version of that pin was broken in a way that PASSED.** Written as a `\b…\b` regex through
+a heredoc→node→file chain, it landed in the file as literal **backspace** characters, which cannot match
+anything. The plant proved it: the suite stayed green with the defect restored. Rewritten with `.includes()`,
+it reds correctly. **This is the 8th first-cut instrument in this project that was wrong in a way that would
+have passed.** The lesson is narrow and cheap: **copy-pin assertions use `.includes()`, never a regex** —
+there is nothing to escape. → T4.8.
+
+⚠️ **Two smaller process catches, both worth keeping.** The first plant **no-oped** because the doc-comment
+insert had shifted line numbers under a line-addressed `sed` — caught only because the plant check was
+verified rather than assumed. And a naive `grep "flexible this paycheck"` matches the module's **own doc
+comment**, which quotes the retired copy while explaining it — the exact false-positive shape CLAUDE.md
+already records. The check was scoped to `fact:` lines instead.
+
+### T4.1 — L1-26 is REFUTED, and the refutation was the valuable part
+
+L1-26 claimed the discretionary remainder "has five names", flagging its own premise as *unverified*. It is
+false. Probed on one store ($1,200 in, $350 in-cycle rent, $175 reserved):
+
+| Name | Value | What it really is |
+|---|---|---|
+| "Leftover cash" — engine | **625** | `true_leftover`, and `=== summary.cushion`. **A cushion bucket wearing a remainder name** |
+| "Flexible" — `PlanHero` | **675** | `remainingAfterRequired − spokenFor` |
+| "spare this paycheck" — `AffordabilityCard` | **850** | `selectDiscretionary + appliedTopUp` |
+
+**Three values, not one.** Renaming them together — the finding's own suggested fix — would have put one
+word on three different numbers, which is the defect class T4 exists to close. 🎯 **"Flexible" stays** (it
+already carried a `Jason ✓` at the call site, so the audit was proposing to overturn a settled call).
+"Leftover cash" moves to the **L1-5 cushion family**, where it belongs.
+
+### T4.1b — the defect the refutation uncovered
+
+**On the Today tab**, `PlanHero` (`index.tsx:302`) renders **"Flexible $675"** and `AffordabilityCard`
+(`index.tsx:411`) renders **"You have about $850 spare this paycheck"** — a tap apart, **$175** different,
+on the card that answers *"Can I afford it?"*. Both individually correct. It is the **L4-1 class**, which
+the audit called the thing that paid for it — except L4-1 was 34¢.
+
+⛔ **My first stated mechanism was wrong, and the engine's own tests said so.** I proposed that
+`selectDiscretionary` was "missing a subtraction" of `expenseReserveHeld`. It is not: `testExpenseReserve.ts`
+asserts `sum(ALL_BUCKETS) === discretionary(r)` — `selectDiscretionary` is the **partition total**, and
+`expense_reserve` is one of the buckets inside it. The *"GONE from cycle 1's spendable"* invariant is
+asserted about **`true_leftover`**, never about `discretionary`. **Changing `selectDiscretionary` would have
+broken a load-bearing invariant across the engine suite.** Law IV again: the recommendation was sound, the
+mechanism was not.
+
+**The fix, scoped correctly:** a new `selectSpendable` owner in `planSelectors` (`discretionary − held`,
+with the whole distinction written on it once), and `selectAffordability` reads it. Mutation-verified —
+reverting the selector reds at *"hero 1375, card 1550"*, the gap being exactly the reserve.
+
+**Why the Guardian's band was NOT changed.** `computeState` compares against `effectivePaycheckBuffer`, and
+the engine clamps the hold so `discretionary − held ≥ floor` always (`testExpenseReserve`: *"clamp: cannot
+hold more than is spare"*). So the four band-ish sites — `holdsLine`, the top-up gap, the brief's
+`discretionary`, `cushionStatus` — can only differ inside a **narrow hysteresis window**, and changing them
+**moves Guardian states**, with real e2e blast radius. Recorded against **T6**, to be measured not assumed.
+
+⚠️ **Environment note, new:** `planSelectors.ts` and `guardianSelectors.ts` are **CRLF**; `paywallLead.ts`
+is **LF**. Inserting LF text into the CRLF files produced **mixed line endings** (23 and 4 bare LFs) that
+`cat -A` did **not** reveal — only a CRLF count did. Normalised before commit; diffs are additions only.
+**Detect a file's line ending before writing into it.**
+
+---
+
 ## Session close 2026-08-18 — T3 + T3B closed; the audit gate is half done
 
 **Closed this session:** **T3** (7 correctness findings) and **T3B** (8 high+ that were outside the

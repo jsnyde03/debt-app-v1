@@ -1,6 +1,8 @@
 import { createDefaultStore } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
 import { selectAffordability, selectAppliedTopUp, selectSaveForItOptions } from '@/store/guardianSelectors';
+import { selectDiscretionary, selectPlanSummary, selectRequiredRows, selectSpendable } from '@/store/planSelectors';
+import { selectAllocation } from '@/store/selectors';
 
 /**
  * §2.9 Can-I-Afford-This? — the app-layer selectors over the engine. The pure verdict + priority-goal
@@ -34,6 +36,32 @@ function store(): DebtStore {
 function run() {
   console.log('Running affordability selectors (2.9) tests...');
   const s = store();
+
+  // ── ⛔ T4.1b — the card's figure must equal the hero's "Flexible": they sit a tap apart on Today. ──
+  // Measured defect: with a 3.8 reserve held, this card read $850 while PlanHero showed "Flexible $675".
+  // `selectDiscretionary` is the PARTITION TOTAL and still contains the reserve; `selectSpendable` is the
+  // money that can actually be spent. Both figures were individually correct, which is exactly why six
+  // lint gates and 187 e2e could not see it. This asserts the RELATIONSHIP — the only thing ever wrong.
+  {
+    const withReserve = {
+      ...s,
+      requiredExpenses: [
+        { id: 'rent', name: 'rent', amount: 350, dueDate: '2026-08-06', recurrence: 'monthly', category: 'housing' },
+        { id: 'elec', name: 'elec', amount: 120, dueDate: '2026-09-20', recurrence: 'monthly', category: 'housing' },
+      ],
+      expenseReserve: { balance: 0, contribution: { forCycle: '2026-09-01', amount: 175 } },
+    } as unknown as DebtStore;
+
+    const alloc = selectAllocation(withReserve)!;
+    const summary = selectPlanSummary(withReserve, alloc, selectRequiredRows(withReserve, alloc));
+    // What PlanHero renders as "Flexible" (PlanHero.tsx: remainingAfterRequired − spokenFor).
+    const heroFlexible = Math.max(0, summary.remainingAfterRequired - (summary.everydayReserve + summary.billsReserve));
+    const cardSpare = selectAffordability(withReserve, 25)!.discretionaryNow;
+
+    assert(summary.billsReserve > 0, `the fixture actually holds a reserve (got ${summary.billsReserve}) — else this proves nothing`);
+    assert(cardSpare === heroFlexible, `the card's "spare" equals the hero's "Flexible" (hero ${heroFlexible}, card ${cardSpare})`);
+    assert(selectDiscretionary(alloc) - selectSpendable(alloc) === summary.billsReserve, 'the two selectors differ by exactly the held reserve');
+  }
 
   // Verdicts against $1900 discretionary, $200 floor.
   assert(selectAffordability(s, 500)?.verdict === 'comfortable', '$500 → comfortable (cushion $1400 ≥ floor)');
