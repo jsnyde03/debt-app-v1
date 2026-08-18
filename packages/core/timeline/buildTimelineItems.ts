@@ -1,3 +1,4 @@
+import { CUSHION_LABEL } from "@core/copy/vocabulary";
 import { allocatePaycheck } from "@core/engine/allocatePaycheck";
 import type { CompletedRecommendedAction, Debt, RequiredExpense } from "@core/storage/debtPlannerStorage";
 
@@ -108,7 +109,7 @@ export function buildTimelineItems({
     if (bufferAllocation) {
         items.push({
             date: nextPaycheckDate,
-            label: "Cash Buffer",
+            label: CUSHION_LABEL,
             amount: bufferAllocation.amount,
             type: "buffer",
         });

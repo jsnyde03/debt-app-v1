@@ -127,7 +127,11 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
   return (
     <Card>
       <View style={styles.head}>
-        <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>BREATHING ROOM</Text>
+        {/* T4.3 — "BREATHING ROOM" was a rogue synonym for the cushion. Not "YOUR CUSHION" either: this card
+              renders ONLY on /cushion-forecast, whose title already reads "Your cushion forecast", so that
+              would echo the heading one line below itself (and made getByText ambiguous, which is how it
+              was caught). Names the VIEW, using the ruled noun. */}
+          <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>CUSHION BY PAYCHECK</Text>
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>next {cycles.length} paychecks</Text>
       </View>
 

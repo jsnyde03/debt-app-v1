@@ -71,6 +71,47 @@ word on three different numbers, which is the defect class T4 exists to close. �
 already carried a `Jason ✓` at the call site, so the audit was proposing to overturn a settled call).
 "Leftover cash" moves to the **L1-5 cushion family**, where it belongs.
 
+### T4.3 — the cushion family: nine cited sites, three real ones
+
+L1-5 is headlined *"one protected-cash concept, six user-facing names"* and lists nine sites. Verified
+one by one against the tree, **only three were work**:
+
+| Site | Verdict |
+|---|---|
+| `CushionFloorSheet` "Your cushion line" · `PaydayGuardianCard` "Your line" / "Safety net" | ✅ already correct — the ruled vocabulary |
+| `allocatePaycheck` "Keep cash buffer" | **never rendered** — diagnostic, established in T4.2 |
+| `buildSmartInsights` "Buffer looks stable" | ⛔ **dead code.** `analysisSelectors.ts:138`: *"Smart Insights: intentionally NOT surfaced (2.2.5 scrapped, Jason 2026-07-22)"* |
+| `TrajectoryChart` "Safe-floor" | ⚠️ **MISCLASSIFIED — see below** |
+| `buildTimelineItems` "Cash Buffer" | ▶ fixed → `CUSHION_LABEL` |
+| `CashRunwayChart` "BREATHING ROOM" | ▶ fixed → "CUSHION BY PAYCHECK" |
+| `GuardianScorecard` "Your floor's been protected" | ▶ fixed → "Your line's been protected" |
+
+⛔ **The misclassification is the inverted-item shape, and it would have made the app worse.** L1-14 lists
+`TrajectoryChart:440` "Safe-floor" under the **cushion** sense, and prescribes *"say 'your cushion line'
+wherever the cushion is meant."* But the site renders `band.lean`, and its own comment reads *"Safe-floor:
+the **lean-income** payoff date (the cone's later edge) … the honest floor for a variable earner."* It is
+the **income** sense — the one L1-14 itself says to keep. Built as written, the glossary pass would have
+renamed an income-floor label into cushion vocabulary, manufacturing the exact collision the finding
+exists to remove. **This is the third audit finding this session whose specifics were wrong while its
+direction was right**, after L1-6 (reversed) and L1-26 (refuted).
+
+⚡ **"YOUR CUSHION" was wrong too, and the test caught it for the right reason.** The first replacement for
+the eyebrow was "YOUR CUSHION" — glossary-correct, but the card renders **only** on `/cushion-forecast`,
+whose title already reads *"Your cushion forecast"*, so it echoed the heading one line below itself. The
+e2e went red with `strict mode violation: resolved to 2 elements`, and `error-context.md` showed the fix
+rendering correctly with the *locator* newly ambiguous — the third time that file has shown the fix working
+and the test wrong. Settled on **"CUSHION BY PAYCHECK"**: the ruled noun, naming the view rather than
+repeating the title. The eyebrow rename is self-verifying — the spec red on the change and green on
+alignment.
+
+⚠️ **Two surfaces turned out to have no coverage at all, and renaming them is how that surfaced.**
+`GuardianScorecard`'s day-one state ("Protected since day one") is asserted **nowhere** — and it is the
+state every new user is in, the same trap CLAUDE.md already records for `guardian-reserve-amount` in
+`clear`. The timeline's cushion row label is likewise unasserted, so that rename is **unverified by the
+gate**. Both filed.
+
+---
+
 ### T4.2 — the copy-constants owner, and L2-6's mechanism refuted
 
 `packages/core/copy/vocabulary.ts` now owns the shared user-facing nouns — `PAYCHECK_SEGMENT`

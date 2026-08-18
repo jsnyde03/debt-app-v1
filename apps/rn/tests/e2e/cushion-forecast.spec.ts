@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { scenario, seedStore, day } from './helpers/seed';
 
 /**
- * 3.4.2.3 — the premium Cash Runway ("Breathing room") gains drag-select: sweeping a finger across the
+ * 3.4.2.3 — the premium Cash Runway ("Cushion by paycheck") gains drag-select: sweeping a finger across the
  * chart moves the selected cycle continuously, and the detail receipt below follows (it IS the readout).
  */
 
@@ -24,7 +24,7 @@ for (const theme of ['light', 'dark'] as const) {
     await seedStore(page, { ...PLAN, prefs: { ...(PLAN.prefs as object), themeMode: theme } });
     await page.goto('/cushion-forecast');
 
-    const eyebrow = page.getByText('BREATHING ROOM');
+    const eyebrow = page.getByText('CUSHION BY PAYCHECK', { exact: true });
     await expect(eyebrow).toBeVisible();
     await page.waitForTimeout(2000); // CanvasKit lazy-load
 

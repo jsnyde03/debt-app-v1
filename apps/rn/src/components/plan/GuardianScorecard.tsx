@@ -36,7 +36,7 @@ export function GuardianScorecard({ score }: { score: CalibrationScore }) {
           <Text style={[textStyles.title3, styles.headTitle, { color: c.text.primary }]}>Protected since day one</Text>
         </View>
         <Text style={[textStyles.subhead, styles.body, { color: c.text.secondary }]}>
-          Your floor&apos;s been protected from the start. I&apos;m still learning your patterns — I&apos;ll show my track
+          Your line&apos;s been protected from the start. I&apos;m still learning your patterns — I&apos;ll show my track
           record once I&apos;ve seen a few more paychecks.
         </Text>
       </Card>
