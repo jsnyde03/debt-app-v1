@@ -29,7 +29,7 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
     await page.goto('/');
     await page.getByText('Adjust your line →').click();
     await expect(page.getByText('Your cushion line')).toBeVisible();
-    await expect(page.getByText('The cash the Guardian keeps each paycheck before any extra debt payoff.')).toBeVisible();
+    await expect(page.getByText('The cash your Guardian keeps each paycheck before any extra debt payoff.')).toBeVisible();
   });
 
   test('premium · tight: headroom under the floor renders the tight read', async ({ page }) => {

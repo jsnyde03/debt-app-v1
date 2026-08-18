@@ -20,7 +20,7 @@
 
 🎯 **2026-08-18: T1–T8 + T3B now. ⛔ [D37] every high+ closes this round; T9–T11 are SEQUENCED, not shelved.**
 ✅ **T1 · T2 · T3 · T3B CLOSED 2026-08-18**, full gate green (187 e2e · 10 embed · 0 error-context).
-▶ **T4 (the glossary) is ACTIVE** — **T4.0 · T4.1 · T4.1b · T4.2 · T4.3 · T4.4 · T4.5 · T4.6 closed 2026-08-18**; **T4.7 (Guardian naming) is next**, then T4.8–T4.9 and T5–T8 in order.
+✅ **T4 CLOSED 2026-08-18** — 11 findings, 7 commits, all on a green gate. ⛔ **5 of its 11 findings needed material correction and 3 would have shipped a WORSE app if built as written** — detail → log. ▶ **T5 (truth of claims) is ACTIVE**, then T6–T8.
 
 ⛔ **2 of 3 agent-declared blockers did NOT survive refutation, and the tally is now 3 of 4** — L1-1
 downgraded, L3-5's mechanism wrong (severity right), L1-4 downgraded (free DOES get a Guardian). Plus
@@ -28,7 +28,7 @@ L6-7 and L6-3 closed as not-defects. ⚡ **The lenses' self-reported CONFIDENCE 
 SEVERITY has not.** **No finding becomes work un-refuted** — `findings/L9-refutations.md` records the 12
 claims actually re-checked; anything not in it carries only its own lens's confidence.
 
-### ▶ T1–T8 — the remediation _(the only decomposed item on this doc)_
+### ▶ T1–T8 — the remediation _(the step table; the ACTIVE step is decomposed below)_
 
 ⚠️ **The order is prerequisite, not preference.** T1 first or every later count is measured through a
 narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those passes would edit twice.
@@ -38,7 +38,7 @@ narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those pass
 | **T1** | **The instruments** | ✅ **Done 2026-08-18.** Strings gate: rule ② now consults the origin sets **and** the `key:`/`prop:` alias (358→333 unclassified, **+10 strings into the gate's view**, 2 new duplicates with them); TECHNICAL decided per-VALUE so MIXED props keep their copy visible; `calleeLabel` given ONE owner (there were two) + a **self-check that reds on a denormalised label**, mutation-verified. `DUP_MIN_LEN` 20→**14** — the gate saw 3 duplicates, now 12, and all 9 it had missed were found by hand in the same audit; baseline 5→16. Surface inventory now finds **hand-rolled** formatters: **7**, and Today reaches **8 money renderers**. Fixture seeds a bill: 178/184 passed, 5 specs pinned their own state, 1 assertion **strengthened** (it passed either way) | 
 | **T2** | **App Store / legal exposure** | ✅ **Done 2026-08-18.** L6-2 fixed: the shipped web sample named **Chase Freedom Unlimited** with fabricated balance/APR, in the bundle behind the public embed → fictional issuer; parser still prefills correctly (probed). 🎯-approved rewrites landed for **L1-2** (paywall sold "autopilot" the product disclaims twice elsewhere), **L1-3** (an unconditional cushion promise the next-but-one bullet contradicts) and **L1-4**. ⛔ **3 of 5 items closed as NOT defects** — L6-7 (public RC key, by design), L6-3 (`QA_TOOLS` deliberate, already a Phase-6 step), L1-4 downgraded (free DOES get a Guardian) |
 | **T3** | **Correctness** — concrete repro each | ✅ **Done 2026-08-18**, all 7 (L0-2/L5-9 · L5-2 · L5-1 · L3-3 · L5-5 · L5-6 · L5-14), **full gate green: 187 e2e** (+3), 29 new unit asserts, **every fix mutation-verified**, 2 new lint rules. ⛔ **Found while building: `Alert.alert` is a NO-OP in react-native-web** — 11 raw sites incl. the paywall behind the live embed. ⚡ **7 of 7 first-cut instruments were wrong in a way that would have PASSED** — detail → log |
-| **T4** | ⚠️ **The glossary — MUST precede every other wording edit** | L1-5/6/7/14/19/26/34 · L2-6/7/16. ▶ **ACTIVE, decomposed below.** ⛔ **The "129 across 36 specs" figure counts DISTINCT LITERALS; the edit-site count is 319 across 37 specs.** L1-26 **refuted**; L1-6 **reversed** (🎯: *"bills to me are debt"*) | ▶ |
+| **T4** | **The glossary** | L1-5/6/7/14/19/26/34 · L2-6/7/16 | ✅ **Done 2026-08-18.** `@core/copy/vocabulary` owns 7 nouns + the disjointness rule; `lint:glossary` bans 5 retired words in CI. **L1-6 reversed · L1-14 misclassified · L1-26 refuted · L2-6's mechanism false · L1-7 partly refuted.** +1 correctness defect found (T4.1b) |
 | **T5** | **Truth of claims** — promise vs delivery | L3-1/2/4/6/7 · L1-12/13/15/17/18. ⚠️ **[T2 after-scan] +1: `tutorialPath.ts:183`** — the finale's *"premium is what did the holding: your cushion kept at your line"*. Past-tense about the scripted demo, where it DID hold, so it is defensible — but it is the same claim family T2 rewrote in 3 places, and a free user reads it as what premium always does. **A judgment call, deliberately left for this step** | |
 | **T6** | **Numbers cohesion** — one rule, applied once, then enforced | L4-1/3/4/5/6/7/8/9/10 · ⚠️ **[T3B] +L4-2** (nine money formatters, six hand-rolled inside Today's cards) — it was assigned nowhere; T6 owns it and it is high+, so [D37] requires it closes here. ⚠️ **[T4.1b] +4 sites**: `holdsLine`, the top-up gap, the brief's `discretionary` and `cushionStatus` all still read `selectDiscretionary` (the partition total) as spendable headroom. **Bounded** — the engine clamps the hold so `discretionary − held ≥ floor`, so they can only differ inside a narrow hysteresis window. **Measure before changing: it moves Guardian states** | |
 | **T7** | **Voice & persona** | L1-8/9/10/11/16 | |
@@ -52,43 +52,34 @@ narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those pass
 full gate green, and every fix that CAN be a lint rule IS one ([D31] — a finding that becomes a test is
 paid for once).
 
-### ▶ T4 — the glossary _(ACTIVE · the only decomposed item on this doc)_
+### ▶ T5 — truth of claims _(ACTIVE · the only decomposed item on this doc)_
 
-⚠️ **Not a copy edit.** ⛔ **Corrected at switch-in: "129 across 36 specs" counts DISTINCT LITERALS (133).
-The number of edit SITES is 319 across 37 specs** — 2.4× the budgeted figure. Prefer a **shared copy
-constant or a `testID`** over re-pinning each string. **Must precede T5/T7/T8.**
-⚠️ **A term count overstates this item several-fold** — `floor` greps 548× but 156 are identifiers and
-most of the rest are test names and comments. Measure user-facing STRING LITERALS, never raw hits.
+**Findings:** L3-1/2/4/6/7 · L1-12/13/15/17/18, plus **+1 from T2's after-scan** — `tutorialPath.ts:183`,
+the finale's *"premium is what did the holding: your cushion kept at your line"*. Past-tense about the
+scripted demo, where it DID hold, so it is defensible — but it is the same claim family T2 rewrote in three
+places, and a free reader takes it as what premium always does. **A judgment call, deliberately left here.**
 
-| # | Step | State |
-|---|---|---|
-| **T4.0** | Paywall lead — the un-reviewed T3B copy | ✅ **Done 2026-08-18.** It printed `summary.cushion` and called it *"flexible"* — PlanHero's word for a different, smaller number. Now "cushion"; test pins "flexible"/"buffer"/"breathing room" out, mutation-verified |
-| **T4.1** | Rule the remainder row (L1-26) | ✅ **Done 2026-08-18. L1-26 REFUTED** — its five names are **three different values**, not one; renaming them together would have put one word on three numbers. 🎯 **"Flexible" stays.** "Leftover cash" `=== summary.cushion` → reassigned to the **L1-5 cushion family** |
-| **T4.1b** | The defect T4.1 uncovered | ✅ **Done 2026-08-18.** Today showed **"Flexible $675"** and **"about $850 spare this paycheck"** a tap apart. New `selectSpendable` owner; `selectAffordability` uses it. Mutation-verified (reds at 1375 vs 1550) |
-| **T4.2** | Copy-constants owner — L2-6/7/8/16 | ✅ **Done 2026-08-18.** `packages/core/copy/vocabulary.ts` owns `PAYCHECK_SEGMENT` · `CUSHION_NOUN/LABEL` · `SAFETY_NET_LABEL` · `EMERGENCY_FUND_NOUN`, **11 sites across 8 files** migrated, and the **disjointness rule now lives in ONE place** (it was prose in 4). ⛔ **L2-6's mechanism REFUTED — the engine's 5 allocation labels are NEVER rendered** (every consumer filters by `category`; `buildTimelineItems` even writes its own "Cash Buffer"), so its suggested fix would have made dead strings load-bearing. They are marked diagnostic instead. **L2-8 named 2 sites — there are 6; L2-16 named 3 — there are 4.** Mutation-verified: mutating `spokenFor` reds 2 specs |
-| **T4.3** | Cushion family — L1-5 · L1-14 | ✅ **Done 2026-08-18.** ⛔ **Of L1-5's NINE cited sites, only THREE were real work.** 3 were already correct · 1 is the engine's diagnostic label (never rendered, T4.2) · 1 is `buildSmartInsights`, **dead code** (*"intentionally NOT surfaced"*, Jason 2026-07-22) · and ⚠️ **1 was MISCLASSIFIED**: L1-14 files `TrajectoryChart`'s "Safe-floor" under the *cushion* sense, but it renders `band.lean` — the **income** sense L1-14 itself says to KEEP. Built as written it would have renamed an income label into cushion vocabulary. Fixed: "Cash Buffer"→`CUSHION_LABEL` · "BREATHING ROOM"→"CUSHION BY PAYCHECK" · "Your floor's been protected"→"Your line's" |
-| **T4.4** | Expenses / everyday — L1-6 | ✅ **Done 2026-08-18.** ⭐ **It was finishing [D22d], not a new call** — `ExpenseSheet.tsx:81` already recorded *"'expense', not 'bill'. A credit card BILL is a debt, so the word collided with every item in the other list"*, so L1-6 proposed **reversing a documented decision** and 🎯's *"bills to me are debt"* restated one already made. **~30 sites across 15 files**, "Living Expenses"→"Everyday spending", 15 spec assertions. ⛔ **My first enumeration was TRUNCATED (`head -30`) and hid half the class**; a second, untruncated sweep found the rest, and a **case-sensitive** spec grep still missed `/Bills confirmed/`. "bill" survives only where it means one real-world charge arriving ("A surprise bill came up") |
-| **T4.5** | Cash states — L1-7 | ✅ **Done 2026-08-18.** `GUARDIAN_STATE_LABEL` owns Clear/Tight/**Very tight**; "Crunch" retired. ⛔ **L1-7 PARTLY REFUTED — `PlanHero`'s "Short this paycheck" is NOT this state.** It fires on `summary.status === 'short'` (`shortfall > 0`), while `at-risk` is a floor-relative cushion read that happens with no shortfall; merging them puts one word on two conditions. "At-risk · today" is `qaEnabled()`-gated. ⚠️ **The first pin was UNFAILABLE** — `getByText('Crunch')` on a fixture with no under-the-line cycle passed under a plant. Replaced with a unit pin, mutation-verified |
-| **T4.6** | Paid off — L1-19 | ✅ **Done 2026-08-18** 🎯-approved. "Vanquished" retired everywhere — copy, identifiers and **two file renames** (`VanquishedBeat`→`PaidOffBeat`, `VanquishedArchive`→`PaidOffArchive`, joining the existing `PaidOffFinale`). 12 files, 56 references, **0 testIDs affected**. ⚠️ **A blanket word-replace broke a local `vanquished` identifier into `paid off`** (caught by `tsc`, not by review) and mangled two hyphenations; it also exposed an a11y string mixing *both* names for one event |
-| **T4.7** | Guardian naming — L1-34 | |
-| **T4.8** | Lint rule per [D31] — a retired word that cannot come back is paid for once | |
-| **T4.9** | Full gate green; plan + log atomic | |
+| # | Step |
+|---|---|
+| **T5.1** | Before-scan **each** finding against current code — ⛔ **budget for this: 5 of T4's 11 needed material correction and 3 would have shipped a worse app** |
+| **T5.2** | The proxy claims — L3-1/2/4/6/7: an affordance gated on a *proxy* rather than the thing it promised, and one whose resource was `Math.min`-capped short of its own claim |
+| **T5.3** | The absolutes — L1-12/13/15/17/18: "reserved"/"covered"/"held" asserted as completed facts · a zero-data state claiming a perfect record · "SAFE TO DEFER" against its own footnote · "always-current balances" · "never"/"always" |
+| **T5.4** | 🎯 **[DECISION] the tutorial finale's premium claim** (`tutorialPath.ts:183`) — recommend + ask |
+| **T5.5** | Retired-string sweep + full gate green; plan + log atomic |
 
-**🎯 Rulings 2026-08-18 — the glossary:** cushion *(the pot)* · **your line** *(the threshold)* · safety net
-*(`discovery_holdback` only, disjoint)* · floor *(income sense only)* · **expenses** · everyday spending ·
-Clear / Tight / Very tight · **paid off** *(retire "Vanquished")* · your Guardian *(prose)* · **Flexible**.
+⚠️ **Inherited from T4, both non-optional:** run the **retired-string sweep** — every string you retire,
+grepped case-insensitively with no `head`, across `apps/rn/tests` **and** `apps/rn/.maestro` **and**
+`packages/core/**/test*.ts` (T4.4 needed four rounds to land because each was missed in turn) — and expect
+**`lint:glossary`** to red on any retired synonym this pass reaches for.
 
-⛔ **L1-6 REVERSED — the audit's suggested fix was backwards.** It proposed renaming the Expenses tab to
-**Bills**. 🎯: *"Bills to me are debt."* And the code agrees: `money.tsx:117-119` already labels the segment
-**"Expenses"** (only its internal `value` is `'bills'`), and `:173` **teaches the distinction** — *"Debts count
-toward your debt-free date — expenses don't."* Renaming the tab breaks the sentence that teaches the concept.
-**Keep "Expenses"; retire "bills" as the entity noun.** Half the blast radius (~6 assertions, not ~20).
-⚠️ **Re-measure T8 at its own switch-in** — T3 collapsed several of its owners (`localDate`,
-`paydayFieldError`, `pickTopUpGoal`, `notify`), so its 23 L2 items likely overstate what remains.
+⚠️ **Re-measure T8 at its own switch-in.** T3 collapsed several of its owners (`localDate`,
+`paydayFieldError`, `pickTopUpGoal`, `notify`) and **T4 collapsed four more into `@core/copy/vocabulary`**
+(L2-6/7/8/16), so the "23 L2 items" figure is stale twice over. Do not budget from it.
 
 ⭐ **The audit paid for itself on work four hours old:** L4-1 — "Spoken for" renders `$486` on Today and
 `$486.34` in the sheet that legend opens. 184 tests and six lint gates could not see it, because both
 numbers are individually correct. It is the class 3.8's own after-scan filed, committed by its author.
+
 
 ---
 

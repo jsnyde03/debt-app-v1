@@ -151,7 +151,7 @@ export default function MoreScreen() {
             <SettingRow
               icon="workspace-premium"
               label="Unlock Premium"
-              subtitle="The Payday Guardian, Can I Afford It & more."
+              subtitle="Payday Guardian, Can I Afford It & more."
               onPress={() => router.push('/paywall')}
               last
             />
@@ -172,7 +172,7 @@ export default function MoreScreen() {
             card affordance the user might never look at again. Both tiers. */}
         <SettingRow
           icon="gpp-good"
-          label="How the Guardian works"
+          label="How your Guardian works"
           subtitle="Replay the short walkthrough."
           // [F] `tutorialRunFor`, not an inline tier check. "Which audience gets which walkthrough" is a
           // rule that has already moved once ([D9]), and every re-derivation of it is a place the next

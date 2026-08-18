@@ -13,20 +13,25 @@ root, which **5.5.1 deletes**. The live app is `apps/rn` (Expo/RN) over `package
 It carries **▶ BUILDING NOW** (exactly one decomposed item), the phase table, the deferred
 backlog and the decision log. **Read it before touching anything.**
 
-**ACTIVE: audit-gate remediation — T1 · T2 · T3 · T3B closed. ▶ T4 (the glossary) is BUILDING.**
-✅ **T4.0 · T4.1 · T4.1b closed 2026-08-18**; **T4.2 (the copy-constants owner) is next.**
-⚠️ **T4 is NOT a copy edit** — and ⛔ **its budgeted "129 exact-string assertions across 36 specs" counts
-DISTINCT LITERALS (133). The edit-SITE count is 319 across 37 specs.** Prefer a shared copy constant or a
-`testID` over re-pinning each string; it must precede T5/T7/T8 or those passes edit the same words twice.
-⚠️ **A raw term count overstates this item several-fold** — `floor` greps 548× but 156 are identifiers and
-most of the rest are test names and comments. **Count user-facing string literals, never raw hits.**
-🎯 **Glossary rulings:** cushion *(the pot)* · your line *(the threshold)* · safety net *(`discovery_holdback`
-only)* · floor *(income sense only)* · **expenses** · everyday spending · Clear/Tight/Very tight · **paid off**
-*(retire "Vanquished")* · your Guardian · **Flexible** *(kept — it already carried a `Jason ✓`)*.
-⛔ **L1-6 was REVERSED and L1-26 REFUTED — the audit is reliable about WHERE, not about WHAT.** It proposed
-renaming the Expenses tab to **Bills**; 🎯: *"bills to me are debt"*, and `money.tsx:173` **teaches** the
-distinction (*"Debts count toward your debt-free date — expenses don't"*), so the rename would break the
-sentence that teaches it. L1-26's "five names for one value" measured as **three different values**.
+**ACTIVE: audit-gate remediation — T1 · T2 · T3 · T3B · T4 closed. ▶ T5 (truth of claims) is BUILDING.**
+⛔ **T4's main result is about the AUDIT, not the glossary: of the 11 findings it owned, 5 needed material
+correction, and 3 would have shipped a WORSE app if built as written** — L1-6's fix was **backwards**
+(it proposed renaming the Expenses tab to "Bills", against `money.tsx:173`, which *teaches* the opposite,
+and against **[D22d]**, already recorded in the code) · L1-14 filed an **income**-sense label under the
+cushion sense · L1-26 was **refuted** (three values, not one) · L2-6's **mechanism was false** (the engine's
+allocation labels are never rendered) · L1-7 **partly refuted**. Two findings *undercounted* their own site
+lists. ⚡ **Reliable about WHERE to look, unreliable about WHAT is there** — the same profile Phase 3.7
+measured for pre-authored items, now confirmed on a second corpus. **Budget T5–T8 with verification as the
+dominant cost, not editing.**
+⚡ **And every cheap proxy for scope overstated it:** `floor` grepped **548×** for ~3 rendered sites;
+"the Guardian" **112×** for 5; L1-5 listed 9 sites and 3 were real. **The honest unit is a RENDERED STRING
+LITERAL** — comments about a word outnumber uses of it, and identifiers share its spelling.
+✅ **T4 left three instruments:** `@core/copy/vocabulary` (7 nouns + the cushion/safety-net disjointness
+rule, stated once where it had been prose in four files) · **`lint:glossary`** (5 retired words banned from
+copy positions, in CI, verified in both directions) · `glossary.test.ts`.
+⚠️ **Any copy pass from here runs the retired-string sweep** — every string you retire, grepped
+case-insensitively, no `head`, across `apps/rn/tests` **and** `apps/rn/.maestro` **and**
+`packages/core/**/test*.ts`. T4.4 needed **four rounds** to land because each of those was missed in turn.
 Phases 0–3 · 3.5 · 3.7 · 4 · **3.8** are closed, and the **whole-app audit has RUN**:
 7 lenses, **117 findings**, 12 refutations → [`docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md).
 

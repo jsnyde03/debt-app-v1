@@ -4,6 +4,79 @@
 
 ---
 
+### T4 — WHOLE-ITEM after-scan (2026-08-18) · gate green, 187 e2e
+
+**Closed:** T4.0 · T4.1 · T4.1b · T4.2 · T4.3 · T4.4 · T4.5 · T4.6 · T4.7 · T4.8 · T4.9. Seven commits,
+every one on a green `validate:release:rn`. Findings addressed: **L1-5 · L1-6 · L1-7 · L1-14 · L1-19 ·
+L1-26 · L1-34 · L2-6 · L2-7 · L2-8 · L2-16**, plus **L5-12's copy** (T4.0) and one correctness defect
+(T4.1b) that the glossary work uncovered.
+
+#### ⛔ The finding-accuracy number, and it is the item's main result
+
+**Of the 11 findings T4 owned, 5 needed material correction before they could be built** — and three of
+those, built as written, would have made the app worse:
+
+| Finding | What was wrong |
+|---|---|
+| **L1-6** | Suggested fix **reversed**. It proposed renaming the Expenses tab to "Bills" — against `money.tsx:173`, which *teaches* "Debts count toward your debt-free date — expenses don't", and against **[D22d]**, a decision already recorded in `ExpenseSheet.tsx:81` |
+| **L1-14** | **Misclassified.** Filed `TrajectoryChart`'s "Safe-floor" under the *cushion* sense; it renders `band.lean`, the **income** sense the finding itself says to keep |
+| **L1-26** | **Refuted.** "Five names for one value" measured as **three different values** |
+| **L2-6** | **Mechanism false.** The engine's allocation labels are never rendered; its suggested fix would have coupled a component to a dead string |
+| **L1-7** | **Partly refuted.** "Short this paycheck" is the *shortfall* state, not `at-risk` |
+
+**The five that were clean:** L1-5 (scope overstated 3×, but every cited site was real), L1-19, L1-34,
+L2-8, L2-16 — the last two **undercounted** their own site lists (2→6 and 3→4).
+
+⚡ **This is the same profile Phase 3.7 measured for pre-authored ledger items, now confirmed on a second,
+independent corpus: reliable about WHERE to look, unreliable about WHAT is there.** It is worth carrying
+into T5–T8 as a planning assumption, not a surprise — the remaining ~90 findings should be budgeted with
+verification as the dominant cost, not editing.
+
+#### ⚡ Every cheap proxy for scope overstated it, every time
+
+| Proxy | Said | Real |
+|---|---|---|
+| Raw grep, `floor` | 548 | ~3 rendered sites |
+| Raw grep, "the Guardian" | 112 | 5 |
+| L1-5's own site list | 9 | 3 |
+| "129 assertions across 36 specs" | 129 | **319 sites** (the 129 was *distinct literals*) |
+
+**The honest unit is a rendered string literal**, and nothing else comes close. Two structural reasons
+recur: comments about a word outnumber uses of it, and identifiers share its spelling.
+
+#### ⭐ The instruments earned their keep, and one caught its own author
+
+- **T1's `lint:copy` red the gate on T4.4 creating a new 3-file duplicate** while retiring another — the
+  first time in this audit that a gate built by an earlier step caught a later step's regression. **[D31]
+  is now evidenced, not just asserted.**
+- **`check-maestro-selectors` caught copy no web test can see** — a native flow asserting a renamed string.
+- **`tsc` caught a blanket replace** turning a local variable into `const paid off =`.
+- ⛔ **And two of my own first-cut instruments were wrong in a way that PASSED** — T4.0's regex pin (literal
+  backspaces) and T4.5's `getByText('Crunch')` (a fixture with no `at-risk` cycle). Running total for this
+  project: **10 of 10 measured**. The rule holds without exception: *a fresh instrument is wrong until it
+  has been shown to fail on the defect.*
+
+#### What T4 leaves behind
+
+- **`packages/core/copy/vocabulary.ts`** — 7 constants, one owner, and the cushion/safety-net
+  **disjointness rule stated once** where it had been prose in four files.
+- **`lint:glossary`** — 5 retired words banned from copy positions, in CI, verified both directions.
+- **`glossary.test.ts`** — the state labels pinned where an e2e structurally could not.
+
+#### ⚠️ Carried forward
+
+- **T8's scope is now smaller again.** T4 collapsed **L2-6 · L2-7 · L2-8 · L2-16** into the vocabulary
+  owner, on top of T3's four. The plan's "23 L2 items" is stale twice over — **re-measure at T8's
+  switch-in**, do not budget from that number.
+- **T5 and T7 both edit copy**, so both now inherit two things T4 learned: run the **retired-string sweep**
+  (specs + `.maestro` + core test files, case-folded, no `head`), and expect `lint:glossary` to red on any
+  retired synonym they reach for.
+- **Filed to the backlog:** `GuardianScorecard`'s day-one state has zero e2e coverage (the state every new
+  user is in) · the timeline's cushion row label is unasserted · the paywall lead has no e2e at all despite
+  sitting behind the live public embed.
+
+---
+
 ## T4 — the glossary · switch-in + T4.0 / T4.1 / T4.1b (2026-08-18)
 
 ### The switch-in before-scan corrected three of T4's own premises
@@ -70,6 +143,49 @@ false. Probed on one store ($1,200 in, $350 in-cycle rent, $175 reserved):
 word on three different numbers, which is the defect class T4 exists to close. 🎯 **"Flexible" stays** (it
 already carried a `Jason ✓` at the call site, so the audit was proposing to overturn a settled call).
 "Leftover cash" moves to the **L1-5 cushion family**, where it belongs.
+
+### T4.7 — Guardian naming, and why the raw count was 20× the real one
+
+L1-34 is right and small. The ruling: **"your Guardian" in prose, "Payday Guardian" only as the card's
+proper-name eyebrow.** So `more.tsx`'s "How the Guardian works" → "How your Guardian works",
+`CushionFloorSheet`'s "The cash the Guardian keeps" → "your Guardian", `GuardianProofStrip`'s a11y string
+→ "Your Guardian's record so far", and the definite article dropped from the two places that named the
+product in a feature list (the paywall bullet, the More subtitle). The card's `PAYDAY GUARDIAN` eyebrow
+stays.
+
+⚡ **The scoping lesson is the reusable part.** A raw grep reported **112 "the Guardian"** — a number that
+would have made this a day's work. Restricting to quoted strings cut it to **13**, and reading those showed
+**8 were comment fragments** my regex had split on apostrophes (`'s no debt, this is where the Guardian'`).
+**Five sites were real.** Every step of T4 has had this shape: the honest scope is *rendered copy*, and
+every cheaper proxy — raw term counts, quoted-string counts, file counts — overstates it, usually by an
+order of magnitude.
+
+### T4.8 — the glossary gate [D31]
+
+`scripts/check-glossary.ts`, wired as `lint:glossary` inside `lint:rn`, so CI runs it on every push. It
+bans **five** retired words — vanquished · breathing room · cash buffer · Living Expenses · Crunch — from
+**copy positions only**: string literals and JSX text, with comments stripped first.
+
+⛔ **Verified in BOTH directions, because only one of them is the failure that matters.** A planted
+"breathing room" in a rendered template literal reds it with file, line, offending fragment and the
+replacement to use. A planted *comment* naming all three retired words does **not** fire — and that is the
+load-bearing half: half the occurrences of every one of these words are prose explaining why the word was
+retired, including the checker's own header, and **a gate that flags its own documentation gets switched
+off within a week.**
+
+⚠️ **`safe-floor` was removed from the ban list mid-build.** It was in the first draft because L1-14 lists
+it, but T4.3 measured that site as the **income** sense and deliberately kept it — so banning it would have
+had the gate enforce the opposite of a ruling made two steps earlier. *A lint rule inherits every
+misclassification in the finding it was written from.*
+
+⚠️ **Three escaping failures while writing it**, all the same chain: a `\` inside a heredoc reached the
+file as `\`, so `[^'\]` became `[^'\]` (unterminated group), and `const SEP = /[\/]/` became `/[\/]/` —
+which silently split only on forward slashes, so on Windows every basename check missed and the checker
+reported 24 false hits in core's test files. **Fixed by removing the need for escapes**: simpler quote
+patterns, and `basename()` from `node:path` instead of a hand-rolled split. This is the same class as
+T4.0's backspace regex — *when a value must survive heredoc → node → file, do not put a backslash in it.*
+
+---
 
 ### T4.6 — "paid off", and the cost of a blanket replace
 

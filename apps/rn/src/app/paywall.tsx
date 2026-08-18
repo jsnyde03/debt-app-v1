@@ -27,7 +27,7 @@ const PREMIUM_BENEFITS: { icon: IconGlyph; text: string }[] = [
   // ⛔ Was "holds your cushion at your line every payday" — which the NEXT bullet but one contradicts by
   // selling a Recovery Plan for when a cycle comes up short. Two claims on one screen, and the stronger
   // one was the promise being paid for (L1-3).
-  { icon: 'shield', text: 'The Payday Guardian — works out how much to keep back each payday to protect your cushion, and reshapes the plan around it.' },
+  { icon: 'shield', text: 'Payday Guardian — works out how much to keep back each payday to protect your cushion, and reshapes the plan around it.' },
   { icon: 'shopping-cart', text: 'Can I Afford It? — apply any purchase to your plan in one tap, or build a plan to save for it.' },
   { icon: 'healing', text: 'Recovery Plan — a guided catch-up when a cycle comes up short.' },
   { icon: 'auto-graph', text: 'Always-current balances — projected forward or re-scanned in seconds, no monthly retyping.' },

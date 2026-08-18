@@ -44,7 +44,7 @@ export function CushionFloorSheet({
     <FormSheet
       visible={visible}
       title="Your cushion line"
-      subtitle="The cash the Guardian keeps each paycheck before any extra debt payoff."
+      subtitle="The cash your Guardian keeps each paycheck before any extra debt payoff."
       submitLabel="Save"
       onSubmit={() => {
         onApply(value);

@@ -694,8 +694,8 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
 
     await page.goto('/more');
-    await expect(page.getByText('How the Guardian works')).toBeVisible();
-    await page.getByText('How the Guardian works').click();
+    await expect(page.getByText('How your Guardian works')).toBeVisible();
+    await page.getByText('How your Guardian works').click();
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
   });
 
