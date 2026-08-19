@@ -130,6 +130,10 @@ async function main() {
   // makes the bridge skip a real user's data.
   await import('../data/legacyBridge/findLegacyStores.test');
 
+  // 5.2 — the v1.6 → v1.7 key mapping. The `unknown` assertion is the load-bearing one: a real v1.6 key
+  // this mapper has never heard of is data about to be silently dropped during someone's upgrade.
+  await import('../data/legacyBridge/mapLegacyStore.test');
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');
