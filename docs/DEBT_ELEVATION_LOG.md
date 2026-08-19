@@ -106,6 +106,21 @@ cut with **`QA_TOOLS` still ON**, because the device pass rides `qaEnabled()` in
 nothing depends on them. ⚠️ **The trap this avoids is someone flipping it "to be safe" before cutting the
 build for the device pass, which would delete the instruments the pass needs.**
 
+### ✅ Two additions after review, both agreed
+
+**① The device loop has to close too** *(mine, 🎯 agreed)*. The order closed the AUDIT loop — fixes get
+re-audited at step 7 — but steps 6 and 8 produce fixes that were **never device-tested**. ⚡ *Fixes born on
+a device are the likeliest to need one*, because they were found there rather than in the suite, and
+anything native has **no off-device proof at all**. Added as a **targeted** re-check of only the rows
+touching what changed; it collapses to nothing if the fixes were pure logic or copy.
+
+**② Phase 6 ends with final build → capture → submission** *(🎯)*: *"we will not have anything to grab
+screenshots OR the app preview from until the final build is pushed."* ⚡ **This corrects a vagueness that
+had survived since the item was written.** The App-Preview task said *"re-shoot once the UI is frozen"* —
+but a frozen UI is not a **binary**, and you cannot photograph an intention. The assets come *after* the
+build, not before it. ⚠️ Which means a visual problem found at capture costs another build — real,
+unavoidable, and the reason step 9 deserves attention rather than a rubber stamp.
+
 ⚠️ **Residual, stated honestly:** the binary that ships is not byte-identical to the one device-passed —
 the flip comes after. That is unavoidable *(the pass needs the instruments; the ship must not have them)*
 and it is why the flip is deliberately last, minimal, and separately gated. **Named rather than hidden.**

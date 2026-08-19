@@ -321,7 +321,10 @@ every planned change landed. ⚠️ *"Frozen" is not a milestone you schedule; i
 | **6** | **Defect fix** | Whatever the pass turns up |
 | **7** | ⭐ **The final audit** *(🎯: "final final final")* | Because **fixes are changes, and changes are unaudited** — this is the loop closing, not a formality |
 | **8** | **Fixes** + **`QA_TOOLS` off** | ⚠️ The flip is deliberately **last and smallest**: `git grep QA_TOOLS` must show the instruments gone **and** nothing depending on them |
-| **9** | **Final build → submit** | |
+| **9** | ⚠️ **TARGETED device re-check** | **Only the rows touching what 6 and 8 changed** — not a second 52-row pass. ⛔ **The device loop must close too:** fixes born on a device are the likeliest to need one, and anything native (share sheet · picker · Live Activity · widgets · notifications · the bridge) has **no off-device proof at all**. Collapses to nothing if the fixes were pure logic or copy |
+| **10** | **FINAL BUILD** | |
+| **11** | ⭐ **Capture screenshots + the App Preview FROM that build** | 🎯 2026-08-19: *"we will not have anything to grab screenshots OR the app preview from until the final build is pushed."* ⚠️ This is why the App-Preview item's *"re-shoot once the UI is frozen"* was under-specified — a frozen UI is not a **binary**. ⛔ A visual problem found here costs another build; that risk is real and unavoidable, so **look hard at step 9** |
+| **12** | **ASC submission** | Listing · release notes *(lead with the rewrite — a 2.0 with 1.7-shaped notes re-creates the expectation problem)* · privacy label declaring RevenueCat · the assets from 11 |
 
 ⚡ **What makes this an ORDER rather than a list: 2 → 6 → 7 is a convergence loop.** A device pass produces
 fixes, and fixes are unaudited changes — so the audit runs *again* after them. Every straight-line plan
