@@ -1,6 +1,8 @@
 import type { StorageAdapter } from '@/storage/adapter';
 import { reportError } from '@/utils/reportError';
 
+import { migrateFromLegacy } from '@/data/legacyBridge/migrateFromLegacy';
+
 import { appStore } from './appStore';
 import { isSandboxStore } from './sandboxStore';
 import type { DebtStoreInstance } from './store';
@@ -30,6 +32,22 @@ export async function bootstrapPersistence(
   }
   if (bootstrapped.has(store)) return;
   bootstrapped.add(store);
+
+  // 5.3 — the v1.6 bridge, BEFORE hydrate and only when RN storage is genuinely empty.
+  //
+  // ⛔ The gate is `read() === null`, and the `try` around it is load-bearing: a read that THREW is not
+  // an empty store. Treating the two alike would run the bridge against a user who already has v1.7 data
+  // we merely could not open, and the migration would then look like a legitimate first launch. A throw
+  // is left entirely to `hydrate`, which already knows how to say "I could not look" (`read-failed`).
+  //
+  // ⚠️ The double read is deliberate. `hydrate` does its own, and sharing one would mean either hoisting
+  // hydrate's error handling up here or teaching the store a first-launch flag — a flag that could then
+  // disagree with the data it describes. Two MMKV reads at launch cost nothing worth that.
+  try {
+    if ((await adapter.read()) === null) await runLegacyBridge(adapter, store);
+  } catch {
+    /* hydrate owns this failure — see above */
+  }
 
   await store.getState().hydrate(adapter);
 
@@ -61,6 +79,28 @@ export async function bootstrapPersistence(
       void store.getState().save(adapter);
     }, SAVE_DEBOUNCE_MS);
   });
+}
+
+/**
+ * 5.3 — run the v1.6 bridge and persist what it found.
+ *
+ * ⚠️ **The blob is written BEFORE the store is imported.** If the write fails the migration is abandoned
+ * and nothing is imported, so the next launch still sees empty storage and retries from the untouched
+ * v1.6 source. Importing first and writing second would leave a user looking at migrated data that was
+ * never persisted — which they would then edit, and lose.
+ *
+ * ⚠️ Never throws. A launch that fails because a migration failed is worse than a launch with an empty
+ * store and the source still sitting there.
+ */
+async function runLegacyBridge(adapter: StorageAdapter, store: DebtStoreInstance): Promise<void> {
+  try {
+    const { outcome, store: migrated } = await migrateFromLegacy(adapter);
+    if (!outcome.migrated || migrated === null) return;
+    await adapter.write(migrated);
+    store.getState().importStore(migrated);
+  } catch (error) {
+    reportError(error, { seam: 'legacy-bridge' });
+  }
 }
 
 /** Immediately persist any pending debounced change (wire to AppState background at B.9). */

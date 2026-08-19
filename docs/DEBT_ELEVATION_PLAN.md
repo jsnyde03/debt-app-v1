@@ -27,6 +27,14 @@ after-scan → log.
 🎯 **2026-08-19: Phase 5 is GO, and it is the FULL bridge** — v1.6 has real users with populated data, so
 the bridge is ship-blocking and the adversarial migration audit is a hard exit gate before cutover.
 
+✅ **STANDING PERMISSION, PHASE 5** *(🎯 2026-08-19: "continue through Phase 5 until you need my input.
+You have standing permission to commit, push and dispatch where needed.")* — includes **dispatching CI**.
+⚠️ **Conditional on the scans**, as every prior grant has been: each step and sub-step gets its before-scan
+(verify the premise against CURRENT code — this phase has already corrected the schema corpus, the key
+count, the lockfile claim and my own `amount` flag) and its after-scan, captured atomically with the plan
+edit. ⛔ **Still comes to Jason:** a product/content call, anything touching **5.5 / 6**, the **cutover**
+itself, and any ruling that overturns a decision he already made.
+
 ### ⛔ The switch-in before-scan corrected the pre-authored scope (2026-08-19)
 
 **Four of six premises were wrong or stale** — the same profile T1–T8 measured five consecutive times.
@@ -55,7 +63,7 @@ nothing downstream is budgeted until it answers.**
 | **5.1a** | **The WebKit `localStorage` decode** — the half provable off-device | ✅ **Done 2026-08-19.** `webkitLocalStorage.ts`: encoding sniff, table decode, and the store picked **on contents, never on path** (WebKit's layout is private and has changed twice). **36 asserts** incl. a **real `node:sqlite` round-trip** through WebKit's own `ItemTable` shape; **4 plants, 4 reds**; typecheck + lint clean |
 | **5.1b** | **[SPIKE] Prove the databases are findable and readable after a real upgrade.** Two lanes, two claims: the **mechanism** on a GH-Actions **simulator** (install v1.6 → use it → install RN over it, same bundle id, same container) — free and repeatable; the **acceptance** on 🎯's phone via one batched CodeMagic build, which is Phase 5's stated exit. Fallback if the read comes back empty: a native `WKURLSchemeHandler` + off-screen WKWebView | ▶ **ACTIVE.** ✅ **5.1b.1** the legacy build was ROTTED and is repaired · ✅ **5.1b.2** the walk — both WebKit layouts, breadth-first, **caps that REPORT** (`truncated`), **17 asserts** against a real temp tree, **4 plants / 4 reds**. ▶ **5.1b.3** — ✅ deps (`expo-sqlite` + `expo-file-system`, plugin registered) · ✅ native adapter + web split · ✅ the QA-gated `legacy-bridge-probe` readout on More, beside the other two probes. ⛔ **The source DB is COPIED before opening** — `SQLiteOpenOptions` has no read-only flag, so opening the user's own WebKit store would open it read-write. Verified: tsc clean · `lint:rn` 0 errors · **web export green with 0 occurrences of `expo-sqlite` in the bundle**. ⭐ **ANSWERED 2026-08-19, run `32271630276` GREEN — artifact `legacy-webkit-container` uploaded.** The v1.6 store is at **`Library/WebKit/<BUNDLE-ID>/WebsiteData/Default/<salt>/<salt>/LocalStorage/localstorage.sqlite3`** on **iOS 26.2** — a bundle-id segment *and* **two** salted directories, which vindicates identifying the database by CONTENTS. **22 `debtPlanner.*` keys recovered.** ⚠️ Run 1 failed on MY defects, not iOS (`inputs.*` is empty on a `push` trigger → wrong tree; nothing launched the app). ▶ Remaining: the probe job that restores the artifact |
 | **5.2** | **The legacy → RN key mapping** | ✅ **Done 2026-08-19.** `mapLegacyStore.ts`: 28 v1.6 keys → a `LegacyPartialStore`, then **delegated to the EXISTING `runMigrations`** rather than re-implementing defaults. Theme's **three-way union** handled (`true`→dark, `false`→light, `null`→default). ⛔ **Nothing is silently discarded** — every key is mapped, dropped *with a reason*, unknown, or unparseable. Quarantine carried; `rnStore` excluded. **50 asserts · 6 plants / 6 reds**, incl. a case built from the **real captured container's 22 keys** |
-| **5.3** | **The bridge** — one-shot, idempotent, **non-destructive** (legacy keys survive until the RN blob verifies), quarantine on failure, visible recovery path | |
+| **5.3** | **The bridge** | ✅ **Done 2026-08-19.** `migrateFromLegacy.ts` + wired into `bootstrapPersistence` **before** hydrate. ⭐ **Idempotence is STRUCTURAL, not a flag** — it runs only when RN storage is empty, which alone gives one-shot **and** interruption-safety **and** never-overwrites. ⛔ **Non-destructive by construction:** nothing ever writes/deletes/opens the WebKit store, so v1.6 survives even a FAILED migration. Quarantine carried **before** the store write. **32 asserts · 4 plants / 4 reds** |
 | **5.4** | **Mis-filed-obligation sweep over MIGRATED data** — wire `looksLikeDebt()` into the bridge output so v1.6's "Credit Card Payment"/"Loan Payment" bill presets surface as debts. **Largest affected population in the app** | |
 | **5.5** | **Durability: flush critical writes immediately** — a pref changed then force-quit inside 500 ms is lost today (measured, not theorised) | |
 | **5.6** | **Drop the two inert prefs** `isDemoMode` + `guardianIntroSeen`, and correct `sandboxStore.ts`'s stale claim in the same edit | |
@@ -287,6 +295,23 @@ round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is 
 ⛔ **NOTHING IS PARKED** *(🎯 2026-08-18)*. **T9–T11 are SEQUENCED, not shelved** — every remaining
 minor/polish finding is still live and gets **re-evaluated once T1–T8 lands**, because several become
 cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped*. Detail → log.
+
+**5.3's AFTER-scan (2026-08-19):**
+- ⛔ **MY PLANT HARNESS WAS BROKEN, AND EVERY "RED" IT REPORTED WAS A LIE.** `npx tsx -e "…m=>m.default()"`
+  — **bash parses `=>` as a redirect**, so the runs failed to *transform*, exited non-zero, and read as
+  verified plants. Three of 5.3's were bogus. Caught only by the doctrine added at 5.1b.2: *when a plant
+  reds, confirm it red the assertion you meant.* Redone with a real runner file — **4 plants, 4 reds, each
+  with its assertion label printed.** ⚡ The harness now also distinguishes `Transform failed` from a real
+  failure, so this cannot recur silently. → generalise into `verify-the-plant-applied`.
+- ⛔ **A second scripted `perl -0pi` edit corrupted a file** (left a duplicated fragment mid-declaration),
+  making it **two script mishaps in one day** against zero from `Edit`. The rule already exists and I
+  went around it twice; the tell both times was a `grep` whose output looked *almost* right.
+- ⚠️ **`LegacyMigrationOutcome.ran` was removed** — the test caught that it could never be usefully false,
+  because `migrateFromLegacy` does not check RN storage (the CALLER gates that). A field whose value is
+  constant reads like information and is not. Same class as L3-4's unread `isFocus`.
+- ⚠️ **The native reader is now imported LAZILY** (`await import('./readLegacyStores')`), because a static
+  import drags `expo-file-system` → `expo-sqlite` → `react-native` into the plain-Node test runner, which
+  cannot transform it. Better regardless: the native modules now load only on the path that needs them.
 
 **⛔⛔ THE WAL — a LIVE data-loss defect the real container found, and no synthetic test could (2026-08-19):**
 - **WebKit runs localStorage in WAL mode and had NOT checkpointed.** In the captured iOS 26.2 container the

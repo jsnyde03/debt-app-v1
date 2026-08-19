@@ -139,6 +139,11 @@ async function main() {
   // all and copying it alone reads ZERO keys. Every synthetic test passed while that was true.
   await import('../data/legacyBridge/realContainer.test');
 
+  // 5.3 — the bridge. Idempotence is STRUCTURAL (it runs only when RN storage is empty), and the
+  // riskiest assertion is that a TRUNCATED search is never mistaken for a fresh install — that
+  // confusion is how a migration silently skips someone's whole portfolio.
+  await (await import('../data/legacyBridge/migrateFromLegacy.test')).default();
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');
