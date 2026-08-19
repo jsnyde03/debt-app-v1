@@ -53,7 +53,7 @@ nothing downstream is budgeted until it answers.**
 | # | Step | State |
 |---|---|---|
 | **5.1a** | **The WebKit `localStorage` decode** — the half provable off-device | ✅ **Done 2026-08-19.** `webkitLocalStorage.ts`: encoding sniff, table decode, and the store picked **on contents, never on path** (WebKit's layout is private and has changed twice). **36 asserts** incl. a **real `node:sqlite` round-trip** through WebKit's own `ItemTable` shape; **4 plants, 4 reds**; typecheck + lint clean |
-| **5.1b** | **[SPIKE, device] Prove the files are findable and readable on a real upgraded phone.** ⛔ Unmeasurable on Windows — **needs a native build, so it BATCHES** with the rest of Phase 5's device-owed work. Mechanism fallback if it comes back empty: a native `WKURLSchemeHandler` + off-screen WKWebView | ▶ **ACTIVE** — author the probe |
+| **5.1b** | **[SPIKE] Prove the databases are findable and readable after a real upgrade.** Two lanes, two claims: the **mechanism** on a GH-Actions **simulator** (install v1.6 → use it → install RN over it, same bundle id, same container) — free and repeatable; the **acceptance** on 🎯's phone via one batched CodeMagic build, which is Phase 5's stated exit. Fallback if the read comes back empty: a native `WKURLSchemeHandler` + off-screen WKWebView | ▶ **ACTIVE.** ✅ **5.1b.1 done** — the legacy build was ROTTED and is repaired (below). Next: the probe module, then the CI job |
 | **5.2** | **The legacy → RN key mapping**, a pure function over the measured **31 keys** × `schemaVersion` **0/1/2**, honouring `migrateState`'s `originalBalance` backfill. Unit-tested against real v1.6 blobs | |
 | **5.3** | **The bridge** — one-shot, idempotent, **non-destructive** (legacy keys survive until the RN blob verifies), quarantine on failure, visible recovery path | |
 | **5.4** | **Mis-filed-obligation sweep over MIGRATED data** — wire `looksLikeDebt()` into the bridge output so v1.6's "Credit Card Payment"/"Loan Payment" bill presets surface as debts. **Largest affected population in the app** | |
@@ -287,6 +287,24 @@ round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is 
 ⛔ **NOTHING IS PARKED** *(🎯 2026-08-18)*. **T9–T11 are SEQUENCED, not shelved** — every remaining
 minor/polish finding is still live and gets **re-evaluated once T1–T8 lands**, because several become
 cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped*. Detail → log.
+
+**Surfaced by 5.1b.1's BEFORE-scan (2026-08-19) — the legacy build was already broken; all fixed, folded in:**
+- ✅ ⛔ **`next build` was RED, so the v1.6 Capacitor app could not be built at all** — and Phase 5's upgrade
+  probe needs it. Nothing caught it because **`validate:release:legacy` never runs `next build`**; the
+  surface has not been compiled since the RN tree landed. **7 errors, 1 real.** Root `tsconfig.json` swept
+  `apps/**` (whose `@/*` means `apps/rn/src`, not the repo root) and `scripts/**` (tsx conventions this
+  config rejects) — both now excluded. Build verified green.
+- ✅ ⚡ **The one real error was a live defect:** `ResultsSection.tsx` filtered allocations on
+  `category === "leftover"`, a member `AllocationCategory` no longer has — core split the residual into
+  `cushion_buffer` and `true_leftover`. **The filter has matched nothing, so `bufferTotal` was 0 regardless
+  of the real buffer.** Restored to the category `allocatePaycheck` actually emits. *(Legacy surface only;
+  5.5.1 deletes it — but it had to compile for the probe, and a silent 0 is a defect either way.)*
+- ⚠️ **No further gate added, deliberately:** 5.1b.3's CI job builds the legacy app, so **the probe IS the
+  gate** against this rotting again — and both die together at 5.5.1. A second check would outlive its subject.
+- ⚠️ **There is NO `v1.6` git tag** (tags are `v1.0-submitted` + `app-preview-*`), so the simulator lane's
+  legacy side is built from the current legacy tree, not from what shipped. **The mechanism proof is
+  unaffected** (key names and storage medium are unchanged); the fidelity proof is 🎯's phone, which holds
+  the genuine shipped v1.6. → stated, not worked around; **tag releases from here.**
 
 **Surfaced by 5.1a's AFTER-scan (2026-08-19) — all fold in, none deferred:**
 - ⛔ **The v1.6 QUARANTINE is itself legacy data, and the plan never named it.** `safeStorage.ts` writes

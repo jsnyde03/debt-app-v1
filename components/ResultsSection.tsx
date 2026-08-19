@@ -199,9 +199,15 @@ export function ResultsSection({
         unpaidRequiredActions.length - visibleRequiredActions.length
     );
 
+    // 5.1b — was `"leftover"`, a category `AllocationCategory` no longer has: core split the residual
+    // into `cushion_buffer` (this one) and `true_leftover`, and this file was never updated because
+    // NOTHING typechecked it (`validate:release:legacy` does not run `next build`). The filter has
+    // therefore matched nothing and `bufferTotal` has been 0 regardless of the real buffer. Restored to
+    // the category `allocatePaycheck` actually emits alongside the "Keep cash buffer" label.
     const bufferActions = result.allocations.filter(
         (item) =>
-            item.category === "leftover" && item.label === "Keep cash buffer"
+            item.category === "cushion_buffer" &&
+            item.label === "Keep cash buffer"
     );
 
     const bufferTotal = bufferActions.reduce(

@@ -31,5 +31,15 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
 , "next.config.ts"  ],
-  "exclude": ["node_modules"]
+  // ⛔ `apps` is EXCLUDED, and without it `next build` is red. This config's `@/*` means the repo ROOT,
+  // while `apps/rn`'s means `apps/rn/src` — so sweeping the RN tree in here resolves every `@/…` import
+  // against the wrong root and fails to find modules that exist. `apps/rn` has its own tsconfig and its
+  // own `typecheck`; nothing under `app/`, `components/` or `lib/` imports it (verified 5.1b).
+  // ⚠️ Found at 5.1b: the legacy Capacitor build had rotted silently, because `validate:release:legacy`
+  // never runs `next build` — so nothing in CI had compiled this surface since the RN tree landed. It is
+  // needed for exactly one more thing (Phase 5's upgrade probe) and 5.5.1 deletes it.
+  // `scripts` too: those are tsx-run gate scripts, not part of the Next app, and they use conventions
+  // this config rejects (`.ts` import extensions, which tsx allows). They were only ever compiled here
+  // by accident of the `**/*.ts` include, and nothing gates on it — `npm run typecheck` is core + rn.
+  "exclude": ["node_modules", "apps", "scripts"]
 }
