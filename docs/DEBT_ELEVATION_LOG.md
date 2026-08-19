@@ -89,6 +89,71 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## 5.8.3 + 5.8.4 — the data lands, and the copy gate forced the right fix (2026-08-19)
+
+`readBackup.ts` (router + v1.6 adapter + the confirm summary) and `BackupSheets.tsx` rewired.
+**67 asserts, 4 plants, 4 reds.** tsc clean · `lint:rn` 0 errors · `test:app` ALL PASSED.
+
+### ⭐ The headline: a real v1.6 file's data now LANDS
+
+The 5.8 before-scan measured the old path losing it — income `2100` → blank, `currentDate` → today,
+`payCycle` "surviving" only by matching a default. All of it now arrives, including `livingExpenses`,
+the field the e2e fixture omits.
+
+⛔ **The tests assert against values that DIFFER from the defaults**, deliberately. `payCycle: 'monthly'`
+and `payoffStrategy: 'avalanche'` are both non-default, so a passing assertion is evidence of *mapping*.
+Asserting a field equals the default proves nothing — that is precisely the trap that made the broken
+importer look like it worked, and a test can fall into it exactly as easily as a user can.
+
+⭐ **The adapter re-encodes into the shape `mapLegacyStore` already consumes** rather than growing a second
+translation. The WebKit door and the file door are one problem; 5.2 solved it, and the file path inherits
+its 50 asserts and its mapped/dropped/unknown/unparseable reporting for the cost of a prefix and a
+`JSON.stringify`. ✅ Verified: a healthy v1.6 file reports **zero unknown keys**.
+
+### ⛔ A recognised format is not a TRUSTED one
+
+Detection proves a blob's shape at the **top level**; `runMigrations` reaches **inside** it —
+`(r.debts ?? base.debts).map(...)`. So an envelope whose `store.debts` is a string throws a `TypeError`
+from deep in the migration rather than returning a refusal. Unwrapped, that surfaces as a crash on the one
+screen whose entire job is to be safe with a file the user found somewhere. Every path now migrates
+through one guarded helper; plant D (removing it) reds exactly those three poisoned-payload cases.
+
+### ⭐ [D31] AGAIN: `lint:copy` caught a duplicate I had just created, and the gate picked the fix
+
+Adding `"That backup couldn't be read."` to `readBackup.ts` while `BackupSheets.tsx` still had its own
+copy **red the gate**. The tempting responses were to reword mine or to baseline it; both would have kept
+two authorities for one sentence. The honest fix was the one the gate was pointing at — give the phrase a
+single owner (the reader) and delete the component's copy, which meant doing 5.8.4's wiring now.
+
+⚡ **A gate that changes the ORDER of the work is doing more than catching a defect.** This is the fourth
+time this phase a `lint:` rule found something enumeration did not.
+
+### 5.8.4 — the confirm is in-sheet, and that is a coverage decision as much as a UX one
+
+`Alert.alert` is `static alert() {}` on react-native-web — the repo already knows this, in `confirm.ts`.
+An alert-based confirm on this screen would be **invisible to the web suite**, and this surface's *zero*
+coverage is the entire explanation for how an accept-any-object importer survived an audit gate. So the
+confirm renders as real UI: the suite can drive it, and it can *show* what was found, which an alert
+cannot.
+
+⛔ **The summary counts the MIGRATED store, not the file.** If a v1.6 file's debts fail to map, it says
+"0 debts" and the user gets to stop. Counting the file's own array would report them present right up
+until they vanished — reassurance rather than information. Asserted both ways, including the empty case.
+
+### ✅ The export finally writes the envelope — and only now
+
+5.8.1's after-scan constraint is discharged: the reader shipped first, so wiring `serializeBackup` no
+longer turns the app's own export into a total-loss round trip. The comment at the call site records why
+the order was not arbitrary.
+
+### ▶ Deferred, captured
+
+**Show the backup's own date in the replace-confirm.** `exportedAt` is already in both formats; rendering
+it needs the `localDate` helper to satisfy `lint:local-dates`. The confirm is already honest about
+*contents* — the correctness half; this is the judgement half ("is this stale?"). → deferred backlog.
+
+---
+
 ## 5.8.2 — detection, and the fixture that was never a real backup (2026-08-19)
 
 `detectBackupFormat.ts` — **37 asserts, 4 plants, 4 reds.** tsc clean · `lint:rn` 0 errors · `test:app`

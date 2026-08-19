@@ -4,7 +4,8 @@ import { StyleSheet, Text, TextInput } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { FormSheet } from '@/components/ui/FormSheet';
-import { runMigrations } from '@/data/migrations';
+import { serializeBackup } from '@/data/backup';
+import { describeBackup, readBackup, type ReadBackupSuccess } from '@/data/readBackup';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
@@ -12,16 +13,22 @@ import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
 /**
- * Backup export/import. B.8 ships a text-based backup (copy/paste the JSON) — fully cross-platform
- * with zero native modules, so it's real and web-verifiable now. The premium native share-sheet
- * (expo-sharing) + document-picker file flow is a B.9 upgrade over this same store serialization.
+ * Backup export/import.
+ *
+ * The text path (copy/paste) is cross-platform with zero native modules, so it stays as the web fallback
+ * and as the thing the suite can drive. The share-sheet + file-picker flow (5.8.5) sits on top of the
+ * SAME serialization rather than beside it — `serializeBackup` writes the file, `readBackup` reads it, and
+ * neither the sheet nor the picker re-implements the shape.
  */
 
 /** Export: shows the full store as selectable JSON to copy somewhere safe. */
 export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
   const c = useAppColors();
   const store = useAppStore((s) => s.store);
-  const json = JSON.stringify(store, null, 2);
+  // ⛔ Wired to `serializeBackup` only now that `readBackup` understands the envelope (5.8.1's after-scan).
+  // Writing the new format while the importer still ran raw `JSON.parse` → `runMigrations` would have made
+  // the app's own export a total-loss round trip: measured at 1 debt → 0, income 2100 → blank.
+  const json = serializeBackup(store);
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -49,45 +56,75 @@ export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** Import: paste a previously-exported backup and restore it (migrated forward on the way in). */
+/**
+ * Import: read a backup, SHOW what is in it, and only then replace.
+ *
+ * ⛔ **The check and the replace are two separate taps, deliberately** (5.8.4). `importStore` overwrites
+ * the user's entire portfolio and nothing undoes it, and until 5.8 that fired on a single tap over a
+ * parser that accepted any JSON object at all. Reading is now `readBackup` — which refuses anything it
+ * cannot identify — and what it found is rendered before the destructive action is even offered.
+ *
+ * ⚠️ The confirm is IN-SHEET, not an `Alert`. `Alert.alert` is an empty function on react-native-web, so
+ * an alert-based confirm is invisible to the web suite — and this surface had **zero** coverage before
+ * 5.8, which is exactly how the accept-anything importer survived an audit gate. A confirm the tests can
+ * see is worth more here than one that matches the platform idiom. It also lets the summary show WHAT was
+ * found, which an alert cannot.
+ */
 export function ImportBackupSheet({ onClose }: { onClose: () => void }) {
   const c = useAppColors();
   const [text, setText] = useState('');
   const [error, setError] = useState('');
+  const [found, setFound] = useState<ReadBackupSuccess | null>(null);
 
-  function restore() {
+  function check() {
     if (!text.trim()) return setError('Paste your backup first.');
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      return setError("That doesn't look like a valid backup.");
-    }
-    try {
-      appStore.getState().importStore(runMigrations(parsed));
-      onClose();
-    } catch {
-      return setError("That backup couldn't be read.");
-    }
+    const result = readBackup(text);
+    if (!result.ok) return setError(result.message);
+    setError('');
+    setFound(result);
+  }
+
+  function replace() {
+    if (!found) return;
+    appStore.getState().importStore(found.store);
+    onClose();
+  }
+
+  if (found) {
+    return (
+      <FormSheet
+        visible
+        title="Replace your data?"
+        subtitle="This overwrites everything currently in the app. It can't be undone."
+        submitLabel="Replace my data"
+        onSubmit={replace}
+        onClose={onClose}>
+        <Text testID="backup-found-summary" style={[textStyles.body, { color: c.text.primary }]}>
+          {describeBackup(found)}
+        </Text>
+        <Button label="Choose a different backup" variant="secondary" testID="backup-back" onPress={() => setFound(null)} />
+      </FormSheet>
+    );
   }
 
   return (
     <FormSheet
       visible
       title="Import backup"
-      subtitle="Paste a backup you exported before. This replaces your current data."
-      submitLabel="Restore backup"
-      onSubmit={restore}
+      subtitle="Paste a backup you saved before. You'll see what's in it before anything changes."
+      submitLabel="Check backup"
+      onSubmit={check}
       onClose={onClose}>
       <TextInput
+        testID="backup-import-input"
         value={text}
         onChangeText={(t) => { setText(t); setError(''); }}
-        placeholder="Paste your backup JSON here"
+        placeholder="Paste your backup here"
         placeholderTextColor={c.text.tertiary}
         multiline
         style={[styles.code, { color: c.text.primary, backgroundColor: c.background.secondary, borderColor: error ? c.accent.danger : c.border.default }]}
       />
-      {error ? <Text style={[textStyles.caption, { color: c.accent.danger }]}>{error}</Text> : null}
+      {error ? <Text testID="backup-import-error" style={[textStyles.caption, { color: c.accent.danger }]}>{error}</Text> : null}
     </FormSheet>
   );
 }

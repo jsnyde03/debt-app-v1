@@ -113,8 +113,8 @@ re-encoding adapter — small, and it inherits 5.2's 50 asserts + the drop/unkno
 |---|---|
 | **5.8.1** | ✅ **Done 2026-08-19.** `data/backup.ts` — a versioned, app-marked envelope with the store **NESTED** (spreading would let a future store field silently outrank an envelope field). `parseBackup` never throws; four tagged refusals (`not-json` · `not-a-backup` · `too-new` · `malformed`). ⛔ **Forward-incompatible backups are REFUSED, not downgraded** — `runMigrations` only moves forward, so a future store would restore *looking* successful, and the version can't be smuggled past by deleting the envelope's copy. **61 asserts · 4 plants / 4 reds**, each on its intended assertion. tsc + lint clean, `test:app` green |
 | **5.8.2** | ✅ **Done 2026-08-19.** `detectBackupFormat.ts` — classification only, the router lands with 5.8.3 so no build ever *recognises* a format it cannot handle. All three are **self-identifying**; ⛔ everything else is `unrecognised`. The near-miss set is the real work: a bare `version`, the v1.6 marker pair with no v1.6 data, Freedom's envelope, and **every partial v1.7 store** are all refused, and the v1.6/v1.7 branches are **disjoint rather than order-dependent**. **37 asserts · 4 plants / 4 reds** |
-| **5.8.3** | **The v1.6 adapter + the ROUTER.** Flat object → prefixed/encoded map → `mapLegacyStore`. ⛔ Corpus built from **`buildBackupData()`**, not from `tests/e2e/fixtures/backup-import.json` — that fixture is a hand-made subset missing 6 real fields (incl. `livingExpenses`) and is **correctly `unrecognised`** by 5.8.2. Rescue it as one extra case before **5.5.1** deletes it. ⚠️ **The router parses ONCE** and passes the parsed value down — 5.8.2's `detectBackupText` and `parseBackup` each parse, and three parses of a user's file is two too many |
-| **5.8.4** | **Import UX: confirm before replace**, reporting what was recognised and what was dropped — `importStore` is destructive and currently fires on a single tap |
+| **5.8.3** | ✅ **Done 2026-08-19.** `readBackup.ts` — the router (parses **once**) + the v1.6 file adapter, which re-encodes the flat file into the key/JSON-string shape **`mapLegacyStore` already consumes** rather than growing a second translation. ⭐ **The headline: a real v1.6 file's data now LANDS** — income `2100` (was blank), `currentDate` (was today), `livingExpenses`, and `payCycle`/`payoffStrategy` asserted against **non-default** values so "it matches" is evidence of mapping, not of a default. ⛔ **A recognised format is not a trusted one** — every path is wrapped, because detection proves the top level while `runMigrations` reaches inside. Fixture rescued to `__fixtures__/v16-backup-file-subset.json`. **67 asserts · 4 plants / 4 reds** |
+| **5.8.4** | ✅ **Done 2026-08-19.** Check and replace are **two taps**: `readBackup` → a rendered summary of what will actually land → the destructive action. ⚠️ **The confirm is IN-SHEET, not an `Alert`** — `Alert.alert` is an empty function on react-native-web, so an alert-based confirm is invisible to the suite, and this surface's zero coverage is *how the defect survived an audit gate*. ⭐ The summary counts the **MIGRATED store, not the file**: if a v1.6 file's debts fail to map it says "0 debts" and the user can stop. Export now writes the envelope — **safe only because the reader shipped first** |
 | **5.8.5** | **The file picker** (`expo-document-picker`) + **share-sheet export** (`expo-sharing` + `expo-file-system`, both already deps), behind the platform split so web keeps the paste path |
 | **5.8.6** | **Gates:** plant-verified both directions · e2e over all three formats + a refusal · ⭐ **[D31]** — a `lint:` rule if the class admits one |
 
@@ -373,6 +373,12 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
 
 ## Deferred backlog
 
+- ⚠️ **Show the backup's own date in the replace-confirm** *(5.8.4 after-scan, 2026-08-19)*. The summary
+  says *what* is in the file but not *when* it was saved, and "am I about to overwrite three months of
+  work with something stale" is the question a destructive confirm should answer. The envelope already
+  carries `exportedAt` and a v1.6 file carries it too, so the data is there — it needs the `localDate`
+  helper to render without tripping `lint:local-dates`. **Deferred, not dropped:** the confirm is already
+  honest about *contents*, which is the correctness half; this is the judgement half.
 - ⚠️ **Retire `raw-v17` import acceptance after the 5.11 cutover** *(5.8.2 after-scan, 2026-08-19)*. It is
   the **weakest of the three markers** — `storeVersion` + `paycheck` + `debts` and no format id — and it
   exists only because the pre-5.8 clipboard export has no envelope. ⚡ **The RN app has never shipped**, so

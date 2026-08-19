@@ -153,6 +153,10 @@ async function main() {
   // refused. ⛔ The asymmetry is the design: a false negative annoys, a false positive destroys.
   await import('../data/detectBackupFormat.test');
 
+  // 5.8.3 — the import router + the v1.6 file adapter. ⭐ The headline is that a REAL v1.6 backup's income
+  // and dates now LAND; the pre-5.8 path blanked them while looking like it had worked.
+  await import('../data/readBackup.test');
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');

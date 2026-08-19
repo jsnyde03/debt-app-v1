@@ -110,7 +110,14 @@ export function parseBackup(raw: string): BackupParseResult {
   } catch {
     return { ok: false, reason: 'not-json', message: NOT_JSON };
   }
+  return parseBackupValue(parsed);
+}
 
+/**
+ * The same check over an ALREADY-parsed value. 5.8.3's router detects and reads in one pass, and chaining
+ * the string-in functions would `JSON.parse` a user's file three times over. `parseBackup` is the wrapper.
+ */
+export function parseBackupValue(parsed: unknown): BackupParseResult {
   if (!isBackupEnvelope(parsed)) {
     return { ok: false, reason: 'not-a-backup', message: NOT_A_BACKUP };
   }
