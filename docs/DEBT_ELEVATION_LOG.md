@@ -89,6 +89,55 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## 5.10 scoping — the audit's own scope had drifted, and 🎯 caught it (2026-08-19)
+
+I proposed a 5.10 corpus covering *"zero/negative money, malformed and boundary dates, huge portfolios."*
+🎯 asked whether we were auditing what should be audited *now*, given Phase 6 already carries an audit
+gate. Checking it: **those three axes are Phase 6's money lens, verbatim** —
+
+> boundary inputs across the engine: zero/negative income · date-boundary/leap-year/timezone · rounding
+> drift · month-vs-cycle stepping · cross-cadence BNPL · **huge/partial portfolios**
+
+— and the broad *"fan out and find gaps or upgrades"* purpose 🎯 described as 5.10's original intent is
+Phase 6's **FINISH sweep**, which absorbed T12 on **2026-08-18** with the explicit reasoning that *polish
+decided against a moving app gets decided twice.*
+
+⚡ **5.10's scope drifted the same way every pre-authored item in this phase has, and I did not catch it in
+the before-scan.** It was written before Phase 6 absorbed its broad half, and nobody updated it. The
+switch-in rule exists precisely for this and I applied it to the *code* premises while taking the *scope*
+premise at face value. **A pre-authored item's scope is a hypothesis too, not just its technical claims.**
+
+### ⚠️ And I overstated the urgency, then corrected it
+
+I argued 5.10 was urgent because migration is irreversible. **It is not.** 5.3 made the bridge
+non-destructive by construction — nothing ever writes to or deletes the WebKit store — so v1.6's data
+survives even a failed migration, and a later release could re-run it. Said plainly rather than quietly
+dropped, because the argument was load-bearing in a recommendation 🎯 was weighing.
+
+The reasons that DO survive: 5.11 is defined as *"proven on a real populated upgraded device"* and that
+proof is empty without knowing what the migration does to hostile data; everything downstream is built on
+the migrated app; and the v1.6 tree is in the working directory only until 5.5.1, so deriving the corpus
+now is dramatically cheaper than re-deriving it from `origin/v1.6-dev` in Phase 6.
+
+### ✅ The three decisions, settled together
+
+1. **5.10 narrows** to one question — *can the migration lose or corrupt data across the four doors* —
+   keeping the invariants, differential oracles, interruption and quarantine.
+2. **The boundary/money/perf axes go to Phase 6's money lens**, where they already live.
+3. **The FINISH sweep's charter widens to structural gaps**, so 5.10's original fan-out intent has an
+   owner. ⚠️ Named explicitly because polish and gaps behave differently at a freeze: polish is cheap
+   there by design, a structural gap is a build. **Anything structural it finds is a scope call for 🎯**,
+   never an automatic fix — otherwise the sweep expands the freeze it exists to protect.
+
+⭐ **The method decision that keeps it comprehensive without being expensive:** assert **invariants over a
+GENERATED corpus** rather than expected values over an enumerated one. Token cost is O(7) in the number of
+properties; coverage is O(N) in the number of cases. Plus **differential oracles** — the WebKit door and
+the file door translate the same data, so they can be pinned to each other with no expected values
+authored at all. ⛔ **Agents generate INPUTS, not findings**, because an input the harness judges cannot be
+wrong in the expensive way, and 3 of 4 agent-declared blockers did not survive refutation.
+
+---
+
 ## 5.8.7 — the app icon was never configured, and nothing could have told us (2026-08-19)
 
 🎯 asked, mid-item, that the app icon be preserved before 5.5.1 deletes the legacy tree. Measuring it

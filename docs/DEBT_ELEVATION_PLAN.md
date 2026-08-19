@@ -71,7 +71,7 @@ nothing downstream is budgeted until it answers.**
 | **5.7** | ~~E2EE iCloud backup~~ | ⛔ **MOVED OUT OF PHASE 5 — 🎯 2026-08-19.** ⚠️ **Still ships in v1.7** ("*okay with moving it out of Phase 5 with the knowledge that it does need to still be folded into 1.7*") → **Phase 6**. Its title was refuted on measurement: **not E2EE, not a port** — see the block below |
 | **5.8** | **File-based backup** — was *"replace the paste-JSON import with a file picker"* | ▶ **ACTIVE**, decomposed below. ⛔ **The before-scan DOUBLED it:** import accepts **any JSON object** and replaces the user's data (measured), and **v1.6 backup files exist in the wild** that it half-destroys silently. **5.8.1–5.8.4 are the ship-blocker**; the picker is 5.8.5 |
 | **5.9** | ~~Regenerate `apps/rn/package-lock.json`~~ | ⛔ **REFUTED 2026-08-19, measured.** `npm ci --dry-run` exits **0** on the committed baseline in **both** `apps/rn` and root — the lockfile was already in sync. The claim in the backlog *and* the comments in `web-e2e.yml` / `embed-pages.yml` (*"`npm ci` works at the root and NOT in apps/rn, ~12 missing transitive entries"*) are **stale**. ▶ Residual: the lanes still install with `npm install`; switching them to `npm ci` is a real but SEPARATE improvement needing a CI run to confirm on Linux — **not** assumed from a Windows measurement |
-| **5.10** | **[AUDIT GATE] Adversarial migration/upgrade audit — the EXIT gate, no cutover until green.** ⚠️ Corrected corpus: `schemaVersion` **0/1/2** × partial / corrupt / empty / huge portfolios × malformed dates & numbers × mid-migration interruption | |
+| **5.10** | **[AUDIT GATE] Adversarial migration audit — the exit gate for the CUTOVER, not for the launch.** ⛔ **NARROWED 2026-08-19 (🎯)** to one question: *can the migration lose or corrupt data?* Decomposed below | ▶ **ACTIVE** |
 | **5.11** | **Cutover** — the RN app becomes the shipping app, proven on a **real populated upgraded device** | |
 
 **Exit:** 5.1–5.11 closed (**5.7 → Phase 6**, **5.9 refuted**), **5.10 green**, full gate green, a real populated v1.6 device upgraded with zero
@@ -83,73 +83,48 @@ decisions ride with it — **[a]** mechanism, **[b]** the replacement for *"neve
 which is **owed either way** since encryption changes *who can read it*, not *whether it left*.
 Full evidence + my own bad argument → **log, `5.7 — the before-scan refuted the step's own TITLE`**.
 
-### ▶ 5.8 — file-based backup. ⛔ The before-scan found a LIVE DATA-LOSS DEFECT and doubled the scope
+✅ **5.8 CLOSED 2026-08-19** — envelope · detection · router + v1.6 adapter · confirm-before-replace · the
+file doors · first-ever e2e · the icon. Per-step detail is in the rows above; full narrative → log.
 
-**Premises checked (2026-08-19):** ✅ `BackupSheets.tsx` 106 lines, clipboard-only · ⛔ *"`expo-sharing` is
-a dep, document-picker is not"* is now **half stale** — **`expo-file-system` IS a dep** (5.1b.3 added it),
-so the **export half needs no new dependency**; only import needs `expo-document-picker` · ⛔ *"over the
-same serialization"* — **there IS no serialization function.** Export is inline `JSON.stringify(store)`:
-no format marker, no version, no app name.
+### ▶ 5.10 — the adversarial migration audit. ⛔ NARROWED, because Phase 6 already owns the other half
 
-⛔ **MEASURED — import accepts ANY JSON object and REPLACES the user's data.** `runMigrations` rejects only
-non-objects; `{}`, a `package.json`, and another app's export were all **ACCEPTED** → a near-default store,
-straight into `importStore`. Today only the friction of *pasting text* limits it. **5.8's file picker
-removes exactly that friction.**
+🎯 **2026-08-19: gaps get caught at the FREEZE, not now.** The scope as written duplicated a later gate —
+*"zero/negative income · date-boundary/leap-year/timezone · huge/partial portfolios"* is **Phase 6's money
+lens, verbatim**, and the broad *"fan out for gaps and upgrades"* intent is Phase 6's **FINISH sweep**,
+which absorbed T12 on 2026-08-18 with the reasoning that *polish decided against a moving app gets decided
+twice.* The app is still moving through 5.11 and 5.5. ⚡ **5.10's own scope drifted exactly the way every
+pre-authored item in this phase has** — it was written before Phase 6 absorbed its broad half, and nobody
+updated it.
 
-⛔ **WORSE — v1.6 already HAD file backup, so 5.8 is a PARITY REGRESSION, and the files are in the wild.**
-`origin/v1.6-dev:lib/storage/backup.ts` ships `downloadBackup` (share sheet) + `readBackupFile`. Those
-`debt-planner-backup-<date>.json` files are a **flat v1.6 shape**, and running the committed real fixture
-through v1.7's importer **silently half-destroys it**: income **$2,100 → blank** (stranded top-level;
-`paycheck.*` never populated) · `currentDate` **2026-05-23 → today** · **6 stray keys** carried in · and
-`payCycle` *"survives"* **only by coinciding with the default** — a `monthly` user would silently become
-biweekly. **It looks plausible enough not to be noticed**, and the real store is already overwritten.
+⚠️ **Correcting my own overstatement:** I argued urgency from irreversibility. **5.3 made the bridge
+non-destructive by construction** — nothing ever writes to or deletes the WebKit store — so v1.6 data
+survives even a FAILED migration, and a later release could re-run it. It is **not** a one-way door.
 
-⭐ **The fix mostly EXISTS: 5.2's `mapLegacyStore` maps the same key names** (`amount` · `payCycle` ·
-`currentDate` · `debts` · `requiredExpenses` · `goals` · `payoffStrategy`). ⚠️ It takes
-`Record<string, string>` of **`debtPlanner.`-prefixed, JSON-encoded** values, so a backup file needs a
-re-encoding adapter — small, and it inherits 5.2's 50 asserts + the drop/unknown/unparseable reporting.
+▶ **What actually can't move:** 5.11 is defined as *"proven on a real populated upgraded device"*, and that
+proof is empty without knowing what the migration does to hostile data · everything downstream is built on
+the migrated app · and the v1.6 tree is in the working directory only until **5.5.1**, so the corpus is
+dramatically cheaper to derive now than from `origin/v1.6-dev` later.
+
+**The four doors data enters through** — measured, not assumed:
+`store.ts:248` hydrate · `migrateFromLegacy.ts:109` the WebKit door · `readBackup.ts:146` the import door
+(×3 formats) · `store.ts:687` `importStore` re-migrating whatever it is handed.
 
 | # | Sub-step |
 |---|---|
-| **5.8.1** | ✅ **Done 2026-08-19.** `data/backup.ts` — a versioned, app-marked envelope with the store **NESTED** (spreading would let a future store field silently outrank an envelope field). `parseBackup` never throws; four tagged refusals (`not-json` · `not-a-backup` · `too-new` · `malformed`). ⛔ **Forward-incompatible backups are REFUSED, not downgraded** — `runMigrations` only moves forward, so a future store would restore *looking* successful, and the version can't be smuggled past by deleting the envelope's copy. **61 asserts · 4 plants / 4 reds**, each on its intended assertion. tsc + lint clean, `test:app` green |
-| **5.8.2** | ✅ **Done 2026-08-19.** `detectBackupFormat.ts` — classification only, the router lands with 5.8.3 so no build ever *recognises* a format it cannot handle. All three are **self-identifying**; ⛔ everything else is `unrecognised`. The near-miss set is the real work: a bare `version`, the v1.6 marker pair with no v1.6 data, Freedom's envelope, and **every partial v1.7 store** are all refused, and the v1.6/v1.7 branches are **disjoint rather than order-dependent**. **37 asserts · 4 plants / 4 reds** |
-| **5.8.3** | ✅ **Done 2026-08-19.** `readBackup.ts` — the router (parses **once**) + the v1.6 file adapter, which re-encodes the flat file into the key/JSON-string shape **`mapLegacyStore` already consumes** rather than growing a second translation. ⭐ **The headline: a real v1.6 file's data now LANDS** — income `2100` (was blank), `currentDate` (was today), `livingExpenses`, and `payCycle`/`payoffStrategy` asserted against **non-default** values so "it matches" is evidence of mapping, not of a default. ⛔ **A recognised format is not a trusted one** — every path is wrapped, because detection proves the top level while `runMigrations` reaches inside. Fixture rescued to `__fixtures__/v16-backup-file-subset.json`. **67 asserts · 4 plants / 4 reds** |
-| **5.8.4** | ✅ **Done 2026-08-19.** Check and replace are **two taps**: `readBackup` → a rendered summary of what will actually land → the destructive action. ⚠️ **The confirm is IN-SHEET, not an `Alert`** — `Alert.alert` is an empty function on react-native-web, so an alert-based confirm is invisible to the suite, and this surface's zero coverage is *how the defect survived an audit gate*. ⭐ The summary counts the **MIGRATED store, not the file**: if a v1.6 file's debts fail to map it says "0 debts" and the user can stop. Export now writes the envelope — **safe only because the reader shipped first** |
-| **5.8.5** | ✅ **Built 2026-08-19, device-verification OWED.** `backupFile.ts` + `.web.ts` — share-sheet out, document-picker in, behind the platform split. ⭐ **Verified: 0 occurrences of `expo-document-picker` in the web bundle.** The file layer moves bytes and **does not know the format** — one reader for both doors, so the picker can never become a second importer. Cache-only, overwrite-not-append, cancel is silent. ⛔ **Two premises corrected while building:** SDK 56's `expo-file-system` has **no `cacheDirectory`/`writeAsStringAsync`** (it is the `File`/`Paths` API), and `backupFilename` had to move OUT of the platform-split file — the web half re-exporting it would drag the native modules into the web bundle. ⚠️ **Owed: a real device run** — nothing here is verifiable off-device |
-| **5.8.6** | ✅ **Done 2026-08-19.** ⭐ **`backup.spec.ts` — the FIRST e2e this surface has ever had (9 tests)**, aimed at the DESTRUCTIVE direction: four foreign payloads refused with the portfolio intact · **checking is not replacing** · a v1.6 restore whose income lands · the app's own round trip · a too-new refusal · no dead file buttons on web. ⛔ **Plant E** (restore accept-anything) reds 3 of 4 refusals — prose correctly still passes, failing at the JSON guard. ⛔ **Plant F exposed a WEAK TEST**: it red on the summary's *visibility* (the re-render closes the sheet) while the store assertion never ran — reordered so the plant reds the assertion it claims to make. ⭐ **[D31] `lint:destructive`** — an **allow-list** of `importStore` callers with a reason each, reding both on an unsanctioned caller and on a stale entry. e2e **196 → 205**, lane **83 → 87** |
-| **5.8.7** | ⛔ **THE APP ICON WAS NOT CONFIGURED AT ALL** *(🎯 caught it, 2026-08-19)*. `app.json` had **no `icon` key**, and the only 1024px icon lived in the root tree **5.5.1 deletes**. CI runs `expo prebuild`, which generates the iOS project from `app.json` alone — so **every build to date carried Expo's default icon**, and the real one was one commit from being gone. ✅ Copied to `apps/rn/assets/icon.png`, declared, and **gated by 4 new lane checks** (key present · file present · 1024² · **no alpha**, which ASC rejects outright). ⚠️ Icon render itself is device-owed |
+| **5.10.1** | **The corpus GENERATOR** — combinatorial, not hand-enumerated (*the site-lists-undercount law applies to corpora too*). Axes: door × source version (v1.6 `schemaVersion` 0/1/2 **and** v1.7 `storeVersion` 1–7 — two independent axes; the old scope named one) × damage (absent · `null` · wrong type · empty-for-object · unknown extras · duplicate ids · `NaN`/`Infinity` · unparseable dates · unicode/long strings · truncated JSON) |
+| **5.10.2** | **The INVARIANTS** — asserted on every generated case, so token cost is O(7) and coverage is O(N): never throws · nothing silently dropped (mapped \| dropped-with-reason \| unknown \| unparseable accounts for 100%) · money and dates keep their type · output always at `CURRENT_STORE_VERSION` · the source is never mutated · a refusal leaves ZERO partial state · idempotent |
+| **5.10.3** | **DIFFERENTIAL oracles — no expected values to author at all.** The WebKit door and the file door translate the SAME v1.6 data → must agree. Export→import → identity. `runMigrations` twice = once |
+| **5.10.4** | **Interruption + quarantine** — death between the quarantine carry and the store write; and whether the quarantined bytes survive when the quarantine write itself fails (`migrateFromLegacy` deliberately swallows that) |
+| **5.10.5** | **Agents as INPUT generators only** *(3–4, no sub-agents, bounded output)* — hostile v1.6 blobs and a completeness critic. ⛔ **Not finding-declarers**: 3 of 4 agent-declared blockers did not survive refutation, and an input the harness judges cannot be wrong in the expensive way |
+| **5.10.6** | **Report by CLASS, then GATE it** — N failures collapse to *k* invariant violations; whatever survives lands in `test:app` so 5.10 never needs re-running ([D31]) |
 
-⚠️ **5.8.1–5.8.4 are the ship-blocker; 5.8.5 is the feature the step was named for.** Order is deliberate:
-building the picker first would ship the defect wider.
+⛔ **Explicitly OUT of scope**, so it cannot sprawl: anything already pinned by 5.2 / 5.3 / 5.8 (168+ asserts
+with plants) · UI and rendering · boundary money values, leap-year/timezone arithmetic and huge portfolios
+→ **Phase 6's money lens, where they already live** · whether a user can *retrieve* quarantined bytes →
+**a product question, 🎯's**.
 
-⭐ **5.8.2's before-scan — v1.6 backups carry their OWN marker, so detection is not sniffing.**
-`origin/v1.6-dev`'s `buildBackupData()` emits **`version: 1` + `exportedAt`**, and `git log -S` shows the
-field has been there since the function was introduced and never changed — so **every v1.6 backup ever
-produced is self-identifying.** Detection keys on a marker in all three cases, not on guessing at a field
-soup. ⚡ Asymmetry that sets the bar: a false NEGATIVE annoys the user and their data survives; a false
-POSITIVE **destroys the portfolio**. When ambiguous, refuse.
-
-⛔ **And the e2e fixture is NOT a real v1.6 backup** — it is a hand-made subset, missing **6 of the real
-fields**: `version` · `exportedAt` · `nextPaycheckDate` · `livingExpenses` · `lastSavedAt` · `cycleHistory`.
-⚠️ **`livingExpenses` is real user data** (3.8's whole subject). Pinning 5.8.3 against this fixture would
-pin it against a shape **no user has** — this repo's own *"a fixture chosen for convenience decides which
-defects a guard can see"* (`route-smoke.spec.ts`), again. → **5.8.3 builds its corpus from
-`buildBackupData()`, and rescues the fixture only as one extra case.**
-✅ Verified viable: `mapLegacyStore` already maps **all four** of the missing *data* fields; only the two
-**file-metadata** fields need dropping-with-a-reason.
-
-⛔⛔ **5.8.1's after-scan — HARD ORDERING CONSTRAINT, measured: do NOT wire the export to
-`serializeBackup` until 5.8.2's detection ships.** Today's importer is `JSON.parse` → `runMigrations` →
-`importStore`, and an envelope **is** an object, so it is **ACCEPTED**: a real portfolio exported and
-immediately re-imported came back **0 debts, blank income**. ⚡ **Half-applied, this fix is worse than the
-defect it replaces** — it would turn the app's own export into a total-loss round trip. The envelope is
-inert until the reader understands it, and that is the correct order.
-
-⛔ **5.8.1's before-scan: this surface has NEVER had RN coverage.** **39 RN e2e specs, zero** touch backup —
-the only backup e2e in the repo is `tests/e2e/planner-hardening.spec.ts`, on the **legacy** surface, and
-**5.5.1 deletes it along with the fixture.** So 5.8.6 is not "add a spec", it is *first* coverage, and the
-existing coverage is about to go to zero without it. ⚡ **That is the whole explanation for the defect** —
-an accept-any-object importer survived an audit gate because nothing in the RN suite ever imported anything.
+**Exit:** every invariant holds across the generated corpus, the differential oracles agree, and the
+surviving corpus is in `test:app`.
 
 **Owed before launch, carried out of the audit gate:**
 | | |
@@ -313,6 +288,14 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
   to say *"this paycheck you're $180 short"* already exist. Every screen ·
   sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. Complements, not replaces,
   the audit gate above.
+  ⭐ **CHARTER WIDENED 2026-08-19 (🎯): it judges STRUCTURAL GAPS as well as polish — *"is anything
+  missing"*, not only *"is anything wrong"*.** This is where **5.10's original fan-out intent now lives**;
+  5.10 was narrowed to migration-correctness on the reasoning that *gaps get caught at the freeze*, when
+  the thing being audited is the thing that ships. ⚠️ **Named because the two behave differently here:**
+  polish is cheap against a frozen app — that is the whole design — while a structural gap (a missing
+  screen, a field the model does not carry, a flow needing a store change) is a **build**, not a tweak.
+  ⛔ **So anything structural it finds is a SCOPE CALL for 🎯** — build in v1.7 vs defer to 1.8 — never an
+  automatic fix, or the sweep silently expands the freeze it exists to protect.
 - **⛔ 6.C — Cloud backup (was 5.7), moved out of Phase 5 2026-08-19 · SHIPS IN v1.7 🎯 · NOT premium-gated.**
   Two coupled **[DECISION]**s first, and they gate the privacy audit below rather than being discovered by
   it: **[a]** plaintext-in-Apple-private-container (Freedom's *actual* design) vs. a real passphrase-AES
