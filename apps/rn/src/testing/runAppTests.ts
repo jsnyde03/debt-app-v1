@@ -165,6 +165,11 @@ async function main() {
   // never been tested against an actual interruption.
   await (await import('../data/migrationAudit/interruption.test')).default();
 
+  // 5.10.5 — hostile v1.6 states the combinatorial generator cannot produce (multi-field interactions,
+  // structurally different plausible users, v1.6-only historical shapes). Agent-GENERATED inputs, judged
+  // by the same invariants — an input the harness judges cannot be wrong the expensive way.
+  await (await import('../data/migrationAudit/hostile.test')).default();
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');

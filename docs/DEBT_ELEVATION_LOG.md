@@ -89,6 +89,47 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## 5.10.5 — the agent bought CONFIRMATION, not discovery, and that is the honest result (2026-08-19)
+
+**29 agent-generated hostile v1.6 states × 2 doors × 8 invariants. Zero violations. Zero drift.**
+
+### The design held: inputs, never findings
+
+The agent was asked for exactly what `corpus.ts` structurally cannot reach — **multi-field interactions**
+(a debt both paid off and flagged autopay-failed), **structurally different plausible users**
+(mid-onboarding, weekly pay, a fourteen-month history, BNPL-heavy, a post-reset user), and **v1.6-only
+historical shapes** (a pre-v1.5 debt with no `originalBalance`, `isPaidThisCycle` without the later split
+flags, `recommendedThisCycle`-only history). It was pointed at `origin/v1.6-dev`'s own `buildBackupData()`
+and the flows that write each key, so the shapes are grounded rather than invented.
+
+⭐ **It could not be wrong in the expensive way.** This project measured 3 of 4 agent-declared blockers
+failing refutation; an input the harness judges has a worst case of *proving nothing*, not of sending
+someone chasing a defect that was never there. That is the whole reason the role was inverted.
+
+### ⚠️ And it found nothing — which is a result, not a disappointment
+
+All 29 pass. **~107k subagent tokens bought confirmation that the three defects were the real set**, not a
+fourth defect. Worth stating plainly rather than dressed up: had the bar been set by hope rather than by
+what the invariants had already proven, this would read as a wasted round. It is instead the check that
+lets 5.10 close on evidence rather than on having stopped looking.
+
+⚡ **The generalisable bit:** by the time the deterministic instrument has found everything it can, the
+marginal agent's job is corroboration, and corroboration is worth buying exactly once. The 5.10.5 bar was
+raised *before* spending, on the grounds that the invariants had found all three unaided — and the outcome
+justified raising it rather than the reverse.
+
+⛔ **The completeness critic was dropped** *(🎯 2026-08-19: "We will run completeness checks across the
+whole app in Phase 6 so I'm fine with dropping it here")* — the same reasoning that narrowed 5.10 in the
+first place, applied one level down.
+
+### ✅ 5.10 CLOSED
+
+**511 cases** (482 generated + 29 hostile) **× 2 real doors × 8 invariants + the differential oracle +
+interruption/quarantine**, all gating in `test:app`. **Three real defects found and fixed**, every one of
+them a failure that rendered as an ordinary state.
+
+---
+
 ## 5.10.4 — interruption, and a third finding of the same shape as the first two (2026-08-19)
 
 **13 asserts, plant-verified.** The bridge's headline claim — *idempotence is structural, which gives

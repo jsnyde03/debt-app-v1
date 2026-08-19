@@ -1,0 +1,2231 @@
+[
+  {
+    "id": "autopay-failed-and-marked-paid-contradiction",
+    "why": "isPaidThisCycle:true and autopayFailedThisCycle:true set TOGETHER on the same debt and the same expense — two individually-valid flags whose combination the real UI never writes (bulkMarkRequiredPaid and applyRequiredReconciliation always clear autopayFailedThisCycle in the same call that sets paid). Single-field damage only ever flips one flag at a time, so it can never produce two flags moving into contradiction together.",
+    "reachable": "A user manually confirmed a bill paid after it had already been flagged as a failed autopay earlier in the cycle, and an interrupted write (app backgrounded mid-setState, or two nearly-simultaneous taps) persisted isPaidThisCycle without the paired autopayFailedThisCycle:false that the same code path is supposed to write atomically.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "Electric",
+          "amount": 140,
+          "dueDate": "2026-05-20",
+          "originalDueDate": "2026-05-20",
+          "recurrence": "monthly",
+          "category": "utilities",
+          "isAutopay": true,
+          "isPaidThisCycle": true,
+          "autopayFailedThisCycle": true
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Visa",
+          "balance": 1200,
+          "originalBalance": 1800,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-05-18",
+          "originalDueDate": "2026-05-18",
+          "type": "debt",
+          "recurrence": "monthly",
+          "isAutopay": true,
+          "isPaidThisCycle": true,
+          "minimumPaidThisCycle": true,
+          "autopayFailedThisCycle": true
+        }
+      ],
+      "goals": [
+        {
+          "id": "g1",
+          "name": "Emergency fund",
+          "targetAmount": 1000,
+          "currentAmount": 250,
+          "type": "emergency"
+        }
+      ],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "duplicate-id-across-debts-and-expenses",
+    "why": "The SAME id string ('shared-1') is used by an entry in debts[] and an entry in requiredExpenses[]. My generator's duplicateIds case only ever duplicates an id WITHIN one array; it has no path to a collision that spans two different top-level arrays, which is a distinct hazard for any id-keyed lookup (e.g. selection sets, completed-action targetId matching) that assumes ids are unique across the whole dataset rather than per-array.",
+    "reachable": "Two independently-generated crypto.randomUUID() values colliding is not realistic, but a hand-merged restore is: a user exported two backups on two devices, used a text editor / spreadsheet to manually splice a debt row from one file into the requiredExpenses array of the other (a support-suggested workaround for 'my two devices have different data'), and pasted the id along with it without changing it.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        {
+          "id": "shared-1",
+          "name": "Rent",
+          "amount": 1200,
+          "dueDate": "2026-06-01",
+          "recurrence": "monthly",
+          "category": "housing"
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "shared-1",
+          "name": "Visa",
+          "balance": 1200,
+          "originalBalance": 1800,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-06-09",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        }
+      ],
+      "goals": [
+        {
+          "id": "g1",
+          "name": "Emergency fund",
+          "targetAmount": 1000,
+          "currentAmount": 250,
+          "type": "emergency"
+        }
+      ],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "completed-action-orphaned-target-id",
+    "why": "completedRecommendedActions[0].targetId ('deleted-debt-99') matches no id in debts[] or goals[]. This is a dangling foreign-key state across TWO different top-level arrays at once; single-field damage on one key can corrupt an array in isolation but cannot leave one array internally valid while a SEPARATE array's reference into it goes stale.",
+    "reachable": "The user made a snowball payment toward a debt (recorded in completedRecommendedActions with that debt's id as targetId), then deleted the debt outright from the Debts tab before the cycle rolled over. Nothing in the delete-debt path prunes completedRecommendedActions, so the historical action survives referencing an id that no longer resolves.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "Rent",
+          "amount": 1200,
+          "dueDate": "2026-06-01",
+          "recurrence": "monthly",
+          "category": "housing"
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Visa",
+          "balance": 1200,
+          "originalBalance": 1800,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-06-09",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        }
+      ],
+      "goals": [
+        {
+          "id": "g1",
+          "name": "Emergency fund",
+          "targetAmount": 1000,
+          "currentAmount": 250,
+          "type": "emergency"
+        }
+      ],
+      "completedRecommendedActions": [
+        {
+          "targetId": "deleted-debt-99",
+          "label": "Old Store Card",
+          "category": "snowball",
+          "recommendedAmount": 50,
+          "actualAmount": 50,
+          "paymentSource": "paycheck"
+        }
+      ],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "goal-overfunded-with-negative-original",
+    "why": "currentAmount (1450) exceeds targetAmount (1000) AND originalCurrentAmount is negative (-200) on the same goal record. My generator's damage functions never reach originalCurrentAmount at all (it isn't in the nested field list), and even the fields it does reach are damaged one at a time — never two fields on one goal moving together into a combination that is only suspicious in combination (an over-funded goal is fine alone; a negative baseline is fine alone; together they imply a corrupted delta).",
+    "reachable": "Goals aren't capped at target in the UI, so a windfall contribution (tax refund, bonus) can push currentAmount past targetAmount legitimately. originalCurrentAmount is captured once at goal creation from whatever the starting-balance field held; an early build let a user type a negative starting balance before that field had validation, and the goal was never edited again after the validation was added.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "Rent",
+          "amount": 1200,
+          "dueDate": "2026-06-01",
+          "recurrence": "monthly",
+          "category": "housing"
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Visa",
+          "balance": 1200,
+          "originalBalance": 1800,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-06-09",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        }
+      ],
+      "goals": [
+        {
+          "id": "g1",
+          "name": "Emergency fund",
+          "targetAmount": 1000,
+          "currentAmount": 1450,
+          "originalCurrentAmount": -200,
+          "type": "savings"
+        }
+      ],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "bnpl-nonzero-apr-negative-remaining-with-overshot-installment",
+    "why": "One BNPL debt with THREE fields simultaneously off together: apr:24.99 (engine code always treats bnpl apr as 0 when computing interest, but nothing prevents a non-zero value from being STORED), remainingPayments:-1 (negative installment count), and scheduledPaymentAmount (225) greater than the current balance (180). Each field is individually a plausible number; only their combination on the same bnpl record is impossible. Single-field damage touches exactly one of balance/apr/dueDate/id on debts[0] — never three fields on a bnpl-typed record at once.",
+    "reachable": "The debt was originally added as a regular 'debt' with an APR entered, then later edited to type 'bnpl' via the edit modal — nothing in the edit flow zeroes apr on a type change. remainingPayments was decremented by a manual 'log a payment' action past its last installment into negative, and the final scheduled amount was never reduced to match the shrinking balance.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "biweekly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "1",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-06",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d-bnpl-1",
+          "name": "Affirm - Sofa",
+          "balance": 180,
+          "originalBalance": 900,
+          "minimumPayment": 90,
+          "dueDate": "2026-06-01",
+          "originalDueDate": "2025-11-01",
+          "apr": 24.99,
+          "remainingPayments": -1,
+          "scheduledPaymentAmount": 225,
+          "type": "bnpl",
+          "recurrence": "biweekly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false,
+          "isAutopay": true
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "snowball",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "semimonthly-missing-both-days-with-inverted-save-export-times",
+    "why": "payCycle:'semimonthly' with BOTH semiMonthlyFirstDay and semiMonthlySecondDay absent, combined with lastSavedAt timestamped AFTER exportedAt — a temporal impossibility that only exists relative to another field's own real value. Single-field damage never cross-checks one field against another, so it cannot produce a state where the invalidity is relational rather than local.",
+    "reachable": "hasValidPayCycleInputs() only gates the settings-sheet SAVE action; switching payCycle to 'semimonthly' and backgrounding the app before filling in the two day fields leaves them unset in live storage (iOS can suspend mid-edit). The lastSavedAt/exportedAt inversion is separately reachable when the device clock is corrected backward (NTP sync, timezone/DST edge, manual clock change) between an autosave and a later manual export tap.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "semimonthly",
+      "monthlyPayDay": "1",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-01",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "Rent",
+          "amount": 1200,
+          "dueDate": "2026-06-01",
+          "recurrence": "monthly",
+          "category": "housing"
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Visa",
+          "balance": 1200,
+          "originalBalance": 1800,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-06-09",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        }
+      ],
+      "goals": [
+        {
+          "id": "g1",
+          "name": "Emergency fund",
+          "targetAmount": 1000,
+          "currentAmount": 250,
+          "type": "emergency"
+        }
+      ],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-24T09:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "cycleHistory-strategy-flips-disagree-with-current-setting",
+    "why": "cycleHistory carries three snapshots whose payoffStrategy alternates snowball/avalanche/snowball, and the CURRENT top-level payoffStrategy ('avalanche') matches none of the most-recent entries consistently — a consistency case spanning an ARRAY OF RECORDS plus a sibling top-level field, structurally outside both damageKey (whole-field) and damageNested (single field of array[0]).",
+    "reachable": "payoffStrategy is a live, user-editable setting; buildCycleSnapshot freezes whatever it was AT THAT ROLLOVER into the snapshot. A user who tried snowball, switched to avalanche, switched back, then to avalanche again over several months has genuinely mixed history — nothing normalizes old entries when the setting changes again.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "Rent",
+          "amount": 1200,
+          "dueDate": "2026-06-01",
+          "recurrence": "monthly",
+          "category": "housing"
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Visa",
+          "balance": 900,
+          "originalBalance": 1800,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-06-09",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        }
+      ],
+      "goals": [
+        {
+          "id": "g1",
+          "name": "Emergency fund",
+          "targetAmount": 1000,
+          "currentAmount": 250,
+          "type": "emergency"
+        }
+      ],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": [
+        {
+          "cycleEndDate": "2026-03-12",
+          "totalDebtBalance": 1650,
+          "totalPaidThisCycle": 120,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2026-04-12",
+          "totalDebtBalance": 1450,
+          "totalPaidThisCycle": 200,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2026-05-12",
+          "totalDebtBalance": 1150,
+          "totalPaidThisCycle": 300,
+          "allRequiredMet": false,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        }
+      ]
+    }
+  },
+  {
+    "id": "two-goals-same-name-different-ids-action-ambiguous",
+    "why": "TWO goals share the exact name 'Vacation Fund' but have different ids and types, and a completedRecommendedAction's label matches that shared name while its targetId points at only ONE of them. This is an ambiguity spanning THREE records (two goals + one action) that requires a SECOND goal to exist at all — my generator never adds a second array element, it only damages goals[0] in place.",
+    "reachable": "Nothing prevents creating two goals with the same name. handleMarkRecommendedAction matches an existing completed entry by targetId+label+category+paymentSource, with targetId as the only truly authoritative field — a user who renamed goal B to goal A's old name AFTER an action was already recorded against goal A produces exactly this collision.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Visa",
+          "balance": 900,
+          "originalBalance": 1800,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-06-09",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        }
+      ],
+      "goals": [
+        {
+          "id": "g1",
+          "name": "Vacation Fund",
+          "targetAmount": 2000,
+          "currentAmount": 500,
+          "type": "savings"
+        },
+        {
+          "id": "g2",
+          "name": "Vacation Fund",
+          "targetAmount": 1000,
+          "currentAmount": 1000,
+          "originalCurrentAmount": 1000,
+          "type": "emergency"
+        }
+      ],
+      "completedRecommendedActions": [
+        {
+          "targetId": "g1",
+          "label": "Vacation Fund",
+          "category": "optional_goal",
+          "recommendedAmount": 100,
+          "actualAmount": 100,
+          "paymentSource": "paycheck"
+        }
+      ],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "paid-off-debt-still-flagged-failed-autopay",
+    "why": "balance:0 (paid off) combined with autopayFailedThisCycle:true and BOTH paid-flags false on the same debt — a 'debt-free yet currently reported as a failing autopay' state across four fields on one record. Single-field damage touches one field of debts[0] at a time and cannot leave balance at zero while three OTHER flags are simultaneously in their 'still owed and struggling' positions.",
+    "reachable": "The debt-free / payoff-celebration logic keys off balance alone; nothing resets the per-cycle paid/failed flags when a balance is manually edited straight to 0 in the Edit Debt modal (e.g. the user paid off the card directly with the issuer, outside the app's own payment flow, and just corrected the balance).",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Visa",
+          "balance": 0,
+          "originalBalance": 1200,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-05-18",
+          "originalDueDate": "2026-05-18",
+          "type": "debt",
+          "recurrence": "monthly",
+          "isAutopay": true,
+          "autopayFailedThisCycle": true,
+          "minimumPaidThisCycle": false,
+          "isPaidThisCycle": false
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "living-expense-preset-id-collision-with-negative-amount",
+    "why": "One living expense keeps a PRESET id ('living-0') but has been renamed and given a NEGATIVE amount, while a second, custom-added expense (a UUID id, not the 'living-N' convention) happens to share its NAME with a still-present, untouched preset ('Groceries'). This mixes two different id-namespace conventions plus a sign error across TWO array entries at once — my generator only ever damages livingExpenses[0] alone, never introduces a second colliding element.",
+    "reachable": "The seven presets seed with sequential 'living-0'..'living-6' ids; users can freely rename and re-amount them (no floor-at-zero enforcement visible in useLivingExpenses), and can add new custom expenses which get crypto.randomUUID() ids — nothing stops a custom addition from duplicating an existing preset's name.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "living-0",
+          "name": "Rent Overflow",
+          "amount": -50,
+          "enabled": true
+        },
+        {
+          "id": "a1b2c3d4-e5f6-4789-9abc-def012345678",
+          "name": "Groceries",
+          "amount": 300,
+          "enabled": true
+        },
+        {
+          "id": "living-1",
+          "name": "Gas / Transportation",
+          "amount": 0,
+          "enabled": false
+        }
+      ],
+      "debts": [],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "mid-onboarding-amount-unset",
+    "why": "amount is '' (paycheck step never completed) while debts[] is already populated with a real entry and every other field sits at its hook-seeded default (payCycle 'biweekly', nextPaycheckDate = default-seeded +14 days) — a genuinely different STARTING TOPOLOGY from the healthy base, not a damaged healthy base. My generator only ever damages one field of an already-complete, already-onboarded record; it never produces the specific default-seeded combination a real partial-onboarding session leaves.",
+    "reachable": "OnboardingFlow's steps read/write the same underlying hooks (useDebts, useGoals, usePayCycleSettings) as the main app, independently and in the UI's own order. A user who explored the Debts step, added a card, then background-killed the app before reaching the paycheck-amount step leaves exactly this: hasCompletedOnboarding's own check is `amount !== '' && Number(amount) > 0`, so this is recognized internally as 'not onboarded' even though it already has a debt.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "",
+      "payCycle": "biweekly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "1",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-06",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "living-0",
+          "name": "Groceries",
+          "amount": 0,
+          "enabled": false
+        },
+        {
+          "id": "living-1",
+          "name": "Gas / Transportation",
+          "amount": 0,
+          "enabled": false
+        },
+        {
+          "id": "living-2",
+          "name": "Dining / Takeout",
+          "amount": 0,
+          "enabled": false
+        },
+        {
+          "id": "living-3",
+          "name": "Household",
+          "amount": 0,
+          "enabled": false
+        },
+        {
+          "id": "living-4",
+          "name": "Pets",
+          "amount": 0,
+          "enabled": false
+        },
+        {
+          "id": "living-5",
+          "name": "Childcare",
+          "amount": 0,
+          "enabled": false
+        },
+        {
+          "id": "living-6",
+          "name": "Misc Spending",
+          "amount": 0,
+          "enabled": false
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Discover Card",
+          "balance": 640,
+          "originalBalance": 640,
+          "minimumPayment": 25,
+          "dueDate": "2026-06-10",
+          "originalDueDate": "2026-06-10",
+          "apr": 22.24,
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false,
+          "isAutopay": false
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T13:58:02.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "long-time-user-14-months-history",
+    "why": "cycleHistory holds 30 realistic biweekly entries spanning 14 months, with a mid-tenure strategy switch (snowball -> avalanche at cycle 18), three non-consecutive streak breaks, and a monotonically-declining-with-noise balance trend. My generator only ever sets cycleHistory to a single scalar damage value (null, [], {}, etc.) for the WHOLE key — it has no path to populating the array with a long, internally-varied, plausible run, which is exactly the shape most likely to expose an accumulation bug (unbounded array growth, O(n^2) processing, a streak/milestone calc that assumes a short array) that a 0-or-1-entry fixture cannot.",
+    "reachable": "A real biweekly-pay user, 14 months of continuous use, occasionally missing a required payment and once changing strategy from the Plan Settings sheet — nothing about this requires any unusual action, just tenure.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "1850",
+      "payCycle": "biweekly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "1",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "Rent",
+          "amount": 1350,
+          "dueDate": "2026-06-01",
+          "originalDueDate": "2025-03-01",
+          "recurrence": "monthly",
+          "category": "housing",
+          "isAutopay": true
+        },
+        {
+          "id": "e2",
+          "name": "Car Insurance",
+          "amount": 165,
+          "dueDate": "2026-06-15",
+          "originalDueDate": "2025-03-15",
+          "recurrence": "monthly",
+          "category": "insurance",
+          "isAutopay": true
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "living-0",
+          "name": "Groceries",
+          "amount": 550,
+          "enabled": true
+        },
+        {
+          "id": "living-1",
+          "name": "Gas / Transportation",
+          "amount": 180,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Discover Card",
+          "balance": 1450,
+          "originalBalance": 4200,
+          "minimumPayment": 60,
+          "dueDate": "2026-06-10",
+          "originalDueDate": "2025-03-10",
+          "apr": 21.99,
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false,
+          "isAutopay": false
+        },
+        {
+          "id": "d2",
+          "name": "Capital One",
+          "balance": 3100,
+          "originalBalance": 5000,
+          "minimumPayment": 90,
+          "dueDate": "2026-06-22",
+          "originalDueDate": "2025-03-22",
+          "apr": 24.5,
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false,
+          "isAutopay": true
+        }
+      ],
+      "goals": [
+        {
+          "id": "g1",
+          "name": "Emergency fund",
+          "targetAmount": 2000,
+          "currentAmount": 2000,
+          "originalCurrentAmount": 0,
+          "type": "emergency"
+        }
+      ],
+      "completedRecommendedActions": [
+        {
+          "targetId": "d1",
+          "label": "Discover Card",
+          "category": "snowball",
+          "recommendedAmount": 55,
+          "actualAmount": 55,
+          "paymentSource": "paycheck"
+        }
+      ],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": [
+        {
+          "cycleEndDate": "2025-03-13",
+          "totalDebtBalance": 9020,
+          "totalPaidThisCycle": 180,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [
+            {
+              "targetId": "d1",
+              "label": "Discover Card",
+              "category": "snowball",
+              "recommendedAmount": 40,
+              "actualAmount": 40,
+              "paymentSource": "paycheck"
+            }
+          ],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-03-27",
+          "totalDebtBalance": 8775,
+          "totalPaidThisCycle": 205,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-04-10",
+          "totalDebtBalance": 8505,
+          "totalPaidThisCycle": 230,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-04-24",
+          "totalDebtBalance": 8210,
+          "totalPaidThisCycle": 255,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [
+            {
+              "targetId": "d1",
+              "label": "Discover Card",
+              "category": "snowball",
+              "recommendedAmount": 40,
+              "actualAmount": 40,
+              "paymentSource": "paycheck"
+            }
+          ],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-05-08",
+          "totalDebtBalance": 7890,
+          "totalPaidThisCycle": 280,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-05-22",
+          "totalDebtBalance": 7670,
+          "totalPaidThisCycle": 180,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-06-05",
+          "totalDebtBalance": 7425,
+          "totalPaidThisCycle": 205,
+          "allRequiredMet": false,
+          "completedRecommendedActions": [
+            {
+              "targetId": "d1",
+              "label": "Discover Card",
+              "category": "snowball",
+              "recommendedAmount": 40,
+              "actualAmount": 40,
+              "paymentSource": "paycheck"
+            }
+          ],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-06-19",
+          "totalDebtBalance": 7195,
+          "totalPaidThisCycle": 230,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-07-03",
+          "totalDebtBalance": 6900,
+          "totalPaidThisCycle": 255,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-07-17",
+          "totalDebtBalance": 6580,
+          "totalPaidThisCycle": 280,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [
+            {
+              "targetId": "d1",
+              "label": "Discover Card",
+              "category": "snowball",
+              "recommendedAmount": 40,
+              "actualAmount": 40,
+              "paymentSource": "paycheck"
+            }
+          ],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-07-31",
+          "totalDebtBalance": 6360,
+          "totalPaidThisCycle": 180,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-08-14",
+          "totalDebtBalance": 6115,
+          "totalPaidThisCycle": 205,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-08-28",
+          "totalDebtBalance": 5845,
+          "totalPaidThisCycle": 230,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [
+            {
+              "targetId": "d1",
+              "label": "Discover Card",
+              "category": "snowball",
+              "recommendedAmount": 40,
+              "actualAmount": 40,
+              "paymentSource": "paycheck"
+            }
+          ],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-09-11",
+          "totalDebtBalance": 5550,
+          "totalPaidThisCycle": 255,
+          "allRequiredMet": false,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-09-25",
+          "totalDebtBalance": 5270,
+          "totalPaidThisCycle": 280,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-10-09",
+          "totalDebtBalance": 5050,
+          "totalPaidThisCycle": 180,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [
+            {
+              "targetId": "d1",
+              "label": "Discover Card",
+              "category": "snowball",
+              "recommendedAmount": 40,
+              "actualAmount": 40,
+              "paymentSource": "paycheck"
+            }
+          ],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-10-23",
+          "totalDebtBalance": 4805,
+          "totalPaidThisCycle": 205,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-11-06",
+          "totalDebtBalance": 4535,
+          "totalPaidThisCycle": 230,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-11-20",
+          "totalDebtBalance": 4240,
+          "totalPaidThisCycle": 255,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [
+            {
+              "targetId": "d1",
+              "label": "Discover Card",
+              "category": "snowball",
+              "recommendedAmount": 40,
+              "actualAmount": 40,
+              "paymentSource": "paycheck"
+            }
+          ],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2025-12-04",
+          "totalDebtBalance": 3920,
+          "totalPaidThisCycle": 280,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2025-12-18",
+          "totalDebtBalance": 3700,
+          "totalPaidThisCycle": 180,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2026-01-01",
+          "totalDebtBalance": 3495,
+          "totalPaidThisCycle": 205,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [
+            {
+              "targetId": "d1",
+              "label": "Discover Card",
+              "category": "snowball",
+              "recommendedAmount": 40,
+              "actualAmount": 40,
+              "paymentSource": "paycheck"
+            }
+          ],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2026-01-15",
+          "totalDebtBalance": 3225,
+          "totalPaidThisCycle": 230,
+          "allRequiredMet": false,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2026-01-29",
+          "totalDebtBalance": 2930,
+          "totalPaidThisCycle": 255,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2026-02-12",
+          "totalDebtBalance": 2610,
+          "totalPaidThisCycle": 280,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [
+            {
+              "targetId": "d1",
+              "label": "Discover Card",
+              "category": "snowball",
+              "recommendedAmount": 40,
+              "actualAmount": 40,
+              "paymentSource": "paycheck"
+            }
+          ],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2026-02-26",
+          "totalDebtBalance": 2390,
+          "totalPaidThisCycle": 180,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2026-03-12",
+          "totalDebtBalance": 2145,
+          "totalPaidThisCycle": 205,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2026-03-26",
+          "totalDebtBalance": 1875,
+          "totalPaidThisCycle": 230,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [
+            {
+              "targetId": "d1",
+              "label": "Discover Card",
+              "category": "snowball",
+              "recommendedAmount": 40,
+              "actualAmount": 40,
+              "paymentSource": "paycheck"
+            }
+          ],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2026-04-09",
+          "totalDebtBalance": 1620,
+          "totalPaidThisCycle": 255,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2026-04-23",
+          "totalDebtBalance": 1300,
+          "totalPaidThisCycle": 280,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "avalanche"
+        }
+      ]
+    }
+  },
+  {
+    "id": "weekly-pay-cycle-user",
+    "why": "payCycle:'weekly' with a debt on 'weekly' recurrence and a required expense on 'per-paycheck' recurrence — a whole pay-cadence family my healthy base never exercises (it's fixed to 'monthly'). advanceDueDateOnce steps 'weekly' by +7 days and resolves 'per-paycheck' to nextPlanDate directly; a generator that only ever damages the base's existing monthly-cadence values can produce a WRONG weekly value but never a plausible, internally-consistent all-weekly household.",
+    "reachable": "Any hourly/weekly-paid worker selecting 'Weekly' in Plan Settings, with a subscription configured to renew every paycheck.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "610",
+      "payCycle": "weekly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "1",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-05-30",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "Streaming Bundle",
+          "amount": 22,
+          "dueDate": "2026-05-30",
+          "recurrence": "per-paycheck",
+          "category": "subscriptions",
+          "isAutopay": true
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "living-0",
+          "name": "Groceries",
+          "amount": 120,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Payday Advance App",
+          "balance": 300,
+          "originalBalance": 300,
+          "minimumPayment": 60,
+          "dueDate": "2026-05-30",
+          "originalDueDate": "2026-05-23",
+          "apr": 0,
+          "type": "debt",
+          "recurrence": "weekly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false,
+          "isAutopay": false
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "snowball",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "semimonthly-31st-clamp-user",
+    "why": "payCycle:'semimonthly' with semiMonthlySecondDay:'31' — a day that doesn't exist in most months, which getNextPaycheckDate/rollover's clampDay logic is specifically written to handle by clamping to the target month's real last day. My generator never sets payCycle to 'semimonthly' with populated, edge-valued day fields at all (its damage vocabulary is generic scalars like 0/-1/NaN, not domain-meaningful day-of-month edge values), so it cannot exercise the clamp path with a value that is VALID input, just awkward.",
+    "reachable": "A user paid on the 1st and the last day of the month typed '31' into the second-pay-day field, which hasValidPayCycleInputs() accepts (1-31, no per-month validation) since the clamping is meant to absorb exactly this at the point of use.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2400",
+      "payCycle": "semimonthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "31",
+      "monthlyPayDay": "1",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-05-31",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "Rent",
+          "amount": 1500,
+          "dueDate": "2026-06-01",
+          "recurrence": "monthly",
+          "category": "housing"
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "living-0",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Visa",
+          "balance": 1200,
+          "originalBalance": 1800,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-06-09",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "bnpl-heavy-user",
+    "why": "Three concurrent BNPL debts (Affirm, Klarna, Afterpay-style) each with real remainingPayments/scheduledPaymentAmount and apr:0, mixed with one regular revolving-APR debt — a debt-list COMPOSITION my generator cannot reach because it only ever mutates fields already present on debts[0] of a single-debt base; it never adds multiple additional bnpl-typed siblings with their own valid installment fields.",
+    "reachable": "BNPL is a first-class debt type in Add Debt (AddDebtModal debtType='bnpl' reveals remainingPayments/scheduledPaymentAmount fields); a user who split several purchases across different BNPL providers has exactly this list.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "1950",
+      "payCycle": "biweekly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "1",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-06",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "living-0",
+          "name": "Groceries",
+          "amount": 350,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Affirm - Laptop",
+          "balance": 480,
+          "originalBalance": 1200,
+          "minimumPayment": 120,
+          "dueDate": "2026-06-01",
+          "originalDueDate": "2026-01-01",
+          "apr": 0,
+          "remainingPayments": 4,
+          "scheduledPaymentAmount": 120,
+          "type": "bnpl",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false,
+          "isAutopay": true
+        },
+        {
+          "id": "d2",
+          "name": "Klarna - Furniture",
+          "balance": 225,
+          "originalBalance": 900,
+          "minimumPayment": 75,
+          "dueDate": "2026-06-05",
+          "originalDueDate": "2026-03-05",
+          "apr": 0,
+          "remainingPayments": 3,
+          "scheduledPaymentAmount": 75,
+          "type": "bnpl",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false,
+          "isAutopay": true
+        },
+        {
+          "id": "d3",
+          "name": "Afterpay - Wardrobe",
+          "balance": 60,
+          "originalBalance": 240,
+          "minimumPayment": 60,
+          "dueDate": "2026-05-29",
+          "originalDueDate": "2026-05-01",
+          "apr": 0,
+          "remainingPayments": 1,
+          "scheduledPaymentAmount": 60,
+          "type": "bnpl",
+          "recurrence": "biweekly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false,
+          "isAutopay": false
+        },
+        {
+          "id": "d4",
+          "name": "Chase Sapphire",
+          "balance": 4100,
+          "originalBalance": 6500,
+          "minimumPayment": 110,
+          "dueDate": "2026-06-14",
+          "originalDueDate": "2025-08-14",
+          "apr": 26.99,
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false,
+          "isAutopay": true
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "autopay-heavy-household-mixed-states",
+    "why": "Five required expenses, all isAutopay:true, but in FIVE DIFFERENT legitimate per-item states (not yet due, presumed-paid-by-due-date, explicitly confirmed paid, explicitly flagged failed, and paid-but-due-date-already-past-with-no-flag) simultaneously. isAutopayPresumedPaid's presumption logic depends on comparing THREE fields per item (isAutopay, dueDate vs asOfDate, autopayFailedThisCycle) — reproducing all five real combinations across five records is outside what damaging one field of one array element can do.",
+    "reachable": "A household with every bill on autopay is common; at any mid-cycle snapshot some bills are past due and quietly presumed paid, one was manually caught as failed at the payday check-in, and one hasn't hit its due date yet — this is just what a real Plan tab looks like mid-cycle.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "Rent",
+          "amount": 1350,
+          "dueDate": "2026-06-01",
+          "recurrence": "monthly",
+          "category": "housing",
+          "isAutopay": true
+        },
+        {
+          "id": "e2",
+          "name": "Electric",
+          "amount": 140,
+          "dueDate": "2026-05-10",
+          "recurrence": "monthly",
+          "category": "utilities",
+          "isAutopay": true,
+          "isPaidThisCycle": false
+        },
+        {
+          "id": "e3",
+          "name": "Internet",
+          "amount": 80,
+          "dueDate": "2026-05-15",
+          "recurrence": "monthly",
+          "category": "utilities",
+          "isAutopay": true,
+          "isPaidThisCycle": true
+        },
+        {
+          "id": "e4",
+          "name": "Phone",
+          "amount": 65,
+          "dueDate": "2026-05-18",
+          "recurrence": "monthly",
+          "category": "utilities",
+          "isAutopay": true,
+          "autopayFailedThisCycle": true,
+          "isPaidThisCycle": false
+        },
+        {
+          "id": "e5",
+          "name": "Life Insurance",
+          "amount": 45,
+          "dueDate": "2026-06-20",
+          "recurrence": "monthly",
+          "category": "insurance",
+          "isAutopay": true
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "living-0",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Visa",
+          "balance": 1200,
+          "originalBalance": 1800,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-06-09",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false,
+          "isAutopay": true
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "multiple-goals-with-contribution-history",
+    "why": "Two goals (one emergency, one savings) each with a non-zero originalCurrentAmount baseline DIFFERENT from currentAmount, plus a completedRecommendedActions history showing several external and paycheck contributions to each — a rich, internally-consistent contribution history across two records that my generator (single goal, empty completedRecommendedActions in the base) has no path to producing.",
+    "reachable": "The standard 'add a goal, contribute over several paychecks' flow, mixing paycheck-sourced and external (e.g. tax refund logged as 'external') contributions — exactly what markGoal/handleMarkRecommendedAction are built to record.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "living-0",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [],
+      "goals": [
+        {
+          "id": "g1",
+          "name": "Starter Emergency Fund",
+          "targetAmount": 1000,
+          "currentAmount": 650,
+          "originalCurrentAmount": 0,
+          "type": "emergency"
+        },
+        {
+          "id": "g2",
+          "name": "New Car Down Payment",
+          "targetAmount": 5000,
+          "currentAmount": 1200,
+          "originalCurrentAmount": 200,
+          "type": "savings"
+        }
+      ],
+      "completedRecommendedActions": [
+        {
+          "targetId": "g1",
+          "label": "Starter Emergency Fund",
+          "category": "emergency",
+          "recommendedAmount": 150,
+          "actualAmount": 150,
+          "paymentSource": "paycheck"
+        },
+        {
+          "targetId": "g1",
+          "label": "Starter Emergency Fund",
+          "category": "emergency",
+          "recommendedAmount": 150,
+          "actualAmount": 200,
+          "paymentSource": "paycheck"
+        },
+        {
+          "targetId": "g2",
+          "label": "New Car Down Payment",
+          "category": "optional_goal",
+          "recommendedAmount": 100,
+          "actualAmount": 500,
+          "paymentSource": "external"
+        },
+        {
+          "targetId": "g2",
+          "label": "New Car Down Payment",
+          "category": "optional_goal",
+          "recommendedAmount": 100,
+          "actualAmount": 100,
+          "paymentSource": "paycheck"
+        }
+      ],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "everything-paid-ready-to-rollover",
+    "why": "Every required expense and every debt minimum is marked paid THIS CYCLE (isPaidThisCycle/minimumPaidThisCycle all true) AND nextPaycheckDate equals currentDate (today IS payday) — the exact instant-before-rollover snapshot, where every per-item flag across two whole arrays must agree in the same direction. Single-field damage can flip one flag on one item; it cannot bring an entire household's array of flags into simultaneous agreement.",
+    "reachable": "The payday check-in's 'Paid all required' one-tap action (bulkMarkRequiredPaid) sets exactly this combination, captured in an export taken in the moment between confirming payday and the app actually rolling the cycle over.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-06-05T08:00:00.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-06-05",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "Rent",
+          "amount": 1350,
+          "dueDate": "2026-06-01",
+          "recurrence": "monthly",
+          "category": "housing",
+          "isPaidThisCycle": true,
+          "autopayFailedThisCycle": false
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "living-0",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Visa",
+          "balance": 1200,
+          "originalBalance": 1800,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-06-09",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": true,
+          "isPaidThisCycle": true,
+          "autopayFailedThisCycle": false
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [
+        {
+          "targetId": "d1",
+          "label": "Visa",
+          "category": "snowball",
+          "recommendedAmount": 65,
+          "actualAmount": 65,
+          "paymentSource": "paycheck"
+        }
+      ],
+      "payoffStrategy": "snowball",
+      "lastSavedAt": "2026-06-05T08:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "debt-free-user-with-history-empty-debts",
+    "why": "debts:[] (every debt paid off and removed) while cycleHistory still carries entries whose totalDebtBalance was non-zero, and completedRecommendedActions still references old debt ids no longer present — a 'graduated' user shape where an EMPTY array is exactly right for debts but WRONG-looking on its own without the surrounding history that explains it. My generator's emptyArray damage on 'debts' produces the same empty array but never pairs it with a populated, historically-consistent cycleHistory/completedRecommendedActions — it damages one key at a time from a base that has neither.",
+    "reachable": "A genuine debt-payoff success story: the user paid off their only debt, it was removed (or the UI stopped listing it once balance hit 0 over several cycles), and they kept using the app afterward for goals/living expenses tracking. The app never requires debts to be non-empty.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2400",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "1",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-01",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "Rent",
+          "amount": 1500,
+          "dueDate": "2026-06-01",
+          "recurrence": "monthly",
+          "category": "housing"
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "living-0",
+          "name": "Groceries",
+          "amount": 500,
+          "enabled": true
+        }
+      ],
+      "debts": [],
+      "goals": [
+        {
+          "id": "g1",
+          "name": "Emergency fund",
+          "targetAmount": 3000,
+          "currentAmount": 3000,
+          "originalCurrentAmount": 0,
+          "type": "emergency"
+        },
+        {
+          "id": "g2",
+          "name": "Travel Fund",
+          "targetAmount": 2000,
+          "currentAmount": 450,
+          "originalCurrentAmount": 0,
+          "type": "savings"
+        }
+      ],
+      "completedRecommendedActions": [
+        {
+          "targetId": "d-old-visa",
+          "label": "Visa",
+          "category": "snowball",
+          "recommendedAmount": 200,
+          "actualAmount": 200,
+          "paymentSource": "paycheck"
+        }
+      ],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": [
+        {
+          "cycleEndDate": "2026-03-01",
+          "totalDebtBalance": 850,
+          "totalPaidThisCycle": 400,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2026-04-01",
+          "totalDebtBalance": 200,
+          "totalPaidThisCycle": 650,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "avalanche"
+        },
+        {
+          "cycleEndDate": "2026-05-01",
+          "totalDebtBalance": 0,
+          "totalPaidThisCycle": 200,
+          "allRequiredMet": true,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "avalanche"
+        }
+      ]
+    }
+  },
+  {
+    "id": "fresh-reset-user-minimal",
+    "why": "Every array at its hook-seeded default (livingExpenses at the exact 7-preset shape with sequential ids, everything else empty) with only amount/payCycle/dates freshly set — the DEFAULT state a real 'Delete All Data' + immediate re-onboard leaves, which is a different combination of defaults from my healthy base (which has one of every array populated). A generator that only damages fields on an already-populated base cannot land back on 'everything at its true first-run default together'.",
+    "reachable": "PlanSettingsBody's 'Delete All Data' confirmation clears persisted keys; a user who immediately re-entered just their paycheck info without re-adding any debts/expenses/goals yet is in exactly this state on their very next export.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "1800",
+      "payCycle": "biweekly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "1",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-06",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "living-0",
+          "name": "Groceries",
+          "amount": 0,
+          "enabled": false
+        },
+        {
+          "id": "living-1",
+          "name": "Gas / Transportation",
+          "amount": 0,
+          "enabled": false
+        },
+        {
+          "id": "living-2",
+          "name": "Dining / Takeout",
+          "amount": 0,
+          "enabled": false
+        },
+        {
+          "id": "living-3",
+          "name": "Household",
+          "amount": 0,
+          "enabled": false
+        },
+        {
+          "id": "living-4",
+          "name": "Pets",
+          "amount": 0,
+          "enabled": false
+        },
+        {
+          "id": "living-5",
+          "name": "Childcare",
+          "amount": 0,
+          "enabled": false
+        },
+        {
+          "id": "living-6",
+          "name": "Misc Spending",
+          "amount": 0,
+          "enabled": false
+        }
+      ],
+      "debts": [],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:02:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "pre-v1.5-debt-missing-originalBalance",
+    "why": "A debt record with NO originalBalance field at all (not null, not 0 — genuinely absent), the exact pre-migration shape withBackfilledOriginalBalance() exists to fix. My generator's 'absent' damage on the balance/apr/dueDate/id fields it targets never touches originalBalance because it isn't in the nested-field damage list, so this specific historical gap is unreachable by it even though it is a real, named, code-acknowledged legacy shape.",
+    "reachable": "Any debt created before v1.5 shipped originalBalance tracking. migrateState()'s migration only runs against LIVE localStorage at app startup (readKey/writeKey on 'debtPlanner.debts') — it does not touch an already-exported backup file, so a backup taken from a device that skipped straight from an old install to exporting (or a backup restored onto a fresh install before the migration runner executes) legitimately lacks the field.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Old Store Card",
+          "balance": 640,
+          "minimumPayment": 25,
+          "dueDate": "2026-06-10",
+          "apr": 26.99,
+          "type": "debt",
+          "recurrence": "monthly",
+          "isPaidThisCycle": false
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "csv-imported-debts-missing-isAutopay-and-cycle-flags",
+    "why": "Two debts whose EXACT field set matches parseDebtCsv's constructor: minimumPaidThisCycle:false, snowballPaidThisCycle:false ARE present, but isAutopay is completely ABSENT (the CSV importer never sets it, unlike the Add Debt modal which always writes isAutopay: debtIsAutopay). This is a real, code-traceable divergence between two different legitimate write paths for the SAME type — my generator has one healthy debt shaped like the UI-add path and no notion of a second, CSV-shaped path with a systematically different field set.",
+    "reachable": "lib/imports/debtCsv.ts's parseDebtCsv() builds exactly this object shape for every row of an imported CSV debt list — a real, shipped bulk-import feature.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Kohls Card",
+          "balance": 310,
+          "originalBalance": 310,
+          "minimumPayment": 25,
+          "dueDate": "2026-06-03",
+          "originalDueDate": "2026-06-03",
+          "apr": 28.99,
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        },
+        {
+          "id": "d2",
+          "name": "Best Buy Financing",
+          "balance": 890,
+          "originalBalance": 890,
+          "minimumPayment": 45,
+          "dueDate": "2026-06-08",
+          "originalDueDate": "2026-06-08",
+          "apr": 0,
+          "remainingPayments": null,
+          "scheduledPaymentAmount": null,
+          "type": "bnpl",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "quarterly-annually-recurrence-insurance-and-registration",
+    "why": "Required expenses using 'quarterly' and 'annually' recurrence — two of the seven Recurrence union values that neither the healthy base nor a CSV import ever uses (debtCsv.ts's allowedRecurrences explicitly excludes quarterly/annually/one-time-for-debts; only the UI expense form reaches them), each with a dueDate many months out and an originalDueDate anchoring the day-of-month for addMonths' clamp logic. Single-field damage never changes a recurrence value to a SPECIFIC valid-but-rare enum member paired with a correspondingly-distant real due date; it substitutes generic damage values.",
+    "reachable": "Car registration (annually) and a quarterly estimated-tax or HOA due entered as required expenses via the normal Add Expense flow, which exposes the full Recurrence dropdown.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "HOA Dues",
+          "amount": 210,
+          "dueDate": "2026-07-01",
+          "originalDueDate": "2026-01-01",
+          "recurrence": "quarterly",
+          "category": "housing",
+          "expenseType": "fixed"
+        },
+        {
+          "id": "e2",
+          "name": "Car Registration",
+          "amount": 145,
+          "dueDate": "2027-02-14",
+          "originalDueDate": "2026-02-14",
+          "recurrence": "annually",
+          "category": "other",
+          "expenseType": "fixed"
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "monthly-31st-anchor-drifted-through-february",
+    "why": "A monthly debt whose originalDueDate is the 31st but current dueDate has drifted to the 28th after passing through a February rollover — addMonths()'s anchorDay-clamp logic (Jan 31 -> Feb 28 -> Mar 31, not Mar 3 or permanently-stuck-at-28) means dueDate and originalDueDate legitimately DISAGREE on day-of-month at certain points in the year. My generator's damageNested only ever sets dueDate to a generic bad value (malformedDate, impossibleDate, etc.); it never derives a mathematically-correct-but-surprising real date pair from actually stepping the recurrence rule forward.",
+    "reachable": "Any debt due on the 31st (common for end-of-month billing) that has rolled over through at least one February under this app's own addMonths clamping — a direct, inevitable consequence of the shipped rollover math, not a corruption at all.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-03-15T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-03-15",
+      "nextPaycheckDate": "2026-04-12",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Amex Platinum",
+          "balance": 2200,
+          "originalBalance": 3000,
+          "minimumPayment": 95,
+          "dueDate": "2026-02-28",
+          "originalDueDate": "2026-01-31",
+          "apr": 21.24,
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-03-15T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "legacy-isPaidThisCycle-only-debt-no-split-flags",
+    "why": "A debt carrying ONLY the legacy `isPaidThisCycle` flag (the field the type comment marks 'legacy/backward compatibility for saved data') with BOTH of the current split flags (`minimumPaidThisCycle`, `snowballPaidThisCycle`) absent — the exact pre-v1.4-split persisted shape, distinct from every debt my healthy base or corpus produces (which either has neither flag or has the modern split pair together). Single-field damage on a debt that already has the modern flags cannot remove two specific sibling fields while leaving a third, semantically-overlapping legacy field intact.",
+    "reachable": "A debt object persisted before the minimumPaidThisCycle/snowballPaidThisCycle split was introduced and never re-saved since (the user hasn't toggled its paid state in a long time, so the object in storage is still whatever shape the last write left it in from years ago).",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Ancient Sears Card",
+          "balance": 220,
+          "originalBalance": 220,
+          "minimumPayment": 15,
+          "dueDate": "2026-06-01",
+          "apr": 24.99,
+          "type": "debt",
+          "recurrence": "monthly",
+          "isPaidThisCycle": true
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "legacy-pre-streak-cycleHistory-recommendedThisCycle-only",
+    "why": "cycleHistory entries using ONLY the LEGACY `recommendedThisCycle` field with `allRequiredMet` and `totalPaidThisCycle` absent — the exact pre-v1.5-streak-rewrite snapshot shape the type's own comment documents ('No longer written or read; retained so old snapshots still parse' / 'Optional so snapshots persisted before v1.5's required-based streak still load'). My generator never populates cycleHistory with anything but a whole-array scalar damage; it cannot produce array ELEMENTS using an internally-consistent OLD field set instead of the current one.",
+    "reachable": "Any cycleHistory entries written before the v1.5 required-based-streak rewrite and never rewritten since (history entries are append-only snapshots, never migrated in place — there is no migration registered for cycleHistory in migrateState.ts's MIGRATIONS table).",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Visa",
+          "balance": 1200,
+          "originalBalance": 1800,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-06-09",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": [
+        {
+          "cycleEndDate": "2025-01-12",
+          "totalDebtBalance": 3200,
+          "recommendedThisCycle": 220,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        },
+        {
+          "cycleEndDate": "2025-02-12",
+          "totalDebtBalance": 2950,
+          "recommendedThisCycle": 250,
+          "completedRecommendedActions": [],
+          "payoffStrategy": "snowball"
+        }
+      ]
+    }
+  },
+  {
+    "id": "unmarked-partial-then-re-recommended-remainder-collision",
+    "why": "completedRecommendedActions has an entry for the SAME (targetId, label, category, paymentSource) tuple recorded TWICE with different actualAmount values — the exact 'capture-collision' shape upsertCompletedAction was written to prevent (a partial payment folding into its re-recommended remainder), captured HERE as if the fold never happened. Building two colliding entries requires ADDING a second array element with matching keys, which is outside single-field damage on an array that starts empty in the healthy base.",
+    "reachable": "upsertCompletedAction is applied on the LIVE write path in page.tsx; a backup restored from an older export taken BEFORE a later paycheck's upsert ran, then re-merged by hand with a newer export (a real workaround users tried before device-sync existed), can juxtapose a pre-fold and post-fold entry for the same target.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Visa",
+          "balance": 1200,
+          "originalBalance": 1800,
+          "minimumPayment": 35,
+          "apr": 19.99,
+          "dueDate": "2026-06-09",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [
+        {
+          "targetId": "d1",
+          "label": "Visa",
+          "category": "snowball",
+          "recommendedAmount": 100,
+          "actualAmount": 40,
+          "paymentSource": "paycheck"
+        },
+        {
+          "targetId": "d1",
+          "label": "Visa",
+          "category": "snowball",
+          "recommendedAmount": 60,
+          "actualAmount": 60,
+          "paymentSource": "paycheck"
+        }
+      ],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "recommendation-override-shape-present",
+    "why": "The backup includes debts/goals annotated as if a RecommendationOverride had been applied — a targetId's allocation forced into a specific category/amount that disagrees with what the engine would naturally compute from the raw balances/aprs given. RecommendationOverride is a type declared in debtPlannerStorage.ts alongside Debt/Goal but is a PLAN-TIME construct (held in component state, not itself a backup field) — this case represents its downstream EFFECT: a debt whose balance/minimumPayment relationship is inconsistent with its otherwise-implied priority ordering, which is what an override in effect for one cycle leaves behind in the persisted debts array once the override itself is gone from memory.",
+    "reachable": "A user manually overrode the recommended snowball target for one paycheck (SnowballSection supports picking a non-default target), paid extra toward a LOW-priority, low-APR debt while a high-APR debt sat untouched — a legitimate but engine-surprising allocation history.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Store Card (0% promo)",
+          "balance": 80,
+          "originalBalance": 900,
+          "minimumPayment": 25,
+          "apr": 0,
+          "dueDate": "2026-06-01",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": true
+        },
+        {
+          "id": "d2",
+          "name": "High-APR Card",
+          "balance": 3200,
+          "originalBalance": 3200,
+          "minimumPayment": 95,
+          "apr": 27.99,
+          "dueDate": "2026-06-08",
+          "type": "debt",
+          "recurrence": "monthly",
+          "minimumPaidThisCycle": false,
+          "snowballPaidThisCycle": false
+        }
+      ],
+      "goals": [],
+      "completedRecommendedActions": [
+        {
+          "targetId": "d1",
+          "label": "Store Card (0% promo)",
+          "category": "snowball",
+          "recommendedAmount": 25,
+          "actualAmount": 400,
+          "paymentSource": "paycheck"
+        }
+      ],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "variable-expenseType-with-recurrence-one-time-and-no-category",
+    "why": "A required expense with expenseType:'variable', recurrence:'one-time', and category ABSENT — one-time+variable is a real, distinct combination (a single irregular required bill, e.g. a medical copay, with no fixed category picked), and combining THREE specific field states (one non-default enum, one non-default enum, one absence) on a single record together is outside what one damage call to one field can produce.",
+    "reachable": "The Add Expense flow lets expenseType and recurrence be set independently, and category is optional in the type — a user adding a one-off variable bill without picking a category (e.g. dismissed the category picker) leaves exactly this.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "ER Copay",
+          "amount": 250,
+          "dueDate": "2026-06-01",
+          "recurrence": "one-time",
+          "expenseType": "variable"
+        }
+      ],
+      "livingExpenses": [
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [],
+      "goals": [],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  }
+]
