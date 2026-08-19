@@ -61,8 +61,8 @@ places, and a free reader takes it as what premium always does. **A judgment cal
 
 | # | Step |
 |---|---|
-| **T5.1** | Before-scan **each** finding against current code — ⛔ **budget for this: 5 of T4's 11 needed material correction and 3 would have shipped a worse app** |
-| **T5.2** | The proxy claims — L3-1/2/4/6/7: an affordance gated on a *proxy* rather than the thing it promised, and one whose resource was `Math.min`-capped short of its own claim |
+| **T5.1** | Before-scan each finding | ✅ **Done for L3-1/L3-2 2026-08-18.** Both premises hold (minor line drift only). ⭐ **L3-2's own "rate of drain is inferred, not measured" is now MEASURED**: on a persistently tight cycle (floor $200, discretionary $130) the cash reaching **either** goal rung is **$0** — the floor takes it all and `remaining` hits zero first. Also found: the goal rung needs `priority && type==='savings'`, which the finding did not state |
+| **T5.2** | The proxy claims — L3-1/2/4/6/7 | ▶ **2 of 5 done 2026-08-18.** ✅ **L3-1 + L3-2** — one sentence made two claims it could not keep. It named the **emergency fund** whatever the source was (measured: a store whose only goal is "Vacation" draws from it, `isEmergencyFund: false`), and promised a refill *"as your cushion rebuilds"* that a persistently tight user never gets. Now names the real pot via `topUpSourceName` and states a **condition**, not a promise. **Both pins mutation-verified independently** — two plants, because the runner stops at the first failure. ▶ **Remaining: L3-4 (major) · L3-6 · L3-7** |
 | **T5.3** | The absolutes — L1-12/13/15/17/18: "reserved"/"covered"/"held" asserted as completed facts · a zero-data state claiming a perfect record · "SAFE TO DEFER" against its own footnote · "always-current balances" · "never"/"always" |
 | **T5.4** | 🎯 **[DECISION] the tutorial finale's premium claim** (`tutorialPath.ts:183`) — recommend + ask |
 | **T5.5** | Retired-string sweep + full gate green; plan + log atomic |

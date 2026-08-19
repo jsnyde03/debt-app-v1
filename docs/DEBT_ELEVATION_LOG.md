@@ -4,6 +4,57 @@
 
 ---
 
+## T5 — truth of claims · T5.1 + L3-1/L3-2 (2026-08-18)
+
+### T5.1 — the before-scan, and the measurement L3-2 asked for
+
+Both findings' premises hold, with only line drift (`isEmergencyFund` is at `guardianSelectors:294`, not
+`:301`; the `Math.min` cap at `allocatePaycheck:621`, not `:619`). **After T4's record — 5 of 11 findings
+needing correction — two clean ones in a row is worth stating plainly.**
+
+⭐ **L3-2 flagged its own weakness and it was the right thing to measure.** Its confidence note read: *"the
+`Math.min(remaining, …)` cap is read; I did **not** run a multi-cycle simulation, so the rate of drain is
+inferred, not measured."* Probed on a persistently tight store — paycheck \$1,000, rent \$870, floor \$200,
+so \$130 discretionary every cycle:
+
+- `selectTightTopUp` offers **\$70 from "Vacation"**, `isEmergencyFund: false` — L3-1 in one line.
+- Cash reaching **any** goal rung: **\$0**. `Keep cash buffer=130[cushion_buffer]` consumes the lot, and
+  `remaining` is zero before either rung is reached.
+
+So the refill the copy promised is not merely *capped* — in the exact state that produces the offer, it is
+**zero**, every cycle, while the same offer reappears and drains the pot again.
+
+⚠️ **And the before-scan found a condition the finding did not state**: the goals rung requires
+`goal.priority === true && goal.type === "savings"`. An emergency-type goal is refilled by a *different*
+rung (`category: "emergency"`), which is bounded by `remaining` in the same way — so the conclusion holds
+for either pot, but not for the reason the finding gave.
+
+### T5.2 — L3-1 + L3-2: one sentence, two claims it could not keep
+
+`buildGuardianBrief`'s top-up confirmation read *"Nothing extra goes out this paycheck, and your emergency
+fund tops back up as your cushion rebuilds."*
+
+- **L3-1** — it named the **emergency fund** unconditionally, while `selectTightTopUp` *prefers* a savings
+  goal and only falls back to the EF. A user whose only goal is a holiday fund, who has never created an
+  emergency fund, was told theirs was topping back up. ⭐ The sibling control already got this right in
+  3.7.A3.3 **[D24]** — `isEmergencyFund` was added because the *button* said "from savings" when the source
+  was the EF. **The confirmation carried the identical bug reversed, and the flag that fixes it already
+  existed one file away, unthreaded.**
+- **L3-2** — it promised a refill that the tight case cannot deliver (measured above).
+
+Now: `topUpSourceName` is threaded from `selectAppliedTopUp().goalName`, and the sentence states a
+**condition** rather than a promise — *"…and what you moved from Vacation goes back as soon as a paycheck
+runs above your line."* That is true in both directions: it happens when there is surplus, and it visibly
+does not while there is none.
+
+⛔ **Mutation-verified with TWO plants, deliberately.** The first restored the original sentence verbatim and
+red on *"names the pot actually drained"* — but these runners are throw-based and stop at the first failure,
+so the L3-2 assertions ordered behind it were proven by nothing. A second plant kept the corrected source
+and restored only the refill promise, which red on *"no unconditional refill promise"*. **An assertion
+sitting behind another in a throw-based runner is only ever proven by that other one.**
+
+---
+
 ### T4 — WHOLE-ITEM after-scan (2026-08-18) · gate green, 187 e2e
 
 **Closed:** T4.0 · T4.1 · T4.1b · T4.2 · T4.3 · T4.4 · T4.5 · T4.6 · T4.7 · T4.8 · T4.9. Seven commits,

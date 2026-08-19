@@ -627,6 +627,8 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     discretionary: selectDiscretionary(allocation) + topUp,
     kept: selectLiquidCushion(allocation) + topUp,
     toppedUp: topUp > 0,
+    // T5.2 (L3-1) — the brief must name the pot that was actually drained, not assume the EF.
+    topUpSourceName: selectAppliedTopUp(store)?.goalName,
     heldReserve: selectHeldReserve(allocation),
     // The "deployed" figure: extra-to-debt while owing, spare-to-savings once debt-free (2.4.8).
     deployedToDebt: debtFree ? selectDeployedToSavings(allocation) : selectExtraToDebt(allocation),

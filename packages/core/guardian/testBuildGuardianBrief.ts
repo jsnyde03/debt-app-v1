@@ -175,6 +175,21 @@ function runGuardianTests() {
   // ── §2.10 tight-case top-up (2.4.11.2): moving savings over holds the line → the 'held' acknowledgment ──
   const held = buildGuardianBrief(input({ toppedUp: true, discretionary: 200, kept: 200, deployedToDebt: 0, floor: 200 }));
   assertTrue(/line's held/i.test(held.title), "topped-up → 'Your line's held', not a plain 'looks clear'");
+
+  // ⛔ T5.2 (audit L3-1 + L3-2) — the top-up confirmation made two claims it could not keep.
+  // L3-1: it named the EMERGENCY FUND whatever the real source was, while selectTightTopUp PREFERS a
+  // savings goal (measured: a store whose only goal is "Vacation" draws from it, isEmergencyFund=false).
+  // L3-2: it promised a refill "as your cushion rebuilds" — but both goal rungs are capped by
+  // `remaining`, and measured on an identically tight next cycle the cash reaching either rung is $0.
+  const heldFromSavings = buildGuardianBrief(input({ toppedUp: true, topUpSourceName: "Vacation", discretionary: 200, kept: 200, deployedToDebt: 0, floor: 200 }));
+  assertTrue(heldFromSavings.safeMove!.includes("Vacation"), "topped-up → names the pot actually drained");
+  assertTrue(!heldFromSavings.safeMove!.includes("emergency fund"), "L3-1 stays fixed — the EF is not named when it was not the source");
+  assertTrue(!/tops back up/i.test(heldFromSavings.safeMove ?? ""), "L3-2 stays fixed — no unconditional refill promise");
+  assertTrue(!/as your cushion rebuilds/i.test(heldFromSavings.safeMove ?? ""), "L3-2 stays fixed — the refill is not tied to the cushion rebuilding");
+
+  // No source recorded → a neutral noun, never an invented pot.
+  const heldNoSource = buildGuardianBrief(input({ toppedUp: true, discretionary: 200, kept: 200, deployedToDebt: 0, floor: 200 }));
+  assertTrue(!heldNoSource.safeMove!.includes("emergency fund"), "no source recorded → still never claims the EF");
   assertTrue(/moved some savings/i.test(held.detail), "…acknowledges the savings move");
 
   const gradHold = buildGuardianBrief(input({ debtFree: true, discretionary: 205, kept: 205, deployedToDebt: 0, floor: 200 }));

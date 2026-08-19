@@ -102,6 +102,14 @@ export interface GuardianInput {
   /** §2.10 tight-case (2.4.11.2) — the user held their line by moving cash from savings this cycle. The
    *  boosted cushion reads as clear; the copy acknowledges the top-up instead of a plain "looks clear". */
   toppedUp?: boolean;
+  /**
+   * T5.2 (audit L3-1) — WHICH pot the top-up drained. `toppedUp` establishes only THAT one happened, and
+   * `selectTightTopUp` **prefers a savings goal**, falling back to the emergency fund. Measured: a store
+   * whose only goal is "Vacation" offers a $70 draw from it and reports `isEmergencyFund: false` — so the
+   * old unconditional "your emergency fund tops back up" named a pot such a user may never have created.
+   * The sibling control got this right in 3.7.A3.3 [D24]; the confirmation carried the same bug reversed.
+   */
+  topUpSourceName?: string;
   /** 3.7.A3.2 — spare the §2.5 waterfall put into a goal that funds BEFORE debt payoff: the starter EF
    *  and any PRIORITY savings goal. Both rungs sit ahead of the snowball, so either can drive
    *  `deployedToDebt` to 0 while real money left the cushion — and the clear branch then reported the
@@ -297,7 +305,14 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       state,
       title: "Your line's held",
       detail: `You moved some savings over to hold your cushion right at your ${amt(floor)} line this paycheck — a tight one, but covered.`,
-      safeMove: `Nothing extra goes out this paycheck, and ${EMERGENCY_FUND_NOUN} tops back up as your cushion rebuilds.`,
+      // ⛔ T5.2 (audit L3-1 + L3-2) — this sentence made TWO claims it could not keep. It named the
+      // emergency fund whatever the real source was, and it promised a refill "as your cushion rebuilds"
+      // that a persistently tight user never gets: both goal rungs are capped by `remaining`
+      // (`allocatePaycheck` `Math.min(remaining, …)`), and MEASURED on an identically tight next cycle the
+      // cash reaching either rung is **$0** — the floor takes it all first. So the pot is drained by an
+      // affordance that promised each time it would refill. Now: the real source, and a CONDITION rather
+      // than a promise.
+      safeMove: `Nothing extra goes out this paycheck, and what you moved from ${input.topUpSourceName ?? "savings"} goes back as soon as a paycheck runs above your line.`,
       lookahead: look,
       ...viz,
     };
