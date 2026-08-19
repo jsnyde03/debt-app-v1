@@ -89,6 +89,38 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## ⛔ 5.5 → 6.5: the legacy tree is deleted LAST, not first (🎯 2026-08-19)
+
+🎯: *"I do not want to take any chances at all of us deleting something from legacy that is still needed
+but missed. 6.5 will ensure that the app is truly frozen before we touch legacy."* ⚠️ **Caveat: 6.5 must be
+finished before the final submission build.**
+
+⚡ **It retires a risk that already bit, today.** `docs/cutover/`'s v1.6 fixture had to be **rescued** from
+the legacy tree specifically because the deletion was scheduled early — a rescue performed under time
+pressure, on one artifact that happened to be remembered. ⛔ *The scheduling was manufacturing exactly the
+class of loss it was supposed to be indifferent to.* Deleting last means the tree is still there whenever
+something turns out to need it, and **"still needed but missed" stops being a category** rather than being
+managed.
+
+⭐ **What it also buys:** T10's dead-code verdicts have to be re-checked against the ROOT tree —
+`formatDisplayAmount` was declared dead and has three live legacy call sites — and that tree now survives
+long enough to check against. Every Phase 6 audit also runs while the old surface is still readable, so
+*"what did v1.6 actually do here"* stays answerable instead of becoming archaeology.
+
+### ⛔ The guard the move CREATES, and it needs stating because nothing else covers it
+
+6.5 now lands **after** the device pass. So a submission build cut straight off the deletion would ship a
+configuration **nothing has tested** — and removing an entire surface is precisely the change that breaks
+the remaining one. ▶ **`validate:release:rn` must run GREEN after 6.5 and before the final build.**
+
+### ⚠️ And one thing that must NOT wait for it
+
+The `legacy-capture-*` tag trigger was filed as *"retire it with the legacy tree at 5.5.1, or sooner."*
+"With the tree" just moved by a whole phase, and any push of such a tag spends **~45 min of macOS runner**.
+**Retire it independently** — the deferral it was attached to no longer means what it meant.
+
+---
+
 ## 🔚 SESSION CLOSE 2026-08-19 (second session) — PHASE 5 IS CLOSED. Read this first.
 
 **Branch `v1.7-dev`, pushed, tree clean.** `validate:release:rn` **exit 0** mid-session — 205 e2e · 10

@@ -12,9 +12,9 @@
 
 | | |
 |---|---|
-| **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **whole-app audit gate T1–T8 + T3B ✅ CLOSED 2026-08-19** ([D37] 55/55, `lint:closure` in CI). Remaining: **Phase 5** ▶ → **Phase 5.5** → **Phase 6** |
+| **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **whole-app audit gate T1–T8 + T3B ✅ CLOSED 2026-08-19** ([D37] 55/55, `lint:closure` in CI). ✅ **Phase 5 CLOSED**. Remaining: **Phase 6** ▶ → **Phase 6.5** (repo consolidation — MOVED from 5.5, 🎯) → **final build** → submit |
 | **Phase 5** | ✅ **CLOSED 2026-08-19.** 5.1–5.11 done (5.7 → Phase 6, 5.9 refuted). ⭐ **Migration VERIFIED on a live device**, probe clean (`Keys 22 · truncated=no`), **cutover CONDITIONALLY APPROVED** 🎯 |
-| **▶ NEXT — and it gates the feature-lock line** | **Regenerate T9–T11 from the findings file** *(= "the 3.5 remainder", [D39])* **before** it is used as the boundary. ⚠️ Not re-measured since **T4–T8 collapsed many of its owners**, so the live count is unknown — and an enumerated list has been short five consecutive times. A **generated** list, not a remembered one. Then **Phase 5.5**, then Phase 6 in the recorded order |
+| **▶ NEXT — and it gates the feature-lock line** | **Regenerate T9–T11 from the findings file** *(= "the 3.5 remainder", [D39])* **before** it is used as the boundary. ⚠️ Not re-measured since **T4–T8 collapsed many of its owners**, so the live count is unknown — and an enumerated list has been short five consecutive times. A **generated** list, not a remembered one. Then **Phase 6** in the recorded order; **Phase 6.5** (repo consolidation) now runs LAST, before the final build |
 | **Device-owed → Phase 6 device pass** | the **document picker** (from **iCloud Drive**, not local) · the **`v16-damaged` repair report** · the **v1.6-file import not landing in onboarding** *(fixed at the root, unit-covered, never seen on a device)* |
 | **Gate** | `validate:release:rn` — **196 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push. ⭐ **+`lint:glossary` +`lint:money` +`lint:closure`** |
 | **The audit** | ⭐ [`audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md) — 117 findings, 7 lenses, 8 refutations. **CLOSED**; detail → log |
@@ -267,7 +267,30 @@ of 4, **1 refuted, 1 half-shipped, 1 wrong in 3 of its 4 premises, 1 clean.** Th
 ▶ **ACTIVE — decomposed as 5.1–5.11 at the top of this doc.** Upgrade data loss is catastrophic AND
 irreversible, so 5.10's adversarial audit is the exit gate and nothing cuts over until it is green.
 
-## Phase 5.5 — Repo consolidation
+## Phase 6.5 — Repo consolidation *(was 5.5 — MOVED 🎯 2026-08-19)*
+
+⛔ **MOVED AFTER PHASE 6, deliberately.** 🎯: *"I do not want to take any chances at all of us deleting
+something from legacy that is still needed but missed. 6.5 will ensure that the app is truly frozen before
+we touch legacy."* ⚠️ **CAVEAT: 6.5 must be FINISHED before the final submission build** (🎯).
+
+⚡ **It retires a risk that already bit today.** `docs/cutover/`'s v1.6 fixture had to be *rescued* from
+the legacy tree precisely because the deletion was scheduled early — a rescue done under time pressure, on
+one artifact someone happened to remember. Deleting last means the tree is still there whenever something
+turns out to need it, and **"still needed but missed" stops being a category.**
+
+⭐ **Two things this BUYS, beyond the safety:** T10's dead-code verdicts must be re-checked against the
+ROOT tree (`formatDisplayAmount` was called dead and has three live legacy call sites) — that tree now
+survives long enough to check against. And every Phase 6 audit runs while the old surface is still
+readable, so *"what did v1.6 do here"* stays answerable.
+
+⛔ **AND THE GUARD THE MOVE CREATES: run `validate:release:rn` GREEN AFTER 6.5 and BEFORE the final build.**
+Deleting an entire surface is exactly the kind of change that breaks the remaining one, and 6.5 now lands
+*after* the device pass — so nothing else would catch it. A submission build cut straight off the deletion
+is untested in the only configuration that ships.
+
+⚠️ **Do NOT wait for 6.5 to retire the `legacy-capture-*` tag trigger.** It was filed as *"retire it with
+the legacy tree at 5.5.1, or sooner"* — and "with the tree" just moved by a whole phase. Any push of such
+a tag spends ~45 min of macOS runner. **Retire it independently.**
 
 - **5.5.1** remove the root Capacitor/Next surface. Also retires `validate:release:legacy`, the root Next
   lint, the legacy `debtPlanner.isDemoMode` test references, and `tests/visual/*.cjs`.
@@ -292,7 +315,8 @@ findings + T9–T11** ⚠️ *"the 3.5 remainder" = **T9–T11**, 🎯 — one s
 among the AUDIT GATES*, not first in Phase 6 — its "runs on the FROZEN app" premise is only true once ①–③
 have landed · **⑤ privacy audit**, which consumes 6.C's two coupled decisions ([a] mechanism, [b] the
 replacement for *"never leaves your device"*) · **⑥ money lens** · **⑦ `QA_TOOLS` off** · **⑧ device pass**
-· **⑨ submit.**
+· **⑨ Phase 6.5 — repo consolidation / delete legacy** *(moved from 5.5, 🎯: don't touch legacy until the
+app is truly frozen)* · **⑩ `validate:release:rn` GREEN after the deletion** · **⑪ final build → submit.**
 
 ⚠️ Getting ④ early buys a **second** sweep and re-decides everything it touched; getting ⑤ early turns a
 settled decision into a discovery mid-audit.
