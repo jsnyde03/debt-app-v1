@@ -312,6 +312,10 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
 - **⭐ [AUDIT GATE] Pre-submit functional + FINANCIAL-correctness money lens** — boundary inputs across the
   engine: zero/negative income · date-boundary/leap-year/timezone · rounding drift · month-vs-cycle
   stepping · cross-cadence BNPL · huge/partial portfolios.
+- **⭐ SHIP-BLOCKER · set `apps/rn/app.json` version to `2.0.0` — [D38], 🎯 2026-08-19.** ⚠️ **Do this FIRST
+  in Phase 6**, before the ASC listing, release notes, *"What's New"* and the App-Preview asset, because
+  all of them quote the version and doing it late means writing them twice. The internal workstream keeps
+  the name "v1.7 Elevation"; only the shipped number changes.
 - **⚠️ SHIP-BLOCKER · flip `QA_TOOLS` to false** (see Standing constraints).
 - **Sentry** — scaffold done; set `EXPO_PUBLIC_SENTRY_DSN`, CI source-map care, verify capture on a real
   build, add a `beforeBreadcrumb` PII scrub.
@@ -663,6 +667,22 @@ measured hotspot)* · Dynamic-Type device QA.
 - **Executive "fix everything, no backlog" ✅ (2026-07-29/30)** — fold every audit finding now; only hardware
   verification waits for Phase 6. · **Legacy gate RETIRED ✅ (2026-07-24)**.
 - **3.8 is in v1.7 ✅ (2026-08-17)** — 🎯: *"definitely in 1.7."* The app contradicts its own number.
+- **[D38] ✅ (🎯 2026-08-19)** — **this ships as `2.0.0`, not `1.7.x`.** 🎯: *"a very very very large version
+  and I fear that leaving it as a point release will lead to unrealistic expectations in the future."*
+  ⚡ **The argument is about the FUTURE, not this release: the version number is the baseline every later
+  release is measured against, and a wrong baseline is permanent.** Ship this as 1.7 and every normal
+  release afterwards reads as a slowdown, forever, because of one decision. ⭐ It also stands on its own
+  grounds — **Capacitor WebView → native RN is a platform change**, which is the textbook major bump even
+  if the feature list were modest.
+  - ⚠️ **The INTERNAL name stays "the v1.7 Elevation."** The plan, log, CLAUDE.md, audit folder names and
+    a great many code comments are saturated with it; renaming is churn with real regression risk and zero
+    user benefit. **Precedent in this portfolio:** Hearthlight ships as *"Hearthlight: Cozy Coloring"*
+    while its repo, bundle id and home-screen name stay `Hearthlight` — a deliberate divergence.
+  - ✅ **Measured: nothing user-facing carries "1.7"** — the only hits are internal comments. The shipped
+    number is **one field**, `apps/rn/app.json` → `version`. ⚠️ Migration is unaffected: the bridge keys off
+    the **bundle id** and RN storage being empty, never the version.
+  - ▶ **Do it in Phase 6, BEFORE the ASC listing / release notes / "What's New" / App-Preview are written**
+    — those all quote the version, and deciding partway through means writing them twice.
 - **[D36] ✅ (2026-08-17)** — the reserve ships to **BOTH TIERS** (the lie is tier-blind, and `prefundedReserve`
   is premium-only, so it needed deciding rather than inheriting) · the Guardian segment is **"Spoken for"**.
   ⛔ *"Set aside"* is a portfolio name; *"Reserved"* would name a **different number** than the Money hero's.
