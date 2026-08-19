@@ -44,16 +44,40 @@ assert(!looksLikeDebt({ name: 'Payment plan' }), '"payment" alone is NOT a debt 
 // silently omits it. This pins what the detector does with that exact corpus — measured, not assumed.
 assert(looksLikeDebt({ name: 'Credit Card Payment' }), 'v1.6 preset "Credit Card Payment" is caught');
 assert(looksLikeDebt({ name: 'Loan Payment' }), 'v1.6 preset "Loan Payment" is caught');
-assert(looksLikeDebt({ name: 'Rent / Mortgage' }), 'v1.6 preset "Rent / Mortgage" is caught (via "mortgage")');
-// ⛔ CURRENT BEHAVIOUR, PINNED AS A KNOWN GAP — not an endorsement. "Car Payment" is a shipped v1.6
-// preset that names a borrowing instrument, and the detector misses it because `car` is not in
-// DEBT_WORDS. ⚠️ The docstring claims *"Car payment" is caught by "car" only when paired* — describing
-// behaviour that was never implemented. Whether to add it is a TRUST call about accusing someone's bill,
-// which is 🎯's, so this asserts the status quo rather than quietly changing it.
-assert(!looksLikeDebt({ name: 'Car Payment' }), '⚠️ v1.6 preset "Car Payment" is NOT caught — an open gap');
 assert(!looksLikeDebt({ name: 'Medical Bill' }), 'a medical bill is not accused');
 assert(!looksLikeDebt({ name: 'Subscription' }), 'a subscription is not accused');
 assert(!looksLikeDebt({ name: 'Insurance' }), 'insurance is not accused');
+
+// ── 5.4 [🎯 2026-08-19] — "Car Payment" by PHRASE, never by the bare word. ────────────────────────
+// Measured over realistic bill names: a bare `\bcar\b` accused 8 of 19, the phrase form 2 of 19.
+assert(looksLikeDebt({ name: 'Car Payment' }), 'v1.6 preset "Car Payment" is caught (by phrase)');
+assert(looksLikeDebt({ name: 'car payment' }), 'case-insensitively');
+assert(looksLikeDebt({ name: 'Vehicle payment' }), '"Vehicle payment" too');
+// ⛔ The five ordinary bills a bare `car` would have accused. Car insurance is near-universal, so this
+// is the assertion that keeps a migration from calling a whole population's bills debts.
+assert(!looksLikeDebt({ name: 'Car insurance' }), '"Car insurance" is NOT accused');
+assert(!looksLikeDebt({ name: 'Car Insurance - Geico' }), '…nor a branded one');
+assert(!looksLikeDebt({ name: 'Car wash' }), '"Car wash" is not accused');
+assert(!looksLikeDebt({ name: 'Car registration' }), '"Car registration" is not accused');
+assert(!looksLikeDebt({ name: 'Car maintenance' }), '"Car maintenance" is not accused');
+assert(!looksLikeDebt({ name: 'Rental car' }), '"Rental car" is not accused');
+// Already covered by `loan`, so the phrase rule is not carrying them.
+assert(looksLikeDebt({ name: 'Car loan' }), '"Car loan" stays caught (via "loan")');
+assert(looksLikeDebt({ name: 'Auto loan' }), '"Auto loan" stays caught (via "loan")');
+// ⚠️ A KNOWN, ACCEPTED miss: brand-named vehicle debt. Catching it needs a lender list, and that trade
+// is the one this detector exists to refuse.
+assert(!looksLikeDebt({ name: 'Toyota payment' }), '⚠️ brand-named car debt is knowingly MISSED');
+
+// ── 5.4 [🎯] — the combined housing preset is ambiguous BY CONSTRUCTION and is not accused. ───────
+assert(
+  !looksLikeDebt({ name: 'Rent / Mortgage' }),
+  '⛔ the UNMODIFIED "Rent / Mortgage" preset is NOT accused — it names both, so it says nothing',
+);
+assert(!looksLikeDebt({ name: 'rent /  mortgage' }), '…whitespace and case collapsed before the check');
+// The exemption covers absence of information, NOT the word. Renaming it says which one it is.
+assert(looksLikeDebt({ name: 'Mortgage' }), 'a RENAMED "Mortgage" is still caught');
+assert(looksLikeDebt({ name: 'Rocket Mortgage' }), '…and a lender-branded one');
+assert(!looksLikeDebt({ name: 'Rent' }), 'and plain "Rent" is still never accused');
 
 // ── The conversion moves the money exactly once. ──────────────────────────────────────────────────────
 const expense: RequiredExpense = {
