@@ -107,11 +107,31 @@ managed.
 long enough to check against. Every Phase 6 audit also runs while the old surface is still readable, so
 *"what did v1.6 actually do here"* stays answerable instead of becoming archaeology.
 
-### ⛔ The guard the move CREATES, and it needs stating because nothing else covers it
+### ✅ The guard, and 🎯 went further than the guard
 
-6.5 now lands **after** the device pass. So a submission build cut straight off the deletion would ship a
-configuration **nothing has tested** — and removing an entire surface is precisely the change that breaks
-the remaining one. ▶ **`validate:release:rn` must run GREEN after 6.5 and before the final build.**
+I flagged that 6.5 landing after the device pass would leave the submission build in a configuration
+**nothing had tested**, since removing an entire surface is precisely the change that breaks the remaining
+one — so `validate:release:rn` had to run green after the deletion.
+
+🎯: *"I noted your risk here. Let's move the final device pass to after 6.5 as well."* ⭐ **Stronger than
+what I proposed**: an automated gate proves the app still builds and passes, but the **human** check now
+also runs on the configuration that actually ships, rather than on one with a whole-surface deletion still
+ahead of it.
+
+### ⛔ AND MOVING IT EXPOSED A CONFLICT THAT WAS ALREADY THERE
+
+The device pass **rides QA-gated instruments.** `legacy-bridge-probe` is `qaEnabled()`-gated — and it is
+the readout 🎯 used to verify the migration today (`Keys 22 · truncated=no`). With the pass moved later, it
+now sits after `QA_TOOLS` off in the old order, which would **delete the instrument the pass depends on.**
+
+⚡ **This is the standing constraint's own words biting: *"Never let a coverage row ride a QA door."*** The
+rule exists, and the probe row violates it in practice — nobody noticed while the pass happened to run
+before the flip. **Reordering did not create the conflict; it revealed one that was always latent in the
+sequence.**
+
+▶ Ordered for now as **device pass → flip**, so the flip becomes the last code change and takes its own
+`validate:release:rn`. **The real fix is 🎯's call:** accept that ordering, or give the probe rows a
+non-QA path. ⚠️ *A flip verified after its instruments are gone cannot confirm what it removed.*
 
 ### ⚠️ And one thing that must NOT wait for it
 

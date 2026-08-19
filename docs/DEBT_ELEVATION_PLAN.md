@@ -314,9 +314,20 @@ every planned change landed. ⚠️ *"Frozen" is not a milestone you schedule; i
 findings + T9–T11** ⚠️ *"the 3.5 remainder" = **T9–T11**, 🎯 — one set, not two* → **FEATURE LOCK** · then **④ the FINISH sweep**, which is *first
 among the AUDIT GATES*, not first in Phase 6 — its "runs on the FROZEN app" premise is only true once ①–③
 have landed · **⑤ privacy audit**, which consumes 6.C's two coupled decisions ([a] mechanism, [b] the
-replacement for *"never leaves your device"*) · **⑥ money lens** · **⑦ `QA_TOOLS` off** · **⑧ device pass**
-· **⑨ Phase 6.5 — repo consolidation / delete legacy** *(moved from 5.5, 🎯: don't touch legacy until the
-app is truly frozen)* · **⑩ `validate:release:rn` GREEN after the deletion** · **⑪ final build → submit.**
+replacement for *"never leaves your device"*) · **⑥ money lens** · **⑦ Phase 6.5 — repo consolidation / delete legacy** *(moved from 5.5, 🎯: don't touch
+legacy until the app is truly frozen)* · **⑧ `validate:release:rn` GREEN after the deletion** · **⑨ the
+DEVICE PASS** *(moved after 6.5, 🎯 2026-08-19 — so the human check runs on the configuration that actually
+ships, not on one that a whole-surface deletion is still ahead of)* · **⑩ `QA_TOOLS` off** · **⑪ final
+build → submit.**
+
+⛔⛔ **THE FLIP MOVED TOO, AND IT HAD TO — the device pass RIDES QA-gated instruments.**
+`legacy-bridge-probe` is `qaEnabled()`-gated, and 🎯 used exactly that readout to verify the migration on
+2026-08-19 (`Keys 22 · truncated=no`). Flipping `QA_TOOLS` before the pass would delete the instrument the
+pass depends on. ⚠️ **This is the standing constraint's own words biting** — *"Never let a coverage row ride
+a QA door"* — and it is already violated in practice, because the probe row does exactly that. ▶ **Two
+options, and the choice is 🎯's:** run the pass **before** the flip (order above; the flip is then the last
+code change and gets its own `validate:release:rn`), **or** give the probe rows a non-QA path. ⚡ *A flip
+verified after the instruments are gone cannot confirm what it removed.*
 
 ⚠️ Getting ④ early buys a **second** sweep and re-decides everything it touched; getting ⑤ early turns a
 settled decision into a discovery mid-audit.
