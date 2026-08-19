@@ -38,6 +38,23 @@ assert(!looksLikeDebt({ name: 'Electric' }), 'a utility');
 assert(!looksLikeDebt({ name: 'Netflix' }), 'a subscription');
 assert(!looksLikeDebt({ name: 'Payment plan' }), '"payment" alone is NOT a debt word — too many bills are called one');
 
+// ── 5.4 — THE v1.6 BILL PRESETS, which are what upgrading users actually arrive with. ────────────
+// v1.6 offered 15 one-tap presets for BILLS (`lib/constants/requiredExpensePresets.ts` on `v1.6-dev`).
+// Anyone who tapped a borrowing-instrument one has a debt filed as an expense, so their debt-free date
+// silently omits it. This pins what the detector does with that exact corpus — measured, not assumed.
+assert(looksLikeDebt({ name: 'Credit Card Payment' }), 'v1.6 preset "Credit Card Payment" is caught');
+assert(looksLikeDebt({ name: 'Loan Payment' }), 'v1.6 preset "Loan Payment" is caught');
+assert(looksLikeDebt({ name: 'Rent / Mortgage' }), 'v1.6 preset "Rent / Mortgage" is caught (via "mortgage")');
+// ⛔ CURRENT BEHAVIOUR, PINNED AS A KNOWN GAP — not an endorsement. "Car Payment" is a shipped v1.6
+// preset that names a borrowing instrument, and the detector misses it because `car` is not in
+// DEBT_WORDS. ⚠️ The docstring claims *"Car payment" is caught by "car" only when paired* — describing
+// behaviour that was never implemented. Whether to add it is a TRUST call about accusing someone's bill,
+// which is 🎯's, so this asserts the status quo rather than quietly changing it.
+assert(!looksLikeDebt({ name: 'Car Payment' }), '⚠️ v1.6 preset "Car Payment" is NOT caught — an open gap');
+assert(!looksLikeDebt({ name: 'Medical Bill' }), 'a medical bill is not accused');
+assert(!looksLikeDebt({ name: 'Subscription' }), 'a subscription is not accused');
+assert(!looksLikeDebt({ name: 'Insurance' }), 'insurance is not accused');
+
 // ── The conversion moves the money exactly once. ──────────────────────────────────────────────────────
 const expense: RequiredExpense = {
   id: 'e1',
