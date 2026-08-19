@@ -111,15 +111,28 @@ re-encoding adapter — small, and it inherits 5.2's 50 asserts + the drop/unkno
 
 | # | Sub-step |
 |---|---|
-| **5.8.1** | **The envelope + `serializeBackup`/`parseBackup`** — versioned, app-marked, one function each. Export writes it; nothing else re-implements the shape |
+| **5.8.1** | ✅ **Done 2026-08-19.** `data/backup.ts` — a versioned, app-marked envelope with the store **NESTED** (spreading would let a future store field silently outrank an envelope field). `parseBackup` never throws; four tagged refusals (`not-json` · `not-a-backup` · `too-new` · `malformed`). ⛔ **Forward-incompatible backups are REFUSED, not downgraded** — `runMigrations` only moves forward, so a future store would restore *looking* successful, and the version can't be smuggled past by deleting the envelope's copy. **61 asserts · 4 plants / 4 reds**, each on its intended assertion. tsc + lint clean, `test:app` green |
 | **5.8.2** | **Format DETECTION on import, three recognised inputs:** the new envelope · a **raw v1.7 store** (today's clipboard export — already in testers' hands) · a **v1.6 backup file** → routed through the `mapLegacyStore` adapter. ⛔ **Anything unrecognised is REFUSED**, replacing today's accept-any-object |
-| **5.8.3** | **The v1.6 adapter** — flat object → prefixed/encoded map → `mapLegacyStore`. Pinned against the committed real fixture; asserts income/date/cycle actually LAND |
+| **5.8.3** | **The v1.6 adapter** — flat object → prefixed/encoded map → `mapLegacyStore`. Pinned against the real fixture; asserts income/date/cycle actually LAND. ⛔ **RESCUE the fixture first** — `tests/e2e/fixtures/backup-import.json` is real v1.6 shape and lives in the tree **5.5.1 deletes** |
 | **5.8.4** | **Import UX: confirm before replace**, reporting what was recognised and what was dropped — `importStore` is destructive and currently fires on a single tap |
 | **5.8.5** | **The file picker** (`expo-document-picker`) + **share-sheet export** (`expo-sharing` + `expo-file-system`, both already deps), behind the platform split so web keeps the paste path |
 | **5.8.6** | **Gates:** plant-verified both directions · e2e over all three formats + a refusal · ⭐ **[D31]** — a `lint:` rule if the class admits one |
 
 ⚠️ **5.8.1–5.8.4 are the ship-blocker; 5.8.5 is the feature the step was named for.** Order is deliberate:
 building the picker first would ship the defect wider.
+
+⛔⛔ **5.8.1's after-scan — HARD ORDERING CONSTRAINT, measured: do NOT wire the export to
+`serializeBackup` until 5.8.2's detection ships.** Today's importer is `JSON.parse` → `runMigrations` →
+`importStore`, and an envelope **is** an object, so it is **ACCEPTED**: a real portfolio exported and
+immediately re-imported came back **0 debts, blank income**. ⚡ **Half-applied, this fix is worse than the
+defect it replaces** — it would turn the app's own export into a total-loss round trip. The envelope is
+inert until the reader understands it, and that is the correct order.
+
+⛔ **5.8.1's before-scan: this surface has NEVER had RN coverage.** **39 RN e2e specs, zero** touch backup —
+the only backup e2e in the repo is `tests/e2e/planner-hardening.spec.ts`, on the **legacy** surface, and
+**5.5.1 deletes it along with the fixture.** So 5.8.6 is not "add a spec", it is *first* coverage, and the
+existing coverage is about to go to zero without it. ⚡ **That is the whole explanation for the defect** —
+an accept-any-object importer survived an audit gate because nothing in the RN suite ever imported anything.
 
 **Owed before launch, carried out of the audit gate:**
 | | |

@@ -4,7 +4,7 @@
 > This is the **input** to the wording/voice gate, not its output. Findings belong in a dated
 > audit folder; this file is only ever the current state of the codebase.
 
-**823** copy · **368** unclassified · **68** excluded as machinery · **61** copy strings appearing in more than one file (of 85 repeated strings overall).
+**823** copy · **405** unclassified · **68** excluded as machinery · **61** copy strings appearing in more than one file (of 85 repeated strings overall).
 
 <details><summary>Excluded as machinery — the contexts, so the exclusions can be challenged</summary>
 
@@ -41,6 +41,8 @@ here is how a surface goes unreviewed while the count looks complete.
 - `call:db.getAllAsync`
 - `call:drivers.push`
 - `call:fullAmount.toLocaleString`
+- `call:import`
+- `call:key.startsWith`
 - `call:monthDate`
 - `call:name.endsWith`
 - `call:notify`
@@ -54,6 +56,7 @@ here is how a surface goes unreviewed while the count looks complete.
 - `call:router.replace`
 - `call:schedule`
 - `call:shareDebtCard`
+- `call:skipped`
 - `call:useEffect`
 - `call:useState`
 - `call:useStore`
@@ -95,6 +98,7 @@ here is how a surface goes unreviewed while the count looks complete.
 - `key:'weekly'`
 - `key:afternoon`
 - `key:amountPositive`
+- `key:appLockEnabled`
 - `key:assignment`
 - `key:balanceRequired`
 - `key:bills`
@@ -105,8 +109,10 @@ here is how a surface goes unreviewed while the count looks complete.
 - `key:celebration`
 - `key:clear`
 - `key:coach`
+- `key:completedRecommendedActions`
 - `key:currency`
 - `key:cycle`
+- `key:cycleHistory`
 - `key:debts`
 - `key:discretionary`
 - `key:display`
@@ -119,28 +125,39 @@ here is how a surface goes unreviewed while the count looks complete.
 - `key:flexible`
 - `key:free`
 - `key:goals`
+- `key:hasCompletedOnboarding`
+- `key:hasConfiguredPaycheck`
 - `key:healing`
 - `key:history`
 - `key:housing`
 - `key:insurance`
+- `key:isDemoMode`
+- `key:lastHandledPaydayDate`
 - `key:leanAboveTypical`
 - `key:leanRequired`
 - `key:line`
+- `key:livingExpenses`
 - `key:lock`
 - `key:medical`
+- `key:milestoneMaxProgress`
 - `key:mimeType`
 - `key:minimumRequired`
+- `key:mockSubscription`
 - `key:mono`
+- `key:monthlyPayDay`
 - `key:morning`
 - `key:nameRequired`
 - `key:next`
+- `key:nextPaycheckDate`
 - `key:noSelling`
+- `key:notificationsEnabled`
 - `key:offer`
 - `key:other`
 - `key:path`
 - `key:paydayRange`
 - `key:paydayRequired`
 - `key:paydaySame`
+- `key:payoffStrategy`
 - `key:placeholder`
 - `key:portfolioMaxProgress`
 - `key:premium`
@@ -149,10 +166,17 @@ here is how a surface goes unreviewed while the count looks complete.
 - `key:provider`
 - `key:recoveryTrend`
 - `key:required`
+- `key:requiredExpenses`
+- `key:resetSnapshot`
+- `key:reviewRequested`
+- `key:rolloverCount`
 - `key:savings`
+- `key:schemaVersion`
 - `key:screen`
 - `key:seam`
 - `key:search`
+- `key:semiMonthlyFirstDay`
+- `key:semiMonthlySecondDay`
 - `key:sf`
 - `key:shield`
 - `key:short`
@@ -166,6 +190,7 @@ here is how a surface goes unreviewed while the count looks complete.
 - `key:type`
 - `key:update`
 - `key:utilities`
+- `key:why`
 - `other`
 - `prop:amount`
 - `prop:amountSuffix`
@@ -179,8 +204,10 @@ here is how a surface goes unreviewed while the count looks complete.
 - `prop:sub`
 - `prop:target`
 - `var:AFFORD_PREVIEW_ID`
+- `var:AMBIGUOUS_NAMES`
 - `var:AMT`
 - `var:APP_STORE_URL`
+- `var:BACKUP_APP_NAME`
 - `var:BILL_CATEGORY_ORDER`
 - `var:CUSHION_LABEL`
 - `var:CYCLE_HISTORY_STORAGE_KEY`
@@ -195,7 +222,10 @@ here is how a surface goes unreviewed while the count looks complete.
 - `var:LEGACY_KEY_PREFIX`
 - `var:LIFETIME_SUBNOTE`
 - `var:LIVE_ACTIVITY_APP_GROUP`
+- `var:MALFORMED`
 - `var:MANAGE_SUBSCRIPTION_URL`
+- `var:NOT_A_BACKUP`
+- `var:NOT_JSON`
 - `var:PAYCHECK_LEAN_HELP`
 - `var:PAYDAY_ACTIVITY_DEEPLINK`
 - `var:PRIVACY_POLICY_URL`
@@ -203,6 +233,7 @@ here is how a surface goes unreviewed while the count looks complete.
 - `var:SAFETY_NET_LABEL`
 - `var:SUPPORT_URL`
 - `var:TERMS_OF_USE_URL`
+- `var:TOO_NEW`
 - `var:TUTORIAL_WRITABLE_PREFS`
 - `var:WIDGET_APP_GROUP`
 - `var:WIDGET_KIND`
@@ -1644,13 +1675,64 @@ the moment a second producer was added. Two audit passes and three green web spe
 |---|---|---|
 | 31 | jsx-expr | Select |
 
+### `apps/rn/src/data/backup.ts`
+
+| line | origin | string |
+|---|---|---|
+| 51 | var:BACKUP_APP_NAME ⚠️ | Debt Planner |
+| 90 | var:NOT_JSON ⚠️ | That file isn't readable as a backup. |
+| 91 | var:NOT_A_BACKUP ⚠️ | That isn't a Debt Planner backup. |
+| 92 | var:TOO_NEW ⚠️ | That backup was made by a newer version of Debt Planner. Update the app, then try again. |
+| 93 | var:MALFORMED ⚠️ | That backup is incomplete and can't be restored. |
+
+### `apps/rn/src/data/legacyBridge/mapLegacyStore.ts`
+
+| line | origin | string |
+|---|---|---|
+| 74 | key:requiredExpenses ⚠️ | requiredExpenses |
+| 75 | key:livingExpenses ⚠️ | livingExpenses |
+| 77 | key:cycleHistory ⚠️ | cycleHistory |
+| 78 | key:completedRecommendedActions ⚠️ | completedRecommendedActions |
+| 79 | key:payoffStrategy ⚠️ | payoffStrategy |
+| 80 | key:milestoneMaxProgress ⚠️ | milestoneMaxProgress |
+| 81 | key:lastHandledPaydayDate ⚠️ | lastHandledPaydayDate |
+| 90 | key:nextPaycheckDate ⚠️ | nextPaycheckDate |
+| 91 | key:semiMonthlyFirstDay ⚠️ | semiMonthlyFirstDay |
+| 92 | key:semiMonthlySecondDay ⚠️ | semiMonthlySecondDay |
+| 93 | key:monthlyPayDay ⚠️ | monthlyPayDay |
+| 98 | key:hasCompletedOnboarding ⚠️ | onboardingComplete |
+| 99 | key:notificationsEnabled ⚠️ | notificationsEnabled |
+| 100 | key:appLockEnabled ⚠️ | appLockEnabled |
+| 109 | key:isDemoMode ⚠️ | inert — nothing reads it (5.6 drops the field entirely) |
+| 110 | key:mockSubscription ⚠️ | a v1.6 QA hook; real entitlement comes from RevenueCat |
+| 111 | key:schemaVersion ⚠️ | consumed — it decides the originalBalance backfill, it is not stored |
+| 115 | key:resetSnapshot ⚠️ | v1.6 reset-undo buffer; v1.7 has no surface that could restore it |
+| 116 | key:rolloverCount ⚠️ | a v1.6 review-prompt counter; v1.7 tracks review prompting separately |
+| 117 | key:reviewRequested ⚠️ | superseded by `reviewPrompted` on the RN store, set by v1.7 on its own terms |
+| 125 | key:hasConfiguredPaycheck ⚠️ | written only by v1.6’s SIM_SMOKE seeder, never by the shipping app |
+| 158 | call:key.startsWith ⚠️ | rnStore. |
+| 162 | call:key.startsWith ⚠️ | __corrupt__ |
+| 170 | other ⚠️ | schemaVersion |
+| 186 | key:why ⚠️ | no theme preference stored (null) — defaults apply |
+
+### `apps/rn/src/data/legacyBridge/migrateFromLegacy.ts`
+
+| line | origin | string |
+|---|---|---|
+| 65 | call:import ⚠️ | ./readLegacyStores |
+| 76 | call:skipped ⚠️ | no container to read (web) |
+| 85 | call:skipped ⚠️ | the search was cut short — treating as UNKNOWN, not as "no legacy data" |
+| 86 | call:skipped ⚠️ | no v1.6 store in this container (a fresh install) |
+
 ### `apps/rn/src/data/legacyBridge/readLegacyStores.ts`
 
 | line | origin | string |
 |---|---|---|
-| 57 | key:error ⚠️ | source vanished |
-| 66 | call:db.getAllAsync ⚠️ | SELECT key, value FROM ItemTable |
-| 139 | key:path ⚠️ | (walk) |
+| 58 | key:error ⚠️ | source vanished |
+| 73 | other ⚠️ | -wal |
+| 73 | other ⚠️ | -shm |
+| 84 | call:db.getAllAsync ⚠️ | SELECT key, value FROM ItemTable |
+| 160 | key:path ⚠️ | (walk) |
 
 ### `apps/rn/src/data/legacyBridge/report.ts`
 
@@ -1896,6 +1978,12 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 575 | key:title | Keep debt first |
 | 575 | key:detail | Save whatever’s spare after debt — no hit to your debt-free date, but no firm date. |
 
+### `apps/rn/src/store/looksLikeDebt.ts`
+
+| line | origin | string |
+|---|---|---|
+| 66 | var:AMBIGUOUS_NAMES ⚠️ | rent / mortgage |
+
 ### `apps/rn/src/store/obligationForm.ts`
 
 | line | origin | string |
@@ -1974,7 +2062,7 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 28 | call:reportError ⚠️ | bootstrapPersistence called with a SANDBOX store — refusing |
+| 30 | call:reportError ⚠️ | bootstrapPersistence called with a SANDBOX store — refusing |
 
 ### `apps/rn/src/store/planSelectors.ts`
 
@@ -2003,7 +2091,7 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 222 | call:console.warn ⚠️ | Replay and the tutorial e2e depend on it being deterministic; check for a clock or random read. |
+| 227 | call:console.warn ⚠️ | Replay and the tutorial e2e depend on it being deterministic; check for a clock or random read. |
 
 ### `apps/rn/src/store/StoreContext.tsx`
 

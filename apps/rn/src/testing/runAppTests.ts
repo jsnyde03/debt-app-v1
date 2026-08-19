@@ -144,6 +144,11 @@ async function main() {
   // confusion is how a migration silently skips someone's whole portfolio.
   await (await import('../data/legacyBridge/migrateFromLegacy.test')).default();
 
+  // 5.8.1 — the backup FILE envelope. The pre-5.8 importer accepted ANY JSON object and wrote it over
+  // the user's portfolio; these assertions are the refusal. ⚠️ This surface had ZERO RN coverage — the
+  // only backup test in the repo is on the legacy tree, which 5.5.1 deletes.
+  await import('../data/backup.test');
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');

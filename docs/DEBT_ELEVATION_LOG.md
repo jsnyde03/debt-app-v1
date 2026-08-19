@@ -89,6 +89,57 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## 5.8.1 — the envelope, and the fix is worse than the defect if you stop halfway (2026-08-19)
+
+`data/backup.ts`: `BACKUP_FORMAT` + a versioned envelope, `serializeBackup`, `parseBackup`,
+`isBackupEnvelope`. **61 asserts, 4 plants, 4 reds.** tsc clean both trees · `lint:rn` 0 errors (6
+pre-existing warnings) · `test:app` ALL PASSED.
+
+### The two design calls worth keeping
+
+**The store is NESTED under `store`, never spread.** Spreading would let a future store field collide
+with an envelope field — and the envelope would win, silently, in the one direction that matters (metadata
+outranking real user data). Pinned by an assertion that no store field appears at the envelope level.
+
+**⛔ A forward-incompatible backup is REFUSED, not migrated.** `runMigrations` only moves forward: it
+merges an unknown blob onto CURRENT defaults, so a store from a newer build would be quietly stripped of
+everything this build doesn't know and would restore *looking* successful. Refusing is recoverable
+("update the app"); a silent partial restore over a real portfolio is not. ⚠️ And the check reads the
+payload's own `storeVersion` as a fallback, so deleting the envelope's copy cannot smuggle a future store
+past it — asserted.
+
+### ⛔ THE AFTER-SCAN FINDING: a hard ordering constraint that only existed once the envelope did
+
+Wiring the export to `serializeBackup` before 5.8.2's detection lands would create a **brand-new
+total-loss path**. Today's importer is `JSON.parse` → `runMigrations` → `importStore`, and an envelope
+**is an object**, so it sails through. Measured — a real portfolio exported and immediately re-imported:
+
+| | exported | re-imported |
+|---|---|---|
+| debts | 1 | ⛔ **0** |
+| income | 2100 | ⛔ **blank** |
+
+⚡ **Half-applied, this fix is strictly worse than the defect it replaces** — it converts the app's own
+export into a round trip that destroys everything, and the pre-5.8 raw-JSON export at least round-tripped.
+The envelope stays inert until the reader understands it. *A format change is not safe because the writer
+is correct; it is safe when the reader lands first.*
+
+### ⚠️ A mechanism of my own, refuted by measuring it
+
+I concluded the copy gate could not see the new user-facing strings — I grepped `strings-inventory`'s
+**stdout** and got nothing, and reached for the T1 shape ("the gate's view is too narrow"). Wrong: stdout
+is a **3-line summary**; the strings land in `docs/audits/strings-inventory.md`, and **all four are there.**
+No hole, no fix needed. ⚡ *The finding had a plausible mechanism, a matching precedent in this very repo,
+and was still false.* It cost two minutes to check and would have cost an invented gate to believe.
+
+### ▶ Carried into 5.8.2
+
+`serializeBackup` and `isBackupEnvelope` are deliberately **uncalled** until the detection layer exists.
+That is intended within 5.8 — but dead exports drifting past an item is exactly L2-6's shape, so they are
+named here to be collected rather than rediscovered.
+
+---
+
 ## 5.8 before-scan — a live data-loss defect, and the item was named for its smallest half (2026-08-19)
 
 The step read *"replace the paste-JSON import with a real file picker (+ share-sheet export **over the

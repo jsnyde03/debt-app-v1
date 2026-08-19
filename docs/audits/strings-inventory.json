@@ -2,7 +2,7 @@
   "generated": "npm run audit:strings",
   "counts": {
     "copy": 823,
-    "unclassified": 368,
+    "unclassified": 405,
     "duplicates": 85
   },
   "entries": [
@@ -5810,23 +5810,275 @@
       "bucket": "copy"
     },
     {
+      "text": "Debt Planner",
+      "file": "apps/rn/src/data/backup.ts",
+      "line": 51,
+      "origin": "var:BACKUP_APP_NAME",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "That file isn't readable as a backup.",
+      "file": "apps/rn/src/data/backup.ts",
+      "line": 90,
+      "origin": "var:NOT_JSON",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "That isn't a Debt Planner backup.",
+      "file": "apps/rn/src/data/backup.ts",
+      "line": 91,
+      "origin": "var:NOT_A_BACKUP",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "That backup was made by a newer version of Debt Planner. Update the app, then try again.",
+      "file": "apps/rn/src/data/backup.ts",
+      "line": 92,
+      "origin": "var:TOO_NEW",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "That backup is incomplete and can't be restored.",
+      "file": "apps/rn/src/data/backup.ts",
+      "line": 93,
+      "origin": "var:MALFORMED",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "requiredExpenses",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 74,
+      "origin": "key:requiredExpenses",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "livingExpenses",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 75,
+      "origin": "key:livingExpenses",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "cycleHistory",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 77,
+      "origin": "key:cycleHistory",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "completedRecommendedActions",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 78,
+      "origin": "key:completedRecommendedActions",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "payoffStrategy",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 79,
+      "origin": "key:payoffStrategy",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "milestoneMaxProgress",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 80,
+      "origin": "key:milestoneMaxProgress",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "lastHandledPaydayDate",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 81,
+      "origin": "key:lastHandledPaydayDate",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "nextPaycheckDate",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 90,
+      "origin": "key:nextPaycheckDate",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "semiMonthlyFirstDay",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 91,
+      "origin": "key:semiMonthlyFirstDay",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "semiMonthlySecondDay",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 92,
+      "origin": "key:semiMonthlySecondDay",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "monthlyPayDay",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 93,
+      "origin": "key:monthlyPayDay",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "onboardingComplete",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 98,
+      "origin": "key:hasCompletedOnboarding",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "notificationsEnabled",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 99,
+      "origin": "key:notificationsEnabled",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "appLockEnabled",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 100,
+      "origin": "key:appLockEnabled",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "inert — nothing reads it (5.6 drops the field entirely)",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 109,
+      "origin": "key:isDemoMode",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "a v1.6 QA hook; real entitlement comes from RevenueCat",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 110,
+      "origin": "key:mockSubscription",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "consumed — it decides the originalBalance backfill, it is not stored",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 111,
+      "origin": "key:schemaVersion",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "v1.6 reset-undo buffer; v1.7 has no surface that could restore it",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 115,
+      "origin": "key:resetSnapshot",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "a v1.6 review-prompt counter; v1.7 tracks review prompting separately",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 116,
+      "origin": "key:rolloverCount",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "superseded by `reviewPrompted` on the RN store, set by v1.7 on its own terms",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 117,
+      "origin": "key:reviewRequested",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "written only by v1.6’s SIM_SMOKE seeder, never by the shipping app",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 125,
+      "origin": "key:hasConfiguredPaycheck",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "rnStore.",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 158,
+      "origin": "call:key.startsWith",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "__corrupt__",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 162,
+      "origin": "call:key.startsWith",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "schemaVersion",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 170,
+      "origin": "other",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "no theme preference stored (null) — defaults apply",
+      "file": "apps/rn/src/data/legacyBridge/mapLegacyStore.ts",
+      "line": 186,
+      "origin": "key:why",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "./readLegacyStores",
+      "file": "apps/rn/src/data/legacyBridge/migrateFromLegacy.ts",
+      "line": 65,
+      "origin": "call:import",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "no container to read (web)",
+      "file": "apps/rn/src/data/legacyBridge/migrateFromLegacy.ts",
+      "line": 76,
+      "origin": "call:skipped",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "the search was cut short — treating as UNKNOWN, not as \"no legacy data\"",
+      "file": "apps/rn/src/data/legacyBridge/migrateFromLegacy.ts",
+      "line": 85,
+      "origin": "call:skipped",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "no v1.6 store in this container (a fresh install)",
+      "file": "apps/rn/src/data/legacyBridge/migrateFromLegacy.ts",
+      "line": 86,
+      "origin": "call:skipped",
+      "bucket": "unclassified"
+    },
+    {
       "text": "source vanished",
       "file": "apps/rn/src/data/legacyBridge/readLegacyStores.ts",
-      "line": 57,
+      "line": 58,
       "origin": "key:error",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "-wal",
+      "file": "apps/rn/src/data/legacyBridge/readLegacyStores.ts",
+      "line": 73,
+      "origin": "other",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "-shm",
+      "file": "apps/rn/src/data/legacyBridge/readLegacyStores.ts",
+      "line": 73,
+      "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "SELECT key, value FROM ItemTable",
       "file": "apps/rn/src/data/legacyBridge/readLegacyStores.ts",
-      "line": 66,
+      "line": 84,
       "origin": "call:db.getAllAsync",
       "bucket": "unclassified"
     },
     {
       "text": "(walk)",
       "file": "apps/rn/src/data/legacyBridge/readLegacyStores.ts",
-      "line": 139,
+      "line": 160,
       "origin": "key:path",
       "bucket": "unclassified"
     },
@@ -6503,6 +6755,13 @@
       "bucket": "copy"
     },
     {
+      "text": "rent / mortgage",
+      "file": "apps/rn/src/store/looksLikeDebt.ts",
+      "line": 66,
+      "origin": "var:AMBIGUOUS_NAMES",
+      "bucket": "unclassified"
+    },
+    {
       "text": "Monthly",
       "file": "apps/rn/src/store/obligationForm.ts",
       "line": 24,
@@ -6862,7 +7121,7 @@
     {
       "text": "bootstrapPersistence called with a SANDBOX store — refusing",
       "file": "apps/rn/src/store/persistence.ts",
-      "line": 28,
+      "line": 30,
       "origin": "call:reportError",
       "bucket": "unclassified"
     },
@@ -7044,7 +7303,7 @@
     {
       "text": "Replay and the tutorial e2e depend on it being deterministic; check for a clock or random read.",
       "file": "apps/rn/src/store/sandboxStore.ts",
-      "line": 222,
+      "line": 227,
       "origin": "call:console.warn",
       "bucket": "unclassified"
     },
