@@ -288,6 +288,21 @@ round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is 
 minor/polish finding is still live and gets **re-evaluated once T1–T8 lands**, because several become
 cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped*. Detail → log.
 
+**⛔⛔ THE WAL — a LIVE data-loss defect the real container found, and no synthetic test could (2026-08-19):**
+- **WebKit runs localStorage in WAL mode and had NOT checkpointed.** In the captured iOS 26.2 container the
+  main `localstorage.sqlite3` is **4 KB and does not contain `ItemTable` at all**; the `-wal` beside it is
+  **28 KB and holds all 22 keys**. ⛔ **`readLegacyStores.ts` copied only the main file** — so on a real
+  device it would have read **zero** keys and reported the user as having nothing to migrate. **A total,
+  silent migration failure**, and every synthetic test passed while it was true, because a database written
+  and closed cleanly by `node:sqlite` has no WAL. ✅ **Fixed** (copies `-wal`/`-shm` on the same basename).
+- ⭐ **This is the whole argument for a real fixture, proven in one measurement.** It is the
+  fixture-never-renders-the-real-state trap — and it caught me *while I was actively guarding against it*.
+- ✅ **Pinned so it cannot return:** the container is committed at
+  [`legacyBridge/__fixtures__/webkit-ios26/`](../apps/rn/src/data/legacyBridge/__fixtures__/README.md)
+  (32 KB, real bytes, real depth) and `realContainer.test.ts` asserts **main-only throws** while
+  **main+`-wal` reads 22 keys**. **17 asserts against real iOS output**, in `test:app` on every push.
+- ⚠️ Verified `-shm` is NOT required (SQLite regenerates it), so the committed fixture is two files.
+
 **5.2's AFTER-scan + the capture's result (2026-08-19):**
 - ⛔ **MY OWN KEY SWEEP UNDERCOUNTED — the third time today, and the law now applies to my measurements
   as well as the audit's.** The captured container held **`debtPlanner.hasConfiguredPaycheck`**, which was

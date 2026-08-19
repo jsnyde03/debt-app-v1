@@ -134,6 +134,11 @@ async function main() {
   // this mapper has never heard of is data about to be silently dropped during someone's upgrade.
   await import('../data/legacyBridge/mapLegacyStore.test');
 
+  // 5.1b/5.2 — the whole read path against a REAL v1.6 container captured from an iOS 26.2 simulator.
+  // ⛔ It pins the WAL defect: WebKit had not checkpointed, so the main .sqlite3 holds no ItemTable at
+  // all and copying it alone reads ZERO keys. Every synthetic test passed while that was true.
+  await import('../data/legacyBridge/realContainer.test');
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');
