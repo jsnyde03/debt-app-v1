@@ -111,6 +111,17 @@ before this run: the fixture's `goals` used invented field names. Two more inven
 `goals.length === 1` passes while every field inside is wrong. ⚠️ *The device pass came within one step of
 verifying a migration against a fixture that did not describe v1.6.*
 
+### ✅ Share-sheet export verified on device too (🎯, same session)
+
+*"Save as a file works."* That closes the **export** half of 5.8.5, and it is the half that had the most
+moving parts off-device: SDK 56's `File`/`Paths` API, the cache-directory write, the overwrite-not-append
+guard, and `Sharing.shareAsync` handing the file to iOS. None of it was provable in the web bundle.
+
+⚠️ **The picker is the half that can still fail differently.** Export writes a file the app just created;
+import reads a file the *user* chose, which on iCloud Drive or Google Drive can be a URI the app cannot
+read a second time. That is the whole reason `copyToCacheDirectory` is on, and the reason a green export
+says nothing about it.
+
 ### ▶ Still owed before 5.11 can close
 
 The **data** half is proven; the **file** half is not. Owed on the same build, and none of it is provable
