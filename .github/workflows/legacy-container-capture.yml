@@ -1,0 +1,197 @@
+name: legacy-container-capture
+
+# 5.1b.3 — CAPTURE A REAL v1.6 CONTAINER, ONCE.
+#
+# ⭐ WHY THIS EXISTS, AND WHY IT IS NOT PART OF THE NATIVE LANE.
+# Phase 5's bridge has to read the WKWebView `localStorage` a v1.6 install left behind. The only honest
+# fixture for that is a container an actual Capacitor build actually produced — synthesising one means
+# writing a database where we GUESSED iOS puts it and then proving we can find it there, which proves
+# nothing. (This repo has paid for the fixture-that-never-renders-the-real-state shape ten times.)
+#
+# ⛔ But the legacy tree is being DECOMMISSIONED (5.5.1 deletes it), so the probe must not take a standing
+# dependency on it. 🎯 2026-08-19: *"why do we need the legacy branch on this phase? We have actively been
+# decommissioning it."* Hence: run this ONCE, upload the container as an artifact, and from then on the
+# recurring probe restores the artifact. After the capture, the legacy tree owes CI nothing.
+#
+# ⚠️ `workflow_dispatch` ONLY. No push trigger, no schedule. It is a fixture generator, not a gate.
+#
+# ⚠️ NOT COVERED BY `lint:lane`, which scans `native-e2e.yml` and `app-preview.yml` only. That is an
+# accepted trade for keeping the heavily-gated native lane untouched — and it is safe here precisely
+# because this workflow is one-shot: a rotted one-shot is discovered the moment it is run, by the person
+# running it, rather than silently.
+#
+# ⚡ IT ALSO ANSWERS 5.1's CORE QUESTION AS A SIDE EFFECT. The verify step prints the REAL on-disk paths of
+# the localStorage databases on a real iOS simulator — the exact unknown the probe exists to resolve. Read
+# that output even if the artifact is all you came for.
+
+on:
+  workflow_dispatch:
+    inputs:
+      legacy_ref:
+        description: 'The branch holding the shipped Capacitor app'
+        type: string
+        default: 'v1.6-dev'
+
+env:
+  APP_ID: 'com.jasonsnyder.debtplanner'
+
+jobs:
+  capture:
+    name: Build v1.6, run it, capture its container
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      # ⚠️ The SHIPPED v1.6, not the legacy tree in v1.7-dev. That copy has drifted against shared
+      # `packages/core` — a filter on a removed `AllocationCategory` member was silently dead — so a
+      # fixture built from it would be a fixture of something we never shipped.
+      - name: Check out the shipped v1.6
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.legacy_ref }}
+
+      - name: Log the toolchain
+        run: xcodebuild -version
+
+      # Capacitor 8's CLI requires Node >= 22.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # ⭐ `NEXT_PUBLIC_SIM_SMOKE=1` is what makes this fixture POPULATED rather than empty: that build
+      # seeds nine bills into localStorage at module load, through the app's own `safeStorage.writeKey`
+      # path — the same writer, the same keys, the same WKWebView store the bridge will read.
+      # ⚠️ It is seeded rather than hand-typed, which is honest to state: it exercises the real WRITE
+      # path, not a real user's data entry. For a MECHANISM fixture that is the property that matters.
+      - name: Build the web bundle (seeded)
+        run: NEXT_PUBLIC_SIM_SMOKE=1 npm run build
+
+      - name: Sync the web bundle into the iOS project
+        run: npx cap sync ios
+
+      # Capacitor 8 uses SPM (`ios/App/CapApp-SPM`), so there is no `pod install` step here. Unsigned:
+      # a simulator build needs no identity, and requiring one would make this need secrets it should not.
+      - name: Build the app for the iOS Simulator (unsigned)
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath ios/build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Boot a simulator
+        run: |
+          xcrun simctl list devices available
+          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name|startswith("iPhone"))][-1].udid')
+          echo "Booting $UDID"
+          for i in 1 2 3; do xcrun simctl boot "$UDID" && break || { echo "boot retry $i"; sleep 5; }; done
+          xcrun simctl bootstatus "$UDID" -b
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          # Recorded for the run summary only — the fixture is tied to one iOS version and a reader six
+          # months from now needs to know which. ⚠️ Non-fatal: a jq expression is not worth losing a
+          # 30-minute build over, and every step after this one works without it.
+          RUNTIME=$(xcrun simctl list devices available -j | jq -r --arg u "$UDID" '[.devices|to_entries[]|select(.value[]?.udid==$u)|.key][0]' 2>/dev/null || echo unknown)
+          echo "IOS_RUNTIME=${RUNTIME:-unknown}" >> "$GITHUB_ENV"
+
+      - name: Install the app
+        run: xcrun simctl install booted "ios/build/Build/Products/Debug-iphonesimulator/App.app"
+
+      - name: Cache Maestro
+        id: maestro-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.maestro
+          key: maestro-${{ runner.os }}-v1
+
+      - name: Install Maestro
+        if: steps.maestro-cache.outputs.cache-hit != 'true'
+        run: curl -fsSL "https://get.maestro.mobile.dev" | bash
+
+      - name: Maestro on PATH
+        run: echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      # v1.6's OWN flow, because it is the one proven against that UI. Driving it matters beyond the seed:
+      # it forces the WebView to finish loading and localStorage to be flushed to disk before we look.
+      # ⚠️ Non-fatal: the flow's screenshots and assertions are not what this job is for, and a selector
+      # that has aged must not cost us the container. The KEY-COUNT check below is the real gate.
+      - name: Drive the app so it writes its storage
+        run: |
+          maestro test .maestro/reconcile-smoke.yaml || echo "::warning::the smoke flow did not complete — the key count below is what decides this run"
+          # localStorage is flushed by WebKit lazily; terminating the app makes it commit.
+          xcrun simctl terminate booted "$APP_ID" || true
+          sleep 5
+
+      # ⛔ TAR FIRST, VERIFY AGAINST A COPY. Querying a SQLite database opens it read-write and can leave
+      # `-wal`/`-shm` siblings behind — so verifying in place would mean shipping an artifact that the
+      # verification itself had modified. Same rule the app's reader follows for the same reason.
+      - name: Capture the container
+        run: |
+          set -euo pipefail
+          CONTAINER=$(xcrun simctl get_app_container booted "$APP_ID" data)
+          echo "container: $CONTAINER"
+          if [ ! -d "$CONTAINER/Library/WebKit" ]; then
+            echo "::error::no Library/WebKit in the container — the app never created a WebKit store"
+            find "$CONTAINER/Library" -maxdepth 2 | head -50
+            exit 1
+          fi
+          mkdir -p capture
+          tar -czf capture/webkit-container.tgz -C "$CONTAINER/Library" WebKit
+          echo "captured $(du -h capture/webkit-container.tgz | cut -f1)"
+
+      # ⚡ THE STEP THAT MAKES THE ARTIFACT TRUSTWORTHY — and that answers 5.1's question directly.
+      # A capture job that uploads an EMPTY container and reports success is worse than one that fails:
+      # the probe would then read `keys=0`, correctly, and we would misdiagnose it as the bridge being
+      # unable to read rather than the fixture having nothing in it.
+      - name: Verify the captured container actually holds v1.6 data
+        run: |
+          set -euo pipefail
+          rm -rf verify && mkdir -p verify
+          tar -xzf capture/webkit-container.tgz -C verify
+          echo "── localStorage databases, at their REAL on-disk paths ──"
+          find verify/WebKit \( -name '*.localstorage' -o -name 'localstorage.sqlite3' \) -print | tee found.txt
+          if [ ! -s found.txt ]; then
+            echo "::error::no localStorage database found anywhere under Library/WebKit"
+            find verify/WebKit -maxdepth 6 | head -80
+            exit 1
+          fi
+          TOTAL=0
+          while IFS= read -r db; do
+            KEYS=$(sqlite3 "$db" "SELECT COUNT(*) FROM ItemTable WHERE key LIKE 'debtPlanner.%';" 2>/dev/null || echo 0)
+            echo "  $db → $KEYS debtPlanner.* keys"
+            if [ "$KEYS" -gt 0 ]; then
+              echo "    sample keys:"
+              sqlite3 "$db" "SELECT key FROM ItemTable WHERE key LIKE 'debtPlanner.%' ORDER BY key LIMIT 40;" | sed 's/^/      /'
+            fi
+            TOTAL=$((TOTAL + KEYS))
+          done < found.txt
+          echo "TOTAL debtPlanner.* keys: $TOTAL"
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "::error::the container was captured but holds NO debtPlanner.* keys — the fixture would prove nothing"
+            exit 1
+          fi
+          {
+            echo "### Legacy container captured"
+            echo ""
+            echo "- iOS runtime: \`${IOS_RUNTIME:-unknown}\`"
+            echo "- \`debtPlanner.*\` keys: **$TOTAL**"
+            echo ""
+            echo "Database paths, relative to \`Library/\`:"
+            echo ""
+            sed 's|^verify/|  - `|; s|$|`|' found.txt
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the container fixture
+        uses: actions/upload-artifact@v4
+        with:
+          name: legacy-webkit-container
+          path: capture/webkit-container.tgz
+          if-no-files-found: error
+          retention-days: 90
