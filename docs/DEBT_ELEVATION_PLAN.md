@@ -54,7 +54,7 @@ nothing downstream is budgeted until it answers.**
 |---|---|---|
 | **5.1a** | **The WebKit `localStorage` decode** — the half provable off-device | ✅ **Done 2026-08-19.** `webkitLocalStorage.ts`: encoding sniff, table decode, and the store picked **on contents, never on path** (WebKit's layout is private and has changed twice). **36 asserts** incl. a **real `node:sqlite` round-trip** through WebKit's own `ItemTable` shape; **4 plants, 4 reds**; typecheck + lint clean |
 | **5.1b** | **[SPIKE] Prove the databases are findable and readable after a real upgrade.** Two lanes, two claims: the **mechanism** on a GH-Actions **simulator** (install v1.6 → use it → install RN over it, same bundle id, same container) — free and repeatable; the **acceptance** on 🎯's phone via one batched CodeMagic build, which is Phase 5's stated exit. Fallback if the read comes back empty: a native `WKURLSchemeHandler` + off-screen WKWebView | ▶ **ACTIVE.** ✅ **5.1b.1** the legacy build was ROTTED and is repaired · ✅ **5.1b.2** the walk — both WebKit layouts, breadth-first, **caps that REPORT** (`truncated`), **17 asserts** against a real temp tree, **4 plants / 4 reds**. ▶ **5.1b.3** — ✅ deps (`expo-sqlite` + `expo-file-system`, plugin registered) · ✅ native adapter + web split · ✅ the QA-gated `legacy-bridge-probe` readout on More, beside the other two probes. ⛔ **The source DB is COPIED before opening** — `SQLiteOpenOptions` has no read-only flag, so opening the user's own WebKit store would open it read-write. Verified: tsc clean · `lint:rn` 0 errors · **web export green with 0 occurrences of `expo-sqlite` in the bundle**. ✅ **The capture job is written** — `legacy-container-capture.yml`, **dispatch-only**, off `v1.6-dev`, mirroring v1.6's own proven `ios-sim-smoke` build/boot. ⭐ **It verifies its own artifact** (tar first, query a COPY, fail if 0 `debtPlanner.*` keys) and **prints the real on-disk database paths** — which is 5.1's core unknown, answered as a side effect. ▶ **Owed: 🎯 dispatches it once**, then the probe job consumes the artifact |
-| **5.2** | **The legacy → RN key mapping**, a pure function over the measured **31 keys** × `schemaVersion` **0/1/2**, honouring `migrateState`'s `originalBalance` backfill. Unit-tested against real v1.6 blobs | |
+| **5.2** | **The legacy → RN key mapping** — a pure function over the **28** v1.6 keys × `schemaVersion` **0/1/2**, honouring `migrateState`'s `originalBalance` backfill. Unit-tested against real v1.6 blobs | ▶ **before-scan DONE** (below); build next |
 | **5.3** | **The bridge** — one-shot, idempotent, **non-destructive** (legacy keys survive until the RN blob verifies), quarantine on failure, visible recovery path | |
 | **5.4** | **Mis-filed-obligation sweep over MIGRATED data** — wire `looksLikeDebt()` into the bridge output so v1.6's "Credit Card Payment"/"Loan Payment" bill presets surface as debts. **Largest affected population in the app** | |
 | **5.5** | **Durability: flush critical writes immediately** — a pref changed then force-quit inside 500 ms is lost today (measured, not theorised) | |
@@ -287,6 +287,27 @@ round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is 
 ⛔ **NOTHING IS PARKED** *(🎯 2026-08-18)*. **T9–T11 are SEQUENCED, not shelved** — every remaining
 minor/polish finding is still live and gets **re-evaluated once T1–T8 lands**, because several become
 cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped*. Detail → log.
+
+**5.2's BEFORE-scan (2026-08-19) — measured against `origin/v1.6-dev`, not the drifted in-tree copy:**
+- ⭐ **NO v1.6 FIELD HAS BEEN DROPPED — across ALL SIX persisted types.** `Debt` 17 shared / 3 new ·
+  `RequiredExpense` 11/4 · `Goal` 5/2 · `PayCycleSnapshot` 7/3 · `CompletedRecommendedAction` 6/0 ·
+  `RecommendationOverride` 3/0. **Every v1.6 type is a strict subset of its v1.7 counterpart**, so nothing
+  is lost by shape — the migration risk is in KEY ASSEMBLY and TYPE COERCION, not in field loss.
+- ⭐ **Design consequence: assemble a `Partial<DebtStore>` and delegate to the EXISTING `runMigrations`.**
+  It already backfills `lastVerifiedDate` + `balanceAsOfDate` (v3/v4) and normalises installment BNPL (v6)
+  — two of the three new `Debt` fields. **Do not reimplement the defaults**; a second copy of the backfill
+  is the drift class T8 spent a day on.
+- ⛔ **The corpus was wrong: 28 keys, not 31.** My earlier sweep ran over **v1.7-dev**, which mixes the
+  drifted in-tree legacy copy with RN test seeds. Re-measured on `origin/v1.6-dev`.
+- ⛔ **`debtPlanner.rnStore` is RN's OWN web-adapter key, in the SAME namespace** (0 files on v1.6-dev, 20
+  on HEAD) — so **5.1a's `countLegacyKeys()` would count it as legacy**. Not live (native stores under the
+  MMKV key `store`), but `pickLegacyStore` ranks on that count, so the exclusion is cheap and the semantics
+  should say *v1.6 Capacitor keys*, not *anything in the `debtPlanner.` namespace*. → fold into 5.2.
+- ⚠️ **`darkMode` is a THREE-WAY union** — `ThemePreference | boolean | null`. The boolean is the
+  pre-`ThemePreference` shape still sitting in older installs. → `themeMode`: `true`→`dark`, `false`→`light`,
+  `null`→`system`. A mapper that assumes the string form silently mis-themes the oldest users.
+- ✅ **CORRECTED: `amount` is NOT a type hazard.** I flagged it as string→number; RN's `PaycheckConfig.amount`
+  is **also a string** ("kept as a string to mirror the input model"). The flag was wrong.
 
 **Surfaced by 5.1b.2's AFTER-scan (2026-08-19):**
 - ⚡ **A PLANT THAT PASSES IS NOT AUTOMATICALLY A BLIND ASSERTION — diagnose which.** A plant reversing
