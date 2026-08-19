@@ -13,7 +13,7 @@
 | | |
 |---|---|
 | **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **audit itself is ✅ RUN**. Remaining: **T1–T8** → **Phase 5** 🔒 → 5.5 → **Phase 6** |
-| **Gate** | `validate:release:rn` — **193 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push. ⭐ **+`lint:glossary` (T4.8)** — 6 retired strings banned from copy positions (T5 added one) |
+| **Gate** | `validate:release:rn` — **195 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push. ⭐ **+`lint:glossary`** (6 retired strings) **+`lint:money`** (T6.9 — the app keeps exactly two money formatters) |
 | **The audit** | ⭐ [`audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md) — **117 findings, 7 lenses, 8 refutations.** `findings/` per lens · `slices/` the verbatim input each lens got |
 | **Device pass** | **52 rows** + the 60 coverable-not-built, all Phase 6, human-ticked, non-gating. ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them. ⚠️ **[T3.2] +1 owed row:** force a storage fault → the retry screen renders AND the retry recovers. MMKV cannot be failed on web, so both new surfaces ship on unit assertions with no rendered proof |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
@@ -21,7 +21,8 @@
 🎯 **2026-08-18: T1–T8 + T3B now. ⛔ [D37] every high+ closes this round; T9–T11 are SEQUENCED, not shelved.**
 ✅ **T1 · T2 · T3 · T3B CLOSED 2026-08-18**, full gate green (187 e2e · 10 embed · 0 error-context).
 ✅ **T4 CLOSED 2026-08-18** — 11 findings. ⛔ **5 of its 11 needed material correction; 3 would have shipped a WORSE app as written.**
-✅ **T5 CLOSED 2026-08-18** — 11 more, **gate green at 193 e2e**. ⛔ **The same profile held: L1-12 was 2 of 9 sites, half of L3-7 was refuted, and L1-13's suggested wording would have undone T4.** ▶ **T6 (numbers cohesion) is ACTIVE**, then T7–T8.
+✅ **T5 CLOSED 2026-08-18** — 11 more, gate green at 193 e2e. ⛔ **The same profile held: L1-12 was 2 of 9 sites, half of L3-7 was refuted, and L1-13's suggested wording would have undone T4.**
+✅ **T6 CLOSED 2026-08-19** — 11 findings, **gate green at 195 e2e**, `lint:money` added. ⛔ **Three enumerations of the formatter class each undercounted; the GATE found the rest on its first run.** ▶ **T7 (voice & persona) is ACTIVE**, then T8.
 
 ⛔ **2 of 3 agent-declared blockers did NOT survive refutation, and the tally is now 3 of 4** — L1-1
 downgraded, L3-5's mechanism wrong (severity right), L1-4 downgraded (free DOES get a Guardian). Plus
@@ -41,7 +42,7 @@ narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those pass
 | **T3** | **Correctness** — concrete repro each | ✅ **Done 2026-08-18**, all 7 (L0-2/L5-9 · L5-2 · L5-1 · L3-3 · L5-5 · L5-6 · L5-14), **full gate green: 187 e2e** (+3), 29 new unit asserts, **every fix mutation-verified**, 2 new lint rules. ⛔ **Found while building: `Alert.alert` is a NO-OP in react-native-web** — 11 raw sites incl. the paywall behind the live embed. ⚡ **7 of 7 first-cut instruments were wrong in a way that would have PASSED** — detail → log |
 | **T4** | **The glossary** | L1-5/6/7/14/19/26/34 · L2-6/7/16 | ✅ **Done 2026-08-18.** `@core/copy/vocabulary` owns 7 nouns + the disjointness rule; `lint:glossary` bans 5 retired words in CI. **L1-6 reversed · L1-14 misclassified · L1-26 refuted · L2-6's mechanism false · L1-7 partly refuted.** +1 correctness defect found (T4.1b) |
 | **T5** | **Truth of claims** | ✅ **Done 2026-08-18.** All 11 (L3-1/2/4/6/7 · L1-12/13/15/17/18 · 🎯's `tutorialPath` call), **full gate green: 193 e2e** (+6), 5 unit asserts, every fix mutation-verified, +1 `lint:glossary` rule. ⛔ **L1-12 was 2 of 9 sites** and **half of L3-7 was refuted** — building it as written would have reported every autopay FAILED. **L1-13's suggested wording would have undone T4/L1-14.** ⚠️ **The sweep rule itself was wrong twice** (missed the root-level legacy tree; omitted `apps/rn/src/**/*.test.ts`, which red the gate) → now root-scoped, no list. Detail → log |
-| **T6** | **Numbers cohesion** — one rule, applied once, then enforced | L4-1/3/4/5/6/7/8/9/10 · ⚠️ **[T3B] +L4-2** (nine money formatters, six hand-rolled inside Today's cards) — it was assigned nowhere; T6 owns it and it is high+, so [D37] requires it closes here. ⚠️ **[T4.1b] +4 sites**: `holdsLine`, the top-up gap, the brief's `discretionary` and `cushionStatus` all still read `selectDiscretionary` (the partition total) as spendable headroom. **Bounded** — the engine clamps the hold so `discretionary − held ≥ floor`, so they can only differ inside a narrow hysteresis window. **Measure before changing: it moves Guardian states** | |
+| **T6** | **Numbers cohesion** | ✅ **Done 2026-08-19.** All 10 + L4-2, **full gate green: 195 e2e · 10 embed**, new `lint:money` gate. ⛔ **The formatter count went 6 → 7 → 9 → 12 and only the GATE found the last four** — three prior enumerations each undercounted. **L4-1 was two defects**, one a conservation break (hero segments summed to $400 of a $300 paycheck). **L4-8 declined on the record** (its fix re-adds noise the App Preview sweep removed); **L4-10 closed as recorded**. ⛔ **[T4.1b] refuted: Guardian band flips 0 / 1,820** — 🎯 keeps `selectDiscretionary`. Detail → log |
 | **T7** | **Voice & persona** | L1-8/9/10/11/16 | |
 | **T8** | **Drift / one-owner** — 20 dangerous, two tables **already diverged in production** | L2 ×23 · L0-3. ⚠️ **[T3.1 after-scan] +1: the `T00:00:00` parse is hand-written at ~65 sites across 39 files.** NOT a defect (it is the correct local parse) but the same one-rule-many-owners shape — and `@core/utils/localDate`'s `parseLocalDate` now exists as its owner | |
 
@@ -53,21 +54,17 @@ narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those pass
 full gate green, and every fix that CAN be a lint rule IS one ([D31] — a finding that becomes a test is
 paid for once).
 
-### ▶ T6 — numbers cohesion _(ACTIVE · the only decomposed item on this doc)_
+### ▶ T7 — voice & persona _(ACTIVE · the only decomposed item on this doc)_
 
-**Findings:** L4-1/2/3/4/5/6/7/8/9/10. ⚠️ **L4-2 is high+ and was assigned nowhere** until T3B routed it
-here, so **[D37] requires it closes in this round.**
+**Findings:** L1-8/9/10/11/16.
 
 | # | Step |
 |---|---|
-| **T6.1** | Before-scan all ten, against CURRENT code — the site lists especially. ⚠️ **Budget verification as the dominant cost:** T4 needed material correction on 5 of 11, T5 on 3 of 11. **Grep the finding ids with the ranges EXPANDED** |
-| **T6.2** | **State the ONE rounding/precision rule** and give it an owner in `@core` — this is the item's spine; every step below applies it rather than re-deciding it |
-| **T6.3** | **L4-1** — "Spoken for" renders `$486` on Today and `$486.34` in the sheet that legend opens. Both individually correct, which is why 184 tests and six lint gates could not see it |
-| **T6.4** | **L4-2** — **nine money formatters, six hand-rolled inside Today's cards.** Collapse onto the owner |
-| **T6.5** | **[T4.1b] the 4 `selectDiscretionary` sites** — `holdsLine`, the top-up gap, the brief's `discretionary` and `cushionStatus` all read the partition total as spendable headroom. **Bounded** (the engine clamps so `discretionary − held ≥ floor`), so they differ only inside a narrow hysteresis window. ⛔ **Measure before changing: it moves Guardian states** |
-| **T6.6** | The remaining L4 findings, each with its repro |
-| **T6.7** | Make the rule a **lint gate** ([D31] — a finding that becomes a test is paid for once) |
-| **T6.8** | Retired-string sweep + full gate green; plan + log atomic |
+| **T7.1** | Before-scan all five against CURRENT code. ⚠️ **Budget verification as the dominant cost** — T4 needed material correction on 5 of 11, T5 on 3 of 11, T6 on 4 of 10. **Expand the id ranges before grepping** |
+| **T7.2** | ⛔ **L1-16 FIRST, because it may be moot.** It rewrites `buildSmartInsights` + `projectForecast` into second person — but **L3-5 measured `buildSmartInsights`'s only non-test consumer as the legacy web app**, which 5.5.1 deletes, and `analysisSelectors.ts:138` records Smart Insights as *"intentionally NOT surfaced"*. **Confirm reachability before spending a line on it** |
+| **T7.3** | **L1-8** — the a11y/voice item T9 was told is already in this gate |
+| **T7.4** | **L1-9 · L1-10 · L1-11** — the remaining persona findings, each with the surface it renders on |
+| **T7.5** | Make what CAN be a gate a gate ([D31]); retired-string sweep + full gate green; plan + log atomic |
 
 ⛔ **The sweep is over the REPO ROOT, ripgrep, no `head`, no directory list** — see CLAUDE.md. T5 proved an
 enumerated corpus list wrong twice, once by red-gating on a file the sweep had just called clean.
@@ -298,6 +295,17 @@ round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is 
 ⛔ **NOTHING IS PARKED** *(🎯 2026-08-18)*. **T9–T11 are SEQUENCED, not shelved** — every remaining
 minor/polish finding is still live and gets **re-evaluated once T1–T8 lands**, because several become
 cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped*. Detail → log.
+
+**Surfaced by T6 (2026-08-19):**
+- ⚠️ **`buildGuardianBrief.ts:124` declares `function money(n): number`** — a ROUNDER sharing the
+  formatter's name, in core. Not a defect and `lint:money` correctly ignores it (it builds no string), but
+  the name collides with the thing 12 sites were just collapsed onto. → **T8** (one-owner naming)
+- ⚠️ **`selectDiscretionary` has 2 consumers beyond T4.1b's four** — `expenseReserveSelectors.ts:112`
+  (the offer) and `guardianSelectors.ts:550`. Neither was in the ledger; both read the partition total.
+  Measured as band-neutral, but they inherit whatever the `holdsLine` decision settles. → **T8**
+- ⚠️ **`formatWhole` lives in the RN tree while `formatCurrency` lives in core**, so the two halves of one
+  rule sit in two packages. Not worth 23 import rewrites now (measured at T6.2) — but if core ever needs a
+  whole-dollar figure, move it then rather than adding a third. → **T8 / Phase 6**
 
 **Surfaced by T5 (2026-08-18):**
 - ⛔ **`DebtAmortization.isFocus` is now read by NOTHING** — L3-4 moved its one consumer to `monthlyExtra`.

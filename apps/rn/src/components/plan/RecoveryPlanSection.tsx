@@ -8,15 +8,11 @@ import type { RecoveryPlan } from '@/store/recoverySelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { a11yChecked } from '@/utils/a11y';
-
-/** Exact whole-dollar — matches the Guardian card's `money()` (concrete amounts the user acts on). */
-function money(n: number): string {
-  return `$${Math.round(Math.max(0, Number.isFinite(n) ? n : 0)).toLocaleString('en-US')}`;
-}
+import { formatWhole } from '@/utils/format';
 
 /**
  * §2.6 Recovery Plan — the Guardian's shortfall card, rolled up its sleeves. Same visual language as the
- * card it lives in (eyebrow labels, two-line rows, the `money()` figures): a calm "cover now" essentials
+ * card it lives in (eyebrow labels, two-line rows, the `formatWhole()` figures): a calm "cover now" essentials
  * summary, then the interactive "safe to defer" checklist (suggested pre-checked, the running gap updates
  * live), a per-bill "keep essential" override, and one-tap apply — which defers the checked bills to next
  * paycheck (every surface updates reactively off the one store). Honest when the gap can't be closed.
@@ -63,7 +59,7 @@ export function RecoveryPlanSection({
         <View>
           <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>COVER NOW</Text>
           <Text style={[textStyles.caption, { color: c.text.secondary }]}>
-            {plan.coverNow.map((i) => i.name).join(' · ')} — {money(coverNowTotal)}
+            {plan.coverNow.map((i) => i.name).join(' · ')} — {formatWhole(coverNowTotal)}
           </Text>
         </View>
       ) : null}
@@ -90,7 +86,7 @@ export function RecoveryPlanSection({
                   hitSlop={6}
                   accessibilityRole="checkbox"
                   {...a11yChecked(on)}
-                  accessibilityLabel={`Defer ${item.name} ${money(item.amount)} to next paycheck`}
+                  accessibilityLabel={`Defer ${item.name} ${formatWhole(item.amount)} to next paycheck`}
                   style={styles.rowMain}>
                   <AppIcon name={on ? 'check-box' : 'check-box-outline-blank'} size={20} color={on ? c.accent.primary : c.text.tertiary} />
                   <View style={styles.rowLabel}>
@@ -106,7 +102,7 @@ export function RecoveryPlanSection({
                     </Pressable>
                   </View>
                 </Pressable>
-                <Text style={[textStyles.subhead, styles.amt, { color: c.text.secondary }]}>{money(item.amount)}</Text>
+                <Text style={[textStyles.subhead, styles.amt, { color: c.text.secondary }]}>{formatWhole(item.amount)}</Text>
               </View>
             );
           })}
@@ -115,12 +111,12 @@ export function RecoveryPlanSection({
 
       <Text style={[textStyles.caption, styles.gapLine, { color: covered ? c.accent.primary : c.text.secondary }]}>
         {plan.safeToDefer.length === 0
-          ? `Nothing here can safely wait this paycheck — adding income is the surest fix, or cover the ${money(plan.gap)} gap from savings.`
+          ? `Nothing here can safely wait this paycheck — adding income is the surest fix, or cover the ${formatWhole(plan.gap)} gap from savings.`
           : covered
-            ? `Deferring ${count === 1 ? 'this' : `these ${count}`} covers your ${money(plan.gap)} gap.`
+            ? `Deferring ${count === 1 ? 'this' : `these ${count}`} covers your ${formatWhole(plan.gap)} gap.`
             : !plan.closeable && allChecked
-              ? `Even deferring everything, you're ${money(remaining)} short this paycheck — adding income helps most.`
-              : `Still ${money(remaining)} short — pick more to defer, or add income.`}
+              ? `Even deferring everything, you're ${formatWhole(remaining)} short this paycheck — adding income helps most.`
+              : `Still ${formatWhole(remaining)} short — pick more to defer, or add income.`}
       </Text>
 
       {count > 0 ? (

@@ -151,3 +151,56 @@ test('"Spoken for" quotes what the paycheck held, not what was requested [L3-6]'
   ).toBeVisible();
   await expect(page.getByText('Groceries, gas, fun money — reserved every paycheck.')).toHaveCount(0);
 });
+
+/**
+ * [T6.3 · L4-1] The legend and the sheet it opens are ONE figure, and must read as one.
+ *
+ * The audit found this as a rounding mismatch — `$486` on Today, `$486.34` one tap into the sheet, with no
+ * state change between them. Two separate causes, and only one of them was about formatters:
+ *   1. the sheet echoed a hero-tier figure through `formatCurrency` (cents), and
+ *   2. ⛔ T5 pointed the sheet at `everydayHeld` while the hero still read `everydayReserve` — so on an
+ *      over-sized reserve they disagreed by the WHOLE SHORTFALL, which no formatter fix would have closed.
+ *
+ * Both directions are asserted: the figures must match, AND the hero must partition a paycheck it does not
+ * exceed — with a $300 paycheck and a $400 request the segments used to sum to $400.
+ */
+test('the "Spoken for" legend and the sheet it opens show the same figure [L4-1]', async ({ page }) => {
+  // ⛔ THE CENTS ARE THE FIXTURE'S ENTIRE JOB. Drafted with the default $300 reserve, this test passed
+  // against a deliberately planted `formatCurrency` echo — because `formatCurrency` emits cents only when
+  // there ARE cents, so on a whole total both formatters render "$300" and the guard was blind. A fixture
+  // chosen for convenience decides which defects a guard can see (same trap as `route-smoke.spec.ts`).
+  await seedStore(page, plan({ livingExpenses: [{ id: 'l1', name: 'Groceries', amount: 300.34, enabled: true }] }));
+  await page.goto('/');
+
+  const legend = page.getByRole('button', { name: /Spoken for/ });
+  await expect(legend).toBeVisible();
+  const legendText = (await legend.innerText()).match(/\$[\d,]+(\.\d+)?/)?.[0];
+  expect(legendText).toBeTruthy();
+
+  await legend.click();
+  await expect(page.getByText('of this paycheck is already accounted for')).toBeVisible();
+
+  // The echo headline is the sibling directly above that sentence — read it STRUCTURALLY rather than by
+  // guessing a selector, so this asserts the figure a user actually sees beside it.
+  const echoText = await page.evaluate(() => {
+    const sentence = Array.from(document.querySelectorAll('div,span')).find(
+      (n) => n.textContent?.trim() === 'of this paycheck is already accounted for' && n.children.length === 0,
+    );
+    return sentence?.parentElement?.textContent?.match(/\$[\d,]+(\.\d+)?/)?.[0] ?? null;
+  });
+
+  expect(echoText).toBe(legendText);
+  // …and it is a hero echo, so it carries no cents. (Before T6.3: $486 legend, $486.34 echo.)
+  expect(echoText).not.toMatch(/\./);
+});
+
+test('an over-sized everyday reserve does not make the hero exceed the paycheck [L4-1]', async ({ page }) => {
+  await seedStore(page, overReserved());
+  await page.goto('/');
+
+  // $300 paycheck, $400 requested. The legend may only ever show what the paycheck actually holds.
+  const legend = page.getByRole('button', { name: /Spoken for/ });
+  await expect(legend).toBeVisible();
+  const shown = (await legend.innerText()).match(/\$([\d,]+)/)?.[1]?.replace(/,/g, '');
+  expect(Number(shown)).toBeLessThanOrEqual(300);
+});

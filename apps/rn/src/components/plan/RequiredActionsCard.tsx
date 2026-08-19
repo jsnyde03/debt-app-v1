@@ -155,6 +155,10 @@ function BucketBlock({
   const c = useAppColors();
   const titleColor = bucket.key === 'overdue' ? c.accent.danger : bucket.key === 'handled' ? c.text.tertiary : c.text.secondary;
   const rows = collapsible && !open ? [] : bucket.rows;
+  // [T6.6 · L4-6] Does any row in this bucket carry reserve-funded money? Only then do the header total
+  // and the row headlines describe different quantities — see the header below. Reads `bucket.rows`, not
+  // `rows`, so a COLLAPSED bucket still labels itself correctly.
+  const bucketHasReserve = bucket.rows.some((r) => (r.item.reserveCovered ?? 0) > 0);
 
   return (
     <View>
@@ -164,7 +168,7 @@ function BucketBlock({
           disabled={!collapsible}
           accessibilityRole={collapsible ? 'button' : 'header'}
           {...(collapsible ? a11yExpanded(open) : {})}
-          accessibilityLabel={`${bucket.title}, ${bucket.rows.length} ${bucket.rows.length === 1 ? 'item' : 'items'}, ${formatWhole(bucket.total)}`}
+          accessibilityLabel={`${bucket.title}, ${bucket.rows.length} ${bucket.rows.length === 1 ? 'item' : 'items'}, ${formatWhole(bucket.total)}${bucketHasReserve ? ' from this paycheck' : ''}`}
           style={styles.bucketHeader}>
           {collapsible ? (
             <AppIcon name={open ? 'expand-more' : 'chevron-right'} size={20} color={c.text.tertiary} />
@@ -174,7 +178,18 @@ function BucketBlock({
             <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{bucket.rows.length}</Text>
           </View>
           <View style={styles.flex} />
-          <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{formatWhole(bucket.total)}</Text>
+          {/* ⛔ [T6.6 · L4-6] The header and the rows under it are DIFFERENT QUANTITIES, not a rounding
+              mismatch: `bucket.total` sums `item.amount` (what THIS PAYCHECK contributes) while each row
+              headlines `item.amount + reserveCovered` (what the biller is owed). Stacked in one column
+              with a bare figure on top, that invites summing a column that was never meant to reconcile —
+              a $120 bill with $50 pre-funded reads `$120.00` under a header reading `$70`.
+              ⚠️ The label is CONDITIONAL on purpose: the two figures are identical unless the expense
+              reserve has pre-funded something, so naming the difference permanently would be noise on
+              every ordinary paycheck and would stop being read by the time it mattered. */}
+          <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+            {formatWhole(bucket.total)}
+            {bucketHasReserve ? ' from this paycheck' : ''}
+          </Text>
         </Pressable>
       ) : null}
       {rows.map((row, i) => (

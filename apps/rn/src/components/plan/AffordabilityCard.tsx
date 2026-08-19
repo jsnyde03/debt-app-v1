@@ -16,10 +16,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { haptics } from '@/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-
-function money(n: number): string {
-  return `$${Math.round(Math.max(0, Number.isFinite(n) ? n : 0)).toLocaleString('en-US')}`;
-}
+import { formatWhole } from '@/utils/format';
 
 // A session-unique id for an applied purchase / created goal — a plain counter (not `Date.now()`, which
 // the React Compiler flags as impure). Namespaced by the cycle date so it can't collide across restarts.
@@ -120,8 +117,8 @@ export function AffordabilityCard() {
               {/* 3.7.A3.6 — a cover capped by the goal's balance does not hold the line; say so. */}
               {applied.cover
                 ? applied.cover.holdsLine
-                  ? `Added ${applied.name} + moved ${money(applied.cover.amount)} from ${applied.cover.goalName} to hold your line — your plan updated below.`
-                  : `Added ${applied.name} + moved all ${money(applied.cover.amount)} of ${applied.cover.goalName} — it narrows the dip but doesn't hold your line. Your plan updated below.`
+                  ? `Added ${applied.name} + moved ${formatWhole(applied.cover.amount)} from ${applied.cover.goalName} to hold your line — your plan updated below.`
+                  : `Added ${applied.name} + moved all ${formatWhole(applied.cover.amount)} of ${applied.cover.goalName} — it narrows the dip but doesn't hold your line. Your plan updated below.`
                 : `Added ${applied.name} to this paycheck — your plan updated below.`}
             </Text>
           </View>
@@ -142,7 +139,7 @@ export function AffordabilityCard() {
             <AppIcon name="check-circle" size={18} color={c.accent.primary} />
             <Text style={[textStyles.subhead, styles.readText, { color: c.text.primary }]}>
               {saved.prioritize && saved.perPaycheck != null
-                ? `Now saving ${money(saved.perPaycheck)}/paycheck toward ${saved.name} — funds before debt. Track it in Goals.`
+                ? `Now saving ${formatWhole(saved.perPaycheck)}/paycheck toward ${saved.name} — funds before debt. Track it in Goals.`
                 : `Saving toward ${saved.name} from whatever's spare after debt. Track it in Goals.`}
             </Text>
           </View>
@@ -169,8 +166,8 @@ export function AffordabilityCard() {
         <Text style={[textStyles.caption, styles.hint, { color: c.text.tertiary }]}>Enter an amount to see if it fits this paycheck.</Text>
       ) : !isPremium ? (
         <View style={styles.read}>
-          <Text style={[textStyles.subhead, { color: c.text.primary }]}>You have about {money(result.discretionaryNow)} spare this paycheck.</Text>
-          <PremiumInvite message={`Premium tells you if ${money(result.amount)} fits — applies it to your plan, or plans how to save for it.`} />
+          <Text style={[textStyles.subhead, { color: c.text.primary }]}>You have about {formatWhole(result.discretionaryNow)} spare this paycheck.</Text>
+          <PremiumInvite message={`Premium tells you if ${formatWhole(result.amount)} fits — applies it to your plan, or plans how to save for it.`} />
         </View>
       ) : result.verdict === 'short' ? (
         // Short → the honest read + a path to save for it (the multi-option sign-off sheet, 2.9.6).
@@ -178,7 +175,7 @@ export function AffordabilityCard() {
           <View style={styles.readHead}>
             <AppIcon name={tone.short.icon} size={18} color={tone.short.color} />
             <Text style={[textStyles.subhead, styles.readText, { color: tone.short.color }]}>
-              Not this paycheck — you&apos;d come up about {money(result.shortBy)} short.
+              Not this paycheck — you&apos;d come up about {formatWhole(result.shortBy)} short.
             </Text>
           </View>
           <AffordabilityImpactBar before={result.discretionaryNow} after={result.cushionAfter} floor={result.floor} verdict={result.verdict} />
@@ -191,15 +188,15 @@ export function AffordabilityCard() {
             <AppIcon name={tone[result.verdict].icon} size={18} color={tone[result.verdict].color} />
             <Text style={[textStyles.subhead, styles.readText, { color: tone[result.verdict].color }]}>
               {result.verdict === 'comfortable'
-                ? `Yes — you'd still hold about ${money(result.cushionAfter)}.`
-                : `Yes, but tight — you'd dip to about ${money(result.cushionAfter)}, below your ${money(result.floor)} line.`}
+                ? `Yes — you'd still hold about ${formatWhole(result.cushionAfter)}.`
+                : `Yes, but tight — you'd dip to about ${formatWhole(result.cushionAfter)}, below your ${formatWhole(result.floor)} line.`}
             </Text>
           </View>
           {/* §3.3.4 — the animated impact: the cushion carves down to what's left, vs your floor line. */}
           <AffordabilityImpactBar before={result.discretionaryNow} after={result.cushionAfter} floor={result.floor} verdict={result.verdict} />
           {result.extraToDebtDelta > 0 ? (
             <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-              About {money(result.extraToDebtDelta)} less goes to debt this paycheck.
+              About {formatWhole(result.extraToDebtDelta)} less goes to debt this paycheck.
             </Text>
           ) : null}
           {/* §2.9.5 — a tight buy can hold the line by covering the dip from savings (the primary move); or
@@ -210,8 +207,8 @@ export function AffordabilityCard() {
               // the dip it moves money without covering anything, so the verb changes with the outcome.
               label={
                 result.coverFromSavings.holdsLine
-                  ? `Cover ${money(result.coverFromSavings.amount)} from ${result.coverFromSavings.goalName} & apply`
-                  : `Move ${money(result.coverFromSavings.amount)} from ${result.coverFromSavings.goalName} & apply`
+                  ? `Cover ${formatWhole(result.coverFromSavings.amount)} from ${result.coverFromSavings.goalName} & apply`
+                  : `Move ${formatWhole(result.coverFromSavings.amount)} from ${result.coverFromSavings.goalName} & apply`
               }
               variant="secondary"
               onPress={() => coverAndApply(result)}

@@ -1,9 +1,5 @@
 import type { PlanSummary } from '@/store/planSelectors';
-
-/** `1234.5` → `$1,235`. Whole dollars: this is a lead line, not a receipt. */
-function money(n: number): string {
-  return `$${Math.round(Math.max(0, n)).toLocaleString('en-US')}`;
-}
+import { formatWhole } from '@/utils/format';
 
 export interface PaywallLead {
   /** A fact about THIS user's money, in their own numbers. */
@@ -53,12 +49,12 @@ export function paywallLead(
   // The most urgent true thing first: a cycle that does not cover itself outranks everything else.
   if (summary.shortfall > 0) {
     return {
-      fact: `This paycheck comes up ${money(summary.shortfall)} short.`,
+      fact: `This paycheck comes up ${formatWhole(summary.shortfall)} short.`,
       offer: 'Recovery Plan is the guided catch-up for a cycle like this one.',
     };
   }
 
-  const cushion = money(summary.cushion);
+  const cushion = formatWhole(summary.cushion);
 
   // They reached for the forecast specifically — answer the thing they went looking for.
   if (from === 'cushion-forecast') {
@@ -70,6 +66,6 @@ export function paywallLead(
 
   return {
     fact: `You have ${cushion} cushion this paycheck.`,
-    offer: `Your plan protects a flat ${money(freeBuffer)} of it. Premium protects the line you choose instead.`,
+    offer: `Your plan protects a flat ${formatWhole(freeBuffer)} of it. Premium protects the line you choose instead.`,
   };
 }

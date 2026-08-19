@@ -14,6 +14,7 @@ import { ListRow } from '@/components/ui/ListRow';
 import { Pill } from '@/components/ui/Pill';
 import type { LivingExpense } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { formatWhole } from '@/utils/format';
 import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
@@ -49,8 +50,11 @@ export default function LivingExpensesScreen() {
         <>
           <Card tone="accent" style={styles.summary}>
             <Text style={[textStyles.subhead, { color: c.text.secondary }]}>Reserve per paycheck</Text>
+            {/* [T6.5 · L4-9] `formatWhole` — this is a summary card headline, the same tier and the same
+                concept as Money's "reserved each paycheck" hero one tab away, which is already whole. The
+                `ListRow` amounts below stay `formatCurrency`: they are the ledger. */}
             <Text style={[textStyles.numericBody, { color: c.text.primary, fontWeight: '700' }]}>
-              {formatCurrency(activeTotal)}
+              {formatWhole(activeTotal)}
             </Text>
           </Card>
 

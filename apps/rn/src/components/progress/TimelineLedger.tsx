@@ -9,6 +9,7 @@ import type { TimelineCycle, TimelineItem } from '@/store/payoffSelectors';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { a11yExpanded } from '@/utils/a11y';
+import { formatWhole } from '@/utils/format';
 
 const LOW_CASH = 100; // running balance below this reads as a squeeze (Capacitor parity)
 
@@ -73,7 +74,7 @@ function CycleGroup({
         style={styles.groupHead}
         accessibilityRole="button"
         {...a11yExpanded(open)}
-        accessibilityLabel={`${title}, ${shortDate(cycle.cycleStart)} to ${shortDate(cycle.cycleEnd)}, ends ${formatCurrency(cycle.endingBalance)}`}
+        accessibilityLabel={`${title}, ${shortDate(cycle.cycleStart)} to ${shortDate(cycle.cycleEnd)}, ends ${formatWhole(cycle.endingBalance)}`}
         onPress={onToggle}>
         <View style={styles.flex}>
           <Text style={[textStyles.footnote, styles.groupTitle, { color: c.text.secondary }]}>{title}</Text>
@@ -82,7 +83,14 @@ function CycleGroup({
           </Text>
         </View>
         <View style={[styles.chip, { backgroundColor: c.background.tertiary }]}>
-          <Text style={[textStyles.caption, styles.chipText, { color: tone }]}>{formatCurrency(cycle.endingBalance)}</Text>
+          {/* ⛔ [T6.7 · L4-7] `formatWhole`. This chip is a CYCLE SUMMARY — the same tier as the Cushion
+              lens's per-bar figure that the SegmentedToggle flips away from — so rendering it to the cent
+              made one toggle change the precision of a figure the user had just read, inside a card whose
+              own docstring says "same data, user picks the view". The item ROWS below stay
+              `formatCurrency`: they are the ledger, and that is the rule, not an exception to it.
+              ⚠️ `net` and `endingBalance` are genuinely different fields (one clamped, one not), so this
+              is a tier fix, not a claim that the two lenses show the same number. */}
+          <Text style={[textStyles.caption, styles.chipText, { color: tone }]}>{formatWhole(cycle.endingBalance)}</Text>
         </View>
         <AppIcon name={open ? 'expand-less' : 'expand-more'} size={20} color={c.text.tertiary} />
       </Pressable>

@@ -68,6 +68,10 @@ import { TutorialFence } from '@/components/plan/TutorialFence';
 import { stageBounds } from '@/components/plan/tutorialStage';
 import { displayCushion } from '@/store/guardianSubjects';
 import { useAppStore } from '@/store/useAppStore';
+// ⛔ [T6.9] Today built FOUR currency strings by hand — none of them in L4-2's list, in T1's surface
+// inventory, or in T6.4's body-grep. Two were the SAME sentence rendered twice (visual + spoken) and only
+// one carried thousands separators, so VoiceOver read "$1234". `lint:money` found all four on its first run.
+import { formatWhole } from '@/utils/format';
 import type { Debt } from '@/data/models';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -518,7 +522,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
             <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
             <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>
               {reserveRelease.tapped
-                ? `Your safety net was there when a surprise came up — it helped cover about $${Math.round(reserveRelease.covered).toLocaleString('en-US')} while I got to know your expenses. It's now going to work on ${reserveRelease.targetName}.`
+                ? `Your safety net was there when a surprise came up — it helped cover about ${formatWhole(reserveRelease.covered)} while I got to know your expenses. It's now going to work on ${reserveRelease.targetName}.`
                 : `Your safety net is free — you didn't need it, and it's now going to work on ${reserveRelease.targetName}.`}
             </Text>
           </View>
@@ -839,7 +843,7 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     const release = selectReserveRelease(s.store);
     if (release) {
       return release.tapped
-        ? `Your safety net covered about $${Math.round(release.covered)} while your Guardian learned your expenses. It is now going to work on ${release.targetName}.`
+        ? `Your safety net covered about ${formatWhole(release.covered)} while your Guardian learned your expenses. It is now going to work on ${release.targetName}.`
         : `Your safety net is free — it is now going to work on ${release.targetName}.`;
     }
     return selectReserveWalkback(s.store) ? 'A surprise bill came up — your Guardian has restored your safety net for now.' : null;
@@ -942,8 +946,8 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   const impactText =
     impact && impact.before !== impact.after
       ? impact.freed > 0
-        ? `Your line moved. That frees $${Math.round(impact.freed)} more for your debt this paycheck.`
-        : `Your line moved. Your Guardian is holding $${Math.round(impact.after - impact.before)} more back.`
+        ? `Your line moved. That frees ${formatWhole(impact.freed)} more for your debt this paycheck.`
+        : `Your line moved. Your Guardian is holding ${formatWhole(impact.after - impact.before)} more back.`
       : null;
   useEffect(() => {
     if (impactText) announce(impactText);

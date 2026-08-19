@@ -14,10 +14,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { a11ySelected } from '@/utils/a11y';
-
-function money(n: number): string {
-  return `$${Math.round(Math.max(0, Number.isFinite(n) ? n : 0)).toLocaleString('en-US')}`;
-}
+import { formatWhole } from '@/utils/format';
 
 function shortDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -107,7 +104,7 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
     <FormSheet
       visible={visible}
       title="Save for it"
-      subtitle={`Choose how to save ${money(amount)} for ${goalLabel} — the trade-off is shown before you commit.`}
+      subtitle={`Choose how to save ${formatWhole(amount)} for ${goalLabel} — the trade-off is shown before you commit.`}
       submitLabel="Start saving"
       onSubmit={submit}
       onClose={onClose}>
@@ -123,7 +120,7 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
             <View style={styles.optHead}>
               <AppIcon name={active ? 'radio-button-checked' : 'radio-button-unchecked'} size={18} color={active ? c.accent.primary : c.text.tertiary} />
               <Text style={[textStyles.subhead, styles.optTitle, { color: c.text.primary }]}>{o.title}</Text>
-              {o.perPaycheck != null ? <Text style={[textStyles.subhead, { color: c.text.secondary }]}>{money(o.perPaycheck)}/paycheck</Text> : null}
+              {o.perPaycheck != null ? <Text style={[textStyles.subhead, { color: c.text.secondary }]}>{formatWhole(o.perPaycheck)}/paycheck</Text> : null}
             </View>
             <Text style={[textStyles.caption, styles.optPace, { color: c.text.secondary }]}>
               {o.readyBy != null && o.paychecks != null

@@ -19,6 +19,7 @@ import type { RecoveryPlan } from '@/store/recoverySelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { a11yHidden, decorative, groupLabel } from '@/utils/a11y';
+import { formatWhole } from '@/utils/format';
 
 const BAR_H = 14;
 /** The safety-net swatch matches the bar's tinted reserve zone (cushion color at this opacity).
@@ -203,14 +204,14 @@ export function PaydayGuardianCard({
           // VoiceOver user heard the card's verdict and never the money it was a verdict about, and the
           // reserve beat in particular is entirely about a number they were never told. Spoken in the
           // same left→right order the bar shades them, so the two readings describe one thing.
-          hasReserve ? `${SAFETY_NET_LABEL} ${money(brief.heldReserve)}` : undefined,
-          `Cushion ${money(displayCushion(brief))}`,
-          hasPayoff ? `${brief.debtFree ? 'To savings' : 'To debt'} ${money(brief.deployedToDebt)}` : undefined,
+          hasReserve ? `${SAFETY_NET_LABEL} ${formatWhole(brief.heldReserve)}` : undefined,
+          `Cushion ${formatWhole(displayCushion(brief))}`,
+          hasPayoff ? `${brief.debtFree ? 'To savings' : 'To debt'} ${formatWhole(brief.deployedToDebt)}` : undefined,
           // The card's FOURTH figure. [C4] added the three flow amounts and stopped there, so the floor —
           // the one number a whole beat of the walkthrough is about, and the only one the user sets
           // themselves — stayed unreachable. Its row is `decorative` (a tick keyed to the bar), which was
           // right; the number needed a home, and this is it. Read last, matching the row's position.
-          `Your line ${money(brief.floor)}`,
+          `Your line ${formatWhole(brief.floor)}`,
           bnplHeadsUp ?? undefined,
         )}>
         <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>PAYDAY GUARDIAN</Text>
@@ -292,7 +293,7 @@ export function PaydayGuardianCard({
             there are no orphans, so an unused target cannot sit here unnoticed. */}
         <View style={[styles.lineKeyRow, styles.lineGroup]} {...a11yHidden(true)}>
           <View style={[styles.tick, { backgroundColor: c.text.primary }]} />
-          <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{money(brief.floor)} · Your line</Text>
+          <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{formatWhole(brief.floor)} · Your line</Text>
         </View>
 
         {/* The Guardian's voice — one short line for the states where it carries weight; the calm
@@ -354,14 +355,14 @@ export function PaydayGuardianCard({
               falls short it now says what it actually does, and names where that leaves them. */}
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
             {topUp.holdsLine
-              ? `You have ${money(topUp.available)} in ${topUp.goalName} — moving ${money(topUp.topUp)} over holds your line this paycheck.`
-              : `${topUp.goalName} has ${money(topUp.available)} — moving all of it over gets you to ${money(topUp.cushionAfter)} of your ${money(topUp.floor)} line. It won't close the gap, but it narrows it.`}
+              ? `You have ${formatWhole(topUp.available)} in ${topUp.goalName} — moving ${formatWhole(topUp.topUp)} over holds your line this paycheck.`
+              : `${topUp.goalName} has ${formatWhole(topUp.available)} — moving all of it over gets you to ${formatWhole(topUp.cushionAfter)} of your ${formatWhole(topUp.floor)} line. It won't close the gap, but it narrows it.`}
           </Text>
           {/* 3.7.A3.3 [D24] — the label said "from savings" unconditionally, including when the source
               was the EMERGENCY fund. A control that calls the safety net "savings" while spending it is
               the dishonest half of this affordance; the selector now flags which pot it picked. */}
           <Button
-            label={`Move ${money(topUp.topUp)} from ${topUp.isEmergencyFund ? EMERGENCY_FUND_NOUN : 'savings'}`}
+            label={`Move ${formatWhole(topUp.topUp)} from ${topUp.isEmergencyFund ? EMERGENCY_FUND_NOUN : 'savings'}`}
             variant="secondary"
             onPress={() => onTopUp?.()}
             style={styles.topUpBtn}
@@ -379,8 +380,8 @@ export function PaydayGuardianCard({
             {/* 3.7.A3.6 — the confirmation claimed the line was held even when the draw was capped short
                 of the gap, which is the same untrue promise the OFFER made. */}
             {appliedTopUp.holdsLine
-              ? `${money(appliedTopUp.amount)} moved from ${appliedTopUp.goalName} to hold your line this paycheck.`
-              : `${money(appliedTopUp.amount)} moved from ${appliedTopUp.goalName} — it narrows the gap, but you're still under your line this paycheck.`}
+              ? `${formatWhole(appliedTopUp.amount)} moved from ${appliedTopUp.goalName} to hold your line this paycheck.`
+              : `${formatWhole(appliedTopUp.amount)} moved from ${appliedTopUp.goalName} — it narrows the gap, but you're still under your line this paycheck.`}
           </Text>
           <Button label="Undo the move" variant="text" onPress={() => onUndoTopUp?.()} style={styles.topUpBtn} />
         </View>
@@ -495,10 +496,6 @@ export function PaydayGuardianCard({
 
 /** Exact whole-dollar — the stats match the plan's real figures (the hero shows them exact too); a
  *  concrete amount the user acts on must be correct, not hedged to the nearest $5/$10. */
-function money(n: number): string {
-  return `$${Math.round(Math.max(0, Number.isFinite(n) ? n : 0)).toLocaleString('en-US')}`;
-}
-
 /** One legend item from the cushion bar, in the hero card's compact style — a bar-zone-keyed swatch +
  *  label on top, the value below. */
 function Stat({
@@ -526,7 +523,7 @@ function Stat({
         </Text>
       </View>
       <Text style={[styles.statValue, { color: c.text.primary }]} testID={testID}>
-        {money(amount)}
+        {formatWhole(amount)}
       </Text>
     </View>
   );

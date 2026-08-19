@@ -10,6 +10,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import type { ExpenseReserveOffer } from '@/store/expenseReserveSelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { formatWhole } from '@/utils/format';
 
 /**
  * 3.8.5 — what "Spoken for" is made of, and the two doors out of it.
@@ -52,7 +53,11 @@ export function SpokenForSheet({
   return (
     <AnimatedSheet visible={visible} onClose={onClose} title={PAYCHECK_SEGMENT.spokenFor}>
       <View style={styles.echo}>
-        <Text style={[styles.echoNum, { color: c.text.primary }]}>{formatCurrency(total)}</Text>
+        {/* ⛔ [T6.3 · L4-1] `formatWhole`, not `formatCurrency`. This echoes the hero legend the user just
+            tapped — same tier, same figure — and rendering it to the cent turned $486 into $486.34 across
+            one tap with no state change. The per-ROW figures below stay `formatCurrency`; they are a
+            ledger. See the rule in `@core/utils/formatCurrency`. */}
+        <Text style={[styles.echoNum, { color: c.text.primary }]}>{formatWhole(total)}</Text>
         <Text style={[textStyles.subhead, { color: c.text.tertiary }]}>of this paycheck is already accounted for</Text>
       </View>
 

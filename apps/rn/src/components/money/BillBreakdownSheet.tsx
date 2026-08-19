@@ -73,7 +73,15 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
             <View style={styles.groupHead}>
               <Text style={[textStyles.footnote, styles.groupLabel, { color: c.text.secondary }]}>{cat.label}</Text>
               <View style={styles.flex} />
-              <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{formatCurrency(cat.perPaycheck)}/paycheck</Text>
+              {/* ⛔ [T6.5 · L4-3/L4-4] `formatWhole`. These category subtotals ARE the addends of this
+                  sheet's own headline (`formatWhole(perPaycheckTotal)`), and smoothed figures are almost
+                  never whole — so the sheet whose entire job is "shows its work" showed
+                  `$210.44 · $65.13 · $18.09` under `$294`. L4-4 is the same figure again: `money.tsx`'s
+                  section header renders the byte-identical expression as `formatWhole`, one tap away.
+                  ⚠️ This does NOT make the column sum exactly — rounded addends can differ from the
+                  rounded total by up to $0.50 each. That residual is L4-10's class, which the audit
+                  itself closed as "no fix needed"; what is fixed here is one tier reading two ways. */}
+              <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{formatWhole(cat.perPaycheck)}/paycheck</Text>
             </View>
             {cat.bills.map((b) => {
               const lumpy = b.recurrence !== 'monthly' && b.recurrence !== 'per-paycheck';
@@ -85,8 +93,12 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
                       {formatCurrency(b.amount)} · {CADENCE[b.recurrence]}
                     </Text>
                   </View>
+                  {/* [T6.5 · L4-3] The per-bill smoothed share is an addend of the same headline, so it
+                      matches the category subtotals above. ⚠️ The line ABOVE keeps `formatCurrency(b.amount)`
+                      deliberately — that is the real bill the user typed and the biller charges, a
+                      different quantity from its smoothed per-paycheck share. */}
                   <Text style={[textStyles.numericBody, { color: lumpy ? c.accent.primary : c.text.secondary }]}>
-                    {formatCurrency(b.perPaycheck)}
+                    {formatWhole(b.perPaycheck)}
                     <Text style={[textStyles.caption, { color: c.text.tertiary }]}>/paycheck</Text>
                   </Text>
                 </View>
@@ -98,7 +110,9 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
         {data.oneTimeCount > 0 ? (
           <View style={[styles.oneTime, { borderColor: c.border.subtle }]}>
             <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-              Plus {formatCurrency(data.oneTimeTotal)} in {data.oneTimeCount} one-time {data.oneTimeCount === 1 ? 'expense' : 'expenses'} — not part of your ongoing reserve.
+              {/* [T6.5 · L4-5] `formatWhole` — a summary sentence, not a ledger row, and `money.tsx`
+                  renders this same `oneTimeTotal` variable as `formatWhole` in two places one tap away. */}
+              Plus {formatWhole(data.oneTimeTotal)} in {data.oneTimeCount} one-time {data.oneTimeCount === 1 ? 'expense' : 'expenses'} — not part of your ongoing reserve.
             </Text>
           </View>
         ) : null}

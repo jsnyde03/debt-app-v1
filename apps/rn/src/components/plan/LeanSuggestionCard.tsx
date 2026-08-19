@@ -9,8 +9,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { groupLabel } from '@/utils/a11y';
-
-const money0 = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`;
+import { formatWhole } from '@/utils/format';
 
 /**
  * §2.3 income-learning nudge (2.4.7.8) — suggest-and-confirm, NEVER silent. Premium + variable income
@@ -24,8 +23,8 @@ export function LeanSuggestionCard({ nudge }: { nudge: LeanNudge }) {
   const up = nudge.direction === 'up';
 
   const detail = up
-    ? `Your recent paychecks have reliably cleared about ${money0(nudge.suggestedLean)}. Raise your income floor so the plan can put a little more to work?`
-    : `Your income has been running closer to ${money0(nudge.suggestedLean)} lately. Lower your floor to match what you can count on, so the plan stays realistic?`;
+    ? `Your recent paychecks have reliably cleared about ${formatWhole(nudge.suggestedLean)}. Raise your income floor so the plan can put a little more to work?`
+    : `Your income has been running closer to ${formatWhole(nudge.suggestedLean)} lately. Lower your floor to match what you can count on, so the plan stays realistic?`;
 
   return (
     <Card>
@@ -37,7 +36,7 @@ export function LeanSuggestionCard({ nudge }: { nudge: LeanNudge }) {
         <Text style={[textStyles.subhead, styles.detail, { color: c.text.secondary }]}>{detail}</Text>
       </View>
       <View style={styles.actions}>
-        <Button label={`Update to ${money0(nudge.suggestedLean)}`} onPress={() => store_.getState().applyLeanSuggestion(nudge.suggestedLean)} />
+        <Button label={`Update to ${formatWhole(nudge.suggestedLean)}`} onPress={() => store_.getState().applyLeanSuggestion(nudge.suggestedLean)} />
         <Button label="Not now" variant="secondary" onPress={() => store_.getState().dismissLeanSuggestion(nudge.suggestedLean)} />
       </View>
     </Card>

@@ -14,6 +14,7 @@ import { selectDeployedToSavings, selectDiscretionary, selectSpendable, selectEx
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
 import { selectAllocation, selectPaycheckMissed, type Allocation } from './selectors';
 import type { AllocationCategory } from '@core/engine/allocatePaycheck';
+import { formatWhole } from '@/utils/format';
 
 export type { GuardianBrief, GuardianState };
 
@@ -262,6 +263,18 @@ export function selectAppliedTopUp(
   // the confirmation used to say "to hold your line" either way. Measured from the post-move cushion, so
   // it stays true if anything else in the cycle changes underneath it.
   const allocation = selectAllocation(store);
+  // ⛔ [T6.8 · 🎯 2026-08-19] `selectDiscretionary` — the PARTITION TOTAL — is CORRECT here, and this is a
+  // settled decision, not an oversight. `selectSpendable` (= discretionary − `expenseReserveHeld`) was
+  // measured as the alternative and **flips this flag in 347 of 1,820 allocations**, so the choice is
+  // load-bearing. It stays on the partition total because the app has already decided, in code, that money
+  // KEPT is cushion: `expense_reserve` is a member of `PROTECTED_CUSHION_CATEGORIES`,
+  // `@core/copy/vocabulary` states that as the disjointness rule, and `testGuardianPartition` reconciles
+  // PROTECTED + PUT_TO_WORK against it. Judging the line on spendable cash would tell a user whose $175 is
+  // sitting earmarked for their own bills that their line is not held — its own false claim — and would
+  // put this flag out of step with the cushion figure rendered beside it.
+  // ⚡ **T4.1b's "measure before changing: it moves Guardian states" was itself REFUTED for the BAND:**
+  // `computeState` compares against `effectivePaycheckBuffer`, which the engine reserves *before* clamping
+  // the expense reserve, so the band flipped **0 times in 1,820**. This site was the only real divergence.
   const holdsLine = !!allocation && selectDiscretionary(allocation) + rec.amount >= (store.cushionFloor ?? 200);
   return { amount: rec.amount, goalId: rec.goalId, goalName: goal.name, holdsLine };
 }
@@ -322,7 +335,10 @@ export function selectBnplBetweenPaycheck(store: DebtStore): string | null {
     if (!best || count > best.count) best = { provider: d.bnplProvider || 'BNPL', amount: d.scheduledPaymentAmount as number, count };
   }
   if (!best) return null;
-  const each = `$${Math.round(best.amount).toLocaleString('en-US')}`;
+  // ⛔ [T6.4] Was a ninth hand-rolled money formatter, inline. Found by grepping the formatter BODY rather
+  // than the name `money` — which is why neither L4-2 nor T1's surface inventory saw it: there is no
+  // function declaration here to count. `lint:money` (T6.9) matches the body for exactly this reason.
+  const each = formatWhole(best.amount);
   return `Heads up — ${best.count} ${best.provider} payments (about ${each} each) land before your next paycheck.`;
 }
 

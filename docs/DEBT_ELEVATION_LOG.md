@@ -113,6 +113,109 @@ so the L3-2 assertions ordered behind it were proven by nothing. A second plant 
 and restored only the refill promise, which red on *"no unconditional refill promise"*. **An assertion
 sitting behind another in a throw-based runner is only ever proven by that other one.**
 
+## T6 — numbers cohesion · T6.1–T6.3 (2026-08-18)
+
+### T6.1 — the before-scan corrected four things
+
+⭐ **The rule was not ours to invent — the codebase already stated it**, in `formatCurrency.ts`'s own body
+comment, recorded from the App Preview defect (3.5.8.7): *hero → `formatWhole`, ledger rows →
+`formatCurrency`, cents only when there are cents.* So T6.2 is a **lift** (comment → owner), the same move
+T4.2 made for the vocabulary — not a decision. ⚡ **And the drift happened anyway, five times, precisely
+because a rule stated inside one function's body is not a rule anyone else reads.**
+
+**L4-2 undercounts: there are 7 hand-rolled locals, not 6.** It missed `apps/rn/src/store/paywallLead.ts:4`
+— which has **already dropped its `Number.isFinite` guard** and sits behind the live public embed. Measured
+shape: **4 byte-identical `money()`** (AffordabilityCard · PaydayGuardianCard · RecoveryPlanSection ·
+SaveForItSheet), **3 already drifted** (`paywallLead`'s, plus `PlanHero`'s and `LeanSuggestionCard`'s
+`money0`). ⭐ **T1's surface inventory had said 7** — so the instrument was right and the finding was
+wrong, which is the reverse of the usual direction and worth noting. *(`buildGuardianBrief.ts:124` also
+declares `money()`, but it returns a **number** — a rounder sharing the name, not an eighth formatter.)*
+
+**`formatDisplayAmount` has ZERO consumers** — L4-11 confirmed dead, so "three named formatters" is two.
+
+⛔ **No cross-tree move is needed, and that was worth checking before doing it.** All 7 locals live in the
+RN tree, so relocating `formatWhole` into `@core` would have rewritten **23 imports** to buy nothing the
+lint gate doesn't already give.
+
+### T6.3 — L4-1 was two defects, and only the smaller one was about formatters
+
+The audit found it as `$486` on Today vs `$486.34` one tap in. That half is real and is now `formatWhole`
+on the sheet's echo (a hero echo, not a ledger row; the per-row figures stay `formatCurrency`).
+
+⛔ **The other half is mine, from T5, and it is not a rounding bug.** T5 pointed `SpokenForSheet` at
+`everydayHeld` (the outcome) and left `PlanHero` on `summary.everydayReserve` (the request) — so on an
+over-sized reserve the legend and the sheet it opens disagreed **by the whole shortfall**. The finding's
+suggested fix would have left `$400` vs `$300` and looked closed. ⚡ **And underneath it sat a pre-existing
+conservation break:** `PlanHero` PARTITIONS the paycheck, so with a $300 paycheck and a $400 request its
+segments summed to **$400 of a $300 paycheck** — `free` clamped to 0, which hid the overflow rather than
+revealing it. **A partition that does not conserve is not a partition.** Pointing the hero at
+`everydayHeld` closes both.
+
+### ⛔ The first plant PASSED — the fixture was the blind spot, not the assertion
+
+The legend-vs-sheet test was written, ran green, and then **survived a deliberately planted
+`formatCurrency` echo.** Cause: the default fixture's spoken-for total is a whole $300, and `formatCurrency`
+emits cents *only when there are cents* — so both formatters render `"$300"` and the guard could not see
+the defect it was written for. Re-fixtured at `$300.34`, the plant reds with `Expected "$300", Received
+"$300.34"` — the finding's own symptom, reproduced.
+
+⚡ **This is `route-smoke.spec.ts` again, one level down:** *a fixture chosen for convenience decides which
+defects a guard can see.* The assertion was correct the whole time. Nothing about a green run distinguished
+it from a blind one, and only the plant did.
+
+---
+
+### T6.4 — the count was 6, then 7, then 9, then 12 — and only the GATE found the last four
+
+Every enumeration of this class undercounted, in order:
+
+| enumerated by | said | missed |
+|---|---|---|
+| **L4-2** (the finding) | 6 | `paywallLead.ts` — already drifted, behind the live public embed |
+| **T1's surface inventory** | 7 | `guardianSelectors.ts` — inline, no `function money` to count |
+| **T6.4's body-grep** | 8 | Today's four — mid-template, so a pattern anchored on a leading backtick skipped them |
+| ⭐ **`lint:money`, first run** | **12** | — |
+
+⚡ **The gate found four on its first run that three prior enumerations had each missed** — and one of
+them was a genuine drift: Today's reserve-release copy exists twice, once rendered and once announced, and
+**only the rendered one carried thousands separators**, so VoiceOver read `$1234`. [D31] paid for itself
+inside one step.
+
+⛔ **The migration was NOT mechanical, and the measurement is the reason it was safe.** The four
+byte-identical `money()` copies clamp negatives to `$0` while `formatWhole(-45)` renders `-$45`, so every
+call site was traced to the selector that produces its value: `cushionAfter` is *already* floored at 0 in
+`computeAffordability`, `extraToDebtDelta` is `Math.max(0, …)`, `displayCushion` is protected by the
+disjointness invariant, `PlanHero`'s segments are filtered `> 0`. **Every clamp was dead code** — so
+deleting them changes nothing today and is correct tomorrow, which is a better answer than "clamp in the
+caller".
+
+⚠️ **Two of my own instruments were wrong, both caught, both worth recording:**
+- The migration script's deletion regex used `[^}]*?` on bodies that contain `}` inside a template
+  literal, so it **renamed the locals instead of removing them** — and its own `defs-left=0` check searched
+  for the OLD name, so it reported success. Re-grepping the formatter **body** found all five.
+- `String.prototype.replace` treats `$$` in the replacement as an escaped `$`, so a planted
+  `$${Math.round(…)}` landed as `${Math.round(…)}` — **silently corrupting the file while the
+  plant-applied check said NO**. Exactly the failure `verify-the-plant-applied` exists for; fixed by using
+  `split`/`join` and asserting the plant by re-reading the file.
+
+### T6.8 — the plan's own warning was REFUTED by measuring it
+
+The plan said *"Measure before changing: it moves Guardian states."* Measured across **1,820** allocations
+(2 tiers × 7 paychecks × 5 floors × 7 contributions × 4 rents, shortfall-free only):
+
+- **Guardian BAND flips: 0.** `computeState` compares against `effectivePaycheckBuffer`, and the engine
+  reserves that buffer *before* clamping the expense reserve — so `spendable ≥ buffer` in **700/700** cases
+  where a reserve is held. The band is genuinely insensitive to the swap.
+- ⚠️ **The 25 flips I first measured were entirely `cushionFloor = 0`**, a degenerate config; and an
+  earlier run reported **93 "violations"** that were an artifact of my probe comparing against
+  `cushionFloor` when the engine reserves `effectivePaycheckBuffer` — a flat $50 on free. **I nearly filed
+  a false finding off my own instrument.**
+- **`holdsLine` flips: 347.** That site compares against `store.cushionFloor ?? 200` rather than the
+  buffer, so it is the one place the two figures genuinely disagree.
+
+**So T6.8 reduces from four sites to one**, and that one is a product judgment, not a cohesion fix →
+`[DECISION]`, see the plan.
+
 ### T5.2 — L3-4 · L3-6 · L3-7, and half of one finding was refuted
 
 **L3-4 (major) — the premises held exactly** (line drift 67→75 only). `AmortizationView` branched the

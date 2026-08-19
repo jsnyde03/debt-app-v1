@@ -14,6 +14,7 @@ import { elevation } from '@/theme/elevation';
 import { duration } from '@/theme/motion';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { formatWhole } from '@/utils/format';
 
 // On-navy semantics: the hero panel is deep navy in BOTH themes, so its accents are the dark-tuned
 // token values (they read on navy) — constant, never theme-resolved.
@@ -24,8 +25,6 @@ const onNavy = {
   warning: colors.accent.warning.dark,
   danger: colors.accent.danger.dark,
 };
-
-const money0 = (n: number) => `$${Math.round(Math.max(0, n)).toLocaleString('en-US')}`;
 
 function shortDate(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
@@ -69,7 +68,16 @@ export function PlanHero({
   // has always meant. ⛔ Named "Spoken for" and not "Set aside" — that is the gig app's brand term, which
   // this app deliberately does not borrow (see `PaydayGuardianCard`) — nor "Reserved", which would name a
   // different figure than the Money tab's hero does.
-  const everyday = Math.max(0, summary.everydayReserve);
+  // ⛔ [T6.3 · L4-1] `everydayHeld`, NOT `everydayReserve`. The reserve is the REQUEST (the enabled items'
+  // raw sum); the engine clamps it to what the paycheck can actually hold and absorbs the rest silently.
+  // Two things broke on the difference:
+  //   1. This hero PARTITIONS the paycheck, and the request is not part of it — with a $300 paycheck and a
+  //      $400 request the segments summed to $400 of a $300 paycheck, so the bar overflowed and `free`
+  //      clamped to 0 to hide it. A partition that does not conserve is not a partition.
+  //   2. T5 moved `SpokenForSheet` onto the held figure while this stayed on the request, so the legend
+  //      and the sheet it opens disagreed by the whole shortfall — L4-1 as a $486/$486.34 rounding
+  //      mismatch, but an order of magnitude worse and immune to any formatter fix.
+  const everyday = Math.max(0, summary.everydayHeld);
   const billsReserve = Math.max(0, summary.billsReserve);
   const spokenFor = everyday + billsReserve;
   const free = Math.max(0, summary.remainingAfterRequired - spokenFor);
@@ -110,9 +118,9 @@ export function PlanHero({
   const reassurance = summary.debtFreeDate ? `${statusLabel} · debt-free by ${summary.debtFreeDate}` : statusLabel;
 
   const a11y = [
-    `This paycheck ${money0(paycheck)}.`,
-    segments.map((seg) => `${seg.label} ${money0(seg.value)}`).join(', ') + '.',
-    suggestLabel ? `Suggested: ${suggestLabel}, ${money0(suggestTotal)}.` : '',
+    `This paycheck ${formatWhole(paycheck)}.`,
+    segments.map((seg) => `${seg.label} ${formatWhole(seg.value)}`).join(', ') + '.',
+    suggestLabel ? `Suggested: ${suggestLabel}, ${formatWhole(suggestTotal)}.` : '',
     reassurance,
   ]
     .filter(Boolean)
@@ -140,7 +148,7 @@ export function PlanHero({
       <View accessible accessibilityLabel={a11y}>
         <CountUp
           value={shownPaycheck}
-          format={money0}
+          format={formatWhole}
           // T3B (audit L5-7) — the three tab heroes were the ONLY large figures with no font-scale cap,
           // while 13 other large-number sites already carry one. At AX5 a 40pt figure scales unbounded.
           maxFontSizeMultiplier={1.3}
@@ -160,7 +168,7 @@ export function PlanHero({
           <View style={styles.suggestRow}>
             <View style={[styles.dot, { borderWidth: 1.5, borderColor: onNavy.suggest, backgroundColor: 'transparent' }]} />
             <Text style={[textStyles.caption, styles.suggestText, { color: s.heroSub }]} numberOfLines={1}>
-              Suggested · {money0(suggestTotal)} · {suggestLabel}
+              Suggested · {formatWhole(suggestTotal)} · {suggestLabel}
             </Text>
           </View>
         ) : null}
@@ -188,7 +196,7 @@ export function PlanHero({
                 <Text style={[textStyles.caption, { color: s.heroSub }]}>{seg.label}</Text>
                 {tappable ? <AppIcon name="chevron-right" size={13} color={s.heroSub} /> : null}
               </View>
-              <Text style={[styles.legendValue, { color: s.heroText }]}>{money0(seg.value)}</Text>
+              <Text style={[styles.legendValue, { color: s.heroText }]}>{formatWhole(seg.value)}</Text>
             </>
           );
           return tappable ? (
@@ -197,13 +205,13 @@ export function PlanHero({
               onPress={onOpenSpokenFor}
               accessibilityRole="button"
               // Names the split it opens, so the control says what it does rather than repeating the total.
-              accessibilityLabel={`${PAYCHECK_SEGMENT.spokenFor} ${money0(seg.value)}. Everyday ${money0(everyday)}, expenses ${money0(billsReserve)}. See the breakdown.`}
+              accessibilityLabel={`${PAYCHECK_SEGMENT.spokenFor} ${formatWhole(seg.value)}. Everyday ${formatWhole(everyday)}, expenses ${formatWhole(billsReserve)}. See the breakdown.`}
               hitSlop={8}
               style={styles.legendItem}>
               {body}
             </Pressable>
           ) : (
-            <View key={seg.key} style={styles.legendItem} accessible accessibilityLabel={`${seg.label} ${money0(seg.value)}`}>
+            <View key={seg.key} style={styles.legendItem} accessible accessibilityLabel={`${seg.label} ${formatWhole(seg.value)}`}>
               {body}
             </View>
           );
@@ -219,11 +227,11 @@ export function PlanHero({
         <Pressable
           onPress={onAddWindfall}
           accessibilityRole="button"
-          accessibilityLabel={windfall > 0 ? `Extra income ${money0(windfall)} this paycheck, edit` : 'Add extra income'}
+          accessibilityLabel={windfall > 0 ? `Extra income ${formatWhole(windfall)} this paycheck, edit` : 'Add extra income'}
           style={styles.windfallRow}>
           <AppIcon name="add-circle-outline" size={15} color={windfall > 0 ? s.goldPill : s.heroSub} />
           <Text style={[textStyles.caption, { color: windfall > 0 ? s.goldPill : s.heroSub, fontWeight: windfall > 0 ? '700' : '400' }]}>
-            {windfall > 0 ? `${money0(windfall)} extra this paycheck` : 'Add extra income'}
+            {windfall > 0 ? `${formatWhole(windfall)} extra this paycheck` : 'Add extra income'}
           </Text>
         </Pressable>
       ) : null}
