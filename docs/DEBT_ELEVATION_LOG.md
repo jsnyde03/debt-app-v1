@@ -89,6 +89,89 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## 5.8.7 — the app icon was never configured, and nothing could have told us (2026-08-19)
+
+🎯 asked, mid-item, that the app icon be preserved before 5.5.1 deletes the legacy tree. Measuring it
+found something worse than a preservation risk.
+
+| | |
+|---|---|
+| `apps/rn/app.json` | **no `icon` key at all** — not top-level, not under `ios` |
+| `apps/rn/assets/` | one `.wav`. No image of any kind |
+| `apps/rn/ios/` | does not exist — CI runs `expo prebuild`, which generates it **from `app.json`** |
+| the only icon | `assets/icon.png` at the **repo root** — the tree **5.5.1 deletes** |
+
+⛔ **So every build to date carried Expo's DEFAULT icon**, and the real one was one commit from being
+deleted with the surface it lived in. ⚡ *Nothing was ever going to catch this.* A wrong icon is not a
+compile error, no test looks at one, the audit's seven lenses read code, and on a TestFlight home screen
+a placeholder icon is exactly the kind of thing you stop seeing after the second install.
+
+✅ Fixed: copied to `apps/rn/assets/icon.png` and declared. Verified the artifact rather than trusting the
+filename — **1024×1024, colorType 2 (RGB, no alpha)**, which matters because **App Store Connect rejects
+an icon with an alpha channel outright**, and that rejection arrives at the end of a submission rather
+than at build time. The corners are pre-rounded in dark paint (not transparency), so iOS will round an
+already-rounded square; cosmetic, and a row for the device pass rather than a defect.
+
+⭐ **Gated, four ways** (`lint:lane`, 83 → 87): the key exists · the file it points at exists · it is
+1024² · it has no alpha. Each fails differently and all four fail *silently* without a check.
+
+### ⛔ The same sweep found the SPLASH SCREEN is unconfigured too
+
+`expo-splash-screen` is registered with **no options** and there is no `expo.splash` block — so prebuild
+takes the default, which on a dark-themed app is a white flash into a dark UI. **Deferred, not fixed:** the
+obvious remedy (the icon on its own dark background) is an asset/design decision, and those are 🎯's. →
+Phase 6, alongside the App-Preview re-shoot.
+
+⚡ **The generalisable bit: `app.json` is a build input nothing in this repo was reading.** Every gate
+here reads source, workflows or the store. Two shipping-visible assets were absent from it and both were
+invisible to the entire instrument set. Worth asking, once, what *else* prebuild takes from that file.
+
+---
+
+## 5.8.6 — the first coverage this surface has ever had, and a plant that exposed a weak test (2026-08-19)
+
+`backup.spec.ts`, **9 tests**, all green; e2e **196 → 205**. Plus `lint:destructive`.
+
+### The specs are aimed at the destructive direction, deliberately
+
+A spec that only proved *"a valid backup restores"* would pass just as happily against the version that
+ate people's data. So the assertions are: four foreign payloads **refused with the portfolio intact**,
+**checking is not replacing**, a v1.6 restore whose **income actually lands**, the app's own round trip,
+a too-new refusal, and no dead file buttons on web. Assertions are on the **store**, not only the screen —
+the pre-5.8 v1.6 import rendered a perfectly plausible plan with the income silently blanked.
+
+### ⛔ Plant E — and the one that DIDN'T red is the informative one
+
+Restoring accept-anything reds **3 of the 4** refusals. *"Refuses prose"* stays green, correctly: prose is
+not JSON, so it fails at the parse guard rather than at detection. A plant that reds everything would have
+meant the four cases were one case wearing four labels.
+
+### ⛔ Plant F exposed a WEAK TEST, which is the entire reason for the plant doctrine
+
+Making the check step replace immediately red *"the check step alone does not touch the store"* — but on
+the **summary's visibility**, not on the store. Writing the store re-renders, the sheet closes, and the
+store assertion **never ran at all**.
+
+⚡ **The test failed, so nothing looked wrong.** It was failing on a side effect rather than on the thing
+it claims to check — and the day a re-render stops closing that sheet, it goes quietly green while the
+defect ships. Reordered so the store is read FIRST; the plant now reds with
+`Expected "Card", Received "Restored Visa"`. *"Confirm it red the assertion you meant" is not pedantry —
+here the right test failed for the wrong reason, and only re-reading the failure caught it.*
+
+### ⭐ [D31] `lint:destructive` — an allow-list, not a count
+
+`importStore` replaces the entire portfolio and cannot be undone. The gate lists its **three** sanctioned
+callers, each with the reason it is allowed to be one (the definition · hydrate, where the store is empty
+· the restore, behind `readBackup` **and** a second tap). ⚡ **An allow-list rather than a count** because a
+count says *the number changed* while a list says *WHICH file appeared* — the question a reviewer actually
+has. It also reds on a **stale entry**, since an allow-list that outlives its subject reads as coverage
+while providing none. Plant-verified both directions.
+
+⛔ **The rule is not "check the importer".** It is that a new caller of a wholesale overwrite can be added
+without anyone noticing it is one — which is precisely what happened, and it survived a 117-finding audit.
+
+---
+
 ## 5.8.5 — the file doors, and two premises that failed on contact (2026-08-19)
 
 `backupFile.ts` + `backupFile.web.ts`, `expo-document-picker` added. tsc clean · `lint:rn` 0 errors ·

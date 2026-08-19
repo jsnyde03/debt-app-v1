@@ -481,6 +481,46 @@ function evalGhExpr(src: string, inputs: Record<string, string>): boolean | unde
   }
 }
 
+// ── THE APP ICON (🎯 2026-08-19) ─────────────────────────────────────────────────────────────────
+// ⛔ Found missing: `app.json` had NO `icon` key at all, and the only 1024px icon in the repo sat in the
+// root tree that 5.5.1 DELETES. CI runs `expo prebuild`, which generates the iOS project from `app.json`
+// alone — so every build to date took Expo's DEFAULT icon, and the real one was one commit from being
+// gone. Nothing failed; a wrong icon is not a compile error, and no test looks at one.
+//
+// Three things are checked, because each fails differently and silently:
+//   ① the key exists  ② the file it points at exists  ③ the PNG has NO alpha channel
+// ③ is the submission blocker: App Store Connect rejects an icon with an alpha channel outright, and
+// that rejection arrives at the END of a submission rather than at build time.
+{
+  const appJsonPath = join(REPO, 'apps', 'rn', 'app.json');
+  let iconRel: string | undefined;
+  try {
+    iconRel = JSON.parse(readFileSync(appJsonPath, 'utf8'))?.expo?.icon;
+  } catch {
+    iconRel = undefined;
+  }
+  check('app.json declares an `icon`', typeof iconRel === 'string' && iconRel.length > 0, 'prebuild would use the default Expo icon');
+
+  if (typeof iconRel === 'string') {
+    const iconPath = join(REPO, 'apps', 'rn', iconRel.replace(/^\.\//, ''));
+    let png: Buffer | null = null;
+    try {
+      png = readFileSync(iconPath);
+    } catch {
+      png = null;
+    }
+    check(`the icon file exists (${iconRel})`, png !== null, 'app.json points at a file that is not there');
+    if (png) {
+      const width = png.readUInt32BE(16);
+      const height = png.readUInt32BE(20);
+      const colorType = png[25];
+      check(`the icon is 1024×1024 (${width}×${height})`, width === 1024 && height === 1024);
+      // colorType 4 (gray+alpha) and 6 (RGBA) carry an alpha channel; 0/2/3 do not.
+      check('the icon has NO alpha channel (App Store Connect rejects one)', colorType !== 4 && colorType !== 6, `colorType ${colorType}`);
+    }
+  }
+}
+
 for (const line of ok) console.log(`  ✅ ${line}`);
 if (problems.length) {
   console.error(`\n⛔ native-lane pre-flight — ${problems.length} problem${problems.length > 1 ? 's' : ''}:`);

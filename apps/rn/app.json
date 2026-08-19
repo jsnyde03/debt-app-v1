@@ -6,6 +6,7 @@
     "scheme": "debtplannerrn",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
     "ios": {
       "bundleIdentifier": "com.jasonsnyder.debtplanner",
       "appleTeamId": "CVCY985YCD",
