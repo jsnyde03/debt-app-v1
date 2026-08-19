@@ -13,36 +13,45 @@ root, which **5.5.1 deletes**. The live app is `apps/rn` (Expo/RN) over `package
 It carries **▶ BUILDING NOW** (exactly one decomposed item), the phase table, the deferred
 backlog and the decision log. **Read it before touching anything.**
 
-**ACTIVE: audit-gate remediation — T1 · T2 · T3 · T3B · T4 closed. ▶ T5 (truth of claims) is BUILDING.**
-⛔ **T4's main result is about the AUDIT, not the glossary: of the 11 findings it owned, 5 needed material
-correction, and 3 would have shipped a WORSE app if built as written** — L1-6's fix was **backwards**
-(it proposed renaming the Expenses tab to "Bills", against `money.tsx:173`, which *teaches* the opposite,
-and against **[D22d]**, already recorded in the code) · L1-14 filed an **income**-sense label under the
-cushion sense · L1-26 was **refuted** (three values, not one) · L2-6's **mechanism was false** (the engine's
-allocation labels are never rendered) · L1-7 **partly refuted**. Two findings *undercounted* their own site
-lists. ⚡ **Reliable about WHERE to look, unreliable about WHAT is there** — the same profile Phase 3.7
-measured for pre-authored items, now confirmed on a second corpus. **Budget T5–T8 with verification as the
-dominant cost, not editing.**
-⚡ **And every cheap proxy for scope overstated it:** `floor` grepped **548×** for ~3 rendered sites;
-"the Guardian" **112×** for 5; L1-5 listed 9 sites and 3 were real. **The honest unit is a RENDERED STRING
-LITERAL** — comments about a word outnumber uses of it, and identifiers share its spelling.
-✅ **T4 left three instruments:** `@core/copy/vocabulary` (7 nouns + the cushion/safety-net disjointness
-rule, stated once where it had been prose in four files) · **`lint:glossary`** (5 retired words banned from
-copy positions, in CI, verified in both directions) · `glossary.test.ts`.
-⛔ **Any copy pass from here runs the retired-string sweep — over the REPO ROOT, with NO directory list.**
-Every string you retire, grepped case-insensitively, no `head`, ripgrep (not `grep -rn`) from the root.
-⚠️ **The enumerated corpus list this rule used to carry was measurably wrong, twice, in T5 alone:** a
-`grep -rn` scoped to `apps packages scripts docs` returned **0** on a string that was live in the legacy
-`components/` tree at the ROOT *(which ships behind the public embed until 5.5.1)*, and the list omitted
-`apps/rn/src/**/*.test.ts` — the app's colocated suites — which **red the release gate** on a clause the
-sweep had just declared clean. T4.4 needed **four rounds** because each named corpus was missed in turn,
-and the fix recorded then was to enumerate them; **an enumerated list is only as good as its last
-omission** (the audit's own Law II). A root-scoped sweep has no list to be wrong.
+⭐ **THE AUDIT GATE IS CLOSED (2026-08-19). T1–T8 + T3B are all done, and the [D37] exit check PASSES:
+55 of 55 blocker/major findings trace to a closure or a recorded refutation** — now enforced every push by
+`lint:closure`, not by memory. ▶ **Phase 5 (data continuity + cutover) 🔒 is next.**
+
+⛔ **The result worth carrying out of eight items: an audit finding's site list is where to START looking,
+never the class.** Measured on five consecutive items, always undercounting — T4 needed material
+correction on 5 of 11 · T5's L1-12 was **2 of 9** sites · T6's formatter count went **6 → 7 → 9 → 12**,
+three enumerations each short · T7's sweep found **34** sites beyond the finding · T8's L2-5 was **3 files
+not 2**. **Budget the enumeration, not the list.**
+
+⚡ **Refutation earned its keep SIX times** — building the findings as written would have made the app
+worse: L1-16 rewrote ~20 strings for a surface **5.5.1 deletes** · half of L3-7 would have reported
+**every autopay FAILED** · L1-13's own wording would have **undone T4** · L2-6's fix would make five dead
+engine strings load-bearing · L4-8 would have undone the App Preview cents sweep · and T4.1b's
+"it moves Guardian states" flipped the band **0 times in 1,820**.
+
+⭐ **[D31] is now evidence, not a principle.** Gates written this phase caught what enumeration missed:
+`lint:money` found **4 hand-rolled formatters on its first run** (one rendered `$1234` to VoiceOver);
+`lint:copy` red on **T4.4 creating** a duplicate; `lint:closure` found **6 of 55 high+ untraceable, every
+one already built**. Four gates added or extended; **e2e 184 → 196**.
+
+⛔ **And my own instruments failed at a steady rate — assume yours will.** 7 of 7 first-cut probes in T3
+were wrong in a way that PASSED · a T6 plant **passed** because the fixture had no cents · a T8 script
+deleted **489 lines** (CRLF vs a bare `}`) · a baseline was set **12 too high**, leaving a +1 detector
+unable to detect +1. **What caught them every time: `tsc` and mutation-planting. What caused them:
+hand-rolled mechanical edits.** Prefer the Edit tool — it fails loudly where a script guesses.
+
+⚠️ **Still owed before launch:** the **device pass** (52 rows + [T3.2]'s storage-fault row — two T3
+surfaces ship on unit assertions with **no rendered proof**) · **T9–T11**'s minor/polish set, deliberately
+outside [D37] (**re-measure before budgeting**; T4–T8 collapsed many of their owners) · 44 baselined
+hand-written local parses · dead `formatDisplayAmount`.
+
+
 Phases 0–3 · 3.5 · 3.7 · 4 · **3.8** are closed, and the **whole-app audit has RUN**:
 7 lenses, **117 findings**, 12 refutations → [`docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md).
 
-⛔ **[D37] EVERY high+ finding closes this round** *(🎯 2026-08-18)*. The exit is **not** "T1–T8 closed";
-it is **all 55 blocker+major closed or explicitly refuted, each traceable to its finding id.** ⚠️ Auditing
+✅ **[D37] SATISFIED 2026-08-19 — 55/55.** The exit was **not** "T1–T8 closed"; it was **all 55
+blocker+major closed or explicitly refuted, each traceable to its finding id**, and that is now checked by
+`lint:closure` on every push rather than by hand. ⚠️ Auditing
 the plan against the findings showed **the ledger did not cover its own high+ set** — 8 majors sat
 outside the gate → now **T3B**. Two more look already closed by T1 and were never recorded against their
 ids; **an untraceable closure is indistinguishable from an open finding.**
@@ -54,7 +63,8 @@ of attention.**
 
 ⚠️ **Grep the plan's finding ids with the ranges EXPANDED.** It compresses them as `L1-5/6/7/14/19`, so a
 literal search for `L1-6` matches nothing — the first pass reported ~30 unassigned high+ and the real
-number was 4.
+number was 4. ⭐ **`scripts/check-audit-closure.ts` does that expansion for you** — it is why the check is
+code rather than a habit.
 
 ⛔ **3 of 4 agent-declared blockers did NOT survive refutation.** The lenses' self-reported *confidence* was
 reliable every time; their *severity* was not. **No finding becomes work un-refuted** — `findings/L9-refutations.md`
@@ -103,7 +113,7 @@ mechanism, not the symptom — including your own.
 npm run validate:release:rn     # typecheck:core → typecheck:rn → lint → regression → app → scenarios → e2e
 ```
 
-**184 e2e + 10 embed + 10 `test:stamp` + 83 lane checks, tsc clean on both trees**, zero
+**196 e2e + 10 embed + 10 `test:stamp` + 83 lane checks, tsc clean on both trees**, zero
 `error-context.md`. CI runs it on every push. ~15 min locally.
 
 ⚠️ **It ran no `tsc` at all until 2026-08-11**, and two commits shipped green with real type

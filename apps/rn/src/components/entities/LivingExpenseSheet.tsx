@@ -60,7 +60,7 @@ export function LivingExpenseSheet({ editing, onClose }: { editing: LivingExpens
         keyboardType="decimal-pad"
         error={error || undefined}
       />
-      <SwitchRow label="Count toward my reserve" value={enabled} onValueChange={setEnabled} />
+      <SwitchRow label="Count toward your reserve" value={enabled} onValueChange={setEnabled} />
     </FormSheet>
   );
 }

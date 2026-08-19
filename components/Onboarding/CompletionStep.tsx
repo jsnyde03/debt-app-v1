@@ -47,7 +47,7 @@ export function CompletionStep() {
                     className="onboarding-primary-btn"
                     onClick={handleComplete}
                 >
-                    See My Plan →
+                    See your plan →
                 </button>
             </div>
         </div>

@@ -55,7 +55,11 @@ function run() {
     const alloc = selectAllocation(withReserve)!;
     const summary = selectPlanSummary(withReserve, alloc, selectRequiredRows(withReserve, alloc));
     // What PlanHero renders as "Flexible" (PlanHero.tsx: remainingAfterRequired − spokenFor).
-    const heroFlexible = Math.max(0, summary.remainingAfterRequired - (summary.everydayReserve + summary.billsReserve));
+    // ⛔ [T6 after-scan] `everydayHeld`, mirroring the component since T6.3. This modelled the hero with
+    // `everydayReserve` (the REQUEST) after PlanHero moved to the HELD figure — a stale model that kept
+    // passing because this fixture's request fits the paycheck, so the two are equal here. A test whose
+    // comment says it mirrors a component has to actually mirror it, or it pins the wrong thing silently.
+    const heroFlexible = Math.max(0, summary.remainingAfterRequired - (summary.everydayHeld + summary.billsReserve));
     const cardSpare = selectAffordability(withReserve, 25)!.discretionaryNow;
 
     assert(summary.billsReserve > 0, `the fixture actually holds a reserve (got ${summary.billsReserve}) — else this proves nothing`);

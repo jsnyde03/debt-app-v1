@@ -47,8 +47,8 @@ test("payday capture: sheet auto-opens, one-tap captures, no re-prompt", async (
     await expect(page.locator(".payday-sheet")).toBeVisible();
     await expect(page.locator(".payday-extra-row")).toHaveCount(1);
 
-    // One-tap "I followed the plan" captures the recommended allocation.
-    await page.getByRole("button", { name: "I followed the plan" }).click();
+    // One-tap "You followed the plan" captures the recommended allocation.
+    await page.getByRole("button", { name: "You followed the plan" }).click();
 
     // Sheet closes and the action is persisted (paycheck source).
     await expect(page.locator(".payday-sheet")).toBeHidden();

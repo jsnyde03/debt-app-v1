@@ -434,7 +434,7 @@ export function PaydayCaptureSheet({
               </ScrollView>
 
               <View style={styles.actions}>
-                <Button label={hasAdjustedRequired || extrasAdjusted ? 'Confirm what I paid' : 'I followed the plan'} onPress={handleCapture} />
+                <Button label={hasAdjustedRequired || extrasAdjusted ? 'Confirm what you paid' : 'You followed the plan'} onPress={handleCapture} />
                 <Button label="Skip this payday" variant="text" onPress={onDismiss} />
               </View>
             </>

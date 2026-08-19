@@ -117,6 +117,14 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
         }}
       />
 
+      {/* ⚠️ [T8 · L2-5] These are NOT `OBLIGATION_CLAUSE` and deliberately so — a judgment reversed after
+          `lint:selectors` red on it. They read like a third copy of the definition, but they are a
+          different SENTENCE: the clause and its examples are interleaved ("…doesn't end — rent, phone, a
+          subscription"), where the chooser states them separately. Deriving them from the owner silently
+          reordered the debt line ("It ends." moved) and re-cased the examples, changing shipped copy for
+          no drift benefit — and broke a Maestro flow that taps this text, which no web test can see.
+          L2-5's real sites were the two BYTE-IDENTICAL ones (the chooser and `ExpenseSheet`); they are
+          fixed. A variant is not a duplicate. */}
       <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
         {type === 'debt'
           ? 'Something with a balance you’re paying down — a card, a loan, a mortgage. It ends.'

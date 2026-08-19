@@ -404,7 +404,7 @@ export function PaydayGuardianCard({
           accessibilityHint={
             attestation?.attested
               ? 'Undoes the confirmation and restores the full safety net'
-              : 'Tells your Guardian your expenses are all entered, so it holds less back'
+              : 'Tells me your expenses are all entered, so I hold less back'
           }
           style={styles.row}>
           <Text style={[textStyles.caption, { color: c.accent.primary }]}>{attestLabel}</Text>

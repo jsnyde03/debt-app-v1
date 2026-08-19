@@ -11,6 +11,7 @@ import { exitDemo } from '@/store/demoExit';
 import { demoSession } from '@/store/demoSession';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { PRIVACY_CLAIM } from '@core/copy/vocabulary';
 
 /**
  * 3.5.4.7 — the demo's own chrome: where it says what it is, and how a viewer gets out of it.
@@ -105,12 +106,12 @@ export function DemoDock() {
               host logs IPs). ⚠️ Outside the `accessible` group above, which has an explicit label and
               would otherwise swallow it. */}
           <Text testID="embed-privacy-line" style={[textStyles.caption, styles.privacy, { color: c.text.tertiary }]}>
-            Your money stays on your device.
+            {PRIVACY_CLAIM.short}
           </Text>
         </>
       ) : (
         <>
-          <Button label="Start my real plan" onPress={() => exitDemo('/onboarding')} />
+          <Button label="Start your real plan" onPress={() => exitDemo('/onboarding')} />
           <Pressable
             onPress={() => exitDemo('/paywall')}
             accessibilityRole="button"

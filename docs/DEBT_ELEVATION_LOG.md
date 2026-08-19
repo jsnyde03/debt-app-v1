@@ -165,6 +165,227 @@ it from a blind one, and only the plant did.
 
 ---
 
+## ⭐ T1–T8 — the PHASE-level after-scan (2026-08-19)
+
+Run across the whole phase rather than per item, per the hard rule. What only shows up from here:
+
+### 1. ⛔ The audit's site lists were wrong in EVERY item, always in the same direction
+
+| item | the finding said | measured |
+|---|---|---|
+| T4 | 11 findings | **5 needed material correction; 3 would have shipped a worse app** |
+| T5 | L1-12: 9 sites | **2** · L3-7: one file → **two** · half of L3-7 refuted |
+| T6 | L4-2: 6 formatters | **12** (three separate enumerations each undercounted) |
+| T7 | L1-9's site list | **+1 missed** · the sweep found **34** more sites |
+| T8 | L2-5: 2 files · L2-3: 3 ways | **3 files · 4 ways** |
+
+⚡ **Five consecutive items, one direction: undercount.** The generalisation is not "the audit was sloppy"
+— its *confidence* was reliable throughout. It is that **a finding's site list is where to start looking,
+never the class**. Every item that enumerated the class found more than the item was handed. **Budget the
+enumeration, not the list.**
+
+### 2. ⭐ [D31] stopped being a principle and became the phase's most productive instrument
+
+Gates written in this phase caught what human enumeration had already missed, repeatedly: `lint:copy` red
+on **T4.4 creating** a three-file duplicate · `check-maestro-selectors` caught copy **no web test can
+see** · `lint:money` found **4 hand-rolled formatters on its first run**, one a real VoiceOver defect ·
+`lint:closure` found **6 of 55 high+ untraceable, every one already built**. **Three new gates
+(`lint:glossary`, `lint:money`, `lint:closure`) and one extended (`lint:local-dates`), e2e 184 → 195.**
+
+### 3. Refutation was worth as much as repair — SIX times
+
+L1-16 (unreachable — the most expensive no-op avoided) · L2-6 (its fix would make five dead strings
+load-bearing) · half of L3-7 (would have reported **every autopay failed**) · L1-13's suggested wording
+(would have undone T4/L1-14) · L4-8 (would have undone the App Preview cents sweep) · T4.1b's
+"moves Guardian states" (**0 flips in 1,820**). ⚡ **Building every finding as written would have made this
+app worse in six places.**
+
+### 4. ⛔ My own instruments failed at a steady, measurable rate
+
+T3: **7 of 7** first-cut instruments wrong in a way that PASSED · T6.3: a plant **passed** because the
+fixture had no cents · T8: two scripted edits wrong, one deleting **489 lines** · T8.4: a baseline set
+**12 too high**, leaving a +1 detector unable to detect +1 · T7: a grep that missed `&apos;` twice.
+**What consistently caught them: `tsc`, and mutation-planting.** What consistently caused them:
+hand-rolled mechanical edits and first-draft probes. **The Edit tool fails loudly on ambiguity; a script
+guesses.**
+
+### 5. A closure that is not recorded against its id is invisible
+
+**6 of 55** at the exit — all already built, all lost when a decomposed section collapsed into a summary
+row. This is why the check is now `lint:closure` rather than a habit.
+
+### ⚠️ What this phase did NOT do — carried forward honestly
+
+- **The device pass is still owed** (52 rows + [T3.2]'s storage-fault row). Two T3 surfaces ship on unit
+  assertions with **no rendered proof**, and nothing here changed that.
+- **44 hand-written local parses remain** — baselined, not burned down. → T10 / Phase 6.
+- **T9–T11's minor/polish set is untouched by design** ([D37] scoped this phase to high+), and several
+  became cheaper or moot as T4–T8 collapsed their owners. **Re-measure before budgeting, again.**
+- **`formatDisplayAmount` is dead code** (L4-11, confirmed zero consumers) → T10.
+
+## T8 — drift / one-owner (2026-08-19)
+
+### T8.1 — the re-measure, and **3 of the 8 majors were already closed**
+
+The ledger's "23 L2 items" is stale three times over, so nothing was budgeted from it. Measured against
+current code, the [D37] obligation is the **8 majors** (L2-1/2/3/4/5/6/7/9) plus **L0-3**; the other 15 are
+minor/polish and stay sequenced to T9–T11.
+
+**Closed by T4 without being recorded against their ids** — which is the [D37] hazard in its own right:
+- **L2-2** → `GUARDIAN_STATE_LABEL` (T4.5), aliased by `CashRunwayChart`, pinned by `glossary.test.ts`.
+- **L2-6** → **REFUTED at T4.2.** Its suggested fix — export the engine's allocation labels and have the
+  card import them — is the exact move T4.2's header forbids: *"it would make five dead strings
+  load-bearing while fixing nothing."* `SAFETY_NET_LABEL` owns the word the user actually reads.
+- **L2-7** → T4.2. The disjointness rule is stated once in `@core/copy/vocabulary` and the four files that
+  used to re-explain it now point at it — which is verbatim what L2-7 asked for.
+
+⚡ **L2-9 and L0-3 are the same defect seen by two lenses** — `EXAMPLE_MONEY` exists and
+`TutorialOverlay:427` bypassed it in both branches of a ternary. One import closes both.
+
+### T8.2–8.3 — five owners, and two of the lists had already diverged
+
+- **L2-1** — `CADENCE_SUFFIX` (money.tsx) vs `cadenceLabel` (guardianSelectors) **had already diverged on
+  screen**: `/2 wks` vs `/2wks`, `/check` vs `/paycheck`. Both internally correct; nothing could see they
+  disagreed. Now `@core/types/recurrence` owns it, beside the type it keys on, so a new `Recurrence`
+  member cannot be added without the compiler asking what it is called on screen. The winning spellings
+  were **chosen** (`/paycheck` because that is the app's word everywhere else).
+- **L2-3** — the privacy promise was written **four** ways, not three (the paywall was the fourth), and
+  three of them independently re-typed the heading. `PRIVACY_CLAIM` now owns headline/body/noSelling, and
+  ⚠️ `short` stays deliberately weaker because the embed's own comment records [D32]'s refusal of
+  "100% private" — deriving it from `body` would re-introduce the absolute [D32] rejected.
+- **L2-4** — `PROVIDERS` (picker + PERSISTED value) vs `ISSUERS` (OCR dictionary) shared six names.
+  `@core/debt/bnplProviders` owns them; the scanner composes. ⚠️ "Not specified"/"Other" stay local —
+  feeding them to the scanner would have it match the literal word "Other" on a statement.
+- **L2-5** — `OBLIGATION_CLAUSE` owns the distinguishing sentence; the chooser and `ExpenseSheet` (the two
+  **byte-identical** sites the finding named) now read it.
+  ⛔ **A third site was wired and then REVERTED, and the reversal is the more useful record.**
+  `FirstDebtOrBillStep` states the same idea but as a different SENTENCE — clause and examples interleaved
+  (*"…doesn't end — rent, phone, a subscription"*) where the chooser states them separately. Deriving it
+  from the owner silently **reordered the debt line** ("It ends." moved) and re-cased the examples: a
+  shipped-copy change made as a side effect of a drift fix, which is not what T8 is for.
+  ⚡ **`lint:selectors` caught it** — a Maestro flow taps that exact text, and **no web test can see it**.
+  **A variant is not a duplicate**, and the gate that knows the difference is the one watching the native
+  lane.
+- **L2-9 / L0-3** — `TutorialOverlay` imports the constant that already existed.
+
+### T8.4 — measured, then **baselined rather than swept**
+
+The ledger said "~65 sites across 39 files"; the real figure is **56 raw hits, 44 of them code** (the rest
+are comments). ⛔ **This is NOT a defect** — `new Date(`${iso}T00:00:00`)` is the CORRECT local parse, and
+`lint:local-dates` already bans the dangerous direction (the UTC round-trip). The only problem is that it
+is hand-written where `parseLocalDate` owns it.
+
+**So the gate was extended with a baseline at the measured 44 rather than 44 files being rewritten.**
+Rewriting correct call sites carries real regression risk for no user-visible gain; the actual risk is a
+45th. ⚠️ **The first baseline was wrong at 56** — my grep had counted comments the gate strips, leaving
+twelve sites of slack in a guard whose whole job is to detect +1. Set to the measured count and
+plant-verified: adding a 45th reds it.
+
+### T8.5 — `money(n): number` renamed to `safeAmount`
+
+A sanitiser in core sharing the exact name of the twelve **formatters** T6 had just deleted. `lint:money`
+correctly ignores it (it builds no string) — the name was the only thing wrong with it, and it is how the
+next reader deletes it as a thirteenth.
+
+### ⛔ Two scripted edits went wrong, and one destroyed 489 lines
+
+Recorded because the pattern is the point, not the incidents:
+1. A removal script looked for a line equal to `'}'` to find a function's end. **The files are CRLF**, so
+   every line is `'}\r'`, the loop ran to the end of the file, and it deleted **489 lines** of
+   `guardianSelectors.ts`. Its guard passed because it only checked the block's *start*. Restored from the
+   T6 commit; nothing was lost.
+2. A helper called `String.replace(anchor, …)` with `anchor = null`, which coerces to the literal string
+   `"null"` — so an import was spliced into the middle of `PlanView | null` in three files.
+
+⚡ **Both were caught by `tsc`, and both would have been avoided by using the Edit tool**, which fails
+loudly on an ambiguous match instead of guessing. The rest of T8 was done that way.
+
+## T7 — voice & persona (2026-08-19)
+
+### T7.1 — the before-scan, and ⛔ **L1-16 is MOOT**
+
+**L1-16 is refuted on reachability, and that is its closure under [D37].** Both files it rewrites —
+`buildSmartInsights` and `projectForecast` — have **exactly one non-test consumer each**, and it is the same
+one: `components/SnowballSection.tsx`, the legacy Next tree that 5.5.1 deletes. `analysisSelectors.ts:138`
+records Smart Insights as *"intentionally NOT surfaced (2.2.5 scrapped, Jason 2026-07-22)"*. L3-5 had
+flagged this and marked it unconfirmed; it is now confirmed. **Rewriting ~20 strings into second person for
+a surface the v1.7 app never renders would have been the most expensive no-op in the audit.**
+
+The other four verified real: **L1-8** two pairs · **L1-9** all six sites **+ one the finding missed**
+(`tutorialPath.ts:169`, the premium finale's *"your Guardian does exactly this"*) · **L1-10** all eight,
+and its `ShareCard` exception is genuine · **L1-11** all four.
+
+⛔ **My own grep nearly refuted a site that was real.** `PayoffInvitationCard`'s *"we'll make it official"*
+is written `we&apos;ll` in JSX, so a search for `we'll` returned nothing and a repo-wide sweep for
+`We'll|we'll` missed it too. Same for `CashRunwayChart`'s `Guardian&apos;s setting aside`. **Search the
+distinctive WORD, never the punctuation** — now a rule in CLAUDE.md.
+
+### T7's sweep found 34 sites, and the suite was pinning nine of them
+
+The retired-string sweep (repo root, ripgrep, no list) turned up **34 non-doc sites** for eleven retired
+strings — nine of them assertions in the live suite and **three in Maestro flows, which no web test can
+see**: `01-launch-smoke` and `07-money-add-and-rescue` both `tapOn: "See My Plan  →"`. `lint:selectors`
+exists precisely for that class and passes now. Also caught: **`scripts/duplicate-copy-baseline.json`
+recorded the retired literal**, so `lint:copy` would have drifted against its own baseline.
+
+⚠️ **The legacy tree was fixed too**, matching the call T5 made for L3-7: it dies at 5.5.1 but ships behind
+the public embed until then, and a persona split across the two trees is exactly what this item is about.
+
+### T7's after-scan — the CLASSES, not the finding's site list
+
+Enumerated rather than assumed, per T6's lesson:
+- **L1-8's class is closed** — every remaining `accessibilityLabel`/`Hint` naming the Guardian sits beside a
+  visible twin that carries **no persona at all** (`GuardianProofStrip`'s chips read "Held your line · 3
+  paychecks"), so there is no I-vs-it split left to fix.
+- **L1-10's class is closed** — zero user-voiced labels remain in the RN tree.
+- ⭐ **The surviving third-person Guardian copy is the exception L1-9 itself carved out** — "How your
+  Guardian works" (More), "See how your Guardian works" (the invite), the forecast intro. Those NAME the
+  feature; they do not voice it. Left deliberately, recorded so a later sweep does not "fix" them.
+
+### ⛔ T6's PER-SUB-ITEM after-scan — run late, and it found two real things
+
+🎯 asked whether the sub-item scans had been run. **They had not, as discrete passes** — the whole-item
+after-scan was done (backlog filed, detail logged, atomic with the plan edit) and the per-sub-item ones
+were folded in ad hoc. Run properly afterwards, they surfaced two things the whole-item pass had missed:
+
+1. ⛔ **`affordability.test.ts` modelled `PlanHero` with the figure `PlanHero` had stopped using.** Its
+   comment says *"What PlanHero renders as Flexible"* and it computed that from `everydayReserve` — the
+   REQUEST — while T6.3 had moved the component to `everydayHeld`. **It kept passing** because the fixture's
+   request fits its paycheck, so the two are equal there. A stale model with a comment asserting it is
+   current: one of the two tells CLAUDE.md names for a misdescribed item, found in our own suite.
+2. ⛔ **T6.5, T6.6 and T6.7 changed five rendered money figures with NOTHING asserting any of them.** The
+   full gate went green on that commit and **no test would have failed** — "a green suite often means
+   untested", on work from the same hour. Now covered by a reconciliation test that asserts the smoothed
+   `/paycheck` figures are whole AND that the raw typed bill keeps its cents (both directions, because a
+   one-sided version would pass an implementation that made everything whole).
+
+⚠️ **The new test's first draft was also wrong** — it banned cents anywhere in the sheet, which reds on
+`$121.37`, the real bill amount that is *deliberately* still in cents. Narrowed to the `/paycheck` suffix,
+then plant-verified: restoring `formatCurrency` on the subtotals reds it with
+`$64.62/paycheck $56.02/paycheck`, which is L4-3's symptom exactly.
+
+⚡ **The lesson is about the SCAN, not the code:** the whole-item after-scan looks at what the item
+produced; only walking each sub-step asks *"what did building THIS one reveal?"* — and both findings above
+are answers to that question, not to the first one.
+
+### T6 — the closure ledger, by finding id
+
+⚠️ Recorded explicitly because collapsing T6's decomposed section left two ids traceable to nothing, and
+**[D37] treats an untraceable closure as an open finding.**
+
+| id | closed by |
+|---|---|
+| **L4-1** | T6.3 — the sheet echo → `formatWhole`, **and** `PlanHero` → `everydayHeld` (two defects, one id) |
+| **L4-2** | T6.4 — twelve formatters onto `formatWhole`, + `lint:money` |
+| **L4-3** | T6.5 — category subtotals + per-bill shares → `formatWhole` |
+| **L4-4** | T6.5 — the same figure `money.tsx` renders whole, one tap apart; closed by the same edit as L4-3 |
+| **L4-5** | T6.5 — the one-time line |
+| **L4-6** | T6.6 — **labelled, not re-formatted**: the header is a *different quantity* from the rows, so it now says `from this paycheck` when (and only when) the reserve has pre-funded something |
+| **L4-7** | T6.7 — the Timeline chip is a cycle summary → `formatWhole` |
+| **L4-8** | T6.7 — **declined on the record**; its fix re-adds the noise the App Preview sweep removed |
+| **L4-9** | T6.5 — the Everyday summary card |
+| **L4-10** | T6.7 — **closed as recorded**, per its own "no fix needed" verdict |
+
 ### T6.4 — the count was 6, then 7, then 9, then 12 — and only the GATE found the last four
 
 Every enumeration of this class undercounted, in order:

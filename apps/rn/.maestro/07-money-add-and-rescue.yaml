@@ -141,7 +141,7 @@ appId: com.jasonsnyder.debtplanner
 # ⚡ THE WRITE-VERIFICATION, and it is the general guard against the whole defect class above: assert the
 # text landed IN THE FIELD IT WAS AIMED AT. A tap that misses is silent; a field holding the wrong string
 # is not. This would have failed run 31516616133 HERE, at the cause, instead of three steps later at
-# "See My Plan  →" — which was never a selector bug at all.
+# "See your plan  →" — which was never a selector bug at all.
 #
 # ⛔ MAESTRO MATCHES LITERAL EQUALITY OR A FULL REGEX — NEVER "CONTAINS". Corrected 2026-08-12; this
 # comment previously asserted the opposite as proven, and it was wrong.
@@ -162,7 +162,7 @@ appId: com.jasonsnyder.debtplanner
 - tapOn: "Add & Continue"
 # ⚠️ NOT a defect: the label is byte-identical to `CompletionStep.tsx:39` (two spaces + U+2192). It was
 # ledgered as a "known fix" from the failing run; the flow simply never reached this screen.
-- tapOn: "See My Plan  →"
+- tapOn: "See your plan  →"
 
 # ══ §14.1 · one Add, from all three sections ════════════════════════════════════════════════════
 # PASS: every section opens the SAME chooser. FAIL: any section opens an editor directly — which would

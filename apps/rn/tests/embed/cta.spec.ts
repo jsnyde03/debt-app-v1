@@ -42,7 +42,7 @@ test.describe("the embed's only way out is the App Store", () => {
 
     // Both are correct in the app and wrong in an embed. Asserting their ABSENCE is what stops the swap
     // being reverted by a well-meaning "restore the exits" change without anything going red.
-    await expect(page.getByText('Start my real plan', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Start your real plan', { exact: true })).toHaveCount(0);
     await expect(page.getByText('Unlock Premium', { exact: true })).toHaveCount(0);
   });
 

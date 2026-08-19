@@ -24,6 +24,7 @@ import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { confirmDelete } from '@/utils/confirm';
 import { formatWhole } from '@/utils/format';
+import { BNPL_PROVIDERS } from '@core/debt/bnplProviders';
 
 function shortDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -48,14 +49,14 @@ const BNPL_CADENCE: { value: Recurrence; label: string }[] = [
 ];
 
 // BNPL plans a user is likely to hold; '' = not specified (the row falls back to a generic "BNPL").
+// ⛔ [T8 · L2-4] The providers are COMPOSED from `@core/debt/bnplProviders`, which the OCR dictionary in
+// `parseStatementText` also reads. They were two hand-kept lists: adding a provider here and not there
+// gave the user a debt they could file by hand and the scanner would never recognise.
+// ⚠️ "Not specified" and "Other" stay LOCAL — they are picker affordances, not providers, and feeding
+// them to the scanner would have it match the literal word "Other" on a statement.
 const PROVIDERS: { value: string; label: string }[] = [
   { value: '', label: 'Not specified' },
-  { value: 'Klarna', label: 'Klarna' },
-  { value: 'Affirm', label: 'Affirm' },
-  { value: 'Afterpay', label: 'Afterpay' },
-  { value: 'PayPal', label: 'PayPal Pay in 4' },
-  { value: 'Zip', label: 'Zip' },
-  { value: 'Sezzle', label: 'Sezzle' },
+  ...BNPL_PROVIDERS,
   { value: 'Other', label: 'Other' },
 ];
 

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { seedLocalStorage } from "./helpers/seed";
 
-// The payday checkpoint's REQUIRED section: the one-tap "I followed the plan"
+// The payday checkpoint's REQUIRED section: the one-tap "You followed the plan"
 // bulk path, and the itemized [Adjust] path (mark a manual bill paid + deny a
 // failed autopay).
 
@@ -40,11 +40,11 @@ async function readState(page: Page) {
     }));
 }
 
-test("payday checkpoint: 'I followed the plan' marks ALL required paid (bulk happy path)", async ({ page }) => {
+test("payday checkpoint: 'You followed the plan' marks ALL required paid (bulk happy path)", async ({ page }) => {
     await seedLocalStorage(page, paydayState());
     await page.locator(".payday-sheet").waitFor({ timeout: 10000 });
 
-    await page.getByRole("button", { name: "I followed the plan" }).click();
+    await page.getByRole("button", { name: "You followed the plan" }).click();
     await expect(page.locator(".payday-sheet")).toBeHidden();
 
     const state = await readState(page);
@@ -70,7 +70,7 @@ test("payday checkpoint: [Adjust] marks a manual bill paid AND denies a failed a
     await page.getByRole("button", { name: /Phone/ }).click();
 
     await page.getByRole("button", { name: "Done", exact: true }).click();
-    await page.getByRole("button", { name: "Confirm what I paid" }).click();
+    await page.getByRole("button", { name: "Confirm what you paid" }).click();
     await expect(page.locator(".payday-sheet")).toBeHidden();
 
     const state = await readState(page);
@@ -102,7 +102,7 @@ test("payday checkpoint: 'Mark all paid' toggles to 'Undo' and restores the prio
     // Confirm → the manual bill (Internet) is still UNPAID — the bulk-mark was
     // truly undone, not silently confirmed.
     await page.getByRole("button", { name: "Done", exact: true }).click();
-    await page.getByRole("button", { name: /Confirm what I paid|I followed the plan/ }).click();
+    await page.getByRole("button", { name: /Confirm what you paid|You followed the plan/ }).click();
     await expect(page.locator(".payday-sheet")).toBeHidden();
 
     const state = await readState(page);
@@ -119,7 +119,7 @@ test("payday checkpoint: opening Adjust and backing out UNCHANGED keeps the happ
     await page.getByRole("button", { name: /Back/ }).click();
 
     // The primary stays the happy path — merely visiting Adjust didn't commit us.
-    await page.getByRole("button", { name: "I followed the plan" }).click();
+    await page.getByRole("button", { name: "You followed the plan" }).click();
     await expect(page.locator(".payday-sheet")).toBeHidden();
 
     const state = await readState(page);
@@ -137,7 +137,7 @@ test("payday checkpoint: Adjust → 'Mark all paid' marks every required item pa
     await page.locator(".payday-reconcile-list").waitFor();
     await page.getByRole("button", { name: "Mark all paid" }).click();
     await page.getByRole("button", { name: "Done", exact: true }).click();
-    await page.getByRole("button", { name: "Confirm what I paid" }).click();
+    await page.getByRole("button", { name: "Confirm what you paid" }).click();
     await expect(page.locator(".payday-sheet")).toBeHidden();
 
     const state = await readState(page);
@@ -151,7 +151,7 @@ test("payday checkpoint: skipping a recommended extra excludes it from capture",
 
     // Tap the extra's state pill (Paid → Skipped).
     await page.locator(".payday-extra-state").first().click();
-    await page.getByRole("button", { name: "Confirm what I paid" }).click();
+    await page.getByRole("button", { name: "Confirm what you paid" }).click();
     await expect(page.locator(".payday-sheet")).toBeHidden();
 
     // The skipped extra was NOT recorded as a completed recommended action.

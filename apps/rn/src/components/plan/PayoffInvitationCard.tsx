@@ -37,7 +37,7 @@ export function PayoffInvitationCard({
         <Text style={[textStyles.title2, styles.title, { color: c.text.primary }]}>Looks like you crushed {debtName}!</Text>
       </View>
       <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
-        Your estimate reached $0. Confirm it&apos;s paid off and we&apos;ll make it official.
+        Your estimate reached $0. Confirm it&apos;s paid off and it&apos;s official.
       </Text>
       <Button label="Confirm — it's paid off" onPress={onConfirm} />
       <Text onPress={onNotYet} accessibilityRole="button" style={[textStyles.subhead, styles.notYet, { color: c.text.tertiary }]}>

@@ -204,3 +204,42 @@ test('an over-sized everyday reserve does not make the hero exceed the paycheck 
   const shown = (await legend.innerText()).match(/\$([\d,]+)/)?.[1]?.replace(/,/g, '');
   expect(Number(shown)).toBeLessThanOrEqual(300);
 });
+
+/**
+ * [T6 after-scan · L4-3/L4-4] The "shows its work" sheet has to reconcile with the surface it opened from.
+ *
+ * ⛔ **This exists because T6.5/T6.6/T6.7 changed five rendered money figures and NOTHING asserted any of
+ * them.** The full gate went green on that change without a single test that would have failed — the exact
+ * "a green suite often means untested" trap, caught by T6's own per-sub-item after-scan rather than by the
+ * suite. The claim under test is L4-4's: `money.tsx`'s section header and the sheet's category subtotal
+ * are the byte-identical expression, one tap apart, and used to land on opposite sides of the whole/cents
+ * boundary ($412/paycheck vs $411.54/paycheck).
+ */
+test('the bill breakdown reconciles with the tab it opened from [L4-3/L4-4]', async ({ page }) => {
+  // Cents in the smoothed figures are the point — a category subtotal of a $1,680/yr bill is $64.52, and
+  // whole-vs-cents is invisible on a fixture that happens to divide evenly.
+  await seedStore(page, plan({
+    requiredExpenses: [
+      { id: 'rent', name: 'Rent', amount: 1680, dueDate: day(3), recurrence: 'annually', category: 'housing' },
+      { id: 'elec', name: 'Electric', amount: 121.37, dueDate: day(10), recurrence: 'monthly', category: 'utilities' },
+    ],
+  }));
+  await page.goto('/money');
+  await page.getByText('Expenses', { exact: true }).click();
+
+  await page.getByText(/recommended each paycheck/).click();
+  await expect(page.getByText(/recommended per paycheck/).first()).toBeVisible();
+
+  const body = (await page.locator('body').innerText()) ?? '';
+
+  // ⛔ The SMOOTHED figures — every one suffixed "/paycheck" — are the addends of the whole-dollar
+  // headline, so they must be whole too. That is L4-3/L4-4.
+  const perPaycheck = body.match(/\$[\d,]+(\.\d+)?\/paycheck/g) ?? [];
+  expect(perPaycheck.length, 'the sheet renders per-paycheck figures at all').toBeGreaterThan(0);
+  const smoothedWithCents = perPaycheck.filter((f) => /\.\d\d\//.test(f));
+  expect(smoothedWithCents, `smoothed shares must be whole: ${smoothedWithCents.join(' ')}`).toEqual([]);
+
+  // …and the OTHER direction, which is the half a one-sided test would lose: the raw bill the user typed
+  // keeps its cents, because it is a different quantity from its smoothed share. $121.37 is a real bill.
+  expect(body, 'the real bill amount keeps its cents').toContain('$121.37');
+});

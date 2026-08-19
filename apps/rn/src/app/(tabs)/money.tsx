@@ -6,7 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { bnplPaymentsRemaining, bnplPaymentsTotal, isInstallmentNative } from '@core/debt/bnplInstallment';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import { parseStatementText } from '@core/scan/parseStatementText';
-import type { Recurrence } from '@core/types/recurrence';
+// [T8 · L2-1] `CADENCE_SUFFIX` moved beside the type it keys on — it existed here AND in
+// `guardianSelectors`, and the two had already diverged (`/2 wks` vs `/2wks`, `/check` vs `/paycheck`).
+import { CADENCE_SUFFIX } from '@core/types/recurrence';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { AddObligationSheet, type AddKind } from '@/components/entities/AddObligationSheet';
@@ -60,18 +62,6 @@ function shortDate(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
-
-// A BNPL installment recurs on its own cadence (usually biweekly), not monthly — so the row's
-// per-payment suffix stays truthful (a "/mo" on a biweekly plan would misstate the outflow).
-const CADENCE_SUFFIX: Record<Recurrence, string> = {
-  'monthly': '/mo',
-  'weekly': '/wk',
-  'biweekly': '/2 wks',
-  'per-paycheck': '/check',
-  'quarterly': '/qtr',
-  'annually': '/yr',
-  'one-time': '',
-};
 
 /**
  * 3.7.A10.4 — what belongs in each section, in the same words the add chooser uses.

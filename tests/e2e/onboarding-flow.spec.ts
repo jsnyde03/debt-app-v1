@@ -43,7 +43,7 @@ test("onboarding: complete all steps lands in main app", async ({ page }) => {
     await expect(page.getByText("You're all set")).toBeVisible();
 
     // Complete → main app
-    await page.getByRole("button", { name: /See My Plan/i }).click();
+    await page.getByRole("button", { name: /See your plan/i }).click();
     await waitForMainApp(page);
 
     // hasCompletedOnboarding flag must be persisted
@@ -85,7 +85,7 @@ test("onboarding: skip paycheck step lands in main app", async ({ page }) => {
     await page.getByRole("button", { name: "Skip for now" }).click();
     await expect(page.getByText("You're all set")).toBeVisible();
 
-    await page.getByRole("button", { name: /See My Plan/i }).click();
+    await page.getByRole("button", { name: /See your plan/i }).click();
     await waitForMainApp(page);
 
     // Flag must be set even on a full skip
@@ -111,7 +111,7 @@ test("onboarding: skip first-debt step lands in main app", async ({ page }) => {
     await page.getByRole("button", { name: /Skip/i }).click();
     await expect(page.getByText("You're all set")).toBeVisible();
 
-    await page.getByRole("button", { name: /See My Plan/i }).click();
+    await page.getByRole("button", { name: /See your plan/i }).click();
     await waitForMainApp(page);
 
     // No debts should have been saved

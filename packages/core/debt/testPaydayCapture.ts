@@ -21,7 +21,7 @@ const PLAN: RecommendedActionInput[] = [
 ];
 
 function runPaydayCaptureTests() {
-    // ─── one-tap "I followed the plan": actual === recommended, all paycheck ───
+    // ─── one-tap "You followed the plan": actual === recommended, all paycheck ───
     {
         const items = buildPaydayCaptureItems(PLAN);
         assertEqual(items.length, 3, "one-tap: captures every active action");

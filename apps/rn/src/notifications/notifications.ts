@@ -30,9 +30,9 @@ export const NOTIF_CATEGORY_PAYDAY = 'payday-actions';
 export const NOTIF_CATEGORY_RISK = 'risk-actions';
 export const NOTIF_CATEGORY_BILLS = 'bills-actions';
 const CATEGORY_ACTIONS: Record<string, { identifier: string; buttonTitle: string }> = {
-  [NOTIF_CATEGORY_PAYDAY]: { identifier: 'run-plan', buttonTitle: 'Run my plan' },
-  [NOTIF_CATEGORY_RISK]: { identifier: 'review-plan', buttonTitle: 'Review my plan' },
-  [NOTIF_CATEGORY_BILLS]: { identifier: 'review-bills', buttonTitle: 'Check my plan' },
+  [NOTIF_CATEGORY_PAYDAY]: { identifier: 'run-plan', buttonTitle: 'Run your plan' },
+  [NOTIF_CATEGORY_RISK]: { identifier: 'review-plan', buttonTitle: 'Review your plan' },
+  [NOTIF_CATEGORY_BILLS]: { identifier: 'review-bills', buttonTitle: 'Check your plan' },
 };
 
 /** Register the interactive-notification categories once at app init. Idempotent; native-only. */

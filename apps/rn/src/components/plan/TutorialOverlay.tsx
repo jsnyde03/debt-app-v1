@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { EXAMPLE_MONEY } from '@/components/plan/ExampleCanvasMarker';
 import { FloorImpactBar } from '@/components/plan/FloorImpactBar';
 import { qaEnabled } from '@/config/qa';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -424,7 +425,7 @@ export function TutorialOverlay({
                     session, keyed on `isSandboxStore` rather than on any session, and it withholds itself
                     while this line is on screen so the two never double. */}
                 <Text style={[textStyles.caption, { color: c.text.tertiary }]} testID="tutorial-progress">
-                  {hideProgress ? 'Example money' : `Step ${position} of ${total} · Example money`}
+                  {hideProgress ? EXAMPLE_MONEY : `Step ${position} of ${total} · ${EXAMPLE_MONEY}`}
                 </Text>
                 {hideProgress ? null : (
                   <View style={[styles.rail, { backgroundColor: c.border.subtle }]}>

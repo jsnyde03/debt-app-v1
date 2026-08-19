@@ -464,8 +464,8 @@ export function PaydayCaptureSheet({
                 <div className="payday-actions">
                     <button type="button" className="payday-primary-button" onClick={handleCapture}>
                         {hasAdjustedRequired || extrasAdjusted
-                            ? "Confirm what I paid"
-                            : "I followed the plan"}
+                            ? "Confirm what you paid"
+                            : "You followed the plan"}
                     </button>
                     <button type="button" className="text-action-button payday-secondary" onClick={onDismiss}>
                         Skip this payday

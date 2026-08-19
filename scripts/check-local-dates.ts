@@ -60,7 +60,24 @@ function stripComments(src: string): string {
     .replace(/(^|[^:])\/\/[^\n]*/g, (m, p1: string) => p1 + ' '.repeat(m.length - p1.length));
 }
 
+/**
+ * ⚠️ **T8 / [T3.1 after-scan] — the hand-written LOCAL parse, `new Date(`${iso}T00:00:00`)`.**
+ *
+ * ⛔ **This is NOT the defect above. It is CORRECT** — it is precisely what you must write instead of the
+ * UTC round-trip. The problem is only that it is written by hand at **44 code sites** while
+ * `parseLocalDate` exists to own it: one rule, many owners, so a future change to how this app parses a
+ * calendar date would have to find all 44.
+ *
+ * ⚠️ **Baselined rather than swept, deliberately.** Rewriting 44 correct call sites carries real
+ * regression risk for zero user-visible gain, and the actual risk is GROWTH — a 45th. So the existing
+ * count is frozen here and the gate fails only when it RISES. Burn-down is T10/Phase 6 work; the class
+ * cannot get worse in the meantime. (Same shape as `duplicate-copy-baseline.json`.)
+ */
+const HAND_PARSE = /new Date\(\s*[`'"][^`'"]*\$\{[^}]*\}T00:00:00[`'"]\s*\)|new Date\(\s*[`'"][\d-]+T00:00:00[`'"]\s*\)/;
+const HAND_PARSE_BASELINE = 44;
+
 const hits: string[] = [];
+let handParseCount = 0;
 for (const root of ROOTS) {
   for (const file of walk(root)) {
     const rel = relative(REPO_ROOT, file);
@@ -71,6 +88,7 @@ for (const root of ROOTS) {
       .split('\n')
       .forEach((line, i) => {
         if (BANNED.test(line)) hits.push(`${rel}:${i + 1}: ${lines[i]?.trim() ?? ''}`);
+        if (HAND_PARSE.test(line)) handParseCount++;
       });
   }
 }
@@ -81,4 +99,16 @@ if (hits.length > 0) {
   console.error('\nUse toLocalISODate / parseLocalDate / todayLocalISODate from @core/utils/localDate.\n');
   process.exit(1);
 }
-console.log(`✅ local dates: no UTC round-trips outside ${EXEMPT.join(', ')}.`);
+if (handParseCount > HAND_PARSE_BASELINE) {
+  console.error(
+    `\n❌ local dates: ${handParseCount} hand-written \`T00:00:00\` parses, up from the baseline ${HAND_PARSE_BASELINE}.\n`,
+  );
+  console.error('  Use `parseLocalDate` from @core/utils/localDate — it owns this rule.');
+  console.error('  (The existing sites are correct but hand-rolled; the baseline stops the class GROWING');
+  console.error('   while T10/Phase 6 burns it down. Do not raise the baseline to make this pass.)\n');
+  process.exit(1);
+}
+console.log(
+  `✅ local dates: no UTC round-trips outside ${EXEMPT.join(', ')}` +
+    ` · ${handParseCount}/${HAND_PARSE_BASELINE} hand-written local parses (not rising).`,
+);

@@ -5,7 +5,8 @@
  * string typed into two or more surfaces, agreeing today because nobody has renamed it yet. Two of those
  * tables had **already diverged in production**. Agreeing copies are still copies.
  *
- * ⚠️ **This module owns NOUNS THE USER READS — not the engine's allocation labels.** Measured at T4.2's
+ * ⚠️ **This module owns the user-facing NOUNS — and, since T8, the CLAIMS that must not diverge
+ * (`PRIVACY_CLAIM`). It does not own the engine's allocation labels.** Measured at T4.2's
  * before-scan: every consumer of `allocation.allocations` filters by **`category`**, never by `label`,
  * and the only labels that reach a screen are the REQUIRED ones (`expense`, `minimum_debt`,
  * `autopay_*`), which are built per-item from the user's own data. The engine's five reserve labels —
@@ -91,6 +92,31 @@ export const EVERYDAY_SPENDING_LABEL = "Everyday spending";
  * no shortfall at all. Folding them together would put one word on two different conditions. The Guardian
  * already words the shortfall separately, as *"This paycheck won't cover everything"*.
  */
+/**
+ * ⛔ **T8 / audit L2-3 — the privacy promise, which was written FOUR ways** (the finding said three; a
+ * fourth was on the paywall). `more.tsx` said *"stays on this device"*, onboarding *"stays on your
+ * device"*, the embed dock *"Your money stays on your device"*, the paywall *"never leaves your device"*
+ * — and three of them independently re-typed the heading "Private by design".
+ *
+ * ⚠️ **This is the app's strongest trust claim**, which is exactly why four spellings is the wrong number:
+ * a promise the user meets in four wordings reads as marketing rather than as a commitment, and a legal
+ * or product change to it would have to find all four.
+ *
+ * ⚠️ **`short` is deliberately weaker, and must stay that way.** It is the public-embed line, and its
+ * site comment records why: it avoids [D32]'s absolute ("100% private" overclaims — every host logs IPs).
+ * Deriving it from `body` would re-introduce the claim [D32] refused.
+ */
+export const PRIVACY_CLAIM = {
+    /** The heading, wherever the promise is titled. */
+    headline: "Private by design",
+    /** The full claim, scoped to financial data (A10) — never to "everything". */
+    body: "your financial data stays on this device",
+    /** The second half of the pledge. ⚠️ Passive on purpose: T7/L1-11 retired the corporate "we". */
+    noSelling: "you’ll never be sold more debt",
+    /** The embed's deliberately smaller claim — see the [D32] note above. */
+    short: "Your money stays on your device.",
+} as const;
+
 export const GUARDIAN_STATE_LABEL = {
     clear: "Clear",
     tight: "Tight",

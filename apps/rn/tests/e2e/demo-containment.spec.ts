@@ -227,7 +227,7 @@ test('the canvas is marked as example money, above the scroll and in the a11y tr
 test('both SCRIPTED exits are terminal — the demo is over before the destination renders', async ({ page }) => {
   await seedStore(page, NOT_ONBOARDED);
   // 3.5.10 — the two exits tested here live in the DOCK, which is scripted-only. Explore carries a single
-  // exit on the marker row ("Start my real plan"), asserted separately above: one clear way out is right
+  // exit on the marker row ("Start your real plan"), asserted separately above: one clear way out is right
   // for a run whose job is "decide whether to trust this app", and premium is sold inside the real app
   // rather than from behind a sandbox.
   await page.goto('/demo?mode=scripted');
@@ -259,15 +259,15 @@ test('both SCRIPTED exits are terminal — the demo is over before the destinati
   await expect(page.getByLabel(/Demonstration, \d+ of \d+\./)).toHaveCount(0);
 });
 
-// COVERS: §12.4.4 — the DOCK's "Start my real plan" reaches onboarding with no demo running and the real
+// COVERS: §12.4.4 — the DOCK's "Start your real plan" reaches onboarding with no demo running and the real
 // plan untouched. ⚠️ The explore run's exit is a DIFFERENT control (`demo-explore-exit`, asserted above);
 // this row is about the dock's, which nothing clicked until 4.1.10.
-test('the dock\'s "Start my real plan" lands on onboarding with the real plan untouched', async ({ page }) => {
+test('the dock\'s "Start your real plan" lands on onboarding with the real plan untouched', async ({ page }) => {
   await seedStore(page, NOT_ONBOARDED);
   await page.goto('/demo?mode=scripted');
   await expect(page.getByTestId('example-canvas-marker')).toBeVisible({ timeout: 15_000 });
 
-  await page.getByText('Start my real plan', { exact: true }).click();
+  await page.getByText('Start your real plan', { exact: true }).click();
   await expect(page).toHaveURL(/onboarding/, { timeout: 10_000 });
 
   // Terminal, per [D18] — the session ends BEFORE the destination renders.
@@ -349,7 +349,7 @@ test('the closing caption survives capture mode, where the dock does not', async
   await page.goto('/demo?capture=1');
 
   // The dock is withheld for the capture — this is the condition the caption must NOT share.
-  await expect(page.getByText('Start my real plan')).toHaveCount(0);
+  await expect(page.getByText('Start your real plan')).toHaveCount(0);
 
   // Not a permanent banner: it belongs to the closing beat, so it must be absent on the opening one.
   await expect(page.getByTestId('demo-caption')).toHaveCount(0);

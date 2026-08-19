@@ -43,12 +43,12 @@ test('the paycheck sheet can turn variable income ON, and the plan starts using 
   await page.goto('/');
 
   await page.getByText(/THIS PAYCHECK/i).first().click();
-  await expect(page.getByText('My income varies')).toBeVisible();
+  await expect(page.getByText('Income varies')).toBeVisible();
 
   // OFF by default → the floor field is withheld rather than rendered dead.
   await expect(page.getByText('The amount you can count on')).toHaveCount(0);
 
-  await page.getByLabel('My income varies').click();
+  await page.getByLabel('Income varies').click();
   await expect(page.getByText('The amount you can count on')).toBeVisible();
 
   // ⚠️ THE ASSERTION THIS ITEM EXISTS FOR: saving with the switch on but no floor must be REFUSED.
@@ -88,12 +88,12 @@ test('turning it back off clears the floor rather than leaving a stale one', asy
   // It reflects what is stored, so a returning user sees their own answer rather than a reset one.
   await expect(page.getByLabel('The amount you can count on')).toHaveValue('2200');
 
-  await page.getByLabel('My income varies').click();
+  await page.getByLabel('Income varies').click();
   await page.getByText('Save paycheck').click();
 
   await page.getByText(/THIS PAYCHECK/i).first().click();
   await expect(page.getByText('The amount you can count on')).toHaveCount(0);
-  await page.getByLabel('My income varies').click();
+  await page.getByLabel('Income varies').click();
   // Cleared, not remembered: a stale floor would keep feeding the engine a number nobody stands behind.
   await expect(page.getByLabel('The amount you can count on')).toHaveValue('');
 });

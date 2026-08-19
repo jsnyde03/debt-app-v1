@@ -13,9 +13,10 @@ import { useAppStore } from '@/store/useAppStore';
 import { textStyles } from '@/theme/typography';
 
 import { OnboardingLayout, onboardingStyles as s } from './OnboardingLayout';
+import { PRIVACY_CLAIM } from '@core/copy/vocabulary';
 
 const STATS: { icon: IconGlyph; label: string; body: string }[] = [
-  { icon: 'lock', label: 'Private by design', body: 'your financial data stays on your device.' },
+  { icon: 'lock', label: PRIVACY_CLAIM.headline, body: `${PRIVACY_CLAIM.body}.` },
   { icon: 'edit', label: 'Always editable', body: 'update amounts any time.' },
   // ⛔ "core features never require a subscription" left "core" undefined while the Guardian's ACTING
   // half is paid — read as a promise, then felt like a bait. Names what is actually free instead (L1-4).
@@ -40,7 +41,7 @@ export function CompletionStep({ onComplete }: { onComplete: () => void }) {
       total={4}
       ctas={
         <Button
-          label="See My Plan  →"
+          label="See your plan  →"
           onPress={() => {
             const displayName = normalizeDisplayName(name);
             if (displayName) appStore.getState().updatePrefs({ displayName });
@@ -58,7 +59,7 @@ export function CompletionStep({ onComplete }: { onComplete: () => void }) {
       <View style={s.list}>
         <TextField
           testID="field-onboarding-display-name"
-          label="What should we call you? (optional)"
+          label="What should the app call you? (optional)"
           value={name}
           onChangeText={setName}
           placeholder="Your name"

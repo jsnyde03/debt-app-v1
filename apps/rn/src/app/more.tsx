@@ -32,6 +32,7 @@ import { textStyles } from '@/theme/typography';
 import { PREMIUM_PURCHASABLE } from '@/premium/config';
 import { canManageSubscription, premiumKind } from '@/premium/premiumKind';
 import { MANAGE_SUBSCRIPTION_URL, PRIVACY_POLICY_URL, SUPPORT_URL, TERMS_OF_USE_URL } from '@/premium/legal';
+import { PRIVACY_CLAIM } from '@core/copy/vocabulary';
 
 const LINKS = {
   privacy: PRIVACY_POLICY_URL,
@@ -276,9 +277,9 @@ export default function MoreScreen() {
           />
           <SettingRow
             icon="savings"
-            label="I have savings elsewhere"
+            label="Savings elsewhere"
             subtitle="Skip building a starter emergency fund — put more toward debt first."
-            right={<Switch accessibilityLabel="I have savings elsewhere" value={prefs.hasSavingsElsewhere} onValueChange={(v) => appStore.getState().updatePrefs({ hasSavingsElsewhere: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
+            right={<Switch accessibilityLabel="Savings elsewhere" value={prefs.hasSavingsElsewhere} onValueChange={(v) => appStore.getState().updatePrefs({ hasSavingsElsewhere: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
           {/* 3.5.3 — premium-only: the Payday Countdown Live Activity. Free users don't have it, so the
               toggle only appears for premium (never a locked/greyed control). */}
@@ -362,9 +363,9 @@ function TrustCard() {
         <AppIcon name="verified-user" size={22} color={c.accent.primary} />
       </View>
       <View style={styles.trustText}>
-        <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>Private by design</Text>
+        <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>{PRIVACY_CLAIM.headline}</Text>
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-          Your financial data stays on this device — no account needed. And we&apos;ll never sell you more debt.
+          {`Your ${PRIVACY_CLAIM.body.replace(/^your /, '')} — no account needed. And ${PRIVACY_CLAIM.noSelling}.`}
         </Text>
       </View>
     </Card>

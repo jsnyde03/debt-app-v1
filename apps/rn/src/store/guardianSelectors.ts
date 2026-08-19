@@ -14,6 +14,7 @@ import { selectDeployedToSavings, selectDiscretionary, selectSpendable, selectEx
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
 import { selectAllocation, selectPaycheckMissed, type Allocation } from './selectors';
 import type { AllocationCategory } from '@core/engine/allocatePaycheck';
+import { cadenceSuffix } from '@core/types/recurrence';
 import { formatWhole } from '@/utils/format';
 
 export type { GuardianBrief, GuardianState };
@@ -193,18 +194,10 @@ export interface TrialConversion {
   cadence: string;
 }
 
-/** §2.5 (2.5.4) short cadence label for the trial-conversion card ("$15.99/mo"). */
-function cadenceLabel(recurrence: string): string {
-  switch (recurrence) {
-    case 'weekly': return '/wk';
-    case 'biweekly': return '/2wks';
-    case 'per-paycheck': return '/paycheck';
-    case 'quarterly': return '/qtr';
-    case 'annually': return '/yr';
-    case 'monthly': return '/mo';
-    default: return '';
-  }
-}
+// ⛔ [T8 · L2-1] `cadenceLabel` lived here AND as `CADENCE_SUFFIX` in `money.tsx`, and the two had
+// ALREADY DIVERGED on screen: '/2wks' vs '/2 wks', '/paycheck' vs '/check'. Both were internally correct
+// and nothing could see that they disagreed — which is why the L2 lens calls this class dangerous rather
+// than untidy. One owner now, beside the `Recurrence` type it keys on: `@core/types/recurrence`.
 
 /**
  * §2.5 trial conversion (2.5.4) — the first trial obligation whose intro period has ENDED (its
@@ -219,7 +212,7 @@ export function selectTrialConversion(store: DebtStore): TrialConversion | null 
     (e) => e.isTrial && e.fullAmount != null && Number.isFinite(e.fullAmount) && !!e.fullChargeDate && e.fullChargeDate <= today,
   );
   if (!conv || conv.fullAmount == null) return null;
-  return { id: conv.id, name: conv.name, fullAmount: conv.fullAmount, cadence: cadenceLabel(conv.recurrence) };
+  return { id: conv.id, name: conv.name, fullAmount: conv.fullAmount, cadence: cadenceSuffix(conv.recurrence) };
 }
 
 export interface TightTopUp {

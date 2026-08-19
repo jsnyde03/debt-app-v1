@@ -105,7 +105,7 @@ export function stepBody(step: TutorialStepDef, run: TutorialRun): string {
 export const TUTORIAL_STEPS: TutorialStepDef[] = [
   // Opens on the card itself rather than on a claim about it — the first thing to establish is that
   // this number is decided BEFORE payoff, which is the one genuinely unfamiliar idea in the app.
-  { id: 'intro', title: 'Money set aside first', body: 'Every payday, your Guardian keeps a cushion back before anything extra goes to your debt.', target: 'guardian-card', state: 'clear' },
+  { id: 'intro', title: 'Money set aside first', body: 'Every payday I keep a cushion back for you, before anything extra goes to your debt.', target: 'guardian-card', state: 'clear' },
   // [A3] NOT "the whole paycheck" — the bar's domain is `cushion + deployedToDebt`, i.e. what's left
   // AFTER bills and minimums. The old line was ~$740 of a $2,000 paycheck with the real figure in the
   // hero directly above it: a user either builds a wrong model or notices it doesn't add up and stops
@@ -136,7 +136,7 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
     // all, so the Guardian puts the net back. The honest fix is to teach it rather than hide it — this is
     // the app being protective, which is the whole point of the beat. So the copy now names the full
     // shape: you say the bills are in, it holds less, a surprise proves otherwise, it restores the net.
-    body: 'While your Guardian is learning your expenses it holds a bit more back. Tell it your expenses are all in and it holds less — and if a surprise proves otherwise, it puts the net straight back.',
+    body: 'While I am still learning your expenses I hold a bit more back. Tell me your expenses are all in and I hold less — and if a surprise proves otherwise, I put the net straight back.',
     target: 'guardian-reserve',
     payoffTarget: 'today-ack',
     state: 'clear',
@@ -152,13 +152,13 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
   // "…is yours to overrule" invited a tap this beat can't honour: it's scripted, so the cutout lights the
   // card without passing touches, and a user taking the line literally got silence on the one beat whose
   // message is that they're in control. The claim is about the app, not about right now — so it says so.
-  { id: 'yourcall', title: 'Always your call', body: 'Your Guardian suggests — it never moves your money. Every number here stays yours to overrule, once this tour is done.', target: 'guardian-card', state: 'clear' },
+  { id: 'yourcall', title: 'Always your call', body: 'I suggest — I never move your money. Every number here stays yours to overrule, once this tour is done.', target: 'guardian-card', state: 'clear' },
   // The hand-back. Both lines end by orienting ("debts live in Money…"), and the free one names what
   // premium actually did — because for the last seven beats it was premium doing it.
   {
     id: 'handback',
     title: 'Over to your plan',
-    body: 'That was example money. This is your own paycheck, and your Guardian is already watching it.',
+    body: 'That was example money. This is your own paycheck, and I am already watching it.',
     bodyByRun: {
       // [A4, round 2] "with your real paycheck" was the same defect the free line had been rewritten to
       // avoid, left standing one line above it. The invitation gates on `onboardingComplete` and NOT on
@@ -166,7 +166,7 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
       // and be told their Guardian is already doing this "with your real paycheck" — then hand back to a
       // card reading "Set up your paycheck". Fixing an audience-specific claim in one branch of a
       // per-audience string and not the other is how the [A4] class survives its own fix.
-      premium: 'That was example money — your Guardian does exactly this with every paycheck you add, all on your device. Your debts live in Money, your progress in Progress.',
+      premium: 'That was example money — I do exactly this with every paycheck you add, all on your device. Your debts live in Money, your progress in Progress.',
       // [A1/A2] The audit caught two lies in the previous version of this line.
       //  1. It said "you decide what to hold". A free user CANNOT: `showAdjust` is premium-gated and the
       //     card's sheet is the only route to `setCushionFloor` in the whole app. It named a capability

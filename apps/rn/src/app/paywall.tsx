@@ -20,6 +20,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { a11ySelected } from '@/utils/a11y';
+import { PRIVACY_CLAIM } from '@core/copy/vocabulary';
 
 /** What Premium unlocks — effort-not-info framing: each line is a job the app DOES for you, not a fact
  * it tells you (the un-chattable test). BNPL handling is intentionally NOT here — it's free/all-tiers. */
@@ -262,7 +263,7 @@ export default function PaywallScreen() {
       <View style={styles.trust}>
         <AppIcon name="lock" size={16} color={c.text.tertiary} />
         <Text style={[textStyles.caption, styles.flex1, { color: c.text.secondary }]}>
-          Private by design — your financial data never leaves your device, and you’ll never be sold more debt.
+          {`${PRIVACY_CLAIM.headline} — ${PRIVACY_CLAIM.body}, and ${PRIVACY_CLAIM.noSelling}.`}
         </Text>
       </View>
 

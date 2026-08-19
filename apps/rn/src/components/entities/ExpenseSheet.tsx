@@ -12,6 +12,8 @@ import type { RequiredExpense, RequiredExpenseCategory } from '@/data/models';
 import { billCategoryOptions, FORM_ERRORS, recurrenceOptions } from '@/store/obligationForm';
 import { appStore } from '@/store/appStore';
 import { confirmDelete } from '@/utils/confirm';
+// [T8 · L2-5] the definition of an expense has ONE owner — the chooser that teaches it.
+import { OBLIGATION_CLAUSE } from '@/components/entities/AddObligationSheet';
 
 // ⛔ 'one-time' read "One time" HERE and "One-time" in DebtSheet + Money's section header — one object,
 // two spellings, one screen apart. Settled at "One-time" in `obligationForm` (W1).
@@ -82,7 +84,7 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
       // every item in the other list and invited the mis-file this whole item exists to stop. The clause
       // is the distinguishing one, not a description: what makes this not-a-debt is that it never ends.
       title={isEdit ? 'Edit expense' : 'Add an expense'}
-      subtitle="An ongoing cost that doesn't end."
+      subtitle={OBLIGATION_CLAUSE.bills}
       submitLabel={isEdit ? 'Save' : 'Add expense'}
       onSubmit={submit}
       onRemove={isEdit ? remove : undefined}

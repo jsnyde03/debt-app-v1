@@ -41,7 +41,7 @@ export function captureKey(a: { targetId: string; label: string; category: strin
  * silently dropped a contribution the sheet displayed. Accumulation across the
  * partial and the remainder now happens downstream via `upsertCompletedAction`.)
  *
- * One-tap "I followed the plan" = no overrides → every active action gets
+ * One-tap "You followed the plan" = no overrides → every active action gets
  * `actualAmount = the cycle's recommended payment`, `paymentSource: "paycheck"`
  * (with `recommendedAmount` = the full payoff room, matching the Plan tab so drift
  * is consistent across capture paths). Adjust overrides the paid amount / marks

@@ -37,7 +37,7 @@ export const PAY_CYCLE_OPTIONS: { value: PayCycle; label: string; sublabel?: str
 /** Field labels + placeholders both hosts render. */
 export const PAYCHECK_FIELDS = {
   amount: { label: 'Paycheck amount', placeholder: 'e.g. 1500' },
-  varies: { label: 'My income varies' },
+  varies: { label: 'Income varies' },
   lean: { label: 'The amount you can count on', placeholder: 'e.g. 1200' },
   firstPayday: { label: 'First payday', placeholder: '1' },
   secondPayday: { label: 'Second payday', placeholder: '15' },

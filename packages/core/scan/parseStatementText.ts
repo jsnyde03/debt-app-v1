@@ -6,6 +6,7 @@
  * a wrong commit. Kept pure + text-only (no native/image types) so it has a full test surface, exactly
  * like `debtCsv` (text → Debt), the precedent this mirrors.
  */
+import { BNPL_PROVIDER_VALUES } from "@core/debt/bnplProviders";
 
 export interface ParsedStatement {
 	/** The issuer / creditor name (a known issuer, else the first meaningful line). */
@@ -22,10 +23,14 @@ export interface ParsedStatement {
 
 // Issuers/lenders we can name confidently from an OCR'd statement header. Order matters only for the
 // (rare) case a statement mentions two — the first found wins, which is fine for a prefill the user confirms.
+// ⛔ [T8 · L2-4] The BNPL half is COMPOSED, not re-typed. It used to be six literals repeating
+// `DebtSheet`'s picker list, so a provider added to one and not the other produced a debt the user could
+// file by hand and the scanner would silently never recognise. `@core/debt/bnplProviders` owns them.
 const ISSUERS = [
 	"American Express", "Amex", "Capital One", "Bank of America", "Wells Fargo", "Apple Card",
 	"Chase", "Citi", "Citibank", "Discover", "Barclays", "Synchrony", "U.S. Bank", "US Bank",
-	"PNC", "TD Bank", "USAA", "Navy Federal", "Klarna", "Affirm", "Afterpay", "PayPal", "Zip", "Sezzle",
+	"PNC", "TD Bank", "USAA", "Navy Federal",
+	...BNPL_PROVIDER_VALUES,
 ];
 
 function toAmount(s: string | undefined): number | undefined {

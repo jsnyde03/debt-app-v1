@@ -581,7 +581,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               label="Keep it"
               onPress={() => store_.getState().updateExpense(trialConversion.id, { amount: trialConversion.fullAmount, isTrial: false, fullAmount: undefined, fullChargeDate: undefined })}
             />
-            <Button label="I cancelled it" variant="text" onPress={() => store_.getState().removeExpense(trialConversion.id)} />
+            <Button label="Cancelled it" variant="text" onPress={() => store_.getState().removeExpense(trialConversion.id)} />
             <Button label="Not now" variant="text" onPress={() => setDismissedTrials((d) => [...d, trialConversion.id])} />
           </View>
         </Card>
@@ -843,10 +843,10 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     const release = selectReserveRelease(s.store);
     if (release) {
       return release.tapped
-        ? `Your safety net covered about ${formatWhole(release.covered)} while your Guardian learned your expenses. It is now going to work on ${release.targetName}.`
+        ? `Your safety net covered about ${formatWhole(release.covered)} while I got to know your expenses. It's now going to work on ${release.targetName}.`
         : `Your safety net is free — it is now going to work on ${release.targetName}.`;
     }
-    return selectReserveWalkback(s.store) ? 'A surprise bill came up — your Guardian has restored your safety net for now.' : null;
+    return selectReserveWalkback(s.store) ? 'A surprise bill came up — I’ve restored your safety net for now.' : null;
   });
   useEffect(() => {
     if (ackText) announce(ackText);

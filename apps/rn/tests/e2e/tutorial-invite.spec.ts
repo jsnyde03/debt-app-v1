@@ -560,7 +560,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
     // of a premium user who completed onboarding without one). What must hold is: the hand-back speaks
     // to someone who already has premium, and never sells it to them.
     await expect(page.getByText(/example money/)).toBeVisible();
-    await expect(page.getByText(/your Guardian does exactly this/)).toBeVisible();
+    await expect(page.getByText(/I do exactly this/)).toBeVisible();
     await expect(page.getByText(/premium/i)).toHaveCount(0);
   });
 

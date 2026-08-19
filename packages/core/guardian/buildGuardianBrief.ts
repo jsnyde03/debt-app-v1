@@ -120,8 +120,15 @@ export interface GuardianInput {
   deployedBeforeDebtName?: string;
 }
 
-/** A finite, non-negative number or 0 — the guard against `$NaN`/`$Infinity` ever reaching a screen. */
-function money(n: number): number {
+/**
+ * A finite, non-negative NUMBER or 0 — the guard against `$NaN`/`$Infinity` ever reaching a screen.
+ *
+ * ⚠️ [T8 · T6 after-scan] Renamed from `money`. It returns a number, not a string — but T6 collapsed
+ * twelve hand-rolled `money()` FORMATTERS onto `formatWhole`, and a sanitiser sharing their exact name,
+ * in core, is how the next reader deletes it as a thirteenth. `lint:money` correctly ignores it (it
+ * builds no currency string); the name was the only thing wrong with it.
+ */
+function safeAmount(n: number): number {
   return Number.isFinite(n) ? Math.max(0, n) : 0;
 }
 
@@ -130,7 +137,7 @@ function money(n: number): number {
  *  "$95"). Never "$0" for a nonzero. The projection softening lives in the WORDING ("about …", "based on
  *  what you entered"), NOT in fuzzing the number — the hero shows these figures exact too. */
 function amt(n: number): string {
-  const v = money(n);
+  const v = safeAmount(n);
   return v > 0 ? `$${Math.max(1, Math.round(v)).toLocaleString("en-US")}` : "$0";
 }
 
@@ -163,14 +170,14 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   const debtFree = input.debtFree === true;
   const deployNoun = debtFree ? "savings" : "payoff"; // "Extra {payoff} resumes / is paused"
   // Sanitize every number up front — a bad upstream value must degrade to a safe read, never `$NaN`.
-  const floor = money(input.floor) || 200;
-  const discretionary = money(input.discretionary);
-  const kept = money(input.kept);
+  const floor = safeAmount(input.floor) || 200;
+  const discretionary = safeAmount(input.discretionary);
+  const kept = safeAmount(input.kept);
   // The held reserve is a portion of the kept cushion — never more than it (a bad upstream value can't
   // make the "set aside" zone exceed the cushion it lives inside).
-  const heldReserve = Math.min(money(input.heldReserve ?? 0), kept);
-  const deployedToDebt = money(input.deployedToDebt);
-  const shortfall = money(input.shortfall);
+  const heldReserve = Math.min(safeAmount(input.heldReserve ?? 0), kept);
+  const deployedToDebt = safeAmount(input.deployedToDebt);
+  const shortfall = safeAmount(input.shortfall);
 
   // The band is driven by HEADROOM (cash after every obligation), not by how much you keep vs. deploy —
   // sending money to debt is a choice, not a risk. Same for free and premium (the split differs, the
@@ -326,7 +333,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
     // right at your $200 line" over an $800 transfer — a sentence that contradicts itself in its own
     // clause — and the priority-goal rung reproduced it exactly. The overstatement is
     // (discretionary − kept), so the worst case is the full $1,000 starter target.
-    const beforeDebt = money(input.deployedBeforeDebt ?? 0);
+    const beforeDebt = safeAmount(input.deployedBeforeDebt ?? 0);
     if (beforeDebt > 0) {
       const target = input.deployedBeforeDebtName ?? "your savings";
       return withHedge(
