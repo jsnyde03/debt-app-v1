@@ -89,6 +89,60 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## 5.10 GREEN — two real defects, and every fix was caught being wrong first (2026-08-19)
+
+**482 generated cases × 2 real doors × 8 invariants + the differential oracle. 0 violations.** Registered
+in `test:app`, so a regression here reds the gate. tsc clean · `lint:rn` 0 errors.
+
+### ⛔ Finding 1 — the two doors disagreed, and the safer-looking one was worse
+
+`runMigrations` was called **bare** in `migrateFromLegacy` while `readBackup` routed every path through a
+guard — a guard written the day before, for this exact reason, and not carried across. So a v1.6 blob with
+a non-array `debts` **threw** out of the bridge. The caller catches it, which is worse than a crash: the
+migration is skipped, `hydrate` writes a fresh empty store, and because idempotence is **structural** (the
+bridge runs only when RN storage is empty) it never runs again. One corrupt key would strand a real
+portfolio permanently, with the source sitting untouched and unreachable.
+
+⚡ **Structural idempotence assumes the only reason storage is non-empty is a SUCCESSFUL migration.** A
+failed one followed by ordinary use looks identical. That assumption was invisible until an invariant
+asked the question.
+
+✅ Fixed at the root — `runMigrations` is now total for those shapes, so **both doors behave the same** —
+and the bridge is wrapped anyway, because *"should be impossible" is what the bare call was too.*
+⭐ Proof it worked: the differential oracle went **468 → 482** cases producing a store through both doors.
+
+### ⛔ Finding 2 — measured live for real users, with a mechanism v1.6 had already documented
+
+v1.6's onboarding guards a new debt with `Number(balance) <= 0`, and **`NaN <= 0` is false**. So
+`Number("12,000")` — a comma, on the **first debt a user ever types** — passes, and `JSON.stringify`
+persists `NaN` as **`null`**. Real v1.6 stores hold `balance: null` today.
+
+⚠️ **v1.6's own *edit* path carries a comment describing this exact bug and its fix.** `parseDebtFormValues`
+was written to stop it, applied to editing, and never reached onboarding. *A fix that lands on one of two
+call sites reads as done and is measurable as half-done.*
+
+✅ Money that cannot be read is now **repaired to 0, the row is KEPT, and the repair is RECORDED**
+(`dataRepairs`, derived per read and never merged forward, so a field the user has fixed stops nagging).
+Silent coercion was the option rejected hardest: a $12,000 debt rendering as **paid off** is worse than
+any visible error.
+
+### ⚠️ THREE TIMES the fix was caught being wrong — twice by tests that already existed
+
+1. **My own invariant was wrong, not the code.** `idempotent` fired **96 times** against correct
+   behaviour: pass one repairs and records, pass two has nothing to repair, so `dataRepairs` differs *by
+   design*. The tempting read was "the repair broke idempotence." ⚡ *An invariant is a claim about the
+   system and can be wrong exactly like the system can.* Now compares the data, with a separate invariant
+   asserting repairs are never re-reported.
+2. **`persistenceLifecycle` caught a silent drop INSIDE the fix for silent drops.** My first cut returned
+   the fallback list bare when `debts` was not an array — so a corrupt list became an empty one with
+   nothing recorded. The precise defect the item exists to remove, reintroduced by its own remedy.
+3. **Two existing tests encoded the OLD contract** and had to be changed deliberately, not made to pass.
+   Both used to demand a wholesale refusal because throwing was the only safe answer; now the honest
+   outcome is to keep what is readable and report what is not. A user with a corrupt `debts` no longer
+   loses their income and goals as well.
+
+---
+
 ## 5.10 scoping — the audit's own scope had drifted, and 🎯 caught it (2026-08-19)
 
 I proposed a 5.10 corpus covering *"zero/negative money, malformed and boundary dates, huge portfolios."*

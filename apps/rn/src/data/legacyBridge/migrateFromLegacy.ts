@@ -106,7 +106,25 @@ export async function migrateFromLegacy(
     }
   }
 
-  const store = runMigrations(partial);
+  // ⛔ WRAPPED (5.10 finding 1). `runMigrations` was called bare here while `readBackup` routed every
+  // path through a guard, so the two doors onto the same data behaved differently under hostile input:
+  // the import door refused, this one THREW. The caller catches it, which is worse than a crash — the
+  // migration is skipped silently, `hydrate` writes a fresh empty store, and because idempotence is
+  // structural (this runs only when RN storage is empty) it never runs again. One corrupt v1.6 key would
+  // strand a real portfolio permanently, with the source sitting untouched and unreachable.
+  //
+  // ⚠️ `runMigrations` is now total for the shapes that caused this, so reaching the catch should be
+  // impossible. It stays because "should be impossible" is what the bare call was, too.
+  let store: ReturnType<typeof runMigrations>;
+  try {
+    store = runMigrations(partial);
+  } catch (error) {
+    reportError(error, { seam: 'legacy-bridge', operation: 'migrate' });
+    return {
+      outcome: skipped('the v1.6 data could not be MIGRATED — deliberately not reported as "no legacy data"', report),
+      store: null,
+    };
+  }
   return {
     outcome: { migrated: true, reason: 'migrated', read: report, map, quarantined },
     store,

@@ -102,13 +102,28 @@ async function run() {
     eq(s.getState().isHydrated, true, '…and we stay hydrated (never brick the app)');
   }
 
-  // ── Malformed nested shape (debts not an array): the migration map throws → same quarantine path ──
+  // ── Malformed nested shape (debts not an array) — CONTRACT CHANGED AT 5.10, deliberately ──
+  // ⛔ It used to throw out of `runMigrations` and take the quarantine-and-reset path, which discarded the
+  // WHOLE blob over one bad key: a user with a corrupt `debts` also lost their income, expenses and goals.
+  // `runMigrations` is now total, so the rest of the store survives and the unreadable list is REPORTED.
+  // ⚠️ The reporting half is the point. Repairing without recording would be a silent drop wearing a fix,
+  // and the first cut of 5.10's repair did exactly that until this assertion caught it.
   {
-    const a = new MockAdapter({ storeVersion: CURRENT_STORE_VERSION, debts: 'nope', paycheck: {} });
+    const a = new MockAdapter({
+      storeVersion: CURRENT_STORE_VERSION,
+      debts: 'nope',
+      paycheck: { amount: '2100' },
+      goals: [{ id: 'g1', name: 'Kept', target: 500 }],
+    });
     const s = createDebtStore();
     await s.getState().hydrate(a);
-    eq(a.quarantines.length, 1, 'malformed nested blob → quarantined (no hard crash)');
-    eq(a.writes, 1, '…recovered to fresh defaults');
+    eq(a.quarantines.length, 0, 'malformed nested blob is REPAIRED, not quarantined');
+    eq(s.getState().store.debts.length, 0, '…the unreadable list is empty');
+    eq(s.getState().store.paycheck.amount, '2100', '…⭐ but the income SURVIVES (it used to be discarded)');
+    eq(s.getState().store.goals.length, 1, '…and so do the goals');
+    eq(s.getState().store.dataRepairs.length, 1, '…⛔ and the loss is REPORTED, never silent');
+    eq(s.getState().store.dataRepairs[0]?.entity, 'debt', '…naming what could not be read');
+    eq(s.getState().isHydrated, true, '…and we stay hydrated');
   }
 
   // ── Array blob is not a valid store → quarantined ──

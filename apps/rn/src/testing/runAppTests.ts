@@ -157,6 +157,10 @@ async function main() {
   // and dates now LAND; the pre-5.8 path blanked them while looking like it had worked.
   await import('../data/readBackup.test');
 
+  // 5.10 — the adversarial migration audit. 482 generated cases × 2 real doors × 8 invariants, plus the
+  // differential oracle. ⛔ Gates: a regression here is data loss on upgrade.
+  await (await import('../data/migrationAudit/audit.test')).default();
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');

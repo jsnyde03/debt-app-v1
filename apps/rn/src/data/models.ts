@@ -180,6 +180,18 @@ export interface PendingMilestone {
   progressPercent: number;
 }
 
+/**
+ * 5.10 — a money field this build could not read, repaired to 0 and named so the app can ask the user
+ * for one number instead of inventing it. ⛔ Never dropped silently: a $12,000 debt coerced to 0 without
+ * a word renders as PAID OFF, which is the one outcome worse than a visible error.
+ */
+export interface DataRepair {
+  entity: 'debt' | 'requiredExpense' | 'livingExpense';
+  id: string;
+  name: string;
+  field: string;
+}
+
 export interface DebtStore {
   storeVersion: number;
   paycheck: PaycheckConfig;
@@ -192,6 +204,12 @@ export interface DebtStore {
   recommendationOverrides: RecommendationOverride[];
   completedRecommendedActions: CompletedRecommendedAction[];
   milestoneMaxProgress: Record<string, number>;
+  /**
+   * 5.10 — money fields this launch could not read, repaired to 0 and reported so the app can ask for
+   * one number instead of inventing it. ⛔ Derived on every read, never merged forward: it describes the
+   * CURRENT blob, so a field the user has since fixed stops being reported.
+   */
+  dataRepairs: DataRepair[];
   /** 3.3.2 — the highest portfolio %-paid milestone ever reached (25/50/75), so each celebrates once. */
   portfolioMaxProgress: number;
   /** 3.3.2 — a just-crossed portfolio milestone awaiting its ack; null when none / already acknowledged. */

@@ -127,11 +127,40 @@ export const refusalIsTotal: Invariant = (o) =>
 /** ⑦ Idempotent — running a door on its own output changes nothing. Every door can run twice in reality
  *  (a re-import, an interrupted bridge, a re-hydrate), and a door that drifts on the second pass corrupts
  *  by degrees rather than all at once, which is far harder to notice. */
+/**
+ * ⚠️ Compares the DATA, with `dataRepairs` excluded — and that exclusion is a finding, not a loophole.
+ *
+ * The first pass repairs `balance: null` → `0` and records the repair; the second pass sees a valid `0`
+ * and records nothing. The stores therefore differ, and **that is the designed behaviour**: `dataRepairs`
+ * describes what THIS read had to fix, deliberately not merged forward, so a field the user has since
+ * corrected stops being reported. Comparing it here compares the report, not the store.
+ *
+ * ⛔ It cost a round to see that. The invariant fired 96 times against correct code, and the tempting read
+ * was that the repair had broken idempotence. *An invariant is a claim about the system and can be wrong
+ * exactly like the system can* — the same lesson as the 5.8.1 copy-gate hypothesis, one layer up.
+ */
+const withoutRepairs = (store: DebtStore) => {
+  const { dataRepairs: _dataRepairs, ...rest } = store;
+  return JSON.stringify(rest);
+};
+
 export const idempotent: Invariant = (o) => {
-  if (!o.store || o.second === undefined) return null;
-  const a = JSON.stringify(o.store);
-  const b = JSON.stringify(o.second);
-  return a === b ? null : v('idempotent', `${o.door}: second pass differs`);
+  if (!o.store || o.second === undefined || o.second === null) return null;
+  return withoutRepairs(o.store) === withoutRepairs(o.second)
+    ? null
+    : v('idempotent', `${o.door}: second pass changed the data`);
+};
+
+/**
+ * ⑧ A repair is reported EXACTLY ONCE. The second pass over already-repaired data must record nothing —
+ * otherwise the app nags about a field the user already fixed, and a notice that will not go away is one
+ * people learn to dismiss. This is the property the idempotence exclusion above hands off to.
+ */
+export const repairsAreNotRepeated: Invariant = (o) => {
+  if (!o.store || !o.second) return null;
+  return o.second.dataRepairs.length === 0
+    ? null
+    : v('repairs-not-repeated', `${o.door}: ${o.second.dataRepairs.length} repair(s) re-reported on a clean second pass`);
 };
 
 export const INVARIANTS: Invariant[] = [
@@ -142,6 +171,7 @@ export const INVARIANTS: Invariant[] = [
   sourceNotMutated,
   refusalIsTotal,
   idempotent,
+  repairsAreNotRepeated,
 ];
 
 export function checkAll(outcome: DoorOutcome): Violation[] {

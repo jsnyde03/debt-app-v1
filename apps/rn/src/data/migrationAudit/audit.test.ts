@@ -54,7 +54,7 @@ export default async function run() {
     }
   }
 
-  console.log(`\n  migration audit — ${cases.length} cases × 2 doors, ${checked} outcomes, 7 invariants each`);
+  console.log(`\n  migration audit — ${cases.length} cases × 2 doors, ${checked} outcomes, 8 invariants each`);
   console.log(`  differential — ${bothProduced} cases produced a store through BOTH doors, ${drift.length} disagreed`);
 
   // ⚠️ The healthy control must survive. A corpus that refuses EVERYTHING satisfies every invariant

@@ -173,8 +173,15 @@ function realV16Backup(): Record<string, unknown> {
     } catch {
       threw = true;
     }
+    // ⛔ CONTRACT CHANGED AT 5.10. These used to have to REFUSE, because `runMigrations` threw on them and
+    // refusing was the only safe answer. It is now total, so the honest outcome is to import what IS
+    // readable and REPORT what was not — a poisoned `debts` no longer costs the user their income and
+    // goals as well. What must never happen is a throw, or a loss nobody is told about.
     assert(!threw, `does NOT throw: ${label}`);
-    assert(result !== undefined && !result.ok, `  …refuses instead: ${label}`);
+    assert(result !== undefined, `  …returns an outcome: ${label}`);
+    if (result && result.ok) {
+      assert(result.store.dataRepairs.length > 0, `  …imports what it can AND reports the loss: ${label}`);
+    }
   }
 }
 
