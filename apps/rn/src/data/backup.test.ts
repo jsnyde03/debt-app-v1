@@ -2,6 +2,7 @@ import {
   BACKUP_APP_NAME,
   BACKUP_FORMAT,
   BACKUP_FORMAT_VERSION,
+  backupFilename,
   isBackupEnvelope,
   parseBackup,
   serializeBackup,
@@ -240,6 +241,19 @@ function storeWithDebt(): DebtStore {
   const text = serializeBackup(createDefaultStore(), { now: AT });
   assert(text.includes('\n'), 'pretty-printed, not one line');
   assert(text.indexOf(BACKUP_FORMAT) < 100, 'the marker is near the top, visible on opening the file');
+}
+
+// ── 5.8.5's filename: v1.6's name, and a LOCAL date. ────────────────────────────────────────────
+{
+  eq(backupFilename('2026-08-19'), 'debt-planner-backup-2026-08-19.json', "matches v1.6's name, so one sorted series survives the upgrade");
+  const generated = backupFilename();
+  assert(/^debt-planner-backup-\d{4}-\d{2}-\d{2}\.json$/.test(generated), `the default is a dated name (${generated})`);
+  // ⛔ The date must be LOCAL. v1.6 used `toISOString().slice(0,10)`, which east of UTC stamps an evening
+  // backup with tomorrow — so it sorts ahead of one saved after it. Asserting against the UTC answer is
+  // the only way this test can fail in the timezone where the bug is real.
+  const local = new Date();
+  const localISO = `${local.getFullYear()}-${String(local.getMonth() + 1).padStart(2, '0')}-${String(local.getDate()).padStart(2, '0')}`;
+  eq(generated, `debt-planner-backup-${localISO}.json`, 'the date is LOCAL, not a UTC round-trip');
 }
 
 console.log(`✅ backup envelope tests passed (${passed} asserts).`);

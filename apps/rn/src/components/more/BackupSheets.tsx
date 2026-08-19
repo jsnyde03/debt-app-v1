@@ -4,13 +4,15 @@ import { StyleSheet, Text, TextInput } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { FormSheet } from '@/components/ui/FormSheet';
-import { serializeBackup } from '@/data/backup';
+import { backupFilename, serializeBackup } from '@/data/backup';
+import { BACKUP_FILE_SUPPORTED, exportBackupFile, pickBackupFile } from '@/data/backupFile';
 import { describeBackup, readBackup, type ReadBackupSuccess } from '@/data/readBackup';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { notify } from '@/utils/confirm';
 
 /**
  * Backup export/import.
@@ -36,6 +38,14 @@ export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
     setCopied(true);
   }
 
+  async function saveFile() {
+    const result = await exportBackupFile(json, backupFilename());
+    // ⚠️ Only a real failure is announced. A share sheet the user dismissed is a decision, not an error,
+    // and `Sharing.shareAsync` resolves the same either way — so there is nothing here to distinguish
+    // "cancelled" from "saved", and guessing wrong in the noisy direction trains people to ignore us.
+    if (!result.ok) notify("Couldn't save", 'Saving the file failed. You can still copy the text below.');
+  }
+
   return (
     <FormSheet
       visible
@@ -44,8 +54,12 @@ export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
       submitLabel="Done"
       onSubmit={onClose}
       onClose={onClose}>
+      {BACKUP_FILE_SUPPORTED ? (
+        <Button label="Save as a file" variant="primary" testID="backup-export-file" onPress={saveFile} />
+      ) : null}
       <Button label={copied ? 'Copied ✓' : 'Copy to clipboard'} variant="secondary" onPress={copy} />
       <TextInput
+        testID="backup-export-text"
         value={json}
         editable={false}
         multiline
@@ -76,12 +90,25 @@ export function ImportBackupSheet({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState('');
   const [found, setFound] = useState<ReadBackupSuccess | null>(null);
 
-  function check() {
-    if (!text.trim()) return setError('Paste your backup first.');
-    const result = readBackup(text);
+  /** One reader for both doors. The picker supplies bytes; it never decides what they mean. */
+  function check(source: string) {
+    if (!source.trim()) return setError('Paste your backup first.');
+    const result = readBackup(source);
     if (!result.ok) return setError(result.message);
     setError('');
     setFound(result);
+  }
+
+  async function chooseFile() {
+    const picked = await pickBackupFile();
+    if (!picked.ok) {
+      // ⛔ A cancel is silent. The user closing the picker is not a failure, and reporting it as one is
+      // how a safe flow starts feeling broken.
+      if (picked.reason === 'error') setError("That file couldn't be opened.");
+      return;
+    }
+    setText(picked.text);
+    check(picked.text);
   }
 
   function replace() {
@@ -113,8 +140,11 @@ export function ImportBackupSheet({ onClose }: { onClose: () => void }) {
       title="Import backup"
       subtitle="Paste a backup you saved before. You'll see what's in it before anything changes."
       submitLabel="Check backup"
-      onSubmit={check}
+      onSubmit={() => check(text)}
       onClose={onClose}>
+      {BACKUP_FILE_SUPPORTED ? (
+        <Button label="Choose a file" variant="primary" testID="backup-import-file" onPress={chooseFile} />
+      ) : null}
       <TextInput
         testID="backup-import-input"
         value={text}

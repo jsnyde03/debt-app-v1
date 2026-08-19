@@ -89,6 +89,51 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## 5.8.5 — the file doors, and two premises that failed on contact (2026-08-19)
+
+`backupFile.ts` + `backupFile.web.ts`, `expo-document-picker` added. tsc clean · `lint:rn` 0 errors ·
+`test:app` ALL PASSED · ⭐ **web export: 0 occurrences of `expo-document-picker` / `expo-sqlite`.**
+
+### The design call: the file layer does not know the format
+
+`pickBackupFile` returns **text**, not a parsed value, and `exportBackupFile` takes text. Every judgement
+about what the bytes mean stays in `readBackup`. ⚡ *A picker that parsed would be a second opinion on the
+format* — which is exactly how the accept-any-object defect got in: two places deciding what a backup is,
+and only one of them tested.
+
+Smaller calls, each with a reason: the export lands in **cache** (a transport artifact, and cache is the
+one directory iOS may reclaim — a copy of someone's finances living permanently in the container is a
+liability); it **overwrites rather than appends** (two exports on one day share a name, and a file grown by
+concatenation is unparseable JSON that looks like a successful save); a **cancelled picker is silent** (the
+user closing a sheet is a decision, not an error).
+
+### ⛔ Two premises failed on contact, and neither was visible from the plan
+
+1. **SDK 56's `expo-file-system` has no `cacheDirectory` and no `writeAsStringAsync`.** The module-level
+   API moved to `expo-file-system/legacy`; the current surface is `File`/`Directory`/`Paths`. `tsc` caught
+   it in one line. ✅ 5.1b.3's reader was already on the new API, so the two file-touching modules now
+   share one idiom rather than straddling a deprecation.
+2. **`backupFilename` could not live in the platform-split file.** The web half would have to re-export it
+   — and re-exporting from the native module drags `expo-document-picker` and friends straight into the
+   web bundle, undoing the split's entire purpose. Moved to the pure format module, where it belongs
+   anyway. ⚠️ **Nothing would have failed loudly**: the app would work, the web bundle would silently gain
+   three native modules, and the check that catches it is the grep, not the compiler.
+
+⭐ **The filename keeps v1.6's name** (`debt-planner-backup-<date>.json`) so a user's backup folder stays
+one sorted series across the upgrade. ⛔ **But not v1.6's date logic** — it used
+`toISOString().slice(0, 10)`, a UTC round-trip that east of UTC stamps an evening backup with *tomorrow*,
+so it sorts ahead of one saved later. Uses `todayLocalISODate()`, and the test asserts against a
+locally-computed date so it can actually fail in the timezone where the bug is real.
+
+### ⚠️ What is NOT proven
+
+Nothing in this step is verifiable off-device. The share sheet, the picker, the Files-app round trip and
+the `copyToCacheDirectory` behaviour with iCloud Drive all need a real device. The web-bundle grep proves
+only that the native modules stayed out. → a device run is **owed**, and batches with 5.1b.3's still-owed
+probe job rather than spending a macOS runner on its own.
+
+---
+
 ## 5.8.3 + 5.8.4 — the data lands, and the copy gate forced the right fix (2026-08-19)
 
 `readBackup.ts` (router + v1.6 adapter + the confirm summary) and `BackupSheets.tsx` rewired.

@@ -1,3 +1,5 @@
+import { todayLocalISODate } from '@core/utils/localDate';
+
 import { CURRENT_STORE_VERSION, type DebtStore } from './models';
 
 /**
@@ -49,6 +51,22 @@ export interface BackupEnvelope {
 }
 
 export const BACKUP_APP_NAME = 'Debt Planner';
+
+/**
+ * `debt-planner-backup-2026-08-19.json` — the same name v1.6 wrote, so a user's backup folder stays one
+ * sorted series across the upgrade rather than two unrelated ones.
+ *
+ * ⚠️ The date is LOCAL. v1.6 built this name from `new Date().toISOString().slice(0, 10)` — a UTC
+ * round-trip, which east of UTC stamps a backup made this evening with TOMORROW's date, so it sorts ahead
+ * of one saved after it. Same defect class as `todayLocalISO()` returning yesterday (R1).
+ *
+ * ⛔ It lives here, in the format module, and NOT in `backupFile.ts`. The web platform-split file would
+ * have to re-export it, and re-exporting from the native module drags `expo-document-picker` and friends
+ * straight into the web bundle — undoing the split it exists to create.
+ */
+export function backupFilename(today = todayLocalISODate()): string {
+  return `debt-planner-backup-${today}.json`;
+}
 
 /** Tagged parse result — deliberately mirrors the legacy bridge's report style: a reason, never a throw. */
 export type BackupParseResult =
