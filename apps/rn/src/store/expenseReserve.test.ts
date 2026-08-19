@@ -101,6 +101,34 @@ eq(selectRecurringSmoothed(store()).monthlyTotal, 500, 'smoothing sums every rec
   eq(summary.everydayReserve, 300, 'everydayReserve stays living-only');
   eq(summary.billsReserve, 175, 'billsReserve is the held contribution');
   eq(summary.everydayReserve + summary.billsReserve, 475, 'Spoken for = everyday + bills');
+  eq(summary.everydayHeld, 300, '…and a paycheck that can hold it reports held === requested');
+}
+
+// ⛔ [T5 · L3-6] The everyday reserve is a REQUEST, and the engine clamps it to what exists:
+// `remaining = Math.max(0, remaining - paidRequired - livingExpenseReserve)`. The overflow is absorbed
+// with no record against the reserve, so every surface that said "reserved each paycheck" over the raw
+// enabled sum was stating an outcome the paycheck never delivered. `livingExpenseHeld` is that outcome.
+{
+  // $300 paycheck, $400 of enabled everyday spending, no bills due in-cycle → $100 of it cannot exist.
+  const s = store({
+    paycheck: { ...base.paycheck, amount: '300', payCycle: 'biweekly', currentDate: '2026-06-01', nextPaycheckDate: '2026-06-15' },
+    requiredExpenses: [],
+    livingExpenses: [{ id: 'l1', name: 'Groceries', amount: 400, enabled: true }],
+  });
+  const a = selectAllocation(s)!;
+  eq(a.livingExpenseReserve, 400, 'the REQUEST is still the raw enabled sum');
+  eq(a.livingExpenseHeld, 300, '…while what the paycheck HELD is clamped to what exists');
+  assert(a.livingExpenseHeld < a.livingExpenseReserve, '…so the two genuinely diverge, which is the copy gate');
+  const summary = selectPlanSummary(s, a, selectRequiredRows(s, a));
+  eq(summary.everydayHeld, 300, 'and the summary carries the held figure, not the request');
+
+  // A disabled item is not requested at all — the clamp must not paper over the enabled filter.
+  const off = selectAllocation(store({
+    paycheck: { ...base.paycheck, amount: '300', payCycle: 'biweekly', currentDate: '2026-06-01', nextPaycheckDate: '2026-06-15' },
+    requiredExpenses: [],
+    livingExpenses: [{ id: 'l1', name: 'Groceries', amount: 400, enabled: false }],
+  }))!;
+  eq(off.livingExpenseHeld, 0, 'a disabled item holds nothing');
 }
 
 // ⛔ A bill the pot covers IN FULL must still be a tickable row — the user still owes the biller.

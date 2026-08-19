@@ -78,8 +78,11 @@ export function buildPaydayActivityContent(store: DebtStore): PaydayActivityCont
       : brief.safeMove
         ? brief.safeMove
         : brief.deployedToDebt > 0
-          ? `Cushion safe · ${formatWhole(brief.deployedToDebt)} free to deploy`
-          : 'Cushion safe';
+          // ⛔ [L1-12] "safe" → "holds": the same absolute the widget carried, on the same brief. See
+          // `widget/snapshot.ts`. One word, and it is the difference between a read of the plan and a
+          // guarantee about the user's actual cash.
+          ? `Cushion holds · ${formatWhole(brief.deployedToDebt)} free to deploy`
+          : 'Cushion holds';
 
   return {
     paydayDateISO: nextPaycheckDate,

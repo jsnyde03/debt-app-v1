@@ -24,7 +24,7 @@ function sample(over: Partial<PaydayActivityContent>): PaydayActivityContent {
     countdownLabel: 'in 2 days',
     guardianState: 'clear',
     title: 'Looks clear this paycheck',
-    line: 'Cushion safe · $420 free to deploy',
+    line: 'Cushion holds · $420 free to deploy',
     cycleProgress: 0.85,
     ...over,
   };

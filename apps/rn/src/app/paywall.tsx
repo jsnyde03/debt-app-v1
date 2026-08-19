@@ -30,7 +30,12 @@ const PREMIUM_BENEFITS: { icon: IconGlyph; text: string }[] = [
   { icon: 'shield', text: 'Payday Guardian — works out how much to keep back each payday to protect your cushion, and reshapes the plan around it.' },
   { icon: 'shopping-cart', text: 'Can I Afford It? — apply any purchase to your plan in one tap, or build a plan to save for it.' },
   { icon: 'healing', text: 'Recovery Plan — a guided catch-up when a cycle comes up short.' },
-  { icon: 'auto-graph', text: 'Always-current balances — projected forward or re-scanned in seconds, no monthly retyping.' },
+  // ⛔ [L1-17] "Always-current" was sold here and contradicted by the app four ways — "estimated · tap to
+  // verify" (money.tsx), "estimated · verify soon" (balanceSelectors), "1 balance hasn't been checked in a
+  // while" (the capture sheet) and the brief's "These figures are from a little while ago". The user paid
+  // for currency and was immediately asked to verify. What premium actually delivers is the PROJECTION
+  // and the re-scan, so the bullet sells those.
+  { icon: 'auto-graph', text: 'Balances that keep themselves roughly right — projected forward between statements, or re-scanned in seconds. No monthly retyping.' },
 ];
 
 /** Apple's required auto-renewable subscription disclosure (Guideline 3.1.2). Also scopes Lifetime:

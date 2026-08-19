@@ -98,7 +98,12 @@ function run() {
   assert(!/premium/i.test(premiumFinale), '…and never selling premium to someone who already pays for it');
   // [A2] and naming ALL THREE premium behaviours the walkthrough demonstrated, not just the holding —
   // a finale that shows three and credits one is the bait-and-switch [D9] has to avoid.
-  assert(/line/i.test(freeFinale), '…the cushion held at your line');
+  // ⚠️ [T5.4] This was `/line/i` — and it red on a copy change that made the sentence MORE honest, which
+  // is the second time this block has done that (see the comment above about "premium is the part"). The
+  // shape [A2] needs is "behaviour 1 is named at all"; the NOUN for that concept has moved twice in this
+  // audit alone (floor → line → cushion, T4/L1-14), so pinning one spelling of it pins the vocabulary
+  // work, not the claim. Either noun satisfies it.
+  assert(/cushion|line/i.test(freeFinale), '…the cushion-holding behaviour is named');
   assert(/learn/i.test(freeFinale), '…the extra held while it learns your bills');
   assert(/catch-up|comes up short/i.test(freeFinale), '…the catch-up plan when a paycheck is short');
   assert(stepAnnouncement(last, 'free').includes(stepBody(TUTORIAL_STEPS[last], 'free')), 'the free announcement carries the free body');

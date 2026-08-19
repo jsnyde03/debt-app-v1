@@ -154,7 +154,7 @@ _Just confirm nothing regressed with all the new native modules added since buil
 
 ### 6a — via the QA trigger (fastest; no premium/date tuning)
 Go to **More → Developer / QA → Live Activity QA**. For each button, then **lock the phone** / pull down the Lock Screen to see the card:
-- [ ] `[X]` **§6a.1** **"Clear · 2 days"** → Lock Screen shows: a **checkered-flag** header ("PAYDAY IN 2 DAYS"), a **green** state dot, the title **"Looks clear this paycheck"**, the line **"Cushion safe · $420 free to deploy"**, and a **gold progress bar**.
+- [ ] `[X]` **§6a.1** **"Clear · 2 days"** → Lock Screen shows: a **checkered-flag** header ("PAYDAY IN 2 DAYS"), a **green** state dot, the title **"Looks clear this paycheck"**, the line **"Cushion holds · $420 free to deploy"** *(was "Cushion safe" — retired by T5.3 / audit L1-12)*, and a **gold progress bar**.
 - [ ] `[D]` **§6a.2** 📱 **Dynamic Island:** the same activity shows **compact** (dot + "in 2 days"); **long-press** it → **expanded** (dot · countdown · title · line); the **minimal** state (dot) when another activity shares the Island.
 - [ ] `[X]` **§6a.3** **"Tight · tomorrow"** → **amber/gold** dot, "A little tight this paycheck", "Move $200 from savings to hold your line", "Tomorrow".
 - [ ] `[X]` **§6a.4** **"At-risk · today"** → **red** dot, "Very tight this paycheck", "$180 short of your obligations", "Today".

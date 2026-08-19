@@ -37,6 +37,11 @@ const RETIRED: { pattern: RegExp; word: string; use: string }[] = [
   { pattern: /\bbreathing room\b/i, word: 'breathing room', use: '"cushion" (T4.3 / audit L1-5)' },
   { pattern: /\bcash buffer\b/i, word: 'cash buffer', use: '"cushion" (T4.3 / audit L1-5)' },
   { pattern: /\bliving expenses\b/i, word: 'Living Expenses', use: '"Everyday spending" (T4.4 / audit L1-6)' },
+  // ⛔ T5 / L3-7 — not a synonym but a CLAIM: `presumedPaid` is only "the due date passed and you have
+  // not flagged it failed", so a bounced autopay satisfies it exactly. "ran" asserted it as an event on
+  // the one screen that exists to establish ground truth. "should have run" is the presumption stated as
+  // one. The pattern deliberately does not match that replacement.
+  { pattern: /\bautopay\s*·\s*ran\b/i, word: 'Autopay · ran', use: '"Autopay · should have run" (T5 / audit L3-7)' },
 ];
 
 /** A cash-state label may not use these; "Crunch" was the fourth name for `at-risk`. */

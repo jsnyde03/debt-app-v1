@@ -315,6 +315,10 @@ export interface PlanSummary {
   remainingAfterRequired: number;
   /** Everyday/living reserved this cycle (variable but essential — groceries, gas, life). */
   everydayReserve: number;
+  /** ⛔ [L3-6] What the paycheck could ACTUALLY hold of `everydayReserve` — smaller whenever the enabled
+   *  items outsize the paycheck, which the engine absorbs silently. Copy claiming money is reserved must
+   *  quote this (or say it fell short); `everydayReserve` is the request, not the outcome. */
+  everydayHeld: number;
   /** 3.8 — set aside this cycle for UPCOMING recurring bills. Joins `everydayReserve` in the hero's
    *  "Spoken for" segment [D36]; kept separate because the tap splits them and they have different doors. */
   billsReserve: number;
@@ -359,6 +363,7 @@ export function selectPlanSummary(store: DebtStore, allocation: Allocation, requ
     shortfall,
     remainingAfterRequired,
     everydayReserve: allocation.livingExpenseReserve,
+    everydayHeld: allocation.livingExpenseHeld,
     billsReserve: sumCategory(allocation, 'expense_reserve'),
     cushionStatus,
     debtFreeDate: selectDebtFreeDate(store, allocation),

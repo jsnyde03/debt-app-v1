@@ -49,7 +49,10 @@ export const PAYCHECK_FIELDS = {
  * still written twice after the field copy was extracted — which is why the T2 baseline shrinking is the
  * check that found it, not the eye.
  */
-export const PAYCHECK_LEAN_HELP = 'Your plan runs on this floor, so a lighter paycheck never breaks it.';
+// ⛔ [L1-18] "never breaks it" was false in the one case this field exists for: the plan runs on the LEAN
+// floor, so a paycheck lighter than the floor itself breaks it exactly as any other shortfall would. The
+// absolute was doing the reassurance the honest sentence does anyway.
+export const PAYCHECK_LEAN_HELP = 'Your plan runs on this floor, so a lighter-than-usual paycheck won’t throw it off.';
 
 /** The two group headings both hosts render above the cycle picker and the computed preview. */
 export const PAYCHECK_SECTIONS = {

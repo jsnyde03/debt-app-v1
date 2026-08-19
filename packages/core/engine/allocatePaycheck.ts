@@ -339,6 +339,18 @@ export function allocatePaycheck({
 		paidExpenseTotal + paidDebtMinimumTotal
 	);
 
+	/**
+	 * ⛔ [L3-4/L3-6] What the paycheck ACTUALLY held for everyday spending, after the `Math.max(0, …)`
+	 * below clamps it to what exists. `livingExpenseReserve` is the REQUEST (the enabled items' raw sum,
+	 * with no cadence field on `LivingExpense` to scale it) and the two differ whenever the request is
+	 * bigger than the paycheck — at which point the overflow is absorbed silently and nothing downstream
+	 * could tell. Copy that states what is set aside must quote THIS, exactly as the rollover folds
+	 * `expenseReserveHeld` rather than the requested contribution: one rule, one owner.
+	 */
+	const livingExpenseHeld = roundMoney(
+		Math.min(livingExpenseReserve, Math.max(0, remaining - paidRequiredTotal))
+	);
+
 	remaining = roundMoney(
 		Math.max(0, remaining - paidRequiredTotal - livingExpenseReserve)
 	);
@@ -721,6 +733,9 @@ export function allocatePaycheck({
 		remaining: roundMoney(remaining),
 		totalRequired,
 		livingExpenseReserve,
+		/** ⛔ [L3-6] What was actually held for everyday spending — see the clamp above. Equals
+		 *  `livingExpenseReserve` except when the request outsizes the paycheck. */
+		livingExpenseHeld,
 		shortfall,
 		affordableUnpaidRequiredCount,
 		/** 3.8 — how much of the pot this cycle's obligations consumed. ⚠️ Deliberately NOT an

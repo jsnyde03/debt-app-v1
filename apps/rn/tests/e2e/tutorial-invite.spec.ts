@@ -536,6 +536,13 @@ test.describe('tutorial invitation + in-situ shell', () => {
     // depends on. This spec ASSERTED that sentence was visible, so the suite was pinning the defect in
     // place — which is why the audit had to find it instead.
     await expect(page.getByText(/you decide what to hold/)).toHaveCount(0);
+    // [T5.4 · 🎯 2026-08-18] The second claim retired from this same sentence — "your cushion kept at
+    // your line" stated an OUTCOME as what premium does. It survived T2's rewrite of the identical claim
+    // family in three other places because it is past tense about the demo, where it DID hold. But
+    // `holdsLine` exists because the top-up can be capped, and a free reader takes it as the general
+    // case. Asserted absent, because the last lie in this sentence was one the suite had pinned in place.
+    await expect(page.getByText(/cushion kept at your line/i)).toHaveCount(0);
+    await expect(page.getByText(/it decided how much to keep back for your cushion/)).toBeVisible();
 
     // …and it hands back to their OWN card, where the real invitation lives.
     await page.getByText('Finish', { exact: true }).click();

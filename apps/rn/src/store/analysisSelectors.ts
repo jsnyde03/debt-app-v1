@@ -153,6 +153,13 @@ export interface DebtAmortization {
   /** The monthly payment the schedule assumes: minimum + (if this is the focus debt) the extra. */
   monthlyPayment: number;
   isFocus: boolean;
+  /**
+   * The extra actually folded into `monthlyPayment` — 0 for every non-focus debt, AND for a focus debt
+   * whose steady-state plan has nothing spare. ⛔ [L3-4] Copy describing what the payment is MADE OF must
+   * branch on this, never on `isFocus`: being first in payoff order does not mean any extra reaches you,
+   * and the users for whom this is 0 are exactly the tight ones such a sentence would lie to.
+   */
+  monthlyExtra: number;
   /** First month of the schedule — row N's date = this + N months (for the sheet's month labels). */
   startDate: string;
 }
@@ -174,5 +181,12 @@ export function selectDebtAmortization(store: DebtStore, debtId: string): DebtAm
     apr: debt.type === 'bnpl' ? 0 : debt.apr,
     monthlyPayment,
   });
-  return { debt, schedule, monthlyPayment, isFocus, startDate: currentDate };
+  return {
+    debt,
+    schedule,
+    monthlyPayment,
+    isFocus,
+    monthlyExtra: isFocus ? monthlyExtra : 0,
+    startDate: currentDate,
+  };
 }

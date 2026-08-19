@@ -258,9 +258,20 @@ export function PaydayCaptureSheet({
                           {requiredDisplayLabel(row.item, row.view)}
                         </Text>
                         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+                          {/* ⛔ [L3-7] "ran" was a PRESUMPTION stated as an event, and this is the one
+                              screen whose job is to establish ground truth ("Tap to mark what you
+                              actually paid"). `presumedPaid` is only "the due date has passed and you
+                              have not flagged it failed" — a bounced autopay (NSF, expired card,
+                              cancelled mandate) satisfies it exactly. Every other surface hedges; this
+                              one asserted. ⚠️ The finding's SECOND fix — stop pre-seeding these rows as
+                              paid — is REFUTED and must not be built: unchecking an autopay row writes
+                              `autopayFailedThisCycle: true` (`applyRequiredReconciliation`), so an
+                              unseeded row would report every autopay as FAILED the moment the user
+                              adjusts an unrelated one. Seeded-paid IS the true state: no failure
+                              reported. */}
                           {row.view.isAutopay
                             ? row.view.presumedPaid
-                              ? 'Autopay · ran'
+                              ? 'Autopay · should have run'
                               : 'Autopay'
                             : row.view.dueDate
                               ? `Due ${row.view.dueDate}`

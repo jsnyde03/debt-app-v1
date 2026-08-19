@@ -26,6 +26,7 @@ export function SpokenForSheet({
   visible,
   onClose,
   everyday,
+  everydayHeld,
   billsReserve,
   offer,
   onManageEveryday,
@@ -34,13 +35,19 @@ export function SpokenForSheet({
   visible: boolean;
   onClose: () => void;
   everyday: number;
+  /** ⛔ [L3-6] What the paycheck could actually hold of `everyday`. This sheet partitions THIS PAYCHECK,
+   *  so every figure in it is an outcome — the request belongs on the manage screen, not here. */
+  everydayHeld: number;
   billsReserve: number;
   offer: ExpenseReserveOffer | null;
   onManageEveryday: () => void;
   onReserve: (amount: number) => void;
 }) {
   const c = useAppColors();
-  const total = everyday + billsReserve;
+  // ⛔ [L3-6] The held figure, not the request — "already accounted for" is a claim about money that
+  // exists, and an over-sized everyday reserve is absorbed by the engine with nothing to show for it.
+  const shortHeld = everydayHeld < everyday;
+  const total = everydayHeld + billsReserve;
 
   return (
     <AnimatedSheet visible={visible} onClose={onClose} title={PAYCHECK_SEGMENT.spokenFor}>
@@ -51,8 +58,12 @@ export function SpokenForSheet({
 
       <Row
         label={EVERYDAY_SPENDING_LABEL}
-        hint="Groceries, gas, fun money — reserved every paycheck."
-        amount={everyday}
+        hint={
+          shortHeld
+            ? `Groceries, gas, fun money — this paycheck holds ${formatCurrency(everydayHeld)} of the ${formatCurrency(everyday)} you set.`
+            : 'Groceries, gas, fun money — reserved every paycheck.'
+        }
+        amount={everydayHeld}
         onPress={onManageEveryday}
         actionLabel="Manage everyday spending"
       />

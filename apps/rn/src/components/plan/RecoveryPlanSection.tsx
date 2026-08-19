@@ -70,7 +70,17 @@ export function RecoveryPlanSection({
 
       {plan.safeToDefer.length > 0 ? (
         <View style={styles.deferBlock}>
-          <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>SAFE TO DEFER</Text>
+          {/* ⛔ [L1-15] "SAFE TO DEFER" called a LATE PAYMENT safe, to the user in the shortest cycle the
+              app models — the most vulnerable state it has. The app cannot see late fees, biller policy or
+              credit reporting, so "safe" is a claim about consequences it has no access to. The heading now
+              scopes the claim to the only thing this control actually does (move it in YOUR plan), and the
+              biller caveat is promoted out of the footnote below the button: a person reads the heading
+              before they read the disclaimer, so a heading that needs the disclaimer to be true is a
+              heading that arrives first and wrong. */}
+          <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>CAN WAIT IN YOUR PLAN</Text>
+          <Text style={[textStyles.caption, styles.deferCaveat, { color: c.text.tertiary }]}>
+            Moving these buys room in your plan — the biller still needs handling.
+          </Text>
           {plan.safeToDefer.map((item) => {
             const on = checked.has(item.id);
             return (
@@ -136,6 +146,8 @@ const styles = StyleSheet.create({
   wrap: { gap: spacing.md },
   eyebrow: { letterSpacing: 0.8, marginBottom: spacing.xs },
   deferBlock: { gap: spacing.sm },
+  // [L1-15] Sits directly under the eyebrow, which already carries its own bottom margin.
+  deferCaveat: { marginTop: -spacing.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   rowMain: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 },
   rowLabel: { flex: 1, gap: 1 },

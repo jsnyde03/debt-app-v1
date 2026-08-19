@@ -177,3 +177,39 @@ test.describe('payoff schedule route (3.7.A0)', () => {
     await expect(page.getByText('No schedule to show.')).toBeVisible();
   });
 });
+
+/**
+ * [T5 · L3-4] The composition caption — "what is this payment made of?"
+ *
+ * The caption used to branch on `isFocus`, which establishes only that this debt is FIRST IN PAYOFF
+ * ORDER. It says nothing about whether any extra reaches it, and `monthlyExtra` is legitimately $0
+ * whenever the steady-state plan has nothing spare after bills, minimums and the cushion floor. The
+ * focus debt of a tight plan therefore read "minimum + your extra" over a payment that was exactly the
+ * minimum — on the one screen whose entire job is to break the payment down.
+ *
+ * ⚠️ Both directions are asserted deliberately. A one-sided test passes an implementation that hardcodes
+ * "the minimum", which trades one false caption for another.
+ */
+test.describe('payoff schedule — the payment composition is true [L3-4]', () => {
+  /** Tight: $650 − $350 bill − $100 minimum − $200 cushion floor = $0 spare, so no extra is deployed. */
+  const TIGHT = { paycheck: { amount: '650' } };
+
+  test('a tight plan calls the focus debt payment what it is — the minimum', async ({ page }) => {
+    await seedStore(page, scenario(TIGHT));
+    await page.goto('/schedule/d0');
+    await expect(page.getByText('Payoff schedule')).toBeVisible();
+
+    await expect(page.getByText(/Paying .* — the minimum/)).toBeVisible();
+    // The claim under test: it must NOT credit the user with an extra the plan is not sending.
+    await expect(page.getByText(/your extra/)).toHaveCount(0);
+  });
+
+  test('a plan with real spare still says the extra is in there', async ({ page }) => {
+    // The default scenario has $1,350 spare, and one debt — so it is the focus and the extra reaches it.
+    await seedStore(page, scenario());
+    await page.goto('/schedule/d0');
+    await expect(page.getByText('Payoff schedule')).toBeVisible();
+
+    await expect(page.getByText(/Paying .* — minimum \+ your extra/)).toBeVisible();
+  });
+});

@@ -72,7 +72,12 @@ export function AmortizationView({ debtId }: { debtId: string | null }) {
             </Text>
           </View>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-            Paying {formatCurrency(amort.monthlyPayment)}/mo{amort.isFocus ? ' — minimum + your extra' : ' — the minimum'}
+            {/* ⛔ [L3-4] The gate is `monthlyExtra > 0`, NOT `isFocus`. `isFocus` only says this debt is
+                first in payoff order — a plan with nothing spare after bills and the cushion floor sends
+                extra of $0, and this line then claimed "your extra" over a payment that is exactly the
+                minimum, on the one screen whose job is to say what the payment is made of. */}
+            Paying {formatCurrency(amort.monthlyPayment)}/mo
+            {amort.monthlyExtra > 0 ? ' — minimum + your extra' : ' — the minimum'}
           </Text>
 
           <View style={[styles.colHead, { borderBottomColor: c.border.subtle }]}>

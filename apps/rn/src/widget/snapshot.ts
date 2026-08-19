@@ -48,10 +48,15 @@ function buildGuardianSpoken(store: DebtStore): string {
     if (brief.state === 'tight' && brief.safeMove) {
       return `This paycheck is a little tight. ${brief.safeMove}`;
     }
+    // ⛔ [L1-12] "Your cushion is safe" was the app's most absolute claim on its least contextual surface
+    // — and the SAME sentence already hedged its first clause ("looks clear"). It is derived from a
+    // prediction the Guardian grades itself on, and `GuardianScorecard` names the failure direction out
+    // loud: "Under-warned — said you'd hold, you dipped below". "Holds" is the present-tense read of the
+    // plan that `buildGuardianBrief` already ships under this same `state === 'clear'` gate.
     if (brief.deployedToDebt > 0) {
-      return `This paycheck looks clear. Your cushion is safe, with ${formatWhole(brief.deployedToDebt)} free to put toward debt.`;
+      return `This paycheck looks clear — your cushion holds, with ${formatWhole(brief.deployedToDebt)} free to put toward debt.`;
     }
-    return 'This paycheck looks clear. Your cushion is safe.';
+    return 'This paycheck looks clear — your cushion holds.';
   } catch {
     return '';
   }

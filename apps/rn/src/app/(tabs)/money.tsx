@@ -42,6 +42,7 @@ import { selectDebtBalanceView, buildEstimateCaption } from '@/store/balanceSele
 import { BILL_CATEGORY_LABEL, BILL_CATEGORY_ORDER, RECURRENCE_LABEL } from '@/store/obligationForm';
 import { looksLikeDebt } from '@/store/looksLikeDebt';
 import { selectPayoffView } from '@/store/payoffSelectors';
+import { selectAllocation } from '@/store/selectors';
 import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -852,9 +853,15 @@ function BillGroupHeader({
 /** The everyday-spending reserve — tappable straight to its management screen (also in More). */
 function LivingReserve({ total }: { total: number }) {
   const c = useAppColors();
+  // ⛔ [L3-6] `total` is what the user CONFIGURED, and this card is the door to configuring it, so the
+  // figure stays the configured one. The caption is the part that made a claim about outcome — and the
+  // engine clamps an over-sized reserve to what the paycheck holds (`Math.max(0, …)`), absorbing the
+  // overflow with no record against the reserve. So the caption asks the allocation, not the sum.
+  const held = useAppStore((s) => selectAllocation(s.store)?.livingExpenseHeld ?? 0);
   // 3.8.5 — the empty state is the entire point of removing the `> 0` gate: a door that only opens once
   // you are already inside is not a door.
   const empty = total <= 0;
+  const shortHeld = !empty && held < total;
   return (
     <Pressable
       onPress={() => router.push('/living-expenses')}
@@ -876,7 +883,11 @@ function LivingReserve({ total }: { total: number }) {
           </View>
         </View>
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-          {empty ? 'Groceries, gas, fun money — reserve it each paycheck' : 'Reserved each paycheck · tap to manage'}
+          {empty
+            ? 'Groceries, gas, fun money — reserve it each paycheck'
+            : shortHeld
+              ? `This paycheck holds ${formatCurrency(held)} of it · tap to manage`
+              : 'Reserved each paycheck · tap to manage'}
         </Text>
       </Card>
     </Pressable>

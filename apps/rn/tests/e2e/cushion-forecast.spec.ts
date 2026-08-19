@@ -46,3 +46,29 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(page.getByText('Left after essentials')).toBeVisible();
   });
 }
+
+/**
+ * [T5.3 · L1-13] The Guardian scorecard's DAY-ONE state — the branch every new user is in, and it had
+ * ZERO e2e coverage. That gap was surfaced by T4.3 (which renamed "floor" to "line" here, unverified) and
+ * filed to T9; T5.3 then renamed the claim itself, so deferring again would ship a SECOND unverified
+ * rename on the one state everybody starts in. `scenario()` seeds no calibration history, so
+ * `score.proven` is false and this is the branch that renders.
+ */
+test('the scorecard claims no record it has not earned [L1-13]', async ({ page }) => {
+  await seedStore(page, PLAN);
+  await page.goto('/cushion-forecast');
+
+  await expect(page.getByText('GUARDIAN ACCURACY')).toBeVisible();
+
+  // ⛔ The retired claim: "Protected since day one" / "protected from the start" asserted a RECORD under
+  // an ACCURACY heading, with n = 0 measurements — while this same component names the failure direction
+  // out loud once proven ("Under-warned — said you'd hold, you dipped below").
+  await expect(page.getByText(/Protected since day one/)).toHaveCount(0);
+  await expect(page.getByText(/protected from the start/)).toHaveCount(0);
+
+  // What IS true from day one is the ACTION — the floor auto-protect is confidence-independent.
+  await expect(page.getByText('Reserved since day one')).toBeVisible();
+  await expect(page.getByText(/set your line aside on every paycheck since the first one/)).toBeVisible();
+  // …and the record stays honestly unearned.
+  await expect(page.getByText(/track record once I.ve seen a few more paychecks/)).toBeVisible();
+});

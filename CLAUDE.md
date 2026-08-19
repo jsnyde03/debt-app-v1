@@ -29,9 +29,15 @@ LITERAL** — comments about a word outnumber uses of it, and identifiers share 
 ✅ **T4 left three instruments:** `@core/copy/vocabulary` (7 nouns + the cushion/safety-net disjointness
 rule, stated once where it had been prose in four files) · **`lint:glossary`** (5 retired words banned from
 copy positions, in CI, verified in both directions) · `glossary.test.ts`.
-⚠️ **Any copy pass from here runs the retired-string sweep** — every string you retire, grepped
-case-insensitively, no `head`, across `apps/rn/tests` **and** `apps/rn/.maestro` **and**
-`packages/core/**/test*.ts`. T4.4 needed **four rounds** to land because each of those was missed in turn.
+⛔ **Any copy pass from here runs the retired-string sweep — over the REPO ROOT, with NO directory list.**
+Every string you retire, grepped case-insensitively, no `head`, ripgrep (not `grep -rn`) from the root.
+⚠️ **The enumerated corpus list this rule used to carry was measurably wrong, twice, in T5 alone:** a
+`grep -rn` scoped to `apps packages scripts docs` returned **0** on a string that was live in the legacy
+`components/` tree at the ROOT *(which ships behind the public embed until 5.5.1)*, and the list omitted
+`apps/rn/src/**/*.test.ts` — the app's colocated suites — which **red the release gate** on a clause the
+sweep had just declared clean. T4.4 needed **four rounds** because each named corpus was missed in turn,
+and the fix recorded then was to enumerate them; **an enumerated list is only as good as its last
+omission** (the audit's own Law II). A root-scoped sweep has no list to be wrong.
 Phases 0–3 · 3.5 · 3.7 · 4 · **3.8** are closed, and the **whole-app audit has RUN**:
 7 lenses, **117 findings**, 12 refutations → [`docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md).
 

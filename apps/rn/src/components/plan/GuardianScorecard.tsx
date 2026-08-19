@@ -33,11 +33,20 @@ export function GuardianScorecard({ score }: { score: CalibrationScore }) {
         <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>GUARDIAN ACCURACY</Text>
         <View style={styles.head}>
           <AppIcon name="gpp-good" size={20} color={c.text.secondary} />
-          <Text style={[textStyles.title3, styles.headTitle, { color: c.text.primary }]}>Protected since day one</Text>
+        {/* ⛔ [L1-13] This branch is the n = 0 state, under an eyebrow reading GUARDIAN ACCURACY — so
+            "Protected since day one" claimed a RECORD from an absence of measurements, and this same
+            component names the failure direction twenty lines down: "Under-warned — said you'd hold, you
+            dipped below". What IS true from day one is the ACTION: the floor auto-protect is
+            confidence-independent, so the line gets reserved on every paycheck from the first. So the copy
+            now says what the Guardian DID, and lets the record stay unearned until it is earned.
+            ⚠️ The finding's own suggested wording ("I've been protecting your floor from day one") was NOT
+            taken: it reintroduces "floor" in the CUSHION sense, which T4/L1-14 retired in favour of
+            "line" — in this very file. A fix that undoes a closed finding is not a fix. */}
+          <Text style={[textStyles.title3, styles.headTitle, { color: c.text.primary }]}>Reserved since day one</Text>
         </View>
         <Text style={[textStyles.subhead, styles.body, { color: c.text.secondary }]}>
-          Your line&apos;s been protected from the start. I&apos;m still learning your patterns — I&apos;ll show my track
-          record once I&apos;ve seen a few more paychecks.
+          I&apos;ve set your line aside on every paycheck since the first one. I&apos;m still learning your
+          patterns — I&apos;ll show my track record once I&apos;ve seen a few more paychecks.
         </Text>
       </Card>
     );

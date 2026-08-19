@@ -648,6 +648,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
         visible={spokenForSheet && !!summary}
         onClose={() => setSpokenForSheet(false)}
         everyday={summary?.everydayReserve ?? 0}
+        everydayHeld={summary?.everydayHeld ?? 0}
         billsReserve={summary?.billsReserve ?? 0}
         offer={reserveOffer}
         onManageEveryday={() => {

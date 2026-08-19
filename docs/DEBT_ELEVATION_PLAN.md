@@ -13,14 +13,15 @@
 | | |
 |---|---|
 | **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **audit itself is ✅ RUN**. Remaining: **T1–T8** → **Phase 5** 🔒 → 5.5 → **Phase 6** |
-| **Gate** | `validate:release:rn` — **187 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push. ⭐ **+`lint:glossary` (T4.8)** — 5 retired words banned from copy positions |
+| **Gate** | `validate:release:rn` — **193 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push. ⭐ **+`lint:glossary` (T4.8)** — 6 retired strings banned from copy positions (T5 added one) |
 | **The audit** | ⭐ [`audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md) — **117 findings, 7 lenses, 8 refutations.** `findings/` per lens · `slices/` the verbatim input each lens got |
 | **Device pass** | **52 rows** + the 60 coverable-not-built, all Phase 6, human-ticked, non-gating. ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them. ⚠️ **[T3.2] +1 owed row:** force a storage fault → the retry screen renders AND the retry recovers. MMKV cannot be failed on web, so both new surfaces ship on unit assertions with no rendered proof |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 🎯 **2026-08-18: T1–T8 + T3B now. ⛔ [D37] every high+ closes this round; T9–T11 are SEQUENCED, not shelved.**
 ✅ **T1 · T2 · T3 · T3B CLOSED 2026-08-18**, full gate green (187 e2e · 10 embed · 0 error-context).
-✅ **T4 CLOSED 2026-08-18** — 11 findings, 7 commits, all on a green gate. ⛔ **5 of its 11 findings needed material correction and 3 would have shipped a WORSE app if built as written** — detail → log. ▶ **T5 (truth of claims) is ACTIVE**, then T6–T8.
+✅ **T4 CLOSED 2026-08-18** — 11 findings. ⛔ **5 of its 11 needed material correction; 3 would have shipped a WORSE app as written.**
+✅ **T5 CLOSED 2026-08-18** — 11 more, **gate green at 193 e2e**. ⛔ **The same profile held: L1-12 was 2 of 9 sites, half of L3-7 was refuted, and L1-13's suggested wording would have undone T4.** ▶ **T6 (numbers cohesion) is ACTIVE**, then T7–T8.
 
 ⛔ **2 of 3 agent-declared blockers did NOT survive refutation, and the tally is now 3 of 4** — L1-1
 downgraded, L3-5's mechanism wrong (severity right), L1-4 downgraded (free DOES get a Guardian). Plus
@@ -39,7 +40,7 @@ narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those pass
 | **T2** | **App Store / legal exposure** | ✅ **Done 2026-08-18.** L6-2 fixed: the shipped web sample named **Chase Freedom Unlimited** with fabricated balance/APR, in the bundle behind the public embed → fictional issuer; parser still prefills correctly (probed). 🎯-approved rewrites landed for **L1-2** (paywall sold "autopilot" the product disclaims twice elsewhere), **L1-3** (an unconditional cushion promise the next-but-one bullet contradicts) and **L1-4**. ⛔ **3 of 5 items closed as NOT defects** — L6-7 (public RC key, by design), L6-3 (`QA_TOOLS` deliberate, already a Phase-6 step), L1-4 downgraded (free DOES get a Guardian) |
 | **T3** | **Correctness** — concrete repro each | ✅ **Done 2026-08-18**, all 7 (L0-2/L5-9 · L5-2 · L5-1 · L3-3 · L5-5 · L5-6 · L5-14), **full gate green: 187 e2e** (+3), 29 new unit asserts, **every fix mutation-verified**, 2 new lint rules. ⛔ **Found while building: `Alert.alert` is a NO-OP in react-native-web** — 11 raw sites incl. the paywall behind the live embed. ⚡ **7 of 7 first-cut instruments were wrong in a way that would have PASSED** — detail → log |
 | **T4** | **The glossary** | L1-5/6/7/14/19/26/34 · L2-6/7/16 | ✅ **Done 2026-08-18.** `@core/copy/vocabulary` owns 7 nouns + the disjointness rule; `lint:glossary` bans 5 retired words in CI. **L1-6 reversed · L1-14 misclassified · L1-26 refuted · L2-6's mechanism false · L1-7 partly refuted.** +1 correctness defect found (T4.1b) |
-| **T5** | **Truth of claims** — promise vs delivery | L3-1/2/4/6/7 · L1-12/13/15/17/18. ⚠️ **[T2 after-scan] +1: `tutorialPath.ts:183`** — the finale's *"premium is what did the holding: your cushion kept at your line"*. Past-tense about the scripted demo, where it DID hold, so it is defensible — but it is the same claim family T2 rewrote in 3 places, and a free user reads it as what premium always does. **A judgment call, deliberately left for this step** | |
+| **T5** | **Truth of claims** | ✅ **Done 2026-08-18.** All 11 (L3-1/2/4/6/7 · L1-12/13/15/17/18 · 🎯's `tutorialPath` call), **full gate green: 193 e2e** (+6), 5 unit asserts, every fix mutation-verified, +1 `lint:glossary` rule. ⛔ **L1-12 was 2 of 9 sites** and **half of L3-7 was refuted** — building it as written would have reported every autopay FAILED. **L1-13's suggested wording would have undone T4/L1-14.** ⚠️ **The sweep rule itself was wrong twice** (missed the root-level legacy tree; omitted `apps/rn/src/**/*.test.ts`, which red the gate) → now root-scoped, no list. Detail → log |
 | **T6** | **Numbers cohesion** — one rule, applied once, then enforced | L4-1/3/4/5/6/7/8/9/10 · ⚠️ **[T3B] +L4-2** (nine money formatters, six hand-rolled inside Today's cards) — it was assigned nowhere; T6 owns it and it is high+, so [D37] requires it closes here. ⚠️ **[T4.1b] +4 sites**: `holdsLine`, the top-up gap, the brief's `discretionary` and `cushionStatus` all still read `selectDiscretionary` (the partition total) as spendable headroom. **Bounded** — the engine clamps the hold so `discretionary − held ≥ floor`, so they can only differ inside a narrow hysteresis window. **Measure before changing: it moves Guardian states** | |
 | **T7** | **Voice & persona** | L1-8/9/10/11/16 | |
 | **T8** | **Drift / one-owner** — 20 dangerous, two tables **already diverged in production** | L2 ×23 · L0-3. ⚠️ **[T3.1 after-scan] +1: the `T00:00:00` parse is hand-written at ~65 sites across 39 files.** NOT a defect (it is the correct local parse) but the same one-rule-many-owners shape — and `@core/utils/localDate`'s `parseLocalDate` now exists as its owner | |
@@ -52,33 +53,28 @@ narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those pass
 full gate green, and every fix that CAN be a lint rule IS one ([D31] — a finding that becomes a test is
 paid for once).
 
-### ▶ T5 — truth of claims _(ACTIVE · the only decomposed item on this doc)_
+### ▶ T6 — numbers cohesion _(ACTIVE · the only decomposed item on this doc)_
 
-**Findings:** L3-1/2/4/6/7 · L1-12/13/15/17/18, plus **+1 from T2's after-scan** — `tutorialPath.ts:183`,
-the finale's *"premium is what did the holding: your cushion kept at your line"*. Past-tense about the
-scripted demo, where it DID hold, so it is defensible — but it is the same claim family T2 rewrote in three
-places, and a free reader takes it as what premium always does. **A judgment call, deliberately left here.**
+**Findings:** L4-1/2/3/4/5/6/7/8/9/10. ⚠️ **L4-2 is high+ and was assigned nowhere** until T3B routed it
+here, so **[D37] requires it closes in this round.**
 
 | # | Step |
 |---|---|
-| **T5.1** | Before-scan each finding | ✅ **Done for L3-1/L3-2 2026-08-18.** Both premises hold (minor line drift only). ⭐ **L3-2's own "rate of drain is inferred, not measured" is now MEASURED**: on a persistently tight cycle (floor $200, discretionary $130) the cash reaching **either** goal rung is **$0** — the floor takes it all and `remaining` hits zero first. Also found: the goal rung needs `priority && type==='savings'`, which the finding did not state |
-| **T5.2** | The proxy claims — L3-1/2/4/6/7 | ▶ **2 of 5 done 2026-08-18.** ✅ **L3-1 + L3-2** — one sentence made two claims it could not keep. It named the **emergency fund** whatever the source was (measured: a store whose only goal is "Vacation" draws from it, `isEmergencyFund: false`), and promised a refill *"as your cushion rebuilds"* that a persistently tight user never gets. Now names the real pot via `topUpSourceName` and states a **condition**, not a promise. **Both pins mutation-verified independently** — two plants, because the runner stops at the first failure. ▶ **Remaining: L3-4 (major) · L3-6 · L3-7** |
-| **T5.3** | The absolutes — L1-12/13/15/17/18: "reserved"/"covered"/"held" asserted as completed facts · a zero-data state claiming a perfect record · "SAFE TO DEFER" against its own footnote · "always-current balances" · "never"/"always" |
-| **T5.4** | 🎯 **[DECISION] the tutorial finale's premium claim** (`tutorialPath.ts:183`) — recommend + ask |
-| **T5.5** | Retired-string sweep + full gate green; plan + log atomic |
+| **T6.1** | Before-scan all ten, against CURRENT code — the site lists especially. ⚠️ **Budget verification as the dominant cost:** T4 needed material correction on 5 of 11, T5 on 3 of 11. **Grep the finding ids with the ranges EXPANDED** |
+| **T6.2** | **State the ONE rounding/precision rule** and give it an owner in `@core` — this is the item's spine; every step below applies it rather than re-deciding it |
+| **T6.3** | **L4-1** — "Spoken for" renders `$486` on Today and `$486.34` in the sheet that legend opens. Both individually correct, which is why 184 tests and six lint gates could not see it |
+| **T6.4** | **L4-2** — **nine money formatters, six hand-rolled inside Today's cards.** Collapse onto the owner |
+| **T6.5** | **[T4.1b] the 4 `selectDiscretionary` sites** — `holdsLine`, the top-up gap, the brief's `discretionary` and `cushionStatus` all read the partition total as spendable headroom. **Bounded** (the engine clamps so `discretionary − held ≥ floor`), so they differ only inside a narrow hysteresis window. ⛔ **Measure before changing: it moves Guardian states** |
+| **T6.6** | The remaining L4 findings, each with its repro |
+| **T6.7** | Make the rule a **lint gate** ([D31] — a finding that becomes a test is paid for once) |
+| **T6.8** | Retired-string sweep + full gate green; plan + log atomic |
 
-⚠️ **Inherited from T4, both non-optional:** run the **retired-string sweep** — every string you retire,
-grepped case-insensitively with no `head`, across `apps/rn/tests` **and** `apps/rn/.maestro` **and**
-`packages/core/**/test*.ts` (T4.4 needed four rounds to land because each was missed in turn) — and expect
-**`lint:glossary`** to red on any retired synonym this pass reaches for.
+⛔ **The sweep is over the REPO ROOT, ripgrep, no `head`, no directory list** — see CLAUDE.md. T5 proved an
+enumerated corpus list wrong twice, once by red-gating on a file the sweep had just called clean.
 
 ⚠️ **Re-measure T8 at its own switch-in.** T3 collapsed several of its owners (`localDate`,
 `paydayFieldError`, `pickTopUpGoal`, `notify`) and **T4 collapsed four more into `@core/copy/vocabulary`**
 (L2-6/7/8/16), so the "23 L2 items" figure is stale twice over. Do not budget from it.
-
-⭐ **The audit paid for itself on work four hours old:** L4-1 — "Spoken for" renders `$486` on Today and
-`$486.34` in the sheet that legend opens. 184 tests and six lint gates could not see it, because both
-numbers are individually correct. It is the class 3.8's own after-scan filed, committed by its author.
 
 
 ---
@@ -303,10 +299,21 @@ round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is 
 minor/polish finding is still live and gets **re-evaluated once T1–T8 lands**, because several become
 cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped*. Detail → log.
 
+**Surfaced by T5 (2026-08-18):**
+- ⛔ **`DebtAmortization.isFocus` is now read by NOTHING** — L3-4 moved its one consumer to `monthlyExtra`.
+  An unread field sitting beside the must-read one is the exact trap that produced L3-4. → **T8**
+- ⚠️ **`testFullAppRegression.ts:63`'s conservation assert holds only when the reserve FITS** — with an
+  over-sized everyday reserve, `paycheckAmount − livingExpenseReserve` goes negative while the allocation
+  sum floors at 0. Not exercised today; `livingExpenseHeld` is the honest term. → **T6**
+- ⚠️ **`AmortizationView` calls a BNPL's `bnplMonthlyEquivalentMinimum` "the minimum"** — it is a monthly
+  *equivalent* of an installment minimum. Precision, not a lie. → **T6**
+- ⚠️ **T7 must re-check `buildSmartInsights` reachability before spending on L1-16** — L3-5 measured its
+  only non-test consumer as the legacy web app, which 5.5.1 deletes.
+
 **Surfaced by T4.3 (2026-08-18) — untested surfaces, both found by renaming them:**
-- ⚠️ **`GuardianScorecard`'s day-one state has ZERO e2e coverage** — "Protected since day one" and its body
-  are asserted nowhere, and that is **the state every new user is in**. Same shape as the
-  `guardian-reserve-amount`-not-in-`clear` trap already in CLAUDE.md. → **T9 / Phase 6**
+- ✅ **`GuardianScorecard`'s day-one state — CLOSED in T5.3, not deferred.** T4.3 renamed that copy
+  unverified and T5.3 was about to be the *second* unverified rename of the state every new user is in.
+  Now pinned in `cushion-forecast.spec.ts`, plant-verified, with both retired claims asserted absent.
 - ⚠️ **The timeline's cushion row label is unasserted** — `buildTimelineItems` pushes it and
   `TimelineLedger` renders it, but no spec reads it, so the T4.3 rename there is **unverified by the gate**.
   → fold a single assertion into **T4.9**

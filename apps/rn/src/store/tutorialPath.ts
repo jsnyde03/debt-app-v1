@@ -180,7 +180,16 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
       // beat that has to land — the hand-back, where a free user learns what they just saw was premium —
       // the least readable moment in the arc. Every one of the three behaviours survives; only the words
       // around them went. (Final polish still belongs to the whole-app wording audit.)
-      free: 'That was example money — premium is what did the holding: your cushion kept at your line, a little extra held while it learns your expenses, and a catch-up plan when a paycheck comes up short. Your own plan is next — your debts live in Money, your progress in Progress.',
+      // [T5.4 · 🎯 2026-08-18] "your cushion kept at your line" was an OUTCOME stated as what premium
+      // does. Past tense about the scripted demo, where it did hold — so it was defensible, and that is
+      // exactly how it survived T2's rewrite of the same claim family in three other places. But
+      // `holdsLine` exists because the top-up CAN be capped, and a free reader takes the clause as the
+      // general case. Now it names the DECISION, which is what premium actually owns and the register the
+      // Guardian card already ships ("works out how much to keep back to protect your cushion").
+      // ⚠️ Deliberately the first clause only: the hand-back is the beat where a free user learns what
+      // they just saw was premium, its readability was won by cutting this line from six dock lines, and
+      // a fuller rewrite spends the one thing this beat cannot afford.
+      free: 'That was example money — premium is what did the holding: it decided how much to keep back for your cushion, a little extra held while it learns your expenses, and a catch-up plan when a paycheck comes up short. Your own plan is next — your debts live in Money, your progress in Progress.',
     },
     target: 'guardian-card',
     state: 'clear',

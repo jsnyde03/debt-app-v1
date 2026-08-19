@@ -113,6 +113,116 @@ so the L3-2 assertions ordered behind it were proven by nothing. A second plant 
 and restored only the refill promise, which red on *"no unconditional refill promise"*. **An assertion
 sitting behind another in a throw-based runner is only ever proven by that other one.**
 
+### T5.2 — L3-4 · L3-6 · L3-7, and half of one finding was refuted
+
+**L3-4 (major) — the premises held exactly** (line drift 67→75 only). `AmortizationView` branched the
+payment-composition caption on `amort.isFocus`, which establishes only *first in payoff order*;
+`monthlyExtra` is legitimately `0` whenever the steady-state plan has nothing spare after bills, minimums
+and the cushion floor. So the focus debt of a tight plan read *"Paying $85/mo — minimum + your extra"* over
+a payment that was exactly the minimum — on the one screen whose whole job is to break the payment down.
+`DebtAmortization` now carries `monthlyExtra` and the caption branches on it. ⚠️ **The caption had ZERO
+coverage**; two e2e now pin BOTH directions, each mutation-verified with its own plant (gate → `isFocus`
+red the tight case; hardcoded *"the minimum"* red the funded case). ⭐ `isFocus` has exactly one consumer,
+so for once the site list was neither over- nor under-counted.
+
+**L3-6 — premises held; fixed the way the app already had a pattern for.** `livingExpenseReserve` is the
+REQUEST (the enabled items' raw sum — `LivingExpense` has no cadence field), and the engine clamps it:
+`remaining = Math.max(0, remaining − paidRequired − livingExpenseReserve)`. The overflow is absorbed with
+**nothing recorded against the reserve**, so both surfaces stated an outcome the paycheck never delivered.
+⭐ **The fix wrote itself off `expenseReserveHeld`**, whose own comment says *"what was ACTUALLY held, after
+the clamp… one rule, one owner"* — so `livingExpenseHeld` joins it, `PlanSummary` gains `everydayHeld`, and
+the two copy sites branch. The Money card keeps the CONFIGURED figure (it is the door to configuring it)
+and fixes only its caption; `SpokenForSheet` quotes the HELD figure throughout, because that sheet
+partitions this paycheck and every number in it is an outcome. 5 unit asserts + 3 e2e; engine plant and
+copy plant both verified, and **the control test (a paycheck that CAN hold it) correctly survived both** —
+which is what stops the honest caption becoming the permanent one.
+
+**L3-7 — the copy was real; the finding's SECOND fix is REFUTED and must not be built.** It proposed also
+not pre-seeding presumed-paid autopay rows. Measured: unchecking an autopay row writes
+`autopayFailedThisCycle: true` (`applyRequiredReconciliation`), i.e. *the user reported it failed* — so an
+unseeded row would report **every** autopay as failed the moment the user adjusted an unrelated one.
+Seeded-paid IS the true state. ⛔ **Two more of its stated mechanisms were wrong:** the seeding is not
+operative on the default path at all (`decisionsFrom(!hasAdjustedRequired)` marks every row paid
+regardless), and capture does **not** decrement balances — the rollover does, and
+`reconcileAutopayForRollover` presumes untouched autopay ran anyway. **The presumption is systemic, not
+created by this sheet.** What survives is exactly the copy: *"Autopay · ran"* asserted a presumption as an
+event on the one screen that exists to establish ground truth. → *"Autopay · should have run"*, banned in
+`lint:glossary` ([D31], now 6 banned), verified in both directions.
+
+### ⛔ The retired-string sweep found what the findings did not — three times
+
+**L3-7's site list named one file; there were two.** The legacy `components/PaydayCaptureSheet.tsx` carried
+the identical claim and ships behind the public embed until 5.5.1 (the same surface T2 fixed L6-2 in).
+**L1-15's sweep found `recovery.spec.ts` asserting `'SAFE TO DEFER'` — the suite was pinning the retired
+string in place**, exactly the T4.4 trap. **L1-12's found `LiveActivityQA`'s sample line diverging from the
+shipped one** the moment it changed, plus a device-QA-checklist row quoting it.
+
+⛔ **And the sweep rule itself is wrong twice over — both misses measured, one of them by a RED GATE.**
+
+1. A plain `grep -rn` scoped to `apps packages scripts docs` returned **0** and missed the legacy tree
+   entirely — it lives at the repo ROOT (`components/`). Ripgrep over the root is what caught it.
+2. ⛔ **The rule's corpus list omits `apps/rn/src/**/*.test.ts`** — the app's colocated suites. T5.4's
+   sweep ran clean and the gate then **red on `tutorialPath.test.ts`**, which asserted the retired clause.
+   The inherited rule names `apps/rn/tests`, `apps/rn/.maestro` and `packages/core/**/test*.ts`; the app's
+   own `*.test.ts` files do not live in any of those.
+
+**So the sweep is over the REPO ROOT, with no directory list at all, until 5.5.1 deletes the legacy tree.**
+⚡ Note the shape: T4.4 needed four rounds because each corpus was missed *in turn*, and the fix recorded
+then was to enumerate the corpora — but **an enumerated list is only as good as its last omission**, which
+is precisely the trap the audit's own Law II describes. A root-scoped sweep has no list to be wrong.
+
+⚠️ **The failing assertion was also a wording proxy that had done this before.** `tutorialPath.test.ts`
+asserted `/line/i` on the finale as a stand-in for "names the cushion-holding behaviour", and its own
+neighbouring comment records it red once already on a change that made the copy *more* honest. The noun for
+that concept has moved twice in this audit alone (floor → line → cushion, T4/L1-14), so the assertion now
+accepts either. **A proxy assertion pinned to one spelling pins the vocabulary work, not the claim.**
+
+### T5.3 — the absolutes: L1-12 was 2 of 9 sites
+
+**L1-12 is mostly REFUTED, and T4's own work is why.** `@core/copy/vocabulary` records that the surrounding
+sentences *"…reserved each paycheck"* deliberately **stay local to their screens** — T4 examined this exact
+phrasing and kept it. Site by site: the engine's `"Reserved for upcoming bills"` is **never rendered**
+(T4.2-measured; the file is glossary-EXEMPT) · Money's *"reserved for upcoming expenses"* was made **true by
+3.8**, which is the pot's real balance and carries its own e2e · `buildGuardianBrief`'s *"Your line's held"*
+sits under `state === 'clear'` and L3's own pass refuted its suspicion of it · `WindfallSheet` and the two
+plan-allocation captions describe an allocation order the engine genuinely applies. **What survived were
+the two absolutes on the two least contextual surfaces** — the widget's *"Your cushion is safe."* and the
+Live Activity's *"Cushion safe"* — where the same sentence already hedged its first clause (*"looks
+clear"*) and the app's own scorecard names the failure direction (*"Under-warned — said you'd hold, you
+dipped below"*). → *"your cushion holds"*, reusing the register the brief already ships under that gate.
+
+**L1-13 — real, but its suggested wording would have undone a closed finding.** It proposed *"I've been
+protecting your floor from day one"*; **"floor" in the cushion sense is what T4/L1-14 retired in favour of
+"line", in this very file.** The defect is real: the `n = 0` branch claimed a RECORD under a
+`GUARDIAN ACCURACY` eyebrow. What is true from day one is the ACTION (the floor auto-protect is
+confidence-independent), so it now says *"Reserved since day one"* / *"I've set your line aside on every
+paycheck since the first one"* and lets the record stay unearned.
+
+⭐ **Its coverage gap was closed instead of deferred again.** The backlog had filed *"`GuardianScorecard`'s
+day-one state has ZERO e2e coverage"* to T9 — but T4.3 renamed that copy unverified and **T5.3 was about to
+be the second unverified rename of the state every new user is in.** The e2e now pins the new claim and
+asserts both retired ones absent; plant-verified.
+
+**L1-15, L1-17, L1-18 — all real, all fixed.** L1-15 is the sharpest: *"SAFE TO DEFER"* called a late
+payment safe to the user in the shortest cycle the app models, while the footnote *below the button*
+conceded the biller still needs handling. The app cannot see late fees, biller policy or credit reporting,
+so "safe" is a claim about consequences it has no access to → *"CAN WAIT IN YOUR PLAN"*, **with the caveat
+promoted out of the footnote to sit under the heading** (a heading that needs a disclaimer to be true is a
+heading that arrives first and wrong). L1-17: the paywall sold *"Always-current balances"* while four app
+surfaces exist to say the balances are stale estimates. L1-18: four first-run absolutes, including
+*"a lighter paycheck never breaks it"* — false in precisely the case the field exists for.
+
+### T5.4 — 🎯's decision, and it was deliberately narrow
+
+🎯 **2026-08-18: swap the first clause only.** The finale's *"your cushion kept at your line"* stated an
+OUTCOME; it survived T2's rewrite of the identical claim family in three other places because it is past
+tense about the scripted demo, where it did hold. But `holdsLine` exists because the top-up can be capped,
+and a free reader takes it as the general case. → *"it decided how much to keep back for your cushion"* —
+the DECISION, which is what premium owns and the register `PaydayGuardianCard` already ships. ⚠️ **The
+fuller rewrite was rejected on cost:** this is the hand-back beat where a free user learns what they just
+saw was premium, and its readability was won by cutting the line down from six dock lines. A pin now
+asserts the retired clause absent — the last lie in this sentence was one the suite had pinned in place.
+
 ---
 
 ### T4 — WHOLE-ITEM after-scan (2026-08-18) · gate green, 187 e2e

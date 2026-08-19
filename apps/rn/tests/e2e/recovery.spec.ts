@@ -27,7 +27,7 @@ test.describe('§2.6 Recovery Plan — the shortfall card builds + applies the c
     await page.goto('/');
     await expect(page.getByText("This paycheck won't cover everything")).toBeVisible();
     await expect(page.getByText('COVER NOW')).toBeVisible();
-    await expect(page.getByText('SAFE TO DEFER')).toBeVisible();
+    await expect(page.getByText('CAN WAIT IN YOUR PLAN')).toBeVisible();
     await expect(page.getByText('Keep essential').first()).toBeVisible(); // the per-bill override affordance
     await expect(page.getByText(/covers your \$46 gap/)).toBeVisible(); // both suggested → gap covered
     // MF.6: the Recovery Plan owns the shortfall — the RequiredActions "cover these" block is suppressed.
@@ -49,6 +49,6 @@ test.describe('§2.6 Recovery Plan — the shortfall card builds + applies the c
     await expect(page.getByText("This paycheck won't cover everything")).toBeVisible();
     // ...and the state-aware invite pitches the recovery value, not "cushion at your line".
     await expect(page.getByText(/Premium builds you a catch-up plan/)).toBeVisible();
-    await expect(page.getByText('SAFE TO DEFER')).toHaveCount(0); // the built plan is premium
+    await expect(page.getByText('CAN WAIT IN YOUR PLAN')).toHaveCount(0); // the built plan is premium
   });
 });

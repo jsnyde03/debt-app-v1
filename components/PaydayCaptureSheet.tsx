@@ -271,9 +271,13 @@ export function PaydayCaptureSheet({
                                             {requiredDisplayLabel(row.item, row.view)}
                                         </span>
                                         <span className="payday-reconcile-meta">
+                                            {/* ⛔ [L3-7] The same presumption-as-event the RN sheet carried.
+                                                Found by the retired-string sweep, NOT by the finding, which
+                                                listed only the RN site — this tree dies at 5.5.1 but ships
+                                                behind the public embed until then. */}
                                             {row.view.isAutopay
                                                 ? row.view.presumedPaid
-                                                    ? "⚡ Autopay · ran"
+                                                    ? "⚡ Autopay · should have run"
                                                     : "⚡ Autopay"
                                                 : row.view.dueDate
                                                     ? `Due ${row.view.dueDate}`

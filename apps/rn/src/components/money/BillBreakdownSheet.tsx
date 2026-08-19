@@ -61,7 +61,10 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
         </Text>
       </View>
       <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-        Every bill spread evenly across your paychecks — so the lumpy ones never land as a surprise.
+        {/* ⛔ [L1-18] "never land as a surprise" — the app models `variable` bills itself ("Variable
+            amount (estimate)"), so a bill higher than the typed estimate can still surprise. Smoothing
+            makes that far less likely; it cannot make it impossible. */}
+        Every bill spread evenly across your paychecks — so the lumpy ones are far less likely to land as a surprise.
       </Text>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>

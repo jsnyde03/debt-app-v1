@@ -95,3 +95,59 @@ test('the Money hero shows $0 before anything is reserved — honestly', async (
   await expect(page.getByText('reserved for upcoming expenses')).toBeVisible();
   await expect(page.getByText(/recommended each paycheck/)).toBeVisible();
 });
+
+/**
+ * [T5 · L3-6] The EVERYDAY reserve is the same defect class 3.8 closed for upcoming expenses — one layer
+ * down and still open. `LivingExpense` carries no cadence field, so the enabled sum is taken as a
+ * per-paycheck figure verbatim, and the engine then clamps it to what exists
+ * (`remaining = Math.max(0, remaining − paidRequired − livingExpenseReserve)`). The overflow is absorbed
+ * with nothing recorded against the reserve, so both surfaces said "reserved each paycheck" over money
+ * the paycheck never held.
+ *
+ * ⚠️ The engine numbers are pinned in `expenseReserve.test.ts`. These exist because that unit test passes
+ * happily against a caption hardcoded back to "Reserved each paycheck" — only a screen can catch the copy.
+ */
+const overReserved = () =>
+  plan({
+    // $300 paycheck against $400 of enabled everyday spending → $100 of it cannot exist.
+    paycheck: { amount: '300', nextPaycheckDate: day(14), currentDate: day(0) },
+    requiredExpenses: [],
+    livingExpenses: [{ id: 'l1', name: 'Groceries', amount: 400, enabled: true }],
+  });
+
+test('an everyday reserve bigger than the paycheck says what was actually held [L3-6]', async ({ page }) => {
+  await seedStore(page, overReserved());
+  await page.goto('/money');
+  await page.getByText('Expenses', { exact: true }).click(); // Money opens on Debts
+
+  // The card is the door to CONFIGURING the reserve, so the $400 figure stays — it is what the user set.
+  await expect(page.getByText('Everyday spending reserve')).toBeVisible();
+  // The caption is the part that made a claim about an outcome, so it is the part that must be true.
+  await expect(page.getByText('This paycheck holds $300 of it · tap to manage')).toBeVisible();
+  await expect(page.getByText('Reserved each paycheck · tap to manage')).toHaveCount(0);
+});
+
+test('a reserve the paycheck CAN hold still reads as reserved [L3-6]', async ({ page }) => {
+  // The other direction: the honest caption must not become the permanent one.
+  await seedStore(page, plan());
+  await page.goto('/money');
+  await page.getByText('Expenses', { exact: true }).click();
+
+  await expect(page.getByText('Reserved each paycheck · tap to manage')).toBeVisible();
+  await expect(page.getByText(/This paycheck holds/)).toHaveCount(0);
+});
+
+test('"Spoken for" quotes what the paycheck held, not what was requested [L3-6]', async ({ page }) => {
+  await seedStore(page, overReserved());
+  await page.goto('/');
+
+  await page.getByRole('button', { name: /Spoken for/ }).click();
+  await expect(page.getByText('of this paycheck is already accounted for')).toBeVisible();
+
+  // This sheet partitions THIS PAYCHECK, so every figure in it is an outcome — the row shows the held
+  // $300 and the hint names the gap, rather than asserting $400 of a $300 paycheck is spoken for.
+  await expect(
+    page.getByText('Groceries, gas, fun money — this paycheck holds $300 of the $400 you set.'),
+  ).toBeVisible();
+  await expect(page.getByText('Groceries, gas, fun money — reserved every paycheck.')).toHaveCount(0);
+});

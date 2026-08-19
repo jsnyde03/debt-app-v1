@@ -10,7 +10,10 @@ import { OnboardingLayout, onboardingStyles as s } from './OnboardingLayout';
 // 3.3.6.3 — first-run leads with the uncopyable job (the payday cushion Guardian), not table stakes.
 // Honest across tiers: the free read genuinely tells you what's safe; premium automates the moves.
 const FEATURES: { icon: IconGlyph; title: string; body: string }[] = [
-  { icon: 'savings', title: 'A guardian for every payday', body: "Know what's safe to spend and what to pay down — your cushion, protected." },
+  // ⛔ [L1-18] "your cushion, protected" stated the outcome as done, in the first screen a user reads —
+  // which is where every later hedge has to walk back from. "Comes first" is the same reassurance and is
+  // literally true: the cushion floor is reserved ahead of any extra payoff, by the allocation order.
+  { icon: 'savings', title: 'A guardian for every payday', body: "Know what's safe to spend and what to pay down — your cushion comes first." },
   { icon: 'trending-down', title: 'A real debt-free date', body: 'Snowball or avalanche — see exactly when your last debt disappears.' },
   { icon: 'shopping-cart', title: 'Spend without the guilt', body: 'Check any purchase against your plan before you buy.' },
 ];
@@ -45,7 +48,10 @@ export function WelcomeStep({ onNext, onDemo }: { onNext: () => void; onDemo?: (
       <View style={s.copy}>
         <Text style={[textStyles.title1, { color: c.text.primary }]}>Will you make it to payday?</Text>
         <Text style={[textStyles.body, { color: c.text.secondary }]}>
-          Debt Planner watches your cushion every paycheck — so you always know what&apos;s safe to spend and what to pay down.
+          {/* ⛔ [L1-18] "you always know" — the watching is real and every-paycheck; the ALWAYS-knowing
+              depends on the user's data being current, which the app's own balance surfaces spend their
+              time asking for. Dropping one word costs the sentence nothing. */}
+          Debt Planner watches your cushion every paycheck — so you know what&apos;s safe to spend and what to pay down.
         </Text>
       </View>
       <View style={s.list}>
