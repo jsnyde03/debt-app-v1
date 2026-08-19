@@ -402,7 +402,29 @@ cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped
   **8th** first-cut instrument in this project that was wrong in a way that PASSED. → **T4.8** owns making
   this a rule.
 
-**⏳ T9–T11 — re-evaluate after T1–T8** *(high+ already pulled into the gate by [D37])*.
+### ⭐ The 62 findings [D37] did not cover — FILED TO PHASE 6 (🎯 2026-08-19)
+
+⛔ **The complete list is [`audits/2026-08-17-v1.7-audit-gate/REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md)**,
+**generated** from the findings files (`tsx scripts/check-audit-closure.ts --remaining`) — never hand-maintained.
+**41 minor · 21 polish.** Owned by **Phase 6's FINISH sweep**, alongside T12.
+
+⛔ **Why the generated list exists: 20 of the 62 were named in NO ledger at all** — not the plan, not the
+log, not the refutations — because the T9–T11 lists below are *partial enumerations* and `lint:closure`
+only ever gated blocker+major. **A sweep driven off T9–T11 would have silently dropped 20 findings**, 13 of
+them L2 drift. `lint:closure` now REPORTS the low tier every run (never gates it — an untraced minor is the
+expected state here, and a gate that reds on the expected state trains everyone to ignore it).
+
+⚡ **Do NOT read it as 62 edits.** Measured: of the 61 cross-file copy duplicates, **24 are generic chrome**
+(`Save`, `Cancel`, `Done`, `Add`, `Name`, `Back`) that repeat *by design* — "fixing" them is how L2-6's
+suggested fix would have made five dead strings load-bearing — and **5 more involve `LiveActivityQA.tsx`,
+which the `QA_TOOLS` flip deletes.** Several are already dead; more die with 5.5.1.
+
+🎯 **2026-08-19: filed, not built.** *"I'm leaning toward fixing them all before we go live but I'm not
+saying that for sure. We will evaluate where it stands prior to launch."* — so this is a **lean, not a
+commitment**, and the call is made on the frozen build. Rationale for deferring: polish decided against a
+moving app gets decided twice, and Phase 5 rewrites the data layer while 5.5.1 deletes a whole surface.
+
+**⏳ T9–T11 — the PARTIAL enumerations, superseded by `REMAINING.md`** *(kept for their reasoning only)*.
 - **T9 · a11y** — ⚠️ **L0-5 and L5-7 are MAJOR → in the gate now** (L1-8 was already T7's).
 - **T10 · dead code** — L0-4 (`ProgressRing`, `MilestonesRow`, **0 refs**) · L3-5 · L4-11
   (`formatDisplayAmount`) · L6-4/5 (`projectForecast`, `buildSmartInsights` — unsurfaced, and feeding 8
