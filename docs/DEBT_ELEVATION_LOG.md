@@ -89,6 +89,63 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## 5.8.2 — detection, and the fixture that was never a real backup (2026-08-19)
+
+`detectBackupFormat.ts` — **37 asserts, 4 plants, 4 reds.** tsc clean · `lint:rn` 0 errors · `test:app`
+ALL PASSED.
+
+### ⭐ The before-scan turned detection from sniffing into marker-reading
+
+I expected to discriminate v1.6 files by their *shape* — a flat `payCycle`/`amount` field soup. Reading
+`origin/v1.6-dev`'s `buildBackupData()` instead showed it stamps **`version: 1` + `exportedAt`** on every
+file, and `git log -S` confirms the field has been there since the function existed and never changed.
+**Every v1.6 backup ever written is self-identifying.** So all three recognised formats are read from a
+marker and none is inferred, which is a categorically stronger position than the heuristic I had planned.
+
+⚡ **The asymmetry that set every threshold:** a false negative annoys the user and their data survives; a
+false positive runs foreign JSON through `importStore` and the portfolio is gone. The two errors are not
+comparable, so the classifier refuses whenever unsure — the exact inversion of the pre-5.8 behaviour.
+
+### ⛔ The e2e fixture is NOT a real v1.6 backup, and pinning to it would have been the trap again
+
+`tests/e2e/fixtures/backup-import.json` is a hand-made subset missing **6 real fields**: `version`,
+`exportedAt`, `nextPaycheckDate`, **`livingExpenses`**, `lastSavedAt`, `cycleHistory`. `livingExpenses` is
+real user data — 3.8's entire subject.
+
+Had 5.8.3's adapter been pinned against it (which is what the plan said to do), the corpus would have been
+a shape **no user has ever had**, and the living-expenses path would have gone untested while reading as
+covered. This is `route-smoke.spec.ts` again — *a fixture chosen for convenience decides which defects a
+guard can see* — and this time it was caught before the guard was written rather than after it passed 10/10.
+
+✅ The test's v1.6 model is therefore built **field-for-field from `buildBackupData()`**, and the fixture is
+demoted to one extra case. ✅ Verified `mapLegacyStore` already maps all four missing *data* fields, so the
+adapter stays viable; only the two file-metadata fields need dropping-with-a-reason.
+
+⚠️ **Consequence, asserted rather than left implicit:** the fixture's shape is `unrecognised`, and that is
+**correct**. Loosening the marker requirement to admit it would mean bending the guard to fit a test
+artifact.
+
+### The near-miss set is where the value is
+
+Recognising our own formats is trivial. The assertions that matter are the refusals: a bare numeric
+`version` (far too common a key to be evidence — a `package.json` carries one), the v1.6 marker pair with
+no v1.6 data, Freedom's `cloudFormat` envelope, and **every partial v1.7 store** — `storeVersion` alone,
+`storeVersion` + `paycheck`, a stringly `storeVersion`, `paycheck` as an array. All refused.
+
+⭐ **The branches are disjoint, not order-dependent.** A v1.7 store wearing v1.6's marker pair still
+classifies as v1.7, because the v1.6 test bails on either v1.7 structural field. The answer does not depend
+on which check happens to run first — asserted, and plant B (removing that bail) reds exactly that case.
+
+### ▶ Carried into 5.8.3
+
+- **The router must parse ONCE.** `detectBackupText` and `parseBackup` each call `JSON.parse`; a router
+  that chains them would parse a user's file three times.
+- **`raw-v17` acceptance is a retire-later candidate** → filed to the deferred backlog. It is the weakest
+  marker, and since the RN app has never shipped, the only holders of such an export are TestFlight
+  testers. Not now — dropping it mid-phase breaks their files for no gain.
+
+---
+
 ## 5.8.1 — the envelope, and the fix is worse than the defect if you stop halfway (2026-08-19)
 
 `data/backup.ts`: `BACKUP_FORMAT` + a versioned envelope, `serializeBackup`, `parseBackup`,

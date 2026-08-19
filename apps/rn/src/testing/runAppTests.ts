@@ -149,6 +149,10 @@ async function main() {
   // only backup test in the repo is on the legacy tree, which 5.5.1 deletes.
   await import('../data/backup.test');
 
+  // 5.8.2 — format detection. All three recognised formats are self-identifying; everything else is
+  // refused. ⛔ The asymmetry is the design: a false negative annoys, a false positive destroys.
+  await import('../data/detectBackupFormat.test');
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');

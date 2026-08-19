@@ -112,14 +112,30 @@ re-encoding adapter — small, and it inherits 5.2's 50 asserts + the drop/unkno
 | # | Sub-step |
 |---|---|
 | **5.8.1** | ✅ **Done 2026-08-19.** `data/backup.ts` — a versioned, app-marked envelope with the store **NESTED** (spreading would let a future store field silently outrank an envelope field). `parseBackup` never throws; four tagged refusals (`not-json` · `not-a-backup` · `too-new` · `malformed`). ⛔ **Forward-incompatible backups are REFUSED, not downgraded** — `runMigrations` only moves forward, so a future store would restore *looking* successful, and the version can't be smuggled past by deleting the envelope's copy. **61 asserts · 4 plants / 4 reds**, each on its intended assertion. tsc + lint clean, `test:app` green |
-| **5.8.2** | **Format DETECTION on import, three recognised inputs:** the new envelope · a **raw v1.7 store** (today's clipboard export — already in testers' hands) · a **v1.6 backup file** → routed through the `mapLegacyStore` adapter. ⛔ **Anything unrecognised is REFUSED**, replacing today's accept-any-object |
-| **5.8.3** | **The v1.6 adapter** — flat object → prefixed/encoded map → `mapLegacyStore`. Pinned against the real fixture; asserts income/date/cycle actually LAND. ⛔ **RESCUE the fixture first** — `tests/e2e/fixtures/backup-import.json` is real v1.6 shape and lives in the tree **5.5.1 deletes** |
+| **5.8.2** | ✅ **Done 2026-08-19.** `detectBackupFormat.ts` — classification only, the router lands with 5.8.3 so no build ever *recognises* a format it cannot handle. All three are **self-identifying**; ⛔ everything else is `unrecognised`. The near-miss set is the real work: a bare `version`, the v1.6 marker pair with no v1.6 data, Freedom's envelope, and **every partial v1.7 store** are all refused, and the v1.6/v1.7 branches are **disjoint rather than order-dependent**. **37 asserts · 4 plants / 4 reds** |
+| **5.8.3** | **The v1.6 adapter + the ROUTER.** Flat object → prefixed/encoded map → `mapLegacyStore`. ⛔ Corpus built from **`buildBackupData()`**, not from `tests/e2e/fixtures/backup-import.json` — that fixture is a hand-made subset missing 6 real fields (incl. `livingExpenses`) and is **correctly `unrecognised`** by 5.8.2. Rescue it as one extra case before **5.5.1** deletes it. ⚠️ **The router parses ONCE** and passes the parsed value down — 5.8.2's `detectBackupText` and `parseBackup` each parse, and three parses of a user's file is two too many |
 | **5.8.4** | **Import UX: confirm before replace**, reporting what was recognised and what was dropped — `importStore` is destructive and currently fires on a single tap |
 | **5.8.5** | **The file picker** (`expo-document-picker`) + **share-sheet export** (`expo-sharing` + `expo-file-system`, both already deps), behind the platform split so web keeps the paste path |
 | **5.8.6** | **Gates:** plant-verified both directions · e2e over all three formats + a refusal · ⭐ **[D31]** — a `lint:` rule if the class admits one |
 
 ⚠️ **5.8.1–5.8.4 are the ship-blocker; 5.8.5 is the feature the step was named for.** Order is deliberate:
 building the picker first would ship the defect wider.
+
+⭐ **5.8.2's before-scan — v1.6 backups carry their OWN marker, so detection is not sniffing.**
+`origin/v1.6-dev`'s `buildBackupData()` emits **`version: 1` + `exportedAt`**, and `git log -S` shows the
+field has been there since the function was introduced and never changed — so **every v1.6 backup ever
+produced is self-identifying.** Detection keys on a marker in all three cases, not on guessing at a field
+soup. ⚡ Asymmetry that sets the bar: a false NEGATIVE annoys the user and their data survives; a false
+POSITIVE **destroys the portfolio**. When ambiguous, refuse.
+
+⛔ **And the e2e fixture is NOT a real v1.6 backup** — it is a hand-made subset, missing **6 of the real
+fields**: `version` · `exportedAt` · `nextPaycheckDate` · `livingExpenses` · `lastSavedAt` · `cycleHistory`.
+⚠️ **`livingExpenses` is real user data** (3.8's whole subject). Pinning 5.8.3 against this fixture would
+pin it against a shape **no user has** — this repo's own *"a fixture chosen for convenience decides which
+defects a guard can see"* (`route-smoke.spec.ts`), again. → **5.8.3 builds its corpus from
+`buildBackupData()`, and rescues the fixture only as one extra case.**
+✅ Verified viable: `mapLegacyStore` already maps **all four** of the missing *data* fields; only the two
+**file-metadata** fields need dropping-with-a-reason.
 
 ⛔⛔ **5.8.1's after-scan — HARD ORDERING CONSTRAINT, measured: do NOT wire the export to
 `serializeBackup` until 5.8.2's detection ships.** Today's importer is `JSON.parse` → `runMigrations` →
@@ -356,6 +372,14 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
 ---
 
 ## Deferred backlog
+
+- ⚠️ **Retire `raw-v17` import acceptance after the 5.11 cutover** *(5.8.2 after-scan, 2026-08-19)*. It is
+  the **weakest of the three markers** — `storeVersion` + `paycheck` + `debts` and no format id — and it
+  exists only because the pre-5.8 clipboard export has no envelope. ⚡ **The RN app has never shipped**, so
+  the only people holding a raw-v17 export are **TestFlight testers**, who can simply re-export after
+  updating. Once the envelope has been out for one release the branch is pure false-positive surface with
+  no population behind it. **Not now** — dropping it mid-Phase-5 would break testers' existing files for
+  no gain. Re-decide at Phase 6, with the tester window closed.
 
 ⛔ **[D37] EVERY high+ finding is remediated THIS round** *(🎯 2026-08-18: "We're fixing all in this
 round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is not "T1–T8 closed", it is
