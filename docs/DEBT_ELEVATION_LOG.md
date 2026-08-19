@@ -165,6 +165,26 @@ it from a blind one, and only the plant did.
 
 ---
 
+## Session close 2026-08-19 — ⭐ THE AUDIT GATE IS CLOSED
+
+| | |
+|---|---|
+| **Closed** | **T5 · T6 · T7 · T8** — 40 findings across four items, each on a green `validate:release:rn` |
+| **Exit** | ⭐ **[D37] SATISFIED: 55/55 high+** trace to a closure or a recorded refutation |
+| **Gate** | **196 e2e** (from 184) · 10 embed · 0 `error-context.md` · **+3 new lint gates**, 1 extended |
+| **Commits** | `80c3686` T5 · `1fdcc38` T6 · `beee440` T8 |
+| **Next** | **Phase 5 — data continuity + cutover** 🔒, then 5.5 → Phase 6 |
+
+⚠️ **T7 has no commit of its own.** Its gate ran green and the work went straight into T8's build, so
+`beee440` carries both. Nothing is missing; the message names T8 because that is where the boundary fell.
+
+⚠️ **Not done, and not hidden:** the device pass (52 rows + [T3.2]'s owed storage-fault row — two T3
+surfaces ship on unit assertions with **no rendered proof**) · T9–T11's minor/polish set, deliberately
+outside [D37] · 44 baselined hand-written local parses · dead `formatDisplayAmount`.
+
+⭐ **The phase-level after-scan is directly below and is the thing to read first next session** — five
+items' worth of measured pattern about how this audit's findings behave.
+
 ## ⭐ T1–T8 — the PHASE-level after-scan (2026-08-19)
 
 Run across the whole phase rather than per item, per the hard rule. What only shows up from here:
