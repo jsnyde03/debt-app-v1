@@ -280,11 +280,19 @@ irreversible, so 5.10's adversarial audit is the exit gate and nothing cuts over
 
 Acquisition-grade store presence · cold-start excellence · the device-QA gate · submit.
 
-⛔ **THE ORDER IS NOT ARBITRARY — three items gate the rest, and each is cheap now and expensive late:**
-**① `2.0.0`** ([D38]) before anything quotes a version · **② `6.C` cloud backup**, because the app is not
-FROZEN until it ships and the FINISH sweep's whole premise is a frozen app · **③ `6.C`'s two coupled
-decisions** ([a] mechanism, [b] the replacement for *"never leaves your device"*) before the **privacy
-audit**, which consumes both. ⚠️ Getting ② wrong buys a second FINISH sweep; getting ③ wrong turns a
+⛔ **TWO DIFFERENT LINES, and collapsing them is a real mistake I made and 🎯 corrected ([D39]):**
+**FEATURE LOCK** — after the **3.5 remainder**, no new capability in 2.0. **FREEZE** — later and stricter,
+every planned change landed. ⚠️ *"Frozen" is not a milestone you schedule; it is a state you converge to.*
+
+▶ **The order, and each item is cheap now and expensive late:**
+**① `2.0.0`** ([D38]) before anything quotes a version · **② `6.C` cloud backup** + **③ the 62 filed
+findings + T9–T11** ⚠️ *"the 3.5 remainder" = **T9–T11**, 🎯 — one set, not two* → **FEATURE LOCK** · then **④ the FINISH sweep**, which is *first
+among the AUDIT GATES*, not first in Phase 6 — its "runs on the FROZEN app" premise is only true once ①–③
+have landed · **⑤ privacy audit**, which consumes 6.C's two coupled decisions ([a] mechanism, [b] the
+replacement for *"never leaves your device"*) · **⑥ money lens** · **⑦ `QA_TOOLS` off** · **⑧ device pass**
+· **⑨ submit.**
+
+⚠️ Getting ④ early buys a **second** sweep and re-decides everything it touched; getting ⑤ early turns a
 settled decision into a discovery mid-audit.
 
 - **⭐ [AUDIT GATE] Pre-Release Best-in-Class FINISH sweep — runs FIRST, on the FROZEN app.**
@@ -686,6 +694,26 @@ measured hotspot)* · Dynamic-Type device QA.
 - **Executive "fix everything, no backlog" ✅ (2026-07-29/30)** — fold every audit finding now; only hardware
   verification waits for Phase 6. · **Legacy gate RETIRED ✅ (2026-07-24)**.
 - **3.8 is in v1.7 ✅ (2026-08-17)** — 🎯: *"definitely in 1.7."* The app contradicts its own number.
+- **[D39] ✅ (🎯 2026-08-19)** — **FEATURE LOCK ≠ FREEZE, and they happen at different times.**
+  🎯: *"v2.0 will be FEATURE locked after the 3.5 remainder. New findings will be for defects and
+  completeness/polish."*
+  - **Feature lock** lands after the **3.5 remainder** — no new capability in 2.0 past that point.
+  - **Freeze** is later and stricter: every planned change landed, nothing outstanding.
+  - ⚡ **What this buys, and it is the real value: the FINISH sweep's structural-gap charter now has a
+    DEFAULT ANSWER.** The charter was widened to ask *"is anything missing"* as well as *"is anything
+    wrong"* — which without a boundary is an invitation to grow the release indefinitely. After feature
+    lock the default for a structural gap is **defer to 2.1**, and only a **defect** or the
+    **completeness/polish of something already built** is admitted. That is what stops the sweep expanding
+    the freeze it exists to protect.
+  - ✅ **"The 3.5 remainder" = T9–T11** (🎯) — one set, not two. It is the minor/polish tier of the
+    2026-08-17 audit, deliberately held outside [D37]'s scope.
+  - ⛔ **BUT THE BOUNDARY IS A SET THAT HAS NOT BEEN RE-MEASURED**, and it now decides *when 2.0 stops
+    taking features*, so it is load-bearing. The plan already warns **"re-measure first — T4–T8 collapsed
+    many of their owners"**, so the live count is unknown and certainly not the original one. ⚡ And this
+    project's most expensive measured law is that **an enumerated list is always short** — five consecutive
+    audit items, every time in the same direction. ▶ **Regenerate T9–T11 from the findings file before
+    treating it as the feature-lock line**, exactly as the 62 Phase-6 findings were filed *"as a GENERATED
+    list, not a remembered one."*
 - **[D38] ✅ (🎯 2026-08-19)** — **this ships as `2.0.0`, not `1.7.x`.** 🎯: *"a very very very large version
   and I fear that leaving it as a point release will lead to unrealistic expectations in the future."*
   ⚡ **The argument is about the FUTURE, not this release: the version number is the baseline every later
