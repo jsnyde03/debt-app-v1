@@ -89,6 +89,35 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## 5.10.4 — interruption, and a third finding of the same shape as the first two (2026-08-19)
+
+**13 asserts, plant-verified.** The bridge's headline claim — *idempotence is structural, which gives
+one-shot AND interruption-safety AND never-overwrites for free* — had never been tested against an actual
+interruption, only re-read from its own docstring. It **holds**: the source is byte-identical afterwards,
+an interruption before the store write leaves storage empty so the next launch retries and succeeds, and
+one after it leaves the data persisted and correctly declines to re-run.
+
+### ⛔ Finding 3 — a failed quarantine was indistinguishable from nothing to quarantine
+
+`migrateFromLegacy` swallows a failed quarantine write, and **that trade is right**: losing the quarantine
+is bad, losing the migration is worse. But the outcome reported `quarantined: 0` either way — so a write
+that was refused by a full disk read exactly like a user who had no corrupt bytes at all.
+
+⚡ **This is the third finding this item, and all three are one shape: a failure that renders as an
+ordinary, unremarkable state.** The bridge that threw and was caught looked like a fresh install. The
+`null` balance looked like a paid-off debt. The failed quarantine looked like an empty one. ⛔ **And this
+project already named the pattern** — 5.1b.3 drew exactly this distinction one layer up (*"`keys=0
+truncated=no` is a clean install; `keys=0 truncated=yes` is a failed search. Same number, opposite
+findings"*) and the layer below it did not inherit the lesson.
+
+✅ `quarantineFailed` added to the outcome. Plant-verified: removing the counter reds the distinguishability
+assertion specifically.
+
+⚠️ The bytes are not actually lost either way — the source is never cleaned up — which is why this is a
+reporting fix rather than a data fix. Asserted, so the reasoning is checkable rather than remembered.
+
+---
+
 ## 5.10 GREEN — two real defects, and every fix was caught being wrong first (2026-08-19)
 
 **482 generated cases × 2 real doors × 8 invariants + the differential oracle. 0 violations.** Registered

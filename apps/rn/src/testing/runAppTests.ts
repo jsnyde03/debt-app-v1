@@ -161,6 +161,10 @@ async function main() {
   // differential oracle. ⛔ Gates: a regression here is data loss on upgrade.
   await (await import('../data/migrationAudit/audit.test')).default();
 
+  // 5.10.4 — interruption + the quarantine's last copy. The bridge's structural-idempotence claim had
+  // never been tested against an actual interruption.
+  await (await import('../data/migrationAudit/interruption.test')).default();
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');

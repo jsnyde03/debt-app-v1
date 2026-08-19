@@ -37,6 +37,13 @@ export interface LegacyMigrationOutcome {
   map: LegacyMapReport | null;
   /** v1.6 quarantine entries carried into RN's quarantine. */
   quarantined: number;
+  /**
+   * ⛔ 5.10.4 — quarantine writes that FAILED. Without it, a failed write and "there was nothing to
+   * quarantine" both reported `quarantined: 0` — the same number, opposite findings, which is precisely
+   * the ambiguity 5.1b.3 drew out one layer up (`keys=0 truncated=yes` vs `no`). Losing the quarantine
+   * is still not fatal; being unable to SAY it was lost is what needed fixing.
+   */
+  quarantineFailed: number;
 }
 
 const skipped = (reason: string, read: LegacyReadReport | null = null): LegacyMigrationOutcome => ({
@@ -45,6 +52,7 @@ const skipped = (reason: string, read: LegacyReadReport | null = null): LegacyMi
   read,
   map: null,
   quarantined: 0,
+  quarantineFailed: 0,
 });
 
 /**
@@ -96,12 +104,14 @@ export async function migrateFromLegacy(
   // surviving copy of that data (5.1a's after-scan) — and a crash after the store write but before this
   // would leave the bridge permanently skipped, taking those bytes with it.
   let quarantined = 0;
+  let quarantineFailed = 0;
   for (const [key, raw] of Object.entries(quarantine)) {
     try {
       await adapter.quarantine?.(raw, `v1.6-${key}`);
       quarantined++;
     } catch (error) {
       // Not fatal: losing the quarantine is bad, losing the migration is worse.
+      quarantineFailed++;
       reportError(error, { seam: 'legacy-bridge' });
     }
   }
@@ -126,7 +136,7 @@ export async function migrateFromLegacy(
     };
   }
   return {
-    outcome: { migrated: true, reason: 'migrated', read: report, map, quarantined },
+    outcome: { migrated: true, reason: 'migrated', read: report, map, quarantined, quarantineFailed },
     store,
   };
 }
