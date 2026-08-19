@@ -50,7 +50,26 @@ export default async function run() {
     assert(s.debts.length === 3, '3 debts land');
     assert(s.debts.find((d) => d.name === 'Car loan')?.balance === 11380, 'the car loan lands at 11380');
     assert(s.requiredExpenses.length === 4, '4 bills land');
+    assert(s.requiredExpenses.find((e) => e.name === 'Rent')?.amount === 1465, '…the rent lands at 1465');
     assert(s.livingExpenses.length === 2, '2 living expenses land');
+
+    // ⛔ FIELD VALUES, not counts — this is the assertion that was missing. 🎯 found the goal rendering as
+    // `undefined` on a real device while `goals.length === 1` passed happily: an array with one element
+    // satisfies a count while every field inside it is wrong. Three shapes in this fixture were invented
+    // rather than read, and a count could not see any of them.
+    const goal = s.goals[0];
+    assert(goal?.name === 'Emergency fund', 'the goal lands with its name');
+    assert(goal?.targetAmount === 1500, '⛔ …and `targetAmount` — NOT an invented `target`');
+    assert(goal?.currentAmount === 385, '⛔ …and `currentAmount` — NOT an invented `saved`');
+    assert(goal?.type === 'emergency', '…and its type');
+
+    // The other two shapes the same mistake reached, now pinned so they cannot silently regress.
+    assert(s.livingExpenses.every((e) => typeof e.enabled === 'boolean'), 'every living expense carries `enabled`');
+    assert(s.cycleHistory.length === 2, '2 cycle snapshots land');
+    assert(
+      typeof s.cycleHistory[0]?.cycleEndDate === 'string' && typeof s.cycleHistory[0]?.totalPaidThisCycle === 'number',
+      '…in the real `PayCycleSnapshot` shape, not an invented one',
+    );
     assert(s.dataRepairs.length === 0, 'a HEALTHY file reports zero repairs');
     assert(JSON.stringify(viaFile.store) === JSON.stringify(viaKeys.store), 'both doors agree on the seed file');
   }

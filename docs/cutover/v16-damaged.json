@@ -46,12 +46,14 @@
     {
       "id": "cl-food",
       "name": "Groceries",
-      "amount": 483
+      "amount": 483,
+      "enabled": true
     },
     {
       "id": "cl-gas",
       "name": "Fuel",
-      "amount": 176
+      "amount": 176,
+      "enabled": true
     }
   ],
   "debts": [
@@ -99,8 +101,9 @@
     {
       "id": "cg-ef",
       "name": "Emergency fund",
-      "target": 1500,
-      "saved": 385
+      "targetAmount": 1500,
+      "currentAmount": 385,
+      "type": "emergency"
     }
   ],
   "completedRecommendedActions": [],
@@ -108,16 +111,16 @@
   "lastSavedAt": "2026-08-19T11:58:00.000Z",
   "cycleHistory": [
     {
-      "cycleStart": "2026-07-17",
-      "cycleEnd": "2026-07-30",
-      "income": 3247,
-      "totalPaid": 498
+      "cycleEndDate": "2026-07-30",
+      "totalDebtBalance": 17284,
+      "totalPaidThisCycle": 498,
+      "allRequiredMet": true
     },
     {
-      "cycleStart": "2026-07-31",
-      "cycleEnd": "2026-08-13",
-      "income": 3247,
-      "totalPaid": 523
+      "cycleEndDate": "2026-08-13",
+      "totalDebtBalance": 16761,
+      "totalPaidThisCycle": 523,
+      "allRequiredMet": true
     }
   ]
 }

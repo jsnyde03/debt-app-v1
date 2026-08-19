@@ -10,6 +10,17 @@
  * match" rather than "does this look plausible". A portfolio of round numbers cannot tell a successful
  * migration from a default.
  *
+ * ⛔ **EVERY FIELD NAME HERE IS READ FROM `origin/v1.6-dev:lib/storage/debtPlannerStorage.ts` AND
+ * `lib/types/livingExpense.ts`, NEVER INVENTED.** The first cut invented three of them — `goals` used
+ * `target`/`saved` instead of `targetAmount`/`currentAmount`/`type`, `cycleHistory` invented four fields
+ * of `PayCycleSnapshot`, and `livingExpenses` omitted the required `enabled`. 🎯 found the first on a real
+ * device, where the goal rendered as a row of `undefined`.
+ *
+ * ⚡ **The tests did not catch it because they asserted `goals.length === 1` — a COUNT.** An array with one
+ * element passes that while every field inside it is wrong. This is the same defect class the audit itself
+ * documents (*"asserting a field equals the default proves nothing"*), committed in the fixture written to
+ * verify the audit. The assertions in `cutoverFiles.test.ts` now check field VALUES.
+ *
  * Usage: npx tsx scripts/make-cutover-backups.ts
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -36,22 +47,29 @@ function v16Populated() {
       { id: 'ce-phone', name: 'Phone', amount: 71, dueDate: '2026-09-12', recurrence: 'monthly', category: 'utilities' },
       { id: 'ce-ins', name: 'Car insurance', amount: 592, dueDate: '2026-11-02', recurrence: 'quarterly', category: 'insurance' },
     ],
+    // ⛔ `enabled` is REQUIRED (`origin/v1.6-dev:lib/types/livingExpense.ts`) — omitting it was one of the
+    // three shapes this file invented rather than read. See the header note.
     livingExpenses: [
-      { id: 'cl-food', name: 'Groceries', amount: 483 },
-      { id: 'cl-gas', name: 'Fuel', amount: 176 },
+      { id: 'cl-food', name: 'Groceries', amount: 483, enabled: true },
+      { id: 'cl-gas', name: 'Fuel', amount: 176, enabled: true },
     ],
     debts: [
       { id: 'cd-visa', name: 'Visa', balance: 4271, minimumPayment: 96, apr: 22.74, dueDate: '2026-09-04', type: 'debt', recurrence: 'monthly', isAutopay: false, isPaidThisCycle: false, minimumPaidThisCycle: false },
       { id: 'cd-car', name: 'Car loan', balance: 11380, minimumPayment: 327, apr: 6.49, dueDate: '2026-09-15', type: 'debt', recurrence: 'monthly', isAutopay: true, isPaidThisCycle: false, minimumPaidThisCycle: false },
       { id: 'cd-med', name: 'Dental', balance: 843, minimumPayment: 75, apr: 0, dueDate: '2026-09-20', type: 'debt', recurrence: 'monthly', isAutopay: false, isPaidThisCycle: false, minimumPaidThisCycle: false },
     ],
-    goals: [{ id: 'cg-ef', name: 'Emergency fund', target: 1500, saved: 385 }],
+    // ⛔ `targetAmount`/`currentAmount`/`type` — NOT `target`/`saved`. 🎯 caught this on a real device:
+    // the goal imported as a row of `undefined`, because an array with one element satisfies a
+    // length assertion while every field inside it is wrong.
+    goals: [{ id: 'cg-ef', name: 'Emergency fund', targetAmount: 1500, currentAmount: 385, type: 'emergency' }],
     completedRecommendedActions: [],
     payoffStrategy: 'avalanche',
     lastSavedAt: '2026-08-19T11:58:00.000Z',
+    // ⛔ `PayCycleSnapshot` = `cycleEndDate`/`totalDebtBalance`/`totalPaidThisCycle` — the third invented
+    // shape, and the one nobody had reached yet. It would have broken History the same silent way.
     cycleHistory: [
-      { cycleStart: '2026-07-17', cycleEnd: '2026-07-30', income: 3247, totalPaid: 498 },
-      { cycleStart: '2026-07-31', cycleEnd: '2026-08-13', income: 3247, totalPaid: 523 },
+      { cycleEndDate: '2026-07-30', totalDebtBalance: 17284, totalPaidThisCycle: 498, allRequiredMet: true },
+      { cycleEndDate: '2026-08-13', totalDebtBalance: 16761, totalPaidThisCycle: 523, allRequiredMet: true },
     ],
   };
 }

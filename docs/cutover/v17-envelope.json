@@ -95,20 +95,23 @@
       {
         "id": "cl-food",
         "name": "Groceries",
-        "amount": 483
+        "amount": 483,
+        "enabled": true
       },
       {
         "id": "cl-gas",
         "name": "Fuel",
-        "amount": 176
+        "amount": 176,
+        "enabled": true
       }
     ],
     "goals": [
       {
         "id": "cg-ef",
         "name": "Emergency fund",
-        "target": 1500,
-        "saved": 385
+        "targetAmount": 1500,
+        "currentAmount": 385,
+        "type": "emergency"
       }
     ],
     "prefs": {

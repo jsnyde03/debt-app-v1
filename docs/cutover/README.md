@@ -24,8 +24,9 @@ default** — that is exactly how the pre-5.8 importer looked like it worked whi
 | Pay cycle | **biweekly** |
 | Debts | **3** — Visa **4271** · Car loan **11380** · Dental **843** |
 | Bills | **4** — Rent 1465 · Electric 138 · Phone 71 · Car insurance 592 (quarterly) |
-| Living expenses | **2** — Groceries 483 · Fuel 176 |
-| Goal | Emergency fund, target 1500 |
+| Living expenses | **2** — Groceries 483 · Fuel 176 (both `enabled`) |
+| History | **2** cycle snapshots — ending 2026-07-30 and 2026-08-13 |
+| Goal | Emergency fund — **target 1500, saved 385**, type `emergency` ⚠️ if this row shows `undefined`, the fixture shape is wrong, not the migration |
 | Strategy | **avalanche** ⚠️ not the default — if it reads snowball, it was defaulted, not migrated |
 | Repairs reported | **none** |
 
