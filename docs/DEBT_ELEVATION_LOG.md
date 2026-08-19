@@ -4,6 +4,66 @@
 
 ---
 
+## Session close 2026-08-18 (evening) — T4 CLOSED, T5 opened
+
+**Eight commits, every one on a green `validate:release:rn`** (187 e2e · 10 embed · tsc clean on both
+trees · lint + strings + **glossary** + maestro + 83 lane checks · zero `error-context.md`).
+
+| | |
+|---|---|
+| **Closed** | **T4 — the glossary**, all 11 findings (`f6b651e` · `4afec3c` · `7b90a2b` · `c049c8a` · `3783e30` · `b94c3bf` · `46874b8`) |
+| **Opened** | **T5 — truth of claims**: T5.1 done, T5.2 at 2 of 5 (`7bbd11c`) |
+| **Next** | **L3-4 (major) · L3-6 · L3-7**, then T5.3's five L1 findings, then 🎯's decision at **T5.4** |
+| **Built** | `@core/copy/vocabulary` (7 nouns + the disjointness rule) · `lint:glossary` in CI · `glossary.test.ts` · `selectSpendable` |
+
+### ⛔ The result worth carrying: the audit is reliable about WHERE, not WHAT
+
+**Of T4's 11 findings, 5 needed material correction, and 3 would have shipped a WORSE app built as
+written.** L1-6's fix was backwards (against **[D22d]**, already recorded in the code) · L1-14 filed an
+*income*-sense label under the cushion sense · L1-26 was refuted (three values, not one) · L2-6's mechanism
+was false (the engine's allocation labels are never rendered) · L1-7 was partly refuted. Two more
+**undercounted** their own site lists. This is the same profile Phase 3.7 measured for pre-authored ledger
+items, now confirmed on a second, independent corpus. **T5's first two findings (L3-1, L3-2) were both
+clean** — so the rate is not universal, which is exactly why each one has to be checked rather than
+assumed.
+
+⚡ **Every cheap proxy for scope overstated it, without exception:** `floor` grepped **548×** for ~3
+rendered sites · "the Guardian" **112×** for 5 · L1-5 listed 9 sites, 3 were real · and the plan's budgeted
+"129 assertions across 36 specs" was *distinct literals* against **319 real edit sites**. **The honest unit
+is a rendered string literal** — comments about a word outnumber uses of it, and identifiers share its
+spelling.
+
+### ⭐ [D31] stopped being an assertion and became evidence
+
+**T1's `lint:copy` red the release gate on T4.4 — catching T4.4 CREATING a three-file duplicate at the
+moment it retired another.** First time in this audit that a gate built by an earlier step caught a later
+step's regression. Two more did the same: `check-maestro-selectors` caught copy **no web test can see**,
+and `tsc` caught a blanket replace turning a local variable into `const paid off =`. ⚠️ **The unit suites,
+both typechecks and 45 targeted e2e were all green while three of T4.4's four defects were still live** —
+only the copy gate, the native-selector gate and the full suite could see them.
+
+### ⛔ And two more of my own instruments were wrong in a way that PASSED
+
+Running total for this project: **10 of 10 measured.**
+- T4.0's copy pin was written as a `\b…\b` regex through a heredoc→node→file chain and landed as literal
+  **backspace bytes** — it could never match, and the suite stayed green with the defect restored.
+- T4.5's `getByText('Crunch')` pin passed **with "Crunch" planted back**, because that spec's fixture has
+  no under-the-line cycle so no `at-risk` band ever renders. **The false guard was deleted, not kept** — a
+  green assertion that cannot fail is worse than none, because it reads as coverage.
+
+⚠️ **A third shape, new:** an assertion ordered **behind** another in a throw-based runner is proven by
+nothing. T5.2 needed **two** plants — the first only ever exercised the first assertion.
+
+### ⚠️ Owed, and filed
+
+- **`GuardianScorecard`'s day-one state has ZERO e2e coverage** — the state every new user is in.
+- **The timeline's cushion row label is unasserted**, so T4.3's rename there is unverified by the gate.
+- **The paywall lead has no e2e at all**, despite sitting behind the live public embed.
+- **T8's scope is stale twice over** — T3 collapsed four owners, T4 collapsed four more into the
+  vocabulary. **Re-measure at its switch-in; do not budget from "23 L2 items".**
+
+---
+
 ## T5 — truth of claims · T5.1 + L3-1/L3-2 (2026-08-18)
 
 ### T5.1 — the before-scan, and the measurement L3-2 asked for

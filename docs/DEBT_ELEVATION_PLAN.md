@@ -13,7 +13,7 @@
 | | |
 |---|---|
 | **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **audit itself is ✅ RUN**. Remaining: **T1–T8** → **Phase 5** 🔒 → 5.5 → **Phase 6** |
-| **Gate** | `validate:release:rn` — **187 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push |
+| **Gate** | `validate:release:rn` — **187 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push. ⭐ **+`lint:glossary` (T4.8)** — 5 retired words banned from copy positions |
 | **The audit** | ⭐ [`audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md) — **117 findings, 7 lenses, 8 refutations.** `findings/` per lens · `slices/` the verbatim input each lens got |
 | **Device pass** | **52 rows** + the 60 coverable-not-built, all Phase 6, human-ticked, non-gating. ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them. ⚠️ **[T3.2] +1 owed row:** force a storage fault → the retry screen renders AND the retry recovers. MMKV cannot be failed on web, so both new surfaces ship on unit assertions with no rendered proof |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
