@@ -120,6 +120,11 @@ async function main() {
   await import('../store/coachMarks.test');
   await import('../store/looksLikeDebt.test');
 
+  // 5.1a — the WebKit localStorage decode, the half of the v1.6 migration bridge that is provable off
+  // a device. Every failure here is silent AND irreversible: a wrong encoding sniff migrates mojibake
+  // over someone's real portfolio, and the one place it would surface is a real upgraded phone.
+  await import('../data/legacyBridge/webkitLocalStorage.test');
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');

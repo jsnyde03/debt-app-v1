@@ -52,7 +52,8 @@ nothing downstream is budgeted until it answers.**
 
 | # | Step | State |
 |---|---|---|
-| **5.1** | **[SPIKE] Prove the RN app can read the WKWebView `localStorage`.** Decide the mechanism (hidden WebView + postMessage · native container read · a final v1.6.x export-on-launch) and prove it on a **real upgraded device**. ⛔ Every step below is downstream of its verdict | ▶ **ACTIVE** |
+| **5.1a** | **The WebKit `localStorage` decode** — the half provable off-device | ✅ **Done 2026-08-19.** `webkitLocalStorage.ts`: encoding sniff, table decode, and the store picked **on contents, never on path** (WebKit's layout is private and has changed twice). **36 asserts** incl. a **real `node:sqlite` round-trip** through WebKit's own `ItemTable` shape; **4 plants, 4 reds**; typecheck + lint clean |
+| **5.1b** | **[SPIKE, device] Prove the files are findable and readable on a real upgraded phone.** ⛔ Unmeasurable on Windows — **needs a native build, so it BATCHES** with the rest of Phase 5's device-owed work. Mechanism fallback if it comes back empty: a native `WKURLSchemeHandler` + off-screen WKWebView | ▶ **ACTIVE** — author the probe |
 | **5.2** | **The legacy → RN key mapping**, a pure function over the measured **31 keys** × `schemaVersion` **0/1/2**, honouring `migrateState`'s `originalBalance` backfill. Unit-tested against real v1.6 blobs | |
 | **5.3** | **The bridge** — one-shot, idempotent, **non-destructive** (legacy keys survive until the RN blob verifies), quarantine on failure, visible recovery path | |
 | **5.4** | **Mis-filed-obligation sweep over MIGRATED data** — wire `looksLikeDebt()` into the bridge output so v1.6's "Credit Card Payment"/"Loan Payment" bill presets surface as debts. **Largest affected population in the app** | |
@@ -286,6 +287,19 @@ round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is 
 ⛔ **NOTHING IS PARKED** *(🎯 2026-08-18)*. **T9–T11 are SEQUENCED, not shelved** — every remaining
 minor/polish finding is still live and gets **re-evaluated once T1–T8 lands**, because several become
 cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped*. Detail → log.
+
+**Surfaced by 5.1a's AFTER-scan (2026-08-19) — all fold in, none deferred:**
+- ⛔ **The v1.6 QUARANTINE is itself legacy data, and the plan never named it.** `safeStorage.ts` writes
+  corrupt bytes to `debtPlanner.__corrupt__.<key>.<ISO>` — for a user who ever hit corruption that is **the
+  only recoverable copy of their data**, and a bridge that migrates a known key list and stops would destroy
+  it at 5.5.1. **The bridge carries the quarantine forward.** → **5.2 + 5.3, must-have.**
+- ⚠️ **`decodeItemTable` drops unreadable rows, and a silent drop reads as a clean migration.** The bridge
+  must **report** the dropped count, not just omit them. → **5.3's contract.**
+- ⚡ **The obvious NUL-byte encoding sniff is WRONG, and the test proves it** — UTF-16LE CJK carries zero NUL
+  bytes, so a byte-sniff would migrate a non-Latin debt name as mojibake, silently. What saves it is that
+  **every v1.6 value went through `JSON.stringify`**, making "which decoding parses as JSON" a question about
+  our own data rather than a guess about Apple's. ⚠️ **That discriminator dies if any legacy value was ever
+  written un-stringified** — a case for **5.10**.
 
 **Surfaced by PHASE 5's switch-in before-scan (2026-08-19) — all three FOLD IN, none deferred:**
 - ⚠️ **`runMigrations` never reads `r.storeVersion`.** It merges every blob forward unconditionally, so v6's
