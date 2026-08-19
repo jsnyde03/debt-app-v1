@@ -4,6 +4,91 @@
 
 ---
 
+## 🔚 SESSION CLOSE 2026-08-19 — Phase 5 opened and taken to 5.6; read this first next session
+
+**Branch `v1.7-dev`, pushed, tree clean.** Gates: tsc clean · `lint:rn` 0 errors (6 pre-existing warnings)
+· `test:app` ALL PASSED · `lint:lane` 83/83 · `lint:closure` 55/55 high+.
+
+### ✅ Closed this session
+
+**The switch-in**, then **5.1a · 5.1b (1–3) · 5.2 · 5.3 · 5.4 · 5.5 · 5.6**, plus **5.9 refuted** and the
+62 remaining audit findings filed to Phase 6 as a **generated** list.
+
+⭐ **The capture worked, and it answered 5.1's real question.** On **iOS 26.2** the v1.6 store is at
+`Library/WebKit/<BUNDLE-ID>/WebsiteData/Default/<salt>/<salt>/LocalStorage/localstorage.sqlite3` — a
+bundle-id segment and **two** salted directories, naming the origin nowhere. **22 keys recovered.**
+
+### ⛔ THE RESULT OF THE SESSION: the WAL, and why a synthesised fixture could never have found it
+
+WebKit runs localStorage in **WAL mode** and had not checkpointed. The main `localstorage.sqlite3` is
+**4 KB and contains no `ItemTable` at all**; the `-wal` beside it is 28 KB and holds everything.
+`readLegacyStores` copied only the main file — so on a real device the bridge would have read **zero**
+keys and reported the user as having nothing to migrate. **A total, silent migration failure**, on the one
+operation in this app that cannot be undone.
+
+⚡ **Every synthetic test passed while that was true**, because a database written and closed cleanly by
+`node:sqlite` has no WAL. This is the fixture-never-renders-the-real-state trap catching me *while I was
+actively guarding against it* — and it is the entire argument for capturing a real container.
+
+✅ Pinned: the container is **committed** (`legacyBridge/__fixtures__/webkit-ios26/`, 32 KB, real bytes,
+real depth) and `realContainer.test.ts` asserts **main-only throws** while **main+`-wal` reads 22 keys**.
+17 asserts against real iOS output, in `test:app` on every push.
+
+### ⛔ MY OWN INSTRUMENTS FAILED THREE TIMES, ALL THE SAME WAY: shell escaping
+
+1. **The plant harness was lying.** `npx tsx -e "…m=>m.default()"` — bash parses `=>` as a redirect, so
+   the runs failed to *transform*, exited non-zero, and read as verified plants. **Three of 5.3's were
+   bogus.** Caught only by the doctrine added at 5.1b.2: *when a plant reds, confirm it red the assertion
+   you meant.* The loop now classifies `Transform failed` separately from a real failure.
+2. **Two `perl -0pi` edits corrupted files** — one left a duplicated fragment mid-declaration.
+3. **Escaped backslashes were eaten** and wrote `/bcarb/`, which red the right test for the wrong reason.
+
+⚡ **Zero of these came from `Edit`.** The rule already existed and I went around it repeatedly. A literal
+NUL byte also reached a source file via a docstring escape (5.1a) — same family.
+
+### ⛔ Premises corrected — the phase's dominant activity
+
+| claimed | measured |
+|---|---|
+| "v1–v6 schemas" | source is `CURRENT_SCHEMA_VERSION = 2` (**0/1/2**); destination is **7**, unshipped |
+| 31 legacy keys | **28** — my sweep ran over v1.7-dev and swept in RN's own keys |
+| the lockfile is desynced (5.9) | **`npm ci` exits 0** in both trees; the CI comments are stale |
+| `amount` is a string→number hazard | **both sides are strings**; my flag was wrong |
+| the bridge must wire in `looksLikeDebt` (5.4) | **already wired** — `money.tsx` renders it for any match |
+| "no v1.6 reference exists" | **`origin/v1.6-dev`**, a pure Capacitor tree |
+
+⚡ **And my first 5.9 test CONFIRMED the false premise** — it compared the old lockfile against my
+already-edited `package.json`. **A premise measured against a contaminated baseline confirms itself.**
+
+⛔ **The audit's site-lists-undercount law applies to MY measurements too.** The captured container held
+`debtPlanner.hasConfiguredPaycheck`, absent from my 28-key sweep. Traced to v1.6's SIM_SMOKE seeder — so
+it is a fixture artifact, not user data. **`mapLegacyStore`'s `unknown` channel caught it before the code
+shipped**, which is the design decision paying for itself the day it was written.
+
+### ⚠️ Do NOT build on these
+
+- **The fixture proves LOCATION, SHAPE and WAL behaviour — NOT coverage.** Its key set is the seeder's:
+  no `isDemoMode`, `resetSnapshot`, `rolloverCount`, `reviewRequested`, `lastHandledPaydayDate`, no
+  quarantine bytes. **A green probe against it is not proof the bridge handles a real portfolio.** → 5.10
+  builds the adversarial corpus **by hand**.
+- **The on-device probe job is still owed.** The readout exists (`legacy-bridge-probe` on More); nothing
+  restores the artifact into a container and asserts on it yet.
+- **`legacy-container-capture.yml` still carries its `legacy-capture-*` tag trigger.** It exists because
+  `workflow_dispatch` only registers on the DEFAULT branch and this repo's is `release/v1`. Any push of
+  such a tag spends ~45 min of macOS runner. **Retire it with the legacy tree at 5.5.1**, or sooner.
+- **`resetSnapshot` is v1.6's reset-UNDO buffer** — real user data with no v1.7 surface that could restore
+  it. Dropped with the reason recorded; if it is non-empty for real users that is a product question.
+
+### ▶ Next session
+
+**5.7, fresh** — and its **three open questions are written into the plan** under the step table: does it
+belong in Phase 5 at all; "E2EE" collides with Phase 6's *"never leaves your device"* gate and the
+*"100% private"* line; and Freedom's template is **confirmed to exist but unread**. My recommendation,
+unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
+
+---
+
+
 ## 5.1b.3 — the device half, and two premises that did not survive contact (2026-08-19)
 
 Deps declared (`expo-sqlite ~56.0.5`, `expo-file-system ~56.0.10`, plugin registered in `app.json`), the

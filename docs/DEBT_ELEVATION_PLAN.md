@@ -12,7 +12,8 @@
 
 | | |
 |---|---|
-| **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **whole-app audit gate T1–T8 + T3B ✅ CLOSED 2026-08-19** ([D37] 55/55, `lint:closure` in CI). Remaining: **Phase 5** ▶ → **5.5** → **Phase 6** |
+| **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **whole-app audit gate T1–T8 + T3B ✅ CLOSED 2026-08-19** ([D37] 55/55, `lint:closure` in CI). Remaining: **Phase 5** ▶ → **Phase 5.5** → **Phase 6** |
+| **Phase 5 state** | ✅ **5.1a · 5.1b · 5.2 · 5.3 · 5.4 · 5.5 · 5.6 done · 5.9 refuted.** ▶ **Next: 5.7** (start fresh — three open questions below) or **5.8** first (my rec). Then **5.10** the audit gate, **5.11** the cutover 🎯. ⚠️ Still owed: the **on-device probe job** that restores the captured artifact |
 | **Gate** | `validate:release:rn` — **196 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push. ⭐ **+`lint:glossary` +`lint:money` +`lint:closure`** |
 | **The audit** | ⭐ [`audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md) — 117 findings, 7 lenses, 8 refutations. **CLOSED**; detail → log |
 | **Device pass** | 52 rows + the 60 coverable-not-built + **[T3.2]'s owed row** (force a storage fault → the retry screen renders AND the retry recovers) — all Phase 6, human-ticked, non-gating. ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them |
@@ -67,7 +68,7 @@ nothing downstream is budgeted until it answers.**
 | **5.4** | **Mis-filed-obligation sweep over MIGRATED data** | ⛔ **The premise was WRONG: the bridge needs no wiring.** `money.tsx` renders the hint for **any** expense matching `looksLikeDebt`, ungated by origin — so a migrated user already sees it. ✅ Pinned against v1.6's real 15-preset corpus (**3 caught**). ✅ **CLOSED 2026-08-19 [🎯]** — both trust calls settled by MEASUREMENT, not instinct. **`car payment`/`vehicle payment` as a PHRASE, never the bare word** (bare `car` accused **8 of 19** realistic bill names incl. "Car insurance", "Car wash", "Car registration"; the phrase form accuses **2 of 19**). **The unmodified `"Rent / Mortgage"` preset is exempt** — it names both, so it carries no information; a *renamed* "Mortgage" is still caught. **39 asserts · 3 plants / 3 reds.** ⚠️ Knowingly missed: brand-named car debt ("Toyota payment") — a lender list is recall-chasing with a worse false-positive profile |
 | **5.5** | **Durability: flush critical writes immediately** | ✅ **Done 2026-08-19.** Prefs now write IMMEDIATELY, bypassing the debounce; ordinary edits keep it. A pref is a single tap the user WATCHED confirm, and `flushPendingSave` only fires on AppState background — a force-quit from the foreground emits neither, so the window had nothing behind it. Plant-verified both directions |
 | **5.6** | **Drop the two inert prefs** | ✅ **Done 2026-08-19.** Both removed from the type, the defaults AND — the part that matters — **STRIPPED by `runMigrations`**, since the prefs merge preserves any extra key an old blob holds, so a type-only deletion would leave them in the DATA forever. Folded into v7 (unshipped). `sandboxStore.ts`'s stale claim corrected. Plant-verified |
-| **5.7** | **E2EE iCloud backup**, off Freedom's proven `cloudBackup` template. **NOT premium-gated** — "never lose your data" is a baseline | |
+| **5.7** | **E2EE iCloud backup**, off Freedom's `cloudBackup` template. **NOT premium-gated** | ▶ **NEXT — start it FRESH** (🎯 2026-08-19). ⚠️ **Three questions to settle at switch-in, BEFORE porting anything** — see below. It is the largest remaining item and the least specified |
 | **5.8** | **Replace the paste-JSON import with a real file picker** (+ share-sheet export over the same serialization) | |
 | **5.9** | ~~Regenerate `apps/rn/package-lock.json`~~ | ⛔ **REFUTED 2026-08-19, measured.** `npm ci --dry-run` exits **0** on the committed baseline in **both** `apps/rn` and root — the lockfile was already in sync. The claim in the backlog *and* the comments in `web-e2e.yml` / `embed-pages.yml` (*"`npm ci` works at the root and NOT in apps/rn, ~12 missing transitive entries"*) are **stale**. ▶ Residual: the lanes still install with `npm install`; switching them to `npm ci` is a real but SEPARATE improvement needing a CI run to confirm on Linux — **not** assumed from a Windows measurement |
 | **5.10** | **[AUDIT GATE] Adversarial migration/upgrade audit — the EXIT gate, no cutover until green.** ⚠️ Corrected corpus: `schemaVersion` **0/1/2** × partial / corrupt / empty / huge portfolios × malformed dates & numbers × mid-migration interruption | |
@@ -75,6 +76,29 @@ nothing downstream is budgeted until it answers.**
 
 **Exit:** 5.1–5.11 closed, **5.10 green**, full gate green, a real populated v1.6 device upgraded with zero
 data loss, and every fix that CAN be a lint rule IS one ([D31]).
+
+### ⚠️ 5.7's THREE OPEN QUESTIONS — settle these at switch-in, before porting a line
+
+Raised 2026-08-19 and deliberately left open; 🎯: *"5.7 is good to start fresh."* Each is scope-shaped
+rather than technical, and each is the kind of pre-authored premise this phase has been correcting all day.
+
+1. **Does 5.7 even belong in Phase 5?** Its stated justification is *"never lose your data"* — but the
+   loss modes Phase 5 actually named are now closed by **5.3** (the bridge), **5.5** (immediate pref
+   writes) and the quarantine carry-forward. iCloud backup protects against **device loss**, a different
+   risk, and it is **not a cutover blocker**. It may belong *after* 5.11 rather than before it.
+2. **⛔ "E2EE" is a claim with teeth, and it collides with a Phase-6 gate.** Phase 6 already carries an
+   audit item to prove *"financial data never leaves your device"* is **literally true**, and the
+   marketing line is *"100% private"*. A cloud backup makes that sentence false unless the encryption
+   story is airtight. **Decide the wording and the mechanism together, deliberately — not at the
+   Phase-6 privacy audit, where it would be a discovery.**
+3. **"Proven template" is unverified.** Freedom's `src/storage/cloudBackup/` + `data/cloudBackup.ts` was
+   confirmed to **exist** (6 files, 339 lines, 2 test files). ⚠️ **Nobody has read what it does** — whether
+   it encrypts client-side, where the key lives, or whether "E2EE" is accurate about it. **Measure that
+   first**; "proven template" is exactly the shape of premise that has been wrong five times this phase.
+
+▶ **Recommended order (mine, not settled): 5.8 before 5.7.** The file picker is small, unambiguously
+Phase 5 (it replaces the paste-JSON import the plan flagged), and touches no privacy claim. Doing it first
+buys time to answer the three above with Freedom's code actually read.
 
 **Owed before launch, carried out of the audit gate:**
 | | |
