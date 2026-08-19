@@ -53,7 +53,7 @@ nothing downstream is budgeted until it answers.**
 | # | Step | State |
 |---|---|---|
 | **5.1a** | **The WebKit `localStorage` decode** — the half provable off-device | ✅ **Done 2026-08-19.** `webkitLocalStorage.ts`: encoding sniff, table decode, and the store picked **on contents, never on path** (WebKit's layout is private and has changed twice). **36 asserts** incl. a **real `node:sqlite` round-trip** through WebKit's own `ItemTable` shape; **4 plants, 4 reds**; typecheck + lint clean |
-| **5.1b** | **[SPIKE] Prove the databases are findable and readable after a real upgrade.** Two lanes, two claims: the **mechanism** on a GH-Actions **simulator** (install v1.6 → use it → install RN over it, same bundle id, same container) — free and repeatable; the **acceptance** on 🎯's phone via one batched CodeMagic build, which is Phase 5's stated exit. Fallback if the read comes back empty: a native `WKURLSchemeHandler` + off-screen WKWebView | ▶ **ACTIVE.** ✅ **5.1b.1 done** — the legacy build was ROTTED and is repaired (below). Next: the probe module, then the CI job |
+| **5.1b** | **[SPIKE] Prove the databases are findable and readable after a real upgrade.** Two lanes, two claims: the **mechanism** on a GH-Actions **simulator** (install v1.6 → use it → install RN over it, same bundle id, same container) — free and repeatable; the **acceptance** on 🎯's phone via one batched CodeMagic build, which is Phase 5's stated exit. Fallback if the read comes back empty: a native `WKURLSchemeHandler` + off-screen WKWebView | ▶ **ACTIVE.** ✅ **5.1b.1** the legacy build was ROTTED and is repaired · ✅ **5.1b.2** the walk — both WebKit layouts, breadth-first, **caps that REPORT** (`truncated`), **17 asserts** against a real temp tree, **4 plants / 4 reds**. ▶ Next **5.1b.3**: declare `expo-file-system` + `expo-sqlite`, the native adapter, the CI job |
 | **5.2** | **The legacy → RN key mapping**, a pure function over the measured **31 keys** × `schemaVersion` **0/1/2**, honouring `migrateState`'s `originalBalance` backfill. Unit-tested against real v1.6 blobs | |
 | **5.3** | **The bridge** — one-shot, idempotent, **non-destructive** (legacy keys survive until the RN blob verifies), quarantine on failure, visible recovery path | |
 | **5.4** | **Mis-filed-obligation sweep over MIGRATED data** — wire `looksLikeDebt()` into the bridge output so v1.6's "Credit Card Payment"/"Loan Payment" bill presets surface as debts. **Largest affected population in the app** | |
@@ -287,6 +287,22 @@ round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is 
 ⛔ **NOTHING IS PARKED** *(🎯 2026-08-18)*. **T9–T11 are SEQUENCED, not shelved** — every remaining
 minor/polish finding is still live and gets **re-evaluated once T1–T8 lands**, because several become
 cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped*. Detail → log.
+
+**Surfaced by 5.1b.2's AFTER-scan (2026-08-19):**
+- ⚡ **A PLANT THAT PASSES IS NOT AUTOMATICALLY A BLIND ASSERTION — diagnose which.** A plant reversing
+  intra-level walk order passed, and this project's own standard ("a green assertion that cannot fail reads
+  as coverage") argues for deleting such an assertion. **It was the PLANT that was wrong:** reversing
+  siblings does not disturb breadth-first, which orders by DEPTH. A true BFS→DFS plant red it, on the exact
+  assertion. ⛔ **New rule for the instrument record:** when a plant passes, first ask whether the mutation
+  changed the behaviour the assertion is about. **Deleting a sound assertion on a bad plant's evidence is a
+  new way to lose coverage**, and the existing "10 of 10 instruments passed while broken" result would have
+  made that mistake feel justified. → the [D31] instrument doctrine.
+- ⚠️ **`expo-file-system` is in `node_modules` transitively but is NOT a declared dependency** of
+  `apps/rn`, and `expo-sqlite` is absent entirely. Both get declared at 5.1b.3 — which lands on the
+  already-desynced lockfile. → sequence 5.1b.3 **before** 5.9, not after.
+- ⚠️ **`Paths` exposes `cache` / `document` / `bundle` but NOT `library`**, so `Library/WebKit` is reachable
+  only as `Paths.cache.parentDirectory`. Handled and pinned (`webkitRootFrom`), recorded because it is the
+  kind of API fact a later refactor would "simplify" back into a hardcoded path.
 
 **Surfaced by 5.1b.1's BEFORE-scan (2026-08-19) — the legacy build was already broken; all fixed, folded in:**
 - ✅ ⛔ **`next build` was RED, so the v1.6 Capacitor app could not be built at all** — and Phase 5's upgrade

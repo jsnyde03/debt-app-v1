@@ -125,6 +125,11 @@ async function main() {
   // over someone's real portfolio, and the one place it would surface is a real upgraded phone.
   await import('../data/legacyBridge/webkitLocalStorage.test');
 
+  // 5.1b.2 — finding those databases in our own container. The caps are the point: a walk that stops
+  // quietly looks exactly like a container with nothing in it, and "nothing there" is the answer that
+  // makes the bridge skip a real user's data.
+  await import('../data/legacyBridge/findLegacyStores.test');
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');

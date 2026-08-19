@@ -4,6 +4,82 @@
 
 ---
 
+## 5.1b.1 + 5.1b.2 — the v1.6 app could not be built, and the walk that finds its data (2026-08-19)
+
+### ⛔ 5.1b.1 — the before-scan found the probe's foundation already broken
+
+The simulator lane's whole premise is *install v1.6, use it, install the RN build over it, same bundle id,
+same container*. That premise rests on being able to build v1.6 — so it got checked before anything was
+authored, and **`next build` was red.** The legacy Capacitor app could not be built at all.
+
+Nothing caught it because **`validate:release:legacy` never runs `next build`** (it is `lint` +
+`test:regression` + `test:app` + `test:e2e`). That surface has not been compiled since the RN tree landed.
+
+**7 errors, and the split matters:** 6 were an artifact of the root `tsconfig.json`'s `**/*.ts` include
+sweeping trees that have no business in the Next app's type surface — `apps/**`, whose `@/*` means
+`apps/rn/src` rather than the repo root, so every RN import resolved against the wrong root; and
+`scripts/**`, tsx-run gate scripts using `.ts` import extensions this config rejects. Both excluded. No
+gate loses coverage: `npm run typecheck` is core + rn, and tsx does not typecheck at all.
+
+**The 7th was real, and live.** `ResultsSection.tsx` filtered allocations on `category === "leftover"` — a
+member `AllocationCategory` no longer has, since core split the residual into `cushion_buffer` and
+`true_leftover`. The filter has therefore matched nothing and `bufferTotal` has been **0 regardless of the
+actual buffer**. Restored to the category `allocatePaycheck` emits beside the "Keep cash buffer" label.
+
+⚠️ **No new gate for this, deliberately.** 5.1b.3's CI job builds the legacy app, so the probe IS the gate
+against a second rot — and both die together at 5.5.1. A check that outlives its subject is the drift T8
+spent a day on.
+
+⚠️ **There is no `v1.6` git tag** — the tags are `v1.0-submitted` and `app-preview-*`. So the simulator
+lane's legacy side is built from the current legacy tree, not from what shipped. The **mechanism** proof is
+unaffected (key names and storage medium are unchanged); the **fidelity** proof is Jason's phone, which
+holds the genuine v1.6. Stated rather than worked around, and tag releases from here.
+
+### 5.1b.2 — the walk, written so it could be proven here
+
+Same split as 5.1a: the part with decisions in it is a pure function over an **injected** directory lister,
+so it runs against a real temp tree on Windows; the four-line `Directory.list()` adapter is all that waits
+for a device. Both of WebKit's layouts are built in the fixture, including the salted
+`Default/<dir>/<dir>/LocalStorage/localstorage.sqlite3` form — whose path names the origin **nowhere**,
+which is the whole reason 5.1a identifies the database by contents.
+
+⭐ **The caps REPORT, and that is the design point.** A walk that quietly stops at a depth or a count looks
+exactly like a container with nothing in it — and "nothing there" is the answer that makes the bridge skip
+a real user's data. `WalkResult.truncated` lets the probe say *"I stopped looking"* rather than *"there is
+nothing to find"*, the same distinction `hydrate` already draws between a failed read and an absent one.
+Breadth-first so the cheap flat layout surfaces before a deep salted walk can spend the cap.
+
+⚠️ **`Paths` has no `library`** — expo-file-system exposes `cache`, `document`, `bundle`. `Library` is
+reachable only as `Paths.cache.parentDirectory`, so `webkitRootFrom` derives it and returns `null` rather
+than guessing when the cache path is not the documented shape. Guessing would aim the walk at an arbitrary
+directory and present the failure as "no legacy data" — indistinguishable from a fresh install.
+
+**17 asserts.** Mutation-verified 4/4 after a correction, below.
+
+### ⚡ The result worth carrying: a plant that passes is not automatically a blind assertion
+
+One of the four plants — reversing the walk's intra-level order — **passed**. This project's standing
+standard says a green assertion that cannot fail reads as coverage, and the log records a false guard being
+deleted rather than kept on exactly that reasoning. Applying it here would have deleted a sound assertion.
+
+**The plant was wrong, not the test.** Reversing siblings does not disturb breadth-first, which orders by
+*depth*, not by position within a level. A genuine BFS→DFS mutation — take one node per round and put its
+children ahead of the remaining siblings — red it, and red *precisely* the breadth-first assertion
+(confirmed by reading the failure label, not the exit code).
+
+⛔ **So the instrument doctrine gains a second question.** The existing one is *"did the plant apply?"*
+The new one is *"did the plant change the behaviour the assertion is about?"* — because a passing plant has
+two explanations and only one of them is a blind assertion. The prior finding that **10 of 10 first-cut
+instruments were wrong in a way that PASSED** makes the wrong explanation feel like the obvious one, which
+is exactly why the second question has to be asked deliberately.
+
+**Gate:** `next build` green · `npm run typecheck` clean · `npm run lint` 0 errors (6 pre-existing
+warnings) · `npm run test:regression` passed · `npm run lint:rn` green including all 83 lane checks ·
+`npm run test:app` ALL PASSED with both new suites registered and visible.
+
+---
+
+
 ## 5.1a — the WebKit localStorage decode (2026-08-19)
 
 **Before-scan.** 5.1 as written was one step: "prove the RN app can read the WKWebView `localStorage`."
