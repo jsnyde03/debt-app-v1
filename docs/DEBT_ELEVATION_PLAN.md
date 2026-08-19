@@ -72,7 +72,7 @@ nothing downstream is budgeted until it answers.**
 | **5.8** | **File-based backup** — was *"replace the paste-JSON import with a file picker"* | ▶ **ACTIVE**, decomposed below. ⛔ **The before-scan DOUBLED it:** import accepts **any JSON object** and replaces the user's data (measured), and **v1.6 backup files exist in the wild** that it half-destroys silently. **5.8.1–5.8.4 are the ship-blocker**; the picker is 5.8.5 |
 | **5.9** | ~~Regenerate `apps/rn/package-lock.json`~~ | ⛔ **REFUTED 2026-08-19, measured.** `npm ci --dry-run` exits **0** on the committed baseline in **both** `apps/rn` and root — the lockfile was already in sync. The claim in the backlog *and* the comments in `web-e2e.yml` / `embed-pages.yml` (*"`npm ci` works at the root and NOT in apps/rn, ~12 missing transitive entries"*) are **stale**. ▶ Residual: the lanes still install with `npm install`; switching them to `npm ci` is a real but SEPARATE improvement needing a CI run to confirm on Linux — **not** assumed from a Windows measurement |
 | **5.10** | **[AUDIT GATE] Adversarial migration audit.** ⛔ NARROWED (🎯) to *can the migration lose or corrupt data?* | ✅ **GREEN 2026-08-19.** 5.10.1–5.10.4 done: 482 generated cases × 2 REAL doors × 8 invariants + the differential oracle + interruption/quarantine, **0 violations**, gating in `test:app`. Found and fixed **3 real defects**. ✅ **5.10.5** — 29 agent-generated hostile v1.6 states (multi-field · plausible-user · v1.6-only historical) pass **clean**: the agent bought CONFIRMATION, not discovery. Completeness critic **dropped** (🎯: Phase 6 runs completeness across the whole app). **5.10 CLOSED** |
-| **5.11** | **Cutover** — the RN app becomes the shipping app | ⭐ **MIGRATION VERIFIED ON A LIVE DEVICE, 2026-08-19 (🎯)** — a real v1.6 install seeded from `docs/cutover/`, upgraded in place, **all expected fields populate**. The claim Phase 5 exists to make, now made on hardware. ✅ **Share-sheet export verified.** ⭐ **`legacy-bridge-probe` on device: `Found 1 · Opened 1 · Keys 22 · Dropped 0 · visited 16 · truncated=no`** — 22 matches the captured container exactly, by an independent route, and `truncated=no` with keys>0 is the unambiguous success case. ⛔ **One defect found by USING it:** importing a v1.6 backup FILE hid the restored portfolio behind onboarding (`buildBackupData()` never emitted `hasCompletedOnboarding`). **Fixed at the root in `runMigrations`** — the differential oracle caught the first fix for creating a door asymmetry. ▶ **Fixed, unit-covered, NOT device-verified → Phase 6 device pass** *(🎯: no new CM build for it)*. ⚠️ **The cutover DECISION is separate from "the migration works"** — 🎯's |
+| **5.11** | **Cutover** — the RN app becomes the shipping app | ⭐ **MIGRATION VERIFIED ON A LIVE DEVICE, 2026-08-19 (🎯)** — a real v1.6 install seeded from `docs/cutover/`, upgraded in place, **all expected fields populate**. The claim Phase 5 exists to make, now made on hardware. ✅ **Share-sheet export verified.** ⭐ **`legacy-bridge-probe` on device: `Found 1 · Opened 1 · Keys 22 · Dropped 0 · visited 16 · truncated=no`** — 22 matches the captured container exactly, by an independent route, and `truncated=no` with keys>0 is the unambiguous success case. ⛔ **One defect found by USING it:** importing a v1.6 backup FILE hid the restored portfolio behind onboarding (`buildBackupData()` never emitted `hasCompletedOnboarding`). **Fixed at the root in `runMigrations`** — the differential oracle caught the first fix for creating a door asymmetry. ▶ **Fixed, unit-covered, NOT device-verified → Phase 6 device pass** *(🎯: no new CM build for it)*. ✅ **CUTOVER CONDITIONALLY APPROVED 2026-08-19 (🎯):** *"I will conditionally approve this as the shipping app. We still need to add in Cloud Backup in Phase 6 so there will be at least one more material change."* ⛔ **The condition means the app is NOT FROZEN until `6.C` ships** — which forces 6.C ahead of Phase 6’s FINISH sweep |
 
 **Exit:** 5.1–5.11 closed (**5.7 → Phase 6**, **5.9 refuted**), **5.10 green**, full gate green, a real populated v1.6 device upgraded with zero
 data loss, and every fix that CAN be a lint rule IS one ([D31]).
@@ -280,6 +280,13 @@ irreversible, so 5.10's adversarial audit is the exit gate and nothing cuts over
 
 Acquisition-grade store presence · cold-start excellence · the device-QA gate · submit.
 
+⛔ **THE ORDER IS NOT ARBITRARY — three items gate the rest, and each is cheap now and expensive late:**
+**① `2.0.0`** ([D38]) before anything quotes a version · **② `6.C` cloud backup**, because the app is not
+FROZEN until it ships and the FINISH sweep's whole premise is a frozen app · **③ `6.C`'s two coupled
+decisions** ([a] mechanism, [b] the replacement for *"never leaves your device"*) before the **privacy
+audit**, which consumes both. ⚠️ Getting ② wrong buys a second FINISH sweep; getting ③ wrong turns a
+settled decision into a discovery mid-audit.
+
 - **⭐ [AUDIT GATE] Pre-Release Best-in-Class FINISH sweep — runs FIRST, on the FROZEN app.**
   ⭐ **ABSORBS audit-gate T12** *(🎯 2026-08-18)* — ~40 polish items from the 2026-08-17 audit: L5-10/12/17–21
   · L1-20…35 · L2's polish tier · L4-12…16. They belong here rather than in v1.7 because this sweep already
@@ -288,6 +295,12 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
   to say *"this paycheck you're $180 short"* already exist. Every screen ·
   sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. Complements, not replaces,
   the audit gate above.
+  ⛔ **SEQUENCING, forced by the cutover's condition (🎯 2026-08-19): `6.C` MUST LAND BEFORE THIS SWEEP.**
+  🎯 approved the RN app as the shipping app *conditionally* — *"we still need to add in Cloud Backup in
+  Phase 6 so there will be at least one more material change."* This sweep's entire justification is that
+  it runs on a **FROZEN** app (*"polish decided against a moving app gets decided twice"*), so running it
+  before a known material change would violate its own premise and buy a second pass. ⚠️ **The app is not
+  frozen until 6.C ships.**
   ⭐ **CHARTER WIDENED 2026-08-19 (🎯): it judges STRUCTURAL GAPS as well as polish — *"is anything
   missing"*, not only *"is anything wrong"*.** This is where **5.10's original fan-out intent now lives**;
   5.10 was narrowed to migration-correctness on the reasoning that *gaps get caught at the freeze*, when

@@ -89,6 +89,30 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## ✅ 5.11 — THE CUTOVER IS CONDITIONALLY APPROVED (🎯, 2026-08-19)
+
+🎯: *"I will conditionally approve this as the shipping app. We still need to add in Cloud Backup in
+Phase 6 so there will be at least one more material change."*
+
+**The RN app is the shipping app.** Phase 5 closes: the migration is proven on hardware, the probe
+confirms the read is complete, export works, and the one defect real use turned up is fixed at the root.
+
+### ⛔ The condition has a sequencing consequence, and it is easy to miss
+
+*"At least one more material change"* means **the app is not FROZEN until 6.C ships.** Phase 6's FINISH
+sweep is justified entirely by running on a frozen app — its own words: *polish decided against a moving
+app gets decided twice.* Run it before 6.C and it audits an app that then changes, buying a second sweep
+and re-deciding everything it touched.
+
+⚡ So the condition silently **reorders Phase 6**: `6.C` moves ahead of the FINISH sweep. That was not
+stated as a sequencing instruction and follows only from the word *"material"* — which is exactly the kind
+of implication that goes unnoticed until the sweep is half done.
+
+▶ **Three gating items, recorded at the head of Phase 6:** ① `2.0.0` before anything quotes a version ·
+② `6.C` before the FINISH sweep · ③ 6.C's coupled decisions before the privacy audit, which consumes them.
+
+---
+
 ## ⭐ 5.11 — THE MIGRATION IS VERIFIED ON A LIVE DEVICE (🎯, 2026-08-19)
 
 🎯: *"Migration verified on a live device. All expected fields populate correctly."*
