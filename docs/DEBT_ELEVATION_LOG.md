@@ -4,6 +4,97 @@
 
 ---
 
+## Phase 5 — the SWITCH-IN before-scan (2026-08-19)
+
+The audit gate closed and Phase 5 became active. Per §0 and the portfolio rule, a pre-authored item is a
+**hypothesis**: every premise verified against current code before any of it was budgeted. T1–T8 measured
+that discipline paying five consecutive times; it paid a sixth here.
+
+### ⛔ Four of six premises were wrong or stale
+
+**1. "Every prior data shape: v1–v6 schemas" — wrong on BOTH readings, and it mis-specified the audit corpus.**
+
+The sentence conflates two version counters that live in two trees:
+
+- The **source** is the legacy Capacitor surface: `lib/storage/migrateState.ts` declares
+  `CURRENT_SCHEMA_VERSION = 2` with exactly **one** registered migration (v1.5's `originalBalance`
+  backfill). Installs in the wild carry `debtPlanner.schemaVersion` of **0, 1 or 2** — an absent key reads
+  as 0. **Three shapes, not six.**
+- The **destination** is `apps/rn/src/data/models.ts`: `CURRENT_STORE_VERSION = 7`, and its own docblock
+  records that **v7 has not shipped**. So there is no RN blob in the wild at all beyond internal TestFlight.
+
+⚡ The consequence is not cosmetic. 5.10's adversarial corpus was going to be built against six RN schema
+versions that no user has, while the real risk surface — three *legacy* shapes across 31 loose keys — was
+unnamed. **The corpus was pointed at the wrong tree.**
+
+**2. The bridge is genuinely unbuilt — and one thing about it is better than assumed.**
+
+Three separate comments (`migrations.ts:28`, `models.ts:5`, `createAdapter.ts`) refer to "the Phase-D data
+bridge" as an existing concept. No such file exists; it has always been a forward reference. ⭐ But the
+**bundle ids match** — `com.jasonsnyder.debtplanner` in both `apps/rn/app.json` and `capacitor.config.ts` —
+so the RN build genuinely replaces the Capacitor build in place on the same container. That is the
+precondition the whole phase rests on, and it holds.
+
+**3. ⛔ The unnamed risk that gates every other step.**
+
+The plan writes the bridge as "WKWebView `localStorage` → RN storage" as though the read were an
+implementation detail. It is not. **An RN binary has no web context**, and `react-native-webview` is not a
+dependency of `apps/rn` (checked the full dependency + devDependency set). Nothing in the tree can currently
+read a WKWebView origin store. Three candidate mechanisms, none proven:
+
+- a hidden `WebView` at the same origin, reading `localStorage` and posting it out — adds a dependency, but
+  reads the store exactly the way the browser wrote it;
+- a native read of the WebView's backing store from the app container — no new JS dependency, brittle across
+  iOS versions, needs a custom module;
+- a final v1.6.x that exports the blob somewhere the RN app can see — **conflicts with "v1.7 ships as ONE
+  release"**, so it is a release-strategy call, not an engineering one.
+
+→ **5.1 is a device-proven spike, first, and nothing downstream is budgeted until it answers.** This is the
+same shape as [[feedback_measure_the_premise_before_proving_it]]: ask *what is the number* before *does it fail*.
+
+**4. The three premises that held, verified rather than assumed:**
+
+- **Durability.** `SAVE_DEBOUNCE_MS = 500` in `persistence.ts`, and `flushPendingSave` has exactly **one**
+  caller in the entire tree — `_layout.tsx`, on AppState `background`/`inactive`. A force-quit from the
+  foreground never emits that, so the loss is real. Premise confirmed.
+- **The two inert prefs.** Zero production reads for `prefs.isDemoMode` and `prefs.guardianIntroSeen`; every
+  remaining hit is a default, a type, a comment or a test.
+- **The templates.** `BackupSheets.tsx` is 106 lines and clipboard-only; `expo-sharing` is already a
+  dependency and a document-picker is not. Freedom's `src/storage/cloudBackup/` + `data/cloudBackup.ts` is
+  6 files / 339 lines with two test files — a real template, not a gesture.
+
+### ⚡ The source shape was measured, not assumed
+
+Per the sweep rule (repo root, ripgrep, no `head`, no directory list — T5 proved an enumerated corpus list
+wrong twice), the legacy key set is **31 distinct `debtPlanner.*` keys**, including `schemaVersion`,
+`cycleHistory`, `resetSnapshot`, `rolloverCount` and `lastSavedAt`. That list — not a hand-written subset —
+is 5.2's input. [[audit-site-lists-undercount]] applies to my own enumeration as much as to the audit's.
+
+### ▶ Three things folded in, none deferred
+
+- **`runMigrations` never reads `r.storeVersion`.** It merges forward unconditionally onto current defaults,
+  so v6's `normalizeBnplInstallment` re-runs on every hydrate of an already-current blob. Merge-forward is a
+  defensible design — it is why a missing field can never brick hydration — but its **idempotence is
+  asserted, not measured**, and Phase 5 is exactly where an unmeasured idempotence assumption becomes data
+  loss. → 5.2, plus a case in 5.10.
+- **`migrations.ts`'s docblock stops at v6 while `CURRENT_STORE_VERSION = 7`.** v7's three prefs
+  (`tutorialSeen`, `tutorialStep`, `coachMarksSeen`) are documented only in `models.ts`. One version, two
+  owners — the drift class T8 spent a day on. → 5.2.
+- **`sandboxStore.ts:19` asserts `prefs.isDemoMode` is "read by real code (`use-payday-capture` disables …)".**
+  False since 3.5.4.8, and `use-payday-capture`'s own comment says so at length. The comment defends a flag
+  nothing reads. → 5.6, in the same edit that drops the field.
+
+### 🎯 The decision taken at switch-in
+
+**Full bridge.** Asked whether v1.6 has a live installed base, because the answer changes the phase's shape
+rather than its size: with no real population the bridge is best-effort and the adversarial audit shrinks to
+the corrupt/partial cases. 🎯 2026-08-19: **real users with populated data** → the bridge is ship-blocking,
+5.4's mis-filed-obligation sweep matters (v1.6 shipped "Credit Card Payment" and "Loan Payment" as one-tap
+*bill* presets, so those users' debt-free dates silently omit real debts), and 5.10 is a hard exit gate.
+
+---
+
+
 ## Session close 2026-08-18 (evening) — T4 CLOSED, T5 opened
 
 **Eight commits, every one on a green `validate:release:rn`** (187 e2e · 10 embed · tsc clean on both

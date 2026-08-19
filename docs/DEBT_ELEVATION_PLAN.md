@@ -8,77 +8,74 @@
 
 ---
 
-## ▶ BUILDING NOW — **audit-gate remediation, T1–T8**
+## ▶ BUILDING NOW — **Phase 5 · Data continuity + cutover** 🔒 ship-blocker
 
 | | |
 |---|---|
-| **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **audit itself is ✅ RUN**. Remaining: **T1–T8** → **Phase 5** 🔒 → 5.5 → **Phase 6** |
-| **Gate** | `validate:release:rn` — **196 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push. ⭐ **+`lint:glossary`** (6 retired strings) **+`lint:money`** (two formatters only) **+`lint:closure`** ([D37] traceability) |
-| **The audit** | ⭐ [`audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md) — **117 findings, 7 lenses, 8 refutations.** `findings/` per lens · `slices/` the verbatim input each lens got |
-| **Device pass** | **52 rows** + the 60 coverable-not-built, all Phase 6, human-ticked, non-gating. ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them. ⚠️ **[T3.2] +1 owed row:** force a storage fault → the retry screen renders AND the retry recovers. MMKV cannot be failed on web, so both new surfaces ship on unit assertions with no rendered proof |
+| **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **whole-app audit gate T1–T8 + T3B ✅ CLOSED 2026-08-19** ([D37] 55/55, `lint:closure` in CI). Remaining: **Phase 5** ▶ → **5.5** → **Phase 6** |
+| **Gate** | `validate:release:rn` — **196 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push. ⭐ **+`lint:glossary` +`lint:money` +`lint:closure`** |
+| **The audit** | ⭐ [`audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md) — 117 findings, 7 lenses, 8 refutations. **CLOSED**; detail → log |
+| **Device pass** | 52 rows + the 60 coverable-not-built + **[T3.2]'s owed row** (force a storage fault → the retry screen renders AND the retry recovers) — all Phase 6, human-ticked, non-gating. ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
-🎯 **2026-08-18: T1–T8 + T3B now. ⛔ [D37] every high+ closes this round; T9–T11 are SEQUENCED, not shelved.**
-✅ **T1 · T2 · T3 · T3B CLOSED 2026-08-18**, full gate green (187 e2e · 10 embed · 0 error-context).
-✅ **T4 CLOSED 2026-08-18** — 11 findings. ⛔ **5 of its 11 needed material correction; 3 would have shipped a WORSE app as written.**
-✅ **T5 CLOSED 2026-08-18** — 11 more, gate green at 193 e2e. ⛔ **The same profile held: L1-12 was 2 of 9 sites, half of L3-7 was refuted, and L1-13's suggested wording would have undone T4.**
-✅ **T6 CLOSED 2026-08-19** — 11 findings, **gate green at 195 e2e**, `lint:money` added. ⛔ **Three enumerations of the formatter class each undercounted; the GATE found the rest on its first run.**
-✅ **T7 CLOSED 2026-08-19** — 4 fixed, **L1-16 refuted as unreachable**.
-⭐ **T8 CLOSED 2026-08-19 — and with it the whole audit gate. [D37] EXIT CHECK PASSES: 55/55 high+ traceable**, enforced by `lint:closure` in CI. ▶ **Phase 5 is next.** 
+✅ **THE AUDIT GATE IS CLOSED (2026-08-19).** T1–T8 + T3B, **[D37] 55/55 high+ traceable**, three new lint
+gates (`lint:glossary` · `lint:money` · `lint:closure`), e2e 184 → 195. ⛔ **The result that outlives it:
+an audit finding's site list is where to START looking, never the class** — five consecutive items
+undercounted in one direction — and **refutation earned its keep six times.** Detail + the phase-level
+after-scan → log.
 
-⛔ **2 of 3 agent-declared blockers did NOT survive refutation, and the tally is now 3 of 4** — L1-1
-downgraded, L3-5's mechanism wrong (severity right), L1-4 downgraded (free DOES get a Guardian). Plus
-L6-7 and L6-3 closed as not-defects. ⚡ **The lenses' self-reported CONFIDENCE has been reliable; their
-SEVERITY has not.** **No finding becomes work un-refuted** — `findings/L9-refutations.md` records the 12
-claims actually re-checked; anything not in it carries only its own lens's confidence.
+🎯 **2026-08-19: Phase 5 is GO, and it is the FULL bridge** — v1.6 has real users with populated data, so
+the bridge is ship-blocking and the adversarial migration audit is a hard exit gate before cutover.
 
-### ▶ T1–T8 — the remediation _(the step table; the ACTIVE step is decomposed below)_
+### ⛔ The switch-in before-scan corrected the pre-authored scope (2026-08-19)
 
-⚠️ **The order is prerequisite, not preference.** T1 first or every later count is measured through a
-narrowed instrument; T4 before T5/T7/T8 or the glossary decides words those passes would edit twice.
+**Four of six premises were wrong or stale** — the same profile T1–T8 measured five consecutive times.
 
-| # | Step | Items | State |
-|---|---|---|---|
-| **T1** | **The instruments** | ✅ **Done 2026-08-18.** Strings gate: rule ② now consults the origin sets **and** the `key:`/`prop:` alias (358→333 unclassified, **+10 strings into the gate's view**, 2 new duplicates with them); TECHNICAL decided per-VALUE so MIXED props keep their copy visible; `calleeLabel` given ONE owner (there were two) + a **self-check that reds on a denormalised label**, mutation-verified. `DUP_MIN_LEN` 20→**14** — the gate saw 3 duplicates, now 12, and all 9 it had missed were found by hand in the same audit; baseline 5→16. Surface inventory now finds **hand-rolled** formatters: **7**, and Today reaches **8 money renderers**. Fixture seeds a bill: 178/184 passed, 5 specs pinned their own state, 1 assertion **strengthened** (it passed either way) | 
-| **T2** | **App Store / legal exposure** | ✅ **Done 2026-08-18.** L6-2 fixed: the shipped web sample named **Chase Freedom Unlimited** with fabricated balance/APR, in the bundle behind the public embed → fictional issuer; parser still prefills correctly (probed). 🎯-approved rewrites landed for **L1-2** (paywall sold "autopilot" the product disclaims twice elsewhere), **L1-3** (an unconditional cushion promise the next-but-one bullet contradicts) and **L1-4**. ⛔ **3 of 5 items closed as NOT defects** — L6-7 (public RC key, by design), L6-3 (`QA_TOOLS` deliberate, already a Phase-6 step), L1-4 downgraded (free DOES get a Guardian) |
-| **T3** | **Correctness** — concrete repro each | ✅ **Done 2026-08-18**, all 7 (L0-2/L5-9 · L5-2 · L5-1 · L3-3 · L5-5 · L5-6 · L5-14), **full gate green: 187 e2e** (+3), 29 new unit asserts, **every fix mutation-verified**, 2 new lint rules. ⛔ **Found while building: `Alert.alert` is a NO-OP in react-native-web** — 11 raw sites incl. the paywall behind the live embed. ⚡ **7 of 7 first-cut instruments were wrong in a way that would have PASSED** — detail → log |
-| **T4** | **The glossary** | L1-5/6/7/14/19/26/34 · L2-6/7/16 | ✅ **Done 2026-08-18.** `@core/copy/vocabulary` owns 7 nouns + the disjointness rule; `lint:glossary` bans 5 retired words in CI. **L1-6 reversed · L1-14 misclassified · L1-26 refuted · L2-6's mechanism false · L1-7 partly refuted.** +1 correctness defect found (T4.1b) |
-| **T5** | **Truth of claims** | ✅ **Done 2026-08-18.** All 11 (L3-1/2/4/6/7 · L1-12/13/15/17/18 · 🎯's `tutorialPath` call), **full gate green: 193 e2e** (+6), 5 unit asserts, every fix mutation-verified, +1 `lint:glossary` rule. ⛔ **L1-12 was 2 of 9 sites** and **half of L3-7 was refuted** — building it as written would have reported every autopay FAILED. **L1-13's suggested wording would have undone T4/L1-14.** ⚠️ **The sweep rule itself was wrong twice** (missed the root-level legacy tree; omitted `apps/rn/src/**/*.test.ts`, which red the gate) → now root-scoped, no list. Detail → log |
-| **T6** | **Numbers cohesion** | ✅ **Done 2026-08-19.** All 10 + L4-2, **full gate green: 195 e2e · 10 embed**, new `lint:money` gate. ⛔ **The formatter count went 6 → 7 → 9 → 12 and only the GATE found the last four** — three prior enumerations each undercounted. **L4-1 was two defects**, one a conservation break (hero segments summed to $400 of a $300 paycheck). **L4-8 declined on the record** (its fix re-adds noise the App Preview sweep removed); **L4-10 closed as recorded**. ⛔ **[T4.1b] refuted: Guardian band flips 0 / 1,820** — 🎯 keeps `selectDiscretionary`. Detail → log |
-| **T7** | **Voice & persona** | ✅ **Done 2026-08-19.** L1-8/9/10/11 fixed; ⛔ **L1-16 REFUTED on reachability** — both files it rewrites have one non-test consumer, the legacy tree 5.5.1 deletes. **L1-9 had a site the finding missed**; the sweep found **34** more, incl. **9 assertions in the live suite, 3 Maestro flows, and the `lint:copy` baseline**. Classes enumerated closed, not assumed. Detail → log |
-| **T8** | **Drift / one-owner** | ✅ **Done 2026-08-19.** ⛔ **3 of the 8 majors were ALREADY CLOSED by T4** and untraceable (L2-2 · L2-6 refuted · L2-7). Five owners built (L2-1/3/4/5 · L2-9=L0-3). **Two lists had already diverged on screen** (`/2wks` vs `/2 wks`; a curly vs straight apostrophe). ⚠️ **L2-5 was 3 files not 2, L2-3 was 4 ways not 3.** T8.4 **baselined, not swept** — 44 correct-but-hand-rolled parses. +`lint:closure`. Detail → log |
+| premise, as written | measured against current code |
+|---|---|
+| "Every prior data shape: **v1–v6 schemas**" | ⛔ **Wrong on BOTH readings.** *Source* = `lib/storage/migrateState.ts`, `CURRENT_SCHEMA_VERSION = **2**`, one registered migration → blobs in the wild are **0 / 1 / 2**. *Destination* = `apps/rn/src/data/models.ts`, `CURRENT_STORE_VERSION = **7**`, unshipped. **The audit corpus was mis-specified.** |
+| the migration bridge | ✅ **genuinely unbuilt** (three comments call it "the Phase-D data bridge"; no such file) · ⭐ **bundle ids MATCH** — `com.jasonsnyder.debtplanner` in both `apps/rn/app.json` and `capacitor.config.ts` → upgrade-in-place is valid |
+| flush critical prefs immediately | ✅ **true and reproducible** — `SAVE_DEBOUNCE_MS = 500`, and `flushPendingSave` has exactly **one** caller (`_layout.tsx`, AppState `background`/`inactive`) |
+| the two inert prefs | ✅ **zero production reads** for `isDemoMode` and `guardianIntroSeen` · ⚠️ `sandboxStore.ts:19` still *claims* `isDemoMode` is "read by real code", contradicting `use-payday-capture`'s own comment |
+| paste-JSON import | ✅ `BackupSheets.tsx`, 106 lines, clipboard-only · `expo-sharing` is a dep, **document-picker is not** |
+| E2EE iCloud template | ✅ Freedom's `src/storage/cloudBackup/` + `data/cloudBackup.ts` — **6 files, 339 lines, 2 test files** |
 
+⛔ **The risk the plan never named, and it gates every other step: an RN binary has NO web context, and
+`react-native-webview` is not a dependency.** Reading the Capacitor WKWebView `localStorage` after an
+upgrade is an **unproven capability**, not an implementation detail. → **5.1 is a device-proven spike, and
+nothing downstream is budgeted until it answers.**
 
+⚡ **Source shape measured, not assumed:** a repo-root ripgrep sweep (no `head`, no directory list) found
+**31 distinct `debtPlanner.*` keys**, including `schemaVersion`, `cycleHistory` and `resetSnapshot`.
 
-| **T3B** | **The high+ sweep [D37] added** | ✅ **Done 2026-08-18.** 8 majors that sat outside the gate: **7 built · 2 verified already-closed by T1 (not re-fixed) · L4-2 → T6.** ⛔ **L0-5 is the FOURTH member of the RNW-drops-it class** — `accessibilityState`/`accessibilityValue` object forms are dropped; 11 sites, 9 files, both guards widened 2→4 props. **L5-12's own suggested copy was a claim this screen had already retired twice** — built from a measured differentiator instead, with a test pinning the dead claims out. Detail → log |
+### ▶ Phase 5 — the steps
 
-**Exit:** T1–T8 **and T3B** closed, **all 55 high+ traceable to a closure or a recorded refutation**,
-full gate green, and every fix that CAN be a lint rule IS one ([D31] — a finding that becomes a test is
-paid for once).
+| # | Step | State |
+|---|---|---|
+| **5.1** | **[SPIKE] Prove the RN app can read the WKWebView `localStorage`.** Decide the mechanism (hidden WebView + postMessage · native container read · a final v1.6.x export-on-launch) and prove it on a **real upgraded device**. ⛔ Every step below is downstream of its verdict | ▶ **ACTIVE** |
+| **5.2** | **The legacy → RN key mapping**, a pure function over the measured **31 keys** × `schemaVersion` **0/1/2**, honouring `migrateState`'s `originalBalance` backfill. Unit-tested against real v1.6 blobs | |
+| **5.3** | **The bridge** — one-shot, idempotent, **non-destructive** (legacy keys survive until the RN blob verifies), quarantine on failure, visible recovery path | |
+| **5.4** | **Mis-filed-obligation sweep over MIGRATED data** — wire `looksLikeDebt()` into the bridge output so v1.6's "Credit Card Payment"/"Loan Payment" bill presets surface as debts. **Largest affected population in the app** | |
+| **5.5** | **Durability: flush critical writes immediately** — a pref changed then force-quit inside 500 ms is lost today (measured, not theorised) | |
+| **5.6** | **Drop the two inert prefs** `isDemoMode` + `guardianIntroSeen`, and correct `sandboxStore.ts`'s stale claim in the same edit | |
+| **5.7** | **E2EE iCloud backup**, off Freedom's proven `cloudBackup` template. **NOT premium-gated** — "never lose your data" is a baseline | |
+| **5.8** | **Replace the paste-JSON import with a real file picker** (+ share-sheet export over the same serialization) | |
+| **5.9** | **Regenerate `apps/rn/package-lock.json`** — `npm ci` refuses it today and all three CI lanes work around it, so installs are not reproducible. Routed here explicitly: **before the cutover** | |
+| **5.10** | **[AUDIT GATE] Adversarial migration/upgrade audit — the EXIT gate, no cutover until green.** ⚠️ Corrected corpus: `schemaVersion` **0/1/2** × partial / corrupt / empty / huge portfolios × malformed dates & numbers × mid-migration interruption | |
+| **5.11** | **Cutover** — the RN app becomes the shipping app, proven on a **real populated upgraded device** | |
 
-### ▶ NEXT — **Phase 5 · Data continuity + cutover** 🔒 _(ACTIVE at next switch-in)_
+**Exit:** 5.1–5.11 closed, **5.10 green**, full gate green, a real populated v1.6 device upgraded with zero
+data loss, and every fix that CAN be a lint rule IS one ([D31]).
 
-⛔ **T1–T8 + T3B are CLOSED and the [D37] exit check PASSES: 55/55 high+ traceable** (`lint:closure`, now
-in CI). The audit-gate item is done; the build order resumes at **Phase 5 → 5.5 → Phase 6**.
-
-⚠️ **Do the switch-in properly — Phase 5 is a pre-authored item and this phase measured, five times, that
-pre-authored scope is wrong in the same direction.** Its steps are below Phase 5's own heading in this
-doc; decompose them at switch-in, after verifying each premise against current code.
-
-**Owed before launch, carried forward from this phase:**
+**Owed before launch, carried out of the audit gate:**
 | | |
 |---|---|
-| **Device pass** | 52 rows + **[T3.2]'s owed row** (force a storage fault → retry renders AND recovers). Two T3 surfaces ship on unit assertions with **no rendered proof** |
+| **Device pass** | 52 rows + **[T3.2]'s owed row**. Two T3 surfaces ship on unit assertions with **no rendered proof** |
 | **T9–T11** | the minor/polish set, deliberately out of [D37]'s scope. ⚠️ **Re-measure first** — T4–T8 collapsed many of their owners |
 | **T10** | 44 baselined local parses · `formatDisplayAmount` (dead, L4-11 confirmed) |
 
 ⛔ **The sweep is over the REPO ROOT, ripgrep, no `head`, no directory list** — see CLAUDE.md. T5 proved an
 enumerated corpus list wrong twice, once by red-gating on a file the sweep had just called clean.
-
-⚠️ **Re-measure T8 at its own switch-in.** T3 collapsed several of its owners (`localDate`,
-`paydayFieldError`, `pickTopUpGoal`, `notify`) and **T4 collapsed four more into `@core/copy/vocabulary`**
-(L2-6/7/8/16), so the "23 L2 items" figure is stale twice over. Do not budget from it.
-
 
 ---
 
@@ -102,14 +99,13 @@ instrument that finds them.
 
 ## ⚠️ Open threads — each has an owner
 
-⚠️ **The coach-mark defect, the transient Guardian card and §12.6.1 now live on the ACTIVE audit-gate item
-above** — they are that gate's inputs, not separate threads. Listed here once would be a second record of one
-thing, which is the drift class the gate itself hunts.
+✅ **The coach-mark defect, the transient Guardian card and §12.6.1 closed with the audit gate 2026-08-19** —
+they were that gate's inputs, never separate threads.
 
 **Product defects, live:**
-- ⚡ **A pref changed then force-quit within 500 ms is LOST** (`persistence.ts:14` debounces; `flushPendingSave`
-  fires only on AppState *background*). Silent data loss on a setting the user watched confirm itself.
-  **Measured, not theorised.** → **Phase 5**, which owns durability.
+- ⚡ **A pref changed then force-quit within 500 ms is LOST** (`persistence.ts` debounces at 500 ms;
+  `flushPendingSave` has exactly ONE caller, AppState *background*/*inactive*). Silent data loss on a
+  setting the user watched confirm itself. **Re-verified at Phase 5's switch-in.** → **5.5**, which owns it.
 
 **a11y, owed to the premium sub-audit:**
 - ⭐ **`hitRegion` = 2 real findings, on BOTH tiers** — two hit targets below the minimum, reproducible.
@@ -162,8 +158,8 @@ thing, which is the drift class the gate itself hunts.
 | 3.7 | Fold-in block (ledger clearance) | ✅ COMPLETE 2026-08-11 (Waves A + B; C merged into the audit gate) |
 | **4** | **Quality (test harness)** | ✅ **COMPLETE 2026-08-17** on a green `32051842661`. ⭐ **26 proven · device pass 52 · derived, not asserted.** CodeMagic build cut |
 | **3.8** | **The expense reserve** | ✅ **COMPLETE 2026-08-17** — both tiers [D36]. Pot · draw-down · capped offer · "Spoken for" · honest hero. **5 defects found while building**, +5 e2e (184) |
-| **—** | **Whole-app cohesion + best-in-class + wording audit gate** | ▶ **ACTIVE** — decomposed at the top; ⛔ needs 🎯's go |
-| 5 | Data continuity + cutover | 🔒 ship-blocker |
+| **—** | **Whole-app cohesion + best-in-class + wording audit gate** | ✅ **COMPLETE 2026-08-19** — T1–T8 + T3B, [D37] 55/55 high+ traceable, 3 new lint gates, e2e 184 → 195. Detail → log |
+| **5** | **Data continuity + cutover** 🔒 | ▶ **ACTIVE 2026-08-19** — decomposed at the top. 🎯: **full bridge**, real v1.6 users |
 | 5.5 | Repo consolidation | before the release gate |
 | 6 | Launch-ready **+ the 60 coverable-not-built rows and 3.5's folded-in pass, as DEVICE-PASS work** | final |
 
@@ -207,19 +203,8 @@ of 4, **1 refuted, 1 half-shipped, 1 wrong in 3 of its 4 premises, 1 clean.** Th
 
 ## Phase 5 — Data continuity + cutover 🔒 ship-blocker
 
-The migration bridge (WKWebView `localStorage` → RN storage), **proven on a real populated upgraded
-device**, then cutover to the RN app as the shipping app.
-- **⭐ [AUDIT GATE] Adversarial migration/upgrade audit — the EXIT gate, no cutover until green.** Every
-  prior data shape: v1–v6 schemas · partial/corrupt/empty/huge portfolios · malformed dates & numbers ·
-  mid-migration interruption. Upgrade data-loss is catastrophic AND irreversible.
-- **⭐ E2EE iCloud backup** — NOT premium-gated ("never lose your data" is a baseline). ✅ Proven template:
-  Freedom v1's `cloudBackup.ts`. ⚠️ Also **replace the paste-JSON import** with a real file picker.
-- **⚠️ Run the mis-filed-obligation detector over MIGRATED data.** v1.6 offered **"Credit Card Payment"** and
-  **"Loan Payment"** as one-tap BILL presets, so upgrading users arrive with debts filed as expenses — and
-  their debt-free date silently omits them. `looksLikeDebt()` + `convertExpenseToDebt()` exist; the bridge
-  has to *use* them. **This is the largest affected population in the app.**
-- **Flush critical prefs immediately** rather than on the 500 ms debounce (see Open threads).
-- **Drop two INERT persisted prefs with the migration** — `prefs.isDemoMode` and `prefs.guardianIntroSeen`.
+▶ **ACTIVE — decomposed as 5.1–5.11 at the top of this doc.** Upgrade data loss is catastrophic AND
+irreversible, so 5.10's adversarial audit is the exit gate and nothing cuts over until it is green.
 
 ## Phase 5.5 — Repo consolidation
 
@@ -302,6 +287,15 @@ round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is 
 minor/polish finding is still live and gets **re-evaluated once T1–T8 lands**, because several become
 cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped*. Detail → log.
 
+**Surfaced by PHASE 5's switch-in before-scan (2026-08-19) — all three FOLD IN, none deferred:**
+- ⚠️ **`runMigrations` never reads `r.storeVersion`.** It merges every blob forward unconditionally, so v6's
+  `normalizeBnplInstallment` re-runs on **every hydrate of an already-current blob**. Merge-forward is a
+  defensible design, but its idempotence is **asserted, not measured**. → **5.2**, and a case in **5.10**.
+- ⚠️ **`migrations.ts`'s docblock stops at v6 while `CURRENT_STORE_VERSION = 7`** — v7's three prefs are
+  documented only in `models.ts`. One version, two owners: the exact drift class T8 spent a day on. → **5.2**.
+- ⚠️ **`sandboxStore.ts:19` asserts `prefs.isDemoMode` is "read by real code (`use-payday-capture`)"** — false
+  since 3.5.4.8, and `use-payday-capture`'s own comment says so. A stale comment defending a dead flag. → **5.6**.
+
 **Surfaced by T6's PER-SUB-ITEM after-scan (2026-08-19) — both folded in, not deferred:**
 - ✅ **`affordability.test.ts` modelled `PlanHero` with `everydayReserve` after T6.3 moved the component to
   `everydayHeld`** — a stale model whose comment claimed to mirror the component, passing only because the
@@ -365,7 +359,7 @@ a later version/tier**._
 **Tooling / hygiene:**
 - ⚠️ **`apps/rn/package-lock.json` is out of sync** — `npm ci` refuses it and all three CI lanes work around
   it with `npm install`, so **installs are not reproducible.** Regenerate deliberately and re-run the full
-  gate → before the Phase-5 cutover.
+  gate → **now 5.9**, before the cutover.
 - ⚠️ **Two `maestro test` calls write no JUnit**, so their verdicts never reach the durable record
   (`11-reduce-motion`, the iPad's dark re-run of `i02`). Harmless today — both are measurement runs — and
   the same hazard `maestro-results.mjs`'s header documents for flow `09`: **the next flow added in its own
