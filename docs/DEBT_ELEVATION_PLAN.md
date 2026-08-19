@@ -53,7 +53,7 @@ nothing downstream is budgeted until it answers.**
 | # | Step | State |
 |---|---|---|
 | **5.1a** | **The WebKit `localStorage` decode** — the half provable off-device | ✅ **Done 2026-08-19.** `webkitLocalStorage.ts`: encoding sniff, table decode, and the store picked **on contents, never on path** (WebKit's layout is private and has changed twice). **36 asserts** incl. a **real `node:sqlite` round-trip** through WebKit's own `ItemTable` shape; **4 plants, 4 reds**; typecheck + lint clean |
-| **5.1b** | **[SPIKE] Prove the databases are findable and readable after a real upgrade.** Two lanes, two claims: the **mechanism** on a GH-Actions **simulator** (install v1.6 → use it → install RN over it, same bundle id, same container) — free and repeatable; the **acceptance** on 🎯's phone via one batched CodeMagic build, which is Phase 5's stated exit. Fallback if the read comes back empty: a native `WKURLSchemeHandler` + off-screen WKWebView | ▶ **ACTIVE.** ✅ **5.1b.1** the legacy build was ROTTED and is repaired · ✅ **5.1b.2** the walk — both WebKit layouts, breadth-first, **caps that REPORT** (`truncated`), **17 asserts** against a real temp tree, **4 plants / 4 reds**. ▶ Next **5.1b.3**: declare `expo-file-system` + `expo-sqlite`, the native adapter, the CI job |
+| **5.1b** | **[SPIKE] Prove the databases are findable and readable after a real upgrade.** Two lanes, two claims: the **mechanism** on a GH-Actions **simulator** (install v1.6 → use it → install RN over it, same bundle id, same container) — free and repeatable; the **acceptance** on 🎯's phone via one batched CodeMagic build, which is Phase 5's stated exit. Fallback if the read comes back empty: a native `WKURLSchemeHandler` + off-screen WKWebView | ▶ **ACTIVE.** ✅ **5.1b.1** the legacy build was ROTTED and is repaired · ✅ **5.1b.2** the walk — both WebKit layouts, breadth-first, **caps that REPORT** (`truncated`), **17 asserts** against a real temp tree, **4 plants / 4 reds**. ▶ **5.1b.3** — ✅ deps (`expo-sqlite` + `expo-file-system`, plugin registered) · ✅ native adapter + web split · ✅ the QA-gated `legacy-bridge-probe` readout on More, beside the other two probes. ⛔ **The source DB is COPIED before opening** — `SQLiteOpenOptions` has no read-only flag, so opening the user's own WebKit store would open it read-write. Verified: tsc clean · `lint:rn` 0 errors · **web export green with 0 occurrences of `expo-sqlite` in the bundle**. ▶ Remaining: the **capture-once** CI job |
 | **5.2** | **The legacy → RN key mapping**, a pure function over the measured **31 keys** × `schemaVersion` **0/1/2**, honouring `migrateState`'s `originalBalance` backfill. Unit-tested against real v1.6 blobs | |
 | **5.3** | **The bridge** — one-shot, idempotent, **non-destructive** (legacy keys survive until the RN blob verifies), quarantine on failure, visible recovery path | |
 | **5.4** | **Mis-filed-obligation sweep over MIGRATED data** — wire `looksLikeDebt()` into the bridge output so v1.6's "Credit Card Payment"/"Loan Payment" bill presets surface as debts. **Largest affected population in the app** | |
@@ -61,7 +61,7 @@ nothing downstream is budgeted until it answers.**
 | **5.6** | **Drop the two inert prefs** `isDemoMode` + `guardianIntroSeen`, and correct `sandboxStore.ts`'s stale claim in the same edit | |
 | **5.7** | **E2EE iCloud backup**, off Freedom's proven `cloudBackup` template. **NOT premium-gated** — "never lose your data" is a baseline | |
 | **5.8** | **Replace the paste-JSON import with a real file picker** (+ share-sheet export over the same serialization) | |
-| **5.9** | **Regenerate `apps/rn/package-lock.json`** — `npm ci` refuses it today and all three CI lanes work around it, so installs are not reproducible. Routed here explicitly: **before the cutover** | |
+| **5.9** | ~~Regenerate `apps/rn/package-lock.json`~~ | ⛔ **REFUTED 2026-08-19, measured.** `npm ci --dry-run` exits **0** on the committed baseline in **both** `apps/rn` and root — the lockfile was already in sync. The claim in the backlog *and* the comments in `web-e2e.yml` / `embed-pages.yml` (*"`npm ci` works at the root and NOT in apps/rn, ~12 missing transitive entries"*) are **stale**. ▶ Residual: the lanes still install with `npm install`; switching them to `npm ci` is a real but SEPARATE improvement needing a CI run to confirm on Linux — **not** assumed from a Windows measurement |
 | **5.10** | **[AUDIT GATE] Adversarial migration/upgrade audit — the EXIT gate, no cutover until green.** ⚠️ Corrected corpus: `schemaVersion` **0/1/2** × partial / corrupt / empty / huge portfolios × malformed dates & numbers × mid-migration interruption | |
 | **5.11** | **Cutover** — the RN app becomes the shipping app, proven on a **real populated upgraded device** | |
 
@@ -317,10 +317,21 @@ cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped
   5.5.1 deletes it — but it had to compile for the probe, and a silent 0 is a defect either way.)*
 - ⚠️ **No further gate added, deliberately:** 5.1b.3's CI job builds the legacy app, so **the probe IS the
   gate** against this rotting again — and both die together at 5.5.1. A second check would outlive its subject.
-- ⚠️ **There is NO `v1.6` git tag** (tags are `v1.0-submitted` + `app-preview-*`), so the simulator lane's
-  legacy side is built from the current legacy tree, not from what shipped. **The mechanism proof is
-  unaffected** (key names and storage medium are unchanged); the fidelity proof is 🎯's phone, which holds
-  the genuine shipped v1.6. → stated, not worked around; **tag releases from here.**
+- ✅ ⭐ **CORRECTED 2026-08-19 — the shipped v1.6 IS preserved: `origin/v1.6-dev`** (🎯; a pure Capacitor
+  tree, no `apps/`, no `packages/`). My earlier note said the fixture would have to come from the current
+  legacy tree. **It does not, and it must not** — that tree has drifted against shared `packages/core`
+  (the dead `"leftover"` filter proves it). **The fixture builds from `v1.6-dev`, so it is authentic to
+  what shipped.** ⚠️ Still true: there is no v1.6 **tag**, only `v1.0-submitted` + `app-preview-*`. Tag
+  releases from here.
+- ⭐ **[DECISION, 🎯 2026-08-19] CAPTURE THE CONTAINER ONCE — do not take a standing CI dependency on the
+  legacy tree.** 🎯: *"why do we need the legacy branch on this phase? We have actively been
+  decommissioning it."* Build v1.6 from `v1.6-dev` on a simulator **one time**, capture the resulting
+  `Library/WebKit` tree as a CI **artifact**, and have the probe job restore that into a fresh container.
+  ⛔ **Synthesising the fixture instead was REJECTED**: the unknown *is* where iOS puts the files, so
+  writing one where we guessed and then finding it there proves nothing — the fixture-never-renders-the-
+  real-state trap, at container scale. **After the capture the legacy tree owes CI nothing and 5.5.1 can
+  delete it freely.** ⚠️ The capture is from one iOS version; contents-not-path identification absorbs
+  that, and 🎯's phone remains the acceptance proof.
 
 **Surfaced by 5.1a's AFTER-scan (2026-08-19) — all fold in, none deferred:**
 - ⛔ **The v1.6 QUARANTINE is itself legacy data, and the plan never named it.** `safeStorage.ts` writes
@@ -405,9 +416,10 @@ _Post-triage under the fold-don't-defer rule — only two carve-outs remain: **d
 a later version/tier**._
 
 **Tooling / hygiene:**
-- ⚠️ **`apps/rn/package-lock.json` is out of sync** — `npm ci` refuses it and all three CI lanes work around
-  it with `npm install`, so **installs are not reproducible.** Regenerate deliberately and re-run the full
-  gate → **now 5.9**, before the cutover.
+- ⛔ ~~**`apps/rn/package-lock.json` is out of sync**~~ — **REFUTED 2026-08-19 by measurement**, see 5.9.
+  `npm ci --dry-run` exits 0 on the committed baseline in both trees. ⚡ **The first test I ran "confirmed"
+  it and was wrong** — it compared the OLD lockfile against my ALREADY-EDITED `package.json`, so the three
+  missing entries it reported were mine. A premise measured against a contaminated baseline confirms itself.
 - ⚠️ **Two `maestro test` calls write no JUnit**, so their verdicts never reach the durable record
   (`11-reduce-motion`, the iPad's dark re-run of `i02`). Harmless today — both are measurement runs — and
   the same hazard `maestro-results.mjs`'s header documents for flow `09`: **the next flow added in its own

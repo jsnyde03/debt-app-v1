@@ -4,6 +4,87 @@
 
 ---
 
+## 5.1b.3 — the device half, and two premises that did not survive contact (2026-08-19)
+
+Deps declared (`expo-sqlite ~56.0.5`, `expo-file-system ~56.0.10`, plugin registered in `app.json`), the
+native reader and its web split written, and the probe readout mounted on More beside the coach-mark and
+reduce-motion probes — the screen the suite already visits, so it costs no new flow.
+
+### ⛔ The source database is COPIED before it is opened
+
+`SQLiteOpenOptions` has **no read-only flag** — the whole surface is `enableChangeListener`,
+`useNewConnection`, `finalizeUnusedStatementsBeforeClosing`, `libSQLOptions`. So opening the user's WebKit
+store directly opens it **read-write**, which can leave `-wal`/`-shm` siblings beside it and can migrate
+the file format under a database WebKit still owns. The first duty of a migration bridge is to leave the
+source exactly as it found it, so the copy is not a trade-off worth debating. Copies land in **cache** and
+are removed in a `finally` — if the process dies mid-read the leftover is a file iOS may evict, not a
+permanent duplicate of someone's financial data.
+
+⚠️ Each candidate copies to `candidate-<i>.sqlite3`, not to the source basename: **both WebKit layouts use
+the name `localstorage.sqlite3`**, so copying on basename would have the second overwrite the first and
+report it twice.
+
+### ⭐ The report distinguishes "nothing there" from "could not look", at every level
+
+`store: null` alone is ambiguous, and acting on the wrong reading is precisely how a bridge skips a real
+user's data. So the report carries `truncated` (a cap or an unrecognised container shape stopped the
+search), `visited` (did the walk run at all), `opened[].error` (found and refused) and `droppedRows`
+(decoded partially — the migration is INCOMPLETE). ⚠️ `keys=0 truncated=no` is a clean install;
+`keys=0 truncated=yes` is a failed search. **Same number, opposite findings.** This is the distinction
+`hydrate` already draws one layer up, kept drawn one layer down.
+
+The web split returns `supported: false` rather than an empty success, for the same reason: an empty
+success means *"I looked and there was nothing"*, which would be true on web by accident and false on a
+native build where the read had genuinely failed.
+
+### ⛔ Two premises measured, both refuted
+
+**5.9 — the desynced lockfile — is refuted.** `npm ci --dry-run` exits **0** on the committed baseline in
+**both** `apps/rn` and the root. The backlog entry and the comments in `web-e2e.yml` / `embed-pages.yml`
+(*"`npm ci` works at the root and NOT in apps/rn — ~12 missing transitive entries"*) are stale.
+
+⚡ **And the first test I ran confirmed the premise and was wrong.** It compared the OLD lockfile against my
+ALREADY-EDITED `package.json`, so the three "missing" entries it reported were the two deps I had just
+added plus their transitive. **A premise measured against a contaminated baseline confirms itself** — the
+correct test restores *both* files from HEAD, which is what flipped the verdict. Residual, unclaimed: the
+lanes still install with `npm install`; switching them to `npm ci` is a real but separate improvement that
+needs a Linux CI run, and is **not** assumed from a Windows measurement.
+
+**The "no v1.6 reference" note is refuted too, by 🎯:** the shipped v1.6 is preserved on
+**`origin/v1.6-dev`** — a pure Capacitor tree, no `apps/`, no `packages/`. So the fixture is built from
+**what actually shipped**, not from the drifted in-tree legacy surface. That matters concretely: the
+in-tree copy had a filter on an `AllocationCategory` member core had removed, dead and silent, which is
+exactly the kind of divergence that would make a fixture lie.
+
+### ⭐ [DECISION 🎯] Capture the container ONCE — no standing CI dependency on the legacy tree
+
+🎯: *"why do we need the legacy branch on this phase? We have actively been decommissioning it."* Correct
+challenge, and it changed the design. The legacy build is needed as a **one-shot fixture generator**: run
+v1.6 on a simulator once, capture the resulting `Library/WebKit` tree as a CI **artifact**, and have the
+recurring probe job restore that into a fresh container.
+
+⛔ **Synthesising the fixture instead was rejected on the merits.** The unknown *is* where iOS puts the
+files — so writing a database where we guessed and then proving we can find it there proves nothing. It is
+the fixture-that-never-renders-the-real-state trap at container scale, and this project has paid for that
+shape ten times. The container must be produced by a real WKWebView under **our** bundle id; Safari's store
+is in Safari's container, so "any WebView" does not substitute.
+
+**After the capture, the legacy tree owes CI nothing and 5.5.1 can delete it freely.**
+
+### ⚠️ What the repair to the legacy build is now worth, stated honestly
+
+5.1b.1 fixed the legacy build so the fixture could be produced. With the fixture now coming from
+`v1.6-dev`, that repair is **no longer load-bearing for the probe**. It cost three lines, it fixed a
+genuinely broken `next build`, and it surfaced a live defect (`bufferTotal` silently 0) — so it was not
+wasted. But it was not the thing that made the probe possible, and recording otherwise would overstate it.
+
+**Gate:** tsc clean · `lint:rn` 0 errors (6 pre-existing warnings) · `npm ci --dry-run` 0 in both trees ·
+**web export green, with `expo-sqlite` appearing 0 times in the built bundle** — the platform split holds
+and the native module never reaches the browser.
+
+---
+
+
 ## 5.1b.1 + 5.1b.2 — the v1.6 app could not be built, and the walk that finds its data (2026-08-19)
 
 ### ⛔ 5.1b.1 — the before-scan found the probe's foundation already broken

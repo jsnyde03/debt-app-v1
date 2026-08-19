@@ -25,6 +25,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { useLayout } from '@/hooks/use-layout';
 import { qaEnabled } from '@/config/qa';
 import { CoachMarkProbeReadout } from '@/components/more/CoachMarkProbeReadout';
+import { LegacyBridgeProbeReadout } from '@/components/more/LegacyBridgeProbeReadout';
 import { ReduceMotionProbeReadout } from '@/components/more/ReduceMotionProbeReadout';
 import { LiveActivityQA } from '@/components/more/LiveActivityQA';
 import { spacing } from '@/theme/spacing';
@@ -345,6 +346,10 @@ export default function MoreScreen() {
           {/* 4.1.7① — reports what THIS build sees for Reduce Motion, from both sources. Beside the
               coach probe because More is a screen the suite already visits, so it costs no new flow. */}
           <ReduceMotionProbeReadout />
+          {/* 5.1b — can this binary read the v1.6 WKWebView localStorage it inherited on an in-place
+              upgrade? The one question in Phase 5 that no local test can answer. Same screen as the other
+              two probes, so it costs the suite no new flow. */}
+          <LegacyBridgeProbeReadout />
         </Section>
       ) : null}
 
