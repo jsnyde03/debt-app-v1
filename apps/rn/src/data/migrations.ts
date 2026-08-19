@@ -91,6 +91,37 @@ function repairMoneyFields<T extends Record<string, unknown>>(
   });
 }
 
+/**
+ * ⛔ A store carrying a WORKING plan has been onboarded — found on a real device (🎯 2026-08-19).
+ *
+ * v1.6's `buildBackupData()` never emitted `hasCompletedOnboarding`, so a genuine v1.6 backup FILE cannot
+ * carry it. The import therefore landed `onboardingComplete: false`, and `_layout.tsx`'s route guard
+ * (`Stack.Protected guard={!onboardingComplete}`) sent the user to onboarding **with the whole restored
+ * portfolio imported but invisible behind the gate.** It reads as "the import did nothing" — the worst way
+ * a successful restore can present.
+ *
+ * ⚠️ It lives HERE, at the single choke point every door passes through, rather than in the import path.
+ * The first cut put it in `readBackup` and the differential oracle immediately caught it: the two doors
+ * onto the same data started disagreeing. Fixing it at the root is what makes them agree by construction —
+ * the same lesson as the non-array `debts` throw earlier in 5.10.
+ *
+ * ⛔ **Income AND an obligation, not either.** A looser "has any debt" signal wrongly skipped onboarding
+ * for a user mid-setup who had entered one debt and no income — they cannot be shown a plan, so they must
+ * finish onboarding. An explicit `true` is always honoured; this only ever promotes, never demotes.
+ */
+function inferOnboarding(
+  r: Partial<DebtStore>,
+  incomingPrefs: Record<string, unknown>,
+  paycheck: DebtStore['paycheck'],
+): boolean {
+  if (incomingPrefs.onboardingComplete === true) return true;
+  const hasIncome = typeof paycheck.amount === 'string' && paycheck.amount.trim() !== '';
+  const hasObligation =
+    (Array.isArray(r.debts) && r.debts.length > 0) ||
+    (Array.isArray(r.requiredExpenses) && r.requiredExpenses.length > 0);
+  return hasIncome && hasObligation;
+}
+
 export function runMigrations(raw: unknown): DebtStore {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     throw new Error('runMigrations: persisted store is not an object');
@@ -139,7 +170,7 @@ export function runMigrations(raw: unknown): DebtStore {
     requiredExpenses,
     livingExpenses,
     paycheck,
-    prefs: { ...base.prefs, ...incomingPrefs },
+    prefs: { ...base.prefs, ...incomingPrefs, onboardingComplete: inferOnboarding(r, incomingPrefs, paycheck) },
     // ⚠️ REPLACED, not merged with whatever the blob carried. This describes what THIS read had to
     // repair; carrying a previous run's list forward would keep re-reporting a field the user has since
     // fixed, and a notice that will not go away is one people learn to dismiss.

@@ -141,6 +141,19 @@ export function describeBackup(result: ReadBackupSuccess): string {
  * crash on a screen whose entire job is to be safe with a file the user found somewhere. A recognised
  * format is not a trusted one.
  */
+/**
+ * ⛔ A restored portfolio implies a user who has ALREADY onboarded — found on a real device (🎯).
+ *
+ * v1.6's `buildBackupData()` never emitted `hasCompletedOnboarding`, so a genuine v1.6 backup file cannot
+ * carry it. `mapLegacyStore` therefore lands `onboardingComplete: false`, and the route guard in
+ * `_layout.tsx` (`Stack.Protected guard={!onboardingComplete}`) sends the user straight to onboarding —
+ * **with their data imported but entirely invisible behind the gate.** It reads as "the import did
+ * nothing", which is the worst possible way for a successful restore to present.
+ *
+ * ⚠️ Inferred from CONTENT, not assumed from the act of importing. An empty backup restores an empty app
+ * and must still onboard — otherwise a user who exported before setting anything up gets dropped into a
+ * blank Today with no way back to the setup flow. The signal is a portfolio existing at all.
+ */
 function migrated(kind: BackupKind, value: unknown, legacy?: LegacyMapReport): ReadBackupResult {
   try {
     return { ok: true, kind, store: runMigrations(value), ...(legacy ? { legacy } : {}) };

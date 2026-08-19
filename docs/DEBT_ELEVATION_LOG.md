@@ -122,6 +122,46 @@ import reads a file the *user* chose, which on iCloud Drive or Google Drive can 
 read a second time. That is the whole reason `copyToCacheDirectory` is on, and the reason a green export
 says nothing about it.
 
+### ⭐ The `legacy-bridge-probe` readout, from the device (🎯)
+
+`Found: 1 · Opened: 1 · Keys: 22 · Dropped: 0 · visited: 16 · truncated = no`
+
+⭐ **22 keys is the exact count the captured container held** (5.1b.3), from a completely independent
+route — a real phone's own store rather than a restored artifact. **`truncated = no` with keys > 0 is the
+unambiguous success case**, and it is the distinction 5.1b.3 built the field for: `keys=0 truncated=no` is
+a clean install, `keys=0 truncated=yes` is a failed search, *same number, opposite findings*. `Dropped: 0`
+means nothing decoded partially, so the migration was complete rather than merely successful.
+
+### ⛔ THE ONBOARDING GATE — a restored portfolio was invisible behind it (🎯, device)
+
+*"The warning comes up that it'll replace the data and when you confirm it kicks back to onboarding
+without anything loaded."*
+
+The data HAD imported. `buildBackupData()` never emitted `hasCompletedOnboarding`, so a genuine v1.6
+backup **file** cannot carry it — the import landed `onboardingComplete: false` and `_layout.tsx`'s
+`Stack.Protected guard={!onboardingComplete}` hid the whole restored portfolio behind onboarding. ⚡ **A
+successful restore presenting as "the import did nothing" is the worst possible failure mode**, and it is
+the same family as the other three this phase: *a success that renders as an ordinary, unremarkable state.*
+
+⚠️ **Not a fixture gap.** Every real v1.6 user restoring their own backup file hits this.
+
+### ⛔ And the differential oracle caught my FIRST fix, immediately
+
+I put the inference in `readBackup` — the import path. The oracle red on `mid-onboarding-amount-unset`:
+the two doors onto the same data had started disagreeing, because only one of them applied it.
+
+✅ Moved to **`runMigrations`**, the single choke point every door passes through, so they agree **by
+construction** rather than by both being patched. Same lesson as the non-array `debts` throw earlier in
+5.10 — fix the root, not the caller.
+
+⚠️ **And the signal was too loose.** The first cut promoted on *any* obligation, which wrongly skipped
+onboarding for a user mid-setup with one debt and no income — they cannot be shown a plan. Now requires
+**income AND an obligation**, and an explicit `true` is always honoured: it only ever promotes, never
+demotes.
+
+▶ **Fixed and unit-covered; NOT device-verified** *(🎯 2026-08-19: "I'm not going to push a new CM just to
+test that fix. Let's record it and include it in the Phase 6 device pass.")* → **Phase 6 device pass.**
+
 ### ▶ Still owed before 5.11 can close
 
 The **data** half is proven; the **file** half is not. Owed on the same build, and none of it is provable

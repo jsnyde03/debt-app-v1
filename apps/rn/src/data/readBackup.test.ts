@@ -248,3 +248,42 @@ function realV16Backup(): Record<string, unknown> {
 }
 
 console.log(`✅ readBackup router tests passed (${passed} asserts).`);
+
+// ── ⛔ THE ONBOARDING GATE (found on a real device, 🎯 2026-08-19). ───────────────────────────────
+// A v1.6 backup file cannot carry `hasCompletedOnboarding` — `buildBackupData()` never emitted it — so
+// the import used to land `onboardingComplete: false` and the route guard hid the whole restored
+// portfolio behind onboarding. It read as "the import did nothing".
+{
+  const v16 = { ...realV16Backup() };
+  const result = readBackup(JSON.stringify(v16));
+  assert(result.ok, 'a v1.6 file imports');
+  if (result.ok) {
+    assert(result.store.prefs.onboardingComplete === true, '⛔ a restored PORTFOLIO skips onboarding');
+  }
+}
+{
+  // ⚠️ …but an EMPTY backup must still onboard. Inferred from CONTENT, never from the act of importing:
+  // a user who exported before setting anything up would otherwise land on a blank Today with no route
+  // back into the setup flow.
+  const empty = {
+    version: 1,
+    exportedAt: '2026-05-23T14:02:11.000Z',
+    amount: '',
+    payCycle: 'biweekly',
+    currentDate: '2026-05-23',
+    requiredExpenses: [],
+    livingExpenses: [],
+    debts: [],
+    goals: [],
+    completedRecommendedActions: [],
+    payoffStrategy: 'snowball',
+    cycleHistory: [],
+  };
+  const result = readBackup(JSON.stringify(empty));
+  assert(result.ok, 'an EMPTY v1.6 backup still imports');
+  if (result.ok) {
+    assert(result.store.prefs.onboardingComplete === false, '…and still onboards — nothing to show yet');
+  }
+}
+
+console.log(`✅ readBackup onboarding-gate tests passed.`);

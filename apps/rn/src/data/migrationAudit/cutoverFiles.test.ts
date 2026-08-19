@@ -71,6 +71,14 @@ export default async function run() {
       '…in the real `PayCycleSnapshot` shape, not an invented one',
     );
     assert(s.dataRepairs.length === 0, 'a HEALTHY file reports zero repairs');
+
+    // ⛔ FOUND ON A REAL DEVICE (🎯): importing a v1.6 backup landed the user in ONBOARDING with the data
+    // imported but invisible behind the route guard. v1.6's `buildBackupData()` never emitted
+    // `hasCompletedOnboarding`, so a genuine backup file cannot carry it — it is not a fixture gap.
+    assert(
+      s.prefs.onboardingComplete === true,
+      '⛔ a restored portfolio does NOT drop the user into onboarding',
+    );
     assert(JSON.stringify(viaFile.store) === JSON.stringify(viaKeys.store), 'both doors agree on the seed file');
   }
 
