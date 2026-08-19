@@ -89,6 +89,135 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## 5.8 before-scan — a live data-loss defect, and the item was named for its smallest half (2026-08-19)
+
+The step read *"replace the paste-JSON import with a real file picker (+ share-sheet export **over the
+same serialization**)."* Three premises, and the load-bearing one was the phrase in bold.
+
+### ⛔ There is no serialization to share
+
+Export is `JSON.stringify(store, null, 2)` **inline in the component** — no format marker, no version, no
+app name. Import is `JSON.parse` → `runMigrations` → `importStore`. So the item's own wording assumed a
+seam that does not exist, which is why the defect below was invisible from the plan.
+
+### ⛔ MEASURED — the importer accepts any JSON object and replaces the user's portfolio
+
+`runMigrations` rejects only non-objects. A probe over eight inputs:
+
+| input | verdict |
+|---|---|
+| `{}` · a `package.json` · another app's export · a settings blob | **ACCEPTED** → `storeVersion 7`, 0 debts |
+| `null` · `[1,2,3]` · `"hello"` · `42` | rejected (*not an object*) |
+
+`importStore` then **replaces the user's real data**. The only thing throttling this today is the friction
+of pasting text into a box — and **5.8's file picker was going to remove precisely that friction.** ⚡ *An
+item that makes an existing latent defect reachable is not adding a feature; it is shipping the defect.*
+
+### ⛔ And v1.6 ALREADY had file backup — so 5.8 is a parity REGRESSION with files in the wild
+
+`origin/v1.6-dev:lib/storage/backup.ts`: `downloadBackup` (share sheet / download) + `readBackupFile`
+(a real `File`). v1.7 went **backwards** to clipboard-only. Real `debt-planner-backup-<date>.json` files
+therefore exist on users' devices, in v1.6's **flat** shape.
+
+Running the repo's own committed real fixture through the v1.7 importer:
+
+| field | v1.6 file | after import |
+|---|---|---|
+| income | **2100** | ⛔ **blank** — stranded as a top-level key; `paycheck.amount` never populated |
+| `currentDate` | 2026-05-23 | ⛔ **today** |
+| `payCycle` | biweekly | ⚠️ biweekly — **correct only by COINCIDENCE with the default** |
+| strays | — | 6 v1.6 keys carried in as junk |
+
+⛔ **The `payCycle` row is the dangerous one.** It reads as evidence the migration worked. It is not: the
+value was never mapped, the default simply matched. A `monthly` user would silently become biweekly, and
+the import as a whole looks plausible enough that nobody checks — after the real store is already gone.
+⚡ *A field that survives by coincidence is worse than one that visibly breaks, because it certifies the
+path that destroyed the rest.*
+
+### ⭐ The fix mostly exists already — 5.2 built it for the other door
+
+`mapLegacyStore` maps the **same key names** the backup file uses at top level (`amount`, `payCycle`,
+`currentDate`, `debts`, `requiredExpenses`, `goals`, `payoffStrategy`). ⚠️ It consumes
+`Record<string, string>` of `debtPlanner.`-prefixed, **JSON-encoded** values, so the backup file needs a
+re-encoding adapter rather than a direct call — small, and it inherits 5.2's 50 asserts plus the
+mapped/dropped/unknown/unparseable reporting instead of growing a second translation to keep in sync.
+
+⚡ **The generalisable bit:** the migration bridge and the import path are the **same problem through two
+doors**, and the plan had them as unrelated steps in different halves of the phase. 5.2 was specced for
+the WebKit door only because that was the door being built.
+
+### 🧰 Method note — the `tsx -e` trap caught me on the first probe
+
+The first attempt was `npx tsx -e "…"` and returned **empty output**, silently. Same family as the three
+shell-escaping failures already logged this phase. Rewrote it to a **file** and it ran first try. The rule
+was already written down; the cost of ignoring it is one wasted round, every time.
+
+---
+
+## 5.7 — the before-scan refuted the step's own TITLE, and it left Phase 5 (2026-08-19)
+
+The step read *"E2EE iCloud backup, off Freedom's `cloudBackup` template."* Reading the template — the
+thing the previous session flagged as *confirmed to exist but unread* — broke **three** words in that
+sentence.
+
+### ⛔ Not E2EE
+
+The sole codec is `plaintextCloudCodec`, an **identity function** (`FinancialFreedom/src/data/cloudBackup.ts:36`).
+`CLOUD_CODECS` has one entry. The only other codec anywhere in the tree is `reverseCodec` — a **test
+fixture**. `CloudBackupCodec` is a deliberately empty seam, and its own docstring says so: v1.0 ships
+plaintext *"because the app-private iCloud container is already encrypted by Apple at rest + in transit"*,
+with a passphrase-derived AES codec as future work registering by id.
+
+⚡ **So the word "E2EE" was describing a seam, not an implementation.** Debt would be writing the crypto
+from scratch, plus the recovery UX that a passphrase forces — where forgetting it means the backup is
+gone, by design, and that is a product decision with real weight.
+
+### ⛔ Not "proven", in the sense the word was doing
+
+Native-only-verifiable, and gated behind a step **code cannot perform**: register an iCloud Container,
+enable the iCloud capability on the App ID, regenerate the provisioning profile. **Signing fails without
+it** (`FinancialFreedom/docs/ICLOUD_BACKUP_SETUP.md` exists solely to walk that). `react-native-cloud-storage`
+is **not a Debt dependency** — a New-Arch TurboModule with an Expo config plugin, i.e. exactly the
+*unproven native capability, device-build-only* profile that cost **5.1b** an entire spike.
+
+### ⛔ The plan named the WRONG privacy claim, and the error pointed the safe way
+
+The question as written said the marketing line is *"100% private"*. It is not — **[D32] already ruled
+that an overclaim** and the app deliberately avoids it, with `DemoDock.tsx:105` carrying a comment saying
+so. The line that actually survives is **"financial data never leaves your device"** (`analytics/funnel.ts:4`;
+in-app *"Private · on your device"* at `index.tsx:618`).
+
+⚡ **The stale premise made the collision look softer than it is** — it named the already-retired claim, so
+the surviving one, which is the one a cloud backup falsifies, was invisible. A wrong premise that
+understates a risk is worse than one that overstates it.
+
+### ⛔ And my own recommendation contained a bad argument
+
+I recommended deferral partly on the grounds that it *"keeps the claim intact through v1.7."* Jason took
+the move but kept 5.7 **in v1.7** — and that single condition kills the argument. The rewording is owed
+either way; deferral moved **when** it is decided, never **whether**.
+
+⚠️ **The deeper error is independent of the schedule: no version of 5.7 rescues that sentence.** Real E2EE
+makes the data **unreadable off-device** — it does not make it **not leave**. I had been treating
+encryption as though it restored a locational claim, when it only ever supports an access claim. The
+honest replacement is about *who can read it*, not *where it goes*. → Phase 6 **6.C**, as two coupled
+decisions ([a] mechanism, [b] wording) that **gate** the privacy audit instead of being discovered by it.
+
+### ✅ What is genuinely worth taking
+
+The **provider abstraction** (platform split keeps the native module out of the web bundle — the same
+pattern 5.1b.3 already used for `expo-sqlite`), the **service orchestration** (non-throwing tagged
+outcomes, quarantine-don't-destroy), and the **versioned codec envelope** with dispatch-by-id so old blobs
+stay decodable. That is good architecture and it ports. The encryption is not there to port.
+
+### 🧹 Also found: a committed 0-byte junk file
+
+`m.default())` at the repo root — **committed in `ab7daf3`**, and it is the physical residue of the bash
+`=>`-parsed-as-redirect bug this phase already documented. The bug was recorded; the file it created was
+not noticed. Deleted. ⚡ *A shell-escaping defect can leave an artifact that outlives the diagnosis of it.*
+
+---
+
 ## 5.1b.3 — the device half, and two premises that did not survive contact (2026-08-19)
 
 Deps declared (`expo-sqlite ~56.0.5`, `expo-file-system ~56.0.10`, plugin registered in `app.json`), the

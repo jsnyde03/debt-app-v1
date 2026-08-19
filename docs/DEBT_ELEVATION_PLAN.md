@@ -13,7 +13,7 @@
 | | |
 |---|---|
 | **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **whole-app audit gate T1–T8 + T3B ✅ CLOSED 2026-08-19** ([D37] 55/55, `lint:closure` in CI). Remaining: **Phase 5** ▶ → **Phase 5.5** → **Phase 6** |
-| **Phase 5 state** | ✅ **5.1a · 5.1b · 5.2 · 5.3 · 5.4 · 5.5 · 5.6 done · 5.9 refuted.** ▶ **Next: 5.7** (start fresh — three open questions below) or **5.8** first (my rec). Then **5.10** the audit gate, **5.11** the cutover 🎯. ⚠️ Still owed: the **on-device probe job** that restores the captured artifact |
+| **Phase 5 state** | ✅ **5.1a · 5.1b · 5.2 · 5.3 · 5.4 · 5.5 · 5.6 done · 5.9 refuted · 5.7 MOVED to Phase 6** (🎯 2026-08-19, still v1.7). ▶ **Building: 5.8** — then **5.10** the audit gate, **5.11** the cutover 🎯. ⚠️ Still owed: the **on-device probe job** that restores the captured artifact |
 | **Gate** | `validate:release:rn` — **196 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push. ⭐ **+`lint:glossary` +`lint:money` +`lint:closure`** |
 | **The audit** | ⭐ [`audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md) — 117 findings, 7 lenses, 8 refutations. **CLOSED**; detail → log |
 | **Device pass** | 52 rows + the 60 coverable-not-built + **[T3.2]'s owed row** (force a storage fault → the retry screen renders AND the retry recovers) — all Phase 6, human-ticked, non-gating. ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them |
@@ -68,37 +68,58 @@ nothing downstream is budgeted until it answers.**
 | **5.4** | **Mis-filed-obligation sweep over MIGRATED data** | ⛔ **The premise was WRONG: the bridge needs no wiring.** `money.tsx` renders the hint for **any** expense matching `looksLikeDebt`, ungated by origin — so a migrated user already sees it. ✅ Pinned against v1.6's real 15-preset corpus (**3 caught**). ✅ **CLOSED 2026-08-19 [🎯]** — both trust calls settled by MEASUREMENT, not instinct. **`car payment`/`vehicle payment` as a PHRASE, never the bare word** (bare `car` accused **8 of 19** realistic bill names incl. "Car insurance", "Car wash", "Car registration"; the phrase form accuses **2 of 19**). **The unmodified `"Rent / Mortgage"` preset is exempt** — it names both, so it carries no information; a *renamed* "Mortgage" is still caught. **39 asserts · 3 plants / 3 reds.** ⚠️ Knowingly missed: brand-named car debt ("Toyota payment") — a lender list is recall-chasing with a worse false-positive profile |
 | **5.5** | **Durability: flush critical writes immediately** | ✅ **Done 2026-08-19.** Prefs now write IMMEDIATELY, bypassing the debounce; ordinary edits keep it. A pref is a single tap the user WATCHED confirm, and `flushPendingSave` only fires on AppState background — a force-quit from the foreground emits neither, so the window had nothing behind it. Plant-verified both directions |
 | **5.6** | **Drop the two inert prefs** | ✅ **Done 2026-08-19.** Both removed from the type, the defaults AND — the part that matters — **STRIPPED by `runMigrations`**, since the prefs merge preserves any extra key an old blob holds, so a type-only deletion would leave them in the DATA forever. Folded into v7 (unshipped). `sandboxStore.ts`'s stale claim corrected. Plant-verified |
-| **5.7** | **E2EE iCloud backup**, off Freedom's `cloudBackup` template. **NOT premium-gated** | ▶ **NEXT — start it FRESH** (🎯 2026-08-19). ⚠️ **Three questions to settle at switch-in, BEFORE porting anything** — see below. It is the largest remaining item and the least specified |
-| **5.8** | **Replace the paste-JSON import with a real file picker** (+ share-sheet export over the same serialization) | |
+| **5.7** | ~~E2EE iCloud backup~~ | ⛔ **MOVED OUT OF PHASE 5 — 🎯 2026-08-19.** ⚠️ **Still ships in v1.7** ("*okay with moving it out of Phase 5 with the knowledge that it does need to still be folded into 1.7*") → **Phase 6**. Its title was refuted on measurement: **not E2EE, not a port** — see the block below |
+| **5.8** | **File-based backup** — was *"replace the paste-JSON import with a file picker"* | ▶ **ACTIVE**, decomposed below. ⛔ **The before-scan DOUBLED it:** import accepts **any JSON object** and replaces the user's data (measured), and **v1.6 backup files exist in the wild** that it half-destroys silently. **5.8.1–5.8.4 are the ship-blocker**; the picker is 5.8.5 |
 | **5.9** | ~~Regenerate `apps/rn/package-lock.json`~~ | ⛔ **REFUTED 2026-08-19, measured.** `npm ci --dry-run` exits **0** on the committed baseline in **both** `apps/rn` and root — the lockfile was already in sync. The claim in the backlog *and* the comments in `web-e2e.yml` / `embed-pages.yml` (*"`npm ci` works at the root and NOT in apps/rn, ~12 missing transitive entries"*) are **stale**. ▶ Residual: the lanes still install with `npm install`; switching them to `npm ci` is a real but SEPARATE improvement needing a CI run to confirm on Linux — **not** assumed from a Windows measurement |
 | **5.10** | **[AUDIT GATE] Adversarial migration/upgrade audit — the EXIT gate, no cutover until green.** ⚠️ Corrected corpus: `schemaVersion` **0/1/2** × partial / corrupt / empty / huge portfolios × malformed dates & numbers × mid-migration interruption | |
 | **5.11** | **Cutover** — the RN app becomes the shipping app, proven on a **real populated upgraded device** | |
 
-**Exit:** 5.1–5.11 closed, **5.10 green**, full gate green, a real populated v1.6 device upgraded with zero
+**Exit:** 5.1–5.11 closed (**5.7 → Phase 6**, **5.9 refuted**), **5.10 green**, full gate green, a real populated v1.6 device upgraded with zero
 data loss, and every fix that CAN be a lint rule IS one ([D31]).
 
-### ⚠️ 5.7's THREE OPEN QUESTIONS — settle these at switch-in, before porting a line
+**5.7 → Phase 6 `6.C`, 2026-08-19 (🎯), still v1.7.** Measured: Freedom's template is **not E2EE** (sole
+codec is an identity function) and **not a port** (portal step, no dep, device-only). Two coupled
+decisions ride with it — **[a]** mechanism, **[b]** the replacement for *"never leaves your device"*,
+which is **owed either way** since encryption changes *who can read it*, not *whether it left*.
+Full evidence + my own bad argument → **log, `5.7 — the before-scan refuted the step's own TITLE`**.
 
-Raised 2026-08-19 and deliberately left open; 🎯: *"5.7 is good to start fresh."* Each is scope-shaped
-rather than technical, and each is the kind of pre-authored premise this phase has been correcting all day.
+### ▶ 5.8 — file-based backup. ⛔ The before-scan found a LIVE DATA-LOSS DEFECT and doubled the scope
 
-1. **Does 5.7 even belong in Phase 5?** Its stated justification is *"never lose your data"* — but the
-   loss modes Phase 5 actually named are now closed by **5.3** (the bridge), **5.5** (immediate pref
-   writes) and the quarantine carry-forward. iCloud backup protects against **device loss**, a different
-   risk, and it is **not a cutover blocker**. It may belong *after* 5.11 rather than before it.
-2. **⛔ "E2EE" is a claim with teeth, and it collides with a Phase-6 gate.** Phase 6 already carries an
-   audit item to prove *"financial data never leaves your device"* is **literally true**, and the
-   marketing line is *"100% private"*. A cloud backup makes that sentence false unless the encryption
-   story is airtight. **Decide the wording and the mechanism together, deliberately — not at the
-   Phase-6 privacy audit, where it would be a discovery.**
-3. **"Proven template" is unverified.** Freedom's `src/storage/cloudBackup/` + `data/cloudBackup.ts` was
-   confirmed to **exist** (6 files, 339 lines, 2 test files). ⚠️ **Nobody has read what it does** — whether
-   it encrypts client-side, where the key lives, or whether "E2EE" is accurate about it. **Measure that
-   first**; "proven template" is exactly the shape of premise that has been wrong five times this phase.
+**Premises checked (2026-08-19):** ✅ `BackupSheets.tsx` 106 lines, clipboard-only · ⛔ *"`expo-sharing` is
+a dep, document-picker is not"* is now **half stale** — **`expo-file-system` IS a dep** (5.1b.3 added it),
+so the **export half needs no new dependency**; only import needs `expo-document-picker` · ⛔ *"over the
+same serialization"* — **there IS no serialization function.** Export is inline `JSON.stringify(store)`:
+no format marker, no version, no app name.
 
-▶ **Recommended order (mine, not settled): 5.8 before 5.7.** The file picker is small, unambiguously
-Phase 5 (it replaces the paste-JSON import the plan flagged), and touches no privacy claim. Doing it first
-buys time to answer the three above with Freedom's code actually read.
+⛔ **MEASURED — import accepts ANY JSON object and REPLACES the user's data.** `runMigrations` rejects only
+non-objects; `{}`, a `package.json`, and another app's export were all **ACCEPTED** → a near-default store,
+straight into `importStore`. Today only the friction of *pasting text* limits it. **5.8's file picker
+removes exactly that friction.**
+
+⛔ **WORSE — v1.6 already HAD file backup, so 5.8 is a PARITY REGRESSION, and the files are in the wild.**
+`origin/v1.6-dev:lib/storage/backup.ts` ships `downloadBackup` (share sheet) + `readBackupFile`. Those
+`debt-planner-backup-<date>.json` files are a **flat v1.6 shape**, and running the committed real fixture
+through v1.7's importer **silently half-destroys it**: income **$2,100 → blank** (stranded top-level;
+`paycheck.*` never populated) · `currentDate` **2026-05-23 → today** · **6 stray keys** carried in · and
+`payCycle` *"survives"* **only by coinciding with the default** — a `monthly` user would silently become
+biweekly. **It looks plausible enough not to be noticed**, and the real store is already overwritten.
+
+⭐ **The fix mostly EXISTS: 5.2's `mapLegacyStore` maps the same key names** (`amount` · `payCycle` ·
+`currentDate` · `debts` · `requiredExpenses` · `goals` · `payoffStrategy`). ⚠️ It takes
+`Record<string, string>` of **`debtPlanner.`-prefixed, JSON-encoded** values, so a backup file needs a
+re-encoding adapter — small, and it inherits 5.2's 50 asserts + the drop/unknown/unparseable reporting.
+
+| # | Sub-step |
+|---|---|
+| **5.8.1** | **The envelope + `serializeBackup`/`parseBackup`** — versioned, app-marked, one function each. Export writes it; nothing else re-implements the shape |
+| **5.8.2** | **Format DETECTION on import, three recognised inputs:** the new envelope · a **raw v1.7 store** (today's clipboard export — already in testers' hands) · a **v1.6 backup file** → routed through the `mapLegacyStore` adapter. ⛔ **Anything unrecognised is REFUSED**, replacing today's accept-any-object |
+| **5.8.3** | **The v1.6 adapter** — flat object → prefixed/encoded map → `mapLegacyStore`. Pinned against the committed real fixture; asserts income/date/cycle actually LAND |
+| **5.8.4** | **Import UX: confirm before replace**, reporting what was recognised and what was dropped — `importStore` is destructive and currently fires on a single tap |
+| **5.8.5** | **The file picker** (`expo-document-picker`) + **share-sheet export** (`expo-sharing` + `expo-file-system`, both already deps), behind the platform split so web keeps the paste path |
+| **5.8.6** | **Gates:** plant-verified both directions · e2e over all three formats + a refusal · ⭐ **[D31]** — a `lint:` rule if the class admits one |
+
+⚠️ **5.8.1–5.8.4 are the ship-blocker; 5.8.5 is the feature the step was named for.** Order is deliberate:
+building the picker first would ship the defect wider.
 
 **Owed before launch, carried out of the audit gate:**
 | | |
@@ -262,8 +283,19 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
   to say *"this paycheck you're $180 short"* already exist. Every screen ·
   sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. Complements, not replaces,
   the audit gate above.
+- **⛔ 6.C — Cloud backup (was 5.7), moved out of Phase 5 2026-08-19 · SHIPS IN v1.7 🎯 · NOT premium-gated.**
+  Two coupled **[DECISION]**s first, and they gate the privacy audit below rather than being discovered by
+  it: **[a]** plaintext-in-Apple-private-container (Freedom's *actual* design) vs. a real passphrase-AES
+  codec + forgotten-passphrase recovery UX; **[b]** the replacement for *"financial data never leaves your
+  device"* — **owed under either**, since encryption changes *who can read it*, not *whether it left*.
+  ⚠️ Measured, not assumed: Freedom is **NOT E2EE** (sole codec is an identity function; the codec
+  interface is an empty seam) and **NOT a drop-in port** (`react-native-cloud-storage` is not a Debt dep;
+  needs an Apple-portal iCloud Container + capability + profile regen or **signing fails**; device-build
+  verifiable only). ✅ Reusable: the provider platform-split, the service orchestration, the codec
+  envelope. Full evidence in the Phase 5 block above.
 - **⭐ [AUDIT GATE] Privacy / data-flow audit** — trace EVERY egress and prove "financial data never leaves
-  your device" is literally true: network · RevenueCat · Sentry · iCloud · scan OCR · logs.
+  your device" is literally true: network · RevenueCat · Sentry · iCloud · scan OCR · logs. ⚠️ **Consumes
+  6.C's [a]+[b]** — do not start this until both are settled.
 - **⭐ [AUDIT GATE] Pre-submit functional + FINANCIAL-correctness money lens** — boundary inputs across the
   engine: zero/negative income · date-boundary/leap-year/timezone · rounding drift · month-vs-cycle
   stepping · cross-cadence BNPL · huge/partial portfolios.
