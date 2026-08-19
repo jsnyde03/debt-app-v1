@@ -1,0 +1,99 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { importDoor, webkitDoor } from '@/data/migrationAudit/doors';
+import { checkAll } from '@/data/migrationAudit/invariants';
+
+/**
+ * 5.11 — the cutover backup files are ASSERTED, not just written.
+ *
+ * ⛔ These three files are what a device session is measured against, so a typo in one turns a real
+ * migration failure into "the fixture was wrong" — or worse, the reverse. A hand-made test artifact
+ * deciding what a check can see is this repo's most expensive recurring defect (`route-smoke` passing
+ * 10/10 on a fixture with no bills; the e2e backup fixture that was a subset no user ever had).
+ *
+ * ⚠️ The figures asserted here are the SAME ones the device tick-list tells 🎯 to compare on the phone.
+ * If they drift apart, this reds — which is the only reason they can be trusted on the far side.
+ */
+
+let passed = 0;
+function assert(cond: boolean, label: string) {
+  if (!cond) throw new Error(`FAIL [${label}]`);
+  passed++;
+}
+
+const DIR = join(__dirname, '..', '..', '..', '..', '..', 'docs', 'cutover');
+const load = (name: string) => JSON.parse(readFileSync(join(DIR, name), 'utf8')) as Record<string, unknown>;
+
+export default async function run() {
+  // ── v16-populated: the seed file. It must survive BOTH doors with its exact figures. ─────────────
+  {
+    const blob = load('v16-populated.json');
+    // v1.6's own `assertValidBackupShape` refuses a file whose array fields are not arrays — so the seed
+    // is checked against v1.6's contract, not only against v1.7's reader.
+    for (const field of ['requiredExpenses', 'livingExpenses', 'debts', 'goals', 'completedRecommendedActions']) {
+      assert(Array.isArray(blob[field]), `v16-populated: ${field} is an array (v1.6 refuses otherwise)`);
+    }
+    assert(blob.version === 1 && typeof blob.exportedAt === 'string', 'v16-populated: carries v1.6 markers');
+
+    const viaFile = importDoor(blob);
+    const viaKeys = await webkitDoor(blob);
+    assert(viaFile.store !== null, 'v16-populated migrates through the import door');
+    assert(viaKeys.store !== null, 'v16-populated migrates through the WebKit door');
+    assert([...checkAll(viaFile), ...checkAll(viaKeys)].length === 0, 'v16-populated: no invariant violations');
+
+    const s = viaFile.store!;
+    // ⭐ THE FIGURES ON THE TICK-LIST. Deliberately distinct values — a portfolio of round numbers cannot
+    // tell a successful migration from a default.
+    assert(s.paycheck.amount === '3247', 'income lands as 3247');
+    assert(s.paycheck.payCycle === 'biweekly', 'pay cycle lands as biweekly');
+    assert(s.debts.length === 3, '3 debts land');
+    assert(s.debts.find((d) => d.name === 'Car loan')?.balance === 11380, 'the car loan lands at 11380');
+    assert(s.requiredExpenses.length === 4, '4 bills land');
+    assert(s.livingExpenses.length === 2, '2 living expenses land');
+    assert(s.dataRepairs.length === 0, 'a HEALTHY file reports zero repairs');
+    assert(JSON.stringify(viaFile.store) === JSON.stringify(viaKeys.store), 'both doors agree on the seed file');
+  }
+
+  // ── v16-damaged: the file that must produce a VISIBLE repair report on the device. ───────────────
+  {
+    const blob = load('v16-damaged.json');
+    const viaFile = importDoor(blob);
+    assert(viaFile.store !== null, 'v16-damaged still migrates (a bad field costs a field, not a portfolio)');
+    assert(checkAll(viaFile).length === 0, 'v16-damaged: no invariant violations');
+    const s = viaFile.store!;
+    assert(s.debts.length === 3, '…all 3 debts are KEPT');
+    // ⚠️ THREE repairs from TWO damaged fields, and the third is correct rather than a miscount.
+    // `withBackfilledOriginalBalance` (5.2, ported from v1.5) copies `balance` into `originalBalance`
+    // when the latter is absent — so an unreadable balance propagates before the repair runs, and both
+    // land at 0 and are both reported. Asserted on CONTENT rather than on a count, because the count is
+    // a consequence of a backfill order that could legitimately change.
+    assert(
+      s.dataRepairs.some((r) => r.name === 'Visa' && r.field === 'balance'),
+      '⛔ the unreadable debt balance is reported, naming the debt',
+    );
+    assert(
+      s.dataRepairs.some((r) => r.name === 'Electric' && r.field === 'amount'),
+      '⛔ …and so is the unreadable bill amount',
+    );
+    assert(
+      s.debts.find((d) => d.name === 'Visa')?.balance === 0,
+      '…the unreadable value lands at 0 rather than staying null',
+    );
+    assert(
+      s.debts.find((d) => d.name === 'Car loan')?.balance === 11380,
+      '⭐ …and the UNDAMAGED debts are untouched — one bad field costs a field, not a portfolio',
+    );
+  }
+
+  // ── v17-envelope: the round-trip file for the new build. ─────────────────────────────────────────
+  {
+    const blob = load('v17-envelope.json');
+    const viaFile = importDoor(blob);
+    assert(viaFile.store !== null, 'v17-envelope imports');
+    assert(checkAll(viaFile).length === 0, 'v17-envelope: no invariant violations');
+    assert(viaFile.store!.paycheck.amount === '3247', '…carrying the same income as the v1.6 seed');
+  }
+
+  console.log(`✅ 5.11 cutover backup files verified (${passed} asserts).`);
+}

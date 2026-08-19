@@ -170,6 +170,10 @@ async function main() {
   // by the same invariants — an input the harness judges cannot be wrong the expensive way.
   await (await import('../data/migrationAudit/hostile.test')).default();
 
+  // 5.11 — the cutover backup files 🎯 measures the device session against. A typo in one turns a real
+  // migration failure into "the fixture was wrong", so the figures on the tick-list are asserted here.
+  await (await import('../data/migrationAudit/cutoverFiles.test')).default();
+
   // 3.5.3.3.1 — the spotlight's scroll geometry. Every wrong answer here is silent (a beat describing
   // something hidden behind its own dock), so it's pinned away from React.
   await import('../hooks/spotlight.test');

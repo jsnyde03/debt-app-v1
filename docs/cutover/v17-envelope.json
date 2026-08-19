@@ -1,0 +1,118 @@
+{
+  "format": "debt-planner-backup",
+  "formatVersion": 1,
+  "app": "Debt Planner",
+  "exportedAt": "2026-08-19T12:00:00.000Z",
+  "storeVersion": 7,
+  "store": {
+    "storeVersion": 7,
+    "paycheck": {
+      "amount": "3247",
+      "payCycle": "biweekly",
+      "currentDate": "2026-08-19",
+      "nextPaycheckDate": "2026-08-28",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "1"
+    },
+    "payoffStrategy": "avalanche",
+    "debts": [
+      {
+        "id": "cd-visa",
+        "name": "Visa",
+        "balance": 4271,
+        "minimumPayment": 96,
+        "apr": 22.74,
+        "dueDate": "2026-09-04",
+        "type": "debt",
+        "recurrence": "monthly",
+        "isAutopay": false,
+        "isPaidThisCycle": false,
+        "minimumPaidThisCycle": false
+      },
+      {
+        "id": "cd-car",
+        "name": "Car loan",
+        "balance": 11380,
+        "minimumPayment": 327,
+        "apr": 6.49,
+        "dueDate": "2026-09-15",
+        "type": "debt",
+        "recurrence": "monthly",
+        "isAutopay": true,
+        "isPaidThisCycle": false,
+        "minimumPaidThisCycle": false
+      },
+      {
+        "id": "cd-med",
+        "name": "Dental",
+        "balance": 843,
+        "minimumPayment": 75,
+        "apr": 0,
+        "dueDate": "2026-09-20",
+        "type": "debt",
+        "recurrence": "monthly",
+        "isAutopay": false,
+        "isPaidThisCycle": false,
+        "minimumPaidThisCycle": false
+      }
+    ],
+    "requiredExpenses": [
+      {
+        "id": "ce-rent",
+        "name": "Rent",
+        "amount": 1465,
+        "dueDate": "2026-09-01",
+        "recurrence": "monthly",
+        "category": "housing"
+      },
+      {
+        "id": "ce-power",
+        "name": "Electric",
+        "amount": 138,
+        "dueDate": "2026-09-08",
+        "recurrence": "monthly",
+        "category": "utilities"
+      },
+      {
+        "id": "ce-phone",
+        "name": "Phone",
+        "amount": 71,
+        "dueDate": "2026-09-12",
+        "recurrence": "monthly",
+        "category": "utilities"
+      },
+      {
+        "id": "ce-ins",
+        "name": "Car insurance",
+        "amount": 592,
+        "dueDate": "2026-11-02",
+        "recurrence": "quarterly",
+        "category": "insurance"
+      }
+    ],
+    "livingExpenses": [
+      {
+        "id": "cl-food",
+        "name": "Groceries",
+        "amount": 483
+      },
+      {
+        "id": "cl-gas",
+        "name": "Fuel",
+        "amount": 176
+      }
+    ],
+    "goals": [
+      {
+        "id": "cg-ef",
+        "name": "Emergency fund",
+        "target": 1500,
+        "saved": 385
+      }
+    ],
+    "prefs": {
+      "onboardingComplete": true
+    }
+  }
+}
