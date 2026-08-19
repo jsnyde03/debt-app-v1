@@ -31,6 +31,19 @@ on:
         description: 'The branch holding the shipped Capacitor app'
         type: string
         default: 'v1.6-dev'
+  # ⛔ THE TAG TRIGGER IS NOT A CONVENIENCE — IT IS THE ONLY WAY TO RUN THIS AT ALL RIGHT NOW.
+  # GitHub registers `workflow_dispatch` only for workflows present on the DEFAULT branch, and this
+  # repo's default is `release/v1` — which is gated on a live, approved version and must never be pushed
+  # to without 🎯. A `push:` event, by contrast, uses the workflow file at the ref that was pushed, which
+  # is why the native lane's `tags: ['v*']` works the same way.
+  #
+  # ⚠️ Deliberately NOT `v*`: that pattern belongs to `native-e2e` and would fire a 20-minute lane run
+  # alongside this one. `legacy-capture-*` is distinct, so pushing this tag starts this job and nothing
+  # else. ⚠️ Any push of such a tag spends a ~45-minute macOS runner — the prefix is the safety.
+  #
+  # ▶ REMOVE THIS TRIGGER once the artifact exists (see the header: this is a one-shot fixture generator).
+  push:
+    tags: ['legacy-capture-*']
 
 env:
   APP_ID: 'com.jasonsnyder.debtplanner'
