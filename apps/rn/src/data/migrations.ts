@@ -43,12 +43,20 @@ export function runMigrations(raw: unknown): DebtStore {
     // v6: reconcile an installment-native BNPL's balance+minimum to its scheduled × remaining truth.
     return normalizeBnplInstallment({ ...debt, lastVerifiedDate, balanceAsOfDate });
   });
+  // v7 (5.6) — DROP two inert prefs. Both were measured at zero production reads, and the merge below
+  // would otherwise carry them forward forever: `{ ...base.prefs, ...r.prefs }` preserves any extra key
+  // an older blob happens to hold, so deleting them from the TYPE alone would leave them in the data.
+  // ⚠️ Deleted from a copy — mutating `r.prefs` would edit the caller's object, and one caller is the
+  // JSON-restore path where that object is the user's file.
+  const { isDemoMode: _isDemoMode, guardianIntroSeen: _guardianIntroSeen, ...incomingPrefs } = (r.prefs ??
+    {}) as Record<string, unknown>;
+
   return {
     ...base,
     ...r,
     storeVersion: CURRENT_STORE_VERSION,
     debts,
     paycheck,
-    prefs: { ...base.prefs, ...(r.prefs ?? {}) },
+    prefs: { ...base.prefs, ...incomingPrefs },
   };
 }

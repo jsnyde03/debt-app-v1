@@ -73,6 +73,27 @@ export async function bootstrapPersistence(
   store.subscribe((state, prev) => {
     // Only persist real store-data changes — not isHydrated/isSaving lifecycle toggles.
     if (state.store === prev.store) return;
+
+    // 5.5 — ⛔ PREFERENCES ARE WRITTEN IMMEDIATELY, NOT DEBOUNCED.
+    //
+    // The reported defect: a pref changed and then force-quit inside 500 ms was LOST. `flushPendingSave`
+    // only fires on AppState `background`/`inactive`, and a force-quit from the foreground emits neither —
+    // so the debounce window is a hole with nothing behind it.
+    //
+    // ⚠️ Prefs specifically, rather than shortening the debounce for everything. A pref is a single tap
+    // the user WATCHED confirm itself — a switch that flips on screen and is gone at next launch is the
+    // shape that destroys trust in whether the app saves anything at all. They are also rare and tiny, so
+    // writing on every one costs nothing. High-frequency edits (typing an amount into a form) keep the
+    // debounce, which is what it was for.
+    if (state.store.prefs !== prev.store.prefs) {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      void store.getState().save(adapter);
+      return;
+    }
+
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
       timer = null;

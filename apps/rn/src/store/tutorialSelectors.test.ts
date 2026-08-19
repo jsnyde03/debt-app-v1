@@ -36,10 +36,15 @@ function run() {
   eq(selectTutorialInvite(store({ subscriptionPlan: 'premium' }))?.run, 'premium', 'new PREMIUM user is offered the premium run');
   eq(selectTutorialInvite(store({ subscriptionPlan: 'free' }))?.run, 'free', 'new FREE user is offered the free run');
 
-  // An existing v1.6 user: carries the OLD intro flag, has never seen a tutorial. Reusing
-  // `guardianIntroSeen` would have silently excluded exactly this person.
-  const v16 = store({ subscriptionPlan: 'premium' }, { guardianIntroSeen: true });
-  eq(selectTutorialInvite(v16)?.run, 'premium', 'an existing v1.6 user IS offered it (the old intro flag does not gate it)');
+  // An existing v1.6 user: has never seen a tutorial. Reusing `guardianIntroSeen` — which such a user
+  // carries as `true` — would have silently excluded exactly this person, which is why `tutorialSeen`
+  // exists as its own field.
+  // ⚠️ 5.6 DROPPED `guardianIntroSeen`, so the old flag can no longer even be constructed here. The
+  // exclusion risk is now gone BY CONSTRUCTION rather than by this gate choosing correctly — but the
+  // audience assertion stays, because "a v1.6 upgrader is offered the tutorial" is the behaviour, and
+  // the reason it works is not something a reader should have to re-derive.
+  const v16 = store({ subscriptionPlan: 'premium' }, { tutorialSeen: null });
+  eq(selectTutorialInvite(v16)?.run, 'premium', 'an existing v1.6 user IS offered it');
 
   // An upgrader: saw the free run, then bought premium → offered the premium FINALE once.
   const upgrader = store({ subscriptionPlan: 'premium' }, { tutorialSeen: 'free' });
@@ -79,6 +84,15 @@ function run() {
   const migrated = runMigrations({ storeVersion: 5, prefs: { onboardingComplete: true, guardianIntroSeen: true } });
   eq(migrated.prefs.tutorialSeen, null, 'an upgraded v5 blob backfills tutorialSeen to null (→ eligible)');
   eq(selectTutorialInvite(migrated)?.run, 'free', '…so the migrated user IS offered the tutorial');
+  // ⛔ 5.6 — and the old flag is STRIPPED, not merely absent from the type. The prefs merge preserves any
+  // extra key an older blob holds, so a type-only deletion would leave `guardianIntroSeen` in the data
+  // forever: a field nothing can read, riding along in every future write. This is the assertion that
+  // proves the drop reached the DATA.
+  assert(
+    !('guardianIntroSeen' in migrated.prefs),
+    'the inert guardianIntroSeen is stripped from an upgraded blob, not carried forward (5.6)',
+  );
+  assert(!('isDemoMode' in migrated.prefs), 'and so is isDemoMode (5.6)');
 
   console.log(`✅ tutorial invitation matrix: ${passed} assertions passed.\n`);
 }

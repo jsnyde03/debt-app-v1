@@ -11,15 +11,20 @@ import { createDebtStore, type DebtAppState, type DebtStoreInstance } from './st
  * 3.5.0.1 — the SANDBOX STORE factory: the ephemeral, scriptable Guardian substrate that the Phase-3.5
  * interactive tutorial, the bounded demo, and the marketing-site demo all run on.
  *
- * ⚠️ **THIS IS NOT `prefs.isDemoMode`, AND NOT the legacy `demoSeed` (3.5.0.6 hard-declaration).** The
- * three are easy to confuse and only one of them is safe for teaching:
+ * ⚠️ **THIS IS NOT the legacy `demoSeed` (3.5.0.6 hard-declaration).** The two are easy to confuse and
+ * only one of them is safe for teaching:
  *   - `demoStore()` (`data/demoSeed.ts`) is **`importStore`d into the REAL store** from onboarding's
  *     "try sample data". It overwrites the user's plan, and it seeds a MATURED Guardian
  *     (`genuineCycleCount: 6`) — the opposite of the day-one bound a demo must keep. 3.5.4 replaces it.
- *   - `prefs.isDemoMode` is a flag ON THE REAL STORE, read by real code (`use-payday-capture` disables
- *     payday capture when it's set). It changes real behaviour; it does not isolate anything.
  *   - A **sandbox** is a second store instance bound to nothing. Nothing here touches the real store,
- *     and no sandbox scenario sets `isDemoMode` — the isolation is structural, not a flag.
+ *     so the isolation is structural, not a flag.
+ *
+ * ⛔ **CORRECTED at 5.6.** This block used to name a third thing — `prefs.isDemoMode` — and assert it was
+ * "read by real code (`use-payday-capture` disables payday capture when it's set)". That stopped being
+ * true at **3.5.4.8**, which removed the read and said so at the call site; the claim here outlived it by
+ * months. The field itself is now **gone**, dropped by 5.6 along with `guardianIntroSeen`. ⚡ A comment
+ * asserting another module's behaviour is a claim with no gate behind it — this one was refuted by
+ * grepping for a single reader.
  *
  * A sandbox is a SECOND store instance that is bound to NOTHING:
  * never persisted, never mirrored to the widget App Group, never driving a Live Activity, never

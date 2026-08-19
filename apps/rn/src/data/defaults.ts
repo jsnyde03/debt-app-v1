@@ -48,11 +48,9 @@ export function createDefaultStore(): DebtStore {
     prefs: {
       notificationsEnabled: false,
       appLockEnabled: false,
-      isDemoMode: false,
       themeMode: 'system',
       onboardingComplete: false,
       hasSavingsElsewhere: false,
-      guardianIntroSeen: false,
       paydayLiveActivityEnabled: true,
       debtFreeSoundEnabled: false,
       tutorialSeen: null,

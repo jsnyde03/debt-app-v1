@@ -72,16 +72,6 @@ export interface Preferences {
   notificationsEnabled: boolean;
   appLockEnabled: boolean;
   /**
-   * ⚠️ INERT since 3.5.4.8 — retained, not used. Nothing writes it (the legacy `demoSeed` was its only
-   * writer and is deleted) and nothing reads it. The FIELD stays because it is persisted: removing it is
-   * a schema change, and schema changes belong to Phase 5's migration bridge, where upgrade data-loss is
-   * a ship-blocker and every shape gets adversarially tested. Dropping a key here to tidy up would land
-   * that risk in a feature commit. An unread boolean in the blob costs nothing.
-   *
-   * → Phase 5: drop it with the migration that handles it, alongside `guardianIntroSeen` (Wave C7).
-   */
-  isDemoMode: boolean;
-  /**
    * 3.5.4.9 [D-A] — the user has turned the product-funnel events off. Optional, so an existing blob
    * migrates by simply not having it (absent = not opted out), which is the additive half of a schema
    * change and carries none of the risk of removing a key.
@@ -106,9 +96,6 @@ export interface Preferences {
   /** §2.5 D5.3 gate (2.4.7.6): the user has an emergency buffer in a separate account, so the plan
    *  skips building a pre-debt STARTER emergency fund and deploys to debt first. Default false. */
   hasSavingsElsewhere: boolean;
-  /** §2.1/§2.0.d (2.4.11.3): the one-time premium Guardian first-run intro (floor-protected-from-today
-   *  + earns-trust-as-it-learns + advice boundary) has been seen + dismissed. Default false. */
-  guardianIntroSeen: boolean;
   /** 3.5.3: the premium Payday Countdown Live Activity auto-starts in the final ~3-day run-up to payday.
    *  User toggle (More → Preferences). Default true; only ever runs for premium users. */
   paydayLiveActivityEnabled: boolean;
@@ -168,7 +155,14 @@ export interface Preferences {
  *  other.)
  *  v7 also carries `prefs.coachMarksSeen` (3.5.5.3), for the same reason and on the same terms: v7 is
  *  still unshipped, the prefs merge backfills it to `[]`, and an empty list is the correct starting
- *  state — every existing user is eligible for every mark exactly once. */
+ *  state — every existing user is eligible for every mark exactly once.
+ *  v7 also DROPS `prefs.isDemoMode` and `prefs.guardianIntroSeen` (5.6). Both were measured inert — zero
+ *  production reads — and both are stripped by `runMigrations` rather than merely deleted from the type,
+ *  so an upgraded blob stops carrying them instead of keeping a field nothing can read. Folded into v7 on
+ *  the same terms as the two above: **v7 has not shipped**, so no blob in the wild distinguishes these
+ *  states. ⚠️ `guardianIntroSeen` is why `tutorialSeen` exists as a separate field — a v1.6 user carries
+ *  it `true`, so reusing it would have silently excluded exactly the people the tutorial is for. Dropping
+ *  it now is safe *because* nothing was ever allowed to depend on it. */
 export const CURRENT_STORE_VERSION = 7;
 
 /** v1.7 (2.4.D): the store-level current-cycle notification carrier. Lives here — NOT on

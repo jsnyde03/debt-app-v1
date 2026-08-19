@@ -160,6 +160,36 @@ async function run() {
     eq(a.writes, 0, '…and an edit afterwards still writes nothing (no autosave subscription installed)');
   }
 
+  // ── 5.5 — ⛔ A PREF IS WRITTEN IMMEDIATELY. Debounced, a force-quit inside 500 ms LOST it. ──
+  // The user watched the switch flip; `flushPendingSave` only fires on AppState background, and a
+  // force-quit from the foreground emits neither background nor inactive. Nothing was behind the window.
+  {
+    const a = new MockAdapter(null);
+    const s = createDebtStore();
+    await bootstrapPersistence(a, s);
+    const before = a.writes;
+    s.getState().updatePrefs({ themeMode: 'dark' });
+    // NOT awaiting the debounce — that is the whole point. A microtask is enough for the save to be
+    // dispatched; if this needed `SAVE_DEBOUNCE_MS` the defect would still be live.
+    await Promise.resolve();
+    await Promise.resolve();
+    assert(a.writes > before, 'a pref change writes WITHOUT waiting out the debounce');
+  }
+
+  // ── …while ordinary data edits keep the debounce, which is what it is for ──
+  {
+    const a = new MockAdapter(null);
+    const s = createDebtStore();
+    await bootstrapPersistence(a, s);
+    const before = a.writes;
+    s.getState().setPayoffStrategy('avalanche');
+    await Promise.resolve();
+    await Promise.resolve();
+    eq(a.writes, before, 'a non-pref edit does NOT write immediately (the debounce still coalesces)');
+    await new Promise((r) => setTimeout(r, SAVE_DEBOUNCE_MS + 60));
+    assert(a.writes > before, '…and lands once the debounce elapses');
+  }
+
   // ── A failed WRITE is surfaced rather than swallowed, and clears when one lands ──
   {
     const a = new MockAdapter(null);

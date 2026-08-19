@@ -120,8 +120,13 @@ async function run() {
   } as unknown as Parameters<typeof startLiveActivitySync>[1]);
   eq(laStarted, 0, 'startLiveActivitySync refuses a sandbox before it even asks the bridge');
 
-  // The hard-declaration: a sandbox is NOT the legacy demo mechanism.
-  eq(sandbox.getState().store.prefs.isDemoMode, false, 'a sandbox never sets prefs.isDemoMode (isolation is structural, not a flag)');
+  // The hard-declaration: a sandbox is NOT the legacy demo mechanism. ⚠️ 5.6 DROPPED `prefs.isDemoMode`
+  // (inert since 3.5.4.8), so the assertion is now that the flag does not exist AT ALL — which is the
+  // stronger form of the same claim: isolation is structural, and there is no longer a flag to set.
+  assert(
+    !('isDemoMode' in sandbox.getState().store.prefs),
+    'a sandbox has no `isDemoMode` to set — the field is gone (5.6), so isolation cannot be flag-based',
+  );
 
   // ── Guarantee 3: the user's real plan is untouched by anything the sandbox does. ──────────────
   const realBefore = appStore.getState().store;
