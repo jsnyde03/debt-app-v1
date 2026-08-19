@@ -89,6 +89,59 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## 🔚 SESSION CLOSE 2026-08-19 (second session) — PHASE 5 IS CLOSED. Read this first.
+
+**Branch `v1.7-dev`, pushed, tree clean.** `validate:release:rn` **exit 0** mid-session — 205 e2e · 10
+embed · tsc clean both trees · lint 0 errors · **0 `error-context.md`**. CI run `32287042685` fully green.
+
+### ✅ Closed
+
+**5.8** (envelope · detection · router + v1.6 adapter · confirm-before-replace · the file doors · first-ever
+e2e for the surface · the app icon) · **5.10** (511 cases × 2 real doors × 8 invariants) · **5.11** — the
+migration **verified on a live device**, the cutover **conditionally approved**. **Phase 5 is closed.**
+
+### ⛔ THE RESULT OF THE SESSION: four defects, one shape
+
+Every defect found today was **a failure that renders as an ordinary, unremarkable state**:
+
+| | looked like |
+|---|---|
+| the bridge threw and was caught | a fresh install |
+| `balance: null` from v1.6's comma bug | a paid-off debt |
+| a failed quarantine write | nothing to quarantine |
+| a fully successful restore | *"the import did nothing"* (hidden behind onboarding) |
+
+⚡ **And the project had already named the pattern** — 5.1b.3 drew exactly this distinction one layer up
+(*"`keys=0 truncated=no` is a clean install; `keys=0 truncated=yes` is a failed search. Same number,
+opposite findings"*) and the layers beneath it did not inherit the lesson. **That is the thing to carry
+forward, above any individual fix.**
+
+### ⭐ What the instruments were worth
+
+- **Invariants over a generated corpus** found all three 5.10 defects unaided. Cost is O(properties);
+  coverage is O(cases).
+- **The differential oracle earned its keep twice** — it caught my onboarding fix creating a door
+  asymmetry within seconds, and it needs **no expected values authored at all**.
+- **The agent found nothing**, and that was the honest result: ~107k tokens bought *confirmation* that
+  three was the real number. Worth buying once, at a bar set before spending.
+
+### ⛔ My own work was caught being wrong SIX times, mostly by existing tests
+
+An invariant that fired 96× against correct code · a **silent drop inside the fix for silent drops** · two
+existing tests encoding an obsolete contract · a fixture with **three invented shapes** (🎯 found the first
+on a device) · a fix placed in the wrong layer. ⚠️ **The fixture one is the sharpest: I asserted
+`goals.length === 1` — a COUNT — in the file written to verify the audit, which is the exact defect class
+that audit documents.** *A count is not a check.*
+
+### ▶ Next session
+
+**Regenerate T9–T11 from the findings file BEFORE it is used as the feature-lock line** ([D39]) — it has
+not been re-measured since T4–T8 collapsed many of its owners. Then **Phase 5.5**, then Phase 6 in the
+order now recorded at its head. ⚠️ **6.C is on the critical path to the freeze and its scope was refuted
+today** — Freedom's template is *not* E2EE and *not* a port.
+
+---
+
 ## ✅ 5.11 — THE CUTOVER IS CONDITIONALLY APPROVED (🎯, 2026-08-19)
 
 🎯: *"I will conditionally approve this as the shipping app. We still need to add in Cloud Backup in

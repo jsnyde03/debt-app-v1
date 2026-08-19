@@ -8,12 +8,14 @@
 
 ---
 
-## ▶ BUILDING NOW — **Phase 5 · Data continuity + cutover** 🔒 ship-blocker
+## ▶ BUILDING NOW — **Phase 5.5 · Repo consolidation** *(Phase 5 ✅ CLOSED 2026-08-19)*
 
 | | |
 |---|---|
 | **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **whole-app audit gate T1–T8 + T3B ✅ CLOSED 2026-08-19** ([D37] 55/55, `lint:closure` in CI). Remaining: **Phase 5** ▶ → **Phase 5.5** → **Phase 6** |
-| **Phase 5 state** | ✅ **5.1a · 5.1b · 5.2–5.6 · 5.8 DONE · 5.9 refuted · 5.7 MOVED to Phase 6** (🎯, still v1.7). ✅ **5.10 CLOSED.** ▶ **Next: 5.11 the cutover — 🎯 OWNS THIS.** ⚠️ **Device-owed and BATCHED into one dispatch:** 5.8.5's picker/share-sheet · **5.8.7's icon render** · 5.1b.3's probe job that restores the captured artifact |
+| **Phase 5** | ✅ **CLOSED 2026-08-19.** 5.1–5.11 done (5.7 → Phase 6, 5.9 refuted). ⭐ **Migration VERIFIED on a live device**, probe clean (`Keys 22 · truncated=no`), **cutover CONDITIONALLY APPROVED** 🎯 |
+| **▶ NEXT — and it gates the feature-lock line** | **Regenerate T9–T11 from the findings file** *(= "the 3.5 remainder", [D39])* **before** it is used as the boundary. ⚠️ Not re-measured since **T4–T8 collapsed many of its owners**, so the live count is unknown — and an enumerated list has been short five consecutive times. A **generated** list, not a remembered one. Then **Phase 5.5**, then Phase 6 in the recorded order |
+| **Device-owed → Phase 6 device pass** | the **document picker** (from **iCloud Drive**, not local) · the **`v16-damaged` repair report** · the **v1.6-file import not landing in onboarding** *(fixed at the root, unit-covered, never seen on a device)* |
 | **Gate** | `validate:release:rn` — **196 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push. ⭐ **+`lint:glossary` +`lint:money` +`lint:closure`** |
 | **The audit** | ⭐ [`audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md) — 117 findings, 7 lenses, 8 refutations. **CLOSED**; detail → log |
 | **Device pass** | 52 rows + the 60 coverable-not-built + **[T3.2]'s owed row** (force a storage fault → the retry screen renders AND the retry recovers) — all Phase 6, human-ticked, non-gating. ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them |
