@@ -13,7 +13,9 @@ name: legacy-container-capture
 # decommissioning it."* Hence: run this ONCE, upload the container as an artifact, and from then on the
 # recurring probe restores the artifact. After the capture, the legacy tree owes CI nothing.
 #
-# ⚠️ `workflow_dispatch` ONLY. No push trigger, no schedule. It is a fixture generator, not a gate.
+# ⚠️ Dispatch, plus ONE tag pattern — no branch push, no schedule. It is a fixture generator, not a gate.
+# (The tag trigger is not a preference; see the `on:` block. It is the only way to run this off a
+# non-default branch, and it is what made run 1 check out the wrong tree.)
 #
 # ⚠️ NOT COVERED BY `lint:lane`, which scans `native-e2e.yml` and `app-preview.yml` only. That is an
 # accepted trade for keeping the heavily-gated native lane untouched — and it is safe here precisely
@@ -57,10 +59,30 @@ jobs:
       # ⚠️ The SHIPPED v1.6, not the legacy tree in v1.7-dev. That copy has drifted against shared
       # `packages/core` — a filter on a removed `AllocationCategory` member was silently dead — so a
       # fixture built from it would be a fixture of something we never shipped.
+      # ⛔ `|| 'v1.6-dev'` IS LOAD-BEARING, AND ITS ABSENCE COST RUN 1.
+      # `inputs.*` exists ONLY for `workflow_dispatch`. On the `push` trigger above it is EMPTY, so
+      # `ref: ${{ inputs.legacy_ref }}` resolved to "" and checkout silently fell back to the pushed ref —
+      # the tag on `v1.7-dev`. The job then built the CURRENT legacy tree, which still exists there, and
+      # only failed four steps later when a v1.6 file was missing. ⚠️ **The trigger added to make this
+      # runnable is what changed what it ran.** Any `inputs.*` in a workflow with a non-dispatch trigger
+      # needs a default at the point of use.
       - name: Check out the shipped v1.6
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.legacy_ref }}
+          ref: ${{ inputs.legacy_ref || 'v1.6-dev' }}
+
+      - name: Prove we checked out v1.6 and not something that merely builds
+        run: |
+          set -euo pipefail
+          # v1.6 is a pure Capacitor tree. If `apps/` exists we are on a v1.7 ref and everything below
+          # would produce a fixture of the wrong app — which is worse than producing none.
+          if [ -d apps ] || [ -d packages ]; then
+            echo "::error::checked-out ref has apps/ or packages/ — this is not the v1.6 tree"
+            git log --oneline -1
+            exit 1
+          fi
+          test -f .maestro/reconcile-smoke.yaml || { echo "::error::v1.6 smoke flow missing"; exit 1; }
+          git log --oneline -1
 
       - name: Log the toolchain
         run: xcodebuild -version
@@ -117,46 +139,47 @@ jobs:
       - name: Install the app
         run: xcrun simctl install booted "ios/build/Build/Products/Debug-iphonesimulator/App.app"
 
-      - name: Cache Maestro
-        id: maestro-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.maestro
-          key: maestro-${{ runner.os }}-v1
-
-      - name: Install Maestro
-        if: steps.maestro-cache.outputs.cache-hit != 'true'
-        run: curl -fsSL "https://get.maestro.mobile.dev" | bash
-
-      - name: Maestro on PATH
-        run: echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
-
-      # v1.6's OWN flow, because it is the one proven against that UI. Driving it matters beyond the seed:
-      # it forces the WebView to finish loading and localStorage to be flushed to disk before we look.
-      # ⚠️ Non-fatal: the flow's screenshots and assertions are not what this job is for, and a selector
-      # that has aged must not cost us the container. The KEY-COUNT check below is the real gate.
-      - name: Drive the app so it writes its storage
+      # ⛔ MAESTRO IS GONE, AND THAT IS THE SECOND FIX FROM RUN 1.
+      # The app was never launched at all that run — the only thing that would have launched it was a
+      # Maestro flow, and that step was deliberately NON-FATAL, so its failure passed silently and left
+      # the container empty. A step that is allowed to fail must not be the only thing doing the
+      # essential work. It also turns out not to be needed: the SIM_SMOKE build seeds localStorage at
+      # module load, so a plain launch produces the same store with none of the UI-selector fragility.
+      - name: Launch the app so it writes its storage
         run: |
-          maestro test .maestro/reconcile-smoke.yaml || echo "::warning::the smoke flow did not complete — the key count below is what decides this run"
-          # localStorage is flushed by WebKit lazily; terminating the app makes it commit.
-          xcrun simctl terminate booted "$APP_ID" || true
+          set -euo pipefail
+          xcrun simctl launch booted "$APP_ID"
+          # The WebView has to finish loading before the seed runs. There is no event to wait on from out
+          # here, so this is a dwell — and the key-count check below is what actually decides the run.
+          sleep 25
+          # ⚠️ `terminate` is what makes WebKit COMMIT localStorage: it flushes lazily, so capturing a
+          # running app can catch a store that is still only in memory.
+          # ⛔ NOT `|| true`. Run 1 printed "found nothing to terminate" and carried on — that message was
+          # the proof the app had never started, and swallowing it cost the run four more steps before
+          # anything complained.
+          xcrun simctl terminate booted "$APP_ID"
           sleep 5
 
       # ⛔ TAR FIRST, VERIFY AGAINST A COPY. Querying a SQLite database opens it read-write and can leave
       # `-wal`/`-shm` siblings behind — so verifying in place would mean shipping an artifact that the
       # verification itself had modified. Same rule the app's reader follows for the same reason.
+      # ⛔ CAPTURE THE WHOLE `Library`, NOT A SUBDIRECTORY WE NAMED. Run 1 tarred `Library/WebKit`, which
+      # assumed a layout — the same guess the app's reader deliberately refuses to make (it identifies the
+      # database by CONTENTS, never by path). Capturing one directory up costs a few hundred KB and means
+      # a fixture is still valid if Apple moves the store again. **Do not narrow this back down.**
       - name: Capture the container
         run: |
           set -euo pipefail
           CONTAINER=$(xcrun simctl get_app_container booted "$APP_ID" data)
           echo "container: $CONTAINER"
-          if [ ! -d "$CONTAINER/Library/WebKit" ]; then
-            echo "::error::no Library/WebKit in the container — the app never created a WebKit store"
-            find "$CONTAINER/Library" -maxdepth 2 | head -50
+          echo "── what the app actually created ──"
+          find "$CONTAINER" -maxdepth 3 -type d | sed "s|$CONTAINER|<container>|" | head -40
+          if [ ! -d "$CONTAINER/Library" ]; then
+            echo "::error::the container has no Library at all — the app did not run"
             exit 1
           fi
           mkdir -p capture
-          tar -czf capture/webkit-container.tgz -C "$CONTAINER/Library" WebKit
+          tar -czf capture/webkit-container.tgz -C "$CONTAINER" Library
           echo "captured $(du -h capture/webkit-container.tgz | cut -f1)"
 
       # ⚡ THE STEP THAT MAKES THE ARTIFACT TRUSTWORTHY — and that answers 5.1's question directly.
@@ -169,10 +192,14 @@ jobs:
           rm -rf verify && mkdir -p verify
           tar -xzf capture/webkit-container.tgz -C verify
           echo "── localStorage databases, at their REAL on-disk paths ──"
-          find verify/WebKit \( -name '*.localstorage' -o -name 'localstorage.sqlite3' \) -print | tee found.txt
+          # ⚠️ Searched across the WHOLE captured Library, and matched on FILENAME only — no assumption
+          # about which directory holds them. This output IS 5.1's answer: whatever it prints is where
+          # iOS actually put the store on this runtime, which is the thing no local test could establish.
+          find verify/Library \( -name '*.localstorage' -o -name 'localstorage.sqlite3' \) -print | tee found.txt
           if [ ! -s found.txt ]; then
-            echo "::error::no localStorage database found anywhere under Library/WebKit"
-            find verify/WebKit -maxdepth 6 | head -80
+            echo "::error::no localStorage database anywhere in the captured Library"
+            echo "── the full captured tree, so the next run knows where to look instead ──"
+            find verify/Library | head -120
             exit 1
           fi
           TOTAL=0
@@ -196,9 +223,7 @@ jobs:
             echo "- iOS runtime: \`${IOS_RUNTIME:-unknown}\`"
             echo "- \`debtPlanner.*\` keys: **$TOTAL**"
             echo ""
-            echo "Database paths, relative to \`Library/\`:"
-            echo ""
-            sed 's|^verify/|  - `|; s|$|`|' found.txt
+            sed "s|^verify/Library/|  - \`|; s|$|\`|" found.txt
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the container fixture
