@@ -89,6 +89,37 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## ⭐ 5.11 — THE MIGRATION IS VERIFIED ON A LIVE DEVICE (🎯, 2026-08-19)
+
+🎯: *"Migration verified on a live device. All expected fields populate correctly."*
+
+**A real v1.6 install, seeded from `docs/cutover/v16-populated.json`, upgraded in place to the RN build,
+with every field landing correctly.** That is the claim Phase 5 exists to make, and it is now made on
+hardware rather than on a simulator, a fixture or an argument.
+
+⚡ **What this retires:** every off-device proof in this phase was an argument that the migration *should*
+work. 5.1b's own capture is the reason the standard was set there — WebKit's WAL meant a bridge that passed
+every synthetic test would have read **zero keys** on a real phone. This is the answer to the question that
+trap raised, and it is the only kind of answer that closes it.
+
+✅ Specifically confirmed on device: **income · debts · bills · living expenses · goal · strategy**, against
+figures deliberately chosen to be non-default so a match is evidence of *mapping* rather than of a default.
+
+⛔ **And it was very nearly measured against a broken ruler.** 🎯 found the goal importing as `undefined`
+before this run: the fixture's `goals` used invented field names. Two more invented shapes sat behind it
+(`cycleHistory`, `livingExpenses`), unreached. **The tests missed all three because they asserted a COUNT** —
+`goals.length === 1` passes while every field inside is wrong. ⚠️ *The device pass came within one step of
+verifying a migration against a fixture that did not describe v1.6.*
+
+### ▶ Still owed before 5.11 can close
+
+The **data** half is proven; the **file** half is not. Owed on the same build, and none of it is provable
+off-device: the **share-sheet export**, the **document picker** (`v17-envelope.json` from Files), the
+**`v16-damaged.json` repair report** rendering, and the **`legacy-bridge-probe`** readout. ⚠️ And the
+cutover ITSELF — *the RN app becomes the shipping app* — is a separate decision from *the migration works*.
+
+---
+
 ## 5.10.5 — the agent bought CONFIRMATION, not discovery, and that is the honest result (2026-08-19)
 
 **29 agent-generated hostile v1.6 states × 2 doors × 8 invariants. Zero violations. Zero drift.**
