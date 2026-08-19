@@ -89,6 +89,29 @@ unsettled: **5.8 first** (small, unambiguous, touches no privacy claim).
 ---
 
 
+## 🎯 THE ORDER TO SUBMISSION — settled by 🎯, 2026-08-19
+
+🎯: *"everything up to feature lock first → audit gate → 6.5 → CM build cut → final device pass → defect
+fix → final final final audit → fixes → final build."*
+
+⭐ **The part I had not proposed, and it is the important one: it is a LOOP, not a line.** My sequence
+ended at *audit → fix → build*. 🎯's returns to the audit **after** the device-pass fixes, because **fixes
+are changes and changes are unaudited.** Every straight-line plan ships the last round of fixes
+unexamined — the ones written under the most time pressure, on the least sleep, closest to submission.
+
+⛔ **It also resolves the QA-door conflict by ordering rather than by rework.** The CM build at step 4 is
+cut with **`QA_TOOLS` still ON**, because the device pass rides `qaEnabled()` instruments —
+`legacy-bridge-probe` is literally how the migration was verified today. The flip lands in step 8 as the
+**last and smallest** code change, with `git grep` confirming both that the instruments are gone *and* that
+nothing depends on them. ⚠️ **The trap this avoids is someone flipping it "to be safe" before cutting the
+build for the device pass, which would delete the instruments the pass needs.**
+
+⚠️ **Residual, stated honestly:** the binary that ships is not byte-identical to the one device-passed —
+the flip comes after. That is unavoidable *(the pass needs the instruments; the ship must not have them)*
+and it is why the flip is deliberately last, minimal, and separately gated. **Named rather than hidden.**
+
+---
+
 ## ⛔ 5.5 → 6.5: the legacy tree is deleted LAST, not first (🎯 2026-08-19)
 
 🎯: *"I do not want to take any chances at all of us deleting something from legacy that is still needed

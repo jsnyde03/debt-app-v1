@@ -309,12 +309,30 @@ Acquisition-grade store presence · cold-start excellence · the device-QA gate 
 **FEATURE LOCK** — after the **3.5 remainder**, no new capability in 2.0. **FREEZE** — later and stricter,
 every planned change landed. ⚠️ *"Frozen" is not a milestone you schedule; it is a state you converge to.*
 
-▶ **The order, and each item is cheap now and expensive late:**
+## 🎯 THE ORDER TO SUBMISSION — settled 2026-08-19, 🎯's own sequence
+
+| # | | |
+|---|---|---|
+| **1** | **Everything up to FEATURE LOCK** | `2.0.0` ([D38]) · **6.C** cloud backup · the 62 filed findings · **T9–T11** (regenerate first — [D39]) |
+| **2** | ⭐ **THE AUDIT GATE** | FINISH sweep *(now legitimately on a frozen app)* → privacy audit *(consumes 6.C's [a]+[b])* → money lens |
+| **3** | **6.5 — repo consolidation, delete legacy** | ⚠️ Last possible moment, by design. `validate:release:rn` **green** after it |
+| **4** | **CM build cut** | ⛔ **`QA_TOOLS` STAYS ON.** The device pass rides `qaEnabled()` instruments — `legacy-bridge-probe` is how the migration was verified. Flipping "to be safe" before this build **deletes the instruments the pass needs** |
+| **5** | **FINAL DEVICE PASS** | On the post-deletion binary — the configuration that actually ships |
+| **6** | **Defect fix** | Whatever the pass turns up |
+| **7** | ⭐ **The final audit** *(🎯: "final final final")* | Because **fixes are changes, and changes are unaudited** — this is the loop closing, not a formality |
+| **8** | **Fixes** + **`QA_TOOLS` off** | ⚠️ The flip is deliberately **last and smallest**: `git grep QA_TOOLS` must show the instruments gone **and** nothing depending on them |
+| **9** | **Final build → submit** | |
+
+⚡ **What makes this an ORDER rather than a list: 2 → 6 → 7 is a convergence loop.** A device pass produces
+fixes, and fixes are unaudited changes — so the audit runs *again* after them. Every straight-line plan
+that stops at "audit, then fix" ships the fixes unexamined.
+
+▶ **Earlier reasoning that still holds, and why each item sits where it does:**
 **① `2.0.0`** ([D38]) before anything quotes a version · **② `6.C` cloud backup** + **③ the 62 filed
 findings + T9–T11** ⚠️ *"the 3.5 remainder" = **T9–T11**, 🎯 — one set, not two* → **FEATURE LOCK** · then **④ the FINISH sweep**, which is *first
 among the AUDIT GATES*, not first in Phase 6 — its "runs on the FROZEN app" premise is only true once ①–③
 have landed · **⑤ privacy audit**, which consumes 6.C's two coupled decisions ([a] mechanism, [b] the
-replacement for *"never leaves your device"*) · **⑥ money lens** · **⑦ Phase 6.5 — repo consolidation / delete legacy** *(moved from 5.5, 🎯: don't touch
+replacement for *"never leaves your device"*) · **⑥ money lens** · **⑦ Phase 6.5 — delete legacy** *(moved from 5.5, 🎯: do not touch
 legacy until the app is truly frozen)* · **⑧ `validate:release:rn` GREEN after the deletion** · **⑨ the
 DEVICE PASS** *(moved after 6.5, 🎯 2026-08-19 — so the human check runs on the configuration that actually
 ships, not on one that a whole-surface deletion is still ahead of)* · **⑩ `QA_TOOLS` off** · **⑪ final
