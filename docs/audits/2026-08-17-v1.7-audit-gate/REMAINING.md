@@ -1,4 +1,4 @@
-# The 62 findings [D37] did not cover — Phase 6 FINISH sweep
+# The 62 findings [D37] did not cover — owned by **P6.4**
 
 > ⚠️ **GENERATED — do not hand-edit.** `tsx scripts/check-audit-closure.ts --remaining`
 >
@@ -7,15 +7,20 @@
 > quietly lost rows. "In a ledger" means the id is written down SOMEWHERE — it is **not** a claim
 > that the finding is closed, or still real. Both need the code.
 
-⛔ **Filed here, not built (🎯 2026-08-19):** polish decided against a moving app gets decided twice,
-and the app is still moving — Phase 5 rewrites the data layer and 5.5.1 deletes a whole surface.
-🎯 leans toward clearing all of them before launch but has **not** committed; the call is made on the
-frozen build, pre-launch.
+✅ **[D42], 2026-08-20 — the commitment is a BAR, not a COUNT.** All of them get **judged** at **P6.4**;
+what gets **fixed** is every defect and every finding on a surface that ships. **P6.4 is where FEATURE
+LOCK closes**, which is why this list defines that line ([D39]). ⚠️ T12 — the ~40 polish items — belongs
+to **P6.8**, the sweep on the frozen app, and is a different set.
 
-⚡ **Measured, and it should shape the sweep:** of the 61 cross-file copy duplicates the strings
+⚡ **Measured, and it should shape the judging:** of the 61 cross-file copy duplicates the strings
 instrument finds, **24 are generic chrome** (`Save`, `Cancel`, `Done`, `Add`, `Name`, `Back`) that
 repeat BY DESIGN, and **5 more involve `LiveActivityQA.tsx`, which the `QA_TOOLS` flip deletes** — so
-they close themselves. **Do not treat this list as 62 edits.** Judge each; several are already dead.
+they close themselves. **Do not treat this as a list of edits.** Judge each; several are already dead,
+and more die with **P6.11.1** (the legacy-tree deletion, formerly numbered 5.5.1).
+
+⭐ **Verified 2026-08-20 (P6.2):** the findings files hold **117** `### Lx-n` headings and **117**
+`Severity:` lines, so the parser drops nothing — 55 high+ (gated by [D37]) + this set = 117. And every
+low-tier id the retired T9–T11 enumerations named is present below, so nothing is lost by retiring them.
 
 ## L0-scripted — 1
 

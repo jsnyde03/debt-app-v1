@@ -30,7 +30,7 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 | # | Step | State / notes |
 |---|---|---|
 | ✅ | **P6.1 DONE 2026-08-20** — the shipped version is `2.0.0` ([D38]). All three premises held; folded in the two stale `1.7.0` quotes in `codemagic.yaml` and two tracked zero-byte junk files. Detail → log |
-| **P6.2** | **Regenerate T9–T11 from the findings files** | 🔒 [D39]. `tsx scripts/check-audit-closure.ts` — a **generated** list, not a remembered one. Not re-measured since T4–T8 collapsed many of its owners, and it *defines* the feature-lock line, so it is load-bearing |
+| ✅ | **P6.2 DONE 2026-08-20** — the feature-lock boundary is the **62** in [`REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md) ([D39]). Parser verified lossless (117 headings = 117 severities = 55 + 62); T9–T11 retired as drivers, carrying no id the generated list lacks. Detail → log |
 | **P6.3** | **Cloud backup** *(= "6.C", was 5.7)* — ships in v1.7 🎯, **not** premium-gated | 🔒 The cutover's approval condition, so **the app is not frozen until this lands** — which is why it precedes P6.8. Decomposed below |
 | **P6.4** | **The 62 filed findings + T9–T11** | From [`REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md) (**generated**; 41 minor · 21 polish). ⛔ **Not 62 edits** — 24 of the 61 copy duplicates are generic chrome that repeats by design, 5 more die with the `QA_TOOLS` flip, several are already dead. ✅ **[D42] — the commitment is a BAR, not a COUNT:** all 62 get **judged**; what gets **fixed** is every defect and every finding on a surface that ships. ⛔ **FEATURE LOCK closes with this step** |
 | **P6.5** | **Sentry** | Scaffold exists. Set `EXPO_PUBLIC_SENTRY_DSN`, CI source-map care, verify capture on a **real build**, add a `beforeBreadcrumb` PII scrub. Before P6.8 — it changes the app, and the sweep's premise is a frozen one |
@@ -277,6 +277,11 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
   zero-rewrite path. **Triggers:** Android at v1.8, or the first width-driven bug that reaches a user.
 
 **Tooling / hygiene:**
+- ⛔ **`scripts/*.ts` is typechecked by NOTHING** *(P6.2 after-scan)* — `typecheck` is core + rn, and the root
+  tsconfig **excludes** `scripts` outright. Every `lint:*` gate and audit instrument — the code that decides
+  whether the release gate passes — runs unchecked, and `tsx` does not typecheck. Needs its own tsconfig
+  (the `.ts`-import-extension convention is why it was excluded). **Deferred:** tooling, not launch work;
+  edits here get a hand `tsc` in the meantime.
 - ⚠️ **Two `maestro test` calls write no JUnit**, so their verdicts never reach the durable record
   (`11-reduce-motion`, the iPad's dark re-run of `i02`). Harmless today — both are measurement runs — and
   the same hazard `maestro-results.mjs`'s header documents for flow `09`: **the next flow added in its own
@@ -343,15 +348,9 @@ gets **fixed** is every defect and every finding on a surface that ships. ⛔ **
 "clear all 62"** — 29 are known non-work, and L2-6 is the precedent for a "fix" that made five dead engine
 strings load-bearing.
 
-**⏳ T9–T11 — the PARTIAL enumerations, superseded by `REMAINING.md`** *(kept for their reasoning only)*.
-- **T9 · a11y** — ⚠️ **L0-5 and L5-7 are MAJOR → in the gate now** (L1-8 was already T7's).
-- **T10 · dead code** — L0-4 (`ProgressRing`, `MilestonesRow`, **0 refs**) · L3-5 · L4-11
-  (`formatDisplayAmount`) · L6-4/5 (`projectForecast`, `buildSmartInsights` — unsurfaced, and feeding 8
-  off-voice strings into the wording gate's input).
-- **T11 · states & robustness** — L5-13/15/16. ⚠️ **L5-3/4/8 are MAJOR → in the gate now**, incl.
-  `/schedule/[id]`'s up-to-**600 unvirtualized rows**.
-⚠️ **T10 interacts with T1:** deleting dead code shrinks the surface every later instrument reads, so if T1
-surfaces more of it, fold it rather than re-entering.
+✅ **T9–T11 RETIRED as drivers, 2026-08-20 (P6.2)** — verified id by id: their 8 low-tier ids are all in
+`REMAINING.md` and the 6 they called MAJOR are genuinely major, so they carry nothing it lacks. Their text
+and reasoning → log. ⭐ **T10's dead-code verdicts still owe a re-check against the ROOT tree** → P6.11.
 
 _Post-triage under the fold-don't-defer rule — only two carve-outs remain: **device-gated**, or **genuinely
 a later version/tier**._

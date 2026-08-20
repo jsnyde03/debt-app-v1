@@ -4,6 +4,93 @@
 
 ---
 
+## ✅ P6.2 — the feature-lock boundary is 62, measured rather than remembered (2026-08-20)
+
+**The item's own premise was wrong, and that is the result.** P6.2 read *"not re-measured since T4–T8
+collapsed many of its owners"* — but `REMAINING.md` was generated **2026-08-19**, after the gate closed. The
+list was already current. ⚡ **What was actually missing was not a regeneration; it was a reason to trust the
+generator** — and nothing had ever checked that the parser sees every finding.
+
+### ⭐ The measurement that was owed: does the generator drop findings?
+
+`check-audit-closure.ts` builds its whole world by pairing a `### Lx-n` heading with the next
+`- **Severity:**` line. A finding whose heading is formatted differently, or whose severity line is missing,
+is **silently absent from both tiers** — it would not be gated by [D37] and would not appear in
+`REMAINING.md`, and no output anywhere would say so.
+
+| | |
+|---|---|
+| `### Lx-n` headings across the 7 findings files | **117** |
+| `- **Severity:**` lines across the same files | **117** |
+| 55 high+ ([D37]) + 62 low = | **117** |
+
+**Nothing is dropped, and the three numbers now reconcile.** Recorded into the generated file itself, so the
+next reader gets the reconciliation rather than having to redo it.
+
+### ✅ T9–T11 retired as drivers — the supersession claim is now checked, not asserted
+
+The plan said the T9–T11 enumerations were *superseded* by `REMAINING.md`. Verified id by id: of the 14 ids
+those three lists name, the **8 low-tier ones are all present** in `REMAINING.md` (L0-4 · L3-5 · L4-11 ·
+L6-4 · L6-5 · L5-13 · L5-15 · L5-16), and the **6 they flagged as "MAJOR → in the gate now" are genuinely
+major** (L0-5 · L1-8 · L5-3 · L5-4 · L5-7 · L5-8) and therefore correctly absent from the low tier. **They
+carry no id the generated list lacks**, so retiring them loses nothing.
+
+**The retired text, kept for its reasoning** *(and for `lint:closure`, which reads this file as a ledger —
+moving the ids here rather than deleting them is what keeps those six majors traceable)*:
+
+> **T9 · a11y** — L0-5 and L5-7 are MAJOR → in the gate now (L1-8 was already T7's).
+> **T10 · dead code** — L0-4 (`ProgressRing`, `MilestonesRow`, **0 refs**) · L3-5 · L4-11
+> (`formatDisplayAmount`) · L6-4/5 (`projectForecast`, `buildSmartInsights` — unsurfaced, and feeding 8
+> off-voice strings into the wording gate's input).
+> **T11 · states & robustness** — L5-13/15/16. L5-3/4/8 are MAJOR → in the gate now, incl.
+> `/schedule/[id]`'s up-to-**600 unvirtualized rows**.
+> ⚠️ **T10 interacts with T1:** deleting dead code shrinks the surface every later instrument reads, so if
+> T1 surfaces more of it, fold it rather than re-entering. ⭐ **And T10's verdicts must be re-checked
+> against the ROOT tree** — `formatDisplayAmount` was called dead and has three live legacy call sites.
+> That is why P6.11 deletes last.
+
+### ⚠️ The generated artifact was lying about three settled things
+
+Regenerating produced **zero row changes** — all 62 identical — and **12 lines of prose churn**, which is
+the finding. The header block is hard-coded in the generator, so it aged while the tables stayed correct:
+
+- *"the app is still moving — **Phase 5 rewrites the data layer**"* — Phase 5 **closed 2026-08-19**.
+- *"🎯 leans toward clearing all of them but has **not committed**"* — **[D42] committed** 2026-08-20 (a BAR,
+  not a COUNT).
+- *"**Phase 6 FINISH sweep**"* as the owner, in both the title and the console line — the owner is **P6.4**;
+  the FINISH sweep is **P6.8** and owns **T12**, a different set. A generated file naming the wrong owner is
+  how a sweep ends up run twice or not at all.
+
+Also: `5.5.1` → **P6.11.1**, and the title's hard-coded `62` now interpolates `lowTier.length` so the
+headline count cannot drift from the tables beneath it.
+
+⚡ **The generalisable bit: a generated artifact's PROSE is not generated.** Everything under
+`--remaining` that a human wrote is exactly as stale-able as a hand-maintained file, and it inherits the
+authority of the tables it sits above. **Re-read the header every time the generator is run for a reason.**
+
+### ⚠️ After-scan — `scripts/*.ts` is typechecked by NOTHING, and the first answer was wrong
+
+`typecheck` = `typecheck:core` + `typecheck:rn`, and neither covers `scripts/`. ⛔ **My first conclusion was
+that the root `tsconfig.json` still covered them and that P6.11.1 would remove that** — wrong on both halves.
+Reading the file rather than inferring from its `**/*.ts` include: `"exclude": ["node_modules", "apps",
+"scripts"]`, with a comment saying scripts *"were only ever compiled here by accident of the `**/*.ts`
+include"* and use conventions this config rejects (`.ts` import extensions, which `tsx` allows).
+
+**So the gap is total, and it is not P6.11's to create or to fix.** Every `lint:*` gate, every audit
+instrument and every generated-artifact script — the code that decides whether the release gate passes —
+runs with **zero type coverage**, and `tsx` does not typecheck (the known trap: a probe that wrote to
+`store.expenses` instead of `requiredExpenses` and printed confident nonsense). This edit was checked by
+hand: `tsc --noEmit --target es2022 --module esnext --moduleResolution bundler --skipLibCheck --types node
+scripts/check-audit-closure.ts` → exit 0. **Filed to the Deferred backlog** — it needs its own tsconfig
+(the `.ts`-extension convention is the reason it was excluded), which is a tooling item, not launch work.
+
+⚡ **And the miss is the lesson, on the same day the app repeated it:** *"scripts are in the root tsconfig's
+include"* was **derived from a glob** and contradicted by an explicit exclude four lines lower — a
+same-session wrong claim, exactly the failure mode `CLAUDE.md` records for pre-authored items. **Open the
+file.**
+
+---
+
 ## ✅ P6.1 — the shipped version is `2.0.0`, and the "one field" premise held (2026-08-20)
 
 **Before-scan — the item's three premises, each checked against the tree rather than assumed:**
