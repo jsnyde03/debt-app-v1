@@ -84,14 +84,14 @@ workflows:
       - name: Set marketing version from git tag (tagged releases only)
         working_directory: apps/rn/ios
         # Build NUMBER always auto-increments (above). The marketing VERSION comes from app.json
-        # `version` (1.7.0) via prebuild for manual/internal builds — this MUST be > the live 1.6 or
-        # App Store Connect rejects the upload. A tag-triggered build (`git tag v1.7.1 && git push
+        # `version` (2.0.0 — [D38]) via prebuild for manual/internal builds — this MUST be > the live 1.6
+        # or App Store Connect rejects the upload. A tag-triggered build (`git tag v2.0.1 && git push
         # --tags`) overrides it here so a release is pinned to its tag. (Freedom pattern.)
         script: |
           if [ -n "$CM_TAG" ]; then
             agvtool new-marketing-version "${CM_TAG#v}"
           else
-            echo "No git tag on this build — keeping app.json marketing version (1.7.0)."
+            echo "No git tag on this build — keeping app.json marketing version (2.0.0)."
           fi
 
       - name: Build iOS IPA

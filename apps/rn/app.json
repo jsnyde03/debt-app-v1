@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Debt Planner (RN)",
-    "version": "1.7.0",
+    "version": "2.0.0",
     "slug": "debt-planner-rn",
     "scheme": "debtplannerrn",
     "userInterfaceStyle": "automatic",

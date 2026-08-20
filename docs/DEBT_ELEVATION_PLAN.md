@@ -14,7 +14,7 @@
 |---|---|
 | **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅ · the **whole-app audit gate** ✅ ([D37] 55/55, `lint:closure` in CI) · **Phase 5 ✅ CLOSED** — the migration is verified on a live device and the cutover is **conditionally approved**. **Phase 6 is everything that remains**, and it ends at ASC submission |
 | **Ships as** | **`2.0.0`** ([D38]). The internal workstream keeps the name *"the v1.7 Elevation"* |
-| **Gate** | `validate:release:rn` — **205 e2e · 10 embed · 10 `test:stamp` · 83 lane checks** + `lint:glossary` · `lint:money` · `lint:closure`; tsc + lint clean, zero `error-context.md`. Last green: CI `32287042685`. ~15 min locally |
+| **Gate** | `validate:release:rn` — **205 e2e · 10 embed · 10 `test:stamp` · 87 lane checks** + `lint:glossary` · `lint:money` · `lint:closure`; tsc + lint clean, zero `error-context.md`. Last green: CI `32287042685`. ~15 min locally |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 ⛔ **TWO LINES, NOT ONE ([D39]): FEATURE LOCK ≠ FREEZE.** Feature lock lands the moment **P6.4** closes — no
@@ -29,7 +29,7 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 
 | # | Step | State / notes |
 |---|---|---|
-| **P6.1** | **Set `apps/rn/app.json` version to `2.0.0`** | 🔒 [D38]. **FIRST** — the listing, release notes, *"What's New"* and the App-Preview all quote it, and deciding late means writing them twice. One field; migration is unaffected (the bridge keys off the bundle id) |
+| ✅ | **P6.1 DONE 2026-08-20** — the shipped version is `2.0.0` ([D38]). All three premises held; folded in the two stale `1.7.0` quotes in `codemagic.yaml` and two tracked zero-byte junk files. Detail → log |
 | **P6.2** | **Regenerate T9–T11 from the findings files** | 🔒 [D39]. `tsx scripts/check-audit-closure.ts` — a **generated** list, not a remembered one. Not re-measured since T4–T8 collapsed many of its owners, and it *defines* the feature-lock line, so it is load-bearing |
 | **P6.3** | **Cloud backup** *(= "6.C", was 5.7)* — ships in v1.7 🎯, **not** premium-gated | 🔒 The cutover's approval condition, so **the app is not frozen until this lands** — which is why it precedes P6.8. Decomposed below |
 | **P6.4** | **The 62 filed findings + T9–T11** | From [`REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md) (**generated**; 41 minor · 21 polish). ⛔ **Not 62 edits** — 24 of the 61 copy duplicates are generic chrome that repeats by design, 5 more die with the `QA_TOOLS` flip, several are already dead. ✅ **[D42] — the commitment is a BAR, not a COUNT:** all 62 get **judged**; what gets **fixed** is every defect and every finding on a surface that ships. ⛔ **FEATURE LOCK closes with this step** |
