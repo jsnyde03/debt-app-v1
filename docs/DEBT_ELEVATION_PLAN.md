@@ -14,7 +14,7 @@
 |---|---|
 | **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅ · the **whole-app audit gate** ✅ ([D37] 55/55, `lint:closure` in CI) · **Phase 5 ✅ CLOSED** — the migration is verified on a live device and the cutover is **conditionally approved**. **Phase 6 is everything that remains**, and it ends at ASC submission |
 | **Ships as** | **`2.0.0`** ([D38]). The internal workstream keeps the name *"the v1.7 Elevation"* |
-| **Gate** | `validate:release:rn` — **207 e2e · 10 embed · 10 `test:stamp` · 87 lane checks** + `lint:glossary` · `lint:money` · `lint:closure`; tsc + lint clean, zero `error-context.md`. ~15 min locally. ⛔ **Record the run, never inherit it** — the gate was RED from `f4e5e11` (2026-08-19) to 2026-08-20 while three sessions carried a stale "last green" forward, and CI was failing on every push the whole time. **Last RUN locally 2026-08-20, on this session's tree.** |
+| **Gate** | `validate:release:rn` — **207 e2e · 10 embed · 10 `test:stamp` · 87 lane checks** + `lint:glossary` · `lint:money` · `lint:closure`; tsc + lint clean, zero `error-context.md`. ~15 min locally. ⛔ **Record the run, never inherit it** — the gate was RED from `f4e5e11` (2026-08-19) to 2026-08-20 while three sessions carried a stale "last green" forward, and CI was failing on every push the whole time. **Last RUN 2026-08-20 — locally on this tree (exit 0, read directly) and CI `32384250379` on `8653107`, the first green since the break.** |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 ⛔ **TWO LINES, NOT ONE ([D39]): FEATURE LOCK ≠ FREEZE.** Feature lock lands the moment **P6.4** closes — no
