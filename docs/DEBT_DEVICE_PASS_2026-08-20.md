@@ -119,13 +119,37 @@ the store you just wiped). If it is ON, auto-backup is running for someone who n
 
 ---
 
-## 7 · Sentry (P6.5) — and reading the breadcrumbs IS the test
+## 7 · Sentry (P6.5) — ⛔ **DEFERRED TO THE NEXT BUILD (🎯, 2026-08-20)**
+
+⛔ **Do not run the steps below on this build — they cannot pass, and my first version of them was wrong.**
+
+**Measured mid-pass:** there is **no user-triggerable `reportError` path in the entire app.** All 28 call
+sites are failure handlers for things that do not fail on demand — a storage fault, a share-sheet throw, a
+widget write — and the route this document originally suggested (import obvious junk) sets an **in-sheet
+message and never reports at all.** ⚠️ **So the absence of a Sentry event would have proved nothing, and
+would have read as "Sentry is broken."** An instrument that cannot fail is not evidence.
+
+✅ **Fixed for the next build:** **More → Developer / QA → "Send a test error to Sentry"**, gated by
+`qaEnabled()` so P6.17's `git grep QA_TOOLS` removes it. It **reports** rather than throws, deliberately —
+`reportError` is the seam all 28 sites use, so it exercises the real path *including* `beforeBreadcrumb`,
+and crashing the app would lose the very breadcrumb trail being inspected.
+
+⏭ **The next build carries:** this button · the [D51] light/dark splash · then rows 1 and 7 in full.
+
+✅ **What IS worth checking on THIS build**, and it is a real row: the DSN is live in this binary, so
+**confirm the app behaves completely normally** — launch, tabs, sheets, no new dialogs, no slowdown.
+⛔ *A crash-reporter must never change what the user sees*, and that is verifiable right now.
+
+<details>
+<summary>The deferred steps, for the next build</summary>
+
+## 7 (next build) · Sentry — and reading the breadcrumbs IS the test
 
 1. Use the app normally for a minute — **tap around the Money tab specifically**, open a bill, a goal, the
-   Guardian card. This is what builds the breadcrumb trail.
-2. Trigger an error. Easiest reliable route: **More → Data → Import backup**, paste obvious junk
-   (`not a backup`), and try to import — that exercises a `reportError` path without needing a crash.
-3. Open **sentry.io → debt-planner → Issues**.
+   Guardian card. ⛔ **This step is not padding: it is what builds the breadcrumb trail the test inspects.**
+   Fire the event first and you get a clean trail that proves nothing.
+2. **More → Developer / QA → "Send a test error to Sentry"** → expect a *"Sent"* confirmation.
+3. Open **sentry.io → debt-planner → Issues** and find *"QA test event — Debt Planner device pass"*.
 
 | | |
 |---|---|
@@ -156,3 +180,5 @@ result is the one I most need in your words: *which* timestamp was showing, the 
 (`SENTRY_AUTH_TOKEN` + `SENTRY_DISABLE_AUTO_UPLOAD: "false"` + the plugin's `{organization: "jason-snyder",
 project: "debt-planner"}`) — deliberately held until now so a bad token could not kill the archive that was
 carrying all three of these proofs.
+
+</details>

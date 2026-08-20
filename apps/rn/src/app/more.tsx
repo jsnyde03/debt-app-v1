@@ -11,6 +11,7 @@ import { CloudBackupSheet } from '@/components/more/CloudBackupSheet';
 import { SettingGroup, SettingRow } from '@/components/more/SettingRow';
 import { requestNotificationPermissionDetailed } from '@/notifications/notifications';
 import { notify } from '@/utils/confirm';
+import { reportError } from '@/utils/reportError';
 import { Screen, Section } from '@/components/screen';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
@@ -340,6 +341,29 @@ export default function MoreScreen() {
                   trackColor={{ true: c.accent.primary, false: c.border.strong }}
                 />
               }
+            />
+            {/* P6.5 — the ONLY way to verify Sentry on a device. Found during the 2026-08-20 device pass:
+                there is no user-triggerable `reportError` path in the whole app. Every one of its 28 call
+                sites is a failure handler for something that does not fail on demand (a storage fault, a
+                share-sheet throw, a widget write), and the obvious candidate — a rejected backup import —
+                sets an in-sheet message and never reports. So capture could not be tested at all, and a
+                silent absence of events would have read as "Sentry is broken" rather than "nothing asked
+                it to do anything".
+                ⛔ It reports rather than THROWS: `reportError` is the seam all 28 sites use, so this
+                exercises the real path — including `beforeBreadcrumb`, which is the half that matters.
+                Crashing the app would test a different route and lose the breadcrumb trail being checked.
+                ⚠️ Gated by `qaEnabled()`, so P6.17's `git grep QA_TOOLS` takes it out with the rest. */}
+            <SettingRow
+              icon="bug-report"
+              label="Send a test error to Sentry"
+              subtitle="QA only — check the issue's breadcrumbs carry no amounts."
+              onPress={() => {
+                reportError(new Error('QA test event — Debt Planner device pass'), {
+                  seam: 'qa-test-event',
+                  surface: 'more',
+                });
+                notify('Sent', 'Check sentry.io → debt-planner → Issues, then read the breadcrumbs.');
+              }}
               last
             />
           </SettingGroup>
