@@ -44,7 +44,7 @@ appId: com.jasonsnyder.debtplanner
 #
 # Retargeted to "Get Started" — always present, always the first control, and advancing to the paycheck
 # step proves the tap landed. It also removes a dependency on the demo, which this probe never needed.
-- tapOn: "Get Started"
+- tapOn: "Get started"
 - extendedWaitUntil:
     visible: "When do you get paid?"
     timeout: 20000

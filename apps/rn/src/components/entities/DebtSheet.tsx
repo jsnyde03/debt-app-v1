@@ -339,7 +339,7 @@ export function DebtSheet({
                 Estimated {formatWhole(estimate.currentBalance)} today
                 {estimate.lastVerifiedDate ? ` · verified ${shortDate(estimate.lastVerifiedDate)}` : ''}
               </Text>
-              <Text style={[textStyles.caption, { color: c.accent.primary }]}>Apply Estimate to Plan</Text>
+              <Text style={[textStyles.caption, { color: c.accent.primary }]}>Apply estimate to plan</Text>
             </Pressable>
           ) : isEdit && !isPremium && estimate?.lastVerifiedDate ? (
             <Text style={[textStyles.caption, { color: c.text.tertiary, marginTop: -4 }]}>Updated {shortDate(estimate.lastVerifiedDate)}</Text>

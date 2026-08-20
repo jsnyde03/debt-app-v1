@@ -57,7 +57,7 @@ console.log('\n▶ widget snapshot + sync (3.5.1)');
   const s = createDefaultStore();
   s.debts = [debt({ id: 'a', name: 'Visa', balance: 0, originalBalance: 8000 })];
   const snap = buildWidgetSnapshot(s, 300);
-  eq(snap.debtFreeDate, 'Debt-free!', 'has debts, none live → Debt-free!');
+  eq(snap.debtFreeDate, 'Debt-free', 'has debts, none live → Debt-free');
   eq(snap.pctLabel, '100%', 'fully cleared → 100%');
 }
 

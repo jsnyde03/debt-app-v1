@@ -70,7 +70,7 @@ const LIFETIME_SUBNOTE = 'Pay once — all today’s Premium, forever';
  * currency-correct strings; if the live packages fail to load, we show an error (never these), so a
  * device user is never offered an unpurchasable price (A1). */
 const STATIC_PLANS: PlanView[] = [
-  { key: 'annual', title: 'Annual', priceString: '$29.99', periodLabel: 'per year', subnote: 'Billed yearly · just $2.50/mo', badge: 'Best value' },
+  { key: 'annual', title: 'Annual', priceString: '$29.99', periodLabel: 'per year', subnote: 'Billed yearly · $2.50/mo', badge: 'Best value' },
   { key: 'lifetime', title: 'Lifetime', priceString: '$79.99', periodLabel: 'one time', subnote: LIFETIME_SUBNOTE, badge: 'Pay once' },
   { key: 'monthly', title: 'Monthly', priceString: '$4.99', periodLabel: 'per month', subnote: 'Billed monthly' },
 ];
@@ -180,7 +180,7 @@ export default function PaywallScreen() {
       if (result.userCancelled) return;
       if (isPremiumActive(result.customerInfo)) {
         appStore.getState().setSubscriptionPlan('premium');
-        notify('You’re Premium 🎉', 'Your premium tools are unlocked.');
+        notify('You’re on Premium', 'Your premium tools are unlocked.');
         router.back();
       } else {
         // Purchased at StoreKit but the entitlement didn't come back active (mapping issue) — don't leave

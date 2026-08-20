@@ -94,7 +94,7 @@ export function RequiredActionsCard({
         <View style={styles.headerText}>
           <View style={styles.titleRow}>
             <View style={[styles.tagDot, { backgroundColor: c.accent.success }]} />
-            <Text style={[textStyles.title3, { color: c.text.primary }]}>Required Actions</Text>
+            <Text style={[textStyles.title3, { color: c.text.primary }]}>Required actions</Text>
           </View>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Bills and minimums due this paycheck.</Text>
         </View>

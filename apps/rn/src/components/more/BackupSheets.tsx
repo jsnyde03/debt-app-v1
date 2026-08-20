@@ -1,4 +1,4 @@
-import { REPLACE_DATA_ACTION } from '@core/copy/vocabulary';
+import { EXPORT_BACKUP_TITLE, IMPORT_BACKUP_TITLE, REPLACE_DATA_ACTION } from '@core/copy/vocabulary';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput } from 'react-native';
@@ -50,7 +50,7 @@ export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
   return (
     <FormSheet
       visible
-      title="Export backup"
+      title={EXPORT_BACKUP_TITLE}
       subtitle="Copy this and save it somewhere safe. Paste it into Import to restore."
       submitLabel="Done"
       onSubmit={onClose}
@@ -138,7 +138,7 @@ export function ImportBackupSheet({ onClose }: { onClose: () => void }) {
   return (
     <FormSheet
       visible
-      title="Import backup"
+      title={IMPORT_BACKUP_TITLE}
       subtitle="Paste a backup you saved before. You'll see what's in it before anything changes."
       submitLabel="Check backup"
       onSubmit={() => check(text)}

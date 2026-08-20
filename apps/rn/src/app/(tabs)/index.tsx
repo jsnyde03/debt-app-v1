@@ -616,7 +616,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
           <Text style={[textStyles.subhead, { color: c.text.primary }]}>
             Payday logged. Start your next pay cycle to apply this cycle&apos;s payments and get your next plan.
           </Text>
-          <Button label="Start Next Pay Cycle" onPress={() => store_.getState().rolloverPayCycle()} style={styles.nudgeBtn} />
+          <Button label="Start next pay cycle" onPress={() => store_.getState().rolloverPayCycle()} style={styles.nudgeBtn} />
         </Card>
       ) : null}
 

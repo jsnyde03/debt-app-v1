@@ -59,7 +59,7 @@ export function notify(
 
 /** Confirm discarding unsaved edits before a sheet is dismissed by tap/swipe (3.4.5.5 dirty-guard). */
 export function confirmDiscard(): Promise<boolean> {
-  const message = 'Discard your changes?';
+  const message = 'Discard changes?';
   if (Platform.OS === 'web') {
     return Promise.resolve(typeof window !== 'undefined' && typeof window.confirm === 'function' ? window.confirm(message) : true);
   }

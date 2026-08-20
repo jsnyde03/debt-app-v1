@@ -27,7 +27,7 @@ export function WelcomeStep({ onNext, onDemo }: { onNext: () => void; onDemo?: (
       total={4}
       ctas={
         <>
-          <Button label="Get Started" onPress={onNext} />
+          <Button label="Get started" onPress={onNext} />
           {/* Optional since 3.5.4.8: withheld where the demo isn't reachable, rather than rendered dead.
               A secondary CTA that does nothing is the "nothing renders dead" rule from the round-8
               overlay-less review, one screen earlier. */}

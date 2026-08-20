@@ -1,3 +1,4 @@
+import { PAY_CYCLE_HISTORY_TITLE } from '@core/copy/vocabulary';
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -36,7 +37,7 @@ export default function HistoryScreen() {
   const summary = selectHistorySummary(store);
 
   return (
-    <Screen title="Pay Cycle History" onBack={() => router.back()}>
+    <Screen title={PAY_CYCLE_HISTORY_TITLE} onBack={() => router.back()}>
       {summary.paidDown > 0 ? (
         <View style={styles.anchor}>
           <Text style={[styles.anchorNum, { color: c.accent.success }]}>{formatWhole(summary.paidDown)}</Text>

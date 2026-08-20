@@ -58,7 +58,7 @@ appId: com.jasonsnyder.debtplanner
 - takeScreenshot: maestro-debug/smoke-cold-launch
 
 # ══ THE SEED — onboarding, for real ═════════════════════════════════════════════════════════════
-- tapOn: "Get Started"
+- tapOn: "Get started"
 
 # The paycheck is not optional dressing: flows 05 and 06 need a Guardian card, and the Guardian needs a
 # paycheck. "Skip for now" would land on the completion step with no income and no card to coach.

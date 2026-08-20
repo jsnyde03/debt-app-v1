@@ -61,7 +61,7 @@ appId: com.jasonsnyder.debtplanner
 - extendedWaitUntil:
     visible: "Will you make it to payday?"
     timeout: 20000
-- tapOn: "Get Started"
+- tapOn: "Get started"
 
 # The paycheck step is the gate that stopped the web lane. Type a real amount rather than skipping — the
 # skip is precisely what walks past the step under test.

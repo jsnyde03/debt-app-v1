@@ -14,7 +14,7 @@ import { formatWhole } from '@/utils/format';
 export interface WidgetSnapshot {
   /** false → no debts entered yet → the widget shows an "open the app" prompt. */
   hasData: boolean;
-  /** "October 2027" · "Debt-free!" when all debts are cleared · "—" when unknowable. */
+  /** "October 2027" · "Debt-free" when all debts are cleared · "—" when unknowable. */
   debtFreeDate: string;
   /** 0..1 for the SwiftUI ring/Gauge. Clamped. */
   pctPaid: number;
@@ -78,7 +78,7 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
 
   // Has debts but none live → they've cleared everything. Otherwise the projected payoff date (or —).
   const cleared = debts.length > 0 && live.length === 0;
-  const debtFreeDate = cleared ? 'Debt-free!' : (selectPayoffView(store).debtFreeDate ?? '—');
+  const debtFreeDate = cleared ? 'Debt-free' : (selectPayoffView(store).debtFreeDate ?? '—');
 
   return {
     hasData: debts.length > 0,

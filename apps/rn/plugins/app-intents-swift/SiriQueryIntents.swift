@@ -35,7 +35,12 @@ struct DebtFreeDateIntent: AppIntent {
         if !snap.hasData {
             return .result(dialog: "Add a debt in Debt Planner to see your debt-free date.")
         }
-        if snap.debtFreeDate == "Debt-free!" {
+        // ⛔ [P6.4.4 · audit L1-27] MUST match `snapshot.ts`'s `debtFreeDate` sentinel exactly. The
+        // exclamation mark was removed there (the app's only "!"), and this comparison is the reason the
+        // sweep runs over the REPO ROOT with no directory list: a TypeScript-scoped search cannot see a
+        // `.swift` file, and a silent mismatch here does not crash — Siri just stops recognising the
+        // debt-free state and reads "on track to be debt-free by Debt-free" instead.
+        if snap.debtFreeDate == "Debt-free" {
             return .result(dialog: "You're debt-free — nicely done.")
         }
         return .result(dialog: "You're on track to be debt-free by \(snap.debtFreeDate).")

@@ -105,7 +105,7 @@ export function FormSheet({
           <Button label={submitLabel} onPress={onSubmit} />
           {onRemove ? (
             <Pressable onPress={onRemove} accessibilityRole="button" style={styles.remove}>
-              <Text style={[textStyles.bodyMedium, { color: c.accent.danger }]}>Remove</Text>
+              <Text style={[textStyles.bodyMedium, { color: c.accent.danger }]}>Delete</Text>
             </Pressable>
           ) : null}
         </View>
@@ -171,7 +171,7 @@ export function FormSheet({
               <Button label={submitLabel} onPress={onSubmit} />
               {onRemove ? (
                 <Pressable onPress={onRemove} accessibilityRole="button" style={styles.remove}>
-                  <Text style={[textStyles.bodyMedium, { color: c.accent.danger }]}>Remove</Text>
+                  <Text style={[textStyles.bodyMedium, { color: c.accent.danger }]}>Delete</Text>
                 </Pressable>
               ) : null}
             </View>

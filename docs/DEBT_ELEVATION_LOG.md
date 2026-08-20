@@ -2957,6 +2957,10 @@ FALSE and was struck.** `embed-pages.yml` builds **`apps/rn`** — `working-dire
 ships NOWHERE**; the only workflow that touches it is `app-preview.yml`. Fixing it was still right *(it
 keeps P6.11's deletion clean and costs nothing)*, but **this sentence must never again be used to justify
 work in that tree** — it was repeated in two P6.4 commits before anyone read the workflow.
+*(The struck clause also named **L6-2** as having been fixed on the same surface by T2; that closure still
+stands and is restated here — ⛔ **`lint:closure` went RED on this very edit**, because striking the
+sentence removed the only trace of that id. The gate catching its own documentation being rewritten is
+[D37] working exactly as specified: a closure nobody can find is indistinguishable from an open finding.)*
 **L1-15's sweep found `recovery.spec.ts` asserting `'SAFE TO DEFER'` — the suite was pinning the retired
 string in place**, exactly the T4.4 trap. **L1-12's found `LiveActivityQA`'s sample line diverging from the
 shipped one** the moment it changed, plus a device-QA-checklist row quoting it.

@@ -179,6 +179,18 @@ export const PRIVACY_POLICY_LABEL = "Privacy Policy";
  *  sandbox into what reads as two different features. */
 export const SEE_IT_IN_ACTION_CTA = "See it in action";
 
+/**
+ * [L2-19] Destination titles — the promise a settings row makes ("tapping this gets me *that*").
+ *
+ * ⛔ **The gate proved this one while it was being created.** L1-21 put the history screen into sentence
+ * case, and `lint:copy` went red the same run: the title now matched the More row's label, so one rename
+ * had produced the exact two-owner duplicate L2-19 describes. **Extracted rather than baselined** — a
+ * row and its destination disagreeing makes the destination look like the wrong screen.
+ */
+export const PAY_CYCLE_HISTORY_TITLE = "Pay cycle history";
+export const EXPORT_BACKUP_TITLE = "Export backup";
+export const IMPORT_BACKUP_TITLE = "Import backup";
+
 /** Where spare money goes once there is no debt left — the debt-free half of the destination pair
  *  (`to debt` / `to your goals`). ⚠️ The hero renders it as a LABEL and the Guardian brief embeds it
  *  mid-sentence, so this is the noun phrase only; each caller supplies its own surrounding words. */

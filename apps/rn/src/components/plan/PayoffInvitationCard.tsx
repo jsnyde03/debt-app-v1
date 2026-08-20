@@ -34,7 +34,7 @@ export function PayoffInvitationCard({
       style={[styles.card, cardElevation(scheme), { backgroundColor: c.background.secondary, borderColor: gold }]}>
       <View style={styles.head}>
         <AppIcon name="check-circle" size={22} color={gold} />
-        <Text style={[textStyles.title2, styles.title, { color: c.text.primary }]}>Looks like you crushed {debtName}!</Text>
+        <Text style={[textStyles.title2, styles.title, { color: c.text.primary }]}>Looks like you paid off {debtName}</Text>
       </View>
       <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
         Your estimate reached $0. Confirm it&apos;s paid off and it&apos;s official.

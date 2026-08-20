@@ -1,4 +1,4 @@
-import { EVERYDAY_SPENDING_LABEL, PRIVACY_POLICY_LABEL, UNLOCK_PREMIUM_CTA } from '@core/copy/vocabulary';
+import { EVERYDAY_SPENDING_LABEL, EXPORT_BACKUP_TITLE, IMPORT_BACKUP_TITLE, PAY_CYCLE_HISTORY_TITLE, PRIVACY_POLICY_LABEL, UNLOCK_PREMIUM_CTA } from '@core/copy/vocabulary';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { tutorialRunFor } from '@/store/tutorialSelectors';
@@ -167,7 +167,7 @@ export default function MoreScreen() {
       <SettingGroup>
         <SettingRow
           icon="history"
-          label="Pay cycle history"
+          label={PAY_CYCLE_HISTORY_TITLE}
           subtitle="Look back at your finished pay cycles."
           onPress={() => router.push('/history')}
         />
@@ -191,7 +191,14 @@ export default function MoreScreen() {
         <SettingRow
           icon="lightbulb-outline"
           label="Show feature tips again"
-          subtitle={tipsReset ? 'Tips will appear again as you go.' : 'Re-offer the one-line hints on hidden features.'}
+          // ⛔ [P6.4.4 · audit L1-33] Was "Re-offer the one-line hints on hidden features." — implementation
+          // register ("re-offer", "one-line hints"), and it told the user their features were HIDDEN.
+          // ⚠️ NOT the finding's suggested "Show the short tips again as you go": this subtitle composes
+          // into the row's `accessibilityLabel` behind the label "Show feature tips again", so that
+          // wording read "…again. …again as you go." Describe what the tips ARE; the label already owns
+          // the "again". (The composition is documented in `07-money-add-and-rescue.yaml`, which measured
+          // it when a selector went red against the joined string.)
+          subtitle={tipsReset ? 'Tips will appear again as you go.' : 'Short tips that point out what each screen can do.'}
           onPress={() => {
             resetCoachMarks();
             setTipsReset(true);
@@ -202,8 +209,8 @@ export default function MoreScreen() {
 
       <Section title="Data">
         <SettingGroup>
-          <SettingRow icon="ios-share" label="Export backup" subtitle="Save a copy of your data." onPress={() => setSheet('export')} />
-          <SettingRow icon="file-download" label="Import backup" subtitle="Restore from a saved backup." onPress={() => setSheet('import')} />
+          <SettingRow icon="ios-share" label={EXPORT_BACKUP_TITLE} subtitle="Save a copy of your data." onPress={() => setSheet('export')} />
+          <SettingRow icon="file-download" label={IMPORT_BACKUP_TITLE} subtitle="Restore from a saved backup." onPress={() => setSheet('import')} />
           {/* P6.3 — this replaces the "coming soon" row the app had been shipping (finding L1-29). The
               subtitle states what the feature IS rather than that it exists: [D41]'s claim is that the
               data stays in the user's own Apple account, and this row is the first place they meet it. */}
@@ -418,7 +425,7 @@ function DeleteConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfir
           <Button label="Cancel" variant="secondary" onPress={onCancel} />
         </View>
         <View style={styles.confirmBtn}>
-          <Button label="Delete Everything" variant="danger" onPress={onConfirm} />
+          <Button label="Delete everything" variant="danger" onPress={onConfirm} />
         </View>
       </View>
     </View>
