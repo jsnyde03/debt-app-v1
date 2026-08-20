@@ -4,6 +4,46 @@
 
 ---
 
+## ⛔ THE GATE HAD BEEN RED SINCE 2026-08-19, AND THREE SESSIONS RECORDED IT GREEN (found 2026-08-20)
+
+**Found by running `validate:release:rn` for P6.3.3.7.** Two e2e failed —
+`earlyjourney.spec.ts §3.3.6.3 Welcome leads with the Guardian job`, light and dark. ⚠️ **Not mine:**
+reproduced with `git checkout b342d68 -- apps/rn/src`, i.e. every source file reverted to before this
+session, tests left in place. It fails in isolation too, so it is not ordering.
+
+### The mechanism, and it is a good change meeting a stale fixture
+
+**`f4e5e11` (2026-08-19) taught `runMigrations` to PROMOTE `onboardingComplete`** when a store carries
+income **and** an obligation — because v1.6's `buildBackupData()` cannot emit the flag, so a restored
+portfolio was landing `false` and being **hidden behind the route guard**, reading as *"the import did
+nothing"*. 🎯 found that on a device; it is the right fix and it is unit-covered.
+
+⛔ **But the fixture asked for a state that no longer exists.** The spec seeded a full `scenario()` — income,
+a debt, a bill — with `onboardingComplete: false`, then expected the Welcome screen. After `f4e5e11` that
+store is promoted to onboarded on hydrate, so the guard sends it to Today. **The fixture was asking for a
+working plan and for the screen that only shows when you do not have one.** Fixed by seeding a genuine
+pre-onboarding store (no income, no obligations), which is what the test always meant.
+
+### ⛔ The part worth keeping: how a red gate got recorded as green THREE times
+
+`f4e5e11` shipped with unit coverage and **the e2e that contradicted it was never run.** Every session
+since was documentation-only, and each one carried the last figure forward:
+
+> *"Documentation only — no source file was touched, so the gate state is unchanged from CI `32287042685`
+> (green: 205 e2e …)"* — the 2026-08-20 session close, written **two source commits after** the gate broke.
+
+⚠️ **The reasoning is sound and the premise was false.** "No source touched *this session*" does not mean
+"no source touched since the last green" — and nobody checked, because the number was right there in the
+plan. ⛔ **`gh run list` says CI has been FAILING on every push since `d5f79f0` (2026-08-19).** The signal
+existed the whole time; it was simply never asked.
+
+⚡ **The generalisation, and it is the same shape as [D37]'s:** *an untraceable closure is
+indistinguishable from an open finding* — and **a remembered gate result is indistinguishable from an
+unrun one.** A "Last green: CI …" line in a document is a claim about the PAST that reads as a claim about
+the present. ✅ **The plan's gate row now records what was actually run and when**, not what was inherited.
+
+---
+
 ## ✅ P6.3.3.1–.7 — cloud backup, built off Freedom's LESSONS rather than its code (2026-08-20)
 
 🎯 mid-step: *"Make sure to reference Freedom… there were some lessons learned."* That turned out to be the

@@ -11,7 +11,18 @@ test.use({ viewport: { width: 402, height: 874 } });
 
 for (const theme of ['light', 'dark'] as const) {
   test(`§3.3.6.3 Welcome leads with the Guardian job (${theme})`, async ({ page }) => {
-    await seedStore(page, scenario({ prefs: { onboardingComplete: false, themeMode: theme } }));
+    // ⛔ A genuine PRE-onboarding store — no income, no obligations. The fixture used to be a full
+    // `scenario()` with `onboardingComplete: false`, and that state stopped existing on 2026-08-19:
+    // `runMigrations` now PROMOTES a store carrying income AND an obligation to onboarded (a v1.6 backup
+    // file cannot express the flag, and the restored portfolio was being hidden behind this very gate).
+    // So the old fixture asked for a working plan and the screen that only shows without one, and the
+    // route guard — correctly — rendered Today. ⚠️ The fixture was contradictory, not the app.
+    await seedStore(page, scenario({
+      paycheck: { amount: '' },
+      debts: [],
+      requiredExpenses: [],
+      prefs: { onboardingComplete: false, themeMode: theme },
+    }));
     await page.goto('/onboarding');
     await page.waitForTimeout(500);
     await page.screenshot({ path: `test-results/welcome-${theme}.png` });

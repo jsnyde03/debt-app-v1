@@ -130,6 +130,13 @@ npm run validate:release:rn     # typecheck:core → typecheck:rn → lint → r
 **205 e2e + 10 embed + 10 `test:stamp` + 83 lane checks, tsc clean on both trees**, zero
 `error-context.md`. CI runs it on every push. ~15 min locally.
 
+⛔ **A REMEMBERED GATE RESULT IS INDISTINGUISHABLE FROM AN UNRUN ONE.** Found 2026-08-20: the gate had been
+**red since `f4e5e11` (2026-08-19)** — a route-guard fix landed with unit coverage while the e2e that
+contradicted it was never run — and **three consecutive sessions recorded it green**, each reasoning *"no
+source touched this session, so the state is unchanged from CI `32287042685`."* True about the session,
+false about the tree: **no source touched BY ME ≠ no source touched SINCE the last green.** `gh run list`
+had been reporting a failure on every push the whole time. **Run it, or say you did not.**
+
 ⚠️ **It ran no `tsc` at all until 2026-08-11**, and two commits shipped green with real type
 errors before that was found. `packages/core` had been unchecked since `validate:release:legacy`
 was retired 2026-07-24. Both typechecks now run FIRST so they fail fast.
