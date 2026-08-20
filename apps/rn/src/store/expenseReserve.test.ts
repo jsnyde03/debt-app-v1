@@ -1,7 +1,7 @@
 import { createDefaultStore } from '@/data/defaults';
 import { runMigrations } from '@/data/migrations';
 import type { DebtStore, RequiredExpense } from '@/data/models';
-import { selectExpenseReserveNow, selectExpenseReserveOffer, selectRecurringSmoothed } from '@/store/expenseReserveSelectors';
+import { selectExpenseReserveNow, selectExpenseReserveOffer, selectLivingReserveRequest, selectRecurringSmoothed } from '@/store/expenseReserveSelectors';
 import { selectWindfallSplit } from '@/store/guardianSelectors';
 import { applyRollover } from '@/store/payday';
 import { selectPlanSummary, selectRequiredRows } from '@/store/planSelectors';
@@ -129,6 +129,24 @@ eq(selectRecurringSmoothed(store()).monthlyTotal, 500, 'smoothing sums every rec
     livingExpenses: [{ id: 'l1', name: 'Groceries', amount: 400, enabled: false }],
   }))!;
   eq(off.livingExpenseHeld, 0, 'a disabled item holds nothing');
+}
+
+// ⛔ [P6.4.3 · L4-15] `selectLivingReserveRequest` — one owner for the everyday REQUEST. The expression
+// was written verbatim in `money.tsx` and `living-expenses.tsx`, off the same store field; they agreed,
+// which is why nothing could see it. ⚠️ Pinned against `livingExpenseReserve` rather than a literal, so
+// the selector and the engine cannot drift apart the way the two screens could have.
+{
+  const s = store({
+    livingExpenses: [
+      { id: 'l1', name: 'Groceries', amount: 300, enabled: true },
+      { id: 'l2', name: 'Fun money', amount: 120, enabled: true },
+      { id: 'l3', name: 'Old gym', amount: 999, enabled: false },
+    ],
+  });
+  eq(selectLivingReserveRequest(s), 420, 'sums the ENABLED items only — a disabled one is not requested');
+  eq(selectLivingReserveRequest(s), selectAllocation(s)!.livingExpenseReserve,
+    '…and it IS the engine’s request figure, not a second derivation of it');
+  eq(selectLivingReserveRequest(store({ livingExpenses: [] })), 0, 'no items → 0, never NaN');
 }
 
 // ⛔ A bill the pot covers IN FULL must still be a tickable row — the user still owes the biller.

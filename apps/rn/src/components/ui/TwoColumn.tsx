@@ -9,8 +9,15 @@ import { spacing } from '@/theme/spacing';
  * `left` and `right` sit side-by-side; below that (portrait iPad / iPhone / narrow split) they stack into
  * one column. Layout only — the host screen owns scrolling (render this inside a `wide` `Screen`).
  *
- * Used by the single-object dashboards (Today, Progress) that reflow to two columns, NOT master-detail
- * (that's `MasterDetail`, Money-only).
+ * Used by **Today**, the single-object dashboard that reflows to two columns. NOT master-detail (that is
+ * `MasterDetail`, Money-only).
+ *
+ * ⛔ [P6.4.3 · audit L4-14] **Progress deliberately does NOT use this**, and the docstring used to claim
+ * it did. 3.6.4 gave Progress `maxWidth={isExpanded ? 980 : undefined}` — *"a wider centered column on
+ * iPad (not two-column)"* — because a ring plus two time-series charts want width, not columns. The
+ * divergence is correct; the stale header was the defect, and the kind that makes a reader believe two
+ * dashboards share a reflow rule they do not. **This is why `TwoColumn` reads as single-use: it is, and
+ * the reason is a later decision its own header never learned about.**
  */
 export function TwoColumn({
   left,

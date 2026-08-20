@@ -16,6 +16,7 @@ import type { LivingExpense } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { formatWhole } from '@/utils/format';
 import { appStore } from '@/store/appStore';
+import { selectLivingReserveRequest } from '@/store/expenseReserveSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -30,7 +31,8 @@ export default function LivingExpensesScreen() {
   const items = useAppStore((s) => s.store.livingExpenses);
   const [sheet, setSheet] = useState<{ editing: LivingExpense | null } | null>(null);
 
-  const activeTotal = items.filter((i) => i.enabled).reduce((sum, i) => sum + i.amount, 0);
+  // [P6.4.3 · L4-15] One owner — `money.tsx` had this expression verbatim, off the same store field.
+  const activeTotal = useAppStore((s) => selectLivingReserveRequest(s.store));
 
   return (
     <Screen title={EVERYDAY_SPENDING_LABEL} onBack={() => router.back()}>

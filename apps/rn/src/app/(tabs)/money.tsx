@@ -15,7 +15,7 @@ import { AddObligationSheet, type AddKind } from '@/components/entities/AddOblig
 import { AmortizationPane } from '@/components/entities/AmortizationView';
 import { DebtSheet } from '@/components/entities/DebtSheet';
 import { useCoachMark } from '@/hooks/use-coach-mark';
-import { selectExpenseReserveNow, selectRecurringSmoothed } from '@/store/expenseReserveSelectors';
+import { selectExpenseReserveNow, selectLivingReserveRequest, selectRecurringSmoothed } from '@/store/expenseReserveSelectors';
 import { TutorialTarget } from '@/store/tutorialTargets';
 import { onAddDebtRequested } from '@/keyCommands/keyCommandBus';
 import { LogPaymentSheet } from '@/components/entities/LogPaymentSheet';
@@ -515,7 +515,8 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
   // 3.8.4 — what is actually set aside right now (pot after this cycle's draw + what this paycheck held).
   const reserveNow = useAppStore((s) => selectExpenseReserveNow(s.store));
 
-  const livingTotal = living.filter((l) => l.enabled).reduce((s, l) => s + l.amount, 0);
+  // [P6.4.3 · L4-15] One owner — `living-expenses.tsx` had this expression verbatim.
+  const livingTotal = useAppStore((s) => selectLivingReserveRequest(s.store));
   const cyclesPerMonth = payCyclesPerMonth(payCycle);
   const perCycle = cyclesPerMonth > 0 ? cyclesPerMonth : 1;
 

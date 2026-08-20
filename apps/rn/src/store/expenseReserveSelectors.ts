@@ -44,6 +44,22 @@ export function selectRecurringSmoothed(store: DebtStore): RecurringSmoothed {
 }
 
 /**
+ * [P6.4.3 · audit L4-15] The everyday-spending REQUEST — the enabled items' raw sum.
+ *
+ * ⛔ **This exact expression was written verbatim in two screens** — `money.tsx`'s `livingTotal` and
+ * `living-expenses.tsx`'s `activeTotal` — off the same `store.livingExpenses`. They agreed, so there was
+ * no visible defect; it is filed because this file's own header names "two places, one rule" as the
+ * failure mode that produced three separate defects in Wave A, and then this one was missed.
+ *
+ * ⚠️ **It is the REQUEST, not an outcome.** What a paycheck can actually hold is `livingExpenseHeld` /
+ * `everydayHeld` (T5.2 / L3-6) — the engine clamps this sum with `Math.max(0, …)`. Do not put this figure
+ * under copy that states what WAS set aside; that is the defect L3-6 closed.
+ */
+export function selectLivingReserveRequest(store: DebtStore): number {
+  return store.livingExpenses.filter((l) => l.enabled).reduce((sum, l) => sum + l.amount, 0);
+}
+
+/**
  * 3.8.4 — what is ACTUALLY set aside right now, and the number the Expenses hero shows.
  *
  * ⚠️ NOT `expenseReserve.balance`. The balance is last cycle's carry-in: it does not include what the user

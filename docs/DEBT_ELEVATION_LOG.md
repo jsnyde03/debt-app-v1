@@ -52,6 +52,32 @@ it was re-deferred on measured **cost** (below), not on the lock date, so the la
 
 ---
 
+## ✅ P6.4.3 — the second empty cluster, and what survived was structural (2026-08-20)
+
+**Before-scan:** the five ids this step was written for are all resolved — **L4-5 · L4-7 · L4-9** closed at
+T6.5/T6.7, **L4-8 declined on the record** *(its fix re-adds the noise the App Preview cents sweep
+removed)*, **L4-10** closed by its own *"no fix needed"* verdict. Two L4 ids survived the triage and
+neither is about formatting.
+
+**L4-15 — `selectLivingReserveRequest`.** `living.filter(l => l.enabled).reduce(...)` was written verbatim
+in `money.tsx` and `living-expenses.tsx`, off the same `store.livingExpenses`. They agreed, so there was no
+visible defect — and `expenseReserveSelectors.ts`'s own header names *"two places, one rule"* as the
+failure mode that produced three defects in Wave A. It now owns this one too. ⭐ **The assertion is pinned
+against `selectAllocation(s).livingExpenseReserve`, not a literal** — a literal would let the selector and
+the engine drift apart exactly the way the two screens could have. ⚠️ **Mutation-planted:** dropping the
+`enabled` filter reds it with `expected 420, got 1419`. ⛔ And the selector's docstring carries T5.2's
+distinction — this is the **REQUEST**, and putting it under copy that states what *was* set aside is the
+defect L3-6 closed.
+
+**L4-14 — the docstring, fixed by naming the exception rather than deleting the word.** `TwoColumn` claimed
+*"Used by the single-object dashboards (Today, Progress)"*; Progress takes `maxWidth={isExpanded ? 980 :
+undefined}` per 3.6.4 — a ring plus two time-series charts want width, not columns. The divergence is
+correct and the header was the defect. ⚠️ **`git grep -l TwoColumn` returned `MasterDetail.tsx` and it is a
+COMMENT reference, not an import** — checked before writing the replacement, because writing a fresh stale
+docstring while fixing a stale docstring is the whole joke.
+
+---
+
 ## ✅ P6.4.2 — `lint:money` was green over FIVE hand-rolled sites, and one was a live VoiceOver defect (2026-08-20)
 
 The claims cluster this step was written for is empty *(L3-6/L3-7 built at T5.2, L3-5 dies with P6.11)*, so
