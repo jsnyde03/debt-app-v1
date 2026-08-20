@@ -151,11 +151,19 @@ availability · the App Review note naming the paywall path · the launch-FLIP v
 | | Report | State |
 |---|---|---|
 | **R1** | Money's edit sheets had no date **picker** | ✅ **DONE.** `DateField` at all 4 sites. ⛔ Folded in: `todayLocalISO()` returned **yesterday** east of UTC. The fields had **zero** coverage before, which is why it shipped |
+| **R3** | 🔴 **NEW 2026-08-20 — the demo strands an EXISTING user.** More → *Unlock Premium* → *"See it in action"* takes over with no clear way back to their own plan | **OPEN.** ⚡ **Mechanism, read not guessed — and my first reading was WRONG.** The paywall pushes `/demo?from=paywall`, which is the **explore** run, and explore has **no dock**; its only exit is `ExampleCanvasMarker`'s row. So an exit *does* exist on every screen. ⛔ **The defect is what it SAYS:** a caption-sized link reading **"Start my real plan"** → `exitDemo('/onboarding')`. To an onboarded user — **the paywall CTA's main audience** — that reads as *discard what I have and start over*, so the one way out looks destructive and nobody sane taps it. *(It is in fact safe: the route guard bounces an onboarded user straight to the tabs. The user cannot know that.)* ⚠️ Same shape as **R2**: the door exists and is built for the wrong audience. **Likely fix (🎯's call):** label by destination and by who is asking — *"Back to my plan"* → `exitDemo('/')` when `onboardingComplete`, keeping *"Start my real plan"* for the pre-onboarding audience |
 | **R2** | The expense set-aside is uncoachable · living expenses undiscoverable | ✅ **DONE = 3.8.** Both were the same fix. ⛔ The second half was **worse than reported**: the Money door existed but was gated on `livingTotal > 0`, so it showed only to users who had already found the feature |
 
-⚡ **Neither was reachable by 4.1.** The lane checks that built behaviour keeps working; these are *design*
-gaps. **No coverage split models "the app does the wrong thing correctly"** — the device pass is the only
+⚡ **None of these was reachable by 4.1.** The lane checks that built behaviour keeps working; these are
+*design* gaps. **No coverage split models "the app does the wrong thing correctly"** — using it is the only
 instrument that finds them.
+
+⛔ **R3 makes the point twice over.** `demo-containment.spec.ts` has **14 tests**, two of them aimed straight
+at this path — *"the PAYWALL door — 'See it in action' reaches the demo"* and *"the EXPLORE run carries its
+own way out, on whatever screen you wandered to"* — and **both pass while the exit is unusable.** They prove
+an exit is *present and reachable*; neither asks what it **says** to the person reading it. ⚡ **A suite can
+be exhaustive about the question it chose and silent about the one that matters** — and here the chosen
+question ("is there a way out?") and the real one ("does it look like a way out, to me?") differ by one word.
 
 ---
 
