@@ -72,6 +72,9 @@ import { useAppStore } from '@/store/useAppStore';
 // inventory, or in T6.4's body-grep. Two were the SAME sentence rendered twice (visual + spoken) and only
 // one carried thousands separators, so VoiceOver read "$1234". `lint:money` found all four on its first run.
 import { formatWhole } from '@/utils/format';
+// ⛔ [P6.4.2] And a FIFTH, which `lint:money` was green over: `${trialConversion.fullAmount.toLocaleString(…)}`
+// in JSX text, where a literal `$` before an expression is byte-identical to a template interpolation.
+import { formatCurrency } from '@core/utils/formatCurrency';
 import type { Debt } from '@/data/models';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -570,7 +573,12 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
           <View style={styles.ackRow}>
             <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
             <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>
-              Your {trialConversion.name} trial has ended — it&apos;s now ${trialConversion.fullAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {/* ⛔ [P6.4.2] `formatCurrency`, not a literal `$` in JSX before a pinned-2-decimal
+                  `toLocaleString`. ⚠️ This is the one site where the rendered string CHANGES: a whole
+                  price now reads "$30" rather than "$30.00", which is `formatCurrency`'s own documented
+                  rule — cents render only when there are cents, the App Preview cents sweep (3.5.8.7).
+                  A price is not an exception to it; a second convention on one screen is the defect. */}
+              Your {trialConversion.name} trial has ended — it&apos;s now {formatCurrency(trialConversion.fullAmount)}
               {trialConversion.cadence}. Keeping it?
             </Text>
           </View>

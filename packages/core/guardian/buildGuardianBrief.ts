@@ -2,6 +2,7 @@ import { EMERGENCY_FUND_NOUN } from "@core/copy/vocabulary";
 import type { EstimateStaleness } from "@core/debt/projectCurrentBalance";
 import type { CushionStatus } from "@core/timeline/buildMultiCycleTimeline";
 import { computeState } from "@core/guardian/computeState";
+import { formatCurrency } from "@core/utils/formatCurrency";
 
 /**
  * Payday Cushion Guardian core (v1.7 Phase 2.4) — the premium headline, and now an ACTOR, not a
@@ -138,7 +139,11 @@ function safeAmount(n: number): number {
  *  what you entered"), NOT in fuzzing the number — the hero shows these figures exact too. */
 function amt(n: number): string {
   const v = safeAmount(n);
-  return v > 0 ? `$${Math.max(1, Math.round(v)).toLocaleString("en-US")}` : "$0";
+  // ⛔ [P6.4.2] Through `formatCurrency`, not a hand-rolled `$${…toLocaleString}`. The value is already
+  // whole here, so the rendered string is unchanged — what changes is that the `$` and the separators
+  // stop being this function's business. ⚠️ `formatWhole` is the app-side owner and `packages/core`
+  // cannot import it; `formatCurrency` is core's, and on an integer the two agree.
+  return formatCurrency(v > 0 ? Math.max(1, Math.round(v)) : 0);
 }
 
 /**

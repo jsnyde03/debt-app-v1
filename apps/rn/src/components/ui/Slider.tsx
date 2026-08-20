@@ -5,6 +5,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { haptics } from '@/motion';
 import { a11yAdjustableValue } from '@/utils/a11y';
+import { formatWhole } from '@/utils/format';
 
 const THUMB = 26;
 const TRACK_H = 6;
@@ -94,7 +95,14 @@ export function Slider({
         // matters now because 3.5.7's public embed is the surface that makes it public.
         // `text` is load-bearing, not decoration: `now` alone is spoken as a bare number ("200"),
         // which is meaningless for money. See `a11yAdjustableValue`.
-        {...a11yAdjustableValue(min, max, value, `$${value}`)}
+        //
+        // ⛔ [P6.4.2] This said `$${value}` and it was a REAL VoiceOver defect, not a tidy-up: the
+        // what-if slider runs to $5,000 (`sliderMax`, `analysisSelectors`), so a screen reader was
+        // being handed "$5000" with no thousands separator — byte-for-byte the defect that justified
+        // `lint:money` in the first place, sitting under a comment reasoning about how money should
+        // sound. ⚠️ Both consumers are money (`WhatIfControls`, `CushionFloorSheet`); if a non-money
+        // slider is ever added, this takes a `formatValue` prop rather than losing the formatter.
+        {...a11yAdjustableValue(min, max, value, formatWhole(value))}
         accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
         onAccessibilityAction={(ev) => {
           if (ev.nativeEvent.actionName === 'increment') onChange(clampStep(value + step));

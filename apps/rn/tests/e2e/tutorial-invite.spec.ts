@@ -324,7 +324,11 @@ test.describe('tutorial invitation + in-situ shell', () => {
       await expect(slider).toHaveAttribute('aria-valuemin', '0');
       await expect(slider).toHaveAttribute('aria-valuemax', '500');
       // `text` is load-bearing: `now` alone is spoken as a bare number, meaningless for money (3.5.3.9).
-      await expect(slider).toHaveAttribute('aria-valuetext', /^\$\d+$/);
+      // ⛔ [P6.4.2] Was `/^\$\d+$/`, which **rejects a correctly separated value** — this slider caps at
+      // $500 so it can never produce one, and the assertion looked healthy while being unable to express
+      // the right answer. The defect it could not see was real on the OTHER consumer: the what-if slider
+      // runs to $5,000 and was handing VoiceOver "$5000". Separators are now the expected shape.
+      await expect(slider).toHaveAttribute('aria-valuetext', /^\$[\d,]+$/);
 
       // ⚠️ Captured, not hardcoded — the starting value comes from the seeded scenario and asserting a
       // literal here would be a guess about someone else's fixture.

@@ -19,6 +19,8 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
+import ts from 'typescript';
+
 const REPO_ROOT = join(import.meta.dirname, '..');
 /** Both live trees. The legacy Next surface at the repo root dies at 5.5.1 and is deliberately out of scope. */
 const ROOTS = [join(REPO_ROOT, 'packages', 'core'), join(REPO_ROOT, 'apps', 'rn', 'src')];
@@ -34,10 +36,32 @@ const EXEMPT = [
   join('components', 'payoff', 'TrajectoryChart.tsx'), // compact axis labels ($4k) — a different job
 ];
 
+/**
+ * ⛔ **Test harnesses are not a rendered surface.** The `testXxx.ts` files under `packages/core` build
+ * assertion messages like "expected $100, got $90" by hand. They are never shown to a user, and reding
+ * on them would get this checker disabled — the failure mode the header warns about.
+ *
+ * ⚠️ Do NOT write a glob with a double-star followed by a slash in this docblock: that sequence closes
+ * the comment early, and the rest of the line is then parsed as code. Cost one run to find.
+ */
+const isTestHarness = (file: string) =>
+  /(^|[\\/])test[A-Z][^\\/]*\.ts$/.test(file) ||
+  file.endsWith('.test.ts') ||
+  /[\\/]testing[\\/]/.test(file);
+
 /** A currency string being built by hand rather than by a formatter. */
 const HAND_ROLLED: { pattern: RegExp; why: string }[] = [
   // `$${...}` inside a template literal — the shape every one of the nine used.
-  { pattern: /\$\$\{\s*(Math\.round|Math\.floor|Math\.ceil|Math\.abs)/, why: 'a $-prefixed template around a rounded number' },
+  //
+  // ⚠️ **P6.4.2 — this was ANCHORED ON A LIST OF FOUR ROUNDING CALLS and that is why it was green over
+  // two live sites.** `buildGuardianBrief:141` wrote `$${Math.max(1, Math.round(v))…}`, so the first
+  // identifier was `Math.max` and the pattern never fired; `Slider:97` wrote `$${value}` — a bare
+  // identifier — and rendered `$1200` with no separator TO VOICEOVER, byte-for-byte the defect this
+  // gate was created to catch. **A `$`-prefixed interpolation is hand-rolled money whatever is inside it.**
+  { pattern: /\$\$\{/, why: 'a $-prefixed template interpolation (hand-rolled money)' },
+  // Stripping a formatter's own symbol to re-add a literal one. It renders correctly TODAY and is exactly
+  // what a currency change would miss, because the `$` is no longer the formatter's to control.
+  { pattern: /\.replace\(\s*['"]\$['"]/, why: "a formatter's currency symbol stripped and re-added by hand" },
   // `'$' + n` concatenation.
   { pattern: /['"]\$['"]\s*\+/, why: "a '$' string concatenated onto a number" },
   // toLocaleString doing currency work outside the two owners.
@@ -66,19 +90,56 @@ function stripComments(src: string): string {
     .replace(/(^|[^:])\/\/[^\n]*/g, (m, p1) => p1 + ' '.repeat(m.length - p1.length));
 }
 
+/**
+ * ⛔ **JSX `$` + `{expr}` needs the AST — a regex physically cannot see it.**
+ *
+ * In JSX text, `$` is a literal character and `{` opens an expression, so `<Text>${value}</Text>` renders
+ * `$1200`. In a template literal, `${` IS the interpolation syntax. **The two are byte-identical in
+ * source**, which is why the line-based patterns above were green over `CushionFloorSheet:65`,
+ * `index.tsx:573` and `CashRunwayChart:183` — three live hand-rolled money renders. The parser knows
+ * which is which; a pattern never can. (Found at P6.4.2, after my own enumeration of this class went
+ * 3 → 4 → 5 sites in one sitting.)
+ */
+function jsxDollarSites(file: string, src: string): { line: number; text: string }[] {
+  const sf = ts.createSourceFile(file, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const hits: { line: number; text: string }[] = [];
+  const visit = (node: ts.Node) => {
+    if (ts.isJsxElement(node) || ts.isJsxFragment(node)) {
+      const kids = node.children;
+      kids.forEach((kid, i) => {
+        // A JSX text run ending in `$`, immediately followed by an expression container.
+        if (!ts.isJsxText(kid) || !/\$$/.test(kid.text)) return;
+        const next = kids[i + 1];
+        if (!next || !ts.isJsxExpression(next)) return;
+        const { line } = sf.getLineAndCharacterOfPosition(next.getStart(sf));
+        hits.push({ line: line + 1, text: next.getText(sf).slice(0, 90) });
+      });
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+  return hits;
+}
+
 const problems: string[] = [];
 for (const root of ROOTS) {
   for (const file of walk(root)) {
     if (EXEMPT.some((e) => file.includes(e))) continue;
+    if (isTestHarness(file)) continue;
     const rel = relative(REPO_ROOT, file);
-    const lines = stripComments(readFileSync(file, 'utf8')).split('\n');
-    lines.forEach((line, i) => {
+    const stripped = stripComments(readFileSync(file, 'utf8'));
+    stripped.split('\n').forEach((line, i) => {
       for (const { pattern, why } of HAND_ROLLED) {
         if (pattern.test(line)) {
           problems.push(`  ${rel}:${i + 1}  ${why}\n      ${line.trim().slice(0, 100)}`);
         }
       }
     });
+    if (extname(file) === '.tsx') {
+      for (const hit of jsxDollarSites(file, stripped)) {
+        problems.push(`  ${rel}:${hit.line}  a literal $ in JSX text before an expression\n      \${${hit.text}`);
+      }
+    }
   }
 }
 

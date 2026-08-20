@@ -6,6 +6,7 @@ import { Slider } from '@/components/ui/Slider';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { formatWhole } from '@/utils/format';
 
 /**
  * "Your cushion line" — set the floor the Guardian holds each cycle before any extra debt payoff.
@@ -62,7 +63,11 @@ export function CushionFloorSheet({
         {/* `testID` so the e2e can wait for the line to have actually MOVED before saving. The slider
             itself cannot answer that on web: react-native-web drops `accessibilityValue`, so the control
             renders `role="slider"` with no `aria-valuenow` — measured 2026-08-08. */}
-        <Text testID="floor-sheet-value" maxFontSizeMultiplier={1.4} style={[textStyles.heroNumber, styles.value, { color: c.text.primary }]}>${value.toLocaleString('en-US')}</Text>
+        {/* ⛔ [P6.4.2] `formatWhole`, not a literal `$` in JSX text before `{value.toLocaleString(…)}`.
+            The slider is stepped to $25 so the rendered string is unchanged — but the hand-rolled form
+            was invisible to `lint:money`, because in JSX `$` + `{expr}` is byte-identical to a template
+            interpolation and only the parser can tell them apart. */}
+        <Text testID="floor-sheet-value" maxFontSizeMultiplier={1.4} style={[textStyles.heroNumber, styles.value, { color: c.text.primary }]}>{formatWhole(value)}</Text>
         <Slider value={value} onChange={setValue} min={0} max={500} step={25} accessibilityLabel="Cushion line amount" testID="cushion-floor-slider" />
         <View style={styles.scaleRow}>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>$0</Text>

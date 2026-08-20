@@ -180,7 +180,10 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
       {/* Floor-line legend — out of the plot, so it can never overlap the runway. */}
       <View style={styles.legendRow}>
         <View style={[styles.dashSwatch, { borderColor: c.text.tertiary }]} />
-        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>your ${formatWhole(floor).replace('$', '')} line</Text>
+        {/* ⛔ [P6.4.2] Was `your ${'$'}{formatWhole(floor).replace('$','')} line` — the formatter's own
+            symbol stripped off and a literal one re-added in JSX. Identical on screen, and exactly what a
+            currency change would miss, because the `$` was no longer the formatter's to control. */}
+        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>your {formatWhole(floor)} line</Text>
       </View>
 
       {/* The premium action, when there's a real one: hold this from THIS paycheck for a looming crunch. */}

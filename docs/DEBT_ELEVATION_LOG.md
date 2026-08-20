@@ -52,6 +52,65 @@ it was re-deferred on measured **cost** (below), not on the lock date, so the la
 
 ---
 
+## ✅ P6.4.2 — `lint:money` was green over FIVE hand-rolled sites, and one was a live VoiceOver defect (2026-08-20)
+
+The claims cluster this step was written for is empty *(L3-6/L3-7 built at T5.2, L3-5 dies with P6.11)*, so
+the slot went to what the triage found in its place.
+
+### ⛔ My own enumeration went 3 → 4 → 5, in one sitting, while quoting the rule that predicts it
+
+I reported three sites. Enumerating the **class** instead of re-reading my list found two more:
+
+| # | site | why the gate could not see it |
+|---|---|---|
+| 1 | `buildGuardianBrief.ts:141` | `` `$${Math.max(1, Math.round(v))…}` `` — pattern 1 listed four rounding calls and anchored on the FIRST identifier, which here is `Math.max` |
+| 2 | `(tabs)/index.tsx:573` | JSX `$` + `{expr}` |
+| 3 | `CushionFloorSheet.tsx:65` | JSX `$` + `{expr}` |
+| 4 | **`CashRunwayChart.tsx:183`** | `` `formatWhole(floor).replace('$','')` `` — the formatter's own symbol **stripped off and a literal one re-added**. Renders correctly today and is precisely what a currency change would miss |
+| 5 | ⚡ **`Slider.tsx:97`** | `` `$${value}` `` — a **bare identifier**, so no rounding call to anchor on at all |
+
+⚡ **Site 5 is a real defect, not a tidy-up.** `Slider`'s two consumers are both money and the what-if one
+runs to **$5,000** (`sliderMax`, `analysisSelectors`), so a screen reader was handed **"$5000"** with no
+thousands separator — **byte-for-byte the defect that justified `lint:money` in the first place**
+(T6.4: *"only the rendered one carried thousands separators, so VoiceOver read `$1234`"*). It sat directly
+under a comment reasoning about how money should *sound*.
+
+### ⚡ A regex physically cannot see the JSX form — this needed the parser
+
+In JSX text, `$` is a literal character and `{` opens an expression. In a template literal, `${` **is** the
+interpolation. **The two are byte-identical in source.** No pattern can separate them, which is why three
+live sites sat under a gate reporting `✅ 4 shapes checked`. The gate now runs a real TS AST pass for
+*"a JSX text run ending in `$`, immediately followed by an expression container"*, alongside a broadened
+shape 1 (**any** `$`-prefixed interpolation) and a new `.replace('$')` shape. Test harnesses under
+`packages/core` are skipped — they build assertion strings by hand and reding on them is how a checker
+gets disabled.
+
+⚠️ **Both new detectors were mutation-planted, and the plant for shape 1 deliberately used `Math.max`** —
+the exact form the old pattern missed. Plant applied → **real exit 1** on the planted line; restored →
+exit 0. ⛔ The first plant's exit code was read through `| head` and came back **0** while the output said
+❌; that is `head`'s exit code, the trap already in `CLAUDE.md`. Re-run to a file for the real one.
+
+### ⛔ The assertion that existed, looked healthy, and could not express the right answer
+
+`tutorial-invite.spec.ts` already asserted `aria-valuetext` — as **`/^\$\d+$/`**. That regex **rejects a
+correctly separated value.** It has never failed because *that* slider caps at $500 and can never produce a
+comma; the consumer where the defect actually lived has **no e2e spec at all**. ⚡ **A test can be pinned to
+the surface that cannot exhibit the bug, and read as coverage of the class.** Widened to `/^\$[\d,]+$/`.
+
+### What changed on screen
+
+Four of the five render **identically** — the value was already whole, or the symbol was being stripped and
+re-added. Two moved: `Slider`'s spoken value gains separators, and the **trial-conversion price drops a
+forced `.00`** (`$16.00` → `$16`), which is `formatCurrency`'s own documented rule and the 3.5.8.7 App
+Preview cents sweep. A price is not an exception to it; a second cents convention on one screen is the
+defect. ⚠️ **That amount had ZERO assertions** while being built by hand — now pinned in **both**
+directions, because asserting only the cents case would pass the implementation that was already there.
+
+⛔ **And a docblock closed itself early:** writing the glob `packages/core/` + double-star + `/test*.ts`
+inside `/** … */` ends the comment at the `**/`, and the rest of the line parses as code. One run to find.
+
+---
+
 ## ⛔ ERRATUM to P6.4.1 — the triage read the CODE and never the LEDGER (2026-08-20, same session)
 
 **NINE verdicts were WRONG, all the same way.** Re-run against the LOG — the corrected ledger is below.
