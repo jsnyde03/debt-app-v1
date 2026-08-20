@@ -330,6 +330,17 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 
 ## Deferred backlog
 
+**→ P6.8, from the P6.4.4 triage — ✅ 🎯 agreed 2026-08-20**
+- **L1-22 — straight and curly apostrophes are mixed.** ⛔ **The real figure is 73 user-facing copy
+  strings** — ⚠️ **I first quoted 152 and 🎯 agreed on that number; a line-grep had counted the comments,
+  which is T4's measured failure ("comments about a word outnumber uses of it").** `lint:apostrophes`
+  reads the AST, so only `StringLiteral` / template spans / `JsxText` count. Each still needs classifying
+  and **every test pin must move in the SAME commit** — the L1-32 fix in this very step proved it, with
+  **two Maestro flows holding the retired string in place**. → **P6.8**, the sweep on the frozen app.
+  ✅ **The finding's other half is BUILT: `lint:apostrophes`**, baselined at 73 and mutation-verified
+  (a new straight apostrophe in copy → exit 1 naming the string), wired into `lint:rn`. The count cannot
+  grow between here and P6.8 ([D31] — a finding that becomes a gate is paid for once).
+
 **→ COVERAGE, surfaced by P6.4.2 (2026-08-20)**
 - ⛔ **`WhatIfControls` has NO e2e spec at all** — and it is the surface the `Slider` VoiceOver defect
   actually lived on *(its slider runs to `sliderMax`, up to $5,000; the only slider spec is

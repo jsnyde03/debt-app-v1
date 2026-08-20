@@ -52,6 +52,54 @@ it was re-deferred on measured **cost** (below), not on the lock date, so the la
 
 ---
 
+## ✅ P6.4.4 (part 2) — R3 fixed what the exit SAID, not whether it could be SEEN (🎯, 2026-08-20)
+
+⚡ **🎯 reframed L2-10 and the reframe was the whole finding.** I had it as a duplicate-string question
+("my" vs "your" across the two demo exits). 🎯: *"the demo exit voice was changed because an exit was not
+obvious when going to the demo from the premium section in More."*
+
+**R3 changed the words and the destination. It never touched the prominence.** The explore run's only way
+out rendered as `textStyles.caption` — **the smallest text style in the app** — in accent colour beside
+`"Example money"` in tertiary. A relabel answers *"what does this mean now that I've found it"*; it cannot
+answer *"can I find it"*. ⛔ **And the reasoning at the site is entirely about REACH** — *"an exit that is
+on screen wherever they walked TO… this row already is"* — which settles whether it is on every screen and
+never asks whether it is visible on any of them. **The scripted run gets a dock with a full-width Button;
+explore got small text. That asymmetry was the defect.**
+
+⭐ **The usual objection does not apply, which is why this was cheap.** A prominent exit competes with demo
+content only on a *marketing* surface — and explore never is one: it is reached from Welcome and from the
+paywall, both inside the installed app, while the embed and capture runs are `scripted` (`DemoAutoEntry`).
+Nothing was traded away.
+
+**Built as a `Pill`** — the house primitive for an in-row control, so no new affordance, one line so the
+persistent chrome does not grow, and **`testID` + both labels byte-identical** because `09-demo-explore.yaml`
+drives the id and `demo-containment.spec.ts` asserts the text. Two things went into the primitive rather
+than around it: **`Pill` had no `testID`**, and **`Pill` is `minHeight: 32`, under the 44pt minimum, with no
+`hitSlop` at all** — that is the open `hitRegion` finding's class, so `hitSlop={6}` takes all three
+pressable Pills 32 → 44 without moving a pixel. 26 e2e green (`demo-containment` ×14 + `a11y-axe`).
+
+⛔ **`demo-containment` has 14 tests, two aimed straight at this path, and both passed throughout.** They
+prove an exit is *present and reachable*; neither can ask whether a human can see it. **Same lesson R3
+already taught, one layer out** — and it is now twice that using the app found what an exhaustive suite
+could not.
+
+### ✅ L1-22 — deferred to P6.8, and its gate built now (🎯 agreed)
+
+**73 user-facing copy strings**, ⚠️ **not the 152 I quoted when 🎯 agreed to defer it.** A line-grep counted
+comments; `lint:apostrophes` reads the AST (`StringLiteral` / template spans / `JsxText`), so a docblock
+explaining the rule can never trip it. ⛔ **Third enumeration wrong in one session — 3 → 5 on the money
+sites (under), 152 → 73 here (over).** Same root cause both directions: **a grep answers a question about
+text, not about code.** The correction was given back to 🎯 rather than absorbed, because the deferral was
+agreed on the wrong number.
+
+Gate baselined at 73, mutation-verified (a new straight apostrophe in copy → **real exit 1** naming the
+string; restore → 0), wired into `lint:rn`. ⚠️ Stale baseline entries **report, never red** — the P6.8
+sweep will remove copy, and a gate that reds on progress gets reverted; but the count is printed, because
+a baseline that silently stops describing the tree is T8.4's failure, where one set 12 too high left a +1
+detector unable to detect +1.
+
+---
+
 ## ✅ P6.4.3 — the second empty cluster, and what survived was structural (2026-08-20)
 
 **Before-scan:** the five ids this step was written for are all resolved — **L4-5 · L4-7 · L4-9** closed at

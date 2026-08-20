@@ -1,6 +1,7 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useStore } from 'zustand';
 
+import { Pill } from '@/components/ui/Pill';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
 import { exitDemo } from '@/store/demoExit';
@@ -78,19 +79,34 @@ export function ExampleCanvasMarker() {
           the active store is the persona's — asking it would answer "has the DEMO onboarded", which is a
           question about a fiction. `getState()` rather than a subscription because the real flag cannot
           change while a demo is running: every exit ends the session before it navigates ([D18]). */}
+      {/* ⛔ [P6.4.4 · 🎯 2026-08-20] R3 fixed what this exit SAYS and left it a line of `caption` text.
+          🎯's original report was that an exit *"was not obvious"* going to the demo from More → premium,
+          and a relabel answers "what does it mean once found", never "can I find it". ⚡ The comment above
+          reasons entirely about REACH — *"on screen wherever they walked TO"* — and never asks whether it
+          is visible on any of those screens. The scripted run gets a dock with a full-width Button; the
+          explore run got small text. **That asymmetry was the defect.**
+
+          ⛔ The usual objection does not apply here: a prominent exit competes with demo content only on a
+          MARKETING surface, and explore never is one. Explore is reached from Welcome and from the paywall
+          — both inside the installed app; the embed and capture runs are `scripted` (`DemoAutoEntry`). So
+          nothing is traded away by making this obvious.
+
+          ⚠️ `Pill` rather than a new affordance — it is the house primitive for an in-row control, stays
+          one line so the persistent chrome does not grow, and keeps `testID` + both labels EXACTLY as they
+          were, because `09-demo-explore.yaml` drives the id and `demo-containment.spec.ts` asserts the
+          text. ⛔ `demo-containment` has 14 tests, two aimed at this path, and both passed while the exit
+          was unusable: a suite can prove an exit is present and reachable and say nothing about whether a
+          human can see it. */}
       {inExplore ? (
         (() => {
           const hasRealPlan = appStore.getState().store.prefs.onboardingComplete === true;
           return (
-            <Pressable
-              onPress={() => exitDemo(hasRealPlan ? '/' : '/onboarding')}
-              accessibilityRole="button"
+            <Pill
+              label={hasRealPlan ? 'Back to my plan' : 'Start my real plan'}
+              tone="action"
               testID="demo-explore-exit"
-              hitSlop={8}>
-              <Text style={[textStyles.caption, { color: c.accent.primary, fontWeight: '600' }]}>
-                {hasRealPlan ? 'Back to my plan' : 'Start my real plan'}
-              </Text>
-            </Pressable>
+              onPress={() => exitDemo(hasRealPlan ? '/' : '/onboarding')}
+            />
           );
         })()
       ) : null}
