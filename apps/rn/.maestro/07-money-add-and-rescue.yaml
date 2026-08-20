@@ -162,7 +162,7 @@ appId: com.jasonsnyder.debtplanner
 - tapOn: "Add & Continue"
 # ⚠️ NOT a defect: the label is byte-identical to `CompletionStep.tsx:39` (two spaces + U+2192). It was
 # ledgered as a "known fix" from the failing run; the flow simply never reached this screen.
-- tapOn: "See your plan  →"
+- tapOn: "See your plan →"
 
 # ══ §14.1 · one Add, from all three sections ════════════════════════════════════════════════════
 # PASS: every section opens the SAME chooser. FAIL: any section opens an editor directly — which would

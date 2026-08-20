@@ -852,7 +852,14 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     if (release) {
       return release.tapped
         ? `Your safety net covered about ${formatWhole(release.covered)} while I got to know your expenses. It's now going to work on ${release.targetName}.`
-        : `Your safety net is free — it is now going to work on ${release.targetName}.`;
+        // ⛔ [P6.4.4 · audit L1-35] "it is now going" → "it's now". This is the ANNOUNCED string, the one
+        // actually read aloud, and its VISIBLE twin 320 lines up (`:525-526`) was already contracted —
+        // so the uncontracted register survived precisely where the missing contraction is most audible.
+        // ⚡ The same shape as L1-32: the half of a pair nobody looks at is the half that outlives a fix.
+        // ⚠️ STRAIGHT apostrophe, matching its three neighbours (`:528`, `:529`, `:854`) — not the curly
+        // one the app is drifting toward. L1-22 (mixed apostrophes) is a 152-site normalisation and is a
+        // SCOPE CALL, not a side effect of this fix; all four of these move together when it is decided.
+        : `Your safety net is free — it's now going to work on ${release.targetName}.`;
     }
     return selectReserveWalkback(s.store) ? 'A surprise bill came up — I’ve restored your safety net for now.' : null;
   });

@@ -114,7 +114,7 @@ appId: com.jasonsnyder.debtplanner
 - tapOn: "Add & Continue"
 # ⚠️ NOT a defect: byte-identical to `CompletionStep.tsx:39` (two spaces + U+2192). Ledgered as a "known
 # fix" from the failing run; flow 07 simply never reached this screen.
-- tapOn: "See your plan  →"
+- tapOn: "See your plan →"
 
 # The tab shell rendered. Asserted by testID: react-navigation groups tab buttons into composite a11y
 # elements on iOS, so the "Money"/"Today" LABELS are not reliably text-matchable.

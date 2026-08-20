@@ -41,7 +41,11 @@ export function CompletionStep({ onComplete }: { onComplete: () => void }) {
       total={4}
       ctas={
         <Button
-          label="See your plan  →"
+          // ⛔ [P6.4.4 · audit L1-32] Two spaces before the arrow, on the last onboarding screen —
+          // the highest-visibility button in the app. ⚠️ T7 rewrote this string ("See My Plan" → "See
+          // your plan") and the double space rode through the rewrite untouched: a reworded string reads
+          // as a fixed one, and nobody re-inspects the whitespace of a line they just edited.
+          label="See your plan →"
           onPress={() => {
             const displayName = normalizeDisplayName(name);
             if (displayName) appStore.getState().updatePrefs({ displayName });
