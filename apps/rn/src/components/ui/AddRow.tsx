@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { layout, spacing } from '@/theme/spacing';
+import { layout, pressedOpacity, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
 /**
@@ -30,7 +30,7 @@ export function AddRow({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [styles.row, { borderColor: c.border.strong, opacity: pressed ? 0.6 : 1 }]}>
+      style={({ pressed }) => [styles.row, { borderColor: c.border.strong, opacity: pressed ? pressedOpacity : 1 }]}>
       <AppIcon name={icon} size={18} color={c.accent.primary} />
       <Text style={[textStyles.bodyMedium, { color: c.accent.primary }]}>{label}</Text>
     </Pressable>

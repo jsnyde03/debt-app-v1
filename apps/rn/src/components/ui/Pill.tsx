@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useAppColors } from '@/hooks/use-app-colors';
-import { layout, spacing } from '@/theme/spacing';
+import { layout, pressedOpacity, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
 export type PillTone = 'action' | 'autopay' | 'paid' | 'overdue' | 'neutral';
@@ -42,7 +42,7 @@ export function Pill({
         accessibilityRole="button"
         testID={testID}
         hitSlop={6}
-        style={({ pressed }) => [...base, { opacity: pressed ? 0.8 : 1 }]}>
+        style={({ pressed }) => [...base, { opacity: pressed ? pressedOpacity : 1 }]}>
         {body}
       </Pressable>
     );

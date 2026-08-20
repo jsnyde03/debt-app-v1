@@ -7,7 +7,7 @@ import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { LivingExpenseSheet } from '@/components/entities/LivingExpenseSheet';
 import { Screen } from '@/components/screen';
-import { Button } from '@/components/ui/Button';
+import { AddRow } from '@/components/ui/AddRow';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ListRow } from '@/components/ui/ListRow';
@@ -72,7 +72,11 @@ export default function LivingExpensesScreen() {
             />
           ))}
 
-          <Button label="Add spending item" variant="secondary" onPress={() => setSheet({ editing: null })} />
+          {/* [P6.4.5 · audit L4-12] `AddRow`, matching Money. Its own docstring says it "replaces the
+              chunky secondary button at the foot of the Money sections" — and this list, reached FROM
+              the Money tab's reserve tile, still ended in exactly that. Same job, same position, two
+              affordances. */}
+          <AddRow label="Add spending item" onPress={() => setSheet({ editing: null })} />
         </>
       )}
 

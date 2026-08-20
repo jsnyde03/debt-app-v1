@@ -68,9 +68,17 @@ export function Screen({
                 <Text style={[textStyles.title2, { color: c.accent.primary }]}>‹</Text>
               </Pressable>
             ) : null}
+            {/* ⛔ [P6.4.5 · audit L5-17] Two lines on a TAB header, one on a pushed route.
+                `MAX_DISPLAY_NAME` is 24 and its own comment says the cap exists so a `title1` line does
+                not wrap — but this header ALSO hard-clipped to one line, so at large Dynamic Type
+                "Good afternoon, Christopher" truncated the name the user had just typed, on the app's
+                one personalized touch. `headerLeft` is `flexShrink: 1` and shares the row with the •••
+                button, so the squeeze is real at every text size on a 375pt phone.
+                ⚠️ `onBack` is the pushed-route signal: those titles are short nouns ("More", "History")
+                that never need a second line, and giving them one would shift the content below. */}
             <Text
               style={[textStyles.title1, { color: c.text.primary }]}
-              numberOfLines={1}
+              numberOfLines={onBack ? 1 : 2}
               accessibilityRole="header">
               {title}
             </Text>

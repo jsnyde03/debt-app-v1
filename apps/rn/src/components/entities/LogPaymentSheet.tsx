@@ -42,7 +42,10 @@ export function LogPaymentSheet({ debt, onClose }: { debt: Debt; onClose: () => 
           onChangeText={setAmount}
           placeholder="$0"
           keyboardType="decimal-pad"
-          error={over ? 'More than the balance — this will clear it to $0.' : undefined}
+          // [P6.4.5 · audit L6-9] `note`, not `error`. Paying more than the balance is a legitimate
+          // thing to do — the sheet accepts it and the submit button stays enabled — so describing it
+          // in the danger treatment contradicted the control the user is looking at.
+          note={over ? 'More than the balance — this will clear it to $0.' : undefined}
         />
         <Button label="Log payment" variant="primary" onPress={submit} disabled={!valid} />
       </View>

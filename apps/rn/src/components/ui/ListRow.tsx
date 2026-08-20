@@ -9,7 +9,7 @@ import type { RowMenuAction } from '@/components/ui/RowContextMenu.types';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { cardElevation } from '@/theme/elevation';
-import { layout, spacing } from '@/theme/spacing';
+import { layout, pressedOpacity, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { groupLabel } from '@/utils/a11y';
 import { confirmDelete } from '@/utils/confirm';
@@ -84,7 +84,7 @@ export function ListRow({
         {
           backgroundColor: selected || hovered ? c.background.tertiary : c.background.secondary,
           borderColor: selected ? c.accent.primary : c.border.subtle,
-          opacity: pressed ? 0.9 : 1,
+          opacity: pressed ? pressedOpacity : 1,
         },
       ]}>
       <View style={styles.left}>
@@ -181,7 +181,12 @@ const styles = StyleSheet.create({
   },
   left: { flex: 1, gap: spacing.xs },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
-  right: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  // ⛔ [P6.4.5 · audit L5-16] `flexShrink: 0` + a cap. `left` is `flex: 1` and every text in it is
+  // `numberOfLines={1}`, so under pressure the NAME was what gave: a mortgage row ($2,450.00 + /mo) at
+  // large Dynamic Type squeezed "Chase Sapphire Preferred Card" to a few characters. The amount column
+  // had no shrink and no bound, so it took whatever it wanted. ⚠️ The finding read the styles and called
+  // the rendering a HYPOTHESIS — still true; this is defensive, and the proof is a P6.14 device row.
+  right: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flexShrink: 0, maxWidth: '45%' },
   track: { height: 6, borderRadius: 3, overflow: 'hidden', marginTop: 2 },
   fill: { height: 6, borderRadius: 3 },
   // Clip the revealed action to the row's rounded shape so the red panel doesn't peek past the corners.

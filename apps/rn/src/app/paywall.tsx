@@ -77,19 +77,41 @@ const STATIC_PLANS: PlanView[] = [
 
 const PLAN_ORDER: Record<PlanKey, number> = { annual: 0, lifetime: 1, monthly: 2 };
 
+/**
+ * [P6.4.5 · audit L5-19] The intro-offer prefix, when the store reports one.
+ *
+ * ⛔ **`planFromPackage` never read `introPrice`, so a trial configured in App Store Connect would be
+ * applied at purchase and mentioned NOWHERE on the paywall** — the user reads "$29.99 per year", is
+ * charged nothing, and the app never explains why. That is a defect independent of whether 2.0 offers
+ * a trial, which is 🎯's open call.
+ *
+ * ⚠️ Free and discounted are different sentences: "7 days free" is an offer, "$4.99 for 3 months" is a
+ * price. Never say "free" for a non-zero intro.
+ */
+function introPrefix(pkg: PackageLike): string {
+  const intro = pkg.product.introPrice;
+  if (!intro || intro.periodNumberOfUnits <= 0) return '';
+  const unit = intro.periodUnit.toLowerCase().replace(/s$/, '');
+  const n = intro.periodNumberOfUnits;
+  const period = `${n} ${unit}${n === 1 ? '' : 's'}`;
+  return intro.price === 0 ? `${period} free, then ` : `${intro.priceString} for ${period}, then `;
+}
+
 function planFromPackage(pkg: PackageLike): PlanView | null {
+  const intro = introPrefix(pkg);
   switch (pkg.packageType) {
     case 'ANNUAL': {
       // Keep the per-month anchor on real devices too (A11) — it justifies the "Best value" badge. Derive
       // the currency symbol from the localized priceString so it isn't a hardcoded "$" on non-USD stores (R2.5).
       const sym = pkg.product.priceString.replace(/[\d.,\s ]/g, '') || '$';
-      const perMo = pkg.product.price > 0 ? ` · just ${sym}${(pkg.product.price / 12).toFixed(2)}/mo` : '';
-      return { key: 'annual', title: 'Annual', priceString: pkg.product.priceString, periodLabel: 'per year', subnote: `Billed yearly${perMo}`, badge: 'Best value', pkg };
+      const perMo = pkg.product.price > 0 ? ` · ${sym}${(pkg.product.price / 12).toFixed(2)}/mo` : '';
+      return { key: 'annual', title: 'Annual', priceString: pkg.product.priceString, periodLabel: 'per year', subnote: `${intro}Billed yearly${perMo}`, badge: 'Best value', pkg };
     }
     case 'LIFETIME':
+      // No intro prefix: a lifetime purchase is non-consumable and cannot carry an introductory offer.
       return { key: 'lifetime', title: 'Lifetime', priceString: pkg.product.priceString, periodLabel: 'one time', subnote: LIFETIME_SUBNOTE, badge: 'Pay once', pkg };
     case 'MONTHLY':
-      return { key: 'monthly', title: 'Monthly', priceString: pkg.product.priceString, periodLabel: 'per month', subnote: 'Billed monthly', pkg };
+      return { key: 'monthly', title: 'Monthly', priceString: pkg.product.priceString, periodLabel: 'per month', subnote: `${intro}Billed monthly`, pkg };
     default:
       return null;
   }
@@ -326,7 +348,11 @@ export default function PaywallScreen() {
                   </View>
                   <View style={styles.planPrice}>
                     {/* Billed amount = the most conspicuous element (Guideline 3.1.2). */}
-                    <Text style={[styles.priceText, { color: c.text.primary }]}>{plan.priceString}</Text>
+                    {/* ⛔ [P6.4.5 · audit L5-20] Guideline 3.1.2 makes the billed price the element that
+                        must stay conspicuous, so this is the one place a wrap costs more than tidiness.
+                        A store returning `Rp 449.000` or an AX-scaled price could wrap the row or squeeze
+                        the plan title. ⚠️ Rendering unmeasured (the finding says so) — defensive. */}
+                    <Text style={[styles.priceText, { color: c.text.primary }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{plan.priceString}</Text>
                     <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{plan.periodLabel}</Text>
                   </View>
                 </Pressable>
@@ -389,7 +415,7 @@ const styles = StyleSheet.create({
   planMid: { flex: 1, gap: 2 },
   planTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   badge: { borderRadius: layout.pillRadius ?? 999, paddingHorizontal: spacing.sm, paddingVertical: 2 },
-  planPrice: { alignItems: 'flex-end' },
+  planPrice: { alignItems: 'flex-end', flexShrink: 0 },
   priceText: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
   restore: { alignItems: 'center', paddingVertical: spacing.sm, minHeight: 44, justifyContent: 'center' },
   disclosure: { textAlign: 'center' },

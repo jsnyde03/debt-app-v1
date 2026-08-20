@@ -328,24 +328,42 @@ function DebtsSection({
   // Own scroll surface (virtualized) — the debt-heavy user (student loans, BNPL, medical) can carry
   // 20–30+ debts. Hero + strategy stay pinned above the scrolling list; payoff order is the
   // findability (focus debt is always first), so no grouping/search here.
+  // ⛔ [P6.4.5 · audit L5-13] EVERY DEBT CLEARED READS AS A BROKEN PLAN, NOT A FINISHED ONE.
+  // The empty state above gates on `store.debts.length === 0`, but a cleared debt STAYS in `debts` with
+  // `balance <= 0` — so a debt-free user skipped it and got the full list chrome: a hero reading
+  // "$0 · remaining across 0 debts", the Snowball/Avalanche toggle, and "Your debts are listed in payoff
+  // order" above an empty active section. ⚡ Progress already handles this state properly (a DEBT-FREE
+  // hero + the trophy shelf); Money contradicted it one tab away, on the same store.
+  // ⚠️ NOT folded into the empty state — `paidOff` must still render its section. This swaps only the
+  // hero and the strategy block, which are the two things that have nothing left to say.
+  const allCleared = active.length === 0 && paidOff.length > 0;
+
   const list = (
     <View style={styles.flex}>
-      <MoneyHero value={formatWhole(totalBal)} sub={`remaining across ${active.length} ${active.length === 1 ? 'debt' : 'debts'}`} />
-      <View style={styles.strategyBlock}>
-        <SegmentedToggle
-          value={strategy}
-          onChange={(s) => appStore.getState().setPayoffStrategy(s)}
-          options={[
-            { value: 'snowball', label: 'Snowball' },
-            { value: 'avalanche', label: 'Avalanche' },
-          ]}
-        />
-        <Text style={[textStyles.caption, styles.strategyDesc, { color: c.text.tertiary }]}>
-          {strategy === 'snowball'
-            ? 'Smallest balance first — quick wins. Your debts are listed in payoff order.'
-            : 'Highest APR first — least interest. Your debts are listed in payoff order.'}
-        </Text>
-      </View>
+      {allCleared ? (
+        <MoneyHero value="Every balance cleared" sub={`${paidOff.length} ${paidOff.length === 1 ? 'debt' : 'debts'} paid off`} />
+      ) : (
+        <MoneyHero value={formatWhole(totalBal)} sub={`remaining across ${active.length} ${active.length === 1 ? 'debt' : 'debts'}`} />
+      )}
+      {/* ⚠️ Not rendered at all when cleared, rather than hidden — a strategy toggle with nothing to
+          order is an inert control, and "listed in payoff order" is false above an empty section. */}
+      {allCleared ? null : (
+        <View style={styles.strategyBlock}>
+          <SegmentedToggle
+            value={strategy}
+            onChange={(s) => appStore.getState().setPayoffStrategy(s)}
+            options={[
+              { value: 'snowball', label: 'Snowball' },
+              { value: 'avalanche', label: 'Avalanche' },
+            ]}
+          />
+          <Text style={[textStyles.caption, styles.strategyDesc, { color: c.text.tertiary }]}>
+            {strategy === 'snowball'
+              ? 'Smallest balance first — quick wins. Your debts are listed in payoff order.'
+              : 'Highest APR first — least interest. Your debts are listed in payoff order.'}
+          </Text>
+        </View>
+      )}
 
       <SectionList
         style={styles.flex}
@@ -928,8 +946,8 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
               key={g.id}
               title={g.name}
               meta={g.type === 'emergency' ? 'Emergency fund' : 'Savings'}
-              amount={funded ? 'Funded' : formatCurrency(Math.max(0, g.targetAmount - g.currentAmount))}
-              amountSuffix={funded ? undefined : ' left'}
+              amount={funded ? formatWhole(g.targetAmount) : formatCurrency(Math.max(0, g.targetAmount - g.currentAmount))}
+              amountSuffix={funded ? ' saved' : ' left'}
               badges={funded ? <Pill label="Funded" tone="paid" /> : undefined}
               progress={pct}
               onPress={() => setSheet({ editing: g })}

@@ -24,6 +24,7 @@ export function TextField({
   placeholder,
   keyboardType,
   error,
+  note,
   testID,
   maxLength,
   autoCapitalize,
@@ -35,7 +36,19 @@ export function TextField({
   onBlur?: () => void;
   placeholder?: string;
   keyboardType?: KeyboardTypeOptions;
+  /** A FAILURE — the input cannot be accepted as typed. Renders in the danger treatment. */
   error?: string;
+  /**
+   * [P6.4.5 · audit L6-9] A legitimate OUTCOME the user should know about — not a failure.
+   *
+   * ⛔ **Why this exists.** `LogPaymentSheet` shipped *"More than the balance — this will clear it to
+   * $0."* through `error`. That string describes a perfectly valid thing to do, and the finding filed it
+   * at medium confidence as a HYPOTHESIS *(«I did not read how the component renders `error`»)*.
+   * **Measured: `error` paints the border AND the caption `c.accent.danger`** — so the app was telling
+   * the user, in the failure treatment, that their entry was fine. ⚠️ The submit button stays enabled
+   * throughout, which is the tell: a control you are allowed to press should not be wearing a red label.
+   */
+  note?: string;
   testID?: string;
   /** Cap at the INPUT rather than on save — a value silently truncated on write reads as data loss. */
   maxLength?: number;
@@ -66,7 +79,12 @@ export function TextField({
           },
         ]}
       />
-      {error ? <Text style={[textStyles.caption, { color: c.accent.danger }]}>{error}</Text> : null}
+      {/* ⚠️ `error` wins if both are somehow set — a real failure must never be softened into a note. */}
+      {error ? (
+        <Text style={[textStyles.caption, { color: c.accent.danger }]}>{error}</Text>
+      ) : note ? (
+        <Text style={[textStyles.caption, { color: c.text.secondary }]}>{note}</Text>
+      ) : null}
     </View>
   );
 }

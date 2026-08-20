@@ -33,4 +33,19 @@ export const layout = {
   maxContentWidth: 800, // iPad: center + cap the single-column width
 } as const;
 
+/**
+ * [P6.4.5 · audit L4-13] The pressed-state opacity for a tappable surface.
+ *
+ * ⛔ **Measured at SIX different values before this existed** — 0.6 (`AddRow`), 0.7 (`CheckCircle`,
+ * `AddObligationSheet`, `DebtSheet`), 0.8 (`Pill`, `money.tsx`'s hero card), 0.85 (`Button`,
+ * `money.tsx`'s reserve card), 0.9 (`ListRow`) — every one an inline literal with no token, so two
+ * cards of the same size on the same screen dimmed by visibly different amounts.
+ *
+ * ⚠️ **This is HALF of L4-13, deliberately.** Its other half — *"decide whether card-sized targets use
+ * `PressableScale` app-wide or nowhere"* — is a visual-system call across every screen, which is
+ * **P6.8's** job, not a copy step's. One component adopts `PressableScale` today (More's `SettingRow`);
+ * that asymmetry is recorded, not resolved here. Taking the token now stops the spread meanwhile.
+ */
+export const pressedOpacity = 0.8;
+
 export type SpacingToken = keyof typeof spacing;

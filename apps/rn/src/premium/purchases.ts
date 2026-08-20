@@ -45,6 +45,24 @@ export interface PackageLike {
     price: number;
     title: string;
     identifier: string;
+    /**
+     * [P6.4.5 · audit L5-19] The introductory offer (free trial / discounted period), when the product
+     * has one configured in App Store Connect.
+     *
+     * ⛔ **This field was not modelled at all, and that half of L5-19 is a defect regardless of the
+     * trial decision:** if a trial IS configured in ASC, StoreKit applies it at purchase and the user is
+     * charged nothing up front — while the paywall would still read "Start Premium — $29.99 per year"
+     * and mention the trial nowhere. Whether 2.0 *offers* a trial is 🎯's call; whether the paywall can
+     * *see* one is not.
+     */
+    introPrice?: {
+      /** Localized price of the intro period ("$0.00" for a free trial). */
+      priceString: string;
+      price: number;
+      /** e.g. 7 with `periodUnit: 'DAY'`. */
+      periodNumberOfUnits: number;
+      periodUnit: string;
+    } | null;
   };
 }
 
