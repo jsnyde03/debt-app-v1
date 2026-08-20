@@ -39,10 +39,14 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/icon.png",
+          "image": "./assets/splash-mark-light.png",
           "imageWidth": 220,
-          "backgroundColor": "#0a051c",
-          "resizeMode": "contain"
+          "backgroundColor": "#e6ebf3",
+          "resizeMode": "contain",
+          "dark": {
+            "image": "./assets/splash-mark.png",
+            "backgroundColor": "#0a051c"
+          }
         }
       ],
       "expo-font",

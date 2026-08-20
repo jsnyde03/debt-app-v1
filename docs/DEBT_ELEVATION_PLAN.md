@@ -319,6 +319,13 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
   zero-rewrite path. **Triggers:** Android at v1.8, or the first width-driven bug that reaches a user.
 
 **Tooling / hygiene:**
+- ⚠️ **The APP ICON disagrees with its documented source** *(P6.6/[D51] measurement, 2026-08-20)*. Rasterising
+  `render-icon2.html` and sampling the shipped `apps/rn/assets/icon.png`: the icon is **globally darker**
+  (corners `#3b2d7e` → `#0a051c`, bars `#34d390` → `#1cad96`) and its **corner and 40px inset are identical**
+  — the signature of a **baked-in squircle with a dark surround**. ⛔ That contradicts the icons README
+  (*"full-bleed, no alpha, iOS masks the squircle"*), and a pre-masked icon gets masked **again** by iOS, so
+  any inset shows as a **dark rim on the home screen**. **One second to check — look at a home screen** — and
+  it is an App-Store-facing asset, so it wants an answer before submission rather than after.
 - ⛔ **`scripts/*.ts` is typechecked by NOTHING** *(P6.2 after-scan)* — `typecheck` is core + rn, and the root
   tsconfig **excludes** `scripts` outright. Every `lint:*` gate and audit instrument — the code that decides
   whether the release gate passes — runs unchecked, and `tsx` does not typecheck. Needs its own tsconfig
@@ -422,6 +429,14 @@ a later version/tier**._
   duplicates that repeat by design and the 5 rows the `QA_TOOLS` flip deletes.
 - **[D43] ✅** — **the splash is the app icon on the icon's own dark background, no wordmark.** → **P6.6**.
 - **[D44] ✅** — **a Pages deploy must assert its SHA has a green `web-e2e` run** and fail otherwise. → **P6.7**.
+- **[D51] ✅ (🎯 2026-08-20)** — **the splash ships a LIGHT and a DARK variant, both showing the MARK rather
+  than the app-icon badge.** 🎯: *"a light variant and dark variant would be more professional."* ⚡ **What
+  made it possible: the icon has real SVG source**, so the mark renders *without* its background — the
+  square-on-light problem that forced dark-only was an **artwork** limitation, not a design conclusion.
+  ⚠️ Light inverts the trend line and check badge to the icon's own `#1A1442` and deepens the bar gradient,
+  because the originals are invisible on `#e6ebf3`; both values come from the icon's palette. ⛔ **Supersedes
+  the dark-only half of [D43]**, which is what the current build carries — **this needs the NEXT build**, and
+  splash becomes a row on that pass. → P6.6.
 - **[D50] ✅ (🎯 2026-08-20)** — **P6.6 + P6.5 run BEFORE P6.4**, out of the settled order, then the batched
   build; P6.4 runs while the build and device pass are in flight. ⚡ **Why:** the device pass is the
   longest-lead and least-provable thing left, P6.4 is in-app judgement that changes nothing about signing,
