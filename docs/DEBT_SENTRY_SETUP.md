@@ -29,9 +29,14 @@
 (🎯), project slug **`debt-planner`**, project id **`4511944380907520`**, and 🎯 already holds a Sentry
 **auth token** from another app in the same org.
 
-⏸ **Still needed, and only when uploads are switched on: the ORG slug** (Settings → General → *Organization
-Slug* — a name like `jason-snyder`, not the numeric `o4511649294450688` in the DSN). The
-`@sentry/react-native` plugin wants `{ organization, project }`; the numeric id is not a substitute.
+✅ **Org slug: `jason-snyder`** (🎯, 2026-08-20). Every input for source-map upload is now in hand.
+
+⛔ **And it is deliberately NOT applied yet.** Adding `{ organization, project }` to `app.json` while
+`SENTRY_DISABLE_AUTO_UPLOAD` is `"true"` would *probably* be inert — the env var suppresses the phase — but
+"probably inert" is exactly the wrong risk profile for **the one build carrying three device-only proofs**.
+Worst case of not adding it: a `prebuild` warning line. Worst case of adding it: an archive build phase that
+behaves differently from the one that was tested. ⚠️ **Having just argued that asymmetry to defer the upload
+itself, applying half of it anyway would be incoherent.** It all flips together, after the device pass.
 
 ## ⛔ Why source maps are still deferred past the FIRST build — even now that a token exists
 
