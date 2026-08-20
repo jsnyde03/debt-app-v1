@@ -17,9 +17,14 @@
 | **Gate** | `validate:release:rn` — **207 e2e · 10 embed · 10 `test:stamp` · 87 lane checks** + `lint:glossary` · `lint:money` · `lint:closure` · **`lint:secrets`** *(the repo is PUBLIC — credentials live in the Codemagic env group, never the tree)*; tsc + lint clean, zero `error-context.md`. ~15 min locally. ⛔ **Record the run, never inherit it** — the gate was RED from `f4e5e11` (2026-08-19) to 2026-08-20 while three sessions carried a stale "last green" forward, and CI was failing on every push the whole time. **Last RUN 2026-08-20 — locally on this tree (exit 0, read directly) and CI `32384250379` on `8653107`, the first green since the break.** |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
-⛔ **TWO LINES, NOT ONE ([D39]): FEATURE LOCK ≠ FREEZE.** Feature lock lands the moment **P6.4** closes — no
-new capability in 2.0 past it, and a structural gap found after it defaults to **2.1**. Freeze is later and
-stricter: every planned change landed. *"Frozen" is not a milestone you schedule; it is a state you converge to.*
+⛔ **TWO LINES, NOT ONE ([D39]): FEATURE LOCK ≠ FREEZE.** ⚠️ **Both MOVED 2026-08-20 ([D52]).**
+**FEATURE LOCK closes after P6.10** — the last gate that can *find* a structural gap. No new capability in
+2.0 past it; a gap found after defaults to **2.1**. ⛔ **It was at P6.4 and that was incoherent:** P6.8 is
+chartered to ask *"is anything missing"* and every answer would have auto-defaulted to 2.1, so the audit
+could not act on its own charter. **CODE FREEZE closes after P6.18** — the last step that can *produce* a
+change, so **P6.19's final build comes off a frozen tree**. ⚠️ **P6.20 is the one named way to break it**
+(a visual problem in the assets costs another build); that residual is unavoidable and is why P6.18 must
+be taken seriously. *"Frozen" is still not a milestone you schedule — P6.18 is where you converge to it.*
 
 ⚠️ **Numbering legend — two older labels are kept, not renamed.** `P6.n` is this decomposition's sequence.
 **"6.C" (cloud backup) = P6.3** · **"6.5" (repo consolidation, was 5.5) = P6.11**, so a log entry or commit
@@ -32,13 +37,13 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 | ✅ | **P6.1 DONE 2026-08-20** — the shipped version is `2.0.0` ([D38]). All three premises held; folded in the two stale `1.7.0` quotes in `codemagic.yaml` and two tracked zero-byte junk files. Detail → log |
 | ✅ | **P6.2 DONE 2026-08-20** — the feature-lock boundary is the **62** in [`REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md) ([D39]). Parser verified lossless (117 headings = 117 severities = 55 + 62); T9–T11 retired as drivers, carrying no id the generated list lacks. Detail → log |
 | **P6.3** | **Cloud backup** *(= "6.C", was 5.7)* — ships in v1.7 🎯, **not** premium-gated | 🔒 The cutover's approval condition, so **the app is not frozen until this lands**. ✅ **Built 2026-08-20 (.1–.7)**, portal + profile done. ⏳ **Only P6.3.3.8 remains — the device verify, on the [D48] build 🎯 is cutting now.** Below |
-| **P6.4** | ▶ **BUILDING NOW — the 62 filed findings** | Decomposed below. [D42]: all 62 **judged**, fixed = every defect + every finding on a shipping surface. ⛔ **FEATURE LOCK closes with this step** |
+| **P6.4** | ▶ **BUILDING NOW — the 62 filed findings** | Decomposed below. [D42]: all 62 **judged**, fixed = every defect + every finding on a shipping surface. ⚠️ **Feature lock NO LONGER closes here** — moved to P6.10 ([D52]) |
 | **P6.5** | **Sentry** | ✅ **`beforeBreadcrumb` scrub BUILT 2026-08-20** — Sentry's touch integration records a11y labels and Debt builds those from the user's balances, so this is the difference between [D41] being true and a crash shipping real money off-device (21 asserts, both plants red). 🔴 **Needs the DSN from 🎯** → [`DEBT_SENTRY_SETUP.md`](DEBT_SENTRY_SETUP.md). ⛔ **Source-map upload stays OFF for the batched build** — a missing `SENTRY_AUTH_TOKEN` hard-fails the ARCHIVE, and that would kill the build before any of its three device checks ran |
 | **P6.6** | **Splash screen** | ✅ **DONE 2026-08-20** — plugin configured (`icon.png` · `imageWidth: 220` · `#0a051c` · contain), verified reaching the plugin via `expo config --type introspect`. ⚡ **[D43] was right and my instinct was wrong, decided by LOOKING** at three rendered candidates: on the icon's own surround the badge *dissolves*; on the app's navy it reads as a pasted-on square → [`evidence/2026-08-20-p6.6-splash/`](evidence/2026-08-20-p6.6-splash/). ⛔ **Dark in both themes** — `icon.png` is a SQUARE with no alpha, so on a light field the square shows and reads as a bug. ⚠️ Residual for 🎯: a light-mode user gets dark splash → light UI. **The rendered result is a device row** — `expo prebuild` cannot run on Windows |
 | **P6.7** | **CI / Pages ops** | ⚠️ Retire the `legacy-capture-*` tag trigger **now, independently of P6.11** — its deferral said *"with the legacy tree"* and that tree just moved a whole phase; any push of such a tag spends ~45 min of macOS runner. · Flip the deploy allow-list to `release/v1`, or a dev branch can publish to a public marketing URL indefinitely. · ✅ **[D44]:** the deploy job **asserts its SHA has a green `web-e2e` run** and fails otherwise — *"deployed"* and *"passed the gate"* stop being held together by discipline · 🔴 **[D49] — a green gate must be RECORDED BY THE GATE, never typed.** `validate:release:rn` writes `gate-status.json` (SHA + UTC date) on success only; `lint:gate-freshness` reds when **source** has changed since that SHA. ⛔ [D44] stops a red SHA *deploying* but tells nobody the gate is red — which is the hole the 2026-08-19→20 red slipped through for three sessions while CI failed every push |
 | **P6.8** | ⭐ **[AUDIT GATE] Pre-Release Best-in-Class FINISH sweep — on the FROZEN app** | Absorbs **T12** (~40 polish items: L5-10/12/17–21 · L1-20…35 · L2's polish tier · L4-12…16). Every screen · sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. ⭐ **Charter includes STRUCTURAL GAPS** — *"is anything missing"*, not only *"is anything wrong"*; this is where 5.10's original fan-out intent now lives. ⛔ **Anything structural is a SCOPE CALL for 🎯**, never an automatic fix, or the sweep expands the freeze it exists to protect. Best single item: **L5-12**, the paywall never mentions the user's own money |
 | **P6.9** | ⭐ **[AUDIT GATE] Privacy / data-flow audit** | Trace EVERY egress and prove *"financial data never leaves your device"* is literally true: network · RevenueCat · Sentry · iCloud · scan OCR · logs. ✅ **Unblocked — it consumes [D40] + [D41]**, both settled 2026-08-20, so its job is to prove the new claim *literally true* rather than to discover one. ⛔ **The claim it verifies:** *"Your data never goes to our servers. Optional iCloud backup keeps it in your own Apple account."* Also owns retiring the marketing *"100% private"* line and the ASC privacy label declaring RevenueCat. 🔴 **P6.3 hands it a live counterexample: `PRIVACY_CLAIM.body` still says *"your financial data stays on this device"*, which the iCloud toggle makes false. P6.3 must not SHIP without [D41]'s rewrite landing here** |
-| **P6.10** | ⭐ **[AUDIT GATE] Pre-submit functional + FINANCIAL-correctness money lens** | Boundary inputs across the engine: zero/negative income · date-boundary/leap-year/timezone · rounding drift · month-vs-cycle stepping · cross-cadence BNPL · huge/partial portfolios. ⛔ **Owns two carried defects:** `bulkMarkRequired.ts` writes pre-[D2] paid semantics — inert today, but a false assertion in **data Phase 5 migrates** · `appliedTopUp` is a manual-opt-in invariant every cushion reader must remember (three readers exist; two had it) |
+| **P6.10** | ⭐ **[AUDIT GATE] Pre-submit functional + FINANCIAL-correctness money lens** · 🔒 **FEATURE LOCK CLOSES HERE ([D52])** | ⛔ **Last gate that can FIND a structural gap** — P6.8's *"is anything missing"* and P6.9's egress trace both land before it, so their scope calls still have somewhere to go. Past this line a gap defaults to **2.1**. Boundary inputs across the engine: zero/negative income · date-boundary/leap-year/timezone · rounding drift · month-vs-cycle stepping · cross-cadence BNPL · huge/partial portfolios. ⛔ **Owns two carried defects:** `bulkMarkRequired.ts` writes pre-[D2] paid semantics — inert today, but a false assertion in **data Phase 5 migrates** · `appliedTopUp` is a manual-opt-in invariant every cushion reader must remember (three readers exist; two had it) |
 | **P6.11** | **Repo consolidation** *(= "6.5", was 5.5)* — **delete the legacy tree** | ⛔ **Last possible moment, by design** (🎯: *"I do not want to take any chances at all of us deleting something from legacy that is still needed but missed"*). ⚠️ **Must be FINISHED before the final build.** Decomposed below |
 | **P6.12** | **`validate:release:rn` GREEN after the deletion** | ⛔ The guard the move created. Removing an entire surface is exactly the change that breaks the remaining one, and P6.11 now lands after everything else — nothing else would catch it |
 | **P6.13** | **CM build cut** | ⛔ **`QA_TOOLS` STAYS ON.** The device pass rides `qaEnabled()` instruments — `legacy-bridge-probe` is literally how the migration was verified. Flipping it *"to be safe"* here **deletes the instruments the pass needs** |
@@ -46,10 +51,10 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 | **P6.15** | **Defect fix** | Whatever P6.14 turns up |
 | **P6.16** | ⭐ **[AUDIT GATE] The final audit** *(🎯: "final final final")* | ⚡ **Because fixes are changes, and changes are unaudited.** The loop closing, not a formality — every straight-line plan ships the last round of fixes unexamined, and those are the ones written closest to submission |
 | **P6.17** | **Fixes + flip `QA_TOOLS` to false** | 🔒 Deliberately **last and smallest**: `git grep QA_TOOLS` must show the instruments gone **and** nothing depending on them. Takes its own `validate:release:rn` |
-| **P6.18** | ⚠️ **TARGETED device re-check** | **Only the rows touching what P6.15 and P6.17 changed** — not a second 52-row pass. ⛔ **The device loop has to close too:** fixes born on a device are the likeliest to need one, and anything native (share sheet · picker · Live Activity · widgets · notifications · the bridge) has **no off-device proof at all**. Collapses to nothing if the fixes were pure logic or copy |
+| **P6.18** | ⚠️ **TARGETED device re-check** · 🔒 **CODE FREEZE CLOSES HERE ([D52])** | ⛔ **The last step that can PRODUCE a change**, which is why the freeze sits behind it rather than behind P6.17 — P6.19's final build then comes off a frozen tree. **Only the rows touching what P6.15 and P6.17 changed** — not a second 52-row pass. ⛔ **The device loop has to close too:** fixes born on a device are the likeliest to need one, and anything native (share sheet · picker · Live Activity · widgets · notifications · the bridge) has **no off-device proof at all**. Collapses to nothing if the fixes were pure logic or copy |
 | **P6.19** | **FINAL BUILD** | |
 | **P6.20** | ⭐ **Capture screenshots + the App Preview FROM that build** | 🎯: *"we will not have anything to grab screenshots OR the app preview from until the final build is pushed."* ⚡ A frozen UI is not a **binary** — the assets come after the build, not before it. ONE 886×1920 file, 15–30 s, off the proven capture pipeline. ⛔ A visual problem found here costs another build; that risk is real and unavoidable, so **look hard at P6.18** |
-| **P6.21** | **ASC submission** | Listing · release notes *(lead with the rewrite — a 2.0 with 1.7-shaped notes re-creates the expectation problem)* · privacy label declaring RevenueCat · **AU/NZ availability** · ⚠️ **App Review paywall-findability** — v1.1 was rejected repeatedly, so the notes MUST say *"Tap ••• More → Unlock Premium"* · the assets from P6.20 · the launch-FLIP value gate |
+| **P6.21** | **ASC submission** | Listing · release notes *(lead with the rewrite — a 2.0 with 1.7-shaped notes re-creates the expectation problem)* · privacy label declaring RevenueCat · **availability = US · CA · AU · NZ** *(🎯 2026-08-20 — **Canada added**: en-CA is `$`, period-decimal and English, so it is a checkbox with no code behind it)*. ⛔ **`£`/`€` storefronts are OUT of 2.0** — see the Deferred backlog for what they cost · ⚠️ **App Review paywall-findability** — v1.1 was rejected repeatedly, so the notes MUST say *"Tap ••• More → Unlock Premium"* · the assets from P6.20 · the launch-FLIP value gate |
 
 **Exit:** `2.0.0` submitted to App Review off a build that passed P6.18, with `validate:release:rn` green on
 the shipping configuration and `QA_TOOLS` off.
@@ -69,8 +74,19 @@ profile (a capability change invalidates it). Detail → log.
 
 ⛔ **[D42] is a BAR, not a count:** all 62 **judged**; **fixed** = every defect + every finding on a surface
 that ships. ⚠️ **Not 62 edits** — 24 of the 61 copy duplicates are generic chrome that repeats *by design*,
-5 more die with the `QA_TOOLS` flip, and several are already dead. ⭐ **1 is already closed: L1-29**, the
-"coming soon" row, by P6.3.3.5.
+5 more die with the `QA_TOOLS` flip, and several are already dead. ⭐ **Triaged 2026-08-20: 37 fix · 25 are not work (40%).**
+
+⛔ **The result that outranks the count: the audit gate had already fixed or refuted 18 of the 62, and
+NONE of it was traceable to the low-tier id** — because [D37] scoped `lint:closure` to blocker+major.
+**The low tier carries the exact hazard [D37] exists to kill, one severity band down**, and it is why two
+of P6.4's five fix clusters turned out to be empty.
+
+⚡ **Four findings are HALF-closed and read as done from the string alone** — the surviving half is always
+the one nobody looks at: **L1-32**'s double space outlived its reword · **L1-35**'s *screen-reader* twin
+still says "It is now going to" while the visible line was contracted · **L2-18**'s hand-mirroring outlived
+"Vanquished" · **L1-25**'s web/native body divergence outlived the voice pass. ⛔ **L2-10 diverged
+yesterday, by R3's own fix** — `"Start your real plan"` vs `"Start my real plan"`, one sandbox, three
+labels, and `lint:copy` cannot see it because a duplicate that *diverges* stops being a duplicate.
 
 ⚠️ **Two the triage must not get wrong, both already read:** **L6-7** is a *publishable* RevenueCat key
 (`appl_…`, not `sk_`) — the finding says so itself and the fix is a comment, and it is consistent with
@@ -79,16 +95,16 @@ that ships. ⚠️ **Not 62 edits** — 24 of the 61 copy duplicates are generic
 
 | # | Sub-step |
 |---|---|
-| **P6.4.1** | **Triage all 62 against the CURRENT code**, one recorded verdict per id: FIX · already-closed · refuted · dies-with-`QA_TOOLS`/P6.11 · defer-to-2.1. ⛔ **Each verdict names its id** or `lint:closure` cannot trace it, and an untraceable closure is indistinguishable from an open finding |
-| **P6.4.2** | **The CLAIMS cluster — L3-5/6/7.** Highest value in the set: capped promises stated as fact, on money. L3-7's *"Autopay · ran"* is a presumption presented as an event. ⚠️ Half of L3-7's own suggested fix would have reported **every autopay FAILED** — refuted once already |
-| **P6.4.3** | **Number formatting — L4-5/7/8/9/10.** Whole-vs-cents disagreeing on one card, and `tabular-nums` defeated by `minimumFractionDigits: 0`. `lint:money` territory |
-| **P6.4.4** | **Copy + duplicates — L1-20…35 · L2-8…23 · L6-6.** ⛔ **The T4.4 rule applies in full:** sweep by **RETIRED STRING**, case-insensitively, no `head`, across `apps/rn/tests` AND `apps/rn/.maestro` AND `packages/core/**/test*.ts`. That rename needed **four** rounds, each caught by a different instrument after the previous went green |
-| **P6.4.5** | **States + rows — L5-13/14/16/17/18/19/20 · L6-8/9/10 · L4-12/13.** ⚠️ **18/19/20 were missing from this list's first draft** and only surfaced because `lint:closure` still called them untraced — the site-list undercount, on a list written minutes earlier. They overlap T12/P6.8; [D42] judges them here. L5-14 is the real defect here: a cleared semimonthly/monthly payday field silently produces a **biweekly** date |
-| **P6.4.6** | **Dead code — L0-4 · L4-11 · L6-4/5.** ⛔ **Verdicts inherit their lens's slice** — every lens saw `apps/rn` + `packages/core` only, and `formatDisplayAmount` was called dead with **three live legacy call sites**. Re-check against the ROOT tree, which is why P6.11 deletes last |
-| **P6.4.7** | **`validate:release:rn` + `lint:closure` green, FEATURE LOCK closes.** After it, a structural gap defaults to **2.1** ([D39]) |
+| ✅ | **P6.4.1 DONE 2026-08-20 (re-run once — the first pass was wrong 9 times)** — all 62 carry a verdict named by id: **37 FIX · 12 already closed · 6 refuted/declined · 4 die with P6.11 · 3 deferred.** ⛔ **25 of 62 are not work.** ⚡ **The first pass triaged against the CODE and never the LOG** — and a fix that adds a *branch* leaves the finding's quoted string in the tree, so grep found the healthy half of a fix and called it unfixed. **L4-8 and L1-26 were on the six-refutations list and I had both as FIX.** Erratum + corrected ledger → log |
+| **P6.4.2** | ⛔ **The CLAIMS cluster is EMPTY — closed at triage.** L3-6 and L3-7 were both **built at T5.2** *(`livingExpenseHeld`/`everydayHeld`; `"Autopay · should have run"`, now banned in `lint:glossary`)* and L3-5 dies with P6.11. ▶ **What takes its slot is what the triage FOUND: `lint:money` is GREEN over three live hand-rolled money sites** — `buildGuardianBrief.ts:141` *(core, Guardian copy)*, `(tabs)/index.tsx:573`, `CushionFloorSheet.tsx:65`. **Extend the gate first, then fix the three.** ⛔ **Mechanism, read not guessed:** pattern 1 anchors on the FIRST rounding call so `$${Math.max(1, Math.round(v))…}` slips past, and **in JSX text `$` + `{expr}` is a SINGLE `$` in source** so `$${` never matches a `.tsx` site at all; `toLocaleString('en-US')` carries no `currency` key for patterns 3/4 |
+| **P6.4.3** | ⛔ **The NUMBER-FORMATTING cluster is EMPTY too** — **L4-5 · L4-7 · L4-9 closed at T6.5/T6.7**, **L4-8 DECLINED on the record** *(its fix re-adds the noise the App Preview sweep removed)* and **L4-10 closed as "no fix needed" by its own verdict**. ▶ **What survives from L4 is structural, not formatting: L4-14** *(`TwoColumn`'s docstring names Progress; Progress uses `maxWidth` per 3.6.4 — a stale docstring that makes a reader believe two dashboards share a reflow rule)* **· L4-15** *(`living.filter(l => l.enabled).reduce(...)` verbatim in `money.tsx:518` and `living-expenses.tsx:33` — "two places, one rule", the codebase's named repeat failure)* |
+| **P6.4.4** | **Copy + duplicates — the bulk of what is left, 25 ids.** L1-20/21/22/23/24/25/27/28/30/31/32/33/35 · L2-10/11/12/13/15/17/18/19/20/21/23 · L6-6. ⛔ **L1-26 is REFUTED and L2-8/16 are CLOSED — do not re-open them.** ⛔ **The sweep rule, corrected twice already: over the REPO ROOT with NO directory list** *(a scoped grep returned 0 and missed the legacy tree; the inherited corpus list omits `apps/rn/src/**/*.test.ts`, which then red-gated)*. Case-insensitive, no `head`. T4.4's rename needed **four** rounds, each caught by a different instrument after the previous went green |
+| **P6.4.5** | **States + rows — L5-13/16/17/18/19/20 · L6-8/9 · L4-12/13.** ⚠️ **L5-14 and L6-10 are now CLOSED** *(`nextPaycheckFrom` returns `null` + `PAYCHECK_NO_DATE`; `calleeLabel` + the inventory self-check)* — the first draft of this row had both as work. ⭐ **The two real defects left: L5-13** *(every debt paid off → the hero reads "$0 · remaining across 0 debts" over a strategy toggle and an empty list, because the empty state gates on `debts.length === 0` and a cleared debt stays in `debts`)* **and L6-9** *(an informational message rides the `error` prop — **measured now, was a hypothesis**: `TextField.tsx:65,69` paints both border and caption `c.accent.danger`)*. ⚠️ **L5-16/17/20 are style reads with UNMEASURED rendering** — the fixes are cheap and defensive, the proof is a P6.14 device row |
+| **P6.4.6** | **Dead code — L0-4 · L4-11 · L6-4/5 · L3-5.** ⚡ **P6.4.1 resolved all of them to ZERO edits here:** L0-4 is a null (both files deleted 2026-07-27/29, three weeks *before* the audit), and the other four have live consumers in the ROOT tree — so this becomes a **re-check at P6.11**, not a sweep. ⛔ L3-5's SYNTHESIS refutation had the tree backwards; measured, the RN app never imports `buildSmartInsights` |
+| **P6.4.7** | **`validate:release:rn` + `lint:closure` green.** ⚠️ **Feature lock does NOT close here any more** — it moved to P6.10 ([D52]), so P6.8's structural-gap findings have somewhere to land |
 
-**Exit:** every one of the 62 carries a recorded verdict traceable to its id, the fix set is green on the
-gate, and feature lock is declared.
+**Exit:** all 62 carry a verdict traceable to its id *(done — 37 fix · 25 not work)*, the **37** are built
+or explicitly re-deferred, and `validate:release:rn` + `lint:closure` are green.
 
 ### ▶ P6.11 — repo consolidation *(= "6.5")*
 
@@ -125,7 +141,14 @@ last-and-smallest flip carrying its own green gate.
 
 ## ⏸ Waiting on Jason
 
-✅ **Nothing is blocked on a DECISION** — the Phase 6 queue cleared 2026-08-20, **[D40]–[D48]** plus [D3].
+🔴 **ONE new call, from the P6.4.1 triage (L5-19): does 2.0 ship a free trial?** ⚠️ **Non-blocking — the
+code half lands regardless:** `planFromPackage` never reads `product.introPrice`, so **a trial configured
+in ASC would not be mentioned on the paywall at all.** That is a defect and gets fixed at P6.4.5. The
+business half is yours: every benchmarked competitor leads with a trial (YNAB 34-day · Copilot 7-day ·
+Monarch 7-day) against a paywall that asks $29.99 before showing a single premium moment. ⏳ **Wanted
+before P6.10 closes** — feature lock shuts behind it ([D52], moved from P6.4).
+
+✅ **Otherwise nothing is blocked on a DECISION** — the Phase 6 queue cleared 2026-08-20, **[D40]–[D48]** plus [D3].
 
 ✅ **The Apple portal for iCloud is DONE (🎯, 2026-08-20)** — signing is unblocked.
 
@@ -225,7 +248,7 @@ they were that gate's inputs, never separate threads.
 | **3.8** | **The expense reserve** | ✅ **COMPLETE 2026-08-17** — both tiers [D36]. Pot · draw-down · capped offer · "Spoken for" · honest hero. **5 defects found while building**, +5 e2e (184) |
 | **—** | **Whole-app cohesion + best-in-class + wording audit gate** | ✅ **COMPLETE 2026-08-19** — T1–T8 + T3B, [D37] 55/55 high+ traceable, 3 new lint gates, e2e 184 → 195. Detail → log |
 | **5** | **Data continuity + cutover** 🔒 | ✅ **COMPLETE 2026-08-19** — the full v1.6 bridge, 5.10 green, the migration **verified on a live device**, the cutover **conditionally approved**. Detail → log |
-| **6** | **Launch-ready** — feature lock → three audit gates → delete legacy → device pass → submit | ▶ **ACTIVE** — decomposed as **P6.1–P6.21** at the top. Carries the 60 coverable-not-built rows and 3.5's folded-in pass as device-pass work |
+| **6** | **Launch-ready** — the 62 → three audit gates *(**feature lock** closes on the last)* → delete legacy → device pass → *(**code freeze**)* → submit | ▶ **ACTIVE** — decomposed as **P6.1–P6.21** at the top. Carries the 60 coverable-not-built rows and 3.5's folded-in pass as device-pass work |
 | 6.5 | Repo consolidation *(was 5.5)* | inside Phase 6 as **P6.11** — deliberately last, and finished before the final build |
 
 ⚡ **Phase 3.7's number, worth keeping:** a pre-authored ledger item is wrong about as often as it is right
@@ -306,6 +329,44 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ---
 
 ## Deferred backlog
+
+**→ INTERNATIONAL — a workstream, not a line item (scoped 2026-08-20)**
+
+⛔ **The EU is blocked by a HARD INPUT DEFECT, and it is not L5-15.** Every amount field is a
+`decimal-pad` keyboard parsed with `Number(...)` / `Number.parseFloat(...)` — `DebtSheet` ×6,
+`ExpenseSheet` ×4, `GoalSheet` ×2, `LivingExpenseSheet`, `LogPaymentSheet`, and the onboarding step.
+On a German / French / Spanish / Italian device **`decimal-pad` renders a COMMA**, and
+**`Number("2400,50")` is `NaN`** — so the user cannot enter their balance at all, and the
+`Number(apr) || 0` paths coerce that `NaN` to **0** silently. ⚡ **Shipping to a comma-decimal storefront
+today is WORSE than not shipping there**: the wall is at onboarding, on the first number they type.
+⚠️ **Also owed, and neither is code:** **DSA trader status** (Apple requires a verifiable trading name +
+address, **published on the listing**, for any EU distribution) and a decision on English-only.
+⭐ **Re-scoped, honestly:** the *product* fits — `PayCycle` already carries `"monthly"`, so a
+monthly-paid European is served by the model. What is US-shaped is the **vocabulary** ("paycheck",
+"BNPL"), which is a rewrite, not a blocker. **The order is: input parsing → trader status → L5-15 →
+vocabulary.** Currency is the cosmetic layer on top of a real defect.
+
+**→ 2.1, from the P6.4.1 triage (2026-08-20):**
+- **L5-15 — currency is pinned to `en-US`/USD** while the paywall renders the store's real
+  `priceString`, so a UK user reads their whole plan in `$` and the one screen asking for money in `£`.
+  Real; a `useCurrency()` threaded through the formatters is a **feature**, and feature lock closes at
+  P6.10 ([D52]). ⚠️ **Owed either way: a release-note line** — shipping it silent is the worse half.
+  ✅ **Safe to defer — verified, not assumed: no currency code is persisted anywhere** (`git grep currency`
+  over `data/` + `types/` returns nothing; amounts are plain numbers), so 2.1 adds the hook with **zero
+  migration**, and the paywall already shows the store's real localized price, so there is no 3.1.2
+  exposure. ⛔ **But the deferral is CONDITIONAL on P6.21's availability call** — AUD and NZD both render
+  `$`, so at US/CA/AU/NZ the only visible seam is the paywall's `A$29.99`. **Open a `£`/`€` storefront and
+  this becomes the app reading in the wrong currency on every screen.**
+  ⛔ **MEASURED 2026-08-20, and it refutes my own "three formatters" estimate.** The formatter half is
+  small — **2 sanctioned + 3 hand-rolled live + 3 dead**, and `paywall.tsx:85` already extracts the real
+  symbol from RevenueCat, so the substitution has a source. **The cost is the SWEEP:** `111` literal `$`
+  in non-comment source lines, unseparated into copy-vs-comment, and **every user-facing one is a place
+  the app says `$` while the formatter says `£`** — plus the whole test corpus asserting on `$`.
+  ⚡ **So this stays deferred on COST, not on the lock date** — which makes the deferral survive feature
+  lock moving. An unbounded string sweep is the exact shape of change you do not take late.
+- **L2-14 (“Autopay”, six surfaces) · L2-22 (“BNPL” pill fallback vs the domain token)** — domain nouns a
+  rename would touch deliberately. A shared constant buys indirection and no safety. Revisit only if
+  either term is ever renamed.
 
 **Product, re-decided in Phase 6:**
 - ⚠️ **Show the backup's own date in the replace-confirm** *(5.8.4 after-scan)*. The summary says *what* is
@@ -416,6 +477,17 @@ a later version/tier**._
 
 ## Decisions
 
+- **[D52] ✅ 2026-08-20 — BOTH LINES MOVE: feature lock → after P6.10, code freeze → after P6.18** (🎯).
+  ⛔ **The reason lock moved is a contradiction, not a preference:** P6.8's charter includes *"is anything
+  **missing**"* and hands structural gaps to 🎯 as scope calls — with lock at P6.4 every one of those
+  auto-defaulted to 2.1, so the audit could not act on its own charter. P6.10 is the **last gate that can
+  find** a gap. ⭐ **Freeze at P6.18 is 🎯's improvement on my P6.17 recommendation** — P6.18 is the last
+  step that can **produce** a change, so the final build is cut from a frozen tree rather than one still
+  absorbing a re-check. ⛔ **[D39]'s two-line structure SURVIVES** — I proposed collapsing them and was
+  wrong: P6.11 alone deletes an entire app surface after lock, so a freeze declared at P6.10 would have
+  been false the day it was written. Only the positions moved. ⚠️ **Known break:** P6.20 can still force a
+  build if the assets show a visual problem — named, not designed away.
+
 **Phase 6 — the launch decisions, all settled 2026-08-20 (🎯: *"Agree with your recs"*)**
 - **[D47] ✅** — **iCloud backup is OPT-IN, default OFF, and offered once in-line.** [D41]'s claim is literally
   *"**Optional** iCloud backup"*, and **P6.9 has to prove that claim true** — an on-by-default copy of someone's
@@ -473,8 +545,10 @@ a later version/tier**._
 - **Executive "fix everything, no backlog" ✅ (2026-07-29/30)** — fold every audit finding now; only hardware
   verification waits for Phase 6. · **Legacy gate RETIRED ✅ (2026-07-24)**.
 - **3.8 is in v1.7 ✅ (2026-08-17)** — 🎯: *"definitely in 1.7."* The app contradicts its own number.
-- **[D39] ✅ (🎯 2026-08-19)** — **FEATURE LOCK ≠ FREEZE, and they happen at different times.** Lock lands
-  after **"the 3.5 remainder" = T9–T11** (🎯 — one set, not two); freeze is later and stricter, every
+- **[D39] ✅ (🎯 2026-08-19)** — **FEATURE LOCK ≠ FREEZE, and they happen at different times.**
+  ⚠️ **The STRUCTURE stands; both POSITIONS were superseded by [D52] 2026-08-20** — lock is now after
+  **P6.10**, freeze after **P6.18**. Read [D52] for where they sit; read this for why there are two of
+  them. *(Historic: lock landed after "the 3.5 remainder" = T9–T11, one set not two.)* Freeze is later and stricter, every
   planned change landed. ⚡ **What it buys:** the FINISH sweep's structural-gap charter gets a **default
   answer** — after lock a structural gap defers to **2.1**, and only a defect or the completeness/polish of
   something already built is admitted. ⛔ **The boundary is a set that has not been re-measured** →

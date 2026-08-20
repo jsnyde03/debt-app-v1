@@ -4,6 +4,246 @@
 
 ---
 
+## ✅ [D52] — both lines move, and the reason lock moved was a contradiction (🎯, 2026-08-20)
+
+**FEATURE LOCK → after P6.10. CODE FREEZE → after P6.18.** [D39]'s two-line structure is unchanged; only
+the positions moved.
+
+### Why lock could not stay at P6.4
+
+**P6.8's charter includes structural gaps** — *"is anything **missing**", not only "is anything wrong"* —
+and it hands each one to 🎯 as a scope call. With lock closing at P6.4, **every answer P6.8 produced would
+have auto-defaulted to 2.1 ([D39])**, so the audit chartered to find missing things had nowhere to put what
+it found. That is not a preference between two defensible positions; it is a plan disagreeing with itself,
+and it would have surfaced as *"we found it, we already decided we can't act on it"* three gates from now.
+
+**P6.10 is the last gate that can FIND a gap.** P6.8 (finish sweep) and P6.9 (privacy/egress) both land
+before it, so their scope calls still have somewhere to go. Everything after P6.10 — P6.11's deletion, the
+build, the device pass, submission — stays locked, which is where lock earns its keep. **A capability must
+not land after the device pass.**
+
+### ⭐ Freeze at P6.18 is 🎯's correction to my recommendation
+
+I proposed **P6.17** (fixes + the `QA_TOOLS` flip). 🎯 said **P6.18**, and that is better for a reason I
+had not carried through: **P6.18 is the last step that can PRODUCE a change.** A targeted device re-check
+can fail. Freezing at P6.17 would declare frozen a tree still waiting to find out whether its last fixes
+worked; freezing at P6.18 means **P6.19's final build is cut from a genuinely frozen tree**.
+
+⚠️ **One named break survives:** P6.20 captures the screenshots and App Preview *from* that build, and a
+visual problem found there costs another build. That is already recorded as unavoidable — the freeze does
+not remove it, it makes breaking it visible and expensive instead of routine. **It is the reason P6.18 must
+be taken seriously rather than collapsed to nothing.**
+
+### ⛔ I proposed collapsing the two lines and was wrong
+
+Asked whether freeze could simply be declared alongside lock, I argued against it and the argument holds:
+**P6.11 deletes an entire app surface**, and it lands *after* lock. P6.15 and P6.17 are further planned
+changes. A freeze declared at P6.10 would have been **false on the day it was written**, and a false
+milestone is worse than no milestone — it is the same failure shape as a remembered gate result. [D39]'s
+own words, from 🎯 on 2026-08-19: *"'Frozen' is not a milestone you schedule; it is a state you converge
+to."* **P6.18 is where the convergence actually finishes.**
+
+### What this changed on the plan
+
+P6.4's exit no longer declares lock · P6.4.7 reworded · the 🔒 markers moved onto the P6.10 and P6.18 rows ·
+[D39] marked structure-stands / positions-superseded · the L5-19 trial decision is now wanted before
+**P6.10** rather than P6.4 · the Phase-6 summary row re-ordered. ⚠️ **L5-15 did NOT come back into scope** —
+it was re-deferred on measured **cost** (below), not on the lock date, so the later line does not reopen it.
+
+---
+
+## ⛔ ERRATUM to P6.4.1 — the triage read the CODE and never the LEDGER (2026-08-20, same session)
+
+**NINE verdicts were WRONG, all the same way.** Re-run against the LOG — the corrected ledger is below.
+
+| id | I said | actually |
+|---|---|---|
+| **L3-6** | FIX | ✅ **CLOSED at T5.2** — `livingExpenseHeld` / `everydayHeld` exist, `money.tsx:879` branches on `shortHeld`, `SpokenForSheet.tsx:68` quotes the held figure |
+| **L3-7** | FIX | ✅ **CLOSED at T5.2** — the string is `'Autopay · should have run'` (`PaydayCaptureSheet.tsx:274`) and `"Autopay · ran"` is **banned in `lint:glossary`** |
+| **L1-26** | FIX | ⛔ **REFUTED at T4.1** — measured three DIFFERENT values (625 / 675 / 850), so the finding's own fix would have put one word on three numbers. 🎯 settled *"Flexible" stays* |
+| **L4-5** | FIX | ✅ **CLOSED at T6.5** — the one-time line |
+| **L4-7** | FIX | ✅ **CLOSED at T6.7** — the Timeline chip is a cycle summary → `formatWhole` |
+| **L4-8** | FIX | ⛔ **DECLINED ON THE RECORD at T6.7** — *"its fix re-adds the noise the App Preview sweep removed."* `CLAUDE.md` lists this among the six refutations by name |
+| **L4-9** | FIX | ✅ **CLOSED at T6.5** — the Everyday summary card |
+| **L6-7** | FIX *(add a comment)* | ✅ **CLOSED** — the comment is already there (`purchasesClient.ts:24`), and the id is recorded *"closed as not-a-defect"* |
+| **L6-10** | FIX *(instrument)* | ✅ **CLOSED** — `calleeLabel` owns the normalisation and `strings-inventory.ts:459` self-checks any origin with a newline or over 48 chars. Plant-verified |
+
+⚠️ **Then bounded, so the correction is not itself a guess:** every remaining id was counted in the log
+**outside this entry**. All 13 surviving L1 ids, all 11 L2 ids and all of L4-12…16 return **zero**
+mentions — no T-item ever recorded a verdict on them — and the seven that did return hits (L0-4, L5-13,
+L5-15, L5-16, L6-4, L6-5, L6-7, L6-10) are named only inside the **retired T9–T11 enumerations**, except
+L6-7 and L6-10, which are the two corrections above. **The code-based verdicts stand for the other 37.**
+
+⚡ **The mechanism, and it is not carelessness — it is a bad instrument.** **A fix that adds a BRANCH, or
+that renames one of several sites, leaves the finding's quoted string in the tree.** `money.tsx:880` still
+reads *"Reserved each paycheck · tap to manage"* because that is the **correct** branch — the one taken
+when the paycheck CAN hold the reserve. T5.2's own note says the control test for exactly that case
+*"correctly survived"*. **So grepping the finding's string found the healthy half of the fix and reported
+it as unfixed.**
+
+⛔ **And the deeper error: I triaged 62 findings against the CODE and never against the LOG** — while
+using `lint:closure`, whose entire premise is that **the log IS the closure ledger**. I read the gate and
+not the thing it gates. ⚠️ **Every one of the 62 ids appears in this log**, because T1–T8 swept by
+*cluster* and not by their named high+ ids, so any grep-only verdict in that entry is suspect by
+construction — not just the three caught.
+
+⛔ **Building a refuted fix is this project's most-repeated failure** (six times, per `CLAUDE.md`), and the
+P6.4.2 row **warned about L3-7 by name**. I read the warning and still mis-triaged, because I checked the
+warning against the code instead of against T5.2. **A warning is not a substitute for the record it points at.**
+
+▶ **Correction in flight: re-triage all FIX verdicts against the LOG first, code second.** ⭐ **P6.4.2 —
+"the CLAIMS cluster, highest value in the set" — is EMPTY**: L3-5 dies with P6.11, L3-6 and L3-7 closed at
+T5.2. The plan's active decomposition named a sub-step with no work in it.
+
+---
+
+## ✅ P6.4.1 — the 62 triaged against the current code, and 16 of them are not work (2026-08-20)
+
+**Every one of the 62 carries a recorded verdict below, named by id.** Nothing was judged from the
+finding text; each was re-read against the tree at `21c0859`.
+
+### The split
+
+⚠️ **THE CORRECTED SPLIT — supersedes the first pass, see the erratum above.**
+
+| verdict | n | ids |
+|---|---|---|
+| **FIX** — real, live, on a shipping surface | **37** | L1-20/21/22/23/24/25/27/28/30/31/32/33/35 · L2-10/11/12/13/15/17/18/19/20/21/23 · L4-12/13/14/15 · L5-13/16/17/18/19/20 · L6-6/8/9 |
+| ✅ **already CLOSED** — by P6.3, T4, T5, T6 or earlier | **12** | L1-29 · L1-34 · L2-8 · L2-16 · L3-6 · L3-7 · L4-5 · L4-7 · L4-9 · L5-14 · L6-7 · L6-10 |
+| ⛔ **refuted / declined / recorded no-action** | **6** | L0-4 · L1-26 · L4-8 · L4-10 · L4-16 · L5-21 |
+| **dies with P6.11** (only consumer is the legacy root tree) | **4** | L3-5 · L4-11 · L6-4 · L6-5 |
+| **deferred** (2.1 / judged not worth a constant) | **3** | L2-14 · L2-22 · L5-15 |
+
+⭐ **25 of the 62 are not work — 40%.** ⛔ **And the audit gate had already fixed or refuted 18 of them
+without any of it being traceable to the low-tier id**, because [D37] scoped `lint:closure` to blocker+major.
+**The low tier has the exact hazard [D37] was built to kill, one severity band down.**
+
+⛔ **No id in this set dies with the `QA_TOOLS` flip.** The plan's *"5 more involve `LiveActivityQA.tsx`,
+which the flip deletes"* is true of the **strings instrument's 61 copy duplicates** — a different
+population from these 62 finding ids. Carried over as if it applied here, it would have written off five
+findings that do not exist in this list.
+
+### ⚡ L0-4 is a NULL, and the mechanism generalises
+
+`ProgressRing` and `MilestonesRow` were **deleted before the audit ran** — `MilestonesRow` in `3eb74cd`
+(2026-07-27), `ProgressRing` in `a7ab95d` (2026-07-29), against an audit dated **2026-08-17**. The lens
+reported them "confirmed unreferenced anywhere in `apps/rn/src` or `packages/core`", which was *true*.
+⛔ **A zero-reference check cannot tell DEAD from ABSENT** — it returns the same answer for a file that
+exists and is unused and for a file that does not exist. The plan's stale suspicion supplied the names and
+the lens supplied a confirmation that could not fail. **Any "confirmed dead" verdict needs a file-exists
+assertion beside the reference count.**
+
+### ⚡ L3-5's refutation was wrong about which tree imports the module
+
+`SYNTHESIS.md` records *"`buildSmartInsights` is imported by the shipping RN app (not the legacy tree, as
+claimed)"* and reclassified the finding on that basis. **Measured: `apps/rn` + `packages/core` contain
+exactly one mention — a comment.** The only non-test consumer is root `components/SnowballSection.tsx:245`,
+i.e. the legacy tree, exactly as the L3 lens said. Same for `projectForecast` (root
+`components/SnowballSection.tsx:290`, L6-4/5) and `formatDisplayAmount` (root `components/ResultsSection.tsx`
+×3, L4-11). ⛔ **Law IV holds for refutations too** — a refutation arriving with a stated mechanism is still
+a hypothesis. The *conclusion* ("dead code carrying a latent defect") survived; the mechanism decides the
+verdict, and here it moves three findings from "fix the latent defect" to "P6.11 deletes the consumer".
+
+### ⚡ Four findings were HALF-closed, and the surviving half is always the one nobody reads
+
+Earlier work fixed the visible half of a finding and left the invisible half standing, and in every case
+the closure would have read as complete from the string alone:
+
+- **L1-32** — the reword landed (`"See My Plan"` → `"See your plan"`), and the **double space survives it**:
+  `CompletionStep.tsx:44` is still `label="See your plan  →"`.
+- **L1-35** — `index.tsx:525-526` contracted to `"It's now going to work on"`. The **screen-reader twin at
+  `:847` still says `"It is now going to work on"`** — the finding's whole point was that this string is
+  read aloud.
+- **L2-18** — `"Vanquished"` is retired app-wide, so the finding's headline vocabulary is stale. The
+  **hand-mirroring is not**: `"Paid off"` typed twice in `PaidOffBeat` and twice in `ShareCard`,
+  `"Share your win"` in `PaidOffBeat` and `PaidOffFinale`.
+- **L1-25** — the three notification button labels were normalised into one voice
+  (`"Run your plan"` / `"Review your plan"` / `"Check your plan"`) and are still three labels; the
+  **web/native body divergence is untouched**.
+
+### ⚡ L2-10 predicted a divergence, and R3 created it — yesterday
+
+L2-10 filed `"Start my real plan"` as retyped across the demo's two exits. **They have now diverged**, by
+R3's own fix (2026-08-20): `DemoDock.tsx:114` says **`"Start your real plan"`** while
+`ExampleCanvasMarker.tsx:91` says **`"Start my real plan"`** (or `"Back to my plan"`). One sandbox, two
+exits, **three** labels. ⛔ **This is the duplicate-finding class paying for itself inside 24 hours** — the
+risk was filed, the fix that realised it was written without seeing the filing, and neither `lint:copy` nor
+the 14-test `demo-containment.spec.ts` says a word, because a duplicate that *diverges* stops being a
+duplicate.
+
+### ⚡ Two hypotheses in the findings are now MEASURED
+
+- **L6-9** was filed at medium confidence: *"HYPOTHESIS, I did not read how the component renders `error`."*
+  Read now — `TextField.tsx:65,69` renders `error` as `c.accent.danger` on **both** the border and the
+  caption. So `"More than the balance — this will clear it to $0."`, a description of a legitimate outcome,
+  ships in the danger treatment. **Confirmed defect.**
+- **L1-26** was filed at medium confidence that all five names denote one value.
+  `affordability.test.ts:66` now **asserts** `cardSpare === heroFlexible`. The app's own suite proves two of
+  the five are the same figure under different words.
+
+### ✅ The five already closed, each traceable
+
+| id | closed by |
+|---|---|
+| **L1-29** | P6.3.3.5 — the "coming soon" iCloud row is gone; the only surviving mentions are comments recording its removal |
+| **L1-34** | T7 — `"your Guardian"` in all prose (`more.tsx:179`, `TutorialInviteCard.tsx:27,35`), `"Payday Guardian"` only as the card eyebrow / paywall proper noun. Exactly the suggested fix |
+| **L2-8** | T4.2 — `EMERGENCY_FUND_NOUN` in `packages/core/copy/vocabulary.ts:75`, consumed at **five** sites incl. both the finding named |
+| **L2-16** | T4 — `PAYCHECK_SEGMENT` in `vocabulary.ts:46`, consumed by `PlanHero`, `SpokenForSheet` and `PaydayCaptureSheet`; `glossary.test.ts` gates it against the Guardian-state names |
+| **L5-14** | `nextPaycheckFrom` returns `null` on invalid input and `PAYCHECK_NO_DATE = '—'` renders it. The biweekly fallback is gone, with the measurement in the docstring |
+
+### ⛔ The four with no work in them
+
+- **L0-4** — null, above.
+- **L4-10** — the finding's own suggested fix is *"none needed"*; the sub-dollar anchor/row drift is the
+  correct hero/row split. Recorded so the reconcile question stays answered.
+- **L4-16** — `CheckCircle` and `MasterDetail` are justified single-use and the finding says so. Its one
+  live half is `PressableScale`, which **is** L4-13 — fixing L4-13 closes this.
+- **L5-21** — *"there is no loading state on native, and that is correct"*. The finding exists to stop it
+  being re-opened; "fixing" it would be the defect.
+
+### The 46 to fix, by cluster
+
+- **P6.4.2 · claims (2):** L3-6 *(the "Reserved each paycheck" caption over a total the paycheck cannot
+  hold — live at `money.tsx:880` and `SpokenForSheet.tsx:69`)* · L3-7 *(`"Autopay · ran"`, and
+  `PaydayCaptureSheet.tsx:91` still seeds `presumedPaid` rows as paid)*.
+- **P6.4.3 · numbers (4):** L4-5 · L4-8 · L4-9 · L4-7.
+- **P6.4.4 · copy + duplicates (25):** L1-20/21/22/23/24/25/26/27/28/30/31/32/33/35 ·
+  L2-10/11/12/13/15/17/18/19/20/21/23 · L6-6.
+- **P6.4.5 · states + rows (10):** L5-13/16/17/18/19/20 · L4-12/13 · L6-8/9.
+- **P6.4.6 · dead code (0 to fix)** — all four of its ids resolve to *dies with P6.11*, so the sub-step
+  becomes a **re-check against the ROOT tree at P6.11**, not an edit here. ⚠️ Its premise held exactly:
+  every one was called dead on an `apps/rn` + `packages/core` slice and every one has a live root consumer.
+- **Instrument (1):** L6-10 — `originOf()` in `strings-inventory.ts` builds labels from
+  `expression.getText()`, so reformatting `formatCurrency.ts` mints new "unclassified" props.
+- **Comment-only (1):** L6-7 — the RevenueCat `appl_…` key is publishable by design; the fix is the
+  one-line comment that stops the next reader re-opening it. Consistent with `lint:secrets`, which flags
+  only secret keys.
+- **L1-28 and L5-18 are the same site** (`+not-found.tsx:16`, `"Go to Plan"`), filed by two lenses. One
+  edit, two ids — both must be named in the closure or `lint:closure` can only trace one.
+
+⚠️ **L5-16 · L5-17 · L5-20 are style reads with unmeasured rendering** — the finding text says so in each
+case. The fixes (`flexShrink: 0` / `numberOfLines` / `adjustsFontSizeToFit`) are cheap and defensive, so
+they land here; **the rendered proof is a device row**, and they are owed to the P6.14 pass.
+
+### Deferred, with the reason
+
+- **L2-14** *(“Autopay” on six surfaces)* and **L2-22** *(“BNPL” pill fallback vs the domain token)* —
+  both are domain nouns a rename would touch deliberately, not strings that drift. A constant here buys
+  indirection and no safety. → **2.1**, revisit only if either term is ever renamed.
+- **L5-15** *(all money pinned to `en-US`/USD while the paywall shows the store's real currency)* — real,
+  and **out of scope for 2.0**: a `useCurrency()` threaded through three formatters is a feature, and
+  feature lock closes with P6.4. → **2.1**, and it needs a release-note line rather than silence.
+
+### 🔴 One scope call for 🎯 inside L5-19
+
+The finding has two halves. **The code half is a defect and lands here:** `planFromPackage` never reads
+`product.introPrice`, so **if a trial is ever configured in App Store Connect the paywall will not mention
+it**. That is fixed regardless. **The business half — whether 2.0 ships a free trial at all — is 🎯's**,
+and every benchmarked competitor leads with one (YNAB 34-day, Copilot 7-day, Monarch 7-day) against a
+paywall that currently asks $29.99 before showing a single premium moment.
+
+---
+
 ## ✅ R3 — the demo's one exit spoke to the persona, not the person (2026-08-20)
 
 🎯, using the app: *More → Unlock Premium → "See it in action" takes over and has no clear way back.*
