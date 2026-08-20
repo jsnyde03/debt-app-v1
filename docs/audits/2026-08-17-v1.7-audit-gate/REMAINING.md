@@ -54,20 +54,20 @@ low-tier id the retired T9–T11 enumerations named is present below, so nothing
 | id | severity | in a ledger? | finding |
 |---|---|---|---|
 | L2-8 | minor | yes | "your emergency fund" is a pot identity, written twice |
-| L2-10 | minor | ⛔ **no** | The demo's exit CTA is retyped on both exits |
-| L2-11 | minor | ⛔ **no** | The premium entitlement is named in three files |
-| L2-12 | minor | ⛔ **no** | One action, two names: "Log a payment" vs "Log payment" |
-| L2-13 | minor | ⛔ **no** | Debt-entry field copy and its example numbers are duplicated between onboarding and the sheet |
-| L2-14 | polish | ⛔ **no** | "Autopay" appears on six surfaces |
-| L2-15 | polish | ⛔ **no** | "Payoff schedule" — a named feature written in three files |
+| L2-10 | minor | yes | The demo's exit CTA is retyped on both exits |
+| L2-11 | minor | yes | The premium entitlement is named in three files |
+| L2-12 | minor | yes | One action, two names: "Log a payment" vs "Log payment" |
+| L2-13 | minor | yes | Debt-entry field copy and its example numbers are duplicated between onboarding and the sheet |
+| L2-14 | polish | yes | "Autopay" appears on six surfaces |
+| L2-15 | polish | yes | "Payoff schedule" — a named feature written in three files |
 | L2-16 | minor | yes | The paycheck taxonomy ("Required", "Spoken for") is retyped away from the hero |
-| L2-17 | minor | ⛔ **no** | "Overdue" is both a bucket title and a pill |
-| L2-18 | minor | ⛔ **no** | The payoff-celebration vocabulary is mirrored by hand |
-| L2-19 | polish | ⛔ **no** | Settings rows and the sheets they open are labelled twice |
-| L2-20 | minor | ⛔ **no** | "Privacy Policy" link label written twice |
-| L2-21 | polish | ⛔ **no** | "See it in action" — the demo entry point, twice |
-| L2-22 | polish | ⛔ **no** | "BNPL" fallback label vs the domain term |
-| L2-23 | minor | ⛔ **no** | "to your goals" — the debt-free destination phrase, in the selector and the brief |
+| L2-17 | minor | yes | "Overdue" is both a bucket title and a pill |
+| L2-18 | minor | yes | The payoff-celebration vocabulary is mirrored by hand |
+| L2-19 | polish | yes | Settings rows and the sheets they open are labelled twice |
+| L2-20 | minor | yes | "Privacy Policy" link label written twice |
+| L2-21 | polish | yes | "See it in action" — the demo entry point, twice |
+| L2-22 | polish | yes | "BNPL" fallback label vs the domain term |
+| L2-23 | minor | yes | "to your goals" — the debt-free destination phrase, in the selector and the brief |
 
 ## L3-proxy-capped — 3
 
@@ -102,10 +102,10 @@ low-tier id the retired T9–T11 enumerations named is present below, so nothing
 | L5-15 | minor | yes | All money is hard-coded to en-US/USD, but the paywall shows the store's real currency |
 | L5-16 | minor | yes | `ListRow`'s amount column doesn't shrink, so a long name plus a large amount collapses the name |
 | L5-17 | polish | yes | Today's greeting — the app's one personalized touch — is clipped to one line by the shared header |
-| L5-18 | polish | ⛔ **no** | The "not found" screen names a tab that doesn't exist |
-| L5-19 | polish | ⛔ **no** | There is no free trial and no trial framing anywhere on the paywall |
-| L5-20 | polish | ⛔ **no** | The paywall price column can wrap on a long localized price |
-| L5-21 | polish | ⛔ **no** | There is no loading state on native, and that is correct — recorded so it isn't re-opened |
+| L5-18 | polish | yes | The "not found" screen names a tab that doesn't exist |
+| L5-19 | polish | yes | There is no free trial and no trial framing anywhere on the paywall |
+| L5-20 | polish | yes | The paywall price column can wrap on a long localized price |
+| L5-21 | polish | yes | There is no loading state on native, and that is correct — recorded so it isn't re-opened |
 
 ## L6-unclassified — 7
 
@@ -113,8 +113,8 @@ low-tier id the retired T9–T11 enumerations named is present below, so nothing
 |---|---|---|---|
 | L6-4 | minor | yes | `projectForecast` is dead code and contributes 8 copy strings to the gate's input |
 | L6-5 | minor | yes | The forecast copy is in a different voice from the rest of the app |
-| L6-6 | minor | ⛔ **no** | `"Unable to estimate"` is written in five non-test files with no single authority |
+| L6-6 | minor | yes | `"Unable to estimate"` is written in five non-test files with no single authority |
 | L6-7 | polish | yes | The RevenueCat iOS key is a source literal |
-| L6-8 | polish | ⛔ **no** | "Funded" is printed twice on the same goal row |
-| L6-9 | polish | ⛔ **no** | An informational message is delivered through the `error` prop |
+| L6-8 | polish | yes | "Funded" is printed twice on the same goal row |
+| L6-9 | polish | yes | An informational message is delivered through the `error` prop |
 | L6-10 | minor | yes | Four origin labels contain raw source text and cannot be used as list keys |

@@ -97,7 +97,11 @@ function looseExpand(text: string): Set<string> {
   for (const m of text.matchAll(/L(\d+)-(\d+(?:\/\d+)*)/g)) {
     for (const n of m[2].split('/')) ids.add(`L${m[1]}-${n}`);
   }
-  for (const m of text.matchAll(/L(\d+)-(\d+)\s*(?:…|\.\.\.|–)\s*(\d+)/g)) {
+  // ⛔ `(?:\d+\/)*` is load-bearing: the plan writes MIXED forms like `L5-10/12/17–21`, where the range
+  // follows a slash-list. Without it the regex needs the range to sit immediately after the lens prefix,
+  // so `17–21` was invisible and **L5-18/19/20 read as "in no ledger" while being explicitly listed**.
+  // Found 2026-08-20 by chasing the three ids the low-tier report still called untraced.
+  for (const m of text.matchAll(/L(\d+)-(?:\d+\/)*(\d+)\s*(?:…|\.\.\.|–|—)\s*(\d+)/g)) {
     for (let n = Number(m[2]); n <= Number(m[3]); n++) ids.add(`L${m[1]}-${n}`);
   }
   return ids;
