@@ -44,6 +44,13 @@
           "faceIDPermission": "Unlock Debt Planner with Face ID."
         }
       ],
+      [
+        "react-native-cloud-storage",
+        {
+          "iCloudContainerIdentifier": "iCloud.com.jasonsnyder.debtplanner",
+          "iCloudContainerEnvironment": "Production"
+        }
+      ],
       "@bacons/apple-targets",
       "@sentry/react-native",
       "./plugins/with-local-notifications-only.js",

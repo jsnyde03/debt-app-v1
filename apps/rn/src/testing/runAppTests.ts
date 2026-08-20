@@ -153,6 +153,16 @@ async function main() {
   // refused. ⛔ The asymmetry is the design: a false negative annoys, a false positive destroys.
   await import('../data/detectBackupFormat.test');
 
+  // P6.3.3.2 — the CLOUD envelope + codec. ⛔ This is the one backup door with no human in it: no file to
+  // open, no paste to eyeball, no picker to cancel. The foreign-blob assertion is written against a
+  // payload that WOULD be valid, because the first version passed with the marker check deleted.
+  await import('../data/cloudBackup.test');
+
+  // P6.3.3.4 — the cloud service, against a fake provider. ⛔ The clobber guard is the subject: an
+  // automatic backup that fires on a not-yet-onboarded or just-reset store overwrites the good remote
+  // with nothing, and the user finds out on the day they needed it.
+  await (await import('../storage/cloudBackup/service.test')).default();
+
   // 5.8.3 — the import router + the v1.6 file adapter. ⭐ The headline is that a REAL v1.6 backup's income
   // and dates now LAND; the pre-5.8 path blanked them while looking like it had worked.
   await import('../data/readBackup.test');

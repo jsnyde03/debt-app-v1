@@ -65,7 +65,26 @@ reusable: the provider platform-split, the service orchestration, the codec enve
 | # | Sub-step |
 |---|---|
 | ✅ | **P6.3.1 + P6.3.2 SETTLED 2026-08-20** — the mechanism is the app's **private iCloud container, no passphrase** ([D40]); the claim becomes *"Your data never goes to our servers. Optional iCloud backup keeps it in your own Apple account."* ([D41]) |
-| **P6.3.3** | **Build + verify on a device.** The Apple-portal iCloud Container + capability + profile regeneration come **first**, or signing fails. ⭐ **P6.9 is unblocked** — it consumes [D40] + [D41] rather than discovering them |
+| **P6.3.3** | **Build + verify on a device**, decomposed below. ✅ **[D47]** opt-in, offered once · ✅ **[D48]** one batched device build with P6.5 + P6.6. ⭐ **P6.9 is unblocked** — it consumes [D40] + [D41] rather than discovering them |
+
+⛔ **⚠️ JASON OWES THE APPLE PORTAL, and it blocks only the BUILD, not the code.** Register iCloud Container
+`iCloud.com.jasonsnyder.debtplanner` → tick **iCloud** on App ID `com.jasonsnyder.debtplanner` (radio:
+*"Include CloudKit support"*) → assign the container → Codemagic's automatic signing regenerates the profile.
+**Signing fails without it.** Walkthrough: `FinancialFreedom/docs/ICLOUD_BACKUP_SETUP.md` (Steps A–C).
+
+⭐ **The app already promises this feature** — `more.tsx:208` ships a *"Automatic cloud backup — coming soon"*
+row with a **Soon** badge. That is finding **L1-29**, and **P6.3.3.5 closes it**, not P6.4.
+
+| # | P6.3.3 sub-step |
+|---|---|
+| **.1** | **Dependency + config plugin.** `react-native-cloud-storage` + its `app.json` plugin block (container id, `Production`). Verify with `npx expo config --type introspect` that the entitlements are actually written — the plugin is a **New-Arch TurboModule**, the profile that cost 5.1b a whole spike |
+| **.2** | **The cloud envelope + codec** — versioned envelope around the EXISTING `serializeBackup`, `codec` id dispatch, non-throwing `decodeCloudBackup` → `readBackup`. Pure logic, unit-tested off-device |
+| **.3** | **The provider seam** — `.ios.ts` / unsupported default, so the native module never enters the web bundle. Grep-proved, the `backupFile.web.ts` precedent |
+| **.4** | **The service** — tagged outcomes, quarantine-don't-destroy, no throw reaches the UI |
+| **.5** | **The UI** — the real iCloud row replaces the "coming soon" one (**closes L1-29**): status · toggle · Back up now · Restore. Copy through `lint:copy` + `lint:glossary` |
+| **.6** | **When it runs** — [D47]: default OFF, one in-line offer, fresh install detects an existing blob and offers restore. The auto trigger's timing is decided here, with a probe, not by reasoning |
+| **.7** | **Coverage + `validate:release:rn`** — web asserts the honestly-disabled path; unit tests for codec + service |
+| **.8** | **Device verify** — rides the **[D48]** batched build (P6.3 + P6.5 + P6.6), after the portal steps land |
 
 ### ▶ P6.11 — repo consolidation *(= "6.5")*
 
@@ -360,6 +379,15 @@ a later version/tier**._
 ## Decisions
 
 **Phase 6 — the launch decisions, all settled 2026-08-20 (🎯: *"Agree with your recs"*)**
+- **[D47] ✅** — **iCloud backup is OPT-IN, default OFF, and offered once in-line.** [D41]'s claim is literally
+  *"**Optional** iCloud backup"*, and **P6.9 has to prove that claim true** — an on-by-default copy of someone's
+  finances leaving the device makes the privacy audit defend a position it does not have to hold. ⚠️ The cost is
+  real and named: a backup nobody enables protects nobody, which is what the single prominent offer pays back.
+  A fresh install still detects an existing blob and offers to restore. → **P6.3.3.6**.
+- **[D48] ✅** — **ONE batched device build carries P6.3 + P6.5 + P6.6.** All three are device-only verifiable
+  (signing/iCloud · Sentry capture on a real build · the splash), all three sit before P6.8, and a macOS cycle
+  costs the same whether it verifies one or three. ⚠️ Residual: a signing failure has three suspects instead of
+  one — mitigated by P6.3.3.1 introspecting the entitlements before the build is spent.
 - **[D40] ✅** — **cloud backup uses the app's PRIVATE iCloud container, no passphrase.** A passphrase adds a
   *permanent* unrecoverable-backup failure mode to defend against a threat this product is not sold against;
   the container is already encrypted at rest and readable only by this app under this Apple ID. → **P6.3.3**.

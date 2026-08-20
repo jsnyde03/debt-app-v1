@@ -103,6 +103,23 @@ export interface Preferences {
    *  a default; the visual + haptic carry the beat unless the user turns this on (More → Preferences). */
   debtFreeSoundEnabled: boolean;
   /**
+   * P6.3 — back the plan up to the app's private iCloud container. **[D47]: OPT-IN, default OFF**, which
+   * is why this is optional rather than a `boolean` with a default: an existing blob migrates by simply
+   * not having the key, and `undefined` must read as OFF everywhere. Readers compare `=== true` — a
+   * truthiness check would be correct today and wrong the moment someone stores `'false'`.
+   *
+   * ⚠️ It lives in the STORE, so it travels inside the backup. That is deliberate and it is a real
+   * trade: restoring on a new device carries the choice across (right — same person, same Apple ID,
+   * same intent), but the flag is device-shaped and this is not a device-scoped store. Freedom kept the
+   * equivalent in a separate device-prefs layer; Debt has no such layer, and inventing one for a single
+   * boolean would be a second persistence path to keep correct. Revisit if a second device-shaped
+   * preference ever appears.
+   *
+   * ⛔ Turning it ON is the only thing that makes financial data leave the device, so it is also the one
+   * preference the privacy claim ([D41]) depends on. P6.9 verifies it.
+   */
+  cloudBackupEnabled?: boolean;
+  /**
    * 3.5.1 — which run of the Guardian tutorial this user has completed (or dismissed). `null` = never
    * offered/seen, so they get the first-run invitation.
    *
