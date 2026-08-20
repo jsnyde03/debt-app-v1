@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useStore } from 'zustand';
@@ -12,6 +12,8 @@ import { useNotificationSync } from '@/hooks/use-notification-sync';
 import { useInitPremium } from '@/premium/premiumSync';
 import { createStorageAdapter } from '@/storage/createAdapter';
 import { bootstrapPersistence, flushPendingSave } from '@/store/persistence';
+import { getCloudBackupProvider } from '@/storage/cloudBackup';
+import { backupToCloud, isOnboarded, restoreFromCloud, shouldAutoBackup } from '@/storage/cloudBackup/service';
 import { allowRealStoreWrite, StoreProvider } from '@/store/StoreContext';
 import { appStore } from '@/store/appStore';
 import { demoSession } from '@/store/demoSession';
@@ -21,6 +23,7 @@ import { drainPendingActions } from '@/appIntents/drainPendingActions';
 import { addNotificationResponseListener, registerNotificationCategories } from '@/notifications/notifications';
 import { initErrorReporting, wrapRoot } from '@/utils/sentry';
 import { reportError } from '@/utils/reportError';
+import { notify } from '@/utils/confirm';
 import { KeyCommandListener } from '@/keyCommands/KeyCommandListener';
 import { DemoDirector } from '@/components/plan/DemoDirector';
 import { DemoAutoEntry } from '@/components/plan/DemoAutoEntry';
@@ -93,6 +96,13 @@ function RootLayout() {
   // cannot disagree for a frame.
   const demoSandbox = useStore(demoSession, (s) => s.sandbox);
   const inDemo = useStore(demoSession, (s) => s.active);
+  // P6.3.3.6 — the user was offered the iCloud backup on this install and chose to keep what is here.
+  // ⛔ Load-bearing, not bookkeeping: without it the next backgrounding auto-backs-up the bare local
+  // plan over the remote they just declined, and "restore it later from More" has silently become
+  // impossible. A ref rather than state — it is read inside the background handler and must not
+  // re-render anything.
+  const declinedRestore = useRef(false);
+  const offeredRestore = useRef(false);
   useNotificationSync();
   useInitPremium();
 
@@ -133,6 +143,19 @@ function RootLayout() {
           // The walkthrough's scripted story is timer-driven; suspended timers all fire at once on
           // resume. See `suspendStoryOnBackground`.
           suspendStoryOnBackground();
+          // P6.3.3.6 — auto-back-up to iCloud on the way out, AFTER the flush so the cloud copy is never
+          // older than the local one. Fire-and-forget: a backup must not delay backgrounding, and it
+          // no-ops on web/Android and whenever iCloud is unreachable.
+          //
+          // ⛔ `shouldAutoBackup` is the clobber guard and it is deliberately consulted HERE, at the one
+          // automatic trigger. It refuses a not-yet-onboarded store (which is also the post-"Delete all
+          // data" state, exactly when iCloud is the user's last copy), a session where the restore offer
+          // was declined, and [D47]'s default-off. The manual "Back up now" does not pass through it —
+          // the user is standing in front of that one.
+          const current = appStore.getState().store;
+          if (shouldAutoBackup(current, { declinedRestore: declinedRestore.current })) {
+            void backupToCloud(current, getCloudBackupProvider());
+          }
         } catch {
           /* best-effort flush */
         }
@@ -152,6 +175,36 @@ function RootLayout() {
       notifUnsub();
     };
   }, []);
+
+  // P6.3.3.6 — ONE-SHOT on a fresh install: if iCloud holds a backup, OFFER to restore it.
+  //
+  // ⛔ Offered, never applied. A user who deliberately reset their data must not have it silently
+  // undone, and someone handing the phone to a family member must not be shown someone else's debts.
+  // ⚠️ It runs only for a store that has not onboarded, so it cannot interrupt an existing user; on
+  // web/Android the provider is unavailable and this is a no-op that never renders anything.
+  useEffect(() => {
+    if (!isHydrated || offeredRestore.current) return;
+    if (appStore.getState().storageError === 'read-failed') return;
+    if (isOnboarded(appStore.getState().store)) return;
+    offeredRestore.current = true;
+    void (async () => {
+      const result = await restoreFromCloud(getCloudBackupProvider());
+      if (!result.ok) return;
+      notify(
+        'Restore from iCloud?',
+        'There is a backup of your plan in your iCloud account. Restore it to this device?',
+        {
+          label: 'Restore',
+          onPress: () => appStore.getState().importStore(result.store),
+          // ⛔ See `declinedRestore` above — declining has to be REMEMBERED, or backgrounding the app
+          // overwrites the very backup they chose to keep.
+          onDismiss: () => {
+            declinedRestore.current = true;
+          },
+        },
+      );
+    })();
+  }, [isHydrated]);
 
   // Storage did not open. Say so and offer the retry, rather than rendering the app over defaults —
   // the store deliberately holds no user data in this state, so the tabs would show an empty plan and

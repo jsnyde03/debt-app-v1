@@ -174,3 +174,51 @@ test('web offers the paste path and no dead file controls', async ({ page }) => 
   await expect(page.getByTestId('backup-import-input')).toBeVisible();
   await expect(page.getByTestId('backup-import-file')).toHaveCount(0);
 });
+
+/**
+ * P6.3.3.7 — the iCloud row, on the platform where iCloud does not exist.
+ *
+ * ⛔ **What this defends is the row the app shipped for months: "Automatic cloud backup — coming soon."**
+ * (finding L1-29). A promise-shaped row is worse than no row, and the way it survived is that nothing
+ * ever asserted on it. So the assertions below are that the promise is GONE and that what replaced it is
+ * honest about the platform it is standing on.
+ *
+ * ⚠️ Web can only ever prove the unavailable branch — the provider is the stub here by construction. The
+ * ready branch (toggle · Back up now · restore) is device-only, and P6.3.3.8 owes it a real pass. That
+ * boundary is named rather than papered over: a green suite here is not evidence the feature works.
+ */
+test('the iCloud row no longer promises — and web says so honestly', async ({ page }) => {
+  await seedStore(page, scenario());
+  await page.goto('/more');
+
+  // ⛔ The retired string, asserted gone. Grepping the source would not catch a second copy elsewhere in
+  // the render tree; asserting on the rendered page does.
+  await expect(page.getByText('coming soon', { exact: false })).toHaveCount(0);
+  await expect(page.getByText('Soon', { exact: true })).toHaveCount(0);
+
+  await page.getByText('iCloud backup', { exact: true }).click();
+
+  // On web the provider is `unavailableCloudBackupProvider`, so the sheet must offer NO controls at all —
+  // not a disabled toggle, not a greyed button. Same call `BACKUP_FILE_SUPPORTED` makes above.
+  await expect(page.getByTestId('cloud-backup-unavailable')).toBeVisible();
+  await expect(page.getByTestId('cloud-backup-toggle')).toHaveCount(0);
+  await expect(page.getByTestId('cloud-backup-now')).toHaveCount(0);
+  await expect(page.getByTestId('cloud-restore')).toHaveCount(0);
+});
+
+/**
+ * ⛔ And the store is not touched by any of it. The one thing a backup feature must never do is change
+ * the user's data on the way to being unavailable.
+ */
+test('opening the iCloud sheet on web changes nothing', async ({ page }) => {
+  await seedStore(page, scenario());
+  await page.goto('/more');
+  // ⚠️ Read AFTER navigating. `readStore` evaluates `window.localStorage`, and on `about:blank` — where
+  // the page sits before the first `goto` — that throws `SecurityError`, not "empty".
+  const before = await readStore(page);
+  await page.getByText('iCloud backup', { exact: true }).click();
+  await expect(page.getByTestId('cloud-backup-unavailable')).toBeVisible();
+  const after = await readStore(page);
+  expect(after.debts?.[0]?.name).toBe(before.debts?.[0]?.name);
+  expect(after.prefs?.cloudBackupEnabled).toBeUndefined();
+});

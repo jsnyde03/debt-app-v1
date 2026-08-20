@@ -31,13 +31,13 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 |---|---|---|
 | ✅ | **P6.1 DONE 2026-08-20** — the shipped version is `2.0.0` ([D38]). All three premises held; folded in the two stale `1.7.0` quotes in `codemagic.yaml` and two tracked zero-byte junk files. Detail → log |
 | ✅ | **P6.2 DONE 2026-08-20** — the feature-lock boundary is the **62** in [`REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md) ([D39]). Parser verified lossless (117 headings = 117 severities = 55 + 62); T9–T11 retired as drivers, carrying no id the generated list lacks. Detail → log |
-| **P6.3** | **Cloud backup** *(= "6.C", was 5.7)* — ships in v1.7 🎯, **not** premium-gated | 🔒 The cutover's approval condition, so **the app is not frozen until this lands** — which is why it precedes P6.8. Decomposed below |
+| **P6.3** | **Cloud backup** *(= "6.C", was 5.7)* — ships in v1.7 🎯, **not** premium-gated | 🔒 The cutover's approval condition, so **the app is not frozen until this lands**. ✅ **Built 2026-08-20 (.1–.7)**; 🔴 **only P6.3.3.8 remains and it is BLOCKED on 🎯's Apple-portal steps** → [`DEBT_ICLOUD_SETUP.md`](DEBT_ICLOUD_SETUP.md). Decomposed below |
 | **P6.4** | **The 62 filed findings + T9–T11** | From [`REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md) (**generated**; 41 minor · 21 polish). ⛔ **Not 62 edits** — 24 of the 61 copy duplicates are generic chrome that repeats by design, 5 more die with the `QA_TOOLS` flip, several are already dead. ✅ **[D42] — the commitment is a BAR, not a COUNT:** all 62 get **judged**; what gets **fixed** is every defect and every finding on a surface that ships. ⛔ **FEATURE LOCK closes with this step** |
 | **P6.5** | **Sentry** | Scaffold exists. Set `EXPO_PUBLIC_SENTRY_DSN`, CI source-map care, verify capture on a **real build**, add a `beforeBreadcrumb` PII scrub. Before P6.8 — it changes the app, and the sweep's premise is a frozen one |
 | **P6.6** | **Splash screen** | `expo-splash-screen` is registered with **no options** and there is no `expo.splash` block → prebuild takes Expo's default: a **white flash into a dark UI**. ✅ **Asset settled** — the app icon on the icon's own dark background, no wordmark ([D40]–[D46] batch: [D43]) |
 | **P6.7** | **CI / Pages ops** | ⚠️ Retire the `legacy-capture-*` tag trigger **now, independently of P6.11** — its deferral said *"with the legacy tree"* and that tree just moved a whole phase; any push of such a tag spends ~45 min of macOS runner. · Flip the deploy allow-list to `release/v1`, or a dev branch can publish to a public marketing URL indefinitely. · ✅ **[D44]:** the deploy job **asserts its SHA has a green `web-e2e` run** and fails otherwise — *"deployed"* and *"passed the gate"* stop being held together by discipline |
 | **P6.8** | ⭐ **[AUDIT GATE] Pre-Release Best-in-Class FINISH sweep — on the FROZEN app** | Absorbs **T12** (~40 polish items: L5-10/12/17–21 · L1-20…35 · L2's polish tier · L4-12…16). Every screen · sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. ⭐ **Charter includes STRUCTURAL GAPS** — *"is anything missing"*, not only *"is anything wrong"*; this is where 5.10's original fan-out intent now lives. ⛔ **Anything structural is a SCOPE CALL for 🎯**, never an automatic fix, or the sweep expands the freeze it exists to protect. Best single item: **L5-12**, the paywall never mentions the user's own money |
-| **P6.9** | ⭐ **[AUDIT GATE] Privacy / data-flow audit** | Trace EVERY egress and prove *"financial data never leaves your device"* is literally true: network · RevenueCat · Sentry · iCloud · scan OCR · logs. ✅ **Unblocked — it consumes [D40] + [D41]**, both settled 2026-08-20, so its job is to prove the new claim *literally true* rather than to discover one. ⛔ **The claim it verifies:** *"Your data never goes to our servers. Optional iCloud backup keeps it in your own Apple account."* Also owns retiring the marketing *"100% private"* line and the ASC privacy label declaring RevenueCat |
+| **P6.9** | ⭐ **[AUDIT GATE] Privacy / data-flow audit** | Trace EVERY egress and prove *"financial data never leaves your device"* is literally true: network · RevenueCat · Sentry · iCloud · scan OCR · logs. ✅ **Unblocked — it consumes [D40] + [D41]**, both settled 2026-08-20, so its job is to prove the new claim *literally true* rather than to discover one. ⛔ **The claim it verifies:** *"Your data never goes to our servers. Optional iCloud backup keeps it in your own Apple account."* Also owns retiring the marketing *"100% private"* line and the ASC privacy label declaring RevenueCat. 🔴 **P6.3 hands it a live counterexample: `PRIVACY_CLAIM.body` still says *"your financial data stays on this device"*, which the iCloud toggle makes false. P6.3 must not SHIP without [D41]'s rewrite landing here** |
 | **P6.10** | ⭐ **[AUDIT GATE] Pre-submit functional + FINANCIAL-correctness money lens** | Boundary inputs across the engine: zero/negative income · date-boundary/leap-year/timezone · rounding drift · month-vs-cycle stepping · cross-cadence BNPL · huge/partial portfolios. ⛔ **Owns two carried defects:** `bulkMarkRequired.ts` writes pre-[D2] paid semantics — inert today, but a false assertion in **data Phase 5 migrates** · `appliedTopUp` is a manual-opt-in invariant every cushion reader must remember (three readers exist; two had it) |
 | **P6.11** | **Repo consolidation** *(= "6.5", was 5.5)* — **delete the legacy tree** | ⛔ **Last possible moment, by design** (🎯: *"I do not want to take any chances at all of us deleting something from legacy that is still needed but missed"*). ⚠️ **Must be FINISHED before the final build.** Decomposed below |
 | **P6.12** | **`validate:release:rn` GREEN after the deletion** | ⛔ The guard the move created. Removing an entire surface is exactly the change that breaks the remaining one, and P6.11 now lands after everything else — nothing else would catch it |
@@ -67,24 +67,15 @@ reusable: the provider platform-split, the service orchestration, the codec enve
 | ✅ | **P6.3.1 + P6.3.2 SETTLED 2026-08-20** — the mechanism is the app's **private iCloud container, no passphrase** ([D40]); the claim becomes *"Your data never goes to our servers. Optional iCloud backup keeps it in your own Apple account."* ([D41]) |
 | **P6.3.3** | **Build + verify on a device**, decomposed below. ✅ **[D47]** opt-in, offered once · ✅ **[D48]** one batched device build with P6.5 + P6.6. ⭐ **P6.9 is unblocked** — it consumes [D40] + [D41] rather than discovering them |
 
-⛔ **⚠️ JASON OWES THE APPLE PORTAL, and it blocks only the BUILD, not the code.** Register iCloud Container
-`iCloud.com.jasonsnyder.debtplanner` → tick **iCloud** on App ID `com.jasonsnyder.debtplanner` (radio:
-*"Include CloudKit support"*) → assign the container → Codemagic's automatic signing regenerates the profile.
-**Signing fails without it.** Walkthrough: `FinancialFreedom/docs/ICLOUD_BACKUP_SETUP.md` (Steps A–C).
-
-⭐ **The app already promises this feature** — `more.tsx:208` ships a *"Automatic cloud backup — coming soon"*
-row with a **Soon** badge. That is finding **L1-29**, and **P6.3.3.5 closes it**, not P6.4.
+🔴 **⚠️ JASON OWES THE APPLE PORTAL — it blocks the BUILD, not the code, and it is the only thing standing
+between P6.3 and done.** Register iCloud Container `iCloud.com.jasonsnyder.debtplanner` → tick **iCloud** on
+App ID `com.jasonsnyder.debtplanner` → assign the container. **Signing fails without it.** Steps A–D:
+[`DEBT_ICLOUD_SETUP.md`](DEBT_ICLOUD_SETUP.md).
 
 | # | P6.3.3 sub-step |
 |---|---|
-| **.1** | **Dependency + config plugin.** `react-native-cloud-storage` + its `app.json` plugin block (container id, `Production`). Verify with `npx expo config --type introspect` that the entitlements are actually written — the plugin is a **New-Arch TurboModule**, the profile that cost 5.1b a whole spike |
-| **.2** | **The cloud envelope + codec** — versioned envelope around the EXISTING `serializeBackup`, `codec` id dispatch, non-throwing `decodeCloudBackup` → `readBackup`. Pure logic, unit-tested off-device |
-| **.3** | **The provider seam** — `.ios.ts` / unsupported default, so the native module never enters the web bundle. Grep-proved, the `backupFile.web.ts` precedent |
-| **.4** | **The service** — tagged outcomes, quarantine-don't-destroy, no throw reaches the UI |
-| **.5** | **The UI** — the real iCloud row replaces the "coming soon" one (**closes L1-29**): status · toggle · Back up now · Restore. Copy through `lint:copy` + `lint:glossary` |
-| **.6** | **When it runs** — [D47]: default OFF, one in-line offer, fresh install detects an existing blob and offers restore. The auto trigger's timing is decided here, with a probe, not by reasoning |
-| **.7** | **Coverage + `validate:release:rn`** — web asserts the honestly-disabled path; unit tests for codec + service |
-| **.8** | **Device verify** — rides the **[D48]** batched build (P6.3 + P6.5 + P6.6), after the portal steps land |
+| ✅ | **P6.3.3.1–.7 DONE 2026-08-20** — the codec, the provider seam, the service + clobber guard, the sheet (**closes L1-29**, the "coming soon" row), the auto-trigger and its coverage. Built off Freedom's device LESSONS, not its code (identical runtime). 38 + 39 unit asserts · 2 new e2e · web bundle proven free of the native module. Detail → log |
+| **.8** | **Device verify** — the [D48] batched build (P6.3 + P6.5 + P6.6), after the portal steps. ⛔ **Web structurally proves only the *unavailable* branch**; the entitlement, the container, the fresh-install download-poll, the restore offer and the toggle path have **no off-device proof at all**. The clobber-guard row is the one to run carefully — [`DEBT_ICLOUD_SETUP.md`](DEBT_ICLOUD_SETUP.md) Step D.5 |
 
 ### ▶ P6.11 — repo consolidation *(= "6.5")*
 
@@ -121,7 +112,11 @@ last-and-smallest flip carrying its own green gate.
 
 ## ⏸ Waiting on Jason
 
-✅ **Nothing is blocked on a decision** — the Phase 6 queue cleared 2026-08-20, **[D40]–[D46]** plus [D3].
+✅ **Nothing is blocked on a DECISION** — the Phase 6 queue cleared 2026-08-20, **[D40]–[D48]** plus [D3].
+
+🔴 **But one thing is blocked on YOUR HANDS: the Apple portal for iCloud.** Register the container, tick the
+capability, assign it — [`DEBT_ICLOUD_SETUP.md`](DEBT_ICLOUD_SETUP.md) Steps A–C, ~5 minutes. **Until it is
+done, any build that includes P6.3 fails at SIGNING**, and P6.3.3.8 (the device verify) cannot start.
 
 **Owed off-device (yours, not decisions):** the ASC privacy label declaring RevenueCat *(→ P6.9)* · AU/NZ
 availability · the App Review note naming the paywall path · the launch-FLIP value gate *(→ P6.21)*.
@@ -285,6 +280,9 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
   stale"* is the question a destructive confirm should answer. The envelope already carries `exportedAt` and
   a v1.6 file carries it too — it needs the `localDate` helper to render without tripping `lint:local-dates`.
   **Deferred, not dropped:** the confirm is already honest about *contents*, which is the correctness half.
+  ⚠️ **P6.3 gave it a SECOND site** *(P6.3 after-scan)*: the iCloud restore confirm has the same gap, and the
+  sheet already renders the file's mtime one line above it — so the value is in hand there and merely not
+  carried into the warning. Fix both together or neither.
 - ⚠️ **Retire `raw-v17` import acceptance** *(5.8.2 after-scan)* — the weakest of the three markers
   (`storeVersion` + `paycheck` + `debts`, no format id), and it exists only because the pre-5.8 clipboard
   export has no envelope. ⚡ The RN app has never shipped, so the only holders of a raw-v17 export are

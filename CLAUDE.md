@@ -51,9 +51,13 @@ unable to detect +1. **What caught them every time: `tsc` and mutation-planting.
 hand-rolled mechanical edits.** Prefer the Edit tool — it fails loudly where a script guesses.
 
 ⚠️ **Still owed before launch:** the **device pass** (52 rows + [T3.2]'s storage-fault row — two T3
-surfaces ship on unit assertions with **no rendered proof**) · **T9–T11**'s minor/polish set, deliberately
-outside [D37] (**re-measure before budgeting**; T4–T8 collapsed many of their owners) · 44 baselined
-hand-written local parses · dead `formatDisplayAmount`.
+surfaces ship on unit assertions with **no rendered proof**) · the **62** in `REMAINING.md` — ✅ **P6.2
+re-measured it 2026-08-20**, T9–T11 are retired as drivers and the parser is proven lossless (117 = 55 + 62)
+· 44 baselined hand-written local parses · dead `formatDisplayAmount`.
+
+🔴 **P6.3 (cloud backup) is BUILT and blocked on 🎯's Apple portal** — container + capability, 5 minutes,
+`docs/DEBT_ICLOUD_SETUP.md`. Until then **any build carrying it fails at SIGNING.** ⛔ And nothing about it
+is proven off-device: web exercises only the *unavailable* branch, by construction.
 
 
 Phases 0–3 · 3.5 · 3.7 · 4 · **3.8** are closed, and the **whole-app audit has RUN**:

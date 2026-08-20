@@ -4,6 +4,117 @@
 
 ---
 
+## ✅ P6.3.3.1–.7 — cloud backup, built off Freedom's LESSONS rather than its code (2026-08-20)
+
+🎯 mid-step: *"Make sure to reference Freedom… there were some lessons learned."* That turned out to be the
+whole game. ⚡ **Freedom runs the IDENTICAL runtime** — `expo ~56.0.14`, `react-native 0.85.3`,
+`react 19.2.3` — so `react-native-cloud-storage@3.0.1` is not an unproven dependency here; it is a
+dependency proven on this exact stack. What was worth taking was the **device experience**, which no
+amount of reading the library's docs would have produced.
+
+### ⭐ What came from Freedom's device pass, and what each one costs if you skip it
+
+| Lesson | The failure it prevents |
+|---|---|
+| **`AppData` scope, never `Documents`** | `Documents` surfaces the user's entire portfolio as a readable JSON in the Files app, where it can be renamed or deleted. And **not** `NSUbiquitousKeyValueStore` — 1 MB cap, which a real portfolio with history passes, silently and late |
+| **`readWithDownload`** | On a **fresh install** iCloud reports the file exists and `readFile` **throws** until it materialises. Treating that as "no backup" fails the *only* case anyone installs this for — a new device |
+| **Guard the provider init and every native call** | An iCloud-availability observer failure takes the app down. ⛔ A backup feature must never be why the app will not open |
+| **No native work during render** | A throw in render has no error boundary above this screen → an unhandled fatal on device. Freedom shipped that crash once |
+| **The clobber guard, three refusals** | ⛔ The expensive one — see below |
+
+### ⛔ The clobber guard is the feature, and it is three separate refusals
+
+An automatic backup that fires on any store is **a data-loss mechanism wearing a data-protection label**.
+
+1. **Not onboarded** — which is also the state right after *"Delete all data"*, i.e. precisely when iCloud
+   is the user's last copy. Auto-backing-up here overwrites a good remote with nothing.
+2. **A DECLINED restore** — the user was offered their backup on this install and said *"Not now"*. If the
+   app then backs up the bare local plan on the next backgrounding, **"restore it later from More" has
+   silently become impossible.** This is why `notify()` grew an `onDismiss`: a dialog that reports only the
+   *yes* cannot express a deliberate *no*.
+3. **[D47] default OFF** — checked `=== true`, never truthiness, and asserted against a truthy non-boolean.
+
+⚠️ Manual *"Back up now"* deliberately does **not** pass through the guard — the user is standing in front
+of it. The guard exists for the automatic path, where nobody is watching.
+
+### ⭐ Divergences from Freedom, each with a Debt-specific reason
+
+- **Decode routes through `readBackup`, not `parseBackup`** — Debt's `parseBackup` does not migrate, and
+  `readBackup` is the one importer. iCloud is a **third door onto one importer**, never a third importer.
+- **The restore confirm is IN-SHEET, never `Alert.alert`** — an empty function on react-native-web, so an
+  alert-based confirm is invisible to the entire web suite. That is 5.8.4's doctrine, and Freedom's version
+  uses the Alert.
+- **The enable flag lives in `store.prefs`** — Debt has no device-prefs layer, and inventing one for a
+  single boolean is a second persistence path to keep correct. Named trade: it travels inside the backup.
+- **Both actions refuse a SANDBOX store outright.** Debt's tutorial runs the *real screens* over scripted
+  money; a backup taken while it is active would overwrite the user's remote with a fiction. Freedom has no
+  equivalent surface. Same guard `bootstrapPersistence` already makes.
+
+### ⛔ Four instruments were wrong, and every one PASSED before it was planted
+
+The repo's law held again — **9th, 10th and 11th instances**:
+
+1. **Planted "decode ignores the codec id" → suite stayed GREEN.** The codec seam was untested: with only
+   an identity codec registered, encode and decode are both the identity, so a decoder that ignored the id
+   entirely passed everything. Fixed with a reverse codec — a transform that is *visibly* not the identity.
+2. **Planted "delete the `cloudFormat` marker check" → suite stayed GREEN.** The foreign-blob fixture used
+   `payload: '{}'`, which `readBackup` refuses anyway — **a fixture whose valid answer equalled the bug's
+   answer.** Rewritten with a payload that IS a valid Debt backup, so the marker is the only thing left
+   that can refuse it. Now reds.
+3. **The round-trip fixture spread `createDefaultStore().debts[0]`** — measured: the default store has
+   **zero** debts, so that spread was `{}` plus whatever fields the test happened to name. An invented
+   shape (`3bf178e`, three invented cutover shapes). Rebuilt from the real `Debt`.
+4. **A `node -e` plant reported success and did not write the file** — the probe that "proved" plant 1 was
+   itself lying. ⛔ **Third time this repo has paid for a mechanical script over the Edit tool.** Every
+   subsequent plant used Edit, which fails loudly.
+
+⚠️ And a fifth, off to the side: the first `expo config --type introspect` probe printed **nothing** and
+would have read as *"the plugin writes no entitlements"*. Cause: a Git-Bash path handed to `node`, which
+resolves it as `C:\…` — the quirk `CLAUDE.md` already documents. **A silent empty result is a PASS-shaped
+failure.** Re-run through PowerShell it showed all four entitlements.
+
+### ✅ What the gates caught that no amount of reading would have
+
+- **`lint:copy`** — the new sheet **created** a duplicate of the importer's `"Replace my data"`. Extracted
+  to `REPLACE_DATA_ACTION` rather than baselined: two doors onto one irreversible action must not be able
+  to describe it differently, because the day they diverge one of them is the weaker warning.
+- **`lint:destructive`** — `importStore` had an unsanctioned new caller. It qualifies (verified input, not
+  merely parsed; deliberate two-tap consent) and is registered **with its reason**.
+- **The e2e I wrote failed on its first run** — `readStore` before the first `goto` reads
+  `window.localStorage` on `about:blank` → `SecurityError`, not "empty".
+
+### ⚠️ What is verified, and what is NOT
+
+**Verified off-device:** 38 + 39 unit asserts · 11 e2e (2 new) · `tsc` clean both trees · every `lint:*`
+green · and the **web bundle proven free of the native module** — `react-native-cloud-storage`,
+`RNCloudStorage` and `NativeCloudStorage` all at **0** across every emitted chunk, with a control grep
+(`debt-planner-cloud-backup`, count 1) proving the search would have found them.
+
+⛔ **NOT verified, and web structurally cannot:** the entitlement actually signing, the real container, the
+fresh-install download-then-poll, the restore offer's Alert, and the toggle/backup/restore path at all —
+web only ever exercises the *unavailable* branch. **P6.3.3.8 owes all of it**, on the [D48] batched build.
+A green suite here is not evidence the feature works.
+
+### ⛔ And the gate run itself was a wrong instrument — `| tail` reports on TAIL
+
+The first full `validate:release:rn` was piped into `tail -40` and the harness reported **exit code 0**.
+It had **failed**: `lint:destructive` red on a *second* new `importStore` caller (the fresh-install restore
+offer in `_layout.tsx`, added after the hook was registered). ⚠️ **A pipeline's status is the LAST command's**,
+so `npm run … | tail` reports on `tail`, which always succeeds. This is the same shape `CLAUDE.md` already
+records for `cmd && check || echo "ok"` — a chain reporting on the wrong link. **Re-run redirected to a file
+with the exit code read directly.** ⭐ The gate was right twice: both new destructive callers were caught,
+each on the run after it was introduced.
+
+### ⚠️ Two things this step hands forward
+
+- **`PRIVACY_CLAIM.body` still reads *"your financial data stays on this device."*** Turning this toggle on
+  is the one thing in the app that makes that false. ⛔ **[D41]'s rewrite is P6.9's, and P6.3 must not ship
+  without it** — filed onto P6.9 rather than left as an observation.
+- **P6.3.3.1's portal steps are 🎯's**, and they gate the build, not the code. Written up at
+  `docs/DEBT_ICLOUD_SETUP.md`.
+
+---
+
 ## ✅ P6.2 — the feature-lock boundary is 62, measured rather than remembered (2026-08-20)
 
 **The item's own premise was wrong, and that is the result.** P6.2 read *"not re-measured since T4–T8

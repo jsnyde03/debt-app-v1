@@ -31,19 +31,29 @@ export function confirmDelete(message: string): Promise<boolean> {
  *
  * `actionLabel`/`onAction` add an optional second button (iOS), which degrades on web to a `confirm`
  * whose OK runs the action — the same shape `confirmDelete` uses.
+ *
+ * ⚠️ `onDismiss` (P6.3.3.6) fires when the user takes the CANCEL side. Added because "they said no" can
+ * itself be load-bearing: declining the iCloud restore offer has to suppress auto-backup for the session,
+ * or the bare local plan overwrites the remote the user just chose to keep. A dialog that reports only
+ * the yes is a dialog that cannot express a deliberate no.
  */
-export function notify(title: string, message: string, action?: { label: string; onPress: () => void }): void {
+export function notify(
+  title: string,
+  message: string,
+  action?: { label: string; onPress: () => void; onDismiss?: () => void },
+): void {
   if (Platform.OS === 'web') {
     if (typeof window === 'undefined') return;
     if (action && typeof window.confirm === 'function') {
       if (window.confirm(`${title}\n\n${message}`)) action.onPress();
+      else action.onDismiss?.();
       return;
     }
     if (typeof window.alert === 'function') window.alert(`${title}\n\n${message}`);
     return;
   }
   Alert.alert(title, message, action
-    ? [{ text: 'Not now', style: 'cancel' }, { text: action.label, onPress: action.onPress }]
+    ? [{ text: 'Not now', style: 'cancel', onPress: action.onDismiss }, { text: action.label, onPress: action.onPress }]
     : undefined);
 }
 
