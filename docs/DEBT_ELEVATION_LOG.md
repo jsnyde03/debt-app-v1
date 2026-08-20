@@ -4,6 +4,57 @@
 
 ---
 
+## 🔚 SESSION CLOSE 2026-08-20 (second session) — P6.1/P6.2/P6.6 CLOSED, P6.3+P6.5 BUILT AND ON A DEVICE BUILD. Read this first.
+
+**Branch `v1.7-dev`, 13 commits, all pushed.** `validate:release:rn` **exit 0, read directly** — 207 e2e ·
+10 embed · 10 `test:stamp` · 87 lane · tsc clean both trees · zero `error-context.md`; `lint:secrets` green
+in the chain on a separate run. CI green on `8653107` (`32384250379`) and `5adcf63`. No dev servers left
+listening.
+
+### ▶ WHERE TO PICK UP
+
+🎯 **is running the device pass right now** on the [D48] batched build — signing **passed**, which was the
+only new failure mode this build introduced. The steps are
+[`DEBT_DEVICE_PASS_2026-08-20.md`](DEBT_DEVICE_PASS_2026-08-20.md), and **row 4 is the one that matters**:
+delete → reinstall → **decline** the restore → onboard fresh → background → confirm the remote is still the
+**OLD** backup. Fixes are P6.15.
+
+**The active build is P6.4** — decomposed on the plan as P6.4.1–.7, starting with the triage of all 62.
+⭐ **All 62 now trace to a ledger (was 20 untraced)**, so the triage starts from a complete list.
+
+⏭ **One-commit follow-up owed after a green device pass:** flip source-map upload on — `SENTRY_AUTH_TOKEN` +
+`SENTRY_DISABLE_AUTO_UPLOAD: "false"` + `{organization: "jason-snyder", project: "debt-planner"}`. Held back
+deliberately so a bad token could not kill the archive carrying three device-only proofs.
+
+### ⛔ The result of the session, and it is not a feature
+
+**The release gate had been RED since 2026-08-19 and three consecutive sessions recorded it green**, each
+reasoning *"documentation only, no source touched, so the state is unchanged from CI 32287042685."* True of
+the session, false of the tree — and `gh run list` had been reporting a failure on **every push** the whole
+time. ⚡ **A remembered gate result is indistinguishable from an unrun one.** Now: [D49] (the gate writes its
+own record), the plan's gate row records what was *run*, and `CLAUDE.md` carries the rule.
+
+### ⚠️ Instruments that were wrong in a way that PASSED — five more, all mine
+
+The count for this project keeps rising and the shape never changes. **Every one was caught by planting, not
+by reading:** a codec-seam test that a decoder ignoring the codec id passed · a foreign-blob fixture whose
+junk payload did the refusing instead of the marker check · a debt fixture spread from
+`defaults.debts[0]`, which is `undefined` · a `node -e` plant that reported success and never wrote the file
+· and `npm run gate | tail` reporting **tail's** exit code, so a failing gate read as exit 0.
+
+⚡ **And two shell traps cost real time again, both already written down:** a regex probe through `node -e`
+returned empty (rewrite to a file), and `git commit -m` **command-substituted backticks** and pushed a
+message with its two load-bearing specifics silently gone. `CLAUDE.md` now carries that one too.
+
+### ⭐ What the gates caught that no amount of reading would have
+
+`lint:copy` on a **new** duplicate of *"Replace my data"* · `lint:destructive` on **both** new `importStore`
+callers, one per run · and `lint:closure` on 3 findings it could not trace — which turned out to be **the
+instrument mis-reading the plan's own compressed id format** (`L5-10/12/17–21`, a range following a
+slash-list), not a documentation gap. Untraced went **20 → 0**.
+
+---
+
 ## ✅ P6.6 (splash) + P6.5 (the breadcrumb scrub) — 🎯's portal steps landed, so the build items ran first (2026-08-20)
 
 **[D50]:** with iCloud signing unblocked, P6.6 and P6.5 were taken **before P6.4**, out of the settled order,

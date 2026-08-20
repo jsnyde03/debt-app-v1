@@ -130,7 +130,12 @@ last-and-smallest flip carrying its own green gate.
 ✅ **The Apple portal for iCloud is DONE (🎯, 2026-08-20)** — signing is unblocked.
 
 ✅ **Sentry is wired too (🎯, 2026-08-20)** — DSN in the Codemagic `AppleConnect` group, project
-`debt-planner` / `4511944380907520`, auth token already held from another app.
+`debt-planner` / `4511944380907520`, org `jason-snyder`, auth token already held from another app.
+
+⏳ **IN FLIGHT: the [D48] batched build — signing PASSED.** 🎯 runs the device pass off
+[`DEBT_DEVICE_PASS_2026-08-20.md`](DEBT_DEVICE_PASS_2026-08-20.md) (~20 min, 8 rows). ⭐ **Row 4 is the one
+that matters** — decline the restore, onboard fresh, background, and confirm the remote is still the OLD
+backup. Fixes → **P6.15**.
 
 🔴 **Nothing is blocked. The next action is 🎯 triggering the [D48] batched Codemagic build** — it carries
 P6.3 (iCloud) + P6.5 (Sentry capture) + P6.6 (the splash), and **all three are provable only on a device.**
