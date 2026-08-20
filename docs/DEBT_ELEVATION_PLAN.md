@@ -31,8 +31,8 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 |---|---|---|
 | ✅ | **P6.1 DONE 2026-08-20** — the shipped version is `2.0.0` ([D38]). All three premises held; folded in the two stale `1.7.0` quotes in `codemagic.yaml` and two tracked zero-byte junk files. Detail → log |
 | ✅ | **P6.2 DONE 2026-08-20** — the feature-lock boundary is the **62** in [`REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md) ([D39]). Parser verified lossless (117 headings = 117 severities = 55 + 62); T9–T11 retired as drivers, carrying no id the generated list lacks. Detail → log |
-| **P6.3** | **Cloud backup** *(= "6.C", was 5.7)* — ships in v1.7 🎯, **not** premium-gated | 🔒 The cutover's approval condition, so **the app is not frozen until this lands**. ✅ **Built 2026-08-20 (.1–.7)**; 🔴 **only P6.3.3.8 remains and it is BLOCKED on 🎯's Apple-portal steps** → [`DEBT_ICLOUD_SETUP.md`](DEBT_ICLOUD_SETUP.md). Decomposed below |
-| **P6.4** | **The 62 filed findings + T9–T11** | From [`REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md) (**generated**; 41 minor · 21 polish). ⛔ **Not 62 edits** — 24 of the 61 copy duplicates are generic chrome that repeats by design, 5 more die with the `QA_TOOLS` flip, several are already dead. ✅ **[D42] — the commitment is a BAR, not a COUNT:** all 62 get **judged**; what gets **fixed** is every defect and every finding on a surface that ships. ⛔ **FEATURE LOCK closes with this step** |
+| **P6.3** | **Cloud backup** *(= "6.C", was 5.7)* — ships in v1.7 🎯, **not** premium-gated | 🔒 The cutover's approval condition, so **the app is not frozen until this lands**. ✅ **Built 2026-08-20 (.1–.7)**, portal + profile done. ⏳ **Only P6.3.3.8 remains — the device verify, on the [D48] build 🎯 is cutting now.** Below |
+| **P6.4** | ▶ **BUILDING NOW — the 62 filed findings** | Decomposed below. [D42]: all 62 **judged**, fixed = every defect + every finding on a shipping surface. ⛔ **FEATURE LOCK closes with this step** |
 | **P6.5** | **Sentry** | ✅ **`beforeBreadcrumb` scrub BUILT 2026-08-20** — Sentry's touch integration records a11y labels and Debt builds those from the user's balances, so this is the difference between [D41] being true and a crash shipping real money off-device (21 asserts, both plants red). 🔴 **Needs the DSN from 🎯** → [`DEBT_SENTRY_SETUP.md`](DEBT_SENTRY_SETUP.md). ⛔ **Source-map upload stays OFF for the batched build** — a missing `SENTRY_AUTH_TOKEN` hard-fails the ARCHIVE, and that would kill the build before any of its three device checks ran |
 | **P6.6** | **Splash screen** | ✅ **DONE 2026-08-20** — plugin configured (`icon.png` · `imageWidth: 220` · `#0a051c` · contain), verified reaching the plugin via `expo config --type introspect`. ⚡ **[D43] was right and my instinct was wrong, decided by LOOKING** at three rendered candidates: on the icon's own surround the badge *dissolves*; on the app's navy it reads as a pasted-on square → [`evidence/2026-08-20-p6.6-splash/`](evidence/2026-08-20-p6.6-splash/). ⛔ **Dark in both themes** — `icon.png` is a SQUARE with no alpha, so on a light field the square shows and reads as a bug. ⚠️ Residual for 🎯: a light-mode user gets dark splash → light UI. **The rendered result is a device row** — `expo prebuild` cannot run on Windows |
 | **P6.7** | **CI / Pages ops** | ⚠️ Retire the `legacy-capture-*` tag trigger **now, independently of P6.11** — its deferral said *"with the legacy tree"* and that tree just moved a whole phase; any push of such a tag spends ~45 min of macOS runner. · Flip the deploy allow-list to `release/v1`, or a dev branch can publish to a public marketing URL indefinitely. · ✅ **[D44]:** the deploy job **asserts its SHA has a green `web-e2e` run** and fails otherwise — *"deployed"* and *"passed the gate"* stop being held together by discipline · 🔴 **[D49] — a green gate must be RECORDED BY THE GATE, never typed.** `validate:release:rn` writes `gate-status.json` (SHA + UTC date) on success only; `lint:gate-freshness` reds when **source** has changed since that SHA. ⛔ [D44] stops a red SHA *deploying* but tells nobody the gate is red — which is the hole the 2026-08-19→20 red slipped through for three sessions while CI failed every push |
@@ -56,26 +56,39 @@ the shipping configuration and `QA_TOOLS` off.
 
 ### ▶ P6.3 — cloud backup *(= "6.C")*
 
-⚠️ **Its title was refuted on measurement:** Freedom's template is **not E2EE** (the sole codec is an
-identity function; the codec interface is an empty seam) and **not a drop-in port**
-(`react-native-cloud-storage` is not a Debt dependency; it needs an Apple-portal iCloud Container +
-capability + profile regeneration or **signing fails**; device-build verifiable only). ✅ Genuinely
-reusable: the provider platform-split, the service orchestration, the codec envelope.
+✅ **P6.3.1–.2 settled ([D40] private container, no passphrase · [D41] the claim) · P6.3.3.1–.7 BUILT
+2026-08-20** — codec, provider seam, service + clobber guard, the sheet (**closes L1-29**), the auto-trigger
+and its coverage. Off Freedom's device LESSONS, not its code. ✅ 🎯 did the Apple portal + refreshed the main
+profile (a capability change invalidates it). Detail → log.
+
+| # | Remaining |
+|---|---|
+| **P6.3.3.8** | **Device verify** — on the [D48] batched build (P6.3 + P6.5 + P6.6). ⛔ **Web proves only the *unavailable* branch**; the entitlement, the container, the fresh-install download-poll, the restore offer and the toggle path have **no off-device proof at all**. ⭐ **The row that matters is the clobber guard** — [`DEBT_ICLOUD_SETUP.md`](DEBT_ICLOUD_SETUP.md) Step D.5: decline the restore, onboard fresh, background, and confirm the remote is still the OLD backup |
+
+### ▶ P6.4 — the 62 filed findings *(the ACTIVE decomposition)*
+
+⛔ **[D42] is a BAR, not a count:** all 62 **judged**; **fixed** = every defect + every finding on a surface
+that ships. ⚠️ **Not 62 edits** — 24 of the 61 copy duplicates are generic chrome that repeats *by design*,
+5 more die with the `QA_TOOLS` flip, and several are already dead. ⭐ **1 is already closed: L1-29**, the
+"coming soon" row, by P6.3.3.5.
+
+⚠️ **Two the triage must not get wrong, both already read:** **L6-7** is a *publishable* RevenueCat key
+(`appl_…`, not `sk_`) — the finding says so itself and the fix is a comment, and it is consistent with
+`lint:secrets`, which flags only secret keys. **L5-21** records that "no loading state on native" is
+**correct** — it exists so nobody re-opens it, and "fixing" it would be the defect.
 
 | # | Sub-step |
 |---|---|
-| ✅ | **P6.3.1 + P6.3.2 SETTLED 2026-08-20** — the mechanism is the app's **private iCloud container, no passphrase** ([D40]); the claim becomes *"Your data never goes to our servers. Optional iCloud backup keeps it in your own Apple account."* ([D41]) |
-| **P6.3.3** | **Build + verify on a device**, decomposed below. ✅ **[D47]** opt-in, offered once · ✅ **[D48]** one batched device build with P6.5 + P6.6. ⭐ **P6.9 is unblocked** — it consumes [D40] + [D41] rather than discovering them |
+| **P6.4.1** | **Triage all 62 against the CURRENT code**, one recorded verdict per id: FIX · already-closed · refuted · dies-with-`QA_TOOLS`/P6.11 · defer-to-2.1. ⛔ **Each verdict names its id** or `lint:closure` cannot trace it, and an untraceable closure is indistinguishable from an open finding |
+| **P6.4.2** | **The CLAIMS cluster — L3-5/6/7.** Highest value in the set: capped promises stated as fact, on money. L3-7's *"Autopay · ran"* is a presumption presented as an event. ⚠️ Half of L3-7's own suggested fix would have reported **every autopay FAILED** — refuted once already |
+| **P6.4.3** | **Number formatting — L4-5/7/8/9/10.** Whole-vs-cents disagreeing on one card, and `tabular-nums` defeated by `minimumFractionDigits: 0`. `lint:money` territory |
+| **P6.4.4** | **Copy + duplicates — L1-20…35 · L2-8…23 · L6-6.** ⛔ **The T4.4 rule applies in full:** sweep by **RETIRED STRING**, case-insensitively, no `head`, across `apps/rn/tests` AND `apps/rn/.maestro` AND `packages/core/**/test*.ts`. That rename needed **four** rounds, each caught by a different instrument after the previous went green |
+| **P6.4.5** | **States + rows — L5-13/14/16/17 · L6-8/9/10 · L4-12/13.** L5-14 is the real defect here: a cleared semimonthly/monthly payday field silently produces a **biweekly** date |
+| **P6.4.6** | **Dead code — L0-4 · L4-11 · L6-4/5.** ⛔ **Verdicts inherit their lens's slice** — every lens saw `apps/rn` + `packages/core` only, and `formatDisplayAmount` was called dead with **three live legacy call sites**. Re-check against the ROOT tree, which is why P6.11 deletes last |
+| **P6.4.7** | **`validate:release:rn` + `lint:closure` green, FEATURE LOCK closes.** After it, a structural gap defaults to **2.1** ([D39]) |
 
-🔴 **⚠️ JASON OWES THE APPLE PORTAL — it blocks the BUILD, not the code, and it is the only thing standing
-between P6.3 and done.** Register iCloud Container `iCloud.com.jasonsnyder.debtplanner` → tick **iCloud** on
-App ID `com.jasonsnyder.debtplanner` → assign the container. **Signing fails without it.** Steps A–D:
-[`DEBT_ICLOUD_SETUP.md`](DEBT_ICLOUD_SETUP.md).
-
-| # | P6.3.3 sub-step |
-|---|---|
-| ✅ | **P6.3.3.1–.7 DONE 2026-08-20** — the codec, the provider seam, the service + clobber guard, the sheet (**closes L1-29**, the "coming soon" row), the auto-trigger and its coverage. Built off Freedom's device LESSONS, not its code (identical runtime). 38 + 39 unit asserts · 2 new e2e · web bundle proven free of the native module. Detail → log |
-| **.8** | **Device verify** — the [D48] batched build (P6.3 + P6.5 + P6.6), after the portal steps. ⛔ **Web structurally proves only the *unavailable* branch**; the entitlement, the container, the fresh-install download-poll, the restore offer and the toggle path have **no off-device proof at all**. The clobber-guard row is the one to run carefully — [`DEBT_ICLOUD_SETUP.md`](DEBT_ICLOUD_SETUP.md) Step D.5 |
+**Exit:** every one of the 62 carries a recorded verdict traceable to its id, the fix set is green on the
+gate, and feature lock is declared.
 
 ### ▶ P6.11 — repo consolidation *(= "6.5")*
 
