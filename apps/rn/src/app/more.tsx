@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { InteractionManager, Linking, Platform, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { ExportBackupSheet, ImportBackupSheet } from '@/components/more/BackupSheets';
+import { CloudBackupSheet } from '@/components/more/CloudBackupSheet';
 import { SettingGroup, SettingRow } from '@/components/more/SettingRow';
 import { requestNotificationPermissionDetailed } from '@/notifications/notifications';
 import { notify } from '@/utils/confirm';
@@ -61,7 +62,7 @@ export default function MoreScreen() {
   const premiumResolved = useAppStore((s) => s.premiumResolved);
   const kind = premiumKind({ plan, premiumResolved, premiumIsLifetime });
   const { isExpanded } = useLayout(); // 3.6.5 — a wider settings column on iPad
-  const [sheet, setSheet] = useState<'export' | 'import' | null>(null);
+  const [sheet, setSheet] = useState<'export' | 'import' | 'cloud' | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   // 3.5.5.3 — the reset is instantaneous and invisible (the next mark appears on some other screen,
   // later), so the row confirms in place. Without it the tap reads as a no-op and gets repeated.
@@ -202,11 +203,14 @@ export default function MoreScreen() {
         <SettingGroup>
           <SettingRow icon="ios-share" label="Export backup" subtitle="Save a copy of your data." onPress={() => setSheet('export')} />
           <SettingRow icon="file-download" label="Import backup" subtitle="Restore from a saved backup." onPress={() => setSheet('import')} />
+          {/* P6.3 — this replaces the "coming soon" row the app had been shipping (finding L1-29). The
+              subtitle states what the feature IS rather than that it exists: [D41]'s claim is that the
+              data stays in the user's own Apple account, and this row is the first place they meet it. */}
           <SettingRow
-            icon="cloud-off"
+            icon="cloud-upload"
             label="iCloud backup"
-            subtitle="Automatic cloud backup — coming soon."
-            right={<Text style={[textStyles.caption, { color: c.text.tertiary }]}>Soon</Text>}
+            subtitle="Keep a copy in your own iCloud account."
+            onPress={() => setSheet('cloud')}
           />
           {confirmingDelete ? (
             <DeleteConfirm onCancel={() => setConfirmingDelete(false)} onConfirm={handleDeleteAll} />
@@ -355,6 +359,7 @@ export default function MoreScreen() {
 
       {sheet === 'export' ? <ExportBackupSheet onClose={() => setSheet(null)} /> : null}
       {sheet === 'import' ? <ImportBackupSheet onClose={() => setSheet(null)} /> : null}
+      {sheet === 'cloud' ? <CloudBackupSheet onClose={() => setSheet(null)} /> : null}
     </Screen>
   );
 }

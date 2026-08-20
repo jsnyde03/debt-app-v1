@@ -1,3 +1,4 @@
+import { REPLACE_DATA_ACTION } from '@core/copy/vocabulary';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput } from 'react-native';
@@ -123,7 +124,7 @@ export function ImportBackupSheet({ onClose }: { onClose: () => void }) {
         visible
         title="Replace your data?"
         subtitle="This overwrites everything currently in the app. It can't be undone."
-        submitLabel="Replace my data"
+        submitLabel={REPLACE_DATA_ACTION}
         onSubmit={replace}
         onClose={onClose}>
         <Text testID="backup-found-summary" style={[textStyles.body, { color: c.text.primary }]}>

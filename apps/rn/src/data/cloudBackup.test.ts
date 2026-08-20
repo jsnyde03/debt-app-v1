@@ -92,7 +92,7 @@ function storeWithADebt(): DebtStore {
 
 // ── Refusals. Every one of these leaves local data untouched by returning, never throwing. ──────
 {
-  const refusals: Array<[string, string]> = [
+  const refusals: [string, string][] = [
     ['not json at all', 'not a cloud backup'],
     ['"a bare string"', 'a JSON string is not an envelope'],
     ['[]', 'an array is not an envelope'],

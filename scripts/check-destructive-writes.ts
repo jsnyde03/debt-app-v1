@@ -30,6 +30,8 @@ const ALLOWED: Record<string, string> = {
   'apps/rn/src/store/persistence.ts': 'hydrate — the store is EMPTY at this point, so nothing is overwritten',
   'apps/rn/src/components/more/BackupSheets.tsx':
     'the backup restore — gated behind readBackup (refuses unrecognised input) AND a second deliberate tap (5.8.4)',
+  'apps/rn/src/hooks/use-cloud-backup.ts':
+    'the iCloud restore (P6.3.3.5) — the blob goes through decodeCloudBackup → readBackup, so it is VERIFIED and not merely parsed, and the caller is behind an in-sheet two-tap confirm naming what is lost. It also refuses a SANDBOX store outright',
 };
 
 function walk(dir: string, out: string[] = []): string[] {

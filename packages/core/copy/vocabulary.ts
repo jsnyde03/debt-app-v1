@@ -117,6 +117,18 @@ export const PRIVACY_CLAIM = {
     short: "Your money stays on your device.",
 } as const;
 
+/**
+ * The confirm on a destructive REPLACE — one wording for every door that overwrites the whole portfolio.
+ *
+ * ⛔ Extracted at P6.3.3.5 because `lint:copy` caught the iCloud sheet creating a second copy of the file
+ * importer's label. Two doors onto one irreversible action must not be able to describe it differently:
+ * the day they diverge, one of them is the weaker warning, and nobody notices until someone loses data.
+ *
+ * ⚠️ It names what the user is AGREEING TO, not the mechanism ("Replace", not "Import" or "Restore") —
+ * the destructive half is the half that has to be unambiguous on a button.
+ */
+export const REPLACE_DATA_ACTION = "Replace my data";
+
 export const GUARDIAN_STATE_LABEL = {
     clear: "Clear",
     tight: "Tight",
