@@ -14,7 +14,7 @@
 |---|---|
 | **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅ · the **whole-app audit gate** ✅ ([D37] 55/55, `lint:closure` in CI) · **Phase 5 ✅ CLOSED** — the migration is verified on a live device and the cutover is **conditionally approved**. **Phase 6 is everything that remains**, and it ends at ASC submission |
 | **Ships as** | **`2.0.0`** ([D38]). The internal workstream keeps the name *"the v1.7 Elevation"* |
-| **Gate** | `validate:release:rn` — **207 e2e · 10 embed · 10 `test:stamp` · 87 lane checks** + `lint:glossary` · `lint:money` · `lint:closure`; tsc + lint clean, zero `error-context.md`. ~15 min locally. ⛔ **Record the run, never inherit it** — the gate was RED from `f4e5e11` (2026-08-19) to 2026-08-20 while three sessions carried a stale "last green" forward, and CI was failing on every push the whole time. **Last RUN 2026-08-20 — locally on this tree (exit 0, read directly) and CI `32384250379` on `8653107`, the first green since the break.** |
+| **Gate** | `validate:release:rn` — **207 e2e · 10 embed · 10 `test:stamp` · 87 lane checks** + `lint:glossary` · `lint:money` · `lint:closure` · **`lint:secrets`** *(the repo is PUBLIC — credentials live in the Codemagic env group, never the tree)*; tsc + lint clean, zero `error-context.md`. ~15 min locally. ⛔ **Record the run, never inherit it** — the gate was RED from `f4e5e11` (2026-08-19) to 2026-08-20 while three sessions carried a stale "last green" forward, and CI was failing on every push the whole time. **Last RUN 2026-08-20 — locally on this tree (exit 0, read directly) and CI `32384250379` on `8653107`, the first green since the break.** |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 ⛔ **TWO LINES, NOT ONE ([D39]): FEATURE LOCK ≠ FREEZE.** Feature lock lands the moment **P6.4** closes — no
@@ -33,8 +33,8 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 | ✅ | **P6.2 DONE 2026-08-20** — the feature-lock boundary is the **62** in [`REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md) ([D39]). Parser verified lossless (117 headings = 117 severities = 55 + 62); T9–T11 retired as drivers, carrying no id the generated list lacks. Detail → log |
 | **P6.3** | **Cloud backup** *(= "6.C", was 5.7)* — ships in v1.7 🎯, **not** premium-gated | 🔒 The cutover's approval condition, so **the app is not frozen until this lands**. ✅ **Built 2026-08-20 (.1–.7)**; 🔴 **only P6.3.3.8 remains and it is BLOCKED on 🎯's Apple-portal steps** → [`DEBT_ICLOUD_SETUP.md`](DEBT_ICLOUD_SETUP.md). Decomposed below |
 | **P6.4** | **The 62 filed findings + T9–T11** | From [`REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md) (**generated**; 41 minor · 21 polish). ⛔ **Not 62 edits** — 24 of the 61 copy duplicates are generic chrome that repeats by design, 5 more die with the `QA_TOOLS` flip, several are already dead. ✅ **[D42] — the commitment is a BAR, not a COUNT:** all 62 get **judged**; what gets **fixed** is every defect and every finding on a surface that ships. ⛔ **FEATURE LOCK closes with this step** |
-| **P6.5** | **Sentry** | Scaffold exists. Set `EXPO_PUBLIC_SENTRY_DSN`, CI source-map care, verify capture on a **real build**, add a `beforeBreadcrumb` PII scrub. Before P6.8 — it changes the app, and the sweep's premise is a frozen one |
-| **P6.6** | **Splash screen** | `expo-splash-screen` is registered with **no options** and there is no `expo.splash` block → prebuild takes Expo's default: a **white flash into a dark UI**. ✅ **Asset settled** — the app icon on the icon's own dark background, no wordmark ([D40]–[D46] batch: [D43]) |
+| **P6.5** | **Sentry** | ✅ **`beforeBreadcrumb` scrub BUILT 2026-08-20** — Sentry's touch integration records a11y labels and Debt builds those from the user's balances, so this is the difference between [D41] being true and a crash shipping real money off-device (21 asserts, both plants red). 🔴 **Needs the DSN from 🎯** → [`DEBT_SENTRY_SETUP.md`](DEBT_SENTRY_SETUP.md). ⛔ **Source-map upload stays OFF for the batched build** — a missing `SENTRY_AUTH_TOKEN` hard-fails the ARCHIVE, and that would kill the build before any of its three device checks ran |
+| **P6.6** | **Splash screen** | ✅ **DONE 2026-08-20** — plugin configured (`icon.png` · `imageWidth: 220` · `#0a051c` · contain), verified reaching the plugin via `expo config --type introspect`. ⚡ **[D43] was right and my instinct was wrong, decided by LOOKING** at three rendered candidates: on the icon's own surround the badge *dissolves*; on the app's navy it reads as a pasted-on square → [`evidence/2026-08-20-p6.6-splash/`](evidence/2026-08-20-p6.6-splash/). ⛔ **Dark in both themes** — `icon.png` is a SQUARE with no alpha, so on a light field the square shows and reads as a bug. ⚠️ Residual for 🎯: a light-mode user gets dark splash → light UI. **The rendered result is a device row** — `expo prebuild` cannot run on Windows |
 | **P6.7** | **CI / Pages ops** | ⚠️ Retire the `legacy-capture-*` tag trigger **now, independently of P6.11** — its deferral said *"with the legacy tree"* and that tree just moved a whole phase; any push of such a tag spends ~45 min of macOS runner. · Flip the deploy allow-list to `release/v1`, or a dev branch can publish to a public marketing URL indefinitely. · ✅ **[D44]:** the deploy job **asserts its SHA has a green `web-e2e` run** and fails otherwise — *"deployed"* and *"passed the gate"* stop being held together by discipline · 🔴 **[D49] — a green gate must be RECORDED BY THE GATE, never typed.** `validate:release:rn` writes `gate-status.json` (SHA + UTC date) on success only; `lint:gate-freshness` reds when **source** has changed since that SHA. ⛔ [D44] stops a red SHA *deploying* but tells nobody the gate is red — which is the hole the 2026-08-19→20 red slipped through for three sessions while CI failed every push |
 | **P6.8** | ⭐ **[AUDIT GATE] Pre-Release Best-in-Class FINISH sweep — on the FROZEN app** | Absorbs **T12** (~40 polish items: L5-10/12/17–21 · L1-20…35 · L2's polish tier · L4-12…16). Every screen · sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. ⭐ **Charter includes STRUCTURAL GAPS** — *"is anything missing"*, not only *"is anything wrong"*; this is where 5.10's original fan-out intent now lives. ⛔ **Anything structural is a SCOPE CALL for 🎯**, never an automatic fix, or the sweep expands the freeze it exists to protect. Best single item: **L5-12**, the paywall never mentions the user's own money |
 | **P6.9** | ⭐ **[AUDIT GATE] Privacy / data-flow audit** | Trace EVERY egress and prove *"financial data never leaves your device"* is literally true: network · RevenueCat · Sentry · iCloud · scan OCR · logs. ✅ **Unblocked — it consumes [D40] + [D41]**, both settled 2026-08-20, so its job is to prove the new claim *literally true* rather than to discover one. ⛔ **The claim it verifies:** *"Your data never goes to our servers. Optional iCloud backup keeps it in your own Apple account."* Also owns retiring the marketing *"100% private"* line and the ASC privacy label declaring RevenueCat. 🔴 **P6.3 hands it a live counterexample: `PRIVACY_CLAIM.body` still says *"your financial data stays on this device"*, which the iCloud toggle makes false. P6.3 must not SHIP without [D41]'s rewrite landing here** |
@@ -114,9 +114,16 @@ last-and-smallest flip carrying its own green gate.
 
 ✅ **Nothing is blocked on a DECISION** — the Phase 6 queue cleared 2026-08-20, **[D40]–[D48]** plus [D3].
 
-🔴 **But one thing is blocked on YOUR HANDS: the Apple portal for iCloud.** Register the container, tick the
-capability, assign it — [`DEBT_ICLOUD_SETUP.md`](DEBT_ICLOUD_SETUP.md) Steps A–C, ~5 minutes. **Until it is
-done, any build that includes P6.3 fails at SIGNING**, and P6.3.3.8 (the device verify) cannot start.
+✅ **The Apple portal for iCloud is DONE (🎯, 2026-08-20)** — signing is unblocked.
+
+✅ **Sentry is wired too (🎯, 2026-08-20)** — DSN in the Codemagic `AppleConnect` group, project
+`debt-planner` / `4511944380907520`, auth token already held from another app.
+
+🔴 **Nothing is blocked. The next action is 🎯 triggering the [D48] batched Codemagic build** — it carries
+P6.3 (iCloud) + P6.5 (Sentry capture) + P6.6 (the splash), and **all three are provable only on a device.**
+⛔ **Source-map upload stays OFF for this one** ([`DEBT_SENTRY_SETUP.md`](DEBT_SENTRY_SETUP.md)): the upload
+phase hard-fails the ARCHIVE, and worst-case-off is minified frames while worst-case-on is losing all three
+verifications and another ~45-min cycle. ⏸ Owed only when it is switched on: the **org slug**.
 
 **Owed off-device (yours, not decisions):** the ASC privacy label declaring RevenueCat *(→ P6.9)* · AU/NZ
 availability · the App Review note naming the paywall path · the launch-FLIP value gate *(→ P6.21)*.
@@ -397,6 +404,11 @@ a later version/tier**._
   duplicates that repeat by design and the 5 rows the `QA_TOOLS` flip deletes.
 - **[D43] ✅** — **the splash is the app icon on the icon's own dark background, no wordmark.** → **P6.6**.
 - **[D44] ✅** — **a Pages deploy must assert its SHA has a green `web-e2e` run** and fail otherwise. → **P6.7**.
+- **[D50] ✅ (🎯 2026-08-20)** — **P6.6 + P6.5 run BEFORE P6.4**, out of the settled order, then the batched
+  build; P6.4 runs while the build and device pass are in flight. ⚡ **Why:** the device pass is the
+  longest-lead and least-provable thing left, P6.4 is in-app judgement that changes nothing about signing,
+  splash or crash capture, and a signing failure surfaces now instead of after a day of P6.4. ⚠️ Neither is
+  a feature, so landing them before feature lock costs nothing.
 - **[D49] ✅ (2026-08-20)** — **a green gate is RECORDED BY THE GATE, never typed into a document.**
   `validate:release:rn` writes `gate-status.json` (SHA + UTC date) on success only; `lint:gate-freshness`
   reds when source files have changed since that SHA. ⚡ **The failure it kills:** the gate was red from

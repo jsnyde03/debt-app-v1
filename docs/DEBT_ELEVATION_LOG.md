@@ -4,6 +4,99 @@
 
 ---
 
+## ✅ P6.6 (splash) + P6.5 (the breadcrumb scrub) — 🎯's portal steps landed, so the build items ran first (2026-08-20)
+
+**[D50]:** with iCloud signing unblocked, P6.6 and P6.5 were taken **before P6.4**, out of the settled order,
+so the batched build can be cut as soon as the DSN lands and P6.4 can run while it is in flight.
+
+### ⚡ P6.6 — [D43] was right, my instinct was wrong, and LOOKING is what settled it
+
+I was about to use the app's own dark background (`#07111f`) rather than the icon's surround, reasoning that
+matching the app makes the hand-off invisible. **Rendering all three candidates at the real geometry showed
+that was backwards.**
+
+First, a measurement that made the question exist at all: the icon's background is **a gradient, not a flat
+colour** — corners `#0a051c`, top-mid `#19122d`, bottom-mid `#030108`. So the surround choice is *visible*.
+
+| Candidate | What it actually looks like |
+|---|---|
+| `#0a051c` — the icon's own surround ✅ | The badge **dissolves**: its dark corners melt into the field and only the glowing teal mark and a soft vignette remain |
+| `#07111f` — the app's dark background | Reads as an app icon **pasted onto** a screen; the icon's purple is visibly warmer than the navy and the square edge is plain |
+| `#e6ebf3` — the app's light background | ⛔ **The square shows.** `icon.png` is a SQUARE with the rounded badge drawn inside and no alpha (the App Store forbids it), so on a light field you see a dark rectangle containing a slightly-different rounded shape — it reads as a rendering bug |
+
+⛔ **That third row is why the splash is dark in BOTH themes.** A light variant needs a *masked* asset whose
+corner radius matches iOS's superellipse, i.e. new artwork, and [D43] settled this as *the app icon on the
+icon's own dark background*. ⚠️ **Residual named, and it is 🎯's call:** the default theme is `system`, so a
+light-mode user gets dark splash → light UI — the mirror of the defect P6.6 exists to fix, smaller because a
+dark splash is a deliberate brand moment where a white flash is an accident. One `dark:` block to change.
+Evidence pinned: `docs/evidence/2026-08-20-p6.6-splash/`.
+
+⚠️ **What is NOT verified: the rendered splash.** `expo prebuild` **refuses to run on Windows** (*"Run npx
+expo prebuild again from macOS or Linux"*), so the storyboard is generated on the runner and the only proof
+available here is that the options reach the plugin (`expo config --type introspect`). It is a device row.
+
+### ⛔ P6.5 — `beforeSend` was never going to be enough, and the leak is real
+
+The scaffold already scrubbed the **event** (`user`, `request`, `contexts.device`). It did nothing about the
+**trail** — and Sentry's touch integration records the pressed element's **accessibility label**.
+
+**Measured, not assumed:** `money.tsx:828` builds `"{title}, {count} expenses, {subtotal}"` and `:980`
+builds `"{value} {sub}"` — both formatted amounts. ⚡ **So a crash on the Money tab would have shipped
+someone's real balances to a third party**, which is exactly the thing [D41] promises never happens. That is
+a privacy defect found by asking what a feature *records*, not by reading its docs.
+
+`scrubBreadcrumb.ts` is pure and native-free so it is testable under `tsx`: it redacts currency-formatted
+amounts everywhere (message **and** string data values) and **drops `console` breadcrumbs outright** —
+their content is unbounded, and a category you cannot bound is one you do not send.
+
+⚠️ **Redaction is deliberately narrow, and the test asserts both directions.** Blanking every digit would
+destroy the counts, step indices and route ids that make a trail worth keeping — and a trail nobody can read
+gets switched off, at which point the privacy win costs the whole feature. Counts, `/schedule/d1`,
+`19.99% APR` all survive; `$450`, `$1,234.56`, `$ 12` and *every* amount in a multi-amount string do not.
+
+**Both plants red:** dropping the `/g` (only the first amount redacted) and passing `data` through unscrubbed.
+
+### ⛔ The DSN arrived, and the obvious way to wire it was the wrong one — the repo is PUBLIC
+
+🎯 pasted the DSN, and the natural move was `codemagic.yaml`: version-controlled, reproducible, no dashboard
+step. The argument for it is genuinely sound in isolation — **a DSN is public by design.** It is write-only
+ingest, and it *has* to ship inlined in every binary because Metro bakes `EXPO_PUBLIC_*` into the bundle. So
+committing it "changes nothing."
+
+⚠️ **That is true of the exposure and false of the effort.** `gh repo view` → **PUBLIC**. Pulling a DSN out
+of an IPA requires someone to decide to target you; a public GitHub repo is indexed and scraped
+automatically, and the payoff is a quota flood on your project. **Same secret, two wildly different
+discovery costs** — and the whole reason to check the repo's visibility before reasoning about a credential.
+
+✅ **The DSN was NOT committed.** It goes in the Codemagic env group, and ⭐ **`lint:secrets` now makes that a
+property of the repo rather than a thing to remember** — 4 credential shapes, read off `git ls-files` so it
+guards what is *committed* rather than what is merely present (a local `.env` is not a leak, and a gate that
+reds on one trains people to ignore it). **Mutation-verified against a real-shaped DSN: exits 1, names the
+file and line, and says that deleting it is not enough because it stays in history.**
+
+⚠️ Checked rather than assumed, since a DSN reaching the web build would break [D32]'s zero-network embed
+gate: `sentry.web.ts` is a hard no-op that never reads the variable, and **no workflow sets a DSN** — only
+`SENTRY_DISABLE_AUTO_UPLOAD`. The embed is safe by two independent mechanisms.
+
+⛔ **Source-map upload stays OFF for this build, deliberately.** The `@sentry/react-native` plugin's upload
+phase **hard-fails the release archive** without `SENTRY_AUTH_TOKEN` — at `PhaseScriptExecution`, before
+anything runs. This build already carries three device-only proofs (iCloud signing · the splash · Sentry
+capture); adding a fourth failure mode that kills the archive *before any of them are tested* buys prettier
+stack traces at the cost of the whole cycle. Minified frames are legible enough to confirm capture, which is
+all P6.5 claims. → `docs/DEBT_SENTRY_SETUP.md`.
+
+⚠️ **🎯 then said he already holds an auth token from another app — which weakens that argument without
+retiring it, and the distinction is worth writing down.** The failure mode stops being *"no token"* and
+becomes *"wrong scope, wrong org, or not present in THIS project's Codemagic environment"* — a token issued
+for another app is scoped to an org, and this is a new project inside it. **The blast radius is unchanged:
+the archive dies.** ⛔ **What actually decides it is the asymmetry, not the probability:** worst case with
+uploads off is *minified frames*; worst case with uploads on is **losing all three device verifications** and
+another ~45-minute cycle. A cheap downside against an expensive one is not a close call even when the
+expensive one is unlikely. **Flip it once the device pass is green** — that is one env var, one yaml value,
+and one plugin block, and it is written down.
+
+---
+
 ## ⛔ THE GATE HAD BEEN RED SINCE 2026-08-19, AND THREE SESSIONS RECORDED IT GREEN (found 2026-08-20)
 
 **Found by running `validate:release:rn` for P6.3.3.7.** Two e2e failed —

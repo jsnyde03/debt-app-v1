@@ -158,6 +158,11 @@ async function main() {
   // payload that WOULD be valid, because the first version passed with the marker check deleted.
   await import('../data/cloudBackup.test');
 
+  // P6.5 — the Sentry breadcrumb scrub. ⛔ Sentry's touch integration records accessibility labels, and
+  // Debt builds those out of the user's balances — so this is the difference between [D41] being true and
+  // a crash on the Money tab shipping someone's real money to a third party.
+  await import('../utils/scrubBreadcrumb.test');
+
   // P6.3.3.4 — the cloud service, against a fake provider. ⛔ The clobber guard is the subject: an
   // automatic backup that fires on a not-yet-onboarded or just-reset store overwrites the good remote
   // with nothing, and the user finds out on the day they needed it.

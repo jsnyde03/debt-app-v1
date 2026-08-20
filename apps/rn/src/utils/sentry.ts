@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/react-native';
 import type { ComponentType } from 'react';
 
 import { setErrorReporter } from './reportError';
+import { scrubBreadcrumb, type ScrubbableBreadcrumb } from './scrubBreadcrumb';
 
 /**
  * VIS-6 — native crash/error reporting scaffold. Routes the app-wide `reportError` seam to Sentry.
@@ -27,6 +28,14 @@ export function initErrorReporting(): void {
       delete event.request;
       if (event.contexts) delete event.contexts.device;
       return event;
+    },
+    // ⛔ P6.5 — `beforeSend` scrubs the EVENT; this scrubs the TRAIL, and the trail is where the money was.
+    // Sentry's touch integration records the pressed element's accessibility label, and Debt builds those
+    // out of the user's own figures (`money.tsx:828`, `:980`) — so without this a crash on the Money tab
+    // ships real balances to a third party, which is precisely what [D41] says never happens. Console
+    // breadcrumbs are dropped outright; see `scrubBreadcrumb.ts` for why redaction cannot bound them.
+    beforeBreadcrumb(breadcrumb) {
+      return scrubBreadcrumb(breadcrumb as ScrubbableBreadcrumb | null) as typeof breadcrumb;
     },
     // Hardened for RN 0.85 + New Architecture (@sentry/react-native v8), per the Freedom lesson: in v7
     // these background/idle trackers threw an unhandled TurboModule exception → SIGABRT on
