@@ -1,4 +1,4 @@
-import { EVERYDAY_SPENDING_LABEL, EXPORT_BACKUP_TITLE, IMPORT_BACKUP_TITLE, PAY_CYCLE_HISTORY_TITLE, PRIVACY_POLICY_LABEL, UNLOCK_PREMIUM_CTA } from '@core/copy/vocabulary';
+import { EVERYDAY_SPENDING_LABEL, EXPORT_BACKUP_TITLE, IMPORT_BACKUP_TITLE, PAY_CYCLE_HISTORY_TITLE, PRIVACY_CLAIM, PRIVACY_POLICY_LABEL, UNLOCK_PREMIUM_CTA } from '@core/copy/vocabulary';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { tutorialRunFor } from '@/store/tutorialSelectors';
@@ -35,7 +35,6 @@ import { textStyles } from '@/theme/typography';
 import { PREMIUM_PURCHASABLE } from '@/premium/config';
 import { canManageSubscription, premiumKind } from '@/premium/premiumKind';
 import { MANAGE_SUBSCRIPTION_URL, PRIVACY_POLICY_URL, SUPPORT_URL, TERMS_OF_USE_URL } from '@/premium/legal';
-import { PRIVACY_CLAIM } from '@core/copy/vocabulary';
 
 const LINKS = {
   privacy: PRIVACY_POLICY_URL,

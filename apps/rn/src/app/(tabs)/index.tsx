@@ -912,7 +912,6 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
   // rotation the identical timeout costs only the ring — this made the same event cost the whole beat.
   useEffect(() => {
     setSettledDims(dims);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     // BOTH of the hook's publications. `measuredAt` alone was not enough: it is bumped only by the main
     // measure effect, and none of that effect's deps carries screen WIDTH (`stageTop` is inset+header,
     // `stageBottom` is height−dock, `revision` is index/dock/payoff). So a width-only reflow — an iPad
@@ -920,6 +919,11 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     // never reopened it: the beat kept asking for a drag on a screen that was untouchable and inert.
     // `spotlight` covers the hook's OTHER publisher, the layout subscriber, which does fire on exactly
     // that reflow. Keying on one publisher of a two-publisher hook is what made this a fence that sticks.
+    //
+    // ⛔ [P6.4.7] `dims` is omitted ON PURPOSE — everything above is why — and the suppression below had
+    // been sitting before a COMMENT rather than before the dependency array, so it applied to nothing and
+    // the rule had been warning here all along. It only ever looked suppressed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [measuredAt, spotlight]);
 
   const screenReachable = interactive && !payoffShowing && settledDims === dims;

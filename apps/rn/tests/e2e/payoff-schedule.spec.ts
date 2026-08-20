@@ -80,8 +80,13 @@ test.describe('payoff schedule — the entry is reachable without scrolling [L5]
         const oy = getComputedStyle(n).overflowY;
         if (oy === 'auto' || oy === 'scroll') { insideScroll = true; break; }
       }
+      // ⚠️ [P6.4.7 · L1-31] SCOPED TO THE SHEET. The sheet's destructive control was renamed "Remove" →
+      // "Delete" for one destroy verb app-wide — which means the debt ROWS behind the modal now carry the
+      // same word. An unscoped search matched three "Delete" nodes and `find` returned a ROW's, which
+      // sits earlier in the DOM than Save, so the ordering assertion read false against a correct app.
+      const sheet = document.querySelector('[data-testid="sheet-modal-root"]') ?? document;
       const label = (t: string) =>
-        Array.from(document.querySelectorAll('div,span')).find(
+        Array.from(sheet.querySelectorAll('div,span')).find(
           (n) => n.textContent?.trim() === t && n.children.length === 0,
         );
       const follows = (a: Element | undefined, b: Element | undefined) =>
@@ -89,7 +94,7 @@ test.describe('payoff schedule — the entry is reachable without scrolling [L5]
       return {
         insideScroll,
         saveAfterEntry: follows(entry, label('Save')),
-        removeAfterSave: follows(label('Save')!, label('Remove')),
+        removeAfterSave: follows(label('Save')!, label('Delete')),
       };
     });
 

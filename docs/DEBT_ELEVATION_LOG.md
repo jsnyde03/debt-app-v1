@@ -52,6 +52,132 @@ it was re-deferred on measured **cost** (below), not on the lock date, so the la
 
 ---
 
+## ⭐ P6.4 — the WHOLE-ITEM after-scan: 29 of 62 were not work, and verification was the whole job (2026-08-20)
+
+### The arithmetic, and it is the item's main result
+
+| | |
+|---|---|
+| triaged **FIX** at P6.4.1 | **37** |
+| …that became an actual edit | **33** |
+| …that **dissolved on contact** | **4** — L1-20 *(premise inverted)* · L1-22 *(→ P6.8 + a gate)* · L1-23 *(refuted)* · L1-30 *(moot)* |
+| already not work at triage | **25** |
+| ⛔ **NOT WORK, total** | **29 of 62 — 47%** |
+
+⚡ **Editing was the minority cost of every single sub-step.** The dominant cost was establishing whether a
+finding was true *now*, and the audit's own confidence never predicted it — L1-23 and L1-30 both read as
+obvious one-line fixes and both would have made the app worse.
+
+### ⛔ The site-list undercount holds for a SIXTH consecutive item — and this time the lists were MINE
+
+T4–T8 measured it five times against the audit's lists. P6.4 measured it against my own, in both
+directions:
+
+- **money sites 3 → 4 → 5**, inside one sitting, while quoting the rule that predicts it
+- **apostrophes 152 → 73** — an OVERcount, because a line-grep counted comments *(T4's own lesson:
+  "comments about a word outnumber uses of it")*
+- **L2-13's site list conflated two different fields** — it quoted the BNPL payment amount as the minimum
+- **L1-20's premise was inverted** — it claimed most eyebrow styles already apply `textTransform`; **2 of 8** do
+
+⚡ **The generalisation sharpens: a grep answers a question about TEXT, and every one of these was a
+question about CODE.** The two fixes that held were the AST passes — `lint:money`'s JSX check and
+`lint:apostrophes` — because they ask the parser instead of the characters.
+
+### ⛔ Half-closed findings are a real class, and I created one WHILE DOCUMENTING IT
+
+Four findings were already half-closed when P6.4 started (L1-32's double space outliving its reword,
+L1-35's screen-reader twin, L2-18's mirroring outliving "Vanquished", L1-25's web/native bodies). Then, at
+P6.4.5, I found **L1-27 half-closed by my own hand two hours earlier**: the price-minimising *"just"* was
+removed from the static fallback and left standing on the **live `planFromPackage` path a real device
+renders**. ⚡ **Knowing the pattern by name did not prevent committing it.** What caught it was reading the
+function for an unrelated reason. **The durable fix is not vigilance — it is that a fix's sweep must run
+over the retired string, not over the site you edited.**
+
+### ⭐ Gates caught what reading could not — five times, four of them catching ME
+
+- **`lint:copy`** red the moment L1-21 *created* the L2-19 duplicate — one rename, and a row disagreed with
+  its destination. Extracted rather than baselined.
+- **`lint:closure`** red on my own erratum: striking T5.2's sentence deleted the only trace of **L6-2**.
+- **`lint:apostrophes`** red on my own new file, hours after I built the gate.
+- **`lint:money`** was itself the hole — green over five hand-rolled sites, one reading `"$5000"` to VoiceOver.
+- **`tsc`** caught a `sed` insert landing above a function instead of inside it. ⚠️ **Every mechanical edit
+  that went wrong this item was a `sed`; every one was caught by a compiler or a gate, never by re-reading.**
+
+### ⛔ A refutation is still a hypothesis — THREE inherited claims were false
+
+**SYNTHESIS's L3-5** had the tree backwards *(the RN app never imports `buildSmartInsights`)* ·
+**T7's "zero user-voiced labels remain"** was false *(it fixed the dock and missed the marker)* ·
+**T5.2's "the legacy tree ships behind the public embed"** was false *(`embed-pages.yml` builds `apps/rn`;
+the legacy tree ships nowhere)* — and I repeated that one in two commits before reading the workflow.
+⚡ **Law IV applies to the record, not just to agents.**
+
+### ⚡ The structural finding, and it outranks everything above
+
+**The audit gate had already fixed or refuted 18 of these 62, and NONE of it was traceable to the
+low-tier id** — because [D37] scoped `lint:closure` to blocker+major. Two of P6.4's five planned fix
+clusters turned out to be **entirely empty**. ⛔ **The low tier carries the exact hazard [D37] was built to
+kill, one severity band down**, and the only reason it surfaced is that the triage was re-run against the
+ledger after the first pass read only the code.
+
+### 🎯 One decision still open
+
+**L5-19 — does 2.0 ship a free trial?** The code half is built regardless *(the paywall can now SEE an
+intro offer; it could not before)*. The business half is 🎯's, and it wants an answer before **P6.10**,
+where feature lock now closes ([D52]).
+
+### Deferred out of P6.4, each with its reason
+
+**L1-20** *(eyebrow treatment — a visual-system call, 16 literals + 6 styles + 26 test pins)* · **L1-22**
+*(73 copy strings, gated meanwhile)* · **L4-13's second half** *(`PressableScale` app-wide or nowhere)* →
+all **P6.8**. **L2-14 · L2-22 · L5-15** → **2.1**. **P6.4.6's four dead-code ids** → **P6.11**, which must
+delete the modules WITH the tree or leave four unreachable ones behind.
+
+---
+
+## ✅ P6.4.5 — the two real defects, and one I had half-closed myself (2026-08-20)
+
+**L5-13 — Money contradicted Progress one tab away, on the same store.** The empty state gates on
+`store.debts.length === 0`, but a cleared debt **stays in `debts`** with `balance <= 0` — so a debt-free
+user skipped it entirely and got the full list chrome: a hero reading **"$0 · remaining across 0 debts"**,
+the Snowball/Avalanche toggle, and *"Your debts are listed in payoff order"* above an empty active section.
+Progress has handled this state properly since 3.3 (a DEBT-FREE hero + the trophy shelf). ⚠️ The strategy
+block is **not rendered** rather than hidden — a toggle with nothing to order is an inert control, and the
+caption is false above an empty list. `paidOff` still renders its section.
+
+**L6-9 — the hypothesis, measured.** The finding said outright *"I did not read how the component renders
+`error`"*. Read: `TextField.tsx` paints **both the border and the caption** `c.accent.danger`. So *"More
+than the balance — this will clear it to $0."* — a legitimate action, with the submit button **enabled
+throughout** — shipped in the failure treatment. `TextField` gained a neutral `note` channel; `error` wins
+if both are set, because a real failure must never be softened.
+
+**L5-19's code half.** `PackageLike.product` never modelled `introPrice`, so **a trial configured in App
+Store Connect would be applied at purchase and mentioned nowhere** — the user reads "$29.99 per year" and
+is charged nothing. Now read and prefixed. ⚠️ Free and discounted are different sentences; the helper never
+says "free" for a non-zero intro, and lifetime is excluded (non-consumables cannot carry one).
+
+⛔ **And that is where L1-27 turned out to be half-closed by my own commit** — see the whole-item after-scan.
+
+Also: **L6-8** *(the goal row printed "Funded" in the amount slot AND the pill beside it; the amount now
+shows the target with a " saved" suffix)* · **L4-12** *(`AddRow` on Living Expenses — its own docstring
+says it replaces exactly the button that was still there)* · **L5-16/17/20** defensively, rendering still
+unmeasured → P6.14 · **L4-13's `pressedOpacity` token** (0.6 / 0.7 / 0.8 / 0.85 / 0.9 measured across four
+primitives).
+
+---
+
+## ✅ P6.4.6 — closed at ZERO edits, and it becomes P6.11's problem (2026-08-20)
+
+Every id resolves to *"the consumer lives in the ROOT tree"*: **L4-11** `formatDisplayAmount` (3 sites in
+`ResultsSection.tsx`) · **L6-4/5** `projectForecast` · **L3-5** `buildSmartInsights`. **L0-4** is a null —
+both components were deleted **three weeks before the audit ran**, and the lens "confirmed" them dead by
+finding zero references, which a missing file also produces.
+
+⛔ **Filed onto P6.11 rather than just closed:** after the root tree goes, all four modules are genuinely
+dead and must be deleted **with** it, or the deletion leaves four unreachable modules that every later
+sweep re-reads. ⚠️ **L3-5 must be deleted, not revived** — it carries a live capped-promise defect.
+
+---
+
 ## ✅ P6.4.4 (part 3) — a "duplicated caption" was a control-flow sentinel, and it fails OPEN (2026-08-20)
 
 **L6-6 · `"Unable to estimate"` — the finding's fix is right and its REASON is wrong, which changes where

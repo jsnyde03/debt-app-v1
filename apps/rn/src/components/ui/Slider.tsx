@@ -96,12 +96,12 @@ export function Slider({
         // `text` is load-bearing, not decoration: `now` alone is spoken as a bare number ("200"),
         // which is meaningless for money. See `a11yAdjustableValue`.
         //
-        // ⛔ [P6.4.2] This said `$${value}` and it was a REAL VoiceOver defect, not a tidy-up: the
-        // what-if slider runs to $5,000 (`sliderMax`, `analysisSelectors`), so a screen reader was
-        // being handed "$5000" with no thousands separator — byte-for-byte the defect that justified
-        // `lint:money` in the first place, sitting under a comment reasoning about how money should
-        // sound. ⚠️ Both consumers are money (`WhatIfControls`, `CushionFloorSheet`); if a non-money
-        // slider is ever added, this takes a `formatValue` prop rather than losing the formatter.
+        // ⛔ [P6.4.2] The value used to be interpolated raw into a `$`-prefixed template, which was a
+        // REAL VoiceOver defect rather than a tidy-up: the what-if slider runs to $5,000 (`sliderMax`,
+        // `analysisSelectors`), so a screen reader was handed "$5000" with no thousands separator —
+        // the same defect class that justified `lint:money`. ⚠️ Both consumers are money
+        // (`WhatIfControls`, `CushionFloorSheet`); if a non-money slider is ever added, this takes a
+        // `formatValue` prop rather than losing the formatter.
         {...a11yAdjustableValue(min, max, value, formatWhole(value))}
         accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
         onAccessibilityAction={(ev) => {

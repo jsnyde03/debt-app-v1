@@ -4,6 +4,12 @@ import { toLocalISODate } from '@core/utils/localDate';
 
 import type { RequiredExpense } from '@/data/models';
 
+// [P6.4.4 · L1-25] Re-exported so callers keep importing it from here, while the copy itself lives in a
+// module the web stub can also read — see `notificationCopy.ts` for why that split is load-bearing.
+import { RISK_NOTIFICATION } from './notificationCopy';
+
+export { RISK_NOTIFICATION };
+
 /**
  * Local-only notifications (B.9). No remote push — everything is scheduled on-device, so the app
  * needs no `aps-environment` entitlement (see the local-only config; keeps the App ID clean).
@@ -59,9 +65,6 @@ export function addNotificationResponseListener(onOpen: () => void): () => void 
   return () => sub.remove();
 }
 
-import { RISK_NOTIFICATION } from './notificationCopy';
-
-export { RISK_NOTIFICATION };
 
 // Show notifications while the app is foregrounded (banner + list).
 Notifications.setNotificationHandler({

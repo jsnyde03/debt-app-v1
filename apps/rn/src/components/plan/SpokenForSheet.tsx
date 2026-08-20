@@ -1,5 +1,4 @@
-import { EVERYDAY_SPENDING_LABEL } from '@core/copy/vocabulary';
-import { PAYCHECK_SEGMENT } from '@core/copy/vocabulary';
+import { EVERYDAY_SPENDING_LABEL, PAYCHECK_SEGMENT } from '@core/copy/vocabulary';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatCurrency } from '@core/utils/formatCurrency';

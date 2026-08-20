@@ -520,7 +520,9 @@ type BillGroup = {
 function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps & { onConvert: (e: RequiredExpense) => void }) {
   const expenses = useAppStore((s) => s.store.requiredExpenses);
   const dismissedHints = useAppStore((s) => s.store.prefs.notDebtExpenseIds ?? []);
-  const living = useAppStore((s) => s.store.livingExpenses);
+  // ⚠️ [P6.4.3 · L4-15] The raw `livingExpenses` subscription is GONE — `selectLivingReserveRequest`
+  // owns that derivation now, and this component no longer needs the list itself. Caught by eslint at
+  // the release gate, not by re-reading: extracting a derivation orphans whatever fed it.
   const payCycle = useAppStore((s) => s.store.paycheck.payCycle);
   const [sheet, setSheet] = useState<{ editing: RequiredExpense | null } | null>(null);
   useAutoOpen(autoOpen, onAutoOpened, () => setSheet({ editing: null }));
