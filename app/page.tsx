@@ -6,6 +6,7 @@ import { getNextPaycheckDate } from "@core/payCycle/getNextPaycheckDate";
 import { rollPaydayToFuture } from "@core/payCycle/rollPaydayToFuture";
 import { payCyclesPerMonth } from "@core/payCycle/payCyclesPerMonth";
 import { computeInterestSaved, type InterestSaved } from "@core/debt/computeInterestSaved";
+import { DEBT_FREE_DATE_UNPAYABLE } from "@core/debt/projectDebtPayoff";
 import { roundMoney } from "@core/utils/money";
 import type { Recurrence } from "@core/types/recurrence";
 import "./styles/00-theme-and-base.css";
@@ -358,7 +359,7 @@ export default function Home() {
             strategy: payoffStrategy,
             startDate: currentDate,
         });
-        return estimatedDebtFreeDate === "Unable to estimate" ? null : estimatedDebtFreeDate;
+        return estimatedDebtFreeDate === DEBT_FREE_DATE_UNPAYABLE ? null : estimatedDebtFreeDate;
     }, [result, debts, payoffStrategy, currentDate, payCycle]);
 
     // Interest-Saved Momentum Ledger — what the current plan saves vs. minimums.

@@ -52,6 +52,50 @@ it was re-deferred on measured **cost** (below), not on the lock date, so the la
 
 ---
 
+## ✅ P6.4.4 (part 3) — a "duplicated caption" was a control-flow sentinel, and it fails OPEN (2026-08-20)
+
+**L6-6 · `"Unable to estimate"` — the finding's fix is right and its REASON is wrong, which changes where
+the constant goes.** Filed as *"a user-facing fallback duplicated across the debt/analysis boundary"*.
+⛔ **Measured: in the shipping app it is never rendered at all.** `planSelectors.ts:122` maps it to `null`
+and `analysisSelectors.ts:126` gates on `canEstimate` before either date is read. What it actually is, is a
+**magic string compared against in eight places** across `packages/core`, `apps/rn` and the legacy tree.
+
+⚡ **So the real risk is sharper than copy drift: every comparison FAILS OPEN.** `!== "Unable to estmate"`
+does not throw and does not render wrong — it silently classifies an **unpayable plan as payable** and lets
+a garbage date flow into interest-saved, drift and the trajectory. Now `DEBT_FREE_DATE_UNPAYABLE`, exported
+from `projectDebtPayoff.ts` beside the value it describes, with every non-test site converted *(sweep over
+the repo ROOT: 1 core origin + 2 core comparisons + 3 in `apps/rn` + 5 in the legacy tree)*.
+
+⛔ **Deliberately NOT in `@core/copy/vocabulary`.** That module owns words the user reads. Coupling engine
+control flow to a display string is the exact move **L2-6's refutation forbade**, and putting a sentinel
+there would have earned the same refutation from the other direction.
+
+**L1-24 · "Never" — the label change survives, the finding's mechanism does not.** It claimed `'Never'` and
+`"Unable to estimate"` name one condition, flagging that as unverified. ⚠️ **Measured: false.** The branch
+also fires on `interestSaved.kind !== 'saving'` — payoff-enabling, or simply no gap worth drawing — which
+is not an unpayable plan at all, so the app's harshest word was stating a bleak *outcome* in cases where
+the truth is only that there is no comparison to show. → **"Not with minimums"**, accurate for both
+branches. ⚠️ It had **zero pins** — no spec, no flow asserted it — so it was both safe to change and
+uncovered.
+
+### ⛔ ERRATUM — "the legacy tree ships behind the public embed" is FALSE, and I repeated it twice
+
+🎯 asked what the public embed is for, and answering it from the workflow rather than from memory broke a
+premise I had inherited from T5.2 and re-used in **two P6.4 commit messages**. `embed-pages.yml` builds
+**`apps/rn`** (`working-directory: apps/rn` · `EXPO_PUBLIC_EMBED=1` · `npm run export:web`) and never
+touches the legacy Next tree. **The legacy tree ships nowhere.** ⚠️ The *other* seven "behind the live
+public embed" references in this log are **correct** — they name `paywall.tsx` / `paywallLead.ts`, which
+are `apps/rn` files and genuinely are in the embed build. Only T5.2's sentence was wrong; it is struck at
+source. ⚡ **A premise from the record is still a premise** — the same failure as the code-vs-ledger triage,
+one level up.
+
+*(For the record, since it was asked: the embed is the **try-before-you-install** surface —
+`jsnyde03.github.io/debt-app-v1/`, the `scripted` run ([D23]) on GitHub Pages, CTA "Get it on the App
+Store" ([D34]), **static-only by construction** with the privacy claim enforced rather than promised
+([D32]), and its 10 specs can be pointed at the deployed page via `EMBED_LIVE_URL`.)*
+
+---
+
 ## ✅ P6.4.4 (part 2) — R3 fixed what the exit SAID, not whether it could be SEEN (🎯, 2026-08-20)
 
 ⚡ **🎯 reframed L2-10 and the reframe was the whole finding.** I had it as a duplicate-string question
@@ -2907,7 +2951,12 @@ event on the one screen that exists to establish ground truth. → *"Autopay · 
 ### ⛔ The retired-string sweep found what the findings did not — three times
 
 **L3-7's site list named one file; there were two.** The legacy `components/PaydayCaptureSheet.tsx` carried
-the identical claim and ships behind the public embed until 5.5.1 (the same surface T2 fixed L6-2 in).
+the identical claim. ⛔ **ERRATUM (P6.4.4, 2026-08-20): "and ships behind the public embed until 5.5.1" is
+FALSE and was struck.** `embed-pages.yml` builds **`apps/rn`** — `working-directory: apps/rn`,
+`EXPO_PUBLIC_EMBED=1`, `npm run export:web` — and never touches the legacy Next tree. **The legacy tree
+ships NOWHERE**; the only workflow that touches it is `app-preview.yml`. Fixing it was still right *(it
+keeps P6.11's deletion clean and costs nothing)*, but **this sentence must never again be used to justify
+work in that tree** — it was repeated in two P6.4 commits before anyone read the workflow.
 **L1-15's sweep found `recovery.spec.ts` asserting `'SAFE TO DEFER'` — the suite was pinning the retired
 string in place**, exactly the T4.4 trap. **L1-12's found `LiveActivityQA`'s sample line diverging from the
 shipped one** the moment it changed, plus a device-QA-checklist row quoting it.

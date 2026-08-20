@@ -2,7 +2,7 @@ import { EMERGENCY_FUND_NOUN } from '@core/copy/vocabulary';
 import { computeStreak } from '@core/debt/computeStreak';
 import { deriveRequiredActionView, type RequiredActionView, type RequiredAllocationItem } from '@core/debt/deriveRequiredActionView';
 import { PROTECTED_CUSHION_CATEGORIES } from '@core/engine/allocatePaycheck';
-import { projectDebtPayoff } from '@core/debt/projectDebtPayoff';
+import { DEBT_FREE_DATE_UNPAYABLE, projectDebtPayoff } from '@core/debt/projectDebtPayoff';
 import { selectActiveRecommendedActions } from '@core/debt/selectActiveRecommendedActions';
 import { computeState } from '@core/guardian/computeState';
 import { toCushionStatus } from '@core/timeline/buildMultiCycleTimeline';
@@ -117,7 +117,9 @@ export function selectDebtFreeDate(store: DebtStore, allocation: Allocation | nu
     strategy: store.payoffStrategy,
     startDate: store.paycheck.currentDate,
   });
-  return estimatedDebtFreeDate === 'Unable to estimate' ? null : estimatedDebtFreeDate;
+  // [P6.4.4 · L6-6] ⚡ THIS is why the string is not copy: it is mapped to `null` before anything can
+  // render it. The finding called it "a user-facing fallback"; measured, the user never sees it.
+  return estimatedDebtFreeDate === DEBT_FREE_DATE_UNPAYABLE ? null : estimatedDebtFreeDate;
 }
 
 export interface DebtFreeBand {

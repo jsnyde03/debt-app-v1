@@ -2,6 +2,27 @@ import { Debt } from "@core/storage/debtPlannerStorage";
 import { bnplMonthlyEquivalentMinimum, isOneTimeBnplLump } from "./bnplPayoffPace";
 import { calculateMonthlyInterest } from "./calculateMonthlyInterest";
 
+/**
+ * The `estimatedDebtFreeDate` SENTINEL — "this plan does not amortize inside the horizon".
+ *
+ * ⛔ **[P6.4.4 · audit L6-6] This is a control-flow value, NOT copy, and the distinction decides where it
+ * lives.** The finding filed it as *"a user-facing fallback duplicated across the debt/analysis
+ * boundary"*. **Measured: in the shipping app it is never rendered at all** — `planSelectors.ts` and
+ * `analysisSelectors.ts` both map it to `null` before anything can display it. What it actually is, is a
+ * magic string **compared against in eight places** across `packages/core`, `apps/rn` and the legacy
+ * tree.
+ *
+ * ⚡ **That makes the real risk sharper than drift: every one of those comparisons FAILS OPEN.** A typo in
+ * `!== "Unable to estmate"` does not throw and does not render wrong — it silently classifies an
+ * unpayable plan as payable and lets a garbage date flow into interest-saved, drift and the trajectory.
+ *
+ * ⚠️ **Deliberately NOT in `@core/copy/vocabulary`.** That module owns words the user reads, and this is
+ * not one — coupling engine control flow to a display string is exactly the move L2-6's refutation
+ * forbade ("it would make five dead strings load-bearing"). If this string ever DOES need to be shown,
+ * the display copy is a separate constant and this one keeps its job.
+ */
+export const DEBT_FREE_DATE_UNPAYABLE = "Unable to estimate";
+
 type PayoffStrategy = "snowball" | "avalanche";
 
 type ProjectDebtPayoffParams = {
@@ -119,7 +140,7 @@ export function projectDebtPayoff({
             return {
                 strategy,
                 monthsToDebtFree: months,
-                estimatedDebtFreeDate: "Unable to estimate",
+                estimatedDebtFreeDate: DEBT_FREE_DATE_UNPAYABLE,
                 totalInterestPaid: 0,
                 payoffOrder,
             };
@@ -211,7 +232,7 @@ export function projectDebtPayoff({
         strategy,
         monthsToDebtFree: months,
         estimatedDebtFreeDate:
-            months >= maxMonths ? "Unable to estimate" : formatMonthYear(payoffDate),
+            months >= maxMonths ? DEBT_FREE_DATE_UNPAYABLE : formatMonthYear(payoffDate),
         totalInterestPaid:
             months >= maxMonths ? 0 : roundMoney(totalInterestPaid),
         payoffOrder,

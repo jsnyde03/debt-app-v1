@@ -220,13 +220,21 @@ export function TrajectoryChart({
     }
   }
 
-  // The minimums-only payoff date (from the ghost trajectory, same month scale) — or "Never" when
-  // minimums can't clear the debt. Gives the baseline row a date, uniform with the plan/with-extra.
+  // The minimums-only payoff date (from the ghost trajectory, same month scale) — or, when there is no
+  // crossing to show, a label. Gives the baseline row a date, uniform with the plan/with-extra.
+  //
+  // ⛔ [P6.4.4 · audit L1-24] Said **"Never"**, the harshest word in the app, and the finding's premise
+  // was that it and "Unable to estimate" name one condition. ⚠️ **MEASURED, and that is wrong** — this
+  // branch also fires on `interestSaved.kind !== 'saving'` (payoff-enabling, or no gap worth drawing),
+  // which is not an unpayable plan at all. So "Never" was stating a bleak *outcome* in cases where the
+  // truth is only that there is no comparison to draw. "Not with minimums" is accurate for BOTH branches
+  // and carries no verdict the chart cannot support. ⚠️ The finding flagged its own mechanism unverified;
+  // the label change survives the refutation, the "one condition" claim does not.
   const minEnd = minimums.find((p) => p.balance <= 0);
   const minimumsDateLabel =
     interestSaved.kind === 'saving' && minEnd
       ? monthDate(minEnd.month).toLocaleString('en-US', { month: 'short', year: 'numeric' })
-      : 'Never';
+      : 'Not with minimums';
 
   // Touch-scrub: map the finger's x to the nearest trajectory point, snap the readout to it, and tick a
   // light haptic each time the snapped month changes (a subtle detent, like the Slider). All on existing

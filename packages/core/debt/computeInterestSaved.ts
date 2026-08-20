@@ -1,4 +1,4 @@
-import { projectDebtPayoff } from "./projectDebtPayoff";
+import { DEBT_FREE_DATE_UNPAYABLE, projectDebtPayoff } from "./projectDebtPayoff";
 import type { Debt } from "@core/storage/debtPlannerStorage";
 import { roundMoney } from "@core/utils/money";
 
@@ -23,7 +23,7 @@ export type InterestSaved =
  * `projectDebtPayoff` twice; the difference is the saving.
  *
  * NOTE: `projectDebtPayoff` returns `totalInterestPaid: 0` as a SENTINEL when a
- * plan can't amortize (estimatedDebtFreeDate === "Unable to estimate") — NOT a
+ * plan can't amortize (estimatedDebtFreeDate === DEBT_FREE_DATE_UNPAYABLE) — NOT a
  * real zero — so we branch on that flag, never on a raw `0` interest total, to
  * avoid computing a garbage "saving" for the unpayable-minimums case.
  */
@@ -44,8 +44,8 @@ export function computeInterestSaved({
     const minPlan = projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: 0, strategy, startDate });
     const actualPlan = projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment, strategy, startDate });
 
-    const minUnpayable = minPlan.estimatedDebtFreeDate === "Unable to estimate";
-    const actualUnpayable = actualPlan.estimatedDebtFreeDate === "Unable to estimate";
+    const minUnpayable = minPlan.estimatedDebtFreeDate === DEBT_FREE_DATE_UNPAYABLE;
+    const actualUnpayable = actualPlan.estimatedDebtFreeDate === DEBT_FREE_DATE_UNPAYABLE;
 
     // Even with the extra it never clears → no motivating claim to make.
     if (actualUnpayable) return { kind: "none" };

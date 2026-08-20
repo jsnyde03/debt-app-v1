@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import type { CompletedRecommendedAction, Debt } from "@core/storage/debtPlannerStorage";
 import type { allocatePaycheck } from "@core/engine/allocatePaycheck";
-import { projectDebtPayoff } from "@core/debt/projectDebtPayoff";
+import { DEBT_FREE_DATE_UNPAYABLE, projectDebtPayoff } from "@core/debt/projectDebtPayoff";
 import { formatCurrency } from "@core/utils/formatCurrency";
 import { buildExtraPaymentAllocationPlan } from "@core/debt/extraPaymentPlan";
 import { hasFeatureAccess } from "@/lib/subscription/hasFeatureAccess";
@@ -167,11 +167,11 @@ export function SnowballSection({
 
 	const actualCanBeEstimated =
 		hasCalculatedPlan &&
-		actualProjection.estimatedDebtFreeDate !== "Unable to estimate";
+		actualProjection.estimatedDebtFreeDate !== DEBT_FREE_DATE_UNPAYABLE;
 
 	const recommendedCanBeEstimated =
 		hasCalculatedPlan &&
-		recommendedProjection.estimatedDebtFreeDate !== "Unable to estimate";
+		recommendedProjection.estimatedDebtFreeDate !== DEBT_FREE_DATE_UNPAYABLE;
 
 	const parsedSimulationExtraPayment = Number(simulationExtraPayment) || 0;
 
@@ -189,7 +189,7 @@ export function SnowballSection({
 		startDate: currentDate,
 	});
 
-	const comparisonCanBeEstimated = hasCalculatedPlan && snowballComparisonProjection.estimatedDebtFreeDate !== "Unable to estimate" && avalancheComparisonProjection.estimatedDebtFreeDate !== "Unable to estimate";
+	const comparisonCanBeEstimated = hasCalculatedPlan && snowballComparisonProjection.estimatedDebtFreeDate !== DEBT_FREE_DATE_UNPAYABLE && avalancheComparisonProjection.estimatedDebtFreeDate !== DEBT_FREE_DATE_UNPAYABLE;
 
 	const fasterStrategy =
 		comparisonCanBeEstimated && snowballComparisonProjection.monthsToDebtFree !== avalancheComparisonProjection.monthsToDebtFree
@@ -269,7 +269,7 @@ export function SnowballSection({
 			startDate: currentDate,
 		});
 
-	const simulationCanBeEstimated = hasCalculatedPlan && simulatedSnowballProjection.estimatedDebtFreeDate !== "Unable to estimate" && whatIfBaselineProjection.estimatedDebtFreeDate !== "Unable to estimate";
+	const simulationCanBeEstimated = hasCalculatedPlan && simulatedSnowballProjection.estimatedDebtFreeDate !== DEBT_FREE_DATE_UNPAYABLE && whatIfBaselineProjection.estimatedDebtFreeDate !== DEBT_FREE_DATE_UNPAYABLE;
 
 	const simulatedInterestSaved =
 		simulationCanBeEstimated

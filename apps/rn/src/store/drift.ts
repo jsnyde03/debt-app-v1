@@ -1,4 +1,5 @@
 import { buildDriftBaseline, shouldReAnchor } from '@core/debt/computeDrift';
+import { DEBT_FREE_DATE_UNPAYABLE } from '@core/debt/projectDebtPayoff';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 
 import { todayLocalISO } from '@/data/defaults';
@@ -59,7 +60,7 @@ export function recordDriftBaseline(
     debts: store.debts,
     payoffStrategy: store.payoffStrategy,
     monthlyExtraPayment: monthlyExtra,
-    projectedDebtFreeDate: selectDebtFreeDate(store, allocation) ?? 'Unable to estimate',
+    projectedDebtFreeDate: selectDebtFreeDate(store, allocation) ?? DEBT_FREE_DATE_UNPAYABLE,
   });
   return { ...store, driftBaseline: baseline };
 }

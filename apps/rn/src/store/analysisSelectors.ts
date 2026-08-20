@@ -2,7 +2,7 @@ import { bnplMonthlyEquivalentMinimum } from '@core/debt/bnplPayoffPace';
 import { buildAmortizationSchedule, type AmortizationSchedule } from '@core/debt/buildAmortizationSchedule';
 import { buildPayoffTrajectory, type TrajectoryPoint } from '@core/debt/buildPayoffTrajectory';
 import { buildExtraPaymentAllocationPlan, type ExtraPaymentAllocationItem } from '@core/debt/extraPaymentPlan';
-import { projectDebtPayoff } from '@core/debt/projectDebtPayoff';
+import { DEBT_FREE_DATE_UNPAYABLE, projectDebtPayoff } from '@core/debt/projectDebtPayoff';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 
 import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
@@ -107,8 +107,9 @@ export function selectWhatIf(store: DebtStore, extraMonthly: number, baseline?: 
 
   const canEstimate =
     liveDebts.length > 0 &&
-    base.estimatedDebtFreeDate !== 'Unable to estimate' &&
-    simulated.estimatedDebtFreeDate !== 'Unable to estimate';
+    // [P6.4.4 · L6-6] The sentinel, not a literal — a typo here fails OPEN and calls an unpayable plan payable.
+    base.estimatedDebtFreeDate !== DEBT_FREE_DATE_UNPAYABLE &&
+    simulated.estimatedDebtFreeDate !== DEBT_FREE_DATE_UNPAYABLE;
 
   const monthsSaved = canEstimate ? Math.max(0, base.monthsToDebtFree - simulated.monthsToDebtFree) : 0;
   const interestSaved = canEstimate ? Math.max(0, base.totalInterestPaid - simulated.totalInterestPaid) : 0;
