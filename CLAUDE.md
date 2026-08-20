@@ -205,6 +205,14 @@ is not evidence until you know which failure it would have caught.**
   are **CRLF**; `paywallLead.ts` is **LF**. Writing LF text into a CRLF file yields mixed endings and a diff
   that looks like whole-file churn. **Detect first** (`s.includes('\r\n')`), match the file, and confirm with a
   bare-LF count — not with `cat -A`, which showed clean `$` on a CRLF file here.
+- ⛔ **`git commit -m "…"` SUBSTITUTES BACKTICKS, and the commit still succeeds.** Measured 2026-08-20: a
+  message written with `-m` containing `` `L5-10/12/17–21` `` and `` `(?:\d+\/)*` `` committed and pushed with
+  **both segments simply GONE** — bash ran them as command substitution, one erroring to empty and one dying
+  on a syntax error, and neither stopped the commit. ⚠️ **The failure is silent and one-way**: the message
+  reads fluently with the two load-bearing specifics missing, which is worse than a mangled one nobody would
+  trust. **Use `git commit -F -` with a quoted heredoc** (`<<'EOF'`) — the quoting is what disables
+  substitution, and every other commit in that session did it correctly. Same family as the `\s`-eating
+  heredoc and `cmd | tail` reporting on `tail`: **the shell is a participant, not a pipe.**
 - ⚠️ **Node and Git Bash disagree about `/tmp`.** `node /tmp/x.mjs` runs, but `readFileSync('/tmp/x.md')`
   inside it resolves to `C:\tmp\…` and dies `ENOENT`. Pass absolute Windows paths to node, or keep scratch
   files where both agree.
