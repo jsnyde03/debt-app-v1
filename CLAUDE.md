@@ -15,7 +15,17 @@ backlog and the decision log. **Read it before touching anything.**
 
 ⭐ **THE AUDIT GATE IS CLOSED (2026-08-19). T1–T8 + T3B are all done, and the [D37] exit check PASSES:
 55 of 55 blocker/major findings trace to a closure or a recorded refutation** — now enforced every push by
-`lint:closure`, not by memory. ▶ **Phase 5 (data continuity + cutover) 🔒 is next.**
+`lint:closure`, not by memory.
+
+⭐ **PHASE 5 IS CLOSED (2026-08-19).** The v1.6 → RN bridge is built, 5.10's adversarial audit is green, the
+migration is **verified on a live device**, and the cutover is **conditionally approved** — the condition
+being that cloud backup still ships, so the app is **not frozen**. ▶ **Phase 6 (launch-ready) is ACTIVE**,
+decomposed as **P6.1–P6.21** at the top of the plan, and it ends at ASC submission. **This ships as
+`2.0.0`** ([D38]); the internal workstream keeps the name *"the v1.7 Elevation"*.
+
+⚠️ **Read the plan's numbering legend before quoting a step id.** `P6.n` is the sequence; **"6.C" (cloud
+backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
+`5.5.1` means **P6.11.1**.
 
 ⛔ **The result worth carrying out of eight items: an audit finding's site list is where to START looking,
 never the class.** Measured on five consecutive items, always undercounting — T4 needed material
@@ -113,7 +123,7 @@ mechanism, not the symptom — including your own.
 npm run validate:release:rn     # typecheck:core → typecheck:rn → lint → regression → app → scenarios → e2e
 ```
 
-**196 e2e + 10 embed + 10 `test:stamp` + 83 lane checks, tsc clean on both trees**, zero
+**205 e2e + 10 embed + 10 `test:stamp` + 83 lane checks, tsc clean on both trees**, zero
 `error-context.md`. CI runs it on every push. ~15 min locally.
 
 ⚠️ **It ran no `tsc` at all until 2026-08-11**, and two commits shipped green with real type
@@ -183,143 +193,7 @@ is not evidence until you know which failure it would have caught.**
 - ⚠️ **Line endings are PER FILE, and `cat -A` does not show you.** `planSelectors.ts` / `guardianSelectors.ts`
   are **CRLF**; `paywallLead.ts` is **LF**. Writing LF text into a CRLF file yields mixed endings and a diff
   that looks like whole-file churn. **Detect first** (`s.includes('\r\n')`), match the file, and confirm with a
-  bare-LF count — not with `cat -A`, which showed clean `@AGENTS.md
-
-# Debt Planner — start here
-
-v1.7 "The Elevation": Debt at or above the rest of the portfolio, acquisition-ready.
-Ships as **ONE release** — nothing launches until Phase 6 is done and Jason is satisfied.
-
-⚠️ The `@AGENTS.md` note above is about the **legacy Next/Capacitor surface** at the repo
-root, which **5.5.1 deletes**. The live app is `apps/rn` (Expo/RN) over `packages/core`.
-
-## ⚠️ `docs/DEBT_ELEVATION_PLAN.md` is the point of truth
-
-It carries **▶ BUILDING NOW** (exactly one decomposed item), the phase table, the deferred
-backlog and the decision log. **Read it before touching anything.**
-
-**ACTIVE: audit-gate remediation — T1 · T2 · T3 · T3B closed. ▶ T4 (the glossary) is next.**
-⚠️ **T4 is NOT a copy edit** — **129 exact-string copy assertions across 36 specs** pin this vocabulary,
-and it must precede T5/T7/T8 or those passes edit the same words twice. Prefer a shared copy constant or
-a `testID` over re-pinning each new string. 🟠 **Un-reviewed new copy is on screen** — the paywall lead,
-the cushion-forecast premium card, the onboarding finish-line ladder. **Cheaper to adjust before T4
-re-pins assertions around it.**
-Phases 0–3 · 3.5 · 3.7 · 4 · **3.8** are closed, and the **whole-app audit has RUN**:
-7 lenses, **117 findings**, 12 refutations → [`docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](docs/audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md).
-
-⛔ **[D37] EVERY high+ finding closes this round** *(🎯 2026-08-18)*. The exit is **not** "T1–T8 closed";
-it is **all 55 blocker+major closed or explicitly refuted, each traceable to its finding id.** ⚠️ Auditing
-the plan against the findings showed **the ledger did not cover its own high+ set** — 8 majors sat
-outside the gate → now **T3B**. Two more look already closed by T1 and were never recorded against their
-ids; **an untraceable closure is indistinguishable from an open finding.**
-
-⛔ **NOTHING IS PARKED** *(🎯 2026-08-18)*. **T9–T11 are SEQUENCED, not shelved** — the remaining
-minor/polish findings stay live and are re-evaluated once T1–T8 lands, because several become cheaper or
-moot by then. **A finding leaves this audit by being fixed or refuted on the record, never by aging out
-of attention.**
-
-⚠️ **Grep the plan's finding ids with the ranges EXPANDED.** It compresses them as `L1-5/6/7/14/19`, so a
-literal search for `L1-6` matches nothing — the first pass reported ~30 unassigned high+ and the real
-number was 4.
-
-⛔ **3 of 4 agent-declared blockers did NOT survive refutation.** The lenses' self-reported *confidence* was
-reliable every time; their *severity* was not. **No finding becomes work un-refuted** — `findings/L9-refutations.md`
-records the 12 claims actually re-checked; anything not in it carries only its own lens's confidence.
-
-⚡ **3.8 (the expense reserve) closed 2026-08-17, and its lesson generalises:** every one of its six steps found
-a defect the step before it could not have found, and **three of the five were introduced by 3.8 itself**. A
-before-scan catches *stale claims*; it structurally cannot catch a defect you are about to write.
-⛔ **The sharpest: `route-smoke.spec.ts` — which exists verbatim for "a blank route passes silently" — passed
-10/10 while Today rendered BLANK for every user with a bill**, because its fixture seeded no expenses and the
-offending selector returns a stable `null` on an empty plan. *A fixture chosen for convenience decides which
-defects a guard can see.* (Fixed in T1: `scenario()` now seeds a bill.)
-
-## A pre-authored item is a HYPOTHESIS, and it fails two ways
-
-Measured twice, on two separate authoring passes:
-
-- **Wave A** (2026-08-11) — of **14** items, **5 did not exist** and **4 more were materially
-  misdescribed**. Only ~5 of 14 were both real and accurately described.
-- **Wave B** (2026-08-11) — of **4** items, **1 was refuted outright**, **1 was already half
-  shipped**, **1 was wrong in 3 of its 4 stated premises**, **1 was clean.**
-
-The ledger is reliable about **where** to look and unreliable about **what is there.**
-
-- **The before-scan catches STALE** — already fixed, or never real. Minutes per item.
-- **Only BUILDING catches MISDESCRIBED.** A before-scan confirms the code path exists and
-  looks as described — which is exactly how an inverted item slips through. `A3.7` claimed a
-  default was "deferrable" when it was `essential`; built as written it would have made a
-  discretionary purchase *less* cuttable.
-
-So when you reach the code, **re-read the thing the item asserts** — the default branch, the
-comparison direction, the fallback. Two tells, both real here: a **stale doc comment that
-contradicts the assertions beside it** (that is what generated the inverted item), and a
-premise phrased as a **closed set** ("the only way is X" — there were two other ways).
-
-⚠️ **And it is not a property of OLD items.** Wave B produced two wrong claims *the same
-session they were written*: an item asserting the rollover should clear `autopayFailedThisCycle`
-(the persistence is load-bearing — clearing it would silently presume a bill the user reported
-never ran had been paid), and a confident "re-rendering resets the swipe pan" inferred from a
-failure whose real cause was unrelated. **A claim's age is not what makes it wrong.** Check the
-mechanism, not the symptom — including your own.
-
-## The gate
-
-```bash
-npm run validate:release:rn     # typecheck:core → typecheck:rn → lint → regression → app → scenarios → e2e
-```
-
-**184 e2e + 10 embed + 10 `test:stamp` + 83 lane checks, tsc clean on both trees**, zero
-`error-context.md`. CI runs it on every push. ~15 min locally.
-
-⚠️ **It ran no `tsc` at all until 2026-08-11**, and two commits shipped green with real type
-errors before that was found. `packages/core` had been unchecked since `validate:release:legacy`
-was retired 2026-07-24. Both typechecks now run FIRST so they fail fast.
-
-⛔ **AND THE RULE APPLIES TO THE PROBE YOU JUST WROTE. Measured across T3: 7 of 7 first-cut instruments
-were wrong in a way that would have PASSED.** A `TZ` that never changed (5 zones measured as 1) · a
-mutation that matched two functions and died on a `ReferenceError` · a probe writing to a field that does
-not exist · a fixture whose valid answer equalled the bug's answer · assertions that would pass a
-"take the last item" implementation · a test poking `localStorage` the hydrated app never re-reads · a
-message API that no-ops on web. **Every one was caught by asking *which failure would this catch?* —
-so treat a fresh instrument as wrong until it has been shown to fail on the defect.**
-
-⚠️ **A green suite often means untested, not correct.** Before trusting a pass, ask whether any
-test *would have failed*. The offline-Lifetime mislabel shipped green because nothing covered
-the Lifetime row, the manage link, or the offline path. The same trap works at the level of a
-single assertion: an a11y check passed while spreading `{...a11yHidden}` — the *function*, so no
-props at all — because the query it used happened to find nothing either way. **A green assertion
-is not evidence until you know which failure it would have caught.**
-
-## Environment quirks that cost real time
-
-- **`cwd` drifts.** Prefer `git -C /c/Users/Jason/debt-app-v1 …` and absolute paths.
-- **Throwaway `tsx` probes must run with `apps/rn` as cwd** — the `@/*` and `@core/*` aliases
-  resolve from `apps/rn/tsconfig.json`. A probe in the scratchpad, or run from the repo root,
-  dies with `MODULE_NOT_FOUND`. Core tests run the same way:
-  `cd apps/rn && npx tsx ../../packages/core/debt/testX.ts`.
-- ⛔ **`TZ=… node …` through Git Bash is DROPPED here; assign `process.env.TZ` at RUNTIME instead.**
-  Measured both ways 2026-08-18: the env-prefix form left the host zone in place (offset unchanged),
-  while a runtime assignment took effect immediately. A timezone test written the natural way therefore
-  runs every case in one zone and reports a pass per case. **Assert the zone actually changed before
-  trusting anything measured in it** (`packages/core/utils/testLocalDate.ts` does). Restore the original
-  `TZ` in a `finally` — `runRegressionTests` imports every suite into one process, so a leaked zone
-  silently re-times the ones that follow.
-- **Measure, don't derive.** Engine figures compose through `effectivePaycheckBuffer` and the
-  §2.5 waterfall and are **not** predictable by reading. Two test fixtures this session were
-  wrong on the first try from reasoning that looked sound. Write a probe, print the numbers,
-  then write the assertion.
-  ⛔ **But `tsx` does NOT typecheck, so a probe can write to a field that does not exist and print
-  confident nonsense.** One assigned `store.expenses` — the field is `requiredExpenses` — and reported
-  `totalRequired: 0` against a rent that was really being counted, which reads exactly like a finding.
-  **A probe's output is evidence about the probe until its fixture is checked.** Print the fixture back,
-  or run `tsc` over it.
-- ⚡ **On an e2e failure, read `error-context.md` BEFORE touching the code.** Its page snapshot says what
-  actually rendered. It has twice now shown the FIX working and the TEST wrong — without it the obvious
-  next move is to debug working code. ⚠️ And prefer a container `testID` over a stat inside it for
-  presence checks: `guardian-reserve-amount` renders in most Guardian states but **not** in `clear`,
-  which is exactly the state a new user is in.
- on a CRLF file here.
+  bare-LF count — not with `cat -A`, which showed clean `$` on a CRLF file here.
 - ⚠️ **Node and Git Bash disagree about `/tmp`.** `node /tmp/x.mjs` runs, but `readFileSync('/tmp/x.md')`
   inside it resolves to `C:\tmp\…` and dies `ENOENT`. Pass absolute Windows paths to node, or keep scratch
   files where both agree.

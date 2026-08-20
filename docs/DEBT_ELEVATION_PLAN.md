@@ -8,142 +8,104 @@
 
 ---
 
-## ▶ BUILDING NOW — **Phase 5.5 · Repo consolidation** *(Phase 5 ✅ CLOSED 2026-08-19)*
+## ▶ BUILDING NOW — **Phase 6 · Launch-ready** *(Phase 5 ✅ CLOSED 2026-08-19)*
 
 | | |
 |---|---|
-| **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅, and the **whole-app audit gate T1–T8 + T3B ✅ CLOSED 2026-08-19** ([D37] 55/55, `lint:closure` in CI). ✅ **Phase 5 CLOSED**. Remaining: **Phase 6** ▶ → **Phase 6.5** (repo consolidation — MOVED from 5.5, 🎯) → **final build** → submit |
-| **Phase 5** | ✅ **CLOSED 2026-08-19.** 5.1–5.11 done (5.7 → Phase 6, 5.9 refuted). ⭐ **Migration VERIFIED on a live device**, probe clean (`Keys 22 · truncated=no`), **cutover CONDITIONALLY APPROVED** 🎯 |
-| **▶ NEXT — and it gates the feature-lock line** | **Regenerate T9–T11 from the findings file** *(= "the 3.5 remainder", [D39])* **before** it is used as the boundary. ⚠️ Not re-measured since **T4–T8 collapsed many of its owners**, so the live count is unknown — and an enumerated list has been short five consecutive times. A **generated** list, not a remembered one. Then **Phase 6** in the recorded order; **Phase 6.5** (repo consolidation) now runs LAST, before the final build |
-| **Device-owed → Phase 6 device pass** | the **document picker** (from **iCloud Drive**, not local) · the **`v16-damaged` repair report** · the **v1.6-file import not landing in onboarding** *(fixed at the root, unit-covered, never seen on a device)* |
-| **Gate** | `validate:release:rn` — **196 e2e · 10 embed · 10 `test:stamp` · 83 lane checks**, tsc + lint clean, zero `error-context.md`. CI runs it on every push. ⭐ **+`lint:glossary` +`lint:money` +`lint:closure`** |
-| **The audit** | ⭐ [`audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md`](audits/2026-08-17-v1.7-audit-gate/SYNTHESIS.md) — 117 findings, 7 lenses, 8 refutations. **CLOSED**; detail → log |
-| **Device pass** | 52 rows + the 60 coverable-not-built + **[T3.2]'s owed row** (force a storage fault → the retry screen renders AND the retry recovers) — all Phase 6, human-ticked, non-gating. ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them |
+| **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅ · the **whole-app audit gate** ✅ ([D37] 55/55, `lint:closure` in CI) · **Phase 5 ✅ CLOSED** — the migration is verified on a live device and the cutover is **conditionally approved**. **Phase 6 is everything that remains**, and it ends at ASC submission |
+| **Ships as** | **`2.0.0`** ([D38]). The internal workstream keeps the name *"the v1.7 Elevation"* |
+| **Gate** | `validate:release:rn` — **205 e2e · 10 embed · 10 `test:stamp` · 83 lane checks** + `lint:glossary` · `lint:money` · `lint:closure`; tsc + lint clean, zero `error-context.md`. Last green: CI `32287042685`. ~15 min locally |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
-✅ **THE AUDIT GATE IS CLOSED (2026-08-19).** T1–T8 + T3B, **[D37] 55/55 high+ traceable**, three new lint
-gates (`lint:glossary` · `lint:money` · `lint:closure`), e2e 184 → 195. ⛔ **The result that outlives it:
-an audit finding's site list is where to START looking, never the class** — five consecutive items
-undercounted in one direction — and **refutation earned its keep six times.** Detail + the phase-level
-after-scan → log.
+⛔ **TWO LINES, NOT ONE ([D39]): FEATURE LOCK ≠ FREEZE.** Feature lock lands the moment **P6.4** closes — no
+new capability in 2.0 past it, and a structural gap found after it defaults to **2.1**. Freeze is later and
+stricter: every planned change landed. *"Frozen" is not a milestone you schedule; it is a state you converge to.*
 
-🎯 **2026-08-19: Phase 5 is GO, and it is the FULL bridge** — v1.6 has real users with populated data, so
-the bridge is ship-blocking and the adversarial migration audit is a hard exit gate before cutover.
+⚠️ **Numbering legend — two older labels are kept, not renamed.** `P6.n` is this decomposition's sequence.
+**"6.C" (cloud backup) = P6.3** · **"6.5" (repo consolidation, was 5.5) = P6.11**, so a log entry or commit
+naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 
-✅ **STANDING PERMISSION, PHASE 5** *(🎯 2026-08-19: "continue through Phase 5 until you need my input.
-You have standing permission to commit, push and dispatch where needed.")* — includes **dispatching CI**.
-⚠️ **Conditional on the scans**, as every prior grant has been: each step and sub-step gets its before-scan
-(verify the premise against CURRENT code — this phase has already corrected the schema corpus, the key
-count, the lockfile claim and my own `amount` flag) and its after-scan, captured atomically with the plan
-edit. ⛔ **Still comes to Jason:** a product/content call, anything touching **5.5 / 6**, the **cutover**
-itself, and any ruling that overturns a decision he already made.
+### ▶ Phase 6 — the steps *(🎯's own order, settled 2026-08-19)*
 
-### ⛔ The switch-in before-scan corrected the pre-authored scope (2026-08-19)
-
-**Four of six premises were wrong or stale** — the same profile T1–T8 measured five consecutive times.
-
-| premise, as written | measured against current code |
-|---|---|
-| "Every prior data shape: **v1–v6 schemas**" | ⛔ **Wrong on BOTH readings.** *Source* = `lib/storage/migrateState.ts`, `CURRENT_SCHEMA_VERSION = **2**`, one registered migration → blobs in the wild are **0 / 1 / 2**. *Destination* = `apps/rn/src/data/models.ts`, `CURRENT_STORE_VERSION = **7**`, unshipped. **The audit corpus was mis-specified.** |
-| the migration bridge | ✅ **genuinely unbuilt** (three comments call it "the Phase-D data bridge"; no such file) · ⭐ **bundle ids MATCH** — `com.jasonsnyder.debtplanner` in both `apps/rn/app.json` and `capacitor.config.ts` → upgrade-in-place is valid |
-| flush critical prefs immediately | ✅ **true and reproducible** — `SAVE_DEBOUNCE_MS = 500`, and `flushPendingSave` has exactly **one** caller (`_layout.tsx`, AppState `background`/`inactive`) |
-| the two inert prefs | ✅ **zero production reads** for `isDemoMode` and `guardianIntroSeen` · ⚠️ `sandboxStore.ts:19` still *claims* `isDemoMode` is "read by real code", contradicting `use-payday-capture`'s own comment |
-| paste-JSON import | ✅ `BackupSheets.tsx`, 106 lines, clipboard-only · `expo-sharing` is a dep, **document-picker is not** |
-| E2EE iCloud template | ✅ Freedom's `src/storage/cloudBackup/` + `data/cloudBackup.ts` — **6 files, 339 lines, 2 test files** |
-
-⛔ **The risk the plan never named, and it gates every other step: an RN binary has NO web context, and
-`react-native-webview` is not a dependency.** Reading the Capacitor WKWebView `localStorage` after an
-upgrade is an **unproven capability**, not an implementation detail. → **5.1 is a device-proven spike, and
-nothing downstream is budgeted until it answers.**
-
-⚡ **Source shape measured, not assumed:** a repo-root ripgrep sweep (no `head`, no directory list) found
-**31 distinct `debtPlanner.*` keys**, including `schemaVersion`, `cycleHistory` and `resetSnapshot`.
-
-### ▶ Phase 5 — the steps
-
-| # | Step | State |
+| # | Step | State / notes |
 |---|---|---|
-| **5.1a** | **The WebKit `localStorage` decode** — the half provable off-device | ✅ **Done 2026-08-19.** `webkitLocalStorage.ts`: encoding sniff, table decode, and the store picked **on contents, never on path** (WebKit's layout is private and has changed twice). **36 asserts** incl. a **real `node:sqlite` round-trip** through WebKit's own `ItemTable` shape; **4 plants, 4 reds**; typecheck + lint clean |
-| **5.1b** | **[SPIKE] Prove the databases are findable and readable after a real upgrade.** Two lanes, two claims: the **mechanism** on a GH-Actions **simulator** (install v1.6 → use it → install RN over it, same bundle id, same container) — free and repeatable; the **acceptance** on 🎯's phone via one batched CodeMagic build, which is Phase 5's stated exit. Fallback if the read comes back empty: a native `WKURLSchemeHandler` + off-screen WKWebView | ▶ **ACTIVE.** ✅ **5.1b.1** the legacy build was ROTTED and is repaired · ✅ **5.1b.2** the walk — both WebKit layouts, breadth-first, **caps that REPORT** (`truncated`), **17 asserts** against a real temp tree, **4 plants / 4 reds**. ▶ **5.1b.3** — ✅ deps (`expo-sqlite` + `expo-file-system`, plugin registered) · ✅ native adapter + web split · ✅ the QA-gated `legacy-bridge-probe` readout on More, beside the other two probes. ⛔ **The source DB is COPIED before opening** — `SQLiteOpenOptions` has no read-only flag, so opening the user's own WebKit store would open it read-write. Verified: tsc clean · `lint:rn` 0 errors · **web export green with 0 occurrences of `expo-sqlite` in the bundle**. ⭐ **ANSWERED 2026-08-19, run `32271630276` GREEN — artifact `legacy-webkit-container` uploaded.** The v1.6 store is at **`Library/WebKit/<BUNDLE-ID>/WebsiteData/Default/<salt>/<salt>/LocalStorage/localstorage.sqlite3`** on **iOS 26.2** — a bundle-id segment *and* **two** salted directories, which vindicates identifying the database by CONTENTS. **22 `debtPlanner.*` keys recovered.** ⚠️ Run 1 failed on MY defects, not iOS (`inputs.*` is empty on a `push` trigger → wrong tree; nothing launched the app). ▶ Remaining: the probe job that restores the artifact |
-| **5.2** | **The legacy → RN key mapping** | ✅ **Done 2026-08-19.** `mapLegacyStore.ts`: 28 v1.6 keys → a `LegacyPartialStore`, then **delegated to the EXISTING `runMigrations`** rather than re-implementing defaults. Theme's **three-way union** handled (`true`→dark, `false`→light, `null`→default). ⛔ **Nothing is silently discarded** — every key is mapped, dropped *with a reason*, unknown, or unparseable. Quarantine carried; `rnStore` excluded. **50 asserts · 6 plants / 6 reds**, incl. a case built from the **real captured container's 22 keys** |
-| **5.3** | **The bridge** | ✅ **Done 2026-08-19.** `migrateFromLegacy.ts` + wired into `bootstrapPersistence` **before** hydrate. ⭐ **Idempotence is STRUCTURAL, not a flag** — it runs only when RN storage is empty, which alone gives one-shot **and** interruption-safety **and** never-overwrites. ⛔ **Non-destructive by construction:** nothing ever writes/deletes/opens the WebKit store, so v1.6 survives even a FAILED migration. Quarantine carried **before** the store write. **32 asserts · 4 plants / 4 reds** |
-| **5.4** | **Mis-filed-obligation sweep over MIGRATED data** | ⛔ **The premise was WRONG: the bridge needs no wiring.** `money.tsx` renders the hint for **any** expense matching `looksLikeDebt`, ungated by origin — so a migrated user already sees it. ✅ Pinned against v1.6's real 15-preset corpus (**3 caught**). ✅ **CLOSED 2026-08-19 [🎯]** — both trust calls settled by MEASUREMENT, not instinct. **`car payment`/`vehicle payment` as a PHRASE, never the bare word** (bare `car` accused **8 of 19** realistic bill names incl. "Car insurance", "Car wash", "Car registration"; the phrase form accuses **2 of 19**). **The unmodified `"Rent / Mortgage"` preset is exempt** — it names both, so it carries no information; a *renamed* "Mortgage" is still caught. **39 asserts · 3 plants / 3 reds.** ⚠️ Knowingly missed: brand-named car debt ("Toyota payment") — a lender list is recall-chasing with a worse false-positive profile |
-| **5.5** | **Durability: flush critical writes immediately** | ✅ **Done 2026-08-19.** Prefs now write IMMEDIATELY, bypassing the debounce; ordinary edits keep it. A pref is a single tap the user WATCHED confirm, and `flushPendingSave` only fires on AppState background — a force-quit from the foreground emits neither, so the window had nothing behind it. Plant-verified both directions |
-| **5.6** | **Drop the two inert prefs** | ✅ **Done 2026-08-19.** Both removed from the type, the defaults AND — the part that matters — **STRIPPED by `runMigrations`**, since the prefs merge preserves any extra key an old blob holds, so a type-only deletion would leave them in the DATA forever. Folded into v7 (unshipped). `sandboxStore.ts`'s stale claim corrected. Plant-verified |
-| **5.7** | ~~E2EE iCloud backup~~ | ⛔ **MOVED OUT OF PHASE 5 — 🎯 2026-08-19.** ⚠️ **Still ships in v1.7** ("*okay with moving it out of Phase 5 with the knowledge that it does need to still be folded into 1.7*") → **Phase 6**. Its title was refuted on measurement: **not E2EE, not a port** — see the block below |
-| **5.8** | **File-based backup** — was *"replace the paste-JSON import with a file picker"* | ▶ **ACTIVE**, decomposed below. ⛔ **The before-scan DOUBLED it:** import accepts **any JSON object** and replaces the user's data (measured), and **v1.6 backup files exist in the wild** that it half-destroys silently. **5.8.1–5.8.4 are the ship-blocker**; the picker is 5.8.5 |
-| **5.9** | ~~Regenerate `apps/rn/package-lock.json`~~ | ⛔ **REFUTED 2026-08-19, measured.** `npm ci --dry-run` exits **0** on the committed baseline in **both** `apps/rn` and root — the lockfile was already in sync. The claim in the backlog *and* the comments in `web-e2e.yml` / `embed-pages.yml` (*"`npm ci` works at the root and NOT in apps/rn, ~12 missing transitive entries"*) are **stale**. ▶ Residual: the lanes still install with `npm install`; switching them to `npm ci` is a real but SEPARATE improvement needing a CI run to confirm on Linux — **not** assumed from a Windows measurement |
-| **5.10** | **[AUDIT GATE] Adversarial migration audit.** ⛔ NARROWED (🎯) to *can the migration lose or corrupt data?* | ✅ **GREEN 2026-08-19.** 5.10.1–5.10.4 done: 482 generated cases × 2 REAL doors × 8 invariants + the differential oracle + interruption/quarantine, **0 violations**, gating in `test:app`. Found and fixed **3 real defects**. ✅ **5.10.5** — 29 agent-generated hostile v1.6 states (multi-field · plausible-user · v1.6-only historical) pass **clean**: the agent bought CONFIRMATION, not discovery. Completeness critic **dropped** (🎯: Phase 6 runs completeness across the whole app). **5.10 CLOSED** |
-| **5.11** | **Cutover** — the RN app becomes the shipping app | ⭐ **MIGRATION VERIFIED ON A LIVE DEVICE, 2026-08-19 (🎯)** — a real v1.6 install seeded from `docs/cutover/`, upgraded in place, **all expected fields populate**. The claim Phase 5 exists to make, now made on hardware. ✅ **Share-sheet export verified.** ⭐ **`legacy-bridge-probe` on device: `Found 1 · Opened 1 · Keys 22 · Dropped 0 · visited 16 · truncated=no`** — 22 matches the captured container exactly, by an independent route, and `truncated=no` with keys>0 is the unambiguous success case. ⛔ **One defect found by USING it:** importing a v1.6 backup FILE hid the restored portfolio behind onboarding (`buildBackupData()` never emitted `hasCompletedOnboarding`). **Fixed at the root in `runMigrations`** — the differential oracle caught the first fix for creating a door asymmetry. ▶ **Fixed, unit-covered, NOT device-verified → Phase 6 device pass** *(🎯: no new CM build for it)*. ✅ **CUTOVER CONDITIONALLY APPROVED 2026-08-19 (🎯):** *"I will conditionally approve this as the shipping app. We still need to add in Cloud Backup in Phase 6 so there will be at least one more material change."* ⛔ **The condition means the app is NOT FROZEN until `6.C` ships** — which forces 6.C ahead of Phase 6’s FINISH sweep |
+| **P6.1** | **Set `apps/rn/app.json` version to `2.0.0`** | 🔒 [D38]. **FIRST** — the listing, release notes, *"What's New"* and the App-Preview all quote it, and deciding late means writing them twice. One field; migration is unaffected (the bridge keys off the bundle id) |
+| **P6.2** | **Regenerate T9–T11 from the findings files** | 🔒 [D39]. `tsx scripts/check-audit-closure.ts` — a **generated** list, not a remembered one. Not re-measured since T4–T8 collapsed many of its owners, and it *defines* the feature-lock line, so it is load-bearing |
+| **P6.3** | **Cloud backup** *(= "6.C", was 5.7)* — ships in v1.7 🎯, **not** premium-gated | 🔒 The cutover's approval condition, so **the app is not frozen until this lands** — which is why it precedes P6.8. Decomposed below |
+| **P6.4** | **The 62 filed findings + T9–T11** | From [`REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md) (**generated**; 41 minor · 21 polish). ⛔ **Not 62 edits** — 24 of the 61 copy duplicates are generic chrome that repeats by design, 5 more die with the `QA_TOOLS` flip, several are already dead. ✅ **[D42] — the commitment is a BAR, not a COUNT:** all 62 get **judged**; what gets **fixed** is every defect and every finding on a surface that ships. ⛔ **FEATURE LOCK closes with this step** |
+| **P6.5** | **Sentry** | Scaffold exists. Set `EXPO_PUBLIC_SENTRY_DSN`, CI source-map care, verify capture on a **real build**, add a `beforeBreadcrumb` PII scrub. Before P6.8 — it changes the app, and the sweep's premise is a frozen one |
+| **P6.6** | **Splash screen** | `expo-splash-screen` is registered with **no options** and there is no `expo.splash` block → prebuild takes Expo's default: a **white flash into a dark UI**. ✅ **Asset settled** — the app icon on the icon's own dark background, no wordmark ([D40]–[D46] batch: [D43]) |
+| **P6.7** | **CI / Pages ops** | ⚠️ Retire the `legacy-capture-*` tag trigger **now, independently of P6.11** — its deferral said *"with the legacy tree"* and that tree just moved a whole phase; any push of such a tag spends ~45 min of macOS runner. · Flip the deploy allow-list to `release/v1`, or a dev branch can publish to a public marketing URL indefinitely. · ✅ **[D44]:** the deploy job **asserts its SHA has a green `web-e2e` run** and fails otherwise — *"deployed"* and *"passed the gate"* stop being held together by discipline |
+| **P6.8** | ⭐ **[AUDIT GATE] Pre-Release Best-in-Class FINISH sweep — on the FROZEN app** | Absorbs **T12** (~40 polish items: L5-10/12/17–21 · L1-20…35 · L2's polish tier · L4-12…16). Every screen · sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. ⭐ **Charter includes STRUCTURAL GAPS** — *"is anything missing"*, not only *"is anything wrong"*; this is where 5.10's original fan-out intent now lives. ⛔ **Anything structural is a SCOPE CALL for 🎯**, never an automatic fix, or the sweep expands the freeze it exists to protect. Best single item: **L5-12**, the paywall never mentions the user's own money |
+| **P6.9** | ⭐ **[AUDIT GATE] Privacy / data-flow audit** | Trace EVERY egress and prove *"financial data never leaves your device"* is literally true: network · RevenueCat · Sentry · iCloud · scan OCR · logs. ✅ **Unblocked — it consumes [D40] + [D41]**, both settled 2026-08-20, so its job is to prove the new claim *literally true* rather than to discover one. ⛔ **The claim it verifies:** *"Your data never goes to our servers. Optional iCloud backup keeps it in your own Apple account."* Also owns retiring the marketing *"100% private"* line and the ASC privacy label declaring RevenueCat |
+| **P6.10** | ⭐ **[AUDIT GATE] Pre-submit functional + FINANCIAL-correctness money lens** | Boundary inputs across the engine: zero/negative income · date-boundary/leap-year/timezone · rounding drift · month-vs-cycle stepping · cross-cadence BNPL · huge/partial portfolios. ⛔ **Owns two carried defects:** `bulkMarkRequired.ts` writes pre-[D2] paid semantics — inert today, but a false assertion in **data Phase 5 migrates** · `appliedTopUp` is a manual-opt-in invariant every cushion reader must remember (three readers exist; two had it) |
+| **P6.11** | **Repo consolidation** *(= "6.5", was 5.5)* — **delete the legacy tree** | ⛔ **Last possible moment, by design** (🎯: *"I do not want to take any chances at all of us deleting something from legacy that is still needed but missed"*). ⚠️ **Must be FINISHED before the final build.** Decomposed below |
+| **P6.12** | **`validate:release:rn` GREEN after the deletion** | ⛔ The guard the move created. Removing an entire surface is exactly the change that breaks the remaining one, and P6.11 now lands after everything else — nothing else would catch it |
+| **P6.13** | **CM build cut** | ⛔ **`QA_TOOLS` STAYS ON.** The device pass rides `qaEnabled()` instruments — `legacy-bridge-probe` is literally how the migration was verified. Flipping it *"to be safe"* here **deletes the instruments the pass needs** |
+| **P6.14** | **FINAL DEVICE PASS** — on the post-deletion binary, the configuration that actually ships | 🔒 Human-ticked, non-gating. **52 rows + the 60 coverable-not-built + 3.5's folded-in pass** ([D35]) **+ [T3.2]'s storage-fault row** *(two T3 surfaces ship on unit assertions with no rendered proof)* **+ the three rows Phase 5 owes + A0.4 · A8.4 + the two sub-audits**. Reference block below; the runnable truth is [`DEBT_3.5_DEVICE_QA_CHECKLIST.md`](DEBT_3.5_DEVICE_QA_CHECKLIST.md) |
+| **P6.15** | **Defect fix** | Whatever P6.14 turns up |
+| **P6.16** | ⭐ **[AUDIT GATE] The final audit** *(🎯: "final final final")* | ⚡ **Because fixes are changes, and changes are unaudited.** The loop closing, not a formality — every straight-line plan ships the last round of fixes unexamined, and those are the ones written closest to submission |
+| **P6.17** | **Fixes + flip `QA_TOOLS` to false** | 🔒 Deliberately **last and smallest**: `git grep QA_TOOLS` must show the instruments gone **and** nothing depending on them. Takes its own `validate:release:rn` |
+| **P6.18** | ⚠️ **TARGETED device re-check** | **Only the rows touching what P6.15 and P6.17 changed** — not a second 52-row pass. ⛔ **The device loop has to close too:** fixes born on a device are the likeliest to need one, and anything native (share sheet · picker · Live Activity · widgets · notifications · the bridge) has **no off-device proof at all**. Collapses to nothing if the fixes were pure logic or copy |
+| **P6.19** | **FINAL BUILD** | |
+| **P6.20** | ⭐ **Capture screenshots + the App Preview FROM that build** | 🎯: *"we will not have anything to grab screenshots OR the app preview from until the final build is pushed."* ⚡ A frozen UI is not a **binary** — the assets come after the build, not before it. ONE 886×1920 file, 15–30 s, off the proven capture pipeline. ⛔ A visual problem found here costs another build; that risk is real and unavoidable, so **look hard at P6.18** |
+| **P6.21** | **ASC submission** | Listing · release notes *(lead with the rewrite — a 2.0 with 1.7-shaped notes re-creates the expectation problem)* · privacy label declaring RevenueCat · **AU/NZ availability** · ⚠️ **App Review paywall-findability** — v1.1 was rejected repeatedly, so the notes MUST say *"Tap ••• More → Unlock Premium"* · the assets from P6.20 · the launch-FLIP value gate |
 
-**Exit:** 5.1–5.11 closed (**5.7 → Phase 6**, **5.9 refuted**), **5.10 green**, full gate green, a real populated v1.6 device upgraded with zero
-data loss, and every fix that CAN be a lint rule IS one ([D31]).
+**Exit:** `2.0.0` submitted to App Review off a build that passed P6.18, with `validate:release:rn` green on
+the shipping configuration and `QA_TOOLS` off.
 
-**5.7 → Phase 6 `6.C`, 2026-08-19 (🎯), still v1.7.** Measured: Freedom's template is **not E2EE** (sole
-codec is an identity function) and **not a port** (portal step, no dep, device-only). Two coupled
-decisions ride with it — **[a]** mechanism, **[b]** the replacement for *"never leaves your device"*,
-which is **owed either way** since encryption changes *who can read it*, not *whether it left*.
-Full evidence + my own bad argument → **log, `5.7 — the before-scan refuted the step's own TITLE`**.
+### ▶ P6.3 — cloud backup *(= "6.C")*
 
-✅ **5.8 CLOSED 2026-08-19** — envelope · detection · router + v1.6 adapter · confirm-before-replace · the
-file doors · first-ever e2e · the icon. Per-step detail is in the rows above; full narrative → log.
-
-### ▶ 5.10 — the adversarial migration audit. ⛔ NARROWED, because Phase 6 already owns the other half
-
-🎯 **2026-08-19: gaps get caught at the FREEZE, not now.** The scope as written duplicated a later gate —
-*"zero/negative income · date-boundary/leap-year/timezone · huge/partial portfolios"* is **Phase 6's money
-lens, verbatim**, and the broad *"fan out for gaps and upgrades"* intent is Phase 6's **FINISH sweep**,
-which absorbed T12 on 2026-08-18 with the reasoning that *polish decided against a moving app gets decided
-twice.* The app is still moving through 5.11 and 5.5. ⚡ **5.10's own scope drifted exactly the way every
-pre-authored item in this phase has** — it was written before Phase 6 absorbed its broad half, and nobody
-updated it.
-
-⚠️ **Correcting my own overstatement:** I argued urgency from irreversibility. **5.3 made the bridge
-non-destructive by construction** — nothing ever writes to or deletes the WebKit store — so v1.6 data
-survives even a FAILED migration, and a later release could re-run it. It is **not** a one-way door.
-
-▶ **What actually can't move:** 5.11 is defined as *"proven on a real populated upgraded device"*, and that
-proof is empty without knowing what the migration does to hostile data · everything downstream is built on
-the migrated app · and the v1.6 tree is in the working directory only until **5.5.1**, so the corpus is
-dramatically cheaper to derive now than from `origin/v1.6-dev` later.
-
-**The four doors data enters through** — measured, not assumed:
-`store.ts:248` hydrate · `migrateFromLegacy.ts:109` the WebKit door · `readBackup.ts:146` the import door
-(×3 formats) · `store.ts:687` `importStore` re-migrating whatever it is handed.
+⚠️ **Its title was refuted on measurement:** Freedom's template is **not E2EE** (the sole codec is an
+identity function; the codec interface is an empty seam) and **not a drop-in port**
+(`react-native-cloud-storage` is not a Debt dependency; it needs an Apple-portal iCloud Container +
+capability + profile regeneration or **signing fails**; device-build verifiable only). ✅ Genuinely
+reusable: the provider platform-split, the service orchestration, the codec envelope.
 
 | # | Sub-step |
 |---|---|
-| **5.10.1** | **The corpus GENERATOR** — combinatorial, not hand-enumerated (*the site-lists-undercount law applies to corpora too*). Axes: door × source version (v1.6 `schemaVersion` 0/1/2 **and** v1.7 `storeVersion` 1–7 — two independent axes; the old scope named one) × damage (absent · `null` · wrong type · empty-for-object · unknown extras · duplicate ids · `NaN`/`Infinity` · unparseable dates · unicode/long strings · truncated JSON) |
-| **5.10.2** | **The INVARIANTS** — asserted on every generated case, so token cost is O(7) and coverage is O(N): never throws · nothing silently dropped (mapped \| dropped-with-reason \| unknown \| unparseable accounts for 100%) · money and dates keep their type · output always at `CURRENT_STORE_VERSION` · the source is never mutated · a refusal leaves ZERO partial state · idempotent |
-| **5.10.3** | **DIFFERENTIAL oracles — no expected values to author at all.** The WebKit door and the file door translate the SAME v1.6 data → must agree. Export→import → identity. `runMigrations` twice = once |
-| **5.10.4** | **Interruption + quarantine** — death between the quarantine carry and the store write; and whether the quarantined bytes survive when the quarantine write itself fails (`migrateFromLegacy` deliberately swallows that) |
-| **5.10.5** | **Agents as INPUT generators only** *(3–4, no sub-agents, bounded output)* — hostile v1.6 blobs and a completeness critic. ⛔ **Not finding-declarers**: 3 of 4 agent-declared blockers did not survive refutation, and an input the harness judges cannot be wrong in the expensive way |
-| **5.10.6** | **Report by CLASS, then GATE it** — N failures collapse to *k* invariant violations; whatever survives lands in `test:app` so 5.10 never needs re-running ([D31]) |
+| ✅ | **P6.3.1 + P6.3.2 SETTLED 2026-08-20** — the mechanism is the app's **private iCloud container, no passphrase** ([D40]); the claim becomes *"Your data never goes to our servers. Optional iCloud backup keeps it in your own Apple account."* ([D41]) |
+| **P6.3.3** | **Build + verify on a device.** The Apple-portal iCloud Container + capability + profile regeneration come **first**, or signing fails. ⭐ **P6.9 is unblocked** — it consumes [D40] + [D41] rather than discovering them |
 
-⛔ **Explicitly OUT of scope**, so it cannot sprawl: anything already pinned by 5.2 / 5.3 / 5.8 (168+ asserts
-with plants) · UI and rendering · boundary money values, leap-year/timezone arithmetic and huge portfolios
-→ **Phase 6's money lens, where they already live** · whether a user can *retrieve* quarantined bytes →
-**a product question, 🎯's**.
+### ▶ P6.11 — repo consolidation *(= "6.5")*
 
-**Exit:** every invariant holds across the generated corpus, the differential oracles agree, and the
-surviving corpus is in `test:app`.
+⚠️ **Verify scope against the CURRENT tree at switch-in** — pre-authored cleanup drifts.
+⭐ **What deleting last buys beyond the safety:** T10's dead-code verdicts must be re-checked against the
+ROOT tree (`formatDisplayAmount` was called dead and has **three live legacy call sites**), and that tree
+now survives long enough to check against; every Phase 6 audit also runs while the old surface is still
+readable, so *"what did v1.6 do here"* stays answerable.
 
-**Owed before launch, carried out of the audit gate:**
-| | |
+| # | Sub-step |
 |---|---|
-| **Device pass** | 52 rows + **[T3.2]'s owed row**. Two T3 surfaces ship on unit assertions with **no rendered proof** |
-| **T9–T11** | the minor/polish set, deliberately out of [D37]'s scope. ⚠️ **Re-measure first** — T4–T8 collapsed many of their owners |
-| **T10** | 44 baselined local parses · `formatDisplayAmount` (dead, L4-11 confirmed) |
+| **P6.11.1** | Remove the root Capacitor/Next surface. Also retires `validate:release:legacy`, the root Next lint, the legacy `debtPlanner.isDemoMode` test references, `tests/visual/*.cjs`, the gate's assertions on the **retired demo-mode contract**, and one of the **two screenshot mechanisms** |
+| ✅ | **P6.11.2 SETTLED 2026-08-20 — the monorepo stays** ([D45]). `packages/core` is shared portfolio-wide, and a root promotion is churn with regression risk for nothing a user sees |
+| **P6.11.3** | Tooling / CI / docs to the consolidated tree. Includes **splitting `DEBT_ELEVATION_LOG.md`** (~15k lines, well past one-pass readability) |
+| ✅ | **P6.11.4 done early** — `apps/rn` has its own `eslint-config-expo` |
 
-⛔ **The sweep is over the REPO ROOT, ripgrep, no `head`, no directory list** — see CLAUDE.md. T5 proved an
-enumerated corpus list wrong twice, once by red-gating on a file the sweep had just called clean.
+### ⚠️ Why this is an ORDER and not a list
+
+⚡ **P6.8 → P6.15 → P6.16 is a convergence LOOP**, and it is 🎯's addition rather than mine: a device pass
+produces fixes, fixes are unaudited changes, so the audit runs *again* after them. ⛔ **Getting P6.8 early**
+buys a second sweep and re-decides everything it touched; ⛔ **getting P6.9 early** turns a settled decision
+into a discovery mid-audit. ⚠️ **Residual, named rather than hidden:** the binary that ships is not
+byte-identical to the one device-passed, because the `QA_TOOLS` flip comes after. That is unavoidable — the
+pass needs the instruments and the ship must not have them — which is why the flip is last, minimal and
+separately gated. Full reasoning → log, *"THE ORDER TO SUBMISSION"*.
+
+⛔ **The QA-door conflict is resolved by ORDERING, not by rework** ✅ **[D46], 2026-08-20** — and it was
+always latent: the standing constraint says *"never let a coverage row ride a QA door"*, and the
+`legacy-bridge-probe` row does exactly that. **P6.13 → P6.14 → P6.17 stands, and the probe rows do NOT get
+a non-QA path** — that would ship a debug readout to real users, which is worse than a known,
+last-and-smallest flip carrying its own green gate.
 
 ---
 
 ## ⏸ Waiting on Jason
 
-- **[D2]** `minimumPaidThisCycle` ownership — gates B4 · **[D3]** Money hero language — ⚡ **cheaper decided
-  with 3.8**, which touches that hero · **[D1]** Control Center *(rec: stay deferred)*.
+✅ **Nothing is blocked on a decision** — the Phase 6 queue cleared 2026-08-20, **[D40]–[D46]** plus [D3].
+
+**Owed off-device (yours, not decisions):** the ASC privacy label declaring RevenueCat *(→ P6.9)* · AU/NZ
+availability · the App Review note naming the paywall path · the launch-FLIP value gate *(→ P6.21)*.
 
 ## 🎯 Reported from the app — found by USING it, not by the lane
 
@@ -162,11 +124,6 @@ instrument that finds them.
 
 ✅ **The coach-mark defect, the transient Guardian card and §12.6.1 closed with the audit gate 2026-08-19** —
 they were that gate's inputs, never separate threads.
-
-**Product defects, live:**
-- ⚡ **A pref changed then force-quit within 500 ms is LOST** (`persistence.ts` debounces at 500 ms;
-  `flushPendingSave` has exactly ONE caller, AppState *background*/*inactive*). Silent data loss on a
-  setting the user watched confirm itself. **Re-verified at Phase 5's switch-in.** → **5.5**, which owns it.
 
 **a11y, owed to the premium sub-audit:**
 - ⭐ **`hitRegion` = 2 real findings, on BOTH tiers** — two hit targets below the minimum, reproducible.
@@ -220,9 +177,9 @@ they were that gate's inputs, never separate threads.
 | **4** | **Quality (test harness)** | ✅ **COMPLETE 2026-08-17** on a green `32051842661`. ⭐ **26 proven · device pass 52 · derived, not asserted.** CodeMagic build cut |
 | **3.8** | **The expense reserve** | ✅ **COMPLETE 2026-08-17** — both tiers [D36]. Pot · draw-down · capped offer · "Spoken for" · honest hero. **5 defects found while building**, +5 e2e (184) |
 | **—** | **Whole-app cohesion + best-in-class + wording audit gate** | ✅ **COMPLETE 2026-08-19** — T1–T8 + T3B, [D37] 55/55 high+ traceable, 3 new lint gates, e2e 184 → 195. Detail → log |
-| **5** | **Data continuity + cutover** 🔒 | ▶ **ACTIVE 2026-08-19** — decomposed at the top. 🎯: **full bridge**, real v1.6 users |
-| 5.5 | Repo consolidation | before the release gate |
-| 6 | Launch-ready **+ the 60 coverable-not-built rows and 3.5's folded-in pass, as DEVICE-PASS work** | final |
+| **5** | **Data continuity + cutover** 🔒 | ✅ **COMPLETE 2026-08-19** — the full v1.6 bridge, 5.10 green, the migration **verified on a live device**, the cutover **conditionally approved**. Detail → log |
+| **6** | **Launch-ready** — feature lock → three audit gates → delete legacy → device pass → submit | ▶ **ACTIVE** — decomposed as **P6.1–P6.21** at the top. Carries the 60 coverable-not-built rows and 3.5's folded-in pass as device-pass work |
+| 6.5 | Repo consolidation *(was 5.5)* | inside Phase 6 as **P6.11** — deliberately last, and finished before the final build |
 
 ⚡ **Phase 3.7's number, worth keeping:** a pre-authored ledger item is wrong about as often as it is right
 — Wave A, of 14 items, **5 did not exist and 4 more were materially misdescribed** (one *inverted*); Wave B,
@@ -240,16 +197,6 @@ of 4, **1 refuted, 1 half-shipped, 1 wrong in 3 of its 4 premises, 1 clean.** Th
   mechanisms. **A `[D]` that is really an unproven `[M]` keeps a check on the manual pass forever**, and
   re-verdicting on expectation is the overstatement 4.1.9c exists to stop. Seeded verdicts are a
   **hypothesis per row**.
-- ✅ **STANDING PERMISSION, THE AUDIT GATE** *(🎯 2026-08-18: "You have standing permission to continue
-  honestly through T4, T5, and onward until you need me. As long as you don't forget the before and after
-  scans.")* — runs through **T4 → T5 → T6 → T7 → T8**. ⚠️ **Conditional on the scans**: every step and
-  sub-step gets its before-scan (verify the finding against the CURRENT code — measured this session at
-  **4 of 6 findings materially wrong in their specifics**) and its after-scan, captured atomically with the
-  plan edit. ⛔ **Still comes to Jason:** a new product/content call, anything touching Phase 5/5.5/6, and
-  any ruling that overturns a decision he already made.
-- ✅ **STANDING PERMISSION, 3.8** *(🎯 2026-08-17: "continue through 3.8 until you need my input")*. The tap's
-  shape (.5) is inside it; a **new** product/content call is not. *(4.1's grant is spent — 4.1 is closed.)*
-  Everything else — Phase 5, 5.5, 6, the audit gate — comes to Jason.
 - **`QA_TOOLS = true` ships in TestFlight and MUST be flipped false before submission** (`git grep QA_TOOLS`).
   ⚠️ The **instruments** are `qaEnabled()`-gated — `probeCoachMark`, the `coach-probe` readout,
   `suppressorReasons`, `RING_AUDIT`, `rm-probe` — so the flip's `git grep` must confirm they vanish **and**
@@ -262,170 +209,36 @@ of 4, **1 refuted, 1 half-shipped, 1 wrong in 3 of its 4 premises, 1 clean.** Th
 
 ---
 
-## Phase 5 — Data continuity + cutover 🔒 ship-blocker
+## 📋 P6.14 reference — the device-QA ledger
 
-▶ **ACTIVE — decomposed as 5.1–5.11 at the top of this doc.** Upgrade data loss is catastrophic AND
-irreversible, so 5.10's adversarial audit is the exit gate and nothing cuts over until it is green.
+Verify on real hardware; web cannot cover these. **🎯 The runnable truth is
+[`DEBT_3.5_DEVICE_QA_CHECKLIST.md`](DEBT_3.5_DEVICE_QA_CHECKLIST.md)** — §11 · §12 · §13, plus the 60
+coverable-not-built rows and 3.5's folded-in pass ([D35]). This is the index, not the list. ⚠️ Read figures
+from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them.
 
-## Phase 6.5 — Repo consolidation *(was 5.5 — MOVED 🎯 2026-08-19)*
+**Owed from Phase 5 — fixed and unit-covered, never seen on a device** *(🎯 declined a CM build for them,
+which is the right trade given this pass exists)*:
+- Import a **v1.6 backup FILE** and confirm the restore does **not** land in onboarding *(`buildBackupData()`
+  never emitted `hasCompletedOnboarding`; fixed at the root in `runMigrations`)*.
+- The **document picker** — pick `v17-envelope.json` from **iCloud Drive**, not local; local would not
+  exercise `copyToCacheDirectory`.
+- The **`v16-damaged` repair report** naming *Visa · balance* and *Electric · amount*.
 
-⛔ **MOVED AFTER PHASE 6, deliberately.** 🎯: *"I do not want to take any chances at all of us deleting
-something from legacy that is still needed but missed. 6.5 will ensure that the app is truly frozen before
-we touch legacy."* ⚠️ **CAVEAT: 6.5 must be FINISHED before the final submission build** (🎯).
+**Carried from the audit gate:** **[T3.2]'s storage-fault row** — force a storage fault, confirm the retry
+screen renders **and** the retry recovers. Two T3 surfaces ship on unit assertions with no rendered proof.
 
-⚡ **It retires a risk that already bit today.** `docs/cutover/`'s v1.6 fixture had to be *rescued* from
-the legacy tree precisely because the deletion was scheduled early — a rescue done under time pressure, on
-one artifact someone happened to remember. Deleting last means the tree is still there whenever something
-turns out to need it, and **"still needed but missed" stops being a category.**
+**Also owed:** **A0.4** (payoff-schedule device re-verify) · **A8.4** (the Siri phrases, incl. the
+load-bearing `\(.applicationName)` check) · **§3.1.2** SF Symbols on the min-iOS target · **§2.8** native
+scan · **§2.11** RevenueCat real purchases + restore · **§3.3.1** the AHAP crescendo FEEL · **§VIS-2/B2**
+share rasterizes fully · **§3.4** `expo-blur` real material · **§3.5** Live Activity / Island / widgets /
+App Intents · **§3.6** iPad both orientations, Split View, Stage Manager, pointer/keyboard · **§VIS-6**
+sound + notification delivery. Highest value single row: **§11.15**, the iPad ring-origin invariant.
 
-⭐ **Two things this BUYS, beyond the safety:** T10's dead-code verdicts must be re-checked against the
-ROOT tree (`formatDisplayAmount` was called dead and has three live legacy call sites) — that tree now
-survives long enough to check against. And every Phase 6 audit runs while the old surface is still
-readable, so *"what did v1.6 do here"* stays answerable.
+⛔ **Five rows stay `[D]` for stated reasons, and they are forward guidance.** **§5.4 StandBy is
+PERMANENT** — *"put the phone on a charger"* is physical state a simulator has no concept of. **§5.1**
+(widget gallery) · **§5.3** (Lock-Screen Customize) · **§6a.2** (Island long-press, needs a 15/16 Pro sim) ·
+**§10.3** (Stage Manager drag) each need their own probe first. ⚠️ The three `[A]` ⌘-key rows stay `[A]`.
 
-⛔ **AND THE GUARD THE MOVE CREATES: run `validate:release:rn` GREEN AFTER 6.5 and BEFORE the final build.**
-Deleting an entire surface is exactly the kind of change that breaks the remaining one, and 6.5 now lands
-*after* the device pass — so nothing else would catch it. A submission build cut straight off the deletion
-is untested in the only configuration that ships.
-
-⚠️ **Do NOT wait for 6.5 to retire the `legacy-capture-*` tag trigger.** It was filed as *"retire it with
-the legacy tree at 5.5.1, or sooner"* — and "with the tree" just moved by a whole phase. Any push of such
-a tag spends ~45 min of macOS runner. **Retire it independently.**
-
-- **5.5.1** remove the root Capacitor/Next surface. Also retires `validate:release:legacy`, the root Next
-  lint, the legacy `debtPlanner.isDemoMode` test references, and `tests/visual/*.cjs`.
-- **5.5.2 [DECISION]** final repo structure — promote `apps/rn` to root vs keep the monorepo *(rec: keep it;
-  `packages/core` is shared portfolio-wide)*.
-- **5.5.3** tooling / CI / docs to the consolidated tree. Includes **splitting `DEBT_ELEVATION_LOG.md`**
-  (>11k lines, well past one-pass readability).
-- ✅ **5.5.4 DONE EARLY** — `apps/rn` has its own `eslint-config-expo`.
-- ⚠️ Verify scope against the CURRENT tree at switch-in — pre-authored cleanup drifts.
-
-## Phase 6 — Launch-ready
-
-Acquisition-grade store presence · cold-start excellence · the device-QA gate · submit.
-
-⛔ **TWO DIFFERENT LINES, and collapsing them is a real mistake I made and 🎯 corrected ([D39]):**
-**FEATURE LOCK** — after the **3.5 remainder**, no new capability in 2.0. **FREEZE** — later and stricter,
-every planned change landed. ⚠️ *"Frozen" is not a milestone you schedule; it is a state you converge to.*
-
-## 🎯 THE ORDER TO SUBMISSION — settled 2026-08-19, 🎯's own sequence
-
-| # | | |
-|---|---|---|
-| **1** | **Everything up to FEATURE LOCK** | `2.0.0` ([D38]) · **6.C** cloud backup · the 62 filed findings · **T9–T11** (regenerate first — [D39]) |
-| **2** | ⭐ **THE AUDIT GATE** | FINISH sweep *(now legitimately on a frozen app)* → privacy audit *(consumes 6.C's [a]+[b])* → money lens |
-| **3** | **6.5 — repo consolidation, delete legacy** | ⚠️ Last possible moment, by design. `validate:release:rn` **green** after it |
-| **4** | **CM build cut** | ⛔ **`QA_TOOLS` STAYS ON.** The device pass rides `qaEnabled()` instruments — `legacy-bridge-probe` is how the migration was verified. Flipping "to be safe" before this build **deletes the instruments the pass needs** |
-| **5** | **FINAL DEVICE PASS** | On the post-deletion binary — the configuration that actually ships |
-| **6** | **Defect fix** | Whatever the pass turns up |
-| **7** | ⭐ **The final audit** *(🎯: "final final final")* | Because **fixes are changes, and changes are unaudited** — this is the loop closing, not a formality |
-| **8** | **Fixes** + **`QA_TOOLS` off** | ⚠️ The flip is deliberately **last and smallest**: `git grep QA_TOOLS` must show the instruments gone **and** nothing depending on them |
-| **9** | ⚠️ **TARGETED device re-check** | **Only the rows touching what 6 and 8 changed** — not a second 52-row pass. ⛔ **The device loop must close too:** fixes born on a device are the likeliest to need one, and anything native (share sheet · picker · Live Activity · widgets · notifications · the bridge) has **no off-device proof at all**. Collapses to nothing if the fixes were pure logic or copy |
-| **10** | **FINAL BUILD** | |
-| **11** | ⭐ **Capture screenshots + the App Preview FROM that build** | 🎯 2026-08-19: *"we will not have anything to grab screenshots OR the app preview from until the final build is pushed."* ⚠️ This is why the App-Preview item's *"re-shoot once the UI is frozen"* was under-specified — a frozen UI is not a **binary**. ⛔ A visual problem found here costs another build; that risk is real and unavoidable, so **look hard at step 9** |
-| **12** | **ASC submission** | Listing · release notes *(lead with the rewrite — a 2.0 with 1.7-shaped notes re-creates the expectation problem)* · privacy label declaring RevenueCat · the assets from 11 |
-
-⚡ **What makes this an ORDER rather than a list: 2 → 6 → 7 is a convergence loop.** A device pass produces
-fixes, and fixes are unaudited changes — so the audit runs *again* after them. Every straight-line plan
-that stops at "audit, then fix" ships the fixes unexamined.
-
-▶ **Earlier reasoning that still holds, and why each item sits where it does:**
-**① `2.0.0`** ([D38]) before anything quotes a version · **② `6.C` cloud backup** + **③ the 62 filed
-findings + T9–T11** ⚠️ *"the 3.5 remainder" = **T9–T11**, 🎯 — one set, not two* → **FEATURE LOCK** · then **④ the FINISH sweep**, which is *first
-among the AUDIT GATES*, not first in Phase 6 — its "runs on the FROZEN app" premise is only true once ①–③
-have landed · **⑤ privacy audit**, which consumes 6.C's two coupled decisions ([a] mechanism, [b] the
-replacement for *"never leaves your device"*) · **⑥ money lens** · **⑦ Phase 6.5 — delete legacy** *(moved from 5.5, 🎯: do not touch
-legacy until the app is truly frozen)* · **⑧ `validate:release:rn` GREEN after the deletion** · **⑨ the
-DEVICE PASS** *(moved after 6.5, 🎯 2026-08-19 — so the human check runs on the configuration that actually
-ships, not on one that a whole-surface deletion is still ahead of)* · **⑩ `QA_TOOLS` off** · **⑪ final
-build → submit.**
-
-⛔⛔ **THE FLIP MOVED TOO, AND IT HAD TO — the device pass RIDES QA-gated instruments.**
-`legacy-bridge-probe` is `qaEnabled()`-gated, and 🎯 used exactly that readout to verify the migration on
-2026-08-19 (`Keys 22 · truncated=no`). Flipping `QA_TOOLS` before the pass would delete the instrument the
-pass depends on. ⚠️ **This is the standing constraint's own words biting** — *"Never let a coverage row ride
-a QA door"* — and it is already violated in practice, because the probe row does exactly that. ▶ **Two
-options, and the choice is 🎯's:** run the pass **before** the flip (order above; the flip is then the last
-code change and gets its own `validate:release:rn`), **or** give the probe rows a non-QA path. ⚡ *A flip
-verified after the instruments are gone cannot confirm what it removed.*
-
-⚠️ Getting ④ early buys a **second** sweep and re-decides everything it touched; getting ⑤ early turns a
-settled decision into a discovery mid-audit.
-
-- **⭐ [AUDIT GATE] Pre-Release Best-in-Class FINISH sweep — runs FIRST, on the FROZEN app.**
-  ⭐ **ABSORBS audit-gate T12** *(🎯 2026-08-18)* — ~40 polish items from the 2026-08-17 audit: L5-10/12/17–21
-  · L1-20…35 · L2's polish tier · L4-12…16. They belong here rather than in v1.7 because this sweep already
-  re-walks every screen on the frozen build, and polish decided against a moving app gets decided twice.
-  ⭐ **The single best one: L5-12** — the paywall never mentions the user's own money, though the selectors
-  to say *"this paycheck you're $180 short"* already exist. Every screen ·
-  sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. Complements, not replaces,
-  the audit gate above.
-  ⛔ **SEQUENCING, forced by the cutover's condition (🎯 2026-08-19): `6.C` MUST LAND BEFORE THIS SWEEP.**
-  🎯 approved the RN app as the shipping app *conditionally* — *"we still need to add in Cloud Backup in
-  Phase 6 so there will be at least one more material change."* This sweep's entire justification is that
-  it runs on a **FROZEN** app (*"polish decided against a moving app gets decided twice"*), so running it
-  before a known material change would violate its own premise and buy a second pass. ⚠️ **The app is not
-  frozen until 6.C ships.**
-  ⭐ **CHARTER WIDENED 2026-08-19 (🎯): it judges STRUCTURAL GAPS as well as polish — *"is anything
-  missing"*, not only *"is anything wrong"*.** This is where **5.10's original fan-out intent now lives**;
-  5.10 was narrowed to migration-correctness on the reasoning that *gaps get caught at the freeze*, when
-  the thing being audited is the thing that ships. ⚠️ **Named because the two behave differently here:**
-  polish is cheap against a frozen app — that is the whole design — while a structural gap (a missing
-  screen, a field the model does not carry, a flow needing a store change) is a **build**, not a tweak.
-  ⛔ **So anything structural it finds is a SCOPE CALL for 🎯** — build in v1.7 vs defer to 1.8 — never an
-  automatic fix, or the sweep silently expands the freeze it exists to protect.
-- **⛔ 6.C — Cloud backup (was 5.7), moved out of Phase 5 2026-08-19 · SHIPS IN v1.7 🎯 · NOT premium-gated.**
-  Two coupled **[DECISION]**s first, and they gate the privacy audit below rather than being discovered by
-  it: **[a]** plaintext-in-Apple-private-container (Freedom's *actual* design) vs. a real passphrase-AES
-  codec + forgotten-passphrase recovery UX; **[b]** the replacement for *"financial data never leaves your
-  device"* — **owed under either**, since encryption changes *who can read it*, not *whether it left*.
-  ⚠️ Measured, not assumed: Freedom is **NOT E2EE** (sole codec is an identity function; the codec
-  interface is an empty seam) and **NOT a drop-in port** (`react-native-cloud-storage` is not a Debt dep;
-  needs an Apple-portal iCloud Container + capability + profile regen or **signing fails**; device-build
-  verifiable only). ✅ Reusable: the provider platform-split, the service orchestration, the codec
-  envelope. Full evidence in the Phase 5 block above.
-- **⭐ [AUDIT GATE] Privacy / data-flow audit** — trace EVERY egress and prove "financial data never leaves
-  your device" is literally true: network · RevenueCat · Sentry · iCloud · scan OCR · logs. ⚠️ **Consumes
-  6.C's [a]+[b]** — do not start this until both are settled.
-- **⭐ [AUDIT GATE] Pre-submit functional + FINANCIAL-correctness money lens** — boundary inputs across the
-  engine: zero/negative income · date-boundary/leap-year/timezone · rounding drift · month-vs-cycle
-  stepping · cross-cadence BNPL · huge/partial portfolios.
-- **⚠️ DEVICE-PASS ROW, owed from Phase 5 (🎯 2026-08-19):** import a **v1.6 backup FILE** and confirm the
-  restore does **not** land in onboarding. Fixed at the root in `runMigrations` and unit-covered, but
-  **never seen on a device** — 🎯 declined a CM build for one route-guard flag, which is the right trade
-  given this pass exists. ▶ Also here: the **document picker** (pick `v17-envelope.json` from **iCloud
-  Drive**, not local — local would not exercise `copyToCacheDirectory`) and the **`v16-damaged` repair
-  report** naming *Visa · balance* and *Electric · amount*.
-- **⭐ SHIP-BLOCKER · set `apps/rn/app.json` version to `2.0.0` — [D38], 🎯 2026-08-19.** ⚠️ **Do this FIRST
-  in Phase 6**, before the ASC listing, release notes, *"What's New"* and the App-Preview asset, because
-  all of them quote the version and doing it late means writing them twice. The internal workstream keeps
-  the name "v1.7 Elevation"; only the shipped number changes.
-- **⚠️ SHIP-BLOCKER · flip `QA_TOOLS` to false** (see Standing constraints).
-- **Sentry** — scaffold done; set `EXPO_PUBLIC_SENTRY_DSN`, CI source-map care, verify capture on a real
-  build, add a `beforeBreadcrumb` PII scrub.
-- **The two Pages threads** — flip the deploy allow-list to `release/v1`; decide whether a deploy must
-  require a green gate on its SHA (see Open threads).
-- **App-Preview asset** — re-shoot off the proven pipeline once the UI is frozen. ONE 886×1920 file, 15–30s.
-- **AU/NZ availability + E2EE trust-claim verification** · **App Review paywall-findability** (v1.1 was
-  rejected repeatedly — the ASC notes MUST say "Tap ••• More → Unlock Premium").
-- **Owed off-device (Jason):** ASC privacy label declares RevenueCat · marketing "100% private" alignment ·
-  the launch-FLIP value gate.
-- **📋 Real-device cloud testing — as DEVICE-MATRIX coverage, not a way to shrink the manual pass.** ⛔ It
-  moves only **3–6** of the `[D]` rows. ⭐ The real gap it closes is that everything runs on **ONE sim
-  config** — §11.1 says outright *"a wide phone can pass while an SE fails"*. ⚡ Maestro Cloud is the
-  zero-rewrite path. **Triggers:** Android at v1.8, or the first width-driven bug that reaches a user.
-
-**📋 Device-QA ledger — verify on real hardware; web cannot cover these:**
-- **🎯 The runnable truth is [`DEBT_3.5_DEVICE_QA_CHECKLIST.md`](DEBT_3.5_DEVICE_QA_CHECKLIST.md)** — §11 ·
-  §12 · §13, plus the 60 coverable-not-built rows and 3.5's folded-in pass ([D35]). This is the index.
-  Highest value: **§11.15**, the iPad ring-origin invariant.
-- ⛔ **Five rows stay `[D]` for stated reasons, and they are forward guidance.** **§5.4 StandBy is
-  PERMANENT** — *"put the phone on a charger"* is physical state a simulator has no concept of. **§5.1**
-  (widget gallery) · **§5.3** (Lock-Screen Customize) · **§6a.2** (Island long-press, needs a 15/16 Pro sim)
-  · **§10.3** (Stage Manager drag) each need their own probe first. ⚠️ The three `[A]` ⌘-key rows stay `[A]`.
-- **⚠️ A0.4** (payoff-schedule device re-verify) and **A8.4** (the Siri phrases, incl. the load-bearing
-  `\(.applicationName)` check) are device-owed.
 - **⭐ [SUB-AUDIT] Premium-accessibility:** VoiceOver rotor + a full walk · Dynamic Type AX3/AX5 reflow ·
   reduce-motion · contrast both themes · focus order · touch targets. **WCAG 2.2 AA is the FLOOR.**
   - ⛔ **BOTH GUARDS COVER 2 OF THE 4 NATIVE-ONLY PROPS, AND THE MISSING TWO KEEP BITING.** eslint and
@@ -435,231 +248,84 @@ settled decision into a discovery mid-audit.
     appears in **11 files**, so the conversion is this sub-audit's work.
   - ⚠️ **`CheckCircle` reports no checked state on WEB** · **`ListRow`'s swipe-to-delete announces a hidden
     Delete button on EVERY row** (a destructive control the user cannot see, once per row).
+  - ⭐ **`hitRegion` = 2 real findings, on BOTH tiers** — two hit targets below the minimum, reproducible,
+    *characterised* (`"Hit area is too small"`) and still *unlocated*: `compactDescription` does not name the
+    element. `issue.element` can be added at low risk — ⛔ but the nightly answers it for free, so it is not
+    worth a dedicated ~50-min dispatch.
 - **⭐ [SUB-AUDIT] Performance-feel:** 120fps ProMotion · Skia redraw cost · cold-start TTI · list jank ·
-  optimistic-UI feel. Includes the Today/cushion-forecast memoization check.
-- **§3.1.2** SF Symbols on the min-iOS target · **§2.8** native scan · **§2.11** RevenueCat real purchases +
-  restore · **§3.3.1** the AHAP crescendo FEEL · **§VIS-2/B2** share rasterizes fully · **§3.4** `expo-blur`
-  real material · **§3.5** Live Activity / Island / widgets / App Intents · **§3.6** iPad both orientations,
-  Split View, Stage Manager, pointer/keyboard · **§VIS-6** sound + notification delivery.
+  optimistic-UI feel. Includes the Today/cushion-forecast memoization check *(conditional on a real measured
+  hotspot)* and Dynamic-Type device QA.
 
 ---
 
 ## Deferred backlog
 
-- ⛔ **The SPLASH SCREEN is unconfigured too — same class as the icon, found by the same sweep**
-  *(2026-08-19)*. `expo-splash-screen` is registered with **no options** and there is no `expo.splash`
-  block, so prebuild takes Expo's default. On a dark-themed app that is a white flash into a dark UI.
-  ⚠️ **Deferred because it needs an ASSET DECISION, not a mechanical fix** — the obvious move (the app
-  icon on the icon's own dark background) is a design/content call, which is 🎯's. **Phase 6**, with the
-  App-Preview re-shoot, where the visual set is being decided anyway.
-- ⚠️ **Show the backup's own date in the replace-confirm** *(5.8.4 after-scan, 2026-08-19)*. The summary
-  says *what* is in the file but not *when* it was saved, and "am I about to overwrite three months of
-  work with something stale" is the question a destructive confirm should answer. The envelope already
-  carries `exportedAt` and a v1.6 file carries it too, so the data is there — it needs the `localDate`
-  helper to render without tripping `lint:local-dates`. **Deferred, not dropped:** the confirm is already
-  honest about *contents*, which is the correctness half; this is the judgement half.
-- ⚠️ **Retire `raw-v17` import acceptance after the 5.11 cutover** *(5.8.2 after-scan, 2026-08-19)*. It is
-  the **weakest of the three markers** — `storeVersion` + `paycheck` + `debts` and no format id — and it
-  exists only because the pre-5.8 clipboard export has no envelope. ⚡ **The RN app has never shipped**, so
-  the only people holding a raw-v17 export are **TestFlight testers**, who can simply re-export after
-  updating. Once the envelope has been out for one release the branch is pure false-positive surface with
-  no population behind it. **Not now** — dropping it mid-Phase-5 would break testers' existing files for
-  no gain. Re-decide at Phase 6, with the tester window closed.
+**Product, re-decided in Phase 6:**
+- ⚠️ **Show the backup's own date in the replace-confirm** *(5.8.4 after-scan)*. The summary says *what* is
+  in the file but not *when* it was saved, and *"am I about to overwrite three months of work with something
+  stale"* is the question a destructive confirm should answer. The envelope already carries `exportedAt` and
+  a v1.6 file carries it too — it needs the `localDate` helper to render without tripping `lint:local-dates`.
+  **Deferred, not dropped:** the confirm is already honest about *contents*, which is the correctness half.
+- ⚠️ **Retire `raw-v17` import acceptance** *(5.8.2 after-scan)* — the weakest of the three markers
+  (`storeVersion` + `paycheck` + `debts`, no format id), and it exists only because the pre-5.8 clipboard
+  export has no envelope. ⚡ The RN app has never shipped, so the only holders of a raw-v17 export are
+  **TestFlight testers**, who can re-export after updating. **Re-decide at P6.4, with the tester window
+  closed** — dropping it earlier would break testers' files for no gain.
+- **📋 Real-device cloud testing — as DEVICE-MATRIX coverage, not a way to shrink the manual pass.** ⛔ It
+  moves only **3–6** of the `[D]` rows. ⭐ The real gap it closes is that everything runs on **ONE sim
+  config** — §11.1 says outright *"a wide phone can pass while an SE fails"*. ⚡ Maestro Cloud is the
+  zero-rewrite path. **Triggers:** Android at v1.8, or the first width-driven bug that reaches a user.
 
-⛔ **[D37] EVERY high+ finding is remediated THIS round** *(🎯 2026-08-18: "We're fixing all in this
-round")*. **Measured denominator: 117 findings, 55 blocker+major.** The gate is not "T1–T8 closed", it is
-**all 55 high+ closed or explicitly refuted**, with each closure traceable to the finding id.
+**Tooling / hygiene:**
+- ⚠️ **Two `maestro test` calls write no JUnit**, so their verdicts never reach the durable record
+  (`11-reduce-motion`, the iPad's dark re-run of `i02`). Harmless today — both are measurement runs — and
+  the same hazard `maestro-results.mjs`'s header documents for flow `09`: **the next flow added in its own
+  invocation disappears silently.** ⚠️ `lint:lane` is where this becomes a check.
+- ⚠️ **The embed's public URL names the repo** — `jsnyde03.github.io/debt-app-v1/`. Fine for an iframe; a
+  custom domain or a repo rename removes it. **A brand call with a DNS dependency** → 🎯 whenever the
+  marketing page exists.
+- ⚠️ **Maestro is unpinned** — `get.maestro.mobile.dev` fetches latest, and 4.1.1 spent three cycles
+  establishing which commands this build supports. A silent upgrade can retire one. *(Caching `~/.maestro`
+  was refuted — 22s, not the filed 1m29s.)*
+- **No local pre-flight for the capture path** — a flagged web export + ~40-line check would have caught
+  several CI cycles' worth of defects.
+- ⛔ **REFUSED WITH MEASUREMENTS, do not resurface:** **ccache** (`0/648 cacheable` twice; both stated
+  mechanisms wrong, and modules-off cost 888s vs a 771s baseline — the only remaining avenue is prebuilt pod
+  binaries, a dependency-packaging change) · **DerivedData caching** (~70% of the boot step is simulator boot
+  + install, which it cannot touch, against multi-GB in a 10GB cap where LRU could evict the `.app` cache
+  saving 17 minutes — *the optimisation eating the optimisation*).
 
-⛔ **NOTHING IS PARKED** *(🎯 2026-08-18)*. **T9–T11 are SEQUENCED, not shelved** — every remaining
-minor/polish finding is still live and gets **re-evaluated once T1–T8 lands**, because several become
-cheaper or moot by then. "Parked" was the wrong word for it and read as *dropped*. Detail → log.
-
-**5.3's AFTER-scan (2026-08-19):**
-- ⛔ **MY PLANT HARNESS WAS BROKEN, AND EVERY "RED" IT REPORTED WAS A LIE.** `npx tsx -e "…m=>m.default()"`
-  — **bash parses `=>` as a redirect**, so the runs failed to *transform*, exited non-zero, and read as
-  verified plants. Three of 5.3's were bogus. Caught only by the doctrine added at 5.1b.2: *when a plant
-  reds, confirm it red the assertion you meant.* Redone with a real runner file — **4 plants, 4 reds, each
-  with its assertion label printed.** ⚡ The harness now also distinguishes `Transform failed` from a real
-  failure, so this cannot recur silently. → generalise into `verify-the-plant-applied`.
-- ⛔ **A second scripted `perl -0pi` edit corrupted a file** (left a duplicated fragment mid-declaration),
-  making it **two script mishaps in one day** against zero from `Edit`. The rule already exists and I
-  went around it twice; the tell both times was a `grep` whose output looked *almost* right.
-- ⚠️ **`LegacyMigrationOutcome.ran` was removed** — the test caught that it could never be usefully false,
-  because `migrateFromLegacy` does not check RN storage (the CALLER gates that). A field whose value is
-  constant reads like information and is not. Same class as L3-4's unread `isFocus`.
-- ⚠️ **The native reader is now imported LAZILY** (`await import('./readLegacyStores')`), because a static
-  import drags `expo-file-system` → `expo-sqlite` → `react-native` into the plain-Node test runner, which
-  cannot transform it. Better regardless: the native modules now load only on the path that needs them.
-
-**⛔⛔ THE WAL — a LIVE data-loss defect the real container found, and no synthetic test could (2026-08-19):**
-- **WebKit runs localStorage in WAL mode and had NOT checkpointed.** In the captured iOS 26.2 container the
-  main `localstorage.sqlite3` is **4 KB and does not contain `ItemTable` at all**; the `-wal` beside it is
-  **28 KB and holds all 22 keys**. ⛔ **`readLegacyStores.ts` copied only the main file** — so on a real
-  device it would have read **zero** keys and reported the user as having nothing to migrate. **A total,
-  silent migration failure**, and every synthetic test passed while it was true, because a database written
-  and closed cleanly by `node:sqlite` has no WAL. ✅ **Fixed** (copies `-wal`/`-shm` on the same basename).
-- ⭐ **This is the whole argument for a real fixture, proven in one measurement.** It is the
-  fixture-never-renders-the-real-state trap — and it caught me *while I was actively guarding against it*.
-- ✅ **Pinned so it cannot return:** the container is committed at
-  [`legacyBridge/__fixtures__/webkit-ios26/`](../apps/rn/src/data/legacyBridge/__fixtures__/README.md)
-  (32 KB, real bytes, real depth) and `realContainer.test.ts` asserts **main-only throws** while
-  **main+`-wal` reads 22 keys**. **17 asserts against real iOS output**, in `test:app` on every push.
-- ⚠️ Verified `-shm` is NOT required (SQLite regenerates it), so the committed fixture is two files.
-
-**5.2's AFTER-scan + the capture's result (2026-08-19):**
-- ⛔ **MY OWN KEY SWEEP UNDERCOUNTED — the third time today, and the law now applies to my measurements
-  as well as the audit's.** The captured container held **`debtPlanner.hasConfiguredPaycheck`**, which was
-  **not** in my 28-key sweep of `v1.6-dev`. Traced: written only by `lib/testing/simSmokeSeed.ts`; the
-  shipping app merely derives a local const of the same name. ⚡ **`mapLegacyStore`'s `unknown` channel
-  caught it before the code shipped** — the design decision paid for itself immediately.
-- ⚠️ **THE FIXTURE PROVES LOCATION AND SHAPE, NOT COVERAGE.** Its key set is the **SIM_SMOKE seeder's**,
-  so it lacks `isDemoMode`, `resetSnapshot`, `rolloverCount`, `reviewRequested`, `lastHandledPaydayDate`
-  and any `__corrupt__` bytes that a real user may carry. **Do not treat a green probe against it as
-  proof the bridge handles a real portfolio.** → **5.10 builds the adversarial corpus by hand.**
-- ⚠️ **`resetSnapshot` is a v1.6 reset-UNDO buffer** — real user data with no v1.7 surface that could
-  restore it. Dropped *with the reason recorded*; if it is non-empty for real users that is a product
-  question, not a mapping one. → flag at **5.10**.
-
-**5.2's BEFORE-scan (2026-08-19) — measured against `origin/v1.6-dev`, not the drifted in-tree copy:**
-- ⭐ **NO v1.6 FIELD HAS BEEN DROPPED — across ALL SIX persisted types.** `Debt` 17 shared / 3 new ·
-  `RequiredExpense` 11/4 · `Goal` 5/2 · `PayCycleSnapshot` 7/3 · `CompletedRecommendedAction` 6/0 ·
-  `RecommendationOverride` 3/0. **Every v1.6 type is a strict subset of its v1.7 counterpart**, so nothing
-  is lost by shape — the migration risk is in KEY ASSEMBLY and TYPE COERCION, not in field loss.
-- ⭐ **Design consequence: assemble a `Partial<DebtStore>` and delegate to the EXISTING `runMigrations`.**
-  It already backfills `lastVerifiedDate` + `balanceAsOfDate` (v3/v4) and normalises installment BNPL (v6)
-  — two of the three new `Debt` fields. **Do not reimplement the defaults**; a second copy of the backfill
-  is the drift class T8 spent a day on.
-- ⛔ **The corpus was wrong: 28 keys, not 31.** My earlier sweep ran over **v1.7-dev**, which mixes the
-  drifted in-tree legacy copy with RN test seeds. Re-measured on `origin/v1.6-dev`.
-- ⛔ **`debtPlanner.rnStore` is RN's OWN web-adapter key, in the SAME namespace** (0 files on v1.6-dev, 20
-  on HEAD) — so **5.1a's `countLegacyKeys()` would count it as legacy**. Not live (native stores under the
-  MMKV key `store`), but `pickLegacyStore` ranks on that count, so the exclusion is cheap and the semantics
-  should say *v1.6 Capacitor keys*, not *anything in the `debtPlanner.` namespace*. → fold into 5.2.
-- ⚠️ **`darkMode` is a THREE-WAY union** — `ThemePreference | boolean | null`. The boolean is the
-  pre-`ThemePreference` shape still sitting in older installs. → `themeMode`: `true`→`dark`, `false`→`light`,
-  `null`→`system`. A mapper that assumes the string form silently mis-themes the oldest users.
-- ✅ **CORRECTED: `amount` is NOT a type hazard.** I flagged it as string→number; RN's `PaycheckConfig.amount`
-  is **also a string** ("kept as a string to mirror the input model"). The flag was wrong.
-
-**Surfaced by 5.1b.2's AFTER-scan (2026-08-19):**
-- ⚡ **A PLANT THAT PASSES IS NOT AUTOMATICALLY A BLIND ASSERTION — diagnose which.** A plant reversing
-  intra-level walk order passed, and this project's own standard ("a green assertion that cannot fail reads
-  as coverage") argues for deleting such an assertion. **It was the PLANT that was wrong:** reversing
-  siblings does not disturb breadth-first, which orders by DEPTH. A true BFS→DFS plant red it, on the exact
-  assertion. ⛔ **New rule for the instrument record:** when a plant passes, first ask whether the mutation
-  changed the behaviour the assertion is about. **Deleting a sound assertion on a bad plant's evidence is a
-  new way to lose coverage**, and the existing "10 of 10 instruments passed while broken" result would have
-  made that mistake feel justified. → the [D31] instrument doctrine.
-- ⚠️ **`expo-file-system` is in `node_modules` transitively but is NOT a declared dependency** of
-  `apps/rn`, and `expo-sqlite` is absent entirely. Both get declared at 5.1b.3 — which lands on the
-  already-desynced lockfile. → sequence 5.1b.3 **before** 5.9, not after.
-- ⚠️ **`Paths` exposes `cache` / `document` / `bundle` but NOT `library`**, so `Library/WebKit` is reachable
-  only as `Paths.cache.parentDirectory`. Handled and pinned (`webkitRootFrom`), recorded because it is the
-  kind of API fact a later refactor would "simplify" back into a hardcoded path.
-
-**Surfaced by 5.1b.1's BEFORE-scan (2026-08-19) — the legacy build was already broken; all fixed, folded in:**
-- ✅ ⛔ **`next build` was RED, so the v1.6 Capacitor app could not be built at all** — and Phase 5's upgrade
-  probe needs it. Nothing caught it because **`validate:release:legacy` never runs `next build`**; the
-  surface has not been compiled since the RN tree landed. **7 errors, 1 real.** Root `tsconfig.json` swept
-  `apps/**` (whose `@/*` means `apps/rn/src`, not the repo root) and `scripts/**` (tsx conventions this
-  config rejects) — both now excluded. Build verified green.
-- ✅ ⚡ **The one real error was a live defect:** `ResultsSection.tsx` filtered allocations on
-  `category === "leftover"`, a member `AllocationCategory` no longer has — core split the residual into
-  `cushion_buffer` and `true_leftover`. **The filter has matched nothing, so `bufferTotal` was 0 regardless
-  of the real buffer.** Restored to the category `allocatePaycheck` actually emits. *(Legacy surface only;
-  5.5.1 deletes it — but it had to compile for the probe, and a silent 0 is a defect either way.)*
-- ⚠️ **No further gate added, deliberately:** 5.1b.3's CI job builds the legacy app, so **the probe IS the
-  gate** against this rotting again — and both die together at 5.5.1. A second check would outlive its subject.
-- ✅ ⭐ **CORRECTED 2026-08-19 — the shipped v1.6 IS preserved: `origin/v1.6-dev`** (🎯; a pure Capacitor
-  tree, no `apps/`, no `packages/`). My earlier note said the fixture would have to come from the current
-  legacy tree. **It does not, and it must not** — that tree has drifted against shared `packages/core`
-  (the dead `"leftover"` filter proves it). **The fixture builds from `v1.6-dev`, so it is authentic to
-  what shipped.** ⚠️ Still true: there is no v1.6 **tag**, only `v1.0-submitted` + `app-preview-*`. Tag
-  releases from here.
-- ⭐ **[DECISION, 🎯 2026-08-19] CAPTURE THE CONTAINER ONCE — do not take a standing CI dependency on the
-  legacy tree.** 🎯: *"why do we need the legacy branch on this phase? We have actively been
-  decommissioning it."* Build v1.6 from `v1.6-dev` on a simulator **one time**, capture the resulting
-  `Library/WebKit` tree as a CI **artifact**, and have the probe job restore that into a fresh container.
-  ⛔ **Synthesising the fixture instead was REJECTED**: the unknown *is* where iOS puts the files, so
-  writing one where we guessed and then finding it there proves nothing — the fixture-never-renders-the-
-  real-state trap, at container scale. **After the capture the legacy tree owes CI nothing and 5.5.1 can
-  delete it freely.** ⚠️ The capture is from one iOS version; contents-not-path identification absorbs
-  that, and 🎯's phone remains the acceptance proof.
-
-**Surfaced by 5.1a's AFTER-scan (2026-08-19) — all fold in, none deferred:**
-- ⛔ **The v1.6 QUARANTINE is itself legacy data, and the plan never named it.** `safeStorage.ts` writes
-  corrupt bytes to `debtPlanner.__corrupt__.<key>.<ISO>` — for a user who ever hit corruption that is **the
-  only recoverable copy of their data**, and a bridge that migrates a known key list and stops would destroy
-  it at 5.5.1. **The bridge carries the quarantine forward.** → **5.2 + 5.3, must-have.**
-- ⚠️ **`decodeItemTable` drops unreadable rows, and a silent drop reads as a clean migration.** The bridge
-  must **report** the dropped count, not just omit them. → **5.3's contract.**
-- ⚡ **The obvious NUL-byte encoding sniff is WRONG, and the test proves it** — UTF-16LE CJK carries zero NUL
-  bytes, so a byte-sniff would migrate a non-Latin debt name as mojibake, silently. What saves it is that
-  **every v1.6 value went through `JSON.stringify`**, making "which decoding parses as JSON" a question about
-  our own data rather than a guess about Apple's. ⚠️ **That discriminator dies if any legacy value was ever
-  written un-stringified** — a case for **5.10**.
-
-**Surfaced by PHASE 5's switch-in before-scan (2026-08-19) — all three FOLD IN, none deferred:**
-- ⚠️ **`runMigrations` never reads `r.storeVersion`.** It merges every blob forward unconditionally, so v6's
-  `normalizeBnplInstallment` re-runs on **every hydrate of an already-current blob**. Merge-forward is a
-  defensible design, but its idempotence is **asserted, not measured**. → **5.2**, and a case in **5.10**.
-- ⚠️ **`migrations.ts`'s docblock stops at v6 while `CURRENT_STORE_VERSION = 7`** — v7's three prefs are
-  documented only in `models.ts`. One version, two owners: the exact drift class T8 spent a day on. → **5.2**.
-- ⚠️ **`sandboxStore.ts:19` asserts `prefs.isDemoMode` is "read by real code (`use-payday-capture`)"** — false
-  since 3.5.4.8, and `use-payday-capture`'s own comment says so. A stale comment defending a dead flag. → **5.6**.
-
-**Surfaced by T6's PER-SUB-ITEM after-scan (2026-08-19) — both folded in, not deferred:**
-- ✅ **`affordability.test.ts` modelled `PlanHero` with `everydayReserve` after T6.3 moved the component to
-  `everydayHeld`** — a stale model whose comment claimed to mirror the component, passing only because the
-  fixture's request fits. Fixed.
-- ✅ **T6.5/6.6/6.7 changed 5 rendered figures with ZERO assertions** — the gate went green because nothing
-  would have failed. Reconciliation test added, plant-verified, both directions.
-
-**Surfaced by T6 (2026-08-19):**
-- ⚠️ **`buildGuardianBrief.ts:124` declares `function money(n): number`** — a ROUNDER sharing the
-  formatter's name, in core. Not a defect and `lint:money` correctly ignores it (it builds no string), but
-  the name collides with the thing 12 sites were just collapsed onto. → **T8** (one-owner naming)
-- ⚠️ **`selectDiscretionary` has 2 consumers beyond T4.1b's four** — `expenseReserveSelectors.ts:112`
-  (the offer) and `guardianSelectors.ts:550`. Neither was in the ledger; both read the partition total.
-  Measured as band-neutral, but they inherit whatever the `holdsLine` decision settles. → **T8**
-- ⚠️ **`formatWhole` lives in the RN tree while `formatCurrency` lives in core**, so the two halves of one
-  rule sit in two packages. Not worth 23 import rewrites now (measured at T6.2) — but if core ever needs a
-  whole-dollar figure, move it then rather than adding a third. → **T8 / Phase 6**
-
-**Surfaced by T5 (2026-08-18):**
-- ⛔ **`DebtAmortization.isFocus` is now read by NOTHING** — L3-4 moved its one consumer to `monthlyExtra`.
-  An unread field sitting beside the must-read one is the exact trap that produced L3-4. → **T8**
+**Carried out of T4–T8 with NO recorded closure** — each was routed to a step that has since closed, and
+none shows a closure in the log. ⛔ *An untraceable closure is indistinguishable from an open finding*, so
+they are re-filed rather than assumed done:
 - ⚠️ **`testFullAppRegression.ts:63`'s conservation assert holds only when the reserve FITS** — with an
   over-sized everyday reserve, `paycheckAmount − livingExpenseReserve` goes negative while the allocation
-  sum floors at 0. Not exercised today; `livingExpenseHeld` is the honest term. → **T6**
+  sum floors at 0. Not exercised today → **P6.10**.
 - ⚠️ **`AmortizationView` calls a BNPL's `bnplMonthlyEquivalentMinimum` "the minimum"** — it is a monthly
-  *equivalent* of an installment minimum. Precision, not a lie. → **T6**
-- ⚠️ **T7 must re-check `buildSmartInsights` reachability before spending on L1-16** — L3-5 measured its
-  only non-test consumer as the legacy web app, which 5.5.1 deletes.
-
-**Surfaced by T4.3 (2026-08-18) — untested surfaces, both found by renaming them:**
-- ✅ **`GuardianScorecard`'s day-one state — CLOSED in T5.3, not deferred.** T4.3 renamed that copy
-  unverified and T5.3 was about to be the *second* unverified rename of the state every new user is in.
-  Now pinned in `cushion-forecast.spec.ts`, plant-verified, with both retired claims asserted absent.
+  *equivalent* of an installment minimum. Precision, not a lie → **P6.8**.
 - ⚠️ **The timeline's cushion row label is unasserted** — `buildTimelineItems` pushes it and
-  `TimelineLedger` renders it, but no spec reads it, so the T4.3 rename there is **unverified by the gate**.
-  → fold a single assertion into **T4.9**
+  `TimelineLedger` renders it, but no spec reads it, so T4.3's rename there is unverified by the gate →
+  **P6.4**.
 
-**Surfaced by T4's switch-in + T4.0/T4.1b after-scans (2026-08-18):**
-- ⚠️ **The paywall lead has NO e2e coverage** — it sits behind the **live public embed** and is pinned only
-  by `paywallLead.test.ts`. No Playwright spec asserts any branch of it. → **Phase 6** *(or T4.9 if a spec
-  is cheap once the glossary settles the words).*
-- ⚡ **Write copy-pin assertions with `.includes()`, never a regex.** A `…` written through a
-  heredoc→node→file chain landed as literal **backspace** characters (`/flexible/`), so the pin
-  could never match and **would have passed forever**. Caught only by mutation-verifying it. That is the
-  **8th** first-cut instrument in this project that was wrong in a way that PASSED. → **T4.8** owns making
-  this a rule.
+**Genuinely a later version / tier:**
+- **`typicalAmount` still has no UI** → the wording/cohesion gate.
+- **The app never shows a debt-free date reflecting its own plan working** — on day one the starter EF
+  absorbs the surplus, so every projected date is minimums-only. Honest per screen; the question is the
+  app-wide effect → the cohesion audit, **not a defect**.
+- **The paywall lead has NO e2e coverage** — it sits behind the live public embed and is pinned only by
+  `paywallLead.test.ts`; no Playwright spec asserts any branch of it. → **P6.4**.
+- **The demo's beat dwell may be too short for the runner** — decide from the 2fps contact sheet.
+- **Apple Watch** → v1.8+ · **`@gorhom/bottom-sheet`** → v1.8 Android · **Behavioral mis-entry /
+  persistent-cushion / bill-shock autopilot** → Connected/Plaid tier · **Holiday/promo free-trial** → a
+  reversible later lever; launch is paywall-from-day-1 · **iOS-18 Control Center** [D1] · **web light-mode
+  hover screenshots** *(a QA artifact, not product)*.
 
 ### ⭐ The 62 findings [D37] did not cover — FILED TO PHASE 6 (🎯 2026-08-19)
 
 ⛔ **The complete list is [`audits/2026-08-17-v1.7-audit-gate/REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md)**,
 **generated** from the findings files (`tsx scripts/check-audit-closure.ts --remaining`) — never hand-maintained.
-**41 minor · 21 polish.** Owned by **Phase 6's FINISH sweep**, alongside T12.
+**41 minor · 21 polish.** Owned by **P6.4**, which is where the call on them is made; T12's ~40 polish
+items belong to **P6.8**, the sweep.
 
 ⛔ **Why the generated list exists: 20 of the 62 were named in NO ledger at all** — not the plan, not the
 log, not the refutations — because the T9–T11 lists below are *partial enumerations* and `lint:closure`
@@ -672,10 +338,10 @@ expected state here, and a gate that reds on the expected state trains everyone 
 suggested fix would have made five dead strings load-bearing — and **5 more involve `LiveActivityQA.tsx`,
 which the `QA_TOOLS` flip deletes.** Several are already dead; more die with 5.5.1.
 
-🎯 **2026-08-19: filed, not built.** *"I'm leaning toward fixing them all before we go live but I'm not
-saying that for sure. We will evaluate where it stands prior to launch."* — so this is a **lean, not a
-commitment**, and the call is made on the frozen build. Rationale for deferring: polish decided against a
-moving app gets decided twice, and Phase 5 rewrites the data layer while 5.5.1 deletes a whole surface.
+✅ **[D42], 2026-08-20 — the commitment is a BAR, not a COUNT.** All 62 get **judged** at **P6.4**; what
+gets **fixed** is every defect and every finding on a surface that ships. ⛔ **Do not convert this back into
+"clear all 62"** — 29 are known non-work, and L2-6 is the precedent for a "fix" that made five dead engine
+strings load-bearing.
 
 **⏳ T9–T11 — the PARTIAL enumerations, superseded by `REMAINING.md`** *(kept for their reasoning only)*.
 - **T9 · a11y** — ⚠️ **L0-5 and L5-7 are MAJOR → in the gate now** (L1-8 was already T7's).
@@ -690,57 +356,26 @@ surfaces more of it, fold it rather than re-entering.
 _Post-triage under the fold-don't-defer rule — only two carve-outs remain: **device-gated**, or **genuinely
 a later version/tier**._
 
-**Tooling / hygiene:**
-- ⛔ ~~**`apps/rn/package-lock.json` is out of sync**~~ — **REFUTED 2026-08-19 by measurement**, see 5.9.
-  `npm ci --dry-run` exits 0 on the committed baseline in both trees. ⚡ **The first test I ran "confirmed"
-  it and was wrong** — it compared the OLD lockfile against my ALREADY-EDITED `package.json`, so the three
-  missing entries it reported were mine. A premise measured against a contaminated baseline confirms itself.
-- ⚠️ **Two `maestro test` calls write no JUnit**, so their verdicts never reach the durable record
-  (`11-reduce-motion`, the iPad's dark re-run of `i02`). Harmless today — both are measurement runs — and
-  the same hazard `maestro-results.mjs`'s header documents for flow `09`: **the next flow added in its own
-  invocation disappears silently.** ⚠️ `lint:lane` is where this becomes a check.
-- ⚠️ **The embed's public URL names the repo** — `jsnyde03.github.io/debt-app-v1/`. Fine for an iframe; a
-  custom domain or a repo rename removes it. **A brand call with a DNS dependency** → 🎯 whenever the
-  marketing page exists.
-- ⚠️ **The gate still asserts the RETIRED demo-mode contract** — a green test defending a feature the RN app
-  no longer has → delete with the Capacitor tree at **5.5.1**. · **TWO screenshot mechanisms** → 5.5.1.
-- ⚠️ **Maestro is unpinned** — `get.maestro.mobile.dev` fetches latest, and 4.1.1 spent three cycles
-  establishing which commands this build supports. A silent upgrade can retire one. *(Caching `~/.maestro`
-  was refuted — 22s, not the filed 1m29s.)*
-- **No local pre-flight for the capture path** — a flagged web export + ~40-line check would have caught
-  several CI cycles' worth of defects.
-- ⛔ **REFUSED WITH MEASUREMENTS, do not resurface:** **ccache** (`0/648 cacheable` twice; both stated
-  mechanisms wrong, and modules-off cost 888s vs a 771s baseline — the only remaining avenue is prebuilt pod
-  binaries, a dependency-packaging change) · **DerivedData caching** (~70% of the boot step is simulator boot
-  + install, which it cannot touch, against multi-GB in a 10GB cap where LRU could evict the `.app` cache
-  saving 17 minutes — *the optimisation eating the optimisation*).
-
-**Engine structure:**
-- **⚠️ The core bulk paths still write pre-[D2] paid semantics.** `bulkMarkRequired.ts` sets
-  `isPaidThisCycle: true` on a debt whose **minimum** was covered. **Inert today** (measured), and pinned by
-  a test — but it is a false assertion in **data Phase 5 migrates** → the Phase-6 financial-correctness gate.
-- **⚡ `appliedTopUp` is a manual-opt-in invariant.** Cash moved from savings lives only in `store.cycleTopUp`,
-  so **every** cushion reader must remember `+ appliedTopUp(store)`. Three readers exist; two had it. **The
-  next reader will miss it too.** Structural fix: fold it into the allocation — engine-wide blast radius →
-  the Phase-6 financial-correctness gate.
-
-**Device-gated → the Phase-6 pass:** Today/cushion-forecast selector memoization *(conditional on a real
-measured hotspot)* · Dynamic-Type device QA.
-
-**Genuinely a later version / tier:**
-- **`typicalAmount` still has no UI** → the wording/cohesion gate.
-- **The app never shows a debt-free date reflecting its own plan working** — on day one the starter EF
-  absorbs the surplus, so every projected date is minimums-only. Honest per screen; the question is the
-  app-wide effect → the cohesion audit, **not a defect**.
-- **The demo's beat dwell may be too short for the runner** — decide from the 2fps contact sheet.
-- **Apple Watch** → v1.8+ · **`@gorhom/bottom-sheet`** → v1.8 Android · **Behavioral mis-entry /
-  persistent-cushion / bill-shock autopilot** → Connected/Plaid tier · **Holiday/promo free-trial** → a
-  reversible later lever; launch is paywall-from-day-1 · **iOS-18 Control Center** [D1] · **web light-mode
-  hover screenshots** *(a QA artifact, not product)*.
-
 ---
 
 ## Decisions
+
+**Phase 6 — the launch decisions, all settled 2026-08-20 (🎯: *"Agree with your recs"*)**
+- **[D40] ✅** — **cloud backup uses the app's PRIVATE iCloud container, no passphrase.** A passphrase adds a
+  *permanent* unrecoverable-backup failure mode to defend against a threat this product is not sold against;
+  the container is already encrypted at rest and readable only by this app under this Apple ID. → **P6.3.3**.
+- **[D41] ✅** — the privacy claim becomes ***"Your data never goes to our servers. Optional iCloud backup
+  keeps it in your own Apple account."*** ⛔ **Never** *"end-to-end encrypted"* (false under [D40]) and never
+  *"100% private"* again. → **P6.9** proves it literally.
+- **[D42] ✅** — **P6.4 commits to a BAR, not a COUNT.** All 62 get judged; what gets fixed is every defect
+  and every finding on a shipping surface. ⚡ A count would spend the pre-lock window on the 24 generic-chrome
+  duplicates that repeat by design and the 5 rows the `QA_TOOLS` flip deletes.
+- **[D43] ✅** — **the splash is the app icon on the icon's own dark background, no wordmark.** → **P6.6**.
+- **[D44] ✅** — **a Pages deploy must assert its SHA has a green `web-e2e` run** and fail otherwise. → **P6.7**.
+- **[D45] ✅** — **the monorepo stays**; `apps/rn` is not promoted to root. → **P6.11.2 closed.**
+- **[D46] ✅** — **the QA door is resolved by ORDERING:** `P6.13` (build, `QA_TOOLS` on) → `P6.14` (device
+  pass) → `P6.17` (flip, own green gate). ⛔ The probe rows get **no** non-QA path — that ships a debug
+  readout to users. ⚠️ Residual named: the shipping binary is not the device-passed binary.
 
 **Scope + revenue**
 - **Re-scope to "The Elevation" ✅ (2026-07-20)** — design-first, best-in-class. **v1.7 ships as ONE release.**
@@ -752,42 +387,20 @@ measured hotspot)* · Dynamic-Type device QA.
 - **Executive "fix everything, no backlog" ✅ (2026-07-29/30)** — fold every audit finding now; only hardware
   verification waits for Phase 6. · **Legacy gate RETIRED ✅ (2026-07-24)**.
 - **3.8 is in v1.7 ✅ (2026-08-17)** — 🎯: *"definitely in 1.7."* The app contradicts its own number.
-- **[D39] ✅ (🎯 2026-08-19)** — **FEATURE LOCK ≠ FREEZE, and they happen at different times.**
-  🎯: *"v2.0 will be FEATURE locked after the 3.5 remainder. New findings will be for defects and
-  completeness/polish."*
-  - **Feature lock** lands after the **3.5 remainder** — no new capability in 2.0 past that point.
-  - **Freeze** is later and stricter: every planned change landed, nothing outstanding.
-  - ⚡ **What this buys, and it is the real value: the FINISH sweep's structural-gap charter now has a
-    DEFAULT ANSWER.** The charter was widened to ask *"is anything missing"* as well as *"is anything
-    wrong"* — which without a boundary is an invitation to grow the release indefinitely. After feature
-    lock the default for a structural gap is **defer to 2.1**, and only a **defect** or the
-    **completeness/polish of something already built** is admitted. That is what stops the sweep expanding
-    the freeze it exists to protect.
-  - ✅ **"The 3.5 remainder" = T9–T11** (🎯) — one set, not two. It is the minor/polish tier of the
-    2026-08-17 audit, deliberately held outside [D37]'s scope.
-  - ⛔ **BUT THE BOUNDARY IS A SET THAT HAS NOT BEEN RE-MEASURED**, and it now decides *when 2.0 stops
-    taking features*, so it is load-bearing. The plan already warns **"re-measure first — T4–T8 collapsed
-    many of their owners"**, so the live count is unknown and certainly not the original one. ⚡ And this
-    project's most expensive measured law is that **an enumerated list is always short** — five consecutive
-    audit items, every time in the same direction. ▶ **Regenerate T9–T11 from the findings file before
-    treating it as the feature-lock line**, exactly as the 62 Phase-6 findings were filed *"as a GENERATED
-    list, not a remembered one."*
-- **[D38] ✅ (🎯 2026-08-19)** — **this ships as `2.0.0`, not `1.7.x`.** 🎯: *"a very very very large version
-  and I fear that leaving it as a point release will lead to unrealistic expectations in the future."*
-  ⚡ **The argument is about the FUTURE, not this release: the version number is the baseline every later
-  release is measured against, and a wrong baseline is permanent.** Ship this as 1.7 and every normal
-  release afterwards reads as a slowdown, forever, because of one decision. ⭐ It also stands on its own
-  grounds — **Capacitor WebView → native RN is a platform change**, which is the textbook major bump even
-  if the feature list were modest.
-  - ⚠️ **The INTERNAL name stays "the v1.7 Elevation."** The plan, log, CLAUDE.md, audit folder names and
-    a great many code comments are saturated with it; renaming is churn with real regression risk and zero
-    user benefit. **Precedent in this portfolio:** Hearthlight ships as *"Hearthlight: Cozy Coloring"*
-    while its repo, bundle id and home-screen name stay `Hearthlight` — a deliberate divergence.
-  - ✅ **Measured: nothing user-facing carries "1.7"** — the only hits are internal comments. The shipped
-    number is **one field**, `apps/rn/app.json` → `version`. ⚠️ Migration is unaffected: the bridge keys off
-    the **bundle id** and RN storage being empty, never the version.
-  - ▶ **Do it in Phase 6, BEFORE the ASC listing / release notes / "What's New" / App-Preview are written**
-    — those all quote the version, and deciding partway through means writing them twice.
+- **[D39] ✅ (🎯 2026-08-19)** — **FEATURE LOCK ≠ FREEZE, and they happen at different times.** Lock lands
+  after **"the 3.5 remainder" = T9–T11** (🎯 — one set, not two); freeze is later and stricter, every
+  planned change landed. ⚡ **What it buys:** the FINISH sweep's structural-gap charter gets a **default
+  answer** — after lock a structural gap defers to **2.1**, and only a defect or the completeness/polish of
+  something already built is admitted. ⛔ **The boundary is a set that has not been re-measured** →
+  **P6.2** regenerates it. Detail → log.
+- **[D38] ✅ (🎯 2026-08-19)** — **this ships as `2.0.0`, not `1.7.x`.** ⚡ The argument is about the FUTURE:
+  the version number is the baseline every later release is measured against, and a wrong baseline is
+  permanent. ⚠️ **The internal name stays "the v1.7 Elevation."** Measured: nothing user-facing carries
+  "1.7" and the shipped number is one field, `apps/rn/app.json` → `version`. → **P6.1**. Detail → log.
+- **[D37] ✅ (🎯 2026-08-18)** — **every high+ finding is remediated this round**: all **55 of 117**
+  blocker+major closed or explicitly refuted, each traceable to its finding id, and now enforced by
+  `lint:closure` rather than by memory. ⛔ **Nothing is parked** — the minor/polish tier is SEQUENCED, not
+  shelved → **P6.4**.
 - **[D36] ✅ (2026-08-17)** — the reserve ships to **BOTH TIERS** (the lie is tier-blind, and `prefundedReserve`
   is premium-only, so it needed deciding rather than inheriting) · the Guardian segment is **"Spoken for"**.
   ⛔ *"Set aside"* is a portfolio name; *"Reserved"* would name a **different number** than the Money hero's.
@@ -839,7 +452,7 @@ measured hotspot)* · Dynamic-Type device QA.
 - **[D35] ✅ (2026-08-17)** — **3.5's device pass FOLDS INTO Phase 6's.** They overlapped the moment the
   coverable-not-built rows went to Phase 6. One sitting, no row run twice.
 
-**Open:** [D2]'s B4 gate · [D3]'s Money hero language.
+**Open:** none. **[D3] closed 2026-08-20** — the Money hero residual was answered by [D36] / 3.8.
 
 ---
 

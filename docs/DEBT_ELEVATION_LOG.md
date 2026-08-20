@@ -4,6 +4,313 @@
 
 ---
 
+## 🔚 SESSION CLOSE 2026-08-20 — PHASE 6 IS DECOMPOSED AND ITS DECISION QUEUE IS EMPTY. Read this first.
+
+**Branch `v1.7-dev`, committed and pushed. Documentation only — no source file was touched**, so the gate
+state is unchanged from CI `32287042685` (green: 205 e2e · 10 embed · 10 `test:stamp` · 83 lane checks, tsc
+clean both trees, 0 `error-context.md`). Nothing was run, nothing was started, no dev servers left listening.
+
+### ✅ Closed
+
+| | |
+|---|---|
+| **The plan** | **853 → 466 lines.** The closed phase collapsed, three overlapping descriptions of Phase 6 merged into one sequence, ~150 lines of Phase-5 after-scan narrative deleted (this log already held every word) |
+| **Phase 6** | decomposed as **P6.1 – P6.21**, 🎯's own order, with sub-steps for P6.3 (cloud backup) and P6.11 (the deletion) |
+| **[D40]–[D46] + [D3]** | the whole decision queue settled in one pass — **Phase 6 has nothing blocked on a decision** |
+| **`CLAUDE.md`** | **repaired** — it had contained two copies of itself since 2026-08-18 |
+
+### ⛔ THE RESULT OF THE SESSION: three documents were each lying in a different way, and none of it was code
+
+- **`CLAUDE.md` held the whole file twice**, the stale half still announcing *"▶ T4 (the glossary) is next"*
+  a day after the audit gate closed. Every commit since `f6b651e` edited the first copy only.
+- **The plan's `▶ BUILDING NOW` named the item that runs LAST** — repo consolidation, which had moved from
+  5.5 to 6.5 without the header following it.
+- **"⏸ Waiting on Jason" was carrying two decisions already made** — B4's gate (shipped 2026-08-11) and
+  [D1] (a recorded ✅ ten lines below in the same file).
+
+⚡ **One mechanism explains all three: nothing reads these documents mechanically.** Every gate in this
+project — `lint:closure`, `lint:money`, `lint:copy`, `lint:lane` — exists because a human enumeration went
+stale, and the plan is the one artifact with no such gate on it. ⛔ **A stale ACTIVE line looks exactly like
+a live one**, which is the same shape as `lint:closure`'s own founding result: *an untraceable closure is
+indistinguishable from an open finding.*
+
+### ▶ NEXT SESSION: Phase 6 opens at P6.1
+
+⛔ **Run the switch-in before-scan FIRST — none of Phase 6 has had one.** This session verified the plan
+against the *plan*, never against the code. **Every P6.n row is a hypothesis**, and the last time a phase
+opened here **four of six pre-authored premises were wrong**.
+
+**P6.1** is `apps/rn/app.json` → `2.0.0` and should take minutes. **P6.2** (regenerate T9–T11) is the one
+that actually decides something: it defines the feature-lock line, it has not been measured since T4–T8
+collapsed many of its owners, and it must be **generated** (`tsx scripts/check-audit-closure.ts`), never
+remembered.
+
+### ⚠️ Do NOT build on these
+
+- **`P6.n` is a new namespace.** *"6.C"* (cloud backup) = **P6.3** and *"6.5"* (repo consolidation, was 5.5)
+  = **P6.11**, so every `5.5.1` in this log and in three commit messages means **P6.11.1**. The legend is at
+  the top of the plan.
+- **The 205 e2e figure was read from this log, not re-measured.** The plan and `CLAUDE.md` both said **196**
+  until today. Confirm on the first green run rather than quoting it.
+- **Three findings were re-filed to the backlog, not closed** — `testFullAppRegression`'s conservation
+  assert, `AmortizationView`'s BNPL *"minimum"*, and the timeline's unasserted cushion label. Each had been
+  routed to a step that has since closed **with no closure recorded**, which is indistinguishable from open.
+- **[D40] does not license deleting the codec seam.** Freedom's interface is an empty seam with an identity
+  function in it; that is the right shape to inherit, and P6.3.3 must not "simplify" it away.
+- **P6.9 is unblocked but not startable** — it consumes [D40] + [D41], and it has to run **after** P6.3.3
+  ships the container. Auditing an egress that does not exist yet proves nothing.
+
+---
+
+## ✅ [D40]–[D46] — the Phase 6 decision queue CLEARS in one pass (🎯, 2026-08-20)
+
+🎯: *"Agree with your recs."* All eight open calls settled together, plus **[D3] closed**. Phase 6 now has
+**nothing blocked on a decision** — every remaining item is build work or an audit gate.
+
+### [D40] — cloud backup uses the app's PRIVATE iCloud container, no passphrase
+
+The choice was plaintext-in-the-private-container (Freedom's *actual* design, measured) vs. a real
+passphrase-AES codec plus a forgotten-passphrase recovery UX.
+
+⚡ **The argument that decided it: a passphrase adds a permanent failure mode to defend against a threat
+this product is not sold against.** Forget the passphrase and the backup is unrecoverable — for a debt app,
+that is a worse outcome than the risk it removes. The private container is already encrypted at rest and in
+transit and is readable only by this app under this Apple ID; what AES would additionally buy is protection
+from **Apple itself**, which is not the moat Debt claims. ⚠️ **And the honest privacy claim has to change
+either way** ([D41]), so AES does not even buy back the sentence. Secondary but real: AES + recovery UX is a
+materially larger build landing immediately before feature lock.
+
+⛔ **What this does NOT license:** the codec seam stays. Freedom's interface is an empty seam with an
+identity function in it, and that is the right shape to inherit — a later version can add a real codec
+without re-architecting. **Do not delete the seam because [D40] does not use it.**
+
+### [D41] — the replacement for *"financial data never leaves your device"*
+
+✅ ***"Your data never goes to our servers. Optional iCloud backup keeps it in your own Apple account."***
+
+⚡ **It is true under either mechanism**, which is why it was worth settling before the build rather than
+after. It names the actual moat — **no vendor server, no analytics** — rather than making a claim about
+cryptography that the code would have to earn. ⛔ **Two phrasings are now banned:** *"end-to-end encrypted"*
+(literally false under [D40]) and *"100% private"* (already refuted at [D32] — every host logs IPs).
+
+⚠️ **The old claim was owed a replacement regardless of the mechanism**, because encryption changes *who can
+read it*, not *whether it left*. That was the point the original 5.7 framing missed, and it is why these two
+decisions were coupled rather than sequential.
+
+### [D42] — P6.4 commits to a BAR, not a COUNT
+
+🎯 had leaned toward *"fix all 62 before we go live"* without committing. The settled form: **all 62 get
+judged; what gets fixed is every defect and every finding on a surface that ships.**
+
+⚡ **Why a count is the wrong instrument here, measured:** **29 of the 62 are already known non-work** — 24
+generic-chrome duplicates (`Save`, `Cancel`, `Done`, `Add`, `Name`, `Back`) that repeat *by design*, and 5
+in `LiveActivityQA.tsx`, which the `QA_TOOLS` flip deletes. ⛔ **And "fix them all" has a precedent that
+made the app worse:** L2-6's suggested fix would have turned five dead engine strings into load-bearing
+ones. A count converts a quality bar into a compliance exercise against a list whose own author warned it
+should not be read as 62 edits.
+
+### [D43] — the splash is the app icon on its own dark background, no wordmark
+
+Zero new design work; guaranteed to match the icon iOS renders immediately before it; kills the white flash
+into a dark UI. A designed splash is a 2.1 nicety. ⚠️ Recorded because the item was deferred *specifically*
+for wanting an asset decision — it was never a mechanical fix waiting on effort.
+
+### [D44] — a Pages deploy asserts its SHA has a green `web-e2e` run
+
+The deploy is `workflow_dispatch`-only **deliberately** (a `push:` trigger would publish ungated states),
+but that left *"deployed"* and *"passed the gate"* held together by discipline on a **public marketing
+URL**. The fix is ~15 lines of `gh api` in the deploy job. ⚠️ The existing artifact assertion catches a
+**blank site**, not a regression that builds — different failure, still uncovered without this.
+
+### [D45] — the monorepo stays
+
+`packages/core` is shared portfolio-wide. Promoting `apps/rn` to root is churn with real regression risk
+weeks before submission, for nothing a user sees. **P6.11.2 closes before it opens** — the deletion step is
+now purely *remove the legacy surface*, which is the part that carries actual risk.
+
+### [D46] — the QA door is resolved by ORDERING, and the probe rows get no exemption
+
+`P6.13` (CM build, `QA_TOOLS` **on**) → `P6.14` (device pass) → `P6.17` (flip, its own `validate:release:rn`).
+
+⛔ **The rejected alternative was giving the probe rows a non-QA path**, and it is worth recording *why*:
+that means **shipping the migration probe to real users** — a debug readout in a released app — to avoid a
+known, gated, last-and-smallest flip. ⚡ **The standing constraint (*"never let a coverage row ride a QA
+door"*) is a rule about not letting coverage depend on a door that closes; it is not an argument for opening
+the door permanently.**
+
+⚠️ **The residual stays named rather than hidden:** the binary that ships is not byte-identical to the one
+that passed the device pass. That is unavoidable — the pass needs the instruments, the ship must not have
+them — which is exactly why the flip is last, minimal, separately gated, and followed by **P6.18**'s
+targeted re-check.
+
+### [D3] — closed
+
+The Money-hero-language residual, open since 2026-07-30, was answered in passing by **3.8 / [D36]**: that
+work rebuilt the hero (the pot · *"Spoken for"* · the honest verb) and nothing in it is still unnamed. ⚡ **A
+decision answered as a side effect of a build is the kind that never gets closed on the record** — same
+shape as the two dead entries the "waiting" list was still carrying.
+
+### ▶ What this unblocks, immediately
+
+**P6.9 (the privacy audit) is no longer gated.** It was written to *consume* [a] and [b] rather than
+discover them; with [D40] + [D41] settled, its job is now to prove one specific sentence literally true
+across network · RevenueCat · Sentry · iCloud · scan OCR · logs. ⚠️ **And it must run after P6.3.3 ships the
+container**, not before — auditing an egress that does not exist yet proves nothing.
+
+---
+
+## 2026-08-19 (late) — the plan is cleaned up and PHASE 6 IS DECOMPOSED
+
+**No scope changed and nothing was decided.** This was the plan-hygiene half of the Phase 6 switch-in:
+collapse the closed phase, delete detail this log already holds, and turn Phase 6 from three overlapping
+prose sections into one numbered sequence.
+
+### ⛔ What was actually wrong with the driver
+
+| | |
+|---|---|
+| `▶ BUILDING NOW` named **"Phase 5.5 · Repo consolidation"** | 5.5 had been moved to 6.5 and now runs **last**; the header pointed at the one item that is furthest away |
+| **Phase 5 sat fully decomposed while CLOSED** | ~130 lines of 5.1–5.11 step table, the switch-in before-scan table and the 5.10 sub-block — every word of it already in this log |
+| **Phase 6 was described in THREE places** | the `🎯 THE ORDER TO SUBMISSION` table · a prose paragraph re-stating the same order with ①–⑪ · a bullet list of the same items again. A reader could not tell which was live |
+| The **deferred backlog held ~150 lines of Phase-5 after-scan narrative** | the WAL finding, the plant-harness failure, the key-sweep corrections — all recorded here the day they happened, then duplicated into the backlog where they read as open work |
+| Two **spent standing permissions** (3.8, the audit gate) still sat in Standing constraints | both phases are closed; a spent grant that reads as live is worse than no grant |
+| A **fixed defect** still sat under *"Product defects, live"* | the 500 ms pref-loss window — closed by 5.5 the same day |
+
+**853 → 447 lines.** Nothing was deleted that this log does not carry, with two exceptions, both handled:
+[D38]/[D39] below, and **three findings routed to a step that has since closed with no closure recorded**
+(`testFullAppRegression`'s conservation assert · `AmortizationView`'s BNPL "minimum" · the timeline's
+unasserted cushion label). ⛔ Those were **re-filed to the backlog, not dropped** — an untraceable closure
+is indistinguishable from an open finding, which is the whole reason `lint:closure` exists.
+
+### ⚠️ The exception: [D38] and [D39] existed ONLY in the plan
+
+Both were written straight into the driver — commits `af9ebb8` and `ef9ea42` touched
+`DEBT_ELEVATION_PLAN.md` and nothing else. Collapsing them to terse decision lines would have **destroyed
+the reasoning**, so both are recorded here in full first. *(Worth noting as a pattern: a decision taken
+mid-conversation is the kind most likely to skip the log, because it never had a build step to close.)*
+
+#### [D38] — this ships as `2.0.0`, not `1.7.x` (🎯 2026-08-19)
+
+🎯: *"a very very very large version and I fear that leaving it as a point release will lead to unrealistic
+expectations in the future."*
+
+⚡ **The argument is about the FUTURE, not this release.** The version number is the baseline every later
+release is measured against, and a wrong baseline is permanent. Ship this as 1.7 and every normal release
+afterwards reads as a slowdown, forever, because of one decision. ⭐ It also stands on its own grounds —
+**Capacitor WebView → native RN is a platform change**, the textbook major bump even if the feature list
+were modest.
+
+- ⚠️ **The INTERNAL name stays "the v1.7 Elevation."** The plan, this log, CLAUDE.md, the audit folder names
+  and a great many code comments are saturated with it; renaming is churn with real regression risk and zero
+  user benefit. **Precedent in this portfolio:** Hearthlight ships as *"Hearthlight: Cozy Coloring"* while
+  its repo, bundle id and home-screen name stay `Hearthlight` — a deliberate divergence.
+- ✅ **Measured: nothing user-facing carries "1.7"** — the only hits are internal comments. The shipped
+  number is **one field**, `apps/rn/app.json` → `version`. ⚠️ Migration is unaffected: the bridge keys off
+  the **bundle id** and RN storage being empty, never the version.
+- ▶ **Do it FIRST in Phase 6**, before the ASC listing / release notes / *"What's New"* / App-Preview are
+  written — those all quote the version, and deciding partway through means writing them twice.
+
+#### [D39] — FEATURE LOCK ≠ FREEZE, and they happen at different times (🎯 2026-08-19)
+
+🎯: *"v2.0 will be FEATURE locked after the 3.5 remainder. New findings will be for defects and
+completeness/polish."*
+
+⛔ **Two different lines, and collapsing them is a real mistake I made and 🎯 corrected.**
+**Feature lock** lands after the 3.5 remainder — no new capability in 2.0 past that point. **Freeze** is
+later and stricter: every planned change landed, nothing outstanding. ⚠️ *"Frozen" is not a milestone you
+schedule; it is a state you converge to.*
+
+- ⚡ **What this buys, and it is the real value: the FINISH sweep's structural-gap charter now has a DEFAULT
+  ANSWER.** The charter was widened to ask *"is anything missing"* as well as *"is anything wrong"* — which
+  without a boundary is an invitation to grow the release indefinitely. After feature lock the default for a
+  structural gap is **defer to 2.1**, and only a **defect** or the **completeness/polish of something already
+  built** is admitted. That is what stops the sweep expanding the freeze it exists to protect.
+- ✅ **"The 3.5 remainder" = T9–T11** (🎯) — one set, not two. It is the minor/polish tier of the
+  2026-08-17 audit, deliberately held outside [D37]'s scope.
+- ⛔ **BUT THE BOUNDARY IS A SET THAT HAS NOT BEEN RE-MEASURED**, and it now decides *when 2.0 stops taking
+  features*, so it is load-bearing. The plan already warns *"re-measure first — T4–T8 collapsed many of their
+  owners"*, so the live count is unknown and certainly not the original one. ⚡ And this project's most
+  expensive measured law is that **an enumerated list is always short** — five consecutive audit items, every
+  time in the same direction. ▶ **Regenerate T9–T11 from the findings files before treating it as the
+  feature-lock line**, exactly as the 62 Phase-6 findings were filed *"as a GENERATED list, not a remembered
+  one."*
+
+### ⚠️ The numbering decision, because it will look odd later
+
+Phase 6's steps are **`P6.1` … `P6.21`**, and the two labels that predate the decomposition are **kept, not
+renamed**: **"6.C" (cloud backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**.
+
+⛔ **The collision is real and it is why the prefix exists.** Numbering the steps `6.1, 6.2, …` puts a
+*fifth step* named `6.5` in a document where `6.5` already means the repo consolidation — in this log, in
+three commit messages, and in 🎯's own words from the day before. The alternatives were to renumber the
+repo consolidation (renaming a label 🎯 coined yesterday) or to leave a gap in the sequence (an order that
+reads 6.4 → 6.6 → … → 6.5). **A prefix costs one legend line and breaks no existing reference.**
+
+### ▶ What Phase 6's decomposition is, and what it is not
+
+**It is 🎯's settled order, expanded into steps with owners** — the twelve-row order table became twenty-one
+numbered items, plus sub-steps for the two that are themselves multi-part (P6.3 cloud backup, P6.11 the
+deletion). ⚡ **The three loose ends that had no home in any of the three prose sections now have numbers:**
+Sentry (P6.5), the splash screen (P6.6 — it was sitting in the deferred backlog with *"Phase 6"* written on
+it and no slot), and the CI/Pages ops incl. the `legacy-capture-*` tag trigger that must **not** wait for
+the deletion (P6.7).
+
+**It is not a re-plan.** No step was added to scope, none reordered against 🎯's sequence, and the two
+things that need him are still open and still named:
+1. **The QA-door conflict** — accept `P6.13 → P6.14 → P6.17` as ordered, or give the probe rows a non-QA path.
+2. **The splash asset** (P6.6) — a design call, recommendation recorded.
+
+### ⛔ AND THE SCAN FOUND `CLAUDE.md` CORRUPTED — it had contained TWO copies of itself since 2026-08-18
+
+Checking whether the project's own entry point still pointed at a live phase turned up something worse
+than staleness: **`CLAUDE.md` held the whole document twice.** Lines 1–186 were the current head, cut off
+**mid-sentence**, and lines 187–404 were the entire pre-`f6b651e` file appended below it.
+
+⚡ **The mechanism, and it is worth knowing because the failure mode is silent:** an edit meant to insert a
+bullet into *Environment quirks* wrote the **new whole document** at the insertion point and left the old
+one in place after it. Confirmed by measurement — the tail diffs against `8f465d3:CLAUDE.md` in exactly
+**4 lines**, which are the tail of the bullet being inserted plus the bullet after it. **Every commit since
+then edited the first copy only**, so the file grew 215 → 371 → 383 → 388 → 394 → 404 with the stale half
+riding along untouched.
+
+⛔ **What it cost, unnoticed for a day:** the second copy said **"ACTIVE: audit-gate remediation — ▶ T4 (the
+glossary) is next"** while the first said the audit gate was closed. Any session reading the file top to
+bottom got both. ⚠️ **And the truncation had silently deleted three whole sections** — *Standing
+constraints*, *react-native-web silently drops native APIs* (the `Alert.alert` class that bit three times)
+and *Two rules the engine keeps re-teaching*. They survived **only** because they were sitting inside the
+duplicate that made the file wrong.
+
+✅ **Repaired:** one copy, **404 → 268 lines**, the three orphaned sections re-attached, the cut bullet's
+final clause restored from the old copy, and the status header rewritten to Phase 6 + the `P6.n` legend.
+
+⚡ **The generalisable bit: a document is not self-verifying.** Nothing here reads `CLAUDE.md` mechanically,
+so a duplicated, internally-contradictory entry point survived a day of commits that each touched it.
+*`lint:closure` exists because an untraceable closure looks like an open finding; this is the same shape one
+level up* — a stale ACTIVE line looks exactly like a live one.
+
+### ⛔ "⏸ Waiting on Jason" was carrying two decisions that were already made
+
+Asked for the open calls, I checked the section that exists to list them — and **two of its three entries
+were dead.** **[D2]'s B4 gate:** B4 (swipe-to-mark-paid) **shipped 2026-08-11** under [D28], so the gate it
+named was released three months of work ago. **[D1]** has a recorded **✅ *stays deferred, with a named
+trigger*** in the Decisions section of the same file, ten lines below.
+
+⚡ **The failure mode is specific and worth naming: a "waiting" list is the one section nothing ever
+revisits.** Closing a decision updates the *Decisions* section; nobody goes back to delete the row that was
+waiting for it. So the list decays in one direction — toward looking like there is more outstanding than
+there is — and the third entry ([D3]'s Money hero language) had to be re-derived from the log to find out
+whether **3.8 had answered it in passing.** *(It had.)*
+
+✅ **Replaced with a real decision queue** — the eight live Phase 6 calls, each with a recommendation and a
+one-line why, which is what the section was always supposed to be.
+
+⚠️ **And the switch-in before-scan for P6.1 has NOT been run.** This pass verified the plan against the
+*plan*, not against the code. Every P6.n row is still a **hypothesis** until its own before-scan measures it
+— which is exactly how Phase 5 opened, where four of six pre-authored premises were wrong.
+
+---
+
+
 ## 🔚 SESSION CLOSE 2026-08-19 — Phase 5 opened and taken to 5.6; read this first next session
 
 **Branch `v1.7-dev`, pushed, tree clean.** Gates: tsc clean · `lint:rn` 0 errors (6 pre-existing warnings)
