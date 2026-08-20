@@ -1,3 +1,4 @@
+import { SEE_IT_IN_ACTION_CTA } from '@core/copy/vocabulary';
 import { Text, View } from 'react-native';
 
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
@@ -39,7 +40,7 @@ export function WelcomeStep({ onNext, onDemo }: { onNext: () => void; onDemo?: (
               now promise the same thing. ⚠️ Deliberately NOT "see how it works" — that collides with the
               WALKTHROUGH ("How this works" on the Guardian card, "How the Guardian works" in More), and
               the walkthrough is the surface a user actually operates. The two had their words backwards. */}
-          {onDemo ? <Button label="See it in action" variant="secondary" onPress={onDemo} /> : null}
+          {onDemo ? <Button label={SEE_IT_IN_ACTION_CTA} variant="secondary" onPress={onDemo} /> : null}
         </>
       }>
       <View style={[s.hero, { backgroundColor: c.background.secondary }]}>

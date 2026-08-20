@@ -1,4 +1,4 @@
-import { EMERGENCY_FUND_NOUN } from "@core/copy/vocabulary";
+import { EMERGENCY_FUND_NOUN, GOALS_DESTINATION } from "@core/copy/vocabulary";
 import type { EstimateStaleness } from "@core/debt/projectCurrentBalance";
 import type { CushionStatus } from "@core/timeline/buildMultiCycleTimeline";
 import { computeState } from "@core/guardian/computeState";
@@ -348,7 +348,9 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
           detail: `About ${amt(discretionary)} after everything required — ${amt(kept)} stays as your cushion and the spare ${amt(beforeDebt)} goes into ${target}, which funds before debt payoff.`,
           // The old line promised nudging the floor down would free money "for debt". It would not: the
           // pre-debt rung is next in the waterfall, so freed cash goes THERE until it is full.
-          safeMove: `Nudge your line down anytime to put more into ${target} — once that's funded, the spare starts going ${debtFree ? "to your goals" : "to debt"}.`,
+          // [P6.4.4 · L2-23] The destination pair, one owner. ⚠️ The noun phrase only — the hero renders
+          // it as a bare label and this embeds it mid-sentence, so each caller keeps its own wording.
+          safeMove: `Nudge your line down anytime to put more into ${target} — once that's funded, the spare starts going ${debtFree ? GOALS_DESTINATION : "to debt"}.`,
           lookahead: look,
           ...viz,
         },

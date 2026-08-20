@@ -1,3 +1,4 @@
+import { PAYOFF_SCHEDULE_TITLE } from '@core/copy/vocabulary';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -134,7 +135,7 @@ export function AmortizationPane({ debtId }: { debtId: string | null }) {
   const c = useAppColors();
   return (
     <ScrollView contentContainerStyle={styles.paneContent} showsVerticalScrollIndicator={false}>
-      <Text style={[textStyles.title2, { color: c.text.primary }]}>Payoff schedule</Text>
+      <Text style={[textStyles.title2, { color: c.text.primary }]}>{PAYOFF_SCHEDULE_TITLE}</Text>
       <AmortizationView debtId={debtId} />
     </ScrollView>
   );

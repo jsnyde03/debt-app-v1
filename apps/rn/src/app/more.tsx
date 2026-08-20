@@ -1,4 +1,4 @@
-import { EVERYDAY_SPENDING_LABEL } from '@core/copy/vocabulary';
+import { EVERYDAY_SPENDING_LABEL, PRIVACY_POLICY_LABEL, UNLOCK_PREMIUM_CTA } from '@core/copy/vocabulary';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { tutorialRunFor } from '@/store/tutorialSelectors';
@@ -154,7 +154,7 @@ export default function MoreScreen() {
           ) : (
             <SettingRow
               icon="workspace-premium"
-              label="Unlock Premium"
+              label={UNLOCK_PREMIUM_CTA}
               subtitle="Payday Guardian, Can I Afford It & more."
               onPress={() => router.push('/paywall')}
               last
@@ -310,7 +310,7 @@ export default function MoreScreen() {
 
       <Section title="About">
         <SettingGroup>
-          <SettingRow icon="privacy-tip" label="Privacy Policy" onPress={() => Linking.openURL(LINKS.privacy)} />
+          <SettingRow icon="privacy-tip" label={PRIVACY_POLICY_LABEL} onPress={() => Linking.openURL(LINKS.privacy)} />
           <SettingRow icon="description" label="Terms of Use" onPress={() => Linking.openURL(LINKS.terms)} />
           <SettingRow icon="help-outline" label="Support" onPress={() => Linking.openURL(LINKS.support)} />
           {/* Only real subscribers manage a subscription — a free user or a Lifetime owner would land on an

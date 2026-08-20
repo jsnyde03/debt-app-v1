@@ -1,3 +1,4 @@
+import { PAYOFF_SCHEDULE_TITLE } from '@core/copy/vocabulary';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 
@@ -22,13 +23,13 @@ export default function ScheduleScreen() {
   const debtId = typeof id === 'string' && id ? id : null;
 
   useEffect(() => {
-    announce('Payoff schedule');
+    announce(PAYOFF_SCHEDULE_TITLE);
   }, []);
 
   return (
     // Deep-linkable, so it can be entered COLD with no history — `router.back()` would no-op and strand
     // the user on a screen with a dead back control. Fall back to Money, which is where it belongs.
-    <Screen title="Payoff schedule" onBack={() => (router.canGoBack() ? router.back() : router.replace('/money'))}>
+    <Screen title={PAYOFF_SCHEDULE_TITLE} onBack={() => (router.canGoBack() ? router.back() : router.replace('/money'))}>
       <AmortizationView debtId={debtId} />
     </Screen>
   );

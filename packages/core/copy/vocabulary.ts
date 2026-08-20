@@ -134,3 +134,52 @@ export const GUARDIAN_STATE_LABEL = {
     tight: "Tight",
     "at-risk": "Very tight",
 } as const;
+
+// ── P6.4.4 · the audit's L2 "should-be-shared" tier ──────────────────────────────────────────────
+//
+// ⛔ **Each of these was judged one at a time against L2-6's refutation, not batched.** L2-6's suggested
+// fix — export the ENGINE's allocation labels and have a card import them — would have made five dead
+// strings load-bearing, and it is the reason a duplicate is not automatically a constant. Every name
+// below is a string the user actually reads, on two or more shipping surfaces, where a rename that
+// reached one site and not the other would be visible. ⚠️ Findings that did NOT clear that bar stayed
+// out: L2-14 ("Autopay") and L2-22 ("BNPL") are domain nouns a rename would touch deliberately, and a
+// constant there buys indirection with no safety → 2.1.
+
+/** The premium CTA. ⚠️ `paywall.tsx` composes it with a price (`"Unlock Premium — $29.99"`), so this is
+ *  the phrase, never the whole button. Three shipping surfaces: More, the paywall, the demo dock. */
+export const UNLOCK_PREMIUM_CTA = "Unlock Premium";
+
+/**
+ * The log-a-payment action, as its ENTRY POINTS name it.
+ *
+ * ⚠️ Deliberately not applied to the submit button. `LogPaymentSheet`'s title is a noun phrase
+ * ("Log a payment") and its button is an imperative ("Log payment") — that is correct English, not
+ * drift. What WAS drift is the two doors *into* that sheet disagreeing: the debt sheet's link said
+ * "Log a payment" and the row menu said "Log payment", so one entry point named the destination and
+ * the other did not. Both now read the sheet's own title.
+ */
+export const LOG_PAYMENT_ENTRY = "Log a payment";
+
+/** The per-debt amortization feature. Three surfaces: the route header, the iPad pane's own title (it
+ *  has no route header), and the row menu that opens them. A rename must reach all three or the user
+ *  cannot tell they arrived where they tapped. */
+export const PAYOFF_SCHEDULE_TITLE = "Payoff schedule";
+
+/** The overdue bucket. ⚠️ `planSelectors` both DECIDES overdue-ness and names the bucket; the card
+ *  labelled individual rows from its own literal, so renaming the state left the pill saying the old
+ *  word for the same rows. The tone token `'overdue'` was already shared — only the word was not. */
+export const OVERDUE_LABEL = "Overdue";
+
+/** The privacy-policy link label. ⚠️ The URL was ALREADY shared and the label was not, so the label is
+ *  the half that could drift — on the paywall, where its exact wording is part of App Review compliance
+ *  (it sits beside Terms as the required legal pair). */
+export const PRIVACY_POLICY_LABEL = "Privacy Policy";
+
+/** The demo's entry point, from both doors (Welcome and the paywall). Two wordings would turn one
+ *  sandbox into what reads as two different features. */
+export const SEE_IT_IN_ACTION_CTA = "See it in action";
+
+/** Where spare money goes once there is no debt left — the debt-free half of the destination pair
+ *  (`to debt` / `to your goals`). ⚠️ The hero renders it as a LABEL and the Guardian brief embeds it
+ *  mid-sentence, so this is the noun phrase only; each caller supplies its own surrounding words. */
+export const GOALS_DESTINATION = "to your goals";

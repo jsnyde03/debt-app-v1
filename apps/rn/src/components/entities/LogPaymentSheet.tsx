@@ -1,3 +1,4 @@
+import { LOG_PAYMENT_ENTRY } from '@core/copy/vocabulary';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -31,7 +32,7 @@ export function LogPaymentSheet({ debt, onClose }: { debt: Debt; onClose: () => 
     <AnimatedSheet
       visible
       onClose={onClose}
-      title="Log a payment"
+      title={LOG_PAYMENT_ENTRY}
       subtitle={`${debt.name} · ${formatCurrency(debt.balance)} owed`}
       dirty={amount.length > 0}>
       <View style={styles.body}>

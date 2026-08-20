@@ -11,7 +11,7 @@ import { exitDemo } from '@/store/demoExit';
 import { demoSession } from '@/store/demoSession';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-import { PRIVACY_CLAIM } from '@core/copy/vocabulary';
+import { PRIVACY_CLAIM, UNLOCK_PREMIUM_CTA } from '@core/copy/vocabulary';
 
 /**
  * 3.5.4.7 — the demo's own chrome: where it says what it is, and how a viewer gets out of it.
@@ -117,7 +117,7 @@ export function DemoDock() {
             accessibilityRole="button"
             hitSlop={10}
             style={styles.secondary}>
-            <Text style={[textStyles.subhead, { color: c.accent.primary }]}>Unlock Premium</Text>
+            <Text style={[textStyles.subhead, { color: c.accent.primary }]}>{UNLOCK_PREMIUM_CTA}</Text>
           </Pressable>
         </>
       )}

@@ -1,3 +1,4 @@
+import { LOG_PAYMENT_ENTRY } from '@core/copy/vocabulary';
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
@@ -274,7 +275,7 @@ export function DebtSheet({
               onPress={() => onLogPayment(editing)}
               accessibilityRole="button"
               style={({ pressed }) => [styles.scheduleRow, { borderColor: c.border.subtle, opacity: pressed ? 0.7 : 1 }]}>
-              <Text style={[textStyles.body, { color: c.accent.primary }]}>Log a payment</Text>
+              <Text style={[textStyles.body, { color: c.accent.primary }]}>{LOG_PAYMENT_ENTRY}</Text>
               <AppIcon name="chevron-right" size={20} color={c.accent.primary} />
             </Pressable>
             ) : null}

@@ -1,3 +1,4 @@
+import { OVERDUE_LABEL } from '@core/copy/vocabulary';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -292,7 +293,7 @@ function RequiredRowView({
           {item.label}
         </Text>
         <View style={styles.metaRow}>
-          {showOverdue ? <Pill label="Overdue" tone="overdue" /> : null}
+          {showOverdue ? <Pill label={OVERDUE_LABEL} tone="overdue" /> : null}
           {due ? <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Due {due}</Text> : null}
           {/* 3.7.A4 — §2.7.4 scales an installment-native BNPL to the installments landing inside this
               pay window, so a biweekly plan under a monthly paycheck shows $200 on a row the user knows

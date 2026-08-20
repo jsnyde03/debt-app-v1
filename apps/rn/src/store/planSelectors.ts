@@ -1,4 +1,4 @@
-import { EMERGENCY_FUND_NOUN } from '@core/copy/vocabulary';
+import { EMERGENCY_FUND_NOUN, GOALS_DESTINATION, OVERDUE_LABEL } from '@core/copy/vocabulary';
 import { computeStreak } from '@core/debt/computeStreak';
 import { deriveRequiredActionView, type RequiredActionView, type RequiredAllocationItem } from '@core/debt/deriveRequiredActionView';
 import { PROTECTED_CUSHION_CATEGORIES } from '@core/engine/allocatePaycheck';
@@ -270,7 +270,7 @@ export function bucketRequiredRows(rows: RequiredRow[], currentDateISO: string, 
     }
   }
   const meta: { key: RequiredBucketKey; title: string; open: boolean }[] = [
-    { key: 'overdue', title: 'Overdue', open: true },
+    { key: 'overdue', title: OVERDUE_LABEL, open: true },
     { key: 'thisWeek', title: 'Due this week', open: true },
     { key: 'nextWeek', title: 'Due next week', open: false },
     { key: 'later', title: 'Later this cycle', open: false },
@@ -340,7 +340,7 @@ function heroFraming(allocation: Allocation): { value: number; label: string } {
   const emergency = sumCategory(allocation, 'emergency');
   if (emergency > 0) return { value: emergency, label: `to ${EMERGENCY_FUND_NOUN}` };
   const optional = sumCategory(allocation, 'optional_goal');
-  if (optional > 0) return { value: optional, label: 'to your goals' };
+  if (optional > 0) return { value: optional, label: GOALS_DESTINATION };
   return { value: allocation.remaining, label: 'cushion this paycheck' };
 }
 

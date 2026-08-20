@@ -1,3 +1,4 @@
+import { LOG_PAYMENT_ENTRY, PAYOFF_SCHEDULE_TITLE } from '@core/copy/vocabulary';
 import { type ReactNode, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
@@ -148,8 +149,8 @@ export function ListRow({
   // iOS long-press → native context menu (3.5.2): Edit (if the row is tappable) + a destructive Delete.
   // A discoverable alternative to the hidden swipe; tap + swipe stay untouched. Passthrough off-iOS.
   const menuActions: RowMenuAction[] = [
-    ...(onLogPayment ? [{ key: 'log', title: 'Log payment', systemIcon: 'dollarsign.circle', onPress: onLogPayment } as RowMenuAction] : []),
-    ...(onViewSchedule ? [{ key: 'schedule', title: 'Payoff schedule', systemIcon: 'calendar', onPress: onViewSchedule } as RowMenuAction] : []),
+    ...(onLogPayment ? [{ key: 'log', title: LOG_PAYMENT_ENTRY, systemIcon: 'dollarsign.circle', onPress: onLogPayment } as RowMenuAction] : []),
+    ...(onViewSchedule ? [{ key: 'schedule', title: PAYOFF_SCHEDULE_TITLE, systemIcon: 'calendar', onPress: onViewSchedule } as RowMenuAction] : []),
     ...(onPress ? [{ key: 'edit', title: 'Edit', systemIcon: 'pencil', onPress } as RowMenuAction] : []),
     { key: 'delete', title: 'Delete', systemIcon: 'trash', destructive: true, onPress: handleDelete },
   ];

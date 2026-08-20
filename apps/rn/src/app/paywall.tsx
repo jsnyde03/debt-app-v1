@@ -20,7 +20,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { a11ySelected } from '@/utils/a11y';
-import { PRIVACY_CLAIM } from '@core/copy/vocabulary';
+import { PRIVACY_CLAIM, PRIVACY_POLICY_LABEL, SEE_IT_IN_ACTION_CTA, UNLOCK_PREMIUM_CTA } from '@core/copy/vocabulary';
 
 /** What Premium unlocks — effort-not-info framing: each line is a job the app DOES for you, not a fact
  * it tells you (the un-chattable test). BNPL handling is intentionally NOT here — it's free/all-tiers. */
@@ -219,7 +219,7 @@ export default function PaywallScreen() {
   const ctaLabel = purchasing
     ? 'Starting…'
     : selected?.key === 'lifetime'
-      ? `Unlock Premium — ${selected?.priceString}`
+      ? `${UNLOCK_PREMIUM_CTA} — ${selected?.priceString}`
       : `Start Premium — ${selected?.priceString ?? ''} ${selected?.periodLabel ?? ''}`.trim();
 
   return (
@@ -348,7 +348,7 @@ export default function PaywallScreen() {
           disabled={busy}
           accessibilityRole="button"
           style={styles.restore}>
-          <Text style={[textStyles.subhead, { color: c.accent.primary }]}>See it in action</Text>
+          <Text style={[textStyles.subhead, { color: c.accent.primary }]}>{SEE_IT_IN_ACTION_CTA}</Text>
         </Pressable>
       ) : null}
 
@@ -364,7 +364,7 @@ export default function PaywallScreen() {
         </Pressable>
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>·</Text>
         <Pressable onPress={() => openLink(PRIVACY_POLICY_URL)} hitSlop={8} accessibilityRole="link">
-          <Text style={[textStyles.caption, styles.legalLink, { color: c.text.secondary }]}>Privacy Policy</Text>
+          <Text style={[textStyles.caption, styles.legalLink, { color: c.text.secondary }]}>{PRIVACY_POLICY_LABEL}</Text>
         </Pressable>
       </View>
     </Screen>
