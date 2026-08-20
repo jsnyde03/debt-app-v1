@@ -1,3 +1,4 @@
+import { PAID_OFF_LABEL } from '@core/copy/vocabulary';
 import { useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -57,12 +58,12 @@ export function PaidOffArchive({ debts }: { debts: PaidOffDebt[] }) {
               {/* A11Y-5: one utterance per tombstone (name · amount cleared · date); the check badge is decorative. */}
               <View
                 style={styles.rowText}
-                {...groupLabel(d.name, d.amount != null ? `${formatWhole(d.amount)} paid off` : 'Paid off', d.clearedDate ? shortDate(d.clearedDate) : undefined)}>
+                {...groupLabel(d.name, d.amount != null ? `${formatWhole(d.amount)} paid off` : PAID_OFF_LABEL, d.clearedDate ? shortDate(d.clearedDate) : undefined)}>
                 <Text style={[textStyles.bodyMedium, { color: c.text.primary }]} numberOfLines={1}>
                   {d.name}
                 </Text>
                 <Text style={[textStyles.caption, { color: c.text.tertiary }]} numberOfLines={1}>
-                  {d.amount != null ? `${formatWhole(d.amount)} paid off` : 'Paid off'}
+                  {d.amount != null ? `${formatWhole(d.amount)} paid off` : PAID_OFF_LABEL}
                   {d.clearedDate ? ` · ${shortDate(d.clearedDate)}` : ''}
                 </Text>
               </View>

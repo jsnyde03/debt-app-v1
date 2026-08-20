@@ -59,17 +59,9 @@ export function addNotificationResponseListener(onOpen: () => void): () => void 
   return () => sub.remove();
 }
 
-/**
- * §2.8 Guardian risk push (2.4.10.2) — a NEUTRAL prompt, never a verdict a reconcile-to-clear would turn
- * into cried-wolf, and never a figure (the hedged number stays in-app). It under-claims by design: a
- * never-opened user gets exactly this, so it must be safe even if the read later reconciles to clear.
- */
-export const RISK_NOTIFICATION = {
-  // 3.1.4 house voice: in the Guardian's first-person, but STILL neutral — no verdict ("tight"), no figure,
-  // so a reconcile-to-clear can't turn it into cried-wolf (the locked constraint above).
-  title: 'Before this paycheck lands',
-  body: "I'd give your plan a quick look before payday.",
-} as const;
+import { RISK_NOTIFICATION } from './notificationCopy';
+
+export { RISK_NOTIFICATION };
 
 // Show notifications while the app is foregrounded (banner + list).
 Notifications.setNotificationHandler({

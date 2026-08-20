@@ -191,6 +191,37 @@ export const PAY_CYCLE_HISTORY_TITLE = "Pay cycle history";
 export const EXPORT_BACKUP_TITLE = "Export backup";
 export const IMPORT_BACKUP_TITLE = "Import backup";
 
+/**
+ * [L2-13] The debt-entry fields, asked identically by onboarding and the debt sheet.
+ *
+ * ⚠️ **The finding's site list conflated two fields.** It reported the minimum-payment placeholder as
+ * `"e.g. 100"` in the sheet against `"e.g. 35"` in onboarding — but `"e.g. 100"` is the **BNPL payment
+ * amount**, a different field. Measured, the sheet said `"e.g. 65"`.
+ *
+ * ⛔ **The real defect is worse than a mismatched hint:** both screens offer the SAME example balance
+ * (`e.g. 2400`) and then disagree about what its minimum would be — $65 (≈2.7%, a realistic card minimum)
+ * versus $35 (≈1.5%). Two worked examples of one arithmetic. Aligned on 65.
+ *
+ * ⚠️ These labels were *baselined* duplicates in `lint:copy`, i.e. accepted — and an accepted duplicate is
+ * still only protected from being **created**, never from **diverging** (see L2-10, which diverged under
+ * exactly that protection). Extracting is what actually holds them together.
+ */
+export const DEBT_FIELD = {
+    balanceLabel: "Current balance",
+    balancePlaceholder: "e.g. 2400",
+    minimumLabel: "Minimum payment",
+    minimumPlaceholder: "e.g. 65",
+    aprPlaceholder: "e.g. 22.99",
+} as const;
+
+/** [L2-18] The payoff celebration, mirrored by hand across the beat, the finale and the share card.
+ *  ⚠️ At 8 characters "Paid off" is far below `lint:copy`'s 14-char floor, so the gate is blind to it —
+ *  and `ShareCard` is the artifact a user posts PUBLICLY, so a reworded beat with a stale share image
+ *  ships retired branding to an audience the app never sees. ⭐ "Vanquished" (the finding's headline
+ *  word) is already gone app-wide; the hand-mirroring it described is what survived. */
+export const PAID_OFF_LABEL = "Paid off";
+export const SHARE_WIN_CTA = "Share your win";
+
 /** Where spare money goes once there is no debt left — the debt-free half of the destination pair
  *  (`to debt` / `to your goals`). ⚠️ The hero renders it as a LABEL and the Guardian brief embeds it
  *  mid-sentence, so this is the noun phrase only; each caller supplies its own surrounding words. */

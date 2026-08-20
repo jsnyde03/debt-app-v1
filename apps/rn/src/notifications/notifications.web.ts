@@ -6,10 +6,7 @@ import type { RequiredExpense } from '@/data/models';
  * surface as `notifications.ts` ([[feedback_platform_split_reexport_gap]]).
  */
 
-export const RISK_NOTIFICATION = {
-  title: 'Time to check this paycheck',
-  body: 'Take a quick look at your plan before this one lands.',
-} as const;
+export { RISK_NOTIFICATION } from './notificationCopy';
 
 export async function requestNotificationPermission(): Promise<boolean> {
   return false;

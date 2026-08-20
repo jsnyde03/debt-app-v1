@@ -1,4 +1,4 @@
-import { LOG_PAYMENT_ENTRY } from '@core/copy/vocabulary';
+import { DEBT_FIELD, LOG_PAYMENT_ENTRY } from '@core/copy/vocabulary';
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
@@ -319,7 +319,7 @@ export function DebtSheet({
         </>
       ) : (
         <>
-          <TextField testID="field-debt-balance" label="Current balance" value={balance} onChangeText={(t) => { setBalance(t); setError(''); }} placeholder="e.g. 2400" keyboardType="decimal-pad" />
+          <TextField testID="field-debt-balance" label={DEBT_FIELD.balanceLabel} value={balance} onChangeText={(t) => { setBalance(t); setError(''); }} placeholder={DEBT_FIELD.balancePlaceholder} keyboardType="decimal-pad" />
           {/* §2.8 premium keeps-current: re-scan a statement to update the balance without retyping. */}
           {canRescan ? (
             <Pressable onPress={handleRescan} accessibilityRole="button" accessibilityLabel="Re-scan a statement to update this balance" hitSlop={6} style={{ marginTop: -4, alignSelf: 'flex-start' }}>
@@ -344,8 +344,8 @@ export function DebtSheet({
           ) : isEdit && !isPremium && estimate?.lastVerifiedDate ? (
             <Text style={[textStyles.caption, { color: c.text.tertiary, marginTop: -4 }]}>Updated {shortDate(estimate.lastVerifiedDate)}</Text>
           ) : null}
-          <TextField testID="field-debt-minimum" label="Minimum payment" value={minimumPayment} onChangeText={(t) => { setMinimumPayment(t); setError(''); }} placeholder="e.g. 65" keyboardType="decimal-pad" />
-          <TextField testID="field-debt-apr" label="APR %" value={apr} onChangeText={setApr} placeholder="e.g. 22.99" keyboardType="decimal-pad" />
+          <TextField testID="field-debt-minimum" label={DEBT_FIELD.minimumLabel} value={minimumPayment} onChangeText={(t) => { setMinimumPayment(t); setError(''); }} placeholder={DEBT_FIELD.minimumPlaceholder} keyboardType="decimal-pad" />
+          <TextField testID="field-debt-apr" label="APR %" value={apr} onChangeText={setApr} placeholder={DEBT_FIELD.aprPlaceholder} keyboardType="decimal-pad" />
           <DateField testID="field-debt-due-date" label="Due date" value={dueDate} onChange={setDueDate} />
           <Select label="Recurrence" value={recurrence} options={RECURRENCE} onChange={setRecurrence} />
         </>

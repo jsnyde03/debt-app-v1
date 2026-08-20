@@ -1,3 +1,4 @@
+import { PAID_OFF_LABEL } from '@core/copy/vocabulary';
 import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -47,8 +48,8 @@ export function ShareCard({ data }: { data: ShareCardData }) {
       ) : data.kind === 'debt' ? (
         <>
           <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]} allowFontScaling={false}>{data.debtName.toUpperCase()}</Text>
-          <Text style={[styles.headline, { color: surf.heroText }]} allowFontScaling={false}>Paid off</Text>
-          <Text style={[styles.amount, { color: surf.goldPill }]} allowFontScaling={false}>{data.amount != null ? formatWhole(data.amount) : 'Paid off'}</Text>
+          <Text style={[styles.headline, { color: surf.heroText }]} allowFontScaling={false}>{PAID_OFF_LABEL}</Text>
+          <Text style={[styles.amount, { color: surf.goldPill }]} allowFontScaling={false}>{data.amount != null ? formatWhole(data.amount) : PAID_OFF_LABEL}</Text>
           {data.freedPerMonth > 0 ? (
             <Text style={[textStyles.subhead, styles.sub, { color: surf.heroSub }]} allowFontScaling={false}>
               {formatWhole(data.freedPerMonth)}/mo freed toward the next one

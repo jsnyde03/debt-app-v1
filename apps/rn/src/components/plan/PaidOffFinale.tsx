@@ -1,3 +1,4 @@
+import { SHARE_WIN_CTA } from '@core/copy/vocabulary';
 import { useEffect, useRef } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
@@ -124,7 +125,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
           </View>
 
           <View style={styles.actions}>
-            <Button label="Share your win" variant="secondary" onDark onPress={onShare} />
+            <Button label={SHARE_WIN_CTA} variant="secondary" onDark onPress={onShare} />
             <Button label="Continue" onDark onPress={onDismiss} />
           </View>
         </Animated.View>

@@ -78,6 +78,14 @@ export function buildEstimateCaption(
   if (!isEstimate) {
     return { text: 'verified', attention: false }; // premium, no elapsed drift → verified as of today
   }
+  // ⛔ [P6.4.4 · audit L1-23 — REFUTED, recorded so it is not re-opened] The finding read four captions
+  // as four names for ONE state and proposed collapsing them onto "estimated · tap to verify". **They are
+  // four different states, and one of them is an AFFORDANCE.** `money.tsx` overrides this exact branch
+  // with "tap to verify" *because on the Money list the caption is tappable* (one-tap accept-the-estimate,
+  // rendered blue/interactive rather than this amber/attention). Everywhere else it is not tappable —
+  // so the suggested fix would tell the user to tap something that does nothing on every other surface.
+  // ⚡ The "two different urgencies" it objected to are two different CAPABILITIES. The variation is
+  // load-bearing; same shape as L2-6 and L4-8, where building the finding as written made the app worse.
   if (confidence.staleness === 'stale') {
     return { text: 'estimated · verify soon', attention: true };
   }

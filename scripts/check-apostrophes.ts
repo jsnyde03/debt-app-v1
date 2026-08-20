@@ -4,9 +4,13 @@
  * ⛔ **Why this is a baseline and not a sweep.** L1-22 is real: the same contraction is typeset two ways
  * across the app, sometimes in identical sentences, and straight apostrophes read as unpolished developer
  * output next to curly ones on the same scroll — including in App Store screenshots. But measured at
- * P6.4.4 it is **152 straight-apostrophe sites against 31 curly**, plus 16 files using `&apos;`, and every
- * one needs classifying as copy / test-pin / comment before it is touched. 🎯 2026-08-20: normalising
- * lands at **P6.8**, the sweep on the frozen app. This gate exists so the number cannot GROW in between.
+ * P6.4.4 it is **~73 user-facing copy strings**, and every one needs classifying as copy / test-pin /
+ * comment before it is touched. 🎯 2026-08-20: normalising lands at **P6.8**, the sweep on the frozen
+ * app. This gate exists so the number cannot GROW in between.
+ *
+ * ⚠️ **73, not the 152 first reported.** That figure came from a line-grep that counted comments — T4's
+ * measured failure, *"comments about a word outnumber uses of it"*. The AST pass below is the reason this
+ * number is trustworthy, and the reason the first one was not.
  *
  * ⚠️ **The pins move with the copy, always.** In this same step, changing one onboarding label turned two
  * Maestro flows red because they pinned the old string — `01-launch-smoke` and `07-money-add-and-rescue`
@@ -96,7 +100,7 @@ if (fresh.length > 0) {
     const [file, text] = s.split('|');
     console.error(`  ${file}\n      ${text}`);
   }
-  console.error("\n  Use the typographic apostrophe ’ (U+2019) in copy. L1-22's 152 existing sites are");
+  console.error("\n  Use the typographic apostrophe ’ (U+2019) in copy. L1-22's baselined sites are");
   console.error('  baselined and are swept at P6.8 — this guard only stops the count growing.');
   console.error('  If you just SWEPT some, re-record with `--baseline`.\n');
   process.exit(1);

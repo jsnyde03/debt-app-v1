@@ -1,3 +1,4 @@
+import { DEBT_FIELD } from '@core/copy/vocabulary';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -146,31 +147,31 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
         <>
           <TextField
             testID="field-onboarding-balance"
-            label="Current balance"
+            label={DEBT_FIELD.balanceLabel}
             value={balance}
             onChangeText={(t) => {
               setBalance(t);
               setError('');
             }}
-            placeholder="e.g. 2400"
+            placeholder={DEBT_FIELD.balancePlaceholder}
             keyboardType="decimal-pad"
           />
           <View style={styles.pair}>
             <View style={styles.pairItem}>
               <TextField
                 testID="field-onboarding-minimum"
-                label="Minimum payment"
+                label={DEBT_FIELD.minimumLabel}
                 value={minimumPayment}
                 onChangeText={(t) => {
                   setMinimumPayment(t);
                   setError('');
                 }}
-                placeholder="e.g. 35"
+                placeholder={DEBT_FIELD.minimumPlaceholder}
                 keyboardType="decimal-pad"
               />
             </View>
             <View style={styles.pairItem}>
-              <TextField testID="field-onboarding-apr" label="APR % (optional)" value={apr} onChangeText={setApr} placeholder="e.g. 22.99" keyboardType="decimal-pad" />
+              <TextField testID="field-onboarding-apr" label="APR % (optional)" value={apr} onChangeText={setApr} placeholder={DEBT_FIELD.aprPlaceholder} keyboardType="decimal-pad" />
             </View>
           </View>
         </>

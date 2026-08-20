@@ -1,3 +1,4 @@
+import { PAID_OFF_LABEL, SHARE_WIN_CTA } from '@core/copy/vocabulary';
 import { useEffect, useRef } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from 'react-native-reanimated';
@@ -86,7 +87,7 @@ export function PaidOffBeat({
       await shareDebtCard(
         shareRef,
         `I just paid off ${debtName}${amountPaidOff != null ? ` — ${formatWhole(amountPaidOff)}` : ''} on my way to debt-free with Debt Planner.`,
-        'Share your win',
+        SHARE_WIN_CTA,
       );
     } catch (e) {
       reportError(e, { subsystem: 'share', operation: 'paid-off-beat' });
@@ -113,7 +114,7 @@ export function PaidOffBeat({
 
             <View style={styles.textGroup} accessible accessibilityLabel={beatA11y}>
               <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]} maxFontSizeMultiplier={1.4}>{debtName.toUpperCase()}</Text>
-              <Text style={[styles.gone, { color: surf.heroText }]} maxFontSizeMultiplier={1.3}>Paid off</Text>
+              <Text style={[styles.gone, { color: surf.heroText }]} maxFontSizeMultiplier={1.3}>{PAID_OFF_LABEL}</Text>
 
               {amountPaidOff != null ? (
                 <CountUp
@@ -123,7 +124,7 @@ export function PaidOffBeat({
                   style={[styles.amount, { color: surf.goldPill }]}
                 />
               ) : (
-                <Text style={[styles.amount, { color: surf.goldPill }]} maxFontSizeMultiplier={1.4}>Paid off</Text>
+                <Text style={[styles.amount, { color: surf.goldPill }]} maxFontSizeMultiplier={1.4}>{PAID_OFF_LABEL}</Text>
               )}
 
               {showCascade ? (
