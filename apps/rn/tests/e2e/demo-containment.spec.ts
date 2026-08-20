@@ -402,3 +402,47 @@ test('the debt-free date holds between the trajectory beat and the closing one',
   // must not happen is a NEW one appearing.
   expect(closing).toEqual(trajectory);
 });
+
+/**
+ * R3 (🎯 2026-08-20, found by USING the app) — the exit is labelled for WHO IS READING IT.
+ *
+ * ⛔ **This is the assertion this file did not have, and the gap is instructive.** Two tests above already
+ * cover this exact path — the paywall door reaches the demo, and the explore run carries its own way out on
+ * whatever screen you wandered to — and **both passed while the exit was unusable.** They prove an exit is
+ * *present and reachable*; neither asked what it **says** to the person reading it.
+ *
+ * The one label said *"Start my real plan"* to everybody. To an onboarded user — and the paywall's
+ * "See it in action" is reached mostly by people who already have a plan — that reads as *discard what I
+ * have and start over*, so the only way out looked destructive. It was in fact safe; nothing said so.
+ *
+ * ⚠️ The flag is read from the REAL store while the SANDBOX is mounted, so this test is really asking
+ * whether the component looked at the right store. Seeding an onboarded user and rendering a demo over the
+ * top is the only way to tell those two apart.
+ */
+test('the explore exit speaks to the person reading it, not to the persona', async ({ page }) => {
+  // Onboarded, with a real plan — the audience the paywall's CTA actually sends into the demo.
+  await seedStore(page, scenario({ prefs: { onboardingComplete: true } }));
+  await page.goto('/demo?from=paywall');
+
+  const exit = page.getByTestId('demo-explore-exit').first();
+  await expect(exit).toBeVisible({ timeout: 15_000 });
+
+  // ⛔ The whole finding, in one assertion: what it SAYS.
+  await expect(exit).toHaveText('Back to my plan');
+  await expect(page.getByText('Start my real plan')).toHaveCount(0);
+
+  // …and it returns them to their plan rather than to onboarding, still terminating the session first.
+  await exit.click();
+  await expect(page).toHaveURL(/\/(?!onboarding)[^/]*$/, { timeout: 10_000 });
+  await expect(page.getByTestId('example-canvas-marker')).toHaveCount(0);
+});
+
+/** The pre-onboarding audience keeps the original wording — the fix must not swap one wrong label for another. */
+test('a user with no plan still sees "Start my real plan"', async ({ page }) => {
+  await seedStore(page, NOT_ONBOARDED);
+  await page.goto('/demo');
+
+  const exit = page.getByTestId('demo-explore-exit').first();
+  await expect(exit).toBeVisible({ timeout: 15_000 });
+  await expect(exit).toHaveText('Start my real plan');
+});

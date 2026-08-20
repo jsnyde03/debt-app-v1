@@ -2,6 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 import { useStore } from 'zustand';
 
 import { useAppColors } from '@/hooks/use-app-colors';
+import { appStore } from '@/store/appStore';
 import { exitDemo } from '@/store/demoExit';
 import { demoSession } from '@/store/demoSession';
 import { isSandboxStore } from '@/store/sandboxStore';
@@ -68,10 +69,30 @@ export function ExampleCanvasMarker() {
           reach for free rather than needing its own always-on chrome.
           ⚠️ `exitDemo` ends the session BEFORE navigating ([D18]) — the destination must never render with
           the sandbox still mounted. */}
+      {/* R3 (🎯 2026-08-20, found by USING it) — the exit is labelled for WHO IS READING IT.
+          It used to say "Start my real plan" to everyone. The paywall's "See it in action" is reached
+          mostly by users who ALREADY have a plan, and to them that reads as *discard what I have and start
+          over* — so the only way out looked destructive and the demo felt like a trap. It was in fact safe
+          (the route guard bounces an onboarded user to the tabs), but nothing on screen said so.
+          ⛔ The flag is read from the REAL store on purpose. This component renders INSIDE the sandbox, so
+          the active store is the persona's — asking it would answer "has the DEMO onboarded", which is a
+          question about a fiction. `getState()` rather than a subscription because the real flag cannot
+          change while a demo is running: every exit ends the session before it navigates ([D18]). */}
       {inExplore ? (
-        <Pressable onPress={() => exitDemo('/onboarding')} accessibilityRole="button" testID="demo-explore-exit" hitSlop={8}>
-          <Text style={[textStyles.caption, { color: c.accent.primary, fontWeight: '600' }]}>Start my real plan</Text>
-        </Pressable>
+        (() => {
+          const hasRealPlan = appStore.getState().store.prefs.onboardingComplete === true;
+          return (
+            <Pressable
+              onPress={() => exitDemo(hasRealPlan ? '/' : '/onboarding')}
+              accessibilityRole="button"
+              testID="demo-explore-exit"
+              hitSlop={8}>
+              <Text style={[textStyles.caption, { color: c.accent.primary, fontWeight: '600' }]}>
+                {hasRealPlan ? 'Back to my plan' : 'Start my real plan'}
+              </Text>
+            </Pressable>
+          );
+        })()
       ) : null}
     </View>
   );

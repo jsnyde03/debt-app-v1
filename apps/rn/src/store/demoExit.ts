@@ -4,8 +4,15 @@ import { track } from '@/analytics/funnel';
 
 import { demoSession } from './demoSession';
 
-/** Where a demo can hand the viewer off to. Both are ends of the run, never detours inside it. */
-export type DemoExit = '/onboarding' | '/paywall';
+/**
+ * Where a demo can hand the viewer off to. All three are ends of the run, never detours inside it.
+ *
+ * ⛔ **`'/'` was added by R3 (🎯 2026-08-20), and it exists because this module's own premise was wrong.**
+ * The comment below used to reason that *"whichever exit they took, a demo viewer has no plan yet"* — true
+ * of the Welcome door the demo was built for, and **false of the paywall door**, which is reached mostly by
+ * users who already have a plan. For them "back" is their own tabs, not a setup flow.
+ */
+export type DemoExit = '/onboarding' | '/paywall' | '/';
 
 /**
  * 3.5.4.7 — leave the demo. [D18]'s terminal-exit rule, in one place so no caller can get the order wrong.
@@ -25,8 +32,20 @@ export type DemoExit = '/onboarding' | '/paywall';
 export function exitDemo(to: DemoExit): void {
   // Recorded BEFORE the teardown, while there is still a run to describe. The funnel's whole question is
   // which exit people take, and reading it after `end()` would mean reconstructing it from the route.
-  track({ name: 'demo_exited', reason: to === '/paywall' ? 'unlock_premium' : 'start_real_plan' });
+  track({
+    name: 'demo_exited',
+    reason: to === '/paywall' ? 'unlock_premium' : to === '/' ? 'back_to_plan' : 'start_real_plan',
+  });
   demoSession.getState().end();
+
+  // ⛔ R3 — the returning user goes straight back to their own plan, and must NOT be routed through
+  // onboarding on the way. It would work by accident (the route guard bounces an onboarded user to the
+  // tabs) and that accident is exactly what made the old behaviour defensible while it read as a trap.
+  // `replace`, like the others: the demo is over and a back gesture must not resurrect it.
+  if (to === '/') {
+    router.replace('/');
+    return;
+  }
 
   // ⚠️ Always land on onboarding FIRST, then push the paywall on top of it.
   //

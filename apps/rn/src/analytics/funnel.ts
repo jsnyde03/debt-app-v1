@@ -27,7 +27,9 @@ import { appStore } from '@/store/appStore';
 type Source = 'welcome' | 'paywall' | 'direct';
 
 /** Why a run ended. `dismissed` covers backgrounding out, which is the honest majority case. */
-type ExitReason = 'start_real_plan' | 'unlock_premium' | 'dismissed';
+/** ⚠️ `back_to_plan` (R3) is the exit an ALREADY-ONBOARDED viewer takes — a different question from
+ *  `start_real_plan`, and worth separating: one is a conversion, the other is a return. */
+type ExitReason = 'start_real_plan' | 'unlock_premium' | 'dismissed' | 'back_to_plan';
 
 /**
  * The eight. Adding a ninth is a deliberate act — the union is the review surface, and a funnel that

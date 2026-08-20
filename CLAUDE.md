@@ -55,11 +55,16 @@ surfaces ship on unit assertions with **no rendered proof**) · the **62** in `R
 re-measured it 2026-08-20**, T9–T11 are retired as drivers and the parser is proven lossless (117 = 55 + 62)
 · 44 baselined hand-written local parses · dead `formatDisplayAmount`.
 
-▶ **PICK UP HERE (2026-08-20).** **P6.1 · P6.2 · P6.6 closed; P6.3 + P6.5 built.** 🎯 is running the device
-pass on the [D48] batched build (signing **passed**) → `docs/DEBT_DEVICE_PASS_2026-08-20.md`; ⭐ **row 4 is
-the one that matters** — decline the restore, onboard fresh, background, confirm the remote is still the OLD
-backup. Fixes → P6.15. **The active build is P6.4**, decomposed P6.4.1–.7, and ⭐ **all 62 findings now trace
-to a ledger (was 20 untraced)**. ⏭ Owed after a green pass: flip source-map upload in one commit.
+▶ **PICK UP HERE (2026-08-20).** ✅ **P6.1 · P6.2 · P6.6 closed. P6.3 is VERIFIED ON HARDWARE** — iCloud rows
+2–6 passed, including the clobber guard, which was the cutover's approval condition.
+
+🔴 **Cut the NEXT device build.** It carries **[D51]** the light/dark splash · the **Sentry QA test-event
+button** *(capture was untestable — there is **no user-triggerable `reportError` path in the app**, so a
+missing event would have read as "Sentry is broken")* · and **R3**'s demo-exit fix. Then rows 1 and 7 of
+`docs/DEBT_DEVICE_PASS_2026-08-20.md`.
+
+**The active build is P6.4**, decomposed P6.4.1–.7; ⭐ **all 62 findings now trace to a ledger** (was 20
+untraced). ⏭ Owed after a green Sentry row: flip source-map upload in one commit.
 
 ⛔ **Nothing about iCloud, Sentry capture or the splash is proven off-device** — the web suite exercises the
 *unavailable* branch by construction and `expo prebuild` will not run on Windows.

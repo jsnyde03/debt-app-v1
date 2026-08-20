@@ -4,6 +4,50 @@
 
 ---
 
+## ✅ R3 — the demo's one exit spoke to the persona, not the person (2026-08-20)
+
+🎯, using the app: *More → Unlock Premium → "See it in action" takes over and has no clear way back.*
+Third finding in a row that **only using it could produce** (see R1, R2).
+
+### ⛔ My first mechanism was wrong, and I caught it before the note stood
+
+I wrote up `DemoDock`'s two exits — and those belong to the **scripted** run. The paywall pushes
+`/demo?from=paywall`, which is **explore**, and explore has **no dock at all**: its exit rides
+`ExampleCanvasMarker`, which `Screen` mounts on every surface. **So an exit existed everywhere.**
+
+⚡ **The defect was what it SAID.** A caption-sized link reading *"Start my real plan"* → `/onboarding`. To
+an onboarded user — and the paywall CTA is reached mostly by people who already have a plan — that reads as
+*discard what I have and start over*. The only way out looked destructive, so nobody would take it. It was
+in fact safe (the route guard bounces an onboarded user to the tabs) and **nothing on screen said so**.
+
+### ⛔ Then `tsc` showed the defect ran deeper than the label
+
+Adding `exitDemo('/')` failed to compile: `DemoExit` is a closed union of `/onboarding | /paywall`. Reading
+that module found the same wrong assumption one level down, **written out as its justification**:
+
+> *"whichever exit they took, a demo viewer has no plan yet, so that is where they belong"*
+
+`exitDemo` routed **every** exit through `/onboarding`. True of the Welcome door it was built for; **false of
+the paywall door.** ⚠️ **And it "worked" — the route guard bounces an onboarded user to the tabs — which is
+exactly what let it survive: an accident that produces the right screen while the label promises the wrong
+one.** Now `'/'` is a real exit that replaces straight to the tabs, and `back_to_plan` is its own funnel
+reason, because **a return is not a conversion** and counting them together would have hidden this forever.
+
+### ⚡ The lesson, and it is about the SUITE
+
+`demo-containment.spec.ts` had **14 tests**, two aimed straight at this path — *"the PAYWALL door … reaches
+the demo"* and *"the EXPLORE run carries its own way out, on whatever screen you wandered to"* — and **both
+passed while the exit was unusable.** They prove an exit is *present and reachable*. Neither asks what it
+**says** to the person reading it. ⛔ **A suite can be exhaustive about the question it chose and silent
+about the one that matters**; here the two differ by one word.
+
+The two new tests close exactly that gap — one per audience, and the onboarded one doubles as a check that
+the component read the **real** store rather than the sandbox's (it renders *inside* the persona's store, so
+asking the active store would answer *"has the DEMO onboarded"*). Plant-verified: forcing the old
+one-label-for-everyone behaviour reds it.
+
+---
+
 ## 🔚 SESSION CLOSE 2026-08-20 (second session) — P6.1/P6.2/P6.6 CLOSED, P6.3+P6.5 BUILT AND ON A DEVICE BUILD. Read this first.
 
 **Branch `v1.7-dev`, 13 commits, all pushed.** `validate:release:rn` **exit 0, read directly** — 207 e2e ·
@@ -13,11 +57,18 @@ listening.
 
 ### ▶ WHERE TO PICK UP
 
-🎯 **is running the device pass right now** on the [D48] batched build — signing **passed**, which was the
-only new failure mode this build introduced. The steps are
-[`DEBT_DEVICE_PASS_2026-08-20.md`](DEBT_DEVICE_PASS_2026-08-20.md), and **row 4 is the one that matters**:
-delete → reinstall → **decline** the restore → onboard fresh → background → confirm the remote is still the
-**OLD** backup. Fixes are P6.15.
+✅ **The device pass RAN and iCloud PASSED — rows 2–6, including row 4, the clobber guard**: declined
+restore, fresh onboarding, backgrounded, and the remote survived. **P6.3 is verified on hardware**, which
+was the cutover's approval condition. Splash row 1 passed on the badge version.
+
+🔴 **The NEXT device build carries three things and needs cutting:**
+1. **[D51]** the light/dark splash — supersedes the badge version row 1 passed, so splash is re-run.
+2. **The Sentry QA test-event button** — ⛔ **capture could not be tested at all** on this build: there is
+   **no user-triggerable `reportError` path in the app**, so a missing event would have read as "Sentry is
+   broken". 🎯: *"let's add Sentry to the next device build."*
+3. **R3's fix** — the demo exit.
+
+Then rows 1 and 7 of [`DEBT_DEVICE_PASS_2026-08-20.md`](DEBT_DEVICE_PASS_2026-08-20.md) in full.
 
 **The active build is P6.4** — decomposed on the plan as P6.4.1–.7, starting with the triage of all 62.
 ⭐ **All 62 now trace to a ledger (was 20 untraced)**, so the triage starts from a complete list.
