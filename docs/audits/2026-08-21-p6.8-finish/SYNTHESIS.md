@@ -340,6 +340,37 @@ These are not optional and most are **copy, not code**, so they do not threaten 
 | **C9** | **"Delete all data" leaves the iCloud copy** — the next launch offers the previous owner's plan to whoever holds the phone. `CloudBackupProvider` has no `delete` | **2.0** — privacy, and it is a one-method gap |
 | **C10** | **Money-back guarantee** *(P1-12)* — ⛔ **already decided**: the proof window was reassigned to the free tier. Listed only so it is not re-raised | **no action** |
 
+### 🎯 My recommendation on each — 5 in, 2 out, 1 gated, 1 folded, 1 closed
+
+**The line I drew:** in 2.0 if the app **says something false about money**, **destroys data**, or has
+**built UI in the core loop that can never fire**. Out if it adds a surface. ⚡ That test — rather than
+severity — is what keeps a finish sweep from becoming a feature phase, which is the risk the charter
+names.
+
+| # | rec | why, in one line |
+|---|---|---|
+| **C1** absorb path | ✅ **2.0** | The safety net is the product's whole differentiator, and **two acks Today is built to render can never fire** — this is finishing what shipped, not adding to it. ⚠️ Biggest of the five; scope it to the **entry point only** — the engine is already correct. |
+| **C2** `open()` has no caller | ✅ **2.0** | Cheapest structural item here, and it strands the **central recurring loop**: after "Skip this payday" there is no way back in. A two-generation omission — v1.6 ships the same dead `open()`. |
+| **C3** stranded after a lapse | 🔁 **fold into C2** | R3 killed half of it — `PaycheckSheet` Save *does* advance the date. What survives is that the **cycle** can't be caught up, and any "back into payday capture" door built for C2 is where that fix naturally lives. **If it doesn't fall out of C2, defer to 2.1.** |
+| **C4** Live Activity dead | ⏸ **DEVICE CHECK FIRST — do not decide now** | I verified the gate expression myself, but the claim is **source-only** and it says a premium feature you are selling has never worked. ⛔ **One row on the next device build settles it.** If confirmed it becomes 2.0 by default — you cannot sell it and ship it dead. |
+| **C5** no "no-bills" branch | ✅ **2.0** | The app tells someone who never entered rent **"You're caught up for this paycheck."** That is a **false statement about money**, and engine-grounded honesty is the one claim the positioning says still holds. Likely a branch + copy, not engine work. |
+| **C6** trust copy at first entry | ✅ **2.0** | **Best ratio in the audit.** Copy only, the wording is **already written** in `DEBT_BENCH_TRUST_FIRSTRUN` §R1, it lands *before* the highest-value convert abandons, and it converts four "missing features" into four visible choices. |
+| **C7** snowball vs avalanche | ⏭ **2.1** | Both simulations already run, so it is tempting — but it is a **new comparison surface**, which is exactly what this gate exists not to grow. ⚠️ The pressure to ship it disappears once **A1** stops the listing selling it. |
+| **C8** CSV import | ⚠️ **PRESERVE NOW, BUILD 2.1** | The decision that cannot wait is **P6.11**, which deletes the parser's only caller. **Move `core/imports/debtCsv.ts` out of the doomed tree in the same commit as A1** — preserving is ~an hour, rebuilding is not, and the listing claim goes away regardless. |
+| **C9** delete leaves the iCloud copy | ✅ **2.0** | *"Permanently erased… cannot be undone"* is false, and the failure mode is **someone hands their phone on and the next launch offers the previous owner's plan.** `CloudBackupProvider` needs one method. Privacy, not polish. |
+| **C10** guarantee | ⛔ **closed** | Already decided; here only so it is not re-raised. |
+
+**So: C1 · C2 · C5 · C6 · C9 in 2.0**, C3 folded, C4 gated on a device row, C7/C8 to 2.1 with C8's parser
+rescued now, C10 closed.
+
+⚠️ **Sequencing, and it is tight.** Feature lock closes at **P6.10**, so every C decision must be made
+before it. **A4** (the Welcome copy) and all of **B** are code and must beat the **P6.19** freeze. The
+only item with a deadline *earlier* than either is **C8's parser rescue**, which dies at P6.11.
+
+⚠️ **If you want a smaller 2.0:** cut **C1**. It is the largest and the only one whose absence a user
+cannot currently see — the acks are invisible rather than wrong. **C5, C6 and C9 are the three I would
+not cut**, because each is the app stating or doing something untrue.
+
 ## D · DO NOT BUILD — refuted, with reasons on the record
 
 **The finale's confetti** (the rule is younger than the behaviour; the benchmark permits it) ·
