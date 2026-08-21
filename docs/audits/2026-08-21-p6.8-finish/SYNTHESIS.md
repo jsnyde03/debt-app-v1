@@ -19,6 +19,13 @@
 | **R6** (onboarding/tier) | 6 of 6 survived in substance | **2 of 6 wrong**, 1 downgraded on a decision that already existed |
 | **R3** (journey) | 6 of 6 survived | 1 of 6 wrong in a clause — *and it is the exception that proves the rule, see below* |
 | **R5** (accessibility) | 7 of 7 survived | **1 of 7 wrong — and it refuted the audit's most alarming single sentence** |
+| **R4** (visual) | 5 of 8 confirmed · 1 downgraded · **2 refuted** | 1 of 8 wrong — **and R4's own premise about the instrument was wrong too** |
+
+⛔ **The pattern landed on a refuter, which is the strongest evidence for it.** R4 asserted the `state-*`
+and `textscale-*` frames were never re-shot; file mtimes say otherwise (routes 12:00, states 12:07–12:08,
+text-scale 12:09) — it read them **mid-re-shoot**. Its observations, which rest on reading pixels rather
+than on that premise, all stand. **Nobody in this audit — lens, refuter, or me — got a mechanism right by
+reasoning about it. Every correct one came from running something.**
 
 ⭐ **R3 is the informative exception: a "no caller anywhere" cluster where NOTHING refuted.** Its own
 explanation of why is worth keeping — *every one of those paths is gated by a pure function of persisted
@@ -237,12 +244,106 @@ that rule flags both shapes, and `aria-valid-attr-value` (which *is* in the list
 
 ---
 
-## 📋 STILL OPEN
+## 🎨 VISUAL — R4, and the refuter fell into the audit's own trap
 
-**R4 (visual/contrast)** is still running — 362 lines written so far. The claim awaiting its verdict:
-**V1-2**, that 17 of 32 light-theme token pairs fail WCAG AA against 0 of 32 dark — *"dark is the theme
-that was designed; light is dark's tokens inverted and never re-measured against its own ground."*
-⚠️ R4 is instructed to **re-derive the numbers** rather than trust them, and to check whether the
-**large-text 3:1 floor** applies at each failing site — that alone may downgrade several. It is also
-re-checking every visual finding against the **corrected** frames, since four lenses read the defective
-instrument.
+⛔ **R4's premise about the instrument is WRONG, and I verified it by file mtime rather than accepting
+it.** It reports that *"only the route frames were re-shot; the 32 `state-*` and all `textscale-*` frames
+are still the 700 ms instrument."* They were re-shot: routes landed **12:00**, `state-today-empty.png`
+**12:07** (now 91,738 bytes against the 21 KB cold-start artifact V4 reported), `state-progress-huge.png`
+**12:08**, `textscale-2x-*` **12:09**. R4 read them **mid-re-shoot** and generalised from what it saw.
+
+⚡ **Its observations still hold, and that is the point** — this is the audit's own headline pattern
+landing on a refuter: *the observation survives, the premise fails.* Its refutations of V4-9 and V4-11
+rest on **reading the pixels** (a fully rendered ring in 8/8 Progress frames, 122 gold px each, both
+themes), not on the re-shoot claim, so they stand.
+
+| finding | verdict |
+|---|---|
+| **V1-2** light AA grid | ✅ **CONFIRMED — strengthened** |
+| **V2-6** coach mark covers its own subject | ✅ **CONFIRMED to the pixel** |
+| **V1-5** `border.default` invisible in light | ✅ **CONFIRMED, reframed** |
+| **V1-1** Guardian chip | ✅ **CONFIRMED** (`clear`; other two computed) |
+| **V2-1 / V4-7** date truncation | ⚠️ **MECHANISM WRONG, OBSERVATION HOLDS** |
+| **V4-8** labelled empty chart | 🟡 **DOWNGRADED** |
+| **V4-9** invisible skeleton ring · **V4-11** stray hairlines | ⛔ **REFUTED** |
+
+**V1-2 survives independent re-derivation and gets worse.** R4 reproduced all 64 cells: light floor
+**2.63**, dark floor **4.75**, **17/32 vs 0/32**. ⛔ **The large-text 3:1 attack — the one most likely to
+collapse it — reaches only 2 of 10 named sites, and both still fail even that floor** (`accent.success`
+at 30/800 on `#e6ebf3` = **2.81**). Two honest corrections *against* the lens: light's `secondary` and
+`elevated` are the same hex, so the real figure is **15 of light's 24 distinct pairs (62.5 %)**; and
+`accent.gold` is used as a text colour **zero times**, so its cells are 1.4.11 icon cells and the 2.63
+floor is a grid minimum rather than a rendered one.
+
+**V1-5 reframed, and the reframe matters:** the byte-walk reproduces exactly (light border `#e7e9ee`,
+ΔL\* **0.56**; dark `#313d57`, ΔL\* **20.88**) — but by SC 1.4.11 **all four boundaries fail 3:1, dark
+included** (border 1.75, fill 1.21). ⚡ **Dark is perceptually fine and formally non-conformant**, so the
+lens's light-vs-dark parity framing understates the problem while pointing at the right pixels.
+
+**V2-6 measured, not argued:** trajectory card top `y=569`; `569 − 132 = 437`; observed callout top
+**437**. And the callout's real height is **144 px** at 402 pt versus 122–123 at wider widths — so
+`rect.y − 132` puts its bottom **12 px inside the subject**, breaking the fallback's own documented
+invariant.
+
+**V2-1's numbers are wrong and its point is under-claimed:** `October 2026` is 12 chars using 165 of
+186 pt — "~11 characters" is off, and 2 months truncate rather than 4. ⚠️ But the truncating seed is **a
+single $1,200 debt**, not the exotic one — so it is likelier than the lens claimed.
+
+⭐ **And the instrument bug's real cost is the opposite of what it looked like.** R4: *"V4-9, V4-11 and 3
+of V4-8's 4 citations were killed by the lens, not the instrument."* V1-0 supplied a ready-made
+*"it looks unfinished"* explanation that got **reached for on frames it never touched**. Meanwhile V4-8
+**does** reproduce — in `split-view/{light,dark}/progress.png`, in **both** themes, which nobody read.
+⚡ *A known instrument defect is itself a hazard: it becomes the explanation of first resort.*
+
+---
+
+# ⭐ P6.8.6 — WHAT NEEDS A DECISION FROM 🎯
+
+⛔ **Nothing below is built.** The charter is explicit: *anything structural is a SCOPE CALL, never an
+automatic fix, or the sweep expands the freeze it exists to protect.* Feature lock closes at **P6.10**, so
+these still have somewhere to go — that is the only reason this gate sits here.
+
+## A · SUBMISSION BLOCKERS — not scope calls, they must be done
+
+These are not optional and most are **copy, not code**, so they do not threaten the freeze.
+
+| # | what | cost |
+|---|---|---|
+| **A1** | Rewrite the **live ASC description** from `paywall.tsx:28-42` — it currently sells six premium features that don't exist or ship free | copy, ASC only |
+| **A2** | Fix the **live** `privacy.html` + `support.html` *(in the OTHER repo — `site/` here is a decoy)*: the iCloud bullet, the crash-reporting tense, the four-wrong premium sentence, and the FAQ's instructions for a CSV import that doesn't exist | copy, other repo |
+| **A3** | **Declare Diagnostics/Crash Data on the ASC privacy label** — Sentry's DSN ships and the plan says only "RevenueCat" | ASC checkbox |
+| **A4** | Reword `WelcomeStep.tsx:19` — the first screen promises a premium feature | ⚠️ **code — must beat the P6.19 freeze** |
+
+## B · DEFECTS I WOULD BUILD IN 2.0 — my recommendation, your call
+
+| # | what | why now |
+|---|---|---|
+| **B1** | **`NaN <= 0` amount guards** — 12 sites, 7 files. `"1,200"` silently becomes **$0 filed under `PAID OFF`** | data corruption from a plausible keystroke; the correct expression already exists at `WindfallSheet.tsx:50` |
+| **B2** | **Free users can never see the celebration or finale** | the product's emotional payoff, absent for the majority tier |
+| **B3** | **The iCloud toggle destroys the declined backup** — ⚠️ and the obvious fix does NOT work; `shouldAutoBackup` has no clause about the remote | the only finding here that **destroys otherwise-recoverable data** |
+| **B4** | **Corrupt store = silent wipe** + **`dataRepairs` rendered by nothing** | one of these turns a loud failure into a silent one |
+| **B5** | **`aria-allowed-attr` in the axe spec** (1 line) + the Guardian vocabulary label (1 line) | cheapest real wins in the audit; a11y gate coverage is currently **zero** |
+| **B6** | **Light-theme contrast** — 15 of 24 distinct pairs fail AA; dark fails **0** | the whole light theme is below a standard the app already meets in dark |
+
+## C · 🔴 THE SCOPE CALLS — these genuinely add capability
+
+| # | the gap | verdict I'd give |
+|---|---|---|
+| **C1** | **The absorb path has no user entry point** — `surpriseOutflow`/`actualIncome` exist only in the tutorial. Two safety-net acks Today is built to render can never fire | **2.0** — it makes built UI dead |
+| **C2** | **`usePaydayCapture.open()` has no caller** — after "Skip this payday" there is no way back into the app's central recurring moment | **2.0** — small, and it strands the core loop |
+| **C3** | **A user away one cycle + 8 days is stranded** — the date can be advanced, the cycle cannot | **2.0 if cheap**, else 2.1 |
+| **C4** | ⚡ **The Payday Countdown Live Activity can never start** — `currentDate` is a cycle anchor and the gate needs ≤ 3 days. A whole premium feature, plus the only second rollover door | **needs a device check first** — source-only |
+| **C5** | **No "no-bills" branch** — the app tells a user who never entered rent *"You're caught up for this paycheck"* | **2.0** — it is a false statement about money |
+| **C6** | **Trust copy at the first data-entry moment** *(M4-8)* — the wording already exists in `DEBT_BENCH_TRUST_FIRSTRUN` §R1; T2/T4 shipped, T1/T3 didn't, and the doc calls that pair *"the single highest-leverage trust change"* | **2.0** — copy, best ratio in the audit |
+| **C7** | **Snowball vs avalanche side by side** — both simulations already run on every render; `TrajectoryChart.tsx:133` discards one | **2.1** — real work, and the listing sold it |
+| **C8** | **CSV import** — `core/imports/debtCsv.ts` exists and its only caller is the tree **P6.11 deletes**. The live listing advertises it as free | **decide before P6.11**, or it leaves with the old surface |
+| **C9** | **"Delete all data" leaves the iCloud copy** — the next launch offers the previous owner's plan to whoever holds the phone. `CloudBackupProvider` has no `delete` | **2.0** — privacy, and it is a one-method gap |
+| **C10** | **Money-back guarantee** *(P1-12)* — ⛔ **already decided**: the proof window was reassigned to the free tier. Listed only so it is not re-raised | **no action** |
+
+## D · DO NOT BUILD — refuted, with reasons on the record
+
+**The finale's confetti** (the rule is younger than the behaviour; the benchmark permits it) ·
+**the eyebrow sweep** (mechanism false on iOS — 32 test pins for a change invisible to users) ·
+**`PressableScale` app-wide** (57 of 69 targets have no press feedback; "app-wide" is a new design inside
+a freeze) · **the invisible skeleton ring and Today's stray hairlines** (refuted on the pixels) ·
+**"Progress's headline is announced by nothing"** (Chromium exposes it).

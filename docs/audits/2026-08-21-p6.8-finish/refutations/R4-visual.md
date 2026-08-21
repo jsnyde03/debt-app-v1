@@ -360,3 +360,285 @@ is a stronger statement than either lens made.
   line indicates the fixed size was already known to be tight, which is corroboration, not proof.
 
 ---
+
+### R4-V2-6 — the "Drag the curve" coach mark covers the cash-flow chart at short viewports
+**Verdict:** **CONFIRMED — and the mechanism is confirmed to the pixel.** ⚡ I can also add a measurement
+neither lens had, which turns "wrong by construction" from an argument into a number.
+
+**Re-checked against which frame:** **all five are re-shot, settled frames** —
+`phone/light/progress.png` (12:00), `phone-small/light/progress.png` (12:01),
+`ipad-landscape/light/progress.png` (11:50), `split-view/light/progress.png` (11:50),
+`ipad-portrait/light/progress.png` (11:49). ⭐ **This finding is completely clean of the instrument bug**;
+I read the current frames as images and confirmed the split by eye before measuring it.
+
+**What the frames show.** On `phone` (402×874) the callout sits squarely across the cash-flow card: the
+lower half of all five bars is cut off mid-bar, and the date axis, the
+`--- your $200 line · room after each paycheck` legend and the `Comfortable across the next few paychecks`
+verdict are **all gone**. Identical at `phone-small` (320×568) and `ipad-landscape` (1194×834). At
+`split-view` (507×1194) and `ipad-portrait` (834×1194) the callout is a clean card **below** the trajectory
+card and the cash-flow chart is entirely intact, legend and verdict included. **Three short viewports
+broken, two tall ones correct — keyed on HEIGHT, not width, exactly as V2-6 says.**
+
+**My own measurement — the mechanism, numerically.** I walked columns for the `border.subtle` hairline
+(`#f1f2f5`, which I independently derived as `rgba(16,38,84,0.06)` over `#ffffff`):
+
+```
+ipad-landscape/light/progress.png   x=700   hairlines at y = 233, 437, 560, 569, 737
+   -> 437 = callout TOP    560 = callout BOTTOM    569 = trajectory card TOP  (= rect.y)
+phone/light/progress.png            x=200   callout TOP y=437 , callout BOTTOM y=580
+   -> directly above y=437 sits #95a3b8..#9aa7bc — a cash-flow BAR, cut off
+split-view/light/progress.png       x=470   callout TOP y=975 , ground resumes y=1098
+```
+
+⚡ **`rect.y = 569`. `569 − 132 = 437`. The observed callout top is 437.** The claimed mechanism
+```js
+const top = roomBelow ? below : Math.max(insets.top + 8, rect.y - 132);
+```
+is **exactly** what runs, to the pixel.
+
+**How I tried to break it.**
+- **Is there a later branch that overrides `top`?** ⛔ No. I read `CoachMarkLayer.tsx` end to end. `top` is
+  computed once (line 118) and consumed once, unmodified, at `style={[styles.wrap, { top, left, right }]}`.
+  Everything after it (`rawLeft` / `rawRight` / `deficit`) touches only the **horizontal** axis — which is
+  the 4.1.5.5 fix the file documents at length. **The vertical axis has no neighbour-awareness and no
+  second chance.**
+- **Is `roomBelow` really false on the short viewports?** `winH − below − insets.bottom > 140`, with
+  `insets.bottom = 0` in the web harness. On phone `rect.y = 569` and the trajectory card runs past the
+  fold, so `below > 874` and the expression is negative. On split-view (`winH = 1194`) it is true — and the
+  frame proves it: the callout top there is **975**, i.e. the `below` branch, sitting under the trajectory
+  card. **Both branches observed, both matching.**
+- **Is the subject really the trajectory card?** `progress.tsx:73` `useCoachMark('trajectory-scrub', true)`
+  and `:202` `<TutorialTarget id="trajectory-scrub">`; copy at `coachMarkCopy.ts:40` is verbatim
+  *"Drag the curve" / "Scrub any month to see what you owe and when you land."* — which is what the frames
+  render. Yes.
+
+**⚡ The measurement neither lens had: `132` is wrong, and I can say by how much.** I measured the
+callout's *actual* rendered height from its two hairlines:
+
+| viewport | body wraps to | callout height | bottom edge lands at | vs subject top (`rect.y`) |
+|---|---|---|---|---|
+| **phone 402** | **2 lines** | **144 px** (437→580) | `rect.y + 12` | ⛔ **overlaps the subject by 12 px** |
+| ipad-landscape 1194 | 1 line | **123 px** (437→560) | `rect.y − 9` | clears by 9 px |
+| split-view 507 | 1 line | **122 px** (975→1097) | *(below-branch, n/a)* | — |
+
+⛔ **The fallback branch's one stated guarantee is that it will not cover the subject** — the docstring
+says so: *"a callout that covers it explains something the user can no longer see."* At 402 pt the body
+wraps to two lines, the callout becomes 144 px, and **its bottom edge lands 12 px inside the trajectory
+card it exists to explain.** The hardcoded `132` matches neither the one-line height (122–123) nor the
+two-line height (144). V2-6 argued it was "wrong by construction the moment the copy wraps differently";
+I measured the wrap and the overshoot. ⚡ **So on the app's default width it does not merely occlude the
+neighbour above — it also breaks its own invariant.**
+
+**Residual doubt.**
+- `insets.bottom = 0` on web; on device the home-indicator inset is ~34 pt, which makes `roomBelow` *less*
+  likely to be true and pushes *more* viewports into the broken branch. The device row can only worsen this.
+- I did not test whether a real iPhone's `rect.y` differs (safe-area top differs). The mechanism is
+  arithmetic over measured inputs and will hold with different ones; only the exact y moves.
+- Whether occluding the neighbour is *worse* than occluding the subject is a design call, not mine. What is
+  not a call: at 402 pt it does **both**.
+
+---
+
+### R4-V4-8 / R4-V4-9 / R4-V4-11 — the three loading-state defects
+⚠️ This cluster is where the instrument bug did its damage, and the three do not survive together.
+
+#### R4-V4-9 — invisible skeleton ring, light theme
+**Verdict:** ⛔ **REFUTED as observed.** *(The latent token collision is real in code and has never been
+rendered.)*
+
+**Re-checked against which frame:** the two the lens cites —
+`phone/light/state-progress-single.png` (⚠️ **not** re-shot, 11:17 — so this is the *same* frame the lens
+read) and `phone/light/progress.png` (re-shot, 12:00).
+
+**My own measurement.** The journey ring's milestone nodes are `accent.gold.dark` `#fbd34d`
+(`progress.tsx:41–45` pins the ring palette to the **dark** tokens in both themes). I counted them in every
+Progress frame:
+
+```
+                        light      dark
+progress.png            122 px     122 px     bbox x 93..151  y 80..137
+state-progress-single   122 px     122 px     bbox x 93..151  y 80..137
+state-progress-many     122 px     122 px
+state-progress-huge     122 px     122 px
+```
+
+⚡ **The ring renders in all eight frames, in both themes, at 122 gold pixels each — identical.** I also
+cropped the hero of `light/state-progress-single.png` at 3×: a complete ring with all four milestone nodes.
+**`0% paid` is not floating in an empty navy void in any frame in this matrix.** ⛔ And this is **not** an
+instrument casualty — `state-progress-single.png` was never re-shot, so I read exactly the bytes the lens
+read, and they do not say what the lens says.
+
+**How I tried to break my own refutation.** The lens's *reasoning* is sound: `ChartSkeleton` does paint
+`borderColor: c.border.subtle` (`ChartSkeleton.tsx:19`), the Progress hero **is** the CONSTANT navy panel
+in both themes, and light `border.subtle` composited over `#0e2242` is **`#0e2243`** — **ΔL\* ≈ 0.02**,
+literally invisible — where dark's `rgba(255,255,255,0.08)` gives `#213451` and reads clearly. **The token
+collision is real.** What is not real is the claim that a frame shows it. ⭐ **File it as a latent code
+defect with no observed instance, not as an observed defect.**
+
+**Residual doubt.** The state is genuinely reachable (a cold CDN fetch of the 8 MB wasm), so it could
+appear on a slow connection even though it did not appear here. I can bound nothing about its frequency;
+only that this matrix never caught it.
+
+#### R4-V4-11 — stray hairlines under Today's allocation bar, light theme
+**Verdict:** ⛔ **REFUTED.**
+
+**Re-checked against which frame:** `phone/light/state-today-huge.png` and its dark twin (⚠️ neither
+re-shot — again, the exact frames the lens read), plus `state-today-many`, `state-today-single` and
+`state-today-long-names` in both themes.
+
+**My own measurement.** I cropped the Payday Guardian card at 3× in both themes. **Light draws a proper
+blue/grey split bar with the line marker** — same bar as dark, same rounded ends, same legend
+(`▬ Cushion $200 · ▬ To debt $13,738`). There are **no four stacked hairlines** anywhere in the card. Then
+I counted the bar's fill token across every Today seed:
+
+| seed | light `#2f66ea` | dark `#5b9dff` |
+|---|---|---|
+| `state-today-huge` | **4 515 px** | 4 555 px |
+| `state-today-single` | **2 794 px** | 2 544 px |
+| `state-today-long-names` | **3 844 px** | 3 841 px |
+| `state-today-many` | **34 px** | **34 px** |
+
+⚡ **Light and dark agree in every seed.** (`many` is a shortfall cycle with no to-debt allocation, so
+there is nothing to draw — and it is *symmetric*, which is the point: that is data, not a theme fault.)
+**The `AllocationBarCanvas` Skia path resolved in every Today frame in the matrix.**
+
+**How I tried to break my own refutation.** I checked I had the right card and the right band — the crop
+carries the `PAYDAY GUARDIAN` eyebrow, the `Looks clear this paycheck` verdict and the exact `$200` /
+`$13,738` figures the lens quotes, and spans y 380–540, which contains the lens's `y ≈ 440`.
+⛔ Note also that V4-11 cites `light/state-today-empty.png` as evidence — **the frame V4's own "What I
+could not judge" section declares unusable** (a 21 KB cold-start artifact at ~15 % opacity). A finding
+cannot rest on a frame its own lens has already disqualified.
+
+#### R4-V4-8 — a labelled chart with no curve reads as a failed chart
+**Verdict:** **DOWNGRADED.** The defect **class** is real and source-confirmed, and I found it in the
+current capture — but **every frame the lens cited is refuted, and it is not a light-theme defect.**
+
+**Re-checked against which frame:** all four cited, **plus** two the lens never read.
+
+**My own measurement.**
+- ⛔ `phone/light/state-progress-huge.png` (**not** re-shot) draws a **complete blue curve**, its area
+  fill, the endpoint dot, ten gridlines, ten y-labels and the gold `Nov 2028` pill — structurally
+  indistinguishable from its dark twin. **Refuted.**
+- ⛔ `phone/light/state-progress-single.png` (**not** re-shot) draws the full grey minimum-payments curve,
+  the blue plan segment, the endpoint and the `Sep 2026` pill. **Refuted.**
+- ⚠️ `phone/light/progress.png` **was** a genuine instrument casualty — at 700 ms the lens saw it empty; at
+  1800 ms it now draws the curve. **That one the re-shoot fixed.**
+- ⚡ **But it reproduces where nobody looked:** `split-view/light/progress.png` **and**
+  `split-view/dark/progress.png` (both 11:50) each render the complete y-axis (`$6k · $4k · $2k · $0`),
+  **all nine** year ticks, the `Now` marker, the gold `Oct 2026` milestone pill and the full legend
+  (`Minimum payments — Sep 2035`, `Your plan — Oct 2026 · ~$5,722, 9 years saved`) **over an empty plot
+  with no curve, no area and no endpoint.** It reads exactly as the lens described — as a chart that
+  *failed*, not one that is loading.
+
+**Mechanism: CONFIRMED at source, and sharper than the lens put it.** `TrajectoryChart.tsx:307` gates on
+`w > 0 && activePath` — both true before CanvasKit resolves — then renders the RN `Text` labels *outside*
+the canvas while `TrajectoryCanvas` is still a `WithSkiaWeb` fallback. ⚡ And note what the prop list at
+`:322` shows: **`gridLines={gridVals.map(mapY)}` is passed INTO the Skia canvas.** So the curve, the area,
+the endpoint *and the chart's own gridlines* are all Skia-drawn and all absent together, while every label,
+tick, pill and legend row is RN-drawn and present. The lens's identification of the four visible lines as
+`ChartSkeleton`'s `{[0,1,2,3].map(...)}` is therefore **correct by elimination** — the chart's own
+gridlines cannot be on screen without the curve.
+
+**⛔ Three corrections to how it was filed.**
+1. **It is not light-theme-specific.** Both split-view themes show it, identically.
+2. **"Four of eight light Progress frames caught this" is wrong.** Zero of the four cited frames show it.
+3. **It is a race, not a state.** Ring canvases resolved in 8/8 frames; the trajectory canvas failed in
+   2/10 — it carries an extra dynamic `import('./TrajectorySkiaChart')` chunk on top of the shared
+   CanvasKit load, which is the plausible reason it loses more often.
+
+**Is it web-only? — VERIFIED, and the lens is right.** `ChartSkeleton` is imported by **exactly five files,
+all `.web.tsx`** (`TrajectoryCanvas` · `JourneyRingCanvas` · `CashRunwayCanvas` · `CushionBarCanvas` ·
+`AllocationBarCanvas`) and by **nothing** on the native path. `TrajectoryCanvas.tsx` (native) is three
+lines — `<TrajectorySkiaChart {...props} />`, no `WithSkiaWeb`, no `fallback`, no skeleton — and its own
+comment says *"Skia is compiled in, so render directly."* Metro resolves `.web.tsx` for web only.
+⛔ **The state is structurally unreachable on iOS. Severity on device is zero and I am not claiming
+otherwise.**
+
+**Does the web build make it matter anyway? — Yes, but narrowly.** The marketing embed is real and public:
+`.github/workflows/embed-pages.yml` deploys `apps/rn/dist-embed` to GitHub Pages, with
+`playwright.embed.config.ts` gating it at the same base path. ⚠️ But read the workflow's own header: the
+deploy is **`workflow_dispatch` only**, deliberately manual, and gated on the SHA having passed `web-e2e`.
+So the exposure is a **hand-published marketing demo**, not a shipping product surface, and the defect is a
+transient during an 8 MB wasm fetch on that demo. **My judgement: a real but low-severity web-surface
+defect — minor, not major.** The cheap fix is at `TrajectoryChart.tsx:307`: gate the labels on the same
+condition as the canvas, so the card is either wholly loading or wholly drawn. That costs nothing on native
+and removes the failed-chart reading on the embed.
+
+**Residual doubt.** I cannot measure how long the empty-labelled window lasts on a cold CDN fetch — the
+matrix caught it twice at a ~1.8 s local settle, which suggests it is not brief. `V4-16` (the
+`!isHydrated` blank on web) is the same exposure class and I did not test it.
+
+---
+
+## Survivors, ranked
+
+Ranked by *what a fix is worth*, not by the lens's severity label.
+
+| # | finding | verdict | why it ranks here |
+|---|---|---|---|
+| **1** | **V1-2** — light tokens validated on white, rendered on `#e6ebf3` | **CONFIRMED, strengthened** | The arithmetic reproduced cell-for-cell, the large-text exemption reaches only two sites and **both still fail**, five failing pairs are visible in the current settled capture, and correcting the grid makes it *worse*: **15 of light's 24 distinct pairs fail; 0 of dark's 32 do.** It is one token-file edit away from fixed and it explains V1-1, V1-3 and half of V1-5. **Nothing else in this cluster is close.** |
+| **2** | **V2-6** — coach mark occludes the cash-flow chart at short viewports | **CONFIRMED to the pixel** | `rect.y = 569`, `569 − 132 = 437`, observed top **437**. Three short viewports broken, two tall correct. ⚡ And I measured what the lens could only argue: the callout is **144 px** at 402 pt where the code guesses **132**, so its bottom lands **12 px inside the subject** — the fallback branch violates its own documented invariant on the default iPhone width. |
+| **3** | **V1-5** — `border.default` lands 0.6 L\* from the ground | **CONFIRMED, but REFRAMED** | Byte-exact on two axes; the composites match `colors.ts` to the byte. ⚠️ **But the theme-parity framing is wrong:** by SC 1.4.11 (3:1) *all four* boundaries fail — light 1.01/1.20, **dark 1.75/1.21**. Dark is *perceptually* fine and *formally* non-conformant. Fix the criterion, not the parity. ⛔ Its second instance (dashed `AddRow`) quotes DPR-1 dash-antialiasing artifacts, not tokens — the real deltas are 12.57 / 22.30 L\*, not 7.8 / 13.2. |
+| **4** | **V2-1 / V4-7** — the debt-free date truncates at the **default** 402 pt width | **MECHANISM WRONG, OBSERVATION HOLDS** | Two frames at the identical width, one whole (`October 2026`, 165 pt of a 186 pt box) and one ellipsized (`November 2…`). String, not seed — proven by `April 2034` rendering intact on a *later* payoff date. ⛔ But **"~11 characters" is wrong** (12 fit, with 21 pt to spare) and **"4 of 12 months" is unmeasured** — 2 are proven, 3 likely, `February` genuinely doubtful. ⚡ Under-claimed by both lenses: the truncating seed is **a single $1,200 debt**, the most ordinary first-run position the product has. |
+| **5** | **V1-1** — Guardian band chip fails AA in light | **CONFIRMED (`clear`) / computed (`tight`, `at-risk`)** | 34 px of ink on `background.tertiary` at **identical y-bands in both themes** — the cleanest in-frame measurement in this cluster. 12 px bold is **not** WCAG large text, so the 4.5 floor stands and all three bands fail (4.25 / 3.92 / 3.77) against dark's 8.83 / 10.57 / 6.55. ⚠️ Ranks 5th only because two of its three states appear in **no frame in the matrix** — which is itself a gap worth filing. |
+| **6** | **V4-8** — a labelled chart with no curve reads as failed | **DOWNGRADED** | The defect class is real and source-confirmed (`TrajectoryChart.tsx:307` gates labels on `w > 0 && activePath`, true before CanvasKit resolves; `gridLines` is passed *into* the Skia canvas, so labels and curve cannot disagree honestly). ⛔ But **all four cited frames are refuted**, it is **not light-specific** (both split-view themes show it), it is **structurally unreachable on iOS**, and the web surface is a manually-dispatched marketing demo. **Minor, not major** — with a one-line fix. |
+
+⛔ **Killed outright: V4-9 and V4-11.** Both cite frames that were never re-shot, so I read exactly the
+bytes the lens read — and the ring renders in 8/8 Progress frames (122 gold px each, both themes) while
+the allocation bar renders in every Today seed (light/dark symmetric to within 5 %).
+
+---
+
+## Findings killed by the defective instrument
+
+⚠️ **This list is the cost of the instrument bug — and reading it carefully shows the bug cost *less*
+than it looks, while a second failure mode cost more.**
+
+### Genuinely killed by the instrument
+
+| what died | how |
+|---|---|
+| **V1-8** — *"no onboarding frame exists in either theme; `onboarding.png` renders Today"* | ⛔ **Now void.** The re-shot `phone/light/onboarding.png` is **81.11 % `#e6ebf3`** with `accent.brand` `#0f172a` at 5.11 % and **zero** hero-gradient pixels (`#0c1c38`/`#0c1d3a`), where `today.png` carries 2.40 % + 2.30 % of exactly those. It is genuinely onboarding. O1's primary surface exists again. |
+| **V1-0 itself** — the mid-animation asymmetry | ⛔ **Void for route frames.** `light/today.png` is 40.05 % card-token against `dark/today.png`'s 39.85 %; Progress is 48.95 vs 48.77 %. The pairs are the same frame in two themes to within a fifth of a percent. |
+| **V1's entire "leads I chased and did NOT file" table** — 8 leads, incl. *"the light Today screen is washed out"* and *"the dark Progress bars are dim and shorter"* | These were killed **during** the audit by V1-0. They cost eight investigations that produced nothing. |
+| **V2's "frame artifacts" list** — incl. *"`phone/light/cushion-forecast.png` renders an empty chart"* | Now settled (43.69 % / 28.77 % token-exact) and the chart draws. |
+| **V4-8's `phone/light/progress.png` citation** | ⚡ **The one true instrument casualty in the loading cluster.** Empty at the 700 ms settle, curve present at 1800 ms. |
+| **V4-12's light evidence** | The lens had to judge Today's `empty` state from the **dark twin alone**, because `light/state-today-empty.png` is a 21 KB cold-start artifact. Half its evidence base was gone before it started. |
+
+### ⚡ NOT killed by the instrument — killed by the lens
+
+⛔ **This is the sharper lesson.** **V4-9 and V4-11, and three of V4-8's four citations, cite frames that
+were never re-shot and are perfectly intact.** I read the identical bytes and found a fully-rendered ring,
+a fully-rendered split bar and two fully-rendered trajectory curves. The instrument did not manufacture
+those three findings.
+
+What did: **V1-0 established that "a chart/card looks unfinished" was a live, respectable reading of this
+matrix — and V4 then applied that reading to frames that did not need it.** A known instrument defect
+does not only destroy the frames it touched; it supplies a **ready-made explanation** that gets reached
+for on frames it never touched. ⚡ **Three of the four "loading-state" findings — the cluster V4 called
+"the three nobody was assigned to look for" — are contamination by narrative, not by instrument.**
+
+### ⛔ Still standing on the old instrument — nobody re-shot these
+
+| frame class | count | who depends on it |
+|---|---|---|
+| **`state-*.png`** | **32** (16 seeds × 2 themes), all still **11:17–11:18** | **all of V4**, and the entire 402 pt evidence for **V2-1 / V4-7** |
+| **`textscale-*.png`** | every one, still **11:18–11:19** | ⛔ **all of V3**, which no re-shoot has touched at all |
+
+I neutralised the `state-*` risk for V2-1/V4-7 specifically (light and dark agree to the pixel: 1483
+bright px each, x-extents `176..351` and `177..352` — an animation artifact cannot land byte-for-byte in
+two independent captures) and for V4-9/V4-11 (the frames render correctly, so there is nothing to
+neutralise). ⚠️ **I did not clear the rest.** Any V3 or V4 finding not covered above is still reading the
+700 ms instrument, and **the cheap, decisive move before this audit closes is to re-run the `state-*` and
+`textscale-*` sets at the 1800 ms settle** — the same fix that has already voided one lens finding
+outright (V1-8) and one citation (V4-8's).
+
+---
+
+## One line
+
+⚡ **The token file is the finding.** V1-2, V1-1, V1-5 and the dead V4-9 are all the same defect —
+*light's foregrounds and borders were validated against `#ffffff`, and light's surfaces are not `#ffffff`* —
+and it is the only thing in this cluster where a single file edit moves five findings at once. Everything
+else here is one layout constant (`132`), one clamp (`numberOfLines={1}` at 26/800 in a 186 pt box), and
+one render gate (`w > 0 && activePath`).
