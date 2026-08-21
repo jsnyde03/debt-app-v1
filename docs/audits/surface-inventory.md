@@ -19,31 +19,25 @@ a surface reaching more than one renderer is where it can stop doing so. *(Wave 
 
 | surface | shared | hand-rolled (local) |
 |---|---|---|
-| `apps/rn/src/app/(tabs)/_layout.tsx` | — | — |
-| `apps/rn/src/app/(tabs)/index.tsx` | formatCurrency · formatWhole | money0@apps/rn/src/components/plan/LeanSuggestionCard.tsx · money0@apps/rn/src/components/plan/PlanHero.tsx · money@apps/rn/src/components/plan/AffordabilityCard.tsx · money@apps/rn/src/components/plan/PaydayGuardianCard.tsx · money@apps/rn/src/components/plan/RecoveryPlanSection.tsx · money@apps/rn/src/components/plan/SaveForItSheet.tsx |
+| `apps/rn/src/app/(tabs)/_layout.tsx` | formatCurrency · formatWhole | — |
+| `apps/rn/src/app/(tabs)/index.tsx` | formatCurrency · formatWhole | — |
 | `apps/rn/src/app/(tabs)/money.tsx` | formatCurrency · formatWhole | — |
 | `apps/rn/src/app/(tabs)/progress.tsx` | formatCurrency · formatWhole | formatAxisBalance@apps/rn/src/components/payoff/TrajectoryChart.tsx |
-| `apps/rn/src/app/+not-found.tsx` | — | — |
-| `apps/rn/src/app/_layout.tsx` | formatWhole | — |
-| `apps/rn/src/app/cushion-forecast.tsx` | formatWhole | — |
-| `apps/rn/src/app/demo.tsx` | — | — |
+| `apps/rn/src/app/+not-found.tsx` | formatCurrency · formatWhole | — |
+| `apps/rn/src/app/_layout.tsx` | formatCurrency · formatWhole | — |
+| `apps/rn/src/app/cushion-forecast.tsx` | formatCurrency · formatWhole | — |
+| `apps/rn/src/app/demo.tsx` | formatCurrency · formatWhole | — |
 | `apps/rn/src/app/history.tsx` | formatCurrency · formatWhole | — |
-| `apps/rn/src/app/living-expenses.tsx` | formatCurrency | — |
-| `apps/rn/src/app/more.tsx` | formatWhole | — |
-| `apps/rn/src/app/onboarding.tsx` | — | — |
-| `apps/rn/src/app/paywall.tsx` | — | — |
-| `apps/rn/src/app/schedule/[id].tsx` | formatCurrency | — |
-| `apps/rn/src/app/tutorial.tsx` | — | — |
+| `apps/rn/src/app/living-expenses.tsx` | formatCurrency · formatWhole | — |
+| `apps/rn/src/app/more.tsx` | formatCurrency · formatWhole | — |
+| `apps/rn/src/app/onboarding.tsx` | formatCurrency · formatWhole | — |
+| `apps/rn/src/app/paywall.tsx` | formatCurrency · formatWhole | — |
+| `apps/rn/src/app/schedule/[id].tsx` | formatCurrency · formatWhole | — |
+| `apps/rn/src/app/tutorial.tsx` | formatCurrency · formatWhole | — |
 
-**4** surfaces reach more than one money renderer. **7** hand-rolled formatters exist:
+**15** surfaces reach more than one money renderer. **1** hand-rolled formatters exist:
 
 - `formatAxisBalance@apps/rn/src/components/payoff/TrajectoryChart.tsx`
-- `money0@apps/rn/src/components/plan/LeanSuggestionCard.tsx`
-- `money0@apps/rn/src/components/plan/PlanHero.tsx`
-- `money@apps/rn/src/components/plan/AffordabilityCard.tsx`
-- `money@apps/rn/src/components/plan/PaydayGuardianCard.tsx`
-- `money@apps/rn/src/components/plan/RecoveryPlanSection.tsx`
-- `money@apps/rn/src/components/plan/SaveForItSheet.tsx`
 
 ## Visual — shared primitives, and the ones that are not shared
 
@@ -52,7 +46,6 @@ sharing, or shared code that wants localising. Reachable from none is dead *(Wav
 
 **Reached by exactly one surface:**
 
-- `AddRow` — only `apps/rn/src/app/(tabs)/money.tsx`
 - `CheckCircle` — only `apps/rn/src/app/(tabs)/index.tsx`
 - `MasterDetail` — only `apps/rn/src/app/(tabs)/money.tsx`
 - `PressableScale` — only `apps/rn/src/app/more.tsx`
@@ -78,7 +71,7 @@ _no shared primitives_
 
 ### `apps/rn/src/app/(tabs)/progress.tsx`
 
-`AppIcon` · `AppIcon` · `Button` · `Card` · `ChartSkeleton` · `EmptyState` · `SegmentedToggle` · `Slider`
+`AppIcon` · `AppIcon` · `Button` · `Card` · `ChartSkeleton` · `EmptyState` · `Pill` · `SegmentedToggle` · `Slider`
 
 ### `apps/rn/src/app/+not-found.tsx`
 
@@ -86,27 +79,27 @@ _no shared primitives_
 
 ### `apps/rn/src/app/_layout.tsx`
 
-`AppIcon` · `AppIcon` · `Button` · `Card`
+`AppIcon` · `AppIcon` · `Button` · `Card` · `Pill`
 
 ### `apps/rn/src/app/cushion-forecast.tsx`
 
-`AppIcon` · `AppIcon` · `Card` · `ChartSkeleton`
+`AppIcon` · `AppIcon` · `Button` · `Card` · `ChartSkeleton` · `EmptyState` · `Pill`
 
 ### `apps/rn/src/app/demo.tsx`
 
-_no shared primitives_
+`Pill`
 
 ### `apps/rn/src/app/history.tsx`
 
-`AppIcon` · `AppIcon` · `Card`
+`AppIcon` · `AppIcon` · `Card` · `Pill`
 
 ### `apps/rn/src/app/living-expenses.tsx`
 
-`AppIcon` · `AppIcon` · `Button` · `Card` · `EmptyState` · `FormSheet` · `ListRow` · `Pill` · `RowContextMenu` · `RowContextMenu` · `RowContextMenu.types` · `SheetBackdrop` · `SheetScrim` · `SwitchRow` · `TextField` · `sheet-styles`
+`AddRow` · `AppIcon` · `AppIcon` · `Button` · `Card` · `EmptyState` · `FormSheet` · `ListRow` · `Pill` · `RowContextMenu` · `RowContextMenu` · `RowContextMenu.types` · `SheetBackdrop` · `SheetScrim` · `SwitchRow` · `TextField` · `sheet-styles`
 
 ### `apps/rn/src/app/more.tsx`
 
-`AppIcon` · `AppIcon` · `Button` · `Card` · `FormSheet` · `PressableScale` · `SegmentedToggle` · `SheetBackdrop` · `SheetScrim` · `TextField` · `sheet-styles`
+`AppIcon` · `AppIcon` · `Button` · `Card` · `FormSheet` · `Pill` · `PressableScale` · `SegmentedToggle` · `SheetBackdrop` · `SheetScrim` · `TextField` · `sheet-styles`
 
 ### `apps/rn/src/app/onboarding.tsx`
 
@@ -114,11 +107,11 @@ _no shared primitives_
 
 ### `apps/rn/src/app/paywall.tsx`
 
-`AppIcon` · `AppIcon` · `Button`
+`AppIcon` · `AppIcon` · `Button` · `Pill`
 
 ### `apps/rn/src/app/schedule/[id].tsx`
 
-_no shared primitives_
+`Pill`
 
 ### `apps/rn/src/app/tutorial.tsx`
 
