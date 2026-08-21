@@ -17,6 +17,14 @@
 | **R1** (data loss) | 5 of 6 survived | **3 of 6 wrong** |
 | **R2** (public claims) | 6 of 6 survived | **3 of 6 wrong** |
 | **R6** (onboarding/tier) | 6 of 6 survived in substance | **2 of 6 wrong**, 1 downgraded on a decision that already existed |
+| **R3** (journey) | 6 of 6 survived | 1 of 6 wrong in a clause — *and it is the exception that proves the rule, see below* |
+| **R5** (accessibility) | 7 of 7 survived | **1 of 7 wrong — and it refuted the audit's most alarming single sentence** |
+
+⭐ **R3 is the informative exception: a "no caller anywhere" cluster where NOTHING refuted.** Its own
+explanation of why is worth keeping — *every one of those paths is gated by a pure function of persisted
+state, not by dynamic dispatch, a threaded prop, or a platform entry point, so there was nowhere for a
+hidden caller to hide.* **That is the shape of claim you can trust; the ones that fail are the ones that
+explain a symptom rather than trace a value.**
 
 ⛔ **And twice, the fix the lens proposed would not have closed the defect it found** (R1 on the iCloud
 clobber; R1 on the v1.6 bridge retry). That is the whole argument for the refutation wave: without it,
@@ -186,16 +194,55 @@ the More toggle are all dead. `paydayActivityContent.test.ts:39-40` is green bec
 
 ---
 
-## 📋 STILL OPEN AT TIME OF WRITING
+## 🔵 ACCESSIBILITY — R5, and the best-verified work in the audit
 
-**R4 (visual/contrast)** and **R5 (accessibility)** are still running. The two headline claims awaiting
-their verdict:
-- **V1-2** — 17 of 32 light-theme token pairs fail WCAG AA; 0 of 32 dark. *"Dark is the theme that was
-  designed; light is dark's tokens inverted and never re-measured against its own ground."* ⚠️ R4 is
-  instructed to **re-derive it** rather than trust it, and to check whether the **large-text 3:1 floor**
-  applies at each site — that alone may downgrade several.
-- **A1-6** — 22 of 24 grouped screen-reader utterances invisible **on web** because RNW gives a role-less
-  `div` an `aria-label` that ARIA forbids it to use. **Severity depends entirely on whether iOS shares
-  it**, and on iOS this is the canonical grouping idiom.
+R5 settled its cluster by dumping the accessibility tree from **both Playwright and the installed
+Chromium** and comparing them — the only way to tell a tool artifact from a product defect. Probes pinned
+and regenerable in `refutations/evidence/`.
 
-_This section is replaced when they land._
+⛔ **A1-6 — MECHANISM WRONG, and it refutes the audit's most alarming single sentence.** The RNW half is
+confirmed three files deep (`accessible` is in neither forwarded-props list, so a role-less
+`<div aria-label>` is exactly what ships). But *"ARIA forbids a generic from being named"* describes the
+**spec and Playwright**, not the browser: Playwright's `elementProhibitsNaming` hard-sets the name to `""`
+before reading `aria-label`, while **Chromium exposes it** —
+`generic name="0% paid, no milestones reached yet, next milestone 25%"`. So *"Progress's headline is
+announced by nothing at all"* is **refuted**. iOS is clean (`RCTViewComponentView.mm:350`).
+⚡ What replaces it is subtler and was missed by the lens: **web exposes the composed label AND the child
+fragments**, so web *duplicates* rather than loses — **adding a role alone would not fix ~19 of 20 sites.**
+Count corrected: 20 role-less of 23, not 22 of 24.
+
+**Survivors, all confirmed:**
+- **A1-2** *(both platforms)* — Progress's bars announce the **engine's internal vocabulary**
+  (`stable`/`tight`/`pressure`) instead of the shipped words (`Clear`/`Tight`/`Very tight`). A user on
+  their worst cycle hears *"$120 of room, **pressure**."* **Fix is one line** — `TimelineCycle` already
+  carries `guardianState` beside `cushionStatus`. `glossary.test.ts` reads the constant, not the label.
+- **A1-11** *(web)* — **undercounted 1 → 6 sites**, and three are `role="radio"` + `aria-selected`, where
+  Chromium supplies `checked="false"`: ⛔ **the chosen option is announced as unchosen.** Worse than
+  silence — and none of the three is the paywall.
+- **A1-8** *(both)* — `groupLabel` never takes `badges`, so **Focus** is announced to nobody.
+  **Undercounted**: the BNPL provider name is a third dropped badge, and `money.tsx:473` records dropping
+  it as a deliberate decision.
+- **A1-7** *(web; iOS undecidable)* — `ListRow`'s swipe-delete is announced **before** the row it deletes.
+  ⚠️ **One clause is wrong and it blocks the obvious fix:** `RequiredActionsCard`'s comment records that
+  gating on open/closed **was measured to break the swipe gesture** — so copying its pattern into
+  `ListRow` inherits a documented-as-broken approach.
+- **A1-9 / A1-10** — `AffordabilityCard` has zero a11y props; and the missing half the lens did not find:
+  `announceForAccessibility` is a **literal empty function in RNW**. ⚡ **No primitive in this codebase
+  announces on both platforms** — `aria-live` is web-only, `announce()` is iOS-only.
+
+⭐ **The cheapest item in the entire audit:** adding `aria-allowed-attr` to `a11y-axe.spec.ts:19` gates
+**all six** `a11ySelected` sites. R5 verified it by running the installed axe-core over its own probe —
+that rule flags both shapes, and `aria-valid-attr-value` (which *is* in the list) flags neither.
+⛔ **Gate coverage across all seven a11y findings is currently zero.**
+
+---
+
+## 📋 STILL OPEN
+
+**R4 (visual/contrast)** is still running — 362 lines written so far. The claim awaiting its verdict:
+**V1-2**, that 17 of 32 light-theme token pairs fail WCAG AA against 0 of 32 dark — *"dark is the theme
+that was designed; light is dark's tokens inverted and never re-measured against its own ground."*
+⚠️ R4 is instructed to **re-derive the numbers** rather than trust them, and to check whether the
+**large-text 3:1 floor** applies at each failing site — that alone may downgrade several. It is also
+re-checking every visual finding against the **corrected** frames, since four lenses read the defective
+instrument.

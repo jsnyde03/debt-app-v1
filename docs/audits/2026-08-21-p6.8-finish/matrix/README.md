@@ -59,6 +59,26 @@ navigation, focus behaviour under a live screen reader, haptics. **P6.14.**
 ⚠️ **And one caveat on tree SIZE.** `ariaSnapshot()` emits only nodes that reach the accessibility tree.
 A small tree therefore has two possible causes — *little is exposed to assistive tech* (a finding) or
 *this seed rendered little* (an artifact). **A1 must distinguish them per surface, not assume either.**
+*(Settled by A1: `history` and `living-expenses` are seed artifacts — both screens are genuinely empty.)*
+
+### ⛔ 5 · THIS INSTRUMENT IS PERMANENTLY BLIND TO GROUPED LABELS — measured by R5, do not re-derive
+
+`ariaSnapshot()` **cannot see the app's grouped screen-reader utterances**, and the blindness is a
+property of the tool, not of the app. R5 dumped the tree from **both** Playwright and the installed
+Chromium and they disagree:
+
+- **Playwright** drops the name: `coreBundle.js`'s `elementProhibitsNaming` list contains `generic`, and
+  it hard-sets the accessible name to `""` **before** reading `aria-label`.
+- **Chromium** exposes it: `generic name="0% paid, no milestones reached yet, next milestone 25%"`.
+
+⚡ **So a `- text:` run-on node in `p6.8-a11y/*.txt` is NOT evidence that a label is missing**, and A1's
+strongest-sounding claim — *"Progress's headline is announced by nothing at all"* — was **refuted by
+measurement**. ⚠️ **The trap for the next audit: re-capturing these dumps and seeing the same run-on nodes
+proves nothing at all.** If a future pass needs to judge grouped labels, it must dump the **browser's**
+tree (see `refutations/evidence/ax-probe.mjs`, which does exactly that and is regenerable).
+
+⚠️ What the dumps ARE still good for, unchanged: reading order, roles, states, unnamed controls, and
+which vocabulary a label uses — all of which produced confirmed findings.
 
 ---
 
